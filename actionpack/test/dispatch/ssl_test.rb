@@ -43,34 +43,34 @@ class SSLTest < ActionDispatch::IntegrationTest
   end
 
   def test_hsts_header
-    self.app = ActionDispatch::SSL.new(default_app, :hsts => true)
+    self.app = ActionDispatch::SSL.new(default_app, hsts: true)
     get "https://example.org/"
     assert_equal "max-age=31536000",
       response.headers['Strict-Transport-Security']
   end
 
   def test_disable_hsts_header
-    self.app = ActionDispatch::SSL.new(default_app, :hsts => false)
+    self.app = ActionDispatch::SSL.new(default_app, hsts: false)
     get "https://example.org/"
     assert_not response.headers['Strict-Transport-Security']
   end
 
   def test_hsts_expires
-    self.app = ActionDispatch::SSL.new(default_app, :hsts => { :expires => 500 })
+    self.app = ActionDispatch::SSL.new(default_app, hsts: { expires: 500 })
     get "https://example.org/"
     assert_equal "max-age=500",
       response.headers['Strict-Transport-Security']
   end
 
   def test_hsts_expires_with_duration
-    self.app = ActionDispatch::SSL.new(default_app, :hsts => { :expires => 1.year })
+    self.app = ActionDispatch::SSL.new(default_app, hsts: { expires: 1.year })
     get "https://example.org/"
     assert_equal "max-age=31557600",
       response.headers['Strict-Transport-Security']
   end
 
   def test_hsts_include_subdomains
-    self.app = ActionDispatch::SSL.new(default_app, :hsts => { :subdomains => true })
+    self.app = ActionDispatch::SSL.new(default_app, hsts: { subdomains: true })
     get "https://example.org/"
     assert_equal "max-age=31536000; includeSubDomains",
       response.headers['Strict-Transport-Security']
@@ -176,42 +176,42 @@ class SSLTest < ActionDispatch::IntegrationTest
   end
 
   def test_redirect_to_host
-    self.app = ActionDispatch::SSL.new(default_app, :host => "ssl.example.org")
+    self.app = ActionDispatch::SSL.new(default_app, host: "ssl.example.org")
     get "http://example.org/path?key=value"
     assert_equal "https://ssl.example.org/path?key=value",
       response.headers['Location']
   end
 
   def test_redirect_to_port
-    self.app = ActionDispatch::SSL.new(default_app, :port => 8443)
+    self.app = ActionDispatch::SSL.new(default_app, port: 8443)
     get "http://example.org/path?key=value"
     assert_equal "https://example.org:8443/path?key=value",
       response.headers['Location']
   end
 
   def test_redirect_to_host_and_port
-    self.app = ActionDispatch::SSL.new(default_app, :host => "ssl.example.org", :port => 8443)
+    self.app = ActionDispatch::SSL.new(default_app, host: "ssl.example.org", port: 8443)
     get "http://example.org/path?key=value"
     assert_equal "https://ssl.example.org:8443/path?key=value",
       response.headers['Location']
   end
 
   def test_redirect_to_host_with_port
-    self.app = ActionDispatch::SSL.new(default_app, :host => "ssl.example.org:443")
+    self.app = ActionDispatch::SSL.new(default_app, host: "ssl.example.org:443")
     get "http://example.org/path?key=value"
     assert_equal "https://ssl.example.org:443/path?key=value",
       response.headers['Location']
   end
 
   def test_redirect_to_secure_host_when_on_subdomain
-    self.app = ActionDispatch::SSL.new(default_app, :host => "ssl.example.org")
+    self.app = ActionDispatch::SSL.new(default_app, host: "ssl.example.org")
     get "http://ssl.example.org/path?key=value"
     assert_equal "https://ssl.example.org/path?key=value",
       response.headers['Location']
   end
 
   def test_redirect_to_secure_subdomain_when_on_deep_subdomain
-    self.app = ActionDispatch::SSL.new(default_app, :host => "example.co.uk")
+    self.app = ActionDispatch::SSL.new(default_app, host: "example.co.uk")
     get "http://double.rainbow.what.does.it.mean.example.co.uk/path?key=value"
     assert_equal "https://example.co.uk/path?key=value",
       response.headers['Location']

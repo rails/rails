@@ -49,7 +49,7 @@ module ActionView
 
       include ActiveSupport::Testing::ConstantLookup
 
-      delegate :lookup_context, :to => :controller
+      delegate :lookup_context, to: :controller
       attr_accessor :controller, :output_buffer, :rendered
 
       module ClassMethods

@@ -25,50 +25,50 @@ Somewhere = Struct.new(:street, :city) do
 end
 
 class Someone < Struct.new(:name, :place)
-  delegate :street, :city, :to_f, :to => :place
-  delegate :name=, :to => :place, :prefix => true
-  delegate :upcase, :to => "place.city"
-  delegate :table_name, :to => :class
-  delegate :table_name, :to => :class, :prefix => true
+  delegate :street, :city, :to_f, to: :place
+  delegate :name=, to: :place, prefix: true
+  delegate :upcase, to: "place.city"
+  delegate :table_name, to: :class
+  delegate :table_name, to: :class, prefix: true
 
   def self.table_name
     'some_table'
   end
 
   FAILED_DELEGATE_LINE = __LINE__ + 1
-  delegate :foo, :to => :place
+  delegate :foo, to: :place
 
   FAILED_DELEGATE_LINE_2 = __LINE__ + 1
-  delegate :bar, :to => :place, :allow_nil => true
+  delegate :bar, to: :place, allow_nil: true
 end
 
 Invoice   = Struct.new(:client) do
-  delegate :street, :city, :name, :to => :client, :prefix => true
-  delegate :street, :city, :name, :to => :client, :prefix => :customer
+  delegate :street, :city, :name, to: :client, prefix: true
+  delegate :street, :city, :name, to: :client, prefix: :customer
 end
 
 Project   = Struct.new(:description, :person) do
-  delegate :name, :to => :person, :allow_nil => true
-  delegate :to_f, :to => :description, :allow_nil => true
+  delegate :name, to: :person, allow_nil: true
+  delegate :to_f, to: :description, allow_nil: true
 end
 
 Developer = Struct.new(:client) do
-  delegate :name, :to => :client, :prefix => nil
+  delegate :name, to: :client, prefix: nil
 end
 
 Event = Struct.new(:case) do
-  delegate :foo, :to => :case
+  delegate :foo, to: :case
 end
 
 Tester = Struct.new(:client) do
-  delegate :name, :to => :client, :prefix => false
+  delegate :name, to: :client, prefix: false
 
   def foo; 1; end
 end
 
 Product = Struct.new(:name) do
-  delegate :name, :to => :manufacturer, :prefix => true
-  delegate :name, :to => :type, :prefix => true
+  delegate :name, to: :manufacturer, prefix: true
+  delegate :name, to: :type, prefix: true
 
   def manufacturer
     @manufacturer ||= begin
@@ -84,15 +84,15 @@ Product = Struct.new(:name) do
 end
 
 class ParameterSet
-  delegate :[], :[]=, :to => :@params
+  delegate :[], :[]=, to: :@params
 
   def initialize
-    @params = {:foo => "bar"}
+    @params = {foo: "bar"}
   end
 end
 
 class Name
-  delegate :upcase, :to => :@full_name
+  delegate :upcase, to: :@full_name
 
   def initialize(first, last)
     @full_name = "#{first} #{last}"
@@ -102,8 +102,8 @@ end
 class SideEffect
   attr_reader :ints
 
-  delegate :to_i, :to => :shift, :allow_nil => true
-  delegate :to_s, :to => :shift
+  delegate :to_i, to: :shift, allow_nil: true
+  delegate :to_s, to: :shift
 
   def initialize
     @ints = [1, 2, 3]
@@ -159,7 +159,7 @@ class ModuleTest < ActiveSupport::TestCase
       Name.send :delegate, :nowhere
     end
     assert_raise(ArgumentError) do
-      Name.send :delegate, :noplace, :tos => :hollywood
+      Name.send :delegate, :noplace, tos: :hollywood
     end
   end
 
@@ -188,7 +188,7 @@ class ModuleTest < ActiveSupport::TestCase
         def initialize(client)
           @client = client
         end
-        delegate :name, :address, :to => :@client, :prefix => true
+        delegate :name, :address, to: :@client, prefix: true
       end
     end
   end
@@ -216,7 +216,7 @@ class ModuleTest < ActiveSupport::TestCase
 
   def test_delegation_with_allow_nil_and_nil_value_and_prefix
     Project.class_eval do
-      delegate :name, :to => :person, :allow_nil => true, :prefix => true
+      delegate :name, to: :person, allow_nil: true, prefix: true
     end
     rails = Project.new("Rails")
     assert_nil rails.person_name
@@ -245,7 +245,7 @@ class ModuleTest < ActiveSupport::TestCase
     assert_nothing_raised do
       Class.new(parent) do
         class << self
-          delegate :parent_method, :to => :superclass
+          delegate :parent_method, to: :superclass
         end
       end
     end

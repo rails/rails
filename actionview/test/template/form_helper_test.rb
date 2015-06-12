@@ -550,12 +550,12 @@ class FormHelperTest < ActionView::TestCase
 
   def test_file_field_with_multiple_behavior
     expected = '<input name="import[file][]" type="hidden" value="" /><input id="import_file" multiple="multiple" name="import[file][]" type="file" />'
-    assert_dom_equal expected, file_field("import", "file", :multiple => true)
+    assert_dom_equal expected, file_field("import", "file", multiple: true)
   end
 
   def test_file_field_with_multiple_behavior_and_explicit_name
     expected = '<input name="custom" type="hidden" value="" /><input id="import_file" multiple="multiple" name="custom" type="file" />'
-    assert_dom_equal expected, file_field("import", "file", :multiple => true, :name => "custom")
+    assert_dom_equal expected, file_field("import", "file", multiple: true, name: "custom")
   end
 
   def test_hidden_field

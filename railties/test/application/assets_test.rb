@@ -331,7 +331,7 @@ module ApplicationTests
 
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
-          get '/omg', :to => "omg#index"
+          get '/omg', to: "omg#index"
         end
       RUBY
 
@@ -474,7 +474,7 @@ module ApplicationTests
 
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
-          get '/posts', :to => "posts#index"
+          get '/posts', to: "posts#index"
         end
       RUBY
     end

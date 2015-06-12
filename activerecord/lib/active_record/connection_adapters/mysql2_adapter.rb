@@ -45,7 +45,7 @@ module ActiveRecord
 
       def each_hash(result) # :nodoc:
         if block_given?
-          result.each(:as => :hash, :symbolize_keys => true) do |row|
+          result.each(as: :hash, symbolize_keys: true) do |row|
             yield row
           end
         else
@@ -249,7 +249,7 @@ module ActiveRecord
       end
 
       def configure_connection
-        @connection.query_options.merge!(:as => :array)
+        @connection.query_options.merge!(as: :array)
         super
       end
 

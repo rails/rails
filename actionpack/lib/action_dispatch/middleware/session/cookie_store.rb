@@ -68,7 +68,7 @@ module ActionDispatch
       include SessionObject
 
       def initialize(app, options={})
-        super(app, options.merge!(:cookie_only => true))
+        super(app, options.merge!(cookie_only: true))
       end
 
       def destroy_session(env, session_id, options)

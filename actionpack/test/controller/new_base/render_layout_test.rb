@@ -10,15 +10,15 @@ module ControllerLayouts
     )]
 
     def index
-      render :template => "basic"
+      render template: "basic"
     end
 
     def override
-      render :template => "basic", :layout => "override"
+      render template: "basic", layout: "override"
     end
 
     def layout_false
-      render :layout => false
+      render layout: false
     end
 
     def builder_override
@@ -32,7 +32,7 @@ module ControllerLayouts
     )]
 
     def index
-      render :template => "basic"
+      render template: "basic"
     end
   end
 
@@ -61,7 +61,7 @@ module ControllerLayouts
   class LayoutOptionsTest < Rack::TestCase
     testing ControllerLayouts::ImplicitController
 
-    test "rendering with :layout => false leaves out the implicit layout" do
+    test "rendering with layout: false leaves out the implicit layout" do
       get :layout_false
       assert_response "hi(layout_false.html.erb)"
     end
@@ -76,7 +76,7 @@ module ControllerLayouts
     )]
 
     def explicit
-      render :layout => "application"
+      render layout: "application"
     end
   end
 

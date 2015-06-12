@@ -26,7 +26,7 @@ module ActiveRecord
 
       test "casting ActiveRecord models" do
         type = Type::Integer.new
-        firm = Firm.create(:name => 'Apple')
+        firm = Firm.create(name: 'Apple')
         assert_nil type.cast(firm)
       end
 

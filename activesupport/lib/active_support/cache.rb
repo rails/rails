@@ -152,7 +152,7 @@ module ActiveSupport
     # or +write+. To specify the threshold at which to compress values, set the
     # <tt>:compress_threshold</tt> option. The default threshold is 16K.
     class Store
-      cattr_accessor :logger, :instance_writer => true
+      cattr_accessor :logger, instance_writer: true
 
       attr_reader :silence, :options
       alias :silence? :silence
@@ -535,7 +535,7 @@ module ActiveSupport
         def instrument(operation, key, options = nil)
           log { "Cache #{operation}: #{key}#{options.blank? ? "" : " (#{options.inspect})"}" }
 
-          payload = { :key => key }
+          payload = { key: key }
           payload.merge!(options) if options.is_a?(Hash)
           ActiveSupport::Notifications.instrument("cache_#{operation}.active_support", payload){ yield(payload) }
         end
@@ -570,7 +570,7 @@ module ActiveSupport
               # When an entry has a positive :race_condition_ttl defined, put the stale entry back into the cache
               # for a brief period while the entry is being recalculated.
               entry.expires_at = Time.now + race_ttl
-              write_entry(key, entry, :expires_in => race_ttl * 2)
+              write_entry(key, entry, expires_in: race_ttl * 2)
             else
               delete_entry(key, options)
             end

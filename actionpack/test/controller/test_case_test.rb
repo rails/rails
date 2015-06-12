@@ -16,7 +16,7 @@ class TestCaseTest < ActionController::TestCase
 
     def delete_flash
       flash.delete("test")
-      render :text => 'ignore me'
+      render text: 'ignore me'
     end
 
     def set_flash_now

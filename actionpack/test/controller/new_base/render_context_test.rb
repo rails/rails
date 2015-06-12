@@ -18,12 +18,12 @@ module RenderContext
 
     def hello_world
       @value = "Hello"
-      render :action => "hello_world", :layout => false
+      render action: "hello_world", layout: false
     end
 
     def with_layout
       @value = "Hello"
-      render :action => "hello_world", :layout => "basic"
+      render action: "hello_world", layout: "basic"
     end
 
     protected

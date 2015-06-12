@@ -78,7 +78,7 @@ module ActiveSupport
       )
     end
 
-    delegate :parse, :to => :backend
+    delegate :parse, to: :backend
 
     def backend
       current_thread_backend || @backend
@@ -100,7 +100,7 @@ module ActiveSupport
 
     def to_tag(key, value, options)
       type_name = options.delete(:type)
-      merged_options = options.merge(:root => key, :skip_instruct => true)
+      merged_options = options.merge(root: key, skip_instruct: true)
 
       if value.is_a?(::Method) || value.is_a?(::Proc)
         if value.arity == 1
@@ -118,7 +118,7 @@ module ActiveSupport
 
         key = rename_key(key.to_s, options)
 
-        attributes = options[:skip_types] || type_name.nil? ? { } : { :type => type_name }
+        attributes = options[:skip_types] || type_name.nil? ? { } : { type: type_name }
         attributes[:nil] = true if value.nil?
 
         encoding = options[:encoding] || DEFAULT_ENCODINGS[type_name]

@@ -242,17 +242,17 @@ module ActiveRecord
       QUOTED_TRUE, QUOTED_FALSE = '1', '0'
 
       NATIVE_DATABASE_TYPES = {
-        :primary_key => "int(11) auto_increment PRIMARY KEY",
-        :string      => { :name => "varchar", :limit => 255 },
-        :text        => { :name => "text" },
-        :integer     => { :name => "int", :limit => 4 },
-        :float       => { :name => "float" },
-        :decimal     => { :name => "decimal" },
-        :datetime    => { :name => "datetime" },
-        :time        => { :name => "time" },
-        :date        => { :name => "date" },
-        :binary      => { :name => "blob" },
-        :boolean     => { :name => "tinyint", :limit => 1 }
+        primary_key: "int(11) auto_increment PRIMARY KEY",
+        string: { name: "varchar", limit: 255 },
+        text: { name: "text" },
+        integer: { name: "int", limit: 4 },
+        float: { name: "float" },
+        decimal: { name: "decimal" },
+        datetime: { name: "datetime" },
+        time: { name: "time" },
+        date: { name: "date" },
+        binary: { name: "blob" },
+        boolean: { name: "tinyint", limit: 1 }
       }
 
       INDEX_TYPES  = [:fulltext, :spatial]
@@ -573,7 +573,7 @@ module ActiveRecord
       end
 
       def create_table(table_name, options = {}) #:nodoc:
-        super(table_name, options.reverse_merge(:options => "ENGINE=InnoDB"))
+        super(table_name, options.reverse_merge(options: "ENGINE=InnoDB"))
       end
 
       def bulk_change_table(table_name, operations) #:nodoc:
@@ -631,7 +631,7 @@ module ActiveRecord
 
       def change_column_default(table_name, column_name, default) #:nodoc:
         column = column_for(table_name, column_name)
-        change_column table_name, column_name, column.sql_type, :default => default
+        change_column table_name, column_name, column.sql_type, default: default
       end
 
       def change_column_null(table_name, column_name, null, default = nil) #:nodoc:
@@ -641,7 +641,7 @@ module ActiveRecord
           execute("UPDATE #{quote_table_name(table_name)} SET #{quote_column_name(column_name)}=#{quote(default)} WHERE #{quote_column_name(column_name)} IS NULL")
         end
 
-        change_column table_name, column_name, column.sql_type, :null => null
+        change_column table_name, column_name, column.sql_type, null: null
       end
 
       def change_column(table_name, column_name, type, options = {}) #:nodoc:

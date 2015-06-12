@@ -97,7 +97,7 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
   end
 
   def test_only_call_after_commit_on_create_after_transaction_commits_for_new_record
-    new_record = TopicWithCallbacks.new(:title => "New topic", :written_on => Date.today)
+    new_record = TopicWithCallbacks.new(title: "New topic", written_on: Date.today)
     add_transaction_execution_blocks new_record
 
     new_record.save!
@@ -105,7 +105,7 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
   end
 
   def test_only_call_after_commit_on_create_after_transaction_commits_for_new_record_if_create_succeeds_creating_through_association
-    topic = TopicWithCallbacks.create!(:title => "New topic", :written_on => Date.today)
+    topic = TopicWithCallbacks.create!(title: "New topic", written_on: Date.today)
     reply = topic.replies.create
 
     assert_equal [], reply.history
@@ -187,7 +187,7 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
   end
 
   def test_only_call_after_rollback_on_create_after_transaction_rollsback_for_new_record
-    new_record = TopicWithCallbacks.new(:title => "New topic", :written_on => Date.today)
+    new_record = TopicWithCallbacks.new(title: "New topic", written_on: Date.today)
     add_transaction_execution_blocks new_record
 
     Topic.transaction do
@@ -230,7 +230,7 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
 
     Topic.transaction do
       @first.save!
-      Topic.transaction(:requires_new => true) do
+      Topic.transaction(requires_new: true) do
         second.save!
         raise ActiveRecord::Rollback
       end
@@ -251,11 +251,11 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
 
     Topic.transaction do
       @first.save
-      Topic.transaction(:requires_new => true) do
+      Topic.transaction(requires_new: true) do
         @first.save!
         raise ActiveRecord::Rollback
       end
-      Topic.transaction(:requires_new => true) do
+      Topic.transaction(requires_new: true) do
         @first.save!
         raise ActiveRecord::Rollback
       end

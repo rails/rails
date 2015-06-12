@@ -39,7 +39,7 @@ class SendFileTest < ActionController::TestCase
   end
 
   def test_file_nostream
-    @controller.options = { :stream => false }
+    @controller.options = { stream: false }
     response = nil
     assert_nothing_raised { response = process('file') }
     assert_not_nil response
@@ -64,7 +64,7 @@ class SendFileTest < ActionController::TestCase
   end
 
   def test_file_url_based_filename
-    @controller.options = { :url_based_filename => true }
+    @controller.options = { url_based_filename: true }
     response = nil
     assert_nothing_raised { response = process('file') }
     assert_not_nil response
@@ -91,9 +91,9 @@ class SendFileTest < ActionController::TestCase
   # Test that send_file_headers! is setting the correct HTTP headers.
   def test_send_file_headers_bang
     options = {
-      :type => Mime::PNG,
-      :disposition => 'disposition',
-      :filename => 'filename'
+      type: Mime::PNG,
+      disposition: 'disposition',
+      filename: 'filename'
     }
 
     # Do it a few times: the resulting headers should be identical
@@ -117,9 +117,9 @@ class SendFileTest < ActionController::TestCase
 
   def test_send_file_headers_with_disposition_as_a_symbol
     options = {
-      :type => Mime::PNG,
-      :disposition => :disposition,
-      :filename => 'filename'
+      type: Mime::PNG,
+      disposition: :disposition,
+      filename: 'filename'
     }
 
     @controller.headers = {}
@@ -129,7 +129,7 @@ class SendFileTest < ActionController::TestCase
 
   def test_send_file_headers_with_mime_lookup_with_symbol
     options = {
-      :type => :png
+      type: :png
     }
 
     @controller.headers = {}
@@ -141,7 +141,7 @@ class SendFileTest < ActionController::TestCase
 
   def test_send_file_headers_with_bad_symbol
     options = {
-      :type => :this_type_is_not_registered
+      type: :this_type_is_not_registered
     }
 
     @controller.headers = {}
@@ -160,7 +160,7 @@ class SendFileTest < ActionController::TestCase
       'file.unk' => 'application/octet-stream',
       'zip' => 'application/octet-stream'
     }.each do |filename,expected_type|
-      options = { :filename => filename }
+      options = { filename: filename }
       @controller.headers = {}
       @controller.send(:send_file_headers!, options)
       assert_equal expected_type, @controller.content_type
@@ -173,26 +173,26 @@ class SendFileTest < ActionController::TestCase
   end
 
   def test_send_file_without_content_disposition_header
-    @controller.options = {:disposition => nil}
+    @controller.options = {disposition: nil}
     process('data')
     assert_nil @controller.headers['Content-Disposition']
   end
 
   %w(file data).each do |method|
     define_method "test_send_#{method}_status" do
-      @controller.options = { :stream => false, :status => 500 }
+      @controller.options = { stream: false, status: 500 }
       assert_nothing_raised { assert_not_nil process(method) }
       assert_equal 500, @response.status
     end
 
     define_method "test_send_#{method}_content_type" do
-      @controller.options = { :stream => false, :content_type => "application/x-ruby" }
+      @controller.options = { stream: false, content_type: "application/x-ruby" }
       assert_nothing_raised { assert_not_nil process(method) }
       assert_equal "application/x-ruby", @response.content_type
     end
 
     define_method "test_default_send_#{method}_status" do
-      @controller.options = { :stream => false }
+      @controller.options = { stream: false }
       assert_nothing_raised { assert_not_nil process(method) }
       assert_equal 200, @response.status
     end
@@ -200,7 +200,7 @@ class SendFileTest < ActionController::TestCase
 
   def test_send_file_with_action_controller_live
     @controller = SendFileWithActionControllerLive.new
-    @controller.options = { :content_type => "application/x-ruby" }
+    @controller.options = { content_type: "application/x-ruby" }
 
     response = process('file')
     assert_equal 200, response.status

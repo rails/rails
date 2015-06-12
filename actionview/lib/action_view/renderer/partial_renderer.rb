@@ -305,11 +305,11 @@ module ActionView
       end
 
       if @collection
-        instrument(:collection, :identifier => identifier || "collection", :count => @collection.size) do
+        instrument(:collection, identifier: identifier || "collection", count: @collection.size) do
           render_collection
         end
       else
-        instrument(:partial, :identifier => identifier) do
+        instrument(:partial, identifier: identifier) do
           render_partial
         end
       end

@@ -31,7 +31,7 @@ class SessionTest < ActiveSupport::TestCase
   end
 
   def test_request_via_redirect_uses_given_method
-    path = "/somepath"; args = {:id => '1'}; headers = {"X-Test-Header" => "testvalue"}
+    path = "/somepath"; args = {id: '1'}; headers = {"X-Test-Header" => "testvalue"}
     @session.expects(:process).with(:put, path, params: args, headers: headers)
     @session.stubs(:redirect?).returns(false)
     @session.request_via_redirect(:put, path, params: args, headers: headers)
@@ -45,14 +45,14 @@ class SessionTest < ActiveSupport::TestCase
   end
 
   def test_request_via_redirect_follows_redirects
-    path = "/somepath"; args = {:id => '1'}; headers = {"X-Test-Header" => "testvalue"}
+    path = "/somepath"; args = {id: '1'}; headers = {"X-Test-Header" => "testvalue"}
     @session.stubs(:redirect?).returns(true, true, false)
     @session.expects(:follow_redirect!).times(2)
     @session.request_via_redirect(:get, path, params: args, headers: headers)
   end
 
   def test_request_via_redirect_returns_status
-    path = "/somepath"; args = {:id => '1'}; headers = {"X-Test-Header" => "testvalue"}
+    path = "/somepath"; args = {id: '1'}; headers = {"X-Test-Header" => "testvalue"}
     @session.stubs(:redirect?).returns(false)
     @session.stubs(:status).returns(200)
     assert_equal 200, @session.request_via_redirect(:get, path, params: args, headers: headers)
@@ -359,28 +359,28 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
   class IntegrationController < ActionController::Base
     def get
       respond_to do |format|
-        format.html { render :text => "OK", :status => 200 }
-        format.js { render :text => "JS OK", :status => 200 }
-        format.xml { render :xml => "<root></root>", :status => 200 }
+        format.html { render text: "OK", status: 200 }
+        format.js { render text: "JS OK", status: 200 }
+        format.xml { render xml: "<root></root>", status: 200 }
       end
     end
 
     def get_with_params
-      render :text => "foo: #{params[:foo]}", :status => 200
+      render text: "foo: #{params[:foo]}", status: 200
     end
 
     def post
-      render :text => "Created", :status => 201
+      render text: "Created", status: 201
     end
 
     def method
-      render :text => "method: #{request.method.downcase}"
+      render text: "method: #{request.method.downcase}"
     end
 
     def cookie_monster
       cookies["cookie_1"] = nil
       cookies["cookie_3"] = "chocolate"
-      render :text => "Gone", :status => 410
+      render text: "Gone", status: 410
     end
 
     def set_cookie
@@ -389,7 +389,7 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
     end
 
     def get_cookie
-      render :text => cookies["foo"]
+      render text: cookies["foo"]
     end
 
     def redirect
@@ -600,7 +600,7 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
   end
 
   def test_generate_url_with_controller
-    assert_equal 'http://www.example.com/foo', url_for(:controller => "foo")
+    assert_equal 'http://www.example.com/foo', url_for(controller: "foo")
   end
 
   def test_port_via_host!
@@ -686,8 +686,8 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
         set.draw do
           get 'moved' => redirect('/method')
 
-          match ':action', :to => controller, :via => [:get, :post], :as => :action
-          get 'get/:action', :to => controller, :as => :get_action
+          match ':action', to: controller, via: [:get, :post], as: :action
+          get 'get/:action', to: controller, as: :get_action
         end
 
         self.singleton_class.include(set.url_helpers)
@@ -730,7 +730,7 @@ class MetalIntegrationTest < ActionDispatch::IntegrationTest
   end
 
   def test_generate_url_without_controller
-    assert_equal 'http://www.example.com/foo', url_for(:controller => "foo")
+    assert_equal 'http://www.example.com/foo', url_for(controller: "foo")
   end
 
   def test_pass_headers
@@ -760,7 +760,7 @@ end
 class ApplicationIntegrationTest < ActionDispatch::IntegrationTest
   class TestController < ActionController::Base
     def index
-      render :text => "index"
+      render text: "index"
     end
   end
 
@@ -778,7 +778,7 @@ class ApplicationIntegrationTest < ActionDispatch::IntegrationTest
     end
 
     routes.draw do
-      get 'baz', :to => 'application_integration_test/test#index', :as => :baz
+      get 'baz', to: 'application_integration_test/test#index', as: :baz
     end
 
     def self.call(*)
@@ -786,14 +786,14 @@ class ApplicationIntegrationTest < ActionDispatch::IntegrationTest
   end
 
   routes.draw do
-    get '',    :to => 'application_integration_test/test#index', :as => :empty_string
+    get '',    to: 'application_integration_test/test#index', as: :empty_string
 
-    get 'foo', :to => 'application_integration_test/test#index', :as => :foo
-    get 'bar', :to => 'application_integration_test/test#index', :as => :bar
+    get 'foo', to: 'application_integration_test/test#index', as: :foo
+    get 'bar', to: 'application_integration_test/test#index', as: :bar
 
-    mount MountedApp => '/mounted', :as => "mounted"
-    get 'fooz' => proc { |env| [ 200, {'X-Cascade' => 'pass'}, [ "omg" ] ] }, :anchor => false
-    get 'fooz', :to => 'application_integration_test/test#index'
+    mount MountedApp => '/mounted', as: "mounted"
+    get 'fooz' => proc { |env| [ 200, {'X-Cascade' => 'pass'}, [ "omg" ] ] }, anchor: false
+    get 'fooz', to: 'application_integration_test/test#index'
   end
 
   def app
@@ -837,7 +837,7 @@ class ApplicationIntegrationTest < ActionDispatch::IntegrationTest
   end
 
   test "process do not modify the env passed as argument" do
-    env = { :SERVER_NAME => 'server', 'action_dispatch.custom' => 'custom' }
+    env = { SERVER_NAME: 'server', 'action_dispatch.custom' => 'custom' }
     old_env = env.dup
     get '/foo', env: env
     assert_equal old_env, env
@@ -847,7 +847,7 @@ end
 class EnvironmentFilterIntegrationTest < ActionDispatch::IntegrationTest
   class TestController < ActionController::Base
     def post
-      render :text => "Created", :status => 201
+      render text: "Created", status: 201
     end
   end
 
@@ -861,7 +861,7 @@ class EnvironmentFilterIntegrationTest < ActionDispatch::IntegrationTest
   end
 
   routes.draw do
-    match '/post', :to => 'environment_filter_integration_test/test#post', :via => :post
+    match '/post', to: 'environment_filter_integration_test/test#post', via: :post
   end
 
   def app
@@ -880,25 +880,25 @@ end
 class UrlOptionsIntegrationTest < ActionDispatch::IntegrationTest
   class FooController < ActionController::Base
     def index
-      render :text => "foo#index"
+      render text: "foo#index"
     end
 
     def show
-      render :text => "foo#show"
+      render text: "foo#show"
     end
 
     def edit
-      render :text => "foo#show"
+      render text: "foo#show"
     end
   end
 
   class BarController < ActionController::Base
     def default_url_options
-      { :host => "bar.com" }
+      { host: "bar.com" }
     end
 
     def index
-      render :text => "foo#index"
+      render text: "foo#index"
     end
   end
 
@@ -915,13 +915,13 @@ class UrlOptionsIntegrationTest < ActionDispatch::IntegrationTest
   end
 
   routes.draw do
-    default_url_options :host => "foo.com"
+    default_url_options host: "foo.com"
 
-    scope :module => "url_options_integration_test" do
-      get "/foo" => "foo#index", :as => :foos
-      get "/foo/:id" => "foo#show", :as => :foo
-      get "/foo/:id/edit" => "foo#edit", :as => :edit_foo
-      get "/bar" => "bar#index", :as => :bars
+    scope module: "url_options_integration_test" do
+      get "/foo" => "foo#index", as: :foos
+      get "/foo/:id" => "foo#show", as: :foo
+      get "/foo/:id/edit" => "foo#edit", as: :edit_foo
+      get "/bar" => "bar#index", as: :bars
     end
   end
 
@@ -957,7 +957,7 @@ class UrlOptionsIntegrationTest < ActionDispatch::IntegrationTest
   test "current request path parameters are recalled" do
     get "/foo/1"
     assert_response :success
-    assert_equal "/foo/1/edit", url_for(:action => 'edit', :only_path => true)
+    assert_equal "/foo/1/edit", url_for(action: 'edit', only_path: true)
   end
 end
 

@@ -34,38 +34,38 @@ class RescueController < ActionController::Base
   # We use a fully-qualified name in some strings, and a relative constant
   # name in some other to test correct handling of both cases.
 
-  rescue_from NotAuthorized, :with => :deny_access
-  rescue_from 'RescueController::NotAuthorizedToRescueAsString', :with => :deny_access
+  rescue_from NotAuthorized, with: :deny_access
+  rescue_from 'RescueController::NotAuthorizedToRescueAsString', with: :deny_access
 
-  rescue_from RecordInvalid, :with => :show_errors
-  rescue_from 'RescueController::RecordInvalidToRescueAsString', :with => :show_errors
+  rescue_from RecordInvalid, with: :show_errors
+  rescue_from 'RescueController::RecordInvalidToRescueAsString', with: :show_errors
 
-  rescue_from NotAllowed, :with => proc { head :forbidden }
-  rescue_from 'RescueController::NotAllowedToRescueAsString', :with => proc { head :forbidden }
+  rescue_from NotAllowed, with: proc { head :forbidden }
+  rescue_from 'RescueController::NotAllowedToRescueAsString', with: proc { head :forbidden }
 
-  rescue_from InvalidRequest, :with => proc { |exception| render :text => exception.message }
-  rescue_from 'InvalidRequestToRescueAsString', :with => proc { |exception| render :text => exception.message }
+  rescue_from InvalidRequest, with: proc { |exception| render text: exception.message }
+  rescue_from 'InvalidRequestToRescueAsString', with: proc { |exception| render text: exception.message }
 
   rescue_from BadGateway do
-    head :status => 502
+    head status: 502
   end
   rescue_from 'BadGatewayToRescueAsString' do
-    head :status => 502
+    head status: 502
   end
 
   rescue_from ResourceUnavailable do |exception|
-    render :text => exception.message
+    render text: exception.message
   end
   rescue_from 'ResourceUnavailableToRescueAsString' do |exception|
-    render :text => exception.message
+    render text: exception.message
   end
 
   rescue_from ActionView::TemplateError do
-    render :text => 'action_view templater error'
+    render text: 'action_view templater error'
   end
 
   rescue_from IOError do
-    render :text => 'io error'
+    render text: 'io error'
   end
 
   before_action(only: :before_action_raises) { raise 'umm nice' }
@@ -74,7 +74,7 @@ class RescueController < ActionController::Base
   end
 
   def raises
-    render :text => 'already rendered'
+    render text: 'already rendered'
     raise "don't panic!"
   end
 
@@ -160,9 +160,9 @@ class ExceptionInheritanceRescueController < ActionController::Base
   class GrandchildException < ChildException
   end
 
-  rescue_from ChildException,      :with => lambda { head :ok }
-  rescue_from ParentException,     :with => lambda { head :created }
-  rescue_from GrandchildException, :with => lambda { head :no_content }
+  rescue_from ChildException,      with: lambda { head :ok }
+  rescue_from ParentException,     with: lambda { head :created }
+  rescue_from GrandchildException, with: lambda { head :no_content }
 
   def raise_parent_exception
     raise ParentException
@@ -196,7 +196,7 @@ class ControllerInheritanceRescueController < ExceptionInheritanceRescueControll
   class SecondExceptionInChildController < StandardError
   end
 
-  rescue_from FirstExceptionInChildController, 'SecondExceptionInChildController', :with => lambda { head :gone }
+  rescue_from FirstExceptionInChildController, 'SecondExceptionInChildController', with: lambda { head :gone }
 
   def raise_first_exception_in_child_controller
     raise FirstExceptionInChildController
@@ -299,10 +299,10 @@ class RescueTest < ActionDispatch::IntegrationTest
         'invalid'
       end
     end
-    rescue_from RecordInvalid, :with => :show_errors
+    rescue_from RecordInvalid, with: :show_errors
 
     def foo
-      render :text => "foo"
+      render text: "foo"
     end
 
     def invalid
@@ -315,7 +315,7 @@ class RescueTest < ActionDispatch::IntegrationTest
 
     protected
       def show_errors(exception)
-        render :text => exception.message
+        render text: exception.message
       end
   end
 
@@ -338,9 +338,9 @@ class RescueTest < ActionDispatch::IntegrationTest
     def with_test_routing
       with_routing do |set|
         set.draw do
-          get 'foo', :to => ::RescueTest::TestController.action(:foo)
-          get 'invalid', :to => ::RescueTest::TestController.action(:invalid)
-          get 'b00m', :to => ::RescueTest::TestController.action(:b00m)
+          get 'foo', to: ::RescueTest::TestController.action(:foo)
+          get 'invalid', to: ::RescueTest::TestController.action(:invalid)
+          get 'b00m', to: ::RescueTest::TestController.action(:b00m)
         end
         yield
       end

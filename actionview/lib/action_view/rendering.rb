@@ -110,8 +110,8 @@ module ActionView
         lookup_context.rendered_format = lookup_context.formats.first
       end
 
-      # Normalize args by converting render "foo" to render :action => "foo" and
-      # render "foo/bar" to render :template => "foo/bar".
+      # Normalize args by converting render "foo" to render action: "foo" and
+      # render "foo/bar" to render template: "foo/bar".
       # :api: private
       def _normalize_args(action=nil, options={})
         options = super(action, options)

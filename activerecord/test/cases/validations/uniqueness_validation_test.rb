@@ -24,7 +24,7 @@ end
 class ReplyTitle; end
 
 class ReplyWithTitleObject < Reply
-  validates_uniqueness_of :content, :scope => :title
+  validates_uniqueness_of :content, scope: :title
 
   def title; ReplyTitle.new; end
 end
@@ -93,7 +93,7 @@ class UniquenessValidationTest < ActiveRecord::TestCase
   end
 
   def test_validates_uniqueness_with_validates
-    Topic.validates :title, :uniqueness => true
+    Topic.validates :title, uniqueness: true
     Topic.create!('title' => 'abc')
 
     t2 = Topic.new('title' => 'abc')
@@ -112,14 +112,14 @@ class UniquenessValidationTest < ActiveRecord::TestCase
   end
 
   def test_validates_uniqueness_with_newline_chars
-    Topic.validates_uniqueness_of(:title, :case_sensitive => false)
+    Topic.validates_uniqueness_of(:title, case_sensitive: false)
 
     t = Topic.new("title" => "new\nline")
     assert t.save, "Should save t as unique"
   end
 
   def test_validate_uniqueness_with_scope
-    Reply.validates_uniqueness_of(:content, :scope => "parent_id")
+    Reply.validates_uniqueness_of(:content, scope: "parent_id")
 
     t = Topic.create("title" => "I'm unique!")
 
@@ -138,7 +138,7 @@ class UniquenessValidationTest < ActiveRecord::TestCase
   end
 
   def test_validate_uniqueness_with_object_scope
-    Reply.validates_uniqueness_of(:content, :scope => :topic)
+    Reply.validates_uniqueness_of(:content, scope: :topic)
 
     t = Topic.create("title" => "I'm unique!")
 
@@ -185,7 +185,7 @@ class UniquenessValidationTest < ActiveRecord::TestCase
   end
 
   def test_validate_uniqueness_with_scope_array
-    Reply.validates_uniqueness_of(:author_name, :scope => [:author_email_address, :parent_id])
+    Reply.validates_uniqueness_of(:author_name, scope: [:author_email_address, :parent_id])
 
     t = Topic.create("title" => "The earth is actually flat!")
 
@@ -209,15 +209,15 @@ class UniquenessValidationTest < ActiveRecord::TestCase
   end
 
   def test_validate_case_insensitive_uniqueness
-    Topic.validates_uniqueness_of(:title, :parent_id, :case_sensitive => false, :allow_nil => true)
+    Topic.validates_uniqueness_of(:title, :parent_id, case_sensitive: false, allow_nil: true)
 
-    t = Topic.new("title" => "I'm unique!", :parent_id => 2)
+    t = Topic.new("title" => "I'm unique!", parent_id: 2)
     assert t.save, "Should save t as unique"
 
     t.content = "Remaining unique"
     assert t.save, "Should still save t as unique"
 
-    t2 = Topic.new("title" => "I'm UNIQUE!", :parent_id => 1)
+    t2 = Topic.new("title" => "I'm UNIQUE!", parent_id: 1)
     assert !t2.valid?, "Shouldn't be valid"
     assert !t2.save, "Shouldn't save t2 as unique"
     assert t2.errors[:title].any?
@@ -242,7 +242,7 @@ class UniquenessValidationTest < ActiveRecord::TestCase
     assert t_utf8.save, "Should save t_utf8 as unique"
 
     # If database hasn't UTF-8 character set, this test fails
-    if Topic.all.merge!(:select => 'LOWER(title) AS title').find(t_utf8.id).title == "я тоже уникальный!"
+    if Topic.all.merge!(select: 'LOWER(title) AS title').find(t_utf8.id).title == "я тоже уникальный!"
       t2_utf8 = Topic.new("title" => "я тоже УНИКАЛЬНЫЙ!")
       assert !t2_utf8.valid?, "Shouldn't be valid"
       assert !t2_utf8.save, "Shouldn't save t2_utf8 as unique"
@@ -250,7 +250,7 @@ class UniquenessValidationTest < ActiveRecord::TestCase
   end
 
   def test_validate_case_sensitive_uniqueness_with_special_sql_like_chars
-    Topic.validates_uniqueness_of(:title, :case_sensitive => true)
+    Topic.validates_uniqueness_of(:title, case_sensitive: true)
 
     t = Topic.new("title" => "I'm unique!")
     assert t.save, "Should save t as unique"
@@ -263,7 +263,7 @@ class UniquenessValidationTest < ActiveRecord::TestCase
   end
 
   def test_validate_case_insensitive_uniqueness_with_special_sql_like_chars
-    Topic.validates_uniqueness_of(:title, :case_sensitive => false)
+    Topic.validates_uniqueness_of(:title, case_sensitive: false)
 
     t = Topic.new("title" => "I'm unique!")
     assert t.save, "Should save t as unique"
@@ -276,7 +276,7 @@ class UniquenessValidationTest < ActiveRecord::TestCase
   end
 
   def test_validate_case_sensitive_uniqueness
-    Topic.validates_uniqueness_of(:title, :case_sensitive => true, :allow_nil => true)
+    Topic.validates_uniqueness_of(:title, case_sensitive: true, allow_nil: true)
 
     t = Topic.new("title" => "I'm unique!")
     assert t.save, "Should save t as unique"
@@ -300,7 +300,7 @@ class UniquenessValidationTest < ActiveRecord::TestCase
   end
 
   def test_validate_case_sensitive_uniqueness_with_attribute_passed_as_integer
-    Topic.validates_uniqueness_of(:title, :case_sensitive => true)
+    Topic.validates_uniqueness_of(:title, case_sensitive: true)
     Topic.create!('title' => 101)
 
     t2 = Topic.new('title' => 101)
@@ -309,7 +309,7 @@ class UniquenessValidationTest < ActiveRecord::TestCase
   end
 
   def test_validate_uniqueness_with_non_standard_table_names
-    i1 = WarehouseThing.create(:value => 1000)
+    i1 = WarehouseThing.create(value: 1000)
     assert !i1.valid?, "i1 should not be valid"
     assert i1.errors[:value].any?, "Should not be empty"
   end
@@ -317,7 +317,7 @@ class UniquenessValidationTest < ActiveRecord::TestCase
   def test_validates_uniqueness_inside_scoping
     Topic.validates_uniqueness_of(:title)
 
-    Topic.where(:author_name => "David").scoping do
+    Topic.where(author_name: "David").scoping do
       t1 = Topic.new("title" => "I'm unique!", "author_name" => "Mary")
       assert t1.save
       t2 = Topic.new("title" => "I'm unique!", "author_name" => "David")
@@ -336,44 +336,44 @@ class UniquenessValidationTest < ActiveRecord::TestCase
 
   def test_validate_uniqueness_with_limit
     # Event.title is limited to 5 characters
-    e1 = Event.create(:title => "abcde")
+    e1 = Event.create(title: "abcde")
     assert e1.valid?, "Could not create an event with a unique, 5 character title"
-    e2 = Event.create(:title => "abcdefgh")
+    e2 = Event.create(title: "abcdefgh")
     assert !e2.valid?, "Created an event whose title, with limit taken into account, is not unique"
   end
 
   def test_validate_uniqueness_with_limit_and_utf8
     # Event.title is limited to 5 characters
-    e1 = Event.create(:title => "一二三四五")
+    e1 = Event.create(title: "一二三四五")
     assert e1.valid?, "Could not create an event with a unique, 5 character title"
-    e2 = Event.create(:title => "一二三四五六七八")
+    e2 = Event.create(title: "一二三四五六七八")
     assert !e2.valid?, "Created an event whose title, with limit taken into account, is not unique"
   end
 
   def test_validate_straight_inheritance_uniqueness
-    w1 = IneptWizard.create(:name => "Rincewind", :city => "Ankh-Morpork")
+    w1 = IneptWizard.create(name: "Rincewind", city: "Ankh-Morpork")
     assert w1.valid?, "Saving w1"
 
     # Should use validation from base class (which is abstract)
-    w2 = IneptWizard.new(:name => "Rincewind", :city => "Quirm")
+    w2 = IneptWizard.new(name: "Rincewind", city: "Quirm")
     assert !w2.valid?, "w2 shouldn't be valid"
     assert w2.errors[:name].any?, "Should have errors for name"
     assert_equal ["has already been taken"], w2.errors[:name], "Should have uniqueness message for name"
 
-    w3 = Conjurer.new(:name => "Rincewind", :city => "Quirm")
+    w3 = Conjurer.new(name: "Rincewind", city: "Quirm")
     assert !w3.valid?, "w3 shouldn't be valid"
     assert w3.errors[:name].any?, "Should have errors for name"
     assert_equal ["has already been taken"], w3.errors[:name], "Should have uniqueness message for name"
 
-    w4 = Conjurer.create(:name => "The Amazing Bonko", :city => "Quirm")
+    w4 = Conjurer.create(name: "The Amazing Bonko", city: "Quirm")
     assert w4.valid?, "Saving w4"
 
-    w5 = Thaumaturgist.new(:name => "The Amazing Bonko", :city => "Lancre")
+    w5 = Thaumaturgist.new(name: "The Amazing Bonko", city: "Lancre")
     assert !w5.valid?, "w5 shouldn't be valid"
     assert w5.errors[:name].any?, "Should have errors for name"
     assert_equal ["has already been taken"], w5.errors[:name], "Should have uniqueness message for name"
 
-    w6 = Thaumaturgist.new(:name => "Mustrum Ridcully", :city => "Quirm")
+    w6 = Thaumaturgist.new(name: "Mustrum Ridcully", city: "Quirm")
     assert !w6.valid?, "w6 shouldn't be valid"
     assert w6.errors[:city].any?, "Should have errors for city"
     assert_equal ["has already been taken"], w6.errors[:city], "Should have uniqueness message for city"

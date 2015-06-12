@@ -114,8 +114,8 @@ module AbstractController
     end
 
     class CallbacksWithConditions < ControllerWithCallbacks
-      before_action :list, :only => :index
-      before_action :authenticate, :except => :index
+      before_action :list, only: :index
+      before_action :authenticate, except: :index
 
       def index
         self.response_body = @list.join(", ")
@@ -202,7 +202,7 @@ module AbstractController
     end
 
     class ChangedConditions < Callback2
-      before_action :first, :only => :index
+      before_action :first, only: :index
 
       def not_index
         @text ||= nil

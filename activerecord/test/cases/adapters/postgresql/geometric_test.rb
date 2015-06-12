@@ -186,11 +186,11 @@ class PostgresqlGeometricTest < ActiveRecord::TestCase
 
   def test_geometric_types
     g = PostgresqlGeometric.new(
-      :a_line_segment => '(2.0, 3), (5.5, 7.0)',
-      :a_box          => '2.0, 3, 5.5, 7.0',
-      :a_path         => '[(2.0, 3), (5.5, 7.0), (8.5, 11.0)]',
-      :a_polygon      => '((2.0, 3), (5.5, 7.0), (8.5, 11.0))',
-      :a_circle       => '<(5.3, 10.4), 2>'
+      a_line_segment: '(2.0, 3), (5.5, 7.0)',
+      a_box: '2.0, 3, 5.5, 7.0',
+      a_path: '[(2.0, 3), (5.5, 7.0), (8.5, 11.0)]',
+      a_polygon: '((2.0, 3), (5.5, 7.0), (8.5, 11.0))',
+      a_circle: '<(5.3, 10.4), 2>'
     )
 
     g.save!
@@ -206,11 +206,11 @@ class PostgresqlGeometricTest < ActiveRecord::TestCase
 
   def test_alternative_format
     g = PostgresqlGeometric.new(
-      :a_line_segment => '((2.0, 3), (5.5, 7.0))',
-      :a_box          => '(2.0, 3), (5.5, 7.0)',
-      :a_path         => '((2.0, 3), (5.5, 7.0), (8.5, 11.0))',
-      :a_polygon      => '2.0, 3, 5.5, 7.0, 8.5, 11.0',
-      :a_circle       => '((5.3, 10.4), 2)'
+      a_line_segment: '((2.0, 3), (5.5, 7.0))',
+      a_box: '(2.0, 3), (5.5, 7.0)',
+      a_path: '((2.0, 3), (5.5, 7.0), (8.5, 11.0))',
+      a_polygon: '2.0, 3, 5.5, 7.0, 8.5, 11.0',
+      a_circle: '((5.3, 10.4), 2)'
     )
 
     g.save!

@@ -3,7 +3,7 @@ class Hash
   # the given keys.
   # 
   #   { a: 1, b: 2, c: 3, d: 4 }.slice(:a, :b)
-  #   # => {:a=>1, :b=>2}
+  #   # => {a:1, b:2}
   # 
   # This is useful for limiting an options hash to valid keys before 
   # passing to a method:
@@ -27,7 +27,7 @@ class Hash
   # Returns a hash containing the removed key/value pairs.
   #
   #   { a: 1, b: 2, c: 3, d: 4 }.slice!(:a, :b)
-  #   # => {:c=>3, :d=>4}
+  #   # => {c:3, d:4}
   def slice!(*keys)
     keys.map! { |key| convert_key(key) } if respond_to?(:convert_key, true)
     omit = slice(*self.keys - keys)
@@ -40,8 +40,8 @@ class Hash
 
   # Removes and returns the key/value pairs matching the given keys.
   #
-  #   { a: 1, b: 2, c: 3, d: 4 }.extract!(:a, :b) # => {:a=>1, :b=>2}
-  #   { a: 1, b: 2 }.extract!(:a, :x)             # => {:a=>1}
+  #   { a: 1, b: 2, c: 3, d: 4 }.extract!(:a, :b) # => {a:1, b:2}
+  #   { a: 1, b: 2 }.extract!(:a, :x)             # => {a:1}
   def extract!(*keys)
     keys.each_with_object(self.class.new) { |key, result| result[key] = delete(key) if has_key?(key) }
   end

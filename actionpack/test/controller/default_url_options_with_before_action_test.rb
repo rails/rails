@@ -6,15 +6,15 @@ class ControllerWithBeforeActionAndDefaultUrlOptions < ActionController::Base
   after_action { I18n.locale = "en" }
 
   def target
-    render :text => "final response"
+    render text: "final response"
   end
 
   def redirect
-    redirect_to :action => "target"
+    redirect_to action: "target"
   end
 
   def default_url_options
-    {:locale => "de"}
+    {locale: "de"}
   end
 end
 

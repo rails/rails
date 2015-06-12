@@ -315,7 +315,7 @@ module ActiveRecord
 
       def test_partial_index
         with_example_table do
-          @connection.add_index 'ex', %w{ id number }, :name => 'partial', :where => "number > 100"
+          @connection.add_index 'ex', %w{ id number }, name: 'partial', where: "number > 100"
           index = @connection.indexes('ex').find { |idx| idx.name == 'partial' }
           assert_equal "(number > 100)", index.where
         end
@@ -454,7 +454,7 @@ module ActiveRecord
       end
 
       def connection_without_insert_returning
-        ActiveRecord::Base.postgresql_connection(ActiveRecord::Base.configurations['arunit'].merge(:insert_returning => false))
+        ActiveRecord::Base.postgresql_connection(ActiveRecord::Base.configurations['arunit'].merge(insert_returning: false))
       end
 
       def bind_param(value, name = nil)

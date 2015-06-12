@@ -337,7 +337,7 @@ module ActiveRecord
         # that case +conn.owner+ attr should be consulted.
         # Access and modification of +@thread_cached_conns+ does not require
         # synchronization.
-        @thread_cached_conns = ThreadSafe::Cache.new(:initial_capacity => @size)
+        @thread_cached_conns = ThreadSafe::Cache.new(initial_capacity: @size)
 
         @connections         = []
         @automatic_reconnect = true
@@ -824,10 +824,10 @@ module ActiveRecord
         # These caches are keyed by klass.name, NOT klass. Keying them by klass
         # alone would lead to memory leaks in development mode as all previous
         # instances of the class would stay in memory.
-        @owner_to_pool = ThreadSafe::Cache.new(:initial_capacity => 2) do |h,k|
-          h[k] = ThreadSafe::Cache.new(:initial_capacity => 2)
+        @owner_to_pool = ThreadSafe::Cache.new(initial_capacity: 2) do |h,k|
+          h[k] = ThreadSafe::Cache.new(initial_capacity: 2)
         end
-        @class_to_pool = ThreadSafe::Cache.new(:initial_capacity => 2) do |h,k|
+        @class_to_pool = ThreadSafe::Cache.new(initial_capacity: 2) do |h,k|
           h[k] = ThreadSafe::Cache.new
         end
       end

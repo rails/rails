@@ -125,7 +125,7 @@ module ActionController
       end
 
       def render_text
-        render :text => 'zomg'
+        render text: 'zomg'
       end
 
       def default_header

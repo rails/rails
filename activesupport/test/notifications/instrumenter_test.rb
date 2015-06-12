@@ -22,7 +22,7 @@ module ActiveSupport
         super
         @notifier     = TestNotifier.new
         @instrumenter = Instrumenter.new @notifier
-        @payload      =  { :foo => Object.new }
+        @payload      =  { foo: Object.new }
       end
 
       def test_instrument
@@ -39,7 +39,7 @@ module ActiveSupport
         assert_equal 1, notifier.finishes.size
         name, _, payload = notifier.finishes.first
         assert_equal "awesome", name
-        assert_equal Hash[:result => 2], payload
+        assert_equal Hash[result: 2], payload
       end
 
       def test_start

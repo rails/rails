@@ -16,7 +16,7 @@ class UrlHelperTest < ActiveSupport::TestCase
   routes.draw do
     get "/" => "foo#bar"
     get "/other" => "foo#other"
-    get "/article/:id" => "foo#article", :as => :article
+    get "/article/:id" => "foo#article", as: :article
     get "/category/:category" => "foo#category"
   end
 
@@ -390,7 +390,7 @@ class UrlHelperTest < ActiveSupport::TestCase
   end
 
   def test_current_page_with_http_head_method
-    @request = request_for_url("/", :method => :head)
+    @request = request_for_url("/", method: :head)
     assert current_page?(url_hash)
     assert current_page?("http://www.example.com/")
   end
@@ -430,7 +430,7 @@ class UrlHelperTest < ActiveSupport::TestCase
   def test_current_page_with_escaped_params_with_different_encoding
     @request = request_for_url("/")
     @request.stub(:path, "/category/administra%c3%a7%c3%a3o".force_encoding(Encoding::ASCII_8BIT)) do
-      assert current_page?(:controller => 'foo', :action => 'category', category: 'administração')
+      assert current_page?(controller: 'foo', action: 'category', category: 'administração')
       assert current_page?("http://www.example.com/category/administra%c3%a7%c3%a3o")
     end
   end

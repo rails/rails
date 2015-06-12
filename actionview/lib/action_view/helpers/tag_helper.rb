@@ -23,7 +23,7 @@ module ActionView
       TAG_PREFIXES = ['aria', 'data', :aria, :data].to_set
 
       PRE_CONTENT_STRINGS = {
-        :textarea => "\n"
+        textarea: "\n"
       }
 
       # Returns an empty HTML tag of type +name+ which by default is XHTML

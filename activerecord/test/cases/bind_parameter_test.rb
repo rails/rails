@@ -57,9 +57,9 @@ module ActiveRecord
 
       def test_logs_bind_vars_after_type_cast
         payload = {
-          :name  => 'SQL',
-          :sql   => 'select * from topics where id = ?',
-          :binds => [Relation::QueryAttribute.new("id", "10", Type::Integer.new)]
+          name: 'SQL',
+          sql: 'select * from topics where id = ?',
+          binds: [Relation::QueryAttribute.new("id", "10", Type::Integer.new)]
         }
         event  = ActiveSupport::Notifications::Event.new(
           'foo',

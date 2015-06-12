@@ -63,7 +63,7 @@ class HasManyAssociationsTestPrimaryKeys < ActiveRecord::TestCase
   end
 
   def test_association_primary_key_on_new_record_should_fetch_with_query
-    author = Author.new(:name => "David")
+    author = Author.new(name: "David")
     assert !author.essays.loaded?
 
     assert_queries 1 do
@@ -119,9 +119,9 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
       developer_project = Class.new(ActiveRecord::Base) {
         self.table_name = 'developers_projects'
-        belongs_to :developer, :anonymous_class => dev
+        belongs_to :developer, anonymous_class: dev
       }
-      has_many :developer_projects, :anonymous_class => developer_project, :foreign_key => 'developer_id'
+      has_many :developer_projects, anonymous_class: developer_project, foreign_key: 'developer_id'
     }
     dev = developer.first
     named = Developer.find(dev.id)
@@ -140,13 +140,13 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
       comments = Class.new(ActiveRecord::Base) {
         self.table_name = 'comments'
         self.inheritance_column = 'not_there'
-        belongs_to :post, :anonymous_class => post
+        belongs_to :post, anonymous_class: post
         default_scope -> {
           counter += 1
-          where("id = :inc", :inc => counter)
+          where("id = :inc", inc: counter)
         }
       }
-      has_many :comments, :anonymous_class => comments, :foreign_key => 'post_id'
+      has_many :comments, anonymous_class: comments, foreign_key: 'post_id'
     }
     assert_equal 0, counter
     post = posts.first
@@ -188,7 +188,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_create_from_association_should_respect_default_scope
-    car = Car.create(:name => 'honda')
+    car = Car.create(name: 'honda')
     assert_equal 'honda', car.name
 
     bulb = Bulb.create
@@ -200,7 +200,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     bulb = car.bulbs.create
     assert_equal 'defaulty', bulb.name
 
-    bulb = car.bulbs.create(:name => 'exotic')
+    bulb = car.bulbs.create(name: 'exotic')
     assert_equal 'exotic', bulb.name
   end
 
@@ -212,7 +212,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_create_from_association_with_nil_values_should_work
-    car = Car.create(:name => 'honda')
+    car = Car.create(name: 'honda')
 
     bulb = car.bulbs.new(nil)
     assert_equal 'defaulty', bulb.name
@@ -225,7 +225,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_do_not_call_callbacks_for_delete_all
-    car = Car.create(:name => 'honda')
+    car = Car.create(name: 'honda')
     car.funky_bulbs.create!
     assert_nothing_raised { car.reload.funky_bulbs.delete_all }
     assert_equal 0, Bulb.count, "bulbs should have been deleted using :delete_all strategy"
@@ -233,11 +233,11 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_delete_all_on_association_is_the_same_as_not_loaded
     author = authors :david
-    author.thinking_posts.create!(:body => "test")
+    author.thinking_posts.create!(body: "test")
     author.reload
     expected_sql = capture_sql { author.thinking_posts.delete_all }
 
-    author.thinking_posts.create!(:body => "test")
+    author.thinking_posts.create!(body: "test")
     author.reload
     author.thinking_posts.inspect
     loaded_sql = capture_sql { author.thinking_posts.delete_all }
@@ -246,11 +246,11 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_delete_all_on_association_with_nil_dependency_is_the_same_as_not_loaded
     author = authors :david
-    author.posts.create!(:title => "test", :body => "body")
+    author.posts.create!(title: "test", body: "body")
     author.reload
     expected_sql = capture_sql { author.posts.delete_all }
 
-    author.posts.create!(:title => "test", :body => "body")
+    author.posts.create!(title: "test", body: "body")
     author.reload
     author.posts.to_a
     loaded_sql = capture_sql { author.posts.delete_all }
@@ -265,24 +265,24 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_building_the_associated_object_with_explicit_sti_base_class
     firm = DependentFirm.new
-    company = firm.companies.build(:type => "Company")
+    company = firm.companies.build(type: "Company")
     assert_kind_of Company, company, "Expected #{company.class} to be a Company"
   end
 
   def test_building_the_associated_object_with_sti_subclass
     firm = DependentFirm.new
-    company = firm.companies.build(:type => "Client")
+    company = firm.companies.build(type: "Client")
     assert_kind_of Client, company, "Expected #{company.class} to be a Client"
   end
 
   def test_building_the_associated_object_with_an_invalid_type
     firm = DependentFirm.new
-    assert_raise(ActiveRecord::SubclassNotFound) { firm.companies.build(:type => "Invalid") }
+    assert_raise(ActiveRecord::SubclassNotFound) { firm.companies.build(type: "Invalid") }
   end
 
   def test_building_the_associated_object_with_an_unrelated_type
     firm = DependentFirm.new
-    assert_raise(ActiveRecord::SubclassNotFound) { firm.companies.build(:type => "Account") }
+    assert_raise(ActiveRecord::SubclassNotFound) { firm.companies.build(type: "Account") }
   end
 
   test "building the association with an array" do
@@ -296,24 +296,24 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_association_keys_bypass_attribute_protection
-    car = Car.create(:name => 'honda')
+    car = Car.create(name: 'honda')
 
     bulb = car.bulbs.new
     assert_equal car.id, bulb.car_id
 
-    bulb = car.bulbs.new :car_id => car.id + 1
+    bulb = car.bulbs.new car_id: car.id + 1
     assert_equal car.id, bulb.car_id
 
     bulb = car.bulbs.build
     assert_equal car.id, bulb.car_id
 
-    bulb = car.bulbs.build :car_id => car.id + 1
+    bulb = car.bulbs.build car_id: car.id + 1
     assert_equal car.id, bulb.car_id
 
     bulb = car.bulbs.create
     assert_equal car.id, bulb.car_id
 
-    bulb = car.bulbs.create :car_id => car.id + 1
+    bulb = car.bulbs.create car_id: car.id + 1
     assert_equal car.id, bulb.car_id
   end
 
@@ -323,19 +323,19 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     line_item = invoice.line_items.new
     assert_equal invoice.id, line_item.invoice_id
 
-    line_item = invoice.line_items.new :invoice_id => invoice.id + 1
+    line_item = invoice.line_items.new invoice_id: invoice.id + 1
     assert_equal invoice.id, line_item.invoice_id
 
     line_item = invoice.line_items.build
     assert_equal invoice.id, line_item.invoice_id
 
-    line_item = invoice.line_items.build :invoice_id => invoice.id + 1
+    line_item = invoice.line_items.build invoice_id: invoice.id + 1
     assert_equal invoice.id, line_item.invoice_id
 
     line_item = invoice.line_items.create
     assert_equal invoice.id, line_item.invoice_id
 
-    line_item = invoice.line_items.create :invoice_id => invoice.id + 1
+    line_item = invoice.line_items.create invoice_id: invoice.id + 1
     assert_equal invoice.id, line_item.invoice_id
   end
 
@@ -356,7 +356,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_no_sql_should_be_fired_if_association_already_loaded
-    Car.create(:name => 'honda')
+    Car.create(name: 'honda')
     bulbs = Car.first.bulbs
     bulbs.to_a # to load all instances of bulbs
 
@@ -397,13 +397,13 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_create_resets_cached_counters
-    person = Person.create!(:first_name => 'tenderlove')
+    person = Person.create!(first_name: 'tenderlove')
     post   = Post.first
 
     assert_equal [], person.readers
     assert_nil person.readers.find_by_post_id(post.id)
 
-    person.readers.create(:post_id => post.id)
+    person.readers.create(post_id: post.id)
 
     assert_equal 1, person.readers.count
     assert_equal 1, person.readers.length
@@ -417,19 +417,19 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   # sometimes tests on Oracle fail if ORDER BY is not provided therefore add always :order with :first
   def test_counting_with_counter_sql
-    assert_equal 3, Firm.all.merge!(:order => "id").first.clients.count
+    assert_equal 3, Firm.all.merge!(order: "id").first.clients.count
   end
 
   def test_counting
-    assert_equal 3, Firm.all.merge!(:order => "id").first.plain_clients.count
+    assert_equal 3, Firm.all.merge!(order: "id").first.plain_clients.count
   end
 
   def test_counting_with_single_hash
-    assert_equal 1, Firm.all.merge!(:order => "id").first.plain_clients.where(:name => "Microsoft").count
+    assert_equal 1, Firm.all.merge!(order: "id").first.plain_clients.where(name: "Microsoft").count
   end
 
   def test_counting_with_column_name_and_hash
-    assert_equal 3, Firm.all.merge!(:order => "id").first.plain_clients.count(:name)
+    assert_equal 3, Firm.all.merge!(order: "id").first.plain_clients.count(:name)
   end
 
   def test_counting_with_association_limit
@@ -439,7 +439,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_finding
-    assert_equal 3, Firm.all.merge!(:order => "id").first.clients.length
+    assert_equal 3, Firm.all.merge!(order: "id").first.clients.length
   end
 
   def test_finding_array_compatibility
@@ -507,27 +507,27 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_finding_default_orders
-    assert_equal "Summit", Firm.all.merge!(:order => "id").first.clients.first.name
+    assert_equal "Summit", Firm.all.merge!(order: "id").first.clients.first.name
   end
 
   def test_finding_with_different_class_name_and_order
-    assert_equal "Apex", Firm.all.merge!(:order => "id").first.clients_sorted_desc.first.name
+    assert_equal "Apex", Firm.all.merge!(order: "id").first.clients_sorted_desc.first.name
   end
 
   def test_finding_with_foreign_key
-    assert_equal "Microsoft", Firm.all.merge!(:order => "id").first.clients_of_firm.first.name
+    assert_equal "Microsoft", Firm.all.merge!(order: "id").first.clients_of_firm.first.name
   end
 
   def test_finding_with_condition
-    assert_equal "Microsoft", Firm.all.merge!(:order => "id").first.clients_like_ms.first.name
+    assert_equal "Microsoft", Firm.all.merge!(order: "id").first.clients_like_ms.first.name
   end
 
   def test_finding_with_condition_hash
-    assert_equal "Microsoft", Firm.all.merge!(:order => "id").first.clients_like_ms_with_hash_conditions.first.name
+    assert_equal "Microsoft", Firm.all.merge!(order: "id").first.clients_like_ms_with_hash_conditions.first.name
   end
 
   def test_finding_using_primary_key
-    assert_equal "Summit", Firm.all.merge!(:order => "id").first.clients_using_primary_key.first.name
+    assert_equal "Summit", Firm.all.merge!(order: "id").first.clients_using_primary_key.first.name
   end
 
   def test_update_all_on_association_accessed_before_save
@@ -555,7 +555,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_find_ids
-    firm = Firm.all.merge!(:order => "id").first
+    firm = Firm.all.merge!(order: "id").first
 
     assert_raise(ActiveRecord::RecordNotFound) { firm.clients.find }
 
@@ -587,7 +587,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_find_all
-    firm = Firm.all.merge!(:order => "id").first
+    firm = Firm.all.merge!(order: "id").first
     assert_equal 3, firm.clients.where("#{QUOTED_TYPE} = 'Client'").to_a.length
     assert_equal 1, firm.clients.where("name = 'Summit'").to_a.length
   end
@@ -598,7 +598,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert ! firm.clients.loaded?
 
     assert_queries(4) do
-      firm.clients.find_each(:batch_size => 1) {|c| assert_equal firm.id, c.firm_id }
+      firm.clients.find_each(batch_size: 1) {|c| assert_equal firm.id, c.firm_id }
     end
 
     assert ! firm.clients.loaded?
@@ -623,7 +623,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert ! firm.clients.loaded?
 
     assert_queries(2) do
-      firm.clients.find_in_batches(:batch_size => 2) do |clients|
+      firm.clients.find_in_batches(batch_size: 2) do |clients|
         clients.each {|c| assert_equal firm.id, c.firm_id }
       end
     end
@@ -633,29 +633,29 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_find_all_sanitized
     # sometimes tests on Oracle fail if ORDER BY is not provided therefore add always :order with :first
-    firm = Firm.all.merge!(:order => "id").first
+    firm = Firm.all.merge!(order: "id").first
     summit = firm.clients.where("name = 'Summit'").to_a
     assert_equal summit, firm.clients.where("name = ?", "Summit").to_a
-    assert_equal summit, firm.clients.where("name = :name", { :name => "Summit" }).to_a
+    assert_equal summit, firm.clients.where("name = :name", { name: "Summit" }).to_a
   end
 
   def test_find_first
-    firm = Firm.all.merge!(:order => "id").first
+    firm = Firm.all.merge!(order: "id").first
     client2 = Client.find(2)
     assert_equal firm.clients.first, firm.clients.order("id").first
     assert_equal client2, firm.clients.where("#{QUOTED_TYPE} = 'Client'").order("id").first
   end
 
   def test_find_first_sanitized
-    firm = Firm.all.merge!(:order => "id").first
+    firm = Firm.all.merge!(order: "id").first
     client2 = Client.find(2)
-    assert_equal client2, firm.clients.merge!(:where => ["#{QUOTED_TYPE} = ?", 'Client'], :order => "id").first
-    assert_equal client2, firm.clients.merge!(:where => ["#{QUOTED_TYPE} = :type", { :type => 'Client' }], :order => "id").first
+    assert_equal client2, firm.clients.merge!(where: ["#{QUOTED_TYPE} = ?", 'Client'], order: "id").first
+    assert_equal client2, firm.clients.merge!(where: ["#{QUOTED_TYPE} = :type", { type: 'Client' }], order: "id").first
   end
 
   def test_find_all_with_include_and_conditions
     assert_nothing_raised do
-      Developer.all.merge!(:joins => :audit_logs, :where => {'audit_logs.message' => nil, :name => 'Smith'}).to_a
+      Developer.all.merge!(joins: :audit_logs, where: {'audit_logs.message' => nil, name: 'Smith'}).to_a
     end
   end
 
@@ -665,8 +665,8 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_find_grouped
-    all_clients_of_firm1 = Client.all.merge!(:where => "firm_id = 1").to_a
-    grouped_clients_of_firm1 = Client.all.merge!(:where => "firm_id = 1", :group => "firm_id", :select => 'firm_id, count(id) as clients_count').to_a
+    all_clients_of_firm1 = Client.all.merge!(where: "firm_id = 1").to_a
+    grouped_clients_of_firm1 = Client.all.merge!(where: "firm_id = 1", group: "firm_id", select: 'firm_id, count(id) as clients_count').to_a
     assert_equal 3, all_clients_of_firm1.size
     assert_equal 1, grouped_clients_of_firm1.size
   end
@@ -711,7 +711,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_adding_using_create
     first_firm = companies(:first_firm)
     assert_equal 3, first_firm.plain_clients.size
-    first_firm.plain_clients.create(:name => "Natural Company")
+    first_firm.plain_clients.create(name: "Natural Company")
     assert_equal 4, first_firm.plain_clients.length
     assert_equal 4, first_firm.plain_clients.size
   end
@@ -719,7 +719,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_create_with_bang_on_has_many_when_parent_is_new_raises
     error = assert_raise(ActiveRecord::RecordNotSaved) do
       firm = Firm.new
-      firm.plain_clients.create! :name=>"Whoever"
+      firm.plain_clients.create! name:"Whoever"
     end
 
     assert_equal "You cannot call create unless the parent is saved", error.message
@@ -728,7 +728,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_regular_create_on_has_many_when_parent_is_new_raises
     error = assert_raise(ActiveRecord::RecordNotSaved) do
       firm = Firm.new
-      firm.plain_clients.create :name=>"Whoever"
+      firm.plain_clients.create name:"Whoever"
     end
 
     assert_equal "You cannot call create unless the parent is saved", error.message
@@ -736,7 +736,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_create_with_bang_on_has_many_raises_when_record_not_saved
     assert_raise(ActiveRecord::RecordInvalid) do
-      firm = Firm.all.merge!(:order => "id").first
+      firm = Firm.all.merge!(order: "id").first
       firm.plain_clients.create!
     end
   end
@@ -763,8 +763,8 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_transactions_when_adding_to_persisted
-    good = Client.new(:name => "Good")
-    bad  = Client.new(:name => "Bad", :raise_on_save => true)
+    good = Client.new(name: "Good")
+    bad  = Client.new(name: "Bad", raise_on_save: true)
 
     begin
       companies(:first_firm).clients_of_firm.concat(good, bad)
@@ -853,7 +853,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 1, first_topic.replies.length
 
     assert_no_queries do
-      first_topic.replies.build(:title => "Not saved", :content => "Superstars")
+      first_topic.replies.build(title: "Not saved", content: "Superstars")
       assert_equal 2, first_topic.replies.size
     end
 
@@ -892,7 +892,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     first_firm.clients_of_firm.reset
 
     assert_queries(1) do
-      first_firm.clients_of_firm.create(:name => "Superstars")
+      first_firm.clients_of_firm.create(name: "Superstars")
     end
 
     assert_equal 3, first_firm.clients_of_firm.size
@@ -1027,10 +1027,10 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal original_count, topic.replies_count
 
     first_reply = topic.replies.first
-    first_reply.update_attributes(:parent_id => nil)
+    first_reply.update_attributes(parent_id: nil)
     assert_equal original_count - 1, topic.reload.replies_count
 
-    first_reply.update_attributes(:parent_id => topic.id)
+    first_reply.update_attributes(parent_id: topic.id)
     assert_equal original_count, topic.reload.replies_count
   end
 
@@ -1043,11 +1043,11 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     reply1 = topic1.replies.first
     reply2 = topic2.replies.first
 
-    reply1.update_attributes(:parent_id => topic2.id)
+    reply1.update_attributes(parent_id: topic2.id)
     assert_equal original_count1 - 1, topic1.reload.replies_count
     assert_equal original_count2 + 1, topic2.reload.replies_count
 
-    reply2.update_attributes(:parent_id => topic1.id)
+    reply2.update_attributes(parent_id: topic1.id)
     assert_equal original_count1, topic1.reload.replies_count
     assert_equal original_count2, topic2.reload.replies_count
   end
@@ -1083,8 +1083,8 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_transaction_when_deleting_persisted
-    good = Client.new(:name => "Good")
-    bad  = Client.new(:name => "Bad", :raise_on_destroy => true)
+    good = Client.new(name: "Good")
+    bad  = Client.new(name: "Bad", raise_on_destroy: true)
 
     companies(:first_firm).clients_of_firm = [good, bad]
 
@@ -1192,8 +1192,8 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_dependent_association_respects_optional_conditions_on_delete
     firm = companies(:odegy)
-    Client.create(:client_of => firm.id, :name => "BigShot Inc.")
-    Client.create(:client_of => firm.id, :name => "SmallTime Inc.")
+    Client.create(client_of: firm.id, name: "BigShot Inc.")
+    Client.create(client_of: firm.id, name: "SmallTime Inc.")
     # only one of two clients is included in the association due to the :conditions key
     assert_equal 2, Client.where(client_of: firm.id).size
     assert_equal 1, firm.dependent_conditional_clients_of_firm.size
@@ -1204,8 +1204,8 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_dependent_association_respects_optional_sanitized_conditions_on_delete
     firm = companies(:odegy)
-    Client.create(:client_of => firm.id, :name => "BigShot Inc.")
-    Client.create(:client_of => firm.id, :name => "SmallTime Inc.")
+    Client.create(client_of: firm.id, name: "BigShot Inc.")
+    Client.create(client_of: firm.id, name: "SmallTime Inc.")
     # only one of two clients is included in the association due to the :conditions key
     assert_equal 2, Client.where(client_of: firm.id).size
     assert_equal 1, firm.dependent_sanitized_conditional_clients_of_firm.size
@@ -1216,8 +1216,8 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_dependent_association_respects_optional_hash_conditions_on_delete
     firm = companies(:odegy)
-    Client.create(:client_of => firm.id, :name => "BigShot Inc.")
-    Client.create(:client_of => firm.id, :name => "SmallTime Inc.")
+    Client.create(client_of: firm.id, name: "BigShot Inc.")
+    Client.create(client_of: firm.id, name: "SmallTime Inc.")
     # only one of two clients is included in the association due to the :conditions key
     assert_equal 2, Client.where(client_of: firm.id).size
     assert_equal 1, firm.dependent_sanitized_conditional_clients_of_firm.size
@@ -1356,7 +1356,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     firm = companies(:first_firm)
     assert_equal 3, firm.clients.size
     firm.destroy
-    assert Client.all.merge!(:where => "firm_id=#{firm.id}").to_a.empty?
+    assert Client.all.merge!(where: "firm_id=#{firm.id}").to_a.empty?
   end
 
   def test_dependence_for_associations_with_hash_condition
@@ -1366,7 +1366,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_destroy_dependent_when_deleted_from_association
     # sometimes tests on Oracle fail if ORDER BY is not provided therefore add always :order with :first
-    firm = Firm.all.merge!(:order => "id").first
+    firm = Firm.all.merge!(order: "id").first
     assert_equal 3, firm.clients.size
 
     client = firm.clients.first
@@ -1393,7 +1393,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     firm.destroy rescue "do nothing"
 
-    assert_equal 3, Client.all.merge!(:where => "firm_id=#{firm.id}").to_a.size
+    assert_equal 3, Client.all.merge!(where: "firm_id=#{firm.id}").to_a.size
   end
 
   def test_dependence_on_account
@@ -1417,18 +1417,18 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_restrict_with_exception
-    firm = RestrictedWithExceptionFirm.create!(:name => 'restrict')
-    firm.companies.create(:name => 'child')
+    firm = RestrictedWithExceptionFirm.create!(name: 'restrict')
+    firm.companies.create(name: 'child')
 
     assert !firm.companies.empty?
     assert_raise(ActiveRecord::DeleteRestrictionError) { firm.destroy }
-    assert RestrictedWithExceptionFirm.exists?(:name => 'restrict')
-    assert firm.companies.exists?(:name => 'child')
+    assert RestrictedWithExceptionFirm.exists?(name: 'restrict')
+    assert firm.companies.exists?(name: 'child')
   end
 
   def test_restrict_with_error
-    firm = RestrictedWithErrorFirm.create!(:name => 'restrict')
-    firm.companies.create(:name => 'child')
+    firm = RestrictedWithErrorFirm.create!(name: 'restrict')
+    firm.companies.create(name: 'child')
 
     assert !firm.companies.empty?
 
@@ -1437,8 +1437,8 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert !firm.errors.empty?
 
     assert_equal "Cannot delete record because dependent companies exist", firm.errors[:base].first
-    assert RestrictedWithErrorFirm.exists?(:name => 'restrict')
-    assert firm.companies.exists?(:name => 'child')
+    assert RestrictedWithErrorFirm.exists?(name: 'restrict')
+    assert firm.companies.exists?(name: 'child')
   end
 
   def test_included_in_collection
@@ -1446,7 +1446,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_included_in_collection_for_new_records
-    client = Client.create(:name => 'Persisted')
+    client = Client.create(name: 'Persisted')
     assert_nil client.client_of
     assert_equal false, Firm.new.clients_of_firm.include?(client),
      'includes a client that does not belong to any firm'
@@ -1457,7 +1457,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_replace_with_less
-    firm = Firm.all.merge!(:order => "id").first
+    firm = Firm.all.merge!(order: "id").first
     firm.clients = [companies(:first_client)]
     assert firm.save, "Could not save firm"
     firm.reload
@@ -1471,7 +1471,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_replace_with_new
-    firm = Firm.all.merge!(:order => "id").first
+    firm = Firm.all.merge!(order: "id").first
     firm.clients = [companies(:second_client), Client.new("name" => "New Client")]
     firm.save
     firm.reload
@@ -1508,8 +1508,8 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_transactions_when_replacing_on_persisted
-    good = Client.new(:name => "Good")
-    bad  = Client.new(:name => "Bad", :raise_on_save => true)
+    good = Client.new(name: "Good")
+    bad  = Client.new(name: "Bad", raise_on_save: true)
 
     companies(:first_firm).clients_of_firm = [good]
 
@@ -1572,7 +1572,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     contract_a = Contract.create!
     contract_b = Contract.create!
     Contract.create! # another contract
-    company = Company.new(:name => "Some Company")
+    company = Company.new(name: "Some Company")
 
     company.contract_ids = [contract_a.id, contract_b.id]
     assert_equal [contract_a.id, contract_b.id], company.contract_ids
@@ -1584,7 +1584,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_assign_ids_ignoring_blanks
-    firm = Firm.create!(:name => 'Apple')
+    firm = Firm.create!(name: 'Apple')
     firm.client_ids = [companies(:first_client).id, nil, companies(:second_client).id, '']
     firm.save!
 
@@ -1600,7 +1600,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     [
       lambda { authors(:mary).comment_ids = [comments(:greetings).id, comments(:more_greetings).id] },
       lambda { authors(:mary).comments = [comments(:greetings), comments(:more_greetings)] },
-      lambda { authors(:mary).comments << Comment.create!(:body => "Yay", :post_id => 424242) },
+      lambda { authors(:mary).comments << Comment.create!(body: "Yay", post_id: 424242) },
       lambda { authors(:mary).comments.delete(authors(:mary).comments.first) },
     ].each {|block| assert_raise(ActiveRecord::HasManyThroughCantAssociateThroughHasOneOrManyReflection, &block) }
   end
@@ -1641,7 +1641,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_include_returns_false_for_non_matching_record_to_verify_scoping
     firm = companies(:first_firm)
-    client = Client.create!(:name => 'Not Associated')
+    client = Client.create!(name: 'Not Associated')
 
     assert ! firm.clients.loaded?
     assert_equal false, firm.clients.include?(client)
@@ -1670,7 +1670,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_calling_first_or_last_on_existing_record_with_build_should_load_association
     firm = companies(:first_firm)
-    firm.clients.build(:name => 'Foo')
+    firm.clients.build(name: 'Foo')
     assert !firm.clients.loaded?
 
     assert_queries 1 do
@@ -1684,7 +1684,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_calling_first_nth_or_last_on_existing_record_with_create_should_not_load_association
     firm = companies(:first_firm)
-    firm.clients.create(:name => 'Foo')
+    firm.clients.create(name: 'Foo')
     assert !firm.clients.loaded?
 
     assert_queries 3 do
@@ -1708,7 +1708,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_calling_first_or_last_with_integer_on_association_should_not_load_association
     firm = companies(:first_firm)
-    firm.clients.create(:name => 'Foo')
+    firm.clients.create(name: 'Foo')
     assert !firm.clients.loaded?
 
     assert_queries 2 do
@@ -1838,13 +1838,13 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     old = ActiveRecord::Base.store_full_sti_class
     ActiveRecord::Base.store_full_sti_class = true
 
-    firm = Namespaced::Firm.create({ :name => 'Some Company' })
-    firm.clients.create({ :name => 'Some Client' })
+    firm = Namespaced::Firm.create({ name: 'Some Company' })
+    firm.clients.create({ name: 'Some Client' })
 
     stats = Namespaced::Firm.all.merge!(
-      :select => "#{Namespaced::Firm.table_name}.id, COUNT(#{Namespaced::Client.table_name}.id) AS num_clients",
-      :joins  => :clients,
-      :group  => "#{Namespaced::Firm.table_name}.id"
+      select: "#{Namespaced::Firm.table_name}.id, COUNT(#{Namespaced::Client.table_name}.id) AS num_clients",
+      joins: :clients,
+      group: "#{Namespaced::Firm.table_name}.id"
     ).find firm.id
     assert_equal 1, stats.num_clients.to_i
   ensure
@@ -1870,8 +1870,8 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_creating_using_primary_key
-    firm = Firm.all.merge!(:order => "id").first
-    client = firm.clients_using_primary_key.create!(:name => 'test')
+    firm = Firm.all.merge!(order: "id").first
+    client = firm.clients_using_primary_key.create!(name: 'test')
     assert_equal firm.name, client.firm_name
   end
 
@@ -1879,7 +1879,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     ActiveRecord::Reflection::AssociationReflection.any_instance.expects(:class_name).never
     class_eval(<<-EOF, __FILE__, __LINE__ + 1)
       class DeleteAllModel < ActiveRecord::Base
-        has_many :nonentities, :dependent => :delete_all
+        has_many :nonentities, dependent: :delete_all
       end
     EOF
   end
@@ -1888,18 +1888,18 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     ActiveRecord::Reflection::AssociationReflection.any_instance.expects(:class_name).never
     class_eval(<<-EOF, __FILE__, __LINE__ + 1)
       class NullifyModel < ActiveRecord::Base
-        has_many :nonentities, :dependent => :nullify
+        has_many :nonentities, dependent: :nullify
       end
     EOF
   end
 
   def test_attributes_are_being_set_when_initialized_from_has_many_association_with_where_clause
-    new_comment = posts(:welcome).comments.where(:body => "Some content").build
+    new_comment = posts(:welcome).comments.where(body: "Some content").build
     assert_equal new_comment.body, "Some content"
   end
 
   def test_attributes_are_being_set_when_initialized_from_has_many_association_with_multiple_where_clauses
-    new_comment = posts(:welcome).comments.where(:body => "Some content").where(:type => 'SpecialComment').build
+    new_comment = posts(:welcome).comments.where(body: "Some content").where(type: 'SpecialComment').build
     assert_equal new_comment.body, "Some content"
     assert_equal new_comment.type, "SpecialComment"
     assert_equal new_comment.post_id, posts(:welcome).id
@@ -1913,7 +1913,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_load_target_respects_protected_attributes
     topic = Topic.create!
-    reply = topic.replies.create(:title => "reply 1")
+    reply = topic.replies.create(title: "reply 1")
     reply.approved = false
     reply.save!
 
@@ -1940,7 +1940,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_merging_with_custom_attribute_writer
-    bulb = Bulb.new(:color => "red")
+    bulb = Bulb.new(color: "red")
     assert_equal "RED!", bulb.color
 
     car = Car.create!
@@ -1950,13 +1950,13 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_abstract_class_with_polymorphic_has_many
-    post = SubStiPost.create! :title => "fooo", :body => "baa"
-    tagging = Tagging.create! :taggable => post
+    post = SubStiPost.create! title: "fooo", body: "baa"
+    tagging = Tagging.create! taggable: post
     assert_equal [tagging], post.taggings
   end
 
   def test_with_polymorphic_has_many_with_custom_columns_name
-    post = Post.create! :title => 'foo', :body => 'bar'
+    post = Post.create! title: 'foo', body: 'bar'
     image = Image.create!
 
     post.images << image
@@ -1966,7 +1966,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_build_with_polymorphic_has_many_does_not_allow_to_override_type_and_id
     welcome = posts(:welcome)
-    tagging = welcome.taggings.build(:taggable_id => 99, :taggable_type => 'ShouldNotChange')
+    tagging = welcome.taggings.build(taggable_id: 99, taggable_type: 'ShouldNotChange')
 
     assert_equal welcome.id, tagging.taggable_id
     assert_equal 'Post', tagging.taggable_type
@@ -1981,7 +1981,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_association_attributes_are_available_to_after_initialize
-    car = Car.create(:name => 'honda')
+    car = Car.create(name: 'honda')
     bulb = car.bulbs.build
 
     assert_equal car.id, bulb.attributes_after_initialize['car_id']
@@ -2004,7 +2004,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_replace
-    car = Car.create(:name => 'honda')
+    car = Car.create(name: 'honda')
     bulb1 = car.bulbs.create
     bulb2 = Bulb.create
 
@@ -2015,7 +2015,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_replace_returns_target
-    car = Car.create(:name => 'honda')
+    car = Car.create(name: 'honda')
     bulb1 = car.bulbs.create
     bulb2 = car.bulbs.create
     bulb3 = Bulb.create

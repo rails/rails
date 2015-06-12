@@ -125,7 +125,7 @@ class OptimisticLockingTest < ActiveRecord::TestCase
   end
 
   def test_lock_new
-    p1 = Person.new(:first_name => 'anika')
+    p1 = Person.new(first_name: 'anika')
     assert_equal 0, p1.lock_version
 
     p1.first_name = 'anika2'
@@ -144,7 +144,7 @@ class OptimisticLockingTest < ActiveRecord::TestCase
   end
 
   def test_lock_exception_record
-    p1 = Person.new(:first_name => 'mira')
+    p1 = Person.new(first_name: 'mira')
     assert_equal 0, p1.lock_version
 
     p1.first_name = 'mira2'
@@ -162,7 +162,7 @@ class OptimisticLockingTest < ActiveRecord::TestCase
   end
 
   def test_lock_new_with_nil
-    p1 = Person.new(:first_name => 'anika')
+    p1 = Person.new(first_name: 'anika')
     p1.save!
     p1.lock_version = nil # simulate bad fixture or column with no default
     p1.save!
@@ -203,7 +203,7 @@ class OptimisticLockingTest < ActiveRecord::TestCase
   end
 
   def test_lock_column_is_mass_assignable
-    p1 = Person.create(:first_name => 'bianca')
+    p1 = Person.create(first_name: 'bianca')
     assert_equal 0, p1.lock_version
     assert_equal p1.lock_version, Person.new(p1.attributes).lock_version
 
@@ -236,7 +236,7 @@ class OptimisticLockingTest < ActiveRecord::TestCase
   def test_readonly_attributes
     assert_equal Set.new([ 'name' ]), ReadonlyNameShip.readonly_attributes
 
-    s = ReadonlyNameShip.create(:name => "unchangeable name")
+    s = ReadonlyNameShip.create(name: "unchangeable name")
     s.reload
     assert_equal "unchangeable name", s.name
 
@@ -255,7 +255,7 @@ class OptimisticLockingTest < ActiveRecord::TestCase
   # is nothing else being updated.
   def test_update_without_attributes_does_not_only_update_lock_version
     assert_nothing_raised do
-      p1 = Person.create!(:first_name => 'anika')
+      p1 = Person.create!(first_name: 'anika')
       lock_version = p1.lock_version
       p1.save
       p1.reload
@@ -300,7 +300,7 @@ class OptimisticLockingWithSchemaChangeTest < ActiveRecord::TestCase
   # of a test (see test_increment_counter_*).
   self.use_transactional_tests = false
 
-  { :lock_version => Person, :custom_lock_version => LegacyThing }.each do |name, model|
+  { lock_version: Person, custom_lock_version: LegacyThing }.each do |name, model|
     define_method("test_increment_counter_updates_#{name}") do
       counter_test model, 1 do |id|
         model.increment_counter :test_count, id
@@ -315,7 +315,7 @@ class OptimisticLockingWithSchemaChangeTest < ActiveRecord::TestCase
 
     define_method("test_update_counters_updates_#{name}") do
       counter_test model, 1 do |id|
-        model.update_counters id, :test_count => 1
+        model.update_counters id, test_count: 1
       end
     end
   end
@@ -327,9 +327,9 @@ class OptimisticLockingWithSchemaChangeTest < ActiveRecord::TestCase
     PersonalLegacyThing.reset_column_information
 
     # Make sure that counter incrementing doesn't cause problems
-    p1 = Person.new(:first_name => 'fjord')
+    p1 = Person.new(first_name: 'fjord')
     p1.save!
-    t = PersonalLegacyThing.new(:person => p1)
+    t = PersonalLegacyThing.new(person: p1)
     t.save!
     p1.reload
     assert_equal 1, p1.personal_legacy_things_count
@@ -345,7 +345,7 @@ class OptimisticLockingWithSchemaChangeTest < ActiveRecord::TestCase
   private
 
     def add_counter_column_to(model, col='test_count')
-      model.connection.add_column model.table_name, col, :integer, :null => false, :default => 0
+      model.connection.add_column model.table_name, col, :integer, null: false, default: 0
       model.reset_column_information
     end
 
