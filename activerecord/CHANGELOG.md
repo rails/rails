@@ -1,3 +1,10 @@
+*   Fixed an error which would occur in dirty checking when calling
+    `update_attributes` from a getter.
+
+    Fixes #20531.
+
+    *Sean Griffin*
+
 *   Ensure symbols passed to `ActiveRecord::Relation#select` are always treated
     as columns.
 
