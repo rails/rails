@@ -12,18 +12,11 @@ module ActiveRecord
       end
 
       def deserialize(value)
-        if default_value?(value)
-          value
-        else
-          coder.load(super)
-        end
+        coder.load(value)
       end
 
       def serialize(value)
-        return if value.nil?
-        unless default_value?(value)
-          super coder.dump(value)
-        end
+        coder.dump(value)
       end
 
       def inspect
@@ -39,12 +32,6 @@ module ActiveRecord
 
       def accessor
         ActiveRecord::Store::IndifferentHashAccessor
-      end
-
-      private
-
-      def default_value?(value)
-        value == coder.load(nil)
       end
     end
   end
