@@ -287,4 +287,12 @@ class SerializedAttributeTest < ActiveRecord::TestCase
 
     assert_equal [topic, topic2], Topic.where(content: nil)
   end
+
+  def test_nil_is_always_persisted_as_null
+    Topic.serialize(:content, Hash)
+
+    topic = Topic.create!(content: { foo: "bar" })
+    topic.update_attribute :content, nil
+    assert_equal [topic], Topic.where(content: nil)
+  end
 end
