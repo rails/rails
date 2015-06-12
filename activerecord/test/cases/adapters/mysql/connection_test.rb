@@ -2,7 +2,7 @@ require "cases/helper"
 require 'support/connection_helper'
 require 'support/ddl_helper'
 
-class MysqlConnectionTest < ActiveRecord::TestCase
+class MysqlConnectionTest < ActiveRecord::MysqlTestCase
   include ConnectionHelper
   include DdlHelper
 

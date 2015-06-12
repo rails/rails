@@ -65,6 +65,30 @@ module ActiveRecord
     end
   end
 
+  class PostgreSQLTestCase < TestCase
+    def self.run(*args)
+      super if current_adapter?(:PostgreSQLAdapter)
+    end
+  end
+
+  class Mysql2TestCase < TestCase
+    def self.run(*args)
+      super if current_adapter?(:Mysql2Adapter)
+    end
+  end
+
+  class MysqlTestCase < TestCase
+    def self.run(*args)
+      super if current_adapter?(:MysqlAdapter)
+    end
+  end
+
+  class SQLite3TestCase < TestCase
+    def self.run(*args)
+      super if current_adapter?(:SQLite3Adapter)
+    end
+  end
+
   class SQLCounter
     class << self
       attr_accessor :ignored_sql, :log, :log_all

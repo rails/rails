@@ -2,7 +2,7 @@ require 'cases/helper'
 require 'support/schema_dumping_helper'
 
 if ActiveRecord::Base.connection.supports_extensions?
-  class PostgresqlCitextTest < ActiveRecord::TestCase
+  class PostgresqlCitextTest < ActiveRecord::PostgreSQLTestCase
     include SchemaDumpingHelper
     class Citext < ActiveRecord::Base
       self.table_name = 'citexts'

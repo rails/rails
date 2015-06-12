@@ -5,7 +5,7 @@ require 'support/ddl_helper'
 
 module ActiveRecord
   module ConnectionAdapters
-    class SQLite3AdapterTest < ActiveRecord::TestCase
+    class SQLite3AdapterTest < ActiveRecord::SQLite3TestCase
       include DdlHelper
 
       self.use_transactional_tests = false

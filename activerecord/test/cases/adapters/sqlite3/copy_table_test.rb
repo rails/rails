@@ -1,6 +1,6 @@
 require "cases/helper"
 
-class CopyTableTest < ActiveRecord::TestCase
+class CopyTableTest < ActiveRecord::SQLite3TestCase
   fixtures :customers
 
   def setup

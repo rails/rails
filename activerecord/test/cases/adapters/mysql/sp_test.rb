@@ -1,11 +1,11 @@
 require "cases/helper"
 require 'models/topic'
 
-class StoredProcedureTest < ActiveRecord::TestCase
+class StoredProcedureTest < ActiveRecord::MysqlTestCase
   fixtures :topics
 
   # Test that MySQL allows multiple results for stored procedures
-  if Mysql.const_defined?(:CLIENT_MULTI_RESULTS)
+  if defined?(Mysql) && Mysql.const_defined?(:CLIENT_MULTI_RESULTS)
     def test_multi_results_from_find_by_sql
       topics = Topic.find_by_sql 'CALL topics();'
       assert_equal 1, topics.size

@@ -1,6 +1,6 @@
 require "cases/helper"
 
-class PostgresqlByteaTest < ActiveRecord::TestCase
+class PostgresqlByteaTest < ActiveRecord::PostgreSQLTestCase
   class ByteaDataType < ActiveRecord::Base
     self.table_name = 'bytea_data_type'
   end

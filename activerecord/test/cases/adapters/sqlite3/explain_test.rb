@@ -5,7 +5,7 @@ require 'models/computer'
 module ActiveRecord
   module ConnectionAdapters
     class SQLite3Adapter
-      class ExplainTest < ActiveRecord::TestCase
+      class ExplainTest < ActiveRecord::SQLite3TestCase
         fixtures :developers
 
         def test_explain_for_one_query

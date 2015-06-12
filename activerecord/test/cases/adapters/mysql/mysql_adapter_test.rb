@@ -4,7 +4,7 @@ require 'support/ddl_helper'
 
 module ActiveRecord
   module ConnectionAdapters
-    class MysqlAdapterTest < ActiveRecord::TestCase
+    class MysqlAdapterTest < ActiveRecord::MysqlTestCase
       include DdlHelper
 
       def setup

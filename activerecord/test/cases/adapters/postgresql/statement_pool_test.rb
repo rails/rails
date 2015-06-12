@@ -13,7 +13,7 @@ module ActiveRecord
         end
       end
 
-      class StatementPoolTest < ActiveRecord::TestCase
+      class StatementPoolTest < ActiveRecord::PostgreSQLTestCase
         if Process.respond_to?(:fork)
           def test_cache_is_per_pid
             cache = StatementPool.new nil, 10

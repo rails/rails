@@ -1,6 +1,6 @@
 require "cases/helper"
 
-class MysqlConsistencyTest < ActiveRecord::TestCase
+class MysqlConsistencyTest < ActiveRecord::MysqlTestCase
   self.use_transactional_tests = false
 
   class Consistency < ActiveRecord::Base

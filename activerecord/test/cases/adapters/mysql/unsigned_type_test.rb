@@ -1,6 +1,6 @@
 require "cases/helper"
 
-class UnsignedTypeTest < ActiveRecord::TestCase
+class MysqlUnsignedTypeTest < ActiveRecord::MysqlTestCase
   self.use_transactional_tests = false
 
   class UnsignedType < ActiveRecord::Base

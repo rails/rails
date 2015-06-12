@@ -2,7 +2,7 @@ require "cases/helper"
 require 'support/connection_helper'
 
 module ActiveRecord
-  class PostgresqlConnectionTest < ActiveRecord::TestCase
+  class PostgresqlConnectionTest < ActiveRecord::PostgreSQLTestCase
     include ConnectionHelper
 
     class NonExistentTable < ActiveRecord::Base

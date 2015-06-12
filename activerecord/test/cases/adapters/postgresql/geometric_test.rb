@@ -2,7 +2,7 @@ require "cases/helper"
 require 'support/connection_helper'
 require 'support/schema_dumping_helper'
 
-class PostgresqlPointTest < ActiveRecord::TestCase
+class PostgresqlPointTest < ActiveRecord::PostgreSQLTestCase
   include ConnectionHelper
   include SchemaDumpingHelper
 
@@ -166,7 +166,7 @@ class PostgresqlPointTest < ActiveRecord::TestCase
   end
 end
 
-class PostgresqlGeometricTest < ActiveRecord::TestCase
+class PostgresqlGeometricTest < ActiveRecord::PostgreSQLTestCase
   class PostgresqlGeometric < ActiveRecord::Base; end
 
   setup do

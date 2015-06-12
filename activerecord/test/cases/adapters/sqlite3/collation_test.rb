@@ -1,7 +1,7 @@
 require "cases/helper"
 require 'support/schema_dumping_helper'
 
-class SQLite3CollationTest < ActiveRecord::TestCase
+class SQLite3CollationTest < ActiveRecord::SQLite3TestCase
   include SchemaDumpingHelper
 
   def setup

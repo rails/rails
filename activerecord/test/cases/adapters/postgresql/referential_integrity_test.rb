@@ -1,7 +1,7 @@
 require 'cases/helper'
 require 'support/connection_helper'
 
-class PostgreSQLReferentialIntegrityTest < ActiveRecord::TestCase
+class PostgreSQLReferentialIntegrityTest < ActiveRecord::PostgreSQLTestCase
   self.use_transactional_tests = false
 
   include ConnectionHelper

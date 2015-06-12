@@ -1,6 +1,7 @@
 require 'cases/helper'
+require 'active_record/connection_adapters/postgresql/utils'
 
-class PostgreSQLUtilsTest < ActiveSupport::TestCase
+class PostgreSQLUtilsTest < ActiveRecord::PostgreSQLTestCase
   Name = ActiveRecord::ConnectionAdapters::PostgreSQL::Name
   include ActiveRecord::ConnectionAdapters::PostgreSQL::Utils
 
@@ -20,7 +21,7 @@ class PostgreSQLUtilsTest < ActiveSupport::TestCase
   end
 end
 
-class PostgreSQLNameTest < ActiveSupport::TestCase
+class PostgreSQLNameTest < ActiveRecord::PostgreSQLTestCase
   Name = ActiveRecord::ConnectionAdapters::PostgreSQL::Name
 
   test "represents itself as schema.name" do

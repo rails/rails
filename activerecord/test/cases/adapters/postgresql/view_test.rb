@@ -1,7 +1,7 @@
 require "cases/helper"
 require "cases/view_test"
 
-class UpdateableViewTest < ActiveRecord::TestCase
+class UpdateableViewTest < ActiveRecord::PostgreSQLTestCase
   fixtures :books
 
   class PrintedBook < ActiveRecord::Base
@@ -46,8 +46,9 @@ class UpdateableViewTest < ActiveRecord::TestCase
   end
 end
 
-if ActiveRecord::Base.connection.supports_materialized_views?
-class MaterializedViewTest < ActiveRecord::TestCase
+if ActiveRecord::Base.connection.respond_to?(:supports_materialized_views?) &&
+    ActiveRecord::Base.connection.supports_materialized_views?
+class MaterializedViewTest < ActiveRecord::PostgreSQLTestCase
   include ViewBehavior
 
   private

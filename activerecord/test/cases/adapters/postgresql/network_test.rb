@@ -1,7 +1,7 @@
 require "cases/helper"
 require 'support/schema_dumping_helper'
 
-class PostgresqlNetworkTest < ActiveRecord::TestCase
+class PostgresqlNetworkTest < ActiveRecord::PostgreSQLTestCase
   include SchemaDumpingHelper
   class PostgresqlNetworkAddress < ActiveRecord::Base; end
 
