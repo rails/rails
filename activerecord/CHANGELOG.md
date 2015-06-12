@@ -1,3 +1,8 @@
+*   Make `remove_foreign_key` reversible. Any foreign key options must be
+    specified, similar to `remove_column`.
+
+    *Aster Ryan*
+
 *   Add `:enum_prefix`/`:enum_suffix` option to `enum` definition.
 
     Fixes #17511 and #17415
