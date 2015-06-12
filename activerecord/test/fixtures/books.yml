@@ -5,6 +5,10 @@ awdr:
   format: "paperback"
   status: :published
   read_status: :read
+  language: :english
+  author_visibility: :visible
+  illustrator_visibility: :visible
+  font_size: :medium
 
 rfr:
   author_id: 1
