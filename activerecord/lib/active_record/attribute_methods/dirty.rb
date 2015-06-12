@@ -108,6 +108,7 @@ module ActiveRecord
       end
 
       def save_changed_attribute(attr, old_value)
+        clear_changed_attributes_cache
         if attribute_changed_by_setter?(attr)
           clear_attribute_changes(attr) unless _field_changed?(attr, old_value)
         else
@@ -176,7 +177,11 @@ module ActiveRecord
         @cached_changed_attributes = changed_attributes
         yield
       ensure
-        remove_instance_variable(:@cached_changed_attributes)
+        clear_changed_attributes_cache
+      end
+
+      def clear_changed_attributes_cache
+        remove_instance_variable(:@cached_changed_attributes) if defined?(@cached_changed_attributes)
       end
     end
   end

@@ -1,3 +1,10 @@
+*   Fixed an error which would occur in dirty checking when calling
+    `update_attributes` from a getter.
+
+    Fixes #20531.
+
+    *Sean Griffin*
+
 *   Make `remove_foreign_key` reversible. Any foreign key options must be
     specified, similar to `remove_column`.
 

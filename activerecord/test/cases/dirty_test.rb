@@ -703,6 +703,22 @@ class DirtyTest < ActiveRecord::TestCase
     assert pirate.catchphrase_changed?(from: "arrrr", to: "arrrr matey!")
   end
 
+  test "getters with side effects are allowed" do
+    klass = Class.new(Pirate) do
+      def catchphrase
+        if super.blank?
+          update_attribute(:catchphrase, "arr") # what could possibly go wrong?
+        end
+        super
+      end
+    end
+
+    pirate = klass.create!(catchphrase: "lol")
+    pirate.update_attribute(:catchphrase, nil)
+
+    assert_equal "arr", pirate.catchphrase
+  end
+
   private
     def with_partial_writes(klass, on = true)
       old = klass.partial_writes?
