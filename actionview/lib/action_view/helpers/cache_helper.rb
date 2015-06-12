@@ -137,7 +137,7 @@ module ActionView
       # The automatic cache multi read can be turned off like so:
       #
       #   <%= render @notifications, cache: false %>
-      def cache(name = {}, options = nil, &block)
+      def cache(name = {}, options = {}, &block)
         if controller.respond_to?(:perform_caching) && controller.perform_caching
           safe_concat(fragment_for(cache_fragment_name(name, options), options, &block))
         else
@@ -153,7 +153,7 @@ module ActionView
       #     <b>All the topics on this project</b>
       #     <%= render project.topics %>
       #   <% end %>
-      def cache_if(condition, name = {}, options = nil, &block)
+      def cache_if(condition, name = {}, options = {}, &block)
         if condition
           cache(name, options, &block)
         else
@@ -169,22 +169,23 @@ module ActionView
       #     <b>All the topics on this project</b>
       #     <%= render project.topics %>
       #   <% end %>
-      def cache_unless(condition, name = {}, options = nil, &block)
+      def cache_unless(condition, name = {}, options = {}, &block)
         cache_if !condition, name, options, &block
       end
 
       # This helper returns the name of a cache key for a given fragment cache
-      # call. By supplying skip_digest: true to cache, the digestion of cache
+      # call. By supplying +skip_digest:+ true to cache, the digestion of cache
       # fragments can be manually bypassed. This is useful when cache fragments
       # cannot be manually expired unless you know the exact key which is the
       # case when using memcached.
-      def cache_fragment_name(name = {}, options = nil)
-        skip_digest = options && options[:skip_digest]
-
+      #
+      # The digest will be generated using +virtual_path:+ if it is provided.
+      #
+      def cache_fragment_name(name = {}, skip_digest: nil, virtual_path: nil)
         if skip_digest
           name
         else
-          fragment_name_with_digest(name)
+          fragment_name_with_digest(name, virtual_path)
         end
       end
 
@@ -198,10 +199,11 @@ module ActionView
 
     private
 
-      def fragment_name_with_digest(name) #:nodoc:
-        if @virtual_path
+      def fragment_name_with_digest(name, virtual_path) #:nodoc:
+        virtual_path ||= @virtual_path
+        if virtual_path
           names  = Array(name.is_a?(Hash) ? controller.url_for(name).split("://").last : name)
-          digest = Digestor.digest name: @virtual_path, finder: lookup_context, dependencies: view_cache_dependencies
+          digest = Digestor.digest name: virtual_path, finder: lookup_context, dependencies: view_cache_dependencies
 
           [ *names, digest ]
         else

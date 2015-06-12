@@ -1,3 +1,12 @@
+*   Always attach the template digest to the cache key for collection caching
+    even when `virtual_path` is not available from the view context.
+    Which could happen if the rendering was done directly in the controller
+    and not in a template.
+
+    Fixes #20535
+
+    *Roque Pinel*
+
 *   Improve detection of partial templates eligible for collection caching,
     now allowing multi-line comments at the beginning of the template file.
 
