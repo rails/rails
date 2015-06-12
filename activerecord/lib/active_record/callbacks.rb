@@ -211,7 +211,7 @@ module ActiveRecord
   # Let's look at the code below:
   #
   #   class Topic < ActiveRecord::Base
-  #     has_many :children, dependent: destroy
+  #     has_many :children, dependent: :destroy
   #
   #     before_destroy :log_children
   #
@@ -225,7 +225,7 @@ module ActiveRecord
   # because the +destroy+ callback gets executed first. You can use the +prepend+ option on the +before_destroy+ callback to avoid this.
   #
   #   class Topic < ActiveRecord::Base
-  #     has_many :children, dependent: destroy
+  #     has_many :children, dependent: :destroy
   #
   #     before_destroy :log_children, prepend: true
   #
@@ -236,6 +236,28 @@ module ActiveRecord
   #   end
   #
   # This way, the +before_destroy+ gets executed before the <tt>dependent: destroy</tt> is called, and the data is still available.
+  #
+  # Another alternative is to use +before_dependent_destroy+ callback instead. That frees the developer to hook into both
+  # +before_destroy+ and +before_dependent_destroy+ very clearly.
+  #
+  #   class Topic < ActiveRecord::Base
+  #     has_many :children, dependent: :destroy
+  #
+  #     before_dependent_destroy :log_children
+  #     before_destroy :enqueue_background_cleaner
+  #
+  #     private
+  #       def log_children
+  #         # Child processing
+  #       end
+  #
+  #       def enqueue_background_cleaner
+  #         # Enqueue background cleaner processing
+  #       end
+  #   end
+  #
+  # Note that +before_dependent_destroy+ runs regardless of the +dependent+ value, meaning it runs
+  # before +dependent: :delete_all+ and +dependent: :nullify+ as well.
   #
   # == Transactions
   #
@@ -274,7 +296,7 @@ module ActiveRecord
       :after_initialize, :after_find, :after_touch, :before_validation, :after_validation,
       :before_save, :around_save, :after_save, :before_create, :around_create,
       :after_create, :before_update, :around_update, :after_update,
-      :before_destroy, :around_destroy, :after_destroy, :after_commit, :after_rollback
+      :before_dependent_destroy, :before_destroy, :around_destroy, :after_destroy, :after_commit, :after_rollback
     ]
 
     module ClassMethods
@@ -285,7 +307,7 @@ module ActiveRecord
       include ActiveModel::Validations::Callbacks
 
       define_model_callbacks :initialize, :find, :touch, :only => :after
-      define_model_callbacks :save, :create, :update, :destroy
+      define_model_callbacks :save, :create, :update, :dependent_destroy, :destroy
     end
 
     def destroy #:nodoc:
