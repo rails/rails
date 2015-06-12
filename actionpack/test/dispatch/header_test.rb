@@ -120,9 +120,9 @@ class HeaderTest < ActiveSupport::TestCase
 
   test "symbols are treated as strings" do
     headers = ActionDispatch::Http::Headers.new
-    headers.merge!(:SERVER_NAME => "example.com",
+    headers.merge!(SERVER_NAME: "example.com",
                    "HTTP_REFERER" => "/",
-                   :Host => "test.com")
+                   Host: "test.com")
     assert_equal "example.com", headers["SERVER_NAME"]
     assert_equal "/", headers[:HTTP_REFERER]
     assert_equal "test.com", headers["HTTP_HOST"]

@@ -72,7 +72,7 @@ module ActionDispatch
         s = Session.create(store, {}, {})
         s['rails'] = 'ftw'
 
-        s.update(:rails => 'awesome')
+        s.update(rails: 'awesome')
 
         assert_equal(['rails'], s.keys)
         assert_equal('awesome', s['rails'])

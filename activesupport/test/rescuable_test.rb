@@ -23,9 +23,9 @@ class Stargate
 
   include ActiveSupport::Rescuable
 
-  rescue_from WraithAttack, :with => :sos_first
+  rescue_from WraithAttack, with: :sos_first
 
-  rescue_from WraithAttack, :with => :sos
+  rescue_from WraithAttack, with: :sos
 
   rescue_from 'NuclearExplosion' do
     @result = 'alldead'
@@ -82,7 +82,7 @@ class CoolStargate < Stargate
 
   include ActiveSupport::Rescuable
 
-  rescue_from CoolError, :with => :sos_cool_error
+  rescue_from CoolError, with: :sos_cool_error
 
   def sos_cool_error
     @result = 'sos_cool_error'

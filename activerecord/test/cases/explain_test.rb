@@ -15,13 +15,13 @@ if ActiveRecord::Base.connection.supports_explain?
     end
 
     def test_relation_explain
-      message = Car.where(:name => 'honda').explain
+      message = Car.where(name: 'honda').explain
       assert_match(/^EXPLAIN for:/, message)
     end
 
     def test_collecting_queries_for_explain
       queries = ActiveRecord::Base.collecting_queries_for_explain do
-        Car.where(:name => 'honda').to_a
+        Car.where(name: 'honda').to_a
       end
 
       sql, binds = queries[0]
@@ -69,7 +69,7 @@ if ActiveRecord::Base.connection.supports_explain?
 
       base.logger.expects(:warn).never
 
-      Car.where(:name => 'honda').to_a
+      Car.where(name: 'honda').to_a
     end
 
   end

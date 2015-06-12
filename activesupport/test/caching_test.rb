@@ -160,8 +160,8 @@ class CacheStoreSettingTest < ActiveSupport::TestCase
   end
 
   def test_mem_cache_fragment_cache_store_with_options
-    Dalli::Client.expects(:new).with(%w[localhost 192.168.1.1], { :timeout => 10 })
-    store = ActiveSupport::Cache.lookup_store :mem_cache_store, "localhost", '192.168.1.1', :namespace => 'foo', :timeout => 10
+    Dalli::Client.expects(:new).with(%w[localhost 192.168.1.1], { timeout: 10 })
+    store = ActiveSupport::Cache.lookup_store :mem_cache_store, "localhost", '192.168.1.1', namespace: 'foo', timeout: 10
     assert_kind_of(ActiveSupport::Cache::MemCacheStore, store)
     assert_equal 'foo', store.options[:namespace]
   end
@@ -175,7 +175,7 @@ end
 
 class CacheStoreNamespaceTest < ActiveSupport::TestCase
   def test_static_namespace
-    cache = ActiveSupport::Cache.lookup_store(:memory_store, :namespace => "tester")
+    cache = ActiveSupport::Cache.lookup_store(:memory_store, namespace: "tester")
     cache.write("foo", "bar")
     assert_equal "bar", cache.read("foo")
     assert_equal "bar", cache.instance_variable_get(:@data)["tester:foo"].value
@@ -184,14 +184,14 @@ class CacheStoreNamespaceTest < ActiveSupport::TestCase
   def test_proc_namespace
     test_val = "tester"
     proc = lambda{test_val}
-    cache = ActiveSupport::Cache.lookup_store(:memory_store, :namespace => proc)
+    cache = ActiveSupport::Cache.lookup_store(:memory_store, namespace: proc)
     cache.write("foo", "bar")
     assert_equal "bar", cache.read("foo")
     assert_equal "bar", cache.instance_variable_get(:@data)["tester:foo"].value
   end
 
   def test_delete_matched_key_start
-    cache = ActiveSupport::Cache.lookup_store(:memory_store, :namespace => "tester")
+    cache = ActiveSupport::Cache.lookup_store(:memory_store, namespace: "tester")
     cache.write("foo", "bar")
     cache.write("fu", "baz")
     cache.delete_matched(/^fo/)
@@ -200,7 +200,7 @@ class CacheStoreNamespaceTest < ActiveSupport::TestCase
   end
 
   def test_delete_matched_key
-    cache = ActiveSupport::Cache.lookup_store(:memory_store, :namespace => "foo")
+    cache = ActiveSupport::Cache.lookup_store(:memory_store, namespace: "foo")
     cache.write("foo", "bar")
     cache.write("fu", "baz")
     cache.delete_matched(/OO/i)
@@ -246,8 +246,8 @@ module CacheStoreBehavior
   def test_fetch_with_forced_cache_miss
     @cache.write('foo', 'bar')
     @cache.expects(:read).never
-    @cache.expects(:write).with('foo', 'bar', @cache.options.merge(:force => true))
-    @cache.fetch('foo', :force => true) { 'bar' }
+    @cache.expects(:write).with('foo', 'bar', @cache.options.merge(force: true))
+    @cache.fetch('foo', force: true) { 'bar' }
   end
 
   def test_fetch_with_cached_nil
@@ -257,8 +257,8 @@ module CacheStoreBehavior
   end
 
   def test_should_read_and_write_hash
-    assert @cache.write('foo', {:a => "b"})
-    assert_equal({:a => "b"}, @cache.read('foo'))
+    assert @cache.write('foo', {a: "b"})
+    assert_equal({a: "b"}, @cache.read('foo'))
   end
 
   def test_should_read_and_write_integer
@@ -285,7 +285,7 @@ module CacheStoreBehavior
 
   def test_read_multi_with_expires
     time = Time.now
-    @cache.write('foo', 'bar', :expires_in => 10)
+    @cache.write('foo', 'bar', expires_in: 10)
     @cache.write('fu', 'baz')
     @cache.write('fud', 'biz')
     Time.stub(:now, time + 11) do
@@ -304,8 +304,8 @@ module CacheStoreBehavior
   end
 
   def test_multi_with_objects
-    foo = stub(:title => 'FOO!', :cache_key => 'foo')
-    bar = stub(:cache_key => 'bar')
+    foo = stub(title: 'FOO!', cache_key: 'foo')
+    bar = stub(cache_key: 'bar')
 
     @cache.write('bar', 'BAM!')
 
@@ -315,17 +315,17 @@ module CacheStoreBehavior
   end
 
   def test_read_and_write_compressed_small_data
-    @cache.write('foo', 'bar', :compress => true)
+    @cache.write('foo', 'bar', compress: true)
     assert_equal 'bar', @cache.read('foo')
   end
 
   def test_read_and_write_compressed_large_data
-    @cache.write('foo', 'bar', :compress => true, :compress_threshold => 2)
+    @cache.write('foo', 'bar', compress: true, compress_threshold: 2)
     assert_equal 'bar', @cache.read('foo')
   end
 
   def test_read_and_write_compressed_nil
-    @cache.write('foo', nil, :compress => true)
+    @cache.write('foo', nil, compress: true)
     assert_nil @cache.read('foo')
   end
 
@@ -353,7 +353,7 @@ module CacheStoreBehavior
   end
 
   def test_hash_as_cache_key
-    @cache.write({:foo => 1, :fu => 2}, "bar")
+    @cache.write({foo: 1, fu: 2}, "bar")
     assert_equal "bar", @cache.read("foo=1/fu=2")
   end
 
@@ -418,9 +418,9 @@ module CacheStoreBehavior
 
   def test_race_condition_protection_is_limited
     time = Time.now
-    @cache.write('foo', 'bar', :expires_in => 60)
+    @cache.write('foo', 'bar', expires_in: 60)
     Time.stub(:now, time + 71) do
-      result = @cache.fetch('foo', :race_condition_ttl => 10) do
+      result = @cache.fetch('foo', race_condition_ttl: 10) do
         assert_equal nil, @cache.read('foo')
         "baz"
       end
@@ -430,10 +430,10 @@ module CacheStoreBehavior
 
   def test_race_condition_protection_is_safe
     time = Time.now
-    @cache.write('foo', 'bar', :expires_in => 60)
+    @cache.write('foo', 'bar', expires_in: 60)
     Time.stub(:now, time + 61) do
       begin
-        @cache.fetch('foo', :race_condition_ttl => 10) do
+        @cache.fetch('foo', race_condition_ttl: 10) do
           assert_equal 'bar', @cache.read('foo')
           raise ArgumentError.new
         end
@@ -448,9 +448,9 @@ module CacheStoreBehavior
 
   def test_race_condition_protection
     time = Time.now
-    @cache.write('foo', 'bar', :expires_in => 60)
+    @cache.write('foo', 'bar', expires_in: 60)
     Time.stub(:now, time + 61) do
-      result = @cache.fetch('foo', :race_condition_ttl => 10) do
+      result = @cache.fetch('foo', race_condition_ttl: 10) do
         assert_equal 'bar', @cache.read('foo')
         "baz"
       end
@@ -460,11 +460,11 @@ module CacheStoreBehavior
 
   def test_crazy_key_characters
     crazy_key = "#/:*(<+=> )&$%@?;'\"\'`~-"
-    assert @cache.write(crazy_key, "1", :raw => true)
+    assert @cache.write(crazy_key, "1", raw: true)
     assert_equal "1", @cache.read(crazy_key)
     assert_equal "1", @cache.fetch(crazy_key)
     assert @cache.delete(crazy_key)
-    assert_equal "2", @cache.fetch(crazy_key, :raw => true) { "2" }
+    assert_equal "2", @cache.fetch(crazy_key, raw: true) { "2" }
     assert_equal 3, @cache.increment(crazy_key)
     assert_equal 2, @cache.decrement(crazy_key)
   end
@@ -488,11 +488,11 @@ module EncodedKeyCacheBehavior
   Encoding.list.each do |encoding|
     define_method "test_#{encoding.name.underscore}_encoded_values" do
       key = "foo".force_encoding(encoding)
-      assert @cache.write(key, "1", :raw => true)
+      assert @cache.write(key, "1", raw: true)
       assert_equal "1", @cache.read(key)
       assert_equal "1", @cache.fetch(key)
       assert @cache.delete(key)
-      assert_equal "2", @cache.fetch(key, :raw => true) { "2" }
+      assert_equal "2", @cache.fetch(key, raw: true) { "2" }
       assert_equal 3, @cache.increment(key)
       assert_equal 2, @cache.decrement(key)
     end
@@ -500,18 +500,18 @@ module EncodedKeyCacheBehavior
 
   def test_common_utf8_values
     key = "\xC3\xBCmlaut".force_encoding(Encoding::UTF_8)
-    assert @cache.write(key, "1", :raw => true)
+    assert @cache.write(key, "1", raw: true)
     assert_equal "1", @cache.read(key)
     assert_equal "1", @cache.fetch(key)
     assert @cache.delete(key)
-    assert_equal "2", @cache.fetch(key, :raw => true) { "2" }
+    assert_equal "2", @cache.fetch(key, raw: true) { "2" }
     assert_equal 3, @cache.increment(key)
     assert_equal 2, @cache.decrement(key)
   end
 
   def test_retains_encoding
     key = "\xC3\xBCmlaut".force_encoding(Encoding::UTF_8)
-    assert @cache.write(key, "1", :raw => true)
+    assert @cache.write(key, "1", raw: true)
     assert_equal Encoding::UTF_8, key.encoding
   end
 end
@@ -532,7 +532,7 @@ end
 
 module CacheIncrementDecrementBehavior
   def test_increment
-    @cache.write('foo', 1, :raw => true)
+    @cache.write('foo', 1, raw: true)
     assert_equal 1, @cache.read('foo').to_i
     assert_equal 2, @cache.increment('foo')
     assert_equal 2, @cache.read('foo').to_i
@@ -542,7 +542,7 @@ module CacheIncrementDecrementBehavior
   end
 
   def test_decrement
-    @cache.write('foo', 3, :raw => true)
+    @cache.write('foo', 3, raw: true)
     assert_equal 3, @cache.read('foo').to_i
     assert_equal 2, @cache.decrement('foo')
     assert_equal 2, @cache.read('foo').to_i
@@ -613,8 +613,8 @@ module LocalCacheBehavior
 
   def test_local_cache_of_increment
     @cache.with_local_cache do
-      @cache.write('foo', 1, :raw => true)
-      @peek.write('foo', 2, :raw => true)
+      @cache.write('foo', 1, raw: true)
+      @peek.write('foo', 2, raw: true)
       @cache.increment('foo')
       assert_equal 3, @cache.read('foo')
     end
@@ -622,8 +622,8 @@ module LocalCacheBehavior
 
   def test_local_cache_of_decrement
     @cache.with_local_cache do
-      @cache.write('foo', 1, :raw => true)
-      @peek.write('foo', 3, :raw => true)
+      @cache.write('foo', 1, raw: true)
+      @peek.write('foo', 3, raw: true)
       @cache.decrement('foo')
       assert_equal 2, @cache.read('foo')
     end
@@ -683,9 +683,9 @@ end
 class FileStoreTest < ActiveSupport::TestCase
   def setup
     Dir.mkdir(cache_dir) unless File.exist?(cache_dir)
-    @cache = ActiveSupport::Cache.lookup_store(:file_store, cache_dir, :expires_in => 60)
-    @peek = ActiveSupport::Cache.lookup_store(:file_store, cache_dir, :expires_in => 60)
-    @cache_with_pathname = ActiveSupport::Cache.lookup_store(:file_store, Pathname.new(cache_dir), :expires_in => 60)
+    @cache = ActiveSupport::Cache.lookup_store(:file_store, cache_dir, expires_in: 60)
+    @peek = ActiveSupport::Cache.lookup_store(:file_store, cache_dir, expires_in: 60)
+    @cache_with_pathname = ActiveSupport::Cache.lookup_store(:file_store, Pathname.new(cache_dir), expires_in: 60)
 
     @buffer = StringIO.new
     @cache.logger = ActiveSupport::Logger.new(@buffer)
@@ -803,7 +803,7 @@ end
 class MemoryStoreTest < ActiveSupport::TestCase
   def setup
     @record_size = ActiveSupport::Cache.lookup_store(:memory_store).send(:cached_size, 1, ActiveSupport::Cache::Entry.new("aaaaaaaaaa"))
-    @cache = ActiveSupport::Cache.lookup_store(:memory_store, :expires_in => 60, :size => @record_size * 10 + 1)
+    @cache = ActiveSupport::Cache.lookup_store(:memory_store, expires_in: 60, size: @record_size * 10 + 1)
   end
 
   include CacheStoreBehavior
@@ -897,9 +897,9 @@ class MemoryStoreTest < ActiveSupport::TestCase
 
   def test_write_with_unless_exist
     assert_equal true, @cache.write(1, "aaaaaaaaaa")
-    assert_equal false, @cache.write(1, "aaaaaaaaaa", :unless_exist => true)
+    assert_equal false, @cache.write(1, "aaaaaaaaaa", unless_exist: true)
     @cache.write(1, nil)
-    assert_equal false, @cache.write(1, "aaaaaaaaaa", :unless_exist => true)
+    assert_equal false, @cache.write(1, "aaaaaaaaaa", unless_exist: true)
   end
 end
 
@@ -919,7 +919,7 @@ class MemCacheStoreTest < ActiveSupport::TestCase
   def setup
     skip "memcache server is not up" unless MEMCACHE_UP
 
-    @cache = ActiveSupport::Cache.lookup_store(:mem_cache_store, :expires_in => 60)
+    @cache = ActiveSupport::Cache.lookup_store(:mem_cache_store, expires_in: 60)
     @peek = ActiveSupport::Cache.lookup_store(:mem_cache_store)
     @data = @cache.instance_variable_get(:@data)
     @cache.clear
@@ -934,21 +934,21 @@ class MemCacheStoreTest < ActiveSupport::TestCase
   include AutoloadingCacheBehavior
 
   def test_raw_values
-    cache = ActiveSupport::Cache.lookup_store(:mem_cache_store, :raw => true)
+    cache = ActiveSupport::Cache.lookup_store(:mem_cache_store, raw: true)
     cache.clear
     cache.write("foo", 2)
     assert_equal "2", cache.read("foo")
   end
 
   def test_raw_values_with_marshal
-    cache = ActiveSupport::Cache.lookup_store(:mem_cache_store, :raw => true)
+    cache = ActiveSupport::Cache.lookup_store(:mem_cache_store, raw: true)
     cache.clear
     cache.write("foo", Marshal.dump([]))
     assert_equal [], cache.read("foo")
   end
 
   def test_local_cache_raw_values
-    cache = ActiveSupport::Cache.lookup_store(:mem_cache_store, :raw => true)
+    cache = ActiveSupport::Cache.lookup_store(:mem_cache_store, raw: true)
     cache.clear
     cache.with_local_cache do
       cache.write("foo", 2)
@@ -957,7 +957,7 @@ class MemCacheStoreTest < ActiveSupport::TestCase
   end
 
   def test_local_cache_raw_values_with_marshal
-    cache = ActiveSupport::Cache.lookup_store(:mem_cache_store, :raw => true)
+    cache = ActiveSupport::Cache.lookup_store(:mem_cache_store, raw: true)
     cache.clear
     cache.with_local_cache do
       cache.write("foo", Marshal.dump([]))
@@ -1002,12 +1002,12 @@ class NullStoreTest < ActiveSupport::TestCase
   end
 
   def test_increment
-    @cache.write("name", 1, :raw => true)
+    @cache.write("name", 1, raw: true)
     assert_nil @cache.increment("name")
   end
 
   def test_decrement
-    @cache.write("name", 1, :raw => true)
+    @cache.write("name", 1, raw: true)
     assert_nil @cache.increment("name")
   end
 
@@ -1064,7 +1064,7 @@ class CacheEntryTest < ActiveSupport::TestCase
   def test_expired
     entry = ActiveSupport::Cache::Entry.new("value")
     assert !entry.expired?, 'entry not expired'
-    entry = ActiveSupport::Cache::Entry.new("value", :expires_in => 60)
+    entry = ActiveSupport::Cache::Entry.new("value", expires_in: 60)
     assert !entry.expired?, 'entry not expired'
     Time.stub(:now, Time.now + 61) do
       assert entry.expired?, 'entry is expired'
@@ -1073,7 +1073,7 @@ class CacheEntryTest < ActiveSupport::TestCase
 
   def test_compress_values
     value = "value" * 100
-    entry = ActiveSupport::Cache::Entry.new(value, :compress => true, :compress_threshold => 1)
+    entry = ActiveSupport::Cache::Entry.new(value, compress: true, compress_threshold: 1)
     assert_equal value, entry.value
     assert(value.bytesize > entry.size, "value is compressed")
   end

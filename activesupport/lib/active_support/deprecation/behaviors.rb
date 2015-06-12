@@ -32,7 +32,7 @@ module ActiveSupport
 
       notify: ->(message, callstack) {
         ActiveSupport::Notifications.instrument("deprecation.rails",
-                                                :message => message, :callstack => callstack)
+                                                message: message, callstack: callstack)
       },
 
       silence: ->(message, callstack) {},

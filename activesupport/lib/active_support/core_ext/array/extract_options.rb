@@ -18,7 +18,7 @@ class Array
   #   end
   #
   #   options(1, 2)        # => {}
-  #   options(1, 2, a: :b) # => {:a=>:b}
+  #   options(1, 2, a: :b) # => {a::b}
   def extract_options!
     if last.is_a?(Hash) && last.extractable_options?
       pop

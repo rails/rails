@@ -179,7 +179,7 @@ class NestedParametersTest < ActiveSupport::TestCase
         }
       }
     })
-    params = params.require(:product).permit(:properties => ["0"])
+    params = params.require(:product).permit(properties: ["0"])
     assert_not_nil        params[:properties]["0"]
     assert_nil            params[:properties]["1"]
     assert_equal "prop0", params[:properties]["0"]

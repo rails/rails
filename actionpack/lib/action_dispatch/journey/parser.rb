@@ -74,15 +74,15 @@ racc_shift_n = 25
 
 racc_token_table = {
   false => 0,
-  :error => 1,
-  :SLASH => 2,
-  :LITERAL => 3,
-  :SYMBOL => 4,
-  :LPAREN => 5,
-  :RPAREN => 6,
-  :DOT => 7,
-  :STAR => 8,
-  :OR => 9 }
+  error: 1,
+  SLASH: 2,
+  LITERAL: 3,
+  SYMBOL: 4,
+  LPAREN: 5,
+  RPAREN: 6,
+  DOT: 7,
+  STAR: 8,
+  OR: 9 }
 
 racc_nt_base = 10
 

@@ -21,19 +21,19 @@ module AbstractController
       )]
 
       def template
-        render :template => "template"
+        render template: "template"
       end
 
       def file
-        render :file => "some/file"
+        render file: "some/file"
       end
 
       def inline
-        render :inline => "With <%= :Inline %>"
+        render inline: "With <%= :Inline %>"
       end
 
       def text
-        render :text => "With Text"
+        render text: "With Text"
       end
 
       def default

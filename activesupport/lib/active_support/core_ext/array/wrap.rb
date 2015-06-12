@@ -24,7 +24,7 @@ class Array
   # The last point is easily explained with some enumerables:
   #
   #   Array(foo: :bar)      # => [[:foo, :bar]]
-  #   Array.wrap(foo: :bar) # => [{:foo=>:bar}]
+  #   Array.wrap(foo: :bar) # => [{foo::bar}]
   #
   # There's also a related idiom that uses the splat operator:
   #

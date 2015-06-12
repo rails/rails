@@ -25,7 +25,7 @@ module ActiveRecord
 
       db = SQLite3::Database.new(
         config[:database].to_s,
-        :results_as_hash => true
+        results_as_hash: true
       )
 
       db.busy_timeout(ConnectionAdapters::SQLite3Adapter.type_cast_config_to_integer(config[:timeout])) if config[:timeout]
@@ -260,7 +260,7 @@ module ActiveRecord
             stmt = records
           else
             cache = @statements[sql] ||= {
-              :stmt => @connection.prepare(sql)
+              stmt: @connection.prepare(sql)
             }
             stmt = cache[:stmt]
             cols = cache[:cols] ||= stmt.columns
@@ -472,7 +472,7 @@ module ActiveRecord
 
           transaction do
             move_table(table_name, altered_table_name,
-              options.merge(:temporary => true))
+              options.merge(temporary: true))
             move_table(altered_table_name, table_name, &caller)
           end
         end
@@ -496,9 +496,9 @@ module ActiveRecord
               next if column_name == from_primary_key
 
               @definition.column(column_name, column.type,
-                :limit => column.limit, :default => column.default,
-                :precision => column.precision, :scale => column.scale,
-                :null => column.null, collation: column.collation)
+                limit: column.limit, default: column.default,
+                precision: column.precision, scale: column.scale,
+                null: column.null, collation: column.collation)
             end
             yield @definition if block_given?
           end

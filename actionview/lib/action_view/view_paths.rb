@@ -11,7 +11,7 @@ module ActionView
     end
 
     delegate :template_exists?, :view_paths, :formats, :formats=,
-             :locale, :locale=, :to => :lookup_context
+             :locale, :locale=, to: :lookup_context
 
     module ClassMethods
       def _prefixes # :nodoc:

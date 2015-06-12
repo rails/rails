@@ -173,7 +173,7 @@ module Notifications
   end
 
   class InstrumentationTest < TestCase
-    delegate :instrument, :to => ActiveSupport::Notifications
+    delegate :instrument, to: ActiveSupport::Notifications
 
     def test_instrument_returns_block_result
       assert_equal 2, instrument(:awesome) { 1 + 1 }
@@ -183,7 +183,7 @@ module Notifications
       assert_equal 2, instrument(:awesome) { |p| p[:result] = 1 + 1 }
       assert_equal 1, @events.size
       assert_equal :awesome, @events.first.name
-      assert_equal Hash[:result => 2], @events.first.payload
+      assert_equal Hash[result: 2], @events.first.payload
     end
 
     def test_instrumenter_exposes_its_id
@@ -191,24 +191,24 @@ module Notifications
     end
 
     def test_nested_events_can_be_instrumented
-      instrument(:awesome, :payload => "notifications") do
-        instrument(:wot, :payload => "child") do
+      instrument(:awesome, payload: "notifications") do
+        instrument(:wot, payload: "child") do
           1 + 1
         end
 
         assert_equal 1, @events.size
         assert_equal :wot, @events.first.name
-        assert_equal Hash[:payload => "child"], @events.first.payload
+        assert_equal Hash[payload: "child"], @events.first.payload
       end
 
       assert_equal 2, @events.size
       assert_equal :awesome, @events.last.name
-      assert_equal Hash[:payload => "notifications"], @events.last.payload
+      assert_equal Hash[payload: "notifications"], @events.last.payload
     end
 
     def test_instrument_publishes_when_exception_is_raised
       begin
-        instrument(:awesome, :payload => "notifications") do
+        instrument(:awesome, payload: "notifications") do
           raise "FAIL"
         end
       rescue RuntimeError => e
@@ -216,15 +216,15 @@ module Notifications
       end
 
       assert_equal 1, @events.size
-      assert_equal Hash[:payload => "notifications",
-        :exception => ["RuntimeError", "FAIL"]], @events.last.payload
+      assert_equal Hash[payload: "notifications",
+        exception: ["RuntimeError", "FAIL"]], @events.last.payload
     end
 
     def test_event_is_pushed_even_without_block
-      instrument(:awesome, :payload => "notifications")
+      instrument(:awesome, payload: "notifications")
       assert_equal 1, @events.size
       assert_equal :awesome, @events.last.name
-      assert_equal Hash[:payload => "notifications"], @events.last.payload
+      assert_equal Hash[payload: "notifications"], @events.last.payload
     end
   end
 
@@ -239,8 +239,8 @@ module Notifications
     end
 
     def test_events_consumes_information_given_as_payload
-      event = event(:foo, Time.now, Time.now + 1, random_id, :payload => :bar)
-      assert_equal Hash[:payload => :bar], event.payload
+      event = event(:foo, Time.now, Time.now + 1, random_id, payload: :bar)
+      assert_equal Hash[payload: :bar], event.payload
     end
 
     def test_event_is_parent_based_on_children

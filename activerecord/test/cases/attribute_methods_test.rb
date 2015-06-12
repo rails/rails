@@ -170,7 +170,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   end
 
   def test_read_attributes_before_type_cast
-    category = Category.new({:name=>"Test category", :type => nil})
+    category = Category.new({name:"Test category", type: nil})
     category_attrs = {"name"=>"Test category", "id" => nil, "type" => nil, "categorizations_count" => nil}
     assert_equal category_attrs , category.attributes_before_type_cast
   end
@@ -268,8 +268,8 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   end
 
   def test_hashes_not_mangled
-    new_topic = { :title => "New Topic" }
-    new_topic_values = { :title => "AnotherTopic" }
+    new_topic = { title: "New Topic" }
+    new_topic_values = { title: "AnotherTopic" }
 
     topic = Topic.new(new_topic)
     assert_equal new_topic[:title], topic.title
@@ -382,35 +382,35 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   end
 
   def test_read_overridden_attribute
-    topic = Topic.new(:title => 'a')
+    topic = Topic.new(title: 'a')
     def topic.title() 'b' end
     assert_equal 'a', topic[:title]
   end
 
   def test_query_attribute_string
     [nil, "", " "].each do |value|
-      assert_equal false, Topic.new(:author_name => value).author_name?
+      assert_equal false, Topic.new(author_name: value).author_name?
     end
 
-    assert_equal true, Topic.new(:author_name => "Name").author_name?
+    assert_equal true, Topic.new(author_name: "Name").author_name?
   end
 
   def test_query_attribute_number
     [nil, 0, "0"].each do |value|
-      assert_equal false, Developer.new(:salary => value).salary?
+      assert_equal false, Developer.new(salary: value).salary?
     end
 
-    assert_equal true, Developer.new(:salary => 1).salary?
-    assert_equal true, Developer.new(:salary => "1").salary?
+    assert_equal true, Developer.new(salary: 1).salary?
+    assert_equal true, Developer.new(salary: "1").salary?
   end
 
   def test_query_attribute_boolean
     [nil, "", false, "false", "f", 0].each do |value|
-      assert_equal false, Topic.new(:approved => value).approved?
+      assert_equal false, Topic.new(approved: value).approved?
     end
 
     [true, "true", "1", 1].each do |value|
-      assert_equal true, Topic.new(:approved => value).approved?
+      assert_equal true, Topic.new(approved: value).approved?
     end
   end
 
@@ -443,7 +443,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   end
 
   def test_undeclared_attribute_method_does_not_affect_respond_to_and_method_missing
-    topic = @target.new(:title => 'Budget')
+    topic = @target.new(title: 'Budget')
     assert topic.respond_to?('title')
     assert_equal 'Budget', topic.title
     assert !topic.respond_to?('title_hello_world')
@@ -451,7 +451,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   end
 
   def test_declared_prefixed_attribute_method_affects_respond_to_and_method_missing
-    topic = @target.new(:title => 'Budget')
+    topic = @target.new(title: 'Budget')
     %w(default_ title_).each do |prefix|
       @target.class_eval "def #{prefix}attribute(*args) args end"
       @target.attribute_method_prefix prefix
@@ -468,7 +468,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     %w(_default _title_default _it! _candidate= able?).each do |suffix|
       @target.class_eval "def attribute#{suffix}(*args) args end"
       @target.attribute_method_suffix suffix
-      topic = @target.new(:title => 'Budget')
+      topic = @target.new(title: 'Budget')
 
       meth = "title#{suffix}"
       assert topic.respond_to?(meth)
@@ -481,8 +481,8 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   def test_declared_affixed_attribute_method_affects_respond_to_and_method_missing
     [['mark_', '_for_update'], ['reset_', '!'], ['default_', '_value?']].each do |prefix, suffix|
       @target.class_eval "def #{prefix}attribute#{suffix}(*args) args end"
-      @target.attribute_method_affix({ :prefix => prefix, :suffix => suffix })
-      topic = @target.new(:title => 'Budget')
+      @target.attribute_method_affix({ prefix: prefix, suffix: suffix })
+      topic = @target.new(title: 'Budget')
 
       meth = "#{prefix}title#{suffix}"
       assert topic.respond_to?(meth)
@@ -493,30 +493,30 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   end
 
   def test_should_unserialize_attributes_for_frozen_records
-    myobj = {:value1 => :value2}
+    myobj = {value1: :value2}
     topic = Topic.create("content" => myobj)
     topic.freeze
     assert_equal myobj, topic.content
   end
 
   def test_typecast_attribute_from_select_to_false
-    Topic.create(:title => 'Budget')
+    Topic.create(title: 'Budget')
     # Oracle does not support boolean expressions in SELECT
     if current_adapter?(:OracleAdapter, :FbAdapter)
-      topic = Topic.all.merge!(:select => "topics.*, 0 as is_test").first
+      topic = Topic.all.merge!(select: "topics.*, 0 as is_test").first
     else
-      topic = Topic.all.merge!(:select => "topics.*, 1=2 as is_test").first
+      topic = Topic.all.merge!(select: "topics.*, 1=2 as is_test").first
     end
     assert !topic.is_test?
   end
 
   def test_typecast_attribute_from_select_to_true
-    Topic.create(:title => 'Budget')
+    Topic.create(title: 'Budget')
     # Oracle does not support boolean expressions in SELECT
     if current_adapter?(:OracleAdapter, :FbAdapter)
-      topic = Topic.all.merge!(:select => "topics.*, 1 as is_test").first
+      topic = Topic.all.merge!(select: "topics.*, 1 as is_test").first
     else
-      topic = Topic.all.merge!(:select => "topics.*, 2=2 as is_test").first
+      topic = Topic.all.merge!(select: "topics.*, 2=2 as is_test").first
     end
     assert topic.is_test?
   end
@@ -604,7 +604,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     utc_time = Time.utc(2008, 1, 1)
     cst_time = utc_time.in_time_zone("Central Time (US & Canada)")
     in_time_zone "Pacific Time (US & Canada)" do
-      record = @target.create(:written_on => cst_time).reload
+      record = @target.create(written_on: cst_time).reload
       assert_equal utc_time, record[:written_on]
       assert_equal ActiveSupport::TimeZone["Pacific Time (US & Canada)"], record[:written_on].time_zone
       assert_equal Time.utc(2007, 12, 31, 16), record[:written_on].time
@@ -627,7 +627,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
   def test_time_zone_aware_attribute_saved
     in_time_zone 1 do
-      record = @target.create(:written_on => '2012-02-20 10:00')
+      record = @target.create(written_on: '2012-02-20 10:00')
 
       record.written_on = '2012-02-20 09:00'
       record.save
@@ -728,7 +728,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   def test_read_attributes_respect_access_control
     privatize("title")
 
-    topic = @target.new(:title => "The pros and cons of programming naked.")
+    topic = @target.new(title: "The pros and cons of programming naked.")
     assert !topic.respond_to?(:title)
     exception = assert_raise(NoMethodError) { topic.title }
     assert exception.message.include?("private method")
@@ -748,7 +748,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   def test_question_attributes_respect_access_control
     privatize("title?")
 
-    topic = @target.new(:title => "Isaac Newton's pants")
+    topic = @target.new(title: "Isaac Newton's pants")
     assert !topic.respond_to?(:title?)
     exception = assert_raise(NoMethodError) { topic.title? }
     assert exception.message.include?("private method")
@@ -758,8 +758,8 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   def test_bulk_update_respects_access_control
     privatize("title=(value)")
 
-    assert_raise(ActiveRecord::UnknownAttributeError) { @target.new(:title => "Rants about pants") }
-    assert_raise(ActiveRecord::UnknownAttributeError) { @target.new.attributes = { :title => "Ants in pants" } }
+    assert_raise(ActiveRecord::UnknownAttributeError) { @target.new(title: "Rants about pants") }
+    assert_raise(ActiveRecord::UnknownAttributeError) { @target.new.attributes = { title: "Ants in pants" } }
   end
 
   def test_bulk_update_raise_unknown_attribute_error

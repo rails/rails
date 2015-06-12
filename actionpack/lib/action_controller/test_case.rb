@@ -19,7 +19,7 @@ module ActionController
 
     def assign_parameters(routes, controller_path, action, parameters = {})
       parameters = parameters.symbolize_keys
-      extra_keys = routes.extra_keys(parameters.merge(:controller => controller_path, :action => action))
+      extra_keys = routes.extra_keys(parameters.merge(controller: controller_path, action: action))
       non_path_parameters = get? ? query_parameters : request_parameters
 
       parameters.each do |key, value|
@@ -595,10 +595,10 @@ module ActionController
         unless @request.env["PATH_INFO"]
           options = @controller.respond_to?(:url_options) ? @controller.__send__(:url_options).merge(parameters) : parameters
           options.update(
-            :controller => controller_class_name,
-            :action => action,
-            :relative_url_root => nil,
-            :_recall => @request.path_parameters)
+            controller: controller_class_name,
+            action: action,
+            relative_url_root: nil,
+            _recall: @request.path_parameters)
 
           url, query_string = @routes.path_for(options).split("?", 2)
 

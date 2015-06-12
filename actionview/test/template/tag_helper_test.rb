@@ -7,38 +7,38 @@ class TagHelperTest < ActionView::TestCase
 
   def test_tag
     assert_equal "<br />", tag("br")
-    assert_equal "<br clear=\"left\" />", tag(:br, :clear => "left")
+    assert_equal "<br clear=\"left\" />", tag(:br, clear: "left")
     assert_equal "<br>", tag("br", nil, true)
   end
 
   def test_tag_options
-    str = tag("p", "class" => "show", :class => "elsewhere")
+    str = tag("p", "class" => "show", class: "elsewhere")
     assert_match(/class="show"/, str)
     assert_match(/class="elsewhere"/, str)
   end
 
   def test_tag_options_rejects_nil_option
-    assert_equal "<p />", tag("p", :ignored => nil)
+    assert_equal "<p />", tag("p", ignored: nil)
   end
 
   def test_tag_options_accepts_false_option
-    assert_equal "<p value=\"false\" />", tag("p", :value => false)
+    assert_equal "<p value=\"false\" />", tag("p", value: false)
   end
 
   def test_tag_options_accepts_blank_option
-    assert_equal "<p included=\"\" />", tag("p", :included => '')
+    assert_equal "<p included=\"\" />", tag("p", included: '')
   end
 
   def test_tag_options_converts_boolean_option
     assert_dom_equal '<p disabled="disabled" itemscope="itemscope" multiple="multiple" readonly="readonly" allowfullscreen="allowfullscreen" seamless="seamless" typemustmatch="typemustmatch" sortable="sortable" default="default" inert="inert" truespeed="truespeed" />',
-      tag("p", :disabled => true, :itemscope => true, :multiple => true, :readonly => true, :allowfullscreen => true, :seamless => true, :typemustmatch => true, :sortable => true, :default => true, :inert => true, :truespeed => true)
+      tag("p", disabled: true, itemscope: true, multiple: true, readonly: true, allowfullscreen: true, seamless: true, typemustmatch: true, sortable: true, default: true, inert: true, truespeed: true)
   end
 
   def test_content_tag
     assert_equal "<a href=\"create\">Create</a>", content_tag("a", "Create", "href" => "create")
     assert content_tag("a", "Create", "href" => "create").html_safe?
     assert_equal content_tag("a", "Create", "href" => "create"),
-                 content_tag("a", "Create", :href => "create")
+                 content_tag("a", "Create", href: "create")
     assert_equal "<p>&lt;script&gt;evil_js&lt;/script&gt;</p>",
                  content_tag(:p, '<script>evil_js</script>')
     assert_equal "<p><script>evil_js</script></p>",
@@ -56,16 +56,16 @@ class TagHelperTest < ActionView::TestCase
   end
 
   def test_content_tag_with_block_and_options_in_erb
-    buffer = render_erb("<%= content_tag(:div, :class => 'green') do %>Hello world!<% end %>")
+    buffer = render_erb("<%= content_tag(:div, class: 'green') do %>Hello world!<% end %>")
     assert_dom_equal %(<div class="green">Hello world!</div>), buffer
   end
 
   def test_content_tag_with_block_and_options_out_of_erb
-    assert_dom_equal %(<div class="green">Hello world!</div>), content_tag(:div, :class => "green") { "Hello world!" }
+    assert_dom_equal %(<div class="green">Hello world!</div>), content_tag(:div, class: "green") { "Hello world!" }
   end
 
   def test_content_tag_with_block_and_options_outside_out_of_erb
-    assert_equal content_tag("a", "Create", :href => "create"),
+    assert_equal content_tag("a", "Create", href: "create"),
                  content_tag("a", "href" => "create") { "Create" }
   end
 
@@ -85,31 +85,31 @@ class TagHelperTest < ActionView::TestCase
   end
 
   def test_content_tag_with_escaped_array_class
-    str = content_tag('p', "limelight", :class => ["song", "play>"])
+    str = content_tag('p', "limelight", class: ["song", "play>"])
     assert_equal "<p class=\"song play&gt;\">limelight</p>", str
 
-    str = content_tag('p', "limelight", :class => ["song", "play"])
+    str = content_tag('p', "limelight", class: ["song", "play"])
     assert_equal "<p class=\"song play\">limelight</p>", str
 
-    str = content_tag('p', "limelight", :class => ["song", ["play"]])
+    str = content_tag('p', "limelight", class: ["song", ["play"]])
     assert_equal "<p class=\"song play\">limelight</p>", str
   end
 
   def test_content_tag_with_unescaped_array_class
-    str = content_tag('p', "limelight", {:class => ["song", "play>"]}, false)
+    str = content_tag('p', "limelight", {class: ["song", "play>"]}, false)
     assert_equal "<p class=\"song play>\">limelight</p>", str
 
-    str = content_tag('p', "limelight", {:class => ["song", ["play>"]]}, false)
+    str = content_tag('p', "limelight", {class: ["song", ["play>"]]}, false)
     assert_equal "<p class=\"song play>\">limelight</p>", str
   end
 
   def test_content_tag_with_empty_array_class
-    str = content_tag('p', 'limelight', {:class => []})
+    str = content_tag('p', 'limelight', {class: []})
     assert_equal '<p class="">limelight</p>', str
   end
 
   def test_content_tag_with_unescaped_empty_array_class
-    str = content_tag('p', 'limelight', {:class => []}, false)
+    str = content_tag('p', 'limelight', {class: []}, false)
     assert_equal '<p class="">limelight</p>', str
   end
 
@@ -138,26 +138,26 @@ class TagHelperTest < ActionView::TestCase
 
   def test_tag_honors_html_safe_for_param_values
     ['1&amp;2', '1 &lt; 2', '&#8220;test&#8220;'].each do |escaped|
-      assert_equal %(<a href="#{escaped}" />), tag('a', :href => escaped.html_safe)
+      assert_equal %(<a href="#{escaped}" />), tag('a', href: escaped.html_safe)
     end
   end
 
   def test_tag_honors_html_safe_with_escaped_array_class
-    str = tag('p', :class => ['song>', 'play>'.html_safe])
+    str = tag('p', class: ['song>', 'play>'.html_safe])
     assert_equal '<p class="song&gt; play>" />', str
 
-    str = tag('p', :class => ['song>'.html_safe, 'play>'])
+    str = tag('p', class: ['song>'.html_safe, 'play>'])
     assert_equal '<p class="song> play&gt;" />', str
   end
 
   def test_skip_invalid_escaped_attributes
     ['&1;', '&#1dfa3;', '& #123;'].each do |escaped|
-      assert_equal %(<a href="#{escaped.gsub(/&/, '&amp;')}" />), tag('a', :href => escaped)
+      assert_equal %(<a href="#{escaped.gsub(/&/, '&amp;')}" />), tag('a', href: escaped)
     end
   end
 
   def test_disable_escaping
-    assert_equal '<a href="&amp;" />', tag('a', { :href => '&amp;' }, false, false)
+    assert_equal '<a href="&amp;" />', tag('a', { href: '&amp;' }, false, false)
   end
 
   def test_data_attributes

@@ -18,7 +18,7 @@ end
 class Distinct < ActiveRecord::Base
   Distinct.table_name = 'distinct'
   has_and_belongs_to_many :selects
-  has_many :values, :through => :groups
+  has_many :values, through: :groups
 end
 
 # a suite of tests to ensure the ConnectionAdapters#MysqlAdapter can handle tables with
@@ -59,7 +59,7 @@ class MysqlReservedWordTest < ActiveRecord::TestCase
   def test_change_columns
     assert_nothing_raised { @connection.change_column_default(:group, :order, 'whatever') }
     #the quoting here will reveal any double quoting issues in change_column's interaction with the column method in the adapter
-    assert_nothing_raised { @connection.change_column('group', 'order', :Int, :default => 0) }
+    assert_nothing_raised { @connection.change_column('group', 'order', :Int, default: 0) }
     assert_nothing_raised { @connection.rename_column(:group, :order, :values) }
   end
 
@@ -125,7 +125,7 @@ class MysqlReservedWordTest < ActiveRecord::TestCase
   end
 
   def test_associations_work_with_reserved_words
-    assert_nothing_raised { Select.all.merge!(:includes => [:groups]).to_a }
+    assert_nothing_raised { Select.all.merge!(includes: [:groups]).to_a }
   end
 
   #the following functions were added to DRY test cases

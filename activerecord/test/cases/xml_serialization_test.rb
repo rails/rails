@@ -18,33 +18,33 @@ class XmlSerializationTest < ActiveRecord::TestCase
   end
 
   def test_should_serialize_default_root_with_namespace
-    @xml = Contact.new.to_xml :namespace=>"http://xml.rubyonrails.org/contact"
+    @xml = Contact.new.to_xml namespace:"http://xml.rubyonrails.org/contact"
     assert_match %r{^<contact xmlns="http://xml\.rubyonrails\.org/contact">},  @xml
     assert_match %r{</contact>$}, @xml
   end
 
   def test_should_serialize_custom_root
-    @xml = Contact.new.to_xml :root => 'xml_contact'
+    @xml = Contact.new.to_xml root: 'xml_contact'
     assert_match %r{^<xml-contact>},  @xml
     assert_match %r{</xml-contact>$}, @xml
   end
 
   def test_should_allow_undasherized_tags
-    @xml = Contact.new.to_xml :root => 'xml_contact', :dasherize => false
+    @xml = Contact.new.to_xml root: 'xml_contact', dasherize: false
     assert_match %r{^<xml_contact>},  @xml
     assert_match %r{</xml_contact>$}, @xml
     assert_match %r{<created_at},     @xml
   end
 
   def test_should_allow_camelized_tags
-    @xml = Contact.new.to_xml :root => 'xml_contact', :camelize => true
+    @xml = Contact.new.to_xml root: 'xml_contact', camelize: true
     assert_match %r{^<XmlContact>},  @xml
     assert_match %r{</XmlContact>$}, @xml
     assert_match %r{<CreatedAt},    @xml
   end
 
   def test_should_allow_skipped_types
-    @xml = Contact.new(:age => 25).to_xml :skip_types => true
+    @xml = Contact.new(age: 25).to_xml skip_types: true
     assert %r{<age>25</age>}.match(@xml)
   end
 
@@ -57,7 +57,7 @@ class XmlSerializationTest < ActiveRecord::TestCase
 
   def test_to_xml_with_block
     value = "Rockin' the block"
-    xml = Contact.new.to_xml(:skip_instruct => true) do |_xml|
+    xml = Contact.new.to_xml(skip_instruct: true) do |_xml|
       _xml.tag! "arbitrary-element", value
     end
     assert_equal "<contact>", xml.first(9)
@@ -66,8 +66,8 @@ class XmlSerializationTest < ActiveRecord::TestCase
 
   def test_should_skip_instruct_for_included_records
     @contact = Contact.new
-    @contact.alternative = Contact.new(:name => 'Copa Cabana')
-    @xml = @contact.to_xml(:include => [ :alternative ])
+    @contact.alternative = Contact.new(name: 'Copa Cabana')
+    @xml = @contact.to_xml(include: [ :alternative ])
     assert_equal @xml.index('<?xml '), 0
     assert_nil @xml.index('<?xml ', 1)
   end
@@ -76,12 +76,12 @@ end
 class DefaultXmlSerializationTest < ActiveRecord::TestCase
   def setup
     @contact = Contact.new(
-      :name        => 'aaron stack',
-      :age         => 25,
-      :avatar      => 'binarydata',
-      :created_at  => Time.utc(2006, 8, 1),
-      :awesome     => false,
-      :preferences => { :gem => 'ruby' }
+      name: 'aaron stack',
+      age: 25,
+      avatar: 'binarydata',
+      created_at: Time.utc(2006, 8, 1),
+      awesome: false,
+      preferences: { gem: 'ruby' }
     )
   end
 
@@ -163,14 +163,14 @@ end
 class DefaultXmlSerializationTimezoneTest < ActiveRecord::TestCase
   def test_should_serialize_datetime_with_timezone
     with_timezone_config zone: "Pacific Time (US & Canada)" do
-      toy = Toy.create(:name => 'Mickey', :updated_at => Time.utc(2006, 8, 1))
+      toy = Toy.create(name: 'Mickey', updated_at: Time.utc(2006, 8, 1))
       assert_match %r{<updated-at type=\"dateTime\">2006-07-31T17:00:00-07:00</updated-at>}, toy.to_xml
     end
   end
 
   def test_should_serialize_datetime_with_timezone_reloaded
     with_timezone_config zone: "Pacific Time (US & Canada)" do
-      toy = Toy.create(:name => 'Minnie', :updated_at => Time.utc(2006, 8, 1)).reload
+      toy = Toy.create(name: 'Minnie', updated_at: Time.utc(2006, 8, 1)).reload
       assert_match %r{<updated-at type=\"dateTime\">2006-07-31T17:00:00-07:00</updated-at>}, toy.to_xml
     end
   end
@@ -178,7 +178,7 @@ end
 
 class NilXmlSerializationTest < ActiveRecord::TestCase
   def setup
-    @xml = Contact.new.to_xml(:root => 'xml_contact')
+    @xml = Contact.new.to_xml(root: 'xml_contact')
   end
 
   def test_should_serialize_string
@@ -223,7 +223,7 @@ class DatabaseConnectedXmlSerializationTest < ActiveRecord::TestCase
   fixtures :topics, :companies, :accounts, :authors, :posts, :projects
 
   def test_to_xml
-    xml = REXML::Document.new(topics(:first).to_xml(:indent => 0))
+    xml = REXML::Document.new(topics(:first).to_xml(indent: 0))
     bonus_time_in_current_timezone = topics(:first).bonus_time.xmlschema
     written_on_in_current_timezone = topics(:first).written_on.xmlschema
 
@@ -262,12 +262,12 @@ class DatabaseConnectedXmlSerializationTest < ActiveRecord::TestCase
   end
 
   def test_except_option
-    xml = topics(:first).to_xml(:indent => 0, :skip_instruct => true, :except => [:title, :replies_count])
+    xml = topics(:first).to_xml(indent: 0, skip_instruct: true, except: [:title, :replies_count])
     assert_equal "<topic>", xml.first(7)
     assert !xml.include?(%(<title>The First Topic</title>))
     assert xml.include?(%(<author-name>David</author-name>))
 
-    xml = topics(:first).to_xml(:indent => 0, :skip_instruct => true, :except => [:title, :author_name, :replies_count])
+    xml = topics(:first).to_xml(indent: 0, skip_instruct: true, except: [:title, :author_name, :replies_count])
     assert !xml.include?(%(<title>The First Topic</title>))
     assert !xml.include?(%(<author-name>David</author-name>))
   end
@@ -285,7 +285,7 @@ class DatabaseConnectedXmlSerializationTest < ActiveRecord::TestCase
   end
 
   def test_passing_hash_shouldnt_reuse_builder
-    options = {:include=>:posts}
+    options = {include::posts}
     david = authors(:david)
     first_xml_size = david.to_xml(options).size
     second_xml_size = david.to_xml(options).size
@@ -293,36 +293,36 @@ class DatabaseConnectedXmlSerializationTest < ActiveRecord::TestCase
   end
 
   def test_include_uses_association_name
-    xml = authors(:david).to_xml :include=>:hello_posts, :indent => 0
+    xml = authors(:david).to_xml include::hello_posts, indent: 0
     assert_match %r{<hello-posts type="array">}, xml
     assert_match %r{<hello-post type="Post">}, xml
     assert_match %r{<hello-post type="StiPost">}, xml
   end
 
   def test_included_associations_should_skip_types
-    xml = authors(:david).to_xml :include=>:hello_posts, :indent => 0, :skip_types => true
+    xml = authors(:david).to_xml include::hello_posts, indent: 0, skip_types: true
     assert_match %r{<hello-posts>}, xml
     assert_match %r{<hello-post>}, xml
     assert_match %r{<hello-post>}, xml
   end
 
   def test_including_has_many_association
-    xml = topics(:first).to_xml(:indent => 0, :skip_instruct => true, :include => :replies, :except => :replies_count)
+    xml = topics(:first).to_xml(indent: 0, skip_instruct: true, include: :replies, except: :replies_count)
     assert_equal "<topic>", xml.first(7)
     assert xml.include?(%(<replies type="array"><reply>))
     assert xml.include?(%(<title>The Second Topic of the day</title>))
   end
 
   def test_including_belongs_to_association
-    xml = companies(:first_client).to_xml(:indent => 0, :skip_instruct => true, :include => :firm)
+    xml = companies(:first_client).to_xml(indent: 0, skip_instruct: true, include: :firm)
     assert !xml.include?("<firm>")
 
-    xml = companies(:second_client).to_xml(:indent => 0, :skip_instruct => true, :include => :firm)
+    xml = companies(:second_client).to_xml(indent: 0, skip_instruct: true, include: :firm)
     assert xml.include?("<firm>")
   end
 
   def test_including_multiple_associations
-    xml = companies(:first_firm).to_xml(:indent => 0, :skip_instruct => true, :include => [ :clients, :account ])
+    xml = companies(:first_firm).to_xml(indent: 0, skip_instruct: true, include: [ :clients, :account ])
     assert_equal "<firm>", xml.first(6)
     assert xml.include?(%(<account>))
     assert xml.include?(%(<clients type="array"><client>))
@@ -330,8 +330,8 @@ class DatabaseConnectedXmlSerializationTest < ActiveRecord::TestCase
 
   def test_including_association_with_options
     xml = companies(:first_firm).to_xml(
-      :indent  => 0, :skip_instruct => true,
-      :include => { :clients => { :only => :name } }
+      indent: 0, skip_instruct: true,
+      include: { clients: { only: :name } }
     )
 
     assert_equal "<firm>", xml.first(6)
@@ -340,12 +340,12 @@ class DatabaseConnectedXmlSerializationTest < ActiveRecord::TestCase
   end
 
   def test_methods_are_called_on_object
-    xml = authors(:david).to_xml :methods => :label, :indent => 0
+    xml = authors(:david).to_xml methods: :label, indent: 0
     assert_match %r{<label>.*</label>}, xml
   end
 
   def test_should_not_call_methods_on_associations_that_dont_respond
-    xml = authors(:david).to_xml :include=>:hello_posts, :methods => :label, :indent => 2
+    xml = authors(:david).to_xml include::hello_posts, methods: :label, indent: 2
     assert !authors(:david).hello_posts.first.respond_to?(:label)
     assert_match %r{^  <label>.*</label>}, xml
     assert_no_match %r{^      <label>}, xml
@@ -353,19 +353,19 @@ class DatabaseConnectedXmlSerializationTest < ActiveRecord::TestCase
 
   def test_procs_are_called_on_object
     proc = Proc.new { |options| options[:builder].tag!('nationality', 'Danish') }
-    xml = authors(:david).to_xml(:procs => [ proc ])
+    xml = authors(:david).to_xml(procs: [ proc ])
     assert_match %r{<nationality>Danish</nationality>}, xml
   end
 
   def test_dual_arity_procs_are_called_on_object
     proc = Proc.new { |options, record| options[:builder].tag!('name-reverse', record.name.reverse) }
-    xml = authors(:david).to_xml(:procs => [ proc ])
+    xml = authors(:david).to_xml(procs: [ proc ])
     assert_match %r{<name-reverse>divaD</name-reverse>}, xml
   end
 
   def test_top_level_procs_arent_applied_to_associations
     author_proc = Proc.new { |options| options[:builder].tag!('nationality', 'Danish') }
-    xml = authors(:david).to_xml(:procs => [ author_proc ], :include => :posts, :indent => 2)
+    xml = authors(:david).to_xml(procs: [ author_proc ], include: :posts, indent: 2)
 
     assert_match %r{^  <nationality>Danish</nationality>}, xml
     assert_no_match %r{^ {6}<nationality>Danish</nationality>}, xml
@@ -374,9 +374,9 @@ class DatabaseConnectedXmlSerializationTest < ActiveRecord::TestCase
   def test_procs_on_included_associations_are_called
     posts_proc = Proc.new { |options| options[:builder].tag!('copyright', 'DHH') }
     xml = authors(:david).to_xml(
-      :indent => 2,
-      :include => {
-        :posts => { :procs => [ posts_proc ] }
+      indent: 2,
+      include: {
+        posts: { procs: [ posts_proc ] }
       }
     )
 
@@ -386,14 +386,14 @@ class DatabaseConnectedXmlSerializationTest < ActiveRecord::TestCase
 
   def test_should_include_empty_has_many_as_empty_array
     authors(:david).posts.delete_all
-    xml = authors(:david).to_xml :include=>:posts, :indent => 2
+    xml = authors(:david).to_xml include::posts, indent: 2
 
     assert_equal [], Hash.from_xml(xml)['author']['posts']
     assert_match %r{^  <posts type="array"/>}, xml
   end
 
   def test_should_has_many_array_elements_should_include_type_when_different_from_guessed_value
-    xml = authors(:david).to_xml :include=>:posts_with_comments, :indent => 2
+    xml = authors(:david).to_xml include::posts_with_comments, indent: 2
 
     assert Hash.from_xml(xml)
     assert_match %r{^  <posts-with-comments type="array">}, xml
@@ -407,7 +407,7 @@ class DatabaseConnectedXmlSerializationTest < ActiveRecord::TestCase
   end
 
   def test_should_produce_xml_for_methods_returning_array
-    xml = authors(:david).to_xml(:methods => :social)
+    xml = authors(:david).to_xml(methods: :social)
     array = Hash.from_xml(xml)['author']['social']
     assert_equal 2, array.size
     assert array.include? 'twitter'
@@ -422,26 +422,26 @@ class DatabaseConnectedXmlSerializationTest < ActiveRecord::TestCase
   end
 
   def test_array_to_xml_including_has_many_association
-    xml = [ topics(:first), topics(:second) ].to_xml(:indent => 0, :skip_instruct => true, :include => :replies)
+    xml = [ topics(:first), topics(:second) ].to_xml(indent: 0, skip_instruct: true, include: :replies)
     assert xml.include?(%(<replies type="array"><reply>))
   end
 
   def test_array_to_xml_including_methods
-    xml = [ topics(:first), topics(:second) ].to_xml(:indent => 0, :skip_instruct => true, :methods => [ :topic_id ])
+    xml = [ topics(:first), topics(:second) ].to_xml(indent: 0, skip_instruct: true, methods: [ :topic_id ])
     assert xml.include?(%(<topic-id type="integer">#{topics(:first).topic_id}</topic-id>)), xml
     assert xml.include?(%(<topic-id type="integer">#{topics(:second).topic_id}</topic-id>)), xml
   end
 
   def test_array_to_xml_including_has_one_association
-    xml = [ companies(:first_firm), companies(:rails_core) ].to_xml(:indent => 0, :skip_instruct => true, :include => :account)
-    assert xml.include?(companies(:first_firm).account.to_xml(:indent => 0, :skip_instruct => true))
-    assert xml.include?(companies(:rails_core).account.to_xml(:indent => 0, :skip_instruct => true))
+    xml = [ companies(:first_firm), companies(:rails_core) ].to_xml(indent: 0, skip_instruct: true, include: :account)
+    assert xml.include?(companies(:first_firm).account.to_xml(indent: 0, skip_instruct: true))
+    assert xml.include?(companies(:rails_core).account.to_xml(indent: 0, skip_instruct: true))
   end
 
   def test_array_to_xml_including_belongs_to_association
-    xml = [ companies(:first_client), companies(:second_client), companies(:another_client) ].to_xml(:indent => 0, :skip_instruct => true, :include => :firm)
-    assert xml.include?(companies(:first_client).to_xml(:indent => 0, :skip_instruct => true))
-    assert xml.include?(companies(:second_client).firm.to_xml(:indent => 0, :skip_instruct => true))
-    assert xml.include?(companies(:another_client).firm.to_xml(:indent => 0, :skip_instruct => true))
+    xml = [ companies(:first_client), companies(:second_client), companies(:another_client) ].to_xml(indent: 0, skip_instruct: true, include: :firm)
+    assert xml.include?(companies(:first_client).to_xml(indent: 0, skip_instruct: true))
+    assert xml.include?(companies(:second_client).firm.to_xml(indent: 0, skip_instruct: true))
+    assert xml.include?(companies(:another_client).firm.to_xml(indent: 0, skip_instruct: true))
   end
 end

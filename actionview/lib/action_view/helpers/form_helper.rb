@@ -849,7 +849,7 @@ module ActionView
       #   file_field(:user, :avatar)
       #   # => <input type="file" id="user_avatar" name="user[avatar]" />
       #
-      #   file_field(:post, :image, :multiple => true)
+      #   file_field(:post, :image, multiple: true)
       #   # => <input type="file" id="post_image" name="post[image]" multiple="true" />
       #
       #   file_field(:post, :attached, accept: 'text/html')
@@ -1281,7 +1281,7 @@ module ActionView
     #
     # The +div_radio_button+ code from above can now be used as follows:
     #
-    #   <%= form_for @person, :builder => MyFormBuilder do |f| %>
+    #   <%= form_for @person, builder: MyFormBuilder do |f| %>
     #     I am a child: <%= f.div_radio_button(:admin, "child") %>
     #     I am an adult: <%= f.div_radio_button(:admin, "adult") %>
     #   <% end -%>
@@ -1800,7 +1800,7 @@ module ActionView
       #   # => <input type="file" id="user_avatar" name="user[avatar]" />
       #
       #   # Let's say that @post has image:
-      #   file_field(:image, :multiple => true)
+      #   file_field(:image, multiple: true)
       #   # => <input type="file" id="post_image" name="post[image][]" multiple="multiple" />
       #
       #   # Let's say that @post has attached:

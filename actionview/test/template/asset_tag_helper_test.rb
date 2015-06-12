@@ -51,15 +51,15 @@ class AssetTagHelperTest < ActionView::TestCase
     %(auto_discovery_link_tag) => %(<link href="http://www.example.com" rel="alternate" title="RSS" type="application/rss+xml" />),
     %(auto_discovery_link_tag(:rss)) => %(<link href="http://www.example.com" rel="alternate" title="RSS" type="application/rss+xml" />),
     %(auto_discovery_link_tag(:atom)) => %(<link href="http://www.example.com" rel="alternate" title="ATOM" type="application/atom+xml" />),
-    %(auto_discovery_link_tag(:rss, :action => "feed")) => %(<link href="http://www.example.com" rel="alternate" title="RSS" type="application/rss+xml" />),
+    %(auto_discovery_link_tag(:rss, action: "feed")) => %(<link href="http://www.example.com" rel="alternate" title="RSS" type="application/rss+xml" />),
     %(auto_discovery_link_tag(:rss, "http://localhost/feed")) => %(<link href="http://localhost/feed" rel="alternate" title="RSS" type="application/rss+xml" />),
     %(auto_discovery_link_tag(:rss, "//localhost/feed")) => %(<link href="//localhost/feed" rel="alternate" title="RSS" type="application/rss+xml" />),
-    %(auto_discovery_link_tag(:rss, {:action => "feed"}, {:title => "My RSS"})) => %(<link href="http://www.example.com" rel="alternate" title="My RSS" type="application/rss+xml" />),
-    %(auto_discovery_link_tag(:rss, {}, {:title => "My RSS"})) => %(<link href="http://www.example.com" rel="alternate" title="My RSS" type="application/rss+xml" />),
-    %(auto_discovery_link_tag(nil, {}, {:type => "text/html"})) => %(<link href="http://www.example.com" rel="alternate" title="" type="text/html" />),
-    %(auto_discovery_link_tag(nil, {}, {:title => "No stream.. really", :type => "text/html"})) => %(<link href="http://www.example.com" rel="alternate" title="No stream.. really" type="text/html" />),
-    %(auto_discovery_link_tag(:rss, {}, {:title => "My RSS", :type => "text/html"})) => %(<link href="http://www.example.com" rel="alternate" title="My RSS" type="text/html" />),
-    %(auto_discovery_link_tag(:atom, {}, {:rel => "Not so alternate"})) => %(<link href="http://www.example.com" rel="Not so alternate" title="ATOM" type="application/atom+xml" />),
+    %(auto_discovery_link_tag(:rss, {action: "feed"}, {title: "My RSS"})) => %(<link href="http://www.example.com" rel="alternate" title="My RSS" type="application/rss+xml" />),
+    %(auto_discovery_link_tag(:rss, {}, {title: "My RSS"})) => %(<link href="http://www.example.com" rel="alternate" title="My RSS" type="application/rss+xml" />),
+    %(auto_discovery_link_tag(nil, {}, {type: "text/html"})) => %(<link href="http://www.example.com" rel="alternate" title="" type="text/html" />),
+    %(auto_discovery_link_tag(nil, {}, {title: "No stream.. really", type: "text/html"})) => %(<link href="http://www.example.com" rel="alternate" title="No stream.. really" type="text/html" />),
+    %(auto_discovery_link_tag(:rss, {}, {title: "My RSS", type: "text/html"})) => %(<link href="http://www.example.com" rel="alternate" title="My RSS" type="text/html" />),
+    %(auto_discovery_link_tag(:atom, {}, {rel: "Not so alternate"})) => %(<link href="http://www.example.com" rel="Not so alternate" title="ATOM" type="application/atom+xml" />),
   }
 
   JavascriptPathToTag = {
@@ -96,7 +96,7 @@ class AssetTagHelperTest < ActionView::TestCase
   JavascriptIncludeToTag = {
     %(javascript_include_tag("bank")) => %(<script src="/javascripts/bank.js" ></script>),
     %(javascript_include_tag("bank.js")) => %(<script src="/javascripts/bank.js" ></script>),
-    %(javascript_include_tag("bank", :lang => "vbscript")) => %(<script lang="vbscript" src="/javascripts/bank.js" ></script>),
+    %(javascript_include_tag("bank", lang: "vbscript")) => %(<script lang="vbscript" src="/javascripts/bank.js" ></script>),
 
     %(javascript_include_tag("http://example.com/all")) => %(<script src="http://example.com/all"></script>),
     %(javascript_include_tag("http://example.com/all.js")) => %(<script src="http://example.com/all.js"></script>),
@@ -116,8 +116,8 @@ class AssetTagHelperTest < ActionView::TestCase
     %(path_to_stylesheet("style")) => %(/stylesheets/style.css),
     %(path_to_stylesheet("style.css")) => %(/stylesheets/style.css),
     %(path_to_stylesheet('dir/file')) => %(/stylesheets/dir/file.css),
-    %(path_to_stylesheet('/dir/file.rcss', :extname => false)) => %(/dir/file.rcss),
-    %(path_to_stylesheet('/dir/file', :extname => '.rcss')) => %(/dir/file.rcss)
+    %(path_to_stylesheet('/dir/file.rcss', extname: false)) => %(/dir/file.rcss),
+    %(path_to_stylesheet('/dir/file', extname: '.rcss')) => %(/dir/file.rcss)
   }
 
   StyleUrlToTag = {
@@ -131,8 +131,8 @@ class AssetTagHelperTest < ActionView::TestCase
     %(url_to_stylesheet("style")) => %(http://www.example.com/stylesheets/style.css),
     %(url_to_stylesheet("style.css")) => %(http://www.example.com/stylesheets/style.css),
     %(url_to_stylesheet('dir/file')) => %(http://www.example.com/stylesheets/dir/file.css),
-    %(url_to_stylesheet('/dir/file.rcss', :extname => false)) => %(http://www.example.com/dir/file.rcss),
-    %(url_to_stylesheet('/dir/file', :extname => '.rcss')) => %(http://www.example.com/dir/file.rcss)
+    %(url_to_stylesheet('/dir/file.rcss', extname: false)) => %(http://www.example.com/dir/file.rcss),
+    %(url_to_stylesheet('/dir/file', extname: '.rcss')) => %(http://www.example.com/dir/file.rcss)
   }
 
   StyleLinkToTag = {
@@ -140,7 +140,7 @@ class AssetTagHelperTest < ActionView::TestCase
     %(stylesheet_link_tag("bank.css")) => %(<link href="/stylesheets/bank.css" media="screen" rel="stylesheet" />),
     %(stylesheet_link_tag("/elsewhere/file")) => %(<link href="/elsewhere/file.css" media="screen" rel="stylesheet" />),
     %(stylesheet_link_tag("subdir/subdir")) => %(<link href="/stylesheets/subdir/subdir.css" media="screen" rel="stylesheet" />),
-    %(stylesheet_link_tag("bank", :media => "all")) => %(<link href="/stylesheets/bank.css" media="all" rel="stylesheet" />),
+    %(stylesheet_link_tag("bank", media: "all")) => %(<link href="/stylesheets/bank.css" media="all" rel="stylesheet" />),
 
     %(stylesheet_link_tag("http://www.example.com/styles/style")) => %(<link href="http://www.example.com/styles/style" media="screen" rel="stylesheet" />),
     %(stylesheet_link_tag("http://www.example.com/styles/style.css")) => %(<link href="http://www.example.com/styles/style.css" media="screen" rel="stylesheet" />),
@@ -177,10 +177,10 @@ class AssetTagHelperTest < ActionView::TestCase
 
   ImageLinkToTag = {
     %(image_tag("xml.png")) => %(<img alt="Xml" src="/images/xml.png" />),
-    %(image_tag("rss.gif", :alt => "rss syndication")) => %(<img alt="rss syndication" src="/images/rss.gif" />),
-    %(image_tag("gold.png", :size => "20")) => %(<img alt="Gold" height="20" src="/images/gold.png" width="20" />),
-    %(image_tag("gold.png", :size => 20)) => %(<img alt="Gold" height="20" src="/images/gold.png" width="20" />),
-    %(image_tag("gold.png", :size => "45x70")) => %(<img alt="Gold" height="70" src="/images/gold.png" width="45" />),
+    %(image_tag("rss.gif", alt: "rss syndication")) => %(<img alt="rss syndication" src="/images/rss.gif" />),
+    %(image_tag("gold.png", size: "20")) => %(<img alt="Gold" height="20" src="/images/gold.png" width="20" />),
+    %(image_tag("gold.png", size: 20)) => %(<img alt="Gold" height="20" src="/images/gold.png" width="20" />),
+    %(image_tag("gold.png", size: "45x70")) => %(<img alt="Gold" height="70" src="/images/gold.png" width="45" />),
     %(image_tag("gold.png", "size" => "45x70")) => %(<img alt="Gold" height="70" src="/images/gold.png" width="45" />),
     %(image_tag("error.png", "size" => "45 x 70")) => %(<img alt="Error" src="/images/error.png" />),
     %(image_tag("error.png", "size" => "x")) => %(<img alt="Error" src="/images/error.png" />),
@@ -189,17 +189,17 @@ class AssetTagHelperTest < ActionView::TestCase
     %(image_tag(".pdf.png")) => %(<img alt=".pdf" src="/images/.pdf.png" />),
     %(image_tag("http://www.rubyonrails.com/images/rails.png")) => %(<img alt="Rails" src="http://www.rubyonrails.com/images/rails.png" />),
     %(image_tag("//www.rubyonrails.com/images/rails.png")) => %(<img alt="Rails" src="//www.rubyonrails.com/images/rails.png" />),
-    %(image_tag("mouse.png", :alt => nil)) => %(<img src="/images/mouse.png" />),
-    %(image_tag("data:image/gif;base64,R0lGODlhAQABAID/AMDAwAAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==", :alt => nil)) => %(<img src="data:image/gif;base64,R0lGODlhAQABAID/AMDAwAAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==" />),
+    %(image_tag("mouse.png", alt: nil)) => %(<img src="/images/mouse.png" />),
+    %(image_tag("data:image/gif;base64,R0lGODlhAQABAID/AMDAwAAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==", alt: nil)) => %(<img src="data:image/gif;base64,R0lGODlhAQABAID/AMDAwAAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==" />),
     %(image_tag("")) => %(<img src="" />)
   }
 
   FaviconLinkToTag = {
     %(favicon_link_tag) => %(<link href="/images/favicon.ico" rel="shortcut icon" type="image/x-icon" />),
     %(favicon_link_tag 'favicon.ico') => %(<link href="/images/favicon.ico" rel="shortcut icon" type="image/x-icon" />),
-    %(favicon_link_tag 'favicon.ico', :rel => 'foo') => %(<link href="/images/favicon.ico" rel="foo" type="image/x-icon" />),
-    %(favicon_link_tag 'favicon.ico', :rel => 'foo', :type => 'bar') => %(<link href="/images/favicon.ico" rel="foo" type="bar" />),
-    %(favicon_link_tag 'mb-icon.png', :rel => 'apple-touch-icon', :type => 'image/png') => %(<link href="/images/mb-icon.png" rel="apple-touch-icon" type="image/png" />)
+    %(favicon_link_tag 'favicon.ico', rel: 'foo') => %(<link href="/images/favicon.ico" rel="foo" type="image/x-icon" />),
+    %(favicon_link_tag 'favicon.ico', rel: 'foo', type: 'bar') => %(<link href="/images/favicon.ico" rel="foo" type="bar" />),
+    %(favicon_link_tag 'mb-icon.png', rel: 'apple-touch-icon', type: 'image/png') => %(<link href="/images/mb-icon.png" rel="apple-touch-icon" type="image/png" />)
   }
 
   VideoPathToTag = {
@@ -232,11 +232,11 @@ class AssetTagHelperTest < ActionView::TestCase
 
   VideoLinkToTag = {
     %(video_tag("xml.ogg")) => %(<video src="/videos/xml.ogg"></video>),
-    %(video_tag("rss.m4v", :autoplay => true, :controls => true)) => %(<video autoplay="autoplay" controls="controls" src="/videos/rss.m4v"></video>),
-    %(video_tag("rss.m4v", :autobuffer => true)) => %(<video autobuffer="autobuffer" src="/videos/rss.m4v"></video>),
-    %(video_tag("gold.m4v", :size => "160x120")) => %(<video height="120" src="/videos/gold.m4v" width="160"></video>),
+    %(video_tag("rss.m4v", autoplay: true, controls: true)) => %(<video autoplay="autoplay" controls="controls" src="/videos/rss.m4v"></video>),
+    %(video_tag("rss.m4v", autobuffer: true)) => %(<video autobuffer="autobuffer" src="/videos/rss.m4v"></video>),
+    %(video_tag("gold.m4v", size: "160x120")) => %(<video height="120" src="/videos/gold.m4v" width="160"></video>),
     %(video_tag("gold.m4v", "size" => "320x240")) => %(<video height="240" src="/videos/gold.m4v" width="320"></video>),
-    %(video_tag("trailer.ogg", :poster => "screenshot.png")) => %(<video poster="/images/screenshot.png" src="/videos/trailer.ogg"></video>),
+    %(video_tag("trailer.ogg", poster: "screenshot.png")) => %(<video poster="/images/screenshot.png" src="/videos/trailer.ogg"></video>),
     %(video_tag("error.avi", "size" => "100")) => %(<video height="100" src="/videos/error.avi" width="100"></video>),
     %(video_tag("error.avi", "size" => 100)) => %(<video height="100" src="/videos/error.avi" width="100"></video>),
     %(video_tag("error.avi", "size" => "100 x 100")) => %(<video src="/videos/error.avi"></video>),
@@ -245,7 +245,7 @@ class AssetTagHelperTest < ActionView::TestCase
     %(video_tag("//media.rubyonrails.org/video/rails_blog_2.mov")) => %(<video src="//media.rubyonrails.org/video/rails_blog_2.mov"></video>),
     %(video_tag("multiple.ogg", "multiple.avi")) => %(<video><source src="/videos/multiple.ogg" /><source src="/videos/multiple.avi" /></video>),
     %(video_tag(["multiple.ogg", "multiple.avi"])) => %(<video><source src="/videos/multiple.ogg" /><source src="/videos/multiple.avi" /></video>),
-    %(video_tag(["multiple.ogg", "multiple.avi"], :size => "160x120", :controls => true)) => %(<video controls="controls" height="120" width="160"><source src="/videos/multiple.ogg" /><source src="/videos/multiple.avi" /></video>)
+    %(video_tag(["multiple.ogg", "multiple.avi"], size: "160x120", controls: true)) => %(<video controls="controls" height="120" width="160"><source src="/videos/multiple.ogg" /><source src="/videos/multiple.avi" /></video>)
   }
 
   AudioPathToTag = {
@@ -278,12 +278,12 @@ class AssetTagHelperTest < ActionView::TestCase
 
   AudioLinkToTag = {
     %(audio_tag("xml.wav")) => %(<audio src="/audios/xml.wav"></audio>),
-    %(audio_tag("rss.wav", :autoplay => true, :controls => true)) => %(<audio autoplay="autoplay" controls="controls" src="/audios/rss.wav"></audio>),
+    %(audio_tag("rss.wav", autoplay: true, controls: true)) => %(<audio autoplay="autoplay" controls="controls" src="/audios/rss.wav"></audio>),
     %(audio_tag("http://media.rubyonrails.org/audio/rails_blog_2.mov")) => %(<audio src="http://media.rubyonrails.org/audio/rails_blog_2.mov"></audio>),
     %(audio_tag("//media.rubyonrails.org/audio/rails_blog_2.mov")) => %(<audio src="//media.rubyonrails.org/audio/rails_blog_2.mov"></audio>),
     %(audio_tag("audio.mp3", "audio.ogg")) => %(<audio><source src="/audios/audio.mp3" /><source src="/audios/audio.ogg" /></audio>),
     %(audio_tag(["audio.mp3", "audio.ogg"])) => %(<audio><source src="/audios/audio.mp3" /><source src="/audios/audio.ogg" /></audio>),
-    %(audio_tag(["audio.mp3", "audio.ogg"], :autobuffer => true, :controls => true)) => %(<audio autobuffer="autobuffer" controls="controls"><source src="/audios/audio.mp3" /><source src="/audios/audio.ogg" /></audio>)
+    %(audio_tag(["audio.mp3", "audio.ogg"], autobuffer: true, controls: true)) => %(<audio autobuffer="autobuffer" controls="controls"><source src="/audios/audio.mp3" /><source src="/audios/audio.ogg" /></audio>)
   }
 
   FontPathToTag = {
@@ -301,7 +301,7 @@ class AssetTagHelperTest < ActionView::TestCase
   end
 
   def test_autodiscovery_link_tag_with_unknown_type
-    result = auto_discovery_link_tag(:xml, '/feed.xml', :type => 'application/xml')
+    result = auto_discovery_link_tag(:xml, '/feed.xml', type: 'application/xml')
     expected = %(<link href="/feed.xml" rel="alternate" title="XML" type="application/xml" />)
     assert_dom_equal expected, result
   end
@@ -321,9 +321,9 @@ class AssetTagHelperTest < ActionView::TestCase
   def test_compute_asset_public_path
     assert_equal "/robots.txt", compute_asset_path("robots.txt")
     assert_equal "/robots.txt", compute_asset_path("/robots.txt")
-    assert_equal "/javascripts/foo.js", compute_asset_path("foo.js", :type => :javascript)
-    assert_equal "/javascripts/foo.js", compute_asset_path("/foo.js", :type => :javascript)
-    assert_equal "/stylesheets/foo.css", compute_asset_path("foo.css", :type => :stylesheet)
+    assert_equal "/javascripts/foo.js", compute_asset_path("foo.js", type: :javascript)
+    assert_equal "/javascripts/foo.js", compute_asset_path("/foo.js", type: :javascript)
+    assert_equal "/stylesheets/foo.css", compute_asset_path("foo.css", type: :stylesheet)
   end
 
   def test_auto_discovery_link_tag
@@ -411,7 +411,7 @@ class AssetTagHelperTest < ActionView::TestCase
   end
 
   def test_stylesheet_link_tag_escapes_options
-    assert_dom_equal %(<link href="/file.css" media="&lt;script&gt;" rel="stylesheet" />), stylesheet_link_tag('/file', :media => '<script>')
+    assert_dom_equal %(<link href="/file.css" media="&lt;script&gt;" rel="stylesheet" />), stylesheet_link_tag('/file', media: '<script>')
   end
 
   def test_stylesheet_link_tag_should_not_output_the_same_asset_twice
@@ -459,14 +459,14 @@ class AssetTagHelperTest < ActionView::TestCase
   end
 
   def test_image_tag_does_not_modify_options
-    options = {:size => '16x10'}
+    options = {size: '16x10'}
     image_tag('icon', options)
-    assert_equal({:size => '16x10'}, options)
+    assert_equal({size: '16x10'}, options)
   end
 
   def test_image_tag_raises_an_error_for_competing_size_arguments
     exception = assert_raise(ArgumentError) do
-      image_tag("gold.png", :height => "100", :width => "200", :size => "45x70")
+      image_tag("gold.png", height: "100", width: "200", size: "45x70")
     end
 
     assert_equal("Cannot pass a :size option with a :height or :width option", exception.message)
@@ -521,11 +521,11 @@ class AssetTagHelperTest < ActionView::TestCase
   end
 
   def test_video_audio_tag_does_not_modify_options
-    options = {:autoplay => true}
+    options = {autoplay: true}
     video_tag('video', options)
-    assert_equal({:autoplay => true}, options)
+    assert_equal({autoplay: true}, options)
     audio_tag('audio', options)
-    assert_equal({:autoplay => true}, options)
+    assert_equal({autoplay: true}, options)
   end
 
   def test_image_tag_interpreting_email_cid_correctly
@@ -534,7 +534,7 @@ class AssetTagHelperTest < ActionView::TestCase
   end
 
   def test_image_tag_interpreting_email_adding_optional_alt_tag
-    assert_equal '<img alt="Image" src="cid:thi%25%25sis@acontentid" />', image_tag("cid:thi%25%25sis@acontentid", :alt => "Image")
+    assert_equal '<img alt="Image" src="cid:thi%25%25sis@acontentid" />', image_tag("cid:thi%25%25sis@acontentid", alt: "Image")
   end
 
   def test_should_not_modify_source_string
@@ -621,11 +621,11 @@ class AssetTagHelperNonVhostTest < ActionView::TestCase
   end
 
   def test_should_current_request_host_is_always_returned_for_request
-    assert_equal "gopher://www.example.com", compute_asset_host("foo", :protocol => :request)
+    assert_equal "gopher://www.example.com", compute_asset_host("foo", protocol: :request)
   end
 
   def test_should_return_custom_host_if_passed_in_options
-    assert_equal "http://custom.example.com", compute_asset_host("foo", :host => "http://custom.example.com")
+    assert_equal "http://custom.example.com", compute_asset_host("foo", host: "http://custom.example.com")
   end
 
   def test_should_ignore_relative_root_path_on_complete_url
@@ -639,12 +639,12 @@ class AssetTagHelperNonVhostTest < ActionView::TestCase
 
   def test_should_return_relative_asset_host
     @controller.config.asset_host = "assets.example.com"
-    assert_equal "//assets.example.com", compute_asset_host("foo", :protocol => :relative)
+    assert_equal "//assets.example.com", compute_asset_host("foo", protocol: :relative)
   end
 
   def test_should_return_custom_protocol_asset_host
     @controller.config.asset_host = "assets.example.com"
-    assert_equal "ftp://assets.example.com", compute_asset_host("foo", :protocol => "ftp")
+    assert_equal "ftp://assets.example.com", compute_asset_host("foo", protocol: "ftp")
   end
 
   def test_should_compute_proper_path_with_asset_host
@@ -800,6 +800,6 @@ class AssetUrlHelperEmptyModuleTest < ActionView::TestCase
     end
 
     assert @module.config.asset_host
-    assert_equal "http://custom.example.com/foo", @module.asset_url("foo", :host => "http://custom.example.com")
+    assert_equal "http://custom.example.com/foo", @module.asset_url("foo", host: "http://custom.example.com")
   end
 end

@@ -21,7 +21,7 @@ module ActionDispatch
           define_method(:"test_to_regexp_#{path}") do
             strexp = Router::Strexp.build(
               path,
-              { :controller => /.+/ },
+              { controller: /.+/ },
               ["/", ".", "?"]
             )
             path = Pattern.new strexp
@@ -45,7 +45,7 @@ module ActionDispatch
           define_method(:"test_to_non_anchored_regexp_#{path}") do
             strexp = Router::Strexp.build(
               path,
-              { :controller => /.+/ },
+              { controller: /.+/ },
               ["/", ".", "?"],
               false
             )
@@ -69,7 +69,7 @@ module ActionDispatch
           define_method(:"test_names_#{path}") do
             strexp = Router::Strexp.build(
               path,
-              { :controller => /.+/ },
+              { controller: /.+/ },
               ["/", ".", "?"]
             )
             path = Pattern.new strexp
@@ -80,7 +80,7 @@ module ActionDispatch
         def test_to_regexp_with_extended_group
           strexp = Router::Strexp.build(
             '/page/:name',
-            { :name => /
+            { name: /
               #ROFL
               (tender|love
               #MAO
@@ -107,7 +107,7 @@ module ActionDispatch
         def test_to_regexp_match_non_optional
           strexp = Router::Strexp.build(
             '/:name',
-            { :name => /\d+/ },
+            { name: /\d+/ },
             ["/", ".", "?"]
           )
           path = Pattern.new strexp
@@ -118,7 +118,7 @@ module ActionDispatch
         def test_to_regexp_with_group
           strexp = Router::Strexp.build(
             '/page/:name',
-            { :name => /(tender|love)/ },
+            { name: /(tender|love)/ },
             ["/", ".", "?"]
           )
           path = Pattern.new strexp
@@ -128,7 +128,7 @@ module ActionDispatch
         end
 
         def test_ast_sets_regular_expressions
-          requirements = { :name => /(tender|love)/, :value => /./ }
+          requirements = { name: /(tender|love)/, value: /./ }
           strexp = Router::Strexp.build(
             '/page/:name/:value',
             requirements,
@@ -148,7 +148,7 @@ module ActionDispatch
         def test_match_data_with_group
           strexp = Router::Strexp.build(
             '/page/:name',
-            { :name => /(tender|love)/ },
+            { name: /(tender|love)/ },
             ["/", ".", "?"]
           )
           path = Pattern.new strexp
@@ -160,7 +160,7 @@ module ActionDispatch
         def test_match_data_with_multi_group
           strexp = Router::Strexp.build(
             '/page/:name/:id',
-            { :name => /t(((ender|love)))()/ },
+            { name: /t(((ender|love)))()/ },
             ["/", ".", "?"]
           )
           path = Pattern.new strexp
@@ -175,7 +175,7 @@ module ActionDispatch
           z = /\d+/
           strexp = Router::Strexp.build(
             '/page/*foo',
-            { :foo => z },
+            { foo: z },
             ["/", ".", "?"]
           )
           path = Pattern.new strexp
@@ -185,7 +185,7 @@ module ActionDispatch
         def test_insensitive_regexp_with_group
           strexp = Router::Strexp.build(
             '/page/:name/aaron',
-            { :name => /(tender|love)/i },
+            { name: /(tender|love)/i },
             ["/", ".", "?"]
           )
           path = Pattern.new strexp

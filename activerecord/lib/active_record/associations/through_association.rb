@@ -3,7 +3,7 @@ module ActiveRecord
   module Associations
     module ThroughAssociation #:nodoc:
 
-      delegate :source_reflection, :through_reflection, :to => :reflection
+      delegate :source_reflection, :through_reflection, to: :reflection
 
       protected
 

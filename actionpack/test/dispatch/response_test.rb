@@ -124,12 +124,12 @@ class ResponseTest < ActiveSupport::TestCase
   end
 
   test "cookies" do
-    @response.set_cookie("user_name", :value => "david", :path => "/")
+    @response.set_cookie("user_name", value: "david", path: "/")
     status, headers, body = @response.to_a
     assert_equal "user_name=david; path=/", headers["Set-Cookie"]
     assert_equal({"user_name" => "david"}, @response.cookies)
 
-    @response.set_cookie("login", :value => "foo&bar", :path => "/", :expires => Time.utc(2005, 10, 10,5))
+    @response.set_cookie("login", value: "foo&bar", path: "/", expires: Time.utc(2005, 10, 10,5))
     status, headers, body = @response.to_a
     assert_equal "user_name=david; path=/\nlogin=foo%26bar; path=/; expires=Mon, 10 Oct 2005 05:00:00 -0000", headers["Set-Cookie"]
     assert_equal({"login" => "foo&bar", "user_name" => "david"}, @response.cookies)
@@ -148,7 +148,7 @@ class ResponseTest < ActiveSupport::TestCase
     resp.to_a
 
     assert_equal('"202cb962ac59075b964b07152d234b70"', resp.etag)
-    assert_equal({:public => true}, resp.cache_control)
+    assert_equal({public: true}, resp.cache_control)
 
     assert_equal('public', resp.headers['Cache-Control'])
     assert_equal('"202cb962ac59075b964b07152d234b70"', resp.headers['ETag'])
@@ -270,7 +270,7 @@ class ResponseIntegrationTest < ActionDispatch::IntegrationTest
     assert_equal('"202cb962ac59075b964b07152d234b70"', @response.headers['ETag'])
 
     assert_equal('"202cb962ac59075b964b07152d234b70"', @response.etag)
-    assert_equal({:public => true}, @response.cache_control)
+    assert_equal({public: true}, @response.cache_control)
   end
 
   test "response cache control from rackish app" do
@@ -287,7 +287,7 @@ class ResponseIntegrationTest < ActionDispatch::IntegrationTest
     assert_equal('"202cb962ac59075b964b07152d234b70"', @response.headers['ETag'])
 
     assert_equal('"202cb962ac59075b964b07152d234b70"', @response.etag)
-    assert_equal({:public => true}, @response.cache_control)
+    assert_equal({public: true}, @response.cache_control)
   end
 
   test "response charset and content type from railsish app" do

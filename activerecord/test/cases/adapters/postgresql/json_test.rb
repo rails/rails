@@ -69,8 +69,8 @@ module PostgresqlJSONSharedTestCases
   end
 
   def test_cast_value_on_write
-    x = JsonDataType.new payload: {"string" => "foo", :symbol => :bar}
-    assert_equal({"string" => "foo", :symbol => :bar}, x.payload_before_type_cast)
+    x = JsonDataType.new payload: {"string" => "foo", symbol: :bar}
+    assert_equal({"string" => "foo", symbol: :bar}, x.payload_before_type_cast)
     assert_equal({"string" => "foo", "symbol" => "bar"}, x.payload)
     x.save
     assert_equal({"string" => "foo", "symbol" => "bar"}, x.reload.payload)

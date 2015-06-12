@@ -96,7 +96,7 @@ module ActiveModel
     # Returns +true+ if the error messages include an error for the given key
     # +attribute+, +false+ otherwise.
     #
-    #   person.errors.messages        # => {:name=>["cannot be nil"]}
+    #   person.errors.messages        # => {name:["cannot be nil"]}
     #   person.errors.include?(:name) # => true
     #   person.errors.include?(:age)  # => false
     def include?(attribute)
@@ -107,7 +107,7 @@ module ActiveModel
 
     # Get messages for +key+.
     #
-    #   person.errors.messages   # => {:name=>["cannot be nil"]}
+    #   person.errors.messages   # => {name:["cannot be nil"]}
     #   person.errors.get(:name) # => ["cannot be nil"]
     #   person.errors.get(:age)  # => []
     def get(key)
@@ -201,7 +201,7 @@ module ActiveModel
 
     # Returns all message values.
     #
-    #   person.errors.messages # => {:name=>["cannot be nil", "must be specified"]}
+    #   person.errors.messages # => {name:["cannot be nil", "must be specified"]}
     #   person.errors.values   # => [["cannot be nil", "must be specified"]]
     def values
       messages.values
@@ -209,7 +209,7 @@ module ActiveModel
 
     # Returns all message keys.
     #
-    #   person.errors.messages # => {:name=>["cannot be nil", "must be specified"]}
+    #   person.errors.messages # => {name:["cannot be nil", "must be specified"]}
     #   person.errors.keys     # => [:name]
     def keys
       messages.keys
@@ -244,8 +244,8 @@ module ActiveModel
     # object. You can pass the <tt>:full_messages</tt> option. This determines
     # if the json object should contain full messages or not (false by default).
     #
-    #   person.errors.as_json                      # => {:name=>["cannot be nil"]}
-    #   person.errors.as_json(full_messages: true) # => {:name=>["name cannot be nil"]}
+    #   person.errors.as_json                      # => {name:["cannot be nil"]}
+    #   person.errors.as_json(full_messages: true) # => {name:["name cannot be nil"]}
     def as_json(options=nil)
       to_hash(options && options[:full_messages])
     end
@@ -253,8 +253,8 @@ module ActiveModel
     # Returns a Hash of attributes with their error messages. If +full_messages+
     # is +true+, it will contain full messages (see +full_message+).
     #
-    #   person.errors.to_hash       # => {:name=>["cannot be nil"]}
-    #   person.errors.to_hash(true) # => {:name=>["name cannot be nil"]}
+    #   person.errors.to_hash       # => {name:["cannot be nil"]}
+    #   person.errors.to_hash(true) # => {name:["name cannot be nil"]}
     def to_hash(full_messages = false)
       if full_messages
         self.messages.each_with_object({}) do |(attribute, array), messages|
@@ -275,10 +275,10 @@ module ActiveModel
     #   # => ["is invalid", "must be implemented"]
     #
     #   person.errors.messages
-    #   # => {:name=>["is invalid", "must be implemented"]}
+    #   # => {name:["is invalid", "must be implemented"]}
     #
     #   person.errors.details
-    #   # => {:name=>[{error: :not_implemented}, {error: :invalid}]}
+    #   # => {name:[{error: :not_implemented}, {error: :invalid}]}
     #
     # If +message+ is a symbol, it will be translated using the appropriate
     # scope (see +generate_message+).
@@ -303,9 +303,9 @@ module ActiveModel
     #   person.errors.add(:base, :name_or_email_blank,
     #     message: "either name or email must be present")
     #   person.errors.messages
-    #   # => {:base=>["either name or email must be present"]}
+    #   # => {base:["either name or email must be present"]}
     #   person.errors.details
-    #   # => {:base=>[{error: :name_or_email_blank}]}
+    #   # => {base:[{error: :name_or_email_blank}]}
     def add(attribute, message = :invalid, options = {})
       message = message.call if message.respond_to?(:call)
       detail  = normalize_detail(attribute, message, options)
@@ -324,7 +324,7 @@ module ActiveModel
     #
     #   person.errors.add_on_empty(:name)
     #   person.errors.messages
-    #   # => {:name=>["can't be empty"]}
+    #   # => {name:["can't be empty"]}
     def add_on_empty(attributes, options = {})
       ActiveSupport::Deprecation.warn(<<-MESSAGE.squish)
         ActiveModel::Errors#add_on_empty is deprecated and will be removed in Rails 5.1
@@ -346,7 +346,7 @@ module ActiveModel
     #
     #   person.errors.add_on_blank(:name)
     #   person.errors.messages
-    #   # => {:name=>["can't be blank"]}
+    #   # => {name:["can't be blank"]}
     def add_on_blank(attributes, options = {})
       ActiveSupport::Deprecation.warn(<<-MESSAGE.squish)
         ActiveModel::Errors#add_on_blank is deprecated and will be removed in Rails 5.1

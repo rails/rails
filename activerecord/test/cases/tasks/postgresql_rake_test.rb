@@ -4,7 +4,7 @@ if current_adapter?(:PostgreSQLAdapter)
 module ActiveRecord
   class PostgreSQLDBCreateTest < ActiveRecord::TestCase
     def setup
-      @connection    = stub(:create_database => true)
+      @connection    = stub(create_database: true)
       @configuration = {
         'adapter'  => 'postgresql',
         'database' => 'my-app-db'
@@ -76,7 +76,7 @@ module ActiveRecord
 
   class PostgreSQLDBDropTest < ActiveRecord::TestCase
     def setup
-      @connection    = stub(:drop_database => true)
+      @connection    = stub(drop_database: true)
       @configuration = {
         'adapter'  => 'postgresql',
         'database' => 'my-app-db'
@@ -105,7 +105,7 @@ module ActiveRecord
 
   class PostgreSQLPurgeTest < ActiveRecord::TestCase
     def setup
-      @connection    = stub(:create_database => true, :drop_database => true)
+      @connection    = stub(create_database: true, drop_database: true)
       @configuration = {
         'adapter'  => 'postgresql',
         'database' => 'my-app-db'
@@ -154,7 +154,7 @@ module ActiveRecord
 
   class PostgreSQLDBCharsetTest < ActiveRecord::TestCase
     def setup
-      @connection    = stub(:create_database => true)
+      @connection    = stub(create_database: true)
       @configuration = {
         'adapter'  => 'postgresql',
         'database' => 'my-app-db'
@@ -172,7 +172,7 @@ module ActiveRecord
 
   class PostgreSQLDBCollationTest < ActiveRecord::TestCase
     def setup
-      @connection    = stub(:create_database => true)
+      @connection    = stub(create_database: true)
       @configuration = {
         'adapter'  => 'postgresql',
         'database' => 'my-app-db'
@@ -190,7 +190,7 @@ module ActiveRecord
 
   class PostgreSQLStructureDumpTest < ActiveRecord::TestCase
     def setup
-      @connection    = stub(:structure_dump => true)
+      @connection    = stub(structure_dump: true)
       @configuration = {
         'adapter'  => 'postgresql',
         'database' => 'my-app-db'

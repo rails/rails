@@ -79,7 +79,7 @@ module ActionDispatch
   #     domain: %w(.example.com .example.org) # Allow the cookie
   #                                           # for concrete domain names.
   #
-  # * <tt>:tld_length</tt> - When using <tt>:domain => :all</tt>, this option can be used to explicitly
+  # * <tt>:tld_length</tt> - When using <tt>domain: :all</tt>, this option can be used to explicitly
   #   set the TLD length when using a short (<= 3 character) domain that is being interpreted as part of a TLD.
   #   For example, to share cookies between user1.lvh.me and user2.lvh.me, set <tt>:tld_length</tt> to 1.
   # * <tt>:expires</tt> - The time at which this cookie expires, as a \Time object.
@@ -309,7 +309,7 @@ module ActionDispatch
           value = options[:value]
         else
           value = options
-          options = { :value => value }
+          options = { value: value }
         end
 
         handle_options(options)
@@ -387,7 +387,7 @@ module ActionDispatch
         if options.is_a?(Hash)
           options.symbolize_keys!
         else
-          options = { :value => options }
+          options = { value: options }
         end
 
         options[:expires] = 20.years.from_now
@@ -472,7 +472,7 @@ module ActionDispatch
           options.symbolize_keys!
           options[:value] = @verifier.generate(serialize(options[:value]))
         else
-          options = { :value => @verifier.generate(serialize(options)) }
+          options = { value: @verifier.generate(serialize(options)) }
         end
 
         raise CookieOverflow if options[:value].bytesize > MAX_COOKIE_SIZE
@@ -532,7 +532,7 @@ module ActionDispatch
         if options.is_a?(Hash)
           options.symbolize_keys!
         else
-          options = { :value => options }
+          options = { value: options }
         end
 
         options[:value] = @encryptor.encrypt_and_sign(serialize(options[:value]))

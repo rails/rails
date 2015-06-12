@@ -14,7 +14,7 @@ module ERBTest
 
     test "percent equals works for javascript_tag with options" do
       expected_output = "<script id=\"the_js_tag\">\n//<![CDATA[\nalert('Hello')\n//]]>\n</script>"
-      assert_equal expected_output, render_content("javascript_tag(:id => 'the_js_tag')", "alert('Hello')")
+      assert_equal expected_output, render_content("javascript_tag(id: 'the_js_tag')", "alert('Hello')")
     end
 
     test "percent equals works with form tags" do

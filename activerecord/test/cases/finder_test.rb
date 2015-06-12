@@ -23,13 +23,13 @@ class FinderTest < ActiveRecord::TestCase
 
   def test_find_by_id_with_hash
     assert_raises(ActiveRecord::StatementInvalid) do
-      Post.find_by_id(:limit => 1)
+      Post.find_by_id(limit: 1)
     end
   end
 
   def test_find_by_title_and_id_with_hash
     assert_raises(ActiveRecord::StatementInvalid) do
-      Post.find_by_title_and_id('foo', :limit => 1)
+      Post.find_by_title_and_id('foo', limit: 1)
     end
   end
 
@@ -75,7 +75,7 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal true, Topic.exists?("1")
     assert_equal true, Topic.exists?(title: "The First Topic")
     assert_equal true, Topic.exists?(heading: "The First Topic")
-    assert_equal true, Topic.exists?(:author_name => "Mary", :approved => true)
+    assert_equal true, Topic.exists?(author_name: "Mary", approved: true)
     assert_equal true, Topic.exists?(["parent_id = ?", 1])
     assert_equal true, Topic.exists?(id: [1, 9999])
 
@@ -164,16 +164,16 @@ class FinderTest < ActiveRecord::TestCase
 
   def test_exists_with_aggregate_having_three_mappings
     existing_address = customers(:david).address
-    assert_equal true, Customer.exists?(:address => existing_address)
+    assert_equal true, Customer.exists?(address: existing_address)
   end
 
   def test_exists_with_aggregate_having_three_mappings_with_one_difference
     existing_address = customers(:david).address
-    assert_equal false, Customer.exists?(:address =>
+    assert_equal false, Customer.exists?(address:
       Address.new(existing_address.street, existing_address.city, existing_address.country + "1"))
-    assert_equal false, Customer.exists?(:address =>
+    assert_equal false, Customer.exists?(address:
       Address.new(existing_address.street, existing_address.city + "1", existing_address.country))
-    assert_equal false, Customer.exists?(:address =>
+    assert_equal false, Customer.exists?(address:
       Address.new(existing_address.street + "1", existing_address.city, existing_address.country))
   end
 
@@ -501,7 +501,7 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_find_with_hash_conditions_on_joined_table
-    firms = Firm.joins(:account).where(:accounts => { :credit_limit => 50 })
+    firms = Firm.joins(:account).where(accounts: { credit_limit: 50 })
     assert_equal 1, firms.size
     assert_equal companies(:first_firm), firms.first
   end
@@ -514,9 +514,9 @@ class FinderTest < ActiveRecord::TestCase
 
   def test_find_on_hash_conditions_with_explicit_table_name_and_aggregate
     david = customers(:david)
-    assert Customer.where('customers.name' => david.name, :address => david.address).find(david.id)
+    assert Customer.where('customers.name' => david.name, address: david.address).find(david.id)
     assert_raise(ActiveRecord::RecordNotFound) {
-      Customer.where('customers.name' => david.name + "1", :address => david.address).find(david.id)
+      Customer.where('customers.name' => david.name + "1", address: david.address).find(david.id)
     }
   end
 
@@ -601,42 +601,42 @@ class FinderTest < ActiveRecord::TestCase
   def test_hash_condition_find_with_aggregate_having_one_mapping
     balance = customers(:david).balance
     assert_kind_of Money, balance
-    found_customer = Customer.where(:balance => balance).first
+    found_customer = Customer.where(balance: balance).first
     assert_equal customers(:david), found_customer
   end
 
   def test_hash_condition_find_with_aggregate_attribute_having_same_name_as_field_and_key_value_being_aggregate
     gps_location = customers(:david).gps_location
     assert_kind_of GpsLocation, gps_location
-    found_customer = Customer.where(:gps_location => gps_location).first
+    found_customer = Customer.where(gps_location: gps_location).first
     assert_equal customers(:david), found_customer
   end
 
   def test_hash_condition_find_with_aggregate_having_one_mapping_and_key_value_being_attribute_value
     balance = customers(:david).balance
     assert_kind_of Money, balance
-    found_customer = Customer.where(:balance => balance.amount).first
+    found_customer = Customer.where(balance: balance.amount).first
     assert_equal customers(:david), found_customer
   end
 
   def test_hash_condition_find_with_aggregate_attribute_having_same_name_as_field_and_key_value_being_attribute_value
     gps_location = customers(:david).gps_location
     assert_kind_of GpsLocation, gps_location
-    found_customer = Customer.where(:gps_location => gps_location.gps_location).first
+    found_customer = Customer.where(gps_location: gps_location.gps_location).first
     assert_equal customers(:david), found_customer
   end
 
   def test_hash_condition_find_with_aggregate_having_three_mappings
     address = customers(:david).address
     assert_kind_of Address, address
-    found_customer = Customer.where(:address => address).first
+    found_customer = Customer.where(address: address).first
     assert_equal customers(:david), found_customer
   end
 
   def test_hash_condition_find_with_one_condition_being_aggregate_and_another_not
     address = customers(:david).address
     assert_kind_of Address, address
-    found_customer = Customer.where(:address => address, :name => customers(:david).name).first
+    found_customer = Customer.where(address: address, name: customers(:david).name).first
     assert_equal customers(:david), found_customer
   end
 
@@ -709,10 +709,10 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_named_bind_variables
-    assert_equal '1', bind(':a', :a => 1) # ' ruby-mode
-    assert_equal '1 1', bind(':a :a', :a => 1)  # ' ruby-mode
+    assert_equal '1', bind(':a', a: 1) # ' ruby-mode
+    assert_equal '1 1', bind(':a :a', a: 1)  # ' ruby-mode
 
-    assert_nothing_raised { bind("'+00:00'", :foo => "bar") }
+    assert_nothing_raised { bind("'+00:00'", foo: "bar") }
 
     assert_kind_of Firm, Company.where(["name = :name", { name: "37signals" }]).first
     assert_nil Company.where(["name = :name", { name: "37signals!" }]).first
@@ -738,14 +738,14 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal '1,2,3', bind('?', [1, 2, 3])
     assert_equal quoted_abc, bind('?', %w(a b c))
 
-    assert_equal '1,2,3', bind(':a', :a => [1, 2, 3])
-    assert_equal quoted_abc, bind(':a', :a => %w(a b c)) # '
+    assert_equal '1,2,3', bind(':a', a: [1, 2, 3])
+    assert_equal quoted_abc, bind(':a', a: %w(a b c)) # '
 
     assert_equal '1,2,3', bind('?', SimpleEnumerable.new([1, 2, 3]))
     assert_equal quoted_abc, bind('?', SimpleEnumerable.new(%w(a b c)))
 
-    assert_equal '1,2,3', bind(':a', :a => SimpleEnumerable.new([1, 2, 3]))
-    assert_equal quoted_abc, bind(':a', :a => SimpleEnumerable.new(%w(a b c))) # '
+    assert_equal '1,2,3', bind(':a', a: SimpleEnumerable.new([1, 2, 3]))
+    assert_equal quoted_abc, bind(':a', a: SimpleEnumerable.new(%w(a b c))) # '
   end
 
   def test_bind_empty_enumerable
@@ -778,7 +778,7 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_named_bind_with_postgresql_type_casts
-    l = Proc.new { bind(":a::integer '2009-01-01'::date", :a => '10') }
+    l = Proc.new { bind(":a::integer '2009-01-01'::date", a: '10') }
     assert_nothing_raised(&l)
     assert_equal "#{ActiveRecord::Base.connection.quote('10')}::integer '2009-01-01'::date", l.call
   end
@@ -948,7 +948,7 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_find_ignores_previously_inserted_record
-    Post.create!(:title => 'test', :body => 'it out')
+    Post.create!(title: 'test', body: 'it out')
     assert_equal [], Post.where(id: nil)
   end
 
@@ -1018,8 +1018,8 @@ class FinderTest < ActiveRecord::TestCase
 
   def test_with_limiting_with_custom_select
     posts = Post.references(:authors).merge(
-      :includes => :author, :select => 'posts.*, authors.id as "author_id"',
-      :limit => 3, :order => 'posts.id'
+      includes: :author, select: 'posts.*, authors.id as "author_id"',
+      limit: 3, order: 'posts.id'
     ).to_a
     assert_equal 3, posts.size
     assert_equal [0, 1, 1], posts.map(&:author_id).sort

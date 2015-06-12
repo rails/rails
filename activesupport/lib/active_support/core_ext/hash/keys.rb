@@ -46,7 +46,7 @@ class Hash
   #   hash = { 'name' => 'Rob', 'age' => '28' }
   #
   #   hash.symbolize_keys
-  #   # => {:name=>"Rob", :age=>"28"}
+  #   # => {name:"Rob", age:"28"}
   def symbolize_keys
     transform_keys{ |key| key.to_sym rescue key }
   end
@@ -122,7 +122,7 @@ class Hash
   #   hash = { 'person' => { 'name' => 'Rob', 'age' => '28' } }
   #
   #   hash.deep_symbolize_keys
-  #   # => {:person=>{:name=>"Rob", :age=>"28"}}
+  #   # => {person:{name:"Rob", age:"28"}}
   def deep_symbolize_keys
     deep_transform_keys{ |key| key.to_sym rescue key }
   end

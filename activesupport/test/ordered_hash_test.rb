@@ -166,7 +166,7 @@ class OrderedHashTest < ActiveSupport::TestCase
     hash = ActiveSupport::OrderedHash.new
     hash[:a] = 0
     hash[:b] = 0
-    merged = hash.merge(:b => 2, :c => 7) do |key, old_value, new_value|
+    merged = hash.merge(b: 2, c: 7) do |key, old_value, new_value|
       new_value + 1
     end
 
@@ -179,7 +179,7 @@ class OrderedHashTest < ActiveSupport::TestCase
     hash = ActiveSupport::OrderedHash.new
     hash[:a] = 0
     hash[:b] = 0
-    hash.merge!(:a => 1, :c => 7) do |key, old_value, new_value|
+    hash.merge!(a: 1, c: 7) do |key, old_value, new_value|
       new_value + 3
     end
 
@@ -242,7 +242,7 @@ class OrderedHashTest < ActiveSupport::TestCase
   end
 
   def test_nested_under_indifferent_access
-    flash = {:a => ActiveSupport::OrderedHash[:b, 1, :c, 2]}.with_indifferent_access
+    flash = {a: ActiveSupport::OrderedHash[:b, 1, :c, 2]}.with_indifferent_access
     assert_kind_of ActiveSupport::OrderedHash, flash[:a]
   end
 
@@ -305,7 +305,7 @@ class OrderedHashTest < ActiveSupport::TestCase
 
   def test_update_sets_keys
     @updated_ordered_hash = ActiveSupport::OrderedHash.new
-    @updated_ordered_hash.update(:name => "Bob")
+    @updated_ordered_hash.update(name: "Bob")
     assert_equal [:name],  @updated_ordered_hash.keys
   end
 

@@ -33,12 +33,12 @@ module ActionDispatch
           end
         end
         engine.routes.draw do
-          get '/cart', :to => 'cart#show'
+          get '/cart', to: 'cart#show'
         end
 
         output = draw do
-          get '/custom/assets', :to => 'custom_assets#show'
-          mount engine => "/blog", :as => "blog"
+          get '/custom/assets', to: 'custom_assets#show'
+          mount engine => "/blog", as: "blog"
         end
 
         assert_equal [
@@ -74,7 +74,7 @@ module ActionDispatch
 
       def test_cart_inspect
         output = draw do
-          get '/cart', :to => 'cart#show'
+          get '/cart', to: 'cart#show'
         end
 
         assert_equal [
@@ -85,7 +85,7 @@ module ActionDispatch
 
       def test_inspect_shows_custom_assets
         output = draw do
-          get '/custom/assets', :to => 'custom_assets#show'
+          get '/custom/assets', to: 'custom_assets#show'
         end
 
         assert_equal [
@@ -114,7 +114,7 @@ module ActionDispatch
 
       def test_inspect_routes_shows_root_route
         output = draw do
-          root :to => 'pages#main'
+          root to: 'pages#main'
         end
 
         assert_equal [
@@ -147,34 +147,34 @@ module ActionDispatch
 
       def test_inspect_routes_shows_controller_and_action_route_with_constraints
         output = draw do
-          get ':controller(/:action(/:id))', :id => /\d+/
+          get ':controller(/:action(/:id))', id: /\d+/
         end
 
         assert_equal [
           "Prefix Verb URI Pattern                            Controller#Action",
-          "       GET  /:controller(/:action(/:id))(.:format) :controller#:action {:id=>/\\d+/}"
+          "       GET  /:controller(/:action(/:id))(.:format) :controller#:action {id:/\\d+/}"
         ], output
       end
 
       def test_rake_routes_shows_route_with_defaults
         output = draw do
-          get 'photos/:id' => 'photos#show', :defaults => {:format => 'jpg'}
+          get 'photos/:id' => 'photos#show', defaults: {format: 'jpg'}
         end
 
         assert_equal [
           "Prefix Verb URI Pattern           Controller#Action",
-          %Q[       GET  /photos/:id(.:format) photos#show {:format=>"jpg"}]
+          %Q[       GET  /photos/:id(.:format) photos#show {format:"jpg"}]
         ], output
       end
 
       def test_rake_routes_shows_route_with_constraints
         output = draw do
-          get 'photos/:id' => 'photos#show', :id => /[A-Z]\d{5}/
+          get 'photos/:id' => 'photos#show', id: /[A-Z]\d{5}/
         end
 
         assert_equal [
           "Prefix Verb URI Pattern           Controller#Action",
-          "       GET  /photos/:id(.:format) photos#show {:id=>/[A-Z]\\d{5}/}"
+          "       GET  /photos/:id(.:format) photos#show {id:/[A-Z]\\d{5}/}"
         ], output
       end
 
@@ -203,12 +203,12 @@ module ActionDispatch
 
       def test_rake_routes_shows_route_with_rack_app
         output = draw do
-          get 'foo/:id' => MountedRackApp, :id => /[A-Z]\d{5}/
+          get 'foo/:id' => MountedRackApp, id: /[A-Z]\d{5}/
         end
 
         assert_equal [
           "Prefix Verb URI Pattern        Controller#Action",
-          "       GET  /foo/:id(.:format) MountedRackApp {:id=>/[A-Z]\\d{5}/}"
+          "       GET  /foo/:id(.:format) MountedRackApp {id:/[A-Z]\\d{5}/}"
         ], output
       end
 
@@ -242,14 +242,14 @@ module ActionDispatch
         end
 
         output = draw do
-          scope :constraint => constraint.new do
+          scope constraint: constraint.new do
             mount MountedRackApp => '/foo'
           end
         end
 
         assert_equal [
           "          Prefix Verb URI Pattern Controller#Action",
-          "mounted_rack_app      /foo        MountedRackApp {:constraint=>( my custom constraint )}"
+          "mounted_rack_app      /foo        MountedRackApp {constraint:( my custom constraint )}"
         ], output
       end
 
@@ -275,14 +275,14 @@ module ActionDispatch
 
       def test_redirect
         output = draw do
-          get "/foo"    => redirect("/foo/bar"), :constraints => { :subdomain => "admin" }
+          get "/foo"    => redirect("/foo/bar"), constraints: { subdomain: "admin" }
           get "/bar"    => redirect(path: "/foo/bar", status: 307)
           get "/foobar" => redirect{ "/foo/bar" }
         end
 
         assert_equal [
           "Prefix Verb URI Pattern       Controller#Action",
-          "   foo GET  /foo(.:format)    redirect(301, /foo/bar) {:subdomain=>\"admin\"}",
+          "   foo GET  /foo(.:format)    redirect(301, /foo/bar) {subdomain:\"admin\"}",
           "   bar GET  /bar(.:format)    redirect(307, path: /foo/bar)",
           "foobar GET  /foobar(.:format) redirect(301)"
         ], output

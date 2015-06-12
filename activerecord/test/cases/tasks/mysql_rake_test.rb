@@ -4,7 +4,7 @@ if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
 module ActiveRecord
   class MysqlDBCreateTest < ActiveRecord::TestCase
     def setup
-      @connection    = stub(:create_database => true)
+      @connection    = stub(create_database: true)
       @configuration = {
         'adapter'  => 'mysql',
         'database' => 'my-app-db'
@@ -111,7 +111,7 @@ module ActiveRecord
       def test_database_created_by_root
         assert_permissions_granted_for "pat"
         @connection.expects(:create_database).
-          with('my-app-db', :charset => 'utf8', :collation => 'utf8_unicode_ci')
+          with('my-app-db', charset: 'utf8', collation: 'utf8_unicode_ci')
 
         ActiveRecord::Tasks::DatabaseTasks.create @configuration
       end
@@ -162,7 +162,7 @@ module ActiveRecord
 
   class MySQLDBDropTest < ActiveRecord::TestCase
     def setup
-      @connection    = stub(:drop_database => true)
+      @connection    = stub(drop_database: true)
       @configuration = {
         'adapter'  => 'mysql',
         'database' => 'my-app-db'
@@ -187,7 +187,7 @@ module ActiveRecord
 
   class MySQLPurgeTest < ActiveRecord::TestCase
     def setup
-      @connection    = stub(:recreate_database => true)
+      @connection    = stub(recreate_database: true)
       @configuration = {
         'adapter'  => 'mysql',
         'database' => 'test-db'
@@ -221,7 +221,7 @@ module ActiveRecord
 
   class MysqlDBCharsetTest < ActiveRecord::TestCase
     def setup
-      @connection    = stub(:create_database => true)
+      @connection    = stub(create_database: true)
       @configuration = {
         'adapter'  => 'mysql',
         'database' => 'my-app-db'
@@ -239,7 +239,7 @@ module ActiveRecord
 
   class MysqlDBCollationTest < ActiveRecord::TestCase
     def setup
-      @connection    = stub(:create_database => true)
+      @connection    = stub(create_database: true)
       @configuration = {
         'adapter'  => 'mysql',
         'database' => 'my-app-db'

@@ -7,15 +7,15 @@ class HttpTokenAuthenticationTest < ActionController::TestCase
     before_action :authenticate_long_credentials, only: :show
 
     def index
-      render :text => "Hello Secret"
+      render text: "Hello Secret"
     end
 
     def display
-      render :text => 'Definitely Maybe'
+      render text: 'Definitely Maybe'
     end
 
     def show
-      render :text => 'Only for loooooong credentials'
+      render text: 'Only for loooooong credentials'
     end
 
     private
@@ -54,7 +54,7 @@ class HttpTokenAuthenticationTest < ActionController::TestCase
       assert_equal 'Hello Secret', @response.body, "Authentication failed for request header #{header}"
     end
     test "successful authentication with #{header.downcase} and long credentials" do
-      @request.env[header] = encode_credentials('1234567890123456789012345678901234567890', :algorithm => 'test')
+      @request.env[header] = encode_credentials('1234567890123456789012345678901234567890', algorithm: 'test')
       get :show
 
       assert_response :success

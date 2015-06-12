@@ -42,7 +42,7 @@ module ApplicationTests
     test "allows me to configure default url options for ActionMailer" do
       app_file "config/environments/development.rb", <<-RUBY
         Rails.application.configure do
-          config.action_mailer.default_url_options = { :host => "test.rails" }
+          config.action_mailer.default_url_options = { host: "test.rails" }
         end
       RUBY
 
@@ -53,7 +53,7 @@ module ApplicationTests
     test "includes url helpers as action methods" do
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
-          get "/foo", :to => lambda { |env| [200, {}, []] }, :as => :foo
+          get "/foo", to: lambda { |env| [200, {}, []] }, as: :foo
         end
       RUBY
 
@@ -80,11 +80,11 @@ module ApplicationTests
       app_file "app/controllers/foo_controller.rb", <<-RUBY
         class FooController < ApplicationController
           def included_helpers
-            render :inline => "<%= from_app_helper -%> <%= from_foo_helper %>"
+            render inline: "<%= from_app_helper -%> <%= from_foo_helper %>"
           end
 
           def not_included_helper
-            render :inline => "<%= respond_to?(:from_bar_helper) -%>"
+            render inline: "<%= respond_to?(:from_bar_helper) -%>"
           end
         end
       RUBY

@@ -178,7 +178,7 @@ class EnqueuedJobsTest < ActiveJob::TestCase
       end
     end
 
-    assert_equal 'No enqueued job found with {:job=>NestedJob, :queue=>"low"}', error.message
+    assert_equal 'No enqueued job found with {job:NestedJob, queue:"low"}', error.message
   end
 
   def test_assert_enqueued_job_args
@@ -205,7 +205,7 @@ class EnqueuedJobsTest < ActiveJob::TestCase
       end
     end
 
-    assert_equal "No enqueued job found with {:job=>HelloJob, :args=>[#{wilma.inspect}]}", error.message
+    assert_equal "No enqueued job found with {job:HelloJob, args:[#{wilma.inspect}]}", error.message
   end
 end
 
@@ -427,6 +427,6 @@ class PerformedJobsTest < ActiveJob::TestCase
       end
     end
 
-    assert_equal "No performed job found with {:job=>HelloJob, :args=>[#{wilma.inspect}]}", error.message
+    assert_equal "No performed job found with {job:HelloJob, args:[#{wilma.inspect}]}", error.message
   end
 end

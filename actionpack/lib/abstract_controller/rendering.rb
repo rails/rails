@@ -74,8 +74,8 @@ module AbstractController
     end
 
     # Normalize args by converting <tt>render "foo"</tt> to
-    # <tt>render :action => "foo"</tt> and <tt>render "foo/bar"</tt> to
-    # <tt>render :file => "foo/bar"</tt>.
+    # <tt>render action: "foo"</tt> and <tt>render "foo/bar"</tt> to
+    # <tt>render file: "foo/bar"</tt>.
     # :api: plugin
     def _normalize_args(action=nil, options={})
       if action.is_a? Hash

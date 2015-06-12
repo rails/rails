@@ -50,7 +50,7 @@ module RailtiesTest
       @plugin.write "Rakefile", <<-RUBY
         APP_RAKEFILE = '#{app_path}/Rakefile'
         load 'rails/tasks/engine.rake'
-        task :foo => :environment do
+        task foo: :environment do
           puts "Task ran"
         end
       RUBY
@@ -317,7 +317,7 @@ module RailtiesTest
         end
 
         Rails.application.routes.draw do
-          get "/sprokkit", :to => Sprokkit
+          get "/sprokkit", to: Sprokkit
         end
       RUBY
 
@@ -333,21 +333,21 @@ module RailtiesTest
       controller "foo", <<-RUBY
         class FooController < ActionController::Base
           def index
-            render :text => "foo"
+            render text: "foo"
           end
         end
       RUBY
 
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
-          get 'foo', :to => 'foo#index'
+          get 'foo', to: 'foo#index'
         end
       RUBY
 
       @plugin.write "app/controllers/bar_controller.rb", <<-RUBY
         class BarController < ActionController::Base
           def index
-            render :text => "bar"
+            render text: "bar"
           end
         end
       RUBY
@@ -832,7 +832,7 @@ YAML
 
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
-          mount Bukkits::Awesome::Engine => "/bukkits", :as => "bukkits"
+          mount Bukkits::Awesome::Engine => "/bukkits", as: "bukkits"
         end
       RUBY
 
@@ -845,7 +845,7 @@ YAML
       @plugin.write "app/controllers/bukkits/awesome/foo_controller.rb", <<-RUBY
         class Bukkits::Awesome::FooController < ActionController::Base
           def index
-            render :text => "ok"
+            render text: "ok"
           end
         end
       RUBY
@@ -1095,11 +1095,11 @@ YAML
       controller "main", <<-RUBY
         class MainController < ActionController::Base
           def foo
-            render inline: '<%= render :partial => "shared/foo" %>'
+            render inline: '<%= render partial: "shared/foo" %>'
           end
 
           def bar
-            render inline: '<%= render :partial => "shared/bar" %>'
+            render inline: '<%= render partial: "shared/bar" %>'
           end
         end
       RUBY
@@ -1176,7 +1176,7 @@ YAML
       controller "main", <<-RUBY
         class MainController < ActionController::Base
           def foo
-            render inline: '<%= render :partial => "shared/foo" %>'
+            render inline: '<%= render partial: "shared/foo" %>'
           end
         end
       RUBY
@@ -1275,8 +1275,8 @@ YAML
 
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
-          get '/bar' => 'bar#index', :as => 'bar'
-          mount Bukkits::Engine => "/bukkits", :as => "bukkits"
+          get '/bar' => 'bar#index', as: 'bar'
+          mount Bukkits::Engine => "/bukkits", as: "bukkits"
         end
       RUBY
 

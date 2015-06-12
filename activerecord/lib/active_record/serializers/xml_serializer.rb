@@ -184,8 +184,8 @@ module ActiveRecord #:nodoc:
 
         type = ActiveSupport::XmlMini::TYPE_NAMES[value.class.name] || cast_type.type
 
-        { :text => :string,
-          :time => :datetime }[type] || type
+        { text: :string,
+          time: :datetime }[type] || type
       end
       protected :compute_type
     end

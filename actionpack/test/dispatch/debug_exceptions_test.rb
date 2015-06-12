@@ -280,7 +280,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
 
   test 'uses backtrace cleaner from env' do
     @app = DevelopmentApp
-    cleaner = stub(:clean => ['passed backtrace cleaner'])
+    cleaner = stub(clean: ['passed backtrace cleaner'])
     get "/", headers: { 'action_dispatch.show_exceptions' => true, 'action_dispatch.backtrace_cleaner' => cleaner }
     assert_match(/passed backtrace cleaner/, body)
   end
