@@ -468,7 +468,7 @@ Navigate to the Rails [GitHub repository](https://github.com/rails/rails) and pr
 Add the new remote to your local repository on your local machine:
 
 ```bash
-$ git remote add mine git@github.com:<your user name>/rails.git
+$ git remote add mine https://github.com/<your user name>/rails.git
 ```
 
 Push to your remote:
