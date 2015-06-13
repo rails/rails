@@ -305,6 +305,16 @@ module ActionDispatch
                       "          DELETE /posts/:id(.:format)      posts#destroy"], output
       end
 
+      def test_relative_url_root
+        Rails.application.config.stubs(:relative_url_root).returns('/foo')
+        output = draw do
+          resources :posts, only: :index
+        end
+
+        assert_equal ["Prefix Verb URI Pattern          Controller#Action",
+                      " posts GET  /foo/posts(.:format) posts#index"], output
+      end
+
       def test_regression_route_with_controller_regexp
         output = draw do
           get ':controller(/:action)', controller: /api\/[^\/]+/, format: false
@@ -315,11 +325,6 @@ module ActionDispatch
       end
 
       def test_inspect_routes_shows_resources_route_when_assets_disabled
-        @set = ActionDispatch::Routing::RouteSet.new
-        app = ActiveSupport::OrderedOptions.new
-
-        Rails.stubs(:application).returns(app)
-
         output = draw do
           get '/cart', to: 'cart#show'
         end

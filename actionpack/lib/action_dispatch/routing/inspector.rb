@@ -21,7 +21,7 @@ module ActionDispatch
       end
 
       def path
-        super.spec.to_s
+        relative_url_root + super.spec.to_s
       end
 
       def name
@@ -51,6 +51,11 @@ module ActionDispatch
       def engine?
         rack_app.respond_to?(:routes)
       end
+
+      private
+        def relative_url_root
+          Rails.application.config.relative_url_root.to_s
+        end
     end
 
     ##
