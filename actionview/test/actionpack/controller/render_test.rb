@@ -1,6 +1,5 @@
 require 'abstract_unit'
 require 'active_model'
-require 'fileutils'
 
 class ApplicationController < ActionController::Base
   self.view_paths = File.join(FIXTURE_LOAD_PATH, "actionpack")
@@ -679,14 +678,6 @@ class RenderTest < ActionController::TestCase
     ActionView::Base.logger = nil
   end
 
-  def case_sensitive_file_system?
-    fname = '.case_sensitive_file_system_test'
-    FileUtils.touch(fname)
-    !File.exist?(fname.upcase)
-  ensure
-    FileUtils.rm_f(fname)
-  end
-
   # :ported:
   def test_simple_show
     get :hello_world
@@ -753,15 +744,8 @@ class RenderTest < ActionController::TestCase
   end
 
   def test_render_action_upcased
-    action = :render_action_upcased_hello_world
-
-    if case_sensitive_file_system?
-      assert_raise ActionView::MissingTemplate do
-        get action
-      end
-    else
-      get action
-      assert_equal 'Hello world!', @response.body
+    assert_raise ActionView::MissingTemplate do
+      get :render_action_upcased_hello_world
     end
   end
 
