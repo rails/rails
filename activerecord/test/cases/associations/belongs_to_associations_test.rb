@@ -19,6 +19,8 @@ require 'models/invoice'
 require 'models/line_item'
 require 'models/column'
 require 'models/record'
+require 'models/admin'
+require 'models/admin/user'
 
 class BelongsToAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :topics,
@@ -149,6 +151,22 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   def test_type_mismatch
     assert_raise(ActiveRecord::AssociationTypeMismatch) { Account.find(1).firm = 1 }
     assert_raise(ActiveRecord::AssociationTypeMismatch) { Account.find(1).firm = Project.find(1) }
+  end
+
+  def test_type_mismatch_with_namespaced_class
+    assert_nil defined?(Region), "This test should be done with a only namespaced class"
+    ActiveRecord::Base.connection.create_table(:admin_regions) { |t| t.string :name }
+    ActiveRecord::Base.connection.add_column :admin_users, :region_id, :integer
+    Admin.const_set "RegionalUser", Class.new(Admin::User) { belongs_to(:region) }
+    Admin.const_set "Region", Class.new(ActiveRecord::Base)
+    e = assert_raise(ActiveRecord::AssociationTypeMismatch) { Admin::RegionalUser.new(region: 'wrong value') }
+    assert_match(/^Region\([^)]+\) expected, got String\([^)]+\)$/, e.message)
+  ensure
+    Admin.send :remove_const, "Region" if Admin.const_defined?("Region")
+    Admin.send :remove_const, "RegionalUser" if Admin.const_defined?("RegionalUser")
+    connection = ActiveRecord::Base.connection
+    connection.remove_column :admin_users, :region_id if connection.column_exists?(:admin_users, :region_id)
+    connection.drop_table :admin_regions if connection.table_exists?(:admin_regions)
   end
 
   def test_natural_assignment

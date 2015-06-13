@@ -1,3 +1,10 @@
+*   Correctly thrown `ActiveRecord::AssociationTypeMismatch` when assigning
+    a wrong value to a namespaced association.
+
+    Fixes #20545
+
+    *Diego Carrion*
+
 *   `validates_absence_of` respects `marked_for_destruction?`.
 
     Fixes #20449.
