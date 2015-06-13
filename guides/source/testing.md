@@ -141,6 +141,13 @@ users(:david).id
 email(david.partner.email, david.location_tonight)
 ```
 
+To get multiple fixtures at once, you can pass in a list of fixture names. For example:
+
+```ruby
+# this will return an array containing the fixtures david and steve
+users(:david, :steve)
+```
+
 ### Console Tasks for Running your Tests
 
 Rails comes with a CLI command to run tests.
