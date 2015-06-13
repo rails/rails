@@ -680,11 +680,7 @@ class RenderTest < ActionController::TestCase
   end
 
   def case_sensitive_file_system?
-    fname = '.case_sensitive_file_system_test'
-    FileUtils.touch(fname)
-    !File.exist?(fname.upcase)
-  ensure
-    FileUtils.rm_f(fname)
+    File.fnmatch('FILENAME', 'filename', File::FNM_EXTGLOB)
   end
 
   # :ported:
