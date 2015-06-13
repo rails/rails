@@ -1,3 +1,7 @@
+*   Make it possible to customize the executable inside rerun snippets.
+
+    *Yves Senn*
+
 *   Add support for API only apps.
     Middleware stack was slimmed down and it has only the needed
     middleware for API apps & generators generates the right files,

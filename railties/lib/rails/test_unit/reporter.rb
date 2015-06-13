@@ -1,7 +1,11 @@
+require "active_support/core_ext/class/attribute"
 require "minitest"
 
 module Rails
   class TestUnitReporter < Minitest::StatisticsReporter
+    class_attribute :executable
+    self.executable = "bin/rails test"
+
     def report
       return if results.empty?
       io.puts
@@ -15,7 +19,7 @@ module Rails
       filtered_results.reject!(&:skipped?) unless options[:verbose]
       filtered_results.map do |result|
         location, line = result.method(result.name).source_location
-        "bin/rails test #{relative_path_for(location)}:#{line}"
+        "#{self.executable} #{relative_path_for(location)}:#{line}"
       end.join "\n"
     end
 

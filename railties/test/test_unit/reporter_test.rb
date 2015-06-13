@@ -43,6 +43,20 @@ class TestUnitReporterTest < ActiveSupport::TestCase
     assert_rerun_snippet_count 1
   end
 
+  test "allows to customize the executable in the rerun snippet" do
+    original_executable = Rails::TestUnitReporter.executable
+    begin
+      Rails::TestUnitReporter.executable = "bin/test"
+      verbose = Rails::TestUnitReporter.new @output, verbose: true
+      @reporter.record(failed_test)
+      @reporter.report
+
+      assert_match %r{^bin/test .*test/test_unit/reporter_test.rb:6$}, @output.string
+    ensure
+      Rails::TestUnitReporter.executable = original_executable
+    end
+  end
+
   private
   def assert_rerun_snippet_count(snippet_count)
     assert_equal snippet_count, @output.string.scan(%r{^bin/rails test }).size
