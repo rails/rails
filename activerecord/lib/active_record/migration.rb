@@ -142,6 +142,12 @@ module ActiveRecord
   #   specified by +column_name+.
   # * <tt>remove_index(table_name, name: index_name)</tt>: Removes the index
   #   specified by +index_name+.
+  # * <tt>add_reference(:table_name, :reference_name)</tt>: Adds a new column
+  #   +reference_name_id+ by default a integer. Other options include
+  #   <tt>:type</tt> (e.g. <tt>type: :string</tt>), <tt>:polymorphic</tt>
+  #   (e.g. <tt>polymorphic: true</tt>) and <tt>:index</tt>
+  #   (e.g. <tt>polymorphic: true, index: true</tt>).
+  #   Also aliased as: <tt>add_belongs_to</tt>.
   #
   # == Irreversible transformations
   #
