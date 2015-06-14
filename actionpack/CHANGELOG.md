@@ -1,3 +1,11 @@
+*   Fix to keep original header instance in `ActionDispatch::SSL`
+
+    `ActionDispatch::SSL` changes headers to `Hash`.
+    So some headers will be broken if there are some middlewares
+    on `ActionDispatch::SSL` and if it uses `Rack::Utils::HeaderHash`.
+
+    *Fumiaki Matsushima*
+
 *   Fix rake routes not showing the right format when
     nesting multiple routes.
 
