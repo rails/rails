@@ -89,7 +89,7 @@ module ActiveRecord
   #     enum verification: [:done, :fail], enum_prefix: :verification_status
   #   end
   #
-  # Note that <tt>:enum_prefix</tt>/<tt>:enum_postfix</tt> are reserved keywords
+  # Note that <tt>:enum_prefix</tt>/<tt>:enum_suffix</tt> are reserved keywords
   # and can not be used as an enum name.
 
   module Enum
