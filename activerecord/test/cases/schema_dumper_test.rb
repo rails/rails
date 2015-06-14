@@ -156,13 +156,23 @@ class SchemaDumperTest < ActiveRecord::TestCase
   def test_schema_dump_with_string_ignored_table
     output = dump_all_table_schema(['accounts'])
     assert_no_match %r{create_table "accounts"}, output
+    assert_match %r{create_table "admin_accounts"}, output
     assert_match %r{create_table "authors"}, output
     assert_no_match %r{create_table "schema_migrations"}, output
   end
 
-  def test_schema_dump_with_regexp_ignored_table
+  def test_schema_dump_with_regexp_ignored_table_matching_prefix
     output = dump_all_table_schema([/^account/])
     assert_no_match %r{create_table "accounts"}, output
+    assert_match %r{create_table "admin_accounts"}, output
+    assert_match %r{create_table "authors"}, output
+    assert_no_match %r{create_table "schema_migrations"}, output
+  end
+
+  def test_schema_dump_with_regexp_ignored_table_matching_suffix
+    output = dump_all_table_schema([/accounts$/])
+    assert_no_match %r{create_table "accounts"}, output
+    assert_no_match %r{create_table "admin_accounts"}, output
     assert_match %r{create_table "authors"}, output
     assert_no_match %r{create_table "schema_migrations"}, output
   end
