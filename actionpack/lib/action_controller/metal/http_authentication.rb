@@ -493,7 +493,7 @@ module ActionController
         "Token #{values * ", "}"
       end
 
-      # Sets a WWW-Authenticate to let the client know a token is desired.
+      # Sets a WWW-Authenticate header to let the client know a token is desired.
       #
       # controller - ActionController::Base instance for the outgoing response.
       # realm      - String realm to use in the header.
