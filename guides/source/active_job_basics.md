@@ -76,25 +76,6 @@ class GuestsCleanupJob < ActiveJob::Base
 end
 ```
 
-### Make the Job Available for Use
-
-Rails does not autoload the `app/jobs` directory by default. To make your job
-accessible in the rest of your application you need to add the directory to the
-auto-load paths:
-
-```ruby
-# config/application.rb
-module YourApp
-  class Application < Rails::Application
-    # Let Rails autoload your job classes for use in your code
-    config.autoload_paths << Rails.root.join('app/jobs')
-  end
-end
-```
-
-Now you can make use of the job anywhere in your code (e.g. in your controllers
-or models).
-
 ### Enqueue the Job
 
 Enqueue a job like so:
