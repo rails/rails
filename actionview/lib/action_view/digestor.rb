@@ -12,7 +12,7 @@ module ActionView
       # Supported options:
       #
       # * <tt>name</tt>   - Template name
-      # * <tt>finder</tt>  - An instance of ActionView::LookupContext
+      # * <tt>finder</tt>  - An instance of <tt>ActionView::LookupContext</tt>
       # * <tt>dependencies</tt>  - An array of dependent views
       # * <tt>partial</tt>  - Specifies whether the template is a partial
       def digest(options)
