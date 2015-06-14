@@ -110,7 +110,7 @@ module ActiveRecord
   #   <% 1.upto(1000) do |i| %>
   #   fix_<%= i %>:
   #     id: <%= i %>
-  #     name: guy_<%= 1 %>
+  #     name: guy_<%= i %>
   #   <% end %>
   #
   # This will create 1000 very simple fixtures.
