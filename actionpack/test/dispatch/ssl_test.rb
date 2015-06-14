@@ -216,4 +216,15 @@ class SSLTest < ActionDispatch::IntegrationTest
     assert_equal "https://example.co.uk/path?key=value",
       response.headers['Location']
   end
+
+  def test_keeps_original_headers_behavior
+    headers = Rack::Utils::HeaderHash.new(
+      "Content-Type" => "text/html",
+      "Connection" => ["close"]
+    )
+    self.app = ActionDispatch::SSL.new(lambda { |env| [200, headers, ["OK"]] })
+
+    get "https://example.org/"
+    assert_equal "close", response.headers["Connection"]
+  end
 end
