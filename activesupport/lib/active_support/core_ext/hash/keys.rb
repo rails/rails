@@ -48,14 +48,14 @@ class Hash
   #   hash.symbolize_keys
   #   # => {:name=>"Rob", :age=>"28"}
   def symbolize_keys
-    transform_keys{ |key| key.to_sym rescue key }
+    transform_keys{ |key| key.respond_to?(:to_sym) ? key.to_sym : key }
   end
   alias_method :to_options,  :symbolize_keys
 
   # Destructively converts all keys to symbols, as long as they respond
   # to +to_sym+. Same as +symbolize_keys+, but modifies +self+.
   def symbolize_keys!
-    transform_keys!{ |key| key.to_sym rescue key }
+    transform_keys!{ |key| key.respond_to?(:to_sym) ? key.to_sym : key }
   end
   alias_method :to_options!, :symbolize_keys!
 
@@ -124,14 +124,14 @@ class Hash
   #   hash.deep_symbolize_keys
   #   # => {:person=>{:name=>"Rob", :age=>"28"}}
   def deep_symbolize_keys
-    deep_transform_keys{ |key| key.to_sym rescue key }
+    deep_transform_keys{ |key| key.respond_to?(:to_sym) ? key.to_sym : key }
   end
 
   # Destructively converts all keys to symbols, as long as they respond
   # to +to_sym+. This includes the keys from the root hash and from all
   # nested hashes and arrays.
   def deep_symbolize_keys!
-    deep_transform_keys!{ |key| key.to_sym rescue key }
+    deep_transform_keys!{ |key| key.respond_to?(:to_sym) ? key.to_sym : key }
   end
 
   private
