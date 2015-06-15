@@ -448,8 +448,9 @@ module ActionView
       # <tt>reset</tt>button or a generic button which can be used in
       # JavaScript, for example. You can use the button tag as a regular
       # submit tag but it isn't supported in legacy browsers. However,
-      # the button tag allows richer labels such as images and emphasis,
-      # so this helper will also accept a block.
+      # the button tag does allow for richer labels such as images and emphasis,
+      # so this helper will also accept a block. By default, it will create
+      # a button tag with type `submit`, if type is not given.
       #
       # ==== Options
       # * <tt>:data</tt> - This option can be used to add custom data attributes.
@@ -472,12 +473,24 @@ module ActionView
       #   button_tag
       #   # => <button name="button" type="submit">Button</button>
       #
+      #   button_tag 'Reset', type: 'reset'
+      #   # => <button name="button" type="reset">Reset</button>
+      #
+      #   button_tag 'Button', type: 'button'
+      #   # => <button name="button" type="button">Button</button>
+      #
+      #   button_tag 'Reset', type: 'reset', disabled: true
+      #   # => <button name="button" type="reset" disabled="disabled">Reset</button>
+      #
       #   button_tag(type: 'button') do
       #     content_tag(:strong, 'Ask me!')
       #   end
       #   # => <button name="button" type="button">
       #   #     <strong>Ask me!</strong>
       #   #    </button>
+      #
+      #   button_tag "Save", data: { confirm: "Are you sure?" }
+      #   # => <button name="button" type="submit" data-confirm="Are you sure?">Save</button>
       #
       #   button_tag "Checkout", data: { disable_with: "Please wait..." }
       #   # => <button data-disable-with="Please wait..." name="button" type="submit">Checkout</button>
