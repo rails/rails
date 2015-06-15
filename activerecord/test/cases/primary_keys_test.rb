@@ -182,6 +182,12 @@ class PrimaryKeysTest < ActiveRecord::TestCase
       assert_equal "nextval('\"mixed_case_monkeys_monkeyID_seq\"'::regclass)", column.default_function
       assert column.serial?
     end
+
+    def test_serial_with_unquoted_sequence_name
+      column = Topic.columns_hash[Topic.primary_key]
+      assert_equal "nextval('topics_id_seq'::regclass)", column.default_function
+      assert column.serial?
+    end
   end
 end
 
