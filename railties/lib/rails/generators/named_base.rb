@@ -18,8 +18,8 @@ module Rails
         parse_attributes! if respond_to?(:attributes)
       end
 
-      # Defines the template that would be used for the migration file.
-      # The arguments include the source template file, the migration filename etc.
+      # Overrides <tt>Thor::Actions#template</tt> so it can tell if
+      # a template is currently being created.
       no_tasks do
         def template(source, *args, &block)
           inside_template do
