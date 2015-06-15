@@ -185,7 +185,9 @@ end
 
 These options will be used as a starting point when generating URLs, so it's possible they'll be overridden by the options passed to `url_for` calls.
 
-If you define `default_url_options` in `ApplicationController`, as in the example above, it will be used for all URL generation. The method can also be defined in a specific controller, in which case it only affects URLs generated there.
+If you define `default_url_options` in `ApplicationController`, as in the example above, these defaults will be used for all URL generation. The method can also be defined in a specific controller, in which case it only affects URLs generated there.
+
+In a given request, the method is not actually called for every single generated URL; for performance reasons, the returned hash is cached, there is at most one invocation per request.
 
 ### Strong Parameters
 
