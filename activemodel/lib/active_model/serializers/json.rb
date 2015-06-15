@@ -92,11 +92,13 @@ module ActiveModel
           include_root_in_json
         end
 
+        hash = serializable_hash(options, :as_json)
+
         if root
           root = model_name.element if root == true
-          { root => serializable_hash(options) }
+          { root => hash }
         else
-          serializable_hash(options)
+          hash
         end
       end
 
