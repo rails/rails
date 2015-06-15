@@ -75,8 +75,8 @@ module ActiveRecord
   #
   #   Conversation.where("status <> ?", Conversation.statuses[:archived])
   #
-  # You can use <tt>:enum_prefix</tt>/<tt>:enum_suffix</tt> option then you need
-  # to define multiple enums with same values. If option value is <tt>true</tt>,
+  # You can use the +:enum_prefix+ or +:enum_suffix+ options when you need
+  # to define multiple enums with same values. If the passed value is +true+,
   # the methods are prefixed/suffixed with the name of the enum.
   #
   #   class Invoice < ActiveRecord::Base

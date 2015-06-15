@@ -4,7 +4,7 @@ require 'action_controller/log_subscriber'
 
 module ActionController
   # API Controller is a lightweight version of <tt>ActionController::Base</tt>,
-  # created for applications that don't require all functionality that a complete
+  # created for applications that don't require all functionalities that a complete
   # \Rails controller provides, allowing you to create controllers with just the
   # features that you need for API only applications.
   #
@@ -61,10 +61,10 @@ module ActionController
   # In some scenarios you may want to add back some functionality provided by
   # <tt>ActionController::Base</tt> that is not present by default in
   # <tt>ActionController::API</tt>, for instance <tt>MimeResponds</tt>. This
-  # module gives you the <tt>respond_to</tt> and <tt>respond_with</tt> methods.
-  # Adding it is quite simple, you just need to include the module in a specific
-  # controller or in <tt>ApplicationController</tt> in case you want it
-  # available to your entire app:
+  # module gives you the <tt>respond_to</tt> method. Adding it is quite simple,
+  # you just need to include the module in a specific controller or in
+  # +ApplicationController+ in case you want it available in your entire
+  # application:
   #
   #   class ApplicationController < ActionController::API
   #     include ActionController::MimeResponds
@@ -87,16 +87,18 @@ module ActionController
   class API < Metal
     abstract!
 
-    # Shortcut helper that returns all the ActionController::API modules except the ones passed in the argument:
+    # Shortcut helper that returns all the ActionController::API modules except
+    # the ones passed as arguments:
     #
     #   class MetalController
-    #     ActionController::API.without_modules(:Redirecting, :DataStreaming).each do |left|
+    #     ActionController::API.without_modules(:ForceSSL, :UrlFor).each do |left|
     #       include left
     #     end
     #   end
     #
     # This gives better control over what you want to exclude and makes it easier
-    # to create an api controller class, instead of listing the modules required manually.
+    # to create an API controller class, instead of listing the modules required
+    # manually.
     def self.without_modules(*modules)
       modules = modules.map do |m|
         m.is_a?(Symbol) ? ActionController.const_get(m) : m
@@ -120,7 +122,7 @@ module ActionController
       ForceSSL,
       DataStreaming,
 
-      # Before callbacks should also be executed the earliest as possible, so
+      # Before callbacks should also be executed as early as possible, so
       # also include them at the bottom.
       AbstractController::Callbacks,
 

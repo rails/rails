@@ -40,7 +40,7 @@ module ActionController
   #       wrap_parameters :person, include: [:username, :password]
   #     end
   #
-  # On ActiveRecord models with no +:include+ or +:exclude+ option set,
+  # On Active Record models with no +:include+ or +:exclude+ option set,
   # it will only wrap the parameters returned by the class method
   # <tt>attribute_names</tt>.
   #
