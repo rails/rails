@@ -134,10 +134,7 @@ db_namespace = namespace :db do
   end
 
   # desc 'Drops and recreates the database from db/schema.rb for the current environment and loads the seeds.'
-  task :reset => [:environment, :load_config] do
-    db_namespace["drop"].invoke
-    db_namespace["setup"].invoke
-  end
+  task :reset => [ 'db:drop', 'db:setup' ]
 
   # desc "Retrieves the charset for the current environment's database"
   task :charset => [:environment, :load_config] do
