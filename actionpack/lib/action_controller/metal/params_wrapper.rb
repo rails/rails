@@ -198,9 +198,9 @@ module ActionController
         when Hash
           options = name_or_model_or_options
         when false
-          options = options.merge(:format => [])
+          options = options.merge(format: [])
         when Symbol, String
-          options = options.merge(:name => name_or_model_or_options)
+          options = options.merge(name: name_or_model_or_options)
         else
           model = name_or_model_or_options
         end

@@ -126,7 +126,7 @@ module ActionController
     # environment and response manually for performance reasons.
 
     attr_internal :headers, :response, :request
-    delegate :session, :to => "@_request"
+    delegate :session, to: "@_request"
 
     def initialize
       @_headers = {"Content-Type" => "text/html"}
