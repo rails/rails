@@ -266,13 +266,14 @@ revision = Revision.first
 revision.identifier # => "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
 ```
 
-You can use `uuid` type to define references in migrations
+You can use `uuid` type to define references in migrations:
 
 ```ruby
 # db/migrate/20150418012400_create_blog.rb
-create_table :posts, id: :uuid
+enable_extension 'pgcrypto' unless extension_enabled?('pgcrypto')
+create_table :posts, id: :uuid, default: 'gen_random_uuid()'
 
-create_table :comments, id: :uuid do |t|
+create_table :comments, id: :uuid, default: 'gen_random_uuid()' do |t|
   # t.belongs_to :post, type: :uuid
   t.references :post, type: :uuid
 end
@@ -287,6 +288,8 @@ class Comment < ActiveRecord::Base
   belongs_to :post
 end
 ```
+
+See [this section](#uuid-primary-keys) for more details on using UUIDs as primary key.
 
 ### Bit String Types
 
@@ -376,6 +379,9 @@ end
 device = Device.create
 device.id # => "814865cd-5a1d-4771-9306-4268f188fe9e"
 ```
+
+NOTE: `uuid_generate_v4()` (from `uuid-ossp`) is assumed if no `:default` option was
+passed to `create_table`.
 
 Full Text Search
 ----------------
