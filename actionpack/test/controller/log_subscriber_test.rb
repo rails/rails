@@ -10,7 +10,7 @@ module Another
     end
 
     rescue_from SpecialException do
-      head :status => 406
+      head 406
     end
 
     before_action :redirector, only: :never_executed
