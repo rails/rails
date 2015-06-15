@@ -199,9 +199,9 @@ module ActionController
     # The method will also ensure a HTTP Date header for client compatibility.
     def expires_in(seconds, options = {})
       response.cache_control.merge!(
-        :max_age         => seconds,
-        :public          => options.delete(:public),
-        :must_revalidate => options.delete(:must_revalidate)
+        max_age:         seconds,
+        public:          options.delete(:public),
+        must_revalidate: options.delete(:must_revalidate)
       )
       options.delete(:private)
 
@@ -212,7 +212,7 @@ module ActionController
     # Sets a HTTP 1.1 Cache-Control header of <tt>no-cache</tt> so no caching should
     # occur by the browser or intermediate caches (like caching proxy servers).
     def expires_now
-      response.cache_control.replace(:no_cache => true)
+      response.cache_control.replace(no_cache: true)
     end
 
     # Cache or yield the block. The cache is supposed to never expire.
