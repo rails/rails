@@ -121,7 +121,7 @@ module ActiveModel
     #   # => {"name" => "Napoleon"}
     #   user.serializable_hash(include: { notes: { only: 'title' }})
     #   # => {"name" => "Napoleon", "notes" => [{"title"=>"Battle of Austerlitz"}]}
-    def serializable_hash(options = nil)
+    def serializable_hash(options = nil, serialization_method = nil)
       options ||= {}
 
       attribute_names = attributes.keys
@@ -132,7 +132,11 @@ module ActiveModel
       end
 
       hash = {}
-      attribute_names.each { |n| hash[n] = read_attribute_for_serialization(n) }
+      attribute_names.each do |attribute_name|
+        attribute = read_attribute_for_serialization(attribute_name)
+        attribute = attribute.public_send(serialization_method) if serialization_method
+        hash[attribute_name] = attribute
+      end
 
       Array(options[:methods]).each { |m| hash[m.to_s] = send(m) }
 
