@@ -138,6 +138,14 @@ class TestController < ActionController::Base
     fresh_when(:last_modified => Time.now.utc.beginning_of_day, :etag => [ :foo, 123 ])
   end
 
+  def head_with_status_hash
+    head status: :created
+  end
+
+  def head_with_hash_does_not_include_status
+    head warning: :deprecated
+  end
+
   def head_created
     head :created
   end
@@ -151,31 +159,31 @@ class TestController < ActionController::Base
   end
 
   def head_with_location_header
-    head :location => "/foo"
+    head :ok, :location => "/foo"
   end
 
   def head_with_location_object
-    head :location => Customer.new("david", 1)
+    head :ok, :location => Customer.new("david", 1)
   end
 
   def head_with_symbolic_status
-    head :status => params[:status].intern
+    head params[:status].intern
   end
 
   def head_with_integer_status
-    head :status => params[:status].to_i
+    head params[:status].to_i
   end
 
   def head_with_string_status
-    head :status => params[:status]
+    head params[:status]
   end
 
   def head_with_custom_header
-    head :x_custom_header => "something"
+    head :ok, :x_custom_header => "something"
   end
 
   def head_with_www_authenticate_header
-    head 'WWW-Authenticate' => 'something'
+    head :ok, 'WWW-Authenticate' => 'something'
   end
 
   def head_with_status_code_first
@@ -488,6 +496,19 @@ class HeadRenderTest < ActionController::TestCase
     post :head_created
     assert @response.body.blank?
     assert_response :created
+  end
+
+  def test_passing_hash_to_head_as_first_parameter_deprecated
+    assert_deprecated do
+      get :head_with_status_hash
+    end
+  end
+
+  def test_head_with_default_value_is_deprecated
+    assert_deprecated do
+      get :head_with_hash_does_not_include_status
+      assert_response :ok
+    end
   end
 
   def test_head_created_with_application_json_content_type

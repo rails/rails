@@ -47,10 +47,10 @@ class RescueController < ActionController::Base
   rescue_from 'InvalidRequestToRescueAsString', :with => proc { |exception| render :text => exception.message }
 
   rescue_from BadGateway do
-    head :status => 502
+    head 502
   end
   rescue_from 'BadGatewayToRescueAsString' do
-    head :status => 502
+    head 502
   end
 
   rescue_from ResourceUnavailable do |exception|

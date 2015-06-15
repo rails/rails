@@ -1,3 +1,7 @@
+*   Deprecate passing first parameter as `Hash` and default status code for `head` method.
+
+    *Mehmet Emin İNAÇ*
+
 *   Adds`Rack::Utils::ParameterTypeError` and `Rack::Utils::InvalidParameterError`
     to the rescue_responses hash in `ExceptionWrapper` (Rack recommends
     integrators serve 400s for both of these).
