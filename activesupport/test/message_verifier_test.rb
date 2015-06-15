@@ -24,6 +24,7 @@ class MessageVerifierTest < ActiveSupport::TestCase
     data, hash = @verifier.generate(@data).split("--")
     assert !@verifier.valid_message?(nil)
     assert !@verifier.valid_message?("")
+    assert !@verifier.valid_message?("\xff") # invalid encoding
     assert !@verifier.valid_message?("#{data.reverse}--#{hash}")
     assert !@verifier.valid_message?("#{data}--#{hash.reverse}")
     assert !@verifier.valid_message?("purejunk")
