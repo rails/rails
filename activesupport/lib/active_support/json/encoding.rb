@@ -58,6 +58,10 @@ module ActiveSupport
                 super.gsub ESCAPE_REGEX_WITHOUT_HTML_ENTITIES, ESCAPED_CHARS
               end
             end
+
+            def to_s
+              self
+            end
           end
 
           # Mark these as private so we don't leak encoding-specific constructs
