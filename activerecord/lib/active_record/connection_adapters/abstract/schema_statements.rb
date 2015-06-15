@@ -888,7 +888,7 @@ module ActiveRecord
       #   add_timestamps(:suppliers, null: false)
       #
       def add_timestamps(table_name, options = {})
-        emit_warning_if_null_unspecified(options)
+        emit_warning_if_null_unspecified(:add_timestamps, options)
         add_column table_name, :created_at, :datetime, options
         add_column table_name, :updated_at, :datetime, options
       end

@@ -57,11 +57,11 @@ module ActiveRecord
     end
 
     module TimestampDefaultDeprecation # :nodoc:
-      def emit_warning_if_null_unspecified(options)
+      def emit_warning_if_null_unspecified(sym, options)
         return if options.key?(:null)
 
         ActiveSupport::Deprecation.warn(<<-MSG.squish)
-          `#timestamp` was called without specifying an option for `null`. In Rails 5,
+          `##{sym}` was called without specifying an option for `null`. In Rails 5,
           this behavior will change to `null: false`. You should manually specify
          `null: true` to prevent the behavior of your existing migrations from changing.
         MSG
@@ -298,7 +298,7 @@ module ActiveRecord
       #   t.timestamps null: false
       def timestamps(*args)
         options = args.extract_options!
-        emit_warning_if_null_unspecified(options)
+        emit_warning_if_null_unspecified(:timestamps, options)
         column(:created_at, :datetime, options)
         column(:updated_at, :datetime, options)
       end
