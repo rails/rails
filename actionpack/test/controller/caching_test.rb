@@ -380,6 +380,7 @@ class AutomaticCollectionCacheTest < ActionController::TestCase
     @controller = CollectionCacheController.new
     @controller.perform_caching = true
     @controller.partial_rendered_times = 0
+    @controller.cache_store = ActiveSupport::Cache::MemoryStore.new
   end
 
   def test_collection_fetches_cached_views
