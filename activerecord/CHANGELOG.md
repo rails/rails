@@ -1,3 +1,7 @@
+*   Make `remove_index :table, :column` reversible.
+
+    *Yves Senn*
+
 *   Fixed an error which would occur in dirty checking when calling
     `update_attributes` from a getter.
 

@@ -587,7 +587,7 @@ module ActiveRecord
       #
       # Removes the +index_accounts_on_column+ in the +accounts+ table.
       #
-      #   remove_index :accounts, :column
+      #   remove_index :accounts, :branch_id
       #
       # Removes the index named +index_accounts_on_branch_id+ in the +accounts+ table.
       #

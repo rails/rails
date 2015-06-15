@@ -206,6 +206,11 @@ module ActiveRecord
       end
 
       def test_invert_remove_index
+        add = @recorder.inverse_of :remove_index, [:table, :one]
+        assert_equal [:add_index, [:table, :one]], add
+      end
+
+      def test_invert_remove_index_with_column
         add = @recorder.inverse_of :remove_index, [:table, {column: [:one, :two], options: true}]
         assert_equal [:add_index, [:table, [:one, :two], options: true]], add
       end

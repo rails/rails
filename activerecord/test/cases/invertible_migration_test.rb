@@ -144,13 +144,17 @@ module ActiveRecord
     end
 
     def test_exception_on_removing_index_without_column_option
-      RemoveIndexMigration1.new.migrate(:up)
-      migration = RemoveIndexMigration2.new
-      migration.migrate(:up)
+      index_definition = ["horses", [:name, :color]]
+      migration1 = RemoveIndexMigration1.new
+      migration1.migrate(:up)
+      assert migration1.connection.index_exists?(*index_definition)
 
-      assert_raises(IrreversibleMigration) do
-        migration.migrate(:down)
-      end
+      migration2 = RemoveIndexMigration2.new
+      migration2.migrate(:up)
+      assert_not migration2.connection.index_exists?(*index_definition)
+
+      migration2.migrate(:down)
+      assert migration2.connection.index_exists?(*index_definition)
     end
 
     def test_migrate_up
