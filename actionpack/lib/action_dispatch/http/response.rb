@@ -61,7 +61,7 @@ module ActionDispatch # :nodoc:
 
     # The charset of the response. HTML wants to know the encoding of the
     # content you're giving them, so we need to send that along.
-    attr_accessor :charset
+    attr_reader :charset
 
     CONTENT_TYPE = "Content-Type".freeze
     SET_COOKIE   = "Set-Cookie".freeze
@@ -127,7 +127,7 @@ module ActionDispatch # :nodoc:
       @sending      = false
       @sent         = false
       @content_type = nil
-      @charset      = nil
+      @charset      = self.class.default_charset
 
       if content_type = self[CONTENT_TYPE]
         type, charset = content_type.split(/;\s*charset=/)
@@ -185,6 +185,15 @@ module ActionDispatch # :nodoc:
     # Sets the HTTP content type.
     def content_type=(content_type)
       @content_type = content_type.to_s
+    end
+
+    # Sets the HTTP character set.
+    def charset=(charset)
+      if nil == charset
+        @charset = self.class.default_charset
+      else
+        @charset = charset
+      end
     end
 
     # The response code of the request.
@@ -323,10 +332,9 @@ module ActionDispatch # :nodoc:
       return if headers[CONTENT_TYPE].present?
 
       @content_type ||= Mime::HTML
-      @charset      ||= self.class.default_charset unless @charset == false
 
       type = @content_type.to_s.dup
-      type << "; charset=#{@charset}" if append_charset?
+      type << "; charset=#{charset}" if append_charset?
 
       headers[CONTENT_TYPE] = type
     end
