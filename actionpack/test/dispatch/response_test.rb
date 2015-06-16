@@ -42,6 +42,13 @@ class ResponseTest < ActiveSupport::TestCase
     assert_equal Encoding::UTF_8, response.body.encoding
   end
 
+  def test_response_charset_writer
+    @response.charset = 'utf-16'
+    assert_equal 'utf-16', @response.charset
+    @response.charset = nil
+    assert_equal 'utf-8', @response.charset
+  end
+
   test "simple output" do
     @response.body = "Hello, World!"
 
