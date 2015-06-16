@@ -31,6 +31,10 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal companies(:first_firm).name, firm.name
   end
 
+  def test_missing_attribute_error_is_raised_when_no_foreign_key_attribute
+    assert_raises(ActiveModel::MissingAttributeError) { Client.select(:id).first.firm }
+  end
+
   def test_belongs_to_does_not_use_order_by
     ActiveRecord::SQLCounter.clear_log
     Client.find(3).firm
