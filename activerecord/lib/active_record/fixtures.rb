@@ -395,6 +395,23 @@ module ActiveRecord
   #     <<: *DEFAULTS
   #
   # Any fixture labeled "DEFAULTS" is safely ignored.
+  #
+  # == Support to custom model class
+  #
+  # You can also set the model class in your fixtures YAML file.
+  # This is helpful when fixtures are being loaded outside tests and
+  # you cannot use +set_fixture_class+, e.g., when running
+  # <tt>rake db:fixtures:load</tt>.
+  #
+  # To load the fixtures file +test/fixtures/accounts.yml+ as the +User+
+  # model, use:
+  #
+  #   _fixture:
+  #     model_class: User
+  #   david:
+  #     name: David
+  #
+  # Any fixture labeled "_fixture" is safely ignored.
   class FixtureSet
     #--
     # An instance of FixtureSet is normally stored in a single YAML file and
@@ -578,21 +595,16 @@ module ActiveRecord
       @name     = name
       @path     = path
       @config   = config
-      @model_class = nil
 
-      if class_name.is_a?(Class) # TODO: Should be an AR::Base type class, or any?
-        @model_class = class_name
-      else
-        @model_class = class_name.safe_constantize if class_name
-      end
+      self.model_class = class_name
+
+      @fixtures = read_fixture_files(path)
 
       @connection  = connection
 
       @table_name = ( model_class.respond_to?(:table_name) ?
                       model_class.table_name :
                       self.class.default_fixture_table_name(name, config) )
-
-      @fixtures = read_fixture_files path, @model_class
     end
 
     def [](x)
@@ -761,13 +773,25 @@ module ActiveRecord
         @column_names ||= @connection.columns(@table_name).collect(&:name)
       end
 
-      def read_fixture_files(path, model_class)
+      def model_class=(class_name)
+        if class_name.is_a?(Class) # TODO: Should be an AR::Base type class, or any?
+          @model_class = class_name
+        else
+          @model_class = class_name.safe_constantize if class_name
+        end
+      end
+
+      # Loads the fixtures from the YAML file at +path+.
+      # If the file sets the +model_class+ and current instance value is not set,
+      # it uses the file value.
+      def read_fixture_files(path)
         yaml_files = Dir["#{path}/{**,*}/*.yml"].select { |f|
           ::File.file?(f)
         } + [yaml_file_path(path)]
 
         yaml_files.each_with_object({}) do |file, fixtures|
           FixtureSet::File.open(file) do |fh|
+            self.model_class ||= fh.model_class if fh.model_class
             fh.each do |fixture_name, row|
               fixtures[fixture_name] = ActiveRecord::Fixture.new(row, model_class)
             end

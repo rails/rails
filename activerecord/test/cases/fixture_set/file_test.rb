@@ -123,6 +123,16 @@ END
         end
       end
 
+      def test_fixture_model_class_and_rows
+        File.open(::File.join(FIXTURES_ROOT, 'other_posts.yml')) do |fh|
+          assert_equal 'Post', fh.model_class
+
+          fixture_names = []
+          fh.each { |fixture_name, _| fixture_names << fixture_name }
+          assert_equal ['second_welcome'], fixture_names
+        end
+      end
+
       private
       def tmp_yaml(name, contents)
         t = Tempfile.new name
