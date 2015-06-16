@@ -4,6 +4,12 @@
 
     *y-yagi*
 
+
+## Rails 4.2.2 (June 16, 2015) ##
+
+* No Changes *
+
+
 ## Rails 4.2.1 (March 19, 2015) ##
 
 *   Allow keyword arguments to be used with Active Job.

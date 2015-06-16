@@ -28,6 +28,11 @@
     *Yves Senn*
 
 
+## Rails 4.2.2 (June 16, 2015) ##
+
+* No Changes *
+
+
 ## Rails 4.2.1 (March 19, 2015) ##
 
 *   Default translations that have a lower precedence than an html safe default,
