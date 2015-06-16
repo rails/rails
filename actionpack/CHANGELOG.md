@@ -1,3 +1,7 @@
+*   Handle InvalidURIError on bad paths on redirect route.
+
+    *arthurnn*
+
 *   Deprecate passing first parameter as `Hash` and default status code for `head` method.
 
     *Mehmet Emin İNAÇ*
