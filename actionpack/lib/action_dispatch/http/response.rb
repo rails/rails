@@ -40,7 +40,7 @@ module ActionDispatch # :nodoc:
 
     attr_writer :sending_file
 
-    # Get and set headers for this response.
+    # Get headers for this response.
     attr_reader :header
 
     alias_method :headers,  :header
