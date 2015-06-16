@@ -27,7 +27,6 @@ module ApplicationTests
         "Rack::Sendfile",
         "ActionDispatch::Static",
         "Rack::Lock",
-        "ActiveSupport::Cache::Strategy::LocalCache",
         "Rack::Runtime",
         "Rack::MethodOverride",
         "ActionDispatch::RequestId",
@@ -59,7 +58,6 @@ module ApplicationTests
         "Rack::Sendfile",
         "ActionDispatch::Static",
         "Rack::Lock",
-        "ActiveSupport::Cache::Strategy::LocalCache",
         "Rack::Runtime",
         "ActionDispatch::RequestId",
         "Rails::Rack::Logger", # must come after Rack::MethodOverride to properly log overridden methods
@@ -201,14 +199,14 @@ module ApplicationTests
     end
 
     test "Rails.cache does not respond to middleware" do
-      add_to_config "config.cache_store = :memory_store"
       boot!
       assert_equal "Rack::Runtime", middleware.fourth
     end
 
     test "Rails.cache does respond to middleware" do
+      add_to_config "config.cache_store = :null_store"
       boot!
-      assert_equal "Rack::Runtime", middleware.fifth
+      assert_equal "ActiveSupport::Cache::Strategy::LocalCache", middleware.fourth
     end
 
     test "insert middleware before" do
