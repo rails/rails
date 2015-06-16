@@ -12,7 +12,7 @@ db_namespace = namespace :db do
     end
   end
 
-  desc 'Creates the database from DATABASE_URL or config/database.yml for the current RAILS_ENV (use db:create:all to create all databases in the config). Without RAILS_ENV it defaults to creating the development and test databases.'
+  desc 'Creates the database from DATABASE_URL or config/database.yml for the current RAILS_ENV (use db:create:all to create all databases in the config). Without RAILS_ENV, it defaults to creating the development and test databases.'
   task :create => [:load_config] do
     ActiveRecord::Tasks::DatabaseTasks.create_current
   end
@@ -23,7 +23,7 @@ db_namespace = namespace :db do
     end
   end
 
-  desc 'Drops the database from DATABASE_URL or config/database.yml for the current RAILS_ENV (use db:drop:all to drop all databases in the config). Without RAILS_ENV it defaults to dropping the development and test databases.'
+  desc 'Drops the database from DATABASE_URL or config/database.yml for the current RAILS_ENV (use db:drop:all to drop all databases in the config). Without RAILS_ENV, it defaults to dropping the development and test databases.'
   task :drop => [:load_config] do
     ActiveRecord::Tasks::DatabaseTasks.drop_current
   end
@@ -168,17 +168,17 @@ db_namespace = namespace :db do
     end
   end
 
-  desc 'Create the database, load the schema, and initialize with the seed data (use db:reset to also drop the database first)'
+  desc 'Creates the database, loads the schema, and initializes with the seed data (use db:reset to also drop the database first)'
   task :setup => ['db:schema:load_if_ruby', 'db:structure:load_if_sql', :seed]
 
-  desc 'Load the seed data from db/seeds.rb'
+  desc 'Loads the seed data from db/seeds.rb'
   task :seed do
     db_namespace['abort_if_pending_migrations'].invoke
     ActiveRecord::Tasks::DatabaseTasks.load_seed
   end
 
   namespace :fixtures do
-    desc "Load fixtures into the current environment's database. Load specific fixtures using FIXTURES=x,y. Load from subdirectory in test/fixtures using FIXTURES_DIR=z. Specify an alternative path (eg. spec/fixtures) using FIXTURES_PATH=spec/fixtures."
+    desc "Loads fixtures into the current environment's database. Load specific fixtures using FIXTURES=x,y. Load from subdirectory in test/fixtures using FIXTURES_DIR=z. Specify an alternative path (eg. spec/fixtures) using FIXTURES_PATH=spec/fixtures."
     task :load => [:environment, :load_config] do
       require 'active_record/fixtures'
 
@@ -226,7 +226,7 @@ db_namespace = namespace :db do
   end
 
   namespace :schema do
-    desc 'Create a db/schema.rb file that is portable against any DB supported by AR'
+    desc 'Creates a db/schema.rb file that is portable against any DB supported by AR'
     task :dump => [:environment, :load_config] do
       require 'active_record/schema_dumper'
       filename = ENV['SCHEMA'] || File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, 'schema.rb')
@@ -236,7 +236,7 @@ db_namespace = namespace :db do
       db_namespace['schema:dump'].reenable
     end
 
-    desc 'Load a schema.rb file into the database'
+    desc 'Loads a schema.rb file into the database'
     task :load => [:environment, :load_config] do
       ActiveRecord::Tasks::DatabaseTasks.load_schema_current(:ruby, ENV['SCHEMA'])
     end
@@ -246,7 +246,7 @@ db_namespace = namespace :db do
     end
 
     namespace :cache do
-      desc 'Create a db/schema_cache.dump file.'
+      desc 'Creates a db/schema_cache.dump file.'
       task :dump => [:environment, :load_config] do
         con = ActiveRecord::Base.connection
         filename = File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, "schema_cache.dump")
@@ -256,7 +256,7 @@ db_namespace = namespace :db do
         open(filename, 'wb') { |f| f.write(Marshal.dump(con.schema_cache)) }
       end
 
-      desc 'Clear a db/schema_cache.dump file.'
+      desc 'Clears a db/schema_cache.dump file.'
       task :clear => [:environment, :load_config] do
         filename = File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, "schema_cache.dump")
         FileUtils.rm(filename) if File.exist?(filename)
@@ -266,7 +266,7 @@ db_namespace = namespace :db do
   end
 
   namespace :structure do
-    desc 'Dump the database structure to db/structure.sql. Specify another file with SCHEMA=db/my_structure.sql'
+    desc 'Dumps the database structure to db/structure.sql. Specify another file with SCHEMA=db/my_structure.sql'
     task :dump => [:environment, :load_config] do
       filename = ENV['SCHEMA'] || File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, "structure.sql")
       current_config = ActiveRecord::Tasks::DatabaseTasks.current_config
@@ -282,7 +282,7 @@ db_namespace = namespace :db do
       db_namespace['structure:dump'].reenable
     end
 
-    desc "Recreate the databases from the structure.sql file"
+    desc "Recreates the databases from the structure.sql file"
     task :load => [:load_config] do
       ActiveRecord::Tasks::DatabaseTasks.load_schema_current(:sql, ENV['SCHEMA'])
     end
