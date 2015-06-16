@@ -85,7 +85,7 @@ module ActiveJob
         end
 
         def args_info(job)
-          if job.arguments.any?
+          if job.arguments and job.arguments.any?
             ' with arguments: ' +
               job.arguments.map { |arg| arg.try(:to_global_id).try(:to_s) || arg.inspect }.join(', ')
           else
