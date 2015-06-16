@@ -1,3 +1,8 @@
+## Rails 3.2.22 (Jun 16, 2015) ##
+
+* No changes.
+
+
 ## Rails 3.2.19 (Jul 2, 2014) ##
 
 *   Fix SQL Injection Vulnerability in 'bitstring' quoting.
