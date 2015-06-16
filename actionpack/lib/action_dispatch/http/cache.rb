@@ -151,11 +151,11 @@ module ActionDispatch
           control.merge! @cache_control
 
           if control.empty?
-            headers[CACHE_CONTROL] = DEFAULT_CACHE_CONTROL
+            self[CACHE_CONTROL] = DEFAULT_CACHE_CONTROL
           elsif control[:no_cache]
-            headers[CACHE_CONTROL] = NO_CACHE
+            self[CACHE_CONTROL] = NO_CACHE
             if control[:extras]
-              headers[CACHE_CONTROL] += ", #{control[:extras].join(', ')}"
+              self[CACHE_CONTROL] += ", #{control[:extras].join(', ')}"
             end
           else
             extras  = control[:extras]
@@ -167,7 +167,7 @@ module ActionDispatch
             options << MUST_REVALIDATE if control[:must_revalidate]
             options.concat(extras) if extras
 
-            headers[CACHE_CONTROL] = options.join(", ")
+            self[CACHE_CONTROL] = options.join(", ")
           end
         end
       end
