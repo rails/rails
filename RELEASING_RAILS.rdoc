@@ -105,9 +105,6 @@ then realise it is broken.
 
 === Release the gem.
 
-IMPORTANT: Due to YAML parse problems on the rubygems.org server, it is safest
-to use Ruby 1.8 when releasing.
-
 Run `rake release`.  This will populate the gemspecs with data from
 RAILS_VERSION, commit the changes, tag it, and push the gems to rubygems.org.
 Here are the commands that `rake release` should use, so you can understand

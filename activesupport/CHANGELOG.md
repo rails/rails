@@ -1,3 +1,12 @@
+## Rails 3.2.22 (Jun 16, 2015) ##
+
+*   Fix denial of service vulnerability in the XML processing.
+
+    CVE-2015-3227.
+
+    *Aaron Patterson*
+
+
 ## Rails 3.2.19 (Jul 2, 2014) ##
 
 *   Make sure Active Support configurations are applied correctly.
