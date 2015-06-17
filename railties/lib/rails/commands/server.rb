@@ -78,7 +78,6 @@ module Rails
 
     def middleware
       middlewares = []
-      middlewares << [::Rack::ContentLength]
 
       # FIXME: add Rack::Lock in the case people are using webrick.
       # This is to remain backwards compatible for those who are

@@ -1,3 +1,8 @@
+*   Remove ContentLength middleware from the defaults.  If you want it, just
+    add it as a middleware in your config.
+
+    *Egg McMuffin*
+
 *   Make it possible to customize the executable inside rerun snippets.
 
     *Yves Senn*
