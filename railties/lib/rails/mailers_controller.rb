@@ -19,7 +19,7 @@ class Rails::MailersController < Rails::ApplicationController # :nodoc:
       @email_action = File.basename(params[:path])
 
       if @preview.email_exists?(@email_action)
-        @email = @preview.call(@email_action)
+        @email = @preview.call(@email_action, params)
 
         if params[:part]
           part_type = Mime::Type.lookup(params[:part])
