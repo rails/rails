@@ -38,7 +38,7 @@ end
 group :development do
   # Access an IRB console on exception pages or by using <%%= console %> in views
   <%- if options.dev? || options.edge? -%>
-  gem 'web-console', github: "rails/web-console"
+  gem 'web-console', github: 'rails/web-console'
   <%- else -%>
   gem 'web-console', '~> 2.0'
   <%- end -%>
