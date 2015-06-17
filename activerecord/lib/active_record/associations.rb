@@ -169,6 +169,11 @@ module ActiveRecord
       super
     end
 
+    # Preload associations for object instance
+    def preload(associations_hash) # :nodoc:
+      Preloader.new.preload(self, associations_hash)
+    end
+
     def reload(*) # :nodoc:
       clear_association_cache
       super
