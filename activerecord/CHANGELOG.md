@@ -16,7 +16,7 @@
 
     *Sean Griffin*
 
-*   Clear query cache when `ActiveRecord::Base#relaod` is called.
+*   Clear query cache when `ActiveRecord::Base#reload` is called.
 
     *Shane Hender*
 
