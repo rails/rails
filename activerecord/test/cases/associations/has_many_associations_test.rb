@@ -1526,6 +1526,32 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     I18n.backend.reload!
   end
 
+  def test_restrict_with_error_and_translation
+    translation = { activerecord: {
+                      attributes: {
+                        restricted_with_error_firm: { companies: "public company name" }
+                      }
+                    }
+                  }
+    I18n.backend.store_translations("en", translation)
+
+    firm = RestrictedWithErrorFirm.create!(name: "restrict")
+    firm.companies.create!(name: "child")
+    firm.destroy
+
+    expected_message = "Cannot delete record because dependent public company name exist"
+    assert_equal expected_message, firm.errors[:base].first
+
+  ensure
+    translation = { activerecord: {
+                      attributes: {
+                        restricted_with_error_firm: { companies: nil }
+                      }
+                    }
+                  }
+    I18n.backend.store_translations("en", translation)
+  end
+
   def test_included_in_collection
     assert_equal true, companies(:first_firm).clients.include?(Client.find(2))
   end
