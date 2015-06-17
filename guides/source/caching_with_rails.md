@@ -1,14 +1,14 @@
 **DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
 
-Caching with Rails: An overview
+Caching with Rails: An Overview
 ===============================
 
-This guide will teach you what you need to know about avoiding that expensive round-trip to your database and returning what you need to return to the web clients in the shortest time possible.
+This guide is an introduction to speeding up your Rails app with caching.
 
 After reading this guide, you will know:
 
-* Page and action caching (moved to separate gems as of Rails 4).
-* Fragment caching.
+* Page and action caching.
+* Fragment and Russian doll caching.
 * Alternative cache stores.
 * Conditional GET support.
 
@@ -18,11 +18,14 @@ Basic Caching
 -------------
 
 This is an introduction to three types of caching techniques: page, action and
-fragment caching. Rails provides by default fragment caching. In order to use
-page and action caching, you will need to add `actionpack-page_caching` and
+fragment caching. By default Rails provides fragment caching. In order to use
+page and action caching you will need to add `actionpack-page_caching` and
 `actionpack-action_caching` to your Gemfile.
 
-To start playing with caching you'll want to ensure that `config.action_controller.perform_caching` is set to `true` if you're running in development mode. This flag is normally set in the corresponding `config/environments/*.rb` and caching is disabled by default for development and test, and enabled for production.
+By default, caching is only enabled in your production environment. To play
+around with caching locally you'll want to enable caching in your local
+environment by setting `config.action_controller.perform_caching` to `true` in
+the relevant `config/environments/*.rb` file:
 
 ```ruby
 config.action_controller.perform_caching = true
@@ -30,7 +33,12 @@ config.action_controller.perform_caching = true
 
 ### Page Caching
 
-Page caching is a Rails mechanism which allows the request for a generated page to be fulfilled by the webserver (i.e. Apache or NGINX), without ever having to go through the Rails stack at all. Obviously, this is super-fast. Unfortunately, it can't be applied to every situation (such as pages that need authentication) and since the webserver is literally just serving a file from the filesystem, cache expiration is an issue that needs to be dealt with.
+Page caching is a Rails mechanism which allows the request for a generated page
+to be fulfilled by the webserver (i.e. Apache or NGINX) without having to go
+through the entire Rails stack. While this is super fast it can't be applied to
+every situation (such as pages that need authentication). Also, because the
+webserver is serving a file directly from the filesystem you will need to
+implement cache expiration.
 
 INFO: Page Caching has been removed from Rails 4. See the [actionpack-page_caching gem](https://github.com/rails/actionpack-page_caching).
 
@@ -42,105 +50,102 @@ INFO: Action Caching has been removed from Rails 4. See the [actionpack-action_c
 
 ### Fragment Caching
 
-Life would be perfect if we could get away with caching the entire contents of a page or action and serving it out to the world. Unfortunately, dynamic web applications usually build pages with a variety of components not all of which have the same caching characteristics. In order to address such a dynamically created page where different parts of the page need to be cached and expired differently, Rails provides a mechanism called Fragment Caching.
+Dynamic web applications usually build pages with a variety of components not
+all of which have the same caching characteristics. When different parts of the
+page need to be cached and expired separately you can use Fragment Caching.
 
 Fragment Caching allows a fragment of view logic to be wrapped in a cache block and served out of the cache store when the next request comes in.
 
-As an example, if you wanted to show all the orders placed on your website in real time and didn't want to cache that part of the page, but did want to cache the part of the page which lists all products available, you could use this piece of code:
+For example, if you wanted to cache each product on a page, you could use this
+code:
 
 ```html+erb
-<% Order.find_recent.each do |o| %>
-  <%= o.buyer.name %> bought <%= o.product.name %>
-<% end %>
-
-<% cache do %>
-  All available products:
-  <% Product.all.each do |p| %>
-    <%= link_to p.name, product_url(p) %>
+<% @products.each do |product| %>
+  <% cache product do %>
+    <%= render product %>
   <% end %>
 <% end %>
 ```
 
-The cache block in our example will bind to the action that called it and is written out to the same place as the Action Cache, which means that if you want to cache multiple fragments per action, you should provide an `action_suffix` to the cache call:
+When your application receives its first request to this page, Rails will write
+a new cache entry with a unique key. A key looks something like this:
 
-```html+erb
-<% cache(action: 'recent', action_suffix: 'all_products') do %>
-  All available products:
+```html
+views/products/1-201505056193031061005000/bea67108094918eeba42cd4a6e786901
 ```
 
-and you can expire it using the `expire_fragment` method, like so:
+The number in the middle is the `product_id` followed by the timestamp value in
+the `updated_at` value of the product record. Rails uses the timestamp value to
+make sure it is not serving stale data. If the value of `updated_at` has
+changed, a new key will be generated. Then Rails will write a new cache to that
+key, and the old cache written to the old key will never be used again. This is
+called key-based expiration.
 
-```ruby
-expire_fragment(controller: 'products', action: 'recent', action_suffix: 'all_products')
-```
+Cache fragments will also be expired when the view fragment changes (e.g., the
+HTML in the view changes). The string of characters at the end of the key is a
+template tree digest. It is an md5 hash computed based on the contents of the
+view fragment you are caching. If you change the view fragment, the md5 hash
+will change, expiring the existing file.
 
-If you don't want the cache block to bind to the action that called it, you can also use globally keyed fragments by calling the `cache` method with a key:
+TIP: Cache stores like Memcached will automatically delete old cache files.
+
+If you want to cache a fragment under certain conditions, you can use
+`cache_if` or `cache_unless`
 
 ```erb
-<% cache('all_available_products') do %>
-  All available products:
+<% cache_if admin?, product do %>
+  <%= render product %>
 <% end %>
 ```
 
-This fragment is then available to all actions in the `ProductsController` using the key and can be expired the same way:
+### Russian Doll Caching
 
-```ruby
-expire_fragment('all_available_products')
+You may want to nest cached fragments inside other cached fragments. This is
+called Russian doll caching.
+
+The advantage of Russian doll caching is that if a single product is updated,
+all the other inner fragments can be reused when regenerating the outer
+fragment.
+
+As explained in the previous section, a cached file will expire if the value of
+`updated_at` changes for a record on which the cached file directly depends.
+However, this will not expire any cache the fragment is nested within.
+
+For example, take the following view:
+
+```erb
+<% cache product do %>
+  <%= render product.games %>
+<% end %>
 ```
-If you want to avoid expiring the fragment manually, whenever an action updates a product, you can define a helper method:
+
+Which in turn renders this view:
+
+```erb
+<% cache game %>
+  <%= render game %>
+<% end %>
+```
+
+If any attribute of game is changed, the `updated_at` value will be set to the
+current time, thereby expiring the cache. However, because `updated_at`
+will not be changed for the product object, that cache will not be expired and
+your app will serve stale data. To fix this, we tie the models together with
+the `touch` method:
 
 ```ruby
-module ProductsHelper
-  def cache_key_for_products
-    count          = Product.count
-    max_updated_at = Product.maximum(:updated_at).try(:utc).try(:to_s, :number)
-    "products/all-#{count}-#{max_updated_at}"
-  end
+class Product < ActiveRecord::Base
+  has_many :games
+end
+
+class Game < ActiveRecord::Base
+  belongs_to :product, touch: true
 end
 ```
 
-This method generates a cache key that depends on all products and can be used in the view:
-
-```erb
-<% cache(cache_key_for_products) do %>
-  All available products:
-<% end %>
-```
-
-If you want to cache a fragment under certain conditions, you can use `cache_if` or `cache_unless`
-
-```erb
-<% cache_if (condition, cache_key_for_products) do %>
-  All available products:
-<% end %>
-```
-
-You can also use an Active Record model as the cache key:
-
-```erb
-<% Product.all.each do |p| %>
-  <% cache(p) do %>
-    <%= link_to p.name, product_url(p) %>
-  <% end %>
-<% end %>
-```
-
-Behind the scenes, a method called `cache_key` will be invoked on the model and it returns a string like `products/23-20130109142513`. The cache key includes the model name, the id and finally the updated_at timestamp. Thus it will automatically generate a new fragment when the product is updated because the key changes.
-
-You can also combine the two schemes which is called "Russian Doll Caching":
-
-```erb
-<% cache(cache_key_for_products) do %>
-  All available products:
-  <% Product.all.each do |p| %>
-    <% cache(p) do %>
-      <%= link_to p.name, product_url(p) %>
-    <% end %>
-  <% end %>
-<% end %>
-```
-
-It's called "Russian Doll Caching" because it nests multiple fragments. The advantage is that if a single product is updated, all the other inner fragments can be reused when regenerating the outer fragment.
+With `touch` set to true, any action which changes `updated_at` for a game
+column will also change it in the associated product column, thereby expiring
+the cache.
 
 ### Low-Level Caching
 
@@ -164,7 +169,10 @@ NOTE: Notice that in this example we used the `cache_key` method, so the resulti
 
 ### SQL Caching
 
-Query caching is a Rails feature that caches the result set returned by each query so that if Rails encounters the same query again for that request, it will use the cached result set as opposed to running the query against the database again.
+Query caching is a Rails feature that caches the result set returned by each
+query. If Rails encounters the same query again for that request, it will use
+the cached result set as opposed to running the query against the database
+again.
 
 For example:
 
@@ -186,7 +194,10 @@ end
 
 The second time the same query is run against the database, it's not actually going to hit the database. The first time the result is returned from the query it is stored in the query cache (in memory) and the second time it's pulled from memory.
 
-However, it's important to note that query caches are created at the start of an action and destroyed at the end of that action and thus persist only for the duration of the action. If you'd like to store query results in a more persistent fashion, you can in Rails by using low level caching.
+However, it's important to note that query caches are created at the start of
+an action and destroyed at the end of that action and thus persist only for the
+duration of the action. If you'd like to store query results in a more
+persistent fashion, you can with low level caching.
 
 Cache Stores
 ------------
@@ -227,13 +238,21 @@ There are some common options used by all cache implementations. These can be pa
 
 ### ActiveSupport::Cache::MemoryStore
 
-This cache store keeps entries in memory in the same Ruby process. The cache store has a bounded size specified by the `:size` option to the initializer (default is 32Mb). When the cache exceeds the allotted size, a cleanup will occur and the least recently used entries will be removed.
+This cache store keeps entries in memory in the same Ruby process. The cache
+store has a bounded size specified by sending the `:size` option to the
+initializer (default is 32Mb). When the cache exceeds the allotted size, a
+cleanup will occur and the least recently used entries will be removed.
 
 ```ruby
 config.cache_store = :memory_store, { size: 64.megabytes }
 ```
 
-If you're running multiple Ruby on Rails server processes (which is the case if you're using mongrel_cluster or Phusion Passenger), then your Rails server process instances won't be able to share cache data with each other. This cache store is not appropriate for large application deployments, but can work well for small, low traffic sites with only a couple of server processes or for development and test environments.
+If you're running multiple Ruby on Rails server processes (which is the case
+if you're using mongrel_cluster or Phusion Passenger), then your Rails server
+process instances won't be able to share cache data with each other. This cache
+store is not appropriate for large application deployments. However, it can
+work well for small, low traffic sites with only a couple of server processes,
+as well as development and test environments.
 
 ### ActiveSupport::Cache::FileStore
 
@@ -243,9 +262,13 @@ This cache store uses the file system to store entries. The path to the director
 config.cache_store = :file_store, "/path/to/cache/directory"
 ```
 
-With this cache store, multiple server processes on the same host can share a cache. Server processes running on different hosts could share a cache by using a shared file system, but that set up would not be ideal and is not recommended. The cache store is appropriate for low to medium traffic sites that are served off one or two hosts.
+With this cache store, multiple server processes on the same host can share a
+cache. The cache store is appropriate for low to medium traffic sites that are
+served off one or two hosts. Server processes running on different hosts could
+share a cache by using a shared file system, but that setup is not recommended.
 
-Note that the cache will grow until the disk is full unless you periodically clear out old entries.
+As the cache will grow until the disk is full, it is recommended to
+periodically clear out old entries.
 
 This is the default cache store implementation.
 
@@ -253,7 +276,10 @@ This is the default cache store implementation.
 
 This cache store uses Danga's `memcached` server to provide a centralized cache for your application. Rails uses the bundled `dalli` gem by default. This is currently the most popular cache store for production websites. It can be used to provide a single, shared cache cluster with very high performance and redundancy.
 
-When initializing the cache, you need to specify the addresses for all memcached servers in your cluster. If none is specified, it will assume memcached is running on the local host on the default port, but this is not an ideal set up for larger sites.
+When initializing the cache, you need to specify the addresses for all
+memcached servers in your cluster. If none are specified, it will assume
+memcached is running on localhost on the default port, but this is not an ideal
+setup for larger sites.
 
 The `write` and `fetch` methods on this cache accept two additional options that take advantage of features specific to memcached. You can specify `:raw` to send a value directly to the server with no serialization. The value must be a string or number. You can use memcached direct operations like `increment` and `decrement` only on raw values. You can also specify `:unless_exist` if you don't want memcached to overwrite an existing entry.
 
@@ -383,3 +409,7 @@ class ProductsController < ApplicationController
   end
 end
 ```
+
+### References
+* [DHH's article on key-based expiration](https://signalvnoise.com/posts/3113-how-key-based-cache-expiration-works)
+* [Ryan Bates' Railscast on cache digests](http://railscasts.com/episodes/387-cache-digests)
