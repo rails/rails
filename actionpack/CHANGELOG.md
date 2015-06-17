@@ -1,7 +1,3 @@
-*   Handle InvalidURIError on bad paths on redirect route.
-
-    *arthurnn*
-
 *   Fix rake routes not showing the right format when
     nesting multiple routes.
 

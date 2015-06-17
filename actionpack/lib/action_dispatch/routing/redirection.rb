@@ -23,12 +23,8 @@ module ActionDispatch
 
       def serve(req)
         req.check_path_parameters!
-        begin
-          uri = URI.parse(path(req.path_parameters, req))
-        rescue URI::InvalidURIError
-          return [ 400, {}, ['Invalid path.'] ]
-        end
-
+        uri = URI.parse(path(req.path_parameters, req))
+        
         unless uri.host
           if relative_path?(uri.path)
             uri.path = "#{req.script_name}/#{uri.path}"
@@ -36,7 +32,7 @@ module ActionDispatch
             uri.path = req.script_name.empty? ? "/" : req.script_name
           end
         end
-
+          
         uri.scheme ||= req.scheme
         uri.host   ||= req.host
         uri.port   ||= req.port unless req.standard_port?
@@ -128,7 +124,7 @@ module ActionDispatch
             url_options[:script_name] = request.script_name
           end
         end
-
+        
         ActionDispatch::Http::URL.url_for url_options
       end
 
