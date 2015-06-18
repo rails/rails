@@ -68,11 +68,10 @@ def middleware
 end
 ```
 
-`Rails::Rack::Debugger` is primarily useful only in the development environment. The following table explains the usage of the loaded middlewares:
+The following table explains the usage of the loaded middlewares:
 
 | Middleware              | Purpose                                                                           |
 | ----------------------- | --------------------------------------------------------------------------------- |
-| `Rails::Rack::Debugger` | Starts Debugger                                                                   |
 | `Rack::ContentLength`   | Counts the number of bytes in the response and set the HTTP Content-Length header |
 
 ### `rackup`
@@ -83,7 +82,6 @@ To use `rackup` instead of Rails' `rails server`, you can put the following insi
 # Rails.root/config.ru
 require ::File.expand_path('../config/environment', __FILE__)
 
-use Rails::Rack::Debugger
 use Rack::ContentLength
 run Rails.application
 ```
