@@ -1,11 +1,10 @@
 module ActionCable
   module Channel
-
     module Redis
       extend ActiveSupport::Concern
 
       included do
-        on_unsubscribe :unsubscribe_from_redis_channels
+        on_unsubscribe :unsubscribe_from_all_channels
         delegate :pubsub, to: :connection
       end
 
@@ -18,24 +17,22 @@ module ActionCable
         pubsub.subscribe(redis_channel, &callback)
       end
 
-      protected
-        def unsubscribe_from_redis_channels
-          if @_redis_channels
-            @_redis_channels.each do |channel, callback|
-              logger.info "Unsubscribing from the redis channel: #{channel}"
-              pubsub.unsubscribe_proc(channel, callback)
-            end
+      def unsubscribe_from_all_channels
+        if @_redis_channels
+          @_redis_channels.each do |channel, callback|
+            logger.info "Unsubscribing from the redis channel: #{channel}"
+            pubsub.unsubscribe_proc(channel, callback)
           end
         end
+      end
 
+      protected
         def default_subscription_callback(channel)
           -> (message) do
             logger.info "Received a message over the redis channel: #{channel}"
             broadcast ActiveSupport::JSON.decode(message)
           end
         end
-
     end
-
   end
 end
