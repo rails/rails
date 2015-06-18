@@ -50,6 +50,7 @@ module ActiveRecord
   autoload :QueryCache
   autoload :Querying
   autoload :ReadonlyAttributes
+  autoload :RecordInvalid, 'active_record/validations'
   autoload :Reflection
   autoload :RuntimeRegistry
   autoload :Sanitization
