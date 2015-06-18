@@ -70,13 +70,13 @@ code:
 When your application receives its first request to this page, Rails will write
 a new cache entry with a unique key. A key looks something like this:
 
-```html
+```
 views/products/1-201505056193031061005000/bea67108094918eeba42cd4a6e786901
 ```
 
 The number in the middle is the `product_id` followed by the timestamp value in
-the `updated_at` value of the product record. Rails uses the timestamp value to
-make sure it is not serving stale data. If the value of `updated_at` has
+the `updated_at` attribute of the product record. Rails uses the timestamp value
+to make sure it is not serving stale data. If the value of `updated_at` has
 changed, a new key will be generated. Then Rails will write a new cache to that
 key, and the old cache written to the old key will never be used again. This is
 called key-based expiration.
@@ -90,7 +90,7 @@ will change, expiring the existing file.
 TIP: Cache stores like Memcached will automatically delete old cache files.
 
 If you want to cache a fragment under certain conditions, you can use
-`cache_if` or `cache_unless`
+`cache_if` or `cache_unless`:
 
 ```erb
 <% cache_if admin?, product do %>
@@ -144,8 +144,8 @@ end
 ```
 
 With `touch` set to true, any action which changes `updated_at` for a game
-column will also change it in the associated product column, thereby expiring
-the cache.
+record will also change it for the associated product, thereby expiring the
+cache.
 
 ### Low-Level Caching
 
@@ -410,6 +410,8 @@ class ProductsController < ApplicationController
 end
 ```
 
-### References
+References
+----------
+
 * [DHH's article on key-based expiration](https://signalvnoise.com/posts/3113-how-key-based-cache-expiration-works)
 * [Ryan Bates' Railscast on cache digests](http://railscasts.com/episodes/387-cache-digests)

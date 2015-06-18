@@ -9,7 +9,7 @@ After reading this guide, you will know:
 
 * How to set up your machine for Rails development
 * How to run specific groups of unit tests from the Rails test suite
-* How the ActiveRecord portion of the Rails test suite operates
+* How the Active Record portion of the Rails test suite operates
 
 --------------------------------------------------------------------------------
 
@@ -60,7 +60,7 @@ In Ubuntu you're done with just:
 $ sudo apt-get install sqlite3 libsqlite3-dev
 ```
 
-And if you are on Fedora or CentOS, you're done with
+If you are on Fedora or CentOS, you're done with
 
 ```bash
 $ sudo yum install sqlite3 sqlite3-devel
@@ -213,7 +213,7 @@ FreeBSD users will have to run the following:
 
 ```bash
 # pkg install mysql56-client mysql56-server
-# pkg install postgresql93-client postgresql93-server
+# pkg install postgresql94-client postgresql94-server
 ```
 
 Or install them through ports (they are located under the `databases` folder).
