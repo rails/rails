@@ -737,7 +737,7 @@ module Arel
       end
 
       def unsupported o, collector
-        raise "unsupported: #{o.class.name}"
+        raise "unsupported argument type: #{o.class.name}. Construct an Arel node instead."
       end
 
       alias :visit_ActiveSupport_Multibyte_Chars :unsupported
