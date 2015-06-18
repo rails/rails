@@ -4,6 +4,10 @@
 
     *Remo Mueller*
 
+*   Made Uniqueness Validator pass scope values to the error message
+
+    *Isaac Betesh*
+
 ## Rails 5.0.0.beta2 (February 01, 2016) ##
 
 *   `ActiveRecord::Relation#reverse_order` throws `ActiveRecord::IrreversibleOrderError`

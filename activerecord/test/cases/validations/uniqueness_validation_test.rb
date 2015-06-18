@@ -48,6 +48,12 @@ class BigIntReverseTest < ActiveRecord::Base
   validates :engines_count, uniqueness: true
 end
 
+class ReplyWithTitleObjectWithCustomErrorMessage < Reply
+  validates_uniqueness_of :content, :scope => :title, :message => ->(key, error_options) { "Sorry, there is already a Reply with the title '#{error_options[:scopes][:title]}'" }
+
+  def title; ReplyTitle.new; end
+end
+
 class UniquenessValidationTest < ActiveRecord::TestCase
   INT_MAX_VALUE = 2147483647
 
@@ -156,6 +162,15 @@ class UniquenessValidationTest < ActiveRecord::TestCase
 
     r2 = ReplyWithTitleObject.create "title" => "r1", "content" => "hello world"
     assert !r2.valid?, "Saving r2 first time"
+  end
+
+  def test_validate_uniqueness_with_custom_error_message
+    r1 = ReplyWithTitleObjectWithCustomErrorMessage.create "title" => "r1", "content" => "hello world"
+    assert r1.valid?, "Saving r1"
+
+    r2 = ReplyWithTitleObjectWithCustomErrorMessage.create "title" => "r1", "content" => "hello world"
+    assert !r2.valid?, "Saving r2 first time"
+    assert_equal r2.errors[:content].first, "Sorry, there is already a Reply with the title 'r1'"
   end
 
   def test_validate_uniqueness_with_object_arg
