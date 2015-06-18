@@ -491,6 +491,11 @@ class TimeZoneTest < ActiveSupport::TestCase
     assert !ActiveSupport::TimeZone.us_zones.include?(ActiveSupport::TimeZone["Kuala Lumpur"])
   end
 
+  def test_country_zones
+    assert ActiveSupport::TimeZone.country_zones("ru").include?(ActiveSupport::TimeZone["Moscow"])
+    assert !ActiveSupport::TimeZone.country_zones(:ru).include?(ActiveSupport::TimeZone["Kuala Lumpur"])
+  end
+
   def test_to_yaml
     assert_equal("--- !ruby/object:ActiveSupport::TimeZone\nname: Pacific/Honolulu\n", ActiveSupport::TimeZone["Hawaii"].to_yaml)
     assert_equal("--- !ruby/object:ActiveSupport::TimeZone\nname: Europe/London\n", ActiveSupport::TimeZone["Europe/London"].to_yaml)

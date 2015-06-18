@@ -1,3 +1,10 @@
+*   Add `ActiveSupport::TimeZone.country_zones` helper to retrieve time zones
+    for every country that tzdata knows about.
+
+    Make `ActiveSupport::TimeZone.us_zones` helper use it.
+
+    *Andrey Novikov*
+
 *   `Array#sum` compat with Ruby 2.4's native method.
 
     Ruby 2.4 introduces `Array#sum`, but it only supports numeric elements,
