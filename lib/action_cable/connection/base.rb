@@ -200,7 +200,7 @@ module ActionCable
         end
 
         def log_exception(e)
-          logger.error "There was an exception - #{e.class}(#{e.message})"
+          logger.error "There was an exception: #{e.class} - #{e.message}"
           logger.error e.backtrace.join("\n")
         end
 
