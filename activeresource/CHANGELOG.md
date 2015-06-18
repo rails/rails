@@ -1,4 +1,4 @@
-## Rails 3.2.19 (Jun 16, 2015) ##
+## Rails 3.2.22 (Jun 16, 2015) ##
 
 * No changes.
 
