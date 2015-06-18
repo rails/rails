@@ -71,6 +71,7 @@ module ActionView
       #
       # With the <tt>scope</tt> you can define a custom scope for Rails lookup
       # the translation.
+      #
       # For example you can define the following in your locale (e.g. en.yml).
       #
       #   datetime:
@@ -83,7 +84,7 @@ module ActionView
       # See https://github.com/svenfuchs/rails-i18n/blob/master/rails/locale/en.yml
       # for more examples.
       #
-      # Which then will result in the following:
+      # Which will then result in the following:
       #
       #   from_time = Time.now
       #   distance_of_time_in_words(from_time, from_time + 50.minutes, scope: 'datetime.distance_in_words.short') # => 1 hr
