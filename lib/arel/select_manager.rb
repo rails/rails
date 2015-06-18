@@ -19,7 +19,7 @@ module Arel
     end
 
     def limit
-      @ast.limit && @ast.limit.expr.expr
+      @ast.limit && @ast.limit.expr
     end
     alias :taken :limit
 
@@ -216,8 +216,8 @@ module Arel
 
     def take limit
       if limit
-        @ast.limit = Nodes::Limit.new(Nodes.build_quoted(limit))
-        @ctx.top   = Nodes::Top.new(Nodes.build_quoted(limit))
+        @ast.limit = Nodes::Limit.new(limit)
+        @ctx.top   = Nodes::Top.new(limit)
       else
         @ast.limit = nil
         @ctx.top   = nil
