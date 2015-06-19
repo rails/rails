@@ -1,3 +1,8 @@
+*   `assert_file` understands paths with special characters
+    (eg. `v0.1.4~alpha+nightly`).
+
+    *Diego Carrion*
+
 *   Remove ContentLength middleware from the defaults.  If you want it, just
     add it as a middleware in your config.
 
