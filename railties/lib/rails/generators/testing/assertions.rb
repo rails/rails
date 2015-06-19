@@ -23,7 +23,7 @@ module Rails
         #     end
         #   end
         def assert_file(relative, *contents)
-          absolute = File.expand_path(relative, destination_root).shellescape
+          absolute = File.expand_path(relative, destination_root)
           assert File.exist?(absolute), "Expected file #{relative.inspect} to exist, but does not"
 
           read = File.read(absolute) if block_given? || !contents.empty?

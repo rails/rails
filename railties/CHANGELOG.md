@@ -1,3 +1,8 @@
+*   `assert_file` understands paths with special characters
+    (eg. `v0.1.4~alpha+nightly`).
+
+    *Diego Carrion*
+
 *   Make generated scaffold functional tests work inside engines.
 
     *Yuji Yaginuma*
