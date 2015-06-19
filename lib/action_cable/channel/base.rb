@@ -38,14 +38,13 @@ module ActionCable
 
       def perform_action(data)
         if authorized?
-          action    = (data['action'].presence || :receive).to_sym
-          signature = "#{self.class.name}##{action}: #{data}"
+          action = extract_action(data)
 
-          if self.class.instance_methods(false).include?(action)
-            logger.info "Processing #{signature}"
+          if performable_action?(action)
+            logger.info "Processing #{compose_signature(action, data)}"
             public_send action, data
           else
-            logger.error "Failed to process #{signature}"
+            logger.error "Failed to process #{compose_signature(action, data)}"
           end
         else
           unauthorized
@@ -85,6 +84,23 @@ module ActionCable
         end
 
       private
+        def extract_action(data)
+          (data['action'].presence || :receive).to_sym
+        end
+
+        def performable_action?(action)
+          self.class.instance_methods(false).include?(action)
+        end
+
+        def compose_signature(action, data)
+          "#{self.class.name}##{action}".tap do |signature|
+            if (arguments = data.except('action')).any?
+              signature << ": #{arguments.inspect}"
+            end
+          end
+        end
+
+
         def run_subscribe_callbacks
           self.class.on_subscribe_callbacks.each { |callback| send(callback) }
         end
