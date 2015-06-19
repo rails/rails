@@ -444,8 +444,6 @@ module ActiveRecord
     end
 
     def find_some(ids)
-      result = where(primary_key => ids).to_a
-
       expected_size =
         if limit_value && ids.size > limit_value
           limit_value
@@ -456,12 +454,16 @@ module ActiveRecord
       # 11 ids with limit 3, offset 9 should give 2 results.
       if offset_value && (ids.size - offset_value < expected_size)
         expected_size = ids.size - offset_value
+      else
+        ids = ids.first(expected_size) unless self.values[:order]
       end
+
+      result = where(primary_key => ids).to_a
 
       if result.size == expected_size
         return result if self.values[:order]
         records_by_id = result.index_by(&:id)
-        ids.first(expected_size).collect { |id| records_by_id[id.to_i] }
+        ids.collect { |id| records_by_id[id.to_i] }.compact
       else
         raise_record_not_found_exception!(ids, result.size, expected_size)
       end
