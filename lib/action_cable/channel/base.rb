@@ -56,11 +56,9 @@ module ActionCable
           send(callback)
         end
       end
-
-      def run_unsubscribe_callbacks
-        self.class.on_unsubscribe_callbacks.each do |callback|
-          send(callback)
-        end
+      def perform_disconnection
+        run_unsubscribe_callbacks
+        logger.info "#{self.class.name} disconnected"
       end
 
       protected
@@ -87,6 +85,11 @@ module ActionCable
           else
             unauthorized
           end
+        end
+
+      private
+        def run_unsubscribe_callbacks
+          self.class.on_unsubscribe_callbacks.each { |callback| send(callback) }
         end
 
         def start_periodic_timers
