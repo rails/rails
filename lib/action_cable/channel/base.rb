@@ -32,7 +32,7 @@ module ActionCable
 
         connect
 
-        subscribe
+        run_subscribe_callbacks
       end
 
       def receive_data(data)
@@ -47,13 +47,13 @@ module ActionCable
         end
       end
 
-      def subscribe
+      def run_subscribe_callbacks
         self.class.on_subscribe_callbacks.each do |callback|
           send(callback)
         end
       end
 
-      def unsubscribe
+      def run_unsubscribe_callbacks
         self.class.on_unsubscribe_callbacks.each do |callback|
           send(callback)
         end

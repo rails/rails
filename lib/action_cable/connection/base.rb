@@ -81,7 +81,7 @@ module ActionCable
 
       def cleanup_subscriptions
         @subscriptions.each do |id, channel|
-          channel.unsubscribe
+          channel.run_unsubscribe_callbacks
         end
       end
 
@@ -161,7 +161,7 @@ module ActionCable
 
         def unsubscribe_channel(data)
           logger.info "Unsubscribing from channel: #{data['identifier']}"
-          @subscriptions[data['identifier']].unsubscribe
+          @subscriptions[data['identifier']].run_unsubscribe_callbacks
           @subscriptions.delete(data['identifier'])
         end
 

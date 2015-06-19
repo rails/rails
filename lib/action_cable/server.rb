@@ -71,6 +71,5 @@ module ActionCable
     def open_connections_statistics
       @connections.map(&:statistics)
     end
-
   end
 end
