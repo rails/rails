@@ -455,13 +455,13 @@ module ActiveRecord
       if offset_value && (ids.size - offset_value < expected_size)
         expected_size = ids.size - offset_value
       else
-        ids = ids.first(expected_size) unless self.values[:order]
+        ids = ids.first(expected_size) if order_values.empty?
       end
 
       result = where(primary_key => ids).to_a
 
       if result.size == expected_size
-        return result if self.values[:order]
+        return result if order_values.present?
         records_by_id = result.index_by(&:id)
         ids.collect { |id| records_by_id[id.to_i] }.compact
       else
