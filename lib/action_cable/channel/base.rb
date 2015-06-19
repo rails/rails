@@ -35,12 +35,16 @@ module ActionCable
         run_subscribe_callbacks
       end
 
-      def receive_data(data)
+      def perform_action(data)
         if authorized?
-          if respond_to?(:receive)
-            receive(data)
+          action    = (data['action'].presence || :receive).to_sym
+          signature = "#{self.class.name}##{action}: #{data}"
+
+          if self.class.instance_methods(false).include?(action)
+            logger.info "Processing #{signature}"
+            public_send action, data
           else
-            logger.error "#{self.class.name} received data (#{data}) but #{self.class.name}#receive callback is not defined"
+            logger.error "Failed to process #{signature}"
           end
         else
           unauthorized

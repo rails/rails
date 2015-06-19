@@ -150,7 +150,7 @@ module ActionCable
 
         def process_message(message)
           if @subscriptions[message['identifier']]
-            @subscriptions[message['identifier']].receive_data(ActiveSupport::JSON.decode message['data'])
+            @subscriptions[message['identifier']].perform_action(ActiveSupport::JSON.decode message['data'])
           else
             raise "Unable to process message because no subscription was found (#{message.inspect})"
           end
