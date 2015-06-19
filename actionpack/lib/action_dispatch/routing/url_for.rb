@@ -52,9 +52,11 @@ module ActionDispatch
     # argument.
     #
     # For convenience reasons, mailers provide a shortcut for ActionController::UrlFor#url_for.
-    # So within mailers, you only have to type 'url_for' instead of 'ActionController::UrlFor#url_for'
-    # in full. However, mailers don't have hostname information, and that's why you'll still
-    # have to specify the <tt>:host</tt> argument when generating URLs in mailers.
+    # So within mailers, you only have to type +url_for+ instead of 'ActionController::UrlFor#url_for'
+    # in full. However, mailers don't have hostname information, and you still have to provide
+    # the +:host+ argument or set the default host that will be used in all mailers using the
+    # configuration option +config.action_mailer.default_url_options+. For more information on
+    # url_for in mailers read the ActionMailer#Base documentation.
     #
     #
     # == URL generation for named routes
@@ -147,6 +149,20 @@ module ActionDispatch
       #    # => 'http://somehost.org/myapp/tasks/testing'
       #    url_for controller: 'tasks', action: 'testing', host: 'somehost.org', script_name: "/myapp", only_path: true
       #    # => '/myapp/tasks/testing'
+      #
+      # Missing routes keys may be filled in from the current request's parameters
+      # (e.g. +:controller+, +:action+, +:id+ and any other parameters that are
+      # placed in the path). Given that the current action has been reached
+      # through `GET /users/1`:
+      #
+      #   url_for(only_path: true)                        # => '/users/1'
+      #   url_for(only_path: true, action: 'edit')        # => '/users/1/edit'
+      #   url_for(only_path: true, action: 'edit', id: 2) # => '/users/2/edit'
+      #
+      # Notice that no +:id+ parameter was provided to the first +url_for+ call
+      # and the helper used the one from the route's path. Any path parameter
+      # implicitly used by +url_for+ can always be overwritten like shown on the
+      # last +url_for+ calls.
       def url_for(options = nil)
         case options
         when nil
