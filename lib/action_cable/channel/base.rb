@@ -51,11 +51,6 @@ module ActionCable
         end
       end
 
-      def run_subscribe_callbacks
-        self.class.on_subscribe_callbacks.each do |callback|
-          send(callback)
-        end
-      end
       def perform_disconnection
         run_unsubscribe_callbacks
         logger.info "#{self.class.name} disconnected"
@@ -88,6 +83,10 @@ module ActionCable
         end
 
       private
+        def run_subscribe_callbacks
+          self.class.on_subscribe_callbacks.each { |callback| send(callback) }
+        end
+
         def run_unsubscribe_callbacks
           self.class.on_unsubscribe_callbacks.each { |callback| send(callback) }
         end
