@@ -1,16 +1,17 @@
 PATH
   remote: .
   specs:
-    action_cable (0.0.2)
+    action_cable (0.0.3)
       activesupport (>= 4.2.0)
       celluloid (~> 0.16.0)
       em-hiredis (~> 0.3.0)
       faye-websocket (~> 0.9.2)
+      redis (~> 3.0)
 
 GEM
   remote: http://rubygems.org/
   specs:
-    activesupport (4.2.0)
+    activesupport (4.2.2)
       i18n (~> 0.7)
       json (~> 1.7, >= 1.7.7)
       minitest (~> 5.1)
@@ -28,18 +29,19 @@ GEM
     hiredis (0.5.2)
     hitimes (1.2.2)
     i18n (0.7.0)
-    json (1.8.2)
-    minitest (5.5.1)
+    json (1.8.3)
+    minitest (5.7.0)
     puma (2.10.2)
       rack (>= 1.1, < 2.0)
     rack (1.6.0)
     rake (10.4.2)
-    thread_safe (0.3.4)
+    redis (3.2.1)
+    thread_safe (0.3.5)
     timers (4.0.1)
       hitimes
     tzinfo (1.2.2)
       thread_safe (~> 0.1)
-    websocket-driver (0.5.3)
+    websocket-driver (0.5.4)
       websocket-extensions (>= 0.1.0)
     websocket-extensions (0.1.2)
 
