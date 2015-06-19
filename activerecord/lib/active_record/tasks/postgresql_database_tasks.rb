@@ -67,7 +67,12 @@ module ActiveRecord
 
       def structure_load(filename)
         set_psql_env
-        Kernel.system("psql -X -q -f #{Shellwords.escape(filename)} #{configuration['database']}")
+        case Kernel.system("psql -X -q -f #{Shellwords.escape(filename)} #{configuration['database']}")
+        when nil
+          raise "Unable to load structure, is psql installed?"
+        when false
+          raise "Error loading structure, psql exited with status #{$?.exitstatus}"
+        end
       end
 
       private
