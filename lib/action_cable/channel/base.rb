@@ -101,8 +101,6 @@ module ActionCable
         def worker_pool
           connection.worker_pool
         end
-
     end
-
   end
 end
