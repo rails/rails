@@ -27,7 +27,7 @@ class ServerTest < ActionCableTest
       puts message.inspect
     end
 
-    ws.send action: 'subscribe', identifier: { channel: 'chat'}.to_json
+    ws.send command: 'subscribe', identifier: { channel: 'chat'}.to_json
   end
 
   test "subscribing to a channel with invalid params" do

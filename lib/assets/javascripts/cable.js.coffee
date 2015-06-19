@@ -28,7 +28,7 @@ class @Cable
 
   sendData: (identifier, data) =>
     if @isConnected()
-      @connection.send JSON.stringify { action: 'message', identifier: identifier, data: data }
+      @connection.send JSON.stringify { command: 'message', identifier: identifier, data: data }
 
   receiveData: (message) =>
     data = JSON.parse message.data
@@ -109,11 +109,11 @@ class @Cable
 
   subscribeOnServer: (identifier) =>
     if @isConnected()
-      @connection.send JSON.stringify { action: 'subscribe', identifier: identifier }
+      @connection.send JSON.stringify { command: 'subscribe', identifier: identifier }
 
   unsubscribeOnServer: (identifier) =>
     if @isConnected()
-      @connection.send JSON.stringify { action: 'unsubscribe', identifier: identifier }
+      @connection.send JSON.stringify { command: 'unsubscribe', identifier: identifier }
 
   pingReceived: (timestamp) =>
     if @lastPingTime? and (timestamp - @lastPingTime) > @PING_STALE_INTERVAL

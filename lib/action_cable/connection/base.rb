@@ -69,7 +69,7 @@ module ActionCable
 
         data = ActiveSupport::JSON.decode data
 
-        case data['action']
+        case data['command']
         when 'subscribe'
           subscribe_channel(data)
         when 'unsubscribe'
