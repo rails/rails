@@ -406,7 +406,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_application_name_with_spaces
-    path = File.join(destination_root, "foo bar".shellescape)
+    path = File.join(destination_root, "foo bar")
 
     # This also applies to MySQL apps but not with SQLite
     run_generator [path, "-d", 'postgresql']

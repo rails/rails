@@ -122,5 +122,13 @@ module RailtiesTests
         assert_no_file "app/helpers/foo_bar/topics_helper.rb"
       end
     end
+
+    def test_assert_file_with_special_characters
+      path = "#{app_path}/tmp"
+      file_name = "#{path}/v0.1.4~alpha+nightly"
+      FileUtils.mkdir_p path
+      FileUtils.touch file_name
+      assert_file file_name
+    end
   end
 end
