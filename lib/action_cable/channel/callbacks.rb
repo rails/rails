@@ -1,6 +1,5 @@
 module ActionCable
   module Channel
-
     module Callbacks
       extend ActiveSupport::Concern
 
@@ -25,8 +24,6 @@ module ActionCable
           self.periodic_timers += [ [ callback, every: every ] ]
         end
       end
-
     end
-
   end
 end

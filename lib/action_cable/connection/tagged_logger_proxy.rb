@@ -24,7 +24,6 @@ module ActionCable
         def log(type, message)
           @logger.tagged(*@tags) { @logger.send type, message }
         end
-
     end
   end
 end

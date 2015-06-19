@@ -35,7 +35,6 @@ module ActionCable
 
           handle_exception
         end
-
     end
   end
 end

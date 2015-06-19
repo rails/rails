@@ -207,7 +207,6 @@ module ActionCable
         def log_tags
           server.log_tags.map { |tag| tag.respond_to?(:call) ? tag.call(request) : tag.to_s.camelize }
         end
-
     end
   end
 end

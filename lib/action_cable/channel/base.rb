@@ -1,6 +1,5 @@
 module ActionCable
   module Channel
-
     class Base
       include Callbacks
       include Redis
