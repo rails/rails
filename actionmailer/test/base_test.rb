@@ -851,39 +851,35 @@ class BasePreviewInterceptorsTest < ActiveSupport::TestCase
   end
 
   test "you can register a preview interceptor to the mail object that gets passed the mail object before previewing" do
-    params = {}
     ActionMailer::Base.register_preview_interceptor(MyInterceptor)
     mail = BaseMailer.welcome
     BaseMailerPreview.any_instance.stubs(:welcome).returns(mail)
     MyInterceptor.expects(:previewing_email).with(mail)
-    BaseMailerPreview.call(:welcome, params)
+    BaseMailerPreview.call(:welcome)
   end
 
   test "you can register a preview interceptor using its stringified name to the mail object that gets passed the mail object before previewing" do
-    params = {}
     ActionMailer::Base.register_preview_interceptor("BasePreviewInterceptorsTest::MyInterceptor")
     mail = BaseMailer.welcome
     BaseMailerPreview.any_instance.stubs(:welcome).returns(mail)
     MyInterceptor.expects(:previewing_email).with(mail)
-    BaseMailerPreview.call(:welcome, params)
+    BaseMailerPreview.call(:welcome)
   end
 
   test "you can register an interceptor using its symbolized underscored name to the mail object that gets passed the mail object before previewing" do
-    params = {}
     ActionMailer::Base.register_preview_interceptor(:"base_preview_interceptors_test/my_interceptor")
     mail = BaseMailer.welcome
     BaseMailerPreview.any_instance.stubs(:welcome).returns(mail)
     MyInterceptor.expects(:previewing_email).with(mail)
-    BaseMailerPreview.call(:welcome, params)
+    BaseMailerPreview.call(:welcome)
   end
 
   test "you can register multiple preview interceptors to the mail object that both get passed the mail object before previewing" do
-    params = {}
     ActionMailer::Base.register_preview_interceptors("BasePreviewInterceptorsTest::MyInterceptor", MySecondInterceptor)
     mail = BaseMailer.welcome
     BaseMailerPreview.any_instance.stubs(:welcome).returns(mail)
     MyInterceptor.expects(:previewing_email).with(mail)
     MySecondInterceptor.expects(:previewing_email).with(mail)
-    BaseMailerPreview.call(:welcome, params)
+    BaseMailerPreview.call(:welcome)
   end
 end

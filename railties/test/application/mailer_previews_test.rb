@@ -407,7 +407,7 @@ module ApplicationTests
       assert_match "David Heinemeier Hansson &lt;david@heinemeierhansson.com&gt;", last_response.body
     end
 
-    test "mailer preview has access to params" do
+    test "mailer preview has access to controller request_model" do
       mailer 'notifier', <<-RUBY
         class Notifier < ActionMailer::Base
           default from: "from@example.com"
@@ -424,6 +424,10 @@ module ApplicationTests
 
       mailer_preview 'notifier', <<-RUBY
         class NotifierPreview < ActionMailer::Preview
+          def params
+            request_model
+          end
+
           def foo
             Notifier.foo(params.fetch('user_name'))
           end
