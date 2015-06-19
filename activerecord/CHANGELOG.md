@@ -1,3 +1,7 @@
+*   Let `WITH` queries (Common Table Expressions) be explainable.
+
+    *Vladimir Kochnev*
+
 *   Make `remove_index :table, :column` reversible.
 
     *Yves Senn*
