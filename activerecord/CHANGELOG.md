@@ -1,3 +1,7 @@
+*   Use `Enumerable#sum` in `ActiveRecord::Relation` if a block is given.
+
+    *Sean Griffin*
+
 *   Let `WITH` queries (Common Table Expressions) be explainable.
 
     *Vladimir Kochnev*

@@ -671,4 +671,14 @@ class CalculationsTest < ActiveRecord::TestCase
       developer.ratings.includes(comment: :post).where(posts: { id: 1 }).count
     end
   end
+
+  def test_sum_uses_enumerable_version_when_block_is_given
+    block_called = false
+    relation = Client.all.load
+
+    assert_no_queries do
+      assert_equal 0, relation.sum { block_called = true; 0 }
+    end
+    assert block_called
+  end
 end
