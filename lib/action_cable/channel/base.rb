@@ -93,6 +93,7 @@ module ActionCable
           self.class.on_unsubscribe_callbacks.each { |callback| send(callback) }
         end
 
+
         def start_periodic_timers
           self.class.periodic_timers.each do |callback, options|
             @_active_periodic_timers << EventMachine::PeriodicTimer.new(options[:every]) do
@@ -104,6 +105,7 @@ module ActionCable
         def stop_periodic_timers
           @_active_periodic_timers.each {|t| t.cancel }
         end
+
 
         def worker_pool
           connection.worker_pool
