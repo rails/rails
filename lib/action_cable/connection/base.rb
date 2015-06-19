@@ -86,7 +86,6 @@ module ActionCable
       end
 
       def broadcast(data)
-        logger.info "Sending data: #{data}"
         @websocket.send data
       end
 

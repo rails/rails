@@ -76,6 +76,7 @@ module ActionCable
 
         def broadcast(data)
           if authorized?
+            logger.info "Broadcasting: #{data.inspect}"
             connection.broadcast({ identifier: @channel_identifier, message: data }.to_json)
           else
             unauthorized
