@@ -31,8 +31,9 @@ module ActionCable
         @params = params
 
         connect
-
         run_subscribe_callbacks
+
+        logger.info "#{self.class.name} connected"
       end
 
       def perform_action(data)
