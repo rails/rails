@@ -13,6 +13,5 @@ module ActionCable
       redis.publish channel, message.to_json
       logger.info "[ActionCable] Broadcasting to channel (#{channel}): #{message}"
     end
-
   end
 end
