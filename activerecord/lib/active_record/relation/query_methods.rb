@@ -242,12 +242,9 @@ module ActiveRecord
     #   Model.select(:field).first.other_field
     #   # => ActiveModel::MissingAttributeError: missing attribute: other_field
     def select(*fields)
-      if block_given?
-        to_a.select { |*block_args| yield(*block_args) }
-      else
-        raise ArgumentError, 'Call this with at least one field' if fields.empty?
-        spawn._select!(*fields)
-      end
+      return super if block_given?
+      raise ArgumentError, 'Call this with at least one field' if fields.empty?
+      spawn._select!(*fields)
     end
 
     def _select!(*fields) # :nodoc:

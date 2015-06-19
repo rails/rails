@@ -15,6 +15,7 @@ module ActiveRecord
 
     VALUE_METHODS = MULTI_VALUE_METHODS + SINGLE_VALUE_METHODS + CLAUSE_METHODS
 
+    include Enumerable
     include FinderMethods, Calculations, SpawnMethods, QueryMethods, Batches, Explain, Delegation
 
     attr_reader :table, :klass, :loaded, :predicate_builder
@@ -275,38 +276,26 @@ module ActiveRecord
 
     # Returns true if there are no records.
     def none?
-      if block_given?
-        to_a.none? { |*block_args| yield(*block_args) }
-      else
-        empty?
-      end
+      return super if block_given?
+      empty?
     end
 
     # Returns true if there are any records.
     def any?
-      if block_given?
-        to_a.any? { |*block_args| yield(*block_args) }
-      else
-        !empty?
-      end
+      return super if block_given?
+      !empty?
     end
 
     # Returns true if there is exactly one record.
     def one?
-      if block_given?
-        to_a.one? { |*block_args| yield(*block_args) }
-      else
-        limit_value ? to_a.one? : size == 1
-      end
+      return super if block_given?
+      limit_value ? to_a.one? : size == 1
     end
 
     # Returns true if there is more than one record.
     def many?
-      if block_given?
-        to_a.many? { |*block_args| yield(*block_args) }
-      else
-        limit_value ? to_a.many? : size > 1
-      end
+      return super if block_given?
+      limit_value ? to_a.many? : size > 1
     end
 
     # Scope all queries to the current scope.

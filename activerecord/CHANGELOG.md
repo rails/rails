@@ -1,3 +1,7 @@
+*   Include the `Enumerable` module in `ActiveRecord::Relation`
+
+    *Sean Griffin & bogdan*
+
 *   Use `Enumerable#sum` in `ActiveRecord::Relation` if a block is given.
 
     *Sean Griffin*

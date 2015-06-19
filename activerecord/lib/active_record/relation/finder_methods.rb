@@ -62,11 +62,8 @@ module ActiveRecord
     #   Person.where(name: 'Spartacus', rating: 4).pluck(:field1, :field2)
     #   # returns an Array of the required fields.
     def find(*args)
-      if block_given?
-        to_a.find(*args) { |*block_args| yield(*block_args) }
-      else
-        find_with_ids(*args)
-      end
+      return super if block_given?
+      find_with_ids(*args)
     end
 
     # Finds the first record matching the specified conditions. There
