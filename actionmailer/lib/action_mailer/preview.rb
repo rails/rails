@@ -114,5 +114,7 @@ module ActionMailer
           end
         end
     end
+
+    attr_accessor :request_model
   end
 end

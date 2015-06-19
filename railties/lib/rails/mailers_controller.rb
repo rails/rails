@@ -19,6 +19,7 @@ class Rails::MailersController < Rails::ApplicationController # :nodoc:
       @email_action = File.basename(params[:path])
 
       if @preview.email_exists?(@email_action)
+        @preview.request_model = request_model
         @email = @preview.call(@email_action)
 
         if params[:part]
@@ -41,6 +42,10 @@ class Rails::MailersController < Rails::ApplicationController # :nodoc:
   end
 
   protected
+    def request_model
+      params
+    end
+
     def find_preview
       candidates = []
       params[:path].to_s.scan(%r{/|$}){ candidates << $` }
