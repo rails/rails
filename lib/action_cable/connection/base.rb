@@ -103,7 +103,6 @@ module ActionCable
 
       def close_connection
         logger.error "Closing connection"
-
         @websocket.close
       end
 
