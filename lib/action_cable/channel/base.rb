@@ -7,8 +7,6 @@ module ActionCable
       on_subscribe   :start_periodic_timers
       on_unsubscribe :stop_periodic_timers
 
-      on_unsubscribe :disconnect
-
       attr_reader :params, :connection
       delegate :logger, to: :connection
 
@@ -30,10 +28,7 @@ module ActionCable
         @_active_periodic_timers = []
         @params = params
 
-        connect
-        run_subscribe_callbacks
-
-        logger.info "#{self.class.name} connected"
+        perform_connection
       end
 
       def perform_action(data)
@@ -41,10 +36,10 @@ module ActionCable
           action = extract_action(data)
 
           if performable_action?(action)
-            logger.info "Processing #{compose_signature(action, data)}"
+            logger.info channel_name + compose_signature(action, data)
             public_send action, data
           else
-            logger.error "Failed to process #{compose_signature(action, data)}"
+            logger.error "#{channel_name} failed to process #{compose_signature(action, data)}"
           end
         else
           unauthorized
@@ -52,8 +47,15 @@ module ActionCable
       end
 
       def perform_disconnection
+        disconnect
         run_unsubscribe_callbacks
-        logger.info "#{self.class.name} disconnected"
+        logger.info "#{channel_name} disconnected"
+      end
+
+      def perform_connection
+        logger.info "#{channel_name} connecting"
+        connect
+        run_subscribe_callbacks
       end
 
       protected
@@ -63,8 +65,9 @@ module ActionCable
         end
 
         def unauthorized
-          logger.error "Unauthorized access to #{self.class.name}"
+          logger.error "#{channel_name}: Unauthorized access"
         end
+
 
         def connect
           # Override in subclasses
@@ -74,13 +77,19 @@ module ActionCable
           # Override in subclasses
         end
 
+
         def broadcast(data)
           if authorized?
-            logger.info "Broadcasting: #{data.inspect}"
+            logger.info "#{channel_name} broadcasting #{data.inspect}"
             connection.broadcast({ identifier: @channel_identifier, message: data }.to_json)
           else
             unauthorized
           end
+        end
+
+
+        def channel_name
+          self.class.name
         end
 
       private
@@ -93,9 +102,9 @@ module ActionCable
         end
 
         def compose_signature(action, data)
-          "#{self.class.name}##{action}".tap do |signature|
+          "##{action}".tap do |signature|
             if (arguments = data.except('action')).any?
-              signature << ": #{arguments.inspect}"
+              signature << "(#{arguments.inspect})"
             end
           end
         end

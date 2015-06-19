@@ -136,7 +136,6 @@ module ActionCable
           subscription_klass = server.registered_channels.detect { |channel_klass| channel_klass.find_name == id_options[:channel] }
 
           if subscription_klass
-            logger.info "Subscribing to channel: #{id_key}"
             @subscriptions[id_key] = subscription_klass.new(self, id_key, id_options)
           else
             logger.error "Subscription class not found (#{data.inspect})"

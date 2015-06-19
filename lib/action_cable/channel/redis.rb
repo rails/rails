@@ -13,15 +13,15 @@ module ActionCable
         @_redis_channels ||= []
         @_redis_channels << [ redis_channel, callback ]
 
-        logger.info "Subscribing to the redis channel: #{redis_channel}"
         pubsub.subscribe(redis_channel, &callback)
+        logger.info "#{channel_name} subscribed to incoming actions from #{redis_channel}"
       end
 
       def unsubscribe_from_all_channels
         if @_redis_channels
-          @_redis_channels.each do |channel, callback|
-            logger.info "Unsubscribing from the redis channel: #{channel}"
-            pubsub.unsubscribe_proc(channel, callback)
+          @_redis_channels.each do |redis_channel, callback|
+            pubsub.unsubscribe_proc(redis_channel, callback)
+            logger.info "#{channel_name} unsubscribed from incoming actions #{redis_channel}"
           end
         end
       end
