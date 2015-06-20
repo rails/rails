@@ -209,13 +209,13 @@ module ActionView
       query = @pattern.dup
 
       prefix = path.prefix.empty? ? "" : "#{escape_entry(path.prefix)}\\1"
-      query.gsub!(/\:prefix(\/)?/, prefix)
+      query.gsub!(/:prefix(\/)?/, prefix)
 
       partial = escape_entry(path.partial? ? "_#{path.name}" : path.name)
-      query.gsub!(/\:action/, partial)
+      query.gsub!(/:action/, partial)
 
       details.each do |ext, variants|
-        query.gsub!(/\:#{ext}/, "{#{variants.compact.uniq.join(',')}}")
+        query.gsub!(/:#{ext}/, "{#{variants.compact.uniq.join(',')}}")
       end
 
       File.expand_path(query, @path)
