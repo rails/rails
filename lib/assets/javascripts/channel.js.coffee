@@ -1,6 +1,6 @@
 class @Cable.Channel
   constructor: (params = {}) ->
-    @channelName ?= @underscore @constructor.name
+    @channelName ?= "#{@underscore(@constructor.name)}_channel"
 
     params['channel'] = @channelName
     @channelIdentifier = JSON.stringify params
