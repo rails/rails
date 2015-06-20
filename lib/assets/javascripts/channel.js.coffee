@@ -11,6 +11,7 @@ class @Cable.Channel
       onReceiveData: @received
     })
 
+
   connected: =>
     # Override in the subclass
 
@@ -20,8 +21,14 @@ class @Cable.Channel
   received: (data) =>
     # Override in the subclass
 
+  # Perform a channel action with the optional data passed as an attribute
+  perform: (action, data = {}) ->
+    data.action = action
+    cable.sendData @channelIdentifier, JSON.stringify data
+
   send: (data) ->
     cable.sendData @channelIdentifier, JSON.stringify data
+
 
   underscore: (value) ->
     value.replace(/[A-Z]/g, (match) => "_#{match.toLowerCase()}").substr(1)
