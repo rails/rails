@@ -19,7 +19,7 @@ class Rails::MailersController < Rails::ApplicationController # :nodoc:
       @email_action = File.basename(params[:path])
 
       if @preview.email_exists?(@email_action)
-        @email = @preview.call(@email_action, params)
+        @email = @preview.call(@email_action, request_model)
 
         if params[:part]
           part_type = Mime::Type.lookup(params[:part])
@@ -43,6 +43,10 @@ class Rails::MailersController < Rails::ApplicationController # :nodoc:
   protected
     def show_previews?
       ActionMailer::Base.show_previews
+    end
+
+    def request_model
+      params
     end
 
     def find_preview

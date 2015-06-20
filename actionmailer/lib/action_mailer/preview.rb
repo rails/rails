@@ -61,9 +61,9 @@ module ActionMailer
       # Returns the mail object for the given email name. The registered preview
       # interceptors will be informed so that they can transform the message
       # as they would if the mail was actually being delivered.
-      def call(email, params)
+      def call(email, request_model)
         preview = self.new
-        preview.params = params
+        preview.request_model = request_model
         message = preview.public_send(email)
         inform_preview_interceptors(message)
         message
@@ -116,6 +116,6 @@ module ActionMailer
         end
     end
 
-    attr_accessor :params
+    attr_accessor :request_model
   end
 end
