@@ -129,7 +129,7 @@ module ActionCable
         end
 
         def stop_periodic_timers
-          @_active_periodic_timers.each {|t| t.cancel }
+          @_active_periodic_timers.each { |timer| timer.cancel }
         end
 
 
