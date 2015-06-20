@@ -76,6 +76,16 @@ class Numeric
   end
 end
 
+class String
+  class << self
+    # Rubinius will throw a TypeError if you attempt to dup the
+    # String class (and only the String class has this behavior).
+    def duplicable?
+      false
+    end
+  end
+end
+
 require 'bigdecimal'
 class BigDecimal
   def duplicable?
