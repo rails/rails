@@ -297,7 +297,7 @@ module ActiveModel
     #   # => {:name=>["is invalid", "must be implemented"]}
     #
     #   person.errors.details
-    #   # => {:name=>[{error: :not_implemented}, {error: :invalid}]}
+    #   # => {:name=>[{error: :not_implemented, message: "must be implemented"}, {error: :invalid, message: "is invalid"}]}
     #
     # If +message+ is a symbol, it will be translated using the appropriate
     # scope (see +generate_message+).
@@ -324,18 +324,19 @@ module ActiveModel
     #   person.errors.messages
     #   # => {:base=>["either name or email must be present"]}
     #   person.errors.details
-    #   # => {:base=>[{error: :name_or_email_blank}]}
+    #   # => {:base=>[{error: :name_or_email_blank, message: "either name or email must be present"}]}
     def add(attribute, message = :invalid, options = {})
       message = message.call if message.respond_to?(:call)
-      detail  = normalize_detail(message, options)
-      message = normalize_message(attribute, message, options)
+      normalized_message = normalize_message(attribute, message, options)
+      detail  = normalize_detail(message, normalized_message, options)
+
       if exception = options[:strict]
         exception = ActiveModel::StrictValidationFailed if exception == true
-        raise exception, full_message(attribute, message)
+        raise exception, full_message(attribute, normalized_message)
       end
 
-      details[attribute.to_sym]  << detail
-      messages[attribute.to_sym] << message
+      details[attribute.to_sym] << detail
+      messages[attribute.to_sym] << normalized_message
     end
 
     # Will add an error message to each of the attributes in +attributes+
@@ -502,8 +503,8 @@ module ActiveModel
       end
     end
 
-    def normalize_detail(message, options)
-      { error: message }.merge(options.except(*CALLBACKS_OPTIONS + MESSAGE_OPTIONS))
+    def normalize_detail(message, normalized_message, options)
+      { error: message, message: normalized_message }.merge(options.except(*CALLBACKS_OPTIONS + MESSAGE_OPTIONS))
     end
   end
 

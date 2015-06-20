@@ -366,19 +366,19 @@ class ErrorsTest < ActiveModel::TestCase
   test "details returns added error detail" do
     person = Person.new
     person.errors.add(:name, :invalid)
-    assert_equal({ name: [{ error: :invalid }] }, person.errors.details)
+    assert_equal({ name: [{ error: :invalid, message: 'is invalid' }] }, person.errors.details)
   end
 
   test "details returns added error detail with custom option" do
     person = Person.new
     person.errors.add(:name, :greater_than, count: 5)
-    assert_equal({ name: [{ error: :greater_than, count: 5 }] }, person.errors.details)
+    assert_equal({ name: [{ error: :greater_than, message: 'must be greater than 5', count: 5 }] }, person.errors.details)
   end
 
   test "details do not include message option" do
     person = Person.new
     person.errors.add(:name, :invalid, message: "is bad")
-    assert_equal({ name: [{ error: :invalid }] }, person.errors.details)
+    assert_equal({ name: [{ error: :invalid, message: 'is bad' }] }, person.errors.details)
   end
 
   test "dup duplicates details" do
