@@ -109,6 +109,14 @@ module ActionCable
       end
 
       protected
+        def request
+          @request ||= ActionDispatch::Request.new(Rails.application.env_config.merge(env))
+        end
+
+        def cookies
+          request.cookie_jar
+        end
+
         def initialize_connection
           server.add_connection(self)
 
@@ -171,10 +179,6 @@ module ActionCable
 
         def websocket_alive?
           @websocket && @websocket.ready_state == Faye::WebSocket::API::OPEN
-        end
-
-        def request
-          @request ||= ActionDispatch::Request.new(env)
         end
 
         def websocket?
