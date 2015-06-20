@@ -14,14 +14,14 @@ module ActionCable
         @_redis_channels << [ redis_channel, callback ]
 
         pubsub.subscribe(redis_channel, &callback)
-        logger.info "#{channel_name} subscribed to incoming actions from #{redis_channel}"
+        logger.info "#{channel_name} subscribed to broadcasts from #{redis_channel}"
       end
 
       def unsubscribe_from_all_channels
         if @_redis_channels
           @_redis_channels.each do |redis_channel, callback|
             pubsub.unsubscribe_proc(redis_channel, callback)
-            logger.info "#{channel_name} unsubscribed from incoming actions #{redis_channel}"
+            logger.info "#{channel_name} unsubscribed to broadcasts from #{redis_channel}"
           end
         end
       end
@@ -29,8 +29,7 @@ module ActionCable
       protected
         def default_subscription_callback(channel)
           -> (message) do
-            logger.info "Received a message over the redis channel: #{channel}"
-            broadcast ActiveSupport::JSON.decode(message)
+            transmit ActiveSupport::JSON.decode(message), via: "broadcast from #{channel}"
           end
         end
     end

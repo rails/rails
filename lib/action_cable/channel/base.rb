@@ -31,6 +31,12 @@ module ActionCable
         perform_connection
       end
 
+      def perform_connection
+        logger.info "#{channel_name} connecting"
+        connect
+        run_subscribe_callbacks
+      end
+
       def perform_action(data)
         if authorized?
           action = extract_action(data)
@@ -52,11 +58,6 @@ module ActionCable
         logger.info "#{channel_name} disconnected"
       end
 
-      def perform_connection
-        logger.info "#{channel_name} connecting"
-        connect
-        run_subscribe_callbacks
-      end
 
       protected
         # Override in subclasses
@@ -78,10 +79,10 @@ module ActionCable
         end
 
 
-        def broadcast(data)
+        def transmit(data, via: nil)
           if authorized?
-            logger.info "#{channel_name} broadcasting #{data.inspect}"
-            connection.broadcast({ identifier: @channel_identifier, message: data }.to_json)
+            logger.info "#{channel_name} transmitting #{data.inspect}".tap { |m| m << " (via #{via})" if via }
+            connection.transmit({ identifier: @channel_identifier, message: data }.to_json)
           else
             unauthorized
           end
