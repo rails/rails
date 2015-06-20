@@ -34,8 +34,8 @@ module ActionCable
           @websocket = Faye::WebSocket.new(@env)
 
           @websocket.on(:open) do |event|
-            broadcast_ping_timestamp
-            @ping_timer = EventMachine.add_periodic_timer(PING_INTERVAL) { broadcast_ping_timestamp }
+            transmit_ping_timestamp
+            @ping_timer = EventMachine.add_periodic_timer(PING_INTERVAL) { transmit_ping_timestamp }
             worker_pool.async.invoke(self, :initialize_connection)
           end
 
@@ -87,7 +87,7 @@ module ActionCable
         end
       end
 
-      def broadcast(data)
+      def transmit(data)
         @websocket.send data
       end
 
@@ -127,8 +127,8 @@ module ActionCable
           disconnect if respond_to?(:disconnect)
         end
 
-        def broadcast_ping_timestamp
-          broadcast({ identifier: '_ping', message: Time.now.to_i }.to_json)
+        def transmit_ping_timestamp
+          transmit({ identifier: '_ping', message: Time.now.to_i }.to_json)
         end
 
         def subscribe_channel(data)

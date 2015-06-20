@@ -79,10 +79,10 @@ module ActionCable
         end
 
 
-        def broadcast(data)
+        def transmit(data, via: nil)
           if authorized?
-            logger.info "#{channel_name} broadcasting #{data.inspect}"
-            connection.broadcast({ identifier: @channel_identifier, message: data }.to_json)
+            logger.info "#{channel_name} transmitting #{data.inspect} #{via}"
+            connection.transmit({ identifier: @channel_identifier, message: data }.to_json)
           else
             unauthorized
           end
