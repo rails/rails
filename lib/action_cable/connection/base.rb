@@ -76,6 +76,8 @@ module ActionCable
           unsubscribe_channel(data)
         when 'message'
           process_message(data)
+        else
+          logger.error "Received unrecognized command in #{data.inspect}"
         end
       end
 
