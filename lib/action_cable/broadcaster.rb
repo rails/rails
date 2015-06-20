@@ -10,8 +10,8 @@ module ActionCable
     end
 
     def broadcast(message)
+      logger.info "[ActionCable] Broadcasting to #{channel}: #{message}"
       redis.publish channel, message.to_json
-      logger.info "[ActionCable] Broadcasting to channel (#{channel}): #{message}"
     end
   end
 end
