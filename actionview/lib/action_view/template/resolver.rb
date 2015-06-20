@@ -181,9 +181,9 @@ module ActionView
     def query(path, details, formats)
       query = build_query(path, details)
 
-      template_paths = find_template_paths query
+      template_paths = find_template_paths(query)
 
-      template_paths.map { |template|
+      template_paths.map do |template|
         handler, format, variant = extract_handler_and_format_and_variant(template, formats)
         contents = File.binread(template)
 
@@ -193,22 +193,22 @@ module ActionView
           :variant      => variant,
           :updated_at   => mtime(template)
         )
-      }
+      end
     end
 
     def find_template_paths(query)
-      Dir[query].reject { |filename|
+      Dir[query].reject do |filename|
         File.directory?(filename) ||
           # deals with case-insensitive file systems.
           !File.fnmatch(query, filename, File::FNM_EXTGLOB)
-      }
+      end
     end
 
     # Helper for building query glob string based on resolver's pattern.
     def build_query(path, details)
       query = @pattern.dup
 
-      prefix = path.prefix.empty? ? "" : "#{escape_entry(path.prefix)}\\1"
+      prefix = path.prefix.empty? ? '' : "#{escape_entry(path.prefix)}\\1"
       query.gsub!(/:prefix(\/)?/, prefix)
 
       partial = escape_entry(path.partial? ? "_#{path.name}" : path.name)
@@ -234,7 +234,7 @@ module ActionView
     # from the path, or the handler, we should return the array of formats given
     # to the resolver.
     def extract_handler_and_format_and_variant(path, default_formats)
-      pieces = File.basename(path).split(".")
+      pieces = File.basename(path).split('.')
       pieces.shift
 
       extension = pieces.pop
