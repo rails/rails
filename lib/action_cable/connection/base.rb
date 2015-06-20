@@ -165,7 +165,7 @@ module ActionCable
         end
 
         def invalid_request
-          logger.info "#{finished_request_message}"
+          logger.info finished_request_message
           [404, {'Content-Type' => 'text/plain'}, ['Page not found']]
         end
 
