@@ -208,6 +208,9 @@ module ActiveRecord
       #
       # See also TableDefinition#column for details on how to create columns.
       def create_table(table_name, options = {})
+        if options[:virtual]
+          options[:options] = options.fetch(:options, {}).merge(virtual: options[:virtual])
+        end
         td = create_table_definition table_name, options[:temporary], options[:options], options[:as]
 
         if options[:id] != false && !options[:as]

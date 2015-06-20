@@ -1,6 +1,7 @@
 require 'active_record/connection_adapters/abstract_adapter'
 require 'active_record/connection_adapters/statement_pool'
 require 'active_record/connection_adapters/sqlite3/schema_creation'
+require 'active_record/connection_adapters/sqlite3/table_definition'
 
 gem 'sqlite3', '~> 1.3.6'
 require 'sqlite3'
@@ -599,6 +600,12 @@ module ActiveRecord
           else
             basic_structure.to_hash
           end
+        end
+
+        def create_table_definition(name, temporary = false, options = nil, as = nil) # :nodoc:
+          virtual = options ? options.delete(:virtual).to_s.upcase : nil
+          options = nil if options.blank?
+          SQLite3::TableDefinition.new(native_database_types, name, temporary, virtual, options, as)
         end
     end
   end
