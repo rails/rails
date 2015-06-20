@@ -31,6 +31,12 @@ module ActionCable
         perform_connection
       end
 
+      def perform_connection
+        logger.info "#{channel_name} connecting"
+        connect
+        run_subscribe_callbacks
+      end
+
       def perform_action(data)
         if authorized?
           action = extract_action(data)
@@ -52,11 +58,6 @@ module ActionCable
         logger.info "#{channel_name} disconnected"
       end
 
-      def perform_connection
-        logger.info "#{channel_name} connecting"
-        connect
-        run_subscribe_callbacks
-      end
 
       protected
         # Override in subclasses
