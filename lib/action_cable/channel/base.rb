@@ -42,10 +42,10 @@ module ActionCable
           action = extract_action(data)
 
           if performable_action?(action)
-            logger.info channel_name + compose_signature(action, data)
+            logger.info action_signature(action, data)
             public_send action, data
           else
-            logger.error "#{channel_name} failed to process #{compose_signature(action, data)}"
+            logger.error "Unable to process #{action_signature(action, data)}"
           end
         else
           unauthorized
@@ -102,8 +102,8 @@ module ActionCable
           self.class.instance_methods(false).include?(action)
         end
 
-        def compose_signature(action, data)
-          "##{action}".tap do |signature|
+        def action_signature(action, data)
+          "#{channel_name}##{action}".tap do |signature|
             if (arguments = data.except('action')).any?
               signature << "(#{arguments.inspect})"
             end
