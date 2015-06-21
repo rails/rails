@@ -14,9 +14,6 @@ module ActionCable
 
         @server, @env = server, env
 
-        @accept_messages  = false
-        @pending_messages = []
-
         @logger = TaggedLoggerProxy.new(server.logger, tags: log_tags)
 
         @heartbeat     = ActionCable::Connection::Heartbeat.new(self)
@@ -38,10 +35,10 @@ module ActionCable
             message = event.data
 
             if message.is_a?(String)
-              if @accept_messages
+              if accepting_messages?
                 worker_pool.async.invoke(self, :receive, message)
               else
-                @pending_messages << message
+                queue_message message
               end
             else
               logger.error "Couldn't handle non-string message: #{message.class}"
@@ -117,9 +114,28 @@ module ActionCable
           connect if respond_to?(:connect)
           subscribe_to_internal_channel
 
+          ready_to_accept_messages
+          process_pending_messages
+        end
+
+
+        def accepting_messages?
+          @accept_messages
+        end
+
+        def ready_to_accept_messages
           @accept_messages = true
+        end
+
+        def queue_message(message)
+          @pending_messages ||= []
+          @pending_messages << message
+        end
+
+        def process_pending_messages
           worker_pool.async.invoke(self, :receive, @pending_messages.shift) until @pending_messages.empty?
         end
+
 
         def on_close
           server.remove_connection(self)
