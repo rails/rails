@@ -44,7 +44,7 @@ module ActionCable
 
             if message.is_a?(String)
               if @accept_messages
-                worker_pool.async.invoke(self, :received_data, message)
+                worker_pool.async.invoke(self, :receive_data, message)
               else
                 @pending_messages << message
               end
@@ -54,7 +54,7 @@ module ActionCable
           @websocket.on(:close) do |event|
             logger.info finished_request_message
 
-            worker_pool.async.invoke(self, :on_connection_closed)
+            worker_pool.async.invoke(self, :close_connection)
             EventMachine.cancel_timer(@ping_timer) if @ping_timer
           end
 
@@ -64,7 +64,6 @@ module ActionCable
         end
       end
 
-      def received_data(data)
         return unless websocket_alive?
 
         data = ActiveSupport::JSON.decode data
@@ -76,6 +75,7 @@ module ActionCable
           unsubscribe_channel(data)
         when 'message'
           process_message(data)
+      def receive_data(data)
         else
           logger.error "Received unrecognized command in #{data.inspect}"
         end
@@ -124,10 +124,10 @@ module ActionCable
           subscribe_to_internal_channel
 
           @accept_messages = true
-          worker_pool.async.invoke(self, :received_data, @pending_messages.shift) until @pending_messages.empty?
+          worker_pool.async.invoke(self, :receive_data, @pending_messages.shift) until @pending_messages.empty?
         end
 
-        def on_connection_closed
+        def close_connection
           server.remove_connection(self)
 
           cleanup_subscriptions
