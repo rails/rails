@@ -64,26 +64,22 @@ module ActionCable
         end
       end
 
-        return unless websocket_alive?
-
-        data = ActiveSupport::JSON.decode data
-
-        case data['command']
-        when 'subscribe'
-          subscribe_channel(data)
-        when 'unsubscribe'
-          unsubscribe_channel(data)
-        when 'message'
-          process_message(data)
       def receive_data(data)
-        else
-          logger.error "Received unrecognized command in #{data.inspect}"
-        end
-      end
+        if websocket_alive?
+          data = ActiveSupport::JSON.decode data
 
-      def cleanup_subscriptions
-        @subscriptions.each do |id, channel|
-          channel.perform_disconnection
+          case data['command']
+          when 'subscribe'
+            subscribe_channel(data)
+          when 'unsubscribe'
+            unsubscribe_channel(data)
+          when 'message'
+            process_message(data)
+          else
+            logger.error "Received unrecognized command in #{data.inspect}"
+          end
+        else
+          logger.error "Received data without a live websocket (#{data.inspect})"
         end
       end
 
@@ -134,6 +130,13 @@ module ActionCable
           unsubscribe_from_internal_channel
           disconnect if respond_to?(:disconnect)
         end
+
+        def cleanup_subscriptions
+          @subscriptions.each do |id, channel|
+            channel.perform_disconnection
+          end
+        end
+
 
         def transmit_ping_timestamp
           transmit({ identifier: '_ping', message: Time.now.to_i }.to_json)
