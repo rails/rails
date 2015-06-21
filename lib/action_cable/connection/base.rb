@@ -69,12 +69,9 @@ module ActionCable
           data = ActiveSupport::JSON.decode data_in_json
 
           case data['command']
-          when 'subscribe'
-            subscribe_channel(data)
-          when 'unsubscribe'
-            unsubscribe_channel(data)
-          when 'message'
-            process_message(data)
+          when 'subscribe'   then subscribe_channel data
+          when 'unsubscribe' then unsubscribe_channel data
+          when 'message'     then process_message data
           else
             logger.error "Received unrecognized command in #{data.inspect}"
           end
