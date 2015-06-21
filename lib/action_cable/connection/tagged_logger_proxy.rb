@@ -1,7 +1,6 @@
 module ActionCable
   module Connection
     class TaggedLoggerProxy
-
       def initialize(logger, tags:)
         @logger = logger
         @tags = tags.flatten
