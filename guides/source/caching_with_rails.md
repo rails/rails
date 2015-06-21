@@ -254,6 +254,8 @@ store is not appropriate for large application deployments. However, it can
 work well for small, low traffic sites with only a couple of server processes,
 as well as development and test environments.
 
+This is the default cache store implementation.
+
 ### ActiveSupport::Cache::FileStore
 
 This cache store uses the file system to store entries. The path to the directory where the store files will be stored must be specified when initializing the cache.
@@ -269,8 +271,6 @@ share a cache by using a shared file system, but that setup is not recommended.
 
 As the cache will grow until the disk is full, it is recommended to
 periodically clear out old entries.
-
-This is the default cache store implementation.
 
 ### ActiveSupport::Cache::MemCacheStore
 

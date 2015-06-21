@@ -38,7 +38,7 @@ module Rails
         @log_level                     = nil
         @middleware                    = app_middleware
         @generators                    = app_generators
-        @cache_store                   = [ :file_store, "#{root}/tmp/cache/" ]
+        @cache_store                   = [ :memory_store ]
         @railties_order                = [:all]
         @relative_url_root             = ENV["RAILS_RELATIVE_URL_ROOT"]
         @reload_classes_only_on_change = true
