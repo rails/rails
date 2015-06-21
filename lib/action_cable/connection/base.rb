@@ -5,17 +5,20 @@ module ActionCable
       include InternalChannel
 
       PING_INTERVAL = 3
-
-      attr_reader :env, :server, :logger
+      
+      attr_reader :server, :env
       delegate :worker_pool, :pubsub, to: :server
+
+      attr_reader :logger
 
       def initialize(server, env)
         @started_at = Time.now
 
-        @server = server
-        @env = env
-        @accept_messages = false
+        @server, @env = server, env
+
+        @accept_messages  = false
         @pending_messages = []
+
         @subscriptions = {}
 
         @logger = TaggedLoggerProxy.new(server.logger, tags: log_tags)
