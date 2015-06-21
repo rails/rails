@@ -1519,20 +1519,30 @@ conditions exists in the collection. It uses the same syntax and options as
 
 ##### `collection.build(attributes = {}, ...)`
 
-The `collection.build` method returns one or more new objects of the associated type. These objects will be instantiated from the passed attributes, and the link through their foreign key will be created, but the associated objects will _not_ yet be saved.
+The `collection.build` method returns a single or array of new objects of the associated type. The object(s) will be instantiated from the passed attributes, and the link through their foreign key will be created, but the associated objects will _not_ yet be saved.
 
 ```ruby
 @order = @customer.orders.build(order_date: Time.now,
                                 order_number: "A12345")
+
+@orders = @customer.orders.build([
+  { order_date: Time.now, order_number: "A12346" },
+  { order_date: Time.now, order_number: "A12347" }
+])
 ```
 
 ##### `collection.create(attributes = {})`
 
-The `collection.create` method returns a new object of the associated type. This object will be instantiated from the passed attributes, the link through its foreign key will be created, and, once it passes all of the validations specified on the associated model, the associated object _will_ be saved.
+The `collection.create` method returns a single or array of new objects of the associated type. The object(s) will be instantiated from the passed attributes, the link through its foreign key will be created, and, once it passes all of the validations specified on the associated model, the associated object _will_ be saved.
 
 ```ruby
 @order = @customer.orders.create(order_date: Time.now,
                                  order_number: "A12345")
+
+@orders = @customer.orders.create([
+  { order_date: Time.now, order_number: "A12346" },
+  { order_date: Time.now, order_number: "A12347" }
+])
 ```
 
 ##### `collection.create!(attributes = {})`
