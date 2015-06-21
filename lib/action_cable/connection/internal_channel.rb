@@ -37,7 +37,7 @@ module ActionCable
           logger.error "There was an exception - #{e.class}(#{e.message})"
           logger.error e.backtrace.join("\n")
 
-          handle_exception
+          close
         end
     end
   end

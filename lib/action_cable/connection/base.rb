@@ -81,11 +81,6 @@ module ActionCable
         @websocket.send data
       end
 
-
-      def handle_exception
-        close
-      end
-
       def close
         logger.error "Closing connection"
         @websocket.close
