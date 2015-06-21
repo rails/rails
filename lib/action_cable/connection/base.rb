@@ -33,7 +33,7 @@ module ActionCable
           @websocket.on(:open) do |event|
             transmit_ping_timestamp
             @ping_timer = EventMachine.add_periodic_timer(PING_INTERVAL) { transmit_ping_timestamp }
-            worker_pool.async.invoke(self, :initialize_connection)
+            worker_pool.async.invoke(self, :on_open)
           end
 
           @websocket.on(:message) do |event|
@@ -51,7 +51,7 @@ module ActionCable
           @websocket.on(:close) do |event|
             logger.info finished_request_message
 
-            worker_pool.async.invoke(self, :close_connection)
+            worker_pool.async.invoke(self, :on_close)
             EventMachine.cancel_timer(@ping_timer) if @ping_timer
           end
 
@@ -110,7 +110,9 @@ module ActionCable
           request.cookie_jar
         end
 
-        def initialize_connection
+
+      private
+        def on_open
           server.add_connection(self)
 
           connect if respond_to?(:connect)
@@ -120,7 +122,7 @@ module ActionCable
           worker_pool.async.invoke(self, :receive, @pending_messages.shift) until @pending_messages.empty?
         end
 
-        def close_connection
+        def on_close
           server.remove_connection(self)
 
           cleanup_subscriptions
