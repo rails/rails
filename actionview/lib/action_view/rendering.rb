@@ -59,7 +59,7 @@ module ActionView
       @_view_context_class ||= self.class.view_context_class
     end
 
-    # An instance of a view class. The default view class is ActionView::Base
+    # An instance of a view class. The default view class is ActionView::Base.
     #
     # The view class must have the following methods:
     # View.new[lookup_context, assigns, controller]
