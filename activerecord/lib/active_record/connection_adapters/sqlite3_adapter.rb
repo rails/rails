@@ -282,7 +282,8 @@ module ActiveRecord
         @connection.last_insert_row_id
       end
 
-      def execute(sql, name = nil) #:nodoc:
+      # Executes the SQL statement in the context of this connection.
+      def execute(sql, name = nil)
         log(sql, name) { @connection.execute(sql) }
       end
 
