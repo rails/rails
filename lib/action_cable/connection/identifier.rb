@@ -6,11 +6,11 @@ module ActionCable
       end
 
       def connection_identifier
-        @connection_identifier ||= connection_gid identifiers.map { |id| instance_variable_get("@#{id}")}.compact
+        @connection_identifier ||= connection_gid identifiers.map { |id| instance_variable_get("@#{id}") }.compact
       end
 
       def connection_gid(ids)
-        ids.map {|o| o.to_global_id.to_s }.sort.join(":")
+        ids.map { |o| o.to_global_id.to_s }.sort.join(":")
       end
     end
   end
