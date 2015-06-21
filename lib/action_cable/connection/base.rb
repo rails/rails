@@ -64,9 +64,9 @@ module ActionCable
         end
       end
 
-      def receive_data(data)
+      def receive_data(data_in_json)
         if websocket_alive?
-          data = ActiveSupport::JSON.decode data
+          data = ActiveSupport::JSON.decode data_in_json
 
           case data['command']
           when 'subscribe'
