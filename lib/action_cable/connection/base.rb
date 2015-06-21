@@ -43,6 +43,8 @@ module ActionCable
               else
                 @pending_messages << message
               end
+            else
+              logger.error "Couldn't handle non-string message: #{message.class}"
             end
           end
 
