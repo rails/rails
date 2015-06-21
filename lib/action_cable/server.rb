@@ -34,7 +34,7 @@ module ActionCable
         redis.on(:reconnect_failed) do
           logger.info "[ActionCable] Redis reconnect failed."
           # logger.info "[ActionCable] Redis reconnected. Closing all the open connections."
-          # @connections.map &:close_connection
+          # @connections.map &:close
         end
         redis
       end
