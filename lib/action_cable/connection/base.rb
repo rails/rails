@@ -44,7 +44,7 @@ module ActionCable
 
             if message.is_a?(String)
               if @accept_messages
-                worker_pool.async.invoke(self, :receive_data, message)
+                worker_pool.async.invoke(self, :receive, message)
               else
                 @pending_messages << message
               end
@@ -64,7 +64,7 @@ module ActionCable
         end
       end
 
-      def receive_data(data_in_json)
+      def receive(data_in_json)
         if websocket_alive?
           data = ActiveSupport::JSON.decode data_in_json
 
@@ -117,7 +117,7 @@ module ActionCable
           subscribe_to_internal_channel
 
           @accept_messages = true
-          worker_pool.async.invoke(self, :receive_data, @pending_messages.shift) until @pending_messages.empty?
+          worker_pool.async.invoke(self, :receive, @pending_messages.shift) until @pending_messages.empty?
         end
 
         def close_connection
