@@ -1,8 +1,17 @@
 module ActionCable
   module Connection
-    module Identifier
-      def internal_redis_channel
-        "action_cable/#{connection_identifier}"
+    module Identification
+      extend ActiveSupport::Concern
+
+      included do
+        class_attribute :identifiers
+        self.identifiers = Set.new
+      end
+
+      class_methods do
+        def identified_by(*identifiers)
+          self.identifiers += identifiers
+        end
       end
 
       def connection_identifier

@@ -1,16 +1,10 @@
 module ActionCable
   module Connection
     class Base
-      include InternalChannel, Identifier
+      include Identification
+      include InternalChannel
 
       PING_INTERVAL = 3
-
-      class_attribute :identifiers
-      self.identifiers = Set.new
-
-      def self.identified_by(*identifiers)
-        self.identifiers += identifiers
-      end
 
       attr_reader :env, :server, :logger
       delegate :worker_pool, :pubsub, to: :server

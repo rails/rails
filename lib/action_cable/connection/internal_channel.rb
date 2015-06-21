@@ -3,6 +3,10 @@ module ActionCable
     module InternalChannel
       extend ActiveSupport::Concern
 
+      def internal_redis_channel
+        "action_cable/#{connection_identifier}"
+      end
+
       def subscribe_to_internal_channel
         if connection_identifier.present?
           callback = -> (message) { process_internal_message(message) }
