@@ -84,13 +84,6 @@ module ActionCable
         @websocket.send data
       end
 
-      def statistics
-        {
-          identifier: connection_identifier,
-          started_at: @started_at,
-          subscriptions: @subscriptions.keys
-        }
-      end
 
       def handle_exception
         close_connection
@@ -100,6 +93,16 @@ module ActionCable
         logger.error "Closing connection"
         @websocket.close
       end
+
+
+      def statistics
+        {
+          identifier:    connection_identifier,
+          started_at:    @started_at,
+          subscriptions: @subscriptions.keys
+        }
+      end
+
 
       protected
         def request
