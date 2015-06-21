@@ -55,7 +55,9 @@ module ActionCable
 
           @websocket.rack_response
         else
-          invalid_request
+          logger.info finished_request_message
+
+          respond_to_invalid_request
         end
       end
 
@@ -134,9 +136,8 @@ module ActionCable
         end
 
 
-        def invalid_request
-          logger.info finished_request_message
-          [404, {'Content-Type' => 'text/plain'}, ['Page not found']]
+        def respond_to_invalid_request
+          [ 404, { 'Content-Type' => 'text/plain' }, [ 'Page not found' ] ]
         end
 
         def websocket_alive?
