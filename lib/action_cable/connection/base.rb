@@ -4,12 +4,8 @@ module ActionCable
       include Identification
       include InternalChannel
 
-      PING_INTERVAL = 3
-      
       attr_reader :server, :env
       delegate :worker_pool, :pubsub, to: :server
-
-      attr_reader :subscriptions
 
       attr_reader :logger
 
@@ -23,6 +19,7 @@ module ActionCable
 
         @logger = TaggedLoggerProxy.new(server.logger, tags: log_tags)
 
+        @heartbeat     = ActionCable::Connection::Heartbeat.new(self)
         @subscriptions = ActionCable::Connection::Subscriptions.new(self)
       end
 
@@ -33,8 +30,7 @@ module ActionCable
           @websocket = Faye::WebSocket.new(@env)
 
           @websocket.on(:open) do |event|
-            transmit_ping_timestamp
-            @ping_timer = EventMachine.add_periodic_timer(PING_INTERVAL) { transmit_ping_timestamp }
+            heartbeat.start
             worker_pool.async.invoke(self, :on_open)
           end
 
@@ -53,8 +49,8 @@ module ActionCable
           @websocket.on(:close) do |event|
             logger.info finished_request_message
 
+            heartbeat.stop
             worker_pool.async.invoke(self, :on_close)
-            EventMachine.cancel_timer(@ping_timer) if @ping_timer
           end
 
           @websocket.rack_response
@@ -109,6 +105,8 @@ module ActionCable
 
 
       private
+        attr_reader :heartbeat, :subscriptions
+
         def on_open
           server.add_connection(self)
 
@@ -125,11 +123,6 @@ module ActionCable
           subscriptions.cleanup
           unsubscribe_from_internal_channel
           disconnect if respond_to?(:disconnect)
-        end
-
-
-        def transmit_ping_timestamp
-          transmit({ identifier: '_ping', message: Time.now.to_i }.to_json)
         end
 
 
