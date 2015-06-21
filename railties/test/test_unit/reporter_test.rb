@@ -47,7 +47,6 @@ class TestUnitReporterTest < ActiveSupport::TestCase
     original_executable = Rails::TestUnitReporter.executable
     begin
       Rails::TestUnitReporter.executable = "bin/test"
-      verbose = Rails::TestUnitReporter.new @output, verbose: true
       @reporter.record(failed_test)
       @reporter.report
 
