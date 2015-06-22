@@ -100,7 +100,7 @@ module ActionCable
         end
 
         def on_message(message)
-          message_buffer.append event.data
+          message_buffer.append message
         end
 
         def on_close
