@@ -1,3 +1,9 @@
+*   `validates_absence_of` respects `marked_for_destruction?`.
+
+    Fixes #20449.
+
+    *Yves Senn*
+
 *   Include the `Enumerable` module in `ActiveRecord::Relation`
 
     *Sean Griffin & bogdan*
