@@ -24,8 +24,8 @@ module ActionCable
       def process
         logger.info started_request_message
 
-        if websocket?
           @websocket = Faye::WebSocket.new(@env)
+        if websocket_request?
 
           websocket.on(:open)    { |event| send_async :on_open   }
           websocket.on(:message) { |event| on_message event.data }
@@ -115,8 +115,8 @@ module ActionCable
           websocket && websocket.ready_state == Faye::WebSocket::API::OPEN
         end
 
-        def websocket?
-          @is_websocket ||= Faye::WebSocket.websocket?(@env)
+        def websocket_request?
+          @is_websocket ||= Faye::WebSocket.websocket_request?(@env)
         end
 
 
@@ -124,7 +124,7 @@ module ActionCable
           'Started %s "%s"%s for %s at %s' % [
             request.request_method,
             request.filtered_path,
-            websocket? ? ' [Websocket]' : '',
+            websocket_request? ? ' [Websocket]' : '',
             request.ip,
             Time.now.to_default_s ]
         end
@@ -132,7 +132,7 @@ module ActionCable
         def finished_request_message
           'Finished "%s"%s for %s at %s' % [
             request.filtered_path,
-            websocket? ? ' [Websocket]' : '',
+            websocket_request? ? ' [Websocket]' : '',
             request.ip,
             Time.now.to_default_s ]
         end
