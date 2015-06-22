@@ -18,6 +18,7 @@ module ActionCable
 
         @heartbeat     = ActionCable::Connection::Heartbeat.new(self)
         @subscriptions = ActionCable::Connection::Subscriptions.new(self)
+        @processor     = ActionCable::Connection::Processor.new(self)
       end
 
       def process
@@ -32,17 +33,7 @@ module ActionCable
           end
 
           @websocket.on(:message) do |event|
-            message = event.data
-
-            if message.is_a?(String)
-              if accepting_messages?
-                worker_pool.async.invoke(self, :receive, message)
-              else
-                queue_message message
-              end
-            else
-              logger.error "Couldn't handle non-string message: #{message.class}"
-            end
+            processor.handle event.data
           end
 
           @websocket.on(:close) do |event|
