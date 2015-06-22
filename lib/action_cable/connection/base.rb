@@ -27,11 +27,11 @@ module ActionCable
         if websocket?
           @websocket = Faye::WebSocket.new(@env)
 
-          @websocket.on(:open)    { |event| send_async :on_open   }
-          @websocket.on(:message) { |event| on_message event.data }
-          @websocket.on(:close)   { |event| send_async :on_close  }
-
-          @websocket.rack_response
+          websocket.on(:open)    { |event| send_async :on_open   }
+          websocket.on(:message) { |event| on_message event.data }
+          websocket.on(:close)   { |event| send_async :on_close  }
+          
+          websocket.rack_response
         else
           respond_to_invalid_request
         end
@@ -54,12 +54,12 @@ module ActionCable
       end
 
       def transmit(data)
-        @websocket.send data
+        websocket.send data
       end
 
       def close
         logger.error "Closing connection"
-        @websocket.close
+        websocket.close
       end
 
 
@@ -87,6 +87,7 @@ module ActionCable
 
 
       private
+        attr_reader :websocket
         attr_reader :heartbeat, :subscriptions, :message_buffer
 
         def on_open
@@ -134,7 +135,7 @@ module ActionCable
         end
 
         def websocket_alive?
-          @websocket && @websocket.ready_state == Faye::WebSocket::API::OPEN
+          websocket && websocket.ready_state == Faye::WebSocket::API::OPEN
         end
 
         def websocket?
