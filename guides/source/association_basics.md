@@ -2344,13 +2344,13 @@ associations, public methods, etc.
 Creating a car will save it in the `vehicles` table with "Car" as the `type` field:
 
 ```ruby
-Car.create color: 'Red', price: 10000
+Car.create(color: 'Red', price: 10000)
 ```
 
 will generate the following SQL:
 
 ```sql
-INSERT INTO "vehicles" ("type", "color", "price") VALUES ("Car", "Red", 10000)
+INSERT INTO "vehicles" ("type", "color", "price") VALUES ('Car', 'Red', 10000)
 ```
 
 Querying car records will just search for vehicles that are cars:
