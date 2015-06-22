@@ -22,7 +22,10 @@ module ActiveRecord
     end
 
     module ClassMethods
-      # See <tt>ActiveModel::Validation::LengthValidator</tt> for more information.
+      # Validates that the specified attributes matches the length restrictions supplied.
+      # If the attribute is an association, records that are marked for destruction are not counted.
+      #
+      # See ActiveModel::Validations::HelperMethods.validates_length_of for more information.
       def validates_length_of(*attr_names)
         validates_with LengthValidator, _merge_attributes(attr_names)
       end
