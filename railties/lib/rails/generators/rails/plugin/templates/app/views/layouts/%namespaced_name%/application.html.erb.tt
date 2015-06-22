@@ -7,9 +7,9 @@
   <%%= csrf_meta_tags %>
 </head>
 <body>
-  <% flash.each do |key, message| %>
-    <div class='flash flash-<%= key %>'><%= message %>
-  <% end %>
+  <%% flash.each do |key, message| %>
+    <div class='flash flash-<%%= key %>'><%%= message %>
+  <%% end %>
 
 <%%= yield %>
 
