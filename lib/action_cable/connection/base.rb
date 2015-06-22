@@ -120,7 +120,7 @@ module ActionCable
         end
 
         def websocket_request?
-          @is_websocket ||= Faye::WebSocket.websocket_request?(@env)
+          @is_websocket ||= Faye::WebSocket.websocket?(@env)
         end
 
 
