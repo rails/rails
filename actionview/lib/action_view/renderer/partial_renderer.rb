@@ -348,8 +348,6 @@ module ActionView
       content
     end
 
-    private
-
     # Sets up instance variables needed for rendering a partial. This method
     # finds the options and details and extracts them. The method also contains
     # logic that handles the type of object passed in as the partial.
