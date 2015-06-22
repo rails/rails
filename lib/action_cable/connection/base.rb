@@ -39,7 +39,7 @@ module ActionCable
 
       def receive(data_in_json)
         if websocket_alive?
-          execute_command decode_json(data_in_json)
+          subscriptions.execute_command ActiveSupport::JSON.decode(data_in_json)
         else
           logger.error "Received data without a live websocket (#{data.inspect})"
         end
@@ -105,24 +105,6 @@ module ActionCable
         end
 
 
-        def execute_command(data)
-          case data['command']
-          when 'subscribe'   then subscriptions.add data
-          when 'unsubscribe' then subscriptions.remove data
-          when 'message'     then subscriptions.find(message['identifier']).perform_action decode_json(message['data'])
-          else
-            logger.error "Received unrecognized command in #{data.inspect}"
-          end
-        rescue Exception => e
-          logger.error "Could not execute command from #{data.inspect})"
-          log_exception(e)
-        end
-
-        def decode_json(json)
-          ActiveSupport::JSON.decode json
-        end
-
-
         def respond_to_invalid_request
           logger.info finished_request_message
           [ 404, { 'Content-Type' => 'text/plain' }, [ 'Page not found' ] ]
@@ -157,8 +139,7 @@ module ActionCable
 
 
         def log_exception(e)
-          logger.error "There was an exception: #{e.class} - #{e.message}"
-          logger.error e.backtrace.join("\n")
+          logger.error "Exception raised #{e.class} - #{e.message}: #{e.backtrace.first(5).join(" | ")}"
         end
 
         def log_tags

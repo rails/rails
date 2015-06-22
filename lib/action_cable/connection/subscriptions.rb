@@ -6,6 +6,19 @@ module ActionCable
         @subscriptions = {}
       end
 
+      def execute_command(data)
+        case data['command']
+        when 'subscribe'   then add data
+        when 'unsubscribe' then remove data
+        when 'message'     then perform_action data
+        else
+          logger.error "Received unrecognized command in #{data.inspect}"
+        end
+      rescue Exception => e
+        logger.error "Could not execute command from #{data.inspect})"
+        connection.log_exception(e)
+      end
+
       def add(data)
         id_key = data['identifier']
         id_options = ActiveSupport::JSON.decode(id_key).with_indifferent_access
@@ -27,13 +40,10 @@ module ActionCable
         subscriptions.delete(data['identifier'])
       end
 
-      def find(identifier)
-        if subscription = subscriptions[identifier]
-          subscription
-        else
-          raise "Unable to find subscription with identifier: #{identifier}"
-        end
+      def perform_action(data)
+        find(data).perform_action ActiveSupport::JSON.decode(data['data'])
       end
+
 
       def identifiers
         subscriptions.keys
@@ -43,9 +53,18 @@ module ActionCable
         subscriptions.each { |id, channel| channel.perform_disconnection }
       end
 
+
       private
         attr_reader :connection, :subscriptions
         delegate :logger, to: :connection
+
+        def find(data)
+          if subscription = subscriptions[data['identifier']]
+            subscription
+          else
+            raise "Unable to find subscription with identifier: #{identifier}"
+          end
+        end
     end
   end
 end
