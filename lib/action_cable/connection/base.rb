@@ -27,26 +27,12 @@ module ActionCable
         if websocket?
           @websocket = Faye::WebSocket.new(@env)
 
-          @websocket.on(:open) do |event|
-            heartbeat.start
-            send_async :on_open
-          end
-
-          @websocket.on(:message) do |event|
-            message_buffer.append event.data
-          end
-
-          @websocket.on(:close) do |event|
-            logger.info finished_request_message
-
-            heartbeat.stop
-            send_async :on_close
-          end
+          @websocket.on(:open)    { |event| send_async :on_open   }
+          @websocket.on(:message) { |event| on_message event.data }
+          @websocket.on(:close)   { |event| send_async :on_close  }
 
           @websocket.rack_response
         else
-          logger.info finished_request_message
-
           respond_to_invalid_request
         end
       end
@@ -108,16 +94,24 @@ module ActionCable
 
           connect if respond_to?(:connect)
           subscribe_to_internal_channel
+          heartbeat.start
 
           message_buffer.process!
         end
 
+        def on_message(message)
+          message_buffer.append event.data
+        end
 
         def on_close
+          logger.info finished_request_message
+
           server.remove_connection(self)
 
           subscriptions.cleanup
           unsubscribe_from_internal_channel
+          heartbeat.stop
+
           disconnect if respond_to?(:disconnect)
         end
 
@@ -135,6 +129,7 @@ module ActionCable
         end
 
         def respond_to_invalid_request
+          logger.info finished_request_message
           [ 404, { 'Content-Type' => 'text/plain' }, [ 'Page not found' ] ]
         end
 
