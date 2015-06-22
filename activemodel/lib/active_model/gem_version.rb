@@ -7,8 +7,8 @@ module ActiveModel
   module VERSION
     MAJOR = 4
     MINOR = 1
-    TINY  = 11
-    PRE   = nil
+    TINY  = 12
+    PRE   = "rc1"
 
     STRING = [MAJOR, MINOR, TINY, PRE].compact.join(".")
   end
