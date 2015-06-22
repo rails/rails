@@ -68,11 +68,7 @@ module ActionCable
       end
 
       def statistics
-        {
-          identifier:    connection_identifier,
-          started_at:    @started_at,
-          subscriptions: subscriptions.identifiers
-        }
+        { identifier: connection_identifier, started_at: @started_at, subscriptions: subscriptions.identifiers }
       end
 
 
