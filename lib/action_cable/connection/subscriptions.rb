@@ -40,9 +40,7 @@ module ActionCable
       end
 
       def cleanup
-        subscriptions.each do |id, channel|
-          channel.perform_disconnection
-        end
+        subscriptions.each { |id, channel| channel.perform_disconnection }
       end
 
       private
