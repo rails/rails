@@ -1,3 +1,5 @@
+## Rails 4.2.3 (June 22, 2015) ##
+
 *   Fix rake routes not showing the right format when
     nesting multiple routes.
 
