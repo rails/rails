@@ -2,7 +2,7 @@ module ActionCable
   class RemoteConnection
     class InvalidIdentifiersError < StandardError; end
 
-    include Connection::Identifier
+    include Connection::Identification, Connection::InternalChannel
 
     def initialize(server, ids)
       @server = server
@@ -10,8 +10,7 @@ module ActionCable
     end
 
     def disconnect
-      message = { type: 'disconnect' }.to_json
-      redis.publish(internal_redis_channel, message)
+      redis.publish internal_redis_channel, { type: 'disconnect' }.to_json
     end
 
     def identifiers
