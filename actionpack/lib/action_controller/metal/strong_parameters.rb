@@ -23,11 +23,13 @@ module ActionController
     end
   end
 
-  # Raised when a supplied parameter is not expected.
+  # Raised when a supplied parameter is not expected and
+  # ActionController::Parameters.action_on_unpermitted_parameters
+  # set as <tt>:raise</tt>.
   #
   #   params = ActionController::Parameters.new(a: "123", b: "456")
   #   params.permit(:c)
-  #   # => ActionController::UnpermittedParameters: found unexpected keys: a, b
+  #   # => ActionController::UnpermittedParameters: found unpermitted parameters: a, b
   class UnpermittedParameters < IndexError
     attr_reader :params # :nodoc:
 
