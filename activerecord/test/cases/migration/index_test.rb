@@ -198,6 +198,11 @@ module ActiveRecord
         end
       end
 
+      def test_add_column_with_index_option
+        connection.add_column :testings, :index_column, :string, index: true
+        assert_equal 1, connection.indexes(:testings).size
+      end
+
       private
         def good_index_name
           'x' * connection.allowed_index_name_length

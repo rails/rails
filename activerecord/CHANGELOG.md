@@ -1,3 +1,7 @@
+*   Added `index` option to add_column migration.
+
+    *Mehmet Emin İNAÇ*
+
 *   Include the `Enumerable` module in `ActiveRecord::Relation`
 
     *Sean Griffin & bogdan*
