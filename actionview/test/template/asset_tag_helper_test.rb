@@ -310,6 +310,11 @@ class AssetTagHelperTest < ActionView::TestCase
     AssetPathToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
   end
 
+  def test_asset_path_tag_raises_an_error_for_nil_source
+    exception = assert_raise(ArgumentError) { asset_path(nil) }
+    assert_equal("Cannot pass nil as asset source", exception.message)
+  end
+
   def test_asset_path_tag_to_not_create_duplicate_slashes
     @controller.config.asset_host = "host/"
     assert_dom_equal('http://host/foo', asset_path("foo"))
