@@ -24,8 +24,8 @@ module ActionCable
       def process
         logger.info started_request_message
 
-          @websocket = Faye::WebSocket.new(@env)
         if websocket_request?
+          websocket_initialization
 
           websocket.on(:open)    { |event| send_async :on_open   }
           websocket.on(:message) { |event| on_message event.data }
@@ -110,6 +110,10 @@ module ActionCable
           [ 404, { 'Content-Type' => 'text/plain' }, [ 'Page not found' ] ]
         end
 
+
+        def websocket_initialization
+          @websocket = Faye::WebSocket.new(@env)
+        end
 
         def websocket_alive?
           websocket && websocket.ready_state == Faye::WebSocket::API::OPEN
