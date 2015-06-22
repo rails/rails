@@ -1,15 +1,5 @@
 module ActiveModel
   module Validations
-    module HelperMethods
-      private
-        def _merge_attributes(attr_names)
-          options = attr_names.extract_options!.symbolize_keys
-          attr_names.flatten!
-          options[:attributes] = attr_names
-          options
-        end
-    end
-
     class WithValidator < EachValidator # :nodoc:
       def validate_each(record, attr, val)
         method_name = options[:with]
