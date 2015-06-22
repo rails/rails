@@ -120,15 +120,16 @@ module ActionCable
           log_exception(e)
         end
 
-
         def decode_json(json)
           ActiveSupport::JSON.decode json
         end
+
 
         def respond_to_invalid_request
           logger.info finished_request_message
           [ 404, { 'Content-Type' => 'text/plain' }, [ 'Page not found' ] ]
         end
+
 
         def websocket_alive?
           websocket && websocket.ready_state == Faye::WebSocket::API::OPEN
@@ -137,6 +138,7 @@ module ActionCable
         def websocket?
           @is_websocket ||= Faye::WebSocket.websocket?(@env)
         end
+
 
         def started_request_message
           'Started %s "%s"%s for %s at %s' % [
@@ -154,6 +156,7 @@ module ActionCable
             request.ip,
             Time.now.to_default_s ]
         end
+
 
         def log_exception(e)
           logger.error "There was an exception: #{e.class} - #{e.message}"
