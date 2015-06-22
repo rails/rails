@@ -16,9 +16,9 @@ module ActionCable
 
         @logger = TaggedLoggerProxy.new(server.logger, tags: log_tags)
 
-        @heartbeat     = ActionCable::Connection::Heartbeat.new(self)
-        @subscriptions = ActionCable::Connection::Subscriptions.new(self)
-        @processor     = ActionCable::Connection::Processor.new(self)
+        @heartbeat      = ActionCable::Connection::Heartbeat.new(self)
+        @subscriptions  = ActionCable::Connection::Subscriptions.new(self)
+        @message_buffer = ActionCable::Connection::MessageBuffer.new(self)
       end
 
       def process
@@ -33,7 +33,7 @@ module ActionCable
           end
 
           @websocket.on(:message) do |event|
-            processor.handle event.data
+            message_buffer.append event.data
           end
 
           @websocket.on(:close) do |event|
@@ -101,7 +101,7 @@ module ActionCable
 
 
       private
-        attr_reader :heartbeat, :subscriptions, :processor
+        attr_reader :heartbeat, :subscriptions, :message_buffer
 
         def on_open
           server.add_connection(self)
@@ -109,7 +109,7 @@ module ActionCable
           connect if respond_to?(:connect)
           subscribe_to_internal_channel
 
-          processor.ready!
+          message_buffer.process!
         end
 
 
