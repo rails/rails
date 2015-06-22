@@ -17,12 +17,12 @@ module ActionCable
         if subscription_klass
           subscriptions[id_key] = subscription_klass.new(connection, id_key, id_options)
         else
-          connection.logger.error "Subscription class not found (#{data.inspect})"
+          logger.error "Subscription class not found (#{data.inspect})"
         end
       end
 
       def remove(data)
-        connection.logger.info "Unsubscribing from channel: #{data['identifier']}"
+        logger.info "Unsubscribing from channel: #{data['identifier']}"
         subscriptions[data['identifier']].perform_disconnection
         subscriptions.delete(data['identifier'])
       end
@@ -45,6 +45,7 @@ module ActionCable
 
       private
         attr_reader :connection, :subscriptions
+        delegate :logger, to: :connection
     end
   end
 end
