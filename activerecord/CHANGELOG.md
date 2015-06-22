@@ -1,3 +1,7 @@
+*   Add virtual table option to the create_table migration for sqlite3
+
+    *Mehmet Emin İNAÇ*
+
 *   Include the `Enumerable` module in `ActiveRecord::Relation`
 
     *Sean Griffin & bogdan*
