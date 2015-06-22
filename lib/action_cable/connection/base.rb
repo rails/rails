@@ -29,7 +29,7 @@ module ActionCable
 
           @websocket.on(:open) do |event|
             heartbeat.start
-            worker_pool.async.invoke(self, :on_open)
+            send_async :on_open
           end
 
           @websocket.on(:message) do |event|
@@ -40,7 +40,7 @@ module ActionCable
             logger.info finished_request_message
 
             heartbeat.stop
-            worker_pool.async.invoke(self, :on_close)
+            send_async :on_close
           end
 
           @websocket.rack_response
@@ -77,6 +77,10 @@ module ActionCable
       end
 
 
+      def send_async(method, *arguments)
+        worker_pool.async.invoke(self, method, *arguments)
+      end
+
       def statistics
         {
           identifier:    connection_identifier,
@@ -97,7 +101,7 @@ module ActionCable
 
 
       private
-        attr_reader :heartbeat, :subscriptions
+        attr_reader :heartbeat, :subscriptions, :processor
 
         def on_open
           server.add_connection(self)
@@ -105,26 +109,7 @@ module ActionCable
           connect if respond_to?(:connect)
           subscribe_to_internal_channel
 
-          ready_to_accept_messages
-          process_pending_messages
-        end
-
-
-        def accepting_messages?
-          @accept_messages
-        end
-
-        def ready_to_accept_messages
-          @accept_messages = true
-        end
-
-        def queue_message(message)
-          @pending_messages ||= []
-          @pending_messages << message
-        end
-
-        def process_pending_messages
-          worker_pool.async.invoke(self, :receive, @pending_messages.shift) until @pending_messages.empty?
+          processor.ready!
         end
 
 

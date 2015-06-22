@@ -30,7 +30,7 @@ module ActionCable
         attr_accessor :pending_messages
 
         def process(message)
-          connection.worker_pool.async.invoke(connection, :receive, message)
+          connection.send_async :receive, message
         end
 
         def queue(message)
