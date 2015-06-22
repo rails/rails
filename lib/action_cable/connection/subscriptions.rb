@@ -19,8 +19,6 @@ module ActionCable
         else
           connection.logger.error "Subscription class not found (#{data.inspect})"
         end
-      rescue Exception => e
-        connection.logger.error "Could not subscribe to channel (#{data.inspect}) due to '#{e}': #{e.backtrace.join(' - ')}"
       end
 
       def remove(data)

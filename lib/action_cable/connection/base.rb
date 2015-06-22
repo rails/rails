@@ -39,15 +39,7 @@ module ActionCable
 
       def receive(data_in_json)
         if websocket_alive?
-          data = decode_json data_in_json
-
-          case data['command']
-          when 'subscribe'   then subscriptions.add data
-          when 'unsubscribe' then subscriptions.remove data
-          when 'message'     then process_message data
-          else
-            logger.error "Received unrecognized command in #{data.inspect}"
-          end
+          execute_command decode_json(data_in_json)
         else
           logger.error "Received data without a live websocket (#{data.inspect})"
         end
@@ -113,10 +105,16 @@ module ActionCable
         end
 
 
-        def process_message(message)
-          subscriptions.find(message['identifier']).perform_action decode_json(message['data'])
+        def execute_command(data)
+          case data['command']
+          when 'subscribe'   then subscriptions.add data
+          when 'unsubscribe' then subscriptions.remove data
+          when 'message'     then subscriptions.find(message['identifier']).perform_action decode_json(message['data'])
+          else
+            logger.error "Received unrecognized command in #{data.inspect}"
+          end
         rescue Exception => e
-          logger.error "Could not process message (#{message.inspect})"
+          logger.error "Could not execute command from #{data.inspect})"
           log_exception(e)
         end
 
