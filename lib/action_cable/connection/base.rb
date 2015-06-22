@@ -53,7 +53,7 @@ module ActionCable
 
       def receive(data_in_json)
         if websocket_alive?
-          data = ActiveSupport::JSON.decode data_in_json
+          data = decode_json data_in_json
 
           case data['command']
           when 'subscribe'   then subscriptions.add data
@@ -123,12 +123,16 @@ module ActionCable
 
 
         def process_message(message)
-          subscriptions.find(message['identifier']).perform_action(ActiveSupport::JSON.decode(message['data']))
+          subscriptions.find(message['identifier']).perform_action decode_json(message['data'])
         rescue Exception => e
           logger.error "Could not process message (#{message.inspect})"
           log_exception(e)
         end
 
+
+        def decode_json(json)
+          ActiveSupport::JSON.decode json
+        end
 
         def respond_to_invalid_request
           [ 404, { 'Content-Type' => 'text/plain' }, [ 'Page not found' ] ]
