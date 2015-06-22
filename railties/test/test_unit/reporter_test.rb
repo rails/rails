@@ -32,6 +32,7 @@ class TestUnitReporterTest < ActiveSupport::TestCase
     @reporter.record(passing_test)
     @reporter.record(skipped_test)
     @reporter.report
+    assert_no_match 'Failed tests:', @output.string
     assert_rerun_snippet_count 0
   end
 
