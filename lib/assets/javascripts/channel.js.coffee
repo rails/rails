@@ -1,9 +1,12 @@
 class @Cable.Channel
   constructor: (params = {}) ->
-    @channelName ?= "#{@underscore(@constructor.name)}_channel"
+    {channelName} = @constructor
 
-    params['channel'] = @channelName
-    @channelIdentifier = JSON.stringify params
+    if channelName?
+      params['channel'] = channelName
+      @channelIdentifier = JSON.stringify params
+    else
+      throw new Error "This channel's constructor is missing the required 'channelName' property"
 
     cable.subscribe(@channelIdentifier, {
       onConnect: @connected
@@ -28,7 +31,3 @@ class @Cable.Channel
 
   send: (data) ->
     cable.sendData @channelIdentifier, JSON.stringify data
-
-
-  underscore: (value) ->
-    value.replace(/[A-Z]/g, (match) => "_#{match.toLowerCase()}").substr(1)
