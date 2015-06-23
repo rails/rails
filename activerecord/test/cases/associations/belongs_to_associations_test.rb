@@ -318,9 +318,11 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   def test_polymorphic_association_class
     sponsor = Sponsor.new
     assert_nil sponsor.association(:sponsorable).send(:klass)
+    assert_nil sponsor.sponsorable(force_reload: true)
 
     sponsor.sponsorable_type = '' # the column doesn't have to be declared NOT NULL
     assert_nil sponsor.association(:sponsorable).send(:klass)
+    assert_nil sponsor.sponsorable(force_reload: true)
 
     sponsor.sponsorable = Member.new :name => "Bert"
     assert_equal Member, sponsor.association(:sponsorable).send(:klass)
