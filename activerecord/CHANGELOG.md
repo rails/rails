@@ -1,3 +1,10 @@
+*   Correctly raise `ActiveRecord::AssociationTypeMismatch` when assigning
+    a wrong type to a namespaced association.
+
+    Fixes #20545.
+
+    *Diego Carrion*
+
 *   Prevent error when using `force_reload: true` on an unassigned polymorphic
     belongs_to association.
 
