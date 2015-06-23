@@ -1,3 +1,10 @@
+*   Prevent error when using `force_reload: true` on an unassigned polymorphic
+    belongs_to association.
+
+    Fixes #20426.
+
+    *James Dabbs*
+
 *   Let `WITH` queries (Common Table Expressions) be explainable.
 
     *Vladimir Kochnev*
