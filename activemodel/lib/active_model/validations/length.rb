@@ -98,7 +98,7 @@ module ActiveModel
 
     module HelperMethods
 
-      # Validates that the specified attribute matches the length restrictions
+      # Validates that the specified attributes match the length restrictions
       # supplied. Only one option can be used at a time:
       #
       #   class Person < ActiveRecord::Base

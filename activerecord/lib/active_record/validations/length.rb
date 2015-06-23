@@ -22,7 +22,7 @@ module ActiveRecord
     end
 
     module ClassMethods
-      # Validates that the specified attributes matches the length restrictions supplied.
+      # Validates that the specified attributes match the length restrictions supplied.
       # If the attribute is an association, records that are marked for destruction are not counted.
       #
       # See ActiveModel::Validations::HelperMethods.validates_length_of for more information.
