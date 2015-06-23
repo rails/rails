@@ -58,22 +58,6 @@ class Server < ::Rack::Server
 end
 ```
 
-Here's how it loads the middlewares:
-
-```ruby
-def middleware
-  middlewares = []
-  middlewares << [::Rack::ContentLength]
-  Hash.new(middlewares)
-end
-```
-
-The following table explains the usage of the loaded middlewares:
-
-| Middleware              | Purpose                                                                           |
-| ----------------------- | --------------------------------------------------------------------------------- |
-| `Rack::ContentLength`   | Counts the number of bytes in the response and set the HTTP Content-Length header |
-
 ### `rackup`
 
 To use `rackup` instead of Rails' `rails server`, you can put the following inside `config.ru` of your Rails application's root directory:
@@ -81,8 +65,6 @@ To use `rackup` instead of Rails' `rails server`, you can put the following insi
 ```ruby
 # Rails.root/config.ru
 require ::File.expand_path('../config/environment', __FILE__)
-
-use Rack::ContentLength
 run Rails.application
 ```
 
