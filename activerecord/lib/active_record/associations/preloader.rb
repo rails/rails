@@ -10,7 +10,7 @@ module ActiveRecord
     #   end
     #
     #   class Book < ActiveRecord::Base
-    #     # columns: title, sales
+    #     # columns: title, sales, author_id
     #   end
     #
     # When you load an author with all associated books Active Record will make
