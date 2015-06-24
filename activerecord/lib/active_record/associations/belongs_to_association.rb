@@ -88,7 +88,13 @@ module ActiveRecord
         end
 
         def foreign_key_present?
-          owner._read_attribute(reflection.foreign_key)
+          key = owner._read_attribute(reflection.foreign_key)
+          unless key
+            real_key = owner.class.attribute_alias(reflection.foreign_key)
+            key = owner._read_attribute(real_key) if real_key
+          end
+
+          key
         end
 
         # NOTE - for now, we're only supporting inverse setting from belongs_to back onto

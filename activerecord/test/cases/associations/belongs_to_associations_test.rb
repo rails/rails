@@ -19,11 +19,13 @@ require 'models/invoice'
 require 'models/line_item'
 require 'models/column'
 require 'models/record'
+require 'models/pet'
+require 'models/owner'
 
 class BelongsToAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :topics,
            :developers_projects, :computers, :authors, :author_addresses,
-           :posts, :tags, :taggings, :comments, :sponsors, :members
+           :posts, :tags, :taggings, :comments, :sponsors, :members, :pets, :owners
 
   def test_belongs_to
     firm = Client.find(3).firm
@@ -110,6 +112,12 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal [{error: :blank}], account.errors.details[:company]
   ensure
     ActiveRecord::Base.belongs_to_required_by_default = original_value
+  end
+
+  def test_belongs_to_with_aliased_foreign_key
+    owner = Pet.find(1).aliased_owner
+    assert_not_nil owner
+    assert_equal owners(:blackbeard).name, owner.name
   end
 
   def test_default_scope_on_relations_is_not_cached

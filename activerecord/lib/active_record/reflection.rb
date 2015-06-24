@@ -612,7 +612,14 @@ module ActiveRecord
       end
 
       def join_id_for(owner) # :nodoc:
-        owner[foreign_key]
+        id = owner[foreign_key]
+
+        unless id
+          real_key = owner.class.attribute_alias(foreign_key)
+          id = owner[real_key] if real_key
+        end
+
+        id
       end
     end
 
