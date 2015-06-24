@@ -1,33 +1,26 @@
 class @Cable.Channel
-  constructor: (params = {}) ->
-    {channelName} = @constructor
+  constructor: (@cable, params = {}, mixin) ->
+    @identifier = JSON.stringify(params)
+    extend(this, mixin)
 
-    if channelName?
-      params['channel'] = channelName
-      @channelIdentifier = JSON.stringify params
-    else
-      throw new Error "This channel's constructor is missing the required 'channelName' property"
-
-    cable.subscribe(@channelIdentifier, {
-      onConnect: @connected
-      onDisconnect: @disconnected
-      onReceiveData: @received
-    })
-
-
-  connected: =>
-    # Override in the subclass
-
-  disconnected: =>
-    # Override in the subclass
-
-  received: (data) =>
-    # Override in the subclass
+    @cable.subscribe @identifier,
+      onConnect: => @connected?()
+      onDisconnect: => @disconnected?()
+      onReceiveData: (data) => @receive?(data)
 
   # Perform a channel action with the optional data passed as an attribute
   perform: (action, data = {}) ->
     data.action = action
-    cable.sendData @channelIdentifier, JSON.stringify data
+    @cable.sendData(@identifier, JSON.stringify(data))
 
   send: (data) ->
-    cable.sendData @channelIdentifier, JSON.stringify data
+    @cable.sendData(@identifier, JSON.stringify(data))
+
+  close: ->
+    @cable.unsubscribe(@identifier)
+
+  extend = (object, properties) ->
+    if properties?
+      for key, value of properties
+        object[key] = value
+    object

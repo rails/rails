@@ -23,6 +23,11 @@ class @Cable
     connection.onerror   = @reconnect
     connection
 
+  createChannel: (channelName, mixin) ->
+    channel = channelName
+    params = if typeof channel is "object" then channel else {channel}
+    new Cable.Channel this, params, mixin
+
   isConnected: =>
     @connection?.readyState is 1
 
