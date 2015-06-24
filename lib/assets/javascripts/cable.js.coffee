@@ -16,11 +16,10 @@ class @Cable
 
   createConnection: ->
     connection = new WebSocket(@cableUrl)
-    connection.onmessage = @receiveData
-    connection.onopen    = @connected
-    connection.onclose   = @reconnect
-
-    connection.onerror   = @reconnect
+    connection.onmessage = @onMessage
+    connection.onopen    = @onConnect
+    connection.onclose   = @onClose
+    connection.onerror   = @onError
     connection
 
   createChannel: (channelName, mixin) ->
@@ -31,31 +30,40 @@ class @Cable
   isConnected: =>
     @connection?.readyState is 1
 
-  sendData: (identifier, data) =>
+  sendMessage: (identifier, data) =>
     if @isConnected()
       @connection.send JSON.stringify { command: 'message', identifier: identifier, data: data }
 
-  receiveData: (message) =>
+  onMessage: (message) =>
     data = JSON.parse message.data
 
     if data.identifier is '_ping'
       @pingReceived(data.message)
     else
-      @subscribers[data.identifier]?.onReceiveData(data.message)
+      @subscribers[data.identifier]?.onMessage?(data.message)
 
-  connected: =>
+  onConnect: =>
     @startWaitingForPing()
     @resetConnectionAttemptsCount()
 
-    for identifier, callbacks of @subscribers
+    for identifier, subscriber of @subscribers
       @subscribeOnServer(identifier)
-      callbacks['onConnect']?()
+      subscriber.onConnect?()
 
-  reconnect: =>
+  onClose: =>
+    @reconnect()
+
+  onError: =>
+    @reconnect()
+
+  disconnect: ->
     @removeExistingConnection()
-
     @resetPingTime()
-    @disconnected()
+    for identifier, subscriber of @subscribers
+      subscriber.onDisconnect?()
+
+  reconnect: ->
+    @disconnect()
 
     setTimeout =>
       @incrementConnectionAttemptsCount()
@@ -95,21 +103,18 @@ class @Cable
   resetPingTime: =>
     @lastPingTime = null
 
-  disconnected: =>
-    callbacks['onDisconnect']?() for identifier, callbacks of @subscribers
-
   giveUp: =>
     # Show an error message
 
-  subscribe: (identifier, callbacks) =>
-    @subscribers[identifier] = callbacks
+  subscribe: (identifier, subscriber) =>
+    @subscribers[identifier] = subscriber
 
     if @isConnected()
       @subscribeOnServer(identifier)
-      @subscribers[identifier]['onConnect']?()
+      subscriber.onConnect?()
 
   unsubscribe: (identifier) =>
-    @unsubscribeOnServer(identifier, 'unsubscribe')
+    @unsubscribeOnServer(identifier)
     delete @subscribers[identifier]
 
   subscribeOnServer: (identifier) =>

@@ -2,21 +2,20 @@ class @Cable.Channel
   constructor: (@cable, params = {}, mixin) ->
     @identifier = JSON.stringify(params)
     extend(this, mixin)
-
-    @cable.subscribe @identifier,
-      onConnect: => @connected?()
-      onDisconnect: => @disconnected?()
-      onReceiveData: (data) => @receive?(data)
+    @subscribe(@identifier, this)
 
   # Perform a channel action with the optional data passed as an attribute
-  perform: (action, data = {}) ->
+  sendAction: (action, data = {}) ->
     data.action = action
-    @cable.sendData(@identifier, JSON.stringify(data))
+    @sendMessage(data)
 
-  send: (data) ->
-    @cable.sendData(@identifier, JSON.stringify(data))
+  sendMessage: (data) ->
+    @cable.sendMessage(@identifier, JSON.stringify(data))
 
-  close: ->
+  subscribe: ->
+    @cable.subscribe(@identifier, this)
+
+  unsubscribe: ->
     @cable.unsubscribe(@identifier)
 
   extend = (object, properties) ->
