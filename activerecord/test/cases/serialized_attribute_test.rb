@@ -233,6 +233,11 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     assert_equal [], light.long_state
   end
 
+  def test_serialize_empty_array_on_text_column_with_null_false
+    light = TrafficLight.create long_state: []
+    assert_equal [], light.long_state
+  end
+
   def test_serialized_column_should_unserialize_after_update_column
     t = Topic.create(content: "first")
     assert_equal("first", t.content)
