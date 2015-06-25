@@ -63,12 +63,26 @@ module Rails
 
       # Add the given source to +Gemfile+
       #
+      # If block is given, gem entries in block are wrapped into the source group.
+      #
       #   add_source "http://gems.github.com/"
-      def add_source(source, options={})
+      #
+      #   add_source "http://gems.github.com/" do
+      #     gem "rspec-rails"
+      #   end
+      def add_source(source, options={}, &block)
         log :source, source
 
         in_root do
-          prepend_file "Gemfile", "source #{quote(source)}\n", verbose: false
+          if block
+            append_file "Gemfile", "source #{quote(source)} do", force: true
+            @in_group = true
+            instance_eval(&block)
+            @in_group = false
+            append_file "Gemfile", "\nend\n", force: true
+          else
+            prepend_file "Gemfile", "source #{quote(source)}\n", verbose: false
+          end
         end
       end
 
