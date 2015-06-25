@@ -353,17 +353,19 @@ module ActiveRecord
           nil
         end
 
-        # Returns just a table's primary key
-        def primary_key(table)
-          pks = query(<<-end_sql, 'SCHEMA')
-            SELECT attr.attname
-            FROM pg_attribute attr
-            INNER JOIN pg_constraint cons ON attr.attrelid = cons.conrelid AND attr.attnum = any(cons.conkey)
-            WHERE cons.contype = 'p'
-              AND cons.conrelid = '#{quote_table_name(table)}'::regclass
-          end_sql
-          return nil unless pks.count == 1
-          pks[0][0]
+        def primary_keys(table_name) # :nodoc:
+          select_values(<<-SQL.strip_heredoc, 'SCHEMA')
+            WITH pk_constraint AS (
+              SELECT conrelid, unnest(conkey) AS connum FROM pg_constraint
+              WHERE contype = 'p'
+                AND conrelid = '#{quote_table_name(table_name)}'::regclass
+            ), cons AS (
+              SELECT conrelid, connum, row_number() OVER() AS rownum FROM pk_constraint
+            )
+            SELECT attr.attname FROM pg_attribute attr
+            INNER JOIN cons ON attr.attrelid = cons.conrelid AND attr.attnum = cons.connum
+            ORDER BY cons.rownum
+          SQL
         end
 
         # Renames a table.

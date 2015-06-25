@@ -93,6 +93,12 @@ module ActiveRecord
                                       (!options.key?(:null)      || c.null == options[:null]) }
       end
 
+      # Returns just a table's primary key
+      def primary_key(table_name)
+        pks = primary_keys(table_name)
+        pks.first if pks.one?
+      end
+
       # Creates a new table with the name +table_name+. +table_name+ may either
       # be a String or a Symbol.
       #
@@ -220,7 +226,11 @@ module ActiveRecord
             Base.get_primary_key table_name.to_s.singularize
           end
 
-          td.primary_key pk, options.fetch(:id, :primary_key), options
+          if pk.is_a?(Array)
+            td.primary_keys pk
+          else
+            td.primary_key pk, options.fetch(:id, :primary_key), options
+          end
         end
 
         yield td if block_given?

@@ -369,10 +369,9 @@ module ActiveRecord
         end
       end
 
-      def primary_key(table_name) #:nodoc:
+      def primary_keys(table_name) # :nodoc:
         pks = table_structure(table_name).select { |f| f['pk'] > 0 }
-        return nil unless pks.count == 1
-        pks[0]['name']
+        pks.sort_by { |f| f['pk'] }.map { |f| f['name'] }
       end
 
       def remove_index(table_name, options = {}) #:nodoc:
