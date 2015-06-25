@@ -14,6 +14,11 @@
 
     *Yuji Yaginuma*
 
+*   Update distance_of_time_in_words helper to display better error messages
+    for bad input.
+
+    *Jay Hayes*
+
 
 ## Rails 5.1.1 (May 12, 2017) ##
 
