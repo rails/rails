@@ -1,4 +1,4 @@
-## Rails 4.2.3 (June 22, 2015) ##
+## Rails 4.2.3 (June 25, 2015) ##
 
 *   `assert_file` understands paths with special characters
     (eg. `v0.1.4~alpha+nightly`).

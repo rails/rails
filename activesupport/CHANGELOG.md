@@ -1,4 +1,4 @@
-## Rails 4.2.3 (June 22, 2015) ##
+## Rails 4.2.3 (June 25, 2015) ##
 
 *   Fix a range of values for parameters of the Time#change
 

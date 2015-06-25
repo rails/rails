@@ -1,4 +1,4 @@
-## Rails 4.2.3 (June 22, 2015) ##
+## Rails 4.2.3 (June 25, 2015) ##
 
 *   `translate` should handle `raise` flag correctly in case of both main and default
     translation is missing.
