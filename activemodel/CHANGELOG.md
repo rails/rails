@@ -1,4 +1,4 @@
-## Rails 4.1.12 (June 22, 2015) ##
+## Rails 4.1.12 (June 25, 2015) ##
 
 *   No changes.
 

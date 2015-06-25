@@ -1,4 +1,4 @@
-## Rails 4.1.12 (June 22, 2015) ##
+## Rails 4.1.12 (June 25, 2015) ##
 
 *   Add support for inline images in mailer previews by using an interceptor
     class to convert cid: urls in image src attributes to data urls. The
