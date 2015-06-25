@@ -867,6 +867,17 @@ ActiveRecord::Schema.define do
     t.string 'from'
   end
 
+  create_table :nodes, force: true do |t|
+    t.integer :tree_id
+    t.integer :parent_id
+    t.string :name
+    t.datetime :updated_at
+  end
+  create_table :trees, force: true do |t|
+    t.string :name
+    t.datetime :updated_at
+  end
+
   create_table :hotels, force: true do |t|
   end
   create_table :departments, force: true do |t|
