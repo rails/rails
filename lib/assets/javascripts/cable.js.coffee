@@ -13,8 +13,5 @@ class @Cable
     params = if typeof channel is "object" then channel else {channel}
     new Cable.Channel this, params, mixin
 
-  sendMessage: (identifier, data) ->
-    @sendCommand(identifier, "message", data)
-
-  sendCommand: (identifier, command, data) ->
-    @connection.send({identifier, command, data})
+  send: (data) ->
+    @connection.send(data)

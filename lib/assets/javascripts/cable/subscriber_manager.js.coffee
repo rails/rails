@@ -2,25 +2,32 @@ class Cable.SubscriberManager
   constructor: (@cable) ->
     @subscribers = {}
 
-  add: (identifier, subscriber) ->
+  add: (subscriber) ->
+    {identifier} = subscriber
     @subscribers[identifier] = subscriber
-    if @cable.sendCommand(identifier, "subscribe")
-      @notify(identifier, "connected")
+    if @sendCommand("subscribe", identifier)
+      @notify(subscriber, "connected")
 
   reload: ->
-    for identifier in Object.keys(@subscribers)
-      if @cable.sendCommand(identifier, "subscribe")
-        @notify(identifier, "connected")
+    for identifier, subscriber of @subscribers
+      if @sendCommand("subscribe", identifier)
+        @notify(subscriber, "connected")
 
-  remove: (identifier) ->
-    if subscriber = @subscribers[identifier]
-      @cable.sendCommand(identifier, "unsubscribe")
-      delete @subscribers[identifier]
+  remove: (subscriber) ->
+    {identifier} = subscriber
+    @sendCommand("unsubscribe", identifier)
+    delete @subscribers[identifier]
 
   notifyAll: (event, args...) ->
-    for identifier in Object.keys(@subscribers)
-      @notify(identifier, event, args...)
+    for identifier, subscriber of @subscribers
+      @notify(subscriber, event, args...)
 
-  notify: (identifier, event, args...) ->
-    if subscriber = @subscribers[identifier]
+  notify: (subscriber, event, args...) ->
+    if typeof subscriber is "string"
+      subscriber = @subscribers[subscriber]
+
+    if subscriber
       subscriber[event]?(args...)
+
+  sendCommand: (command, identifier) ->
+    @cable.send({command, identifier})
