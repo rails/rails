@@ -1,4 +1,4 @@
-class Cable.Channel
+class Cable.Subscription
   constructor: (@cable, params = {}, mixin) ->
     @identifier = JSON.stringify(params)
     extend(this, mixin)

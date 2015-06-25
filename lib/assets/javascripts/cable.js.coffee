@@ -1,7 +1,7 @@
 #= require_self
 #= require cable/subscriber_manager
 #= require cable/connection
-#= require cable/channel
+#= require cable/subscription
 
 class @Cable
   @PING_IDENTIFIER: "_ping"
@@ -10,10 +10,10 @@ class @Cable
     @subscribers = new Cable.SubscriberManager this
     @connection = new Cable.Connection this
 
-  createChannel: (channelName, mixin) ->
+  createSubscription: (channelName, mixin) ->
     channel = channelName
     params = if typeof channel is "object" then channel else {channel}
-    new Cable.Channel this, params, mixin
+    new Cable.Subscription this, params, mixin
 
   send: (data) ->
     @connection.send(data)
