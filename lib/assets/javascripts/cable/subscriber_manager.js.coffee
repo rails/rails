@@ -15,7 +15,7 @@ class Cable.SubscriberManager
 
   remove: (subscriber) ->
     @sendCommand(subscriber, "unsubscribe")
-    @subscibers = (s for s in @subscribers when s isnt subscriber)
+    @subscribers = (s for s in @subscribers when s isnt subscriber)
 
   notifyAll: (callbackName, args...) ->
     for subscriber in @subscribers
