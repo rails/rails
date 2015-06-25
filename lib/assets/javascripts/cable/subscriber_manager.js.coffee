@@ -19,16 +19,16 @@ class Cable.SubscriberManager
     @sendCommand("unsubscribe", identifier)
     delete @subscribers[identifier]
 
-  notifyAll: (event, args...) ->
+  notifyAll: (callbackName, args...) ->
     for identifier, subscriber of @subscribers
-      @notify(subscriber, event, args...)
+      @notify(subscriber, callbackName, args...)
 
-  notify: (subscriber, event, args...) ->
+  notify: (subscriber, callbackName, args...) ->
     if typeof subscriber is "string"
       subscriber = @subscribers[subscriber]
 
     if subscriber
-      subscriber[event]?(args...)
+      subscriber[callbackName]?(args...)
 
   sendCommand: (command, identifier) ->
     return true if identifier is Cable.PING_IDENTIFIER
