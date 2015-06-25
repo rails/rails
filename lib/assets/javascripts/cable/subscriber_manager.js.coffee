@@ -5,6 +5,7 @@ class Cable.SubscriberManager
   add: (subscriber) ->
     {identifier} = subscriber
     @subscribers[identifier] = subscriber
+    @notify(subscriber, "initialized")
     if @sendCommand("subscribe", identifier)
       @notify(subscriber, "connected")
 
