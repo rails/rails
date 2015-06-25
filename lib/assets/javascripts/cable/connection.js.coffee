@@ -1,8 +1,8 @@
 #= require cable/connection_monitor
 
 class Cable.Connection
-  constructor: (@cable) ->
-    new Cable.ConnectionMonitor @cable
+  constructor: (@consumer) ->
+    new Cable.ConnectionMonitor @consumer
     @connect()
 
   send: (data) ->
@@ -17,7 +17,7 @@ class Cable.Connection
     @createWebSocket()
 
   createWebSocket: ->
-    @websocket = new WebSocket(@cable.url)
+    @websocket = new WebSocket(@consumer.url)
     @websocket.onmessage = @onMessage
     @websocket.onopen    = @onConnect
     @websocket.onclose   = @onClose
@@ -33,10 +33,10 @@ class Cable.Connection
 
   onMessage: (message) =>
     data = JSON.parse message.data
-    @cable.subscribers.notify(data.identifier, "received", data.message)
+    @consumer.subscribers.notify(data.identifier, "received", data.message)
 
   onConnect: =>
-    @cable.subscribers.reload()
+    @consumer.subscribers.reload()
 
   onClose: =>
     @disconnect()
@@ -48,5 +48,5 @@ class Cable.Connection
     @websocket?.readyState is 1
 
   disconnect: ->
-    @cable.subscribers.notifyAll("disconnected")
+    @consumer.subscribers.notifyAll("disconnected")
     @removeWebsocket()

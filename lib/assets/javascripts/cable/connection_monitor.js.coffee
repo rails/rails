@@ -4,9 +4,9 @@ class Cable.ConnectionMonitor
 
   identifier: Cable.PING_IDENTIFIER
 
-  constructor: (@cable) ->
+  constructor: (@consumer) ->
     @reset()
-    @cable.subscribers.add(this)
+    @consumer.subscribers.add(this)
     @pollConnection()
 
   connected: ->
@@ -35,7 +35,7 @@ class Cable.ConnectionMonitor
   reconnect: ->
     console.log "Ping took too long to arrive. Reconnecting.."
     @connectionAttempts += 1
-    @cable.connection.connect()
+    @consumer.connection.connect()
 
   now = ->
     new Date().getTime()

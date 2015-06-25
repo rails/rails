@@ -1,5 +1,5 @@
 class Cable.SubscriberManager
-  constructor: (@cable) ->
+  constructor: (@consumer) ->
     @subscribers = []
 
   add: (subscriber) ->
@@ -33,4 +33,4 @@ class Cable.SubscriberManager
   sendCommand: (subscriber, command) ->
     {identifier} = subscriber
     return true if identifier is Cable.PING_IDENTIFIER
-    @cable.send({command, identifier})
+    @consumer.send({command, identifier})
