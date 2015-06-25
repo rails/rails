@@ -12,6 +12,9 @@
 
     *James Dabbs*
 
+
+## Rails 4.2.3 (June 25, 2015) ##
+
 *   Let `WITH` queries (Common Table Expressions) be explainable.
 
     *Vladimir Kochnev*

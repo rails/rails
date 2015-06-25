@@ -6,6 +6,9 @@
 
     *Fumiaki Matsushima*
 
+
+## Rails 4.2.3 (June 25, 2015) ##
+
 *   Fix rake routes not showing the right format when
     nesting multiple routes.
 
