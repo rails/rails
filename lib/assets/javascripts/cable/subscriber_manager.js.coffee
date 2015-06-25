@@ -1,35 +1,36 @@
 class Cable.SubscriberManager
   constructor: (@cable) ->
-    @subscribers = {}
+    @subscribers = []
 
   add: (subscriber) ->
-    {identifier} = subscriber
-    @subscribers[identifier] = subscriber
+    @subscribers.push(subscriber)
     @notify(subscriber, "initialized")
-    if @sendCommand("subscribe", identifier)
+    if @sendCommand(subscriber, "subscribe")
       @notify(subscriber, "connected")
 
   reload: ->
-    for identifier, subscriber of @subscribers
-      if @sendCommand("subscribe", identifier)
+    for subscriber in @subscribers
+      if @sendCommand(subscriber, "subscribe")
         @notify(subscriber, "connected")
 
   remove: (subscriber) ->
-    {identifier} = subscriber
-    @sendCommand("unsubscribe", identifier)
-    delete @subscribers[identifier]
+    @sendCommand(subscriber, "unsubscribe")
+    @subscibers = (s for s in @subscribers when s isnt subscriber)
 
   notifyAll: (callbackName, args...) ->
-    for identifier, subscriber of @subscribers
+    for subscriber in @subscribers
       @notify(subscriber, callbackName, args...)
 
   notify: (subscriber, callbackName, args...) ->
     if typeof subscriber is "string"
-      subscriber = @subscribers[subscriber]
+      subscribers = (s for s in @subscribers when s.identifier is subscriber)
+    else
+      subscribers = [subscriber]
 
-    if subscriber
+    for subscriber in subscribers
       subscriber[callbackName]?(args...)
 
-  sendCommand: (command, identifier) ->
+  sendCommand: (subscriber, command) ->
+    {identifier} = subscriber
     return true if identifier is Cable.PING_IDENTIFIER
     @cable.send({command, identifier})
