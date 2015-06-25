@@ -305,17 +305,6 @@ Action Mailer
 }
 ```
 
-ActiveResource
---------------
-
-### request.active_resource
-
-| Key            | Value                |
-| -------------- | -------------------- |
-| `:method`      | HTTP method          |
-| `:request_uri` | Complete URI         |
-| `:result`      | HTTP response object |
-
 Active Support
 --------------
 
