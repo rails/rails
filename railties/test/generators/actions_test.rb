@@ -47,6 +47,14 @@ class ActionsTest < Rails::Generators::TestCase
     assert_file 'Gemfile', /source 'http:\/\/gems\.github\.com'/
   end
 
+  def test_add_source_with_block_adds_source_to_gemfile_with_gem
+    run_generator
+    action :add_source, 'http://gems.github.com' do
+      gem 'rspec-rails'
+    end
+    assert_file 'Gemfile', /source 'http:\/\/gems\.github\.com' do\n  gem 'rspec-rails'\nend/
+  end
+
   def test_gem_should_put_gem_dependency_in_gemfile
     run_generator
     action :gem, 'will-paginate'
