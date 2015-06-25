@@ -31,7 +31,7 @@ class Cable.Connection
     if data.identifier is '_ping'
       @pingReceived(data.message)
     else
-      @cable.subscribers.notify(data.identifier, "onMessage", data.message)
+      @cable.subscribers.notify(data.identifier, "received", data.message)
 
   onConnect: =>
     @startWaitingForPing()
@@ -50,7 +50,7 @@ class Cable.Connection
   disconnect: ->
     @removeExistingConnection()
     @resetPingTime()
-    @cable.subscribers.notifyAll("onDisconnect")
+    @cable.subscribers.notifyAll("disconnected")
 
   reconnect: ->
     @disconnect()

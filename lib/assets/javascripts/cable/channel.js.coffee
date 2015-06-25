@@ -5,11 +5,11 @@ class Cable.Channel
     @cable.subscribers.add(@identifier, this)
 
   # Perform a channel action with the optional data passed as an attribute
-  sendAction: (action, data = {}) ->
+  perform: (action, data = {}) ->
     data.action = action
-    @sendMessage(data)
+    @send(data)
 
-  sendMessage: (data) ->
+  send: (data) ->
     @cable.sendMessage(@identifier, JSON.stringify(data))
 
   unsubscribe: ->

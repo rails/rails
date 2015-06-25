@@ -5,12 +5,12 @@ class Cable.SubscriberManager
   add: (identifier, subscriber) ->
     @subscribers[identifier] = subscriber
     if @cable.sendCommand(identifier, "subscribe")
-      @notify(identifier, "onConnect")
+      @notify(identifier, "connected")
 
   reload: ->
     for identifier in Object.keys(@subscribers)
       if @cable.sendCommand(identifier, "subscribe")
-        @notify(identifier, "onConnect")
+        @notify(identifier, "connected")
 
   remove: (identifier) ->
     if subscriber = @subscribers[identifier]
