@@ -30,4 +30,5 @@ class Cable.SubscriberManager
       subscriber[event]?(args...)
 
   sendCommand: (command, identifier) ->
+    return true if identifier is Cable.PING_IDENTIFIER
     @cable.send({command, identifier})

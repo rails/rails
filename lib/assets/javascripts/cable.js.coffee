@@ -4,6 +4,8 @@
 #= require cable/channel
 
 class @Cable
+  @PING_IDENTIFIER: "_ping"
+
   constructor: (@url) ->
     @subscribers = new Cable.SubscriberManager this
     @connection = new Cable.Connection this
