@@ -407,7 +407,7 @@ module ActiveSupport #:nodoc:
         path = File.join(root, path_suffix)
         return path if File.file? path
       end
-      nil # Gee, I sure wish we had first_match ;-)
+      nil
     end
 
     # Does the provided path_suffix correspond to an autoloadable module?
