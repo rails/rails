@@ -10,15 +10,9 @@ module ActionCable
       attr_reader :params, :connection
       delegate :logger, to: :connection
 
-      class_attribute :channel_name
-
       class << self
         def matches?(identifier)
           raise "Please implement #{name}#matches? method"
-        end
-
-        def find_name
-          @name ||= channel_name || to_s.demodulize.underscore
         end
       end
 
