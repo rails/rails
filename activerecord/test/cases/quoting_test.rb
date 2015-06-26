@@ -44,6 +44,13 @@ module ActiveRecord
         assert_equal t.to_s(:db), @quoter.quoted_date(t)
       end
 
+      def test_quoted_time_with_usec
+        with_timezone_config default: :utc do
+          t = Time.now.change(usec: 1)
+          assert_equal t.getutc.to_s(:db), @quoter.quoted_date(t)
+        end
+      end
+
       def test_quoted_time_utc
         with_timezone_config default: :utc do
           t = Time.now.change(usec: 0)
