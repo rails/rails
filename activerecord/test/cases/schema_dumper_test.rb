@@ -239,7 +239,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
   def test_schema_dump_includes_decimal_options
     output = dump_all_table_schema([/^[^n]/])
-    assert_match %r{precision: 3,[[:space:]]+scale: 2,[[:space:]]+default: 2\.78}, output
+    assert_match %r{precision: 3,[[:space:]]+scale: 2,[[:space:]]+default: "2\.78"}, output
   end
 
   if current_adapter?(:PostgreSQLAdapter)
@@ -255,7 +255,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
     def test_schema_dump_allows_array_of_decimal_defaults
       output = standard_dump
-      assert_match %r{t\.decimal\s+"decimal_array_default",\s+default: \[1.23, 3.45\],\s+array: true}, output
+      assert_match %r{t\.decimal\s+"decimal_array_default",\s+default: \["1.23", "3.45"\],\s+array: true}, output
     end
 
     if ActiveRecord::Base.connection.supports_extensions?
