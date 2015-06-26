@@ -78,6 +78,20 @@ module ActionCable
         attr_reader :websocket
         attr_reader :heartbeat, :subscriptions, :message_buffer
 
+
+        def websocket_initialization
+          @websocket = Faye::WebSocket.new(@env)
+        end
+
+        def websocket_alive?
+          websocket && websocket.ready_state == Faye::WebSocket::API::OPEN
+        end
+
+        def websocket_request?
+          @is_websocket ||= Faye::WebSocket.websocket?(@env)
+        end
+
+
         def on_open
           server.add_connection(self)
 
@@ -108,19 +122,6 @@ module ActionCable
         def respond_to_invalid_request
           logger.info finished_request_message
           [ 404, { 'Content-Type' => 'text/plain' }, [ 'Page not found' ] ]
-        end
-
-
-        def websocket_initialization
-          @websocket = Faye::WebSocket.new(@env)
-        end
-
-        def websocket_alive?
-          websocket && websocket.ready_state == Faye::WebSocket::API::OPEN
-        end
-
-        def websocket_request?
-          @is_websocket ||= Faye::WebSocket.websocket?(@env)
         end
 
 
