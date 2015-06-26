@@ -142,10 +142,6 @@ module ActionCable
         end
 
 
-        def log_exception(e)
-          logger.error "Exception raised #{e.class} - #{e.message}: #{e.backtrace.first(5).join(" | ")}"
-        end
-
         def log_tags
           server.log_tags.map { |tag| tag.respond_to?(:call) ? tag.call(request) : tag.to_s.camelize }
         end
