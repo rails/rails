@@ -3,39 +3,41 @@
 class Cable.Connection
   constructor: (@consumer) ->
     new Cable.ConnectionMonitor @consumer
-    @connect()
+    @open()
 
   send: (data) ->
-    if @isConnected()
+    if @isOpen()
       @websocket.send(JSON.stringify(data))
       true
     else
       false
 
-  connect: ->
-    @removeWebsocket()
-    @createWebSocket()
-
-  createWebSocket: ->
+  open: ->
     @websocket = new WebSocket(@consumer.url)
     @websocket.onmessage = @onMessage
-    @websocket.onopen    = @onConnect
+    @websocket.onopen    = @onOpen
     @websocket.onclose   = @onClose
     @websocket.onerror   = @onError
     @websocket
 
-  removeWebsocket: ->
-    if @websocket?
-      @websocket.onclose = -> # no-op
-      @websocket.onerror = -> # no-op
-      @websocket.close()
-      @websocket = null
+  close: ->
+    @websocket.close() unless @isClosed()
+
+  reopen: ->
+    @close()
+    @open()
+
+  isOpen: ->
+    @websocket.readyState is WebSocket.OPEN
+
+  isClosed: ->
+    @websocket.readyState in [ WebSocket.CLOSED, WebSocket.CLOSING ]
 
   onMessage: (message) =>
     data = JSON.parse message.data
     @consumer.subscribers.notify(data.identifier, "received", data.message)
 
-  onConnect: =>
+  onOpen: =>
     @consumer.subscribers.reload()
 
   onClose: =>
@@ -43,10 +45,9 @@ class Cable.Connection
 
   onError: =>
     @disconnect()
-
-  isConnected: ->
-    @websocket?.readyState is 1
+    @websocket.onclose = -> # no-op
+    @websocket.onerror = -> # no-op
+    try @close()
 
   disconnect: ->
     @consumer.subscribers.notifyAll("disconnected")
-    @removeWebsocket()

@@ -35,7 +35,7 @@ class Cable.ConnectionMonitor
   reconnect: ->
     console.log "Ping took too long to arrive. Reconnecting.."
     @connectionAttempts += 1
-    @consumer.connection.connect()
+    @consumer.connection.reopen()
 
   now = ->
     new Date().getTime()
