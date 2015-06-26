@@ -1,3 +1,8 @@
+*   Collection input propagates input's `id` to the label's `for` attribute when
+    using html options as the last element of collection.
+
+    *Vasiliy Ermolovich*
+
 *   Raise an ArgumentError when a false value for `include_blank` is passed to a
     required select field (to comply with the HTML5 spec).
 
