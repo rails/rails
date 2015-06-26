@@ -480,6 +480,7 @@ class DefaultsUsingMultipleSchemasAndDomainTest < ActiveRecord::PostgreSQLTestCa
     @connection.create_table "defaults" do |t|
       t.text "text_col", default: "some value"
       t.string "string_col", default: "some value"
+      t.decimal "decimal_col", default: "3.14159265358979323846"
     end
     Default.reset_column_information
   end
@@ -496,6 +497,10 @@ class DefaultsUsingMultipleSchemasAndDomainTest < ActiveRecord::PostgreSQLTestCa
 
   def test_string_defaults_in_new_schema_when_overriding_domain
     assert_equal "some value", Default.new.string_col, "Default of string column was not correctly parsed"
+  end
+
+  def test_decimal_defaults_in_new_schema_when_overriding_domain
+    assert_equal BigDecimal.new("3.14159265358979323846"), Default.new.decimal_col, "Default of decimal column was not correctly parsed"
   end
 
   def test_bpchar_defaults_in_new_schema_when_overriding_domain

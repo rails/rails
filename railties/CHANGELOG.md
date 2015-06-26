@@ -1,3 +1,7 @@
+*   Adding support for passing a block to the `add_source` action of a custom generator
+
+    *Mike Dalton*, *Hirofumi Wakasugi*
+
 *   `assert_file` understands paths with special characters
     (eg. `v0.1.4~alpha+nightly`).
 
