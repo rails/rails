@@ -22,7 +22,7 @@ module ActionCable
         @started_at = Time.now
       end
 
-      def response
+      def process
         logger.info started_request_message
 
         if websocket.possible?
