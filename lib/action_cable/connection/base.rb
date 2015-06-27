@@ -14,7 +14,7 @@ module ActionCable
 
         @server, @env = server, env
 
-        @logger = TaggedLoggerProxy.new(server.logger, tags: log_tags)
+        @logger = initialize_tagged_logger
 
         @heartbeat      = ActionCable::Connection::Heartbeat.new(self)
         @subscriptions  = ActionCable::Connection::Subscriptions.new(self)
@@ -143,8 +143,10 @@ module ActionCable
         end
 
 
-        def log_tags
-          server.log_tags.map { |tag| tag.respond_to?(:call) ? tag.call(request) : tag.to_s.camelize }
+        # Tags are declared in the server but computed in the connection. This allows us per-connection tailored tags.
+        def initialize_tagged_logger
+          TaggedLoggerProxy.new server.logger, 
+            tags: server.log_tags.map { |tag| tag.respond_to?(:call) ? tag.call(request) : tag.to_s.camelize }
         end
     end
   end
