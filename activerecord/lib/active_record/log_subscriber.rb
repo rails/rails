@@ -47,18 +47,21 @@ module ActiveRecord
         binds = "  " + payload[:binds].map { |attr| render_bind(attr) }.inspect
       end
 
-      if odd?
-        name = color(name, CYAN, true)
-        sql  = color(sql, nil, true)
-      else
-        name = color(name, MAGENTA, true)
-      end
+      name = color(name, nil, true)
+      sql  = color(sql, sql_color(sql), true)
 
       debug "  #{name}  #{sql}#{binds}"
     end
 
-    def odd?
-      @odd = !@odd
+    def sql_color(sql)
+      case sql
+        when /\s*\Ainsert/i      then GREEN
+        when /\s*\Aselect/i      then BLUE
+        when /\s*\Aupdate/i      then YELLOW
+        when /\s*\Adelete/i      then RED
+        when /transaction\s*\Z/i then CYAN
+        else MAGENTA
+      end
     end
 
     def logger
