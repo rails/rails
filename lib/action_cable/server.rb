@@ -17,7 +17,7 @@ module ActionCable
     end
 
     def call(env)
-      @connection_class.new(self, env).process
+      @connection_class.new(self, env).response
     end
 
     def worker_pool

@@ -14,6 +14,7 @@ module ActionCable
 
         @logger = initialize_tagged_logger
 
+        @websocket      = ActionCable::Connection::WebSocket.new(env)
         @heartbeat      = ActionCable::Connection::Heartbeat.new(self)
         @subscriptions  = ActionCable::Connection::Subscriptions.new(self)
         @message_buffer = ActionCable::Connection::MessageBuffer.new(self)
@@ -21,12 +22,10 @@ module ActionCable
         @started_at = Time.now
       end
 
-      def process
+      def response
         logger.info started_request_message
 
-        if websocket_request?
-          websocket_initialization
-
+        if websocket.possible?
           websocket.on(:open)    { |event| send_async :on_open   }
           websocket.on(:message) { |event| on_message event.data }
           websocket.on(:close)   { |event| send_async :on_close  }
@@ -38,7 +37,7 @@ module ActionCable
       end
 
       def receive(data_in_json)
-        if websocket_alive?
+        if websocket.alive?
           subscriptions.execute_command ActiveSupport::JSON.decode(data_in_json)
         else
           logger.error "Received data without a live websocket (#{data.inspect})"
@@ -46,7 +45,7 @@ module ActionCable
       end
 
       def transmit(data)
-        websocket.send data
+        websocket.transmit data
       end
 
       def close
@@ -77,19 +76,6 @@ module ActionCable
       private
         attr_reader :websocket
         attr_reader :heartbeat, :subscriptions, :message_buffer
-
-        def websocket_initialization
-          @websocket = Faye::WebSocket.new(@env)
-        end
-
-        def websocket_alive?
-          websocket && websocket.ready_state == Faye::WebSocket::API::OPEN
-        end
-
-        def websocket_request?
-          @is_websocket ||= Faye::WebSocket.websocket?(@env)
-        end
-
 
         def on_open
           server.add_connection(self)
@@ -134,7 +120,7 @@ module ActionCable
           'Started %s "%s"%s for %s at %s' % [
             request.request_method,
             request.filtered_path,
-            websocket_request? ? ' [Websocket]' : '',
+            websocket.possible? ? ' [Websocket]' : '',
             request.ip,
             Time.now.to_default_s ]
         end
@@ -142,7 +128,7 @@ module ActionCable
         def finished_request_message
           'Finished "%s"%s for %s at %s' % [
             request.filtered_path,
-            websocket_request? ? ' [Websocket]' : '',
+            websocket.possible? ? ' [Websocket]' : '',
             request.ip,
             Time.now.to_default_s ]
         end
