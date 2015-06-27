@@ -10,8 +10,6 @@ module ActionCable
       attr_reader :logger
 
       def initialize(server, env)
-        @started_at = Time.now
-
         @server, @env = server, env
 
         @logger = initialize_tagged_logger
@@ -19,6 +17,8 @@ module ActionCable
         @heartbeat      = ActionCable::Connection::Heartbeat.new(self)
         @subscriptions  = ActionCable::Connection::Subscriptions.new(self)
         @message_buffer = ActionCable::Connection::MessageBuffer.new(self)
+
+        @started_at = Time.now
       end
 
       def process
