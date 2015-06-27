@@ -1,4 +1,3 @@
-require 'open-uri'
 require 'rbconfig'
 
 module Rails
