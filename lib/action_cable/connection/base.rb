@@ -30,7 +30,7 @@ module ActionCable
           websocket.on(:message) { |event| on_message event.data }
           websocket.on(:close)   { |event| send_async :on_close  }
           
-          websocket.rack_response
+          respond_to_successful_request
         else
           respond_to_invalid_request
         end
@@ -103,6 +103,10 @@ module ActionCable
           disconnect if respond_to?(:disconnect)
         end
 
+
+        def respond_to_successful_request
+          websocket.rack_response
+        end
 
         def respond_to_invalid_request
           logger.info finished_request_message
