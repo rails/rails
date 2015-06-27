@@ -78,7 +78,6 @@ module ActionCable
         attr_reader :websocket
         attr_reader :heartbeat, :subscriptions, :message_buffer
 
-
         def websocket_initialization
           @websocket = Faye::WebSocket.new(@env)
         end
@@ -125,6 +124,12 @@ module ActionCable
         end
 
 
+        # Tags are declared in the server but computed in the connection. This allows us per-connection tailored tags.
+        def initialize_tagged_logger
+          TaggedLoggerProxy.new server.logger, 
+            tags: server.log_tags.map { |tag| tag.respond_to?(:call) ? tag.call(request) : tag.to_s.camelize }
+        end
+
         def started_request_message
           'Started %s "%s"%s for %s at %s' % [
             request.request_method,
@@ -140,13 +145,6 @@ module ActionCable
             websocket_request? ? ' [Websocket]' : '',
             request.ip,
             Time.now.to_default_s ]
-        end
-
-
-        # Tags are declared in the server but computed in the connection. This allows us per-connection tailored tags.
-        def initialize_tagged_logger
-          TaggedLoggerProxy.new server.logger, 
-            tags: server.log_tags.map { |tag| tag.respond_to?(:call) ? tag.call(request) : tag.to_s.camelize }
         end
     end
   end
