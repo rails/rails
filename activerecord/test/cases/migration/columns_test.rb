@@ -267,6 +267,13 @@ module ActiveRecord
         assert_nil TestModel.new.first_name
       end
 
+      def test_change_column_default_with_from_and_to
+        add_column "test_models", "first_name", :string
+        connection.change_column_default "test_models", "first_name", from: nil, to: "Tester"
+
+        assert_equal "Tester", TestModel.new.first_name
+      end
+
       def test_remove_column_no_second_parameter_raises_exception
         assert_raise(ArgumentError) { connection.remove_column("funny") }
       end
