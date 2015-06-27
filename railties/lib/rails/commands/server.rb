@@ -96,8 +96,7 @@ module Rails
         DoNotReverseLookup: true,
         environment:        (ENV['RAILS_ENV'] || ENV['RACK_ENV'] || "development").dup,
         daemonize:          false,
-        pid:                File.expand_path("tmp/pids/server.pid"),
-        config:             File.expand_path("config.ru")
+        pid:                File.expand_path("tmp/pids/server.pid")
       })
     end
 
