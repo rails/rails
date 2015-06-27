@@ -42,9 +42,10 @@ module ActiveModel
       # Configuration options:
       # * <tt>:message</tt> - A custom error message (default is: "must be
       #   accepted").
-      # * <tt>:accept</tt> - Specifies value that is considered accepted.
-      #   The default value is a string "1", which makes it easy to relate to
-      #   an HTML checkbox. This should be set to +true+ if you are validating
+      # * <tt>:accept</tt> - Specifies a value that is considered accepted.
+      #   Also accepts an array of possible values. The default value is
+      #   an array ["1", true], which makes it easy to relate to an HTML
+      #   checkbox. This should be set to, or include, +true+ if you are validating
       #   a database column, since the attribute is typecast from "1" to +true+
       #   before validation.
       #
