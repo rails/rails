@@ -31,7 +31,7 @@ module ActionCable
           case message['type']
           when 'disconnect'
             logger.info "Removing connection (#{connection_identifier})"
-            @websocket.close
+            websocket.close
           end
         rescue Exception => e
           logger.error "There was an exception - #{e.class}(#{e.message})"
