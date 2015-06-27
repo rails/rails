@@ -802,7 +802,10 @@ module ActiveRecord
       end
 
       def foreign_key_column_for(table_name) # :nodoc:
-        "#{table_name.to_s.singularize}_id"
+        prefix = Base.table_name_prefix
+        suffix = Base.table_name_suffix
+        name = table_name.to_s =~ /#{prefix}(.+)#{suffix}/ ? $1 : table_name.to_s
+        "#{name.singularize}_id"
       end
 
       def dump_schema_information #:nodoc:
