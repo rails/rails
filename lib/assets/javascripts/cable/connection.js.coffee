@@ -12,20 +12,23 @@ class Cable.Connection
     else
       false
 
-  open: ->
+  open: =>
     @websocket = new WebSocket(@consumer.url)
     @websocket.onmessage = @onMessage
     @websocket.onopen    = @onOpen
     @websocket.onclose   = @onClose
     @websocket.onerror   = @onError
-    @websocket
 
   close: ->
     @websocket.close() unless @isClosed()
 
   reopen: ->
-    @close()
-    @open()
+    if @isClosed()
+      @open()
+    else
+      @websocket.onclose = @open
+      @websocket.onerror = @open
+      @websocket.close()
 
   isOpen: ->
     @websocket.readyState is WebSocket.OPEN
