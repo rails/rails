@@ -12,7 +12,7 @@ module ActionCable
       def initialize(server, env)
         @server, @env = server, env
 
-        @logger = initialize_tagged_logger
+        @logger = new_tagged_logger
 
         @websocket      = ActionCable::Connection::WebSocket.new(env)
         @heartbeat      = ActionCable::Connection::Heartbeat.new(self)
@@ -115,7 +115,7 @@ module ActionCable
 
 
         # Tags are declared in the server but computed in the connection. This allows us per-connection tailored tags.
-        def initialize_tagged_logger
+        def new_tagged_logger
           TaggedLoggerProxy.new server.logger, 
             tags: server.log_tags.map { |tag| tag.respond_to?(:call) ? tag.call(request) : tag.to_s.camelize }
         end
