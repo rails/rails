@@ -1,8 +1,5 @@
-#= require cable/connection_monitor
-
 class Cable.Connection
   constructor: (@consumer) ->
-    new Cable.ConnectionMonitor @consumer
     @open()
 
   send: (data) ->

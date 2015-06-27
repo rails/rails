@@ -1,13 +1,17 @@
 class Cable.ConnectionMonitor
-  MAX_CONNECTION_INTERVAL: 5 * 1000
-  PING_STALE_INTERVAL: 8 * 1000
-
   identifier: Cable.PING_IDENTIFIER
 
+  pollInterval:
+    min: 2
+    max: 30
+
+  staleThreshold:
+    startedAt: 4
+    pingedAt: 8
+
   constructor: (@consumer) ->
-    @reset()
     @consumer.subscribers.add(this)
-    @pollConnection()
+    @start()
 
   connected: ->
     @reset()
@@ -17,25 +21,45 @@ class Cable.ConnectionMonitor
     @pingedAt = now()
 
   reset: ->
-    @connectionAttempts = 1
+    @reconnectAttempts = 0
 
-  pollConnection: ->
+  start: ->
+    @reset()
+    delete @stoppedAt
+    @startedAt = now()
+    @poll()
+
+  stop: ->
+    @stoppedAt = now()
+
+  poll: ->
     setTimeout =>
-      @reconnect() if @connectionIsStale()
-      @pollConnection()
-    , @getPollTimeout()
+      unless @stoppedAt
+        @reconnectIfStale()
+        @poll()
+    , @getInterval()
 
-  getPollTimeout: ->
-    interval = (Math.pow(2, @connectionAttempts) - 1) * 1000
-    if interval > @MAX_CONNECTION_INTERVAL then @MAX_CONNECTION_INTERVAL else interval
+  getInterval: ->
+    {min, max} = @pollInterval
+    interval = 4 * Math.log(@reconnectAttempts + 1)
+    clamp(interval, min, max) * 1000
+
+  reconnectIfStale: ->
+    if @connectionIsStale()
+      @reconnectAttempts += 1
+      @consumer.connection.reopen()
 
   connectionIsStale: ->
-    @pingedAt? and (now() - @pingedAt) > @PING_STALE_INTERVAL
-
-  reconnect: ->
-    console.log "Ping took too long to arrive. Reconnecting.."
-    @connectionAttempts += 1
-    @consumer.connection.reopen()
+    if @pingedAt
+      secondsSince(@pingedAt) > @staleThreshold.pingedAt
+    else
+      secondsSince(@startedAt) > @staleThreshold.startedAt
 
   now = ->
     new Date().getTime()
+
+  secondsSince = (time) ->
+    (now() - time) / 1000
+
+  clamp = (number, min, max) ->
+    Math.max(min, Math.min(max, number))

@@ -32,5 +32,7 @@ class Cable.SubscriberManager
 
   sendCommand: (subscriber, command) ->
     {identifier} = subscriber
-    return true if identifier is Cable.PING_IDENTIFIER
-    @consumer.send({command, identifier})
+    if identifier is Cable.PING_IDENTIFIER
+      @consumer.connection.isOpen()
+    else
+      @consumer.send({command, identifier})
