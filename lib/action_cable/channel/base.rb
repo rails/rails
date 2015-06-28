@@ -2,7 +2,7 @@ module ActionCable
   module Channel
     class Base
       include Callbacks
-      include Redis
+      include Streams
 
       on_subscribe   :start_periodic_timers
       on_unsubscribe :stop_periodic_timers

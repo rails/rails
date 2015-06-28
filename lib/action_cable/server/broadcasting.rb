@@ -1,12 +1,12 @@
 module ActionCable
   module Server
     module Broadcasting
-      def broadcast(channel, message)
-        broadcaster_for(channel).broadcast(message)
+      def broadcast(broadcasting, message)
+        broadcaster_for(broadcasting).broadcast(message)
       end
 
-      def broadcaster_for(channel)
-        Broadcaster.new(self, channel)
+      def broadcaster_for(broadcasting)
+        Broadcaster.new(self, broadcasting)
       end
 
       def broadcasting_redis
@@ -15,19 +15,19 @@ module ActionCable
 
       private
         class Broadcaster
-          attr_reader :server, :channel
+          attr_reader :server, :broadcasting
 
-          def initialize(server, channel)
-            @server, @channel = server, channel
+          def initialize(server, broadcasting)
+            @server, @broadcasting = server, broadcasting
           end
 
           def broadcast(message)
-            server.logger.info "[ActionCable] Broadcasting to #{channel}: #{message}"
+            server.logger.info "[ActionCable] Broadcasting to #{broadcasting}: #{message}"
             broadcast_without_logging(message)
           end
 
           def broadcast_without_logging(message)            
-            server.broadcasting_redis.publish channel, message.to_json
+            server.broadcasting_redis.publish broadcasting, message.to_json
           end
         end
     end
