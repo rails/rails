@@ -61,7 +61,7 @@ module ActionCable
           if subscription = subscriptions[data['identifier']]
             subscription
           else
-            raise "Unable to find subscription with identifier: #{identifier}"
+            raise "Unable to find subscription with identifier: #{data['identifier']}"
           end
         end
     end
