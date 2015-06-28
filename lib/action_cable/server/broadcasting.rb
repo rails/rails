@@ -19,8 +19,12 @@ module ActionCable
             @server, @channel = server, channel
           end
 
-          def broadcast(message, log: true)
-            server.logger.info "[ActionCable] Broadcasting to #{channel}: #{message}" if log
+          def broadcast(message)
+            server.logger.info "[ActionCable] Broadcasting to #{channel}: #{message}"
+            broadcast_without_logging(message)
+          end
+
+          def broadcast_without_logging(message)            
             server.redis_for_threads.publish channel, message.to_json
           end
 

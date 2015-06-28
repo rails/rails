@@ -10,18 +10,16 @@ module ActionCable
     end
 
     def disconnect
-      redis.publish internal_redis_channel, { type: 'disconnect' }.to_json
+      server.broadcast_without_logging internal_redis_channel, type: 'disconnect'
     end
 
     def identifiers
-      @server.connection_identifiers
-    end
-
-    def redis
-      @server.threaded_redis
+      server.connection_identifiers
     end
 
     private
+      attr_reader :server
+
       def set_identifier_instance_vars(ids)
         raise InvalidIdentifiersError unless valid_identifiers?(ids)
         ids.each { |k,v| instance_variable_set("@#{k}", v) }
