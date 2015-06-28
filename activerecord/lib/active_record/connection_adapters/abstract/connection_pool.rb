@@ -849,6 +849,21 @@ module ActiveRecord
 
         remove_connection(spec.name)
         owner_to_pool[spec.name] = ConnectionAdapters::ConnectionPool.new(spec)
+
+        message_bus = ActiveSupport::Notifications.instrumenter
+        payload = {
+          connection_id: object_id
+        }
+        if spec
+          payload[:class_name] = spec.name
+          payload[:config] = spec.config
+        end
+
+        message_bus.instrument('!connection.active_record', payload) do
+          owner_to_pool[spec.name] = ConnectionAdapters::ConnectionPool.new(spec)
+        end
+
+        owner_to_pool[spec.name]
       end
 
       # Returns true if there are any active connections among the connection
