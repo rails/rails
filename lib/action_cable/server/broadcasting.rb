@@ -9,12 +9,14 @@ module ActionCable
         Broadcaster.new(self, channel)
       end
 
-      private
-        def redis_for_threads
-          @redis_for_threads ||= Redis.new(redis_config)
-        end      
+      def broadcasting_redis
+        @broadcasting_redis ||= Redis.new(redis_config)
+      end      
 
+      private
         class Broadcaster
+          attr_reader :server, :channel
+
           def initialize(server, channel)
             @server, @channel = server, channel
           end
@@ -25,11 +27,8 @@ module ActionCable
           end
 
           def broadcast_without_logging(message)            
-            server.redis_for_threads.publish channel, message.to_json
+            server.broadcasting_redis.publish channel, message.to_json
           end
-
-          private
-            attr_reader :server, :channel
         end
     end
   end
