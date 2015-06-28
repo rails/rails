@@ -8,7 +8,7 @@ class ServerTest < ActionCableTest
     end
   end
 
-  class ChatServer < ActionCable::Server
+  class ChatServer < ActionCable::Server::Base
     register_channels ChatChannel
   end
 
