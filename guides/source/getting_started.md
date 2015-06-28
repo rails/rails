@@ -1546,8 +1546,6 @@ class CreateComments < ActiveRecord::Migration
     create_table :comments do |t|
       t.string :commenter
       t.text :body
-
-      # this line adds an integer column called `article_id`.
       t.references :article, index: true, foreign_key: true
 
       t.timestamps null: false
@@ -1556,9 +1554,9 @@ class CreateComments < ActiveRecord::Migration
 end
 ```
 
-The `t.references` line sets up a foreign key column for the association between
-the two models. An index for this association is also created on this column.
-Go ahead and run the migration:
+The `t.references` line creates an integer column called `article_id`, an index
+for it, and a foreign key constraint that points to the `articles` table. Go
+ahead and run the migration:
 
 ```bash
 $ bin/rake db:migrate
