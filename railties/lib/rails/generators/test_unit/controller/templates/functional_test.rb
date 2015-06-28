@@ -2,7 +2,7 @@ require 'test_helper'
 
 <% module_namespacing do -%>
 class <%= class_name %>ControllerTest < ActionController::TestCase
-<% if defined?(ENGINE_ROOT) -%>
+<% if mountable_engine? -%>
   setup do
     @routes = Engine.routes
   end
