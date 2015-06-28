@@ -1,6 +1,8 @@
 module ActionCable
   module Server
     class Base
+      include ActionCable::Server::Broadcasting
+
       cattr_accessor(:logger, instance_reader: true) { Rails.logger }
 
       attr_accessor :registered_channels, :redis_config, :log_tags
@@ -47,14 +49,6 @@ module ActionCable
 
       def remote_connections
         @remote_connections ||= RemoteConnections.new(self)
-      end
-
-      def broadcaster_for(channel)
-        Broadcaster.new(self, channel)
-      end
-
-      def broadcast(channel, message)
-        broadcaster_for(channel).broadcast(message)
       end
 
       def connection_identifiers
