@@ -88,6 +88,13 @@ class ArgumentSerializationTest < ActiveSupport::TestCase
     assert_equal "Job with argument: 2", JobBuffer.last_value
   end
 
+  test 'raises a friendly SerializationError for records without ids' do
+    err = assert_raises ActiveJob::SerializationError do
+      ActiveJob::Arguments.serialize [Person.new(nil)]
+    end
+    assert_match 'Unable to serialize Person without an id.', err.message
+  end
+
   private
     def assert_arguments_unchanged(*args)
       assert_arguments_roundtrip args
