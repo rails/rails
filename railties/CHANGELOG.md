@@ -1,3 +1,7 @@
+*   Fix `NoMethodError` when generating a scaffold inside a full engine.
+
+    *Yuji Yaginuma*
+
 *   Adding support for passing a block to the `add_source` action of a custom generator
 
     *Mike Dalton*, *Hirofumi Wakasugi*
