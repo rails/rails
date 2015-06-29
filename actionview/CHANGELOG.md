@@ -1,3 +1,7 @@
+*   Asset helpers raise `ArgumentError` when `nil` is passed as a source.
+
+    *Anton Kolomiychuk*
+
 *   Always attach the template digest to the cache key for collection caching
     even when `virtual_path` is not available from the view context.
     Which could happen if the rendering was done directly in the controller

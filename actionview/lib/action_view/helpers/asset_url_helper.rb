@@ -121,6 +121,8 @@ module ActionView
       #   asset_path "application", type: :stylesheet     # => /assets/application.css
       #   asset_path "http://www.example.com/js/xmlhr.js" # => http://www.example.com/js/xmlhr.js
       def asset_path(source, options = {})
+        raise ArgumentError, "nil is not a valid asset source" if source.nil?
+
         source = source.to_s
         return "" unless source.present?
         return source if source =~ URI_REGEXP
