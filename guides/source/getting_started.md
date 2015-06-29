@@ -1555,8 +1555,8 @@ end
 ```
 
 The `t.references` line creates an integer column called `article_id`, an index
-for it, and a foreign key constraint that points to the `articles` table. Go
-ahead and run the migration:
+for it, and a foreign key constraint that points to the `id` column of the `articles`
+table. Go ahead and run the migration:
 
 ```bash
 $ bin/rake db:migrate
