@@ -904,7 +904,15 @@ module ActiveRecord
       def fixtures(*fixture_set_names)
         if fixture_set_names.first == :all
           fixture_set_names = Dir["#{fixture_path}/{**,*}/*.{yml}"]
-          fixture_set_names.map! { |f| f[(fixture_path.to_s.size + 1)..-5] }
+          fixture_path_globs = Dir[fixture_path].sort_by!(&:length).reverse!
+          if fixture_path_globs.length > 1
+            open, close = '(?:', ')'
+          else
+            open, close = '', ''
+          end
+          globs_as_regex = "#{open}#{fixture_path_globs.map { |g| Regexp.escape(g) }.join("|")}#{close}"
+          replace = /\A#{globs_as_regex}\/(.+?)\.yml\z/
+          fixture_set_names.map! { |f| f.sub!(replace, "\\1") }
         else
           fixture_set_names = fixture_set_names.flatten.map(&:to_s)
         end

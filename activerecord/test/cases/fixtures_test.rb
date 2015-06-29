@@ -705,6 +705,15 @@ class LoadAllFixturesWithPathnameTest < ActiveRecord::TestCase
   end
 end
 
+class LoadAllFixturesWithGlobTest < ActiveRecord::TestCase
+  def test_it_loads
+    self.class.fixture_path = FIXTURES_ROOT + '/{to_be_linked,categories}'
+    self.class.fixtures :all
+
+    assert_equal %w(accounts special_categories subsubdir/arbitrary_filename users), fixture_table_names.sort
+  end
+end
+
 class FasterFixturesTest < ActiveRecord::TestCase
   self.use_transactional_tests = false
   fixtures :categories, :authors
