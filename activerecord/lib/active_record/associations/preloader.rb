@@ -160,7 +160,7 @@ module ActiveRecord
         h
       end
 
-      class AlreadyLoaded
+      class AlreadyLoaded # :nodoc:
         attr_reader :owners, :reflection
 
         def initialize(klass, owners, reflection, preload_scope)
@@ -175,7 +175,7 @@ module ActiveRecord
         end
       end
 
-      class NullPreloader
+      class NullPreloader # :nodoc:
         def self.new(klass, owners, reflection, preload_scope); self; end
         def self.run(preloader); end
         def self.preloaded_records; []; end
