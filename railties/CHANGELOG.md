@@ -1,3 +1,8 @@
+*   Fix `NoMethodError` when generating a scaffold inside a full engine.
+
+    *Yuji Yaginuma*
+
+
 ## Rails 4.2.3 (June 25, 2015) ##
 
 *   `assert_file` understands paths with special characters

@@ -17,7 +17,7 @@ module TestUnit # :nodoc:
 
       def fixture_name
         @fixture_name ||=
-          if defined?(ENGINE_ROOT)
+          if mountable_engine?
             "%s_%s" % [namespaced_path, table_name]
           else
             table_name

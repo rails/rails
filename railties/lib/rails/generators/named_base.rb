@@ -179,6 +179,10 @@ module Rails
           !defined?(ActiveRecord::Base) || ActiveRecord::Base.pluralize_table_names
         end
 
+        def mountable_engine?
+          defined?(ENGINE_ROOT) && namespaced?
+        end
+
         # Add a class collisions name to be checked on class initialization. You
         # can supply a hash with a :prefix or :suffix to be tested.
         #
