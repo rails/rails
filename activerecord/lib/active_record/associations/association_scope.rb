@@ -149,6 +149,7 @@ module ActiveRecord
 
             scope.where_clause += item.where_clause
             scope.order_values |= item.order_values
+            scope.unscope!(*item.unscope_values)
           end
 
           reflection = reflection.next
