@@ -51,6 +51,12 @@ module ApplicationTests
         wait
         assert_match 'Started HEAD "/"', logs
       end
+
+      test "logger logs invalid HTTP methods" do
+        request '/', method: 'QUIT'
+        wait
+        assert_match 'Started QUIT "/"', logs
+      end
     end
   end
 end
