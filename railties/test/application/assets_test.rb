@@ -18,7 +18,7 @@ module ApplicationTests
 
     def precompile!(env = nil)
       quietly do
-        precompile_task = "bundle exec rake assets:precompile #{env} --trace 2>&1"
+        precompile_task = "bin/rake assets:precompile #{env} --trace 2>&1"
         output = Dir.chdir(app_path) { %x[ #{precompile_task} ] }
         assert $?.success?, output
         output
@@ -27,7 +27,7 @@ module ApplicationTests
 
     def clean_assets!
       quietly do
-        assert Dir.chdir(app_path) { system('bundle exec rake assets:clobber') }
+        assert Dir.chdir(app_path) { system('bin/rake assets:clobber') }
       end
     end
 

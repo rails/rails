@@ -423,7 +423,7 @@ module ApplicationTests
       end
 
       def run_migration
-        Dir.chdir(app_path) { `bundle exec rake db:migrate` }
+        Dir.chdir(app_path) { `bin/rake db:migrate` }
       end
   end
 end
