@@ -1,3 +1,10 @@
+*   `ActiveRecord::Base.dump_schema_after_migration` applies migration tasks
+    other than `db:migrate`. (eg. `db:rollback`, `db:migrate:dup`, ...)
+
+    Fixes #20743.
+
+    *Yves Senn*
+
 *   Add alternate syntax to make `change_column_default` reversible.
 
     User can pass in `:from` and `:to` to make `change_column_default` command
