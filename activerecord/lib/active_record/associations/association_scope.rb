@@ -165,6 +165,7 @@ module ActiveRecord
             scope.where_values += item.where_values
             scope.bind_values  += item.bind_values
             scope.order_values |= item.order_values
+            scope.unscope!(*item.unscope_values)
           end
         end
 

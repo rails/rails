@@ -1,3 +1,11 @@
+*   Fix through associations using scopes having the scope merged multiple
+    times.
+
+    Fixes #20721.
+    Fixes #20727.
+
+    *Sean Griffin*
+
 *   `ActiveRecord::Base.dump_schema_after_migration` applies migration tasks
     other than `db:migrate`. (eg. `db:rollback`, `db:migrate:dup`, ...)
 
