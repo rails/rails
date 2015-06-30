@@ -1,3 +1,10 @@
+*   `ActiveRecord::Base.dump_schema_after_migration` applies migration tasks
+    other than `db:migrate`. (eg. `db:rollback`, `db:migrate:dup`, ...)
+
+    Fixes #20743.
+
+    *Yves Senn*
+
 *   Correctly raise `ActiveRecord::AssociationTypeMismatch` when assigning
     a wrong type to a namespaced association.
 

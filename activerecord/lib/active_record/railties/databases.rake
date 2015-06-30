@@ -42,15 +42,18 @@ db_namespace = namespace :db do
   desc "Migrate the database (options: VERSION=x, VERBOSE=false, SCOPE=blog)."
   task :migrate => [:environment, :load_config] do
     ActiveRecord::Tasks::DatabaseTasks.migrate
-    db_namespace['_dump'].invoke if ActiveRecord::Base.dump_schema_after_migration
+    db_namespace['_dump'].invoke
   end
 
+  # IMPORTANT: This task won't dump the schema if ActiveRecord::Base.dump_schema_after_migration is set to false
   task :_dump do
-    case ActiveRecord::Base.schema_format
-    when :ruby then db_namespace["schema:dump"].invoke
-    when :sql  then db_namespace["structure:dump"].invoke
-    else
-      raise "unknown schema format #{ActiveRecord::Base.schema_format}"
+    if ActiveRecord::Base.dump_schema_after_migration
+      case ActiveRecord::Base.schema_format
+      when :ruby then db_namespace["schema:dump"].invoke
+      when :sql  then db_namespace["structure:dump"].invoke
+      else
+        raise "unknown schema format #{ActiveRecord::Base.schema_format}"
+      end
     end
     # Allow this task to be called as many times as required. An example is the
     # migrate:redo task, which calls other two internally that depend on this one.

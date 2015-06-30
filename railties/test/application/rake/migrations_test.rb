@@ -158,20 +158,22 @@ module ApplicationTests
         add_to_config('config.active_record.dump_schema_after_migration = false')
 
         Dir.chdir(app_path) do
-          `rails generate model book title:string;
-           bundle exec rake db:migrate`
+          `bin/rails generate model book title:string`
+          output = `bin/rails generate model author name:string`
+          version = output =~ %r{[^/]+db/migrate/(\d+)_create_authors\.rb} && $1
 
-          assert !File.exist?("db/schema.rb")
+          `bin/rake db:migrate db:rollback db:forward db:migrate:up db:migrate:down VERSION=#{version}`
+          assert !File.exist?("db/schema.rb"), "should not dump schema when configured not to"
         end
 
         add_to_config('config.active_record.dump_schema_after_migration = true')
 
         Dir.chdir(app_path) do
-          `rails generate model author name:string;
-           bundle exec rake db:migrate`
+          `bin/rails generate model reviews book_id:integer`
+          `bin/rake db:migrate`
 
           structure_dump = File.read("db/schema.rb")
-          assert_match(/create_table "authors"/, structure_dump)
+          assert_match(/create_table "reviews"/, structure_dump)
         end
       end
 
