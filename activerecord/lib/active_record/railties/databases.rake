@@ -54,10 +54,10 @@ db_namespace = namespace :db do
       else
         raise "unknown schema format #{ActiveRecord::Base.schema_format}"
       end
-      # Allow this task to be called as many times as required. An example is the
-      # migrate:redo task, which calls other two internally that depend on this one.
-      db_namespace['_dump'].reenable
     end
+    # Allow this task to be called as many times as required. An example is the
+    # migrate:redo task, which calls other two internally that depend on this one.
+    db_namespace['_dump'].reenable
   end
 
   namespace :migrate do
