@@ -99,7 +99,8 @@ module ActiveModel
     module HelperMethods
 
       # Validates that the specified attributes match the length restrictions
-      # supplied. Only one option can be used at a time:
+      # supplied. Only one constraint option can be used at a time apart from
+      # +:minimum+ and +:maximum+ that can be combined together:
       #
       #   class Person < ActiveRecord::Base
       #     validates_length_of :first_name, maximum: 30
@@ -118,14 +119,18 @@ module ActiveModel
       #     end
       #   end
       #
-      # Configuration options:
+      # Constraint options:
+      #
       # * <tt>:minimum</tt> - The minimum size of the attribute.
       # * <tt>:maximum</tt> - The maximum size of the attribute. Allows +nil+ by
-      #   default if not used with :minimum.
+      #   default if not used with +:minimum+.
       # * <tt>:is</tt> - The exact size of the attribute.
       # * <tt>:within</tt> - A range specifying the minimum and maximum size of
       #   the attribute.
       # * <tt>:in</tt> - A synonym (or alias) for <tt>:within</tt>.
+      #
+      # Other options:
+      #
       # * <tt>:allow_nil</tt> - Attribute may be +nil+; skip validation.
       # * <tt>:allow_blank</tt> - Attribute may be blank; skip validation.
       # * <tt>:too_long</tt> - The error message if the attribute goes over the
