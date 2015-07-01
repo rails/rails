@@ -34,14 +34,14 @@ module Minitest
 
     ENV["RAILS_ENV"] = options[:environment] || "test"
 
-    Rails::TestRequirer.require_files options[:patterns] unless run_with_autorun
+    ::Rails::TestRequirer.require_files options[:patterns] unless run_with_autorun
 
     unless options[:full_backtrace] || ENV["BACKTRACE"]
       # Plugin can run without Rails loaded, check before filtering.
-      Minitest.backtrace_filter = Rails.backtrace_cleaner if Rails.respond_to?(:backtrace_cleaner)
+      Minitest.backtrace_filter = ::Rails.backtrace_cleaner if ::Rails.respond_to?(:backtrace_cleaner)
     end
 
-    self.reporter << Rails::TestUnitReporter.new(options[:io], options)
+    self.reporter << ::Rails::TestUnitReporter.new(options[:io], options)
   end
 
   mattr_accessor(:run_with_autorun)         { false }
