@@ -51,7 +51,7 @@ class PeopleHelperTest < ActionView::TestCase
           "/people/1"
         }
       }
-      assert_equal '<a href="/people/1">David</a>', link_to_person(person)
+      assert_equal '<a href="/people/1" title="David">David</a>', link_to_person(person)
       assert_equal person, the_model
     end
   end

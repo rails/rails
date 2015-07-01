@@ -1,4 +1,5 @@
 require 'action_view/helpers/javascript_helper'
+require 'action_view/helpers/sanitize_helper'
 require 'active_support/core_ext/array/access'
 require 'active_support/core_ext/hash/keys'
 require 'active_support/core_ext/string/output_safety'
@@ -20,6 +21,7 @@ module ActionView
       extend ActiveSupport::Concern
 
       include TagHelper
+      include SanitizeHelper
 
       module ClassMethods
         def _url_for_modules
@@ -182,9 +184,11 @@ module ActionView
         options ||= {}
 
         html_options = convert_options_to_data_attributes(options, html_options)
+        striped_name = name.respond_to?(:call) ? strip_tags(name.call) : strip_tags(name)
 
         url = url_for(options)
         html_options['href'] ||= url
+        html_options['title'] ||= striped_name if striped_name.present?
 
         content_tag(:a, name || url, html_options, &block)
       end

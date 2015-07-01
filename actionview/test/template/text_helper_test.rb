@@ -116,7 +116,7 @@ class TextHelperTest < ActionView::TestCase
   end
 
   def test_truncate_with_link_options
-    assert_equal "Here is a long test and ...<a href=\"#\">Continue</a>",
+    assert_equal "Here is a long test and ...<a href=\"#\" title=\"Continue\">Continue</a>",
     truncate("Here is a long test and I need a continue to read link", :length => 27) { link_to 'Continue', '#' }
   end
 
@@ -143,12 +143,12 @@ class TextHelperTest < ActionView::TestCase
   end
 
   def test_truncate_with_block_should_escape_the_input
-    assert_equal "&lt;script&gt;code!&lt;/script&gt;He...<a href=\"#\">Continue</a>",
+    assert_equal "&lt;script&gt;code!&lt;/script&gt;He...<a href=\"#\" title=\"Continue\">Continue</a>",
       truncate("<script>code!</script>Here's a long test and I need a continue to read link", :length => 27) { link_to 'Continue', '#' }
   end
 
   def test_truncate_with_block_should_not_escape_the_input_with_escape_false
-    assert_equal "<script>code!</script>He...<a href=\"#\">Continue</a>",
+    assert_equal "<script>code!</script>He...<a href=\"#\" title=\"Continue\">Continue</a>",
       truncate("<script>code!</script>Here's a long test and I need a continue to read link", :length => 27, :escape => false) { link_to 'Continue', '#' }
   end
 
