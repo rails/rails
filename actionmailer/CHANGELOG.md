@@ -1,3 +1,9 @@
+*   `deliver_later` now respects the current locale.
+
+    Fixes #20774.
+
+    *Johannes Opper*
+
 *   Add `config.action_mailer.deliver_later_queue_name` configuration to set the
     mailer queue name.
 
