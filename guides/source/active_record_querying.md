@@ -1266,6 +1266,18 @@ class Client < ActiveRecord::Base
 end
 ```
 
+NOTE: The `default_scope` is also applied while creating/building a record.
+It is not applied while updating a record. E.g.:
+
+```ruby
+class Client < ActiveRecord::Base
+  default_scope { where(active: true) }
+end
+
+Client.new          # => #<Client id: nil, active: true>
+Client.unscoped.new # => #<Client id: nil, active: nil>
+```
+
 ### Merging of scopes
 
 Just like `where` clauses scopes are merged using `AND` conditions.
