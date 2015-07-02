@@ -1,3 +1,7 @@
+*   Only wrap missing translation warnings in a `<span>` when the key is html-safe
+
+    *David Cornu*
+
 *   Asset helpers raise `ArgumentError` when `nil` is passed as a source.
 
     *Anton Kolomiychuk*
