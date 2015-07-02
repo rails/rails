@@ -360,7 +360,6 @@ Rails understands both numeric status codes and the corresponding symbols shown 
 |                     | 303              | :see_other                       |
 |                     | 304              | :not_modified                    |
 |                     | 305              | :use_proxy                       |
-|                     | 306              | :reserved                        |
 |                     | 307              | :temporary_redirect              |
 |                     | 308              | :permanent_redirect              |
 | **Client Error**    | 400              | :bad_request                     |
@@ -376,10 +375,10 @@ Rails understands both numeric status codes and the corresponding symbols shown 
 |                     | 410              | :gone                            |
 |                     | 411              | :length_required                 |
 |                     | 412              | :precondition_failed             |
-|                     | 413              | :request_entity_too_large        |
-|                     | 414              | :request_uri_too_long            |
+|                     | 413              | :payload_too_large               |
+|                     | 414              | :uri_too_long                    |
 |                     | 415              | :unsupported_media_type          |
-|                     | 416              | :requested_range_not_satisfiable |
+|                     | 416              | :range_not_satisfiable           |
 |                     | 417              | :expectation_failed              |
 |                     | 422              | :unprocessable_entity            |
 |                     | 423              | :locked                          |
