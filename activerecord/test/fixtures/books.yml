@@ -24,3 +24,8 @@ ddd:
   name: "Domain-Driven Design"
   format: "hardcover"
   status: 2
+
+tlg:
+  author_id: 1
+  id: 4
+  name: "Thoughleadering"

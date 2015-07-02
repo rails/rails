@@ -645,7 +645,9 @@ module ActiveRecord
 
           # Resolve enums
           model_class.defined_enums.each do |name, values|
-            row[name] = values.fetch(row[name], row[name])
+            if row.include?(name)
+              row[name] = values.fetch(row[name], row[name])
+            end
           end
 
           # If STI is used, find the correct subclass for association reflection
