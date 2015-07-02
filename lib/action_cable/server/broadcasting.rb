@@ -5,6 +5,10 @@ module ActionCable
         broadcaster_for(broadcasting).broadcast(message)
       end
 
+      def broadcast_without_logging(broadcasting, message)
+        broadcaster_for(broadcasting).broadcast_without_logging(message)
+      end
+
       def broadcaster_for(broadcasting)
         Broadcaster.new(self, broadcasting)
       end
