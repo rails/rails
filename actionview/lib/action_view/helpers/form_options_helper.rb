@@ -35,8 +35,8 @@ module ActionView
     #     <select name="post[person_id]" id="post_person_id">
     #       <option value="">None</option>
     #       <option value="1">David</option>
-    #       <option value="2" selected="selected">Sam</option>
-    #       <option value="3">Tobias</option>
+    #       <option value="2" selected="selected">Eileen</option>
+    #       <option value="3">Rafael</option>
     #     </select>
     #
     # * <tt>:prompt</tt> - set to true or a prompt string. When the select element doesn't have a value yet, this prepends an option with a generic prompt -- "Please select" -- or the given prompt string.
@@ -48,8 +48,8 @@ module ActionView
     #     <select name="post[person_id]" id="post_person_id">
     #       <option value="">Select Person</option>
     #       <option value="1">David</option>
-    #       <option value="2">Sam</option>
-    #       <option value="3">Tobias</option>
+    #       <option value="2">Eileen</option>
+    #       <option value="3">Rafael</option>
     #     </select>
     #
     # * <tt>:index</tt> - like the other form helpers, +select+ can accept an <tt>:index</tt> option to manually set the ID used in the resulting output. Unlike other helpers, +select+ expects this
@@ -112,8 +112,8 @@ module ActionView
       #   <select name="post[person_id]" id="post_person_id">
       #     <option value=""></option>
       #     <option value="1" selected="selected">David</option>
-      #     <option value="2">Sam</option>
-      #     <option value="3">Tobias</option>
+      #     <option value="2">Eileen</option>
+      #     <option value="3">Rafael</option>
       #   </select>
       #
       # assuming the associated person has ID 1.
