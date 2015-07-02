@@ -27,7 +27,7 @@ module ActionCable
         end
 
         if subscription_klass
-          subscriptions[id_key] = subscription_klass.new(connection, id_key, id_options)
+          subscriptions[id_key] ||= subscription_klass.new(connection, id_key, id_options)
         else
           logger.error "Subscription class not found (#{data.inspect})"
         end
