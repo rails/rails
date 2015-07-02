@@ -10,37 +10,14 @@ module ActionView
       # Delegates to <tt>I18n#translate</tt> but also performs three additional
       # functions.
       #
-      # First, it will ensure that any thrown +MissingTranslation+ messages will
-      # be rendered as inline spans that:
-      #
-      # * Have a <tt>translation-missing</tt> class applied
-      # * Contain the missing key as the value of the +title+ attribute
-      # * Have a titleized version of the last key segment as text
-      #
-      # For example, the value returned for the missing translation key
-      # <tt>"blog.post.title"</tt> will be:
-      #
-      #    <span
-      #      class="translation_missing"
-      #      title="translation missing: en.blog.post.title">Title</span>
-      #
-      # This allows for views to display rather reasonable strings while still
-      # giving developers a way to find missing translations.
-      #
-      # If you would prefer missing translations to raise an error, you can
-      # opt out of span-wrapping behavior globally by setting
-      # <tt>ActionView::Base.raise_on_missing_translations = true</tt> or
-      # individually by passing <tt>raise: true</tt> as an option to
-      # <tt>translate</tt>.
-      #
-      # Second, if the key starts with a period <tt>translate</tt> will scope
+      # First, if the key starts with a period <tt>translate</tt> will scope
       # the key by the current partial. Calling <tt>translate(".foo")</tt> from
       # the <tt>people/index.html.erb</tt> template is equivalent to calling
       # <tt>translate("people.index.foo")</tt>. This makes it less
       # repetitive to translate many keys within the same partial and provides
       # a convention to scope keys consistently.
       #
-      # Third, the translation will be marked as <tt>html_safe</tt> if the key
+      # Second, the translation will be marked as <tt>html_safe</tt> if the key
       # has the suffix "_html" or the last element of the key is "html". Calling
       # <tt>translate("footer_html")</tt> or <tt>translate("footer.html")</tt>
       # will return an HTML safe string that won't be escaped by other HTML
@@ -48,6 +25,31 @@ module ActionView
       # that include HTML tags so that you know what kind of output to expect
       # when you call translate in a template and translators know which keys
       # they can provide HTML values for.
+      #
+      # Third, it will ensure that any thrown +MissingTranslation+ messages will
+      # be rendered as an error message.
+      #
+      # For html-safe translations, the error will:
+      #
+      # * Have a <tt>translation-missing</tt> class applied
+      # * Contain the missing key as the value of the +title+ attribute
+      # * Have a titleized version of the last key segment as text
+      #
+      # For example, the value returned for the missing translation key
+      # <tt>"blog.post.title_html"</tt> will be:
+      #
+      #    <span
+      #      class="translation_missing"
+      #      title="translation missing: en.blog.post.title_html">Title Html</span>
+      #
+      # This allows for views to display rather reasonable strings while still
+      # giving developers a way to find missing translations.
+      #
+      # If you would rather have missing translations raise an error, you can
+      # opt out this behavior globally by setting
+      # <tt>ActionView::Base.raise_on_missing_translations = true</tt> or
+      # individually by passing <tt>raise: true</tt> as an option to
+      # <tt>translate</tt>.
       def translate(key, options = {})
         options = options.dup
         has_default = options.has_key?(:default)
