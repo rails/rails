@@ -1026,6 +1026,10 @@ class NullStoreTest < ActiveSupport::TestCase
     end
     assert_nil @cache.read("name")
   end
+
+  def test_setting_nil_cache_store
+    assert ActiveSupport::Cache.lookup_store.class.name, ActiveSupport::Cache::NullStore.name
+  end
 end
 
 class CacheStoreLoggerTest < ActiveSupport::TestCase
