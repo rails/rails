@@ -53,3 +53,10 @@ end
 
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
 gem 'tzinfo-data', platforms: [:mingw, :mswin, :x64_mingw, :jruby]
+<<<<<<< HEAD
+=======
+<% end -%>
+
+# Uncomment this, to increase the performance
+# gem 'listen', '~>3.0.2'
+>>>>>>> 53f1084... Gsoc - Evented File system Monitoring
