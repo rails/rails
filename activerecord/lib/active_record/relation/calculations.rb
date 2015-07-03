@@ -139,7 +139,7 @@ module ActiveRecord
     #   # SELECT people.id, people.name FROM people
     #   # => [[1, 'David'], [2, 'Jeremy'], [3, 'Jose']]
     #
-    #   Person.uniq.pluck(:role)
+    #   Person.distinct.pluck(:role)
     #   # SELECT DISTINCT role FROM people
     #   # => ['admin', 'member', 'guest']
     #
@@ -195,7 +195,8 @@ module ActiveRecord
     def perform_calculation(operation, column_name)
       operation = operation.to_s.downcase
 
-      # If #count is used with #distinct / #uniq it is considered distinct. (eg. relation.distinct.count)
+      # If #count is used with #distinct (i.e. `relation.distinct.count`) it is
+      # considered distinct.
       distinct = self.distinct_value
 
       if operation == "count"
