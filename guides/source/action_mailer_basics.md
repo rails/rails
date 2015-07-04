@@ -533,6 +533,24 @@ url helper.
 NOTE: non-`GET` links require [jQuery UJS](https://github.com/rails/jquery-ujs)
 and won't work in mailer templates. They will result in normal `GET` requests.
 
+### Adding images in Action Mailer Views
+
+Unlike controllers, the mailer instance doesn't have any context about the
+incoming request so you'll need to provide the `:asset_host` parameter yourself.
+
+As the `:asset_host` usually is consistent across the application you can
+configure it globally in config/application.rb:
+
+```ruby
+config.action_mailer.asset_host = 'http://example.com'
+```
+
+Now you can display an image inside your email.
+
+```ruby
+<%= image_tag 'image.jpg' %>
+```
+
 ### Sending Multipart Emails
 
 Action Mailer will automatically send multipart emails if you have different
