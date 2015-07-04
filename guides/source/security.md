@@ -1026,6 +1026,29 @@ Environmental Security
 
 It is beyond the scope of this guide to inform you on how to secure your application code and environments. However, please secure your database configuration, e.g. `config/database.yml`, and your server-side secret, e.g. stored in `config/secrets.yml`. You may want to further restrict access, using environment-specific versions of these files and any others that may contain sensitive information.
 
+### Custom secrets
+
+Rails generates a `config/secrets.yml`. By default, this file contains the
+application's `secret_key_base`, but it could also be used to store other
+secrets such as access keys for external APIs.
+
+The secrets added to this file are accessible via `Rails.application.secrets`.
+For example, with the following `config/secrets.yml`:
+
+    development:
+      secret_key_base: 3b7cd727ee24e8444053437c36cc66c3
+      some_api_key: SOMEKEY
+
+`Rails.application.secrets.some_api_key` returns `SOMEKEY` in the development
+environment.
+
+If you want an exception to be raised when some key is blank, use the bang
+version:
+
+```ruby
+Rails.application.secrets.some_api_key! # => raises KeyError
+```
+
 Additional Resources
 --------------------
 
