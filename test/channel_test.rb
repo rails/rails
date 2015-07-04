@@ -8,7 +8,7 @@ class ChannelTest < ActionCableTest
     end
   end
 
-  class PingServer < ActionCable::Server
+  class PingServer < ActionCable::Server::Base
     register_channels PingChannel
   end
 

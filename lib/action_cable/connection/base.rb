@@ -1,112 +1,67 @@
 module ActionCable
   module Connection
     class Base
-      include InternalChannel, Identifier
+      include Identification
+      include InternalChannel
 
-      PING_INTERVAL = 3
-
-      class_attribute :identifiers
-      self.identifiers = Set.new
-
-      def self.identified_by(*identifiers)
-        self.identifiers += identifiers
-      end
-
-      attr_reader :env, :server, :logger
+      attr_reader :server, :env
       delegate :worker_pool, :pubsub, to: :server
 
+      attr_reader :logger
+
       def initialize(server, env)
+        @server, @env = server, env
+
+        @logger = new_tagged_logger
+
+        @websocket      = ActionCable::Connection::WebSocket.new(env)
+        @heartbeat      = ActionCable::Connection::Heartbeat.new(self)
+        @subscriptions  = ActionCable::Connection::Subscriptions.new(self)
+        @message_buffer = ActionCable::Connection::MessageBuffer.new(self)
+
         @started_at = Time.now
-
-        @server = server
-        @env = env
-        @accept_messages = false
-        @pending_messages = []
-        @subscriptions = {}
-
-        @logger = TaggedLoggerProxy.new(server.logger, tags: log_tags)
       end
 
       def process
         logger.info started_request_message
 
-        if websocket?
-          @websocket = Faye::WebSocket.new(@env)
-
-          @websocket.on(:open) do |event|
-            transmit_ping_timestamp
-            @ping_timer = EventMachine.add_periodic_timer(PING_INTERVAL) { transmit_ping_timestamp }
-            worker_pool.async.invoke(self, :initialize_connection)
-          end
-
-          @websocket.on(:message) do |event|
-            message = event.data
-
-            if message.is_a?(String)
-              if @accept_messages
-                worker_pool.async.invoke(self, :received_data, message)
-              else
-                @pending_messages << message
-              end
-            end
-          end
-
-          @websocket.on(:close) do |event|
-            logger.info finished_request_message
-
-            worker_pool.async.invoke(self, :on_connection_closed)
-            EventMachine.cancel_timer(@ping_timer) if @ping_timer
-          end
-
-          @websocket.rack_response
+        if websocket.possible?
+          websocket.on(:open)    { |event| send_async :on_open   }
+          websocket.on(:message) { |event| on_message event.data }
+          websocket.on(:close)   { |event| send_async :on_close  }
+          
+          respond_to_successful_request
         else
-          invalid_request
+          respond_to_invalid_request
         end
       end
 
-      def received_data(data)
-        return unless websocket_alive?
-
-        data = ActiveSupport::JSON.decode data
-
-        case data['command']
-        when 'subscribe'
-          subscribe_channel(data)
-        when 'unsubscribe'
-          unsubscribe_channel(data)
-        when 'message'
-          process_message(data)
+      def receive(data_in_json)
+        if websocket.alive?
+          subscriptions.execute_command ActiveSupport::JSON.decode(data_in_json)
         else
-          logger.error "Received unrecognized command in #{data.inspect}"
-        end
-      end
-
-      def cleanup_subscriptions
-        @subscriptions.each do |id, channel|
-          channel.perform_disconnection
+          logger.error "Received data without a live websocket (#{data.inspect})"
         end
       end
 
       def transmit(data)
-        @websocket.send data
+        websocket.transmit data
+      end
+
+      def close
+        logger.error "Closing connection"
+        websocket.close
+      end
+
+
+      def send_async(method, *arguments)
+        worker_pool.async.invoke(self, method, *arguments)
       end
 
       def statistics
-        {
-          identifier: connection_identifier,
-          started_at: @started_at,
-          subscriptions: @subscriptions.keys
-        }
+        { identifier: connection_identifier, started_at: @started_at, subscriptions: subscriptions.identifiers }
       end
 
-      def handle_exception
-        close_connection
-      end
-
-      def close_connection
-        logger.error "Closing connection"
-        @websocket.close
-      end
 
       protected
         def request
@@ -117,79 +72,59 @@ module ActionCable
           request.cookie_jar
         end
 
-        def initialize_connection
+
+      private
+        attr_reader :websocket
+        attr_reader :heartbeat, :subscriptions, :message_buffer
+
+        def on_open
           server.add_connection(self)
 
           connect if respond_to?(:connect)
           subscribe_to_internal_channel
+          heartbeat.start
 
-          @accept_messages = true
-          worker_pool.async.invoke(self, :received_data, @pending_messages.shift) until @pending_messages.empty?
+          message_buffer.process!
         end
 
-        def on_connection_closed
+        def on_message(message)
+          message_buffer.append message
+        end
+
+        def on_close
+          logger.info finished_request_message
+
           server.remove_connection(self)
 
-          cleanup_subscriptions
+          subscriptions.cleanup
           unsubscribe_from_internal_channel
+          heartbeat.stop
+
           disconnect if respond_to?(:disconnect)
         end
 
-        def transmit_ping_timestamp
-          transmit({ identifier: '_ping', message: Time.now.to_i }.to_json)
+
+        def respond_to_successful_request
+          websocket.rack_response
         end
 
-        def subscribe_channel(data)
-          id_key = data['identifier']
-          id_options = ActiveSupport::JSON.decode(id_key).with_indifferent_access
-
-          subscription_klass = server.registered_channels.detect { |channel_klass| channel_klass.find_name == id_options[:channel] }
-
-          if subscription_klass
-            @subscriptions[id_key] = subscription_klass.new(self, id_key, id_options)
-          else
-            logger.error "Subscription class not found (#{data.inspect})"
-          end
-        rescue Exception => e
-          logger.error "Could not subscribe to channel (#{data.inspect})"
-          log_exception(e)
-        end
-
-        def process_message(message)
-          if @subscriptions[message['identifier']]
-            @subscriptions[message['identifier']].perform_action(ActiveSupport::JSON.decode message['data'])
-          else
-            raise "Unable to process message because no subscription was found (#{message.inspect})"
-          end
-        rescue Exception => e
-          logger.error "Could not process message (#{message.inspect})"
-          log_exception(e)
-        end
-
-        def unsubscribe_channel(data)
-          logger.info "Unsubscribing from channel: #{data['identifier']}"
-          @subscriptions[data['identifier']].perform_disconnection
-          @subscriptions.delete(data['identifier'])
-        end
-
-        def invalid_request
+        def respond_to_invalid_request
           logger.info finished_request_message
-          [404, {'Content-Type' => 'text/plain'}, ['Page not found']]
+          [ 404, { 'Content-Type' => 'text/plain' }, [ 'Page not found' ] ]
         end
 
-        def websocket_alive?
-          @websocket && @websocket.ready_state == Faye::WebSocket::API::OPEN
-        end
 
-        def websocket?
-          @is_websocket ||= Faye::WebSocket.websocket?(@env)
+        # Tags are declared in the server but computed in the connection. This allows us per-connection tailored tags.
+        def new_tagged_logger
+          TaggedLoggerProxy.new server.logger, 
+            tags: server.log_tags.map { |tag| tag.respond_to?(:call) ? tag.call(request) : tag.to_s.camelize }
         end
 
         def started_request_message
           'Started %s "%s"%s for %s at %s' % [
             request.request_method,
             request.filtered_path,
-            websocket? ? ' [Websocket]' : '',
+            websocket.possible? ? ' [Websocket]' : '',
             request.ip,
             Time.now.to_default_s ]
         end
@@ -197,18 +132,9 @@ module ActionCable
         def finished_request_message
           'Finished "%s"%s for %s at %s' % [
             request.filtered_path,
-            websocket? ? ' [Websocket]' : '',
+            websocket.possible? ? ' [Websocket]' : '',
             request.ip,
             Time.now.to_default_s ]
-        end
-
-        def log_exception(e)
-          logger.error "There was an exception: #{e.class} - #{e.message}"
-          logger.error e.backtrace.join("\n")
-        end
-
-        def log_tags
-          server.log_tags.map { |tag| tag.respond_to?(:call) ? tag.call(request) : tag.to_s.camelize }
         end
     end
   end

@@ -3,6 +3,10 @@ module ActionCable
     module InternalChannel
       extend ActiveSupport::Concern
 
+      def internal_redis_channel
+        "action_cable/#{connection_identifier}"
+      end
+
       def subscribe_to_internal_channel
         if connection_identifier.present?
           callback = -> (message) { process_internal_message(message) }
@@ -27,13 +31,13 @@ module ActionCable
           case message['type']
           when 'disconnect'
             logger.info "Removing connection (#{connection_identifier})"
-            @websocket.close
+            websocket.close
           end
         rescue Exception => e
           logger.error "There was an exception - #{e.class}(#{e.message})"
           logger.error e.backtrace.join("\n")
 
-          handle_exception
+          close
         end
     end
   end
