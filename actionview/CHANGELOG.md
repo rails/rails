@@ -1,3 +1,8 @@
+*   Allow defining explicit collection caching using a `# Template Collection: ...`
+    directive inside templates.
+
+    *Dov Murik*
+
 *   Asset helpers raise `ArgumentError` when `nil` is passed as a source.
 
     *Anton Kolomiychuk*

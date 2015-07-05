@@ -125,7 +125,7 @@ module ActionView
 
         # Returns Regexp to extract a cached resource's name from a cache call at the
         # first line of a template.
-        # The extracted cache name is expected in $1.
+        # The extracted cache name is captured as :resource_name.
         #
         #   <% cache notification do %> # => notification
         #
@@ -138,7 +138,14 @@ module ActionView
         #
         #   <% cache notification.event do %> # => nil
         def resource_cache_call_pattern
-          /\A(?:<%#.*%>)*\s*<%\s*cache\(?\s*(\w+)[\s\)]/m
+          /\A
+            (?:<%\#.*%>)*                 # optional initial comment
+            \s*                           # followed by optional spaces or newlines
+            <%\s*cache[\(\s]              # followed by an ERB call to cache
+            \s*                           # followed by optional spaces or newlines
+            (?<resource_name>\w+)         # capture the cache call argument as :resource_name
+            [\s\)]                        # followed by a space or close paren
+          /xm
         end
 
       private
