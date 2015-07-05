@@ -8,7 +8,7 @@ require 'active_support/json'
 module ActionDispatch
   class Request < Rack::Request
     def cookie_jar
-      env['action_dispatch.cookies'] ||= Cookies::CookieJar.build(self)
+      env['action_dispatch.cookies'] ||= Cookies::CookieJar.build(env, host, ssl?, cookies)
     end
   end
 
@@ -228,16 +228,12 @@ module ActionDispatch
         }
       end
 
-      def self.build(request)
-        env = request.env
+      def self.build(env, host, secure, cookies)
         key_generator = env[GENERATOR_KEY]
         options = options_for_env env
 
-        host = request.host
-        secure = request.ssl?
-
         new(key_generator, host, secure, options).tap do |hash|
-          hash.update(request.cookies)
+          hash.update(cookies)
         end
       end
 
