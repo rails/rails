@@ -4,43 +4,26 @@ module ActionCable
       include ActionCable::Server::Broadcasting
       include ActionCable::Server::Connections
 
-      cattr_accessor(:logger, instance_reader: true) { Rails.logger }
+      cattr_accessor(:config, instance_accessor: true) { ActionCable::Server::Configuration.new }
+      
+      def self.logger; config.logger; end
+      delegate :logger, to: :config
 
-      attr_accessor :registered_channels, :redis_config, :log_tags
-
-      def initialize(redis_config:, channels:, worker_pool_size: 100, connection: Connection, log_tags: [ 'ActionCable' ])
-        @redis_config = redis_config.with_indifferent_access
-        @registered_channels = Set.new(channels)
-        @worker_pool_size = worker_pool_size
-        @connection_class = connection
-        @log_tags = log_tags
-
-        @connections = []
-
-        logger.info "[ActionCable] Initialized server (redis_config: #{@redis_config.inspect}, worker_pool_size: #{@worker_pool_size})"
+      def initialize
       end
 
       def call(env)
-        @connection_class.new(self, env).process
+        config.connection_class.new(self, env).process
       end
 
       def worker_pool
-        @worker_pool ||= ActionCable::Server::Worker.pool(size: @worker_pool_size)
+        @worker_pool ||= ActionCable::Server::Worker.pool(size: config.worker_pool_size)
       end
 
-      def pubsub
-        @pubsub ||= redis.pubsub
-      end
-
-      def redis
-        @redis ||= begin
-          redis = EM::Hiredis.connect(@redis_config[:url])
-          redis.on(:reconnect_failed) do
-            logger.info "[ActionCable] Redis reconnect failed."
-            # logger.info "[ActionCable] Redis reconnected. Closing all the open connections."
-            # @connections.map &:close
-          end
-          redis
+      def channel_classes
+        @channel_classes ||= begin
+          config.channel_paths.each { |channel_path| require channel_path }
+          config.channel_class_names.collect { |name| name.constantize }
         end
       end
 
@@ -48,10 +31,22 @@ module ActionCable
         @remote_connections ||= RemoteConnections.new(self)
       end
 
-      def connection_identifiers
-        @connection_class.identifiers
+      def pubsub
+        @pubsub ||= redis.pubsub
       end
 
+      def redis
+        @redis ||= EM::Hiredis.connect(config.redis[:url]).tap do |redis|
+          redis.on(:reconnect_failed) do
+            logger.info "[ActionCable] Redis reconnect failed."
+            # logger.info "[ActionCable] Redis reconnected. Closing all the open connections."
+            # @connections.map &:close
+          end            
+        end
+      end
+
+      def connection_identifiers
+        config.connection_class.identifiers
       end
     end
   end

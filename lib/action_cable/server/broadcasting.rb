@@ -10,7 +10,7 @@ module ActionCable
       end
 
       def broadcasting_redis
-        @broadcasting_redis ||= Redis.new(redis_config)
+        @broadcasting_redis ||= Redis.new(config.redis)
       end      
 
       private

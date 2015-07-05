@@ -17,7 +17,7 @@ class ServerTest < ActionCableTest
   end
 
   test "channel registration" do
-    assert_equal ChatServer.registered_channels, Set.new([ ChatChannel ])
+    assert_equal ChatServer.channel_classes, Set.new([ ChatChannel ])
   end
 
   test "subscribing to a channel with valid params" do
