@@ -1137,14 +1137,6 @@ If `@post.author_ids` is [1], this would return:
 <input name="post[author_ids][]" type="hidden" value="" />
 ```
 
-#### country_options_for_select
-
-Returns a string of option tags for pretty much any country in the world.
-
-#### country_select
-
-Returns select and option tags for the given object and method, using country_options_for_select to generate the list of option tags.
-
 #### option_groups_from_collection_for_select
 
 Returns a string of `option` tags, like `options_from_collection_for_select`, but groups them by `optgroup` tags based on the object relationships of the arguments.
