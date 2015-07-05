@@ -2,6 +2,7 @@ module ActionCable
   module Server
     class Base
       include ActionCable::Server::Broadcasting
+      include ActionCable::Server::Connections
 
       cattr_accessor(:logger, instance_reader: true) { Rails.logger }
 
@@ -51,16 +52,6 @@ module ActionCable
         @connection_class.identifiers
       end
 
-      def add_connection(connection)
-        @connections << connection
-      end
-
-      def remove_connection(connection)
-        @connections.delete connection
-      end
-
-      def open_connections_statistics
-        @connections.map(&:statistics)
       end
     end
   end
