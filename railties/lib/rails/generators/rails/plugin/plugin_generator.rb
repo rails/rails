@@ -364,7 +364,9 @@ task default: :test
         elsif camelized =~ /^\d/
           raise Error, "Invalid plugin name #{original_name}. Please give a name which does not start with numbers."
         elsif RESERVED_NAMES.include?(name)
-          raise Error, "Invalid plugin name #{original_name}. Please give a name which does not match one of the reserved rails words: #{RESERVED_NAMES}"
+          raise Error, "Invalid plugin name #{original_name}. Please give a " \
+                       "name which does not match one of the reserved rails " \
+                       "words: #{RESERVED_NAMES.join(", ")}"
         elsif Object.const_defined?(camelized)
           raise Error, "Invalid plugin name #{original_name}, constant #{camelized} is already in use. Please choose another plugin name."
         end
