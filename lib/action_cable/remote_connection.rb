@@ -10,7 +10,7 @@ module ActionCable
     end
 
     def disconnect
-      server.broadcast_without_logging internal_redis_channel, type: 'disconnect'
+      server.broadcast internal_redis_channel, type: 'disconnect'
     end
 
     def identifiers
