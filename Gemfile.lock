@@ -26,6 +26,13 @@ GIT
     arel (7.0.0.alpha)
 
 GIT
+  remote: git://github.com/rails/globalid.git
+  revision: 4df66fb9e9f0c832d29119aa8bc30be55a614b71
+  specs:
+    globalid (0.3.5)
+      activesupport (>= 4.1.0)
+
+GIT
   remote: git://github.com/rails/jquery-rails.git
   revision: 272abdd319bb3381b23182b928b25320590096b0
   branch: master
@@ -138,8 +145,6 @@ GEM
       delayed_job (>= 3.0, < 4.1)
     erubis (2.7.0)
     execjs (2.3.0)
-    globalid (0.3.3)
-      activesupport (>= 4.1.0)
     hitimes (1.2.2)
     hitimes (1.2.2-x86-mingw32)
     i18n (0.7.0)
@@ -272,6 +277,7 @@ DEPENDENCIES
   dalli (>= 2.2.1)
   delayed_job
   delayed_job_active_record
+  globalid!
   jquery-rails!
   json
   kindlerb (= 0.1.1)
@@ -308,4 +314,4 @@ DEPENDENCIES
   w3c_validators
 
 BUNDLED WITH
-   1.10.4
+   1.10.5
