@@ -2,13 +2,11 @@ module ActionCable
   module Channel
     class Base
       include Callbacks
+      include PeriodicTimers
       include Streams
 
       on_subscribe   :connect
       on_unsubscribe :disconnect
-
-      on_subscribe   :start_periodic_timers
-      on_unsubscribe :stop_periodic_timers
 
       attr_reader :params, :connection
       delegate :logger, to: :connection
@@ -22,7 +20,6 @@ module ActionCable
       def initialize(connection, channel_identifier, params = {})
         @connection = connection
         @channel_identifier = channel_identifier
-        @_active_periodic_timers = []
         @params = params
 
         perform_connection
@@ -112,19 +109,6 @@ module ActionCable
 
         def run_unsubscribe_callbacks
           self.class.on_unsubscribe_callbacks.each { |callback| send(callback) }
-        end
-
-
-        def start_periodic_timers
-          self.class.periodic_timers.each do |callback, options|
-            @_active_periodic_timers << EventMachine::PeriodicTimer.new(options[:every]) do
-              worker_pool.async.run_periodic_timer(self, callback)
-            end
-          end
-        end
-
-        def stop_periodic_timers
-          @_active_periodic_timers.each { |timer| timer.cancel }
         end
 
 

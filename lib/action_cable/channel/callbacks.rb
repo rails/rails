@@ -4,11 +4,10 @@ module ActionCable
       extend ActiveSupport::Concern
 
       included do
-        class_attribute :on_subscribe_callbacks, :on_unsubscribe_callbacks, :periodic_timers, :instance_reader => false
+        class_attribute :on_subscribe_callbacks, :on_unsubscribe_callbacks, :instance_reader => false
 
         self.on_subscribe_callbacks = []
         self.on_unsubscribe_callbacks = []
-        self.periodic_timers = []
       end
 
       module ClassMethods
@@ -18,10 +17,6 @@ module ActionCable
 
         def on_unsubscribe(*methods)
           self.on_unsubscribe_callbacks += methods
-        end
-
-        def periodically(callback, every:)
-          self.periodic_timers += [ [ callback, every: every ] ]
         end
       end
     end
