@@ -79,6 +79,7 @@ module ActionCable
           self.class.name
         end
 
+
       private
         def extract_action(data)
           (data['action'].presence || :receive).to_sym
