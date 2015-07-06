@@ -4,6 +4,9 @@ module ActionCable
       include Callbacks
       include Streams
 
+      on_subscribe   :connect
+      on_unsubscribe :disconnect
+
       on_subscribe   :start_periodic_timers
       on_unsubscribe :stop_periodic_timers
 
@@ -27,7 +30,6 @@ module ActionCable
 
       def perform_connection
         logger.info "#{channel_name} connecting"
-        connect
         run_subscribe_callbacks
       end
 
@@ -47,7 +49,6 @@ module ActionCable
       end
 
       def perform_disconnection
-        disconnect
         run_unsubscribe_callbacks
         logger.info "#{channel_name} disconnected"
       end
