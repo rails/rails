@@ -241,7 +241,7 @@ module ActionView
         :@view,
         :@view_context_class,
         :@_subscribers,
-        :@html_document
+        :@html_document,
         :@html_scanner_document
       ]
 
