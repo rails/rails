@@ -989,6 +989,7 @@ class RequestParameterFilter < BaseRequestTest
     [{'foo'=>'bar', 'baz'=>'foo'},{'foo'=>'[FILTERED]', 'baz'=>'[FILTERED]'},%w'foo baz'],
     [{'bar'=>{'foo'=>'bar','bar'=>'foo'}},{'bar'=>{'foo'=>'[FILTERED]','bar'=>'foo'}},%w'fo'],
     [{'foo'=>{'foo'=>'bar','bar'=>'foo'}},{'foo'=>'[FILTERED]'},%w'f banana'],
+    [{'deep'=>{'cc'=>{'code'=>'bar','bar'=>'foo'},'ss'=>{'code'=>'bar'}}},{'deep'=>{'cc'=>{'code'=>'[FILTERED]','bar'=>'foo'},'ss'=>{'code'=>'bar'}}},%w'deep.cc.code'],
     [{'baz'=>[{'foo'=>'baz'}, "1"]}, {'baz'=>[{'foo'=>'[FILTERED]'}, "1"]}, [/foo/]]]
 
     test_hashes.each do |before_filter, after_filter, filter_words|

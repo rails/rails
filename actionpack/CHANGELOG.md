@@ -1,3 +1,13 @@
+*   Add ability to filter parameters based on parent keys.
+
+        # matches {credit_card: {code: "xxxx"}}
+        # doesn't match {file: { code: "xxxx"}}
+        config.filter_parameters += [ "credit_card.code" ]
+
+    See #13897.
+
+    *Guillaume Malette*
+
 *   Deprecate passing first parameter as `Hash` and default status code for `head` method.
 
     *Mehmet Emin İNAÇ*
