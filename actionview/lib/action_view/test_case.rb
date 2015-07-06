@@ -242,6 +242,7 @@ module ActionView
         :@view_context_class,
         :@_subscribers,
         :@html_document
+        :@html_scanner_document
       ]
 
       def _user_defined_ivars

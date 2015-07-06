@@ -301,6 +301,7 @@ module ActionDispatch
           response = _mock_session.last_response
           @response = ActionDispatch::TestResponse.from_response(response)
           @html_document = nil
+          @html_scanner_document = nil
           @url_options = nil
 
           @controller = session.last_request.env['action_controller.instance']
@@ -338,6 +339,7 @@ module ActionDispatch
           # reset the html_document variable, except for cookies/assigns calls
           unless method == 'cookies' || method == 'assigns'
             @html_document = nil
+            @html_scanner_document = nil
             reset_template_assertion
           end
 
