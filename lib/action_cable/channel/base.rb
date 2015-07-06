@@ -11,12 +11,6 @@ module ActionCable
       attr_reader :params, :connection
       delegate :logger, to: :connection
 
-      class << self
-        def matches?(identifier)
-          raise "Please implement #{name}#matches? method"
-        end
-      end
-
       def initialize(connection, channel_identifier, params = {})
         @connection = connection
         @channel_identifier = channel_identifier

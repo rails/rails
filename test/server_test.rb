@@ -3,9 +3,6 @@ require 'test_helper'
 class ServerTest < ActionCableTest
 
   class ChatChannel < ActionCable::Channel::Base
-    def self.matches?(identifier)
-      identifier[:channel] == 'chat' && identifier[:user_id].to_i.nonzero?
-    end
   end
 
   class ChatServer < ActionCable::Server::Base
