@@ -4,7 +4,7 @@ module ActionCable
       extend ActiveSupport::Concern
 
       included do
-        class_attribute :on_subscribe_callbacks, :on_unsubscribe_callbacks, :instance_reader => false
+        class_attribute :on_subscribe_callbacks, :on_unsubscribe_callbacks, instance_reader: false
 
         self.on_subscribe_callbacks = []
         self.on_unsubscribe_callbacks = []
