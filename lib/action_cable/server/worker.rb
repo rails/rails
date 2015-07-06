@@ -25,7 +25,7 @@ module ActionCable
 
       private
         def logger
-          ActionCable::Server::Base.logger
+          ActionCable.server.logger
         end
     end
   end
