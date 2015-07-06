@@ -25,7 +25,7 @@ module ActionCable
         def start_periodic_timers
           self.class.periodic_timers.each do |callback, options|
             active_periodic_timers << EventMachine::PeriodicTimer.new(options[:every]) do
-              worker_pool.async.run_periodic_timer(self, callback)
+              connection.worker_pool.async.run_periodic_timer(self, callback)
             end
           end
         end

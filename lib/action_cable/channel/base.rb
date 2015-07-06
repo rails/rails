@@ -104,11 +104,6 @@ module ActionCable
         def run_unsubscribe_callbacks
           self.class.on_unsubscribe_callbacks.each { |callback| send(callback) }
         end
-
-
-        def worker_pool
-          connection.worker_pool
-        end
     end
   end
 end
