@@ -1,3 +1,16 @@
+*   Make polymorphic associations joinable by specifying its classes
+
+    Example:
+
+      class Treasure < ActiveRecord::Base
+        belongs_to :looter, :polymorphic => true,
+          :poly_classes => [Parrot, Pirate]
+      end
+
+      Ship.joins(:treasures => :looter).where(:parrots => { :name => "Mona" })
+
+    *Matthias Geier*
+
 *   Fix through associations using scopes having the scope merged multiple
     times.
 
