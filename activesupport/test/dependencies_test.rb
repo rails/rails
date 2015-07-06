@@ -510,6 +510,20 @@ class DependenciesTest < ActiveSupport::TestCase
     end
   end
 
+  def test_file_search_exact_path
+    with_loading 'dependencies/foo' do
+      root = ActiveSupport::Dependencies.autoload_paths.first
+      assert_equal "#{root}/bar.rb", ActiveSupport::Dependencies.search_for_file('foo/bar')
+    end
+  end
+
+  def test_autoloadable_module
+    with_loading 'dependencies/foo' do
+      root = ActiveSupport::Dependencies.autoload_paths.first
+      assert_equal  "#{root}", ActiveSupport::Dependencies.autoloadable_module?('foo')
+    end
+  end
+
   def test_file_search_uses_first_in_load_path
     with_loading 'dependencies', 'autoloading_fixtures' do
       deps, autoload = ActiveSupport::Dependencies.autoload_paths

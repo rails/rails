@@ -406,6 +406,11 @@ module ActiveSupport #:nodoc:
       autoload_paths.each do |root|
         path = File.join(root, path_suffix)
         return path if File.file? path
+        module_path = path_suffix.split('/').first
+        if module_path && root.to_s =~ /#{module_path}$/
+          path = File.join(root.sub(/#{module_path}$/, ''), path_suffix)
+          return path if File.file? path
+        end
       end
       nil # Gee, I sure wish we had first_match ;-)
     end
@@ -416,6 +421,10 @@ module ActiveSupport #:nodoc:
     def autoloadable_module?(path_suffix)
       autoload_paths.each do |load_path|
         return load_path if File.directory? File.join(load_path, path_suffix)
+        if load_path.to_s =~ /#{path_suffix}$/
+          m_dir = File.join(load_path.sub(/\/#{path_suffix}$/, ''), path_suffix)
+          return load_path if File.directory? m_dir
+        end
       end
       nil
     end
