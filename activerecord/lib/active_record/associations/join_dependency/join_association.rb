@@ -79,7 +79,17 @@ module ActiveRecord
               constraint = constraint.and table[reflection.type].eq substitute
             end
 
-            joins << table.create_join(table, table.create_on(constraint), join_type)
+            if @reflection.polymorphic? && @reflection.options[:poly_classes]
+              constraint = constraint.
+                and(foreign_table[reflection.foreign_type].
+                eq(reflection.klass.name))
+              joins << table.create_join(table, table.create_on(constraint),
+                Arel::Nodes::OuterJoin)
+            else
+              joins << table.create_join(table, table.create_on(constraint),
+                join_type)
+            end
+
 
             # The current table in this iteration becomes the foreign table in the next
             foreign_table, foreign_klass = table, klass

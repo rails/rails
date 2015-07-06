@@ -29,8 +29,10 @@ require 'models/job'
 require 'models/college'
 require 'models/student'
 require 'models/pirate'
+require 'models/parrot'
 require 'models/ship'
 require 'models/ship_part'
+require 'models/treasure'
 require 'models/tyre'
 require 'models/subscriber'
 require 'models/subscription'
@@ -2251,5 +2253,23 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     car.bulbs = [second_bulb, same_bulb]
 
     assert_equal [first_bulb, second_bulb], car.bulbs
+  end
+
+  test 'joined polymorphic association chains' do
+    looters = [] <<
+      Pirate.create!(:catchphrase => "Yarr") <<
+      Parrot.create!(:name => "Mona") <<
+      Pirate.create!(:catchphrase => "Lubber")
+    ship = Ship.create!(:name => "Titanic")
+    ship.treasures = 3.times.map { |i| Treasure.create!(:looter => looters[i]) }
+    ship_join = Ship.distinct.joins(:treasures => :looter)
+
+    assert_equal [ship], ship_join.where(:parrots => { :name => "Mona" }).to_a
+    assert_not_equal [ship], ship_join.
+      where(:parrots => { :name => "Lisa" }).to_a
+    assert_equal [ship], ship_join.
+      where(:pirates => { :catchphrase => ["Yarr", "Lubber"] }).to_a
+    assert_not_equal [ship],
+      ship_join.where(:pirates => { :catchphrase => "Lisa" }).to_a
   end
 end

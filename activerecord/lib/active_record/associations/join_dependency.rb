@@ -218,16 +218,26 @@ module ActiveRecord
       end
 
       def build(associations, base_klass)
-        associations.map do |name, right|
+        associations.reduce([]) do |acc, (name, right)|
           reflection = find_reflection base_klass, name
           reflection.check_validity!
           reflection.check_eager_loadable!
 
-          if reflection.polymorphic?
+          if reflection.polymorphic? && !reflection.options[:poly_classes]
             raise EagerLoadPolymorphicError.new(reflection)
           end
 
-          JoinAssociation.new reflection, build(right, reflection.klass)
+          if reflection.options[:poly_classes]
+            reflection.options[:poly_classes].reduce(acc) do |iacc, poly_klass|
+              irefl = reflection.class.new(reflection.name, reflection.scope,
+                reflection.options.merge({ :anonymous_class => poly_klass }),
+                reflection.active_record)
+              iacc << JoinAssociation.new(irefl, build(right, irefl.klass))
+            end
+          else
+            acc << JoinAssociation.new(reflection,
+              build(right, reflection.klass))
+          end
         end
       end
 
