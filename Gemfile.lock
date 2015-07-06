@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    action_cable (0.0.3)
+    action_cable (0.1.0)
       activesupport (>= 4.2.0)
       celluloid (~> 0.16.0)
       em-hiredis (~> 0.3.0)
@@ -52,3 +52,6 @@ DEPENDENCIES
   action_cable!
   puma
   rake
+
+BUNDLED WITH
+   1.10.5
