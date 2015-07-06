@@ -41,9 +41,9 @@ module ActionDispatch
       # Returns a hash with the \parameters used to form the \path of the request.
       # Returned hash keys are strings:
       #
-      #   {'action' => 'my_action', 'controller' => 'my_controller'}
+      #   {'action' => 'my_action', 'controller' => 'my_controller', format => 'html'}
       def path_parameters
-        get_header(PARAMETERS_KEY) || {}
+        get_header(PARAMETERS_KEY) || default_path_parameters
       end
 
       private
@@ -65,6 +65,21 @@ module ActionDispatch
 
       def params_parsers
         ActionDispatch::Request.parameter_parsers
+      end
+
+      def default_path_parameters
+        if format = format_from_path_extension
+          { 'format' => format }
+        else
+          {}
+        end
+      end
+
+      def format_from_path_extension
+        path = @env['action_dispatch.original_path']
+        if match = path.match(/\.(\w+)$/)
+          match.captures.first
+        end
       end
     end
   end
