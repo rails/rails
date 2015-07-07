@@ -11,10 +11,10 @@ module ActionCable
       attr_reader :params, :connection
       delegate :logger, to: :connection
 
-      def initialize(connection, channel_identifier, params = {})
+      def initialize(connection, identifier, params = {})
         @connection = connection
-        @channel_identifier = channel_identifier
-        @params = params
+        @identifier = identifier
+        @params     = params
 
         subscribe_to_channel
       end
@@ -68,7 +68,7 @@ module ActionCable
         def transmit(data, via: nil)
           if authorized?
             logger.info "#{channel_name} transmitting #{data.inspect}".tap { |m| m << " (via #{via})" if via }
-            connection.transmit({ identifier: @channel_identifier, message: data }.to_json)
+            connection.transmit({ identifier: @identifier, message: data }.to_json)
           else
             unauthorized
           end
