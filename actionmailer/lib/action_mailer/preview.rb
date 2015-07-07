@@ -32,7 +32,7 @@ module ActionMailer
 
       # Register an Interceptor which will be called before mail is previewed.
       # Either a class or a string can be passed in as the Interceptor. If a
-      # string is passed in it will be <tt>constantize</tt>d.
+      # string is passed in it will be constantized.
       def register_preview_interceptor(interceptor)
         preview_interceptor = case interceptor
           when String, Symbol

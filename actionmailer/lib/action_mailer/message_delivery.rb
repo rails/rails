@@ -2,11 +2,11 @@ require 'delegate'
 
 module ActionMailer
 
-  # The <tt>ActionMailer::MessageDelivery</tt> class is used by
-  # <tt>ActionMailer::Base</tt> when creating a new mailer.
-  # <tt>MessageDelivery</tt> is a wrapper (+Delegator+ subclass) around a lazy
-  # created <tt>Mail::Message</tt>. You can get direct access to the
-  # <tt>Mail::Message</tt>, deliver the email or schedule the email to be sent
+  # The ActionMailer::MessageDelivery class is used by
+  # ActionMailer::Base when creating a new mailer.
+  # MessageDelivery is a wrapper (Delegator subclass) around a lazy
+  # created Mail::Message. You can get direct access to the
+  # Mail::Message, deliver the email or schedule the email to be sent
   # through Active Job.
   #
   #   Notifier.welcome(User.first)               # an ActionMailer::MessageDelivery object
@@ -52,7 +52,7 @@ module ActionMailer
     end
 
     # Enqueues the email to be delivered through Active Job. When the
-    # job runs it will send the email using +deliver_now+.
+    # job runs it will send the email using deliver_now.
     #
     #   Notifier.welcome(User.first).deliver_later
     #   Notifier.welcome(User.first).deliver_later(wait: 1.hour)

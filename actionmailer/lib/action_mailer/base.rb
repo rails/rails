@@ -15,8 +15,8 @@ module ActionMailer
   #
   #   $ rails generate mailer Notifier
   #
-  # The generated model inherits from <tt>ApplicationMailer</tt> which in turn
-  # inherits from <tt>ActionMailer::Base</tt>. A mailer model defines methods
+  # The generated model inherits from ApplicationMailer which in turn
+  # inherits from ActionMailer::Base. A mailer model defines methods
   # used to generate an email message. In these methods, you can setup variables to be used in
   # the mailer views, options on the mail itself such as the <tt>:from</tt> address, and attachments.
   #
@@ -51,9 +51,9 @@ module ActionMailer
   # * <tt>headers(hash)</tt> - Allows you to specify multiple headers in your email such
   #   as <tt>headers({'X-No-Spam' => 'True', 'In-Reply-To' => '1234@message.id'})</tt>
   #
-  # * <tt>mail</tt> - Allows you to specify email to be sent.
+  # * mail - Allows you to specify email to be sent.
   #
-  # The hash passed to the mail method allows you to specify any header that a <tt>Mail::Message</tt>
+  # The hash passed to the mail method allows you to specify any header that a Mail::Message
   # will accept (any valid email header including optional fields).
   #
   # The mail method, if not passed a block, will inspect your views and send all the views with
@@ -111,11 +111,11 @@ module ActionMailer
   #
   # = Generating URLs
   #
-  # URLs can be generated in mailer views using <tt>url_for</tt> or named routes. Unlike controllers from
+  # URLs can be generated in mailer views using url_for or named routes. Unlike controllers from
   # Action Pack, the mailer instance doesn't have any context about the incoming request, so you'll need
   # to provide all of the details needed to generate a URL.
   #
-  # When using <tt>url_for</tt> you'll need to provide the <tt>:host</tt>, <tt>:controller</tt>, and <tt>:action</tt>:
+  # When using url_for you'll need to provide the <tt>:host</tt>, <tt>:controller</tt>, and <tt>:action</tt>:
   #
   #   <%= url_for(host: "example.com", controller: "welcome", action: "greeting") %>
   #
@@ -141,9 +141,9 @@ module ActionMailer
   #   mail = NotifierMailer.welcome(User.first)      # => an ActionMailer::MessageDelivery object
   #   mail.deliver_now                               # generates and sends the email now
   #
-  # The <tt>ActionMailer::MessageDelivery</tt> class is a wrapper around a delegate that will call
-  # your method to generate the mail. If you want direct access to delegator, or <tt>Mail::Message</tt>,
-  # you can call the <tt>message</tt> method on the <tt>ActionMailer::MessageDelivery</tt> object.
+  # The ActionMailer::MessageDelivery class is a wrapper around a delegate that will call
+  # your method to generate the mail. If you want direct access to delegator, or Mail::Message,
+  # you can call the message method on the ActionMailer::MessageDelivery object.
   #
   #   NotifierMailer.welcome(User.first).message     # => a Mail::Message object
   #
@@ -152,7 +152,7 @@ module ActionMailer
   #
   #   NotifierMailer.welcome(User.first).deliver_later # enqueue the email sending to Active Job
   #
-  # Note that <tt>deliver_later</tt> will execute your method from the background job.
+  # Note that deliver_later will execute your method from the background job.
   #
   # You never instantiate your mailer class. Rather, you just call the method you defined on the class itself.
   # All instance methods are expected to return a message object to be sent.
@@ -218,14 +218,14 @@ module ActionMailer
   #   end
   #
   # And then to reference the image in the view, you create a <tt>welcome.html.erb</tt> file and
-  # make a call to +image_tag+ passing in the attachment you want to display and then call
-  # +url+ on the attachment to get the relative content id path for the image source:
+  # make a call to image_tag passing in the attachment you want to display and then call
+  # url on the attachment to get the relative content id path for the image source:
   #
   #   <h1>Please Don't Cringe</h1>
   #
   #   <%= image_tag attachments['photo.png'].url -%>
   #
-  # As we are using Action View's +image_tag+ method, you can pass in any other options you want:
+  # As we are using Action View's image_tag method, you can pass in any other options you want:
   #
   #   <h1>Please Don't Cringe</h1>
   #
@@ -242,7 +242,7 @@ module ActionMailer
   # An interceptor class must implement the <tt>:delivering_email(message)</tt> method which will be
   # called before the email is sent, allowing you to make modifications to the email before it hits
   # the delivery agents. Your class should make any needed modifications directly to the passed
-  # in <tt>Mail::Message</tt> instance.
+  # in Mail::Message instance.
   #
   # = Default Hash
   #
@@ -253,15 +253,15 @@ module ActionMailer
   #     default sender: 'system@example.com'
   #   end
   #
-  # You can pass in any header value that a <tt>Mail::Message</tt> accepts. Out of the box,
-  # <tt>ActionMailer::Base</tt> sets the following:
+  # You can pass in any header value that a Mail::Message accepts. Out of the box,
+  # ActionMailer::Base sets the following:
   #
   # * <tt>mime_version: "1.0"</tt>
   # * <tt>charset:      "UTF-8"</tt>
   # * <tt>content_type: "text/plain"</tt>
   # * <tt>parts_order:  [ "text/plain", "text/enriched", "text/html" ]</tt>
   #
-  # <tt>parts_order</tt> and <tt>charset</tt> are not actually valid <tt>Mail::Message</tt> header fields,
+  # <tt>parts_order</tt> and <tt>charset</tt> are not actually valid Mail::Message header fields,
   # but Action Mailer translates them appropriately and sets the correct values.
   #
   # As you can pass in any header, you need to either quote the header as a string, or pass it in as
@@ -272,7 +272,7 @@ module ActionMailer
   #             content_description: 'This is a description'
   #   end
   #
-  # Finally, Action Mailer also supports passing <tt>Proc</tt> objects into the default hash, so you
+  # Finally, Action Mailer also supports passing Proc objects into the default hash, so you
   # can define methods that evaluate as the message is being generated:
   #
   #   class NotifierMailer < ApplicationMailer
@@ -315,12 +315,12 @@ module ActionMailer
   #   end
   #
   # Callbacks in Action Mailer are implemented using
-  # <tt>AbstractController::Callbacks</tt>, so you can define and configure
+  # AbstractController::Callbacks, so you can define and configure
   # callbacks in the same manner that you would use callbacks in classes that
-  # inherit from <tt>ActionController::Base</tt>.
+  # inherit from ActionController::Base.
   #
   # Note that unless you have a specific reason to do so, you should prefer
-  # using <tt>before_action</tt> rather than <tt>after_action</tt> in your
+  # using before_action rather than after_action in your
   # Action Mailer classes so that headers are parsed properly.
   #
   # = Previewing emails
@@ -335,8 +335,8 @@ module ActionMailer
   #     end
   #   end
   #
-  # Methods must return a <tt>Mail::Message</tt> object which can be generated by calling the mailer
-  # method without the additional <tt>deliver_now</tt> / <tt>deliver_later</tt>. The location of the
+  # Methods must return a Mail::Message object which can be generated by calling the mailer
+  # method without the additional deliver_now / deliver_later. The location of the
   # mailer previews directory can be configured using the <tt>preview_path</tt> option which has a default
   # of <tt>test/mailers/previews</tt>:
   #
@@ -346,7 +346,7 @@ module ActionMailer
   # on a running development server instance.
   #
   # Previews can also be intercepted in a similar manner as deliveries can be by registering
-  # a preview interceptor that has a <tt>previewing_email</tt> method:
+  # a preview interceptor that has a previewing_email method:
   #
   #   class CssInlineStyler
   #     def self.previewing_email(message)
@@ -356,8 +356,8 @@ module ActionMailer
   #
   #   config.action_mailer.preview_interceptors :css_inline_styler
   #
-  # Note that interceptors need to be registered both with <tt>register_interceptor</tt>
-  # and <tt>register_preview_interceptor</tt> if they should operate on both sending and
+  # Note that interceptors need to be registered both with register_interceptor
+  # and register_preview_interceptor if they should operate on both sending and
   # previewing emails.
   #
   # = Configuration options
@@ -369,7 +369,7 @@ module ActionMailer
   #   per the above section.
   #
   # * <tt>logger</tt> - the logger is used for generating information on the mailing run if available.
-  #   Can be set to +nil+ for no logging. Compatible with both Ruby's own +Logger+ and Log4r loggers.
+  #   Can be set to +nil+ for no logging. Compatible with both Ruby's own Logger and Log4r loggers.
   #
   # * <tt>smtp_settings</tt> - Allows detailed configuration for <tt>:smtp</tt> delivery method:
   #   * <tt>:address</tt> - Allows you to use a remote mail server. Just change it from its default
@@ -388,10 +388,10 @@ module ActionMailer
   #   * <tt>:openssl_verify_mode</tt> - When using TLS, you can set how OpenSSL checks the certificate. This is
   #     really useful if you need to validate a self-signed and/or a wildcard certificate. You can use the name
   #     of an OpenSSL verify constant (<tt>'none'</tt>, <tt>'peer'</tt>, <tt>'client_once'</tt>,
-  #     <tt>'fail_if_no_peer_cert'</tt>) or directly the constant (<tt>OpenSSL::SSL::VERIFY_NONE</tt>,
-  #     <tt>OpenSSL::SSL::VERIFY_PEER</tt>, ...).
+  #     <tt>'fail_if_no_peer_cert'</tt>) or directly the constant (OpenSSL::SSL::VERIFY_NONE,
+  #     OpenSSL::SSL::VERIFY_PEER, ...).
   #
-  # * <tt>sendmail_settings</tt> - Allows you to override options for the <tt>:sendmail</tt> delivery method.
+  # * sendmail_settings - Allows you to override options for the <tt>:sendmail</tt> delivery method.
   #   * <tt>:location</tt> - The location of the sendmail executable. Defaults to <tt>/usr/sbin/sendmail</tt>.
   #   * <tt>:arguments</tt> - The command line arguments. Defaults to <tt>-i -t</tt> with <tt>-f sender@address</tt>
   #     added automatically before the message is sent.
@@ -404,7 +404,7 @@ module ActionMailer
   #
   # * <tt>delivery_method</tt> - Defines a delivery method. Possible values are <tt>:smtp</tt> (default),
   #   <tt>:sendmail</tt>, <tt>:test</tt>, and <tt>:file</tt>. Or you may provide a custom delivery method
-  #   object e.g. +MyOwnDeliveryMethodClass+. See the Mail gem documentation on the interface you need to
+  #   object e.g. MyOwnDeliveryMethodClass. See the Mail gem documentation on the interface you need to
   #   implement for a custom delivery agent.
   #
   # * <tt>perform_deliveries</tt> - Determines whether emails are actually sent from Action Mailer when you
@@ -414,7 +414,7 @@ module ActionMailer
   # * <tt>deliveries</tt> - Keeps an array of all the emails sent out through the Action Mailer with
   #   <tt>delivery_method :test</tt>. Most useful for unit and functional testing.
   #
-  # * <tt>deliver_later_queue_name</tt> - The name of the queue used with <tt>deliver_later</tt>
+  # * <tt>deliver_later_queue_name</tt> - The name of the queue used with deliver_later
   class Base < AbstractController::Base
     include DeliveryMethods
     include Previews
@@ -513,10 +513,10 @@ module ActionMailer
 
       # Receives a raw email, parses it into an email object, decodes it,
       # instantiates a new mailer, and passes the email object to the mailer
-      # object's +receive+ method.
+      # object's receive method.
       #
       # If you want your mailer to be able to process incoming messages, you'll
-      # need to implement a +receive+ method that accepts the raw email string
+      # need to implement a receive method that accepts the raw email string
       # as a parameter:
       #
       #   class MyMailer < ActionMailer::Base
@@ -532,11 +532,11 @@ module ActionMailer
         end
       end
 
-      # Wraps an email delivery inside of <tt>ActiveSupport::Notifications</tt> instrumentation.
+      # Wraps an email delivery inside of ActiveSupport::Notifications instrumentation.
       #
-      # This method is actually called by the <tt>Mail::Message</tt> object itself
-      # through a callback when you call <tt>:deliver</tt> on the <tt>Mail::Message</tt>,
-      # calling +deliver_mail+ directly and passing a <tt>Mail::Message</tt> will do
+      # This method is actually called by the Mail::Message object itself
+      # through a callback when you call <tt>:deliver</tt> on the Mail::Message,
+      # calling deliver_mail directly and passing a Mail::Message will do
       # nothing except tell the logger you sent the email.
       def deliver_mail(mail) #:nodoc:
         ActiveSupport::Notifications.instrument("deliver.action_mailer") do |payload|
@@ -615,18 +615,18 @@ module ActionMailer
       self.class.mailer_name
     end
 
-    # Allows you to pass random and unusual headers to the new <tt>Mail::Message</tt>
+    # Allows you to pass random and unusual headers to the new Mail::Message
     # object which will add them to itself.
     #
     #   headers['X-Special-Domain-Specific-Header'] = "SecretValue"
     #
     # You can also pass a hash into headers of header field names and values,
-    # which will then be set on the <tt>Mail::Message</tt> object:
+    # which will then be set on the Mail::Message object:
     #
     #   headers 'X-Special-Domain-Specific-Header' => "SecretValue",
     #           'In-Reply-To' => incoming.message_id
     #
-    # The resulting <tt>Mail::Message</tt> will have the following in its header:
+    # The resulting Mail::Message will have the following in its header:
     #
     #   X-Special-Domain-Specific-Header: SecretValue
     #
@@ -746,11 +746,11 @@ module ActionMailer
     # to the +:sender+ in preference to the +:from+ field for the 'envelope
     # from' value.
     #
-    # If you do not pass a block to the +mail+ method, it will find all
+    # If you do not pass a block to the mail method, it will find all
     # templates in the view paths using by default the mailer name and the
     # method name that it is being called from, it will then create parts for
     # each of these templates intelligently, making educated guesses on correct
-    # content type and sequence, and return a fully prepared <tt>Mail::Message</tt>
+    # content type and sequence, and return a fully prepared Mail::Message
     # ready to call <tt>:deliver</tt> on to send.
     #
     # For example:
@@ -846,7 +846,7 @@ module ActionMailer
 
     # Used by #mail to set the content type of the message.
     #
-    # It will use the given +user_content_type+, or multipart if the mail
+    # It will use the given user_content_type, or multipart if the mail
     # message has any attachments. If the attachments are inline, the content
     # type will be "multipart/related", otherwise "multipart/mixed".
     #
@@ -874,7 +874,7 @@ module ActionMailer
     # Translates the +subject+ using Rails I18n class under <tt>[mailer_scope, action_name]</tt> scope.
     # If it does not find a translation for the +subject+ under the specified scope it will default to a
     # humanized version of the <tt>action_name</tt>.
-    # If the subject has interpolations, you can pass them through the +interpolations+ parameter.
+    # If the subject has interpolations, you can pass them through the interpolations parameter.
     def default_i18n_subject(interpolations = {})
       mailer_scope = self.class.mailer_name.tr('/', '.')
       I18n.t(:subject, interpolations.merge(scope: [mailer_scope, action_name], default: action_name.humanize))
