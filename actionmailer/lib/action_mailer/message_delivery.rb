@@ -87,7 +87,7 @@ module ActionMailer
     private
 
       def enqueue_delivery(delivery_method, options={})
-        args = @mailer.name, @mail_method.to_s, delivery_method.to_s, I18n.locale.to_s, *@args
+        args = @mailer.name, @mail_method.to_s, delivery_method.to_s, *@args
         ActionMailer::DeliveryJob.set(options).perform_later(*args)
       end
   end
