@@ -9,13 +9,10 @@ class Cable.Connection
     else
       false
 
-  open: =>
+  open: ->
     return if @isState("open", "connecting")
     @webSocket = new WebSocket(@consumer.url)
-    @webSocket.onmessage = @onMessage
-    @webSocket.onopen    = @onOpen
-    @webSocket.onclose   = @onClose
-    @webSocket.onerror   = @onError
+    @installEventHandlers()
 
   close: ->
     return if @isState("closed", "closing")
@@ -23,14 +20,14 @@ class Cable.Connection
 
   reopen: ->
     if @isOpen()
-      @webSocket.onclose = @open
-      @webSocket.onerror = @open
-      @webSocket.close()
+      @closeSilently => @open()
     else
       @open()
 
   isOpen: ->
     @isState("open")
+
+  # Private
 
   isState: (states...) ->
     @getState() in states
@@ -39,21 +36,38 @@ class Cable.Connection
     return state.toLowerCase() for state, value of WebSocket when value is @webSocket?.readyState
     null
 
-  onMessage: (message) =>
-    data = JSON.parse message.data
-    @consumer.subscribers.notify(data.identifier, "received", data.message)
+  closeSilently: (callback = ->) ->
+    @uninstallEventHandlers()
+    @installEventHandler("close", callback)
+    @installEventHandler("error", callback)
+    try
+      @webSocket.close()
+    finally
+      @uninstallEventHandlers()
 
-  onOpen: =>
-    @consumer.subscribers.reload()
+  installEventHandlers: ->
+    for eventName of @events
+      @installEventHandler(eventName)
 
-  onClose: =>
-    @disconnect()
+  installEventHandler: (eventName, handler) ->
+    handler ?= @events[eventName].bind(this)
+    @webSocket.addEventListener(eventName, handler)
 
-  onError: =>
-    @disconnect()
-    @webSocket.onclose = -> # no-op
-    @webSocket.onerror = -> # no-op
-    try @close()
+  uninstallEventHandlers: ->
+    for eventName of @events
+      @webSocket.removeEventListener(eventName)
 
-  disconnect: ->
-    @consumer.subscribers.notifyAll("disconnected")
+  events:
+    message: (event) ->
+      {identifier, message} = JSON.parse(event.data)
+      @consumer.subscribers.notify(identifier, "received", message)
+
+    open: ->
+      @consumer.subscribers.reload()
+
+    close: ->
+      @consumer.subscribers.notifyAll("disconnected")
+
+    error: ->
+      @consumer.subscribers.notifyAll("disconnected")
+      @closeSilently()
