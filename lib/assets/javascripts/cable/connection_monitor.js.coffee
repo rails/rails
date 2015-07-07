@@ -55,6 +55,11 @@ class Cable.ConnectionMonitor
     else
       secondsSince(@startedAt) > @staleThreshold.startedAt
 
+  toJSON: ->
+    interval = @getInterval()
+    connectionIsStale = @connectionIsStale()
+    {@startedAt, @stoppedAt, @pingedAt, @reconnectAttempts, connectionIsStale, interval}
+
   now = ->
     new Date().getTime()
 

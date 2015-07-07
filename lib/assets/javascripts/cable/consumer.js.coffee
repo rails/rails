@@ -16,3 +16,9 @@ class Cable.Consumer
 
   send: (data) ->
     @connection.send(data)
+
+  inspect: ->
+    JSON.stringify(this, null, 2)
+
+  toJSON: ->
+    {@subscribers, @connection, @connectionMonitor}

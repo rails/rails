@@ -71,3 +71,6 @@ class Cable.Connection
     error: ->
       @consumer.subscribers.notifyAll("disconnected")
       @closeSilently()
+
+  toJSON: ->
+    state: @getState()

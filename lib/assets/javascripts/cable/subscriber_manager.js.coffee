@@ -36,3 +36,6 @@ class Cable.SubscriberManager
       @consumer.connection.isOpen()
     else
       @consumer.send({command, identifier})
+
+  toJSON: ->
+    subscriber.identifier for subscriber in @subscribers
