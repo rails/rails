@@ -21,7 +21,7 @@
     Example:
 
         change_column_default :posts, :status, from: nil, to: "draft"
-        change_column_default :users, authorized, from: true, to: false
+        change_column_default :users, :authorized, from: true, to: false
 
     *Prem Sichanugrist*
 
