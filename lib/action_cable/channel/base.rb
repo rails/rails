@@ -19,11 +19,6 @@ module ActionCable
         subscribe_to_channel
       end
 
-      def subscribe_to_channel
-        logger.info "#{channel_name} subscribing"
-        run_subscribe_callbacks
-      end
-
       def perform_action(data)
         if authorized?
           action = extract_action(data)
@@ -81,6 +76,11 @@ module ActionCable
 
 
       private
+        def subscribe_to_channel
+          logger.info "#{channel_name} subscribing"
+          run_subscribe_callbacks
+        end
+
         def extract_action(data)
           (data['action'].presence || :receive).to_sym
         end
