@@ -49,7 +49,7 @@ module ActionCable
         if authorized?
           action = extract_action(data)
 
-          if performable_action?(action)
+          if processable_action?(action)
             logger.info action_signature(action, data)
             public_send action, data
           else
@@ -111,7 +111,7 @@ module ActionCable
           (data['action'].presence || :receive).to_sym
         end
 
-        def performable_action?(action)
+        def processable_action?(action)
           self.class.instance_methods(false).include?(action)
         end
 
