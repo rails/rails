@@ -162,17 +162,6 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     assert_match(/ActionController::ParameterMissing/, body)
   end
 
-  test "rescue with json on API request" do
-    @app = ActionDispatch::DebugExceptions.new(BoomerAPI.new(true), RoutesApp, true)
-
-    get "/index.json", headers: { 'action_dispatch.show_exceptions' => true }
-    assert_response 500
-    assert_no_match(/<header>/, body)
-    assert_no_match(/<body>/, body)
-    assert_equal "application/json", response.content_type
-    assert_match(/RuntimeError: puke/, body)
-  end
-
   test "rescue with text error for xhr request" do
     @app = DevelopmentApp
     xhr_request_env = {'action_dispatch.show_exceptions' => true, 'HTTP_X_REQUESTED_WITH' => 'XMLHttpRequest'}
@@ -221,6 +210,68 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     assert_no_match(/<body>/, body)
     assert_equal "text/plain", response.content_type
     assert_match(/ActionController::ParameterMissing/, body)
+  end
+
+  test "rescue with json error for API request" do
+    @app = ActionDispatch::DebugExceptions.new(Boomer.new(true), RoutesApp, true)
+
+    get "/", headers: { 'action_dispatch.show_exceptions' => true }
+    assert_response 500
+    assert_no_match(/<header>/, body)
+    assert_no_match(/<body>/, body)
+    assert_equal "application/json", response.content_type
+    assert_match(/RuntimeError: puke/, body)
+
+    get "/not_found", headers: { 'action_dispatch.show_exceptions' => true }
+    assert_response 404
+    assert_no_match(/<body>/, body)
+    assert_equal "application/json", response.content_type
+    assert_match(/#{AbstractController::ActionNotFound.name}/, body)
+
+    get "/method_not_allowed", headers: { 'action_dispatch.show_exceptions' => true }
+    assert_response 405
+    assert_no_match(/<body>/, body)
+    assert_equal "application/json", response.content_type
+    assert_match(/ActionController::MethodNotAllowed/, body)
+
+    get "/unknown_http_method", headers: { 'action_dispatch.show_exceptions' => true }
+    assert_response 405
+    assert_no_match(/<body>/, body)
+    assert_equal "application/json", response.content_type
+    assert_match(/ActionController::UnknownHttpMethod/, body)
+
+    get "/bad_request", headers: { 'action_dispatch.show_exceptions' => true }
+    assert_response 400
+    assert_no_match(/<body>/, body)
+    assert_equal "application/json", response.content_type
+    assert_match(/ActionController::BadRequest/, body)
+
+    get "/parameter_missing", headers: { 'action_dispatch.show_exceptions' => true }
+    assert_response 400
+    assert_no_match(/<body>/, body)
+    assert_equal "application/json", response.content_type
+    assert_match(/ActionController::ParameterMissing/, body)
+  end
+
+  test "rescue with json on API request returns only allowed formats or json as a fallback" do
+    @app = ActionDispatch::DebugExceptions.new(Boomer.new(true), RoutesApp, true)
+
+    get "/index.json", headers: { 'action_dispatch.show_exceptions' => true }
+    assert_response 500
+    assert_equal "application/json", response.content_type
+    assert_match(/RuntimeError: puke/, body)
+
+    get "/index.html", headers: { 'action_dispatch.show_exceptions' => true }
+    assert_response 500
+    assert_no_match(/<header>/, body)
+    assert_no_match(/<body>/, body)
+    assert_equal "application/json", response.content_type
+    assert_match(/RuntimeError: puke/, body)
+
+    get "/index.xml", headers: { 'action_dispatch.show_exceptions' => true }
+    assert_response 500
+    assert_equal "application/xml", response.content_type
+    assert_match(/RuntimeError: puke/, body)
   end
 
   test "does not show filtered parameters" do
