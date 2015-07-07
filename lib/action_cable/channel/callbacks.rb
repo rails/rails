@@ -11,10 +11,14 @@ module ActionCable
       end
 
       module ClassMethods
+        # Name methods that should be called when the channel is subscribed to.
+        # (These methods should be private, so they're not callable by the user).
         def on_subscribe(*methods)
           self.on_subscribe_callbacks += methods
         end
 
+        # Name methods that should be called when the channel is unsubscribed from.
+        # (These methods should be private, so they're not callable by the user).
         def on_unsubscribe(*methods)
           self.on_unsubscribe_callbacks += methods
         end
