@@ -45,4 +45,8 @@ module TestCaseHelpers
     def job_executed
       Dummy::Application.root.join("tmp/#{@id}").exist?
     end
+
+    def job_output
+      File.read Dummy::Application.root.join("tmp/#{@id}")
+    end
 end
