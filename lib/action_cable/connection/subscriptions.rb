@@ -48,7 +48,7 @@ module ActionCable
         subscriptions.keys
       end
 
-      def cleanup
+      def unsubscribe_from_all
         subscriptions.each { |id, channel| channel.unsubscribe_from_channel }
       end
 

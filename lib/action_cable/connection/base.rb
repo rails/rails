@@ -152,7 +152,7 @@ module ActionCable
 
           server.remove_connection(self)
 
-          subscriptions.cleanup
+          subscriptions.unsubscribe_from_all
           unsubscribe_from_internal_channel
           heartbeat.stop
 
