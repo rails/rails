@@ -1,5 +1,6 @@
 module ActionCable
   module Server
+    # Worker used by Server.send_async to do connection work in threads. Only for internal use.
     class Worker
       include ActiveSupport::Callbacks
       include Celluloid

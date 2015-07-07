@@ -1,5 +1,8 @@
 module ActionCable
   module Server
+    # Collection class for all the connections that's been established on this specific server. Remember, usually you'll run many cable servers, so
+    # you can't use this collection as an full list of all the connections established against your application. Use RemoteConnections for that.
+    # As such, this is primarily for internal use.
     module Connections
       def connections
         @connections ||= []

@@ -42,6 +42,7 @@ module ActionCable
           server.broadcast internal_redis_channel, type: 'disconnect'
         end
 
+        # Returns all the identifiers that were applied to this connection.
         def identifiers
           server.connection_identifiers
         end
