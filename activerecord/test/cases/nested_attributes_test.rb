@@ -658,6 +658,16 @@ module NestedAttributesOnACollectionAssociationTests
     assert_equal "Couldn't find #{@child_1.class.name} with ID=1234567890 for Pirate with ID=#{@pirate.id}", exception.message
   end
 
+  def test_should_raise_RecordNotFound_if_an_id_belonging_to_a_different_record_is_given
+    other_pirate = Pirate.create! catchphrase: 'Ahoy!'
+    other_child = other_pirate.send(@association_name).create! name: 'Buccaneers Servant'
+
+    exception = assert_raise ActiveRecord::RecordNotFound do
+      @pirate.attributes = { association_getter => [{ id: other_child.id }] }
+    end
+    assert_equal "Couldn't find #{@child_1.class.name} with ID=#{other_child.id} for Pirate with ID=#{@pirate.id}", exception.message
+  end
+
   def test_should_automatically_build_new_associated_models_for_each_entry_in_a_hash_where_the_id_is_missing
     @pirate.send(@association_name).destroy_all
     @pirate.reload.attributes = {
