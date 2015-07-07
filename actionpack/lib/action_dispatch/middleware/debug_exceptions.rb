@@ -94,10 +94,10 @@ module ActionDispatch
 
     def render_for_api_application(request, wrapper)
       body = {
-        :status => wrapper.status_code,
-        :error => Rack::Utils::HTTP_STATUS_CODES.fetch(wrapper.status_code, Rack::Utils::HTTP_STATUS_CODES[500]),
-        :exception => wrapper.exception.inspect,
-        :traces => wrapper.traces
+        status:    wrapper.status_code,
+        error:     Rack::Utils::HTTP_STATUS_CODES.fetch(wrapper.status_code, Rack::Utils::HTTP_STATUS_CODES[500]),
+        exception: wrapper.exception.inspect,
+        traces:    wrapper.traces
       }
 
       content_type = request.formats.first
