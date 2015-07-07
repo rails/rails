@@ -10,6 +10,7 @@ class Cable.Connection
       false
 
   open: =>
+    return if @isState("open", "connecting")
     @websocket = new WebSocket(@consumer.url)
     @websocket.onmessage = @onMessage
     @websocket.onopen    = @onOpen
@@ -17,21 +18,26 @@ class Cable.Connection
     @websocket.onerror   = @onError
 
   close: ->
-    @websocket.close() unless @isClosed()
+    return if @isState("closed", "closing")
+    @websocket?.close()
 
   reopen: ->
-    if @isClosed()
-      @open()
-    else
+    if @isOpen()
       @websocket.onclose = @open
       @websocket.onerror = @open
       @websocket.close()
+    else
+      @open()
 
   isOpen: ->
-    @websocket.readyState is WebSocket.OPEN
+    @isState("open")
 
-  isClosed: ->
-    @websocket.readyState in [ WebSocket.CLOSED, WebSocket.CLOSING ]
+  isState: (states...) ->
+    @getState() in states
+
+  getState: ->
+    return state.toLowerCase() for state, value of WebSocket when value is @websocket?.readyState
+    null
 
   onMessage: (message) =>
     data = JSON.parse message.data
