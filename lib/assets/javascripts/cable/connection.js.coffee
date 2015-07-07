@@ -4,28 +4,28 @@ class Cable.Connection
 
   send: (data) ->
     if @isOpen()
-      @websocket.send(JSON.stringify(data))
+      @webSocket.send(JSON.stringify(data))
       true
     else
       false
 
   open: =>
     return if @isState("open", "connecting")
-    @websocket = new WebSocket(@consumer.url)
-    @websocket.onmessage = @onMessage
-    @websocket.onopen    = @onOpen
-    @websocket.onclose   = @onClose
-    @websocket.onerror   = @onError
+    @webSocket = new WebSocket(@consumer.url)
+    @webSocket.onmessage = @onMessage
+    @webSocket.onopen    = @onOpen
+    @webSocket.onclose   = @onClose
+    @webSocket.onerror   = @onError
 
   close: ->
     return if @isState("closed", "closing")
-    @websocket?.close()
+    @webSocket?.close()
 
   reopen: ->
     if @isOpen()
-      @websocket.onclose = @open
-      @websocket.onerror = @open
-      @websocket.close()
+      @webSocket.onclose = @open
+      @webSocket.onerror = @open
+      @webSocket.close()
     else
       @open()
 
@@ -36,7 +36,7 @@ class Cable.Connection
     @getState() in states
 
   getState: ->
-    return state.toLowerCase() for state, value of WebSocket when value is @websocket?.readyState
+    return state.toLowerCase() for state, value of WebSocket when value is @webSocket?.readyState
     null
 
   onMessage: (message) =>
@@ -51,8 +51,8 @@ class Cable.Connection
 
   onError: =>
     @disconnect()
-    @websocket.onclose = -> # no-op
-    @websocket.onerror = -> # no-op
+    @webSocket.onclose = -> # no-op
+    @webSocket.onerror = -> # no-op
     try @close()
 
   disconnect: ->
