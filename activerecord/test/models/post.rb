@@ -208,6 +208,22 @@ class PostWithDefaultScope < ActiveRecord::Base
   default_scope { order(:title) }
 end
 
+class PostWithPreloadDefaultScope < ActiveRecord::Base
+  self.table_name = 'posts'
+
+  has_many :readers, foreign_key: 'post_id'
+
+  default_scope { preload(:readers) }
+end
+
+class PostWithIncludesDefaultScope < ActiveRecord::Base
+  self.table_name = 'posts'
+
+  has_many :readers, foreign_key: 'post_id'
+
+  default_scope { includes(:readers) }
+end
+
 class SpecialPostWithDefaultScope < ActiveRecord::Base
   self.table_name = 'posts'
   default_scope { where(:id => [1, 5,6]) }

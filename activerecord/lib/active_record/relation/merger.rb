@@ -87,8 +87,8 @@ module ActiveRecord
         return if other.preload_values.empty? && other.includes_values.empty?
 
         if other.klass == relation.klass
-          relation.preload! other.preload_values unless other.preload_values.empty?
-          relation.includes! other.includes_values unless other.includes_values.empty?
+          relation.preload!(*other.preload_values) unless other.preload_values.empty?
+          relation.includes!(other.includes_values) unless other.includes_values.empty?
         else
           reflection = relation.klass.reflect_on_all_associations.find do |r|
             r.class_name == other.klass.name
