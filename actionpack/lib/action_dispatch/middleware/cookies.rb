@@ -279,6 +279,10 @@ module ActionDispatch
         self
       end
 
+      def to_header
+        @cookies.map { |k,v| "#{k}=#{v}" }.join ';'
+      end
+
       def handle_options(options) #:nodoc:
         options[:path] ||= "/"
 
