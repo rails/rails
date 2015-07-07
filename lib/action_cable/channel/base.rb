@@ -52,8 +52,7 @@ module ActionCable
         action = extract_action(data)
 
         if processable_action?(action)
-          logger.info action_signature(action, data)
-          public_send action, data
+          dispatch_action(action, data)
         else
           logger.error "Unable to process #{action_signature(action, data)}"
         end
@@ -100,6 +99,16 @@ module ActionCable
 
         def processable_action?(action)
           self.class.instance_methods(false).include?(action)
+        end
+
+        def dispatch_action(action, data)
+          logger.info action_signature(action, data)
+          
+          if method(action).arity == 1
+            public_send action, data
+          else
+            public_send action
+          end
         end
 
         def action_signature(action, data)
