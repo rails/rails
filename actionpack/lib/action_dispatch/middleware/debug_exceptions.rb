@@ -79,7 +79,6 @@ module ActionDispatch
 
     def render_for_non_api_application(request, wrapper)
       template = create_template(request, wrapper)
-
       file = "rescues/#{wrapper.rescue_template}"
 
       if request.xhr?
