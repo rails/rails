@@ -25,7 +25,39 @@ module ActionCable
     # The #speak action simply uses the Chat::Room object that was created when the channel was first subscribed to by the consumer when that
     # subscriber wants to say something in the room.
     #
+    # == Action processing
+    #
+    # Unlike Action Controllers, channels do not follow a REST constraint form for its actions. It's an remote-procedure call model. You can
+    # declare any public method on the channel (optionally taking a data argument), and this method is automatically exposed as callable to the client.
+    #
+    # Example:
+    #
+    #   class AppearanceChannel < ApplicationCable::Channel
+    #     def subscribed
+    #       @connection_token = generate_connection_token
+    #     end
     # 
+    #     def unsubscribed
+    #       current_user.disappear @connection_token
+    #     end
+    # 
+    #     def appear(data)
+    #       current_user.appear @connection_token, on: data['appearing_on']
+    #     end
+    # 
+    #     def away
+    #       current_user.away @connection_token
+    #     end
+    # 
+    #     private
+    #       def generate_connection_token
+    #         SecureRandom.hex(36)
+    #       end
+    #   end
+    #
+    # In this example, subscribed/unsubscribed are not callable methods, as they were already declared in ActionCable::Channel::Base, but #appear/away
+    # are. #generate_connection_token is also not callable as its a private method. You'll see that appear accepts a data parameter, which it then
+    # uses as part of its model call. #away does not, it's simply a trigger action.
     class Base
       include Callbacks
       include PeriodicTimers
