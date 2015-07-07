@@ -208,12 +208,13 @@ Fonts
 
 Use fixed-width fonts for:
 
-* Constants, in particular class and module names.
-* Method names.
 * Literals like `nil`, `false`, `true`, `self`.
 * Symbols.
 * Method parameters.
 * File names.
+
+Starting with Rails 5 constants and method names are left in regular font to
+leverage RDoc autolinking.
 
 ```ruby
 class Array
