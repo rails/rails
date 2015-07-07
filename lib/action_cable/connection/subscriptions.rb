@@ -35,7 +35,7 @@ module ActionCable
 
       def remove(data)
         logger.info "Unsubscribing from channel: #{data['identifier']}"
-        subscriptions[data['identifier']].perform_disconnection
+        subscriptions[data['identifier']].unsubscribe_from_channel
         subscriptions.delete(data['identifier'])
       end
 
@@ -49,7 +49,7 @@ module ActionCable
       end
 
       def cleanup
-        subscriptions.each { |id, channel| channel.perform_disconnection }
+        subscriptions.each { |id, channel| channel.unsubscribe_from_channel }
       end
 
 

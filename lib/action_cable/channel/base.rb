@@ -5,8 +5,8 @@ module ActionCable
       include PeriodicTimers
       include Streams
 
-      on_subscribe   :connect
-      on_unsubscribe :disconnect
+      on_subscribe   :subscribed
+      on_unsubscribe :unsubscribed
 
       attr_reader :params, :connection
       delegate :logger, to: :connection
@@ -16,11 +16,11 @@ module ActionCable
         @channel_identifier = channel_identifier
         @params = params
 
-        perform_connection
+        subscribe_to_channel
       end
 
-      def perform_connection
-        logger.info "#{channel_name} connecting"
+      def subscribe_to_channel
+        logger.info "#{channel_name} subscribing"
         run_subscribe_callbacks
       end
 
@@ -39,9 +39,9 @@ module ActionCable
         end
       end
 
-      def perform_disconnection
+      def unsubscribe_from_channel
         run_unsubscribe_callbacks
-        logger.info "#{channel_name} disconnected"
+        logger.info "#{channel_name} unsubscribed"
       end
 
 
@@ -56,11 +56,11 @@ module ActionCable
         end
 
 
-        def connect
+        def subscribed
           # Override in subclasses
         end
 
-        def disconnect
+        def unsubscribed
           # Override in subclasses
         end
 
