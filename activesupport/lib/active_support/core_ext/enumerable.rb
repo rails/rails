@@ -33,7 +33,11 @@ module Enumerable
   #     => { "Chade- Fowlersburg-e" => <Person ...>, "David Heinemeier Hansson" => <Person ...>, ...}
   def index_by
     if block_given?
-      Hash[map { |elem| [yield(elem), elem] }]
+      hash = {}
+      each do |elem|
+        hash[yield(elem)] = elem
+      end
+      hash
     else
       to_enum(:index_by) { size if respond_to?(:size) }
     end
