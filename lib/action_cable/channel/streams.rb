@@ -13,13 +13,13 @@ module ActionCable
         streams << [ broadcasting, callback ]
         pubsub.subscribe broadcasting, &callback
 
-        logger.info "#{channel_name} is streaming from #{broadcasting}"
+        logger.info "#{self.class.name} is streaming from #{broadcasting}"
       end
 
       def stop_all_streams
         streams.each do |broadcasting, callback|
           pubsub.unsubscribe_proc broadcasting, callback
-          logger.info "#{channel_name} stopped streaming from #{broadcasting}"
+          logger.info "#{self.class.name} stopped streaming from #{broadcasting}"
         end
       end
 

@@ -59,9 +59,11 @@ module ActionCable
         end
       end
 
+      # Called by the cable connection when its cut so the channel has a chance to cleanup with callbacks. 
+      # This method is not intended to be called directly by the user. Instead, overwrite the #unsubscribed callback.
       def unsubscribe_from_channel
         run_unsubscribe_callbacks
-        logger.info "#{channel_name} unsubscribed"
+        logger.info "#{self.class.name} unsubscribed"
       end
 
 
@@ -77,24 +79,18 @@ module ActionCable
         def unsubscribed
           # Override in subclasses
         end
-
         
         # Transmit a hash of data to the subscriber. The hash will automatically be wrapped in a JSON envelope with 
         # the proper channel identifier marked as the recipient.
         def transmit(data, via: nil)
-          logger.info "#{channel_name} transmitting #{data.inspect}".tap { |m| m << " (via #{via})" if via }
+          logger.info "#{self.class.name} transmitting #{data.inspect}".tap { |m| m << " (via #{via})" if via }
           connection.transmit({ identifier: @identifier, message: data }.to_json)
-        end
-
-
-        def channel_name
-          self.class.name
         end
 
 
       private
         def subscribe_to_channel
-          logger.info "#{channel_name} subscribing"
+          logger.info "#{self.class.name} subscribing"
           run_subscribe_callbacks
         end
 
@@ -107,7 +103,7 @@ module ActionCable
         end
 
         def action_signature(action, data)
-          "#{channel_name}##{action}".tap do |signature|
+          "#{self.class.name}##{action}".tap do |signature|
             if (arguments = data.except('action')).any?
               signature << "(#{arguments.inspect})"
             end
