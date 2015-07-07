@@ -129,6 +129,9 @@ module ActiveModel
       #     end
       #   end
       #
+      # Note that the return value of validation methods is not relevant.
+      # It's not possible to halt the validate callback chain.
+      #
       # Options:
       # * <tt>:on</tt> - Specifies the contexts where this validation is active.
       #   Runs in all validation contexts by default (nil). You can pass a symbol
