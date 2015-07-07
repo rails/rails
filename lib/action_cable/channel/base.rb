@@ -125,6 +125,7 @@ module ActionCable
           run_subscribe_callbacks
         end
 
+
         def extract_action(data)
           (data['action'].presence || :receive).to_sym
         end
