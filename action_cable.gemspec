@@ -5,8 +5,8 @@ Gem::Specification.new do |s|
   s.summary = 'Framework for websockets.'
   s.description = 'Action Cable is a framework for realtime communication over websockets.'
 
-  s.author = ['Pratik Naik']
-  s.email = ['pratiknaik@gmail.com']
+  s.author = ['Pratik Naik', 'David Heinemeier Hansson']
+  s.email = ['pratiknaik@gmail.com', 'david@heinemeierhansson.com']
   s.homepage = 'http://basecamp.com'
 
   s.add_dependency('activesupport', '>= 4.2.0')
