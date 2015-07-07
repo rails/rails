@@ -45,6 +45,9 @@ module ActionCable
         subscribe_to_channel
       end
 
+      # Extract the action name from the passed data and process it via the channel. The process will ensure
+      # that the action requested is a public method on the channel declared by the user (so not one of the callbacks
+      # like #subscribed).
       def process_action(data)
         if authorized?
           action = extract_action(data)
@@ -76,16 +79,21 @@ module ActionCable
           logger.error "#{channel_name}: Unauthorized access"
         end
 
-
+        # Called once a consumer has become a subscriber of the channel. Usually the place to setup any streams
+        # you want this channel to be sending to the subscriber.
         def subscribed
           # Override in subclasses
         end
 
+        # Called once a consumer has cut its cable connection. Can be used for cleaning up connections or marking
+        # people as offline or the like.
         def unsubscribed
           # Override in subclasses
         end
 
-
+        
+        # Transmit a hash of data to the subscriber. The hash will automatically be wrapped in a JSON envelope with 
+        # the proper channel identifier marked as the recipient.
         def transmit(data, via: nil)
           if authorized?
             logger.info "#{channel_name} transmitting #{data.inspect}".tap { |m| m << " (via #{via})" if via }
