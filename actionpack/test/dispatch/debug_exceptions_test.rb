@@ -75,6 +75,13 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     end
   end
 
+  class BoomerAPI < Boomer
+    def call(env)
+      env['action_dispatch.show_detailed_exceptions'] = @detailed
+      raise "puke!"
+    end
+  end
+
   RoutesApp = Struct.new(:routes).new(SharedTestRoutes)
   ProductionApp  = ActionDispatch::DebugExceptions.new(Boomer.new(false), RoutesApp)
   DevelopmentApp = ActionDispatch::DebugExceptions.new(Boomer.new(true), RoutesApp)
@@ -153,6 +160,17 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     get "/parameter_missing", headers: { 'action_dispatch.show_exceptions' => true }
     assert_response 400
     assert_match(/ActionController::ParameterMissing/, body)
+  end
+
+  test "rescue with json on API request" do
+    @app = ActionDispatch::DebugExceptions.new(BoomerAPI.new(true), RoutesApp, true)
+
+    get "/index.json", headers: { 'action_dispatch.show_exceptions' => true }
+    assert_response 500
+    assert_no_match(/<header>/, body)
+    assert_no_match(/<body>/, body)
+    assert_equal "application/json", response.content_type
+    assert_match(/RuntimeError: puke/, body)
   end
 
   test "rescue with text error for xhr request" do

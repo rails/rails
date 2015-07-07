@@ -661,10 +661,6 @@ class RespondToControllerTest < ActionController::TestCase
   end
 
   def test_variant_inline_syntax
-    get :variant_inline_syntax, format: :js
-    assert_equal "text/javascript", @response.content_type
-    assert_equal "js", @response.body
-
     get :variant_inline_syntax
     assert_equal "text/html", @response.content_type
     assert_equal "none", @response.body
@@ -672,6 +668,12 @@ class RespondToControllerTest < ActionController::TestCase
     get :variant_inline_syntax, params: { v: :phone }
     assert_equal "text/html", @response.content_type
     assert_equal "phone", @response.body
+  end
+
+  def test_variant_inline_syntax_with_format
+    get :variant_inline_syntax, format: :js
+    assert_equal "text/javascript", @response.content_type
+    assert_equal "js", @response.body
   end
 
   def test_variant_inline_syntax_without_block

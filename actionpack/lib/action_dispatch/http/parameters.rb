@@ -69,15 +69,15 @@ module ActionDispatch
 
       def default_path_parameters
         if format = format_from_path_extension
-          { 'format' => format }
+          { format: format }
         else
           {}
         end
       end
 
       def format_from_path_extension
-        path = @env['action_dispatch.original_path']
-        if match = path.match(/\.(\w+)$/)
+        path = @env['action_dispatch.original_path'] || @env['PATH_INFO']
+        if match = path && path.match(/\.(\w+)$/)
           match.captures.first
         end
       end
