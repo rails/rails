@@ -1,5 +1,7 @@
 module ActionCable
   module Connection
+    # Allows us to buffer messages received from the websocket before the Connection has been fully initialized and is ready to receive them.
+    # Entirely internal operation and should not be used directly by the user.
     class MessageBuffer
       def initialize(connection)
         @connection = connection
