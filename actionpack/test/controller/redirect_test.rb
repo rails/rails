@@ -273,10 +273,10 @@ class RedirectTest < ActionController::TestCase
   end
 
   def test_redirect_to_params
-    error = assert_raise(ActionController::ActionControllerError) do
+    error = assert_raise(ArgumentError) do
       get :redirect_to_params
     end
-    assert_equal "Cannot redirect to a parameter hash!", error.message
+    assert_equal "Generating an URL from non sanitized request parameters is insecure!", error.message
   end
 
   def test_redirect_to_with_block
