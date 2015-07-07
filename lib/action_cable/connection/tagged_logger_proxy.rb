@@ -9,17 +9,15 @@ module ActionCable
         @tags = tags.flatten
       end
 
-      def info(message)
-        log :info, message
-      end
-
-      def error(message)
-        log :error, message
-      end
-
       def add_tags(*tags)
         @tags += tags.flatten
         @tags = @tags.uniq
+      end
+
+      %i( debug info warn error fatal unknown ).each do |severity|
+        define_method(severity) do |message|
+          log severity, message
+        end
       end
 
       protected
