@@ -21,4 +21,4 @@ class Cable.Consumer
     JSON.stringify(this, null, 2)
 
   toJSON: ->
-    {@subscribers, @connection, @connectionMonitor}
+    {@url, @subscribers, @connection, @connectionMonitor}
