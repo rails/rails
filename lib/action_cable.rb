@@ -23,7 +23,6 @@ module ActionCable
   autoload :Connection, 'action_cable/connection'
   autoload :Channel, 'action_cable/channel'
 
-  autoload :RemoteConnection, 'action_cable/remote_connection'
   autoload :RemoteConnections, 'action_cable/remote_connections'
   autoload :Broadcaster, 'action_cable/broadcaster'
 
