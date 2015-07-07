@@ -3,6 +3,7 @@ module ActionCable
     class Base
       include Identification
       include InternalChannel
+      include Authorization
 
       attr_reader :server, :env
       delegate :worker_pool, :pubsub, to: :server
@@ -85,6 +86,9 @@ module ActionCable
           heartbeat.start
 
           message_buffer.process!
+        rescue ActionCable::Connection::Authorization::UnauthorizedError
+          respond_to_invalid_request
+          close
         end
 
         def on_message(message)
