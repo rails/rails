@@ -10,7 +10,7 @@ module ActionCable
         case data['command']
         when 'subscribe'   then add data
         when 'unsubscribe' then remove data
-        when 'message'     then perform_action data
+        when 'message'     then process_action data
         else
           logger.error "Received unrecognized command in #{data.inspect}"
         end
@@ -39,8 +39,8 @@ module ActionCable
         subscriptions.delete(data['identifier'])
       end
 
-      def perform_action(data)
-        find(data).perform_action ActiveSupport::JSON.decode(data['data'])
+      def process_action(data)
+        find(data).process_action ActiveSupport::JSON.decode(data['data'])
       end
 
 

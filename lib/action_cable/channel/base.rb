@@ -19,7 +19,7 @@ module ActionCable
         subscribe_to_channel
       end
 
-      def perform_action(data)
+      def process_action(data)
         if authorized?
           action = extract_action(data)
 
