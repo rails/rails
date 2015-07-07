@@ -65,14 +65,6 @@ module ActionController
       @method = @request_method = nil
       @fullpath = @ip = @remote_ip = @protocol = nil
       @env['action_dispatch.request.query_parameters'] = {}
-      @set_cookies ||= {}
-      @set_cookies.update(Hash[cookie_jar.instance_variable_get("@set_cookies").map{ |k,o| [k,o[:value]] }])
-      deleted_cookies = cookie_jar.instance_variable_get("@delete_cookies")
-      @set_cookies.reject!{ |k,v| deleted_cookies.include?(k) }
-      cookie_jar.update(rack_cookies)
-      cookie_jar.update(cookies)
-      cookie_jar.update(@set_cookies)
-      cookie_jar.recycle!
     end
 
     private
@@ -453,6 +445,10 @@ module ActionController
           @controller.extend(Testing::Functional)
         end
 
+        self.cookies.update @request.cookies
+        @request.env['HTTP_COOKIE'] = cookies.to_header
+        @request.env['action_dispatch.cookies'] = nil
+
         @request.recycle!
         @response.recycle!
         @controller.recycle!
@@ -480,6 +476,8 @@ module ActionController
 
         @controller.recycle!
         @controller.process(action)
+
+        @request.env.delete 'HTTP_COOKIE'
 
         if cookies = @request.env['action_dispatch.cookies']
           unless @response.committed?
@@ -522,6 +520,7 @@ module ActionController
         end
 
         @request          = build_request
+        @request.env["rack.request.cookie_hash"] = {}.with_indifferent_access
         @response         = build_response response_klass
         @response.request = @request
 

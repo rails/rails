@@ -4,9 +4,10 @@ require 'rack/utils'
 module ActionDispatch
   class TestRequest < Request
     DEFAULT_ENV = Rack::MockRequest.env_for('/',
-      'HTTP_HOST'       => 'test.host',
-      'REMOTE_ADDR'     => '0.0.0.0',
-      'HTTP_USER_AGENT' => 'Rails Testing'
+      'HTTP_HOST'                => 'test.host',
+      'REMOTE_ADDR'              => '0.0.0.0',
+      'HTTP_USER_AGENT'          => 'Rails Testing',
+      "rack.request.cookie_hash" => {}.with_indifferent_access
     )
 
     def self.new(env = {})
@@ -61,12 +62,6 @@ module ActionDispatch
     def accept=(mime_types)
       @env.delete('action_dispatch.request.accepts')
       @env['HTTP_ACCEPT'] = Array(mime_types).collect(&:to_s).join(",")
-    end
-
-    alias :rack_cookies :cookies
-
-    def cookies
-      @cookies ||= {}.with_indifferent_access
     end
 
     private
