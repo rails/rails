@@ -10,7 +10,8 @@ module ActionCable
 
       class_methods do
         def identified_by(*identifiers)
-          self.identifiers += identifiers
+          Array(identifiers).each { |identifier| attr_accessor identifier }
+          self.identifiers += identifiers          
         end
       end
 
