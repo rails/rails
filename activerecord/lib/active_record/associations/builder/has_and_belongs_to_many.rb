@@ -1,9 +1,9 @@
-module ActiveRecord::Associations::Builder
+module ActiveRecord::Associations::Builder # :nodoc:
   class HasAndBelongsToMany # :nodoc:
-    class JoinTableResolver
+    class JoinTableResolver # :nodoc:
       KnownTable = Struct.new :join_table
 
-      class KnownClass
+      class KnownClass # :nodoc:
         def initialize(lhs_class, rhs_class_name)
           @lhs_class      = lhs_class
           @rhs_class_name = rhs_class_name

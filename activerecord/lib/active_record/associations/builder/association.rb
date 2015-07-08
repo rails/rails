@@ -9,7 +9,7 @@
 #    - CollectionAssociation
 #      - HasManyAssociation
 
-module ActiveRecord::Associations::Builder
+module ActiveRecord::Associations::Builder # :nodoc:
   class Association #:nodoc:
     class << self
       attr_accessor :extensions
