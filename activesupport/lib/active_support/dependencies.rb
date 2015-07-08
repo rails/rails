@@ -22,6 +22,23 @@ module ActiveSupport #:nodoc:
     mattr_accessor :interlock
     self.interlock = Interlock.new
 
+    # :doc:
+
+    # Execute the supplied block without interference from any
+    # concurrent loads
+    def self.run_interlock
+      Dependencies.interlock.running { yield }
+    end
+
+    # Execute the supplied block while holding an exclusive lock,
+    # preventing any other thread from being inside a #run_interlock
+    # block at the same time
+    def self.load_interlock
+      Dependencies.interlock.loading { yield }
+    end
+
+    # :nodoc:
+
     # Should we turn on Ruby warnings on the first load of dependent files?
     mattr_accessor :warnings_on_first_load
     self.warnings_on_first_load = false
@@ -238,7 +255,7 @@ module ActiveSupport #:nodoc:
       end
 
       def load_dependency(file)
-        Dependencies.interlock.loading do
+        Dependencies.load_interlock do
           if Dependencies.load? && ActiveSupport::Dependencies.constant_watch_stack.watching?
             Dependencies.new_constants_in(Object) { yield }
           else
@@ -331,7 +348,7 @@ module ActiveSupport #:nodoc:
 
     def clear
       log_call
-      Dependencies.interlock.loading do
+      Dependencies.load_interlock do
         loaded.clear
         loading.clear
         remove_unloadable_constants!
@@ -344,7 +361,7 @@ module ActiveSupport #:nodoc:
       expanded = File.expand_path(file_name)
       return if loaded.include?(expanded)
 
-      Dependencies.interlock.loading do
+      Dependencies.load_interlock do
         # Maybe it got loaded while we were waiting for our lock:
         return if loaded.include?(expanded)
 

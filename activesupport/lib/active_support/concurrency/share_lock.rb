@@ -3,6 +3,15 @@ require 'monitor'
 
 module ActiveSupport
   module Concurrency
+    # A share/exclusive lock, otherwise known as a read/write lock.
+    #
+    # https://en.wikipedia.org/wiki/Readers%E2%80%93writer_lock
+    #--
+    # Note that a pending Exclusive lock attempt does not block incoming
+    # Share requests (i.e., we are "read-preferring"). That seems
+    # consistent with the behavior of +loose_upgrades+, but may be the
+    # wrong choice otherwise: it nominally reduces the possibility of
+    # deadlock by risking starvation instead.
     class ShareLock
       include MonitorMixin
 
@@ -35,6 +44,9 @@ module ActiveSupport
         @exclusive_depth = 0
       end
 
+      # Returns false if +no_wait+ is specified and the lock is not
+      # immediately available. Otherwise, returns true after the lock
+      # has been acquired.
       def start_exclusive(no_wait=false)
         synchronize do
           unless @exclusive_thread == Thread.current
@@ -56,6 +68,8 @@ module ActiveSupport
         end
       end
 
+      # Relinquish the exclusive lock. Must only be called by the thread
+      # that called start_exclusive (and currently holds the lock).
       def stop_exclusive
         synchronize do
           raise "invalid unlock" if @exclusive_thread != Thread.current
@@ -88,6 +102,10 @@ module ActiveSupport
         end
       end
 
+      # Execute the supplied block while holding the Exclusive lock. If
+      # +no_wait+ is set and the lock is not immediately available,
+      # returns +nil+ without yielding. Otherwise, returns the result of
+      # the block.
       def exclusive(no_wait=false)
         if start_exclusive(no_wait)
           begin
@@ -98,6 +116,7 @@ module ActiveSupport
         end
       end
 
+      # Execute the supplied block while holding the Share lock.
       def sharing
         start_sharing
         begin
@@ -109,6 +128,7 @@ module ActiveSupport
 
       private
 
+      # Must be called within synchronize
       def busy?
         (@exclusive_thread && @exclusive_thread != Thread.current) ||
           @sharing.size > (@sharing[Thread.current] > 0 ? 1 : 0)

@@ -1,9 +1,9 @@
 require 'active_support/concurrency/share_lock'
 
-module ActiveSupport
+module ActiveSupport #:nodoc:
   module Dependencies #:nodoc:
     class Interlock
-      def initialize
+      def initialize # :nodoc:
         @lock = ActiveSupport::Concurrency::ShareLock.new(true)
       end
 
@@ -36,10 +36,6 @@ module ActiveSupport
           yield
         end
       end
-
-      # Match the Mutex API, so we can be used by Rack::Lock
-      alias :lock :start_running
-      alias :unlock :done_running
     end
   end
 end
