@@ -18,6 +18,7 @@ module ActionController
     def self.create
       env = {}
       env = Rails.application.env_config.merge(env) if defined?(Rails.application) && Rails.application
+      env["rack.request.cookie_hash"] = {}.with_indifferent_access
       new(default_env.merge(env), new_session)
     end
 
@@ -514,7 +515,6 @@ module ActionController
         end
 
         @request          = TestRequest.create
-        @request.env["rack.request.cookie_hash"] = {}.with_indifferent_access
         @response         = build_response @response_klass
         @response.request = @request
 

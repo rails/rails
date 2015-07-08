@@ -7,12 +7,12 @@ module ActionDispatch
       'HTTP_HOST'                => 'test.host',
       'REMOTE_ADDR'              => '0.0.0.0',
       'HTTP_USER_AGENT'          => 'Rails Testing',
-      "rack.request.cookie_hash" => {}.with_indifferent_access
     )
 
     # Create a new test request with default `env` values
     def self.create(env = {})
       env = Rails.application.env_config.merge(env) if defined?(Rails.application) && Rails.application
+      env["rack.request.cookie_hash"] ||= {}.with_indifferent_access
       new(default_env.merge(env))
     end
 
