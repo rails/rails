@@ -151,9 +151,9 @@ module ActiveRecord
     # Forces eager loading by performing a LEFT OUTER JOIN on +args+:
     #
     #   User.eager_load(:posts)
-    #   => SELECT "users"."id" AS t0_r0, "users"."name" AS t0_r1, ...
-    #   FROM "users" LEFT OUTER JOIN "posts" ON "posts"."user_id" =
-    #   "users"."id"
+    #   # SELECT "users"."id" AS t0_r0, "users"."name" AS t0_r1, ...
+    #   # FROM "users" LEFT OUTER JOIN "posts" ON "posts"."user_id" =
+    #   # "users"."id"
     def eager_load(*args)
       check_if_method_has_arguments!(:eager_load, args)
       spawn.eager_load!(*args)
@@ -167,7 +167,7 @@ module ActiveRecord
     # Allows preloading of +args+, in the same way that +includes+ does:
     #
     #   User.preload(:posts)
-    #   => SELECT "posts".* FROM "posts" WHERE "posts"."user_id" IN (1, 2, 3)
+    #   # SELECT "posts".* FROM "posts" WHERE "posts"."user_id" IN (1, 2, 3)
     def preload(*args)
       check_if_method_has_arguments!(:preload, args)
       spawn.preload!(*args)
@@ -184,10 +184,10 @@ module ActiveRecord
     # See #includes for more details.
     #
     #   User.includes(:posts).where("posts.name = 'foo'")
-    #   # => Doesn't JOIN the posts table, resulting in an error.
+    #   # Doesn't JOIN the posts table, resulting in an error.
     #
     #   User.includes(:posts).where("posts.name = 'foo'").references(:posts)
-    #   # => Query now knows the string references posts, so adds a JOIN
+    #   # Query now knows the string references posts, so adds a JOIN
     def references(*table_names)
       check_if_method_has_arguments!(:references, table_names)
       spawn.references!(*table_names)
@@ -258,22 +258,23 @@ module ActiveRecord
     # Allows to specify a group attribute:
     #
     #   User.group(:name)
-    #   => SELECT "users".* FROM "users" GROUP BY name
+    #   # SELECT "users".* FROM "users" GROUP BY name
     #
     # Returns an array with distinct records based on the +group+ attribute:
     #
     #   User.select([:id, :name])
-    #   => [#<User id: 1, name: "Oscar">, #<User id: 2, name: "Oscar">, #<User id: 3, name: "Foo">]
+    #   # => [#<User id: 1, name: "Oscar">, #<User id: 2, name: "Oscar">, #<User id: 3, name: "Foo">]
     #
     #   User.group(:name)
-    #   => [#<User id: 3, name: "Foo", ...>, #<User id: 2, name: "Oscar", ...>]
+    #   # => [#<User id: 3, name: "Foo", ...>, #<User id: 2, name: "Oscar", ...>]
     #
     #   User.group('name AS grouped_name, age')
-    #   => [#<User id: 3, name: "Foo", age: 21, ...>, #<User id: 2, name: "Oscar", age: 21, ...>, #<User id: 5, name: "Foo", age: 23, ...>]
+    #   # => [#<User id: 3, name: "Foo", age: 21, ...>, #<User id: 2, name: "Oscar", age: 21, ...>, #<User id: 5, name: "Foo", age: 23, ...>]
     #
     # Passing in an array of attributes to group by is also supported.
+    #
     #   User.select([:id, :first_name]).group(:id, :first_name).first(3)
-    #   => [#<User id: 1, first_name: "Bill">, #<User id: 2, first_name: "Earl">, #<User id: 3, first_name: "Beto">]
+    #   # => [#<User id: 1, first_name: "Bill">, #<User id: 2, first_name: "Earl">, #<User id: 3, first_name: "Beto">]
     def group(*args)
       check_if_method_has_arguments!(:group, args)
       spawn.group!(*args)
@@ -289,22 +290,22 @@ module ActiveRecord
     # Allows to specify an order attribute:
     #
     #   User.order(:name)
-    #   => SELECT "users".* FROM "users" ORDER BY "users"."name" ASC
+    #   # SELECT "users".* FROM "users" ORDER BY "users"."name" ASC
     #
     #   User.order(email: :desc)
-    #   => SELECT "users".* FROM "users" ORDER BY "users"."email" DESC
+    #   # SELECT "users".* FROM "users" ORDER BY "users"."email" DESC
     #
     #   User.order(:name, email: :desc)
-    #   => SELECT "users".* FROM "users" ORDER BY "users"."name" ASC, "users"."email" DESC
+    #   # SELECT "users".* FROM "users" ORDER BY "users"."name" ASC, "users"."email" DESC
     #
     #   User.order('name')
-    #   => SELECT "users".* FROM "users" ORDER BY name
+    #   # SELECT "users".* FROM "users" ORDER BY name
     #
     #   User.order('name DESC')
-    #   => SELECT "users".* FROM "users" ORDER BY name DESC
+    #   # SELECT "users".* FROM "users" ORDER BY name DESC
     #
     #   User.order('name DESC, email')
-    #   => SELECT "users".* FROM "users" ORDER BY name DESC, email
+    #   # SELECT "users".* FROM "users" ORDER BY name DESC, email
     def order(*args)
       check_if_method_has_arguments!(:order, args)
       spawn.order!(*args)
@@ -409,12 +410,12 @@ module ActiveRecord
     # Performs a joins on +args+:
     #
     #   User.joins(:posts)
-    #   => SELECT "users".* FROM "users" INNER JOIN "posts" ON "posts"."user_id" = "users"."id"
+    #   # SELECT "users".* FROM "users" INNER JOIN "posts" ON "posts"."user_id" = "users"."id"
     #
     # You can use strings in order to customize your joins:
     #
     #   User.joins("LEFT JOIN bookmarks ON bookmarks.bookmarkable_type = 'Post' AND bookmarks.user_id = users.id")
-    #   => SELECT "users".* FROM "users" LEFT JOIN bookmarks ON bookmarks.bookmarkable_type = 'Post' AND bookmarks.user_id = users.id
+    #   # SELECT "users".* FROM "users" LEFT JOIN bookmarks ON bookmarks.bookmarkable_type = 'Post' AND bookmarks.user_id = users.id
     def joins(*args)
       check_if_method_has_arguments!(:joins, args)
       spawn.joins!(*args)
@@ -565,12 +566,15 @@ module ActiveRecord
 
     # Allows you to change a previously set where condition for a given attribute, instead of appending to that condition.
     #
-    #   Post.where(trashed: true).where(trashed: false)                       # => WHERE `trashed` = 1 AND `trashed` = 0
-    #   Post.where(trashed: true).rewhere(trashed: false)                     # => WHERE `trashed` = 0
-    #   Post.where(active: true).where(trashed: true).rewhere(trashed: false) # => WHERE `active` = 1 AND `trashed` = 0
+    #   Post.where(trashed: true).where(trashed: false)
+    #   # WHERE `trashed` = 1 AND `trashed` = 0
     #
-    # This is short-hand for unscope(where: conditions.keys).where(conditions). Note that unlike reorder, we're only unscoping
-    # the named conditions -- not the entire where statement.
+    #   Post.where(trashed: true).rewhere(trashed: false)
+    #   # WHERE `trashed` = 0
+    #
+    #   Post.where(active: true).where(trashed: true).rewhere(trashed: false)
+    #   # WHERE `active` = 1 AND `trashed` = 0
+    #
     def rewhere(conditions)
       unscope(where: conditions.keys).where(conditions)
     end
@@ -684,7 +688,7 @@ module ActiveRecord
     # For example:
     #
     #   @posts = current_user.visible_posts.where(name: params[:name])
-    #   # => the visible_posts method is expected to return a chainable Relation
+    #   # the visible_posts method is expected to return a chainable Relation
     #
     #   def visible_posts
     #     case role
@@ -751,15 +755,15 @@ module ActiveRecord
     # Specifies table from which the records will be fetched. For example:
     #
     #   Topic.select('title').from('posts')
-    #   # => SELECT title FROM posts
+    #   # SELECT title FROM posts
     #
     # Can accept other relation objects. For example:
     #
     #   Topic.select('title').from(Topic.approved)
-    #   # => SELECT title FROM (SELECT * FROM topics WHERE approved = 't') subquery
+    #   # SELECT title FROM (SELECT * FROM topics WHERE approved = 't') subquery
     #
     #   Topic.select('a.title').from(Topic.approved, :a)
-    #   # => SELECT a.title FROM (SELECT * FROM topics WHERE approved = 't') a
+    #   # SELECT a.title FROM (SELECT * FROM topics WHERE approved = 't') a
     #
     def from(value, subquery_name = nil)
       spawn.from!(value, subquery_name)
@@ -773,13 +777,13 @@ module ActiveRecord
     # Specifies whether the records should be unique or not. For example:
     #
     #   User.select(:name)
-    #   # => Might return two records with the same name
+    #   # Might return two records with the same name
     #
     #   User.select(:name).distinct
-    #   # => Returns 1 record per distinct name
+    #   # Returns 1 record per distinct name
     #
     #   User.select(:name).distinct.distinct(false)
-    #   # => You can also remove the uniqueness
+    #   # You can also remove the uniqueness
     def distinct(value = true)
       spawn.distinct!(value)
     end
@@ -1075,8 +1079,8 @@ module ActiveRecord
     #
     # Example:
     #
-    #    Post.references()   # => raises an error
-    #    Post.references([]) # => does not raise an error
+    #    Post.references()   # raises an error
+    #    Post.references([]) # does not raise an error
     #
     # This particular method should be called with a method_name and the args
     # passed into that method as an input. For example:
