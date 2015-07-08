@@ -7,7 +7,7 @@ Gem::Specification.new do |s|
 
   s.author = ['Pratik Naik', 'David Heinemeier Hansson']
   s.email = ['pratiknaik@gmail.com', 'david@heinemeierhansson.com']
-  s.homepage = 'http://basecamp.com'
+  s.homepage = 'http://rubyonrails.org'
 
   s.add_dependency('activesupport', '>= 4.2.0')
   s.add_dependency('faye-websocket', '~> 0.9.2')
