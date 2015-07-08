@@ -78,27 +78,6 @@ module ActiveRecord
     # This calculates aggregate values in the given column. Methods for count, sum, average,
     # minimum, and maximum have been added as shortcuts.
     #
-    # There are two basic forms of output:
-    #
-    #   * Single aggregate value: The single value is type cast to Fixnum for COUNT, Float
-    #     for AVG, and the given column's type for everything else.
-    #
-    #   * Grouped values: This returns an ordered hash of the values and groups them. It
-    #     takes either a column name, or the name of a belongs_to association.
-    #
-    #       values = Person.group('last_name').maximum(:age)
-    #       puts values["Drake"]
-    #       # => 43
-    #
-    #       drake  = Family.find_by(last_name: 'Drake')
-    #       values = Person.group(:family).maximum(:age) # Person belongs_to :family
-    #       puts values[drake]
-    #       # => 43
-    #
-    #       values.each do |family, max_age|
-    #       ...
-    #       end
-    #
     #   Person.calculate(:count, :all) # The same as Person.count
     #   Person.average(:age) # SELECT AVG(age) FROM people...
     #
@@ -106,6 +85,27 @@ module ActiveRecord
     #   Person.group(:last_name).having("min(age) > 17").minimum(:age)
     #
     #   Person.sum("2 * age")
+    #
+    # There are two basic forms of output:
+    #
+    # * Single aggregate value: The single value is type cast to Fixnum for COUNT, Float
+    #   for AVG, and the given column's type for everything else.
+    #
+    # * Grouped values: This returns an ordered hash of the values and groups them. It
+    #   takes either a column name, or the name of a belongs_to association.
+    #
+    #      values = Person.group('last_name').maximum(:age)
+    #      puts values["Drake"]
+    #      # => 43
+    #
+    #      drake  = Family.find_by(last_name: 'Drake')
+    #      values = Person.group(:family).maximum(:age) # Person belongs_to :family
+    #      puts values[drake]
+    #      # => 43
+    #
+    #      values.each do |family, max_age|
+    #        ...
+    #      end
     def calculate(operation, column_name)
       if column_name.is_a?(Symbol) && attribute_alias?(column_name)
         column_name = attribute_alias(column_name)
