@@ -162,6 +162,8 @@ class FunctionalCachingController < CachingController
   end
 
   def formatted_fragment_cached_with_variant
+    request.variant = :phone if params[:v] == "phone"
+
     respond_to do |format|
       format.html.phone
       format.html
@@ -262,9 +264,7 @@ CACHED
 
 
   def test_fragment_caching_with_variant
-    @request.variant = :phone
-
-    get :formatted_fragment_cached_with_variant, format: "html"
+    get :formatted_fragment_cached_with_variant, format: "html", params: { v: :phone }
     assert_response :success
     expected_body = "<body>\n<p>PHONE</p>\n</body>\n"
 
