@@ -2,7 +2,7 @@ class Cable.Subscription
   constructor: (@consumer, params = {}, mixin) ->
     @identifier = JSON.stringify(params)
     extend(this, mixin)
-    @consumer.subscribers.add(this)
+    @consumer.subscriptions.add(this)
 
   # Perform a channel action with the optional data passed as an attribute
   perform: (action, data = {}) ->
@@ -13,7 +13,7 @@ class Cable.Subscription
     @consumer.send(command: "message", identifier: @identifier, data: JSON.stringify(data))
 
   unsubscribe: ->
-    @consumer.subscribers.remove(this)
+    @consumer.subscriptions.remove(this)
 
   extend = (object, properties) ->
     if properties?

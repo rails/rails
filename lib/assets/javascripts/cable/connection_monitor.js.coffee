@@ -10,7 +10,7 @@ class Cable.ConnectionMonitor
     pingedAt: 8
 
   constructor: (@consumer) ->
-    @consumer.subscribers.add(this)
+    @consumer.subscriptions.add(this)
     @start()
 
   connected: ->

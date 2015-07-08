@@ -60,16 +60,16 @@ class Cable.Connection
   events:
     message: (event) ->
       {identifier, message} = JSON.parse(event.data)
-      @consumer.subscribers.notify(identifier, "received", message)
+      @consumer.subscriptions.notify(identifier, "received", message)
 
     open: ->
-      @consumer.subscribers.reload()
+      @consumer.subscriptions.reload()
 
     close: ->
-      @consumer.subscribers.notifyAll("disconnected")
+      @consumer.subscriptions.notifyAll("disconnected")
 
     error: ->
-      @consumer.subscribers.notifyAll("disconnected")
+      @consumer.subscriptions.notifyAll("disconnected")
       @closeSilently()
 
   toJSON: ->
