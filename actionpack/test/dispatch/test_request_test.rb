@@ -2,7 +2,7 @@ require 'abstract_unit'
 
 class TestRequestTest < ActiveSupport::TestCase
   test "sane defaults" do
-    env = ActionDispatch::TestRequest.new.env
+    env = ActionDispatch::TestRequest.new({}).env
 
     assert_equal "GET", env.delete("REQUEST_METHOD")
     assert_equal "off", env.delete("HTTPS")
@@ -27,7 +27,7 @@ class TestRequestTest < ActiveSupport::TestCase
   end
 
   test "cookie jar" do
-    req = ActionDispatch::TestRequest.new
+    req = ActionDispatch::TestRequest.new({})
 
     assert_equal({}, req.cookies)
     assert_equal nil, req.env["HTTP_COOKIE"]
@@ -55,13 +55,13 @@ class TestRequestTest < ActiveSupport::TestCase
 
   test "does not complain when Rails.application is nil" do
     Rails.stubs(:application).returns(nil)
-    req = ActionDispatch::TestRequest.new
+    req = ActionDispatch::TestRequest.new({})
 
     assert_equal false, req.env.empty?
   end
 
   test "default remote address is 0.0.0.0" do
-    req = ActionDispatch::TestRequest.new
+    req = ActionDispatch::TestRequest.new({})
     assert_equal '0.0.0.0', req.remote_addr
   end
 
@@ -71,7 +71,7 @@ class TestRequestTest < ActiveSupport::TestCase
   end
 
   test "default host is test.host" do
-    req = ActionDispatch::TestRequest.new
+    req = ActionDispatch::TestRequest.new({})
     assert_equal 'test.host', req.host
   end
 
@@ -81,7 +81,7 @@ class TestRequestTest < ActiveSupport::TestCase
   end
 
   test "default user agent is 'Rails Testing'" do
-    req = ActionDispatch::TestRequest.new
+    req = ActionDispatch::TestRequest.new({})
     assert_equal 'Rails Testing', req.user_agent
   end
 
