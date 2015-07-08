@@ -53,8 +53,8 @@ module ActionController
     end
 
     private
-    # :nodoc:
-    def include_content?(status)
+
+    def include_content?(status) # :nodoc:
       case status
       when 100..199
         false
