@@ -5,25 +5,25 @@ It allows for real-time features to be written in Ruby in the same style
 and form as the rest of your Rails application, while still being performant
 and scalable. It's a full-stack offering that provides both a client-side
 JavaScript framework and a server-side Ruby framework. You have access to your full
-domain model written with ActiveRecord or whatever.
-
+domain model written with ActiveRecord or your ORM of choice.
 
 ## Terminology
 
-A single Action Cable server can handle multiple connection instances. It goes one
+A single Action Cable server can handle multiple connection instances. It has one
 connection instance per websocket connection. A single user may well have multiple
 websockets open to your application if they use multiple browser tabs or devices.
 The client of a websocket connection is called the consumer.
 
 Each consumer can in turn subscribe to multiple cable channels. Each channel encapsulates
 a logical unit of work, similar to what a controller does in a regular MVC setup. So 
-you may have a ChatChannel and a AppearancesChannel. The consumer can be subscribed to either
+you may have a `ChatChannel` and a `AppearancesChannel`. The consumer can be subscribed to either
 or to both. At the very least, a consumer should be subscribed to one channel.
 
 When the consumer is subscribed to a channel, they act as a subscriber. The connection between
 the subscriber and the channel is, surprise-surprise, called a subscription. A consumer
-can act as a subscriber to a given channel any number of times (like to multiple chat rooms at the same time).
-(And remember that a physical user may have multiple consumers, one per tab/device open to your connection).
+can act as a subscriber to a given channel any number of times. For example, a consumer
+could subscribe to multiple chat rooms at the same time. (And remember that a physical user may
+have multiple consumers, one per tab/device open to your connection).
 
 Each channel can then again be streaming zero or more broadcastings. A broadcasting is a
 pubsub link where anything transmitted by the broadcaster is sent directly to the channel 
@@ -36,8 +36,8 @@ reflections of each unit.
 
 ## A full-stack example
 
-The first thing you must do is defined your `ApplicationCable::Connection` class in Ruby. This
-is the place where you do authorization of the incoming connection, and proceed to establish it
+The first thing you must do is define your `ApplicationCable::Connection` class in Ruby. This
+is the place where you authorize the incoming connection, and proceed to establish it
 if all is well. Here's the simplest example starting with the server-side connection class:
 
 ```ruby
@@ -63,9 +63,9 @@ end
 ```
 
 This relies on the fact that you will already have handled authentication of the user, and
-that a successful authentication sets a signed cookie with the user_id. This cookie is then
+that a successful authentication sets a signed cookie with the `user_id`. This cookie is then
 automatically sent to the connection instance when a new connection is attempted, and you
-use that to set the current_user. By identifying the connection by this same current_user,
+use that to set the `current_user`. By identifying the connection by this same current_user,
 you're also ensuring that you can later retrieve all open connections by a given user (and
 potentially disconnect them all if the user is deleted or deauthorized).
 
@@ -169,6 +169,7 @@ class WebNotificationsChannel < ApplicationCable::Channel
    end
  end
 ```
+
 ```coffeescript
 # Somewhere in your app this is called, perhaps from a NewCommentJob
 ActionCable.server.broadcast \
@@ -180,8 +181,8 @@ App.cable.subscriptions.create "WebNotificationsChannel",
   web_notification = new Notification data['title'], body: data['body']
 ```
 
-The `ActionCable.server.broadcast` call places a message in the Redis' pubsub queue under the broadcasting name of "web_notifications_1".
-The channel has been instructed to stream everything that arrives at "web_notifications_1" directly to the client by invoking the
+The `ActionCable.server.broadcast` call places a message in the Redis' pubsub queue under the broadcasting name of `web_notifications_1`.
+The channel has been instructed to stream everything that arrives at `web_notifications_1` directly to the client by invoking the
 `#received(data)` callback. The data is the hash sent as the second parameter to the server-side broadcast call, JSON encoded for the trip
 across the wire, and unpacked for the data argument arriving to `#received`.
 
@@ -193,7 +194,8 @@ messages back and forth over the websocket cable connection. This dependency may
 be alleviated in the future, but for the moment that's what it is. So be sure to have
 Redis installed and running.
 
-The Ruby side of things is built on top of Faye-Websocket and Celluiod.
+The Ruby side of things is built on top of [faye-websocket](https://github.com/faye/faye-websocket-ruby) and [celluoid](https://github.com/celluloid/celluloid).
+
 
 ## Deployment
 
@@ -224,7 +226,7 @@ Action Cable will move from rails/actioncable to rails/rails and become a full-f
 framework alongside Action Pack, Active Record, and the like once we cross the bridge from alpha
 to beta software (which will happen once the API and missing pieces have solidified).
 
-Finally, note that testing is a unfinished, hell unstarted, area of this framework. The framework
+Finally, note that testing is a unfinished/unstarted area of this framework. The framework
 has been developed in-app up until this point. We need to find a good way to test both the framework
 itself and allow the user to test their connection and channel logic.
 
