@@ -32,7 +32,7 @@ module ActiveSupport
   #
   # If the class has an initializer, it must accept no arguments.
   module PerThreadRegistry
-    def self.extended(object)
+    def self.extended(object) # :nodoc:
       object.instance_variable_set '@per_thread_registry_key', object.name.freeze
     end
 
