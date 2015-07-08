@@ -188,7 +188,14 @@ module ActionController #:nodoc:
   #
   # ==== Passenger
   #
-  # To be described.
+  # Phusion Passenger with NGINX, offers two streaming mechanisms out of the box. NGINX response
+  # buffering mechanism which is dependent on the value of `passenger_buffer_response` option and
+  # Passenger buffering system which is always 'on' irrespective of the value of `passenger_buffer_response`.
+  # The `passenger_buffer_response` which set to 'off' by default. When this option is turned 'on',
+  # then the streaming would be done at the NGINX level which would wait until the application is
+  # done sending the response back to the client.
+  # Please check the documentation for more information:
+  # https://www.phusionpassenger.com/documentation/Users%20guide%20Nginx%204.0.html#_passenger_buffer_response_lt_on_off_gt
   #
   module Streaming
     extend ActiveSupport::Concern
