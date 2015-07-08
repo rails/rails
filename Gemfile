@@ -53,14 +53,14 @@ group :job do
   gem 'sneakers', require: false
   gem 'que', require: false
   gem 'backburner', require: false
-  gem 'qu-rails', github: "bkeepers/qu", branch: "master", require: false
+  gem 'qu-rails', github: 'bkeepers/qu', branch: 'master', require: false
   gem 'qu-redis', require: false
   gem 'delayed_job_active_record', require: false
   gem 'sequel', require: false
 end
 
 # Add your own local bundler stuff
-local_gemfile = File.dirname(__FILE__) + "/.Gemfile"
+local_gemfile = File.dirname(__FILE__) + '/.Gemfile'
 instance_eval File.read local_gemfile if File.exist? local_gemfile
 
 group :test do
