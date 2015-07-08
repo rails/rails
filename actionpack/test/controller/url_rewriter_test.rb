@@ -16,7 +16,6 @@ class UrlRewriterTests < ActionController::TestCase
   end
 
   def setup
-    @request = build_request
     @params = {}
     @rewriter = Rewriter.new(@request) #.new(@request, @params)
     @routes = ActionDispatch::Routing::RouteSet.new.tap do |r|
