@@ -229,20 +229,9 @@ has been developed in-app up until this point. We need to find a good way to tes
 itself and allow the user to test their connection and channel logic.
 
 
-## Download and installation
-
-The latest version of Action Pack can be installed with RubyGems:
-
-  % gem install actionpack
-
-Source code can be downloaded as part of the Rails project on GitHub
-
-* https://github.com/rails/rails/tree/master/actionpack
-
-
 ## License
 
-Action Pack is released under the MIT license:
+Action Cable is released under the MIT license:
 
 * http://www.opensource.org/licenses/MIT
 
