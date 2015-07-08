@@ -383,6 +383,18 @@ class TextHelperTest < ActionView::TestCase
     assert_equal("12 berries", pluralize(12, "berry"))
   end
 
+  def test_pluralization_with_locale
+    ActiveSupport::Inflector.inflections(:de) do |inflect|
+      inflect.plural(/(person)$/i, '\1en')
+      inflect.singular(/(person)en$/i, '\1')
+    end
+
+    assert_equal("2 People", pluralize(2, "Person", locale: :en))
+    assert_equal("2 Personen", pluralize(2, "Person", locale: :de))
+
+    ActiveSupport::Inflector.inflections(:de).clear
+  end
+
   def test_cycle_class
     value = Cycle.new("one", 2, "3")
     assert_equal("one", value.to_s)
