@@ -718,12 +718,6 @@ XML
     assert_equal 'it works', session[:symbol], "Test session hash should allow indifferent access"
   end
 
-  def test_header_properly_reset_after_get_request
-    get :test_params
-    @request.recycle!
-    assert_nil @request.instance_variable_get("@request_method")
-  end
-
   def test_deprecated_params_reset_between_post_requests
     assert_deprecated { post :no_op, foo: "bar" }
     assert_equal "bar", @request.params[:foo]

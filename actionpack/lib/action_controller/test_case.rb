@@ -73,15 +73,6 @@ module ActionController
       @env['CONTENT_LENGTH'] = data.length.to_s
       @env['rack.input'] = StringIO.new(data)
     end
-
-    def recycle!
-      @formats = nil
-      @env.delete_if { |k, v| k =~ /^(action_dispatch|rack)\.request/ }
-      @env.delete_if { |k, v| k =~ /^action_dispatch\.rescue/ }
-      @method = @request_method = nil
-      @fullpath = @ip = @remote_ip = @protocol = nil
-      @env['action_dispatch.request.query_parameters'] = {}
-    end
   end
 
   class TestResponse < ActionDispatch::TestResponse
@@ -451,7 +442,7 @@ module ActionController
         @request.env['HTTP_COOKIE'] = cookies.to_header
         @request.env['action_dispatch.cookies'] = nil
 
-        @request.recycle!
+        @request          = TestRequest.new scrub_env!(@request.env), @request.session
         @response         = build_response @response_klass
         @response.request = @request
         @controller.recycle!
@@ -545,6 +536,13 @@ module ActionController
       end
 
       private
+
+      def scrub_env!(env)
+        env.delete_if { |k, v| k =~ /^(action_dispatch|rack)\.request/ }
+        env.delete_if { |k, v| k =~ /^action_dispatch\.rescue/ }
+        env['action_dispatch.request.query_parameters'] = {}
+        env
+      end
 
       def process_with_kwargs(http_method, action, *args)
         if kwarg_request?(args)
