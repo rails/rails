@@ -35,14 +35,14 @@ module ActiveRecord
     #     "postgres://myuser:mypass@localhost/somedatabase"
     #   )
     #
-    # In case <tt>ActiveRecord::Base.configurations</tt> is set (Rails
-    # automatically loads the contents of config/database.yml into it),
+    # In case {ActiveRecord::Base.configurations}[rdoc-ref:Core.configurations]
+    # is set (Rails automatically loads the contents of config/database.yml into it),
     # a symbol can also be given as argument, representing a key in the
     # configuration hash:
     #
     #   ActiveRecord::Base.establish_connection(:production)
     #
-    # The exceptions +AdapterNotSpecified+, +AdapterNotFound+ and +ArgumentError+
+    # The exceptions AdapterNotSpecified, AdapterNotFound and +ArgumentError+
     # may be returned on an error.
     def establish_connection(spec = nil)
       spec     ||= DEFAULT_ENV.call.to_sym

@@ -150,7 +150,8 @@ module ActiveRecord
   end
 
   # This error is raised when trying to eager load a poloymorphic association using a JOIN.
-  # Eager loading polymorphic associations is only possible with ActiveRecord::QueryMethods#preload.
+  # Eager loading polymorphic associations is only possible with
+  # {ActiveRecord::Relation#preload}[rdoc-ref:QueryMethods#preload].
   class EagerLoadPolymorphicError < ActiveRecordError
     def initialize(reflection = nil)
       if reflection
@@ -300,7 +301,7 @@ module ActiveRecord
     # === A word of warning
     #
     # Don't create associations that have the same name as instance methods of
-    # <tt>ActiveRecord::Base</tt>. Since the association adds a method with that name to
+    # ActiveRecord::Base. Since the association adds a method with that name to
     # its model, it will override the inherited method and break things.
     # For instance, +attributes+ and +connection+ would be bad choices for association names.
     #
@@ -362,7 +363,7 @@ module ActiveRecord
     #   end
     #
     # If your model class is <tt>Project</tt>, the module is
-    # named <tt>Project::GeneratedAssociationMethods</tt>. The GeneratedAssociationMethods module is
+    # named <tt>Project::GeneratedAssociationMethods</tt>. The +GeneratedAssociationMethods+ module is
     # included in the model class immediately after the (anonymous) generated attributes methods
     # module, meaning an association will override the methods for an attribute with the same name.
     #
@@ -370,12 +371,12 @@ module ActiveRecord
     #
     # Active Record associations can be used to describe one-to-one, one-to-many and many-to-many
     # relationships between models. Each model uses an association to describe its role in
-    # the relation. The +belongs_to+ association is always used in the model that has
+    # the relation. The #belongs_to association is always used in the model that has
     # the foreign key.
     #
     # === One-to-one
     #
-    # Use +has_one+ in the base, and +belongs_to+ in the associated model.
+    # Use #has_one in the base, and #belongs_to in the associated model.
     #
     #   class Employee < ActiveRecord::Base
     #     has_one :office
@@ -386,7 +387,7 @@ module ActiveRecord
     #
     # === One-to-many
     #
-    # Use +has_many+ in the base, and +belongs_to+ in the associated model.
+    # Use #has_many in the base, and #belongs_to in the associated model.
     #
     #   class Manager < ActiveRecord::Base
     #     has_many :employees
@@ -399,7 +400,7 @@ module ActiveRecord
     #
     # There are two ways to build a many-to-many relationship.
     #
-    # The first way uses a +has_many+ association with the <tt>:through</tt> option and a join model, so
+    # The first way uses a #has_many association with the <tt>:through</tt> option and a join model, so
     # there are two stages of associations.
     #
     #   class Assignment < ActiveRecord::Base
@@ -415,7 +416,7 @@ module ActiveRecord
     #     has_many :programmers, through: :assignments
     #   end
     #
-    # For the second way, use +has_and_belongs_to_many+ in both models. This requires a join table
+    # For the second way, use #has_and_belongs_to_many in both models. This requires a join table
     # that has no corresponding model or primary key.
     #
     #   class Programmer < ActiveRecord::Base
@@ -427,13 +428,13 @@ module ActiveRecord
     #
     # Choosing which way to build a many-to-many relationship is not always simple.
     # If you need to work with the relationship model as its own entity,
-    # use <tt>has_many :through</tt>. Use +has_and_belongs_to_many+ when working with legacy schemas or when
+    # use #has_many <tt>:through</tt>. Use #has_and_belongs_to_many when working with legacy schemas or when
     # you never work directly with the relationship itself.
     #
-    # == Is it a +belongs_to+ or +has_one+ association?
+    # == Is it a #belongs_to or #has_one association?
     #
     # Both express a 1-1 relationship. The difference is mostly where to place the foreign
-    # key, which goes on the table for the class declaring the +belongs_to+ relationship.
+    # key, which goes on the table for the class declaring the #belongs_to relationship.
     #
     #   class User < ActiveRecord::Base
     #     # I reference an account.
@@ -466,35 +467,35 @@ module ActiveRecord
     # there is some special behavior you should be aware of, mostly involving the saving of
     # associated objects.
     #
-    # You can set the <tt>:autosave</tt> option on a <tt>has_one</tt>, <tt>belongs_to</tt>,
-    # <tt>has_many</tt>, or <tt>has_and_belongs_to_many</tt> association. Setting it
+    # You can set the <tt>:autosave</tt> option on a #has_one, #belongs_to,
+    # #has_many, or #has_and_belongs_to_many association. Setting it
     # to +true+ will _always_ save the members, whereas setting it to +false+ will
     # _never_ save the members. More details about <tt>:autosave</tt> option is available at
     # AutosaveAssociation.
     #
     # === One-to-one associations
     #
-    # * Assigning an object to a +has_one+ association automatically saves that object and
+    # * Assigning an object to a #has_one association automatically saves that object and
     #   the object being replaced (if there is one), in order to update their foreign
     #   keys - except if the parent object is unsaved (<tt>new_record? == true</tt>).
     # * If either of these saves fail (due to one of the objects being invalid), an
-    #   <tt>ActiveRecord::RecordNotSaved</tt> exception is raised and the assignment is
+    #   ActiveRecord::RecordNotSaved exception is raised and the assignment is
     #   cancelled.
-    # * If you wish to assign an object to a +has_one+ association without saving it,
-    #   use the <tt>build_association</tt> method (documented below). The object being
+    # * If you wish to assign an object to a #has_one association without saving it,
+    #   use the <tt>#build_association</tt> method (documented below). The object being
     #   replaced will still be saved to update its foreign key.
-    # * Assigning an object to a +belongs_to+ association does not save the object, since
+    # * Assigning an object to a #belongs_to association does not save the object, since
     #   the foreign key field belongs on the parent. It does not save the parent either.
     #
     # === Collections
     #
-    # * Adding an object to a collection (+has_many+ or +has_and_belongs_to_many+) automatically
+    # * Adding an object to a collection (#has_many or #has_and_belongs_to_many) automatically
     #   saves that object, except if the parent object (the owner of the collection) is not yet
     #   stored in the database.
     # * If saving any of the objects being added to a collection (via <tt>push</tt> or similar)
     #   fails, then <tt>push</tt> returns +false+.
     # * If saving fails while replacing the collection (via <tt>association=</tt>), an
-    #   <tt>ActiveRecord::RecordNotSaved</tt> exception is raised and the assignment is
+    #   ActiveRecord::RecordNotSaved exception is raised and the assignment is
     #   cancelled.
     # * You can add an object to a collection without automatically saving it by using the
     #   <tt>collection.build</tt> method (documented below).
@@ -503,14 +504,14 @@ module ActiveRecord
     #
     # == Customizing the query
     #
-    # \Associations are built from <tt>Relation</tt>s, and you can use the <tt>Relation</tt> syntax
+    # \Associations are built from <tt>Relation</tt>s, and you can use the Relation syntax
     # to customize them. For example, to add a condition:
     #
     #   class Blog < ActiveRecord::Base
     #     has_many :published_posts, -> { where published: true }, class_name: 'Post'
     #   end
     #
-    # Inside the <tt>-> { ... }</tt> block you can use all of the usual <tt>Relation</tt> methods.
+    # Inside the <tt>-> { ... }</tt> block you can use all of the usual Relation methods.
     #
     # === Accessing the owner object
     #
@@ -598,8 +599,8 @@ module ActiveRecord
     #
     # * <tt>record.association(:items).owner</tt> - Returns the object the association is part of.
     # * <tt>record.association(:items).reflection</tt> - Returns the reflection object that describes the association.
-    # * <tt>record.association(:items).target</tt> - Returns the associated object for +belongs_to+ and +has_one+, or
-    #   the collection of associated objects for +has_many+ and +has_and_belongs_to_many+.
+    # * <tt>record.association(:items).target</tt> - Returns the associated object for #belongs_to and #has_one, or
+    #   the collection of associated objects for #has_many and #has_and_belongs_to_many.
     #
     # However, inside the actual extension code, you will not have access to the <tt>record</tt> as
     # above. In this case, you can access <tt>proxy_association</tt>. For example,
@@ -611,7 +612,7 @@ module ActiveRecord
     #
     # Has Many associations can be configured with the <tt>:through</tt> option to use an
     # explicit join model to retrieve the data. This operates similarly to a
-    # +has_and_belongs_to_many+ association. The advantage is that you're able to add validations,
+    # #has_and_belongs_to_many association. The advantage is that you're able to add validations,
     # callbacks, and extra attributes on the join model. Consider the following schema:
     #
     #   class Author < ActiveRecord::Base
@@ -628,7 +629,7 @@ module ActiveRecord
     #   @author.authorships.collect { |a| a.book } # selects all books that the author's authorships belong to
     #   @author.books                              # selects all books by using the Authorship join model
     #
-    # You can also go through a +has_many+ association on the join model:
+    # You can also go through a #has_many association on the join model:
     #
     #   class Firm < ActiveRecord::Base
     #     has_many   :clients
@@ -648,7 +649,7 @@ module ActiveRecord
     #   @firm.clients.flat_map { |c| c.invoices } # select all invoices for all clients of the firm
     #   @firm.invoices                            # selects all invoices by going through the Client join model
     #
-    # Similarly you can go through a +has_one+ association on the join model:
+    # Similarly you can go through a #has_one association on the join model:
     #
     #   class Group < ActiveRecord::Base
     #     has_many   :users
@@ -668,7 +669,7 @@ module ActiveRecord
     #   @group.users.collect { |u| u.avatar }.compact # select all avatars for all users in the group
     #   @group.avatars                                # selects all avatars by going through the User join model.
     #
-    # An important caveat with going through +has_one+ or +has_many+ associations on the
+    # An important caveat with going through #has_one or #has_many associations on the
     # join model is that these associations are *read-only*. For example, the following
     # would not work following the previous example:
     #
@@ -677,9 +678,9 @@ module ActiveRecord
     #
     # == Setting Inverses
     #
-    # If you are using a +belongs_to+ on the join model, it is a good idea to set the
-    # <tt>:inverse_of</tt> option on the +belongs_to+, which will mean that the following example
-    # works correctly (where <tt>tags</tt> is a +has_many+ <tt>:through</tt> association):
+    # If you are using a #belongs_to on the join model, it is a good idea to set the
+    # <tt>:inverse_of</tt> option on the #belongs_to, which will mean that the following example
+    # works correctly (where <tt>tags</tt> is a #has_many <tt>:through</tt> association):
     #
     #   @post = Post.first
     #   @tag = @post.tags.build name: "ruby"
@@ -695,8 +696,8 @@ module ActiveRecord
     #
     # If you do not set the <tt>:inverse_of</tt> record, the association will
     # do its best to match itself up with the correct inverse. Automatic
-    # inverse detection only works on <tt>has_many</tt>, <tt>has_one</tt>, and
-    # <tt>belongs_to</tt> associations.
+    # inverse detection only works on #has_many, #has_one, and
+    # #belongs_to associations.
     #
     # Extra options on the associations, as defined in the
     # <tt>AssociationReflection::INVALID_AUTOMATIC_INVERSE_OPTIONS</tt> constant, will
@@ -759,7 +760,7 @@ module ActiveRecord
     # == Polymorphic \Associations
     #
     # Polymorphic associations on models are not restricted on what types of models they
-    # can be associated with. Rather, they specify an interface that a +has_many+ association
+    # can be associated with. Rather, they specify an interface that a #has_many association
     # must adhere to.
     #
     #   class Asset < ActiveRecord::Base
@@ -843,7 +844,7 @@ module ActiveRecord
     #
     #   Post.includes(:author).each do |post|
     #
-    # This references the name of the +belongs_to+ association that also used the <tt>:author</tt>
+    # This references the name of the #belongs_to association that also used the <tt>:author</tt>
     # symbol. After loading the posts, find will collect the +author_id+ from each one and load
     # all the referenced authors with one query. Doing so will cut down the number of queries
     # from 201 to 102.
@@ -854,7 +855,7 @@ module ActiveRecord
     #
     # This will load all comments with a single query. This reduces the total number of queries
     # to 3. In general, the number of queries will be 1 plus the number of associations
-    # named (except if some of the associations are polymorphic +belongs_to+ - see below).
+    # named (except if some of the associations are polymorphic #belongs_to - see below).
     #
     # To include a deep hierarchy of associations, use a hash:
     #
@@ -968,7 +969,7 @@ module ActiveRecord
     #                              INNER JOIN categories_posts posts_categories_join INNER JOIN posts posts_categories
     #                              INNER JOIN categories_posts categories_posts_join INNER JOIN categories categories_posts_2
     #
-    # If you wish to specify your own custom joins using <tt>joins</tt> method, those table
+    # If you wish to specify your own custom joins using ActiveRecord::QueryMethods#joins method, those table
     # names will take precedence over the eager associations:
     #
     #   Post.joins(:comments).joins("inner join comments ...")
@@ -1061,7 +1062,7 @@ module ActiveRecord
     #
     # * does not work with <tt>:through</tt> associations.
     # * does not work with <tt>:polymorphic</tt> associations.
-    # * for +belongs_to+ associations +has_many+ inverse associations are ignored.
+    # * for #belongs_to associations #has_many inverse associations are ignored.
     #
     # For more information, see the documentation for the +:inverse_of+ option.
     #
@@ -1069,7 +1070,7 @@ module ActiveRecord
     #
     # === Dependent associations
     #
-    # +has_many+, +has_one+ and +belongs_to+ associations support the <tt>:dependent</tt> option.
+    # #has_many, #has_one and #belongs_to associations support the <tt>:dependent</tt> option.
     # This allows you to specify that associated records should be deleted when the owner is
     # deleted.
     #
@@ -1090,22 +1091,22 @@ module ActiveRecord
     # callbacks declared either before or after the <tt>:dependent</tt> option
     # can affect what it does.
     #
-    # Note that <tt>:dependent</tt> option is ignored for +has_one+ <tt>:through</tt> associations.
+    # Note that <tt>:dependent</tt> option is ignored for #has_one <tt>:through</tt> associations.
     #
     # === Delete or destroy?
     #
-    # +has_many+ and +has_and_belongs_to_many+ associations have the methods <tt>destroy</tt>,
+    # #has_many and #has_and_belongs_to_many associations have the methods <tt>destroy</tt>,
     # <tt>delete</tt>, <tt>destroy_all</tt> and <tt>delete_all</tt>.
     #
-    # For +has_and_belongs_to_many+, <tt>delete</tt> and <tt>destroy</tt> are the same: they
+    # For #has_and_belongs_to_many, <tt>delete</tt> and <tt>destroy</tt> are the same: they
     # cause the records in the join table to be removed.
     #
-    # For +has_many+, <tt>destroy</tt> and <tt>destroy_all</tt> will always call the <tt>destroy</tt> method of the
+    # For #has_many, <tt>destroy</tt> and <tt>destroy_all</tt> will always call the <tt>destroy</tt> method of the
     # record(s) being removed so that callbacks are run. However <tt>delete</tt> and <tt>delete_all</tt> will either
     # do the deletion according to the strategy specified by the <tt>:dependent</tt> option, or
     # if no <tt>:dependent</tt> option is given, then it will follow the default strategy.
     # The default strategy is to do nothing (leave the foreign keys with the parent ids set), except for
-    # +has_many+ <tt>:through</tt>, where the default strategy is <tt>delete_all</tt> (delete
+    # #has_many <tt>:through</tt>, where the default strategy is <tt>delete_all</tt> (delete
     # the join records, without running their callbacks).
     #
     # There is also a <tt>clear</tt> method which is the same as <tt>delete_all</tt>, except that
@@ -1113,13 +1114,13 @@ module ActiveRecord
     #
     # === What gets deleted?
     #
-    # There is a potential pitfall here: +has_and_belongs_to_many+ and +has_many+ <tt>:through</tt>
+    # There is a potential pitfall here: #has_and_belongs_to_many and #has_many <tt>:through</tt>
     # associations have records in join tables, as well as the associated records. So when we
     # call one of these deletion methods, what exactly should be deleted?
     #
     # The answer is that it is assumed that deletion on an association is about removing the
     # <i>link</i> between the owner and the associated object(s), rather than necessarily the
-    # associated objects themselves. So with +has_and_belongs_to_many+ and +has_many+
+    # associated objects themselves. So with #has_and_belongs_to_many and #has_many
     # <tt>:through</tt>, the join records will be deleted, but the associated records won't.
     #
     # This makes sense if you think about it: if you were to call <tt>post.tags.delete(Tag.find_by(name: 'food'))</tt>
@@ -1130,20 +1131,20 @@ module ActiveRecord
     # a person has many projects, and each project has many tasks. If we deleted one of a person's
     # tasks, we would probably not want the project to be deleted. In this scenario, the delete method
     # won't actually work: it can only be used if the association on the join model is a
-    # +belongs_to+. In other situations you are expected to perform operations directly on
+    # #belongs_to. In other situations you are expected to perform operations directly on
     # either the associated records or the <tt>:through</tt> association.
     #
-    # With a regular +has_many+ there is no distinction between the "associated records"
+    # With a regular #has_many there is no distinction between the "associated records"
     # and the "link", so there is only one choice for what gets deleted.
     #
-    # With +has_and_belongs_to_many+ and +has_many+ <tt>:through</tt>, if you want to delete the
+    # With #has_and_belongs_to_many and #has_many <tt>:through</tt>, if you want to delete the
     # associated records themselves, you can always do something along the lines of
     # <tt>person.tasks.each(&:destroy)</tt>.
     #
-    # == Type safety with <tt>ActiveRecord::AssociationTypeMismatch</tt>
+    # == Type safety with ActiveRecord::AssociationTypeMismatch
     #
     # If you attempt to assign an object to an association that doesn't match the inferred
-    # or specified <tt>:class_name</tt>, you'll get an <tt>ActiveRecord::AssociationTypeMismatch</tt>.
+    # or specified <tt>:class_name</tt>, you'll get an ActiveRecord::AssociationTypeMismatch.
     #
     # == Options
     #
@@ -1197,10 +1198,10 @@ module ActiveRecord
       # [collection.size]
       #   Returns the number of associated objects.
       # [collection.find(...)]
-      #   Finds an associated object according to the same rules as <tt>ActiveRecord::Base.find</tt>.
+      #   Finds an associated object according to the same rules as ActiveRecord::FinderMethods#find.
       # [collection.exists?(...)]
       #   Checks whether an associated object with the given conditions exists.
-      #   Uses the same rules as <tt>ActiveRecord::Base.exists?</tt>.
+      #   Uses the same rules as ActiveRecord::FinderMethods#exists?.
       # [collection.build(attributes = {}, ...)]
       #   Returns one or more new objects of the collection type that have been instantiated
       #   with +attributes+ and linked to this object through a foreign key, but have not yet
@@ -1211,7 +1212,7 @@ module ActiveRecord
       #   been saved (if it passed the validation). *Note*: This only works if the base model
       #   already exists in the DB, not if it is a new (unsaved) record!
       # [collection.create!(attributes = {})]
-      #   Does the same as <tt>collection.create</tt>, but raises <tt>ActiveRecord::RecordInvalid</tt>
+      #   Does the same as <tt>collection.create</tt>, but raises ActiveRecord::RecordInvalid
       #   if the record is invalid.
       #
       # === Example
@@ -1263,11 +1264,11 @@ module ActiveRecord
       # [:class_name]
       #   Specify the class name of the association. Use it only if that name can't be inferred
       #   from the association name. So <tt>has_many :products</tt> will by default be linked
-      #   to the Product class, but if the real class name is SpecialProduct, you'll have to
+      #   to the +Product+ class, but if the real class name is +SpecialProduct+, you'll have to
       #   specify it with this option.
       # [:foreign_key]
       #   Specify the foreign key used for the association. By default this is guessed to be the name
-      #   of this class in lower-case and "_id" suffixed. So a Person class that makes a +has_many+
+      #   of this class in lower-case and "_id" suffixed. So a Person class that makes a #has_many
       #   association will use "person_id" as the default <tt>:foreign_key</tt>.
       # [:foreign_type]
       #   Specify the column used to store the associated object's type, if this is a polymorphic
@@ -1291,20 +1292,20 @@ module ActiveRecord
       #   * <tt>:restrict_with_error</tt> causes an error to be added to the owner if there are any associated objects.
       #
       #   If using with the <tt>:through</tt> option, the association on the join model must be
-      #   a +belongs_to+, and the records which get deleted are the join records, rather than
+      #   a #belongs_to, and the records which get deleted are the join records, rather than
       #   the associated records.
       # [:counter_cache]
       #   This option can be used to configure a custom named <tt>:counter_cache.</tt> You only need this option,
-      #   when you customized the name of your <tt>:counter_cache</tt> on the <tt>belongs_to</tt> association.
+      #   when you customized the name of your <tt>:counter_cache</tt> on the #belongs_to association.
       # [:as]
-      #   Specifies a polymorphic interface (See <tt>belongs_to</tt>).
+      #   Specifies a polymorphic interface (See #belongs_to).
       # [:through]
       #   Specifies an association through which to perform the query. This can be any other type
       #   of association, including other <tt>:through</tt> associations. Options for <tt>:class_name</tt>,
       #   <tt>:primary_key</tt> and <tt>:foreign_key</tt> are ignored, as the association uses the
       #   source reflection.
       #
-      #   If the association on the join model is a +belongs_to+, the collection can be modified
+      #   If the association on the join model is a #belongs_to, the collection can be modified
       #   and the records on the <tt>:through</tt> model will be automatically created and removed
       #   as appropriate. Otherwise, the collection is read-only, so you should manipulate the
       #   <tt>:through</tt> association directly.
@@ -1315,13 +1316,13 @@ module ActiveRecord
       #   the appropriate join model records when they are saved. (See the 'Association Join Models'
       #   section above.)
       # [:source]
-      #   Specifies the source association name used by <tt>has_many :through</tt> queries.
+      #   Specifies the source association name used by #has_many <tt>:through</tt> queries.
       #   Only use it if the name cannot be inferred from the association.
       #   <tt>has_many :subscribers, through: :subscriptions</tt> will look for either <tt>:subscribers</tt> or
       #   <tt>:subscriber</tt> on Subscription, unless a <tt>:source</tt> is given.
       # [:source_type]
-      #   Specifies type of the source association used by <tt>has_many :through</tt> queries where the source
-      #   association is a polymorphic +belongs_to+.
+      #   Specifies type of the source association used by #has_many <tt>:through</tt> queries where the source
+      #   association is a polymorphic #belongs_to.
       # [:validate]
       #   If +false+, don't validate the associated objects when saving the parent object. true by default.
       # [:autosave]
@@ -1331,10 +1332,11 @@ module ActiveRecord
       #   +before_save+ callback. Because callbacks are run in the order they are defined, associated objects
       #   may need to be explicitly saved in any user-defined +before_save+ callbacks.
       #
-      #   Note that <tt>accepts_nested_attributes_for</tt> sets <tt>:autosave</tt> to <tt>true</tt>.
+      #   Note that NestedAttributes::ClassMethods#accepts_nested_attributes_for sets
+      #   <tt>:autosave</tt> to <tt>true</tt>.
       # [:inverse_of]
-      #   Specifies the name of the <tt>belongs_to</tt> association on the associated object
-      #   that is the inverse of this <tt>has_many</tt> association. Does not work in combination
+      #   Specifies the name of the #belongs_to association on the associated object
+      #   that is the inverse of this #has_many association. Does not work in combination
       #   with <tt>:through</tt> or <tt>:as</tt> options.
       #   See ActiveRecord::Associations::ClassMethods's overview on Bi-directional associations for more detail.
       # [:extend]
@@ -1358,8 +1360,8 @@ module ActiveRecord
 
       # Specifies a one-to-one association with another class. This method should only be used
       # if the other class contains the foreign key. If the current class contains the foreign key,
-      # then you should use +belongs_to+ instead. See also ActiveRecord::Associations::ClassMethods's overview
-      # on when to use +has_one+ and when to use +belongs_to+.
+      # then you should use #belongs_to instead. See also ActiveRecord::Associations::ClassMethods's overview
+      # on when to use #has_one and when to use #belongs_to.
       #
       # The following methods for retrieval and query of a single associated object will be added:
       #
@@ -1381,7 +1383,7 @@ module ActiveRecord
       #   with +attributes+, linked to this object through a foreign key, and that
       #   has already been saved (if it passed the validation).
       # [create_association!(attributes = {})]
-      #   Does the same as <tt>create_association</tt>, but raises <tt>ActiveRecord::RecordInvalid</tt>
+      #   Does the same as <tt>create_association</tt>, but raises ActiveRecord::RecordInvalid
       #   if the record is invalid.
       #
       # === Example
@@ -1426,7 +1428,7 @@ module ActiveRecord
       #   Note that <tt>:dependent</tt> option is ignored when using <tt>:through</tt> option.
       # [:foreign_key]
       #   Specify the foreign key used for the association. By default this is guessed to be the name
-      #   of this class in lower-case and "_id" suffixed. So a Person class that makes a +has_one+ association
+      #   of this class in lower-case and "_id" suffixed. So a Person class that makes a #has_one association
       #   will use "person_id" as the default <tt>:foreign_key</tt>.
       # [:foreign_type]
       #   Specify the column used to store the associated object's type, if this is a polymorphic
@@ -1437,20 +1439,20 @@ module ActiveRecord
       # [:primary_key]
       #   Specify the method that returns the primary key used for the association. By default this is +id+.
       # [:as]
-      #   Specifies a polymorphic interface (See <tt>belongs_to</tt>).
+      #   Specifies a polymorphic interface (See #belongs_to).
       # [:through]
       #   Specifies a Join Model through which to perform the query. Options for <tt>:class_name</tt>,
       #   <tt>:primary_key</tt>, and <tt>:foreign_key</tt> are ignored, as the association uses the
-      #   source reflection. You can only use a <tt>:through</tt> query through a <tt>has_one</tt>
-      #   or <tt>belongs_to</tt> association on the join model.
+      #   source reflection. You can only use a <tt>:through</tt> query through a #has_one
+      #   or #belongs_to association on the join model.
       # [:source]
-      #   Specifies the source association name used by <tt>has_one :through</tt> queries.
+      #   Specifies the source association name used by #has_one <tt>:through</tt> queries.
       #   Only use it if the name cannot be inferred from the association.
       #   <tt>has_one :favorite, through: :favorites</tt> will look for a
       #   <tt>:favorite</tt> on Favorite, unless a <tt>:source</tt> is given.
       # [:source_type]
-      #   Specifies type of the source association used by <tt>has_one :through</tt> queries where the source
-      #   association is a polymorphic +belongs_to+.
+      #   Specifies type of the source association used by #has_one <tt>:through</tt> queries where the source
+      #   association is a polymorphic #belongs_to.
       # [:validate]
       #   If +false+, don't validate the associated object when saving the parent object. +false+ by default.
       # [:autosave]
@@ -1458,10 +1460,11 @@ module ActiveRecord
       #   when saving the parent object. If false, never save or destroy the associated object.
       #   By default, only save the associated object if it's a new record.
       #
-      #   Note that <tt>accepts_nested_attributes_for</tt> sets <tt>:autosave</tt> to <tt>true</tt>.
+      #   Note that NestedAttributes::ClassMethods#accepts_nested_attributes_for sets
+      #   <tt>:autosave</tt> to <tt>true</tt>.
       # [:inverse_of]
-      #   Specifies the name of the <tt>belongs_to</tt> association on the associated object
-      #   that is the inverse of this <tt>has_one</tt> association. Does not work in combination
+      #   Specifies the name of the #belongs_to association on the associated object
+      #   that is the inverse of this #has_one association. Does not work in combination
       #   with <tt>:through</tt> or <tt>:as</tt> options.
       #   See ActiveRecord::Associations::ClassMethods's overview on Bi-directional associations for more detail.
       # [:required]
@@ -1487,8 +1490,8 @@ module ActiveRecord
 
       # Specifies a one-to-one association with another class. This method should only be used
       # if this class contains the foreign key. If the other class contains the foreign key,
-      # then you should use +has_one+ instead. See also ActiveRecord::Associations::ClassMethods's overview
-      # on when to use +has_one+ and when to use +belongs_to+.
+      # then you should use #has_one instead. See also ActiveRecord::Associations::ClassMethods's overview
+      # on when to use #has_one and when to use #belongs_to.
       #
       # Methods will be added for retrieval and query for a single associated object, for which
       # this object holds an id:
@@ -1508,7 +1511,7 @@ module ActiveRecord
       #   with +attributes+, linked to this object through a foreign key, and that
       #   has already been saved (if it passed the validation).
       # [create_association!(attributes = {})]
-      #   Does the same as <tt>create_association</tt>, but raises <tt>ActiveRecord::RecordInvalid</tt>
+      #   Does the same as <tt>create_association</tt>, but raises ActiveRecord::RecordInvalid
       #   if the record is invalid.
       #
       # === Example
@@ -1555,12 +1558,12 @@ module ActiveRecord
       # [:dependent]
       #   If set to <tt>:destroy</tt>, the associated object is destroyed when this object is. If set to
       #   <tt>:delete</tt>, the associated object is deleted *without* calling its destroy method.
-      #   This option should not be specified when <tt>belongs_to</tt> is used in conjunction with
-      #   a <tt>has_many</tt> relationship on another class because of the potential to leave
+      #   This option should not be specified when #belongs_to is used in conjunction with
+      #   a #has_many relationship on another class because of the potential to leave
       #   orphaned records behind.
       # [:counter_cache]
-      #   Caches the number of belonging objects on the associate class through the use of +increment_counter+
-      #   and +decrement_counter+. The counter cache is incremented when an object of this
+      #   Caches the number of belonging objects on the associate class through the use of CounterCache::ClassMethods#increment_counter
+      #   and CounterCache::ClassMethods#decrement_counter. The counter cache is incremented when an object of this
       #   class is created and decremented when it's destroyed. This requires that a column
       #   named <tt>#{table_name}_count</tt> (such as +comments_count+ for a belonging Comment class)
       #   is used on the associate class (such as a Post class) - that is the migration for
@@ -1582,14 +1585,15 @@ module ActiveRecord
       #   If false, never save or destroy the associated object.
       #   By default, only save the associated object if it's a new record.
       #
-      #   Note that <tt>accepts_nested_attributes_for</tt> sets <tt>:autosave</tt> to <tt>true</tt>.
+      #   Note that NestedAttributes::ClassMethods#accepts_nested_attributes_for
+      #   sets <tt>:autosave</tt> to <tt>true</tt>.
       # [:touch]
       #   If true, the associated object will be touched (the updated_at/on attributes set to current time)
       #   when this record is either saved or destroyed. If you specify a symbol, that attribute
       #   will be updated with the current time in addition to the updated_at/on attribute.
       # [:inverse_of]
-      #   Specifies the name of the <tt>has_one</tt> or <tt>has_many</tt> association on the associated
-      #   object that is the inverse of this <tt>belongs_to</tt> association. Does not work in
+      #   Specifies the name of the #has_one or #has_many association on the associated
+      #   object that is the inverse of this #belongs_to association. Does not work in
       #   combination with the <tt>:polymorphic</tt> options.
       #   See ActiveRecord::Associations::ClassMethods's overview on Bi-directional associations for more detail.
       # [:optional]
@@ -1679,10 +1683,10 @@ module ActiveRecord
       # [collection.find(id)]
       #   Finds an associated object responding to the +id+ and that
       #   meets the condition that it has to be associated with this object.
-      #   Uses the same rules as <tt>ActiveRecord::Base.find</tt>.
+      #   Uses the same rules as ActiveRecord::FinderMethods#find.
       # [collection.exists?(...)]
       #   Checks whether an associated object with the given conditions exists.
-      #   Uses the same rules as <tt>ActiveRecord::Base.exists?</tt>.
+      #   Uses the same rules as ActiveRecord::FinderMethods#exists?.
       # [collection.build(attributes = {})]
       #   Returns a new object of the collection type that has been instantiated
       #   with +attributes+ and linked to this object through the join table, but has not yet been saved.
@@ -1746,16 +1750,16 @@ module ActiveRecord
       # [:join_table]
       #   Specify the name of the join table if the default based on lexical order isn't what you want.
       #   <b>WARNING:</b> If you're overwriting the table name of either class, the +table_name+ method
-      #   MUST be declared underneath any +has_and_belongs_to_many+ declaration in order to work.
+      #   MUST be declared underneath any #has_and_belongs_to_many declaration in order to work.
       # [:foreign_key]
       #   Specify the foreign key used for the association. By default this is guessed to be the name
       #   of this class in lower-case and "_id" suffixed. So a Person class that makes
-      #   a +has_and_belongs_to_many+ association to Project will use "person_id" as the
+      #   a #has_and_belongs_to_many association to Project will use "person_id" as the
       #   default <tt>:foreign_key</tt>.
       # [:association_foreign_key]
       #   Specify the foreign key used for the association on the receiving side of the association.
       #   By default this is guessed to be the name of the associated class in lower-case and "_id" suffixed.
-      #   So if a Person class makes a +has_and_belongs_to_many+ association to Project,
+      #   So if a Person class makes a #has_and_belongs_to_many association to Project,
       #   the association will use "project_id" as the default <tt>:association_foreign_key</tt>.
       # [:readonly]
       #   If true, all the associated objects are readonly through the association.
@@ -1767,7 +1771,8 @@ module ActiveRecord
       #   If false, never save or destroy the associated objects.
       #   By default, only save associated objects that are new records.
       #
-      #   Note that <tt>accepts_nested_attributes_for</tt> sets <tt>:autosave</tt> to <tt>true</tt>.
+      #   Note that NestedAttributes::ClassMethods#accepts_nested_attributes_for sets
+      #   <tt>:autosave</tt> to <tt>true</tt>.
       #
       # Option examples:
       #   has_and_belongs_to_many :projects

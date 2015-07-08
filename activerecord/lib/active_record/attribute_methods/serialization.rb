@@ -9,7 +9,7 @@ module ActiveRecord
         # attribute using this method and it will be handled automatically. The
         # serialization is done through YAML. If +class_name+ is specified, the
         # serialized object must be of that class on assignment and retrieval.
-        # Otherwise <tt>SerializationTypeMismatch</tt> will be raised.
+        # Otherwise SerializationTypeMismatch will be raised.
         #
         # Empty objects as <tt>{}</tt>, in the case of +Hash+, or <tt>[]</tt>, in the case of
         # +Array+, will always be persisted as null.
@@ -17,7 +17,7 @@ module ActiveRecord
         # Keep in mind that database adapters handle certain serialization tasks
         # for you. For instance: +json+ and +jsonb+ types in PostgreSQL will be
         # converted between JSON object/array syntax and Ruby +Hash+ or +Array+
-        # objects transparently. There is no need to use +serialize+ in this
+        # objects transparently. There is no need to use #serialize in this
         # case.
         #
         # For more complex cases, such as conversion to or from your application

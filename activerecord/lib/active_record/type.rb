@@ -22,8 +22,8 @@ module ActiveRecord
       delegate :add_modifier, to: :registry
 
       # Add a new type to the registry, allowing it to be referenced as a
-      # symbol by ActiveRecord::Attributes::ClassMethods#attribute.  If your
-      # type is only meant to be used with a specific database adapter, you can
+      # symbol by {ActiveRecord::Base.attribute}[rdoc-ref:Attributes::ClassMethods#attribute].
+      # If your type is only meant to be used with a specific database adapter, you can
       # do so by passing <tt>adapter: :postgresql</tt>. If your type has the same
       # name as a native type for the current adapter, an exception will be
       # raised unless you specify an +:override+ option. <tt>override: true</tt> will

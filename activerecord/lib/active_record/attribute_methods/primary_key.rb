@@ -5,7 +5,7 @@ module ActiveRecord
     module PrimaryKey
       extend ActiveSupport::Concern
 
-      # Returns this record's primary key value wrapped in an Array if one is
+      # Returns this record's primary key value wrapped in an array if one is
       # available.
       def to_key
         sync_with_transaction_state
@@ -108,7 +108,7 @@ module ActiveRecord
         #     self.primary_key = 'sysid'
         #   end
         #
-        # You can also define the +primary_key+ method yourself:
+        # You can also define the #primary_key method yourself:
         #
         #   class Project < ActiveRecord::Base
         #     def self.primary_key

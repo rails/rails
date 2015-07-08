@@ -125,7 +125,7 @@ module ActiveRecord
         PostgreSQL::SchemaCreation.new self
       end
 
-      # Returns +true+, since this connection adapter supports prepared statement
+      # Returns true, since this connection adapter supports prepared statement
       # caching.
       def supports_statement_cache?
         true

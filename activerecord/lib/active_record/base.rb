@@ -170,7 +170,7 @@ module ActiveRecord #:nodoc:
   # <tt>Person.find_by_user_name(user_name)</tt>.
   #
   # It's possible to add an exclamation point (!) on the end of the dynamic finders to get them to raise an
-  # <tt>ActiveRecord::RecordNotFound</tt> error if they do not return any records,
+  # ActiveRecord::RecordNotFound error if they do not return any records,
   # like <tt>Person.find_by_last_name!</tt>.
   #
   # It's also possible to use multiple attributes in the same find by separating them with "_and_".
@@ -185,7 +185,8 @@ module ActiveRecord #:nodoc:
   # == Saving arrays, hashes, and other non-mappable objects in text columns
   #
   # Active Record can serialize any object in text columns using YAML. To do so, you must
-  # specify this with a call to the class method +serialize+.
+  # specify this with a call to the class method
+  # {serialize}[rdoc-ref:AttributeMethods::Serialization::ClassMethods#serialize].
   # This makes it possible to store arrays, hashes, and other non-mappable objects without doing
   # any additional work.
   #
@@ -225,39 +226,47 @@ module ActiveRecord #:nodoc:
   #
   # == Connection to multiple databases in different models
   #
-  # Connections are usually created through ActiveRecord::Base.establish_connection and retrieved
+  # Connections are usually created through
+  # {ActiveRecord::Base.establish_connection}[rdoc-ref:ConnectionHandling#establish_connection] and retrieved
   # by ActiveRecord::Base.connection. All classes inheriting from ActiveRecord::Base will use this
   # connection. But you can also set a class-specific connection. For example, if Course is an
   # ActiveRecord::Base, but resides in a different database, you can just say <tt>Course.establish_connection</tt>
   # and Course and all of its subclasses will use this connection instead.
   #
   # This feature is implemented by keeping a connection pool in ActiveRecord::Base that is
-  # a Hash indexed by the class. If a connection is requested, the retrieve_connection method
+  # a hash indexed by the class. If a connection is requested, the
+  # {ActiveRecord::Base.retrieve_connection}[rdoc-ref:ConnectionHandling#retrieve_connection] method
   # will go up the class-hierarchy until a connection is found in the connection pool.
   #
   # == Exceptions
   #
   # * ActiveRecordError - Generic error class and superclass of all other errors raised by Active Record.
-  # * AdapterNotSpecified - The configuration hash used in <tt>establish_connection</tt> didn't include an
-  #   <tt>:adapter</tt> key.
-  # * AdapterNotFound - The <tt>:adapter</tt> key used in <tt>establish_connection</tt> specified a
-  #   non-existent adapter
+  # * AdapterNotSpecified - The configuration hash used in
+  #   {ActiveRecord::Base.establish_connection}[rdoc-ref:ConnectionHandling#establish_connection]
+  #   didn't include an <tt>:adapter</tt> key.
+  # * AdapterNotFound - The <tt>:adapter</tt> key used in
+  #   {ActiveRecord::Base.establish_connection}[rdoc-ref:ConnectionHandling#establish_connection]
+  #   specified a non-existent adapter
   #   (or a bad spelling of an existing one).
   # * AssociationTypeMismatch - The object assigned to the association wasn't of the type
   #   specified in the association definition.
   # * AttributeAssignmentError - An error occurred while doing a mass assignment through the
-  #   <tt>attributes=</tt> method.
+  #   {ActiveRecord::Base#attributes=}[rdoc-ref:AttributeAssignment#attributes=] method.
   #   You can inspect the +attribute+ property of the exception object to determine which attribute
   #   triggered the error.
-  # * ConnectionNotEstablished - No connection has been established. Use <tt>establish_connection</tt>
-  #   before querying.
+  # * ConnectionNotEstablished - No connection has been established.
+  #   Use {ActiveRecord::Base.establish_connection}[rdoc-ref:ConnectionHandling#establish_connection] before querying.
   # * MultiparameterAssignmentErrors - Collection of errors that occurred during a mass assignment using the
-  #   <tt>attributes=</tt> method. The +errors+ property of this exception contains an array of
+  #   {ActiveRecord::Base#attributes=}[rdoc-ref:AttributeAssignment#attributes=] method.
+  #   The +errors+ property of this exception contains an array of
   #   AttributeAssignmentError
   #   objects that should be inspected to determine which attributes triggered the errors.
-  # * RecordInvalid - raised by <tt>save!</tt> and <tt>create!</tt> when the record is invalid.
-  # * RecordNotFound - No record responded to the +find+ method. Either the row with the given ID doesn't exist
-  #   or the row didn't meet the additional restrictions. Some +find+ calls do not raise this exception to signal
+  # * RecordInvalid - raised by {ActiveRecord::Base#save}[rdoc-ref:Persistence#save] and
+  #   {ActiveRecord::Base.create!}[rdoc-ref:Persistence::ClassMethods#create!]
+  #   when the record is invalid.
+  # * RecordNotFound - No record responded to the {ActiveRecord::Base.find}[rdoc-ref:FinderMethods#find] method.
+  #   Either the row with the given ID doesn't exist or the row didn't meet the additional restrictions.
+  #   Some {ActiveRecord::Base.find}[rdoc-ref:FinderMethods#find] calls do not raise this exception to signal
   #   nothing was found, please check its documentation for further details.
   # * SerializationTypeMismatch - The serialized object wasn't of the class specified as the second parameter.
   # * StatementInvalid - The database server rejected the SQL statement. The precise error is added in the message.

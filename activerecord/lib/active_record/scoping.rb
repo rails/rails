@@ -59,8 +59,8 @@ module ActiveRecord
     #
     #   registry.value_for(:current_scope, "Board")
     #
-    # You will obtain whatever was defined in +some_new_scope+. The +value_for+
-    # and +set_value_for+ methods are delegated to the current +ScopeRegistry+
+    # You will obtain whatever was defined in +some_new_scope+. The #value_for
+    # and #set_value_for methods are delegated to the current ScopeRegistry
     # object, so the above example code can also be called as:
     #
     #   ActiveRecord::Scoping::ScopeRegistry.set_value_for(:current_scope,

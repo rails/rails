@@ -1,10 +1,10 @@
 module ActiveRecord
   # = Active Record Autosave Association
   #
-  # +AutosaveAssociation+ is a module that takes care of automatically saving
+  # AutosaveAssociation is a module that takes care of automatically saving
   # associated records when their parent is saved. In addition to saving, it
   # also destroys any associated records that were marked for destruction.
-  # (See +mark_for_destruction+ and <tt>marked_for_destruction?</tt>).
+  # (See #mark_for_destruction and #marked_for_destruction?).
   #
   # Saving of the parent, its associations, and the destruction of marked
   # associations, all happen inside a transaction. This should never leave the
@@ -125,7 +125,6 @@ module ActiveRecord
   # Now it _is_ removed from the database:
   #
   #   Comment.find_by(id: id).nil? # => true
-
   module AutosaveAssociation
     extend ActiveSupport::Concern
 
@@ -353,7 +352,7 @@ module ActiveRecord
       # <tt>:autosave</tt> is enabled on the association.
       #
       # In addition, it destroys all children that were marked for destruction
-      # with mark_for_destruction.
+      # with #mark_for_destruction.
       #
       # This all happens inside a transaction, _if_ the Transactions module is included into
       # ActiveRecord::Base after the AutosaveAssociation module, which it does by default.
@@ -396,7 +395,7 @@ module ActiveRecord
       # on the association.
       #
       # In addition, it will destroy the association if it was marked for
-      # destruction with mark_for_destruction.
+      # destruction with #mark_for_destruction.
       #
       # This all happens inside a transaction, _if_ the Transactions module is included into
       # ActiveRecord::Base after the AutosaveAssociation module, which it does by default.

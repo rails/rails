@@ -10,8 +10,9 @@ module ActiveRecord
   end
 
   # Raised when a pool was unable to get ahold of all its connections
-  # to perform a "group" action such as +ConnectionPool#disconnect!+
-  # or +ConnectionPool#clear_reloadable_connections!+.
+  # to perform a "group" action such as
+  # {ActiveRecord::Base.connection_pool.disconnect!}[rdoc-ref:ConnectionAdapters::ConnectionPool#disconnect!]
+  # or {ActiveRecord::Base.clear_reloadable_connections!}[rdoc-ref:ConnectionAdapters::ConnectionHandler#clear_reloadable_connections!].
   class ExclusiveConnectionTimeoutError < ConnectionTimeoutError
   end
 
@@ -37,17 +38,18 @@ module ActiveRecord
     # Connections can be obtained and used from a connection pool in several
     # ways:
     #
-    # 1. Simply use ActiveRecord::Base.connection as with Active Record 2.1 and
+    # 1. Simply use {ActiveRecord::Base.connection}[rdoc-ref:ConnectionHandling.connection]
+    #    as with Active Record 2.1 and
     #    earlier (pre-connection-pooling). Eventually, when you're done with
     #    the connection(s) and wish it to be returned to the pool, you call
-    #    ActiveRecord::Base.clear_active_connections!. This will be the
-    #    default behavior for Active Record when used in conjunction with
+    #    {ActiveRecord::Base.clear_active_connections!}[rdoc-ref:ConnectionAdapters::ConnectionHandler#clear_active_connections!].
+    #    This will be the default behavior for Active Record when used in conjunction with
     #    Action Pack's request handling cycle.
     # 2. Manually check out a connection from the pool with
-    #    ActiveRecord::Base.connection_pool.checkout. You are responsible for
+    #    {ActiveRecord::Base.connection_pool.checkout}[rdoc-ref:#checkout]. You are responsible for
     #    returning this connection to the pool when finished by calling
-    #    ActiveRecord::Base.connection_pool.checkin(connection).
-    # 3. Use ActiveRecord::Base.connection_pool.with_connection(&block), which
+    #    {ActiveRecord::Base.connection_pool.checkin(connection)}[rdoc-ref:#checkin].
+    # 3. Use {ActiveRecord::Base.connection_pool.with_connection(&block)}[rdoc-ref:#with_connection], which
     #    obtains a connection, yields it as the sole argument to the block,
     #    and returns it to the pool after the block completes.
     #
@@ -140,7 +142,7 @@ module ActiveRecord
         # become available.
         #
         # Raises:
-        # - ConnectionTimeoutError if +timeout+ is given and no element
+        # - ActiveRecord::ConnectionTimeoutError if +timeout+ is given and no element
         # becomes available within +timeout+ seconds,
         def poll(timeout = nil)
           synchronize { internal_poll(timeout) }
@@ -406,7 +408,7 @@ module ActiveRecord
       # Disconnects all connections in the pool, and clears the pool.
       #
       # Raises:
-      # - +ExclusiveConnectionTimeoutError+ if unable to gain ownership of all
+      # - ActiveRecord::ExclusiveConnectionTimeoutError if unable to gain ownership of all
       #   connections in the pool within a timeout interval (default duration is
       #   <tt>spec.config[:checkout_timeout] * 2</tt> seconds).
       def disconnect(raise_on_acquisition_timeout = true)
@@ -436,7 +438,7 @@ module ActiveRecord
       # require reloading.
       #
       # Raises:
-      # - +ExclusiveConnectionTimeoutError+ if unable to gain ownership of all
+      # - ActiveRecord::ExclusiveConnectionTimeoutError if unable to gain ownership of all
       #   connections in the pool within a timeout interval (default duration is
       #   <tt>spec.config[:checkout_timeout] * 2</tt> seconds).
       def clear_reloadable_connections(raise_on_acquisition_timeout = true)
@@ -494,7 +496,7 @@ module ActiveRecord
       # Returns: an AbstractAdapter object.
       #
       # Raises:
-      # - ConnectionTimeoutError: no connection can be obtained from the pool.
+      # - ActiveRecord::ConnectionTimeoutError no connection can be obtained from the pool.
       def checkout(checkout_timeout = @checkout_timeout)
         checkout_and_verify(acquire_connection(checkout_timeout))
       end
@@ -503,7 +505,7 @@ module ActiveRecord
       # no longer need this connection.
       #
       # +conn+: an AbstractAdapter object, which was obtained by earlier by
-      # calling +checkout+ on this pool.
+      # calling #checkout on this pool.
       def checkin(conn)
         synchronize do
           remove_connection_from_thread_cache conn
@@ -516,7 +518,7 @@ module ActiveRecord
         end
       end
 
-      # Remove a connection from the connection pool.  The connection will
+      # Remove a connection from the connection pool. The connection will
       # remain open and active but will no longer be managed by this pool.
       def remove(conn)
         needs_new_connection = false
@@ -547,7 +549,7 @@ module ActiveRecord
         bulk_make_new_connections(1) if needs_new_connection
       end
 
-      # Recover lost connections for the pool.  A lost connection can occur if
+      # Recover lost connections for the pool. A lost connection can occur if
       # a programmer forgets to checkin a connection at the end of a thread
       # or a thread dies unexpectedly.
       def reap
@@ -688,7 +690,7 @@ module ActiveRecord
       # queue for a connection to become available.
       #
       # Raises:
-      # - ConnectionTimeoutError if a connection could not be acquired
+      # - ActiveRecord::ConnectionTimeoutError if a connection could not be acquired
       #
       #--
       # Implementation detail: the connection returned by +acquire_connection+
@@ -857,6 +859,8 @@ module ActiveRecord
       end
 
       # Clears the cache which maps classes.
+      #
+      # See ConnectionPool#clear_reloadable_connections! for details.
       def clear_reloadable_connections!
         connection_pool_list.each(&:clear_reloadable_connections!)
       end

@@ -46,13 +46,13 @@ module ActiveRecord
   # Good practice is to let the first declared status be the default.
   #
   # Finally, it's also possible to explicitly map the relation between attribute and
-  # database integer with a +Hash+:
+  # database integer with a hash:
   #
   #   class Conversation < ActiveRecord::Base
   #     enum status: { active: 0, archived: 1 }
   #   end
   #
-  # Note that when an +Array+ is used, the implicit mapping from the values to database
+  # Note that when an array is used, the implicit mapping from the values to database
   # integers is derived from the order the values appear in the array. In the example,
   # <tt>:active</tt> is mapped to +0+ as it's the first element, and <tt>:archived</tt>
   # is mapped to +1+. In general, the +i+-th element is mapped to <tt>i-1</tt> in the
@@ -60,7 +60,7 @@ module ActiveRecord
   #
   # Therefore, once a value is added to the enum array, its position in the array must
   # be maintained, and new values should only be added to the end of the array. To
-  # remove unused values, the explicit +Hash+ syntax should be used.
+  # remove unused values, the explicit hash syntax should be used.
   #
   # In rare circumstances you might need to access the mapping directly.
   # The mappings are exposed through a class method with the pluralized attribute

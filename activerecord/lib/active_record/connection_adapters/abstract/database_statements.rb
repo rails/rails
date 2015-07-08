@@ -192,7 +192,7 @@ module ActiveRecord
       # * http://www.postgresql.org/docs/current/static/transaction-iso.html
       # * https://dev.mysql.com/doc/refman/5.7/en/set-transaction.html
       #
-      # An <tt>ActiveRecord::TransactionIsolationError</tt> will be raised if:
+      # An ActiveRecord::TransactionIsolationError will be raised if:
       #
       # * The adapter does not support setting the isolation level
       # * You are joining an existing open transaction

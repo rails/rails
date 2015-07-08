@@ -129,7 +129,7 @@ module ActiveRecord
       # Creates a new table with the name +table_name+. +table_name+ may either
       # be a String or a Symbol.
       #
-      # There are two ways to work with +create_table+. You can use the block
+      # There are two ways to work with #create_table. You can use the block
       # form or the regular form, like this:
       #
       # === Block form
@@ -161,7 +161,7 @@ module ActiveRecord
       # The +options+ hash can include the following keys:
       # [<tt>:id</tt>]
       #   Whether to automatically add a primary key column. Defaults to true.
-      #   Join tables for +has_and_belongs_to_many+ should set it to false.
+      #   Join tables for {ActiveRecord::Base.has_and_belongs_to_many}[rdoc-ref:Associations::ClassMethods#has_and_belongs_to_many] should set it to false.
       #
       #   A Symbol can be used to specify the type of the generated primary key column.
       # [<tt>:primary_key</tt>]
@@ -169,7 +169,8 @@ module ActiveRecord
       #   Defaults to +id+. If <tt>:id</tt> is false this option is ignored.
       #
       #   Note that Active Record models will automatically detect their
-      #   primary key. This can be avoided by using +self.primary_key=+ on the model
+      #   primary key. This can be avoided by using
+      #   {self.primary_key=}[rdoc-ref:AttributeMethods::PrimaryKey::ClassMethods#primary_key=] on the model
       #   to define the key explicitly.
       #
       # [<tt>:options</tt>]
@@ -296,7 +297,7 @@ module ActiveRecord
       #   Set to true to drop the table before creating it.
       #   Defaults to false.
       #
-      # Note that +create_join_table+ does not create any indices by default; you can use
+      # Note that #create_join_table does not create any indices by default; you can use
       # its block form to do so yourself:
       #
       #   create_join_table :products, :categories do |t|
@@ -331,11 +332,11 @@ module ActiveRecord
       end
 
       # Drops the join table specified by the given arguments.
-      # See +create_join_table+ for details.
+      # See #create_join_table for details.
       #
       # Although this command ignores the block if one is given, it can be helpful
       # to provide one in a migration's +change+ method so it can be reverted.
-      # In that case, the block will be used by create_join_table.
+      # In that case, the block will be used by #create_join_table.
       def drop_join_table(table_1, table_2, options = {})
         join_table_name = find_join_table_name(table_1, table_2, options)
         drop_table(join_table_name)
@@ -440,7 +441,7 @@ module ActiveRecord
       #
       # Although this command ignores most +options+ and the block if one is given,
       # it can be helpful to provide these in a migration's +change+ method so it can be reverted.
-      # In that case, +options+ and the block will be used by create_table.
+      # In that case, +options+ and the block will be used by #create_table.
       def drop_table(table_name, options = {})
         execute "DROP TABLE#{' IF EXISTS' if options[:if_exists]} #{quote_table_name(table_name)}"
       end
@@ -694,7 +695,7 @@ module ActiveRecord
       # Adds a reference. The reference column is an integer by default,
       # the <tt>:type</tt> option can be used to specify a different type.
       # Optionally adds a +_type+ column, if <tt>:polymorphic</tt> option is provided.
-      # <tt>add_reference</tt> and <tt>add_belongs_to</tt> are acceptable.
+      # #add_reference and #add_belongs_to are acceptable.
       #
       # The +options+ hash can include the following keys:
       # [<tt>:type</tt>]
@@ -734,7 +735,7 @@ module ActiveRecord
       alias :add_belongs_to :add_reference
 
       # Removes the reference(s). Also removes a +type+ column if one exists.
-      # <tt>remove_reference</tt> and <tt>remove_belongs_to</tt> are acceptable.
+      # #remove_reference and #remove_belongs_to are acceptable.
       #
       # ====== Remove the reference
       #
@@ -760,7 +761,7 @@ module ActiveRecord
       alias :remove_belongs_to :remove_reference
 
       # Returns an array of foreign keys for the given table.
-      # The foreign keys are represented as +ForeignKeyDefinition+ objects.
+      # The foreign keys are represented as ForeignKeyDefinition objects.
       def foreign_keys(table_name)
         raise NotImplementedError, "foreign_keys is not implemented"
       end

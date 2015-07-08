@@ -1,6 +1,6 @@
 module ActiveRecord
-  # = Active Record Aggregations
-  module Aggregations # :nodoc:
+  # See ActiveRecord::Aggregations::ClassMethods for documentation
+  module Aggregations
     extend ActiveSupport::Concern
 
     def initialize_dup(*) # :nodoc:
@@ -24,7 +24,7 @@ module ActiveRecord
         super
       end
 
-    # Active Record implements aggregation through a macro-like class method called +composed_of+
+    # Active Record implements aggregation through a macro-like class method called #composed_of
     # for representing attributes as value objects. It expresses relationships like "Account [is]
     # composed of Money [among other things]" or "Person [is] composed of [an] address". Each call
     # to the macro adds a description of how the value objects are created from the attributes of
@@ -120,12 +120,12 @@ module ActiveRecord
     #
     # It's also important to treat the value objects as immutable. Don't allow the Money object to have
     # its amount changed after creation. Create a new Money object with the new value instead. The
-    # Money#exchange_to method is an example of this. It returns a new value object instead of changing
+    # <tt>Money#exchange_to</tt> method is an example of this. It returns a new value object instead of changing
     # its own values. Active Record won't persist value objects that have been changed through means
     # other than the writer method.
     #
     # The immutable requirement is enforced by Active Record by freezing any object assigned as a value
-    # object. Attempting to change it afterwards will result in a RuntimeError.
+    # object. Attempting to change it afterwards will result in a +RuntimeError+.
     #
     # Read more about value objects on http://c2.com/cgi/wiki?ValueObject and on the dangers of not
     # keeping value objects immutable on http://c2.com/cgi/wiki?ValueObjectsShouldBeImmutable
@@ -134,17 +134,17 @@ module ActiveRecord
     #
     # By default value objects are initialized by calling the <tt>new</tt> constructor of the value
     # class passing each of the mapped attributes, in the order specified by the <tt>:mapping</tt>
-    # option, as arguments. If the value class doesn't support this convention then +composed_of+ allows
+    # option, as arguments. If the value class doesn't support this convention then #composed_of allows
     # a custom constructor to be specified.
     #
     # When a new value is assigned to the value object, the default assumption is that the new value
     # is an instance of the value class. Specifying a custom converter allows the new value to be automatically
     # converted to an instance of value class if necessary.
     #
-    # For example, the NetworkResource model has +network_address+ and +cidr_range+ attributes that should be
-    # aggregated using the NetAddr::CIDR value class (http://www.rubydoc.info/gems/netaddr/1.5.0/NetAddr/CIDR).
+    # For example, the +NetworkResource+ model has +network_address+ and +cidr_range+ attributes that should be
+    # aggregated using the +NetAddr::CIDR+ value class (http://www.rubydoc.info/gems/netaddr/1.5.0/NetAddr/CIDR).
     # The constructor for the value class is called +create+ and it expects a CIDR address string as a parameter.
-    # New values can be assigned to the value object using either another NetAddr::CIDR object, a string
+    # New values can be assigned to the value object using either another +NetAddr::CIDR+ object, a string
     # or an array. The <tt>:constructor</tt> and <tt>:converter</tt> options can be used to meet
     # these requirements:
     #
@@ -173,7 +173,7 @@ module ActiveRecord
     #
     # == Finding records by a value object
     #
-    # Once a +composed_of+ relationship is specified for a model, records can be loaded from the database
+    # Once a #composed_of relationship is specified for a model, records can be loaded from the database
     # by specifying an instance of the value object in the conditions hash. The following example
     # finds all customers with +balance_amount+ equal to 20 and +balance_currency+ equal to "USD":
     #
@@ -186,7 +186,7 @@ module ActiveRecord
       # Options are:
       # * <tt>:class_name</tt> - Specifies the class name of the association. Use it only if that name
       #   can't be inferred from the part id. So <tt>composed_of :address</tt> will by default be linked
-      #   to the Address class, but if the real class name is CompanyAddress, you'll have to specify it
+      #   to the Address class, but if the real class name is +CompanyAddress+, you'll have to specify it
       #   with this option.
       # * <tt>:mapping</tt> - Specifies the mapping of entity attributes to attributes of the value
       #   object. Each mapping is represented as an array where the first item is the name of the

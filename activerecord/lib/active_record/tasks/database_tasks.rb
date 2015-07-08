@@ -5,7 +5,7 @@ module ActiveRecord
     class DatabaseAlreadyExists < StandardError; end # :nodoc:
     class DatabaseNotSupported < StandardError; end # :nodoc:
 
-    # <tt>ActiveRecord::Tasks::DatabaseTasks</tt> is a utility class, which encapsulates
+    # ActiveRecord::Tasks::DatabaseTasks is a utility class, which encapsulates
     # logic behind common tasks used to manage database and migrations.
     #
     # The tasks defined here are used with Rake tasks provided by Active Record.
@@ -26,7 +26,7 @@ module ActiveRecord
     # * +seed_loader+: an object which will load seeds, it needs to respond to the +load_seed+ method.
     # * +root+: a path to the root of the application.
     #
-    # Example usage of +DatabaseTasks+ outside Rails could look as such:
+    # Example usage of DatabaseTasks outside Rails could look as such:
     #
     #   include ActiveRecord::Tasks
     #   DatabaseTasks.database_configuration = YAML.load_file('my_database_config.yml')

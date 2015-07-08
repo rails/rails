@@ -1,7 +1,7 @@
 require "arel/collectors/bind"
 
 module ActiveRecord
-  # = Active Record Relation
+  # = Active Record \Relation
   class Relation
     MULTI_VALUE_METHODS  = [:includes, :eager_load, :preload, :select, :group,
                             :order, :joins, :references,
@@ -108,7 +108,7 @@ module ActiveRecord
     # Initializes new record from relation while maintaining the current
     # scope.
     #
-    # Expects arguments in the same format as +Base.new+.
+    # Expects arguments in the same format as {ActiveRecord::Base.new}[rdoc-ref:Core.new].
     #
     #   users = User.where(name: 'DHH')
     #   user = users.new # => #<User id: nil, name: "DHH", created_at: nil, updated_at: nil>
@@ -126,28 +126,32 @@ module ActiveRecord
     # Tries to create a new record with the same scoped attributes
     # defined in the relation. Returns the initialized object if validation fails.
     #
-    # Expects arguments in the same format as +Base.create+.
+    # Expects arguments in the same format as
+    # {ActiveRecord::Base.create}[rdoc-ref:Persistence::ClassMethods#create].
     #
     # ==== Examples
+    #
     #   users = User.where(name: 'Oscar')
-    #   users.create # #<User id: 3, name: "oscar", ...>
+    #   users.create # => #<User id: 3, name: "oscar", ...>
     #
     #   users.create(name: 'fxn')
-    #   users.create # #<User id: 4, name: "fxn", ...>
+    #   users.create # => #<User id: 4, name: "fxn", ...>
     #
     #   users.create { |user| user.name = 'tenderlove' }
-    #   # #<User id: 5, name: "tenderlove", ...>
+    #   # => #<User id: 5, name: "tenderlove", ...>
     #
     #   users.create(name: nil) # validation on name
-    #   # #<User id: nil, name: nil, ...>
+    #   # => #<User id: nil, name: nil, ...>
     def create(*args, &block)
       scoping { @klass.create(*args, &block) }
     end
 
-    # Similar to #create, but calls +create!+ on the base class. Raises
-    # an exception if a validation error occurs.
+    # Similar to #create, but calls
+    # {create!}[rdoc-ref:Persistence::ClassMethods#create!]
+    # on the base class. Raises an exception if a validation error occurs.
     #
-    # Expects arguments in the same format as <tt>Base.create!</tt>.
+    # Expects arguments in the same format as
+    # {ActiveRecord::Base.create!}[rdoc-ref:Persistence::ClassMethods#create!].
     def create!(*args, &block)
       scoping { @klass.create!(*args, &block) }
     end
@@ -181,7 +185,7 @@ module ActiveRecord
     #   User.create_with(last_name: 'Johansson').find_or_create_by(first_name: 'Scarlett')
     #   # => #<User id: 2, first_name: "Scarlett", last_name: "Johansson">
     #
-    # This method accepts a block, which is passed down to +create+. The last example
+    # This method accepts a block, which is passed down to #create. The last example
     # above can be alternatively written this way:
     #
     #   # Find the first user named "Scarlett" or create a new one with a
@@ -193,7 +197,7 @@ module ActiveRecord
     #
     # This method always returns a record, but if creation was attempted and
     # failed due to validation errors it won't be persisted, you get what
-    # +create+ returns in such situation.
+    # #create returns in such situation.
     #
     # Please note *this method is not atomic*, it runs first a SELECT, and if
     # there are no results an INSERT is attempted. If there are other threads
@@ -216,13 +220,15 @@ module ActiveRecord
       find_by(attributes) || create(attributes, &block)
     end
 
-    # Like <tt>find_or_create_by</tt>, but calls <tt>create!</tt> so an exception
+    # Like #find_or_create_by, but calls
+    # {create!}[rdoc-ref:Persistence::ClassMethods#create!] so an exception
     # is raised if the created record is invalid.
     def find_or_create_by!(attributes, &block)
       find_by(attributes) || create!(attributes, &block)
     end
 
-    # Like <tt>find_or_create_by</tt>, but calls <tt>new</tt> instead of <tt>create</tt>.
+    # Like #find_or_create_by, but calls {new}[rdoc-ref:Core#new]
+    # instead of {create}[rdoc-ref:Persistence::ClassMethods#create].
     def find_or_initialize_by(attributes, &block)
       find_by(attributes) || new(attributes, &block)
     end
@@ -304,7 +310,7 @@ module ActiveRecord
     # the existing records is updated or deleted, the cache key changes.
     #
     #   Product.where("name like ?", "%Cosmic Encounter%").cache_key
-    #   => "products/query-1850ab3d302391b85b8693e941286659-1-20150714212553907087000"
+    #   # => "products/query-1850ab3d302391b85b8693e941286659-1-20150714212553907087000"
     #
     # If the collection is loaded, the method will iterate through the records
     # to generate the timestamp, otherwise it will trigger one SQL query like:
@@ -341,8 +347,8 @@ module ActiveRecord
 
     # Updates all records in the current relation with details given. This method constructs a single SQL UPDATE
     # statement and sends it straight to the database. It does not instantiate the involved models and it does not
-    # trigger Active Record callbacks or validations. Values passed to `update_all` will not go through
-    # ActiveRecord's type-casting behavior. It should receive only values that can be passed as-is to the SQL
+    # trigger Active Record callbacks or validations. Values passed to #update_all will not go through
+    # Active Record's type-casting behavior. It should receive only values that can be passed as-is to the SQL
     # database.
     #
     # ==== Parameters
@@ -403,7 +409,7 @@ module ActiveRecord
     # Note: Updating a large number of records will run an
     # UPDATE query for each record, which may cause a performance
     # issue. So if it is not needed to run callbacks for each update, it is
-    # preferred to use <tt>update_all</tt> for updating all records using
+    # preferred to use #update_all for updating all records using
     # a single query.
     def update(id = :all, attributes)
       if id.is_a?(Array)
@@ -418,9 +424,9 @@ module ActiveRecord
     end
 
     # Destroys the records by instantiating each
-    # record and calling its +destroy+ method. Each object's callbacks are
-    # executed (including <tt>:dependent</tt> association options). Returns the
-    # collection of objects that were destroyed; each will be frozen, to
+    # record and calling its {#destroy}[rdoc-ref:Persistence#destroy] method.
+    # Each object's callbacks are executed (including <tt>:dependent</tt> association options).
+    # Returns the collection of objects that were destroyed; each will be frozen, to
     # reflect that no changes should be made (since they can't be persisted).
     #
     # Note: Instantiation, callback execution, and deletion of each
@@ -428,7 +434,7 @@ module ActiveRecord
     # once. It generates at least one SQL +DELETE+ query per record (or
     # possibly more, to enforce your callbacks). If you want to delete many
     # rows quickly, without concern for their associations or callbacks, use
-    # +delete_all+ instead.
+    # #delete_all instead.
     #
     # ==== Examples
     #
@@ -447,7 +453,7 @@ module ActiveRecord
 
     # Destroy an object (or multiple objects) that has the given id. The object is instantiated first,
     # therefore all callbacks and filters are fired off before the object is deleted. This method is
-    # less efficient than ActiveRecord#delete but allows cleanup methods and other actions to be run.
+    # less efficient than #delete but allows cleanup methods and other actions to be run.
     #
     # This essentially finds the object (or multiple objects) with the given id, creates a new object
     # from the attributes, and then calls destroy on it.
@@ -473,9 +479,10 @@ module ActiveRecord
     end
 
     # Deletes the records without instantiating the records
-    # first, and hence not calling the +destroy+ method nor invoking callbacks. This
-    # is a single SQL DELETE statement that goes straight to the database, much more
-    # efficient than +destroy_all+. Be careful with relations though, in particular
+    # first, and hence not calling the {#destroy}[rdoc-ref:Persistence#destroy]
+    # method nor invoking callbacks.
+    # This is a single SQL DELETE statement that goes straight to the database, much more
+    # efficient than #destroy_all. Be careful with relations though, in particular
     # <tt>:dependent</tt> rules defined on associations are not honored. Returns the
     # number of rows affected.
     #
@@ -483,9 +490,9 @@ module ActiveRecord
     #
     # Both calls delete the affected posts all at once with a single DELETE statement.
     # If you need to destroy dependent associations or call your <tt>before_*</tt> or
-    # +after_destroy+ callbacks, use the +destroy_all+ method instead.
+    # +after_destroy+ callbacks, use the #destroy_all method instead.
     #
-    # If an invalid method is supplied, +delete_all+ raises an ActiveRecord error:
+    # If an invalid method is supplied, #delete_all raises an ActiveRecordError:
     #
     #   Post.limit(100).delete_all
     #   # => ActiveRecord::ActiveRecordError: delete_all doesn't support limit
@@ -534,7 +541,7 @@ module ActiveRecord
     # You can delete multiple rows at once by passing an Array of <tt>id</tt>s.
     #
     # Note: Although it is often much faster than the alternative,
-    # <tt>#destroy</tt>, skipping callbacks might bypass business logic in
+    # #destroy, skipping callbacks might bypass business logic in
     # your application that ensures referential integrity or performs other
     # essential jobs.
     #
@@ -624,8 +631,10 @@ module ActiveRecord
       includes_values & joins_values
     end
 
-    # +uniq+ and +uniq!+ are silently deprecated. +uniq_value+ delegates to +distinct_value+
-    # to maintain backwards compatibility. Use +distinct_value+ instead.
+    # {#uniq}[rdoc-ref:QueryMethods#uniq] and
+    # {#uniq!}[rdoc-ref:QueryMethods#uniq!] are silently deprecated.
+    # #uniq_value delegates to #distinct_value to maintain backwards compatibility.
+    # Use #distinct_value instead.
     def uniq_value
       distinct_value
     end

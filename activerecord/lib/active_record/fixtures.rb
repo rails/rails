@@ -89,7 +89,7 @@ module ActiveRecord
   #   end
   #
   # In order to use these methods to access fixtured data within your testcases, you must specify one of the
-  # following in your <tt>ActiveSupport::TestCase</tt>-derived class:
+  # following in your ActiveSupport::TestCase-derived class:
   #
   # - to fully enable instantiated fixtures (enable alternate methods #1 and #2 above)
   #     self.use_instantiated_fixtures = true
@@ -124,7 +124,7 @@ module ActiveRecord
   #
   # Helper methods defined in a fixture will not be available in other fixtures, to prevent against
   # unwanted inter-test dependencies. Methods used by multiple fixtures should be defined in a module
-  # that is included in <tt>ActiveRecord::FixtureSet.context_class</tt>.
+  # that is included in ActiveRecord::FixtureSet.context_class.
   #
   # - define a helper method in `test_helper.rb`
   #     module FixtureFileHelpers

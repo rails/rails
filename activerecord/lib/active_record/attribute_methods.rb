@@ -96,7 +96,7 @@ module ActiveRecord
         end
       end
 
-      # Raises an <tt>ActiveRecord::DangerousAttributeError</tt> exception when an
+      # Raises an ActiveRecord::DangerousAttributeError exception when an
       # \Active \Record method is defined in the model, otherwise +false+.
       #
       #   class Person < ActiveRecord::Base
@@ -346,7 +346,7 @@ module ActiveRecord
     #
     # Note: +:id+ is always present.
     #
-    # Alias for the <tt>read_attribute</tt> method.
+    # Alias for the #read_attribute method.
     #
     #   class Person < ActiveRecord::Base
     #     belongs_to :organization
@@ -364,7 +364,7 @@ module ActiveRecord
     end
 
     # Updates the attribute identified by <tt>attr_name</tt> with the specified +value+.
-    # (Alias for the protected <tt>write_attribute</tt> method).
+    # (Alias for the protected #write_attribute method).
     #
     #   class Person < ActiveRecord::Base
     #   end

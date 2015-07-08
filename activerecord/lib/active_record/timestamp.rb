@@ -1,5 +1,5 @@
 module ActiveRecord
-  # = Active Record Timestamp
+  # = Active Record \Timestamp
   #
   # Active Record automatically timestamps create and update operations if the
   # table has fields named <tt>created_at/created_on</tt> or
@@ -17,7 +17,7 @@ module ActiveRecord
   #
   # Active Record keeps all the <tt>datetime</tt> and <tt>time</tt> columns
   # time-zone aware. By default, these values are stored in the database as UTC
-  # and converted back to the current Time.zone when pulled from the database.
+  # and converted back to the current <tt>Time.zone</tt> when pulled from the database.
   #
   # This feature can be turned off completely by setting:
   #

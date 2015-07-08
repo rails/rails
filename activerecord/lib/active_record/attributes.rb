@@ -15,7 +15,7 @@ module ActiveRecord
       # type of existing attributes if needed. This allows control over how
       # values are converted to and from SQL when assigned to a model. It also
       # changes the behavior of values passed to
-      # ActiveRecord::QueryMethods#where. This will let you use
+      # {ActiveRecord::Base.where}[rdoc-ref:QueryMethods#where]. This will let you use
       # your domain objects across much of Active Record, without having to
       # rely on implementation details or monkey patching.
       #
@@ -87,7 +87,7 @@ module ActiveRecord
       #   sleep 1
       #   Product.new.my_default_proc # => 2015-05-30 11:04:49 -0600
       #
-      # Attributes do not need to be backed by a database column.
+      # \Attributes do not need to be backed by a database column.
       #
       #   class MyModel < ActiveRecord::Base
       #     attribute :my_string, :string
@@ -144,9 +144,9 @@ module ActiveRecord
       # to be referenced by a symbol, see ActiveRecord::Type.register. You can
       # also pass a type object directly, in place of a symbol.
       #
-      # ==== Querying
+      # ==== \Querying
       #
-      # When ActiveRecord::QueryMethods#where is called, it will
+      # When {ActiveRecord::Base.where}[rdoc-ref:QueryMethods#where] is called, it will
       # use the type defined by the model class to convert the value to SQL,
       # calling +serialize+ on your type object. For example:
       #

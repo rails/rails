@@ -20,7 +20,7 @@ module ActiveRecord
       # Returns a new relation expressing WHERE + NOT condition according to
       # the conditions in the arguments.
       #
-      # +not+ accepts conditions as a string, array, or hash. See #where for
+      # #not accepts conditions as a string, array, or hash. See QueryMethods#where for
       # more details on each format.
       #
       #    User.where.not("name = 'Jon'")
@@ -112,7 +112,7 @@ module ActiveRecord
     #
     # allows you to access the +address+ attribute of the +User+ model without
     # firing an additional query. This will often result in a
-    # performance improvement over a simple +join+.
+    # performance improvement over a simple join.
     #
     # You can also specify multiple relationships, like this:
     #
@@ -133,7 +133,7 @@ module ActiveRecord
     #
     #   User.includes(:posts).where('posts.name = ?', 'example').references(:posts)
     #
-    # Note that +includes+ works with association names while +references+ needs
+    # Note that #includes works with association names while #references needs
     # the actual table name.
     def includes(*args)
       check_if_method_has_arguments!(:includes, args)
@@ -164,7 +164,7 @@ module ActiveRecord
       self
     end
 
-    # Allows preloading of +args+, in the same way that +includes+ does:
+    # Allows preloading of +args+, in the same way that #includes does:
     #
     #   User.preload(:posts)
     #   # SELECT "posts".* FROM "posts" WHERE "posts"."user_id" IN (1, 2, 3)
@@ -180,7 +180,7 @@ module ActiveRecord
 
     # Use to indicate that the given +table_names+ are referenced by an SQL string,
     # and should therefore be JOINed in any query rather than loaded separately.
-    # This method only works in conjunction with +includes+.
+    # This method only works in conjunction with #includes.
     # See #includes for more details.
     #
     #   User.includes(:posts).where("posts.name = 'foo'")
@@ -203,12 +203,12 @@ module ActiveRecord
 
     # Works in two unique ways.
     #
-    # First: takes a block so it can be used just like Array#select.
+    # First: takes a block so it can be used just like +Array#select+.
     #
     #   Model.all.select { |m| m.field == value }
     #
     # This will build an array of objects from the database for the scope,
-    # converting them into an array and iterating through them using Array#select.
+    # converting them into an array and iterating through them using +Array#select+.
     #
     # Second: Modifies the SELECT statement for the query so that only certain
     # fields are retrieved:
@@ -236,7 +236,7 @@ module ActiveRecord
     #   # => "value"
     #
     # Accessing attributes of an object that do not have fields retrieved by a select
-    # except +id+ will throw <tt>ActiveModel::MissingAttributeError</tt>:
+    # except +id+ will throw ActiveModel::MissingAttributeError:
     #
     #   Model.select(:field).first.other_field
     #   # => ActiveModel::MissingAttributeError: missing attribute: other_field
@@ -357,15 +357,15 @@ module ActiveRecord
     #   User.order('email DESC').select('id').where(name: "John")
     #       .unscope(:order, :select, :where) == User.all
     #
-    # One can additionally pass a hash as an argument to unscope specific :where values.
+    # One can additionally pass a hash as an argument to unscope specific +:where+ values.
     # This is done by passing a hash with a single key-value pair. The key should be
-    # :where and the value should be the where value to unscope. For example:
+    # +:where+ and the value should be the where value to unscope. For example:
     #
     #   User.where(name: "John", active: true).unscope(where: :name)
     #       == User.where(active: true)
     #
-    # This method is similar to <tt>except</tt>, but unlike
-    # <tt>except</tt>, it persists across merges:
+    # This method is similar to #except, but unlike
+    # #except, it persists across merges:
     #
     #   User.order('email').merge(User.except(:order))
     #       == User.order('email')
@@ -471,7 +471,7 @@ module ActiveRecord
     # than the previous methods; you are responsible for ensuring that the values in the template
     # are properly quoted. The values are passed to the connector for quoting, but the caller
     # is responsible for ensuring they are enclosed in quotes in the resulting SQL. After quoting,
-    # the values are inserted using the same escapes as the Ruby core method <tt>Kernel::sprintf</tt>.
+    # the values are inserted using the same escapes as the Ruby core method +Kernel::sprintf+.
     #
     #   User.where(["name = '%s' and email = '%s'", "Joe", "joe@example.com"])
     #   # SELECT * FROM users WHERE name = 'Joe' AND email = 'joe@example.com';
@@ -575,6 +575,8 @@ module ActiveRecord
     #   Post.where(active: true).where(trashed: true).rewhere(trashed: false)
     #   # WHERE `active` = 1 AND `trashed` = 0
     #
+    # This is short-hand for <tt>unscope(where: conditions.keys).where(conditions)</tt>.
+    # Note that unlike reorder, we're only unscoping the named conditions -- not the entire where statement.
     def rewhere(conditions)
       unscope(where: conditions.keys).where(conditions)
     end
@@ -583,8 +585,8 @@ module ActiveRecord
     # argument.
     #
     # The two relations must be structurally compatible: they must be scoping the same model, and
-    # they must differ only by +where+ (if no +group+ has been defined) or +having+ (if a +group+ is
-    # present). Neither relation may have a +limit+, +offset+, or +distinct+ set.
+    # they must differ only by #where (if no #group has been defined) or #having (if a #group is
+    # present). Neither relation may have a #limit, #offset, or #distinct set.
     #
     #    Post.where("id = 1").or(Post.where("id = 2"))
     #    # SELECT `posts`.* FROM `posts`  WHERE (('id = 1' OR 'id = 2'))
@@ -651,7 +653,7 @@ module ActiveRecord
     end
 
     # Specifies locking settings (default to +true+). For more information
-    # on locking, please see +ActiveRecord::Locking+.
+    # on locking, please see ActiveRecord::Locking.
     def lock(locks = true)
       spawn.lock!(locks)
     end
@@ -727,7 +729,7 @@ module ActiveRecord
     #   users = users.create_with(name: 'DHH')
     #   users.new.name # => 'DHH'
     #
-    # You can pass +nil+ to +create_with+ to reset attributes:
+    # You can pass +nil+ to #create_with to reset attributes:
     #
     #   users = users.create_with(nil)
     #   users.new.name # => 'Oscar'

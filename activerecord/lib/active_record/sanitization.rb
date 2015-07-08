@@ -3,7 +3,8 @@ module ActiveRecord
     extend ActiveSupport::Concern
 
     module ClassMethods
-      # Used to sanitize objects before they're used in an SQL SELECT statement. Delegates to <tt>connection.quote</tt>.
+      # Used to sanitize objects before they're used in an SQL SELECT statement.
+      # Delegates to {connection.quote}[rdoc-ref:ConnectionAdapters::Quoting#quote].
       def sanitize(object) # :nodoc:
         connection.quote(object)
       end
@@ -53,8 +54,8 @@ module ActiveRecord
       end
 
       # Accepts a hash of SQL conditions and replaces those attributes
-      # that correspond to a +composed_of+ relationship with their expanded
-      # aggregate attribute values.
+      # that correspond to a {#composed_of}[rdoc-ref:Aggregations::ClassMethods#composed_of]
+      # relationship with their expanded aggregate attribute values.
       #
       # Given:
       #
