@@ -1,4 +1,4 @@
-# Action Cable -- Integrated websockets for Rails
+# Action Cable – Integrated websockets for Rails
 
 Action Cable seamlessly integrates websockets with the rest of your Rails application.
 It allows for real-time features to be written in Ruby in the same style
@@ -36,29 +36,31 @@ reflections of each unit.
 
 ## A full-stack example
 
-The first thing you must do is defined your ApplicationCable::Connection class in Ruby. This
+The first thing you must do is defined your `ApplicationCable::Connection` class in Ruby. This
 is the place where you do authorization of the incoming connection, and proceed to establish it
 if all is well. Here's the simplest example starting with the server-side connection class:
 
-  # app/channels/application_cable/connection.rb
-  module ApplicationCable
-    class Connection < ActionCable::Connection::Base
-      identified_by :current_user
-  
-      def connect
-        self.current_user = find_verified_user
-      end
-  
-      protected
-        def find_verified_user
-          if current_user = User.find cookies.signed[:user_id]
-            current_user
-          else
-            reject_unauthorized_connection
-          end
-        end
+```ruby
+# app/channels/application_cable/connection.rb
+module ApplicationCable
+  class Connection < ActionCable::Connection::Base
+    identified_by :current_user
+
+    def connect
+      self.current_user = find_verified_user
     end
+
+    protected
+      def find_verified_user
+        if current_user = User.find cookies.signed[:user_id]
+          current_user
+        else
+          reject_unauthorized_connection
+        end
+      end
   end
+end
+```
 
 This relies on the fact that you will already have handled authentication of the user, and
 that a successful authentication sets a signed cookie with the user_id. This cookie is then
@@ -69,9 +71,11 @@ potentially disconnect them all if the user is deleted or deauthorized).
 
 The client-side needs to setup a consumer instance of this connection. That's done like so:
 
-  # app/assets/javascripts/cable.coffee
-  @App = {}
-  App.cable = Cable.createConsumer "http://cable.example.com"
+```coffeescript
+# app/assets/javascripts/cable.coffee
+@App = {}
+App.cable = Cable.createConsumer "http://cable.example.com"
+```
 
 The http://cable.example.com address must point to your set of Action Cable servers, and it
 must share a cookie namespace with the rest of the application (which may live under http://example.com).
@@ -89,59 +93,63 @@ Here's a simple example of a channel that tracks whether a user is online or not
 
 First you declare the server-side channel:
 
-  # app/channels/appearance_channel.rb
-  class AppearanceChannel < ApplicationCable::Channel
-    def subscribed
-      current_user.appear
-    end
-  
-    def unsubscribed
-      current_user.disappear
-    end
-  
-    def appear(data)
-      current_user.appear on: data['appearing_on']
-    end
-  
-    def away
-      current_user.away
-    end
+```ruby
+# app/channels/appearance_channel.rb
+class AppearanceChannel < ApplicationCable::Channel
+  def subscribed
+    current_user.appear
   end
 
-The #subscribed callback is invoked when, as we'll show below, a client-side subscription is initiated. In this case,
+  def unsubscribed
+    current_user.disappear
+  end
+
+  def appear(data)
+    current_user.appear on: data['appearing_on']
+  end
+
+  def away
+    current_user.away
+  end
+end
+```
+
+The `#subscribed` callback is invoked when, as we'll show below, a client-side subscription is initiated. In this case,
 we take that opportunity to say "the current user has indeed appeared". That appear/disappear API could be backed by
 Redis or a database or whatever else. Here's what the client-side of that looks like:
 
-  # app/assets/javascripts/cable/subscriptions/appearance.coffee
-  App.appearance = App.cable.subscriptions.create "AppearanceChannel",
-    connected: ->
-      # Called once the subscription has been successfully completed
-  
-    appear: ->
-      @perform 'appear', appearing_on: @appearingOn()
-  
-    away: ->
-      @perform 'away'
-  
-    appearingOn: ->
-      $('main').data 'appearing-on'
+```coffeescript
+# app/assets/javascripts/cable/subscriptions/appearance.coffee
+App.appearance = App.cable.subscriptions.create "AppearanceChannel",
+  connected: ->
+    # Called once the subscription has been successfully completed
 
-  $(document).on 'page:change', ->
-    App.appearance.appear()
+  appear: ->
+    @perform 'appear', appearing_on: @appearingOn()
 
-  $(document).on 'click', '[data-behavior~=appear_away]', ->
-    App.appearance.away()
-    false
+  away: ->
+    @perform 'away'
 
-Simply calling App.cable.subscriptions.create will setup the subscription, which will call AppearanceChannel#subscribed,
-which in turn is linked to original App.consumer -> ApplicationCable::Connection instances.
+  appearingOn: ->
+    $('main').data 'appearing-on'
 
-We then link App.appearance#appear to AppearanceChannel#appear(data). This is possible because the server-side
+$(document).on 'page:change', ->
+  App.appearance.appear()
+
+$(document).on 'click', '[data-behavior~=appear_away]', ->
+  App.appearance.away()
+  false
+```
+
+Simply calling `App.cable.subscriptions.create` will setup the subscription, which will call `AppearanceChannel#subscribed`,
+which in turn is linked to original `App.consumer` -> `ApplicationCable::Connection` instances.
+
+We then link `App.appearance#appear` to `AppearanceChannel#appear(data)`. This is possible because the server-side
 channel instance will automatically expose the public methods declared on the class (minus the callbacks), so that these
-can be reached as remote procedure calls via App.appearance#perform.
+can be reached as remote procedure calls via `App.appearance#perform`.
 
-Finally, we expose App.appearance to the machinations of the application itself by hooking the #appear call into the 
-Turbolinks page:change callback and allowing the user to click a data-behavior link that triggers the #away call.
+Finally, we expose `App.appearance` to the machinations of the application itself by hooking the `#appear` call into the 
+Turbolinks `page:change` callback and allowing the user to click a data-behavior link that triggers the `#away` call.
 
 
 ## Channel example 2: Receiving new web notifications
@@ -153,26 +161,29 @@ action on the client.
 This is a web notification channel that allows you to trigger client-side web notifications when you broadcast to the right
 streams:
 
-  # app/channels/web_notifications.rb
-  class WebNotificationsChannel < ApplicationCable::Channel
-     def subscribed
-       stream_from "web_notifications_#{current_user.id}"
-     end
+```ruby
+# app/channels/web_notifications.rb
+class WebNotificationsChannel < ApplicationCable::Channel
+   def subscribed
+     stream_from "web_notifications_#{current_user.id}"
    end
+ end
+```
+```coffeescript
+# Somewhere in your app this is called, perhaps from a NewCommentJob
+ActionCable.server.broadcast \
+ "web_notifications_1", { title: 'New things!', body: 'All shit fit for print' }
 
-   # Somewhere in your app this is called, perhaps from a NewCommentJob
-   ActionCable.server.broadcast \
-     "web_notifications_1", { title: 'New things!', body: 'All shit fit for print' }
+# Client-side which assumes you've already requested the right to send web notifications
+App.cable.subscriptions.create "WebNotificationsChannel",
+ received: (data) ->
+  web_notification = new Notification data['title'], body: data['body']
+```
 
-   # Client-side which assumes you've already requested the right to send web notifications
-   App.cable.subscriptions.create "WebNotificationsChannel",
-     received: (data) ->
-      web_notification = new Notification data['title'], body: data['body']
-
-The ActionCable.server.broadcast call places a message in the Redis' pubsub queue under the broadcasting name of "web_notifications_1".
+The `ActionCable.server.broadcast` call places a message in the Redis' pubsub queue under the broadcasting name of "web_notifications_1".
 The channel has been instructed to stream everything that arrives at "web_notifications_1" directly to the client by invoking the
-#received(data) callback. The data is the hash sent as the second parameter to the server-side broadcast call, JSON encoded for the trip
-across the wire, and unpacked for the data argument arriving to #received.
+`#received(data)` callback. The data is the hash sent as the second parameter to the server-side broadcast call, JSON encoded for the trip
+across the wire, and unpacked for the data argument arriving to `#received`.
 
 
 ## Dependencies
