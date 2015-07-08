@@ -12,7 +12,7 @@
 #
 #   @App = {}
 #   App.cable = Cable.createConsumer "http://example.com/accounts/1"
-#   App.appearance = App.cable.createSubscription "AppearanceChannel"
+#   App.appearance = App.cable.subscriptions.create "AppearanceChannel"
 #
 # For more details on how you'd configure an actual channel subscription, see Cable.Subscription.
 class Cable.Consumer
@@ -20,11 +20,6 @@ class Cable.Consumer
     @subscriptions = new Cable.Subscriptions this
     @connection = new Cable.Connection this
     @connectionMonitor = new Cable.ConnectionMonitor this
-
-  createSubscription: (channelName, mixin) ->
-    channel = channelName
-    params = if typeof channel is "object" then channel else {channel}
-    new Cable.Subscription this, params, mixin
 
   send: (data) ->
     @connection.send(data)

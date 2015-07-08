@@ -2,6 +2,11 @@ class Cable.Subscriptions
   constructor: (@consumer) ->
     @subscriptions = []
 
+  create: (channelName, mixin) ->
+    channel = channelName
+    params = if typeof channel is "object" then channel else {channel}
+    new Cable.Subscription this, params, mixin
+
   add: (subscription) ->
     @subscriptions.push(subscription)
     @notify(subscription, "initialized")
