@@ -516,7 +516,7 @@ module ActionController
           end
         end
 
-        @request          = build_request
+        @request          = build_request({}, TestRequest.new_session)
         @request.env["rack.request.cookie_hash"] = {}.with_indifferent_access
         @response         = build_response @response_klass
         @response.request = @request
@@ -527,8 +527,8 @@ module ActionController
         end
       end
 
-      def build_request
-        TestRequest.new({}, TestRequest.new_session)
+      def build_request(env, session)
+        TestRequest.new(env, session)
       end
 
       def build_response(klass)

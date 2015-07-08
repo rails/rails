@@ -183,7 +183,7 @@ module ActionDispatch
           end
 
           # Assume given controller
-          request = build_request
+          request = build_request({}, ActionController::TestRequest.new_session)
 
           if path =~ %r{://}
             fail_on(URI::InvalidURIError, msg) do
