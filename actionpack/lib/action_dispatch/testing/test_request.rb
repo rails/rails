@@ -10,10 +10,6 @@ module ActionDispatch
       "rack.request.cookie_hash" => {}.with_indifferent_access
     )
 
-    def self.new(env = {})
-      super
-    end
-
     def initialize(env = {})
       env = Rails.application.env_config.merge(env) if defined?(Rails.application) && Rails.application
       super(default_env.merge(env))
