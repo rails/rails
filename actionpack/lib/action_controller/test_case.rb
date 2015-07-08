@@ -75,17 +75,9 @@ module ActionController
   end
 
   class TestResponse < ActionDispatch::TestResponse
-    def recycle!
-      initialize
-    end
   end
 
   class LiveTestResponse < Live::Response
-    def recycle!
-      @body = nil
-      initialize
-    end
-
     def body
       @body ||= super
     end
@@ -450,7 +442,8 @@ module ActionController
         @request.env['action_dispatch.cookies'] = nil
 
         @request.recycle!
-        @response.recycle!
+        @response         = build_response @response_klass
+        @response.request = @request
         @controller.recycle!
 
         @request.env['REQUEST_METHOD'] = http_method
@@ -504,11 +497,11 @@ module ActionController
       def setup_controller_request_and_response
         @controller = nil unless defined? @controller
 
-        response_klass = TestResponse
+        @response_klass = TestResponse
 
         if klass = self.class.controller_class
           if klass < ActionController::Live
-            response_klass = LiveTestResponse
+            @response_klass = LiveTestResponse
           end
           unless @controller
             begin
@@ -521,7 +514,7 @@ module ActionController
 
         @request          = build_request
         @request.env["rack.request.cookie_hash"] = {}.with_indifferent_access
-        @response         = build_response response_klass
+        @response         = build_response @response_klass
         @response.request = @request
 
         if @controller
