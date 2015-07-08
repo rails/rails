@@ -83,7 +83,7 @@ module ActionCable
       # Extract the action name from the passed data and process it via the channel. The process will ensure
       # that the action requested is a public method on the channel declared by the user (so not one of the callbacks
       # like #subscribed).
-      def process_action(data)
+      def perform_action(data)
         action = extract_action(data)
 
         if processable_action?(action)
