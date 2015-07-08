@@ -194,14 +194,15 @@ class TestERBTemplate < ActiveSupport::TestCase
     [
       "<%= 'Hello' %>",
       "<% cache_customer = 42 %>",
-      "<% cache customer.name do %><% end %>"
+      "<% cache customer.name do %><% end %>",
+      "<% my_cache customer do %><% end %>"
     ].each do |body|
       template = new_template(body, virtual_path: "test/foo/_customer")
       assert_not template.eligible_for_collection_caching?, "Template #{body.inspect} should not be eligible for collection caching"
     end
   end
 
-  def test_eligible_for_collection_caching_with_cache_call
+  def test_eligible_for_collection_caching_with_cache_call_or_explicit
     [
       "<% cache customer do %><% end %>",
       "<% cache(customer) do %><% end %>",
@@ -213,7 +214,8 @@ class TestERBTemplate < ActiveSupport::TestCase
       "<%# comment %><% cache customer do %><% end %>",
       "<%# comment %>\n<% cache customer do %><% end %>",
       "<%# comment\n line 2\n line 3 %>\n<% cache customer do %><% end %>",
-      "<%# comment 1 %>\n<%# comment 2 %>\n<% cache customer do %><% end %>"
+      "<%# comment 1 %>\n<%# comment 2 %>\n<% cache customer do %><% end %>",
+      "<%# comment 1 %>\n<%# Template Collection: customer %>\n<% my_cache customer do %><% end %>"
     ].each do |body|
       template = new_template(body, virtual_path: "test/foo/_customer")
       assert template.eligible_for_collection_caching?, "Template #{body.inspect} should be eligible for collection caching"
