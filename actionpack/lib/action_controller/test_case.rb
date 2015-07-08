@@ -34,10 +34,18 @@ module ActionController
       self.session_options = TestSession::DEFAULT_OPTIONS
     end
 
+    def query_parameters=(params)
+      @env["action_dispatch.request.query_parameters"] = params
+    end
+
+    def request_parameters=(params)
+      @env["action_dispatch.request.request_parameters"] = params
+    end
+
     def assign_parameters(routes, controller_path, action, parameters = {})
       parameters = parameters.symbolize_keys
       extra_keys = routes.extra_keys(parameters.merge(:controller => controller_path, :action => action))
-      non_path_parameters = get? ? query_parameters : request_parameters
+      non_path_parameters = {}.with_indifferent_access
 
       parameters.each do |key, value|
         if value.is_a?(Array) && (value.frozen? || value.any?(&:frozen?))
@@ -59,6 +67,12 @@ module ActionController
 
           path_parameters[key] = value
         end
+      end
+
+      if get?
+        self.query_parameters = non_path_parameters
+      else
+        self.request_parameters = non_path_parameters
       end
 
       path_parameters[:controller] = controller_path

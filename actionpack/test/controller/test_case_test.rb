@@ -49,7 +49,7 @@ class TestCaseTest < ActionController::TestCase
     end
 
     def test_query_parameters
-      render text: request.query_parameters.inspect
+      render text: ::JSON.dump(request.query_parameters)
     end
 
     def test_request_parameters
@@ -514,8 +514,8 @@ XML
 
   def test_query_param_named_action
     get :test_query_parameters, params: {action: 'foobar'}
-    parsed_params = eval(@response.body)
-    assert_equal({action: 'foobar'}, parsed_params)
+    parsed_params = JSON.parse(@response.body)
+    assert_equal({'action' => 'foobar'}, parsed_params)
   end
 
   def test_request_param_named_action
