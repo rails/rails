@@ -2,7 +2,7 @@ require 'abstract_unit'
 
 class TestRequestTest < ActiveSupport::TestCase
   test "sane defaults" do
-    env = ActionDispatch::TestRequest.new({}).env
+    env = ActionDispatch::TestRequest.create.env
 
     assert_equal "GET", env.delete("REQUEST_METHOD")
     assert_equal "off", env.delete("HTTPS")
@@ -27,7 +27,7 @@ class TestRequestTest < ActiveSupport::TestCase
   end
 
   test "cookie jar" do
-    req = ActionDispatch::TestRequest.new({})
+    req = ActionDispatch::TestRequest.create({})
 
     assert_equal({}, req.cookies)
     assert_equal nil, req.env["HTTP_COOKIE"]
@@ -55,38 +55,38 @@ class TestRequestTest < ActiveSupport::TestCase
 
   test "does not complain when Rails.application is nil" do
     Rails.stubs(:application).returns(nil)
-    req = ActionDispatch::TestRequest.new({})
+    req = ActionDispatch::TestRequest.create({})
 
     assert_equal false, req.env.empty?
   end
 
   test "default remote address is 0.0.0.0" do
-    req = ActionDispatch::TestRequest.new({})
+    req = ActionDispatch::TestRequest.create({})
     assert_equal '0.0.0.0', req.remote_addr
   end
 
   test "allows remote address to be overridden" do
-    req = ActionDispatch::TestRequest.new('REMOTE_ADDR' => '127.0.0.1')
+    req = ActionDispatch::TestRequest.create('REMOTE_ADDR' => '127.0.0.1')
     assert_equal '127.0.0.1', req.remote_addr
   end
 
   test "default host is test.host" do
-    req = ActionDispatch::TestRequest.new({})
+    req = ActionDispatch::TestRequest.create({})
     assert_equal 'test.host', req.host
   end
 
   test "allows host to be overridden" do
-    req = ActionDispatch::TestRequest.new('HTTP_HOST' => 'www.example.com')
+    req = ActionDispatch::TestRequest.create('HTTP_HOST' => 'www.example.com')
     assert_equal 'www.example.com', req.host
   end
 
   test "default user agent is 'Rails Testing'" do
-    req = ActionDispatch::TestRequest.new({})
+    req = ActionDispatch::TestRequest.create({})
     assert_equal 'Rails Testing', req.user_agent
   end
 
   test "allows user agent to be overridden" do
-    req = ActionDispatch::TestRequest.new('HTTP_USER_AGENT' => 'GoogleBot')
+    req = ActionDispatch::TestRequest.create('HTTP_USER_AGENT' => 'GoogleBot')
     assert_equal 'GoogleBot', req.user_agent
   end
 

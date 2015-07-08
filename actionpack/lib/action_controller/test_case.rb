@@ -14,6 +14,18 @@ module ActionController
       TestSession.new
     end
 
+    # Create a new test request with default `env` values
+    def self.create
+      env = {}
+      env = Rails.application.env_config.merge(env) if defined?(Rails.application) && Rails.application
+      new(default_env.merge(env), new_session)
+    end
+
+    def self.default_env
+      DEFAULT_ENV
+    end
+    private_class_method :default_env
+
     def initialize(env, session)
       super(env)
 
@@ -69,12 +81,6 @@ module ActionController
       @method = @request_method = nil
       @fullpath = @ip = @remote_ip = @protocol = nil
       @env['action_dispatch.request.query_parameters'] = {}
-    end
-
-    private
-
-    def default_env
-      DEFAULT_ENV
     end
   end
 
@@ -516,7 +522,7 @@ module ActionController
           end
         end
 
-        @request          = build_request({}, TestRequest.new_session)
+        @request          = TestRequest.create
         @request.env["rack.request.cookie_hash"] = {}.with_indifferent_access
         @response         = build_response @response_klass
         @response.request = @request
@@ -525,10 +531,6 @@ module ActionController
           @controller.request = @request
           @controller.params = {}
         end
-      end
-
-      def build_request(env, session)
-        TestRequest.new(env, session)
       end
 
       def build_response(klass)

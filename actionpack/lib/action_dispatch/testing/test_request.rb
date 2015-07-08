@@ -10,10 +10,16 @@ module ActionDispatch
       "rack.request.cookie_hash" => {}.with_indifferent_access
     )
 
-    def initialize(env)
+    # Create a new test request with default `env` values
+    def self.create(env = {})
       env = Rails.application.env_config.merge(env) if defined?(Rails.application) && Rails.application
-      super(default_env.merge(env))
+      new(default_env.merge(env))
     end
+
+    def self.default_env
+      DEFAULT_ENV
+    end
+    private_class_method :default_env
 
     def request_method=(method)
       @env['REQUEST_METHOD'] = method.to_s.upcase
@@ -58,12 +64,6 @@ module ActionDispatch
     def accept=(mime_types)
       @env.delete('action_dispatch.request.accepts')
       @env['HTTP_ACCEPT'] = Array(mime_types).collect(&:to_s).join(",")
-    end
-
-    private
-
-    def default_env
-      DEFAULT_ENV
     end
   end
 end
