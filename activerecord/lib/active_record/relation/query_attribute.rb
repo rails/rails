@@ -2,7 +2,7 @@ require 'active_record/attribute'
 
 module ActiveRecord
   class Relation
-    class QueryAttribute < Attribute
+    class QueryAttribute < Attribute # :nodoc:
       def type_cast(value)
         value
       end

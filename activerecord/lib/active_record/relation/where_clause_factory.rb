@@ -1,6 +1,6 @@
 module ActiveRecord
   class Relation
-    class WhereClauseFactory
+    class WhereClauseFactory # :nodoc:
       def initialize(klass, predicate_builder)
         @klass = klass
         @predicate_builder = predicate_builder
