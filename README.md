@@ -22,8 +22,8 @@ or to both. At the very least, a consumer should be subscribed to one channel.
 
 When the consumer is subscribed to a channel, they act as a subscriber. The connection between
 the subscriber and the channel is, surprise-surprise, called a subscription. A consumer
-can act as a subscriber to a given channel via a subscription only once. (But remember that
-a physical user may have multiple consumers, one per tab/device open to your connection).
+can act as a subscriber to a given channel any number of times (like to multiple chat rooms at the same time).
+(And remember that a physical user may have multiple consumers, one per tab/device open to your connection).
 
 Each channel can then again be streaming zero or more broadcastings. A broadcasting is a
 pubsub link where anything transmitted by the broadcaster is sent directly to the channel 
