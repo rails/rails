@@ -484,11 +484,10 @@ end
 class FreeCookieControllerTest < ActionController::TestCase
   def setup
     @controller = FreeCookieController.new
-    @request    = ActionController::TestRequest.new
-    @response   = ActionController::TestResponse.new
     @token      = "cf50faa3fe97702ca1ae"
 
     SecureRandom.stubs(:base64).returns(@token)
+    super
   end
 
   def test_should_not_render_form_with_token_tag

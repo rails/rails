@@ -22,8 +22,6 @@ class FragmentCachingMetalTest < ActionController::TestCase
     @controller.perform_caching = true
     @controller.cache_store = @store
     @params = { controller: 'posts', action: 'index' }
-    @request = ActionController::TestRequest.new
-    @response = ActionController::TestResponse.new
     @controller.params = @params
     @controller.request = @request
     @controller.response = @response
@@ -52,8 +50,6 @@ class FragmentCachingTest < ActionController::TestCase
     @controller.perform_caching = true
     @controller.cache_store = @store
     @params = {:controller => 'posts', :action => 'index'}
-    @request = ActionController::TestRequest.new
-    @response = ActionController::TestResponse.new
     @controller.params = @params
     @controller.request = @request
     @controller.response = @response
@@ -183,8 +179,6 @@ class FunctionalFragmentCachingTest < ActionController::TestCase
     @controller = FunctionalCachingController.new
     @controller.perform_caching = true
     @controller.cache_store = @store
-    @request = ActionController::TestRequest.new
-    @response = ActionController::TestResponse.new
   end
 
   def test_fragment_caching

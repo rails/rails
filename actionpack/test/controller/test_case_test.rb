@@ -158,8 +158,6 @@ XML
   def setup
     super
     @controller = TestController.new
-    @request    = ActionController::TestRequest.new
-    @response   = ActionController::TestResponse.new
     @request.env['PATH_INFO'] = nil
     @routes = ActionDispatch::Routing::RouteSet.new.tap do |r|
       r.draw do
@@ -957,10 +955,11 @@ class ResponseDefaultHeadersTest < ActionController::TestCase
     end
   end
 
-  setup do
+  def before_setup
     @original = ActionDispatch::Response.default_headers
     @defaults = { 'A' => '1', 'B' => '2' }
     ActionDispatch::Response.default_headers = @defaults
+    super
   end
 
   teardown do
@@ -970,8 +969,6 @@ class ResponseDefaultHeadersTest < ActionController::TestCase
   def setup
     super
     @controller = TestController.new
-    @request    = ActionController::TestRequest.new
-    @response   = ActionController::TestResponse.new
     @request.env['PATH_INFO'] = nil
     @routes = ActionDispatch::Routing::RouteSet.new.tap do |r|
       r.draw do

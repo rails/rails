@@ -73,14 +73,8 @@ module LocalAbcHelper
 end
 
 class HelperPathsTest < ActiveSupport::TestCase
-  def setup
-    @request    = ActionController::TestRequest.new
-    @response   = ActionController::TestResponse.new
-  end
-
   def test_helpers_paths_priority
-    request  = ActionController::TestRequest.new
-    responses = HelpersPathsController.action(:index).call(request.env)
+    responses = HelpersPathsController.action(:index).call(ActionController::TestRequest::DEFAULT_ENV.dup)
 
     # helpers1_pack was given as a second path, so pack1_helper should be
     # included as the second one
@@ -141,8 +135,7 @@ class HelperTest < ActiveSupport::TestCase
   end
 
   def call_controller(klass, action)
-    request  = ActionController::TestRequest.new
-    klass.action(action).call(request.env)
+    klass.action(action).call(ActionController::TestRequest::DEFAULT_ENV.dup)
   end
 
   def test_helper_for_nested_controller
@@ -249,7 +242,7 @@ class HelperTest < ActiveSupport::TestCase
 end
 
 
-class IsolatedHelpersTest < ActiveSupport::TestCase
+class IsolatedHelpersTest < ActionController::TestCase
   class A < ActionController::Base
     def index
       render :inline => '<%= shout %>'
@@ -273,13 +266,11 @@ class IsolatedHelpersTest < ActiveSupport::TestCase
   end
 
   def call_controller(klass, action)
-    request  = ActionController::TestRequest.new
-    klass.action(action).call(request.env)
+    klass.action(action).call(@request.env)
   end
 
   def setup
-    @request    = ActionController::TestRequest.new
-    @response   = ActionController::TestResponse.new
+    super
     @request.action = 'index'
   end
 
