@@ -182,6 +182,7 @@ messages back and forth over the websocket cable connection. This dependency may
 be alleviated in the future, but for the moment that's what it is. So be sure to have
 Redis installed and running.
 
+The Ruby side of things is built on top of Faye-Websocket and Celluiod.
 
 ## Deployment
 
