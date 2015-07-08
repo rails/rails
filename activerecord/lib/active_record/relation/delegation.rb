@@ -3,12 +3,12 @@ require 'active_support/concern'
 
 module ActiveRecord
   module Delegation # :nodoc:
-    module DelegateCache
-      def relation_delegate_class(klass) # :nodoc:
+    module DelegateCache # :nodoc:
+      def relation_delegate_class(klass)
         @relation_delegate_cache[klass]
       end
 
-      def initialize_relation_delegate_cache # :nodoc:
+      def initialize_relation_delegate_cache
         @relation_delegate_cache = cache = {}
         [
           ActiveRecord::Relation,
