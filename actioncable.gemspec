@@ -1,5 +1,5 @@
 Gem::Specification.new do |s|
-  s.name        = 'action_cable'
+  s.name        = 'actioncable'
   s.version     = '0.1.0'
   s.summary     = 'Websockets framework for Rails.'
   s.description = 'Structure many real-time application concerns into channels over a single websockets connection.'
