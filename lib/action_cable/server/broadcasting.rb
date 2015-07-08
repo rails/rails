@@ -14,7 +14,7 @@ module ActionCable
     #      "web_notifications_1", { title: 'New things!', body: 'All shit fit for print' }
     #
     #    # Client-side coffescript which assumes you've already requested the right to send web notifications
-    #    BC.cable.createSubscription "WebNotificationsChannel",
+    #    App.cable.subscriptions.create "WebNotificationsChannel",
     #      received: (data) ->
     #       web_notification = new Notification data['title'], body: data['body']
     module Broadcasting
