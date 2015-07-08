@@ -1,3 +1,4 @@
+# Encapsulate the cable connection held by the consumer. This is an internal class not intended for direct user manipulation.
 class Cable.Connection
   constructor: (@consumer) ->
     @open()

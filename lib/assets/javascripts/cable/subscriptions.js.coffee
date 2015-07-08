@@ -1,3 +1,11 @@
+# Collection class for creating (and internally managing) channel subscriptions. The only method intended to be triggered by the user
+# us Cable.Subscriptions#create, and it should be called through the consumer like so:
+#
+#   @App = {}
+#   App.cable = Cable.createConsumer "http://example.com/accounts/1"
+#   App.appearance = App.cable.subscriptions.create "AppearanceChannel"
+#
+# For more details on how you'd configure an actual channel subscription, see Cable.Subscription.
 class Cable.Subscriptions
   constructor: (@consumer) ->
     @subscriptions = []
@@ -6,6 +14,8 @@ class Cable.Subscriptions
     channel = channelName
     params = if typeof channel is "object" then channel else {channel}
     new Cable.Subscription this, params, mixin
+
+  # Private
 
   add: (subscription) ->
     @subscriptions.push(subscription)
