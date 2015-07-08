@@ -187,6 +187,73 @@ The channel has been instructed to stream everything that arrives at `web_notifi
 across the wire, and unpacked for the data argument arriving to `#received`.
 
 
+## Configuration
+
+The only must-configure part of Action Cable is the Redis connection. By default, `ActionCable::Server::Base` will look for a configuration
+file in `Rails.root.join('config/redis/cable.yml')`. The file must follow the following format:
+
+```yaml
+production: &production
+  :url: redis://10.10.3.153:6381
+  :host: 10.10.3.153
+  :port: 6381
+  :timeout: 1
+development: &development
+  :url: redis://localhost:6379
+  :host: localhost
+  :port: 6379
+  :timeout: 1
+  :inline: true
+test: *development
+```
+
+This format allows you to specify one configuration per Rails environment. You can also chance the location of the Redis config file in
+a Rails initializer with something like:
+
+```ruby
+ActionCable.server.config.redis_path = Rails.root('somewhere/else/cable.yml')
+```
+
+The other common option to configure is the log tags applied to the per-connection logger. Here's close to what we're using in Basecamp:
+
+```ruby
+ActionCable.server.config.log_tags = [
+  -> request { request.env['bc.account_id'] || "no-account" },
+  :action_cable,
+  -> request { request.uuid }
+]
+```
+
+For a full list of all configuration options, see the `ActionCable::Server::Configuration` class.
+
+
+## Starting the cable server
+
+As mentioned, the cable server(s) is separated from your normal application server. It's still a rack application, but it is its own rack
+application. The recommended basic setup is as follows:
+
+```ruby
+# cable/config.ru
+require ::File.expand_path('../config/environment',  __FILE__)
+Rails.application.eager_load!
+
+require 'action_cable/process/logging'
+
+run ActionCable.server
+```
+
+Then you start the server using a binstub in bin/cable ala:
+```
+#!/bin/bash
+bundle exec puma cable/config.ru -p 28080
+```
+
+That'll start a cable server on port 28080. Remember to point your client-side setup against that using something like:
+`App.cable.createConsumer('http://basecamp.dev:28080')`.
+
+Note: We'll get all this abstracted properly when the framework is integrated into Rails.
+
+
 ## Dependencies
 
 Action Cable is currently tied to Redis through its use of the pubsub feature to route
@@ -195,6 +262,7 @@ be alleviated in the future, but for the moment that's what it is. So be sure to
 Redis installed and running.
 
 The Ruby side of things is built on top of [faye-websocket](https://github.com/faye/faye-websocket-ruby) and [celluoid](https://github.com/celluloid/celluloid).
+
 
 
 ## Deployment
