@@ -106,7 +106,6 @@ module ActionView
     #   config.action_controller.asset_host = AssetHostingWithMinimumSsl.new(
     #     "http://asset%d.example.com", "https://asset1.example.com"
     #   )
-    #
     module AssetUrlHelper
       URI_REGEXP = %r{^[-a-z]+://|^(?:cid|data):|^//}i
 

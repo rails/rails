@@ -46,7 +46,6 @@ module ActiveRecord
     #   class Person < ActiveRecord::Base
     #     self.locking_column = :lock_person
     #   end
-    #
     module Optimistic
       extend ActiveSupport::Concern
 
