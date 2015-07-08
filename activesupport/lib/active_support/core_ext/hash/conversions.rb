@@ -138,6 +138,8 @@ end
 
 module ActiveSupport
   class XMLConverter # :nodoc:
+
+    # Raised in situations described in <tt>Hash#from_xml</tt>
     class DisallowedType < StandardError
       def initialize(type)
         super "Disallowed type attribute: #{type.inspect}"
