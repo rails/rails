@@ -189,7 +189,6 @@ module ActionController #:nodoc:
   # ==== Passenger
   #
   # To be described.
-  #
   module Streaming
     extend ActiveSupport::Concern
 

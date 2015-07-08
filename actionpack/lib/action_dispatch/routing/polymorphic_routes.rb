@@ -51,7 +51,6 @@ module ActionDispatch
     #
     #   polymorphic_url([blog, @post])  # calls blog.post_path(@post)
     #   form_for([blog, @post])         # => "/blog/posts/1"
-    #
     module PolymorphicRoutes
       # Constructs a call to a named RESTful route for the given record and returns the
       # resulting URL string. For example:
@@ -95,7 +94,6 @@ module ActionDispatch
       #
       #   # the class of a record will also map to the collection
       #   polymorphic_url(Comment) # same as comments_url()
-      #
       def polymorphic_url(record_or_hash_or_array, options = {})
         if Hash === record_or_hash_or_array
           options = record_or_hash_or_array.merge(options)

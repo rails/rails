@@ -150,7 +150,6 @@ module ActiveSupport
   #
   # Notifications ships with a queue implementation that consumes and publishes events
   # to all log subscribers. You can use any queue implementation you want.
-  #
   module Notifications
     class << self
       attr_accessor :notifier

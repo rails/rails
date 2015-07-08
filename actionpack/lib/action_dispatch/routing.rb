@@ -244,7 +244,6 @@ module ActionDispatch
   #   rake routes
   #
   # Target specific controllers by prefixing the command with <tt>CONTROLLER=x</tt>.
-  #
   module Routing
     extend ActiveSupport::Autoload
 

@@ -266,7 +266,6 @@ module ActiveRecord
   #   Topic._save_callbacks.select { |cb| cb.kind.eql?(:before) }.collect(&:filter).include?(:rest_when_dead)
   #
   # Returns true or false depending on whether the proc is contained in the before_save callback chain on a Topic model.
-  #
   module Callbacks
     extend ActiveSupport::Concern
 
