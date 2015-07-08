@@ -10,10 +10,14 @@ module ActionController
     DEFAULT_ENV = ActionDispatch::TestRequest::DEFAULT_ENV.dup
     DEFAULT_ENV.delete 'PATH_INFO'
 
-    def initialize(env = {})
-      super
+    def self.new_session
+      TestSession.new
+    end
 
-      self.session = TestSession.new
+    def initialize(env, session)
+      super(env)
+
+      self.session = session
       self.session_options = TestSession::DEFAULT_OPTIONS
     end
 
@@ -524,7 +528,7 @@ module ActionController
       end
 
       def build_request
-        TestRequest.new
+        TestRequest.new({}, TestRequest.new_session)
       end
 
       def build_response(klass)
