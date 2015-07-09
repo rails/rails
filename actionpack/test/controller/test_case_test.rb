@@ -562,7 +562,7 @@ XML
     parsed_params = ::JSON.parse(@response.body)
     assert_equal(
       {'controller' => 'test_case_test/test', 'action' => 'test_params',
-       'format' => 'json', 'count' => 999 },
+       'format' => 'json', 'count' => '999' },
       parsed_params
     )
   end

@@ -34,8 +34,8 @@ module ActionController
       self.session_options = TestSession::DEFAULT_OPTIONS
     end
 
-    def query_parameters=(params)
-      @env["action_dispatch.request.query_parameters"] = params
+    def query_string=(string)
+      @env[Rack::QUERY_STRING] = string
     end
 
     def request_parameters=(params)
@@ -70,8 +70,11 @@ module ActionController
       end
 
       if get?
-        self.query_parameters = non_path_parameters
+        if self.query_string.blank?
+          self.query_string = non_path_parameters.to_query
+        end
       else
+        @env['action_dispatch.request.query_parameters'] = {}
         self.request_parameters = non_path_parameters
       end
 
@@ -506,6 +509,7 @@ module ActionController
           @request.env.delete 'HTTP_X_REQUESTED_WITH'
           @request.env.delete 'HTTP_ACCEPT'
         end
+        @request.query_string = ''
 
         @response
       end
@@ -554,7 +558,7 @@ module ActionController
       def scrub_env!(env)
         env.delete_if { |k, v| k =~ /^(action_dispatch|rack)\.request/ }
         env.delete_if { |k, v| k =~ /^action_dispatch\.rescue/ }
-        env['action_dispatch.request.query_parameters'] = {}
+        env.delete 'action_dispatch.request.query_parameters'
         env
       end
 
@@ -613,11 +617,10 @@ module ActionController
             :relative_url_root => nil,
             :_recall => @request.path_parameters)
 
-          url, query_string = @routes.path_for(options).split("?", 2)
+          url, = @routes.path_for(options).split("?", 2)
 
           @request.env["SCRIPT_NAME"] = @controller.config.relative_url_root
           @request.env["PATH_INFO"] = url
-          @request.env["QUERY_STRING"] = query_string || ""
         end
       end
 
