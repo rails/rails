@@ -330,6 +330,13 @@ class GuestsCleanupJob < ActiveJob::Base
 end
 ```
 
+### Deserialization
+
+GlobalID allows serializing full Active Record objects passed to `#perform`.
+
+If a passed record is deleted after the job is enqueued but before the `#perform`
+method is called Active Job will raise an `ActiveJob::DeserializationError`
+exception.
 
 Job Testing
 --------------
