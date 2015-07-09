@@ -67,7 +67,6 @@ shared logic between your channels.
 
 ```ruby
 # app/channels/application_cable/channel.rb
-```ruby
 module ApplicationCable
   class Channel < ActionCable::Channel::Base
   end
