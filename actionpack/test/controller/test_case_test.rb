@@ -45,7 +45,7 @@ class TestCaseTest < ActionController::TestCase
     end
 
     def test_params
-      render text: params.inspect
+      render text: ::JSON.dump(params)
     end
 
     def test_query_parameters
@@ -227,7 +227,7 @@ XML
 
   def test_document_body_and_params_with_post
     post :test_params, params: { id: 1 }
-    assert_equal(%({"id"=>"1", "controller"=>"test_case_test/test", "action"=>"test_params"}), @response.body)
+    assert_equal({"id"=>"1", "controller"=>"test_case_test/test", "action"=>"test_params"}, ::JSON.parse(@response.body))
   end
 
   def test_document_body_with_post
@@ -483,7 +483,7 @@ XML
     assert_deprecated {
       get :test_params, page: { name: "Page name", month: '4', year: '2004', day: '6' }
     }
-    parsed_params = eval(@response.body)
+    parsed_params = ::JSON.parse(@response.body)
     assert_equal(
       {
         'controller' => 'test_case_test/test', 'action' => 'test_params',
@@ -502,7 +502,7 @@ XML
         day: '6'
       }
     }
-    parsed_params = eval(@response.body)
+    parsed_params = ::JSON.parse(@response.body)
     assert_equal(
       {
         'controller' => 'test_case_test/test', 'action' => 'test_params',
@@ -534,7 +534,7 @@ XML
       }
     }, session: { 'foo' => 'bar' }, flash: { notice: 'created' }
 
-    parsed_params = eval(@response.body)
+    parsed_params = ::JSON.parse(@response.body)
     assert_equal(
       {'controller' => 'test_case_test/test', 'action' => 'test_params',
        'page' => {'name' => "Page name", 'month' => '4', 'year' => '2004', 'day' => '6'}},
@@ -549,7 +549,7 @@ XML
     get :test_params, params: {
       page: { name: "Page name", month: 4, year: 2004, day: 6 }
     }
-    parsed_params = eval(@response.body)
+    parsed_params = ::JSON.parse(@response.body)
     assert_equal(
       {'controller' => 'test_case_test/test', 'action' => 'test_params',
        'page' => {'name' => "Page name", 'month' => '4', 'year' => '2004', 'day' => '6'}},
@@ -559,7 +559,7 @@ XML
 
   def test_params_passing_with_fixnums_when_not_html_request
     get :test_params, params: { format: 'json', count: 999 }
-    parsed_params = eval(@response.body)
+    parsed_params = ::JSON.parse(@response.body)
     assert_equal(
       {'controller' => 'test_case_test/test', 'action' => 'test_params',
        'format' => 'json', 'count' => 999 },
@@ -569,7 +569,7 @@ XML
 
   def test_params_passing_path_parameter_is_string_when_not_html_request
     get :test_params, params: { format: 'json', id: 1 }
-    parsed_params = eval(@response.body)
+    parsed_params = ::JSON.parse(@response.body)
     assert_equal(
       {'controller' => 'test_case_test/test', 'action' => 'test_params',
        'format' => 'json', 'id' => '1' },
@@ -579,7 +579,7 @@ XML
 
   def test_deprecated_params_passing_path_parameter_is_string_when_not_html_request
     assert_deprecated { get :test_params, format: 'json', id: 1 }
-    parsed_params = eval(@response.body)
+    parsed_params = ::JSON.parse(@response.body)
     assert_equal(
       {'controller' => 'test_case_test/test', 'action' => 'test_params',
        'format' => 'json', 'id' => '1' },
@@ -593,7 +593,7 @@ XML
         frozen: 'icy'.freeze, frozens: ['icy'.freeze].freeze, deepfreeze: { frozen: 'icy'.freeze }.freeze
       }
     end
-    parsed_params = eval(@response.body)
+    parsed_params = ::JSON.parse(@response.body)
     assert_equal(
       {'controller' => 'test_case_test/test', 'action' => 'test_params',
        'frozen' => 'icy', 'frozens' => ['icy'], 'deepfreeze' => { 'frozen' => 'icy' }},
@@ -691,13 +691,13 @@ XML
   def test_deprecated_xhr_with_params
     assert_deprecated { xhr :get, :test_params, params: { id: 1 } }
 
-    assert_equal(%({"id"=>"1", "controller"=>"test_case_test/test", "action"=>"test_params"}), @response.body)
+    assert_equal({"id"=>"1", "controller"=>"test_case_test/test", "action"=>"test_params"}, ::JSON.parse(@response.body))
   end
 
   def test_xhr_with_params
     get :test_params, params: { id: 1 }, xhr: true
 
-    assert_equal(%({"id"=>"1", "controller"=>"test_case_test/test", "action"=>"test_params"}), @response.body)
+    assert_equal({"id"=>"1", "controller"=>"test_case_test/test", "action"=>"test_params"}, ::JSON.parse(@response.body))
   end
 
   def test_xhr_with_session
