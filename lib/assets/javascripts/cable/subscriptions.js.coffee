@@ -2,7 +2,7 @@
 # us Cable.Subscriptions#create, and it should be called through the consumer like so:
 #
 #   @App = {}
-#   App.cable = Cable.createConsumer "http://example.com/accounts/1"
+#   App.cable = Cable.createConsumer "ws://example.com/accounts/1"
 #   App.appearance = App.cable.subscriptions.create "AppearanceChannel"
 #
 # For more details on how you'd configure an actual channel subscription, see Cable.Subscription.
