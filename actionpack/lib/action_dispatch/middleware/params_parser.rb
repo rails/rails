@@ -15,8 +15,8 @@ module ActionDispatch
 
     DEFAULT_PARSERS = { Mime::JSON => :json }
 
-    def initialize(app, parsers = {})
-      @app, @parsers = app, DEFAULT_PARSERS.merge(parsers)
+    def initialize(app, parsers = {}, param_key_transform = nil)
+      @app, @parsers, @param_key_transform = app, DEFAULT_PARSERS.merge(parsers), param_key_transform
     end
 
     def call(env)
@@ -43,7 +43,9 @@ module ActionDispatch
         when :json
           data = ActiveSupport::JSON.decode(request.raw_post)
           data = {:_json => data} unless data.is_a?(Hash)
-          Request::Utils.deep_munge(data).with_indifferent_access
+          data = Request::Utils.deep_munge(data)
+          data.deep_transform_keys!(&@param_key_transform) if @param_key_transform
+          data.with_indifferent_access
         else
           false
         end
