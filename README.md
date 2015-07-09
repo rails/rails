@@ -207,7 +207,7 @@ development: &development
 test: *development
 ```
 
-This format allows you to specify one configuration per Rails environment. You can also chance the location of the Redis config file in
+This format allows you to specify one configuration per Rails environment. You can also change the location of the Redis config file in
 a Rails initializer with something like:
 
 ```ruby
