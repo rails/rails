@@ -65,7 +65,7 @@ module ActionCable
       end
 
       # Called by the server when a new websocket connection is established. This configures the callbacks intended for overwriting by the user.
-      # This method should now be called directly. Rely on the #connect (and #disconnect) callback instead.
+      # This method should not be called directly. Rely on the #connect (and #disconnect) callback instead.
       def process
         logger.info started_request_message
 
