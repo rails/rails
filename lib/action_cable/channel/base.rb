@@ -7,7 +7,7 @@ module ActionCable
     # Channel instances are long-lived. A channel object will be instantiated when the cable consumer becomes a subscriber, and then
     # lives until the consumer disconnects. This may be seconds, minutes, hours, or even days. That means you have to take special care
     # not to do anything silly in a channel that would balloon its memory footprint or whatever. The references are forever, so they won't be released
-    # as is normally the case with a controller instance that gets thrown away after every request. 
+    # as is normally the case with a controller instance that gets thrown away after every request.
     #
     # Long-lived channels (and connections) also mean you're responsible for ensuring that the data is fresh. If you hold a reference to a user
     # record, but the name is changed while that reference is held, you may be sending stale data if you don't take precautions to avoid it.
@@ -15,7 +15,7 @@ module ActionCable
     # The upside of long-lived channel instances is that you can use instance variables to keep reference to objects that future subscriber requests
     # can interact with. Here's a quick example:
     #
-    #   class ChatChannel < ApplicationChannel
+    #   class ChatChannel < ApplicationCable::Channel
     #     def subscribed
     #       @room = Chat::Room[params[:room_number]]
     #     end
@@ -39,19 +39,19 @@ module ActionCable
     #     def subscribed
     #       @connection_token = generate_connection_token
     #     end
-    # 
+    #
     #     def unsubscribed
     #       current_user.disappear @connection_token
     #     end
-    # 
+    #
     #     def appear(data)
     #       current_user.appear @connection_token, on: data['appearing_on']
     #     end
-    # 
+    #
     #     def away
     #       current_user.away @connection_token
     #     end
-    # 
+    #
     #     private
     #       def generate_connection_token
     #         SecureRandom.hex(36)
@@ -93,7 +93,7 @@ module ActionCable
         end
       end
 
-      # Called by the cable connection when its cut so the channel has a chance to cleanup with callbacks. 
+      # Called by the cable connection when its cut so the channel has a chance to cleanup with callbacks.
       # This method is not intended to be called directly by the user. Instead, overwrite the #unsubscribed callback.
       def unsubscribe_from_channel
         run_unsubscribe_callbacks
@@ -113,8 +113,8 @@ module ActionCable
         def unsubscribed
           # Override in subclasses
         end
-        
-        # Transmit a hash of data to the subscriber. The hash will automatically be wrapped in a JSON envelope with 
+
+        # Transmit a hash of data to the subscriber. The hash will automatically be wrapped in a JSON envelope with
         # the proper channel identifier marked as the recipient.
         def transmit(data, via: nil)
           logger.info "#{self.class.name} transmitting #{data.inspect}".tap { |m| m << " (via #{via})" if via }
@@ -139,7 +139,7 @@ module ActionCable
 
         def dispatch_action(action, data)
           logger.info action_signature(action, data)
-          
+
           if method(action).arity == 1
             public_send action, data
           else
