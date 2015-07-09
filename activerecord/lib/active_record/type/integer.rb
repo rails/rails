@@ -16,10 +16,6 @@ module ActiveRecord
         :integer
       end
 
-      def deserialize(value)
-        cast_value(value) unless value.nil?
-      end
-
       def serialize(value)
         result = cast(value)
         if result
