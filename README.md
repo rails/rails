@@ -15,7 +15,7 @@ websockets open to your application if they use multiple browser tabs or devices
 The client of a websocket connection is called the consumer.
 
 Each consumer can in turn subscribe to multiple cable channels. Each channel encapsulates
-a logical unit of work, similar to what a controller does in a regular MVC setup. So 
+a logical unit of work, similar to what a controller does in a regular MVC setup. So
 you may have a `ChatChannel` and a `AppearancesChannel`. The consumer can be subscribed to either
 or to both. At the very least, a consumer should be subscribed to one channel.
 
@@ -26,7 +26,7 @@ could subscribe to multiple chat rooms at the same time. (And remember that a ph
 have multiple consumers, one per tab/device open to your connection).
 
 Each channel can then again be streaming zero or more broadcastings. A broadcasting is a
-pubsub link where anything transmitted by the broadcaster is sent directly to the channel 
+pubsub link where anything transmitted by the broadcaster is sent directly to the channel
 subscribers who are streaming that named broadcasting.
 
 As you can see, this is a fairly deep architectural stack. There's a lot of new terminology
@@ -52,7 +52,7 @@ module ApplicationCable
 
     protected
       def find_verified_user
-        if current_user = User.find cookies.signed[:user_id]
+        if current_user = User.find(cookies.signed[:user_id])
           current_user
         else
           reject_unauthorized_connection
@@ -148,7 +148,7 @@ We then link `App.appearance#appear` to `AppearanceChannel#appear(data)`. This i
 channel instance will automatically expose the public methods declared on the class (minus the callbacks), so that these
 can be reached as remote procedure calls via `App.appearance#perform`.
 
-Finally, we expose `App.appearance` to the machinations of the application itself by hooking the `#appear` call into the 
+Finally, we expose `App.appearance` to the machinations of the application itself by hooking the `#appear` call into the
 Turbolinks `page:change` callback and allowing the user to click a data-behavior link that triggers the `#away` call.
 
 
@@ -268,7 +268,7 @@ The Ruby side of things is built on top of [faye-websocket](https://github.com/f
 ## Deployment
 
 Action Cable is powered by a combination of EventMachine and threads. The
-framework plumbing needed for connection handling is handled in the 
+framework plumbing needed for connection handling is handled in the
 EventMachine loop, but the actual channel, user-specified, work is handled
 in a normal Ruby thread. This means you can use all your regular Rails models
 with no problem, as long as you haven't committed any thread-safety sins.
