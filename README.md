@@ -62,6 +62,18 @@ module ApplicationCable
 end
 ```
 
+Then you should define your `ApplicationCable::Channel` class in Ruby. This is the place where you put
+shared logic between your channels.
+
+```ruby
+# app/channels/application_cable/channel.rb
+```ruby
+module ApplicationCable
+  class Channel < ActionCable::Channel::Base
+  end
+end
+```
+
 This relies on the fact that you will already have handled authentication of the user, and
 that a successful authentication sets a signed cookie with the `user_id`. This cookie is then
 automatically sent to the connection instance when a new connection is attempted, and you
