@@ -127,8 +127,6 @@ class PerformActionTest < ActionController::TestCase
     # a more accurate simulation of what happens in "real life".
     @controller.logger = ActiveSupport::Logger.new(nil)
 
-    @request     = ActionController::TestRequest.new
-    @response    = ActionController::TestResponse.new
     @request.host = "www.nextangle.com"
   end
 

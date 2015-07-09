@@ -6,10 +6,8 @@ module ActionMailer
   class DeliveryJob < ActiveJob::Base # :nodoc:
     queue_as { ActionMailer::Base.deliver_later_queue_name }
 
-    def perform(mailer, mail_method, delivery_method, locale, *args) #:nodoc:
-      I18n.with_locale(locale) do
-        mailer.constantize.public_send(mail_method, *args).send(delivery_method)
-      end
+    def perform(mailer, mail_method, delivery_method, *args) #:nodoc:
+      mailer.constantize.public_send(mail_method, *args).send(delivery_method)
     end
   end
 end

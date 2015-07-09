@@ -154,7 +154,7 @@ behavior out of the box:
 
 * Making objects serializable
 
-  ActiveModel::Serialization provides a standard interface for your object
+  <tt>ActiveModel::Serialization</tt> provides a standard interface for your object
   to provide +to_json+ or +to_xml+ serialization.
 
     class SerialPerson

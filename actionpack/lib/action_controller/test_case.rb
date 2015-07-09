@@ -10,17 +10,42 @@ module ActionController
     DEFAULT_ENV = ActionDispatch::TestRequest::DEFAULT_ENV.dup
     DEFAULT_ENV.delete 'PATH_INFO'
 
-    def initialize(env = {})
-      super
+    def self.new_session
+      TestSession.new
+    end
 
-      self.session = TestSession.new
+    # Create a new test request with default `env` values
+    def self.create
+      env = {}
+      env = Rails.application.env_config.merge(env) if defined?(Rails.application) && Rails.application
+      env["rack.request.cookie_hash"] = {}.with_indifferent_access
+      new(default_env.merge(env), new_session)
+    end
+
+    def self.default_env
+      DEFAULT_ENV
+    end
+    private_class_method :default_env
+
+    def initialize(env, session)
+      super(env)
+
+      self.session = session
       self.session_options = TestSession::DEFAULT_OPTIONS
+    end
+
+    def query_parameters=(params)
+      @env["action_dispatch.request.query_parameters"] = params
+    end
+
+    def request_parameters=(params)
+      @env["action_dispatch.request.request_parameters"] = params
     end
 
     def assign_parameters(routes, controller_path, action, parameters = {})
       parameters = parameters.symbolize_keys
       extra_keys = routes.extra_keys(parameters.merge(:controller => controller_path, :action => action))
-      non_path_parameters = get? ? query_parameters : request_parameters
+      non_path_parameters = {}.with_indifferent_access
 
       parameters.each do |key, value|
         if value.is_a?(Array) && (value.frozen? || value.any?(&:frozen?))
@@ -44,6 +69,12 @@ module ActionController
         end
       end
 
+      if get?
+        self.query_parameters = non_path_parameters
+      else
+        self.request_parameters = non_path_parameters
+      end
+
       path_parameters[:controller] = controller_path
       path_parameters[:action] = action
 
@@ -57,43 +88,12 @@ module ActionController
       @env['CONTENT_LENGTH'] = data.length.to_s
       @env['rack.input'] = StringIO.new(data)
     end
-
-    def recycle!
-      @formats = nil
-      @env.delete_if { |k, v| k =~ /^(action_dispatch|rack)\.request/ }
-      @env.delete_if { |k, v| k =~ /^action_dispatch\.rescue/ }
-      @method = @request_method = nil
-      @fullpath = @ip = @remote_ip = @protocol = nil
-      @env['action_dispatch.request.query_parameters'] = {}
-      @set_cookies ||= {}
-      @set_cookies.update(Hash[cookie_jar.instance_variable_get("@set_cookies").map{ |k,o| [k,o[:value]] }])
-      deleted_cookies = cookie_jar.instance_variable_get("@delete_cookies")
-      @set_cookies.reject!{ |k,v| deleted_cookies.include?(k) }
-      cookie_jar.update(rack_cookies)
-      cookie_jar.update(cookies)
-      cookie_jar.update(@set_cookies)
-      cookie_jar.recycle!
-    end
-
-    private
-
-    def default_env
-      DEFAULT_ENV
-    end
   end
 
   class TestResponse < ActionDispatch::TestResponse
-    def recycle!
-      initialize
-    end
   end
 
   class LiveTestResponse < Live::Response
-    def recycle!
-      @body = nil
-      initialize
-    end
-
     def body
       @body ||= super
     end
@@ -317,7 +317,9 @@ module ActionController
       # Note that the request method is not verified. The different methods are
       # available to make the tests more expressive.
       def get(action, *args)
-        process_with_kwargs("GET", action, *args)
+        res = process_with_kwargs("GET", action, *args)
+        cookies.update res.cookies
+        res
       end
 
       # Simulate a POST request with the given parameters and set/volley the response.
@@ -451,8 +453,13 @@ module ActionController
           @controller.extend(Testing::Functional)
         end
 
-        @request.recycle!
-        @response.recycle!
+        self.cookies.update @request.cookies
+        @request.env['HTTP_COOKIE'] = cookies.to_header
+        @request.env['action_dispatch.cookies'] = nil
+
+        @request          = TestRequest.new scrub_env!(@request.env), @request.session
+        @response         = build_response @response_klass
+        @response.request = @request
         @controller.recycle!
 
         @request.env['REQUEST_METHOD'] = http_method
@@ -479,9 +486,12 @@ module ActionController
         @controller.recycle!
         @controller.process(action)
 
+        @request.env.delete 'HTTP_COOKIE'
+
         if cookies = @request.env['action_dispatch.cookies']
           unless @response.committed?
             cookies.write(@response)
+            self.cookies.update(cookies.instance_variable_get(:@cookies))
           end
         end
         @response.prepare!
@@ -503,11 +513,11 @@ module ActionController
       def setup_controller_request_and_response
         @controller = nil unless defined? @controller
 
-        response_klass = TestResponse
+        @response_klass = TestResponse
 
         if klass = self.class.controller_class
           if klass < ActionController::Live
-            response_klass = LiveTestResponse
+            @response_klass = LiveTestResponse
           end
           unless @controller
             begin
@@ -518,18 +528,14 @@ module ActionController
           end
         end
 
-        @request          = build_request
-        @response         = build_response response_klass
+        @request          = TestRequest.create
+        @response         = build_response @response_klass
         @response.request = @request
 
         if @controller
           @controller.request = @request
           @controller.params = {}
         end
-      end
-
-      def build_request
-        TestRequest.new
       end
 
       def build_response(klass)
@@ -544,6 +550,13 @@ module ActionController
       end
 
       private
+
+      def scrub_env!(env)
+        env.delete_if { |k, v| k =~ /^(action_dispatch|rack)\.request/ }
+        env.delete_if { |k, v| k =~ /^action_dispatch\.rescue/ }
+        env['action_dispatch.request.query_parameters'] = {}
+        env
+      end
 
       def process_with_kwargs(http_method, action, *args)
         if kwarg_request?(args)

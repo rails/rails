@@ -1,11 +1,7 @@
 require 'abstract_unit'
 require 'stringio'
 
-class ActionController::TestRequestTest < ActiveSupport::TestCase
-
-  def setup
-    @request = ActionController::TestRequest.new
-  end
+class ActionController::TestRequestTest < ActionController::TestCase
 
   def test_test_request_has_session_options_initialized
     assert @request.session_options

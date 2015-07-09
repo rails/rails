@@ -137,6 +137,21 @@ module ActionView
       # The automatic cache multi read can be turned off like so:
       #
       #   <%= render @notifications, cache: false %>
+      #
+      # === Explicit Collection Caching
+      #
+      # If the partial template doesn't start with a clean cache call as
+      # mentioned above, you can still benefit from collection caching by
+      # adding a special comment format anywhere in the template, like:
+      #
+      #   <%# Template Collection: notification %>
+      #   <% my_helper_that_calls_cache(some_arg, notification) do %>
+      #     <%= notification.name %>
+      #   <% end %>
+      #
+      # The pattern used to match these is <tt>/# Template Collection: (\S+)/</tt>,
+      # so it's important that you type it out just so.
+      # You can only declare one collection in a partial template file.
       def cache(name = {}, options = {}, &block)
         if controller.respond_to?(:perform_caching) && controller.perform_caching
           safe_concat(fragment_for(cache_fragment_name(name, options), options, &block))

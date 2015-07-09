@@ -757,9 +757,8 @@ class FilterTest < ActionController::TestCase
 
   def test_dynamic_dispatch
     %w(foo bar baz).each do |action|
-      request = ActionController::TestRequest.new
-      request.query_parameters[:choose] = action
-      response = DynamicDispatchController.action(action).call(request.env).last
+      @request.query_parameters[:choose] = action
+      response = DynamicDispatchController.action(action).call(@request.env).last
       assert_equal action, response.body
     end
   end
@@ -839,8 +838,6 @@ class FilterTest < ActionController::TestCase
   private
     def test_process(controller, action = "show")
       @controller = controller.is_a?(Class) ? controller.new : controller
-      @request    = ActionController::TestRequest.new
-      @response   = ActionController::TestResponse.new
 
       process(action)
     end

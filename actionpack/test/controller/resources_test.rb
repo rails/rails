@@ -1207,8 +1207,6 @@ class ResourcesTest < ActionController::TestCase
 
       @controller = "#{options[:options][:controller].camelize}Controller".constantize.new
       @controller.singleton_class.include(@routes.url_helpers)
-      @request    = ActionController::TestRequest.new
-      @response   = ActionController::TestResponse.new
       get :index, params: options[:options]
       options[:options].delete :action
 
@@ -1277,8 +1275,6 @@ class ResourcesTest < ActionController::TestCase
       (options[:options] ||= {})[:controller] ||= singleton_name.to_s.pluralize
       @controller = "#{options[:options][:controller].camelize}Controller".constantize.new
       @controller.singleton_class.include(@routes.url_helpers)
-      @request    = ActionController::TestRequest.new
-      @response   = ActionController::TestResponse.new
       get :show, params: options[:options]
       options[:options].delete :action
 

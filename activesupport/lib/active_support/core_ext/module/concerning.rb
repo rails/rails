@@ -99,7 +99,7 @@ class Module
   #   end
   #
   #   Todo.ancestors
-  #   # => Todo, Todo::EventTracking, Object
+  #   # => [Todo, Todo::EventTracking, Object]
   #
   # This small step has some wonderful ripple effects. We can
   # * grok the behavior of our class in one glance,
