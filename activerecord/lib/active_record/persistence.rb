@@ -100,15 +100,15 @@ module ActiveRecord
       !(@new_record || @destroyed)
     end
 
-    # Saves the model.
-    #
-    # If the model is new a record gets created in the database, otherwise
-    # the existing record gets updated.
+    # Attempts to save the model.
     #
     # By default, save always run validations. If any of them fail the action
     # is cancelled and +save+ returns +false+. However, if you supply
     # validate: false, validations are bypassed altogether. See
     # ActiveRecord::Validations for more information.
+    #
+    # If the model is new a record gets created in the database, otherwise
+    # the existing record gets updated.
     #
     # By default, #save also sets the +updated_at+/+updated_on+ attributes to
     # the current time. However, if you supply <tt>touch: false</tt>, these
