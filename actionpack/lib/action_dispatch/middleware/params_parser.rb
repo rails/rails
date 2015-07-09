@@ -27,18 +27,18 @@ module ActionDispatch
 
     def call(env)
       default = env["action_dispatch.request.request_parameters"]
-      env["action_dispatch.request.request_parameters"] = parse_formatted_parameters(env, default)
+      env["action_dispatch.request.request_parameters"] = parse_formatted_parameters(env, @parsers, default)
 
       @app.call(env)
     end
 
     private
-      def parse_formatted_parameters(env, default)
+      def parse_formatted_parameters(env, parsers, default)
         request = Request.new(env)
 
         return default if request.content_length.zero?
 
-        strategy = @parsers.fetch(request.content_mime_type) { return default }
+        strategy = parsers.fetch(request.content_mime_type) { return default }
 
         strategy.call(request.raw_post)
 
