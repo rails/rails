@@ -16,7 +16,7 @@ module ActionCable
     #    # Client-side coffescript which assumes you've already requested the right to send web notifications
     #    App.cable.subscriptions.create "WebNotificationsChannel",
     #      received: (data) ->
-    #       web_notification = new Notification data['title'], body: data['body']
+    #        new Notification data['title'], body: data['body']
     module Broadcasting
       # Broadcast a hash directly to a named <tt>broadcasting</tt>. It'll automatically be JSON encoded.
       def broadcast(broadcasting, message)
