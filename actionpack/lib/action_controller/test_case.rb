@@ -74,8 +74,36 @@ module ActionController
           self.query_string = non_path_parameters.to_query
         end
       else
-        @env['action_dispatch.request.query_parameters'] = {}
-        self.request_parameters = non_path_parameters
+        if ENCODER.should_multipart?(non_path_parameters)
+          @env['CONTENT_TYPE'] = ENCODER.content_type
+          data = ENCODER.build_multipart non_path_parameters
+          @env['CONTENT_LENGTH'] = data.length.to_s
+          @env['rack.input'] = StringIO.new(data)
+        else
+          @env['CONTENT_TYPE'] ||= 'application/x-www-form-urlencoded'
+
+          # FIXME: setting `request_parametes` is normally handled by the
+          # params parser middleware, and we should remove this roundtripping
+          # when we switch to caling `call` on the controller
+
+          case content_mime_type.ref
+          when :json
+            data = ActiveSupport::JSON.encode(non_path_parameters)
+            params = ActiveSupport::JSON.decode(data).with_indifferent_access
+            self.request_parameters = params
+          when :xml
+            data = non_path_parameters.to_xml
+            params = Hash.from_xml(data)['hash']
+            self.request_parameters = params
+          when :url_encoded_form
+            data = non_path_parameters.to_query
+          else
+            raise "Unknown Content-Type: #{content_type}"
+          end
+
+          @env['CONTENT_LENGTH'] = data.length.to_s
+          @env['rack.input'] = StringIO.new(data)
+        end
       end
 
       path_parameters[:controller] = controller_path
@@ -87,10 +115,34 @@ module ActionController
       # Clear the filter cache variables so they're not stale
       @filtered_parameters = @filtered_env = @filtered_path = nil
 
-      data = request_parameters.to_query
-      @env['CONTENT_LENGTH'] = data.length.to_s
-      @env['rack.input'] = StringIO.new(data)
     end
+
+    ENCODER = Class.new do
+      include Rack::Test::Utils
+
+      def should_multipart?(params)
+        # FIXME: lifted from Rack-Test. We should push this separation upstream
+        multipart = false
+        query = lambda { |value|
+          case value
+          when Array
+            value.each(&query)
+          when Hash
+            value.values.each(&query)
+          when Rack::Test::UploadedFile
+            multipart = true
+          end
+        }
+        params.values.each(&query)
+        multipart
+      end
+
+      public :build_multipart
+
+      def content_type
+        "multipart/form-data; boundary=#{Rack::Test::MULTIPART_BOUNDARY}"
+      end
+    end.new
   end
 
   class TestResponse < ActionDispatch::TestResponse
@@ -559,6 +611,7 @@ module ActionController
         env.delete_if { |k, v| k =~ /^(action_dispatch|rack)\.request/ }
         env.delete_if { |k, v| k =~ /^action_dispatch\.rescue/ }
         env.delete 'action_dispatch.request.query_parameters'
+        env.delete 'action_dispatch.request.request_parameters'
         env
       end
 
