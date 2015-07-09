@@ -28,6 +28,6 @@ module ActionCable
 
   # Singleton instance of the server
   module_function def server
-    ActionCable::Server::Base.new
+    @server ||= ActionCable::Server::Base.new
   end
 end
