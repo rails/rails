@@ -74,10 +74,10 @@ The client-side needs to setup a consumer instance of this connection. That's do
 ```coffeescript
 # app/assets/javascripts/cable.coffee
 @App = {}
-App.cable = Cable.createConsumer "http://cable.example.com"
+App.cable = Cable.createConsumer "ws://cable.example.com"
 ```
 
-The http://cable.example.com address must point to your set of Action Cable servers, and it
+The ws://cable.example.com address must point to your set of Action Cable servers, and it
 must share a cookie namespace with the rest of the application (which may live under http://example.com).
 This ensures that the signed cookie will be correctly sent.
 
@@ -249,7 +249,7 @@ bundle exec puma -p 28080  cable/config.ru
 ```
 
 That'll start a cable server on port 28080. Remember to point your client-side setup against that using something like:
-`App.cable.createConsumer('http://basecamp.dev:28080')`.
+`App.cable.createConsumer('ws://basecamp.dev:28080')`.
 
 Note: We'll get all this abstracted properly when the framework is integrated into Rails.
 
