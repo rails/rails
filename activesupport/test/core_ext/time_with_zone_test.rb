@@ -482,22 +482,24 @@ class TimeWithZoneTest < ActiveSupport::TestCase
   end
 
   def test_method_missing_with_non_time_return_value
-    @twz.time.expects(:foo).returns('bar')
+    time = @twz.time
+    def time.foo; 'bar'; end
     assert_equal 'bar', @twz.foo
   end
 
   def test_date_part_value_methods
     twz = ActiveSupport::TimeWithZone.new(Time.utc(1999,12,31,19,18,17,500), @time_zone)
-    twz.expects(:method_missing).never
-    assert_equal 1999, twz.year
-    assert_equal 12, twz.month
-    assert_equal 31, twz.day
-    assert_equal 14, twz.hour
-    assert_equal 18, twz.min
-    assert_equal 17, twz.sec
-    assert_equal 500, twz.usec
-    assert_equal 5, twz.wday
-    assert_equal 365, twz.yday
+    assert_not_called(twz, :method_missing) do
+      assert_equal 1999, twz.year
+      assert_equal 12, twz.month
+      assert_equal 31, twz.day
+      assert_equal 14, twz.hour
+      assert_equal 18, twz.min
+      assert_equal 17, twz.sec
+      assert_equal 500, twz.usec
+      assert_equal 5, twz.wday
+      assert_equal 365, twz.yday
+    end
   end
 
   def test_usec_returns_0_when_datetime_is_wrapped

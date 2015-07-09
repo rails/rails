@@ -133,37 +133,42 @@ class CacheStoreSettingTest < ActiveSupport::TestCase
   end
 
   def test_mem_cache_fragment_cache_store
-    Dalli::Client.expects(:new).with(%w[localhost], {})
-    store = ActiveSupport::Cache.lookup_store :mem_cache_store, "localhost"
-    assert_kind_of(ActiveSupport::Cache::MemCacheStore, store)
+    assert_called_with(Dalli::Client, :new, [%w[localhost], {}]) do
+      store = ActiveSupport::Cache.lookup_store :mem_cache_store, "localhost"
+      assert_kind_of(ActiveSupport::Cache::MemCacheStore, store)
+    end
   end
 
   def test_mem_cache_fragment_cache_store_with_given_mem_cache
     mem_cache = Dalli::Client.new
-    Dalli::Client.expects(:new).never
-    store = ActiveSupport::Cache.lookup_store :mem_cache_store, mem_cache
-    assert_kind_of(ActiveSupport::Cache::MemCacheStore, store)
+    assert_not_called(Dalli::Client, :new) do
+      store = ActiveSupport::Cache.lookup_store :mem_cache_store, mem_cache
+      assert_kind_of(ActiveSupport::Cache::MemCacheStore, store)
+    end
   end
 
   def test_mem_cache_fragment_cache_store_with_not_dalli_client
-    Dalli::Client.expects(:new).never
-    memcache = Object.new
-    assert_raises(ArgumentError) do
-      ActiveSupport::Cache.lookup_store :mem_cache_store, memcache
+    assert_not_called(Dalli::Client, :new) do
+      memcache = Object.new
+      assert_raises(ArgumentError) do
+        ActiveSupport::Cache.lookup_store :mem_cache_store, memcache
+      end
     end
   end
 
   def test_mem_cache_fragment_cache_store_with_multiple_servers
-    Dalli::Client.expects(:new).with(%w[localhost 192.168.1.1], {})
-    store = ActiveSupport::Cache.lookup_store :mem_cache_store, "localhost", '192.168.1.1'
-    assert_kind_of(ActiveSupport::Cache::MemCacheStore, store)
+    assert_called_with(Dalli::Client, :new, [%w[localhost 192.168.1.1], {}]) do
+      store = ActiveSupport::Cache.lookup_store :mem_cache_store, "localhost", '192.168.1.1'
+      assert_kind_of(ActiveSupport::Cache::MemCacheStore, store)
+    end
   end
 
   def test_mem_cache_fragment_cache_store_with_options
-    Dalli::Client.expects(:new).with(%w[localhost 192.168.1.1], { :timeout => 10 })
-    store = ActiveSupport::Cache.lookup_store :mem_cache_store, "localhost", '192.168.1.1', :namespace => 'foo', :timeout => 10
-    assert_kind_of(ActiveSupport::Cache::MemCacheStore, store)
-    assert_equal 'foo', store.options[:namespace]
+    assert_called_with(Dalli::Client, :new, [%w[localhost 192.168.1.1], { :timeout => 10 }]) do
+      store = ActiveSupport::Cache.lookup_store :mem_cache_store, "localhost", '192.168.1.1', :namespace => 'foo', :timeout => 10
+      assert_kind_of(ActiveSupport::Cache::MemCacheStore, store)
+      assert_equal 'foo', store.options[:namespace]
+    end
   end
 
   def test_object_assigned_fragment_cache_store
@@ -224,13 +229,15 @@ module CacheStoreBehavior
 
   def test_fetch_without_cache_miss
     @cache.write('foo', 'bar')
-    @cache.expects(:write).never
-    assert_equal 'bar', @cache.fetch('foo') { 'baz' }
+    assert_not_called(@cache, :write) do
+      assert_equal 'bar', @cache.fetch('foo') { 'baz' }
+    end
   end
 
   def test_fetch_with_cache_miss
-    @cache.expects(:write).with('foo', 'baz', @cache.options)
-    assert_equal 'baz', @cache.fetch('foo') { 'baz' }
+    assert_called_with(@cache, :write, ['foo', 'baz', @cache.options]) do
+      assert_equal 'baz', @cache.fetch('foo') { 'baz' }
+    end
   end
 
   def test_fetch_with_cache_miss_passes_key_to_block
@@ -245,15 +252,18 @@ module CacheStoreBehavior
 
   def test_fetch_with_forced_cache_miss
     @cache.write('foo', 'bar')
-    @cache.expects(:read).never
-    @cache.expects(:write).with('foo', 'bar', @cache.options.merge(:force => true))
-    @cache.fetch('foo', :force => true) { 'bar' }
+    assert_not_called(@cache, :read) do
+      assert_called_with(@cache, :write, ['foo', 'bar', @cache.options.merge(:force => true)]) do
+        @cache.fetch('foo', :force => true) { 'bar' }
+      end
+    end
   end
 
   def test_fetch_with_cached_nil
     @cache.write('foo', nil)
-    @cache.expects(:write).never
-    assert_nil @cache.fetch('foo') { 'baz' }
+    assert_not_called(@cache, :write) do
+      assert_nil @cache.fetch('foo') { 'baz' }
+    end
   end
 
   def test_should_read_and_write_hash
@@ -304,8 +314,9 @@ module CacheStoreBehavior
   end
 
   def test_multi_with_objects
-    foo = stub(:title => 'FOO!', :cache_key => 'foo')
-    bar = stub(:cache_key => 'bar')
+    cache_struct = Struct.new(:cache_key, :title)
+    foo = cache_struct.new('foo', 'FOO!')
+    bar = cache_struct.new('bar')
 
     @cache.write('bar', 'BAM!')
 
@@ -774,9 +785,10 @@ class FileStoreTest < ActiveSupport::TestCase
   end
 
   def test_log_exception_when_cache_read_fails
-    File.expects(:exist?).raises(StandardError, "failed")
-    @cache.send(:read_entry, "winston", {})
-    assert @buffer.string.present?
+    File.stub(:exist?, -> { raise StandardError.new("failed") }) do
+      @cache.send(:read_entry, "winston", {})
+      assert @buffer.string.present?
+    end
   end
 
   def test_cleanup_removes_all_expired_entries

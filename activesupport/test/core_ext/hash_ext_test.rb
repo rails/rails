@@ -961,10 +961,11 @@ class HashExtTest < ActiveSupport::TestCase
     assert_raise(RuntimeError) { original.except!(:a) }
   end
 
-  def test_except_with_mocha_expectation_on_original
+  def test_except_does_not_delete_values_in_original
     original = { :a => 'x', :b => 'y' }
-    original.expects(:delete).never
-    original.except(:a)
+    assert_not_called(original, :delete) do
+      original.except(:a)
+    end
   end
 
   def test_compact
