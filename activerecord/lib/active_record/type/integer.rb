@@ -17,8 +17,7 @@ module ActiveRecord
       end
 
       def deserialize(value)
-        return if value.nil?
-        value.to_i
+        cast_value(value)
       end
 
       def serialize(value)
