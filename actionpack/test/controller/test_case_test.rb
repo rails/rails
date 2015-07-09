@@ -908,7 +908,7 @@ XML
     filename = 'mona_lisa.jpg'
     path = "#{FILES_DIR}/#{filename}"
     assert_deprecated {
-      post :test_file_upload, file: ActionDispatch::Http::UploadedFile.new(filename: path, type: "image/jpg", tempfile: File.open(path))
+      post :test_file_upload, file: Rack::Test::UploadedFile.new(path, "image/jpg", true)
     }
     assert_equal '159528', @response.body
   end
@@ -917,7 +917,7 @@ XML
     filename = 'mona_lisa.jpg'
     path = "#{FILES_DIR}/#{filename}"
     post :test_file_upload, params: {
-      file: ActionDispatch::Http::UploadedFile.new(filename: path, type: "image/jpg", tempfile: File.open(path))
+      file: Rack::Test::UploadedFile.new(path, "image/jpg", true)
     }
     assert_equal '159528', @response.body
   end
