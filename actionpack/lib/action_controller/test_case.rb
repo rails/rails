@@ -506,7 +506,7 @@ module ActionController
         @controller.request  = @request
         @controller.response = @response
 
-        build_request_uri(controller_class_name, action, parameters)
+        @request.env["SCRIPT_NAME"] ||= @controller.config.relative_url_root
 
         @controller.recycle!
         @controller.process(action)
@@ -629,10 +629,6 @@ module ActionController
             raise "#{iv_name} is nil: make sure you set it in your test's setup method."
           end
         end
-      end
-
-      def build_request_uri(controller_class_name, action, parameters)
-        @request.env["SCRIPT_NAME"] ||= @controller.config.relative_url_root
       end
 
       def html_format?(parameters)
