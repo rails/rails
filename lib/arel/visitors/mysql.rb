@@ -40,7 +40,7 @@ module Arel
       # http://dev.mysql.com/doc/refman/5.0/en/select.html#id3482214
       def visit_Arel_Nodes_SelectStatement o, collector
         if o.offset && !o.limit
-          o.limit = Arel::Nodes::Limit.new(Nodes.build_quoted(18446744073709551615))
+          o.limit = Arel::Nodes::Limit.new(18446744073709551615)
         end
         super
       end
