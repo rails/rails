@@ -632,18 +632,6 @@ module ActionController
       end
 
       def build_request_uri(controller_class_name, action, parameters)
-        unless @request.env["PATH_INFO"]
-          options = @controller.respond_to?(:url_options) ? @controller.__send__(:url_options).merge(parameters) : parameters
-          options.update(
-            :controller => controller_class_name,
-            :action => action,
-            :relative_url_root => nil,
-            :_recall => @request.path_parameters)
-
-          url, = @routes.path_for(options).split("?", 2)
-
-          @request.env["PATH_INFO"] = url
-        end
         @request.env["SCRIPT_NAME"] ||= @controller.config.relative_url_root
       end
 
