@@ -69,8 +69,6 @@ module ActionController
         if ENCODER.should_multipart?(non_path_parameters)
           @env['CONTENT_TYPE'] = ENCODER.content_type
           data = ENCODER.build_multipart non_path_parameters
-          @env['CONTENT_LENGTH'] = data.length.to_s
-          @env['rack.input'] = StringIO.new(data)
         else
           @env['CONTENT_TYPE'] ||= 'application/x-www-form-urlencoded'
 
@@ -92,10 +90,10 @@ module ActionController
           else
             raise "Unknown Content-Type: #{content_type}"
           end
-
-          @env['CONTENT_LENGTH'] = data.length.to_s
-          @env['rack.input'] = StringIO.new(data)
         end
+
+        @env['CONTENT_LENGTH'] = data.length.to_s
+        @env['rack.input'] = StringIO.new(data)
       end
 
       path_parameters[:controller] = controller_path
