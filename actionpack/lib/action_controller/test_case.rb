@@ -414,19 +414,6 @@ module ActionController
       end
       alias xhr :xml_http_request
 
-      def paramify_values(hash_or_array_or_value)
-        case hash_or_array_or_value
-        when Hash
-          Hash[hash_or_array_or_value.map{|key, value| [key, paramify_values(value)] }]
-        when Array
-          hash_or_array_or_value.map {|i| paramify_values(i)}
-        when Rack::Test::UploadedFile, ActionDispatch::Http::UploadedFile
-          hash_or_array_or_value
-        else
-          hash_or_array_or_value.to_param
-        end
-      end
-
       # Simulate a HTTP request to +action+ by specifying request method,
       # parameters and set/volley the response.
       #
@@ -485,10 +472,6 @@ module ActionController
         end
 
         parameters ||= {}
-
-        # Ensure that numbers and symbols passed as params are converted to
-        # proper params, as is the case when engaging rack.
-        parameters = paramify_values(parameters) if html_format?(parameters)
 
         if format.present?
           parameters[:format] = format
