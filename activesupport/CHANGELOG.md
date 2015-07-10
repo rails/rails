@@ -1,3 +1,7 @@
+*   Fix setting `default_proc` on `HashWithIndifferentAccess#dup`
+
+    *Simon Eskildsen*
+
 *   Fix a range of values for parameters of the Time#change
 
     *Nikolay Kondratyev*

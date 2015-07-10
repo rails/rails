@@ -998,6 +998,23 @@ class HashExtTest < ActiveSupport::TestCase
     assert hash.key?('a')
     assert_equal 1, hash[:a]
   end
+
+  def test_dup_with_default_proc
+    hash = HashWithIndifferentAccess.new
+    hash.default_proc = proc { |h, v| raise "walrus" }
+    assert_nothing_raised { hash.dup }
+  end
+
+  def test_dup_with_default_proc_sets_proc
+    hash = HashWithIndifferentAccess.new
+    hash.default_proc = proc { |h, k| k + 1 }
+    new_hash = hash.dup
+
+    assert_equal 3, new_hash[2]
+
+    new_hash.default = 2
+    assert_equal 2, new_hash[:non_existant]
+  end
 end
 
 class IWriteMyOwnXML

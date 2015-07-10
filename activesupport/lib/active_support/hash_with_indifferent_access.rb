@@ -188,7 +188,7 @@ module ActiveSupport
     #   dup[:a][:c]  # => "c"
     def dup
       self.class.new(self).tap do |new_hash|
-        new_hash.default = default
+        set_defaults(new_hash)
       end
     end
 
@@ -273,6 +273,14 @@ module ActiveSupport
           value.map! { |e| convert_value(e, options) }
         else
           value
+        end
+      end
+
+      def set_defaults(target)
+        if default_proc
+          target.default_proc = default_proc.dup
+        else
+          target.default = default
         end
       end
   end
