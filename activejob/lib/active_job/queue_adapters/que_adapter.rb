@@ -16,9 +16,7 @@ module ActiveJob
     #   Rails.application.config.active_job.queue_adapter = :que
     class QueAdapter
       def enqueue(job) #:nodoc:
-        que_job = JobWrapper.enqueue job.serialize
-        job.provider_job_id = que_job.attrs["job_id"]
-        que_job
+        enqueue_at(job, Time.now)
       end
 
       def enqueue_at(job, timestamp) #:nodoc:
