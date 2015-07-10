@@ -45,7 +45,7 @@ module ActionController
     def assign_parameters(routes, controller_path, action, parameters = {})
       parameters = parameters.symbolize_keys
       extra_keys = routes.extra_keys(parameters.merge(:controller => controller_path, :action => action))
-      non_path_parameters = {}.with_indifferent_access
+      non_path_parameters = {}
 
       parameters.each do |key, value|
         if extra_keys.include?(key) || key == :action || key == :controller
