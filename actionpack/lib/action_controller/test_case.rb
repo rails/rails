@@ -641,9 +641,9 @@ module ActionController
 
           url, = @routes.path_for(options).split("?", 2)
 
-          @request.env["SCRIPT_NAME"] = @controller.config.relative_url_root
           @request.env["PATH_INFO"] = url
         end
+        @request.env["SCRIPT_NAME"] ||= @controller.config.relative_url_root
       end
 
       def html_format?(parameters)
