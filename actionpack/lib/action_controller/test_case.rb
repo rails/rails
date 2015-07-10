@@ -44,7 +44,7 @@ module ActionController
 
     def assign_parameters(routes, controller_path, action, parameters = {})
       parameters = parameters.symbolize_keys
-      extra_keys = routes.extra_keys(parameters.merge(:controller => controller_path, :action => action))
+      generated_path, extra_keys = routes.generate_extras(parameters.merge(:controller => controller_path, :action => action))
       non_path_parameters = {}
       path_parameters = {}
 
@@ -97,6 +97,7 @@ module ActionController
         @env['rack.input'] = StringIO.new(data)
       end
 
+      @env["PATH_INFO"] ||= generated_path
       path_parameters[:controller] = controller_path
       path_parameters[:action] = action
 
