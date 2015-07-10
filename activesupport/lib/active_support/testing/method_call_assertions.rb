@@ -15,7 +15,12 @@ module ActiveSupport
 
         def assert_called_with(object, method_name, args = [], returns: nil)
           mock = Minitest::Mock.new
-          mock.expect(:call, returns, args)
+
+          if args.all? { |arg| arg.is_a?(Array) }
+            args.each { |arg| mock.expect(:call, returns, arg) }
+          else
+            mock.expect(:call, returns, args)
+          end
 
           object.stub(method_name, mock) { yield }
 
