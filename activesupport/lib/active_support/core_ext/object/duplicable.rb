@@ -19,7 +19,7 @@
 class Object
   # Can you safely dup this object?
   #
-  # False for +nil+, +false+, +true+, symbol, number objects;
+  # False for +nil+, +false+, +true+, symbol, number, method objects;
   # true otherwise.
   def duplicable?
     true
@@ -78,6 +78,10 @@ end
 
 require 'bigdecimal'
 class BigDecimal
+  # BigDecimals are duplicable:
+  #
+  # BigDecimal.new("1.2").duplicable? # => true
+  # BigDecimal.new("1.2").dup # => #<BigDecimal:7f9d698eee10,'0.12E1',18(18)>
   def duplicable?
     true
   end
