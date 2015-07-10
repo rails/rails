@@ -48,14 +48,6 @@ module ActionController
       non_path_parameters = {}.with_indifferent_access
 
       parameters.each do |key, value|
-        if value.is_a?(Array) && (value.frozen? || value.any?(&:frozen?))
-          value = value.map{ |v| v.duplicable? ? v.dup : v }
-        elsif value.is_a?(Hash) && (value.frozen? || value.any?{ |k,v| v.frozen? })
-          value = Hash[value.map{ |k,v| [k, v.duplicable? ? v.dup : v] }]
-        elsif value.frozen? && value.duplicable?
-          value = value.dup
-        end
-
         if extra_keys.include?(key) || key == :action || key == :controller
           non_path_parameters[key] = value
         else
