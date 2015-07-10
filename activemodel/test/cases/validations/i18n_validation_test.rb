@@ -11,7 +11,6 @@ class I18nValidationTest < ActiveModel::TestCase
     I18n.load_path.clear
     I18n.backend = I18n::Backend::Simple.new
     I18n.backend.store_translations('en', errors: { messages: { custom: nil } })
-    @mock_generator = MiniTest::Mock.new
   end
 
   def teardown
@@ -19,7 +18,6 @@ class I18nValidationTest < ActiveModel::TestCase
     I18n.load_path.replace @old_load_path
     I18n.backend = @old_backend
     I18n.backend.reload!
-    @mock_generator.verify
   end
 
   def test_full_message_encoding
@@ -32,8 +30,7 @@ class I18nValidationTest < ActiveModel::TestCase
 
   def test_errors_full_messages_translates_human_attribute_name_for_model_attributes
     @person.errors.add(:name, 'not found')
-    @mock_generator.expect(:call, "Person's name", [:name, default: 'Name'])
-    Person.stub(:human_attribute_name, @mock_generator) do
+    assert_called_with(Person, :human_attribute_name, [:name, default: 'Name'], returns: "Person's name") do
       assert_equal ["Person's name not found"], @person.errors.full_messages
     end
   end
@@ -64,8 +61,8 @@ class I18nValidationTest < ActiveModel::TestCase
     test "validates_confirmation_of on generated message #{name}" do
       Person.validates_confirmation_of :title, validation_options
       @person.title_confirmation = 'foo'
-      @mock_generator.expect(:call, nil, [:title_confirmation, :confirmation, generate_message_options.merge(attribute: 'Title')])
-      @person.errors.stub(:generate_message, @mock_generator) do
+      call = [:title_confirmation, :confirmation, generate_message_options.merge(attribute: 'Title')]
+      assert_called_with(@person.errors, :generate_message, call) do
         @person.valid?
       end
     end
@@ -76,8 +73,8 @@ class I18nValidationTest < ActiveModel::TestCase
   COMMON_CASES.each do |name, validation_options, generate_message_options|
     test "validates_acceptance_of on generated message #{name}" do
       Person.validates_acceptance_of :title, validation_options.merge(allow_nil: false)
-      @mock_generator.expect(:call, nil, [:title, :accepted, generate_message_options])
-      @person.errors.stub(:generate_message, @mock_generator) do
+      call = [:title, :accepted, generate_message_options]
+      assert_called_with(@person.errors, :generate_message, call) do
         @person.valid?
       end
     end
@@ -88,8 +85,8 @@ class I18nValidationTest < ActiveModel::TestCase
   COMMON_CASES.each do |name, validation_options, generate_message_options|
     test "validates_presence_of on generated message #{name}" do
       Person.validates_presence_of :title, validation_options
-      @mock_generator.expect(:call, nil, [:title, :blank, generate_message_options])
-      @person.errors.stub(:generate_message, @mock_generator) do
+      call = [:title, :blank, generate_message_options]
+      assert_called_with(@person.errors, :generate_message, call) do
         @person.valid?
       end
     end
@@ -100,8 +97,8 @@ class I18nValidationTest < ActiveModel::TestCase
   COMMON_CASES.each do |name, validation_options, generate_message_options|
     test "validates_length_of for :within on generated message when too short #{name}" do
       Person.validates_length_of :title, validation_options.merge(within: 3..5)
-      @mock_generator.expect(:call, nil, [:title, :too_short, generate_message_options.merge(count: 3)])
-      @person.errors.stub(:generate_message, @mock_generator) do
+      call = [:title, :too_short, generate_message_options.merge(count: 3)]
+      assert_called_with(@person.errors, :generate_message, call) do
         @person.valid?
       end
     end
@@ -113,8 +110,8 @@ class I18nValidationTest < ActiveModel::TestCase
     test "validates_length_of for :too_long generated message #{name}" do
       Person.validates_length_of :title, validation_options.merge(within: 3..5)
       @person.title = 'this title is too long'
-      @mock_generator.expect(:call, nil, [:title, :too_long, generate_message_options.merge(count: 5)])
-      @person.errors.stub(:generate_message, @mock_generator) do
+      call = [:title, :too_long, generate_message_options.merge(count: 5)]
+      assert_called_with(@person.errors, :generate_message, ) do
         @person.valid?
       end
     end
@@ -125,8 +122,8 @@ class I18nValidationTest < ActiveModel::TestCase
   COMMON_CASES.each do |name, validation_options, generate_message_options|
     test "validates_length_of for :is on generated message #{name}" do
       Person.validates_length_of :title, validation_options.merge(is: 5)
-      @mock_generator.expect(:call, nil, [:title, :wrong_length, generate_message_options.merge(count: 5)])
-      @person.errors.stub(:generate_message, @mock_generator) do
+      call = [:title, :wrong_length, generate_message_options.merge(count: 5)]
+      assert_called_with(@person.errors, :generate_message, call) do
         @person.valid?
       end
     end
@@ -138,8 +135,8 @@ class I18nValidationTest < ActiveModel::TestCase
     test "validates_format_of on generated message #{name}" do
       Person.validates_format_of :title, validation_options.merge(with: /\A[1-9][0-9]*\z/)
       @person.title = '72x'
-      @mock_generator.expect(:call, nil, [:title, :invalid, generate_message_options.merge(value: '72x')])
-      @person.errors.stub(:generate_message, @mock_generator) do
+      call = [:title, :invalid, generate_message_options.merge(value: '72x')]
+      assert_called_with(@person.errors, :generate_message, call) do
         @person.valid?
       end
     end
@@ -151,8 +148,8 @@ class I18nValidationTest < ActiveModel::TestCase
     test "validates_inclusion_of on generated message #{name}" do
       Person.validates_inclusion_of :title, validation_options.merge(in: %w(a b c))
       @person.title = 'z'
-      @mock_generator.expect(:call, nil, [:title, :inclusion, generate_message_options.merge(value: 'z')])
-      @person.errors.stub(:generate_message, @mock_generator) do
+      call = [:title, :inclusion, generate_message_options.merge(value: 'z')]
+      assert_called_with(@person.errors, :generate_message, call) do
         @person.valid?
       end
     end
@@ -164,8 +161,8 @@ class I18nValidationTest < ActiveModel::TestCase
     test "validates_inclusion_of using :within on generated message #{name}" do
       Person.validates_inclusion_of :title, validation_options.merge(within: %w(a b c))
       @person.title = 'z'
-      @mock_generator.expect(:call, nil, [:title, :inclusion, generate_message_options.merge(value: 'z')])
-      @person.errors.stub(:generate_message, @mock_generator) do
+      call = [:title, :inclusion, generate_message_options.merge(value: 'z')]
+      assert_called_with(@person.errors, :generate_message, call) do
         @person.valid?
       end
     end
@@ -177,8 +174,8 @@ class I18nValidationTest < ActiveModel::TestCase
     test "validates_exclusion_of generated message #{name}" do
       Person.validates_exclusion_of :title, validation_options.merge(in: %w(a b c))
       @person.title = 'a'
-      @mock_generator.expect(:call, nil, [:title, :exclusion, generate_message_options.merge(value: 'a')])
-      @person.errors.stub(:generate_message, @mock_generator) do
+      call = [:title, :exclusion, generate_message_options.merge(value: 'a')]
+      assert_called_with(@person.errors, :generate_message, call) do
         @person.valid?
       end
     end
@@ -190,8 +187,8 @@ class I18nValidationTest < ActiveModel::TestCase
     test "validates_exclusion_of using :within generated message #{name}" do
       Person.validates_exclusion_of :title, validation_options.merge(within: %w(a b c))
       @person.title = 'a'
-      @mock_generator.expect(:call, nil, [:title, :exclusion, generate_message_options.merge(value: 'a')])
-      @person.errors.stub(:generate_message, @mock_generator) do
+      call = [:title, :exclusion, generate_message_options.merge(value: 'a')]
+      assert_called_with(@person.errors, :generate_message, call) do
         @person.valid?
       end
     end
@@ -203,8 +200,8 @@ class I18nValidationTest < ActiveModel::TestCase
     test "validates_numericality_of generated message #{name}" do
       Person.validates_numericality_of :title, validation_options
       @person.title = 'a'
-      @mock_generator.expect(:call, nil, [:title, :not_a_number, generate_message_options.merge(value: 'a')])
-      @person.errors.stub(:generate_message, @mock_generator) do
+      call = [:title, :not_a_number, generate_message_options.merge(value: 'a')]
+      assert_called_with(@person.errors, :generate_message, call) do
         @person.valid?
       end
     end
@@ -216,8 +213,8 @@ class I18nValidationTest < ActiveModel::TestCase
     test "validates_numericality_of for :only_integer on generated message #{name}" do
       Person.validates_numericality_of :title, validation_options.merge(only_integer: true)
       @person.title = '0.0'
-      @mock_generator.expect(:call, nil, [:title, :not_an_integer, generate_message_options.merge(value: '0.0')])
-      @person.errors.stub(:generate_message, @mock_generator) do
+      call = [:title, :not_an_integer, generate_message_options.merge(value: '0.0')]
+      assert_called_with(@person.errors, :generate_message, call) do
         @person.valid?
       end
     end
@@ -229,8 +226,8 @@ class I18nValidationTest < ActiveModel::TestCase
     test "validates_numericality_of for :odd on generated message #{name}" do
       Person.validates_numericality_of :title, validation_options.merge(only_integer: true, odd: true)
       @person.title = 0
-      @mock_generator.expect(:call, nil, [:title, :odd, generate_message_options.merge(value: 0)])
-      @person.errors.stub(:generate_message, @mock_generator) do
+      call = [:title, :odd, generate_message_options.merge(value: 0)]
+      assert_called_with(@person.errors, :generate_message, call) do
         @person.valid?
       end
     end
@@ -242,8 +239,8 @@ class I18nValidationTest < ActiveModel::TestCase
     test "validates_numericality_of for :less_than on generated message #{name}" do
       Person.validates_numericality_of :title, validation_options.merge(only_integer: true, less_than: 0)
       @person.title = 1
-      @mock_generator.expect(:call, nil, [:title, :less_than, generate_message_options.merge(value: 1, count: 0)])
-      @person.errors.stub(:generate_message, @mock_generator) do
+      call = [:title, :less_than, generate_message_options.merge(value: 1, count: 0)]
+      assert_called_with(@person.errors, :generate_message, call) do
         @person.valid?
       end
     end

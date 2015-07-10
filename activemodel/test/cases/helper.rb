@@ -11,6 +11,7 @@ ActiveSupport::Deprecation.debug = true
 I18n.enforce_available_locales = false
 
 require 'active_support/testing/autorun'
+require 'active_support/testing/method_call_assertions'
 
 require 'minitest/mock'
 
@@ -21,4 +22,8 @@ end
 # Skips the current run on JRuby using Minitest::Assertions#skip
 def jruby_skip(message = '')
   skip message if defined?(JRUBY_VERSION)
+end
+
+class ActiveModel::TestCase
+  include ActiveSupport::Testing::MethodCallAssertions
 end
