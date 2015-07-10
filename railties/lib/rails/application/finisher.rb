@@ -86,8 +86,10 @@ module Rails
       # added in the hook are taken into account.
       initializer :set_clear_dependencies_hook, group: :all do
         callback = lambda do
-          ActiveSupport::DescendantsTracker.clear
-          ActiveSupport::Dependencies.clear
+          ActiveSupport::Dependencies.interlock.attempt_loading do
+            ActiveSupport::DescendantsTracker.clear
+            ActiveSupport::Dependencies.clear
+          end
         end
 
         if config.reload_classes_only_on_change
