@@ -523,13 +523,11 @@ class HashExtTest < ActiveSupport::TestCase
     assert_equal 5, merged[:b]
   end
 
-  def test_reverse_merge
+  def test_indifferent_reverse_merging
     hash = HashWithIndifferentAccess.new key: :old_value
     hash.reverse_merge! key: :new_value
     assert_equal :old_value, hash[:key]
-  end
 
-  def test_indifferent_reverse_merging
     hash = HashWithIndifferentAccess.new('some' => 'value', 'other' => 'value')
     hash.reverse_merge!(:some => 'noclobber', :another => 'clobber')
     assert_equal 'value', hash[:some]
