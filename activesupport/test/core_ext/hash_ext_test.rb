@@ -1015,6 +1015,20 @@ class HashExtTest < ActiveSupport::TestCase
     new_hash.default = 2
     assert_equal 2, new_hash[:non_existant]
   end
+
+  def test_to_hash_with_raising_default_proc
+    hash = HashWithIndifferentAccess.new
+    hash.default_proc = proc { |h, k| raise "walrus" }
+
+    assert_nothing_raised { hash.to_hash }
+  end
+
+  def test_new_from_hash_copying_default_should_not_raise_when_default_proc_does
+    hash = Hash.new
+    hash.default_proc = proc { |h, k| raise "walrus" }
+
+    assert_nothing_raised { HashWithIndifferentAccess.new_from_hash_copying_default(hash) }
+  end
 end
 
 class IWriteMyOwnXML

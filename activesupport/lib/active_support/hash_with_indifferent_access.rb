@@ -247,7 +247,9 @@ module ActiveSupport
 
     # Convert to a regular hash with string keys.
     def to_hash
-      _new_hash = Hash.new(default)
+      _new_hash = Hash.new
+      set_defaults(_new_hash)
+
       each do |key, value|
         _new_hash[key] = convert_value(value, for: :to_hash)
       end
