@@ -46,6 +46,7 @@ module ActionController
       parameters = parameters.symbolize_keys
       extra_keys = routes.extra_keys(parameters.merge(:controller => controller_path, :action => action))
       non_path_parameters = {}
+      path_parameters = {}
 
       parameters.each do |key, value|
         if extra_keys.include?(key) || key == :action || key == :controller
@@ -99,12 +100,13 @@ module ActionController
       path_parameters[:controller] = controller_path
       path_parameters[:action] = action
 
+      self.path_parameters = path_parameters
+
       # Clear the combined params hash in case it was already referenced.
       @env.delete("action_dispatch.request.parameters")
 
       # Clear the filter cache variables so they're not stale
       @filtered_parameters = @filtered_env = @filtered_path = nil
-
     end
 
     ENCODER = Class.new do
