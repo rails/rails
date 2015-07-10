@@ -1,3 +1,13 @@
+*   Fix not calling `#default` on `HashWithIndifferentAcess#to_hash` when only
+    `default_proc` is set, which could raise.
+
+    *Simon Eskildsen*
+
+*   Fix setting `default_proc` on `HashWithIndifferentAccess#dup`
+
+    *Simon Eskildsen*
+
+
 ## Rails 4.2.3 (June 25, 2015) ##
 
 *   Fix a range of values for parameters of the Time#change
