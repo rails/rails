@@ -1,3 +1,10 @@
+*   Fix a `SystemStackError` when encoding an `Enumerable` with `json` gem and
+    with the Active Support JSON encoder loaded.
+
+    Fixes #20775.
+
+    *Sammy Larbi*, *Prathamesh Sonpatki*
+
 *   Fix not calling `#default` on `HashWithIndifferentAcess#to_hash` when only
     `default_proc` is set, which could raise.
 
