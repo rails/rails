@@ -20,29 +20,43 @@ class JsonGemEncodingTest < ActiveSupport::TestCase
 
   JSONTest::EncodingTestCases.constants.each_with_index do |name|
     JSONTest::EncodingTestCases.const_get(name).each_with_index do |(subject, _), i|
-      test("test #{name[0..-6].underscore} #{i}") do
-        begin
-          expected = JSON.generate(subject, quirks_mode: true)
-        rescue JSON::GeneratorError => e
-          exception = e
-        end
-
-        require_or_skip 'active_support/core_ext/object/json'
-
-        if exception
-          assert_raises_with_message JSON::GeneratorError, e.message do
-            JSON.generate(subject, quirks_mode: true)
-          end
-        else
-          assert_equal expected, JSON.generate(subject, quirks_mode: true)
-        end
+      test("#{name[0..-6].underscore} #{i}") do
+        assert_same_with_or_without_active_support(subject)
       end
     end
+  end
+
+  class CustomToJson
+    def to_json(*)
+      '"custom"'
+    end
+  end
+
+  test "custom to_json" do
+    assert_same_with_or_without_active_support(CustomToJson.new)
   end
 
   private
     def require_or_skip(file)
       require(file) || skip("'#{file}' was already loaded")
+    end
+
+    def assert_same_with_or_without_active_support(subject)
+      begin
+        expected = JSON.generate(subject, quirks_mode: true)
+      rescue JSON::GeneratorError => e
+        exception = e
+      end
+
+      require_or_skip 'active_support/core_ext/object/json'
+
+      if exception
+        assert_raises_with_message JSON::GeneratorError, e.message do
+          JSON.generate(subject, quirks_mode: true)
+        end
+      else
+        assert_equal expected, JSON.generate(subject, quirks_mode: true)
+      end
     end
 
     def assert_raises_with_message(exception_class, message, &block)
