@@ -1,4 +1,4 @@
-*   Fix not calling `#default` on `HashWithIndifferentAcess#to_hash` when only
+*   Fix not calling `#default` on `HashWithIndifferentAccess#to_hash` when only
     `default_proc` is set, which could raise.
 
     *Simon Eskildsen*
