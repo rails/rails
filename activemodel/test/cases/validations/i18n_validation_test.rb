@@ -55,7 +55,7 @@ class I18nValidationTest < ActiveModel::TestCase
     [ "given option that is not reserved", { format: "jpg" },             { format: "jpg" }]
   ]
 
-  # validates_confirmation_of w/ mocha
+  # validates_confirmation_of w/ mocks
 
   COMMON_CASES.each do |name, validation_options, generate_message_options|
     test "validates_confirmation_of on generated message #{name}" do
@@ -68,7 +68,7 @@ class I18nValidationTest < ActiveModel::TestCase
     end
   end
 
-  # validates_acceptance_of w/ mocha
+  # validates_acceptance_of w/ mocks
 
   COMMON_CASES.each do |name, validation_options, generate_message_options|
     test "validates_acceptance_of on generated message #{name}" do
@@ -80,7 +80,7 @@ class I18nValidationTest < ActiveModel::TestCase
     end
   end
 
-  # validates_presence_of w/ mocha
+  # validates_presence_of w/ mocks
 
   COMMON_CASES.each do |name, validation_options, generate_message_options|
     test "validates_presence_of on generated message #{name}" do
@@ -92,7 +92,7 @@ class I18nValidationTest < ActiveModel::TestCase
     end
   end
 
-  # validates_length_of :within too short w/ mocha
+  # validates_length_of :within too short w/ mocks
 
   COMMON_CASES.each do |name, validation_options, generate_message_options|
     test "validates_length_of for :within on generated message when too short #{name}" do
@@ -104,7 +104,7 @@ class I18nValidationTest < ActiveModel::TestCase
     end
   end
 
-  # validates_length_of :within too long w/ mocha
+  # validates_length_of :within too long w/ mocks
 
   COMMON_CASES.each do |name, validation_options, generate_message_options|
     test "validates_length_of for :too_long generated message #{name}" do
@@ -117,7 +117,7 @@ class I18nValidationTest < ActiveModel::TestCase
     end
   end
 
-  # validates_length_of :is w/ mocha
+  # validates_length_of :is w/ mocks
 
   COMMON_CASES.each do |name, validation_options, generate_message_options|
     test "validates_length_of for :is on generated message #{name}" do
@@ -129,7 +129,7 @@ class I18nValidationTest < ActiveModel::TestCase
     end
   end
 
-  # validates_format_of w/ mocha
+  # validates_format_of w/ mocks
 
   COMMON_CASES.each do |name, validation_options, generate_message_options|
     test "validates_format_of on generated message #{name}" do
@@ -142,7 +142,7 @@ class I18nValidationTest < ActiveModel::TestCase
     end
   end
 
-  # validates_inclusion_of w/ mocha
+  # validates_inclusion_of w/ mocks
 
   COMMON_CASES.each do |name, validation_options, generate_message_options|
     test "validates_inclusion_of on generated message #{name}" do
@@ -155,7 +155,7 @@ class I18nValidationTest < ActiveModel::TestCase
     end
   end
 
-  # validates_inclusion_of using :within w/ mocha
+  # validates_inclusion_of using :within w/ mocks
 
   COMMON_CASES.each do |name, validation_options, generate_message_options|
     test "validates_inclusion_of using :within on generated message #{name}" do
@@ -168,7 +168,7 @@ class I18nValidationTest < ActiveModel::TestCase
     end
   end
 
-  # validates_exclusion_of w/ mocha
+  # validates_exclusion_of w/ mocks
 
   COMMON_CASES.each do |name, validation_options, generate_message_options|
     test "validates_exclusion_of generated message #{name}" do
@@ -181,7 +181,7 @@ class I18nValidationTest < ActiveModel::TestCase
     end
   end
 
-  # validates_exclusion_of using :within w/ mocha
+  # validates_exclusion_of using :within w/ mocks
 
   COMMON_CASES.each do |name, validation_options, generate_message_options|
     test "validates_exclusion_of using :within generated message #{name}" do
@@ -194,7 +194,7 @@ class I18nValidationTest < ActiveModel::TestCase
     end
   end
 
-  # validates_numericality_of without :only_integer w/ mocha
+  # validates_numericality_of without :only_integer w/ mocks
 
   COMMON_CASES.each do |name, validation_options, generate_message_options|
     test "validates_numericality_of generated message #{name}" do
@@ -207,7 +207,7 @@ class I18nValidationTest < ActiveModel::TestCase
     end
   end
 
-  # validates_numericality_of with :only_integer w/ mocha
+  # validates_numericality_of with :only_integer w/ mocks
 
   COMMON_CASES.each do |name, validation_options, generate_message_options|
     test "validates_numericality_of for :only_integer on generated message #{name}" do
@@ -220,7 +220,7 @@ class I18nValidationTest < ActiveModel::TestCase
     end
   end
 
-  # validates_numericality_of :odd w/ mocha
+  # validates_numericality_of :odd w/ mocks
 
   COMMON_CASES.each do |name, validation_options, generate_message_options|
     test "validates_numericality_of for :odd on generated message #{name}" do
@@ -233,7 +233,7 @@ class I18nValidationTest < ActiveModel::TestCase
     end
   end
 
-  # validates_numericality_of :less_than w/ mocha
+  # validates_numericality_of :less_than w/ mocks
 
   COMMON_CASES.each do |name, validation_options, generate_message_options|
     test "validates_numericality_of for :less_than on generated message #{name}" do
@@ -284,26 +284,26 @@ class I18nValidationTest < ActiveModel::TestCase
     end
   end
 
-  # validates_confirmation_of w/o mocha
+  # validates_confirmation_of w/o mocks
 
   set_expectations_for_validation "validates_confirmation_of", :confirmation do |person, options_to_merge|
     Person.validates_confirmation_of :title, options_to_merge
     person.title_confirmation = 'foo'
   end
 
-  # validates_acceptance_of w/o mocha
+  # validates_acceptance_of w/o mocks
 
   set_expectations_for_validation "validates_acceptance_of", :accepted do |person, options_to_merge|
     Person.validates_acceptance_of :title, options_to_merge.merge(allow_nil: false)
   end
 
-  # validates_presence_of w/o mocha
+  # validates_presence_of w/o mocks
 
   set_expectations_for_validation "validates_presence_of", :blank do |person, options_to_merge|
     Person.validates_presence_of :title, options_to_merge
   end
 
-  # validates_length_of :within w/o mocha
+  # validates_length_of :within w/o mocks
 
   set_expectations_for_validation "validates_length_of", :too_short do |person, options_to_merge|
     Person.validates_length_of :title, options_to_merge.merge(within: 3..5)
@@ -314,53 +314,53 @@ class I18nValidationTest < ActiveModel::TestCase
     person.title = "too long"
   end
 
-  # validates_length_of :is w/o mocha
+  # validates_length_of :is w/o mocks
 
   set_expectations_for_validation "validates_length_of", :wrong_length do |person, options_to_merge|
     Person.validates_length_of :title, options_to_merge.merge(is: 5)
   end
 
-  # validates_format_of w/o mocha
+  # validates_format_of w/o mocks
 
   set_expectations_for_validation "validates_format_of", :invalid do |person, options_to_merge|
     Person.validates_format_of :title, options_to_merge.merge(with: /\A[1-9][0-9]*\z/)
   end
 
-  # validates_inclusion_of w/o mocha
+  # validates_inclusion_of w/o mocks
 
   set_expectations_for_validation "validates_inclusion_of", :inclusion do |person, options_to_merge|
     Person.validates_inclusion_of :title, options_to_merge.merge(in: %w(a b c))
   end
 
-  # validates_exclusion_of w/o mocha
+  # validates_exclusion_of w/o mocks
 
   set_expectations_for_validation "validates_exclusion_of", :exclusion do |person, options_to_merge|
     Person.validates_exclusion_of :title, options_to_merge.merge(in: %w(a b c))
     person.title = 'a'
   end
 
-  # validates_numericality_of without :only_integer w/o mocha
+  # validates_numericality_of without :only_integer w/o mocks
 
   set_expectations_for_validation "validates_numericality_of", :not_a_number do |person, options_to_merge|
     Person.validates_numericality_of :title, options_to_merge
     person.title = 'a'
   end
 
-  # validates_numericality_of with :only_integer w/o mocha
+  # validates_numericality_of with :only_integer w/o mocks
 
   set_expectations_for_validation "validates_numericality_of", :not_an_integer do |person, options_to_merge|
     Person.validates_numericality_of :title, options_to_merge.merge(only_integer: true)
     person.title = '1.0'
   end
 
-  # validates_numericality_of :odd w/o mocha
+  # validates_numericality_of :odd w/o mocks
 
   set_expectations_for_validation "validates_numericality_of", :odd do |person, options_to_merge|
     Person.validates_numericality_of :title, options_to_merge.merge(only_integer: true, odd: true)
     person.title = 0
   end
 
-  # validates_numericality_of :less_than w/o mocha
+  # validates_numericality_of :less_than w/o mocks
 
   set_expectations_for_validation "validates_numericality_of", :less_than do |person, options_to_merge|
     Person.validates_numericality_of :title, options_to_merge.merge(only_integer: true, less_than: 0)
