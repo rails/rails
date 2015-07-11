@@ -47,6 +47,12 @@ module ActiveRecord
         assert_equal 0, type.serialize(false)
       end
 
+      test "casting booleans from database" do
+        type = Type::Integer.new
+        assert_equal 1, type.deserialize(true)
+        assert_equal 0, type.deserialize(false)
+      end
+
       test "changed?" do
         type = Type::Integer.new
 
