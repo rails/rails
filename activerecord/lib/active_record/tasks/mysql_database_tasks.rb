@@ -23,7 +23,7 @@ module ActiveRecord
         end
       rescue error_class => error
         if error.respond_to?(:errno) && error.errno == ACCESS_DENIED_ERROR
-          $stdout.print error.error
+          $stdout.print error.message
           establish_connection root_configuration_without_database
           connection.create_database configuration['database'], creation_options
           if configuration['username'] != 'root'
