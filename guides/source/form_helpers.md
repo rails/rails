@@ -716,7 +716,7 @@ TIP: You may find you can try out examples in this section faster by using the c
 
 ```ruby
 Rack::Utils.parse_query "name=fred&phone=0123456789"
-# => {"name"=>"fred", "phone"=>"0123456789"}
+# => {"name" => "fred", "phone" => "0123456789"}
 ```
 
 ### Basic Structures

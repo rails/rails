@@ -2645,7 +2645,7 @@ Ruby has a built-in method `Hash#merge` that merges two hashes:
 
 ```ruby
 {a: 1, b: 1}.merge(a: 0, c: 2)
-# => {:a=>0, :b=>1, :c=>2}
+# => {:a => 0, :b => 1, :c => 2}
 ```
 
 Active Support defines a few more ways of merging hashes that may be convenient.
@@ -2690,7 +2690,7 @@ Active Support defines `Hash#deep_merge`. In a deep merge, if a key is found in 
 
 ```ruby
 {a: {b: 1}}.deep_merge(a: {c: 2})
-# => {:a=>{:b=>1, :c=>2}}
+# => {:a => {:b => 1, :c => 2}}
 ```
 
 The method `deep_merge!` performs a deep merge in place.
@@ -2750,9 +2750,9 @@ In case of key collision, one of the values will be chosen. The chosen value may
 ```ruby
 {"a" => 1, a: 2}.transform_keys { |key| key.to_s.upcase }
 # The result could either be
-# => {"A"=>2}
+# => {"A" => 2}
 # or
-# => {"A"=>1}
+# => {"A" => 1}
 ```
 
 This method may be useful for example to build specialized conversions. For instance `stringify_keys` and `symbolize_keys` use `transform_keys` to perform their key conversions:
@@ -2773,7 +2773,7 @@ Besides that, one can use `deep_transform_keys` and `deep_transform_keys!` to pe
 
 ```ruby
 {nil => nil, 1 => 1, nested: {a: 3, 5 => 5}}.deep_transform_keys { |key| key.to_s.upcase }
-# => {""=>nil, "1"=>1, "NESTED"=>{"A"=>3, "5"=>5}}
+# => {"" => nil, "1" => 1, "NESTED" => {"A" => 3, "5" => 5}}
 ```
 
 NOTE: Defined in `active_support/core_ext/hash/keys.rb`.
@@ -2792,9 +2792,9 @@ In case of key collision, one of the values will be chosen. The chosen value may
 ```ruby
 {"a" => 1, a: 2}.stringify_keys
 # The result could either be
-# => {"a"=>2}
+# => {"a" => 2}
 # or
-# => {"a"=>1}
+# => {"a" => 1}
 ```
 
 This method may be useful for example to easily accept both symbols and strings as options. For instance `ActionView::Helpers::FormHelper` defines:
@@ -2815,7 +2815,7 @@ Besides that, one can use `deep_stringify_keys` and `deep_stringify_keys!` to st
 
 ```ruby
 {nil => nil, 1 => 1, nested: {a: 3, 5 => 5}}.deep_stringify_keys
-# => {""=>nil, "1"=>1, "nested"=>{"a"=>3, "5"=>5}}
+# => {"" => nil, "1" => 1, "nested" => {"a" => 3, "5" => 5}}
 ```
 
 NOTE: Defined in `active_support/core_ext/hash/keys.rb`.
@@ -2826,7 +2826,7 @@ The method `symbolize_keys` returns a hash that has a symbolized version of the 
 
 ```ruby
 {nil => nil, 1 => 1, "a" => "a"}.symbolize_keys
-# => {1=>1, nil=>nil, :a=>"a"}
+# => {1 => 1, nil => nil, :a => "a"}
 ```
 
 WARNING. Note in the previous example only one key was symbolized.
@@ -2836,9 +2836,9 @@ In case of key collision, one of the values will be chosen. The chosen value may
 ```ruby
 {"a" => 1, a: 2}.symbolize_keys
 # The result could either be
-# => {:a=>2}
+# => {:a => 2}
 # or
-# => {:a=>1}
+# => {:a => 1}
 ```
 
 This method may be useful for example to easily accept both symbols and strings as options. For instance `ActionController::UrlRewriter` defines
@@ -2859,7 +2859,7 @@ Besides that, one can use `deep_symbolize_keys` and `deep_symbolize_keys!` to sy
 
 ```ruby
 {nil => nil, 1 => 1, "nested" => {"a" => 3, 5 => 5}}.deep_symbolize_keys
-# => {nil=>nil, 1=>1, nested:{a:3, 5=>5}}
+# => {nil => nil, 1 => 1, nested: {a: 3, 5 => 5}}
 ```
 
 NOTE: Defined in `active_support/core_ext/hash/keys.rb`.
@@ -2891,7 +2891,7 @@ The method `transform_values` accepts a block and returns a hash that has applie
 
 ```ruby
 { nil => nil, 1 => 1, :x => :a }.transform_values { |value| value.to_s.upcase }
-# => {nil=>"", 1=>"1", :x=>"A"}
+# => {nil => "", 1 => "1", :x => "A"}
 ```
 There's also the bang variant `transform_values!` that applies the block operations to values in the very receiver.
 
@@ -2903,17 +2903,17 @@ Ruby has built-in support for taking slices out of strings and arrays. Active Su
 
 ```ruby
 {a: 1, b: 2, c: 3}.slice(:a, :c)
-# => {:c=>3, :a=>1}
+# => {:c => 3, :a => 1}
 
 {a: 1, b: 2, c: 3}.slice(:b, :X)
-# => {:b=>2} # non-existing keys are ignored
+# => {:b => 2} # non-existing keys are ignored
 ```
 
 If the receiver responds to `convert_key` keys are normalized:
 
 ```ruby
 {a: 1, b: 2}.with_indifferent_access.slice("a")
-# => {:a=>1}
+# => {:a => 1}
 ```
 
 NOTE. Slicing may come in handy for sanitizing option hashes with a white list of keys.
