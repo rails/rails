@@ -13,6 +13,7 @@ require 'active_support/callbacks'
 require 'faye/websocket'
 require 'celluloid'
 require 'em-hiredis'
+require 'redis'
 
 require 'action_cable/engine' if defined?(Rails)
 
