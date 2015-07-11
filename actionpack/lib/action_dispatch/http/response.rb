@@ -321,7 +321,7 @@ module ActionDispatch # :nodoc:
     end
 
     def merge_default_headers(original, default)
-      default.respond_to?(:merge) ? default.merge(original) : original
+      default.is_a?(Hash) ? default.merge(original) : original
     end
 
     def build_buffer(response, body)
