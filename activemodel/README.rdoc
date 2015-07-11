@@ -168,7 +168,7 @@ behavior out of the box:
     end
 
     s = SerialPerson.new
-    s.serializable_hash   # => {"name"=>nil}
+    s.serializable_hash   # => {"name" => nil}
 
     class SerialPerson
       include ActiveModel::Serializers::JSON
