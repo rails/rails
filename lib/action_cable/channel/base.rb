@@ -61,6 +61,9 @@ module ActionCable
     # In this example, subscribed/unsubscribed are not callable methods, as they were already declared in ActionCable::Channel::Base, but #appear/away
     # are. #generate_connection_token is also not callable as its a private method. You'll see that appear accepts a data parameter, which it then
     # uses as part of its model call. #away does not, it's simply a trigger action.
+    #
+    # Also note that in this example, current_user is available because it was marked as an identifying attribute on the connection.
+    # All such identifiers will automatically create a delegation method of the same name on the channel instance.
     class Base
       include Callbacks
       include PeriodicTimers
@@ -77,6 +80,7 @@ module ActionCable
         @identifier = identifier
         @params     = params
 
+        delegate_connection_identifiers
         subscribe_to_channel
       end
 
@@ -123,6 +127,15 @@ module ActionCable
 
 
       private
+        def delegate_connection_identifiers
+          connection.identifiers.each do |identifier|
+            define_singleton_method(identifier) do
+              connection.send(identifier)
+            end
+          end
+        end
+
+
         def subscribe_to_channel
           logger.info "#{self.class.name} subscribing"
           run_subscribe_callbacks
