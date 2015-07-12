@@ -47,6 +47,12 @@ class MethodCallAssertionsTest < ActiveSupport::TestCase
     assert_match(/dang it.\nExpected increment/, error.message)
   end
 
+  def test_assert_called_when_method_has_arguments
+    assert_called @object, :<< do
+      @object << 2
+    end
+  end
+
   def test_assert_called_with
     assert_called_with(@object, :increment) do
       @object.increment
@@ -78,6 +84,55 @@ class MethodCallAssertionsTest < ActiveSupport::TestCase
       @object << 1
       @object << 2
     end
+  end
+
+  def test_assert_called_with_multiple_expected_arguments_and_shared_return
+    returns = %i(a b c)
+    assert_called_with(@object, :<<, [ [ 1 ], [ 2 ] ], returns: returns) do
+      assert_equal(returns, @object << 1)
+      assert_equal(returns, @object << 2)
+    end
+  end
+
+  def test_assert_called_with_multiple_expected_arguments_and_distinct_returns
+    assert_called_with(@object, :<<, [ [ 1 ], [ 2 ] ], returns: %i(a b), use_distinct_returns: true) do
+      assert_equal(:a, @object << 1)
+      assert_equal(:b, @object << 2)
+    end
+  end
+
+  def test_assert_called_requires_the_returns_option_when_dealing_with_distinct_returns
+    error = assert_raises(ArgumentError) do
+      assert_called_with(@object, :<<, [], use_distinct_returns: true) do
+        # Call nothing...
+      end
+    end
+    assert_equal('returns must be an array and match the number of arguments', error.message)
+  end
+
+  def test_assert_called_requires_returns_to_be_an_array_when_dealing_with_distinct_returns
+    error = assert_raises(ArgumentError) do
+      assert_called_with(@object, :<<, [], returns: 1, use_distinct_returns: true) do
+        # Call nothing...
+      end
+    end
+    assert_equal('returns must be an array and match the number of arguments', error.message)
+  end
+
+  def test_assert_called_requires_returns_to_match_the_number_of_arguments_when_dealing_with_distinct_returns
+    error = assert_raises(ArgumentError) do
+      assert_called_with(@object, :<<, [ [ 1 ], [ 2 ] ], returns: %i(a b c), use_distinct_returns: true) do
+        # Call nothing...
+      end
+    end
+    assert_equal('returns must be an array and match the number of arguments', error.message)
+
+    error = assert_raises(ArgumentError) do
+      assert_called_with(@object, :<<, [ [ 1 ] ], returns: %i(a b), use_distinct_returns: true) do
+        # Call nothing...
+      end
+    end
+    assert_equal('returns must be an array and match the number of arguments', error.message)
   end
 
   def test_assert_not_called
