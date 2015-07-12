@@ -4,6 +4,8 @@ require "bundler"
 gem 'minitest'
 require "minitest/autorun"
 
+require 'mocha/mini_test'
+
 Bundler.setup
 Bundler.require :default, :test
 

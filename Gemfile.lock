@@ -31,7 +31,10 @@ GEM
     hitimes (1.2.2)
     i18n (0.7.0)
     json (1.8.3)
+    metaclass (0.0.4)
     minitest (5.7.0)
+    mocha (1.1.0)
+      metaclass (~> 0.0.1)
     puma (2.10.2)
       rack (>= 1.1, < 2.0)
     rack (1.6.0)
@@ -51,6 +54,7 @@ PLATFORMS
 
 DEPENDENCIES
   actioncable!
+  mocha
   puma
   rake
 
