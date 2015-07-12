@@ -94,7 +94,7 @@ module ActionController
 
     # This method is the opposite of add method.
     #
-    # Usage:
+    # To remove a csv renderer:
     #
     #   ActionController::Renderers.remove(:csv)
     def self.remove(key)
