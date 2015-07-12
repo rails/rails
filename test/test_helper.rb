@@ -4,12 +4,11 @@ require "bundler"
 gem 'minitest'
 require "minitest/autorun"
 
-require 'mocha/mini_test'
-
 Bundler.setup
 Bundler.require :default, :test
 
 require 'puma'
+require 'mocha/mini_test'
 
 require 'action_cable'
 ActiveSupport.test_order = :sorted

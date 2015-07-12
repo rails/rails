@@ -2,7 +2,7 @@ module ActionCable
   module Channel
     module PeriodicTimers
       extend ActiveSupport::Concern
-      
+
       included do
         class_attribute :periodic_timers, instance_reader: false
         self.periodic_timers = []

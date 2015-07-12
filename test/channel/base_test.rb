@@ -1,28 +1,8 @@
 require 'test_helper'
+require 'stubs/test_connection'
 
-class ChannelTest < ActiveSupport::TestCase
+class ActionCable::Channel::BaseTest < ActiveSupport::TestCase
   Room = Struct.new(:id)
-  User = Struct.new(:name)
-
-  class TestConnection
-    attr_reader :identifiers, :logger, :current_user, :transmissions
-
-    def initialize(user)
-      @identifiers = [ :current_user ]
-
-      @current_user = user
-      @logger = Logger.new(StringIO.new)
-      @transmissions = []
-    end
-
-    def transmit(data)
-      @transmissions << data
-    end
-
-    def last_transmission
-      @transmissions.last
-    end
-  end
 
   class ChatChannel < ActionCable::Channel::Base
     attr_reader :room, :last_action
