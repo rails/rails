@@ -1,6 +1,8 @@
 require 'ostruct'
 
 class TestServer
+  include ActionCable::Server::Connections
+
   attr_reader :logger, :config
 
   def initialize

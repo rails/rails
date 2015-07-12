@@ -18,9 +18,4 @@ class TestConnection
   def last_transmission
     @transmissions.last
   end
-
-  # Disable async in tests
-  def send_async(method, *arguments)
-    send method, *arguments
-  end
 end
