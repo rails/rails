@@ -148,7 +148,7 @@ module ActionDispatch
       @headers ||= Http::Headers.new(@env)
     end
 
-    # Returns a +String+ with the last requested path including their params.
+    # Returns a string with the last requested path including their params.
     #
     #    # get '/foo'
     #    request.original_fullpath # => '/foo'
@@ -159,7 +159,7 @@ module ActionDispatch
       @original_fullpath ||= (env["ORIGINAL_FULLPATH"] || fullpath)
     end
 
-    # Returns the +String+ full path including params of the last URL requested.
+    # Returns a string with the full path including params of the last URL requested.
     #
     #    # get "/articles"
     #    request.fullpath # => "/articles"
@@ -170,7 +170,7 @@ module ActionDispatch
       @fullpath ||= super
     end
 
-    # Returns the original request URL as a +String+.
+    # Returns a string with the the original request URL.
     #
     #    # get "/articles?page=2"
     #    request.original_url # => "http://www.example.com/articles?page=2"
@@ -178,7 +178,7 @@ module ActionDispatch
       base_url + original_fullpath
     end
 
-    # The +String+ MIME type of the request.
+    # The MIME type of the request as a string.
     #
     #    # get "/articles"
     #    request.media_type # => "application/x-www-form-urlencoded"
@@ -199,12 +199,12 @@ module ActionDispatch
     end
     alias :xhr? :xml_http_request?
 
-    # Returns the IP address of client as a +String+.
+    # Returns the IP address of client as a string.
     def ip
       @ip ||= super
     end
 
-    # Returns the IP address of client as a +String+,
+    # Returns the IP address of client as a string,
     # usually set by the RemoteIp middleware.
     def remote_ip
       @remote_ip ||= (@env["action_dispatch.remote_ip"] || ip).to_s

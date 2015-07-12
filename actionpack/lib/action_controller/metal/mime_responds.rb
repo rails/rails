@@ -122,7 +122,7 @@ module ActionController #:nodoc:
     # We often want to render different html/json/xml templates for phones,
     # tablets, and desktop browsers. Variants make it easy.
     #
-    # You can set the variant in a +before_action+:
+    # You can set the variant in a before_action:
     #
     #   request.variant = :tablet if request.user_agent =~ /iPad/
     #
@@ -201,20 +201,20 @@ module ActionController #:nodoc:
     # A container for responses available from the current controller for
     # requests for different mime-types sent to a particular action.
     #
-    # The public controller methods +respond_to+ may be called with a block
+    # The public controller methods respond_to may be called with a block
     # that is used to define responses to different mime-types, e.g.
-    # for +respond_to+ :
+    # for respond_to:
     #
     #   respond_to do |format|
     #     format.html
     #     format.xml { render xml: @people }
     #   end
     #
-    # In this usage, the argument passed to the block (+format+ above) is an
+    # In this usage, the argument passed to the block (format above) is an
     # instance of the ActionController::MimeResponds::Collector class. This
     # object serves as a container in which available responses can be stored by
     # calling any of the dynamically generated, mime-type-specific methods such
-    # as +html+, +xml+ etc on the Collector. Each response is represented by a
+    # as html, xml etc on the Collector. Each response is represented by a
     # corresponding block if present.
     #
     # A subsequent call to #negotiate_format(request) will enable the Collector

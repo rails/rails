@@ -97,8 +97,8 @@ module ActionController
   # environment they should only be set once at boot-time and never mutated at
   # runtime.
   #
-  # <tt>ActionController::Parameters</tt> inherits from
-  # <tt>ActiveSupport::HashWithIndifferentAccess</tt>, this means
+h  # ActionController::Parameters inherits from
+  # ActiveSupport::HashWithIndifferentAccess, this means
   # that you can fetch values using either <tt>:key</tt> or <tt>"key"</tt>.
   #
   #   params = ActionController::Parameters.new(key: 'value')
@@ -128,8 +128,8 @@ module ActionController
       always_permitted_parameters
     end
 
-    # Returns a new instance of <tt>ActionController::Parameters</tt>.
-    # Also, sets the +permitted+ attribute to the default value of
+    # Returns a new instance of ActionController::Parameters.
+    # Also, sets the permitted attribute to the default value of
     # <tt>ActionController::Parameters.permit_all_parameters</tt>.
     #
     #   class Person < ActiveRecord::Base
@@ -207,7 +207,7 @@ module ActionController
       @permitted
     end
 
-    # Sets the +permitted+ attribute to +true+. This can be used to pass
+    # Sets the permitted attribute to +true+. This can be used to pass
     # mass assignment. Returns +self+.
     #
     #   class Person < ActiveRecord::Base
@@ -231,8 +231,8 @@ module ActionController
     end
 
     # Ensures that a parameter is present. If it's present, returns
-    # the parameter at the given +key+, otherwise raises an
-    # <tt>ActionController::ParameterMissing</tt> error.
+    # the parameter at the given key, otherwise raises an
+    # ActionController::ParameterMissing error.
     #
     #   ActionController::Parameters.new(person: { name: 'Francesco' }).require(:person)
     #   # => {"name"=>"Francesco"}
@@ -254,8 +254,8 @@ module ActionController
     # Alias of #require.
     alias :required :require
 
-    # Returns a new <tt>ActionController::Parameters</tt> instance that
-    # includes only the given +filters+ and sets the +permitted+ attribute
+    # Returns a new ActionController::Parameters instance that
+    # includes only the given +filters+ and sets the permitted attribute
     # for the object to +true+. This is useful for limiting which attributes
     # should be allowed for mass updating.
     #
@@ -270,10 +270,10 @@ module ActionController
     #
     #   params.permit(:name)
     #
-    # +:name+ passes if it is a key of +params+ whose associated value is of type
-    # +String+, +Symbol+, +NilClass+, +Numeric+, +TrueClass+, +FalseClass+,
-    # +Date+, +Time+, +DateTime+, +StringIO+, +IO+,
-    # +ActionDispatch::Http::UploadedFile+ or +Rack::Test::UploadedFile+.
+    # +:name+ passes if it is a key of params whose associated value is of type
+    # String, Symbol, NilClass, Numeric, TrueClass, FalseClass,
+    # Date, Time, DateTime, StringIO, IO,
+    # ActionDispatch::Http::UploadedFile or Rack::Test::UploadedFile.
     # Otherwise, the key +:name+ is filtered out.
     #
     # You may declare that the parameter should be an array of permitted scalars
@@ -282,7 +282,7 @@ module ActionController
     #   params = ActionController::Parameters.new(tags: ['rails', 'parameters'])
     #   params.permit(tags: [])
     #
-    # You can also use +permit+ on nested parameters, like:
+    # You can also use permit on nested parameters, like:
     #
     #   params = ActionController::Parameters.new({
     #     person: {
@@ -302,7 +302,7 @@ module ActionController
     #   permitted[:person][:pets][0][:name]     # => "Purplish"
     #   permitted[:person][:pets][0][:category] # => nil
     #
-    # Note that if you use +permit+ in a key that points to a hash,
+    # Note that if you use permit in a key that points to a hash,
     # it won't allow all the hash. You also need to specify which
     # attributes inside the hash should be whitelisted.
     #
@@ -352,7 +352,7 @@ module ActionController
 
     # Returns a parameter for the given +key+. If the +key+
     # can't be found, there are several options: With no other arguments,
-    # it will raise an <tt>ActionController::ParameterMissing</tt> error;
+    # it will raise an ActionController::ParameterMissing error;
     # if more arguments are given, then that will be returned; if a block
     # is given, then that will be run and its result returned.
     #
@@ -367,8 +367,8 @@ module ActionController
       raise ActionController::ParameterMissing.new(key)
     end
 
-    # Returns a new <tt>ActionController::Parameters</tt> instance that
-    # includes only the given +keys+. If the given +keys+
+    # Returns a new ActionController::Parameters instance that
+    # includes only the given keys. If the given +keys+
     # don't exist, returns an empty hash.
     #
     #   params = ActionController::Parameters.new(a: 1, b: 2, c: 3)
@@ -387,8 +387,8 @@ module ActionController
       new_instance_with_inherited_permitted_status(super)
     end
 
-    # Returns a new <tt>ActionController::Parameters</tt> with the results of
-    # running +block+ once for every value. The keys are unchanged.
+    # Returns a new ActionController::Parameters with the results of
+    # running block once for every value. The keys are unchanged.
     #
     #   params = ActionController::Parameters.new(a: 1, b: 2, c: 3)
     #   params.transform_values { |x| x * 2 }
@@ -402,8 +402,8 @@ module ActionController
     end
 
     # This method is here only to make sure that the returned object has the
-    # correct +permitted+ status. It should not matter since the parent of
-    # this object is +HashWithIndifferentAccess+
+    # correct permitted status. It should not matter since the parent of
+    # this object is HashWithIndifferentAccess
     def transform_keys # :nodoc:
       if block_given?
         new_instance_with_inherited_permitted_status(super)
@@ -412,7 +412,7 @@ module ActionController
       end
     end
 
-    # Deletes and returns a key-value pair from +Parameters+ whose key is equal
+    # Deletes and returns a key-value pair from Parameters whose key is equal
     # to key. If the key is not found, returns the default value. If the
     # optional code block is given and the key is not found, pass in the key
     # and return the result of block.
@@ -425,8 +425,8 @@ module ActionController
       convert_value_to_parameters(super)
     end
 
-    # Returns an exact copy of the <tt>ActionController::Parameters</tt>
-    # instance. +permitted+ state is kept on the duped object.
+    # Returns an exact copy of the ActionController::Parameters
+    # instance. permitted state is kept on the duped object.
     #
     #   params = ActionController::Parameters.new(a: 1)
     #   params.permit!
@@ -512,7 +512,7 @@ module ActionController
       # This list is in particular used to filter ordinary requests, String goes
       # as first element to quickly short-circuit the common case.
       #
-      # If you modify this collection please update the API of +permit+ above.
+      # If you modify this collection please update the API of permit above.
       PERMITTED_SCALAR_TYPES = [
         String,
         Symbol,
@@ -621,7 +621,7 @@ module ActionController
   #       end
   #   end
   #
-  # In order to use <tt>accepts_nested_attributes_for</tt> with Strong \Parameters, you
+  # In order to use accepts_nested_attributes_for with Strong \Parameters, you
   # will need to specify which nested attributes should be whitelisted.
   #
   #   class Person

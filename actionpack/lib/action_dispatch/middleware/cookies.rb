@@ -168,7 +168,7 @@ module ActionDispatch
           end
       end
 
-      # Returns the +signed+ or +encrypted+ jar, preferring +encrypted+ if +secret_key_base+ is set.
+      # Returns the signed or encrypted jar, preferring encrypted if secret_key_base is set.
       # Used by ActionDispatch::Session::CookieStore to avoid the need to introduce new cookie stores.
       def signed_or_encrypted
         @signed_or_encrypted ||=
@@ -346,7 +346,7 @@ module ActionDispatch
         @delete_cookies[name.to_s] == options
       end
 
-      # Removes all cookies on the client machine by calling <tt>delete</tt> for each cookie
+      # Removes all cookies on the client machine by calling delete for each cookie
       def clear(options = {})
         @cookies.each_key{ |k| delete(k, options) }
       end

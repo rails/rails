@@ -14,9 +14,8 @@ module ActionDispatch
     # The cookie jar used for storage is automatically configured to be the
     # best possible option given your application's configuration.
     #
-    # If you only have secret_token set, your cookies will be signed, but
-    # not encrypted. This means a user cannot alter their +user_id+ without
-    # knowing your app's secret key, but can easily read their +user_id+. This
+    # If you only have secret_token set, your cookies will be signed, but not encrypted. This means a user cannot alter their user ID without
+    # knowing your app's secret key, but can easily read their user ID. This
     # was the default for Rails 3 apps.
     #
     # If you have secret_key_base set, your cookies will be encrypted. This

@@ -41,7 +41,7 @@ module ActionDispatch
 
     attr_reader :check_ip, :proxies
 
-    # Create a new +RemoteIp+ middleware instance.
+    # Create a new RemoteIp middleware instance.
     #
     # The +check_ip_spoofing+ option is on by default. When on, an exception
     # is raised if it looks like the client is trying to lie about its own IP
@@ -49,10 +49,10 @@ module ActionDispatch
     # clients (like WAP devices), or behind proxies that set headers in an
     # incorrect or confusing way (like AWS ELB).
     #
-    # The +custom_proxies+ argument can take an Array of string, IPAddr, or
-    # Regexp objects which will be used instead of +TRUSTED_PROXIES+. If a
+    # The +custom_proxies+ argument can take an array of strings, IPAddr, or
+    # Regexp objects which will be used instead of TRUSTED_PROXIES. If a
     # single string, IPAddr, or Regexp object is provided, it will be used in
-    # addition to +TRUSTED_PROXIES+. Any proxy setup will put the value you
+    # addition to TRUSTED_PROXIES. Any proxy setup will put the value you
     # want in the middle (or at the beginning) of the X-Forwarded-For list,
     # with your proxy servers after it. If your proxies aren't removed, pass
     # them in via the +custom_proxies+ parameter. That way, the middleware will

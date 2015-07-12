@@ -358,7 +358,7 @@ module ActionDispatch
         #
         #   root to: 'pages#main'
         #
-        # For options, see +match+, as +root+ uses it internally.
+        # For options, see match, as root uses it internally.
         #
         # You can also pass a string which will expand
         #
@@ -373,7 +373,7 @@ module ActionDispatch
 
         # Matches a url pattern to one or more routes.
         #
-        # You should not use the +match+ method in your router
+        # You should not use the match method in your router
         # without specifying an HTTP method.
         #
         # If you want to expose your action to both GET and POST, use:
@@ -382,9 +382,9 @@ module ActionDispatch
         #   match ':controller/:action/:id', via: [:get, :post]
         #
         # Note that +:controller+, +:action+ and +:id+ are interpreted as url
-        # query parameters and thus available through +params+ in an action.
+        # query parameters and thus available through params in an action.
         #
-        # If you want to expose your action to GET, use +get+ in the router:
+        # If you want to expose your action to GET, use get in the router:
         #
         # Instead of:
         #
@@ -415,7 +415,7 @@ module ActionDispatch
         #   match 'photos/:id', to: 'photos#show', via: :get
         #   match 'photos/:id', controller: 'photos', action: 'show', via: :get
         #
-        # A pattern can also point to a +Rack+ endpoint i.e. anything that
+        # A pattern can also point to a Rack endpoint i.e. anything that
         # responds to +call+:
         #
         #   match 'photos/:id', to: -> (hash) { [200, {}, ["Coming soon"]] }, via: :get
@@ -426,7 +426,7 @@ module ActionDispatch
         # Because requesting various HTTP verbs with a single action has security
         # implications, you must either specify the actions in
         # the via options or use one of the HttpHelpers[rdoc-ref:HttpHelpers]
-        # instead +match+
+        # instead match
         #
         # === Options
         #
@@ -466,7 +466,7 @@ module ActionDispatch
         #      match 'path', to: 'c#a', via: :all
         #
         # [:to]
-        #   Points to a +Rack+ endpoint. Can be an object that responds to
+        #   Points to a Rack endpoint. Can be an object that responds to
         #   +call+ or a string representing a controller's action.
         #
         #      match 'path', to: 'controller#action', via: :get
@@ -517,14 +517,14 @@ module ActionDispatch
         #   See <tt>Scoping#defaults</tt> for its scope equivalent.
         #
         # [:anchor]
-        #   Boolean to anchor a <tt>match</tt> pattern. Default is true. When set to
+        #   Boolean to anchor a match pattern. Default is true. When set to
         #   false, the pattern matches any request prefixed with the given path.
         #
         #     # Matches any request starting with 'path'
         #     match 'path', to: 'c#a', anchor: false, via: :get
         #
         # [:format]
-        #   Allows you to specify the default value for optional +format+
+        #   Allows you to specify the default value for optional format
         #   segment or disable it by supplying +false+.
         def match(path, options=nil)
         end
@@ -537,7 +537,7 @@ module ActionDispatch
         #
         #   mount(SomeRackApp => "some_route")
         #
-        # For options, see +match+, as +mount+ uses it internally.
+        # For options, see match, as mount uses it internally.
         #
         # All mounted applications come with routing helpers to access them.
         # These are named after the class specified, so for the above example
@@ -738,7 +738,7 @@ module ActionDispatch
         #     resources :projects
         #   end
         #
-        # This generates helpers such as +account_projects_path+, just like +resources+ does.
+        # This generates helpers such as +account_projects_path+, just like resources does.
         # The difference here being that the routes generated are like /:account_id/projects,
         # rather than /accounts/:account_id/projects.
         #
@@ -1179,7 +1179,7 @@ module ActionDispatch
         #   DELETE    /profile
         #
         # === Options
-        # Takes same options as +resources+.
+        # Takes same options as resources.
         def resource(*resources, &block)
           options = resources.extract_options!.dup
 
@@ -1244,7 +1244,7 @@ module ActionDispatch
         # Takes same options as <tt>Base#match</tt> as well as:
         #
         # [:path_names]
-        #   Allows you to change the segment component of the +edit+ and +new+ actions.
+        #   Allows you to change the segment component of the edit and new actions.
         #   Actions not specified are not changed.
         #
         #     resources :posts, path_names: { new: "brand_new" }
@@ -1328,7 +1328,7 @@ module ActionDispatch
         #     sekret_comment          DELETE    /comments/:id(.:format)
         #
         # [:format]
-        #   Allows you to specify the default value for optional +format+
+        #   Allows you to specify the default value for optional format
         #   segment or disable it by supplying +false+.
         #
         # === Examples

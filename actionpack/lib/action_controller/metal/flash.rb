@@ -12,7 +12,7 @@ module ActionController #:nodoc:
 
     module ClassMethods
       # Creates new flash types. You can pass as many types as you want to create
-      # flash types other than the default <tt>alert</tt> and <tt>notice</tt> in
+      # flash types other than the default alert and notice in
       # your controllers and views. For instance:
       #
       #   # in application_controller.rb

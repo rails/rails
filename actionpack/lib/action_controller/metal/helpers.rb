@@ -8,14 +8,14 @@ module ActionController
   # will include all helpers. These helpers are only accessible on the controller through <tt>.helpers</tt>
   #
   # In previous versions of \Rails the controller will include a helper whose
-  # name matches that of the controller, e.g., <tt>MyController</tt> will automatically
-  # include <tt>MyHelper</tt>. To return old behavior set +config.action_controller.include_all_helpers+ to +false+.
+  # name matches that of the controller, e.g., +MyController+ will automatically
+  # include +MyHelper+. To return old behavior set +config.action_controller.include_all_helpers+ to +false+.
   #
-  # Additional helpers can be specified using the +helper+ class method in ActionController::Base or any
+  # Additional helpers can be specified using the helper class method in ActionController::Base or any
   # controller which inherits from it.
   #
-  # The +to_s+ method from the \Time class can be wrapped in a helper method to display a custom message if
-  # a \Time object is blank:
+  # The +to_s+ method from the +Time+ class can be wrapped in a helper method to display a custom message if
+  # a +time+ is blank:
   #
   #   module FormattedTimeHelper
   #     def format_time(time, format=:long, blank_message="&nbsp;")
@@ -23,7 +23,7 @@ module ActionController
   #     end
   #   end
   #
-  # FormattedTimeHelper can now be included in a controller, using the +helper+ class method:
+  # +FormattedTimeHelper+ can now be included in a controller, using the helper class method:
   #
   #   class EventsController < ActionController::Base
   #     helper FormattedTimeHelper
@@ -32,7 +32,7 @@ module ActionController
   #     end
   #   end
   #
-  # Then, in any view rendered by <tt>EventController</tt>, the <tt>format_time</tt> method can be called:
+  # Then, in any view rendered by <tt>EventController</tt>, the +format_time+ method can be called:
   #
   #   <% @events.each do |event| -%>
   #     <p>

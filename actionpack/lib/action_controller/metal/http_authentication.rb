@@ -155,7 +155,7 @@ module ActionController
     #
     # === Notes
     #
-    # The +authenticate_or_request_with_http_digest+ block must return the user's password
+    # The authenticate_or_request_with_http_digest block must return the user's password
     # or the ha1 digest hash so the framework can appropriately hash to check the user's
     # credentials. Returning +nil+ will cause authentication to fail.
     #
@@ -469,7 +469,7 @@ module ActionController
 
       # This method takes an authorization body and splits up the key-value
       # pairs by the standardized <tt>:</tt>, <tt>;</tt>, or <tt>\t</tt>
-      # delimiters defined in +AUTHN_PAIR_DELIMITERS+.
+      # delimiters defined in AUTHN_PAIR_DELIMITERS.
       def raw_params(auth)
         _raw_params = auth.sub(TOKEN_REGEX, '').split(/\s*#{AUTHN_PAIR_DELIMITERS}\s*/)
 

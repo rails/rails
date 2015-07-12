@@ -17,7 +17,7 @@ module ActionController
   #       wrap_parameters format: [:json, :xml]
   #     end
   #
-  # If you enable +ParamsWrapper+ for +:json+ format, instead of having to
+  # If you enable ParamsWrapper for +:json+ format, instead of having to
   # send JSON parameters like this:
   #
   #     {"user": {"name": "Konata"}}
@@ -27,8 +27,8 @@ module ActionController
   #     {"name": "Konata"}
   #
   # And it will be wrapped into a nested hash with the key name matching the
-  # controller's name. For example, if you're posting to +UsersController+,
-  # your new +params+ hash will look like this:
+  # controller's name. For example, if you're posting to UsersController,
+  # your new params hash will look like this:
   #
   #     {"name" => "Konata", "user" => {"name" => "Konata"}}
   #
@@ -42,11 +42,11 @@ module ActionController
   #
   # On Active Record models with no +:include+ or +:exclude+ option set,
   # it will only wrap the parameters returned by the class method
-  # <tt>attribute_names</tt>.
+  # attribute_names.
   #
-  # If you're going to pass the parameters to an +ActiveModel+ object (such as
+  # If you're going to pass the parameters to an Active Model object (such as
   # <tt>User.new(params[:user])</tt>), you might consider passing the model class to
-  # the method instead. The +ParamsWrapper+ will actually try to determine the
+  # the method instead. The ParamsWrapper will actually try to determine the
   # list of attribute names from the model and only wrap those attributes:
   #
   #     class UsersController < ApplicationController
@@ -57,15 +57,15 @@ module ActionController
   # you want to wrap.
   #
   # By default, if you don't specify the key in which the parameters would be
-  # wrapped to, +ParamsWrapper+ will actually try to determine if there's
+  # wrapped to, ParamsWrapper will actually try to determine if there's
   # a model related to it or not. This controller, for example:
   #
   #     class Admin::UsersController < ApplicationController
   #     end
   #
-  # will try to check if <tt>Admin::User</tt> or +User+ model exists, and use it to
+  # will try to check if Admin::User or User model exists, and use it to
   # determine the wrapper key respectively. If both models don't exist,
-  # it will then fallback to use +user+ as the key.
+  # it will then fallback to use user as the key.
   module ParamsWrapper
     extend ActiveSupport::Concern
 
@@ -130,8 +130,8 @@ module ActionController
       private
       # Determine the wrapper model from the controller's name. By convention,
       # this could be done by trying to find the defined model that has the
-      # same singular name as the controller. For example, +UsersController+
-      # will try to find if the +User+ model exists.
+      # same singular name as the controller. For example, UsersController
+      # will try to find if the User model exists.
       #
       # This method also does namespace lookup. Foo::Bar::UsersController will
       # try to find Foo::Bar::User, Foo::User and finally User.
@@ -164,7 +164,7 @@ module ActionController
         self._wrapper_options = Options.from_hash(options)
       end
 
-      # Sets the name of the wrapper key, or the model which +ParamsWrapper+
+      # Sets the name of the wrapper key, or the model which ParamsWrapper
       # would use to determine the attribute names from.
       #
       # ==== Examples

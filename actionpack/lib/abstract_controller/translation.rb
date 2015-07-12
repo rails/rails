@@ -1,6 +1,6 @@
 module AbstractController
   module Translation
-    # Delegates to <tt>I18n.translate</tt>. Also aliased as <tt>t</tt>.
+    # Delegates to <tt>I18n.translate</tt>. Also aliased as t.
     #
     # When the given key starts with a period, it will be scoped by the current
     # controller and action. So if you call <tt>translate(".foo")</tt> from
@@ -20,7 +20,7 @@ module AbstractController
     end
     alias :t :translate
 
-    # Delegates to <tt>I18n.localize</tt>. Also aliased as <tt>l</tt>.
+    # Delegates to <tt>I18n.localize</tt>. Also aliased as l.
     def localize(*args)
       I18n.localize(*args)
     end

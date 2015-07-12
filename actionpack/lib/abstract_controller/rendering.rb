@@ -30,10 +30,10 @@ module AbstractController
     # Raw rendering of a template to a string.
     #
     # It is similar to render, except that it does not
-    # set the +response_body+ and it should be guaranteed
+    # set response_body and it should be guaranteed
     # to always return a string.
     #
-    # If a component extends the semantics of +response_body+
+    # If a component extends the semantics of response_body
     # (as ActionController extends it to be anything that
     # responds to the method each), this method needs to be
     # overridden in order to still return a string.

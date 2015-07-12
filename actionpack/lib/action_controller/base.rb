@@ -7,7 +7,7 @@ module ActionController
   # on request and then either it renders a template or redirects to another action. An action is defined as a public method
   # on the controller, which will automatically be made accessible to the web-server through \Rails Routes.
   #
-  # By default, only the ApplicationController in a \Rails application inherits from <tt>ActionController::Base</tt>. All other
+  # By default, only the ApplicationController in a \Rails application inherits from ActionController::Base. All other
   # controllers in turn inherit from ApplicationController. This gives you one class to configure things such as
   # request forgery protection and filtering of sensitive request parameters.
   #
@@ -70,7 +70,7 @@ module ActionController
   # as a User object for a system that requires login. The session should not be used, however, as a cache for objects where it's likely
   # they could be changed unknowingly. It's usually too much work to keep it all synchronized -- something databases already excel at.
   #
-  # You can place objects in the session by using the <tt>session</tt> method, which accesses a hash:
+  # You can place objects in the session by using the session method, which accesses a hash:
   #
   #   session[:person] = Person.authenticate(user_name, password)
   #
@@ -83,7 +83,7 @@ module ActionController
   #   # removes :person from session
   #   session[:person] = nil
   #
-  # or you can remove the entire session with +reset_session+.
+  # or you can remove the entire session with reset_session.
   #
   # Sessions are stored by default in a browser cookie that's cryptographically signed, but unencrypted.
   # This prevents the user from tampering with the session but also allows them to see its contents.
@@ -143,7 +143,7 @@ module ActionController
   # Note that this is an external HTTP-level redirection which will cause the browser to make a second request (a GET to the show action),
   # and not some internal re-routing which calls both "create" and then "show" within one request.
   #
-  # Learn more about <tt>redirect_to</tt> and what options you have in ActionController::Redirecting.
+  # Learn more about redirect_to and what options you have in ActionController::Redirecting.
   #
   # == Calling multiple redirects or renders
   #

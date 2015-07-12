@@ -32,14 +32,14 @@ module ActionController #:nodoc:
   #
   # It's important to remember that XML or JSON requests are also affected and if
   # you're building an API you should change forgery protection method in
-  # <tt>ApplicationController</tt> (by default: <tt>:exception</tt>):
+  # ApplicationController (by default: <tt>:exception</tt>):
   #
   #   class ApplicationController < ActionController::Base
   #     protect_from_forgery unless: -> { request.format.json? }
   #   end
   #
-  # CSRF protection is turned on with the <tt>protect_from_forgery</tt> method.
-  # By default <tt>protect_from_forgery</tt> protects your session with
+  # CSRF protection is turned on with the protect_from_forgery method.
+  # By default protect_from_forgery protects your session with
   # <tt>:null_session</tt> method, which provides an empty session
   # during request.
   #
@@ -47,9 +47,9 @@ module ActionController #:nodoc:
   # designed to be state-less. That is, the request API client will handle
   # the session for you instead of Rails.
   #
-  # The token parameter is named <tt>authenticity_token</tt> by default. The name and
+  # The token parameter is named authenticity_token by default. The name and
   # value of this token must be added to every layout that renders forms by including
-  # <tt>csrf_meta_tags</tt> in the HTML +head+.
+  # csrf_meta_tags in the HTML head.
   #
   # Learn more about CSRF attacks and securing your application in the
   # {Ruby on Rails Security Guide}[http://guides.rubyonrails.org/security.html].
@@ -60,7 +60,7 @@ module ActionController #:nodoc:
     include AbstractController::Callbacks
 
     included do
-      # Sets the token parameter name for RequestForgery. Calling +protect_from_forgery+
+      # Sets the token parameter name for RequestForgery. Calling protect_from_forgery
       # sets it to <tt>:authenticity_token</tt> by default.
       config_accessor :request_forgery_protection_token
       self.request_forgery_protection_token ||= :authenticity_token
@@ -284,7 +284,7 @@ module ActionController #:nodoc:
 
       # Checks the client's masked token to see if it matches the
       # session token. Essentially the inverse of
-      # +masked_authenticity_token+.
+      # masked_authenticity_token.
       def valid_authenticity_token?(session, encoded_masked_token)
         if encoded_masked_token.nil? || encoded_masked_token.empty? || !encoded_masked_token.is_a?(String)
           return false

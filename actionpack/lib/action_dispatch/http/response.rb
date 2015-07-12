@@ -201,7 +201,7 @@ module ActionDispatch # :nodoc:
       @status
     end
 
-    # Returns a string to ensure compatibility with <tt>Net::HTTPResponse</tt>.
+    # Returns a string to ensure compatibility with Net::HTTPResponse.
     def code
       @status.to_s
     end
@@ -220,7 +220,7 @@ module ActionDispatch # :nodoc:
     alias_method :status_message, :message
 
     # Returns the content of the response as a string. This contains the contents
-    # of any calls to <tt>render</tt>.
+    # of any calls to render.
     def body
       strings = []
       each { |part| strings << part.to_s }

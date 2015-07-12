@@ -197,7 +197,7 @@ module ActionController
   # == Basic example
   #
   # Functional tests are written as follows:
-  # 1. First, one uses the +get+, +post+, +patch+, +put+, +delete+ or +head+ method to simulate
+  # 1. First, one uses the get, post, patch, put, delete or head method to simulate
   #    an HTTP request.
   # 2. Then, one asserts whether the current state is as expected. "State" can be anything:
   #    the controller's HTTP response, the database contents, etc.
@@ -239,17 +239,17 @@ module ActionController
   # <b>@response</b>::
   #      An ActionController::TestResponse object, representing the response
   #      of the last HTTP response. In the above example, <tt>@response</tt> becomes valid
-  #      after calling +post+. If the various assert methods are not sufficient, then you
+  #      after calling post. If the various assert methods are not sufficient, then you
   #      may use this object to inspect the HTTP response in detail.
   #
   # (Earlier versions of \Rails required each functional test to subclass
-  # Test::Unit::TestCase and define @controller, @request, @response in +setup+.)
+  # Test::Unit::TestCase and define @controller, @request, @response in setup.)
   #
   # == Controller is automatically inferred
   #
   # ActionController::TestCase will automatically infer the controller under test
   # from the test class name. If the controller cannot be inferred from the test
-  # class name, you can explicitly set it with +tests+.
+  # class name, you can explicitly set it with tests.
   #
   #   class SpecialEdgeCaseWidgetsControllerTest < ActionController::TestCase
   #     tests WidgetController
@@ -269,7 +269,7 @@ module ActionController
   #   assert_equal "Dave", cookies[:name] # makes sure that a cookie called :name was set as "Dave"
   #   assert flash.empty? # makes sure that there's nothing in the flash
   #
-  # On top of the collections, you have the complete url that a given action redirected to available in <tt>redirect_to_url</tt>.
+  # On top of the collections, you have the complete url that a given action redirected to available in redirect_to_url.
   #
   # For redirects within the same controller, you can even call follow_redirect and the redirect will be followed, triggering another
   # action call which can then be asserted against.
@@ -303,7 +303,7 @@ module ActionController
       module ClassMethods
 
         # Sets the controller class name. Useful if the name can't be inferred from test class.
-        # Normalizes +controller_class+ before using.
+        # Normalizes controller_class before using.
         #
         #   tests WidgetController
         #   tests :widget
@@ -348,7 +348,7 @@ module ActionController
       # - +flash+: A hash of parameters to store in the flash. This may be +nil+.
       #
       # You can also simulate POST, PATCH, PUT, DELETE, and HEAD requests with
-      # +post+, +patch+, +put+, +delete+, and +head+.
+      # post, patch, put, delete, and head.
       # Example sending parameters, session and setting a flash message:
       #
       #   get :show,
@@ -365,31 +365,31 @@ module ActionController
       end
 
       # Simulate a POST request with the given parameters and set/volley the response.
-      # See +get+ for more details.
+      # See get for more details.
       def post(action, *args)
         process_with_kwargs("POST", action, *args)
       end
 
       # Simulate a PATCH request with the given parameters and set/volley the response.
-      # See +get+ for more details.
+      # See get for more details.
       def patch(action, *args)
         process_with_kwargs("PATCH", action, *args)
       end
 
       # Simulate a PUT request with the given parameters and set/volley the response.
-      # See +get+ for more details.
+      # See get for more details.
       def put(action, *args)
         process_with_kwargs("PUT", action, *args)
       end
 
       # Simulate a DELETE request with the given parameters and set/volley the response.
-      # See +get+ for more details.
+      # See get for more details.
       def delete(action, *args)
         process_with_kwargs("DELETE", action, *args)
       end
 
       # Simulate a HEAD request with the given parameters and set/volley the response.
-      # See +get+ for more details.
+      # See get for more details.
       def head(action, *args)
         process_with_kwargs("HEAD", action, *args)
       end

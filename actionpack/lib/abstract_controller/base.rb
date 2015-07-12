@@ -14,7 +14,7 @@ module AbstractController
 
   # AbstractController::Base is a low-level API. Nobody should be
   # using it directly, and subclasses (like ActionController::Base) are
-  # expected to provide their own +render+ method, since rendering means
+  # expected to provide their own render method, since rendering means
   # different things depending on the context.
   class Base
     attr_internal :response_body
@@ -153,7 +153,7 @@ module AbstractController
     end
 
     # Returns true if the given controller is capable of rendering
-    # a path. A subclass of +AbstractController::Base+
+    # a path. A subclass of AbstractController::Base
     # may return false. An Email controller for example does not
     # support paths, only full URLs.
     def self.supports_path?

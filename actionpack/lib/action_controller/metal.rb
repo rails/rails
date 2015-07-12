@@ -39,9 +39,9 @@ module ActionController
     end
   end
 
-  # <tt>ActionController::Metal</tt> is the simplest possible controller, providing a
+  # ActionController::Metal is the simplest possible controller, providing a
   # valid Rack interface without the additional niceties provided by
-  # <tt>ActionController::Base</tt>.
+  # ActionController::Base.
   #
   # A sample metal controller might look like this:
   #
@@ -56,12 +56,12 @@ module ActionController
   #
   #   get 'hello', to: HelloController.action(:index)
   #
-  # The +action+ method returns a valid Rack application for the \Rails
+  # The action method returns a valid Rack application for the \Rails
   # router to dispatch to.
   #
   # == Rendering Helpers
   #
-  # <tt>ActionController::Metal</tt> by default provides no utilities for rendering
+  # ActionController::Metal by default provides no utilities for rendering
   # views, partials, or other responses aside from explicitly calling of
   # <tt>response_body=</tt>, <tt>content_type=</tt>, and <tt>status=</tt>. To
   # add the render helpers you're used to having in a normal controller, you
@@ -92,7 +92,7 @@ module ActionController
   #
   # == Other Helpers
   #
-  # You can refer to the modules included in <tt>ActionController::Base</tt> to see
+  # You can refer to the modules included in ActionController::Base to see
   # other features you can bring into your metal controller.
   #
   class Metal < AbstractController::Base
@@ -105,8 +105,8 @@ module ActionController
     end
 
     # Returns the last part of the controller's name, underscored, without the ending
-    # <tt>Controller</tt>. For instance, PostsController returns <tt>posts</tt>.
-    # Namespaces are left out, so Admin::PostsController returns <tt>posts</tt> as well.
+    # Controller. For instance, PostsController returns posts.
+    # Namespaces are left out, so Admin::PostsController returns posts as well.
     #
     # ==== Returns
     # * <tt>string</tt>
@@ -114,7 +114,7 @@ module ActionController
       @controller_name ||= name.demodulize.sub(/Controller$/, '').underscore
     end
 
-    # Delegates to the class' <tt>controller_name</tt>
+    # Delegates to the class' controller_name
     def controller_name
       self.class.controller_name
     end
@@ -219,7 +219,7 @@ module ActionController
       middleware_stack.use(*args, &block)
     end
 
-    # Alias for +middleware_stack+.
+    # Alias for middleware_stack.
     def self.middleware
       middleware_stack
     end

@@ -5,7 +5,7 @@ module ActionController
     # useful when certain elements of an action change frequently or
     # depend on complicated state while other parts rarely change or
     # can be shared amongst multiple parties. The caching is done using
-    # the +cache+ helper available in the Action View. See
+    # the cache helper available in the Action View. See
     # ActionView::Helpers::CacheHelper for more information.
     #
     # While it's strongly recommended that you use key-based cache
@@ -14,7 +14,7 @@ module ActionController
     #
     #   expire_fragment('name_of_cache')
     module Fragments
-      # Given a key (as described in +expire_fragment+), returns
+      # Given a key (as described in expire_fragment), returns
       # a key suitable for use in reading, writing, or expiring a
       # cached fragment. All keys are prefixed with <tt>views/</tt> and uses
       # ActiveSupport::Cache.expand_cache_key for the expansion.
@@ -35,8 +35,8 @@ module ActionController
         content
       end
 
-      # Reads a cached fragment from the location signified by +key+
-      # (see +expire_fragment+ for acceptable formats).
+      # Reads a cached fragment from the location signified by key
+      # (see expire_fragment for acceptable formats).
       def read_fragment(key, options = nil)
         return unless cache_configured?
 
@@ -60,11 +60,11 @@ module ActionController
 
       # Removes fragments from the cache.
       #
-      # +key+ can take one of three forms:
+      # key can take one of three forms:
       #
       # * String - This would normally take the form of a path, like
       #   <tt>pages/45/notes</tt>.
-      # * Hash - Treated as an implicit call to +url_for+, like
+      # * Hash - Treated as an implicit call to url_for, like
       #   <tt>{ controller: 'pages', action: 'notes', id: 45}</tt>
       # * Regexp - Will remove any fragment that matches, so
       #   <tt>%r{pages/\d*/notes}</tt> might remove all notes. Make sure you
@@ -74,8 +74,8 @@ module ActionController
       #   only supported on caches that can iterate over all keys (unlike
       #   memcached).
       #
-      # +options+ is passed through to the cache store's +delete+
-      # method (or <tt>delete_matched</tt>, for Regexp keys).
+      # +options+ is passed through to the cache store's delete
+      # method (or delete_matched, for Regexp keys).
       def expire_fragment(key, options = nil)
         return unless cache_configured?
         key = fragment_cache_key(key) unless key.is_a?(Regexp)

@@ -70,7 +70,7 @@ module ActionController #:nodoc:
   # variables set in the template to be used in the layout, they won't
   # work once you move to streaming. The proper way to communicate
   # between layout and template, regardless of whether you use streaming
-  # or not, is by using +content_for+, +provide+ and +yield+.
+  # or not, is by using content_for, provide and +yield+.
   #
   # Take a simple example where the layout expects the template to tell
   # which title to use:
@@ -80,7 +80,7 @@ module ActionController #:nodoc:
   #     <body><%= yield %></body>
   #   </html>
   #
-  # You would use +content_for+ in your template to specify the title:
+  # You would use content_for in your template to specify the title:
   #
   #   <%= content_for :title, "Main" %>
   #   Hello
@@ -92,7 +92,7 @@ module ActionController #:nodoc:
   #     <body>Hello</body>
   #   </html>
   #
-  # However, if +content_for+ is called several times, the final result
+  # However, if content_for is called several times, the final result
   # would have all calls concatenated. For instance, if we have the following
   # template:
   #
@@ -111,10 +111,10 @@ module ActionController #:nodoc:
   # and you want to use streaming, you would have to render the whole template
   # (and eventually trigger all queries) before streaming the title and all
   # assets, which kills the purpose of streaming. For this purpose, you can use
-  # a helper called +provide+ that does the same as +content_for+ but tells the
+  # a helper called provide that does the same as content_for but tells the
   # layout to stop searching for other entries and continue rendering.
   #
-  # For instance, the template above using +provide+ would be:
+  # For instance, the template above using provide would be:
   #
   #   <%= provide :title, "Main" %>
   #   Hello
@@ -128,7 +128,7 @@ module ActionController #:nodoc:
   #   </html>
   #
   # That said, when streaming, you need to properly check your templates
-  # and choose when to use +provide+ and +content_for+.
+  # and choose when to use provide and content_for.
   #
   # == Headers, cookies, session and flash
   #
@@ -141,10 +141,10 @@ module ActionController #:nodoc:
   #
   # Middlewares that need to manipulate the body won't work with streaming.
   # You should disable those middlewares whenever streaming in development
-  # or production. For instance, <tt>Rack::Bug</tt> won't work when streaming as it
+  # or production. For instance, Rack::Bug won't work when streaming as it
   # needs to inject contents in the HTML body.
   #
-  # Also <tt>Rack::Cache</tt> won't work with streaming as it does not support
+  # Also Rack::Cache won't work with streaming as it does not support
   # streaming bodies yet. Whenever streaming Cache-Control is automatically
   # set to "no-cache".
   #
@@ -209,7 +209,7 @@ module ActionController #:nodoc:
         end
       end
 
-      # Call render_body if we are streaming instead of usual +render+.
+      # Call render_body if we are streaming instead of usual render.
       def _render_template(options) #:nodoc:
         if options.delete(:stream)
           Rack::Chunked::Body.new view_renderer.render_body(view_context, options)

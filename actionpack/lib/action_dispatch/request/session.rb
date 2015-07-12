@@ -148,7 +148,7 @@ module ActionDispatch
         @delegate.delete key.to_s
       end
 
-      # Returns value of given key from the session, or raises +KeyError+
+      # Returns value of given key from the session, or raises KeyError
       # if can't find given key in case of not setted dafault value.
       # Returns default value if specified.
       #

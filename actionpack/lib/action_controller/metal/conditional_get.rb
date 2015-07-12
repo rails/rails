@@ -32,7 +32,7 @@ module ActionController
       end
     end
 
-    # Sets the +etag+, +last_modified+, or both on the response and renders a
+    # Sets the etag, last_modified, or both on the response and renders a
     # <tt>304 Not Modified</tt> response if the request is already fresh.
     #
     # === Parameters:
@@ -57,18 +57,18 @@ module ActionController
     # This will render the show template if the request isn't sending a matching ETag or
     # If-Modified-Since header and just a <tt>304 Not Modified</tt> response if there's a match.
     #
-    # You can also just pass a record. In this case +last_modified+ will be set
-    # by calling +updated_at+ and +etag+ by passing the object itself.
+    # You can also just pass a record. In this case last_modified will be set
+    # by calling updated_at and etag by passing the object itself.
     #
     #   def show
     #     @article = Article.find(params[:id])
     #     fresh_when(@article)
     #   end
     #
-    # You can also pass an object that responds to +maximum+, such as a
-    # collection of active records. In this case +last_modified+ will be set by
+    # You can also pass an object that responds to maximum, such as a
+    # collection of active records. In this case last_modified will be set by
     # calling +maximum(:updated_at)+ on the collection (the timestamp of the
-    # most recently updated record) and the +etag+ by passing the object itself.
+    # most recently updated record) and the etag by passing the object itself.
     #
     #   def index
     #     @articles = Article.all
@@ -101,7 +101,7 @@ module ActionController
       head :not_modified if request.fresh?(response)
     end
 
-    # Sets the +etag+ and/or +last_modified+ on the response and checks it against
+    # Sets the etag and/or last_modified on the response and checks it against
     # the client request. If the request doesn't match the options provided, the
     # request is considered stale and should be generated from scratch. Otherwise,
     # it's fresh and we don't need to generate anything and a reply of <tt>304 Not Modified</tt> is sent.
@@ -131,8 +131,8 @@ module ActionController
     #     end
     #   end
     #
-    # You can also just pass a record. In this case +last_modified+ will be set
-    # by calling +updated_at+ and +etag+ by passing the object itself.
+    # You can also just pass a record. In this case last_modified will be set
+    # by calling updated_at and etag by passing the object itself.
     #
     #   def show
     #     @article = Article.find(params[:id])
@@ -145,10 +145,10 @@ module ActionController
     #     end
     #   end
     #
-    # You can also pass an object that responds to +maximum+, such as a
-    # collection of active records. In this case +last_modified+ will be set by
+    # You can also pass an object that responds to maximum, such as a
+    # collection of active records. In this case last_modified will be set by
     # calling +maximum(:updated_at)+ on the collection (the timestamp of the
-    # most recently updated record) and the +etag+ by passing the object itself.
+    # most recently updated record) and the etag by passing the object itself.
     #
     #   def index
     #     @articles = Article.all

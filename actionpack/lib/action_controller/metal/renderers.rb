@@ -61,7 +61,7 @@ module ActionController
     # <tt>AbstractController::Rendering#render</tt>. To create a renderer
     # pass it a name and a block. The block takes two arguments, the first
     # is the value paired with its key and the second is the remaining
-    # hash of options passed to +render+.
+    # hash of options passed to render.
     #
     # Create a csv renderer:
     #

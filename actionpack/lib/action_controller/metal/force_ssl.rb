@@ -72,7 +72,7 @@ module ActionController
     #
     # ==== Parameters
     # * <tt>host_or_options</tt> - Either a host name or any of the url & redirect options
-    #                              available to the <tt>force_ssl</tt> method.
+    #                              available to the force_ssl method.
     def force_ssl_redirect(host_or_options = nil)
       unless request.ssl?
         options = {

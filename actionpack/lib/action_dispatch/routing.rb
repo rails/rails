@@ -29,7 +29,7 @@ module ActionDispatch
   #
   # Resource routing allows you to quickly declare all of the common routes
   # for a given resourceful controller. Instead of declaring separate routes
-  # for your +index+, +show+, +new+, +edit+, +create+, +update+ and +destroy+
+  # for your index, show, new, edit, create, update and destroy
   # actions, a resourceful route declares them in a single line of code:
   #
   #  resources :photos
@@ -59,7 +59,7 @@ module ActionDispatch
   #   end
   #
   # Alternately, you can add prefixes to your path without using a separate
-  # directory by using +scope+. +scope+ takes additional options which
+  # directory by using scope. scope takes additional options which
   # apply to all enclosed routes.
   #
   #   scope path: "/cpanel", as: 'admin' do
@@ -72,14 +72,14 @@ module ActionDispatch
   #
   # == Non-resourceful routes
   #
-  # For routes that don't fit the <tt>resources</tt> mold, you can use the HTTP helper
-  # methods <tt>get</tt>, <tt>post</tt>, <tt>patch</tt>, <tt>put</tt> and <tt>delete</tt>.
+  # For routes that don't fit the resources mold, you can use the HTTP helper
+  # methods get, post, patch, put and delete.
   #
   #   get 'post/:id' => 'posts#show'
   #   post 'post/:id' => 'posts#create_comment'
   #
   # If your route needs to respond to more than one HTTP method (or all methods) then using the
-  # <tt>:via</tt> option on <tt>match</tt> is preferable.
+  # <tt>:via</tt> option on match is preferable.
   #
   #   match 'post/:id' => 'posts#show', via: [:get, :post]
   #
@@ -104,7 +104,7 @@ module ActionDispatch
   #
   #   redirect_to show_item_path(id: 25)
   #
-  # Use <tt>root</tt> as a shorthand to name a route for the root path "/".
+  # Use root as a shorthand to name a route for the root path "/".
   #
   #   # In routes.rb
   #   root to: 'blogs#index'
@@ -116,7 +116,7 @@ module ActionDispatch
   #   root_url   # => 'http://www.example.com/'
   #   root_path  # => '/'
   #
-  # Note: when using +controller+, the route is simply named after the
+  # Note: when using controller, the route is simply named after the
   # method you call on the block parameter rather than map.
   #
   #   # In routes.rb
@@ -170,7 +170,7 @@ module ActionDispatch
   #     }
   #   end
   #
-  # Using the multiline modifier will raise an +ArgumentError+.
+  # Using the multiline modifier will raise an ArgumentError.
   # Encoding regular expression modifiers are silently ignored. The
   # match will always use the default encoding or ASCII.
   #
@@ -207,27 +207,27 @@ module ActionDispatch
   #
   # The two main methods for testing your routes:
   #
-  # === +assert_routing+
+  # === assert_routing
   #
   #   def test_movie_route_properly_splits
   #    opts = {controller: "plugin", action: "checkout", id: "2"}
   #    assert_routing "plugin/checkout/2", opts
   #   end
   #
-  # +assert_routing+ lets you test whether or not the route properly resolves into options.
+  # assert_routing lets you test whether or not the route properly resolves into options.
   #
-  # === +assert_recognizes+
+  # === assert_recognizes
   #
   #   def test_route_has_options
   #    opts = {controller: "plugin", action: "show", id: "12"}
   #    assert_recognizes opts, "/plugins/show/12"
   #   end
   #
-  # Note the subtle difference between the two: +assert_routing+ tests that
-  # a URL fits options while +assert_recognizes+ tests that a URL
+  # Note the subtle difference between the two: assert_routing tests that
+  # a URL fits options while assert_recognizes tests that a URL
   # breaks into parameters properly.
   #
-  # In tests you can simply pass the URL or named route to +get+ or +post+.
+  # In tests you can simply pass the URL or named route to get or post.
   #
   #   def send_to_jail
   #     get '/jail'

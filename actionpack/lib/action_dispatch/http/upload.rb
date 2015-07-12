@@ -2,7 +2,7 @@ module ActionDispatch
   module Http
     # Models uploaded files.
     #
-    # The actual file is accessible via the +tempfile+ accessor, though some
+    # The actual file is accessible via the tempfile accessor, though some
     # of its interface is available directly for convenience.
     #
     # Uploaded files are temporary files whose lifespan is one request. When
@@ -15,7 +15,7 @@ module ActionDispatch
       # A string with the MIME type of the file.
       attr_accessor :content_type
 
-      # A +Tempfile+ object with the actual uploaded file. Note that some of
+      # A Tempfile object with the actual uploaded file. Note that some of
       # its interface is available directly.
       attr_accessor :tempfile
       alias :to_io :tempfile

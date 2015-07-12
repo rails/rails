@@ -70,7 +70,7 @@ module AbstractController
         end
       end
 
-      # The +helper+ class method can take a series of helper module names, a block, or both.
+      # The helper class method can take a series of helper module names, a block, or both.
       #
       # ==== Options
       # * <tt>*args</tt> - Module, Symbol, String
@@ -86,7 +86,7 @@ module AbstractController
       #   helper :foo             # => requires 'foo_helper' and includes FooHelper
       #   helper 'resources/foo'  # => requires 'resources/foo_helper' and includes Resources::FooHelper
       #
-      # Additionally, the +helper+ class method can receive and evaluate a block, making the methods defined available
+      # Additionally, the helper class method can receive and evaluate a block, making the methods defined available
       # to the template.
       #
       #   # One line
@@ -99,8 +99,8 @@ module AbstractController
       #     end
       #   end
       #
-      # Finally, all the above styles can be mixed together, and the +helper+ method can be invoked with a mix of
-      # +symbols+, +strings+, +modules+ and blocks.
+      # Finally, all the above styles can be mixed together, and the helper method can be invoked with a mix of
+      # symbols, strings, modules, and blocks.
       #
       #   helper(:three, BlindHelper) { def mice() 'mice' end }
       #

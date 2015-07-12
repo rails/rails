@@ -52,7 +52,7 @@ module ActionDispatch
     # argument.
     #
     # For convenience reasons, mailers provide a shortcut for ActionController::UrlFor#url_for.
-    # So within mailers, you only have to type +url_for+ instead of 'ActionController::UrlFor#url_for'
+    # So within mailers, you only have to type url_for instead of ActionController::UrlFor#url_for
     # in full. However, mailers don't have hostname information, and you still have to provide
     # the +:host+ argument or set the default host that will be used in all mailers using the
     # configuration option +config.action_mailer.default_url_options+. For more information on
@@ -120,11 +120,11 @@ module ActionDispatch
       # * <tt>:protocol</tt> - The protocol to connect to. Defaults to 'http'.
       # * <tt>:host</tt> - Specifies the host the link should be targeted at.
       #   If <tt>:only_path</tt> is false, this option must be
-      #   provided either explicitly, or via +default_url_options+.
-      # * <tt>:subdomain</tt> - Specifies the subdomain of the link, using the +tld_length+
+      #   provided either explicitly, or via default_url_options.
+      # * <tt>:subdomain</tt> - Specifies the subdomain of the link, using the tld_length
       #   to split the subdomain from the host.
       #   If false, removes all subdomains from the host part of the link.
-      # * <tt>:domain</tt> - Specifies the domain of the link, using the +tld_length+
+      # * <tt>:domain</tt> - Specifies the domain of the link, using the tld_length
       #   to split the domain from the host.
       # * <tt>:tld_length</tt> - Number of labels the TLD id composed of, only used if
       #   <tt>:subdomain</tt> or <tt>:domain</tt> are supplied. Defaults to
@@ -135,7 +135,7 @@ module ActionDispatch
       # * <tt>:script_name</tt> - Specifies application path relative to domain root. If provided, prepends application path.
       #
       # Any other key (<tt>:controller</tt>, <tt>:action</tt>, etc.) given to
-      # +url_for+ is forwarded to the Routes module.
+      # url_for is forwarded to the Routes module.
       #
       #    url_for controller: 'tasks', action: 'testing', host: 'somehost.org', port: '8080'
       #    # => 'http://somehost.org:8080/tasks/testing'
@@ -159,10 +159,10 @@ module ActionDispatch
       #   url_for(only_path: true, action: 'edit')        # => '/users/1/edit'
       #   url_for(only_path: true, action: 'edit', id: 2) # => '/users/2/edit'
       #
-      # Notice that no +:id+ parameter was provided to the first +url_for+ call
+      # Notice that no +:id+ parameter was provided to the first url_for call
       # and the helper used the one from the route's path. Any path parameter
-      # implicitly used by +url_for+ can always be overwritten like shown on the
-      # last +url_for+ calls.
+      # implicitly used by url_for can always be overwritten like shown on the
+      # last url_for calls.
       def url_for(options = nil)
         case options
         when nil

@@ -8,7 +8,7 @@ module ActionController
     # For example, the "new" action with an HTML format and variant "phone" 
     # would try to render the <tt>new.html+phone.erb</tt> template.
     #
-    # If no template is found <tt>ActionController::BasicImplicitRender</tt>'s implementation is called, unless
+    # If no template is found ActionController::BasicImplicitRender's implementation is called, unless
     # a block is passed. In that case, it will override the super implementation.
     #
     #   default_render do
