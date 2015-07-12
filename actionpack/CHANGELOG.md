@@ -1,3 +1,12 @@
+*   Update session to have indifferent access across multiple requests
+
+        session[:deep][:hash] = "Magic"
+
+        session[:deep][:hash] == "Magic"
+        session[:deep]["hash"] == "Magic"
+
+    *Tom Prats*
+
 *   Response etags to always be weak: Prefixes 'W/' to value returned by
    `ActionDispatch::Http::Cache::Response#etag=`, such that etags set in
    `fresh_when` and `stale?` are weak.
