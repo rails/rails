@@ -1,3 +1,5 @@
+require 'action_dispatch/http/request'
+
 module ActionCable
   module Connection
     # For every websocket the cable server is accepting, a Connection object will be instantiated. This instance becomes the parent
@@ -117,7 +119,10 @@ module ActionCable
       protected
         # The request that initiated the websocket connection is available here. This gives access to the environment, cookies, etc.
         def request
-          @request ||= ActionDispatch::Request.new(Rails.application.env_config.merge(env))
+          @request ||= begin
+            environment = Rails.application.env_config.merge(env) if defined?(Rails.application) && Rails.application
+            ActionDispatch::Request.new(environment || env)
+          end
         end
 
         # The cookies of the request that initiated the websocket connection. Useful for performing authorization checks.

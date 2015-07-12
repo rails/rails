@@ -12,6 +12,7 @@ Gem::Specification.new do |s|
   s.platform = Gem::Platform::RUBY
 
   s.add_dependency 'activesupport',    '>= 4.2.0'
+  s.add_dependency 'actionpack',       '>= 4.2.0'
   s.add_dependency 'faye-websocket',   '~> 0.9.2'
   s.add_dependency 'websocket-driver', '= 0.5.4'
   s.add_dependency 'celluloid',        '~> 0.16.0'
