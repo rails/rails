@@ -27,14 +27,6 @@ class ErrorsTest < ActiveModel::TestCase
     end
   end
 
-  def setup
-    @mock_generator = MiniTest::Mock.new
-  end
-
-  def teardown
-    @mock_generator.verify
-  end
-
   def test_delete
     errors = ActiveModel::Errors.new(self)
     errors[:foo] << 'omg'
@@ -307,8 +299,7 @@ class ErrorsTest < ActiveModel::TestCase
 
   test "add_on_empty generates message" do
     person = Person.new
-    @mock_generator.expect(:call, nil, [:name, :empty, {}])
-    person.errors.stub(:generate_message, @mock_generator) do
+    assert_called_with(person.errors, :generate_message, [:name, :empty, {}]) do
       assert_deprecated do
         person.errors.add_on_empty :name
       end
@@ -317,9 +308,8 @@ class ErrorsTest < ActiveModel::TestCase
 
   test "add_on_empty generates message for multiple attributes" do
     person = Person.new
-    @mock_generator.expect(:call, nil, [:name, :empty, {}])
-    @mock_generator.expect(:call, nil, [:age, :empty, {}])
-    person.errors.stub(:generate_message, @mock_generator) do
+    expected_calls = [ [:name, :empty, {}], [:age, :empty, {}] ]
+    assert_called_with(person.errors, :generate_message, expected_calls) do
       assert_deprecated do
         person.errors.add_on_empty [:name, :age]
       end
@@ -328,8 +318,7 @@ class ErrorsTest < ActiveModel::TestCase
 
   test "add_on_empty generates message with custom default message" do
     person = Person.new
-    @mock_generator.expect(:call, nil, [:name, :empty, { message: 'custom' }])
-    person.errors.stub(:generate_message, @mock_generator) do
+    assert_called_with(person.errors, :generate_message, [:name, :empty, { message: 'custom' }]) do
       assert_deprecated do
         person.errors.add_on_empty :name, message: 'custom'
       end
@@ -339,8 +328,7 @@ class ErrorsTest < ActiveModel::TestCase
   test "add_on_empty generates message with empty string value" do
     person = Person.new
     person.name = ''
-    @mock_generator.expect(:call, nil, [:name, :empty, {}])
-    person.errors.stub(:generate_message, @mock_generator) do
+    assert_called_with(person.errors, :generate_message, [:name, :empty, {}]) do
       assert_deprecated do
         person.errors.add_on_empty :name
       end
@@ -349,8 +337,7 @@ class ErrorsTest < ActiveModel::TestCase
 
   test "add_on_blank generates message" do
     person = Person.new
-    @mock_generator.expect(:call, nil, [:name, :blank, {}])
-    person.errors.stub(:generate_message, @mock_generator) do
+    assert_called_with(person.errors, :generate_message, [:name, :blank, {}]) do
       assert_deprecated do
         person.errors.add_on_blank :name
       end
@@ -359,9 +346,8 @@ class ErrorsTest < ActiveModel::TestCase
 
   test "add_on_blank generates message for multiple attributes" do
     person = Person.new
-    @mock_generator.expect(:call, nil, [:name, :blank, {}])
-    @mock_generator.expect(:call, nil, [:age, :blank, {}])
-    person.errors.stub(:generate_message, @mock_generator) do
+    expected_calls = [ [:name, :blank, {}], [:age, :blank, {}] ]
+    assert_called_with(person.errors, :generate_message, expected_calls) do
       assert_deprecated do
         person.errors.add_on_blank [:name, :age]
       end
@@ -370,8 +356,7 @@ class ErrorsTest < ActiveModel::TestCase
 
   test "add_on_blank generates message with custom default message" do
     person = Person.new
-    @mock_generator.expect(:call, nil, [:name, :blank, { message: 'custom' }])
-    person.errors.stub(:generate_message, @mock_generator) do
+    assert_called_with(person.errors, :generate_message, [:name, :blank, { message: 'custom' }]) do
       assert_deprecated do
         person.errors.add_on_blank :name, message: 'custom'
       end

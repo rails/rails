@@ -12,11 +12,32 @@ require 'active_support/core_ext/kernel/reporting'
 require 'active_support/core_ext/load_error'
 require 'active_support/core_ext/name_error'
 require 'active_support/core_ext/string/starts_ends_with'
+require "active_support/dependencies/interlock"
 require 'active_support/inflector'
 
 module ActiveSupport #:nodoc:
   module Dependencies #:nodoc:
     extend self
+
+    mattr_accessor :interlock
+    self.interlock = Interlock.new
+
+    # :doc:
+
+    # Execute the supplied block without interference from any
+    # concurrent loads
+    def self.run_interlock
+      Dependencies.interlock.running { yield }
+    end
+
+    # Execute the supplied block while holding an exclusive lock,
+    # preventing any other thread from being inside a #run_interlock
+    # block at the same time
+    def self.load_interlock
+      Dependencies.interlock.loading { yield }
+    end
+
+    # :nodoc:
 
     # Should we turn on Ruby warnings on the first load of dependent files?
     mattr_accessor :warnings_on_first_load
@@ -234,10 +255,12 @@ module ActiveSupport #:nodoc:
       end
 
       def load_dependency(file)
-        if Dependencies.load? && ActiveSupport::Dependencies.constant_watch_stack.watching?
-          Dependencies.new_constants_in(Object) { yield }
-        else
-          yield
+        Dependencies.load_interlock do
+          if Dependencies.load? && ActiveSupport::Dependencies.constant_watch_stack.watching?
+            Dependencies.new_constants_in(Object) { yield }
+          else
+            yield
+          end
         end
       rescue Exception => exception  # errors from loading file
         exception.blame_file! file if exception.respond_to? :blame_file!
@@ -325,9 +348,11 @@ module ActiveSupport #:nodoc:
 
     def clear
       log_call
-      loaded.clear
-      loading.clear
-      remove_unloadable_constants!
+      Dependencies.load_interlock do
+        loaded.clear
+        loading.clear
+        remove_unloadable_constants!
+      end
     end
 
     def require_or_load(file_name, const_path = nil)
@@ -336,39 +361,44 @@ module ActiveSupport #:nodoc:
       expanded = File.expand_path(file_name)
       return if loaded.include?(expanded)
 
-      # Record that we've seen this file *before* loading it to avoid an
-      # infinite loop with mutual dependencies.
-      loaded << expanded
-      loading << expanded
+      Dependencies.load_interlock do
+        # Maybe it got loaded while we were waiting for our lock:
+        return if loaded.include?(expanded)
 
-      begin
-        if load?
-          log "loading #{file_name}"
+        # Record that we've seen this file *before* loading it to avoid an
+        # infinite loop with mutual dependencies.
+        loaded << expanded
+        loading << expanded
 
-          # Enable warnings if this file has not been loaded before and
-          # warnings_on_first_load is set.
-          load_args = ["#{file_name}.rb"]
-          load_args << const_path unless const_path.nil?
+        begin
+          if load?
+            log "loading #{file_name}"
 
-          if !warnings_on_first_load or history.include?(expanded)
-            result = load_file(*load_args)
+            # Enable warnings if this file has not been loaded before and
+            # warnings_on_first_load is set.
+            load_args = ["#{file_name}.rb"]
+            load_args << const_path unless const_path.nil?
+
+            if !warnings_on_first_load or history.include?(expanded)
+              result = load_file(*load_args)
+            else
+              enable_warnings { result = load_file(*load_args) }
+            end
           else
-            enable_warnings { result = load_file(*load_args) }
+            log "requiring #{file_name}"
+            result = require file_name
           end
-        else
-          log "requiring #{file_name}"
-          result = require file_name
+        rescue Exception
+          loaded.delete expanded
+          raise
+        ensure
+          loading.pop
         end
-      rescue Exception
-        loaded.delete expanded
-        raise
-      ensure
-        loading.pop
-      end
 
-      # Record history *after* loading so first load gets warnings.
-      history << expanded
-      result
+        # Record history *after* loading so first load gets warnings.
+        history << expanded
+        result
+      end
     end
 
     # Is the provided constant path defined?

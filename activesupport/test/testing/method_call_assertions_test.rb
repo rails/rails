@@ -73,6 +73,13 @@ class MethodCallAssertionsTest < ActiveSupport::TestCase
     end
   end
 
+  def test_assert_called_with_multiple_expected_arguments
+    assert_called_with(@object, :<<, [ [ 1 ], [ 2 ] ]) do
+      @object << 1
+      @object << 2
+    end
+  end
+
   def test_assert_not_called
     assert_not_called(@object, :decrement) do
       @object.increment

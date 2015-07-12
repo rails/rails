@@ -26,7 +26,7 @@ module ApplicationTests
       assert_equal [
         "Rack::Sendfile",
         "ActionDispatch::Static",
-        "Rack::Lock",
+        "ActionDispatch::LoadInterlock",
         "ActiveSupport::Cache::Strategy::LocalCache",
         "Rack::Runtime",
         "Rack::MethodOverride",
@@ -58,7 +58,7 @@ module ApplicationTests
       assert_equal [
         "Rack::Sendfile",
         "ActionDispatch::Static",
-        "Rack::Lock",
+        "ActionDispatch::LoadInterlock",
         "ActiveSupport::Cache::Strategy::LocalCache",
         "Rack::Runtime",
         "ActionDispatch::RequestId",
@@ -121,23 +121,40 @@ module ApplicationTests
       assert !middleware.include?("ActiveRecord::Migration::CheckPending")
     end
 
-    test "includes lock if cache_classes is set but eager_load is not" do
+    test "includes interlock if cache_classes is set but eager_load is not" do
       add_to_config "config.cache_classes = true"
       boot!
-      assert middleware.include?("Rack::Lock")
+      assert_not_includes middleware, "Rack::Lock"
+      assert_includes middleware, "ActionDispatch::LoadInterlock"
+    end
+
+    test "includes interlock if cache_classes is off" do
+      add_to_config "config.cache_classes = false"
+      boot!
+      assert_not_includes middleware, "Rack::Lock"
+      assert_includes middleware, "ActionDispatch::LoadInterlock"
     end
 
     test "does not include lock if cache_classes is set and so is eager_load" do
       add_to_config "config.cache_classes = true"
       add_to_config "config.eager_load = true"
       boot!
-      assert !middleware.include?("Rack::Lock")
+      assert_not_includes middleware, "Rack::Lock"
+      assert_not_includes middleware, "ActionDispatch::LoadInterlock"
     end
 
-    test "does not include lock if allow_concurrency is set" do
-      add_to_config "config.allow_concurrency = true"
+    test "does not include lock if allow_concurrency is set to :unsafe" do
+      add_to_config "config.allow_concurrency = :unsafe"
       boot!
-      assert !middleware.include?("Rack::Lock")
+      assert_not_includes middleware, "Rack::Lock"
+      assert_not_includes middleware, "ActionDispatch::LoadInterlock"
+    end
+
+    test "includes lock if allow_concurrency is disabled" do
+      add_to_config "config.allow_concurrency = false"
+      boot!
+      assert_includes middleware, "Rack::Lock"
+      assert_not_includes middleware, "ActionDispatch::LoadInterlock"
     end
 
     test "removes static asset server if serve_static_files is disabled" do
