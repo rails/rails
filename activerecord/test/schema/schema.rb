@@ -190,6 +190,14 @@ ActiveRecord::Schema.define do
     t.integer :developer_id
   end
 
+  create_table :comment_replies, force: true do |t|
+    t.references :comment
+  end
+
+  create_table :comment_subreplies, force: true do |t|
+    t.references :comment_reply
+  end
+
   create_table :companies, force: true do |t|
     t.string  :type
     t.integer :firm_id

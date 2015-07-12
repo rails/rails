@@ -6,6 +6,8 @@ require 'models/reference'
 require 'models/job'
 require 'models/reader'
 require 'models/comment'
+require 'models/comment_reply'
+require 'models/comment_subreply'
 require 'models/tag'
 require 'models/tagging'
 require 'models/subscriber'
@@ -125,6 +127,14 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
   # Through: has_one through
   def test_has_many_through_has_one_through_with_has_one_source_reflection
     assert_equal [sponsors(:moustache_club_sponsor_for_groucho)], members(:groucho).nested_sponsors
+  end
+
+  def test_nested_through_associations_on_new_record
+    comment = comments(:greetings)
+    comment_reply = CommentReply.create!(comment: comment)
+    comment_subreply = CommentSubreply.new(comment_reply: comment_reply)
+
+    assert_equal comment.post, comment_subreply.post
   end
 
   def test_has_many_through_has_one_through_with_has_one_source_reflection_preload

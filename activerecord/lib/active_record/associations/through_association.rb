@@ -71,7 +71,15 @@ module ActiveRecord
         end
 
         def foreign_key_present?
-          through_reflection.belongs_to? && !owner[through_reflection.foreign_key].nil?
+          (through_reflection.belongs_to? && !owner[through_reflection.foreign_key].nil?) ||
+            recursive_through_foreign_key_present?(through_reflection.through_reflection)
+        end
+
+        def recursive_through_foreign_key_present?(th_reflection)
+          return false if th_reflection.nil?
+
+          (th_reflection.belongs_to? && !owner[th_reflection.foreign_key].nil?) ||
+            recursive_through_foreign_key_present?(th_reflection.through_reflection)
         end
 
         def ensure_mutable
