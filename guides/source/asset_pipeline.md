@@ -537,7 +537,7 @@ web server.
 
 Additional layers of preprocessing can be requested by adding other extensions,
 where each extension is processed in a right-to-left manner. These should be
-used in the order the processing should be applied. For example, a stylesheet
+used in the order in which the processing should be applied. For example, a stylesheet
 called `app/assets/stylesheets/projects.scss.erb` is first processed as ERB,
 then SCSS, and finally served as CSS. The same applies to a JavaScript file -
 `app/assets/javascripts/projects.coffee.erb` is processed as ERB, then
