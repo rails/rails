@@ -211,7 +211,7 @@ module Mime
 
       # This method is opposite of register method.
       #
-      # Usage:
+      # To unregister a MIME type:
       #
       #   Mime::Type.unregister(:mobile)
       def unregister(symbol)
