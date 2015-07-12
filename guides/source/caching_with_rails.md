@@ -122,7 +122,7 @@ For example, take the following view:
 Which in turn renders this view:
 
 ```erb
-<% cache game %>
+<% cache game do %>
   <%= render game %>
 <% end %>
 ```
