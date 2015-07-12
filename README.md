@@ -204,6 +204,9 @@ The channel has been instructed to stream everything that arrives at `web_notifi
 `#received(data)` callback. The data is the hash sent as the second parameter to the server-side broadcast call, JSON encoded for the trip
 across the wire, and unpacked for the data argument arriving to `#received`.
 
+## More complete examples
+
+See the [rails/actioncable-examples](http://github.com/rails/actioncable-examples) repository for a full example of how to setup Action Cable in a Rails app and adding channels.
 
 ## Configuration
 
