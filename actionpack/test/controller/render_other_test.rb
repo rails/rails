@@ -11,7 +11,7 @@ class RenderOtherTest < ActionController::TestCase
   tests TestController
 
   def test_using_custom_render_option
-    ActionController.add_renderer :simon do |says, options|
+    ActionController.add_renderer :simon do |says, _|
       self.content_type  = Mime::TEXT
       self.response_body = "Simon says: #{says}"
     end
