@@ -111,7 +111,7 @@ module Arel
 
           it 'creates a different subquery when there is an offset' do
             stmt = Nodes::SelectStatement.new
-            stmt.limit = Nodes::Limit.new(Nodes.build_quoted(10))
+            stmt.limit = Nodes::Limit.new(10)
             stmt.offset = Nodes::Offset.new(10)
             sql = compile stmt
             sql.must_be_like %{
@@ -126,7 +126,7 @@ module Arel
 
           it 'is idempotent with different subquery' do
             stmt = Nodes::SelectStatement.new
-            stmt.limit = Nodes::Limit.new(Nodes.build_quoted(10))
+            stmt.limit = Nodes::Limit.new(10)
             stmt.offset = Nodes::Offset.new(10)
             sql = compile stmt
             sql2 = compile stmt

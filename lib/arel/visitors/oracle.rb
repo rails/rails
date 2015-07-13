@@ -17,7 +17,7 @@ module Arel
 
         if o.limit && o.offset
           o        = o.dup
-          limit    = o.limit.expr.expr
+          limit    = o.limit.expr
           offset   = o.offset
           o.offset = nil
           collector << "
