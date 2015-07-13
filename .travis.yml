@@ -23,14 +23,10 @@ env:
 rvm:
   - 2.2.2
   - ruby-head
-  - rbx-2
-  - jruby-head
 matrix:
   allow_failures:
     - env: "GEM=ar:mysql"
     - rvm: ruby-head
-    - rvm: rbx-2
-    - rvm: jruby-head
   fast_finish: true
 notifications:
   email: false
