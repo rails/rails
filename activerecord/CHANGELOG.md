@@ -1,3 +1,8 @@
+*   Replaced `ActiveSupport::Concurrency::Latch` with `Concurrent::CountDownLatch`
+    from the concurrent-ruby gem.
+
+    *Jerry D'Antonio*
+
 *   Fix through associations using scopes having the scope merged multiple
     times.
 
