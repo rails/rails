@@ -253,7 +253,6 @@ class ParametersPermitTest < ActiveSupport::TestCase
 
     assert @params.to_h.is_a? Hash
     assert_not @params.to_h.is_a? ActionController::Parameters
-    assert_equal @params.to_hash, @params.to_h
   end
 
   test "to_h returns converted hash when .permit_all_parameters is set" do
@@ -284,6 +283,5 @@ class ParametersPermitTest < ActiveSupport::TestCase
   test "to_unsafe_h returns unfiltered params" do
     assert @params.to_h.is_a? Hash
     assert_not @params.to_h.is_a? ActionController::Parameters
-    assert_equal @params.to_hash, @params.to_unsafe_h
   end
 end

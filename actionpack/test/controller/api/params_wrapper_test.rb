@@ -7,7 +7,7 @@ class ParamsWrapperForApiTest < ActionController::TestCase
     wrap_parameters :person, format: [:json]
 
     def test
-      self.last_parameters = params.except(:controller, :action)
+      self.last_parameters = params.except(:controller, :action).to_unsafe_h
       head :ok
     end
   end
