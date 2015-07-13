@@ -13,8 +13,6 @@ rvm:
   - 2.1
   - 2.2
   - ruby-head
-  - rbx-2
-  - jruby
 env:
   - "GEM=railties"
   - "GEM=ap,am,amo,as,av"
@@ -24,8 +22,6 @@ env:
   - "GEM=ar:postgresql"
 matrix:
   allow_failures:
-    - rvm: rbx-2
-    - rvm: jruby
     - rvm: ruby-head
   fast_finish: true
 notifications:
