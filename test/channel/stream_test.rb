@@ -1,9 +1,8 @@
 require 'test_helper'
 require 'stubs/test_connection'
+require 'stubs/room'
 
 class ActionCable::Channel::StreamTest < ActiveSupport::TestCase
-  Room = Struct.new(:id)
-
   class ChatChannel < ActionCable::Channel::Base
     def subscribed
       @room = Room.new params[:id]

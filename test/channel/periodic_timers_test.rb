@@ -1,9 +1,8 @@
 require 'test_helper'
 require 'stubs/test_connection'
+require 'stubs/room'
 
 class ActionCable::Channel::PeriodicTimersTest < ActiveSupport::TestCase
-  Room = Struct.new(:id)
-
   class ChatChannel < ActionCable::Channel::Base
     periodically -> { ping }, every: 5
     periodically :send_updates, every: 1

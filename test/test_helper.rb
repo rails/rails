@@ -13,6 +13,9 @@ require 'mocha/mini_test'
 require 'action_cable'
 ActiveSupport.test_order = :sorted
 
+# Require all the stubs and models
+Dir[File.dirname(__FILE__) + '/stubs/*.rb'].each {|file| require file }
+
 class ActionCableTest < ActiveSupport::TestCase
   PORT = 420420
 

@@ -1,9 +1,8 @@
 require 'test_helper'
 require 'stubs/test_connection'
+require 'stubs/room'
 
 class ActionCable::Channel::BaseTest < ActiveSupport::TestCase
-  Room = Struct.new(:id)
-
   class ChatChannel < ActionCable::Channel::Base
     attr_reader :room, :last_action
     on_subscribe :toggle_subscribed
