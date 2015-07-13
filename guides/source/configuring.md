@@ -326,7 +326,7 @@ The schema dumper adds one additional configuration option:
 
 * `config.action_controller.asset_host` sets the host for the assets. Useful when CDNs are used for hosting assets rather than the application server itself.
 
-* `config.action_controller.perform_caching` configures whether the application should perform caching or not. Set to false in development mode, true in production.
+* `config.action_controller.perform_caching` configures whether the application should perform the caching features provided by the Action Controller component or not. Set to false in development mode, true in production.
 
 * `config.action_controller.default_static_extension` configures the extension used for cached pages. Defaults to `.html`.
 

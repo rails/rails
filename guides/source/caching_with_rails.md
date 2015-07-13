@@ -31,6 +31,11 @@ the relevant `config/environments/*.rb` file:
 config.action_controller.perform_caching = true
 ```
 
+NOTE: Changing the value of `config.action_controller.perform_caching` will
+only have an effect on the caching provided by the Action Controller component. 
+For instance, it will not impact low-level caching, that we address
+[below](#low-level-caching).
+
 ### Page Caching
 
 Page caching is a Rails mechanism which allows the request for a generated page
