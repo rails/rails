@@ -1,3 +1,12 @@
+*   Allow chaining the :only and :except options for routing resource(s).
+
+        resource :account, :only => [:show, :destroy], :except => :destroy
+
+    This now yields only the show action. This chaining can be useful for passing optional :except
+    options to code that makes use of the :only option.
+
+    *Michael Colavita*
+
 *   Add ability to filter parameters based on parent keys.
 
         # matches {credit_card: {code: "xxxx"}}

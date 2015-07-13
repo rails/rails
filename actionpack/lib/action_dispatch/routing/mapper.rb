@@ -1061,13 +1061,19 @@ module ActionDispatch
             end
           end
 
-          def actions
+          def available_actions
             if only = @options[:only]
               Array(only).map(&:to_sym)
-            elsif except = @options[:except]
-              default_actions - Array(except).map(&:to_sym)
             else
               default_actions
+            end
+          end
+
+          def actions
+            if except = @options[:except]
+              available_actions - Array(except).map(&:to_sym)
+            else
+              available_actions
             end
           end
 
