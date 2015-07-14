@@ -4,9 +4,9 @@ module ActionCable
     class Worker
       include ActiveSupport::Callbacks
       include Celluloid
-      include ClearDatabaseConnections
 
       define_callbacks :work
+      include ClearDatabaseConnections
 
       def invoke(receiver, method, *args)
         run_callbacks :work do
