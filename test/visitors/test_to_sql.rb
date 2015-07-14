@@ -273,9 +273,9 @@ module Arel
         compile(Nodes.build_quoted(nil)).must_be_like "NULL"
       end
 
-      it "unsupported input should not raise ArgumentError" do
-        error = assert_raises(RuntimeError) { compile(nil) }
-        assert_match(/\Aunsupported/, error.message)
+      it "unsupported input should raise UnsupportedVisitError" do
+        error = assert_raises(UnsupportedVisitError) { compile(nil) }
+        assert_match(/\AUnsupported/, error.message)
       end
 
       it "should visit_Arel_SelectManager, which is a subquery" do
