@@ -1,3 +1,13 @@
+*   Add `cache_key` to ActiveRecord::Relation.
+
+    Example:
+
+      @users = User.where("name like ?", "%Alberto%")
+      @users.cache_key
+      => "/users/query-5942b155a43b139f2471b872ac54251f-3-20150714212107656125000"
+
+    *Alberto Fernández-Capel*
+
 *   Fix a bug where counter_cache doesn't always work with  polymorphic
     relations.
 
