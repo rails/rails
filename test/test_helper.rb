@@ -15,3 +15,5 @@ ActiveSupport.test_order = :sorted
 
 # Require all the stubs and models
 Dir[File.dirname(__FILE__) + '/stubs/*.rb'].each {|file| require file }
+
+Celluloid.logger = Logger.new(StringIO.new)
