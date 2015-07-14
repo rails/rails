@@ -314,8 +314,8 @@ framework alongside Action Pack, Active Record, and the like once we cross the b
 to beta software (which will happen once the API and missing pieces have solidified).
 
 Finally, note that testing is a unfinished/unstarted area of this framework. The framework
-has been developed in-app up until this point. We need to find a good way to test both the framework
-itself and allow the user to test their connection and channel logic.
+has been developed in-app up until this point. We need to find a good way to allow the user to test
+their connection and channel logic.
 
 
 ## License
