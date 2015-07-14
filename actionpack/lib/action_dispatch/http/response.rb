@@ -80,11 +80,21 @@ module ActionDispatch # :nodoc:
         @response = response
         @buf      = buf
         @closed   = false
+        @str_body = nil
+      end
+
+      def body
+        @str_body ||= begin
+                        buf = ''
+                        each { |chunk| buf << chunk }
+                        buf
+                      end
       end
 
       def write(string)
         raise IOError, "closed stream" if closed?
 
+        @str_body = nil
         @response.commit!
         @buf.push string
       end
@@ -222,9 +232,7 @@ module ActionDispatch # :nodoc:
     # Returns the content of the response as a string. This contains the contents
     # of any calls to <tt>render</tt>.
     def body
-      strings = []
-      each { |part| strings << part.to_s }
-      strings.join
+      @stream.body
     end
 
     EMPTY = " "

@@ -136,10 +136,6 @@ module ActionController
   end
 
   class LiveTestResponse < Live::Response
-    def body
-      @body ||= super
-    end
-
     # Was the response successful?
     alias_method :success?, :successful?
 
