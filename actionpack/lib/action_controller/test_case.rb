@@ -230,7 +230,7 @@ module ActionController
   #      request. You can modify this object before sending the HTTP request. For example,
   #      you might want to set some session properties before sending a GET request.
   # <b>@response</b>::
-  #      An ActionController::TestResponse object, representing the response
+  #      An ActionDispatch::TestResponse object, representing the response
   #      of the last HTTP response. In the above example, <tt>@response</tt> becomes valid
   #      after calling +post+. If the various assert methods are not sufficient, then you
   #      may use this object to inspect the HTTP response in detail.
