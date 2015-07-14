@@ -572,8 +572,11 @@ module Arel
         visit o.left, collector
       end
 
-      def visit_Arel_Nodes_FullOuterJoin o
-        "FULL OUTER JOIN #{visit o.left} #{visit o.right}"
+      def visit_Arel_Nodes_FullOuterJoin o, collector
+        collector << "FULL OUTER JOIN "
+        collector = visit o.left, collector
+        collector << SPACE
+        visit o.right, collector
       end
 
       def visit_Arel_Nodes_OuterJoin o, collector
@@ -583,8 +586,11 @@ module Arel
         visit o.right, collector
       end
 
-      def visit_Arel_Nodes_RightOuterJoin o
-        "RIGHT OUTER JOIN #{visit o.left} #{visit o.right}"
+      def visit_Arel_Nodes_RightOuterJoin o, collector
+        collector << "RIGHT OUTER JOIN "
+        collector = visit o.left, collector
+        collector << SPACE
+        visit o.right, collector
       end
 
       def visit_Arel_Nodes_InnerJoin o, collector
