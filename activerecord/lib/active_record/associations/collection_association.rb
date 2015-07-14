@@ -1,3 +1,5 @@
+require "active_support/deprecation"
+
 module ActiveRecord
   module Associations
     # = Active Record Association Collection
@@ -25,12 +27,24 @@ module ActiveRecord
     # +load_target+ and the +loaded+ flag are your friends.
     class CollectionAssociation < Association #:nodoc:
 
+      NO_FORCE_RELOAD_ARGUMENT = Object.new # :nodoc:
+
       # Implements the reader method, e.g. foo.items for Foo.has_many :items
-      def reader(force_reload = false)
-        if force_reload
-          klass.uncached { reload }
+      def reader(force_reload = NO_FORCE_RELOAD_ARGUMENT, reload: false)
+        if force_reload != NO_FORCE_RELOAD_ARGUMENT
+          ActiveSupport::Deprecation.warn(<<-MSG.squish)
+            Passing only `true` to force an association to reload is now
+            deprecated and will be removed in Rails 5.1. Please pass
+            `reload: true` instead.
+          MSG
+
+          reload = force_reload
+        end
+
+        if reload
+          klass.uncached { reload() }
         elsif stale_target?
-          reload
+          reload()
         end
 
         if null_scope?

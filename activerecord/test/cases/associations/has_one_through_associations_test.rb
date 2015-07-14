@@ -344,4 +344,11 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
       end
     end
   end
+
+  def test_association_force_reload_with_only_true_is_deprecated
+    member = Member.find(1)
+
+    assert_deprecated(/reload: true/) { member.club(true) }
+    assert_not_deprecated { member.club(reload: true) }
+  end
 end

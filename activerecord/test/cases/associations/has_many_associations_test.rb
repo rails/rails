@@ -2252,4 +2252,11 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     assert_equal [first_bulb, second_bulb], car.bulbs
   end
+
+  def test_association_force_reload_with_only_true_is_deprecated
+    company = Company.find(1)
+
+    assert_deprecated(/reload: true/) { company.clients_of_firm(true) }
+    assert_not_deprecated { company.clients_of_firm(reload: true) }
+  end
 end

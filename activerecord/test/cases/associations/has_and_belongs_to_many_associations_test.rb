@@ -917,4 +917,11 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
       DeveloperWithSymbolClassName.new
     end
   end
+
+  def test_association_force_reload_with_only_true_is_deprecated
+    developer = Developer.find(1)
+
+    assert_deprecated(/reload: true/) { developer.projects(true) }
+    assert_not_deprecated { developer.projects(reload: true) }
+  end
 end

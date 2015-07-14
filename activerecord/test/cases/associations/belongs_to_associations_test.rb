@@ -1064,6 +1064,13 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     Column.create! record: record
     assert_equal 1, Column.count
   end
+
+  def test_association_force_reload_with_only_true_is_deprecated
+    client = Client.find(3)
+
+    assert_deprecated(/reload: true/) { client.firm(true) }
+    assert_not_deprecated { client.firm(reload: true) }
+  end
 end
 
 class BelongsToWithForeignKeyTest < ActiveRecord::TestCase

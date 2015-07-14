@@ -1,3 +1,18 @@
+*   Change the way to reload association from passing `true` to `reload: true`.
+
+    This makes the method call clearer as it defines the intention that user
+    want to force reload the association.
+
+    Example:
+
+        @user.posts(reload: true)
+        @user.profile(reload: true)
+
+    Passing only `true` to the method is now considered deprecated, and will
+    be removed in Rails 5.1.
+
+    *Prem Sichanugrist*
+
 *   Replaced `ActiveSupport::Concurrency::Latch` with `Concurrent::CountDownLatch`
     from the concurrent-ruby gem.
 
