@@ -293,7 +293,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     client = Client.find(3)
     client.firm = nil
     client.save
-    assert_nil client.firm(true)
+    assert_nil client.firm(reload: true)
     assert_nil client.client_of
   end
 
@@ -301,7 +301,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     client = Client.create(:name => "Primary key client", :firm_name => companies(:first_firm).name)
     client.firm_with_primary_key = nil
     client.save
-    assert_nil client.firm_with_primary_key(true)
+    assert_nil client.firm_with_primary_key(reload: true)
     assert_nil client.client_of
   end
 
@@ -318,11 +318,11 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   def test_polymorphic_association_class
     sponsor = Sponsor.new
     assert_nil sponsor.association(:sponsorable).send(:klass)
-    assert_nil sponsor.sponsorable(force_reload: true)
+    assert_nil sponsor.sponsorable(reload: true)
 
     sponsor.sponsorable_type = '' # the column doesn't have to be declared NOT NULL
     assert_nil sponsor.association(:sponsorable).send(:klass)
-    assert_nil sponsor.sponsorable(force_reload: true)
+    assert_nil sponsor.sponsorable(reload: true)
 
     sponsor.sponsorable = Member.new :name => "Bert"
     assert_equal Member, sponsor.association(:sponsorable).send(:klass)
@@ -557,7 +557,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert final_cut.persisted?
     assert firm.persisted?
     assert_equal firm, final_cut.firm
-    assert_equal firm, final_cut.firm(true)
+    assert_equal firm, final_cut.firm(reload: true)
   end
 
   def test_assignment_before_child_saved_with_primary_key
@@ -569,7 +569,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert final_cut.persisted?
     assert firm.persisted?
     assert_equal firm, final_cut.firm_with_primary_key
-    assert_equal firm, final_cut.firm_with_primary_key(true)
+    assert_equal firm, final_cut.firm_with_primary_key(reload: true)
   end
 
   def test_new_record_with_foreign_key_but_no_object
