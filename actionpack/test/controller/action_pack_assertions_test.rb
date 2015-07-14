@@ -318,7 +318,7 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
 
   def test_missing_response_code
     process :response404
-    assert @response.missing?
+    assert @response.not_found?
   end
 
   def test_client_error_response_code
@@ -346,7 +346,7 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
 
   def test_successful_response_code
     process :nothing
-    assert @response.success?
+    assert @response.successful?
   end
 
   def test_response_object
