@@ -1,3 +1,8 @@
+*   Replaced `ActiveSupport::Concurrency::Latch` with `Concurrent::CountDownLatch`
+    from the concurrent-ruby gem.
+
+    *Jerry D'Antonio*
+
 *   Add ability to filter parameters based on parent keys.
 
         # matches {credit_card: {code: "xxxx"}}

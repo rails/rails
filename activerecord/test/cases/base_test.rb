@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 require "cases/helper"
-require 'active_support/concurrency/latch'
 require 'models/post'
 require 'models/author'
 require 'models/topic'
@@ -29,6 +28,7 @@ require 'models/bird'
 require 'models/car'
 require 'models/bulb'
 require 'rexml/document'
+require 'concurrent/atomics'
 
 class FirstAbstractClass < ActiveRecord::Base
   self.abstract_class = true
@@ -1506,20 +1506,20 @@ class BasicsTest < ActiveRecord::TestCase
     orig_handler = klass.connection_handler
     new_handler = ActiveRecord::ConnectionAdapters::ConnectionHandler.new
     after_handler = nil
-    latch1 = ActiveSupport::Concurrency::Latch.new
-    latch2 = ActiveSupport::Concurrency::Latch.new
+    latch1 = Concurrent::CountDownLatch.new
+    latch2 = Concurrent::CountDownLatch.new
 
     t = Thread.new do
       klass.connection_handler = new_handler
-      latch1.release
-      latch2.await
+      latch1.count_down
+      latch2.wait
       after_handler = klass.connection_handler
     end
 
-    latch1.await
+    latch1.wait
 
     klass.connection_handler = orig_handler
-    latch2.release
+    latch2.count_down
     t.join
 
     assert_equal after_handler, new_handler

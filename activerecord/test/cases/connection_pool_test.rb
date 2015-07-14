@@ -1,5 +1,5 @@
 require "cases/helper"
-require 'active_support/concurrency/latch'
+require 'concurrent/atomics'
 
 module ActiveRecord
   module ConnectionAdapters
@@ -133,15 +133,15 @@ module ActiveRecord
       end
 
       def test_reap_inactive
-        ready = ActiveSupport::Concurrency::Latch.new
+        ready = Concurrent::CountDownLatch.new
         @pool.checkout
         child = Thread.new do
           @pool.checkout
           @pool.checkout
-          ready.release
+          ready.count_down
           Thread.stop
         end
-        ready.await
+        ready.wait
 
         assert_equal 3, active_connections(@pool).size
 
@@ -360,13 +360,13 @@ module ActiveRecord
       def test_concurrent_connection_establishment
         assert_operator @pool.connections.size, :<=, 1
 
-        all_threads_in_new_connection = ActiveSupport::Concurrency::Latch.new(@pool.size - @pool.connections.size)
-        all_go                        = ActiveSupport::Concurrency::Latch.new
+        all_threads_in_new_connection = Concurrent::CountDownLatch.new(@pool.size - @pool.connections.size)
+        all_go                        = Concurrent::CountDownLatch.new
 
         @pool.singleton_class.class_eval do
           define_method(:new_connection) do
-            all_threads_in_new_connection.release
-            all_go.await
+            all_threads_in_new_connection.count_down
+            all_go.wait
             super()
           end
         end
@@ -381,14 +381,14 @@ module ActiveRecord
             # the kernel of the whole test is here, everything else is just scaffolding,
             # this latch will not be released unless conn. pool allows for concurrent
             # connection creation
-            all_threads_in_new_connection.await
+            all_threads_in_new_connection.wait
           end
         rescue Timeout::Error
           flunk 'pool unable to establish connections concurrently or implementation has ' <<
                 'changed, this test then needs to patch a different :new_connection method'
         ensure
           # clean up the threads
-          all_go.release
+          all_go.count_down
           connecting_threads.map(&:join)
         end
       end
@@ -441,11 +441,11 @@ module ActiveRecord
         with_single_connection_pool do |pool|
           [:disconnect, :disconnect!, :clear_reloadable_connections, :clear_reloadable_connections!].each do |group_action_method|
             conn               = pool.connection # drain the only available connection
-            second_thread_done = ActiveSupport::Concurrency::Latch.new
+            second_thread_done = Concurrent::CountDownLatch.new
 
             # create a first_thread and let it get into the FIFO queue first
             first_thread = Thread.new do
-              pool.with_connection { second_thread_done.await }
+              pool.with_connection { second_thread_done.wait }
             end
 
             # wait for first_thread to get in queue
@@ -456,7 +456,7 @@ module ActiveRecord
             # first_thread when a connection is made available
             second_thread = Thread.new do
               pool.send(group_action_method)
-              second_thread_done.release
+              second_thread_done.count_down
             end
 
             # wait for second_thread to get in queue
@@ -471,7 +471,7 @@ module ActiveRecord
             failed = true unless second_thread.join(2)
 
             #--- post test clean up start
-            second_thread_done.release if failed
+            second_thread_done.count_down if failed
 
             # after `pool.disconnect()` the first thread will be left stuck in queue, no need to wait for
             # it to timeout with ConnectionTimeoutError
