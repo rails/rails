@@ -11,7 +11,7 @@ PATH
       websocket-driver (= 0.5.4)
 
 GEM
-  remote: http://rubygems.org/
+  remote: https://rubygems.org/
   specs:
     actionpack (4.2.3)
       actionview (= 4.2.3)

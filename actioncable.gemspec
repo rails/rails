@@ -19,6 +19,10 @@ Gem::Specification.new do |s|
   s.add_dependency 'em-hiredis',       '~> 0.3.0'
   s.add_dependency 'redis',            '~> 3.0'
 
+  s.add_development_dependency 'rake'
+  s.add_development_dependency 'puma'
+  s.add_development_dependency 'mocha'
+
   s.files = Dir['README', 'lib/**/*']
   s.has_rdoc = false
 
