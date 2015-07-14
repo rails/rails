@@ -351,7 +351,7 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
 
   def test_response_object
     process :nothing
-    assert_kind_of ActionController::TestResponse, @response
+    assert_kind_of ActionDispatch::TestResponse, @response
   end
 
   def test_render_based_on_parameters

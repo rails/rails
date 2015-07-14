@@ -132,9 +132,6 @@ module ActionController
     end.new
   end
 
-  class TestResponse < ActionDispatch::TestResponse
-  end
-
   class LiveTestResponse < Live::Response
     # Was the response successful?
     alias_method :success?, :successful?
@@ -535,7 +532,7 @@ module ActionController
       def setup_controller_request_and_response
         @controller = nil unless defined? @controller
 
-        @response_klass = TestResponse
+        @response_klass = ActionDispatch::TestResponse
 
         if klass = self.class.controller_class
           if klass < ActionController::Live
