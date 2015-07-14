@@ -4,6 +4,7 @@ module ActionCable
     class Worker
       include ActiveSupport::Callbacks
       include Celluloid
+      include ClearDatabaseConnections
 
       define_callbacks :work
 
