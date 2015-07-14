@@ -151,6 +151,9 @@ module ActionController
       @permitted = self.class.permit_all_parameters
     end
 
+    # Returns true if another +Parameters+ object contains the same content and
+    # permitted flag, or other Hash-like object contains the same content. This
+    # override is in place so you can perform a comparison with `Hash`.
     def ==(other_hash)
       if other_hash.respond_to?(:permitted?)
         super
@@ -357,6 +360,8 @@ module ActionController
       convert_hashes_to_parameters(key, @parameters[key])
     end
 
+    # Assigns a value to a given +key+. The given key may still get filtered out
+    # when +permit+ is called.
     def []=(key, value)
       @parameters[key] = value
     end
@@ -393,11 +398,19 @@ module ActionController
       new_instance_with_inherited_permitted_status(@parameters.slice(*keys))
     end
 
+    # Returns current <tt>ActionController::Parameters</tt> instance which
+    # contains only the given +keys+.
     def slice!(*keys)
       @parameters.slice!(*keys)
       self
     end
 
+    # Returns a new <tt>ActionController::Parameters</tt> instance that
+    # filters out the given +keys+.
+    #
+    #   params = ActionController::Parameters.new(a: 1, b: 2, c: 3)
+    #   params.except(:a, :b) # => {"c"=>3}
+    #   params.except(:d)     # => {"a"=>1,"b"=>2,"c"=>3}
     def except(*keys)
       new_instance_with_inherited_permitted_status(@parameters.except(*keys))
     end
@@ -427,15 +440,16 @@ module ActionController
       end
     end
 
+    # Performs values transformation and returns the altered
+    # <tt>ActionController::Parameters</tt> instance.
     def transform_values!(&block)
       @parameters.transform_values!(&block)
       self
     end
 
-    # This method is here only to make sure that the returned object has the
-    # correct +permitted+ status. It should not matter since the parent of
-    # this object is +HashWithIndifferentAccess+
-    def transform_keys(&block) # :nodoc:
+    # Returns a new <tt>ActionController::Parameters</tt> instance with the
+    # results of running +block+ once for every key. The values are unchanged.
+    def transform_keys(&block)
       if block
         new_instance_with_inherited_permitted_status(
           @parameters.transform_keys(&block)
@@ -445,6 +459,8 @@ module ActionController
       end
     end
 
+    # Performs keys transfomration and returns the altered
+    # <tt>ActionController::Parameters</tt> instance.
     def transform_keys!(&block)
       @parameters.transform_keys!(&block)
       self
@@ -458,6 +474,8 @@ module ActionController
       convert_hashes_to_parameters(key, @parameters.delete(key), false)
     end
 
+    # Returns a new instance of <tt>ActionController::Parameters</tt> with only
+    # items that the block evaluates to true.
     def select(&block)
       new_instance_with_inherited_permitted_status(@parameters.select(&block))
     end
@@ -469,16 +487,21 @@ module ActionController
     end
     alias_method :keep_if, :select!
 
+    # Returns a new instance of <tt>ActionController::Parameters</tt> with items
+    # that the block evaluates to true removed.
     def reject(&block)
       new_instance_with_inherited_permitted_status(@parameters.reject(&block))
     end
 
+    # Removes items that the block evaluates to true and returns self.
     def reject!(&block)
       @parameters.reject!(&block)
       self
     end
     alias_method :delete_if, :reject!
 
+    # Return values that were assigned to the given +keys+. Note that all the
+    # +Hash+ objects will be converted to <tt>ActionController::Parameters</tt>.
     def values_at(*keys)
       convert_value_to_parameters(@parameters.values_at(*keys))
     end
@@ -497,6 +520,8 @@ module ActionController
       end
     end
 
+    # Returns a new <tt>ActionController::Parameters</tt> with all keys from
+    # +other_hash+ merges into current hash.
     def merge(other_hash)
       new_instance_with_inherited_permitted_status(
         @parameters.merge(other_hash)
@@ -504,8 +529,9 @@ module ActionController
     end
 
     # This is required by ActiveModel attribute assignment, so that user can
-    # pass +Parameters+ to a mass assignment methods in a model.
-    def stringify_keys
+    # pass +Parameters+ to a mass assignment methods in a model. It should not
+    # matter as we are using +HashWithIndifferentAccess+ internally.
+    def stringify_keys # :nodoc:
       dup
     end
 

@@ -6,7 +6,7 @@
     `permitted?` status or even getting back a pure `Hash` object instead of
     a `Parameters` object with proper sanitization.
 
-    By stop inheriting from `HashWithIndifferentAccess`, we are able to make
+    By not inheriting from `HashWithIndifferentAccess`, we are able to make
     sure that all methods that are defined in `Parameters` object will return
     a proper `Parameters` object with a correct `permitted?` flag.
 
