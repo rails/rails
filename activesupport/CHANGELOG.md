@@ -1,3 +1,8 @@
+*   Fix `number_to_human` rounding 999999999 to "1000 Million" instead of
+    "1 Billion".
+
+    *Max Jacobson*
+
 *   Fix `TimeWithZone#eql?` to properly handle `TimeWithZone` created from `DateTime`:
         twz = DateTime.now.in_time_zone
         twz.eql?(twz.dup) => true
