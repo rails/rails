@@ -64,7 +64,6 @@ PATH
     actionpack (5.0.0.alpha)
       actionview (= 5.0.0.alpha)
       activesupport (= 5.0.0.alpha)
-      concurrent-ruby (~> 0.9.0)
       rack (~> 1.6)
       rack-test (~> 0.6.3)
       rails-dom-testing (~> 1.0, >= 1.0.5)
