@@ -332,7 +332,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert a.persisted?
     assert_equal a, firm.account
     assert_equal a, firm.account
-    assert_equal a, firm.account(true)
+    assert_equal a, firm.account(reload: true)
   end
 
   def test_save_still_works_after_accessing_nil_has_one
@@ -606,5 +606,12 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
         end
       end
     end
+  end
+
+  def test_association_force_reload_with_only_true_is_deprecated
+    firm = Firm.find(1)
+
+    assert_deprecated(/reload: true/) { firm.account(true) }
+    assert_not_deprecated { firm.account(reload: true) }
   end
 end
