@@ -8,8 +8,11 @@ module ActionController #:nodoc:
 
     include ActionController::Rendering
 
+    DEFAULT_SEND_FILE_DISPOSITION = :attachment #:nodoc:
     DEFAULT_SEND_FILE_TYPE        = 'application/octet-stream'.freeze #:nodoc:
-    DEFAULT_SEND_FILE_DISPOSITION = 'attachment'.freeze #:nodoc:
+    CONTENT_DISPOSITION           = 'Content-Disposition'.freeze #:nodoc:
+    CONTENT_TRANSFER_ENCODING     = 'Content-Transfer-Encoding'.freeze #:nodoc:
+    CONTENT_TRANSFER_BINARY       = 'binary'.freeze #:nodoc:
 
     protected
       # Sends the file. This uses a server-appropriate method (such as X-Sendfile)
@@ -30,7 +33,7 @@ module ActionController #:nodoc:
       #   If omitted, type will be guessed from the file extension specified in <tt>:filename</tt>.
       #   If no content type is registered for the extension, default type 'application/octet-stream' will be used.
       # * <tt>:disposition</tt> - specifies whether the file will be shown inline or downloaded.
-      #   Valid values are 'inline' and 'attachment' (default).
+      #   Valid values are :inline and :attachment (default).
       # * <tt>:status</tt> - specifies the status code to send with the response. Defaults to 200.
       # * <tt>:url_based_filename</tt> - set to +true+ if you want the browser guess the filename from
       #   the URL, which is necessary for i18n filenames on certain browsers
@@ -47,7 +50,7 @@ module ActionController #:nodoc:
       #
       # Show a JPEG in the browser:
       #
-      #   send_file '/path/to.jpeg', type: 'image/jpeg', disposition: 'inline'
+      #   send_file '/path/to.jpeg', type: 'image/jpeg', disposition: :inline
       #
       # Show a 404 page in the browser:
       #
@@ -112,7 +115,7 @@ module ActionController #:nodoc:
       #   If omitted, type will be guessed from the file extension specified in <tt>:filename</tt>.
       #   If no content type is registered for the extension, default type 'application/octet-stream' will be used.
       # * <tt>:disposition</tt> - specifies whether the file will be shown inline or downloaded.
-      #   Valid values are 'inline' and 'attachment' (default).
+      #   Valid values are :inline and :attachment (default).
       # * <tt>:status</tt> - specifies the status code to send with the response. Defaults to 200.
       #
       # Generic data download:
@@ -125,7 +128,7 @@ module ActionController #:nodoc:
       #
       # Display an image Active Record in the browser:
       #
-      #   send_data image.data, type: image.content_type, disposition: 'inline'
+      #   send_data image.data, type: image.content_type, disposition: :inline
       #
       # See +send_file+ for more information on HTTP Content-* headers and caching.
       def send_data(data, options = {}) #:doc:
@@ -138,7 +141,7 @@ module ActionController #:nodoc:
         type_provided = options.has_key?(:type)
 
         content_type = options.fetch(:type, DEFAULT_SEND_FILE_TYPE)
-        raise ArgumentError, ":type option required" if content_type.nil?
+        raise ArgumentError, ':type option required' if content_type.nil?
 
         if content_type.is_a?(Symbol)
           extension = Mime[content_type]
@@ -156,10 +159,10 @@ module ActionController #:nodoc:
         unless disposition.nil?
           disposition  = disposition.to_s
           disposition += %(; filename="#{options[:filename]}") if options[:filename]
-          headers['Content-Disposition'] = disposition
+          headers[CONTENT_DISPOSITION] = disposition
         end
 
-        headers['Content-Transfer-Encoding'] = 'binary'
+        headers[CONTENT_TRANSFER_ENCODING] = CONTENT_TRANSFER_BINARY
 
         response.sending_file = true
 

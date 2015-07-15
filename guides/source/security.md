@@ -353,7 +353,7 @@ basename = File.expand_path(File.join(File.dirname(__FILE__), '../../files'))
 filename = File.expand_path(File.join(basename, @file.public_filename))
 raise if basename !=
      File.expand_path(File.join(File.dirname(filename), '../../../'))
-send_file filename, disposition: 'inline'
+send_file filename, disposition: :inline
 ```
 
 Another (additional) approach is to store the file names in the database and name the files on the disk after the ids in the database. This is also a good approach to avoid possible code in an uploaded file to be executed. The attachment_fu plugin does this in a similar way.
