@@ -1,3 +1,21 @@
+*   Add wildcard matching to explicit dependencies.
+
+    Turns:
+
+    ```erb
+    <% # Template Dependency: recordings/threads/events/subscribers_changed %>
+    <% # Template Dependency: recordings/threads/events/completed %>
+    <% # Template Dependency: recordings/threads/events/uncompleted %>
+    ```
+
+    Into:
+
+    ```erb
+    <% # Template Dependency: recordings/threads/events/* %>
+    ```
+
+    *Kasper Timm Hansen*
+
 *   Allow defining explicit collection caching using a `# Template Collection: ...`
     directive inside templates.
 
