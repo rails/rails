@@ -1,3 +1,9 @@
+*   Fix displaying mailer previews on non local requests when config
+    `action_mailer.show_previews` is set
+
+    *Wojciech Wnętrzak*
+
+
 ## Rails 4.2.4 (August 24, 2015) ##
 
 *   Fix STATS_DIRECTORIES already defined warning when running rake from within

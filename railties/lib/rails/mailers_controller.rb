@@ -3,7 +3,7 @@ require 'rails/application_controller'
 class Rails::MailersController < Rails::ApplicationController # :nodoc:
   prepend_view_path ActionDispatch::DebugExceptions::RESCUES_TEMPLATE_PATH
 
-  before_action :require_local!
+  before_action :require_local!, unless: :show_previews?
   before_action :find_preview, only: :preview
 
   def index
@@ -41,6 +41,10 @@ class Rails::MailersController < Rails::ApplicationController # :nodoc:
   end
 
   protected
+    def show_previews?
+      ActionMailer::Base.show_previews
+    end
+
     def find_preview
       candidates = []
       params[:path].to_s.scan(%r{/|$}){ candidates << $` }
