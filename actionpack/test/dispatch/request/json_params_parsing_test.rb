@@ -113,7 +113,7 @@ class RootLessJSONParamsParsingTest < ActionDispatch::IntegrationTest
 
     def parse
       self.class.last_request_parameters = request.request_parameters
-      self.class.last_parameters = params
+      self.class.last_parameters = params.to_unsafe_h
       head :ok
     end
   end

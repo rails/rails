@@ -92,6 +92,16 @@ module ActionView
         end
 
         super(options)
+      when ActionController::Parameters
+        unless options.key?(:only_path)
+          if options[:host].nil?
+            options[:only_path] = _generate_paths_by_default
+          else
+            options[:only_path] = false
+          end
+        end
+
+        super(options)
       when :back
         _back_url
       when Array
