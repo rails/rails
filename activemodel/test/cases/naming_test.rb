@@ -3,6 +3,8 @@ require 'models/contact'
 require 'models/sheep'
 require 'models/track_back'
 require 'models/blog_post'
+require 'models/asset/base'
+require 'models/asset/image'
 
 class NamingTest < ActiveModel::TestCase
   def setup
@@ -191,6 +193,44 @@ class NamingUsingRelativeModelNameTest < ActiveModel::TestCase
 
   def test_i18n_key
     assert_equal :"blog/post", @model_name.i18n_key
+  end
+end
+
+class NamingUsingRelativeModelNameTestViaAbstractClass < ActiveModel::TestCase
+  def setup
+    @model_name = Asset::Image.model_name
+  end
+
+  def test_singular
+    assert_equal 'asset_image', @model_name.singular
+  end
+
+  def test_plural
+    assert_equal 'asset_images', @model_name.plural
+  end
+
+  def test_element
+    assert_equal 'image', @model_name.element
+  end
+
+  def test_collection
+    assert_equal 'asset/images', @model_name.collection
+  end
+
+  def test_human
+    assert_equal 'Image', @model_name.human
+  end
+
+  def test_route_key
+    assert_equal 'images', @model_name.route_key
+  end
+
+  def test_param_key
+    assert_equal 'image', @model_name.param_key
+  end
+
+  def test_i18n_key
+    assert_equal :"asset/image", @model_name.i18n_key
   end
 end
 
