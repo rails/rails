@@ -508,7 +508,7 @@ module ActiveRecord
         synchronize do
           remove_connection_from_thread_cache conn
 
-          conn.run_callbacks :checkin do
+          conn._run_checkin_callbacks do
             conn.expire
           end
 
@@ -764,7 +764,7 @@ module ActiveRecord
       end
 
       def checkout_and_verify(c)
-        c.run_callbacks :checkout do
+        c._run_checkout_callbacks do
           c.verify!
         end
         c

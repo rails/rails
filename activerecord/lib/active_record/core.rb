@@ -303,7 +303,7 @@ module ActiveRecord
       assign_attributes(attributes) if attributes
 
       yield self if block_given?
-      run_callbacks :initialize
+      _run_initialize_callbacks
     end
 
     # Initialize an empty model object from +coder+. +coder+ should be
@@ -330,8 +330,8 @@ module ActiveRecord
 
       self.class.define_attribute_methods
 
-      run_callbacks :find
-      run_callbacks :initialize
+      _run_find_callbacks
+      _run_initialize_callbacks
 
       self
     end
@@ -367,7 +367,7 @@ module ActiveRecord
       @attributes = @attributes.dup
       @attributes.reset(self.class.primary_key)
 
-      run_callbacks(:initialize)
+      _run_initialize_callbacks
 
       @new_record  = true
       @destroyed   = false
