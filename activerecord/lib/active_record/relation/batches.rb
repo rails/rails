@@ -143,6 +143,72 @@ module ActiveRecord
       end
     end
 
+    # Yields ActiveRecord::Relation objects to work with a batch of records.
+    #
+    #   Person.where("age > 21").each_slice do |relation|
+    #     sleep(50)
+    #     relation.update_all(cool: true)
+    #   end
+    #
+    # If you do not provide a block to #each_slice, it will return an Enumerator
+    # which yields ActiveRecord::Relation objects for chaining with other methods:
+    #
+    #   Person.each_slice.with_index do |relation, batch|
+    #     puts "Processing relation ##{batch}"
+    #     relation.each{|relation| relation.delete_all }
+    #   end
+    #
+    # ==== Options
+    # * <tt>:batch_size</tt> - Specifies the size of the batch. Default to 1000.
+    # * <tt>:begin_at</tt> - Specifies the primary key value to start from, inclusive of the value.
+    # * <tt>:end_at</tt> - Specifies the primary key value to end at, inclusive of the value.
+    #
+    # This is especially useful if you want to work with the
+    # ActiveRecord::Relation object instead of the individual records.
+    #
+    # This is especially useful if you want multiple workers dealing with
+    # the same processing queue. You can make worker 1 handle all the records
+    # between id 0 and 10,000 and worker 2 handle from 10,000 and beyond
+    # (by setting the +:begin_at+ and +:end_at+ option on each worker).
+    #
+    #   # Let's process the next 2000 records
+    #   Person.each_slice(begin_at: 2000, batch_size: 2000) do |relation|
+    #     relation.update_all(cool: true)
+    #   end
+    #
+    # NOTE: It's not possible to set the order. That is automatically set to
+    # ascending on the primary key ("id ASC") to make the batch ordering
+    # work. This also means that this method only works when the primary key is
+    # orderable (e.g. an integer or string).
+    #
+    # NOTE: You can't set the limit either, that's used to control
+    # the batch sizes.
+    def each_slice(begin_at: nil, end_at: nil, batch_size: 1000)
+      relation = self
+      unless block_given?
+        return to_enum(:each_slice, begin_at: begin_at, end_at: end_at, batch_size: batch_size) do
+          total = apply_limits(relation, begin_at, end_at).size
+          (total - 1).div(batch_size) + 1
+        end
+      end
+
+      if logger && (arel.orders.present? || arel.taken.present?)
+        logger.warn("Scoped order and limit are ignored, it's forced to be batch order and batch size")
+      end
+
+      relation = relation.reorder(batch_order).limit(batch_size)
+      relation = apply_limits(relation, begin_at, end_at)
+      relation_yielded = relation
+
+      while last_record = relation_yielded.last
+        raise "Primary key not included in the custom select clause" unless last_record.try(:id)
+
+        yield relation_yielded
+
+        relation_yielded = relation.where(table[primary_key].gt(last_record.id))
+      end
+    end
+
     private
 
     def apply_limits(relation, begin_at, end_at)
