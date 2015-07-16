@@ -212,7 +212,7 @@ class EachTest < ActiveRecord::TestCase
 
   def test_in_batches_should_return_relationes
     assert_queries(@total + 1) do
-      Post.in_batches(:batch_size => 1) do |relation|
+      Post.in_batches(of: 1) do |relation|
         assert_kind_of ActiveRecord::Relation, relation
         assert_kind_of Post, relation.first
       end
@@ -221,7 +221,7 @@ class EachTest < ActiveRecord::TestCase
 
   def test_in_batches_should_start_from_the_start_option
     assert_queries(@total) do
-      Post.in_batches(batch_size: 1, begin_at: 2) do |relation|
+      Post.in_batches(of: 1, begin_at: 2) do |relation|
         assert_kind_of ActiveRecord::Relation, relation
         assert_kind_of Post, relation.first
       end
@@ -230,7 +230,7 @@ class EachTest < ActiveRecord::TestCase
 
   def test_in_batches_should_end_at_the_end_option
     assert_queries(5 + 1) do
-      Post.in_batches(batch_size: 1, end_at: 5) do |relation|
+      Post.in_batches(of: 1, end_at: 5) do |relation|
         assert_kind_of ActiveRecord::Relation, relation
         assert_kind_of Post, relation.first
       end
@@ -239,18 +239,18 @@ class EachTest < ActiveRecord::TestCase
 
   def test_in_batches_shouldnt_execute_query_unless_needed
     assert_queries(1 + 1) do
-      Post.in_batches(:batch_size => @total) {|relation| assert_kind_of ActiveRecord::Relation, relation }
+      Post.in_batches(of: @total) {|relation| assert_kind_of ActiveRecord::Relation, relation }
     end
 
     assert_queries(1 + 1) do
-      Post.in_batches(:batch_size => @total + 1) {|relation| assert_kind_of ActiveRecord::Relation, relation }
+      Post.in_batches(of: @total + 1) {|relation| assert_kind_of ActiveRecord::Relation, relation }
     end
   end
 
   def test_in_batches_should_quote_batch_order
     c = Post.connection
     assert_sql(/ORDER BY #{c.quote_table_name('posts')}.#{c.quote_column_name('id')}/) do
-      Post.in_batches(:batch_size => 1) do |relation|
+      Post.in_batches(of: 1) do |relation|
         assert_kind_of ActiveRecord::Relation, relation
         assert_kind_of Post, relation.first
       end
@@ -262,7 +262,7 @@ class EachTest < ActiveRecord::TestCase
     not_a_post.stubs(:id).raises(StandardError, "not_a_post had #id called on it")
 
     assert_nothing_raised do
-      Post.in_batches(:batch_size => 1) do |relation|
+      Post.in_batches(of: 1) do |relation|
         assert_kind_of ActiveRecord::Relation, relation
         assert_kind_of Post, relation.first
 
@@ -294,7 +294,7 @@ class EachTest < ActiveRecord::TestCase
 
   def test_in_batches_should_not_modify_passed_options
     assert_nothing_raised do
-      Post.in_batches({ batch_size: 42, begin_at: 1 }.freeze){}
+      Post.in_batches({ of: 42, begin_at: 1 }.freeze){}
     end
   end
 
@@ -303,7 +303,7 @@ class EachTest < ActiveRecord::TestCase
     start_nick = nick_order_subscribers.second.nick
 
     subscribers = []
-    Subscriber.in_batches(batch_size: 1, begin_at: start_nick) do |relation|
+    Subscriber.in_batches(of: 1, begin_at: start_nick) do |relation|
       subscribers.concat(relation)
     end
 
@@ -312,7 +312,7 @@ class EachTest < ActiveRecord::TestCase
 
   def test_in_batches_should_use_any_column_as_primary_key_when_start_is_not_specified
     assert_queries(Subscriber.count + 1) do
-      Subscriber.in_batches(batch_size: 1) do |relation|
+      Subscriber.in_batches(of: 1) do |relation|
         assert_kind_of ActiveRecord::Relation, relation
         assert_kind_of Subscriber, relation.first
       end
@@ -322,7 +322,7 @@ class EachTest < ActiveRecord::TestCase
   def test_in_batches_should_return_an_enumerator
     enum = nil
     assert_queries(0) do
-      enum = Post.in_batches(:batch_size => 1)
+      enum = Post.in_batches(of: 1)
     end
     assert_queries(4) do
       enum.first(4) do |relation|

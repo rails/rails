@@ -159,7 +159,7 @@ module ActiveRecord
     #   end
     #
     # ==== Options
-    # * <tt>:batch_size</tt> - Specifies the size of the batch. Default to 1000.
+    # * <tt>:of</tt> - Specifies the size of the batch. Default to 1000.
     # * <tt>:begin_at</tt> - Specifies the primary key value to start from, inclusive of the value.
     # * <tt>:end_at</tt> - Specifies the primary key value to end at, inclusive of the value.
     #
@@ -172,7 +172,7 @@ module ActiveRecord
     # (by setting the +:begin_at+ and +:end_at+ option on each worker).
     #
     #   # Let's process the next 2000 records
-    #   Person.in_batches(begin_at: 2000, batch_size: 2000) do |relation|
+    #   Person.in_batches(of: 2000, begin_at: 2000) do |relation|
     #     relation.update_all(cool: true)
     #   end
     #
@@ -183,12 +183,12 @@ module ActiveRecord
     #
     # NOTE: You can't set the limit either, that's used to control
     # the batch sizes.
-    def in_batches(begin_at: nil, end_at: nil, batch_size: 1000)
+    def in_batches(of: 1000, begin_at: nil, end_at: nil)
       relation = self
       unless block_given?
-        return to_enum(:in_batches, begin_at: begin_at, end_at: end_at, batch_size: batch_size) do
+        return to_enum(:in_batches, of: of, begin_at: begin_at, end_at: end_at) do
           total = apply_limits(relation, begin_at, end_at).size
-          (total - 1).div(batch_size) + 1
+          (total - 1).div(of) + 1
         end
       end
 
@@ -196,7 +196,7 @@ module ActiveRecord
         logger.warn("Scoped order and limit are ignored, it's forced to be batch order and batch size")
       end
 
-      relation = relation.reorder(batch_order).limit(batch_size)
+      relation = relation.reorder(batch_order).limit(of)
       relation = apply_limits(relation, begin_at, end_at)
       relation_yielded = relation
 
