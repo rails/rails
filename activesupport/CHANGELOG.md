@@ -1,3 +1,13 @@
+*   Add ability to use `Proc` as `expires_in` key for `ActiveSupport::Cache::MemCacheStore`.
+
+    Example:
+
+        Rails.cache.fetch('foo', expires_in: -> { 10 }) do
+          'bar'
+        end
+
+    *Alexey Vokhmin*
+
 *   Removed `ActiveSupport::Concurrency::Latch`, superseded by `Concurrent::CountDownLatch`
     from the concurrent-ruby gem.
 

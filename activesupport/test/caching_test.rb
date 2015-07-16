@@ -984,6 +984,21 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     value << 'bingo'
     assert_not_equal value, @cache.read('foo')
   end
+
+  def test_removes_all_expired_entries
+    time = Time.now
+    @cache.write('foo', 'bar', expires_in: 1)
+    @cache.write('qwe', 'rty', expires_in: -> { 1 })
+    @cache.write('baz', 'qux')
+    @cache.write('quux', 'corge', expires_in: 5)
+    @cache.write('abc', 'def', expires_in: -> { 5 })
+    sleep 1
+    assert_not @cache.exist?('foo')
+    assert_not @cache.exist?('qwe')
+    assert @cache.exist?('baz')
+    assert @cache.exist?('quux')
+    assert @cache.exist?('abc')
+  end
 end
 
 class NullStoreTest < ActiveSupport::TestCase
@@ -1072,7 +1087,12 @@ class CacheEntryTest < ActiveSupport::TestCase
   def test_expired
     entry = ActiveSupport::Cache::Entry.new("value")
     assert !entry.expired?, 'entry not expired'
-    entry = ActiveSupport::Cache::Entry.new("value", :expires_in => 60)
+    entry = ActiveSupport::Cache::Entry.new("value", expires_in: 60)
+    assert !entry.expired?, 'entry not expired'
+    Time.stub(:now, Time.now + 61) do
+      assert entry.expired?, 'entry is expired'
+    end
+    entry = ActiveSupport::Cache::Entry.new("value", expires_in: -> { 60 })
     assert !entry.expired?, 'entry not expired'
     Time.stub(:now, Time.now + 61) do
       assert entry.expired?, 'entry is expired'
