@@ -374,3 +374,76 @@ and to roll it back, `rake db:rollback`.
 Note that the above code is database-agnostic: it will run in MySQL,
 PostgreSQL, Oracle and others. You can learn more about migrations in the
 [Active Record Migrations guide](migrations.html).
+
+Enum
+----
+
+Active Record `enum` allows you declare an attribute where the values map to
+integers in the database, but can be queried by name.
+
+You can define an enum on a model calling the `enum` macro.
+
+```ruby
+class Post < ActiveRecord::Base
+  enum status: [ :active, :archived ]
+end
+```
+
+This will enable a mapping on the `status` column where `:active` is represented
+as `0` and `:archived` is represented as `1`.
+
+It's also possible to explicitly define the mapping between attributes and
+database integers with a `Hash`:
+
+```ruby
+class Post < ActiveRecord::Base
+  enum status: { active: 0, archived: 1 }
+end
+```
+
+You can set the default value from the database declaration, like:
+
+```ruby
+create_table :posts do |t|
+  t.column :status, :integer, default: 0
+end
+```
+
+Good practice is to let the first declared status be the default.
+
+The enum macro will also give you access to bang and predicate methods to change
+or check the current value of the attribute:
+
+```ruby
+post.active!
+
+post.archived? # => false
+post.active?   # => true
+```
+
+It is also possible to assign strings or symbols to the attribute:
+
+```ruby
+post.status = "archived"
+```
+
+Scopes based on the allowed values of the `enum` field will be provided as well.
+With the above example:
+
+```ruby
+Post.active
+Post.archived
+```
+
+Note that when an `Array` is used, the implicit mapping from the values to
+database integers is derived from the order the values appear in the array. In
+the example, `:active` is mapped to `0` as it's the first element, and
+`:archived` is mapped to `1`.
+Therefore, once a value is added to the enum array, its position in the array
+must be maintained, and new values should only be added to the end of the array.
+To remove unused values, the explicit `Hash` syntax should be used.
+
+NOTE: Enums are to be used internally by your application (to track
+internal "states"). If you want to expose enum to the end user you'd have to
+fill in a lot of gaps manually at the moment – such as form helpers, translating
+the internal symbol/string to user facing labels, i18n, validations, etc.
