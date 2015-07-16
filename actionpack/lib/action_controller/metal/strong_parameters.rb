@@ -183,7 +183,7 @@ module ActionController
 
     # Returns an unsafe, unfiltered +Hash+ representation of this parameter.
     def to_unsafe_h
-      @parameters
+      @parameters.to_h
     end
     alias_method :to_unsafe_hash, :to_unsafe_h
 
