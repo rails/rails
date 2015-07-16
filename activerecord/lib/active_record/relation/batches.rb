@@ -145,15 +145,15 @@ module ActiveRecord
 
     # Yields ActiveRecord::Relation objects to work with a batch of records.
     #
-    #   Person.where("age > 21").each_slice do |relation|
+    #   Person.where("age > 21").in_batches do |relation|
     #     sleep(50)
     #     relation.update_all(cool: true)
     #   end
     #
-    # If you do not provide a block to #each_slice, it will return an Enumerator
+    # If you do not provide a block to #in_batches, it will return an Enumerator
     # which yields ActiveRecord::Relation objects for chaining with other methods:
     #
-    #   Person.each_slice.with_index do |relation, batch|
+    #   Person.in_batches.with_index do |relation, batch|
     #     puts "Processing relation ##{batch}"
     #     relation.each{|relation| relation.delete_all }
     #   end
@@ -172,7 +172,7 @@ module ActiveRecord
     # (by setting the +:begin_at+ and +:end_at+ option on each worker).
     #
     #   # Let's process the next 2000 records
-    #   Person.each_slice(begin_at: 2000, batch_size: 2000) do |relation|
+    #   Person.in_batches(begin_at: 2000, batch_size: 2000) do |relation|
     #     relation.update_all(cool: true)
     #   end
     #
@@ -183,10 +183,10 @@ module ActiveRecord
     #
     # NOTE: You can't set the limit either, that's used to control
     # the batch sizes.
-    def each_slice(begin_at: nil, end_at: nil, batch_size: 1000)
+    def in_batches(begin_at: nil, end_at: nil, batch_size: 1000)
       relation = self
       unless block_given?
-        return to_enum(:each_slice, begin_at: begin_at, end_at: end_at, batch_size: batch_size) do
+        return to_enum(:in_batches, begin_at: begin_at, end_at: end_at, batch_size: batch_size) do
           total = apply_limits(relation, begin_at, end_at).size
           (total - 1).div(batch_size) + 1
         end
