@@ -32,7 +32,7 @@ module ActiveRecord
       end
     }
 
-    BLACKLISTED_CLASS_METHODS = %w(private public protected allocate new name parent superclass)
+    BLACKLISTED_CLASS_METHODS = %w(private public protected allocate new name parent parents superclass)
 
     class AttributeMethodCache
       def initialize
