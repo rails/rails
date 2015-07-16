@@ -47,6 +47,11 @@ module ActiveRecord
     # NOTE: You can't set the limit either, that's used to control
     # the batch sizes.
     def find_each(begin_at: nil, end_at: nil, batch_size: 1000, start: nil)
+      ActiveSupport::Deprecation.warn(<<-MSG.squish)
+        The #find_each method is deprecated.
+        Please use #in_batches instead.
+      MSG
+
       if start
         begin_at = start
         ActiveSupport::Deprecation.warn(<<-MSG.squish)
@@ -106,6 +111,11 @@ module ActiveRecord
     # NOTE: You can't set the limit either, that's used to control
     # the batch sizes.
     def find_in_batches(begin_at: nil, end_at: nil, batch_size: 1000, start: nil)
+      ActiveSupport::Deprecation.warn(<<-MSG.squish)
+        The #find_in_batches method is deprecated.
+        Please use #in_batches instead.
+      MSG
+
       if start
         begin_at = start
         ActiveSupport::Deprecation.warn(<<-MSG.squish)
