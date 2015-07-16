@@ -293,7 +293,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     client = Client.find(3)
     client.firm = nil
     client.save
-    assert_nil client.firm(true)
+    assert_nil client.reload.firm
     assert_nil client.client_of
   end
 
@@ -301,7 +301,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     client = Client.create(:name => "Primary key client", :firm_name => companies(:first_firm).name)
     client.firm_with_primary_key = nil
     client.save
-    assert_nil client.firm_with_primary_key(true)
+    assert_nil client.reload.firm_with_primary_key
     assert_nil client.client_of
   end
 
@@ -557,7 +557,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert final_cut.persisted?
     assert firm.persisted?
     assert_equal firm, final_cut.firm
-    assert_equal firm, final_cut.firm(true)
+    assert_equal firm, final_cut.reload.firm
   end
 
   def test_assignment_before_child_saved_with_primary_key
@@ -569,7 +569,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert final_cut.persisted?
     assert firm.persisted?
     assert_equal firm, final_cut.firm_with_primary_key
-    assert_equal firm, final_cut.firm_with_primary_key(true)
+    assert_equal firm, final_cut.reload.firm_with_primary_key
   end
 
   def test_new_record_with_foreign_key_but_no_object

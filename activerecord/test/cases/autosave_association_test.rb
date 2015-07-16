@@ -149,7 +149,7 @@ class TestDefaultAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCas
     assert_equal a, firm.account
     assert firm.save
     assert_equal a, firm.account
-    assert_equal a, firm.account(true)
+    assert_equal a, firm.reload.account
   end
 
   def test_assignment_before_either_saved
@@ -162,7 +162,7 @@ class TestDefaultAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCas
     assert firm.persisted?
     assert a.persisted?
     assert_equal a, firm.account
-    assert_equal a, firm.account(true)
+    assert_equal a, firm.reload.account
   end
 
   def test_not_resaved_when_unchanged
@@ -248,7 +248,7 @@ class TestDefaultAutosaveAssociationOnABelongsToAssociation < ActiveRecord::Test
     assert apple.save
     assert apple.persisted?
     assert_equal apple, client.firm
-    assert_equal apple, client.firm(true)
+    assert_equal apple, client.reload.firm
   end
 
   def test_assignment_before_either_saved
@@ -261,7 +261,7 @@ class TestDefaultAutosaveAssociationOnABelongsToAssociation < ActiveRecord::Test
     assert final_cut.persisted?
     assert apple.persisted?
     assert_equal apple, final_cut.firm
-    assert_equal apple, final_cut.firm(true)
+    assert_equal apple, final_cut.reload.firm
   end
 
   def test_store_two_association_with_one_save
@@ -456,7 +456,7 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
     assert_equal new_client, companies(:first_firm).clients_of_firm.last
     assert !companies(:first_firm).save
     assert !new_client.persisted?
-    assert_equal 2, companies(:first_firm).clients_of_firm(true).size
+    assert_equal 2, companies(:first_firm).clients_of_firm.reload.size
   end
 
   def test_adding_before_save
@@ -481,7 +481,7 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
     assert_equal no_of_clients + 2, Client.count  # Clients were saved to database.
 
     assert_equal 2, new_firm.clients_of_firm.size
-    assert_equal 2, new_firm.clients_of_firm(true).size
+    assert_equal 2, new_firm.clients_of_firm.reload.size
   end
 
   def test_assign_ids
@@ -510,7 +510,7 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
     company.name += '-changed'
     assert_queries(2) { assert company.save }
     assert new_client.persisted?
-    assert_equal 3, company.clients_of_firm(true).size
+    assert_equal 3, company.clients_of_firm.reload.size
   end
 
   def test_build_many_before_save
@@ -519,7 +519,7 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
 
     company.name += '-changed'
     assert_queries(3) { assert company.save }
-    assert_equal 4, company.clients_of_firm(true).size
+    assert_equal 4, company.clients_of_firm.reload.size
   end
 
   def test_build_via_block_before_save
@@ -530,7 +530,7 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
     company.name += '-changed'
     assert_queries(2) { assert company.save }
     assert new_client.persisted?
-    assert_equal 3, company.clients_of_firm(true).size
+    assert_equal 3, company.clients_of_firm.reload.size
   end
 
   def test_build_many_via_block_before_save
@@ -543,7 +543,7 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
 
     company.name += '-changed'
     assert_queries(3) { assert company.save }
-    assert_equal 4, company.clients_of_firm(true).size
+    assert_equal 4, company.clients_of_firm.reload.size
   end
 
   def test_replace_on_new_object
