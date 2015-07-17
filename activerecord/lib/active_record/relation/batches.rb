@@ -49,7 +49,7 @@ module ActiveRecord
     def find_each(begin_at: nil, end_at: nil, batch_size: 1000, start: nil)
       ActiveSupport::Deprecation.warn(<<-MSG.squish)
         The #find_each method is deprecated.
-        Please use #in_batches instead.
+        Please use #in_batches instead with the +:load+ option set to true.
       MSG
 
       if start
@@ -113,7 +113,7 @@ module ActiveRecord
     def find_in_batches(begin_at: nil, end_at: nil, batch_size: 1000, start: nil)
       ActiveSupport::Deprecation.warn(<<-MSG.squish)
         The #find_in_batches method is deprecated.
-        Please use #in_batches instead.
+        Please use #in_batches instead with the +:load+ option set to true.
       MSG
 
       if start
@@ -132,24 +132,8 @@ module ActiveRecord
         end
       end
 
-      if logger && (arel.orders.present? || arel.taken.present?)
-        logger.warn("Scoped order and limit are ignored, it's forced to be batch order and batch size")
-      end
-
-      relation = relation.reorder(batch_order).limit(batch_size)
-      relation = apply_limits(relation, begin_at, end_at)
-      records = relation.to_a
-
-      while records.any?
-        records_size = records.size
-        primary_key_offset = records.last.id
-        raise "Primary key not included in the custom select clause" unless primary_key_offset
-
-        yield records
-
-        break if records_size < batch_size
-
-        records = relation.where(table[primary_key].gt(primary_key_offset)).to_a
+      in_batches(of: batch_size, begin_at: begin_at, end_at: end_at, load: true) do |batch|
+        yield batch.to_a
       end
     end
 
@@ -170,6 +154,7 @@ module ActiveRecord
     #
     # ==== Options
     # * <tt>:of</tt> - Specifies the size of the batch. Default to 1000.
+    # * <tt>:load</tt> - Specifies if the relation should be loaded. Default to false.
     # * <tt>:begin_at</tt> - Specifies the primary key value to start from, inclusive of the value.
     # * <tt>:end_at</tt> - Specifies the primary key value to end at, inclusive of the value.
     #
@@ -186,6 +171,13 @@ module ActiveRecord
     #     relation.update_all(cool: true)
     #   end
     #
+    # NOTE: If you are going to iterate through each record, you should set
+    # +:load+ to true in order to reduce the number of queries. For example:
+    #
+    #   Person.in_batches(load: true).each do |batch|
+    #     batch.each(&:touch)
+    #   end
+    #
     # NOTE: It's not possible to set the order. That is automatically set to
     # ascending on the primary key ("id ASC") to make the batch ordering
     # work. This also means that this method only works when the primary key is
@@ -193,10 +185,10 @@ module ActiveRecord
     #
     # NOTE: You can't set the limit either, that's used to control
     # the batch sizes.
-    def in_batches(of: 1000, begin_at: nil, end_at: nil)
+    def in_batches(of: 1000, begin_at: nil, end_at: nil, load: false)
       relation = self
       unless block_given?
-        return to_enum(:in_batches, of: of, begin_at: begin_at, end_at: end_at) do
+        return to_enum(:in_batches, of: of, begin_at: begin_at, end_at: end_at, load: load) do
           total = apply_limits(relation, begin_at, end_at).size
           (total - 1).div(of) + 1
         end
@@ -208,14 +200,14 @@ module ActiveRecord
 
       relation = relation.reorder(batch_order).limit(of)
       relation = apply_limits(relation, begin_at, end_at)
-      relation_yielded = relation
+      offset = 0
 
-      while last_record = relation_yielded.last
-        raise "Primary key not included in the custom select clause" unless last_record.try(:id)
-
+      while true
+        relation_yielded = relation.offset(offset)
+        relation_yielded.load if load
+        break if !relation_yielded.any?
         yield relation_yielded
-
-        relation_yielded = relation.where(table[primary_key].gt(last_record.id))
+        offset += of
       end
     end
 

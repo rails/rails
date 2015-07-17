@@ -21,9 +21,9 @@ class EachTest < ActiveRecord::TestCase
     end
   end
 
-  def test_each_should_not_return_query_chain_and_execute_only_one_query
+  def test_each_should_not_return_query_chain_and_execute_two_query
     assert_deprecated do
-      assert_queries(1) do
+      assert_queries(2) do
         result = Post.find_each(:batch_size => 100000){ }
         assert_nil result
       end
@@ -32,7 +32,7 @@ class EachTest < ActiveRecord::TestCase
 
   def test_each_should_return_an_enumerator_if_no_block_is_present
     assert_deprecated do
-      assert_queries(1) do
+      assert_queries(1 + 1) do
         Post.find_each(:batch_size => 100000).with_index do |post, index|
           assert_kind_of Post, post
           assert_kind_of Integer, index
@@ -62,19 +62,9 @@ class EachTest < ActiveRecord::TestCase
     end
   end
 
-  def test_each_should_raise_if_select_is_set_without_id
-    assert_deprecated do
-      assert_raise(RuntimeError) do
-        Post.select(:title).find_each(batch_size: 1) { |post|
-          flunk "should not call this block"
-        }
-      end
-    end
-  end
-
   def test_each_should_execute_if_id_is_in_select
     assert_deprecated do
-      assert_queries(6) do
+      assert_queries(6 + 1) do
         Post.select("id, title, type").find_each(:batch_size => 2) do |post|
           assert_kind_of Post, post
         end
@@ -149,7 +139,7 @@ class EachTest < ActiveRecord::TestCase
     end
 
     assert_deprecated do
-      assert_queries(1) do
+      assert_queries(2) do
         Post.find_in_batches(:batch_size => @total + 1) {|batch| assert_kind_of Array, batch }
       end
     end
@@ -258,11 +248,35 @@ class EachTest < ActiveRecord::TestCase
     end
   end
 
+  def test_in_batches_should_not_be_loaded
+    Post.in_batches(of: 1) do |relation|
+      assert_not relation.loaded?
+    end
+
+    Post.in_batches(of: 1, load: false) do |relation|
+      assert_not relation.loaded?
+    end
+  end
+
+  def test_in_batches_should_be_loaded
+    Post.in_batches(of: 1, load: true) do |relation|
+      assert relation.loaded?
+    end
+  end
+
+  def test_in_batches_if_not_loaded_executes_more_queries
+    assert_queries(@total * 2 + 1) do
+      Post.in_batches(of: 1, load: false) do |relation|
+        assert_kind_of ActiveRecord::Relation, relation
+        assert_kind_of Post, relation.first
+      end
+    end
+  end
+
   def test_in_batches_should_return_relationes
     assert_queries(@total + 1) do
       Post.in_batches(of: 1) do |relation|
         assert_kind_of ActiveRecord::Relation, relation
-        assert_kind_of Post, relation.first
       end
     end
   end
@@ -271,7 +285,6 @@ class EachTest < ActiveRecord::TestCase
     assert_queries(@total) do
       Post.in_batches(of: 1, begin_at: 2) do |relation|
         assert_kind_of ActiveRecord::Relation, relation
-        assert_kind_of Post, relation.first
       end
     end
   end
@@ -280,7 +293,6 @@ class EachTest < ActiveRecord::TestCase
     assert_queries(5 + 1) do
       Post.in_batches(of: 1, end_at: 5) do |relation|
         assert_kind_of ActiveRecord::Relation, relation
-        assert_kind_of Post, relation.first
       end
     end
   end
@@ -360,7 +372,7 @@ class EachTest < ActiveRecord::TestCase
 
   def test_in_batches_should_use_any_column_as_primary_key_when_start_is_not_specified
     assert_queries(Subscriber.count + 1) do
-      Subscriber.in_batches(of: 1) do |relation|
+      Subscriber.in_batches(of: 1, load: true) do |relation|
         assert_kind_of ActiveRecord::Relation, relation
         assert_kind_of Subscriber, relation.first
       end
