@@ -181,7 +181,7 @@ class TransactionTest < ActiveRecord::TestCase
     assert posts_count > 0
     status = author.update(name: nil, post_ids: [])
     assert !status
-    assert_equal posts_count, author.posts(true).size
+    assert_equal posts_count, author.posts.reload.size
   end
 
   def test_update_should_rollback_on_failure!
@@ -191,7 +191,7 @@ class TransactionTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::RecordInvalid) do
       author.update!(name: nil, post_ids: [])
     end
-    assert_equal posts_count, author.posts(true).size
+    assert_equal posts_count, author.posts.reload.size
   end
 
   def test_cancellation_from_returning_false_in_before_filter

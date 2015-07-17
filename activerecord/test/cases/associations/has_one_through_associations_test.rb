@@ -245,12 +245,14 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
     assert_not_nil @member_detail.member_type
     @member_detail.destroy
     assert_queries(1) do
-      assert_not_nil @member_detail.member_type(true)
+      @member_detail.association(:member_type).reload
+      assert_not_nil @member_detail.member_type
     end
 
     @member_detail.member.destroy
     assert_queries(1) do
-      assert_nil @member_detail.member_type(true)
+      @member_detail.association(:member_type).reload
+      assert_nil @member_detail.member_type
     end
   end
 
