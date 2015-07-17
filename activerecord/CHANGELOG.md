@@ -1,3 +1,27 @@
+*   Improve sql logging coloration in `ActiveRecord::LogSubscriber`.
+    GH#20885
+
+    Improves coloring for statements like:
+    
+        # Become WHITE
+        SELECT * FROM (
+            SELECT * FROM mytable FOR UPDATE
+        ) ss WHERE col1 = 5;
+        LOCK TABLE table_name IN ACCESS EXCLUSIVE MODE;
+
+        # Becomes RED
+        ROLLBACK
+
+    Reinstates the coloration of the `payload[:name]`.
+    Instead of simple alternating colors, adds meaning:
+      - `MAGENTA` for `"SQL"` or `blank?` payload names
+      - `CYAN` for Model Load/Exists
+
+    Introduces specs for sql coloration.
+    Introduces specs for payload name coloration.
+
+    *Peter Boling*
+
 *   Deprecate force association reload by passing a truthy argument to
     association method.
 
