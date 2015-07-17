@@ -85,6 +85,10 @@ module ActionController #:nodoc:
           @to_path = path
         end
 
+        def body
+          File.binread(to_path)
+        end
+
         # Stream the file's contents if Rack::Sendfile isn't present.
         def each
           File.open(to_path, 'rb') do |file|

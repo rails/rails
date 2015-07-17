@@ -151,7 +151,7 @@ class HelperTest < ActiveSupport::TestCase
     assert_equal "test: baz", call_controller(Fun::PdfController, "test").last.body
     #
     # request  = ActionController::TestRequest.new
-    # response = ActionController::TestResponse.new
+    # response = ActionDispatch::TestResponse.new
     # request.action = 'test'
     #
     # assert_equal 'test: baz', Fun::PdfController.process(request, response).body

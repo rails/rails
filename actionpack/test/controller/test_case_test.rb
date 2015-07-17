@@ -45,7 +45,7 @@ class TestCaseTest < ActionController::TestCase
     end
 
     def test_params
-      render text: ::JSON.dump(params)
+      render text: ::JSON.dump(params.to_unsafe_h)
     end
 
     def test_query_parameters

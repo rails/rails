@@ -1,3 +1,5 @@
+require "active_support/deprecation"
+
 module ActiveRecord
   module Associations
     # = Active Record Association Collection
@@ -28,6 +30,12 @@ module ActiveRecord
       # Implements the reader method, e.g. foo.items for Foo.has_many :items
       def reader(force_reload = false)
         if force_reload
+          ActiveSupport::Deprecation.warn(<<-MSG.squish)
+            Passing an argument to force an association to reload is now
+            deprecated and will be removed in Rails 5.1. Please call `reload`
+            on the result collection proxy instead.
+          MSG
+
           klass.uncached { reload }
         elsif stale_target?
           reload

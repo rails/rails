@@ -607,4 +607,10 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
       end
     end
   end
+
+  def test_association_force_reload_with_only_true_is_deprecated
+    firm = Firm.find(1)
+
+    assert_deprecated { firm.account(true) }
+  end
 end

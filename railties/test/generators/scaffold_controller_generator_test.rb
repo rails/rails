@@ -182,7 +182,7 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
 
     Dir.chdir(engine_path) do
       quietly { `bin/rails g controller dashboard foo` }
-      assert_match(/2 runs, 2 assertions, 0 failures, 0 errors/, `bundle exec rake test 2>&1`)
+      assert_match(/2 runs, 2 assertions, 0 failures, 0 errors/, `bin/rails test 2>&1`)
     end
   end
 
@@ -193,7 +193,7 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
 
     Dir.chdir(engine_path) do
       quietly { `bin/rails g controller dashboard foo` }
-      assert_match(/2 runs, 2 assertions, 0 failures, 0 errors/, `bundle exec rake test 2>&1`)
+      assert_match(/2 runs, 2 assertions, 0 failures, 0 errors/, `bin/rails test 2>&1`)
     end
   end
 

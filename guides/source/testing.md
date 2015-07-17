@@ -178,6 +178,14 @@ create  test/fixtures/articles.yml
 ...
 ```
 
+You can also generate the test stub for a model using the following command:
+
+```bash
+$ bin/rails generate test_unit:model article title:string body:text
+create  test/models/article_test.rb
+create  test/fixtures/articles.yml
+```
+
 The default test stub in `test/models/article_test.rb` looks like this:
 
 ```ruby
@@ -508,6 +516,14 @@ You should test for things such as:
 * was the appropriate message displayed to the user in the view?
 
 Now that we have used Rails scaffold generator for our `Article` resource, it has already created the controller code and tests. You can take look at the file `articles_controller_test.rb` in the `test/controllers` directory.
+
+The following command will generate a controller test case with a filled up
+test for each of the seven default actions.
+
+```bash
+$ bin/rails generate test_unit:scaffold article
+create test/controllers/articles_controller_test.rb
+```
 
 Let me take you through one such test, `test_should_get_index` from the file `articles_controller_test.rb`.
 

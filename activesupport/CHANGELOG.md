@@ -1,3 +1,8 @@
+*   Removed `ActiveSupport::Concurrency::Latch`, superseded by `Concurrent::CountDownLatch`
+    from the concurrent-ruby gem.
+
+    *Jerry D'Antonio*
+
 *   Fix not calling `#default` on `HashWithIndifferentAccess#to_hash` when only
     `default_proc` is set, which could raise.
 
