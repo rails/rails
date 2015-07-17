@@ -643,13 +643,7 @@ module ActionController
       end
 
       def array_of_permitted_scalars?(value)
-        if value.is_a?(Array)
-          value.all? {|element| permitted_scalar?(element)}
-        end
-      end
-
-      def array_of_permitted_scalars_filter(value)
-        if array_of_permitted_scalars?(value)
+        if value.is_a?(Array) && value.all? {|element| permitted_scalar?(element)}
           yield value
         end
       end
@@ -665,7 +659,7 @@ module ActionController
 
           if filter[key] == EMPTY_ARRAY
             # Declaration { comment_ids: [] }.
-            array_of_permitted_scalars_filter(self[key]) do |val|
+            array_of_permitted_scalars?(self[key]) do |val|
               params[key] = val
             end
           else
