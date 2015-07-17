@@ -666,7 +666,6 @@ module ActionController
             # Declaration { user: :name } or { user: [:name, :age, { address: ... }] }.
             params[key] = each_element(value) do |element|
               if element.is_a?(Parameters)
-                element = self.class.new(element) unless element.respond_to?(:permit)
                 element.permit(*Array.wrap(filter[key]))
               end
             end
