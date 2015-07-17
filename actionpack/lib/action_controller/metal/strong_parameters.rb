@@ -540,6 +540,10 @@ module ActionController
         @permitted = new_permitted
       end
 
+      def fields_for_style?
+        @parameters.all? { |k, v| k =~ /\A-?\d+\z/ && v.is_a?(Hash) }
+      end
+
     private
       def new_instance_with_inherited_permitted_status(hash)
         self.class.new(hash).tap do |new_instance|
@@ -570,7 +574,7 @@ module ActionController
         when Array
           object.grep(Parameters).map { |el| yield el }.compact
         when Parameters
-          if fields_for_style?(object)
+          if object.fields_for_style?
             hash = object.class.new
             object.each { |k,v| hash[k] = yield v }
             hash
@@ -578,10 +582,6 @@ module ActionController
             yield object
           end
         end
-      end
-
-      def fields_for_style?(object)
-        object.to_unsafe_h.all? { |k, v| k =~ /\A-?\d+\z/ && v.is_a?(Hash) }
       end
 
       def unpermitted_parameters!(params)
