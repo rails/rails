@@ -578,7 +578,7 @@ module ActionController
       end
 
       def fields_for_style?(object)
-        (object.is_a?(Hash) || object.is_a?(Parameters)) &&
+        object.is_a?(Parameters) &&
           object.to_unsafe_h.all? { |k, v| k =~ /\A-?\d+\z/ && v.is_a?(Hash) }
       end
 
@@ -665,7 +665,7 @@ module ActionController
           else
             # Declaration { user: :name } or { user: [:name, :age, { address: ... }] }.
             params[key] = each_element(value) do |element|
-              if element.is_a?(Hash) || element.is_a?(Parameters)
+              if element.is_a?(Parameters)
                 element = self.class.new(element) unless element.respond_to?(:permit)
                 element.permit(*Array.wrap(filter[key]))
               end
