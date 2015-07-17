@@ -566,20 +566,22 @@ module ActionController
       end
 
       def each_element(object)
-        if object.is_a?(Array)
-          object.map { |el| yield el }.compact
-        elsif fields_for_style?(object)
-          hash = object.class.new
-          object.each { |k,v| hash[k] = yield v }
-          hash
-        else
-          yield object
+        case object
+        when Array
+          object.grep(Parameters).map { |el| yield el }.compact
+        when Parameters
+          if fields_for_style?(object)
+            hash = object.class.new
+            object.each { |k,v| hash[k] = yield v }
+            hash
+          else
+            yield object
+          end
         end
       end
 
       def fields_for_style?(object)
-        object.is_a?(Parameters) &&
-          object.to_unsafe_h.all? { |k, v| k =~ /\A-?\d+\z/ && v.is_a?(Hash) }
+        object.to_unsafe_h.all? { |k, v| k =~ /\A-?\d+\z/ && v.is_a?(Hash) }
       end
 
       def unpermitted_parameters!(params)
@@ -665,9 +667,7 @@ module ActionController
           else
             # Declaration { user: :name } or { user: [:name, :age, { address: ... }] }.
             params[key] = each_element(value) do |element|
-              if element.is_a?(Parameters)
-                element.permit(*Array.wrap(filter[key]))
-              end
+              element.permit(*Array.wrap(filter[key]))
             end
           end
         end
