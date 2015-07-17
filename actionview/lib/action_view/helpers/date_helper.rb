@@ -70,7 +70,7 @@ module ActionView
       #   distance_of_time_in_words(Time.now, Time.now)                                               # => less than a minute
       #
       # With the <tt>scope</tt> option, you can define a custom scope for Rails
-      # to lookup the translation.
+      # to look up the translation.
       #
       # For example you can define the following in your locale (e.g. en.yml).
       #

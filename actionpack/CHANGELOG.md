@@ -183,7 +183,8 @@
     *arthurnn*
 
 *   `ActionController#translate` supports symbols as shortcuts.
-    When shortcut is given it also lookups without action name.
+    When a shortcut is given it also performs the lookup without the action
+    name.
 
     *Max Melentiev*
 
