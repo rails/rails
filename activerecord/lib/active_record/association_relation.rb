@@ -13,6 +13,19 @@ module ActiveRecord
       other == to_a
     end
 
+    def build(*args, &block)
+      scoping { @association.build(*args, &block) }
+    end
+    alias new build
+
+    def create(*args, &block)
+      scoping { @association.create(*args, &block) }
+    end
+
+    def create!(*args, &block)
+      scoping { @association.create!(*args, &block) }
+    end
+
     private
 
     def exec_queries

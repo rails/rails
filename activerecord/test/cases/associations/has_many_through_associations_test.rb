@@ -595,6 +595,12 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert posts(:thinking).reload.people(true).collect(&:first_name).include?("Jeb")
   end
 
+  def test_through_record_is_built_when_created_with_where
+    assert_difference("posts(:thinking).readers.count", 1) do
+      posts(:thinking).people.where(first_name: "Jeb").create
+    end
+  end
+
   def test_associate_with_create_and_no_options
     peeps = posts(:thinking).people.count
     posts(:thinking).people.create(:first_name => 'foo')
