@@ -551,6 +551,11 @@ class HashExtTest < ActiveSupport::TestCase
     assert_instance_of ActiveSupport::HashWithIndifferentAccess, hash
   end
 
+  def test_indifferent_select_returns_enumerator
+    enum = ActiveSupport::HashWithIndifferentAccess.new(@strings).select
+    assert_instance_of Enumerator, enum
+  end
+
   def test_indifferent_select_returns_a_hash_when_unchanged
     hash = ActiveSupport::HashWithIndifferentAccess.new(@strings).select {|k,v| true}
 
@@ -570,6 +575,11 @@ class HashExtTest < ActiveSupport::TestCase
 
     assert_equal({ 'a' => 1 }, hash)
     assert_instance_of ActiveSupport::HashWithIndifferentAccess, hash
+  end
+
+  def test_indifferent_reject_returns_enumerator
+    enum = ActiveSupport::HashWithIndifferentAccess.new(@strings).reject
+    assert_instance_of Enumerator, enum
   end
 
   def test_indifferent_reject_bang
