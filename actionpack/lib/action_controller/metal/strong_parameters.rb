@@ -649,7 +649,7 @@ module ActionController
       end
 
       def array_of_permitted_scalars_filter(params, key)
-        if has_key?(key) && array_of_permitted_scalars?(self[key])
+        if array_of_permitted_scalars?(self[key])
           params[key] = self[key]
         end
       end
@@ -661,6 +661,7 @@ module ActionController
         # Slicing filters out non-declared keys.
         slice(*filter.keys).each do |key, value|
           next unless value
+          next unless has_key? key
 
           if filter[key] == EMPTY_ARRAY
             # Declaration { comment_ids: [] }.
