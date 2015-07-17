@@ -648,9 +648,9 @@ module ActionController
         end
       end
 
-      def array_of_permitted_scalars_filter(params, key)
-        if array_of_permitted_scalars?(self[key])
-          params[key] = self[key]
+      def array_of_permitted_scalars_filter(value)
+        if array_of_permitted_scalars?(value)
+          yield value
         end
       end
 
@@ -665,7 +665,9 @@ module ActionController
 
           if filter[key] == EMPTY_ARRAY
             # Declaration { comment_ids: [] }.
-            array_of_permitted_scalars_filter(params, key)
+            array_of_permitted_scalars_filter(self[key]) do |val|
+              params[key] = val
+            end
           else
             # Declaration { user: :name } or { user: [:name, :age, { address: ... }] }.
             params[key] = each_element(value) do |element|
