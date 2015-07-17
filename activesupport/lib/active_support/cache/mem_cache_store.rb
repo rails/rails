@@ -141,7 +141,9 @@ module ActiveSupport
         def write_entry(key, entry, options) # :nodoc:
           method = options && options[:unless_exist] ? :add : :set
           value = options[:raw] ? entry.value.to_s : entry
-          expires_in = options[:expires_in].to_i
+          expires_in = options[:expires_in]
+          expires_in = expires_in.call if expires_in.is_a?(Proc)
+          expires_in = expires_in.to_i
           if expires_in > 0 && !options[:raw]
             # Set the memcache expire a few minutes in the future to support race condition ttls on read
             expires_in += 5.minutes
