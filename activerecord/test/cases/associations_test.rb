@@ -93,8 +93,8 @@ class AssociationsTest < ActiveRecord::TestCase
     assert firm.clients.empty?, "New firm should have cached no client objects"
     assert_equal 0, firm.clients.size, "New firm should have cached 0 clients count"
 
-    assert !firm.clients(true).empty?, "New firm should have reloaded client objects"
-    assert_equal 1, firm.clients(true).size, "New firm should have reloaded clients count"
+    assert !firm.clients.reload.empty?, "New firm should have reloaded client objects"
+    assert_equal 1, firm.clients.reload.size, "New firm should have reloaded clients count"
   end
 
   def test_using_limitable_reflections_helper

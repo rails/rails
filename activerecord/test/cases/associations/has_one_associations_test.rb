@@ -332,7 +332,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert a.persisted?
     assert_equal a, firm.account
     assert_equal a, firm.account
-    assert_equal a, firm.account(true)
+    assert_equal a, firm.reload.account
   end
 
   def test_save_still_works_after_accessing_nil_has_one
