@@ -171,6 +171,8 @@ class ResponseTest < ActiveSupport::TestCase
   end
 
   test "read content type without charset" do
+    jruby_skip "https://github.com/jruby/jruby/issues/3138"
+
     original = ActionDispatch::Response.default_charset
     begin
       ActionDispatch::Response.default_charset = 'utf-16'
