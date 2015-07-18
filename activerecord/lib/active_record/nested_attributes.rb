@@ -386,6 +386,9 @@ module ActiveRecord
     # then the existing record will be marked for destruction.
     def assign_nested_attributes_for_one_to_one_association(association_name, attributes)
       options = self.nested_attributes_options[association_name]
+      if attributes.respond_to?(:permitted?)
+        attributes = attributes.to_h
+      end
       attributes = attributes.with_indifferent_access
       existing_record = send(association_name)
 

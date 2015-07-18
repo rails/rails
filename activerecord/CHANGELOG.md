@@ -1,3 +1,10 @@
+*   Ensure that `ActionController::Parameters` can still be passed to nested
+    attributes.
+
+    Fixes #20922.
+
+    *Sean Griffin*
+
 *   Deprecate force association reload by passing a truthy argument to
     association method.
 
