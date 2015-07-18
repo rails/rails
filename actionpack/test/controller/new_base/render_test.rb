@@ -37,14 +37,14 @@ module Render
     private
 
     def secretz
-      render :text => "FAIL WHALE!"
+      render plain: "FAIL WHALE!"
     end
   end
 
   class DoubleRenderController < ActionController::Base
     def index
-      render :text => "hello"
-      render :text => "world"
+      render plain: "hello"
+      render plain: "world"
     end
   end
 

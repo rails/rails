@@ -18,11 +18,11 @@ class CacheStoreTest < ActionDispatch::IntegrationTest
     end
 
     def get_session_value
-      render :text => "foo: #{session[:foo].inspect}"
+      render plain: "foo: #{session[:foo].inspect}"
     end
 
     def get_session_id
-      render :text => "#{request.session.id}"
+      render plain: "#{request.session.id}"
     end
 
     def call_reset_session

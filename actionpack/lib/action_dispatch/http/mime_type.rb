@@ -45,7 +45,7 @@ module Mime
   #
   #       respond_to do |format|
   #         format.html
-  #         format.ics { render text: @post.to_ics, mime_type: Mime::Type.lookup("text/calendar")  }
+  #         format.ics { render body: @post.to_ics, mime_type: Mime::Type.lookup("text/calendar")  }
   #         format.xml { render xml: @post }
   #       end
   #     end

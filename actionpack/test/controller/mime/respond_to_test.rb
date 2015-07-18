@@ -13,41 +13,41 @@ class RespondToController < ActionController::Base
 
   def html_xml_or_rss
     respond_to do |type|
-      type.html { render :text => "HTML"    }
-      type.xml  { render :text => "XML"     }
-      type.rss  { render :text => "RSS"     }
-      type.all  { render :text => "Nothing" }
+      type.html { render body: "HTML"    }
+      type.xml  { render body: "XML"     }
+      type.rss  { render body: "RSS"     }
+      type.all  { render body: "Nothing" }
     end
   end
 
   def js_or_html
     respond_to do |type|
-      type.html { render :text => "HTML"    }
-      type.js   { render :text => "JS"      }
-      type.all  { render :text => "Nothing" }
+      type.html { render body: "HTML"    }
+      type.js   { render body: "JS"      }
+      type.all  { render body: "Nothing" }
     end
   end
 
   def json_or_yaml
     respond_to do |type|
-      type.json { render :text => "JSON" }
-      type.yaml { render :text => "YAML" }
+      type.json { render body: "JSON" }
+      type.yaml { render body: "YAML" }
     end
   end
 
   def html_or_xml
     respond_to do |type|
-      type.html { render :text => "HTML"    }
-      type.xml  { render :text => "XML"     }
-      type.all  { render :text => "Nothing" }
+      type.html { render body: "HTML"    }
+      type.xml  { render body: "XML"     }
+      type.all  { render body: "Nothing" }
     end
   end
 
   def json_xml_or_html
     respond_to do |type|
-      type.json { render :text => 'JSON' }
+      type.json { render body: 'JSON' }
       type.xml { render :xml => 'XML' }
-      type.html { render :text => 'HTML' }
+      type.html { render body: 'HTML' }
     end
   end
 
@@ -56,14 +56,14 @@ class RespondToController < ActionController::Base
     request.format = :xml
 
     respond_to do |type|
-      type.html { render :text => "HTML"    }
-      type.xml  { render :text => "XML"     }
+      type.html { render body: "HTML"    }
+      type.xml  { render body: "XML"     }
     end
   end
 
   def just_xml
     respond_to do |type|
-      type.xml  { render :text => "XML" }
+      type.xml  { render body: "XML" }
     end
   end
 
@@ -81,52 +81,52 @@ class RespondToController < ActionController::Base
   def using_defaults_with_all
     respond_to do |type|
       type.html
-      type.all{ render text: "ALL" }
+      type.all{ render body: "ALL" }
     end
   end
 
   def made_for_content_type
     respond_to do |type|
-      type.rss  { render :text => "RSS"  }
-      type.atom { render :text => "ATOM" }
-      type.all  { render :text => "Nothing" }
+      type.rss  { render body: "RSS"  }
+      type.atom { render body: "ATOM" }
+      type.all  { render body: "Nothing" }
     end
   end
 
   def custom_type_handling
     respond_to do |type|
-      type.html { render :text => "HTML"    }
-      type.custom("application/crazy-xml")  { render :text => "Crazy XML"  }
-      type.all  { render :text => "Nothing" }
+      type.html { render body: "HTML"    }
+      type.custom("application/crazy-xml")  { render body: "Crazy XML"  }
+      type.all  { render body: "Nothing" }
     end
   end
 
 
   def custom_constant_handling
     respond_to do |type|
-      type.html   { render :text => "HTML"   }
-      type.mobile { render :text => "Mobile" }
+      type.html   { render body: "HTML"   }
+      type.mobile { render body: "Mobile" }
     end
   end
 
   def custom_constant_handling_without_block
     respond_to do |type|
-      type.html   { render :text => "HTML"   }
+      type.html   { render body: "HTML"   }
       type.mobile
     end
   end
 
   def handle_any
     respond_to do |type|
-      type.html { render :text => "HTML" }
-      type.any(:js, :xml) { render :text => "Either JS or XML" }
+      type.html { render body: "HTML" }
+      type.any(:js, :xml) { render body: "Either JS or XML" }
     end
   end
 
   def handle_any_any
     respond_to do |type|
-      type.html { render :text => 'HTML' }
-      type.any { render :text => 'Whatever you ask for, I got it' }
+      type.html { render body: 'HTML' }
+      type.any { render body: 'Whatever you ask for, I got it' }
     end
   end
 
@@ -167,15 +167,15 @@ class RespondToController < ActionController::Base
     request.variant = :mobile
 
     respond_to do |type|
-      type.html { render text: "mobile" }
+      type.html { render body: "mobile" }
     end
   end
 
   def multiple_variants_for_format
     respond_to do |type|
       type.html do |html|
-        html.tablet { render text: "tablet" }
-        html.phone  { render text: "phone" }
+        html.tablet { render body: "tablet" }
+        html.phone  { render body: "phone" }
       end
     end
   end
@@ -183,7 +183,7 @@ class RespondToController < ActionController::Base
   def variant_plus_none_for_format
     respond_to do |format|
       format.html do |variant|
-        variant.phone { render text: "phone" }
+        variant.phone { render body: "phone" }
         variant.none
       end
     end
@@ -191,9 +191,9 @@ class RespondToController < ActionController::Base
 
   def variant_inline_syntax
     respond_to do |format|
-      format.js         { render text: "js"    }
-      format.html.none  { render text: "none"  }
-      format.html.phone { render text: "phone" }
+      format.js         { render body: "js"    }
+      format.html.none  { render body: "none"  }
+      format.html.phone { render body: "phone" }
     end
   end
 
@@ -208,8 +208,8 @@ class RespondToController < ActionController::Base
   def variant_any
     respond_to do |format|
       format.html do |variant|
-        variant.any(:tablet, :phablet){ render text: "any" }
-        variant.phone { render text: "phone" }
+        variant.any(:tablet, :phablet){ render body: "any" }
+        variant.phone { render body: "phone" }
       end
     end
   end
@@ -217,23 +217,23 @@ class RespondToController < ActionController::Base
   def variant_any_any
     respond_to do |format|
       format.html do |variant|
-        variant.any   { render text: "any"   }
-        variant.phone { render text: "phone" }
+        variant.any   { render body: "any"   }
+        variant.phone { render body: "phone" }
       end
     end
   end
 
   def variant_inline_any
     respond_to do |format|
-      format.html.any(:tablet, :phablet){ render text: "any" }
-      format.html.phone { render text: "phone" }
+      format.html.any(:tablet, :phablet){ render body: "any" }
+      format.html.phone { render body: "phone" }
     end
   end
 
   def variant_inline_any_any
     respond_to do |format|
-      format.html.phone { render text: "phone" }
-      format.html.any   { render text: "any"   }
+      format.html.phone { render body: "phone" }
+      format.html.any   { render body: "any"   }
     end
   end
 
@@ -246,16 +246,16 @@ class RespondToController < ActionController::Base
 
   def variant_any_with_none
     respond_to do |format|
-      format.html.any(:none, :phone){ render text: "none or phone" }
+      format.html.any(:none, :phone){ render body: "none or phone" }
     end
   end
 
   def format_any_variant_any
     respond_to do |format|
-      format.html { render text: "HTML" }
+      format.html { render body: "HTML" }
       format.any(:js, :xml) do |variant|
-        variant.phone{ render text: "phone" }
-        variant.any(:tablet, :phablet){ render text: "tablet" }
+        variant.phone{ render body: "phone" }
+        variant.any(:tablet, :phablet){ render body: "tablet" }
       end
     end
   end
@@ -780,7 +780,7 @@ end
 class RespondToWithBlockOnDefaultRenderController < ActionController::Base
   def show
     default_render do
-      render text: 'default_render yielded'
+      render body: 'default_render yielded'
     end
   end
 end
@@ -794,6 +794,6 @@ class RespondToWithBlockOnDefaultRenderControllerTest < ActionController::TestCa
   def test_default_render_uses_block_when_no_template_exists
     get :show
     assert_equal "default_render yielded", @response.body
-    assert_equal "text/html", @response.content_type
+    assert_equal "text/plain", @response.content_type
   end
 end

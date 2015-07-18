@@ -7,12 +7,12 @@ class ConditionalGetApiController < ActionController::API
 
   def one
     if stale?(last_modified: Time.now.utc.beginning_of_day, etag: [:foo, 123])
-      render text: "Hi!"
+      render plain: "Hi!"
     end
   end
 
   def two
-    render text: "Hi!"
+    render plain: "Hi!"
   end
 
   private
