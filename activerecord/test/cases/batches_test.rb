@@ -98,6 +98,75 @@ class EachTest < ActiveRecord::TestCase
     ActiveRecord::Base.logger = previous_logger
   end
 
+  def test_with_batches_should_execute_one_query_per_batch
+    assert_queries(@total + 1) do
+      Post.with_batches(of: 1) do |post|
+        assert_kind_of Post, post
+      end
+    end
+  end
+
+  def test_with_batches_should_not_return_query_chain_and_execute_two_query
+    assert_queries(2) do
+      result = Post.with_batches(of: 100000){ }
+      assert_nil result
+    end
+  end
+
+  def test_with_batches_should_return_an_enumerator_if_no_block_is_present
+    assert_queries(1 + 1) do
+      Post.with_batches(of: 100000).with_index do |post, index|
+        assert_kind_of Post, post
+        assert_kind_of Integer, index
+      end
+    end
+  end
+
+  if Enumerator.method_defined? :size
+    def test_with_batches_should_return_a_sized_enumerator
+      assert_equal 11, Post.with_batches(of: 1).size
+      assert_equal 5, Post.with_batches(of:  2, begin_at: 7).size
+      assert_equal 11, Post.with_batches(of: 10_000).size
+    end
+  end
+
+  def test_with_batches_enumerator_should_execute_one_query_per_batch
+    assert_queries(@total + 1) do
+      Post.with_batches(of: 1).with_index do |post, index|
+        assert_kind_of Post, post
+        assert_kind_of Integer, index
+      end
+    end
+  end
+
+  def test_with_batches_should_execute_if_id_is_in_select
+    assert_queries(6 + 1) do
+      Post.select("id, title, type").with_batches(of: 2) do |post|
+        assert_kind_of Post, post
+      end
+    end
+  end
+
+  def test_with_batches_warn_if_limit_scope_is_set
+    ActiveRecord::Base.logger.expects(:warn)
+    Post.limit(1).with_batches { |post| post }
+  end
+
+  def test_with_batches_warn_if_order_scope_is_set
+    ActiveRecord::Base.logger.expects(:warn)
+    Post.order("title").with_batches { |post| post }
+  end
+
+  def test_with_batches_logger_not_required
+    previous_logger = ActiveRecord::Base.logger
+    ActiveRecord::Base.logger = nil
+    assert_nothing_raised do
+      Post.limit(1).with_batches { |post| post }
+    end
+  ensure
+    ActiveRecord::Base.logger = previous_logger
+  end
+
   def test_find_in_batches_should_return_batches
     assert_deprecated do
       assert_queries(@total + 1) do
