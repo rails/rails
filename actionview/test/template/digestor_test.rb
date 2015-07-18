@@ -219,7 +219,7 @@ class TemplateDigestorTest < ActionView::TestCase
   end
 
   def test_variants
-    assert_digest_difference("messages/new", false, variants: [:iphone]) do
+    assert_digest_difference("messages/new", variants: [:iphone]) do
       change_template("messages/new",     :iphone)
       change_template("messages/_header", :iphone)
     end
@@ -281,9 +281,9 @@ class TemplateDigestorTest < ActionView::TestCase
       end
     end
 
-    def assert_digest_difference(template_name, persistent = false, options = {})
+    def assert_digest_difference(template_name, options = {})
       previous_digest = digest(template_name, options)
-      ActionView::Digestor.cache.clear unless persistent
+      ActionView::Digestor.cache.clear
 
       yield
 
