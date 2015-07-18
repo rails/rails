@@ -55,10 +55,10 @@ module ActionController
       # You can pass any of the following options to affect the before_action callback
       # * <tt>only</tt>       - The callback should be run only for this action
       # * <tt>except</tt>     - The callback should be run for all actions except this action
-      # * <tt>if</tt>         - A symbol naming an instance method or a proc; the callback
-      #                         will be called only when it returns a true value.
-      # * <tt>unless</tt>     - A symbol naming an instance method or a proc; the callback
-      #                         will be called only when it returns a false value.
+      # * <tt>if</tt>         - A symbol naming an instance method or a proc; the
+      #   callback will be called only when it returns a true value.
+      # * <tt>unless</tt>     - A symbol naming an instance method or a proc; the
+      #   callback will be called only when it returns a false value.
       def force_ssl(options = {})
         action_options = options.slice(*ACTION_OPTIONS)
         redirect_options = options.except(*ACTION_OPTIONS)
@@ -71,8 +71,8 @@ module ActionController
     # Redirect the existing request to use the HTTPS protocol.
     #
     # ==== Parameters
-    # * <tt>host_or_options</tt> - Either a host name or any of the url & redirect options
-    #                              available to the <tt>force_ssl</tt> method.
+    # * <tt>host_or_options</tt> - Either a host name or any of the url &
+    #   redirect options available to the <tt>force_ssl</tt> method.
     def force_ssl_redirect(host_or_options = nil)
       unless request.ssl?
         options = {
