@@ -678,6 +678,10 @@ ActiveRecord::Schema.define do
     t.datetime :updated_at
   end
 
+  create_table :prisoners, force: true do |t|
+    t.belongs_to :ship
+  end
+
   create_table :speedometers, force: true, id: false do |t|
     t.string :speedometer_id
     t.string :name

@@ -222,6 +222,7 @@ module ActiveRecord
               true
             end
             validate validation_method
+            after_validation :_ensure_no_duplicate_errors
           end
         end
     end
@@ -454,6 +455,12 @@ module ActiveRecord
 
             saved if autosave
           end
+        end
+      end
+
+      def _ensure_no_duplicate_errors
+        errors.messages.each_key do |attribute|
+          errors[attribute].uniq!
         end
       end
   end

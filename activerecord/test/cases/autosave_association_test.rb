@@ -67,6 +67,14 @@ class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
     assert_no_difference_when_adding_callbacks_twice_for Pirate, :parrots
   end
 
+  def test_cyclic_autosaves_do_not_add_multiple_validations
+    ship = ShipWithoutNestedAttributes.new
+    ship.prisoners.build
+
+    assert_not ship.valid?
+    assert_equal 1, ship.errors[:name].length
+  end
+
   private
 
   def assert_no_difference_when_adding_callbacks_twice_for(model, association_name)

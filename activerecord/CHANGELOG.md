@@ -1,3 +1,10 @@
+*   Ensure that cyclic associations with autosave don't cause duplicate errors
+    to be added to the parent record.
+
+    Fixes #20874.
+
+    *Sean Griffin*
+
 *   Ensure that `ActionController::Parameters` can still be passed to nested
     attributes.
 
