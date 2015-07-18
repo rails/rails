@@ -445,6 +445,9 @@ module ActiveRecord
     #   ])
     def assign_nested_attributes_for_collection_association(association_name, attributes_collection)
       options = self.nested_attributes_options[association_name]
+      if attributes_collection.respond_to?(:permitted?)
+        attributes_collection = attributes_collection.to_h
+      end
 
       unless attributes_collection.is_a?(Hash) || attributes_collection.is_a?(Array)
         raise ArgumentError, "Hash or Array expected, got #{attributes_collection.class.name} (#{attributes_collection.inspect})"
@@ -471,6 +474,9 @@ module ActiveRecord
       end
 
       attributes_collection.each do |attributes|
+        if attributes.respond_to?(:permitted?)
+          attributes = attributes.to_h
+        end
         attributes = attributes.with_indifferent_access
 
         if attributes['id'].blank?
