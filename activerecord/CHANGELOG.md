@@ -1,5 +1,21 @@
-*   Improve sql logging coloration in `ActiveRecord::LogSubscriber`.
+*   Fix and improve sql logging coloration in `ActiveRecord::LogSubscriber`.
+
     GH#20885
+
+    Fixes coloring for SQL statements generated with Ruby heredoc, 
+      which often have spaces preceding the initial SQL verb, like:
+
+        sql = <<-EOS
+            SELECT * FROM THINGS
+              WHERE ID IN (
+                SELECT ID FROM THINGS
+              )
+        EOS
+
+    Make some `ActiveRecord::LogSubscriber` instance methods private for clarity:
+      - `colorize_payload_name`
+      - `sql_color`
+      - `logger`
 
     Improves coloring for statements like:
     
@@ -12,7 +28,9 @@
         # Becomes RED
         ROLLBACK
 
-    Reinstates the coloration of the `payload[:name]`.
+    Reinstates the coloration of the `payload[:name]` 
+      via new method `colorize_payload_name`.
+
     Instead of simple alternating colors, adds meaning:
       - `MAGENTA` for `"SQL"` or `blank?` payload names
       - `CYAN` for Model Load/Exists
