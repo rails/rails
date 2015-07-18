@@ -380,11 +380,15 @@ module ActionController
     def fetch(key, *args, &block)
       convert_hashes_to_parameters(
         key,
-        @parameters.fetch(key, *args, &block),
+        @parameters.fetch(key) {
+          if block_given?
+            yield
+          else
+            args.fetch(0) { raise ActionController::ParameterMissing.new(key) }
+          end
+        },
         false
       )
-    rescue KeyError
-      raise ActionController::ParameterMissing.new(key)
     end
 
     # Returns a new <tt>ActionController::Parameters</tt> instance that

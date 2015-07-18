@@ -194,6 +194,19 @@ class ParametersPermitTest < ActiveSupport::TestCase
     assert_equal "monkey", @params.fetch(:foo) { "monkey" }
   end
 
+  test "fetch doesnt raise ParameterMissing exception if there is a default that is nil" do
+    assert_equal nil, @params.fetch(:foo, nil)
+    assert_equal nil, @params.fetch(:foo) { nil }
+  end
+
+  test 'KeyError in fetch block should not be coverd up' do
+    params = ActionController::Parameters.new
+    e = assert_raises(KeyError) do
+      params.fetch(:missing_key) { {}.fetch(:also_missing) }
+    end
+    assert_match(/:also_missing$/, e.message)
+  end
+
   test "not permitted is sticky beyond merges" do
     assert !@params.merge(a: "b").permitted?
   end
