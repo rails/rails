@@ -202,10 +202,10 @@ module ActiveRecord
       relation = apply_limits(relation, begin_at, end_at)
       offset = 0
 
-      while true
+      loop do
         relation_yielded = relation.offset(offset)
         relation_yielded.load if load
-        break if !relation_yielded.any?
+        break if relation_yielded.none?
         yield relation_yielded
         offset += of
       end
