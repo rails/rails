@@ -5,9 +5,9 @@ class WebServiceTest < ActionDispatch::IntegrationTest
   class TestController < ActionController::Base
     def assign_parameters
       if params[:full]
-        render :text => dump_params_keys
+        render plain: dump_params_keys
       else
-        render :text => (params.keys - ['controller', 'action']).sort.join(", ")
+        render plain: (params.keys - ['controller', 'action']).sort.join(", ")
       end
     end
 

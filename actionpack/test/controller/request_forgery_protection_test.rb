@@ -13,7 +13,7 @@ module RequestForgeryProtectionActions
   end
 
   def unsafe
-    render :text => 'pwn'
+    render plain: 'pwn'
   end
 
   def meta

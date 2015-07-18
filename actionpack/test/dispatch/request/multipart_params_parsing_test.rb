@@ -17,7 +17,7 @@ class MultipartParamsParsingTest < ActionDispatch::IntegrationTest
     end
 
     def read
-      render :text => "File: #{params[:uploaded_data].read}"
+      render plain: "File: #{params[:uploaded_data].read}"
     end
   end
 

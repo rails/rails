@@ -130,7 +130,7 @@ module ActionController #:nodoc:
       # See +send_file+ for more information on HTTP Content-* headers and caching.
       def send_data(data, options = {}) #:doc:
         send_file_headers! options
-        render options.slice(:status, :content_type).merge(:text => data)
+        render options.slice(:status, :content_type).merge(body: data)
       end
 
     private
