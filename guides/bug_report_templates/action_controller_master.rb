@@ -31,7 +31,7 @@ class TestController < ActionController::Base
   include Rails.application.routes.url_helpers
 
   def index
-    render text: 'Home'
+    render plain: 'Home'
   end
 end
 
