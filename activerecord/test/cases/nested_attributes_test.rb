@@ -1081,6 +1081,10 @@ class TestHasManyAutosaveAssociationWhichItselfHasAutosaveAssociations < ActiveR
     def to_h
       @hash
     end
+
+    def with_indifferent_access
+      to_h.with_indifferent_access
+    end
   end
 
   test "strong params style objects can be assigned for singular associations" do

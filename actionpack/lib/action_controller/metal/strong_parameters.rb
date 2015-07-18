@@ -187,6 +187,12 @@ module ActionController
     end
     alias_method :to_unsafe_hash, :to_unsafe_h
 
+    # Returns a safe +HashWithIndifferentAccess+ representation of this parameter with all
+    # unpermitted keys removed.
+    def with_indifferent_access
+      to_h.with_indifferent_access
+    end
+
     # Convert all hashes in values into parameters, then yield each pair like
     # the same way as <tt>Hash#each_pair</tt>
     def each_pair(&block)

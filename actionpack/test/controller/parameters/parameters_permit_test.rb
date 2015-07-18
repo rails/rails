@@ -280,6 +280,44 @@ class ParametersPermitTest < ActiveSupport::TestCase
     assert_equal({ "controller" => "users", "action" => "create" }, params.to_h)
   end
 
+  test "with_indifferent_access returns empty hash on unpermitted params" do
+    assert @params.with_indifferent_access.is_a? HashWithIndifferentAccess
+    assert_not @params.with_indifferent_access.is_a? ActionController::Parameters
+    assert @params.with_indifferent_access.empty?
+  end
+
+  test "with_indifferent_access returns converted hash on permitted params" do
+    @params.permit!
+
+    assert @params.with_indifferent_access.is_a? HashWithIndifferentAccess
+    assert_not @params.with_indifferent_access.is_a? ActionController::Parameters
+  end
+
+  test "with_indifferent_access returns converted hash when .permit_all_parameters is set" do
+    begin
+      ActionController::Parameters.permit_all_parameters = true
+      params = ActionController::Parameters.new(crab: "Senjougahara Hitagi")
+
+      assert params.with_indifferent_access.is_a? HashWithIndifferentAccess
+      assert_not @params.with_indifferent_access.is_a? ActionController::Parameters
+      assert_equal({ "crab" => "Senjougahara Hitagi" }, params.with_indifferent_access)
+    ensure
+      ActionController::Parameters.permit_all_parameters = false
+    end
+  end
+
+  test "with_indifferent_access returns always permitted parameter on unpermitted params" do
+    params = ActionController::Parameters.new(
+      controller: "users",
+      action: "create",
+      user: {
+        name: "Sengoku Nadeko"
+      }
+    )
+
+    assert_equal({ "controller" => "users", "action" => "create" }, params.with_indifferent_access)
+  end
+
   test "to_unsafe_h returns unfiltered params" do
     assert @params.to_h.is_a? Hash
     assert_not @params.to_h.is_a? ActionController::Parameters
