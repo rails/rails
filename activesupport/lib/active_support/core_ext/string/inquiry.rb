@@ -7,7 +7,15 @@ class String
   #   env = 'production'.inquiry
   #   env.production?  # => true
   #   env.development? # => false
-  def inquiry
-    ActiveSupport::StringInquirer.new(self)
+  #
+  # The option +restricted_to+ can be set to an array so the inquirer only
+  # responds to a specific set of questions.
+  #
+  #   status = 'active'.inquiry(restricted_to: ['pending', 'active', 'finished'])
+  #   status.pending?  # => false
+  #   status.active?   # => true
+  #   status.canceled? # => raises NoMethodsError
+  def inquiry(restricted_to: nil)
+    ActiveSupport::StringInquirer.new(self, restricted_to: restricted_to)
   end
 end

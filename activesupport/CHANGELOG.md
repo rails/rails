@@ -1,3 +1,11 @@
+*   ActiveSupport::StringInquirer now allows specifying valid values so that only these
+    get inquiry methods generated. Example:
+
+        'pending'.inquiry(restricted_to: ['pending', 'active']).pending? => returns true
+        'pending'.inquiry(restricted_to: ['pending', 'active']).expired? => raises NoMethodsError
+
+    *Rafael Sales*
+
 *   Prevent `Marshal.load` from looping infinitely when trying to autoload a constant
     which resolves to a different name.
 
