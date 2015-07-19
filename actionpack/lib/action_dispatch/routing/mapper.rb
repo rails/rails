@@ -259,9 +259,14 @@ module ActionDispatch
               }
             end
 
-            check_part(:action, action, path_params, hash) { |part|
+            check_part(:action, action, path_params, hash) do |part|
+              if part.blank?
+                message = ":action can't be blank, please check your routes."
+                raise ArgumentError, message
+              end
+
               part.is_a?(Regexp) ? part : part.to_s
-            }
+            end
           end
 
           def check_part(name, part, path_params, hash)
