@@ -41,29 +41,26 @@ module ActiveRecord
             key         = join_keys.key
             foreign_key = join_keys.foreign_key
 
-            constraint = build_constraint(klass, table, key, foreign_table, foreign_key)
+            constraint = table[key].eq(foreign_table[foreign_key])
 
+            #This has the constraints we need, but maybe an incorrect table alias
+            starting_rel = klass.all
+
+            #Create an empty rel with the correct alias
             predicate_builder = PredicateBuilder.new(TableMetadata.new(klass, table))
-            scope_chain_items = scope_chain[scope_chain_index].map do |item|
+            rel = ActiveRecord::Relation.create(klass, table, predicate_builder)
+            
+            #merge the starting rel's constraints to the empty
+            rel = rel.merge(starting_rel).unscope(:where).where(starting_rel.where_values_hash)
+
+            scope_chain[scope_chain_index].each do |item|
               if item.is_a?(Relation)
-                item
+                rel = rel.merge item
               else
-                ActiveRecord::Relation.create(klass, table, predicate_builder)
-                  .instance_exec(node, &item)
+                rel = rel.instance_exec(node, &item)
               end
             end
             scope_chain_index += 1
-
-            relation = ActiveRecord::Relation.create(
-              klass,
-              table,
-              predicate_builder,
-            )
-            scope_chain_items.concat [klass.send(:build_default_scope, relation)].compact
-
-            rel = scope_chain_items.inject(scope_chain_items.shift) do |left, right|
-              left.merge right
-            end
 
             if rel && !rel.arel.constraints.empty?
               binds += rel.bound_attributes
@@ -86,34 +83,6 @@ module ActiveRecord
           end
 
           JoinInformation.new joins, binds
-        end
-
-        #  Builds equality condition.
-        #
-        #  Example:
-        #
-        #  class Physician < ActiveRecord::Base
-        #    has_many :appointments
-        #  end
-        #
-        #  If I execute `Physician.joins(:appointments).to_a` then
-        #    klass         # => Physician
-        #    table         # => #<Arel::Table @name="appointments" ...>
-        #    key           # =>  physician_id
-        #    foreign_table # => #<Arel::Table @name="physicians" ...>
-        #    foreign_key   # => id
-        #
-        def build_constraint(klass, table, key, foreign_table, foreign_key)
-          constraint = table[key].eq(foreign_table[foreign_key])
-
-          if klass.finder_needs_type_condition?
-            constraint = table.create_and([
-              constraint,
-              klass.send(:type_condition, table)
-            ])
-          end
-
-          constraint
         end
 
         def table

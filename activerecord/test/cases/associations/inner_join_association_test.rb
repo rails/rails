@@ -41,6 +41,14 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
     assert_no_match(/WHERE/i, sql)
   end
 
+  def test_scoping_block_etends_to_joins
+    Author.where(:id=>1).scoping {
+      join = Post.joins(:author).order(:id)
+      assert_not join.empty?, "expected to have posts by author id=1"
+      assert_equal Post.where(author_id: 1).order(:id).to_a, join.to_a
+    }
+  end
+
   def test_join_association_conditions_support_string_and_arel_expressions
     assert_equal 0, Author.joins(:welcome_posts_with_one_comment).count
     assert_equal 1, Author.joins(:welcome_posts_with_comments).count
