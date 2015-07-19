@@ -222,7 +222,7 @@ module ActionView
     end
 
     def escape_entry(entry)
-      entry.gsub(/[*?{}\[\]]/, '\\\\\\&')
+      entry.gsub(/[*?{}\[\]]/, '\\\\\\&'.freeze)
     end
 
     # Returns the file mtime from the filesystem.
@@ -234,7 +234,7 @@ module ActionView
     # from the path, or the handler, we should return the array of formats given
     # to the resolver.
     def extract_handler_and_format_and_variant(path, default_formats)
-      pieces = File.basename(path).split('.')
+      pieces = File.basename(path).split('.'.freeze)
       pieces.shift
 
       extension = pieces.pop

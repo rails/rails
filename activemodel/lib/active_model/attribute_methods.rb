@@ -372,7 +372,7 @@ module ActiveModel
             "define_method(:'#{name}') do |*args|"
           end
 
-          extra = (extra.map!(&:inspect) << "*args").join(", ")
+          extra = (extra.map!(&:inspect) << "*args").join(", ".freeze)
 
           target = if send =~ CALL_COMPILABLE_REGEXP
             "#{"self." unless include_private}#{send}(#{extra})"

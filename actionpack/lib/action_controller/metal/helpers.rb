@@ -73,7 +73,7 @@ module ActionController
 
       # Provides a proxy to access helpers methods from outside the view.
       def helpers
-        @helper_proxy ||= begin 
+        @helper_proxy ||= begin
           proxy = ActionView::Base.new
           proxy.config = config.inheritable_copy
           proxy.extend(_helpers)
@@ -100,7 +100,7 @@ module ActionController
       def all_helpers_from_path(path)
         helpers = Array(path).flat_map do |_path|
           extract = /^#{Regexp.quote(_path.to_s)}\/?(.*)_helper.rb$/
-          names = Dir["#{_path}/**/*_helper.rb"].map { |file| file.sub(extract, '\1') }
+          names = Dir["#{_path}/**/*_helper.rb"].map { |file| file.sub(extract, '\1'.freeze) }
           names.sort!
         end
         helpers.uniq!

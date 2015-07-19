@@ -30,7 +30,7 @@ module ActionDispatch
         end
 
         def name
-          left.tr '*:', ''
+          left.tr '*:'.freeze, ''.freeze
         end
 
         def type

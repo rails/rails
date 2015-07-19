@@ -18,7 +18,7 @@ module ActiveRecord
           delegate = Class.new(klass) {
             include ClassSpecificRelation
           }
-          const_set klass.name.gsub('::', '_'), delegate
+          const_set klass.name.gsub('::'.freeze, '_'.freeze), delegate
           cache[klass] = delegate
         end
       end

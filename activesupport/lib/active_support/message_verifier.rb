@@ -46,7 +46,7 @@ module ActiveSupport
     def valid_message?(signed_message)
       return if signed_message.nil? || !signed_message.valid_encoding? || signed_message.blank?
 
-      data, digest = signed_message.split("--")
+      data, digest = signed_message.split("--".freeze)
       data.present? && digest.present? && ActiveSupport::SecurityUtils.secure_compare(digest, generate_digest(data))
     end
 
@@ -74,7 +74,7 @@ module ActiveSupport
     def verified(signed_message)
       if valid_message?(signed_message)
         begin
-          data = signed_message.split("--")[0]
+          data = signed_message.split("--".freeze)[0]
           @serializer.load(decode(data))
         rescue ArgumentError => argument_error
           return if argument_error.message =~ %r{invalid base64}
