@@ -47,11 +47,6 @@ module ActiveRecord
     # NOTE: You can't set the limit either, that's used to control
     # the batch sizes.
     def find_each(begin_at: nil, end_at: nil, batch_size: 1000, start: nil)
-      ActiveSupport::Deprecation.warn(<<-MSG.squish)
-        The #find_each method is deprecated.
-        Please use #in_batches instead with the +:load+ option set to true.
-      MSG
-
       if start
         begin_at = start
         ActiveSupport::Deprecation.warn(<<-MSG.squish)
@@ -111,11 +106,6 @@ module ActiveRecord
     # NOTE: You can't set the limit either, that's used to control
     # the batch sizes.
     def find_in_batches(begin_at: nil, end_at: nil, batch_size: 1000, start: nil)
-      ActiveSupport::Deprecation.warn(<<-MSG.squish)
-        The #find_in_batches method is deprecated.
-        Please use #in_batches instead with the +:load+ option set to true.
-      MSG
-
       if start
         begin_at = start
         ActiveSupport::Deprecation.warn(<<-MSG.squish)
@@ -204,67 +194,18 @@ module ActiveRecord
 
       loop do
         relation_yielded = relation.offset(offset)
-        relation_yielded.load if load
-        break if relation_yielded.none?
-        yield relation_yielded
-        offset += of
-      end
-    end
 
-    # Looping through a collection of records from the database
-    # (using the +all+ method, for example) is very inefficient
-    # since it will try to instantiate all the objects at once.
-    #
-    # In that case, batch processing methods allow you to work
-    # with the records in batches, thereby greatly reducing memory consumption.
-    #
-    # The #with_batches method uses #in_batches with a batch size of 1000 (or as
-    # specified by the +:of+ option).
-    #
-    #   Person.with_batches.each(&:do_awesome_stuff)
-    #
-    #   Person.where("age > 21").with_batches(of: 100) do |people|
-    #     people.each(&:party_all_night!)
-    #   end
-    #
-    # If you do not provide a block to #with_batches, it will return an Enumerator
-    # for chaining with other methods:
-    #
-    #   Person.with_batches.with_index do |person, index|
-    #     person.award_trophy(index + 1)
-    #   end
-    #
-    # ==== Options
-    # * <tt>:of</tt> - Specifies the size of the batch. Default to 1000.
-    # * <tt>:begin_at</tt> - Specifies the primary key value to start from, inclusive of the value.
-    # * <tt>:end_at</tt> - Specifies the primary key value to end at, inclusive of the value.
-    # This is especially useful if you want multiple workers dealing with
-    # the same processing queue. You can make worker 1 handle all the records
-    # between id 0 and 10,000 and worker 2 handle from 10,000 and beyond
-    # (by setting the +:begin_at+ and +:end_at+ option on each worker).
-    #
-    #   # Let's process for a batch of 2000 records, skipping the first 2000 rows
-    #   Person.with_batches(of: 2000, begin_at: 2000) do |person|
-    #     person.party_all_night!
-    #   end
-    #
-    # NOTE: It's not possible to set the order. That is automatically set to
-    # ascending on the primary key ("id ASC") to make the batch ordering
-    # work. This also means that this method only works when the primary key is
-    # orderable (e.g. an integer or string).
-    #
-    # NOTE: You can't set the limit either, that's used to control
-    # the batch sizes.
-    def with_batches(of: 1000, begin_at: nil, end_at: nil)
-      if block_given?
-        in_batches(of: of, begin_at: begin_at, end_at: end_at, load: true) do |records|
-          records.each { |record| yield record }
+        if load
+          relation_yielded.load
+          count = relation_yielded.to_a.count
+        else
+          count = relation_yielded.count
         end
-      else
-        enum_for(:with_batches, of: of, begin_at: begin_at, end_at: end_at) do
-          relation = self
-          apply_limits(relation, begin_at, end_at).size
-        end
+
+        break if count == 0
+        yield relation_yielded
+        break if count < of
+        offset += of
       end
     end
 
