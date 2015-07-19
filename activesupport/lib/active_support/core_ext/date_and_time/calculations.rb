@@ -96,7 +96,7 @@ module DateAndTime
     #   today = Date.today # => Thu, 18 Jun 2015
     #   today.beginning_of_month # => Mon, 01 Jun 2015
     #
-    # +DateTime+ objects will have a time set to 0:00.
+    # DateTime objects will have a time set to 0:00.
     #
     #   now = DateTime.current # => Thu, 18 Jun 2015 15:23:13 +0000
     #   now.beginning_of_month # => Mon, 01 Jun 2015 00:00:00 +0000
@@ -110,7 +110,7 @@ module DateAndTime
     #   today = Date.today # => Fri, 10 Jul 2015
     #   today.beginning_of_quarter # => Wed, 01 Jul 2015
     #
-    # +DateTime+ objects will have a time set to 0:00.
+    # DateTime objects will have a time set to 0:00.
     #
     #   now = DateTime.current # => Fri, 10 Jul 2015 18:41:29 +0000
     #   now.beginning_of_quarter # => Wed, 01 Jul 2015 00:00:00 +0000
@@ -125,7 +125,7 @@ module DateAndTime
     #   today = Date.today # => Fri, 10 Jul 2015
     #   today.end_of_quarter # => Wed, 30 Sep 2015
     #
-    # +DateTime+ objects will have a time set to 23:59:59.
+    # DateTime objects will have a time set to 23:59:59.
     #
     #   now = DateTime.current # => Fri, 10 Jul 2015 18:41:29 +0000
     #   now.end_of_quarter # => Wed, 30 Sep 2015 23:59:59 +0000
@@ -140,7 +140,7 @@ module DateAndTime
     #   today = Date.today # => Fri, 10 Jul 2015
     #   today.beginning_of_year # => Thu, 01 Jan 2015
     #
-    # +DateTime+ objects will have a time set to 0:00.
+    # DateTime objects will have a time set to 0:00.
     #
     #   now = DateTime.current # => Fri, 10 Jul 2015 18:41:29 +0000
     #   now.beginning_of_year # => Thu, 01 Jan 2015 00:00:00 +0000
@@ -161,7 +161,7 @@ module DateAndTime
     #   today = Date.today       # => Thu, 07 May 2015
     #   today.next_week(:friday) # => Fri, 15 May 2015
     #
-    # +DateTime+ objects have their time set to 0:00 unless +same_time+ is true.
+    # DateTime objects have their time set to 0:00 unless +same_time+ is true.
     #
     #   now = DateTime.current # => Thu, 07 May 2015 13:31:16 +0000
     #   now.next_week      # => Mon, 11 May 2015 00:00:00 +0000
@@ -244,7 +244,7 @@ module DateAndTime
     # Returns a new date/time representing the start of this week on the given day.
     # Week is assumed to start on +start_day+, default is
     # +Date.beginning_of_week+ or +config.beginning_of_week+ when set.
-    # +DateTime+ objects have their time set to 0:00.
+    # DateTime objects have their time set to 0:00.
     def beginning_of_week(start_day = Date.beginning_of_week)
       result = days_ago(days_to_week_start(start_day))
       acts_like?(:time) ? result.midnight : result
@@ -252,7 +252,7 @@ module DateAndTime
     alias :at_beginning_of_week :beginning_of_week
 
     # Returns Monday of this week assuming that week starts on Monday.
-    # +DateTime+ objects have their time set to 0:00.
+    # DateTime objects have their time set to 0:00.
     def monday
       beginning_of_week(:monday)
     end
@@ -267,7 +267,7 @@ module DateAndTime
     alias :at_end_of_week :end_of_week
 
     # Returns Sunday of this week assuming that week starts on Monday.
-    # +DateTime+ objects have their time set to 23:59:59.
+    # DateTime objects have their time set to 23:59:59.
     def sunday
       end_of_week(:monday)
     end
