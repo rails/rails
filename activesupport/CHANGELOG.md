@@ -1,3 +1,11 @@
+*   Fix `TimeWithZone#eql?` to properly handle `TimeWithZone` created from `DateTime`:
+        twz = DateTime.now.in_time_zone
+        twz.eql?(twz.dup) => true
+
+    Fixes #14178.
+
+    *Roque Pinel*
+
 *   Handle invalid UTF-8 characters in `MessageVerifier.verify`.
 
     *Roque Pinel*, *Grey Baker*
