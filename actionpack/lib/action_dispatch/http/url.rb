@@ -245,7 +245,7 @@ module ActionDispatch
       #   req = Request.new 'HTTP_HOST' => 'example.com:8080'
       #   req.host # => "example.com"
       def host
-        raw_host_with_port.sub(/:\d+$/, '')
+        raw_host_with_port.sub(/:\d+$/, ''.freeze)
       end
 
       # Returns a \host:\port string for this request, such as "example.com" or

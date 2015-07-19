@@ -58,7 +58,7 @@ module ActiveSupport
       # Returns a regular expression pattern that matches the passed Unicode
       # codepoints.
       def self.codepoints_to_pattern(array_of_codepoints) #:nodoc:
-        array_of_codepoints.collect{ |e| [e].pack 'U*' }.join('|')
+        array_of_codepoints.collect{ |e| [e].pack 'U*'.freeze }.join('|'.freeze)
       end
       TRAILERS_PAT = /(#{codepoints_to_pattern(LEADERS_AND_TRAILERS)})+\Z/u
       LEADERS_PAT = /\A(#{codepoints_to_pattern(LEADERS_AND_TRAILERS)})+/u

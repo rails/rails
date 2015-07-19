@@ -82,7 +82,7 @@ module ActiveSupport
 
     def _decrypt(encrypted_message)
       cipher = new_cipher
-      encrypted_data, iv = encrypted_message.split("--").map {|v| ::Base64.strict_decode64(v)}
+      encrypted_data, iv = encrypted_message.split("--".freeze).map {|v| ::Base64.strict_decode64(v)}
 
       cipher.decrypt
       cipher.key = @secret
