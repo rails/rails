@@ -1,3 +1,8 @@
+*   Fix `ActionController::Parameters#fetch` overwriting `KeyError` returned by
+    default block.
+
+    *Jonas Schuber Erlandsson*, *Roque Pinel*
+
 *   `ActionController::Parameters` no longer inherits from
     `HashWithIndifferentAccess`
 
