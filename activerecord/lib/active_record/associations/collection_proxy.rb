@@ -781,7 +781,7 @@ module ActiveRecord
       #   person.pets.any?  # => false
       #
       #   person.pets << Pet.new(name: 'Snoop')
-      #   person.pets.count # => 0
+      #   person.pets.count # => 1
       #   person.pets.any?  # => true
       #
       # You can also pass a +block+ to define criteria. The behavior
