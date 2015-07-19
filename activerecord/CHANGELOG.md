@@ -1,3 +1,9 @@
+*   Ensure that scoping blocks are honored for joined associations
+ 
+    Fixes #13775.
+
+    *Colin Sidoti*
+
 *   Ensure that cyclic associations with autosave don't cause duplicate errors
     to be added to the parent record.
 
