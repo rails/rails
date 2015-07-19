@@ -43,6 +43,7 @@ module ActiveSupport
     autoload :Benchmarkable
     autoload :Cache
     autoload :Callbacks
+    autoload :Claims
     autoload :Configurable
     autoload :Deprecation
     autoload :Gzip
