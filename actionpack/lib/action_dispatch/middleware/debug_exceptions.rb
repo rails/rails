@@ -38,10 +38,10 @@ module ActionDispatch
       end
     end
 
-    def initialize(app, routes_app = nil, api_only = false)
-      @app        = app
-      @routes_app = routes_app
-      @api_only   = api_only
+    def initialize(app, routes_app = nil, response_format = :default)
+      @app             = app
+      @routes_app      = routes_app
+      @response_format = response_format
     end
 
     def call(env)
@@ -67,9 +67,10 @@ module ActionDispatch
       log_error(request, wrapper)
 
       if request.get_header('action_dispatch.show_detailed_exceptions')
-        if @api_only
+        case @response_format
+        when :api
           render_for_api_application(request, wrapper)
-        else
+        when :default
           render_for_default_application(request, wrapper)
         end
       else

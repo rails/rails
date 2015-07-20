@@ -213,7 +213,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
   end
 
   test "rescue with json error for API request" do
-    @app = ActionDispatch::DebugExceptions.new(Boomer.new(true), RoutesApp, true)
+    @app = ActionDispatch::DebugExceptions.new(Boomer.new(true), RoutesApp, :api)
 
     get "/", headers: { 'action_dispatch.show_exceptions' => true }
     assert_response 500
@@ -254,7 +254,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
   end
 
   test "rescue with json on API request returns only allowed formats or json as a fallback" do
-    @app = ActionDispatch::DebugExceptions.new(Boomer.new(true), RoutesApp, true)
+    @app = ActionDispatch::DebugExceptions.new(Boomer.new(true), RoutesApp, :api)
 
     get "/index.json", headers: { 'action_dispatch.show_exceptions' => true }
     assert_response 500
