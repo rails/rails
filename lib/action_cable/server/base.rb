@@ -21,7 +21,7 @@ module ActionCable
         config.connection_class.new(self, env).process
       end
 
-      # Disconnect all the remote connections established for subject, finded by identifiers
+      # Disconnect all the connections identified by `identifiers` on this server or any others via RemoteConnections.
       def disconnect(identifiers)
         remote_connections.where(identifiers).disconnect
       end
