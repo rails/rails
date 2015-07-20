@@ -1,3 +1,9 @@
+*   Don't cache arguments in #find_by if they are an ActiveRecord::Relation
+
+    Fixes #20817
+
+    *Hiroaki Izu*
+
 *   Allow fixtures files to set the model class in the YAML file itself.
 
     To load the fixtures file `accounts.yml` as the `User` model, use:
