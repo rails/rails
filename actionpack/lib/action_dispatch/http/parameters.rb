@@ -77,7 +77,7 @@ module ActionDispatch
 
       def format_from_path_extension
         path = @env['action_dispatch.original_path'] || @env['PATH_INFO']
-        if match = path && path.match(/\.(\w+)$/)
+        if match = path && path.match(/\.(\w+)\z/)
           match.captures.first
         end
       end
