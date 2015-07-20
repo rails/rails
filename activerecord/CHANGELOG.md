@@ -1,3 +1,10 @@
+*   Correctly ignore `mark_for_destruction` when `autosave` isn't set to `true`
+    when validating associations.
+
+    Fixes #20882.
+
+    *Sean Griffin*
+
 *   Fix through associations using scopes having the scope merged multiple
     times.
 

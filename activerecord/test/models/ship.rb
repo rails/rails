@@ -19,6 +19,13 @@ class Ship < ActiveRecord::Base
   end
 end
 
+class ShipWithoutNestedAttributes < ActiveRecord::Base
+  self.table_name = "ships"
+  has_many :parts, class_name: "ShipPart", foreign_key: :ship_id
+
+  validates :name, presence: true
+end
+
 class FamousShip < ActiveRecord::Base
   self.table_name = 'ships'
   belongs_to :famous_pirate

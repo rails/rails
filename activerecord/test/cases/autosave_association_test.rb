@@ -1142,6 +1142,13 @@ class TestAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCase
   def test_should_not_load_the_associated_model
     assert_queries(1) { @pirate.catchphrase = 'Arr'; @pirate.save! }
   end
+
+  def test_mark_for_destruction_is_ignored_without_autosave_true
+    ship = ShipWithoutNestedAttributes.new(name: "The Black Flag")
+    ship.parts.build.mark_for_destruction
+
+    assert_not ship.valid?
+  end
 end
 
 class TestAutosaveAssociationOnAHasOneThroughAssociation < ActiveRecord::TestCase
