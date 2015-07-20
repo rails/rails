@@ -16,7 +16,7 @@ module ActiveRecord
 
       def fetch(lookup_key, *args, &block)
         @cache[lookup_key].fetch_or_store(args) do
-          perform_fetch(lookup_key, *args, &block)
+          perform_fetch(lookup_key, args, &block)
         end
       end
 
@@ -44,7 +44,7 @@ module ActiveRecord
 
       private
 
-      def perform_fetch(lookup_key, *args)
+      def perform_fetch(lookup_key, args)
         matching_pair = @mapping.reverse_each.detect do |key, _|
           key === lookup_key
         end
