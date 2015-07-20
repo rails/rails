@@ -45,4 +45,19 @@ class Hash
   def extract!(*keys)
     keys.each_with_object(self.class.new) { |key, result| result[key] = delete(key) if has_key?(key) }
   end
+
+  # Slices the hash to include only the given keys and raises a KeyError if any of the keys is missing.
+  #
+  #   { a: 1, b: 2, c: 3, d: 4 }.fetch_all(:a, :b) # => {:a=>1, :b=>2}
+  #   { a: 1, b: 2 }.fetch_all(:a, :x)             # => KeyError
+
+  def fetch_all(*keys)
+    keys.each do |key|
+      unless self.has_key?(key)
+        raise KeyError.new("#{key} key not found")
+      end
+    end
+
+    self.slice(*keys)
+  end
 end
