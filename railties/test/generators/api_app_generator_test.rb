@@ -48,6 +48,10 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
       assert_match(/config.api_only = true/, content)
     end
 
+    assert_file "config/environments/development.rb" do |content|
+      assert_match(/config.debug_exception_response_format = :api/, content)
+    end
+
     assert_file "config/initializers/cors.rb"
 
     assert_file "config/initializers/wrap_parameters.rb"
