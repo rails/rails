@@ -199,7 +199,7 @@ class ParametersPermitTest < ActiveSupport::TestCase
     assert_equal nil, @params.fetch(:foo) { nil }
   end
 
-  test 'KeyError in fetch block should not be coverd up' do
+  test 'KeyError in fetch block should not be covered up' do
     params = ActionController::Parameters.new
     e = assert_raises(KeyError) do
       params.fetch(:missing_key) { {}.fetch(:also_missing) }

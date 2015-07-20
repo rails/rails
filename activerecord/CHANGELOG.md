@@ -1,3 +1,17 @@
+*   Fix state being carried over from previous transaction.
+
+    Considering the following example where `name` is a required attribute.
+    Before we had `new_record?` returning `true` for a persisted record:
+
+        author = Author.create! name: 'foo'
+        author.name = nil
+        author.save        # => false
+        author.new_record? # => true
+
+    Fixes #20824.
+
+    *Roque Pinel*
+
 *   Correctly ignore `mark_for_destruction` when `autosave` isn't set to `true`
     when validating associations.
 
