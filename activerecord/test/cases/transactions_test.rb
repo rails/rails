@@ -696,6 +696,19 @@ class TransactionTest < ActiveRecord::TestCase
     connection.drop_table 'transaction_without_primary_keys', if_exists: true
   end
 
+  def test_calling_with_transaction_returning_status_with_block_which_raises_exception
+    author = Author.create!(name: 'Mehmet Emin İNAÇ')
+
+    author.expects(:clear_transaction_record_state).once
+
+    assert_no_difference(-> { Author.count }) do
+      author.with_transaction_returning_status do
+        Author.create!(name: 'Barış Can Daylık')
+        raise ActiveRecord::Rollback
+      end
+    end
+  end
+
   private
 
   %w(validation save destroy).each do |filter|
