@@ -18,7 +18,7 @@ Gem::Specification.new do |s|
   s.add_dependency 'celluloid',        '~> 0.16.0'
   s.add_dependency 'em-hiredis',       '~> 0.3.0'
   s.add_dependency 'redis',            '~> 3.0'
-  s.add_dependency 'coffee-rails',     '~> 4.1.0'
+  s.add_dependency 'coffee-rails'
 
   s.add_development_dependency 'rake'
   s.add_development_dependency 'puma'
