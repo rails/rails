@@ -52,7 +52,7 @@ module ActiveSupport
               return false if no_wait
 
               loose_shares = @sharing.delete(Thread.current)
-              @waiting[Thread.current] = compatible
+              @waiting[Thread.current] = compatible if loose_shares
 
               @cv.wait_while { busy?(purpose) }
 

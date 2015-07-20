@@ -147,7 +147,9 @@ class ShareLockTest < ActiveSupport::TestCase
 
           assert_threads_not_stuck threads
           scratch_pad_mutex.synchronize do
-            assert_equal [:load, :load, :unload, :unload], scratch_pad
+            if use_upgrading
+              assert_equal [:load, :load, :unload, :unload], scratch_pad
+            end
             scratch_pad.clear
           end
         end
