@@ -21,6 +21,11 @@ module ActionCable
         config.connection_class.new(self, env).process
       end
 
+      # Disconnect all the remote connections established for subject, finded by identifiers
+      def disconnect(identifiers)
+        remote_connections.where(identifiers).disconnect
+      end
+
       # Gateway to RemoteConnections. See that class for details.
       def remote_connections
         @remote_connections ||= RemoteConnections.new(self)
