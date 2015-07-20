@@ -379,6 +379,10 @@ module ActiveRecord
         raise ActiveRecord::Rollback unless status
       end
       status
+    ensure
+      if @transaction_state && @transaction_state.committed?
+        clear_transaction_record_state
+      end
     end
 
     protected

@@ -175,6 +175,13 @@ class TransactionTest < ActiveRecord::TestCase
     assert topic.new_record?, "#{topic.inspect} should be new record"
   end
 
+  def test_transaction_state_is_cleared_when_record_is_persisted
+    author = Author.create! name: 'foo'
+    author.name = nil
+    assert_not author.save
+    assert_not author.new_record?
+  end
+
   def test_update_should_rollback_on_failure
     author = Author.find(1)
     posts_count = author.posts.size
