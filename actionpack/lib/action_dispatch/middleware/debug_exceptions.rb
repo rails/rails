@@ -70,14 +70,14 @@ module ActionDispatch
         if @api_only
           render_for_api_application(request, wrapper)
         else
-          render_for_non_api_application(request, wrapper)
+          render_for_default_application(request, wrapper)
         end
       else
         raise exception
       end
     end
 
-    def render_for_non_api_application(request, wrapper)
+    def render_for_default_application(request, wrapper)
       template = create_template(request, wrapper)
       file = "rescues/#{wrapper.rescue_template}"
 
