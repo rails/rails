@@ -369,12 +369,7 @@ module ActiveRecord
       status = nil
       self.class.transaction do
         add_to_transaction
-        begin
-          status = yield
-        rescue ActiveRecord::Rollback
-          clear_transaction_record_state
-          status = nil
-        end
+        status = yield
 
         raise ActiveRecord::Rollback unless status
       end
@@ -474,12 +469,8 @@ module ActiveRecord
     # method recursively goes through the parent of the TransactionState and
     # checks if the ActiveRecord object reflects the state of the object.
     def sync_with_transaction_state
-      update_attributes_from_transaction_state(@transaction_state)
-    end
-
-    def update_attributes_from_transaction_state(transaction_state)
-      if transaction_state && transaction_state.finalized?
-        restore_transaction_record_state if transaction_state.rolledback?
+      if @transaction_state && @transaction_state.finalized?
+        restore_transaction_record_state if @transaction_state.rolledback?
         clear_transaction_record_state
       end
     end
