@@ -22,6 +22,7 @@ end
 class ShipWithoutNestedAttributes < ActiveRecord::Base
   self.table_name = "ships"
   has_many :prisoners, inverse_of: :ship, foreign_key: :ship_id
+  has_many :parts, class_name: "ShipPart", foreign_key: :ship_id
 
   validates :name, presence: true
 end
