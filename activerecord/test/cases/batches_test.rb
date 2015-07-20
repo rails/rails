@@ -52,14 +52,6 @@ class EachTest < ActiveRecord::TestCase
     end
   end
 
-  def test_each_should_raise_if_select_is_set_without_id
-    assert_raise(RuntimeError) do
-      Post.select(:title).find_each(batch_size: 1) { |post|
-        flunk "should not call this block"
-      }
-    end
-  end
-
   def test_each_should_execute_if_id_is_in_select
     assert_queries(6) do
       Post.select("id, title, type").find_each(:batch_size => 2) do |post|
@@ -206,6 +198,150 @@ class EachTest < ActiveRecord::TestCase
       enum.first(4) do |batch|
         assert_kind_of Array, batch
         assert_kind_of Post, batch.first
+      end
+    end
+  end
+
+  def test_in_batches_should_not_be_loaded
+    Post.in_batches(of: 1) do |relation|
+      assert_not relation.loaded?
+    end
+
+    Post.in_batches(of: 1, load: false) do |relation|
+      assert_not relation.loaded?
+    end
+  end
+
+  def test_in_batches_should_be_loaded
+    Post.in_batches(of: 1, load: true) do |relation|
+      assert relation.loaded?
+    end
+  end
+
+  def test_in_batches_if_not_loaded_executes_more_queries
+    assert_queries(@total * 2 + 1) do
+      Post.in_batches(of: 1, load: false) do |relation|
+        assert_kind_of ActiveRecord::Relation, relation
+        assert_kind_of Post, relation.first
+      end
+    end
+  end
+
+  def test_in_batches_should_return_relationes
+    assert_queries(@total + 1) do
+      Post.in_batches(of: 1) do |relation|
+        assert_kind_of ActiveRecord::Relation, relation
+      end
+    end
+  end
+
+  def test_in_batches_should_start_from_the_start_option
+    assert_queries(@total) do
+      Post.in_batches(of: 1, begin_at: 2) do |relation|
+        assert_kind_of ActiveRecord::Relation, relation
+      end
+    end
+  end
+
+  def test_in_batches_should_end_at_the_end_option
+    assert_queries(5 + 1) do
+      Post.in_batches(of: 1, end_at: 5) do |relation|
+        assert_kind_of ActiveRecord::Relation, relation
+      end
+    end
+  end
+
+  def test_in_batches_shouldnt_execute_query_unless_needed
+    assert_queries(1 + 1) do
+      Post.in_batches(of: @total) {|relation| assert_kind_of ActiveRecord::Relation, relation }
+    end
+
+    assert_queries(1) do
+      Post.in_batches(of: @total + 1) {|relation| assert_kind_of ActiveRecord::Relation, relation }
+    end
+  end
+
+  def test_in_batches_should_quote_batch_order
+    c = Post.connection
+    assert_sql(/ORDER BY #{c.quote_table_name('posts')}.#{c.quote_column_name('id')}/) do
+      Post.in_batches(of: 1) do |relation|
+        assert_kind_of ActiveRecord::Relation, relation
+        assert_kind_of Post, relation.first
+      end
+    end
+  end
+
+  def test_in_batches_should_not_use_records_after_yielding_them_in_case_original_array_is_modified
+    not_a_post = "not a post"
+    not_a_post.stubs(:id).raises(StandardError, "not_a_post had #id called on it")
+
+    assert_nothing_raised do
+      Post.in_batches(of: 1) do |relation|
+        assert_kind_of ActiveRecord::Relation, relation
+        assert_kind_of Post, relation.first
+
+        relation = [not_a_post] * relation.count
+      end
+    end
+  end
+
+  def test_in_batches_should_ignore_the_order_default_scope
+    # First post is with title scope
+    first_post = PostWithDefaultScope.first
+    posts = []
+    PostWithDefaultScope.in_batches do |relation|
+      posts.concat(relation)
+    end
+    # posts.first will be ordered using id only. Title order scope should not apply here
+    assert_not_equal first_post, posts.first
+    assert_equal posts(:welcome), posts.first
+  end
+
+  def test_in_batches_should_not_ignore_the_default_scope_if_it_is_other_then_order
+    special_posts_ids = SpecialPostWithDefaultScope.all.map(&:id).sort
+    posts = []
+    SpecialPostWithDefaultScope.in_batches do |relation|
+      posts.concat(relation)
+    end
+    assert_equal special_posts_ids, posts.map(&:id)
+  end
+
+  def test_in_batches_should_not_modify_passed_options
+    assert_nothing_raised do
+      Post.in_batches({ of: 42, begin_at: 1 }.freeze){}
+    end
+  end
+
+  def test_in_batches_should_use_any_column_as_primary_key
+    nick_order_subscribers = Subscriber.order('nick asc')
+    start_nick = nick_order_subscribers.second.nick
+
+    subscribers = []
+    Subscriber.in_batches(of: 1, begin_at: start_nick) do |relation|
+      subscribers.concat(relation)
+    end
+
+    assert_equal nick_order_subscribers[1..-1].map(&:id), subscribers.map(&:id)
+  end
+
+  def test_in_batches_should_use_any_column_as_primary_key_when_start_is_not_specified
+    assert_queries(Subscriber.count + 1) do
+      Subscriber.in_batches(of: 1, load: true) do |relation|
+        assert_kind_of ActiveRecord::Relation, relation
+        assert_kind_of Subscriber, relation.first
+      end
+    end
+  end
+
+  def test_in_batches_should_return_an_enumerator
+    enum = nil
+    assert_queries(0) do
+      enum = Post.in_batches(of: 1)
+    end
+    assert_queries(4) do
+      enum.first(4) do |relation|
+        assert_kind_of ActiveRecord::Relation, relation
+        assert_kind_of Post, relation.first
       end
     end
   end

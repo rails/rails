@@ -122,24 +122,90 @@ module ActiveRecord
         end
       end
 
+      in_batches(of: batch_size, begin_at: begin_at, end_at: end_at, load: true) do |batch|
+        yield batch.to_a
+      end
+    end
+
+    # Yields ActiveRecord::Relation objects to work with a batch of records.
+    #
+    #   Person.where("age > 21").in_batches do |relation|
+    #     sleep(50)
+    #     relation.update_all(cool: true)
+    #   end
+    #
+    # If you do not provide a block to #in_batches, it will return an Enumerator
+    # which yields ActiveRecord::Relation objects for chaining with other methods:
+    #
+    #   Person.in_batches.with_index do |relation, batch|
+    #     puts "Processing relation ##{batch}"
+    #     relation.each{|relation| relation.delete_all }
+    #   end
+    #
+    # ==== Options
+    # * <tt>:of</tt> - Specifies the size of the batch. Default to 1000.
+    # * <tt>:load</tt> - Specifies if the relation should be loaded. Default to false.
+    # * <tt>:begin_at</tt> - Specifies the primary key value to start from, inclusive of the value.
+    # * <tt>:end_at</tt> - Specifies the primary key value to end at, inclusive of the value.
+    #
+    # This is especially useful if you want to work with the
+    # ActiveRecord::Relation object instead of the individual records.
+    #
+    # This is especially useful if you want multiple workers dealing with
+    # the same processing queue. You can make worker 1 handle all the records
+    # between id 0 and 10,000 and worker 2 handle from 10,000 and beyond
+    # (by setting the +:begin_at+ and +:end_at+ option on each worker).
+    #
+    #   # Let's process the next 2000 records
+    #   Person.in_batches(of: 2000, begin_at: 2000) do |relation|
+    #     relation.update_all(cool: true)
+    #   end
+    #
+    # NOTE: If you are going to iterate through each record, you should set
+    # +:load+ to true in order to reduce the number of queries. For example:
+    #
+    #   Person.in_batches(load: true).each do |batch|
+    #     batch.each(&:touch)
+    #   end
+    #
+    # NOTE: It's not possible to set the order. That is automatically set to
+    # ascending on the primary key ("id ASC") to make the batch ordering
+    # work. This also means that this method only works when the primary key is
+    # orderable (e.g. an integer or string).
+    #
+    # NOTE: You can't set the limit either, that's used to control
+    # the batch sizes.
+    def in_batches(of: 1000, begin_at: nil, end_at: nil, load: false)
+      relation = self
+      unless block_given?
+        return to_enum(:in_batches, of: of, begin_at: begin_at, end_at: end_at, load: load) do
+          total = apply_limits(relation, begin_at, end_at).size
+          (total - 1).div(of) + 1
+        end
+      end
+
       if logger && (arel.orders.present? || arel.taken.present?)
         logger.warn("Scoped order and limit are ignored, it's forced to be batch order and batch size")
       end
 
-      relation = relation.reorder(batch_order).limit(batch_size)
+      relation = relation.reorder(batch_order).limit(of)
       relation = apply_limits(relation, begin_at, end_at)
-      records = relation.to_a
+      offset = 0
 
-      while records.any?
-        records_size = records.size
-        primary_key_offset = records.last.id
-        raise "Primary key not included in the custom select clause" unless primary_key_offset
+      loop do
+        relation_yielded = relation.offset(offset)
 
-        yield records
+        if load
+          relation_yielded.load
+          count = relation_yielded.to_a.count
+        else
+          count = relation_yielded.count
+        end
 
-        break if records_size < batch_size
-
-        records = relation.where(table[primary_key].gt(primary_key_offset)).to_a
+        break if count == 0
+        yield relation_yielded
+        break if count < of
+        offset += of
       end
     end
 
