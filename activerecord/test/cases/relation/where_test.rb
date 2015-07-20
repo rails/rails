@@ -276,5 +276,14 @@ module ActiveRecord
 
       assert_equal essays(:david_modest_proposal), essay
     end
+
+    def test_where_on_association_with_select_relation
+      post = posts(:welcome)
+
+      query_with_foreign_key = Post.where(author_id: Comment.select(:post_id))
+      query_with_relation = Post.where(author: Comment.select(:post_id))
+
+      assert_equal query_with_relation, query_with_foreign_key
+    end
   end
 end
