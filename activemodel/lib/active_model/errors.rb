@@ -406,7 +406,7 @@ module ActiveModel
     #
     #   person.errors.full_message(:name, 'is invalid') # => "Name is invalid"
     def full_message(attribute, message)
-      return message if attribute == :base
+      return message if attribute == :base || attribute.to_s.end_with?('.base')
       attr_name = attribute.to_s.tr('.', '_').humanize
       attr_name = @base.class.human_attribute_name(attribute, default: attr_name)
       I18n.t(:"errors.format", {

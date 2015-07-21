@@ -264,6 +264,11 @@ class ErrorsTest < ActiveModel::TestCase
     assert_equal [], person.errors.full_messages_for(:email)
   end
 
+  test "full_message returns the given message when attribute has .base suffix" do
+    person = Person.new
+    assert_equal "press the button", person.errors.full_message(:"address.base", "press the button")
+  end
+
   test "full_message returns the given message when attribute is :base" do
     person = Person.new
     assert_equal "press the button", person.errors.full_message(:base, "press the button")
