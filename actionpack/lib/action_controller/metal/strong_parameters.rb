@@ -378,16 +378,14 @@ module ActionController
     #   params.fetch(:none, 'Francesco')    # => "Francesco"
     #   params.fetch(:none) { 'Francesco' } # => "Francesco"
     def fetch(key, *args, &block)
-      convert_hashes_to_parameters(
-        key,
+      convert_value_to_parameters(
         @parameters.fetch(key) {
           if block_given?
             yield
           else
             args.fetch(0) { raise ActionController::ParameterMissing.new(key) }
           end
-        },
-        false
+        }
       )
     end
 
@@ -475,7 +473,7 @@ module ActionController
     # optional code block is given and the key is not found, pass in the key
     # and return the result of block.
     def delete(key, &block)
-      convert_hashes_to_parameters(key, @parameters.delete(key), false)
+      convert_value_to_parameters(@parameters.delete(key))
     end
 
     # Returns a new instance of <tt>ActionController::Parameters</tt> with only
@@ -555,9 +553,9 @@ module ActionController
         end
       end
 
-      def convert_hashes_to_parameters(key, value, assign_if_converted=true)
+      def convert_hashes_to_parameters(key, value)
         converted = convert_value_to_parameters(value)
-        @parameters[key] = converted if assign_if_converted && !converted.equal?(value)
+        @parameters[key] = converted unless converted.equal?(value)
         converted
       end
 
