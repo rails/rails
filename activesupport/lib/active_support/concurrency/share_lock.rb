@@ -54,10 +54,12 @@ module ActiveSupport
               loose_shares = @sharing.delete(Thread.current)
               @waiting[Thread.current] = compatible if loose_shares
 
-              @cv.wait_while { busy?(purpose) }
-
-              @waiting.delete Thread.current
-              @sharing[Thread.current] = loose_shares if loose_shares
+              begin
+                @cv.wait_while { busy?(purpose) }
+              ensure
+                @waiting.delete Thread.current
+                @sharing[Thread.current] = loose_shares if loose_shares
+              end
             end
             @exclusive_thread = Thread.current
           end

@@ -81,6 +81,27 @@ class ShareLockTest < ActiveSupport::TestCase
     end
   end
 
+  def test_killed_thread_loses_lock
+    with_thread_waiting_in_lock_section(:sharing) do |sharing_thread_release_latch|
+      thread = Thread.new do
+        @lock.sharing do
+          @lock.exclusive {}
+        end
+      end
+
+      assert_threads_stuck thread
+      thread.kill
+
+      sharing_thread_release_latch.count_down
+
+      thread = Thread.new do
+        @lock.exclusive {}
+      end
+
+      assert_threads_not_stuck thread
+    end
+  end
+
   def test_exclusive_conflicting_purpose
     [true, false].each do |use_upgrading|
       with_thread_waiting_in_lock_section(:sharing) do |sharing_thread_release_latch|
