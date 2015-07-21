@@ -1,3 +1,29 @@
+* Add backtrace to exception information in
+  `ActiveSupport::Notifications::Instrumenter` when an exception is raised
+  within the `#instrument` block.
+
+        ActiveSupport::Notifications.instrument "my.custom.event" do
+            raise "FAIL"
+        end
+
+        Before:
+
+        ActiveSupport::Notifications
+          .subscribe "my.custom.event" do |name, started, finished, unique_id, payload|
+            puts payload[:exception].inspect # ["RuntimeError", "FAIL"]
+        end
+
+        After:
+
+        ActiveSupport::Notifications
+          .subscribe "my.custom.event" do |name, started, finished, unique_id, payload|
+            puts payload[:exception].inspect
+            # ["RuntimeError", "FAIL", ['path/to/line/with/error.rb',
+            #   'path/to/line/from/rails.rb', ...]]
+        end
+
+    *Paul Springett*
+
 *   Fix `TimeWithZone#eql?` to properly handle `TimeWithZone` created from `DateTime`:
         twz = DateTime.now.in_time_zone
         twz.eql?(twz.dup) => true
