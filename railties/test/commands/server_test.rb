@@ -44,6 +44,22 @@ class Rails::ServerTest < ActiveSupport::TestCase
     end
   end
 
+  def test_caching_without_option
+    args = []
+    options = Rails::Server::Options.new.parse!(args)
+    assert_equal nil, options[:caching]
+  end
+
+  def test_caching_with_option
+    args = ["--dev-caching"]
+    options = Rails::Server::Options.new.parse!(args)
+    assert_equal true, options[:caching]
+
+    args = ["--no-dev-caching"]
+    options = Rails::Server::Options.new.parse!(args)
+    assert_equal false, options[:caching]
+  end
+
   def test_log_stdout
     with_rack_env nil do
       with_rails_env nil do
