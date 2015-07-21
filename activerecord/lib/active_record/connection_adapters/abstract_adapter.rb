@@ -111,6 +111,18 @@ module ActiveRecord
         @prepared_statements = false
       end
 
+      class Version
+        include Comparable
+
+        def initialize(version_string)
+          @version = version_string.split('.').map(&:to_i)
+        end
+
+        def <=>(version_string)
+          @version <=> version_string.split('.').map(&:to_i)
+        end
+      end
+
       class BindCollector < Arel::Collectors::Bind
         def compile(bvs, conn)
           super(bvs.map { |bv| conn.quote(*bv.reverse) })

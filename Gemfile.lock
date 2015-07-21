@@ -136,7 +136,6 @@ GEM
       mime-types (>= 1.16, < 4)
     metaclass (0.0.4)
     mime-types (2.99.1)
-    mime-types-data (3.2016.0221)
     mini_portile2 (2.0.0)
     minitest (5.3.3)
     mocha (0.14.0)

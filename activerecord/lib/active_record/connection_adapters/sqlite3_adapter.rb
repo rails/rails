@@ -74,18 +74,6 @@ module ActiveRecord
         boolean:      { name: "boolean" }
       }
 
-      class Version
-        include Comparable
-
-        def initialize(version_string)
-          @version = version_string.split('.').map { |v| v.to_i }
-        end
-
-        def <=>(version_string)
-          @version <=> version_string.split('.').map { |v| v.to_i }
-        end
-      end
-
       class StatementPool < ConnectionAdapters::StatementPool
         def initialize(connection, max)
           super
