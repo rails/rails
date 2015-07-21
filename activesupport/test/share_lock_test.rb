@@ -158,22 +158,74 @@ class ShareLockTest < ActiveSupport::TestCase
   end
 
   private
-  SUFFICIENT_TIMEOUT = 0.2
 
-  def assert_threads_stuck_but_releasable_by_latch(threads, latch)
-    assert_threads_stuck threads
-    latch.count_down
-    assert_threads_not_stuck threads
+  module CustomAssertions
+    SUFFICIENT_TIMEOUT = 0.2
+
+    private
+
+    def assert_threads_stuck_but_releasable_by_latch(threads, latch)
+      assert_threads_stuck threads
+      latch.count_down
+      assert_threads_not_stuck threads
+    end
+
+    def assert_threads_stuck(threads)
+      sleep(SUFFICIENT_TIMEOUT) # give threads time to do their business
+      assert(Array(threads).all? { |t| t.join(0.001).nil? })
+    end
+
+    def assert_threads_not_stuck(threads)
+      assert(Array(threads).all? { |t| t.join(SUFFICIENT_TIMEOUT) })
+    end
   end
 
-  def assert_threads_stuck(threads)
-    sleep(SUFFICIENT_TIMEOUT) # give threads time to do their business
-    assert(Array(threads).all? {|t| t.join(0.001).nil?})
+  class CustomAssertionsTest < ActiveSupport::TestCase
+    include CustomAssertions
+
+    def setup
+      @latch = Concurrent::CountDownLatch.new
+      @thread = Thread.new { @latch.wait }
+    end
+
+    def teardown
+      @latch.count_down
+      @thread.join
+    end
+
+    def test_happy_path
+      assert_threads_stuck_but_releasable_by_latch @thread, @latch
+    end
+
+    def test_detects_stuck_thread
+      assert_raises(Minitest::Assertion) do
+        assert_threads_not_stuck @thread
+      end
+    end
+
+    def test_detects_free_thread
+      @latch.count_down
+      assert_raises(Minitest::Assertion) do
+        assert_threads_stuck @thread
+      end
+    end
+
+    def test_detects_already_released
+      @latch.count_down
+      assert_raises(Minitest::Assertion) do
+        assert_threads_stuck_but_releasable_by_latch @thread, @latch
+      end
+    end
+
+    def test_detects_remains_latched
+      another_latch = Concurrent::CountDownLatch.new
+      assert_raises(Minitest::Assertion) do
+        assert_threads_stuck_but_releasable_by_latch @thread, another_latch
+      end
+    end
   end
 
-  def assert_threads_not_stuck(threads)
-    assert_not_nil(Array(threads).all? {|t| t.join(SUFFICIENT_TIMEOUT)})
-  end
+  include CustomAssertions
 
   def with_thread_waiting_in_lock_section(lock_section)
     in_section      = Concurrent::CountDownLatch.new
