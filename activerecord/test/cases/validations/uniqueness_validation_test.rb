@@ -4,6 +4,7 @@ require 'models/reply'
 require 'models/warehouse_thing'
 require 'models/guid'
 require 'models/event'
+require 'models/keyboard'
 
 class Wizard < ActiveRecord::Base
   self.abstract_class = true
@@ -426,5 +427,19 @@ class UniquenessValidationTest < ActiveRecord::TestCase
     assert_equal topic.replies.size, 1
     assert reply.valid?
     assert topic.valid?
+  end
+
+  def test_validate_uniqueness_of_custom_primary_key
+    Keyboard.validates_uniqueness_of(:key_number)
+
+    key1 = Keyboard.new(key_number: 10)
+    assert key1.save, "Should save key1 as unique"
+
+    key2 = Keyboard.new(key_number: 11)
+    assert key2.save, "Should save key2 as unique"
+
+    key2.key_number = 10
+    assert !key2.valid?, "Shouldn't be valid"
+    assert !key2.save, "Shouldn't save since primary key isn't unique"
   end
 end

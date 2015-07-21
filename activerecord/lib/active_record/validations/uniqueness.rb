@@ -17,7 +17,12 @@ module ActiveRecord
         value = map_enum_attribute(finder_class, attribute, value)
 
         relation = build_relation(finder_class, table, attribute, value)
-        relation = relation.where.not(finder_class.primary_key => record.id) if record.persisted?
+
+        if record.persisted?
+          primary_key = finder_class.primary_key.to_sym
+          relation = relation.where.not(primary_key => record.id) unless primary_key == attribute.to_sym
+        end
+
         relation = scope_relation(record, table, relation)
         relation = relation.merge(options[:conditions]) if options[:conditions]
 
