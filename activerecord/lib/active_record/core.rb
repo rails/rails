@@ -162,11 +162,13 @@ module ActiveRecord
         }
         record = statement.execute([id], self, connection).first
         unless record
-          raise RecordNotFound, "Couldn't find #{name} with '#{primary_key}'=#{id}"
+          raise RecordNotFound.new("Couldn't find #{name} with '#{primary_key}'=#{id}",
+                                   name, primary_key, id)
         end
         record
       rescue RangeError
-        raise RecordNotFound, "Couldn't find #{name} with an out of range value for '#{primary_key}'"
+        raise RecordNotFound.new("Couldn't find #{name} with an out of range value for '#{primary_key}'",
+                                 name, primary_key)
       end
 
       def find_by(*args) # :nodoc:
@@ -199,7 +201,7 @@ module ActiveRecord
       end
 
       def find_by!(*args) # :nodoc:
-        find_by(*args) or raise RecordNotFound.new("Couldn't find #{name}")
+        find_by(*args) or raise RecordNotFound.new("Couldn't find #{name}", name)
       end
 
       def initialize_generated_modules # :nodoc:
