@@ -1,3 +1,19 @@
+*   ActiveRecord::RecordNotFound modified to store model name, primary_key and
+    id of the caller model. It allows the catcher of this exception to make
+    a better decision to what to do with it. For example consider this simple
+    example:
+
+        class SomeAbstractController < ActionController::Base
+          rescue_from ActiveRecord::RecordNotFound, with: :redirect_to_404
+
+          private def redirect_to_404(e)
+            return redirect_to(posts_url) if e.model == 'Post'
+            raise
+          end
+        end
+
+    *Sameer Rahmani*
+
 *   Deprecate the keys for association `restrict_dependent_destroy` errors in favor
     of new key names.
 
