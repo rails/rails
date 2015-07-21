@@ -562,14 +562,16 @@ module ActionController
       end
 
       def convert_value_to_parameters(value)
-        if value.is_a?(Array) && !converted_arrays.member?(value)
+        case value
+        when Array
+          return value if converted_arrays.member?(value)
           converted = value.map { |_| convert_value_to_parameters(_) }
           converted_arrays << converted
           converted
-        elsif value.is_a?(Parameters) || !value.is_a?(Hash)
-          value
-        else
+        when Hash
           self.class.new(value)
+        else
+          value
         end
       end
 
