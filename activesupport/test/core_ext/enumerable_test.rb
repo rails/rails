@@ -27,6 +27,16 @@ class EnumerableTests < ActiveSupport::TestCase
     assert_equal 30, enum.sum
     assert_equal 60, enum.sum { |i| i * 2}
 
+    enum = [5, [15, 10]]
+    assert_equal 30, enum.sum
+
+    enum = {a: 5, b: 15, c: 10}
+    assert_equal 30, enum.sum
+    assert_equal 60, enum.sum { |_, v| v * 2 }
+
+    enum = {5 => :a, 15 => :b, 10 => :c}
+    assert_equal 30, enum.sum { |k, _| k }
+
     enum = GenericEnumerable.new(%w(a b c))
     assert_equal 'abc', enum.sum
     assert_equal 'aabbcc', enum.sum { |i| i * 2 }
@@ -44,6 +54,8 @@ class EnumerableTests < ActiveSupport::TestCase
     expected_raise = TypeError
 
     assert_raise(expected_raise) { GenericEnumerable.new([5, 15, nil]).sum }
+    assert_raise(expected_raise) { GenericEnumerable.new([5, [15, nil]]).sum }
+
 
     payments = GenericEnumerable.new([ Payment.new(5), Payment.new(15), Payment.new(10), Payment.new(nil) ])
     assert_raise(expected_raise) { payments.sum(&:price) }
