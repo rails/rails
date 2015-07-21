@@ -343,9 +343,8 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_with_polymorphic_model_inheritance
-    sponsor = Sponsor.create
     inheritance_member = InheritanceMember.create :name => "Nick"
-    sponsor.sponsorable = inheritance_member
+    sponsor = inheritance_member.sponsor.create
 
     assert_equal "InheritanceMember", sponsor.sponsorable_type
   end
