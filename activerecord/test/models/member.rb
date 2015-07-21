@@ -36,3 +36,5 @@ class SelfMember < ActiveRecord::Base
   self.table_name = "members"
   has_and_belongs_to_many :friends, :class_name => "SelfMember", :join_table => "member_friends"
 end
+
+class InheritanceMember < Member; end

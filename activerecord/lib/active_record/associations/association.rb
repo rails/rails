@@ -183,7 +183,7 @@ module ActiveRecord
             attributes[reflection.foreign_key] = owner[reflection.active_record_primary_key]
 
             if reflection.options[:as]
-              attributes[reflection.type] = owner.class.base_class.name
+              attributes[reflection.type] = owner.class.name
             end
           end
 
