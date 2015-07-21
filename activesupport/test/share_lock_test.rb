@@ -88,33 +88,60 @@ class ShareLockTest < ActiveSupport::TestCase
           conflicting_exclusive_threads = [
             Thread.new do
               @lock.send(use_upgrading ? :sharing : :tap) do
-                @lock.exclusive(purpose: :load, compatible: [:load]) {}
+                @lock.exclusive(purpose: :red, compatible: [:green, :purple]) {}
               end
             end,
             Thread.new do
               @lock.send(use_upgrading ? :sharing : :tap) do
-                @lock.exclusive(purpose: :unload, compatible: [:unload]) {}
+                @lock.exclusive(purpose: :blue, compatible: [:green]) {}
               end
             end
           ]
 
           assert_threads_stuck conflicting_exclusive_threads # wait for threads to get into their respective `exclusive {}` blocks
-          sharing_thread_release_latch.count_down
-          assert_threads_stuck conflicting_exclusive_threads # assert they are stuck
 
+          # This thread will be stuck as long as any other thread is in
+          # a sharing block. While it's blocked, it holds no lock, so it
+          # doesn't interfere with any other attempts.
           no_purpose_thread = Thread.new do
             @lock.exclusive {}
           end
-          assert_threads_not_stuck no_purpose_thread # no purpose thread is able to squeak through
+          assert_threads_stuck no_purpose_thread
 
+          # This thread is compatible with both of the "primary"
+          # attempts above. It's initially stuck on the outer share
+          # lock, but as soon as that's released, it can run --
+          # regardless of whether those threads hold share locks.
           compatible_thread = Thread.new do
-            @lock.exclusive(purpose: :load, compatible: [:load, :unload])
+            @lock.exclusive(purpose: :green, compatible: []) {}
           end
+          assert_threads_stuck compatible_thread
 
-          assert_threads_not_stuck compatible_thread # compatible thread is able to squeak through
-          assert_threads_stuck conflicting_exclusive_threads # assert other threads are still stuck
+          assert_threads_stuck conflicting_exclusive_threads
+
+          sharing_thread_release_latch.count_down
+
+          assert_threads_not_stuck compatible_thread # compatible thread is now able to squeak through
+
+          if use_upgrading
+            # The "primary" threads both each hold a share lock, and are
+            # mutually incompatible; they're still stuck.
+            assert_threads_stuck conflicting_exclusive_threads
+
+            # The thread without a specified purpose is also stuck; it's
+            # not compatible with anything.
+            assert_threads_stuck no_purpose_thread
+          else
+            # As the primaries didn't hold a share lock, as soon as the
+            # outer one was released, all the exclusive locks are free
+            # to be acquired in turn.
+
+            assert_threads_not_stuck conflicting_exclusive_threads
+            assert_threads_not_stuck no_purpose_thread
+          end
         ensure
           conflicting_exclusive_threads.each(&:kill)
+          no_purpose_thread.kill
         end
       end
     end

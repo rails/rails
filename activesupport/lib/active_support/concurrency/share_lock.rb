@@ -132,7 +132,7 @@ module ActiveSupport
       # Must be called within synchronize
       def busy?(purpose)
         (@exclusive_thread && @exclusive_thread != Thread.current) ||
-          (purpose && @waiting.any? { |k, v| k != Thread.current && !v.include?(purpose) }) ||
+          @waiting.any? { |k, v| k != Thread.current && !v.include?(purpose) } ||
           @sharing.size > (@sharing[Thread.current] > 0 ? 1 : 0)
       end
     end
