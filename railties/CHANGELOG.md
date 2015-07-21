@@ -1,3 +1,7 @@
+*   Add `bin/update` script to update development environment automatically.
+
+    *Mehmet Emin İNAÇ*
+
 *   Fix STATS_DIRECTORIES already defined warning when running rake from within
     the top level directory of an engine that has a test app.
 
