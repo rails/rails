@@ -7,19 +7,17 @@ module ActionDispatch
 
       class << self
         # Remove nils from the params hash
-        def deep_munge(hash, keys = [])
+        def deep_munge(hash)
           return hash unless perform_deep_munge
 
           hash.each do |k, v|
-            keys << k
             case v
             when Array
-              v.grep(Hash) { |x| deep_munge(x, keys) }
+              v.grep(Hash) { |x| deep_munge(x) }
               v.compact!
             when Hash
-              deep_munge(v, keys)
+              deep_munge(v)
             end
-            keys.pop
           end
 
           hash
