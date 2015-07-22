@@ -10,6 +10,8 @@ Bundler.require :default, :test
 require 'puma'
 require 'mocha/mini_test'
 
+require 'rack/mock'
+
 require 'action_cable'
 ActiveSupport.test_order = :sorted
 
