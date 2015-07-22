@@ -60,14 +60,22 @@ module ActiveRecord
         end
 
         command = "pg_dump -i -s -x -O -f #{Shellwords.escape(filename)} #{search_path} #{Shellwords.escape(configuration['database'])}"
-        raise 'Error dumping database' unless Kernel.system(command)
 
-        File.open(filename, "a") { |f| f << "SET search_path TO #{connection.schema_search_path};\n\n" }
+        if Kernel.system(command)
+          File.open(filename, "a") { |f| f << "SET search_path TO #{connection.schema_search_path};\n\n" }
+        else
+          $stderr.puts "Could not dump the database structure. "\
+                       "Make sure `psql` is in your PATH and check the command output for warnings."
+        end
       end
 
       def structure_load(filename)
         set_psql_env
-        Kernel.system("psql -X -q -f #{Shellwords.escape(filename)} #{configuration['database']}")
+        command = "psql -X -q -f #{Shellwords.escape(filename)} #{configuration['database']}"
+        unless Kernel.system(command)
+          $stderr.puts "Could not load the database structure. "\
+                       "Make sure `psql` is in your PATH and check the command output for warnings."
+        end
       end
 
       private

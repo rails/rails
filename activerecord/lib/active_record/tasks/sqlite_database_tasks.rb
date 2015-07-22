@@ -33,12 +33,20 @@ module ActiveRecord
 
       def structure_dump(filename)
         dbfile = configuration['database']
-        `sqlite3 #{dbfile} .schema > #{filename}`
+        command = "sqlite3 #{dbfile} > \"#{filename}\""
+        unless Kernel.system(command)
+          $stderr.puts "Could not dump the database structure. "\
+                       "Make sure `sqlite3` is in your PATH and check the command output for warnings."
+        end
       end
 
       def structure_load(filename)
         dbfile = configuration['database']
-        `sqlite3 #{dbfile} < "#{filename}"`
+        command = "sqlite3 #{dbfile} < \"#{filename}\""
+        unless Kernel.system(command)
+          $stderr.puts "Could not load the database structure. "\
+                       "Make sure `sqlite3` is in your PATH and check the command output for warnings."
+        end
       end
 
       private

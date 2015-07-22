@@ -235,6 +235,16 @@ module ActiveRecord
       end
     end
 
+    def test_warn_when_structure_dump_fails
+      Kernel.expects(:system).with("pg_dump -i -s -x -O -f #{@filename}  my-app-db").returns(false)
+
+      warnings = capture(:stderr) do
+        ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
+      end
+
+      assert_match(/Could not dump the database structure/, warnings)
+    end
+
     private
 
     def with_dump_schemas(value, &block)
@@ -271,6 +281,17 @@ module ActiveRecord
       Kernel.expects(:system).with("psql -X -q -f awesome\\ file.sql my-app-db")
 
       ActiveRecord::Tasks::DatabaseTasks.structure_load(@configuration, filename)
+    end
+
+    def test_warn_when_structure_load_fails
+      filename = "awesome-file.sql"
+      Kernel.expects(:system).with("psql -X -q -f #{filename} my-app-db").returns(false)
+
+      warnings = capture(:stderr) do
+        ActiveRecord::Tasks::DatabaseTasks.structure_load(@configuration, filename)
+      end
+
+      assert_match(/Could not load the database structure/, warnings)
     end
   end
 

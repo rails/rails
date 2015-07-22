@@ -71,7 +71,10 @@ module ActiveRecord
         args = prepare_command_options('mysql')
         args.concat(['--execute', %{SET FOREIGN_KEY_CHECKS = 0; SOURCE #{filename}; SET FOREIGN_KEY_CHECKS = 1}])
         args.concat(["--database", "#{configuration['database']}"])
-        Kernel.system(*args)
+        unless Kernel.system(*args)
+          $stderr.puts "Could not load the database structure. "\
+                       "Make sure `mysqldump` is in your PATH and check the command output for warnings."
+        end
       end
 
       private
