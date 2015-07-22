@@ -1236,6 +1236,56 @@ class ProductTest < ActiveJob::TestCase
 end
 ```
 
+Testing passage of time
+-----------------------
+
+Rails provides the
+[ActiveSupport::Testing::TimeHelpers](http://api.rubyonrails.org/classes/ActiveSupport/Testing/TimeHelpers.html)
+when we need to test against a specific period of time.
+
+With the `travel` method we change the current time to the time in the future or in
+the past by a given time difference.
+
+```ruby
+require 'test_helper'
+
+class ArticleTest < ActiveSupport::TestCase
+  test "that published_at is updated to now" do
+    now = 1.day.ago
+    travel now
+    @article.publish!
+    travel_back
+
+    assert_equal now, @article.published_at
+  end
+end
+```
+
+With the `travel_back` we returns the current time back to its original state.
+
+We can use `travel_to` to changes current time to the given time.
+
+```ruby
+require 'test_helper'
+
+class ArticleTest < ActiveSupport::TestCase
+  test "that published_at is updated to now" do
+    now = Time.new(2004, 11, 24, 01, 04, 44)
+    travel_to now
+    @article.publish!
+    travel_back
+
+    assert_equal now, @article.published_at
+  end
+end
+```
+
+Both methods `travel` and `travel_to` accepts a block, which will return
+the current time back to its original state at the end of the block.
+
+NOTE: As a good practice always return the time back to its original state.
+Since it can lead to some random broken tests.
+
 Other Testing Approaches
 ------------------------
 
