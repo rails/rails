@@ -220,11 +220,22 @@ normal text columns:
 
 ```ruby
 # db/migrate/20131220144913_create_articles.rb
-execute <<-SQL
-  CREATE TYPE article_status AS ENUM ('draft', 'published');
-SQL
-create_table :articles do |t|
-  t.column :status, :article_status
+def up
+  execute <<-SQL
+    CREATE TYPE article_status AS ENUM ('draft', 'published');
+  SQL
+  create_table :articles do |t|
+    t.column :status, :article_status
+  end
+end
+
+# NOTE: It's important to drop table before dropping enum.
+def down
+  drop_table :articles
+
+  execute <<-SQL
+    DROP TYPE article_status;
+  SQL
 end
 
 # app/models/article.rb
@@ -238,6 +249,31 @@ article.status # => "draft"
 
 article.status = "published"
 article.save!
+```
+
+To add a new value before/after existing one you should use [ALTER TYPE](http://www.postgresql.org/docs/current/static/sql-altertype.html):
+```ruby
+# db/migrate/20150720144913_add_new_state_to_articles.rb
+# NOTE: ALTER TYPE ... ADD VALUE cannot be executed inside of a transaction block so here we are using disable_ddl_transaction!
+disable_ddl_transaction!
+
+def up
+  execute <<-SQL
+    ALTER TYPE article_status ADD VALUE IF NOT EXISTS 'archived' AFTER 'published';
+  SQL
+end
+```
+
+NOTE: by now we can't drop ENUM values. You can read why [here](http://www.postgresql.org/message-id/29F36C7C98AB09499B1A209D48EAA615B7653DBC8A@mail2a.alliedtesting.com).
+
+Hint: to show all the values of the all enums you have, you should call this query in `bin/rails db` or `psql` console:
+```sql
+SELECT n.nspname AS enum_schema,
+       t.typname AS enum_name,
+       e.enumlabel AS enum_value
+  FROM pg_type t
+      JOIN pg_enum e ON t.oid = e.enumtypid
+      JOIN pg_catalog.pg_namespace n ON n.oid = t.typnamespace
 ```
 
 ### UUID
