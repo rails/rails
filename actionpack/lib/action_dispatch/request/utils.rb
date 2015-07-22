@@ -6,10 +6,14 @@ module ActionDispatch
       self.perform_deep_munge = true
 
       def self.normalize_encode_params(params)
-        ParamEncoder.normalize_encode_params params
+        if perform_deep_munge
+          NoNilParamEncoder.normalize_encode_params params
+        else
+          ParamEncoder.normalize_encode_params params
+        end
       end
 
-      class ParamEncoder
+      class ParamEncoder # :nodoc:
         # Convert nested Hash to HashWithIndifferentAccess.
         #
         def self.normalize_encode_params(params)
@@ -34,22 +38,12 @@ module ActionDispatch
         end
       end
 
-      class << self
-        # Remove nils from the params hash
-        def deep_munge(hash)
-          return hash unless perform_deep_munge
-
-          hash.each do |k, v|
-            case v
-            when Array
-              v.grep(Hash) { |x| deep_munge(x) }
-              v.compact!
-            when Hash
-              deep_munge(v)
-            end
-          end
-
-          hash
+      # Remove nils from the params hash
+      class NoNilParamEncoder < ParamEncoder # :nodoc:
+        def self.handle_array(params)
+          list = super
+          list.compact!
+          list
         end
       end
     end
