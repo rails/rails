@@ -12,7 +12,8 @@ module Enumerable
   #
   #  [5, 15, 10].sum # => 30
   #  ['foo', 'bar'].sum # => "foobar"
-  #  [[1, 2], [3, 1, 5]].sum => [1, 2, 3, 1, 5]
+  #  [[1, 2], [3, 1, 5]].sum => 12
+  #  { foo: 1, bar: 2 }.sum => 3
   #
   # The default sum of an empty list is zero. You can override this default:
   #
@@ -21,7 +22,10 @@ module Enumerable
     if block_given?
       map(&block).sum(identity)
     else
-      inject { |sum, element| sum + element } || identity
+      obj = self
+      obj = values if is_a?(Hash)
+      obj = flatten if is_a?(Array)
+      obj.inject { |sum, element| sum + element } || identity
     end
   end
 
