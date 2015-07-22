@@ -7,6 +7,14 @@ class ShareLockTest < ActiveSupport::TestCase
     @lock = ActiveSupport::Concurrency::ShareLock.new
   end
 
+  def test_reentrancy
+    thread = Thread.new do
+      @lock.sharing   { @lock.sharing   {} }
+      @lock.exclusive { @lock.exclusive {} }
+    end
+    assert_threads_not_stuck thread
+  end
+
   def test_sharing_doesnt_block
     with_thread_waiting_in_lock_section(:sharing) do |sharing_thread_latch|
       assert_threads_not_stuck(Thread.new {@lock.sharing {} })
@@ -169,37 +177,66 @@ class ShareLockTest < ActiveSupport::TestCase
   end
 
   def test_exclusive_ordering
-    [true, false].each do |use_upgrading|
-      scratch_pad       = []
-      scratch_pad_mutex = Mutex.new
+    scratch_pad       = []
+    scratch_pad_mutex = Mutex.new
 
-      load_params   = [:load,   [:load]]
-      unload_params = [:unload, [:unload, :load]]
+    load_params   = [:load,   [:load]]
+    unload_params = [:unload, [:unload, :load]]
 
-      [load_params, load_params, unload_params, unload_params].permutation do |thread_params|
-        with_thread_waiting_in_lock_section(:sharing) do |sharing_thread_release_latch|
-          threads = thread_params.map do |purpose, compatible|
-            Thread.new do
-              @lock.send(use_upgrading ? :sharing : :tap) do
-                @lock.exclusive(purpose: purpose, compatible: compatible) do
-                  scratch_pad_mutex.synchronize { scratch_pad << purpose }
-                end
+    [load_params, load_params, unload_params, unload_params].permutation do |thread_params|
+      with_thread_waiting_in_lock_section(:sharing) do |sharing_thread_release_latch|
+        threads = thread_params.map do |purpose, compatible|
+          Thread.new do
+            @lock.sharing do
+              @lock.exclusive(purpose: purpose, compatible: compatible) do
+                scratch_pad_mutex.synchronize { scratch_pad << purpose }
               end
             end
           end
+        end
 
-          sleep(0.01)
-          scratch_pad_mutex.synchronize { assert_empty scratch_pad }
+        sleep(0.01)
+        scratch_pad_mutex.synchronize { assert_empty scratch_pad }
 
-          sharing_thread_release_latch.count_down
+        sharing_thread_release_latch.count_down
 
-          assert_threads_not_stuck threads
-          scratch_pad_mutex.synchronize do
-            if use_upgrading
-              assert_equal [:load, :load, :unload, :unload], scratch_pad
+        assert_threads_not_stuck threads
+        scratch_pad_mutex.synchronize do
+          assert_equal [:load, :load, :unload, :unload], scratch_pad
+          scratch_pad.clear
+        end
+      end
+    end
+  end
+
+  def test_in_shared_section_incompatible_non_upgrading_threads_cannot_preempt_upgrading_threads
+    scratch_pad       = []
+    scratch_pad_mutex = Mutex.new
+
+    upgrading_load_params       = [:load,   [:load],          true]
+    non_upgrading_unload_params = [:unload, [:load, :unload], false]
+
+    [upgrading_load_params, non_upgrading_unload_params].permutation do |thread_params|
+      with_thread_waiting_in_lock_section(:sharing) do |sharing_thread_release_latch|
+        threads = thread_params.map do |purpose, compatible, use_upgrading|
+          Thread.new do
+            @lock.send(use_upgrading ? :sharing : :tap) do
+              @lock.exclusive(purpose: purpose, compatible: compatible) do
+                scratch_pad_mutex.synchronize { scratch_pad << purpose }
+              end
             end
-            scratch_pad.clear
           end
+        end
+
+        assert_threads_stuck threads
+        scratch_pad_mutex.synchronize { assert_empty scratch_pad }
+
+        sharing_thread_release_latch.count_down
+
+        assert_threads_not_stuck threads
+        scratch_pad_mutex.synchronize do
+          assert_equal [:load, :unload], scratch_pad
+          scratch_pad.clear
         end
       end
     end
