@@ -38,16 +38,14 @@ module ActionDispatch
       #
       def normalize_encode_params(params)
         case params
+        when Array
+          params.map! { |el| normalize_encode_params(el) }
         when Hash
           if params.has_key?(:tempfile)
             UploadedFile.new(params)
           else
             params.each_with_object({}) do |(key, val), new_hash|
-              new_hash[key] = if val.is_a?(Array)
-                val.map! { |el| normalize_encode_params(el) }
-              else
-                normalize_encode_params(val)
-              end
+              new_hash[key] = normalize_encode_params(val)
             end.with_indifferent_access
           end
         else
