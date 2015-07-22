@@ -68,6 +68,8 @@ module ActionCable
       include Callbacks
       include PeriodicTimers
       include Streams
+      include Naming
+      include Broadcasting
 
       on_subscribe   :subscribed
       on_unsubscribe :unsubscribed

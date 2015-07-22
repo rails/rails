@@ -9,7 +9,7 @@ module ActionCable
       include ActionCable::Server::Connections
 
       cattr_accessor(:config, instance_accessor: true) { ActionCable::Server::Configuration.new }
-      
+
       def self.logger; config.logger; end
       delegate :logger, to: :config
 
@@ -56,7 +56,7 @@ module ActionCable
             logger.info "[ActionCable] Redis reconnect failed."
             # logger.info "[ActionCable] Redis reconnected. Closing all the open connections."
             # @connections.map &:close
-          end            
+          end
         end
       end
 

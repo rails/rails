@@ -9,4 +9,8 @@ class Room
   def to_global_id
     "Room##{id}-#{name}"
   end
+
+  def to_gid_param
+    to_global_id.to_param
+  end
 end
