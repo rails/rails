@@ -153,18 +153,23 @@ module ActiveRecord
         'adapter'  => 'sqlite3',
         'database' => @database
       }
+      @filename = "awesome-file.sql"
     end
 
     def test_structure_dump
-      dbfile   = @database
-      filename = "awesome-file.sql"
+      Kernel.expects(:system).with("sqlite3 #{@database} > \"#{@filename}\"").returns(true)
 
-      ActiveRecord::Tasks::DatabaseTasks.structure_dump @configuration, filename, '/rails/root'
-      assert File.exist?(dbfile)
-      assert File.exist?(filename)
-    ensure
-      FileUtils.rm_f(filename)
-      FileUtils.rm_f(dbfile)
+      ActiveRecord::Tasks::DatabaseTasks.structure_dump @configuration, @filename, '/rails/root'
+    end
+
+    def test_structure_dump_warns_on_failure
+      Kernel.expects(:system).with("sqlite3 #{@database} > \"#{@filename}\"").returns(false)
+
+      warnings = capture(:stderr) do
+        ActiveRecord::Tasks::DatabaseTasks.structure_dump @configuration, @filename, '/rails/root'
+      end
+
+      assert_match(/Could not dump the database structure/, warnings)
     end
   end
 
@@ -175,18 +180,23 @@ module ActiveRecord
         'adapter'  => 'sqlite3',
         'database' => @database
       }
+      @filename = "awesome-file.sql"
     end
 
     def test_structure_load
-      dbfile   = @database
-      filename = "awesome-file.sql"
+      Kernel.expects(:system).with("sqlite3 #{@database} < \"#{@filename}\"").returns(true)
 
-      open(filename, 'w') { |f| f.puts("select datetime('now', 'localtime');") }
-      ActiveRecord::Tasks::DatabaseTasks.structure_load @configuration, filename, '/rails/root'
-      assert File.exist?(dbfile)
-    ensure
-      FileUtils.rm_f(filename)
-      FileUtils.rm_f(dbfile)
+      ActiveRecord::Tasks::DatabaseTasks.structure_load @configuration, @filename, '/rails/root'
+    end
+
+    def test_structure_load_warns_on_failure
+      Kernel.expects(:system).with("sqlite3 #{@database} < \"#{@filename}\"").returns(false)
+
+      warnings = capture(:stderr) do
+        ActiveRecord::Tasks::DatabaseTasks.structure_load @configuration, @filename, '/rails/root'
+      end
+
+      assert_match(/Could not load the database structure/, warnings)
     end
   end
 end

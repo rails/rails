@@ -314,6 +314,17 @@ module ActiveRecord
 
       ActiveRecord::Tasks::DatabaseTasks.structure_load(@configuration, filename)
     end
+
+    def test_warn_when_external_structure_load_fails
+      filename = "awesome-file.sql"
+      Kernel.expects(:system).with('mysql', '--execute', %{SET FOREIGN_KEY_CHECKS = 0; SOURCE #{filename}; SET FOREIGN_KEY_CHECKS = 1}, "--database", "test-db").returns(false)
+
+      warnings = capture(:stderr) do
+        ActiveRecord::Tasks::DatabaseTasks.structure_load(@configuration, filename)
+      end
+
+      assert_match(/Could not load the database structure/, warnings)
+    end
   end
 
 end
