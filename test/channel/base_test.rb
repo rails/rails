@@ -3,7 +3,22 @@ require 'stubs/test_connection'
 require 'stubs/room'
 
 class ActionCable::Channel::BaseTest < ActiveSupport::TestCase
-  class ChatChannel < ActionCable::Channel::Base
+  class ActionCable::Channel::Base
+    def kick
+      @last_action = [ :kick ]
+    end
+
+    def topic
+    end
+  end
+
+  class BasicChannel < ActionCable::Channel::Base
+    def chatters
+      @last_action = [ :chatters ]
+    end
+  end
+
+  class ChatChannel < BasicChannel
     attr_reader :room, :last_action
     on_subscribe :toggle_subscribed
     on_unsubscribe :toggle_subscribed
@@ -27,6 +42,10 @@ class ActionCable::Channel::BaseTest < ActiveSupport::TestCase
 
     def speak(data)
       @last_action = [ :speak, data ]
+    end
+
+    def topic(data)
+      @last_action = [ :topic, data ]
     end
 
     def subscribed?
@@ -87,9 +106,26 @@ class ActionCable::Channel::BaseTest < ActiveSupport::TestCase
     assert_equal [ :speak, data ], @channel.last_action
   end
 
-  test "try calling a private method" do
+  test "should not dispatch a private method" do
     @channel.perform_action 'action' => :rm_rf
     assert_nil @channel.last_action
+  end
+
+  test "should not dispatch a public method defined on Base" do
+    @channel.perform_action 'action' => :kick
+    assert_nil @channel.last_action
+  end
+
+  test "should dispatch a public method defined on Base and redefined on channel" do
+    data = { 'action' => :topic, 'content' => "This is Sparta!" }
+
+    @channel.perform_action data
+    assert_equal [ :topic, data ], @channel.last_action
+  end
+
+  test "should dispatch calling a public method defined in an ancestor" do
+    @channel.perform_action 'action' => :chatters
+    assert_equal [ :chatters ], @channel.last_action
   end
 
   test "transmitting data" do
