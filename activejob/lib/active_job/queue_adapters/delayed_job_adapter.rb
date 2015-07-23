@@ -14,11 +14,15 @@ module ActiveJob
     #   Rails.application.config.active_job.queue_adapter = :delayed_job
     class DelayedJobAdapter
       def enqueue(job) #:nodoc:
-        enqueue_at(job, Time.now)
+        enqueue_at(job)
       end
 
-      def enqueue_at(job, timestamp) #:nodoc:
-        delayed_job = Delayed::Job.enqueue(JobWrapper.new(job.serialize), queue: job.queue_name, run_at: Time.at(timestamp))
+      def enqueue_at(job, timestamp = nil) #:nodoc:
+        options = {}
+        options[:queue] = job.queue_name
+        options[:run_at] = Time.at(timestamp) unless timestamp.nil?
+        delayed_job = Delayed::Job.enqueue(JobWrapper.new(job.serialize), options)
+
         job.provider_job_id = delayed_job.id
         delayed_job
       end

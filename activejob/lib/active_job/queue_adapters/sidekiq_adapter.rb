@@ -16,16 +16,18 @@ module ActiveJob
     #   Rails.application.config.active_job.queue_adapter = :sidekiq
     class SidekiqAdapter
       def enqueue(job) #:nodoc:
-        enqueue_at(job, Time.now.to_f)
+        enqueue_at(job)
       end
 
-      def enqueue_at(job, timestamp) #:nodoc:
-        job.provider_job_id = Sidekiq::Client.push \
-          'class'   => JobWrapper,
-          'wrapped' => job.class.to_s,
-          'queue'   => job.queue_name,
-          'args'    => [ job.serialize ],
-          'at'      => timestamp
+      def enqueue_at(job, timestamp = nil) #:nodoc:
+        options = {}
+        options['class'] = JobWrapper
+        options['wrapped'] = job.class.to_s
+        options['queue'] = job.queue_name
+        options['args'] = [ job.serialize]
+        options['at'] = timestamp unless timestamp.nil?
+
+        job.provider_job_id = Sidekiq::Client.push options
       end
 
       class JobWrapper #:nodoc:
