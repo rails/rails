@@ -564,6 +564,14 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_dummy_api_application_for_api_plugins
+    run_generator [destination_root, '--api']
+
+    assert_file "test/dummy/config/application.rb" do |content|
+      assert_match "config.api_only = true", content
+    end
+  end
+
 protected
   def action(*args, &block)
     silence(:stdout){ generator.send(*args, &block) }
