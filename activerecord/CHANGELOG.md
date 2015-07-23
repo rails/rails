@@ -170,7 +170,7 @@
 
     *Aster Ryan*
 
-*   Add `:enum_prefix`/`:enum_suffix` option to `enum` definition.
+*   Add `:_prefix` and `:_suffix` options to `enum` definition.
 
     Fixes #17511, #17415.
 

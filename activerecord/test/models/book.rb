@@ -10,10 +10,10 @@ class Book < ActiveRecord::Base
   enum status: [:proposed, :written, :published]
   enum read_status: {unread: 0, reading: 2, read: 3}
   enum nullable_status: [:single, :married]
-  enum language: [:english, :spanish, :french], enum_prefix: :in
-  enum author_visibility: [:visible, :invisible], enum_prefix: true
-  enum illustrator_visibility: [:visible, :invisible], enum_prefix: true
-  enum font_size: [:small, :medium, :large], enum_prefix: :with, enum_suffix: true
+  enum language: [:english, :spanish, :french], _prefix: :in
+  enum author_visibility: [:visible, :invisible], _prefix: true
+  enum illustrator_visibility: [:visible, :invisible], _prefix: true
+  enum font_size: [:small, :medium, :large], _prefix: :with, _suffix: true
 
   def published!
     super

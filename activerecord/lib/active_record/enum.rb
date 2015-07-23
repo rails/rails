@@ -75,22 +75,22 @@ module ActiveRecord
   #
   #   Conversation.where("status <> ?", Conversation.statuses[:archived])
   #
-  # You can use the +:enum_prefix+ or +:enum_suffix+ options when you need
-  # to define multiple enums with same values. If the passed value is +true+,
-  # the methods are prefixed/suffixed with the name of the enum.
+  # You can use the +:_prefix+ or +:_suffix+ options when you need to define
+  # multiple enums with same values. If the passed value is +true+, the methods
+  # are prefixed/suffixed with the name of the enum.
   #
   #   class Invoice < ActiveRecord::Base
-  #     enum verification: [:done, :fail], enum_prefix: true
+  #     enum verification: [:done, :fail], _prefix: true
   #   end
   #
-  # It is also possible to supply a custom prefix.
+  # It is also possible to supply a custom value:
   #
   #   class Invoice < ActiveRecord::Base
-  #     enum verification: [:done, :fail], enum_prefix: :verification_status
+  #     enum verification: [:done, :fail], _prefix: :verification_status
   #   end
   #
-  # Note that <tt>:enum_prefix</tt>/<tt>:enum_suffix</tt> are reserved keywords
-  # and can not be used as an enum name.
+  # Note that <tt>:_prefix</tt>/<tt>:_suffix</tt> are reserved keywords and can
+  # not be used as enum names.
 
   module Enum
     def self.extended(base) # :nodoc:
@@ -137,8 +137,8 @@ module ActiveRecord
 
     def enum(definitions)
       klass = self
-      enum_prefix = definitions.delete(:enum_prefix)
-      enum_suffix = definitions.delete(:enum_suffix)
+      enum_prefix = definitions.delete(:_prefix)
+      enum_suffix = definitions.delete(:_suffix)
       definitions.each do |name, values|
         # statuses = { }
         enum_values = ActiveSupport::HashWithIndifferentAccess.new
