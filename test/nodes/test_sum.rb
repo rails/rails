@@ -21,4 +21,13 @@ describe Arel::Nodes::Sum do
       assert_equal 2, array.uniq.size
     end
   end
+  
+  describe 'order' do
+    it 'should order the sum' do
+      table = Arel::Table.new :users
+      table[:id].sum.desc.to_sql.must_be_like %{
+        SUM("users"."id") DESC
+      }
+    end
+  end
 end
