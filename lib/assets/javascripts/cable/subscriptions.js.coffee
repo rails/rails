@@ -29,8 +29,12 @@ class Cable.Subscriptions
         @notify(subscription, "connected")
 
   remove: (subscription) ->
-    @sendCommand(subscription, "unsubscribe")
     @subscriptions = (s for s in @subscriptions when s isnt subscription)
+    unless @findAll(subscription.identifier).length
+      @sendCommand(subscription, "unsubscribe")
+
+  findAll: (identifier) ->
+    s for s in @subscriptions when s.identifier is identifier
 
   notifyAll: (callbackName, args...) ->
     for subscription in @subscriptions
@@ -38,7 +42,7 @@ class Cable.Subscriptions
 
   notify: (subscription, callbackName, args...) ->
     if typeof subscription is "string"
-      subscriptions = (s for s in @subscriptions when s.identifier is subscription)
+      subscriptions = @findAll(subscription)
     else
       subscriptions = [subscription]
 
