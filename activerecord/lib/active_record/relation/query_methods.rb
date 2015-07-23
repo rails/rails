@@ -13,6 +13,8 @@ module ActiveRecord
     # WhereChain objects act as placeholder for queries in which #where does not have any parameter.
     # In this case, #where must be chained with #not to return a new relation.
     class WhereChain
+      include ActiveModel::ForbiddenAttributesProtection
+
       def initialize(scope)
         @scope = scope
       end
@@ -41,6 +43,8 @@ module ActiveRecord
       #    User.where.not(name: "Jon", role: "admin")
       #    # SELECT * FROM users WHERE name != 'Jon' AND role != 'admin'
       def not(opts, *rest)
+        opts = sanitize_forbidden_attributes(opts)
+
         where_clause = @scope.send(:where_clause_factory).build(opts, rest)
 
         @scope.references!(PredicateBuilder.references(opts)) if Hash === opts

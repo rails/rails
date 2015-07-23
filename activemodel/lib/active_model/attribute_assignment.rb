@@ -27,7 +27,7 @@ module ActiveModel
       if !new_attributes.respond_to?(:stringify_keys)
         raise ArgumentError, "When assigning attributes, you must pass a hash as an argument."
       end
-      return if new_attributes.blank?
+      return if new_attributes.nil? || new_attributes.empty?
 
       attributes = new_attributes.stringify_keys
       _assign_attributes(sanitize_for_mass_assignment(attributes))

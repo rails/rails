@@ -2,18 +2,24 @@ require 'cases/helper'
 require 'active_support/core_ext/hash/indifferent_access'
 require 'models/account'
 
-class ProtectedParams < ActiveSupport::HashWithIndifferentAccess
+class ProtectedParams
   attr_accessor :permitted
   alias :permitted? :permitted
 
+  delegate :keys, :key?, :has_key?, :empty?, to: :@parameters
+
   def initialize(attributes)
-    super(attributes)
+    @parameters = attributes
     @permitted = false
   end
 
   def permit!
     @permitted = true
     self
+  end
+
+  def to_h
+    @parameters
   end
 end
 
