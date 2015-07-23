@@ -556,6 +556,14 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_application_controller_parent_for_mountable_api_plugins
+    run_generator [destination_root, '--mountable', '--api']
+
+    assert_file "app/controllers/bukkits/application_controller.rb" do |content|
+      assert_match "ApplicationController < ActionController::API", content
+    end
+  end
+
 protected
   def action(*args, &block)
     silence(:stdout){ generator.send(*args, &block) }
