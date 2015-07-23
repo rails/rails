@@ -544,6 +544,18 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_skipping_useless_folders_generation_for_api_engines
+    ['--full', '--mountable'].each do |option|
+      run_generator [destination_root, option, '--api']
+
+      assert_no_directory "app/assets"
+      assert_no_directory "app/helpers"
+      assert_no_directory "app/views"
+
+      FileUtils.rm_rf destination_root
+    end
+  end
+
 protected
   def action(*args, &block)
     silence(:stdout){ generator.send(*args, &block) }

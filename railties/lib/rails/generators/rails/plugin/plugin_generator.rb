@@ -17,15 +17,22 @@ module Rails
 
     def app
       if mountable?
-        directory 'app'
-        empty_directory_with_keep_file "app/assets/images/#{namespaced_name}"
+        if api?
+          directory 'app', exclude_pattern: %r{app/(views|helpers)}
+        else
+          directory 'app'
+          empty_directory_with_keep_file "app/assets/images/#{namespaced_name}"
+        end
       elsif full?
         empty_directory_with_keep_file 'app/models'
         empty_directory_with_keep_file 'app/controllers'
-        empty_directory_with_keep_file 'app/views'
-        empty_directory_with_keep_file 'app/helpers'
         empty_directory_with_keep_file 'app/mailers'
-        empty_directory_with_keep_file "app/assets/images/#{namespaced_name}"
+
+        unless api?
+          empty_directory_with_keep_file "app/assets/images/#{namespaced_name}"
+          empty_directory_with_keep_file 'app/helpers'
+          empty_directory_with_keep_file 'app/views'
+        end
       end
     end
 
@@ -213,15 +220,15 @@ task default: :test
       end
 
       def create_public_stylesheets_files
-        build(:stylesheets)
+        build(:stylesheets) unless api?
       end
 
       def create_javascript_files
-        build(:javascripts)
+        build(:javascripts) unless api?
       end
 
       def create_images_directory
-        build(:images)
+        build(:images) unless api?
       end
 
       def create_bin_files
