@@ -71,8 +71,9 @@ module ActiveRecord
       def ids_writer(ids)
         pk_type = reflection.primary_key_type
         ids = Array(ids).reject(&:blank?)
-        ids.map! { |i| pk_type.cast(i) }
-        replace(klass.find(ids).index_by(&:id).values_at(*ids))
+        ids.map! { |i| pk_type.type_cast_for_database(i) }
+        records = klass.where(reflection.association_primary_key => ids).to_a.index_by(&reflection.association_primary_key.to_sym).values_at(*ids)
+        replace(records)
       end
 
       def reset
