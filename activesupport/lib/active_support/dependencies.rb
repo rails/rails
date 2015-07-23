@@ -255,12 +255,10 @@ module ActiveSupport #:nodoc:
       end
 
       def load_dependency(file)
-        Dependencies.load_interlock do
-          if Dependencies.load? && ActiveSupport::Dependencies.constant_watch_stack.watching?
-            Dependencies.new_constants_in(Object) { yield }
-          else
-            yield
-          end
+        if Dependencies.load? && ActiveSupport::Dependencies.constant_watch_stack.watching?
+          Dependencies.new_constants_in(Object) { yield }
+        else
+          yield
         end
       rescue Exception => exception  # errors from loading file
         exception.blame_file! file if exception.respond_to? :blame_file!
