@@ -8,8 +8,7 @@ module ActiveRecord
       # Returns this record's primary key value wrapped in an array if one is
       # available.
       def to_key
-        sync_with_transaction_state
-        key = self.id
+        key = id
         [key] if key
       end
 
@@ -23,26 +22,36 @@ module ActiveRecord
 
       # Sets the primary key value.
       def id=(value)
-        sync_with_transaction_state
-        write_attribute(self.class.primary_key, value) if self.class.primary_key
+        if pk = self.class.primary_key
+          sync_with_transaction_state
+          write_attribute(pk, value)
+        end
       end
 
       # Queries the primary key value.
       def id?
-        sync_with_transaction_state
-        query_attribute(self.class.primary_key)
+        if pk = self.class.primary_key
+          sync_with_transaction_state
+          query_attribute(pk)
+        else
+          false
+        end
       end
 
       # Returns the primary key value before type cast.
       def id_before_type_cast
-        sync_with_transaction_state
-        read_attribute_before_type_cast(self.class.primary_key)
+        if pk = self.class.primary_key
+          sync_with_transaction_state
+          read_attribute_before_type_cast(pk)
+        end
       end
 
       # Returns the primary key previous value.
       def id_was
-        sync_with_transaction_state
-        attribute_was(self.class.primary_key)
+        if pk = self.class.primary_key
+          sync_with_transaction_state
+          attribute_was(pk)
+        end
       end
 
       protected
