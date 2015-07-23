@@ -14,12 +14,15 @@ module ActiveJob
     #   Rails.application.config.active_job.queue_adapter = :backburner
     class BackburnerAdapter
       def enqueue(job) #:nodoc:
-        Backburner::Worker.enqueue JobWrapper, [ job.serialize ], queue: job.queue_name
+        enqueue_at(job)
       end
 
-      def enqueue_at(job, timestamp) #:nodoc:
-        delay = timestamp - Time.current.to_f
-        Backburner::Worker.enqueue JobWrapper, [ job.serialize ], queue: job.queue_name, delay: delay
+      def enqueue_at(job, timestamp = nil) #:nodoc:
+        options = {}
+        options[:queue] = job.queue_name
+        options[:delay] = timestamp = Time.current.to_f unless timestamp.nil?
+
+        Backburner::Worker.enqueue JobWrapper, [ job.serialize ], options
       end
 
       class JobWrapper #:nodoc:
