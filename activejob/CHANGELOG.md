@@ -1,3 +1,8 @@
+*   `assert_enqueued_with` and `assert_performed_with` now returns the matched
+    job instance for further assertions.
+    
+    *Jean Boussier*
+
 *   Include I18n.locale into job serialization/deserialization and use it around
     `perform`.
 

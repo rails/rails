@@ -233,10 +233,11 @@ module ActiveJob
         args.assert_valid_keys(:job, :args, :at, :queue)
         serialized_args = serialize_args_for_assertion(args)
         yield
-        matching_job = enqueued_jobs.any? do |job|
+        matching_job = enqueued_jobs.find do |job|
           serialized_args.all? { |key, value| value == job[key] }
         end
         assert matching_job, "No enqueued job found with #{args}"
+        instanciate_job(matching_job)
       ensure
         queue_adapter.enqueued_jobs = original_enqueued_jobs + enqueued_jobs
       end
@@ -254,10 +255,11 @@ module ActiveJob
         args.assert_valid_keys(:job, :args, :at, :queue)
         serialized_args = serialize_args_for_assertion(args)
         perform_enqueued_jobs { yield }
-        matching_job = performed_jobs.any? do |job|
+        matching_job = performed_jobs.find do |job|
           serialized_args.all? { |key, value| value == job[key] }
         end
         assert matching_job, "No performed job found with #{args}"
+        instanciate_job(matching_job)
       ensure
         queue_adapter.performed_jobs = original_performed_jobs + performed_jobs
       end
@@ -310,6 +312,13 @@ module ActiveJob
             serialized_args[:args] = ActiveJob::Arguments.serialize(job_args)
           end
           serialized_args
+        end
+
+        def instanciate_job(payload)
+          job = payload[:job].new(*payload[:args])
+          job.scheduled_at = Time.at(payload[:at]) if payload.key?(:at)
+          job.queue_name = payload[:queue]
+          job
         end
     end
   end
