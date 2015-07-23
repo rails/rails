@@ -176,6 +176,9 @@ task default: :test
                                         desc: "If creating plugin in application's directory " +
                                                  "skip adding entry to Gemfile"
 
+      class_option :api,          type: :boolean, default: false,
+                                  desc: "Generate a smaller stack for API application plugins"
+
       def initialize(*args)
         @dummy_path = nil
         super
@@ -303,6 +306,10 @@ task default: :test
 
       def with_dummy_app?
         options[:skip_test].blank? || options[:dummy_path] != 'test/dummy'
+      end
+
+      def api?
+        options[:api]
       end
 
       def self.banner

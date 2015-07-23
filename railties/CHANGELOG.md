@@ -1,3 +1,8 @@
+*   Add a `--api` option in order to generate plugins that can be added
+    inside an API application.
+
+    *Robin Dupret*
+
 *   Fix `NoMethodError` when generating a scaffold inside a full engine.
 
     *Yuji Yaginuma*
