@@ -75,6 +75,42 @@ module ActionCable
       attr_reader :params, :connection
       delegate :logger, to: :connection
 
+      class << self
+        # A list of method names that should be considered actions. This
+        # includes all public instance methods on a channel, less
+        # any internal methods (defined on Base), adding back in
+        # any methods that are internal, but still exist on the class
+        # itself.
+        #
+        # ==== Returns
+        # * <tt>Set</tt> - A set of all methods that should be considered actions.
+        def action_methods
+          @action_methods ||= begin
+            # All public instance methods of this class, including ancestors
+            methods = (public_instance_methods(true) -
+              # Except for public instance methods of Base and its ancestors
+              ActionCable::Channel::Base.public_instance_methods(true) +
+              # Be sure to include shadowed public instance methods of this class
+              public_instance_methods(false)).uniq.map(&:to_s)
+            methods.to_set
+          end
+        end
+
+        protected
+          # action_methods are cached and there is sometimes need to refresh
+          # them. ::clear_action_methods! allows you to do that, so next time
+          # you run action_methods, they will be recalculated
+          def clear_action_methods!
+            @action_methods = nil
+          end
+
+          # Refresh the cached action_methods when a new action_method is added.
+          def method_added(name)
+            super
+            clear_action_methods!
+          end
+      end
+
       def initialize(connection, identifier, params = {})
         @connection = connection
         @identifier = identifier
@@ -147,7 +183,7 @@ module ActionCable
         end
 
         def processable_action?(action)
-          self.class.instance_methods(false).include?(action)
+          self.class.action_methods.include?(action.to_s)
         end
 
         def dispatch_action(action, data)
@@ -167,7 +203,6 @@ module ActionCable
             end
           end
         end
-
 
         def run_subscribe_callbacks
           self.class.on_subscribe_callbacks.each { |callback| send(callback) }
