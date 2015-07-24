@@ -122,6 +122,10 @@
       url: autoloading_and_reloading_constants.html
       description: This guide documents how autoloading and reloading constants work.
     -
+      name: Caching with Rails: An overview
+      url: caching_with_rails.html
+      description: This guide will teach you what you need to know about avoiding that expensive round-trip to your database and returning what you need to return to the web clients in the shortest time possible.
+    -
       name: Active Support Instrumentation
       work_in_progress: true
       url: active_support_instrumentation.html
