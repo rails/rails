@@ -1,3 +1,18 @@
+*   Restore the record state (e.g. id, new_record, destroyed) after rollback.
+
+    Example:
+
+        user = User.new(name: "foo")
+        User.transaction do
+          user.save
+          raise ActiveRecord::Rollback
+        end
+        user.id # => nil
+
+    Fixes #7807 and #12922.
+
+    *Roque Pinel*, *Ivan Antropov*
+
 *   Check whether `Rails.application` defined before calling it
 
     In #27674 we changed the migration generator to generate migrations at the

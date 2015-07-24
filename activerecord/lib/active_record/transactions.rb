@@ -359,11 +359,12 @@ module ActiveRecord
     end
 
     # Add the record to the current transaction so that the #after_rollback and #after_commit callbacks
-    # can be called.
+    # can be called and state restored.
     def add_to_transaction
       if has_transactional_callbacks?
         self.class.connection.add_transaction_record(self)
       else
+        self.class.connection.add_transaction_record(self) if has_remembered_start_transaction_state?
         sync_with_transaction_state
         set_transaction_state(self.class.connection.transaction_state)
       end
@@ -464,6 +465,10 @@ module ActiveRecord
 
       def has_transactional_callbacks?
         !_rollback_callbacks.empty? || !_commit_callbacks.empty? || !_before_commit_callbacks.empty?
+      end
+
+      def has_remembered_start_transaction_state? # :nodoc:
+        @_start_transaction_state.any?
       end
 
       # Updates the attributes on this particular Active Record object so that

@@ -181,10 +181,33 @@ class TransactionTest < ActiveRecord::TestCase
   end
 
   def test_transaction_state_is_cleared_when_record_is_persisted
-    author = Author.create! name: "foo"
+    author = Author.create!(name: "foo")
     author.name = nil
     assert_not author.save
     assert_not author.new_record?
+  end
+
+  def test_transaction_state_is_restored_after_save_and_rollback
+    author = Author.new(name: "foo")
+    Author.transaction do
+      author.save
+      raise ActiveRecord::Rollback
+    end
+    assert_nil author.id
+    assert_equal true, author.new_record?
+    assert_equal false, author.destroyed?
+  end
+
+  def test_transaction_state_is_restored_after_destroy_and_rollback
+    author = Author.create!(name: "foo")
+    author_id = author.id
+    Author.transaction do
+      author.destroy
+      raise ActiveRecord::Rollback
+    end
+    assert_equal author_id, author.id
+    assert_equal false, author.new_record?
+    assert_equal false, author.destroyed?
   end
 
   def test_update_should_rollback_on_failure
