@@ -1,4 +1,11 @@
-*   Make enabling or disabling caching in development mode possible with 
+*   Fix STATS_DIRECTORIES already defined warning when running rake from within
+    the top level directory of an engine that has a test app.
+
+    Fixes #20510
+
+    *Ersin Akinci*
+
+*   Make enabling or disabling caching in development mode possible with
     rake dev:cache.
 
     Running rake dev:cache will create or remove tmp/caching-dev.txt. When this
