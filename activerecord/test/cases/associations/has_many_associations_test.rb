@@ -2278,4 +2278,34 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     assert_deprecated { company.clients_of_firm(true) }
   end
+
+  class AuthorWithErrorDestroyingAssociation < ActiveRecord::Base
+    self.table_name = "authors"
+    has_many :posts_with_error_destroying,
+      class_name: "PostWithErrorDestroying",
+      foreign_key: :author_id,
+      dependent: :destroy
+  end
+
+  class PostWithErrorDestroying < ActiveRecord::Base
+    self.table_name = "posts"
+    self.inheritance_column = nil
+    before_destroy -> { throw :abort }
+  end
+
+  def test_destroy_does_not_raise_when_association_errors_on_destroy
+    assert_no_difference "AuthorWithErrorDestroyingAssociation.count" do
+      author = AuthorWithErrorDestroyingAssociation.first
+
+      assert_not author.destroy
+    end
+  end
+
+  def test_destroy_with_bang_bubbles_errors_from_associations
+    error = assert_raises ActiveRecord::RecordNotDestroyed do
+      AuthorWithErrorDestroyingAssociation.first.destroy!
+    end
+
+    assert_instance_of PostWithErrorDestroying, error.record
+  end
 end

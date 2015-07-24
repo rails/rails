@@ -1,3 +1,10 @@
+*   Don't raise an error if an association failed to destroy when `destroy` was
+    called on the parent (as opposed to `destroy!`).
+
+    Fixes #20991.
+
+    *Sean Griffin*
+
 *   ActiveRecord::RecordNotFound modified to store model name, primary_key and
     id of the caller model. It allows the catcher of this exception to make
     a better decision to what to do with it. For example consider this simple
