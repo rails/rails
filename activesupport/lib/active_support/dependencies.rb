@@ -37,6 +37,13 @@ module ActiveSupport #:nodoc:
       Dependencies.interlock.loading { yield }
     end
 
+    # Execute the supplied block while holding an exclusive lock,
+    # preventing any other thread from being inside a #run_interlock
+    # block at the same time
+    def self.unload_interlock
+      Dependencies.interlock.unloading { yield }
+    end
+
     # :nodoc:
 
     # Should we turn on Ruby warnings on the first load of dependent files?
@@ -346,7 +353,7 @@ module ActiveSupport #:nodoc:
 
     def clear
       log_call
-      Dependencies.load_interlock do
+      Dependencies.unload_interlock do
         loaded.clear
         loading.clear
         remove_unloadable_constants!
