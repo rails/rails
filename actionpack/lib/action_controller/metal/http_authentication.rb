@@ -98,7 +98,8 @@ module ActionController
       end
 
       def user_name_and_password(request)
-        decode_credentials(request).split(':', 2)
+        u, _, p = decode_credentials(request).partition(':')
+        [u, p]
       end
 
       def decode_credentials(request)
