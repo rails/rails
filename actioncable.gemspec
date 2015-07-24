@@ -15,7 +15,8 @@ Gem::Specification.new do |s|
   s.add_dependency 'actionpack',       '>= 4.2.0'
   s.add_dependency 'faye-websocket',   '~> 0.10.0'
   s.add_dependency 'websocket-driver', '~> 0.6.1'
-  s.add_dependency 'celluloid',        '~> 0.17.0'
+  # Use 0.16.0 until https://github.com/celluloid/celluloid/issues/637 is resolved
+  s.add_dependency 'celluloid',        '~> 0.16.0'
   s.add_dependency 'em-hiredis',       '~> 0.3.0'
   s.add_dependency 'redis',            '~> 3.0'
   s.add_dependency 'coffee-rails'
