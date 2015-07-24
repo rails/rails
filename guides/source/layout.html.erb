@@ -10,7 +10,7 @@
 <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print" />
 
 <link rel="stylesheet" type="text/css" href="stylesheets/syntaxhighlighter/shCore.css" />
-<link rel="stylesheet" type="text/css" href="stylesheets/syntaxhighlighter/shThemeRailsGuides.css" />
+<link rel="stylesheet" type="text/css" href="stylesheets/syntaxhighlighter/shThemeRailsGuides.css" />⁄
 
 <link rel="stylesheet" type="text/css" href="stylesheets/fixes.css" />
 
@@ -18,9 +18,9 @@
 </head>
 <body class="guide">
   <% if @edge %>
-  <div>
-    <img src="images/edge_badge.png" alt="edge-badge" id="edge-badge" />
-  </div>
+    <div>
+      <img src="images/edge_badge.png" alt="edge-badge" id="edge-badge" />
+    </div>
   <% end %>
   <div id="topNav">
     <div class="wrapper">
@@ -54,7 +54,7 @@
               <% docs_for_menu(position).each do |section| %>
                 <dt><%= section['name'] %></dt>
                 <% finished_documents(section['documents']).each do |document| %>
-                <dd><a href="<%= document['url'] %>"><%= document['name'] %></a></dd>
+                  <dd><a href="<%= document['url'] %>"><%= document['name'] %></a></dd>
                 <% end %>
               <% end %>
               </dl>
