@@ -4,7 +4,7 @@ PATH
     actioncable (0.1.0)
       actionpack (>= 4.2.0)
       activesupport (>= 4.2.0)
-      celluloid (~> 0.17.0)
+      celluloid (~> 0.16.0)
       coffee-rails
       em-hiredis (~> 0.3.0)
       faye-websocket (~> 0.10.0)
@@ -34,46 +34,7 @@ GEM
       thread_safe (~> 0.3, >= 0.3.4)
       tzinfo (~> 1.1)
     builder (3.2.2)
-    celluloid (0.17.0)
-      bundler
-      celluloid-essentials
-      celluloid-extras
-      celluloid-fsm
-      celluloid-pool
-      celluloid-supervision
-      dotenv
-      nenv
-      rspec-logsplit (>= 0.1.2)
-      timers (~> 4.0.0)
-    celluloid-essentials (0.20.1.1)
-      bundler
-      dotenv
-      nenv
-      rspec-logsplit (>= 0.1.2)
-      timers (~> 4.0.0)
-    celluloid-extras (0.20.0)
-      bundler
-      dotenv
-      nenv
-      rspec-logsplit (>= 0.1.2)
-      timers (~> 4.0.0)
-    celluloid-fsm (0.20.0)
-      bundler
-      dotenv
-      nenv
-      rspec-logsplit (>= 0.1.2)
-      timers (~> 4.0.0)
-    celluloid-pool (0.20.0)
-      bundler
-      dotenv
-      nenv
-      rspec-logsplit (>= 0.1.2)
-      timers (~> 4.0.0)
-    celluloid-supervision (0.20.0)
-      bundler
-      dotenv
-      nenv
-      rspec-logsplit (>= 0.1.2)
+    celluloid (0.16.0)
       timers (~> 4.0.0)
     coffee-rails (4.1.0)
       coffee-script (>= 2.2.0)
@@ -82,7 +43,6 @@ GEM
       coffee-script-source
       execjs
     coffee-script-source (1.9.1.1)
-    dotenv (2.0.2)
     em-hiredis (0.3.0)
       eventmachine (~> 1.0)
       hiredis (~> 0.5.0)
@@ -103,7 +63,6 @@ GEM
     minitest (5.7.0)
     mocha (1.1.0)
       metaclass (~> 0.0.1)
-    nenv (0.2.0)
     nokogiri (1.6.6.2)
       mini_portile (~> 0.6.0)
     puma (2.12.2)
@@ -125,7 +84,6 @@ GEM
       thor (>= 0.18.1, < 2.0)
     rake (10.4.2)
     redis (3.2.1)
-    rspec-logsplit (0.1.3)
     thor (0.19.1)
     thread_safe (0.3.5)
     timers (4.0.1)

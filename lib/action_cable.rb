@@ -11,7 +11,7 @@ require 'active_support/core_ext/module/delegation'
 require 'active_support/callbacks'
 
 require 'faye/websocket'
-require 'celluloid/current'
+require 'celluloid'
 require 'em-hiredis'
 require 'redis'
 
