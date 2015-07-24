@@ -965,7 +965,7 @@ Within the context of a layout, `yield` identifies a section where content from 
   <head>
   </head>
   <body>
-  <%= yield %>
+    <%= yield %>
   </body>
 </html>
 ```
@@ -975,10 +975,10 @@ You can also create a layout with multiple yielding regions:
 ```html+erb
 <html>
   <head>
-  <%= yield :head %>
+    <%= yield :head %>
   </head>
   <body>
-  <%= yield %>
+    <%= yield %>
   </body>
 </html>
 ```
@@ -1002,10 +1002,10 @@ The result of rendering this page into the supplied layout would be this HTML:
 ```html+erb
 <html>
   <head>
-  <title>A simple page</title>
+    <title>A simple page</title>
   </head>
   <body>
-  <p>Hello, Rails!</p>
+    <p>Hello, Rails!</p>
   </body>
 </html>
 ```

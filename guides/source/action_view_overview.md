@@ -1200,7 +1200,7 @@ Creates a file upload field.
 
 ```html+erb
 <%= form_tag({ action: "post" }, multipart: true) do %>
-  <label for="file">File to Upload</label> <%= file_field_tag "file" %>
+  <label for="file">File to Upload</label><%= file_field_tag "file" %>
   <%= submit_tag %>
 <% end %>
 ```
