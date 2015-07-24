@@ -295,7 +295,7 @@ module ActiveRecord
       def reset_column_information
         connection.clear_cache!
         undefine_attribute_methods
-        connection.schema_cache.clear_table_cache!(table_name) if table_exists?
+        connection.schema_cache.clear_table_cache!(table_name)
 
         @arel_engine        = nil
         @column_names       = nil
