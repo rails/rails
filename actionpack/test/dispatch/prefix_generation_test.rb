@@ -73,26 +73,26 @@ module TestGenerationPrefix
       include RailsApplication.routes.mounted_helpers
 
       def index
-        render :text => posts_path
+        render plain: posts_path
       end
 
       def show
-        render :text => post_path(:id => params[:id])
+        render plain: post_path(id: params[:id])
       end
 
       def url_to_application
         path = main_app.url_for(:controller => "outside_engine_generating",
                                 :action => "index",
                                 :only_path => true)
-        render :text => path
+        render plain: path
       end
 
       def polymorphic_path_for_engine
-        render :text => polymorphic_path(Post.new)
+        render plain: polymorphic_path(Post.new)
       end
 
       def conflicting
-        render :text => "engine"
+        render plain: "engine"
       end
     end
 
@@ -101,28 +101,28 @@ module TestGenerationPrefix
       include RailsApplication.routes.url_helpers
 
       def index
-        render :text => blog_engine.post_path(:id => 1)
+        render plain: blog_engine.post_path(id: 1)
       end
 
       def polymorphic_path_for_engine
-        render :text => blog_engine.polymorphic_path(Post.new)
+        render plain: blog_engine.polymorphic_path(Post.new)
       end
 
       def polymorphic_path_for_app
-        render :text => polymorphic_path(Post.new)
+        render plain: polymorphic_path(Post.new)
       end
 
       def polymorphic_with_url_for
-        render :text => blog_engine.url_for(Post.new)
+        render plain: blog_engine.url_for(Post.new)
       end
 
       def conflicting
-        render :text => "application"
+        render plain: "application"
       end
 
       def ivar_usage
         @blog_engine = "Not the engine route helper"
-        render :text => blog_engine.post_path(:id => 1)
+        render plain: blog_engine.post_path(id: 1)
       end
     end
 
@@ -378,7 +378,7 @@ module TestGenerationPrefix
       include RailsApplication.routes.mounted_helpers
 
       def show
-        render :text => post_path(:id => params[:id])
+        render plain: post_path(id: params[:id])
       end
     end
 

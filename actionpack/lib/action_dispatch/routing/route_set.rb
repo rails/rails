@@ -671,7 +671,7 @@ module ActionDispatch
 
         # Remove leading slashes from controllers
         def normalize_controller!
-          @options[:controller] = controller.sub(%r{^/}, '') if controller
+          @options[:controller] = controller.sub(%r{^/}, ''.freeze) if controller
         end
 
         # Move 'index' action from options to recall

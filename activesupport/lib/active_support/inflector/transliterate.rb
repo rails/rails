@@ -79,7 +79,7 @@ module ActiveSupport
         # No more than one of the separator in a row.
         parameterized_string.gsub!(/#{re_sep}{2,}/, sep)
         # Remove leading/trailing separator.
-        parameterized_string.gsub!(/^#{re_sep}|#{re_sep}$/i, '')
+        parameterized_string.gsub!(/^#{re_sep}|#{re_sep}$/i, ''.freeze)
       end
       parameterized_string.downcase
     end

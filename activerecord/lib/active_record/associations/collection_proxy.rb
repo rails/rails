@@ -781,7 +781,7 @@ module ActiveRecord
       #   person.pets.any?  # => false
       #
       #   person.pets << Pet.new(name: 'Snoop')
-      #   person.pets.count # => 0
+      #   person.pets.count # => 1
       #   person.pets.any?  # => true
       #
       # You can also pass a +block+ to define criteria. The behavior
@@ -971,7 +971,7 @@ module ActiveRecord
       alias_method :append, :<<
 
       def prepend(*args)
-        raise NoMethodError, "prepend on association is not defined. Please use << or append"
+        raise NoMethodError, "prepend on association is not defined. Please use <<, push or append"
       end
 
       # Equivalent to +delete_all+. The difference is that returns +self+, instead

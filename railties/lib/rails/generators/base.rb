@@ -103,12 +103,12 @@ module Rails
       #     hook_for :test_framework, as: :controller
       #   end
       #
-      # And now it will lookup at:
+      # And now it will look up at:
       #
       #   "test_unit:controller", "test_unit"
       #
-      # Similarly, if you want it to also lookup in the rails namespace, you just
-      # need to provide the :in value:
+      # Similarly, if you want it to also look up in the rails namespace, you
+      # just need to provide the :in value:
       #
       #   class AwesomeGenerator < Rails::Generators::Base
       #     hook_for :test_framework, in: :rails, as: :controller

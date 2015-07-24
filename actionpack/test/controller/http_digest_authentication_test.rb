@@ -10,11 +10,11 @@ class HttpDigestAuthenticationTest < ActionController::TestCase
               'dhh' => ::Digest::MD5::hexdigest(["dhh","SuperSecret","secret"].join(":"))}
 
     def index
-      render :text => "Hello Secret"
+      render plain: "Hello Secret"
     end
 
     def display
-      render :text => 'Definitely Maybe' if @logged_in
+      render plain: 'Definitely Maybe' if @logged_in
     end
 
     private

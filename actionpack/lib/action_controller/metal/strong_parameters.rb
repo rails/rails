@@ -378,13 +378,15 @@ module ActionController
     #   params.fetch(:none, 'Francesco')    # => "Francesco"
     #   params.fetch(:none) { 'Francesco' } # => "Francesco"
     def fetch(key, *args, &block)
-      convert_hashes_to_parameters(
-        key,
-        @parameters.fetch(key, *args, &block),
-        false
+      convert_value_to_parameters(
+        @parameters.fetch(key) {
+          if block_given?
+            yield
+          else
+            args.fetch(0) { raise ActionController::ParameterMissing.new(key) }
+          end
+        }
       )
-    rescue KeyError
-      raise ActionController::ParameterMissing.new(key)
     end
 
     # Returns a new <tt>ActionController::Parameters</tt> instance that
@@ -471,7 +473,7 @@ module ActionController
     # optional code block is given and the key is not found, pass in the key
     # and return the result of block.
     def delete(key, &block)
-      convert_hashes_to_parameters(key, @parameters.delete(key), false)
+      convert_value_to_parameters(@parameters.delete(key))
     end
 
     # Returns a new instance of <tt>ActionController::Parameters</tt> with only
@@ -540,6 +542,10 @@ module ActionController
         @permitted = new_permitted
       end
 
+      def fields_for_style?
+        @parameters.all? { |k, v| k =~ /\A-?\d+\z/ && v.is_a?(Hash) }
+      end
+
     private
       def new_instance_with_inherited_permitted_status(hash)
         self.class.new(hash).tap do |new_instance|
@@ -547,39 +553,39 @@ module ActionController
         end
       end
 
-      def convert_hashes_to_parameters(key, value, assign_if_converted=true)
+      def convert_hashes_to_parameters(key, value)
         converted = convert_value_to_parameters(value)
-        @parameters[key] = converted if assign_if_converted && !converted.equal?(value)
+        @parameters[key] = converted unless converted.equal?(value)
         converted
       end
 
       def convert_value_to_parameters(value)
-        if value.is_a?(Array) && !converted_arrays.member?(value)
+        case value
+        when Array
+          return value if converted_arrays.member?(value)
           converted = value.map { |_| convert_value_to_parameters(_) }
           converted_arrays << converted
           converted
-        elsif value.is_a?(Parameters) || !value.is_a?(Hash)
-          value
-        else
+        when Hash
           self.class.new(value)
+        else
+          value
         end
       end
 
       def each_element(object)
-        if object.is_a?(Array)
-          object.map { |el| yield el }.compact
-        elsif fields_for_style?(object)
-          hash = object.class.new
-          object.each { |k,v| hash[k] = yield v }
-          hash
-        else
-          yield object
+        case object
+        when Array
+          object.grep(Parameters).map { |el| yield el }.compact
+        when Parameters
+          if object.fields_for_style?
+            hash = object.class.new
+            object.each { |k,v| hash[k] = yield v }
+            hash
+          else
+            yield object
+          end
         end
-      end
-
-      def fields_for_style?(object)
-        (object.is_a?(Hash) || object.is_a?(Parameters)) &&
-          object.to_unsafe_h.all? { |k, v| k =~ /\A-?\d+\z/ && v.is_a?(Hash) }
       end
 
       def unpermitted_parameters!(params)
@@ -643,14 +649,8 @@ module ActionController
       end
 
       def array_of_permitted_scalars?(value)
-        if value.is_a?(Array)
-          value.all? {|element| permitted_scalar?(element)}
-        end
-      end
-
-      def array_of_permitted_scalars_filter(params, key)
-        if has_key?(key) && array_of_permitted_scalars?(self[key])
-          params[key] = self[key]
+        if value.is_a?(Array) && value.all? {|element| permitted_scalar?(element)}
+          yield value
         end
       end
 
@@ -661,17 +661,17 @@ module ActionController
         # Slicing filters out non-declared keys.
         slice(*filter.keys).each do |key, value|
           next unless value
+          next unless has_key? key
 
           if filter[key] == EMPTY_ARRAY
             # Declaration { comment_ids: [] }.
-            array_of_permitted_scalars_filter(params, key)
+            array_of_permitted_scalars?(self[key]) do |val|
+              params[key] = val
+            end
           else
             # Declaration { user: :name } or { user: [:name, :age, { address: ... }] }.
             params[key] = each_element(value) do |element|
-              if element.is_a?(Hash) || element.is_a?(Parameters)
-                element = self.class.new(element) unless element.respond_to?(:permit)
-                element.permit(*Array.wrap(filter[key]))
-              end
+              element.permit(*Array.wrap(filter[key]))
             end
           end
         end

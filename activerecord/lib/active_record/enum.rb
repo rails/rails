@@ -75,22 +75,24 @@ module ActiveRecord
   #
   #   Conversation.where("status <> ?", Conversation.statuses[:archived])
   #
-  # You can use the +:enum_prefix+ or +:enum_suffix+ options when you need
-  # to define multiple enums with same values. If the passed value is +true+,
-  # the methods are prefixed/suffixed with the name of the enum.
+  # You can use the +:_prefix+ or +:_suffix+ options when you need to define
+  # multiple enums with same values. If the passed value is +true+, the methods
+  # are prefixed/suffixed with the name of the enum. It is also possible to
+  # supply a custom value:
   #
-  #   class Invoice < ActiveRecord::Base
-  #     enum verification: [:done, :fail], enum_prefix: true
+  #   class Conversation < ActiveRecord::Base
+  #     enum status: [:active, :archived], _suffix: true
+  #     enum comments_status: [:active, :inactive], _prefix: :comments
   #   end
   #
-  # It is also possible to supply a custom prefix.
+  # With the above example, the bang and predicate methods along with the
+  # associated scopes are now prefixed and/or suffixed accordingly:
   #
-  #   class Invoice < ActiveRecord::Base
-  #     enum verification: [:done, :fail], enum_prefix: :verification_status
-  #   end
+  #   conversation.active_status!
+  #   conversation.archived_status? # => false
   #
-  # Note that <tt>:enum_prefix</tt>/<tt>:enum_suffix</tt> are reserved keywords
-  # and can not be used as an enum name.
+  #   conversation.comments_inactive!
+  #   conversation.comments_active? # => false
 
   module Enum
     def self.extended(base) # :nodoc:
@@ -137,8 +139,8 @@ module ActiveRecord
 
     def enum(definitions)
       klass = self
-      enum_prefix = definitions.delete(:enum_prefix)
-      enum_suffix = definitions.delete(:enum_suffix)
+      enum_prefix = definitions.delete(:_prefix)
+      enum_suffix = definitions.delete(:_suffix)
       definitions.each do |name, values|
         # statuses = { }
         enum_values = ActiveSupport::HashWithIndifferentAccess.new

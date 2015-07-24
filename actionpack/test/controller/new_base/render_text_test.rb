@@ -1,4 +1,5 @@
 require 'abstract_unit'
+require 'active_support/deprecation'
 
 module RenderText
   class MinimalController < ActionController::Metal
@@ -73,7 +74,10 @@ module RenderText
 
   class RenderTextTest < Rack::TestCase
     test "rendering text from a minimal controller" do
-      get "/render_text/minimal/index"
+      ActiveSupport::Deprecation.silence do
+        get "/render_text/minimal/index"
+      end
+
       assert_body "Hello World!"
       assert_status 200
     end
@@ -82,7 +86,10 @@ module RenderText
       with_routing do |set|
         set.draw { get ':controller', action: 'index' }
 
-        get "/render_text/simple"
+        ActiveSupport::Deprecation.silence do
+          get "/render_text/simple"
+        end
+
         assert_body "hello david"
         assert_status 200
       end
@@ -92,7 +99,9 @@ module RenderText
       with_routing do |set|
         set.draw { get ':controller', action: 'index' }
 
-        get "/render_text/with_layout"
+        ActiveSupport::Deprecation.silence do
+          get "/render_text/with_layout"
+        end
 
         assert_body "hello david"
         assert_status 200
@@ -100,59 +109,81 @@ module RenderText
     end
 
     test "rendering text, while also providing a custom status code" do
-      get "/render_text/with_layout/custom_code"
+      ActiveSupport::Deprecation.silence do
+        get "/render_text/with_layout/custom_code"
+      end
 
       assert_body "hello world"
       assert_status 404
     end
 
     test "rendering text with nil returns an empty body" do
-      get "/render_text/with_layout/with_nil"
+      ActiveSupport::Deprecation.silence do
+        get "/render_text/with_layout/with_nil"
+      end
 
       assert_body ""
       assert_status 200
     end
 
     test "Rendering text with nil and custom status code returns an empty body and the status" do
-      get "/render_text/with_layout/with_nil_and_status"
+      ActiveSupport::Deprecation.silence do
+        get "/render_text/with_layout/with_nil_and_status"
+      end
 
       assert_body ""
       assert_status 403
     end
 
     test "rendering text with false returns the string 'false'" do
-      get "/render_text/with_layout/with_false"
+      ActiveSupport::Deprecation.silence do
+        get "/render_text/with_layout/with_false"
+      end
 
       assert_body "false"
       assert_status 200
     end
 
     test "rendering text with layout: true" do
-      get "/render_text/with_layout/with_layout_true"
+      ActiveSupport::Deprecation.silence do
+        get "/render_text/with_layout/with_layout_true"
+      end
 
       assert_body "hello world, I'm here!"
       assert_status 200
     end
 
     test "rendering text with layout: 'greetings'" do
-      get "/render_text/with_layout/with_custom_layout"
+      ActiveSupport::Deprecation.silence do
+        get "/render_text/with_layout/with_custom_layout"
+      end
 
       assert_body "hello world, I wish thee well."
       assert_status 200
     end
 
     test "rendering text with layout: false" do
-      get "/render_text/with_layout/with_layout_false"
+      ActiveSupport::Deprecation.silence do
+        get "/render_text/with_layout/with_layout_false"
+      end
 
       assert_body "hello world"
       assert_status 200
     end
 
     test "rendering text with layout: nil" do
-      get "/render_text/with_layout/with_layout_nil"
+      ActiveSupport::Deprecation.silence do
+        get "/render_text/with_layout/with_layout_nil"
+      end
 
       assert_body "hello world"
       assert_status 200
+    end
+
+    test "rendering text displays deprecation warning" do
+      assert_deprecated do
+        get "/render_text/with_layout/with_layout_nil"
+      end
     end
   end
 end

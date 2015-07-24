@@ -386,6 +386,9 @@ module ActiveRecord
     # then the existing record will be marked for destruction.
     def assign_nested_attributes_for_one_to_one_association(association_name, attributes)
       options = self.nested_attributes_options[association_name]
+      if attributes.respond_to?(:permitted?)
+        attributes = attributes.to_h
+      end
       attributes = attributes.with_indifferent_access
       existing_record = send(association_name)
 
@@ -442,6 +445,9 @@ module ActiveRecord
     #   ])
     def assign_nested_attributes_for_collection_association(association_name, attributes_collection)
       options = self.nested_attributes_options[association_name]
+      if attributes_collection.respond_to?(:permitted?)
+        attributes_collection = attributes_collection.to_h
+      end
 
       unless attributes_collection.is_a?(Hash) || attributes_collection.is_a?(Array)
         raise ArgumentError, "Hash or Array expected, got #{attributes_collection.class.name} (#{attributes_collection.inspect})"
@@ -468,6 +474,9 @@ module ActiveRecord
       end
 
       attributes_collection.each do |attributes|
+        if attributes.respond_to?(:permitted?)
+          attributes = attributes.to_h
+        end
         attributes = attributes.with_indifferent_access
 
         if attributes['id'].blank?
@@ -552,7 +561,9 @@ module ActiveRecord
     end
 
     def raise_nested_attributes_record_not_found!(association_name, record_id)
-      raise RecordNotFound, "Couldn't find #{self.class._reflect_on_association(association_name).klass.name} with ID=#{record_id} for #{self.class.name} with ID=#{id}"
+      model = self.class._reflect_on_association(association_name).klass.name
+      raise RecordNotFound.new("Couldn't find #{model} with ID=#{record_id} for #{self.class.name} with ID=#{id}",
+                               model, 'id', record_id)
     end
   end
 end

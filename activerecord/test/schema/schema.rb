@@ -37,6 +37,7 @@ ActiveRecord::Schema.define do
 
   create_table :aircraft, force: true do |t|
     t.string :name
+    t.integer :wheels_count, default: 0, null: false
   end
 
   create_table :articles, force: true do |t|
@@ -676,6 +677,10 @@ ActiveRecord::Schema.define do
     t.string :name
     t.integer :ship_id
     t.datetime :updated_at
+  end
+
+  create_table :prisoners, force: true do |t|
+    t.belongs_to :ship
   end
 
   create_table :speedometers, force: true, id: false do |t|

@@ -3729,7 +3729,7 @@ class TestNamespaceWithControllerOption < ActionDispatch::IntegrationTest
   module ::Admin
     class StorageFilesController < ActionController::Base
       def index
-        render :text => "admin/storage_files#index"
+        render plain: "admin/storage_files#index"
       end
     end
   end
@@ -3824,7 +3824,7 @@ class TestDefaultScope < ActionDispatch::IntegrationTest
   module ::Blog
     class PostsController < ActionController::Base
       def index
-        render :text => "blog/posts#index"
+        render plain: "blog/posts#index"
       end
     end
   end
@@ -4164,13 +4164,13 @@ end
 class TestNamedRouteUrlHelpers < ActionDispatch::IntegrationTest
   class CategoriesController < ActionController::Base
     def show
-      render :text => "categories#show"
+      render plain: "categories#show"
     end
   end
 
   class ProductsController < ActionController::Base
     def show
-      render :text => "products#show"
+      render plain: "products#show"
     end
   end
 
@@ -4265,7 +4265,7 @@ end
 class TestInvalidUrls < ActionDispatch::IntegrationTest
   class FooController < ActionController::Base
     def show
-      render :text => "foo#show"
+      render plain: "foo#show"
     end
   end
 
@@ -4568,7 +4568,7 @@ end
 class TestDefaultUrlOptions < ActionDispatch::IntegrationTest
   class PostsController < ActionController::Base
     def archive
-      render :text => "posts#archive"
+      render plain: "posts#archive"
     end
   end
 

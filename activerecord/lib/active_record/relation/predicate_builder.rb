@@ -52,7 +52,7 @@ module ActiveRecord
           key
         else
           key = key.to_s
-          key.split('.').first if key.include?('.')
+          key.split('.'.freeze).first if key.include?('.'.freeze)
         end
       end.compact
     end
@@ -123,10 +123,10 @@ module ActiveRecord
     end
 
     def convert_dot_notation_to_hash(attributes)
-      dot_notation = attributes.keys.select { |s| s.include?(".") }
+      dot_notation = attributes.keys.select { |s| s.include?(".".freeze) }
 
       dot_notation.each do |key|
-        table_name, column_name = key.split(".")
+        table_name, column_name = key.split(".".freeze)
         value = attributes.delete(key)
         attributes[table_name] ||= {}
 

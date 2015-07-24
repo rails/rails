@@ -1538,7 +1538,7 @@ module ActionDispatch
           path = path_for_action(action, options.delete(:path))
           raise ArgumentError, "path is required" if path.blank?
 
-          action = action.to_s.dup
+          action = action.to_s
 
           if action =~ /^[\w\-\/]+$/
             options[:action] ||= action.tr('-', '_') unless action.include?("/")

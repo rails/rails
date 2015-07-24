@@ -204,9 +204,8 @@ module ActiveRecord
     #
     # Note that "TRUNCATE" is also a MySQL DDL statement!
     module ClassMethods
-      # See ActiveRecord::Transactions::ClassMethods for detailed documentation.
+      # See the ConnectionAdapters::DatabaseStatements#transaction API docs.
       def transaction(options = {}, &block)
-        # See the ConnectionAdapters::DatabaseStatements#transaction API docs.
         connection.transaction(options, &block)
       end
 
@@ -380,6 +379,10 @@ module ActiveRecord
         raise ActiveRecord::Rollback unless status
       end
       status
+    ensure
+      if @transaction_state && @transaction_state.committed?
+        clear_transaction_record_state
+      end
     end
 
     protected

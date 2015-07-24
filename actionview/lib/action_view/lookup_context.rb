@@ -6,10 +6,11 @@ require 'action_view/template/resolver'
 module ActionView
   # = Action View Lookup Context
   #
-  # <tt>LookupContext</tt> is the object responsible to hold all information required to lookup
-  # templates, i.e. view paths and details. The LookupContext is also responsible to
-  # generate a key, given to view paths, used in the resolver cache lookup. Since
-  # this key is generated just once during the request, it speeds up all cache accesses.
+  # <tt>LookupContext</tt> is the object responsible for holding all information
+  # required for looking up templates, i.e. view paths and details.
+  # <tt>LookupContext</tt> is also responsible for generating a key, given to
+  # view paths, used in the resolver cache lookup. Since this key is generated
+  # only once during the request, it speeds up all cache accesses.
   class LookupContext #:nodoc:
     attr_accessor :prefixes, :rendered_format
 
@@ -172,13 +173,13 @@ module ActionView
       # name instead of the prefix.
       def normalize_name(name, prefixes) #:nodoc:
         prefixes = prefixes.presence
-        parts    = name.to_s.split('/')
+        parts    = name.to_s.split('/'.freeze)
         parts.shift if parts.first.empty?
         name     = parts.pop
 
         return name, prefixes || [""] if parts.empty?
 
-        parts    = parts.join('/')
+        parts    = parts.join('/'.freeze)
         prefixes = prefixes ? prefixes.map { |p| "#{p}/#{parts}" } : [parts]
 
         return name, prefixes
@@ -203,7 +204,7 @@ module ActionView
     # add :html as fallback to :js.
     def formats=(values)
       if values
-        values.concat(default_formats) if values.delete "*/*"
+        values.concat(default_formats) if values.delete "*/*".freeze
         if values == [:js]
           values << :html
           @html_fallback_for_js = true

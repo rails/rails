@@ -37,6 +37,13 @@ module ActiveSupport #:nodoc:
       Dependencies.interlock.loading { yield }
     end
 
+    # Execute the supplied block while holding an exclusive lock,
+    # preventing any other thread from being inside a #run_interlock
+    # block at the same time
+    def self.unload_interlock
+      Dependencies.interlock.unloading { yield }
+    end
+
     # :nodoc:
 
     # Should we turn on Ruby warnings on the first load of dependent files?
@@ -149,7 +156,7 @@ module ActiveSupport #:nodoc:
 
           # Normalize the list of new constants, and add them to the list we will return
           new_constants.each do |suffix|
-            constants << ([namespace, suffix] - ["Object"]).join("::")
+            constants << ([namespace, suffix] - ["Object"]).join("::".freeze)
           end
         end
         constants
@@ -255,12 +262,10 @@ module ActiveSupport #:nodoc:
       end
 
       def load_dependency(file)
-        Dependencies.load_interlock do
-          if Dependencies.load? && ActiveSupport::Dependencies.constant_watch_stack.watching?
-            Dependencies.new_constants_in(Object) { yield }
-          else
-            yield
-          end
+        if Dependencies.load? && ActiveSupport::Dependencies.constant_watch_stack.watching?
+          Dependencies.new_constants_in(Object) { yield }
+        else
+          yield
         end
       rescue Exception => exception  # errors from loading file
         exception.blame_file! file if exception.respond_to? :blame_file!
@@ -348,7 +353,7 @@ module ActiveSupport #:nodoc:
 
     def clear
       log_call
-      Dependencies.load_interlock do
+      Dependencies.unload_interlock do
         loaded.clear
         loading.clear
         remove_unloadable_constants!
@@ -431,7 +436,7 @@ module ActiveSupport #:nodoc:
 
     # Search for a file in autoload_paths matching the provided suffix.
     def search_for_file(path_suffix)
-      path_suffix = path_suffix.sub(/(\.rb)?$/, ".rb")
+      path_suffix = path_suffix.sub(/(\.rb)?$/, ".rb".freeze)
 
       autoload_paths.each do |root|
         path = File.join(root, path_suffix)
@@ -516,7 +521,7 @@ module ActiveSupport #:nodoc:
 
       if file_path
         expanded = File.expand_path(file_path)
-        expanded.sub!(/\.rb\z/, '')
+        expanded.sub!(/\.rb\z/, ''.freeze)
 
         if loading.include?(expanded)
           raise "Circular dependency detected while autoloading constant #{qualified_name}"

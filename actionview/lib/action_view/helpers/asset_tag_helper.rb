@@ -237,7 +237,7 @@ module ActionView
       #   image_alt('underscored_file_name.png')
       #   # => Underscored file name
       def image_alt(src)
-        File.basename(src, '.*').sub(/-[[:xdigit:]]{32}\z/, '').tr('-_', ' ').capitalize
+        File.basename(src, '.*'.freeze).sub(/-[[:xdigit:]]{32}\z/, ''.freeze).tr('-_'.freeze, ' '.freeze).capitalize
       end
 
       # Returns an HTML video tag for the +sources+. If +sources+ is a string,

@@ -1,3 +1,77 @@
+*   ActiveRecord::RecordNotFound modified to store model name, primary_key and
+    id of the caller model. It allows the catcher of this exception to make
+    a better decision to what to do with it. For example consider this simple
+    example:
+
+        class SomeAbstractController < ActionController::Base
+          rescue_from ActiveRecord::RecordNotFound, with: :redirect_to_404
+
+          private def redirect_to_404(e)
+            return redirect_to(posts_url) if e.model == 'Post'
+            raise
+          end
+        end
+
+    *Sameer Rahmani*
+
+*   Deprecate the keys for association `restrict_dependent_destroy` errors in favor
+    of new key names.
+
+    Previously `has_one` and `has_many` associations were using the
+    `one` and `many` keys respectively. Both of these keys have special
+    meaning in I18n (they are considered to be pluralizations) so by
+    renaming them to `has_one` and `has_many` we make the messages more explicit
+    and most importantly they don't clash with linguistical systems that need to
+    validate translation keys (and their pluralizations).
+
+    The `:'restrict_dependent_destroy.one'` key should be replaced with
+    `:'restrict_dependent_destroy.has_one'`, and `:'restrict_dependent_destroy.many'`
+    with `:'restrict_dependent_destroy.has_many'`.
+
+    *Roque Pinel*, *Christopher Dell*
+
+*   Fix state being carried over from previous transaction.
+
+    Considering the following example where `name` is a required attribute.
+    Before we had `new_record?` returning `true` for a persisted record:
+
+        author = Author.create! name: 'foo'
+        author.name = nil
+        author.save        # => false
+        author.new_record? # => true
+
+    Fixes #20824.
+
+    *Roque Pinel*
+
+*   Correctly ignore `mark_for_destruction` when `autosave` isn't set to `true`
+    when validating associations.
+
+    Fixes #20882.
+
+    *Sean Griffin*
+
+*   Fix a bug where counter_cache doesn't always work with  polymorphic
+    relations.
+
+    Fixes #16407.
+
+    *Stefan Kanev & Sean Griffin*
+
+*   Ensure that cyclic associations with autosave don't cause duplicate errors
+    to be added to the parent record.
+
+    Fixes #20874.
+
+    *Sean Griffin*
+
+*   Ensure that `ActionController::Parameters` can still be passed to nested
+    attributes.
+
+    Fixes #20922.
+
+    *Sean Griffin*
+
 *   Deprecate force association reload by passing a truthy argument to
     association method.
 
@@ -96,7 +170,7 @@
 
     *Aster Ryan*
 
-*   Add `:enum_prefix`/`:enum_suffix` option to `enum` definition.
+*   Add `:_prefix` and `:_suffix` options to `enum` definition.
 
     Fixes #17511, #17415.
 

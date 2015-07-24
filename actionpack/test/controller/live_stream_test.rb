@@ -125,7 +125,7 @@ module ActionController
       end
 
       def render_text
-        render :text => 'zomg'
+        render plain: 'zomg'
       end
 
       def default_header
@@ -162,7 +162,7 @@ module ActionController
       end
 
       def with_stale
-        render text: 'stale' if stale?(etag: "123", template: false)
+        render plain: 'stale' if stale?(etag: "123", template: false)
       end
 
       def exception_in_view

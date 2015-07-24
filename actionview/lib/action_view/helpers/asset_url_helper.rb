@@ -127,7 +127,7 @@ module ActionView
         return "" unless source.present?
         return source if source =~ URI_REGEXP
 
-        tail, source = source[/([\?#].+)$/], source.sub(/([\?#].+)$/, '')
+        tail, source = source[/([\?#].+)$/], source.sub(/([\?#].+)$/, ''.freeze)
 
         if extname = compute_asset_extname(source, options)
           source = "#{source}#{extname}"

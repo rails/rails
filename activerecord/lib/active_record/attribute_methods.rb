@@ -42,7 +42,7 @@ module ActiveRecord
 
       def [](name)
         @method_cache.compute_if_absent(name) do
-          safe_name = name.unpack('h*').first
+          safe_name = name.unpack('h*'.freeze).first
           temp_method = "__temp__#{safe_name}"
           ActiveRecord::AttributeMethods::AttrNames.set_name_cache safe_name, name
           @module.module_eval method_body(temp_method, safe_name), __FILE__, __LINE__

@@ -247,7 +247,7 @@ module ActiveSupport
     end
 
     def eql?(other)
-      utc.eql?(other)
+      other.eql?(utc)
     end
 
     def hash
