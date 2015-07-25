@@ -47,8 +47,8 @@ module ActionView
       # tag.
       #
       #   javascript_tag "alert('All is good')", defer: 'defer'
-      # 
-      # Returns: 
+      #
+      # Returns:
       #   <script defer="defer">
       #   //<![CDATA[
       #   alert('All is good')
@@ -70,7 +70,7 @@ module ActionView
             content_or_options_with_block
           end
 
-        content_tag(:script, javascript_cdata_section(content), html_options)
+        content_tag("script".freeze, javascript_cdata_section(content), html_options)
       end
 
       def javascript_cdata_section(content) #:nodoc:

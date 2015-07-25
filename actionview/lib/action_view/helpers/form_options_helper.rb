@@ -456,7 +456,7 @@ module ActionView
           option_tags = options_from_collection_for_select(
             group.send(group_method), option_key_method, option_value_method, selected_key)
 
-          content_tag(:optgroup, option_tags, label: group.send(group_label_method))
+          content_tag("optgroup".freeze, option_tags, label: group.send(group_label_method))
         end.join.html_safe
       end
 
@@ -528,7 +528,7 @@ module ActionView
         body = "".html_safe
 
         if prompt
-          body.safe_concat content_tag(:option, prompt_text(prompt), value: "")
+          body.safe_concat content_tag("option".freeze, prompt_text(prompt), value: "")
         end
 
         grouped_options.each do |container|
@@ -541,7 +541,7 @@ module ActionView
           end
 
           html_attributes = { label: label }.merge!(html_attributes)
-          body.safe_concat content_tag(:optgroup, options_for_select(container, selected_key), html_attributes)
+          body.safe_concat content_tag("optgroup".freeze, options_for_select(container, selected_key), html_attributes)
         end
 
         body
@@ -577,7 +577,7 @@ module ActionView
           end
 
           zone_options.safe_concat options_for_select(convert_zones[priority_zones], selected)
-          zone_options.safe_concat content_tag(:option, '-------------', value: '', disabled: true)
+          zone_options.safe_concat content_tag("option".freeze, '-------------', value: '', disabled: true)
           zone_options.safe_concat "\n"
 
           zones = zones - priority_zones
