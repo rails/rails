@@ -427,4 +427,23 @@ class UniquenessValidationTest < ActiveRecord::TestCase
     assert reply.valid?
     assert topic.valid?
   end
+
+  def test_validate_uniqueness_of_custom_primary_key
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "keyboards"
+      self.primary_key = :key_number
+
+      validates_uniqueness_of :key_number
+
+      def self.name
+        "Keyboard"
+      end
+    end
+
+    klass.create!(key_number: 10)
+    key2 = klass.create!(key_number: 11)
+
+    key2.key_number = 10
+    assert_not key2.valid?
+  end
 end

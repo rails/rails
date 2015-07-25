@@ -1,3 +1,9 @@
+*   Properly allow uniqueness validations on primary keys.
+
+    Fixes #20966.
+
+    *Sean Griffin & presskey*
+
 *   Don't raise an error if an association failed to destroy when `destroy` was
     called on the parent (as opposed to `destroy!`).
 
