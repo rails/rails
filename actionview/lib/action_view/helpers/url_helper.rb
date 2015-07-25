@@ -184,7 +184,7 @@ module ActionView
         html_options = convert_options_to_data_attributes(options, html_options)
 
         url = url_for(options)
-        html_options['href'] ||= url
+        html_options["href".freeze] ||= url
 
         content_tag(:a, name || url, html_options, &block)
       end
