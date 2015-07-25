@@ -680,7 +680,7 @@ module ActionDispatch
 
         # Move 'index' action from options to recall
         def normalize_action!
-          if @options[:action] == 'index'
+          if @options[:action] == 'index'.freeze
             @recall[:action] = @options.delete(:action)
           end
         end
