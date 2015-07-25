@@ -78,7 +78,7 @@ module AbstractController
     # <tt>render :file => "foo/bar"</tt>.
     # :api: plugin
     def _normalize_args(action=nil, options={})
-      action.is_a?(Hash) ? action : oprions
+      action.is_a?(Hash) ? action : options
     end
 
     # Normalize options.
