@@ -22,9 +22,10 @@ module ActionView
 
       TAG_PREFIXES = ['aria', 'data', :aria, :data].to_set
 
-      PRE_CONTENT_STRINGS = {
-        :textarea => "\n"
-      }
+      PRE_CONTENT_STRINGS             = Hash.new { "".freeze }
+      PRE_CONTENT_STRINGS[:textarea]  = "\n"
+      PRE_CONTENT_STRINGS["textarea"] = "\n"
+
 
       # Returns an empty HTML tag of type +name+ which by default is XHTML
       # compliant. Set +open+ to true to create an open tag compatible
@@ -143,7 +144,7 @@ module ActionView
         def content_tag_string(name, content, options, escape = true)
           tag_options = tag_options(options, escape) if options
           content     = ERB::Util.unwrapped_html_escape(content) if escape
-          "<#{name}#{tag_options}>#{PRE_CONTENT_STRINGS[name.to_sym]}#{content}</#{name}>".html_safe
+          "<#{name}#{tag_options}>#{PRE_CONTENT_STRINGS[name]}#{content}</#{name}>".html_safe
         end
 
         def tag_options(options, escape = true)
@@ -160,7 +161,7 @@ module ActionView
               attrs << tag_option(key, value, escape)
             end
           end
-          " #{attrs * ' '}" unless attrs.empty?
+          " ".freeze + attrs * ' '.freeze unless attrs.empty?
         end
 
         def prefix_tag_option(prefix, key, value, escape)
@@ -177,7 +178,7 @@ module ActionView
 
         def tag_option(key, value, escape)
           if value.is_a?(Array)
-            value = escape ? safe_join(value, " ") : value.join(" ")
+            value = escape ? safe_join(value, " ".freeze) : value.join(" ".freeze)
           else
             value = escape ? ERB::Util.unwrapped_html_escape(value) : value
           end
