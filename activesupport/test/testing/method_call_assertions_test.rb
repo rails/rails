@@ -95,4 +95,17 @@ class MethodCallAssertionsTest < ActiveSupport::TestCase
 
     assert_equal "Expected increment to be called 0 times, but was called 1 times.\nExpected: 0\n  Actual: 1", error.message
   end
+
+  def test_stub_any_instance
+    stub_any_instance(Level) do |instance|
+      assert_equal instance, Level.new
+    end
+  end
+
+  def test_stub_any_instance_with_instance
+    stub_any_instance(Level, instance: @object) do |instance|
+      assert_equal @object, instance
+      assert_equal instance, Level.new
+    end
+  end
 end
