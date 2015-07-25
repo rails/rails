@@ -599,7 +599,7 @@ module ActionDispatch
         def initialize(named_route, options, recall, set)
           @named_route = named_route
           @options     = options
-          @recall      = recall.dup
+          @recall      = recall
           @set         = set
 
           normalize_recall!
@@ -621,7 +621,7 @@ module ActionDispatch
         def use_recall_for(key)
           if @recall[key] && (!@options.key?(key) || @options[key] == @recall[key])
             if !named_route_exists? || segment_keys.include?(key)
-              @options[key] = @recall.delete(key)
+              @options[key] = @recall[key]
             end
           end
         end
