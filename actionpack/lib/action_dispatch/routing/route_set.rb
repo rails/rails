@@ -598,7 +598,7 @@ module ActionDispatch
 
         def initialize(named_route, options, recall, set)
           @named_route = named_route
-          @options     = options.dup
+          @options     = options
           @recall      = recall.dup
           @set         = set
 
