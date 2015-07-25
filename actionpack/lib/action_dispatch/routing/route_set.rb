@@ -267,9 +267,13 @@ module ActionDispatch
                 path_params -= controller_options.keys
                 path_params -= result.keys
               end
-              path_params -= inner_options.keys
-              path_params.take(args.size).each do |param|
-                result[param] = args.shift
+              inner_options.each do |key, _|
+                path_params.delete(key)
+              end
+
+              args.each_with_index do |arg, index|
+                param = path_params[index]
+                result[param] = arg if param
               end
             end
 
