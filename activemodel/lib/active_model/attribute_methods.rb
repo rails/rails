@@ -286,6 +286,10 @@ module ActiveModel
           method_name = matcher.method_name(attr_name)
 
           unless instance_method_already_implemented?(method_name)
+            if Object.private_method_defined? method_name
+              warn "#{method_name.inspect} has been defined as top-level method."
+            end
+
             generate_method = "define_method_#{matcher.method_missing_target}"
 
             if respond_to?(generate_method, true)
