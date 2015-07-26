@@ -10,14 +10,13 @@ domain model written with ActiveRecord or your ORM of choice.
 ## Terminology
 
 A single Action Cable server can handle multiple connection instances. It has one
-connection instance per websocket connection. A single user may well have multiple
+connection instance per websocket connection. A single user may have multiple
 websockets open to your application if they use multiple browser tabs or devices.
 The client of a websocket connection is called the consumer.
 
 Each consumer can in turn subscribe to multiple cable channels. Each channel encapsulates
-a logical unit of work, similar to what a controller does in a regular MVC setup. So
-you may have a `ChatChannel` and a `AppearancesChannel`. The consumer can be subscribed to either
-or to both. At the very least, a consumer should be subscribed to one channel.
+a logical unit of work, similar to what a controller does in a regular MVC setup. For example, you could have a `ChatChannel` and a `AppearancesChannel`, and a consumer could be subscribed to either
+or to both of these channels. At the very least, a consumer should be subscribed to one channel.
 
 When the consumer is subscribed to a channel, they act as a subscriber. The connection between
 the subscriber and the channel is, surprise-surprise, called a subscription. A consumer
@@ -102,7 +101,7 @@ is defined by declaring channels on the server and allowing the consumer to subs
 ## Channel example 1: User appearances
 
 Here's a simple example of a channel that tracks whether a user is online or not and what page they're on.
-(That's useful for creating presence features like showing a green dot next to a user name if they're online).
+(This is useful for creating presence features like showing a green dot next to a user name if they're online).
 
 First you declare the server-side channel:
 
@@ -186,7 +185,7 @@ class WebNotificationsChannel < ApplicationCable::Channel
 ```coffeescript
 # Somewhere in your app this is called, perhaps from a NewCommentJob
 ActionCable.server.broadcast \
-  "web_notifications_1", { title: 'New things!', body: 'All shit fit for print' }
+  "web_notifications_#{current_user.id}", { title: 'New things!', body: 'All the news that is fit to print' }
 
 # Client-side which assumes you've already requested the right to send web notifications
 App.cable.subscriptions.create "WebNotificationsChannel",
@@ -194,7 +193,7 @@ App.cable.subscriptions.create "WebNotificationsChannel",
     new Notification data['title'], body: data['body']
 ```
 
-The `ActionCable.server.broadcast` call places a message in the Redis' pubsub queue under the broadcasting name of `web_notifications_1`.
+The `ActionCable.server.broadcast` call places a message in the Redis' pubsub queue under a separate broadcasting name for each user. For a user with an ID of 1, the broadcasting name would be `web_notifications_1`.
 The channel has been instructed to stream everything that arrives at `web_notifications_1` directly to the client by invoking the
 `#received(data)` callback. The data is the hash sent as the second parameter to the server-side broadcast call, JSON encoded for the trip
 across the wire, and unpacked for the data argument arriving to `#received`.
@@ -265,7 +264,7 @@ Then you start the server using a binstub in bin/cable ala:
 bundle exec puma -p 28080  cable/config.ru
 ```
 
-That'll start a cable server on port 28080. Remember to point your client-side setup against that using something like:
+The above will start a cable server on port 28080. Remember to point your client-side setup against that using something like:
 `App.cable.createConsumer('ws://basecamp.dev:28080')`.
 
 Beware that currently the cable server will _not_ auto-reload any changes in the framework. As we've discussed, long-running cable connections mean long-running objects. We don't yet have a way of reloading the classes of those objects in a safe manner. So when you change your channels, or the model your channels use, you must restart the cable server.
