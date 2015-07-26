@@ -9,19 +9,19 @@ class HttpBasicAuthenticationTest < ActionController::TestCase
     http_basic_authenticate_with :name => "David", :password => "Goliath", :only => :search
 
     def index
-      render :text => "Hello Secret"
+      render plain: "Hello Secret"
     end
 
     def display
-      render :text => 'Definitely Maybe' if @logged_in
+      render plain: 'Definitely Maybe' if @logged_in
     end
 
     def show
-      render :text => 'Only for loooooong credentials'
+      render plain: 'Only for loooooong credentials'
     end
 
     def search
-      render :text => 'All inline'
+      render plain: 'All inline'
     end
 
     private

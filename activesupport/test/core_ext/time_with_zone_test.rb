@@ -253,10 +253,14 @@ class TimeWithZoneTest < ActiveSupport::TestCase
   end
 
   def test_eql?
+    assert_equal true, @twz.eql?(@twz.dup)
     assert_equal true, @twz.eql?(Time.utc(2000))
     assert_equal true, @twz.eql?( ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone["Hawaii"]) )
     assert_equal false, @twz.eql?( Time.utc(2000, 1, 1, 0, 0, 1) )
     assert_equal false, @twz.eql?( DateTime.civil(1999, 12, 31, 23, 59, 59) )
+
+    other_twz = ActiveSupport::TimeWithZone.new(DateTime.now.utc, @time_zone)
+    assert_equal true, other_twz.eql?(other_twz.dup)
   end
 
   def test_hash

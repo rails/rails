@@ -1064,4 +1064,39 @@ class TestHasManyAutosaveAssociationWhichItselfHasAutosaveAssociations < ActiveR
     assert_not part.valid?
     assert_equal ["Ship name can't be blank"], part.errors.full_messages
   end
+
+  class ProtectedParameters
+    def initialize(hash)
+      @hash = hash
+    end
+
+    def permitted?
+      true
+    end
+
+    def [](key)
+      @hash[key]
+    end
+
+    def to_h
+      @hash
+    end
+  end
+
+  test "strong params style objects can be assigned for singular associations" do
+    params = { name: "Stern", ship_attributes:
+               ProtectedParameters.new(name: "The Black Rock") }
+    part = ShipPart.new(params)
+
+    assert_equal "Stern", part.name
+    assert_equal "The Black Rock", part.ship.name
+  end
+
+  test "strong params style objects can be assigned for collection associations" do
+    params = { trinkets_attributes: ProtectedParameters.new("0" => ProtectedParameters.new(name: "Necklace"), "1" => ProtectedParameters.new(name: "Spoon")) }
+    part = ShipPart.new(params)
+
+    assert_equal "Necklace", part.trinkets[0].name
+    assert_equal "Spoon", part.trinkets[1].name
+  end
 end

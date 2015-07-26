@@ -1,4 +1,5 @@
 require 'abstract_unit'
+require 'active_support/deprecation'
 
 module AbstractController
   module Testing
@@ -33,7 +34,7 @@ module AbstractController
       end
 
       def text
-        render :text => "With Text"
+        render plain: "With Text"
       end
 
       def default

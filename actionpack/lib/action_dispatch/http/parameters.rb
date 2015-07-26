@@ -37,22 +37,7 @@ module ActionDispatch
       # Convert nested Hash to HashWithIndifferentAccess.
       #
       def normalize_encode_params(params)
-        case params
-        when Hash
-          if params.has_key?(:tempfile)
-            UploadedFile.new(params)
-          else
-            params.each_with_object({}) do |(key, val), new_hash|
-              new_hash[key] = if val.is_a?(Array)
-                val.map! { |el| normalize_encode_params(el) }
-              else
-                normalize_encode_params(val)
-              end
-            end.with_indifferent_access
-          end
-        else
-          params
-        end
+        ActionDispatch::Request::Utils.normalize_encode_params params
       end
     end
   end

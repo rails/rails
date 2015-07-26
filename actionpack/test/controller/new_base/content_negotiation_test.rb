@@ -9,7 +9,7 @@ module ContentNegotiation
     )]
 
     def all
-      render :text => self.formats.inspect
+      render plain: self.formats.inspect
     end
   end
 

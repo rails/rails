@@ -5,16 +5,22 @@ class WebServiceTest < ActionDispatch::IntegrationTest
   class TestController < ActionController::Base
     def assign_parameters
       if params[:full]
-        render :text => dump_params_keys
+        render plain: dump_params_keys
       else
-        render :text => (params.keys - ['controller', 'action']).sort.join(", ")
+        render plain: (params.keys - ['controller', 'action']).sort.join(", ")
       end
     end
 
     def dump_params_keys(hash = params)
       hash.keys.sort.inject("") do |s, k|
         value = hash[k]
-        value = Hash === value ? "(#{dump_params_keys(value)})" : ""
+
+        if value.is_a?(Hash) || value.is_a?(ActionController::Parameters)
+          value = "(#{dump_params_keys(value)})"
+        else
+          value = ""
+        end
+
         s << ", " unless s.empty?
         s << "#{k}#{value}"
       end

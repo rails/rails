@@ -142,7 +142,7 @@ module ActiveRecord
     end
 
     if current_adapter?(:PostgreSQLAdapter)
-      test "arrays types can be specified" do
+      test "array types can be specified" do
         klass = Class.new(OverloadedType) do
           attribute :my_array, :string, limit: 50, array: true
           attribute :my_int_array, :integer, array: true

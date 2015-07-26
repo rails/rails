@@ -222,6 +222,7 @@ module ActiveRecord
               true
             end
             validate validation_method
+            after_validation :_ensure_no_duplicate_errors
           end
         end
     end
@@ -324,7 +325,7 @@ module ActiveRecord
       # the parent, <tt>self</tt>, if it wasn't. Skips any <tt>:autosave</tt>
       # enabled records if they're marked_for_destruction? or destroyed.
       def association_valid?(reflection, record)
-        return true if record.destroyed? || record.marked_for_destruction?
+        return true if record.destroyed? || (reflection.options[:autosave] && record.marked_for_destruction?)
 
         validation_context = self.validation_context unless [:create, :update].include?(self.validation_context)
         unless valid = record.valid?(validation_context)
@@ -454,6 +455,12 @@ module ActiveRecord
 
             saved if autosave
           end
+        end
+      end
+
+      def _ensure_no_duplicate_errors
+        errors.messages.each_key do |attribute|
+          errors[attribute].uniq!
         end
       end
   end

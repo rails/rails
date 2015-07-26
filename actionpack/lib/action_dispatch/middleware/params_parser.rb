@@ -17,7 +17,7 @@ module ActionDispatch
       Mime::JSON => lambda { |raw_post|
         data = ActiveSupport::JSON.decode(raw_post)
         data = {:_json => data} unless data.is_a?(Hash)
-        Request::Utils.deep_munge(data).with_indifferent_access
+        Request::Utils.normalize_encode_params(data)
       }
     }
 

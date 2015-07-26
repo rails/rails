@@ -52,7 +52,7 @@ module AbstractControllerTests
       end
 
       def overwrite_skip
-        render :text => "Hello text!"
+        render plain: "Hello text!"
       end
     end
 
@@ -371,7 +371,7 @@ module AbstractControllerTests
       test "layout for anonymous controller" do
         klass = Class.new(WithString) do
           def index
-            render :text => 'index', :layout => true
+            render plain: 'index', layout: true
           end
         end
 

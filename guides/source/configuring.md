@@ -1084,22 +1084,22 @@ development:
   timeout: 5000
 ```
 
-Since the connection pooling is handled inside of Active Record by default, all application servers (Thin, mongrel, Unicorn etc.) should behave the same. Initially, the database connection pool is empty and it will create additional connections as the demand for them increases, until it reaches the connection pool limit.
+Since the connection pooling is handled inside of Active Record by default, all application servers (Thin, mongrel, Unicorn etc.) should behave the same. The database connection pool is initially empty. As demand for connections increases it will create them until it reaches the connection pool limit.
 
-Any one request will check out a connection the first time it requires access to the database, after which it will check the connection back in, at the end of the request, meaning that the additional connection slot will be available again for the next request in the queue.
+Any one request will check out a connection the first time it requires access to the database. At the end of the request it will check the connection back in. This means that the additional connection slot will be available again for the next request in the queue.
 
 If you try to use more connections than are available, Active Record will block
-and wait for a connection from the pool. When it cannot get connection, a timeout
-error similar to given below will be thrown.
+you and wait for a connection from the pool. If it cannot get a connection, a
+timeout error similar to that given below will be thrown.
 
 ```ruby
 ActiveRecord::ConnectionTimeoutError - could not obtain a database connection within 5 seconds. The max pool size is currently 5; consider increasing it:
 ```
 
-If you get the above error, you might want to increase the size of connection
-pool by incrementing the `pool` option in `database.yml`
+If you get the above error, you might want to increase the size of the
+connection pool by incrementing the `pool` option in `database.yml`
 
-NOTE. If you are running in a multi-threaded environment, there could be a chance that several threads may be accessing multiple connections simultaneously. So depending on your current request load, you could very well have multiple threads contending for a limited amount of connections.
+NOTE. If you are running in a multi-threaded environment, there could be a chance that several threads may be accessing multiple connections simultaneously. So depending on your current request load, you could very well have multiple threads contending for a limited number of connections.
 
 
 Custom configuration

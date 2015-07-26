@@ -115,7 +115,7 @@ module ActionView
       #     <li><%= link_to 'Home', action: 'index' %></li>
       #   <% end %>
       #
-      #  And in other place:
+      #  And in another place:
       #
       #   <% content_for :navigation do %>
       #     <li><%= link_to 'Login', action: 'login' %></li>

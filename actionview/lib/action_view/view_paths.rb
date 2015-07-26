@@ -36,9 +36,9 @@ module ActionView
       self.class._prefixes
     end
 
-    # <tt>LookupContext</tt> is the object responsible to hold all information required to lookup
-    # templates, i.e. view paths and details. Check <tt>ActionView::LookupContext</tt> for more
-    # information.
+    # <tt>LookupContext</tt> is the object responsible for holding all
+    # information required for looking up templates, i.e. view paths and
+    # details. Check <tt>ActionView::LookupContext</tt> for more information.
     def lookup_context
       @_lookup_context ||=
         ActionView::LookupContext.new(self.class._view_paths, details_for_lookup, _prefixes)

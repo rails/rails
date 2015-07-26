@@ -190,7 +190,7 @@ module ActionView
     end
 
     def inspect
-      @inspect ||= defined?(Rails.root) ? identifier.sub("#{Rails.root}/", '') : identifier
+      @inspect ||= defined?(Rails.root) ? identifier.sub("#{Rails.root}/", ''.freeze) : identifier
     end
 
     # This method is responsible for properly setting the encoding of the
@@ -337,13 +337,13 @@ module ActionView
       def method_name #:nodoc:
         @method_name ||= begin
           m = "_#{identifier_method_name}__#{@identifier.hash}_#{__id__}"
-          m.tr!('-', '_')
+          m.tr!('-'.freeze, '_'.freeze)
           m
         end
       end
 
       def identifier_method_name #:nodoc:
-        inspect.tr('^a-z_', '_')
+        inspect.tr('^a-z_'.freeze, '_'.freeze)
       end
 
       def instrument(action, &block)
@@ -366,7 +366,7 @@ module ActionView
       end
 
       def inferred_cache_name
-        @inferred_cache_name ||= @virtual_path.split('/').last.sub('_', '')
+        @inferred_cache_name ||= @virtual_path.split('/'.freeze).last.sub('_'.freeze, ''.freeze)
       end
   end
 end

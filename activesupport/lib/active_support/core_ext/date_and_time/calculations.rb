@@ -92,15 +92,28 @@ module DateAndTime
     end
 
     # Returns a new date/time at the start of the month.
-    # DateTime objects will have a time set to 0:00.
+    #
+    #   today = Date.today # => Thu, 18 Jun 2015
+    #   today.beginning_of_month # => Mon, 01 Jun 2015
+    #
+    # +DateTime+ objects will have a time set to 0:00.
+    #
+    #   now = DateTime.current # => Thu, 18 Jun 2015 15:23:13 +0000
+    #   now.beginning_of_month # => Mon, 01 Jun 2015 00:00:00 +0000
     def beginning_of_month
       first_hour(change(:day => 1))
     end
     alias :at_beginning_of_month :beginning_of_month
 
     # Returns a new date/time at the start of the quarter.
-    # Example: 1st January, 1st July, 1st October.
-    # DateTime objects will have a time set to 0:00.
+    #
+    #   today = Date.today # => Fri, 10 Jul 2015
+    #   today.beginning_of_quarter # => Wed, 01 Jul 2015
+    #
+    # +DateTime+ objects will have a time set to 0:00.
+    #
+    #   now = DateTime.current # => Fri, 10 Jul 2015 18:41:29 +0000
+    #   now.beginning_of_quarter # => Wed, 01 Jul 2015 00:00:00 +0000
     def beginning_of_quarter
       first_quarter_month = [10, 7, 4, 1].detect { |m| m <= month }
       beginning_of_month.change(:month => first_quarter_month)
@@ -108,8 +121,14 @@ module DateAndTime
     alias :at_beginning_of_quarter :beginning_of_quarter
 
     # Returns a new date/time at the end of the quarter.
-    # Example: 31st March, 30th June, 30th September.
-    # DateTime objects will have a time set to 23:59:59.
+    #
+    #   today = Date.today # => Fri, 10 Jul 2015
+    #   today.end_of_quarter # => Wed, 30 Sep 2015
+    #
+    # +DateTime+ objects will have a time set to 23:59:59.
+    #
+    #   now = DateTime.current # => Fri, 10 Jul 2015 18:41:29 +0000
+    #   now.end_of_quarter # => Wed, 30 Sep 2015 23:59:59 +0000
     def end_of_quarter
       last_quarter_month = [3, 6, 9, 12].detect { |m| m >= month }
       beginning_of_month.change(:month => last_quarter_month).end_of_month
@@ -117,8 +136,14 @@ module DateAndTime
     alias :at_end_of_quarter :end_of_quarter
 
     # Return a new date/time at the beginning of the year.
-    # Example: 1st January.
-    # DateTime objects will have a time set to 0:00.
+    #
+    #   today = Date.today # => Fri, 10 Jul 2015
+    #   today.beginning_of_year # => Thu, 01 Jan 2015
+    #
+    # +DateTime+ objects will have a time set to 0:00.
+    #
+    #   now = DateTime.current # => Fri, 10 Jul 2015 18:41:29 +0000
+    #   now.beginning_of_year # => Thu, 01 Jan 2015 00:00:00 +0000
     def beginning_of_year
       change(:month => 1).beginning_of_month
     end
@@ -138,8 +163,8 @@ module DateAndTime
     #
     # +DateTime+ objects have their time set to 0:00 unless +same_time+ is true.
     #
-    #   now = Time.current # => Thu, 07 May 2015 13:31:16 UTC +00:00
-    #   now.next_week      # => Mon, 11 May 2015 00:00:00 UTC +00:00
+    #   now = DateTime.current # => Thu, 07 May 2015 13:31:16 +0000
+    #   now.next_week      # => Mon, 11 May 2015 00:00:00 +0000
     def next_week(given_day_in_next_week = Date.beginning_of_week, same_time: false)
       result = first_hour(weeks_since(1).beginning_of_week.days_since(days_span(given_day_in_next_week)))
       same_time ? copy_time_to(result) : result

@@ -35,7 +35,7 @@ module ActionDispatch
       paths = [path, "#{path}#{ext}", "#{path}/#{@index}#{ext}"]
 
       if match = paths.detect { |p|
-        path = File.join(@root, p.force_encoding('UTF-8'))
+        path = File.join(@root, p.force_encoding('UTF-8'.freeze))
         begin
           File.file?(path) && File.readable?(path)
         rescue SystemCallError
@@ -76,7 +76,7 @@ module ActionDispatch
       end
 
       def content_type(path)
-        ::Rack::Mime.mime_type(::File.extname(path), 'text/plain')
+        ::Rack::Mime.mime_type(::File.extname(path), 'text/plain'.freeze)
       end
 
       def gzip_encoding_accepted?(env)
@@ -112,7 +112,7 @@ module ActionDispatch
     def call(env)
       case env['REQUEST_METHOD']
       when 'GET', 'HEAD'
-        path = env['PATH_INFO'].chomp('/')
+        path = env['PATH_INFO'].chomp('/'.freeze)
         if match = @file_handler.match?(path)
           env['PATH_INFO'] = match
           return @file_handler.call(env)

@@ -193,7 +193,7 @@ module ActiveRecord
     # and #destroy! raises ActiveRecord::RecordNotDestroyed.
     # See ActiveRecord::Callbacks for further details.
     def destroy!
-      destroy || raise(RecordNotDestroyed.new("Failed to destroy the record", self))
+      destroy || _raise_record_not_destroyed
     end
 
     # Returns an instance of the specified +klass+ with the attributes of the
@@ -547,6 +547,13 @@ module ActiveRecord
 
     def verify_readonly_attribute(name)
       raise ActiveRecordError, "#{name} is marked as readonly" if self.class.readonly_attributes.include?(name)
+    end
+
+    def _raise_record_not_destroyed
+      @_association_destroy_exception ||= nil
+      raise @_association_destroy_exception || RecordNotDestroyed.new("Failed to destroy the record", self)
+    ensure
+      @_association_destroy_exception = nil
     end
   end
 end

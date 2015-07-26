@@ -502,7 +502,7 @@ module ActionController
       def authentication_request(controller, realm, message = nil)
         message ||= "HTTP Token: Access denied.\n"
         controller.headers["WWW-Authenticate"] = %(Token realm="#{realm.tr('"'.freeze, "".freeze)}")
-        controller.__send__ :render, :text => message, :status => :unauthorized
+        controller.__send__ :render, plain: message, status: :unauthorized
       end
     end
   end

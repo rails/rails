@@ -83,15 +83,6 @@ end
   task "isolated_test_#{adapter}" => ["#{adapter}:env", "test:isolated:#{adapter}"]
 end
 
-rule '.sqlite3' do |t|
-  sh %Q{sqlite3 "#{t.name}" "create table a (a integer); drop table a;"}
-end
-
-task :test_sqlite3 => [
-  'test/fixtures/fixture_database.sqlite3',
-  'test/fixtures/fixture_database_2.sqlite3'
-]
-
 namespace :db do
   namespace :mysql do
     desc 'Build the MySQL test databases'
