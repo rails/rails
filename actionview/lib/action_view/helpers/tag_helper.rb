@@ -149,19 +149,20 @@ module ActionView
 
         def tag_options(options, escape = true)
           return if options.blank?
-          attrs = []
+          output = ""
+          sep    = " ".freeze
           options.each_pair do |key, value|
             if TAG_PREFIXES.include?(key) && value.is_a?(Hash)
               value.each_pair do |k, v|
-                attrs << prefix_tag_option(key, k, v, escape)
+                output << sep + prefix_tag_option(key, k, v, escape)
               end
             elsif BOOLEAN_ATTRIBUTES.include?(key)
-              attrs << boolean_tag_option(key) if value
+              output << sep + boolean_tag_option(key) if value
             elsif !value.nil?
-              attrs << tag_option(key, value, escape)
+              output << sep + tag_option(key, value, escape)
             end
           end
-          " ".freeze + attrs * ' '.freeze unless attrs.empty?
+          output unless output.empty?
         end
 
         def prefix_tag_option(prefix, key, value, escape)
