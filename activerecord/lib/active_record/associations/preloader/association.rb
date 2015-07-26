@@ -137,7 +137,9 @@ module ActiveRecord
           scope.where_clause = reflection_scope.where_clause + preload_scope.where_clause
           scope.references_values = Array(values[:references]) + Array(preload_values[:references])
 
-          scope._select! preload_values[:select] || values[:select] || table[Arel.star]
+          if preload_values[:select] || values[:select]
+            scope._select!(preload_values[:select] || values[:select])
+          end
           scope.includes! preload_values[:includes] || values[:includes]
           if preload_scope.joins_values.any?
             scope.joins!(preload_scope.joins_values)
