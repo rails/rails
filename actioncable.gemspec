@@ -1,6 +1,9 @@
+$:.push File.expand_path("../lib", __FILE__)
+require 'action_cable/version'
+
 Gem::Specification.new do |s|
   s.name        = 'actioncable'
-  s.version     = '0.1.0'
+  s.version     = ActionCable::VERSION
   s.summary     = 'Websockets framework for Rails.'
   s.description = 'Structure many real-time application concerns into channels over a single websockets connection.'
   s.license     = 'MIT'
