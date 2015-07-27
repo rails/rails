@@ -412,6 +412,12 @@ module ActiveRecord
       def disable_ddl_transaction!
         @disable_ddl_transaction = true
       end
+
+      def [](rails_version)
+        Class.new self do
+          self.strategy = Strategy::VERSIONS[rails_version].new
+        end
+      end
     end
 
     def disable_ddl_transaction # :nodoc:
@@ -419,13 +425,16 @@ module ActiveRecord
     end
 
     cattr_accessor :verbose
-    attr_accessor :name, :version, :strategy
+    cattr_accessor :strategy do
+      Strategy::Base.new
+    end
+
+    attr_accessor :name, :version
 
     def initialize(name = self.class.name, version = nil)
       @name       = name
       @version    = version
       @connection = nil
-      @strategy   = Strategy::Version1.new
     end
 
     self.verbose = true
@@ -636,6 +645,7 @@ module ActiveRecord
 
     def method_missing(method, *arguments, &block)
       arg_list = arguments.map(&:inspect) * ', '
+      return super unless connection.respond_to? method
 
       say_with_time "#{method}(#{arg_list})" do
         if connection.is_a? CommandRecorder

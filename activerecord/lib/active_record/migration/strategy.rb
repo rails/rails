@@ -1,6 +1,11 @@
 module ActiveRecord::Migration::Strategy
-  class Version1
+  VERSIONS = {}
+  # return previous known version if current one has no corresponding strategy
+  VERSIONS.default_proc = ->(hash, version) do
+    (hash.find {|key,_| key <= version } || [Base]).last
+  end
 
+  class Base
     def connection_dispatch(connection, method, *args, &block)
       args = connection_arguments method, args
       connection.public_send method, *args, &block
@@ -19,13 +24,12 @@ module ActiveRecord::Migration::Strategy
     end
   end
 
-  class Version2 < Version1
-
+  VERSIONS[5.0] = Class.new Base do
     private
     def connection_arguments(method, args)
-      if method == :references
+      if method == :add_reference
         options = args.extract_options!
-        options.reverse_merge! index: true, foreign_key: true
+        options.reverse_merge! index: true
         args.push options
       end
 
