@@ -495,7 +495,7 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
     groucho = members(:groucho)
     founding = member_types(:founding)
 
-    assert_raises(ActiveRecord::HasManyThroughNestedAssociationsAreReadonly) do
+    assert_raises(ActiveRecord::HasOneThroughNestedAssociationsAreReadonly) do
       groucho.nested_member_type = founding
     end
   end
