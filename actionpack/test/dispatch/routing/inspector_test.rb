@@ -94,6 +94,23 @@ module ActionDispatch
         ], output
       end
 
+      def test_inspect_routes_shows_resource_route
+        output = draw do
+          resource :profile
+        end
+
+        assert_equal [
+          "      Prefix Verb   URI Pattern             Controller#Action",
+          " new_profile GET    /profile/new(.:format)  profiles#new",
+          "edit_profile GET    /profile/edit(.:format) profiles#edit",
+          "     profile GET    /profile(.:format)      profiles#show",
+          "             PATCH  /profile(.:format)      profiles#update",
+          "             PUT    /profile(.:format)      profiles#update",
+          "             DELETE /profile(.:format)      profiles#destroy",
+          "             POST   /profile(.:format)      profiles#create"
+        ], output
+      end
+
       def test_inspect_routes_shows_resources_route
         output = draw do
           resources :articles
