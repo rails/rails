@@ -5,8 +5,8 @@ require 'active_support/core_ext/struct'
 require 'action_dispatch/http/mime_type'
 
 module ActionController
-  # Wraps the parameters hash into a nested hash. This will allow clients to submit
-  # POST requests without having to specify any root elements.
+  # Wraps the parameters hash into a nested hash. This will allow clients to
+  # submit requests without having to specify any root elements.
   #
   # This functionality is enabled in +config/initializers/wrap_parameters.rb+
   # and can be customized. If you are upgrading to \Rails 3.1, this file will
@@ -16,7 +16,7 @@ module ActionController
   # a non-empty array:
   #
   #     class UsersController < ApplicationController
-  #       wrap_parameters format: [:json, :xml]
+  #       wrap_parameters format: [:json, :xml, :url_encoded_form, :multipart_form]
   #     end
   #
   # If you enable +ParamsWrapper+ for +:json+ format, instead of having to
