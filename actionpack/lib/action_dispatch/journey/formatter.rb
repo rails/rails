@@ -14,7 +14,7 @@ module ActionDispatch
 
       def generate(name, options, path_parameters, parameterize = nil)
         constraints = path_parameters.merge(options)
-        missing_keys = []
+        missing_keys = nil # need for variable scope
 
         match_route(name, constraints) do |route|
           parameterized_parts = extract_parameterized_parts(route, options, path_parameters, parameterize)
@@ -40,7 +40,7 @@ module ActionDispatch
         end
 
         message = "No route matches #{Hash[constraints.sort_by{|k,v| k.to_s}].inspect}"
-        message << " missing required keys: #{missing_keys.sort.inspect}" unless missing_keys.empty?
+        message << " missing required keys: #{missing_keys.sort.inspect}" if missing_keys && missing_keys.any?
 
         raise ActionController::UrlGenerationError, message
       end
