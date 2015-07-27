@@ -425,7 +425,7 @@ module ActiveRecord
       @name       = name
       @version    = version
       @connection = nil
-      @strategy   = Strategy::Version1
+      @strategy   = Strategy::Version1.new
     end
 
     self.verbose = true
@@ -638,11 +638,11 @@ module ActiveRecord
       arg_list = arguments.map(&:inspect) * ', '
 
       say_with_time "#{method}(#{arg_list})" do
-        unless @connection.respond_to? :revert
-          arguments = strategy.connection_arguments method, arguments
+        if connection.is_a? CommandRecorder
+          connection.send(method, *arguments, &block)
+        else
+          strategy.connection_dispatch(connection, method, *arguments, &block)
         end
-        return super unless connection.respond_to?(method)
-        connection.send(method, *arguments, &block)
       end
     end
 

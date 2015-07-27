@@ -1,6 +1,13 @@
 module ActiveRecord::Migration::Strategy
-  module Version1
-    def self.connection_arguments(method, args)
+  class Version1
+
+    def connection_dispatch(connection, method, *args, &block)
+      args = connection_arguments method, args
+      connection.public_send method, *args, &block
+    end
+
+    private
+    def connection_arguments(method, args)
       unless args.empty? || [:execute, :enable_extension, :disable_extension].include?(method)
         args[0] = ActiveRecord::Migrator.proper_table_name(args.first)
         if [:rename_table, :add_foreign_key].include?(method) ||
@@ -12,15 +19,17 @@ module ActiveRecord::Migration::Strategy
     end
   end
 
-  module Version2
-    def self.connection_arguments(method, args)
+  class Version2 < Version1
+
+    private
+    def connection_arguments(method, args)
       if method == :references
         options = args.extract_options!
         options.reverse_merge! index: true, foreign_key: true
         args.push options
       end
 
-      Version1.connection_arguments method, args
+      super
     end
   end
 end
