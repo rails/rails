@@ -25,7 +25,7 @@ module ActionDispatch
           next unless name || route.dispatcher?
 
           missing_keys = missing_keys(route, parameterized_parts)
-          next unless missing_keys.empty?
+          next if missing_keys && missing_keys.any?
           params = options.dup.delete_if do |key, _|
             parameterized_parts.key?(key) || route.defaults.key?(key)
           end
@@ -122,16 +122,25 @@ module ActionDispatch
 
         # Returns an array populated with missing keys if any are present.
         def missing_keys(route, parts)
-          missing_keys = []
+          missing_keys = nil
           tests = route.path.requirements
           route.required_parts.each { |key|
             case tests[key]
             when nil
-              missing_keys << key unless parts[key]
+              unless parts[key]
+                missing_keys ||= []
+                missing_keys << key
+              end
             when RegexCaseComparator
-              missing_keys << key unless RegexCaseComparator::DEFAULT_REGEX === parts[key]
+              unless RegexCaseComparator::DEFAULT_REGEX === parts[key]
+                missing_keys ||= []
+                missing_keys << key
+              end
             else
-              missing_keys << key unless /\A#{tests[key]}\Z/ === parts[key]
+              unless /\A#{tests[key]}\Z/ === parts[key]
+                missing_keys ||= []
+                missing_keys << key
+              end
             end
           }
           missing_keys
