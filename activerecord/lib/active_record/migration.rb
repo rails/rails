@@ -344,7 +344,7 @@ module ActiveRecord
   # are in a Migration with <tt>self.disable_ddl_transaction!</tt>.
   class Migration
     autoload :CommandRecorder, 'active_record/migration/command_recorder'
-
+    autoload :Strategy, 'active_record/migration/strategy'
 
     # This class is used to verify that all migrations have been run before
     # loading a web page if config.active_record.migration_error is set to :page_load
@@ -419,12 +419,13 @@ module ActiveRecord
     end
 
     cattr_accessor :verbose
-    attr_accessor :name, :version
+    attr_accessor :name, :version, :strategy
 
     def initialize(name = self.class.name, version = nil)
       @name       = name
       @version    = version
       @connection = nil
+      @strategy   = Strategy::Version1
     end
 
     self.verbose = true
@@ -638,13 +639,7 @@ module ActiveRecord
 
       say_with_time "#{method}(#{arg_list})" do
         unless @connection.respond_to? :revert
-          unless arguments.empty? || [:execute, :enable_extension, :disable_extension].include?(method)
-            arguments[0] = Migrator.proper_table_name(arguments.first)
-            if [:rename_table, :add_foreign_key].include?(method) ||
-              (method == :remove_foreign_key && !arguments.second.is_a?(Hash))
-              arguments[1] = Migrator.proper_table_name(arguments.second)
-            end
-          end
+          arguments = strategy.connection_arguments method, arguments
         end
         return super unless connection.respond_to?(method)
         connection.send(method, *arguments, &block)
