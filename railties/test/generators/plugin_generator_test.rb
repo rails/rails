@@ -544,6 +544,60 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_skipping_useless_folders_generation_for_api_engines
+    ['--full', '--mountable'].each do |option|
+      run_generator [destination_root, option, '--api']
+
+      assert_no_directory "app/assets"
+      assert_no_directory "app/helpers"
+      assert_no_directory "app/views"
+
+      FileUtils.rm_rf destination_root
+    end
+  end
+
+  def test_application_controller_parent_for_mountable_api_plugins
+    run_generator [destination_root, '--mountable', '--api']
+
+    assert_file "app/controllers/bukkits/application_controller.rb" do |content|
+      assert_match "ApplicationController < ActionController::API", content
+    end
+  end
+
+  def test_dummy_api_application_for_api_plugins
+    run_generator [destination_root, '--api']
+
+    assert_file "test/dummy/config/application.rb" do |content|
+      assert_match "config.api_only = true", content
+    end
+  end
+
+
+  def test_api_generators_configuration_for_api_engines
+    run_generator [destination_root, '--full', '--api']
+
+    assert_file "lib/bukkits/engine.rb" do |content|
+      assert_match "config.generators.api_only = true", content
+    end
+  end
+
+  def test_scaffold_generator_for_mountable_api_plugins
+    run_generator [destination_root, '--mountable', '--api']
+
+    capture(:stdout) do
+      `#{destination_root}/bin/rails g scaffold article`
+    end
+
+    assert_file "app/models/bukkits/article.rb"
+    assert_file "app/controllers/bukkits/articles_controller.rb" do |content|
+      assert_match "only: [:show, :update, :destroy]", content
+    end
+
+    assert_no_directory "app/assets"
+    assert_no_directory "app/helpers"
+    assert_no_directory "app/views"
+  end
+
 protected
   def action(*args, &block)
     silence(:stdout){ generator.send(*args, &block) }
