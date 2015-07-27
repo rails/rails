@@ -72,7 +72,7 @@ module ActionView
     end
 
     def dependencies
-      DependencyTracker.find_dependencies(name, template)
+      DependencyTracker.find_dependencies(name, template, finder.view_paths)
     rescue ActionView::MissingTemplate
       logger.try :error, "  '#{name}' file doesn't exist, so no dependencies"
       []

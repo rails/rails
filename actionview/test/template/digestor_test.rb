@@ -1,5 +1,6 @@
 require 'abstract_unit'
 require 'fileutils'
+require 'action_view/dependency_tracker'
 
 class FixtureTemplate
   attr_reader :source, :handler
@@ -15,12 +16,13 @@ end
 class FixtureFinder
   FIXTURES_DIR = "#{File.dirname(__FILE__)}/../fixtures/digestor"
 
-  attr_reader   :details
+  attr_reader   :details, :view_paths
   attr_accessor :formats
   attr_accessor :variants
 
   def initialize
     @details  = {}
+    @view_paths = ActionView::PathSet.new(['digestor'])
     @formats  = []
     @variants = []
   end
@@ -73,6 +75,34 @@ class TemplateDigestorTest < ActionView::TestCase
     assert_digest_difference("messages/show") do
       change_template("messages/_form")
     end
+  end
+
+  def test_explicit_dependency_wildcard
+    assert_digest_difference("events/index") do
+      change_template("events/_completed")
+    end
+  end
+
+  def test_explicit_dependency_wildcard_picks_up_added_file
+    old_caching, ActionView::Resolver.caching = ActionView::Resolver.caching, false
+
+    assert_digest_difference("events/index") do
+      add_template("events/_uncompleted")
+    end
+  ensure
+    remove_template("events/_uncompleted")
+    ActionView::Resolver.caching = old_caching
+  end
+
+  def test_explicit_dependency_wildcard_picks_up_removed_file
+    old_caching, ActionView::Resolver.caching = ActionView::Resolver.caching, false
+    add_template("events/_subscribers_changed")
+
+    assert_digest_difference("events/index") do
+      remove_template("events/_subscribers_changed")
+    end
+  ensure
+    ActionView::Resolver.caching = old_caching
   end
 
   def test_second_level_dependency
@@ -318,5 +348,10 @@ class TemplateDigestorTest < ActionView::TestCase
       File.open("digestor/#{template_name}.html#{variant}.erb", "w") do |f|
         f.write "\nTHIS WAS CHANGED!"
       end
+    end
+    alias_method :add_template, :change_template
+
+    def remove_template(template_name)
+      File.delete("digestor/#{template_name}.html.erb")
     end
 end
