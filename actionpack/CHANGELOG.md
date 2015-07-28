@@ -1,3 +1,14 @@
+*   Add parameter filter capability for redirect locations.
+
+    It uses the `config.filter_parameters` to match what needs to be filtered.
+    The result would be like this:
+
+        Redirected to http://secret.foo.bar?username=roque&password=[FILTERED]
+
+    Fixes #14055.
+
+    *Roque Pinel*, *Trevor Turk*
+
 ## Rails 5.0.0.beta2 (February 01, 2016) ##
 
 *   Add `-g` and `-c` (short for _grep_ and _controller_ respectively) options
