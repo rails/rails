@@ -32,6 +32,10 @@ module Another
       redirect_to "http://secret.foo.bar/"
     end
 
+    def filterable_redirector_with_params
+      redirect_to "http://secret.foo.bar?username=repinel&password=1234"
+    end
+
     def data_sender
       send_data "cool data", filename: "file.txt"
     end
@@ -264,6 +268,32 @@ class ACLogSubscriberTest < ActionController::TestCase
 
     assert_equal 3, logs.size
     assert_equal "Redirected to [FILTERED]", logs[1]
+  end
+
+  def test_does_not_filter_redirect_params_by_default
+    get :filterable_redirector_with_params
+    wait
+
+    assert_equal 3, logs.size
+    assert_equal "Redirected to http://secret.foo.bar?username=repinel&password=1234", logs[1]
+  end
+
+  def test_filter_redirect_params_by_string
+    @request.env["action_dispatch.parameter_filter"] = ["password"]
+    get :filterable_redirector_with_params
+    wait
+
+    assert_equal 3, logs.size
+    assert_equal "Redirected to http://secret.foo.bar?username=repinel&password=[FILTERED]", logs[1]
+  end
+
+  def test_filter_redirect_params_by_regexp
+    @request.env["action_dispatch.parameter_filter"] = [/pass.+/]
+    get :filterable_redirector_with_params
+    wait
+
+    assert_equal 3, logs.size
+    assert_equal "Redirected to http://secret.foo.bar?username=repinel&password=[FILTERED]", logs[1]
   end
 
   def test_send_data
