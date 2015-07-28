@@ -391,7 +391,7 @@ module ActionDispatch
 
       attr_reader :app
 
-      def before_setup
+      def before_setup # :nodoc:
         @app = nil
         @integration_session = nil
         super

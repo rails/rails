@@ -28,14 +28,14 @@ if defined?(ActiveRecord::Base)
 end
 
 class ActionController::TestCase
-  def before_setup
+  def before_setup # :nodoc:
     @routes = Rails.application.routes
     super
   end
 end
 
 class ActionDispatch::IntegrationTest
-  def before_setup
+  def before_setup # :nodoc:
     @routes = Rails.application.routes
     super
   end

@@ -827,12 +827,12 @@ module ActiveRecord
   module TestFixtures
     extend ActiveSupport::Concern
 
-    def before_setup
+    def before_setup # :nodoc:
       setup_fixtures
       super
     end
 
-    def after_teardown
+    def after_teardown # :nodoc:
       super
       teardown_fixtures
     end
