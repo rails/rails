@@ -10,6 +10,7 @@ class Array
   #     Array.wrap(nil)       # => []
   #     Array.wrap([1, 2, 3]) # => [1, 2, 3]
   #     Array.wrap(0)         # => [0]
+  #     Array.wrap(1,2,3,4)   # => [1, 2, 3, 4]
   #
   # This method is similar in purpose to <tt>Kernel#Array</tt>, but there are some differences:
   #
@@ -24,7 +25,8 @@ class Array
   # The last point is easily explained with some enumerables:
   #
   #   Array(foo: :bar)      # => [[:foo, :bar]]
-  #   Array.wrap(foo: :bar) # => [{:foo=>:bar}]
+  #   Array.wrap(foo: :bar) # => [{:foo => :bar}]
+  #   Array.wrap(foo: :bar, bow: :arrow) # => [{:foo => :bar, :bow => arrow}]
   #
   # There's also a related idiom that uses the splat operator:
   #
@@ -34,10 +36,10 @@ class Array
   #
   # The differences with <tt>Kernel#Array</tt> explained above
   # apply to the rest of <tt>object</tt>s.
-  def self.wrap(object)
-    if object.nil?
+  def self.wrap(*object)
+    if object.count == 0
       []
-    elsif object.respond_to?(:to_ary)
+    elsif object.respond_to?(:to_ary) 
       object.to_ary || [object]
     else
       [object]
