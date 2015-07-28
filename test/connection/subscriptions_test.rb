@@ -20,7 +20,7 @@ class ActionCable::Connection::SubscriptionsTest < ActiveSupport::TestCase
 
   setup do
     @server = TestServer.new
-    @server.stubs(:channel_classes).returns([ ChatChannel ])
+    @server.stubs(:channel_classes).returns(ChatChannel.name => ChatChannel)
 
     env = Rack::MockRequest.env_for "/test", 'HTTP_CONNECTION' => 'upgrade', 'HTTP_UPGRADE' => 'websocket'
     @connection = Connection.new(@server, env)
