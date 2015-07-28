@@ -37,7 +37,7 @@ class Array
   # The differences with <tt>Kernel#Array</tt> explained above
   # apply to the rest of <tt>object</tt>s.
   def self.wrap(*object)
-    if object.count == 0
+    if object.nil?
       []
     elsif object.respond_to?(:to_ary) 
       object.to_ary || [object]
