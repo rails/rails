@@ -32,7 +32,7 @@ config.action_controller.perform_caching = true
 ```
 
 NOTE: Changing the value of `config.action_controller.perform_caching` will
-only have an effect on the caching provided by the Action Controller component. 
+only have an effect on the caching provided by the Action Controller component.
 For instance, it will not impact low-level caching, that we address
 [below](#low-level-caching).
 
@@ -207,16 +207,17 @@ persistent fashion, you can with low level caching.
 Cache Stores
 ------------
 
-Rails provides different stores for the cached data created by **action** and **fragment** caches.
-
-TIP: Page caches are always stored on disk.
+Rails provides different stores for the cached data (apart from SQL and page
+caching).
 
 ### Configuration
 
-You can set up your application's default cache store by calling `config.cache_store=` in the Application definition inside your `config/application.rb` file or in an Application.configure block in an environment specific configuration file (i.e. `config/environments/*.rb`). The first argument will be the cache store to use and the rest of the argument will be passed as arguments to the cache store constructor.
+You can set up your application's default cache store by setting the
+`config.cache_store` configuration option. Other parameters can be passed as
+arguments to the cache store's constructor:
 
 ```ruby
-config.cache_store = :memory_store
+config.cache_store = :memory_store, { size: 64.megabytes }
 ```
 
 NOTE: Alternatively, you can call `ActionController::Base.cache_store` outside of a configuration block.
@@ -240,6 +241,19 @@ There are some common options used by all cache implementations. These can be pa
 * `:expires_in` - This option sets an expiration time in seconds for the cache entry when it will be automatically removed from the cache.
 
 * `:race_condition_ttl` - This option is used in conjunction with the `:expires_in` option. It will prevent race conditions when cache entries expire by preventing multiple processes from simultaneously regenerating the same entry (also known as the dog pile effect). This option sets the number of seconds that an expired entry can be reused while a new value is being regenerated. It's a good practice to set this value if you use the `:expires_in` option.
+
+#### Custom Cache Stores
+
+You can create your own custom cache store by simply extending
+`ActiveSupport::Cache::Store` and implementing the appropriate methods. This way,
+you can swap in any number of caching technologies into your Rails application.
+
+To use a custom cache store, simply set the cache store to a new instance of your
+custom class.
+
+```ruby
+config.cache_store = MyCacheStore.new
+```
 
 ### ActiveSupport::Cache::MemoryStore
 
@@ -292,36 +306,6 @@ The `write` and `fetch` methods on this cache accept two additional options that
 config.cache_store = :mem_cache_store, "cache-1.example.com", "cache-2.example.com"
 ```
 
-### ActiveSupport::Cache::EhcacheStore
-
-If you are using JRuby you can use Terracotta's Ehcache as the cache store for your application. Ehcache is an open source Java cache that also offers an enterprise version with increased scalability, management, and commercial support. You must first install the jruby-ehcache-rails3 gem (version 1.1.0 or later) to use this cache store.
-
-```ruby
-config.cache_store = :ehcache_store
-```
-
-When initializing the cache, you may use the `:ehcache_config` option to specify the Ehcache config file to use (where the default is "ehcache.xml" in your Rails config directory), and the :cache_name option to provide a custom name for your cache (the default is rails_cache).
-
-In addition to the standard `:expires_in` option, the `write` method on this cache can also accept the additional `:unless_exist` option, which will cause the cache store to use Ehcache's `putIfAbsent` method instead of `put`, and therefore will not overwrite an existing entry. Additionally, the `write` method supports all of the properties exposed by the [Ehcache Element class](http://ehcache.org/apidocs/net/sf/ehcache/Element.html) , including:
-
-| Property                    | Argument Type       | Description                                                 |
-| --------------------------- | ------------------- | ----------------------------------------------------------- |
-| elementEvictionData         | ElementEvictionData | Sets this element's eviction data instance.                 |
-| eternal                     | boolean             | Sets whether the element is eternal.                        |
-| timeToIdle, tti             | int                 | Sets time to idle                                           |
-| timeToLive, ttl, expires_in | int                 | Sets time to Live                                           |
-| version                     | long                | Sets the version attribute of the ElementAttributes object. |
-
-These options are passed to the `write` method as Hash options using either camelCase or underscore notation, as in the following examples:
-
-```ruby
-Rails.cache.write('key', 'value', time_to_idle: 60.seconds, timeToLive: 600.seconds)
-caches_action :index, expires_in: 60.seconds, unless_exist: true
-```
-
-For more information about Ehcache, see [http://ehcache.org/](http://ehcache.org/) .
-For more information about Ehcache for JRuby and Rails, see [http://ehcache.org/documentation/jruby.html](http://ehcache.org/documentation/jruby.html)
-
 ### ActiveSupport::Cache::NullStore
 
 This cache store implementation is meant to be used only in development or test environments and it never stores anything. This can be very useful in development when you have code that interacts directly with `Rails.cache` but caching may interfere with being able to see the results of code changes. With this cache store, all `fetch` and `read` operations will result in a miss.
@@ -330,19 +314,13 @@ This cache store implementation is meant to be used only in development or test 
 config.cache_store = :null_store
 ```
 
-### Custom Cache Stores
+Cache Keys
+----------
 
-You can create your own custom cache store by simply extending `ActiveSupport::Cache::Store` and implementing the appropriate methods. In this way, you can swap in any number of caching technologies into your Rails application.
-
-To use a custom cache store, simply set the cache store to a new instance of the class.
-
-```ruby
-config.cache_store = MyCacheStore.new
-```
-
-### Cache Keys
-
-The keys used in a cache can be any object that responds to either `:cache_key` or `:to_param`. You can implement the `:cache_key` method on your classes if you need to generate custom keys. Active Record will generate keys based on the class name and record id.
+The keys used in a cache can be any object that responds to either `cache_key` or
+`to_param`. You can implement the `cache_key` method on your classes if you need
+to generate custom keys. Active Record will generate keys based on the class name
+and record id.
 
 You can use Hashes and Arrays of values as cache keys.
 
@@ -351,7 +329,12 @@ You can use Hashes and Arrays of values as cache keys.
 Rails.cache.read(site: "mysite", owners: [owner_1, owner_2])
 ```
 
-The keys you use on `Rails.cache` will not be the same as those actually used with the storage engine. They may be modified with a namespace or altered to fit technology backend constraints. This means, for instance, that you can't save values with `Rails.cache` and then try to pull them out with the `memcache-client` gem. However, you also don't need to worry about exceeding the memcached size limit or violating syntax rules.
+The keys you use on `Rails.cache` will not be the same as those actually used with
+the storage engine. They may be modified with a namespace or altered to fit
+technology backend constraints. This means, for instance, that you can't save
+values with `Rails.cache` and then try to pull them out with the `dalli` gem.
+However, you also don't need to worry about exceeding the memcached size limit or
+violating syntax rules.
 
 Conditional GET support
 -----------------------
