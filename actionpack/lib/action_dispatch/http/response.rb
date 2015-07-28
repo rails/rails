@@ -201,7 +201,7 @@ module ActionDispatch # :nodoc:
     # it sets the charset to utf-8.
     #
     #   response.charset = 'utf-16' # => 'utf-16'
-    #   response.charset = nil # => 'utf-8'
+    #   response.charset = nil      # => 'utf-8'
     def charset=(charset)
       @charset = charset.nil? ? self.class.default_charset : charset
     end

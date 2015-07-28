@@ -23,10 +23,12 @@ application from scratch. It does not assume that you have any prior experience
 with Rails. However, to get the most out of it, you need to have some
 prerequisites installed:
 
-* The [Ruby](https://www.ruby-lang.org/en/downloads) language version 2.2.2 or newer. 
-* Right version of [Development Kit](http://rubyinstaller.org/downloads/), if you are using Windows
-* The [RubyGems](https://rubygems.org) packaging system, which is installed with Ruby
-  versions 1.9 and later. To learn more about RubyGems, please read the [RubyGems Guides](http://guides.rubygems.org).
+* The [Ruby](https://www.ruby-lang.org/en/downloads) language version 2.2.2 or newer.
+* Right version of [Development Kit](http://rubyinstaller.org/downloads/), if you
+  are using Windows.
+* The [RubyGems](https://rubygems.org) packaging system, which is installed with
+  Ruby by default. To learn more about RubyGems, please read the
+  [RubyGems Guides](http://guides.rubygems.org).
 * A working installation of the [SQLite3 Database](https://www.sqlite.org).
 
 Rails is a web application framework running on the Ruby programming language.

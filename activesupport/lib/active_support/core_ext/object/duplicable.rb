@@ -81,7 +81,7 @@ class BigDecimal
   # BigDecimals are duplicable:
   #
   # BigDecimal.new("1.2").duplicable? # => true
-  # BigDecimal.new("1.2").dup # => #<BigDecimal:7f9d698eee10,'0.12E1',18(18)>
+  # BigDecimal.new("1.2").dup         # => #<BigDecimal:...,'0.12E1',18(18)>
   def duplicable?
     true
   end
