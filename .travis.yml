@@ -1,0 +1,19 @@
+sudo: false
+cache: bundler
+rvm:
+  - 2.2
+  - ruby-head
+matrix:
+  fast_finish: true
+notifications:
+  email: false
+  irc:
+    on_success: change
+    on_failure: always
+    channels:
+      - "irc.freenode.org#rails-contrib"
+  campfire:
+    on_success: change
+    on_failure: always
+    rooms:
+      - secure: "EZmqsgjEQbWouCx6xL/30jslug7xcq+Dl09twDGjBs369GB5LiUm17/I7d6H1YQFY0Vu2LpiQ/zs+6ihlBjslRV/2RYM3AgAA9OOC3pn7uENFVTXaECi/io1wjvlbMNrf1YJSc3aUyiWKykRsdZnZSFszkDs4DMnZG1s/Oxf1JTYEGNWW3WcOFfYkzcS7NWlOW9OBf4RuzjtLYF05IO4t4FZI1aTWrNV3NNMZ+tqmiQHHNrQE/CzQE3ujqFiea2vVZ7PwvmjVWJgC29UZqS7HcNuq6cCMtMZZuubCZmyT85GjJ/SKTShxFqfV1oCpY3y6kyWcTAQsUoLtPEX0OxLeX+CgWNIJK0rY5+5/v5pZP1uwRsMfLerfp2a9g4fAnlcAKaZjalOc39rOkJl8FdvLQtqFIGWxpjWdJbMrCt3SrnnOccpDqDWpAL798LVBONcOuor71rEeNj1dZ6fCoHTKhLVy6UVm9eUI8zt1APM0xzHgTBI1KBVZi0ikqPcaW604rrNUSk8g/AFQk0pIKyDzV9qYMJD2wnr42cyPKg0gfk1tc9KRCNeH+My1HdZS6Zogpjkc3plAzJQ1DAPY0EBWUlEKghpkyCunjpxN3cw390iKgZUN52phtmGMRkyNnwI8+ELnT4I+Jata1mFyWiETM85q8Rqx+FeA0W/BBsEAp8="
