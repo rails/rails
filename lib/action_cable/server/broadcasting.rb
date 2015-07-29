@@ -32,7 +32,7 @@ module ActionCable
       # The redis instance used for broadcasting. Not intended for direct user use.
       def broadcasting_redis
         @broadcasting_redis ||= Redis.new(config.redis)
-      end      
+      end
 
       private
         class Broadcaster

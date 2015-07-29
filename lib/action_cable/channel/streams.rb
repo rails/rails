@@ -1,7 +1,7 @@
 module ActionCable
   module Channel
     # Streams allow channels to route broadcastings to the subscriber. A broadcasting is an discussed elsewhere a pub/sub queue where any data
-    # put into it is automatically sent to the clients that are connected at that time. It's purely an online queue, though. If you're not 
+    # put into it is automatically sent to the clients that are connected at that time. It's purely an online queue, though. If you're not
     # streaming a broadcasting at the very moment it sends out an update, you'll not get that update when connecting later.
     #
     # Most commonly, the streamed broadcast is sent straight to the subscriber on the client-side. The channel just acts as a connector between
@@ -12,7 +12,7 @@ module ActionCable
     #     def follow(data)
     #       stream_from "comments_for_#{data['recording_id']}"
     #     end
-    #   
+    #
     #     def unfollow
     #       stop_all_streams
     #     end
@@ -23,23 +23,37 @@ module ActionCable
     #
     #   ActionCable.server.broadcast "comments_for_45", author: 'DHH', content: 'Rails is just swell'
     #
-    # If you don't just want to parlay the broadcast unfiltered to the subscriber, you can supply a callback that let's you alter what goes out. 
+    # If you have a stream that is related to a model, then the broadcasting used can be generated from the model and channel.
+    # The following example would to subscribe to a broadcasting that would be something like `comments:Z2lkOi8vVGVzdEFwcC9Qb3N0LzE`
+    #
+    #   class CommentsChannel < ApplicationCable::Channel
+    #     def subscribed
+    #       post = Post.find(params[:id])
+    #       stream_for post
+    #     end
+    #   end
+    #
+    # You can then broadcast to this channel using:
+    #
+    #   CommentsChannel.broadcast_to(@post)
+    #
+    # If you don't just want to parlay the broadcast unfiltered to the subscriber, you can supply a callback that let's you alter what goes out.
     # Example below shows how you can use this to provide performance introspection in the process:
     #
     #   class ChatChannel < ApplicationCable::Channel
     #    def subscribed
     #      @room = Chat::Room[params[:room_number]]
-    #  
-    #      stream_from @room.channel, -> (message) do
+    #
+    #      stream_for @room, -> (message) do
     #        message = ActiveSupport::JSON.decode(m)
-    #  
+    #
     #        if message['originated_at'].present?
     #          elapsed_time = (Time.now.to_f - message['originated_at']).round(2)
-    #  
+    #
     #          ActiveSupport::Notifications.instrument :performance, measurement: 'Chat.message_delay', value: elapsed_time, action: :timing
     #          logger.info "Message took #{elapsed_time}s to arrive"
     #        end
-    #  
+    #
     #        transmit message
     #      end
     #    end
@@ -61,6 +75,13 @@ module ActionCable
         pubsub.subscribe broadcasting, &callback
 
         logger.info "#{self.class.name} is streaming from #{broadcasting}"
+      end
+
+      # Start streaming the pubsub queue for the <tt>model</tt> in this channel. Optionally, you can pass a
+      # <tt>callback</tt> that'll be used instead of the default of just transmitting the updates straight
+      # to the subscriber.
+      def stream_for(model, callback = nil)
+        stream_from(broadcasting_for([ channel_name, model ]), callback)
       end
 
       def stop_all_streams
