@@ -602,6 +602,7 @@ module Rails
     initializer :append_assets_path, group: :all do |app|
       app.config.assets.paths.unshift(*paths["vendor/assets"].existent_directories)
       app.config.assets.paths.unshift(*paths["lib/assets"].existent_directories)
+      app.config.assets.paths.unshift(*paths["app"].existent_directories.grep(/\/assets\z/))
       app.config.assets.paths.unshift(*paths["app/assets"].existent_directories)
     end
 
