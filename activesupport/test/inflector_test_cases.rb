@@ -72,6 +72,8 @@ module InflectorTestCases
     "photo"       => "photos",
     "buffalo"     => "buffaloes",
     "tomato"      => "tomatoes",
+    "potato"      => "potatoes",
+    "hero"        => "heroes",
     "dwarf"       => "dwarves",
     "elf"         => "elves",
     "information" => "information",
