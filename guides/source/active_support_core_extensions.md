@@ -332,7 +332,7 @@ user_path(@user) # => "/users/357-john-smith"
 
 WARNING. Controllers need to be aware of any redefinition of `to_param` because when a request like that comes in "357-john-smith" is the value of `params[:id]`.
 
-NOTE: Defined in `active_support/core_ext/object/to_param.rb`.
+NOTE: Defined in `active_support/core_ext/object/to_query.rb`.
 
 ### `to_query`
 
