@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    actioncable (0.1.0)
+    actioncable (0.0.3)
       actionpack (>= 4.2.0)
       activesupport (>= 4.2.0)
       celluloid (~> 0.16.0)
