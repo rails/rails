@@ -60,6 +60,7 @@ module ApplicationTests
     test "assets do not require compressors until it is used" do
       app_file "app/assets/javascripts/demo.js.erb", "<%= :alert %>();"
       add_to_env_config "production", "config.assets.compile = true"
+      add_to_env_config "production", "config.assets.precompile = []"
 
       ENV["RAILS_ENV"] = "production"
       require "#{app_path}/config/environment"
