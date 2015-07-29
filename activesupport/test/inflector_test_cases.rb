@@ -33,6 +33,9 @@ module InflectorTestCases
     "salesperson" => "salespeople",
     "person"      => "people",
 
+    "foot"        => "feet",
+    "tooth"        => "teeth",
+
     "spokesman"   => "spokesmen",
     "man"         => "men",
     "woman"       => "women",
@@ -353,6 +356,8 @@ module InflectorTestCases
     'move'   => 'moves',
     'cow'    => 'kine', # Test inflections with different starting letters
     'zombie' => 'zombies',
-    'genus'  => 'genera'
+    'genus'  => 'genera',
+    'foot'   => 'feet',
+    'tooth'  => 'teeth'
   }
 end
