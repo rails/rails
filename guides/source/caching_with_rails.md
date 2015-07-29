@@ -3,12 +3,24 @@
 Caching with Rails: An Overview
 ===============================
 
-This guide is an introduction to speeding up your Rails app with caching.
+This guide is an introduction to speeding up your Rails application with caching.
+
+Caching means to store content generated during the request-response cycle and
+to reuse it when responding to similar requests.
+
+Caching is often the most effective way to boost an application's performance.
+Through caching, web sites running on a single server with a single database
+can sustain a load of thousands of concurrent users.
+
+Rails provides a set of caching features out of the box. This guide will teach
+you the scope and purpose of each one of them. Master these techniques and your
+Rails applications can serve millions of views without exorbitant response times
+or server bills.
 
 After reading this guide, you will know:
 
-* Page and action caching.
 * Fragment and Russian doll caching.
+* How to manage the caching dependencies.
 * Alternative cache stores.
 * Conditional GET support.
 
