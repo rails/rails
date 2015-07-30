@@ -162,7 +162,7 @@ module ActiveModel
           options = options.dup
           options[:if] = Array(options[:if])
           options[:if].unshift ->(o) {
-            Array(options[:on]).include?(o.validation_context)
+            !(Array(options[:on]) & Array(o.validation_context)).empty?
           }
         end
 
