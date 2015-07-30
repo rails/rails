@@ -1887,7 +1887,7 @@ class TestAutosaveAssociationWithValidateOption < ActiveRecord::TestCase
   end
 
   def test_autosave_with_validate_false_option_on_has_one_association
-    firm = Firm.new(name: 'VNGRS')
+    firm = Firm.new(name: "VNGRS")
     account = firm.build_account
 
     firm.save(validate: false)
@@ -1897,7 +1897,7 @@ class TestAutosaveAssociationWithValidateOption < ActiveRecord::TestCase
   end
 
   def test_autosave_with_validate_false_option_on_has_many_association
-    firm = Firm.new(name: 'VNGRS')
+    firm = Firm.new(name: "VNGRS")
     client = firm.clients.build(name: nil)
 
     firm.save(validate: false)

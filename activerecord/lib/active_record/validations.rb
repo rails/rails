@@ -70,13 +70,13 @@ module ActiveRecord
 
     alias_method :validate, :valid?
 
+    def run_validations? # :nodoc:
+      @run_validations
+    end
+
   private
     def default_validation_context
       new_record? ? :create : :update
-    end
-
-    def run_validations? # :nodoc:
-      @run_validations
     end
 
     def raise_validation_error
@@ -84,6 +84,7 @@ module ActiveRecord
     end
 
     def perform_validations(options = {})
+      @run_validations = options[:validate] != false
       options[:validate] == false || valid?(options[:context])
     end
   end
