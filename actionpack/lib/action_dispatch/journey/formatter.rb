@@ -25,7 +25,7 @@ module ActionDispatch
           next unless name || route.dispatcher?
 
           missing_keys = missing_keys(route, parameterized_parts)
-          next if missing_keys && missing_keys.any?
+          next if missing_keys && !missing_keys.empty?
           params = options.dup.delete_if do |key, _|
             parameterized_parts.key?(key) || route.defaults.key?(key)
           end
@@ -40,7 +40,7 @@ module ActionDispatch
         end
 
         message = "No route matches #{Hash[constraints.sort_by{|k,v| k.to_s}].inspect}"
-        message << " missing required keys: #{missing_keys.sort.inspect}" if missing_keys && missing_keys.any?
+        message << " missing required keys: #{missing_keys.sort.inspect}" if missing_keys && !missing_keys.empty?
 
         raise ActionController::UrlGenerationError, message
       end
