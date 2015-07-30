@@ -211,9 +211,8 @@ IMPORTANT: The search, telephone, date, time, color, datetime, datetime-local,
 month, week, URL, email, number and range inputs are HTML5 controls.
 If you require your app to have a consistent experience in older browsers,
 you will need an HTML5 polyfill (provided by CSS and/or JavaScript).
-There is definitely [no shortage of solutions for this](https://github.com/Modernizr/Modernizr/wiki/HTML5-Cross-Browser-Polyfills), although a couple of popular tools at the moment are
-[Modernizr](http://www.modernizr.com/) and [yepnope](http://yepnopejs.com/),
-which provide a simple way to add functionality based on the presence of
+There is definitely [no shortage of solutions for this](https://github.com/Modernizr/Modernizr/wiki/HTML5-Cross-Browser-Polyfills), although a popular tool at the moment is
+[Modernizr](http://www.modernizr.com/), which provides a simple way to add functionality based on the presence of
 detected HTML5 features.
 
 TIP: If you're using password input fields (for any purpose), you might want to configure your application to prevent those parameters from being logged. You can learn about this in the [Security Guide](security.html#logging).
