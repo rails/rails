@@ -267,9 +267,13 @@ module ActionDispatch
                 path_params -= controller_options.keys
                 path_params -= result.keys
               end
-              path_params -= inner_options.keys
-              path_params.take(args.size).each do |param|
-                result[param] = args.shift
+              inner_options.each do |key, _|
+                path_params.delete(key)
+              end
+
+              args.each_with_index do |arg, index|
+                param = path_params[index]
+                result[param] = arg if param
               end
             end
 
@@ -594,8 +598,8 @@ module ActionDispatch
 
         def initialize(named_route, options, recall, set)
           @named_route = named_route
-          @options     = options.dup
-          @recall      = recall.dup
+          @options     = options
+          @recall      = recall
           @set         = set
 
           normalize_recall!
@@ -617,7 +621,7 @@ module ActionDispatch
         def use_recall_for(key)
           if @recall[key] && (!@options.key?(key) || @options[key] == @recall[key])
             if !named_route_exists? || segment_keys.include?(key)
-              @options[key] = @recall.delete(key)
+              @options[key] = @recall[key]
             end
           end
         end
@@ -671,12 +675,18 @@ module ActionDispatch
 
         # Remove leading slashes from controllers
         def normalize_controller!
-          @options[:controller] = controller.sub(%r{^/}, ''.freeze) if controller
+          if controller
+            if m = controller.match(/\A\/(?<controller_without_leading_slash>.*)/)
+              @options[:controller] = m[:controller_without_leading_slash]
+            else
+              @options[:controller] = controller
+            end
+          end
         end
 
         # Move 'index' action from options to recall
         def normalize_action!
-          if @options[:action] == 'index'
+          if @options[:action] == 'index'.freeze
             @recall[:action] = @options.delete(:action)
           end
         end

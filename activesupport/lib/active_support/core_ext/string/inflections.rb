@@ -164,7 +164,7 @@ class String
   #
   #   <%= link_to(@person.name, person_path) %>
   #   # => <a href="/person/1-donald-e-knuth">Donald E. Knuth</a>
-  def parameterize(sep = '-')
+  def parameterize(sep = '-'.freeze)
     ActiveSupport::Inflector.parameterize(self, sep)
   end
 

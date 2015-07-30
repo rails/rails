@@ -60,7 +60,7 @@ module ActionView
           tag_options = {
             "src" => path_to_javascript(source, path_options)
           }.merge!(options)
-          content_tag(:script, "", tag_options)
+          content_tag("script".freeze, "", tag_options)
         }.join("\n").html_safe
       end
 

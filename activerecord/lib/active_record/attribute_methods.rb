@@ -230,7 +230,15 @@ module ActiveRecord
     #   person.respond_to(:nothing) # => false
     def respond_to?(name, include_private = false)
       return false unless super
-      name = name.to_s
+
+      case name
+      when :to_partial_path
+        name = "to_partial_path".freeze
+      when :to_model
+        name = "to_model".freeze
+      else
+        name = name.to_s
+      end
 
       # If the result is true then check for the select case.
       # For queries selecting a subset of columns, return false for unselected columns.
