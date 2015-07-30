@@ -114,6 +114,7 @@ module ApplicationTests
       end
 
       test 'register a new extension' do
+        add_to_config "config.assets.precompile = []"
         add_to_config %q{ config.annotations.register_extensions("scss", "sass") { |annotation| /\/\/\s*(#{annotation}):?\s*(.*)$/ } }
         app_file "app/assets/stylesheets/application.css.scss", "// TODO: note in scss"
         app_file "app/assets/stylesheets/application.css.sass", "// TODO: note in sass"
