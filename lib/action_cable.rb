@@ -8,6 +8,7 @@ require 'active_support/json'
 require 'active_support/concern'
 require 'active_support/core_ext/hash/indifferent_access'
 require 'active_support/core_ext/module/delegation'
+require 'active_support/core_ext/object/to_param'
 require 'active_support/callbacks'
 
 require 'faye/websocket'
