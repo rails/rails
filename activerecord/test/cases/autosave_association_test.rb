@@ -1698,3 +1698,35 @@ class TestAutosaveAssociationWithTouch < ActiveRecord::TestCase
     assert_nothing_raised { invoice.line_items.create(:amount => 10) }
   end
 end
+
+class TestAutosaveAssociationWithValidateOption < ActiveRecord::TestCase
+  def test_autosave_with_validate_false_option_on_belongs_to_association
+    account = Account.new
+    account.build_firm
+
+    account.save(validate: false)
+
+    assert_predicate account, :persisted?
+    assert_predicate account.firm, :persisted?
+  end
+
+  def test_autosave_with_validate_false_option_on_has_one_association
+    firm = Firm.new(name: 'VNGRS')
+    account = firm.build_account
+
+    firm.save(validate: false)
+
+    assert_predicate firm, :persisted?
+    assert_predicate account, :persisted?
+  end
+
+  def test_autosave_with_validate_false_option_on_has_many_association
+    firm = Firm.new(name: 'VNGRS')
+    client = firm.clients.build(name: nil)
+
+    firm.save(validate: false)
+
+    assert_predicate firm, :persisted?
+    assert_predicate client, :persisted?
+  end
+end

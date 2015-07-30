@@ -1,3 +1,9 @@
+*   Autosave association should respect to value of validate option
+
+    Fixes #21058.
+
+    *Mehmet Emin İNAÇ*
+
 *   Ensure that the Suppressor runs before validations.
 
     This moves the suppressor up to be run before validations rather than after

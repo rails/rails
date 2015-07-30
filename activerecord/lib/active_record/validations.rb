@@ -74,12 +74,17 @@ module ActiveRecord
       new_record? ? :create : :update
     end
 
+    def run_validations? # :nodoc:
+      @run_validations
+    end
+
     def raise_validation_error
       raise(RecordInvalid.new(self))
     end
 
     def perform_validations(options={}) # :nodoc:
-      options[:validate] == false || valid?(options[:context])
+      @run_validations = options[:validate] != false
+      !(@run_validations && !valid?(options[:context]))
     end
   end
 end
