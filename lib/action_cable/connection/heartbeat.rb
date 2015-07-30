@@ -5,7 +5,7 @@ module ActionCable
     # disconnect.
     class Heartbeat
       BEAT_INTERVAL = 3
-      
+
       def initialize(connection)
         @connection = connection
       end
@@ -21,7 +21,7 @@ module ActionCable
 
       private
         attr_reader :connection
-        
+
         def beat
           connection.transmit({ identifier: '_ping', message: Time.now.to_i }.to_json)
         end

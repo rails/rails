@@ -16,7 +16,7 @@ module ActionCable
         # channel instances created off the connection.
         def identified_by(*identifiers)
           Array(identifiers).each { |identifier| attr_accessor identifier }
-          self.identifiers += identifiers          
+          self.identifiers += identifiers
         end
       end
 

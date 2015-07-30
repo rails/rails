@@ -1,6 +1,6 @@
 module ActionCable
   module Channel
-    # Streams allow channels to route broadcastings to the subscriber. A broadcasting is an discussed elsewhere a pub/sub queue where any data
+    # Streams allow channels to route broadcastings to the subscriber. A broadcasting is, as discussed elsewhere, a pub/sub queue where any data
     # put into it is automatically sent to the clients that are connected at that time. It's purely an online queue, though. If you're not
     # streaming a broadcasting at the very moment it sends out an update, you'll not get that update when connecting later.
     #
@@ -24,7 +24,7 @@ module ActionCable
     #   ActionCable.server.broadcast "comments_for_45", author: 'DHH', content: 'Rails is just swell'
     #
     # If you have a stream that is related to a model, then the broadcasting used can be generated from the model and channel.
-    # The following example would to subscribe to a broadcasting that would be something like `comments:Z2lkOi8vVGVzdEFwcC9Qb3N0LzE`
+    # The following example would subscribe to a broadcasting like `comments:Z2lkOi8vVGVzdEFwcC9Qb3N0LzE`
     #
     #   class CommentsChannel < ApplicationCable::Channel
     #     def subscribed
@@ -37,15 +37,15 @@ module ActionCable
     #
     #   CommentsChannel.broadcast_to(@post)
     #
-    # If you don't just want to parlay the broadcast unfiltered to the subscriber, you can supply a callback that let's you alter what goes out.
+    # If you don't just want to parlay the broadcast unfiltered to the subscriber, you can supply a callback that lets you alter what goes out.
     # Example below shows how you can use this to provide performance introspection in the process:
     #
     #   class ChatChannel < ApplicationCable::Channel
     #    def subscribed
     #      @room = Chat::Room[params[:room_number]]
     #
-    #      stream_for @room, -> (message) do
-    #        message = ActiveSupport::JSON.decode(m)
+    #      stream_for @room, -> (encoded_message) do
+    #        message = ActiveSupport::JSON.decode(encoded_message)
     #
     #        if message['originated_at'].present?
     #          elapsed_time = (Time.now.to_f - message['originated_at']).round(2)
