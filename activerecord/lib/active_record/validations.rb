@@ -75,6 +75,10 @@ module ActiveRecord
       new_record? ? :create : :update
     end
 
+    def run_validations? # :nodoc:
+      @run_validations
+    end
+
     def raise_validation_error
       raise(RecordInvalid.new(self))
     end

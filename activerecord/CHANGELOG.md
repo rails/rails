@@ -1,3 +1,9 @@
+*   Autosave association should respect to value of validate option
+
+    Fixes #21058.
+
+    *Mehmet Emin İNAÇ*
+
 *   Loading the schema for a model that has no `table_name` raises a `TableNotSpecified` error.
 
     *Guilherme Mansur*, *Eugene Kenny*
