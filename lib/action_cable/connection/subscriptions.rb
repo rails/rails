@@ -24,9 +24,7 @@ module ActionCable
         id_key = data['identifier']
         id_options = ActiveSupport::JSON.decode(id_key).with_indifferent_access
 
-        subscription_klass = connection.server.channel_classes.detect do |channel_class|
-          channel_class == id_options[:channel].safe_constantize
-        end
+        subscription_klass = connection.server.channel_classes[id_options[:channel]]
 
         if subscription_klass
           subscriptions[id_key] ||= subscription_klass.new(connection, id_key, id_options)
