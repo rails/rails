@@ -62,6 +62,8 @@ module ApplicationCable
   end
 end
 ```
+Here `identified_by` is a connection identifier that can be used to find the specific connection again or later.
+Note that anything marked as an identifier will automatically create a delegate by the same name on any channel instances created off the connection.
 
 Then you should define your `ApplicationCable::Channel` class in Ruby. This is the place where you put
 shared logic between your channels.
