@@ -12,7 +12,7 @@ module ActionCable
     #   module ApplicationCable
     #     class Connection < ActionCable::Connection::Base
     #       identified_by :current_user
-    #   
+    #
     #       def connect
     #         self.current_user = find_verified_user
     #         logger.add_tags current_user.name
@@ -21,7 +21,7 @@ module ActionCable
     #       def disconnect
     #         # Any cleanup work needed when the cable connection is cut.
     #       end
-    #   
+    #
     #       protected
     #         def find_verified_user
     #           if current_user = User.find_by_identity cookies.signed[:identity_id]
@@ -37,7 +37,7 @@ module ActionCable
     # established for that current_user (and potentially disconnect them if the user was removed from an account). You can declare as many
     # identification indexes as you like. Declaring an identification means that a attr_accessor is automatically set for that key.
     #
-    # Second, we rely on the fact that the websocket connection is established with the cookies from that domain being sent along. This makes
+    # Second, we rely on the fact that the websocket connection is established with the cookies from the domain being sent along. This makes
     # it easy to use signed cookies that were set when logging in via a web interface to authorize the websocket connection.
     #
     # Finally, we add a tag to the connection-specific logger with name of the current user to easily distinguish their messages in the log.
@@ -75,14 +75,14 @@ module ActionCable
           websocket.on(:open)    { |event| send_async :on_open   }
           websocket.on(:message) { |event| on_message event.data }
           websocket.on(:close)   { |event| send_async :on_close  }
-          
+
           respond_to_successful_request
         else
           respond_to_invalid_request
         end
       end
 
-      # Data received over the cable is handled by this method. It's expected that everything inbound is encoded with JSON. 
+      # Data received over the cable is handled by this method. It's expected that everything inbound is JSON encoded.
       # The data is routed to the proper channel that the connection has subscribed to.
       def receive(data_in_json)
         if websocket.alive?
@@ -177,7 +177,7 @@ module ActionCable
 
         # Tags are declared in the server but computed in the connection. This allows us per-connection tailored tags.
         def new_tagged_logger
-          TaggedLoggerProxy.new server.logger, 
+          TaggedLoggerProxy.new server.logger,
             tags: server.config.log_tags.map { |tag| tag.respond_to?(:call) ? tag.call(request) : tag.to_s.camelize }
         end
 
