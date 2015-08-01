@@ -403,6 +403,38 @@ INFO. Cache stores may add their own keys
 }
 ```
 
+Active Job
+--------
+
+### enqueue_at.active_job
+
+| Key          | Value                           |
+| ------------ | ------------------------------- |
+| `:adapter`   | Object of specified adapter     |
+| `:job`       | Object of Active Job            |
+
+### enqueue.active_job
+
+| Key          | Value                           |
+| ------------ | ------------------------------- |
+| `:adapter`   | Object of specified adapter     |
+| `:job`       | Object of Active Job            |
+
+### perform_start.active_job
+
+| Key          | Value                           |
+| ------------ | ------------------------------- |
+| `:adapter`   | Object of specified adapter     |
+| `:job`       | Object of Active Job            |
+
+### perform.active_job
+
+| Key          | Value                           |
+| ------------ | ------------------------------- |
+| `:adapter`   | Object of specified adapter     |
+| `:job`       | Object of Active Job            |
+
+
 Railties
 --------
 
