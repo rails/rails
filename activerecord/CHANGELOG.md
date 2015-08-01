@@ -2,7 +2,7 @@
 
     Fixes #20966.
 
-    *Sean Griffin & presskey*
+    *Sean Griffin*, *presskey*
 
 *   Don't raise an error if an association failed to destroy when `destroy` was
     called on the parent (as opposed to `destroy!`).
@@ -11,10 +11,11 @@
 
     *Sean Griffin*
 
-*   ActiveRecord::RecordNotFound modified to store model name, primary_key and
+*   `ActiveRecord::RecordNotFound` modified to store model name, primary_key and
     id of the caller model. It allows the catcher of this exception to make
-    a better decision to what to do with it. For example consider this simple
-    example:
+    a better decision to what to do with it.
+
+    Example:
 
         class SomeAbstractController < ActionController::Base
           rescue_from ActiveRecord::RecordNotFound, with: :redirect_to_404
@@ -64,12 +65,12 @@
 
     *Sean Griffin*
 
-*   Fix a bug where counter_cache doesn't always work with  polymorphic
+*   Fix a bug where counter_cache doesn't always work with polymorphic
     relations.
 
     Fixes #16407.
 
-    *Stefan Kanev & Sean Griffin*
+    *Stefan Kanev*, *Sean Griffin*
 
 *   Ensure that cyclic associations with autosave don't cause duplicate errors
     to be added to the parent record.
@@ -209,14 +210,12 @@
 
 *   Do not set `sql_mode` if `strict: :default` is specified.
 
-        ```
-        # database.yml
+        # config/database.yml
         production:
           adapter: mysql2
           database: foo_prod
           user: foo
           strict: :default
-        ```
 
     *Ryuta Kamizono*
 
