@@ -1,5 +1,3 @@
-require 'shellwords'
-
 module ActiveRecord
   module Tasks # :nodoc:
     class PostgreSQLDatabaseTasks # :nodoc:
@@ -46,20 +44,22 @@ module ActiveRecord
 
       def structure_dump(filename)
         set_psql_env
+        args = ['-i', '-s', '-x', '-O', '-f', filename]
         search_path = configuration['schema_search_path']
         unless search_path.blank?
-          search_path = search_path.split(",").map{|search_path_part| "--schema=#{Shellwords.escape(search_path_part.strip)}" }.join(" ")
-        end
-
-        command = "pg_dump -i -s -x -O -f #{Shellwords.escape(filename)} #{search_path} #{Shellwords.escape(configuration['database'])}"
-        raise 'Error dumping database' unless Kernel.system(command)
-
+          args << search_path.split(',').map do |part|
+            "--schema=#{part.strip}"
+          end.join(' ')
+        end 
+        args << configuration['database']
+        ActiveRecord::Tasks::DatabaseTasks.run_cmd('pg_dump', args, 'dumping')
         File.open(filename, "a") { |f| f << "SET search_path TO #{connection.schema_search_path};\n\n" }
       end
 
-      def structure_load(filename)
-        set_psql_env
-        Kernel.system("psql -q -f #{Shellwords.escape(filename)} #{configuration['database']}")
+      def structure_load(filename)      
+        set_psql_env 
+        args = [ '-q', '-f', filename, configuration['database'] ]
+        ActiveRecord::Tasks::DatabaseTasks.run_cmd('psql', args, 'loading')
       end
 
       private

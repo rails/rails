@@ -1,3 +1,11 @@
+*   Added run_cmd class method to ActiveRecord::Tasks::DatabaseTasks for
+    drying up Kernel.system() calls within this namespace and to avoid
+    shell expansion by using a paramter list instead of string as arguments
+    for Kernel.system(). Thanks to Nate Berkopec for supply patch to get
+    test units passing.
+
+    *Bryan Paxton*
+
 *   Avoid leaking the first relation we call `first` on, per model.
 
     Fixes #21921.

@@ -255,6 +255,19 @@ module ActiveRecord
         end
       end
 
+      def self.run_cmd(cmd, args, action)
+        fail run_cmd_error(cmd, args, action) unless Kernel.system(cmd, *args)
+      end
+
+      def run_cmd_error(cmd, args, action)
+        msg = "failed to execute:\n"
+        msg << "#{cmd} #{args.join(' ')}\n\n"
+        msg << "Please check that `#{cmd}` is :\n"
+        msg << " - present on this system\n"
+        msg << " - in your PATH\n"
+        msg << " - has proper permissions\n\n"
+      end
+
       private
 
       def class_for_adapter(adapter)
