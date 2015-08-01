@@ -1087,6 +1087,20 @@ edit_videos GET  /videos/:identifier/edit(.:format) videos#edit
 Video.find_by(identifier: params[:identifier])
 ```
 
+You can override `ActiveRecord::Base#to_param` of a related
+model to constructe an URL.
+
+```ruby
+class Video < ActiveRecord::Base
+  def to_param  # overridden
+    identifier
+  end
+end
+
+video = Video.find_by(identifier: "Roman-Holiday")
+edit_videos_path(video) # => "/videos/Roman-Holiday"
+```
+
 Inspecting and Testing Routes
 -----------------------------
 

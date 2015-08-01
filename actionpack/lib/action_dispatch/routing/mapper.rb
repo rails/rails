@@ -443,6 +443,21 @@ module ActionDispatch
         #   dynamic segment used to generate the routes).
         #   You can access that segment from your controller using
         #   <tt>params[<:param>]</tt>.
+        #   In your router:
+        #
+        #      resources :user, param: :name
+        #
+        #   You can override <tt>ActiveRecord::Base#to_param</tt> of a related
+        #   model to constructe an URL.
+        #
+        #      class User < ActiveRecord::Base
+        #        def to_param  # overridden
+        #          name
+        #        end
+        #      end
+        #
+        #   user = User.find_by(name: 'Phusion')
+        #   user_path(user)  # => "/users/Phusion"
         #
         # [:path]
         #   The path prefix for the routes.
