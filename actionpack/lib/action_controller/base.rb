@@ -183,7 +183,7 @@ module ActionController
     # Shortcut helper that returns all the modules included in
     # ActionController::Base except the ones passed as arguments:
     #
-    #   class MetalController
+    #   class MyBaseController < ActionController::Metal
     #     ActionController::Base.without_modules(:ParamsWrapper, :Streaming).each do |left|
     #       include left
     #     end
