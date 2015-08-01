@@ -90,7 +90,7 @@ module ActionController
     # Shortcut helper that returns all the ActionController::API modules except
     # the ones passed as arguments:
     #
-    #   class MetalController
+    #   class MyAPIBaseController < ActionController::Metal
     #     ActionController::API.without_modules(:ForceSSL, :UrlFor).each do |left|
     #       include left
     #     end
