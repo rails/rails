@@ -18,7 +18,7 @@ module ActiveRecord
       developers = Developer.where(name: "David")
       last_developer_timestamp = developers.order(updated_at: :desc).first.updated_at
 
-      assert_match /\Adevelopers\/query-(\h+)-(\d+)-(\d+)\Z/, developers.cache_key
+      assert_match(/\Adevelopers\/query-(\h+)-(\d+)-(\d+)\Z/, developers.cache_key)
 
       /\Adevelopers\/query-(\h+)-(\d+)-(\d+)\Z/ =~ developers.cache_key
 
