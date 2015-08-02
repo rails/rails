@@ -154,12 +154,17 @@ module ActionView
           options.each_pair do |key, value|
             if TAG_PREFIXES.include?(key) && value.is_a?(Hash)
               value.each_pair do |k, v|
-                output << sep + prefix_tag_option(key, k, v, escape)
+                output << sep
+                output << prefix_tag_option(key, k, v, escape)
               end
             elsif BOOLEAN_ATTRIBUTES.include?(key)
-              output << sep + boolean_tag_option(key) if value
+              if value
+                output << sep
+                output << boolean_tag_option(key)
+              end
             elsif !value.nil?
-              output << sep + tag_option(key, value, escape)
+              output << sep
+              output << tag_option(key, value, escape)
             end
           end
           output unless output.empty?
