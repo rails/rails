@@ -31,7 +31,7 @@ module ActionView #:nodoc:
       def safe_join(array, sep=$,)
         sep = ERB::Util.unwrapped_html_escape(sep)
 
-        array.flatten.map! { |i| ERB::Util.unwrapped_html_escape(i) }.join(sep).html_safe
+        array.flat_map{ |i| ERB::Util.unwrapped_html_escape(i) }.join(sep).html_safe
       end
     end
   end
