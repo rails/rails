@@ -676,8 +676,8 @@ module ActionDispatch
         # Remove leading slashes from controllers
         def normalize_controller!
           if controller
-            if m = controller.match(/\A\/(?<controller_without_leading_slash>.*)/)
-              @options[:controller] = m[:controller_without_leading_slash]
+            if controller.start_with?("/".freeze)
+              @options[:controller] = controller[1..-1]
             else
               @options[:controller] = controller
             end
