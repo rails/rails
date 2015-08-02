@@ -12,7 +12,9 @@ module ActiveRecord
         column_type = type_for_attribute(timestamp_column.to_s)
         column = "#{connection.quote_table_name(collection.table_name)}.#{connection.quote_column_name(timestamp_column)}"
 
-        query = collection.select("COUNT(*) AS size", "MAX(#{column}) AS timestamp")
+        query = collection
+          .select("COUNT(*) AS size", "MAX(#{column}) AS timestamp")
+          .unscope(:order)
         result = connection.select_one(query)
 
         size = result["size"]
