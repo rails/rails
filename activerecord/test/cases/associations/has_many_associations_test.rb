@@ -2308,4 +2308,12 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     assert_instance_of PostWithErrorDestroying, error.record
   end
+
+  def test_ids_reader_memoization
+    car = Car.create!(name: 'Tofaş')
+    bulb = Bulb.create!(car: car)
+
+    assert_equal [bulb.id], car.bulb_ids
+    assert_no_queries { car.bulb_ids }
+  end
 end
