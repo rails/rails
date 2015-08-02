@@ -1,7 +1,7 @@
 *   Fix STATS_DIRECTORIES already defined warning when running rake from within
     the top level directory of an engine that has a test app.
     
-    Fixes #20510
+    Fixes #20510.
     
     *Ersin Akinci*
 
