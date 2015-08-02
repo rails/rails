@@ -35,7 +35,7 @@ module ActionCable
     #
     # You can then broadcast to this channel using:
     #
-    #   CommentsChannel.broadcast_to(@post)
+    #   CommentsChannel.broadcast_to(@post, @comment)
     #
     # If you don't just want to parlay the broadcast unfiltered to the subscriber, you can supply a callback that lets you alter what goes out.
     # Example below shows how you can use this to provide performance introspection in the process:
