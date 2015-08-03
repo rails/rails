@@ -133,6 +133,7 @@ If `products/_product.html.erb` starts with a `cache` call like so:
 <% cache product do %>
   <%= product.name %>
 <% end %>
+```
 
 All the cached templates from previous renders will be fetched at once with much
 greater speed. There's more info on how to make your templates [eligible for
