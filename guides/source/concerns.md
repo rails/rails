@@ -97,4 +97,38 @@ end
 
 As you can see, while Appointment and OfficeHour both have a lot in common, they are not exactly the same. In fact, they both use a lot of the same code - the validation on time_range for both models is exactly the same. Wouldn't it be cleaner if we could keep the code for that validation function elsewhere and use it in both places at once? Well, we can do just that with concerns.
 
+Writing a Concern
+-----------------
+
+If you have ever wondered exactly what is supposed to go into the concerns folders of your Rails app, you are about to find out.
+
+If we use the previous example of wanting to place code common to more than one model into a concern, we will put the concern file in /app/models/concerns . For code shared between controllers you can use the app/controllers/concerns folder.
+
+Our example was a function, `start_before_end`, which checks a time range to make sure the end of the time range is after the time range's start. We will create a Ruby file called `time_range_validators.rb` within which we will store our function. The file will contain a module with the same name in camel case (`TimeRangeValidators`). This is just a matter of convention - you can name the module whatever you like.
+In Rails, concern modules must also extend ActiveSupport::Concern.
+
+Inside our new module we can store the `start_before_end` function:
+
+```
+ module TimeRangeValidators
+   extend ActiveSupport::Concern
+
+   def start_before_end?(time_range_var)
+     if time_range_var.nil?
+      return false
+    end
+
+    unless time_range_var.begin < time_range_var.end
+      false
+    else
+      true
+    end
+  end
+
+ end
+```
+
+The module name TimeRangeValidators allows us to store other functions in this module should we need to down the road. A more specific name would make the functionality of the module too limited.
+
+
 
