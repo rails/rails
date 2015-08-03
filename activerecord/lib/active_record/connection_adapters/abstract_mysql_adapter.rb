@@ -10,6 +10,10 @@ module ActiveRecord
           options[:auto_increment] = true if type == :bigint
           super
         end
+
+        def json(*args, **options)
+          args.each { |name| column(name, :json, options) }
+        end
       end
 
       class ColumnDefinition < ActiveRecord::ConnectionAdapters::ColumnDefinition
@@ -242,17 +246,19 @@ module ActiveRecord
       QUOTED_TRUE, QUOTED_FALSE = '1', '0'
 
       NATIVE_DATABASE_TYPES = {
-        :primary_key => "int(11) auto_increment PRIMARY KEY",
-        :string      => { :name => "varchar", :limit => 255 },
-        :text        => { :name => "text" },
-        :integer     => { :name => "int", :limit => 4 },
-        :float       => { :name => "float" },
-        :decimal     => { :name => "decimal" },
-        :datetime    => { :name => "datetime" },
-        :time        => { :name => "time" },
-        :date        => { :name => "date" },
-        :binary      => { :name => "blob" },
-        :boolean     => { :name => "tinyint", :limit => 1 }
+        primary_key: "int(11) auto_increment PRIMARY KEY",
+        string:      { name: "varchar", limit: 255 },
+        text:        { name: "text" },
+        integer:     { name: "int", limit: 4 },
+        float:       { name: "float" },
+        decimal:     { name: "decimal" },
+        datetime:    { name: "datetime" },
+        time:        { name: "time" },
+        date:        { name: "date" },
+        binary:      { name: "blob" },
+        boolean:     { name: "tinyint", limit: 1 },
+        bigint:      { name: "bigint" },
+        json:        { name: "json" },
       }
 
       INDEX_TYPES  = [:fulltext, :spatial]
@@ -790,6 +796,7 @@ module ActiveRecord
         m.register_type %r(longblob)i,   Type::Binary.new(limit: 2**32 - 1)
         m.register_type %r(^float)i,     Type::Float.new(limit: 24)
         m.register_type %r(^double)i,    Type::Float.new(limit: 53)
+        m.register_type %r(^json)i,      MysqlJson.new
 
         register_integer_type m, %r(^bigint)i,    limit: 8
         register_integer_type m, %r(^int)i,       limit: 4
@@ -1043,6 +1050,14 @@ module ActiveRecord
         end
       end
 
+      class MysqlJson < Type::Json # :nodoc:
+        def changed_in_place?(raw_old_value, new_value)
+          # Normalization is required because MySQL JSON data format includes
+          # the space between the elements.
+          super(serialize(deserialize(raw_old_value)), new_value)
+        end
+      end
+
       class MysqlString < Type::String # :nodoc:
         def serialize(value)
           case value
@@ -1063,6 +1078,8 @@ module ActiveRecord
         end
       end
 
+      ActiveRecord::Type.register(:json, MysqlJson, adapter: :mysql)
+      ActiveRecord::Type.register(:json, MysqlJson, adapter: :mysql2)
       ActiveRecord::Type.register(:string, MysqlString, adapter: :mysql)
       ActiveRecord::Type.register(:string, MysqlString, adapter: :mysql2)
     end

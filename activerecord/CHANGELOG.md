@@ -1,3 +1,13 @@
+*   Add a native JSON data type support in MySQL.
+
+    Example:
+
+        create_table :json_data_type do |t|
+          t.json :settings
+        end
+
+    *Ryuta Kamizono*
+
 *   Descriptive error message when fixtures contain a missing column.
 
     Closes #21201.
