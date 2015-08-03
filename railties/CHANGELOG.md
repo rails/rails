@@ -1,3 +1,12 @@
+*   `config.debug_exception_response_format` configures the format used
+    in responses when errors occur in development mode.
+
+    Set `config.debug_exception_response_format` to render an HTML page with
+    debug info (using the value `:default`) or render debug info preserving
+    the response format (using the value `:api`).
+
+    *Jorge Bejar*
+
 *   Fix setting exit status code for rake test tasks. The exit status code
     was not set when tests were fired with `rake`. Now, it is being set and it matches
     behavior of running tests via `rails` command (`rails test`), so no matter if
