@@ -307,11 +307,6 @@ module ApplicationTests
       end
     end
 
-    def test_crash_with_non_existing_file_or_dirname
-      error = capture(:stderr) { run_test_command('test/nope/niet_test.rb') }
-      assert_match(%r{cannot load such file.+test/nope/niet_test.rb}, error)
-    end
-
     def test_shows_filtered_backtrace_by_default
       create_backtrace_test
 

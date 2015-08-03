@@ -18,7 +18,7 @@ module Rails
             arg = arg.gsub(/:(\d+)?$/, '')
             if Dir.exist?(arg)
               "#{arg}/**/*_test.rb"
-            else
+            elsif File.file?(arg)
               arg
             end
           end
