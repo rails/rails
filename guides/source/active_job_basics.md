@@ -65,33 +65,41 @@ Here's what a job looks like:
 class GuestsCleanupJob < ActiveJob::Base
   queue_as :default
 
-  def perform(*args)
+  def perform(*guests)
     # Do something later
   end
 end
 ```
+
+Note that you can define `perform` with as many arguments as you want.
 
 ### Enqueue the Job
 
 Enqueue a job like so:
 
 ```ruby
-# Enqueue a job to be performed as soon the queueing system is free.
-MyJob.perform_later record
+# Enqueue a job to be performed as soon the queuing system is
+# free.
+GuestsCleanupJob.perform_later guest
 ```
 
 ```ruby
 # Enqueue a job to be performed tomorrow at noon.
-MyJob.set(wait_until: Date.tomorrow.noon).perform_later(record)
+GuestsCleanupJob.set(wait_until: Date.tomorrow.noon).perform_later(guest)
 ```
 
 ```ruby
 # Enqueue a job to be performed 1 week from now.
-MyJob.set(wait: 1.week).perform_later(record)
+GuestsCleanupJob.set(wait: 1.week).perform_later(guest)
+```
+
+```ruby
+# `perform_now` and `perform_later` will call `perform` under the hood so
+# you can pass as many arguments as defined in the latter.
+GuestsCleanupJob.perform_later(guest1, guest2, filter: 'some_filter')
 ```
 
 That's it!
-
 
 Job Execution
 -------------
