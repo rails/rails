@@ -357,8 +357,8 @@ will append `ENGINE=BLACKHOLE` to the SQL statement used to create the table
 
 ### Creating a Join Table
 
-Migration method `create_join_table` creates an HABTM join table. A typical use
-would be:
+The migration method `create_join_table` creates an HABTM (has and belongs to
+many) join table. A typical use would be:
 
 ```ruby
 create_join_table :products, :categories
@@ -367,23 +367,21 @@ create_join_table :products, :categories
 which creates a `categories_products` table with two columns called
 `category_id` and `product_id`. These columns have the option `:null` set to
 `false` by default. This can be overridden by specifying the `:column_options`
-option.
+option:
 
 ```ruby
-create_join_table :products, :categories, column_options: {null: true}
+create_join_table :products, :categories, column_options: { null: true }
 ```
 
-will create the `product_id` and `category_id` with the `:null` option as
-`true`.
-
-You can pass the option `:table_name` when you want to customize the table
-name. For example:
+By default, the name of the join table comes from the union of the first two
+arguments provided to create_join_table, in alphabetical order.
+To customize the name of the table, provide a `:table_name` option:
 
 ```ruby
 create_join_table :products, :categories, table_name: :categorization
 ```
 
-will create a `categorization` table.
+creates a `categorization` table.
 
 `create_join_table` also accepts a block, which you can use to add indices
 (which are not created by default) or additional columns:
