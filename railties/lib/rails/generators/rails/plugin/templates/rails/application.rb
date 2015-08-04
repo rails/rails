@@ -6,13 +6,13 @@ require 'rails/all'
 # Pick the frameworks you want:
 <%= comment_if :skip_active_record %>require "active_record/railtie"
 require "action_controller/railtie"
-require "action_mailer/railtie"
-<%= comment_if :skip_action_view %>require "action_view/railtie"
+<%= comment_if :skip_action_mailer %>require "action_mailer/railtie"
+require "action_view/railtie"
 <%= comment_if :skip_sprockets %>require "sprockets/railtie"
-<%= comment_if :skip_test_unit %>require "rails/test_unit/railtie"
+<%= comment_if :skip_test %>require "rails/test_unit/railtie"
 <% end -%>
 
 Bundler.require(*Rails.groups)
-require "<%= name %>"
+require "<%= namespaced_name %>"
 
 <%= application_definition %>

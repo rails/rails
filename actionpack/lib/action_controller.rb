@@ -7,22 +7,25 @@ require 'action_controller/metal/strong_parameters'
 module ActionController
   extend ActiveSupport::Autoload
 
+  autoload :API
   autoload :Base
   autoload :Caching
   autoload :Metal
   autoload :Middleware
+  autoload :Renderer
+  autoload :FormBuilder
 
   autoload_under "metal" do
-    autoload :Compatibility
     autoload :ConditionalGet
     autoload :Cookies
     autoload :DataStreaming
+    autoload :EtagWithTemplateDigest
     autoload :Flash
     autoload :ForceSSL
     autoload :Head
     autoload :Helpers
-    autoload :HideActions
     autoload :HttpAuthentication
+    autoload :BasicImplicitRender
     autoload :ImplicitRender
     autoload :Instrumentation
     autoload :MimeResponds
@@ -33,7 +36,6 @@ module ActionController
     autoload :Rendering
     autoload :RequestForgeryProtection
     autoload :Rescue
-    autoload :Responder
     autoload :Streaming
     autoload :StrongParameters
     autoload :Testing
@@ -50,7 +52,7 @@ module ActionController
 end
 
 # Common Active Support usage in Action Controller
-require 'active_support/core_ext/class/attribute_accessors'
+require 'active_support/core_ext/module/attribute_accessors'
 require 'active_support/core_ext/load_error'
 require 'active_support/core_ext/module/attr_internal'
 require 'active_support/core_ext/name_error'

@@ -5,14 +5,19 @@ module ActionDispatch
     class Routes # :nodoc:
       include Enumerable
 
-      attr_reader :routes, :named_routes
+      attr_reader :routes, :named_routes, :custom_routes, :anchored_routes
 
       def initialize
         @routes             = []
         @named_routes       = {}
         @ast                = nil
-        @partitioned_routes = nil
+        @anchored_routes    = []
+        @custom_routes      = []
         @simulator          = nil
+      end
+
+      def empty?
+        routes.empty?
       end
 
       def length
@@ -30,18 +35,22 @@ module ActionDispatch
 
       def clear
         routes.clear
+        anchored_routes.clear
+        custom_routes.clear
         named_routes.clear
       end
 
-      def partitioned_routes
-        @partitioned_routes ||= routes.partition do |r|
-          r.path.anchored && r.ast.grep(Nodes::Symbol).all?(&:default_regexp?)
+      def partition_route(route)
+        if route.path.anchored && route.ast.grep(Nodes::Symbol).all?(&:default_regexp?)
+          anchored_routes << route
+        else
+          custom_routes << route
         end
       end
 
       def ast
         @ast ||= begin
-          asts = partitioned_routes.first.map(&:ast)
+          asts = anchored_routes.map(&:ast)
           Nodes::Or.new(asts) unless asts.empty?
         end
       end
@@ -54,12 +63,13 @@ module ActionDispatch
       end
 
       # Add a route to the routing table.
-      def add_route(app, path, conditions, defaults, name = nil)
-        route = Route.new(name, app, path, conditions, defaults)
+      def add_route(app, path, conditions, required_defaults, defaults, name = nil)
+        route = Route.new(name, app, path, conditions, required_defaults, defaults)
 
         route.precedence = routes.length
         routes << route
         named_routes[name] = route if name && !named_routes[name]
+        partition_route(route)
         clear_cache!
         route
       end
@@ -68,7 +78,6 @@ module ActionDispatch
 
         def clear_cache!
           @ast                = nil
-          @partitioned_routes = nil
           @simulator          = nil
         end
     end

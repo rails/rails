@@ -1,3 +1,4 @@
+require 'active_support/duration'
 require 'active_support/values/time_zone'
 require 'active_support/core_ext/object/acts_like'
 
@@ -45,7 +46,7 @@ module ActiveSupport
 
     def initialize(utc_time, time_zone, local_time = nil, period = nil)
       @utc, @time_zone, @time = utc_time, time_zone, local_time
-      @period = @utc ? period : get_period_and_ensure_valid_local_time
+      @period = @utc ? period : get_period_and_ensure_valid_local_time(period)
     end
 
     # Returns a Time or DateTime instance that represents the time in +time_zone+.
@@ -75,8 +76,8 @@ module ActiveSupport
 
     # Returns a <tt>Time.local()</tt> instance of the simultaneous time in your
     # system's <tt>ENV['TZ']</tt> zone.
-    def localtime
-      utc.respond_to?(:getlocal) ? utc.getlocal : utc.to_time.getlocal
+    def localtime(utc_offset = nil)
+      utc.respond_to?(:getlocal) ? utc.getlocal(utc_offset) : utc.to_time.getlocal(utc_offset)
     end
     alias_method :getlocal, :localtime
 
@@ -121,19 +122,28 @@ module ActiveSupport
       utc? && alternate_utc_string || TimeZone.seconds_to_utc_offset(utc_offset, colon)
     end
 
-    # Time uses +zone+ to display the time zone abbreviation, so we're
-    # duck-typing it.
+    # Returns the time zone abbreviation.
+    #
+    #   Time.zone = 'Eastern Time (US & Canada)'   # => "Eastern Time (US & Canada)"
+    #   Time.zone.now.zone # => "EST"
     def zone
       period.zone_identifier.to_s
     end
 
+    # Returns a string of the object's date, time, zone and offset from UTC.
+    #
+    #   Time.zone.now.httpdate  # => "Thu, 04 Dec 2014 11:00:25 EST -05:00"
     def inspect
       "#{time.strftime('%a, %d %b %Y %H:%M:%S')} #{zone} #{formatted_offset}"
     end
 
+    # Returns a string of the object's date and time in the ISO 8601 standard
+    # format.
+    #
+    #   Time.zone.now.xmlschema  # => "2014-12-04T11:02:37-05:00"
     def xmlschema(fraction_digits = 0)
-      fraction = if fraction_digits > 0
-        (".%06i" % time.usec)[0, fraction_digits + 1]
+      fraction = if fraction_digits.to_i > 0
+        (".%06i" % time.usec)[0, fraction_digits.to_i + 1]
       end
 
       "#{time.strftime("%Y-%m-%dT%H:%M:%S")}#{fraction}#{formatted_offset(true, 'Z')}"
@@ -146,26 +156,27 @@ module ActiveSupport
     # to +false+.
     #
     #   # With ActiveSupport::JSON::Encoding.use_standard_json_time_format = true
-    #   Time.utc(2005,2,1,15,15,10).in_time_zone.to_json
-    #   # => "2005-02-01T15:15:10Z"
+    #   Time.utc(2005,2,1,15,15,10).in_time_zone("Hawaii").to_json
+    #   # => "2005-02-01T05:15:10.000-10:00"
     #
     #   # With ActiveSupport::JSON::Encoding.use_standard_json_time_format = false
-    #   Time.utc(2005,2,1,15,15,10).in_time_zone.to_json
-    #   # => "2005/02/01 15:15:10 +0000"
+    #   Time.utc(2005,2,1,15,15,10).in_time_zone("Hawaii").to_json
+    #   # => "2005/02/01 05:15:10 -1000"
     def as_json(options = nil)
       if ActiveSupport::JSON::Encoding.use_standard_json_time_format
-        xmlschema(3)
+        xmlschema(ActiveSupport::JSON::Encoding.time_precision)
       else
         %(#{time.strftime("%Y/%m/%d %H:%M:%S")} #{formatted_offset(false)})
       end
     end
 
-    def encode_with(coder)
-      if coder.respond_to?(:represent_object)
-        coder.represent_object(nil, utc)
-      else
-        coder.represent_scalar(nil, utc.strftime("%Y-%m-%d %H:%M:%S.%9NZ"))
-      end
+    def init_with(coder) #:nodoc:
+      initialize(coder['utc'], coder['zone'], coder['time'])
+    end
+
+    def encode_with(coder) #:nodoc:
+      coder.tag = '!ruby/object:ActiveSupport::TimeWithZone'
+      coder.map = { 'utc' => utc, 'zone' => time_zone, 'time' => time }
     end
 
     # Returns a string of the object's date and time in the format used by
@@ -185,28 +196,27 @@ module ActiveSupport
     end
     alias_method :rfc822, :rfc2822
 
-    # <tt>:db</tt> format outputs time in UTC; all others output time in local.
-    # Uses TimeWithZone's +strftime+, so <tt>%Z</tt> and <tt>%z</tt> work correctly.
+    # Returns a string of the object's date and time.
+    # Accepts an optional <tt>format</tt>:
+    # * <tt>:default</tt> - default value, mimics Ruby Time#to_s format.
+    # * <tt>:db</tt> - format outputs time in UTC :db time. See Time#to_formatted_s(:db).
+    # * Any key in <tt>Time::DATE_FORMATS</tt> can be used. See active_support/core_ext/time/conversions.rb.
     def to_s(format = :default)
       if format == :db
         utc.to_s(format)
       elsif formatter = ::Time::DATE_FORMATS[format]
         formatter.respond_to?(:call) ? formatter.call(self).to_s : strftime(formatter)
       else
-        "#{time.strftime("%Y-%m-%d %H:%M:%S")} #{formatted_offset(false, 'UTC')}" # mimicking Ruby 1.9 Time#to_s format
+        "#{time.strftime("%Y-%m-%d %H:%M:%S")} #{formatted_offset(false, 'UTC')}" # mimicking Ruby Time#to_s format
       end
     end
     alias_method :to_formatted_s, :to_s
 
-    # Replaces <tt>%Z</tt> and <tt>%z</tt> directives with +zone+ and
-    # +formatted_offset+, respectively, before passing to Time#strftime, so
-    # that zone information is correct
+    # Replaces <tt>%Z</tt> directive with +zone before passing to Time#strftime,
+    # so that zone information is correct.
     def strftime(format)
-      format = format.gsub('%Z', zone)
-                     .gsub('%z',   formatted_offset(false))
-                     .gsub('%:z',  formatted_offset(true))
-                     .gsub('%::z', formatted_offset(true) + ":00")
-      time.strftime(format)
+      format = format.gsub(/((?:\A|[^%])(?:%%)*)%Z/, "\\1#{zone}")
+      getlocal(utc_offset).strftime(format)
     end
 
     # Use the time in UTC for comparisons.
@@ -237,16 +247,30 @@ module ActiveSupport
     end
 
     def eql?(other)
-      utc.eql?(other)
+      other.eql?(utc)
     end
 
     def hash
       utc.hash
     end
 
+    # Adds an interval of time to the current object's time and returns that
+    # value as a new TimeWithZone object.
+    #
+    #   Time.zone = 'Eastern Time (US & Canada)' # => 'Eastern Time (US & Canada)'
+    #   now = Time.zone.now # => Sun, 02 Nov 2014 01:26:28 EDT -04:00
+    #   now + 1000          # => Sun, 02 Nov 2014 01:43:08 EDT -04:00
+    #
+    # If we're adding a Duration of variable length (i.e., years, months, days),
+    # move forward from #time, otherwise move forward from #utc, for accuracy
+    # when moving across DST boundaries.
+    #
+    # For instance, a time + 24.hours will advance exactly 24 hours, while a
+    # time + 1.day will advance 23-25 hours, depending on the day.
+    #
+    #   now + 24.hours      # => Mon, 03 Nov 2014 00:26:28 EST -05:00
+    #   now + 1.day         # => Mon, 03 Nov 2014 01:26:28 EST -05:00
     def +(other)
-      # If we're adding a Duration of variable length (i.e., years, months, days), move forward from #time,
-      # otherwise move forward from #utc, for accuracy when moving across DST boundaries
       if duration_of_variable_length?(other)
         method_missing(:+, other)
       else
@@ -254,27 +278,32 @@ module ActiveSupport
         result.in_time_zone(time_zone)
       end
     end
+    alias_method :since, :+
 
+    # Returns a new TimeWithZone object that represents the difference between
+    # the current object's time and the +other+ time.
+    #
+    #   Time.zone = 'Eastern Time (US & Canada)' # => 'Eastern Time (US & Canada)'
+    #   now = Time.zone.now # => Sun, 02 Nov 2014 01:26:28 EST -05:00
+    #   now - 1000          # => Sun, 02 Nov 2014 01:09:48 EST -05:00
+    #
+    # If subtracting a Duration of variable length (i.e., years, months, days),
+    # move backward from #time, otherwise move backward from #utc, for accuracy
+    # when moving across DST boundaries.
+    #
+    # For instance, a time - 24.hours will go subtract exactly 24 hours, while a
+    # time - 1.day will subtract 23-25 hours, depending on the day.
+    #
+    #   now - 24.hours      # => Sat, 01 Nov 2014 02:26:28 EDT -04:00
+    #   now - 1.day         # => Sat, 01 Nov 2014 01:26:28 EDT -04:00
     def -(other)
-      # If we're subtracting a Duration of variable length (i.e., years, months, days), move backwards from #time,
-      # otherwise move backwards #utc, for accuracy when moving across DST boundaries
       if other.acts_like?(:time)
-        utc.to_f - other.to_f
+        to_time - other.to_time
       elsif duration_of_variable_length?(other)
         method_missing(:-, other)
       else
         result = utc.acts_like?(:date) ? utc.ago(other) : utc - other rescue utc.ago(other)
         result.in_time_zone(time_zone)
-      end
-    end
-
-    def since(other)
-      # If we're adding a Duration of variable length (i.e., years, months, days), move forward from #time,
-      # otherwise move forward from #utc, for accuracy when moving across DST boundaries
-      if duration_of_variable_length?(other)
-        method_missing(:since, other)
-      else
-        utc.since(other).in_time_zone(time_zone)
       end
     end
 
@@ -304,15 +333,27 @@ module ActiveSupport
       [time.sec, time.min, time.hour, time.day, time.mon, time.year, time.wday, time.yday, dst?, zone]
     end
 
+    # Returns the object's date and time as a floating point number of seconds
+    # since the Epoch (January 1, 1970 00:00 UTC).
+    #
+    #   Time.zone.now.to_f # => 1417709320.285418
     def to_f
       utc.to_f
     end
 
+    # Returns the object's date and time as an integer number of seconds
+    # since the Epoch (January 1, 1970 00:00 UTC).
+    #
+    #   Time.zone.now.to_i # => 1417709320
     def to_i
       utc.to_i
     end
     alias_method :tv_sec, :to_i
 
+    # Returns the object's date and time as a rational number of seconds
+    # since the Epoch (January 1, 1970 00:00 UTC).
+    #
+    #   Time.zone.now.to_r # => (708854548642709/500000)
     def to_r
       utc.to_r
     end
@@ -350,6 +391,14 @@ module ActiveSupport
       initialize(variables[0].utc, ::Time.find_zone(variables[1]), variables[2].utc)
     end
 
+    # respond_to_missing? is not called in some cases, such as when type conversion is
+    # performed with Kernel#String
+    def respond_to?(sym, include_priv = false)
+      # ensure that we're not going to throw and rescue from NoMethodError in method_missing which is slow
+      return false if sym.to_sym == :to_str
+      super
+    end
+
     # Ensure proxy class responds to all methods that underlying time instance
     # responds to.
     def respond_to_missing?(sym, include_priv)
@@ -367,12 +416,12 @@ module ActiveSupport
     end
 
     private
-      def get_period_and_ensure_valid_local_time
+      def get_period_and_ensure_valid_local_time(period)
         # we don't want a Time.local instance enforcing its own DST rules as well,
         # so transfer time values to a utc constructor if necessary
         @time = transfer_time_values_to_utc_constructor(@time) unless @time.utc?
         begin
-          @time_zone.period_for_local(@time)
+          period || @time_zone.period_for_local(@time)
         rescue ::TZInfo::PeriodNotFound
           # time is in the "spring forward" hour gap, so we're moving the time forward one hour and trying again
           @time += 1.hour
@@ -390,7 +439,8 @@ module ActiveSupport
 
       def wrap_with_time_zone(time)
         if time.acts_like?(:time)
-          self.class.new(nil, time_zone, time)
+          periods = time_zone.periods_for_local(time)
+          self.class.new(nil, time_zone, time, periods.include?(period) ? period : nil)
         elsif time.is_a?(Range)
           wrap_with_time_zone(time.begin)..wrap_with_time_zone(time.end)
         else

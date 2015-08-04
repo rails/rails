@@ -4,7 +4,7 @@ require 'models/comment'
 
 module ActiveRecord
   module ConnectionAdapters
-    class MysqlSchemaTest < ActiveRecord::TestCase
+    class MysqlSchemaTest < ActiveRecord::MysqlTestCase
       fixtures :posts
 
       def setup
@@ -17,6 +17,44 @@ module ActiveRecord
           self.table_name = "#{db}.#{table}"
           def self.name; 'Post'; end
         end
+
+        @connection.create_table "mysql_doubles"
+      end
+
+      teardown do
+        @connection.drop_table "mysql_doubles", if_exists: true
+      end
+
+      class MysqlDouble < ActiveRecord::Base
+        self.table_name = "mysql_doubles"
+      end
+
+      def test_float_limits
+        @connection.add_column :mysql_doubles, :float_no_limit, :float
+        @connection.add_column :mysql_doubles, :float_short, :float, limit: 5
+        @connection.add_column :mysql_doubles, :float_long, :float, limit: 53
+
+        @connection.add_column :mysql_doubles, :float_23, :float, limit: 23
+        @connection.add_column :mysql_doubles, :float_24, :float, limit: 24
+        @connection.add_column :mysql_doubles, :float_25, :float, limit: 25
+        MysqlDouble.reset_column_information
+
+        column_no_limit = MysqlDouble.columns.find { |c| c.name == 'float_no_limit' }
+        column_short = MysqlDouble.columns.find { |c| c.name == 'float_short' }
+        column_long = MysqlDouble.columns.find { |c| c.name == 'float_long' }
+
+        column_23 = MysqlDouble.columns.find { |c| c.name == 'float_23' }
+        column_24 = MysqlDouble.columns.find { |c| c.name == 'float_24' }
+        column_25 = MysqlDouble.columns.find { |c| c.name == 'float_25' }
+
+        # Mysql floats are precision 0..24, Mysql doubles are precision 25..53
+        assert_equal 24, column_no_limit.limit
+        assert_equal 24, column_short.limit
+        assert_equal 53, column_long.limit
+
+        assert_equal 24, column_23.limit
+        assert_equal 24, column_24.limit
+        assert_equal 53, column_25.limit
       end
 
       def test_schema
@@ -43,7 +81,7 @@ module ActiveRecord
 
         table = 'key_tests'
 
-        indexes = @connection.indexes(table).sort_by {|i| i.name}
+        indexes = @connection.indexes(table).sort_by(&:name)
         assert_equal 3,indexes.size
 
         index_a = indexes.select{|i| i.name == index_a_name}[0]

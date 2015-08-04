@@ -15,7 +15,7 @@ module ActiveModel
   #   class MyValidator < ActiveModel::Validator
   #     def validate(record)
   #       if some_complex_logic
-  #         record.errors[:base] = "This record is invalid"
+  #         record.errors.add(:base, "This record is invalid")
   #       end
   #     end
   #
@@ -61,7 +61,7 @@ module ActiveModel
   #   end
   #
   # Note that the validator is initialized only once for the whole application
-  # lifecycle, and not on each validation run.
+  # life cycle, and not on each validation run.
   #
   # The easiest way to add custom validators for validating individual attributes
   # is with the convenient <tt>ActiveModel::EachValidator</tt>.
@@ -79,11 +79,11 @@ module ActiveModel
   #     include ActiveModel::Validations
   #     attr_accessor :title
   #
-  #     validates :title, presence: true
+  #     validates :title, presence: true, title: true
   #   end
   #
   # It can be useful to access the class that is using that validator when there are prerequisites such
-  # as an +attr_accessor+ being present. This class is accessable via +options[:class]+ in the constructor.
+  # as an +attr_accessor+ being present. This class is accessible via +options[:class]+ in the constructor.
   # To setup your validator override the constructor.
   #
   #   class MyValidator < ActiveModel::Validator
@@ -106,10 +106,9 @@ module ActiveModel
     # Accepts options that will be made available through the +options+ reader.
     def initialize(options = {})
       @options  = options.except(:class).freeze
-      deprecated_setup(options)
     end
 
-    # Return the kind for this validator.
+    # Returns the kind for this validator.
     #
     #   PresenceValidator.new.kind   # => :presence
     #   UniquenessValidator.new.kind # => :uniqueness
@@ -122,28 +121,13 @@ module ActiveModel
     def validate(record)
       raise NotImplementedError, "Subclasses must implement a validate(record) method."
     end
-
-    private
-    def deprecated_setup(options) # TODO: remove me in 4.2.
-      return unless respond_to?(:setup)
-      ActiveSupport::Deprecation.warn "The `Validator#setup` instance method is deprecated and will be removed on Rails 4.2. Do your setup in the constructor instead:
-
-class MyValidator < ActiveModel::Validator
-  def initialize(options={})
-    super
-    options[:class].send :attr_accessor, :custom_attribute
-  end
-end
-"
-      setup(options[:class])
-    end
   end
 
   # +EachValidator+ is a validator which iterates through the attributes given
   # in the options hash invoking the <tt>validate_each</tt> method passing in the
   # record, attribute and value.
   #
-  # All Active Model validations are built on top of this validator.
+  # All \Active \Model validations are built on top of this validator.
   class EachValidator < Validator #:nodoc:
     attr_reader :attributes
 
@@ -178,6 +162,10 @@ end
     # that the arguments supplied are valid. You could for example raise an
     # +ArgumentError+ when invalid options are supplied.
     def check_validity!
+    end
+
+    def should_validate?(record) # :nodoc:
+      !record.persisted? || record.changed? || record.marked_for_destruction?
     end
   end
 

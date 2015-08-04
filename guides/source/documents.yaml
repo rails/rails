@@ -11,15 +11,15 @@
     -
       name: Active Record Basics
       url: active_record_basics.html
-      description: This guide will get you started with models, persistence to database and the Active Record pattern and library.
+      description: This guide will get you started with models, persistence to database, and the Active Record pattern and library.
     -
-      name: Rails Database Migrations
-      url: migrations.html
+      name: Active Record Migrations
+      url: active_record_migrations.html
       description: This guide covers how you can use Active Record migrations to alter your database in a structured and organized manner.
     -
       name: Active Record Validations
       url: active_record_validations.html
-      description: This guide covers how you can use Active Record validations
+      description: This guide covers how you can use Active Record validations.
     -
       name: Active Record Callbacks
       url: active_record_callbacks.html
@@ -32,6 +32,11 @@
       name: Active Record Query Interface
       url: active_record_querying.html
       description: This guide covers the database query interface provided by Active Record.
+    -
+      name: Active Model Basics
+      url: active_model_basics.html
+      description: This guide covers the use of model classes without Active Record.
+      work_in_progress: true
 -
   name: Views
   documents:
@@ -69,16 +74,20 @@
     -
       name: Rails Internationalization API
       url: i18n.html
-      description: This guide covers how to add internationalization to your applications. Your application will be able to translate content to different languages, change pluralization rules, use correct date formats for each country and so on.
+      description: This guide covers how to add internationalization to your applications. Your application will be able to translate content to different languages, change pluralization rules, use correct date formats for each country, and so on.
     -
       name: Action Mailer Basics
       url: action_mailer_basics.html
       description: This guide describes how to use Action Mailer to send and receive emails.
     -
+      name: Active Job Basics
+      url: active_job_basics.html
+      description: This guide provides you with all you need to get started creating, enqueuing, and executing background jobs.
+    -
       name: Testing Rails Applications
-      url: testing.html
       work_in_progress: true
-      description: This is a rather comprehensive guide to doing both unit and functional tests in Rails. It covers everything from 'What is a test?' to the testing APIs. Enjoy.
+      url: testing.html
+      description: This is a rather comprehensive guide to the various testing facilities in Rails. It covers everything from 'What is a test?' to the testing APIs. Enjoy.
     -
       name: Securing Rails Applications
       url: security.html
@@ -96,11 +105,6 @@
       url: command_line.html
       description: This guide covers the command line tools and rake tasks provided by Rails.
     -
-      name: Caching with Rails
-      work_in_progress: true
-      url: caching_with_rails.html
-      description: Various caching techniques provided by Rails.
-    -
       name: Asset Pipeline
       url: asset_pipeline.html
       description: This guide documents the asset pipeline.
@@ -109,15 +113,29 @@
       url: working_with_javascript_in_rails.html
       description: This guide covers the built-in Ajax/JavaScript functionality of Rails.
     -
-      name: Getting Started with Engines
-      url: engines.html
-      description: This guide explains how to write a mountable engine.
-      work_in_progress: true
-    -
       name: The Rails Initialization Process
       work_in_progress: true
       url: initialization.html
-      description: This guide explains the internals of the Rails initialization process as of Rails 3.1
+      description: This guide explains the internals of the Rails initialization process as of Rails 4.
+    -
+      name: Autoloading and Reloading Constants
+      url: autoloading_and_reloading_constants.html
+      description: This guide documents how autoloading and reloading constants work.
+    -
+      name: "Caching with Rails: An Overview"
+      url: caching_with_rails.html
+      description: This guide is an introduction to speeding up your Rails application with caching.
+    -
+      name: Active Support Instrumentation
+      work_in_progress: true
+      url: active_support_instrumentation.html
+      description: This guide explains how to use the instrumentation API inside of Active Support to measure events inside of Rails and other Ruby code.
+    -
+      name: Profiling Rails Applications
+      work_in_progress: true
+      url: profiling.html
+      description: This guide explains how to profile your Rails applications to improve performance.
+
 -
   name: Extending Rails
   documents:
@@ -134,6 +152,11 @@
       name: Creating and Customizing Rails Generators
       url: generators.html
       description: This guide covers the process of adding a brand new generator to your extension or providing an alternative to an element of a built-in Rails generator (such as providing alternative test stubs for the scaffold generator).
+    -
+      name: Getting Started with Engines
+      url: engines.html
+      description: This guide explains how to write a mountable engine.
+      work_in_progress: true
 -
   name: Contributing to Ruby on Rails
   documents:
@@ -150,13 +173,27 @@
       url: ruby_on_rails_guides_guidelines.html
       description: This guide documents the Ruby on Rails guides guidelines.
 -
+  name: Maintenance Policy
+  documents:
+    -
+      name: Maintenance Policy
+      url: maintenance_policy.html
+      description: What versions of Ruby on Rails are currently supported, and when to expect new versions.
+-
   name: Release Notes
   documents:
     -
       name: Upgrading Ruby on Rails
       url: upgrading_ruby_on_rails.html
-      work_in_progress: true
       description: This guide helps in upgrading applications to latest Ruby on Rails versions.
+    -
+      name: Ruby on Rails 4.2 Release Notes
+      url: 4_2_release_notes.html
+      description: Release notes for Rails 4.2.
+    -
+      name: Ruby on Rails 4.1 Release Notes
+      url: 4_1_release_notes.html
+      description: Release notes for Rails 4.1.
     -
       name: Ruby on Rails 4.0 Release Notes
       url: 4_0_release_notes.html

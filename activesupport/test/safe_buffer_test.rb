@@ -61,6 +61,13 @@ class SafeBufferTest < ActiveSupport::TestCase
     assert_equal({'str' => str}, YAML.load(yaml))
   end
 
+  test "Should work with primitive-like-strings in to_yaml conversion" do
+    assert_equal 'true',  YAML.load(ActiveSupport::SafeBuffer.new('true').to_yaml)
+    assert_equal 'false', YAML.load(ActiveSupport::SafeBuffer.new('false').to_yaml)
+    assert_equal '1',     YAML.load(ActiveSupport::SafeBuffer.new('1').to_yaml)
+    assert_equal '1.1',   YAML.load(ActiveSupport::SafeBuffer.new('1.1').to_yaml)
+  end
+
   test "Should work with underscore" do
     str = "MyTest".html_safe.underscore
     assert_equal "my_test", str
@@ -139,5 +146,35 @@ class SafeBufferTest < ActiveSupport::TestCase
 
     # should still be unsafe
     assert !y.html_safe?, "should not be safe"
+  end
+
+  test 'Should work with interpolation (array argument)' do
+    x = 'foo %s bar'.html_safe % ['qux']
+    assert_equal 'foo qux bar', x
+  end
+
+  test 'Should work with interpolation (hash argument)' do
+    x = 'foo %{x} bar'.html_safe % { x: 'qux' }
+    assert_equal 'foo qux bar', x
+  end
+
+  test 'Should escape unsafe interpolated args' do
+    x = 'foo %{x} bar'.html_safe % { x: '<br/>' }
+    assert_equal 'foo &lt;br/&gt; bar', x
+  end
+
+  test 'Should not escape safe interpolated args' do
+    x = 'foo %{x} bar'.html_safe % { x: '<br/>'.html_safe }
+    assert_equal 'foo <br/> bar', x
+  end
+
+  test 'Should interpolate to a safe string' do
+    x = 'foo %{x} bar'.html_safe % { x: 'qux' }
+    assert x.html_safe?, 'should be safe'
+  end
+
+  test 'Should not affect frozen objects when accessing characters' do
+    x = 'Hello'.html_safe
+    assert_equal x[/a/, 1], nil
   end
 end

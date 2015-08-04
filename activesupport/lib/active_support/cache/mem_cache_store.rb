@@ -26,7 +26,14 @@ module ActiveSupport
     class MemCacheStore < Store
       ESCAPE_KEY_CHARS = /[\x00-\x20%\x7F-\xFF]/n
 
-      def self.build_mem_cache(*addresses)
+      # Creates a new Dalli::Client instance with specified addresses and options.
+      # By default address is equal localhost:11211.
+      #
+      #   ActiveSupport::Cache::MemCacheStore.build_mem_cache
+      #     # => #<Dalli::Client:0x007f98a47d2028 @servers=["localhost:11211"], @options={}, @ring=nil>
+      #   ActiveSupport::Cache::MemCacheStore.build_mem_cache('localhost:10290')
+      #     # => #<Dalli::Client:0x007f98a47b3a60 @servers=["localhost:10290"], @options={}, @ring=nil>
+      def self.build_mem_cache(*addresses) # :nodoc:
         addresses = addresses.flatten
         options = addresses.extract_options!
         addresses = ["localhost:11211"] if addresses.empty?
@@ -41,17 +48,15 @@ module ActiveSupport
       #
       # If no addresses are specified, then MemCacheStore will connect to
       # localhost port 11211 (the default memcached port).
-      #
-      # Instead of addresses one can pass in a MemCache-like object. For example:
-      #
-      #   require 'memcached' # gem install memcached; uses C bindings to libmemcached
-      #   ActiveSupport::Cache::MemCacheStore.new(Memcached::Rails.new("localhost:11211"))
       def initialize(*addresses)
         addresses = addresses.flatten
         options = addresses.extract_options!
         super(options)
 
-        if addresses.first.respond_to?(:get)
+        unless [String, Dalli::Client, NilClass].include?(addresses.first.class)
+          raise ArgumentError, "First argument must be an empty array, an array of hosts or a Dalli::Client instance."
+        end
+        if addresses.first.is_a?(Dalli::Client)
           @data = addresses.first
         else
           mem_cache_options = options.dup
@@ -68,14 +73,17 @@ module ActiveSupport
       def read_multi(*names)
         options = names.extract_options!
         options = merged_options(options)
-        keys_to_names = Hash[names.map{|name| [escape_key(namespaced_key(name, options)), name]}]
-        raw_values = @data.get_multi(keys_to_names.keys, :raw => true)
-        values = {}
-        raw_values.each do |key, value|
-          entry = deserialize_entry(value)
-          values[keys_to_names[key]] = entry.value unless entry.expired?
+
+        instrument_multi(:read, names, options) do
+          keys_to_names = Hash[names.map{|name| [escape_key(namespaced_key(name, options)), name]}]
+          raw_values = @data.get_multi(keys_to_names.keys, :raw => true)
+          values = {}
+          raw_values.each do |key, value|
+            entry = deserialize_entry(value)
+            values[keys_to_names[key]] = entry.value unless entry.expired?
+          end
+          values
         end
-        values
       end
 
       # Increment a cached value. This method uses the memcached incr atomic
@@ -87,7 +95,7 @@ module ActiveSupport
         instrument(:increment, name, :amount => amount) do
           @data.incr(escape_key(namespaced_key(name, options)), amount)
         end
-      rescue Dalli::DalliError
+      rescue Dalli::DalliError => e
         logger.error("DalliError (#{e}): #{e.message}") if logger
         nil
       end
@@ -101,7 +109,7 @@ module ActiveSupport
         instrument(:decrement, name, :amount => amount) do
           @data.decr(escape_key(namespaced_key(name, options)), amount)
         end
-      rescue Dalli::DalliError
+      rescue Dalli::DalliError => e
         logger.error("DalliError (#{e}): #{e.message}") if logger
         nil
       end

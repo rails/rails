@@ -106,12 +106,33 @@ module ActiveRecord
       end
     end
 
-    def teardown
+    class RevertNamedIndexMigration1 < SilentMigration
+      def change
+        create_table("horses") do |t|
+          t.column :content, :string
+          t.column :remind_at, :datetime
+        end
+        add_index :horses, :content
+      end
+    end
+
+    class RevertNamedIndexMigration2 < SilentMigration
+      def change
+        add_index :horses, :content, name: "horses_index_named"
+      end
+    end
+
+    setup do
+      @verbose_was, ActiveRecord::Migration.verbose = ActiveRecord::Migration.verbose, false
+    end
+
+    teardown do
       %w[horses new_horses].each do |table|
         if ActiveRecord::Base.connection.table_exists?(table)
           ActiveRecord::Base.connection.drop_table(table)
         end
       end
+      ActiveRecord::Migration.verbose = @verbose_was
     end
 
     def test_no_reverse
@@ -123,13 +144,17 @@ module ActiveRecord
     end
 
     def test_exception_on_removing_index_without_column_option
-      RemoveIndexMigration1.new.migrate(:up)
-      migration = RemoveIndexMigration2.new
-      migration.migrate(:up)
+      index_definition = ["horses", [:name, :color]]
+      migration1 = RemoveIndexMigration1.new
+      migration1.migrate(:up)
+      assert migration1.connection.index_exists?(*index_definition)
 
-      assert_raises(IrreversibleMigration) do
-        migration.migrate(:down)
-      end
+      migration2 = RemoveIndexMigration2.new
+      migration2.migrate(:up)
+      assert_not migration2.connection.index_exists?(*index_definition)
+
+      migration2.migrate(:down)
+      assert migration2.connection.index_exists?(*index_definition)
     end
 
     def test_migrate_up
@@ -253,6 +278,21 @@ module ActiveRecord
       assert !ActiveRecord::Base.connection.table_exists?("p_horses_s"), "p_horses_s should not exist"
     ensure
       ActiveRecord::Base.table_name_prefix = ActiveRecord::Base.table_name_suffix = ''
+    end
+
+    # MySQL 5.7 and Oracle do not allow to create duplicate indexes on the same columns
+    unless current_adapter?(:MysqlAdapter, :Mysql2Adapter, :OracleAdapter)
+      def test_migrate_revert_add_index_with_name
+        RevertNamedIndexMigration1.new.migrate(:up)
+        RevertNamedIndexMigration2.new.migrate(:up)
+        RevertNamedIndexMigration2.new.migrate(:down)
+
+        connection = ActiveRecord::Base.connection
+        assert connection.index_exists?(:horses, :content),
+               "index on content should exist"
+        assert !connection.index_exists?(:horses, :content, name: "horses_index_named"),
+              "horses_index_named index should not exist"
+      end
     end
 
   end

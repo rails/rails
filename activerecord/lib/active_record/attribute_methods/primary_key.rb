@@ -15,8 +15,10 @@ module ActiveRecord
 
       # Returns the primary key value.
       def id
-        sync_with_transaction_state
-        read_attribute(self.class.primary_key)
+        if pk = self.class.primary_key
+          sync_with_transaction_state
+          _read_attribute(pk)
+        end
       end
 
       # Sets the primary key value.
@@ -37,6 +39,12 @@ module ActiveRecord
         read_attribute_before_type_cast(self.class.primary_key)
       end
 
+      # Returns the primary key previous value.
+      def id_was
+        sync_with_transaction_state
+        attribute_was(self.class.primary_key)
+      end
+
       protected
 
       def attribute_method?(attr_name)
@@ -52,7 +60,7 @@ module ActiveRecord
           end
         end
 
-        ID_ATTRIBUTE_METHODS = %w(id id= id? id_before_type_cast).to_set
+        ID_ATTRIBUTE_METHODS = %w(id id= id? id_before_type_cast id_was).to_set
 
         def dangerous_attribute_method?(method_name)
           super && !ID_ATTRIBUTE_METHODS.include?(method_name)
@@ -81,12 +89,9 @@ module ActiveRecord
         end
 
         def get_primary_key(base_name) #:nodoc:
-          return 'id' if base_name.blank?
-
-          case primary_key_prefix_type
-          when :table_name
+          if base_name && primary_key_prefix_type == :table_name
             base_name.foreign_key(false)
-          when :table_name_with_underscore
+          elsif base_name && primary_key_prefix_type == :table_name_with_underscore
             base_name.foreign_key
           else
             if ActiveRecord::Base != self && table_exists?
@@ -115,6 +120,7 @@ module ActiveRecord
         def primary_key=(value)
           @primary_key        = value && value.to_s
           @quoted_primary_key = nil
+          @attributes_builder = nil
         end
       end
     end

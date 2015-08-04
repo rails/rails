@@ -41,6 +41,9 @@ module ActionView
         'template'
       end
 
+      if partial && path.present?
+        path = path.sub(%r{([^/]+)$}, "_\\1")
+      end
       searched_paths = prefixes.map { |prefix| [prefix, path].join("/") }
 
       out  = "Missing #{template_type} #{searched_paths.join(", ")} with #{details.inspect}. Searched in:\n"
@@ -56,13 +59,13 @@ module ActionView
     class Error < ActionViewError #:nodoc:
       SOURCE_CODE_RADIUS = 3
 
-      attr_reader :original_exception, :backtrace
+      attr_reader :original_exception
 
       def initialize(template, original_exception)
         super(original_exception.message)
         @template, @original_exception = template, original_exception
         @sub_templates = nil
-        @backtrace = original_exception.backtrace
+        set_backtrace(original_exception.backtrace)
       end
 
       def file_name
@@ -72,7 +75,7 @@ module ActionView
       def sub_template_message
         if @sub_templates
           "Trace of template inclusion: " +
-          @sub_templates.collect { |template| template.inspect }.join(", ")
+          @sub_templates.collect(&:inspect).join(", ")
         else
           ""
         end

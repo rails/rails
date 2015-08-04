@@ -5,6 +5,8 @@
 <% attributes.each do |attribute| -%>
   <%- if attribute.password_digest? -%>
   password_digest: <%%= BCrypt::Password.create('secret') %>
+  <%- elsif attribute.reference? -%>
+  <%= yaml_key_value(attribute.column_name.sub(/_id$/, ''), attribute.default) %>
   <%- else -%>
   <%= yaml_key_value(attribute.column_name, attribute.default) %>
   <%- end -%>

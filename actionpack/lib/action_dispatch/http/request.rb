@@ -20,10 +20,12 @@ module ActionDispatch
     include ActionDispatch::Http::FilterParameters
     include ActionDispatch::Http::URL
 
+    HTTP_X_REQUEST_ID = "HTTP_X_REQUEST_ID".freeze # :nodoc:
+
     autoload :Session, 'action_dispatch/request/session'
     autoload :Utils,   'action_dispatch/request/utils'
 
-    LOCALHOST   = Regexp.union [/^127\.0\.0\.\d{1,3}$/, /^::1$/, /^0:0:0:0:0:0:0:1(%.*)?$/]
+    LOCALHOST   = Regexp.union [/^127\.\d{1,3}\.\d{1,3}\.\d{1,3}$/, /^::1$/, /^0:0:0:0:0:0:0:1(%.*)?$/]
 
     ENV_METHODS = %w[ AUTH_TYPE GATEWAY_INTERFACE
         PATH_TRANSLATED REMOTE_HOST
@@ -50,7 +52,17 @@ module ActionDispatch
       @original_fullpath = nil
       @fullpath          = nil
       @ip                = nil
-      @uuid              = nil
+    end
+
+    def check_path_parameters!
+      # If any of the path parameters has an invalid encoding then
+      # raise since it's likely to trigger errors further on.
+      path_parameters.each do |key, value|
+        next unless value.respond_to?(:valid_encoding?)
+        unless value.valid_encoding?
+          raise ActionController::BadRequest, "Invalid parameter: #{key} => #{value}"
+        end
+      end
     end
 
     def key?(key)
@@ -64,6 +76,7 @@ module ActionDispatch
     # Ordered Collections Protocol (WebDAV) (http://www.ietf.org/rfc/rfc3648.txt)
     # Web Distributed Authoring and Versioning (WebDAV) Access Control Protocol (http://www.ietf.org/rfc/rfc3744.txt)
     # Web Distributed Authoring and Versioning (WebDAV) SEARCH (http://www.ietf.org/rfc/rfc5323.txt)
+    # Calendar Extensions to WebDAV (http://www.ietf.org/rfc/rfc4791.txt)
     # PATCH Method for HTTP (http://www.ietf.org/rfc/rfc5789.txt)
     RFC2616 = %w(OPTIONS GET HEAD POST PUT DELETE TRACE CONNECT)
     RFC2518 = %w(PROPFIND PROPPATCH MKCOL COPY MOVE LOCK UNLOCK)
@@ -71,9 +84,10 @@ module ActionDispatch
     RFC3648 = %w(ORDERPATCH)
     RFC3744 = %w(ACL)
     RFC5323 = %w(SEARCH)
+    RFC4791 = %w(MKCALENDAR)
     RFC5789 = %w(PATCH)
 
-    HTTP_METHODS = RFC2616 + RFC2518 + RFC3253 + RFC3648 + RFC3744 + RFC5323 + RFC5789
+    HTTP_METHODS = RFC2616 + RFC2518 + RFC3253 + RFC3648 + RFC3744 + RFC5323 + RFC4791 + RFC5789
 
     HTTP_METHOD_LOOKUP = {}
 
@@ -90,6 +104,24 @@ module ActionDispatch
     # value, not the original.
     def request_method
       @request_method ||= check_method(env["REQUEST_METHOD"])
+    end
+
+    def routes # :nodoc:
+      env["action_dispatch.routes".freeze]
+    end
+
+    def original_script_name # :nodoc:
+      env['ORIGINAL_SCRIPT_NAME'.freeze]
+    end
+
+    def engine_script_name(_routes) # :nodoc:
+      env[_routes.env_key]
+    end
+
+    def request_method=(request_method) #:nodoc:
+      if check_method(request_method)
+        @request_method = env["REQUEST_METHOD"] = request_method
+      end
     end
 
     # Returns a symbol form of the #request_method
@@ -109,49 +141,20 @@ module ActionDispatch
       HTTP_METHOD_LOOKUP[method]
     end
 
-    # Is this a GET (or HEAD) request?
-    # Equivalent to <tt>request.request_method_symbol == :get</tt>.
-    def get?
-      HTTP_METHOD_LOOKUP[request_method] == :get
-    end
-
-    # Is this a POST request?
-    # Equivalent to <tt>request.request_method_symbol == :post</tt>.
-    def post?
-      HTTP_METHOD_LOOKUP[request_method] == :post
-    end
-
-    # Is this a PATCH request?
-    # Equivalent to <tt>request.request_method == :patch</tt>.
-    def patch?
-      HTTP_METHOD_LOOKUP[request_method] == :patch
-    end
-
-    # Is this a PUT request?
-    # Equivalent to <tt>request.request_method_symbol == :put</tt>.
-    def put?
-      HTTP_METHOD_LOOKUP[request_method] == :put
-    end
-
-    # Is this a DELETE request?
-    # Equivalent to <tt>request.request_method_symbol == :delete</tt>.
-    def delete?
-      HTTP_METHOD_LOOKUP[request_method] == :delete
-    end
-
-    # Is this a HEAD request?
-    # Equivalent to <tt>request.request_method_symbol == :head</tt>.
-    def head?
-      HTTP_METHOD_LOOKUP[request_method] == :head
-    end
-
     # Provides access to the request's HTTP headers, for example:
     #
     #   request.headers["Content-Type"] # => "text/plain"
     def headers
-      Http::Headers.new(@env)
+      @headers ||= Http::Headers.new(@env)
     end
 
+    # Returns a +String+ with the last requested path including their params.
+    #
+    #    # get '/foo'
+    #    request.original_fullpath # => '/foo'
+    #
+    #    # get '/foo?bar'
+    #    request.original_fullpath # => '/foo?bar'
     def original_fullpath
       @original_fullpath ||= (env["ORIGINAL_FULLPATH"] || fullpath)
     end
@@ -189,30 +192,44 @@ module ActionDispatch
     end
 
     # Returns true if the "X-Requested-With" header contains "XMLHttpRequest"
-    # (case-insensitive). All major JavaScript libraries send this header with
-    # every Ajax request.
+    # (case-insensitive), which may need to be manually added depending on the
+    # choice of JavaScript libraries and frameworks.
     def xml_http_request?
       @env['HTTP_X_REQUESTED_WITH'] =~ /XMLHttpRequest/i
     end
     alias :xhr? :xml_http_request?
 
+    # Returns the IP address of client as a +String+.
     def ip
       @ip ||= super
     end
 
-    # Originating IP address, usually set by the RemoteIp middleware.
+    # Returns the IP address of client as a +String+,
+    # usually set by the RemoteIp middleware.
     def remote_ip
       @remote_ip ||= (@env["action_dispatch.remote_ip"] || ip).to_s
     end
 
-    # Returns the unique request id, which is based off either the X-Request-Id header that can
+    ACTION_DISPATCH_REQUEST_ID = "action_dispatch.request_id".freeze # :nodoc:
+
+    # Returns the unique request id, which is based on either the X-Request-Id header that can
     # be generated by a firewall, load balancer, or web server or by the RequestId middleware
     # (which sets the action_dispatch.request_id environment variable).
     #
     # This unique ID is useful for tracing a request from end-to-end as part of logging or debugging.
     # This relies on the rack variable set by the ActionDispatch::RequestId middleware.
-    def uuid
-      @uuid ||= env["action_dispatch.request_id"]
+    def request_id
+      env[ACTION_DISPATCH_REQUEST_ID]
+    end
+
+    def request_id=(id) # :nodoc:
+      env[ACTION_DISPATCH_REQUEST_ID] = id
+    end
+
+    alias_method :uuid, :request_id
+
+    def x_request_id # :nodoc:
+      @env[HTTP_X_REQUEST_ID]
     end
 
     # Returns the lowercase name of the HTTP server software.
@@ -242,6 +259,8 @@ module ActionDispatch
       end
     end
 
+    # Returns true if the request's content MIME type is
+    # +application/x-www-form-urlencoded+ or +multipart/form-data+.
     def form_data?
       FORM_DATA_MEDIA_TYPES.include?(content_mime_type.to_s)
     end
@@ -271,16 +290,16 @@ module ActionDispatch
 
     # Override Rack's GET method to support indifferent access
     def GET
-      @env["action_dispatch.request.query_parameters"] ||= (normalize_encode_params(super) || {})
-    rescue TypeError => e
+      @env["action_dispatch.request.query_parameters"] ||= normalize_encode_params(super || {})
+    rescue Rack::Utils::ParameterTypeError, Rack::Utils::InvalidParameterError => e
       raise ActionController::BadRequest.new(:query, e)
     end
     alias :query_parameters :GET
 
     # Override Rack's POST method to support indifferent access
     def POST
-      @env["action_dispatch.request.request_parameters"] ||= (normalize_encode_params(super) || {})
-    rescue TypeError => e
+      @env["action_dispatch.request.request_parameters"] ||= normalize_encode_params(super || {})
+    rescue Rack::Utils::ParameterTypeError, Rack::Utils::InvalidParameterError => e
       raise ActionController::BadRequest.new(:request, e)
     end
     alias :request_parameters :POST
@@ -299,17 +318,10 @@ module ActionDispatch
       LOCALHOST =~ remote_addr && LOCALHOST =~ remote_ip
     end
 
-    protected
-
-    def parse_query(qs)
-      Utils.deep_munge(super)
-    end
-
     private
-
-    def check_method(name)
-      HTTP_METHOD_LOOKUP[name] || raise(ActionController::UnknownHttpMethod, "#{name}, accepted HTTP methods are #{HTTP_METHODS.to_sentence(:locale => :en)}")
-      name
-    end
+      def check_method(name)
+        HTTP_METHOD_LOOKUP[name] || raise(ActionController::UnknownHttpMethod, "#{name}, accepted HTTP methods are #{HTTP_METHODS[0...-1].join(', ')}, and #{HTTP_METHODS[-1]}")
+        name
+      end
   end
 end

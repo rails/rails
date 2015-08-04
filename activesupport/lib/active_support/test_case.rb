@@ -7,52 +7,57 @@ require 'active_support/testing/deprecation'
 require 'active_support/testing/declarative'
 require 'active_support/testing/isolation'
 require 'active_support/testing/constant_lookup'
+require 'active_support/testing/time_helpers'
+require 'active_support/testing/file_fixtures'
+require 'active_support/testing/composite_filter'
 require 'active_support/core_ext/kernel/reporting'
-require 'active_support/deprecation'
-
-begin
-  silence_warnings { require 'mocha/setup' }
-rescue LoadError
-end
-
-module Minitest # :nodoc:
-  class << self
-    remove_method :__run
-  end
-
-  def self.__run reporter, options # :nodoc:
-    # FIXME: MT5's runnables is not ordered. This is needed because
-    # we have have tests have cross-class order-dependent bugs.
-    suites = Runnable.runnables.sort_by { |ts| ts.name.to_s }
-
-    parallel, serial = suites.partition { |s| s.test_order == :parallel }
-
-    ParallelEach.new(parallel).map { |suite| suite.run reporter, options } +
-     serial.map { |suite| suite.run reporter, options }
-  end
-end
 
 module ActiveSupport
   class TestCase < ::Minitest::Test
     Assertion = Minitest::Assertion
 
+    class << self
+      # Sets the order in which test cases are run.
+      #
+      #   ActiveSupport::TestCase.test_order = :random # => :random
+      #
+      # Valid values are:
+      # * +:random+   (to run tests in random order)
+      # * +:parallel+ (to run tests in parallel)
+      # * +:sorted+   (to run tests alphabetically by method name)
+      # * +:alpha+    (equivalent to +:sorted+)
+      def test_order=(new_order)
+        ActiveSupport.test_order = new_order
+      end
+
+      # Returns the order in which test cases are run.
+      #
+      #   ActiveSupport::TestCase.test_order # => :random
+      #
+      # Possible values are +:random+, +:parallel+, +:alpha+, +:sorted+.
+      # Defaults to +:random+.
+      def test_order
+        ActiveSupport.test_order ||= :random
+      end
+
+      def run(reporter, options = {})
+        if options[:patterns] && options[:patterns].any? { |p| p =~ /:\d+/ }
+          options[:filter] = \
+            Testing::CompositeFilter.new(self, options[:filter], options[:patterns])
+        end
+
+        super
+      end
+    end
+
     alias_method :method_name, :name
-
-    $tags = {}
-    def self.for_tag(tag)
-      yield if $tags[tag]
-    end
-
-    # FIXME: we have tests that depend on run order, we should fix that and
-    # remove this method.
-    def self.test_order # :nodoc:
-      :sorted
-    end
 
     include ActiveSupport::Testing::TaggedLogging
     include ActiveSupport::Testing::SetupAndTeardown
     include ActiveSupport::Testing::Assertions
     include ActiveSupport::Testing::Deprecation
+    include ActiveSupport::Testing::TimeHelpers
+    include ActiveSupport::Testing::FileFixtures
     extend ActiveSupport::Testing::Declarative
 
     # test/unit backwards compatibility methods
@@ -71,7 +76,7 @@ module ActiveSupport
     alias :assert_not_respond_to :refute_respond_to
     alias :assert_not_same :refute_same
 
-    # Fails if the block raises an exception.
+    # Reveals the intention that the block should not raise any exception.
     #
     #   assert_nothing_raised do
     #     ...

@@ -22,6 +22,7 @@ class Category < ActiveRecord::Base
   end
 
   has_many :categorizations
+  has_many :special_categorizations
   has_many :post_comments, :through => :posts, :source => :comments
 
   has_many :authors, :through => :categorizations

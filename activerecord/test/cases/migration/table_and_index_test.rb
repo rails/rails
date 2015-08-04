@@ -6,11 +6,11 @@ module ActiveRecord
       def test_add_schema_info_respects_prefix_and_suffix
         conn = ActiveRecord::Base.connection
 
-        conn.drop_table(ActiveRecord::Migrator.schema_migrations_table_name) if conn.table_exists?(ActiveRecord::Migrator.schema_migrations_table_name)
+        conn.drop_table(ActiveRecord::Migrator.schema_migrations_table_name, if_exists: true)
         # Use shorter prefix and suffix as in Oracle database identifier cannot be larger than 30 characters
         ActiveRecord::Base.table_name_prefix = 'p_'
         ActiveRecord::Base.table_name_suffix = '_s'
-        conn.drop_table(ActiveRecord::Migrator.schema_migrations_table_name) if conn.table_exists?(ActiveRecord::Migrator.schema_migrations_table_name)
+        conn.drop_table(ActiveRecord::Migrator.schema_migrations_table_name, if_exists: true)
 
         conn.initialize_schema_migrations_table
 

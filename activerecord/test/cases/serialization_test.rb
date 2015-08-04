@@ -1,8 +1,13 @@
 require "cases/helper"
 require 'models/contact'
 require 'models/topic'
+require 'models/book'
+require 'models/author'
+require 'models/post'
 
 class SerializationTest < ActiveRecord::TestCase
+  fixtures :books
+
   FORMATS = [ :xml, :json ]
 
   def setup
@@ -64,5 +69,36 @@ class SerializationTest < ActiveRecord::TestCase
     assert !klazz.new.include_root_in_json
   ensure
     ActiveRecord::Base.include_root_in_json = original_root_in_json
+  end
+
+  def test_read_attribute_for_serialization_with_format_without_method_missing
+    klazz = Class.new(ActiveRecord::Base)
+    klazz.table_name = 'books'
+
+    book = klazz.new
+    assert_nil book.read_attribute_for_serialization(:format)
+  end
+
+  def test_read_attribute_for_serialization_with_format_after_init
+    klazz = Class.new(ActiveRecord::Base)
+    klazz.table_name = 'books'
+
+    book = klazz.new(format: 'paperback')
+    assert_equal 'paperback', book.read_attribute_for_serialization(:format)
+  end
+
+  def test_read_attribute_for_serialization_with_format_after_find
+    klazz = Class.new(ActiveRecord::Base)
+    klazz.table_name = 'books'
+
+    book = klazz.find(books(:awdr).id)
+    assert_equal 'paperback', book.read_attribute_for_serialization(:format)
+  end
+
+  def test_find_records_by_serialized_attributes_through_join
+    author = Author.create!(name: "David")
+    author.serialized_posts.create!(title: "Hello")
+
+    assert_equal 1, Author.joins(:serialized_posts).where(name: "David", serialized_posts: { title: "Hello" }).length
   end
 end

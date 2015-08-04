@@ -1,14 +1,49 @@
 require 'erb'
 require 'yaml'
 require 'optparse'
-require 'rbconfig'
+require 'rails/commands/console_helper'
 
 module Rails
   class DBConsole
+    include ConsoleHelper
+
     attr_reader :arguments
 
-    def self.start
-      new.start
+    class << self
+      def parse_arguments(arguments)
+        options = {}
+
+        OptionParser.new do |opt|
+          opt.banner = "Usage: rails dbconsole [environment] [options]"
+          opt.on("-p", "--include-password", "Automatically provide the password from database.yml") do |v|
+            options['include_password'] = true
+          end
+
+          opt.on("--mode [MODE]", ['html', 'list', 'line', 'column'],
+            "Automatically put the sqlite3 database in the specified mode (html, list, line, column).") do |mode|
+              options['mode'] = mode
+          end
+
+          opt.on("--header") do |h|
+            options['header'] = h
+          end
+
+          opt.on("-h", "--help", "Show this help message.") do
+            puts opt
+            exit
+          end
+
+          opt.on("-e", "--environment=name", String,
+            "Specifies the environment to run this console under (test/development/production).",
+            "Default: development"
+          ) { |v| options[:environment] = v.strip }
+
+          opt.parse!(arguments)
+          abort opt.to_s unless (0..1).include?(arguments.size)
+        end
+
+        set_options_env(arguments, options)
+      end
     end
 
     def initialize(arguments = ARGV)
@@ -16,11 +51,11 @@ module Rails
     end
 
     def start
-      options = parse_arguments(arguments)
+      options = self.class.parse_arguments(arguments)
       ENV['RAILS_ENV'] = options[:environment] || environment
 
       case config["adapter"]
-      when /^mysql/
+      when /^(jdbc)?mysql/
         args = {
           'host'      => '--host',
           'port'      => '--port',
@@ -44,15 +79,12 @@ module Rails
 
         find_cmd_and_exec(['mysql', 'mysql5'], *args)
 
-      when "postgresql", "postgres", "postgis"
+      when /^postgres|^postgis/
         ENV['PGUSER']     = config["username"] if config["username"]
         ENV['PGHOST']     = config["host"] if config["host"]
         ENV['PGPORT']     = config["port"].to_s if config["port"]
         ENV['PGPASSWORD'] = config["password"].to_s if config["password"] && options['include_password']
         find_cmd_and_exec('psql', config["database"])
-
-      when "sqlite"
-        find_cmd_and_exec('sqlite', config["database"])
 
       when "sqlite3"
         args = []
@@ -74,101 +106,68 @@ module Rails
 
         find_cmd_and_exec('sqlplus', logon)
 
+      when "sqlserver"
+        args = []
+
+        args += ["-D", "#{config['database']}"] if config['database']
+        args += ["-U", "#{config['username']}"] if config['username']
+        args += ["-P", "#{config['password']}"] if config['password']
+
+        if config['host']
+          host_arg = "#{config['host']}"
+          host_arg << ":#{config['port']}" if config['port']
+          args += ["-S", host_arg]
+        end
+
+        find_cmd_and_exec("sqsh", *args)
+
       else
-        abort "Unknown command-line client for #{config['database']}. Submit a Rails patch to add support!"
+        abort "Unknown command-line client for #{config['database']}."
       end
     end
 
     def config
       @config ||= begin
-        cfg = begin
-          YAML.load(ERB.new(IO.read("config/database.yml")).result)
-        rescue SyntaxError, StandardError
-          require APP_PATH
-          Rails.application.config.database_configuration
+        if configurations[environment].blank?
+          raise ActiveRecord::AdapterNotSpecified, "'#{environment}' database is not configured. Available configuration: #{configurations.inspect}"
+        else
+          configurations[environment]
         end
-
-        cfg[environment] || abort("No database is configured for the environment '#{environment}'")
       end
     end
 
     def environment
-      if Rails.respond_to?(:env)
-        Rails.env
-      else
-        ENV["RAILS_ENV"] || ENV["RACK_ENV"] || "development"
-      end
+      Rails.respond_to?(:env) ? Rails.env : super
     end
 
     protected
-
-    def parse_arguments(arguments)
-      options = {}
-
-      OptionParser.new do |opt|
-        opt.banner = "Usage: rails dbconsole [environment] [options]"
-        opt.on("-p", "--include-password", "Automatically provide the password from database.yml") do |v|
-          options['include_password'] = true
-        end
-
-        opt.on("--mode [MODE]", ['html', 'list', 'line', 'column'],
-          "Automatically put the sqlite3 database in the specified mode (html, list, line, column).") do |mode|
-            options['mode'] = mode
-        end
-
-        opt.on("--header") do |h|
-          options['header'] = h
-        end
-
-        opt.on("-h", "--help", "Show this help message.") do
-          puts opt
-          exit
-        end
-
-        opt.on("-e", "--environment=name", String,
-          "Specifies the environment to run this console under (test/development/production).",
-          "Default: development"
-        ) { |v| options[:environment] = v.strip }
-
-        opt.parse!(arguments)
-        abort opt.to_s unless (0..1).include?(arguments.size)
+      def configurations
+        require APP_PATH
+        ActiveRecord::Base.configurations = Rails.application.config.database_configuration
+        ActiveRecord::Base.configurations
       end
 
-      if arguments.first && arguments.first[0] != '-'
-        env = arguments.first
-        if available_environments.include? env
-          options[:environment] = env
+      def find_cmd_and_exec(commands, *args)
+        commands = Array(commands)
+
+        dirs_on_path = ENV['PATH'].to_s.split(File::PATH_SEPARATOR)
+        unless (ext = RbConfig::CONFIG['EXEEXT']).empty?
+          commands = commands.map{|cmd| "#{cmd}#{ext}"}
+        end
+
+        full_path_command = nil
+        found = commands.detect do |cmd|
+          dirs_on_path.detect do |path|
+            full_path_command = File.join(path, cmd)
+            File.file?(full_path_command) && File.executable?(full_path_command)
+          end
+        end
+
+        if found
+          exec full_path_command, *args
         else
-          options[:environment] = %w(production development test).detect {|e| e =~ /^#{env}/} || env
+          abort("Couldn't find database client: #{commands.join(', ')}. Check your $PATH and try again.")
         end
       end
-
-      options
-    end
-
-    def available_environments
-      Dir['config/environments/*.rb'].map { |fname| File.basename(fname, '.*') }
-    end
-
-    def find_cmd_and_exec(commands, *args)
-      commands = Array(commands)
-
-      dirs_on_path = ENV['PATH'].to_s.split(File::PATH_SEPARATOR)
-      commands += commands.map{|cmd| "#{cmd}.exe"} if RbConfig::CONFIG['host_os'] =~ /mswin|mingw/
-
-      full_path_command = nil
-      found = commands.detect do |cmd|
-        dirs_on_path.detect do |path|
-          full_path_command = File.join(path, cmd)
-          File.executable? full_path_command
-        end
-      end
-
-      if found
-        exec full_path_command, *args
-      else
-        abort("Couldn't find database client: #{commands.join(', ')}. Check your $PATH and try again.")
-      end
-    end
   end
 end

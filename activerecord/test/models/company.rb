@@ -10,6 +10,12 @@ class Company < AbstractCompany
   has_one :dummy_account, :foreign_key => "firm_id", :class_name => "Account"
   has_many :contracts
   has_many :developers, :through => :contracts
+  has_many :accounts
+
+  scope :of_first_firm, lambda {
+    joins(:account => :firm).
+    where('firms.id' => 1)
+  }
 
   def arbitrary_method
     "I am Jack's profound disappointment"
@@ -19,6 +25,9 @@ class Company < AbstractCompany
 
   def private_method
     "I am Jack's innermost fears and aspirations"
+  end
+
+  class SpecialCo < Company
   end
 end
 
@@ -35,11 +44,13 @@ module Namespaced
 end
 
 class Firm < Company
+  to_param :name
+
   has_many :clients, -> { order "id" }, :dependent => :destroy, :before_remove => :log_before_remove, :after_remove  => :log_after_remove
   has_many :unsorted_clients, :class_name => "Client"
   has_many :unsorted_clients_with_symbol, :class_name => :Client
   has_many :clients_sorted_desc, -> { order "id DESC" }, :class_name => "Client"
-  has_many :clients_of_firm, -> { order "id" }, :foreign_key => "client_of", :class_name => "Client"
+  has_many :clients_of_firm, -> { order "id" }, :foreign_key => "client_of", :class_name => "Client", :inverse_of => :firm
   has_many :clients_ordered_by_name, -> { order "name" }, :class_name => "Client"
   has_many :unvalidated_clients_of_firm, :foreign_key => "client_of", :class_name => "Client", :validate => false
   has_many :dependent_clients_of_firm, -> { order "id" }, :foreign_key => "client_of", :class_name => "Client", :dependent => :destroy
@@ -64,6 +75,7 @@ class Firm < Company
   # Oracle tests were failing because of that as the second fixture was selected
   has_one :account_using_primary_key, -> { order('id') }, :primary_key => "firm_id", :class_name => "Account"
   has_one :account_using_foreign_and_primary_keys, :foreign_key => "firm_name", :primary_key => "name", :class_name => "Account"
+  has_one :account_with_inexistent_foreign_key, class_name: 'Account', foreign_key: "inexistent"
   has_one :deletable_account, :foreign_key => "firm_id", :class_name => "Account", :dependent => :delete
 
   has_one :account_limit_500_with_hash_conditions, -> { where :credit_limit => 500 }, :foreign_key => "firm_id", :class_name => "Account"
@@ -116,6 +128,10 @@ class Client < Company
   belongs_to :bob_firm, -> { where :name => "Bob" }, :class_name => "Firm", :foreign_key => "client_of"
   has_many :accounts, :through => :firm, :source => :accounts
   belongs_to :account
+
+  validate do
+    firm
+  end
 
   class RaisedOnSave < RuntimeError; end
   attr_accessor :raise_on_save
@@ -201,7 +217,7 @@ class Account < ActiveRecord::Base
   protected
 
   def check_empty_credit_limit
-    errors.add_on_empty "credit_limit"
+    errors.add("credit_limit", :blank) if credit_limit.blank?
   end
 
   private

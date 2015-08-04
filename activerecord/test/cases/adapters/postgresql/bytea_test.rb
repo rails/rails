@@ -1,10 +1,6 @@
-# encoding: utf-8
-
 require "cases/helper"
-require 'active_record/base'
-require 'active_record/connection_adapters/postgresql_adapter'
 
-class PostgresqlByteaTest < ActiveRecord::TestCase
+class PostgresqlByteaTest < ActiveRecord::PostgreSQLTestCase
   class ByteaDataType < ActiveRecord::Base
     self.table_name = 'bytea_data_type'
   end
@@ -19,16 +15,24 @@ class PostgresqlByteaTest < ActiveRecord::TestCase
         end
       end
     end
-    @column = ByteaDataType.columns.find { |c| c.name == 'payload' }
-    assert(@column.is_a?(ActiveRecord::ConnectionAdapters::PostgreSQLColumn))
+    @column = ByteaDataType.columns_hash['payload']
+    @type = ByteaDataType.type_for_attribute("payload")
   end
 
-  def teardown
-    @connection.execute 'drop table if exists bytea_data_type'
+  teardown do
+    @connection.drop_table 'bytea_data_type', if_exists: true
   end
 
   def test_column
+    assert @column.is_a?(ActiveRecord::ConnectionAdapters::PostgreSQLColumn)
     assert_equal :binary, @column.type
+  end
+
+  def test_binary_columns_are_limitless_the_upper_limit_is_one_GB
+    assert_equal 'bytea', @connection.type_to_sql(:binary, 100_000)
+    assert_raise ActiveRecord::ActiveRecordError do
+      @connection.type_to_sql :binary, 4294967295
+    end
   end
 
   def test_type_cast_binary_converts_the_encoding
@@ -36,16 +40,16 @@ class PostgresqlByteaTest < ActiveRecord::TestCase
 
     data = "\u001F\x8B"
     assert_equal('UTF-8', data.encoding.name)
-    assert_equal('ASCII-8BIT', @column.type_cast(data).encoding.name)
+    assert_equal('ASCII-8BIT', @type.deserialize(data).encoding.name)
   end
 
   def test_type_cast_binary_value
     data = "\u001F\x8B".force_encoding("BINARY")
-    assert_equal(data, @column.type_cast(data))
+    assert_equal(data, @type.deserialize(data))
   end
 
   def test_type_case_nil
-    assert_equal(nil, @column.type_cast(nil))
+    assert_equal(nil, @type.deserialize(nil))
   end
 
   def test_read_value
@@ -68,6 +72,23 @@ class PostgresqlByteaTest < ActiveRecord::TestCase
     record = ByteaDataType.create(payload: data)
     assert_not record.new_record?
     assert_equal(data, record.payload)
+  end
+
+  def test_via_to_sql
+    data = "'\u001F\\"
+    ByteaDataType.create(payload: data)
+    sql = ByteaDataType.where(payload: data).select(:payload).to_sql
+    result = @connection.query(sql)
+    assert_equal([[data]], result)
+  end
+
+  def test_via_to_sql_with_complicating_connection
+    Thread.new do
+      other_conn = ActiveRecord::Base.connection
+      other_conn.execute('SET standard_conforming_strings = off')
+    end.join
+
+    test_via_to_sql
   end
 
   def test_write_binary

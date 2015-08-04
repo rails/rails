@@ -33,6 +33,35 @@ class LoadingTest < ActiveSupport::TestCase
     assert_equal 'omg', p.title
   end
 
+  test "concerns in app are autoloaded" do
+    app_file "app/controllers/concerns/trackable.rb", <<-CONCERN
+      module Trackable
+      end
+    CONCERN
+
+    app_file "app/mailers/concerns/email_loggable.rb", <<-CONCERN
+      module EmailLoggable
+      end
+    CONCERN
+
+    app_file "app/models/concerns/orderable.rb", <<-CONCERN
+      module Orderable
+      end
+    CONCERN
+
+    app_file "app/validators/concerns/matchable.rb", <<-CONCERN
+      module Matchable
+      end
+    CONCERN
+
+    require "#{rails_root}/config/environment"
+
+    assert_nothing_raised(NameError) { Trackable }
+    assert_nothing_raised(NameError) { EmailLoggable }
+    assert_nothing_raised(NameError) { Orderable }
+    assert_nothing_raised(NameError) { Matchable }
+  end
+
   test "models without table do not panic on scope definitions when loaded" do
     app_file "app/models/user.rb", <<-MODEL
       class User < ActiveRecord::Base
@@ -181,7 +210,7 @@ class LoadingTest < ActiveSupport::TestCase
     app_file 'config/routes.rb', <<-RUBY
       $counter ||= 0
       Rails.application.routes.draw do
-        get '/c', to: lambda { |env| User; [200, {"Content-Type" => "text/plain"}, [$counter.to_s]] }
+        get '/c', to: lambda { |env| User.name; [200, {"Content-Type" => "text/plain"}, [$counter.to_s]] }
       end
     RUBY
 
@@ -214,7 +243,7 @@ class LoadingTest < ActiveSupport::TestCase
       $counter ||= 1
       $counter  *= 2
       Rails.application.routes.draw do
-        get '/c', to: lambda { |env| User; [200, {"Content-Type" => "text/plain"}, [$counter.to_s]] }
+        get '/c', to: lambda { |env| User.name; [200, {"Content-Type" => "text/plain"}, [$counter.to_s]] }
       end
     RUBY
 

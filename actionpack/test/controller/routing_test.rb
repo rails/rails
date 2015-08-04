@@ -1,14 +1,12 @@
-# encoding: utf-8
 require 'abstract_unit'
 require 'controller/fake_controllers'
 require 'active_support/core_ext/object/with_options'
+require 'active_support/core_ext/object/json'
 
 class MilestonesController < ActionController::Base
   def index() head :ok end
   alias_method :show, :index
 end
-
-ROUTING = ActionDispatch::Routing
 
 # See RFC 3986, section 3.3 for allowed path characters.
 class UriReservedCharactersRoutingTest < ActiveSupport::TestCase
@@ -76,46 +74,47 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
   include ActionDispatch::RoutingVerbs
 
   attr_reader :rs
+  attr_accessor :controller
   alias :routes :rs
 
   def setup
-    @rs       = ::ActionDispatch::Routing::RouteSet.new
+    @rs = make_set
     @response = nil
   end
 
   def test_symbols_with_dashes
     rs.draw do
       get '/:artist/:song-omg', :to => lambda { |env|
-        resp = JSON.dump env[ActionDispatch::Routing::RouteSet::PARAMETERS_KEY]
+        resp = ActiveSupport::JSON.encode ActionDispatch::Request.new(env).path_parameters
         [200, {}, [resp]]
       }
     end
 
-    hash = JSON.load get(URI('http://example.org/journey/faithfully-omg'))
+    hash = ActiveSupport::JSON.decode get(URI('http://example.org/journey/faithfully-omg'))
     assert_equal({"artist"=>"journey", "song"=>"faithfully"}, hash)
   end
 
   def test_id_with_dash
     rs.draw do
       get '/journey/:id', :to => lambda { |env|
-        resp = JSON.dump env[ActionDispatch::Routing::RouteSet::PARAMETERS_KEY]
+        resp = ActiveSupport::JSON.encode ActionDispatch::Request.new(env).path_parameters
         [200, {}, [resp]]
       }
     end
 
-    hash = JSON.load get(URI('http://example.org/journey/faithfully-omg'))
+    hash = ActiveSupport::JSON.decode get(URI('http://example.org/journey/faithfully-omg'))
     assert_equal({"id"=>"faithfully-omg"}, hash)
   end
 
   def test_dash_with_custom_regexp
     rs.draw do
       get '/:artist/:song-omg', :constraints => { :song => /\d+/ }, :to => lambda { |env|
-        resp = JSON.dump env[ActionDispatch::Routing::RouteSet::PARAMETERS_KEY]
+        resp = ActiveSupport::JSON.encode ActionDispatch::Request.new(env).path_parameters
         [200, {}, [resp]]
       }
     end
 
-    hash = JSON.load get(URI('http://example.org/journey/123-omg'))
+    hash = ActiveSupport::JSON.decode get(URI('http://example.org/journey/123-omg'))
     assert_equal({"artist"=>"journey", "song"=>"123"}, hash)
     assert_equal 'Not Found', get(URI('http://example.org/journey/faithfully-omg'))
   end
@@ -123,24 +122,24 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
   def test_pre_dash
     rs.draw do
       get '/:artist/omg-:song', :to => lambda { |env|
-        resp = JSON.dump env[ActionDispatch::Routing::RouteSet::PARAMETERS_KEY]
+        resp = ActiveSupport::JSON.encode ActionDispatch::Request.new(env).path_parameters
         [200, {}, [resp]]
       }
     end
 
-    hash = JSON.load get(URI('http://example.org/journey/omg-faithfully'))
+    hash = ActiveSupport::JSON.decode get(URI('http://example.org/journey/omg-faithfully'))
     assert_equal({"artist"=>"journey", "song"=>"faithfully"}, hash)
   end
 
   def test_pre_dash_with_custom_regexp
     rs.draw do
       get '/:artist/omg-:song', :constraints => { :song => /\d+/ }, :to => lambda { |env|
-        resp = JSON.dump env[ActionDispatch::Routing::RouteSet::PARAMETERS_KEY]
+        resp = ActiveSupport::JSON.encode ActionDispatch::Request.new(env).path_parameters
         [200, {}, [resp]]
       }
     end
 
-    hash = JSON.load get(URI('http://example.org/journey/omg-123'))
+    hash = ActiveSupport::JSON.decode get(URI('http://example.org/journey/omg-123'))
     assert_equal({"artist"=>"journey", "song"=>"123"}, hash)
     assert_equal 'Not Found', get(URI('http://example.org/journey/omg-faithfully'))
   end
@@ -160,14 +159,14 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
   def test_star_paths_are_greedy_but_not_too_much
     rs.draw do
       get "/*path", :to => lambda { |env|
-        x = JSON.dump env["action_dispatch.request.path_parameters"]
+        x = ActiveSupport::JSON.encode env["action_dispatch.request.path_parameters"]
         [200, {}, [x]]
       }
     end
 
     expected = { "path" => "foo/bar", "format" => "html" }
     u = URI('http://example.org/foo/bar.html')
-    assert_equal expected, JSON.parse(get(u))
+    assert_equal expected, ActiveSupport::JSON.decode(get(u))
   end
 
   def test_optional_star_paths_are_greedy
@@ -185,7 +184,7 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
   def test_optional_star_paths_are_greedy_but_not_too_much
     rs.draw do
       get "/(*filters)", :to => lambda { |env|
-        x = JSON.dump env["action_dispatch.request.path_parameters"]
+        x = ActiveSupport::JSON.encode env["action_dispatch.request.path_parameters"]
         [200, {}, [x]]
       }
     end
@@ -193,7 +192,7 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
     expected = { "filters" => "ne_27.065938,-80.6092/sw_25.489856,-82",
                  "format"  => "542794" }
     u = URI('http://example.org/ne_27.065938,-80.6092/sw_25.489856,-82.542794')
-    assert_equal expected, JSON.parse(get(u))
+    assert_equal expected, ActiveSupport::JSON.decode(get(u))
   end
 
   def test_regexp_precidence
@@ -240,6 +239,32 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
 
     assert_equal 'default', get(URI('http://www.example.org/'))
     assert_equal 'clients', get(URI('http://clients.example.org/'))
+  end
+
+  def test_scoped_lambda
+    scope_called = false
+    rs.draw do
+      scope '/foo', :constraints => lambda { |req| scope_called = true } do
+        get '/', :to => lambda { |env| [200, {}, %w{default}] }
+      end
+    end
+
+    assert_equal 'default', get(URI('http://www.example.org/foo/'))
+    assert scope_called, "scope constraint should be called"
+  end
+
+  def test_scoped_lambda_with_get_lambda
+    inner_called = false
+
+    rs.draw do
+      scope '/foo', :constraints => lambda { |req| flunk "should not be called" } do
+        get '/', :constraints    => lambda { |req| inner_called = true },
+                 :to             => lambda { |env| [200, {}, %w{default}] }
+      end
+    end
+
+    assert_equal 'default', get(URI('http://www.example.org/foo/'))
+    assert inner_called, "inner constraint should be called"
   end
 
   def test_empty_string_match
@@ -290,11 +315,16 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
 
     assert_equal '/admin/user/show/10', url_for(rs, { :controller => 'admin/user', :action => 'show', :id => 10 })
 
-    assert_equal '/admin/user/show',    url_for(rs, { :action => 'show' }, { :controller => 'admin/user', :action => 'list', :id => '10' })
-    assert_equal '/admin/user/list/10', url_for(rs, {}, { :controller => 'admin/user', :action => 'list', :id => '10' })
+    get URI('http://test.host/admin/user/list/10')
 
-    assert_equal '/admin/stuff', url_for(rs, { :controller => 'stuff' }, { :controller => 'admin/user', :action => 'list', :id => '10' })
-    assert_equal '/stuff',       url_for(rs, { :controller => '/stuff' }, { :controller => 'admin/user', :action => 'list', :id => '10' })
+    assert_equal({ :controller => 'admin/user', :action => 'list', :id => '10' },
+                 controller.request.path_parameters)
+
+    assert_equal '/admin/user/show',    controller.url_for({ :action => 'show', :only_path => true })
+    assert_equal '/admin/user/list/10', controller.url_for({:only_path => true})
+
+    assert_equal '/admin/stuff', controller.url_for({ :controller => 'stuff', :only_path => true })
+    assert_equal '/stuff', controller.url_for({ :controller => '/stuff', :only_path => true })
   end
 
   def test_ignores_leading_slash
@@ -305,9 +335,11 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
 
   def test_route_with_colon_first
     rs.draw do
-      get '/:controller/:action/:id', :action => 'index', :id => nil
-      get ':url', :controller => 'tiny_url', :action => 'translate'
+      get '/:controller/:action/:id', action: 'index', id: nil
+      get ':url', controller: 'content', action: 'translate'
     end
+
+    assert_equal({controller: 'content', action: 'translate', url: 'example'}, rs.recognize_path('/example'))
   end
 
   def test_route_with_regexp_for_controller
@@ -418,14 +450,7 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
       get 'page' => 'content#show_page', :as => 'pages', :host => 'foo.com'
     end
     routes = setup_for_named_route
-    routes.expects(:url_for).with({
-      :host => 'foo.com',
-      :only_path => false,
-      :controller => 'content',
-      :action => 'show_page',
-      :use_route => 'pages'
-    }).once
-    routes.send(:pages_url)
+    assert_equal "http://foo.com/page", routes.pages_url
   end
 
   def setup_for_named_route(options = {})
@@ -498,9 +523,10 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
   def test_changing_controller
     rs.draw { get ':controller/:action/:id' }
 
+    get URI('http://test.host/admin/user/index/10')
+
     assert_equal '/admin/stuff/show/10',
-        url_for(rs, {:controller => 'stuff', :action => 'show', :id => 10},
-                    {:controller => 'admin/user', :action => 'index'})
+        controller.url_for({:controller => 'stuff', :action => 'show', :id => 10, :only_path => true})
   end
 
   def test_paths_escaped
@@ -559,8 +585,12 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
       get '*path' => 'content#show_file'
     end
 
+    get URI('http://test.host/pages/boo')
+    assert_equal({:controller=>"content", :action=>"show_file", :path=>"pages/boo"},
+                 controller.request.path_parameters)
+
     assert_equal '/pages/boo',
-        url_for(rs, {}, { :controller => 'content', :action => 'show_file', :path => %w(pages boo) })
+      controller.url_for(:only_path => true)
   end
 
   def test_backwards
@@ -569,7 +599,8 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
       get ':controller(/:action(/:id))'
     end
 
-    assert_equal '/page/20',   url_for(rs, { :id => 20 }, { :controller => 'pages', :action => 'show' })
+    get URI('http://test.host/pages/show')
+    assert_equal '/page/20',   controller.url_for({ :id => 20, :only_path => true })
     assert_equal '/page/20',   url_for(rs, { :controller => 'pages', :id => 20, :action => 'show' })
     assert_equal '/pages/boo', url_for(rs, { :controller => 'pages', :action => 'boo' })
   end
@@ -610,7 +641,8 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
 
   def test_action_expiry
     rs.draw { get ':controller(/:action(/:id))' }
-    assert_equal '/content', url_for(rs, { :controller => 'content' }, { :controller => 'content', :action => 'show' })
+    get URI('http://test.host/content/show')
+    assert_equal '/content', controller.url_for(:controller => 'content', :only_path => true)
   end
 
   def test_requirement_should_prevent_optional_id
@@ -653,14 +685,18 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
     assert_equal '/pages/2005/6/12',
       url_for(rs, { :controller => 'content', :action => 'list_pages', :year => 2005, :month => 6, :day => 12 })
 
+    get URI('http://test.host/pages/2005/6/12')
+    assert_equal({ :controller => 'content', :action => 'list_pages', :year => '2005', :month => '6', :day => '12' },
+                controller.request.path_parameters)
+
     assert_equal '/pages/2005/6/4',
-      url_for(rs, { :day => 4 },   { :controller => 'content', :action => 'list_pages', :year => '2005', :month => '6', :day => '12' })
+      controller.url_for({ :day => 4, :only_path => true })
 
     assert_equal '/pages/2005/6',
-      url_for(rs, { :day => nil }, { :controller => 'content', :action => 'list_pages', :year => '2005', :month => '6', :day => '12' })
+      controller.url_for({ :day => nil, :only_path => true })
 
     assert_equal '/pages/2005',
-      url_for(rs, { :day => nil, :month => nil }, { :controller => 'content', :action => 'list_pages', :year => '2005', :month => '6', :day => '12' })
+      controller.url_for({ :day => nil, :month => nil, :only_path => true })
   end
 
   def test_root_url_generation_with_controller_and_action
@@ -818,9 +854,15 @@ end
 
 class RouteSetTest < ActiveSupport::TestCase
   include RoutingTestHelpers
+  include ActionDispatch::RoutingVerbs
 
-  def set
-    @set ||= ROUTING::RouteSet.new
+  attr_reader :set
+  alias :routes :set
+  attr_accessor :controller
+
+  def setup
+    super
+    @set = make_set
   end
 
   def request
@@ -829,7 +871,7 @@ class RouteSetTest < ActiveSupport::TestCase
 
   def default_route_set
     @default_route_set ||= begin
-      set = ROUTING::RouteSet.new
+      set = ActionDispatch::Routing::RouteSet.new
       set.draw do
         get '/:controller(/:action(/:id))'
       end
@@ -841,13 +883,13 @@ class RouteSetTest < ActiveSupport::TestCase
     set.draw { get ':controller/(:action(/:id))' }
     path, extras = set.generate_extras(:controller => "foo", :action => "bar", :id => 15, :this => "hello", :that => "world")
     assert_equal "/foo/bar/15", path
-    assert_equal %w(that this), extras.map { |e| e.to_s }.sort
+    assert_equal %w(that this), extras.map(&:to_s).sort
   end
 
   def test_extra_keys
     set.draw { get ':controller/:action/:id' }
     extras = set.extra_keys(:controller => "foo", :action => "bar", :id => 15, :this => "hello", :that => "world")
-    assert_equal %w(that this), extras.map { |e| e.to_s }.sort
+    assert_equal %w(that this), extras.map(&:to_s).sort
   end
 
   def test_generate_extras_not_first
@@ -857,7 +899,7 @@ class RouteSetTest < ActiveSupport::TestCase
     end
     path, extras = set.generate_extras(:controller => "foo", :action => "bar", :id => 15, :this => "hello", :that => "world")
     assert_equal "/foo/bar/15", path
-    assert_equal %w(that this), extras.map { |e| e.to_s }.sort
+    assert_equal %w(that this), extras.map(&:to_s).sort
   end
 
   def test_generate_not_first
@@ -875,7 +917,7 @@ class RouteSetTest < ActiveSupport::TestCase
       get ':controller/:action/:id'
     end
     extras = set.extra_keys(:controller => "foo", :action => "bar", :id => 15, :this => "hello", :that => "world")
-    assert_equal %w(that this), extras.map { |e| e.to_s }.sort
+    assert_equal %w(that this), extras.map(&:to_s).sort
   end
 
   def test_draw
@@ -921,7 +963,8 @@ class RouteSetTest < ActiveSupport::TestCase
       get '/admin/users' => 'admin/users#index', :as => "users"
     end
 
-    MockController.build(set.url_helpers).new
+    get URI('http://test.host/people')
+    controller
   end
 
   def test_named_route_url_method
@@ -957,6 +1000,9 @@ class RouteSetTest < ActiveSupport::TestCase
 
     assert_equal "http://test.host/people?baz=bar#location",
       controller.send(:index_url, :baz => "bar", :anchor => 'location')
+
+    assert_equal "http://test.host/people", controller.send(:index_url, anchor: nil)
+    assert_equal "http://test.host/people", controller.send(:index_url, anchor: false)
   end
 
   def test_named_route_url_method_with_port
@@ -1018,12 +1064,12 @@ class RouteSetTest < ActiveSupport::TestCase
       get '/:controller(/:action(/:id))'
     end
 
-    assert_equal({:controller => 'pages', :action => 'index'}, set.recognize_path('/pages'))
-    assert_equal({:controller => 'pages', :action => 'index'}, set.recognize_path('/pages/index'))
-    assert_equal({:controller => 'pages', :action => 'list'}, set.recognize_path('/pages/list'))
+    assert_equal({:controller => 'pages', :action => 'index'}, request_path_params('/pages'))
+    assert_equal({:controller => 'pages', :action => 'index'}, request_path_params('/pages/index'))
+    assert_equal({:controller => 'pages', :action => 'list'}, request_path_params('/pages/list'))
 
-    assert_equal({:controller => 'pages', :action => 'show', :id => '10'}, set.recognize_path('/pages/show/10'))
-    assert_equal({:controller => 'pages', :action => 'show', :id => '10'}, set.recognize_path('/page/10'))
+    assert_equal({:controller => 'pages', :action => 'show', :id => '10'}, request_path_params('/pages/show/10'))
+    assert_equal({:controller => 'pages', :action => 'show', :id => '10'}, request_path_params('/page/10'))
   end
 
   def test_route_constraints_on_request_object_with_anchors_are_valid
@@ -1075,9 +1121,7 @@ class RouteSetTest < ActiveSupport::TestCase
       get    "/people" => "missing#index"
     end
 
-    assert_raise(ActionController::RoutingError) {
-      set.recognize_path("/people", :method => :get)
-    }
+    assert_raises(ActionController::RoutingError) { request_path_params '/people' }
   end
 
   def test_recognize_with_encoded_id_and_regex
@@ -1085,8 +1129,8 @@ class RouteSetTest < ActiveSupport::TestCase
       get 'page/:id' => 'pages#show', :id => /[a-zA-Z0-9\+]+/
     end
 
-    assert_equal({:controller => 'pages', :action => 'show', :id => '10'}, set.recognize_path('/page/10'))
-    assert_equal({:controller => 'pages', :action => 'show', :id => 'hello+world'}, set.recognize_path('/page/hello+world'))
+    assert_equal({:controller => 'pages', :action => 'show', :id => '10'}, request_path_params('/page/10'))
+    assert_equal({:controller => 'pages', :action => 'show', :id => 'hello+world'}, request_path_params('/page/hello+world'))
   end
 
   def test_recognize_with_http_methods
@@ -1099,40 +1143,40 @@ class RouteSetTest < ActiveSupport::TestCase
       delete "/people/:id" => "people#destroy"
     end
 
-    params = set.recognize_path("/people", :method => :get)
+    params = request_path_params("/people", :method => :get)
     assert_equal("index", params[:action])
 
-    params = set.recognize_path("/people", :method => :post)
+    params = request_path_params("/people", :method => :post)
     assert_equal("create", params[:action])
 
-    params = set.recognize_path("/people/5", :method => :put)
+    params = request_path_params("/people/5", :method => :put)
     assert_equal("update", params[:action])
 
-    params = set.recognize_path("/people/5", :method => :patch)
+    params = request_path_params("/people/5", :method => :patch)
     assert_equal("update", params[:action])
 
     assert_raise(ActionController::UnknownHttpMethod) {
-      set.recognize_path("/people", :method => :bacon)
+      request_path_params("/people", :method => :bacon)
     }
 
-    params = set.recognize_path("/people/5", :method => :get)
+    params = request_path_params("/people/5", :method => :get)
     assert_equal("show", params[:action])
     assert_equal("5", params[:id])
 
-    params = set.recognize_path("/people/5", :method => :put)
+    params = request_path_params("/people/5", :method => :put)
     assert_equal("update", params[:action])
     assert_equal("5", params[:id])
 
-    params = set.recognize_path("/people/5", :method => :patch)
+    params = request_path_params("/people/5", :method => :patch)
     assert_equal("update", params[:action])
     assert_equal("5", params[:id])
 
-    params = set.recognize_path("/people/5", :method => :delete)
+    params = request_path_params("/people/5", :method => :delete)
     assert_equal("destroy", params[:action])
     assert_equal("5", params[:id])
 
     assert_raise(ActionController::RoutingError) {
-      set.recognize_path("/people/5", :method => :post)
+      request_path_params("/people/5", :method => :post)
     }
   end
 
@@ -1142,11 +1186,11 @@ class RouteSetTest < ActiveSupport::TestCase
       root :to => "people#index"
     end
 
-    params = set.recognize_path("/people", :method => :get)
+    params = request_path_params("/people", :method => :get)
     assert_equal("people", params[:controller])
     assert_equal("index", params[:action])
 
-    params = set.recognize_path("/", :method => :get)
+    params = request_path_params("/", :method => :get)
     assert_equal("people", params[:controller])
     assert_equal("index", params[:action])
   end
@@ -1157,7 +1201,7 @@ class RouteSetTest < ActiveSupport::TestCase
              :year => /\d{4}/, :day => /\d{1,2}/, :month => /\d{1,2}/
     end
 
-    params = set.recognize_path("/articles/2005/11/05/a-very-interesting-article", :method => :get)
+    params = request_path_params("/articles/2005/11/05/a-very-interesting-article", :method => :get)
     assert_equal("permalink", params[:action])
     assert_equal("2005", params[:year])
     assert_equal("11", params[:month])
@@ -1171,7 +1215,7 @@ class RouteSetTest < ActiveSupport::TestCase
       get '/profile' => 'profile#index'
     end
 
-    set.recognize_path("/profile") rescue nil
+    request_path_params("/profile") rescue nil
 
     assert !Object.const_defined?("Profiler__"), "Profiler should not be loaded"
   end
@@ -1184,17 +1228,17 @@ class RouteSetTest < ActiveSupport::TestCase
       get "people/:id(.:format)" => "people#show"
     end
 
-    params = set.recognize_path("/people/5", :method => :get)
+    params = request_path_params("/people/5", :method => :get)
     assert_equal("show", params[:action])
     assert_equal("5", params[:id])
 
-    params = set.recognize_path("/people/5", :method => :put)
+    params = request_path_params("/people/5", :method => :put)
     assert_equal("update", params[:action])
 
-    params = set.recognize_path("/people/5", :method => :patch)
+    params = request_path_params("/people/5", :method => :patch)
     assert_equal("update", params[:action])
 
-    params = set.recognize_path("/people/5.png", :method => :get)
+    params = request_path_params("/people/5.png", :method => :get)
     assert_equal("show", params[:action])
     assert_equal("5", params[:id])
     assert_equal("png", params[:format])
@@ -1213,7 +1257,7 @@ class RouteSetTest < ActiveSupport::TestCase
   def test_root_map
     set.draw { root :to => 'people#index' }
 
-    params = set.recognize_path("", :method => :get)
+    params = request_path_params("", :method => :get)
     assert_equal("people", params[:controller])
     assert_equal("index", params[:action])
   end
@@ -1227,7 +1271,7 @@ class RouteSetTest < ActiveSupport::TestCase
 
     end
 
-    params = set.recognize_path("/api/inventory", :method => :get)
+    params = request_path_params("/api/inventory", :method => :get)
     assert_equal("api/products", params[:controller])
     assert_equal("inventory", params[:action])
   end
@@ -1239,7 +1283,7 @@ class RouteSetTest < ActiveSupport::TestCase
       end
     end
 
-    params = set.recognize_path("/api", :method => :get)
+    params = request_path_params("/api", :method => :get)
     assert_equal("api/products", params[:controller])
     assert_equal("index", params[:action])
   end
@@ -1251,7 +1295,7 @@ class RouteSetTest < ActiveSupport::TestCase
       end
     end
 
-    params = set.recognize_path("/prefix/inventory", :method => :get)
+    params = request_path_params("/prefix/inventory", :method => :get)
     assert_equal("api/products", params[:controller])
     assert_equal("inventory", params[:action])
   end
@@ -1263,38 +1307,36 @@ class RouteSetTest < ActiveSupport::TestCase
       end
     end
 
-    params = set.recognize_path("/inventory", :method => :get)
+    params = request_path_params("/inventory", :method => :get)
     assert_equal("api/products", params[:controller])
     assert_equal("inventory", params[:action])
   end
 
-  def test_generate_changes_controller_module
-    set.draw { get ':controller/:action/:id' }
-    current = { :controller => "bling/bloop", :action => "bap", :id => 9 }
-
-    assert_equal "/foo/bar/baz/7",
-        url_for(set, { :controller => "foo/bar", :action => "baz", :id => 7 }, current)
-  end
-
   def test_id_is_sticky_when_it_ought_to_be
+    @set = make_set false
+
     set.draw do
       get ':controller/:id/:action'
     end
 
-    url = url_for(set, { :action => "destroy" }, { :controller => "people", :action => "show", :id => "7" })
-    assert_equal "/people/7/destroy", url
+    get URI('http://test.host/people/7/show')
+
+    assert_equal "/people/7/destroy", controller.url_for(:action => 'destroy', :only_path => true)
   end
 
   def test_use_static_path_when_possible
+    @set = make_set false
+
     set.draw do
       get 'about' => "welcome#about"
       get ':controller/:action/:id'
     end
 
-    url = url_for(set, { :controller => "welcome", :action => "about" },
-      { :controller => "welcome", :action => "get", :id => "7" })
+    get URI('http://test.host/welcom/get/7')
 
-    assert_equal "/about", url
+    assert_equal "/about", controller.url_for(:controller => 'welcome',
+                                              :action => 'about',
+                                              :only_path => true)
   end
 
   def test_generate
@@ -1329,38 +1371,51 @@ class RouteSetTest < ActiveSupport::TestCase
   end
 
   def test_named_routes_are_never_relative_to_modules
+    @set = make_set false
+
     set.draw do
       get "/connection/manage(/:action)" => 'connection/manage#index'
       get "/connection/connection" => "connection/connection#index"
       get '/connection' => 'connection#index', :as => 'family_connection'
     end
 
-    url = url_for(set, { :controller => "connection" }, { :controller => 'connection/manage' })
+    assert_equal({ :controller => 'connection/manage',
+                   :action => 'index', }, request_path_params('/connection/manage'))
+
+    url = controller.url_for({ :controller => "connection", :only_path => true })
     assert_equal "/connection/connection", url
 
-    url = url_for(set, { :use_route => :family_connection, :controller => "connection" }, { :controller => 'connection/manage' })
+    url = controller.url_for({ :use_route => "family_connection",
+                               :controller => "connection", :only_path => true })
     assert_equal "/connection", url
   end
 
   def test_action_left_off_when_id_is_recalled
+    @set = make_set false
+
     set.draw do
       get ':controller(/:action(/:id))'
     end
-    assert_equal '/books', url_for(set,
-      {:controller => 'books', :action => 'index'},
-      {:controller => 'books', :action => 'show', :id => '10'}
-    )
+
+    get URI('http://test.host/books/show/10')
+
+    assert_equal '/books', controller.url_for(:controller => 'books',
+                                              :only_path => true,
+                                              :action => 'index')
   end
 
   def test_query_params_will_be_shown_when_recalled
+    @set = make_set false
+
     set.draw do
       get 'show_weblog/:parameter' => 'weblog#show'
       get ':controller(/:action(/:id))'
     end
-    assert_equal '/weblog/edit?parameter=1', url_for(set,
-      {:action => 'edit', :parameter => 1},
-      {:controller => 'weblog', :action => 'show', :parameter => 1}
-    )
+
+    get URI('http://test.host/weblog/show/1')
+
+    assert_equal '/weblog/edit?parameter=1', controller.url_for(
+      {:action => 'edit', :parameter => 1, :only_path => true})
   end
 
   def test_format_is_not_inherit
@@ -1368,22 +1423,30 @@ class RouteSetTest < ActiveSupport::TestCase
       get '/posts(.:format)' => 'posts#index'
     end
 
-    assert_equal '/posts', url_for(set,
-      {:controller => 'posts'},
-      {:controller => 'posts', :action => 'index', :format => 'xml'}
-    )
+    get URI('http://test.host/posts.xml')
+    assert_equal({:controller => 'posts', :action => 'index', :format => 'xml'},
+                 controller.request.path_parameters)
 
-    assert_equal '/posts.xml', url_for(set,
-      {:controller => 'posts', :format => 'xml'},
-      {:controller => 'posts', :action => 'index', :format => 'xml'}
-    )
+    assert_equal '/posts', controller.url_for(
+      {:controller => 'posts', :only_path => true})
+
+    assert_equal '/posts.xml', controller.url_for(
+      {:controller => 'posts', :format => 'xml', :only_path => true})
   end
 
   def test_expiry_determination_should_consider_values_with_to_param
+    @set = make_set false
+
     set.draw { get 'projects/:project_id/:controller/:action' }
-    assert_equal '/projects/1/weblog/show', url_for(set,
-      { :action => 'show', :project_id => 1 },
-      { :controller => 'weblog', :action => 'show', :project_id => '1' })
+
+    get URI('http://test.host/projects/1/weblog/show')
+
+    assert_equal(
+      { :controller => 'weblog', :action => 'show', :project_id => '1' },
+      controller.request.path_parameters)
+
+    assert_equal '/projects/1/weblog/show',
+      controller.url_for({ :action => 'show', :project_id => 1, :only_path => true })
   end
 
   def test_named_route_in_nested_resource
@@ -1586,7 +1649,6 @@ class RouteSetTest < ActiveSupport::TestCase
   end
 
   def test_slashes_are_implied
-    @set = nil
     set.draw { get("/:controller(/:action(/:id))") }
 
     assert_equal '/content',        url_for(set, { :controller => 'content', :action => 'index' })
@@ -1684,7 +1746,43 @@ class RouteSetTest < ActiveSupport::TestCase
     assert_equal '/ibocorp', url_for(set, { :controller => 'ibocorp', :action => "show", :page => 1 })
   end
 
+  include ActionDispatch::RoutingVerbs
+
+  class TestSet < ActionDispatch::Routing::RouteSet
+    def initialize(block)
+      @block = block
+      super()
+    end
+
+    class Dispatcher < ActionDispatch::Routing::RouteSet::Dispatcher
+      def initialize(defaults, set, block)
+        super(defaults)
+        @block = block
+        @set = set
+      end
+
+      def controller_reference(controller_param)
+        block = @block
+        set = @set
+        Class.new(ActionController::Base) {
+          include set.url_helpers
+          define_method(:process) { |name| block.call(self) }
+          def to_a; [200, {}, []]; end
+        }
+      end
+    end
+
+    def dispatcher defaults
+      TestSet::Dispatcher.new defaults, self, @block
+    end
+  end
+
+  alias :routes :set
+
   def test_generate_with_optional_params_recalls_last_request
+    controller = nil
+    @set = TestSet.new ->(c) { controller = c }
+
     set.draw do
       get "blog/", :controller => "blog", :action => "index"
 
@@ -1699,23 +1797,29 @@ class RouteSetTest < ActiveSupport::TestCase
       get "*anything", :controller => "blog", :action => "unknown_request"
     end
 
-    assert_equal({:controller => "blog", :action => "index"}, set.recognize_path("/blog"))
-    assert_equal({:controller => "blog", :action => "show", :id => "123"}, set.recognize_path("/blog/show/123"))
-    assert_equal({:controller => "blog", :action => "show_date", :year => "2004", :day => nil, :month => nil }, set.recognize_path("/blog/2004"))
-    assert_equal({:controller => "blog", :action => "show_date", :year => "2004", :month => "12", :day => nil }, set.recognize_path("/blog/2004/12"))
-    assert_equal({:controller => "blog", :action => "show_date", :year => "2004", :month => "12", :day => "25"}, set.recognize_path("/blog/2004/12/25"))
-    assert_equal({:controller => "articles", :action => "edit", :id => "123"}, set.recognize_path("/blog/articles/edit/123"))
-    assert_equal({:controller => "articles", :action => "show_stats"}, set.recognize_path("/blog/articles/show_stats"))
-    assert_equal({:controller => "blog", :action => "unknown_request", :anything => "blog/wibble"}, set.recognize_path("/blog/wibble"))
-    assert_equal({:controller => "blog", :action => "unknown_request", :anything => "junk"}, set.recognize_path("/junk"))
+    recognize_path = ->(path) {
+      get(URI("http://example.org" + path))
+      controller.request.path_parameters
+    }
 
-    last_request = set.recognize_path("/blog/2006/07/28").freeze
-    assert_equal({:controller => "blog",  :action => "show_date", :year => "2006", :month => "07", :day => "28"}, last_request)
-    assert_equal("/blog/2006/07/25", url_for(set, { :day => 25 }, last_request))
-    assert_equal("/blog/2005",       url_for(set, { :year => 2005 }, last_request))
-    assert_equal("/blog/show/123",   url_for(set, { :action => "show" , :id => 123 }, last_request))
-    assert_equal("/blog/2006",       url_for(set, { :year => 2006 }, last_request))
-    assert_equal("/blog/2006",       url_for(set, { :year => 2006, :month => nil }, last_request))
+    assert_equal({:controller => "blog", :action => "index"}, recognize_path.("/blog"))
+    assert_equal({:controller => "blog", :action => "show", :id => "123"}, recognize_path.("/blog/show/123"))
+    assert_equal({:controller => "blog", :action => "show_date", :year => "2004", :day => nil, :month => nil }, recognize_path.("/blog/2004"))
+    assert_equal({:controller => "blog", :action => "show_date", :year => "2004", :month => "12", :day => nil }, recognize_path.("/blog/2004/12"))
+    assert_equal({:controller => "blog", :action => "show_date", :year => "2004", :month => "12", :day => "25"}, recognize_path.("/blog/2004/12/25"))
+    assert_equal({:controller => "articles", :action => "edit", :id => "123"}, recognize_path.("/blog/articles/edit/123"))
+    assert_equal({:controller => "articles", :action => "show_stats"}, recognize_path.("/blog/articles/show_stats"))
+    assert_equal({:controller => "blog", :action => "unknown_request", :anything => "blog/wibble"}, recognize_path.("/blog/wibble"))
+    assert_equal({:controller => "blog", :action => "unknown_request", :anything => "junk"}, recognize_path.("/junk"))
+
+    get URI('http://example.org/blog/2006/07/28')
+
+    assert_equal({:controller => "blog",  :action => "show_date", :year => "2006", :month => "07", :day => "28"}, controller.request.path_parameters)
+    assert_equal("/blog/2006/07/25", controller.url_for({ :day => 25, :only_path => true }))
+    assert_equal("/blog/2005",       controller.url_for({ :year => 2005, :only_path => true }))
+    assert_equal("/blog/show/123",   controller.url_for({ :action => "show" , :id => 123, :only_path => true }))
+    assert_equal("/blog/2006",       controller.url_for({ :year => 2006, :only_path => true }))
+    assert_equal("/blog/2006",       controller.url_for({ :year => 2006, :month => nil, :only_path => true }))
   end
 
   private
@@ -1788,6 +1892,9 @@ class RackMountIntegrationTests < ActiveSupport::TestCase
     root :to => "news#index"
   }
 
+  attr_reader :routes
+  attr_reader :controller
+
   def setup
     @routes = ActionDispatch::Routing::RouteSet.new
     @routes.draw(&Mapping)
@@ -1832,11 +1939,11 @@ class RackMountIntegrationTests < ActiveSupport::TestCase
     assert_equal({:controller => 'foo', :action => 'id_default', :id => 1 }, @routes.recognize_path('/id_default'))
     assert_equal({:controller => 'foo', :action => 'get_or_post'}, @routes.recognize_path('/get_or_post', :method => :get))
     assert_equal({:controller => 'foo', :action => 'get_or_post'}, @routes.recognize_path('/get_or_post', :method => :post))
-    assert_raise(ActionController::ActionControllerError) { @routes.recognize_path('/get_or_post', :method => :put) }
-    assert_raise(ActionController::ActionControllerError) { @routes.recognize_path('/get_or_post', :method => :delete) }
+    assert_raise(ActionController::RoutingError) { @routes.recognize_path('/get_or_post', :method => :put) }
+    assert_raise(ActionController::RoutingError) { @routes.recognize_path('/get_or_post', :method => :delete) }
 
     assert_equal({:controller => 'posts', :action => 'index', :optional => 'bar'}, @routes.recognize_path('/optional/bar'))
-    assert_raise(ActionController::ActionControllerError) { @routes.recognize_path('/optional') }
+    assert_raise(ActionController::RoutingError) { @routes.recognize_path('/optional') }
 
     assert_equal({:controller => 'posts', :action => 'show', :id => '1', :ws => true}, @routes.recognize_path('/ws/posts/show/1', :method => :get))
     assert_equal({:controller => 'posts', :action => 'list', :ws => true}, @routes.recognize_path('/ws/posts/list', :method => :get))
@@ -1904,18 +2011,15 @@ class RackMountIntegrationTests < ActiveSupport::TestCase
     assert_equal({:controller => 'news', :action => 'index'}, @routes.recognize_path(URI.parser.escape('こんにちは/世界'), :method => :get))
   end
 
+  def test_downcased_unicode_path
+    assert_equal({:controller => 'news', :action => 'index'}, @routes.recognize_path(URI.parser.escape('こんにちは/世界').downcase, :method => :get))
+  end
+
   private
     def sort_extras!(extras)
       if extras.length == 2
         extras[1].sort! { |a, b| a.to_s <=> b.to_s }
       end
       extras
-    end
-
-    def assert_raise(e)
-      result = yield
-      flunk "Did not raise #{e}, but returned #{result.inspect}"
-    rescue e
-      assert true
     end
 end

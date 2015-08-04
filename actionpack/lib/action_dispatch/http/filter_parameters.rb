@@ -6,8 +6,8 @@ module ActionDispatch
   module Http
     # Allows you to specify sensitive parameters which will be replaced from
     # the request log by looking in the query string of the request and all
-    # subhashes of the params hash to filter. If a block is given, each key and
-    # value of the params hash and all subhashes is passed to it, the value
+    # sub-hashes of the params hash to filter. If a block is given, each key and
+    # value of the params hash and all sub-hashes is passed to it, the value
     # or key can be replaced using String#replace or similar method.
     #
     #   env["action_dispatch.parameter_filter"] = [:password]
@@ -16,7 +16,7 @@ module ActionDispatch
     #   env["action_dispatch.parameter_filter"] = [:foo, "bar"]
     #   => replaces the value to all keys matching /foo|bar/i with "[FILTERED]"
     #
-    #   env["action_dispatch.parameter_filter"] = lambda do |k,v|
+    #   env["action_dispatch.parameter_filter"] = -> (k, v) do
     #     v.reverse! if k =~ /secret/i
     #   end
     #   => reverses the value to all keys matching /secret/i

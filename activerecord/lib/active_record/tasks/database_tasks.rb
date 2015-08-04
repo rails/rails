@@ -1,3 +1,5 @@
+require 'active_support/core_ext/string/filters'
+
 module ActiveRecord
   module Tasks # :nodoc:
     class DatabaseAlreadyExists < StandardError; end # :nodoc:
@@ -6,14 +8,13 @@ module ActiveRecord
     # <tt>ActiveRecord::Tasks::DatabaseTasks</tt> is a utility class, which encapsulates
     # logic behind common tasks used to manage database and migrations.
     #
-    # The tasks defined here are used in rake tasks provided by Active Record.
+    # The tasks defined here are used with Rake tasks provided by Active Record.
     #
     # In order to use DatabaseTasks, a few config values need to be set. All the needed
     # config values are set by Rails already, so it's necessary to do it only if you
     # want to change the defaults or when you want to use Active Record outside of Rails
     # (in such case after configuring the database tasks, you can also use the rake tasks
     # defined in Active Record).
-    #
     #
     # The possible config values are:
     #
@@ -23,11 +24,12 @@ module ActiveRecord
     #   * +fixtures_path+: a path to fixtures directory.
     #   * +migrations_paths+: a list of paths to directories with migrations.
     #   * +seed_loader+: an object which will load seeds, it needs to respond to the +load_seed+ method.
+    #   * +root+: a path to the root of the application.
     #
     # Example usage of +DatabaseTasks+ outside Rails could look as such:
     #
     #   include ActiveRecord::Tasks
-    #   DatabaseTasks.database_configuration = YAML.load(File.read('my_database_config.yml'))
+    #   DatabaseTasks.database_configuration = YAML.load_file('my_database_config.yml')
     #   DatabaseTasks.db_dir = 'db'
     #   # other settings...
     #
@@ -35,9 +37,8 @@ module ActiveRecord
     module DatabaseTasks
       extend self
 
-      attr_writer :current_config
-      attr_accessor :database_configuration, :migrations_paths, :seed_loader, :db_dir,
-                    :fixtures_path, :env
+      attr_writer :current_config, :db_dir, :migrations_paths, :fixtures_path, :root, :env, :seed_loader
+      attr_accessor :database_configuration
 
       LOCAL_HOSTS    = ['127.0.0.1', 'localhost']
 
@@ -50,16 +51,40 @@ module ActiveRecord
       register_task(/postgresql/,   ActiveRecord::Tasks::PostgreSQLDatabaseTasks)
       register_task(/sqlite/,       ActiveRecord::Tasks::SQLiteDatabaseTasks)
 
+      def db_dir
+        @db_dir ||= Rails.application.config.paths["db"].first
+      end
+
+      def migrations_paths
+        @migrations_paths ||= Rails.application.paths['db/migrate'].to_a
+      end
+
+      def fixtures_path
+        @fixtures_path ||= if ENV['FIXTURES_PATH']
+                             File.join(root, ENV['FIXTURES_PATH'])
+                           else
+                             File.join(root, 'test', 'fixtures')
+                           end
+      end
+
+      def root
+        @root ||= Rails.root
+      end
+
+      def env
+        @env ||= Rails.env
+      end
+
+      def seed_loader
+        @seed_loader ||= Rails.application
+      end
+
       def current_config(options = {})
         options.reverse_merge! :env => env
         if options.has_key?(:config)
           @current_config = options[:config]
         else
-          @current_config ||= if ENV['DATABASE_URL']
-                                database_url_config
-                              else
-                                ActiveRecord::Base.configurations[options[:env]]
-                              end
+          @current_config ||= ActiveRecord::Base.configurations[options[:env]]
         end
       end
 
@@ -81,16 +106,14 @@ module ActiveRecord
         each_current_configuration(environment) { |configuration|
           create configuration
         }
-        ActiveRecord::Base.establish_connection environment
-      end
-
-      def create_database_url
-        create database_url_config
+        ActiveRecord::Base.establish_connection(environment.to_sym)
       end
 
       def drop(*arguments)
         configuration = arguments.first
         class_for_adapter(configuration['adapter']).new(*arguments).drop
+      rescue ActiveRecord::NoDatabaseError
+        $stderr.puts "Database '#{configuration['database']}' does not exist"
       rescue Exception => error
         $stderr.puts error, *(error.backtrace)
         $stderr.puts "Couldn't drop #{configuration['database']}"
@@ -106,8 +129,16 @@ module ActiveRecord
         }
       end
 
-      def drop_database_url
-        drop database_url_config
+      def migrate
+        verbose = ENV["VERBOSE"] ? ENV["VERBOSE"] == "true" : true
+        version = ENV["VERSION"] ? ENV["VERSION"].to_i : nil
+        scope   = ENV['SCOPE']
+        verbose_was, Migration.verbose = Migration.verbose, verbose
+        Migrator.migrate(Migrator.migrations_paths, version) do |migration|
+          scope.blank? || scope == migration.scope
+        end
+      ensure
+        Migration.verbose = verbose_was
       end
 
       def charset_current(environment = env)
@@ -132,6 +163,19 @@ module ActiveRecord
         class_for_adapter(configuration['adapter']).new(configuration).purge
       end
 
+      def purge_all
+        each_local_configuration { |configuration|
+          purge configuration
+        }
+      end
+
+      def purge_current(environment = env)
+        each_current_configuration(environment) { |configuration|
+          purge configuration
+        }
+        ActiveRecord::Base.establish_connection(environment.to_sym)
+      end
+
       def structure_dump(*arguments)
         configuration = arguments.first
         filename = arguments.delete_at 1
@@ -144,8 +188,54 @@ module ActiveRecord
         class_for_adapter(configuration['adapter']).new(*arguments).structure_load(filename)
       end
 
+      def load_schema(configuration, format = ActiveRecord::Base.schema_format, file = nil) # :nodoc:
+        file ||= schema_file(format)
+
+        case format
+        when :ruby
+          check_schema_file(file)
+          ActiveRecord::Base.establish_connection(configuration)
+          load(file)
+        when :sql
+          check_schema_file(file)
+          structure_load(configuration, file)
+        else
+          raise ArgumentError, "unknown format #{format.inspect}"
+        end
+      end
+
+      def load_schema_for(*args)
+        ActiveSupport::Deprecation.warn(<<-MSG.squish)
+          This method was renamed to `#load_schema` and will be removed in the future.
+          Use `#load_schema` instead.
+        MSG
+        load_schema(*args)
+      end
+
+      def schema_file(format = ActiveRecord::Base.schema_format)
+        case format
+        when :ruby
+          File.join(db_dir, "schema.rb")
+        when :sql
+          File.join(db_dir, "structure.sql")
+        end
+      end
+
+      def load_schema_current_if_exists(format = ActiveRecord::Base.schema_format, file = nil, environment = env)
+        if File.exist?(file || schema_file(format))
+          load_schema_current(format, file, environment)
+        end
+      end
+
+      def load_schema_current(format = ActiveRecord::Base.schema_format, file = nil, environment = env)
+        each_current_configuration(environment) { |configuration|
+          load_schema configuration, format, file
+        }
+        ActiveRecord::Base.establish_connection(environment.to_sym)
+      end
+
       def check_schema_file(filename)
-        unless File.exists?(filename)
+        unless File.exist?(filename)
           message = %{#{filename} doesn't exist yet. Run `rake db:migrate` to create it, then try again.}
           message << %{ If you do not intend to use a database, you should instead alter #{Rails.root}/config/application.rb to limit the frameworks that will be loaded.} if defined?(::Rails)
           Kernel.abort message
@@ -164,11 +254,6 @@ module ActiveRecord
 
       private
 
-      def database_url_config
-        @database_url_config ||=
-               ConnectionAdapters::ConnectionSpecification::Resolver.new(ENV["DATABASE_URL"], {}).spec.config.stringify_keys
-      end
-
       def class_for_adapter(adapter)
         key = @tasks.keys.detect { |pattern| adapter[pattern] }
         unless key
@@ -179,7 +264,8 @@ module ActiveRecord
 
       def each_current_configuration(environment)
         environments = [environment]
-        environments << 'test' if environment == 'development'
+        # add test environment only if no RAILS_ENV was specified.
+        environments << 'test' if environment == 'development' && ENV['RAILS_ENV'].nil?
 
         configurations = ActiveRecord::Base.configurations.values_at(*environments)
         configurations.compact.each do |configuration|

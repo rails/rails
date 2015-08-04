@@ -123,6 +123,26 @@ module ApplicationTests
       assert_equal '/archives', last_response.body
     end
 
+    test "mount named rack app" do
+      controller :foo, <<-RUBY
+        class FooController < ApplicationController
+          def index
+            render text: my_blog_path
+          end
+        end
+      RUBY
+
+      app_file 'config/routes.rb', <<-RUBY
+        Rails.application.routes.draw do
+          mount lambda { |env| [200, {}, [env["PATH_INFO"]]] }, at: "/blog", as: "my_blog"
+          get '/foo' => 'foo#index'
+        end
+      RUBY
+
+      get '/foo'
+      assert_equal '/blog', last_response.body
+    end
+
     test "multiple controllers" do
       controller :foo, <<-RUBY
         class FooController < ApplicationController

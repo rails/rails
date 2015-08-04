@@ -7,7 +7,7 @@ class Object
   # provided. Each method called on the block variable must take an options
   # hash as its final argument.
   #
-  # Without <tt>with_options></tt>, this code contains duplication:
+  # Without <tt>with_options</tt>, this code contains duplication:
   #
   #   class Account < ActiveRecord::Base
   #     has_many :customers, dependent: :destroy
@@ -34,9 +34,36 @@ class Object
   #     body    i18n.t :body, user_name: user.name
   #   end
   #
+  # When you don't pass an explicit receiver, it executes the whole block
+  # in merging options context:
+  #
+  #   class Account < ActiveRecord::Base
+  #     with_options dependent: :destroy do
+  #       has_many :customers
+  #       has_many :products
+  #       has_many :invoices
+  #       has_many :expenses
+  #     end
+  #   end
+  #
   # <tt>with_options</tt> can also be nested since the call is forwarded to its receiver.
-  # Each nesting level will merge inherited defaults in addition to their own.
-  def with_options(options)
-    yield ActiveSupport::OptionMerger.new(self, options)
+  #
+  # NOTE: Each nesting level will merge inherited defaults in addition to their own.
+  #
+  #   class Post < ActiveRecord::Base
+  #     with_options if: :persisted?, length: { minimum: 50 } do
+  #       validates :content, if: -> { content.present? }
+  #     end
+  #   end
+  #
+  # The code is equivalent to:
+  #
+  #   validates :content, length: { minimum: 50 }, if: -> { content.present? }
+  #
+  # Hence the inherited default for `if` key is ignored.
+  #
+  def with_options(options, &block)
+    option_merger = ActiveSupport::OptionMerger.new(self, options)
+    block.arity.zero? ? option_merger.instance_eval(&block) : block.call(option_merger)
   end
 end

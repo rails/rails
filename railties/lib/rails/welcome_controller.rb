@@ -1,6 +1,7 @@
-class Rails::WelcomeController < ActionController::Base # :nodoc:
-  self.view_paths = File.expand_path('../templates', __FILE__)
-  layout nil
+require 'rails/application_controller'
+
+class Rails::WelcomeController < Rails::ApplicationController # :nodoc:
+  layout false
 
   def index
   end

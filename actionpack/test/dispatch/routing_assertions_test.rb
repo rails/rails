@@ -74,8 +74,24 @@ class RoutingAssertionsTest < ActionController::TestCase
     assert_recognizes({ :controller => 'query_articles', :action => 'index', :use_query => 'true' }, '/query/articles', { :use_query => 'true' })
   end
 
+  def test_assert_recognizes_raises_message
+    err = assert_raise(Assertion) do
+      assert_recognizes({ :controller => 'secure_articles', :action => 'index' }, 'http://test.host/secure/articles', {}, "This is a really bad msg")
+    end
+
+    assert_match err.message, "This is a really bad msg"
+  end
+
   def test_assert_routing
     assert_routing('/articles', :controller => 'articles', :action => 'index')
+  end
+
+  def test_assert_routing_raises_message
+    err = assert_raise(Assertion) do
+      assert_routing('/thisIsNotARoute', { :controller => 'articles', :action => 'edit', :id => '1' }, { :id => '1' }, {}, "This is a really bad msg")
+    end
+
+    assert_match err.message, "This is a really bad msg"
   end
 
   def test_assert_routing_with_defaults

@@ -3,6 +3,7 @@ require 'models/author'
 require 'models/post'
 require 'models/comment'
 require 'models/developer'
+require 'models/computer'
 require 'models/project'
 require 'models/reader'
 require 'models/person'
@@ -22,9 +23,15 @@ class ReadOnlyTest < ActiveRecord::TestCase
       assert !dev.save
       dev.name = 'Forbidden.'
     end
-    assert_raise(ActiveRecord::ReadOnlyRecord) { dev.save  }
-    assert_raise(ActiveRecord::ReadOnlyRecord) { dev.save! }
-    assert_raise(ActiveRecord::ReadOnlyRecord) { dev.destroy }
+
+    e = assert_raise(ActiveRecord::ReadOnlyRecord) { dev.save  }
+    assert_equal "Developer is marked as readonly", e.message
+
+    e = assert_raise(ActiveRecord::ReadOnlyRecord) { dev.save! }
+    assert_equal "Developer is marked as readonly", e.message
+
+    e = assert_raise(ActiveRecord::ReadOnlyRecord) { dev.destroy }
+    assert_equal "Developer is marked as readonly", e.message
   end
 
 

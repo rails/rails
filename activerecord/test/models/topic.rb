@@ -32,7 +32,7 @@ class Topic < ActiveRecord::Base
     end
   end
 
-  has_many :replies, :dependent => :destroy, :foreign_key => "parent_id"
+  has_many :replies, dependent: :destroy, foreign_key: "parent_id", autosave: true
   has_many :approved_replies, -> { approved }, class_name: 'Reply', foreign_key: "parent_id", counter_cache: 'replies_count'
 
   has_many :unique_replies, :dependent => :destroy, :foreign_key => "parent_id"
@@ -104,6 +104,10 @@ end
 
 class ImportantTopic < Topic
   serialize :important, Hash
+end
+
+class DefaultRejectedTopic < Topic
+  default_scope -> { where(approved: false) }
 end
 
 class BlankTopic < Topic

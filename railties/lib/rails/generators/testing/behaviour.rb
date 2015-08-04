@@ -2,6 +2,7 @@ require 'active_support/core_ext/class/attribute'
 require 'active_support/core_ext/module/delegation'
 require 'active_support/core_ext/hash/reverse_merge'
 require 'active_support/core_ext/kernel/reporting'
+require 'active_support/testing/stream'
 require 'active_support/concern'
 require 'rails/generators'
 
@@ -10,6 +11,7 @@ module Rails
     module Testing
       module Behaviour
         extend ActiveSupport::Concern
+        include ActiveSupport::Testing::Stream
 
         included do
           class_attribute :destination_root, :current_path, :generator_class, :default_arguments
@@ -50,7 +52,7 @@ module Rails
         #   class AppGeneratorTest < Rails::Generators::TestCase
         #     tests AppGenerator
         #     destination File.expand_path("../tmp", File.dirname(__FILE__))
-        #     teardown :cleanup_destination_root
+        #     setup :prepare_destination
         #
         #     test "database.yml is not created when skipping Active Record" do
         #       run_generator %w(myapp --skip-active-record)
@@ -100,6 +102,7 @@ module Rails
             dirname, file_name = File.dirname(absolute), File.basename(absolute).sub(/\.rb$/, '')
             Dir.glob("#{dirname}/[0-9]*_*.rb").grep(/\d+_#{file_name}.rb$/).first
           end
+
       end
     end
   end

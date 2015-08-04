@@ -29,7 +29,7 @@ module ImpressiveLibrary
   def useful_function() end
 end
 
-ActionController::Base.send :include, ImpressiveLibrary
+ActionController::Base.include(ImpressiveLibrary)
 
 class JustMeController < ActionController::Base
   clear_helpers
@@ -60,6 +60,12 @@ class HelpersPathsController < ActionController::Base
   end
 end
 
+class HelpersTypoController < ActionController::Base
+  path = File.expand_path('../../fixtures/helpers_typo', __FILE__)
+  $:.unshift(path)
+  self.helpers_path = path
+end
+
 module LocalAbcHelper
   def a() end
   def b() end
@@ -67,18 +73,28 @@ module LocalAbcHelper
 end
 
 class HelperPathsTest < ActiveSupport::TestCase
-  def setup
-    @request    = ActionController::TestRequest.new
-    @response   = ActionController::TestResponse.new
-  end
-
   def test_helpers_paths_priority
-    request  = ActionController::TestRequest.new
-    responses = HelpersPathsController.action(:index).call(request.env)
+    responses = HelpersPathsController.action(:index).call(ActionController::TestRequest::DEFAULT_ENV.dup)
 
     # helpers1_pack was given as a second path, so pack1_helper should be
     # included as the second one
     assert_equal "pack1", responses.last.body
+  end
+end
+
+class HelpersTypoControllerTest < ActiveSupport::TestCase
+  def setup
+    @autoload_paths = ActiveSupport::Dependencies.autoload_paths
+    ActiveSupport::Dependencies.autoload_paths = Array(HelpersTypoController.helpers_path)
+  end
+
+  def test_helper_typo_error_message
+    e = assert_raise(NameError) { HelpersTypoController.helper 'admin/users' }
+    assert_equal "Couldn't find Admin::UsersHelper, expected it to be defined in helpers/admin/users_helper.rb", e.message
+  end
+
+  def teardown
+    ActiveSupport::Dependencies.autoload_paths = @autoload_paths
   end
 end
 
@@ -119,8 +135,7 @@ class HelperTest < ActiveSupport::TestCase
   end
 
   def call_controller(klass, action)
-    request  = ActionController::TestRequest.new
-    klass.action(action).call(request.env)
+    klass.action(action).call(ActionController::TestRequest::DEFAULT_ENV.dup)
   end
 
   def test_helper_for_nested_controller
@@ -136,7 +151,7 @@ class HelperTest < ActiveSupport::TestCase
     assert_equal "test: baz", call_controller(Fun::PdfController, "test").last.body
     #
     # request  = ActionController::TestRequest.new
-    # response = ActionController::TestResponse.new
+    # response = ActionDispatch::TestResponse.new
     # request.action = 'test'
     #
     # assert_equal 'test: baz', Fun::PdfController.process(request, response).body
@@ -202,6 +217,12 @@ class HelperTest < ActiveSupport::TestCase
     assert methods.include?(:foobar)
   end
 
+  def test_helper_proxy_config
+    AllHelpersController.config.my_var = 'smth'
+
+    assert_equal 'smth', AllHelpersController.helpers.config.my_var
+  end
+
   private
     def expected_helper_methods
       TestHelper.instance_methods
@@ -221,7 +242,7 @@ class HelperTest < ActiveSupport::TestCase
 end
 
 
-class IsolatedHelpersTest < ActiveSupport::TestCase
+class IsolatedHelpersTest < ActionController::TestCase
   class A < ActionController::Base
     def index
       render :inline => '<%= shout %>'
@@ -245,13 +266,11 @@ class IsolatedHelpersTest < ActiveSupport::TestCase
   end
 
   def call_controller(klass, action)
-    request  = ActionController::TestRequest.new
-    klass.action(action).call(request.env)
+    klass.action(action).call(@request.env)
   end
 
   def setup
-    @request    = ActionController::TestRequest.new
-    @response   = ActionController::TestResponse.new
+    super
     @request.action = 'index'
   end
 

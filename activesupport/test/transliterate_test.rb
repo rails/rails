@@ -1,4 +1,3 @@
-# encoding: utf-8
 require 'abstract_unit'
 require 'active_support/inflector/transliterate'
 
@@ -11,7 +10,7 @@ class TransliterateTest < ActiveSupport::TestCase
   end
 
   def test_transliterate_should_approximate_ascii
-    # create string with range of Unicode"s western characters with
+    # create string with range of Unicode's western characters with
     # diacritics, excluding the division and multiplication signs which for
     # some reason or other are floating in the middle of all the letters.
     string = (0xC0..0x17E).to_a.reject {|c| [0xD7, 0xF7].include?(c)}.pack("U*")

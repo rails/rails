@@ -44,8 +44,52 @@ module ActiveRecord
       end
 
       def test_connection_pools
-        assert_deprecated do
-          assert_equal({ Base.connection_pool.spec => @pool }, @handler.connection_pools)
+        assert_equal([@pool], @handler.connection_pools)
+      end
+
+      if Process.respond_to?(:fork)
+        def test_connection_pool_per_pid
+          object_id = ActiveRecord::Base.connection.object_id
+
+          rd, wr = IO.pipe
+          rd.binmode
+          wr.binmode
+
+          pid = fork {
+            rd.close
+            wr.write Marshal.dump ActiveRecord::Base.connection.object_id
+            wr.close
+            exit!
+          }
+
+          wr.close
+
+          Process.waitpid pid
+          assert_not_equal object_id, Marshal.load(rd.read)
+          rd.close
+        end
+
+        def test_retrieve_connection_pool_copies_schema_cache_from_ancestor_pool
+          @pool.schema_cache = @pool.connection.schema_cache
+          @pool.schema_cache.add('posts')
+
+          rd, wr = IO.pipe
+          rd.binmode
+          wr.binmode
+
+          pid = fork {
+            rd.close
+            pool = @handler.retrieve_connection_pool(@klass)
+            wr.write Marshal.dump pool.schema_cache.size
+            wr.close
+            exit!
+          }
+
+          wr.close
+
+          Process.waitpid pid
+          assert_equal @pool.schema_cache.size, Marshal.load(rd.read)
+          rd.close
         end
       end
     end

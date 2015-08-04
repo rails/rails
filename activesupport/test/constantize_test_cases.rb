@@ -1,3 +1,5 @@
+require 'dependencies_test_helpers'
+
 module Ace
   module Base
     class Case
@@ -23,17 +25,30 @@ class Object
 end
 
 module ConstantizeTestCases
+  include DependenciesTestHelpers
+
   def run_constantize_tests_on
     assert_equal Ace::Base::Case, yield("Ace::Base::Case")
     assert_equal Ace::Base::Case, yield("::Ace::Base::Case")
     assert_equal Ace::Base::Case::Dice, yield("Ace::Base::Case::Dice")
+    assert_equal Ace::Base::Case::Dice, yield("Ace::Base::Fase::Dice")
     assert_equal Ace::Base::Fase::Dice, yield("Ace::Base::Fase::Dice")
+
     assert_equal Ace::Gas::Case, yield("Ace::Gas::Case")
     assert_equal Ace::Gas::Case::Dice, yield("Ace::Gas::Case::Dice")
+    assert_equal Ace::Base::Case::Dice, yield("Ace::Gas::Case::Dice")
+
     assert_equal Case::Dice, yield("Case::Dice")
+    assert_equal AddtlGlobalConstants::Case::Dice, yield("Case::Dice")
+    assert_equal Object::AddtlGlobalConstants::Case::Dice, yield("Case::Dice")
+
     assert_equal Case::Dice, yield("Object::Case::Dice")
+    assert_equal AddtlGlobalConstants::Case::Dice, yield("Object::Case::Dice")
+    assert_equal Object::AddtlGlobalConstants::Case::Dice, yield("Case::Dice")
+
     assert_equal ConstantizeTestCases, yield("ConstantizeTestCases")
     assert_equal ConstantizeTestCases, yield("::ConstantizeTestCases")
+
     assert_raises(NameError) { yield("UnknownClass") }
     assert_raises(NameError) { yield("UnknownClass::Ace") }
     assert_raises(NameError) { yield("UnknownClass::Ace::Base") }
@@ -45,6 +60,19 @@ module ConstantizeTestCases
     assert_raises(NameError) { yield("Ace::Gas::ConstantizeTestCases") }
     assert_raises(NameError) { yield("") }
     assert_raises(NameError) { yield("::") }
+    assert_raises(NameError) { yield("Ace::gas") }
+
+    assert_raises(NameError) do
+      with_autoloading_fixtures do
+        yield("RaisesNameError")
+      end
+    end
+
+    assert_raises(NoMethodError) do
+      with_autoloading_fixtures do
+        yield("RaisesNoMethodError")
+      end
+    end
   end
 
   def run_safe_constantize_tests_on
@@ -71,5 +99,18 @@ module ConstantizeTestCases
     assert_nil yield("Ace::Gas::Base")
     assert_nil yield("Ace::Gas::ConstantizeTestCases")
     assert_nil yield("#<Class:0x7b8b718b>::Nested_1")
+    assert_nil yield("Ace::gas")
+
+    assert_raises(NameError) do
+      with_autoloading_fixtures do
+        yield("RaisesNameError")
+      end
+    end
+
+    assert_raises(NoMethodError) do
+      with_autoloading_fixtures do
+        yield("RaisesNoMethodError")
+      end
+    end
   end
 end

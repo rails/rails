@@ -2,6 +2,8 @@ require "abstract_unit"
 
 module BareMetalTest
   class BareController < ActionController::Metal
+    include ActionController::RackDelegation
+
     def index
       self.response_body = "Hello world"
     end
@@ -28,6 +30,15 @@ module BareMetalTest
       controller = BareController.new
       controller.index
       assert_equal ["Hello world"], controller.response_body
+    end
+
+    test "connect a request to controller instance without dispatch" do
+      env = {}
+      controller = BareController.new
+      controller.set_request! ActionDispatch::Request.new(env)
+      assert controller.request
+      assert controller.response
+      assert env['action_controller.instance']
     end
   end
 
@@ -81,8 +92,8 @@ module BareMetalTest
       assert_nil headers['Content-Length']
     end
 
-    test "head :continue (101) does not return a content-type header" do
-      headers = HeadController.action(:continue).call(Rack::MockRequest.env_for("/")).second
+    test "head :switching_protocols (101) does not return a content-type header" do
+      headers = HeadController.action(:switching_protocols).call(Rack::MockRequest.env_for("/")).second
       assert_nil headers['Content-Type']
       assert_nil headers['Content-Length']
     end

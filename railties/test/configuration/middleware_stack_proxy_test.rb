@@ -1,3 +1,4 @@
+require 'active_support'
 require 'active_support/testing/autorun'
 require 'rails/configuration'
 require 'active_support/test_case'
@@ -39,7 +40,7 @@ module Rails
         @stack.swap :foo
         @stack.delete :foo
 
-        mock = MiniTest::Mock.new
+        mock = Minitest::Mock.new
         mock.expect :send, nil, [:swap, :foo]
         mock.expect :send, nil, [:delete, :foo]
 
@@ -50,7 +51,7 @@ module Rails
       private
 
       def assert_playback(msg_name, args)
-        mock = MiniTest::Mock.new
+        mock = Minitest::Mock.new
         mock.expect :send, nil, [msg_name, args]
         @stack.merge_into(mock)
         mock.verify

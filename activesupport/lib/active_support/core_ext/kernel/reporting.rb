@@ -1,4 +1,3 @@
-require 'rbconfig'
 require 'tempfile'
 
 module Kernel
@@ -29,27 +28,6 @@ module Kernel
     $VERBOSE = old_verbose
   end
 
-  # For compatibility
-  def silence_stderr #:nodoc:
-    silence_stream(STDERR) { yield }
-  end
-
-  # Silences any stream for the duration of the block.
-  #
-  #   silence_stream(STDOUT) do
-  #     puts 'This will never be seen'
-  #   end
-  #
-  #   puts 'But this will'
-  def silence_stream(stream)
-    old_stream = stream.dup
-    stream.reopen(RbConfig::CONFIG['host_os'] =~ /mswin|mingw/ ? 'NUL:' : '/dev/null')
-    stream.sync = true
-    yield
-  ensure
-    stream.reopen(old_stream)
-  end
-
   # Blocks and ignores any exception passed as argument if raised within the block.
   #
   #   suppress(ZeroDivisionError) do
@@ -60,51 +38,6 @@ module Kernel
   #   puts 'This code gets executed and nothing related to ZeroDivisionError was seen'
   def suppress(*exception_classes)
     yield
-  rescue Exception => e
-    raise unless exception_classes.any? { |cls| e.kind_of?(cls) }
-  end
-
-  # Captures the given stream and returns it:
-  #
-  #   stream = capture(:stdout) { puts 'notice' }
-  #   stream # => "notice\n"
-  #
-  #   stream = capture(:stderr) { warn 'error' }
-  #   stream # => "error\n"
-  #
-  # even for subprocesses:
-  #
-  #   stream = capture(:stdout) { system('echo notice') }
-  #   stream # => "notice\n"
-  #
-  #   stream = capture(:stderr) { system('echo error 1>&2') }
-  #   stream # => "error\n"
-  def capture(stream)
-    stream = stream.to_s
-    captured_stream = Tempfile.new(stream)
-    stream_io = eval("$#{stream}")
-    origin_stream = stream_io.dup
-    stream_io.reopen(captured_stream)
-
-    yield
-
-    stream_io.rewind
-    return captured_stream.read
-  ensure
-    captured_stream.close
-    captured_stream.unlink
-    stream_io.reopen(origin_stream)
-  end
-  alias :silence :capture
-
-  # Silences both STDOUT and STDERR, even for subprocesses.
-  #
-  #   quietly { system 'bundle install' }
-  def quietly
-    silence_stream(STDOUT) do
-      silence_stream(STDERR) do
-        yield
-      end
-    end
+  rescue *exception_classes
   end
 end

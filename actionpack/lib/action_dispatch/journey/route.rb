@@ -11,26 +11,20 @@ module ActionDispatch
       ##
       # +path+ is a path constraint.
       # +constraints+ is a hash of constraints to be applied to this route.
-      def initialize(name, app, path, constraints, defaults = {})
+      def initialize(name, app, path, constraints, required_defaults, defaults)
         @name        = name
         @app         = app
         @path        = path
 
-        # Unwrap any constraints so we can see what's inside for route generation.
-        # This allows the formatter to skip over any mounted applications or redirects
-        # that shouldn't be matched when using a url_for without a route name.
-        while app.is_a?(Routing::Mapper::Constraints) do
-          app = app.app
-        end
-        @dispatcher  = app.is_a?(Routing::RouteSet::Dispatcher)
-
         @constraints = constraints
         @defaults    = defaults
         @required_defaults = nil
+        @_required_defaults = required_defaults || []
         @required_parts    = nil
         @parts             = nil
         @decorated_ast     = nil
         @precedence        = 0
+        @path_formatter    = @path.build_formatter
       end
 
       def ast
@@ -43,7 +37,7 @@ module ActionDispatch
 
       def requirements # :nodoc:
         # needed for rails `rake routes`
-        path.requirements.merge(@defaults).delete_if { |_,v|
+        @defaults.merge(path.requirements).delete_if { |_,v|
           /.+?/ == v
         }
       end
@@ -67,32 +61,20 @@ module ActionDispatch
       end
 
       def parts
-        @parts ||= segments.map { |n| n.to_sym }
+        @parts ||= segments.map(&:to_sym)
       end
       alias :segment_keys :parts
 
       def format(path_options)
-        path_options.delete_if do |key, value|
-          value.to_s == defaults[key].to_s && !required_parts.include?(key)
-        end
-
-        Visitors::Formatter.new(path_options).accept(path.spec)
-      end
-
-      def optimized_path
-        Visitors::OptimizedPath.new.accept(path.spec)
-      end
-
-      def optional_parts
-        path.optional_names.map { |n| n.to_sym }
+        @path_formatter.evaluate path_options
       end
 
       def required_parts
-        @required_parts ||= path.required_names.map { |n| n.to_sym }
+        @required_parts ||= path.required_names.map(&:to_sym)
       end
 
       def required_default?(key)
-        (constraints[:required_defaults] || []).include?(key)
+        @_required_defaults.include?(key)
       end
 
       def required_defaults
@@ -101,14 +83,16 @@ module ActionDispatch
         end
       end
 
+      def glob?
+        !path.spec.grep(Nodes::Star).empty?
+      end
+
       def dispatcher?
-        @dispatcher
+        @app.dispatcher?
       end
 
       def matches?(request)
         constraints.all? do |method, value|
-          next true unless request.respond_to?(method)
-
           case value
           when Regexp, String
             value === request.send(method).to_s

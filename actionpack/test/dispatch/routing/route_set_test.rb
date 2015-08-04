@@ -17,6 +17,16 @@ module ActionDispatch
         @set = RouteSet.new
       end
 
+      test "not being empty when route is added" do
+        assert empty?
+
+        draw do
+          get 'foo', to: SimpleApp.new('foo#index')
+        end
+
+        assert_not empty?
+      end
+
       test "url helpers are added when route is added" do
         draw do
           get 'foo', to: SimpleApp.new('foo#index')
@@ -69,6 +79,42 @@ module ActionDispatch
         end
       end
 
+      test "only_path: true with *_url and no :host option" do
+        draw do
+          get 'foo', to: SimpleApp.new('foo#index')
+        end
+
+        assert_equal '/foo', url_helpers.foo_url(only_path: true)
+      end
+
+      test "only_path: false with *_url and no :host option" do
+        draw do
+          get 'foo', to: SimpleApp.new('foo#index')
+        end
+
+        assert_raises ArgumentError do
+          assert_equal 'http://example.com/foo', url_helpers.foo_url(only_path: false)
+        end
+      end
+
+      test "only_path: false with *_url and local :host option" do
+        draw do
+          get 'foo', to: SimpleApp.new('foo#index')
+        end
+
+        assert_equal 'http://example.com/foo', url_helpers.foo_url(only_path: false, host: 'example.com')
+      end
+
+      test "only_path: false with *_url and global :host option" do
+        @set.default_url_options = { host: 'example.com' }
+
+        draw do
+          get 'foo', to: SimpleApp.new('foo#index')
+        end
+
+        assert_equal 'http://example.com/foo', url_helpers.foo_url(only_path: false)
+      end
+
       test "explicit keys win over implicit keys" do
         draw do
           resources :foo do
@@ -80,17 +126,29 @@ module ActionDispatch
         assert_equal '/foo/1/bar/2', url_helpers.foo_bar_path(2, foo_id: 1)
       end
 
-      private
-        def clear!
-          @set.clear!
+      test "having an optional scope with resources" do
+        draw do
+          scope "(/:foo)" do
+            resources :users
+          end
         end
 
+        assert_equal '/users/1', url_helpers.user_path(1)
+        assert_equal '/users/1', url_helpers.user_path(1, foo: nil)
+        assert_equal '/a/users/1', url_helpers.user_path(1, foo: 'a')
+      end
+
+      private
         def draw(&block)
           @set.draw(&block)
         end
 
         def url_helpers
           @set.url_helpers
+        end
+
+        def empty?
+          @set.empty?
         end
     end
   end

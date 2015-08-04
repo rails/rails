@@ -44,8 +44,11 @@ module Rails
             return $1, limit: $2.to_i
           when /decimal\{(\d+)[,.-](\d+)\}/
             return :decimal, precision: $1.to_i, scale: $2.to_i
-          when /(references|belongs_to)\{polymorphic\}/
-            return $1, polymorphic: true
+          when /(references|belongs_to)\{(.+)\}/
+            type = $1
+            provided_options = $2.split(/[,.-]/)
+            options = Hash[provided_options.map { |opt| [opt.to_sym, true] }]
+            return type, options
           else
             return type, {}
           end
@@ -94,6 +97,10 @@ module Rails
         name.sub(/_id$/, '').pluralize
       end
 
+      def singular_name
+        name.sub(/_id$/, '').singularize
+      end
+
       def human_name
         name.humanize
       end
@@ -119,7 +126,11 @@ module Rails
       end
 
       def polymorphic?
-        self.attr_options.has_key?(:polymorphic)
+        self.attr_options[:polymorphic]
+      end
+
+      def required?
+        self.attr_options[:required]
       end
 
       def has_index?
@@ -131,15 +142,32 @@ module Rails
       end
 
       def password_digest?
-        name == 'password' && type == :digest 
+        name == 'password' && type == :digest
+      end
+
+      def token?
+        type == :token
       end
 
       def inject_options
-        "".tap { |s| @attr_options.each { |k,v| s << ", #{k}: #{v.inspect}" } }
+        "".tap { |s| options_for_migration.each { |k,v| s << ", #{k}: #{v.inspect}" } }
       end
 
       def inject_index_options
         has_uniq_index? ? ", unique: true" : ""
+      end
+
+      def options_for_migration
+        @attr_options.dup.tap do |options|
+          if required?
+            options.delete(:required)
+            options[:null] = false
+          end
+
+          if reference? && !polymorphic?
+            options[:foreign_key] = true
+          end
+        end
       end
     end
   end

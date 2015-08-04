@@ -1,4 +1,5 @@
-require 'active_support/core_ext/class/attribute_accessors'
+require 'active_support/core_ext/module/attribute_accessors'
+require 'action_dispatch/http/filter_redirect'
 require 'monitor'
 
 module ActionDispatch # :nodoc:
@@ -39,10 +40,9 @@ module ActionDispatch # :nodoc:
 
     attr_writer :sending_file
 
-    # Get and set headers for this response.
-    attr_accessor :header
+    # Get headers for this response.
+    attr_reader :header
 
-    alias_method :headers=, :header=
     alias_method :headers,  :header
 
     delegate :[], :[]=, :to => :@header
@@ -60,7 +60,7 @@ module ActionDispatch # :nodoc:
 
     # The charset of the response. HTML wants to know the encoding of the
     # content you're giving them, so we need to send that along.
-    attr_accessor :charset
+    attr_reader :charset
 
     CONTENT_TYPE = "Content-Type".freeze
     SET_COOKIE   = "Set-Cookie".freeze
@@ -80,17 +80,33 @@ module ActionDispatch # :nodoc:
         @response = response
         @buf      = buf
         @closed   = false
+        @str_body = nil
+      end
+
+      def body
+        @str_body ||= begin
+                        buf = ''
+                        each { |chunk| buf << chunk }
+                        buf
+                      end
       end
 
       def write(string)
         raise IOError, "closed stream" if closed?
 
+        @str_body = nil
         @response.commit!
         @buf.push string
       end
 
       def each(&block)
-        @buf.each(&block)
+        @response.sending!
+        x = @buf.each(&block)
+        @response.sent!
+        x
+      end
+
+      def abort
       end
 
       def close
@@ -106,19 +122,22 @@ module ActionDispatch # :nodoc:
     # The underlying body, as a streamable object.
     attr_reader :stream
 
-    def initialize(status = 200, header = {}, body = [])
+    def initialize(status = 200, header = {}, body = [], default_headers: self.class.default_headers)
       super()
 
-      header = merge_default_headers(header, self.class.default_headers)
+      header = merge_default_headers(header, default_headers)
+      @header = header
 
-      self.body, self.header, self.status = body, header, status
+      self.body, self.status = body, status
 
       @sending_file = false
       @blank        = false
       @cv           = new_cond
       @committed    = false
+      @sending      = false
+      @sent         = false
       @content_type = nil
-      @charset      = nil
+      @charset      = self.class.default_charset
 
       if content_type = self[CONTENT_TYPE]
         type, charset = content_type.split(/;\s*charset=/)
@@ -137,16 +156,36 @@ module ActionDispatch # :nodoc:
       end
     end
 
+    def await_sent
+      synchronize { @cv.wait_until { @sent } }
+    end
+
     def commit!
       synchronize do
+        before_committed
         @committed = true
         @cv.broadcast
       end
     end
 
-    def committed?
-      @committed
+    def sending!
+      synchronize do
+        before_sending
+        @sending = true
+        @cv.broadcast
+      end
     end
+
+    def sent!
+      synchronize do
+        @sent = true
+        @cv.broadcast
+      end
+    end
+
+    def sending?;   synchronize { @sending };   end
+    def committed?; synchronize { @committed }; end
+    def sent?;      synchronize { @sent };      end
 
     # Sets the HTTP status code.
     def status=(status)
@@ -156,6 +195,15 @@ module ActionDispatch # :nodoc:
     # Sets the HTTP content type.
     def content_type=(content_type)
       @content_type = content_type.to_s
+    end
+
+    # Sets the HTTP character set. In case of nil parameter
+    # it sets the charset to utf-8.
+    #
+    #   response.charset = 'utf-16' # => 'utf-16'
+    #   response.charset = nil      # => 'utf-8'
+    def charset=(charset)
+      @charset = charset.nil? ? self.class.default_charset : charset
     end
 
     # The response code of the request.
@@ -181,24 +229,10 @@ module ActionDispatch # :nodoc:
     end
     alias_method :status_message, :message
 
-    def respond_to?(method, include_private = false)
-      if method.to_s == 'to_path'
-        stream.respond_to?(method)
-      else
-        super
-      end
-    end
-
-    def to_path
-      stream.to_path
-    end
-
     # Returns the content of the response as a string. This contains the contents
     # of any calls to <tt>render</tt>.
     def body
-      strings = []
-      each { |part| strings << part.to_s }
-      strings.join
+      @stream.body
     end
 
     EMPTY = " "
@@ -245,13 +279,26 @@ module ActionDispatch # :nodoc:
       stream.close if stream.respond_to?(:close)
     end
 
+    def abort
+      if stream.respond_to?(:abort)
+        stream.abort
+      elsif stream.respond_to?(:close)
+        # `stream.close` should really be reserved for a close from the
+        # other direction, but we must fall back to it for
+        # compatibility.
+        stream.close
+      end
+    end
+
     # Turns the Response into a Rack-compatible array of the status, headers,
-    # and body.
+    # and body. Allows explicit splatting:
+    #
+    #   status, headers, body = *response
     def to_a
+      commit!
       rack_response @status, @header.to_hash
     end
     alias prepare! to_a
-    alias to_ary   to_a
 
     # Returns the response cookies, converted to a Hash of (name => value) pairs
     #
@@ -272,10 +319,17 @@ module ActionDispatch # :nodoc:
 
   private
 
-    def merge_default_headers(original, default)
-      return original unless default.respond_to?(:merge)
+    def before_committed
+      return if committed?
+      assign_default_content_type_and_charset!
+      handle_conditional_get!
+    end
 
-      default.merge(original)
+    def before_sending
+    end
+
+    def merge_default_headers(original, default)
+      default.respond_to?(:merge) ? default.merge(original) : original
     end
 
     def build_buffer(response, body)
@@ -286,33 +340,65 @@ module ActionDispatch # :nodoc:
       body.respond_to?(:each) ? body : [body]
     end
 
-    def assign_default_content_type_and_charset!(headers)
-      return if headers[CONTENT_TYPE].present?
+    def assign_default_content_type_and_charset!
+      return if self[CONTENT_TYPE].present?
 
       @content_type ||= Mime::HTML
-      @charset      ||= self.class.default_charset unless @charset == false
 
       type = @content_type.to_s.dup
-      type << "; charset=#{@charset}" if append_charset?
+      type << "; charset=#{charset}" if append_charset?
 
-      headers[CONTENT_TYPE] = type
+      self[CONTENT_TYPE] = type
     end
 
     def append_charset?
       !@sending_file && @charset != false
     end
 
-    def rack_response(status, header)
-      assign_default_content_type_and_charset!(header)
-      handle_conditional_get!
+    class RackBody
+      def initialize(response)
+        @response = response
+      end
 
+      def each(*args, &block)
+        @response.each(*args, &block)
+      end
+
+      def close
+        # Rack "close" maps to Response#abort, and *not* Response#close
+        # (which is used when the controller's finished writing)
+        @response.abort
+      end
+
+      def body
+        @response.body
+      end
+
+      def respond_to?(method, include_private = false)
+        if method.to_s == 'to_path'
+          @response.stream.respond_to?(method)
+        else
+          super
+        end
+      end
+
+      def to_path
+        @response.stream.to_path
+      end
+
+      def to_ary
+        nil
+      end
+    end
+
+    def rack_response(status, header)
       header[SET_COOKIE] = header[SET_COOKIE].join("\n") if header[SET_COOKIE].respond_to?(:join)
 
       if NO_CONTENT_CODES.include?(@status)
         header.delete CONTENT_TYPE
         [status, header, []]
       else
-        [status, header, self]
+        [status, header, RackBody.new(self)]
       end
     end
   end

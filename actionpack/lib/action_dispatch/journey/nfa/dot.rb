@@ -16,9 +16,9 @@ module ActionDispatch
           #  end
           #  "  #{n.object_id} [label=\"#{label}\", shape=box];"
           #}
-          #memo_edges = memos.map { |k, memos|
+          #memo_edges = memos.flat_map { |k, memos|
           #  (memos || []).map { |v| "  #{k} -> #{v.object_id};" }
-          #}.flatten.uniq
+          #}.uniq
 
         <<-eodot
 digraph nfa {

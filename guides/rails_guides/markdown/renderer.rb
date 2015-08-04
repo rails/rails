@@ -23,8 +23,9 @@ HTML
       end
 
       def paragraph(text)
-        if text =~ /^(TIP|IMPORTANT|CAUTION|WARNING|NOTE|INFO|TODO)[.:](.*?)/
+        if text =~ /^(TIP|IMPORTANT|CAUTION|WARNING|NOTE|INFO|TODO)[.:]/
           convert_notes(text)
+        elsif text.include?('DO NOT READ THIS FILE ON GITHUB')
         elsif text =~ /^\[<sup>(\d+)\]:<\/sup> (.+)$/
           linkback = %(<a href="#footnote-#{$1}-ref"><sup>#{$1}</sup></a>)
           %(<p class="footnote" id="footnote-#{$1}">#{linkback} #{$2}</p>)
@@ -47,10 +48,10 @@ HTML
           case code_type
             when 'ruby', 'sql', 'plain'
               code_type
-            when 'erb'
+            when 'erb', 'html+erb'
               'ruby; html-script: true'
             when 'html'
-              'xml' # html is understood, but there are .xml rules in the CSS
+              'xml' # HTML is understood, but there are .xml rules in the CSS
             else
               'plain'
           end

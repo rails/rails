@@ -1,4 +1,3 @@
-# encoding: utf-8
 require 'cases/helper'
 
 require 'models/topic'
@@ -8,9 +7,9 @@ require 'models/custom_reader'
 class PresenceValidationTest < ActiveModel::TestCase
 
   teardown do
-    Topic.reset_callbacks(:validate)
-    Person.reset_callbacks(:validate)
-    CustomReader.reset_callbacks(:validate)
+    Topic.clear_validators!
+    Person.clear_validators!
+    CustomReader.clear_validators!
   end
 
   def test_validate_presences

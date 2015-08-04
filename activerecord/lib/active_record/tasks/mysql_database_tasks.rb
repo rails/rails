@@ -31,6 +31,7 @@ module ActiveRecord
           end
           establish_connection configuration
         else
+          $stderr.puts error.inspect
           $stderr.puts "Couldn't create database for #{configuration.inspect}, #{creation_options.inspect}"
           $stderr.puts "(If you set the charset manually, make sure you have a matching collation)" if configuration['encoding']
         end
@@ -42,7 +43,7 @@ module ActiveRecord
       end
 
       def purge
-        establish_connection :test
+        establish_connection configuration
         connection.recreate_database configuration['database'], creation_options
       end
 
@@ -58,6 +59,7 @@ module ActiveRecord
         args = prepare_command_options('mysqldump')
         args.concat(["--result-file", "#{filename}"])
         args.concat(["--no-data"])
+        args.concat(["--routines"])
         args.concat(["#{configuration['database']}"])
         unless Kernel.system(*args)
           $stderr.puts "Could not dump the database structure. "\
@@ -124,19 +126,26 @@ IDENTIFIED BY '#{configuration['password']}' WITH GRANT OPTION;
       end
 
       def root_password
-        $stdout.print "Please provide the root password for your mysql installation\n>"
+        $stdout.print "Please provide the root password for your MySQL installation\n>"
         $stdin.gets.strip
       end
 
       def prepare_command_options(command)
-        args = [command]
-        args.concat(['--user', configuration['username']]) if configuration['username']
-        args << "--password=#{configuration['password']}"  if configuration['password']
-        args.concat(['--default-character-set', configuration['encoding']]) if configuration['encoding']
-        configuration.slice('host', 'port', 'socket').each do |k, v|
-          args.concat([ "--#{k}", v ]) if v
-        end
-        args
+        args = {
+          'host'      => '--host',
+          'port'      => '--port',
+          'socket'    => '--socket',
+          'username'  => '--user',
+          'password'  => '--password',
+          'encoding'  => '--default-character-set',
+          'sslca'     => '--ssl-ca',
+          'sslcert'   => '--ssl-cert',
+          'sslcapath' => '--ssl-capath',
+          'sslcipher' => '--ssh-cipher',
+          'sslkey'    => '--ssl-key'
+        }.map { |opt, arg| "#{arg}=#{configuration[opt]}" if configuration[opt] }.compact
+
+        [command, *args]
       end
     end
   end

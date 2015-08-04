@@ -8,9 +8,16 @@ class ParametersPermitTest < ActiveSupport::TestCase
   end
 
   setup do
-    @params = ActionController::Parameters.new({ person: {
-      age: "32", name: { first: "David", last: "Heinemeier Hansson" }
-    }})
+    @params = ActionController::Parameters.new(
+      person: {
+        age: '32',
+        name: {
+          first: 'David',
+          last: 'Heinemeier Hansson'
+        },
+        addresses: [{city: 'Chicago', state: 'Illinois'}]
+      }
+    )
 
     @struct_fields = []
     %w(0 1 12).each do |number|
@@ -107,6 +114,15 @@ class ParametersPermitTest < ActiveSupport::TestCase
     assert_equal [], permitted[:id]
   end
 
+  test 'do not break params filtering on nil values' do
+    params = ActionController::Parameters.new(a: 1, b: [1, 2, 3], c: nil)
+
+    permitted = params.permit(:a, c: [], b: [])
+    assert_equal 1, permitted[:a]
+    assert_equal [1, 2, 3], permitted[:b]
+    assert_equal nil, permitted[:c]
+  end
+
   test 'key to empty array: arrays of permitted scalars pass' do
     [['foo'], [1], ['foo', 'bar'], [1, 2, 3]].each do |array|
       params = ActionController::Parameters.new(id: array)
@@ -138,45 +154,57 @@ class ParametersPermitTest < ActiveSupport::TestCase
     assert_equal :foo, e.param
   end
 
+  test "fetch with a default value of a hash does not mutate the object" do
+    params = ActionController::Parameters.new({})
+    params.fetch :foo, {}
+    assert_equal nil, params[:foo]
+  end
+
+  test 'hashes in array values get wrapped' do
+    params = ActionController::Parameters.new(foo: [{}, {}])
+    params[:foo].each do |hash|
+      assert !hash.permitted?
+    end
+  end
+
+  # Strong params has an optimization to avoid looping every time you read
+  # a key whose value is an array and building a new object. We check that
+  # optimization here.
+  test 'arrays are converted at most once' do
+    params = ActionController::Parameters.new(foo: [{}])
+    assert_same params[:foo], params[:foo]
+  end
+
+  # Strong params has an internal cache to avoid duplicated loops in the most
+  # common usage pattern. See the docs of the method `converted_arrays`.
+  #
+  # This test checks that if we push a hash to an array (in-place modification)
+  # the cache does not get fooled, the hash is still wrapped as strong params,
+  # and not permitted.
+  test 'mutated arrays are detected' do
+    params = ActionController::Parameters.new(users: [{id: 1}])
+
+    permitted = params.permit(users: [:id])
+    permitted[:users] << {injected: 1}
+    assert_not permitted[:users].last.permitted?
+  end
+
   test "fetch doesnt raise ParameterMissing exception if there is a default" do
     assert_equal "monkey", @params.fetch(:foo, "monkey")
     assert_equal "monkey", @params.fetch(:foo) { "monkey" }
   end
 
-  test "not permitted is sticky on accessors" do
-    assert !@params.slice(:person).permitted?
-    assert !@params[:person][:name].permitted?
-    assert !@params[:person].except(:name).permitted?
-
-    @params.each { |key, value| assert(!value.permitted?) if key == "person" }
-
-    assert !@params.fetch(:person).permitted?
-
-    assert !@params.values_at(:person).first.permitted?
+  test "fetch doesnt raise ParameterMissing exception if there is a default that is nil" do
+    assert_equal nil, @params.fetch(:foo, nil)
+    assert_equal nil, @params.fetch(:foo) { nil }
   end
 
-  test "permitted is sticky on accessors" do
-    @params.permit!
-    assert @params.slice(:person).permitted?
-    assert @params[:person][:name].permitted?
-    assert @params[:person].except(:name).permitted?
-
-    @params.each { |key, value| assert(value.permitted?) if key == "person" }
-
-    assert @params.fetch(:person).permitted?
-
-    assert @params.values_at(:person).first.permitted?
-  end
-
-  test "not permitted is sticky on mutators" do
-    assert !@params.delete_if { |k| k == "person" }.permitted?
-    assert !@params.keep_if { |k,v| k == "person" }.permitted?
-  end
-
-  test "permitted is sticky on mutators" do
-    @params.permit!
-    assert @params.delete_if { |k| k == "person" }.permitted?
-    assert @params.keep_if { |k,v| k == "person" }.permitted?
+  test 'KeyError in fetch block should not be covered up' do
+    params = ActionController::Parameters.new
+    e = assert_raises(KeyError) do
+      params.fetch(:missing_key) { {}.fetch(:also_missing) }
+    end
+    assert_match(/:also_missing$/, e.message)
   end
 
   test "not permitted is sticky beyond merges" do
@@ -206,6 +234,7 @@ class ParametersPermitTest < ActiveSupport::TestCase
     assert @params.permitted?
     assert @params[:person].permitted?
     assert @params[:person][:name].permitted?
+    assert @params[:person][:addresses][0].permitted?
   end
 
   test "permitted takes a default value when Parameters.permit_all_parameters is set" do
@@ -224,5 +253,48 @@ class ParametersPermitTest < ActiveSupport::TestCase
 
   test "permitting parameters as an array" do
     assert_equal "32", @params[:person].permit([ :age ])[:age]
+  end
+
+  test "to_h returns empty hash on unpermitted params" do
+    assert @params.to_h.is_a? Hash
+    assert_not @params.to_h.is_a? ActionController::Parameters
+    assert @params.to_h.empty?
+  end
+
+  test "to_h returns converted hash on permitted params" do
+    @params.permit!
+
+    assert @params.to_h.is_a? Hash
+    assert_not @params.to_h.is_a? ActionController::Parameters
+  end
+
+  test "to_h returns converted hash when .permit_all_parameters is set" do
+    begin
+      ActionController::Parameters.permit_all_parameters = true
+      params = ActionController::Parameters.new(crab: "Senjougahara Hitagi")
+
+      assert params.to_h.is_a? Hash
+      assert_not @params.to_h.is_a? ActionController::Parameters
+      assert_equal({ "crab" => "Senjougahara Hitagi" }, params.to_h)
+    ensure
+      ActionController::Parameters.permit_all_parameters = false
+    end
+  end
+
+  test "to_h returns always permitted parameter on unpermitted params" do
+    params = ActionController::Parameters.new(
+      controller: "users",
+      action: "create",
+      user: {
+        name: "Sengoku Nadeko"
+      }
+    )
+
+    assert_equal({ "controller" => "users", "action" => "create" }, params.to_h)
+  end
+
+  test "to_unsafe_h returns unfiltered params" do
+    assert @params.to_h.is_a? Hash
+    assert_not @params.to_h.is_a? ActionController::Parameters
   end
 end

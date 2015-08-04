@@ -141,4 +141,12 @@ class GeneratedAttributeTest < Rails::Generators::TestCase
     assert_equal "post_id", create_generated_attribute('references', 'post').column_name
     assert_equal "post_id", create_generated_attribute('belongs_to', 'post').column_name
   end
+
+  def test_parse_required_attribute_with_index
+    att = Rails::Generators::GeneratedAttribute.parse("supplier:references{required}:index")
+    assert_equal "supplier", att.name
+    assert_equal :references, att.type
+    assert att.has_index?
+    assert att.required?
+  end
 end

@@ -1,4 +1,5 @@
 require 'cases/helper'
+require 'active_record/tasks/database_tasks'
 
 module ActiveRecord
   module DatabaseTasksSetupper
@@ -128,11 +129,22 @@ module ActiveRecord
       )
     end
 
-    def test_creates_test_database_when_environment_is_database
+    def test_creates_test_and_development_databases_when_env_was_not_specified
       ActiveRecord::Tasks::DatabaseTasks.expects(:create).
         with('database' => 'dev-db')
       ActiveRecord::Tasks::DatabaseTasks.expects(:create).
         with('database' => 'test-db')
+      ENV.expects(:[]).with('RAILS_ENV').returns(nil)
+
+      ActiveRecord::Tasks::DatabaseTasks.create_current(
+        ActiveSupport::StringInquirer.new('development')
+      )
+    end
+
+    def test_creates_only_development_database_when_rails_env_is_development
+      ActiveRecord::Tasks::DatabaseTasks.expects(:create).
+        with('database' => 'dev-db')
+      ENV.expects(:[]).with('RAILS_ENV').returns('development')
 
       ActiveRecord::Tasks::DatabaseTasks.create_current(
         ActiveSupport::StringInquirer.new('development')
@@ -142,7 +154,7 @@ module ActiveRecord
     def test_establishes_connection_for_the_given_environment
       ActiveRecord::Tasks::DatabaseTasks.stubs(:create).returns true
 
-      ActiveRecord::Base.expects(:establish_connection).with('development')
+      ActiveRecord::Base.expects(:establish_connection).with(:development)
 
       ActiveRecord::Tasks::DatabaseTasks.create_current(
         ActiveSupport::StringInquirer.new('development')
@@ -193,7 +205,7 @@ module ActiveRecord
       ActiveRecord::Tasks::DatabaseTasks.drop_all
     end
 
-    def test_creates_configurations_with_local_ip
+    def test_drops_configurations_with_local_ip
       @configurations[:development].merge!('host' => '127.0.0.1')
 
       ActiveRecord::Tasks::DatabaseTasks.expects(:drop)
@@ -201,7 +213,7 @@ module ActiveRecord
       ActiveRecord::Tasks::DatabaseTasks.drop_all
     end
 
-    def test_creates_configurations_with_local_host
+    def test_drops_configurations_with_local_host
       @configurations[:development].merge!('host' => 'localhost')
 
       ActiveRecord::Tasks::DatabaseTasks.expects(:drop)
@@ -209,7 +221,7 @@ module ActiveRecord
       ActiveRecord::Tasks::DatabaseTasks.drop_all
     end
 
-    def test_creates_configurations_with_blank_hosts
+    def test_drops_configurations_with_blank_hosts
       @configurations[:development].merge!('host' => nil)
 
       ActiveRecord::Tasks::DatabaseTasks.expects(:drop)
@@ -229,7 +241,7 @@ module ActiveRecord
       ActiveRecord::Base.stubs(:configurations).returns(@configurations)
     end
 
-    def test_creates_current_environment_database
+    def test_drops_current_environment_database
       ActiveRecord::Tasks::DatabaseTasks.expects(:drop).
         with('database' => 'prod-db')
 
@@ -238,11 +250,22 @@ module ActiveRecord
       )
     end
 
-    def test_creates_test_database_when_environment_is_database
+    def test_drops_test_and_development_databases_when_env_was_not_specified
       ActiveRecord::Tasks::DatabaseTasks.expects(:drop).
         with('database' => 'dev-db')
       ActiveRecord::Tasks::DatabaseTasks.expects(:drop).
         with('database' => 'test-db')
+      ENV.expects(:[]).with('RAILS_ENV').returns(nil)
+
+      ActiveRecord::Tasks::DatabaseTasks.drop_current(
+        ActiveSupport::StringInquirer.new('development')
+      )
+    end
+
+    def test_drops_only_development_database_when_rails_env_is_development
+      ActiveRecord::Tasks::DatabaseTasks.expects(:drop).
+        with('database' => 'dev-db')
+      ENV.expects(:[]).with('RAILS_ENV').returns('development')
 
       ActiveRecord::Tasks::DatabaseTasks.drop_current(
         ActiveSupport::StringInquirer.new('development')
@@ -250,6 +273,19 @@ module ActiveRecord
     end
   end
 
+  class DatabaseTasksMigrateTest < ActiveRecord::TestCase
+    def test_migrate_receives_correct_env_vars
+      verbose, version = ENV['VERBOSE'], ENV['VERSION']
+
+      ENV['VERBOSE'] = 'false'
+      ENV['VERSION'] = '4'
+
+      ActiveRecord::Migrator.expects(:migrate).with(ActiveRecord::Migrator.migrations_paths, 4)
+      ActiveRecord::Tasks::DatabaseTasks.migrate
+    ensure
+      ENV['VERBOSE'], ENV['VERSION'] = verbose, version
+    end
+  end
 
   class DatabaseTasksPurgeTest < ActiveRecord::TestCase
     include DatabaseTasksSetupper
@@ -259,6 +295,35 @@ module ActiveRecord
         eval("@#{v}").expects(:purge)
         ActiveRecord::Tasks::DatabaseTasks.purge 'adapter' => k
       end
+    end
+  end
+
+  class DatabaseTasksPurgeCurrentTest < ActiveRecord::TestCase
+    def test_purges_current_environment_database
+      configurations = {
+        'development' => {'database' => 'dev-db'},
+        'test'        => {'database' => 'test-db'},
+        'production'  => {'database' => 'prod-db'}
+      }
+      ActiveRecord::Base.stubs(:configurations).returns(configurations)
+
+      ActiveRecord::Tasks::DatabaseTasks.expects(:purge).
+        with('database' => 'prod-db')
+      ActiveRecord::Base.expects(:establish_connection).with(:production)
+
+      ActiveRecord::Tasks::DatabaseTasks.purge_current('production')
+    end
+  end
+
+  class DatabaseTasksPurgeAllTest < ActiveRecord::TestCase
+    def test_purge_all_local_configurations
+      configurations = {:development => {'database' => 'my-db'}}
+      ActiveRecord::Base.stubs(:configurations).returns(configurations)
+
+      ActiveRecord::Tasks::DatabaseTasks.expects(:purge).
+        with('database' => 'my-db')
+
+      ActiveRecord::Tasks::DatabaseTasks.purge_all
     end
   end
 
@@ -310,6 +375,22 @@ module ActiveRecord
     def test_check_schema_file
       Kernel.expects(:abort).with(regexp_matches(/awesome-file.sql/))
       ActiveRecord::Tasks::DatabaseTasks.check_schema_file("awesome-file.sql")
+    end
+  end
+
+  class DatabaseTasksCheckSchemaFileDefaultsTest < ActiveRecord::TestCase
+    def test_check_schema_file_defaults
+      ActiveRecord::Tasks::DatabaseTasks.stubs(:db_dir).returns('/tmp')
+      assert_equal '/tmp/schema.rb', ActiveRecord::Tasks::DatabaseTasks.schema_file
+    end
+  end
+
+  class DatabaseTasksCheckSchemaFileSpecifiedFormatsTest < ActiveRecord::TestCase
+    {ruby: 'schema.rb', sql: 'structure.sql'}.each_pair do |fmt, filename|
+      define_method("test_check_schema_file_for_#{fmt}_format") do
+        ActiveRecord::Tasks::DatabaseTasks.stubs(:db_dir).returns('/tmp')
+        assert_equal "/tmp/#{filename}", ActiveRecord::Tasks::DatabaseTasks.schema_file(fmt)
+      end
     end
   end
 end

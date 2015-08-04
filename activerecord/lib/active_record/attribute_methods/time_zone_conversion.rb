@@ -1,18 +1,39 @@
 module ActiveRecord
   module AttributeMethods
     module TimeZoneConversion
-      class Type # :nodoc:
-        def initialize(column)
-          @column = column
+      class TimeZoneConverter < DelegateClass(Type::Value) # :nodoc:
+        def deserialize(value)
+          convert_time_to_time_zone(super)
         end
 
-        def type_cast(value)
-          value = @column.type_cast(value)
-          value.acts_like?(:time) ? value.in_time_zone : value
+        def cast(value)
+          if value.is_a?(Array)
+            value.map { |v| cast(v) }
+          elsif value.is_a?(Hash)
+            set_time_zone_without_conversion(super)
+          elsif value.respond_to?(:in_time_zone)
+            begin
+              user_input_in_time_zone(value) || super
+            rescue ArgumentError
+              nil
+            end
+          end
         end
 
-        def type
-          @column.type
+        private
+
+        def convert_time_to_time_zone(value)
+          if value.is_a?(Array)
+            value.map { |v| convert_time_to_time_zone(v) }
+          elsif value.acts_like?(:time)
+            value.in_time_zone
+          else
+            value
+          end
+        end
+
+        def set_time_zone_without_conversion(value)
+          ::Time.zone.local_to_utc(value).in_time_zone
         end
       end
 
@@ -24,34 +45,54 @@ module ActiveRecord
 
         class_attribute :skip_time_zone_conversion_for_attributes, instance_writer: false
         self.skip_time_zone_conversion_for_attributes = []
+
+        class_attribute :time_zone_aware_types, instance_writer: false
+        self.time_zone_aware_types = [:datetime, :not_explicitly_configured]
       end
 
       module ClassMethods
-        protected
-        # Defined for all +datetime+ and +timestamp+ attributes when +time_zone_aware_attributes+ are enabled.
-        # This enhanced write method will automatically convert the time passed to it to the zone stored in Time.zone.
-        def define_method_attribute=(attr_name)
-          if create_time_zone_conversion_attribute?(attr_name, columns_hash[attr_name])
-            method_body, line = <<-EOV, __LINE__ + 1
-              def #{attr_name}=(time)
-                time_with_zone = time.respond_to?(:in_time_zone) ? time.in_time_zone : nil
-                previous_time = attribute_changed?("#{attr_name}") ? changed_attributes["#{attr_name}"] : read_attribute(:#{attr_name})
-                write_attribute(:#{attr_name}, time)
-                #{attr_name}_will_change! if previous_time != time_with_zone
-                @attributes_cache["#{attr_name}"] = time_with_zone
-              end
-            EOV
-            generated_attribute_methods.module_eval(method_body, __FILE__, line)
-          else
-            super
+        private
+
+        def inherited(subclass)
+          # We need to apply this decorator here, rather than on module inclusion. The closure
+          # created by the matcher would otherwise evaluate for `ActiveRecord::Base`, not the
+          # sub class being decorated. As such, changes to `time_zone_aware_attributes`, or
+          # `skip_time_zone_conversion_for_attributes` would not be picked up.
+          subclass.class_eval do
+            matcher = ->(name, type) { create_time_zone_conversion_attribute?(name, type) }
+            decorate_matching_attribute_types(matcher, :_time_zone_conversion) do |type|
+              TimeZoneConverter.new(type)
+            end
           end
+          super
         end
 
-        private
-        def create_time_zone_conversion_attribute?(name, column)
-          time_zone_aware_attributes &&
-            !self.skip_time_zone_conversion_for_attributes.include?(name.to_sym) &&
-            (:datetime == column.type || :timestamp == column.type)
+        def create_time_zone_conversion_attribute?(name, cast_type)
+          enabled_for_column = time_zone_aware_attributes &&
+            !self.skip_time_zone_conversion_for_attributes.include?(name.to_sym)
+          result = enabled_for_column &&
+            time_zone_aware_types.include?(cast_type.type)
+
+          if enabled_for_column &&
+            !result &&
+            cast_type.type == :time &&
+            time_zone_aware_types.include?(:not_explicitly_configured)
+            ActiveSupport::Deprecation.warn(<<-MESSAGE)
+              Time columns will become time zone aware in Rails 5.1. This
+              still causes `String`s to be parsed as if they were in `Time.zone`,
+              and `Time`s to be converted to `Time.zone`.
+
+              To keep the old behavior, you must add the following to your initializer:
+
+                  config.active_record.time_zone_aware_types = [:datetime]
+
+              To silence this deprecation warning, add the following:
+
+                  config.active_record.time_zone_aware_types << :time
+            MESSAGE
+          end
+
+          result
         end
       end
     end

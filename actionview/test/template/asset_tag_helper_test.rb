@@ -1,14 +1,5 @@
-require 'zlib'
 require 'abstract_unit'
 require 'active_support/ordered_options'
-
-class FakeController
-  attr_accessor :request
-
-  def config
-    @config ||= ActiveSupport::InheritableOptions.new(ActionController::Base.config)
-  end
-end
 
 class AssetTagHelperTest < ActionView::TestCase
   tests ActionView::Helpers::AssetTagHelper
@@ -188,6 +179,7 @@ class AssetTagHelperTest < ActionView::TestCase
     %(image_tag("xml.png")) => %(<img alt="Xml" src="/images/xml.png" />),
     %(image_tag("rss.gif", :alt => "rss syndication")) => %(<img alt="rss syndication" src="/images/rss.gif" />),
     %(image_tag("gold.png", :size => "20")) => %(<img alt="Gold" height="20" src="/images/gold.png" width="20" />),
+    %(image_tag("gold.png", :size => 20)) => %(<img alt="Gold" height="20" src="/images/gold.png" width="20" />),
     %(image_tag("gold.png", :size => "45x70")) => %(<img alt="Gold" height="70" src="/images/gold.png" width="45" />),
     %(image_tag("gold.png", "size" => "45x70")) => %(<img alt="Gold" height="70" src="/images/gold.png" width="45" />),
     %(image_tag("error.png", "size" => "45 x 70")) => %(<img alt="Error" src="/images/error.png" />),
@@ -203,9 +195,9 @@ class AssetTagHelperTest < ActionView::TestCase
   }
 
   FaviconLinkToTag = {
-    %(favicon_link_tag) => %(<link href="/images/favicon.ico" rel="shortcut icon" type="image/vnd.microsoft.icon" />),
-    %(favicon_link_tag 'favicon.ico') => %(<link href="/images/favicon.ico" rel="shortcut icon" type="image/vnd.microsoft.icon" />),
-    %(favicon_link_tag 'favicon.ico', :rel => 'foo') => %(<link href="/images/favicon.ico" rel="foo" type="image/vnd.microsoft.icon" />),
+    %(favicon_link_tag) => %(<link href="/images/favicon.ico" rel="shortcut icon" type="image/x-icon" />),
+    %(favicon_link_tag 'favicon.ico') => %(<link href="/images/favicon.ico" rel="shortcut icon" type="image/x-icon" />),
+    %(favicon_link_tag 'favicon.ico', :rel => 'foo') => %(<link href="/images/favicon.ico" rel="foo" type="image/x-icon" />),
     %(favicon_link_tag 'favicon.ico', :rel => 'foo', :type => 'bar') => %(<link href="/images/favicon.ico" rel="foo" type="bar" />),
     %(favicon_link_tag 'mb-icon.png', :rel => 'apple-touch-icon', :type => 'image/png') => %(<link href="/images/mb-icon.png" rel="apple-touch-icon" type="image/png" />)
   }
@@ -245,7 +237,8 @@ class AssetTagHelperTest < ActionView::TestCase
     %(video_tag("gold.m4v", :size => "160x120")) => %(<video height="120" src="/videos/gold.m4v" width="160"></video>),
     %(video_tag("gold.m4v", "size" => "320x240")) => %(<video height="240" src="/videos/gold.m4v" width="320"></video>),
     %(video_tag("trailer.ogg", :poster => "screenshot.png")) => %(<video poster="/images/screenshot.png" src="/videos/trailer.ogg"></video>),
-    %(video_tag("error.avi", "size" => "100")) => %(<video src="/videos/error.avi"></video>),
+    %(video_tag("error.avi", "size" => "100")) => %(<video height="100" src="/videos/error.avi" width="100"></video>),
+    %(video_tag("error.avi", "size" => 100)) => %(<video height="100" src="/videos/error.avi" width="100"></video>),
     %(video_tag("error.avi", "size" => "100 x 100")) => %(<video src="/videos/error.avi"></video>),
     %(video_tag("error.avi", "size" => "x")) => %(<video src="/videos/error.avi"></video>),
     %(video_tag("http://media.rubyonrails.org/video/rails_blog_2.mov")) => %(<video src="http://media.rubyonrails.org/video/rails_blog_2.mov"></video>),
@@ -310,11 +303,24 @@ class AssetTagHelperTest < ActionView::TestCase
   def test_autodiscovery_link_tag_with_unknown_type
     result = auto_discovery_link_tag(:xml, '/feed.xml', :type => 'application/xml')
     expected = %(<link href="/feed.xml" rel="alternate" title="XML" type="application/xml" />)
-    assert_equal expected, result
+    assert_dom_equal expected, result
   end
 
   def test_asset_path_tag
     AssetPathToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
+  end
+
+  def test_asset_path_tag_raises_an_error_for_nil_source
+    e = assert_raise(ArgumentError) { asset_path(nil) }
+    assert_equal("nil is not a valid asset source", e.message)
+  end
+
+  def test_asset_path_tag_to_not_create_duplicate_slashes
+    @controller.config.asset_host = "host/"
+    assert_dom_equal('http://host/foo', asset_path("foo"))
+
+    @controller.config.relative_url_root = '/some/root/'
+    assert_dom_equal('http://host/some/root/foo', asset_path("foo"))
   end
 
   def test_compute_asset_public_path
@@ -463,6 +469,14 @@ class AssetTagHelperTest < ActionView::TestCase
     assert_equal({:size => '16x10'}, options)
   end
 
+  def test_image_tag_raises_an_error_for_competing_size_arguments
+    exception = assert_raise(ArgumentError) do
+      image_tag("gold.png", :height => "100", :width => "200", :size => "45x70")
+    end
+
+    assert_equal("Cannot pass a :size option with a :height or :width option", exception.message)
+  end
+
   def test_favicon_link_tag
     FaviconLinkToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
   end
@@ -535,6 +549,17 @@ class AssetTagHelperTest < ActionView::TestCase
     assert_equal copy, source
   end
 
+  class PlaceholderImage
+    def blank?; true; end
+    def to_s; 'no-image-yet.png'; end
+  end
+  def test_image_tag_with_blank_placeholder
+    assert_equal '<img alt="" src="/images/no-image-yet.png" />', image_tag(PlaceholderImage.new, alt: "")
+  end
+  def test_image_path_with_blank_placeholder
+    assert_equal '/images/no-image-yet.png', image_path(PlaceholderImage.new)
+  end
+
   def test_image_path_with_asset_host_proc_returning_nil
     @controller.config.asset_host = Proc.new do |source|
       unless source.end_with?("tiff")
@@ -544,6 +569,14 @@ class AssetTagHelperTest < ActionView::TestCase
 
     assert_equal "/images/file.tiff", image_path("file.tiff")
     assert_equal "http://cdn.example.com/images/file.png", image_path("file.png")
+  end
+
+  def test_image_url_with_asset_host_proc_returning_nil
+    @controller.config.asset_host = Proc.new { nil }
+    @controller.request = Struct.new(:base_url, :script_name).new("http://www.example.com", nil)
+
+    assert_equal "/images/rails.png", image_path("rails.png")
+    assert_equal "http://www.example.com/images/rails.png", image_url("rails.png")
   end
 
   def test_caching_image_path_with_caching_and_proc_asset_host_using_request
@@ -594,6 +627,10 @@ class AssetTagHelperNonVhostTest < ActionView::TestCase
 
   def test_should_current_request_host_is_always_returned_for_request
     assert_equal "gopher://www.example.com", compute_asset_host("foo", :protocol => :request)
+  end
+
+  def test_should_return_custom_host_if_passed_in_options
+    assert_equal "http://custom.example.com", compute_asset_host("foo", :host => "http://custom.example.com")
   end
 
   def test_should_ignore_relative_root_path_on_complete_url
@@ -758,5 +795,16 @@ class AssetUrlHelperEmptyModuleTest < ActionView::TestCase
 
     assert @module.config.asset_host
     assert_equal "http://www.example.com/foo", @module.asset_url("foo")
+  end
+
+  def test_asset_url_with_custom_asset_host
+    @module.instance_eval do
+      def config
+        Struct.new(:asset_host).new("http://www.example.com")
+      end
+    end
+
+    assert @module.config.asset_host
+    assert_equal "http://custom.example.com/foo", @module.asset_url("foo", :host => "http://custom.example.com")
   end
 end

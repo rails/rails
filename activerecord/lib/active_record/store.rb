@@ -15,6 +15,15 @@ module ActiveRecord
   # You can set custom coder to encode/decode your serialized attributes to/from different formats.
   # JSON, YAML, Marshal are supported out of the box. Generally it can be any wrapper that provides +load+ and +dump+.
   #
+  # NOTE: If you are using PostgreSQL specific columns like +hstore+ or +json+ there is no need for
+  # the serialization provided by +store+. Simply use +store_accessor+ instead to generate
+  # the accessor methods. Be aware that these columns use a string keyed hash and do not allow access
+  # using a symbol.
+  #
+  # NOTE: The default validations with the exception of +uniqueness+ will work.
+  # For example, if you want to check for +uniqueness+ with +hstore+ you will
+  # need to use a custom validation to handle it.
+  #
   # Examples:
   #
   #   class User < ActiveRecord::Base
@@ -61,8 +70,9 @@ module ActiveRecord
     extend ActiveSupport::Concern
 
     included do
-      class_attribute :stored_attributes, instance_accessor: false
-      self.stored_attributes = {}
+      class << self
+        attr_accessor :local_stored_attributes
+      end
     end
 
     module ClassMethods
@@ -86,41 +96,84 @@ module ActiveRecord
           end
         end
 
-        self.stored_attributes[store_attribute] ||= []
-        self.stored_attributes[store_attribute] |= keys
+        # assign new store attribute and create new hash to ensure that each class in the hierarchy
+        # has its own hash of stored attributes.
+        self.local_stored_attributes ||= {}
+        self.local_stored_attributes[store_attribute] ||= []
+        self.local_stored_attributes[store_attribute] |= keys
       end
 
-      def _store_accessors_module
+      def _store_accessors_module # :nodoc:
         @_store_accessors_module ||= begin
           mod = Module.new
           include mod
           mod
         end
       end
+
+      def stored_attributes
+        parent = superclass.respond_to?(:stored_attributes) ? superclass.stored_attributes : {}
+        if self.local_stored_attributes
+          parent.merge!(self.local_stored_attributes) { |k, a, b| a | b }
+        end
+        parent
+      end
     end
 
     protected
       def read_store_attribute(store_attribute, key)
-        attribute = initialize_store_attribute(store_attribute)
-        attribute[key]
+        accessor = store_accessor_for(store_attribute)
+        accessor.read(self, store_attribute, key)
       end
 
       def write_store_attribute(store_attribute, key, value)
-        attribute = initialize_store_attribute(store_attribute)
-        if value != attribute[key]
-          send :"#{store_attribute}_will_change!"
-          attribute[key] = value
-        end
+        accessor = store_accessor_for(store_attribute)
+        accessor.write(self, store_attribute, key, value)
       end
 
     private
-      def initialize_store_attribute(store_attribute)
-        attribute = send(store_attribute)
-        unless attribute.is_a?(ActiveSupport::HashWithIndifferentAccess)
-          attribute = IndifferentCoder.as_indifferent_hash(attribute)
-          send :"#{store_attribute}=", attribute
+      def store_accessor_for(store_attribute)
+        type_for_attribute(store_attribute.to_s).accessor
+      end
+
+      class HashAccessor # :nodoc:
+        def self.read(object, attribute, key)
+          prepare(object, attribute)
+          object.public_send(attribute)[key]
         end
-        attribute
+
+        def self.write(object, attribute, key, value)
+          prepare(object, attribute)
+          if value != read(object, attribute, key)
+            object.public_send :"#{attribute}_will_change!"
+            object.public_send(attribute)[key] = value
+          end
+        end
+
+        def self.prepare(object, attribute)
+          object.public_send :"#{attribute}=", {} unless object.send(attribute)
+        end
+      end
+
+      class StringKeyedHashAccessor < HashAccessor # :nodoc:
+        def self.read(object, attribute, key)
+          super object, attribute, key.to_s
+        end
+
+        def self.write(object, attribute, key, value)
+          super object, attribute, key.to_s, value
+        end
+      end
+
+      class IndifferentHashAccessor < ActiveRecord::Store::HashAccessor # :nodoc:
+        def self.prepare(object, store_attribute)
+          attribute = object.send(store_attribute)
+          unless attribute.is_a?(ActiveSupport::HashWithIndifferentAccess)
+            attribute = IndifferentCoder.as_indifferent_hash(attribute)
+            object.send :"#{store_attribute}=", attribute
+          end
+          attribute
+        end
       end
 
     class IndifferentCoder # :nodoc:
@@ -138,7 +191,7 @@ module ActiveRecord
       end
 
       def load(yaml)
-        self.class.as_indifferent_hash @coder.load(yaml)
+        self.class.as_indifferent_hash(@coder.load(yaml || ''))
       end
 
       def self.as_indifferent_hash(obj)

@@ -1,7 +1,7 @@
-source "https://rubygems.org"
+source 'https://rubygems.org'
 
 <% if options[:skip_gemspec] -%>
-<%= '# ' if options.dev? || options.edge? -%>gem "rails", "~> <%= Rails::VERSION::STRING %>"
+<%= '# ' if options.dev? || options.edge? -%>gem 'rails', '~> <%= Rails::VERSION::STRING %>'
 <% else -%>
 # Declare your gem's dependencies in <%= name %>.gemspec.
 # Bundler will treat runtime dependencies like base dependencies, and
@@ -11,7 +11,7 @@ gemspec
 
 <% if options[:skip_gemspec] -%>
 group :development do
-  gem "<%= gem_for_database %>"
+  gem '<%= gem_for_database %>'
 end
 <% else -%>
 # Declare any dependencies that are still in development here instead of in
@@ -23,8 +23,25 @@ end
 <% if options.dev? || options.edge? -%>
 # Your gem is dependent on dev or edge Rails. Once you can lock this
 # dependency down to a specific version, move it to your gemspec.
-<%= rails_gemfile_entry -%>
+<% max_width = gemfile_entries.map { |g| g.name.length }.max -%>
+<% gemfile_entries.each do |gem| -%>
+<% if gem.comment -%>
+
+# <%= gem.comment %>
+<% end -%>
+<%= gem.commented_out ? '# ' : '' %>gem '<%= gem.name %>'<%= %(, '#{gem.version}') if gem.version -%>
+<% if gem.options.any? -%>
+, <%= gem.options.map { |k,v|
+  "#{k}: #{v.inspect}" }.join(', ') %>
+<% end -%>
+<% end -%>
 
 <% end -%>
-# To use debugger
-# gem 'debugger'
+<% if RUBY_ENGINE == 'ruby' -%>
+# To use a debugger
+# gem 'byebug', group: [:development, :test]
+<% end -%>
+<% if RUBY_PLATFORM.match(/bccwin|cygwin|emx|mingw|mswin|wince|java/) -%>
+
+gem 'tzinfo-data', platforms: [:mingw, :mswin, :x64_mingw, :jruby]
+<% end -%>

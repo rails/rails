@@ -1,11 +1,9 @@
 require 'abstract_unit'
 
 class MimeTypeTest < ActiveSupport::TestCase
-  Mime::Type.register "image/png", :png unless defined? Mime::PNG
-  Mime::Type.register "application/pdf", :pdf unless defined? Mime::PDF
 
   test "parse single" do
-    Mime::LOOKUP.keys.each do |mime_type|
+    Mime::LOOKUP.each_key do |mime_type|
       unless mime_type == 'image/*'
         assert_equal [Mime::Type.lookup(mime_type)], Mime::Type.parse(mime_type)
       end
@@ -31,21 +29,21 @@ class MimeTypeTest < ActiveSupport::TestCase
 
   test "parse text with trailing star at the beginning" do
     accept = "text/*, text/html, application/json, multipart/form-data"
-    expect = [Mime::HTML, Mime::TEXT, Mime::JS, Mime::CSS, Mime::ICS, Mime::CSV, Mime::XML, Mime::YAML, Mime::JSON, Mime::MULTIPART_FORM]
+    expect = [Mime::HTML, Mime::TEXT, Mime::JS, Mime::CSS, Mime::ICS, Mime::CSV, Mime::VCF, Mime::XML, Mime::YAML, Mime::JSON, Mime::MULTIPART_FORM]
     parsed = Mime::Type.parse(accept)
     assert_equal expect, parsed
   end
 
   test "parse text with trailing star in the end" do
     accept = "text/html, application/json, multipart/form-data, text/*"
-    expect = [Mime::HTML, Mime::JSON, Mime::MULTIPART_FORM, Mime::TEXT, Mime::JS, Mime::CSS, Mime::ICS, Mime::CSV, Mime::XML, Mime::YAML]
+    expect = [Mime::HTML, Mime::JSON, Mime::MULTIPART_FORM, Mime::TEXT, Mime::JS, Mime::CSS, Mime::ICS, Mime::CSV, Mime::VCF, Mime::XML, Mime::YAML]
     parsed = Mime::Type.parse(accept)
     assert_equal expect, parsed
   end
 
   test "parse text with trailing star" do
     accept = "text/*"
-    expect = [Mime::HTML, Mime::TEXT, Mime::JS, Mime::CSS, Mime::ICS, Mime::CSV, Mime::XML, Mime::YAML, Mime::JSON]
+    expect = [Mime::HTML, Mime::TEXT, Mime::JS, Mime::CSS, Mime::ICS, Mime::CSV, Mime::VCF, Mime::XML, Mime::YAML, Mime::JSON]
     parsed = Mime::Type.parse(accept)
     assert_equal expect, parsed
   end
@@ -85,7 +83,7 @@ class MimeTypeTest < ActiveSupport::TestCase
   test "parse broken acceptlines" do
     accept = "text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/*,,*/*;q=0.5"
     expect = [Mime::HTML, Mime::XML, "image/*", Mime::TEXT, Mime::ALL]
-    assert_equal expect, Mime::Type.parse(accept).collect { |c| c.to_s }
+    assert_equal expect, Mime::Type.parse(accept).collect(&:to_s)
   end
 
   # Accept header send with user HTTP_USER_AGENT: Mozilla/4.0
@@ -93,7 +91,7 @@ class MimeTypeTest < ActiveSupport::TestCase
   test "parse other broken acceptlines" do
     accept = "image/gif, image/x-xbitmap, image/jpeg, image/pjpeg, application/x-shockwave-flash, application/vnd.ms-excel, application/vnd.ms-powerpoint, application/msword,  , pronto/1.00.00, sslvpn/1.00.00.00, */*"
     expect = ['image/gif', 'image/x-xbitmap', 'image/jpeg','image/pjpeg', 'application/x-shockwave-flash', 'application/vnd.ms-excel', 'application/vnd.ms-powerpoint', 'application/msword', 'pronto/1.00.00', 'sslvpn/1.00.00.00', Mime::ALL]
-    assert_equal expect, Mime::Type.parse(accept).collect { |c| c.to_s }
+    assert_equal expect, Mime::Type.parse(accept).collect(&:to_s)
   end
 
   test "custom type" do
@@ -126,7 +124,7 @@ class MimeTypeTest < ActiveSupport::TestCase
       end
 
       Mime::Type.register("text/foo", :foo)
-      assert_equal registered_mimes, [Mime::FOO]
+      assert_equal [Mime::FOO], registered_mimes
     ensure
       Mime::Type.unregister(:FOO)
     end

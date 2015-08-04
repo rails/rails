@@ -69,17 +69,17 @@ module ActionDispatch
         end
 
         def date
-          if date_header = headers['Date']
+          if date_header = headers[DATE]
             Time.httpdate(date_header)
           end
         end
 
         def date?
-          headers.include?('Date')
+          headers.include?(DATE)
         end
 
         def date=(utc_time)
-          headers['Date'] = utc_time.httpdate
+          headers[DATE] = utc_time.httpdate
         end
 
         def etag=(etag)
@@ -89,10 +89,11 @@ module ActionDispatch
 
       private
 
+        DATE          = 'Date'.freeze
         LAST_MODIFIED = "Last-Modified".freeze
         ETAG          = "ETag".freeze
         CACHE_CONTROL = "Cache-Control".freeze
-        SPECIAL_KEYS  = %w[extras no-cache max-age public must-revalidate]
+        SPECIAL_KEYS  = Set.new(%w[extras no-cache max-age public must-revalidate])
 
         def cache_control_segments
           if cache_control = self[CACHE_CONTROL]
@@ -150,11 +151,11 @@ module ActionDispatch
           control.merge! @cache_control
 
           if control.empty?
-            headers[CACHE_CONTROL] = DEFAULT_CACHE_CONTROL
+            self[CACHE_CONTROL] = DEFAULT_CACHE_CONTROL
           elsif control[:no_cache]
-            headers[CACHE_CONTROL] = NO_CACHE
+            self[CACHE_CONTROL] = NO_CACHE
             if control[:extras]
-              headers[CACHE_CONTROL] += ", #{control[:extras].join(', ')}"
+              self[CACHE_CONTROL] += ", #{control[:extras].join(', ')}"
             end
           else
             extras  = control[:extras]
@@ -166,7 +167,7 @@ module ActionDispatch
             options << MUST_REVALIDATE if control[:must_revalidate]
             options.concat(extras) if extras
 
-            headers[CACHE_CONTROL] = options.join(", ")
+            self[CACHE_CONTROL] = options.join(", ")
           end
         end
       end

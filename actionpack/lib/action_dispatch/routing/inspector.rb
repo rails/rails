@@ -5,22 +5,15 @@ module ActionDispatch
   module Routing
     class RouteWrapper < SimpleDelegator
       def endpoint
-        rack_app ? rack_app.inspect : "#{controller}##{action}"
+        app.dispatcher? ? "#{controller}##{action}" : rack_app.inspect
       end
 
       def constraints
         requirements.except(:controller, :action)
       end
 
-      def rack_app(app = self.app)
-        @rack_app ||= begin
-          class_name = app.class.name.to_s
-          if class_name == "ActionDispatch::Routing::Mapper::Constraints"
-            rack_app(app.app)
-          elsif ActionDispatch::Routing::Redirect === app || class_name !~ /^ActionDispatch::Routing/
-            app
-          end
-        end
+      def rack_app
+        app.app
       end
 
       def verb
@@ -35,27 +28,10 @@ module ActionDispatch
         super.to_s
       end
 
-      def regexp
-        __getobj__.path.to_regexp
-      end
-
-      def json_regexp
-        str = regexp.inspect.
-              sub('\\A' , '^').
-              sub('\\Z' , '$').
-              sub('\\z' , '$').
-              sub(/^\// , '').
-              sub(/\/[a-z]*$/ , '').
-              gsub(/\(\?#.+\)/ , '').
-              gsub(/\(\?-\w+:/ , '(').
-              gsub(/\s/ , '')
-        Regexp.new(str).source
-      end
-
       def reqs
         @reqs ||= begin
           reqs = endpoint
-          reqs += " #{constraints.to_s}" unless constraints.empty?
+          reqs += " #{constraints}" unless constraints.empty?
           reqs
         end
       end
@@ -69,11 +45,11 @@ module ActionDispatch
       end
 
       def internal?
-        controller.to_s =~ %r{\Arails/(info|welcome)} || path =~ %r{\A#{Rails.application.config.assets.prefix}}
+        controller.to_s =~ %r{\Arails/(info|mailers|welcome)}
       end
 
       def engine?
-        rack_app && rack_app.respond_to?(:routes)
+        rack_app.respond_to?(:routes)
       end
     end
 
@@ -121,16 +97,13 @@ module ActionDispatch
       def collect_routes(routes)
         routes.collect do |route|
           RouteWrapper.new(route)
-        end.reject do |route|
-          route.internal?
-        end.collect do |route|
+        end.reject(&:internal?).collect do |route|
           collect_engine_routes(route)
 
-          { name:   route.name,
-            verb:   route.verb,
-            path:   route.path,
-            reqs:   route.reqs,
-            regexp: route.json_regexp }
+          { name: route.name,
+            verb: route.verb,
+            path: route.path,
+            reqs: route.reqs }
         end
       end
 
@@ -179,7 +152,8 @@ module ActionDispatch
 
       private
         def draw_section(routes)
-          name_width, verb_width, path_width = widths(routes)
+          header_lengths = ['Prefix', 'Verb', 'URI Pattern'].map(&:length)
+          name_width, verb_width, path_width = widths(routes).zip(header_lengths).map(&:max)
 
           routes.map do |r|
             "#{r[:name].rjust(name_width)} #{r[:verb].ljust(verb_width)} #{r[:path].ljust(path_width)} #{r[:reqs]}"
@@ -193,9 +167,9 @@ module ActionDispatch
         end
 
         def widths(routes)
-          [routes.map { |r| r[:name].length }.max,
-           routes.map { |r| r[:verb].length }.max,
-           routes.map { |r| r[:path].length }.max]
+          [routes.map { |r| r[:name].length }.max || 0,
+           routes.map { |r| r[:verb].length }.max || 0,
+           routes.map { |r| r[:path].length }.max || 0]
         end
     end
 

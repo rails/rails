@@ -1,15 +1,6 @@
 require 'generators/generators_test_helper'
 require 'rails/generators/rails/scaffold_controller/scaffold_controller_generator'
-
-# Mock out what we need from AR::Base.
-module ActiveRecord
-  class Base
-    class << self
-      attr_accessor :pluralize_table_names
-    end
-    self.pluralize_table_names = true
-  end
-end
+require 'minitest/mock'
 
 class NamedBaseTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
@@ -58,11 +49,13 @@ class NamedBaseTest < Rails::Generators::TestCase
   end
 
   def test_named_generator_attributes_without_pluralized
+    original_pluralize_table_names = ActiveRecord::Base.pluralize_table_names
     ActiveRecord::Base.pluralize_table_names = false
+
     g = generator ['admin/foo']
     assert_name g, 'admin_foo', :table_name
   ensure
-    ActiveRecord::Base.pluralize_table_names = true
+    ActiveRecord::Base.pluralize_table_names = original_pluralize_table_names
   end
 
   def test_scaffold_plural_names
@@ -87,10 +80,13 @@ class NamedBaseTest < Rails::Generators::TestCase
 
   def test_application_name
     g = generator ['Admin::Foo']
-    Rails.stubs(:application).returns(Object.new)
-    assert_name g, "object", :application_name
-    Rails.stubs(:application).returns(nil)
-    assert_name g, "application", :application_name
+    Rails.stub(:application, Object.new) do
+      assert_name g, "object", :application_name
+    end
+
+    Rails.stub(:application, nil) do
+      assert_name g, "application", :application_name
+    end
   end
 
   def test_index_helper
@@ -110,11 +106,30 @@ class NamedBaseTest < Rails::Generators::TestCase
 
   def test_hide_namespace
     g = generator ['Hidden']
-    g.class.stubs(:namespace).returns('hidden')
+    g.class.stub(:namespace, 'hidden') do
+      assert !Rails::Generators.hidden_namespaces.include?('hidden')
+      g.class.hide!
+      assert Rails::Generators.hidden_namespaces.include?('hidden')
+    end
+  end
 
-    assert !Rails::Generators.hidden_namespaces.include?('hidden')
-    g.class.hide!
-    assert Rails::Generators.hidden_namespaces.include?('hidden')
+  def test_scaffold_plural_names_with_model_name_option
+    g = generator ['Admin::Foo'], model_name: 'User'
+    assert_name g, 'user',        :singular_name
+    assert_name g, 'User',        :name
+    assert_name g, 'user',        :file_path
+    assert_name g, 'User',        :class_name
+    assert_name g, 'user',        :file_name
+    assert_name g, 'User',        :human_name
+    assert_name g, 'users',       :plural_name
+    assert_name g, 'user',        :i18n_scope
+    assert_name g, 'users',       :table_name
+    assert_name g, 'Admin::Foos', :controller_name
+    assert_name g, %w(admin),     :controller_class_path
+    assert_name g, 'Admin::Foos', :controller_class_name
+    assert_name g, 'admin/foos',  :controller_file_path
+    assert_name g, 'foos',        :controller_file_name
+    assert_name g, 'admin.foos',  :controller_i18n_scope
   end
 
   protected

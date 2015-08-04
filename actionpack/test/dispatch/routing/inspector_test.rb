@@ -2,6 +2,11 @@ require 'abstract_unit'
 require 'rails/engine'
 require 'action_dispatch/routing/inspector'
 
+class MountedRackApp
+  def self.call(env)
+  end
+end
+
 module ActionDispatch
   module Routing
     class RoutesInspectorTest < ActiveSupport::TestCase
@@ -21,14 +26,6 @@ module ActionDispatch
         inspector.format(ActionDispatch::Routing::ConsoleFormatter.new, options[:filter]).split("\n")
       end
 
-      def test_json_regexp_converter
-        @set.draw do
-          get '/cart', :to => 'cart#show'
-        end
-        route = ActionDispatch::Routing::RouteWrapper.new(@set.routes.first)
-        assert_equal "^\\/cart(?:\\.([^\\/.?]+))?$", route.json_regexp
-      end
-
       def test_displaying_routes_for_engines
         engine = Class.new(Rails::Engine) do
           def self.inspect
@@ -46,11 +43,32 @@ module ActionDispatch
 
         assert_equal [
           "       Prefix Verb URI Pattern              Controller#Action",
-          "custom_assets GET /custom/assets(.:format) custom_assets#show",
-          "         blog     /blog                    Blog::Engine",
+          "custom_assets GET  /custom/assets(.:format) custom_assets#show",
+          "         blog      /blog                    Blog::Engine",
           "",
           "Routes for Blog::Engine:",
-          "cart GET /cart(.:format) cart#show"
+          "  cart GET  /cart(.:format) cart#show"
+        ], output
+      end
+
+      def test_displaying_routes_for_engines_without_routes
+        engine = Class.new(Rails::Engine) do
+          def self.inspect
+            "Blog::Engine"
+          end
+        end
+        engine.routes.draw do
+        end
+
+        output = draw do
+          mount engine => "/blog", as: "blog"
+        end
+
+        assert_equal [
+          "Prefix Verb URI Pattern Controller#Action",
+          "  blog      /blog       Blog::Engine",
+          "",
+          "Routes for Blog::Engine:"
         ], output
       end
 
@@ -61,7 +79,7 @@ module ActionDispatch
 
         assert_equal [
           "Prefix Verb URI Pattern     Controller#Action",
-          "cart GET /cart(.:format) cart#show"
+          "  cart GET  /cart(.:format) cart#show"
         ], output
       end
 
@@ -72,7 +90,7 @@ module ActionDispatch
 
         assert_equal [
           "       Prefix Verb URI Pattern              Controller#Action",
-          "custom_assets GET /custom/assets(.:format) custom_assets#show"
+          "custom_assets GET  /custom/assets(.:format) custom_assets#show"
         ], output
       end
 
@@ -101,7 +119,7 @@ module ActionDispatch
 
         assert_equal [
           "Prefix Verb URI Pattern Controller#Action",
-          "root GET / pages#main"
+          "  root GET  /           pages#main"
         ], output
       end
 
@@ -112,7 +130,7 @@ module ActionDispatch
 
         assert_equal [
           "Prefix Verb URI Pattern            Controller#Action",
-          " GET /api/:action(.:format) api#:action"
+          "       GET  /api/:action(.:format) api#:action"
         ], output
       end
 
@@ -123,7 +141,7 @@ module ActionDispatch
 
         assert_equal [
           "Prefix Verb URI Pattern                    Controller#Action",
-          " GET /:controller/:action(.:format) :controller#:action"
+          "       GET  /:controller/:action(.:format) :controller#:action"
         ], output
       end
 
@@ -134,7 +152,7 @@ module ActionDispatch
 
         assert_equal [
           "Prefix Verb URI Pattern                            Controller#Action",
-          " GET /:controller(/:action(/:id))(.:format) :controller#:action {:id=>/\\d+/}"
+          "       GET  /:controller(/:action(/:id))(.:format) :controller#:action {:id=>/\\d+/}"
         ], output
       end
 
@@ -145,7 +163,7 @@ module ActionDispatch
 
         assert_equal [
           "Prefix Verb URI Pattern           Controller#Action",
-          %Q[ GET /photos/:id(.:format) photos#show {:format=>"jpg"}]
+          %Q[       GET  /photos/:id(.:format) photos#show {:format=>"jpg"}]
         ], output
       end
 
@@ -156,23 +174,63 @@ module ActionDispatch
 
         assert_equal [
           "Prefix Verb URI Pattern           Controller#Action",
-          " GET /photos/:id(.:format) photos#show {:id=>/[A-Z]\\d{5}/}"
+          "       GET  /photos/:id(.:format) photos#show {:id=>/[A-Z]\\d{5}/}"
         ], output
       end
 
-      class RackApp
-        def self.call(env)
+      def test_rake_routes_shows_routes_with_dashes
+        output = draw do
+          get 'about-us' => 'pages#about_us'
+          get 'our-work/latest'
+
+          resources :photos, only: [:show] do
+            get 'user-favorites', on: :collection
+            get 'preview-photo', on: :member
+            get 'summary-text'
+          end
         end
+
+        assert_equal [
+          "               Prefix Verb URI Pattern                              Controller#Action",
+          "             about_us GET  /about-us(.:format)                      pages#about_us",
+          "      our_work_latest GET  /our-work/latest(.:format)               our_work#latest",
+          "user_favorites_photos GET  /photos/user-favorites(.:format)         photos#user_favorites",
+          "  preview_photo_photo GET  /photos/:id/preview-photo(.:format)      photos#preview_photo",
+          "   photo_summary_text GET  /photos/:photo_id/summary-text(.:format) photos#summary_text",
+          "                photo GET  /photos/:id(.:format)                    photos#show"
+        ], output
       end
 
       def test_rake_routes_shows_route_with_rack_app
         output = draw do
-          get 'foo/:id' => RackApp, :id => /[A-Z]\d{5}/
+          get 'foo/:id' => MountedRackApp, :id => /[A-Z]\d{5}/
         end
 
         assert_equal [
           "Prefix Verb URI Pattern        Controller#Action",
-          " GET /foo/:id(.:format) #{RackApp.name} {:id=>/[A-Z]\\d{5}/}"
+          "       GET  /foo/:id(.:format) MountedRackApp {:id=>/[A-Z]\\d{5}/}"
+        ], output
+      end
+
+      def test_rake_routes_shows_named_route_with_mounted_rack_app
+        output = draw do
+          mount MountedRackApp => '/foo'
+        end
+
+        assert_equal [
+          "          Prefix Verb URI Pattern Controller#Action",
+          "mounted_rack_app      /foo        MountedRackApp"
+        ], output
+      end
+
+      def test_rake_routes_shows_overridden_named_route_with_mounted_rack_app_with_name
+        output = draw do
+          mount MountedRackApp => '/foo', as: 'blog'
+        end
+
+        assert_equal [
+          "Prefix Verb URI Pattern Controller#Action",
+          "  blog      /foo        MountedRackApp"
         ], output
       end
 
@@ -185,22 +243,34 @@ module ActionDispatch
 
         output = draw do
           scope :constraint => constraint.new do
-            mount RackApp => '/foo'
+            mount MountedRackApp => '/foo'
           end
         end
 
         assert_equal [
-          "Prefix Verb URI Pattern Controller#Action",
-          "  /foo #{RackApp.name} {:constraint=>( my custom constraint )}"
+          "          Prefix Verb URI Pattern Controller#Action",
+          "mounted_rack_app      /foo        MountedRackApp {:constraint=>( my custom constraint )}"
         ], output
       end
 
       def test_rake_routes_dont_show_app_mounted_in_assets_prefix
         output = draw do
-          get '/sprockets' => RackApp
+          get '/sprockets' => MountedRackApp
         end
-        assert_no_match(/RackApp/, output.first)
+        assert_no_match(/MountedRackApp/, output.first)
         assert_no_match(/\/sprockets/, output.first)
+      end
+
+      def test_rake_routes_shows_route_defined_in_under_assets_prefix
+        output = draw do
+          scope '/sprockets' do
+            get '/foo' => 'foo#bar'
+          end
+        end
+        assert_equal [
+          "Prefix Verb URI Pattern              Controller#Action",
+          "   foo GET  /sprockets/foo(.:format) foo#bar"
+        ], output
       end
 
       def test_redirect
@@ -212,9 +282,9 @@ module ActionDispatch
 
         assert_equal [
           "Prefix Verb URI Pattern       Controller#Action",
-          "   foo GET /foo(.:format)    redirect(301, /foo/bar) {:subdomain=>\"admin\"}",
-          "   bar GET /bar(.:format)    redirect(307, path: /foo/bar)",
-          "foobar GET /foobar(.:format) redirect(301)"
+          "   foo GET  /foo(.:format)    redirect(301, /foo/bar) {:subdomain=>\"admin\"}",
+          "   bar GET  /bar(.:format)    redirect(307, path: /foo/bar)",
+          "foobar GET  /foobar(.:format) redirect(301)"
         ], output
       end
 
@@ -241,7 +311,23 @@ module ActionDispatch
         end
 
         assert_equal ["Prefix Verb URI Pattern            Controller#Action",
-                      " GET /:controller(/:action) (?-mix:api\\/[^\\/]+)#:action"], output
+                      "       GET  /:controller(/:action) (?-mix:api\\/[^\\/]+)#:action"], output
+      end
+
+      def test_inspect_routes_shows_resources_route_when_assets_disabled
+        @set = ActionDispatch::Routing::RouteSet.new
+        app = ActiveSupport::OrderedOptions.new
+
+        Rails.stubs(:application).returns(app)
+
+        output = draw do
+          get '/cart', to: 'cart#show'
+        end
+
+        assert_equal [
+          "Prefix Verb URI Pattern     Controller#Action",
+          "  cart GET  /cart(.:format) cart#show"
+        ], output
       end
     end
   end

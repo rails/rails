@@ -183,5 +183,34 @@ en:
       load_app
       assert_fallbacks ca: [:ca, :"es-ES", :es, :'en-US', :en]
     end
+
+    test "disable config.i18n.enforce_available_locales" do
+      add_to_config <<-RUBY
+        config.i18n.enforce_available_locales = false
+        config.i18n.default_locale = :fr
+      RUBY
+
+      load_app
+      assert_equal false, I18n.enforce_available_locales
+
+      assert_nothing_raised do
+        I18n.locale = :es
+      end
+    end
+
+    test "default config.i18n.enforce_available_locales does not override I18n.enforce_available_locales" do
+      I18n.enforce_available_locales = false
+
+      add_to_config <<-RUBY
+        config.i18n.default_locale = :fr
+      RUBY
+
+      load_app
+      assert_equal false, I18n.enforce_available_locales
+
+      assert_nothing_raised do
+        I18n.locale = :es
+      end
+    end
   end
 end

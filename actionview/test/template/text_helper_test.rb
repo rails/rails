@@ -1,4 +1,3 @@
-# encoding: utf-8
 require 'abstract_unit'
 
 class TextHelperTest < ActionView::TestCase
@@ -21,6 +20,11 @@ class TextHelperTest < ActionView::TestCase
     assert simple_format("<b> test with html tags </b>").html_safe?
   end
 
+  def test_simple_format_included_in_isolation
+    helper_klass = Class.new { include ActionView::Helpers::TextHelper }
+    assert helper_klass.new.simple_format("<b> test with html tags </b>").html_safe?
+  end
+
   def test_simple_format
     assert_equal "<p></p>", simple_format(nil)
 
@@ -40,6 +44,11 @@ class TextHelperTest < ActionView::TestCase
 
   def test_simple_format_should_sanitize_input_when_sanitize_option_is_not_false
     assert_equal "<p><b> test with unsafe string </b></p>", simple_format("<b> test with unsafe string </b><script>code!</script>")
+  end
+
+  def test_simple_format_should_sanitize_input_when_sanitize_option_is_true
+    assert_equal '<p><b> test with unsafe string </b></p>',
+      simple_format('<b> test with unsafe string </b><script>code!</script>', {}, sanitize: true)
   end
 
   def test_simple_format_should_not_sanitize_input_when_sanitize_option_is_false
@@ -177,8 +186,14 @@ class TextHelperTest < ActionView::TestCase
       "This text is not changed because we supplied an empty phrase",
       highlight("This text is not changed because we supplied an empty phrase", nil)
     )
+  end
 
+  def test_highlight_pending
     assert_equal '   ', highlight('   ', 'blank text is returned verbatim')
+  end
+
+  def test_highlight_should_return_blank_string_for_nil
+    assert_equal '', highlight(nil, 'blank string is returned for nil')
   end
 
   def test_highlight_should_sanitize_input
@@ -210,6 +225,11 @@ class TextHelperTest < ActionView::TestCase
       "This is a <mark>beautiful? morning</mark>",
       highlight("This is a beautiful? morning", "beautiful? morning")
     )
+  end
+
+  def test_highlight_accepts_regexp
+    assert_equal("This day was challenging for judge <mark>Allen</mark> and his colleagues.",
+                 highlight("This day was challenging for judge Allen and his colleagues.", /\ballen\b/i))
   end
 
   def test_highlight_with_multiple_phrases_in_one_pass
@@ -250,11 +270,28 @@ class TextHelperTest < ActionView::TestCase
     assert_equal options, passed_options
   end
 
+  def test_highlight_with_block
+    assert_equal(
+      "<b>one</b> <b>two</b> <b>three</b>",
+      highlight("one two three", ["one", "two", "three"]) { |word| "<b>#{word}</b>" }
+    )
+  end
+
   def test_excerpt
     assert_equal("...is a beautiful morn...", excerpt("This is a beautiful morning", "beautiful", :radius => 5))
     assert_equal("This is a...", excerpt("This is a beautiful morning", "this", :radius => 5))
     assert_equal("...iful morning", excerpt("This is a beautiful morning", "morning", :radius => 5))
     assert_nil excerpt("This is a beautiful morning", "day")
+  end
+
+  def test_excerpt_with_regex
+    assert_equal('...is a beautiful! mor...', excerpt('This is a beautiful! morning', 'beautiful', :radius => 5))
+    assert_equal('...is a beautiful? mor...', excerpt('This is a beautiful? morning', 'beautiful', :radius => 5))
+    assert_equal('...is a beautiful? mor...', excerpt('This is a beautiful? morning', /\bbeau\w*\b/i, :radius => 5))
+    assert_equal('...is a beautiful? mor...', excerpt('This is a beautiful? morning', /\b(beau\w*)\b/i, :radius => 5))
+    assert_equal("...udge Allen and...", excerpt("This day was challenging for judge Allen and his colleagues.", /\ballen\b/i, :radius => 5))
+    assert_equal("...judge Allen and...", excerpt("This day was challenging for judge Allen and his colleagues.", /\ballen\b/i, :radius => 1, :separator => ' '))
+    assert_equal("...was challenging for...", excerpt("This day was challenging for judge Allen and his colleagues.", /\b(\w*allen\w*)\b/i, :radius => 5))
   end
 
   def test_excerpt_should_not_be_html_safe
@@ -276,11 +313,6 @@ class TextHelperTest < ActionView::TestCase
     # appended is questionable.
     assert_equal("zabcd", excerpt("  zabcd  ", "b", :radius => 4))
     assert_equal("...abc...", excerpt("z  abc  d", "b", :radius => 1))
-  end
-
-  def test_excerpt_with_regex
-    assert_equal('...is a beautiful! mor...', excerpt('This is a beautiful! morning', 'beautiful', :radius => 5))
-    assert_equal('...is a beautiful? mor...', excerpt('This is a beautiful? morning', 'beautiful', :radius => 5))
   end
 
   def test_excerpt_with_omission
@@ -314,6 +346,9 @@ class TextHelperTest < ActionView::TestCase
 
     options = { :separator => "\n", :radius => 1 }
     assert_equal("...very\nvery long\nstring", excerpt("my very\nvery\nvery long\nstring", 'long', options))
+
+    assert_equal excerpt('This is a beautiful morning', 'a'),
+                 excerpt('This is a beautiful morning', 'a', separator: nil)
   end
 
   def test_word_wrap
@@ -348,6 +383,18 @@ class TextHelperTest < ActionView::TestCase
     assert_equal("12 berries", pluralize(12, "berry"))
   end
 
+  def test_pluralization_with_locale
+    ActiveSupport::Inflector.inflections(:de) do |inflect|
+      inflect.plural(/(person)$/i, '\1en')
+      inflect.singular(/(person)en$/i, '\1')
+    end
+
+    assert_equal("2 People", pluralize(2, "Person", locale: :en))
+    assert_equal("2 Personen", pluralize(2, "Person", locale: :de))
+
+    ActiveSupport::Inflector.inflections(:de).clear
+  end
+
   def test_cycle_class
     value = Cycle.new("one", 2, "3")
     assert_equal("one", value.to_s)
@@ -371,6 +418,13 @@ class TextHelperTest < ActionView::TestCase
     assert_equal("one", cycle("one", 2, "3"))
     assert_equal("2", cycle("one", 2, "3"))
     assert_equal("3", cycle("one", 2, "3"))
+  end
+
+  def test_cycle_with_array
+    array = [1, 2, 3]
+    assert_equal("1", cycle(array))
+    assert_equal("2", cycle(array))
+    assert_equal("3", cycle(array))
   end
 
   def test_cycle_with_no_arguments
@@ -447,7 +501,7 @@ class TextHelperTest < ActionView::TestCase
     reset_cycle("colors")
   end
 
-  def test_recet_named_cycle
+  def test_reset_named_cycle
     assert_equal("1", cycle(1, 2, 3, :name => "numbers"))
     assert_equal("red", cycle("red", "blue", :name => "colors"))
     reset_cycle("numbers")

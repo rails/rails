@@ -1,7 +1,6 @@
-# encoding: utf-8
+# -*- coding: utf-8 -*-
 
 require "cases/helper"
-require 'active_support/concurrency/latch'
 require 'models/post'
 require 'models/author'
 require 'models/topic'
@@ -10,6 +9,7 @@ require 'models/category'
 require 'models/company'
 require 'models/customer'
 require 'models/developer'
+require 'models/computer'
 require 'models/project'
 require 'models/default'
 require 'models/auto_id'
@@ -28,6 +28,7 @@ require 'models/bird'
 require 'models/car'
 require 'models/bulb'
 require 'rexml/document'
+require 'concurrent/atomics'
 
 class FirstAbstractClass < ActiveRecord::Base
   self.abstract_class = true
@@ -78,22 +79,6 @@ end
 class BasicsTest < ActiveRecord::TestCase
   fixtures :topics, :companies, :developers, :projects, :computers, :accounts, :minimalistics, 'warehouse-things', :authors, :categorizations, :categories, :posts
 
-  def setup
-    ActiveRecord::Base.time_zone_aware_attributes = false
-    ActiveRecord::Base.default_timezone = :local
-    Time.zone = nil
-  end
-
-  def test_generated_methods_modules
-    modules = Computer.ancestors
-    assert modules.include?(Computer::GeneratedFeatureMethods)
-    assert_equal(Computer::GeneratedFeatureMethods, Computer.generated_feature_methods)
-    assert(modules.index(Computer.generated_attribute_methods) > modules.index(Computer.generated_feature_methods),
-           "generated_attribute_methods must be higher in inheritance hierarchy than generated_feature_methods")
-    assert_not_equal Computer.generated_feature_methods, Post.generated_feature_methods
-    assert(modules.index(Computer.generated_attribute_methods) < modules.index(ActiveRecord::Base.ancestors[1]))
-  end
-
   def test_column_names_are_escaped
     conn      = ActiveRecord::Base.connection
     classname = conn.class.name[/[^:]*$/]
@@ -103,6 +88,7 @@ class BasicsTest < ActiveRecord::TestCase
       'Mysql2Adapter'     => '`',
       'PostgreSQLAdapter' => '"',
       'OracleAdapter'     => '"',
+      'FbAdapter'         => '"'
     }.fetch(classname) {
       raise "need a bad char for #{classname}"
     }
@@ -118,15 +104,15 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_columns_should_obey_set_primary_key
-    pk = Subscriber.columns.find { |x| x.name == 'nick' }
-    assert pk.primary, 'nick should be primary key'
+    pk = Subscriber.columns_hash[Subscriber.primary_key]
+    assert_equal 'nick', pk.name, 'nick should be primary key'
   end
 
   def test_primary_key_with_no_id
     assert_nil Edge.primary_key
   end
 
-  unless current_adapter?(:PostgreSQLAdapter, :OracleAdapter, :SQLServerAdapter)
+  unless current_adapter?(:PostgreSQLAdapter, :OracleAdapter, :SQLServerAdapter, :FbAdapter)
     def test_limit_with_comma
       assert Topic.limit("1,2").to_a
     end
@@ -135,6 +121,10 @@ class BasicsTest < ActiveRecord::TestCase
   def test_limit_without_comma
     assert_equal 1, Topic.limit("1").to_a.length
     assert_equal 1, Topic.limit(1).to_a.length
+  end
+
+  def test_limit_should_take_value_from_latest_limit
+    assert_equal 1, Topic.limit(2).limit(1).to_a.length
   end
 
   def test_invalid_limit
@@ -172,19 +162,11 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_preserving_date_objects
-    if current_adapter?(:SybaseAdapter)
-      # Sybase ctlib does not (yet?) support the date type; use datetime instead.
-      assert_kind_of(
-        Time, Topic.find(1).last_read,
-        "The last_read attribute should be of the Time class"
-      )
-    else
-      # Oracle enhanced adapter allows to define Date attributes in model class (see topic.rb)
-      assert_kind_of(
-        Date, Topic.find(1).last_read,
-        "The last_read attribute should be of the Date class"
-      )
-    end
+    # Oracle enhanced adapter allows to define Date attributes in model class (see topic.rb)
+    assert_kind_of(
+      Date, Topic.find(1).last_read,
+      "The last_read attribute should be of the Date class"
+    )
   end
 
   def test_previously_changed
@@ -224,7 +206,7 @@ class BasicsTest < ActiveRecord::TestCase
     )
 
     # For adapters which support microsecond resolution.
-    if current_adapter?(:PostgreSQLAdapter, :SQLite3Adapter)
+    if current_adapter?(:PostgreSQLAdapter, :SQLite3Adapter) || mysql_56?
       assert_equal 11, Topic.find(1).written_on.sec
       assert_equal 223300, Topic.find(1).written_on.usec
       assert_equal 9900, Topic.find(2).written_on.usec
@@ -234,7 +216,7 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_preserving_time_objects_with_local_time_conversion_to_default_timezone_utc
     with_env_tz 'America/New_York' do
-      with_active_record_default_timezone :utc do
+      with_timezone_config default: :utc do
         time = Time.local(2000)
         topic = Topic.create('written_on' => time)
         saved_time = Topic.find(topic.id).reload.written_on
@@ -247,7 +229,7 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_preserving_time_objects_with_time_with_zone_conversion_to_default_timezone_utc
     with_env_tz 'America/New_York' do
-      with_active_record_default_timezone :utc do
+      with_timezone_config default: :utc do
         Time.use_zone 'Central Time (US & Canada)' do
           time = Time.zone.local(2000)
           topic = Topic.create('written_on' => time)
@@ -262,18 +244,20 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_preserving_time_objects_with_utc_time_conversion_to_default_timezone_local
     with_env_tz 'America/New_York' do
-      time = Time.utc(2000)
-      topic = Topic.create('written_on' => time)
-      saved_time = Topic.find(topic.id).reload.written_on
-      assert_equal time, saved_time
-      assert_equal [0, 0, 0, 1, 1, 2000, 6, 1, false, "UTC"], time.to_a
-      assert_equal [0, 0, 19, 31, 12, 1999, 5, 365, false, "EST"], saved_time.to_a
+      with_timezone_config default: :local do
+        time = Time.utc(2000)
+        topic = Topic.create('written_on' => time)
+        saved_time = Topic.find(topic.id).reload.written_on
+        assert_equal time, saved_time
+        assert_equal [0, 0, 0, 1, 1, 2000, 6, 1, false, "UTC"], time.to_a
+        assert_equal [0, 0, 19, 31, 12, 1999, 5, 365, false, "EST"], saved_time.to_a
+      end
     end
   end
 
   def test_preserving_time_objects_with_time_with_zone_conversion_to_default_timezone_local
     with_env_tz 'America/New_York' do
-      with_active_record_default_timezone :local do
+      with_timezone_config default: :local do
         Time.use_zone 'Central Time (US & Canada)' do
           time = Time.zone.local(2000)
           topic = Topic.create('written_on' => time)
@@ -331,7 +315,7 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_load
     topics = Topic.all.merge!(:order => 'id').to_a
-    assert_equal(4, topics.size)
+    assert_equal(5, topics.size)
     assert_equal(topics(:first).title, topics.first.title)
   end
 
@@ -490,28 +474,28 @@ class BasicsTest < ActiveRecord::TestCase
     end
   end
 
-  # Oracle, and Sybase do not have a TIME datatype.
-  unless current_adapter?(:OracleAdapter, :SybaseAdapter)
+  # Oracle does not have a TIME datatype.
+  unless current_adapter?(:OracleAdapter)
     def test_utc_as_time_zone
-      Topic.default_timezone = :utc
-      attributes = { "bonus_time" => "5:42:00AM" }
-      topic = Topic.find(1)
-      topic.attributes = attributes
-      assert_equal Time.utc(2000, 1, 1, 5, 42, 0), topic.bonus_time
-      Topic.default_timezone = :local
+      with_timezone_config default: :utc do
+        attributes = { "bonus_time" => "5:42:00AM" }
+        topic = Topic.find(1)
+        topic.attributes = attributes
+        assert_equal Time.utc(2000, 1, 1, 5, 42, 0), topic.bonus_time
+      end
     end
 
     def test_utc_as_time_zone_and_new
-      Topic.default_timezone = :utc
-      attributes = { "bonus_time(1i)"=>"2000",
-                     "bonus_time(2i)"=>"1",
-                     "bonus_time(3i)"=>"1",
-                     "bonus_time(4i)"=>"10",
-                     "bonus_time(5i)"=>"35",
-                     "bonus_time(6i)"=>"50" }
-      topic = Topic.new(attributes)
-      assert_equal Time.utc(2000, 1, 1, 10, 35, 50), topic.bonus_time
-      Topic.default_timezone = :local
+      with_timezone_config default: :utc do
+        attributes = { "bonus_time(1i)"=>"2000",
+          "bonus_time(2i)"=>"1",
+          "bonus_time(3i)"=>"1",
+          "bonus_time(4i)"=>"10",
+          "bonus_time(5i)"=>"35",
+          "bonus_time(6i)"=>"50" }
+        topic = Topic.new(attributes)
+        assert_equal Time.utc(2000, 1, 1, 10, 35, 50), topic.bonus_time
+      end
     end
   end
 
@@ -525,12 +509,7 @@ class BasicsTest < ActiveRecord::TestCase
     topic = Topic.find(topic.id)
     assert_nil topic.last_read
 
-    # Sybase adapter does not allow nulls in boolean columns
-    if current_adapter?(:SybaseAdapter)
-      assert topic.approved == false
-    else
-      assert_nil topic.approved
-    end
+    assert_nil topic.approved
   end
 
   def test_equality
@@ -541,8 +520,17 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal Topic.find('1-meowmeow'), Topic.find(1)
   end
 
+  def test_find_by_slug_with_array
+    assert_equal Topic.find(['1-meowmeow', '2-hello']), Topic.find([1, 2])
+  end
+
+  def test_find_by_slug_with_range
+    assert_equal Topic.where(id: '1-meowmeow'..'2-hello'), Topic.where(id: 1..2)
+  end
+
   def test_equality_of_new_records
     assert_not_equal Topic.new, Topic.new
+    assert_equal false, Topic.new == Topic.new
   end
 
   def test_equality_of_destroyed_records
@@ -554,21 +542,92 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal topic_2, topic_1
   end
 
+  def test_equality_with_blank_ids
+    one = Subscriber.new(:id => '')
+    two = Subscriber.new(:id => '')
+    assert_equal one, two
+  end
+
+  def test_equality_of_relation_and_collection_proxy
+    car = Car.create!
+    car.bulbs.build
+    car.save
+
+    assert car.bulbs == Bulb.where(car_id: car.id), 'CollectionProxy should be comparable with Relation'
+    assert Bulb.where(car_id: car.id) == car.bulbs, 'Relation should be comparable with CollectionProxy'
+  end
+
+  def test_equality_of_relation_and_array
+    car = Car.create!
+    car.bulbs.build
+    car.save
+
+    assert Bulb.where(car_id: car.id) == car.bulbs.to_a, 'Relation should be comparable with Array'
+  end
+
+  def test_equality_of_relation_and_association_relation
+    car = Car.create!
+    car.bulbs.build
+    car.save
+
+    assert_equal Bulb.where(car_id: car.id), car.bulbs.includes(:car), 'Relation should be comparable with AssociationRelation'
+    assert_equal car.bulbs.includes(:car), Bulb.where(car_id: car.id), 'AssociationRelation should be comparable with Relation'
+  end
+
+  def test_equality_of_collection_proxy_and_association_relation
+    car = Car.create!
+    car.bulbs.build
+    car.save
+
+    assert_equal car.bulbs, car.bulbs.includes(:car), 'CollectionProxy should be comparable with AssociationRelation'
+    assert_equal car.bulbs.includes(:car), car.bulbs, 'AssociationRelation should be comparable with CollectionProxy'
+  end
+
   def test_hashing
     assert_equal [ Topic.find(1) ], [ Topic.find(2).topic ] & [ Topic.find(1) ]
   end
 
-  def test_comparison
+  def test_successful_comparison_of_like_class_records
     topic_1 = Topic.create!
     topic_2 = Topic.create!
 
     assert_equal [topic_2, topic_1].sort, [topic_1, topic_2]
   end
 
+  def test_failed_comparison_of_unlike_class_records
+    assert_raises ArgumentError do
+      [ topics(:first), posts(:welcome) ].sort
+    end
+  end
+
+  def test_create_without_prepared_statement
+    topic = Topic.connection.unprepared_statement do
+      Topic.create(:title => 'foo')
+    end
+
+    assert_equal topic, Topic.find(topic.id)
+  end
+
+  def test_destroy_without_prepared_statement
+    topic = Topic.create(title: 'foo')
+    Topic.connection.unprepared_statement do
+      Topic.find(topic.id).destroy
+    end
+
+    assert_equal nil, Topic.find_by_id(topic.id)
+  end
+
   def test_comparison_with_different_objects
     topic = Topic.create
     category = Category.create(:name => "comparison")
     assert_nil topic <=> category
+  end
+
+  def test_comparison_with_different_objects_in_array
+    topic = Topic.create
+    assert_raises(ArgumentError) do
+      [1, topic].sort
+    end
   end
 
   def test_readonly_attributes
@@ -585,8 +644,23 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_unicode_column_name
+    Weird.reset_column_information
     weird = Weird.create(:なまえ => 'たこ焼き仮面')
     assert_equal 'たこ焼き仮面', weird.なまえ
+  end
+
+  unless current_adapter?(:PostgreSQLAdapter)
+    def test_respect_internal_encoding
+      old_default_internal = Encoding.default_internal
+      silence_warnings { Encoding.default_internal = "EUC-JP" }
+
+      Weird.reset_column_information
+
+      assert_equal ["EUC-JP"], Weird.columns.map {|c| c.name.encoding.name }.uniq
+    ensure
+      silence_warnings { Encoding.default_internal = old_default_internal }
+      Weird.reset_column_information
+    end
   end
 
   def test_non_valid_identifier_column_name
@@ -608,20 +682,22 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_attributes_on_dummy_time
-    # Oracle, and Sybase do not have a TIME datatype.
-    return true if current_adapter?(:OracleAdapter, :SybaseAdapter)
+    # Oracle does not have a TIME datatype.
+    return true if current_adapter?(:OracleAdapter)
 
-    attributes = {
-      "bonus_time" => "5:42:00AM"
-    }
-    topic = Topic.find(1)
-    topic.attributes = attributes
-    assert_equal Time.local(2000, 1, 1, 5, 42, 0), topic.bonus_time
+    with_timezone_config default: :local do
+      attributes = {
+        "bonus_time" => "5:42:00AM"
+      }
+      topic = Topic.find(1)
+      topic.attributes = attributes
+      assert_equal Time.local(2000, 1, 1, 5, 42, 0), topic.bonus_time
+    end
   end
 
   def test_attributes_on_dummy_time_with_invalid_time
-    # Oracle, and Sybase do not have a TIME datatype.
-    return true if current_adapter?(:OracleAdapter, :SybaseAdapter)
+    # Oracle does not have a TIME datatype.
+    return true if current_adapter?(:OracleAdapter)
 
     attributes = {
       "bonus_time" => "not a time"
@@ -708,8 +784,14 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal("c", duped_topic.title)
   end
 
+  DeveloperSalary = Struct.new(:amount)
   def test_dup_with_aggregate_of_same_name_as_attribute
-    dev = DeveloperWithAggregate.find(1)
+    developer_with_aggregate = Class.new(ActiveRecord::Base) do
+      self.table_name = 'developers'
+      composed_of :salary, :class_name => 'BasicsTest::DeveloperSalary', :mapping => [%w(salary amount)]
+    end
+
+    dev = developer_with_aggregate.find(1)
     assert_kind_of DeveloperSalary, dev.salary
 
     dup = nil
@@ -731,7 +813,6 @@ class BasicsTest < ActiveRecord::TestCase
   def test_dup_does_not_copy_associations
     author = authors(:david)
     assert_not_equal [], author.posts
-    author.send(:clear_association_cache)
 
     author_dup = author.dup
     assert_equal [], author_dup.posts
@@ -804,111 +885,26 @@ class BasicsTest < ActiveRecord::TestCase
   # TODO: extend defaults tests to other databases!
   if current_adapter?(:PostgreSQLAdapter)
     def test_default
-      tz = Default.default_timezone
-      Default.default_timezone = :local
-      default = Default.new
-      Default.default_timezone = tz
+      with_timezone_config default: :local do
+        default = Default.new
 
-      # fixed dates / times
-      assert_equal Date.new(2004, 1, 1), default.fixed_date
-      assert_equal Time.local(2004, 1,1,0,0,0,0), default.fixed_time
+        # fixed dates / times
+        assert_equal Date.new(2004, 1, 1), default.fixed_date
+        assert_equal Time.local(2004, 1,1,0,0,0,0), default.fixed_time
 
-      # char types
-      assert_equal 'Y', default.char1
-      assert_equal 'a varchar field', default.char2
-      assert_equal 'a text field', default.char3
-    end
-
-    class Geometric < ActiveRecord::Base; end
-    def test_geometric_content
-
-      # accepted format notes:
-      # ()'s aren't required
-      # values can be a mix of float or integer
-
-      g = Geometric.new(
-        :a_point        => '(5.0, 6.1)',
-        #:a_line         => '((2.0, 3), (5.5, 7.0))' # line type is currently unsupported in postgresql
-        :a_line_segment => '(2.0, 3), (5.5, 7.0)',
-        :a_box          => '2.0, 3, 5.5, 7.0',
-        :a_path         => '[(2.0, 3), (5.5, 7.0), (8.5, 11.0)]',  # [ ] is an open path
-        :a_polygon      => '((2.0, 3), (5.5, 7.0), (8.5, 11.0))',
-        :a_circle       => '<(5.3, 10.4), 2>'
-      )
-
-      assert g.save
-
-      # Reload and check that we have all the geometric attributes.
-      h = Geometric.find(g.id)
-
-      assert_equal [5.0, 6.1], h.a_point
-      assert_equal '[(2,3),(5.5,7)]', h.a_line_segment
-      assert_equal '(5.5,7),(2,3)', h.a_box   # reordered to store upper right corner then bottom left corner
-      assert_equal '[(2,3),(5.5,7),(8.5,11)]', h.a_path
-      assert_equal '((2,3),(5.5,7),(8.5,11))', h.a_polygon
-      assert_equal '<(5.3,10.4),2>', h.a_circle
-
-      # use a geometric function to test for an open path
-      objs = Geometric.find_by_sql ["select isopen(a_path) from geometrics where id = ?", g.id]
-
-      assert_equal true, objs[0].isopen
-
-      # test alternate formats when defining the geometric types
-
-      g = Geometric.new(
-        :a_point        => '5.0, 6.1',
-        #:a_line         => '((2.0, 3), (5.5, 7.0))' # line type is currently unsupported in postgresql
-        :a_line_segment => '((2.0, 3), (5.5, 7.0))',
-        :a_box          => '(2.0, 3), (5.5, 7.0)',
-        :a_path         => '((2.0, 3), (5.5, 7.0), (8.5, 11.0))',  # ( ) is a closed path
-        :a_polygon      => '2.0, 3, 5.5, 7.0, 8.5, 11.0',
-        :a_circle       => '((5.3, 10.4), 2)'
-      )
-
-      assert g.save
-
-      # Reload and check that we have all the geometric attributes.
-      h = Geometric.find(g.id)
-
-      assert_equal [5.0, 6.1], h.a_point
-      assert_equal '[(2,3),(5.5,7)]', h.a_line_segment
-      assert_equal '(5.5,7),(2,3)', h.a_box   # reordered to store upper right corner then bottom left corner
-      assert_equal '((2,3),(5.5,7),(8.5,11))', h.a_path
-      assert_equal '((2,3),(5.5,7),(8.5,11))', h.a_polygon
-      assert_equal '<(5.3,10.4),2>', h.a_circle
-
-      # use a geometric function to test for an closed path
-      objs = Geometric.find_by_sql ["select isclosed(a_path) from geometrics where id = ?", g.id]
-
-      assert_equal true, objs[0].isclosed
-
-      # test native ruby formats when defining the geometric types
-      g = Geometric.new(
-        :a_point        => [5.0, 6.1],
-        #:a_line         => '((2.0, 3), (5.5, 7.0))' # line type is currently unsupported in postgresql
-        :a_line_segment => '((2.0, 3), (5.5, 7.0))',
-        :a_box          => '(2.0, 3), (5.5, 7.0)',
-        :a_path         => '((2.0, 3), (5.5, 7.0), (8.5, 11.0))',  # ( ) is a closed path
-        :a_polygon      => '2.0, 3, 5.5, 7.0, 8.5, 11.0',
-        :a_circle       => '((5.3, 10.4), 2)'
-      )
-
-      assert g.save
-
-      # Reload and check that we have all the geometric attributes.
-      h = Geometric.find(g.id)
-
-      assert_equal [5.0, 6.1], h.a_point
-      assert_equal '[(2,3),(5.5,7)]', h.a_line_segment
-      assert_equal '(5.5,7),(2,3)', h.a_box   # reordered to store upper right corner then bottom left corner
-      assert_equal '((2,3),(5.5,7),(8.5,11))', h.a_path
-      assert_equal '((2,3),(5.5,7),(8.5,11))', h.a_polygon
-      assert_equal '<(5.3,10.4),2>', h.a_circle
+        # char types
+        assert_equal 'Y', default.char1
+        assert_equal 'a varchar field', default.char2
+        assert_equal 'a text field', default.char3
+      end
     end
   end
 
   class NumericData < ActiveRecord::Base
     self.table_name = 'numeric_data'
+
+    attribute :my_house_population, :integer
+    attribute :atoms_in_universe, :integer
   end
 
   def test_big_decimal_conditions
@@ -1013,54 +1009,61 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_switching_between_table_name
-    assert_difference("GoodJoke.count") do
-      Joke.table_name = "cold_jokes"
-      Joke.create
+    k = Class.new(Joke)
 
-      Joke.table_name = "funny_jokes"
-      Joke.create
+    assert_difference("GoodJoke.count") do
+      k.table_name = "cold_jokes"
+      k.create
+
+      k.table_name = "funny_jokes"
+      k.create
     end
   end
 
   def test_clear_cash_when_setting_table_name
-    Joke.table_name = "cold_jokes"
-    before_columns = Joke.columns
-    before_seq     = Joke.sequence_name
+    original_table_name = Joke.table_name
 
     Joke.table_name = "funny_jokes"
+    before_columns = Joke.columns
+    before_seq = Joke.sequence_name
+
+    Joke.table_name = "cold_jokes"
     after_columns = Joke.columns
-    after_seq     = Joke.sequence_name
+    after_seq = Joke.sequence_name
 
     assert_not_equal before_columns, after_columns
     assert_not_equal before_seq, after_seq unless before_seq.nil? && after_seq.nil?
+  ensure
+    Joke.table_name = original_table_name
   end
 
   def test_dont_clear_sequence_name_when_setting_explicitly
-    Joke.sequence_name = "black_jokes_seq"
-    Joke.table_name    = "cold_jokes"
-    before_seq         = Joke.sequence_name
+    k = Class.new(Joke)
+    k.sequence_name = "black_jokes_seq"
+    k.table_name = "cold_jokes"
+    before_seq = k.sequence_name
 
-    Joke.table_name    = "funny_jokes"
-    after_seq          = Joke.sequence_name
+    k.table_name = "funny_jokes"
+    after_seq = k.sequence_name
 
     assert_equal before_seq, after_seq unless before_seq.nil? && after_seq.nil?
-  ensure
-    Joke.reset_sequence_name
   end
 
   def test_dont_clear_inheritance_column_when_setting_explicitly
-    Joke.inheritance_column = "my_type"
-    before_inherit = Joke.inheritance_column
+    k = Class.new(Joke)
+    k.inheritance_column = "my_type"
+    before_inherit = k.inheritance_column
 
-    Joke.reset_column_information
-    after_inherit = Joke.inheritance_column
+    k.reset_column_information
+    after_inherit = k.inheritance_column
 
     assert_equal before_inherit, after_inherit unless before_inherit.blank? && after_inherit.blank?
   end
 
   def test_set_table_name_symbol_converted_to_string
-    Joke.table_name = :cold_jokes
-    assert_equal 'cold_jokes', Joke.table_name
+    k = Class.new(Joke)
+    k.table_name = :cold_jokes
+    assert_equal 'cold_jokes', k.table_name
   end
 
   def test_quoted_table_name_after_set_table_name
@@ -1088,7 +1091,7 @@ class BasicsTest < ActiveRecord::TestCase
     k = Class.new(ak)
     k.table_name = "projects"
     orig_name = k.sequence_name
-    return skip "sequences not supported by db" unless orig_name
+    skip "sequences not supported by db" unless orig_name
     assert_equal k.reset_sequence_name, orig_name
   end
 
@@ -1260,20 +1263,40 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_compute_type_nonexistent_constant
-    assert_raises NameError do
+    e = assert_raises NameError do
       ActiveRecord::Base.send :compute_type, 'NonexistentModel'
     end
+    assert_equal 'uninitialized constant ActiveRecord::Base::NonexistentModel', e.message
+    assert_equal 'ActiveRecord::Base::NonexistentModel', e.name
   end
 
   def test_compute_type_no_method_error
-    ActiveSupport::Dependencies.stubs(:constantize).raises(NoMethodError)
+    ActiveSupport::Dependencies.stubs(:safe_constantize).raises(NoMethodError)
     assert_raises NoMethodError do
       ActiveRecord::Base.send :compute_type, 'InvalidModel'
     end
   end
 
+  def test_compute_type_on_undefined_method
+    error = nil
+    begin
+      Class.new(Author) do
+        alias_method :foo, :bar
+      end
+    rescue => e
+      error = e
+    end
+
+    ActiveSupport::Dependencies.stubs(:safe_constantize).raises(e)
+
+    exception = assert_raises NameError do
+      ActiveRecord::Base.send :compute_type, 'InvalidModel'
+    end
+    assert_equal error.message, exception.message
+  end
+
   def test_compute_type_argument_error
-    ActiveSupport::Dependencies.stubs(:constantize).raises(ArgumentError)
+    ActiveSupport::Dependencies.stubs(:safe_constantize).raises(ArgumentError)
     assert_raises ArgumentError do
       ActiveRecord::Base.send :compute_type, 'InvalidModel'
     end
@@ -1284,7 +1307,10 @@ class BasicsTest < ActiveRecord::TestCase
     c1 = Post.connection.schema_cache.columns('posts')
     ActiveRecord::Base.clear_cache!
     c2 = Post.connection.schema_cache.columns('posts')
-    assert_not_equal c1, c2
+    c1.each_with_index do |v, i|
+      assert_not_same v, c2[i]
+    end
+    assert_equal c1, c2
   end
 
   def test_current_scope_is_reset
@@ -1324,33 +1350,35 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal 1, post.comments.length
   end
 
-  def test_marshal_between_processes
-    skip "fork isn't supported" unless Process.respond_to?(:fork)
+  if Process.respond_to?(:fork) && !in_memory_db?
+    def test_marshal_between_processes
+      # Define a new model to ensure there are no caches
+      if self.class.const_defined?("Post", false)
+        flunk "there should be no post constant"
+      end
 
-    # Define a new model to ensure there are no caches
-    if self.class.const_defined?("Post", false)
-      flunk "there should be no post constant"
-    end
+      self.class.const_set("Post", Class.new(ActiveRecord::Base) {
+        has_many :comments
+      })
 
-    self.class.const_set("Post", Class.new(ActiveRecord::Base) {
-      has_many :comments
-    })
+      rd, wr = IO.pipe
+      rd.binmode
+      wr.binmode
 
-    rd, wr = IO.pipe
+      ActiveRecord::Base.connection_handler.clear_all_connections!
 
-    ActiveRecord::Base.connection_handler.clear_all_connections!
+      fork do
+        rd.close
+        post = Post.new
+        post.comments.build
+        wr.write Marshal.dump(post)
+        wr.close
+      end
 
-    fork do
-      rd.close
-      post = Post.new
-      post.comments.build
-      wr.write Marshal.dump(post)
       wr.close
+      assert Marshal.load rd.read
+      rd.close
     end
-
-    wr.close
-    assert Marshal.load rd.read
-    rd.close
   end
 
   def test_marshalling_new_record_round_trip_with_associations
@@ -1383,15 +1411,13 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_uniq_delegates_to_scoped
-    scope = stub
-    Bird.stubs(:all).returns(mock(:uniq => scope))
-    assert_equal scope, Bird.uniq
+    assert_deprecated do
+      assert_equal Bird.all.distinct, Bird.uniq
+    end
   end
 
   def test_distinct_delegates_to_scoped
-    scope = stub
-    Bird.stubs(:all).returns(mock(:distinct => scope))
-    assert_equal scope, Bird.distinct
+    assert_equal Bird.all.distinct, Bird.distinct
   end
 
   def test_table_name_with_2_abstract_subclasses
@@ -1405,15 +1431,14 @@ class BasicsTest < ActiveRecord::TestCase
     attrs = topic.attributes.dup
     attrs.delete 'id'
 
-    typecast = Class.new {
-      def type_cast value
+    typecast = Class.new(ActiveRecord::Type::Value) {
+      def cast value
         "t.lo"
       end
     }
 
     types = { 'author_name' => typecast.new }
-    topic = Topic.allocate.init_with 'attributes' => attrs,
-                                     'column_types' => types
+    topic = Topic.instantiate(attrs, types)
 
     assert_equal 't.lo', topic.author_name
   end
@@ -1438,20 +1463,6 @@ class BasicsTest < ActiveRecord::TestCase
     company = Company.new
     company.description << "foo"
     assert_equal "", Company.new.description
-  end
-
-  ["find_by", "find_by!"].each do |meth|
-    test "#{meth} delegates to scoped" do
-      record = stub
-
-      scope = mock
-      scope.expects(meth).with(:foo, :bar).returns(record)
-
-      klass = Class.new(ActiveRecord::Base)
-      klass.stubs(:all => scope)
-
-      assert_equal record, klass.public_send(meth, :foo, :bar)
-    end
   end
 
   test "scoped can take a values hash" do
@@ -1495,23 +1506,40 @@ class BasicsTest < ActiveRecord::TestCase
     orig_handler = klass.connection_handler
     new_handler = ActiveRecord::ConnectionAdapters::ConnectionHandler.new
     after_handler = nil
-    latch1 = ActiveSupport::Concurrency::Latch.new
-    latch2 = ActiveSupport::Concurrency::Latch.new
+    latch1 = Concurrent::CountDownLatch.new
+    latch2 = Concurrent::CountDownLatch.new
 
     t = Thread.new do
       klass.connection_handler = new_handler
-      latch1.release
-      latch2.await
+      latch1.count_down
+      latch2.wait
       after_handler = klass.connection_handler
     end
 
-    latch1.await
+    latch1.wait
 
     klass.connection_handler = orig_handler
-    latch2.release
+    latch2.count_down
     t.join
 
     assert_equal after_handler, new_handler
     assert_equal orig_handler, klass.connection_handler
+  end
+
+  # Note: This is a performance optimization for Array#uniq and Hash#[] with
+  # AR::Base objects. If the future has made this irrelevant, feel free to
+  # delete this.
+  test "records without an id have unique hashes" do
+    assert_not_equal Post.new.hash, Post.new.hash
+  end
+
+  test "resetting column information doesn't remove attribute methods" do
+    topic = topics(:first)
+
+    assert_not topic.id_changed?
+
+    Topic.reset_column_information
+
+    assert_not topic.id_changed?
   end
 end

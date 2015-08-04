@@ -37,10 +37,22 @@ class PeopleHelperTest < ActionView::TestCase
 
   def test_link_to_person
     with_test_route_set do
-      person = mock(:name => "David")
-      person.class.extend ActiveModel::Naming
-      expects(:mocha_mock_path).with(person).returns("/people/1")
+      person = Struct.new(:name) {
+        extend ActiveModel::Naming
+        def to_model; self; end
+        def persisted?; true; end
+        def self.name; 'Mocha::Mock'; end
+      }.new "David"
+
+      the_model = nil
+      extend Module.new {
+        define_method(:mocha_mock_path) { |model, *args|
+          the_model = model
+          "/people/1"
+        }
+      }
       assert_equal '<a href="/people/1">David</a>', link_to_person(person)
+      assert_equal person, the_model
     end
   end
 

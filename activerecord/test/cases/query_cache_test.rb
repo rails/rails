@@ -8,7 +8,7 @@ require 'rack'
 class QueryCacheTest < ActiveRecord::TestCase
   fixtures :tasks, :topics, :categories, :posts, :categories_posts
 
-  def setup
+  teardown do
     Task.connection.clear_query_cache
     ActiveRecord::Base.connection.disable_query_cache!
   end
@@ -118,6 +118,14 @@ class QueryCacheTest < ActiveRecord::TestCase
     assert ActiveRecord::Base.connection.query_cache.empty?, 'cache should be empty'
   end
 
+  def test_cache_passing_a_relation
+    post = Post.first
+    Post.cache do
+      query = post.categories.select(:post_id)
+      assert Post.connection.select_all(query).is_a?(ActiveRecord::Result)
+    end
+  end
+
   def test_find_queries
     assert_queries(2) { Task.find(1); Task.find(1) }
   end
@@ -131,6 +139,15 @@ class QueryCacheTest < ActiveRecord::TestCase
   def test_find_queries_with_cache_multi_record
     Task.cache do
       assert_queries(2) { Task.find(1); Task.find(1); Task.find(2) }
+    end
+  end
+
+  def test_find_queries_with_multi_cache_blocks
+    Task.cache do
+      Task.cache do
+        assert_queries(2) { Task.find(1); Task.find(2) }
+      end
+      assert_queries(0) { Task.find(1); Task.find(1); Task.find(2) }
     end
   end
 
@@ -167,7 +184,7 @@ class QueryCacheTest < ActiveRecord::TestCase
       # Oracle adapter returns count() as Fixnum or Float
       if current_adapter?(:OracleAdapter)
         assert_kind_of Numeric, Task.connection.select_value("SELECT count(*) AS count_all FROM tasks")
-      elsif current_adapter?(:SQLite3Adapter, :Mysql2Adapter)
+      elsif current_adapter?(:SQLite3Adapter, :Mysql2Adapter, :PostgreSQLAdapter)
         # Future versions of the sqlite3 adapter will return numeric
         assert_instance_of Fixnum,
          Task.connection.select_value("SELECT count(*) AS count_all FROM tasks")
@@ -195,6 +212,38 @@ class QueryCacheTest < ActiveRecord::TestCase
   ensure
     ActiveRecord::Base.configurations = conf
   end
+
+  def test_query_cache_doesnt_leak_cached_results_of_rolled_back_queries
+    ActiveRecord::Base.connection.enable_query_cache!
+    post = Post.first
+
+    Post.transaction do
+      post.update_attributes(title: 'rollback')
+      assert_equal 1, Post.where(title: 'rollback').to_a.count
+      raise ActiveRecord::Rollback
+    end
+
+    assert_equal 0, Post.where(title: 'rollback').to_a.count
+
+    ActiveRecord::Base.connection.uncached do
+      assert_equal 0, Post.where(title: 'rollback').to_a.count
+    end
+
+    begin
+      Post.transaction do
+        post.update_attributes(title: 'rollback')
+        assert_equal 1, Post.where(title: 'rollback').to_a.count
+        raise 'broken'
+      end
+    rescue Exception
+    end
+
+    assert_equal 0, Post.where(title: 'rollback').to_a.count
+
+    ActiveRecord::Base.connection.uncached do
+      assert_equal 0, Post.where(title: 'rollback').to_a.count
+    end
+  end
 end
 
 class QueryCacheExpiryTest < ActiveRecord::TestCase
@@ -205,7 +254,7 @@ class QueryCacheExpiryTest < ActiveRecord::TestCase
     Post.find(1)
 
     # change the column definition
-    Post.connection.change_column :posts, :title, :string, :limit => 80
+    Post.connection.change_column :posts, :title, :string, limit: 80
     assert_nothing_raised { Post.find(1) }
 
     # restore the old definition
@@ -232,7 +281,6 @@ class QueryCacheExpiryTest < ActiveRecord::TestCase
 
   def test_update
     Task.connection.expects(:clear_query_cache).times(2)
-
     Task.cache do
       task = Task.find(1)
       task.starting = Time.now.utc
@@ -242,7 +290,6 @@ class QueryCacheExpiryTest < ActiveRecord::TestCase
 
   def test_destroy
     Task.connection.expects(:clear_query_cache).times(2)
-
     Task.cache do
       Task.find(1).destroy
     end
@@ -250,7 +297,6 @@ class QueryCacheExpiryTest < ActiveRecord::TestCase
 
   def test_insert
     ActiveRecord::Base.connection.expects(:clear_query_cache).times(2)
-
     Task.cache do
       Task.create!
     end

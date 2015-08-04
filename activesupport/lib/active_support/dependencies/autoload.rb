@@ -67,7 +67,7 @@ module ActiveSupport
     end
 
     def eager_load!
-      @_autoloads.values.each { |file| require file }
+      @_autoloads.each_value { |file| require file }
     end
 
     def autoloads

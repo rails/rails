@@ -5,7 +5,6 @@ debug.log
 .Gemfile
 /.bundle
 /.ruby-version
-/Gemfile.lock
 pkg
 /dist
 /doc/rdoc

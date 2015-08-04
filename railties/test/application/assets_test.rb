@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 require 'isolation/abstract_unit'
 require 'rack/test'
 require 'active_support/json'
@@ -19,7 +18,7 @@ module ApplicationTests
 
     def precompile!(env = nil)
       quietly do
-        precompile_task = "bundle exec rake assets:precompile #{env} --trace 2>&1"
+        precompile_task = "bin/rake assets:precompile #{env} --trace 2>&1"
         output = Dir.chdir(app_path) { %x[ #{precompile_task} ] }
         assert $?.success?, output
         output
@@ -28,7 +27,7 @@ module ApplicationTests
 
     def clean_assets!
       quietly do
-        assert Dir.chdir(app_path) { system('bundle exec rake assets:clobber') }
+        assert Dir.chdir(app_path) { system('bin/rake assets:clobber') }
       end
     end
 
@@ -37,7 +36,7 @@ module ApplicationTests
     end
 
     def assert_no_file_exists(filename)
-      assert !File.exists?(filename), "#{filename} does exist"
+      assert !File.exist?(filename), "#{filename} does exist"
     end
 
     test "assets routes have higher priority" do
@@ -50,6 +49,8 @@ module ApplicationTests
         end
       RUBY
 
+      add_to_env_config "development", "config.assets.digest = false"
+
       require "#{app_path}/config/environment"
 
       get "/assets/demo.js"
@@ -59,6 +60,7 @@ module ApplicationTests
     test "assets do not require compressors until it is used" do
       app_file "app/assets/javascripts/demo.js.erb", "<%= :alert %>();"
       add_to_env_config "production", "config.assets.compile = true"
+      add_to_env_config "production", "config.assets.precompile = []"
 
       ENV["RAILS_ENV"] = "production"
       require "#{app_path}/config/environment"
@@ -189,8 +191,8 @@ module ApplicationTests
     end
 
     test "asset pipeline should use a Sprockets::Index when config.assets.digest is true" do
-      add_to_config "config.assets.digest = true"
       add_to_config "config.action_controller.perform_caching = false"
+      add_to_env_config "production", "config.assets.compile = true"
 
       ENV["RAILS_ENV"] = "production"
       require "#{app_path}/config/environment"
@@ -199,13 +201,12 @@ module ApplicationTests
     end
 
     test "precompile creates a manifest file with all the assets listed" do
+      app_file "app/assets/images/rails.png", "notactuallyapng"
       app_file "app/assets/stylesheets/application.css.erb", "<%= asset_path('rails.png') %>"
       app_file "app/assets/javascripts/application.js", "alert();"
-      # digest is default in false, we must enable it for test environment
-      add_to_config "config.assets.digest = true"
 
       precompile!
-      manifest = Dir["#{app_path}/public/assets/manifest-*.json"].first
+      manifest = Dir["#{app_path}/public/assets/.sprockets-manifest-*.json"].first
 
       assets = ActiveSupport::JSON.decode(File.read(manifest))
       assert_match(/application-([0-z]+)\.js/, assets["assets"]["application.js"])
@@ -214,25 +215,23 @@ module ApplicationTests
 
     test "the manifest file should be saved by default in the same assets folder" do
       app_file "app/assets/javascripts/application.js", "alert();"
-      # digest is default in false, we must enable it for test environment
-      add_to_config "config.assets.digest = true"
       add_to_config "config.assets.prefix = '/x'"
 
       precompile!
 
-      manifest = Dir["#{app_path}/public/x/manifest-*.json"].first
+      manifest = Dir["#{app_path}/public/x/.sprockets-manifest-*.json"].first
       assets = ActiveSupport::JSON.decode(File.read(manifest))
       assert_match(/application-([0-z]+)\.js/, assets["assets"]["application.js"])
     end
 
     test "assets do not require any assets group gem when manifest file is present" do
       app_file "app/assets/javascripts/application.js", "alert();"
-      add_to_env_config "production", "config.serve_static_assets = true"
+      add_to_env_config "production", "config.serve_static_files = true"
 
       ENV["RAILS_ENV"] = "production"
       precompile!
 
-      manifest = Dir["#{app_path}/public/assets/manifest-*.json"].first
+      manifest = Dir["#{app_path}/public/assets/.sprockets-manifest-*.json"].first
       assets = ActiveSupport::JSON.decode(File.read(manifest))
       asset_path = assets["assets"]["application.js"]
 
@@ -248,7 +247,6 @@ module ApplicationTests
     test "precompile properly refers files referenced with asset_path and runs in the provided RAILS_ENV" do
       app_file "app/assets/images/rails.png", "notactuallyapng"
       app_file "app/assets/stylesheets/application.css.erb", "<%= asset_path('rails.png') %>"
-      # digest is default in false, we must enable it for test environment
       add_to_env_config "test", "config.assets.digest = true"
 
       precompile!('RAILS_ENV=test')
@@ -260,12 +258,12 @@ module ApplicationTests
     test "precompile shouldn't use the digests present in manifest.json" do
       app_file "app/assets/images/rails.png", "notactuallyapng"
 
-      app_file "app/assets/stylesheets/application.css.erb", "//= depend_on rails.png\np { url: <%= asset_path('rails.png') %> }"
+      app_file "app/assets/stylesheets/application.css.erb", "p { url: <%= asset_path('rails.png') %> }"
 
       ENV["RAILS_ENV"] = "production"
       precompile!
 
-      manifest = Dir["#{app_path}/public/assets/manifest-*.json"].first
+      manifest = Dir["#{app_path}/public/assets/.sprockets-manifest-*.json"].first
       assets = ActiveSupport::JSON.decode(File.read(manifest))
       asset_path = assets["assets"]["application.css"]
 
@@ -280,12 +278,9 @@ module ApplicationTests
     test "precompile appends the md5 hash to files referenced with asset_path and run in production with digest true" do
       app_file "app/assets/images/rails.png", "notactuallyapng"
       app_file "app/assets/stylesheets/application.css.erb", "<%= asset_path('rails.png') %>"
-      add_to_config "config.assets.compile = true"
-      add_to_config "config.assets.digest = true"
 
-      ENV["RAILS_ENV"] = nil
-
-      precompile!('RAILS_GROUPS=assets')
+      ENV["RAILS_ENV"] = "production"
+      precompile!
 
       file = Dir["#{app_path}/public/assets/application-*.css"].first
       assert_match(/\/assets\/rails-([0-z]+)\.png/, File.read(file))
@@ -293,19 +288,19 @@ module ApplicationTests
 
     test "precompile should handle utf8 filenames" do
       filename = "レイルズ.png"
-      app_file "app/assets/images/#{filename}", "not a image really"
+      app_file "app/assets/images/#{filename}", "not an image really"
       add_to_config "config.assets.precompile = [ /\.png$/, /application.(css|js)$/ ]"
 
       precompile!
 
-      manifest = Dir["#{app_path}/public/assets/manifest-*.json"].first
+      manifest = Dir["#{app_path}/public/assets/.sprockets-manifest-*.json"].first
       assets = ActiveSupport::JSON.decode(File.read(manifest))
       assert asset_path = assets["assets"].find { |(k, _)| k && k =~ /.png/ }[1]
 
       require "#{app_path}/config/environment"
 
       get "/assets/#{URI.parser.escape(asset_path)}"
-      assert_match "not a image really", last_response.body
+      assert_match "not an image really", last_response.body
       assert_file_exists("#{app_path}/public/assets/#{asset_path}")
     end
 
@@ -341,6 +336,8 @@ module ApplicationTests
         end
       RUBY
 
+      add_to_env_config "development", "config.assets.digest = false"
+
       require "#{app_path}/config/environment"
 
       class ::OmgController < ActionController::Base
@@ -364,6 +361,8 @@ module ApplicationTests
       end
 
       app_file "app/assets/javascripts/demo.js", "alert();"
+
+      add_to_env_config "development", "config.assets.digest = false"
 
       require "#{app_path}/config/environment"
 
@@ -394,7 +393,6 @@ module ApplicationTests
       app_file "app/assets/javascripts/application.js", "//= require_tree ."
       app_file "app/assets/javascripts/xmlhr.js.erb", "<%= Post.name %>"
 
-      add_to_config "config.assets.digest = false"
       precompile!
       assert_equal "Post;\n", File.read(Dir["#{app_path}/public/assets/application-*.js"].first)
     end
@@ -414,7 +412,6 @@ module ApplicationTests
     test "digested assets are not mistakenly removed" do
       app_file "app/assets/application.js", "alert();"
       add_to_config "config.assets.compile = true"
-      add_to_config "config.assets.digest = true"
 
       precompile!
 
@@ -437,45 +434,36 @@ module ApplicationTests
     test "asset urls should use the request's protocol by default" do
       app_with_assets_in_view
       add_to_config "config.asset_host = 'example.com'"
+      add_to_env_config "development", "config.assets.digest = false"
       require "#{app_path}/config/environment"
       class ::PostsController < ActionController::Base; end
 
       get '/posts', {}, {'HTTPS'=>'off'}
-      assert_match('src="http://example.com/assets/application.js', last_response.body)
+      assert_match('src="http://example.com/assets/application.self.js', last_response.body)
       get '/posts', {}, {'HTTPS'=>'on'}
-      assert_match('src="https://example.com/assets/application.js', last_response.body)
+      assert_match('src="https://example.com/assets/application.self.js', last_response.body)
     end
 
     test "asset urls should be protocol-relative if no request is in scope" do
       app_file "app/assets/images/rails.png", "notreallyapng"
-      app_file "app/assets/javascripts/image_loader.js.erb", 'var src="<%= image_path("rails.png") %>";'
-      add_to_config "config.assets.precompile = %w{image_loader.js}"
+      app_file "app/assets/javascripts/image_loader.js.erb", "var src='<%= image_path('rails.png') %>';"
+      add_to_config "config.assets.precompile = %w{rails.png image_loader.js}"
       add_to_config "config.asset_host = 'example.com'"
+      add_to_env_config "development", "config.assets.digest = false"
       precompile!
 
-      assert_match 'src="//example.com/assets/rails.png"', File.read(Dir["#{app_path}/public/assets/image_loader-*.js"].first)
+      assert_match "src='//example.com/assets/rails.png'", File.read(Dir["#{app_path}/public/assets/image_loader-*.js"].first)
     end
 
     test "asset paths should use RAILS_RELATIVE_URL_ROOT by default" do
       ENV["RAILS_RELATIVE_URL_ROOT"] = "/sub/uri"
       app_file "app/assets/images/rails.png", "notreallyapng"
-
-      app_file "app/assets/javascripts/app.js.erb", 'var src="<%= image_path("rails.png") %>";'
-      add_to_config "config.assets.precompile = %w{app.js}"
+      app_file "app/assets/javascripts/app.js.erb", "var src='<%= image_path('rails.png') %>';"
+      add_to_config "config.assets.precompile = %w{rails.png app.js}"
+      add_to_env_config "development", "config.assets.digest = false"
       precompile!
 
-      assert_match 'src="/sub/uri/assets/rails.png"', File.read(Dir["#{app_path}/public/assets/app-*.js"].first)
-    end
-
-    test "assets:cache:clean should clean cache" do
-      ENV["RAILS_ENV"] = "production"
-      precompile!
-
-      quietly do
-        Dir.chdir(app_path){ `bundle exec rake assets:clobber` }
-      end
-
-      assert !File.exist?("#{app_path}/tmp/cache/assets")
+      assert_match "src='/sub/uri/assets/rails.png'", File.read(Dir["#{app_path}/public/assets/app-*.js"].first)
     end
 
     private

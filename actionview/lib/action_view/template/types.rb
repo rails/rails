@@ -1,5 +1,5 @@
 require 'set'
-require 'active_support/core_ext/class/attribute_accessors'
+require 'active_support/core_ext/module/attribute_accessors'
 
 module ActionView
   class Template
@@ -9,7 +9,7 @@ module ActionView
         self.types = Set.new
 
         def self.register(*t)
-          types.merge(t.map { |type| type.to_s })
+          types.merge(t.map(&:to_s))
         end
 
         register :html, :text, :js, :css,  :xml, :json

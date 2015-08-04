@@ -54,10 +54,10 @@ module ActiveModel
       #
       # Configuration options:
       # * <tt>:message</tt> - A custom error message (default is: "doesn't match
-      #   confirmation").
+      #   <tt>%{translated_attribute_name}</tt>").
       #
       # There is also a list of default options supported by every validator:
-      # +:if+, +:unless+, +:on+ and +:strict+.
+      # +:if+, +:unless+, +:on+, +:allow_nil+, +:allow_blank+, and +:strict+.
       # See <tt>ActiveModel::Validation#validates</tt> for more information
       def validates_confirmation_of(*attr_names)
         validates_with ConfirmationValidator, _merge_attributes(attr_names)

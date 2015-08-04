@@ -22,19 +22,23 @@ module ActiveRecord
       end
 
       def primary_key(table)
-        @primary_keys[table]
+        @primary_keys[table] || "id"
       end
 
       def merge_column(table_name, name, sql_type = nil, options = {})
         @columns[table_name] << ActiveRecord::ConnectionAdapters::Column.new(
           name.to_s,
           options[:default],
-          sql_type.to_s,
+          fetch_type_metadata(sql_type),
           options[:null])
       end
 
       def columns(table_name)
         @columns[table_name]
+      end
+
+      def table_exists?(*)
+        true
       end
 
       def active?

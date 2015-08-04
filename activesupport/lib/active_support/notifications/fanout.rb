@@ -25,9 +25,15 @@ module ActiveSupport
         subscriber
       end
 
-      def unsubscribe(subscriber)
+      def unsubscribe(subscriber_or_name)
         synchronize do
-          @subscribers.reject! { |s| s.matches?(subscriber) }
+          case subscriber_or_name
+          when String
+            @subscribers.reject! { |s| s.matches?(subscriber_or_name) }
+          else
+            @subscribers.delete(subscriber_or_name)
+          end
+
           @listeners_for.clear
         end
       end
@@ -97,31 +103,27 @@ module ActiveSupport
           end
 
           def subscribed_to?(name)
-            @pattern === name.to_s
+            @pattern === name
           end
 
-          def matches?(subscriber_or_name)
-            self === subscriber_or_name ||
-              @pattern && @pattern === subscriber_or_name
+          def matches?(name)
+            @pattern && @pattern === name
           end
         end
 
         class Timed < Evented
-          def initialize(pattern, delegate)
-            @timestack = []
-            super
-          end
-
           def publish(name, *args)
             @delegate.call name, *args
           end
 
           def start(name, id, payload)
-            @timestack.push Time.now
+            timestack = Thread.current[:_timestack] ||= []
+            timestack.push Time.now
           end
 
           def finish(name, id, payload)
-            started = @timestack.pop
+            timestack = Thread.current[:_timestack]
+            started = timestack.pop
             @delegate.call(name, started, Time.now, id, payload)
           end
         end

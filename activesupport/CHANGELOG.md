@@ -1,192 +1,326 @@
-*   Ensure that autoloaded constants in all-caps nestings are marked as
-    autoloaded.
+*   Fix `TimeWithZone#eql?` to properly handle `TimeWithZone` created from `DateTime`:
+        twz = DateTime.now.in_time_zone
+        twz.eql?(twz.dup) => true
 
-    *Simon Coffey*
+    Fixes #14178.
 
-*   Add String#remove(pattern) as a short-hand for the common pattern of String#gsub(pattern, '')
+    *Roque Pinel*
 
-    *DHH*
+*   ActiveSupport::HashWithIndifferentAccess `select` and `reject` will now return
+    enumerator if called without block.
 
-*   Adds a new deprecation behaviour that raises an exception. Throwing this
-    line into +config/environments/development.rb+
+    Fixes #20095
 
-        ActiveSupport::Deprecation.behavior = :raise
+    *Bernard Potocki*
 
-    will cause the application to raise an +ActiveSupport::DeprecationException+
-    on deprecations.
+*   Removed `ActiveSupport::Concurrency::Latch`, superseded by `Concurrent::CountDownLatch`
+    from the concurrent-ruby gem.
 
-    Use this for aggressive deprecation cleanups.
+    *Jerry D'Antonio*
 
-    *Xavier Noria*
+*   Fix not calling `#default` on `HashWithIndifferentAccess#to_hash` when only
+    `default_proc` is set, which could raise.
 
-*   Remove 'cow' => 'kine' irregular inflection from default inflections.
+    *Simon Eskildsen*
 
-    *Andrew White*
+*   Fix setting `default_proc` on `HashWithIndifferentAccess#dup`
 
-*   Add `DateTime#to_s(:iso8601)` and `Date#to_s(:iso8601)` for consistency.
+    *Simon Eskildsen*
 
-    *Andrew White*
+*   Fix a range of values for parameters of the Time#change
 
-*   Add `Time#to_s(:iso8601)` for easy conversion of times to the iso8601 format for easy Javascript date parsing.
+    *Nikolay Kondratyev*
 
-    *DHH*
+*   Add `Enumerable#pluck` to get the same values from arrays as from ActiveRecord
+    associations.
 
-*   Improve `ActiveSupport::Cache::MemoryStore` cache size calculation.
-    The memory used by a key/entry pair is calculated via `#cached_size`:
+    Fixes #20339.
 
-        def cached_size(key, entry)
-          key.to_s.bytesize + entry.size + PER_ENTRY_OVERHEAD
+    *Kevin Deisz*
+
+*   Add a bang version to `ActiveSupport::OrderedOptions` get methods which will raise
+    an `KeyError` if the value is `.blank?`
+
+    Before:
+
+        if (slack_url = Rails.application.secrets.slack_url).present?
+          # Do something worthwhile
+        else
+          # Raise as important secret password is not specified
         end
 
-    The value of `PER_ENTRY_OVERHEAD` is 240 bytes based on an [empirical
-    estimation](https://gist.github.com/ssimeonov/6047200) for 64-bit MRI on
-    1.9.3 and 2.0. GH#11512
+    After:
 
-    *Simeon Simeonov*
+        slack_url = Rails.application.secrets.slack_url!
 
-*   Only raise `Module::DelegationError` if it's the source of the exception.
+    *Aditya Sanghi*, *Gaurish Sharma*
 
-    Fixes #10559
+*   Remove deprecated `Class#superclass_delegating_accessor`.
+    Use `Class#class_attribute` instead.
 
-    *Andrew White*
+    *Akshay Vishnoi*
 
-*   Make `Time.at_with_coercion` retain the second fraction and return local time.
+*   Patch `Delegator` to work with `#try`.
 
-    Fixes #11350
+    Fixes #5790.
 
-    *Neer Friedman*, *Andrew White*
+    *Nate Smith*
 
-*   Make `HashWithIndifferentAccess#select` always return the hash, even when
-    `Hash#select!` returns `nil`, to allow further chaining.
+*   Add `Integer#positive?` and `Integer#negative?` query methods
+    in the vein of `Fixnum#zero?`.
 
-    *Marc Schütz*
+    This makes it nicer to do things like `bunch_of_numbers.select(&:positive?)`.
 
-*   Remove deprecated `String#encoding_aware?` core extensions (`core_ext/string/encoding`).
+    *DHH*
 
-    *Arun Agrawal*
+*   Encoding `ActiveSupport::TimeWithZone` to YAML now preserves the timezone information.
 
-*   Remove deprecated `Module#local_constant_names` in favor of `Module#local_constants`.
-
-    *Arun Agrawal*
-
-*   Remove deprecated `DateTime.local_offset` in favor of `DateTime.civil_from_fromat`.
-
-    *Arun Agrawal*
-
-*   Remove deprecated `Logger` core extensions (`core_ext/logger.rb`).
-
-    *Carlos Antonio da Silva*
-
-*   Remove deprecated `Time#time_with_datetime_fallback`, `Time#utc_time`
-    and `Time#local_time` in favor of `Time#utc` and `Time#local`.
-
-    *Vipul A M*
-
-*   Remove deprecated `Hash#diff` with no replacement.
-
-    If you're using it to compare hashes for the purpose of testing, please use
-    MiniTest's `assert_equal` instead.
-
-    *Carlos Antonio da Silva*
-
-*   Remove deprecated `Date#to_time_in_current_zone` in favor of `Date#in_time_zone`.
-
-    *Vipul A M*
-
-*   Remove deprecated `Proc#bind` with no replacement.
-
-    *Carlos Antonio da Silva*
-
-*   Remove deprecated `Array#uniq_by` and `Array#uniq_by!`, use native
-    `Array#uniq` and `Array#uniq!` instead.
-
-    *Carlos Antonio da Silva*
-
-*   Remove deprecated `ActiveSupport::BasicObject`, use `ActiveSupport::ProxyObject` instead.
-
-    *Carlos Antonio da Silva*
-
-*   Remove deprecated `BufferedLogger`.
-
-    *Yves Senn*
-
-*   Remove deprecated `assert_present` and `assert_blank` methods.
-
-    *Yves Senn*
-
-*   Fix return value from `BacktraceCleaner#noise` when the cleaner is configured
-    with multiple silencers.
-
-    Fixes #11030
-
-    *Mark J. Titorenko*
-
-*   `HashWithIndifferentAccess#select` now returns a `HashWithIndifferentAccess`
-    instance instead of a `Hash` instance.
-
-    Fixes #10723
-
-    *Albert Llop*
-
-*   Add `DateTime#usec` and `DateTime#nsec` so that `ActiveSupport::TimeWithZone` keeps
-    sub-second resolution when wrapping a `DateTime` value.
-
-    Fixes #10855
+    Fixes #9183.
 
     *Andrew White*
 
-*   Fix `ActiveSupport::Dependencies::Loadable#load_dependency` calling
-    `#blame_file!` on Exceptions that do not have the Blamable mixin
+*   Added `ActiveSupport::TimeZone#strptime` to allow parsing times as if
+    from a given timezone.
 
-    *Andrew Kreiling*
+    *Paul A Jungwirth*
 
-*   Override `Time.at` to support the passing of Time-like values when called with a single argument.
+*   `ActiveSupport::Callbacks#skip_callback` now raises an `ArgumentError` if
+    an unrecognized callback is removed.
 
-    *Andrew White*
+    *Iain Beeston*
 
-*   Prevent side effects to hashes inside arrays when
-    `Hash#with_indifferent_access` is called.
+*   Added `ActiveSupport::ArrayInquirer` and `Array#inquiry`.
 
-    Fixes #10526
+    Wrapping an array in an `ArrayInquirer` gives a friendlier way to check its
+    contents:
+
+        variants = ActiveSupport::ArrayInquirer.new([:phone, :tablet])
+
+        variants.phone?    # => true
+        variants.tablet?   # => true
+        variants.desktop?  # => false
+
+        variants.any?(:phone, :tablet)   # => true
+        variants.any?(:phone, :desktop)  # => true
+        variants.any?(:desktop, :watch)  # => false
+
+    `Array#inquiry` is a shortcut for wrapping the receiving array in an
+    `ArrayInquirer`.
+
+    *George Claghorn*
+
+*   Deprecate `alias_method_chain` in favour of `Module#prepend` introduced in
+    Ruby 2.0.
+
+    *Kir Shatrov*
+
+*   Added `#without` on `Enumerable` and `Array` to return a copy of an
+    enumerable without the specified elements.
+
+    *Todd Bealmear*
+
+*   Fixed a problem where `String#truncate_words` would get stuck with a complex
+    string.
+
+    *Henrik Nygren*
+
+*   Fixed a roundtrip problem with `AS::SafeBuffer` where primitive-like strings
+    will be dumped as primitives:
+
+    Before:
+
+        YAML.load ActiveSupport::SafeBuffer.new("Hello").to_yaml  # => "Hello"
+        YAML.load ActiveSupport::SafeBuffer.new("true").to_yaml   # => true
+        YAML.load ActiveSupport::SafeBuffer.new("false").to_yaml  # => false
+        YAML.load ActiveSupport::SafeBuffer.new("1").to_yaml      # => 1
+        YAML.load ActiveSupport::SafeBuffer.new("1.1").to_yaml    # => 1.1
+
+    After:
+
+        YAML.load ActiveSupport::SafeBuffer.new("Hello").to_yaml  # => "Hello"
+        YAML.load ActiveSupport::SafeBuffer.new("true").to_yaml   # => "true"
+        YAML.load ActiveSupport::SafeBuffer.new("false").to_yaml  # => "false"
+        YAML.load ActiveSupport::SafeBuffer.new("1").to_yaml      # => "1"
+        YAML.load ActiveSupport::SafeBuffer.new("1.1").to_yaml    # => "1.1"
+
+    *Godfrey Chan*
+
+*   Enable `number_to_percentage` to keep the number's precision by allowing
+    `:precision` to be `nil`.
+
+    *Jack Xu*
+
+*   `config_accessor` became a private method, as with Ruby's `attr_accessor`.
+
+    *Akira Matsuda*
+
+*   `AS::Testing::TimeHelpers#travel_to` now changes `DateTime.now` as well as
+    `Time.now` and `Date.today`.
+
+    *Yuki Nishijima*
+
+*   Add `file_fixture` to `ActiveSupport::TestCase`.
+    It provides a simple mechanism to access sample files in your test cases.
+
+    By default file fixtures are stored in `test/fixtures/files`. This can be
+    configured per test-case using the `file_fixture_path` class attribute.
 
     *Yves Senn*
 
-*   Raise an error when multiple `included` blocks are defined for a Concern.
-    The old behavior would silently discard previously defined blocks, running
-    only the last one.
+*   Return value of yielded block in `File.atomic_write`.
 
-    *Mike Dillon*
+    *Ian Ker-Seymer*
 
-*   Replace `multi_json` with `json`.
+*   Duplicate frozen array when assigning it to a `HashWithIndifferentAccess` so
+    that it doesn't raise a `RuntimeError` when calling `map!` on it in `convert_value`.
 
-    Since Rails requires Ruby 1.9 and since Ruby 1.9 includes `json` in the standard library,
-    `multi_json` is no longer necessary.
+    Fixes #18550.
 
-    *Erik Michaels-Ober*
+    *Aditya Kapoor*
 
-*   Added escaping of U+2028 and U+2029 inside the json encoder.
-    These characters are legal in JSON but break the Javascript interpreter.
-    After escaping them, the JSON is still legal and can be parsed by Javascript.
+*   Add missing time zone definitions for Russian Federation and sync them
+    with `zone.tab` file from tzdata version 2014j (latest).
 
-    *Mario Caropreso + Viktor Kelemen + zackham*
+    *Andrey Novikov*
 
-*   Fix skipping object callbacks using metadata fetched via callback chain
-    inspection methods (`_*_callbacks`)
+*   Add `SecureRandom.base58` for generation of random base58 strings.
 
-    *Sean Walbran*
+    *Matthew Draper*, *Guillermo Iguaran*
 
-*   Add a `fetch_multi` method to the cache stores. The method provides
-    an easy to use API for fetching multiple values from the cache.
+*   Add `#prev_day` and `#next_day` counterparts to `#yesterday` and
+    `#tomorrow` for `Date`, `Time`, and `DateTime`.
+
+    *George Claghorn*
+
+*   Add `same_time` option to `#next_week` and `#prev_week` for `Date`, `Time`,
+    and `DateTime`.
+
+    *George Claghorn*
+
+*   Add `#on_weekend?`, `#next_weekday`, `#prev_weekday` methods to `Date`,
+    `Time`, and `DateTime`.
+
+    `#on_weekend?` returns `true` if the receiving date/time falls on a Saturday
+    or Sunday.
+
+    `#next_weekday` returns a new date/time representing the next day that does
+    not fall on a Saturday or Sunday.
+
+    `#prev_weekday` returns a new date/time representing the previous day that
+    does not fall on a Saturday or Sunday.
+
+    *George Claghorn*
+
+*   Change the default test order from `:sorted` to `:random`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `ActiveSupport::JSON::Encoding::CircularReferenceError`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated methods `ActiveSupport::JSON::Encoding.encode_big_decimal_as_string=`
+    and `ActiveSupport::JSON::Encoding.encode_big_decimal_as_string`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `ActiveSupport::SafeBuffer#prepend`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated methods at `Kernel`.
+
+    `silence_stderr`, `silence_stream`, `capture` and `quietly`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `active_support/core_ext/big_decimal/yaml_conversions`
+    file.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated methods `ActiveSupport::Cache::Store.instrument` and
+    `ActiveSupport::Cache::Store.instrument=`.
+
+    *Rafael Mendonça França*
+
+*   Change the way in which callback chains can be halted.
+
+    The preferred method to halt a callback chain from now on is to explicitly
+    `throw(:abort)`.
+    In the past, returning `false` in an ActiveSupport callback had the side
+    effect of halting the callback chain. This is not recommended anymore and,
+    depending on the value of
+    `Callbacks::CallbackChain.halt_and_display_warning_on_return_false`, will
+    either not work at all or display a deprecation warning.
+
+*   Add `Callbacks::CallbackChain.halt_and_display_warning_on_return_false`
+
+    Setting `Callbacks::CallbackChain.halt_and_display_warning_on_return_false`
+    to `true` will let an app support the deprecated way of halting callback
+    chains by returning `false`.
+
+    Setting the value to `false` will tell the app to ignore any `false` value
+    returned by callbacks, and only halt the chain upon `throw(:abort)`.
+
+    The value can also be set with the Rails configuration option
+    `config.active_support.halt_callback_chains_on_return_false`.
+
+    When the configuration option is missing, its value is `true`, so older apps
+    ported to Rails 5.0 will not break (but display a deprecation warning).
+    For new Rails 5.0 apps, its value is set to `false` in an initializer, so
+    these apps will support the new behavior by default.
+
+    *claudiob*
+
+*   Changes arguments and default value of CallbackChain's `:terminator` option
+
+    Chains of callbacks defined without an explicit `:terminator` option will
+    now be halted as soon as a `before_` callback throws `:abort`.
+
+    Chains of callbacks defined with a `:terminator` option will maintain their
+    existing behavior of halting as soon as a `before_` callback matches the
+    terminator's expectation.
+
+    *claudiob*
+
+*   Deprecate `MissingSourceFile` in favor of `LoadError`.
+
+    `MissingSourceFile` was just an alias to `LoadError` and was not being
+    raised inside the framework.
+
+    *Rafael Mendonça França*
+
+*   Add support for error dispatcher classes in `ActiveSupport::Rescuable`.
+    Now it acts closer to Ruby's rescue.
 
     Example:
 
-        # Calculating scores is expensive, so we only do it for posts
-        # that have been updated. Cache keys are automatically extracted
-        # from objects that define a #cache_key method.
-        scores = Rails.cache.fetch_multi(*posts) do |post|
-          calculate_score(post)
+        class BaseController < ApplicationController
+          module ErrorDispatcher
+            def self.===(other)
+              Exception === other && other.respond_to?(:status)
+            end
+          end
+
+          rescue_from ErrorDispatcher do |error|
+            render status: error.status, json: { error: error.to_s }
+          end
         end
 
-    *Daniel Schierbeck*
+    *Genadi Samokovarov*
 
-Please check [4-0-stable](https://github.com/rails/rails/blob/4-0-stable/activesupport/CHANGELOG.md) for previous changes.
+*   Add `#verified` and `#valid_message?` methods to `ActiveSupport::MessageVerifier`
+
+    Previously, the only way to decode a message with `ActiveSupport::MessageVerifier`
+    was to use `#verify`, which would raise an exception on invalid messages. Now
+    `#verified` can also be used, which returns `nil` on messages that cannot be
+    decoded.
+
+    Previously, there was no way to check if a message's format was valid without
+    attempting to decode it. `#valid_message?` is a boolean convenience method that
+    checks whether the message is valid without actually decoding it.
+
+    *Logan Leger*
+
+Please check [4-2-stable](https://github.com/rails/rails/blob/4-2-stable/activesupport/CHANGELOG.md) for previous changes.

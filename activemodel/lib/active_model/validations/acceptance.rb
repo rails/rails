@@ -3,12 +3,12 @@ module ActiveModel
   module Validations
     class AcceptanceValidator < EachValidator # :nodoc:
       def initialize(options)
-        super({ allow_nil: true, accept: "1" }.merge!(options))
+        super({ allow_nil: true, accept: ["1", true] }.merge!(options))
         setup!(options[:class])
       end
 
       def validate_each(record, attribute, value)
-        unless value == options[:accept]
+        unless acceptable_option?(value)
           record.errors.add(attribute, :accepted, options.except(:accept, :allow_nil))
         end
       end
@@ -19,6 +19,10 @@ module ActiveModel
         attr_writers = attributes.reject { |name| klass.attribute_method?("#{name}=") }
         klass.send(:attr_reader, *attr_readers)
         klass.send(:attr_writer, *attr_writers)
+      end
+
+      def acceptable_option?(value)
+        Array(options[:accept]).include?(value)
       end
     end
 
@@ -38,17 +42,16 @@ module ActiveModel
       # Configuration options:
       # * <tt>:message</tt> - A custom error message (default is: "must be
       #   accepted").
-      # * <tt>:allow_nil</tt> - Skip validation if attribute is +nil+ (default
-      #   is +true+).
-      # * <tt>:accept</tt> - Specifies value that is considered accepted.
-      #   The default value is a string "1", which makes it easy to relate to
-      #   an HTML checkbox. This should be set to +true+ if you are validating
+      # * <tt>:accept</tt> - Specifies a value that is considered accepted.
+      #   Also accepts an array of possible values. The default value is
+      #   an array ["1", true], which makes it easy to relate to an HTML
+      #   checkbox. This should be set to, or include, +true+ if you are validating
       #   a database column, since the attribute is typecast from "1" to +true+
       #   before validation.
       #
       # There is also a list of default options supported by every validator:
-      # +:if+, +:unless+, +:on+ and +:strict+.
-      # See <tt>ActiveModel::Validation#validates</tt> for more information
+      # +:if+, +:unless+, +:on+, +:allow_nil+, +:allow_blank+, and +:strict+.
+      # See <tt>ActiveModel::Validation#validates</tt> for more information.
       def validates_acceptance_of(*attr_names)
         validates_with AcceptanceValidator, _merge_attributes(attr_names)
       end

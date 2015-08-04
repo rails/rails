@@ -1,5 +1,5 @@
 require 'active_support/core_ext/module/attr_internal'
-require 'active_support/core_ext/class/attribute_accessors'
+require 'active_support/core_ext/module/attribute_accessors'
 require 'active_support/ordered_options'
 require 'action_view/log_subscriber'
 require 'action_view/helpers'
@@ -10,8 +10,10 @@ require 'action_view/lookup_context'
 module ActionView #:nodoc:
   # = Action View Base
   #
-  # Action View templates can be written in several ways. If the template file has a <tt>.erb</tt> extension then it uses a mixture of ERB
-  # (included in Ruby) and HTML. If the template file has a <tt>.builder</tt> extension then Jim Weirich's Builder::XmlMarkup library is used.
+  # Action View templates can be written in several ways.
+  # If the template file has a <tt>.erb</tt> extension, then it uses the erubis[https://rubygems.org/gems/erubis]
+  # template system which can embed Ruby into an HTML document.
+  # If the template file has a <tt>.builder</tt> extension, then Jim Weirich's Builder::XmlMarkup library is used.
   #
   # == ERB
   #
@@ -31,7 +33,9 @@ module ActionView #:nodoc:
   #
   # If you absolutely must write from within a function use +concat+.
   #
-  # <%- and -%> suppress leading and trailing whitespace, including the trailing newline, and can be used interchangeably with <% and %>.
+  # When on a line that only contains whitespaces except for the tag, <% %> suppress leading and trailing whitespace,
+  # including the trailing newline. <% %> and <%- -%> are the same.
+  # Note however that <%= %> and <%= -%> are different: only the latter removes trailing whitespaces.
   #
   # === Using sub templates
   #
@@ -66,14 +70,13 @@ module ActionView #:nodoc:
   #   Headline: <%= headline %>
   #   First name: <%= person.first_name %>
   #
-  # If you need to find out whether a certain local variable has been assigned a value in a particular render call,
-  # you need to use the following pattern:
+  # The local variables passed to sub templates can be accessed as a hash using the <tt>local_assigns</tt> hash. This lets you access the
+  # variables as:
   #
-  #   <% if local_assigns.has_key? :headline %>
-  #     Headline: <%= headline %>
-  #   <% end %>
+  #   Headline: <%= local_assigns[:headline] %>
   #
-  # Testing using <tt>defined? headline</tt> will not work. This is an implementation restriction.
+  # This is useful in cases where you aren't sure if the local variable has been assigned. Alternately, you could also use
+  # <tt>defined? headline</tt> to first check if the variable has been assigned before using it.
   #
   # === Template caching
   #
@@ -131,7 +134,8 @@ module ActionView #:nodoc:
   #     end
   #   end
   #
-  # More builder documentation can be found at http://builder.rubyforge.org.
+  # For more information on Builder please consult the {source
+  # code}[https://github.com/jimweirich/builder].
   class Base
     include Helpers, ::ERB::Util, Context
 
@@ -152,6 +156,10 @@ module ActionView #:nodoc:
 
     # Specify default_formats that can be rendered.
     cattr_accessor :default_formats
+
+    # Specify whether an error should be raised for missing translations
+    cattr_accessor :raise_on_missing_translations
+    @@raise_on_missing_translations = false
 
     class_attribute :_routes
     class_attribute :logger

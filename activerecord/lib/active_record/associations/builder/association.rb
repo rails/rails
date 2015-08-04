@@ -8,7 +8,6 @@
 #      - HasOneAssociation
 #    - CollectionAssociation
 #      - HasManyAssociation
-#      - HasAndBelongsToManyAssociation
 
 module ActiveRecord::Associations::Builder
   class Association #:nodoc:
@@ -17,11 +16,24 @@ module ActiveRecord::Associations::Builder
     end
     self.extensions = []
 
-    VALID_OPTIONS = [:class_name, :class, :foreign_key, :validate]
-
-    attr_reader :name, :scope, :options
+    VALID_OPTIONS = [:class_name, :anonymous_class, :foreign_key, :validate] # :nodoc:
 
     def self.build(model, name, scope, options, &block)
+      if model.dangerous_attribute_method?(name)
+        raise ArgumentError, "You tried to define an association named #{name} on the model #{model.name}, but " \
+                             "this will conflict with a method #{name} already defined by Active Record. " \
+                             "Please choose a different association name."
+      end
+
+      extension = define_extensions model, name, &block
+      reflection = create_reflection model, name, scope, options, extension
+      define_accessors model, reflection
+      define_callbacks model, reflection
+      define_validations model, reflection
+      reflection
+    end
+
+    def self.create_reflection(model, name, scope, options, extension = nil)
       raise ArgumentError, "association names must be a Symbol" unless name.kind_of?(Symbol)
 
       if scope.is_a?(Hash)
@@ -29,47 +41,52 @@ module ActiveRecord::Associations::Builder
         scope   = nil
       end
 
-      builder = new(name, scope, options, &block)
-      reflection = builder.build(model)
-      builder.define_accessors model
-      builder.define_callbacks model, reflection
-      builder.define_extensions model
-      reflection
-    end
+      validate_options(options)
 
-    def initialize(name, scope, options)
-      @name    = name
-      @scope   = scope
-      @options = options
+      scope = build_scope(scope, extension)
 
-      validate_options
-
-      if scope && scope.arity == 0
-        @scope = proc { instance_exec(&scope) }
-      end
-    end
-
-    def build(model)
       ActiveRecord::Reflection.create(macro, name, scope, options, model)
     end
 
-    def macro
+    def self.build_scope(scope, extension)
+      new_scope = scope
+
+      if scope && scope.arity == 0
+        new_scope = proc { instance_exec(&scope) }
+      end
+
+      if extension
+        new_scope = wrap_scope new_scope, extension
+      end
+
+      new_scope
+    end
+
+    def self.wrap_scope(scope, extension)
+      scope
+    end
+
+    def self.macro
       raise NotImplementedError
     end
 
-    def valid_options
+    def self.valid_options(options)
       VALID_OPTIONS + Association.extensions.flat_map(&:valid_options)
     end
 
-    def validate_options
-      options.assert_valid_keys(valid_options)
+    def self.validate_options(options)
+      options.assert_valid_keys(valid_options(options))
     end
 
-    def define_extensions(model)
+    def self.define_extensions(model, name)
     end
 
-    def define_callbacks(model, reflection)
-      add_before_destroy_callbacks(model, name) if options[:dependent]
+    def self.define_callbacks(model, reflection)
+      if dependent = reflection.options[:dependent]
+        check_dependent_options(dependent)
+        add_destroy_callbacks(model, reflection)
+      end
+
       Association.extensions.each do |extension|
         extension.build model, reflection
       end
@@ -81,14 +98,14 @@ module ActiveRecord::Associations::Builder
     # end
     #
     # Post.first.comments and Post.first.comments= methods are defined by this method...
-
-    def define_accessors(model)
-      mixin = model.generated_feature_methods
-      define_readers(mixin)
-      define_writers(mixin)
+    def self.define_accessors(model, reflection)
+      mixin = model.generated_association_methods
+      name = reflection.name
+      define_readers(mixin, name)
+      define_writers(mixin, name)
     end
 
-    def define_readers(mixin)
+    def self.define_readers(mixin, name)
       mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
         def #{name}(*args)
           association(:#{name}).reader(*args)
@@ -96,7 +113,7 @@ module ActiveRecord::Associations::Builder
       CODE
     end
 
-    def define_writers(mixin)
+    def self.define_writers(mixin, name)
       mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
         def #{name}=(value)
           association(:#{name}).writer(value)
@@ -104,17 +121,22 @@ module ActiveRecord::Associations::Builder
       CODE
     end
 
-    def valid_dependent_options
+    def self.define_validations(model, reflection)
+      # noop
+    end
+
+    def self.valid_dependent_options
       raise NotImplementedError
     end
 
-    private
-
-    def add_before_destroy_callbacks(model, name)
-      unless valid_dependent_options.include? options[:dependent]
-        raise ArgumentError, "The :dependent option must be one of #{valid_dependent_options}, but is :#{options[:dependent]}"
+    def self.check_dependent_options(dependent)
+      unless valid_dependent_options.include? dependent
+        raise ArgumentError, "The :dependent option must be one of #{valid_dependent_options}, but is :#{dependent}"
       end
+    end
 
+    def self.add_destroy_callbacks(model, reflection)
+      name = reflection.name
       model.before_destroy lambda { |o| o.association(name).handle_dependency }
     end
   end

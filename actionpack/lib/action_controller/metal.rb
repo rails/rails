@@ -30,10 +30,8 @@ module ActionController
       end
     end
 
-    def build(action, app=nil, &block)
-      app  ||= block
+    def build(action, app = Proc.new)
       action = action.to_s
-      raise "MiddlewareStack#build requires an app" unless app
 
       middlewares.reverse.inject(app) do |a, middleware|
         middleware.valid?(action) ? middleware.build(a) : a
@@ -70,7 +68,8 @@ module ActionController
   # can do the following:
   #
   #   class HelloController < ActionController::Metal
-  #     include ActionController::Rendering
+  #     include AbstractController::Rendering
+  #     include ActionView::Layouts
   #     append_view_path "#{Rails.root}/app/views"
   #
   #     def index
@@ -166,7 +165,7 @@ module ActionController
       headers["Location"] = url
     end
 
-    # basic url_for that can be overridden for more robust functionality
+    # Basic url_for that can be overridden for more robust functionality
     def url_for(string)
       string
     end
@@ -174,6 +173,7 @@ module ActionController
     def status
       @_status
     end
+    alias :response_code :status # :nodoc:
 
     def status=(status)
       @_status = Rack::Utils.status_code(status)
@@ -184,16 +184,21 @@ module ActionController
       super
     end
 
+    # Tests if render or redirect has already happened.
     def performed?
       response_body || (response && response.committed?)
     end
 
     def dispatch(name, request) #:nodoc:
+      set_request!(request)
+      process(name)
+      to_a
+    end
+
+    def set_request!(request) #:nodoc:
       @_request = request
       @_env = request.env
       @_env['action_controller.instance'] = self
-      process(name)
-      to_a
     end
 
     def to_a #:nodoc:
@@ -222,13 +227,18 @@ module ActionController
     # Makes the controller a Rack endpoint that runs the action in the given
     # +env+'s +action_dispatch.request.path_parameters+ key.
     def self.call(env)
-      action(env['action_dispatch.request.path_parameters'][:action]).call(env)
+      req = ActionDispatch::Request.new env
+      action(req.path_parameters[:action]).call(env)
     end
 
     # Returns a Rack endpoint for the given action name.
     def self.action(name, klass = ActionDispatch::Request)
-      middleware_stack.build(name.to_s) do |env|
-        new.dispatch(name, klass.new(env))
+      if middleware_stack.any?
+        middleware_stack.build(name) do |env|
+          new.dispatch(name, klass.new(env))
+        end
+      else
+        lambda { |env| new.dispatch(name, klass.new(env)) }
       end
     end
   end

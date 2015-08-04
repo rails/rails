@@ -71,6 +71,20 @@ module ApplicationTests
       assert Zoo
     end
 
+    test "eager loading accepts Pathnames" do
+      app_file "lib/foo.rb", <<-RUBY
+        module Foo; end
+      RUBY
+
+      add_to_config <<-RUBY
+        config.eager_load = true
+        config.eager_load_paths << Pathname.new("#{app_path}/lib")
+      RUBY
+
+      require "#{app_path}/config/environment"
+      assert Foo
+    end
+
     test "load environment with global" do
       $initialize_test_set_from_env = nil
       app_file "config/environments/development.rb", <<-RUBY

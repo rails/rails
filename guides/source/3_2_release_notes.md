@@ -1,3 +1,5 @@
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+
 Ruby on Rails 3.2 Release Notes
 ===============================
 
@@ -8,7 +10,10 @@ Highlights in Rails 3.2:
 * Automatic Query Explains
 * Tagged Logging
 
-These release notes cover the major changes, but do not include each bug-fix and changes. If you want to see everything, check out the [list of commits](https://github.com/rails/rails/commits/3-2-stable) in the main Rails repository on GitHub.
+These release notes cover only the major changes. To learn about various bug
+fixes and changes, please refer to the change logs or check out the [list of
+commits](https://github.com/rails/rails/commits/3-2-stable) in the main Rails
+repository on GitHub.
 
 --------------------------------------------------------------------------------
 
@@ -21,7 +26,7 @@ If you're upgrading an existing application, it's a great idea to have good test
 
 Rails 3.2 requires Ruby 1.8.7 or higher. Support for all of the previous Ruby versions has been dropped officially and you should upgrade as early as possible. Rails 3.2 is also compatible with Ruby 1.9.2.
 
-TIP: Note that Ruby 1.8.7 p248 and p249 have marshaling bugs that crash Rails. Ruby Enterprise Edition has these fixed since the release of 1.8.7-2010.02. On the 1.9 front, Ruby 1.9.1 is not usable because it outright segfaults, so if you want to use 1.9.x, jump on to 1.9.2 or 1.9.3 for smooth sailing.
+TIP: Note that Ruby 1.8.7 p248 and p249 have marshalling bugs that crash Rails. Ruby Enterprise Edition has these fixed since the release of 1.8.7-2010.02. On the 1.9 front, Ruby 1.9.1 is not usable because it outright segfaults, so if you want to use 1.9.x, jump on to 1.9.2 or 1.9.3 for smooth sailing.
 
 ### What to update in your apps
 
@@ -76,7 +81,7 @@ $ cd myapp
 
 Rails now uses a `Gemfile` in the application root to determine the gems you require for your application to start. This `Gemfile` is processed by the [Bundler](https://github.com/carlhuda/bundler) gem, which then installs all your dependencies. It can even install all the dependencies locally to your application so that it doesn't depend on the system gems.
 
-More information: [Bundler homepage](http://gembundler.com)
+More information: [Bundler homepage](http://bundler.io/)
 
 ### Living on the Edge
 
@@ -137,7 +142,7 @@ Railties
 
 * Update `Rails::Rack::Logger` middleware to apply any tags set in `config.log_tags` to `ActiveSupport::TaggedLogging`. This makes it easy to tag log lines with debug information like subdomain and request id -- both very helpful in debugging multi-user production applications.
 
-* Default options to `rails new` can be set in `~/.railsrc`. You can specify extra command-line arguments to be used every time 'rails new' runs in the `.railsrc` configuration file in your home directory.
+* Default options to `rails new` can be set in `~/.railsrc`. You can specify extra command-line arguments to be used every time `rails new` runs in the `.railsrc` configuration file in your home directory.
 
 * Add an alias `d` for `destroy`. This works for engines too.
 
@@ -185,9 +190,9 @@ Action Pack
     end
     ```
 
-    Rails will use 'layouts/single_car' when a request comes in :show action, and use 'layouts/application' (or 'layouts/cars', if exists) when a request comes in for any other actions.
+    Rails will use `layouts/single_car` when a request comes in `:show` action, and use `layouts/application` (or `layouts/cars`, if exists) when a request comes in for any other actions.
 
-* form\_for is changed to use "#{action}\_#{as}" as the css class and id if `:as` option is provided. Earlier versions used "#{as}\_#{action}".
+* `form_for` is changed to use `#{action}_#{as}` as the css class and id if `:as` option is provided. Earlier versions used `#{as}_#{action}`.
 
 * `ActionController::ParamsWrapper` on Active Record models now only wrap `attr_accessible` attributes if they were set. If not, only the attributes returned by the class method `attribute_names` will be wrapped. This fixes the wrapping of nested attributes by adding them to `attr_accessible`.
 
@@ -219,7 +224,7 @@ Action Pack
 
 * MIME type entries for PDF, ZIP and other formats were added.
 
-* Allow fresh_when/stale? to take a record instead of an options hash.
+* Allow `fresh_when/stale?` to take a record instead of an options hash.
 
 * Changed log level of warning for missing CSRF token from `:debug` to `:warn`.
 
@@ -227,7 +232,7 @@ Action Pack
 
 #### Deprecations
 
-* Deprecated implied layout lookup in controllers whose parent had a explicit layout set:
+* Deprecated implied layout lookup in controllers whose parent had an explicit layout set:
 
     ```ruby
     class ApplicationController
@@ -238,7 +243,7 @@ Action Pack
     end
     ```
 
-    In the example above, Posts controller will no longer automatically look up for a posts layout. If you need this functionality you could either remove `layout "application"` from `ApplicationController` or explicitly set it to `nil` in `PostsController`.
+    In the example above, `PostsController` will no longer automatically look up for a posts layout. If you need this functionality you could either remove `layout "application"` from `ApplicationController` or explicitly set it to `nil` in `PostsController`.
 
 * Deprecated `ActionController::UnknownAction` in favor of `AbstractController::ActionNotFound`.
 
@@ -254,7 +259,7 @@ Action Pack
 
 * Added `ActionDispatch::RequestId` middleware that'll make a unique X-Request-Id header available to the response and enables the `ActionDispatch::Request#uuid` method. This makes it easy to trace requests from end-to-end in the stack and to identify individual requests in mixed logs like Syslog.
 
-* The `ShowExceptions` middleware now accepts a exceptions application that is responsible to render an exception when the application fails. The application is invoked with a copy of the exception in `env["action_dispatch.exception"]` and with the `PATH_INFO` rewritten to the status code.
+* The `ShowExceptions` middleware now accepts an exceptions application that is responsible to render an exception when the application fails. The application is invoked with a copy of the exception in `env["action_dispatch.exception"]` and with the `PATH_INFO` rewritten to the status code.
 
 * Allow rescue responses to be configured through a railtie as in `config.action_dispatch.rescue_responses`.
 
@@ -375,7 +380,7 @@ Active Record
 
 * Support index sort order in SQLite, MySQL and PostgreSQL adapters.
 
-* Allow the `:class_name` option for associations to take a symbol in addition to a string. This is to avoid confusing newbies, and to be consistent with the fact that other options like :foreign_key already allow a symbol or a string.
+* Allow the `:class_name` option for associations to take a symbol in addition to a string. This is to avoid confusing newbies, and to be consistent with the fact that other options like `:foreign_key` already allow a symbol or a string.
 
     ```ruby
     has_many :clients, :class_name => :Client # Note that the symbol need to be capitalized
@@ -562,4 +567,4 @@ Credits
 
 See the [full list of contributors to Rails](http://contributors.rubyonrails.org/) for the many people who spent many hours making Rails, the stable and robust framework it is. Kudos to all of them.
 
-Rails 3.2 Release Notes were compiled by [Vijay Dev](https://github.com/vijaydev.)
+Rails 3.2 Release Notes were compiled by [Vijay Dev](https://github.com/vijaydev).

@@ -20,7 +20,7 @@ class SSLTest < ActionDispatch::IntegrationTest
   end
 
   def test_allows_https_proxy_header_url
-    get "http://example.org/", {}, 'HTTP_X_FORWARDED_PROTO' => "https"
+    get "http://example.org/", headers: { 'HTTP_X_FORWARDED_PROTO' => "https" }
     assert_response :success
   end
 
@@ -196,6 +196,13 @@ class SSLTest < ActionDispatch::IntegrationTest
       response.headers['Location']
   end
 
+  def test_redirect_to_host_with_port
+    self.app = ActionDispatch::SSL.new(default_app, :host => "ssl.example.org:443")
+    get "http://example.org/path?key=value"
+    assert_equal "https://ssl.example.org:443/path?key=value",
+      response.headers['Location']
+  end
+
   def test_redirect_to_secure_host_when_on_subdomain
     self.app = ActionDispatch::SSL.new(default_app, :host => "ssl.example.org")
     get "http://ssl.example.org/path?key=value"
@@ -208,5 +215,16 @@ class SSLTest < ActionDispatch::IntegrationTest
     get "http://double.rainbow.what.does.it.mean.example.co.uk/path?key=value"
     assert_equal "https://example.co.uk/path?key=value",
       response.headers['Location']
+  end
+
+  def test_keeps_original_headers_behavior
+    headers = Rack::Utils::HeaderHash.new(
+      "Content-Type" => "text/html",
+      "Connection" => ["close"]
+    )
+    self.app = ActionDispatch::SSL.new(lambda { |env| [200, headers, ["OK"]] })
+
+    get "https://example.org/"
+    assert_equal "close", response.headers["Connection"]
   end
 end

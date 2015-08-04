@@ -10,7 +10,11 @@ class DateTime
     end
   end
 
-  # Seconds since midnight: DateTime.now.seconds_since_midnight.
+  # Returns the number of seconds since 00:00:00.
+  #
+  #   DateTime.new(2012, 8, 29,  0,  0,  0).seconds_since_midnight # => 0
+  #   DateTime.new(2012, 8, 29, 12, 34, 56).seconds_since_midnight # => 45296
+  #   DateTime.new(2012, 8, 29, 23, 59, 59).seconds_since_midnight # => 86399
   def seconds_since_midnight
     sec + (min * 60) + (hour * 3600)
   end
@@ -53,6 +57,16 @@ class DateTime
   # <tt>:months</tt>, <tt>:weeks</tt>, <tt>:days</tt>, <tt>:hours</tt>,
   # <tt>:minutes</tt>, <tt>:seconds</tt>.
   def advance(options)
+    unless options[:weeks].nil?
+      options[:weeks], partial_weeks = options[:weeks].divmod(1)
+      options[:days] = options.fetch(:days, 0) + 7 * partial_weeks
+    end
+
+    unless options[:days].nil?
+      options[:days], partial_days = options[:days].divmod(1)
+      options[:hours] = options.fetch(:hours, 0) + 24 * partial_days
+    end
+
     d = to_date.advance(options)
     datetime_advanced_by_date = change(:year => d.year, :month => d.month, :day => d.day)
     seconds_to_advance = \
@@ -63,7 +77,7 @@ class DateTime
     if seconds_to_advance.zero?
       datetime_advanced_by_date
     else
-      datetime_advanced_by_date.since seconds_to_advance
+      datetime_advanced_by_date.since(seconds_to_advance)
     end
   end
 
@@ -151,7 +165,13 @@ class DateTime
   # Layers additional behavior on DateTime#<=> so that Time and
   # ActiveSupport::TimeWithZone instances can be compared with a DateTime.
   def <=>(other)
-    super other.to_datetime
+    if other.kind_of?(Infinity)
+      super
+    elsif other.respond_to? :to_datetime
+      super other.to_datetime rescue nil
+    else
+      nil
+    end
   end
 
 end

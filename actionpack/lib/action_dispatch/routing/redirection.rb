@@ -3,10 +3,11 @@ require 'active_support/core_ext/uri'
 require 'active_support/core_ext/array/extract_options'
 require 'rack/utils'
 require 'action_controller/metal/exceptions'
+require 'action_dispatch/routing/endpoint'
 
 module ActionDispatch
   module Routing
-    class Redirect # :nodoc:
+    class Redirect < Endpoint # :nodoc:
       attr_reader :status, :block
 
       def initialize(status, block)
@@ -14,23 +15,29 @@ module ActionDispatch
         @block  = block
       end
 
-      def call(env)
-        req = Request.new(env)
+      def redirect?; true; end
 
-        # If any of the path parameters has a invalid encoding then
-        # raise since it's likely to trigger errors further on.
-        req.symbolized_path_parameters.each do |key, value|
-          unless value.valid_encoding?
-            raise ActionController::BadRequest, "Invalid parameter: #{key} => #{value}"
+      def call(env)
+        serve Request.new env
+      end
+
+      def serve(req)
+        req.check_path_parameters!
+        uri = URI.parse(path(req.path_parameters, req))
+        
+        unless uri.host
+          if relative_path?(uri.path)
+            uri.path = "#{req.script_name}/#{uri.path}"
+          elsif uri.path.empty?
+            uri.path = req.script_name.empty? ? "/" : req.script_name
           end
         end
-
-        uri = URI.parse(path(req.symbolized_path_parameters, req))
+          
         uri.scheme ||= req.scheme
         uri.host   ||= req.host
         uri.port   ||= req.port unless req.standard_port?
 
-        body = %(<html><body>You are being <a href="#{ERB::Util.h(uri.to_s)}">redirected</a>.</body></html>)
+        body = %(<html><body>You are being <a href="#{ERB::Util.unwrapped_html_escape(uri.to_s)}">redirected</a>.</body></html>)
 
         headers = {
           'Location' => uri.to_s,
@@ -48,11 +55,38 @@ module ActionDispatch
       def inspect
         "redirect(#{status})"
       end
+
+      private
+        def relative_path?(path)
+          path && !path.empty? && path[0] != '/'
+        end
+
+        def escape(params)
+          Hash[params.map{ |k,v| [k, Rack::Utils.escape(v)] }]
+        end
+
+        def escape_fragment(params)
+          Hash[params.map{ |k,v| [k, Journey::Router::Utils.escape_fragment(v)] }]
+        end
+
+        def escape_path(params)
+          Hash[params.map{ |k,v| [k, Journey::Router::Utils.escape_path(v)] }]
+        end
     end
 
     class PathRedirect < Redirect
+      URL_PARTS = /\A([^?]+)?(\?[^#]+)?(#.+)?\z/
+
       def path(params, request)
-        (params.empty? || !block.match(/%\{\w*\}/)) ? block : (block % escape(params))
+        if block.match(URL_PARTS)
+          path     = interpolation_required?($1, params) ? $1 % escape_path(params)     : $1
+          query    = interpolation_required?($2, params) ? $2 % escape(params)          : $2
+          fragment = interpolation_required?($3, params) ? $3 % escape_fragment(params) : $3
+
+          "#{path}#{query}#{fragment}"
+        else
+          interpolation_required?(block, params) ? block % escape(params) : block
+        end
       end
 
       def inspect
@@ -60,8 +94,8 @@ module ActionDispatch
       end
 
       private
-        def escape(params)
-          Hash[params.map{ |k,v| [k, Rack::Utils.escape(v)] }]
+        def interpolation_required?(string, params)
+          !params.empty? && string && string.match(/%\{\w*\}/)
         end
     end
 
@@ -81,17 +115,22 @@ module ActionDispatch
           url_options[:path] = (url_options[:path] % escape_path(params))
         end
 
+        unless options[:host] || options[:domain]
+          if relative_path?(url_options[:path])
+            url_options[:path] = "/#{url_options[:path]}"
+            url_options[:script_name] = request.script_name
+          elsif url_options[:path].empty?
+            url_options[:path] = request.script_name.empty? ? "/" : ""
+            url_options[:script_name] = request.script_name
+          end
+        end
+        
         ActionDispatch::Http::URL.url_for url_options
       end
 
       def inspect
         "redirect(#{status}, #{options.map{ |k,v| "#{k}: #{v}" }.join(', ')})"
       end
-
-      private
-        def escape_path(params)
-          Hash[params.map{ |k,v| [k, URI.parser.escape(v)] }]
-        end
     end
 
     module Redirection
@@ -103,6 +142,10 @@ module ActionDispatch
       # You can also use interpolation in the supplied redirect argument:
       #
       #   get 'docs/:article', to: redirect('/wiki/%{article}')
+      #
+      # Note that if you return a path without a leading slash then the url is prefixed with the
+      # current SCRIPT_NAME environment variable. This is typically '/' but may be different in
+      # a mounted engine or where the application is deployed to a subdirectory of a website.
       #
       # Alternatively you can use one of the other syntaxes:
       #

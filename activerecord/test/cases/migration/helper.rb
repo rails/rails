@@ -5,10 +5,6 @@ module ActiveRecord
     class << self; attr_accessor :message_count; end
     self.message_count = 0
 
-    def puts(text="")
-      ActiveRecord::Migration.message_count += 1
-    end
-
     module TestHelper
       attr_reader :connection, :table_name
 
@@ -22,7 +18,7 @@ module ActiveRecord
         super
         @connection = ActiveRecord::Base.connection
         connection.create_table :test_models do |t|
-          t.timestamps
+          t.timestamps null: true
         end
 
         TestModel.reset_column_information

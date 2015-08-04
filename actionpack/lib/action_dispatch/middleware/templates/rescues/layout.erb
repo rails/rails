@@ -116,9 +116,15 @@
       background-color: #FFCCCC;
     }
 
+    .hidden {
+      display: none;
+    }
+
     a { color: #980905; }
     a:visited { color: #666; }
+    a.trace-frames { color: #666; }
     a:hover { color: #C52F24; }
+    a.trace-frames.selected { color: #C52F24 }
 
     <%= yield :style %>
   </style>

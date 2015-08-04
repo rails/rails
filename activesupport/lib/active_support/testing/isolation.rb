@@ -1,21 +1,16 @@
-require 'rbconfig'
-require 'minitest/parallel_each'
-
 module ActiveSupport
   module Testing
     module Isolation
       require 'thread'
 
       def self.included(klass) #:nodoc:
-        klass.extend(Module.new {
-          def test_methods
-            ParallelEach.new super
-          end
-        })
+        klass.class_eval do
+          parallelize_me!
+        end
       end
 
       def self.forking_env?
-        !ENV["NO_FORK"] && ((RbConfig::CONFIG['host_os'] !~ /mswin|mingw/) && (RUBY_PLATFORM !~ /java/))
+        !ENV["NO_FORK"] && Process.respond_to?(:fork)
       end
 
       @@class_setup_mutex = Mutex.new
@@ -40,6 +35,8 @@ module ActiveSupport
       module Forking
         def run_in_isolation(&blk)
           read, write = IO.pipe
+          read.binmode
+          write.binmode
 
           pid = fork do
             read.close
@@ -71,14 +68,24 @@ module ActiveSupport
             exit!
           else
             Tempfile.open("isolation") do |tmpfile|
-              ENV["ISOLATION_TEST"]   = self.class.name
-              ENV["ISOLATION_OUTPUT"] = tmpfile.path
+              env = {
+                'ISOLATION_TEST' => self.class.name,
+                'ISOLATION_OUTPUT' => tmpfile.path
+              }
 
               load_paths = $-I.map {|p| "-I\"#{File.expand_path(p)}\"" }.join(" ")
-              `#{Gem.ruby} #{load_paths} #{$0} #{ORIG_ARGV.join(" ")}`
+              orig_args = ORIG_ARGV.join(" ")
+              test_opts = "-n#{self.class.name}##{self.name}"
+              command = "#{Gem.ruby} #{load_paths} #{$0} '#{orig_args}' #{test_opts}"
 
-              ENV.delete("ISOLATION_TEST")
-              ENV.delete("ISOLATION_OUTPUT")
+              # IO.popen lets us pass env in a cross-platform way
+              child = IO.popen(env, command)
+
+              begin
+                Process.wait(child.pid)
+              rescue Errno::ECHILD # The child process may exit before we wait
+                nil
+              end
 
               return tmpfile.read.unpack("m")[0]
             end

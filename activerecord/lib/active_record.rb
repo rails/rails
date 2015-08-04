@@ -1,5 +1,5 @@
 #--
-# Copyright (c) 2004-2013 David Heinemeier Hansson
+# Copyright (c) 2004-2015 David Heinemeier Hansson
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -27,27 +27,35 @@ require 'active_model'
 require 'arel'
 
 require 'active_record/version'
+require 'active_record/attribute_set'
 
 module ActiveRecord
   extend ActiveSupport::Autoload
 
+  autoload :Attribute
   autoload :Base
   autoload :Callbacks
   autoload :Core
   autoload :ConnectionHandling
   autoload :CounterCache
   autoload :DynamicMatchers
+  autoload :Enum
   autoload :Explain
   autoload :Inheritance
   autoload :Integration
+  autoload :LegacyYamlAdapter
   autoload :Migration
   autoload :Migrator, 'active_record/migration'
   autoload :ModelSchema
   autoload :NestedAttributes
+  autoload :NoTouching
+  autoload :TouchLater
   autoload :Persistence
   autoload :QueryCache
   autoload :Querying
+  autoload :CollectionCacheKey
   autoload :ReadonlyAttributes
+  autoload :RecordInvalid, 'active_record/validations'
   autoload :Reflection
   autoload :RuntimeRegistry
   autoload :Sanitization
@@ -58,10 +66,13 @@ module ActiveRecord
   autoload :Serialization
   autoload :StatementCache
   autoload :Store
+  autoload :Suppressor
+  autoload :TableMetadata
   autoload :Timestamp
   autoload :Transactions
   autoload :Translation
   autoload :Validations
+  autoload :SecureToken
 
   eager_autoload do
     autoload :ActiveRecordError, 'active_record/errors'
@@ -93,6 +104,7 @@ module ActiveRecord
 
   module Coders
     autoload :YAMLColumn, 'active_record/coders/yaml_column'
+    autoload :JSON, 'active_record/coders/json'
   end
 
   module AttributeMethods
@@ -145,10 +157,6 @@ module ActiveRecord
     autoload :MySQLDatabaseTasks,  'active_record/tasks/mysql_database_tasks'
     autoload :PostgreSQLDatabaseTasks,
       'active_record/tasks/postgresql_database_tasks'
-
-    autoload :FirebirdDatabaseTasks, 'active_record/tasks/firebird_database_tasks'
-    autoload :SqlserverDatabaseTasks, 'active_record/tasks/sqlserver_database_tasks'
-    autoload :OracleDatabaseTasks, 'active_record/tasks/oracle_database_tasks'
   end
 
   autoload :TestFixtures, 'active_record/fixtures'

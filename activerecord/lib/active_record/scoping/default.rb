@@ -11,7 +11,7 @@ module ActiveRecord
       end
 
       module ClassMethods
-        # Returns a scope for the model without the +default_scope+.
+        # Returns a scope for the model without the previously set scopes.
         #
         #   class Post < ActiveRecord::Base
         #     def self.default_scope
@@ -19,17 +19,23 @@ module ActiveRecord
         #     end
         #   end
         #
-        #   Post.all          # Fires "SELECT * FROM posts WHERE published = true"
-        #   Post.unscoped.all # Fires "SELECT * FROM posts"
+        #   Post.all                                  # Fires "SELECT * FROM posts WHERE published = true"
+        #   Post.unscoped.all                         # Fires "SELECT * FROM posts"
+        #   Post.where(published: false).unscoped.all # Fires "SELECT * FROM posts"
         #
         # This method also accepts a block. All queries inside the block will
-        # not use the +default_scope+:
+        # not use the previously set scopes.
         #
         #   Post.unscoped {
         #     Post.limit(10) # Fires "SELECT * FROM posts LIMIT 10"
         #   }
         def unscoped
           block_given? ? relation.scoping { yield } : relation
+        end
+
+        # Are there attributes associated with this scope?
+        def scope_attributes? # :nodoc:
+          super || default_scopes.any? || respond_to?(:default_scope)
         end
 
         def before_remove_const #:nodoc:
@@ -93,14 +99,14 @@ module ActiveRecord
           self.default_scopes += [scope]
         end
 
-        def build_default_scope # :nodoc:
+        def build_default_scope(base_rel = relation) # :nodoc:
           if !Base.is_a?(method(:default_scope).owner)
             # The user has defined their own default scope method, so call that
             evaluate_default_scope { default_scope }
           elsif default_scopes.any?
             evaluate_default_scope do
-              default_scopes.inject(relation) do |default_scope, scope|
-                default_scope.merge(unscoped { scope.call })
+              default_scopes.inject(base_rel) do |default_scope, scope|
+                default_scope.merge(base_rel.scoping { scope.call })
               end
             end
           end

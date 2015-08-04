@@ -22,7 +22,7 @@ module ActionDispatch
 
       if request.ssl?
         status, headers, body = @app.call(env)
-        headers = hsts_headers.merge(headers)
+        headers.reverse_merge!(hsts_headers)
         flag_cookies_as_secure!(headers)
         [status, headers, body]
       else
@@ -32,11 +32,14 @@ module ActionDispatch
 
     private
       def redirect_to_https(request)
-        url        = URI(request.url)
-        url.scheme = "https"
-        url.host   = @host if @host
-        url.port   = @port if @port
-        headers    = { 'Content-Type' => 'text/html', 'Location' => url.to_s }
+        host = @host || request.host
+        port = @port || request.port
+
+        location = "https://#{host}"
+        location << ":#{port}" if port != 80
+        location << request.fullpath
+
+        headers = { 'Content-Type' => 'text/html', 'Location' => location }
 
         [301, headers, []]
       end

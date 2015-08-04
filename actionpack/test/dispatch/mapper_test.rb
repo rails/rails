@@ -3,7 +3,7 @@ require 'abstract_unit'
 module ActionDispatch
   module Routing
     class MapperTest < ActiveSupport::TestCase
-      class FakeSet
+      class FakeSet < ActionDispatch::Routing::RouteSet
         attr_reader :routes
         alias :set :routes
 
@@ -38,7 +38,7 @@ module ActionDispatch
 
       def test_mapping_requirements
         options = { :controller => 'foo', :action => 'bar', :via => :get }
-        m = Mapper::Mapping.new FakeSet.new, {}, '/store/:name(*rest)', options
+        m = Mapper::Mapping.build({}, FakeSet.new, '/store/:name(*rest)', nil, options)
         _, _, requirements, _ = m.to_route
         assert_equal(/.+?/, requirements[:rest])
       end
@@ -72,7 +72,7 @@ module ActionDispatch
         mapper = Mapper.new fakeset
         mapper.get '/*path/foo/:bar', :to => 'pages#show'
         assert_equal '/*path/foo/:bar(.:format)', fakeset.conditions.first[:path_info]
-        assert_nil fakeset.requirements.first[:path]
+        assert_equal(/.+?/, fakeset.requirements.first[:path])
       end
 
       def test_map_wildcard_with_multiple_wildcard
@@ -80,7 +80,7 @@ module ActionDispatch
         mapper = Mapper.new fakeset
         mapper.get '/*foo/*bar', :to => 'pages#show'
         assert_equal '/*foo/*bar(.:format)', fakeset.conditions.first[:path_info]
-        assert_nil fakeset.requirements.first[:foo]
+        assert_equal(/.+?/, fakeset.requirements.first[:foo])
         assert_equal(/.+?/, fakeset.requirements.first[:bar])
       end
 

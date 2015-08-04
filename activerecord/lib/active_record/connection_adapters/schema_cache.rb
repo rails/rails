@@ -1,4 +1,3 @@
-
 module ActiveRecord
   module ConnectionAdapters
     class SchemaCache
@@ -12,15 +11,23 @@ module ActiveRecord
         @columns_hash = {}
         @primary_keys = {}
         @tables       = {}
-        prepare_default_proc
+      end
+
+      def initialize_dup(other)
+        super
+        @columns      = @columns.dup
+        @columns_hash = @columns_hash.dup
+        @primary_keys = @primary_keys.dup
+        @tables       = @tables.dup
       end
 
       def primary_keys(table_name)
-        @primary_keys[table_name]
+        @primary_keys[table_name] ||= table_exists?(table_name) ? connection.primary_key(table_name) : nil
       end
 
       # A cached lookup for table existence.
       def table_exists?(name)
+        prepare_tables if @tables.empty?
         return @tables[name] if @tables.key? name
 
         @tables[name] = connection.table_exists?(name)
@@ -29,9 +36,9 @@ module ActiveRecord
       # Add internal cache for table with +table_name+.
       def add(table_name)
         if table_exists?(table_name)
-          @primary_keys[table_name]
-          @columns[table_name]
-          @columns_hash[table_name]
+          primary_keys(table_name)
+          columns(table_name)
+          columns_hash(table_name)
         end
       end
 
@@ -40,14 +47,16 @@ module ActiveRecord
       end
 
       # Get the columns for a table
-      def columns(table)
-        @columns[table]
+      def columns(table_name)
+        @columns[table_name] ||= connection.columns(table_name)
       end
 
       # Get the columns for a table as a hash, key is the column name
       # value is the column object.
-      def columns_hash(table)
-        @columns_hash[table]
+      def columns_hash(table_name)
+        @columns_hash[table_name] ||= Hash[columns(table_name).map { |col|
+          [col.name, col]
+        }]
       end
 
       # Clears out internal caches
@@ -60,9 +69,7 @@ module ActiveRecord
       end
 
       def size
-        [@columns, @columns_hash, @primary_keys, @tables].map { |x|
-          x.size
-        }.inject :+
+        [@columns, @columns_hash, @primary_keys, @tables].map(&:size).inject :+
       end
 
       # Clear out internal caches for table with +table_name+.
@@ -76,33 +83,18 @@ module ActiveRecord
       def marshal_dump
         # if we get current version during initialization, it happens stack over flow.
         @version = ActiveRecord::Migrator.current_version
-        [@version] + [@columns, @columns_hash, @primary_keys, @tables].map { |val|
-          Hash[val]
-        }
+        [@version, @columns, @columns_hash, @primary_keys, @tables]
       end
 
       def marshal_load(array)
         @version, @columns, @columns_hash, @primary_keys, @tables = array
-        prepare_default_proc
       end
 
       private
 
-      def prepare_default_proc
-        @columns.default_proc = Proc.new do |h, table_name|
-          h[table_name] = connection.columns(table_name)
+        def prepare_tables
+          connection.tables.each { |table| @tables[table] = true }
         end
-
-        @columns_hash.default_proc = Proc.new do |h, table_name|
-          h[table_name] = Hash[columns(table_name).map { |col|
-            [col.name, col]
-          }]
-        end
-
-        @primary_keys.default_proc = Proc.new do |h, table_name|
-          h[table_name] = table_exists?(table_name) ? connection.primary_key(table_name) : nil
-        end
-      end
     end
   end
 end

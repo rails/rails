@@ -1,18 +1,16 @@
+require 'active_record/associations/join_dependency/join_part'
+
 module ActiveRecord
   module Associations
     class JoinDependency # :nodoc:
       class JoinBase < JoinPart # :nodoc:
-        def ==(other)
-          other.class == self.class &&
-            other.base_klass == base_klass
-        end
-
-        def aliased_prefix
-          "t0"
+        def match?(other)
+          return true if self == other
+          super && base_klass == other.base_klass
         end
 
         def table
-          Arel::Table.new(table_name, arel_engine)
+          base_klass.arel_table
         end
 
         def aliased_table_name

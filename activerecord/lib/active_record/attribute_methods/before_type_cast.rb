@@ -28,6 +28,7 @@ module ActiveRecord
 
       included do
         attribute_method_suffix "_before_type_cast"
+        attribute_method_suffix "_came_from_user?"
       end
 
       # Returns the value of the attribute identified by +attr_name+ before
@@ -43,7 +44,7 @@ module ActiveRecord
       #   task.read_attribute_before_type_cast('completed_on') # => "2012-10-21"
       #   task.read_attribute_before_type_cast(:completed_on)  # => "2012-10-21"
       def read_attribute_before_type_cast(attr_name)
-        @attributes[attr_name.to_s]
+        @attributes[attr_name.to_s].value_before_type_cast
       end
 
       # Returns a hash of attributes before typecasting and deserialization.
@@ -57,7 +58,7 @@ module ActiveRecord
       #   task.attributes_before_type_cast
       #   # => {"id"=>nil, "title"=>nil, "is_done"=>true, "completed_on"=>"2012-10-21", "created_at"=>nil, "updated_at"=>nil}
       def attributes_before_type_cast
-        @attributes
+        @attributes.values_before_type_cast
       end
 
       private
@@ -65,6 +66,10 @@ module ActiveRecord
       # Handle *_before_type_cast for method_missing.
       def attribute_before_type_cast(attribute_name)
         read_attribute_before_type_cast(attribute_name)
+      end
+
+      def attribute_came_from_user?(attribute_name)
+        @attributes[attribute_name].came_from_user?
       end
     end
   end

@@ -33,7 +33,7 @@ module ActiveSupport
     # you can collect them doing @logger.logged(level), where level is the level
     # used in logging, like info, debug, warn and so on.
     module TestHelper
-      def setup
+      def setup # :nodoc:
         @logger   = MockLogger.new
         @notifier = ActiveSupport::Notifications::Fanout.new
 
@@ -44,7 +44,7 @@ module ActiveSupport
         ActiveSupport::Notifications.notifier = @notifier
       end
 
-      def teardown
+      def teardown # :nodoc:
         set_logger(nil)
         ActiveSupport::Notifications.notifier = @old_notifier
       end

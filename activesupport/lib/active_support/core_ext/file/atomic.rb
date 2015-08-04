@@ -20,10 +20,10 @@ class File
 
     temp_file = Tempfile.new(basename(file_name), temp_dir)
     temp_file.binmode
-    yield temp_file
+    return_val = yield temp_file
     temp_file.close
 
-    if File.exists?(file_name)
+    if File.exist?(file_name)
       # Get original file permissions
       old_stat = stat(file_name)
     else
@@ -40,7 +40,10 @@ class File
       chown(old_stat.uid, old_stat.gid, file_name)
       # This operation will affect filesystem ACL's
       chmod(old_stat.mode, file_name)
-    rescue Errno::EPERM
+
+      # Make sure we return the result of the yielded block
+      return_val
+    rescue Errno::EPERM, Errno::EACCES
       # Changing file ownership failed, moving on.
     end
   end

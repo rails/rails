@@ -8,6 +8,11 @@ class ModuleAttributeAccessorTest < ActiveSupport::TestCase
       mattr_accessor :bar, :instance_writer => false
       mattr_reader   :shaq, :instance_reader => false
       mattr_accessor :camp, :instance_accessor => false
+
+      cattr_accessor(:defa) { 'default_accessor_value' }
+      cattr_reader(:defr) { 'default_reader_value' }
+      cattr_writer(:defw) { 'default_writer_value' }
+      cattr_accessor(:quux) { :quux }
     end
     @class = Class.new
     @class.instance_eval { include m }
@@ -25,6 +30,11 @@ class ModuleAttributeAccessorTest < ActiveSupport::TestCase
 
     @object.foo = :test2
     assert_equal :test2, @module.foo
+  end
+
+  def test_cattr_accessor_default_value
+    assert_equal :quux, @module.quux
+    assert_equal :quux, @object.quux
   end
 
   def test_should_not_create_instance_writer
@@ -46,16 +56,24 @@ class ModuleAttributeAccessorTest < ActiveSupport::TestCase
   end
 
   def test_should_raise_name_error_if_attribute_name_is_invalid
-    assert_raises NameError do
+    exception = assert_raises NameError do
       Class.new do
-        mattr_reader "invalid attribute name"
+        cattr_reader "1nvalid"
       end
     end
+    assert_equal "invalid attribute name: 1nvalid", exception.message
 
-    assert_raises NameError do
+    exception = assert_raises NameError do
       Class.new do
-        mattr_writer "invalid attribute name"
+        cattr_writer "1nvalid"
       end
     end
+    assert_equal "invalid attribute name: 1nvalid", exception.message
+  end
+
+  def test_should_use_default_value_if_block_passed
+    assert_equal 'default_accessor_value', @module.defa
+    assert_equal 'default_reader_value', @module.defr
+    assert_equal 'default_writer_value', @module.class_variable_get('@@defw')
   end
 end

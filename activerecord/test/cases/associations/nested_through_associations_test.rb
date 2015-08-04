@@ -130,7 +130,7 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
   def test_has_many_through_has_one_through_with_has_one_source_reflection_preload
     members = assert_queries(4) { Member.includes(:nested_sponsors).to_a }
     mustache = sponsors(:moustache_club_sponsor_for_groucho)
-    assert_no_queries do
+    assert_no_queries(ignore_none: false) do
       assert_equal [mustache], members.first.nested_sponsors
     end
   end
@@ -153,6 +153,7 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_has_many_through_has_one_with_has_many_through_source_reflection_preload
+    ActiveRecord::Base.connection.table_alias_length  # preheat cache
     members = assert_queries(4) { Member.includes(:organization_member_details).to_a.sort_by(&:id) }
     groucho_details, other_details = member_details(:groucho), member_details(:some_other_guy)
 
@@ -214,7 +215,7 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_has_many_through_has_many_with_has_and_belongs_to_many_source_reflection_preload
-    authors = assert_queries(3) { Author.includes(:post_categories).to_a.sort_by(&:id) }
+    authors = assert_queries(4) { Author.includes(:post_categories).to_a.sort_by(&:id) }
     general, cooking = categories(:general), categories(:cooking)
 
     assert_no_queries do
@@ -242,7 +243,8 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_has_many_through_has_and_belongs_to_many_with_has_many_source_reflection_preload
-    categories = assert_queries(3) { Category.includes(:post_comments).to_a.sort_by(&:id) }
+    Category.includes(:post_comments).to_a # preheat cache
+    categories = assert_queries(4) { Category.includes(:post_comments).to_a.sort_by(&:id) }
     greetings, more = comments(:greetings), comments(:more_greetings)
 
     assert_no_queries do
@@ -270,7 +272,7 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_has_many_through_has_many_with_has_many_through_habtm_source_reflection_preload
-    authors = assert_queries(5) { Author.includes(:category_post_comments).to_a.sort_by(&:id) }
+    authors = assert_queries(6) { Author.includes(:category_post_comments).to_a.sort_by(&:id) }
     greetings, more = comments(:greetings), comments(:more_greetings)
 
     assert_no_queries do
@@ -493,7 +495,7 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
     groucho = members(:groucho)
     founding = member_types(:founding)
 
-    assert_raises(ActiveRecord::HasManyThroughNestedAssociationsAreReadonly) do
+    assert_raises(ActiveRecord::HasOneThroughNestedAssociationsAreReadonly) do
       groucho.nested_member_type = founding
     end
   end

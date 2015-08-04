@@ -27,7 +27,7 @@ module ActiveRecord
         end.join("\n")
       end.join("\n")
 
-      # Overriding inspect to be more human readable, specially in the console.
+      # Overriding inspect to be more human readable, especially in the console.
       def str.inspect
         self
       end

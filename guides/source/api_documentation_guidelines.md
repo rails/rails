@@ -1,3 +1,5 @@
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+
 API Documentation Guidelines
 ============================
 
@@ -13,7 +15,20 @@ After reading this guide, you will know:
 RDoc
 ----
 
-The Rails API documentation is generated with RDoc. Please consult the documentation for help with the [markup](http://rdoc.rubyforge.org/RDoc/Markup.html), and also take into account these [additional directives](http://rdoc.rubyforge.org/RDoc/Parser/Ruby.html).
+The [Rails API documentation](http://api.rubyonrails.org) is generated with
+[RDoc](http://docs.seattlerb.org/rdoc/). To generate it, make sure you are
+in the rails root directory, run `bundle install` and execute:
+
+```bash
+  bundle exec rake rdoc
+```
+
+Resulting HTML files can be found in the ./doc/rdoc directory.
+
+Please consult the RDoc documentation for help with the
+[markup](http://docs.seattlerb.org/rdoc/RDoc/Markup.html),
+and also take into account these [additional
+directives](http://docs.seattlerb.org/rdoc/RDoc/Parser/Ruby.html).
 
 Wording
 -------
@@ -42,10 +57,32 @@ Spell names correctly: Arel, Test::Unit, RSpec, HTML, MySQL, JavaScript, ERB. Wh
 
 Use the article "an" for "SQL", as in "an SQL statement". Also "an SQLite database".
 
+Prefer wordings that avoid "you"s and "your"s. For example, instead of
+
+```markdown
+If you need to use `return` statements in your callbacks, it is recommended that you explicitly define them as methods.
+```
+
+use this style:
+
+```markdown
+If `return` is needed it is recommended to explicitly define a method.
+```
+
+That said, when using pronouns in reference to a hypothetical person, such as "a
+user with a session cookie", gender neutral pronouns (they/their/them) should be
+used. Instead of:
+
+* he or she... use they.
+* him or her... use them.
+* his or her... use their.
+* his or hers... use theirs.
+* himself or herself... use themselves.
+
 English
 -------
 
-Please use American English (<em>color</em>, <em>center</em>, <em>modularize</em>, etc).. See [a list of American and British English spelling differences here](http://en.wikipedia.org/wiki/American_and_British_English_spelling_differences).
+Please use American English (*color*, *center*, *modularize*, etc). See [a list of American and British English spelling differences here](http://en.wikipedia.org/wiki/American_and_British_English_spelling_differences).
 
 Example Code
 ------------
@@ -88,14 +125,14 @@ The results of expressions follow them and are introduced by "# => ", vertically
 If a line is too long, the comment may be placed on the next line:
 
 ```ruby
-#   label(:post, :title)
-#   # => <label for="post_title">Title</label>
+#   label(:article, :title)
+#   # => <label for="article_title">Title</label>
 #
-#   label(:post, :title, "A short title")
-#   # => <label for="post_title">A short title</label>
+#   label(:article, :title, "A short title")
+#   # => <label for="article_title">A short title</label>
 #
-#   label(:post, :title, "A short title", class: "title_label")
-#   # => <label for="post_title" class="title_label">A short title</label>
+#   label(:article, :title, "A short title", class: "title_label")
+#   # => <label for="article_title" class="title_label">A short title</label>
 ```
 
 Avoid using any printing methods like `puts` or `p` for that purpose.
@@ -106,8 +143,55 @@ On the other hand, regular comments do not use an arrow:
 #   polymorphic_url(record)  # same as comment_url(record)
 ```
 
-Filenames
----------
+Booleans
+--------
+
+In predicates and flags prefer documenting boolean semantics over exact values.
+
+When "true" or "false" are used as defined in Ruby use regular font. The
+singletons `true` and `false` need fixed-width font. Please avoid terms like
+"truthy", Ruby defines what is true and false in the language, and thus those
+words have a technical meaning and need no substitutes.
+
+As a rule of thumb, do not document singletons unless absolutely necessary. That
+prevents artificial constructs like `!!` or ternaries, allows refactors, and the
+code does not need to rely on the exact values returned by methods being called
+in the implementation.
+
+For example:
+
+```markdown
+`config.action_mailer.perform_deliveries` specifies whether mail will actually be delivered and is true by default
+```
+
+the user does not need to know which is the actual default value of the flag,
+and so we only document its boolean semantics.
+
+An example with a predicate:
+
+```ruby
+# Returns true if the collection is empty.
+#
+# If the collection has been loaded
+# it is equivalent to <tt>collection.size.zero?</tt>. If the
+# collection has not been loaded, it is equivalent to
+# <tt>collection.exists?</tt>. If the collection has not already been
+# loaded and you are going to fetch the records anyway it is better to
+# check <tt>collection.length.zero?</tt>.
+def empty?
+  if loaded?
+    size.zero?
+  else
+    @target.blank? && !scope.exists?
+  end
+end
+```
+
+The API is careful not to commit to any particular value, the method has
+predicate semantics, that's enough.
+
+File Names
+----------
 
 As a rule of thumb, use filenames relative to the application root:
 
@@ -141,7 +225,17 @@ class Array
 end
 ```
 
-WARNING: Using a pair of `+...+` for fixed-width font only works with **words**; that is: anything matching `\A\w+\z`. For anything else use `<tt>...</tt>`, notably symbols, setters, inline snippets, etc.
+WARNING: Using `+...+` for fixed-width font only works with simple content like
+ordinary method names, symbols, paths (with forward slashes), etc. Please use
+`<tt>...</tt>` for everything else, notably class or module names with a
+namespace as in `<tt>ActiveRecord::Base</tt>`.
+
+You can quickly test the RDoc output with the following command:
+
+```
+$ echo "+:to_param+" | rdoc --pipe
+#=> <p><code>:to_param</code></p>
+```
 
 ### Regular Font
 
@@ -207,3 +301,64 @@ self.class_eval %{
   end
 }
 ```
+
+Method Visibility
+-----------------
+
+When writing documentation for Rails, it's important to understand the difference between public user-facing API vs internal API.
+
+Rails, like most libraries, uses the private keyword from Ruby for defining internal API. However, public API follows a slightly different convention. Instead of assuming all public methods are designed for user consumption, Rails uses the `:nodoc:` directive to annotate these kinds of methods as internal API.
+
+This means that there are methods in Rails with `public` visibility that aren't meant for user consumption.
+
+An example of this is `ActiveRecord::Core::ClassMethods#arel_table`:
+
+```ruby
+module ActiveRecord::Core::ClassMethods
+  def arel_table #:nodoc:
+    # do some magic..
+  end
+end
+```
+
+If you thought, "this method looks like a public class method for `ActiveRecord::Core`", you were right. But actually the Rails team doesn't want users to rely on this method. So they mark it as `:nodoc:` and it's removed from public documentation. The reasoning behind this is to allow the team to change these methods according to their internal needs across releases as they see fit. The name of this method could change, or the return value, or this entire class may disappear; there's no guarantee and so you shouldn't depend on this API in your plugins or applications. Otherwise, you risk your app or gem breaking when you upgrade to a newer release of Rails.
+
+As a contributor, it's important to think about whether this API is meant for end-user consumption. The Rails team is committed to not making any breaking changes to public API across releases without going through a full deprecation cycle. It's recommended that you `:nodoc:` any of your internal methods/classes unless they're already private (meaning visibility), in which case it's internal by default. Once the API stabilizes the visibility can change, but changing public API is much harder due to backwards compatibility.
+
+A class or module is marked with `:nodoc:` to indicate that all methods are internal API and should never be used directly.
+
+If you come across an existing `:nodoc:` you should tread lightly. Consider asking someone from the core team or author of the code before removing it. This should almost always happen through a pull request instead of the docrails project.
+
+A `:nodoc:` should never be added simply because a method or class is missing documentation. There may be an instance where an internal public method wasn't given a `:nodoc:` by mistake, for example when switching a method from private to public visibility. When this happens it should be discussed over a PR on a case-by-case basis and never committed directly to docrails.
+
+To summarize, the Rails team uses `:nodoc:` to mark publicly visible methods and classes for internal use; changes to the visibility of API should be considered carefully and discussed over a pull request first.
+
+Regarding the Rails Stack
+-------------------------
+
+When documenting parts of Rails API, it's important to remember all of the
+pieces that go into the Rails stack.
+
+This means that behavior may change depending on the scope or context of the
+method or class you're trying to document.
+
+In various places there is different behavior when you take the entire stack
+into account, one such example is
+`ActionView::Helpers::AssetTagHelper#image_tag`:
+
+```ruby
+# image_tag("icon.png")
+#   # => <img alt="Icon" src="/assets/icon.png" />
+```
+
+Although the default behavior for `#image_tag` is to always return
+`/images/icon.png`, we take into account the full Rails stack (including the
+Asset Pipeline) we may see the result seen above.
+
+We're only concerned with the behavior experienced when using the full default
+Rails stack.
+
+In this case, we want to document the behavior of the _framework_, and not just
+this specific method.
+
+If you have a question on how the Rails team handles certain API, don't hesitate to open a ticket or send a patch to the [issue tracker](https://github.com/rails/rails/issues).

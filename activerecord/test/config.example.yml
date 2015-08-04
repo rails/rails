@@ -51,32 +51,11 @@ connections:
       password: arunit
       database: arunit2
 
-  firebird:
-    arunit:
-      host: localhost
-      username: rails
-      password: rails
-      charset: UTF8
-    arunit2:
-      host: localhost
-      username: rails
-      password: rails
-      charset: UTF8
-
-  frontbase:
-    arunit:
-      host: localhost
-      username: rails
-      session_name: unittest-<%= $$ %>
-    arunit2:
-      host: localhost
-      username: rails
-      session_name: unittest-<%= $$ %>
-
   mysql:
     arunit:
       username: rails
       encoding: utf8
+      collation: utf8_unicode_ci
     arunit2:
       username: rails
       encoding: utf8
@@ -85,15 +64,10 @@ connections:
     arunit:
       username: rails
       encoding: utf8
+      collation: utf8_unicode_ci
     arunit2:
       username: rails
       encoding: utf8
-
-  openbase:
-    arunit:
-      username: admin
-    arunit2:
-      username: admin
 
   oracle:
      arunit:
@@ -130,11 +104,3 @@ connections:
     arunit2:
       adapter: sqlite3
       database: ':memory:'
-
-  sybase:
-    arunit:
-      host: database_ASE
-      username: sa
-    arunit2:
-      host: database_ASE
-      username: sa

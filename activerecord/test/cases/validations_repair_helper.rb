@@ -5,19 +5,15 @@ module ActiveRecord
     module ClassMethods
       def repair_validations(*model_classes)
         teardown do
-          model_classes.each do |k|
-            k.clear_validators!
-          end
+          model_classes.each(&:clear_validators!)
         end
       end
     end
 
     def repair_validations(*model_classes)
-      yield
+      yield if block_given?
     ensure
-      model_classes.each do |k|
-        k.clear_validators!
-      end
+      model_classes.each(&:clear_validators!)
     end
   end
 end

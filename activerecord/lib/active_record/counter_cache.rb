@@ -11,7 +11,7 @@ module ActiveRecord
       # ==== Parameters
       #
       # * +id+ - The id of the object you wish to reset a counter on.
-      # * +counters+ - One or more association counters to reset
+      # * +counters+ - One or more association counters to reset. Association name or counter name can be given.
       #
       # ==== Examples
       #
@@ -19,9 +19,14 @@ module ActiveRecord
       #   Post.reset_counters(1, :comments)
       def reset_counters(id, *counters)
         object = find(id)
-        counters.each do |association|
-          has_many_association = reflect_on_association(association.to_sym)
-          raise ArgumentError, "'#{self.name}' has no association called '#{association}'" unless has_many_association
+        counters.each do |counter_association|
+          has_many_association = _reflect_on_association(counter_association)
+          unless has_many_association
+            has_many = reflect_on_all_associations(:has_many)
+            has_many_association = has_many.find { |association| association.counter_cache_column && association.counter_cache_column.to_sym == counter_association.to_sym }
+            counter_association = has_many_association.plural_name if has_many_association
+          end
+          raise ArgumentError, "'#{self.name}' has no association called '#{counter_association}'" unless has_many_association
 
           if has_many_association.is_a? ActiveRecord::Reflection::ThroughReflection
             has_many_association = has_many_association.through_reflection
@@ -29,14 +34,12 @@ module ActiveRecord
 
           foreign_key  = has_many_association.foreign_key.to_s
           child_class  = has_many_association.klass
-          belongs_to   = child_class.reflect_on_all_associations(:belongs_to)
-          reflection   = belongs_to.find { |e| e.foreign_key.to_s == foreign_key && e.options[:counter_cache].present? }
+          reflection   = child_class._reflections.values.find { |e| e.belongs_to? && e.foreign_key.to_s == foreign_key && e.options[:counter_cache].present? }
           counter_name = reflection.counter_cache_column
 
-          stmt = unscoped.where(arel_table[primary_key].eq(object.id)).arel.compile_update({
-            arel_table[counter_name] => object.send(association).count
-          })
-          connection.update stmt
+          unscoped.where(primary_key => object.id).update_all(
+            counter_name => object.send(counter_association).count(:all)
+          )
         end
         return true
       end
@@ -77,15 +80,15 @@ module ActiveRecord
           "#{quoted_column} = COALESCE(#{quoted_column}, 0) #{operator} #{value.abs}"
         end
 
-        where(primary_key => id).update_all updates.join(', ')
+        unscoped.where(primary_key => id).update_all updates.join(', ')
       end
 
       # Increment a numeric field by one, via a direct SQL update.
       #
-      # This method is used primarily for maintaining counter_cache columns used to
-      # store aggregate values. For example, a DiscussionBoard may cache posts_count
-      # and comments_count to avoid running an SQL query to calculate the number of
-      # posts and comments there are each time it is displayed.
+      # This method is used primarily for maintaining counter_cache columns that are
+      # used to store aggregate values. For example, a DiscussionBoard may cache
+      # posts_count and comments_count to avoid running an SQL query to calculate the
+      # number of posts and comments there are, each time it is displayed.
       #
       # ==== Parameters
       #
@@ -118,5 +121,44 @@ module ActiveRecord
         update_counters(id, counter_name => -1)
       end
     end
+
+    private
+
+      def _create_record(*)
+        id = super
+
+        each_counter_cached_associations do |association|
+          if send(association.reflection.name)
+            association.increment_counters
+            @_after_create_counter_called = true
+          end
+        end
+
+        id
+      end
+
+      def destroy_row
+        affected_rows = super
+
+        if affected_rows > 0
+          each_counter_cached_associations do |association|
+            foreign_key = association.reflection.foreign_key.to_sym
+            unless destroyed_by_association && destroyed_by_association.foreign_key.to_sym == foreign_key
+              if send(association.reflection.name)
+                association.decrement_counters
+              end
+            end
+          end
+        end
+
+        affected_rows
+      end
+
+      def each_counter_cached_associations
+        _reflections.each do |name, reflection|
+          yield association(name.to_sym) if reflection.belongs_to? && reflection.counter_cache_column
+        end
+      end
+
   end
 end

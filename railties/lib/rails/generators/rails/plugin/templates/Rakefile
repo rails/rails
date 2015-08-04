@@ -8,7 +8,7 @@ require 'rdoc/task'
 
 RDoc::Task.new(:rdoc) do |rdoc|
   rdoc.rdoc_dir = 'rdoc'
-  rdoc.title    = '<%= camelized %>'
+  rdoc.title    = '<%= camelized_modules %>'
   rdoc.options << '--line-numbers'
   rdoc.rdoc_files.include('README.rdoc')
   rdoc.rdoc_files.include('lib/**/*.rb')
@@ -17,6 +17,10 @@ end
 <% if engine? && !options[:skip_active_record] && with_dummy_app? -%>
 APP_RAKEFILE = File.expand_path("../<%= dummy_path -%>/Rakefile", __FILE__)
 load 'rails/tasks/engine.rake'
+<% end %>
+
+<% if engine? -%>
+load 'rails/tasks/statistics.rake'
 <% end %>
 
 <% unless options[:skip_gemspec] -%>

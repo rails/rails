@@ -3,7 +3,7 @@ class Array
   #
   # Specifically:
   #
-  # * If the argument is +nil+ an empty list is returned.
+  # * If the argument is +nil+ an empty array is returned.
   # * Otherwise, if the argument responds to +to_ary+ it is invoked, and its result returned.
   # * Otherwise, returns an array with the argument as its single element.
   #
@@ -15,12 +15,13 @@ class Array
   #
   # * If the argument responds to +to_ary+ the method is invoked. <tt>Kernel#Array</tt>
   #   moves on to try +to_a+ if the returned value is +nil+, but <tt>Array.wrap</tt> returns
-  #   +nil+ right away.
+  #   an array with the argument as its single element right away.
   # * If the returned value from +to_ary+ is neither +nil+ nor an +Array+ object, <tt>Kernel#Array</tt>
   #   raises an exception, while <tt>Array.wrap</tt> does not, it just returns the value.
-  # * It does not call +to_a+ on the argument, but returns an empty array if argument is +nil+.
+  # * It does not call +to_a+ on the argument, if the argument does not respond to +to_ary+
+  #   it returns an array with the argument as its single element.
   #
-  # The second point is easily explained with some enumerables:
+  # The last point is easily explained with some enumerables:
   #
   #   Array(foo: :bar)      # => [[:foo, :bar]]
   #   Array.wrap(foo: :bar) # => [{:foo=>:bar}]

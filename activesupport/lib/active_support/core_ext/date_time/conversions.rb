@@ -71,9 +71,9 @@ class DateTime
     civil(year, month, day, hour, min, sec, offset)
   end
 
-  # Converts +self+ to a floating-point number of seconds since the Unix epoch.
+  # Converts +self+ to a floating-point number of seconds, including fractional microseconds, since the Unix epoch.
   def to_f
-    seconds_since_unix_epoch.to_f
+    seconds_since_unix_epoch.to_f + sec_fraction
   end
 
   # Converts +self+ to an integer number of seconds since the Unix epoch.

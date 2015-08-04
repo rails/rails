@@ -1,3 +1,5 @@
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+
 Layouts and Rendering in Rails
 ==============================
 
@@ -101,35 +103,6 @@ In most cases, the `ActionController::Base#render` method does the heavy lifting
 
 TIP: If you want to see the exact results of a call to `render` without needing to inspect it in a browser, you can call `render_to_string`. This method takes exactly the same options as `render`, but it returns a string instead of sending a response back to the browser.
 
-#### Rendering Nothing
-
-Perhaps the simplest thing you can do with `render` is to render nothing at all:
-
-```ruby
-render nothing: true
-```
-
-If you look at the response for this using cURL, you will see the following:
-
-```bash
-$ curl -i 127.0.0.1:3000/books
-HTTP/1.1 200 OK
-Connection: close
-Date: Sun, 24 Jan 2010 09:25:18 GMT
-Transfer-Encoding: chunked
-Content-Type: */*; charset=utf-8
-X-Runtime: 0.014297
-Set-Cookie: _blog_session=...snip...; path=/; HttpOnly
-Cache-Control: no-cache
-
-
- $
-```
-
-We see there is an empty response (no data after the `Cache-Control` line), but the request was successful because Rails has set the response to 200 OK. You can set the `:status` option on render to change this response. Rendering nothing can be useful for Ajax requests where all you want to send back to the browser is an acknowledgment that the request was completed.
-
-TIP: You should probably be using the `head` method, discussed later in this guide, instead of `render :nothing`. This provides additional flexibility and makes it explicit that you're only generating HTTP headers.
-
 #### Rendering an Action's View
 
 If you want to render the view that corresponds to a different template within the same controller, you can use `render` with the name of the view:
@@ -137,7 +110,7 @@ If you want to render the view that corresponds to a different template within t
 ```ruby
 def update
   @book = Book.find(params[:id])
-  if @book.update(params[:book])
+  if @book.update(book_params)
     redirect_to(@book)
   else
     render "edit"
@@ -152,7 +125,7 @@ If you prefer, you can use a symbol instead of a string to specify the action to
 ```ruby
 def update
   @book = Book.find(params[:id])
-  if @book.update(params[:book])
+  if @book.update(book_params)
     redirect_to(@book)
   else
     render :edit
@@ -190,7 +163,7 @@ render file: "/u/apps/warehouse_app/current/app/views/products/show"
 
 The `:file` option takes an absolute file-system path. Of course, you need to have rights to the view that you're using to render the content.
 
-NOTE: By default, the file is rendered without using the current layout. If you want Rails to put the file into the current layout, you need to add the `layout: true` option.
+NOTE: By default, the file is rendered using the current layout.
 
 TIP: If you're running Rails on Microsoft Windows, you should use the `:file` option to render a file, because Windows filenames do not have the same format as Unix filenames.
 
@@ -237,15 +210,35 @@ render inline: "xml.p {'Horrid coding practice!'}", type: :builder
 
 #### Rendering Text
 
-You can send plain text - with no markup at all - back to the browser by using the `:text` option to `render`:
+You can send plain text - with no markup at all - back to the browser by using
+the `:plain` option to `render`:
 
 ```ruby
-render text: "OK"
+render plain: "OK"
 ```
 
-TIP: Rendering pure text is most useful when you're responding to Ajax or web service requests that are expecting something other than proper HTML.
+TIP: Rendering pure text is most useful when you're responding to Ajax or web
+service requests that are expecting something other than proper HTML.
 
-NOTE: By default, if you use the `:text` option, the text is rendered without using the current layout. If you want Rails to put the text into the current layout, you need to add the `layout: true` option.
+NOTE: By default, if you use the `:plain` option, the text is rendered without
+using the current layout. If you want Rails to put the text into the current
+layout, you need to add the `layout: true` option and use the `.txt.erb`
+extension for the layout file.
+
+#### Rendering HTML
+
+You can send an HTML string back to the browser by using the `:html` option to
+`render`:
+
+```ruby
+render html: "<strong>Not Found</strong>".html_safe
+```
+
+TIP: This is useful when you're rendering a small snippet of HTML code.
+However, you might want to consider moving it to a template file if the markup
+is complex.
+
+NOTE: This option will escape HTML entities if the string is not HTML safe.
 
 #### Rendering JSON
 
@@ -277,14 +270,31 @@ render js: "alert('Hello Rails');"
 
 This will send the supplied string to the browser with a MIME type of `text/javascript`.
 
+#### Rendering raw body
+
+You can send a raw content back to the browser, without setting any content
+type, by using the `:body` option to `render`:
+
+```ruby
+render body: "raw"
+```
+
+TIP: This option should be used only if you don't care about the content type of
+the response. Using `:plain` or `:html` might be more appropriate in most of the
+time.
+
+NOTE: Unless overridden, your response returned from this render option will be
+`text/html`, as that is the default content type of Action Dispatch response.
+
 #### Options for `render`
 
-Calls to the `render` method generally accept four options:
+Calls to the `render` method generally accept five options:
 
 * `:content_type`
 * `:layout`
 * `:location`
 * `:status`
+* `:formats`
 
 ##### The `:content_type` Option
 
@@ -390,6 +400,19 @@ Rails understands both numeric status codes and the corresponding symbols shown 
 |                     | 510              | :not_extended                    |
 |                     | 511              | :network_authentication_required |
 
+NOTE:  If you try to render content along with a non-content status code
+(100-199, 204, 205 or 304), it will be dropped from the response.
+
+##### The `:formats` Option
+
+Rails uses the format specified in the request (or `:html` by default). You can
+change this passing the `:formats` option with a symbol or an array:
+
+```ruby
+render formats: :xml
+render formats: [:json, :xml]
+```
+
 #### Finding Layouts
 
 To find the current layout, Rails first looks for a file in `app/views/layouts` with the same base name as the controller. For example, rendering actions from the `PhotosController` class will use `app/views/layouts/photos.html.erb` (or `app/views/layouts/photos.builder`). If there is no such controller-specific layout, Rails will use `app/views/layouts/application.html.erb` or `app/views/layouts/application.builder`. If there is no `.erb` layout, Rails will use a `.builder` layout if one exists. Rails also provides several ways to more precisely assign specific layouts to individual controllers and actions.
@@ -405,7 +428,7 @@ class ProductsController < ApplicationController
 end
 ```
 
-With this declaration, all of the views rendered by the products controller will use `app/views/layouts/inventory.html.erb` as their layout.
+With this declaration, all of the views rendered by the `ProductsController` will use `app/views/layouts/inventory.html.erb` as their layout.
 
 To assign a specific layout for the entire application, use a `layout` declaration in your `ApplicationController` class:
 
@@ -472,33 +495,33 @@ Layout declarations cascade downward in the hierarchy, and more specific layout 
     end
     ```
 
-* `posts_controller.rb`
+* `articles_controller.rb`
 
     ```ruby
-    class PostsController < ApplicationController
+    class ArticlesController < ApplicationController
     end
     ```
 
-* `special_posts_controller.rb`
+* `special_articles_controller.rb`
 
     ```ruby
-    class SpecialPostsController < PostsController
+    class SpecialArticlesController < ArticlesController
       layout "special"
     end
     ```
 
-* `old_posts_controller.rb`
+* `old_articles_controller.rb`
 
     ```ruby
-    class OldPostsController < SpecialPostsController
+    class OldArticlesController < SpecialArticlesController
       layout false
 
       def show
-        @post = Post.find(params[:id])
+        @article = Article.find(params[:id])
       end
 
       def index
-        @old_posts = Post.older
+        @old_articles = Article.older
         render layout: "old"
       end
       # ...
@@ -508,10 +531,46 @@ Layout declarations cascade downward in the hierarchy, and more specific layout 
 In this application:
 
 * In general, views will be rendered in the `main` layout
-* `PostsController#index` will use the `main` layout
-* `SpecialPostsController#index` will use the `special` layout
-* `OldPostsController#show` will use no layout at all
-* `OldPostsController#index` will use the `old` layout
+* `ArticlesController#index` will use the `main` layout
+* `SpecialArticlesController#index` will use the `special` layout
+* `OldArticlesController#show` will use no layout at all
+* `OldArticlesController#index` will use the `old` layout
+
+##### Template Inheritance
+
+Similar to the Layout Inheritance logic, if a template or partial is not found in the conventional path, the controller will look for a template or partial to render in its inheritance chain. For example:
+
+```ruby
+# in app/controllers/application_controller
+class ApplicationController < ActionController::Base
+end
+
+# in app/controllers/admin_controller
+class AdminController < ApplicationController
+end
+
+# in app/controllers/admin/products_controller
+class Admin::ProductsController < AdminController
+  def index
+  end
+end
+```
+
+The lookup order for a `admin/products#index` action will be:
+
+* `app/views/admin/products/`
+* `app/views/admin/`
+* `app/views/application/`
+
+This makes `app/views/application/` a great place for your shared partials, which can then be rendered in your ERB as such:
+
+```erb
+<%# app/views/admin/products/index.html.erb %>
+<%= render @products || "empty_list" %>
+
+<%# app/views/application/_empty_list.html.erb %>
+There are no items in this list <em>yet</em>.
+```
 
 #### Avoiding Double Render Errors
 
@@ -704,7 +763,7 @@ WARNING: The asset tag helpers do _not_ verify the existence of the assets at th
 
 #### Linking to Feeds with the `auto_discovery_link_tag`
 
-The `auto_discovery_link_tag` helper builds HTML that most browsers and newsreaders can use to detect the presence of RSS or Atom feeds. It takes the type of the link (`:rss` or `:atom`), a hash of options that are passed through to url_for, and a hash of options for the tag:
+The `auto_discovery_link_tag` helper builds HTML that most browsers and feed readers can use to detect the presence of RSS or Atom feeds. It takes the type of the link (`:rss` or `:atom`), a hash of options that are passed through to url_for, and a hash of options for the tag:
 
 ```erb
 <%= auto_discovery_link_tag(:rss, {action: "feed"},
@@ -869,7 +928,10 @@ You can also specify multiple videos to play by passing an array of videos to th
 This will produce:
 
 ```erb
-<video><source src="trailer.ogg" /><source src="movie.ogg" /></video>
+<video>
+  <source src="/videos/trailer.ogg">
+  <source src="/videos/movie.ogg">
+</video>
 ```
 
 #### Linking to Audio Files with the `audio_tag`
@@ -985,7 +1047,48 @@ One way to use partials is to treat them as the equivalent of subroutines: as a 
 <%= render "shared/footer" %>
 ```
 
-Here, the `_ad_banner.html.erb` and `_footer.html.erb` partials could contain content that is shared among many pages in your application. You don't need to see the details of these sections when you're concentrating on a particular page.
+Here, the `_ad_banner.html.erb` and `_footer.html.erb` partials could contain
+content that is shared by many pages in your application. You don't need to see
+the details of these sections when you're concentrating on a particular page.
+
+As seen in the previous sections of this guide, `yield` is a very powerful tool
+for cleaning up your layouts. Keep in mind that it's pure Ruby, so you can use
+it almost everywhere. For example, we can use it to DRY up form layout
+definitions for several similar resources:
+
+* `users/index.html.erb`
+
+    ```html+erb
+    <%= render "shared/search_filters", search: @q do |f| %>
+      <p>
+        Name contains: <%= f.text_field :name_contains %>
+      </p>
+    <% end %>
+    ```
+
+* `roles/index.html.erb`
+
+    ```html+erb
+    <%= render "shared/search_filters", search: @q do |f| %>
+      <p>
+        Title contains: <%= f.text_field :title_contains %>
+      </p>
+    <% end %>
+    ```
+
+* `shared/_search_filters.html.erb`
+
+    ```html+erb
+    <%= form_for(@q) do |f| %>
+      <h1>Search form:</h1>
+      <fieldset>
+        <%= yield f %>
+      </fieldset>
+      <p>
+        <%= f.submit "Search" %>
+      </p>
+    <% end %>
+    ```
 
 TIP: For content that is shared among all pages in your application, you can use partials directly from layouts.
 
@@ -1009,7 +1112,6 @@ You can also pass local variables into partials, making them even more powerful 
 
     ```html+erb
     <h1>New zone</h1>
-    <%= error_messages_for :zone %>
     <%= render partial: "form", locals: {zone: @zone} %>
     ```
 
@@ -1017,7 +1119,6 @@ You can also pass local variables into partials, making them even more powerful 
 
     ```html+erb
     <h1>Editing zone</h1>
-    <%= error_messages_for :zone %>
     <%= render partial: "form", locals: {zone: @zone} %>
     ```
 
@@ -1036,6 +1137,36 @@ You can also pass local variables into partials, making them even more powerful 
     ```
 
 Although the same partial will be rendered into both views, Action View's submit helper will return "Create Zone" for the new action and "Update Zone" for the edit action.
+
+To pass a local variable to a partial in only specific cases use the `local_assigns`.
+
+* `index.html.erb`
+
+  ```erb
+  <%= render user.articles %>
+  ```
+
+* `show.html.erb`
+
+  ```erb
+  <%= render article, full: true %>
+  ```
+
+* `_articles.html.erb`
+
+  ```erb
+  <%= content_tag_for :article, article do |article| %>
+    <h2><%= article.title %></h2>
+
+    <% if local_assigns[:full] %>
+      <%= simple_format article.body %>
+    <% else %>
+      <%= truncate article.body %>
+    <% end %>
+  <% end %>
+  ```
+
+This way it is possible to use the partial without the need to declare all local variables.
 
 Every partial also has a local variable with the same name as the partial (minus the underscore). You can pass an object in to this local variable via the `:object` option:
 
@@ -1122,11 +1253,11 @@ With this change, you can access an instance of the `@products` collection as th
 You can also pass in arbitrary local variables to any partial you are rendering with the `locals: {}` option:
 
 ```erb
-<%= render partial: "products", collection: @products,
+<%= render partial: "product", collection: @products,
            as: :item, locals: {title: "Products Page"} %>
 ```
 
-Would render a partial `_products.html.erb` once for each instance of `product` in the `@products` instance variable passing the instance to the partial as a local variable called `item` and to each partial, make the local variable `title` available with the value `Products Page`.
+In this case, the partial will have access to a local variable `title` with the value "Products Page".
 
 TIP: Rails also makes a counter variable available within a partial called by the collection, named after the member of the collection followed by `_counter`. For example, if you're rendering `@products`, within the partial you can refer to `product_counter` to tell you how many times the partial has been rendered. This does not work in conjunction with the `as: :value` option.
 

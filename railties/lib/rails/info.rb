@@ -1,11 +1,14 @@
 require "cgi"
 
 module Rails
+  # This module helps build the runtime properties used to display in the
+  # Rails::InfoController responses. Including the active Rails version, Ruby
+  # version, Rack version, and so on.
   module Info
     mattr_accessor :properties
     class << (@@properties = [])
       def names
-        map {|val| val.first }
+        map(&:first)
       end
 
       def value_for(property_name)
@@ -22,19 +25,8 @@ module Rails
       rescue Exception
       end
 
-      def frameworks
-        %w( active_record action_pack action_view action_mailer active_support )
-      end
-
-      def framework_version(framework)
-        if Object.const_defined?(framework.classify)
-          require "#{framework}/version"
-          framework.classify.constantize.version.to_s
-        end
-      end
-
       def to_s
-        column_width = properties.names.map {|name| name.length}.max
+        column_width = properties.names.map(&:length).max
         info = properties.map do |name, value|
           value = value.join(", ") if value.is_a?(Array)
           "%-#{column_width}s   %s" % [name, value]
@@ -61,6 +53,11 @@ module Rails
       end
     end
 
+    # The Rails version.
+    property 'Rails version' do
+      Rails.version.to_s
+    end
+
     # The Ruby version and platform, e.g. "2.0.0-p247 (x86_64-darwin12.4.0)".
     property 'Ruby version' do
       "#{RUBY_VERSION}-p#{RUBY_PATCHLEVEL} (#{RUBY_PLATFORM})"
@@ -75,21 +72,8 @@ module Rails
       ::Rack.release
     end
 
-    # The Rails version.
-    property 'Rails version' do
-      Rails.version.to_s
-    end
-
     property 'JavaScript Runtime' do
       ExecJS.runtime.name
-    end
-
-    # Versions of each Rails framework (Active Record, Action Pack,
-    # Action Mailer, and Active Support).
-    frameworks.each do |framework|
-      property "#{framework.titlecase} version" do
-        framework_version(framework)
-      end
     end
 
     property 'Middleware' do

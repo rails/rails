@@ -13,6 +13,10 @@ class Developer < ActiveRecord::Base
     end
   end
 
+  accepts_nested_attributes_for :projects
+
+  has_and_belongs_to_many :shared_computers, class_name: "Computer"
+
   has_and_belongs_to_many :projects_extended_by_name,
       -> { extending(DeveloperProjectsAssociationExtension) },
       :class_name => "Project",
@@ -36,8 +40,16 @@ class Developer < ActiveRecord::Base
       end
 
   has_and_belongs_to_many :special_projects, :join_table => 'developers_projects', :association_foreign_key => 'project_id'
+  has_and_belongs_to_many :sym_special_projects,
+                          :join_table => :developers_projects,
+                          :association_foreign_key => 'project_id',
+                          :class_name => 'SpecialProject'
 
   has_many :audit_logs
+  has_many :contracts
+  has_many :firms, :through => :contracts, :source => :firm
+  has_many :comments, ->(developer) { where(body: "I'm #{developer.name}") }
+  has_many :ratings, through: :comments
 
   scope :jamises, -> { where(:name => 'Jamis') }
 
@@ -66,12 +78,6 @@ end
 class AuditLog < ActiveRecord::Base
   belongs_to :developer, :validate => true
   belongs_to :unvalidated_developer, :class_name => 'Developer'
-end
-
-DeveloperSalary = Struct.new(:amount)
-class DeveloperWithAggregate < ActiveRecord::Base
-  self.table_name = 'developers'
-  composed_of :salary, :class_name => 'DeveloperSalary', :mapping => [%w(salary amount)]
 end
 
 class DeveloperWithBeforeDestroyRaise < ActiveRecord::Base
@@ -159,6 +165,8 @@ class DeveloperCalledJamis < ActiveRecord::Base
 
   default_scope { where(:name => 'Jamis') }
   scope :poor, -> { where('salary < 150000') }
+  scope :david, -> { where name: "David" }
+  scope :david2, -> { unscoped.where name: "David" }
 end
 
 class PoorDeveloperCalledJamis < ActiveRecord::Base

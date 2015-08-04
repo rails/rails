@@ -1,9 +1,13 @@
-body { background-color: #fff; color: #333; }
+body {
+  background-color: #fff;
+  color: #333;
+}
 
 body, p, ol, ul, td {
   font-family: verdana, arial, helvetica, sans-serif;
-  font-size:   13px;
+  font-size: 13px;
   line-height: 18px;
+  margin: 33px;
 }
 
 pre {
@@ -12,11 +16,31 @@ pre {
   font-size: 11px;
 }
 
-a { color: #000; }
-a:visited { color: #666; }
-a:hover { color: #fff; background-color:#000; }
+a {
+  color: #000;
+}
 
-div.field, div.actions {
+a:visited {
+  color: #666;
+}
+
+a:hover {
+  color: #fff;
+  background-color: #000;
+}
+
+th {
+  padding-bottom: 5px;
+}
+
+td {
+  padding-bottom: 7px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+div.field,
+div.actions {
   margin-bottom: 10px;
 }
 
@@ -45,7 +69,7 @@ div.field, div.actions {
   padding: 5px 5px 5px 15px;
   font-size: 12px;
   margin: -7px;
-  margin-bottom: 0px;
+  margin-bottom: 0;
   background-color: #c00;
   color: #fff;
 }

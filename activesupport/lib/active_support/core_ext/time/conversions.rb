@@ -20,7 +20,7 @@ class Time
     :iso8601      => lambda { |time| time.iso8601 }
   }
 
-  # Converts to a formatted string. See DATE_FORMATS for builtin formats.
+  # Converts to a formatted string. See DATE_FORMATS for built-in formats.
   #
   # This method is aliased to <tt>to_s</tt>.
   #

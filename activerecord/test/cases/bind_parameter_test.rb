@@ -1,9 +1,11 @@
 require 'cases/helper'
 require 'models/topic'
+require 'models/author'
+require 'models/post'
 
 module ActiveRecord
   class BindParameterTest < ActiveRecord::TestCase
-    fixtures :topics
+    fixtures :topics, :authors, :posts
 
     class LogListener
       attr_accessor :calls
@@ -20,49 +22,51 @@ module ActiveRecord
     def setup
       super
       @connection = ActiveRecord::Base.connection
-      @listener   = LogListener.new
-      @pk         = Topic.columns.find { |c| c.primary }
-      ActiveSupport::Notifications.subscribe('sql.active_record', @listener)
-
-      skip_if_prepared_statement_caching_is_not_supported
+      @subscriber = LogListener.new
+      @pk = Topic.columns_hash[Topic.primary_key]
+      @subscription = ActiveSupport::Notifications.subscribe('sql.active_record', @subscriber)
     end
 
-    def teardown
-      ActiveSupport::Notifications.unsubscribe(@listener)
+    teardown do
+      ActiveSupport::Notifications.unsubscribe(@subscription)
     end
 
-    def test_binds_are_logged
-      sub   = @connection.substitute_at(@pk, 0)
-      binds = [[@pk, 1]]
-      sql   = "select * from topics where id = #{sub}"
+    if ActiveRecord::Base.connection.supports_statement_cache?
+      def test_bind_from_join_in_subquery
+        subquery = Author.joins(:thinking_posts).where(name: 'David')
+        scope = Author.from(subquery, 'authors').where(id: 1)
+        assert_equal 1, scope.count
+      end
 
-      @connection.exec_query(sql, 'SQL', binds)
+      def test_binds_are_logged
+        sub   = @connection.substitute_at(@pk)
+        binds = [Relation::QueryAttribute.new("id", 1, Type::Value.new)]
+        sql   = "select * from topics where id = #{sub.to_sql}"
 
-      message = @listener.calls.find { |args| args[4][:sql] == sql }
-      assert_equal binds, message[4][:binds]
-    end
+        @connection.exec_query(sql, 'SQL', binds)
 
-    def test_find_one_uses_binds
-      Topic.find(1)
-      binds = [[@pk, 1]]
-      message = @listener.calls.find { |args| args[4][:binds] == binds }
-      assert message, 'expected a message with binds'
-    end
+        message = @subscriber.calls.find { |args| args[4][:sql] == sql }
+        assert_equal binds, message[4][:binds]
+      end
 
-    def test_logs_bind_vars
-      pk = Topic.columns.find { |x| x.primary }
+      def test_find_one_uses_binds
+        Topic.find(1)
+        message = @subscriber.calls.find { |args| args[4][:binds].any? { |attr| attr.value == 1 } }
+        assert message, 'expected a message with binds'
+      end
 
-      payload = {
-        :name  => 'SQL',
-        :sql   => 'select * from topics where id = ?',
-        :binds => [[pk, 10]]
-      }
-      event  = ActiveSupport::Notifications::Event.new(
-        'foo',
-        Time.now,
-        Time.now,
-        123,
-        payload)
+      def test_logs_bind_vars_after_type_cast
+        payload = {
+          :name  => 'SQL',
+          :sql   => 'select * from topics where id = ?',
+          :binds => [Relation::QueryAttribute.new("id", "10", Type::Integer.new)]
+        }
+        event  = ActiveSupport::Notifications::Event.new(
+          'foo',
+          Time.now,
+          Time.now,
+          123,
+          payload)
 
         logger = Class.new(ActiveRecord::LogSubscriber) {
           attr_reader :debugs
@@ -77,13 +81,8 @@ module ActiveRecord
         }.new
 
         logger.sql event
-        assert_match([[pk.name, 10]].inspect, logger.debugs.first)
-    end
-
-    private
-
-    def skip_if_prepared_statement_caching_is_not_supported
-      skip('prepared statement caching is not supported') unless @connection.supports_statement_cache?
+        assert_match([[@pk.name, 10]].inspect, logger.debugs.first)
+      end
     end
   end
 end

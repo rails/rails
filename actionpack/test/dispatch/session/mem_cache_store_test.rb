@@ -1,4 +1,5 @@
 require 'abstract_unit'
+require 'securerandom'
 
 # You need to start a memcached server inorder to run these tests
 class MemCacheStoreTest < ActionDispatch::IntegrationTest
@@ -18,11 +19,11 @@ class MemCacheStoreTest < ActionDispatch::IntegrationTest
     end
 
     def get_session_value
-      render :text => "foo: #{session[:foo].inspect}"
+      render plain: "foo: #{session[:foo].inspect}"
     end
 
     def get_session_id
-      render :text => "#{request.session_options[:id]}"
+      render plain: "#{request.session.id}"
     end
 
     def call_reset_session
@@ -48,6 +49,8 @@ class MemCacheStoreTest < ActionDispatch::IntegrationTest
         assert_response :success
         assert_equal 'foo: "bar"', response.body
       end
+    rescue Dalli::RingError => ex
+      skip ex.message, ex.backtrace
     end
 
     def test_getting_nil_session_value
@@ -56,6 +59,8 @@ class MemCacheStoreTest < ActionDispatch::IntegrationTest
         assert_response :success
         assert_equal 'foo: nil', response.body
       end
+    rescue Dalli::RingError => ex
+      skip ex.message, ex.backtrace
     end
 
     def test_getting_session_value_after_session_reset
@@ -75,6 +80,8 @@ class MemCacheStoreTest < ActionDispatch::IntegrationTest
         assert_response :success
         assert_equal 'foo: nil', response.body, "data for this session should have been obliterated from memcached"
       end
+    rescue Dalli::RingError => ex
+      skip ex.message, ex.backtrace
     end
 
     def test_getting_from_nonexistent_session
@@ -84,6 +91,8 @@ class MemCacheStoreTest < ActionDispatch::IntegrationTest
         assert_equal 'foo: nil', response.body
         assert_nil cookies['_session_id'], "should only create session on write, not read"
       end
+    rescue Dalli::RingError => ex
+      skip ex.message, ex.backtrace
     end
 
     def test_setting_session_value_after_session_reset
@@ -105,6 +114,8 @@ class MemCacheStoreTest < ActionDispatch::IntegrationTest
         assert_response :success
         assert_not_equal session_id, response.body
       end
+    rescue Dalli::RingError => ex
+      skip ex.message, ex.backtrace
     end
 
     def test_getting_session_id
@@ -118,6 +129,8 @@ class MemCacheStoreTest < ActionDispatch::IntegrationTest
         assert_response :success
         assert_equal session_id, response.body, "should be able to read session id without accessing the session hash"
       end
+    rescue Dalli::RingError => ex
+      skip ex.message, ex.backtrace
     end
 
     def test_deserializes_unloaded_class
@@ -132,6 +145,8 @@ class MemCacheStoreTest < ActionDispatch::IntegrationTest
           assert_response :success
         end
       end
+    rescue Dalli::RingError => ex
+      skip ex.message, ex.backtrace
     end
 
     def test_doesnt_write_session_cookie_if_session_id_is_already_exists
@@ -144,6 +159,8 @@ class MemCacheStoreTest < ActionDispatch::IntegrationTest
         assert_response :success
         assert_equal nil, headers['Set-Cookie'], "should not resend the cookie again if session_id cookie is already exists"
       end
+    rescue Dalli::RingError => ex
+      skip ex.message, ex.backtrace
     end
 
     def test_prevents_session_fixation
@@ -155,10 +172,12 @@ class MemCacheStoreTest < ActionDispatch::IntegrationTest
 
         reset!
 
-        get '/set_session_value', :_session_id => session_id
+        get '/set_session_value', params: { _session_id: session_id }
         assert_response :success
         assert_not_equal session_id, cookies['_session_id']
       end
+    rescue Dalli::RingError => ex
+      skip ex.message, ex.backtrace
     end
   rescue LoadError, RuntimeError, Dalli::DalliError
     $stderr.puts "Skipping MemCacheStoreTest tests. Start memcached and try again."
@@ -172,7 +191,7 @@ class MemCacheStoreTest < ActionDispatch::IntegrationTest
         end
 
         @app = self.class.build_app(set) do |middleware|
-          middleware.use ActionDispatch::Session::MemCacheStore, :key => '_session_id'
+          middleware.use ActionDispatch::Session::MemCacheStore, :key => '_session_id', :namespace => "mem_cache_store_test:#{SecureRandom.hex(10)}"
           middleware.delete "ActionDispatch::ShowExceptions"
         end
 

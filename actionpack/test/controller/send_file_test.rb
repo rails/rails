@@ -1,4 +1,3 @@
-# encoding: utf-8
 require 'abstract_unit'
 
 module TestFileUtils
@@ -9,6 +8,7 @@ end
 
 class SendFileController < ActionController::Base
   include TestFileUtils
+  include ActionController::Testing
   layout "layouts/standard" # to make sure layouts don't interfere
 
   attr_writer :options
@@ -25,16 +25,15 @@ class SendFileController < ActionController::Base
   end
 end
 
-class SendFileTest < ActionController::TestCase
-  tests SendFileController
-  include TestFileUtils
+class SendFileWithActionControllerLive < SendFileController
+  include ActionController::Live
+end
 
-  Mime::Type.register "image/png", :png unless defined? Mime::PNG
+class SendFileTest < ActionController::TestCase
+  include TestFileUtils
 
   def setup
     @controller = SendFileController.new
-    @request = ActionController::TestRequest.new
-    @response = ActionController::TestResponse.new
   end
 
   def test_file_nostream
@@ -144,7 +143,7 @@ class SendFileTest < ActionController::TestCase
     }
 
     @controller.headers = {}
-    assert !@controller.send(:send_file_headers!, options)
+    assert_raise(ArgumentError) { @controller.send(:send_file_headers!, options) }
   end
 
   def test_send_file_headers_guess_type_from_extension
@@ -195,5 +194,13 @@ class SendFileTest < ActionController::TestCase
       assert_nothing_raised { assert_not_nil process(method) }
       assert_equal 200, @response.status
     end
+  end
+
+  def test_send_file_with_action_controller_live
+    @controller = SendFileWithActionControllerLive.new
+    @controller.options = { :content_type => "application/x-ruby" }
+
+    response = process('file')
+    assert_equal 200, response.status
   end
 end

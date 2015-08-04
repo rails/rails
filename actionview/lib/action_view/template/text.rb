@@ -27,7 +27,7 @@ module ActionView #:nodoc:
       end
 
       def formats
-        [@type.to_sym]
+        [@type.respond_to?(:ref) ? @type.ref : @type.to_s]
       end
     end
   end

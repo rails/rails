@@ -10,7 +10,7 @@ module Another
     end
 
     rescue_from SpecialException do
-      head :status => 406
+      head 406
     end
 
     before_action :redirector, only: :never_executed
@@ -19,7 +19,7 @@ module Another
     end
 
     def show
-      render :nothing => true
+      head :ok
     end
 
     def redirector
@@ -73,6 +73,16 @@ module Another
     def with_action_not_found
       raise AbstractController::ActionNotFound
     end
+
+    def append_info_to_payload(payload)
+      super
+      payload[:test_key] = "test_value"
+      @last_payload = payload
+    end
+
+    def last_payload
+      @last_payload
+    end
   end
 end
 
@@ -85,7 +95,7 @@ class ACLogSubscriberTest < ActionController::TestCase
 
     @old_logger = ActionController::Base.logger
 
-    @cache_path = File.expand_path('../temp/test_cache', File.dirname(__FILE__))
+    @cache_path = File.join Dir.tmpdir, Dir::Tmpname.make_tmpname('tmp', 'cache')
     @controller.cache_store = :file_store, @cache_path
     ActionController::LogSubscriber.attach_to :action_controller
   end
@@ -130,16 +140,27 @@ class ACLogSubscriberTest < ActionController::TestCase
   end
 
   def test_process_action_with_parameters
-    get :show, :id => '10'
+    get :show, params: { id: '10' }
     wait
 
     assert_equal 3, logs.size
     assert_equal 'Parameters: {"id"=>"10"}', logs[1]
   end
 
+  def test_multiple_process_with_parameters
+    get :show, params: { id: '10' }
+    get :show, params: { id: '20' }
+
+    wait
+
+    assert_equal 6, logs.size
+    assert_equal 'Parameters: {"id"=>"10"}', logs[1]
+    assert_equal 'Parameters: {"id"=>"20"}', logs[4]
+  end
+
   def test_process_action_with_wrapped_parameters
     @request.env['CONTENT_TYPE'] = 'application/json'
-    post :show, :id => '10', :name => 'jose'
+    post :show, params: { id: '10', name: 'jose' }
     wait
 
     assert_equal 3, logs.size
@@ -149,13 +170,25 @@ class ACLogSubscriberTest < ActionController::TestCase
   def test_process_action_with_view_runtime
     get :show
     wait
-    assert_match(/\(Views: [\d.]+ms\)/, logs[1])
+    assert_match(/Completed 200 OK in [\d]ms/, logs[1])
+  end
+
+  def test_append_info_to_payload_is_called_even_with_exception
+    begin
+      get :with_exception
+      wait
+    rescue Exception
+    end
+
+    assert_equal "test_value", @controller.last_payload[:test_key]
   end
 
   def test_process_action_with_filter_parameters
     @request.env["action_dispatch.parameter_filter"] = [:lifo, :amount]
 
-    get :show, :lifo => 'Pratik', :amount => '420', :step => '1'
+    get :show, params: {
+      lifo: 'Pratik', amount: '420', step: '1'
+    }
     wait
 
     params = logs[1]

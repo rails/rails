@@ -35,12 +35,13 @@ module ActionView
     module ClassMethods
       def view_context_class
         @view_context_class ||= begin
-          routes = respond_to?(:_routes) && _routes
+          supports_path = supports_path?
+          routes  = respond_to?(:_routes)  && _routes
           helpers = respond_to?(:_helpers) && _helpers
 
           Class.new(ActionView::Base) do
             if routes
-              include routes.url_helpers
+              include routes.url_helpers(supports_path)
               include routes.mounted_helpers
             end
 
@@ -58,12 +59,12 @@ module ActionView
       @_view_context_class ||= self.class.view_context_class
     end
 
-    # An instance of a view class. The default view class is ActionView::Base
+    # An instance of a view class. The default view class is ActionView::Base.
     #
     # The view class must have the following methods:
     # View.new[lookup_context, assigns, controller]
-    #   Create a new ActionView instance for a controller
-    # View#render[options]
+    #   Create a new ActionView instance for a controller and we can also pass the arguments.
+    # View#render(option)
     #   Returns String with the rendered template
     #
     # Override this method in a module to change the default behavior.
@@ -77,13 +78,6 @@ module ActionView
       @_view_renderer ||= ActionView::Renderer.new(lookup_context)
     end
 
-    # Find and renders a template based on the options given.
-    # :api: private
-    def _render_template(options) #:nodoc:
-      lookup_context.rendered_format = nil if options[:formats]
-      view_renderer.render(view_context, options)
-    end
-
     def render_to_body(options = {})
       _process_options(options)
       _render_template(options)
@@ -95,15 +89,29 @@ module ActionView
 
     private
 
-      # Assign the rendered format to lookup context.
-      def _process_format(format) #:nodoc:
+      # Find and render a template based on the options given.
+      # :api: private
+      def _render_template(options) #:nodoc:
+        variant = options.delete(:variant)
+        assigns = options.delete(:assigns)
+        context = view_context
+
+        context.assign assigns if assigns
+        lookup_context.rendered_format = nil if options[:formats]
+        lookup_context.variants = variant if variant
+
+        view_renderer.render(context, options)
+      end
+
+      # Assign the rendered format to look up context.
+      def _process_format(format, options = {}) #:nodoc:
         super
         lookup_context.formats = [format.to_sym]
         lookup_context.rendered_format = lookup_context.formats.first
       end
 
       # Normalize args by converting render "foo" to render :action => "foo" and
-      # render "foo/bar" to render :file => "foo/bar".
+      # render "foo/bar" to render :template => "foo/bar".
       # :api: private
       def _normalize_args(action=nil, options={})
         options = super(action, options)
@@ -113,7 +121,7 @@ module ActionView
           options = action
         when String, Symbol
           action = action.to_s
-          key = action.include?(?/) ? :file : :action
+          key = action.include?(?/) ? :template : :action
           options[key] = action
         else
           options[:partial] = action

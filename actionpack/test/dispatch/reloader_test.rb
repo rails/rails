@@ -3,6 +3,11 @@ require 'abstract_unit'
 class ReloaderTest < ActiveSupport::TestCase
   Reloader = ActionDispatch::Reloader
 
+  teardown do
+    Reloader.reset_callbacks :prepare
+    Reloader.reset_callbacks :cleanup
+  end
+
   def test_prepare_callbacks
     a = b = c = nil
     Reloader.to_prepare { |*args| a = b = c = 1 }

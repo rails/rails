@@ -3,23 +3,16 @@ require 'abstract_unit'
 class JavaScriptHelperTest < ActionView::TestCase
   tests ActionView::Helpers::JavaScriptHelper
 
-  def _evaluate_assigns_and_ivars() end
+  attr_accessor :output_buffer
 
-  attr_accessor :formats, :output_buffer
-
-  def update_details(details)
-    @details = details
-    yield if block_given?
-  end
-
-  def setup
-    super
+  setup do
+    @old_escape_html_entities_in_json = ActiveSupport.escape_html_entities_in_json
     ActiveSupport.escape_html_entities_in_json  = true
     @template = self
   end
 
   def teardown
-    ActiveSupport.escape_html_entities_in_json  = false
+    ActiveSupport.escape_html_entities_in_json = @old_escape_html_entities_in_json
   end
 
   def test_escape_javascript

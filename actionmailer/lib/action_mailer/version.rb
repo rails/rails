@@ -1,11 +1,9 @@
-module ActionMailer
-  # Returns the version of the currently loaded ActionMailer as a Gem::Version
-  def self.version
-    Gem::Version.new "4.1.0.beta"
-  end
+require_relative 'gem_version'
 
-  module VERSION #:nodoc:
-    MAJOR, MINOR, TINY, PRE = ActionMailer.version.segments
-    STRING = ActionMailer.version.to_s
+module ActionMailer
+  # Returns the version of the currently loaded Action Mailer as a
+  # <tt>Gem::Version</tt>.
+  def self.version
+    gem_version
   end
 end
