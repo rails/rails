@@ -1,3 +1,10 @@
+*   Include I18n.locale into job serialization/deserialization and use it around
+    `perform`.
+
+    Fixes #20799.
+
+    *Johannes Opper*
+
 *   Allow `DelayedJob`, `Sidekiq`, `qu`, and `que` to report the job id back to
     `ActiveJob::Base` as `provider_job_id`.
 
