@@ -175,7 +175,7 @@
 
     *Daniel Gomez de Souza*
 
-*   Allow date_select helper selected option to option hash like the default options.
+*   Allow date_select helper selected option to accept hash like the default options.
 
     *Lecky Lao*
 
