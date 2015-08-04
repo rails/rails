@@ -2,12 +2,15 @@ require 'action_dispatch/middleware/session/abstract_store'
 
 module ActionDispatch
   module Session
-    # Session store that uses an ActiveSupport::Cache::Store to store the sessions. This store is most useful
+    # A session store that uses an ActiveSupport::Cache::Store to store the sessions. This store is most useful
     # if you don't store critical data in your sessions and you don't need them to live for extended periods
     # of time.
+    #
+    # ==== Options
+    # * <tt>cache</tt>         - The cache to use. If it is not specified, <tt>Rails.cache</tt> will be used.
+    # * <tt>expire_after</tt>  - The length of time a session will be stored before automatically expiring.
+    #   By default, the <tt>:expires_in</tt> option of the cache is used.
     class CacheStore < AbstractStore
-      # Create a new store. The cache to use can be passed in the <tt>:cache</tt> option. If it is
-      # not specified, <tt>Rails.cache</tt> will be used.
       def initialize(app, options = {})
         @cache = options[:cache] || Rails.cache
         options[:expire_after] ||= @cache.options[:expires_in]
@@ -16,9 +19,9 @@ module ActionDispatch
 
       # Get a session from the cache.
       def get_session(env, sid)
-        sid ||= generate_sid
-        session = @cache.read(cache_key(sid))
-        session ||= {}
+        unless sid and session = @cache.read(cache_key(sid))
+          sid, session = generate_sid, {}
+        end
         [sid, session]
       end
 

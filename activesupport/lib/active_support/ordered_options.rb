@@ -6,6 +6,7 @@ module ActiveSupport
   #   h[:girl] = 'Mary'
   #   h[:boy]  # => 'John'
   #   h[:girl] # => 'Mary'
+  #   h[:dog]  # => nil
   #
   # Using +OrderedOptions+, the above code could be reduced to:
   #
@@ -14,6 +15,13 @@ module ActiveSupport
   #   h.girl = 'Mary'
   #   h.boy  # => 'John'
   #   h.girl # => 'Mary'
+  #   h.dog  # => nil
+  #
+  # To raise an exception when the value is blank, append a
+  # bang to the key name, like:
+  #
+  #   h.dog! # => raises KeyError
+  #
   class OrderedOptions < Hash
     alias_method :_get, :[] # preserve the original #[] method
     protected :_get # make it protected
@@ -31,7 +39,13 @@ module ActiveSupport
       if name_string.chomp!('=')
         self[name_string] = args.first
       else
-        self[name]
+        bangs = name_string.chomp!('!')
+
+        if bangs
+          fetch(name_string.to_sym).presence || raise(KeyError.new("#{name_string} is blank."))
+        else
+          self[name_string]
+        end
       end
     end
 

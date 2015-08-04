@@ -11,7 +11,7 @@ class Parrot < ActiveRecord::Base
   attr_accessor :cancel_save_from_callback
   before_save :cancel_save_callback_method, :if => :cancel_save_from_callback
   def cancel_save_callback_method
-    false
+    throw(:abort)
   end
 end
 
@@ -19,7 +19,7 @@ class LiveParrot < Parrot
 end
 
 class DeadParrot < Parrot
-  belongs_to :killer, :class_name => 'Pirate'
+  belongs_to :killer, :class_name => 'Pirate', foreign_key: :killer_id
 end
 
 class FunkyParrot < Parrot

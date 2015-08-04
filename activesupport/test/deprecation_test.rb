@@ -1,4 +1,5 @@
 require 'abstract_unit'
+require 'active_support/testing/stream'
 
 class Deprecatee
   def initialize
@@ -36,6 +37,8 @@ end
 
 
 class DeprecationTest < ActiveSupport::TestCase
+  include ActiveSupport::Testing::Stream
+
   def setup
     # Track the last warning.
     @old_behavior = ActiveSupport::Deprecation.behavior
@@ -104,14 +107,11 @@ class DeprecationTest < ActiveSupport::TestCase
     message   = 'Revise this deprecated stuff now!'
     callstack = %w(foo bar baz)
 
-    begin
+    e = assert_raise ActiveSupport::DeprecationException do
       ActiveSupport::Deprecation.behavior.first.call(message, callstack)
-    rescue ActiveSupport::DeprecationException => e
-      assert_equal message, e.message
-      assert_equal callstack, e.backtrace
-    else
-      flunk 'the :raise deprecation behaviour should raise the expected exception'
     end
+    assert_equal message, e.message
+    assert_equal callstack, e.backtrace
   end
 
   def test_default_stderr_behavior
@@ -174,7 +174,7 @@ class DeprecationTest < ActiveSupport::TestCase
       ActiveSupport::Deprecation.warn 'abc'
       ActiveSupport::Deprecation.warn 'def'
     end
-  rescue MiniTest::Assertion
+  rescue Minitest::Assertion
     flunk 'assert_deprecated should match any warning in block, not just the last one'
   end
 
@@ -256,17 +256,17 @@ class DeprecationTest < ActiveSupport::TestCase
   end
 
   def test_deprecate_with_custom_deprecator
-    custom_deprecator = mock('Deprecator') do
-      expects(:deprecation_warning)
-    end
+    custom_deprecator = Struct.new(:deprecation_warning).new
 
-    klass = Class.new do
-      def method
+    assert_called_with(custom_deprecator, :deprecation_warning, [:method, nil]) do
+      klass = Class.new do
+        def method
+        end
+        deprecate :method, deprecator: custom_deprecator
       end
-      deprecate :method, deprecator: custom_deprecator
-    end
 
-    klass.new.method
+      klass.new.method
+    end
   end
 
   def test_deprecated_constant_with_deprecator_given
@@ -358,4 +358,5 @@ class DeprecationTest < ActiveSupport::TestCase
       end
       deprecator
     end
+
 end

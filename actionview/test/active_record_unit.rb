@@ -57,7 +57,7 @@ class ActiveRecordTestConnector
         end
       end
 
-      # Load actionpack sqlite tables
+      # Load actionpack sqlite3 tables
       def load_schema
         File.read(File.dirname(__FILE__) + "/fixtures/db_definitions/sqlite.sql").split(';').each do |sql|
           ActiveRecord::Base.connection.execute(sql) unless sql.blank?
@@ -76,7 +76,7 @@ class ActiveRecordTestCase < ActionController::TestCase
   # Set our fixture path
   if ActiveRecordTestConnector.able_to_connect
     self.fixture_path = [FIXTURE_LOAD_PATH]
-    self.use_transactional_fixtures = false
+    self.use_transactional_tests = false
   end
 
   def self.fixtures(*args)

@@ -7,6 +7,7 @@ en:
   # Default error messages
   errors:
     messages:
+      required: "must exist"
       taken: "has already been taken"
 
   # Active Record models configuration
@@ -15,8 +16,8 @@ en:
       messages:
         record_invalid: "Validation failed: %{errors}"
         restrict_dependent_destroy:
-          one: "Cannot delete record because a dependent %{record} exists"
-          many: "Cannot delete record because dependent %{record} exist"
+          has_one: "Cannot delete record because a dependent %{record} exists"
+          has_many: "Cannot delete record because dependent %{record} exist"
         # Append your own errors here or at the model/attributes scope.
 
       # You can define own errors for models or model attributes.

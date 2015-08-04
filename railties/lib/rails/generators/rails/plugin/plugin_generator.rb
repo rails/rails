@@ -8,7 +8,7 @@ module Rails
   # generator.
   #
   # This allows you to override entire operations, like the creation of the
-  # Gemfile, README, or JavaScript files, without needing to know exactly
+  # Gemfile, \README, or JavaScript files, without needing to know exactly
   # what those operations do so you can create another template action.
   class PluginBuilder
     def rakefile
@@ -17,15 +17,22 @@ module Rails
 
     def app
       if mountable?
-        directory 'app'
-        empty_directory_with_keep_file "app/assets/images/#{name}"
+        if api?
+          directory 'app', exclude_pattern: %r{app/(views|helpers)}
+        else
+          directory 'app'
+          empty_directory_with_keep_file "app/assets/images/#{namespaced_name}"
+        end
       elsif full?
         empty_directory_with_keep_file 'app/models'
         empty_directory_with_keep_file 'app/controllers'
-        empty_directory_with_keep_file 'app/views'
-        empty_directory_with_keep_file 'app/helpers'
         empty_directory_with_keep_file 'app/mailers'
-        empty_directory_with_keep_file "app/assets/images/#{name}"
+
+        unless api?
+          empty_directory_with_keep_file "app/assets/images/#{namespaced_name}"
+          empty_directory_with_keep_file 'app/helpers'
+          empty_directory_with_keep_file 'app/views'
+        end
       end
     end
 
@@ -50,10 +57,10 @@ module Rails
     end
 
     def lib
-      template "lib/%name%.rb"
-      template "lib/tasks/%name%_tasks.rake"
-      template "lib/%name%/version.rb"
-      template "lib/%name%/engine.rb" if engine?
+      template "lib/%namespaced_name%.rb"
+      template "lib/tasks/%namespaced_name%_tasks.rake"
+      template "lib/%namespaced_name%/version.rb"
+      template "lib/%namespaced_name%/engine.rb" if engine?
     end
 
     def config
@@ -62,7 +69,7 @@ module Rails
 
     def test
       template "test/test_helper.rb"
-      template "test/%name%_test.rb"
+      template "test/%namespaced_name%_test.rb"
       append_file "Rakefile", <<-EOF
 #{rakefile_test_tasks}
 
@@ -74,13 +81,15 @@ task default: :test
     end
 
     PASSTHROUGH_OPTIONS = [
-      :skip_active_record, :skip_javascript, :database, :javascript, :quiet, :pretend, :force, :skip
+      :skip_active_record, :skip_action_mailer, :skip_javascript, :database,
+      :javascript, :quiet, :pretend, :force, :skip
     ]
 
     def generate_test_dummy(force = false)
       opts = (options || {}).slice(*PASSTHROUGH_OPTIONS)
       opts[:force] = force
       opts[:skip_bundle] = true
+      opts[:api] = options.api?
 
       invoke Rails::Generators::AppGenerator,
         [ File.expand_path(dummy_path, destination_root) ], opts
@@ -116,9 +125,9 @@ task default: :test
     def stylesheets
       if mountable?
         copy_file "rails/stylesheets.css",
-                  "app/assets/stylesheets/#{name}/application.css"
+                  "app/assets/stylesheets/#{namespaced_name}/application.css"
       elsif full?
-        empty_directory_with_keep_file "app/assets/stylesheets/#{name}"
+        empty_directory_with_keep_file "app/assets/stylesheets/#{namespaced_name}"
       end
     end
 
@@ -127,9 +136,9 @@ task default: :test
 
       if mountable?
         template "rails/javascripts.js",
-                 "app/assets/javascripts/#{name}/application.js"
+                 "app/assets/javascripts/#{namespaced_name}/application.js"
       elsif full?
-        empty_directory_with_keep_file "app/assets/javascripts/#{name}"
+        empty_directory_with_keep_file "app/assets/javascripts/#{namespaced_name}"
       end
     end
 
@@ -175,13 +184,19 @@ task default: :test
                                         desc: "If creating plugin in application's directory " +
                                                  "skip adding entry to Gemfile"
 
-      def initialize(*args)
-        raise Error, "Options should be given after the plugin name. For details run: rails plugin new --help" if args[0].blank?
+      class_option :api,          type: :boolean, default: false,
+                                  desc: "Generate a smaller stack for API application plugins"
 
+      def initialize(*args)
         @dummy_path = nil
         super
+
+        unless plugin_path
+          raise Error, "Plugin name should be provided in arguments. For details run: rails plugin new --help"
+        end
       end
 
+      public_task :set_default_accessors!
       public_task :create_root
 
       def create_root_files
@@ -206,15 +221,15 @@ task default: :test
       end
 
       def create_public_stylesheets_files
-        build(:stylesheets)
+        build(:stylesheets) unless api?
       end
 
       def create_javascript_files
-        build(:javascripts)
+        build(:javascripts) unless api?
       end
 
       def create_images_directory
-        build(:images)
+        build(:images) unless api?
       end
 
       def create_bin_files
@@ -222,7 +237,7 @@ task default: :test
       end
 
       def create_test_files
-        build(:test) unless options[:skip_test_unit]
+        build(:test) unless options[:skip_test]
       end
 
       def create_test_dummy_files
@@ -250,6 +265,14 @@ task default: :test
 
           underscored
         end
+      end
+
+      def underscored_name
+        @underscored_name ||= original_name.underscore
+      end
+
+      def namespaced_name
+        @namespaced_name ||= name.gsub('-', '/')
       end
 
     protected
@@ -285,8 +308,16 @@ task default: :test
         options[:mountable]
       end
 
+      def skip_git?
+        options[:skip_git]
+      end
+
       def with_dummy_app?
-        options[:skip_test_unit].blank? || options[:dummy_path] != 'test/dummy'
+        options[:skip_test].blank? || options[:dummy_path] != 'test/dummy'
+      end
+
+      def api?
+        options[:api]
       end
 
       def self.banner
@@ -297,17 +328,60 @@ task default: :test
         @original_name ||= File.basename(destination_root)
       end
 
+      def modules
+        @modules ||= namespaced_name.camelize.split("::")
+      end
+
+      def wrap_in_modules(unwrapped_code)
+        unwrapped_code = "#{unwrapped_code}".strip.gsub(/\W$\n/, '')
+        modules.reverse.inject(unwrapped_code) do |content, mod|
+          str = "module #{mod}\n"
+          str += content.lines.map { |line| "  #{line}" }.join
+          str += content.present? ? "\nend" : "end"
+        end
+      end
+
+      def camelized_modules
+        @camelized_modules ||= namespaced_name.camelize
+      end
+
+      def humanized
+        @humanized ||= original_name.underscore.humanize
+      end
+
       def camelized
         @camelized ||= name.gsub(/\W/, '_').squeeze('_').camelize
       end
 
+      def author
+        default = "TODO: Write your name"
+        if skip_git?
+          @author = default
+        else
+          @author = `git config user.name`.chomp rescue default
+        end
+      end
+
+      def email
+        default = "TODO: Write your email address"
+        if skip_git?
+          @email = default
+        else
+          @email = `git config user.email`.chomp rescue default
+        end
+      end
+
       def valid_const?
-        if original_name =~ /[^0-9a-zA-Z_]+/
-          raise Error, "Invalid plugin name #{original_name}. Please give a name which use only alphabetic or numeric or \"_\" characters."
+        if original_name =~ /-\d/
+          raise Error, "Invalid plugin name #{original_name}. Please give a name which does not contain a namespace starting with numeric characters."
+        elsif original_name =~ /[^\w-]+/
+          raise Error, "Invalid plugin name #{original_name}. Please give a name which uses only alphabetic, numeric, \"_\" or \"-\" characters."
         elsif camelized =~ /^\d/
           raise Error, "Invalid plugin name #{original_name}. Please give a name which does not start with numbers."
         elsif RESERVED_NAMES.include?(name)
-          raise Error, "Invalid plugin name #{original_name}. Please give a name which does not match one of the reserved rails words."
+          raise Error, "Invalid plugin name #{original_name}. Please give a " \
+                       "name which does not match one of the reserved rails " \
+                       "words: #{RESERVED_NAMES.join(", ")}"
         elsif Object.const_defined?(camelized)
           raise Error, "Invalid plugin name #{original_name}, constant #{camelized} is already in use. Please choose another plugin name."
         end
@@ -317,7 +391,7 @@ task default: :test
         @application_definition ||= begin
 
           dummy_application_path = File.expand_path("#{dummy_path}/config/application.rb", destination_root)
-          unless options[:pretend] || !File.exists?(dummy_application_path)
+          unless options[:pretend] || !File.exist?(dummy_application_path)
             contents = File.read(dummy_application_path)
             contents[(contents.index(/module ([\w]+)\n(.*)class Application/m))..-1]
           end

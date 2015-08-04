@@ -1,11 +1,12 @@
 require 'abstract_unit'
-require 'active_support/concurrency/latch'
+require 'concurrent/atomics'
 
 module ActionController
   module Live
     class ResponseTest < ActiveSupport::TestCase
       def setup
         @response = Live::Response.new
+        @response.request = ActionDispatch::Request.new({}) #yolo
       end
 
       def test_header_merge
@@ -26,17 +27,18 @@ module ActionController
       end
 
       def test_parallel
-        latch = ActiveSupport::Concurrency::Latch.new
+        latch = Concurrent::CountDownLatch.new
 
         t = Thread.new {
           @response.stream.write 'foo'
-          latch.await
+          latch.wait
           @response.stream.close
         }
 
+        @response.await_commit
         @response.each do |part|
           assert_equal 'foo', part
-          latch.release
+          latch.count_down
         end
         assert t.join
       end
@@ -58,21 +60,30 @@ module ActionController
         assert_nil @response.headers['Content-Length']
       end
 
-      def test_headers_cannot_be_written_after_write
+      def test_headers_cannot_be_written_after_webserver_reads
         @response.stream.write 'omg'
+        latch = Concurrent::CountDownLatch.new
 
+        t = Thread.new {
+          @response.stream.each do |chunk|
+            latch.count_down
+          end
+        }
+
+        latch.wait
         assert @response.headers.frozen?
         e = assert_raises(ActionDispatch::IllegalStateError) do
           @response.headers['Content-Length'] = "zomg"
         end
 
         assert_equal 'header already sent', e.message
+        @response.stream.close
+        t.join
       end
 
       def test_headers_cannot_be_written_after_close
         @response.stream.close
 
-        assert @response.headers.frozen?
         e = assert_raises(ActionDispatch::IllegalStateError) do
           @response.headers['Content-Length'] = "zomg"
         end

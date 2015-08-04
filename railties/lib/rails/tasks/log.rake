@@ -10,7 +10,7 @@ namespace :log do
     if ENV['LOGS']
       ENV['LOGS'].split(',')
                   .map    { |file| "log/#{file.strip}.log" }
-                  .select { |file| File.exists?(file) }
+                  .select { |file| File.exist?(file) }
     else
       FileList["log/*.log"]
     end

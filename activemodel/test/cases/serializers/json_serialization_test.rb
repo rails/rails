@@ -1,24 +1,6 @@
 require 'cases/helper'
 require 'models/contact'
-require 'models/automobile'
 require 'active_support/core_ext/object/instance_variables'
-
-class Contact
-  include ActiveModel::Serializers::JSON
-  include ActiveModel::Validations
-
-  def attributes=(hash)
-    hash.each do |k, v|
-      instance_variable_set("@#{k}", v)
-    end
-  end
-
-  remove_method :attributes if method_defined?(:attributes)
-
-  def attributes
-    instance_values
-  end
-end
 
 class JsonSerializationTest < ActiveModel::TestCase
   def setup
@@ -28,11 +10,6 @@ class JsonSerializationTest < ActiveModel::TestCase
     @contact.created_at = Time.utc(2006, 8, 1)
     @contact.awesome = true
     @contact.preferences = { 'shows' => 'anime' }
-  end
-
-  def teardown
-    # set to the default value
-    Contact.include_root_in_json = false
   end
 
   test "should not include root in json (class method)" do
@@ -47,19 +24,25 @@ class JsonSerializationTest < ActiveModel::TestCase
   end
 
   test "should include root in json if include_root_in_json is true" do
-    Contact.include_root_in_json = true
-    json = @contact.to_json
+    begin
+      original_include_root_in_json = Contact.include_root_in_json
+      Contact.include_root_in_json = true
+      json = @contact.to_json
 
-    assert_match %r{^\{"contact":\{}, json
-    assert_match %r{"name":"Konata Izumi"}, json
-    assert_match %r{"age":16}, json
-    assert json.include?(%("created_at":#{ActiveSupport::JSON.encode(Time.utc(2006, 8, 1))}))
-    assert_match %r{"awesome":true}, json
-    assert_match %r{"preferences":\{"shows":"anime"\}}, json
+      assert_match %r{^\{"contact":\{}, json
+      assert_match %r{"name":"Konata Izumi"}, json
+      assert_match %r{"age":16}, json
+      assert json.include?(%("created_at":#{ActiveSupport::JSON.encode(Time.utc(2006, 8, 1))}))
+      assert_match %r{"awesome":true}, json
+      assert_match %r{"preferences":\{"shows":"anime"\}}, json
+    ensure
+      Contact.include_root_in_json = original_include_root_in_json
+    end
   end
 
   test "should include root in json (option) even if the default is set to false" do
     json = @contact.to_json(root: true)
+
     assert_match %r{^\{"contact":\{}, json
   end
 
@@ -145,13 +128,18 @@ class JsonSerializationTest < ActiveModel::TestCase
   end
 
   test "as_json should return a hash if include_root_in_json is true" do
-    Contact.include_root_in_json = true
-    json = @contact.as_json
+    begin
+      original_include_root_in_json = Contact.include_root_in_json
+      Contact.include_root_in_json = true
+      json = @contact.as_json
 
-    assert_kind_of Hash, json
-    assert_kind_of Hash, json['contact']
-    %w(name age created_at awesome preferences).each do |field|
-      assert_equal @contact.send(field), json['contact'][field]
+      assert_kind_of Hash, json
+      assert_kind_of Hash, json['contact']
+      %w(name age created_at awesome preferences).each do |field|
+        assert_equal @contact.send(field), json['contact'][field]
+      end
+    ensure
+      Contact.include_root_in_json = original_include_root_in_json
     end
   end
 
@@ -206,5 +194,9 @@ class JsonSerializationTest < ActiveModel::TestCase
     assert_no_match %r{"created_at":#{ActiveSupport::JSON.encode(Time.utc(2006, 8, 1))}}, json
     assert_no_match %r{"awesome":}, json
     assert_no_match %r{"preferences":}, json
+  end
+
+  test "Class.model_name should be json encodable" do
+    assert_match %r{"Contact"}, Contact.model_name.to_json
   end
 end

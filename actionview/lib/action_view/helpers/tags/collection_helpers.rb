@@ -18,7 +18,8 @@ module ActionView
           end
 
           def label(label_html_options={}, &block)
-            @template_object.label(@object_name, @sanitized_attribute_name, @text, label_html_options, &block)
+            html_options = @input_html_options.slice(:index, :namespace).merge(label_html_options)
+            @template_object.label(@object_name, @sanitized_attribute_name, @text, html_options, &block)
           end
         end
 
@@ -43,7 +44,7 @@ module ActionView
         def default_html_options_for_collection(item, value) #:nodoc:
           html_options = @html_options.dup
 
-          [:checked, :selected, :disabled].each do |option|
+          [:checked, :selected, :disabled, :readonly].each do |option|
             current_value = @options[option]
             next if current_value.nil?
 

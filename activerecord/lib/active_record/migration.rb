@@ -1,38 +1,49 @@
-require "active_support/core_ext/class/attribute_accessors"
+require "active_support/core_ext/module/attribute_accessors"
 require 'set'
 
 module ActiveRecord
-  # Exception that can be raised to stop migrations from going backwards.
-  class IrreversibleMigration < ActiveRecordError
+  class MigrationError < ActiveRecordError#:nodoc:
+    def initialize(message = nil)
+      message = "\n\n#{message}\n\n" if message
+      super
+    end
   end
 
-  class DuplicateMigrationVersionError < ActiveRecordError#:nodoc:
+  # Exception that can be raised to stop migrations from going backwards.
+  class IrreversibleMigration < MigrationError
+  end
+
+  class DuplicateMigrationVersionError < MigrationError#:nodoc:
     def initialize(version)
       super("Multiple migrations have the version number #{version}")
     end
   end
 
-  class DuplicateMigrationNameError < ActiveRecordError#:nodoc:
+  class DuplicateMigrationNameError < MigrationError#:nodoc:
     def initialize(name)
       super("Multiple migrations have the name #{name}")
     end
   end
 
-  class UnknownMigrationVersionError < ActiveRecordError #:nodoc:
+  class UnknownMigrationVersionError < MigrationError #:nodoc:
     def initialize(version)
       super("No migration with version number #{version}")
     end
   end
 
-  class IllegalMigrationNameError < ActiveRecordError#:nodoc:
+  class IllegalMigrationNameError < MigrationError#:nodoc:
     def initialize(name)
       super("Illegal name for migration file: #{name}\n\t(only lower case letters, numbers, and '_' allowed)")
     end
   end
 
-  class PendingMigrationError < ActiveRecordError#:nodoc:
+  class PendingMigrationError < MigrationError#:nodoc:
     def initialize
-      super("Migrations are pending; run 'bin/rake db:migrate RAILS_ENV=#{::Rails.env}' to resolve this issue.")
+      if defined?(Rails.env)
+        super("Migrations are pending. To resolve this issue, run:\n\n\tbin/rake db:migrate RAILS_ENV=#{::Rails.env}")
+      else
+        super("Migrations are pending. To resolve this issue, run:\n\n\tbin/rake db:migrate")
+      end
     end
   end
 
@@ -120,17 +131,20 @@ module ActiveRecord
   #   a column but keeps the type and content.
   # * <tt>change_column(table_name, column_name, type, options)</tt>:  Changes
   #   the column to a different type using the same parameters as add_column.
-  # * <tt>remove_column(table_name, column_names)</tt>: Removes the column listed in
-  #   +column_names+ from the table called +table_name+.
+  # * <tt>remove_column(table_name, column_name, type, options)</tt>: Removes the column
+  #   named +column_name+ from the table called +table_name+.
   # * <tt>add_index(table_name, column_names, options)</tt>: Adds a new index
   #   with the name of the column. Other options include
   #   <tt>:name</tt>, <tt>:unique</tt> (e.g.
   #   <tt>{ name: 'users_name_index', unique: true }</tt>) and <tt>:order</tt>
   #   (e.g. <tt>{ order: { name: :desc } }</tt>).
-  # * <tt>remove_index(table_name, column: column_name)</tt>: Removes the index
-  #   specified by +column_name+.
+  # * <tt>remove_index(table_name, column: column_names)</tt>: Removes the index
+  #   specified by +column_names+.
   # * <tt>remove_index(table_name, name: index_name)</tt>: Removes the index
   #   specified by +index_name+.
+  # * <tt>add_reference(:table_name, :reference_name)</tt>: Adds a new column
+  #   +reference_name_id+ by default a integer. See
+  #   ActiveRecord::ConnectionAdapters::SchemaStatements#add_reference for details.
   #
   # == Irreversible transformations
   #
@@ -150,21 +164,14 @@ module ActiveRecord
   # in the <tt>db/migrate/</tt> directory where <tt>timestamp</tt> is the
   # UTC formatted date and time that the migration was generated.
   #
-  # You may then edit the <tt>up</tt> and <tt>down</tt> methods of
-  # MyNewMigration.
-  #
   # There is a special syntactic shortcut to generate migrations that add fields to a table.
   #
   #   rails generate migration add_fieldname_to_tablename fieldname:string
   #
   # This will generate the file <tt>timestamp_add_fieldname_to_tablename</tt>, which will look like this:
   #   class AddFieldnameToTablename < ActiveRecord::Migration
-  #     def up
+  #     def change
   #       add_column :tablenames, :fieldname, :string
-  #     end
-  #
-  #     def down
-  #       remove_column :tablenames, :fieldname
   #     end
   #   end
   #
@@ -177,14 +184,17 @@ module ActiveRecord
   #
   # To roll the database back to a previous migration version, use
   # <tt>rake db:migrate VERSION=X</tt> where <tt>X</tt> is the version to which
-  # you wish to downgrade. If any of the migrations throw an
-  # <tt>ActiveRecord::IrreversibleMigration</tt> exception, that step will fail and you'll
-  # have some manual work to do.
+  # you wish to downgrade. Alternatively, you can also use the STEP option if you
+  # wish to rollback last few migrations. <tt>rake db:migrate STEP=2</tt> will rollback
+  # the latest two migrations.
+  #
+  # If any of the migrations throw an <tt>ActiveRecord::IrreversibleMigration</tt> exception,
+  # that step will fail and you'll have some manual work to do.
   #
   # == Database support
   #
   # Migrations are currently supported in MySQL, PostgreSQL, SQLite,
-  # SQL Server, Sybase, and Oracle (all supported databases except DB2).
+  # SQL Server, and Oracle (all supported databases except DB2).
   #
   # == More examples
   #
@@ -268,21 +278,6 @@ module ActiveRecord
   # The phrase "Updating salaries..." would then be printed, along with the
   # benchmark for the block when the block completes.
   #
-  # == About the schema_migrations table
-  #
-  # Rails versions 2.0 and prior used to create a table called
-  # <tt>schema_info</tt> when using migrations. This table contained the
-  # version of the schema as of the last applied migration.
-  #
-  # Starting with Rails 2.1, the <tt>schema_info</tt> table is
-  # (automatically) replaced by the <tt>schema_migrations</tt> table, which
-  # contains the version numbers of all the migrations applied.
-  #
-  # As a result, it is now possible to add migration files that are numbered
-  # lower than the current schema version: when migrating up, those
-  # never-applied "interleaved" migrations will be automatically applied, and
-  # when migrating down, never-applied "interleaved" migrations will be skipped.
-  #
   # == Timestamped Migrations
   #
   # By default, Rails generates migrations that look like:
@@ -300,9 +295,8 @@ module ActiveRecord
   #
   # == Reversible Migrations
   #
-  # Starting with Rails 3.1, you will be able to define reversible migrations.
   # Reversible migrations are migrations that know how to go +down+ for you.
-  # You simply supply the +up+ logic, and the Migration system will figure out
+  # You simply supply the +up+ logic, and the Migration system figures out
   # how to execute the down commands for you.
   #
   # To define a reversible migration, define the +change+ method in your
@@ -361,12 +355,20 @@ module ActiveRecord
       end
 
       def call(env)
-        mtime = ActiveRecord::Migrator.last_migration.mtime.to_i
-        if @last_check < mtime
-          ActiveRecord::Migration.check_pending!
-          @last_check = mtime
+        if connection.supports_migrations?
+          mtime = ActiveRecord::Migrator.last_migration.mtime.to_i
+          if @last_check < mtime
+            ActiveRecord::Migration.check_pending!(connection)
+            @last_check = mtime
+          end
         end
         @app.call(env)
+      end
+
+      private
+
+      def connection
+        ActiveRecord::Base.connection
       end
     end
 
@@ -374,8 +376,28 @@ module ActiveRecord
       attr_accessor :delegate # :nodoc:
       attr_accessor :disable_ddl_transaction # :nodoc:
 
-      def check_pending!
-        raise ActiveRecord::PendingMigrationError if ActiveRecord::Migrator.needs_migration?
+      def check_pending!(connection = Base.connection)
+        raise ActiveRecord::PendingMigrationError if ActiveRecord::Migrator.needs_migration?(connection)
+      end
+
+      def load_schema_if_pending!
+        if ActiveRecord::Migrator.needs_migration? || !ActiveRecord::Migrator.any_migrations?
+          # Roundtrip to Rake to allow plugins to hook into database initialization.
+          FileUtils.cd Rails.root do
+            current_config = Base.connection_config
+            Base.clear_all_connections!
+            system("bin/rake db:test:prepare")
+            # Establish a new connection, the old database may be gone (db:test:prepare uses purge)
+            Base.establish_connection(current_config)
+          end
+          check_pending!
+        end
+      end
+
+      def maintain_test_schema! # :nodoc:
+        if ActiveRecord::Base.maintain_test_schema
+          suppress_messages { load_schema_if_pending! }
+        end
       end
 
       def method_missing(name, *args, &block) # :nodoc:
@@ -612,13 +634,16 @@ module ActiveRecord
     end
 
     def method_missing(method, *arguments, &block)
-      arg_list = arguments.map{ |a| a.inspect } * ', '
+      arg_list = arguments.map(&:inspect) * ', '
 
       say_with_time "#{method}(#{arg_list})" do
         unless @connection.respond_to? :revert
-          unless arguments.empty? || method == :execute
+          unless arguments.empty? || [:execute, :enable_extension, :disable_extension].include?(method)
             arguments[0] = proper_table_name(arguments.first, table_name_options)
-            arguments[1] = proper_table_name(arguments.second, table_name_options) if method == :rename_table
+            if [:rename_table, :add_foreign_key].include?(method) ||
+              (method == :remove_foreign_key && !arguments.second.is_a?(Hash))
+              arguments[1] = proper_table_name(arguments.second, table_name_options)
+            end
           end
         end
         return super unless connection.respond_to?(method)
@@ -629,7 +654,7 @@ module ActiveRecord
     def copy(destination, sources, options = {})
       copied = []
 
-      FileUtils.mkdir_p(destination) unless File.exists?(destination)
+      FileUtils.mkdir_p(destination) unless File.exist?(destination)
 
       destination_migrations = ActiveRecord::Migrator.migrations(destination)
       last = destination_migrations.last
@@ -687,7 +712,7 @@ module ActiveRecord
       if ActiveRecord::Base.timestamped_migrations
         [Time.now.utc.strftime("%Y%m%d%H%M%S"), "%.14d" % number].max
       else
-        "%.3d" % number
+        SchemaMigration.normalize_migration_number(number)
       end
     end
 
@@ -735,7 +760,7 @@ module ActiveRecord
 
       def load_migration
         require(File.expand_path(filename))
-        name.constantize.new
+        name.constantize.new(name, version)
       end
 
   end
@@ -780,43 +805,46 @@ module ActiveRecord
         migrations = migrations(migrations_paths)
         migrations.select! { |m| yield m } if block_given?
 
-        self.new(:up, migrations, target_version).migrate
+        new(:up, migrations, target_version).migrate
       end
 
       def down(migrations_paths, target_version = nil, &block)
         migrations = migrations(migrations_paths)
         migrations.select! { |m| yield m } if block_given?
 
-        self.new(:down, migrations, target_version).migrate
+        new(:down, migrations, target_version).migrate
       end
 
       def run(direction, migrations_paths, target_version)
-        self.new(direction, migrations(migrations_paths), target_version).run
+        new(direction, migrations(migrations_paths), target_version).run
       end
 
       def open(migrations_paths)
-        self.new(:up, migrations(migrations_paths), nil)
+        new(:up, migrations(migrations_paths), nil)
       end
 
       def schema_migrations_table_name
         SchemaMigration.table_name
       end
 
-      def get_all_versions
-        SchemaMigration.all.map { |x| x.version.to_i }.sort
-      end
-
-      def current_version
-        sm_table = schema_migrations_table_name
-        if Base.connection.table_exists?(sm_table)
-          get_all_versions.max || 0
+      def get_all_versions(connection = Base.connection)
+        if connection.table_exists?(schema_migrations_table_name)
+          SchemaMigration.all.map { |x| x.version.to_i }.sort
         else
-          0
+          []
         end
       end
 
-      def needs_migration?
-        current_version < last_version
+      def current_version(connection = Base.connection)
+        get_all_versions(connection).max || 0
+      end
+
+      def needs_migration?(connection = Base.connection)
+        (migrations(migrations_paths).collect(&:version) - get_all_versions(connection)).size > 0
+      end
+
+      def any_migrations?
+        migrations(migrations_paths).any?
       end
 
       def last_version
@@ -825,19 +853,6 @@ module ActiveRecord
 
       def last_migration #:nodoc:
         migrations(migrations_paths).last || NullMigration.new
-      end
-
-      def proper_table_name(name, options = {})
-        ActiveSupport::Deprecation.warn "ActiveRecord::Migrator.proper_table_name is deprecated and will be removed in Rails 4.2. Use the proper_table_name instance method on ActiveRecord::Migration instead"
-        options = {
-          table_name_prefix: ActiveRecord::Base.table_name_prefix,
-          table_name_suffix: ActiveRecord::Base.table_name_suffix
-        }.merge(options)
-        if name.respond_to? :table_name
-          name.table_name
-        else
-          "#{options[:table_name_prefix]}#{name}#{options[:table_name_suffix]}"
-        end
       end
 
       def migrations_paths
@@ -871,7 +886,7 @@ module ActiveRecord
       private
 
       def move(direction, migrations_paths, steps)
-        migrator = self.new(direction, migrations(migrations_paths))
+        migrator = new(direction, migrations(migrations_paths))
         start_index = migrator.migrations.index(migrator.current_migration)
 
         if start_index
@@ -892,7 +907,7 @@ module ActiveRecord
 
       validate(@migrations)
 
-      ActiveRecord::SchemaMigration.create_table
+      Base.connection.initialize_schema_migrations_table
     end
 
     def current_version

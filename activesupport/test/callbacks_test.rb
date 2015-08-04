@@ -1,27 +1,6 @@
 require 'abstract_unit'
 
 module CallbacksTest
-  class Phone
-    include ActiveSupport::Callbacks
-    define_callbacks :save
-
-    set_callback :save, :before, :before_save1
-    set_callback :save, :after, :after_save1
-
-    def before_save1; self.history << :before; end
-    def after_save1; self.history << :after; end
-
-    def save
-      run_callbacks :save do
-        raise 'boom'
-      end
-    end
-
-    def history
-      @history ||= []
-    end
-  end
-
   class Record
     include ActiveSupport::Callbacks
 
@@ -70,7 +49,7 @@ module CallbacksTest
     def self.before(model)
       model.history << [:before_save, :class]
     end
-    
+
     def self.after(model)
       model.history << [:after_save, :class]
     end
@@ -94,8 +73,8 @@ module CallbacksTest
 
   class PersonSkipper < Person
     skip_callback :save, :before, :before_save_method, :if => :yes
-    skip_callback :save, :after, :before_save_method, :unless => :yes
-    skip_callback :save, :after, :before_save_method, :if => :no
+    skip_callback :save, :after,  :after_save_method, :unless => :yes
+    skip_callback :save, :after,  :after_save_method, :if => :no
     skip_callback :save, :before, :before_save_method, :unless => :no
     skip_callback :save, :before, CallbackClass , :if => :yes
     def yes; true; end
@@ -522,21 +501,18 @@ module CallbacksTest
     end
   end
 
-  class CallbackTerminator
+  class AbstractCallbackTerminator
     include ActiveSupport::Callbacks
 
-    define_callbacks :save, :terminator => ->(_,result) { result == :halt }
-
-    set_callback :save, :before, :first
-    set_callback :save, :before, :second
-    set_callback :save, :around, :around_it
-    set_callback :save, :before, :third
-    set_callback :save, :after, :first
-    set_callback :save, :around, :around_it
-    set_callback :save, :after, :second
-    set_callback :save, :around, :around_it
-    set_callback :save, :after, :third
-
+    def self.set_save_callbacks
+      set_callback :save, :before, :first
+      set_callback :save, :before, :second
+      set_callback :save, :around, :around_it
+      set_callback :save, :before, :third
+      set_callback :save, :after, :first
+      set_callback :save, :around, :around_it
+      set_callback :save, :after, :third
+    end
 
     attr_reader :history, :saved, :halted
     def initialize
@@ -571,6 +547,39 @@ module CallbacksTest
     def halted_callback_hook(filter)
       @halted = filter
     end
+  end
+
+  class CallbackTerminator < AbstractCallbackTerminator
+    define_callbacks :save, terminator: ->(_, result_lambda) { result_lambda.call == :halt }
+    set_save_callbacks
+  end
+
+  class CallbackTerminatorSkippingAfterCallbacks < AbstractCallbackTerminator
+    define_callbacks :save, terminator: ->(_, result_lambda) { result_lambda.call == :halt },
+                            skip_after_callbacks_if_terminated: true
+    set_save_callbacks
+  end
+
+  class CallbackDefaultTerminator < AbstractCallbackTerminator
+    define_callbacks :save
+
+    def second
+      @history << "second"
+      throw(:abort)
+    end
+
+    set_save_callbacks
+  end
+
+  class CallbackFalseTerminator < AbstractCallbackTerminator
+    define_callbacks :save
+
+    def second
+      @history << "second"
+      false
+    end
+
+    set_save_callbacks
   end
 
   class CallbackObject
@@ -709,10 +718,10 @@ module CallbacksTest
   end
 
   class CallbackTerminatorTest < ActiveSupport::TestCase
-    def test_termination
+    def test_termination_skips_following_before_and_around_callbacks
       terminator = CallbackTerminator.new
       terminator.save
-      assert_equal ["first", "second", "third", "second", "first"], terminator.history
+      assert_equal ["first", "second", "third", "first"], terminator.history
     end
 
     def test_termination_invokes_hook
@@ -725,6 +734,73 @@ module CallbacksTest
       obj = CallbackTerminator.new
       obj.save
       assert !obj.saved
+    end
+  end
+
+  class CallbackTerminatorSkippingAfterCallbacksTest < ActiveSupport::TestCase
+    def test_termination_skips_after_callbacks
+      terminator = CallbackTerminatorSkippingAfterCallbacks.new
+      terminator.save
+      assert_equal ["first", "second"], terminator.history
+    end
+  end
+
+  class CallbackDefaultTerminatorTest < ActiveSupport::TestCase
+    def test_default_termination
+      terminator = CallbackDefaultTerminator.new
+      terminator.save
+      assert_equal ["first", "second", "third", "first"], terminator.history
+    end
+
+    def test_default_termination_invokes_hook
+      terminator = CallbackDefaultTerminator.new
+      terminator.save
+      assert_equal :second, terminator.halted
+    end
+
+    def test_block_never_called_if_abort_is_thrown
+      obj = CallbackDefaultTerminator.new
+      obj.save
+      assert !obj.saved
+    end
+  end
+
+  class CallbackFalseTerminatorWithoutConfigTest < ActiveSupport::TestCase
+    def test_returning_false_halts_callback_if_config_variable_is_not_set
+      obj = CallbackFalseTerminator.new
+      assert_deprecated do
+        obj.save
+        assert_equal :second, obj.halted
+        assert !obj.saved
+      end
+    end
+  end
+
+  class CallbackFalseTerminatorWithConfigTrueTest < ActiveSupport::TestCase
+    def setup
+      ActiveSupport::Callbacks::CallbackChain.halt_and_display_warning_on_return_false = true
+    end
+
+    def test_returning_false_halts_callback_if_config_variable_is_true
+      obj = CallbackFalseTerminator.new
+      assert_deprecated do
+        obj.save
+        assert_equal :second, obj.halted
+        assert !obj.saved
+      end
+    end
+  end
+
+  class CallbackFalseTerminatorWithConfigFalseTest < ActiveSupport::TestCase
+    def setup
+      ActiveSupport::Callbacks::CallbackChain.halt_and_display_warning_on_return_false = false
+    end
+
+    def test_returning_false_does_not_halt_callback_if_config_variable_is_false
+      obj = CallbackFalseTerminator.new
+      obj.save
+      assert_equal nil, obj.halted
+      assert obj.saved
     end
   end
 
@@ -945,7 +1021,7 @@ module CallbacksTest
         define_callbacks :foo
         n.times { set_callback :foo, :before, callback }
         def run; run_callbacks :foo; end
-        def self.skip(thing); skip_callback :foo, :before, thing; end
+        def self.skip(*things); skip_callback :foo, :before, *things; end
       }
     end
 
@@ -994,11 +1070,11 @@ module CallbacksTest
       }
     end
 
-    def test_skip_lambda # removes nothing
+    def test_skip_lambda # raises error
       calls = []
       callback = ->(o) { calls << o }
       klass = build_class(callback)
-      10.times { klass.skip callback }
+      assert_raises(ArgumentError) { klass.skip callback }
       klass.new.run
       assert_equal 10, calls.length
     end
@@ -1012,11 +1088,29 @@ module CallbacksTest
       assert_equal 0, calls.length
     end
 
-    def test_skip_eval # removes nothing
+    def test_skip_string # raises error
       calls = []
       klass = build_class("bar")
       klass.class_eval { define_method(:bar) { calls << klass } }
-      klass.skip "bar"
+      assert_raises(ArgumentError) { klass.skip "bar" }
+      klass.new.run
+      assert_equal 1, calls.length
+    end
+
+    def test_skip_undefined_callback # raises error
+      calls = []
+      klass = build_class(:bar)
+      klass.class_eval { define_method(:bar) { calls << klass } }
+      assert_raises(ArgumentError) { klass.skip :qux }
+      klass.new.run
+      assert_equal 1, calls.length
+    end
+
+    def test_skip_without_raise # removes nothing
+      calls = []
+      klass = build_class(:bar)
+      klass.class_eval { define_method(:bar) { calls << klass } }
+      klass.skip :qux, raise: false
       klass.new.run
       assert_equal 1, calls.length
     end

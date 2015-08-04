@@ -14,13 +14,13 @@ The most common rails commands are:
  generate    Generate new code (short-cut alias: "g")
  console     Start the Rails console (short-cut alias: "c")
  server      Start the Rails server (short-cut alias: "s")
+ test        Run tests (short-cut alias: "t")
  dbconsole   Start a console for the database specified in config/database.yml
              (short-cut alias: "db")
  new         Create a new Rails application. "rails new my_app" creates a
              new application called MyApp in "./my_app"
 
 In addition to those, there are:
- application  Generate the Rails application code
  destroy      Undo code generated with "generate" (short-cut alias: "d")
  plugin new   Generates skeleton for developing a Rails plugin
  runner       Run a piece of code in the application environment (short-cut alias: "r")
@@ -28,7 +28,7 @@ In addition to those, there are:
 All commands can be run with -h (or --help) for more information.
 EOT
 
-    COMMAND_WHITELIST = %(plugin generate destroy console server dbconsole application runner new version help)
+    COMMAND_WHITELIST = %w(plugin generate destroy console server dbconsole runner new version help test)
 
     def initialize(argv)
       @argv = argv
@@ -49,6 +49,10 @@ EOT
 
     def generate
       generate_or_destroy(:generate)
+    end
+
+    def destroy
+      generate_or_destroy(:destroy)
     end
 
     def console
@@ -78,13 +82,13 @@ EOT
       end
     end
 
+    def test
+      require_command!("test")
+    end
+
     def dbconsole
       require_command!("dbconsole")
       Rails::DBConsole.start
-    end
-
-    def application
-      require_command!("application")
     end
 
     def runner
@@ -128,14 +132,14 @@ EOT
         require 'rails/generators'
         require_application_and_environment!
         Rails.application.load_generators
-        require "rails/commands/#{command}"
+        require_command!(command)
       end
 
       # Change to the application's path if there is no config.ru file in current directory.
       # This allows us to run `rails server` from other directories, but still get
       # the main config.ru and properly set the tmp directory.
       def set_application_directory!
-        Dir.chdir(File.expand_path('../../', APP_PATH)) unless File.exists?(File.expand_path("config.ru"))
+        Dir.chdir(File.expand_path('../../', APP_PATH)) unless File.exist?(File.expand_path("config.ru"))
       end
 
       def require_application_and_environment!
@@ -147,6 +151,17 @@ EOT
         puts HELP_MESSAGE
       end
 
+      # Output an error message stating that the attempted command is not a valid rails command.
+      # Run the attempted command as a rake command with the --dry-run flag. If successful, suggest
+      # to the user that they possibly meant to run the given rails command as a rake command.
+      # Append the help message.
+      #
+      #   Example:
+      #   $ rails db:migrate
+      #   Error: Command 'db:migrate' not recognized
+      #   Did you mean: `$ rake db:migrate` ?
+      #   (Help message output)
+      #
       def write_error_message(command)
         puts "Error: Command '#{command}' not recognized"
         if %x{rake #{command} --dry-run 2>&1 } && $?.success?

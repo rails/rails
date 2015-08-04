@@ -28,6 +28,14 @@ module ActiveSupport
       coder.represent_seq '!omap', map { |k,v| { k => v } }
     end
 
+    def select(*args, &block)
+      dup.tap { |hash| hash.select!(*args, &block) }
+    end
+
+    def reject(*args, &block)
+      dup.tap { |hash| hash.reject!(*args, &block) }
+    end
+
     def nested_under_indifferent_access
       self
     end

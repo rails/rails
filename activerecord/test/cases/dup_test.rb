@@ -1,4 +1,5 @@
 require "cases/helper"
+require 'models/reply'
 require 'models/topic'
 
 module ActiveRecord
@@ -30,6 +31,14 @@ module ActiveRecord
 
       assert !duped.persisted?, 'topic not persisted'
       assert duped.new_record?, 'topic is new'
+    end
+
+    def test_dup_not_destroyed
+      topic = Topic.first
+      topic.destroy
+
+      duped = topic.dup
+      assert_not duped.destroyed?
     end
 
     def test_dup_has_no_id
@@ -131,6 +140,18 @@ module ActiveRecord
       assert !topic.dup.approved?, "should not be overridden by default scopes"
     ensure
       Topic.default_scopes = prev_default_scopes
+    end
+
+    def test_dup_without_primary_key
+      klass = Class.new(ActiveRecord::Base) do
+        self.table_name = 'parrots_pirates'
+      end
+
+      record = klass.create!
+
+      assert_nothing_raised do
+        record.dup
+      end
     end
   end
 end

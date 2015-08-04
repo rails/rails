@@ -6,6 +6,11 @@ module ActionController
     Renderers.add(key, &block)
   end
 
+  # See <tt>Renderers.remove</tt>
+  def self.remove_renderer(key)
+    Renderers.remove(key)
+  end
+
   class MissingRenderer < LoadError
     def initialize(format)
       super "No renderer defined for format: #{format}"
@@ -29,22 +34,27 @@ module ActionController
     end
 
     def render_to_body(options)
-      _handle_render_options(options) || super
+      _render_to_body_with_renderer(options) || super
     end
 
-    def _handle_render_options(options)
+    def _render_to_body_with_renderer(options)
       _renderers.each do |name|
         if options.key?(name)
           _process_options(options)
-          return send("_render_option_#{name}", options.delete(name), options)
+          method_name = Renderers._render_with_renderer_method_name(name)
+          return send(method_name, options.delete(name), options)
         end
       end
       nil
     end
 
-    # Hash of available renderers, mapping a renderer name to its proc.
-    # Default keys are :json, :js, :xml.
+    # A Set containing renderer names that correspond to available renderer procs.
+    # Default values are <tt>:json</tt>, <tt>:js</tt>, <tt>:xml</tt>.
     RENDERERS = Set.new
+
+    def self._render_with_renderer_method_name(key)
+      "_render_with_renderer_#{key}"
+    end
 
     # Adds a new renderer to call within controller actions.
     # A renderer is invoked by passing its name as an option to
@@ -73,14 +83,24 @@ module ActionController
     #     respond_to do |format|
     #       format.html
     #       format.csv { render csv: @csvable, filename: @csvable.name }
-    #     }
+    #     end
     #   end
     # To use renderers and their mime types in more concise ways, see
-    # <tt>ActionController::MimeResponds::ClassMethods.respond_to</tt> and
-    # <tt>ActionController::MimeResponds#respond_with</tt>
+    # <tt>ActionController::MimeResponds::ClassMethods.respond_to</tt>
     def self.add(key, &block)
-      define_method("_render_option_#{key}", &block)
+      define_method(_render_with_renderer_method_name(key), &block)
       RENDERERS << key.to_sym
+    end
+
+    # This method is the opposite of add method.
+    #
+    # To remove a csv renderer:
+    #
+    #   ActionController::Renderers.remove(:csv)
+    def self.remove(key)
+      RENDERERS.delete(key.to_sym)
+      method_name = _render_with_renderer_method_name(key)
+      remove_method(method_name) if method_defined?(method_name)
     end
 
     module All
@@ -96,8 +116,11 @@ module ActionController
       json = json.to_json(options) unless json.kind_of?(String)
 
       if options[:callback].present?
-        self.content_type ||= Mime::JS
-        "#{options[:callback]}(#{json})"
+        if content_type.nil? || content_type == Mime::JSON
+          self.content_type = Mime::JS
+        end
+
+        "/**/#{options[:callback]}(#{json})"
       else
         self.content_type ||= Mime::JSON
         json

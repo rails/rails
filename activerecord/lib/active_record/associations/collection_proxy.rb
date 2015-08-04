@@ -29,10 +29,11 @@ module ActiveRecord
     # instantiation of the actual post records.
     class CollectionProxy < Relation
       delegate(*(ActiveRecord::Calculations.public_instance_methods - [:count]), to: :scope)
+      delegate :find_nth, to: :scope
 
       def initialize(klass, association) #:nodoc:
         @association = association
-        super klass, klass.arel_table
+        super klass, klass.arel_table, klass.predicate_builder
         merge! association.scope(nullify: false)
       end
 
@@ -75,7 +76,7 @@ module ActiveRecord
       #   #      #<Pet id: nil, name: "Choo-Choo">
       #   #    ]
       #
-      #   person.pets.select([:id, :name])
+      #   person.pets.select(:id, :name )
       #   # => [
       #   #      #<Pet id: 1, name: "Fancy-Fancy">,
       #   #      #<Pet id: 2, name: "Spook">,
@@ -84,7 +85,7 @@ module ActiveRecord
       #
       # Be careful because this also means you're initializing a model
       # object with only the fields that you've selected. If you attempt
-      # to access a field that is not in the initialized record you'll
+      # to access a field except +id+ that is not in the initialized record you'll
       # receive:
       #
       #   person.pets.select(:name).first.person_id
@@ -106,13 +107,13 @@ module ActiveRecord
       #   #      #<Pet id: 2, name: "Spook">,
       #   #      #<Pet id: 3, name: "Choo-Choo">
       #   #    ]
-      def select(select = nil, &block)
-        @association.select(select, &block)
+      def select(*fields, &block)
+        @association.select(*fields, &block)
       end
 
       # Finds an object in the collection responding to the +id+. Uses the same
       # rules as <tt>ActiveRecord::Base.find</tt>. Returns <tt>ActiveRecord::RecordNotFound</tt>
-      # error if the object can not be found.
+      # error if the object cannot be found.
       #
       #   class Person < ActiveRecord::Base
       #     has_many :pets
@@ -170,6 +171,32 @@ module ActiveRecord
         @association.first(*args)
       end
 
+      # Same as +first+ except returns only the second record.
+      def second(*args)
+        @association.second(*args)
+      end
+
+      # Same as +first+ except returns only the third record.
+      def third(*args)
+        @association.third(*args)
+      end
+
+      # Same as +first+ except returns only the fourth record.
+      def fourth(*args)
+        @association.fourth(*args)
+      end
+
+      # Same as +first+ except returns only the fifth record.
+      def fifth(*args)
+        @association.fifth(*args)
+      end
+
+      # Same as +first+ except returns only the forty second record.
+      # Also known as accessing "the reddit".
+      def forty_two(*args)
+        @association.forty_two(*args)
+      end
+
       # Returns the last record, or the last +n+ records, from the collection.
       # If the collection is empty, the first form returns +nil+, and the second
       # form returns an empty array.
@@ -198,6 +225,10 @@ module ActiveRecord
       #   another_person_without.pets.last(3) # => []
       def last(*args)
         @association.last(*args)
+      end
+
+      def take(n = nil)
+        @association.take(n)
       end
 
       # Returns a new object of the collection type that has been instantiated
@@ -281,7 +312,7 @@ module ActiveRecord
       # so method calls may be chained.
       #
       #   class Person < ActiveRecord::Base
-      #     pets :has_many
+      #     has_many :pets
       #   end
       #
       #   person.pets.size # => 0
@@ -329,14 +360,15 @@ module ActiveRecord
         @association.replace(other_array)
       end
 
-      # Deletes all the records from the collection. For +has_many+ associations,
-      # the deletion is done according to the strategy specified by the <tt>:dependent</tt>
-      # option. Returns an array with the deleted records.
+      # Deletes all the records from the collection according to the strategy
+      # specified by the +:dependent+ option. If no +:dependent+ option is given,
+      # then it will follow the default strategy.
       #
-      # If no <tt>:dependent</tt> option is given, then it will follow the
-      # default strategy. The default strategy is <tt>:nullify</tt>. This
-      # sets the foreign keys to <tt>NULL</tt>. For, +has_many+ <tt>:through</tt>,
-      # the default strategy is +delete_all+.
+      # For +has_many :through+ associations, the default deletion strategy is
+      # +:delete_all+.
+      #
+      # For +has_many+ associations, the default deletion strategy is +:nullify+.
+      # This sets the foreign keys to +NULL+.
       #
       #   class Person < ActiveRecord::Base
       #     has_many :pets # dependent: :nullify option by default
@@ -367,9 +399,9 @@ module ActiveRecord
       #   #       #<Pet id: 3, name: "Choo-Choo", person_id: nil>
       #   #    ]
       #
-      # If it is set to <tt>:destroy</tt> all the objects from the collection
-      # are removed by calling their +destroy+ method. See +destroy+ for more
-      # information.
+      # Both +has_many+ and +has_many :through+ dependencies default to the
+      # +:delete_all+ strategy if the +:dependent+ option is set to +:destroy+.
+      # Records are not instantiated and callbacks will not be fired.
       #
       #   class Person < ActiveRecord::Base
       #     has_many :pets, dependent: :destroy
@@ -384,11 +416,6 @@ module ActiveRecord
       #   #    ]
       #
       #   person.pets.delete_all
-      #   # => [
-      #   #       #<Pet id: 1, name: "Fancy-Fancy", person_id: 1>,
-      #   #       #<Pet id: 2, name: "Spook", person_id: 1>,
-      #   #       #<Pet id: 3, name: "Choo-Choo", person_id: 1>
-      #   #    ]
       #
       #   Pet.find(1, 2, 3)
       #   # => ActiveRecord::RecordNotFound
@@ -409,11 +436,6 @@ module ActiveRecord
       #   #    ]
       #
       #   person.pets.delete_all
-      #   # => [
-      #   #       #<Pet id: 1, name: "Fancy-Fancy", person_id: 1>,
-      #   #       #<Pet id: 2, name: "Spook", person_id: 1>,
-      #   #       #<Pet id: 3, name: "Choo-Choo", person_id: 1>
-      #   #    ]
       #
       #   Pet.find(1, 2, 3)
       #   # => ActiveRecord::RecordNotFound
@@ -422,8 +444,9 @@ module ActiveRecord
       end
 
       # Deletes the records of the collection directly from the database
-      # ignoring the +:dependent+ option. It invokes +before_remove+,
-      # +after_remove+ , +before_destroy+ and +after_destroy+ callbacks.
+      # ignoring the +:dependent+ option. Records are instantiated and it
+      # invokes +before_remove+, +after_remove+ , +before_destroy+ and
+      # +after_destroy+ callbacks.
       #
       #   class Person < ActiveRecord::Base
       #     has_many :pets
@@ -447,15 +470,16 @@ module ActiveRecord
         @association.destroy_all
       end
 
-      # Deletes the +records+ supplied and removes them from the collection. For
-      # +has_many+ associations, the deletion is done according to the strategy
-      # specified by the <tt>:dependent</tt> option. Returns an array with the
+      # Deletes the +records+ supplied from the collection according to the strategy
+      # specified by the +:dependent+ option. If no +:dependent+ option is given,
+      # then it will follow the default strategy. Returns an array with the
       # deleted records.
       #
-      # If no <tt>:dependent</tt> option is given, then it will follow the default
-      # strategy. The default strategy is <tt>:nullify</tt>. This sets the foreign
-      # keys to <tt>NULL</tt>. For, +has_many+ <tt>:through</tt>, the default
-      # strategy is +delete_all+.
+      # For +has_many :through+ associations, the default deletion strategy is
+      # +:delete_all+.
+      #
+      # For +has_many+ associations, the default deletion strategy is +:nullify+.
+      # This sets the foreign keys to +NULL+.
       #
       #   class Person < ActiveRecord::Base
       #     has_many :pets # dependent: :nullify option by default
@@ -669,8 +693,8 @@ module ActiveRecord
       #   #       #<Pet id: 2, name: "Spook", person_id: 1>,
       #   #       #<Pet id: 3, name: "Choo-Choo", person_id: 1>
       #   #    ]
-      def count(column_name = nil, options = {})
-        @association.count(column_name, options)
+      def count(column_name = nil)
+        @association.count(column_name)
       end
 
       # Returns the size of the collection. If the collection hasn't been loaded,
@@ -757,10 +781,10 @@ module ActiveRecord
       #   person.pets.any?  # => false
       #
       #   person.pets << Pet.new(name: 'Snoop')
-      #   person.pets.count # => 0
+      #   person.pets.count # => 1
       #   person.pets.any?  # => true
       #
-      # You can also pass a block to define criteria. The behavior
+      # You can also pass a +block+ to define criteria. The behavior
       # is the same, it returns true if the collection based on the
       # criteria is not empty.
       #
@@ -787,14 +811,14 @@ module ActiveRecord
       #     has_many :pets
       #   end
       #
-      #   person.pets.count #=> 1
-      #   person.pets.many? #=> false
+      #   person.pets.count # => 1
+      #   person.pets.many? # => false
       #
       #   person.pets << Pet.new(name: 'Snoopy')
-      #   person.pets.count #=> 2
-      #   person.pets.many? #=> true
+      #   person.pets.count # => 2
+      #   person.pets.many? # => true
       #
-      # You can also pass a block to define criteria. The
+      # You can also pass a +block+ to define criteria. The
       # behavior is the same, it returns true if the collection
       # based on the criteria has more than one record.
       #
@@ -818,7 +842,7 @@ module ActiveRecord
         @association.many?(&block)
       end
 
-      # Returns +true+ if the given object is present in the collection.
+      # Returns +true+ if the given +record+ is present in the collection.
       #
       #   class Person < ActiveRecord::Base
       #     has_many :pets
@@ -830,6 +854,10 @@ module ActiveRecord
       #   person.pets.include?(Pet.find(21)) # => false
       def include?(record)
         !!@association.include?(record)
+      end
+
+      def arel
+        scope.arel
       end
 
       def proxy_association
@@ -852,7 +880,7 @@ module ActiveRecord
 
       # Equivalent to <tt>Array#==</tt>. Returns +true+ if the two arrays
       # contain the same number of elements and if each element is equal
-      # to the corresponding element in the other array, otherwise returns
+      # to the corresponding element in the +other+ array, otherwise returns
       # +false+.
       #
       #   class Person < ActiveRecord::Base
@@ -943,12 +971,15 @@ module ActiveRecord
       alias_method :append, :<<
 
       def prepend(*args)
-        raise NoMethodError, "prepend on association is not defined. Please use << or append"
+        raise NoMethodError, "prepend on association is not defined. Please use <<, push or append"
       end
 
       # Equivalent to +delete_all+. The difference is that returns +self+, instead
       # of an array with the deleted objects, so methods can be chained. See
       # +delete_all+ for more information.
+      # Note that because +delete_all+ removes records by directly
+      # running an SQL query into the database, the +updated_at+ column of
+      # the object is not changed.
       def clear
         delete_all
         self
@@ -974,6 +1005,28 @@ module ActiveRecord
       #   # => [#<Pet id: 1, name: "Snoop", group: "dogs", person_id: 1>]
       def reload
         proxy_association.reload
+        self
+      end
+
+      # Unloads the association. Returns +self+.
+      #
+      #   class Person < ActiveRecord::Base
+      #     has_many :pets
+      #   end
+      #
+      #   person.pets # fetches pets from the database
+      #   # => [#<Pet id: 1, name: "Snoop", group: "dogs", person_id: 1>]
+      #
+      #   person.pets # uses the pets cache
+      #   # => [#<Pet id: 1, name: "Snoop", group: "dogs", person_id: 1>]
+      #
+      #   person.pets.reset # clears the pets cache
+      #
+      #   person.pets  # fetches pets from the database
+      #   # => [#<Pet id: 1, name: "Snoop", group: "dogs", person_id: 1>]
+      def reset
+        proxy_association.reset
+        proxy_association.reset_scope
         self
       end
     end

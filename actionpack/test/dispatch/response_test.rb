@@ -1,4 +1,6 @@
 require 'abstract_unit'
+require 'timeout'
+require 'rack/content_length'
 
 class ResponseTest < ActiveSupport::TestCase
   def setup
@@ -40,6 +42,13 @@ class ResponseTest < ActiveSupport::TestCase
     assert_equal Encoding::UTF_8, response.body.encoding
   end
 
+  def test_response_charset_writer
+    @response.charset = 'utf-16'
+    assert_equal 'utf-16', @response.charset
+    @response.charset = nil
+    assert_equal 'utf-8', @response.charset
+  end
+
   test "simple output" do
     @response.body = "Hello, World!"
 
@@ -70,12 +79,14 @@ class ResponseTest < ActiveSupport::TestCase
 
   test "content type" do
     [204, 304].each do |c|
+      @response = ActionDispatch::Response.new
       @response.status = c.to_s
       _, headers, _ = @response.to_a
       assert !headers.has_key?("Content-Type"), "#{c} should not have Content-Type header"
     end
 
     [200, 302, 404, 500].each do |c|
+      @response = ActionDispatch::Response.new
       @response.status = c.to_s
       _, headers, _ = @response.to_a
       assert headers.has_key?("Content-Type"), "#{c} did not have Content-Type header"
@@ -167,6 +178,8 @@ class ResponseTest < ActiveSupport::TestCase
   end
 
   test "read content type without charset" do
+    jruby_skip "https://github.com/jruby/jruby/issues/3138"
+
     original = ActionDispatch::Response.default_charset
     begin
       ActionDispatch::Response.default_charset = 'utf-16'
@@ -178,6 +191,7 @@ class ResponseTest < ActiveSupport::TestCase
   end
 
   test "read x_frame_options, x_content_type_options and x_xss_protection" do
+    original_default_headers = ActionDispatch::Response.default_headers
     begin
       ActionDispatch::Response.default_headers = {
         'X-Frame-Options' => 'DENY',
@@ -193,11 +207,12 @@ class ResponseTest < ActiveSupport::TestCase
       assert_equal('nosniff', resp.headers['X-Content-Type-Options'])
       assert_equal('1;', resp.headers['X-XSS-Protection'])
     ensure
-      ActionDispatch::Response.default_headers = nil
+      ActionDispatch::Response.default_headers = original_default_headers
     end
   end
 
   test "read custom default_header" do
+    original_default_headers = ActionDispatch::Response.default_headers
     begin
       ActionDispatch::Response.default_headers = {
         'X-XX-XXXX' => 'Here is my phone number'
@@ -209,7 +224,7 @@ class ResponseTest < ActiveSupport::TestCase
 
       assert_equal('Here is my phone number', resp.headers['X-XX-XXXX'])
     ensure
-      ActionDispatch::Response.default_headers = nil
+      ActionDispatch::Response.default_headers = original_default_headers
     end
   end
 
@@ -217,13 +232,39 @@ class ResponseTest < ActiveSupport::TestCase
     assert_not @response.respond_to?(:method_missing)
     assert @response.respond_to?(:method_missing, true)
   end
+
+  test "can be explicitly destructured into status, headers and an enumerable body" do
+    response = ActionDispatch::Response.new(404, { 'Content-Type' => 'text/plain' }, ['Not Found'])
+    status, headers, body = *response
+
+    assert_equal 404, status
+    assert_equal({ 'Content-Type' => 'text/plain' }, headers)
+    assert_equal ['Not Found'], body.each.to_a
+  end
+
+  test "[response.to_a].flatten does not recurse infinitely" do
+    Timeout.timeout(1) do # use a timeout to prevent it stalling indefinitely
+      status, headers, body = [@response.to_a].flatten
+      assert_equal @response.status, status
+      assert_equal @response.headers, headers
+      assert_equal @response.body, body.each.to_a.join
+    end
+  end
+
+  test "compatibility with Rack::ContentLength" do
+    @response.body = 'Hello'
+    app = lambda { |env| @response.to_a }
+    env = Rack::MockRequest.env_for("/")
+
+    status, headers, body = app.call(env)
+    assert_nil headers['Content-Length']
+
+    status, headers, body = Rack::ContentLength.new(app).call(env)
+    assert_equal '5', headers['Content-Length']
+  end
 end
 
 class ResponseIntegrationTest < ActionDispatch::IntegrationTest
-  def app
-    @app
-  end
-
   test "response cache control from railsish app" do
     @app = lambda { |env|
       ActionDispatch::Response.new.tap { |resp|

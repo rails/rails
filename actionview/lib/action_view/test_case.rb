@@ -3,6 +3,8 @@ require 'action_controller'
 require 'action_controller/test_case'
 require 'action_view'
 
+require 'rails-dom-testing'
+
 module ActionView
   # = Action View Test Case
   class TestCase < ActiveSupport::TestCase
@@ -22,8 +24,8 @@ module ActionView
       def initialize
         super
         self.class.controller_path = ""
-        @request = ActionController::TestRequest.new
-        @response = ActionController::TestResponse.new
+        @request = ActionController::TestRequest.create
+        @response = ActionDispatch::TestResponse.new
 
         @request.env.delete('PATH_INFO')
         @params = {}
@@ -34,6 +36,7 @@ module ActionView
       extend ActiveSupport::Concern
 
       include ActionDispatch::Assertions, ActionDispatch::TestProcess
+      include Rails::Dom::Testing::Assertions
       include ActionController::TemplateAssertions
       include ActionView::Context
 
@@ -99,7 +102,9 @@ module ActionView
       def setup_with_controller
         @controller = ActionView::TestCase::TestController.new
         @request = @controller.request
-        @output_buffer = ActiveSupport::SafeBuffer.new
+        # empty string ensures buffer has UTF-8 encoding as
+        # new without arguments returns ASCII-8BIT encoded buffer like String#new
+        @output_buffer = ActiveSupport::SafeBuffer.new ''
         @rendered = ''
 
         make_test_case_available_to_view!
@@ -120,6 +125,7 @@ module ActionView
         @_rendered_views ||= RenderedViewsCollection.new
       end
 
+      # Need to experiment if this priority is the best one: rendered => output_buffer
       class RenderedViewsCollection
         def initialize
           @rendered_views ||= Hash.new { |hash, key| hash[key] = [] }
@@ -151,11 +157,9 @@ module ActionView
 
     private
 
-      # Support the selector assertions
-      #
       # Need to experiment if this priority is the best one: rendered => output_buffer
-      def response_from_page
-        HTML::Document.new(@rendered.blank? ? @output_buffer : @rendered).root
+      def document_root_element
+        Nokogiri::HTML::Document.parse(@rendered.blank? ? @output_buffer : @rendered).root
       end
 
       def say_no_to_protect_against_forgery!
@@ -200,7 +204,7 @@ module ActionView
       def view
         @view ||= begin
           view = @controller.view_context
-          view.singleton_class.send :include, _helpers
+          view.singleton_class.include(_helpers)
           view.extend(Locals)
           view.rendered_views = self.rendered_views
           view.output_buffer = self.output_buffer
@@ -235,7 +239,9 @@ module ActionView
         :@options,
         :@test_passed,
         :@view,
-        :@view_context_class
+        :@view_context_class,
+        :@_subscribers,
+        :@html_document
       ]
 
       def _user_defined_ivars
@@ -258,7 +264,7 @@ module ActionView
 
       def method_missing(selector, *args)
         if @controller.respond_to?(:_routes) &&
-          ( @controller._routes.named_routes.helpers.include?(selector) ||
+          ( @controller._routes.named_routes.route_defined?(selector) ||
             @controller._routes.mounted_helpers.method_defined?(selector) )
           @controller.__send__(selector, *args)
         else

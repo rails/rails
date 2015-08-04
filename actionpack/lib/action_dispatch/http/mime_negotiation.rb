@@ -48,12 +48,18 @@ module ActionDispatch
       #   GET /posts/5       | request.format => Mime::HTML or MIME::JS, or request.accepts.first
       #
       def format(view_path = [])
-        formats.first
+        formats.first || Mime::NullType.instance
       end
 
       def formats
-        @env["action_dispatch.request.formats"] ||=
-          if parameters[:format]
+        @env["action_dispatch.request.formats"] ||= begin
+          params_readable = begin
+                              parameters[:format]
+                            rescue ActionController::BadRequest
+                              false
+                            end
+
+          if params_readable
             Array(Mime[parameters[:format]])
           elsif use_accept_header && valid_accept_header
             accepts
@@ -62,6 +68,25 @@ module ActionDispatch
           else
             [Mime::HTML]
           end
+        end
+      end
+
+      # Sets the \variant for template.
+      def variant=(variant)
+        variant = Array(variant)
+
+        if variant.all? { |v| v.is_a?(Symbol) }
+          @variant = ActiveSupport::ArrayInquirer.new(variant)
+        else
+          raise ArgumentError, "request.variant must be set to a Symbol or an Array of Symbols. " \
+            "For security reasons, never directly set the variant to a user-provided value, " \
+            "like params[:variant].to_sym. Check user-provided value against a whitelist first, " \
+            "then set the variant: request.variant = :tablet if params[:variant] == 'tablet'"
+        end
+      end
+
+      def variant
+        @variant ||= ActiveSupport::ArrayInquirer.new
       end
 
       # Sets the \format by string extension, which can be used to force custom formats
@@ -113,7 +138,7 @@ module ActionDispatch
           end
         end
 
-        order.include?(Mime::ALL) ? formats.first : nil
+        order.include?(Mime::ALL) ? format : nil
       end
 
       protected

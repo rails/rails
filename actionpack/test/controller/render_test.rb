@@ -10,11 +10,22 @@ class TestControllerWithExtraEtags < ActionController::Base
   etag { nil  }
 
   def fresh
-    render text: "stale" if stale?(etag: '123')
+    render plain: "stale" if stale?(etag: '123', template: false)
   end
 
   def array
-    render text: "stale" if stale?(etag: %w(1 2 3))
+    render plain: "stale" if stale?(etag: %w(1 2 3), template: false)
+  end
+
+  def with_template
+    if stale? template: 'test/hello_world'
+      render plain: 'stale'
+    end
+  end
+end
+
+class ImplicitRenderTestController < ActionController::Base
+  def empty_action
   end
 end
 
@@ -52,24 +63,24 @@ class TestController < ActionController::Base
     end
   end
 
-  def conditional_hello_with_public_header
-    if stale?(:last_modified => Time.now.utc.beginning_of_day, :etag => [:foo, 123], :public => true)
-      render :action => 'hello_world'
+  class Collection
+    def initialize(records)
+      @records = records
+    end
+
+    def maximum(attribute)
+      @records.max_by(&attribute).public_send(attribute)
     end
   end
 
-  def conditional_hello_with_public_header_with_record
-    record = Struct.new(:updated_at, :cache_key).new(Time.now.utc.beginning_of_day, "foo/123")
+  def conditional_hello_with_collection_of_records
+    ts = Time.now.utc.beginning_of_day
 
-    if stale?(record, :public => true)
-      render :action => 'hello_world'
-    end
-  end
+    record = Struct.new(:updated_at, :cache_key).new(ts, "foo/123")
+    old_record = Struct.new(:updated_at, :cache_key).new(ts - 1.day, "bar/123")
 
-  def conditional_hello_with_public_header_and_expires_at
-    expires_in 1.minute
-    if stale?(:last_modified => Time.now.utc.beginning_of_day, :etag => [:foo, 123], :public => true)
-      render :action => 'hello_world'
+    if stale?(Collection.new([record, old_record]))
+      render action: 'hello_world'
     end
   end
 
@@ -114,6 +125,10 @@ class TestController < ActionController::Base
     render :action => 'hello_world'
   end
 
+  def respond_with_empty_body
+    render nothing: true
+  end
+
   def conditional_hello_with_bangs
     render :action => 'hello_world'
   end
@@ -123,48 +138,12 @@ class TestController < ActionController::Base
     fresh_when(:last_modified => Time.now.utc.beginning_of_day, :etag => [ :foo, 123 ])
   end
 
-  def heading
-    head :ok
+  def head_with_status_hash
+    head status: :created
   end
 
-  # :ported:
-  def double_render
-    render :text => "hello"
-    render :text => "world"
-  end
-
-  def double_redirect
-    redirect_to :action => "double_render"
-    redirect_to :action => "double_render"
-  end
-
-  def render_and_redirect
-    render :text => "hello"
-    redirect_to :action => "double_render"
-  end
-
-  def render_to_string_and_render
-    @stuff = render_to_string :text => "here is some cached stuff"
-    render :text => "Hi web users! #{@stuff}"
-  end
-
-  def render_to_string_with_inline_and_render
-    render_to_string :inline => "<%= 'dlrow olleh'.reverse %>"
-    render :template => "test/hello_world"
-  end
-
-  def rendering_with_conflicting_local_vars
-    @name = "David"
-    render :action => "potential_conflicts"
-  end
-
-  def hello_world_from_rxml_using_action
-    render :action => "hello_world_from_rxml", :handlers => [:builder]
-  end
-
-  # :deprecated:
-  def hello_world_from_rxml_using_template
-    render :template => "test/hello_world_from_rxml", :handlers => [:builder]
+  def head_with_hash_does_not_include_status
+    head warning: :deprecated
   end
 
   def head_created
@@ -180,35 +159,49 @@ class TestController < ActionController::Base
   end
 
   def head_with_location_header
-    head :location => "/foo"
+    head :ok, :location => "/foo"
   end
 
   def head_with_location_object
-    head :location => Customer.new("david", 1)
+    head :ok, :location => Customer.new("david", 1)
   end
 
   def head_with_symbolic_status
-    head :status => params[:status].intern
+    head params[:status].intern
   end
 
   def head_with_integer_status
-    head :status => params[:status].to_i
+    head params[:status].to_i
   end
 
   def head_with_string_status
-    head :status => params[:status]
+    head params[:status]
   end
 
   def head_with_custom_header
-    head :x_custom_header => "something"
+    head :ok, :x_custom_header => "something"
   end
 
   def head_with_www_authenticate_header
-    head 'WWW-Authenticate' => 'something'
+    head :ok, 'WWW-Authenticate' => 'something'
   end
 
   def head_with_status_code_first
     head :forbidden, :x_custom_header => "something"
+  end
+
+  def head_and_return
+    head :ok and return
+    raise 'should not reach this line'
+  end
+
+  def head_with_no_content
+    # Fill in the headers with dummy data to make
+    # sure they get removed during the testing
+    response.headers["Content-Type"] = "dummy"
+    response.headers["Content-Length"] = 42
+
+    head 204
   end
 
   private
@@ -242,6 +235,8 @@ class MetalTestController < ActionController::Metal
   include AbstractController::Rendering
   include ActionView::Rendering
   include ActionController::Rendering
+  include ActionController::RackDelegation
+
 
   def accessing_logger_in_template
     render :inline =>  "<%= logger.class %>"
@@ -292,6 +287,12 @@ class ExpiresInRenderTest < ActionController::TestCase
     assert_match(/no-transform/, @response.headers["Cache-Control"])
   end
 
+  def test_render_nothing_deprecated
+    assert_deprecated do
+      get :respond_with_empty_body
+    end
+  end
+
   def test_date_header_when_expires_in
     time = Time.mktime(2011,10,30)
     Time.stubs(:now).returns(time)
@@ -336,7 +337,6 @@ class LastModifiedRenderTest < ActionController::TestCase
     assert_equal @last_modified, @response.headers['Last-Modified']
   end
 
-
   def test_responds_with_last_modified_with_record
     get :conditional_hello_with_record
     assert_equal @last_modified, @response.headers['Last-Modified']
@@ -347,6 +347,7 @@ class LastModifiedRenderTest < ActionController::TestCase
     get :conditional_hello_with_record
     assert_equal 304, @response.status.to_i
     assert @response.body.blank?
+    assert_not_nil @response.etag
     assert_equal @last_modified, @response.headers['Last-Modified']
   end
 
@@ -360,6 +361,34 @@ class LastModifiedRenderTest < ActionController::TestCase
   def test_request_modified_with_record
     @request.if_modified_since = 'Thu, 16 Jul 2008 00:00:00 GMT'
     get :conditional_hello_with_record
+    assert_equal 200, @response.status.to_i
+    assert @response.body.present?
+    assert_equal @last_modified, @response.headers['Last-Modified']
+  end
+
+  def test_responds_with_last_modified_with_collection_of_records
+    get :conditional_hello_with_collection_of_records
+    assert_equal @last_modified, @response.headers['Last-Modified']
+  end
+
+  def test_request_not_modified_with_collection_of_records
+    @request.if_modified_since = @last_modified
+    get :conditional_hello_with_collection_of_records
+    assert_equal 304, @response.status.to_i
+    assert @response.body.blank?
+    assert_equal @last_modified, @response.headers['Last-Modified']
+  end
+
+  def test_request_not_modified_but_etag_differs_with_collection_of_records
+    @request.if_modified_since = @last_modified
+    @request.if_none_match = "234"
+    get :conditional_hello_with_collection_of_records
+    assert_response :success
+  end
+
+  def test_request_modified_with_collection_of_records
+    @request.if_modified_since = 'Thu, 16 Jul 2008 00:00:00 GMT'
+    get :conditional_hello_with_collection_of_records
     assert_equal 200, @response.status.to_i
     assert @response.body.present?
     assert_equal @last_modified, @response.headers['Last-Modified']
@@ -387,10 +416,6 @@ end
 class EtagRenderTest < ActionController::TestCase
   tests TestControllerWithExtraEtags
 
-  def setup
-    super
-  end
-
   def test_multiple_etags
     @request.if_none_match = etag(["123", 'ab', :cde, [:f]])
     get :fresh
@@ -411,6 +436,32 @@ class EtagRenderTest < ActionController::TestCase
     assert_response :success
   end
 
+  def test_etag_reflects_template_digest
+    get :with_template
+    assert_response :ok
+    assert_not_nil etag = @response.etag
+
+    request.if_none_match = etag
+    get :with_template
+    assert_response :not_modified
+
+    # Modify the template digest
+    path = File.expand_path('../../fixtures/test/hello_world.erb', __FILE__)
+    old = File.read(path)
+
+    begin
+      File.write path, 'foo'
+      ActionView::Digestor.cache.clear
+
+      request.if_none_match = etag
+      get :with_template
+      assert_response :ok
+      assert_not_equal etag, @response.etag
+    ensure
+      File.write path, old
+    end
+  end
+
   def etag(record)
     Digest::MD5.hexdigest(ActiveSupport::Cache.expand_cache_key(record)).inspect
   end
@@ -425,6 +476,15 @@ class MetalRenderTest < ActionController::TestCase
   end
 end
 
+class ImplicitRenderTest < ActionController::TestCase
+  tests ImplicitRenderTestController
+
+  def test_implicit_no_content_response
+    get :empty_action
+    assert_response :no_content
+  end
+end
+
 class HeadRenderTest < ActionController::TestCase
   tests TestController
 
@@ -436,6 +496,19 @@ class HeadRenderTest < ActionController::TestCase
     post :head_created
     assert @response.body.blank?
     assert_response :created
+  end
+
+  def test_passing_hash_to_head_as_first_parameter_deprecated
+    assert_deprecated do
+      get :head_with_status_hash
+    end
+  end
+
+  def test_head_with_default_value_is_deprecated
+    assert_deprecated do
+      get :head_with_hash_does_not_include_status
+      assert_response :ok
+    end
   end
 
   def test_head_created_with_application_json_content_type
@@ -488,21 +561,21 @@ class HeadRenderTest < ActionController::TestCase
   end
 
   def test_head_with_symbolic_status
-    get :head_with_symbolic_status, :status => "ok"
+    get :head_with_symbolic_status, params: { status: "ok" }
     assert_equal 200, @response.status
     assert_response :ok
 
-    get :head_with_symbolic_status, :status => "not_found"
+    get :head_with_symbolic_status, params: { status: "not_found" }
     assert_equal 404, @response.status
     assert_response :not_found
 
-    get :head_with_symbolic_status, :status => "no_content"
+    get :head_with_symbolic_status, params: { status: "no_content" }
     assert_equal 204, @response.status
     assert !@response.headers.include?('Content-Length')
     assert_response :no_content
 
     Rack::Utils::SYMBOL_TO_STATUS_CODE.each do |status, code|
-      get :head_with_symbolic_status, :status => status.to_s
+      get :head_with_symbolic_status, params: { status: status.to_s }
       assert_equal code, @response.response_code
       assert_response status
     end
@@ -510,13 +583,21 @@ class HeadRenderTest < ActionController::TestCase
 
   def test_head_with_integer_status
     Rack::Utils::HTTP_STATUS_CODES.each do |code, message|
-      get :head_with_integer_status, :status => code.to_s
+      get :head_with_integer_status, params: { status: code.to_s }
       assert_equal message, @response.message
     end
   end
 
+  def test_head_with_no_content
+    get :head_with_no_content
+
+    assert_equal 204, @response.status
+    assert_nil @response.headers["Content-Type"]
+    assert_nil @response.headers["Content-Length"]
+  end
+
   def test_head_with_string_status
-    get :head_with_string_status, :status => "404 Eat Dirt"
+    get :head_with_string_status, params: { status: "404 Eat Dirt" }
     assert_equal 404, @response.response_code
     assert_equal "Not Found", @response.message
     assert_response :not_found
@@ -528,5 +609,64 @@ class HeadRenderTest < ActionController::TestCase
     assert_equal "Forbidden", @response.message
     assert_equal "something", @response.headers["X-Custom-Header"]
     assert_response :forbidden
+  end
+
+  def test_head_returns_truthy_value
+    assert_nothing_raised do
+      get :head_and_return
+    end
+  end
+end
+
+class HttpCacheForeverTest < ActionController::TestCase
+  class HttpCacheForeverController < ActionController::Base
+    def cache_me_forever
+      http_cache_forever(public: params[:public], version: params[:version] || 'v1') do
+        render plain: 'hello'
+      end
+    end
+  end
+
+  tests HttpCacheForeverController
+
+  def test_cache_with_public
+    get :cache_me_forever, params: {public: true}
+    assert_equal "max-age=#{100.years.to_i}, public", @response.headers["Cache-Control"]
+    assert_not_nil @response.etag
+  end
+
+  def test_cache_with_private
+    get :cache_me_forever
+    assert_equal "max-age=#{100.years.to_i}, private", @response.headers["Cache-Control"]
+    assert_not_nil @response.etag
+    assert_response :success
+  end
+
+  def test_cache_response_code_with_if_modified_since
+    get :cache_me_forever
+    assert_response :success
+    @request.if_modified_since = @response.headers['Last-Modified']
+    get :cache_me_forever
+    assert_response :not_modified
+  end
+
+  def test_cache_response_code_with_etag
+    get :cache_me_forever
+    assert_response :success
+    @request.if_modified_since = @response.headers['Last-Modified']
+    @request.if_none_match = @response.etag
+
+    get :cache_me_forever
+    assert_response :not_modified
+    @request.if_modified_since = @response.headers['Last-Modified']
+    @request.if_none_match = @response.etag
+
+    get :cache_me_forever, params: {version: 'v2'}
+    assert_response :success
+    @request.if_modified_since = @response.headers['Last-Modified']
+    @request.if_none_match = @response.etag
+
+    get :cache_me_forever, params: {version: 'v2'}
+    assert_response :not_modified
   end
 end

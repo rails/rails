@@ -1,3 +1,5 @@
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+
 Rails Application Templates
 ===========================
 
@@ -23,8 +25,8 @@ $ rails new blog -m http://example.com/template.rb
 You can use the rake task `rails:template` to apply templates to an existing Rails application. The location of the template needs to be passed in to an environment variable named LOCATION. Again, this can either be path to a file or a URL.
 
 ```bash
-$ rake rails:template LOCATION=~/template.rb
-$ rake rails:template LOCATION=http://example.com/template.rb
+$ bin/rake rails:template LOCATION=~/template.rb
+$ bin/rake rails:template LOCATION=http://example.com/template.rb
 ```
 
 Template API
@@ -38,9 +40,11 @@ generate(:scaffold, "person name:string")
 route "root to: 'people#index'"
 rake("db:migrate")
 
-git :init
-git add: "."
-git commit: %Q{ -m 'Initial commit' }
+after_bundle do
+  git :init
+  git add: "."
+  git commit: %Q{ -m 'Initial commit' }
+end
 ```
 
 The following sections outline the primary methods provided by the API:
@@ -78,7 +82,7 @@ end
 
 Adds the given source to the generated application's `Gemfile`.
 
-For example, if you need to source a gem from "http://code.whytheluckystiff.net":
+For example, if you need to source a gem from `"http://code.whytheluckystiff.net"`:
 
 ```ruby
 add_source "http://code.whytheluckystiff.net"
@@ -211,7 +215,7 @@ CODE
 
 ### yes?(question) or no?(question)
 
-These methods let you ask questions from templates and decide the flow based on the user's answer. Let's say you want to freeze rails only if the user wants to:
+These methods let you ask questions from templates and decide the flow based on the user's answer. Let's say you want to Freeze Rails only if the user wants to:
 
 ```ruby
 rake("rails:freeze:gems") if yes?("Freeze rails gems?")
@@ -227,6 +231,22 @@ git :init
 git add: "."
 git commit: "-a -m 'Initial commit'"
 ```
+
+### after_bundle(&block)
+
+Registers a callback to be executed after the gems are bundled and binstubs
+are generated. Useful for all generated files to version control:
+
+```ruby
+after_bundle do
+  git :init
+  git add: '.'
+  git commit: "-a -m 'Initial commit'"
+end
+```
+
+The callbacks gets executed even if `--skip-bundle` and/or `--skip-spring` has
+been passed.
 
 Advanced Usage
 --------------

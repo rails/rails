@@ -1,6 +1,7 @@
 # encoding: UTF-8
 require 'active_support/core_ext/object/to_param'
 require 'active_support/core_ext/regexp'
+require 'active_support/dependencies/autoload'
 
 module ActionDispatch
   # The routing module provides URL rewriting in native Ruby. It's a way to
@@ -11,7 +12,7 @@ module ActionDispatch
   # Think of creating routes as drawing a map for your requests. The map tells
   # them where to go based on some predefined pattern:
   #
-  #   AppName::Application.routes.draw do
+  #   Rails.application.routes.draw do
   #     Pattern 1 tells some request to go to one place
   #     Pattern 2 tell them to go to another
   #     ...
@@ -231,7 +232,6 @@ module ActionDispatch
   #   def send_to_jail
   #     get '/jail'
   #     assert_response :success
-  #     assert_template "jail/front"
   #   end
   #
   #   def goes_to_login

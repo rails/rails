@@ -118,18 +118,28 @@ class Numeric
     end
   end
 
-  [Float, Fixnum, Bignum, BigDecimal].each do |klass|
-    klass.send(:alias_method, :to_default_s, :to_s)
-
-    klass.send(:define_method, :to_s) do |*args|
-      if args[0].is_a?(Symbol)
-        format = args[0]
-        options = args[1] || {}
-
-        self.to_formatted_s(format, options)
-      else
-        to_default_s(*args)
+  [Fixnum, Bignum].each do |klass|
+    klass.class_eval do
+      alias_method :to_default_s, :to_s
+      def to_s(base_or_format = 10, options = nil)
+        if base_or_format.is_a?(Symbol)
+          to_formatted_s(base_or_format, options || {})
+        else
+          to_default_s(base_or_format)
+        end
       end
     end
   end
+
+  Float.class_eval do
+    alias_method :to_default_s, :to_s
+    def to_s(*args)
+      if args.empty?
+        to_default_s
+      else
+        to_formatted_s(*args)
+      end
+    end
+  end
+
 end

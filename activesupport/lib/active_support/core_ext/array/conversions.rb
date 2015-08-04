@@ -74,7 +74,7 @@ class Array
     when 0
       ''
     when 1
-      self[0].to_s.dup
+      "#{self[0]}"
     when 2
       "#{self[0]}#{options[:two_words_connector]}#{self[1]}"
     else
@@ -92,7 +92,7 @@ class Array
       if empty?
         'null'
       else
-        collect { |element| element.id }.join(',')
+        collect(&:id).join(',')
       end
     else
       to_default_s

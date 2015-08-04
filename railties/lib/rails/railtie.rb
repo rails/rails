@@ -22,7 +22,7 @@ module Rails
   #
   # * creating initializers
   # * configuring a Rails framework for the application, like setting a generator
-  # * +adding config.*+ keys to the environment
+  # * adding <tt>config.*</tt> keys to the environment
   # * setting up a subscriber with ActiveSupport::Notifications
   # * adding rake tasks
   #
@@ -63,8 +63,8 @@ module Rails
   #     end
   #   end
   #
-  # Finally, you can also pass :before and :after as option to initializer, in case
-  # you want to couple it with a specific step in the initialization process.
+  # Finally, you can also pass <tt>:before</tt> and <tt>:after</tt> as option to initializer,
+  # in case you want to couple it with a specific step in the initialization process.
   #
   # == Configuration
   #
@@ -93,7 +93,7 @@ module Rails
   #     end
   #   end
   #
-  # By default, Rails load generators from your load path. However, if you want to place
+  # By default, Rails loads generators from your load path. However, if you want to place
   # your generators at a different location, you can specify in your Railtie a block which
   # will load them during normal generators lookup:
   #
@@ -183,8 +183,8 @@ module Rails
       end
 
       protected
-        def generate_railtie_name(class_or_module)
-          ActiveSupport::Inflector.underscore(class_or_module).tr("/", "_")
+        def generate_railtie_name(string)
+          ActiveSupport::Inflector.underscore(string).tr("/", "_")
         end
 
         # If the class method does not have a method, then send the method call
@@ -221,26 +221,28 @@ module Rails
     protected
 
     def run_console_blocks(app) #:nodoc:
-      self.class.console.each { |block| block.call(app) }
+      each_registered_block(:console) { |block| block.call(app) }
     end
 
     def run_generators_blocks(app) #:nodoc:
-      self.class.generators.each { |block| block.call(app) }
+      each_registered_block(:generators) { |block| block.call(app) }
     end
 
     def run_runner_blocks(app) #:nodoc:
-      self.class.runner.each { |block| block.call(app) }
+      each_registered_block(:runner) { |block| block.call(app) }
     end
 
     def run_tasks_blocks(app) #:nodoc:
       extend Rake::DSL
-      self.class.rake_tasks.each { |block| instance_exec(app, &block) }
+      each_registered_block(:rake_tasks) { |block| instance_exec(app, &block) }
+    end
 
-      # Load also tasks from all superclasses
-      klass = self.class.superclass
+    private
 
-      while klass.respond_to?(:rake_tasks)
-        klass.rake_tasks.each { |t| instance_exec(app, &t) }
+    def each_registered_block(type, &block)
+      klass = self.class
+      while klass.respond_to?(type)
+        klass.public_send(type).each(&block)
         klass = klass.superclass
       end
     end

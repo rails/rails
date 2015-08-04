@@ -23,6 +23,13 @@ class JsonParamsParsingTest < ActionDispatch::IntegrationTest
     )
   end
 
+  test "parses boolean and number json params for application json" do
+    assert_parses(
+      {"item" => {"enabled" => false, "count" => 10}},
+      "{\"item\": {\"enabled\": false, \"count\": 10}}", { 'CONTENT_TYPE' => 'application/json' }
+    )
+  end
+
   test "parses json params for application jsonrequest" do
     assert_parses(
       {"person" => {"name" => "David"}},
@@ -32,7 +39,7 @@ class JsonParamsParsingTest < ActionDispatch::IntegrationTest
 
   test "nils are stripped from collections" do
     assert_parses(
-      {"person" => nil},
+      {"person" => []},
       "{\"person\":[null]}", { 'CONTENT_TYPE' => 'application/json' }
     )
     assert_parses(
@@ -40,7 +47,7 @@ class JsonParamsParsingTest < ActionDispatch::IntegrationTest
       "{\"person\":[\"foo\",null]}", { 'CONTENT_TYPE' => 'application/json' }
     )
     assert_parses(
-      {"person" => nil},
+      {"person" => []},
       "{\"person\":[null, null]}", { 'CONTENT_TYPE' => 'application/json' }
     )
   end
@@ -49,7 +56,7 @@ class JsonParamsParsingTest < ActionDispatch::IntegrationTest
     with_test_routing do
       output = StringIO.new
       json = "[\"person]\": {\"name\": \"David\"}}"
-      post "/parse", json, {'CONTENT_TYPE' => 'application/json', 'action_dispatch.show_exceptions' => true, 'action_dispatch.logger' => ActiveSupport::Logger.new(output)}
+      post "/parse", params: json, headers: { 'CONTENT_TYPE' => 'application/json', 'action_dispatch.show_exceptions' => true, 'action_dispatch.logger' => ActiveSupport::Logger.new(output) }
       assert_response :bad_request
       output.rewind && err = output.read
       assert err =~ /Error occurred while parsing request parameters/
@@ -72,7 +79,7 @@ class JsonParamsParsingTest < ActionDispatch::IntegrationTest
 
   test 'raw_post is not empty for JSON request' do
     with_test_routing do
-      post '/parse', '{"posts": [{"title": "Post Title"}]}', 'CONTENT_TYPE' => 'application/json'
+      post '/parse', params: '{"posts": [{"title": "Post Title"}]}', headers: { 'CONTENT_TYPE' => 'application/json' }
       assert_equal '{"posts": [{"title": "Post Title"}]}', request.raw_post
     end
   end
@@ -80,7 +87,7 @@ class JsonParamsParsingTest < ActionDispatch::IntegrationTest
   private
     def assert_parses(expected, actual, headers = {})
       with_test_routing do
-        post "/parse", actual, headers
+        post "/parse", params: actual, headers: headers
         assert_response :ok
         assert_equal(expected, TestController.last_request_parameters)
       end
@@ -106,7 +113,7 @@ class RootLessJSONParamsParsingTest < ActionDispatch::IntegrationTest
 
     def parse
       self.class.last_request_parameters = request.request_parameters
-      self.class.last_parameters = params
+      self.class.last_parameters = params.to_unsafe_h
       head :ok
     end
   end
@@ -139,7 +146,7 @@ class RootLessJSONParamsParsingTest < ActionDispatch::IntegrationTest
   private
     def assert_parses(expected, actual, headers = {})
       with_test_routing(UsersController) do
-        post "/parse", actual, headers
+        post "/parse", params: actual, headers: headers
         assert_response :ok
         assert_equal(expected, UsersController.last_request_parameters)
         assert_equal(expected.merge({"action" => "parse"}), UsersController.last_parameters)

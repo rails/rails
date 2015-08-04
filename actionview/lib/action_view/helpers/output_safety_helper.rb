@@ -17,10 +17,10 @@ module ActionView #:nodoc:
         stringish.to_s.html_safe
       end
 
-      # This method returns a html safe string similar to what <tt>Array#join</tt>
-      # would return. All items in the array, including the supplied separator, are
-      # html escaped unless they are html safe, and the returned string is marked
-      # as html safe.
+      # This method returns an HTML safe string similar to what <tt>Array#join</tt>
+      # would return. The array is flattened, and all items, including
+      # the supplied separator, are HTML escaped unless they are HTML
+      # safe, and the returned string is marked as HTML safe.
       #
       #   safe_join(["<p>foo</p>".html_safe, "<p>bar</p>"], "<br />")
       #   # => "<p>foo</p>&lt;br /&gt;&lt;p&gt;bar&lt;/p&gt;"
@@ -29,9 +29,9 @@ module ActionView #:nodoc:
       #   # => "<p>foo</p><br /><p>bar</p>"
       #
       def safe_join(array, sep=$,)
-        sep = ERB::Util.html_escape(sep)
+        sep = ERB::Util.unwrapped_html_escape(sep)
 
-        array.map { |i| ERB::Util.html_escape(i) }.join(sep).html_safe
+        array.flatten.map! { |i| ERB::Util.unwrapped_html_escape(i) }.join(sep).html_safe
       end
     end
   end

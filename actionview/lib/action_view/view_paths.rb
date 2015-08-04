@@ -14,32 +14,31 @@ module ActionView
              :locale, :locale=, :to => :lookup_context
 
     module ClassMethods
-      def parent_prefixes
-        @parent_prefixes ||= begin
-          parent_controller = superclass
-          prefixes = []
+      def _prefixes # :nodoc:
+        @_prefixes ||= begin
+          return local_prefixes if superclass.abstract?
 
-          until parent_controller.abstract?
-            prefixes << parent_controller.controller_path
-            parent_controller = parent_controller.superclass
-          end
-
-          prefixes
+          local_prefixes + superclass._prefixes
         end
+      end
+
+      private
+
+      # Override this method in your controller if you want to change paths prefixes for finding views.
+      # Prefixes defined here will still be added to parents' <tt>._prefixes</tt>.
+      def local_prefixes
+        [controller_path]
       end
     end
 
     # The prefixes used in render "foo" shortcuts.
-    def _prefixes
-      @_prefixes ||= begin
-        parent_prefixes = self.class.parent_prefixes
-        parent_prefixes.dup.unshift(controller_path)
-      end
+    def _prefixes # :nodoc:
+      self.class._prefixes
     end
 
-    # LookupContext is the object responsible to hold all information required to lookup
-    # templates, i.e. view paths and details. Check ActionView::LookupContext for more
-    # information.
+    # <tt>LookupContext</tt> is the object responsible for holding all
+    # information required for looking up templates, i.e. view paths and
+    # details. Check <tt>ActionView::LookupContext</tt> for more information.
     def lookup_context
       @_lookup_context ||=
         ActionView::LookupContext.new(self.class._view_paths, details_for_lookup, _prefixes)

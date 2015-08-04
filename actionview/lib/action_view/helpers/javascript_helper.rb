@@ -21,7 +21,7 @@ module ActionView
       # Also available through the alias j(). This is particularly helpful in JavaScript
       # responses, like:
       #
-      #   $('some_element').replaceWith('<%=j render 'some/element_template' %>');
+      #   $('some_element').replaceWith('<%= j render 'some/element_template' %>');
       def escape_javascript(javascript)
         if javascript
           result = javascript.gsub(/(\\|<\/|\r\n|\342\200\250|\342\200\251|[\n\r"'])/u) {|match| JS_ESCAPE_MAP[match] }
@@ -47,7 +47,13 @@ module ActionView
       # tag.
       #
       #   javascript_tag "alert('All is good')", defer: 'defer'
-      #   # => <script defer="defer">alert('All is good')</script>
+      #
+      # Returns:
+      #   <script defer="defer">
+      #   //<![CDATA[
+      #   alert('All is good')
+      #   //]]>
+      #   </script>
       #
       # Instead of passing the content as an argument, you can also use a block
       # in which case, you pass your +html_options+ as the first parameter.
@@ -64,7 +70,7 @@ module ActionView
             content_or_options_with_block
           end
 
-        content_tag(:script, javascript_cdata_section(content), html_options)
+        content_tag("script".freeze, javascript_cdata_section(content), html_options)
       end
 
       def javascript_cdata_section(content) #:nodoc:

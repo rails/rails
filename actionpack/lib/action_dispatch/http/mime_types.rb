@@ -7,6 +7,7 @@ Mime::Type.register "text/javascript", :js, %w( application/javascript applicati
 Mime::Type.register "text/css", :css
 Mime::Type.register "text/calendar", :ics
 Mime::Type.register "text/csv", :csv
+Mime::Type.register "text/vcard", :vcf
 
 Mime::Type.register "image/png", :png, [], %w(png)
 Mime::Type.register "image/jpeg", :jpeg, [], %w(jpg jpeg jpe pjpeg)
@@ -26,7 +27,7 @@ Mime::Type.register "application/x-www-form-urlencoded", :url_encoded_form
 
 # http://www.ietf.org/rfc/rfc4627.txt
 # http://www.json.org/JSONRequest.html
-Mime::Type.register "application/json", :json, %w( text/x-json application/jsonrequest )
+Mime::Type.register "application/json", :json, %w( text/x-json application/jsonrequest application/vnd.api+json )
 
 Mime::Type.register "application/pdf", :pdf, [], %w(pdf)
 Mime::Type.register "application/zip", :zip, [], %w(zip)

@@ -3,32 +3,28 @@ module ActiveRecord
     extend ActiveSupport::Concern
 
     module ClassMethods
-      def quote_value(value, column) #:nodoc:
-        connection.quote(value, column)
-      end
-
       # Used to sanitize objects before they're used in an SQL SELECT statement. Delegates to <tt>connection.quote</tt>.
       def sanitize(object) #:nodoc:
         connection.quote(object)
       end
+      alias_method :quote_value, :sanitize
 
       protected
 
-      # Accepts an array, hash, or string of SQL conditions and sanitizes
+      # Accepts an array or string of SQL conditions and sanitizes
       # them into a valid SQL fragment for a WHERE clause.
       #   ["name='%s' and group_id='%s'", "foo'bar", 4]  returns  "name='foo''bar' and group_id='4'"
-      #   { name: "foo'bar", group_id: 4 }  returns "name='foo''bar' and group_id='4'"
       #   "name='foo''bar' and group_id='4'" returns "name='foo''bar' and group_id='4'"
       def sanitize_sql_for_conditions(condition, table_name = self.table_name)
         return nil if condition.blank?
 
         case condition
         when Array; sanitize_sql_array(condition)
-        when Hash;  sanitize_sql_hash_for_conditions(condition, table_name)
         else        condition
         end
       end
       alias_method :sanitize_sql, :sanitize_sql_for_conditions
+      alias_method :sanitize_conditions, :sanitize_sql
 
       # Accepts an array, hash, or string of SQL conditions and sanitizes
       # them into a valid SQL fragment for a SET clause.
@@ -71,38 +67,22 @@ module ActiveRecord
         expanded_attrs
       end
 
-      # Sanitizes a hash of attribute/value pairs into SQL conditions for a WHERE clause.
-      #   { name: "foo'bar", group_id: 4 }
-      #     # => "name='foo''bar' and group_id= 4"
-      #   { status: nil, group_id: [1,2,3] }
-      #     # => "status IS NULL and group_id IN (1,2,3)"
-      #   { age: 13..18 }
-      #     # => "age BETWEEN 13 AND 18"
-      #   { 'other_records.id' => 7 }
-      #     # => "`other_records`.`id` = 7"
-      #   { other_records: { id: 7 } }
-      #     # => "`other_records`.`id` = 7"
-      # And for value objects on a composed_of relationship:
-      #   { address: Address.new("123 abc st.", "chicago") }
-      #     # => "address_street='123 abc st.' and address_city='chicago'"
-      def sanitize_sql_hash_for_conditions(attrs, default_table_name = self.table_name)
-        attrs = PredicateBuilder.resolve_column_aliases self, attrs
-        attrs = expand_hash_conditions_for_aggregates(attrs)
-
-        table = Arel::Table.new(table_name, arel_engine).alias(default_table_name)
-        PredicateBuilder.build_from_hash(self, attrs, table).map { |b|
-          connection.visitor.accept b
-        }.join(' AND ')
-      end
-      alias_method :sanitize_sql_hash, :sanitize_sql_hash_for_conditions
-
       # Sanitizes a hash of attribute/value pairs into SQL conditions for a SET clause.
       #   { status: nil, group_id: 1 }
       #     # => "status = NULL , group_id = 1"
       def sanitize_sql_hash_for_assignment(attrs, table)
+        c = connection
         attrs.map do |attr, value|
-          "#{connection.quote_table_name_for_assignment(table, attr)} = #{quote_bound_value(value)}"
+          value = type_for_attribute(attr.to_s).serialize(value)
+          "#{c.quote_table_name_for_assignment(table, attr)} = #{c.quote(value)}"
         end.join(', ')
+      end
+
+      # Sanitizes a +string+ so that it is safe to use within an SQL
+      # LIKE statement. This method uses +escape_character+ to escape all occurrences of "\", "_" and "%"
+      def sanitize_sql_like(string, escape_character = "\\")
+        pattern = Regexp.union(escape_character, "%", "_")
+        string.gsub(pattern) { |x| [escape_character, x].join }
       end
 
       # Accepts an array of conditions. The array has each value
@@ -121,21 +101,29 @@ module ActiveRecord
         end
       end
 
-      alias_method :sanitize_conditions, :sanitize_sql
-
       def replace_bind_variables(statement, values) #:nodoc:
         raise_if_bind_arity_mismatch(statement, statement.count('?'), values.size)
         bound = values.dup
         c = connection
-        statement.gsub('?') { quote_bound_value(bound.shift, c) }
+        statement.gsub(/\?/) do
+          replace_bind_variable(bound.shift, c)
+        end
+      end
+
+      def replace_bind_variable(value, c = connection) #:nodoc:
+        if ActiveRecord::Relation === value
+          value.to_sql
+        else
+          quote_bound_value(value, c)
+        end
       end
 
       def replace_named_bind_variables(statement, bind_vars) #:nodoc:
-        statement.gsub(/(:?):([a-zA-Z]\w*)/) do
+        statement.gsub(/(:?):([a-zA-Z]\w*)/) do |match|
           if $1 == ':' # skip postgresql casts
-            $& # return the whole match
+            match # return the whole match
           elsif bind_vars.include?(match = $2.to_sym)
-            quote_bound_value(bind_vars[match])
+            replace_bind_variable(bind_vars[match])
           else
             raise PreparedStatementInvalid, "missing value for :#{match} in #{statement}"
           end
@@ -163,7 +151,7 @@ module ActiveRecord
 
     # TODO: Deprecate this
     def quoted_id
-      self.class.quote_value(id, column_for_attribute(self.class.primary_key))
+      self.class.quote_value(@attributes[self.class.primary_key].value_for_database)
     end
   end
 end

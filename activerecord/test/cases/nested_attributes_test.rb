@@ -11,25 +11,9 @@ require "models/owner"
 require "models/pet"
 require 'active_support/hash_with_indifferent_access'
 
-module AssertRaiseWithMessage
-  def assert_raise_with_message(expected_exception, expected_message)
-    begin
-      error_raised = false
-      yield
-    rescue expected_exception => error
-      error_raised = true
-      actual_message = error.message
-    end
-    assert error_raised
-    assert_equal expected_message, actual_message
-  end
-end
-
 class TestNestedAttributesInGeneral < ActiveRecord::TestCase
-  include AssertRaiseWithMessage
-
-  def teardown
-    Pirate.accepts_nested_attributes_for :ship, :allow_destroy => true, :reject_if => proc { |attributes| attributes.empty? }
+  teardown do
+    Pirate.accepts_nested_attributes_for :ship, :allow_destroy => true, :reject_if => proc(&:empty?)
   end
 
   def test_base_should_have_an_empty_nested_attributes_options
@@ -71,9 +55,10 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
   end
 
   def test_should_raise_an_ArgumentError_for_non_existing_associations
-    assert_raise_with_message ArgumentError, "No association found for name `honesty'. Has it been defined yet?" do
+    exception = assert_raise ArgumentError do
       Pirate.accepts_nested_attributes_for :honesty
     end
+    assert_equal "No association found for name `honesty'. Has it been defined yet?", exception.message
   end
 
   def test_should_disable_allow_destroy_by_default
@@ -213,17 +198,16 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
 end
 
 class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase
-  include AssertRaiseWithMessage
-
   def setup
     @pirate = Pirate.create!(:catchphrase => "Don' botharrr talkin' like one, savvy?")
     @ship = @pirate.create_ship(:name => 'Nights Dirty Lightning')
   end
 
   def test_should_raise_argument_error_if_trying_to_build_polymorphic_belongs_to
-    assert_raise_with_message ArgumentError, "Cannot build association `looter'. Are you trying to build a polymorphic one-to-one association?" do
+    exception = assert_raise ArgumentError do
       Treasure.new(:name => 'pearl', :looter_attributes => {:catchphrase => "Arrr"})
     end
+    assert_equal "Cannot build association `looter'. Are you trying to build a polymorphic one-to-one association?", exception.message
   end
 
   def test_should_define_an_attribute_writer_method_for_the_association
@@ -275,9 +259,10 @@ class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase
   end
 
   def test_should_raise_RecordNotFound_if_an_id_is_given_but_doesnt_return_a_record
-    assert_raise_with_message ActiveRecord::RecordNotFound, "Couldn't find Ship with ID=1234567890 for Pirate with ID=#{@pirate.id}" do
+    exception = assert_raise ActiveRecord::RecordNotFound do
       @pirate.ship_attributes = { :id => 1234567890 }
     end
+    assert_equal "Couldn't find Ship with ID=1234567890 for Pirate with ID=#{@pirate.id}", exception.message
   end
 
   def test_should_take_a_hash_with_string_keys_and_update_the_associated_model
@@ -315,13 +300,13 @@ class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase
   end
 
   def test_should_not_destroy_an_existing_record_if_allow_destroy_is_false
-    Pirate.accepts_nested_attributes_for :ship, :allow_destroy => false, :reject_if => proc { |attributes| attributes.empty? }
+    Pirate.accepts_nested_attributes_for :ship, :allow_destroy => false, :reject_if => proc(&:empty?)
 
     @pirate.update(ship_attributes: { id: @pirate.ship.id, _destroy: '1' })
 
     assert_equal @ship, @pirate.reload.ship
 
-    Pirate.accepts_nested_attributes_for :ship, :allow_destroy => true, :reject_if => proc { |attributes| attributes.empty? }
+    Pirate.accepts_nested_attributes_for :ship, :allow_destroy => true, :reject_if => proc(&:empty?)
   end
 
   def test_should_also_work_with_a_HashWithIndifferentAccess
@@ -403,8 +388,6 @@ class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase
 end
 
 class TestNestedAttributesOnABelongsToAssociation < ActiveRecord::TestCase
-  include AssertRaiseWithMessage
-
   def setup
     @ship = Ship.new(:name => 'Nights Dirty Lightning')
     @pirate = @ship.build_pirate(:catchphrase => 'Aye')
@@ -460,9 +443,10 @@ class TestNestedAttributesOnABelongsToAssociation < ActiveRecord::TestCase
   end
 
   def test_should_raise_RecordNotFound_if_an_id_is_given_but_doesnt_return_a_record
-    assert_raise_with_message ActiveRecord::RecordNotFound, "Couldn't find Pirate with ID=1234567890 for Ship with ID=#{@ship.id}" do
+    exception = assert_raise ActiveRecord::RecordNotFound do
       @ship.pirate_attributes = { :id => 1234567890 }
     end
+    assert_equal "Couldn't find Pirate with ID=1234567890 for Ship with ID=#{@ship.id}", exception.message
   end
 
   def test_should_take_a_hash_with_string_keys_and_update_the_associated_model
@@ -510,12 +494,12 @@ class TestNestedAttributesOnABelongsToAssociation < ActiveRecord::TestCase
   end
 
   def test_should_not_destroy_an_existing_record_if_allow_destroy_is_false
-    Ship.accepts_nested_attributes_for :pirate, :allow_destroy => false, :reject_if => proc { |attributes| attributes.empty? }
+    Ship.accepts_nested_attributes_for :pirate, :allow_destroy => false, :reject_if => proc(&:empty?)
 
     @ship.update(pirate_attributes: { id: @ship.pirate.id, _destroy: '1' })
     assert_nothing_raised(ActiveRecord::RecordNotFound) { @ship.pirate.reload }
   ensure
-    Ship.accepts_nested_attributes_for :pirate, :allow_destroy => true, :reject_if => proc { |attributes| attributes.empty? }
+    Ship.accepts_nested_attributes_for :pirate, :allow_destroy => true, :reject_if => proc(&:empty?)
   end
 
   def test_should_work_with_update_as_well
@@ -579,8 +563,6 @@ class TestNestedAttributesOnABelongsToAssociation < ActiveRecord::TestCase
 end
 
 module NestedAttributesOnACollectionAssociationTests
-  include AssertRaiseWithMessage
-
   def test_should_define_an_attribute_writer_method_for_the_association
     assert_respond_to @pirate, association_setter
   end
@@ -670,9 +652,20 @@ module NestedAttributesOnACollectionAssociationTests
   end
 
   def test_should_raise_RecordNotFound_if_an_id_is_given_but_doesnt_return_a_record
-    assert_raise_with_message ActiveRecord::RecordNotFound, "Couldn't find #{@child_1.class.name} with ID=1234567890 for Pirate with ID=#{@pirate.id}" do
+    exception = assert_raise ActiveRecord::RecordNotFound do
       @pirate.attributes = { association_getter => [{ :id => 1234567890 }] }
     end
+    assert_equal "Couldn't find #{@child_1.class.name} with ID=1234567890 for Pirate with ID=#{@pirate.id}", exception.message
+  end
+
+  def test_should_raise_RecordNotFound_if_an_id_belonging_to_a_different_record_is_given
+    other_pirate = Pirate.create! catchphrase: 'Ahoy!'
+    other_child = other_pirate.send(@association_name).create! name: 'Buccaneers Servant'
+
+    exception = assert_raise ActiveRecord::RecordNotFound do
+      @pirate.attributes = { association_getter => [{ id: other_child.id }] }
+    end
+    assert_equal "Couldn't find #{@child_1.class.name} with ID=#{other_child.id} for Pirate with ID=#{@pirate.id}", exception.message
   end
 
   def test_should_automatically_build_new_associated_models_for_each_entry_in_a_hash_where_the_id_is_missing
@@ -727,9 +720,10 @@ module NestedAttributesOnACollectionAssociationTests
     assert_nothing_raised(ArgumentError) { @pirate.send(association_setter, {}) }
     assert_nothing_raised(ArgumentError) { @pirate.send(association_setter, Hash.new) }
 
-    assert_raise_with_message ArgumentError, 'Hash or Array expected, got String ("foo")' do
+    exception = assert_raise ArgumentError do
       @pirate.send(association_setter, "foo")
     end
+    assert_equal 'Hash or Array expected, got String ("foo")', exception.message
   end
 
   def test_should_work_with_update_as_well
@@ -871,7 +865,7 @@ end
 
 module NestedAttributesLimitTests
   def teardown
-    Pirate.accepts_nested_attributes_for :parrots, :allow_destroy => true, :reject_if => proc { |attributes| attributes.empty? }
+    Pirate.accepts_nested_attributes_for :parrots, :allow_destroy => true, :reject_if => proc(&:empty?)
   end
 
   def test_limit_with_less_records
@@ -959,7 +953,7 @@ class TestNestedAttributesWithNonStandardPrimaryKeys < ActiveRecord::TestCase
 end
 
 class TestHasOneAutosaveAssociationWhichItselfHasAutosaveAssociations < ActiveRecord::TestCase
-  self.use_transactional_fixtures = false unless supports_savepoints?
+  self.use_transactional_tests = false unless supports_savepoints?
 
   def setup
     @pirate = Pirate.create!(:catchphrase => "My baby takes tha mornin' train!")
@@ -999,7 +993,7 @@ class TestHasOneAutosaveAssociationWhichItselfHasAutosaveAssociations < ActiveRe
 end
 
 class TestHasManyAutosaveAssociationWhichItselfHasAutosaveAssociations < ActiveRecord::TestCase
-  self.use_transactional_fixtures = false unless supports_savepoints?
+  self.use_transactional_tests = false unless supports_savepoints?
 
   def setup
     @ship = Ship.create!(:name => "The good ship Dollypop")
@@ -1052,5 +1046,57 @@ class TestHasManyAutosaveAssociationWhichItselfHasAutosaveAssociations < ActiveR
     Ship.create!(:name => "The Black Rock")
     ShipPart.create!(:ship => @ship, :name => "Stern")
     assert_no_queries { @ship.valid? }
+  end
+
+  test "circular references do not perform unnecessary queries" do
+    ship = Ship.new(name: "The Black Rock")
+    part = ship.parts.build(name: "Stern")
+    ship.treasures.build(looter: part)
+
+    assert_queries 3 do
+      ship.save!
+    end
+  end
+
+  test "nested singular associations are validated" do
+    part = ShipPart.new(name: "Stern", ship_attributes: { name: nil })
+
+    assert_not part.valid?
+    assert_equal ["Ship name can't be blank"], part.errors.full_messages
+  end
+
+  class ProtectedParameters
+    def initialize(hash)
+      @hash = hash
+    end
+
+    def permitted?
+      true
+    end
+
+    def [](key)
+      @hash[key]
+    end
+
+    def to_h
+      @hash
+    end
+  end
+
+  test "strong params style objects can be assigned for singular associations" do
+    params = { name: "Stern", ship_attributes:
+               ProtectedParameters.new(name: "The Black Rock") }
+    part = ShipPart.new(params)
+
+    assert_equal "Stern", part.name
+    assert_equal "The Black Rock", part.ship.name
+  end
+
+  test "strong params style objects can be assigned for collection associations" do
+    params = { trinkets_attributes: ProtectedParameters.new("0" => ProtectedParameters.new(name: "Necklace"), "1" => ProtectedParameters.new(name: "Spoon")) }
+    part = ShipPart.new(params)
+
+    assert_equal "Necklace", part.trinkets[0].name
+    assert_equal "Spoon", part.trinkets[1].name
   end
 end

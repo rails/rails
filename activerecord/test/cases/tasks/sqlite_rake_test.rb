@@ -1,6 +1,7 @@
 require 'cases/helper'
 require 'pathname'
 
+if current_adapter?(:SQLite3Adapter)
 module ActiveRecord
   class SqliteDBCreateTest < ActiveRecord::TestCase
     def setup
@@ -159,8 +160,8 @@ module ActiveRecord
       filename = "awesome-file.sql"
 
       ActiveRecord::Tasks::DatabaseTasks.structure_dump @configuration, filename, '/rails/root'
-      assert File.exists?(dbfile)
-      assert File.exists?(filename)
+      assert File.exist?(dbfile)
+      assert File.exist?(filename)
     ensure
       FileUtils.rm_f(filename)
       FileUtils.rm_f(dbfile)
@@ -182,10 +183,11 @@ module ActiveRecord
 
       open(filename, 'w') { |f| f.puts("select datetime('now', 'localtime');") }
       ActiveRecord::Tasks::DatabaseTasks.structure_load @configuration, filename, '/rails/root'
-      assert File.exists?(dbfile)
+      assert File.exist?(dbfile)
     ensure
       FileUtils.rm_f(filename)
       FileUtils.rm_f(dbfile)
     end
   end
+end
 end

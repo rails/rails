@@ -75,7 +75,7 @@ module MiddlewareTest
 
     test "middleware that is 'use'd is called as part of the Rack application" do
       result = @app.call(env_for("/"))
-      assert_equal "Hello World", RackTestUtils.body_to_string(result[2])
+      assert_equal ["Hello World"], result[2]
       assert_equal "Success", result[1]["Middleware-Test"]
     end
 

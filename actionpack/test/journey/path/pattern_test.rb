@@ -16,9 +16,10 @@ module ActionDispatch
           '/:controller(.:format)'       => %r{\A/(#{x})(?:\.([^/.?]+))?\Z},
           '/:controller/*foo'            => %r{\A/(#{x})/(.+)\Z},
           '/:controller/*foo/bar'        => %r{\A/(#{x})/(.+)/bar\Z},
+          '/:foo|*bar'                   => %r{\A/(?:([^/.?]+)|(.+))\Z},
         }.each do |path, expected|
           define_method(:"test_to_regexp_#{path}") do
-            strexp = Router::Strexp.new(
+            strexp = Router::Strexp.build(
               path,
               { :controller => /.+/ },
               ["/", ".", "?"]
@@ -39,9 +40,10 @@ module ActionDispatch
           '/:controller(.:format)'       => %r{\A/(#{x})(?:\.([^/.?]+))?},
           '/:controller/*foo'            => %r{\A/(#{x})/(.+)},
           '/:controller/*foo/bar'        => %r{\A/(#{x})/(.+)/bar},
+          '/:foo|*bar'                   => %r{\A/(?:([^/.?]+)|(.+))},
         }.each do |path, expected|
           define_method(:"test_to_non_anchored_regexp_#{path}") do
-            strexp = Router::Strexp.new(
+            strexp = Router::Strexp.build(
               path,
               { :controller => /.+/ },
               ["/", ".", "?"],
@@ -65,7 +67,7 @@ module ActionDispatch
           '/:controller/*foo/bar'        => %w{ controller foo },
         }.each do |path, expected|
           define_method(:"test_names_#{path}") do
-            strexp = Router::Strexp.new(
+            strexp = Router::Strexp.build(
               path,
               { :controller => /.+/ },
               ["/", ".", "?"]
@@ -75,12 +77,8 @@ module ActionDispatch
           end
         end
 
-        def test_to_raise_exception_with_bad_expression
-          assert_raise(ArgumentError, "Bad expression: []") { Pattern.new [] }
-        end
-
         def test_to_regexp_with_extended_group
-          strexp = Router::Strexp.new(
+          strexp = Router::Strexp.build(
             '/page/:name',
             { :name => /
               #ROFL
@@ -101,13 +99,13 @@ module ActionDispatch
             ['/:foo(/:bar)', %w{ bar }],
             ['/:foo(/:bar)/:lol(/:baz)', %w{ bar baz }],
           ].each do |pattern, list|
-            path = Pattern.new pattern
+            path = Pattern.from_string pattern
             assert_equal list.sort, path.optional_names.sort
           end
         end
 
         def test_to_regexp_match_non_optional
-          strexp = Router::Strexp.new(
+          strexp = Router::Strexp.build(
             '/:name',
             { :name => /\d+/ },
             ["/", ".", "?"]
@@ -118,7 +116,7 @@ module ActionDispatch
         end
 
         def test_to_regexp_with_group
-          strexp = Router::Strexp.new(
+          strexp = Router::Strexp.build(
             '/page/:name',
             { :name => /(tender|love)/ },
             ["/", ".", "?"]
@@ -131,7 +129,7 @@ module ActionDispatch
 
         def test_ast_sets_regular_expressions
           requirements = { :name => /(tender|love)/, :value => /./ }
-          strexp = Router::Strexp.new(
+          strexp = Router::Strexp.build(
             '/page/:name/:value',
             requirements,
             ["/", ".", "?"]
@@ -148,7 +146,7 @@ module ActionDispatch
         end
 
         def test_match_data_with_group
-          strexp = Router::Strexp.new(
+          strexp = Router::Strexp.build(
             '/page/:name',
             { :name => /(tender|love)/ },
             ["/", ".", "?"]
@@ -160,7 +158,7 @@ module ActionDispatch
         end
 
         def test_match_data_with_multi_group
-          strexp = Router::Strexp.new(
+          strexp = Router::Strexp.build(
             '/page/:name/:id',
             { :name => /t(((ender|love)))()/ },
             ["/", ".", "?"]
@@ -175,7 +173,7 @@ module ActionDispatch
 
         def test_star_with_custom_re
           z = /\d+/
-          strexp = Router::Strexp.new(
+          strexp = Router::Strexp.build(
             '/page/*foo',
             { :foo => z },
             ["/", ".", "?"]
@@ -185,7 +183,7 @@ module ActionDispatch
         end
 
         def test_insensitive_regexp_with_group
-          strexp = Router::Strexp.new(
+          strexp = Router::Strexp.build(
             '/page/:name/aaron',
             { :name => /(tender|love)/i },
             ["/", ".", "?"]
@@ -197,7 +195,7 @@ module ActionDispatch
         end
 
         def test_to_regexp_with_strexp
-          strexp = Router::Strexp.new('/:controller', { }, ["/", ".", "?"])
+          strexp = Router::Strexp.build('/:controller', { }, ["/", ".", "?"])
           path = Pattern.new strexp
           x = %r{\A/([^/.?]+)\Z}
 
@@ -205,20 +203,20 @@ module ActionDispatch
         end
 
         def test_to_regexp_defaults
-          path = Pattern.new '/:controller(/:action(/:id))'
+          path = Pattern.from_string '/:controller(/:action(/:id))'
           expected = %r{\A/([^/.?]+)(?:/([^/.?]+)(?:/([^/.?]+))?)?\Z}
           assert_equal expected, path.to_regexp
         end
 
         def test_failed_match
-          path = Pattern.new '/:controller(/:action(/:id(.:format)))'
+          path = Pattern.from_string '/:controller(/:action(/:id(.:format)))'
           uri = 'content'
 
           assert_not path =~ uri
         end
 
         def test_match_controller
-          path = Pattern.new '/:controller(/:action(/:id(.:format)))'
+          path = Pattern.from_string '/:controller(/:action(/:id(.:format)))'
           uri = '/content'
 
           match = path =~ uri
@@ -230,7 +228,7 @@ module ActionDispatch
         end
 
         def test_match_controller_action
-          path = Pattern.new '/:controller(/:action(/:id(.:format)))'
+          path = Pattern.from_string '/:controller(/:action(/:id(.:format)))'
           uri = '/content/list'
 
           match = path =~ uri
@@ -242,7 +240,7 @@ module ActionDispatch
         end
 
         def test_match_controller_action_id
-          path = Pattern.new '/:controller(/:action(/:id(.:format)))'
+          path = Pattern.from_string '/:controller(/:action(/:id(.:format)))'
           uri = '/content/list/10'
 
           match = path =~ uri
@@ -254,7 +252,7 @@ module ActionDispatch
         end
 
         def test_match_literal
-          path = Path::Pattern.new "/books(/:action(.:format))"
+          path = Path::Pattern.from_string "/books(/:action(.:format))"
 
           uri = '/books'
           match = path =~ uri
@@ -264,7 +262,7 @@ module ActionDispatch
         end
 
         def test_match_literal_with_action
-          path = Path::Pattern.new "/books(/:action(.:format))"
+          path = Path::Pattern.from_string "/books(/:action(.:format))"
 
           uri = '/books/list'
           match = path =~ uri
@@ -274,7 +272,7 @@ module ActionDispatch
         end
 
         def test_match_literal_with_action_and_format
-          path = Path::Pattern.new "/books(/:action(.:format))"
+          path = Path::Pattern.from_string "/books(/:action(.:format))"
 
           uri = '/books/list.rss'
           match = path =~ uri

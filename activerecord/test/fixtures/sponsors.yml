@@ -8,5 +8,5 @@ boring_club_sponsor_for_groucho:
   sponsorable_type: Member
 crazy_club_sponsor_for_groucho:
   sponsor_club: crazy_club
-  sponsorable_id: 2
+  sponsorable_id: 3
   sponsorable_type: Member

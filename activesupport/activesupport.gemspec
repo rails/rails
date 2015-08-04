@@ -7,7 +7,7 @@ Gem::Specification.new do |s|
   s.summary     = 'A toolkit of support libraries and Ruby core extensions extracted from the Rails framework.'
   s.description = 'A toolkit of support libraries and Ruby core extensions extracted from the Rails framework. Rich support for multibyte strings, internationalization, time zones, and testing.'
 
-  s.required_ruby_version = '>= 1.9.3'
+  s.required_ruby_version = '>= 2.2.2'
 
   s.license = 'MIT'
 
@@ -20,9 +20,10 @@ Gem::Specification.new do |s|
 
   s.rdoc_options.concat ['--encoding',  'UTF-8']
 
-  s.add_dependency('i18n',       '~> 0.6', '>= 0.6.4')
-  s.add_dependency 'json',       '~> 1.7'
-  s.add_dependency 'tzinfo',     '~> 0.3.37'
-  s.add_dependency 'minitest',   '~> 5.0'
-  s.add_dependency 'thread_safe','~> 0.1'
+  s.add_dependency 'i18n',       '~> 0.7'
+  s.add_dependency 'json',       '~> 1.7', '>= 1.7.7'
+  s.add_dependency 'tzinfo',     '~> 1.1'
+  s.add_dependency 'minitest',   '~> 5.1'
+  s.add_dependency 'thread_safe','~> 0.3', '>= 0.3.4'
+  s.add_dependency 'concurrent-ruby', '~> 0.9.0'
 end

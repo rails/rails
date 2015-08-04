@@ -2,6 +2,8 @@ module Rails
   module Generators
     class ControllerGenerator < NamedBase # :nodoc:
       argument :actions, type: :array, default: [], banner: "action action"
+      class_option :skip_routes, type: :boolean, desc: "Don't add routes to config/routes.rb."
+
       check_class_collision suffix: "Controller"
 
       def create_controller_files
@@ -9,12 +11,16 @@ module Rails
       end
 
       def add_routes
-        actions.reverse.each do |action|
-          route generate_routing_code(action)
+        unless options[:skip_routes]
+          actions.reverse_each do |action|
+            # route prepends two spaces onto the front of the string that is passed, this corrects that.
+            route generate_routing_code(action)[2..-1]
+          end
         end
       end
 
-      hook_for :template_engine, :test_framework, :helper, :assets
+      hook_for :template_engine, :test_framework
+      hook_for :helper, :assets, hide: true
 
       private
 
@@ -23,21 +29,21 @@ module Rails
         # Will generate -
         # namespace :foo do
         #   namespace :bar do
-        #     get "baz/index"
+        #     get 'baz/index'
         #   end
         # end
         def generate_routing_code(action)
-          depth = class_path.length
+          depth = regular_class_path.length
           # Create 'namespace' ladder
           # namespace :foo do
           #   namespace :bar do
-          namespace_ladder = class_path.each_with_index.map do |ns, i|
-            indent("namespace :#{ns} do\n", i * 2)
+          namespace_ladder = regular_class_path.each_with_index.map do |ns, i|
+            indent("  namespace :#{ns} do\n", i * 2)
           end.join
 
           # Create route
-          #     get "baz/index"
-          route = indent(%{get "#{file_name}/#{action}"\n}, depth * 2)
+          #     get 'baz/index'
+          route = indent(%{  get '#{file_name}/#{action}'\n}, depth * 2)
 
           # Create `end` ladder
           #   end

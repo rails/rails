@@ -116,9 +116,4 @@ class Class
       attr_writer name if instance_writer
     end
   end
-
-  private
-    def singleton_class?
-      ancestors.first != self
-    end
 end

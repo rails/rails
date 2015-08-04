@@ -7,7 +7,7 @@ module Rails
     #   root = Root.new "/rails"
     #   root.add "app/controllers", eager_load: true
     #
-    # The command above creates a new root object and add "app/controllers" as a path.
+    # The command above creates a new root object and adds "app/controllers" as a path.
     # This means we can get a <tt>Rails::Paths::Path</tt> object back like below:
     #
     #   path = root["app/controllers"]
@@ -24,7 +24,7 @@ module Rails
     #
     # Notice that when you add a path using +add+, the path object created already
     # contains the path with the same path value given to +add+. In some situations,
-    # you may not want this behavior, so you can give :with as option.
+    # you may not want this behavior, so you can give <tt>:with</tt> as option.
     #
     #   root.add "config/routes", with: "config/routes.rb"
     #   root["config/routes"].inspect # => ["config/routes.rb"]
@@ -77,38 +77,32 @@ module Rails
       end
 
       def all_paths
-        values.tap { |v| v.uniq! }
+        values.tap(&:uniq!)
       end
 
       def autoload_once
-        filter_by(:autoload_once?)
+        filter_by(&:autoload_once?)
       end
 
       def eager_load
-        filter_by(:eager_load?)
+        filter_by(&:eager_load?)
       end
 
       def autoload_paths
-        filter_by(:autoload?)
+        filter_by(&:autoload?)
       end
 
       def load_paths
-        filter_by(:load_path?)
+        filter_by(&:load_path?)
       end
 
-    protected
+    private
 
-      def filter_by(constraint)
-        all = []
-        all_paths.each do |path|
-          if path.send(constraint)
-            paths  = path.existent
-            paths -= path.children.map { |p| p.send(constraint) ? [] : p.existent }.flatten
-            all.concat(paths)
-          end
-        end
-        all.uniq!
-        all
+      def filter_by(&block)
+        all_paths.find_all(&block).flat_map { |path|
+          paths = path.existent
+          paths - path.children.flat_map { |p| yield(p) ? [] : p.existent }
+        }.uniq
       end
     end
 
@@ -130,8 +124,9 @@ module Rails
       end
 
       def children
-        keys = @root.keys.select { |k| k.include?(@current) }
-        keys.delete(@current)
+        keys = @root.keys.find_all { |k|
+          k.start_with?(@current) && k != @current
+        }
         @root.values_at(*keys.sort)
       end
 
@@ -172,8 +167,8 @@ module Rails
         @paths.concat paths
       end
 
-      def unshift(path)
-        @paths.unshift path
+      def unshift(*paths)
+        @paths.unshift(*paths)
       end
 
       def to_ary
@@ -203,7 +198,7 @@ module Rails
 
       # Returns all expanded paths but only if they exist in the filesystem.
       def existent
-        expanded.select { |f| File.exists?(f) }
+        expanded.select { |f| File.exist?(f) }
       end
 
       def existent_directories

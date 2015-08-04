@@ -27,4 +27,6 @@
 
     <%= @routes_inspector.format(ActionDispatch::Routing::HtmlTableFormatter.new(self)) %>
   <% end %>
+
+  <%= render template: "rescues/_request_and_response" %>
 </div>

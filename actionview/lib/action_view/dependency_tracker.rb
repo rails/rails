@@ -1,16 +1,18 @@
 require 'thread_safe'
+require 'action_view/path_set'
 
 module ActionView
-  class DependencyTracker
+  class DependencyTracker # :nodoc:
     @trackers = ThreadSafe::Cache.new
 
-    def self.find_dependencies(name, template)
+    def self.find_dependencies(name, template, view_paths = nil)
       tracker = @trackers[template.handler]
+      return [] unless tracker.present?
 
-      if tracker.present?
-        tracker.call(name, template)
+      if tracker.respond_to?(:supports_view_paths?) && tracker.supports_view_paths?
+        tracker.call(name, template, view_paths)
       else
-        []
+        tracker.call(name, template)
       end
     end
 
@@ -23,31 +25,75 @@ module ActionView
       @trackers.delete(handler)
     end
 
-    class ERBTracker
+    class ERBTracker # :nodoc:
       EXPLICIT_DEPENDENCY = /# Template Dependency: (\S+)/
 
-      # Matches:
-      #   render partial: "comments/comment", collection: commentable.comments
-      #   render "comments/comments"
-      #   render 'comments/comments'
-      #   render('comments/comments')
-      #
-      #   render(@topic)         => render("topics/topic")
-      #   render(topics)         => render("topics/topic")
-      #   render(message.topics) => render("topics/topic")
-      RENDER_DEPENDENCY = /
-        render\s*                     # render, followed by optional whitespace
-        \(?                           # start an optional parenthesis for the render call
-        (partial:|:partial\s+=>)?\s*  # naming the partial, used with collection -- 1st capture
-        ([@a-z"'][@\w\/\."']+)        # the template name itself -- 2nd capture
+      # A valid ruby identifier - suitable for class, method and specially variable names
+      IDENTIFIER = /
+        [[:alpha:]_] # at least one uppercase letter, lowercase letter or underscore
+        [[:word:]]*  # followed by optional letters, numbers or underscores
       /x
 
-      def self.call(name, template)
-        new(name, template).dependencies
+      # Any kind of variable name. e.g. @instance, @@class, $global or local.
+      # Possibly following a method call chain
+      VARIABLE_OR_METHOD_CHAIN = /
+        (?:\$|@{1,2})?            # optional global, instance or class variable indicator
+        (?:#{IDENTIFIER}\.)*      # followed by an optional chain of zero-argument method calls
+        (?<dynamic>#{IDENTIFIER}) # and a final valid identifier, captured as DYNAMIC
+      /x
+
+      # A simple string literal. e.g. "School's out!"
+      STRING = /
+        (?<quote>['"]) # an opening quote
+        (?<static>.*?) # with anything inside, captured as STATIC
+        \k<quote>      # and a matching closing quote
+      /x
+
+      # Part of any hash containing the :partial key
+      PARTIAL_HASH_KEY = /
+        (?:\bpartial:|:partial\s*=>) # partial key in either old or new style hash syntax
+        \s*                          # followed by optional spaces
+      /x
+
+      # Part of any hash containing the :layout key
+      LAYOUT_HASH_KEY = /
+        (?:\blayout:|:layout\s*=>)   # layout key in either old or new style hash syntax
+        \s*                          # followed by optional spaces
+      /x
+
+      # Matches:
+      #   partial: "comments/comment", collection: @all_comments => "comments/comment"
+      #   (object: @single_comment, partial: "comments/comment") => "comments/comment"
+      #
+      #   "comments/comments"
+      #   'comments/comments'
+      #   ('comments/comments')
+      #
+      #   (@topic)         => "topics/topic"
+      #    topics          => "topics/topic"
+      #   (message.topics) => "topics/topic"
+      RENDER_ARGUMENTS = /\A
+        (?:\s*\(?\s*)                                  # optional opening paren surrounded by spaces
+        (?:.*?#{PARTIAL_HASH_KEY}|#{LAYOUT_HASH_KEY})? # optional hash, up to the partial or layout key declaration
+        (?:#{STRING}|#{VARIABLE_OR_METHOD_CHAIN})      # finally, the dependency name of interest
+      /xm
+
+      LAYOUT_DEPENDENCY = /\A
+        (?:\s*\(?\s*)                                  # optional opening paren surrounded by spaces
+        (?:.*?#{LAYOUT_HASH_KEY})                      # check if the line has layout key declaration
+        (?:#{STRING}|#{VARIABLE_OR_METHOD_CHAIN})      # finally, the dependency name of interest
+      /xm
+
+      def self.supports_view_paths? # :nodoc:
+        true
       end
 
-      def initialize(name, template)
-        @name, @template = name, template
+      def self.call(name, template, view_paths = nil)
+        new(name, template, view_paths).dependencies
+      end
+
+      def initialize(name, template, view_paths = nil)
+        @name, @template, @view_paths = name, template, view_paths
       end
 
       def dependencies
@@ -57,8 +103,8 @@ module ActionView
       attr_reader :name, :template
       private :name, :template
 
-      private
 
+      private
         def source
           template.source
         end
@@ -68,23 +114,56 @@ module ActionView
         end
 
         def render_dependencies
-          source.scan(RENDER_DEPENDENCY).
-            collect(&:second).uniq.
+          render_dependencies = []
+          render_calls = source.split(/\brender\b/).drop(1)
 
-            # render(@topic)         => render("topics/topic")
-            # render(topics)         => render("topics/topic")
-            # render(message.topics) => render("topics/topic")
-            collect { |name| name.sub(/\A@?([a-z_]+\.)*([a-z_]+)\z/) { "#{$2.pluralize}/#{$2.singularize}" } }.
+          render_calls.each do |arguments|
+            add_dependencies(render_dependencies, arguments, LAYOUT_DEPENDENCY)
+            add_dependencies(render_dependencies, arguments, RENDER_ARGUMENTS)
+          end
 
-            # render("headline") => render("message/headline")
-            collect { |name| name.include?("/") ? name : "#{directory}/#{name}" }.
+          render_dependencies.uniq
+        end
 
-            # replace quotes from string renders
-            collect { |name| name.gsub(/["']/, "") }
+        def add_dependencies(render_dependencies, arguments, pattern)
+          arguments.scan(pattern) do
+            add_dynamic_dependency(render_dependencies, Regexp.last_match[:dynamic])
+            add_static_dependency(render_dependencies, Regexp.last_match[:static])
+          end
+        end
+
+        def add_dynamic_dependency(dependencies, dependency)
+          if dependency
+            dependencies << "#{dependency.pluralize}/#{dependency.singularize}"
+          end
+        end
+
+        def add_static_dependency(dependencies, dependency)
+          if dependency
+            if dependency.include?('/')
+              dependencies << dependency
+            else
+              dependencies << "#{directory}/#{dependency}"
+            end
+          end
+        end
+
+        def resolve_directories(wildcard_dependencies)
+          return [] unless @view_paths
+
+          wildcard_dependencies.each_with_object([]) do |query, templates|
+            @view_paths.find_all_with_query(query).each do |template|
+              templates << "#{File.dirname(query)}/#{File.basename(template).split('.').first}"
+            end
+          end
         end
 
         def explicit_dependencies
-          source.scan(EXPLICIT_DEPENDENCY).flatten.uniq
+          dependencies = source.scan(EXPLICIT_DEPENDENCY).flatten.uniq
+
+          wildcards, explicits = dependencies.partition { |dependency| dependency[-1] == '*' }
+
+          (explicits + resolve_directories(wildcards)).uniq
         end
     end
 

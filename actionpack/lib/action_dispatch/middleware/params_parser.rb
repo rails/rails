@@ -13,41 +13,36 @@ module ActionDispatch
       end
     end
 
-    DEFAULT_PARSERS = { Mime::JSON => :json }
+    DEFAULT_PARSERS = {
+      Mime::JSON => lambda { |raw_post|
+        data = ActiveSupport::JSON.decode(raw_post)
+        data = {:_json => data} unless data.is_a?(Hash)
+        Request::Utils.normalize_encode_params(data)
+      }
+    }
 
     def initialize(app, parsers = {})
       @app, @parsers = app, DEFAULT_PARSERS.merge(parsers)
     end
 
     def call(env)
-      if params = parse_formatted_parameters(env)
-        env["action_dispatch.request.request_parameters"] = params
-      end
+      default = env["action_dispatch.request.request_parameters"]
+      env["action_dispatch.request.request_parameters"] = parse_formatted_parameters(env, @parsers, default)
 
       @app.call(env)
     end
 
     private
-      def parse_formatted_parameters(env)
+      def parse_formatted_parameters(env, parsers, default)
         request = Request.new(env)
 
-        return false if request.content_length.zero?
+        return default if request.content_length.zero?
 
-        strategy = @parsers[request.content_mime_type]
+        strategy = parsers.fetch(request.content_mime_type) { return default }
 
-        return false unless strategy
+        strategy.call(request.raw_post)
 
-        case strategy
-        when Proc
-          strategy.call(request.raw_post)
-        when :json
-          data = ActiveSupport::JSON.decode(request.raw_post)
-          data = {:_json => data} unless data.is_a?(Hash)
-          Request::Utils.deep_munge(data).with_indifferent_access
-        else
-          false
-        end
-      rescue Exception => e # JSON or Ruby code block errors
+      rescue => e # JSON or Ruby code block errors
         logger(env).debug "Error occurred while parsing request parameters.\nContents:\n\n#{request.raw_post}"
 
         raise ParseError.new(e.message, e)

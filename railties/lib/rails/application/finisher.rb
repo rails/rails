@@ -86,8 +86,10 @@ module Rails
       # added in the hook are taken into account.
       initializer :set_clear_dependencies_hook, group: :all do
         callback = lambda do
-          ActiveSupport::DescendantsTracker.clear
-          ActiveSupport::Dependencies.clear
+          ActiveSupport::Dependencies.interlock.attempt_unloading do
+            ActiveSupport::DescendantsTracker.clear
+            ActiveSupport::Dependencies.clear
+          end
         end
 
         if config.reload_classes_only_on_change
@@ -106,6 +108,13 @@ module Rails
           end
         else
           ActionDispatch::Reloader.to_cleanup(&callback)
+        end
+      end
+
+      # Disable dependency loading during request cycle
+      initializer :disable_dependency_loading do
+        if config.eager_load && config.cache_classes
+          ActiveSupport::Dependencies.unhook!
         end
       end
     end

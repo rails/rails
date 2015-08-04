@@ -85,6 +85,10 @@ module ActionController #:nodoc:
           @to_path = path
         end
 
+        def body
+          File.binread(to_path)
+        end
+
         # Stream the file's contents if Rack::Sendfile isn't present.
         def each
           File.open(to_path, 'rb') do |file|
@@ -96,7 +100,7 @@ module ActionController #:nodoc:
       end
 
       # Sends the given binary data to the browser. This method is similar to
-      # <tt>render text: data</tt>, but also allows you to specify whether
+      # <tt>render plain: data</tt>, but also allows you to specify whether
       # the browser should display the response as a file attachment (i.e. in a
       # download dialog) or as inline data. You may also set the content type,
       # the apparent file name, and other things.
@@ -126,7 +130,7 @@ module ActionController #:nodoc:
       # See +send_file+ for more information on HTTP Content-* headers and caching.
       def send_data(data, options = {}) #:doc:
         send_file_headers! options
-        render options.slice(:status, :content_type).merge(:text => data)
+        render options.slice(:status, :content_type).merge(body: data)
       end
 
     private

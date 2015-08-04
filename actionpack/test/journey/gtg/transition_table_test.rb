@@ -1,5 +1,5 @@
 require 'abstract_unit'
-require 'json'
+require 'active_support/json/decoding'
 
 module ActionDispatch
   module Journey
@@ -13,7 +13,7 @@ module ActionDispatch
             /articles/:id(.:format)
           }
 
-          json = JSON.load table.to_json
+          json = ActiveSupport::JSON.decode table.to_json
           assert json['regexp_states']
           assert json['string_states']
           assert json['accepting']

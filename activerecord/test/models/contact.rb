@@ -8,6 +8,7 @@ module ContactFakeColumns
         table_name => 'id'
       }
 
+      column :id,             :integer
       column :name,           :string
       column :age,            :integer
       column :avatar,         :binary

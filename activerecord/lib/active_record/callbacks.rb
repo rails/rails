@@ -23,11 +23,14 @@ module ActiveRecord
   # Check out <tt>ActiveRecord::Transactions</tt> for more details about <tt>after_commit</tt> and
   # <tt>after_rollback</tt>.
   #
+  # Additionally, an <tt>after_touch</tt> callback is triggered whenever an
+  # object is touched.
+  #
   # Lastly an <tt>after_find</tt> and <tt>after_initialize</tt> callback is triggered for each object that
   # is found and instantiated by a finder, with <tt>after_initialize</tt> being triggered after new objects
   # are instantiated as well.
   #
-  # That's a total of twelve callbacks, which gives you immense power to react and prepare for each state in the
+  # There are nineteen callbacks in total, which give you immense power to react and prepare for each state in the
   # Active Record life cycle. The sequence for calling <tt>Base#save</tt> for an existing record is similar,
   # except that each <tt>_create</tt> callback is replaced by the corresponding <tt>_update</tt> callback.
   #
@@ -125,7 +128,7 @@ module ActiveRecord
   #       record.credit_card_number = decrypt(record.credit_card_number)
   #     end
   #
-  #     alias_method :after_find, :after_save
+  #     alias_method :after_initialize, :after_save
   #
   #     private
   #       def encrypt(value)
@@ -160,7 +163,7 @@ module ActiveRecord
   #       record.send("#{@attribute}=", decrypt(record.send("#{@attribute}")))
   #     end
   #
-  #     alias_method :after_find, :after_save
+  #     alias_method :after_initialize, :after_save
   #
   #     private
   #       def encrypt(value)
@@ -189,14 +192,14 @@ module ActiveRecord
   #
   # == <tt>before_validation*</tt> returning statements
   #
-  # If the returning value of a +before_validation+ callback can be evaluated to +false+, the process will be
+  # If the +before_validation+ callback throws +:abort+, the process will be
   # aborted and <tt>Base#save</tt> will return +false+. If Base#save! is called it will raise a
-  # ActiveRecord::RecordInvalid exception. Nothing will be appended to the errors object.
+  # <tt>ActiveRecord::RecordInvalid</tt> exception. Nothing will be appended to the errors object.
   #
   # == Canceling callbacks
   #
-  # If a <tt>before_*</tt> callback returns +false+, all the later callbacks and the associated action are
-  # cancelled. If an <tt>after_*</tt> callback returns +false+, all the later callbacks are cancelled.
+  # If a <tt>before_*</tt> callback throws +:abort+, all the later callbacks and
+  # the associated action are cancelled.
   # Callbacks are generally run in the order they are defined, with the exception of callbacks defined as
   # methods on the model, which are called last.
   #
@@ -286,25 +289,28 @@ module ActiveRecord
     end
 
     def destroy #:nodoc:
-      run_callbacks(:destroy) { super }
+      _run_destroy_callbacks { super }
+    rescue RecordNotDestroyed => e
+      @_association_destroy_exception = e
+      false
     end
 
     def touch(*) #:nodoc:
-      run_callbacks(:touch) { super }
+      _run_touch_callbacks { super }
     end
 
   private
 
-    def create_or_update #:nodoc:
-      run_callbacks(:save) { super }
+    def create_or_update(*) #:nodoc:
+      _run_save_callbacks { super }
     end
 
-    def create_record #:nodoc:
-      run_callbacks(:create) { super }
+    def _create_record #:nodoc:
+      _run_create_callbacks { super }
     end
 
-    def update_record(*) #:nodoc:
-      run_callbacks(:update) { super }
+    def _update_record(*) #:nodoc:
+      _run_update_callbacks { super }
     end
   end
 end

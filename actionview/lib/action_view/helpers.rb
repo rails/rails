@@ -27,6 +27,12 @@ module ActionView #:nodoc:
     autoload :TextHelper
     autoload :TranslationHelper
     autoload :UrlHelper
+    autoload :Tags
+
+    def self.eager_load!
+      super
+      Tags.eager_load!
+    end
 
     extend ActiveSupport::Concern
 

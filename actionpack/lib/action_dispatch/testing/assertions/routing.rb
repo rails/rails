@@ -38,18 +38,24 @@ module ActionDispatch
       #   # Test a custom route
       #   assert_recognizes({controller: 'items', action: 'show', id: '1'}, 'view/item1')
       def assert_recognizes(expected_options, path, extras={}, msg=nil)
-        request = recognized_request_for(path, extras)
+        if path.is_a?(Hash) && path[:method].to_s == "all"
+          [:get, :post, :put, :delete].each do |method|
+            assert_recognizes(expected_options, path.merge(method: method), extras, msg)
+          end
+        else
+          request = recognized_request_for(path, extras, msg)
 
-        expected_options = expected_options.clone
+          expected_options = expected_options.clone
 
-        expected_options.stringify_keys!
+          expected_options.stringify_keys!
 
-        msg = message(msg, "") {
-          sprintf("The recognized options <%s> did not match <%s>, difference:",
-                  request.path_parameters, expected_options)
-        }
+          msg = message(msg, "") {
+            sprintf("The recognized options <%s> did not match <%s>, difference:",
+                    request.path_parameters, expected_options)
+          }
 
-        assert_equal(expected_options, request.path_parameters, msg)
+          assert_equal(expected_options, request.path_parameters, msg)
+        end
       end
 
       # Asserts that the provided options can be used to generate the provided path. This is the inverse of +assert_recognizes+.
@@ -69,9 +75,9 @@ module ActionDispatch
       #
       #   # Asserts that the generated route gives us our custom route
       #   assert_generates "changesets/12", { controller: 'scm', action: 'show_diff', revision: "12" }
-      def assert_generates(expected_path, options, defaults={}, extras = {}, message=nil)
+      def assert_generates(expected_path, options, defaults={}, extras={}, message=nil)
         if expected_path =~ %r{://}
-          fail_on(URI::InvalidURIError) do
+          fail_on(URI::InvalidURIError, message) do
             uri = URI.parse(expected_path)
             expected_path = uri.path.to_s.empty? ? "/" : uri.path
           end
@@ -144,13 +150,7 @@ module ActionDispatch
           old_controller, @controller = @controller, @controller.clone
           _routes = @routes
 
-          # Unfortunately, there is currently an abstraction leak between AC::Base
-          # and AV::Base which requires having the URL helpers in both AC and AV.
-          # To do this safely at runtime for tests, we need to bump up the helper serial
-          # to that the old AV subclass isn't cached.
-          #
-          # TODO: Make this unnecessary
-          @controller.singleton_class.send(:include, _routes.url_helpers)
+          @controller.singleton_class.include(_routes.url_helpers)
           @controller.view_context_class = Class.new(@controller.view_context_class) do
             include _routes.url_helpers
           end
@@ -165,7 +165,7 @@ module ActionDispatch
 
       # ROUTES TODO: These assertions should really work in an integration context
       def method_missing(selector, *args, &block)
-        if defined?(@controller) && @controller && @routes && @routes.named_routes.helpers.include?(selector)
+        if defined?(@controller) && @controller && defined?(@routes) && @routes && @routes.named_routes.route_defined?(selector)
           @controller.send(selector, *args, &block)
         else
           super
@@ -174,7 +174,7 @@ module ActionDispatch
 
       private
         # Recognizes the route for a given path.
-        def recognized_request_for(path, extras = {})
+        def recognized_request_for(path, extras = {}, msg)
           if path.is_a?(Hash)
             method = path[:method]
             path   = path[:path]
@@ -183,10 +183,10 @@ module ActionDispatch
           end
 
           # Assume given controller
-          request = ActionController::TestRequest.new
+          request = ActionController::TestRequest.create
 
           if path =~ %r{://}
-            fail_on(URI::InvalidURIError) do
+            fail_on(URI::InvalidURIError, msg) do
               uri = URI.parse(path)
               request.env["rack.url_scheme"] = uri.scheme || "http"
               request.host = uri.host if uri.host
@@ -200,7 +200,7 @@ module ActionDispatch
 
           request.request_method = method if method
 
-          params = fail_on(ActionController::RoutingError) do
+          params = fail_on(ActionController::RoutingError, msg) do
             @routes.recognize_path(path, { :method => method, :extras => extras })
           end
           request.path_parameters = params.with_indifferent_access
@@ -208,10 +208,10 @@ module ActionDispatch
           request
         end
 
-        def fail_on(exception_class)
+        def fail_on(exception_class, message)
           yield
         rescue exception_class => e
-          raise MiniTest::Assertion, e.message
+          raise Minitest::Assertion, message || e.message
         end
     end
   end

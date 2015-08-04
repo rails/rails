@@ -1,30 +1,57 @@
 source 'https://rubygems.org'
 
-<%= rails_gemfile_entry -%>
+<% gemfile_entries.each do |gem| -%>
+<% if gem.comment -%>
 
-<%= database_gemfile_entry -%>
-
-<%= assets_gemfile_entry %>
-<%= javascript_gemfile_entry -%>
-
-# Build JSON APIs with ease. Read more: https://github.com/rails/jbuilder
-gem 'jbuilder', '~> 1.2'
-
-group :doc do
-  # bundle exec rake doc:rails generates the API under doc/api.
-  gem 'sdoc', require: false
-end
+# <%= gem.comment %>
+<% end -%>
+<%= gem.commented_out ? '# ' : '' %>gem '<%= gem.name %>'<%= %(, '#{gem.version}') if gem.version -%>
+<% if gem.options.any? -%>
+, <%= gem.options.map { |k,v|
+  "#{k}: #{v.inspect}" }.join(', ') %>
+<% end -%>
+<% end -%>
 
 # Use ActiveModel has_secure_password
-# gem 'bcrypt-ruby', '~> 3.1.0'
+# gem 'bcrypt', '~> 3.1.7'
 
-# Use unicorn as the app server
+# Use Unicorn as the app server
 # gem 'unicorn'
 
 # Use Capistrano for deployment
-# gem 'capistrano', group: :development
+# gem 'capistrano-rails', group: :development
 
-<% unless defined?(JRUBY_VERSION) -%>
-# Use debugger
-# gem 'debugger', group: [:development, :test]
+<%- if options.api? -%>
+# Use ActiveModelSerializers to serialize JSON responses
+gem 'active_model_serializers', '~> 0.10.0.rc2'
+
+# Use Rack CORS for handling Cross-Origin Resource Sharing (CORS), making cross-origin AJAX possible
+# gem 'rack-cors'
+
+<%- end -%>
+<% if RUBY_ENGINE == 'ruby' -%>
+group :development, :test do
+  # Call 'byebug' anywhere in the code to stop execution and get a debugger console
+  gem 'byebug'
+end
+
+group :development do
+<%- unless options.api? -%>
+  # Access an IRB console on exception pages or by using <%%= console %> in views
+  <%- if options.dev? || options.edge? -%>
+  gem 'web-console', github: 'rails/web-console'
+  <%- else -%>
+  gem 'web-console', '~> 2.0'
+  <%- end -%>
+<%- end -%>
+<% if spring_install? -%>
+  # Spring speeds up development by keeping your application running in the background. Read more: https://github.com/rails/spring
+  gem 'spring'
+<% end -%>
+end
+<% end -%>
+<% if RUBY_PLATFORM.match(/bccwin|cygwin|emx|mingw|mswin|wince|java/) -%>
+
+# Windows does not include zoneinfo files, so bundle the tzinfo-data gem
+gem 'tzinfo-data', platforms: [:mingw, :mswin, :x64_mingw, :jruby]
 <% end -%>

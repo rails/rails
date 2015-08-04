@@ -221,14 +221,14 @@ module ActionView
       # This module is mixed in if layout conditions are provided. This means
       # that if no layout conditions are used, this method is not used
       module LayoutConditions # :nodoc:
-      private
+        private
 
         # Determines whether the current action has a layout definition by
         # checking the action name against the :only and :except conditions
         # set by the <tt>layout</tt> method.
         #
         # ==== Returns
-        # * <tt> Boolean</tt> - True if the action has a layout definition, false otherwise.
+        # * <tt>Boolean</tt> - True if the action has a layout definition, false otherwise.
         def _conditional_layout?
           return unless super
 
@@ -262,20 +262,11 @@ module ActionView
       def layout(layout, conditions = {})
         include LayoutConditions unless conditions.empty?
 
-        conditions.each {|k, v| conditions[k] = Array(v).map {|a| a.to_s} }
+        conditions.each {|k, v| conditions[k] = Array(v).map(&:to_s) }
         self._layout_conditions = conditions
 
         self._layout = layout
         _write_layout_method
-      end
-
-      # If no layout is supplied, look for a template named the return
-      # value of this method.
-      #
-      # ==== Returns
-      # * <tt>String</tt> - A template name
-      def _implied_layout_name # :nodoc:
-        controller_path
       end
 
       # Creates a _layout method to be called by _default_layout .
@@ -334,6 +325,17 @@ module ActionView
           end
           private :_layout
         RUBY
+      end
+
+      private
+
+      # If no layout is supplied, look for a template named the return
+      # value of this method.
+      #
+      # ==== Returns
+      # * <tt>String</tt> - A template name
+      def _implied_layout_name # :nodoc:
+        controller_path
       end
     end
 
@@ -418,7 +420,7 @@ module ActionView
     end
 
     def _include_layout?(options)
-      (options.keys & [:text, :inline, :partial]).empty? || options.key?(:layout)
+      (options.keys & [:body, :text, :plain, :html, :inline, :partial]).empty? || options.key?(:layout)
     end
   end
 end

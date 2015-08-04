@@ -7,14 +7,18 @@ module ActiveSupport
   mattr_accessor :parse_json_times
 
   module JSON
+    # matches YAML-formatted dates
+    DATE_REGEX = /^(?:\d{4}-\d{2}-\d{2}|\d{4}-\d{1,2}-\d{1,2}[T \t]+\d{1,2}:\d{2}:\d{2}(\.[0-9]*)?(([ \t]*)Z|[-+]\d{2}?(:\d{2})?))$/
+
     class << self
       # Parses a JSON string (JavaScript Object Notation) into a hash.
-      # See www.json.org for more info.
+      # See http://www.json.org for more info.
       #
       #   ActiveSupport::JSON.decode("{\"team\":\"rails\",\"players\":\"36\"}")
       #   => {"team" => "rails", "players" => "36"}
-      def decode(json, proc = nil, options = {})
-        data = ::JSON.load(json, proc, options)
+      def decode(json)
+        data = ::JSON.parse(json, quirks_mode: true)
+
         if ActiveSupport.parse_json_times
           convert_dates_from(data)
         else

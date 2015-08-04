@@ -29,8 +29,9 @@ module ActionView
 
     def extract_details(options)
       @lookup_context.registered_details.each_with_object({}) do |key, details|
-        next unless value = options[key]
-        details[key] = Array(value)
+        value = options[key]
+
+        details[key] = Array(value) if value
       end
     end
 
@@ -41,6 +42,7 @@ module ActionView
     def prepend_formats(formats)
       formats = Array(formats)
       return if formats.empty? || @lookup_context.html_fallback_for_js
+
       @lookup_context.formats = formats | @lookup_context.formats
     end
   end

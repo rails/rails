@@ -6,7 +6,7 @@ module ActiveModel
   # Provides an interface for any class to have Active Record like callbacks.
   #
   # Like the Active Record methods, the callback chain is aborted as soon as
-  # one of the methods in the chain returns +false+.
+  # one of the methods throws +:abort+.
   #
   # First, extend ActiveModel::Callbacks from the class you are creating:
   #
@@ -30,7 +30,7 @@ module ActiveModel
   #   end
   #
   # Then in your class, you can use the +before_create+, +after_create+ and
-  # +around_create+ methods, just as you would in an Active Record module.
+  # +around_create+ methods, just as you would in an Active Record model.
   #
   #   before_create :action_before_create
   #
@@ -49,7 +49,7 @@ module ActiveModel
   #    puts 'block successfully called.'
   #  end
   #
-  # You can choose not to have all three callbacks by passing a hash to the
+  # You can choose to have only specific callbacks by passing a hash to the
   # +define_model_callbacks+ method.
   #
   #   define_model_callbacks :create, only: [:after, :before]
@@ -97,10 +97,12 @@ module ActiveModel
     #       # obj is the MyModel instance that the callback is being called on
     #     end
     #   end
+    #
+    # NOTE: +method_name+ passed to `define_model_callbacks` must not end with
+    # `!`, `?` or `=`.
     def define_model_callbacks(*callbacks)
       options = callbacks.extract_options!
       options = {
-        terminator: ->(_,result) { result == false },
         skip_after_callbacks_if_terminated: true,
         scope: [:kind, :name],
         only: [:before, :around, :after]

@@ -46,7 +46,15 @@ module ActiveRecord
 
       def structure_dump(filename)
         set_psql_env
-        search_path = configuration['schema_search_path']
+
+        search_path = case ActiveRecord::Base.dump_schemas
+        when :schema_search_path
+          configuration['schema_search_path']
+        when :all
+          nil
+        when String
+          ActiveRecord::Base.dump_schemas
+        end
         unless search_path.blank?
           search_path = search_path.split(",").map{|search_path_part| "--schema=#{Shellwords.escape(search_path_part.strip)}" }.join(" ")
         end
@@ -54,12 +62,12 @@ module ActiveRecord
         command = "pg_dump -i -s -x -O -f #{Shellwords.escape(filename)} #{search_path} #{Shellwords.escape(configuration['database'])}"
         raise 'Error dumping database' unless Kernel.system(command)
 
-        File.open(filename, "a") { |f| f << "SET search_path TO #{ActiveRecord::Base.connection.schema_search_path};\n\n" }
+        File.open(filename, "a") { |f| f << "SET search_path TO #{connection.schema_search_path};\n\n" }
       end
 
       def structure_load(filename)
         set_psql_env
-        Kernel.system("psql -q -f #{filename} #{configuration['database']}")
+        Kernel.system("psql -X -q -f #{Shellwords.escape(filename)} #{configuration['database']}")
       end
 
       private

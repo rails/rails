@@ -34,6 +34,11 @@ class BacktraceCleanerSilencerTest < ActiveSupport::TestCase
       [ "/other/class.rb" ],
       @bc.clean([ "/mongrel/class.rb", "/other/class.rb", "/mongrel/stuff.rb" ])
   end
+
+  test "backtrace cleaner should allow removing silencer" do
+    @bc.remove_silencers!
+    assert_equal ["/mongrel/stuff.rb"], @bc.clean(["/mongrel/stuff.rb"])
+  end
 end
 
 class BacktraceCleanerMultipleSilencersTest < ActiveSupport::TestCase

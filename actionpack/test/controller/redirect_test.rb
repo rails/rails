@@ -1,13 +1,10 @@
 require 'abstract_unit'
 
-class WorkshopsController < ActionController::Base
-end
-
 class RedirectController < ActionController::Base
   # empty method not used anywhere to ensure methods like
   # `status` and `location` aren't called on `redirect_to` calls
-  def status; render :text => 'called status'; end
-  def location; render :text => 'called location'; end
+  def status; render plain: 'called status'; end
+  def location; render plain: 'called location'; end
 
   def simple_redirect
     redirect_to :action => "hello_world"
@@ -53,17 +50,12 @@ class RedirectController < ActionController::Base
     redirect_to :controller => 'module_test/module_redirect', :action => "hello_world"
   end
 
-  def redirect_with_assigns
-    @hello = "world"
-    redirect_to :action => "hello_world"
-  end
-
   def redirect_to_url
     redirect_to "http://www.rubyonrails.org/"
   end
 
   def redirect_to_url_with_unescaped_query_string
-    redirect_to "http://dev.rubyonrails.org/query?status=new"
+    redirect_to "http://example.com/query?status=new"
   end
 
   def redirect_to_url_with_complex_scheme
@@ -88,6 +80,10 @@ class RedirectController < ActionController::Base
 
   def redirect_to_nil
     redirect_to nil
+  end
+
+  def redirect_to_params
+    redirect_to ActionController::Parameters.new(status: 200, protocol: 'javascript', f: '%0Aeval(name)')
   end
 
   def redirect_to_with_block
@@ -214,12 +210,6 @@ class RedirectTest < ActionController::TestCase
     assert_redirected_to :controller => 'module_test/module_redirect', :action => 'hello_world'
   end
 
-  def test_redirect_with_assigns
-    get :redirect_with_assigns
-    assert_response :redirect
-    assert_equal "world", assigns["hello"]
-  end
-
   def test_redirect_to_url
     get :redirect_to_url
     assert_response :redirect
@@ -229,7 +219,7 @@ class RedirectTest < ActionController::TestCase
   def test_redirect_to_url_with_unescaped_query_string
     get :redirect_to_url_with_unescaped_query_string
     assert_response :redirect
-    assert_redirected_to "http://dev.rubyonrails.org/query?status=new"
+    assert_redirected_to "http://example.com/query?status=new"
   end
 
   def test_redirect_to_url_with_complex_scheme
@@ -278,6 +268,12 @@ class RedirectTest < ActionController::TestCase
   def test_redirect_to_nil
     assert_raise(ActionController::ActionControllerError) do
       get :redirect_to_nil
+    end
+  end
+
+  def test_redirect_to_params
+    assert_raise(ActionController::ActionControllerError) do
+      get :redirect_to_params
     end
   end
 

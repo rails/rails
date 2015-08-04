@@ -1,4 +1,3 @@
-# encoding: utf-8
 require 'isolation/abstract_unit'
 require 'rack/test'
 
@@ -58,6 +57,21 @@ module ApplicationTests
       get "/foo"
       assert_equal 404, last_response.status
       assert_equal "YOU FAILED BRO", last_response.body
+    end
+
+    test "url generation error when action_dispatch.show_exceptions is set raises an exception" do
+      controller :foo, <<-RUBY
+        class FooController < ActionController::Base
+          def index
+            raise ActionController::UrlGenerationError
+          end
+        end
+      RUBY
+      
+      app.config.action_dispatch.show_exceptions = true
+
+      get '/foo'
+      assert_equal 500, last_response.status
     end
 
     test "unspecified route when action_dispatch.show_exceptions is not set raises an exception" do

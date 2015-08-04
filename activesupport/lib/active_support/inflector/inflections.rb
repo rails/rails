@@ -27,6 +27,37 @@ module ActiveSupport
     class Inflections
       @__instance__ = ThreadSafe::Cache.new
 
+      class Uncountables < Array
+        def initialize
+          @regex_array = []
+          super
+        end
+
+        def delete(entry)
+          super entry
+          @regex_array.delete(to_regex(entry))
+        end
+
+        def <<(*word)
+          add(word)
+        end
+
+        def add(words)
+          self.concat(words.flatten.map(&:downcase))
+          @regex_array += self.map {|word|  to_regex(word) }
+          self
+        end
+
+        def uncountable?(str)
+          @regex_array.detect {|regex| regex.match(str) }
+        end
+
+        private
+          def to_regex(string)
+            /\b#{::Regexp.escape(string)}\Z/i
+          end
+      end
+
       def self.instance(locale = :en)
         @__instance__[locale] ||= new
       end
@@ -34,7 +65,7 @@ module ActiveSupport
       attr_reader :plurals, :singulars, :uncountables, :humans, :acronyms, :acronym_regex
 
       def initialize
-        @plurals, @singulars, @uncountables, @humans, @acronyms, @acronym_regex = [], [], [], [], {}, /(?=a)b/
+        @plurals, @singulars, @uncountables, @humans, @acronyms, @acronym_regex = [], [], Uncountables.new, [], {}, /(?=a)b/
       end
 
       # Private, for the test suite.
@@ -52,21 +83,21 @@ module ActiveSupport
       # into a non-delimited single lowercase word when passed to +underscore+.
       #
       #   acronym 'HTML'
-      #   titleize 'html'     #=> 'HTML'
-      #   camelize 'html'     #=> 'HTML'
-      #   underscore 'MyHTML' #=> 'my_html'
+      #   titleize 'html'     # => 'HTML'
+      #   camelize 'html'     # => 'HTML'
+      #   underscore 'MyHTML' # => 'my_html'
       #
       # The acronym, however, must occur as a delimited unit and not be part of
       # another word for conversions to recognize it:
       #
       #   acronym 'HTTP'
-      #   camelize 'my_http_delimited' #=> 'MyHTTPDelimited'
-      #   camelize 'https'             #=> 'Https', not 'HTTPs'
-      #   underscore 'HTTPS'           #=> 'http_s', not 'https'
+      #   camelize 'my_http_delimited' # => 'MyHTTPDelimited'
+      #   camelize 'https'             # => 'Https', not 'HTTPs'
+      #   underscore 'HTTPS'           # => 'http_s', not 'https'
       #
       #   acronym 'HTTPS'
-      #   camelize 'https'   #=> 'HTTPS'
-      #   underscore 'HTTPS' #=> 'https'
+      #   camelize 'https'   # => 'HTTPS'
+      #   underscore 'HTTPS' # => 'https'
       #
       # Note: Acronyms that are passed to +pluralize+ will no longer be
       # recognized, since the acronym will not occur as a delimited unit in the
@@ -74,25 +105,25 @@ module ActiveSupport
       # form as an acronym as well:
       #
       #    acronym 'API'
-      #    camelize(pluralize('api')) #=> 'Apis'
+      #    camelize(pluralize('api')) # => 'Apis'
       #
       #    acronym 'APIs'
-      #    camelize(pluralize('api')) #=> 'APIs'
+      #    camelize(pluralize('api')) # => 'APIs'
       #
       # +acronym+ may be used to specify any word that contains an acronym or
       # otherwise needs to maintain a non-standard capitalization. The only
       # restriction is that the word must begin with a capital letter.
       #
       #   acronym 'RESTful'
-      #   underscore 'RESTful'           #=> 'restful'
-      #   underscore 'RESTfulController' #=> 'restful_controller'
-      #   titleize 'RESTfulController'   #=> 'RESTful Controller'
-      #   camelize 'restful'             #=> 'RESTful'
-      #   camelize 'restful_controller'  #=> 'RESTfulController'
+      #   underscore 'RESTful'           # => 'restful'
+      #   underscore 'RESTfulController' # => 'restful_controller'
+      #   titleize 'RESTfulController'   # => 'RESTful Controller'
+      #   camelize 'restful'             # => 'RESTful'
+      #   camelize 'restful_controller'  # => 'RESTfulController'
       #
       #   acronym 'McDonald'
-      #   underscore 'McDonald' #=> 'mcdonald'
-      #   camelize 'mcdonald'   #=> 'McDonald'
+      #   underscore 'McDonald' # => 'mcdonald'
+      #   camelize 'mcdonald'   # => 'McDonald'
       def acronym(word)
         @acronyms[word.downcase] = word
         @acronym_regex = /#{@acronyms.values.join("|")}/
@@ -154,13 +185,13 @@ module ActiveSupport
         end
       end
 
-      # Add uncountable words that shouldn't be attempted inflected.
+      # Specifies words that are uncountable and should not be inflected.
       #
       #   uncountable 'money'
       #   uncountable 'money', 'information'
       #   uncountable %w( money information rice )
       def uncountable(*words)
-        (@uncountables << words).flatten!
+        @uncountables.add(words)
       end
 
       # Specifies a humanized form of a string by a regular expression rule or
@@ -185,7 +216,7 @@ module ActiveSupport
       def clear(scope = :all)
         case scope
           when :all
-            @plurals, @singulars, @uncountables, @humans = [], [], [], []
+            @plurals, @singulars, @uncountables, @humans = [], [], Uncountables.new, []
           else
             instance_variable_set "@#{scope}", []
         end

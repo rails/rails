@@ -6,17 +6,20 @@ module ActionDispatch
           alias :compile :new
         end
 
-        attr_reader :path, :requirements, :separators, :anchor
+        attr_reader :path, :requirements, :separators, :anchor, :ast
 
-        def initialize(path, requirements, separators, anchor = true)
+        def self.build(path, requirements, separators, anchor = true)
+          parser = Journey::Parser.new
+          ast = parser.parse path
+          new ast, path, requirements, separators, anchor
+        end
+
+        def initialize(ast, path, requirements, separators, anchor = true)
+          @ast          = ast
           @path         = path
           @requirements = requirements
           @separators   = separators
           @anchor       = anchor
-        end
-
-        def names
-          @path.scan(/:\w+/).map { |s| s.tr(':', '') }
         end
       end
     end

@@ -1,3 +1,5 @@
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+
 Active Record Callbacks
 =======================
 
@@ -15,7 +17,7 @@ After reading this guide, you will know:
 The Object Life Cycle
 ---------------------
 
-During the normal operation of a Rails application, objects may be created, updated, and destroyed. Active Record provides hooks into this <em>object life cycle</em> so that you can control your application and its data.
+During the normal operation of a Rails application, objects may be created, updated, and destroyed. Active Record provides hooks into this *object life cycle* so that you can control your application and its data.
 
 Callbacks allow you to trigger logic before or after an alteration of an object's state.
 
@@ -55,7 +57,7 @@ class User < ActiveRecord::Base
 end
 ```
 
-Callbacks can also be registered to only fire on certain lifecycle events:
+Callbacks can also be registered to only fire on certain life cycle events:
 
 ```ruby
 class User < ActiveRecord::Base
@@ -66,7 +68,7 @@ class User < ActiveRecord::Base
 
   protected
     def normalize_name
-      self.name = self.name.downcase.titleize
+      self.name = name.downcase.titleize
     end
 
     def set_location
@@ -92,6 +94,7 @@ Here is a list with all the available Active Record callbacks, listed in the sam
 * `around_create`
 * `after_create`
 * `after_save`
+* `after_commit/after_rollback`
 
 ### Updating an Object
 
@@ -103,12 +106,14 @@ Here is a list with all the available Active Record callbacks, listed in the sam
 * `around_update`
 * `after_update`
 * `after_save`
+* `after_commit/after_rollback`
 
 ### Destroying an Object
 
 * `before_destroy`
 * `around_destroy`
 * `after_destroy`
+* `after_commit/after_rollback`
 
 WARNING. `after_save` runs both on create and update, but always _after_ the more specific callbacks `after_create` and `after_update`, no matter the order in which the macro calls were executed.
 
@@ -139,6 +144,55 @@ You have initialized an object!
 You have found an object!
 You have initialized an object!
 => #<User id: 1>
+```
+
+### `after_touch`
+
+The `after_touch` callback will be called whenever an Active Record object is touched.
+
+```ruby
+class User < ActiveRecord::Base
+  after_touch do |user|
+    puts "You have touched an object"
+  end
+end
+
+>> u = User.create(name: 'Kuldeep')
+=> #<User id: 1, name: "Kuldeep", created_at: "2013-11-25 12:17:49", updated_at: "2013-11-25 12:17:49">
+
+>> u.touch
+You have touched an object
+=> true
+```
+
+It can be used along with `belongs_to`:
+
+```ruby
+class Employee < ActiveRecord::Base
+  belongs_to :company, touch: true
+  after_touch do
+    puts 'An Employee was touched'
+  end
+end
+
+class Company < ActiveRecord::Base
+  has_many :employees
+  after_touch :log_when_employees_or_company_touched
+
+  private
+  def log_when_employees_or_company_touched
+    puts 'Employee/Company was touched'
+  end
+end
+
+>> @employee = Employee.last
+=> #<Employee id: 1, company_id: 1, created_at: "2013-11-25 17:04:22", updated_at: "2013-11-25 17:05:05">
+
+# triggers @employee.company.touch
+>> @employee.touch
+Employee/Company was touched
+An Employee was touched
+=> true
 ```
 
 Running Callbacks
@@ -204,32 +258,32 @@ As you start registering new callbacks for your models, they will be queued for 
 
 The whole callback chain is wrapped in a transaction. If any _before_ callback method returns exactly `false` or raises an exception, the execution chain gets halted and a ROLLBACK is issued; _after_ callbacks can only accomplish that by raising an exception.
 
-WARNING. Raising an arbitrary exception may break code that expects `save` and its friends not to fail like that. The `ActiveRecord::Rollback` exception is thought precisely to tell Active Record a rollback is going on. That one is internally captured but not reraised.
+WARNING. Any exception that is not `ActiveRecord::Rollback` will be re-raised by Rails after the callback chain is halted. Raising an exception other than `ActiveRecord::Rollback` may break code that does not expect methods like `save` and `update_attributes` (which normally try to return `true` or `false`) to raise an exception.
 
 Relational Callbacks
 --------------------
 
-Callbacks work through model relationships, and can even be defined by them. Suppose an example where a user has many posts. A user's posts should be destroyed if the user is destroyed. Let's add an `after_destroy` callback to the `User` model by way of its relationship to the `Post` model:
+Callbacks work through model relationships, and can even be defined by them. Suppose an example where a user has many articles. A user's articles should be destroyed if the user is destroyed. Let's add an `after_destroy` callback to the `User` model by way of its relationship to the `Article` model:
 
 ```ruby
 class User < ActiveRecord::Base
-  has_many :posts, dependent: :destroy
+  has_many :articles, dependent: :destroy
 end
 
-class Post < ActiveRecord::Base
+class Article < ActiveRecord::Base
   after_destroy :log_destroy_action
 
   def log_destroy_action
-    puts 'Post destroyed'
+    puts 'Article destroyed'
   end
 end
 
 >> user = User.first
 => #<User id: 1>
->> user.posts.create!
-=> #<Post id: 1, user_id: 1>
+>> user.articles.create!
+=> #<Article id: 1, user_id: 1>
 >> user.destroy
-Post destroyed
+Article destroyed
 => #<User id: 1>
 ```
 
@@ -276,7 +330,7 @@ When writing conditional callbacks, it is possible to mix both `:if` and `:unles
 ```ruby
 class Comment < ActiveRecord::Base
   after_create :send_email_to_author, if: :author_wants_emails?,
-    unless: Proc.new { |comment| comment.post.ignore_comments? }
+    unless: Proc.new { |comment| comment.article.ignore_comments? }
 end
 ```
 
@@ -290,7 +344,7 @@ Here's an example where we create a class with an `after_destroy` callback for a
 ```ruby
 class PictureFileCallbacks
   def after_destroy(picture_file)
-    if File.exists?(picture_file.filepath)
+    if File.exist?(picture_file.filepath)
       File.delete(picture_file.filepath)
     end
   end
@@ -310,7 +364,7 @@ Note that we needed to instantiate a new `PictureFileCallbacks` object, since we
 ```ruby
 class PictureFileCallbacks
   def self.after_destroy(picture_file)
-    if File.exists?(picture_file.filepath)
+    if File.exist?(picture_file.filepath)
       File.delete(picture_file.filepath)
     end
   end
@@ -358,4 +412,4 @@ end
 NOTE: the `:on` option specifies when a callback will be fired. If you
 don't supply the `:on` option the callback will fire for every action.
 
-The `after_commit` and `after_rollback` callbacks are guaranteed to be called for all models created, updated, or destroyed within a transaction block. If any exceptions are raised within one of these callbacks, they will be ignored so that they don't interfere with the other callbacks. As such, if your callback code could raise an exception, you'll need to rescue it and handle it appropriately within the callback.
+WARNING. The `after_commit` and `after_rollback` callbacks are guaranteed to be called for all models created, updated, or destroyed within a transaction block. If any exceptions are raised within one of these callbacks, they will be ignored so that they don't interfere with the other callbacks. As such, if your callback code could raise an exception, you'll need to rescue it and handle it appropriately within the callback.

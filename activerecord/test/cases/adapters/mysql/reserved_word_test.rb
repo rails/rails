@@ -1,29 +1,29 @@
 require "cases/helper"
 
-class Group < ActiveRecord::Base
-  Group.table_name = 'group'
-  belongs_to :select
-  has_one :values
-end
-
-class Select < ActiveRecord::Base
-  Select.table_name = 'select'
-  has_many :groups
-end
-
-class Values < ActiveRecord::Base
-  Values.table_name = 'values'
-end
-
-class Distinct < ActiveRecord::Base
-  Distinct.table_name = 'distinct'
-  has_and_belongs_to_many :selects
-  has_many :values, :through => :groups
-end
-
 # a suite of tests to ensure the ConnectionAdapters#MysqlAdapter can handle tables with
 # reserved word names (ie: group, order, values, etc...)
-class MysqlReservedWordTest < ActiveRecord::TestCase
+class MysqlReservedWordTest < ActiveRecord::MysqlTestCase
+  class Group < ActiveRecord::Base
+    Group.table_name = 'group'
+    belongs_to :select
+    has_one :values
+  end
+
+  class Select < ActiveRecord::Base
+    Select.table_name = 'select'
+    has_many :groups
+  end
+
+  class Values < ActiveRecord::Base
+    Values.table_name = 'values'
+  end
+
+  class Distinct < ActiveRecord::Base
+    Distinct.table_name = 'distinct'
+    has_and_belongs_to_many :selects
+    has_many :values, :through => :groups
+  end
+
   def setup
     @connection = ActiveRecord::Base.connection
 
@@ -37,7 +37,7 @@ class MysqlReservedWordTest < ActiveRecord::TestCase
       'distinct_select'=>'distinct_id int, select_id int'
   end
 
-  def teardown
+  teardown do
     drop_tables_directly ['group', 'select', 'values', 'distinct', 'distinct_select', 'order']
   end
 
@@ -71,7 +71,7 @@ class MysqlReservedWordTest < ActiveRecord::TestCase
 
   #fixtures
   self.use_instantiated_fixtures = true
-  self.use_transactional_fixtures = false
+  self.use_transactional_tests = false
 
   #activerecord model class with reserved-word table name
   def test_activerecord_model
@@ -101,7 +101,7 @@ class MysqlReservedWordTest < ActiveRecord::TestCase
     gs = nil
     assert_nothing_raised { gs = Select.find(2).groups }
     assert_equal gs.length, 2
-    assert(gs.collect{|x| x.id}.sort == [2, 3])
+    assert(gs.collect(&:id).sort == [2, 3])
   end
 
   # has_and_belongs_to_many with reserved-word table name
@@ -110,7 +110,7 @@ class MysqlReservedWordTest < ActiveRecord::TestCase
     s = nil
     assert_nothing_raised { s = Distinct.find(1).selects }
     assert_equal s.length, 2
-    assert(s.collect{|x|x.id}.sort == [1, 2])
+    assert(s.collect(&:id).sort == [1, 2])
   end
 
   # activerecord model introspection with reserved-word table and column names
@@ -139,7 +139,7 @@ class MysqlReservedWordTest < ActiveRecord::TestCase
   # custom drop table, uses execute on connection to drop a table if it exists. note: escapes table_name
   def drop_tables_directly(table_names, connection = @connection)
     table_names.each do |name|
-      connection.execute("DROP TABLE IF EXISTS `#{name}`")
+      connection.drop_table name, if_exists: true
     end
   end
 

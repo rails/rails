@@ -7,8 +7,6 @@ rescue LoadError
   exit
 end
 
-require 'rails/generators/actions'
-
 module Rails
   module Generators
     class Error < Thor::Error # :nodoc:
@@ -85,7 +83,7 @@ module Rails
       #
       # The first and last part used to find the generator to be invoked are
       # guessed based on class invokes hook_for, as noticed in the example above.
-      # This can be customized with two options: :base and :as.
+      # This can be customized with two options: :in and :as.
       #
       # Let's suppose you are creating a generator that needs to invoke the
       # controller generator from test unit. Your first attempt is:
@@ -105,12 +103,12 @@ module Rails
       #     hook_for :test_framework, as: :controller
       #   end
       #
-      # And now it will lookup at:
+      # And now it will look up at:
       #
       #   "test_unit:controller", "test_unit"
       #
-      # Similarly, if you want it to also lookup in the rails namespace, you just
-      # need to provide the :base value:
+      # Similarly, if you want it to also look up in the rails namespace, you
+      # just need to provide the :in value:
       #
       #   class AwesomeGenerator < Rails::Generators::Base
       #     hook_for :test_framework, in: :rails, as: :controller
@@ -211,7 +209,7 @@ module Rails
         return unless base_name && generator_name
         return unless default_generator_root
         path = File.join(default_generator_root, 'templates')
-        path if File.exists?(path)
+        path if File.exist?(path)
       end
 
       # Returns the base root for a common set of generators. This is used to dynamically
@@ -275,7 +273,7 @@ module Rails
 
         # Use Rails default banner.
         def self.banner
-          "rails generate #{namespace.sub(/^rails:/,'')} #{self.arguments.map{ |a| a.usage }.join(' ')} [options]".gsub(/\s+/, ' ')
+          "rails generate #{namespace.sub(/^rails:/,'')} #{self.arguments.map(&:usage).join(' ')} [options]".gsub(/\s+/, ' ')
         end
 
         # Sets the base_name taking into account the current class namespace.
@@ -298,7 +296,7 @@ module Rails
           end
         end
 
-        # Return the default value for the option name given doing a lookup in
+        # Returns the default value for the option name given doing a lookup in
         # Rails::Generators.options.
         def self.default_value_for_option(name, options)
           default_for_option(Rails::Generators.options, name, options, options[:default])
@@ -368,12 +366,12 @@ module Rails
             source_root && File.expand_path("../USAGE", source_root),
             default_generator_root && File.join(default_generator_root, "USAGE")
           ]
-          paths.compact.detect { |path| File.exists? path }
+          paths.compact.detect { |path| File.exist? path }
         end
 
         def self.default_generator_root
           path = File.expand_path(File.join(base_name, generator_name), base_root)
-          path if File.exists?(path)
+          path if File.exist?(path)
         end
 
     end

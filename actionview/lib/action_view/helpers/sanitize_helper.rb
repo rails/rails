@@ -1,5 +1,5 @@
 require 'active_support/core_ext/object/try'
-require 'action_view/vendor/html-scanner'
+require 'rails-html-sanitizer'
 
 module ActionView
   # = Action View Sanitize Helpers
@@ -8,54 +8,77 @@ module ActionView
     # These helper methods extend Action View making them callable within your template files.
     module SanitizeHelper
       extend ActiveSupport::Concern
-      # This +sanitize+ helper will html encode all tags and strip all attributes that
-      # aren't specifically allowed.
+      # Sanitizes HTML input, stripping all tags and attributes that aren't whitelisted.
       #
-      # It also strips href/src tags with invalid protocols, like javascript: especially.
-      # It does its best to counter any  tricks that hackers may use, like throwing in
-      # unicode/ascii/hex values to get past the javascript: filters. Check out
-      # the extensive test suite.
+      # It also strips href/src attributes with unsafe protocols like
+      # <tt>javascript:</tt>, while also protecting against attempts to use Unicode,
+      # ASCII, and hex character references to work around these protocol filters.
       #
-      #   <%= sanitize @article.body %>
+      # The default sanitizer is Rails::Html::WhiteListSanitizer. See {Rails HTML
+      # Sanitizers}[https://github.com/rails/rails-html-sanitizer] for more information.
       #
-      # You can add or remove tags/attributes if you want to customize it a bit.
-      # See ActionView::Base for full docs on the available options. You can add
-      # tags/attributes for single uses of +sanitize+ by passing either the
-      # <tt>:attributes</tt> or <tt>:tags</tt> options:
+      # Custom sanitization rules can also be provided.
       #
-      # Normal Use
+      # Please note that sanitizing user-provided text does not guarantee that the
+      # resulting markup is valid or even well-formed. For example, the output may still
+      # contain unescaped characters like <tt><</tt>, <tt>></tt>, or <tt>&</tt>.
       #
-      #   <%= sanitize @article.body %>
+      # ==== Options
       #
-      # Custom Use (only the mentioned tags and attributes are allowed, nothing else)
+      # * <tt>:tags</tt> - An array of allowed tags.
+      # * <tt>:attributes</tt> - An array of allowed attributes.
+      # * <tt>:scrubber</tt> - A {Rails::Html scrubber}[https://github.com/rails/rails-html-sanitizer]
+      #   or {Loofah::Scrubber}[https://github.com/flavorjones/loofah] object that
+      #   defines custom sanitization rules. A custom scrubber takes precedence over
+      #   custom tags and attributes.
       #
-      #   <%= sanitize @article.body, tags: %w(table tr td), attributes: %w(id class style) %>
+      # ==== Examples
       #
-      # Add table tags to the default allowed tags
+      # Normal use:
       #
-      #   class Application < Rails::Application
-      #     config.action_view.sanitized_allowed_tags = 'table', 'tr', 'td'
-      #   end
+      #   <%= sanitize @comment.body %>
       #
-      # Remove tags to the default allowed tags
+      # Providing custom whitelisted tags and attributes:
       #
-      #   class Application < Rails::Application
-      #     config.after_initialize do
-      #       ActionView::Base.sanitized_allowed_tags.delete 'div'
+      #   <%= sanitize @comment.body, tags: %w(strong em a), attributes: %w(href) %>
+      #
+      # Providing a custom Rails::Html scrubber:
+      #
+      #   class CommentScrubber < Rails::Html::PermitScrubber
+      #     def allowed_node?(node)
+      #       !%w(form script comment blockquote).include?(node.name)
+      #     end
+      #
+      #     def skip_node?(node)
+      #       node.text?
+      #     end
+      #
+      #     def scrub_attribute?(name)
+      #       name == 'style'
       #     end
       #   end
       #
-      # Change allowed default attributes
+      #   <%= sanitize @comment.body, scrubber: CommentScrubber.new %>
       #
-      #   class Application < Rails::Application
-      #     config.action_view.sanitized_allowed_attributes = 'id', 'class', 'style'
+      # See {Rails HTML Sanitizer}[https://github.com/rails/rails-html-sanitizer] for
+      # documentation about Rails::Html scrubbers.
+      #
+      # Providing a custom Loofah::Scrubber:
+      #
+      #   scrubber = Loofah::Scrubber.new do |node|
+      #     node.remove if node.name == 'script'
       #   end
       #
-      # Please note that sanitizing user-provided text does not guarantee that the
-      # resulting markup is valid (conforming to a document type) or even well-formed.
-      # The output may still contain e.g. unescaped '<', '>', '&' characters and
-      # confuse browsers.
+      #   <%= sanitize @comment.body, scrubber: scrubber %>
       #
+      # See {Loofah's documentation}[https://github.com/flavorjones/loofah] for more
+      # information about defining custom Loofah::Scrubber objects.
+      #
+      # To set the default allowed tags or attributes across your application:
+      #
+      #   # In config/application.rb
+      #   config.action_view.sanitized_allowed_tags = ['strong', 'em', 'a']
+      #   config.action_view.sanitized_allowed_attributes = ['href', 'title']
       def sanitize(html, options = {})
         self.class.white_list_sanitizer.sanitize(html, options).try(:html_safe)
       end
@@ -65,9 +88,7 @@ module ActionView
         self.class.white_list_sanitizer.sanitize_css(style)
       end
 
-      # Strips all HTML tags from the +html+, including comments. This uses the
-      # html-scanner tokenizer and so its HTML parsing ability is limited by
-      # that of html-scanner.
+      # Strips all HTML tags from +html+, including comments.
       #
       #   strip_tags("Strip <i>these</i> tags!")
       #   # => Strip these tags!
@@ -78,10 +99,10 @@ module ActionView
       #   strip_tags("<div id='top-bar'>Welcome to my website!</div>")
       #   # => Welcome to my website!
       def strip_tags(html)
-        self.class.full_sanitizer.sanitize(html)
+        self.class.full_sanitizer.sanitize(html, encode_special_chars: false)
       end
 
-      # Strips all link tags from +text+ leaving just the link text.
+      # Strips all link tags from +html+ leaving just the link text.
       #
       #   strip_links('<a href="http://www.rubyonrails.org">Ruby on Rails</a>')
       #   # => Ruby on Rails
@@ -98,47 +119,21 @@ module ActionView
       module ClassMethods #:nodoc:
         attr_writer :full_sanitizer, :link_sanitizer, :white_list_sanitizer
 
-        def sanitized_protocol_separator
-          white_list_sanitizer.protocol_separator
-        end
-
-        def sanitized_uri_attributes
-          white_list_sanitizer.uri_attributes
-        end
-
-        def sanitized_bad_tags
-          white_list_sanitizer.bad_tags
+        # Vendors the full, link and white list sanitizers.
+        # Provided strictly for compabitility and can be removed in Rails 5.
+        def sanitizer_vendor
+          Rails::Html::Sanitizer
         end
 
         def sanitized_allowed_tags
-          white_list_sanitizer.allowed_tags
+          sanitizer_vendor.white_list_sanitizer.allowed_tags
         end
 
         def sanitized_allowed_attributes
-          white_list_sanitizer.allowed_attributes
+          sanitizer_vendor.white_list_sanitizer.allowed_attributes
         end
 
-        def sanitized_allowed_css_properties
-          white_list_sanitizer.allowed_css_properties
-        end
-
-        def sanitized_allowed_css_keywords
-          white_list_sanitizer.allowed_css_keywords
-        end
-
-        def sanitized_shorthand_css_properties
-          white_list_sanitizer.shorthand_css_properties
-        end
-
-        def sanitized_allowed_protocols
-          white_list_sanitizer.allowed_protocols
-        end
-
-        def sanitized_protocol_separator=(value)
-          white_list_sanitizer.protocol_separator = value
-        end
-
-        # Gets the HTML::FullSanitizer instance used by +strip_tags+. Replace with
+        # Gets the Rails::Html::FullSanitizer instance used by +strip_tags+. Replace with
         # any object that responds to +sanitize+.
         #
         #   class Application < Rails::Application
@@ -146,21 +141,21 @@ module ActionView
         #   end
         #
         def full_sanitizer
-          @full_sanitizer ||= HTML::FullSanitizer.new
+          @full_sanitizer ||= sanitizer_vendor.full_sanitizer.new
         end
 
-        # Gets the HTML::LinkSanitizer instance used by +strip_links+. Replace with
-        # any object that responds to +sanitize+.
+        # Gets the Rails::Html::LinkSanitizer instance used by +strip_links+.
+        # Replace with any object that responds to +sanitize+.
         #
         #   class Application < Rails::Application
         #     config.action_view.link_sanitizer = MySpecialSanitizer.new
         #   end
         #
         def link_sanitizer
-          @link_sanitizer ||= HTML::LinkSanitizer.new
+          @link_sanitizer ||= sanitizer_vendor.link_sanitizer.new
         end
 
-        # Gets the HTML::WhiteListSanitizer instance used by sanitize and +sanitize_css+.
+        # Gets the Rails::Html::WhiteListSanitizer instance used by sanitize and +sanitize_css+.
         # Replace with any object that responds to +sanitize+.
         #
         #   class Application < Rails::Application
@@ -168,87 +163,7 @@ module ActionView
         #   end
         #
         def white_list_sanitizer
-          @white_list_sanitizer ||= HTML::WhiteListSanitizer.new
-        end
-
-        # Adds valid HTML attributes that the +sanitize+ helper checks for URIs.
-        #
-        #   class Application < Rails::Application
-        #     config.action_view.sanitized_uri_attributes = 'lowsrc', 'target'
-        #   end
-        #
-        def sanitized_uri_attributes=(attributes)
-          HTML::WhiteListSanitizer.uri_attributes.merge(attributes)
-        end
-
-        # Adds to the Set of 'bad' tags for the +sanitize+ helper.
-        #
-        #   class Application < Rails::Application
-        #     config.action_view.sanitized_bad_tags = 'embed', 'object'
-        #   end
-        #
-        def sanitized_bad_tags=(attributes)
-          HTML::WhiteListSanitizer.bad_tags.merge(attributes)
-        end
-
-        # Adds to the Set of allowed tags for the +sanitize+ helper.
-        #
-        #   class Application < Rails::Application
-        #     config.action_view.sanitized_allowed_tags = 'table', 'tr', 'td'
-        #   end
-        #
-        def sanitized_allowed_tags=(attributes)
-          HTML::WhiteListSanitizer.allowed_tags.merge(attributes)
-        end
-
-        # Adds to the Set of allowed HTML attributes for the +sanitize+ helper.
-        #
-        #   class Application < Rails::Application
-        #     config.action_view.sanitized_allowed_attributes = 'onclick', 'longdesc'
-        #   end
-        #
-        def sanitized_allowed_attributes=(attributes)
-          HTML::WhiteListSanitizer.allowed_attributes.merge(attributes)
-        end
-
-        # Adds to the Set of allowed CSS properties for the #sanitize and +sanitize_css+ helpers.
-        #
-        #   class Application < Rails::Application
-        #     config.action_view.sanitized_allowed_css_properties = 'expression'
-        #   end
-        #
-        def sanitized_allowed_css_properties=(attributes)
-          HTML::WhiteListSanitizer.allowed_css_properties.merge(attributes)
-        end
-
-        # Adds to the Set of allowed CSS keywords for the +sanitize+ and +sanitize_css+ helpers.
-        #
-        #   class Application < Rails::Application
-        #     config.action_view.sanitized_allowed_css_keywords = 'expression'
-        #   end
-        #
-        def sanitized_allowed_css_keywords=(attributes)
-          HTML::WhiteListSanitizer.allowed_css_keywords.merge(attributes)
-        end
-
-        # Adds to the Set of allowed shorthand CSS properties for the +sanitize+ and +sanitize_css+ helpers.
-        #
-        #   class Application < Rails::Application
-        #     config.action_view.sanitized_shorthand_css_properties = 'expression'
-        #   end
-        #
-        def sanitized_shorthand_css_properties=(attributes)
-          HTML::WhiteListSanitizer.shorthand_css_properties.merge(attributes)
-        end
-
-        # Adds to the Set of allowed protocols for the +sanitize+ helper.
-        #
-        #   class Application < Rails::Application
-        #     config.action_view.sanitized_allowed_protocols = 'ssh', 'feed'
-        #   end
-        #
-        def sanitized_allowed_protocols=(attributes)
-          HTML::WhiteListSanitizer.allowed_protocols.merge(attributes)
+          @white_list_sanitizer ||= sanitizer_vendor.white_list_sanitizer.new
         end
       end
     end

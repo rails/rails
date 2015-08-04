@@ -1,5 +1,6 @@
 require 'generators/generators_test_helper'
 require 'rails/generators/rails/model/model_generator'
+require 'active_support/core_ext/string/strip'
 
 class ModelGeneratorTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
@@ -32,6 +33,13 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     run_generator ["account", "--parent", "Admin::Account"]
     assert_file "app/models/account.rb", /class Account < Admin::Account/
     assert_no_migration "db/migrate/create_accounts.rb"
+  end
+
+  def test_plural_names_are_singularized
+    content = run_generator ["accounts".freeze]
+    assert_file "app/models/account.rb", /class Account < ActiveRecord::Base/
+    assert_file "test/models/account_test.rb", /class AccountTest/
+    assert_match(/\[WARNING\] The model name 'accounts' was recognized as a plural, using the singular 'account' instead\. Override with --force-plural or setup custom inflection rules for this noun before running the generator\./, content)
   end
 
   def test_model_with_underscored_parent_option
@@ -279,18 +287,18 @@ class ModelGeneratorTest < Rails::Generators::TestCase
   def test_fixtures_use_the_references_ids
     run_generator ["LineItem", "product:references", "cart:belongs_to"]
 
-    assert_file "test/fixtures/line_items.yml", /product_id: \n  cart_id: /
+    assert_file "test/fixtures/line_items.yml", /product: \n  cart: /
     assert_generated_fixture("test/fixtures/line_items.yml",
-                             {"one"=>{"product_id"=>nil, "cart_id"=>nil}, "two"=>{"product_id"=>nil, "cart_id"=>nil}})
+                             {"one"=>{"product"=>nil, "cart"=>nil}, "two"=>{"product"=>nil, "cart"=>nil}})
   end
 
   def test_fixtures_use_the_references_ids_and_type
     run_generator ["LineItem", "product:references{polymorphic}", "cart:belongs_to"]
 
-    assert_file "test/fixtures/line_items.yml", /product_id: \n  product_type: Product\n  cart_id: /
+    assert_file "test/fixtures/line_items.yml", /product: \n  product_type: Product\n  cart: /
     assert_generated_fixture("test/fixtures/line_items.yml",
-                             {"one"=>{"product_id"=>nil, "product_type"=>"Product", "cart_id"=>nil},
-                              "two"=>{"product_id"=>nil, "product_type"=>"Product", "cart_id"=>nil}})
+                             {"one"=>{"product"=>nil, "product_type"=>"Product", "cart"=>nil},
+                              "two"=>{"product"=>nil, "product_type"=>"Product", "cart"=>nil}})
   end
 
   def test_fixtures_respect_reserved_yml_keywords
@@ -309,6 +317,16 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     content = run_generator ["account", "-r", "factory_girl"]
     assert_match(/factory_girl \[not found\]/, content)
     assert_no_file "test/fixtures/accounts.yml"
+  end
+
+  def test_fixture_without_pluralization
+    original_pluralize_table_name = ActiveRecord::Base.pluralize_table_names
+    ActiveRecord::Base.pluralize_table_names = false
+    run_generator
+    assert_generated_fixture("test/fixtures/account.yml",
+                             {"one"=>{"name"=>"MyString", "age"=>1}, "two"=>{"name"=>"MyString", "age"=>1}})
+  ensure
+    ActiveRecord::Base.pluralize_table_names = original_pluralize_table_name
   end
 
   def test_check_class_collision
@@ -354,6 +372,91 @@ class ModelGeneratorTest < Rails::Generators::TestCase
         assert_no_match(/index: true/, up)
       end
     end
+  end
+
+  def test_required_belongs_to_adds_required_association
+    run_generator ["account", "supplier:references{required}"]
+
+    expected_file = <<-FILE.strip_heredoc
+    class Account < ActiveRecord::Base
+      belongs_to :supplier, required: true
+    end
+    FILE
+    assert_file "app/models/account.rb", expected_file
+  end
+
+  def test_required_polymorphic_belongs_to_generages_correct_model
+    run_generator ["account", "supplier:references{required,polymorphic}"]
+
+    expected_file = <<-FILE.strip_heredoc
+    class Account < ActiveRecord::Base
+      belongs_to :supplier, polymorphic: true, required: true
+    end
+    FILE
+    assert_file "app/models/account.rb", expected_file
+  end
+
+  def test_required_and_polymorphic_are_order_independent
+    run_generator ["account", "supplier:references{polymorphic.required}"]
+
+    expected_file = <<-FILE.strip_heredoc
+    class Account < ActiveRecord::Base
+      belongs_to :supplier, polymorphic: true, required: true
+    end
+    FILE
+    assert_file "app/models/account.rb", expected_file
+  end
+
+  def test_required_adds_null_false_to_column
+    run_generator ["account", "supplier:references{required}"]
+
+    assert_migration "db/migrate/create_accounts.rb" do |m|
+      assert_method :change, m do |up|
+        assert_match(/t\.references :supplier,.*\snull: false/, up)
+      end
+    end
+  end
+
+  def test_foreign_key_is_not_added_for_non_references
+    run_generator ["account", "supplier:string"]
+
+    assert_migration "db/migrate/create_accounts.rb" do |m|
+      assert_method :change, m do |up|
+        assert_no_match(/foreign_key/, up)
+      end
+    end
+  end
+
+  def test_foreign_key_is_added_for_references
+    run_generator ["account", "supplier:belongs_to", "user:references"]
+
+    assert_migration "db/migrate/create_accounts.rb" do |m|
+      assert_method :change, m do |up|
+        assert_match(/t\.belongs_to :supplier,.*\sforeign_key: true/, up)
+        assert_match(/t\.references :user,.*\sforeign_key: true/, up)
+      end
+    end
+  end
+
+  def test_foreign_key_is_skipped_for_polymorphic_references
+    run_generator ["account", "supplier:belongs_to{polymorphic}"]
+
+    assert_migration "db/migrate/create_accounts.rb" do |m|
+      assert_method :change, m do |up|
+        assert_no_match(/foreign_key/, up)
+      end
+    end
+  end
+
+  def test_token_option_adds_has_secure_token
+    run_generator ["user", "token:token", "auth_token:token"]
+    expected_file = <<-FILE.strip_heredoc
+    class User < ActiveRecord::Base
+      has_secure_token
+      has_secure_token :auth_token
+    end
+    FILE
+    assert_file "app/models/user.rb", expected_file
   end
 
   private

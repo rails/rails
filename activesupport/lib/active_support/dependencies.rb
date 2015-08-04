@@ -8,14 +8,43 @@ require 'active_support/core_ext/module/introspection'
 require 'active_support/core_ext/module/anonymous'
 require 'active_support/core_ext/module/qualified_const'
 require 'active_support/core_ext/object/blank'
+require 'active_support/core_ext/kernel/reporting'
 require 'active_support/core_ext/load_error'
 require 'active_support/core_ext/name_error'
 require 'active_support/core_ext/string/starts_ends_with'
+require "active_support/dependencies/interlock"
 require 'active_support/inflector'
 
 module ActiveSupport #:nodoc:
   module Dependencies #:nodoc:
     extend self
+
+    mattr_accessor :interlock
+    self.interlock = Interlock.new
+
+    # :doc:
+
+    # Execute the supplied block without interference from any
+    # concurrent loads
+    def self.run_interlock
+      Dependencies.interlock.running { yield }
+    end
+
+    # Execute the supplied block while holding an exclusive lock,
+    # preventing any other thread from being inside a #run_interlock
+    # block at the same time
+    def self.load_interlock
+      Dependencies.interlock.loading { yield }
+    end
+
+    # Execute the supplied block while holding an exclusive lock,
+    # preventing any other thread from being inside a #run_interlock
+    # block at the same time
+    def self.unload_interlock
+      Dependencies.interlock.unloading { yield }
+    end
+
+    # :nodoc:
 
     # Should we turn on Ruby warnings on the first load of dependent files?
     mattr_accessor :warnings_on_first_load
@@ -28,6 +57,10 @@ module ActiveSupport #:nodoc:
     # All files currently loaded.
     mattr_accessor :loaded
     self.loaded = Set.new
+
+    # Stack of files being loaded.
+    mattr_accessor :loading
+    self.loading = []
 
     # Should we load files or require them?
     mattr_accessor :mechanism
@@ -123,7 +156,7 @@ module ActiveSupport #:nodoc:
 
           # Normalize the list of new constants, and add them to the list we will return
           new_constants.each do |suffix|
-            constants << ([namespace, suffix] - ["Object"]).join("::")
+            constants << ([namespace, suffix] - ["Object"]).join("::".freeze)
           end
         end
         constants
@@ -175,12 +208,21 @@ module ActiveSupport #:nodoc:
       end
 
       def const_missing(const_name)
-        # The interpreter does not pass nesting information, and in the
-        # case of anonymous modules we cannot even make the trade-off of
-        # assuming their name reflects the nesting. Resort to Object as
-        # the only meaningful guess we can make.
-        from_mod = anonymous? ? ::Object : self
+        from_mod = anonymous? ? guess_for_anonymous(const_name) : self
         Dependencies.load_missing_constant(from_mod, const_name)
+      end
+
+      # We assume that the name of the module reflects the nesting
+      # (unless it can be proven that is not the case) and the path to the file
+      # that defines the constant. Anonymous modules cannot follow these
+      # conventions and therefore we assume that the user wants to refer to a
+      # top-level constant.
+      def guess_for_anonymous(const_name)
+        if Object.const_defined?(const_name)
+          raise NameError.new "#{const_name} cannot be autoloaded from an anonymous class or module", const_name
+        else
+          Object
+        end
       end
 
       def unloadable(const_desc = self)
@@ -191,16 +233,29 @@ module ActiveSupport #:nodoc:
     # Object includes this module.
     module Loadable #:nodoc:
       def self.exclude_from(base)
-        base.class_eval { define_method(:load, Kernel.instance_method(:load)) }
+        base.class_eval do
+          define_method(:load, Kernel.instance_method(:load))
+          private :load
+        end
       end
 
       def require_or_load(file_name)
         Dependencies.require_or_load(file_name)
       end
 
+      # Interprets a file using <tt>mechanism</tt> and marks its defined
+      # constants as autoloaded. <tt>file_name</tt> can be either a string or
+      # respond to <tt>to_path</tt>.
+      #
+      # Use this method in code that absolutely needs a certain constant to be
+      # defined at that point. A typical use case is to make constant name
+      # resolution deterministic for constants with the same relative name in
+      # different namespaces whose evaluation would depend on load order
+      # otherwise.
       def require_dependency(file_name, message = "No such file to load -- %s")
+        file_name = file_name.to_path if file_name.respond_to?(:to_path)
         unless file_name.is_a?(String)
-          raise ArgumentError, "the file name must be a String -- you passed #{file_name.inspect}"
+          raise ArgumentError, "the file name must either be a String or implement #to_path -- you passed #{file_name.inspect}"
         end
 
         Dependencies.depend_on(file_name, message)
@@ -215,18 +270,6 @@ module ActiveSupport #:nodoc:
       rescue Exception => exception  # errors from loading file
         exception.blame_file! file if exception.respond_to? :blame_file!
         raise
-      end
-
-      def load(file, wrap = false)
-        result = false
-        load_dependency(file) { result = super }
-        result
-      end
-
-      def require(file)
-        result = false
-        load_dependency(file) { result = super }
-        result
       end
 
       # Mark the given constant as unloadable. Unloadable constants are removed
@@ -244,6 +287,20 @@ module ActiveSupport #:nodoc:
       # +false+ otherwise.
       def unloadable(const_desc)
         Dependencies.mark_for_unload const_desc
+      end
+
+      private
+
+      def load(file, wrap = false)
+        result = false
+        load_dependency(file) { result = super }
+        result
+      end
+
+      def require(file)
+        result = false
+        load_dependency(file) { result = super }
+        result
       end
     end
 
@@ -296,8 +353,11 @@ module ActiveSupport #:nodoc:
 
     def clear
       log_call
-      loaded.clear
-      remove_unloadable_constants!
+      Dependencies.unload_interlock do
+        loaded.clear
+        loading.clear
+        remove_unloadable_constants!
+      end
     end
 
     def require_or_load(file_name, const_path = nil)
@@ -306,41 +366,49 @@ module ActiveSupport #:nodoc:
       expanded = File.expand_path(file_name)
       return if loaded.include?(expanded)
 
-      # Record that we've seen this file *before* loading it to avoid an
-      # infinite loop with mutual dependencies.
-      loaded << expanded
+      Dependencies.load_interlock do
+        # Maybe it got loaded while we were waiting for our lock:
+        return if loaded.include?(expanded)
 
-      begin
-        if load?
-          log "loading #{file_name}"
+        # Record that we've seen this file *before* loading it to avoid an
+        # infinite loop with mutual dependencies.
+        loaded << expanded
+        loading << expanded
 
-          # Enable warnings if this file has not been loaded before and
-          # warnings_on_first_load is set.
-          load_args = ["#{file_name}.rb"]
-          load_args << const_path unless const_path.nil?
+        begin
+          if load?
+            log "loading #{file_name}"
 
-          if !warnings_on_first_load or history.include?(expanded)
-            result = load_file(*load_args)
+            # Enable warnings if this file has not been loaded before and
+            # warnings_on_first_load is set.
+            load_args = ["#{file_name}.rb"]
+            load_args << const_path unless const_path.nil?
+
+            if !warnings_on_first_load or history.include?(expanded)
+              result = load_file(*load_args)
+            else
+              enable_warnings { result = load_file(*load_args) }
+            end
           else
-            enable_warnings { result = load_file(*load_args) }
+            log "requiring #{file_name}"
+            result = require file_name
           end
-        else
-          log "requiring #{file_name}"
-          result = require file_name
+        rescue Exception
+          loaded.delete expanded
+          raise
+        ensure
+          loading.pop
         end
-      rescue Exception
-        loaded.delete expanded
-        raise
-      end
 
-      # Record history *after* loading so first load gets warnings.
-      history << expanded
-      result
+        # Record history *after* loading so first load gets warnings.
+        history << expanded
+        result
+      end
     end
 
     # Is the provided constant path defined?
     def qualified_const_defined?(path)
-      Object.qualified_const_defined?(path.sub(/^::/, ''), false)
+      Object.const_defined?(path, false)
     end
 
     # Given +path+, a filesystem path to a ruby file, return an array of
@@ -368,7 +436,7 @@ module ActiveSupport #:nodoc:
 
     # Search for a file in autoload_paths matching the provided suffix.
     def search_for_file(path_suffix)
-      path_suffix = path_suffix.sub(/(\.rb)?$/, ".rb")
+      path_suffix = path_suffix.sub(/(\.rb)?$/, ".rb".freeze)
 
       autoload_paths.each do |root|
         path = File.join(root, path_suffix)
@@ -388,7 +456,8 @@ module ActiveSupport #:nodoc:
     end
 
     def load_once_path?(path)
-      # to_s works around a ruby1.9 issue where #starts_with?(Pathname) will always return false
+      # to_s works around a ruby issue where String#starts_with?(Pathname)
+      # will raise a TypeError: no implicit conversion of Pathname into String
       autoload_once_paths.any? { |base| path.starts_with? base.to_s }
     end
 
@@ -445,8 +514,6 @@ module ActiveSupport #:nodoc:
         raise ArgumentError, "A copy of #{from_mod} has been removed from the module tree but is still active!"
       end
 
-      raise NameError, "#{from_mod} is not missing constant #{const_name}!" if from_mod.const_defined?(const_name, false)
-
       qualified_name = qualified_name_for from_mod, const_name
       path_suffix = qualified_name.underscore
 
@@ -454,9 +521,9 @@ module ActiveSupport #:nodoc:
 
       if file_path
         expanded = File.expand_path(file_path)
-        expanded.sub!(/\.rb\z/, '')
+        expanded.sub!(/\.rb\z/, ''.freeze)
 
-        if loaded.include?(expanded)
+        if loading.include?(expanded)
           raise "Circular dependency detected while autoloading constant #{qualified_name}"
         else
           require_or_load(expanded, qualified_name)
@@ -497,9 +564,9 @@ module ActiveSupport #:nodoc:
         end
       end
 
-      raise NameError,
-            "uninitialized constant #{qualified_name}",
-            caller.reject { |l| l.starts_with? __FILE__ }
+      name_error = NameError.new("uninitialized constant #{qualified_name}", const_name)
+      name_error.set_backtrace(caller.reject {|l| l.starts_with? __FILE__ })
+      raise name_error
     end
 
     # Remove the constants that have been autoloaded, and those that have been
@@ -575,7 +642,7 @@ module ActiveSupport #:nodoc:
     def autoloaded?(desc)
       return false if desc.is_a?(Module) && desc.anonymous?
       name = to_constant_name desc
-      return false unless qualified_const_defined? name
+      return false unless qualified_const_defined?(name)
       return autoloaded_constants.include?(name)
     end
 
@@ -648,6 +715,14 @@ module ActiveSupport #:nodoc:
       constants = normalized.split('::')
       to_remove = constants.pop
 
+      # Remove the file path from the loaded list.
+      file_path = search_for_file(const.underscore)
+      if file_path
+        expanded = File.expand_path(file_path)
+        expanded.sub!(/\.rb\z/, '')
+        self.loaded.delete(expanded)
+      end
+
       if constants.empty?
         parent = Object
       else
@@ -702,7 +777,7 @@ module ActiveSupport #:nodoc:
     protected
       def log_call(*args)
         if log_activity?
-          arg_str = args.collect { |arg| arg.inspect } * ', '
+          arg_str = args.collect(&:inspect) * ', '
           /in `([a-z_\?\!]+)'/ =~ caller(1).first
           selector = $1 || '<unknown>'
           log "called #{selector}(#{arg_str})"

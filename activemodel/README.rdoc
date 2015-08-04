@@ -50,6 +50,7 @@ behavior out of the box:
       end
     end
 
+    person = Person.new
     person.clear_name
     person.clear_age
 
@@ -78,7 +79,21 @@ behavior out of the box:
     class Person
       include ActiveModel::Dirty
 
-      attr_accessor :name
+      define_attribute_methods :name
+
+      def name
+        @name
+      end
+
+      def name=(val)
+        name_will_change! unless val == @name
+        @name = val
+      end
+
+      def save
+        # do persistence work
+        changes_applied
+      end
     end
 
     person = Person.new
@@ -88,6 +103,7 @@ behavior out of the box:
     person.changed?         # => true
     person.changed          # => ['name']
     person.changes          # => { 'name' => [nil, 'bob'] }
+    person.save
     person.name = 'robert'
     person.save
     person.previous_changes # => {'name' => ['bob, 'robert']}
@@ -109,7 +125,7 @@ behavior out of the box:
       attr_reader   :errors
 
       def validate!
-        errors.add(:name, "can not be nil") if name.nil?
+        errors.add(:name, "cannot be nil") if name.nil?
       end
 
       def self.human_attribute_name(attr, options = {})
@@ -117,8 +133,11 @@ behavior out of the box:
       end
     end
 
+    person = Person.new
+    person.name = nil
+    person.validate!
     person.errors.full_messages
-    # => ["Name can not be nil"]
+    # => ["Name cannot be nil"]
 
   {Learn more}[link:classes/ActiveModel/Errors.html]
 
@@ -128,14 +147,14 @@ behavior out of the box:
       extend ActiveModel::Naming
     end
 
-    NamedPerson.model_name        # => "NamedPerson"
+    NamedPerson.model_name.name   # => "NamedPerson"
     NamedPerson.model_name.human  # => "Named person"
 
   {Learn more}[link:classes/ActiveModel/Naming.html]
 
 * Making objects serializable
 
-  ActiveModel::Serialization provides a standard interface for your object
+  <tt>ActiveModel::Serialization</tt> provides a standard interface for your object
   to provide +to_json+ or +to_xml+ serialization.
 
     class SerialPerson
@@ -180,41 +199,41 @@ behavior out of the box:
 
 * Validation support
 
-   class Person
-     include ActiveModel::Validations
+    class Person
+      include ActiveModel::Validations
 
-     attr_accessor :first_name, :last_name
+      attr_accessor :first_name, :last_name
 
-     validates_each :first_name, :last_name do |record, attr, value|
-       record.errors.add attr, 'starts with z.' if value.to_s[0] == ?z
-     end
-   end
+      validates_each :first_name, :last_name do |record, attr, value|
+        record.errors.add attr, 'starts with z.' if value.to_s[0] == ?z
+      end
+    end
 
-   person = Person.new
-   person.first_name = 'zoolander'
-   person.valid?  # => false
+    person = Person.new
+    person.first_name = 'zoolander'
+    person.valid?  # => false
 
   {Learn more}[link:classes/ActiveModel/Validations.html]
 
 * Custom validators
 
-   class ValidatorPerson
-     include ActiveModel::Validations
-     validates_with HasNameValidator
-     attr_accessor :name
-   end
+    class HasNameValidator < ActiveModel::Validator
+      def validate(record)
+        record.errors.add(:name, "must exist") if record.name.blank?
+      end
+    end
 
-   class HasNameValidator < ActiveModel::Validator
-     def validate(record)
-       record.errors[:name] = "must exist" if record.name.blank?
-     end
-   end
+    class ValidatorPerson
+      include ActiveModel::Validations
+      validates_with HasNameValidator
+      attr_accessor :name
+    end
 
-   p = ValidatorPerson.new
-   p.valid?                  # =>  false
-   p.errors.full_messages    # => ["Name must exist"]
-   p.name = "Bob"
-   p.valid?                  # =>  true
+    p = ValidatorPerson.new
+    p.valid?                  # =>  false
+    p.errors.full_messages    # => ["Name must exist"]
+    p.name = "Bob"
+    p.valid?                  # =>  true
 
   {Learn more}[link:classes/ActiveModel/Validator.html]
 
@@ -223,7 +242,7 @@ behavior out of the box:
 
 The latest version of Active Model can be installed with RubyGems:
 
-  % [sudo] gem install activemodel
+  % gem install activemodel
 
 Source code can be downloaded as part of the Rails project on GitHub
 
@@ -243,6 +262,11 @@ API documentation is at
 
 * http://api.rubyonrails.org
 
-Bug reports and feature requests can be filed with the rest for the Ruby on Rails project here:
+Bug reports can be filed for the Ruby on Rails project here:
 
 * https://github.com/rails/rails/issues
+
+Feature requests should be discussed on the rails-core mailing list here:
+
+* https://groups.google.com/forum/?fromgroups#!forum/rubyonrails-core
+

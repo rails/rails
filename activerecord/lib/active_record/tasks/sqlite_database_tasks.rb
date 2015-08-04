@@ -3,7 +3,7 @@ module ActiveRecord
     class SQLiteDatabaseTasks # :nodoc:
       delegate :connection, :establish_connection, to: ActiveRecord::Base
 
-      def initialize(configuration, root = Rails.root)
+      def initialize(configuration, root = ActiveRecord::Tasks::DatabaseTasks.root)
         @configuration, @root = configuration, root
       end
 
@@ -21,7 +21,11 @@ module ActiveRecord
 
         FileUtils.rm(file) if File.exist?(file)
       end
-      alias :purge :drop
+
+      def purge
+        drop
+        create
+      end
 
       def charset
         connection.encoding

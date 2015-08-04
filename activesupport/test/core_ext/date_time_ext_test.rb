@@ -1,6 +1,7 @@
 require 'abstract_unit'
 require 'active_support/time'
 require 'core_ext/date_and_time_behavior'
+require 'time_zone_test_helpers'
 
 class DateTimeExtCalculationsTest < ActiveSupport::TestCase
   def date_time_init(year,month,day,hour,minute,second,*args)
@@ -8,6 +9,7 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
   end
 
   include DateAndTimeBehavior
+  include TimeZoneTestHelpers
 
   def test_to_s
     datetime = DateTime.new(2005, 2, 21, 14, 30, 0, 0)
@@ -162,6 +164,12 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal DateTime.civil(2013,10,17,20,22,19), DateTime.civil(2005,2,28,15,15,10).advance(:years => 7, :months => 19, :weeks => 2, :days => 5, :hours => 5, :minutes => 7, :seconds => 9)
   end
 
+  def test_advance_partial_days
+    assert_equal DateTime.civil(2012,9,29,13,15,10),  DateTime.civil(2012,9,28,1,15,10).advance(:days => 1.5)
+    assert_equal DateTime.civil(2012,9,28,13,15,10),  DateTime.civil(2012,9,28,1,15,10).advance(:days => 0.5)
+    assert_equal DateTime.civil(2012,10,29,13,15,10), DateTime.civil(2012,9,28,1,15,10).advance(:days => 1.5, :months => 1)
+  end
+
   def test_advanced_processes_first_the_date_deltas_and_then_the_time_deltas
     # If the time deltas were processed first, the following datetimes would be advanced to 2010/04/01 instead.
     assert_equal DateTime.civil(2010, 3, 29), DateTime.civil(2010, 2, 28, 23, 59, 59).advance(:months => 1, :seconds => 1)
@@ -196,61 +204,69 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
   end
 
   def test_today_with_offset
-    Date.stubs(:current).returns(Date.new(2000, 1, 1))
-    assert_equal false, DateTime.civil(1999,12,31,23,59,59, Rational(-18000, 86400)).today?
-    assert_equal true,  DateTime.civil(2000,1,1,0,0,0, Rational(-18000, 86400)).today?
-    assert_equal true,  DateTime.civil(2000,1,1,23,59,59, Rational(-18000, 86400)).today?
-    assert_equal false, DateTime.civil(2000,1,2,0,0,0, Rational(-18000, 86400)).today?
+    Date.stub(:current, Date.new(2000, 1, 1)) do
+      assert_equal false, DateTime.civil(1999,12,31,23,59,59, Rational(-18000, 86400)).today?
+      assert_equal true,  DateTime.civil(2000,1,1,0,0,0, Rational(-18000, 86400)).today?
+      assert_equal true,  DateTime.civil(2000,1,1,23,59,59, Rational(-18000, 86400)).today?
+      assert_equal false, DateTime.civil(2000,1,2,0,0,0, Rational(-18000, 86400)).today?
+    end
   end
 
   def test_today_without_offset
-    Date.stubs(:current).returns(Date.new(2000, 1, 1))
-    assert_equal false, DateTime.civil(1999,12,31,23,59,59).today?
-    assert_equal true,  DateTime.civil(2000,1,1,0).today?
-    assert_equal true,  DateTime.civil(2000,1,1,23,59,59).today?
-    assert_equal false, DateTime.civil(2000,1,2,0).today?
+    Date.stub(:current, Date.new(2000, 1, 1)) do
+      assert_equal false, DateTime.civil(1999,12,31,23,59,59).today?
+      assert_equal true,  DateTime.civil(2000,1,1,0).today?
+      assert_equal true,  DateTime.civil(2000,1,1,23,59,59).today?
+      assert_equal false, DateTime.civil(2000,1,2,0).today?
+    end
   end
 
   def test_past_with_offset
-    DateTime.stubs(:current).returns(DateTime.civil(2005,2,10,15,30,45, Rational(-18000, 86400)))
-    assert_equal true,  DateTime.civil(2005,2,10,15,30,44, Rational(-18000, 86400)).past?
-    assert_equal false,  DateTime.civil(2005,2,10,15,30,45, Rational(-18000, 86400)).past?
-    assert_equal false,  DateTime.civil(2005,2,10,15,30,46, Rational(-18000, 86400)).past?
+    DateTime.stub(:current, DateTime.civil(2005,2,10,15,30,45, Rational(-18000, 86400))) do
+      assert_equal true,  DateTime.civil(2005,2,10,15,30,44, Rational(-18000, 86400)).past?
+      assert_equal false,  DateTime.civil(2005,2,10,15,30,45, Rational(-18000, 86400)).past?
+      assert_equal false,  DateTime.civil(2005,2,10,15,30,46, Rational(-18000, 86400)).past?
+    end
   end
 
   def test_past_without_offset
-    DateTime.stubs(:current).returns(DateTime.civil(2005,2,10,15,30,45, Rational(-18000, 86400)))
-    assert_equal true,  DateTime.civil(2005,2,10,20,30,44).past?
-    assert_equal false,  DateTime.civil(2005,2,10,20,30,45).past?
-    assert_equal false,  DateTime.civil(2005,2,10,20,30,46).past?
+    DateTime.stub(:current, DateTime.civil(2005,2,10,15,30,45, Rational(-18000, 86400))) do
+      assert_equal true,  DateTime.civil(2005,2,10,20,30,44).past?
+      assert_equal false,  DateTime.civil(2005,2,10,20,30,45).past?
+      assert_equal false,  DateTime.civil(2005,2,10,20,30,46).past?
+    end
   end
 
   def test_future_with_offset
-    DateTime.stubs(:current).returns(DateTime.civil(2005,2,10,15,30,45, Rational(-18000, 86400)))
-    assert_equal false,  DateTime.civil(2005,2,10,15,30,44, Rational(-18000, 86400)).future?
-    assert_equal false,  DateTime.civil(2005,2,10,15,30,45, Rational(-18000, 86400)).future?
-    assert_equal true,  DateTime.civil(2005,2,10,15,30,46, Rational(-18000, 86400)).future?
+    DateTime.stub(:current, DateTime.civil(2005,2,10,15,30,45, Rational(-18000, 86400))) do
+      assert_equal false,  DateTime.civil(2005,2,10,15,30,44, Rational(-18000, 86400)).future?
+      assert_equal false,  DateTime.civil(2005,2,10,15,30,45, Rational(-18000, 86400)).future?
+      assert_equal true,  DateTime.civil(2005,2,10,15,30,46, Rational(-18000, 86400)).future?
+    end
   end
 
   def test_future_without_offset
-    DateTime.stubs(:current).returns(DateTime.civil(2005,2,10,15,30,45, Rational(-18000, 86400)))
-    assert_equal false,  DateTime.civil(2005,2,10,20,30,44).future?
-    assert_equal false,  DateTime.civil(2005,2,10,20,30,45).future?
-    assert_equal true,  DateTime.civil(2005,2,10,20,30,46).future?
+    DateTime.stub(:current, DateTime.civil(2005,2,10,15,30,45, Rational(-18000, 86400))) do
+      assert_equal false,  DateTime.civil(2005,2,10,20,30,44).future?
+      assert_equal false,  DateTime.civil(2005,2,10,20,30,45).future?
+      assert_equal true,  DateTime.civil(2005,2,10,20,30,46).future?
+    end
   end
 
   def test_current_returns_date_today_when_zone_is_not_set
     with_env_tz 'US/Eastern' do
-      Time.stubs(:now).returns Time.local(1999, 12, 31, 23, 59, 59)
-      assert_equal DateTime.new(1999, 12, 31, 23, 59, 59, Rational(-18000, 86400)), DateTime.current
+      Time.stub(:now, Time.local(1999, 12, 31, 23, 59, 59)) do
+        assert_equal DateTime.new(1999, 12, 31, 23, 59, 59, Rational(-18000, 86400)), DateTime.current
+      end
     end
   end
 
   def test_current_returns_time_zone_today_when_zone_is_set
     Time.zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
     with_env_tz 'US/Eastern' do
-      Time.stubs(:now).returns Time.local(1999, 12, 31, 23, 59, 59)
-      assert_equal DateTime.new(1999, 12, 31, 23, 59, 59, Rational(-18000, 86400)), DateTime.current
+      Time.stub(:now, Time.local(1999, 12, 31, 23, 59, 59)) do
+        assert_equal DateTime.new(1999, 12, 31, 23, 59, 59, Rational(-18000, 86400)), DateTime.current
+      end
     end
   ensure
     Time.zone = nil
@@ -327,9 +343,17 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal(-1, DateTime.civil(2000) <=> ActiveSupport::TimeWithZone.new( Time.utc(2000, 1, 1, 0, 0, 1), ActiveSupport::TimeZone['UTC'] ))
   end
 
+  def test_compare_with_string
+    assert_equal   1, DateTime.civil(2000) <=> Time.utc(1999, 12, 31, 23, 59, 59).to_s
+    assert_equal   0, DateTime.civil(2000) <=> Time.utc(2000, 1, 1, 0, 0, 0).to_s
+    assert_equal( -1, DateTime.civil(2000) <=> Time.utc(2000, 1, 1, 0, 0, 1).to_s)
+    assert_equal nil, DateTime.civil(2000) <=> "Invalid as Time"
+  end
+
   def test_to_f
     assert_equal 946684800.0, DateTime.civil(2000).to_f
     assert_equal 946684800.0, DateTime.civil(1999,12,31,19,0,0,Rational(-5,24)).to_f
+    assert_equal 946684800.5, DateTime.civil(1999,12,31,19,0,0.5,Rational(-5,24)).to_f
   end
 
   def test_to_i
@@ -346,12 +370,4 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal 0, DateTime.civil(2000).nsec
     assert_equal 500000000, DateTime.civil(2000, 1, 1, 0, 0, Rational(1,2)).nsec
   end
-
-  protected
-    def with_env_tz(new_tz = 'US/Eastern')
-      old_tz, ENV['TZ'] = ENV['TZ'], new_tz
-      yield
-    ensure
-      old_tz ? ENV['TZ'] = old_tz : ENV.delete('TZ')
-    end
 end

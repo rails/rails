@@ -38,7 +38,7 @@ module Rails
     end
 
     def readme
-      copy_file "README.rdoc", "README.rdoc"
+      copy_file "README.md", "README.md"
     end
 
     def gemfile
@@ -50,7 +50,7 @@ module Rails
     end
 
     def gitignore
-      copy_file "gitignore", ".gitignore"
+      template "gitignore", ".gitignore"
     end
 
     def app
@@ -78,10 +78,31 @@ module Rails
         template "routes.rb"
         template "application.rb"
         template "environment.rb"
+        template "secrets.yml"
 
         directory "environments"
         directory "initializers"
         directory "locales"
+      end
+    end
+
+    def config_when_updating
+      cookie_serializer_config_exist = File.exist?('config/initializers/cookies_serializer.rb')
+      callback_terminator_config_exist = File.exist?('config/initializers/callback_terminator.rb')
+      active_record_belongs_to_required_by_default_config_exist = File.exist?('config/initializers/active_record_belongs_to_required_by_default.rb')
+
+      config
+
+      unless callback_terminator_config_exist
+        remove_file 'config/initializers/callback_terminator.rb'
+      end
+
+      unless cookie_serializer_config_exist
+        gsub_file 'config/initializers/cookies_serializer.rb', /json/, 'marshal'
+      end
+
+      unless active_record_belongs_to_required_by_default_config_exist
+        remove_file 'config/initializers/active_record_belongs_to_required_by_default.rb'
       end
     end
 
@@ -109,6 +130,7 @@ module Rails
 
     def test
       empty_directory_with_keep_file 'test/fixtures'
+      empty_directory_with_keep_file 'test/fixtures/files'
       empty_directory_with_keep_file 'test/controllers'
       empty_directory_with_keep_file 'test/mailers'
       empty_directory_with_keep_file 'test/models'
@@ -119,6 +141,7 @@ module Rails
     end
 
     def tmp
+      empty_directory_with_keep_file "tmp"
       empty_directory "tmp/cache"
       empty_directory "tmp/cache/assets"
     end
@@ -129,7 +152,9 @@ module Rails
     end
 
     def vendor_javascripts
-      empty_directory_with_keep_file 'vendor/assets/javascripts'
+      unless options[:skip_javascript]
+        empty_directory_with_keep_file 'vendor/assets/javascripts'
+      end
     end
 
     def vendor_stylesheets
@@ -150,24 +175,26 @@ module Rails
       class_option :version, type: :boolean, aliases: "-v", group: :rails,
                              desc: "Show Rails version number and quit"
 
-      def initialize(*args)
-        if args[0].blank?
-          if args[1].blank?
-            # rails new
-            raise Error, "Application name should be provided in arguments. For details run: rails --help"
-          else
-            # rails new --skip-bundle my_new_application
-            raise Error, "Options should be given after the application name. For details run: rails --help"
-          end
-        end
+      class_option :api, type: :boolean,
+                         desc: "Preconfigure smaller stack for API only apps"
 
+      def initialize(*args)
         super
+
+        unless app_path
+          raise Error, "Application name should be provided in arguments. For details run: rails --help"
+        end
 
         if !options[:skip_active_record] && !DATABASES.include?(options[:database])
           raise Error, "Invalid value for --database option. Supported for preconfiguration are: #{DATABASES.join(", ")}."
         end
+
+        # Force sprockets to be skipped when generating API only apps.
+        # Can't modify options hash as it's frozen by default.
+        self.options = options.merge(skip_sprockets: true, skip_javascript: true).freeze if options[:api]
       end
 
+      public_task :set_default_accessors!
       public_task :create_root
 
       def create_root_files
@@ -189,6 +216,11 @@ module Rails
       def create_config_files
         build(:config)
       end
+
+      def update_config_files
+        build(:config_when_updating)
+      end
+      remove_task :update_config_files
 
       def create_boot_file
         template "config/boot.rb"
@@ -216,7 +248,7 @@ module Rails
       end
 
       def create_test_files
-        build(:test) unless options[:skip_test_unit]
+        build(:test) unless options[:skip_test]
       end
 
       def create_tmp_files
@@ -227,11 +259,63 @@ module Rails
         build(:vendor)
       end
 
+      def delete_app_assets_if_api_option
+        if options[:api]
+          remove_dir 'app/assets'
+          remove_dir 'lib/assets'
+          remove_dir 'tmp/cache/assets'
+          remove_dir 'vendor/assets'
+        end
+      end
+
+      def delete_app_helpers_if_api_option
+        if options[:api]
+          remove_dir 'app/helpers'
+          remove_dir 'test/helpers'
+        end
+      end
+
+      def delete_app_views_if_api_option
+        if options[:api]
+          remove_dir 'app/views'
+        end
+      end
+
+      def delete_js_folder_skipping_javascript
+        if options[:skip_javascript]
+          remove_dir 'app/assets/javascripts'
+        end
+      end
+
+      def delete_assets_initializer_skipping_sprockets
+        if options[:skip_sprockets]
+          remove_file 'config/initializers/assets.rb'
+        end
+      end
+
+      def delete_active_record_initializers_skipping_active_record
+        if options[:skip_active_record]
+          remove_file 'config/initializers/active_record_belongs_to_required_by_default.rb'
+        end
+      end
+
+      def delete_non_api_initializers_if_api_option
+        if options[:api]
+          remove_file 'config/initializers/session_store.rb'
+          remove_file 'config/initializers/cookies_serializer.rb'
+        end
+      end
+
       def finish_template
         build(:leftovers)
       end
 
       public_task :apply_rails_template, :run_bundle
+      public_task :generate_spring_binstubs
+
+      def run_after_bundle_callbacks
+        @after_bundle_callbacks.each(&:call)
+      end
 
     protected
 
@@ -245,7 +329,7 @@ module Rails
       end
 
       def app_name
-        @app_name ||= (defined_app_const_base? ? defined_app_name : File.basename(destination_root)).tr(".", "_")
+        @app_name ||= (defined_app_const_base? ? defined_app_name : File.basename(destination_root)).tr('\\', '').tr(". ", "_")
       end
 
       def defined_app_name
@@ -272,7 +356,9 @@ module Rails
         if app_const =~ /^\d/
           raise Error, "Invalid application name #{app_name}. Please give a name which does not start with numbers."
         elsif RESERVED_NAMES.include?(app_name)
-          raise Error, "Invalid application name #{app_name}. Please give a name which does not match one of the reserved rails words."
+          raise Error, "Invalid application name #{app_name}. Please give a " \
+                       "name which does not match one of the reserved rails " \
+                       "words: #{RESERVED_NAMES.join(", ")}"
         elsif Object.const_defined?(app_const_base)
           raise Error, "Invalid application name #{app_name}, constant #{app_const_base} is already in use. Please choose another application name."
         end
@@ -308,58 +394,67 @@ module Rails
     #
     # This class should be called before the AppGenerator is required and started
     # since it configures and mutates ARGV correctly.
-    class AppPreparer # :nodoc
-      attr_reader :argv
-
+    class ARGVScrubber # :nodoc:
       def initialize(argv = ARGV)
         @argv = argv
       end
 
       def prepare!
-        handle_version_request!(argv.first)
-        unless handle_invalid_command!(argv.first)
-          argv.shift
-          handle_rails_rc!
+        handle_version_request!(@argv.first)
+        handle_invalid_command!(@argv.first, @argv) do
+          handle_rails_rc!(@argv.drop(1))
         end
+      end
+
+      def self.default_rc_file
+        File.expand_path('~/.railsrc')
       end
 
       private
 
         def handle_version_request!(argument)
-          if ['--version', '-v'].include?(argv.first)
+          if ['--version', '-v'].include?(argument)
             require 'rails/version'
             puts "Rails #{Rails::VERSION::STRING}"
             exit(0)
           end
         end
 
-        def handle_invalid_command!(argument)
-          if argument != "new"
-            argv[0] = "--help"
-          end
-        end
-
-        def handle_rails_rc!
-          unless argv.delete("--no-rc")
-            insert_railsrc(railsrc)
-          end
-        end
-
-        def railsrc
-          if (customrc = argv.index{ |x| x.include?("--rc=") })
-            File.expand_path(argv.delete_at(customrc).gsub(/--rc=/, ""))
+        def handle_invalid_command!(argument, argv)
+          if argument == "new"
+            yield
           else
-            File.join(File.expand_path("~"), '.railsrc')
+            ['--help'] + argv.drop(1)
           end
         end
 
-        def insert_railsrc(railsrc)
-          if File.exist?(railsrc)
-            extra_args_string = File.read(railsrc)
-            extra_args = extra_args_string.split(/\n+/).map {|l| l.split}.flatten
-            puts "Using #{extra_args.join(" ")} from #{railsrc}"
-            argv.insert(1, *extra_args)
+        def handle_rails_rc!(argv)
+          if argv.find { |arg| arg == '--no-rc' }
+            argv.reject { |arg| arg == '--no-rc' }
+          else
+            railsrc(argv) { |rc_argv, rc| insert_railsrc_into_argv!(rc_argv, rc) }
           end
+        end
+
+        def railsrc(argv)
+          if (customrc = argv.index{ |x| x.include?("--rc=") })
+            fname = File.expand_path(argv[customrc].gsub(/--rc=/, ""))
+            yield(argv.take(customrc) + argv.drop(customrc + 1), fname)
+          else
+            yield argv, self.class.default_rc_file
+          end
+        end
+
+        def read_rc_file(railsrc)
+          extra_args = File.readlines(railsrc).flat_map(&:split)
+          puts "Using #{extra_args.join(" ")} from #{railsrc}"
+          extra_args
+        end
+
+        def insert_railsrc_into_argv!(argv, railsrc)
+          return argv unless File.exist?(railsrc)
+          extra_args = read_rc_file railsrc
+          argv.take(1) + extra_args + argv.drop(1)
         end
     end
   end

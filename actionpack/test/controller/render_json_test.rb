@@ -28,7 +28,7 @@ class RenderJsonTest < ActionController::TestCase
     end
 
     def render_json_render_to_string
-      render :text => render_to_string(:json => '[]')
+      render plain: render_to_string(json: '[]')
     end
 
     def render_json_hello_world
@@ -100,13 +100,13 @@ class RenderJsonTest < ActionController::TestCase
   end
 
   def test_render_json_with_callback
-    get :render_json_hello_world_with_callback
-    assert_equal 'alert({"hello":"world"})', @response.body
+    get :render_json_hello_world_with_callback, xhr: true
+    assert_equal '/**/alert({"hello":"world"})', @response.body
     assert_equal 'text/javascript', @response.content_type
   end
 
   def test_render_json_with_custom_content_type
-    get :render_json_with_custom_content_type
+    get :render_json_with_custom_content_type, xhr: true
     assert_equal '{"hello":"world"}', @response.body
     assert_equal 'text/javascript', @response.content_type
   end

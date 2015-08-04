@@ -1,9 +1,8 @@
-# encoding: utf-8
 
 module MultibyteTestHelpers
-  UNICODE_STRING = 'こにちわ'
-  ASCII_STRING = 'ohayo'
-  BYTE_STRING = "\270\236\010\210\245".force_encoding("ASCII-8BIT")
+  UNICODE_STRING = 'こにちわ'.freeze
+  ASCII_STRING = 'ohayo'.freeze
+  BYTE_STRING = "\270\236\010\210\245".force_encoding("ASCII-8BIT").freeze
 
   def chars(str)
     ActiveSupport::Multibyte::Chars.new(str)

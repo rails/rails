@@ -1,11 +1,57 @@
 # encoding: utf-8
+
 module ActionDispatch
   module Journey # :nodoc:
+    class Format
+      ESCAPE_PATH    = ->(value) { Router::Utils.escape_path(value) }
+      ESCAPE_SEGMENT = ->(value) { Router::Utils.escape_segment(value) }
+
+      class Parameter < Struct.new(:name, :escaper)
+        def escape(value); escaper.call value; end
+      end
+
+      def self.required_path(symbol)
+        Parameter.new symbol, ESCAPE_PATH
+      end
+
+      def self.required_segment(symbol)
+        Parameter.new symbol, ESCAPE_SEGMENT
+      end
+
+      def initialize(parts)
+        @parts      = parts
+        @children   = []
+        @parameters = []
+
+        parts.each_with_index do |object,i|
+          case object
+          when Journey::Format
+            @children << i
+          when Parameter
+            @parameters << i
+          end
+        end
+      end
+
+      def evaluate(hash)
+        parts = @parts.dup
+
+        @parameters.each do |index|
+          param = parts[index]
+          value = hash[param.name]
+          return ''.freeze unless value
+          parts[index] = param.escape value
+        end
+
+        @children.each { |index| parts[index] = parts[index].evaluate(hash) }
+
+        parts.join
+      end
+    end
+
     module Visitors # :nodoc:
       class Visitor # :nodoc:
-        DISPATCH_CACHE = Hash.new { |h,k|
-          h[k] = :"visit_#{k}"
-        }
+        DISPATCH_CACHE = {}
 
         def accept(node)
           visit(node)
@@ -35,9 +81,39 @@ module ActionDispatch
           def visit_STAR(n); unary(n); end
 
           def terminal(node); end
-          %w{ LITERAL SYMBOL SLASH DOT }.each do |t|
-            class_eval %{ def visit_#{t}(n); terminal(n); end }, __FILE__, __LINE__
+          def visit_LITERAL(n); terminal(n); end
+          def visit_SYMBOL(n);  terminal(n); end
+          def visit_SLASH(n);   terminal(n); end
+          def visit_DOT(n);     terminal(n); end
+
+          private_instance_methods(false).each do |pim|
+            next unless pim =~ /^visit_(.*)$/
+            DISPATCH_CACHE[$1.to_sym] = pim
           end
+      end
+
+      class FormatBuilder < Visitor # :nodoc:
+        def accept(node); Journey::Format.new(super); end
+        def terminal(node); [node.left]; end
+
+        def binary(node)
+          visit(node.left) + visit(node.right)
+        end
+
+        def visit_GROUP(n); [Journey::Format.new(unary(n))]; end
+
+        def visit_STAR(n)
+          [Journey::Format.required_path(n.left.to_sym)]
+        end
+
+        def visit_SYMBOL(n)
+          symbol = n.to_sym
+          if symbol == :controller
+            [Journey::Format.required_path(symbol)]
+          else
+            [Journey::Format.required_segment(symbol)]
+          end
+        end
       end
 
       # Loop through the requirements AST
@@ -49,8 +125,8 @@ module ActionDispatch
         end
 
         def visit(node)
-          super
           block.call(node)
+          super
         end
       end
 
@@ -72,58 +148,6 @@ module ActionDispatch
         def visit_GROUP(node)
           "(#{visit(node.left)})"
         end
-      end
-
-      class OptimizedPath < String # :nodoc:
-        private
-
-        def visit_GROUP(node)
-          ""
-        end
-      end
-
-      # Used for formatting urls (url_for)
-      class Formatter < Visitor # :nodoc:
-        attr_reader :options, :consumed
-
-        def initialize(options)
-          @options  = options
-          @consumed = {}
-        end
-
-        private
-
-          def visit_GROUP(node)
-            if consumed == options
-              nil
-            else
-              route = visit(node.left)
-              route.include?("\0") ? nil : route
-            end
-          end
-
-          def terminal(node)
-            node.left
-          end
-
-          def binary(node)
-            [visit(node.left), visit(node.right)].join
-          end
-
-          def nary(node)
-            node.children.map { |c| visit(c) }.join
-          end
-
-          def visit_SYMBOL(node)
-            key = node.to_sym
-
-            if value = options[key]
-              consumed[key] = value
-              Router::Utils.escape_path(value)
-            else
-              "\0"
-            end
-          end
       end
 
       class Dot < Visitor # :nodoc:

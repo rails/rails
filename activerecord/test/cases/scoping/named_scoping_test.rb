@@ -5,6 +5,7 @@ require 'models/comment'
 require 'models/reply'
 require 'models/author'
 require 'models/developer'
+require 'models/computer'
 
 class NamedScopingTest < ActiveRecord::TestCase
   fixtures :posts, :authors, :topics, :comments, :author_addresses
@@ -130,6 +131,13 @@ class NamedScopingTest < ActiveRecord::TestCase
     # Oracle sometimes sorts differently if WHERE condition is changed
     assert_equal authors(:david).posts.ranked_by_comments.limit_by(5).to_a.sort_by(&:id), authors(:david).posts.top(5).to_a.sort_by(&:id)
     assert_equal Post.ranked_by_comments.limit_by(5), Post.top(5)
+  end
+
+  def test_scopes_body_is_a_callable
+    e = assert_raises ArgumentError do
+      Class.new(Post).class_eval { scope :containing_the_letter_z, where("body LIKE '%z%'") }
+    end
+    assert_equal "The scope body needs to be callable.", e.message
   end
 
   def test_active_records_have_scope_named__all__
@@ -266,6 +274,73 @@ class NamedScopingTest < ActiveRecord::TestCase
     assert_equal 'lifo', topic.author_name
   end
 
+  def test_reserved_scope_names
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+
+      scope :approved, -> { where(approved: true) }
+
+      class << self
+        public
+          def pub; end
+
+        private
+          def pri; end
+
+        protected
+          def pro; end
+      end
+    end
+
+    subklass = Class.new(klass)
+
+    conflicts = [
+      :create,        # public class method on AR::Base
+      :relation,      # private class method on AR::Base
+      :new,           # redefined class method on AR::Base
+      :all,           # a default scope
+      :public,        # some imporant methods on Module and Class
+      :protected,
+      :private,
+      :name,
+      :parent,
+      :superclass
+    ]
+
+    non_conflicts = [
+      :find_by_title, # dynamic finder method
+      :approved,      # existing scope
+      :pub,           # existing public class method
+      :pri,           # existing private class method
+      :pro,           # existing protected class method
+      :open,          # a ::Kernel method
+    ]
+
+    conflicts.each do |name|
+      e = assert_raises(ArgumentError, "scope `#{name}` should not be allowed") do
+        klass.class_eval { scope name, ->{ where(approved: true) } }
+      end
+      assert_match(/You tried to define a scope named \"#{name}\" on the model/, e.message)
+
+      e = assert_raises(ArgumentError, "scope `#{name}` should not be allowed") do
+        subklass.class_eval { scope name, ->{ where(approved: true) } }
+      end
+      assert_match(/You tried to define a scope named \"#{name}\" on the model/, e.message)
+    end
+
+    non_conflicts.each do |name|
+      assert_nothing_raised do
+        silence_warnings do
+          klass.class_eval { scope name, ->{ where(approved: true) } }
+        end
+      end
+
+      assert_nothing_raised do
+        subklass.class_eval { scope name, ->{ where(approved: true) } }
+      end
+    end
+  end
+
   # Method delegation for scope names which look like /\A[a-zA-Z_]\w*[!?]?\z/
   # has been done by evaluating a string with a plain def statement. For scope
   # names which contain spaces this approach doesn't work.
@@ -307,8 +382,8 @@ class NamedScopingTest < ActiveRecord::TestCase
   end
 
   def test_should_not_duplicates_where_values
-    where_values = Topic.where("1=1").scope_with_lambda.where_values
-    assert_equal ["1=1"], where_values
+    relation = Topic.where("1=1")
+    assert_equal relation.where_clause, relation.scope_with_lambda.where_clause
   end
 
   def test_chaining_with_duplicate_joins
@@ -344,13 +419,13 @@ class NamedScopingTest < ActiveRecord::TestCase
   end
 
   def test_scopes_batch_finders
-    assert_equal 3, Topic.approved.count
+    assert_equal 4, Topic.approved.count
 
-    assert_queries(4) do
+    assert_queries(5) do
       Topic.approved.find_each(:batch_size => 1) {|t| assert t.approved? }
     end
 
-    assert_queries(2) do
+    assert_queries(3) do
       Topic.approved.find_in_batches(:batch_size => 2) do |group|
         group.each {|t| assert t.approved? }
       end
@@ -366,7 +441,7 @@ class NamedScopingTest < ActiveRecord::TestCase
   def test_scopes_on_relations
     # Topic.replied
     approved_topics = Topic.all.approved.order('id DESC')
-    assert_equal topics(:fourth), approved_topics.first
+    assert_equal topics(:fifth), approved_topics.first
 
     replied_approved_topics = approved_topics.replied
     assert_equal topics(:third), replied_approved_topics.first

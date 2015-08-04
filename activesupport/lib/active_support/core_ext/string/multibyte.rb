@@ -1,4 +1,3 @@
-# encoding: utf-8
 require 'active_support/multibyte'
 
 class String
@@ -36,6 +35,13 @@ class String
     ActiveSupport::Multibyte.proxy_class.new(self)
   end
 
+  # Returns +true+ if string has utf_8 encoding.
+  #
+  #   utf_8_str = "some string".encode "UTF-8"
+  #   iso_str = "some string".encode "ISO-8859-1"
+  #
+  #   utf_8_str.is_utf8? # => true
+  #   iso_str.is_utf8?   # => false
   def is_utf8?
     case encoding
     when Encoding::UTF_8

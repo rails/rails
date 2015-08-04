@@ -1,3 +1,5 @@
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+
 Active Support Instrumentation
 ==============================
 
@@ -17,7 +19,7 @@ After reading this guide, you will know:
 Introduction to instrumentation
 -------------------------------
 
-The instrumentation API provided by Active Support allows developers to provide hooks which other developers may hook into. There are several of these within the Rails framework, as described below in <TODO: link to section detailing each hook point>. With this API, developers can choose to be notified when certain events occur inside their application or another piece of Ruby code.
+The instrumentation API provided by Active Support allows developers to provide hooks which other developers may hook into. There are several of these within the [Rails framework](#rails-framework-hooks). With this API, developers can choose to be notified when certain events occur inside their application or another piece of Ruby code.
 
 For example, there is a hook provided within Active Record that is called every time Active Record uses an SQL query on a database. This hook could be **subscribed** to, and used to track the number of queries during a certain action. There's another hook around the processing of an action of a controller. This could be used, for instance, to track how long a specific action has taken.
 
@@ -135,7 +137,9 @@ Action Controller
 | `:format`       | html/js/json/xml etc                                      |
 | `:method`       | HTTP request verb                                         |
 | `:path`         | Request path                                              |
+| `:status`       | HTTP status code                                          |
 | `:view_runtime` | Amount spent in view in ms                                |
+| `:db_runtime`   | Amount spent executing database queries in ms             |
 
 ```ruby
 {
@@ -214,7 +218,7 @@ Action View
 
 ```ruby
 {
-  identifier: "/Users/adam/projects/notifications/app/views/posts/_form.html.erb",
+  identifier: "/Users/adam/projects/notifications/app/views/posts/_form.html.erb"
 }
 ```
 
@@ -223,11 +227,11 @@ Active Record
 
 ### sql.active_record
 
-| Key          | Value                 |
-| ------------ | --------------------- |
-| `:sql`       | SQL statement         |
-| `:name`      | Name of the operation |
-| `:object_id` | `self.object_id`      |
+| Key              | Value                 |
+| ---------------- | --------------------- |
+| `:sql`           | SQL statement         |
+| `:name`          | Name of the operation |
+| `:connection_id` | `self.object_id`      |
 
 INFO. The adapters will add their own data as well.
 
@@ -247,6 +251,20 @@ INFO. The adapters will add their own data as well.
 | `:line`          | Primary Key of object in the identity map |
 | `:name`          | Record's class                            |
 | `:connection_id` | `self.object_id`                          |
+
+### instantiation.active_record
+
+| Key              | Value                                     |
+| ---------------- | ----------------------------------------- |
+| `:record_count`  | Number of records that instantiated       |
+| `:class_name`    | Record's class                            |
+
+```ruby
+{
+  record_count: 1,
+  class_name: "User"
+}
+```
 
 Action Mailer
 -------------
@@ -303,17 +321,6 @@ Action Mailer
 }
 ```
 
-ActiveResource
---------------
-
-### request.active_resource
-
-| Key            | Value                |
-| -------------- | -------------------- |
-| `:method`      | HTTP method          |
-| `:request_uri` | Complete URI         |
-| `:result`      | HTTP response object |
-
 Active Support
 --------------
 
@@ -364,7 +371,7 @@ INFO. Options passed to fetch will be merged with the payload.
 | ------ | --------------------- |
 | `:key` | Key used in the store |
 
-INFO. Cache stores my add their own keys
+INFO. Cache stores may add their own keys
 
 ```ruby
 {
@@ -395,6 +402,15 @@ INFO. Cache stores my add their own keys
   key: 'name-of-complicated-computation'
 }
 ```
+
+Railties
+--------
+
+### load_config_initializer.railties
+
+| Key            | Value                                                 |
+| -------------- | ----------------------------------------------------- |
+| `:initializer` | Path to loaded initializer from `config/initializers` |
 
 Rails
 -----
@@ -448,6 +464,7 @@ Most times you only care about the data itself. Here is a shortcut to just get t
 ActiveSupport::Notifications.subscribe "process_action.action_controller" do |*args|
   data = args.extract_options!
   data # { extra: :information }
+end
 ```
 
 You may also subscribe to events matching a regular expression. This enables you to subscribe to

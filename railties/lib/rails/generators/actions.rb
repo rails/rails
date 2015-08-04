@@ -1,5 +1,4 @@
 require 'open-uri'
-require 'rbconfig'
 
 module Rails
   module Generators
@@ -7,9 +6,10 @@ module Rails
       def initialize(*) # :nodoc:
         super
         @in_group = nil
+        @after_bundle_callbacks = []
       end
 
-      # Adds an entry into Gemfile for the supplied gem.
+      # Adds an entry into +Gemfile+ for the supplied gem.
       #
       #   gem "rspec", group: :test
       #   gem "technoweenie-restful-authentication", lib: "restful-authentication", source: "http://gems.github.com/"
@@ -20,9 +20,9 @@ module Rails
 
         # Set the message to be shown in logs. Uses the git repo if one is given,
         # otherwise use name (version).
-        parts, message = [ name.inspect ], name
+        parts, message = [ quote(name) ], name
         if version ||= options.delete(:version)
-          parts   << version.inspect
+          parts   << quote(version)
           message << " (#{version})"
         end
         message = options[:git] if options[:git]
@@ -30,7 +30,7 @@ module Rails
         log :gemfile, message
 
         options.each do |option, value|
-          parts << "#{option}: #{value.inspect}"
+          parts << "#{option}: #{quote(value)}"
         end
 
         in_root do
@@ -61,33 +61,47 @@ module Rails
         end
       end
 
-      # Add the given source to Gemfile
+      # Add the given source to +Gemfile+
+      #
+      # If block is given, gem entries in block are wrapped into the source group.
       #
       #   add_source "http://gems.github.com/"
-      def add_source(source, options={})
+      #
+      #   add_source "http://gems.github.com/" do
+      #     gem "rspec-rails"
+      #   end
+      def add_source(source, options={}, &block)
         log :source, source
 
         in_root do
-          prepend_file "Gemfile", "source #{source.inspect}\n", verbose: false
+          if block
+            append_file "Gemfile", "source #{quote(source)} do", force: true
+            @in_group = true
+            instance_eval(&block)
+            @in_group = false
+            append_file "Gemfile", "\nend\n", force: true
+          else
+            prepend_file "Gemfile", "source #{quote(source)}\n", verbose: false
+          end
         end
       end
 
-      # Adds a line inside the Application class for config/application.rb.
+      # Adds a line inside the Application class for <tt>config/application.rb</tt>.
       #
-      # If options :env is specified, the line is appended to the corresponding
-      # file in config/environments.
+      # If options <tt>:env</tt> is specified, the line is appended to the corresponding
+      # file in <tt>config/environments</tt>.
       #
       #   environment do
-      #     "config.autoload_paths += %W(#{config.root}/extras)"
+      #     "config.action_controller.asset_host = 'cdn.provider.com'"
       #   end
       #
       #   environment(nil, env: "development") do
-      #     "config.autoload_paths += %W(#{config.root}/extras)"
+      #     "config.action_controller.asset_host = 'localhost:3000'"
       #   end
-      def environment(data=nil, options={}, &block)
+      def environment(data=nil, options={})
         sentinel = /class [a-z_:]+ < Rails::Application/i
         env_file_sentinel = /Rails\.application\.configure do/
-        data = block.call if !data && block_given?
+        data = yield if !data && block_given?
 
         in_root do
           if options[:env].nil?
@@ -116,7 +130,7 @@ module Rails
         end
       end
 
-      # Create a new file in the vendor/ directory. Code can be specified
+      # Create a new file in the <tt>vendor/</tt> directory. Code can be specified
       # in a block or a data string can be given.
       #
       #   vendor("sekrit.rb") do
@@ -143,7 +157,7 @@ module Rails
         create_file("lib/#{filename}", data, verbose: false, &block)
       end
 
-      # Create a new Rakefile with the provided code (either in a block or a string).
+      # Create a new +Rakefile+ with the provided code (either in a block or a string).
       #
       #   rakefile("bootstrap.rake") do
       #     project = ask("What is the UNIX name of your project?")
@@ -188,7 +202,7 @@ module Rails
       #   generate(:authenticated, "user session")
       def generate(what, *args)
         log :generate, what
-        argument = args.map {|arg| arg.to_s }.flatten.join(" ")
+        argument = args.flat_map(&:to_s).join(" ")
 
         in_root { run_ruby_script("bin/rails generate #{what} #{argument}", verbose: false) }
       end
@@ -213,15 +227,15 @@ module Rails
         in_root { run("#{extify(:capify)} .", verbose: false) }
       end
 
-      # Make an entry in Rails routing file config/routes.rb
+      # Make an entry in Rails routing file <tt>config/routes.rb</tt>
       #
       #   route "root 'welcome#index'"
       def route(routing_code)
         log :route, routing_code
-        sentinel = /\.routes\.draw do\s*$/
+        sentinel = /\.routes\.draw do\s*\n/m
 
         in_root do
-          inject_into_file 'config/routes.rb', "\n  #{routing_code}", { after: sentinel, verbose: false }
+          inject_into_file 'config/routes.rb', "  #{routing_code}\n", { after: sentinel, verbose: false, force: true }
         end
       end
 
@@ -230,6 +244,16 @@ module Rails
       #   readme "README"
       def readme(path)
         log File.read(find_in_source_paths(path))
+      end
+
+      # Registers a callback to be executed after bundle and spring binstubs
+      # have run.
+      #
+      #   after_bundle do
+      #     git add: '.'
+      #   end
+      def after_bundle(&block)
+        @after_bundle_callbacks << block
       end
 
       protected
@@ -255,6 +279,17 @@ module Rails
           end
         end
 
+        # Surround string with single quotes if there is no quotes.
+        # Otherwise fall back to double quotes
+        def quote(value)
+          return value.inspect unless value.is_a? String
+
+          if value.include?("'")
+            value.inspect
+          else
+            "'#{value}'"
+          end
+        end
     end
   end
 end

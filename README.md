@@ -2,7 +2,7 @@
 
 Rails is a web-application framework that includes everything needed to
 create database-backed web applications according to the
-[Model-View-Controller (MVC)](http://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93controller)
+[Model-View-Controller (MVC)](http://en.wikipedia.org/wiki/Model-view-controller)
 pattern.
 
 Understanding the MVC pattern is key to understanding Rails. MVC divides your
@@ -13,10 +13,10 @@ Person, Post, etc.) and encapsulates the business logic that is specific to
 your application. In Rails, database-backed model classes are derived from
 `ActiveRecord::Base`. Active Record allows you to present the data from
 database rows as objects and embellish these data objects with business logic
-methods. Although most Rails models are backed by a database, models can also
-be ordinary Ruby classes, or Ruby classes that implement a set of interfaces
-as provided by the Active Model module. You can read more about Active Record
-in its [README](activerecord/README.rdoc).
+methods. You can read more about Active Record in its [README](activerecord/README.rdoc).
+Although most Rails models are backed by a database, models can also be ordinary
+Ruby classes, or Ruby classes that implement a set of interfaces as provided by
+the Active Model module. You can read more about Active Model in its [README](activemodel/README.rdoc).
 
 The _Controller layer_ is responsible for handling incoming HTTP requests and
 providing a suitable response. Usually this means returning HTML, but Rails controllers
@@ -36,9 +36,11 @@ You can read more about Action View in its [README](actionview/README.rdoc).
 
 Active Record, Action Pack, and Action View can each be used independently outside Rails.
 In addition to them, Rails also comes with Action Mailer ([README](actionmailer/README.rdoc)), a library
-to generate and send emails; and Active Support ([README](activesupport/README.rdoc)), a collection of
-utility classes and standard library extensions that are useful for Rails, and may also be used
-independently outside Rails.
+to generate and send emails; Active Job ([README](activejob/README.md)), a
+framework for declaring jobs and making them run on a variety of queueing
+backends; and Active Support ([README](activesupport/README.rdoc)), a collection
+of utility classes and standard library extensions that are useful for Rails,
+and may also be used independently outside Rails.
 
 ## Getting Started
 
@@ -59,14 +61,15 @@ independently outside Rails.
 
    Run with `--help` or `-h` for options.
 
-4. Go to http://localhost:3000 and you'll see: "Welcome aboard: You're riding Ruby on Rails!"
+4. Using a browser, go to `http://localhost:3000` and you'll see:
+"Welcome aboard: You're riding Ruby on Rails!"
 
 5. Follow the guidelines to start developing your application. You may find
    the following resources handy:
     * [Getting Started with Rails](http://guides.rubyonrails.org/getting_started.html)
     * [Ruby on Rails Guides](http://guides.rubyonrails.org)
     * [The API Documentation](http://api.rubyonrails.org)
-    * [Ruby on Rails Tutorial](http://ruby.railstutorial.org/ruby-on-rails-tutorial-book)
+    * [Ruby on Rails Tutorial](http://www.railstutorial.org/book)
 
 ## Contributing
 
@@ -75,8 +78,7 @@ We encourage you to contribute to Ruby on Rails! Please check out the
 
 ## Code Status
 
-* [![Build Status](https://api.travis-ci.org/rails/rails.png)](https://travis-ci.org/rails/rails)
-* [![Dependencies](https://gemnasium.com/rails/rails.png?travis)](https://gemnasium.com/rails/rails)
+[![Build Status](https://travis-ci.org/rails/rails.svg?branch=master)](https://travis-ci.org/rails/rails)
 
 ## License
 

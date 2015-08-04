@@ -4,7 +4,7 @@ require 'models/comment'
 
 module ActiveRecord
   module ConnectionAdapters
-    class Mysql2SchemaTest < ActiveRecord::TestCase
+    class Mysql2SchemaTest < ActiveRecord::Mysql2TestCase
       fixtures :posts
 
       def setup
@@ -51,7 +51,7 @@ module ActiveRecord
 
         table = 'key_tests'
 
-        indexes = @connection.indexes(table).sort_by {|i| i.name}
+        indexes = @connection.indexes(table).sort_by(&:name)
         assert_equal 3,indexes.size
 
         index_a = indexes.select{|i| i.name == index_a_name}[0]
@@ -64,6 +64,17 @@ module ActiveRecord
 
         assert_nil index_c.using
         assert_equal :fulltext, index_c.type
+      end
+
+      unless mysql_enforcing_gtid_consistency?
+        def test_drop_temporary_table
+          @connection.transaction do
+            @connection.create_table(:temp_table, temporary: true)
+            # if it doesn't properly say DROP TEMPORARY TABLE, the transaction commit
+            # will complain that no transaction is active
+            @connection.drop_table(:temp_table, temporary: true)
+          end
+        end
       end
     end
   end

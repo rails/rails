@@ -1,24 +1,3 @@
-module Rails
-  module Rack
-    class Debugger
-      def initialize(app)
-        @app = app
+require 'active_support/deprecation'
 
-        ARGV.clear # clear ARGV so that rails server options aren't passed to IRB
-
-        require 'debugger'
-
-        ::Debugger.start
-        ::Debugger.settings[:autoeval] = true if ::Debugger.respond_to?(:settings)
-        puts "=> Debugger enabled"
-      rescue LoadError
-        puts "You're missing the 'debugger' gem. Add it to your Gemfile, bundle it and try again."
-        exit(1)
-      end
-
-      def call(env)
-        @app.call(env)
-      end
-    end
-  end
-end
+ActiveSupport::Deprecation.warn("This file is deprecated and will be removed in Rails 5.1 with no replacement.")

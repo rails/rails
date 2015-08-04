@@ -1,3 +1,5 @@
+require 'active_support/deprecation/reporting'
+
 module ActionDispatch
   # ActionDispatch::Reloader provides prepare and cleanup callbacks,
   # intended to assist with code reloading during development.
@@ -9,9 +11,9 @@ module ActionDispatch
   # the response body. This is important for streaming responses such as the
   # following:
   #
-  #     self.response_body = lambda { |response, output|
+  #     self.response_body = -> (response, output) do
   #       # code here which refers to application models
-  #     }
+  #     end
   #
   # Cleanup callbacks will not be called until after the response_body lambda
   # is evaluated, ensuring that it can refer to application models and other
@@ -25,19 +27,26 @@ module ActionDispatch
   #
   class Reloader
     include ActiveSupport::Callbacks
+    include ActiveSupport::Deprecation::Reporting
 
-    define_callbacks :prepare, :scope => :name
-    define_callbacks :cleanup, :scope => :name
+    define_callbacks :prepare
+    define_callbacks :cleanup
 
     # Add a prepare callback. Prepare callbacks are run before each request, prior
     # to ActionDispatch::Callback's before callbacks.
     def self.to_prepare(*args, &block)
+      unless block_given?
+        warn "to_prepare without a block is deprecated. Please use a block"
+      end
       set_callback(:prepare, *args, &block)
     end
 
     # Add a cleanup callback. Cleanup callbacks are run after each request is
     # complete (after #close is called on the response body).
     def self.to_cleanup(*args, &block)
+      unless block_given?
+        warn "to_cleanup without a block is deprecated. Please use a block"
+      end
       set_callback(:cleanup, *args, &block)
     end
 

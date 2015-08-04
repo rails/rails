@@ -1,4 +1,3 @@
-# encoding: utf-8
 require 'cases/helper'
 
 require 'models/topic'
@@ -7,7 +6,7 @@ require 'models/person'
 class ConfirmationValidationTest < ActiveModel::TestCase
 
   def teardown
-    Topic.reset_callbacks(:validate)
+    Topic.clear_validators!
   end
 
   def test_no_title_confirmation
@@ -49,26 +48,29 @@ class ConfirmationValidationTest < ActiveModel::TestCase
     p.karma = "None"
     assert p.valid?
   ensure
-    Person.reset_callbacks(:validate)
+    Person.clear_validators!
   end
 
   def test_title_confirmation_with_i18n_attribute
-    @old_load_path, @old_backend = I18n.load_path.dup, I18n.backend
-    I18n.load_path.clear
-    I18n.backend = I18n::Backend::Simple.new
-    I18n.backend.store_translations('en', {
-      errors: { messages: { confirmation: "doesn't match %{attribute}" } },
-      activemodel: { attributes: { topic: { title: 'Test Title'} } }
-    })
+    begin
+      @old_load_path, @old_backend = I18n.load_path.dup, I18n.backend
+      I18n.load_path.clear
+      I18n.backend = I18n::Backend::Simple.new
+      I18n.backend.store_translations('en', {
+        errors: { messages: { confirmation: "doesn't match %{attribute}" } },
+        activemodel: { attributes: { topic: { title: 'Test Title'} } }
+      })
 
-    Topic.validates_confirmation_of(:title)
+      Topic.validates_confirmation_of(:title)
 
-    t = Topic.new("title" => "We should be confirmed","title_confirmation" => "")
-    assert t.invalid?
-    assert_equal ["doesn't match Test Title"], t.errors[:title_confirmation]
-
-    I18n.load_path.replace @old_load_path
-    I18n.backend = @old_backend
+      t = Topic.new("title" => "We should be confirmed","title_confirmation" => "")
+      assert t.invalid?
+      assert_equal ["doesn't match Test Title"], t.errors[:title_confirmation]
+    ensure
+      I18n.load_path.replace @old_load_path
+      I18n.backend = @old_backend
+      I18n.backend.reload!
+    end
   end
 
   test "does not override confirmation reader if present" do

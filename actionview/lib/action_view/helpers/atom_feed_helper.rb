@@ -10,13 +10,13 @@ module ActionView
       # Full usage example:
       #
       #   config/routes.rb:
-      #     Basecamp::Application.routes.draw do
+      #     Rails.application.routes.draw do
       #       resources :posts
       #       root to: "posts#index"
       #     end
       #
       #   app/controllers/posts_controller.rb:
-      #     class PostsController < ApplicationController::Base
+      #     class PostsController < ApplicationController
       #       # GET /posts.html
       #       # GET /posts.atom
       #       def index
@@ -51,7 +51,7 @@ module ActionView
       # * <tt>:language</tt>: Defaults to "en-US".
       # * <tt>:root_url</tt>: The HTML alternative that this feed is doubling for. Defaults to / on the current host.
       # * <tt>:url</tt>: The URL for this feed. Defaults to the current URL.
-      # * <tt>:id</tt>: The id for this feed. Defaults to "tag:#{request.host},#{options[:schema_date]}:#{request.fullpath.split(".")[0]}"
+      # * <tt>:id</tt>: The id for this feed. Defaults to "tag:localhost,2005:/posts", in this case. 
       # * <tt>:schema_date</tt>: The date at which the tag scheme for the feed was first used. A good default is the year you
       #   created the feed. See http://feedvalidator.org/docs/error/InvalidTAG.html for more information. If not specified,
       #   2005 is used (as an "I don't care" value).
@@ -64,7 +64,7 @@ module ActionView
       #         'xmlns:openSearch' => 'http://a9.com/-/spec/opensearch/1.1/'}) do |feed|
       #       feed.title("My great blog!")
       #       feed.updated((@posts.first.created_at))
-      #       feed.tag!(openSearch:totalResults, 10)
+      #       feed.tag!('openSearch:totalResults', 10)
       #
       #       @posts.each do |post|
       #         feed.entry(post) do |entry|
@@ -174,7 +174,7 @@ module ActionView
         #
         # * <tt>:published</tt>: Time first published. Defaults to the created_at attribute on the record if one such exists.
         # * <tt>:updated</tt>: Time of update. Defaults to the updated_at attribute on the record if one such exists.
-        # * <tt>:url</tt>: The URL for this entry. Defaults to the polymorphic_url for the record.
+        # * <tt>:url</tt>: The URL for this entry or false or nil for not having a link tag. Defaults to the polymorphic_url for the record.
         # * <tt>:id</tt>: The ID for this entry. Defaults to "tag:#{@view.request.host},#{@feed_options[:schema_date]}:#{record.class}/#{record.id}"
         # * <tt>:type</tt>: The TYPE for this entry. Defaults to "text/html".
         def entry(record, options = {})
@@ -191,7 +191,8 @@ module ActionView
 
             type = options.fetch(:type, 'text/html')
 
-            @xml.link(:rel => 'alternate', :type => type, :href => options[:url] || @view.polymorphic_url(record))
+            url = options.fetch(:url) { @view.polymorphic_url(record) }
+            @xml.link(:rel => 'alternate', :type => type, :href => url) if url
 
             yield AtomBuilder.new(@xml)
           end

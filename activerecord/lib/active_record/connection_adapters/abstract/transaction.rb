@@ -1,26 +1,14 @@
 module ActiveRecord
   module ConnectionAdapters
-    class Transaction #:nodoc:
-      attr_reader :connection
-
-      def initialize(connection)
-        @connection = connection
-        @state = TransactionState.new
-      end
-
-      def state
-        @state
-      end
-    end
-
     class TransactionState
-      attr_accessor :parent
-
       VALID_STATES = Set.new([:committed, :rolledback, nil])
 
       def initialize(state = nil)
         @state = state
-        @parent = nil
+      end
+
+      def finalized?
+        @state
       end
 
       def committed?
@@ -31,135 +19,113 @@ module ActiveRecord
         @state == :rolledback
       end
 
+      def completed?
+        committed? || rolledback?
+      end
+
       def set_state(state)
-        if !VALID_STATES.include?(state)
+        unless VALID_STATES.include?(state)
           raise ArgumentError, "Invalid transaction state: #{state}"
         end
         @state = state
       end
     end
 
-    class ClosedTransaction < Transaction #:nodoc:
-      def number
-        0
-      end
-
-      def begin(options = {})
-        RealTransaction.new(connection, self, options)
-      end
-
-      def closed?
-        true
-      end
-
-      def open?
-        false
-      end
-
-      def joinable?
-        false
-      end
-
-      # This is a noop when there are no open transactions
-      def add_record(record)
-      end
+    class NullTransaction #:nodoc:
+      def initialize; end
+      def closed?; true; end
+      def open?; false; end
+      def joinable?; false; end
+      def add_record(record); end
     end
 
-    class OpenTransaction < Transaction #:nodoc:
-      attr_reader :parent, :records
+    class Transaction #:nodoc:
+
+      attr_reader :connection, :state, :records, :savepoint_name
       attr_writer :joinable
 
-      def initialize(connection, parent, options = {})
-        super connection
-
-        @parent    = parent
-        @records   = []
-        @finishing = false
-        @joinable  = options.fetch(:joinable, true)
+      def initialize(connection, options, run_commit_callbacks: false)
+        @connection = connection
+        @state = TransactionState.new
+        @records = []
+        @joinable = options.fetch(:joinable, true)
+        @run_commit_callbacks = run_commit_callbacks
       end
 
-      # This state is necessary so that we correctly handle stuff that might
-      # happen in a commit/rollback. But it's kinda distasteful. Maybe we can
-      # find a better way to structure it in the future.
-      def finishing?
-        @finishing
-      end
-
-      def joinable?
-        @joinable && !finishing?
-      end
-
-      def number
-        if finishing?
-          parent.number
-        else
-          parent.number + 1
-        end
-      end
-
-      def begin(options = {})
-        if finishing?
-          parent.begin
-        else
-          SavepointTransaction.new(connection, self, options)
-        end
+      def add_record(record)
+        records << record
       end
 
       def rollback
-        @finishing = true
-        perform_rollback
-        parent
-      end
-
-      def commit
-        @finishing = true
-        perform_commit
-        parent
-      end
-
-      def add_record(record)
-        if record.has_transactional_callbacks?
-          records << record
-        else
-          record.set_transaction_state(@state)
-        end
+        @state.set_state(:rolledback)
       end
 
       def rollback_records
-        @state.set_state(:rolledback)
-        records.uniq.each do |record|
-          begin
-            record.rolledback!(parent.closed?)
-          rescue => e
-            record.logger.error(e) if record.respond_to?(:logger) && record.logger
-          end
+        ite = records.uniq
+        while record = ite.shift
+          record.rolledback!(force_restore_state: full_rollback?)
         end
+      ensure
+        ite.each do |i|
+          i.rolledback!(force_restore_state: full_rollback?, should_run_callbacks: false)
+        end
+      end
+
+      def commit
+        @state.set_state(:committed)
+      end
+
+      def before_commit_records
+        records.uniq.each(&:before_committed!) if @run_commit_callbacks
       end
 
       def commit_records
-        @state.set_state(:committed)
-        records.uniq.each do |record|
-          begin
+        ite = records.uniq
+        while record = ite.shift
+          if @run_commit_callbacks
             record.committed!
-          rescue => e
-            record.logger.error(e) if record.respond_to?(:logger) && record.logger
+          else
+            # if not running callbacks, only adds the record to the parent transaction
+            record.add_to_transaction
           end
         end
+      ensure
+        ite.each { |i| i.committed!(should_run_callbacks: false) }
       end
 
-      def closed?
-        false
-      end
-
-      def open?
-        true
-      end
+      def full_rollback?; true; end
+      def joinable?; @joinable; end
+      def closed?; false; end
+      def open?; !closed?; end
     end
 
-    class RealTransaction < OpenTransaction #:nodoc:
-      def initialize(connection, parent, options = {})
-        super
+    class SavepointTransaction < Transaction
 
+      def initialize(connection, savepoint_name, options, *args)
+        super(connection, options, *args)
+        if options[:isolation]
+          raise ActiveRecord::TransactionIsolationError, "cannot set transaction isolation in a nested transaction"
+        end
+        connection.create_savepoint(@savepoint_name = savepoint_name)
+      end
+
+      def rollback
+        connection.rollback_to_savepoint(savepoint_name)
+        super
+      end
+
+      def commit
+        connection.release_savepoint(savepoint_name)
+        super
+      end
+
+      def full_rollback?; false; end
+    end
+
+    class RealTransaction < Transaction
+
+      def initialize(connection, options, *args)
+        super
         if options[:isolation]
           connection.begin_isolated_db_transaction(options[:isolation])
         else
@@ -167,37 +133,82 @@ module ActiveRecord
         end
       end
 
-      def perform_rollback
+      def rollback
         connection.rollback_db_transaction
-        rollback_records
+        super
       end
 
-      def perform_commit
+      def commit
         connection.commit_db_transaction
-        commit_records
+        super
       end
     end
 
-    class SavepointTransaction < OpenTransaction #:nodoc:
-      def initialize(connection, parent, options = {})
-        if options[:isolation]
-          raise ActiveRecord::TransactionIsolationError, "cannot set transaction isolation in a nested transaction"
+    class TransactionManager #:nodoc:
+      def initialize(connection)
+        @stack = []
+        @connection = connection
+      end
+
+      def begin_transaction(options = {})
+        run_commit_callbacks = !current_transaction.joinable?
+        transaction =
+          if @stack.empty?
+            RealTransaction.new(@connection, options, run_commit_callbacks: run_commit_callbacks)
+          else
+            SavepointTransaction.new(@connection, "active_record_#{@stack.size}", options,
+                                     run_commit_callbacks: run_commit_callbacks)
+          end
+
+        @stack.push(transaction)
+        transaction
+      end
+
+      def commit_transaction
+        transaction = @stack.last
+        transaction.before_commit_records
+        @stack.pop
+        transaction.commit
+        transaction.commit_records
+      end
+
+      def rollback_transaction(transaction = nil)
+        transaction ||= @stack.pop
+        transaction.rollback
+        transaction.rollback_records
+      end
+
+      def within_new_transaction(options = {})
+        transaction = begin_transaction options
+        yield
+      rescue Exception => error
+        rollback_transaction if transaction
+        raise
+      ensure
+        unless error
+          if Thread.current.status == 'aborting'
+            rollback_transaction if transaction
+          else
+            begin
+              commit_transaction
+            rescue Exception
+              rollback_transaction(transaction) unless transaction.state.completed?
+              raise
+            end
+          end
         end
-
-        super
-        connection.create_savepoint
       end
 
-      def perform_rollback
-        connection.rollback_to_savepoint
-        rollback_records
+      def open_transactions
+        @stack.size
       end
 
-      def perform_commit
-        @state.set_state(:committed)
-        @state.parent = parent.state
-        connection.release_savepoint
+      def current_transaction
+        @stack.last || NULL_TRANSACTION
       end
+
+      private
+        NULL_TRANSACTION = NullTransaction.new
     end
   end
 end

@@ -8,7 +8,7 @@ module ActiveRecord
       end
 
       def query_attribute(attr_name)
-        value = read_attribute(attr_name) { |n| missing_attribute(n, caller) }
+        value = self[attr_name]
 
         case value
         when true        then true
@@ -22,7 +22,7 @@ module ActiveRecord
               return false if ActiveRecord::ConnectionAdapters::Column::FALSE_VALUES.include?(value)
               !value.blank?
             end
-          elsif column.number?
+          elsif value.respond_to?(:zero?)
             !value.zero?
           else
             !value.blank?

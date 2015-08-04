@@ -1,9 +1,17 @@
+require "active_support/deprecation"
+
 module ActiveRecord
   module Associations
     class SingularAssociation < Association #:nodoc:
       # Implements the reader method, e.g. foo.bar for Foo.has_one :bar
       def reader(force_reload = false)
-        if force_reload
+        if force_reload && klass
+          ActiveSupport::Deprecation.warn(<<-MSG.squish)
+            Passing an argument to force an association to reload is now
+            deprecated and will be removed in Rails 5.1. Please call `reload`
+            on the parent object instead.
+          MSG
+
           klass.uncached { reload }
         elsif !loaded? || stale_target?
           reload
@@ -18,11 +26,11 @@ module ActiveRecord
       end
 
       def create(attributes = {}, &block)
-        create_record(attributes, &block)
+        _create_record(attributes, &block)
       end
 
       def create!(attributes = {}, &block)
-        create_record(attributes, true, &block)
+        _create_record(attributes, true, &block)
       end
 
       def build(attributes = {})
@@ -38,8 +46,30 @@ module ActiveRecord
           scope.scope_for_create.stringify_keys.except(klass.primary_key)
         end
 
+        def get_records
+          if reflection.scope_chain.any?(&:any?) ||
+              scope.eager_loading? ||
+              klass.scope_attributes?
+
+            return scope.limit(1).to_a
+          end
+
+          conn = klass.connection
+          sc = reflection.association_scope_cache(conn, owner) do
+            StatementCache.create(conn) { |params|
+              as = AssociationScope.create { params.bind }
+              target_scope.merge(as.scope(self, conn)).limit(1)
+            }
+          end
+
+          binds = AssociationScope.get_bind_values(owner, reflection.chain)
+          sc.execute binds, klass, klass.connection
+        end
+
         def find_target
-          scope.first.tap { |record| set_inverse_instance(record) }
+          if record = get_records.first
+            set_inverse_instance record
+          end
         end
 
         def replace(record)
@@ -50,7 +80,7 @@ module ActiveRecord
           replace(record)
         end
 
-        def create_record(attributes, raise_error = false)
+        def _create_record(attributes, raise_error = false)
           record = build_record(attributes)
           yield(record) if block_given?
           saved = record.save

@@ -3,7 +3,7 @@ require 'zlib'
 require 'active_support/core_ext/array/extract_options'
 require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/benchmark'
-require 'active_support/core_ext/class/attribute_accessors'
+require 'active_support/core_ext/module/attribute_accessors'
 require 'active_support/core_ext/numeric/bytes'
 require 'active_support/core_ext/numeric/time'
 require 'active_support/core_ext/object/to_param'
@@ -12,10 +12,10 @@ require 'active_support/core_ext/string/inflections'
 module ActiveSupport
   # See ActiveSupport::Cache::Store for documentation.
   module Cache
-    autoload :FileStore, 'active_support/cache/file_store'
-    autoload :MemoryStore, 'active_support/cache/memory_store'
+    autoload :FileStore,     'active_support/cache/file_store'
+    autoload :MemoryStore,   'active_support/cache/memory_store'
     autoload :MemCacheStore, 'active_support/cache/mem_cache_store'
-    autoload :NullStore, 'active_support/cache/null_store'
+    autoload :NullStore,     'active_support/cache/null_store'
 
     # These options mean something to all cache implementations. Individual cache
     # implementations may support additional options.
@@ -88,25 +88,24 @@ module ActiveSupport
       end
 
       private
+        def retrieve_cache_key(key)
+          case
+          when key.respond_to?(:cache_key) then key.cache_key
+          when key.is_a?(Array)            then key.map { |element| retrieve_cache_key(element) }.to_param
+          when key.respond_to?(:to_a)      then retrieve_cache_key(key.to_a)
+          else                                  key.to_param
+          end.to_s
+        end
 
-      def retrieve_cache_key(key)
-        case
-        when key.respond_to?(:cache_key) then key.cache_key
-        when key.is_a?(Array)            then key.map { |element| retrieve_cache_key(element) }.to_param
-        when key.respond_to?(:to_a)      then retrieve_cache_key(key.to_a)
-        else                                  key.to_param
-        end.to_s
-      end
-
-      # Obtains the specified cache store class, given the name of the +store+.
-      # Raises an error when the store class cannot be found.
-      def retrieve_store_class(store)
-        require "active_support/cache/#{store}"
-      rescue LoadError => e
-        raise "Could not find cache store adapter for #{store} (#{e})"
-      else
-        ActiveSupport::Cache.const_get(store.to_s.camelize)
-      end
+        # Obtains the specified cache store class, given the name of the +store+.
+        # Raises an error when the store class cannot be found.
+        def retrieve_store_class(store)
+          require "active_support/cache/#{store}"
+        rescue LoadError => e
+          raise "Could not find cache store adapter for #{store} (#{e})"
+        else
+          ActiveSupport::Cache.const_get(store.to_s.camelize)
+        end
     end
 
     # An abstract cache store class. There are multiple cache store
@@ -153,7 +152,6 @@ module ActiveSupport
     # or +write+. To specify the threshold at which to compress values, set the
     # <tt>:compress_threshold</tt> option. The default threshold is 16K.
     class Store
-
       cattr_accessor :logger, :instance_writer => true
 
       attr_reader :silence, :options
@@ -178,16 +176,6 @@ module ActiveSupport
         yield
       ensure
         @silence = previous_silence
-      end
-
-      # Set to +true+ if cache stores should be instrumented.
-      # Default is +false+.
-      def self.instrument=(boolean)
-        Thread.current[:instrument_cache_store] = boolean
-      end
-
-      def self.instrument
-        Thread.current[:instrument_cache_store] || false
       end
 
       # Fetches data from the cache, using the given key. If there is data in
@@ -234,9 +222,9 @@ module ActiveSupport
       # bump the cache expiration time by the value set in <tt>:race_condition_ttl</tt>.
       # Yes, this process is extending the time for a stale value by another few
       # seconds. Because of extended life of the previous cache, other processes
-      # will continue to use slightly stale data for a just a big longer. In the
+      # will continue to use slightly stale data for a just a bit longer. In the
       # meantime that first process will go ahead and will write into cache the
-      # new value. After that all the processes will start getting new value.
+      # new value. After that all the processes will start getting the new value.
       # The key is to keep <tt>:race_condition_ttl</tt> small.
       #
       # If the process regenerating the entry errors out, the entry will be
@@ -337,19 +325,22 @@ module ActiveSupport
       def read_multi(*names)
         options = names.extract_options!
         options = merged_options(options)
-        results = {}
-        names.each do |name|
-          key = namespaced_key(name, options)
-          entry = read_entry(key, options)
-          if entry
-            if entry.expired?
-              delete_entry(key, options)
-            else
-              results[name] = entry.value
+
+        instrument_multi(:read, names, options) do |payload|
+          results = {}
+          names.each do |name|
+            key = namespaced_key(name, options)
+            entry = read_entry(key, options)
+            if entry
+              if entry.expired?
+                delete_entry(key, options)
+              else
+                results[name] = entry.value
+              end
             end
           end
+          results
         end
-        results
       end
 
       # Fetches data from the cache, using the given keys. If there is data in
@@ -359,20 +350,22 @@ module ActiveSupport
       #
       # Options are passed to the underlying cache implementation.
       #
-      # Returns an array with the data for each of the names. For example:
+      # Returns a hash with the data for each of the names. For example:
       #
       #   cache.write("bim", "bam")
-      #   cache.fetch_multi("bim", "boom") {|key| key * 2 }
-      #   #=> ["bam", "boomboom"]
+      #   cache.fetch_multi("bim", "unknown_key") do |key|
+      #     "Fallback value for key: #{key}"
+      #   end
+      #   # => { "bim" => "bam",
+      #   #      "unknown_key" => "Fallback value for key: unknown_key" }
       #
       def fetch_multi(*names)
         options = names.extract_options!
         options = merged_options(options)
-
         results = read_multi(*names, options)
 
-        names.map do |name|
-          results.fetch(name) do
+        names.each_with_object({}) do |name, memo|
+          memo[name] = results.fetch(name) do
             value = yield name
             write(name, value, options)
             value
@@ -385,6 +378,7 @@ module ActiveSupport
       # Options are passed to the underlying cache implementation.
       def write(name, value, options = nil)
         options = merged_options(options)
+
         instrument(:write, name, options) do
           entry = Entry.new(value, options)
           write_entry(namespaced_key(name, options), entry, options)
@@ -396,16 +390,18 @@ module ActiveSupport
       # Options are passed to the underlying cache implementation.
       def delete(name, options = nil)
         options = merged_options(options)
+
         instrument(:delete, name) do
           delete_entry(namespaced_key(name, options), options)
         end
       end
 
-      # Return +true+ if the cache contains an entry for the given key.
+      # Returns +true+ if the cache contains an entry for the given key.
       #
       # Options are passed to the underlying cache implementation.
       def exist?(name, options = nil)
         options = merged_options(options)
+
         instrument(:exist?, name) do
           entry = read_entry(namespaced_key(name, options), options)
           (entry && !entry.expired?) || false
@@ -451,7 +447,7 @@ module ActiveSupport
       # Clear the entire cache. Be careful with this method since it could
       # affect other processes if shared cache is being used.
       #
-      # Options are passed to the underlying cache implementation.
+      # The options hash is passed to the underlying cache implementation.
       #
       # All implementations may not support this method.
       def clear(options = nil)
@@ -537,20 +533,27 @@ module ActiveSupport
         end
 
         def instrument(operation, key, options = nil)
-          log(operation, key, options)
+          log { "Cache #{operation}: #{key}#{options.blank? ? "" : " (#{options.inspect})"}" }
 
-          if self.class.instrument
-            payload = { :key => key }
-            payload.merge!(options) if options.is_a?(Hash)
-            ActiveSupport::Notifications.instrument("cache_#{operation}.active_support", payload){ yield(payload) }
-          else
-            yield(nil)
-          end
+          payload = { :key => key }
+          payload.merge!(options) if options.is_a?(Hash)
+          ActiveSupport::Notifications.instrument("cache_#{operation}.active_support", payload){ yield(payload) }
         end
 
-        def log(operation, key, options = nil)
+        def instrument_multi(operation, keys, options = nil)
+          log do
+            formatted_keys = keys.map { |k| "- #{k}" }.join("\n")
+            "Caches multi #{operation}:\n#{formatted_keys}#{options.blank? ? "" : " (#{options.inspect})"}"
+          end
+
+          payload = { key: keys }
+          payload.merge!(options) if options.is_a?(Hash)
+          ActiveSupport::Notifications.instrument("cache_#{operation}_multi.active_support", payload) { yield(payload) }
+        end
+
+        def log
           return unless logger && logger.debug? && !silence?
-          logger.debug("Cache #{operation}: #{key}#{options.blank? ? "" : " (#{options.inspect})"}")
+          logger.debug(yield)
         end
 
         def find_cached_entry(key, name, options)
@@ -563,9 +566,9 @@ module ActiveSupport
         def handle_expired_entry(entry, key, options)
           if entry && entry.expired?
             race_ttl = options[:race_condition_ttl].to_i
-            if race_ttl && (Time.now.to_f - entry.expires_at <= race_ttl)
-              # When an entry has :race_condition_ttl defined, put the stale entry back into the cache
-              # for a brief period while the entry is begin recalculated.
+            if (race_ttl > 0) && (Time.now.to_f - entry.expires_at <= race_ttl)
+              # When an entry has a positive :race_condition_ttl defined, put the stale entry back into the cache
+              # for a brief period while the entry is being recalculated.
               entry.expires_at = Time.now + race_ttl
               write_entry(key, entry, :expires_in => race_ttl * 2)
             else
@@ -585,6 +588,7 @@ module ActiveSupport
           result = instrument(:generate, name, options) do |payload|
             yield(name)
           end
+
           write(name, result, options)
           result
         end
@@ -608,20 +612,19 @@ module ActiveSupport
         else
           @value = value
         end
+
         @created_at = Time.now.to_f
         @expires_in = options[:expires_in]
         @expires_in = @expires_in.to_f if @expires_in
       end
 
       def value
-        convert_version_4beta1_entry! if defined?(@v)
         compressed? ? uncompress(@value) : @value
       end
 
       # Check if the entry is expired. The +expires_in+ parameter can override
       # the value set when the entry was created.
       def expired?
-        convert_version_4beta1_entry! if defined?(@value)
         @expires_in && @created_at + @expires_in <= Time.now.to_f
       end
 
@@ -657,7 +660,6 @@ module ActiveSupport
       # Duplicate the value in a class. This is used by cache implementations that don't natively
       # serialize entries to protect against accidental cache modifications.
       def dup_value!
-        convert_version_4beta1_entry! if defined?(@v)
         if @value && !compressed? && !(@value.is_a?(Numeric) || @value == true || @value == false)
           if @value.is_a?(String)
             @value = @value.dup
@@ -672,8 +674,10 @@ module ActiveSupport
           if value && options[:compress]
             compress_threshold = options[:compress_threshold] || DEFAULT_COMPRESS_LIMIT
             serialized_value_size = (value.is_a?(String) ? value : Marshal.dump(value)).bytesize
+
             return true if serialized_value_size >= compress_threshold
           end
+
           false
         end
 
@@ -687,24 +691,6 @@ module ActiveSupport
 
         def uncompress(value)
           Marshal.load(Zlib::Inflate.inflate(value))
-        end
-
-        # The internals of this method changed between Rails 3.x and 4.0. This method provides the glue
-        # to ensure that cache entries created under the old version still work with the new class definition.
-        def convert_version_4beta1_entry!
-          if defined?(@v)
-            @value = @v
-            remove_instance_variable(:@v)
-          end
-          if defined?(@c)
-            @compressed = @c
-            remove_instance_variable(:@c)
-          end
-          if defined?(@x) && @x
-            @created_at ||= Time.now.to_f
-            @expires_in = @x - @created_at
-            remove_instance_variable(:@x)
-          end
         end
     end
   end

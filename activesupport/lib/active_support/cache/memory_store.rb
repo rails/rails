@@ -36,7 +36,7 @@ module ActiveSupport
         end
       end
 
-      # Premptively iterates through all stored keys and removes the ones which have expired.
+      # Preemptively iterates through all stored keys and removes the ones which have expired.
       def cleanup(options = nil)
         options = merged_options(options)
         instrument(:cleanup, :size => @data.size) do
@@ -126,7 +126,7 @@ module ActiveSupport
 
         PER_ENTRY_OVERHEAD = 240
 
-        def cached_size(key, entry)
+        def cached_size(key, entry) # :nodoc:
           key.to_s.bytesize + entry.size + PER_ENTRY_OVERHEAD
         end
 

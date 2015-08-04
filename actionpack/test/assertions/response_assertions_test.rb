@@ -7,7 +7,7 @@ module ActionDispatch
       include ResponseAssertions
 
       FakeResponse = Struct.new(:response_code) do
-        [:success, :missing, :redirect, :error].each do |sym|
+        [:successful, :not_found, :redirection, :server_error].each do |sym|
           define_method("#{sym}?") do
             sym == response_code
           end
@@ -16,10 +16,10 @@ module ActionDispatch
 
       def test_assert_response_predicate_methods
         [:success, :missing, :redirect, :error].each do |sym|
-          @response = FakeResponse.new sym
+          @response = FakeResponse.new RESPONSE_PREDICATES[sym].to_s.sub(/\?/, '').to_sym
           assert_response sym
 
-          assert_raises(MiniTest::Assertion) {
+          assert_raises(Minitest::Assertion) {
             assert_response :unauthorized
           }
         end
@@ -29,11 +29,11 @@ module ActionDispatch
         @response = FakeResponse.new 400
         assert_response 400
 
-        assert_raises(MiniTest::Assertion) {
+        assert_raises(Minitest::Assertion) {
           assert_response :unauthorized
         }
 
-        assert_raises(MiniTest::Assertion) {
+        assert_raises(Minitest::Assertion) {
           assert_response 500
         }
       end
@@ -42,12 +42,20 @@ module ActionDispatch
         @response = FakeResponse.new 401
         assert_response :unauthorized
 
-        assert_raises(MiniTest::Assertion) {
+        assert_raises(Minitest::Assertion) {
           assert_response :ok
         }
 
-        assert_raises(MiniTest::Assertion) {
+        assert_raises(Minitest::Assertion) {
           assert_response :success
+        }
+      end
+
+      def test_assert_response_sym_typo
+        @response = FakeResponse.new 200
+
+        assert_raises(ArgumentError) {
+          assert_response :succezz
         }
       end
     end

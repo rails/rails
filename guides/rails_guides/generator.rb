@@ -57,6 +57,7 @@ require 'active_support/core_ext/object/blank'
 require 'action_controller'
 require 'action_view'
 
+require 'rails_guides/markdown'
 require 'rails_guides/indexer'
 require 'rails_guides/helpers'
 require 'rails_guides/levenshtein'
@@ -184,7 +185,7 @@ module RailsGuides
     def generate?(source_file, output_file)
       fin  = File.join(source_dir, source_file)
       fout = output_path_for(output_file)
-      all || !File.exists?(fout) || File.mtime(fout) < File.mtime(fin)
+      all || !File.exist?(fout) || File.mtime(fout) < File.mtime(fin)
     end
 
     def generate_guide(guide, output_file)

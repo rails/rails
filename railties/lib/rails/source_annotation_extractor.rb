@@ -18,6 +18,20 @@ class SourceAnnotationExtractor
       @@directories ||= %w(app config db lib test) + (ENV['SOURCE_ANNOTATION_DIRECTORIES'] || '').split(',')
     end
 
+    def self.extensions
+      @@extensions ||= {}
+    end
+
+    # Registers new Annotations File Extensions
+    #   SourceAnnotationExtractor::Annotation.register_extensions("css", "scss", "sass", "less", "js") { |tag| /\/\/\s*(#{tag}):?\s*(.*)$/ }
+    def self.register_extensions(*exts, &block)
+      extensions[/\.(#{exts.join("|")})$/] = block
+    end
+
+    register_extensions("builder", "rb", "rake", "yml", "yaml", "ruby") { |tag| /#\s*(#{tag}):?\s*(.*)$/ }
+    register_extensions("css", "js") { |tag| /\/\/\s*(#{tag}):?\s*(.*)$/ }
+    register_extensions("erb") { |tag| /<%\s*#\s*(#{tag}):?\s*(.*?)\s*%>/ }
+
     # Returns a representation of the annotation that looks like this:
     #
     #   [126] [TODO] This algorithm is simple and clearly correct, make it faster.
@@ -66,9 +80,8 @@ class SourceAnnotationExtractor
 
   # Returns a hash that maps filenames under +dir+ (recursively) to arrays
   # with their annotations. Only files with annotations are included. Files
-  # with extension +.builder+, +.rb+, +.erb+, +.haml+, +.slim+, +.css+,
-  # +.scss+, +.js+, +.coffee+, and +.rake+
-  # are taken into account.
+  # with extension +.builder+, +.rb+, +.rake+, +.yml+, +.yaml+, +.ruby+,
+  # +.css+, +.js+ and +.erb+ are taken into account.
   def find_in(dir)
     results = {}
 
@@ -78,21 +91,14 @@ class SourceAnnotationExtractor
       if File.directory?(item)
         results.update(find_in(item))
       else
-        pattern =
-            case item
-            when /\.(builder|rb|coffee|rake)$/
-              /#\s*(#{tag}):?\s*(.*)$/
-            when /\.(css|scss|sass|less|js)$/
-              /\/\/\s*(#{tag}):?\s*(.*)$/
-            when /\.erb$/
-              /<%\s*#\s*(#{tag}):?\s*(.*?)\s*%>/
-            when /\.haml$/
-              /-\s*#\s*(#{tag}):?\s*(.*)$/
-            when /\.slim$/
-              /\/\s*\s*(#{tag}):?\s*(.*)$/
-            else nil
-            end
-        results.update(extract_annotations_from(item, pattern)) if pattern
+        extension = Annotation.extensions.detect do |regexp, _block|
+          regexp.match(item)
+        end
+
+        if extension
+          pattern = extension.last.call(tag)
+          results.update(extract_annotations_from(item, pattern)) if pattern
+        end
       end
     end
 
@@ -115,7 +121,7 @@ class SourceAnnotationExtractor
   # Prints the mapping from filenames to annotations in +results+ ordered by filename.
   # The +options+ hash is passed to each annotation's +to_s+.
   def display(results, options={})
-    options[:indent] = results.map { |f, a| a.map(&:line) }.flatten.max.to_s.size
+    options[:indent] = results.flat_map { |f, a| a.map(&:line) }.max.to_s.size
     results.keys.sort.each do |file|
       puts "#{file}:"
       results[file].each do |note|

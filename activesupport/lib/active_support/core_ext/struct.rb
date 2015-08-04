@@ -1,6 +1,3 @@
-#  Backport of Struct#to_h from Ruby 2.0
-class Struct # :nodoc:
-  def to_h
-    Hash[members.zip(values)]
-  end
-end unless Struct.instance_methods.include?(:to_h)
+require 'active_support/deprecation'
+
+ActiveSupport::Deprecation.warn("This file is deprecated and will be removed in Rails 5.1 with no replacement.")

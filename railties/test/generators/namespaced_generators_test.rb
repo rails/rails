@@ -47,7 +47,6 @@ class NamespacedControllerGeneratorTest < NamespacedGeneratorTestCase
   def test_helper_is_also_namespaced
     run_generator
     assert_file "app/helpers/test_app/account_helper.rb", /module TestApp/, /  module AccountHelper/
-    assert_file "test/helpers/test_app/account_helper_test.rb", /module TestApp/, /  class AccountHelperTest/
   end
 
   def test_invokes_default_test_framework
@@ -63,7 +62,7 @@ class NamespacedControllerGeneratorTest < NamespacedGeneratorTestCase
 
   def test_routes_should_not_be_namespaced
     run_generator
-    assert_file "config/routes.rb", /get "account\/foo"/, /get "account\/bar"/
+    assert_file "config/routes.rb", /get 'account\/foo'/, /get 'account\/bar'/
   end
 
   def test_invokes_default_template_engine_even_with_no_action
@@ -147,26 +146,26 @@ class NamespacedMailerGeneratorTest < NamespacedGeneratorTestCase
 
   def test_mailer_skeleton_is_created
     run_generator
-    assert_file "app/mailers/test_app/notifier.rb" do |mailer|
+    assert_file "app/mailers/test_app/notifier_mailer.rb" do |mailer|
       assert_match(/module TestApp/, mailer)
-      assert_match(/class Notifier < ActionMailer::Base/, mailer)
-      assert_match(/default from: "from@example.com"/, mailer)
+      assert_match(/class NotifierMailer < ApplicationMailer/, mailer)
+      assert_no_match(/default from: "from@example.com"/, mailer)
     end
   end
 
   def test_mailer_with_i18n_helper
     run_generator
-    assert_file "app/mailers/test_app/notifier.rb" do |mailer|
-      assert_match(/en\.notifier\.foo\.subject/, mailer)
-      assert_match(/en\.notifier\.bar\.subject/, mailer)
+    assert_file "app/mailers/test_app/notifier_mailer.rb" do |mailer|
+      assert_match(/en\.notifier_mailer\.foo\.subject/, mailer)
+      assert_match(/en\.notifier_mailer\.bar\.subject/, mailer)
     end
   end
 
   def test_invokes_default_test_framework
     run_generator
-    assert_file "test/mailers/test_app/notifier_test.rb" do |test|
+    assert_file "test/mailers/test_app/notifier_mailer_test.rb" do |test|
       assert_match(/module TestApp/, test)
-      assert_match(/class NotifierTest < ActionMailer::TestCase/, test)
+      assert_match(/class NotifierMailerTest < ActionMailer::TestCase/, test)
       assert_match(/test "foo"/, test)
       assert_match(/test "bar"/, test)
     end
@@ -174,20 +173,20 @@ class NamespacedMailerGeneratorTest < NamespacedGeneratorTestCase
 
   def test_invokes_default_template_engine
     run_generator
-    assert_file "app/views/test_app/notifier/foo.text.erb" do |view|
-      assert_match(%r(app/views/test_app/notifier/foo\.text\.erb), view)
+    assert_file "app/views/test_app/notifier_mailer/foo.text.erb" do |view|
+      assert_match(%r(app/views/test_app/notifier_mailer/foo\.text\.erb), view)
       assert_match(/<%= @greeting %>/, view)
     end
 
-    assert_file "app/views/test_app/notifier/bar.text.erb" do |view|
-      assert_match(%r(app/views/test_app/notifier/bar\.text\.erb), view)
+    assert_file "app/views/test_app/notifier_mailer/bar.text.erb" do |view|
+      assert_match(%r(app/views/test_app/notifier_mailer/bar\.text\.erb), view)
       assert_match(/<%= @greeting %>/, view)
     end
   end
 
   def test_invokes_default_template_engine_even_with_no_action
     run_generator ["notifier"]
-    assert_file "app/views/test_app/notifier"
+    assert_file "app/views/test_app/notifier_mailer"
   end
 end
 
@@ -229,7 +228,6 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
 
     # Helpers
     assert_file "app/helpers/test_app/product_lines_helper.rb"
-    assert_file "test/helpers/test_app/product_lines_helper_test.rb"
 
     # Stylesheets
     assert_file "app/assets/stylesheets/scaffold.css"
@@ -260,7 +258,6 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
 
     # Helpers
     assert_no_file "app/helpers/test_app/product_lines_helper.rb"
-    assert_no_file "test/helpers/test_app/product_lines_helper_test.rb"
 
     # Stylesheets (should not be removed)
     assert_file "app/assets/stylesheets/scaffold.css"
@@ -297,7 +294,6 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
 
     # Helpers
     assert_file "app/helpers/test_app/admin/roles_helper.rb"
-    assert_file "test/helpers/test_app/admin/roles_helper_test.rb"
 
     # Stylesheets
     assert_file "app/assets/stylesheets/scaffold.css"
@@ -329,7 +325,6 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
 
     # Helpers
     assert_no_file "app/helpers/test_app/admin/roles_helper.rb"
-    assert_no_file "test/helpers/test_app/admin/roles_helper_test.rb"
 
     # Stylesheets (should not be removed)
     assert_file "app/assets/stylesheets/scaffold.css"
@@ -366,7 +361,6 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
 
     # Helpers
     assert_file "app/helpers/test_app/admin/user/special/roles_helper.rb"
-    assert_file "test/helpers/test_app/admin/user/special/roles_helper_test.rb"
 
     # Stylesheets
     assert_file "app/assets/stylesheets/scaffold.css"
@@ -397,7 +391,6 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
 
     # Helpers
     assert_no_file "app/helpers/test_app/admin/user/special/roles_helper.rb"
-    assert_no_file "test/helpers/test_app/admin/user/special/roles_helper_test.rb"
 
     # Stylesheets (should not be removed)
     assert_file "app/assets/stylesheets/scaffold.css"

@@ -1,13 +1,12 @@
 module ActiveRecord
   module DynamicMatchers #:nodoc:
-    # This code in this file seems to have a lot of indirection, but the indirection
-    # is there to provide extension points for the activerecord-deprecated_finders
-    # gem. When we stop supporting activerecord-deprecated_finders (from Rails 5),
-    # then we can remove the indirection.
-
     def respond_to?(name, include_private = false)
-      match = Method.match(self, name)
-      match && match.valid? || super
+      if self == Base
+        super
+      else
+        match = Method.match(self, name)
+        match && match.valid? || super
+      end
     end
 
     private
@@ -68,29 +67,22 @@ module ActiveRecord
         CODE
       end
 
-      def body
-        raise NotImplementedError
-      end
-    end
+      private
 
-    module Finder
-      # Extended in activerecord-deprecated_finders
       def body
-        result
-      end
-
-      # Extended in activerecord-deprecated_finders
-      def result
         "#{finder}(#{attributes_hash})"
       end
 
-      # Extended in activerecord-deprecated_finders
+      # The parameters in the signature may have reserved Ruby words, in order
+      # to prevent errors, we start each param name with `_`.
       def signature
-        attribute_names.join(', ')
+        attribute_names.map { |name| "_#{name}" }.join(', ')
       end
 
+      # Given that the parameters starts with `_`, the finder needs to use the
+      # same parameter name.
       def attributes_hash
-        "{" + attribute_names.map { |name| ":#{name} => #{name}" }.join(',') + "}"
+        "{" + attribute_names.map { |name| ":#{name} => _#{name}" }.join(',') + "}"
       end
 
       def finder
@@ -100,7 +92,6 @@ module ActiveRecord
 
     class FindBy < Method
       Method.matchers << self
-      include Finder
 
       def self.prefix
         "find_by"
@@ -113,7 +104,6 @@ module ActiveRecord
 
     class FindByBang < Method
       Method.matchers << self
-      include Finder
 
       def self.prefix
         "find_by"

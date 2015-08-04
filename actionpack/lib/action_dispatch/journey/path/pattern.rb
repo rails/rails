@@ -1,33 +1,30 @@
+require 'action_dispatch/journey/router/strexp'
+
 module ActionDispatch
   module Journey # :nodoc:
     module Path # :nodoc:
       class Pattern # :nodoc:
         attr_reader :spec, :requirements, :anchored
 
+        def self.from_string string
+          new Journey::Router::Strexp.build(string, {}, ["/.?"], true)
+        end
+
         def initialize(strexp)
-          parser = Journey::Parser.new
-
-          @anchored = true
-
-          case strexp
-          when String
-            @spec         = parser.parse(strexp)
-            @requirements = {}
-            @separators   = "/.?"
-          when Router::Strexp
-            @spec         = parser.parse(strexp.path)
-            @requirements = strexp.requirements
-            @separators   = strexp.separators.join
-            @anchored     = strexp.anchor
-          else
-            raise ArgumentError, "Bad expression: #{strexp}"
-          end
+          @spec         = strexp.ast
+          @requirements = strexp.requirements
+          @separators   = strexp.separators.join
+          @anchored     = strexp.anchor
 
           @names          = nil
           @optional_names = nil
           @required_names = nil
           @re             = nil
           @offsets        = nil
+        end
+
+        def build_formatter
+          Visitors::FormatBuilder.new.accept(spec)
         end
 
         def ast
@@ -45,7 +42,7 @@ module ActionDispatch
         end
 
         def names
-          @names ||= spec.grep(Nodes::Symbol).map { |n| n.name }
+          @names ||= spec.grep(Nodes::Symbol).map(&:name)
         end
 
         def required_names
@@ -53,9 +50,9 @@ module ActionDispatch
         end
 
         def optional_names
-          @optional_names ||= spec.grep(Nodes::Group).map { |group|
+          @optional_names ||= spec.grep(Nodes::Group).flat_map { |group|
             group.grep(Nodes::Symbol)
-          }.flatten.map { |n| n.name }.uniq
+          }.map(&:name).uniq
         end
 
         class RegexpOffsets < Journey::Visitors::Visitor # :nodoc:
@@ -124,6 +121,11 @@ module ActionDispatch
           def visit_STAR(node)
             re = @matchers[node.left.to_sym] || '.+'
             "(#{re})"
+          end
+
+          def visit_OR(node)
+            children = node.children.map { |n| visit n }
+            "(?:#{children.join(?|)})"
           end
         end
 

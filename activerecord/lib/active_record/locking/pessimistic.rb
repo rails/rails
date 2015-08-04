@@ -3,12 +3,12 @@ module ActiveRecord
     # Locking::Pessimistic provides support for row-level locking using
     # SELECT ... FOR UPDATE and other lock types.
     #
-    # Pass <tt>lock: true</tt> to <tt>ActiveRecord::Base.find</tt> to obtain an exclusive
+    # Chain <tt>ActiveRecord::Base#find</tt> to <tt>ActiveRecord::QueryMethods#lock</tt> to obtain an exclusive
     # lock on the selected rows:
     #   # select * from accounts where id=1 for update
-    #   Account.find(1, lock: true)
+    #   Account.lock.find(1)
     #
-    # Pass <tt>lock: 'some locking clause'</tt> to give a database-specific locking clause
+    # Call <tt>lock('some locking clause')</tt> to use a database-specific locking clause
     # of your own such as 'LOCK IN SHARE MODE' or 'FOR UPDATE NOWAIT'. Example:
     #
     #   Account.transaction do
@@ -51,7 +51,7 @@ module ActiveRecord
     #   end
     #
     # Database-specific information on row locking:
-    #   MySQL: http://dev.mysql.com/doc/refman/5.1/en/innodb-locking-reads.html
+    #   MySQL: http://dev.mysql.com/doc/refman/5.6/en/innodb-locking-reads.html
     #   PostgreSQL: http://www.postgresql.org/docs/current/interactive/sql-select.html#SQL-FOR-UPDATE-SHARE
     module Pessimistic
       # Obtain a row lock on this record. Reloads the record to obtain the requested

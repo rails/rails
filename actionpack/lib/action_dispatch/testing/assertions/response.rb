@@ -3,6 +3,13 @@ module ActionDispatch
   module Assertions
     # A small suite of assertions that test responses from \Rails applications.
     module ResponseAssertions
+      RESPONSE_PREDICATES = { # :nodoc:
+        success:  :successful?,
+        missing:  :not_found?,
+        redirect: :redirection?,
+        error:    :server_error?,
+      }
+
       # Asserts that the response is one of the following types:
       #
       # * <tt>:success</tt>   - Status code was in the 200-299 range
@@ -20,13 +27,14 @@ module ActionDispatch
       #   # assert that the response code was status code 401 (unauthorized)
       #   assert_response 401
       def assert_response(type, message = nil)
-        message ||= "Expected response to be a <#{type}>, but was <#{@response.response_code}>"
-
         if Symbol === type
           if [:success, :missing, :redirect, :error].include?(type)
-            assert @response.send("#{type}?"), message
+            assert_predicate @response, RESPONSE_PREDICATES[type], message
           else
             code = Rack::Utils::SYMBOL_TO_STATUS_CODE[type]
+            if code.nil?
+              raise ArgumentError, "Invalid response type :#{type}"
+            end
             assert_equal code, @response.response_code, message
           end
         else
@@ -67,21 +75,12 @@ module ActionDispatch
         end
 
         def normalize_argument_to_redirection(fragment)
-          normalized = case fragment
-            when Regexp
-              fragment
-            when %r{^\w[A-Za-z\d+.-]*:.*}
-              fragment
-            when String
-              @request.protocol + @request.host_with_port + fragment
-            when :back
-              raise RedirectBackError unless refer = @request.headers["Referer"]
-              refer
-            else
-              @controller.url_for(fragment)
-            end
-
-          normalized.respond_to?(:delete) ? normalized.delete("\0\r\n") : normalized
+          if Regexp === fragment
+            fragment
+          else
+            handle = @controller || ActionController::Redirecting
+            handle._compute_redirect_to_location(@request, fragment)
+          end
         end
     end
   end

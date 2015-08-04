@@ -4,21 +4,24 @@ require 'active_support/benchmarkable'
 require 'active_support/dependencies'
 require 'active_support/descendants_tracker'
 require 'active_support/time'
-require 'active_support/core_ext/class/attribute_accessors'
-require 'active_support/core_ext/class/delegating_attributes'
+require 'active_support/core_ext/module/attribute_accessors'
 require 'active_support/core_ext/array/extract_options'
 require 'active_support/core_ext/hash/deep_merge'
 require 'active_support/core_ext/hash/slice'
+require 'active_support/core_ext/hash/transform_values'
 require 'active_support/core_ext/string/behavior'
 require 'active_support/core_ext/kernel/singleton_class'
 require 'active_support/core_ext/module/introspection'
 require 'active_support/core_ext/object/duplicable'
 require 'active_support/core_ext/class/subclasses'
 require 'arel'
+require 'active_record/attribute_decorators'
 require 'active_record/errors'
 require 'active_record/log_subscriber'
 require 'active_record/explain_subscriber'
 require 'active_record/relation/delegation'
+require 'active_record/attributes'
+require 'active_record/type_caster'
 
 module ActiveRecord #:nodoc:
   # = Active Record
@@ -116,28 +119,28 @@ module ActiveRecord #:nodoc:
   # All column values are automatically available through basic accessors on the Active Record
   # object, but sometimes you want to specialize this behavior. This can be done by overwriting
   # the default accessors (using the same name as the attribute) and calling
-  # <tt>read_attribute(attr_name)</tt> and <tt>write_attribute(attr_name, value)</tt> to actually
-  # change things.
+  # +super+ to actually change things.
   #
   #   class Song < ActiveRecord::Base
   #     # Uses an integer of seconds to hold the length of the song
   #
   #     def length=(minutes)
-  #       write_attribute(:length, minutes.to_i * 60)
+  #       super(minutes.to_i * 60)
   #     end
   #
   #     def length
-  #       read_attribute(:length) / 60
+  #       super / 60
   #     end
   #   end
   #
   # You can alternatively use <tt>self[:attribute]=(value)</tt> and <tt>self[:attribute]</tt>
-  # instead of <tt>write_attribute(:attribute, value)</tt> and <tt>read_attribute(:attribute)</tt>.
+  # or <tt>write_attribute(:attribute, value)</tt> and <tt>read_attribute(:attribute)</tt>.
   #
   # == Attribute query methods
   #
   # In addition to the basic accessors, query methods are also automatically available on the Active Record object.
   # Query methods allow you to test whether an attribute value is present.
+  # Additionally, when dealing with numeric values, a query method will return false if the value is zero.
   #
   # For example, an Active Record User with the <tt>name</tt> attribute has a <tt>name?</tt> method that you can call
   # to determine whether the user has a name:
@@ -217,25 +220,9 @@ module ActiveRecord #:nodoc:
   #
   # == Single table inheritance
   #
-  # Active Record allows inheritance by storing the name of the class in a column that by
-  # default is named "type" (can be changed by overwriting <tt>Base.inheritance_column</tt>).
-  # This means that an inheritance looking like this:
-  #
-  #   class Company < ActiveRecord::Base; end
-  #   class Firm < Company; end
-  #   class Client < Company; end
-  #   class PriorityClient < Client; end
-  #
-  # When you do <tt>Firm.create(name: "37signals")</tt>, this record will be saved in
-  # the companies table with type = "Firm". You can then fetch this row again using
-  # <tt>Company.where(name: '37signals').first</tt> and it will return a Firm object.
-  #
-  # If you don't have a type column defined in your table, single-table inheritance won't
-  # be triggered. In that case, it'll work just like normal subclasses with no special magic
-  # for differentiating between them or reloading the right type with find.
-  #
-  # Note, all the attributes for all the cases are kept in the same table. Read more:
-  # http://www.martinfowler.com/eaaCatalog/singleTableInheritance.html
+  # Active Record allows inheritance by storing the name of the class in a
+  # column that is named "type" by default. See ActiveRecord::Inheritance for
+  # more details.
   #
   # == Connection to multiple databases in different models
   #
@@ -269,7 +256,7 @@ module ActiveRecord #:nodoc:
   #   <tt>attributes=</tt> method. The +errors+ property of this exception contains an array of
   #   AttributeAssignmentError
   #   objects that should be inspected to determine which attributes triggered the errors.
-  # * RecordInvalid - raised by save! and create! when the record is invalid.
+  # * RecordInvalid - raised by <tt>save!</tt> and <tt>create!</tt> when the record is invalid.
   # * RecordNotFound - No record responded to the +find+ method. Either the row with the given ID doesn't exist
   #   or the row didn't meet the additional restrictions. Some +find+ calls do not raise this exception to signal
   #   nothing was found, please check its documentation for further details.
@@ -291,8 +278,11 @@ module ActiveRecord #:nodoc:
     extend Translation
     extend DynamicMatchers
     extend Explain
+    extend Enum
     extend Delegation::DelegateCache
+    extend CollectionCacheKey
 
+    include Core
     include Persistence
     include ReadonlyAttributes
     include ModelSchema
@@ -304,6 +294,8 @@ module ActiveRecord #:nodoc:
     include Integration
     include Validations
     include CounterCache
+    include Attributes
+    include AttributeDecorators
     include Locking::Optimistic
     include Locking::Pessimistic
     include AttributeMethods
@@ -315,10 +307,13 @@ module ActiveRecord #:nodoc:
     include NestedAttributes
     include Aggregations
     include Transactions
+    include NoTouching
+    include TouchLater
     include Reflection
     include Serialization
     include Store
-    include Core
+    include SecureToken
+    include Suppressor
   end
 
   ActiveSupport.run_load_hooks(:active_record, Base)

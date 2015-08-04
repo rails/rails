@@ -1,6 +1,7 @@
 require 'abstract_unit'
 require 'action_view'
 require 'action_controller'
+require 'active_support/deprecation'
 
 class I18nTestMailer < ActionMailer::Base
   configure do |c|
@@ -10,18 +11,15 @@ class I18nTestMailer < ActionMailer::Base
   def mail_with_i18n_subject(recipient)
     @recipient  = recipient
     I18n.locale = :de
-    mail(to: recipient, subject: "#{I18n.t :email_subject} #{recipient}",
+    mail(to: recipient, subject: I18n.t(:email_subject),
       from: "system@loudthinking.com", date: Time.local(2004, 12, 12))
   end
 end
 
-# Emulate AV railtie
-ActionController::Base.superclass.send(:include, ActionView::Layouts)
-
 class TestController < ActionController::Base
   def send_mail
-    I18nTestMailer.mail_with_i18n_subject("test@localhost").deliver
-    render text: 'Mail sent'
+    email = I18nTestMailer.mail_with_i18n_subject("test@localhost").deliver_now
+    render text: "Mail sent - Subject: #{email.subject}"
   end
 end
 
@@ -31,20 +29,45 @@ class ActionMailerI18nWithControllerTest < ActionDispatch::IntegrationTest
     get ':controller(/:action(/:id))'
   end
 
+  class RoutedRackApp
+    attr_reader :routes
+
+    def initialize(routes, &blk)
+      @routes = routes
+      @stack = ActionDispatch::MiddlewareStack.new(&blk).build(@routes)
+    end
+
+    def call(env)
+      @stack.call(env)
+    end
+  end
+
+  APP = RoutedRackApp.new(Routes)
+
   def app
-    Routes
+    APP
   end
 
-  def setup
-    I18n.backend.store_translations('de', email_subject: '[Signed up] Welcome')
-  end
-
-  def teardown
-    I18n.locale = :en
+  teardown do
+    I18n.locale = I18n.default_locale
   end
 
   def test_send_mail
-    get '/test/send_mail'
-    assert_equal "Mail sent", @response.body
+    Mail::SMTP.any_instance.expects(:deliver!)
+    with_translation 'de', email_subject: '[Anmeldung] Willkommen' do
+      ActiveSupport::Deprecation.silence do
+        get '/test/send_mail'
+      end
+      assert_equal "Mail sent - Subject: [Anmeldung] Willkommen", @response.body
+    end
+  end
+
+  protected
+
+  def with_translation(locale, data)
+    I18n.backend.store_translations(locale, data)
+    yield
+  ensure
+    I18n.backend.reload!
   end
 end

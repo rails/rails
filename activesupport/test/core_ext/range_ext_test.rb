@@ -12,10 +12,11 @@ class RangeTest < ActiveSupport::TestCase
     date_range = Time.utc(2005, 12, 10, 15, 30)..Time.utc(2005, 12, 10, 17, 30)
     assert_equal "BETWEEN '2005-12-10 15:30:00' AND '2005-12-10 17:30:00'", date_range.to_s(:db)
   end
-  
+
   def test_date_range
     assert_instance_of Range, DateTime.new..DateTime.new
     assert_instance_of Range, DateTime::Infinity.new..DateTime::Infinity.new
+    assert_instance_of Range, DateTime.new..DateTime::Infinity.new
   end
 
   def test_overlaps_last_inclusive
@@ -42,7 +43,7 @@ class RangeTest < ActiveSupport::TestCase
     assert((1...10).include?(1...10))
   end
 
-  def test_should_include_other_with_exlusive_end
+  def test_should_include_other_with_exclusive_end
     assert((1..10).include?(1...10))
   end
 
@@ -89,5 +90,36 @@ class RangeTest < ActiveSupport::TestCase
     time_range_1 = Time.utc(2005, 12, 10, 15, 30)..Time.utc(2005, 12, 10, 17, 30)
     time_range_2 = Time.utc(2005, 12, 10, 17, 31)..Time.utc(2005, 12, 10, 18, 00)
     assert !time_range_1.overlaps?(time_range_2)
+  end
+
+  def test_each_on_time_with_zone
+    twz = ActiveSupport::TimeWithZone.new(nil, ActiveSupport::TimeZone['Eastern Time (US & Canada)'] , Time.utc(2006,11,28,10,30))
+    assert_raises TypeError do
+      ((twz - 1.hour)..twz).each {}
+    end
+  end
+
+  def test_step_on_time_with_zone
+    twz = ActiveSupport::TimeWithZone.new(nil, ActiveSupport::TimeZone['Eastern Time (US & Canada)'] , Time.utc(2006,11,28,10,30))
+    assert_raises TypeError do
+      ((twz - 1.hour)..twz).step(1) {}
+    end
+  end
+
+  def test_include_on_time_with_zone
+    twz = ActiveSupport::TimeWithZone.new(nil, ActiveSupport::TimeZone['Eastern Time (US & Canada)'] , Time.utc(2006,11,28,10,30))
+    assert_raises TypeError do
+      ((twz - 1.hour)..twz).include?(twz)
+    end
+  end
+
+  def test_date_time_with_each
+    datetime = DateTime.now
+    assert(((datetime - 1.hour)..datetime).each {})
+  end
+
+  def test_date_time_with_step
+    datetime = DateTime.now
+    assert(((datetime - 1.hour)..datetime).step(1) {})
   end
 end

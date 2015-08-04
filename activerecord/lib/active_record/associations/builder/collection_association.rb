@@ -1,4 +1,4 @@
-# This class is inherited by the has_many and has_many_and_belongs_to_many association classes 
+# This class is inherited by the has_many and has_many_and_belongs_to_many association classes
 
 require 'active_record/associations'
 
@@ -7,35 +7,29 @@ module ActiveRecord::Associations::Builder
 
     CALLBACKS = [:before_add, :after_add, :before_remove, :after_remove]
 
-    def valid_options
+    def self.valid_options(options)
       super + [:table_name, :before_add,
                :after_add, :before_remove, :after_remove, :extend]
     end
 
-    attr_reader :block_extension
-
-    def initialize(name, scope, options)
+    def self.define_callbacks(model, reflection)
       super
-      @mod = nil
+      name    = reflection.name
+      options = reflection.options
+      CALLBACKS.each { |callback_name|
+        define_callback(model, callback_name, name, options)
+      }
+    end
+
+    def self.define_extensions(model, name)
       if block_given?
-        @mod = Module.new(&Proc.new)
-        @scope = wrap_scope @scope, @mod
-      end
-    end
-
-    def define_callbacks(model, reflection)
-      super
-      CALLBACKS.each { |callback_name| define_callback(model, callback_name) }
-    end
-
-    def define_extensions(model)
-      if @mod
         extension_module_name = "#{model.name.demodulize}#{name.to_s.camelize}AssociationExtension"
-        model.parent.const_set(extension_module_name, @mod)
+        extension = Module.new(&Proc.new)
+        model.parent.const_set(extension_module_name, extension)
       end
     end
 
-    def define_callback(model, callback_name)
+    def self.define_callback(model, callback_name, name, options)
       full_callback_name = "#{callback_name}_for_#{name}"
 
       # TODO : why do i need method_defined? I think its because of the inheritance chain
@@ -54,8 +48,7 @@ module ActiveRecord::Associations::Builder
     end
 
     # Defines the setter and getter methods for the collection_singular_ids.
-
-    def define_readers(mixin)
+    def self.define_readers(mixin, name)
       super
 
       mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
@@ -65,7 +58,7 @@ module ActiveRecord::Associations::Builder
       CODE
     end
 
-    def define_writers(mixin)
+    def self.define_writers(mixin, name)
       super
 
       mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
@@ -75,9 +68,7 @@ module ActiveRecord::Associations::Builder
       CODE
     end
 
-    private
-
-    def wrap_scope(scope, mod)
+    def self.wrap_scope(scope, mod)
       if scope
         proc { |owner| instance_exec(owner, &scope).extending(mod) }
       else

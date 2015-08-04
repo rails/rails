@@ -1,5 +1,5 @@
 #--
-# Copyright (c) 2004-2013 David Heinemeier Hansson
+# Copyright (c) 2004-2015 David Heinemeier Hansson
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -23,9 +23,12 @@
 
 require 'active_support'
 require 'active_support/rails'
+require 'action_view/version'
 
 module ActionView
   extend ActiveSupport::Autoload
+
+  ENCODING_FLAG = '#.*coding[:=]\s*(\S+)[ \t]*'
 
   eager_autoload do
     autoload :Base
@@ -53,7 +56,6 @@ module ActionView
     autoload_at "action_view/template/resolver" do
       autoload :Resolver
       autoload :PathResolver
-      autoload :FileSystemResolver
       autoload :OptimizedFileSystemResolver
       autoload :FallbackFileSystemResolver
     end
@@ -80,12 +82,10 @@ module ActionView
 
   autoload :TestCase
 
-  ENCODING_FLAG = '#.*coding[:=]\s*(\S+)[ \t]*'
-
   def self.eager_load!
     super
+    ActionView::Helpers.eager_load!
     ActionView::Template.eager_load!
-    HTML.eager_load!
   end
 end
 

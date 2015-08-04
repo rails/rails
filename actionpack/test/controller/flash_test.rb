@@ -57,7 +57,7 @@ class FlashTest < ActionController::TestCase
 
     def std_action
       @flash_copy = {}.update(flash)
-      render :nothing => true
+      head :ok
     end
 
     def filter_halting_action
@@ -103,54 +103,55 @@ class FlashTest < ActionController::TestCase
     get :set_flash
 
     get :use_flash
-    assert_equal "hello", assigns["flash_copy"]["that"]
-    assert_equal "hello", assigns["flashy"]
+    assert_equal "hello", @controller.instance_variable_get(:@flash_copy)["that"]
+    assert_equal "hello", @controller.instance_variable_get(:@flashy)
 
     get :use_flash
-    assert_nil assigns["flash_copy"]["that"], "On second flash"
+    assert_nil @controller.instance_variable_get(:@flash_copy)["that"], "On second flash"
   end
 
   def test_keep_flash
     get :set_flash
 
     get :use_flash_and_keep_it
-    assert_equal "hello", assigns["flash_copy"]["that"]
-    assert_equal "hello", assigns["flashy"]
+    assert_equal "hello", @controller.instance_variable_get(:@flash_copy)["that"]
+    assert_equal "hello", @controller.instance_variable_get(:@flashy)
 
     get :use_flash
-    assert_equal "hello", assigns["flash_copy"]["that"], "On second flash"
+    assert_equal "hello", @controller.instance_variable_get(:@flash_copy)["that"], "On second flash"
 
     get :use_flash
-    assert_nil assigns["flash_copy"]["that"], "On third flash"
+    assert_nil @controller.instance_variable_get(:@flash_copy)["that"], "On third flash"
   end
 
   def test_flash_now
     get :set_flash_now
-    assert_equal "hello", assigns["flash_copy"]["that"]
-    assert_equal "bar"  , assigns["flash_copy"]["foo"]
-    assert_equal "hello", assigns["flashy"]
+    assert_equal "hello", @controller.instance_variable_get(:@flash_copy)["that"]
+    assert_equal "bar", @controller.instance_variable_get(:@flash_copy)["foo"]
+    assert_equal "hello", @controller.instance_variable_get(:@flashy)
 
     get :attempt_to_use_flash_now
-    assert_nil assigns["flash_copy"]["that"]
-    assert_nil assigns["flash_copy"]["foo"]
-    assert_nil assigns["flashy"]
+    assert_nil @controller.instance_variable_get(:@flash_copy)["that"]
+    assert_nil @controller.instance_variable_get(:@flash_copy)["foo"]
+    assert_nil @controller.instance_variable_get(:@flashy)
   end
 
   def test_update_flash
     get :set_flash
     get :use_flash_and_update_it
-    assert_equal "hello",       assigns["flash_copy"]["that"]
-    assert_equal "hello again", assigns["flash_copy"]["this"]
+    assert_equal "hello", @controller.instance_variable_get(:@flash_copy)["that"]
+    assert_equal "hello again", @controller.instance_variable_get(:@flash_copy)["this"]
     get :use_flash
-    assert_nil                  assigns["flash_copy"]["that"], "On second flash"
-    assert_equal "hello again", assigns["flash_copy"]["this"], "On second flash"
+    assert_nil @controller.instance_variable_get(:@flash_copy)["that"], "On second flash"
+    assert_equal "hello again",
+      @controller.instance_variable_get(:@flash_copy)["this"], "On second flash"
   end
 
   def test_flash_after_reset_session
     get :use_flash_after_reset_session
-    assert_equal "hello",    assigns["flashy_that"]
-    assert_equal "good-bye", assigns["flashy_this"]
-    assert_nil   assigns["flashy_that_reset"]
+    assert_equal "hello", @controller.instance_variable_get(:@flashy_that)
+    assert_equal "good-bye", @controller.instance_variable_get(:@flashy_this)
+    assert_nil @controller.instance_variable_get(:@flashy_that_reset)
   end
 
   def test_does_not_set_the_session_if_the_flash_is_empty
@@ -160,13 +161,13 @@ class FlashTest < ActionController::TestCase
 
   def test_sweep_after_halted_action_chain
     get :std_action
-    assert_nil assigns["flash_copy"]["foo"]
+    assert_nil @controller.instance_variable_get(:@flash_copy)["foo"]
     get :filter_halting_action
-    assert_equal "bar", assigns["flash_copy"]["foo"]
+    assert_equal "bar", @controller.instance_variable_get(:@flash_copy)["foo"]
     get :std_action # follow redirection
-    assert_equal "bar", assigns["flash_copy"]["foo"]
+    assert_equal "bar", @controller.instance_variable_get(:@flash_copy)["foo"]
     get :std_action
-    assert_nil assigns["flash_copy"]["foo"]
+    assert_nil @controller.instance_variable_get(:@flash_copy)["foo"]
   end
 
   def test_keep_and_discard_return_values
@@ -174,14 +175,14 @@ class FlashTest < ActionController::TestCase
     flash.update(:foo => :foo_indeed, :bar => :bar_indeed)
 
     assert_equal(:foo_indeed, flash.discard(:foo)) # valid key passed
-    assert_nil flash.discard(:unknown) # non existant key passed
-    assert_equal({:foo => :foo_indeed, :bar => :bar_indeed}, flash.discard().to_hash) # nothing passed
-    assert_equal({:foo => :foo_indeed, :bar => :bar_indeed}, flash.discard(nil).to_hash) # nothing passed
+    assert_nil flash.discard(:unknown) # non existent key passed
+    assert_equal({"foo" => :foo_indeed, "bar" => :bar_indeed}, flash.discard().to_hash) # nothing passed
+    assert_equal({"foo" => :foo_indeed, "bar" => :bar_indeed}, flash.discard(nil).to_hash) # nothing passed
 
     assert_equal(:foo_indeed, flash.keep(:foo)) # valid key passed
-    assert_nil flash.keep(:unknown) # non existant key passed
-    assert_equal({:foo => :foo_indeed, :bar => :bar_indeed}, flash.keep().to_hash) # nothing passed
-    assert_equal({:foo => :foo_indeed, :bar => :bar_indeed}, flash.keep(nil).to_hash) # nothing passed
+    assert_nil flash.keep(:unknown) # non existent key passed
+    assert_equal({"foo" => :foo_indeed, "bar" => :bar_indeed}, flash.keep().to_hash) # nothing passed
+    assert_equal({"foo" => :foo_indeed, "bar" => :bar_indeed}, flash.keep(nil).to_hash) # nothing passed
   end
 
   def test_redirect_to_with_alert
@@ -210,9 +211,30 @@ class FlashTest < ActionController::TestCase
   end
 
   def test_redirect_to_with_adding_flash_types
-    @controller.class.add_flash_types :foo
+    original_controller = @controller
+    test_controller_with_flash_type_foo = Class.new(TestController) do
+      add_flash_types :foo
+    end
+    @controller = test_controller_with_flash_type_foo.new
     get :redirect_with_foo_flash
     assert_equal "for great justice", @controller.send(:flash)[:foo]
+  ensure
+    @controller = original_controller
+  end
+
+  def test_add_flash_type_to_subclasses
+    test_controller_with_flash_type_foo = Class.new(TestController) do
+      add_flash_types :foo
+    end
+    subclass_controller_with_no_flash_type = Class.new(test_controller_with_flash_type_foo)
+    assert subclass_controller_with_no_flash_type._flash_types.include?(:foo)
+  end
+
+  def test_does_not_add_flash_type_to_parent_class
+    Class.new(TestController) do
+      add_flash_types :bar
+    end
+    assert_not TestController._flash_types.include?(:bar)
   end
 end
 
@@ -267,16 +289,16 @@ class FlashIntegrationTest < ActionDispatch::IntegrationTest
   def test_setting_flash_does_not_raise_in_following_requests
     with_test_route_set do
       env = { 'action_dispatch.request.flash_hash' => ActionDispatch::Flash::FlashHash.new }
-      get '/set_flash', nil, env
-      get '/set_flash', nil, env
+      get '/set_flash', env: env
+      get '/set_flash', env: env
     end
   end
 
   def test_setting_flash_now_does_not_raise_in_following_requests
     with_test_route_set do
       env = { 'action_dispatch.request.flash_hash' => ActionDispatch::Flash::FlashHash.new }
-      get '/set_flash_now', nil, env
-      get '/set_flash_now', nil, env
+      get '/set_flash_now', env: env
+      get '/set_flash_now', env: env
     end
   end
 
@@ -291,9 +313,11 @@ class FlashIntegrationTest < ActionDispatch::IntegrationTest
   private
 
     # Overwrite get to send SessionSecret in env hash
-    def get(path, parameters = nil, env = {})
-      env["action_dispatch.key_generator"] ||= Generator
-      super
+    def get(path, *args)
+      args[0] ||= {}
+      args[0][:env] ||= {}
+      args[0][:env]["action_dispatch.key_generator"] ||= Generator
+      super(path, *args)
     end
 
     def with_test_route_set

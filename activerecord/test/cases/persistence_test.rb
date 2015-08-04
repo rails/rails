@@ -1,4 +1,5 @@
 require "cases/helper"
+require 'models/aircraft'
 require 'models/post'
 require 'models/comment'
 require 'models/author'
@@ -7,6 +8,7 @@ require 'models/reply'
 require 'models/category'
 require 'models/company'
 require 'models/developer'
+require 'models/computer'
 require 'models/project'
 require 'models/minimalistic'
 require 'models/warehouse_thing'
@@ -19,7 +21,7 @@ require 'models/toy'
 require 'rexml/document'
 
 class PersistenceTest < ActiveRecord::TestCase
-  fixtures :topics, :companies, :developers, :projects, :computers, :accounts, :minimalistics, 'warehouse-things', :authors, :categorizations, :categories, :posts, :minivans, :pets, :toys
+  fixtures :topics, :companies, :developers, :projects, :computers, :accounts, :minimalistics, 'warehouse-things', :authors, :author_addresses, :categorizations, :categories, :posts, :minivans, :pets, :toys
 
   # Oracle UPDATE does not support ORDER BY
   unless current_adapter?(:OracleAdapter)
@@ -125,7 +127,7 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_difference('Topic.count', -topics_by_mary.size) do
       destroyed = Topic.destroy_all(conditions).sort_by(&:id)
       assert_equal topics_by_mary, destroyed
-      assert destroyed.all? { |topic| topic.frozen? }, "destroyed topics should be frozen"
+      assert destroyed.all?(&:frozen?), "destroyed topics should be frozen"
     end
   end
 
@@ -135,7 +137,7 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_difference('Client.count', -2) do
       destroyed = Client.destroy([2, 3]).sort_by(&:id)
       assert_equal clients, destroyed
-      assert destroyed.all? { |client| client.frozen? }, "destroyed clients should be frozen"
+      assert destroyed.all?(&:frozen?), "destroyed clients should be frozen"
     end
   end
 
@@ -150,6 +152,20 @@ class PersistenceTest < ActiveRecord::TestCase
     original_errors = company.errors
     client = company.becomes(Client)
     assert_equal original_errors, client.errors
+  end
+
+  def test_dupd_becomes_persists_changes_from_the_original
+    original = topics(:first)
+    copy = original.dup.becomes(Reply)
+    copy.save!
+    assert_equal "The First Topic", Topic.find(copy.id).title
+  end
+
+  def test_becomes_includes_changed_attributes
+    company = Company.new(name: "37signals")
+    client = company.becomes(Client)
+    assert_equal "37signals", client.name
+    assert_equal %w{name}, client.changed
   end
 
   def test_delete_many
@@ -219,6 +235,15 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_nothing_raised { Minimalistic.create!(:id => 2) }
   end
 
+  def test_save_with_duping_of_destroyed_object
+    developer = Developer.first
+    developer.destroy
+    new_developer = developer.dup
+    new_developer.save
+    assert new_developer.persisted?
+    assert_not new_developer.destroyed?
+  end
+
   def test_create_many
     topics = Topic.create([ { "title" => "first" }, { "title" => "second" }])
     assert_equal 2, topics.size
@@ -226,7 +251,7 @@ class PersistenceTest < ActiveRecord::TestCase
   end
 
   def test_create_columns_not_equal_attributes
-    topic = Topic.allocate.init_with(
+    topic = Topic.instantiate(
       'attributes' => {
         'title'          => 'Another New Topic',
         'does_not_exist' => 'test'
@@ -276,10 +301,7 @@ class PersistenceTest < ActiveRecord::TestCase
     topic.title = "Still another topic"
     topic.save
 
-    topic_reloaded = Topic.allocate
-    topic_reloaded.init_with(
-      'attributes' => topic.attributes.merge('does_not_exist' => 'test')
-    )
+    topic_reloaded = Topic.instantiate(topic.attributes.merge('does_not_exist' => 'test'))
     topic_reloaded.title = 'A New Topic'
     assert_nothing_raised { topic_reloaded.save }
   end
@@ -309,6 +331,15 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_equal "Reply", topic.type
   end
 
+  def test_update_sti_subclass_type
+    assert_instance_of Topic, topics(:first)
+
+    reply = topics(:first).becomes!(Reply)
+    assert_instance_of Reply, reply
+    reply.save!
+    assert_instance_of Reply, Reply.find(reply.id)
+  end
+
   def test_update_after_create
     klass = Class.new(Topic) do
       def self.name; 'Topic'; end
@@ -323,6 +354,22 @@ class PersistenceTest < ActiveRecord::TestCase
     topic_reloaded = Topic.find(topic.id)
     assert_equal("Another New Topic", topic_reloaded.title)
     assert_equal("David", topic_reloaded.author_name)
+  end
+
+  def test_update_attribute_does_not_run_sql_if_attribute_is_not_changed
+    klass = Class.new(Topic) do
+      def self.name; 'Topic'; end
+    end
+    topic = klass.create(title: 'Another New Topic')
+    assert_queries(0) do
+      topic.update_attribute(:title, 'Another New Topic')
+    end
+  end
+
+  def test_update_does_not_run_sql_if_record_has_not_changed
+    topic = Topic.create(title: 'Another New Topic')
+    assert_queries(0) { topic.update(title: 'Another New Topic') }
+    assert_queries(0) { topic.update_attributes(title: 'Another New Topic') }
   end
 
   def test_delete
@@ -419,10 +466,6 @@ class PersistenceTest < ActiveRecord::TestCase
     assert !Topic.find(1).approved?
   end
 
-  def test_update_attribute_does_not_choke_on_nil
-    assert Topic.find(1).update(nil)
-  end
-
   def test_update_attribute_for_readonly_attribute
     minivan = Minivan.find('m1')
     assert_raises(ActiveRecord::ActiveRecordError) { minivan.update_attribute(:color, 'black') }
@@ -442,7 +485,7 @@ class PersistenceTest < ActiveRecord::TestCase
 
   def test_update_attribute_for_updated_at_on
     developer = Developer.find(1)
-    prev_month = Time.now.prev_month
+    prev_month = Time.now.prev_month.change(usec: 0)
 
     developer.update_attribute(:updated_at, prev_month)
     assert_equal prev_month, developer.updated_at
@@ -485,14 +528,14 @@ class PersistenceTest < ActiveRecord::TestCase
 
   def test_update_column_should_not_leave_the_object_dirty
     topic = Topic.find(1)
-    topic.update_column("content", "Have a nice day")
+    topic.update_column("content", "--- Have a nice day\n...\n")
 
     topic.reload
-    topic.update_column(:content, "You too")
+    topic.update_column(:content, "--- You too\n...\n")
     assert_equal [], topic.changed
 
     topic.reload
-    topic.update_column("content", "Have a nice day")
+    topic.update_column("content", "--- Have a nice day\n...\n")
     assert_equal [], topic.changed
   end
 
@@ -513,7 +556,7 @@ class PersistenceTest < ActiveRecord::TestCase
 
   def test_update_column_should_not_modify_updated_at
     developer = Developer.find(1)
-    prev_month = Time.now.prev_month
+    prev_month = Time.now.prev_month.change(usec: 0)
 
     developer.update_column(:updated_at, prev_month)
     assert_equal prev_month, developer.updated_at
@@ -576,14 +619,14 @@ class PersistenceTest < ActiveRecord::TestCase
 
   def test_update_columns_should_not_leave_the_object_dirty
     topic = Topic.find(1)
-    topic.update({ "content" => "Have a nice day", :author_name => "Jose" })
+    topic.update({ "content" => "--- Have a nice day\n...\n", :author_name => "Jose" })
 
     topic.reload
-    topic.update_columns({ content: "You too", "author_name" => "Sebastian" })
+    topic.update_columns({ content: "--- You too\n...\n", "author_name" => "Sebastian" })
     assert_equal [], topic.changed
 
     topic.reload
-    topic.update_columns({ content: "Have a nice day", author_name: "Jose" })
+    topic.update_columns({ content: "--- Have a nice day\n...\n", author_name: "Jose" })
     assert_equal [], topic.changed
   end
 
@@ -610,7 +653,7 @@ class PersistenceTest < ActiveRecord::TestCase
 
   def test_update_columns_should_not_modify_updated_at
     developer = Developer.find(1)
-    prev_month = Time.now.prev_month
+    prev_month = Time.now.prev_month.change(usec: 0)
 
     developer.update_columns(updated_at: prev_month)
     assert_equal prev_month, developer.updated_at
@@ -701,6 +744,17 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_equal topic.title, Topic.find(1234).title
   end
 
+  def test_update_attributes_parameters
+    topic = Topic.find(1)
+    assert_nothing_raised do
+      topic.update_attributes({})
+    end
+
+    assert_raises(ArgumentError) do
+      topic.update_attributes(nil)
+    end
+  end
+
   def test_update!
     Reply.validates_presence_of(:title)
     reply = Reply.find(2)
@@ -719,7 +773,7 @@ class PersistenceTest < ActiveRecord::TestCase
 
     assert_raise(ActiveRecord::RecordInvalid) { reply.update!(title: nil, content: "Have a nice evening") }
   ensure
-    Reply.reset_callbacks(:validate)
+    Reply.clear_validators!
   end
 
   def test_update_attributes!
@@ -740,7 +794,7 @@ class PersistenceTest < ActiveRecord::TestCase
 
     assert_raise(ActiveRecord::RecordInvalid) { reply.update_attributes!(title: nil, content: "Have a nice evening") }
   ensure
-    Reply.reset_callbacks(:validate)
+    Reply.clear_validators!
   end
 
   def test_destroyed_returns_boolean
@@ -799,4 +853,106 @@ class PersistenceTest < ActiveRecord::TestCase
     end
   end
 
+  def test_persist_inherited_class_with_different_table_name
+    minimalistic_aircrafts = Class.new(Minimalistic) do
+      self.table_name = "aircraft"
+    end
+
+    assert_difference "Aircraft.count", 1 do
+      aircraft = minimalistic_aircrafts.create(name: "Wright Flyer")
+      aircraft.name = "Wright Glider"
+      aircraft.save
+    end
+
+    assert_equal "Wright Glider", Aircraft.last.name
+  end
+
+  def test_instantiate_creates_a_new_instance
+    post = Post.instantiate("title" => "appropriate documentation", "type" => "SpecialPost")
+    assert_equal "appropriate documentation", post.title
+    assert_instance_of SpecialPost, post
+
+    # body was not initialized
+    assert_raises ActiveModel::MissingAttributeError do
+      post.body
+    end
+  end
+
+  def test_reload_removes_custom_selects
+    post = Post.select('posts.*, 1 as wibble').last!
+
+    assert_equal 1, post[:wibble]
+    assert_nil post.reload[:wibble]
+  end
+
+  def test_find_via_reload
+    post = Post.new
+
+    assert post.new_record?
+
+    post.id = 1
+    post.reload
+
+    assert_equal "Welcome to the weblog", post.title
+    assert_not post.new_record?
+  end
+
+  def test_reload_via_querycache
+    ActiveRecord::Base.connection.enable_query_cache!
+    ActiveRecord::Base.connection.clear_query_cache
+    assert ActiveRecord::Base.connection.query_cache_enabled, 'cache should be on'
+    parrot = Parrot.create(:name => 'Shane')
+
+    # populate the cache with the SELECT result
+    found_parrot = Parrot.find(parrot.id)
+    assert_equal parrot.id, found_parrot.id
+
+    # Manually update the 'name' attribute in the DB directly
+    assert_equal 1, ActiveRecord::Base.connection.query_cache.length
+    ActiveRecord::Base.uncached do
+      found_parrot.name = 'Mary'
+      found_parrot.save
+    end
+
+    # Now reload, and verify that it gets the DB version, and not the querycache version
+    found_parrot.reload
+    assert_equal 'Mary', found_parrot.name
+
+    found_parrot = Parrot.find(parrot.id)
+    assert_equal 'Mary', found_parrot.name
+  ensure
+    ActiveRecord::Base.connection.disable_query_cache!
+  end
+
+  class SaveTest < ActiveRecord::TestCase
+    self.use_transactional_tests = false
+
+    def test_save_touch_false
+      widget = Class.new(ActiveRecord::Base) do
+        connection.create_table :widgets, force: true do |t|
+          t.string :name
+          t.timestamps null: false
+        end
+
+        self.table_name = :widgets
+      end
+
+      instance  = widget.create!({
+        name: 'Bob',
+        created_at: 1.day.ago,
+        updated_at: 1.day.ago
+      })
+
+      created_at = instance.created_at
+      updated_at = instance.updated_at
+
+      instance.name = 'Barb'
+      instance.save!(touch: false)
+      assert_equal instance.created_at, created_at
+      assert_equal instance.updated_at, updated_at
+    ensure
+      ActiveRecord::Base.connection.drop_table widget.table_name
+      widget.reset_column_information
+    end
+  end
 end

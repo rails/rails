@@ -6,7 +6,7 @@ module ActiveRecord
       @records = []
     end
 
-    def pluck(_column_name)
+    def pluck(*column_names)
       []
     end
 
@@ -14,7 +14,7 @@ module ActiveRecord
       0
     end
 
-    def update_all(_updates, _conditions = nil, _options = {})
+    def update_all(_updates)
       0
     end
 
@@ -23,14 +23,22 @@ module ActiveRecord
     end
 
     def size
-      0
+      calculate :size, nil
     end
 
     def empty?
       true
     end
 
+    def none?
+      true
+    end
+
     def any?
+      false
+    end
+
+    def one?
       false
     end
 
@@ -42,28 +50,42 @@ module ActiveRecord
       ""
     end
 
-    def where_values_hash
-      {}
-    end
-
     def count(*)
-      0
+      calculate :count, nil
     end
 
     def sum(*)
-      0
+      calculate :sum, nil
     end
 
-    def calculate(_operation, _column_name, _options = {})
-      if _operation == :count
-        0
+    def average(*)
+      calculate :average, nil
+    end
+
+    def minimum(*)
+      calculate :minimum, nil
+    end
+
+    def maximum(*)
+      calculate :maximum, nil
+    end
+
+    def calculate(operation, _column_name)
+      if [:count, :sum, :size].include? operation
+        group_values.any? ? Hash.new : 0
+      elsif [:average, :minimum, :maximum].include?(operation) && group_values.any?
+        Hash.new
       else
         nil
       end
     end
 
-    def exists?(_id = false)
+    def exists?(_conditions = :none)
       false
+    end
+
+    def or(other)
+      other.spawn
     end
   end
 end

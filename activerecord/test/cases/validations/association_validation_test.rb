@@ -1,43 +1,13 @@
-# encoding: utf-8
 require "cases/helper"
 require 'models/topic'
 require 'models/reply'
-require 'models/owner'
-require 'models/pet'
 require 'models/man'
 require 'models/interest'
 
 class AssociationValidationTest < ActiveRecord::TestCase
-  fixtures :topics, :owners
+  fixtures :topics
 
   repair_validations(Topic, Reply)
-
-  def test_validates_size_of_association
-    repair_validations Owner do
-      assert_nothing_raised { Owner.validates_size_of :pets, :minimum => 1 }
-      o = Owner.new('name' => 'nopets')
-      assert !o.save
-      assert o.errors[:pets].any?
-      o.pets.build('name' => 'apet')
-      assert o.valid?
-    end
-  end
-
-  def test_validates_size_of_association_using_within
-    repair_validations Owner do
-      assert_nothing_raised { Owner.validates_size_of :pets, :within => 1..2 }
-      o = Owner.new('name' => 'nopets')
-      assert !o.save
-      assert o.errors[:pets].any?
-
-      o.pets.build('name' => 'apet')
-      assert o.valid?
-
-      2.times { o.pets.build('name' => 'apet') }
-      assert !o.save
-      assert o.errors[:pets].any?
-    end
-  end
 
   def test_validates_associated_many
     Topic.validates_associated(:replies)
@@ -80,7 +50,7 @@ class AssociationValidationTest < ActiveRecord::TestCase
     Topic.validates_presence_of :content
     r = Reply.create("title" => "A reply", "content" => "with content!")
     r.topic = Topic.create("title" => "uhohuhoh")
-    assert !r.valid?
+    assert_not_operator r, :valid?
     assert_equal ["This string contains 'single' and \"double\" quotes"], r.errors[:topic]
   end
 
@@ -92,17 +62,6 @@ class AssociationValidationTest < ActiveRecord::TestCase
 
     r.topic = Topic.first
     assert r.valid?
-  end
-
-  def test_validates_size_of_association_utf8
-    repair_validations Owner do
-      assert_nothing_raised { Owner.validates_size_of :pets, :minimum => 1 }
-      o = Owner.new('name' => 'あいうえおかきくけこ')
-      assert !o.save
-      assert o.errors[:pets].any?
-      o.pets.build('name' => 'あいうえおかきくけこ')
-      assert o.valid?
-    end
   end
 
   def test_validates_presence_of_belongs_to_association__parent_is_new_record
@@ -123,5 +82,4 @@ class AssociationValidationTest < ActiveRecord::TestCase
       assert interest.valid?, "Expected interest to be valid, but was not. Interest should have a man object associated"
     end
   end
-
 end

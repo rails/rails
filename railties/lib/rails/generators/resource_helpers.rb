@@ -1,42 +1,46 @@
 require 'rails/generators/active_model'
+require 'rails/generators/model_helpers'
 
 module Rails
   module Generators
     # Deal with controller names on scaffold and add some helpers to deal with
     # ActiveModel.
     module ResourceHelpers # :nodoc:
-      mattr_accessor :skip_warn
 
       def self.included(base) #:nodoc:
-        base.class_option :force_plural, type: :boolean, desc: "Forces the use of a plural ModelName"
+        base.include(Rails::Generators::ModelHelpers)
+        base.class_option :model_name, type: :string, desc: "ModelName to be used"
       end
 
       # Set controller variables on initialization.
       def initialize(*args) #:nodoc:
         super
-
-        if name == name.pluralize && name.singularize != name.pluralize && !options[:force_plural]
-          unless ResourceHelpers.skip_warn
-            say "Plural version of the model detected, using singularized version. Override with --force-plural."
-            ResourceHelpers.skip_warn = true
-          end
-          name.replace name.singularize
-          assign_names!(name)
+        controller_name = name
+        if options[:model_name]
+          self.name = options[:model_name]
+          assign_names!(self.name)
         end
 
-        @controller_name = name.pluralize
+        assign_controller_names!(controller_name.pluralize)
       end
 
       protected
 
-        attr_reader :controller_name
+        attr_reader :controller_name, :controller_file_name
 
         def controller_class_path
-          class_path
+          if options[:model_name]
+            @controller_class_path
+          else
+            class_path
+          end
         end
 
-        def controller_file_name
-          @controller_file_name ||= file_name.pluralize
+        def assign_controller_names!(name)
+          @controller_name = name
+          @controller_class_path = name.include?('/') ? name.split('/') : name.split('::')
+          @controller_class_path.map!(&:underscore)
+          @controller_file_name = @controller_class_path.pop
         end
 
         def controller_file_path
@@ -44,7 +48,7 @@ module Rails
         end
 
         def controller_class_name
-          (controller_class_path + [controller_file_name]).map!{ |m| m.camelize }.join('::')
+          (controller_class_path + [controller_file_name]).map!(&:camelize).join('::')
         end
 
         def controller_i18n_scope

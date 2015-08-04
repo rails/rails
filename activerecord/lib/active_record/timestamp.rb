@@ -1,4 +1,3 @@
-
 module ActiveRecord
   # = Active Record Timestamp
   #
@@ -37,19 +36,20 @@ module ActiveRecord
     end
 
     def initialize_dup(other) # :nodoc:
-      clear_timestamp_attributes
       super
+      clear_timestamp_attributes
     end
 
   private
 
-    def create_record
+    def _create_record
       if self.record_timestamps
         current_time = current_time_from_proper_timezone
 
         all_timestamp_attributes.each do |column|
-          if respond_to?(column) && respond_to?("#{column}=") && self.send(column).nil?
-            write_attribute(column.to_s, current_time)
+          column = column.to_s
+          if has_attribute?(column) && !attribute_present?(column)
+            write_attribute(column, current_time)
           end
         end
       end
@@ -57,8 +57,8 @@ module ActiveRecord
       super
     end
 
-    def update_record(*args)
-      if should_record_timestamps?
+    def _update_record(*args, touch: true, **options)
+      if touch && should_record_timestamps?
         current_time = current_time_from_proper_timezone
 
         timestamp_attributes_for_update_in_model.each do |column|
@@ -67,11 +67,11 @@ module ActiveRecord
           write_attribute(column, current_time)
         end
       end
-      super
+      super(*args)
     end
 
     def should_record_timestamps?
-      self.record_timestamps && (!partial_writes? || changed? || (attributes.keys & self.class.serialized_attributes.keys).present?)
+      self.record_timestamps && (!partial_writes? || changed?)
     end
 
     def timestamp_attributes_for_create_in_model
@@ -98,10 +98,12 @@ module ActiveRecord
       timestamp_attributes_for_create + timestamp_attributes_for_update
     end
 
-    def max_updated_column_timestamp
-      if (timestamps = timestamp_attributes_for_update.map { |attr| self[attr] }.compact).present?
-        timestamps.map { |ts| ts.to_time }.max
-      end
+    def max_updated_column_timestamp(timestamp_names = timestamp_attributes_for_update)
+      timestamp_names
+        .map { |attr| self[attr] }
+        .compact
+        .map(&:to_time)
+        .max
     end
 
     def current_time_from_proper_timezone
@@ -112,7 +114,7 @@ module ActiveRecord
     def clear_timestamp_attributes
       all_timestamp_attributes_in_model.each do |attribute_name|
         self[attribute_name] = nil
-        changed_attributes.delete(attribute_name)
+        clear_attribute_changes([attribute_name])
       end
     end
   end

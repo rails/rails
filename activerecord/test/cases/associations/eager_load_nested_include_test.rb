@@ -68,11 +68,9 @@ class EagerLoadPolyAssocsTest < ActiveRecord::TestCase
     generate_test_object_graphs
   end
 
-  def teardown
+  teardown do
     [Circle, Square, Triangle, PaintColor, PaintTexture,
-     ShapeExpression, NonPolyOne, NonPolyTwo].each do |c|
-      c.delete_all
-    end
+     ShapeExpression, NonPolyOne, NonPolyTwo].each(&:delete_all)
   end
 
   def generate_test_object_graphs
@@ -111,7 +109,7 @@ class EagerLoadNestedIncludeWithMissingDataTest < ActiveRecord::TestCase
     @first_categorization = @davey_mcdave.categorizations.create(:category => Category.first, :post => @first_post)
   end
 
-  def teardown
+  teardown do
     @davey_mcdave.destroy
     @first_post.destroy
     @first_comment.destroy

@@ -26,9 +26,15 @@ module SharedGeneratorTests
     default_files.each { |path| assert_file path }
   end
 
-  def test_generation_runs_bundle_install
-    generator([destination_root]).expects(:bundle_command).with('install').once
+  def assert_generates_with_bundler(options = {})
+    generator([destination_root], options)
+    generator.expects(:bundle_command).with('install').once
+    generator.stubs(:bundle_command).with('exec spring binstub --all')
     quietly { generator.invoke_all }
+  end
+
+  def test_generation_runs_bundle_install
+    assert_generates_with_bundler
   end
 
   def test_plugin_new_generate_pretend
@@ -41,21 +47,16 @@ module SharedGeneratorTests
     assert_match(/Invalid value for \-\-database option/, content)
   end
 
-  def test_test_unit_is_skipped_if_required
-    run_generator [destination_root, "--skip-test-unit"]
+  def test_test_files_are_skipped_if_required
+    run_generator [destination_root, "--skip-test"]
     assert_no_file "test"
-  end
-
-  def test_options_before_application_name_raises_an_error
-    content = capture(:stderr){ run_generator(["--pretend", destination_root]) }
-    assert_match(/Options should be given after the \w+ name. For details run: rails( plugin new)? --help\n/, content)
   end
 
   def test_name_collision_raises_an_error
     reserved_words = %w[application destroy plugin runner test]
     reserved_words.each do |reserved|
       content = capture(:stderr){ run_generator [File.join(destination_root, reserved)] }
-      assert_match(/Invalid \w+ name #{reserved}. Please give a name which does not match one of the reserved rails words.\n/, content)
+      assert_match(/Invalid \w+ name #{reserved}. Please give a name which does not match one of the reserved rails words: application, destroy, plugin, runner, test\n/, content)
     end
   end
 
@@ -77,18 +78,12 @@ module SharedGeneratorTests
   end
 
   def test_template_raises_an_error_with_invalid_path
-    content = capture(:stderr){ run_generator([destination_root, "-m", "non/existent/path"]) }
-    assert_match(/The template \[.*\] could not be loaded/, content)
-    assert_match(/non\/existent\/path/, content)
-  end
+    quietly do
+      content = capture(:stderr){ run_generator([destination_root, "-m", "non/existent/path"]) }
 
-  def test_template_is_executed_when_supplied
-    path = "https://gist.github.com/josevalim/103208/raw/"
-    template = %{ say "It works!" }
-    template.instance_eval "def read; self; end" # Make the string respond to read
-
-    generator([destination_root], template: path).expects(:open).with(path, 'Accept' => 'application/x-thor-template').returns(template)
-    assert_match(/It works!/, capture(:stdout) { generator.invoke_all })
+      assert_match(/The template \[.*\] could not be loaded/, content)
+      assert_match(/non\/existent\/path/, content)
+    end
   end
 
   def test_template_is_executed_when_supplied_an_https_path
@@ -97,19 +92,17 @@ module SharedGeneratorTests
     template.instance_eval "def read; self; end" # Make the string respond to read
 
     generator([destination_root], template: path).expects(:open).with(path, 'Accept' => 'application/x-thor-template').returns(template)
-    assert_match(/It works!/, capture(:stdout) { generator.invoke_all })
+    quietly { assert_match(/It works!/, capture(:stdout) { generator.invoke_all }) }
   end
 
   def test_dev_option
-    generator([destination_root], dev: true).expects(:bundle_command).with('install').once
-    quietly { generator.invoke_all }
+    assert_generates_with_bundler dev: true
     rails_path = File.expand_path('../../..', Rails.root)
     assert_file 'Gemfile', /^gem\s+["']rails["'],\s+path:\s+["']#{Regexp.escape(rails_path)}["']$/
   end
 
   def test_edge_option
-    generator([destination_root], edge: true).expects(:bundle_command).with('install').once
-    quietly { generator.invoke_all }
+    assert_generates_with_bundler edge: true
     assert_file 'Gemfile', %r{^gem\s+["']rails["'],\s+github:\s+["']#{Regexp.escape("rails/rails")}["']$}
   end
 
@@ -136,7 +129,11 @@ module SharedGeneratorTests
 
   def test_skip_keeps
     run_generator [destination_root, '--skip-keeps', '--full']
-    assert_file('.gitignore')
+
+    assert_file '.gitignore' do |content|
+      assert_no_match(/\.keep/, content)
+    end
+
     assert_no_file('app/mailers/.keep')
   end
 end
