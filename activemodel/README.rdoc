@@ -116,6 +116,7 @@ behavior out of the box:
   helpers seamlessly.
 
     class Person
+      extend ActiveModel::Naming
 
       def initialize
         @errors = ActiveModel::Errors.new(self)
