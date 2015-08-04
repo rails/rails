@@ -57,4 +57,21 @@ class QueuingTest < ActiveSupport::TestCase
       skip
     end
   end
+
+  test 'current locale is kept while running perform_later' do
+    skip if adapter_is?(:inline)
+
+    begin
+      I18n.available_locales = [:en, :de]
+      I18n.locale = :de
+
+      TestJob.perform_later @id
+      wait_for_jobs_to_finish_for(5.seconds)
+      assert job_executed
+      assert_equal 'de', job_output
+    ensure
+      I18n.available_locales = [:en]
+      I18n.locale = :en
+    end
+  end
 end

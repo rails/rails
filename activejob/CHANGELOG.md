@@ -1,3 +1,10 @@
+*   Include I18n.locale into job serialization/deserialization and use it around
+    `perform`.
+
+    Fixes #20799.
+
+    *Johannes Opper*
+
 ## Rails 4.2.3 (June 25, 2015) ##
 
 *   `assert_enqueued_jobs` and `assert_performed_jobs` in block form use the
