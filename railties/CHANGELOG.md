@@ -1,3 +1,15 @@
+*   Make enabling or disabling caching in development mode possible with 
+    rake dev:cache.
+
+    Running rake dev:cache will create or remove tmp/caching-dev.txt. When this
+    file exists config.action_controller.perform_caching will be set to true in
+    config/environments/development.rb.
+
+    Additionally, a server can be started with either --dev-caching or
+    --no-dev-caching included to toggle caching on startup.
+
+    *Jussi Mertanen*, *Chuck Callebs*
+
 *   Add a `--api` option in order to generate plugins that can be added
     inside an API application.
 
