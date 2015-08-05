@@ -152,6 +152,7 @@ class PersistenceTest < ActiveRecord::TestCase
     original_errors = company.errors
     client = company.becomes(Client)
     assert_equal original_errors, client.errors
+    assert_equal client, client.errors.instance_variable_get("@base")
   end
 
   def test_dupd_becomes_persists_changes_from_the_original
