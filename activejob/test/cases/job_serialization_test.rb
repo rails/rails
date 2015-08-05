@@ -1,5 +1,6 @@
 require 'helper'
 require 'jobs/gid_job'
+require 'jobs/hello_job'
 require 'models/person'
 
 class JobSerializationTest < ActiveSupport::TestCase
