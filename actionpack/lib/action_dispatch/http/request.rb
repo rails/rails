@@ -118,6 +118,10 @@ module ActionDispatch
       env[_routes.env_key]
     end
 
+    def engine_script_name=(name) # :nodoc:
+      env[routes.env_key] = name.dup
+    end
+
     def request_method=(request_method) #:nodoc:
       if check_method(request_method)
         @request_method = env["REQUEST_METHOD"] = request_method
