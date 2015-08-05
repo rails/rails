@@ -1,5 +1,7 @@
 language: ruby
-script: 
+sudo: false
+cache: bundler
+script:
   - "rake test"
   - "gem build arel.gemspec"
 env:
@@ -14,7 +16,14 @@ rvm:
 matrix:
   allow_failures:
     - rvm: rbx
+  fast_finish: true
+bundler_args: --without test --jobs 3 --retry 3
 notifications:
   email: false
   irc:
     - "irc.freenode.org#rails-contrib"
+  campfire:
+    on_success: change
+    on_failure: always
+    rooms:
+      - secure: "sD4VEjsiNHTb+9LYUy0ZiGu86nH1voUANpmiO62fvO1VPg80ReKv8vNiq285MZVjcPBx9lt1iNx1nNfVlBmDzRI1tWjoyEV5LTuCAt3yQMB5Qpjy3HH1FNgyY2TGjDhIDwgTD6d8+DOCQjj/vgqzWWu1jEJVdac1K5d+dc/uElI="
