@@ -267,8 +267,9 @@ module ActionDispatch
                 path_params -= controller_options.keys
                 path_params -= result.keys
               end
-              inner_options.each do |key, _|
-                path_params.delete(key)
+
+              path_params.delete_if do |key, _|
+                inner_options.include?(key)
               end
 
               args.each_with_index do |arg, index|
