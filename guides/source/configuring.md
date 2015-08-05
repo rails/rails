@@ -451,6 +451,9 @@ encrypted cookies salt value. Defaults to `'signed encrypted cookie'`.
 * `config.action_view.raise_on_missing_translations` determines whether an
   error should be raised for missing translations.
 
+* `config.action_view.automatically_disable_submit_tag` determines whether
+  submit_tag should automatically disable on click, this defaults to true.
+
 ### Configuring Action Mailer
 
 There are a number of settings available on `config.action_mailer`:
