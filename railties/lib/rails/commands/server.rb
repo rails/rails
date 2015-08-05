@@ -34,7 +34,7 @@ module Rails
           opts.on("-P", "--pid=pid", String,
                   "Specifies the PID file.",
                   "Default: tmp/pids/server.pid") { |v| options[:pid] = v }
-          opts.on("-C", "--[no-]dev-caching", 
+          opts.on("-C", "--[no-]dev-caching",
                   "Specifies whether to perform caching in development.",
                   "true or false") { |v| options[:caching] = v }
 
@@ -121,7 +121,7 @@ module Rails
       end
 
       def delete_cache_file
-        FileUtils.rm("tmp/caching-dev.txt") if File.exists?("tmp/caching-dev.txt")
+        FileUtils.rm("tmp/caching-dev.txt") if File.exist?("tmp/caching-dev.txt")
       end
 
       def create_tmp_directories
