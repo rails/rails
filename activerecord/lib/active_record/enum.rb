@@ -106,15 +106,16 @@ module ActiveRecord
     end
 
     class EnumType < Type::Value
-      def initialize(name, mapping)
+      def initialize(name, mapping, model_name)
         @name = name
         @mapping = mapping
+        @model_name = model_name
       end
 
       def cast(value)
         return if value.blank?
 
-        if mapping.has_key?(value)
+        if mapping.has_key?(value.to_s)
           value.to_s
         elsif mapping.has_value?(value)
           mapping.key(value)
@@ -125,7 +126,7 @@ module ActiveRecord
 
       def deserialize(value)
         return if value.nil?
-        mapping.key(value.to_i)
+        EnumValue.new(mapping.key(value.to_i), model_name, name)
       end
 
       def serialize(value)
@@ -134,7 +135,26 @@ module ActiveRecord
 
       protected
 
-      attr_reader :name, :mapping
+      attr_reader :name, :mapping, :model_name
+    end
+
+    class EnumValue
+      delegate :==, :to_s, :to_str, to: :value
+
+      def initialize(value, model_name, enum_name)
+        @value = value
+        @model_name = model_name.underscore
+        @enum_name = enum_name
+      end
+
+      def human
+        options = { scope: [:activerecord, :enums, model_name, enum_name] }
+        I18n.t(value, options)
+      end
+
+      private
+
+      attr_reader :value, :model_name, :enum_name
     end
 
     def enum(definitions)
@@ -152,8 +172,7 @@ module ActiveRecord
 
         detect_enum_conflict!(name, name)
         detect_enum_conflict!(name, "#{name}=")
-
-        attribute name, EnumType.new(name, enum_values)
+        attribute name, EnumType.new(name, enum_values, self.name)
 
         _enum_methods_module.module_eval do
           pairs = values.respond_to?(:each_pair) ? values.each_pair : values.each_with_index

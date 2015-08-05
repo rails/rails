@@ -28,6 +28,15 @@ class EnumTest < ActiveRecord::TestCase
     assert_equal "visible", @book.illustrator_visibility
   end
 
+  test "human value of the state" do
+    I18n.backend.store_translations 'en', :activerecord => {:enums => {:book => {:status => {:published => "Published human form"} } } }
+    assert_equal "Published human form", @book.status.human
+  end
+
+  test "respond correctly to #to_s" do
+    assert_equal "published", @book.status.to_s
+  end
+
   test "find via scope" do
     assert_equal @book, Book.published.first
     assert_equal @book, Book.read.first
