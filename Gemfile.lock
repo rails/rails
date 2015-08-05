@@ -50,6 +50,17 @@ GIT
       thor (>= 0.14, < 2.0)
 
 GIT
+  remote: git://github.com/rails/sass-rails.git
+  revision: 805cb17722b8a13ff00dffe20283a6ba2c9a45dc
+  branch: master
+  specs:
+    sass-rails (6.0.0)
+      railties (>= 4.0.0, < 5.0)
+      sass (~> 3.3)
+      sprockets (>= 4.0)
+      sprockets-rails (< 4.0)
+
+GIT
   remote: git://github.com/rails/sprockets-rails.git
   revision: ad4a43bd1bb19c86a8bf94a2ad5e477686161490
   branch: master
@@ -58,6 +69,14 @@ GIT
       actionpack (>= 4.0)
       activesupport (>= 4.0)
       sprockets (>= 3.0.0)
+
+GIT
+  remote: git://github.com/rails/sprockets.git
+  revision: de057b4f13deb2bb5e8684cd06b9b687f5d09792
+  branch: master
+  specs:
+    sprockets (4.0.0)
+      rack (~> 1.0)
 
 PATH
   remote: .
@@ -215,6 +234,7 @@ GEM
       resque (~> 1.25)
       rufus-scheduler (~> 3.0)
     rufus-scheduler (3.1.3)
+    sass (3.4.16)
     sdoc (0.4.1)
       json (~> 1.7, >= 1.7.7)
       rdoc (~> 4.0)
@@ -237,8 +257,6 @@ GEM
       serverengine (~> 1.5.5)
       thor
       thread (~> 0.1.7)
-    sprockets (3.0.3)
-      rack (~> 1.0)
     sqlite3 (1.3.10)
     stackprof (0.2.7)
     sucker_punch (1.5.0)
@@ -303,11 +321,13 @@ DEPENDENCIES
   redcarpet (~> 3.2.3)
   resque
   resque-scheduler
+  sass (>= 3.3)
+  sass-rails!
   sdoc (~> 0.4.0)
   sequel
   sidekiq
   sneakers
-  sprockets (~> 3.0.0.rc.1)
+  sprockets!
   sprockets-rails!
   sqlite3 (~> 1.3.6)
   stackprof
