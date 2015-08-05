@@ -4,6 +4,7 @@ module ActionController #:nodoc:
   module MimeResponds
     extend ActiveSupport::Concern
 
+    # :stopdoc:
     module ClassMethods
       def respond_to(*)
         raise NoMethodError, "The controller-level `respond_to' feature has " \
@@ -21,6 +22,7 @@ module ActionController #:nodoc:
         "  gem 'responders', '~> 2.0'\n" \
         "Consult the Rails upgrade guide for details."
     end
+    # :startdoc:
 
     # Without web-service support, an action which collects the data for displaying a list of people
     # might look something like this:
