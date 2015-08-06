@@ -162,9 +162,8 @@ module ActionController #:nodoc:
         class NullCookieJar < ActionDispatch::Cookies::CookieJar #:nodoc:
           def self.build(request)
             host          = request.host
-            secure        = request.ssl?
 
-            new(host, secure, request)
+            new(host, request)
           end
 
           def write(*)

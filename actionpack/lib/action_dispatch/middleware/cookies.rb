@@ -260,17 +260,15 @@ module ActionDispatch
 
       def self.build(req, cookies)
         host = req.host
-        secure = req.ssl?
-        new(host, secure, req).tap do |hash|
+        new(host, req).tap do |hash|
           hash.update(cookies)
         end
       end
 
-      def initialize(host = nil, secure = false, request)
+      def initialize(host = nil, request)
         @set_cookies = {}
         @delete_cookies = {}
         @host = host
-        @secure = secure
         @request = request
         @cookies = {}
         @committed = false
@@ -394,7 +392,7 @@ module ActionDispatch
 
       private
         def write_cookie?(cookie)
-          @secure || !cookie[:secure] || always_write_cookie
+          @request.ssl? || !cookie[:secure] || always_write_cookie
         end
     end
 
