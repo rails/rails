@@ -74,16 +74,17 @@ module ActionDispatch
     # requests. For those requests that do need to know the IP, the
     # GetIp#calculate_ip method will calculate the memoized client IP address.
     def call(env)
-      env["action_dispatch.remote_ip"] = GetIp.new(env, check_ip, proxies)
-      @app.call(env)
+      req = ActionDispatch::Request.new env
+      req.remote_ip = GetIp.new(req, check_ip, proxies)
+      @app.call(req.env)
     end
 
     # The GetIp class exists as a way to defer processing of the request data
     # into an actual IP address. If the ActionDispatch::Request#remote_ip method
     # is called, this class will calculate the value and then memoize it.
     class GetIp
-      def initialize(env, check_ip, proxies)
-        @env      = env
+      def initialize(req, check_ip, proxies)
+        @req      = req
         @check_ip = check_ip
         @proxies  = proxies
       end
@@ -108,11 +109,11 @@ module ActionDispatch
       # the last address left, which was presumably set by one of those proxies.
       def calculate_ip
         # Set by the Rack web server, this is a single value.
-        remote_addr = ips_from('REMOTE_ADDR').last
+        remote_addr = ips_from(@req.remote_addr).last
 
         # Could be a CSV list and/or repeated headers that were concatenated.
-        client_ips    = ips_from('HTTP_CLIENT_IP').reverse
-        forwarded_ips = ips_from('HTTP_X_FORWARDED_FOR').reverse
+        client_ips    = ips_from(@req.client_ip).reverse
+        forwarded_ips = ips_from(@req.x_forwarded_for).reverse
 
         # +Client-Ip+ and +X-Forwarded-For+ should not, generally, both be set.
         # If they are both set, it means that this request passed through two
@@ -123,8 +124,8 @@ module ActionDispatch
         if should_check_ip && !forwarded_ips.include?(client_ips.last)
           # We don't know which came from the proxy, and which from the user
           raise IpSpoofAttackError, "IP spoofing attack?! " +
-            "HTTP_CLIENT_IP=#{@env['HTTP_CLIENT_IP'].inspect} " +
-            "HTTP_X_FORWARDED_FOR=#{@env['HTTP_X_FORWARDED_FOR'].inspect}"
+            "HTTP_CLIENT_IP=#{@req.client_ip.inspect} " +
+            "HTTP_X_FORWARDED_FOR=#{@req.x_forwarded_for.inspect}"
         end
 
         # We assume these things about the IP headers:
@@ -147,8 +148,9 @@ module ActionDispatch
     protected
 
       def ips_from(header)
+        return [] unless header
         # Split the comma-separated list into an array of strings
-        ips = @env[header] ? @env[header].strip.split(/[,\s]+/) : []
+        ips = header.strip.split(/[,\s]+/)
         ips.select do |ip|
           begin
             # Only return IPs that are valid according to the IPAddr#new method

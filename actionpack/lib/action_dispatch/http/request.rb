@@ -34,7 +34,9 @@ module ActionDispatch
 
         HTTP_ACCEPT HTTP_ACCEPT_CHARSET HTTP_ACCEPT_ENCODING
         HTTP_ACCEPT_LANGUAGE HTTP_CACHE_CONTROL HTTP_FROM
-        HTTP_NEGOTIATE HTTP_PRAGMA ].freeze
+        HTTP_NEGOTIATE HTTP_PRAGMA HTTP_CLIENT_IP
+        HTTP_X_FORWARDED_FOR
+        ].freeze
 
     ENV_METHODS.each do |env|
       class_eval <<-METHOD, __FILE__, __LINE__ + 1
@@ -223,6 +225,10 @@ module ActionDispatch
     # usually set by the RemoteIp middleware.
     def remote_ip
       @remote_ip ||= (@env["action_dispatch.remote_ip"] || ip).to_s
+    end
+
+    def remote_ip=(remote_ip)
+      @env["action_dispatch.remote_ip".freeze] = remote_ip
     end
 
     ACTION_DISPATCH_REQUEST_ID = "action_dispatch.request_id".freeze # :nodoc:
