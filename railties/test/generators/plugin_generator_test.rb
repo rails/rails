@@ -249,6 +249,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_file "test/test_helper.rb" do |content|
       assert_match(/ActiveRecord::Migrator\.migrations_paths.+\.\.\/test\/dummy\/db\/migrate/, content)
       assert_match(/ActiveRecord::Migrator\.migrations_paths.+<<.+\.\.\/db\/migrate/, content)
+      assert_match(/ActionDispatch::IntegrationTest\.fixture_path = ActiveSupport::TestCase\.fixture_pat/, content)
     end
   end
 
