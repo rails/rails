@@ -150,7 +150,7 @@ module ActionDispatch
       #   cookies.permanent.signed[:remember_me] = current_user.id
       #   # => Set-Cookie: remember_me=BAhU--848956038e692d7046deab32b7131856ab20e14e; path=/; expires=Sun, 16-Dec-2029 03:24:16 GMT
       def permanent
-        @permanent ||= PermanentCookieJar.new(self, @key_generator, @request)
+        @permanent ||= PermanentCookieJar.new(self, @request)
       end
 
       # Returns a jar that'll automatically generate a signed representation of cookie value and verify it when reading from
@@ -171,9 +171,9 @@ module ActionDispatch
       def signed
         @signed ||=
           if upgrade_legacy_signed_cookies?
-            UpgradeLegacySignedCookieJar.new(self, @key_generator, @request)
+            UpgradeLegacySignedCookieJar.new(self, @request)
           else
-            SignedCookieJar.new(self, @key_generator, @request)
+            SignedCookieJar.new(self, @request)
           end
       end
 
@@ -194,9 +194,9 @@ module ActionDispatch
       def encrypted
         @encrypted ||=
           if upgrade_legacy_signed_cookies?
-            UpgradeLegacyEncryptedCookieJar.new(self, @key_generator, @request)
+            UpgradeLegacyEncryptedCookieJar.new(self, @request)
           else
-            EncryptedCookieJar.new(self, @key_generator, @request)
+            EncryptedCookieJar.new(self, @request)
           end
       end
 
@@ -215,6 +215,10 @@ module ActionDispatch
 
       def upgrade_legacy_signed_cookies?
         @request.secret_token.present? && @request.secret_key_base.present?
+      end
+
+      def key_generator
+        @request.key_generator
       end
     end
 
@@ -264,7 +268,6 @@ module ActionDispatch
       end
 
       def initialize(key_generator, host = nil, secure = false, request)
-        @key_generator = key_generator
         @set_cookies = {}
         @delete_cookies = {}
         @host = host
@@ -399,9 +402,8 @@ module ActionDispatch
     class PermanentCookieJar #:nodoc:
       include ChainedCookieJars
 
-      def initialize(parent_jar, key_generator, request)
+      def initialize(parent_jar, request)
         @parent_jar = parent_jar
-        @key_generator = key_generator
         @request = request
       end
 
@@ -476,7 +478,7 @@ module ActionDispatch
       include ChainedCookieJars
       include SerializedCookieJars
 
-      def initialize(parent_jar, key_generator, request)
+      def initialize(parent_jar, request)
         @parent_jar = parent_jar
         @request = request
         secret = key_generator.generate_key(request.signed_cookie_salt)
@@ -531,14 +533,15 @@ module ActionDispatch
       include ChainedCookieJars
       include SerializedCookieJars
 
-      def initialize(parent_jar, key_generator, request)
+      def initialize(parent_jar, request)
+        @request = request
+
         if ActiveSupport::LegacyKeyGenerator === key_generator
           raise "You didn't set secrets.secret_key_base, which is required for this cookie jar. " +
             "Read the upgrade documentation to learn more about this new config option."
         end
 
         @parent_jar = parent_jar
-        @request = request
         secret = key_generator.generate_key(request.encrypted_cookie_salt || '')
         sign_secret = key_generator.generate_key(request.encrypted_signed_cookie_salt || '')
         @encryptor = ActiveSupport::MessageEncryptor.new(secret, sign_secret, digest: digest, serializer: ActiveSupport::MessageEncryptor::NullSerializer)
