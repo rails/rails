@@ -60,7 +60,8 @@ module ActionDispatch
     private
 
     def render_exception(env, exception)
-      wrapper = ExceptionWrapper.new(env, exception)
+      backtrace_cleaner = env['action_dispatch.backtrace_cleaner']
+      wrapper = ExceptionWrapper.new(backtrace_cleaner, exception)
       log_error(env, wrapper)
 
       if env['action_dispatch.show_detailed_exceptions']
