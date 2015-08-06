@@ -139,7 +139,7 @@ module ActionController #:nodoc:
           request.session = NullSessionHash.new(request.env)
           request.env['action_dispatch.request.flash_hash'] = nil
           request.env['rack.session.options'] = { skip: true }
-          request.env['action_dispatch.cookies'] = NullCookieJar.build(request, {})
+          request.cookie_jar = NullCookieJar.build(request, {})
         end
 
         protected

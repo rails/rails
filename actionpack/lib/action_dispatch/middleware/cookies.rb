@@ -8,7 +8,12 @@ require 'active_support/json'
 module ActionDispatch
   class Request < Rack::Request
     def cookie_jar
-      env['action_dispatch.cookies'] ||= Cookies::CookieJar.build(self, cookies)
+      env['action_dispatch.cookies'.freeze] ||= Cookies::CookieJar.build(self, cookies)
+    end
+
+    # :stopdoc:
+    def cookie_jar=(jar)
+      env['action_dispatch.cookies'.freeze] = jar
     end
 
     def key_generator
@@ -42,6 +47,7 @@ module ActionDispatch
     def cookies_digest
       env[Cookies::COOKIES_DIGEST]
     end
+    # :startdoc:
   end
 
   # \Cookies are read and written through ActionController#cookies.
