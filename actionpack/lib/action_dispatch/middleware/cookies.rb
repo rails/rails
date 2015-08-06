@@ -259,16 +259,14 @@ module ActionDispatch
       DOMAIN_REGEXP = /[^.]*\.([^.]*|..\...|...\...)$/
 
       def self.build(req, cookies)
-        host = req.host
-        new(host, req).tap do |hash|
+        new(req).tap do |hash|
           hash.update(cookies)
         end
       end
 
-      def initialize(host = nil, request)
+      def initialize(request)
         @set_cookies = {}
         @delete_cookies = {}
-        @host = host
         @request = request
         @cookies = {}
         @committed = false
@@ -318,12 +316,12 @@ module ActionDispatch
 
           # if host is not ip and matches domain regexp
           # (ip confirms to domain regexp so we explicitly check for ip)
-          options[:domain] = if (@host !~ /^[\d.]+$/) && (@host =~ domain_regexp)
+          options[:domain] = if (@request.host !~ /^[\d.]+$/) && (@request.host =~ domain_regexp)
             ".#{$&}"
           end
         elsif options[:domain].is_a? Array
           # if host matches one of the supplied domains without a dot in front of it
-          options[:domain] = options[:domain].find {|domain| @host.include? domain.sub(/^\./, '') }
+          options[:domain] = options[:domain].find {|domain| @request.host.include? domain.sub(/^\./, '') }
         end
       end
 

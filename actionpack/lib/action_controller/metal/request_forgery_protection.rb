@@ -139,7 +139,7 @@ module ActionController #:nodoc:
           request.session = NullSessionHash.new(request.env)
           request.env['action_dispatch.request.flash_hash'] = nil
           request.env['rack.session.options'] = { skip: true }
-          request.env['action_dispatch.cookies'] = NullCookieJar.build(request)
+          request.env['action_dispatch.cookies'] = NullCookieJar.build(request, {})
         end
 
         protected
@@ -160,12 +160,6 @@ module ActionController #:nodoc:
         end
 
         class NullCookieJar < ActionDispatch::Cookies::CookieJar #:nodoc:
-          def self.build(request)
-            host          = request.host
-
-            new(host, request)
-          end
-
           def write(*)
             # nothing
           end
