@@ -110,6 +110,10 @@ module ActionDispatch
       env["action_dispatch.routes".freeze]
     end
 
+    def routes=(routes) # :nodoc:
+      env["action_dispatch.routes".freeze] = routes
+    end
+
     def original_script_name # :nodoc:
       env['ORIGINAL_SCRIPT_NAME'.freeze]
     end
