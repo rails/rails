@@ -8,7 +8,7 @@ require 'active_support/json'
 module ActionDispatch
   class Request < Rack::Request
     def cookie_jar
-      env['action_dispatch.cookies'] ||= Cookies::CookieJar.build(self, host, ssl?, cookies)
+      env['action_dispatch.cookies'] ||= Cookies::CookieJar.build(self, cookies)
     end
 
     def key_generator
@@ -254,8 +254,10 @@ module ActionDispatch
       # $& => example.local
       DOMAIN_REGEXP = /[^.]*\.([^.]*|..\...|...\...)$/
 
-      def self.build(req, host, secure, cookies)
+      def self.build(req, cookies)
         key_generator = req.key_generator
+        host = req.host
+        secure = req.ssl?
         new(key_generator, host, secure, req).tap do |hash|
           hash.update(cookies)
         end
