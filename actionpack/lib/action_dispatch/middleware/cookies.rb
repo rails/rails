@@ -8,7 +8,39 @@ require 'active_support/json'
 module ActionDispatch
   class Request < Rack::Request
     def cookie_jar
-      env['action_dispatch.cookies'] ||= Cookies::CookieJar.build(env, host, ssl?, cookies)
+      env['action_dispatch.cookies'] ||= Cookies::CookieJar.build(self, host, ssl?, cookies)
+    end
+
+    def key_generator
+      env[Cookies::GENERATOR_KEY]
+    end
+
+    def signed_cookie_salt
+      env[Cookies::SIGNED_COOKIE_SALT]
+    end
+
+    def encrypted_cookie_salt
+      env[Cookies::ENCRYPTED_COOKIE_SALT]
+    end
+
+    def encrypted_signed_cookie_salt
+      env[Cookies::ENCRYPTED_SIGNED_COOKIE_SALT]
+    end
+
+    def secret_token
+      env[Cookies::SECRET_TOKEN]
+    end
+
+    def secret_key_base
+      env[Cookies::SECRET_KEY_BASE]
+    end
+
+    def cookies_serializer
+      env[Cookies::COOKIES_SERIALIZER]
+    end
+
+    def cookies_digest
+      env[Cookies::COOKIES_DIGEST]
     end
   end
 
@@ -216,21 +248,21 @@ module ActionDispatch
       # $& => example.local
       DOMAIN_REGEXP = /[^.]*\.([^.]*|..\...|...\...)$/
 
-      def self.options_for_env(env) #:nodoc:
-        { signed_cookie_salt: env[SIGNED_COOKIE_SALT] || '',
-          encrypted_cookie_salt: env[ENCRYPTED_COOKIE_SALT] || '',
-          encrypted_signed_cookie_salt: env[ENCRYPTED_SIGNED_COOKIE_SALT] || '',
-          secret_token: env[SECRET_TOKEN],
-          secret_key_base: env[SECRET_KEY_BASE],
-          upgrade_legacy_signed_cookies: env[SECRET_TOKEN].present? && env[SECRET_KEY_BASE].present?,
-          serializer: env[COOKIES_SERIALIZER],
-          digest: env[COOKIES_DIGEST]
+      def self.options_for_req(req) #:nodoc:
+        { signed_cookie_salt: req.signed_cookie_salt || '',
+          encrypted_cookie_salt: req.encrypted_cookie_salt || '',
+          encrypted_signed_cookie_salt: req.encrypted_signed_cookie_salt || '',
+          secret_token: req.secret_token,
+          secret_key_base: req.secret_key_base,
+          upgrade_legacy_signed_cookies: req.secret_token.present? && req.secret_key_base.present?,
+          serializer: req.cookies_serializer,
+          digest: req.cookies_digest
         }
       end
 
-      def self.build(env, host, secure, cookies)
-        key_generator = env[GENERATOR_KEY]
-        options = options_for_env env
+      def self.build(req, host, secure, cookies)
+        key_generator = req.key_generator
+        options = options_for_req req
 
         new(key_generator, host, secure, options).tap do |hash|
           hash.update(cookies)
