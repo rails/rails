@@ -46,6 +46,22 @@ module ActiveRecord
               other.type == type
           end
 
+          def user_input_in_time_zone(value)
+            return unless value.is_a?(::Range) && subtype.respond_to?(:user_input_in_time_zone)
+            ::Range.new(
+              subtype.user_input_in_time_zone(value.begin),
+              subtype.user_input_in_time_zone(value.end)
+            )
+          end
+
+          def convert_time_to_time_zone(value)
+            return value unless value.is_a?(::Range) && subtype.respond_to?(:convert_time_to_time_zone)
+            ::Range.new(
+              subtype.convert_time_to_time_zone(value.begin),
+              subtype.convert_time_to_time_zone(value.end)
+            )
+          end
+
           private
 
           def type_cast_single(value)
