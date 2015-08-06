@@ -327,6 +327,10 @@ module ActionController
       clear
     end
 
+    def fetch(*args, &block)
+      @data.fetch(*args, &block)
+    end
+
     private
 
       def load!
