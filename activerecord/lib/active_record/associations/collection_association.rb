@@ -336,6 +336,17 @@ module ActiveRecord
         end
       end
 
+      # Returns true if the collections is empty.
+      # If block given, loads all records and checks that none matches with criteria.
+      # Otherwise, equivalent to +collection.empty?+.
+      def none?
+        if block_given?
+          load_target.none? { |*block_args| yield(*block_args) }
+        else
+          empty?
+        end
+      end
+
       # Returns true if the collections is not empty.
       # If block given, loads all records and checks for one or more matches.
       # Otherwise, equivalent to +!collection.empty?+.
@@ -346,6 +357,17 @@ module ActiveRecord
           !empty?
         end
       end
+
+      # Returns true if the collections has exactly 1 record.
+      # If block given, loads all records and checks exactly one match.
+      # Otherwise, equivalent to +!collection.size == 1+.
+      def one?
+        if block_given?
+          load_target.one? { |*block_args| yield(*block_args) }
+        else
+          size == 1
+        end
+      end      
 
       # Returns true if the collection has more than 1 record.
       # If block given, loads all records and checks for two or more matches.

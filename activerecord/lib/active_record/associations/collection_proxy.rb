@@ -771,6 +771,39 @@ module ActiveRecord
         @association.empty?
       end
 
+      # Returns +true+ if the collection is empty.
+      #
+      #   class Person < ActiveRecord::Base
+      #     has_many :pets
+      #   end
+      #
+      #   person.pets.count # => 0
+      #   person.pets.none?  # => true
+      #
+      #   person.pets << Pet.new(name: 'Snoop')
+      #   person.pets.count # => 1
+      #   person.pets.none?  # => false
+      #
+      # You can also pass a +block+ to define criteria. The behavior
+      # is the same, it returns true if the collection based on the
+      # criteria is not empty.
+      #
+      #   person.pets
+      #   # => [#<Pet name: "Snoop", group: "dogs">]
+      #
+      #   person.pets.none? do |pet|
+      #     pet.group == 'cats'
+      #   end
+      #   # => true
+      #
+      #   person.pets.none? do |pet|
+      #     pet.group == 'dogs'
+      #   end
+      #   # => false
+      def none?(&block)
+        @association.none?(&block)
+      end
+
       # Returns +true+ if the collection is not empty.
       #
       #   class Person < ActiveRecord::Base
@@ -802,6 +835,43 @@ module ActiveRecord
       #   # => true
       def any?(&block)
         @association.any?(&block)
+      end
+      
+      # Returns +true+ if the collection has exactly one record.
+      #
+      #   class Person < ActiveRecord::Base
+      #     has_many :pets
+      #   end
+      #
+      #   person.pets.count # => 0
+      #   person.pets.one?  # => false
+      #
+      #   person.pets << Pet.new(name: 'Snoop')
+      #   person.pets.count # => 1
+      #   person.pets.one?  # => true
+      #
+      #   person.pets << Pet.new(name: 'Hot')
+      #   person.pets.count # => 2
+      #   person.pets.one?  # => false
+      #
+      # You can also pass a +block+ to define criteria. The behavior
+      # is the same, it returns true if the collection based on the
+      # criteria has exactly one record.
+      #
+      #   person.pets
+      #   # => [#<Pet name: "Snoop", group: "dogs">, #<Pet name: "Hot", group: "dogs">]
+      #
+      #   person.pets.one? do |pet|
+      #     pet.name == 'Snoop'
+      #   end
+      #   # => true
+      #
+      #   person.pets.one? do |pet|
+      #     pet.group == 'dogs'
+      #   end
+      #   # => false
+      def one?(&block)
+        @association.one?(&block)
       end
 
       # Returns true if the collection has more than one record.

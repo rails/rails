@@ -1,3 +1,8 @@
+*   Optimize `none?` and `one?` methods for `CollectionAssociation` class to prevent
+    of loading the entire records into memory when no block given.
+
+    *Vitalik Danchenko*
+
 *   Add `cache_key` to ActiveRecord::Relation.
 
     Example:
