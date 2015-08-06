@@ -1,0 +1,10 @@
+--AaB03x
+Content-Disposition: form-data; name="foo"
+
+bar
+--AaB03x
+Content-Disposition: form-data; name="file"; filename="ファイル%名.txt"
+Content-Type: text/plain
+
+contents
+--AaB03x--
