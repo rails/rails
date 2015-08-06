@@ -344,7 +344,7 @@ module ActiveRecord
   # are in a Migration with <tt>self.disable_ddl_transaction!</tt>.
   class Migration
     autoload :CommandRecorder, 'active_record/migration/command_recorder'
-
+    autoload :Strategy, 'active_record/migration/strategy'
 
     # This class is used to verify that all migrations have been run before
     # loading a web page if config.active_record.migration_error is set to :page_load
@@ -412,6 +412,12 @@ module ActiveRecord
       def disable_ddl_transaction!
         @disable_ddl_transaction = true
       end
+
+      def [](rails_version)
+        Class.new self do
+          self.strategy = Strategy::VERSIONS[rails_version].new
+        end
+      end
     end
 
     def disable_ddl_transaction # :nodoc:
@@ -419,6 +425,10 @@ module ActiveRecord
     end
 
     cattr_accessor :verbose
+    cattr_accessor :strategy do
+      Strategy::Base.new
+    end
+
     attr_accessor :name, :version
 
     def initialize(name = self.class.name, version = nil)
@@ -635,19 +645,14 @@ module ActiveRecord
 
     def method_missing(method, *arguments, &block)
       arg_list = arguments.map(&:inspect) * ', '
+      return super unless connection.respond_to? method
 
       say_with_time "#{method}(#{arg_list})" do
-        unless @connection.respond_to? :revert
-          unless arguments.empty? || [:execute, :enable_extension, :disable_extension].include?(method)
-            arguments[0] = proper_table_name(arguments.first, table_name_options)
-            if [:rename_table, :add_foreign_key].include?(method) ||
-              (method == :remove_foreign_key && !arguments.second.is_a?(Hash))
-              arguments[1] = proper_table_name(arguments.second, table_name_options)
-            end
-          end
+        if connection.is_a? CommandRecorder
+          connection.send(method, *arguments, &block)
+        else
+          strategy.connection_dispatch(connection, method, *arguments, &block)
         end
-        return super unless connection.respond_to?(method)
-        connection.send(method, *arguments, &block)
       end
     end
 
@@ -696,15 +701,25 @@ module ActiveRecord
       copied
     end
 
-    # Finds the correct table name given an Active Record object.
-    # Uses the Active Record object's own table_name, or pre/suffix from the
-    # options passed in.
     def proper_table_name(name, options = {})
-      if name.respond_to? :table_name
-        name.table_name
-      else
-        "#{options[:table_name_prefix]}#{name}#{options[:table_name_suffix]}"
-      end
+      ActiveSupport::Deprecation.warn <<-END.squish
+        ActiveRecord::Migration#proper_table_name is deprecated.
+        Use the ActiveRecord::Migrator.proper_table_name instead.
+      END
+
+      ActiveRecord::Migrator.proper_table_name name, options
+    end
+
+    def table_name_options(config = ActiveRecord::Base)
+      ActiveSupport::Deprecation.warn <<-END.squish
+        ActiveRecord::Migration#table_name_options is deprecated.
+        Use ActiveRecord::Base.table_name_prefix/table_name_suffix instead.
+      END
+
+      {
+        table_name_prefix: config.table_name_prefix,
+        table_name_suffix: config.table_name_suffix
+      }
     end
 
     # Determines the version number of the next migration.
@@ -714,13 +729,6 @@ module ActiveRecord
       else
         SchemaMigration.normalize_migration_number(number)
       end
-    end
-
-    def table_name_options(config = ActiveRecord::Base)
-      {
-        table_name_prefix: config.table_name_prefix,
-        table_name_suffix: config.table_name_suffix
-      }
     end
 
     private
@@ -853,6 +861,29 @@ module ActiveRecord
 
       def last_migration #:nodoc:
         migrations(migrations_paths).last || NullMigration.new
+      end
+
+      # Finds the correct table name given an Active Record object.
+      # Uses the Active Record object's own table_name, or pre/suffix from the
+      # options passed in.
+      def proper_table_name(name, options = nil)
+        if options
+          ActiveSupport::Deprecation.warn <<-END.squish
+            Using options with table_name_prefix/table_name_suffix is deprecated.
+            Use ActiveRecord::Base.table_name_prefix/table_name_suffix instead.
+          END
+        else
+          options = {}
+        end
+
+        prefix = options[:table_name_prefix] || ActiveRecord::Base.table_name_prefix
+        suffix = options[:table_name_suffix] || ActiveRecord::Base.table_name_suffix
+
+        if name.respond_to? :table_name
+          name.table_name
+        else
+          "#{prefix}#{name}#{suffix}"
+        end
       end
 
       def migrations_paths

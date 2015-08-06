@@ -361,12 +361,11 @@ class MigrationTest < ActiveRecord::TestCase
 
   def test_proper_table_name_on_migration
     reminder_class = new_isolated_reminder_class
-    migration = ActiveRecord::Migration.new
-    assert_equal "table", migration.proper_table_name('table')
-    assert_equal "table", migration.proper_table_name(:table)
-    assert_equal "reminders", migration.proper_table_name(reminder_class)
+    assert_equal "table", ActiveRecord::Migrator.proper_table_name('table')
+    assert_equal "table", ActiveRecord::Migrator.proper_table_name(:table)
+    assert_equal "reminders", ActiveRecord::Migrator.proper_table_name(reminder_class)
     reminder_class.reset_table_name
-    assert_equal reminder_class.table_name, migration.proper_table_name(reminder_class)
+    assert_equal reminder_class.table_name, ActiveRecord::Migrator.proper_table_name(reminder_class)
 
     # Use the model's own prefix/suffix if a model is given
     ActiveRecord::Base.table_name_prefix = "ARprefix_"
@@ -374,7 +373,7 @@ class MigrationTest < ActiveRecord::TestCase
     reminder_class.table_name_prefix = 'prefix_'
     reminder_class.table_name_suffix = '_suffix'
     reminder_class.reset_table_name
-    assert_equal "prefix_reminders_suffix", migration.proper_table_name(reminder_class)
+    assert_equal "prefix_reminders_suffix", ActiveRecord::Migrator.proper_table_name(reminder_class)
     reminder_class.table_name_prefix = ''
     reminder_class.table_name_suffix = ''
     reminder_class.reset_table_name
@@ -383,8 +382,8 @@ class MigrationTest < ActiveRecord::TestCase
     ActiveRecord::Base.table_name_prefix = "prefix_"
     ActiveRecord::Base.table_name_suffix = "_suffix"
     reminder_class.reset_table_name
-    assert_equal "prefix_table_suffix", migration.proper_table_name('table', migration.table_name_options)
-    assert_equal "prefix_table_suffix", migration.proper_table_name(:table, migration.table_name_options)
+    assert_equal "prefix_table_suffix", ActiveRecord::Migrator.proper_table_name('table')
+    assert_equal "prefix_table_suffix", ActiveRecord::Migrator.proper_table_name(:table)
   end
 
   def test_rename_table_with_prefix_and_suffix
