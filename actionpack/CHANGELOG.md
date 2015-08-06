@@ -1,3 +1,12 @@
+*   ActionController::TestSession now accepts a default value as well as
+    a block for generating a default value based off the key provided.
+
+    This fixes calls to session#fetch in ApplicationController instances that
+    take more two arguments or a block from raising `ArgumentError: wrong
+    number of arguments (2 for 1)` when performing controller tests.
+
+    *Matthew Gerrior*
+
 *   Fix `ActionController::Parameters#fetch` overwriting `KeyError` returned by
     default block.
 
