@@ -21,7 +21,7 @@ module ActiveJob
   #   | Delayed Job       | Yes   | Yes    | Yes       | Job        | Global  | Global  |
   #   | Qu                | Yes   | Yes    | No        | No         | No      | Global  |
   #   | Que               | Yes   | Yes    | Yes       | Job        | No      | Job     |
-  #   | queue_classic     | Yes   | Yes    | No*       | No         | No      | No      |
+  #   | queue_classic     | Yes   | Yes    | Yes*       | No         | No      | No      |
   #   | Resque            | Yes   | Yes    | Yes (Gem) | Queue      | Global  | Yes     |
   #   | Sidekiq           | Yes   | Yes    | Yes       | Queue      | No      | Job     |
   #   | Sneakers          | Yes   | Yes    | No        | Queue      | Queue   | No      |
@@ -50,9 +50,8 @@ module ActiveJob
   # N/A: The adapter does not support queueing.
   #
   # NOTE:
-  # queue_classic does not support job scheduling.
-  # However, you can use the queue_classic-later gem.
-  # See the documentation for ActiveJob::QueueAdapters::QueueClassicAdapter.
+  # queue_classic supports job scheduling since version 3.1.
+  # You can use the queue_classic-later gem if you use older version.
   #
   # ==== Priorities
   #
