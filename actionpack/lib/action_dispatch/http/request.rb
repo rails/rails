@@ -103,7 +103,7 @@ module ActionDispatch
     # the application should use), this \method returns the overridden
     # value, not the original.
     def request_method
-      @request_method ||= check_method(env["REQUEST_METHOD"])
+      @request_method ||= check_method(super)
     end
 
     def routes # :nodoc:
