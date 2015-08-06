@@ -110,16 +110,17 @@ module ActionDispatch
     end
 
     def call(env)
-      case env['REQUEST_METHOD']
-      when 'GET', 'HEAD'
-        path = env['PATH_INFO'].chomp('/'.freeze)
+      req = ActionDispatch::Request.new env
+
+      if req.get? || req.head?
+        path = req.path_info.chomp('/'.freeze)
         if match = @file_handler.match?(path)
-          env['PATH_INFO'] = match
-          return @file_handler.call(env)
+          req.path_info = match
+          return @file_handler.call(req.env)
         end
       end
 
-      @app.call(env)
+      @app.call(req.env)
     end
   end
 end

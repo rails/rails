@@ -156,7 +156,7 @@ module StaticTests
 
   def test_does_not_modify_path_info
     file_name = "/gzip/application-a71b3024f80aea3181c09774ca17e712.js"
-    env = {'PATH_INFO' => file_name, 'HTTP_ACCEPT_ENCODING' => 'gzip'}
+    env = {'PATH_INFO' => file_name, 'HTTP_ACCEPT_ENCODING' => 'gzip', "REQUEST_METHOD" => 'POST'}
     @app.call(env)
     assert_equal file_name, env['PATH_INFO']
   end
