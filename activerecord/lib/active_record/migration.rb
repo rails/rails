@@ -716,6 +716,8 @@ module ActiveRecord
       end
     end
 
+    # Builds a hash for use in ActiveRecord::Migration#proper_table_name using
+    # the Active Record object's table_name prefix and suffix
     def table_name_options(config = ActiveRecord::Base)
       {
         table_name_prefix: config.table_name_prefix,
