@@ -103,6 +103,30 @@ module ActiveRecord
           args.each { |name| column(name, :point, options) }
         end
 
+        def line(*args, **options)
+          args.each { |name| column(name, :line, options) }
+        end
+
+        def lseg(*args, **options)
+          args.each { |name| column(name, :lseg, options) }
+        end
+
+        def box(*args, **options)
+          args.each { |name| column(name, :box, options) }
+        end
+
+        def path(*args, **options)
+          args.each { |name| column(name, :path, options) }
+        end
+
+        def polygon(*args, **options)
+          args.each { |name| column(name, :polygon, options) }
+        end
+
+        def circle(*args, **options)
+          args.each { |name| column(name, :circle, options) }
+        end
+
         def serial(*args, **options)
           args.each { |name| column(name, :serial, options) }
         end
