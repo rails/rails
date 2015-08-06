@@ -259,15 +259,14 @@ module ActionDispatch
       DOMAIN_REGEXP = /[^.]*\.([^.]*|..\...|...\...)$/
 
       def self.build(req, cookies)
-        key_generator = req.key_generator
         host = req.host
         secure = req.ssl?
-        new(key_generator, host, secure, req).tap do |hash|
+        new(host, secure, req).tap do |hash|
           hash.update(cookies)
         end
       end
 
-      def initialize(key_generator, host = nil, secure = false, request)
+      def initialize(host = nil, secure = false, request)
         @set_cookies = {}
         @delete_cookies = {}
         @host = host
