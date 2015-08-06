@@ -12,6 +12,10 @@ module ActionDispatch
     end
 
     # :stopdoc:
+    def have_cookie_jar?
+      env.key? 'action_dispatch.cookies'.freeze
+    end
+
     def cookie_jar=(jar)
       env['action_dispatch.cookies'.freeze] = jar
     end
@@ -601,9 +605,12 @@ module ActionDispatch
     end
 
     def call(env)
+      request = ActionDispatch::Request.new env
+
       status, headers, body = @app.call(env)
 
-      if cookie_jar = env['action_dispatch.cookies']
+      if request.have_cookie_jar?
+        cookie_jar = request.cookie_jar
         unless cookie_jar.committed?
           cookie_jar.write(headers)
           if headers[HTTP_HEADER].respond_to?(:join)
