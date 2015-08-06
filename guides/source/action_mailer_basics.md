@@ -326,7 +326,7 @@ key. The list of emails can be an array of email addresses or a single string
 with the addresses separated by commas.
 
 ```ruby
-class AdminMailer < ActionMailer::Base
+class AdminMailer < ApplicationMailer
   default to: Proc.new { Admin.pluck(:email) },
           from: 'notification@example.com'
 
