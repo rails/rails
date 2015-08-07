@@ -18,6 +18,14 @@ module ActionCable
         @channels_path = Rails.root.join('app/channels')
       end
 
+      def log_to_stdout
+        console = ActiveSupport::Logger.new($stdout)
+        console.formatter = @logger.formatter
+        console.level = @logger.level
+
+        @logger.extend(ActiveSupport::Logger.broadcast(console))
+      end
+
       def channel_paths
         @channels ||= Dir["#{channels_path}/**/*_channel.rb"]
       end
