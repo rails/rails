@@ -170,7 +170,7 @@ class CacheStoreTest < ActionDispatch::IntegrationTest
         @app = self.class.build_app(set) do |middleware|
           @cache = ActiveSupport::Cache::MemoryStore.new
           middleware.use ActionDispatch::Session::CacheStore, :key => '_session_id', :cache => @cache
-          middleware.delete "ActionDispatch::ShowExceptions"
+          middleware.delete ActionDispatch::ShowExceptions
         end
 
         yield

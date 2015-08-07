@@ -14,29 +14,12 @@ module ActionDispatch
 
       def name; klass.name; end
 
-      def ==(middleware)
-        case middleware
-        when Middleware
-          klass == middleware.klass
-        when Class
-          klass == middleware
-        else
-          normalize(name) == normalize(middleware)
-        end
-      end
-
       def inspect
         klass.to_s
       end
 
       def build(app)
         klass.new(app, *args, &block)
-      end
-
-    private
-
-      def normalize(object)
-        object.to_s.strip.sub(/^::/, '')
       end
     end
 
@@ -92,7 +75,8 @@ module ActionDispatch
     end
 
     def delete(target)
-      middlewares.delete target
+      target = get_class target
+      middlewares.delete_if { |m| m.klass == target }
     end
 
     def use(klass, *args, &block)
@@ -106,7 +90,8 @@ module ActionDispatch
   protected
 
     def assert_index(index, where)
-      i = index.is_a?(Integer) ? index : middlewares.index(index)
+      index = get_class index
+      i = index.is_a?(Integer) ? index : middlewares.index { |m| m.klass == index }
       raise "No such middleware to insert #{where}: #{index.inspect}" unless i
       i
     end

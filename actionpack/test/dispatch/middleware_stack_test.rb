@@ -4,6 +4,7 @@ class MiddlewareStackTest < ActiveSupport::TestCase
   class FooMiddleware; end
   class BarMiddleware; end
   class BazMiddleware; end
+  class HiyaMiddleware; end
   class BlockMiddleware
     attr_reader :block
     def initialize(&block)
@@ -15,6 +16,20 @@ class MiddlewareStackTest < ActiveSupport::TestCase
     @stack = ActionDispatch::MiddlewareStack.new
     @stack.use FooMiddleware
     @stack.use BarMiddleware
+  end
+
+  def test_delete_with_string_is_deprecated
+    assert_deprecated do
+      assert_difference "@stack.size", -1 do
+        @stack.delete FooMiddleware.name
+      end
+    end
+  end
+
+  def test_delete_works
+    assert_difference "@stack.size", -1 do
+      @stack.delete FooMiddleware
+    end
   end
 
   test "use should push middleware as class onto the stack" do
@@ -100,11 +115,11 @@ class MiddlewareStackTest < ActiveSupport::TestCase
 
   test "raise an error on invalid index" do
     assert_raise RuntimeError do
-      @stack.insert("HiyaMiddleware", BazMiddleware)
+      @stack.insert(HiyaMiddleware, BazMiddleware)
     end
 
     assert_raise RuntimeError do
-      @stack.insert_after("HiyaMiddleware", BazMiddleware)
+      @stack.insert_after(HiyaMiddleware, BazMiddleware)
     end
   end
 
