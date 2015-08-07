@@ -11,18 +11,16 @@ module ActionController
   #
   class MiddlewareStack < ActionDispatch::MiddlewareStack #:nodoc:
     class Middleware < ActionDispatch::MiddlewareStack::Middleware #:nodoc:
-      def initialize(klass, *args, &block)
-        options = args.extract_options!
-        @only   = Array(options.delete(:only)).map(&:to_s)
-        @except = Array(options.delete(:except)).map(&:to_s)
-        args << options unless options.empty?
-        super
+      def initialize(klass, args, only, except, block)
+        @only = only
+        @except = except
+        super(klass, args, block)
       end
 
       def valid?(action)
-        if @only.present?
+        if @only.any?
           @only.include?(action)
-        elsif @except.present?
+        elsif @except.any?
           !@except.include?(action)
         else
           true
@@ -36,6 +34,17 @@ module ActionController
       middlewares.reverse.inject(app) do |a, middleware|
         middleware.valid?(action) ? middleware.build(a) : a
       end
+    end
+
+    private
+
+    def build_middleware(klass, args, block)
+      options = args.extract_options!
+      only   = Array(options.delete(:only)).map(&:to_s)
+      except = Array(options.delete(:except)).map(&:to_s)
+      args << options unless options.empty?
+
+      Middleware.new(klass, args, only, except, block)
     end
   end
 

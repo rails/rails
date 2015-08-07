@@ -6,7 +6,7 @@ module ActionDispatch
     class Middleware
       attr_reader :args, :block, :name, :classcache
 
-      def initialize(klass_or_name, *args, &block)
+      def initialize(klass_or_name, args, block)
         @klass = nil
 
         if klass_or_name.respond_to?(:name)
@@ -75,19 +75,17 @@ module ActionDispatch
       middlewares[i]
     end
 
-    def unshift(*args, &block)
-      middleware = self.class::Middleware.new(*args, &block)
-      middlewares.unshift(middleware)
+    def unshift(klass, *args, &block)
+      middlewares.unshift(build_middleware(klass, args, block))
     end
 
     def initialize_copy(other)
       self.middlewares = other.middlewares.dup
     end
 
-    def insert(index, *args, &block)
+    def insert(index, klass, *args, &block)
       index = assert_index(index, :before)
-      middleware = self.class::Middleware.new(*args, &block)
-      middlewares.insert(index, middleware)
+      middlewares.insert(index, build_middleware(klass, args, block))
     end
 
     alias_method :insert_before, :insert
@@ -107,9 +105,8 @@ module ActionDispatch
       middlewares.delete target
     end
 
-    def use(*args, &block)
-      middleware = self.class::Middleware.new(*args, &block)
-      middlewares.push(middleware)
+    def use(klass, *args, &block)
+      middlewares.push(build_middleware(klass, args, block))
     end
 
     def build(app = Proc.new)
@@ -122,6 +119,12 @@ module ActionDispatch
       i = index.is_a?(Integer) ? index : middlewares.index(index)
       raise "No such middleware to insert #{where}: #{index.inspect}" unless i
       i
+    end
+
+    private
+
+    def build_middleware(klass, args, block)
+      Middleware.new(klass, args, block)
     end
   end
 end
