@@ -1,3 +1,7 @@
+*   Exit with non-zero status for failed database rake tasks.
+
+    *Jay Hayes*
+
 *   Add ability to default to `uuid` as primary key when generating database migrations
 
     Set `Rails.application.config.active_record.primary_key = :uuid`
