@@ -325,7 +325,11 @@ module ActionDispatch
           if path =~ %r{://}
             location = URI.parse(path)
             https! URI::HTTPS === location if location.scheme
-            host! "#{location.host}:#{location.port}" if location.host
+            if url_host = location.host
+              default = Rack::Request::DEFAULT_PORTS[location.scheme]
+              url_host += ":#{location.port}" if default != location.port
+              host! url_host
+            end
             path = location.query ? "#{location.path}?#{location.query}" : location.path
           end
 
