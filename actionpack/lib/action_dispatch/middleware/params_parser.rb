@@ -26,30 +26,29 @@ module ActionDispatch
     end
 
     def call(env)
-      default = env["action_dispatch.request.request_parameters"]
-      env["action_dispatch.request.request_parameters"] = parse_formatted_parameters(env, @parsers, default)
+      request = Request.new(env)
+
+      request.request_parameters = parse_formatted_parameters(request, @parsers)
 
       @app.call(env)
     end
 
     private
-      def parse_formatted_parameters(env, parsers, default)
-        request = Request.new(env)
+      def parse_formatted_parameters(request, parsers)
+        return if request.content_length.zero?
 
-        return default if request.content_length.zero?
-
-        strategy = parsers.fetch(request.content_mime_type) { return default }
+        strategy = parsers.fetch(request.content_mime_type) { return nil }
 
         strategy.call(request.raw_post)
 
       rescue => e # JSON or Ruby code block errors
-        logger(env).debug "Error occurred while parsing request parameters.\nContents:\n\n#{request.raw_post}"
+        logger(request).debug "Error occurred while parsing request parameters.\nContents:\n\n#{request.raw_post}"
 
         raise ParseError.new(e.message, e)
       end
 
-      def logger(env)
-        env['action_dispatch.logger'] || ActiveSupport::Logger.new($stderr)
+      def logger(request)
+        request.logger || ActiveSupport::Logger.new($stderr)
       end
   end
 end
