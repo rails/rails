@@ -134,6 +134,14 @@ module ActionDispatch
       end
     end
 
+    def controller_instance # :nodoc:
+      env['action_controller.instance'.freeze]
+    end
+
+    def controller_instance=(controller) # :nodoc:
+      env['action_controller.instance'.freeze] = controller
+    end
+
     def show_exceptions? # :nodoc:
       # We're treating `nil` as "unset", and we want the default setting to be
       # `true`.  This logic should be extracted to `env_config` and calculated

@@ -378,7 +378,7 @@ module ActionDispatch
           @html_document = nil
           @url_options = nil
 
-          @controller = session.last_request.env['action_controller.instance']
+          @controller = @request.controller_instance
 
           response.status
         end

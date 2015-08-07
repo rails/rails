@@ -119,7 +119,7 @@ module ActionController
     attr_internal_writer :env
 
     def env
-      @_env ||= {}
+      @_request.env
     end
 
     # Returns the last part of the controller's name, underscored, without the ending
@@ -215,8 +215,7 @@ module ActionController
 
     def set_request!(request) #:nodoc:
       @_request = request
-      @_env = request.env
-      @_env['action_controller.instance'] = self
+      @_request.controller_instance = self
     end
 
     def to_a #:nodoc:

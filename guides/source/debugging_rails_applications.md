@@ -502,7 +502,7 @@ current context:
 
 (byebug) instance_variables
 [:@_action_has_layout, :@_routes, :@_headers, :@_status, :@_request,
- :@_response, :@_env, :@_prefixes, :@_lookup_context, :@_action_name,
+ :@_response, :@_prefixes, :@_lookup_context, :@_action_name,
  :@_response_body, :@marked_for_same_origin_verification, :@_config]
 ```
 
@@ -533,7 +533,7 @@ And then ask again for the instance_variables:
 ```
 (byebug) instance_variables
 [:@_action_has_layout, :@_routes, :@_headers, :@_status, :@_request,
- :@_response, :@_env, :@_prefixes, :@_lookup_context, :@_action_name,
+ :@_response, :@_prefixes, :@_lookup_context, :@_action_name,
  :@_response_body, :@marked_for_same_origin_verification, :@_config,
  :@articles]
 ```
