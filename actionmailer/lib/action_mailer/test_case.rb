@@ -80,14 +80,14 @@ module ActionMailer
 
         def set_expected_mail
           @expected = Mail.new
-          @expected.content_type ["text", "plain", { "charset" => charset }]
+          @expected.content_type ['text', 'plain', { 'charset' => charset }]
           @expected.mime_version = '1.0'
         end
 
       private
 
         def charset
-          "UTF-8"
+          'UTF-8'
         end
 
         def encode(subject)

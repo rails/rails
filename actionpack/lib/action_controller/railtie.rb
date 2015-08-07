@@ -62,7 +62,7 @@ module ActionController
       end
     end
 
-    initializer "action_controller.compile_config_methods" do
+    initializer 'action_controller.compile_config_methods' do
       ActiveSupport.on_load(:action_controller) do
         config.compile_methods! if config.respond_to?(:compile_methods!)
       end

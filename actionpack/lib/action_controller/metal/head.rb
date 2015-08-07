@@ -28,7 +28,7 @@ module ActionController
       end
 
       status ||= :ok
-      
+
       location = options.delete(:location)
       content_type = options.delete(:content_type)
 
@@ -39,7 +39,7 @@ module ActionController
       self.status = status
       self.location = url_for(location) if location
 
-      self.response_body = ""
+      self.response_body = ''
 
       if include_content?(self.response_code)
         self.content_type = content_type || (Mime[formats.first] if formats)
@@ -48,7 +48,7 @@ module ActionController
         headers.delete('Content-Type')
         headers.delete('Content-Length')
       end
-      
+
       true
     end
 

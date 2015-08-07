@@ -87,7 +87,7 @@ module ActionController
       def initialize(name, format, include, exclude, klass, model) # :nodoc:
         super
         @include_set = include
-        @name_set    = name
+        @name_set = name
       end
 
       def model
@@ -250,34 +250,34 @@ module ActionController
 
     private
 
-      # Returns the wrapper key which will be used to store wrapped parameters.
-      def _wrapper_key
-        _wrapper_options.name
-      end
+    # Returns the wrapper key which will be used to store wrapped parameters.
+    def _wrapper_key
+      _wrapper_options.name
+    end
 
-      # Returns the list of enabled formats.
-      def _wrapper_formats
-        _wrapper_options.format
-      end
+    # Returns the list of enabled formats.
+    def _wrapper_formats
+      _wrapper_options.format
+    end
 
-      # Returns the list of parameters which will be selected for wrapped.
-      def _wrap_parameters(parameters)
-        { _wrapper_key => _extract_parameters(parameters) }
-      end
+    # Returns the list of parameters which will be selected for wrapped.
+    def _wrap_parameters(parameters)
+      { _wrapper_key => _extract_parameters(parameters) }
+    end
 
-      def _extract_parameters(parameters)
-        if include_only = _wrapper_options.include
-          parameters.slice(*include_only)
-        else
-          exclude = _wrapper_options.exclude || []
-          parameters.except(*(exclude + EXCLUDE_PARAMETERS))
-        end
+    def _extract_parameters(parameters)
+      if include_only = _wrapper_options.include
+        parameters.slice(*include_only)
+      else
+        exclude = _wrapper_options.exclude || []
+        parameters.except(*(exclude + EXCLUDE_PARAMETERS))
       end
+    end
 
-      # Checks if we should perform parameters wrapping.
-      def _wrapper_enabled?
-        ref = request.content_mime_type.try(:ref)
-        _wrapper_formats.include?(ref) && _wrapper_key && !request.request_parameters[_wrapper_key]
-      end
+    # Checks if we should perform parameters wrapping.
+    def _wrapper_enabled?
+      ref = request.content_mime_type.try(:ref)
+      _wrapper_formats.include?(ref) && _wrapper_key && !request.request_parameters[_wrapper_key]
+    end
   end
 end

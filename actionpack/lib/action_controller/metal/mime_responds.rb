@@ -184,7 +184,7 @@ module ActionController #:nodoc:
     # Be sure to check the documentation of <tt>ActionController::MimeResponds.respond_to</tt>
     # for more examples.
     def respond_to(*mimes)
-      raise ArgumentError, "respond_to takes either types or a block, never both" if mimes.any? && block_given?
+      raise ArgumentError, 'respond_to takes either types or a block, never both' if !mimes.empty? && block_given?
 
       collector = Collector.new(mimes, request.variant)
       yield collector if block_given?
@@ -268,13 +268,12 @@ module ActionController #:nodoc:
 
       class VariantCollector #:nodoc:
         def initialize(variant = nil)
-          @variant = variant
-          @variants = {}
+          @variant, @variants = variant, {}
         end
 
         def any(*args, &block)
           if block_given?
-            if args.any? && args.none?{ |a| a == @variant }
+            if args.any? && args.none? { |a| a == @variant }
               args.each{ |v| @variants[v] = block }
             else
               @variants[:any] = block
@@ -296,9 +295,10 @@ module ActionController #:nodoc:
         end
 
         private
-          def variant_key
-            @variant.find { |variant| @variants.key?(variant) } || :any
-          end
+
+        def variant_key
+          @variant.find { |variant| @variants.key?(variant) } || :any
+        end
       end
     end
   end

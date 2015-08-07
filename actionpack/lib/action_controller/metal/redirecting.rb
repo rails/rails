@@ -67,8 +67,8 @@ module ActionController
     # may specify some fallback behavior for this case by rescuing
     # <tt>ActionController::RedirectBackError</tt>.
     def redirect_to(options = {}, response_status = {}) #:doc:
-      raise ActionControllerError.new("Cannot redirect to nil!") unless options
-      raise ActionControllerError.new("Cannot redirect to a parameter hash!") if options.is_a?(ActionController::Parameters)
+      raise ActionControllerError.new('Cannot redirect to nil!') unless options
+      raise ActionControllerError.new('Cannot redirect to a parameter hash!') if options.is_a?(ActionController::Parameters)
       raise AbstractController::DoubleRenderError if response_body
 
       self.status        = _extract_redirect_to_status(options, response_status)
@@ -88,7 +88,7 @@ module ActionController
       when String
         request.protocol + request.host_with_port + options
       when :back
-        request.headers["Referer"] or raise RedirectBackError
+        request.headers['Referer'] or raise RedirectBackError
       when Proc
         _compute_redirect_to_location request, options.call
       else

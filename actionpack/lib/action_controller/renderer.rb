@@ -72,29 +72,30 @@ module ActionController
     end
 
     private
-      def normalize_keys(env)
-        http_header_format(env).tap do |new_env|
-          handle_method_key! new_env
-          handle_https_key!  new_env
-        end
-      end
 
-      def http_header_format(env)
-        env.transform_keys do |key|
-          key.is_a?(Symbol) ? key.to_s.upcase : key
-        end
+    def normalize_keys(env)
+      http_header_format(env).tap do |new_env|
+        handle_method_key!(new_env)
+        handle_https_key!(new_env)
       end
+    end
 
-      def handle_method_key!(env)
-        if method = env.delete('METHOD')
-          env['REQUEST_METHOD'] = method.upcase
-        end
+    def http_header_format(env)
+      env.transform_keys do |key|
+        key.is_a?(Symbol) ? key.to_s.upcase : key
       end
+    end
 
-      def handle_https_key!(env)
-        if env.has_key? 'HTTPS'
-          env['HTTPS'] = env['HTTPS'] ? 'on' : 'off'
-        end
+    def handle_method_key!(env)
+      if method = env.delete('METHOD')
+        env['REQUEST_METHOD'] = method.upcase
       end
+    end
+
+    def handle_https_key!(env)
+      if env.has_key?('HTTPS')
+        env['HTTPS'] = env['HTTPS'] ? 'on' : 'off'
+      end
+    end
   end
 end

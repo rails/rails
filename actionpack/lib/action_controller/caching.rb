@@ -41,9 +41,10 @@ module ActionController
       end
 
       private
-        def cache_configured?
-          perform_caching && cache_store
-        end
+
+      def cache_configured?
+        perform_caching && cache_store
+      end
     end
 
     include RackDelegation
