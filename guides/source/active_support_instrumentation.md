@@ -244,14 +244,6 @@ INFO. The adapters will add their own data as well.
 }
 ```
 
-### identity.active_record
-
-| Key              | Value                                     |
-| ---------------- | ----------------------------------------- |
-| `:line`          | Primary Key of object in the identity map |
-| `:name`          | Record's class                            |
-| `:connection_id` | `self.object_id`                          |
-
 ### instantiation.active_record
 
 | Key              | Value                                     |
