@@ -345,6 +345,10 @@ module RoutingTestHelpers
     TestSet.new ->(c) { tc.controller = c }, strict
   end
 
+  def make_bad_set
+    TestBadSet.new -> {}
+  end
+
   class TestSet < ActionDispatch::Routing::RouteSet
     attr_reader :strict
 
@@ -379,6 +383,18 @@ module RoutingTestHelpers
 
     def dispatcher defaults
       TestSet::Dispatcher.new defaults, self, @block
+    end
+  end
+
+  class TestBadSet < TestSet
+    class Dispatcher < TestSet::Dispatcher
+      def controller_reference(controller_param)
+        raise NameError, "undefined local variable or method `dummy_method' for #<Class:0x0>"
+      end
+    end
+
+    def dispatcher defaults
+      TestBadSet::Dispatcher.new defaults, self, @block
     end
   end
 end
