@@ -11,20 +11,14 @@ module ActionController
   #
   class MiddlewareStack < ActionDispatch::MiddlewareStack #:nodoc:
     class Middleware < ActionDispatch::MiddlewareStack::Middleware #:nodoc:
-      def initialize(klass, args, only, except, block)
-        @only = only
-        @except = except
+      def initialize(klass, args, actions, strategy, block)
+        @actions = actions
+        @strategy = strategy
         super(klass, args, block)
       end
 
       def valid?(action)
-        if @only.any?
-          @only.include?(action)
-        elsif @except.any?
-          !@except.include?(action)
-        else
-          true
-        end
+        @strategy.call @actions, action
       end
     end
 
@@ -38,13 +32,29 @@ module ActionController
 
     private
 
+    INCLUDE = ->(list, action) { list.include? action }
+    EXCLUDE = ->(list, action) { !list.include? action }
+    NULL    = ->(list, action) { true }
+
     def build_middleware(klass, args, block)
       options = args.extract_options!
       only   = Array(options.delete(:only)).map(&:to_s)
       except = Array(options.delete(:except)).map(&:to_s)
       args << options unless options.empty?
 
-      Middleware.new(klass, args, only, except, block)
+      strategy = NULL
+      list     = nil
+
+      if only.any?
+        strategy = INCLUDE
+        list     = only
+      elsif except.any?
+        strategy = EXCLUDE
+        list     = except
+      end
+
+
+      Middleware.new(klass, args, list, strategy, block)
     end
   end
 
