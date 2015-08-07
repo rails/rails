@@ -46,7 +46,7 @@ module ActiveRecord::Associations::Builder
 
       join_model = Class.new(ActiveRecord::Base) {
         class << self;
-          attr_accessor :class_resolver
+          attr_accessor :left_model
           attr_accessor :name
           attr_accessor :table_name_resolver
           attr_accessor :left_reflection
@@ -58,7 +58,7 @@ module ActiveRecord::Associations::Builder
         end
 
         def self.compute_type(class_name)
-          class_resolver.compute_type class_name
+          left_model.compute_type class_name
         end
 
         def self.add_left_association(name, options)
@@ -72,11 +72,15 @@ module ActiveRecord::Associations::Builder
           self.right_reflection = _reflect_on_association(rhs_name)
         end
 
+        def self.retrieve_connection
+          left_model.retrieve_connection
+        end
+
       }
 
       join_model.name                = "HABTM_#{association_name.to_s.camelize}"
       join_model.table_name_resolver = habtm
-      join_model.class_resolver      = lhs_model
+      join_model.left_model          = lhs_model
 
       join_model.add_left_association :left_side, anonymous_class: lhs_model
       join_model.add_right_association association_name, belongs_to_options(options)
