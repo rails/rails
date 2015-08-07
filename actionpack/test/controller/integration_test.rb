@@ -755,6 +755,25 @@ class MetalIntegrationTest < ActionDispatch::IntegrationTest
     assert_equal "http://test.com/", @request.env["HTTP_REFERER"]
   end
 
+  def test_ignores_common_ports_in_host
+    get "http://test.com"
+    assert_equal "test.com", @request.env["HTTP_HOST"]
+
+    get "https://test.com"
+    assert_equal "test.com", @request.env["HTTP_HOST"]
+  end
+
+  def test_keeps_uncommon_ports_in_host
+    get "http://test.com:123"
+    assert_equal "test.com:123", @request.env["HTTP_HOST"]
+
+    get "http://test.com:443"
+    assert_equal "test.com:443", @request.env["HTTP_HOST"]
+
+    get "https://test.com:80"
+    assert_equal "test.com:80", @request.env["HTTP_HOST"]
+  end
+
 end
 
 class ApplicationIntegrationTest < ActionDispatch::IntegrationTest
