@@ -8,6 +8,14 @@ module ActionDispatch
     def flash
       @env[Flash::KEY] ||= Flash::FlashHash.from_session_value(session["flash"])
     end
+
+    def flash=(flash)
+      @env[Flash::KEY] = flash
+    end
+
+    def flash_hash # :nodoc:
+      @env[Flash::KEY]
+    end
   end
 
   # The flash provides a way to pass temporary primitive-types (String, Array, Hash) between actions. Anything you place in the flash will be exposed
@@ -263,14 +271,15 @@ module ActionDispatch
     end
 
     def call(env)
+      req = ActionDispatch::Request.new env
       @app.call(env)
     ensure
       session    = Request::Session.find(env) || {}
-      flash_hash = env[KEY]
+      flash_hash = req.flash_hash
 
       if flash_hash && (flash_hash.present? || session.key?('flash'))
         session["flash"] = flash_hash.to_session_value
-        env[KEY] = flash_hash.dup
+        req.flash = flash_hash.dup
       end
 
       if (!session.respond_to?(:loaded?) || session.loaded?) && # (reset_session uses {}, which doesn't implement #loaded?)
