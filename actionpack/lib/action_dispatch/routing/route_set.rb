@@ -39,7 +39,7 @@ module ActionDispatch
             return [404, {'X-Cascade' => 'pass'}, []]
           end
 
-          dispatch(controller, params[:action], req.env)
+          dispatch(controller, params[:action], req)
         end
 
         def prepare_params!(params)
@@ -69,8 +69,8 @@ module ActionDispatch
           ActiveSupport::Dependencies.constantize(const_name)
         end
 
-        def dispatch(controller, action, env)
-          controller.action(action).call(env)
+        def dispatch(controller, action, req)
+          controller.action(action).call(req.env)
         end
 
         def normalize_controller!(params)
