@@ -69,10 +69,7 @@ module ApplicationTests
       test 'db:drop failure because database does not exist' do
         Dir.chdir(app_path) do
           output = `bin/rake db:drop 2>&1`
-          # This assertion should work, but it does not. The SQLite3 adapter
-          # does not raise an error when nothing exists to drop.
-          # https://github.com/rails/rails/blob/f00554a8226b9529c38be1f3e61b6b1888682fb4/activerecord/lib/active_record/connection_adapters/sqlite3_adapter.rb#L34-L37
-          # assert_match /does not exist/, output
+          assert_match /does not exist/, output
           assert_equal 0, $?.exitstatus
         end
       end
