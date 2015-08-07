@@ -1,5 +1,6 @@
 require 'active_support/core_ext/array/extract_options'
 require 'action_dispatch/middleware/stack'
+require 'active_support/deprecation'
 
 module ActionController
   # Extend ActionDispatch middleware stack to make it aware of options
@@ -119,6 +120,7 @@ module ActionController
     def env
       @_request.env
     end
+    deprecate :env
 
     # Returns the last part of the controller's name, underscored, without the ending
     # <tt>Controller</tt>. For instance, PostsController returns <tt>posts</tt>.
