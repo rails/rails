@@ -49,7 +49,7 @@ module ActiveSupport
         end
 
         def uncountable?(str)
-          @regex_array.detect {|regex| regex.match(str) }
+          @regex_array.any? { |regex| str =~ regex }
         end
 
         private
