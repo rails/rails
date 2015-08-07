@@ -40,7 +40,6 @@ module ActiveModel
   #
   #   class Person
   #     include ActiveModel::Serializers::JSON
-  #     include ActiveModel::Serializers::Xml
   #
   #     attr_accessor :name
   #
@@ -55,13 +54,11 @@ module ActiveModel
   #   person.serializable_hash   # => {"name"=>nil}
   #   person.as_json             # => {"name"=>nil}
   #   person.to_json             # => "{\"name\":null}"
-  #   person.to_xml              # => "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<serial-person...
   #
   #   person.name = "Bob"
   #   person.serializable_hash   # => {"name"=>"Bob"}
   #   person.as_json             # => {"name"=>"Bob"}
   #   person.to_json             # => "{\"name\":\"Bob\"}"
-  #   person.to_xml              # => "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<serial-person...
   #
   # Valid options are <tt>:only</tt>, <tt>:except</tt>, <tt>:methods</tt> and
   # <tt>:include</tt>. The following are all valid examples:
