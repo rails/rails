@@ -18,7 +18,7 @@ module ActionController
     def self.create
       env = {}
       env = Rails.application.env_config.merge(env) if defined?(Rails.application) && Rails.application
-      env["rack.request.cookie_hash"] = {}.with_indifferent_access
+      env['rack.request.cookie_hash'] = {}.with_indifferent_access
       new(default_env.merge(env), new_session)
     end
 
@@ -39,12 +39,12 @@ module ActionController
     end
 
     def request_parameters=(params)
-      @env["action_dispatch.request.request_parameters"] = params
+      @env['action_dispatch.request.request_parameters'] = params
     end
 
     def assign_parameters(routes, controller_path, action, parameters = {})
       parameters = parameters.symbolize_keys
-      generated_path, extra_keys = routes.generate_extras(parameters.merge(:controller => controller_path, :action => action))
+      generated_path, extra_keys = routes.generate_extras(parameters.merge(controller: controller_path, action: action))
       non_path_parameters = {}
       path_parameters = {}
 
@@ -63,9 +63,7 @@ module ActionController
       end
 
       if get?
-        if self.query_string.blank?
-          self.query_string = non_path_parameters.to_query
-        end
+        self.query_string = non_path_parameters.to_query if self.query_string.blank?
       else
         if ENCODER.should_multipart?(non_path_parameters)
           @env['CONTENT_TYPE'] = ENCODER.content_type
@@ -97,7 +95,7 @@ module ActionController
         @env['rack.input'] = StringIO.new(data)
       end
 
-      @env["PATH_INFO"] ||= generated_path
+      @env['PATH_INFO'] ||= generated_path
       path_parameters[:controller] = controller_path
       path_parameters[:action] = action
 
@@ -177,9 +175,9 @@ module ActionController
 
     private
 
-      def load!
-        @id
-      end
+    def load!
+      @id
+    end
   end
 
   # Superclass for ActionController functional tests. Functional tests allow you to

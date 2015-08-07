@@ -9,8 +9,8 @@ module ActionController #:nodoc:
     end
 
     private
-      def cookies
-        request.cookie_jar
-      end
+    def cookies
+      request.cookie_jar
+    end
   end
 end

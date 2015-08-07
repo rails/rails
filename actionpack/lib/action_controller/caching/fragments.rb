@@ -19,7 +19,7 @@ module ActionController
       # cached fragment. All keys are prefixed with <tt>views/</tt> and uses
       # ActiveSupport::Cache.expand_cache_key for the expansion.
       def fragment_cache_key(key)
-        ActiveSupport::Cache.expand_cache_key(key.is_a?(Hash) ? url_for(key).split("://").last : key, :views)
+        ActiveSupport::Cache.expand_cache_key(key.is_a?(Hash) ? url_for(key).split('://'.freeze).last : key, :views)
       end
 
       # Writes +content+ to the location signified by

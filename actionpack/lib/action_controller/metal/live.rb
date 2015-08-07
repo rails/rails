@@ -97,8 +97,8 @@ module ActionController
           current_options = @options.merge(options).stringify_keys
 
           WHITELISTED_OPTIONS.each do |option_name|
-            if (option_value = current_options[option_name])
-              @stream.write "#{option_name}: #{option_value}\n"
+            if option_value = current_options[option_name]
+              @stream.write("#{option_name}: #{option_value}\n")
             end
           end
 
@@ -131,8 +131,8 @@ module ActionController
 
       def write(string)
         unless @response.committed?
-          @response.headers["Cache-Control"] = "no-cache"
-          @response.headers.delete "Content-Length"
+          @response.headers['Cache-Control'] = 'no-cache'
+          @response.headers.delete('Content-Length')
         end
 
         super
@@ -144,7 +144,7 @@ module ActionController
             # Raise ClientDisconnected, which is a RuntimeError (not an
             # IOError), because that's more appropriate for something beyond
             # the developer's control.
-            raise ClientDisconnected, "client disconnected"
+            raise ClientDisconnected, 'client disconnected'
           end
         end
       end
@@ -214,7 +214,7 @@ module ActionController
         end
 
         def merge(other)
-          self.class.new @response, __getobj__.merge(other)
+          self.class.new(@response, __getobj__.merge(other))
         end
 
         def to_hash
@@ -244,7 +244,7 @@ module ActionController
       end
 
       def merge_default_headers(original, default)
-        Header.new self, super
+        Header.new(self, super)
       end
 
       def handle_conditional_get!
@@ -311,10 +311,10 @@ module ActionController
     end
 
     def set_response!(request)
-      if request.env["HTTP_VERSION"] == "HTTP/1.0"
+      if request.env['HTTP_VERSION'] == 'HTTP/1.0'
         super
       else
-        @_response         = Live::Response.new
+        @_response = Live::Response.new
         @_response.request = request
       end
     end

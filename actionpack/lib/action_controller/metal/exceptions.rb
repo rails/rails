@@ -19,6 +19,7 @@ module ActionController
 
   class RoutingError < ActionControllerError #:nodoc:
     attr_reader :failures
+
     def initialize(message, failures=[])
       super(message)
       @failures = failures
@@ -30,7 +31,7 @@ module ActionController
 
   class MethodNotAllowed < ActionControllerError #:nodoc:
     def initialize(*allowed_methods)
-      super("Only #{allowed_methods.to_sentence(:locale => :en)} requests are allowed.")
+      super("Only #{allowed_methods.to_sentence(locale: :en)} requests are allowed.")
     end
   end
 

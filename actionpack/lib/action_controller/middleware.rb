@@ -28,7 +28,7 @@ module ActionController
     end
 
     def initialize(app)
-      super()
+      super
       @_app = app
     end
 

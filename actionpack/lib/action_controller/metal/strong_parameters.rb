@@ -35,7 +35,7 @@ module ActionController
 
     def initialize(params) # :nodoc:
       @params = params
-      super("found unpermitted parameter#{'s' if params.size > 1 }: #{params.join(", ")}")
+      super("found unpermitted parameter#{?s if params.size > 1 }: #{params.join(", ")}")
     end
   end
 
@@ -118,7 +118,7 @@ module ActionController
     #
     #    config.always_permitted_parameters = %w( controller action format )
     cattr_accessor :always_permitted_parameters
-    self.always_permitted_parameters = %w( controller action )
+    self.always_permitted_parameters = %w(controller action)
 
     def self.const_missing(const_name)
       return super unless const_name == :NEVER_UNPERMITTED_PARAMS
@@ -232,7 +232,7 @@ module ActionController
     def permit!
       each_pair do |key, value|
         Array.wrap(value).each do |v|
-          v.permit! if v.respond_to? :permit!
+          v.permit! if v.respond_to?(:permit!)
         end
       end
 
@@ -593,7 +593,7 @@ module ActionController
         if unpermitted_keys.any?
           case self.class.action_on_unpermitted_parameters
           when :log
-            name = "unpermitted_parameters.action_controller"
+            name = 'unpermitted_parameters.action_controller'.freeze
             ActiveSupport::Notifications.instrument(name, keys: unpermitted_keys)
           when :raise
             raise ActionController::UnpermittedParameters.new(unpermitted_keys)
@@ -661,7 +661,7 @@ module ActionController
         # Slicing filters out non-declared keys.
         slice(*filter.keys).each do |key, value|
           next unless value
-          next unless has_key? key
+          next unless has_key?(key)
 
           if filter[key] == EMPTY_ARRAY
             # Declaration { comment_ids: [] }.

@@ -126,10 +126,10 @@ module ActionController
     # environment and response manually for performance reasons.
 
     attr_internal :headers, :response, :request
-    delegate :session, :to => "@_request"
+    delegate :session, to: '@_request'
 
     def initialize
-      @_headers = {"Content-Type" => "text/html"}
+      @_headers = { 'Content-Type' => 'text/html' }
       @_status = 200
       @_request = nil
       @_response = nil
@@ -150,19 +150,19 @@ module ActionController
     # in Renderer and Redirector.
 
     def content_type=(type)
-      headers["Content-Type"] = type.to_s
+      headers['Content-Type'] = type.to_s
     end
 
     def content_type
-      headers["Content-Type"]
+      headers['Content-Type']
     end
 
     def location
-      headers["Location"]
+      headers['Location']
     end
 
     def location=(url)
-      headers["Location"] = url
+      headers['Location'] = url
     end
 
     # Basic url_for that can be overridden for more robust functionality

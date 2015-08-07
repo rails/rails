@@ -34,7 +34,7 @@ module ActionController
     def render_to_string(*)
       result = super
       if result.respond_to?(:each)
-        string = ""
+        string = ''
         result.each { |r| string << r }
         string
       else
@@ -93,7 +93,7 @@ module ActionController
       end
 
       if options.delete(:nothing)
-        ActiveSupport::Deprecation.warn("`:nothing` option is deprecated and will be removed in Rails 5.1. Use `head` method to respond with empty response body.")
+        ActiveSupport::Deprecation.warn('`:nothing` option is deprecated and will be removed in Rails 5.1. Use `head` method to respond with empty response body.')
         options[:body] = nil
       end
 
@@ -118,7 +118,7 @@ module ActionController
 
       self.status = status if status
       self.content_type = content_type if content_type
-      self.headers["Location"] = url_for(location) if location
+      self.headers['Location'] = url_for(location) if location
 
       super
     end
