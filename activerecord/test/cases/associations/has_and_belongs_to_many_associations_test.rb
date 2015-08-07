@@ -3,6 +3,7 @@ require 'models/developer'
 require 'models/computer'
 require 'models/project'
 require 'models/company'
+require 'models/course'
 require 'models/customer'
 require 'models/order'
 require 'models/categorization'
@@ -14,6 +15,7 @@ require 'models/tagging'
 require 'models/parrot'
 require 'models/person'
 require 'models/pirate'
+require 'models/professor'
 require 'models/treasure'
 require 'models/price_estimate'
 require 'models/club'
@@ -916,5 +918,15 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert_nothing_raised NoMethodError do
       DeveloperWithSymbolClassName.new
     end
+  end
+
+  def test_alternate_database
+    professor = Professor.create(name: "Plum")
+    course = Course.create(name: "Forensics")
+    assert_equal 0, professor.courses.count
+    assert_nothing_raised do
+      professor.courses << course
+    end
+    assert_equal 1, professor.courses.count
   end
 end
