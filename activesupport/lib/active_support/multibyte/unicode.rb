@@ -338,7 +338,7 @@ module ActiveSupport
           end
 
           # Redefine the === method so we can write shorter rules for grapheme cluster breaks
-          @boundary.each do |k,_|
+          @boundary.each_key do |k|
             @boundary[k].instance_eval do
               def ===(other)
                 detect { |i| i === other } ? true : false
