@@ -1,3 +1,12 @@
+*   Using strings or symbols for middleware class names is deprecated.  Convert
+    things like this:
+
+      middleware.use "Foo::Bar"
+
+    to this:
+
+      middleware.use Foo::Bar
+
 *   ActionController::TestSession now accepts a default value as well as
     a block for generating a default value based off the key provided.
 

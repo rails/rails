@@ -33,12 +33,6 @@ module ActionDispatch
         @stack = ActionDispatch::MiddlewareStack.new
       end
 
-      def test_string_class
-        stack = ActionDispatch::MiddlewareStack.new
-        stack.use Omg.name
-        assert_equal Omg, stack.first.klass
-      end
-
       def test_double_equal_works_with_classes
         k = Class.new
         stack.use k

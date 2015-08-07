@@ -25,17 +25,21 @@ class MiddlewareStackTest < ActiveSupport::TestCase
   end
 
   test "use should push middleware as a string onto the stack" do
-    assert_difference "@stack.size" do
-      @stack.use "MiddlewareStackTest::BazMiddleware"
+    assert_deprecated do
+      assert_difference "@stack.size" do
+        @stack.use "MiddlewareStackTest::BazMiddleware"
+      end
+      assert_equal BazMiddleware, @stack.last.klass
     end
-    assert_equal BazMiddleware, @stack.last.klass
   end
 
   test "use should push middleware as a symbol onto the stack" do
-    assert_difference "@stack.size" do
-      @stack.use :"MiddlewareStackTest::BazMiddleware"
+    assert_deprecated do
+      assert_difference "@stack.size" do
+        @stack.use :"MiddlewareStackTest::BazMiddleware"
+      end
+      assert_equal BazMiddleware, @stack.last.klass
     end
-    assert_equal BazMiddleware, @stack.last.klass
   end
 
   test "use should push middleware class with arguments onto the stack" do
@@ -88,8 +92,10 @@ class MiddlewareStackTest < ActiveSupport::TestCase
   end
 
   test "unshift adds a new middleware at the beginning of the stack" do
-    @stack.unshift :"MiddlewareStackTest::BazMiddleware"
-    assert_equal BazMiddleware, @stack.first.klass
+    assert_deprecated do
+      @stack.unshift :"MiddlewareStackTest::BazMiddleware"
+      assert_equal BazMiddleware, @stack.first.klass
+    end
   end
 
   test "raise an error on invalid index" do
@@ -103,15 +109,11 @@ class MiddlewareStackTest < ActiveSupport::TestCase
   end
 
   test "lazy evaluates middleware class" do
-    assert_difference "@stack.size" do
-      @stack.use "MiddlewareStackTest::BazMiddleware"
+    assert_deprecated do
+      assert_difference "@stack.size" do
+        @stack.use "MiddlewareStackTest::BazMiddleware"
+      end
+      assert_equal BazMiddleware, @stack.last.klass
     end
-    assert_equal BazMiddleware, @stack.last.klass
-  end
-
-  test "lazy compares so unloaded constants are not loaded" do
-    @stack.use "UnknownMiddleware"
-    @stack.use :"MiddlewareStackTest::BazMiddleware"
-    assert @stack.include?("::MiddlewareStackTest::BazMiddleware")
   end
 end

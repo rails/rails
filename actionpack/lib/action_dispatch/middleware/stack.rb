@@ -4,25 +4,15 @@ require "active_support/dependencies"
 module ActionDispatch
   class MiddlewareStack
     class Middleware
-      attr_reader :args, :block, :name, :classcache
+      attr_reader :args, :block, :klass
 
-      def initialize(klass_or_name, args, block)
-        @klass = nil
-
-        if klass_or_name.respond_to?(:name)
-          @klass = klass_or_name
-          @name  = @klass.name
-        else
-          @name  = klass_or_name.to_s
-        end
-
-        @classcache = ActiveSupport::Dependencies::Reference
-        @args, @block = args, block
+      def initialize(klass, args, block)
+        @klass = klass
+        @args  = args
+        @block = block
       end
 
-      def klass
-        @klass || classcache[@name]
-      end
+      def name; klass.name; end
 
       def ==(middleware)
         case middleware
@@ -31,7 +21,7 @@ module ActionDispatch
         when Class
           klass == middleware
         else
-          normalize(@name) == normalize(middleware)
+          normalize(name) == normalize(middleware)
         end
       end
 
@@ -123,8 +113,25 @@ module ActionDispatch
 
     private
 
+    def get_class(klass)
+      if klass.is_a?(String) || klass.is_a?(Symbol)
+        classcache = ActiveSupport::Dependencies::Reference
+        converted_klass = classcache[klass.to_s]
+        ActiveSupport::Deprecation.warn <<-eowarn
+Passing strings or symbols to the middleware builder is deprecated, please change
+them to actual class references.  For example:
+
+  "#{klass}" => #{converted_klass}
+
+        eowarn
+        converted_klass
+      else
+        klass
+      end
+    end
+
     def build_middleware(klass, args, block)
-      Middleware.new(klass, args, block)
+      Middleware.new(get_class(klass), args, block)
     end
   end
 end
