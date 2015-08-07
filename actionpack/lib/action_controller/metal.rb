@@ -116,8 +116,6 @@ module ActionController
   class Metal < AbstractController::Base
     abstract!
 
-    attr_internal_writer :env
-
     def env
       @_request.env
     end
