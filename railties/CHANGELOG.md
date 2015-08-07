@@ -1,3 +1,8 @@
+*   Add `data: { disable_with: 'Submitting...' }` to forms, to disable
+    hitting a form's submit button multiple times.
+
+    *Jon Moss*
+
 *   Add `bin/update` script to update development environment automatically.
 
     *Mehmet Emin İNAÇ*
