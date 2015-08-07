@@ -99,7 +99,17 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal 'The Fifth Topic of the day',  records[2].title
   end
 
-  def test_find_with_ids_and_offset
+  def test_find_with_ids_where_and_limit
+    # Please note that Topic 1 is the only not approved so
+    # if it were among the first 3 it would raise a ActiveRecord::RecordNotFound
+    records = Topic.where(approved: true).limit(3).find([3,2,5,1,4])
+    assert_equal 3, records.size
+    assert_equal 'The Third Topic of the day',  records[0].title
+    assert_equal 'The Second Topic of the day', records[1].title
+    assert_equal 'The Fifth Topic of the day',  records[2].title
+  end
+
+  def test_find_with_ids_and_offset # failing with offset
     records = Topic.offset(2).find([3,2,5,1,4])
     assert_equal 3, records.size
     assert_equal 'The Fifth Topic of the day',  records[0].title
@@ -251,7 +261,7 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal topics(:second).title, Topic.find([2]).first.title
   end
 
-  def test_find_by_ids_with_limit_and_offset
+  def test_find_by_ids_with_limit_and_offset # failing with offset
     assert_equal 2, Entrant.limit(2).find([1,3,2]).size
     entrants = Entrant.limit(3).offset(2).find([1,3,2])
     assert_equal 1, entrants.size
