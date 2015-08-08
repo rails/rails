@@ -1971,10 +1971,6 @@ module ActionDispatch
         def [](key)
           @hash.fetch(key) { @parent[key] }
         end
-
-        def []=(k,v)
-          @hash[k] = v
-        end
       end
 
       def initialize(set) #:nodoc:
