@@ -16,7 +16,10 @@ module ActionDispatch
       class Constraints < Endpoint #:nodoc:
         attr_reader :app, :constraints
 
-        def initialize(app, constraints, dispatcher_p)
+        SERVE = ->(app, req) { app.serve req }
+        CALL  = ->(app, req) { app.call req.env }
+
+        def initialize(app, constraints, strategy)
           # Unwrap Constraints objects.  I don't actually think it's possible
           # to pass a Constraints object to this constructor, but there were
           # multiple places that kept testing children of this object.  I
@@ -26,12 +29,12 @@ module ActionDispatch
             app = app.app
           end
 
-          @dispatcher = dispatcher_p
+          @strategy = strategy
 
           @app, @constraints, = app, constraints
         end
 
-        def dispatcher?; @dispatcher; end
+        def dispatcher?; @strategy == SERVE; end
 
         def matches?(req)
           @constraints.all? do |constraint|
@@ -43,11 +46,7 @@ module ActionDispatch
         def serve(req)
           return [ 404, {'X-Cascade' => 'pass'}, [] ] unless matches?(req)
 
-          if dispatcher?
-            @app.serve req
-          else
-            @app.call req.env
-          end
+          @strategy.call @app, req
         end
 
         private
@@ -241,9 +240,9 @@ module ActionDispatch
 
           def app(blocks)
             if to.respond_to?(:call)
-              Constraints.new(to, blocks, false)
+              Constraints.new(to, blocks, Constraints::CALL)
             elsif blocks.any?
-              Constraints.new(dispatcher(defaults), blocks, true)
+              Constraints.new(dispatcher(defaults), blocks, Constraints::SERVE)
             else
               dispatcher(defaults)
             end
