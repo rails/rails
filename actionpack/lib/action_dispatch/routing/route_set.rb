@@ -21,8 +21,8 @@ module ActionDispatch
       alias inspect to_s
 
       class Dispatcher < Routing::Endpoint
-        def initialize(defaults)
-          @defaults = defaults
+        def initialize(raise_on_name_error)
+          @raise_on_name_error = raise_on_name_error
           @controller_class_names = ThreadSafe::Cache.new
         end
 
@@ -35,7 +35,7 @@ module ActionDispatch
           prepare_params!(params)
 
           # Just raise undefined constant errors if a controller was specified as default.
-          unless controller = controller(params, @defaults.key?(:controller))
+          unless controller = controller(params, @raise_on_name_error)
             return [404, {'X-Cascade' => 'pass'}, []]
           end
 
@@ -53,13 +53,13 @@ module ActionDispatch
         # segment, as in :controller(/:action), we should simply return nil and
         # delegate the control back to Rack cascade. Besides, if this is not a default
         # controller, it means we should respect the @scope[:module] parameter.
-        def controller(params, default_controller=true)
+        def controller(params, raise_on_name_error=true)
           if params && params.key?(:controller)
             controller_param = params[:controller]
             controller_reference(controller_param)
           end
         rescue NameError => e
-          raise ActionController::RoutingError, e.message, e.backtrace if default_controller
+          raise ActionController::RoutingError, e.message, e.backtrace if raise_on_name_error
         end
 
       protected
@@ -418,8 +418,8 @@ module ActionDispatch
         @prepend.each { |blk| eval_block(blk) }
       end
 
-      def dispatcher(defaults)
-        dispatcher_class.new(defaults)
+      def dispatcher(raise_on_name_error)
+        dispatcher_class.new(raise_on_name_error)
       end
 
       module MountedHelpers

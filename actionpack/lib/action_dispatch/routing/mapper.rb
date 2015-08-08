@@ -242,9 +242,9 @@ module ActionDispatch
             if to.respond_to?(:call)
               Constraints.new(to, blocks, Constraints::CALL)
             elsif blocks.any?
-              Constraints.new(dispatcher(defaults), blocks, Constraints::SERVE)
+              Constraints.new(dispatcher(defaults.key?(:controller)), blocks, Constraints::SERVE)
             else
-              dispatcher(defaults)
+              dispatcher(defaults.key?(:controller))
             end
           end
 
