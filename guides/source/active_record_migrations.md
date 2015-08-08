@@ -1004,7 +1004,10 @@ such features, the `execute` method can be used to execute arbitrary SQL.
 Migrations and Seed Data
 ------------------------
 
-Some people use migrations to add data to the database:
+The main purpose of Rails' migration feature is to issue commands that modify the 
+schema using a consistent process. Migrations can also be used 
+to add or modify data. This is useful in an existing database that can't be destroyed 
+and recreated, such as a production database. 
 
 ```ruby
 class AddInitialProducts < ActiveRecord::Migration
@@ -1020,9 +1023,11 @@ class AddInitialProducts < ActiveRecord::Migration
 end
 ```
 
-However, Rails has a 'seeds' feature that should be used for seeding a database
-with initial data. It's a really simple feature: just fill up `db/seeds.rb`
-with some Ruby code, and run `rake db:seed`:
+To add initial data after a database is created, Rails has a built-in 
+'seeds' feature that makes the process quick and easy. This is especially 
+useful when reloading the database frequently in development and test environments. 
+It's easy to get started with this feature: just fill up `db/seeds.rb` with some 
+Ruby code, and run `rake db:seed`:
 
 ```ruby
 5.times do |i|
