@@ -252,7 +252,7 @@ extension to use uuid.
 ```ruby
 # db/migrate/20131220144913_create_revisions.rb
 create_table :revisions do |t|
-  t.column :identifier, :uuid
+  t.uuid :identifier
 end
 
 # app/models/revision.rb
