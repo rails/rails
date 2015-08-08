@@ -741,10 +741,10 @@ module ActiveSupport
       #   callback chain, preventing following before and around callbacks from
       #   being called and the event from being triggered.
       #   This should be a lambda to be executed.
-      #   The current object and the return result of the callback will be called
-      #   with the lambda.
+      #   The current object and the result lambda of the callback will be provided
+      #   to the terminator lambda.
       #
-      #     define_callbacks :validate, terminator: ->(target, result) { result == false }
+      #     define_callbacks :validate, terminator: ->(target, result_lambda) { result_lambda.call == false }
       #
       #   In this example, if any before validate callbacks returns +false+,
       #   any successive before and around callback is not executed.
