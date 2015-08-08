@@ -63,7 +63,7 @@ INFO
           Rails.cache = ActiveSupport::Cache.lookup_store(config.cache_store)
 
           if Rails.cache.respond_to?(:middleware)
-            config.middleware.insert_before("Rack::Runtime", Rails.cache.middleware)
+            config.middleware.insert_before(::Rack::Runtime, Rails.cache.middleware)
           end
         end
       end
