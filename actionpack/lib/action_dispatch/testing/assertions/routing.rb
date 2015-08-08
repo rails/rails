@@ -86,8 +86,8 @@ module ActionDispatch
         end
         # Load routes.rb if it hasn't been loaded.
 
-        generated_path, extra_keys = @routes.generate_extras(options, defaults)
-        found_extras = options.reject { |k, _| ! extra_keys.include? k }
+        generated_path, query_string_keys = @routes.generate_extras(options, defaults)
+        found_extras = options.reject { |k, _| ! query_string_keys.include? k }
 
         msg = message || sprintf("found extras <%s>, not <%s>", found_extras, extras)
         assert_equal(extras, found_extras, msg)

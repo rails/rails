@@ -44,12 +44,12 @@ module ActionController
 
     def assign_parameters(routes, controller_path, action, parameters = {})
       parameters = parameters.symbolize_keys
-      generated_path, extra_keys = routes.generate_extras(parameters.merge(:controller => controller_path, :action => action))
+      generated_path, query_string_keys = routes.generate_extras(parameters.merge(:controller => controller_path, :action => action))
       non_path_parameters = {}
       path_parameters = {}
 
       parameters.each do |key, value|
-        if extra_keys.include?(key) || key == :action || key == :controller
+        if query_string_keys.include?(key) || key == :action || key == :controller
           non_path_parameters[key] = value
         else
           if value.is_a?(Array)
