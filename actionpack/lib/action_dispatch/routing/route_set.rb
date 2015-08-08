@@ -35,7 +35,7 @@ module ActionDispatch
           prepare_params!(params)
 
           # Just raise undefined constant errors if a controller was specified as default.
-          unless controller = controller(params, @raise_on_name_error)
+          controller = controller(params, @raise_on_name_error) do
             return [404, {'X-Cascade' => 'pass'}, []]
           end
 
@@ -57,6 +57,8 @@ module ActionDispatch
           if params && params.key?(:controller)
             controller_param = params[:controller]
             controller_reference(controller_param)
+          else
+            yield
           end
         rescue NameError => e
           raise ActionController::RoutingError, e.message, e.backtrace if raise_on_name_error
