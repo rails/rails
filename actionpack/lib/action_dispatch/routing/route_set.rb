@@ -62,12 +62,16 @@ module ActionDispatch
           raise ActionController::RoutingError, e.message, e.backtrace if default_controller
         end
 
-      private
+      protected
+
+        attr_reader :controller_class_names
 
         def controller_reference(controller_param)
-          const_name = @controller_class_names[controller_param] ||= "#{controller_param.camelize}Controller"
+          const_name = controller_class_names[controller_param] ||= "#{controller_param.camelize}Controller"
           ActiveSupport::Dependencies.constantize(const_name)
         end
+
+      private
 
         def dispatch(controller, action, req)
           controller.action(action).call(req.env)
@@ -313,7 +317,7 @@ module ActionDispatch
 
       attr_accessor :formatter, :set, :named_routes, :default_scope, :router
       attr_accessor :disable_clear_and_finalize, :resources_path_names
-      attr_accessor :default_url_options
+      attr_accessor :default_url_options, :dispatcher_class
       attr_reader :env_key
 
       alias :routes :set
@@ -356,6 +360,7 @@ module ActionDispatch
         @set    = Journey::Routes.new
         @router = Journey::Router.new @set
         @formatter = Journey::Formatter.new @set
+        @dispatcher_class = Routing::RouteSet::Dispatcher
       end
 
       def relative_url_root
@@ -414,7 +419,7 @@ module ActionDispatch
       end
 
       def dispatcher(defaults)
-        Routing::RouteSet::Dispatcher.new(defaults)
+        dispatcher_class.new(defaults)
       end
 
       module MountedHelpers
