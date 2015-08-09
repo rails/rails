@@ -1106,7 +1106,7 @@ module ActionDispatch
           end
 
           def resource_scope
-            { :controller => controller }
+            controller
           end
 
           alias :collection_scope :path
@@ -1684,7 +1684,7 @@ module ActionDispatch
             @nesting.push(resource)
 
             with_scope_level(kind) do
-              controller_scope(parent_resource.resource_scope[:controller]) { yield }
+              controller_scope(parent_resource.resource_scope) { yield }
             end
           ensure
             @nesting.pop
