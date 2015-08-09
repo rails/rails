@@ -1397,7 +1397,7 @@ module ActionDispatch
           end
 
           with_scope_level(:collection) do
-            scope(parent_resource.collection_scope) do
+            path_scope(parent_resource.collection_scope) do
               yield
             end
           end
@@ -1423,7 +1423,7 @@ module ActionDispatch
             if shallow?
               shallow_scope(parent_resource.member_scope) { yield }
             else
-              scope(parent_resource.member_scope) { yield }
+              path_scope(parent_resource.member_scope) { yield }
             end
           end
         end
@@ -1434,7 +1434,7 @@ module ActionDispatch
           end
 
           with_scope_level(:new) do
-            scope(parent_resource.new_scope(action_path(:new))) do
+            path_scope(parent_resource.new_scope(action_path(:new))) do
               yield
             end
           end
@@ -1464,9 +1464,10 @@ module ActionDispatch
         end
 
         def shallow
-          scope(:shallow => true) do
-            yield
-          end
+          @scope = @scope.new(shallow: true)
+          yield
+        ensure
+          @scope = @scope.parent
         end
 
         def shallow?
@@ -1683,7 +1684,7 @@ module ActionDispatch
             @nesting.push(resource)
 
             with_scope_level(kind) do
-              scope(parent_resource.resource_scope) { yield }
+              controller_scope(parent_resource.resource_scope[:controller]) { yield }
             end
           ensure
             @nesting.pop
@@ -1795,6 +1796,21 @@ module ActionDispatch
           def api_only?
             @set.api_only?
           end
+        private
+
+        def controller_scope(controller)
+          @scope = @scope.new(controller: controller)
+          yield
+        ensure
+          @scope = @scope.parent
+        end
+
+        def path_scope(path)
+          @scope = @scope.new(path: merge_path_scope(@scope[:path], path))
+          yield
+        ensure
+          @scope = @scope.parent
+        end
       end
 
       # Routing Concerns allow you to declare common routes that can be reused
