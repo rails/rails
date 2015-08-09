@@ -54,7 +54,7 @@ module ActionDispatch
         # delegate the control back to Rack cascade. Besides, if this is not a default
         # controller, it means we should respect the @scope[:module] parameter.
         def controller(params, raise_on_name_error=true)
-          if params && params.key?(:controller)
+          if params.key?(:controller)
             controller_param = params[:controller]
             controller_reference(controller_param)
           else
