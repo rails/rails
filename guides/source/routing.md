@@ -83,7 +83,9 @@ Rails would dispatch that request to the `destroy` method on the `photos` contro
 
 ### CRUD, Verbs, and Actions
 
-In Rails, a resourceful route provides a mapping between HTTP verbs and URLs to controller actions. By convention, each action also maps to particular CRUD operations in a database. A single entry in the routing file, such as:
+In Rails, a resourceful route provides a mapping between HTTP verbs and URLs to 
+controller actions. By convention, each action also maps to a specific CRUD 
+operation in a database. A single entry in the routing file, such as:
 
 ```ruby
 resources :photos
