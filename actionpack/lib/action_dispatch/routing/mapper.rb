@@ -1591,7 +1591,7 @@ module ActionDispatch
 
           if @scope.resources?
             with_scope_level(:root) do
-              scope(parent_resource.path) do
+              path_scope(parent_resource.path) do
                 super(options)
               end
             end
