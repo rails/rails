@@ -257,3 +257,8 @@ end
 class SerializedPost < ActiveRecord::Base
   serialize :title
 end
+
+class PostWithConflictingDefaultScope < Post
+  default_scope ->{ where(author_id: 42) }
+  belongs_to :post_with_conflicting_default_scope, foreign_key: :post_id
+end

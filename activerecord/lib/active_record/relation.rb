@@ -474,7 +474,8 @@ module ActiveRecord
           stmt.wheres = arel.constraints
         end
 
-        affected = @klass.connection.delete(stmt, 'SQL', bind_values)
+        bvs = arel.bind_values + bind_values
+        affected = @klass.connection.delete(stmt, 'SQL', bvs)
 
         reset
         affected

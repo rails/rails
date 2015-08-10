@@ -211,6 +211,12 @@ module ActiveRecord
       assert_equal 3, authors(:david).posts.merge(posts_with_special_comments_with_ratings).count.length
     end
 
+    def test_conflicting_bind_values
+      assert_nothing_raised do
+        CommentWithConflictingDefaultScope.joins(:post_with_conflicting_default_scope).delete_all
+      end
+    end
+
     def test_relation_merging_with_joins_as_join_dependency_pick_proper_parent
       post = Post.create!(title: "haha", body: "huhu")
       comment = post.comments.create!(body: "hu")
