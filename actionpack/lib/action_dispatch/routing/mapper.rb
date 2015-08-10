@@ -823,9 +823,10 @@ module ActionDispatch
         #     match "bacon", action: :bacon, via: :get
         #   end
         def controller(controller)
-          controller_scope(controller) do
-            yield
-          end
+          @scope = @scope.new(controller: controller)
+          yield
+        ensure
+          @scope = @scope.parent
         end
 
         # Scopes routes to a specific namespace. For example:
@@ -1682,7 +1683,7 @@ module ActionDispatch
           def resource_scope(resource) #:nodoc:
             @scope = @scope.new(:scope_level_resource => resource)
 
-            controller_scope(resource.resource_scope) { yield }
+            controller(resource.resource_scope) { yield }
           ensure
             @scope = @scope.parent
           end
@@ -1791,13 +1792,6 @@ module ActionDispatch
             @set.api_only?
           end
         private
-
-        def controller_scope(controller)
-          @scope = @scope.new(controller: controller)
-          yield
-        ensure
-          @scope = @scope.parent
-        end
 
         def path_scope(path)
           @scope = @scope.new(path: merge_path_scope(@scope[:path], path))
