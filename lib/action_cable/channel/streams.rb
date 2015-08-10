@@ -88,7 +88,7 @@ module ActionCable
         streams.each do |broadcasting, callback|
           pubsub.unsubscribe_proc broadcasting, callback
           logger.info "#{self.class.name} stopped streaming from #{broadcasting}"
-        end
+        end.clear
       end
 
       private
