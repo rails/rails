@@ -1702,9 +1702,9 @@ module ActionDispatch
           end
 
           def shallow_nesting_depth #:nodoc:
-            @scope.find_all { |frame|
-              frame[:scope_level_resource]
-            }.count { |frame| frame[:scope_level_resource].shallow? }
+            @scope.find_all { |node|
+              node.frame[:scope_level_resource]
+            }.count { |node| node.frame[:scope_level_resource].shallow? }
           end
 
           def param_constraint? #:nodoc:
@@ -1974,16 +1974,14 @@ module ActionDispatch
           self.class.new hash, self, scope_level
         end
 
+        EMPTY_HASH = {}.freeze
         def new_level(level)
-          self.class.new(self, self, level)
-        end
-
-        def fetch(key, &block)
-          @hash.fetch(key, &block)
+          self.class.new(EMPTY_HASH, self, level)
         end
 
         def [](key)
-          @hash.fetch(key) { @parent[key] }
+          scope = find { |node| node.frame.key? key }
+          scope && scope.frame[key]
         end
 
         include Enumerable
@@ -1992,16 +1990,14 @@ module ActionDispatch
           node = self
           loop do
             break if node.equal? NULL
-            yield node.frame
+            yield node
             node = node.parent
           end
         end
 
-        protected
-
         def frame; @hash; end
 
-        NULL = Scope.new({}.freeze, {}.freeze)
+        NULL = Scope.new(nil, nil)
       end
 
       def initialize(set) #:nodoc:
