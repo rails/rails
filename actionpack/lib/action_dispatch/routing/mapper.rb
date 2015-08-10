@@ -1056,14 +1056,14 @@ module ActionDispatch
         class Resource #:nodoc:
           attr_reader :controller, :path, :options, :param
 
-          def initialize(entities, api_only = false, options = {})
+          def initialize(entities, api_only, shallow, options = {})
             @name       = entities.to_s
             @path       = (options[:path] || @name).to_s
             @controller = (options[:controller] || @name).to_s
             @as         = options[:as]
             @param      = (options[:param] || :id).to_sym
             @options    = options
-            @shallow    = false
+            @shallow    = shallow
             @api_only   = api_only
           end
 
@@ -1129,17 +1129,13 @@ module ActionDispatch
             "#{path}/:#{nested_param}"
           end
 
-          def shallow=(value)
-            @shallow = value
-          end
-
           def shallow?
             @shallow
           end
         end
 
         class SingletonResource < Resource #:nodoc:
-          def initialize(entities, api_only, options)
+          def initialize(entities, api_only, shallow, options)
             super
             @as         = nil
             @controller = (options[:controller] || plural).to_s
@@ -1201,7 +1197,7 @@ module ActionDispatch
             return self
           end
 
-          resource_scope(:resource, SingletonResource.new(resources.pop, api_only?, options)) do
+          resource_scope(:resource, SingletonResource.new(resources.pop, api_only?, @scope[:shallow], options)) do
             yield if block_given?
 
             concerns(options[:concerns]) if options[:concerns]
@@ -1359,7 +1355,7 @@ module ActionDispatch
             return self
           end
 
-          resource_scope(:resources, Resource.new(resources.pop, api_only?, options)) do
+          resource_scope(:resources, Resource.new(resources.pop, api_only?, @scope[:shallow], options)) do
             yield if block_given?
 
             concerns(options[:concerns]) if options[:concerns]
@@ -1687,7 +1683,6 @@ module ActionDispatch
           end
 
           def resource_scope(kind, resource) #:nodoc:
-            resource.shallow = @scope[:shallow]
             @scope = @scope.new(:scope_level_resource => resource)
             @nesting.push(resource)
 
