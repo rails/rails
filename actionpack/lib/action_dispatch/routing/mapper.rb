@@ -1671,18 +1671,6 @@ module ActionDispatch
             @scope.nested?
           end
 
-          def with_exclusive_scope
-            begin
-              @scope = @scope.new(:as => nil, :path => nil)
-
-              with_scope_level(:exclusive) do
-                yield
-              end
-            ensure
-              @scope = @scope.parent
-            end
-          end
-
           def with_scope_level(kind)
             @scope = @scope.new_level(kind)
             yield
