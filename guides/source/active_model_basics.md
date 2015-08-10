@@ -8,12 +8,12 @@ classes. Active Model allows for Action Pack helpers to interact with
 plain Ruby objects. Active Model also helps build custom ORMs for use
 outside of the Rails framework.
 
-After reading this guide, you will be able to add to plain Ruby objects:
+After reading this guide, you will know: 
 
-* The ability to behave like an Active Record model.
-* Callbacks and validations like Active Record.
-* Serializers.
-* Integration with the Rails internationalization (i18n) framework.
+* How an Active Record model behaves.
+* How Callbacks and validations work. 
+* How serializers work.
+* The Rails internationalization (i18n) framework.
 
 --------------------------------------------------------------------------------
 
