@@ -822,9 +822,10 @@ module ActionDispatch
         #   controller "food" do
         #     match "bacon", action: :bacon, via: :get
         #   end
-        def controller(controller, options={})
-          options[:controller] = controller
-          scope(options) { yield }
+        def controller(controller)
+          controller_scope(controller) do
+            yield
+          end
         end
 
         # Scopes routes to a specific namespace. For example:
