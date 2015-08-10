@@ -57,6 +57,7 @@ module ActionDispatch
           controller_reference params.fetch(:controller) { yield }
         rescue NameError => e
           raise ActionController::RoutingError, e.message, e.backtrace if raise_on_name_error
+          yield
         end
 
       protected
