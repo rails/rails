@@ -1197,20 +1197,22 @@ module ActionDispatch
             return self
           end
 
-          resource_scope(:resource, SingletonResource.new(resources.pop, api_only?, @scope[:shallow], options)) do
-            yield if block_given?
+          with_scope_level(:resource) do
+            resource_scope(SingletonResource.new(resources.pop, api_only?, @scope[:shallow], options)) do
+              yield if block_given?
 
-            concerns(options[:concerns]) if options[:concerns]
+              concerns(options[:concerns]) if options[:concerns]
 
-            collection do
-              post :create
-            end if parent_resource.actions.include?(:create)
+              collection do
+                post :create
+              end if parent_resource.actions.include?(:create)
 
-            new do
-              get :new
-            end if parent_resource.actions.include?(:new)
+              new do
+                get :new
+              end if parent_resource.actions.include?(:new)
 
-            set_member_mappings_for_resource
+              set_member_mappings_for_resource
+            end
           end
 
           self
@@ -1355,21 +1357,23 @@ module ActionDispatch
             return self
           end
 
-          resource_scope(:resources, Resource.new(resources.pop, api_only?, @scope[:shallow], options)) do
-            yield if block_given?
+          with_scope_level(:resources) do
+            resource_scope(Resource.new(resources.pop, api_only?, @scope[:shallow], options)) do
+              yield if block_given?
 
-            concerns(options[:concerns]) if options[:concerns]
+              concerns(options[:concerns]) if options[:concerns]
 
-            collection do
-              get  :index if parent_resource.actions.include?(:index)
-              post :create if parent_resource.actions.include?(:create)
+              collection do
+                get  :index if parent_resource.actions.include?(:index)
+                post :create if parent_resource.actions.include?(:create)
+              end
+
+              new do
+                get :new
+              end if parent_resource.actions.include?(:new)
+
+              set_member_mappings_for_resource
             end
-
-            new do
-              get :new
-            end if parent_resource.actions.include?(:new)
-
-            set_member_mappings_for_resource
           end
 
           self
@@ -1682,12 +1686,10 @@ module ActionDispatch
             @scope = @scope.parent
           end
 
-          def resource_scope(kind, resource) #:nodoc:
+          def resource_scope(resource) #:nodoc:
             @scope = @scope.new(:scope_level_resource => resource)
 
-            with_scope_level(kind) do
-              controller_scope(resource.resource_scope) { yield }
-            end
+            controller_scope(resource.resource_scope) { yield }
           ensure
             @scope = @scope.parent
           end
