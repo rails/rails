@@ -1733,16 +1733,18 @@ module ActionDispatch
           end
 
           def path_for_action(action, path) #:nodoc:
-            if path.blank? && canonical_action?(action)
+            return "#{@scope[:path]}/#{path}" if path
+
+            if canonical_action?(action)
               @scope[:path].to_s
             else
-              "#{@scope[:path]}/#{action_path(action, path)}"
+              "#{@scope[:path]}/#{action_path(action)}"
             end
           end
 
-          def action_path(name, path = nil) #:nodoc:
+          def action_path(name) #:nodoc:
             name = name.to_sym if name.is_a?(String)
-            path || @scope[:path_names][name] || name.to_s
+            @scope[:path_names][name] || name.to_s
           end
 
           def prefix_name_for_action(as, action) #:nodoc:
