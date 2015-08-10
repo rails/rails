@@ -1132,6 +1132,8 @@ module ActionDispatch
           def shallow?
             @shallow
           end
+
+          def singleton?; false; end
         end
 
         class SingletonResource < Resource #:nodoc:
@@ -1163,6 +1165,8 @@ module ActionDispatch
 
           alias :member_scope :path
           alias :nested_scope :path
+
+          def singleton?; true; end
         end
 
         def resources_path_names(options)
@@ -1479,7 +1483,7 @@ module ActionDispatch
         end
 
         def shallow?
-          parent_resource.instance_of?(Resource) && @scope[:shallow]
+          !parent_resource.singleton? && @scope[:shallow]
         end
 
         # Matches a url pattern to one or more routes.
