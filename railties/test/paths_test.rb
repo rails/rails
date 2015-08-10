@@ -62,6 +62,13 @@ class PathsTest < ActiveSupport::TestCase
     assert_equal ["/foo/bar/baz"], @root["app/models"].to_a
   end
 
+  test "absolute current path" do
+    @root.add "config"
+    @root.add "config/locales"
+
+    assert_equal "/foo/bar/config/locales", @root["config/locales"].absolute_current
+  end
+
   test "adding multiple physical paths as an array" do
     @root.add "app", with: ["/app", "/app2"]
     assert_equal ["/app", "/app2"], @root["app"].to_a
@@ -213,6 +220,12 @@ class PathsTest < ActiveSupport::TestCase
     @root["app"] = "/app"
     @root["app"].glob = "*.rb"
     assert_equal "*.rb", @root["app"].glob
+  end
+
+  test "it should be possible to get extensions by glob" do
+    @root["app"] = "/app"
+    @root["app"].glob = "*.{rb,yml}"
+    assert_equal ["rb", "yml"], @root["app"].extensions
   end
 
   test "it should be possible to override a path's default glob without assignment" do
