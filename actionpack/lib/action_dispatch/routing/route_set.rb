@@ -34,7 +34,6 @@ module ActionDispatch
 
           prepare_params!(params)
 
-          # Just raise undefined constant errors if a controller was specified as default.
           controller = controller(params, @raise_on_name_error) do
             return [404, {'X-Cascade' => 'pass'}, []]
           end
