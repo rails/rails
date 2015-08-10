@@ -334,8 +334,8 @@ module ActionDispatch
             parser.parse path
           end
 
-          def dispatcher(defaults)
-            @set.dispatcher defaults
+          def dispatcher(raise_on_name_error)
+            @set.dispatcher raise_on_name_error
           end
       end
 
