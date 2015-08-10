@@ -1743,8 +1743,7 @@ module ActionDispatch
           end
 
           def action_path(name) #:nodoc:
-            name = name.to_sym if name.is_a?(String)
-            @scope[:path_names][name] || name.to_s
+            @scope[:path_names][name.to_sym] || name
           end
 
           def prefix_name_for_action(as, action) #:nodoc:
