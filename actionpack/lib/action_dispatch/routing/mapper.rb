@@ -1684,13 +1684,11 @@ module ActionDispatch
 
           def resource_scope(kind, resource) #:nodoc:
             @scope = @scope.new(:scope_level_resource => resource)
-            @nesting.push(resource)
 
             with_scope_level(kind) do
               controller_scope(resource.resource_scope) { yield }
             end
           ensure
-            @nesting.pop
             @scope = @scope.parent
           end
 
@@ -1703,12 +1701,10 @@ module ActionDispatch
             options
           end
 
-          def nesting_depth #:nodoc:
-            @nesting.size
-          end
-
           def shallow_nesting_depth #:nodoc:
-            @nesting.count(&:shallow?)
+            @scope.find_all { |frame|
+              frame[:scope_level_resource]
+            }.count { |frame| frame[:scope_level_resource].shallow? }
           end
 
           def param_constraint? #:nodoc:
@@ -1931,7 +1927,7 @@ module ActionDispatch
 
         attr_reader :parent, :scope_level
 
-        def initialize(hash, parent = {}, scope_level = nil)
+        def initialize(hash, parent = NULL, scope_level = nil)
           @hash = hash
           @parent = parent
           @scope_level = scope_level
@@ -1989,13 +1985,29 @@ module ActionDispatch
         def [](key)
           @hash.fetch(key) { @parent[key] }
         end
+
+        include Enumerable
+
+        def each
+          node = self
+          loop do
+            break if node.equal? NULL
+            yield node.frame
+            node = node.parent
+          end
+        end
+
+        protected
+
+        def frame; @hash; end
+
+        NULL = Scope.new({}.freeze, {}.freeze)
       end
 
       def initialize(set) #:nodoc:
         @set = set
         @scope = Scope.new({ :path_names => @set.resources_path_names })
         @concerns = {}
-        @nesting = []
       end
 
       include Base
