@@ -787,8 +787,8 @@ module ActionDispatch
           end
 
           if options[:constraints].is_a?(Hash)
-            defaults = options[:constraints].select do
-              |k, v| URL_OPTIONS.include?(k) && (v.is_a?(String) || v.is_a?(Fixnum))
+            defaults = options[:constraints].select do |k, v|
+              URL_OPTIONS.include?(k) && (v.is_a?(String) || v.is_a?(Fixnum))
             end
 
             (options[:defaults] ||= {}).reverse_merge!(defaults)
@@ -946,7 +946,10 @@ module ActionDispatch
         #   end
         # Using this, the +:id+ parameter here will default to 'home'.
         def defaults(defaults = {})
-          scope(:defaults => defaults) { yield }
+          @scope = @scope.new(defaults: merge_defaults_scope(@scope[:defaults], defaults))
+          yield
+        ensure
+          @scope = @scope.parent
         end
 
         private
