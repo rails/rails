@@ -1692,7 +1692,7 @@ module ActionDispatch
             @nesting.push(resource)
 
             with_scope_level(kind) do
-              controller_scope(parent_resource.resource_scope) { yield }
+              controller_scope(resource.resource_scope) { yield }
             end
           ensure
             @nesting.pop
