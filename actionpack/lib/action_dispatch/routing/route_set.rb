@@ -816,12 +816,12 @@ module ActionDispatch
           if app.matches?(req) && app.dispatcher?
             dispatcher = app.app
 
-            if dispatcher.controller(params, false)
-              dispatcher.prepare_params!(params)
-              return params
-            else
+            dispatcher.controller(params, false) do
               raise ActionController::RoutingError, "A route matches #{path.inspect}, but references missing controller: #{params[:controller].camelize}Controller"
             end
+
+            dispatcher.prepare_params!(params)
+            return params
           end
         end
 
