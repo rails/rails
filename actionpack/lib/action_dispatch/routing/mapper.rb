@@ -16,7 +16,10 @@ module ActionDispatch
       class Constraints < Endpoint #:nodoc:
         attr_reader :app, :constraints
 
-        def initialize(app, constraints, dispatcher_p)
+        SERVE = ->(app, req) { app.serve req }
+        CALL  = ->(app, req) { app.call req.env }
+
+        def initialize(app, constraints, strategy)
           # Unwrap Constraints objects.  I don't actually think it's possible
           # to pass a Constraints object to this constructor, but there were
           # multiple places that kept testing children of this object.  I
@@ -26,12 +29,12 @@ module ActionDispatch
             app = app.app
           end
 
-          @dispatcher = dispatcher_p
+          @strategy = strategy
 
           @app, @constraints, = app, constraints
         end
 
-        def dispatcher?; @dispatcher; end
+        def dispatcher?; @strategy == SERVE; end
 
         def matches?(req)
           @constraints.all? do |constraint|
@@ -43,11 +46,7 @@ module ActionDispatch
         def serve(req)
           return [ 404, {'X-Cascade' => 'pass'}, [] ] unless matches?(req)
 
-          if dispatcher?
-            @app.serve req
-          else
-            @app.call req.env
-          end
+          @strategy.call @app, req
         end
 
         private
@@ -241,11 +240,11 @@ module ActionDispatch
 
           def app(blocks)
             if to.respond_to?(:call)
-              Constraints.new(to, blocks, false)
+              Constraints.new(to, blocks, Constraints::CALL)
             elsif blocks.any?
-              Constraints.new(dispatcher(defaults), blocks, true)
+              Constraints.new(dispatcher(defaults.key?(:controller)), blocks, Constraints::SERVE)
             else
-              dispatcher(defaults)
+              dispatcher(defaults.key?(:controller))
             end
           end
 
@@ -335,8 +334,8 @@ module ActionDispatch
             parser.parse path
           end
 
-          def dispatcher(defaults)
-            @set.dispatcher defaults
+          def dispatcher(raise_on_name_error)
+            @set.dispatcher raise_on_name_error
           end
       end
 
@@ -443,6 +442,21 @@ module ActionDispatch
         #   dynamic segment used to generate the routes).
         #   You can access that segment from your controller using
         #   <tt>params[<:param>]</tt>.
+        #   In your router:
+        #
+        #      resources :user, param: :name
+        #
+        #   You can override <tt>ActiveRecord::Base#to_param</tt> of a related
+        #   model to constructe an URL.
+        #
+        #      class User < ActiveRecord::Base
+        #        def to_param  # overridden
+        #          name
+        #        end
+        #      end
+        #
+        #   user = User.find_by(name: 'Phusion')
+        #   user_path(user)  # => "/users/Phusion"
         #
         # [:path]
         #   The path prefix for the routes.
@@ -1042,14 +1056,14 @@ module ActionDispatch
         class Resource #:nodoc:
           attr_reader :controller, :path, :options, :param
 
-          def initialize(entities, api_only = false, options = {})
+          def initialize(entities, api_only, shallow, options = {})
             @name       = entities.to_s
             @path       = (options[:path] || @name).to_s
             @controller = (options[:controller] || @name).to_s
             @as         = options[:as]
             @param      = (options[:param] || :id).to_sym
             @options    = options
-            @shallow    = false
+            @shallow    = shallow
             @api_only   = api_only
           end
 
@@ -1092,7 +1106,7 @@ module ActionDispatch
           end
 
           def resource_scope
-            { :controller => controller }
+            controller
           end
 
           alias :collection_scope :path
@@ -1115,17 +1129,13 @@ module ActionDispatch
             "#{path}/:#{nested_param}"
           end
 
-          def shallow=(value)
-            @shallow = value
-          end
-
           def shallow?
             @shallow
           end
         end
 
         class SingletonResource < Resource #:nodoc:
-          def initialize(entities, api_only, options)
+          def initialize(entities, api_only, shallow, options)
             super
             @as         = nil
             @controller = (options[:controller] || plural).to_s
@@ -1187,20 +1197,22 @@ module ActionDispatch
             return self
           end
 
-          resource_scope(:resource, SingletonResource.new(resources.pop, api_only?, options)) do
-            yield if block_given?
+          with_scope_level(:resource) do
+            resource_scope(SingletonResource.new(resources.pop, api_only?, @scope[:shallow], options)) do
+              yield if block_given?
 
-            concerns(options[:concerns]) if options[:concerns]
+              concerns(options[:concerns]) if options[:concerns]
 
-            collection do
-              post :create
-            end if parent_resource.actions.include?(:create)
+              collection do
+                post :create
+              end if parent_resource.actions.include?(:create)
 
-            new do
-              get :new
-            end if parent_resource.actions.include?(:new)
+              new do
+                get :new
+              end if parent_resource.actions.include?(:new)
 
-            set_member_mappings_for_resource
+              set_member_mappings_for_resource
+            end
           end
 
           self
@@ -1345,21 +1357,23 @@ module ActionDispatch
             return self
           end
 
-          resource_scope(:resources, Resource.new(resources.pop, api_only?, options)) do
-            yield if block_given?
+          with_scope_level(:resources) do
+            resource_scope(Resource.new(resources.pop, api_only?, @scope[:shallow], options)) do
+              yield if block_given?
 
-            concerns(options[:concerns]) if options[:concerns]
+              concerns(options[:concerns]) if options[:concerns]
 
-            collection do
-              get  :index if parent_resource.actions.include?(:index)
-              post :create if parent_resource.actions.include?(:create)
+              collection do
+                get  :index if parent_resource.actions.include?(:index)
+                post :create if parent_resource.actions.include?(:create)
+              end
+
+              new do
+                get :new
+              end if parent_resource.actions.include?(:new)
+
+              set_member_mappings_for_resource
             end
-
-            new do
-              get :new
-            end if parent_resource.actions.include?(:new)
-
-            set_member_mappings_for_resource
           end
 
           self
@@ -1383,7 +1397,7 @@ module ActionDispatch
           end
 
           with_scope_level(:collection) do
-            scope(parent_resource.collection_scope) do
+            path_scope(parent_resource.collection_scope) do
               yield
             end
           end
@@ -1407,9 +1421,11 @@ module ActionDispatch
 
           with_scope_level(:member) do
             if shallow?
-              shallow_scope(parent_resource.member_scope) { yield }
+              shallow_scope {
+                path_scope(parent_resource.member_scope) { yield }
+              }
             else
-              scope(parent_resource.member_scope) { yield }
+              path_scope(parent_resource.member_scope) { yield }
             end
           end
         end
@@ -1420,7 +1436,7 @@ module ActionDispatch
           end
 
           with_scope_level(:new) do
-            scope(parent_resource.new_scope(action_path(:new))) do
+            path_scope(parent_resource.new_scope(action_path(:new))) do
               yield
             end
           end
@@ -1433,9 +1449,15 @@ module ActionDispatch
 
           with_scope_level(:nested) do
             if shallow? && shallow_nesting_depth >= 1
-              shallow_scope(parent_resource.nested_scope, nested_options) { yield }
+              shallow_scope do
+                path_scope(parent_resource.nested_scope) do
+                  scope(nested_options) { yield }
+                end
+              end
             else
-              scope(parent_resource.nested_scope, nested_options) { yield }
+              path_scope(parent_resource.nested_scope) do
+                scope(nested_options) { yield }
+              end
             end
           end
         end
@@ -1450,9 +1472,10 @@ module ActionDispatch
         end
 
         def shallow
-          scope(:shallow => true) do
-            yield
-          end
+          @scope = @scope.new(shallow: true)
+          yield
+        ensure
+          @scope = @scope.parent
         end
 
         def shallow?
@@ -1568,7 +1591,7 @@ module ActionDispatch
 
           if @scope.resources?
             with_scope_level(:root) do
-              scope(parent_resource.path) do
+              path_scope(parent_resource.path) do
                 super(options)
               end
             end
@@ -1663,16 +1686,11 @@ module ActionDispatch
             @scope = @scope.parent
           end
 
-          def resource_scope(kind, resource) #:nodoc:
-            resource.shallow = @scope[:shallow]
+          def resource_scope(resource) #:nodoc:
             @scope = @scope.new(:scope_level_resource => resource)
-            @nesting.push(resource)
 
-            with_scope_level(kind) do
-              scope(parent_resource.resource_scope) { yield }
-            end
+            controller_scope(resource.resource_scope) { yield }
           ensure
-            @nesting.pop
             @scope = @scope.parent
           end
 
@@ -1685,12 +1703,10 @@ module ActionDispatch
             options
           end
 
-          def nesting_depth #:nodoc:
-            @nesting.size
-          end
-
           def shallow_nesting_depth #:nodoc:
-            @nesting.count(&:shallow?)
+            @scope.find_all { |node|
+              node.frame[:scope_level_resource]
+            }.count { |node| node.frame[:scope_level_resource].shallow? }
           end
 
           def param_constraint? #:nodoc:
@@ -1705,12 +1721,12 @@ module ActionDispatch
             resource_method_scope? && CANONICAL_ACTIONS.include?(action.to_s)
           end
 
-          def shallow_scope(path, options = {}) #:nodoc:
+          def shallow_scope #:nodoc:
             scope = { :as   => @scope[:shallow_prefix],
                       :path => @scope[:shallow_path] }
             @scope = @scope.new scope
 
-            scope(path, options) { yield }
+            yield
           ensure
             @scope = @scope.parent
           end
@@ -1781,6 +1797,21 @@ module ActionDispatch
           def api_only?
             @set.api_only?
           end
+        private
+
+        def controller_scope(controller)
+          @scope = @scope.new(controller: controller)
+          yield
+        ensure
+          @scope = @scope.parent
+        end
+
+        def path_scope(path)
+          @scope = @scope.new(path: merge_path_scope(@scope[:path], path))
+          yield
+        ensure
+          @scope = @scope.parent
+        end
       end
 
       # Routing Concerns allow you to declare common routes that can be reused
@@ -1898,7 +1929,7 @@ module ActionDispatch
 
         attr_reader :parent, :scope_level
 
-        def initialize(hash, parent = {}, scope_level = nil)
+        def initialize(hash, parent = NULL, scope_level = nil)
           @hash = hash
           @parent = parent
           @scope_level = scope_level
@@ -1946,27 +1977,34 @@ module ActionDispatch
         end
 
         def new_level(level)
-          self.class.new(self, self, level)
-        end
-
-        def fetch(key, &block)
-          @hash.fetch(key, &block)
+          self.class.new(frame, self, level)
         end
 
         def [](key)
-          @hash.fetch(key) { @parent[key] }
+          scope = find { |node| node.frame.key? key }
+          scope && scope.frame[key]
         end
 
-        def []=(k,v)
-          @hash[k] = v
+        include Enumerable
+
+        def each
+          node = self
+          loop do
+            break if node.equal? NULL
+            yield node
+            node = node.parent
+          end
         end
+
+        def frame; @hash; end
+
+        NULL = Scope.new(nil, nil)
       end
 
       def initialize(set) #:nodoc:
         @set = set
         @scope = Scope.new({ :path_names => @set.resources_path_names })
         @concerns = {}
-        @nesting = []
       end
 
       include Base

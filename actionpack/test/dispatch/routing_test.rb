@@ -168,12 +168,10 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
   end
 
   def test_session_singleton_resource_for_api_app
-    self.class.stub_controllers do |_|
-      config = ActionDispatch::Routing::RouteSet::Config.new
-      config.api_only = true
+    config = ActionDispatch::Routing::RouteSet::Config.new
+    config.api_only = true
 
-      routes = ActionDispatch::Routing::RouteSet.new(config)
-
+    self.class.stub_controllers(config) do |routes|
       routes.draw do
         resource :session do
           get :create
@@ -550,11 +548,10 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
   end
 
   def test_projects_for_api_app
-    self.class.stub_controllers do |_|
-      config = ActionDispatch::Routing::RouteSet::Config.new
-      config.api_only = true
+    config = ActionDispatch::Routing::RouteSet::Config.new
+    config.api_only = true
 
-      routes = ActionDispatch::Routing::RouteSet.new(config)
+    self.class.stub_controllers(config) do |routes|
       routes.draw do
         resources :projects, controller: :project
       end

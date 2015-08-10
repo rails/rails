@@ -197,13 +197,13 @@ module ActionDispatch # :nodoc:
       @content_type = content_type.to_s
     end
 
-    # Sets the HTTP character set.
+    # Sets the HTTP character set. In case of nil parameter
+    # it sets the charset to utf-8.
+    #
+    #   response.charset = 'utf-16' # => 'utf-16'
+    #   response.charset = nil      # => 'utf-8'
     def charset=(charset)
-      if nil == charset
-        @charset = self.class.default_charset
-      else
-        @charset = charset
-      end
+      @charset = charset.nil? ? self.class.default_charset : charset
     end
 
     # The response code of the request.

@@ -31,10 +31,10 @@ module ActionDispatch
       'ActionView::Template::Error'         => 'template_error'
     )
 
-    attr_reader :env, :exception, :line_number, :file
+    attr_reader :backtrace_cleaner, :exception, :line_number, :file
 
-    def initialize(env, exception)
-      @env = env
+    def initialize(backtrace_cleaner, exception)
+      @backtrace_cleaner = backtrace_cleaner
       @exception = original_exception(exception)
 
       expand_backtrace if exception.is_a?(SyntaxError) || exception.try(:original_exception).try(:is_a?, SyntaxError)
@@ -123,10 +123,6 @@ module ActionDispatch
       else
         backtrace
       end
-    end
-
-    def backtrace_cleaner
-      @backtrace_cleaner ||= @env['action_dispatch.backtrace_cleaner']
     end
 
     def source_fragment(path, line)

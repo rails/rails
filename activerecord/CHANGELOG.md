@@ -1,7 +1,65 @@
-*   ActiveRecord::RecordNotFound modified to store model name, primary_key and
+*   Add `ActiveRecord::Relation#in_batches` to work with records and relations
+    in batches.
+
+    Available options are `of` (batch size), `load`, `begin_at`, and `end_at`.
+
+    Examples:
+
+        Person.in_batches.each_record(&:party_all_night!)
+        Person.in_batches.update_all(awesome: true)
+        Person.in_batches.delete_all
+        Person.in_batches.each do |relation|
+          relation.delete_all
+          sleep 10 # Throttles the delete queries
+        end
+
+    Closes #20933.
+
+    *Sina Siadat*
+
+*   Added methods for PostgreSQL geometric data types to use in migrations
+
+    Example:
+
+        create_table :foo do |t|
+          t.line :foo_line
+          t.lseg :foo_lseg
+          t.box :foo_box
+          t.path :foo_path
+          t.polygon :foo_polygon
+          t.circle :foo_circle
+        end
+
+    *Mehmet Emin İNAÇ*
+
+*   Add `cache_key` to ActiveRecord::Relation.
+
+    Example:
+
+      @users = User.where("name like ?", "%Alberto%")
+      @users.cache_key
+      => "/users/query-5942b155a43b139f2471b872ac54251f-3-20150714212107656125000"
+
+    *Alberto Fernández-Capel*
+
+*   Properly allow uniqueness validations on primary keys.
+
+    Fixes #20966.
+
+    *Sean Griffin*, *presskey*
+
+*   Don't raise an error if an association failed to destroy when `destroy` was
+    called on the parent (as opposed to `destroy!`).
+
+    Fixes #20991.
+
+    *Sean Griffin*
+
+*   `ActiveRecord::RecordNotFound` modified to store model name, primary_key and
     id of the caller model. It allows the catcher of this exception to make
-    a better decision to what to do with it. For example consider this simple
-    example:
+    a better decision to what to do with it.
+
+    Example:
 
         class SomeAbstractController < ActionController::Base
           rescue_from ActiveRecord::RecordNotFound, with: :redirect_to_404
@@ -51,12 +109,12 @@
 
     *Sean Griffin*
 
-*   Fix a bug where counter_cache doesn't always work with  polymorphic
+*   Fix a bug where counter_cache doesn't always work with polymorphic
     relations.
 
     Fixes #16407.
 
-    *Stefan Kanev & Sean Griffin*
+    *Stefan Kanev*, *Sean Griffin*
 
 *   Ensure that cyclic associations with autosave don't cause duplicate errors
     to be added to the parent record.
@@ -170,7 +228,7 @@
 
     *Aster Ryan*
 
-*   Add `:enum_prefix`/`:enum_suffix` option to `enum` definition.
+*   Add `:_prefix` and `:_suffix` options to `enum` definition.
 
     Fixes #17511, #17415.
 
@@ -196,14 +254,12 @@
 
 *   Do not set `sql_mode` if `strict: :default` is specified.
 
-        ```
-        # database.yml
+        # config/database.yml
         production:
           adapter: mysql2
           database: foo_prod
           user: foo
           strict: :default
-        ```
 
     *Ryuta Kamizono*
 
@@ -288,6 +344,10 @@
         end
 
     *Ryuta Kamizono*
+
+*   Remove `ActiveRecord::Serialization::XmlSerializer` from core.
+
+    *Zachary Scott*
 
 *   Make `unscope` aware of "less than" and "greater than" conditions.
 

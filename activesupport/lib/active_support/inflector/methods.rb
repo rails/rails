@@ -354,7 +354,7 @@ module ActiveSupport
     #   const_regexp("Foo::Bar::Baz") # => "Foo(::Bar(::Baz)?)?"
     #   const_regexp("::")            # => "::"
     def const_regexp(camel_cased_word) #:nodoc:
-      parts = camel_cased_word.split("::")
+      parts = camel_cased_word.split("::".freeze)
 
       return Regexp.escape(camel_cased_word) if parts.blank?
 
@@ -372,7 +372,7 @@ module ActiveSupport
     def apply_inflections(word, rules)
       result = word.to_s.dup
 
-      if word.empty? || inflections.uncountables.include?(result.downcase[/\b\w+\Z/])
+      if word.empty? || inflections.uncountables.uncountable?(result)
         result
       else
         rules.each { |(rule, replacement)| break if result.sub!(rule, replacement) }

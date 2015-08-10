@@ -101,7 +101,7 @@ class I18nValidationTest < ActiveModel::TestCase
       Person.validates_length_of :title, validation_options.merge(within: 3..5)
       @person.title = 'this title is too long'
       call = [:title, :too_long, generate_message_options.merge(count: 5)]
-      assert_called_with(@person.errors, :generate_message, ) do
+      assert_called_with(@person.errors, :generate_message, call) do
         @person.valid?
       end
     end

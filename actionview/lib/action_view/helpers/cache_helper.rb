@@ -98,7 +98,19 @@ module ActionView
       #   <%# Template Dependency: todolists/todolist %>
       #   <%= render_sortable_todolists @project.todolists %>
       #
-      # The pattern used to match these is <tt>/# Template Dependency: (\S+)/</tt>,
+      # In some cases, like a single table inheritance setup, you might have
+      # a bunch of explicit dependencies. Instead of writing every template out,
+      # you can use a wildcard to match any template in a directory:
+      #
+      #   <%# Template Dependency: events/* %>
+      #   <%= render_categorizable_events @person.events %>
+      #
+      # This marks every template in the directory as a dependency. To find those
+      # templates, the wildcard path must be absolutely defined from app/views or paths
+      # otherwise added with +prepend_view_path+ or +append_view_path+.
+      # This way the wildcard for `app/views/recordings/events` would be `recordings/events/*` etc.
+      #
+      # The pattern used to match explicit dependencies is <tt>/# Template Dependency: (\S+)/</tt>,
       # so it's important that you type it out just so.
       # You can only declare one template dependency per line.
       #

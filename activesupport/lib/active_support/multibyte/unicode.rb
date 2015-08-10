@@ -273,7 +273,7 @@ module ActiveSupport
             compose(reorder_characters(decompose(:compatibility, codepoints)))
           else
             raise ArgumentError, "#{form} is not a valid normalization variant", caller
-        end.pack('U*')
+        end.pack('U*'.freeze)
       end
 
       def downcase(string)
@@ -338,7 +338,7 @@ module ActiveSupport
           end
 
           # Redefine the === method so we can write shorter rules for grapheme cluster breaks
-          @boundary.each do |k,_|
+          @boundary.each_key do |k|
             @boundary[k].instance_eval do
               def ===(other)
                 detect { |i| i === other } ? true : false

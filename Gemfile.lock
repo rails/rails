@@ -20,16 +20,16 @@ GIT
 
 GIT
   remote: git://github.com/rails/arel.git
-  revision: 935796f4fd7d75950db87156d6540028a9044fdf
+  revision: d5432b4616ff43fbb14540d351eed351e21bb20e
   branch: master
   specs:
     arel (7.0.0.alpha)
 
 GIT
   remote: git://github.com/rails/globalid.git
-  revision: 4df66fb9e9f0c832d29119aa8bc30be55a614b71
+  revision: 8178ff2dc898a8f49dd71f6eb46f2a09712462de
   specs:
-    globalid (0.3.5)
+    globalid (0.3.6)
       activesupport (>= 4.1.0)
 
 GIT
@@ -44,7 +44,7 @@ GIT
 
 GIT
   remote: git://github.com/rails/sprockets-rails.git
-  revision: 6389649358846f37507206885e3ece145862a0be
+  revision: ad4a43bd1bb19c86a8bf94a2ad5e477686161490
   branch: master
   specs:
     sprockets-rails (3.0.0)
@@ -126,7 +126,7 @@ GEM
       amq-protocol (>= 1.9.2)
     byebug (5.0.0)
       columnize (= 0.9.0)
-    celluloid (0.16.0)
+    celluloid (0.16.1)
       timers (~> 4.0.0)
     coffee-rails (4.1.0)
       coffee-script (>= 2.2.0)
@@ -136,7 +136,7 @@ GEM
       execjs
     coffee-script-source (1.9.1.1)
     columnize (0.9.0)
-    concurrent-ruby (0.9.0)
+    concurrent-ruby (0.9.1)
     connection_pool (2.2.0)
     dalli (2.7.4)
     dante (0.2.0)
@@ -147,9 +147,6 @@ GEM
       delayed_job (>= 3.0, < 4.1)
     erubis (2.7.0)
     execjs (2.5.2)
-    ffi (1.9.10)
-    ffi (1.9.10-x64-mingw32)
-    ffi (1.9.10-x86-mingw32)
     hitimes (1.2.2)
     hitimes (1.2.2-x86-mingw32)
     i18n (0.7.0)
@@ -173,7 +170,7 @@ GEM
     multi_json (1.11.2)
     mustache (1.0.2)
     mysql (2.9.1)
-    mysql2 (0.3.18)
+    mysql2 (0.3.19)
     nokogiri (1.6.6.2)
       mini_portile (~> 0.6.0)
     pg (0.18.2)
@@ -221,7 +218,7 @@ GEM
     sdoc (0.4.1)
       json (~> 1.7, >= 1.7.7)
       rdoc (~> 4.0)
-    sequel (4.24.0)
+    sequel (4.25.0)
     serverengine (1.5.10)
       sigdump (~> 0.2.2)
     sidekiq (3.4.2)

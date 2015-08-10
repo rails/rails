@@ -44,6 +44,7 @@ module ActionDispatch
     end
 
     def call(env)
+      request = ActionDispatch::Request.new env
       _, headers, body = response = @app.call(env)
 
       if headers['X-Cascade'] == 'pass'
@@ -53,14 +54,15 @@ module ActionDispatch
 
       response
     rescue Exception => exception
-      raise exception if env['action_dispatch.show_exceptions'] == false
+      raise exception unless request.show_exceptions?
       render_exception(env, exception)
     end
 
     private
 
     def render_exception(env, exception)
-      wrapper = ExceptionWrapper.new(env, exception)
+      backtrace_cleaner = env['action_dispatch.backtrace_cleaner']
+      wrapper = ExceptionWrapper.new(backtrace_cleaner, exception)
       log_error(env, wrapper)
 
       if env['action_dispatch.show_detailed_exceptions']

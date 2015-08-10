@@ -3,6 +3,10 @@
 
     *Jay Elaraj*
 
+*   Remove `ActiveModel::Serializers::Xml` from core.
+
+    *Zachary Scott*
+
 *   Add `ActiveModel::Dirty#[attr_name]_previously_changed?` and
     `ActiveModel::Dirty#[attr_name]_previous_change` to improve access
     to recorded changes after the model has been saved.

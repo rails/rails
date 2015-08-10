@@ -7,7 +7,7 @@ namespace :guides do
 
     desc "Generate HTML guides"
     task :html do
-      ENV["WARN_BROKEN_LINKS"] = "1" # authors can't disable this
+      ENV["WARNINGS"] = "1" # authors can't disable this
       ruby "rails_guides.rb"
     end
 

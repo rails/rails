@@ -19,7 +19,7 @@ module ActionDispatch
     end
 
     def cookies
-      @cookie_jar ||= Cookies::CookieJar.build(@request.env, @request.host, @request.ssl?, @request.cookies)
+      @cookie_jar ||= Cookies::CookieJar.build(@request, @request.cookies)
     end
 
     def redirect_to_url

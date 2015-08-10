@@ -290,6 +290,9 @@ module ActiveRecord
 
     def destroy #:nodoc:
       _run_destroy_callbacks { super }
+    rescue RecordNotDestroyed => e
+      @_association_destroy_exception = e
+      false
     end
 
     def touch(*) #:nodoc:

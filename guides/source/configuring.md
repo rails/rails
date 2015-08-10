@@ -414,7 +414,7 @@ encrypted cookies salt value. Defaults to `'signed encrypted cookie'`.
 
 `config.action_view` includes a small number of configuration settings:
 
-* `config.action_view.field_error_proc` provides an HTML generator for displaying errors that come from Active Record. The default is
+* `config.action_view.field_error_proc` provides an HTML generator for displaying errors that come from Active Model. The default is
 
     ```ruby
     Proc.new do |html_tag, instance|

@@ -27,6 +27,37 @@ module ActiveSupport
     class Inflections
       @__instance__ = ThreadSafe::Cache.new
 
+      class Uncountables < Array
+        def initialize
+          @regex_array = []
+          super
+        end
+
+        def delete(entry)
+          super entry
+          @regex_array.delete(to_regex(entry))
+        end
+
+        def <<(*word)
+          add(word)
+        end
+
+        def add(words)
+          self.concat(words.flatten.map(&:downcase))
+          @regex_array += self.map {|word|  to_regex(word) }
+          self
+        end
+
+        def uncountable?(str)
+          @regex_array.any? { |regex| regex === str }
+        end
+
+        private
+          def to_regex(string)
+            /\b#{::Regexp.escape(string)}\Z/i
+          end
+      end
+
       def self.instance(locale = :en)
         @__instance__[locale] ||= new
       end
@@ -34,7 +65,7 @@ module ActiveSupport
       attr_reader :plurals, :singulars, :uncountables, :humans, :acronyms, :acronym_regex
 
       def initialize
-        @plurals, @singulars, @uncountables, @humans, @acronyms, @acronym_regex = [], [], [], [], {}, /(?=a)b/
+        @plurals, @singulars, @uncountables, @humans, @acronyms, @acronym_regex = [], [], Uncountables.new, [], {}, /(?=a)b/
       end
 
       # Private, for the test suite.
@@ -160,7 +191,7 @@ module ActiveSupport
       #   uncountable 'money', 'information'
       #   uncountable %w( money information rice )
       def uncountable(*words)
-        @uncountables += words.flatten.map(&:downcase)
+        @uncountables.add(words)
       end
 
       # Specifies a humanized form of a string by a regular expression rule or
@@ -185,7 +216,7 @@ module ActiveSupport
       def clear(scope = :all)
         case scope
           when :all
-            @plurals, @singulars, @uncountables, @humans = [], [], [], []
+            @plurals, @singulars, @uncountables, @humans = [], [], Uncountables.new, []
           else
             instance_variable_set "@#{scope}", []
         end

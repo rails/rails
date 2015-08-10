@@ -348,7 +348,7 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
 
         @app = self.class.build_app(set) do |middleware|
           middleware.use ActionDispatch::Session::CookieStore, options
-          middleware.delete "ActionDispatch::ShowExceptions"
+          middleware.delete ActionDispatch::ShowExceptions
         end
 
         yield

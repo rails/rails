@@ -27,19 +27,21 @@ module ActionDispatch
     end
 
     def call(env)
+      request = ActionDispatch::Request.new env
       @app.call(env)
     rescue Exception => exception
-      if env['action_dispatch.show_exceptions'] == false
-        raise exception
-      else
+      if request.show_exceptions?
         render_exception(env, exception)
+      else
+        raise exception
       end
     end
 
     private
 
     def render_exception(env, exception)
-      wrapper = ExceptionWrapper.new(env, exception)
+      backtrace_cleaner = env['action_dispatch.backtrace_cleaner']
+      wrapper = ExceptionWrapper.new(backtrace_cleaner, exception)
       status  = wrapper.status_code
       env["action_dispatch.exception"] = wrapper.exception
       env["action_dispatch.original_path"] = env["PATH_INFO"]

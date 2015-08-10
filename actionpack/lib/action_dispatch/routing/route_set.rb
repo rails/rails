@@ -21,8 +21,8 @@ module ActionDispatch
       alias inspect to_s
 
       class Dispatcher < Routing::Endpoint
-        def initialize(defaults)
-          @defaults = defaults
+        def initialize(raise_on_name_error)
+          @raise_on_name_error = raise_on_name_error
           @controller_class_names = ThreadSafe::Cache.new
         end
 
@@ -34,12 +34,11 @@ module ActionDispatch
 
           prepare_params!(params)
 
-          # Just raise undefined constant errors if a controller was specified as default.
-          unless controller = controller(params, @defaults.key?(:controller))
+          controller = controller(params, @raise_on_name_error) do
             return [404, {'X-Cascade' => 'pass'}, []]
           end
 
-          dispatch(controller, params[:action], req.env)
+          dispatch(controller, params[:action], req)
         end
 
         def prepare_params!(params)
@@ -53,24 +52,26 @@ module ActionDispatch
         # segment, as in :controller(/:action), we should simply return nil and
         # delegate the control back to Rack cascade. Besides, if this is not a default
         # controller, it means we should respect the @scope[:module] parameter.
-        def controller(params, default_controller=true)
-          if params && params.key?(:controller)
-            controller_param = params[:controller]
-            controller_reference(controller_param)
-          end
+        def controller(params, raise_on_name_error=true)
+          controller_reference params.fetch(:controller) { yield }
         rescue NameError => e
-          raise ActionController::RoutingError, e.message, e.backtrace if default_controller
+          raise ActionController::RoutingError, e.message, e.backtrace if raise_on_name_error
+          yield
+        end
+
+      protected
+
+        attr_reader :controller_class_names
+
+        def controller_reference(controller_param)
+          const_name = controller_class_names[controller_param] ||= "#{controller_param.camelize}Controller"
+          ActiveSupport::Dependencies.constantize(const_name)
         end
 
       private
 
-        def controller_reference(controller_param)
-          const_name = @controller_class_names[controller_param] ||= "#{controller_param.camelize}Controller"
-          ActiveSupport::Dependencies.constantize(const_name)
-        end
-
-        def dispatch(controller, action, env)
-          controller.action(action).call(env)
+        def dispatch(controller, action, req)
+          controller.action(action).call(req.env)
         end
 
         def normalize_controller!(params)
@@ -267,9 +268,13 @@ module ActionDispatch
                 path_params -= controller_options.keys
                 path_params -= result.keys
               end
-              path_params -= inner_options.keys
-              path_params.take(args.size).each do |param|
-                result[param] = args.shift
+              inner_options.each_key do |key|
+                path_params.delete(key)
+              end
+
+              args.each_with_index do |arg, index|
+                param = path_params[index]
+                result[param] = arg if param
               end
             end
 
@@ -309,7 +314,7 @@ module ActionDispatch
 
       attr_accessor :formatter, :set, :named_routes, :default_scope, :router
       attr_accessor :disable_clear_and_finalize, :resources_path_names
-      attr_accessor :default_url_options
+      attr_accessor :default_url_options, :dispatcher_class
       attr_reader :env_key
 
       alias :routes :set
@@ -352,6 +357,7 @@ module ActionDispatch
         @set    = Journey::Routes.new
         @router = Journey::Router.new @set
         @formatter = Journey::Formatter.new @set
+        @dispatcher_class = Routing::RouteSet::Dispatcher
       end
 
       def relative_url_root
@@ -409,8 +415,8 @@ module ActionDispatch
         @prepend.each { |blk| eval_block(blk) }
       end
 
-      def dispatcher(defaults)
-        Routing::RouteSet::Dispatcher.new(defaults)
+      def dispatcher(raise_on_name_error)
+        dispatcher_class.new(raise_on_name_error)
       end
 
       module MountedHelpers
@@ -583,10 +589,8 @@ module ActionDispatch
         PARAMETERIZE = lambda do |name, value|
           if name == :controller
             value
-          elsif value.is_a?(Array)
-            value.map(&:to_param).join('/')
-          elsif param = value.to_param
-            param
+          else
+            value.to_param
           end
         end
 
@@ -594,8 +598,8 @@ module ActionDispatch
 
         def initialize(named_route, options, recall, set)
           @named_route = named_route
-          @options     = options.dup
-          @recall      = recall.dup
+          @options     = options
+          @recall      = recall
           @set         = set
 
           normalize_recall!
@@ -617,7 +621,7 @@ module ActionDispatch
         def use_recall_for(key)
           if @recall[key] && (!@options.key?(key) || @options[key] == @recall[key])
             if !named_route_exists? || segment_keys.include?(key)
-              @options[key] = @recall.delete(key)
+              @options[key] = @recall[key]
             end
           end
         end
@@ -671,12 +675,18 @@ module ActionDispatch
 
         # Remove leading slashes from controllers
         def normalize_controller!
-          @options[:controller] = controller.sub(%r{^/}, ''.freeze) if controller
+          if controller
+            if controller.start_with?("/".freeze)
+              @options[:controller] = controller[1..-1]
+            else
+              @options[:controller] = controller
+            end
+          end
         end
 
         # Move 'index' action from options to recall
         def normalize_action!
-          if @options[:action] == 'index'
+          if @options[:action] == 'index'.freeze
             @recall[:action] = @options.delete(:action)
           end
         end
@@ -805,12 +815,12 @@ module ActionDispatch
           if app.matches?(req) && app.dispatcher?
             dispatcher = app.app
 
-            if dispatcher.controller(params, false)
-              dispatcher.prepare_params!(params)
-              return params
-            else
+            dispatcher.controller(params, false) do
               raise ActionController::RoutingError, "A route matches #{path.inspect}, but references missing controller: #{params[:controller].camelize}Controller"
             end
+
+            dispatcher.prepare_params!(params)
+            return params
           end
         end
 

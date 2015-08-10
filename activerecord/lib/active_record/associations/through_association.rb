@@ -76,13 +76,21 @@ module ActiveRecord
 
         def ensure_mutable
           unless source_reflection.belongs_to?
-            raise HasManyThroughCantAssociateThroughHasOneOrManyReflection.new(owner, reflection)
+            if reflection.has_one?
+              raise HasOneThroughCantAssociateThroughHasOneOrManyReflection.new(owner, reflection)
+            else
+              raise HasManyThroughCantAssociateThroughHasOneOrManyReflection.new(owner, reflection)
+            end
           end
         end
 
         def ensure_not_nested
           if reflection.nested?
-            raise HasManyThroughNestedAssociationsAreReadonly.new(owner, reflection)
+            if reflection.has_one?
+              raise HasOneThroughNestedAssociationsAreReadonly.new(owner, reflection)
+            else
+              raise HasManyThroughNestedAssociationsAreReadonly.new(owner, reflection)
+            end
           end
         end
 

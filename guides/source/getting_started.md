@@ -23,10 +23,12 @@ application from scratch. It does not assume that you have any prior experience
 with Rails. However, to get the most out of it, you need to have some
 prerequisites installed:
 
-* The [Ruby](https://www.ruby-lang.org/en/downloads) language version 2.2.2 or newer. 
-* Right version of [Development Kit](http://rubyinstaller.org/downloads/), if you are using Windows
-* The [RubyGems](https://rubygems.org) packaging system, which is installed with Ruby
-  versions 1.9 and later. To learn more about RubyGems, please read the [RubyGems Guides](http://guides.rubygems.org).
+* The [Ruby](https://www.ruby-lang.org/en/downloads) language version 2.2.2 or newer.
+* Right version of [Development Kit](http://rubyinstaller.org/downloads/), if you
+  are using Windows.
+* The [RubyGems](https://rubygems.org) packaging system, which is installed with
+  Ruby by default. To learn more about RubyGems, please read the
+  [RubyGems Guides](http://guides.rubygems.org).
 * A working installation of the [SQLite3 Database](https://www.sqlite.org).
 
 Rails is a web application framework running on the Ruby programming language.
@@ -164,7 +166,7 @@ of the files and folders that Rails created by default:
 | File/Folder | Purpose |
 | ----------- | ------- |
 |app/|Contains the controllers, models, views, helpers, mailers and assets for your application. You'll focus on this folder for the remainder of this guide.|
-|bin/|Contains the rails script that starts your app and can contain other scripts you use to setup, deploy or run your application.|
+|bin/|Contains the rails script that starts your app and can contain other scripts you use to setup, update, deploy or run your application.|
 |config/|Configure your application's routes, database, and more. This is covered in more detail in [Configuring Rails Applications](configuring.html).|
 |config.ru|Rack configuration for Rack based servers used to start the application.|
 |db/|Contains your current database schema, as well as the database migrations.|

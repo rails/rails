@@ -7,7 +7,7 @@ module ActiveJob
     extend ActiveSupport::Concern
 
     included do
-      def before_setup
+      def before_setup # :nodoc:
         test_adapter = ActiveJob::QueueAdapters::TestAdapter.new
 
         @old_queue_adapters = (ActiveJob::Base.subclasses << ActiveJob::Base).select do |klass|
@@ -24,7 +24,7 @@ module ActiveJob
         super
       end
 
-      def after_teardown
+      def after_teardown # :nodoc:
         super
         @old_queue_adapters.each do |(klass, adapter)|
           klass.queue_adapter = adapter

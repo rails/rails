@@ -325,7 +325,11 @@ module ActionDispatch
           if path =~ %r{://}
             location = URI.parse(path)
             https! URI::HTTPS === location if location.scheme
-            host! "#{location.host}:#{location.port}" if location.host
+            if url_host = location.host
+              default = Rack::Request::DEFAULT_PORTS[location.scheme]
+              url_host += ":#{location.port}" if default != location.port
+              host! url_host
+            end
             path = location.query ? "#{location.path}?#{location.query}" : location.path
           end
 
@@ -374,7 +378,7 @@ module ActionDispatch
           @html_document = nil
           @url_options = nil
 
-          @controller = session.last_request.env['action_controller.instance']
+          @controller = @request.controller_instance
 
           response.status
         end
@@ -391,7 +395,7 @@ module ActionDispatch
 
       attr_reader :app
 
-      def before_setup
+      def before_setup # :nodoc:
         @app = nil
         @integration_session = nil
         super

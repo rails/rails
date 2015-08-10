@@ -298,6 +298,32 @@ module ActiveRecord
       limit_value ? to_a.many? : size > 1
     end
 
+    # Returns a cache key that can be used to identify the records fetched by
+    # this query. The cache key is built with a fingerprint of the sql query,
+    # the number of records matched by the query and a timestamp of the last
+    # updated record. When a new record comes to match the query, or any of
+    # the existing records is updated or deleted, the cache key changes.
+    #
+    #   Product.where("name like ?", "%Cosmic Encounter%").cache_key
+    #   => "products/query-1850ab3d302391b85b8693e941286659-1-20150714212553907087000"
+    #
+    # If the collection is loaded, the method will iterate through the records
+    # to generate the timestamp, otherwise it will trigger one SQL query like:
+    #
+    #    SELECT COUNT(*), MAX("products"."updated_at") FROM "products" WHERE (name like '%Cosmic Encounter%')
+    #
+    # You can also pass a custom timestamp column to fetch the timestamp of the
+    # last updated record.
+    #
+    #   Product.where("name like ?", "%Game%").cache_key(:last_reviewed_at)
+    #
+    # You can customize the strategy to generate the key on a per model basis
+    # overriding ActiveRecord::Base#collection_cache_key.
+    def cache_key(timestamp_column = :updated_at)
+      @cache_keys ||= {}
+      @cache_keys[timestamp_column] ||= @klass.collection_cache_key(self, timestamp_column)
+    end
+
     # Scope all queries to the current scope.
     #
     #   Comment.where(post_id: 1).scoping do
@@ -640,6 +666,13 @@ module ActiveRecord
 
       "#<#{self.class.name} [#{entries.join(', ')}]>"
     end
+
+    protected
+
+      def load_records(records)
+        @records = records
+        @loaded = true
+      end
 
     private
 

@@ -154,7 +154,7 @@ module ActionView
     # we use a bang in this instrumentation because you don't want to
     # consume this in production. This is only slow if it's being listened to.
     def render(view, locals, buffer=nil, &block)
-      instrument("!render_template") do
+      instrument("!render_template".freeze) do
         compile!(view)
         view.send(method_name, locals, buffer, &block)
       end
@@ -348,7 +348,12 @@ module ActionView
 
       def instrument(action, &block)
         payload = { virtual_path: @virtual_path, identifier: @identifier }
-        ActiveSupport::Notifications.instrument("#{action}.action_view", payload, &block)
+        case action
+        when "!render_template".freeze
+          ActiveSupport::Notifications.instrument("!render_template.action_view".freeze, payload, &block)
+        else
+          ActiveSupport::Notifications.instrument("#{action}.action_view".freeze, payload, &block)
+        end
       end
 
       EXPLICIT_COLLECTION = /# Template Collection: (?<resource_name>\w+)/

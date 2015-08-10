@@ -19,6 +19,10 @@ module ActionDispatch
           ActionDispatch::Request
         end
 
+        def dispatcher_class
+          RouteSet::Dispatcher
+        end
+
         def add_route(*args)
           routes << args
         end

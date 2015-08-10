@@ -63,6 +63,10 @@ FIXTURE_LOAD_PATH = File.join(File.dirname(__FILE__), 'fixtures')
 
 SharedTestRoutes = ActionDispatch::Routing::RouteSet.new
 
+SharedTestRoutes.draw do
+  get ':controller(/:action)'
+end
+
 module ActionDispatch
   module SharedRoutes
     def before_setup
@@ -70,35 +74,10 @@ module ActionDispatch
       super
     end
   end
-
-  # Hold off drawing routes until all the possible controller classes
-  # have been loaded.
-  module DrawOnce
-    class << self
-      attr_accessor :drew
-    end
-    self.drew = false
-
-    def before_setup
-      super
-      return if DrawOnce.drew
-
-      SharedTestRoutes.draw do
-        get ':controller(/:action)'
-      end
-
-      ActionDispatch::IntegrationTest.app.routes.draw do
-        get ':controller(/:action)'
-      end
-
-      DrawOnce.drew = true
-    end
-  end
 end
 
 module ActiveSupport
   class TestCase
-    include ActionDispatch::DrawOnce
     if RUBY_ENGINE == "ruby" && PROCESS_COUNT > 0
       parallelize_me!
     end
@@ -119,22 +98,24 @@ class RoutedRackApp
 end
 
 class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
-  include ActionDispatch::SharedRoutes
-
   def self.build_app(routes = nil)
     RoutedRackApp.new(routes || ActionDispatch::Routing::RouteSet.new) do |middleware|
-      middleware.use "ActionDispatch::ShowExceptions", ActionDispatch::PublicExceptions.new("#{FIXTURE_LOAD_PATH}/public")
-      middleware.use "ActionDispatch::DebugExceptions"
-      middleware.use "ActionDispatch::Callbacks"
-      middleware.use "ActionDispatch::ParamsParser"
-      middleware.use "ActionDispatch::Cookies"
-      middleware.use "ActionDispatch::Flash"
-      middleware.use "Rack::Head"
+      middleware.use ActionDispatch::ShowExceptions, ActionDispatch::PublicExceptions.new("#{FIXTURE_LOAD_PATH}/public")
+      middleware.use ActionDispatch::DebugExceptions
+      middleware.use ActionDispatch::Callbacks
+      middleware.use ActionDispatch::ParamsParser
+      middleware.use ActionDispatch::Cookies
+      middleware.use ActionDispatch::Flash
+      middleware.use Rack::Head
       yield(middleware) if block_given?
     end
   end
 
   self.app = build_app
+
+  app.routes.draw do
+    get ':controller(/:action)'
+  end
 
   # Stub Rails dispatcher so it does not get controller references and
   # simply return the controller#action as Rack::Body.
@@ -149,14 +130,10 @@ class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
     end
   end
 
-  def self.stub_controllers
-    old_dispatcher = ActionDispatch::Routing::RouteSet::Dispatcher
-    ActionDispatch::Routing::RouteSet.module_eval { remove_const :Dispatcher }
-    ActionDispatch::Routing::RouteSet.module_eval { const_set :Dispatcher, StubDispatcher }
-    yield ActionDispatch::Routing::RouteSet.new
-  ensure
-    ActionDispatch::Routing::RouteSet.module_eval { remove_const :Dispatcher }
-    ActionDispatch::Routing::RouteSet.module_eval { const_set :Dispatcher, old_dispatcher }
+  def self.stub_controllers(config = nil)
+    route_set = ActionDispatch::Routing::RouteSet.new(*[config].compact)
+    route_set.dispatcher_class = StubDispatcher
+    yield route_set
   end
 
   def with_routing(&block)

@@ -20,7 +20,7 @@ module ActionController #:nodoc:
   # Since HTML and JavaScript requests are typically made from the browser, we
   # need to ensure to verify request authenticity for the web browser. We can
   # use session-oriented authentication for these types of requests, by using
-  # the `protect_form_forgery` method in our controllers.
+  # the `protect_from_forgery` method in our controllers.
   #
   # GET requests are not protected since they don't have side effects like writing
   # to the database and don't leak sensitive information. JavaScript requests are
@@ -139,7 +139,7 @@ module ActionController #:nodoc:
           request.session = NullSessionHash.new(request.env)
           request.env['action_dispatch.request.flash_hash'] = nil
           request.env['rack.session.options'] = { skip: true }
-          request.env['action_dispatch.cookies'] = NullCookieJar.build(request)
+          request.cookie_jar = NullCookieJar.build(request, {})
         end
 
         protected
@@ -160,14 +160,6 @@ module ActionController #:nodoc:
         end
 
         class NullCookieJar < ActionDispatch::Cookies::CookieJar #:nodoc:
-          def self.build(request)
-            key_generator = request.env[ActionDispatch::Cookies::GENERATOR_KEY]
-            host          = request.host
-            secure        = request.ssl?
-
-            new(key_generator, host, secure, options_for_env({}))
-          end
-
           def write(*)
             # nothing
           end

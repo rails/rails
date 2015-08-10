@@ -4,21 +4,27 @@ module ActiveSupport #:nodoc:
   module Dependencies #:nodoc:
     class Interlock
       def initialize # :nodoc:
-        @lock = ActiveSupport::Concurrency::ShareLock.new(true)
+        @lock = ActiveSupport::Concurrency::ShareLock.new
       end
 
       def loading
-        @lock.exclusive do
+        @lock.exclusive(purpose: :load, compatible: [:load]) do
           yield
         end
       end
 
-      # Attempt to obtain a "loading" (exclusive) lock. If possible,
+      def unloading
+        @lock.exclusive(purpose: :unload, compatible: [:load, :unload]) do
+          yield
+        end
+      end
+
+      # Attempt to obtain an "unloading" (exclusive) lock. If possible,
       # execute the supplied block while holding the lock. If there is
       # concurrent activity, return immediately (without executing the
       # block) instead of waiting.
-      def attempt_loading
-        @lock.exclusive(true) do
+      def attempt_unloading
+        @lock.exclusive(purpose: :unload, compatible: [:load, :unload], no_wait: true) do
           yield
         end
       end
