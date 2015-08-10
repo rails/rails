@@ -31,7 +31,7 @@ module ActionView
     #   stylesheet_link_tag("application")
     #   # => <link href="http://assets.example.com/assets/application.css" media="screen" rel="stylesheet" />
     #
-    # Browsers open a limited number of simulataneous connections to a single
+    # Browsers open a limited number of simultaneous connections to a single
     # host. The exact number varies by browser and version. This limit may cause
     # some asset downloads to wait for previous assets to finish before they can
     # begin. You can use the <tt>%d</tt> wildcard in the +asset_host+ to
