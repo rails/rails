@@ -70,7 +70,7 @@ module ActionDispatch
           options.delete :shallow_prefix
           options.delete :shallow
 
-          defaults = (scope[:defaults] || {}).merge options.delete(:defaults) || {}
+          defaults = (scope[:defaults] || {}).dup
 
           new scope, set, path, defaults, as, options
         end
@@ -684,7 +684,11 @@ module ActionDispatch
           def map_method(method, args, &block)
             options = args.extract_options!
             options[:via] = method
-            match(*args, options, &block)
+            if options.key?(:defaults)
+              defaults(options.delete(:defaults)) { match(*args, options, &block) }
+            else
+              match(*args, options, &block)
+            end
             self
           end
       end
