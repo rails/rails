@@ -57,3 +57,8 @@ class CommentWithDefaultScopeReferencesAssociation < Comment
   default_scope ->{ includes(:developer).order('developers.name').references(:developer) }
   belongs_to :developer
 end
+
+class CommentWithConflictingDefaultScope < Comment
+  default_scope ->{ where(author_id: 42) }
+  belongs_to :post_with_conflicting_default_scope, foreign_key: :post_id
+end
