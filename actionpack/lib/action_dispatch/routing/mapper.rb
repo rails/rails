@@ -1421,7 +1421,9 @@ module ActionDispatch
 
           with_scope_level(:member) do
             if shallow?
-              shallow_scope(parent_resource.member_scope) { yield }
+              shallow_scope {
+                path_scope(parent_resource.member_scope) { yield }
+              }
             else
               path_scope(parent_resource.member_scope) { yield }
             end
@@ -1447,9 +1449,15 @@ module ActionDispatch
 
           with_scope_level(:nested) do
             if shallow? && shallow_nesting_depth >= 1
-              shallow_scope(parent_resource.nested_scope, nested_options) { yield }
+              shallow_scope do
+                path_scope(parent_resource.nested_scope) do
+                  scope(nested_options) { yield }
+                end
+              end
             else
-              scope(parent_resource.nested_scope, nested_options) { yield }
+              path_scope(parent_resource.nested_scope) do
+                scope(nested_options) { yield }
+              end
             end
           end
         end
@@ -1720,12 +1728,12 @@ module ActionDispatch
             resource_method_scope? && CANONICAL_ACTIONS.include?(action.to_s)
           end
 
-          def shallow_scope(path, options = {}) #:nodoc:
+          def shallow_scope #:nodoc:
             scope = { :as   => @scope[:shallow_prefix],
                       :path => @scope[:shallow_path] }
             @scope = @scope.new scope
 
-            scope(path, options) { yield }
+            yield
           ensure
             @scope = @scope.parent
           end
