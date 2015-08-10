@@ -1974,9 +1974,8 @@ module ActionDispatch
           self.class.new hash, self, scope_level
         end
 
-        EMPTY_HASH = {}.freeze
         def new_level(level)
-          self.class.new(EMPTY_HASH, self, level)
+          self.class.new(frame, self, level)
         end
 
         def [](key)
