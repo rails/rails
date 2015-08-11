@@ -881,7 +881,7 @@ module ActionDispatch
             shallow_prefix: options.fetch(:as, path)
           }
 
-          path_scope(options.delete(:path) || path) do
+          path_scope(options.delete(:path) { path }) do
             scope(defaults.merge!(options)) { yield }
           end
         end
