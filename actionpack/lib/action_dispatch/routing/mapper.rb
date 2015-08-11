@@ -72,17 +72,19 @@ module ActionDispatch
 
           defaults = (scope[:defaults] || {}).dup
 
-          new scope, set, path, defaults, as, controller, options
+          default_action     = options.delete(:action) || scope[:action]
+
+          new scope, set, path, defaults, as, controller, default_action, options
         end
 
-        def initialize(scope, set, path, defaults, as, controller, options)
+        def initialize(scope, set, path, defaults, as, controller, default_action, options)
           @requirements, @conditions = {}, {}
           @defaults = defaults
           @set = set
 
           @to                 = options.delete :to
           @default_controller = controller
-          @default_action     = options.delete(:action) || scope[:action]
+          @default_action     = default_action
           @as                 = as
           @anchor             = options.delete :anchor
 
