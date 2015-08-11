@@ -1,3 +1,7 @@
+*   Add a break_sequence option to word_wrap so you can specify a custom break.
+
+    * Mauricio Gomez *
+
 *   Add wildcard matching to explicit dependencies.
 
     Turns:
