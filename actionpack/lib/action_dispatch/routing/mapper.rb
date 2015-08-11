@@ -72,10 +72,10 @@ module ActionDispatch
 
           defaults = (scope[:defaults] || {}).dup
 
-          new scope, set, path, defaults, as, controller, default_action, options
+          new scope, set, path, defaults, as, controller, default_action, scope[:module], options
         end
 
-        def initialize(scope, set, path, defaults, as, controller, default_action, options)
+        def initialize(scope, set, path, defaults, as, controller, default_action, modyoule, options)
           @requirements, @conditions = {}, {}
           @defaults = defaults
           @set = set
@@ -94,7 +94,7 @@ module ActionDispatch
           ast  = path_ast path
           path_params = path_params ast
 
-          options = normalize_options!(options, formatted, path_params, ast, scope[:module])
+          options = normalize_options!(options, formatted, path_params, ast, modyoule)
 
 
           split_constraints(path_params, scope[:constraints]) if scope[:constraints]
