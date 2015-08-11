@@ -62,6 +62,8 @@ module ActionDispatch
         attr_reader :to, :default_controller, :default_action, :as, :anchor
 
         def self.build(scope, set, path, as, controller, default_action, to, options)
+          formatted = options.delete(:format) { scope[:options] && scope[:options][:format] }
+
           options = scope[:options].merge(options) if scope[:options]
 
           options.delete :only
@@ -69,13 +71,14 @@ module ActionDispatch
           options.delete :shallow_path
           options.delete :shallow_prefix
           options.delete :shallow
+          options.delete :format
 
           defaults = (scope[:defaults] || {}).dup
 
-          new scope, set, path, defaults, as, controller, default_action, scope[:module], to, options
+          new scope, set, path, defaults, as, controller, default_action, scope[:module], to, formatted, options
         end
 
-        def initialize(scope, set, path, defaults, as, controller, default_action, modyoule, to, options)
+        def initialize(scope, set, path, defaults, as, controller, default_action, modyoule, to, formatted, options)
           @requirements, @conditions = {}, {}
           @defaults = defaults
           @set = set
@@ -86,7 +89,6 @@ module ActionDispatch
           @as                 = as
           @anchor             = options.delete :anchor
 
-          formatted = options.delete :format
           via = Array(options.delete(:via) { [] })
           options_constraints = options.delete :constraints
 
