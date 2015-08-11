@@ -1542,7 +1542,8 @@ module ActionDispatch
 
           path_types = paths.group_by(&:class)
           path_types.fetch(String, []).each do |_path|
-            process_path(options, controller, _path, option_path || _path)
+            route_options = options.dup
+            process_path(route_options, controller, _path, option_path || _path)
           end
 
           path_types.fetch(Symbol, []).each do |action|
@@ -1554,15 +1555,13 @@ module ActionDispatch
         end
 
         def process_path(options, controller, path, option_path)
-          route_options = options.dup
-
           path_without_format = path.sub(/\(\.:format\)$/, '')
-          if using_match_shorthand?(path_without_format, route_options)
-            route_options[:to] ||= path_without_format.gsub(%r{^/}, "").sub(%r{/([^/]*)$}, '#\1')
-            route_options[:to].tr!("-", "_")
+          if using_match_shorthand?(path_without_format, options)
+            options[:to] ||= path_without_format.gsub(%r{^/}, "").sub(%r{/([^/]*)$}, '#\1')
+            options[:to].tr!("-", "_")
           end
 
-          decomposed_match(path, controller, route_options, option_path)
+          decomposed_match(path, controller, options, option_path)
         end
 
         def using_match_shorthand?(path, options)
