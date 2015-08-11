@@ -1,3 +1,11 @@
+*   Support `Range#step` on `DateTime` ranges with `Duration` step
+        twz = DateTime.now.in_time_zone
+        (twz..twz + 2.days).step(3.hours) do |time|
+          # every 3 hour step from twz for 2 days
+        end
+
+    *Peter Hollows*
+
 *   Deprecate `:prefix` option of `number_to_human_size` with no replacement.
 
     *Jean Boussier*
