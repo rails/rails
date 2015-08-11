@@ -41,8 +41,8 @@ module ActionDispatch
       end
 
       def test_mapping_requirements
-        options = { :controller => 'foo', :action => 'bar', :via => :get }
-        m = Mapper::Mapping.build({}, FakeSet.new, '/store/:name(*rest)', nil, options)
+        options = { :action => 'bar', :via => :get }
+        m = Mapper::Mapping.build({}, FakeSet.new, '/store/:name(*rest)', nil, 'foo', options)
         _, _, requirements, _ = m.to_route
         assert_equal(/.+?/, requirements[:rest])
       end
