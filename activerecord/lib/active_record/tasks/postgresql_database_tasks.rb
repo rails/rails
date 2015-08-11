@@ -1,5 +1,3 @@
-require 'shellwords'
-
 module ActiveRecord
   module Tasks # :nodoc:
     class PostgreSQLDatabaseTasks # :nodoc:
@@ -55,19 +53,22 @@ module ActiveRecord
         when String
           ActiveRecord::Base.dump_schemas
         end
+
+        args = ['-i', '-s', '-x', '-O', '-f', filename]
         unless search_path.blank?
-          search_path = search_path.split(",").map{|search_path_part| "--schema=#{Shellwords.escape(search_path_part.strip)}" }.join(" ")
+          args << search_path.split(',').map do |part|
+            "--schema=#{part.strip}"
+          end.join(' ')
         end
-
-        command = "pg_dump -i -s -x -O -f #{Shellwords.escape(filename)} #{search_path} #{Shellwords.escape(configuration['database'])}"
-        raise 'Error dumping database' unless Kernel.system(command)
-
+        args << configuration['database']
+        run_cmd('pg_dump', args, 'dumping')
         File.open(filename, "a") { |f| f << "SET search_path TO #{connection.schema_search_path};\n\n" }
       end
 
       def structure_load(filename)
         set_psql_env
-        Kernel.system("psql -X -q -f #{Shellwords.escape(filename)} #{configuration['database']}")
+        args = [ '-q', '-f', filename, configuration['database'] ]
+        run_cmd('psql', args, 'loading' )
       end
 
       private
@@ -92,6 +93,17 @@ module ActiveRecord
         ENV['PGPORT']     = configuration['port'].to_s     if configuration['port']
         ENV['PGPASSWORD'] = configuration['password'].to_s if configuration['password']
         ENV['PGUSER']     = configuration['username'].to_s if configuration['username']
+      end
+
+      def run_cmd(cmd, args, action)
+        fail run_cmd_error(cmd, args, action) unless Kernel.system(cmd, *args)
+      end
+
+      def run_cmd_error(cmd, args, action)
+        msg = "failed to execute:\n"
+        msg << "#{cmd} #{args.join(' ')}\n\n"
+        msg << "Please check the output above for any errors and make sure that `#{cmd}` is installed in your PATH and has proper permissions.\n\n"
+        msg
       end
     end
   end

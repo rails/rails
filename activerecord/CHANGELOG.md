@@ -1,3 +1,8 @@
+*   `ActiveRecord::Tasks::PostgreSQLDatabaseTasks` fail if shellout to
+    postgresql commands (like `pg_dump`) is not successful.
+
+    *Bryan Paxton*, *Nate Berkopec*
+
 *   Add `ActiveRecord::Relation#in_batches` to work with records and relations
     in batches.
 
