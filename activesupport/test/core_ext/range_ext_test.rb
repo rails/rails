@@ -122,4 +122,33 @@ class RangeTest < ActiveSupport::TestCase
     datetime = DateTime.now
     assert(((datetime - 1.hour)..datetime).step(1) {})
   end
+
+  def test_date_time_with_step_duration
+    start     = DateTime.new(2011, 11, 11)
+    finish    = DateTime.new(2011, 11, 11, 2)
+    step_size = 40.minutes + 20.seconds
+    assert((start..finish).step(step_size) {})
+  end
+
+  def test_date_time_with_step_duration_inclusive_exclusive
+    start     = DateTime.new(2011, 11, 11)
+    finish    = DateTime.new(2011, 11, 11, 2)
+
+    step_size = 1.hour
+    steps = []
+    assert((start..finish).step(step_size) { |t| steps << t })
+    assert steps == [
+      DateTime.new(2011, 11, 11, 00),
+      DateTime.new(2011, 11, 11, 01),
+      DateTime.new(2011, 11, 11, 02),
+    ]
+
+    step_size = 1.hour
+    steps = []
+    assert((start...finish).step(step_size) { |t| steps << t })
+    assert steps == [
+      DateTime.new(2011, 11, 11, 00),
+      DateTime.new(2011, 11, 11, 01)
+    ]
+  end
 end
