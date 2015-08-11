@@ -1567,7 +1567,7 @@ module ActionDispatch
         def using_match_shorthand?(path, to, action)
           return false if to || action
 
-          path && path =~ %r{^/?[-\w]+/[-\w/]+$}
+          path =~ %r{^/?[-\w]+/[-\w/]+$}
         end
 
         def decomposed_match(path, controller, options, _path) # :nodoc:
