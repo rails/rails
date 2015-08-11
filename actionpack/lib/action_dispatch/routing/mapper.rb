@@ -1556,7 +1556,7 @@ module ActionDispatch
 
         def process_path(options, controller, path, option_path)
           path_without_format = path.sub(/\(\.:format\)$/, '')
-          if using_match_shorthand?(path_without_format, options)
+          if using_match_shorthand?(path_without_format, options[:to], options[:action])
             options[:to] ||= path_without_format.gsub(%r{^/}, "").sub(%r{/([^/]*)$}, '#\1')
             options[:to].tr!("-", "_")
           end
@@ -1564,8 +1564,10 @@ module ActionDispatch
           decomposed_match(path, controller, options, option_path)
         end
 
-        def using_match_shorthand?(path, options)
-          path && (options[:to] || options[:action]).nil? && path =~ %r{^/?[-\w]+/[-\w/]+$}
+        def using_match_shorthand?(path, to, action)
+          return false if to || action
+
+          path && path =~ %r{^/?[-\w]+/[-\w/]+$}
         end
 
         def decomposed_match(path, controller, options, _path) # :nodoc:
