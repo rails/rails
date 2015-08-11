@@ -61,7 +61,7 @@ module ActionDispatch
         attr_reader :requirements, :conditions, :defaults
         attr_reader :to, :default_controller, :default_action, :as, :anchor
 
-        def self.build(scope, set, path, as, controller, options)
+        def self.build(scope, set, path, as, controller, default_action, options)
           options = scope[:options].merge(options) if scope[:options]
 
           options.delete :only
@@ -71,8 +71,6 @@ module ActionDispatch
           options.delete :shallow
 
           defaults = (scope[:defaults] || {}).dup
-
-          default_action     = options.delete(:action) || scope[:action]
 
           new scope, set, path, defaults, as, controller, default_action, options
         end
@@ -1593,7 +1591,9 @@ module ActionDispatch
                  name_for_action(options.delete(:as), action)
                end
 
-          mapping = Mapping.build(@scope, @set, URI.parser.escape(path), as, controller, options)
+          default_action     = options.delete(:action) || @scope[:action]
+
+          mapping = Mapping.build(@scope, @set, URI.parser.escape(path), as, controller, default_action, options)
           app, conditions, requirements, defaults, as, anchor = mapping.to_route
           @set.add_route(app, conditions, requirements, defaults, as, anchor)
         end
