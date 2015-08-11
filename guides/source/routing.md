@@ -83,8 +83,8 @@ Rails would dispatch that request to the `destroy` method on the `photos` contro
 
 ### CRUD, Verbs, and Actions
 
-In Rails, a resourceful route provides a mapping between HTTP verbs and URLs to 
-controller actions. By convention, each action also maps to a specific CRUD 
+In Rails, a resourceful route provides a mapping between HTTP verbs and URLs to
+controller actions. By convention, each action also maps to a specific CRUD
 operation in a database. A single entry in the routing file, such as:
 
 ```ruby
@@ -1095,12 +1095,12 @@ edit_videos GET  /videos/:identifier/edit(.:format) videos#edit
 Video.find_by(identifier: params[:identifier])
 ```
 
-You can override `ActiveRecord::Base#to_param` of a related
-model to constructe an URL.
+You can override `ActiveRecord::Base#to_param` of a related model to construct
+an URL:
 
 ```ruby
 class Video < ActiveRecord::Base
-  def to_param  # overridden
+  def to_param
     identifier
   end
 end

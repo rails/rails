@@ -95,7 +95,12 @@ Rails 2 introduced a new default session storage, CookieStore. CookieStore saves
 
 * The client can see everything you store in a session, because it is stored in clear-text (actually Base64-encoded, so not encrypted). So, of course, _you don't want to store any secrets here_. To prevent session hash tampering, a digest is calculated from the session with a server-side secret (`secrets.secret_token`) and inserted into the end of the cookie.
 
-However, since Rails 4, the default store is EncryptedCookieStore. With EncryptedCookieStore the session is encrypted before being stored in a cookie. This prevents the user access to the content of the cookie and prevents him from tampering its content as well. Thus the session becomes a more secure place to store data. The encryption is done using a server-side secret key `secrets.secret_key_base` stored in `config/secrets.yml`.
+However, since Rails 4, the default store is EncryptedCookieStore. With
+EncryptedCookieStore the session is encrypted before being stored in a cookie.
+This prevents the user from accessing and tampering the content of the cookie.
+Thus the session becomes a more secure place to store data. The encryption is
+done using a server-side secret key `secrets.secret_key_base` stored in
+`config/secrets.yml`.
 
 That means the security of this storage depends on this secret (and on the digest algorithm, which defaults to SHA1, for compatibility). So _don't use a trivial secret, i.e. a word from a dictionary, or one which is shorter than 30 characters, use `rake secret` instead_.
 
