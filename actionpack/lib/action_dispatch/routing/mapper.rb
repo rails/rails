@@ -876,13 +876,14 @@ module ActionDispatch
 
           defaults = {
             module:         path,
-            path:           options.fetch(:path, path),
             as:             options.fetch(:as, path),
             shallow_path:   options.fetch(:path, path),
             shallow_prefix: options.fetch(:as, path)
           }
 
-          scope(defaults.merge!(options)) { yield }
+          path_scope(options.delete(:path) || path) do
+            scope(defaults.merge!(options)) { yield }
+          end
         end
 
         # === Parameter Restriction
