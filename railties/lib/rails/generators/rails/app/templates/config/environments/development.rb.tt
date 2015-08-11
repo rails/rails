@@ -27,9 +27,6 @@ Rails.application.configure do
 
   # Return error responses in the format requested by the client
   # or default to JSON format.
-  # This option is useful for Rails API only applications developers
-  # who prefer to render errors in the expected format instead of
-  # rendering a HTML page with debug info and web-console.
   config.debug_exception_response_format = :api
   <%- end -%>
   <%- unless options.skip_action_mailer? -%>
