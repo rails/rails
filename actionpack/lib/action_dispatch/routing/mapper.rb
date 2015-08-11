@@ -1579,8 +1579,10 @@ module ActionDispatch
 
           action = action.to_s
 
+          default_action = options.delete(:action) || @scope[:action]
+
           if action =~ /^[\w\-\/]+$/
-            options[:action] ||= action.tr('-', '_') unless action.include?("/")
+            default_action ||= action.tr('-', '_') unless action.include?("/")
           else
             action = nil
           end
@@ -1590,8 +1592,6 @@ module ActionDispatch
                else
                  name_for_action(options.delete(:as), action)
                end
-
-          default_action     = options.delete(:action) || @scope[:action]
 
           mapping = Mapping.build(@scope, @set, URI.parser.escape(path), as, controller, default_action, options)
           app, conditions, requirements, defaults, as, anchor = mapping.to_route
