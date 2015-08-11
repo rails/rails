@@ -1538,43 +1538,54 @@ module ActionDispatch
           end
 
           controller = options.delete(:controller) || @scope[:controller]
+          option_path = options.delete :path
 
-          paths.each do |_path|
-            route_options = options.dup
-            route_options[:path] ||= _path if _path.is_a?(String)
-
-            path_without_format = _path.to_s.sub(/\(\.:format\)$/, '')
-            if using_match_shorthand?(path_without_format, route_options)
-              route_options[:to] ||= path_without_format.gsub(%r{^/}, "").sub(%r{/([^/]*)$}, '#\1')
-              route_options[:to].tr!("-", "_")
-            end
-
-            decomposed_match(_path, controller, route_options)
+          path_types = paths.group_by(&:class)
+          path_types.fetch(String, []).each do |_path|
+            process_path(options, controller, _path, option_path || _path)
           end
+
+          path_types.fetch(Symbol, []).each do |action|
+            route_options = options.dup
+            decomposed_match(action, controller, route_options, option_path)
+          end
+
           self
+        end
+
+        def process_path(options, controller, path, option_path)
+          route_options = options.dup
+
+          path_without_format = path.sub(/\(\.:format\)$/, '')
+          if using_match_shorthand?(path_without_format, route_options)
+            route_options[:to] ||= path_without_format.gsub(%r{^/}, "").sub(%r{/([^/]*)$}, '#\1')
+            route_options[:to].tr!("-", "_")
+          end
+
+          decomposed_match(path, controller, route_options, option_path)
         end
 
         def using_match_shorthand?(path, options)
           path && (options[:to] || options[:action]).nil? && path =~ %r{^/?[-\w]+/[-\w/]+$}
         end
 
-        def decomposed_match(path, controller, options) # :nodoc:
+        def decomposed_match(path, controller, options, _path) # :nodoc:
           if on = options.delete(:on)
-            send(on) { decomposed_match(path, controller, options) }
+            send(on) { decomposed_match(path, controller, options, _path) }
           else
             case @scope.scope_level
             when :resources
-              nested { decomposed_match(path, controller, options) }
+              nested { decomposed_match(path, controller, options, _path) }
             when :resource
-              member { decomposed_match(path, controller, options) }
+              member { decomposed_match(path, controller, options, _path) }
             else
-              add_route(path, controller, options)
+              add_route(path, controller, options, _path)
             end
           end
         end
 
-        def add_route(action, controller, options) # :nodoc:
-          path = path_for_action(action, options.delete(:path))
+        def add_route(action, controller, options, _path) # :nodoc:
+          path = path_for_action(action, _path)
           raise ArgumentError, "path is required" if path.blank?
 
           action = action.to_s
