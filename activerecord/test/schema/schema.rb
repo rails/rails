@@ -939,3 +939,12 @@ end
 College.connection.create_table :colleges, force: true do |t|
   t.column :name, :string, null: false
 end
+
+Professor.connection.create_table :professors, force: true do |t|
+  t.column :name, :string, null: false
+end
+
+Professor.connection.create_table :courses_professors, id: false, force: true do |t|
+  t.references :course
+  t.references :professor
+end
