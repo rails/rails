@@ -50,7 +50,8 @@ module ActionDispatch
 
       def test_mapping_requirements
         options = { }
-        m = Mapper::Mapping.build({}, FakeSet.new, '/store/:name(*rest)', nil, 'foo', 'bar', nil, [:get], options)
+        scope = Mapper::Scope.new({})
+        m = Mapper::Mapping.build(scope, FakeSet.new, '/store/:name(*rest)', nil, 'foo', 'bar', nil, [:get], options)
         _, _, requirements, _ = m.to_route
         assert_equal(/.+?/, requirements[:rest])
       end

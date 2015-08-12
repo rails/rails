@@ -62,7 +62,7 @@ module ActionDispatch
         attr_reader :to, :default_controller, :default_action, :as, :anchor
 
         def self.build(scope, set, path, as, controller, default_action, to, via, options)
-          formatted = options.delete(:format) { scope[:options] && scope[:options][:format] }
+          formatted = options.delete(:format) { scope.mapping_option(:format) }
 
           options = scope[:options].merge(options) if scope[:options]
 
@@ -1543,7 +1543,7 @@ module ActionDispatch
           option_path = options.delete :path
           to = options.delete :to
           via = Mapping.check_via Array(options.delete(:via) {
-            (@scope[:options] || {})[:via]
+            @scope.mapping_option(:via)
           })
 
           path_types = paths.group_by(&:class)
@@ -1988,6 +1988,12 @@ module ActionDispatch
 
         def options
           OPTIONS
+        end
+
+        def mapping_option(name)
+          options = self[:options]
+          return unless options
+          options[name]
         end
 
         def new(hash)
