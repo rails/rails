@@ -8,7 +8,7 @@ require 'models/project'
 require 'models/rating'
 
 class RelationMergingTest < ActiveRecord::TestCase
-  fixtures :developers, :comments, :authors, :posts
+  fixtures :developers, :comments, :authors, :posts, :author_addresses
 
   def test_relation_merging
     devs = Developer.where("salary >= 80000").merge(Developer.limit(2)).merge(Developer.order('id ASC').where("id < 3"))
@@ -68,6 +68,14 @@ class RelationMergingTest < ActiveRecord::TestCase
   def test_relation_merging_with_joins
     comments = Comment.joins(:post).where(:body => 'Thank you for the welcome').merge(Post.where(:body => 'Such a lovely day'))
     assert_equal 1, comments.count
+  end
+
+  def test_relation_merging_with_nested_joins
+    post_with_comments_with_ratings = Post.with_post(1).joins(:comments).merge(Comment.joins(:ratings))
+    author_with_posts_with_comments_with_ratings = Author.joins(:posts).merge(post_with_comments_with_ratings)
+    author_addresses = AuthorAddress.joins(:author).merge(author_with_posts_with_comments_with_ratings)
+
+    assert_equal 1, author_addresses.count
   end
 
   def test_relation_merging_with_association

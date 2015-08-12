@@ -110,7 +110,7 @@ module ActiveRecord
         if other.klass == relation.klass
           relation.joins!(*other.joins_values)
         else
-          joins_dependency, rest = other.joins_values.partition do |join|
+          joins_dependency, rest = other.joins_values.reverse.partition do |join|
             case join
             when Hash, Symbol, Array
               true
@@ -125,6 +125,8 @@ module ActiveRecord
           relation.joins! rest
 
           @relation = relation.joins join_dependency
+          @relation.joins_values.reverse!
+          @relation
         end
       end
 
