@@ -99,7 +99,8 @@ module ActionDispatch
 
           options = normalize_options!(options, formatted, path_params, ast, modyoule)
 
-          constraints = scope_constraints.merge constraints(options, path_params)
+          split_options = constraints(options, path_params)
+          constraints = scope_constraints.merge Hash[split_options[:constraints] || []]
 
           if options_constraints.is_a?(Hash)
             options_constraints.each do |key, default|
@@ -117,6 +118,7 @@ module ActionDispatch
 
           normalize_format!(formatted)
 
+          @conditions[:required_defaults] = (split_options[:required_defaults] || []).map(&:first)
           @conditions[:path_info] = path
           @conditions[:parsed_path_info] = ast
 
@@ -306,17 +308,17 @@ module ActionDispatch
           end
 
           def constraints(options, path_params)
-            constraints = {}
-            required_defaults = []
-            options.each_pair do |key, option|
+            options.group_by do |key, option|
               if Regexp === option
-                constraints[key] = option
+                :constraints
               else
-                required_defaults << key unless path_params.include?(key)
+                if path_params.include?(key)
+                  :path_params
+                else
+                  :required_defaults
+                end
               end
             end
-            @conditions[:required_defaults] = required_defaults
-            constraints
           end
 
           def path_params(ast)
