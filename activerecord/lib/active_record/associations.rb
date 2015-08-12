@@ -149,7 +149,9 @@ module ActiveRecord
   class HasOneThroughNestedAssociationsAreReadonly < ThroughNestedAssociationsAreReadonly #:nodoc:
   end
 
-  class EagerLoadPolymorphicError < ActiveRecordError #:nodoc:
+  # This error is raised when trying to eager load a poloymorphic association using a JOIN.
+  # Eager loading polymorphic associations is only possible with ActiveRecord::QueryMethods#preload.
+  class EagerLoadPolymorphicError < ActiveRecordError
     def initialize(reflection = nil)
       if reflection
         super("Cannot eagerly load the polymorphic association #{reflection.name.inspect}")
@@ -924,7 +926,7 @@ module ActiveRecord
     # For example if all the addressables are either of class Person or Company then a total
     # of 3 queries will be executed. The list of addressable types to load is determined on
     # the back of the addresses loaded. This is not supported if Active Record has to fallback
-    # to the previous implementation of eager loading and will raise <tt>ActiveRecord::EagerLoadPolymorphicError</tt>.
+    # to the previous implementation of eager loading and will raise ActiveRecord::EagerLoadPolymorphicError.
     # The reason is that the parent model's type is a column value so its corresponding table
     # name cannot be put in the +FROM+/+JOIN+ clauses of that query.
     #
