@@ -76,10 +76,10 @@ module ActionDispatch
           defaults = (scope[:defaults] || {}).dup
           scope_constraints = scope[:constraints] || {}
 
-          new scope, set, path, defaults, as, controller, default_action, scope[:module], to, formatted, scope_constraints, options
+          new set, path, defaults, as, controller, default_action, scope[:module], to, formatted, scope_constraints, scope[:blocks], options
         end
 
-        def initialize(scope, set, path, defaults, as, controller, default_action, modyoule, to, formatted, scope_constraints, options)
+        def initialize(set, path, defaults, as, controller, default_action, modyoule, to, formatted, scope_constraints, blocks, options)
           @requirements, @conditions = {}, {}
           @defaults = defaults
           @set = set
@@ -103,7 +103,7 @@ module ActionDispatch
 
           split_constraints path_params, scope_constraints.merge(constraints)
 
-          @blocks = blocks(options_constraints, scope[:blocks])
+          @blocks = blocks(options_constraints, blocks)
 
           if options_constraints.is_a?(Hash)
             split_constraints path_params, options_constraints
