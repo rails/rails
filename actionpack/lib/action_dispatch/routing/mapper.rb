@@ -67,7 +67,6 @@ module ActionDispatch
           options.delete :shallow_path
           options.delete :shallow_prefix
           options.delete :shallow
-          options.delete :format
 
           defaults = (scope[:defaults] || {}).dup
           scope_constraints = scope[:constraints] || {}
@@ -808,10 +807,10 @@ module ActionDispatch
             elsif option == :options
               value = options
             else
-              value = options.delete(option)
+              value = options.delete(option) { POISON }
             end
 
-            if value
+            unless POISON == value
               scope[option] = send("merge_#{option}_scope", @scope[option], value)
             end
           end
@@ -822,6 +821,8 @@ module ActionDispatch
         ensure
           @scope = @scope.parent
         end
+
+        POISON = Object.new # :nodoc:
 
         # Scopes routes to a specific controller
         #
@@ -989,6 +990,10 @@ module ActionDispatch
           end
 
           def merge_via_scope(parent, child) #:nodoc:
+            child
+          end
+
+          def merge_format_scope(parent, child) #:nodoc:
             child
           end
 
@@ -1549,7 +1554,7 @@ module ActionDispatch
           via = Mapping.check_via Array(options.delete(:via) {
             @scope[:via]
           })
-          formatted = options.delete(:format) { @scope.mapping_option(:format) }
+          formatted = options.delete(:format) { @scope[:format] }
 
           path_types = paths.group_by(&:class)
           path_types.fetch(String, []).each do |_path|
@@ -1942,7 +1947,7 @@ module ActionDispatch
       class Scope # :nodoc:
         OPTIONS = [:path, :shallow_path, :as, :shallow_prefix, :module,
                    :controller, :action, :path_names, :constraints,
-                   :shallow, :blocks, :defaults, :via, :options]
+                   :shallow, :blocks, :defaults, :via, :format, :options]
 
         RESOURCE_SCOPES = [:resource, :resources]
         RESOURCE_METHOD_SCOPES = [:collection, :member, :new]
@@ -1990,12 +1995,6 @@ module ActionDispatch
 
         def options
           OPTIONS
-        end
-
-        def mapping_option(name)
-          options = self[:options]
-          return unless options
-          options[name]
         end
 
         def new(hash)
