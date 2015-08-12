@@ -112,10 +112,11 @@ module ActionDispatch
           end
 
           requirements, conditions = split_constraints path_params, constraints
-          @requirements = Hash[requirements]
-          @conditions = Hash[conditions]
+          formats = normalize_format(formatted)
 
-          normalize_format!(formatted)
+          @requirements = formats[:requirements].merge Hash[requirements]
+          @conditions = Hash[conditions]
+          @defaults = formats[:defaults].merge @defaults
 
           @conditions[:required_defaults] = (split_options[:required_defaults] || []).map(&:first)
           @conditions[:path_info] = path
@@ -190,16 +191,19 @@ module ActionDispatch
             end
           end
 
-          def normalize_format!(formatted)
+          def normalize_format(formatted)
             case formatted
             when true
-              @requirements[:format] ||= /.+/
+              { requirements: { format: /.+/ },
+                defaults:     {} }
             when Regexp
-              @requirements[:format] ||= formatted
-              @defaults[:format] ||= nil
+              { requirements: { format: formatted },
+                defaults:     { format: nil } }
             when String
-              @requirements[:format] ||= Regexp.compile(formatted)
-              @defaults[:format] ||= formatted
+              { requirements: { format: Regexp.compile(formatted) },
+                defaults:     { format: formatted } }
+            else
+              { requirements: { }, defaults: { } }
             end
           end
 
