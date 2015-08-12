@@ -28,7 +28,7 @@ module ActionDispatch
           if String === filter
             location.include?(filter)
           elsif Regexp === filter
-            location.match(filter)
+            location =~ filter
           end
         end
       end
