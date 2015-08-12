@@ -886,6 +886,8 @@ ActiveRecord::Schema.define do
   end
   create_table :drink_designers, force: true do |t|
   end
+  create_table :interior_designers, force: true do |t|
+  end
   create_table :chefs, force: true do |t|
     t.integer :employable_id
     t.string :employable_type
