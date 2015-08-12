@@ -76,7 +76,7 @@ module ActionDispatch
           defaults = (scope[:defaults] || {}).dup
           scope_constraints = scope[:constraints] || {}
 
-          new set, path, defaults, as, controller, default_action, scope[:module], to, formatted, scope_constraints, scope[:blocks], options
+          new set, path, defaults, as, controller, default_action, scope[:module], to, formatted, scope_constraints, scope[:blocks] || [], options
         end
 
         def initialize(set, path, defaults, as, controller, default_action, modyoule, to, formatted, scope_constraints, blocks, options)
@@ -91,7 +91,7 @@ module ActionDispatch
           @anchor             = options.delete :anchor
 
           via = Array(options.delete(:via) { [] })
-          options_constraints = options.delete :constraints
+          options_constraints = options.delete(:constraints) || {}
 
           path = normalize_path! path, formatted
           ast  = path_ast path
@@ -103,8 +103,6 @@ module ActionDispatch
 
           split_constraints path_params, scope_constraints.merge(constraints)
 
-          @blocks = blocks(options_constraints, blocks)
-
           if options_constraints.is_a?(Hash)
             split_constraints path_params, options_constraints
             options_constraints.each do |key, default|
@@ -112,6 +110,9 @@ module ActionDispatch
                 @defaults[key] ||= default
               end
             end
+            @blocks = blocks
+          else
+            @blocks = blocks(options_constraints)
           end
 
           normalize_format!(formatted)
@@ -218,12 +219,6 @@ module ActionDispatch
             end
           end
 
-          def verify_callable_constraint(callable_constraint)
-            unless callable_constraint.respond_to?(:call) || callable_constraint.respond_to?(:matches?)
-              raise ArgumentError, "Invalid constraint: #{callable_constraint.inspect} must respond to :call or :matches?"
-            end
-          end
-
           def add_request_method(via, conditions)
             return if via == [:all]
 
@@ -303,13 +298,11 @@ module ActionDispatch
             yield
           end
 
-          def blocks(options_constraints, scope_blocks)
-            if options_constraints && !options_constraints.is_a?(Hash)
-              verify_callable_constraint(options_constraints)
-              [options_constraints]
-            else
-              scope_blocks || []
+          def blocks(callable_constraint)
+            unless callable_constraint.respond_to?(:call) || callable_constraint.respond_to?(:matches?)
+              raise ArgumentError, "Invalid constraint: #{callable_constraint.inspect} must respond to :call or :matches?"
             end
+            [callable_constraint]
           end
 
           def constraints(options, path_params)
