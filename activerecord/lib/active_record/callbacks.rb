@@ -206,7 +206,8 @@ module ActiveRecord
   # == Ordering callbacks
   #
   # Sometimes the code needs that the callbacks execute in a specific order. For example, a +before_destroy+
-  # callback (+log_children+ in this case) should be executed before the children get destroyed by the +dependent: destroy+ option.
+  # callback (+log_children+ in this case) should be executed before the children get destroyed by the
+  # <tt>dependent: destroy</tt> option.
   #
   # Let's look at the code below:
   #
