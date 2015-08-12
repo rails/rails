@@ -70,7 +70,6 @@ module ActionDispatch
           options.delete :shallow_prefix
           options.delete :shallow
           options.delete :format
-          options.delete :via
 
           defaults = (scope[:defaults] || {}).dup
           scope_constraints = scope[:constraints] || {}
@@ -991,6 +990,10 @@ module ActionDispatch
             child
           end
 
+          def merge_via_scope(parent, child) #:nodoc:
+            child
+          end
+
           def merge_path_names_scope(parent, child) #:nodoc:
             merge_options_scope(parent, child)
           end
@@ -1546,7 +1549,7 @@ module ActionDispatch
           option_path = options.delete :path
           to = options.delete :to
           via = Mapping.check_via Array(options.delete(:via) {
-            @scope.mapping_option(:via)
+            @scope[:via]
           })
 
           path_types = paths.group_by(&:class)
@@ -1940,7 +1943,7 @@ module ActionDispatch
       class Scope # :nodoc:
         OPTIONS = [:path, :shallow_path, :as, :shallow_prefix, :module,
                    :controller, :action, :path_names, :constraints,
-                   :shallow, :blocks, :defaults, :options]
+                   :shallow, :blocks, :defaults, :via, :options]
 
         RESOURCE_SCOPES = [:resource, :resources]
         RESOURCE_METHOD_SCOPES = [:collection, :member, :new]
