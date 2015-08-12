@@ -40,6 +40,14 @@ module ActionDispatch
         Mapper.new FakeSet.new
       end
 
+      def test_blows_up_without_via
+        fakeset = FakeSet.new
+        mapper = Mapper.new fakeset
+        assert_raises(ArgumentError) do
+          mapper.match '/', :to => 'posts#index', :as => :main
+        end
+      end
+
       def test_mapping_requirements
         options = { }
         m = Mapper::Mapping.build({}, FakeSet.new, '/store/:name(*rest)', nil, 'foo', 'bar', nil, [:get], options)
