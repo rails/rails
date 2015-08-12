@@ -80,6 +80,18 @@ module ActionDispatch
           new set, path, defaults, as, controller, default_action, scope[:module], to, formatted, scope_constraints, scope[:blocks] || [], via, options
         end
 
+        def self.check_via(via)
+          if via.empty?
+            msg = "You should not use the `match` method in your router without specifying an HTTP method.\n" \
+              "If you want to expose your action to both GET and POST, add `via: [:get, :post]` option.\n" \
+              "If you want to expose your action to GET, use `get` in the router:\n" \
+              "  Instead of: match \"controller#action\"\n" \
+              "  Do: get \"controller#action\""
+            raise ArgumentError, msg
+          end
+          via
+        end
+
         def initialize(set, path, defaults, as, controller, default_action, modyoule, to, formatted, scope_constraints, blocks, via, options)
           @defaults = defaults
           @set = set
@@ -227,16 +239,6 @@ module ActionDispatch
 
           def add_request_method(via, conditions)
             return if via == [:all]
-
-            if via.empty?
-              msg = "You should not use the `match` method in your router without specifying an HTTP method.\n" \
-                    "If you want to expose your action to both GET and POST, add `via: [:get, :post]` option.\n" \
-                    "If you want to expose your action to GET, use `get` in the router:\n" \
-                    "  Instead of: match \"controller#action\"\n" \
-                    "  Do: get \"controller#action\""
-              raise ArgumentError, msg
-            end
-
             conditions[:request_method] = via.map { |m| m.to_s.dasherize.upcase }
           end
 
@@ -1540,7 +1542,9 @@ module ActionDispatch
           controller = options.delete(:controller) || @scope[:controller]
           option_path = options.delete :path
           to = options.delete :to
-          via = Array(options.delete(:via) { (@scope[:options] || {})[:via] })
+          via = Mapping.check_via Array(options.delete(:via) {
+            (@scope[:options] || {})[:via]
+          })
 
           path_types = paths.group_by(&:class)
           path_types.fetch(String, []).each do |_path|
