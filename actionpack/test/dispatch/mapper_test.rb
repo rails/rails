@@ -47,6 +47,15 @@ module ActionDispatch
         assert_equal(/.+?/, requirements[:rest])
       end
 
+      def test_via_scope
+        fakeset = FakeSet.new
+        mapper = Mapper.new fakeset
+        mapper.scope(via: :put) do
+          mapper.match '/', :to => 'posts#index', :as => :main
+        end
+        assert_equal ["PUT"], fakeset.conditions.first[:request_method]
+      end
+
       def test_map_slash
         fakeset = FakeSet.new
         mapper = Mapper.new fakeset
