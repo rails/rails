@@ -52,6 +52,17 @@ module ActionDispatch
         end
       end
 
+      def test_scoped_formatted
+        fakeset = FakeSet.new
+        mapper = Mapper.new fakeset
+        mapper.scope(format: true) do
+          mapper.get '/foo', :to => 'posts#index', :as => :main
+        end
+        assert_equal({:controller=>"posts", :action=>"index"},
+                     fakeset.defaults.first)
+        assert_equal "/foo.:format", fakeset.conditions.first[:path_info]
+      end
+
       def test_random_keys
         fakeset = FakeSet.new
         mapper = Mapper.new fakeset
