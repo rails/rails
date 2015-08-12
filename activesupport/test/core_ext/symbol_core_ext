@@ -1,0 +1,19 @@
+class SymbolWithTest < ActiveSupport::TestCase
+  def setup
+    @symbol = :hello
+  end
+  
+  test "returns a callable object" do
+    assert @symbol.with.methods.include?(:call)
+  end
+  
+  test "can be passed one or more parameters" do
+    assert_nothing_raised @symbol.with(3)
+    assert_nothing_raised @symbol.with(:center, 17, [])
+  end
+  
+  test "can be passed a block" do
+    assert_nothing_raised @symbol.with do |dummy_block_var|
+    end
+  end
+end
