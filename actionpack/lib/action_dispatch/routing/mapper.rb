@@ -1605,7 +1605,7 @@ module ActionDispatch
                  name_for_action(options.delete(:as), action)
                end
 
-          via = Array(options.delete(:via) { [] })
+          via = Array(options.delete(:via) { (@scope[:options] || {})[:via] })
           mapping = Mapping.build(@scope, @set, URI.parser.escape(path), as, controller, default_action, to, via, options)
           app, conditions, requirements, defaults, as, anchor = mapping.to_route
           @set.add_route(app, conditions, requirements, defaults, as, anchor)
