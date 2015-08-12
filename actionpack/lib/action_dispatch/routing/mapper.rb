@@ -1065,7 +1065,7 @@ module ActionDispatch
         CANONICAL_ACTIONS = %w(index create new show update destroy)
 
         class Resource #:nodoc:
-          attr_reader :controller, :path, :options, :param
+          attr_reader :controller, :path, :param
 
           def initialize(entities, api_only, shallow, options = {})
             @name       = entities.to_s
@@ -1076,6 +1076,8 @@ module ActionDispatch
             @options    = options
             @shallow    = shallow
             @api_only   = api_only
+            @only       = options.delete :only
+            @except     = options.delete :except
           end
 
           def default_actions
@@ -1087,10 +1089,10 @@ module ActionDispatch
           end
 
           def actions
-            if only = @options[:only]
-              Array(only).map(&:to_sym)
-            elsif except = @options[:except]
-              default_actions - Array(except).map(&:to_sym)
+            if @only
+              Array(@only).map(&:to_sym)
+            elsif @except
+              default_actions - Array(@except).map(&:to_sym)
             else
               default_actions
             end
@@ -1213,6 +1215,7 @@ module ActionDispatch
           end
 
           with_scope_level(:resource) do
+            options = apply_action_options options
             resource_scope(SingletonResource.new(resources.pop, api_only?, @scope[:shallow], options)) do
               yield if block_given?
 
@@ -1373,6 +1376,7 @@ module ActionDispatch
           end
 
           with_scope_level(:resources) do
+            options = apply_action_options options
             resource_scope(Resource.new(resources.pop, api_only?, @scope[:shallow], options)) do
               yield if block_given?
 
@@ -1671,23 +1675,20 @@ module ActionDispatch
               return true
             end
 
-            unless action_options?(options)
-              options.merge!(scope_action_options) if scope_action_options?
-            end
-
             false
+          end
+
+          def apply_action_options(options) # :nodoc:
+            return options if action_options? options
+            options.merge scope_action_options
           end
 
           def action_options?(options) #:nodoc:
             options[:only] || options[:except]
           end
 
-          def scope_action_options? #:nodoc:
-            @scope[:action_options]
-          end
-
           def scope_action_options #:nodoc:
-            @scope[:action_options]
+            @scope[:action_options] || {}
           end
 
           def resource_scope? #:nodoc:
