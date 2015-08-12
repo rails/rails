@@ -99,21 +99,21 @@ module ActionDispatch
 
           options = normalize_options!(options, formatted, path_params, ast, modyoule)
 
-          constraints = constraints(options, path_params)
-
-          split_constraints path_params, scope_constraints.merge(constraints)
+          constraints = scope_constraints.merge constraints(options, path_params)
 
           if options_constraints.is_a?(Hash)
-            split_constraints path_params, options_constraints
             options_constraints.each do |key, default|
               if URL_OPTIONS.include?(key) && (String === default || Fixnum === default)
                 @defaults[key] ||= default
               end
             end
             @blocks = blocks
+            constraints.merge! options_constraints
           else
             @blocks = blocks(options_constraints)
           end
+
+          split_constraints path_params, constraints
 
           normalize_format!(formatted)
 
