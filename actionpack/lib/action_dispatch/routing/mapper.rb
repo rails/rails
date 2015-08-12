@@ -61,7 +61,7 @@ module ActionDispatch
         attr_reader :requirements, :conditions, :defaults
         attr_reader :to, :default_controller, :default_action, :as, :anchor
 
-        def self.build(scope, set, path, as, controller, default_action, to, options)
+        def self.build(scope, set, path, as, controller, default_action, to, via, options)
           formatted = options.delete(:format) { scope[:options] && scope[:options][:format] }
 
           options = scope[:options].merge(options) if scope[:options]
@@ -76,10 +76,10 @@ module ActionDispatch
           defaults = (scope[:defaults] || {}).dup
           scope_constraints = scope[:constraints] || {}
 
-          new set, path, defaults, as, controller, default_action, scope[:module], to, formatted, scope_constraints, scope[:blocks] || [], options
+          new set, path, defaults, as, controller, default_action, scope[:module], to, formatted, scope_constraints, scope[:blocks] || [], via, options
         end
 
-        def initialize(set, path, defaults, as, controller, default_action, modyoule, to, formatted, scope_constraints, blocks, options)
+        def initialize(set, path, defaults, as, controller, default_action, modyoule, to, formatted, scope_constraints, blocks, via, options)
           @defaults = defaults
           @set = set
 
@@ -89,7 +89,6 @@ module ActionDispatch
           @as                 = as
           @anchor             = options.delete :anchor
 
-          via = Array(options.delete(:via) { [] })
           options_constraints = options.delete(:constraints) || {}
 
           path = normalize_path! path, formatted
@@ -99,6 +98,7 @@ module ActionDispatch
           options = normalize_options!(options, formatted, path_params, ast, modyoule)
 
           split_options = constraints(options, path_params)
+
           constraints = scope_constraints.merge Hash[split_options[:constraints] || []]
 
           if options_constraints.is_a?(Hash)
@@ -1605,7 +1605,8 @@ module ActionDispatch
                  name_for_action(options.delete(:as), action)
                end
 
-          mapping = Mapping.build(@scope, @set, URI.parser.escape(path), as, controller, default_action, to, options)
+          via = Array(options.delete(:via) { [] })
+          mapping = Mapping.build(@scope, @set, URI.parser.escape(path), as, controller, default_action, to, via, options)
           app, conditions, requirements, defaults, as, anchor = mapping.to_route
           @set.add_route(app, conditions, requirements, defaults, as, anchor)
         end
