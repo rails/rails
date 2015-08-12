@@ -66,8 +66,6 @@ module ActionDispatch
 
           options = scope[:options].merge(options) if scope[:options]
 
-          options.delete :only
-          options.delete :except
           options.delete :shallow_path
           options.delete :shallow_prefix
           options.delete :shallow
@@ -802,6 +800,11 @@ module ActionDispatch
             block, options[:constraints] = options[:constraints], {}
           end
 
+          if options.key?(:only) || options.key?(:except)
+            scope[:action_options] = { only: options.delete(:only),
+                                       except: options.delete(:except) }
+          end
+
           @scope.options.each do |option|
             if option == :blocks
               value = block
@@ -1007,15 +1010,11 @@ module ActionDispatch
           end
 
           def merge_options_scope(parent, child) #:nodoc:
-            (parent || {}).except(*override_keys(child)).merge!(child)
+            (parent || {}).merge(child)
           end
 
           def merge_shallow_scope(parent, child) #:nodoc:
             child ? true : false
-          end
-
-          def override_keys(child) #:nodoc:
-            child.key?(:only) || child.key?(:except) ? [:only, :except] : []
           end
       end
 
@@ -1684,11 +1683,11 @@ module ActionDispatch
           end
 
           def scope_action_options? #:nodoc:
-            @scope[:options] && (@scope[:options][:only] || @scope[:options][:except])
+            @scope[:action_options]
           end
 
           def scope_action_options #:nodoc:
-            @scope[:options].slice(:only, :except)
+            @scope[:action_options]
           end
 
           def resource_scope? #:nodoc:
