@@ -61,9 +61,7 @@ module ActionDispatch
         attr_reader :requirements, :conditions, :defaults
         attr_reader :to, :default_controller, :default_action, :as, :anchor
 
-        def self.build(scope, set, path, as, controller, default_action, to, via, options)
-          formatted = options.delete(:format) { scope.mapping_option(:format) }
-
+        def self.build(scope, set, path, as, controller, default_action, to, via, formatted, options)
           options = scope[:options].merge(options) if scope[:options]
 
           options.delete :shallow_path
@@ -1551,29 +1549,30 @@ module ActionDispatch
           via = Mapping.check_via Array(options.delete(:via) {
             @scope[:via]
           })
+          formatted = options.delete(:format) { @scope.mapping_option(:format) }
 
           path_types = paths.group_by(&:class)
           path_types.fetch(String, []).each do |_path|
             route_options = options.dup
-            process_path(route_options, controller, _path, option_path || _path, to, via)
+            process_path(route_options, controller, _path, option_path || _path, to, via, formatted)
           end
 
           path_types.fetch(Symbol, []).each do |action|
             route_options = options.dup
-            decomposed_match(action, controller, route_options, option_path, to, via)
+            decomposed_match(action, controller, route_options, option_path, to, via, formatted)
           end
 
           self
         end
 
-        def process_path(options, controller, path, option_path, to, via)
+        def process_path(options, controller, path, option_path, to, via, formatted)
           path_without_format = path.sub(/\(\.:format\)$/, '')
           if using_match_shorthand?(path_without_format, to, options[:action])
             to ||= path_without_format.gsub(%r{^/}, "").sub(%r{/([^/]*)$}, '#\1')
             to.tr!("-", "_")
           end
 
-          decomposed_match(path, controller, options, option_path, to, via)
+          decomposed_match(path, controller, options, option_path, to, via, formatted)
         end
 
         def using_match_shorthand?(path, to, action)
@@ -1582,22 +1581,22 @@ module ActionDispatch
           path =~ %r{^/?[-\w]+/[-\w/]+$}
         end
 
-        def decomposed_match(path, controller, options, _path, to, via) # :nodoc:
+        def decomposed_match(path, controller, options, _path, to, via, formatted) # :nodoc:
           if on = options.delete(:on)
-            send(on) { decomposed_match(path, controller, options, _path, to, via) }
+            send(on) { decomposed_match(path, controller, options, _path, to, via, formatted) }
           else
             case @scope.scope_level
             when :resources
-              nested { decomposed_match(path, controller, options, _path, to, via) }
+              nested { decomposed_match(path, controller, options, _path, to, via, formatted) }
             when :resource
-              member { decomposed_match(path, controller, options, _path, to, via) }
+              member { decomposed_match(path, controller, options, _path, to, via, formatted) }
             else
-              add_route(path, controller, options, _path, to, via)
+              add_route(path, controller, options, _path, to, via, formatted)
             end
           end
         end
 
-        def add_route(action, controller, options, _path, to, via) # :nodoc:
+        def add_route(action, controller, options, _path, to, via, formatted) # :nodoc:
           path = path_for_action(action, _path)
           raise ArgumentError, "path is required" if path.blank?
 
@@ -1617,7 +1616,7 @@ module ActionDispatch
                  name_for_action(options.delete(:as), action)
                end
 
-          mapping = Mapping.build(@scope, @set, URI.parser.escape(path), as, controller, default_action, to, via, options)
+          mapping = Mapping.build(@scope, @set, URI.parser.escape(path), as, controller, default_action, to, via, formatted, options)
           app, conditions, requirements, defaults, as, anchor = mapping.to_route
           @set.add_route(app, conditions, requirements, defaults, as, anchor)
         end
