@@ -2,7 +2,7 @@ require 'active_record/attribute'
 
 module ActiveRecord
   class Attribute # :nodoc:
-    class UserProvidedDefault < FromUser
+    class UserProvidedDefault < FromUser # :nodoc:
       def initialize(name, value, type, database_default)
         super(name, value, type, database_default)
       end
