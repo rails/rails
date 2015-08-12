@@ -74,11 +74,12 @@ module ActionDispatch
           options.delete :format
 
           defaults = (scope[:defaults] || {}).dup
+          scope_constraints = scope[:constraints] || {}
 
-          new scope, set, path, defaults, as, controller, default_action, scope[:module], to, formatted, options
+          new scope, set, path, defaults, as, controller, default_action, scope[:module], to, formatted, scope_constraints, options
         end
 
-        def initialize(scope, set, path, defaults, as, controller, default_action, modyoule, to, formatted, options)
+        def initialize(scope, set, path, defaults, as, controller, default_action, modyoule, to, formatted, scope_constraints, options)
           @requirements, @conditions = {}, {}
           @defaults = defaults
           @set = set
@@ -98,11 +99,9 @@ module ActionDispatch
 
           options = normalize_options!(options, formatted, path_params, ast, modyoule)
 
-
-          split_constraints(path_params, scope[:constraints]) if scope[:constraints]
           constraints = constraints(options, path_params)
 
-          split_constraints path_params, constraints
+          split_constraints path_params, scope_constraints.merge(constraints)
 
           @blocks = blocks(options_constraints, scope[:blocks])
 
