@@ -27,6 +27,10 @@ module ActionDispatch
           routes << args
         end
 
+        def defaults
+          routes.map { |x| x[3] }
+        end
+
         def conditions
           routes.map { |x| x[1] }
         end
@@ -46,6 +50,17 @@ module ActionDispatch
         assert_raises(ArgumentError) do
           mapper.match '/', :to => 'posts#index', :as => :main
         end
+      end
+
+      def test_random_keys
+        fakeset = FakeSet.new
+        mapper = Mapper.new fakeset
+        mapper.scope(omg: :awesome) do
+          mapper.get '/', :to => 'posts#index', :as => :main
+        end
+        assert_equal({:omg=>:awesome, :controller=>"posts", :action=>"index"},
+                     fakeset.defaults.first)
+        assert_equal ["GET"], fakeset.conditions.first[:request_method]
       end
 
       def test_mapping_requirements
