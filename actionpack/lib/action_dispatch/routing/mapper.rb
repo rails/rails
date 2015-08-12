@@ -112,6 +112,8 @@ module ActionDispatch
           end
 
           requirements, conditions = split_constraints path_params, constraints
+          verify_regexp_requirements requirements.map(&:last).grep(Regexp)
+
           formats = normalize_format(formatted)
 
           @requirements = formats[:requirements].merge Hash[requirements]
@@ -182,12 +184,7 @@ module ActionDispatch
 
           def split_constraints(path_params, constraints)
             constraints.partition do |key, requirement|
-              if path_params.include?(key) || key == :controller
-                verify_regexp_requirement(requirement) if requirement.is_a?(Regexp)
-                true
-              else
-                false
-              end
+              path_params.include?(key) || key == :controller
             end
           end
 
@@ -207,13 +204,15 @@ module ActionDispatch
             end
           end
 
-          def verify_regexp_requirement(requirement)
-            if requirement.source =~ ANCHOR_CHARACTERS_REGEX
-              raise ArgumentError, "Regexp anchor characters are not allowed in routing requirements: #{requirement.inspect}"
-            end
+          def verify_regexp_requirements(requirements)
+            requirements.each do |requirement|
+              if requirement.source =~ ANCHOR_CHARACTERS_REGEX
+                raise ArgumentError, "Regexp anchor characters are not allowed in routing requirements: #{requirement.inspect}"
+              end
 
-            if requirement.multiline?
-              raise ArgumentError, "Regexp multiline option is not allowed in routing requirements: #{requirement.inspect}"
+              if requirement.multiline?
+                raise ArgumentError, "Regexp multiline option is not allowed in routing requirements: #{requirement.inspect}"
+              end
             end
           end
 
