@@ -92,16 +92,16 @@ Open up a command line prompt. On Mac OS X open Terminal.app, on Windows choose
 dollar sign `$` should be run in the command line. Verify that you have a
 current version of Ruby installed:
 
+```bash
+$ ruby -v
+ruby 2.2.2p95
+```
+
 TIP: A number of tools exist to help you quickly install Ruby and Ruby
 on Rails on your system. Windows users can use [Rails Installer](http://railsinstaller.org),
 while Mac OS X users can use [Tokaido](https://github.com/tokaido/tokaidoapp).
 For more installation methods for most Operating Systems take a look at
 [ruby-lang.org](https://www.ruby-lang.org/en/documentation/installation/).
-
-```bash
-$ ruby -v
-ruby 2.2.2p95
-```
 
 Many popular UNIX-like OSes ship with an acceptable version of SQLite3.
 On Windows, if you installed Rails through Rails Installer, you
