@@ -191,12 +191,13 @@ module ActionDispatch
           end
 
           def normalize_format!(formatted)
-            if formatted == true
+            case formatted
+            when true
               @requirements[:format] ||= /.+/
-            elsif Regexp === formatted
+            when Regexp
               @requirements[:format] ||= formatted
               @defaults[:format] ||= nil
-            elsif String === formatted
+            when String
               @requirements[:format] ||= Regexp.compile(formatted)
               @defaults[:format] ||= formatted
             end
