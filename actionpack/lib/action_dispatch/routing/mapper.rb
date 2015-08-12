@@ -80,7 +80,6 @@ module ActionDispatch
         end
 
         def initialize(set, path, defaults, as, controller, default_action, modyoule, to, formatted, scope_constraints, blocks, options)
-          @requirements, @conditions = {}, {}
           @defaults = defaults
           @set = set
 
@@ -103,18 +102,18 @@ module ActionDispatch
           constraints = scope_constraints.merge Hash[split_options[:constraints] || []]
 
           if options_constraints.is_a?(Hash)
-            options_constraints.each do |key, default|
-              if URL_OPTIONS.include?(key) && (String === default || Fixnum === default)
-                @defaults[key] ||= default
-              end
-            end
+            @defaults = Hash[options_constraints.find_all { |key, default|
+              URL_OPTIONS.include?(key) && (String === default || Fixnum === default)
+            }].merge @defaults
             @blocks = blocks
             constraints.merge! options_constraints
           else
             @blocks = blocks(options_constraints)
           end
 
-          split_constraints path_params, constraints
+          requirements, conditions = split_constraints path_params, constraints
+          @requirements = Hash[requirements]
+          @conditions = Hash[conditions]
 
           normalize_format!(formatted)
 
@@ -181,12 +180,12 @@ module ActionDispatch
           end
 
           def split_constraints(path_params, constraints)
-            constraints.each_pair do |key, requirement|
+            constraints.partition do |key, requirement|
               if path_params.include?(key) || key == :controller
                 verify_regexp_requirement(requirement) if requirement.is_a?(Regexp)
-                @requirements[key] = requirement
+                true
               else
-                @conditions[key] = requirement
+                false
               end
             end
           end
@@ -195,11 +194,11 @@ module ActionDispatch
             if formatted == true
               @requirements[:format] ||= /.+/
             elsif Regexp === formatted
-              @requirements[:format] = formatted
-              @defaults[:format] = nil
+              @requirements[:format] ||= formatted
+              @defaults[:format] ||= nil
             elsif String === formatted
-              @requirements[:format] = Regexp.compile(formatted)
-              @defaults[:format] = formatted
+              @requirements[:format] ||= Regexp.compile(formatted)
+              @defaults[:format] ||= formatted
             end
           end
 
