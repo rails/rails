@@ -229,6 +229,10 @@ module ActiveRecord
           false
         end
 
+        def has_cached_counter?(reflection = reflection())
+          owner.attribute_present?(cached_counter_attribute_name(reflection))
+        end
+
         def through_reflection_updates_counter_cache?
           counter_name = cached_counter_attribute_name
           inverse_updates_counter_named?(counter_name, through_reflection)
