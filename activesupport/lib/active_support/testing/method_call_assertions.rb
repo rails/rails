@@ -30,6 +30,10 @@ module ActiveSupport
         def assert_not_called(object, method_name, message = nil, &block)
           assert_called(object, method_name, message, times: 0, &block)
         end
+
+        def stub_any_instance(klass, instance: klass.new)
+          klass.stub(:new, instance) { yield instance }
+        end
     end
   end
 end
