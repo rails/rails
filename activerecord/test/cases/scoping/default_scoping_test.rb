@@ -3,6 +3,7 @@ require 'models/post'
 require 'models/comment'
 require 'models/developer'
 require 'models/computer'
+require 'models/vehicle'
 
 class DefaultScopingTest < ActiveRecord::TestCase
   fixtures :developers, :posts, :comments
@@ -444,5 +445,10 @@ class DefaultScopingTest < ActiveRecord::TestCase
     scope = DeveloperCalledJamis.david2
     assert_equal 1, scope.where_values.length
     assert_equal Developer.where(name: "David").map(&:id), scope.map(&:id)
+  end
+
+  def test_with_abstract_class_where_clause_should_not_be_duplicated
+    scope = Bus.all
+    assert_equal scope.where_clause.ast.children.length, 1
   end
 end
