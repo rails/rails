@@ -546,16 +546,16 @@ module ActionDispatch
 
         pattern = Journey::Path::Pattern.new(strexp)
 
-        builder = Journey::GTG::Builder.new pattern.spec
+        builder = Journey::GTG::Builder.new ast
 
         # Get all the symbol nodes followed by literals that are not the
         # dummy node.
-        symbols = pattern.spec.grep(Journey::Nodes::Symbol).find_all { |n|
+        symbols = ast.grep(Journey::Nodes::Symbol).find_all { |n|
           builder.followpos(n).first.literal?
         }
 
         # Get all the symbol nodes preceded by literals.
-        symbols.concat pattern.spec.find_all(&:literal?).map { |n|
+        symbols.concat ast.find_all(&:literal?).map { |n|
           builder.followpos(n).first
         }.find_all(&:symbol?)
 
