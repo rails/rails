@@ -1,4 +1,11 @@
 GIT
+  remote: git://github.com/QueueClassic/queue_classic.git
+  revision: d144db29f1436e9e8b3c7a1a1ecd4442316a9ecd
+  specs:
+    queue_classic (3.2.0.alpha)
+      pg (>= 0.17, < 0.19)
+
+GIT
   remote: git://github.com/bkeepers/qu.git
   revision: d098e2657c92e89a6413bebd9c033930759c061f
   branch: master
@@ -173,8 +180,6 @@ GEM
     pg (0.18.2)
     psych (2.0.13)
     que (0.10.0)
-    queue_classic (3.1.0)
-      pg (>= 0.17, < 0.19)
     racc (1.4.12)
     rack (1.6.4)
     rack-cache (1.2)
@@ -289,7 +294,7 @@ DEPENDENCIES
   qu-rails!
   qu-redis
   que
-  queue_classic
+  queue_classic!
   racc (>= 1.4.6)
   rack-cache (~> 1.2)
   rails!
