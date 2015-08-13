@@ -160,7 +160,7 @@ module ActiveSupport
     # This method uses the #pluralize method on the last word in the string.
     #
     #   tableize('RawScaledScorer') # => "raw_scaled_scorers"
-    #   tableize('egg_and_ham')     # => "egg_and_hams"
+    #   tableize('ham_and_egg')     # => "ham_and_eggs"
     #   tableize('fancyCategory')   # => "fancy_categories"
     def tableize(class_name)
       pluralize(underscore(class_name))
@@ -170,7 +170,7 @@ module ActiveSupport
     # names to models. Note that this returns a string and not a Class (To
     # convert to an actual class follow +classify+ with #constantize).
     #
-    #   classify('egg_and_hams') # => "EggAndHam"
+    #   classify('ham_and_eggs') # => "HamAndEgg"
     #   classify('posts')        # => "Post"
     #
     # Singular names are not handled correctly:
