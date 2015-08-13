@@ -1,3 +1,12 @@
+*   Skip statement cache on through association reader.
+
+    If the through class has default scopes we should skip the statement
+    cache.
+
+    Closes #20745.
+
+    *Rafael Mendonça França*
+
 *   Fixes #19420. When generating schema.rb using Postgres BigInt[] data type
     the limit: 8 was not coming through. This caused it to become Int[] data type
     after doing a rebuild off of schema.rb.

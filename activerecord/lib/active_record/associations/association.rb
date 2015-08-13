@@ -251,6 +251,15 @@ module ActiveRecord
             initialize_attributes(record)
           end
         end
+
+        # Returns true if statement cache should be skipped on the association reader.
+        def skip_statement_cache?
+          reflection.scope_chain.any?(&:any?) ||
+            scope.eager_loading? ||
+            klass.current_scope ||
+            klass.default_scopes.any? ||
+            reflection.source_reflection.active_record.default_scopes.any?
+        end
     end
   end
 end
