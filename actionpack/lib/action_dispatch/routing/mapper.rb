@@ -61,13 +61,13 @@ module ActionDispatch
         attr_reader :requirements, :conditions, :defaults
         attr_reader :to, :default_controller, :default_action, :as, :anchor
 
-        def self.build(scope, set, path, as, controller, default_action, to, via, formatted, options)
+        def self.build(scope, set, path, as, controller, default_action, to, via, formatted, anchor, options)
           options = scope[:options].merge(options) if scope[:options]
 
           defaults = (scope[:defaults] || {}).dup
           scope_constraints = scope[:constraints] || {}
 
-          new set, path, defaults, as, controller, default_action, scope[:module], to, formatted, scope_constraints, scope[:blocks] || [], via, options
+          new set, path, defaults, as, controller, default_action, scope[:module], to, formatted, scope_constraints, scope[:blocks] || [], via, anchor, options
         end
 
         def self.check_via(via)
@@ -82,7 +82,7 @@ module ActionDispatch
           via
         end
 
-        def initialize(set, path, defaults, as, controller, default_action, modyoule, to, formatted, scope_constraints, blocks, via, options)
+        def initialize(set, path, defaults, as, controller, default_action, modyoule, to, formatted, scope_constraints, blocks, via, anchor, options)
           @defaults = defaults
           @set = set
 
@@ -90,7 +90,7 @@ module ActionDispatch
           @default_controller = controller
           @default_action     = default_action
           @as                 = as
-          @anchor             = options.delete :anchor
+          @anchor             = anchor
 
           options_constraints = options.delete(:constraints) || {}
 
@@ -1529,8 +1529,6 @@ module ActionDispatch
             paths = [path] + rest
           end
 
-          options[:anchor] = true unless options.key?(:anchor)
-
           if options[:on] && !VALID_ON_OPTIONS.include?(options[:on])
             raise ArgumentError, "Unknown scope #{on.inspect} given to :on"
           end
@@ -1546,29 +1544,30 @@ module ActionDispatch
             @scope[:via]
           })
           formatted = options.delete(:format) { @scope[:format] }
+          anchor = options.delete(:anchor) { true }
 
           path_types = paths.group_by(&:class)
           path_types.fetch(String, []).each do |_path|
             route_options = options.dup
-            process_path(route_options, controller, _path, option_path || _path, to, via, formatted)
+            process_path(route_options, controller, _path, option_path || _path, to, via, formatted, anchor)
           end
 
           path_types.fetch(Symbol, []).each do |action|
             route_options = options.dup
-            decomposed_match(action, controller, route_options, option_path, to, via, formatted)
+            decomposed_match(action, controller, route_options, option_path, to, via, formatted, anchor)
           end
 
           self
         end
 
-        def process_path(options, controller, path, option_path, to, via, formatted)
+        def process_path(options, controller, path, option_path, to, via, formatted, anchor)
           path_without_format = path.sub(/\(\.:format\)$/, '')
           if using_match_shorthand?(path_without_format, to, options[:action])
             to ||= path_without_format.gsub(%r{^/}, "").sub(%r{/([^/]*)$}, '#\1')
             to.tr!("-", "_")
           end
 
-          decomposed_match(path, controller, options, option_path, to, via, formatted)
+          decomposed_match(path, controller, options, option_path, to, via, formatted, anchor)
         end
 
         def using_match_shorthand?(path, to, action)
@@ -1577,22 +1576,22 @@ module ActionDispatch
           path =~ %r{^/?[-\w]+/[-\w/]+$}
         end
 
-        def decomposed_match(path, controller, options, _path, to, via, formatted) # :nodoc:
+        def decomposed_match(path, controller, options, _path, to, via, formatted, anchor) # :nodoc:
           if on = options.delete(:on)
-            send(on) { decomposed_match(path, controller, options, _path, to, via, formatted) }
+            send(on) { decomposed_match(path, controller, options, _path, to, via, formatted, anchor) }
           else
             case @scope.scope_level
             when :resources
-              nested { decomposed_match(path, controller, options, _path, to, via, formatted) }
+              nested { decomposed_match(path, controller, options, _path, to, via, formatted, anchor) }
             when :resource
-              member { decomposed_match(path, controller, options, _path, to, via, formatted) }
+              member { decomposed_match(path, controller, options, _path, to, via, formatted, anchor) }
             else
-              add_route(path, controller, options, _path, to, via, formatted)
+              add_route(path, controller, options, _path, to, via, formatted, anchor)
             end
           end
         end
 
-        def add_route(action, controller, options, _path, to, via, formatted) # :nodoc:
+        def add_route(action, controller, options, _path, to, via, formatted, anchor) # :nodoc:
           path = path_for_action(action, _path)
           raise ArgumentError, "path is required" if path.blank?
 
@@ -1612,7 +1611,7 @@ module ActionDispatch
                  name_for_action(options.delete(:as), action)
                end
 
-          mapping = Mapping.build(@scope, @set, URI.parser.escape(path), as, controller, default_action, to, via, formatted, options)
+          mapping = Mapping.build(@scope, @set, URI.parser.escape(path), as, controller, default_action, to, via, formatted, anchor, options)
           app, conditions, requirements, defaults, as, anchor = mapping.to_route
           @set.add_route(app, conditions, requirements, defaults, as, anchor)
         end
