@@ -59,14 +59,13 @@ class QueuingTest < ActiveSupport::TestCase
   test 'should supply a provider_job_id when available for immediate jobs' do
     skip unless adapter_is?(:delayed_job, :sidekiq, :qu, :que)
     test_job = TestJob.perform_later @id
-    refute test_job.provider_job_id.nil?, 'Provider job id should be set by provider'
+    assert test_job.provider_job_id, 'Provider job id should be set by provider'
   end
 
   test 'should supply a provider_job_id when available for delayed jobs' do
     skip unless adapter_is?(:delayed_job, :sidekiq, :que)
     delayed_test_job = TestJob.set(wait: 1.minute).perform_later @id
-    refute delayed_test_job.provider_job_id.nil?,
-      'Provider job id should by set for delayed jobs by provider'
+    assert delayed_test_job.provider_job_id, 'Provider job id should by set for delayed jobs by provider'
   end
 
   test 'current locale is kept while running perform_later' do

@@ -91,7 +91,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     end
 
     account = model.new
-    refute account.valid?
+    assert_not account.valid?
     assert_equal [{error: :blank}], account.errors.details[:company]
   ensure
     ActiveRecord::Base.belongs_to_required_by_default = original_value
@@ -108,7 +108,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     end
 
     account = model.new
-    refute account.valid?
+    assert_not account.valid?
     assert_equal [{error: :blank}], account.errors.details[:company]
   ensure
     ActiveRecord::Base.belongs_to_required_by_default = original_value
