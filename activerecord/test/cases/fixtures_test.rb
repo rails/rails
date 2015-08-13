@@ -217,6 +217,13 @@ class FixturesTest < ActiveRecord::TestCase
     end
   end
 
+  def test_yaml_file_with_invalid_column
+    e = assert_raise(ActiveRecord::Fixture::FixtureError) do
+      ActiveRecord::FixtureSet.create_fixtures(FIXTURES_ROOT + "/naked/yml", "parrots")
+    end
+    assert_equal(%(table "parrots" has no column named "arrr".), e.message)
+  end
+
   def test_omap_fixtures
     assert_nothing_raised do
       fixtures = ActiveRecord::FixtureSet.new(Account.connection, 'categories', Category, FIXTURES_ROOT + "/categories_ordered")

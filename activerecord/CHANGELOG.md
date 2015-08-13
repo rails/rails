@@ -1,3 +1,9 @@
+*   Descriptive error message when fixtures contain a missing column.
+
+    Closes #21201.
+
+    *Yves Senn*
+
 *   `bin/rake db:migrate` uses
     `ActiveRecord::Tasks::DatabaseTasks.migrations_paths` instead of
     `Migrator.migrations_paths`.

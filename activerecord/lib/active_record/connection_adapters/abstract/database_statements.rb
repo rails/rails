@@ -291,8 +291,12 @@ module ActiveRecord
 
         key_list   = []
         value_list = fixture.map do |name, value|
-          key_list << quote_column_name(name)
-          quote(value, columns[name])
+          if column = columns[name]
+            key_list << quote_column_name(name)
+            quote(value, column)
+          else
+            raise Fixture::FixtureError, %(table "#{table_name}" has no column named "#{name}".)
+          end
         end
 
         execute "INSERT INTO #{quote_table_name(table_name)} (#{key_list.join(', ')}) VALUES (#{value_list.join(', ')})", 'Fixture Insert'
