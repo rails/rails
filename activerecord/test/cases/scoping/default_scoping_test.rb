@@ -449,6 +449,6 @@ class DefaultScopingTest < ActiveRecord::TestCase
 
   def test_with_abstract_class_where_clause_should_not_be_duplicated
     scope = Bus.all
-    assert_equal scope.where_clause.ast.children.length, 1
+    assert_equal scope.where_values.length, 1
   end
 end
