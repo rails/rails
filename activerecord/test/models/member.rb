@@ -26,6 +26,9 @@ class Member < ActiveRecord::Base
   has_many :current_memberships, -> { where :favourite => true }
   has_many :clubs, :through => :current_memberships
 
+  has_many :tenant_memberships
+  has_many :tenant_clubs, through: :tenant_memberships, class_name: 'Club', source: :club
+
   has_one :club_through_many, :through => :current_memberships, :source => :club
 
   belongs_to :admittable, polymorphic: true

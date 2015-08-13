@@ -131,6 +131,8 @@ ActiveRecord::Schema.define do
     t.timestamps null: false
   end
 
+  create_table :carriers, force: true
+
   create_table :categories, force: true do |t|
     t.string :name, null: false
     t.string :type
@@ -235,6 +237,11 @@ ActiveRecord::Schema.define do
     t.string  :address_city
     t.string  :address_country
     t.string  :gps_location
+  end
+
+  create_table :customer_carriers, force: true do |t|
+    t.references :customer
+    t.references :carrier
   end
 
   create_table :dashboards, force: true, id: false do |t|
@@ -681,6 +688,11 @@ ActiveRecord::Schema.define do
 
   create_table :prisoners, force: true do |t|
     t.belongs_to :ship
+  end
+
+  create_table :shop_accounts, force: true do |t|
+    t.references :customer
+    t.references :customer_carrier
   end
 
   create_table :speedometers, force: true, id: false do |t|

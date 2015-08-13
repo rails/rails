@@ -16,6 +16,10 @@ require 'models/owner'
 require 'models/post'
 require 'models/comment'
 require 'models/categorization'
+require 'models/customer'
+require 'models/carrier'
+require 'models/shop_account'
+require 'models/customer_carrier'
 
 class HasOneThroughAssociationsTest < ActiveRecord::TestCase
   fixtures :member_types, :members, :clubs, :memberships, :sponsors, :organizations, :minivans,
@@ -347,16 +351,33 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
     end
   end
 
-  def test_association_force_reload_with_only_true_is_deprecated
-    member = Member.find(1)
+  def test_has_one_through_do_not_cache_association_reader_if_the_though_method_has_default_scopes
+    customer = Customer.create!
+    carrier = Carrier.create!
+    customer_carrier = CustomerCarrier.create!(
+      customer: customer,
+      carrier: carrier,
+    )
+    account = ShopAccount.create!(customer_carrier: customer_carrier)
 
-    assert_deprecated { member.club(true) }
-  end
+    CustomerCarrier.current_customer = customer
 
-  def test_has_one_through_associations_are_mutable_unless_through_belongs_to
-    member_detail = MemberDetail.new(member: @member)
-    assert_raise(ActiveRecord::HasOneThroughCantAssociateThroughHasOneOrManyReflection) do
-      member_detail.membership = Membership.new
-    end
+    account_carrier = account.carrier
+    assert_equal carrier, account_carrier
+
+    CustomerCarrier.current_customer = nil
+
+    other_carrier = Carrier.create!
+    other_customer = Customer.create!
+    other_customer_carrier = CustomerCarrier.create!(
+      customer: other_customer,
+      carrier: other_carrier,
+    )
+    other_account = ShopAccount.create!(customer_carrier: other_customer_carrier)
+
+    account_carrier = other_account.carrier
+    assert_equal other_carrier, account_carrier
+  ensure
+    CustomerCarrier.current_customer = nil
   end
 end
