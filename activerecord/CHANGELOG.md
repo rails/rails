@@ -1,3 +1,9 @@
+*   Descriptive error message when fixtures contain a missing column.
+
+    Closes #21201.
+
+    *Yves Senn*
+
 *   `ActiveRecord::Tasks::PostgreSQLDatabaseTasks` fail if shellout to
     postgresql commands (like `pg_dump`) is not successful.
 
