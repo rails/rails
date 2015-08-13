@@ -121,14 +121,13 @@ module ActionDispatch
 
           @requirements = formats[:requirements].merge Hash[requirements]
           @conditions = Hash[conditions]
-          @defaults = formats[:defaults].merge @defaults
+          @defaults = formats[:defaults].merge(@defaults).merge(normalize_defaults(options))
 
           @conditions[:required_defaults] = (split_options[:required_defaults] || []).map(&:first)
           @conditions[:path_info] = path
           @conditions[:parsed_path_info] = ast
 
           add_request_method(via, @conditions)
-          normalize_defaults!(options)
         end
 
         def to_route
@@ -219,12 +218,8 @@ module ActionDispatch
             end
           end
 
-          def normalize_defaults!(options)
-            options.each_pair do |key, default|
-              unless Regexp === default
-                @defaults[key] = default
-              end
-            end
+          def normalize_defaults(options)
+            Hash[options.reject { |_, default| Regexp === default }]
           end
 
           def add_request_method(via, conditions)
