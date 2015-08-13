@@ -44,6 +44,15 @@ module ActionDispatch
         Mapper.new FakeSet.new
       end
 
+      def test_scope_raises_on_anchor
+        fakeset = FakeSet.new
+        mapper = Mapper.new fakeset
+        assert_raises(ArgumentError) do
+          mapper.scope(anchor: false) do
+          end
+        end
+      end
+
       def test_blows_up_without_via
         fakeset = FakeSet.new
         mapper = Mapper.new fakeset

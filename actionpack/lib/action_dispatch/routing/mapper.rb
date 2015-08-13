@@ -788,6 +788,10 @@ module ActionDispatch
                                        except: options.delete(:except) }
           end
 
+          if options.key? :anchor
+            raise ArgumentError, 'anchor is ignored unless passed to `match`'
+          end
+
           @scope.options.each do |option|
             if option == :blocks
               value = block
