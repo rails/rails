@@ -1617,6 +1617,12 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal table_alias, node.relation
   end
 
+  test 'using arel does not reorder binds' do
+    subquery = Post.select('*').arel
+    relation = Post.from(Post.arel_table.create_table_alias(subquery, Post.table_name))
+    assert_equal Post.all, relation.to_a
+  end
+
   test '#load' do
     relation = Post.all
     assert_queries(1) do
