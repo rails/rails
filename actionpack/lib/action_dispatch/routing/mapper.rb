@@ -59,15 +59,15 @@ module ActionDispatch
         ANCHOR_CHARACTERS_REGEX = %r{\A(\\A|\^)|(\\Z|\\z|\$)\Z}
 
         attr_reader :requirements, :conditions, :defaults
-        attr_reader :to, :default_controller, :default_action, :as, :anchor
+        attr_reader :to, :default_controller, :default_action, :as
 
-        def self.build(scope, set, path, as, controller, default_action, to, via, formatted, anchor, options)
+        def self.build(scope, set, path, as, controller, default_action, to, via, formatted, options)
           options = scope[:options].merge(options) if scope[:options]
 
           defaults = (scope[:defaults] || {}).dup
           scope_constraints = scope[:constraints] || {}
 
-          new set, path, defaults, as, controller, default_action, scope[:module], to, formatted, scope_constraints, scope[:blocks] || [], via, anchor, options
+          new set, path, defaults, as, controller, default_action, scope[:module], to, formatted, scope_constraints, scope[:blocks] || [], via, options
         end
 
         def self.check_via(via)
@@ -82,7 +82,7 @@ module ActionDispatch
           via
         end
 
-        def initialize(set, path, defaults, as, controller, default_action, modyoule, to, formatted, scope_constraints, blocks, via, anchor, options)
+        def initialize(set, path, defaults, as, controller, default_action, modyoule, to, formatted, scope_constraints, blocks, via, options)
           @defaults = defaults
           @set = set
 
@@ -90,7 +90,6 @@ module ActionDispatch
           @default_controller = controller
           @default_action     = default_action
           @as                 = as
-          @anchor             = anchor
 
           options_constraints = options.delete(:constraints) || {}
 
@@ -132,7 +131,7 @@ module ActionDispatch
         end
 
         def to_route
-          [ app(@blocks), conditions, requirements, defaults, as, anchor ]
+          [ app(@blocks), conditions, requirements, defaults, as ]
         end
 
         private
@@ -1611,8 +1610,8 @@ module ActionDispatch
                  name_for_action(options.delete(:as), action)
                end
 
-          mapping = Mapping.build(@scope, @set, URI.parser.escape(path), as, controller, default_action, to, via, formatted, anchor, options)
-          app, conditions, requirements, defaults, as, anchor = mapping.to_route
+          mapping = Mapping.build(@scope, @set, URI.parser.escape(path), as, controller, default_action, to, via, formatted, options)
+          app, conditions, requirements, defaults, as = mapping.to_route
           @set.add_route(app, conditions, requirements, defaults, as, anchor)
         end
 
