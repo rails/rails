@@ -528,7 +528,7 @@ module ActionDispatch
         path = conditions.delete :path_info
         ast  = conditions.delete :parsed_path_info
         required_defaults  = conditions.delete :required_defaults
-        path = build_path(path, ast, requirements, anchor)
+        path = build_path(ast, requirements, anchor)
         conditions = build_conditions(conditions)
 
         route = @set.add_route(app, path, conditions, required_defaults, defaults, name)
@@ -536,7 +536,7 @@ module ActionDispatch
         route
       end
 
-      def build_path(path, ast, requirements, anchor)
+      def build_path(ast, requirements, anchor)
         pattern = Journey::Path::Pattern.new(ast, requirements, SEPARATORS, anchor)
 
         builder = Journey::GTG::Builder.new ast
