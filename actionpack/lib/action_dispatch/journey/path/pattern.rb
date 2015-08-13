@@ -1,5 +1,3 @@
-require 'action_dispatch/journey/router/strexp'
-
 module ActionDispatch
   module Journey # :nodoc:
     module Path # :nodoc:
@@ -7,13 +5,19 @@ module ActionDispatch
         attr_reader :spec, :requirements, :anchored
 
         def self.from_string string
-          new Journey::Router::Strexp.build(string, {}, ["/.?"]), true
+          build(string, {}, ["/.?"], true)
         end
 
-        def initialize(strexp, anchored)
-          @spec         = strexp.ast
-          @requirements = strexp.requirements
-          @separators   = strexp.separators.join
+        def self.build(path, requirements, separators, anchored)
+          parser = Journey::Parser.new
+          ast = parser.parse path
+          new ast, requirements, separators, anchored
+        end
+
+        def initialize(ast, requirements, separators, anchored)
+          @spec         = ast
+          @requirements = requirements
+          @separators   = separators.join
           @anchored     = anchored
 
           @names          = nil

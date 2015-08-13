@@ -9,8 +9,7 @@ module ActionDispatch
 
       def test_clear
         routes = Routes.new
-        exp    = Router::Strexp.build '/foo(/:id)', {}, ['/.?']
-        path   = Path::Pattern.new exp, true
+        path    = Path::Pattern.build '/foo(/:id)', {}, ['/.?'], true
         requirements = { :hello => /world/ }
 
         routes.add_route nil, path, requirements, [], {:id => nil}, {}
@@ -49,10 +48,9 @@ module ActionDispatch
         assert_equal [anchored_route], @routes.anchored_routes
         assert_equal [], @routes.custom_routes
 
-        strexp = Router::Strexp.build(
-          "/hello/:who", { who: /\d/ }, ['/', '.', '?']
+        path = Path::Pattern.build(
+          "/hello/:who", { who: /\d/ }, ['/', '.', '?'], false
         )
-        path  = Path::Pattern.new strexp, true
 
         custom_route = @routes.add_route nil, path, {}, [], {}, {}
         assert_equal [custom_route], @routes.custom_routes

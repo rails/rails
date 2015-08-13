@@ -537,13 +537,7 @@ module ActionDispatch
       end
 
       def build_path(path, ast, requirements, anchor)
-        strexp = Journey::Router::Strexp.new(
-            ast,
-            path,
-            requirements,
-            SEPARATORS)
-
-        pattern = Journey::Path::Pattern.new(strexp, anchor)
+        pattern = Journey::Path::Pattern.new(ast, requirements, SEPARATORS, anchor)
 
         builder = Journey::GTG::Builder.new ast
 
