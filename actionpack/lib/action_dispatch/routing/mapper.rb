@@ -64,10 +64,6 @@ module ActionDispatch
         def self.build(scope, set, path, as, controller, default_action, to, via, formatted, options)
           options = scope[:options].merge(options) if scope[:options]
 
-          options.delete :shallow_path
-          options.delete :shallow_prefix
-          options.delete :shallow
-
           defaults = (scope[:defaults] || {}).dup
           scope_constraints = scope[:constraints] || {}
 
