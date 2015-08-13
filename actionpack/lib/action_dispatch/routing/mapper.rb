@@ -126,8 +126,9 @@ module ActionDispatch
           @conditions[:required_defaults] = (split_options[:required_defaults] || []).map(&:first)
           @conditions[:path_info] = path
           @conditions[:parsed_path_info] = ast
-
-          add_request_method(via, @conditions)
+          unless via == [:all]
+            @conditions[:request_method] = via.map { |m| m.to_s.dasherize.upcase }
+          end
         end
 
         def to_route
@@ -220,11 +221,6 @@ module ActionDispatch
 
           def normalize_defaults(options)
             Hash[options.reject { |_, default| Regexp === default }]
-          end
-
-          def add_request_method(via, conditions)
-            return if via == [:all]
-            conditions[:request_method] = via.map { |m| m.to_s.dasherize.upcase }
           end
 
           def app(blocks)
