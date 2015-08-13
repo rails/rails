@@ -24,7 +24,7 @@ module ActionDispatch
               { :controller => /.+/ },
               ["/", ".", "?"]
             )
-            path = Pattern.new strexp
+            path = Pattern.new strexp, true
             assert_equal(expected, path.to_regexp)
           end
         end
@@ -46,10 +46,9 @@ module ActionDispatch
             strexp = Router::Strexp.build(
               path,
               { :controller => /.+/ },
-              ["/", ".", "?"],
-              false
+              ["/", ".", "?"]
             )
-            path = Pattern.new strexp
+            path = Pattern.new strexp, false
             assert_equal(expected, path.to_regexp)
           end
         end
@@ -72,7 +71,7 @@ module ActionDispatch
               { :controller => /.+/ },
               ["/", ".", "?"]
             )
-            path = Pattern.new strexp
+            path = Pattern.new strexp, true
             assert_equal(expected, path.names)
           end
         end
@@ -87,7 +86,7 @@ module ActionDispatch
               )/x },
             ["/", ".", "?"]
           )
-          path = Pattern.new strexp
+          path = Pattern.new strexp, true
           assert_match(path, '/page/tender')
           assert_match(path, '/page/love')
           assert_no_match(path, '/page/loving')
@@ -110,7 +109,7 @@ module ActionDispatch
             { :name => /\d+/ },
             ["/", ".", "?"]
           )
-          path = Pattern.new strexp
+          path = Pattern.new strexp, true
           assert_match(path, '/123')
           assert_no_match(path, '/')
         end
@@ -121,7 +120,7 @@ module ActionDispatch
             { :name => /(tender|love)/ },
             ["/", ".", "?"]
           )
-          path = Pattern.new strexp
+          path = Pattern.new strexp, true
           assert_match(path, '/page/tender')
           assert_match(path, '/page/love')
           assert_no_match(path, '/page/loving')
@@ -137,7 +136,7 @@ module ActionDispatch
 
           assert_equal requirements, strexp.requirements
 
-          path = Pattern.new strexp
+          path = Pattern.new strexp, true
           nodes = path.ast.grep(Nodes::Symbol)
           assert_equal 2, nodes.length
           nodes.each do |node|
@@ -151,7 +150,7 @@ module ActionDispatch
             { :name => /(tender|love)/ },
             ["/", ".", "?"]
           )
-          path = Pattern.new strexp
+          path = Pattern.new strexp, true
           match = path.match '/page/tender'
           assert_equal 'tender', match[1]
           assert_equal 2, match.length
@@ -163,7 +162,7 @@ module ActionDispatch
             { :name => /t(((ender|love)))()/ },
             ["/", ".", "?"]
           )
-          path = Pattern.new strexp
+          path = Pattern.new strexp, true
           match = path.match '/page/tender/10'
           assert_equal 'tender', match[1]
           assert_equal '10', match[2]
@@ -178,7 +177,7 @@ module ActionDispatch
             { :foo => z },
             ["/", ".", "?"]
           )
-          path = Pattern.new strexp
+          path = Pattern.new strexp, true
           assert_equal(%r{\A/page/(#{z})\Z}, path.to_regexp)
         end
 
@@ -188,7 +187,7 @@ module ActionDispatch
             { :name => /(tender|love)/i },
             ["/", ".", "?"]
           )
-          path = Pattern.new strexp
+          path = Pattern.new strexp, true
           assert_match(path, '/page/TENDER/aaron')
           assert_match(path, '/page/loVE/aaron')
           assert_no_match(path, '/page/loVE/AAron')
@@ -196,7 +195,7 @@ module ActionDispatch
 
         def test_to_regexp_with_strexp
           strexp = Router::Strexp.build('/:controller', { }, ["/", ".", "?"])
-          path = Pattern.new strexp
+          path = Pattern.new strexp, true
           x = %r{\A/([^/.?]+)\Z}
 
           assert_equal(x.source, path.source)

@@ -27,7 +27,7 @@ module ActionDispatch
 
       def test_path_requirements_override_defaults
         strexp    = Router::Strexp.build(':name', { name: /love/ }, ['/'])
-        path      = Path::Pattern.new strexp
+        path      = Path::Pattern.new strexp, true
         defaults  = { name: 'tender' }
         route     = Route.new('name', nil, path, nil, [], defaults)
         assert_equal(/love/, route.requirements[:name])

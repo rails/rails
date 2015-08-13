@@ -541,10 +541,9 @@ module ActionDispatch
             ast,
             path,
             requirements,
-            SEPARATORS,
-            anchor)
+            SEPARATORS)
 
-        pattern = Journey::Path::Pattern.new(strexp)
+        pattern = Journey::Path::Pattern.new(strexp, anchor)
 
         builder = Journey::GTG::Builder.new ast
 

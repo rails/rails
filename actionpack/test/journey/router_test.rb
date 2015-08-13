@@ -33,7 +33,7 @@ module ActionDispatch
         router = Router.new(routes)
 
         exp = Router::Strexp.build '/foo-bar-baz', {}, ['/.?']
-        path  = Path::Pattern.new exp
+        path  = Path::Pattern.new exp, true
 
         routes.add_route nil, path, {}, [], {:id => nil}, {}
 
@@ -50,7 +50,7 @@ module ActionDispatch
 
         #match the escaped version of /ほげ
         exp = Router::Strexp.build '/%E3%81%BB%E3%81%92', {}, ['/.?']
-        path  = Path::Pattern.new exp
+        path  = Path::Pattern.new exp, true
 
         routes.add_route nil, path, {}, [], {:id => nil}, {}
 
@@ -69,7 +69,7 @@ module ActionDispatch
         requirements = { :hello => /world/ }
 
         exp = Router::Strexp.build '/foo(/:id)', {}, ['/.?']
-        path  = Path::Pattern.new exp
+        path  = Path::Pattern.new exp, true
 
         routes.add_route nil, path, requirements, [], {:id => nil}, {}
 
@@ -89,7 +89,7 @@ module ActionDispatch
         requirements = { :hello => /mom/ }
 
         exp = Router::Strexp.build '/foo(/:id)', {}, ['/.?']
-        path  = Path::Pattern.new exp
+        path  = Path::Pattern.new exp, true
 
         router.routes.add_route nil, path, requirements, [], {:id => nil}, {}
 
@@ -116,7 +116,7 @@ module ActionDispatch
         router = Router.new(routes)
 
         exp = Router::Strexp.build '/bar', {}, ['/.?']
-        path = Path::Pattern.new exp
+        path = Path::Pattern.new exp, true
 
         routes.add_route nil, path, {}, [], {}, {}
 
@@ -152,8 +152,8 @@ module ActionDispatch
 
       def test_required_parts_verified_are_anchored
         add_routes @router, [
-          Router::Strexp.build("/foo/:id", { :id => /\d/ }, ['/', '.', '?'], false)
-        ]
+          Router::Strexp.build("/foo/:id", { :id => /\d/ }, ['/', '.', '?'])
+        ], false
 
         assert_raises(ActionController::UrlGenerationError) do
           @formatter.generate(nil, { :id => '10' }, { })
@@ -162,8 +162,8 @@ module ActionDispatch
 
       def test_required_parts_are_verified_when_building
         add_routes @router, [
-          Router::Strexp.build("/foo/:id", { :id => /\d+/ }, ['/', '.', '?'], false)
-        ]
+          Router::Strexp.build("/foo/:id", { :id => /\d+/ }, ['/', '.', '?'])
+        ], false
 
         path, _ = @formatter.generate(nil, { :id => '10' }, { })
         assert_equal '/foo/10', path
@@ -175,8 +175,8 @@ module ActionDispatch
 
       def test_only_required_parts_are_verified
         add_routes @router, [
-          Router::Strexp.build("/foo(/:id)", {:id => /\d/}, ['/', '.', '?'], false)
-        ]
+          Router::Strexp.build("/foo(/:id)", {:id => /\d/}, ['/', '.', '?'])
+        ], false
 
         path, _ = @formatter.generate(nil, { :id => '10' }, { })
         assert_equal '/foo/10', path
@@ -190,8 +190,8 @@ module ActionDispatch
 
       def test_knows_what_parts_are_missing_from_named_route
         route_name = "gorby_thunderhorse"
-        pattern = Router::Strexp.build("/foo/:id", { :id => /\d+/ }, ['/', '.', '?'], false)
-        path = Path::Pattern.new pattern
+        pattern = Router::Strexp.build("/foo/:id", { :id => /\d+/ }, ['/', '.', '?'])
+        path = Path::Pattern.new pattern, false
         @router.routes.add_route nil, path, {}, [], {}, route_name
 
         error = assert_raises(ActionController::UrlGenerationError) do
@@ -249,8 +249,8 @@ module ActionDispatch
 
       def test_recognize_with_unbound_regexp
         add_routes @router, [
-          Router::Strexp.build("/foo", { }, ['/', '.', '?'], false)
-        ]
+          Router::Strexp.build("/foo", { }, ['/', '.', '?'])
+        ], false
 
         env = rails_env 'PATH_INFO' => '/foo/bar'
 
@@ -262,8 +262,8 @@ module ActionDispatch
 
       def test_bound_regexp_keeps_path_info
         add_routes @router, [
-          Router::Strexp.build("/foo", { }, ['/', '.', '?'], true)
-        ]
+          Router::Strexp.build("/foo", { }, ['/', '.', '?'])
+        ], true
 
         env = rails_env 'PATH_INFO' => '/foo'
 
@@ -329,8 +329,8 @@ module ActionDispatch
       def test_generate_slash
         params = [ [:controller, "tasks"],
                    [:action, "show"] ]
-        str = Router::Strexp.build("/", Hash[params], ['/', '.', '?'], true)
-        path  = Path::Pattern.new str
+        str = Router::Strexp.build("/", Hash[params], ['/', '.', '?'])
+        path  = Path::Pattern.new str, true
 
         @router.routes.add_route @app, path, {}, [], {}, {}
 
@@ -503,7 +503,7 @@ module ActionDispatch
           { :controller => /.+?/ },
           ["/", ".", "?"]
         )
-        path  = Path::Pattern.new strexp
+        path  = Path::Pattern.new strexp, true
         app   = Object.new
         route = @router.routes.add_route(app, path, {}, [], {}, {})
 
@@ -610,12 +610,12 @@ module ActionDispatch
 
       private
 
-      def add_routes router, paths
+      def add_routes router, paths, anchor = true
         paths.each do |path|
           if String === path
             path  = Path::Pattern.from_string path
           else
-            path  = Path::Pattern.new path
+            path  = Path::Pattern.new path, anchor
           end
           router.routes.add_route @app, path, {}, [], {}, {}
         end

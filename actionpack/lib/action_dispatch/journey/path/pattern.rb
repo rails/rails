@@ -7,14 +7,14 @@ module ActionDispatch
         attr_reader :spec, :requirements, :anchored
 
         def self.from_string string
-          new Journey::Router::Strexp.build(string, {}, ["/.?"], true)
+          new Journey::Router::Strexp.build(string, {}, ["/.?"]), true
         end
 
-        def initialize(strexp)
+        def initialize(strexp, anchored)
           @spec         = strexp.ast
           @requirements = strexp.requirements
           @separators   = strexp.separators.join
-          @anchored     = strexp.anchor
+          @anchored     = anchored
 
           @names          = nil
           @optional_names = nil

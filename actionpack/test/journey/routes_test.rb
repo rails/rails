@@ -10,7 +10,7 @@ module ActionDispatch
       def test_clear
         routes = Routes.new
         exp    = Router::Strexp.build '/foo(/:id)', {}, ['/.?']
-        path   = Path::Pattern.new exp
+        path   = Path::Pattern.new exp, true
         requirements = { :hello => /world/ }
 
         routes.add_route nil, path, requirements, [], {:id => nil}, {}
@@ -52,7 +52,7 @@ module ActionDispatch
         strexp = Router::Strexp.build(
           "/hello/:who", { who: /\d/ }, ['/', '.', '?']
         )
-        path  = Path::Pattern.new strexp
+        path  = Path::Pattern.new strexp, true
 
         custom_route = @routes.add_route nil, path, {}, [], {}, {}
         assert_equal [custom_route], @routes.custom_routes
