@@ -61,13 +61,13 @@ module ActionDispatch
         attr_reader :requirements, :conditions, :defaults
         attr_reader :to, :default_controller, :default_action
 
-        def self.build(scope, set, path, controller, default_action, to, via, formatted, options_constraints, options)
+        def self.build(scope, set, ast, controller, default_action, to, via, formatted, options_constraints, options)
           options = scope[:options].merge(options) if scope[:options]
 
           defaults = (scope[:defaults] || {}).dup
           scope_constraints = scope[:constraints] || {}
 
-          new set, path, defaults, controller, default_action, scope[:module], to, formatted, scope_constraints, scope[:blocks] || [], via, options_constraints, options
+          new set, ast, defaults, controller, default_action, scope[:module], to, formatted, scope_constraints, scope[:blocks] || [], via, options_constraints, options
         end
 
         def self.check_via(via)
@@ -98,7 +98,7 @@ module ActionDispatch
           format != false && !path.include?(':format') && !path.end_with?('/')
         end
 
-        def initialize(set, path, defaults, controller, default_action, modyoule, to, formatted, scope_constraints, blocks, via, options_constraints, options)
+        def initialize(set, ast, defaults, controller, default_action, modyoule, to, formatted, scope_constraints, blocks, via, options_constraints, options)
           @defaults = defaults
           @set = set
 
@@ -106,7 +106,6 @@ module ActionDispatch
           @default_controller = controller
           @default_action     = default_action
 
-          ast  = path_ast path
           path_params = path_params ast
 
           options = normalize_options!(options, formatted, path_params, ast, modyoule)
@@ -304,11 +303,6 @@ module ActionDispatch
 
           def path_params(ast)
             ast.grep(Journey::Nodes::Symbol).map { |n| n.name.to_sym }
-          end
-
-          def path_ast(path)
-            parser = Journey::Parser.new
-            parser.parse path
           end
 
           def dispatcher(raise_on_name_error)
@@ -1607,7 +1601,9 @@ module ActionDispatch
                end
 
           path = Mapping.normalize_path URI.parser.escape(path), formatted
-          mapping = Mapping.build(@scope, @set, path, controller, default_action, to, via, formatted, options_constraints, options)
+          ast = Journey::Parser.parse path
+
+          mapping = Mapping.build(@scope, @set, ast, controller, default_action, to, via, formatted, options_constraints, options)
           app, conditions, requirements, defaults = mapping.to_route
           @set.add_route(app, conditions, requirements, defaults, as, anchor)
         end

@@ -98,7 +98,8 @@ module ActionDispatch
       def test_mapping_requirements
         options = { }
         scope = Mapper::Scope.new({})
-        m = Mapper::Mapping.build(scope, FakeSet.new, '/store/:name(*rest)', 'foo', 'bar', nil, [:get], nil, {}, options)
+        ast = Journey::Parser.parse '/store/:name(*rest)'
+        m = Mapper::Mapping.build(scope, FakeSet.new, ast, 'foo', 'bar', nil, [:get], nil, {}, options)
         _, _, requirements, _ = m.to_route
         assert_equal(/.+?/, requirements[:rest])
       end
