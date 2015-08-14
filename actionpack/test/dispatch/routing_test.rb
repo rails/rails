@@ -361,9 +361,12 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
   end
 
   def test_pagemarks
+    tc = self
     draw do
       scope "pagemark", :controller => "pagemarks", :as => :pagemark do
-        get  "new", :path => "build"
+        tc.assert_deprecated do
+          get  "new", :path => "build"
+        end
         post "create", :as => ""
         put  "update"
         get  "remove", :action => :destroy, :as => :remove

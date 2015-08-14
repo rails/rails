@@ -5,6 +5,7 @@ require 'active_support/core_ext/enumerable'
 require 'active_support/core_ext/array/extract_options'
 require 'active_support/core_ext/module/remove_method'
 require 'active_support/inflector'
+require 'active_support/deprecation'
 require 'action_dispatch/routing/redirection'
 require 'action_dispatch/routing/endpoint'
 
@@ -1538,7 +1539,21 @@ module ActionDispatch
           path_types = paths.group_by(&:class)
           path_types.fetch(String, []).each do |_path|
             route_options = options.dup
-            process_path(route_options, controller, _path, option_path || _path, to, via, formatted, anchor, options_constraints)
+            if _path && option_path
+              ActiveSupport::Deprecation.warn <<-eowarn
+Specifying strings for both :path and the route path is deprecated.  Change things like this:
+
+  match #{_path.inspect}, :path => #{option_path.inspect}
+
+to this:
+
+  match #{option_path.inspect}, :as => #{_path.inspect}, :action => #{path.inspect}
+              eowarn
+              route_options[:action] = _path
+              route_options[:as] = _path
+              _path = option_path
+            end
+            process_path(route_options, controller, _path, _path, to, via, formatted, anchor, options_constraints)
           end
 
           path_types.fetch(Symbol, []).each do |action|
