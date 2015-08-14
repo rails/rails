@@ -44,6 +44,19 @@ module ActiveRecord
 
       ##
       # :singleton-method:
+      # Accessor for the name of the environment check table. By default, the value is "environment_checks"
+      class_attribute :environment_check_table_name, instance_accessor: false
+      self.environment_check_table_name = "environment_checks"
+
+      ##
+      # :singleton-method:
+      # Accessor for an array of names of environments where destructive actions should be prohibited. By default,
+      # the value is ["production"]
+      class_attribute :protected_environments, instance_accessor: false
+      self.protected_environments = ["production"]
+
+      ##
+      # :singleton-method:
       # Indicates whether table names should be the pluralized versions of the corresponding class names.
       # If true, the default table name for a Product class will be +products+. If false, it would just be +product+.
       # See table_name for the full rules on table/class naming. This is true, by default.

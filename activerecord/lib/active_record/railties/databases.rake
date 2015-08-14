@@ -1,6 +1,10 @@
 require 'active_record'
 
 db_namespace = namespace :db do
+  task :check_protected_environments => [:environment, :load_config] do
+    ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!
+  end
+
   task :load_config do
     ActiveRecord::Base.configurations       = ActiveRecord::Tasks::DatabaseTasks.database_configuration || {}
     ActiveRecord::Migrator.migrations_paths = ActiveRecord::Tasks::DatabaseTasks.migrations_paths
@@ -18,24 +22,28 @@ db_namespace = namespace :db do
   end
 
   namespace :drop do
-    task :all => :load_config do
+    task :all => [:load_config, :check_protected_environments] do
       ActiveRecord::Tasks::DatabaseTasks.drop_all
     end
   end
 
   desc 'Drops the database from DATABASE_URL or config/database.yml for the current RAILS_ENV (use db:drop:all to drop all databases in the config). Without RAILS_ENV, it defaults to dropping the development and test databases.'
-  task :drop => [:load_config] do
+  task :drop => [:load_config, :check_protected_environments] do
+    db_namespace["drop:_unsafe"].invoke
+  end
+
+  task "drop:_unsafe" => [:load_config] do
     ActiveRecord::Tasks::DatabaseTasks.drop_current
   end
 
   namespace :purge do
-    task :all => :load_config do
+    task :all => [:load_config, :check_protected_environments] do
       ActiveRecord::Tasks::DatabaseTasks.purge_all
     end
   end
 
   # desc "Empty the database from DATABASE_URL or config/database.yml for the current RAILS_ENV (use db:purge:all to purge all databases in the config). Without RAILS_ENV it defaults to purging the development and test databases."
-  task :purge => [:load_config] do
+  task :purge => [:load_config, :check_protected_environments] do
     ActiveRecord::Tasks::DatabaseTasks.purge_current
   end
 
@@ -351,7 +359,7 @@ db_namespace = namespace :db do
     task :clone_structure => %w(db:test:deprecated db:structure:dump db:test:load_structure)
 
     # desc "Empty the test database"
-    task :purge => %w(environment load_config) do
+    task :purge => %w(environment load_config check_protected_environments) do
       ActiveRecord::Tasks::DatabaseTasks.purge ActiveRecord::Base.configurations['test']
     end
 

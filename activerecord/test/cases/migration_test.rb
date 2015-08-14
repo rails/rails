@@ -354,6 +354,50 @@ class MigrationTest < ActiveRecord::TestCase
     Reminder.reset_table_name
   end
 
+  def test_environment_check_table_name
+    original_environment_check_table_name = ActiveRecord::Base.environment_check_table_name
+
+    assert_equal "environment_checks", ActiveRecord::EnvironmentCheck.table_name
+    ActiveRecord::Base.table_name_prefix = "prefix_"
+    ActiveRecord::Base.table_name_suffix = "_suffix"
+    Reminder.reset_table_name
+    assert_equal "prefix_environment_checks_suffix", ActiveRecord::EnvironmentCheck.table_name
+    ActiveRecord::Base.environment_check_table_name = "changed"
+    Reminder.reset_table_name
+    assert_equal "prefix_changed_suffix", ActiveRecord::EnvironmentCheck.table_name
+    ActiveRecord::Base.table_name_prefix = ""
+    ActiveRecord::Base.table_name_suffix = ""
+    Reminder.reset_table_name
+    assert_equal "changed", ActiveRecord::EnvironmentCheck.table_name
+  ensure
+    ActiveRecord::Base.environment_check_table_name = original_environment_check_table_name
+    Reminder.reset_table_name
+  end
+
+  def test_environment_check_stores_environment
+    current_env     = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
+    migrations_path = MIGRATIONS_ROOT + "/valid"
+    old_path        = ActiveRecord::Migrator.migrations_paths
+    ActiveRecord::Migrator.migrations_paths = migrations_path
+
+    assert_equal current_env, ActiveRecord::EnvironmentCheck.order(created_at: :desc).first.environment
+
+    rails_env        = ENV["RAILS_ENV"]
+    rack_env         = ENV["RACK_ENV"]
+    ENV["RAILS_ENV"] = ENV["RACK_ENV"] = "foofoo"
+    new_env     = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
+
+    refute_equal current_env, new_env
+
+    sleep 1 # mysql by default does not store fractional seconds in the database
+    ActiveRecord::Migrator.up(migrations_path)
+    assert_equal new_env, ActiveRecord::EnvironmentCheck.order(created_at: :desc).first.environment
+  ensure
+    ActiveRecord::Migrator.migrations_paths = old_path
+    ENV["RAILS_ENV"] = rails_env
+    ENV["RACK_ENV"]  = rack_env
+  end
+
   def test_proper_table_name_on_migration
     reminder_class = new_isolated_reminder_class
     migration = ActiveRecord::Migration.new
