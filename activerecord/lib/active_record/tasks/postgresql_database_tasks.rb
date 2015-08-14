@@ -54,21 +54,26 @@ module ActiveRecord
           ActiveRecord::Base.dump_schemas
         end
 
-        args = ['-i', '-s', '-x', '-O', '-f', filename]
+        command = configuration['password'] ? "PGPASSWORD=\"#{configuration['password']}\" pg_dump" : 'pg_dump'
+        args = prepare_command_options
+        args.concat ['-i', '-s', '-x', '-O', '-f', filename]
         unless search_path.blank?
           args << search_path.split(',').map do |part|
             "--schema=#{part.strip}"
           end.join(' ')
         end
         args << configuration['database']
-        run_cmd('pg_dump', args, 'dumping')
+        run_cmd(command, args, 'dumping')
         File.open(filename, "a") { |f| f << "SET search_path TO #{connection.schema_search_path};\n\n" }
       end
 
       def structure_load(filename)
         set_psql_env
-        args = [ '-q', '-f', filename, configuration['database'] ]
-        run_cmd('psql', args, 'loading' )
+        command = configuration['password'] ? "PGPASSWORD=\"#{configuration['password']}\" psql" : 'psql'
+        args = prepare_command_options
+
+        args.concat ['-q', '-f', filename, configuration['database']]
+        run_cmd(command, args, 'loading' )
       end
 
       private
@@ -86,6 +91,14 @@ module ActiveRecord
           'database'           => 'postgres',
           'schema_search_path' => 'public'
         )
+      end
+
+      def prepare_command_options
+        {
+            'host'      => '--host',
+            'port'      => '--port',
+            'username'  => '--username'
+        }.map { |opt, arg| "#{arg}=#{configuration[opt]}" if configuration[opt] }.compact
       end
 
       def set_psql_env

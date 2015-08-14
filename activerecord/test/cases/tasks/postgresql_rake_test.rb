@@ -195,7 +195,7 @@ module ActiveRecord
         'adapter'  => 'postgresql',
         'database' => 'my-app-db'
       }
-      @filename = "awesome-file.sql"
+      @filename = 'awesome-file.sql'
 
       ActiveRecord::Base.stubs(:connection).returns(@connection)
       ActiveRecord::Base.stubs(:establish_connection).returns(true)
@@ -220,7 +220,7 @@ module ActiveRecord
     def test_structure_dump_with_schema_search_path_and_dump_schemas_all
       @configuration['schema_search_path'] = 'foo,bar'
 
-      Kernel.expects(:system).with("pg_dump", '-i', '-s', '-x', '-O', '-f', @filename,  'my-app-db').returns(true)
+      Kernel.expects(:system).with('pg_dump', '-i', '-s', '-x', '-O', '-f', @filename,  'my-app-db').returns(true)
 
       with_dump_schemas(:all) do
         ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
@@ -228,11 +228,39 @@ module ActiveRecord
     end
 
     def test_structure_dump_with_dump_schemas_string
-      Kernel.expects(:system).with("pg_dump", '-i', '-s', '-x', '-O', '-f', @filename, '--schema=foo --schema=bar', "my-app-db").returns(true)
+      Kernel.expects(:system).with('pg_dump', '-i', '-s', '-x', '-O', '-f', @filename, '--schema=foo --schema=bar', 'my-app-db').returns(true)
 
       with_dump_schemas('foo,bar') do
         ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
       end
+    end
+
+    def test_structure_dump_with_host
+      @configuration['host'] = 'sample.testing.com'
+      Kernel.expects(:system).with('pg_dump', '--host=sample.testing.com', '-i', '-s', '-x', '-O', '-f', @filename, @configuration['database']).returns(true)
+
+      ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
+    end
+
+    def test_structure_dump_with_port_number
+      @configuration['port'] = 10000
+      Kernel.expects(:system).with('pg_dump', '--port=10000', '-i', '-s', '-x', '-O', '-f', @filename, @configuration['database']).returns(true)
+
+      ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
+    end
+
+    def test_structure_dump_with_user
+      @configuration['username'] = 'testuser'
+      Kernel.expects(:system).with('pg_dump', '--username=testuser', '-i', '-s', '-x', '-O', '-f', @filename, @configuration['database']).returns(true)
+
+      ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
+    end
+
+    def test_structure_dump_with_password
+      @configuration['password'] = 'hunter2'
+      Kernel.expects(:system).with('PGPASSWORD="hunter2" pg_dump', '-i', '-s', '-x', '-O', '-f', @filename, @configuration['database']).returns(true)
+
+      ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
     end
 
     private
@@ -253,6 +281,7 @@ module ActiveRecord
         'adapter'  => 'postgresql',
         'database' => 'my-app-db'
       }
+      @filename = 'awesome-file.sql'
 
       ActiveRecord::Base.stubs(:connection).returns(@connection)
       ActiveRecord::Base.stubs(:establish_connection).returns(true)
@@ -260,17 +289,43 @@ module ActiveRecord
     end
 
     def test_structure_load
-      filename = "awesome-file.sql"
-      Kernel.expects(:system).with('psql', '-q', '-f', filename, @configuration['database']).returns(true)
+      Kernel.expects(:system).with('psql', '-q', '-f', @filename, @configuration['database']).returns(true)
 
-      ActiveRecord::Tasks::DatabaseTasks.structure_load(@configuration, filename)
+      ActiveRecord::Tasks::DatabaseTasks.structure_load(@configuration, @filename)
     end
 
     def test_structure_load_accepts_path_with_spaces
-      filename = "awesome file.sql"
-      Kernel.expects(:system).with('psql', '-q', '-f', filename, @configuration['database']).returns(true)
+      Kernel.expects(:system).with('psql', '-q', '-f', @filename, @configuration['database']).returns(true)
 
-      ActiveRecord::Tasks::DatabaseTasks.structure_load(@configuration, filename)
+      ActiveRecord::Tasks::DatabaseTasks.structure_load(@configuration, @filename)
+    end
+
+    def test_structure_load_with_host
+      @configuration['host'] = 'sample.testing.com'
+      Kernel.expects(:system).with('psql', '--host=sample.testing.com', '-q', '-f', @filename, @configuration['database']).returns(true)
+
+      ActiveRecord::Tasks::DatabaseTasks.structure_load(@configuration, @filename)
+    end
+
+    def test_structure_load_with_port_number
+      @configuration['port'] = 10000
+      Kernel.expects(:system).with('psql', '--port=10000', '-q', '-f', @filename, @configuration['database']).returns(true)
+
+      ActiveRecord::Tasks::DatabaseTasks.structure_load(@configuration, @filename)
+    end
+
+    def test_structure_load_with_user
+      @configuration['username'] = 'testuser'
+      Kernel.expects(:system).with('psql', '--username=testuser', '-q', '-f', @filename, @configuration['database']).returns(true)
+
+      ActiveRecord::Tasks::DatabaseTasks.structure_load(@configuration, @filename)
+    end
+
+    def test_structure_load_with_password
+      @configuration['password'] = 'hunter2'
+      Kernel.expects(:system).with('PGPASSWORD="hunter2" psql', '-q', '-f', @filename, @configuration['database']).returns(true)
+
+      ActiveRecord::Tasks::DatabaseTasks.structure_load(@configuration, @filename)
     end
   end
 
