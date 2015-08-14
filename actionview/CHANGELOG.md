@@ -1,3 +1,8 @@
+## Rails 4.1.13 (August 14, 2015) ##
+
+*   No changes.
+
+
 ## Rails 4.1.12 (June 25, 2015) ##
 
 *   `translate` should handle `raise` flag correctly in case of both main and default
