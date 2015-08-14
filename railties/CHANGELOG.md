@@ -1,3 +1,5 @@
+## Rails 4.2.4 (August 14, 2015) ##
+
 *   Fix STATS_DIRECTORIES already defined warning when running rake from within
     the top level directory of an engine that has a test app.
 

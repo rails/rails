@@ -1,3 +1,8 @@
+## Rails 4.2.4 (August 14, 2015) ##
+
+* No Changes *
+
+
 ## Rails 4.2.3 (June 25, 2015) ##
 
 *   `assert_emails` in block form use the given number as expected value.

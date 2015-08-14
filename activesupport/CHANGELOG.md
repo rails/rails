@@ -1,3 +1,5 @@
+## Rails 4.2.4 (August 14, 2015) ##
+
 *   Fix a `SystemStackError` when encoding an `Enumerable` with `json` gem and
     with the Active Support JSON encoder loaded.
 

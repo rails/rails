@@ -1,3 +1,5 @@
+## Rails 4.2.4 (August 14, 2015) ##
+
 *   ActionController::TestSession now accepts a default value as well as
     a block for generating a default value based off the key provided.
 

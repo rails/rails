@@ -1,3 +1,5 @@
+## Rails 4.2.4 (August 14, 2015) ##
+
 *   Skip statement cache on through association reader.
 
     If the through class has default scopes we should skip the statement

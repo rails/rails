@@ -1,3 +1,5 @@
+## Rails 4.2.4 (August 14, 2015) ##
+
 *   Include I18n.locale into job serialization/deserialization and use it around
     `perform`.
 

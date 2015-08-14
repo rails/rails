@@ -1,3 +1,8 @@
+## Rails 4.2.4 (August 14, 2015) ##
+
+* No Changes *
+
+
 ## Rails 4.2.3 (June 25, 2015) ##
 
 *   `translate` should handle `raise` flag correctly in case of both main and default
@@ -20,7 +25,6 @@
     Fixes #19419
 
     *Justin Coyne*
-
 
 *   `number_to_percentage` does not crash with `Float::NAN` or `Float::INFINITY`
     as input when `precision: 0` is used.
