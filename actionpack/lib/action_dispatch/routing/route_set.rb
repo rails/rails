@@ -525,7 +525,7 @@ module ActionDispatch
             "http://guides.rubyonrails.org/routing.html#restricting-the-routes-created"
         end
 
-        route = @set.add_route2(name, mapping)
+        route = @set.add_route(name, mapping)
         named_routes[name] = route if name
         route
       end

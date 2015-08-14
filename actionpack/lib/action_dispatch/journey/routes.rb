@@ -62,13 +62,7 @@ module ActionDispatch
         end
       end
 
-      MyMapping = Struct.new(:application, :path, :conditions, :required_defaults, :defaults)
-
-      def add_route(app, path, conditions, required_defaults, defaults, name = nil)
-        add_route2(name, MyMapping.new(app, path, conditions, required_defaults, defaults))
-      end
-
-      def add_route2(name, mapping)
+      def add_route(name, mapping)
         route = Route.new(name,
                           mapping.application,
                           mapping.path,
