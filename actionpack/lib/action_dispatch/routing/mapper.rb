@@ -106,7 +106,7 @@ module ActionDispatch
           @default_controller = controller
           @default_action     = default_action
 
-          path_params = path_params ast
+          path_params = ast.find_all(&:symbol?).map(&:to_sym)
 
           options = add_wildcard_options(options, formatted, ast)
 
@@ -303,10 +303,6 @@ module ActionDispatch
                 end
               end
             end
-          end
-
-          def path_params(ast)
-            ast.grep(Journey::Nodes::Symbol).map { |n| n.name.to_sym }
           end
 
           def dispatcher(raise_on_name_error)
