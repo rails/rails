@@ -108,7 +108,9 @@ module ActionDispatch
 
           path_params = path_params ast
 
-          options = normalize_options!(options, formatted, path_params, ast, modyoule)
+          options = add_wildcard_options(options, formatted, ast)
+
+          options = normalize_options!(options, path_params, modyoule)
 
           split_options = constraints(options, path_params)
 
@@ -144,16 +146,19 @@ module ActionDispatch
         end
 
         private
-
-          def normalize_options!(options, formatted, path_params, path_ast, modyoule)
+          def add_wildcard_options(options, formatted, path_ast)
             # Add a constraint for wildcard route to make it non-greedy and match the
             # optional format part of the route by default
             if formatted != false
-              path_ast.grep(Journey::Nodes::Star) do |node|
-                options[node.name.to_sym] ||= /.+?/
-              end
+              path_ast.grep(Journey::Nodes::Star).each_with_object({}) { |node, hash|
+                hash[node.name.to_sym] ||= /.+?/
+              }.merge options
+            else
+              options
             end
+          end
 
+          def normalize_options!(options, path_params, modyoule)
             if path_params.include?(:controller)
               raise ArgumentError, ":controller segment is not allowed within a namespace block" if modyoule
 
