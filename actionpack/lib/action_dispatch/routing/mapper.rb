@@ -59,17 +59,17 @@ module ActionDispatch
       class Mapping #:nodoc:
         ANCHOR_CHARACTERS_REGEX = %r{\A(\\A|\^)|(\\Z|\\z|\$)\Z}
 
-        attr_reader :requirements, :conditions, :defaults
+        attr_reader :requirements, :defaults
         attr_reader :to, :default_controller, :default_action
-        attr_reader :required_defaults
+        attr_reader :required_defaults, :ast
 
-        def self.build(scope, set, ast, controller, default_action, to, via, formatted, options_constraints, options)
+        def self.build(scope, set, ast, controller, default_action, to, via, formatted, options_constraints, anchor, options)
           options = scope[:options].merge(options) if scope[:options]
 
           defaults = (scope[:defaults] || {}).dup
           scope_constraints = scope[:constraints] || {}
 
-          new set, ast, defaults, controller, default_action, scope[:module], to, formatted, scope_constraints, scope[:blocks] || [], via, options_constraints, options
+          new set, ast, defaults, controller, default_action, scope[:module], to, formatted, scope_constraints, scope[:blocks] || [], via, options_constraints, anchor, options
         end
 
         def self.check_via(via)
@@ -100,13 +100,15 @@ module ActionDispatch
           format != false && !path.include?(':format') && !path.end_with?('/')
         end
 
-        def initialize(set, ast, defaults, controller, default_action, modyoule, to, formatted, scope_constraints, blocks, via, options_constraints, options)
+        def initialize(set, ast, defaults, controller, default_action, modyoule, to, formatted, scope_constraints, blocks, via, options_constraints, anchor, options)
           @defaults = defaults
           @set = set
 
           @to                 = to
           @default_controller = controller
           @default_action     = default_action
+          @ast                = ast
+          @anchor             = anchor
 
           path_params = ast.find_all(&:symbol?).map(&:to_sym)
 
@@ -146,6 +148,57 @@ module ActionDispatch
         def application
           app(@blocks)
         end
+
+        def path
+          build_path @ast, requirements, @anchor
+        end
+
+        def conditions
+          build_conditions @conditions, @set.request_class
+        end
+
+        def build_conditions(current_conditions, request_class)
+          conditions = current_conditions.dup
+
+          # Rack-Mount requires that :request_method be a regular expression.
+          # :request_method represents the HTTP verb that matches this route.
+          #
+          # Here we munge values before they get sent on to rack-mount.
+          verbs = conditions[:request_method] || []
+          unless verbs.empty?
+            conditions[:request_method] = %r[^#{verbs.join('|')}$]
+          end
+
+          conditions.keep_if do |k, _|
+            request_class.public_method_defined?(k)
+          end
+        end
+        private :build_conditions
+
+        def build_path(ast, requirements, anchor)
+          pattern = Journey::Path::Pattern.new(ast, requirements, SEPARATORS, anchor)
+
+          builder = Journey::GTG::Builder.new ast
+
+          # Get all the symbol nodes followed by literals that are not the
+          # dummy node.
+          symbols = ast.grep(Journey::Nodes::Symbol).find_all { |n|
+            builder.followpos(n).first.literal?
+          }
+
+          # Get all the symbol nodes preceded by literals.
+          symbols.concat ast.find_all(&:literal?).map { |n|
+            builder.followpos(n).first
+          }.find_all(&:symbol?)
+
+          symbols.each { |x|
+            x.regexp = /(?:#{Regexp.union(x.regexp, '-')})+/
+          }
+
+          pattern
+        end
+        private :build_path
+
 
         private
           def add_wildcard_options(options, formatted, path_ast)
@@ -1619,7 +1672,7 @@ to this:
           path = Mapping.normalize_path URI.parser.escape(path), formatted
           ast = Journey::Parser.parse path
 
-          mapping = Mapping.build(@scope, @set, ast, controller, default_action, to, via, formatted, options_constraints, options)
+          mapping = Mapping.build(@scope, @set, ast, controller, default_action, to, via, formatted, options_constraints, anchor, options)
           @set.add_route(mapping, ast, as, anchor)
         end
 

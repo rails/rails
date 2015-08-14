@@ -62,9 +62,19 @@ module ActionDispatch
         end
       end
 
-      # Add a route to the routing table.
+      MyMapping = Struct.new(:application, :path, :conditions, :required_defaults, :defaults)
+
       def add_route(app, path, conditions, required_defaults, defaults, name = nil)
-        route = Route.new(name, app, path, conditions, required_defaults, defaults)
+        add_route2(name, MyMapping.new(app, path, conditions, required_defaults, defaults))
+      end
+
+      def add_route2(name, mapping)
+        route = Route.new(name,
+                          mapping.application,
+                          mapping.path,
+                          mapping.conditions,
+                          mapping.required_defaults,
+                          mapping.defaults)
 
         route.precedence = routes.length
         routes << route

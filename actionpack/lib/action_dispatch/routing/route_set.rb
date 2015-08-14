@@ -525,56 +525,10 @@ module ActionDispatch
             "http://guides.rubyonrails.org/routing.html#restricting-the-routes-created"
         end
 
-        required_defaults  = mapping.required_defaults
-        path = build_path(path_ast, mapping.requirements, anchor)
-        conditions = build_conditions(mapping.conditions)
-
-        route = @set.add_route(mapping.application, path, conditions, required_defaults, mapping.defaults, name)
+        route = @set.add_route2(name, mapping)
         named_routes[name] = route if name
         route
       end
-
-      def build_path(ast, requirements, anchor)
-        pattern = Journey::Path::Pattern.new(ast, requirements, SEPARATORS, anchor)
-
-        builder = Journey::GTG::Builder.new ast
-
-        # Get all the symbol nodes followed by literals that are not the
-        # dummy node.
-        symbols = ast.grep(Journey::Nodes::Symbol).find_all { |n|
-          builder.followpos(n).first.literal?
-        }
-
-        # Get all the symbol nodes preceded by literals.
-        symbols.concat ast.find_all(&:literal?).map { |n|
-          builder.followpos(n).first
-        }.find_all(&:symbol?)
-
-        symbols.each { |x|
-          x.regexp = /(?:#{Regexp.union(x.regexp, '-')})+/
-        }
-
-        pattern
-      end
-      private :build_path
-
-      def build_conditions(current_conditions)
-        conditions = current_conditions.dup
-
-        # Rack-Mount requires that :request_method be a regular expression.
-        # :request_method represents the HTTP verb that matches this route.
-        #
-        # Here we munge values before they get sent on to rack-mount.
-        verbs = conditions[:request_method] || []
-        unless verbs.empty?
-          conditions[:request_method] = %r[^#{verbs.join('|')}$]
-        end
-
-        conditions.keep_if do |k, _|
-          request_class.public_method_defined?(k)
-        end
-      end
-      private :build_conditions
 
       class Generator
         PARAMETERIZE = lambda do |name, value|

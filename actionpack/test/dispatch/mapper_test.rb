@@ -89,7 +89,7 @@ module ActionDispatch
         options = { }
         scope = Mapper::Scope.new({})
         ast = Journey::Parser.parse '/store/:name(*rest)'
-        m = Mapper::Mapping.build(scope, FakeSet.new, ast, 'foo', 'bar', nil, [:get], nil, {}, options)
+        m = Mapper::Mapping.build(scope, FakeSet.new, ast, 'foo', 'bar', nil, [:get], nil, {}, true, options)
         assert_equal(/.+?/, m.requirements[:rest])
       end
 
