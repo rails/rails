@@ -82,6 +82,22 @@ module ActionDispatch
           via
         end
 
+        def self.normalize_path(path, format)
+          path = Mapper.normalize_path(path)
+
+          if format == true
+            "#{path}.:format"
+          elsif optional_format?(path, format)
+            "#{path}(.:format)"
+          else
+            path
+          end
+        end
+
+        def self.optional_format?(path, format)
+          format != false && !path.include?(':format') && !path.end_with?('/')
+        end
+
         def initialize(set, path, defaults, controller, default_action, modyoule, to, formatted, scope_constraints, blocks, via, options_constraints, options)
           @defaults = defaults
           @set = set
@@ -90,7 +106,6 @@ module ActionDispatch
           @default_controller = controller
           @default_action     = default_action
 
-          path = normalize_path! path, formatted
           ast  = path_ast path
           path_params = path_params ast
 
@@ -132,22 +147,6 @@ module ActionDispatch
         end
 
         private
-
-          def normalize_path!(path, format)
-            path = Mapper.normalize_path(path)
-
-            if format == true
-              "#{path}.:format"
-            elsif optional_format?(path, format)
-              "#{path}(.:format)"
-            else
-              path
-            end
-          end
-
-          def optional_format?(path, format)
-            format != false && !path.include?(':format') && !path.end_with?('/')
-          end
 
           def normalize_options!(options, formatted, path_params, path_ast, modyoule)
             # Add a constraint for wildcard route to make it non-greedy and match the
@@ -1608,7 +1607,8 @@ module ActionDispatch
                  name_for_action(options.delete(:as), action)
                end
 
-          mapping = Mapping.build(@scope, @set, URI.parser.escape(path), controller, default_action, to, via, formatted, options_constraints, options)
+          path = Mapping.normalize_path URI.parser.escape(path), formatted
+          mapping = Mapping.build(@scope, @set, path, controller, default_action, to, via, formatted, options_constraints, options)
           app, conditions, requirements, defaults = mapping.to_route
           @set.add_route(app, conditions, requirements, defaults, as, anchor)
         end
