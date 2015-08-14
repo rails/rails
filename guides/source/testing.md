@@ -443,8 +443,8 @@ specify to make your test failure messages clearer. It's not required.
 | `assert_no_match( regexp, string, [msg] )`                       | Ensures that a string doesn't match the regular expression.|
 | `assert_includes( collection, obj, [msg] )`                      | Ensures that `obj` is in `collection`.|
 | `assert_not_includes( collection, obj, [msg] )`                  | Ensures that `obj` is not in `collection`.|
-| `assert_in_delta( expecting, actual, [delta], [msg] )`           | Ensures that the numbers `expected` and `actual` are within `delta` of each other.|
-| `assert_not_in_delta( expecting, actual, [delta], [msg] )`       | Ensures that the numbers `expected` and `actual` are not within `delta` of each other.|
+| `assert_in_delta( expected, actual, [delta], [msg] )`           | Ensures that the numbers `expected` and `actual` are within `delta` of each other.|
+| `assert_not_in_delta( expected, actual, [delta], [msg] )`       | Ensures that the numbers `expected` and `actual` are not within `delta` of each other.|
 | `assert_throws( symbol, [msg] ) { block }`                       | Ensures that the given block throws the symbol.|
 | `assert_raises( exception1, exception2, ... ) { block }`         | Ensures that the given block raises one of the given exceptions.|
 | `assert_nothing_raised( exception1, exception2, ... ) { block }` | Ensures that the given block doesn't raise one of the given exceptions.|
@@ -530,7 +530,7 @@ Let me take you through one such test, `test_should_get_index` from the file `ar
 ```ruby
 # articles_controller_test.rb
 class ArticlesControllerTest < ActionController::TestCase
-  test "should get index" do
+  test_should_get_index do
     get :index
     assert_response :success
     assert_includes @response.body, 'Articles'
@@ -572,7 +572,7 @@ NOTE: If you try running `test_should_create_article` test from `articles_contro
 Let us modify `test_should_create_article` test in `articles_controller_test.rb` so that all our test pass:
 
 ```ruby
-test "should create article" do
+test_should_create_article do
   assert_difference('Article.count') do
     post :create, params: { article: { title: 'Some title' } }
   end
@@ -612,9 +612,9 @@ test "ajax request" do
 end
 ```
 
-### The Four Hashes of the Apocalypse
+### The Three Hashes of the Apocalypse
 
-After a request has been made and processed, you will have 4 Hash objects ready for use:
+After a request has been made and processed, you will have 3 Hash objects ready for use:
 
 * `cookies` - Any cookies that are set.
 * `flash` - Any objects living in the flash.
@@ -655,7 +655,7 @@ post :create # simulate the request with custom env variable
 
 ### Testing `flash` notices
 
-If you remember from earlier one of the Four Hashes of the Apocalypse was `flash`.
+If you remember from earlier one of the Three Hashes of the Apocalypse was `flash`.
 
 We want to add a `flash` message to our blog application whenever someone
 successfully creates a new Article.
@@ -663,7 +663,7 @@ successfully creates a new Article.
 Let's start by adding this assertion to our `test_should_create_article` test:
 
 ```ruby
-test "should create article" do
+test_should_create_article do
   assert_difference('Article.count') do
     post :create, params: { article: { title: 'Some title' } }
   end
@@ -1062,7 +1062,7 @@ end
 
 Let's break this test down so we can understand it.
 
-We start by calling the `:new` action on our Articles controller. This response should be successful, and we can verify the correct template is rendered including the form partial.
+We start by calling the `:new` action on our Articles controller. This response should be successful.
 
 After this we make a post request to the `:create` action of our Articles controller:
 
@@ -1077,7 +1077,7 @@ The two lines following the request are to handle the redirect we setup when cre
 
 NOTE: Don't forget to call `follow_redirect!` if you plan to make subsequent requests after a redirect is made.
 
-Finally we can assert that our response was successful, template was rendered, and our new article is readable on the page.
+Finally we can assert that our response was successful and our new article is readable on the page.
 
 #### Taking it further
 
