@@ -42,6 +42,13 @@ module ActiveRecord
 
       LOCAL_HOSTS    = ['127.0.0.1', 'localhost']
 
+      def check_protected_environments!
+        if !ENV['DISABLE_DATABASE_internal_metadata'] && ActiveRecord::Migrator.protected_environment?
+          raise ActiveRecord::ProtectedEnvironmentError.new(ActiveRecord::Migrator.last_stored_environment)
+        end
+      rescue ActiveRecord::NoDatabaseError
+      end
+
       def register_task(pattern, task)
         @tasks ||= {}
         @tasks[pattern] = task
@@ -204,6 +211,8 @@ module ActiveRecord
         else
           raise ArgumentError, "unknown format #{format.inspect}"
         end
+        ActiveRecord::InternalMetadata.create_table
+        ActiveRecord::InternalMetata.store("environment" => ActiveRecord::ConnectionHandling::DEFAULT_ENV.call)
       end
 
       def load_schema_for(*args)

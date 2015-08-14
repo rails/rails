@@ -143,6 +143,26 @@ module ActiveRecord
     end
   end
 
+  class NoEnvironmentInSchemaError < MigrationError #:nodoc:
+    def initialize
+      msg = "Environment data not found in the schema. To resolve this issue, run: \n\n\tbin/rake db:migrate"
+      if defined?(Rails.env)
+        super("#{msg} RAILS_ENV=#{::Rails.env}")
+      else
+        super(msg)
+      end
+    end
+  end
+
+  class ProtectedEnvironmentError < ActiveRecordError #:nodoc:
+    def initialize(env = "production")
+      msg = "You are attempting to run a destructive action against your '#{env}' database\n"
+      msg << "if you are sure you want to continue, run the same command with the environment variable\n"
+      msg << "DISABLE_DATABASE_ENVIRONMENT_CHECK=1"
+      super(msg)
+    end
+  end
+
   # = Active Record Migrations
   #
   # Migrations can manage the evolution of a schema used by several physical
@@ -1078,6 +1098,7 @@ module ActiveRecord
       validate(@migrations)
 
       Base.connection.initialize_schema_migrations_table
+      Base.connection.initialize_internal_metadata_table
     end
 
     def current_version
@@ -1202,8 +1223,22 @@ module ActiveRecord
         ActiveRecord::SchemaMigration.where(:version => version.to_s).delete_all
       else
         migrated << version
-        ActiveRecord::SchemaMigration.create!(:version => version.to_s)
+        ActiveRecord::SchemaMigration.create!(version: version.to_s)
+        environment = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
+        ActiveRecord::InternalMetadata.store(environment: environment)
       end
+    end
+
+    def self.last_stored_environment
+      ActiveRecord::InternalMetadata.value_for(:environment)
+    end
+
+    def self.protected_environment?
+      return false if current_version == 0
+      raise NoEnvironmentInSchemaError unless ActiveRecord::InternalMetadata.table_exists?
+
+      raise NoEnvironmentInSchemaError unless last_stored_environment
+      ActiveRecord::Base.protected_environments.include?(last_stored_environment)
     end
 
     def up?

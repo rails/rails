@@ -24,6 +24,26 @@ module ApplicationTests
       assert $task_loaded
     end
 
+    def test_the_test_rake_task_is_protected_when_previous_migration_was_production
+      Dir.chdir(app_path) do
+        output = `bin/rails generate model product name:string;
+         env RAILS_ENV=production bin/rake db:create db:migrate;
+         env RAILS_ENV=production bin/rake db:test:prepare test 2>&1`
+
+        assert_match /ActiveRecord::ProtectedEnvironmentError/, output
+      end
+    end
+
+    def test_not_protected_when_previous_migration_was_not_production
+      Dir.chdir(app_path) do
+        output = `bin/rails generate model product name:string;
+         env RAILS_ENV=test bin/rake db:create db:migrate;
+         env RAILS_ENV=test bin/rake db:test:prepare test 2>&1`
+
+        refute_match /ActiveRecord::ProtectedEnvironmentError/, output
+      end
+    end
+
     def test_environment_is_required_in_rake_tasks
       app_file "config/environment.rb", <<-RUBY
         SuperMiddleware = Struct.new(:app)
