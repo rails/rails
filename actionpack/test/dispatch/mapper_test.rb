@@ -4,15 +4,18 @@ module ActionDispatch
   module Routing
     class MapperTest < ActiveSupport::TestCase
       class FakeSet < ActionDispatch::Routing::RouteSet
-        attr_reader :routes
-        alias :set :routes
-
         def initialize
-          @routes = []
+          @my_routes = []
+          super
         end
 
         def resources_path_names
           {}
+        end
+
+        def add_route(*args)
+          @my_routes << args
+          super
         end
 
         def request_class
@@ -23,24 +26,20 @@ module ActionDispatch
           RouteSet::Dispatcher
         end
 
-        def add_route(*args)
-          routes << args
-        end
-
         def defaults
-          routes.map { |x| x[3] }
+          @my_routes.map { |x| x[3] }
         end
 
         def conditions
-          routes.map { |x| x[1] }
+          @my_routes.map { |x| x[1] }
         end
 
         def requirements
-          routes.map { |x| x[2] }
+          @my_routes.map { |x| x[2] }
         end
 
         def asts
-          conditions.map { |hash| hash[:parsed_path_info] }
+          routes.map(&:path).map(&:spec)
         end
       end
 
