@@ -135,7 +135,6 @@ module ActionDispatch
           @defaults = formats[:defaults].merge(@defaults).merge(normalize_defaults(options))
 
           @conditions[:required_defaults] = (split_options[:required_defaults] || []).map(&:first)
-          @conditions[:path_info] = path
           @conditions[:parsed_path_info] = ast
           unless via == [:all]
             @conditions[:request_method] = via.map { |m| m.to_s.dasherize.upcase }

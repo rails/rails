@@ -525,7 +525,6 @@ module ActionDispatch
             "http://guides.rubyonrails.org/routing.html#restricting-the-routes-created"
         end
 
-        path = conditions.delete :path_info
         ast  = conditions.delete :parsed_path_info
         required_defaults  = conditions.delete :required_defaults
         path = build_path(ast, requirements, anchor)
