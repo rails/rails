@@ -38,6 +38,10 @@ module ActionDispatch
         def requirements
           routes.map { |x| x[2] }
         end
+
+        def asts
+          conditions.map { |hash| hash[:parsed_path_info] }
+        end
       end
 
       def test_initialize
@@ -67,7 +71,7 @@ module ActionDispatch
         mapper.get '/foo', :to => 'posts#index', :as => :main, :format => true
         assert_equal({:controller=>"posts", :action=>"index"},
                      fakeset.defaults.first)
-        assert_equal "/foo.:format", fakeset.conditions.first[:parsed_path_info].to_s
+        assert_equal "/foo.:format", fakeset.asts.first.to_s
       end
 
       def test_scoped_formatted
@@ -78,7 +82,7 @@ module ActionDispatch
         end
         assert_equal({:controller=>"posts", :action=>"index"},
                      fakeset.defaults.first)
-        assert_equal "/foo.:format", fakeset.conditions.first[:parsed_path_info].to_s
+        assert_equal "/foo.:format", fakeset.asts.first.to_s
       end
 
       def test_random_keys
@@ -113,7 +117,7 @@ module ActionDispatch
         fakeset = FakeSet.new
         mapper = Mapper.new fakeset
         mapper.get '/', :to => 'posts#index', :as => :main
-        assert_equal '/', fakeset.conditions.first[:parsed_path_info].to_s
+        assert_equal '/', fakeset.asts.first.to_s
       end
 
       def test_map_more_slashes
@@ -122,14 +126,14 @@ module ActionDispatch
 
         # FIXME: is this a desired behavior?
         mapper.get '/one/two/', :to => 'posts#index', :as => :main
-        assert_equal '/one/two(.:format)', fakeset.conditions.first[:parsed_path_info].to_s
+        assert_equal '/one/two(.:format)', fakeset.asts.first.to_s
       end
 
       def test_map_wildcard
         fakeset = FakeSet.new
         mapper = Mapper.new fakeset
         mapper.get '/*path', :to => 'pages#show'
-        assert_equal '/*path(.:format)', fakeset.conditions.first[:parsed_path_info].to_s
+        assert_equal '/*path(.:format)', fakeset.asts.first.to_s
         assert_equal(/.+?/, fakeset.requirements.first[:path])
       end
 
@@ -137,7 +141,7 @@ module ActionDispatch
         fakeset = FakeSet.new
         mapper = Mapper.new fakeset
         mapper.get '/*path/foo/:bar', :to => 'pages#show'
-        assert_equal '/*path/foo/:bar(.:format)', fakeset.conditions.first[:parsed_path_info].to_s
+        assert_equal '/*path/foo/:bar(.:format)', fakeset.asts.first.to_s
         assert_equal(/.+?/, fakeset.requirements.first[:path])
       end
 
@@ -145,7 +149,7 @@ module ActionDispatch
         fakeset = FakeSet.new
         mapper = Mapper.new fakeset
         mapper.get '/*foo/*bar', :to => 'pages#show'
-        assert_equal '/*foo/*bar(.:format)', fakeset.conditions.first[:parsed_path_info].to_s
+        assert_equal '/*foo/*bar(.:format)', fakeset.asts.first.to_s
         assert_equal(/.+?/, fakeset.requirements.first[:foo])
         assert_equal(/.+?/, fakeset.requirements.first[:bar])
       end
@@ -154,7 +158,7 @@ module ActionDispatch
         fakeset = FakeSet.new
         mapper = Mapper.new fakeset
         mapper.get '/*path', :to => 'pages#show', :format => false
-        assert_equal '/*path', fakeset.conditions.first[:parsed_path_info].to_s
+        assert_equal '/*path', fakeset.asts.first.to_s
         assert_nil fakeset.requirements.first[:path]
       end
 
@@ -162,7 +166,7 @@ module ActionDispatch
         fakeset = FakeSet.new
         mapper = Mapper.new fakeset
         mapper.get '/*path', :to => 'pages#show', :format => true
-        assert_equal '/*path.:format', fakeset.conditions.first[:parsed_path_info].to_s
+        assert_equal '/*path.:format', fakeset.asts.first.to_s
       end
 
       def test_raising_helpful_error_on_invalid_arguments
