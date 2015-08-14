@@ -1569,10 +1569,10 @@ to this:
 
           path_without_format = path.sub(/\(\.:format\)$/, '')
           if using_match_shorthand?(path_without_format)
-            to ||= path_without_format.gsub(%r{^/}, "").sub(%r{/([^/]*)$}, '#\1')
-            to.tr!("-", "_")
+            path_without_format.gsub(%r{^/}, "").sub(%r{/([^/]*)$}, '#\1').tr("-", "_")
+          else
+            nil
           end
-          to
         end
 
         def process_path(options, controller, path, option_path, to, via, formatted, ancho, options_constraintsr)
