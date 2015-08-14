@@ -4,18 +4,8 @@ module ActionDispatch
   module Routing
     class MapperTest < ActiveSupport::TestCase
       class FakeSet < ActionDispatch::Routing::RouteSet
-        def initialize
-          @my_routes = []
-          super
-        end
-
         def resources_path_names
           {}
-        end
-
-        def add_route(*args)
-          @my_routes << args
-          super
         end
 
         def request_class
@@ -27,11 +17,11 @@ module ActionDispatch
         end
 
         def defaults
-          @my_routes.map { |x| x[4] }
+          routes.map(&:defaults)
         end
 
         def conditions
-          @my_routes.map { |x| x[1] }
+          routes.map(&:constraints)
         end
 
         def requirements
@@ -92,7 +82,7 @@ module ActionDispatch
         end
         assert_equal({:omg=>:awesome, :controller=>"posts", :action=>"index"},
                      fakeset.defaults.first)
-        assert_equal ["GET"], fakeset.conditions.first[:request_method]
+        assert_equal(/^GET$/, fakeset.conditions.first[:request_method])
       end
 
       def test_mapping_requirements
@@ -100,8 +90,7 @@ module ActionDispatch
         scope = Mapper::Scope.new({})
         ast = Journey::Parser.parse '/store/:name(*rest)'
         m = Mapper::Mapping.build(scope, FakeSet.new, ast, 'foo', 'bar', nil, [:get], nil, {}, options)
-        _, _, requirements, _ = m.to_route
-        assert_equal(/.+?/, requirements[:rest])
+        assert_equal(/.+?/, m.requirements[:rest])
       end
 
       def test_via_scope
@@ -110,7 +99,7 @@ module ActionDispatch
         mapper.scope(via: :put) do
           mapper.match '/', :to => 'posts#index', :as => :main
         end
-        assert_equal ["PUT"], fakeset.conditions.first[:request_method]
+        assert_equal(/^PUT$/, fakeset.conditions.first[:request_method])
       end
 
       def test_map_slash

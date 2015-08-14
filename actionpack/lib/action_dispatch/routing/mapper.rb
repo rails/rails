@@ -61,6 +61,7 @@ module ActionDispatch
 
         attr_reader :requirements, :conditions, :defaults
         attr_reader :to, :default_controller, :default_action
+        attr_reader :required_defaults
 
         def self.build(scope, set, ast, controller, default_action, to, via, formatted, options_constraints, options)
           options = scope[:options].merge(options) if scope[:options]
@@ -136,14 +137,14 @@ module ActionDispatch
           @conditions = Hash[conditions]
           @defaults = formats[:defaults].merge(@defaults).merge(normalize_defaults(options))
 
-          @conditions[:required_defaults] = (split_options[:required_defaults] || []).map(&:first)
+          @required_defaults = (split_options[:required_defaults] || []).map(&:first)
           unless via == [:all]
             @conditions[:request_method] = via.map { |m| m.to_s.dasherize.upcase }
           end
         end
 
-        def to_route
-          [ app(@blocks), conditions, requirements, defaults ]
+        def application
+          app(@blocks)
         end
 
         private
@@ -1619,8 +1620,7 @@ to this:
           ast = Journey::Parser.parse path
 
           mapping = Mapping.build(@scope, @set, ast, controller, default_action, to, via, formatted, options_constraints, options)
-          app, conditions, requirements, defaults = mapping.to_route
-          @set.add_route(app, conditions, ast, requirements, defaults, as, anchor)
+          @set.add_route(mapping, ast, as, anchor)
         end
 
         def root(path, options={})
