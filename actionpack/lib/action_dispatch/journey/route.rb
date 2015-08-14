@@ -112,6 +112,10 @@ module ActionDispatch
         constraints[:ip] || //
       end
 
+      def requires_matching_verb?
+        constraints[:request_method]
+      end
+
       def verb
         constraints[:request_method] || //
       end
