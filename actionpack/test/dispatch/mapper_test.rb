@@ -35,7 +35,7 @@ module ActionDispatch
         end
 
         def requirements
-          @my_routes.map { |x| x[2] }
+          routes.map(&:path).map(&:requirements)
         end
 
         def asts
