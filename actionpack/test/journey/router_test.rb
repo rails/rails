@@ -13,7 +13,10 @@ module ActionDispatch
         @formatter = Formatter.new(@routes)
       end
 
-      class FakeRequestFeeler < Struct.new(:env, :called)
+      class FakeRequestFeeler < ActionDispatch::Request
+        attr_writer :env
+        attr_accessor :called
+
         def new env
           self.env = env
           self
@@ -23,10 +26,6 @@ module ActionDispatch
           self.called = true
           'world'
         end
-
-        def path_info; env['PATH_INFO']; end
-        def request_method; env['REQUEST_METHOD']; end
-        def ip; env['REMOTE_ADDR']; end
       end
 
       def test_dashes

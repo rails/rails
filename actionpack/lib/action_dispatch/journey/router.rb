@@ -101,7 +101,7 @@ module ActionDispatch
           }
 
           routes =
-            if req.request_method == "HEAD"
+            if req.head?
               match_head_routes(routes, req)
             else
               match_routes(routes, req)
