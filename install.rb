@@ -1,9 +1,6 @@
-version = ARGV.pop
+# Usage: ruby install.rb
 
-if version.nil?
-  puts "Usage: ruby install.rb version"
-  exit(64)
-end
+version = File.read(File.expand_path('../RAILS_VERSION', __FILE__)).strip
 
 %w( activesupport activemodel activerecord actionpack actionview actionmailer railties activejob ).each do |framework|
   puts "Installing #{framework}..."
