@@ -27,7 +27,7 @@ module ActionDispatch
         end
 
         def defaults
-          @my_routes.map { |x| x[3] }
+          @my_routes.map { |x| x[4] }
         end
 
         def conditions

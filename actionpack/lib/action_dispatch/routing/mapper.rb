@@ -134,7 +134,6 @@ module ActionDispatch
           @defaults = formats[:defaults].merge(@defaults).merge(normalize_defaults(options))
 
           @conditions[:required_defaults] = (split_options[:required_defaults] || []).map(&:first)
-          @conditions[:parsed_path_info] = ast
           unless via == [:all]
             @conditions[:request_method] = via.map { |m| m.to_s.dasherize.upcase }
           end
@@ -1605,7 +1604,7 @@ module ActionDispatch
 
           mapping = Mapping.build(@scope, @set, ast, controller, default_action, to, via, formatted, options_constraints, options)
           app, conditions, requirements, defaults = mapping.to_route
-          @set.add_route(app, conditions, requirements, defaults, as, anchor)
+          @set.add_route(app, conditions, ast, requirements, defaults, as, anchor)
         end
 
         def root(path, options={})

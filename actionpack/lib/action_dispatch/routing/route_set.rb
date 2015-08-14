@@ -514,7 +514,7 @@ module ActionDispatch
         routes.empty?
       end
 
-      def add_route(app, conditions, requirements, defaults, name, anchor)
+      def add_route(app, conditions, path_ast, requirements, defaults, name, anchor)
         raise ArgumentError, "Invalid route name: '#{name}'" unless name.blank? || name.to_s.match(/^[_a-z]\w*$/i)
 
         if name && named_routes[name]
@@ -525,9 +525,8 @@ module ActionDispatch
             "http://guides.rubyonrails.org/routing.html#restricting-the-routes-created"
         end
 
-        ast  = conditions.delete :parsed_path_info
         required_defaults  = conditions.delete :required_defaults
-        path = build_path(ast, requirements, anchor)
+        path = build_path(path_ast, requirements, anchor)
         conditions = build_conditions(conditions)
 
         route = @set.add_route(app, path, conditions, required_defaults, defaults, name)
