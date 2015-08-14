@@ -1564,19 +1564,23 @@ to this:
           self
         end
 
-        def process_path(options, controller, path, option_path, to, via, formatted, ancho, options_constraintsr)
+        def get_to_from_path(path, to, action)
+          return to if to || action
+
           path_without_format = path.sub(/\(\.:format\)$/, '')
-          if using_match_shorthand?(path_without_format, to, options[:action])
+          if using_match_shorthand?(path_without_format)
             to ||= path_without_format.gsub(%r{^/}, "").sub(%r{/([^/]*)$}, '#\1')
             to.tr!("-", "_")
           end
+          to
+        end
 
+        def process_path(options, controller, path, option_path, to, via, formatted, ancho, options_constraintsr)
+          to = get_to_from_path(path, to, options[:action])
           decomposed_match(path, controller, options, option_path, to, via, formatted, ancho, options_constraintsr)
         end
 
-        def using_match_shorthand?(path, to, action)
-          return false if to || action
-
+        def using_match_shorthand?(path)
           path =~ %r{^/?[-\w]+/[-\w/]+$}
         end
 
