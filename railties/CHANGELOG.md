@@ -1,3 +1,10 @@
+*   Make `dbconsole` default to using provided the password from database.yml.
+
+    `dbconsole -P` or `dbconsole --provide-password` will now allow you to
+    provide a password for database login.
+
+    *Andrew Kampjes*
+
 *   Add `bin/update` script to update development environment automatically.
 
     *Mehmet Emin İNAÇ*

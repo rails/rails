@@ -115,19 +115,19 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
   def test_mysql
     start(adapter: 'mysql', database: 'db')
     assert !aborted
-    assert_equal [%w[mysql mysql5], 'db'], dbconsole.find_cmd_and_exec_args
+    assert_equal [%w[mysql mysql5], '-p', 'db'], dbconsole.find_cmd_and_exec_args
   end
 
   def test_mysql_full
     start(adapter: 'mysql', database: 'db', host: 'locahost', port: 1234, socket: 'socket', username: 'user', password: 'qwerty', encoding: 'UTF-8')
     assert !aborted
-    assert_equal [%w[mysql mysql5], '--host=locahost', '--port=1234', '--socket=socket', '--user=user', '--default-character-set=UTF-8', '-p', 'db'], dbconsole.find_cmd_and_exec_args
+    assert_equal [%w[mysql mysql5], '--host=locahost', '--port=1234', '--socket=socket', '--user=user', '--default-character-set=UTF-8', '--password=qwerty', 'db'], dbconsole.find_cmd_and_exec_args
   end
 
-  def test_mysql_include_password
-    start({adapter: 'mysql', database: 'db', username: 'user', password: 'qwerty'}, ['-p'])
+  def test_mysql_provide_password
+    start({adapter: 'mysql', database: 'db', username: 'user', password: 'qwerty'}, ['-P'])
     assert !aborted
-    assert_equal [%w[mysql mysql5], '--user=user', '--password=qwerty', 'db'], dbconsole.find_cmd_and_exec_args
+    assert_equal [%w[mysql mysql5], '--user=user', '-p', 'db'], dbconsole.find_cmd_and_exec_args
   end
 
   def test_postgresql
@@ -143,15 +143,15 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
     assert_equal 'user', ENV['PGUSER']
     assert_equal 'host', ENV['PGHOST']
     assert_equal '5432', ENV['PGPORT']
-    assert_not_equal 'q1w2e3', ENV['PGPASSWORD']
+    assert_equal 'q1w2e3', ENV['PGPASSWORD']
   end
 
-  def test_postgresql_include_password
-    start({adapter: 'postgresql', database: 'db', username: 'user', password: 'q1w2e3'}, ['-p'])
+  def test_postgresql_provide_password
+    start({adapter: 'postgresql', database: 'db', username: 'user', password: 'q1w2e3'}, ['-P'])
     assert !aborted
     assert_equal ['psql', 'db'], dbconsole.find_cmd_and_exec_args
     assert_equal 'user', ENV['PGUSER']
-    assert_equal 'q1w2e3', ENV['PGPASSWORD']
+    assert_not_equal 'q1w2e3', ENV['PGPASSWORD']
   end
 
   def test_sqlite3
@@ -188,13 +188,13 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
   def test_oracle
     start(adapter: 'oracle', database: 'db', username: 'user', password: 'secret')
     assert !aborted
-    assert_equal ['sqlplus', 'user@db'], dbconsole.find_cmd_and_exec_args
+    assert_equal ['sqlplus', 'user/secret@db'], dbconsole.find_cmd_and_exec_args
   end
 
-  def test_oracle_include_password
-    start({adapter: 'oracle', database: 'db', username: 'user', password: 'secret'}, ['-p'])
+  def test_oracle_provide_password
+    start({adapter: 'oracle', database: 'db', username: 'user', password: 'secret'}, ['-P'])
     assert !aborted
-    assert_equal ['sqlplus', 'user/secret@db'], dbconsole.find_cmd_and_exec_args
+    assert_equal ['sqlplus', 'user@db'], dbconsole.find_cmd_and_exec_args
   end
 
   def test_unknown_command_line_client
