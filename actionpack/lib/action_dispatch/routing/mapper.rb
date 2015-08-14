@@ -1553,7 +1553,8 @@ to this:
               route_options[:as] = _path
               _path = option_path
             end
-            process_path(route_options, controller, _path, _path, to, via, formatted, anchor, options_constraints)
+            to = get_to_from_path(_path, to, route_options[:action])
+            decomposed_match(_path, controller, route_options, _path, to, via, formatted, anchor, options_constraints)
           end
 
           path_types.fetch(Symbol, []).each do |action|
@@ -1573,11 +1574,6 @@ to this:
           else
             nil
           end
-        end
-
-        def process_path(options, controller, path, option_path, to, via, formatted, ancho, options_constraintsr)
-          to = get_to_from_path(path, to, options[:action])
-          decomposed_match(path, controller, options, option_path, to, via, formatted, ancho, options_constraintsr)
         end
 
         def using_match_shorthand?(path)
