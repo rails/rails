@@ -209,7 +209,7 @@ module ActionView
     end
 
     test "is able to use routes" do
-      controller.request.assign_parameters(@routes, 'foo', 'index')
+      controller.request.assign_parameters(@routes, 'foo', 'index', {}, '/foo', [])
       assert_equal '/foo', url_for
       assert_equal '/bar', url_for(:controller => 'bar')
     end
