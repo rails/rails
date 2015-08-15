@@ -37,6 +37,13 @@ class JsonParamsParsingTest < ActionDispatch::IntegrationTest
     )
   end
 
+  test "parses json params for application/vnd.api+json" do
+    assert_parses(
+      {"person" => {"name" => "David"}},
+      "{\"person\": {\"name\": \"David\"}}", { 'CONTENT_TYPE' => 'application/vnd.api+json' }
+    )
+  end
+
   test "nils are stripped from collections" do
     assert_parses(
       {"person" => []},
@@ -133,6 +140,13 @@ class RootLessJSONParamsParsingTest < ActionDispatch::IntegrationTest
     assert_parses(
       {"user" => {"username" => "sikachu"}, "username" => "sikachu"},
       "{\"username\": \"sikachu\"}", { 'CONTENT_TYPE' => 'application/jsonrequest' }
+    )
+  end
+
+  test "parses json params for application/vnd.api+json" do
+    assert_parses(
+      {"user" => {"username" => "sikachu"}, "username" => "sikachu"},
+      "{\"username\": \"sikachu\"}", { 'CONTENT_TYPE' => 'application/vnd.api+json' }
     )
   end
 
