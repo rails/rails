@@ -109,6 +109,7 @@ module ActionDispatch
           @default_action     = default_action
           @ast                = ast
           @anchor             = anchor
+          @via                = via
 
           path_params = ast.find_all(&:symbol?).map(&:to_sym)
 
@@ -140,9 +141,6 @@ module ActionDispatch
           @defaults = formats[:defaults].merge(@defaults).merge(normalize_defaults(options))
 
           @required_defaults = (split_options[:required_defaults] || []).map(&:first)
-          unless via == [:all]
-            @conditions[:request_method] = via.map { |m| m.to_s.dasherize.upcase }
-          end
         end
 
         def application
@@ -164,8 +162,8 @@ module ActionDispatch
           # :request_method represents the HTTP verb that matches this route.
           #
           # Here we munge values before they get sent on to rack-mount.
-          verbs = conditions[:request_method] || []
-          unless verbs.empty?
+          unless @via == [:all]
+            verbs = @via.map { |m| m.to_s.dasherize.upcase }
             conditions[:request_method] = %r[^#{verbs.join('|')}$]
           end
 
