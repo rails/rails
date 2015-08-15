@@ -67,8 +67,9 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
   def test_caching_nil_primary_key
     klass = Class.new(Minimalistic)
-    klass.expects(:reset_primary_key).returns(nil).once
-    2.times { klass.primary_key }
+    assert_called(klass, :reset_primary_key, returns: nil) do
+      2.times { klass.primary_key }
+    end
   end
 
   def test_attribute_keys_on_new_instance

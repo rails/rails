@@ -188,8 +188,9 @@ class NamedScopingTest < ActiveRecord::TestCase
   def test_any_should_call_proxy_found_if_using_a_block
     topics = Topic.base
     assert_queries(1) do
-      topics.expects(:empty?).never
-      topics.any? { true }
+      assert_not_called(topics, :empty?) do
+        topics.any? { true }
+      end
     end
   end
 
@@ -217,8 +218,9 @@ class NamedScopingTest < ActiveRecord::TestCase
   def test_many_should_call_proxy_found_if_using_a_block
     topics = Topic.base
     assert_queries(1) do
-      topics.expects(:size).never
-      topics.many? { true }
+      assert_not_called(topics, :size) do
+        topics.many? { true }
+      end
     end
   end
 

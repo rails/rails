@@ -3,6 +3,7 @@ require File.expand_path('../../../../load_paths', __FILE__)
 require 'config'
 
 require 'active_support/testing/autorun'
+require 'active_support/testing/method_call_assertions'
 require 'stringio'
 
 require 'active_record'
@@ -141,6 +142,7 @@ require "cases/validations_repair_helper"
 class ActiveSupport::TestCase
   include ActiveRecord::TestFixtures
   include ActiveRecord::ValidationsRepairHelper
+  include ActiveSupport::Testing::MethodCallAssertions
 
   self.fixture_path = FIXTURES_ROOT
   self.use_instantiated_fixtures  = false
