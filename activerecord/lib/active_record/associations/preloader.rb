@@ -111,9 +111,7 @@ module ActiveRecord
         case association
         when Hash
           preloaders_for_hash(association, records, scope)
-        when Symbol
-          preloaders_for_one(association, records, scope)
-        when String
+        when Symbol, String
           preloaders_for_one(association.to_sym, records, scope)
         else
           raise ArgumentError, "#{association.inspect} was not recognised for preload"
