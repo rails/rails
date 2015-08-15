@@ -8,9 +8,10 @@ module ActionDispatch
 
       def setup
         @app       = Routing::RouteSet::Dispatcher.new({})
-        @routes    = Routes.new
-        @router    = Router.new(@routes)
-        @formatter = Formatter.new(@routes)
+        @route_set  = ActionDispatch::Routing::RouteSet.new
+        @routes = @route_set.router.routes
+        @router = @route_set.router
+        @formatter = @route_set.formatter
       end
 
       class FakeRequestFeeler < ActionDispatch::Request
@@ -184,8 +185,8 @@ module ActionDispatch
 
       def test_knows_what_parts_are_missing_from_named_route
         route_name = "gorby_thunderhorse"
-        path = Path::Pattern.build("/foo/:id", { :id => /\d+/ }, ['/', '.', '?'], false)
-        add_route nil, path, {}, [], {}, route_name
+        mapper = ActionDispatch::Routing::Mapper.new @route_set
+        mapper.get "/foo/:id", :as => route_name, :id => /\d+/, :to => "foo#bar"
 
         error = assert_raises(ActionController::UrlGenerationError) do
           @formatter.generate(route_name, { }, { })

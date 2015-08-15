@@ -6,7 +6,9 @@ module ActionDispatch
       attr_reader :routes
 
       def setup
-        @routes = Routes.new
+        @route_set  = ActionDispatch::Routing::RouteSet.new
+        @routes = @route_set.router.routes
+        @router = @route_set.router
         super
       end
 
@@ -64,13 +66,11 @@ module ActionDispatch
       end
 
       def test_first_name_wins
-        one   = Path::Pattern.from_string '/hello'
-        two   = Path::Pattern.from_string '/aaron'
-
-        add_route nil, one, {}, [], {}, 'aaron'
-        add_route nil, two, {}, [], {}, 'aaron'
-
-        assert_equal '/hello', routes.named_routes['aaron'].path.spec.to_s
+        mapper = ActionDispatch::Routing::Mapper.new @route_set
+        mapper.get "/hello", to: "foo#bar", as: 'aaron'
+        assert_raise(ArgumentError) do
+          mapper.get "/aaron", to: "foo#bar", as: 'aaron'
+        end
       end
     end
   end

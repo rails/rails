@@ -143,6 +143,7 @@ module ActionDispatch
         end
 
         def key?(name)
+          return unless name
           routes.key? name.to_sym
         end
 
@@ -356,7 +357,7 @@ module ActionDispatch
 
         @set    = Journey::Routes.new
         @router = Journey::Router.new @set
-        @formatter = Journey::Formatter.new @set
+        @formatter = Journey::Formatter.new self
         @dispatcher_class = Routing::RouteSet::Dispatcher
       end
 
