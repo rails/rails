@@ -61,14 +61,7 @@ module ActionDispatch
       end
 
       def add_route(name, mapping)
-        route = Route.new(name,
-                          mapping.application,
-                          mapping.path,
-                          mapping.conditions,
-                          mapping.required_defaults,
-                          mapping.defaults)
-
-        route.precedence = routes.length
+        route = mapping.make_route name, routes.length
         routes << route
         partition_route(route)
         clear_cache!

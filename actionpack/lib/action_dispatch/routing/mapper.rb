@@ -143,6 +143,18 @@ module ActionDispatch
           @required_defaults = (split_options[:required_defaults] || []).map(&:first)
         end
 
+        def make_route(name, precedence)
+          route = Journey::Route.new(name,
+                            application,
+                            path,
+                            conditions,
+                            required_defaults,
+                            defaults)
+
+          route.precedence = precedence
+          route
+        end
+
         def application
           app(@blocks)
         end
