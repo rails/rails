@@ -1,43 +1,47 @@
-= Releasing Rails
+# Releasing Rails
 
 In this document, we'll cover the steps necessary to release Rails.  Each
 section contains steps to take during that time before the release.  The times
 suggested in each header are just that: suggestions.  However, they should
 really be considered as minimums.
 
-== 10 Days before release
+## 10 Days before release
 
 Today is mostly coordination tasks.  Here are the things you must do today:
 
-=== Is the CI green?  If not, make it green. (See "Fixing the CI")
+### Is the CI green?  If not, make it green. (See "Fixing the CI")
 
 Do not release with a Red CI.  You can find the CI status here:
 
-  http://travis-ci.org/rails/rails
+```
+http://travis-ci.org/rails/rails
+```
 
-=== Is Sam Ruby happy?  If not, make him happy.
+### Is Sam Ruby happy?  If not, make him happy.
 
 Sam Ruby keeps a test suite that makes sure the code samples in his book (Agile
 Web Development with Rails) all work.  These are valuable integration tests
 for Rails.  You can check the status of his tests here:
 
-  http://intertwingly.net/projects/dashboard.html
+```
+http://intertwingly.net/projects/dashboard.html
+```
 
 Do not release with Red AWDwR tests.
 
-=== Do we have any Git dependencies?  If so, contact those authors.
+### Do we have any Git dependencies?  If so, contact those authors.
 
 Having Git dependencies indicates that we depend on unreleased code.
 Obviously Rails cannot be released when it depends on unreleased code.
 Contact the authors of those particular gems and work out a release date that
 suits them.
 
-=== Contact the security team (either Koz or tenderlove)
+### Contact the security team (either Koz or tenderlove)
 
 Let them know of your plans to release.  There may be security issues to be
 addressed, and that can impact your release date.
 
-=== Notify implementors.
+### Notify implementors.
 
 Ruby implementors have high stakes in making sure Rails works.  Be kind and
 give them a heads up that Rails will be released soonish.
@@ -54,27 +58,29 @@ lists:
 
 Implementors will love you and help you.
 
-== 3 Days before release
+### 3 Days before release
 
 This is when you should release the release candidate.  Here are your tasks
 for today:
 
-=== Is the CI green?  If not, make it green.
+### Is the CI green?  If not, make it green.
 
-=== Is Sam Ruby happy?  If not, make him happy.
+### Is Sam Ruby happy?  If not, make him happy.
 
-=== Contact the security team.  CVE emails must be sent on this day.
+### Contact the security team.  CVE emails must be sent on this day.
 
-=== Create a release branch.
+### Create a release branch.
 
 From the stable branch, create a release branch.  For example, if you're
 releasing Rails 3.0.10, do this:
 
-    [aaron@higgins rails (3-0-stable)]$ git checkout -b 3-0-10
-    Switched to a new branch '3-0-10'
-    [aaron@higgins rails (3-0-10)]$
+```
+[aaron@higgins rails (3-0-stable)]$ git checkout -b 3-0-10
+Switched to a new branch '3-0-10'
+[aaron@higgins rails (3-0-10)]$
+```
 
-=== Update each CHANGELOG.
+### Update each CHANGELOG.
 
 Many times commits are made without the CHANGELOG being updated.  You should
 review the commits since the last release, and fill in any missing information
@@ -82,15 +88,17 @@ for each CHANGELOG.
 
 You can review the commits for the 3.0.10 release like this:
 
-    [aaron@higgins rails (3-0-10)]$ git log v3.0.9..
+```
+[aaron@higgins rails (3-0-10)]$ git log v3.0.9..
+```
 
 If you're doing a stable branch release, you should also ensure that all of
 the CHANGELOG entries in the stable branch are also synced to the master
 branch.
 
-=== Update the RAILS_VERSION file to include the RC.
+### Update the RAILS_VERSION file to include the RC.
 
-=== Build and test the gem.
+### Build and test the gem.
 
 Run `rake install` to generate the gems and install them locally. Then try
 generating a new app and ensure that nothing explodes.
@@ -98,7 +106,7 @@ generating a new app and ensure that nothing explodes.
 This will stop you from looking silly when you push an RC to rubygems.org and
 then realize it is broken.
 
-=== Release the gem.
+### Release the gem.
 
 IMPORTANT: Due to YAML parse problems on the rubygems.org server, it is safest
 to use Ruby 1.8 when releasing.
@@ -108,14 +116,16 @@ RAILS_VERSION, commit the changes, tag it, and push the gems to rubygems.org.
 Here are the commands that `rake release` should use, so you can understand
 what to do in case anything goes wrong:
 
-    $ rake all:build
-    $ git commit -am'updating RAILS_VERSION'
-    $ git tag -m 'v3.0.10.rc1 release' v3.0.10.rc1
-    $ git push
-    $ git push --tags
-    $ for i in $(ls pkg); do gem push $i; done
+```
+$ rake all:build
+$ git commit -am'updating RAILS_VERSION'
+$ git tag -m 'v3.0.10.rc1 release' v3.0.10.rc1
+$ git push
+$ git push --tags
+$ for i in $(ls pkg); do gem push $i; done
+```
 
-=== Send Rails release announcements
+### Send Rails release announcements
 
 Write a release announcement that includes the version, changes, and links to
 GitHub where people can find the specific commit list.  Here are the mailing
@@ -132,16 +142,16 @@ IMPORTANT: If any users experience regressions when using the release
 candidate, you *must* postpone the release.  Bugfix releases *should not*
 break existing applications.
 
-=== Post the announcement to the Rails blog.
+### Post the announcement to the Rails blog.
 
 If you used Markdown format for your email, you can just paste it in to the
 blog.
 
 * http://weblog.rubyonrails.org
 
-=== Post the announcement to the Rails Twitter account.
+### Post the announcement to the Rails Twitter account.
 
-== Time between release candidate and actual release
+## Time between release candidate and actual release
 
 Check the rails-core mailing list and the GitHub issue list for regressions in
 the RC.
@@ -155,7 +165,7 @@ When you fix the regressions, do not create a new branch.  Fix them on the
 stable branch, then cherry pick the commit to your release branch.  No other
 commits should be added to the release branch besides regression fixing commits.
 
-== Day of release
+## Day of release
 
 Many of these steps are the same as for the release candidate, so if you need
 more explanation on a particular step, see the RC steps.
@@ -173,7 +183,7 @@ Today, do this stuff in this order:
 * Email security lists
 * Email general announcement lists
 
-=== Emailing the Rails security announce list
+### Emailing the Rails security announce list
 
 Email the security announce list once for each vulnerability fixed.
 
@@ -193,9 +203,9 @@ so we need to give them the security fixes in patch form.
 * Merge the release branch to the stable branch.
 * Drink beer (or other cocktail)
 
-== Misc
+## Misc
 
-=== Fixing the CI
+### Fixing the CI
 
 There are two simple steps for fixing the CI:
 
