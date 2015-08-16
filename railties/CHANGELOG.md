@@ -1,3 +1,8 @@
+*   Plugins generated using `rails plugin new` are now generated with the
+    version number set to 0.1.0.
+
+    *Daniel Morris*
+
 *   `I18n.load_path` is now reloaded under development so there's no need to
     restart the server to make new locale files available. Also, I18n will no
     longer raise for deleted locale files.
