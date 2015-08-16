@@ -12,6 +12,8 @@ module ActiveJob
   # * {Sidekiq}[http://sidekiq.org]
   # * {Sneakers}[https://github.com/jondot/sneakers]
   # * {Sucker Punch}[https://github.com/brandonhilkert/sucker_punch]
+  # * {Active Job Async Job}[http://api.rubyonrails.org/classes/ActiveJob/QueueAdapters/AsyncAdapter.html]
+  # * {Active Job Inline}[http://api.rubyonrails.org/classes/ActiveJob/QueueAdapters/InlineAdapter.html]
   #
   # === Backends Features
   #
@@ -26,6 +28,7 @@ module ActiveJob
   #   | Sidekiq           | Yes   | Yes    | Yes        | Queue      | No      | Job     |
   #   | Sneakers          | Yes   | Yes    | No         | Queue      | Queue   | No      |
   #   | Sucker Punch      | Yes   | Yes    | No         | No         | No      | No      |
+  #   | Active Job Async  | Yes   | Yes    | Yes        | No         | No      | No      |
   #   | Active Job Inline | No    | Yes    | N/A        | N/A        | N/A     | N/A     |
   #
   # ==== Async
@@ -96,9 +99,15 @@ module ActiveJob
   #
   # N/A: The adapter does not run in a separate process, and therefore doesn't
   # support retries.
+  #
+  # === Async and Inline Queue Adapters
+  #
+  # Active Job has two built-in queue adapters intended for development and
+  # testing: +:async+ and +:inline+.
   module QueueAdapters
     extend ActiveSupport::Autoload
 
+    autoload :AsyncAdapter
     autoload :InlineAdapter
     autoload :BackburnerAdapter
     autoload :DelayedJobAdapter
