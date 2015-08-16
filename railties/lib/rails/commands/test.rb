@@ -1,9 +1,13 @@
-require "rails/test_unit/minitest_plugin"
+require 'rails/test_unit/minitest_plugin'
+require 'rails/commands/command'
 
-if defined?(ENGINE_ROOT)
-  $: << File.expand_path('test', ENGINE_ROOT)
-else
-  $: << File.expand_path('../../test', APP_PATH)
+module Rails
+  module Commands
+    class Test < Command
+      rake_delegate 'test', 'test:db'
+
+      set_banner :test, 'Runs all tests in test folder'
+      set_banner :test_db, 'Run tests quickly, but also reset db'
+    end
+  end
 end
-
-exit Minitest.run(ARGV)
