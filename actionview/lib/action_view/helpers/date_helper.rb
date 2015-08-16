@@ -228,6 +228,7 @@ module ActionView
       #   or the given prompt string.
       # * <tt>:with_css_classes</tt>   - Set to true if you want assign different styles for 'select' tags. This option
       #   automatically set classes 'year', 'month', 'day', 'hour', 'minute' and 'second' for your 'select' tags.
+      # * <tt>:use_hidden</tt>         - Set to true if you only want to generate hidden input tags.
       #
       # If anything is passed in the +html_options+ hash it will be applied to every select tag in the set.
       #
