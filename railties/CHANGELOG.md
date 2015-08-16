@@ -1,3 +1,9 @@
+*   `I18n.load_path` is now reloaded under development so there's no need to
+    restart the server to make new locale files available. Also, I18n will no
+    longer raise for deleted locale files.
+
+    *Kir Shatrov*
+
 *   Add `bin/update` script to update development environment automatically.
 
     *Mehmet Emin İNAÇ*
