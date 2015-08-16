@@ -361,6 +361,9 @@ module ActionView
       #   check_box_tag 'rock', 'rock music'
       #   # => <input id="rock" name="rock" type="checkbox" value="rock music" />
       #
+      #   check_box_tag "languages[]", "ruby"
+      #   # => <input type="checkbox" name="languages[]" id="languages_ruby" value="ruby" />
+      #
       #   check_box_tag 'receive_email', 'yes', true
       #   # => <input checked="checked" id="receive_email" name="receive_email" type="checkbox" value="yes" />
       #
@@ -370,7 +373,14 @@ module ActionView
       #   check_box_tag 'eula', 'accepted', false, disabled: true
       #   # => <input disabled="disabled" id="eula" name="eula" type="checkbox" value="accepted" />
       def check_box_tag(name, value = "1", checked = false, options = {})
-        html_options = { "type" => "checkbox", "name" => name, "id" => sanitize_to_id(name), "value" => value }.update(options.stringify_keys)
+        html_options = { "type" => "checkbox", "name" => name, "value" => value }.update(options.stringify_keys)
+
+        html_options["id"] ||= if name.end_with?("[]")
+          "#{sanitize_to_id(name)}#{sanitize_to_id(value)}"
+        else
+          sanitize_to_id(name)
+        end
+
         html_options["checked"] = "checked" if checked
         tag :input, html_options
       end
