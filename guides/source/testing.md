@@ -530,7 +530,7 @@ Let me take you through one such test, `test_should_get_index` from the file `ar
 ```ruby
 # articles_controller_test.rb
 class ArticlesControllerTest < ActionController::TestCase
-  test_should_get_index do
+  def test_should_get_index
     get :index
     assert_response :success
     assert_includes @response.body, 'Articles'
@@ -572,7 +572,7 @@ NOTE: If you try running `test_should_create_article` test from `articles_contro
 Let us modify `test_should_create_article` test in `articles_controller_test.rb` so that all our test pass:
 
 ```ruby
-test_should_create_article do
+def test_should_create_article
   assert_difference('Article.count') do
     post :create, params: { article: { title: 'Some title' } }
   end

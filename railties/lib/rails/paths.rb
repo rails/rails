@@ -123,8 +123,7 @@ module Rails
         options[:load_path]     ? load_path!     : skip_load_path!
       end
 
-      # :nodoc:
-      def absolute_current
+      def absolute_current # :nodoc:
         File.expand_path(@current, @root.path)
       end
 
@@ -180,8 +179,7 @@ module Rails
         @paths
       end
 
-      # :nodoc:
-      def extensions
+      def extensions # :nodoc:
         $1.split(',') if @glob =~ /\{([\S]+)\}/
       end
 
