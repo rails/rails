@@ -6,7 +6,7 @@ require 'active_support/core_ext/benchmark'
 require 'active_support/core_ext/module/attribute_accessors'
 require 'active_support/core_ext/numeric/bytes'
 require 'active_support/core_ext/numeric/time'
-require 'active_support/core_ext/object/to_param'
+require 'active_support/core_ext/object/to_query'
 require 'active_support/core_ext/string/inflections'
 
 module ActiveSupport
