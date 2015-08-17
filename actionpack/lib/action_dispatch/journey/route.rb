@@ -19,7 +19,7 @@ module ActionDispatch
         @constraints = constraints
         @defaults    = defaults
         @required_defaults = nil
-        @_required_defaults = required_defaults || []
+        @_required_defaults = required_defaults
         @required_parts    = nil
         @parts             = nil
         @decorated_ast     = nil
