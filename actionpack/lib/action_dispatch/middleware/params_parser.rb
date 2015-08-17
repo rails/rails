@@ -4,6 +4,8 @@ require 'active_support/core_ext/hash/indifferent_access'
 
 module ActionDispatch
   class ParamsParser
+
+    # Raised when <tt>ParamsParser</tt> fails to parse request params.
     class ParseError < StandardError
       attr_reader :original_exception
 

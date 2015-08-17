@@ -1,6 +1,8 @@
 require "active_support/notifications"
 
 module ActiveSupport
+
+  # Raised when <tt>ActiveSupport::Deprecation::Behavior#behavior</tt> is set with <tt>:raise</tt>
   class DeprecationException < StandardError
   end
 
