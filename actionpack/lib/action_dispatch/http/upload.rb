@@ -39,40 +39,8 @@ module ActionDispatch
         @headers           = hash[:head]
       end
 
-      # Shortcut for +tempfile.read+.
-      def read(length=nil, buffer=nil)
-        @tempfile.read(length, buffer)
-      end
+      delegate :read, :open, :close, :path, :rewind, :size, :eof?, to: :@tempfile
 
-      # Shortcut for +tempfile.open+.
-      def open
-        @tempfile.open
-      end
-
-      # Shortcut for +tempfile.close+.
-      def close(unlink_now=false)
-        @tempfile.close(unlink_now)
-      end
-
-      # Shortcut for +tempfile.path+.
-      def path
-        @tempfile.path
-      end
-
-      # Shortcut for +tempfile.rewind+.
-      def rewind
-        @tempfile.rewind
-      end
-
-      # Shortcut for +tempfile.size+.
-      def size
-        @tempfile.size
-      end
-
-      # Shortcut for +tempfile.eof?+.
-      def eof?
-        @tempfile.eof?
-      end
     end
   end
 end
