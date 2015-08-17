@@ -32,12 +32,12 @@ module ActionDispatch
         end
 
         def ast
-          @spec.grep(Nodes::Symbol).each do |node|
+          @spec.find_all(&:symbol?).each do |node|
             re = @requirements[node.to_sym]
             node.regexp = re if re
           end
 
-          @spec.grep(Nodes::Star).each do |node|
+          @spec.find_all(&:star?).each do |node|
             node = node.left
             node.regexp = @requirements[node.to_sym] || /(.+)/
           end

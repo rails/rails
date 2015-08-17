@@ -40,6 +40,7 @@ module ActionDispatch
         def symbol?; false; end
         def literal?; false; end
         def terminal?; false; end
+        def star?; false; end
       end
 
       class Terminal < Node # :nodoc:
@@ -94,6 +95,7 @@ module ActionDispatch
       end
 
       class Star < Unary # :nodoc:
+        def star?; true; end
         def type; :STAR; end
 
         def name
