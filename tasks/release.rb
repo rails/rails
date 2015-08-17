@@ -15,37 +15,7 @@ directory "pkg"
       rm_f gem
     end
 
-    task :update_versions do
-      glob = root.dup
-      if framework == "rails"
-        glob << "/version.rb"
-      else
-        glob << "/#{framework}/lib/*"
-        glob << "/gem_version.rb"
-      end
-
-      file = Dir[glob].first
-      ruby = File.read(file)
-
-      major, minor, tiny, pre = version.split('.')
-      pre = pre ? pre.inspect : "nil"
-
-      ruby.gsub!(/^(\s*)MAJOR(\s*)= .*?$/, "\\1MAJOR = #{major}")
-      raise "Could not insert MAJOR in #{file}" unless $1
-
-      ruby.gsub!(/^(\s*)MINOR(\s*)= .*?$/, "\\1MINOR = #{minor}")
-      raise "Could not insert MINOR in #{file}" unless $1
-
-      ruby.gsub!(/^(\s*)TINY(\s*)= .*?$/, "\\1TINY  = #{tiny}")
-      raise "Could not insert TINY in #{file}" unless $1
-
-      ruby.gsub!(/^(\s*)PRE(\s*)= .*?$/, "\\1PRE   = #{pre}")
-      raise "Could not insert PRE in #{file}" unless $1
-
-      File.open(file, 'w') { |f| f.write ruby }
-    end
-
-    task gem => %w(update_versions pkg) do
+    task gem => %w(pkg) do
       cmd = ""
       cmd << "cd #{framework} && " unless framework == "rails"
       cmd << "gem build #{gemspec} && mv #{framework}-#{version}.gem #{root}/pkg/"

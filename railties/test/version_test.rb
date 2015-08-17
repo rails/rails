@@ -2,11 +2,10 @@ require 'abstract_unit'
 
 class VersionTest < ActiveSupport::TestCase
   def test_rails_version_returns_a_string
-    assert Rails.version.is_a? String
+    assert Rails::VERSION.is_a?(String)
   end
 
-  def test_rails_gem_version_returns_a_correct_gem_version_object
-    assert Rails.gem_version.is_a? Gem::Version
-    assert_equal Rails.version, Rails.gem_version.to_s
+  def test_framework_version_is_equal_to_rails_version_file
+    assert_equal Rails::VERSION, File.read(File.expand_path('../../../RAILS_VERSION', __FILE__)).strip
   end
 end
