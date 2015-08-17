@@ -147,6 +147,20 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
     assert man.reload.interests.empty?
   end
 
+  def test_reject_if_with_a_method_that_loads_the_association
+    Man.class_eval do
+      accepts_nested_attributes_for :interests, :reject_if => :reject_if_false, :allow_destroy => true
+      def reject_if_false
+        interests.to_a && false
+      end
+    end
+    man = Man.create(name: "John")
+    interest_photography = man.interests.create(topic: 'photography')
+    interest_gardening = man.interests.create(topic: 'gardening')
+    man.update_attributes({:interests_attributes => {'0' => interest_photography.attributes, '1' => interest_gardening.attributes.merge('_destroy' => '1')}})
+    assert_equal 1, man.reload.interests.count
+  end
+
   def test_has_many_association_updating_a_single_record
     Man.accepts_nested_attributes_for(:interests)
     man = Man.create(:name => 'John')
