@@ -39,10 +39,12 @@ module ActionDispatch
 
         def symbol?; false; end
         def literal?; false; end
+        def terminal?; false; end
       end
 
       class Terminal < Node # :nodoc:
         alias :symbol :left
+        def terminal?; true; end
       end
 
       class Literal < Terminal # :nodoc:
