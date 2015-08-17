@@ -8,18 +8,21 @@ module ActionDispatch
 
       attr_accessor :precedence
 
+      ANY = //
       def self.build(name, app, path, constraints, required_defaults, defaults)
-        new name, app, path, constraints, required_defaults, defaults
+        request_method_match = constraints.delete(:request_method) || ANY
+        new name, app, path, constraints, required_defaults, defaults, request_method_match
       end
 
       ##
       # +path+ is a path constraint.
       # +constraints+ is a hash of constraints to be applied to this route.
-      def initialize(name, app, path, constraints, required_defaults, defaults)
+      def initialize(name, app, path, constraints, required_defaults, defaults, request_method_match)
         @name        = name
         @app         = app
         @path        = path
 
+        @request_method_match = request_method_match
         @constraints = constraints
         @defaults    = defaults
         @required_defaults = nil
@@ -96,7 +99,8 @@ module ActionDispatch
       end
 
       def matches?(request)
-        constraints.all? do |method, value|
+        match_verb(request) &&
+        constraints.all? { |method, value|
           case value
           when Regexp, String
             value === request.send(method).to_s
@@ -109,7 +113,7 @@ module ActionDispatch
           else
             value === request.send(method)
           end
-        end
+        }
       end
 
       def ip
@@ -117,11 +121,18 @@ module ActionDispatch
       end
 
       def requires_matching_verb?
-        constraints[:request_method]
+        @request_method_match != ANY
       end
 
       def verb
-        constraints[:request_method] || //
+        @request_method_match
+      end
+
+      private
+
+      def match_verb(request)
+        return true unless requires_matching_verb?
+        verb === request.request_method
       end
     end
   end
