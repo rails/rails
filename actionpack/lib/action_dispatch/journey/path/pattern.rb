@@ -59,31 +59,6 @@ module ActionDispatch
           }.map(&:name).uniq
         end
 
-        class RegexpOffsets < Journey::Visitors::Visitor # :nodoc:
-          attr_reader :offsets
-
-          def initialize(matchers)
-            @matchers      = matchers
-            @capture_count = [0]
-          end
-
-          def visit(node)
-            super
-            @capture_count
-          end
-
-          def visit_SYMBOL(node)
-            node = node.to_sym
-
-            if @matchers.key?(node)
-              re = /#{@matchers[node]}|/
-              @capture_count.push((re.match('').length - 1) + (@capture_count.last || 0))
-            else
-              @capture_count << (@capture_count.last || 0)
-            end
-          end
-        end
-
         class AnchoredRegexp < Journey::Visitors::Visitor # :nodoc:
           def initialize(separator, matchers)
             @separator = separator
@@ -193,8 +168,20 @@ module ActionDispatch
           def offsets
             return @offsets if @offsets
 
-            viz = RegexpOffsets.new(@requirements)
-            @offsets = viz.accept(spec)
+            @offsets = [0]
+
+            spec.find_all(&:symbol?).each do |node|
+              node = node.to_sym
+
+              if @requirements.key?(node)
+                re = /#{@requirements[node]}|/
+                @offsets.push((re.match('').length - 1) + @offsets.last)
+              else
+                @offsets << @offsets.last
+              end
+            end
+
+            @offsets
           end
       end
     end
