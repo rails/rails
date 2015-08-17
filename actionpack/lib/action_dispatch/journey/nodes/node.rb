@@ -14,15 +14,15 @@ module ActionDispatch
         end
 
         def each(&block)
-          Visitors::Each.new(block).accept(self)
+          Visitors::Each::INSTANCE.accept(self, block)
         end
 
         def to_s
-          Visitors::String.new.accept(self)
+          Visitors::String::INSTANCE.accept(self, '')
         end
 
         def to_dot
-          Visitors::Dot.new.accept(self)
+          Visitors::Dot::INSTANCE.accept(self)
         end
 
         def to_sym
