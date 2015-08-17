@@ -144,12 +144,13 @@ module ActionDispatch
         end
 
         def make_route(name, precedence)
-          route = Journey::Route.build(name,
+          route = Journey::Route.new(name,
                             application,
                             path,
                             conditions,
                             required_defaults,
-                            defaults)
+                            defaults,
+                            request_method)
 
           route.precedence = precedence
           route
@@ -170,20 +171,25 @@ module ActionDispatch
         def build_conditions(current_conditions, request_class)
           conditions = current_conditions.dup
 
-          # Rack-Mount requires that :request_method be a regular expression.
-          # :request_method represents the HTTP verb that matches this route.
-          #
-          # Here we munge values before they get sent on to rack-mount.
-          unless @via == [:all]
-            verbs = @via.map { |m| m.to_s.dasherize.upcase }
-            conditions[:request_method] = %r[^#{verbs.join('|')}$]
-          end
-
           conditions.keep_if do |k, _|
             request_class.public_method_defined?(k)
           end
         end
         private :build_conditions
+
+        def request_method
+          # Rack-Mount requires that :request_method be a regular expression.
+          # :request_method represents the HTTP verb that matches this route.
+          #
+          # Here we munge values before they get sent on to rack-mount.
+          if @via == [:all]
+            //
+          else
+            verbs = @via.map { |m| m.to_s.dasherize.upcase }
+            %r[^#{verbs.join('|')}$]
+          end
+        end
+        private :request_method
 
         JOINED_SEPARATORS = SEPARATORS.join # :nodoc:
 
