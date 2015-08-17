@@ -346,22 +346,11 @@ by asking the debugger for help. Type: `help`
 ```
 (byebug) help
 
-byebug 2.7.0
+  h[elp][ <cmd>[ <subcmd>]]
 
-Type 'help <command-name>' for help on a specific command
-
-Available commands:
-backtrace  delete   enable  help       list    pry next  restart  source     up
-break      disable  eval    info       method  ps        save     step       var
-catch      display  exit    interrupt  next    putl      set      thread
-condition  down     finish  irb        p       quit      show     trace
-continue   edit     frame   kill       pp      reload    skip     undisplay
-```
-
-TIP: To view the help menu for any command use `help <command-name>` at the
-debugger prompt. For example: _`help list`_. You can abbreviate any debugging
-command by supplying just enough letters to distinguish them from other
-commands. For example, you can use `l` for the `list` command.
+  help                -- prints this help.
+  help <cmd>          -- prints help on command <cmd>.
+  help <cmd> <subcmd> -- prints help on <cmd>'s subcommand <subcmd>.
 
 To see the previous ten lines you should type `list-` (or `l-`).
 
@@ -773,8 +762,8 @@ environment variable. A specific _line_ can also be given.
 
 ### Quitting
 
-To exit the debugger, use the `quit` command (abbreviated `q`), or its alias
-`exit`.
+To exit the debugger, use the `quit` command (abbreviated to `q`). Or, type `q!`
+to bypass the `Really quit? (y/n)` prompt and exit unconditionally.
 
 A simple quit tries to terminate all threads in effect. Therefore your server
 will be stopped and you will have to start it again.
