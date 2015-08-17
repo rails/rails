@@ -185,8 +185,10 @@ module ActionDispatch
         end
         private :build_conditions
 
+        JOINED_SEPARATORS = SEPARATORS.join # :nodoc:
+
         def build_path(ast, requirements, anchor)
-          pattern = Journey::Path::Pattern.new(ast, requirements, SEPARATORS, anchor)
+          pattern = Journey::Path::Pattern.new(ast, requirements, JOINED_SEPARATORS, anchor)
 
           builder = Journey::GTG::Builder.new ast
 

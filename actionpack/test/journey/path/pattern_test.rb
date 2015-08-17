@@ -4,6 +4,8 @@ module ActionDispatch
   module Journey
     module Path
       class TestPattern < ActiveSupport::TestCase
+        SEPARATORS = ["/", ".", "?"].join
+
         x = /.+/
         {
           '/:controller(/:action)'       => %r{\A/(#{x})(?:/([^/.?]+))?\Z},
@@ -22,7 +24,7 @@ module ActionDispatch
             path = Pattern.build(
               path,
               { :controller => /.+/ },
-              ["/", ".", "?"],
+              SEPARATORS,
               true
             )
             assert_equal(expected, path.to_regexp)
@@ -46,7 +48,7 @@ module ActionDispatch
             path = Pattern.build(
               path,
               { :controller => /.+/ },
-              ["/", ".", "?"],
+              SEPARATORS,
               false
             )
             assert_equal(expected, path.to_regexp)
@@ -69,7 +71,7 @@ module ActionDispatch
             path = Pattern.build(
               path,
               { :controller => /.+/ },
-              ["/", ".", "?"],
+              SEPARATORS,
               true
             )
             assert_equal(expected, path.names)
@@ -84,7 +86,7 @@ module ActionDispatch
               (tender|love
               #MAO
               )/x },
-            ["/", ".", "?"],
+            SEPARATORS,
             true
           )
           assert_match(path, '/page/tender')
@@ -107,7 +109,7 @@ module ActionDispatch
           path = Pattern.build(
             '/:name',
             { :name => /\d+/ },
-            ["/", ".", "?"],
+            SEPARATORS,
             true
           )
           assert_match(path, '/123')
@@ -118,7 +120,7 @@ module ActionDispatch
           path = Pattern.build(
             '/page/:name',
             { :name => /(tender|love)/ },
-            ["/", ".", "?"],
+            SEPARATORS,
             true
           )
           assert_match(path, '/page/tender')
@@ -131,7 +133,7 @@ module ActionDispatch
           path = Pattern.build(
             '/page/:name/:value',
             requirements,
-            ["/", ".", "?"],
+            SEPARATORS,
             true
           )
 
@@ -146,7 +148,7 @@ module ActionDispatch
           path = Pattern.build(
             '/page/:name',
             { :name => /(tender|love)/ },
-            ["/", ".", "?"],
+            SEPARATORS,
             true
           )
           match = path.match '/page/tender'
@@ -158,7 +160,7 @@ module ActionDispatch
           path = Pattern.build(
             '/page/:name/:id',
             { :name => /t(((ender|love)))()/ },
-            ["/", ".", "?"],
+            SEPARATORS,
             true
           )
           match = path.match '/page/tender/10'
@@ -173,7 +175,7 @@ module ActionDispatch
           path = Pattern.build(
             '/page/*foo',
             { :foo => z },
-            ["/", ".", "?"],
+            SEPARATORS,
             true
           )
           assert_equal(%r{\A/page/(#{z})\Z}, path.to_regexp)
@@ -183,7 +185,7 @@ module ActionDispatch
           path = Pattern.build(
             '/page/:name/aaron',
             { :name => /(tender|love)/i },
-            ["/", ".", "?"],
+            SEPARATORS,
             true
           )
           assert_match(path, '/page/TENDER/aaron')
@@ -192,7 +194,7 @@ module ActionDispatch
         end
 
         def test_to_regexp_with_strexp
-          path = Pattern.build('/:controller', { }, ["/", ".", "?"], true)
+          path = Pattern.build('/:controller', { }, SEPARATORS, true)
           x = %r{\A/([^/.?]+)\Z}
 
           assert_equal(x.source, path.source)

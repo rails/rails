@@ -5,7 +5,7 @@ module ActionDispatch
         attr_reader :spec, :requirements, :anchored
 
         def self.from_string string
-          build(string, {}, ["/.?"], true)
+          build(string, {}, "/.?", true)
         end
 
         def self.build(path, requirements, separators, anchored)
@@ -17,7 +17,7 @@ module ActionDispatch
         def initialize(ast, requirements, separators, anchored)
           @spec         = ast
           @requirements = requirements
-          @separators   = separators.join
+          @separators   = separators
           @anchored     = anchored
 
           @names          = nil

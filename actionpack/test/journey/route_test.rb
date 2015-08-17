@@ -26,7 +26,7 @@ module ActionDispatch
       end
 
       def test_path_requirements_override_defaults
-        path    = Path::Pattern.build(':name', { name: /love/ }, ['/'], true)
+        path    = Path::Pattern.build(':name', { name: /love/ }, '/', true)
         defaults  = { name: 'tender' }
         route     = Route.new('name', nil, path, nil, [], defaults)
         assert_equal(/love/, route.requirements[:name])
