@@ -8,6 +8,10 @@ module ActionDispatch
 
       attr_accessor :precedence
 
+      def self.build(name, app, path, constraints, required_defaults, defaults)
+        new name, app, path, constraints, required_defaults, defaults
+      end
+
       ##
       # +path+ is a path constraint.
       # +constraints+ is a hash of constraints to be applied to this route.

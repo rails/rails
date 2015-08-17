@@ -144,7 +144,7 @@ module ActionDispatch
         end
 
         def make_route(name, precedence)
-          route = Journey::Route.new(name,
+          route = Journey::Route.build(name,
                             application,
                             path,
                             conditions,
