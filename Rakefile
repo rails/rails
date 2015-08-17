@@ -46,7 +46,6 @@ else
 end
 
 desc 'Bump all versions to match RAILS_VERSION'
-task :update_versions => "all:update_versions"
 
 # We have a webhook configured in GitHub that gets invoked after pushes.
 # This hook triggers the following tasks:
