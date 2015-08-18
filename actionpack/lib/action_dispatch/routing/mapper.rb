@@ -178,16 +178,7 @@ module ActionDispatch
         private :build_conditions
 
         def request_method
-          # Rack-Mount requires that :request_method be a regular expression.
-          # :request_method represents the HTTP verb that matches this route.
-          #
-          # Here we munge values before they get sent on to rack-mount.
-          if @via == [:all]
-            //
-          else
-            verbs = @via.map { |m| m.to_s.dasherize.upcase }
-            %r[^#{verbs.join('|')}$]
-          end
+          @via.map { |x| Journey::Route.verb_matcher(x) }
         end
         private :request_method
 
