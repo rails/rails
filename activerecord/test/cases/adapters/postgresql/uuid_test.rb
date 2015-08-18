@@ -164,11 +164,16 @@ class PostgresqlUUIDGenerationTest < ActiveRecord::PostgreSQLTestCase
       t.string 'name'
       t.uuid 'other_uuid_2', default: 'my_uuid_generator()'
     end
+
+    connection.create_table('pg_uuids_3', id: :uuid) do |t|
+      t.string 'name'
+    end
   end
 
   teardown do
     drop_table "pg_uuids"
     drop_table 'pg_uuids_2'
+    drop_table 'pg_uuids_3'
     connection.execute 'DROP FUNCTION IF EXISTS my_uuid_generator();'
   end
 
@@ -205,6 +210,32 @@ class PostgresqlUUIDGenerationTest < ActiveRecord::PostgreSQLTestCase
       schema = dump_table_schema "pg_uuids_2"
       assert_match(/\bcreate_table "pg_uuids_2", id: :uuid, default: -> { "my_uuid_generator\(\)" }/, schema)
       assert_match(/t\.uuid   "other_uuid_2", default: -> { "my_uuid_generator\(\)" }/, schema)
+    end
+
+    def test_schema_dumper_for_uuid_primary_key_default
+      schema = dump_table_schema "pg_uuids_3"
+      if connection.supports_pgcrypto?
+        assert_match(/\bcreate_table "pg_uuids_3", id: :uuid, default: -> { "gen_random_uuid\(\)" }/, schema)
+      else
+        assert_match(/\bcreate_table "pg_uuids_3", id: :uuid, default: -> { "uuid_generate_v4\(\)" }/, schema)
+      end
+    end
+
+    if ActiveRecord::Base.connection.supports_pgcrypto?
+      def test_schema_dumper_for_uuid_primary_key_default_in_legacy_migration
+        migration = Class.new(ActiveRecord::Migration[4.2]) {
+          def version; 101 end
+          def migrate(x)
+            create_table('pg_uuids_4', id: :uuid)
+          end
+        }.new
+        ActiveRecord::Migrator.new(:up, [migration]).migrate
+
+        schema = dump_table_schema "pg_uuids_4"
+        assert_match(/\bcreate_table "pg_uuids_4", id: :uuid, default: -> { "uuid_generate_v4\(\)" }/, schema)
+      ensure
+        drop_table 'pg_uuids_4'
+      end
     end
   end
 end
