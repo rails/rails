@@ -8,7 +8,7 @@ module ActiveSupport
 
     def try!(*a, &b)
       if a.empty? && block_given?
-        if b.arity.zero?
+        if b.arity == 0
           instance_eval(&b)
         else
           yield self
