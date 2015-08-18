@@ -50,7 +50,7 @@ module ActionDispatch
       end
 
       def self.build(name, app, path, constraints, required_defaults, defaults)
-        request_method_match = verb_matcher(constraints.delete(:request_method)) || []
+        request_method_match = verb_matcher(constraints.delete(:request_method))
         new name, app, path, constraints, required_defaults, defaults, request_method_match
       end
 
