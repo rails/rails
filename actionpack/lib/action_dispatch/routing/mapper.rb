@@ -187,18 +187,16 @@ module ActionDispatch
         def build_path(ast, requirements, anchor)
           pattern = Journey::Path::Pattern.new(ast, requirements, JOINED_SEPARATORS, anchor)
 
-          builder = Journey::GTG::Builder.new ast
-
           # Get all the symbol nodes followed by literals that are not the
           # dummy node.
-          symbols = ast.grep(Journey::Nodes::Symbol).find_all { |n|
-            builder.followpos(n).first.literal?
-          }
+          symbols = ast.find_all { |n|
+            n.cat? && n.left.symbol? && n.right.cat? && n.right.left.literal?
+          }.map(&:left)
 
           # Get all the symbol nodes preceded by literals.
-          symbols.concat ast.find_all(&:literal?).map { |n|
-            builder.followpos(n).first
-          }.find_all(&:symbol?)
+          symbols.concat ast.find_all { |n|
+            n.cat? && n.left.literal? && n.right.cat? && n.right.left.symbol?
+          }.map { |n| n.right.left }
 
           symbols.each { |x|
             x.regexp = /(?:#{Regexp.union(x.regexp, '-')})+/
