@@ -1,6 +1,8 @@
 class User < ActiveRecord::Base
   has_secure_token
   has_secure_token :auth_token
+
+  validates_presence_of :token
 end
 
 class UserWithNotification < User

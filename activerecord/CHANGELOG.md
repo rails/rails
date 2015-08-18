@@ -1,3 +1,7 @@
+*   Allow tokens generated with `ActiveRecord::SecureToken` to be validated.
+
+    *Kyle Marek-Spartz*
+
 *   Add a native JSON data type support in MySQL.
 
     Example:
