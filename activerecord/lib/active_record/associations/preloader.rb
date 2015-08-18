@@ -116,7 +116,7 @@ module ActiveRecord
         when String
           preloaders_for_one(association.to_sym, records, scope)
         else
-          raise ArgumentError, "#{association.inspect} was not recognised for preload"
+          raise ArgumentError, "#{association.inspect} was not recognized for preload"
         end
       end
 
