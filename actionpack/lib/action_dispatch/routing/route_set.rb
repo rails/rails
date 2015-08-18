@@ -89,6 +89,7 @@ module ActionDispatch
       class NamedRouteCollection
         include Enumerable
         attr_reader :routes, :url_helpers_module, :path_helpers_module
+        private :routes
 
         def initialize
           @routes  = {}
