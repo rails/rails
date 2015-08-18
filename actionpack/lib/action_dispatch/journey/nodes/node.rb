@@ -72,11 +72,13 @@ module ActionDispatch
       class Symbol < Terminal # :nodoc:
         attr_accessor :regexp
         alias :symbol :regexp
+        attr_reader :name
 
         DEFAULT_EXP = /[^\.\/\?]+/
         def initialize(left)
           super
           @regexp = DEFAULT_EXP
+          @name = left.tr '*:'.freeze, ''.freeze
         end
 
         def default_regexp?
