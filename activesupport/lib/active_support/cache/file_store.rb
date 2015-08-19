@@ -158,6 +158,8 @@ module ActiveSupport
           FileUtils.makedirs(path) unless File.exist?(path)
         end
 
+        # Search cache directory's file path.
+        # Return +nil+ If cache file directory does not exist.
         def search_dir(dir, &callback)
           return if !File.exist?(dir)
           Dir.foreach(dir) do |d|
