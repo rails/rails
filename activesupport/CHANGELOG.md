@@ -1,3 +1,7 @@
+*   Deprecate `:prefix` option of `number_to_human_size` with no replacement.
+
+    *Jean Boussier*
+
 *   Fix `TimeWithZone#eql?` to properly handle `TimeWithZone` created from `DateTime`:
         twz = DateTime.now.in_time_zone
         twz.eql?(twz.dup) => true

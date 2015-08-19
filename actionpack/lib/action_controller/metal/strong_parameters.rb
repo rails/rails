@@ -461,7 +461,7 @@ module ActionController
       end
     end
 
-    # Performs keys transfomration and returns the altered
+    # Performs keys transformation and returns the altered
     # <tt>ActionController::Parameters</tt> instance.
     def transform_keys!(&block)
       @parameters.transform_keys!(&block)

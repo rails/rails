@@ -1171,4 +1171,32 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
     assert_deprecated { post.people(true) }
   end
+
+  def test_has_many_through_do_not_cache_association_reader_if_the_though_method_has_default_scopes
+    member = Member.create!
+    club = Club.create!
+    TenantMembership.create!(
+      member: member,
+      club: club
+    )
+
+    TenantMembership.current_member = member
+
+    tenant_clubs = member.tenant_clubs
+    assert_equal [club], tenant_clubs
+
+    TenantMembership.current_member = nil
+
+    other_member = Member.create!
+    other_club = Club.create!
+    TenantMembership.create!(
+      member: other_member,
+      club: other_club
+    )
+
+    tenant_clubs = other_member.tenant_clubs
+    assert_equal [other_club], tenant_clubs
+  ensure
+    TenantMembership.current_member = nil
+  end
 end

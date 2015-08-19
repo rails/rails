@@ -3,18 +3,19 @@ require 'abstract_unit'
 module ActionDispatch
   module Journey
     class TestRoutes < ActiveSupport::TestCase
-      setup do
-        @routes = Routes.new
+      attr_reader :routes, :mapper
+
+      def setup
+        @route_set  = ActionDispatch::Routing::RouteSet.new
+        @routes = @route_set.router.routes
+        @router = @route_set.router
+        @mapper = ActionDispatch::Routing::Mapper.new @route_set
+        super
       end
 
       def test_clear
-        routes = Routes.new
-        exp    = Router::Strexp.build '/foo(/:id)', {}, ['/.?']
-        path   = Path::Pattern.new exp
-        requirements = { :hello => /world/ }
-
-        routes.add_route nil, path, requirements, [], {:id => nil}, {}
-        assert_not routes.empty?
+        mapper.get "/foo(/:id)", to: "foo#bar", as: 'aaron'
+        assert_not_predicate routes, :empty?
         assert_equal 1, routes.length
 
         routes.clear
@@ -23,52 +24,36 @@ module ActionDispatch
       end
 
       def test_ast
-        routes = Routes.new
-        path   = Path::Pattern.from_string '/hello'
-
-        routes.add_route nil, path, {}, [], {}, {}
+        mapper.get "/foo(/:id)", to: "foo#bar", as: 'aaron'
         ast = routes.ast
-        routes.add_route nil, path, {}, [], {}, {}
+        mapper.get "/foo(/:id)", to: "foo#bar", as: 'gorby'
         assert_not_equal ast, routes.ast
       end
 
       def test_simulator_changes
-        routes = Routes.new
-        path   = Path::Pattern.from_string '/hello'
-
-        routes.add_route nil, path, {}, [], {}, {}
+        mapper.get "/foo(/:id)", to: "foo#bar", as: 'aaron'
         sim = routes.simulator
-        routes.add_route nil, path, {}, [], {}, {}
+        mapper.get "/foo(/:id)", to: "foo#bar", as: 'gorby'
         assert_not_equal sim, routes.simulator
       end
 
       def test_partition_route
-        path   = Path::Pattern.from_string '/hello'
+        mapper.get "/foo(/:id)", to: "foo#bar", as: 'aaron'
 
-        anchored_route = @routes.add_route nil, path, {}, [], {}, {}
-        assert_equal [anchored_route], @routes.anchored_routes
-        assert_equal [], @routes.custom_routes
+        assert_equal 1, @routes.anchored_routes.length
+        assert_predicate @routes.custom_routes, :empty?
 
-        strexp = Router::Strexp.build(
-          "/hello/:who", { who: /\d/ }, ['/', '.', '?']
-        )
-        path  = Path::Pattern.new strexp
+        mapper.get "/hello/:who", to: "foo#bar", as: 'bar', who: /\d/
 
-        custom_route = @routes.add_route nil, path, {}, [], {}, {}
-        assert_equal [custom_route], @routes.custom_routes
-        assert_equal [anchored_route], @routes.anchored_routes
+        assert_equal 1, @routes.custom_routes.length
+        assert_equal 1, @routes.anchored_routes.length
       end
 
       def test_first_name_wins
-        routes = Routes.new
-
-        one   = Path::Pattern.from_string '/hello'
-        two   = Path::Pattern.from_string '/aaron'
-
-        routes.add_route nil, one, {}, [], {}, 'aaron'
-        routes.add_route nil, two, {}, [], {}, 'aaron'
-
-        assert_equal '/hello', routes.named_routes['aaron'].path.spec.to_s
+        mapper.get "/hello", to: "foo#bar", as: 'aaron'
+        assert_raise(ArgumentError) do
+          mapper.get "/aaron", to: "foo#bar", as: 'aaron'
+        end
       end
     end
   end

@@ -40,43 +40,43 @@ class EnumTest < ActiveRecord::TestCase
     published, written = Book.statuses[:published], Book.statuses[:written]
 
     assert_equal @book, Book.where(status: published).first
-    refute_equal @book, Book.where(status: written).first
+    assert_not_equal @book, Book.where(status: written).first
     assert_equal @book, Book.where(status: [published]).first
-    refute_equal @book, Book.where(status: [written]).first
-    refute_equal @book, Book.where("status <> ?", published).first
+    assert_not_equal @book, Book.where(status: [written]).first
+    assert_not_equal @book, Book.where("status <> ?", published).first
     assert_equal @book, Book.where("status <> ?", written).first
   end
 
   test "find via where with symbols" do
     assert_equal @book, Book.where(status: :published).first
-    refute_equal @book, Book.where(status: :written).first
+    assert_not_equal @book, Book.where(status: :written).first
     assert_equal @book, Book.where(status: [:published]).first
-    refute_equal @book, Book.where(status: [:written]).first
-    refute_equal @book, Book.where.not(status: :published).first
+    assert_not_equal @book, Book.where(status: [:written]).first
+    assert_not_equal @book, Book.where.not(status: :published).first
     assert_equal @book, Book.where.not(status: :written).first
   end
 
   test "find via where with strings" do
     assert_equal @book, Book.where(status: "published").first
-    refute_equal @book, Book.where(status: "written").first
+    assert_not_equal @book, Book.where(status: "written").first
     assert_equal @book, Book.where(status: ["published"]).first
-    refute_equal @book, Book.where(status: ["written"]).first
-    refute_equal @book, Book.where.not(status: "published").first
+    assert_not_equal @book, Book.where(status: ["written"]).first
+    assert_not_equal @book, Book.where.not(status: "published").first
     assert_equal @book, Book.where.not(status: "written").first
   end
 
   test "build from scope" do
     assert Book.written.build.written?
-    refute Book.written.build.proposed?
+    assert_not Book.written.build.proposed?
   end
 
   test "build from where" do
     assert Book.where(status: Book.statuses[:written]).build.written?
-    refute Book.where(status: Book.statuses[:written]).build.proposed?
+    assert_not Book.where(status: Book.statuses[:written]).build.proposed?
     assert Book.where(status: :written).build.written?
-    refute Book.where(status: :written).build.proposed?
+    assert_not Book.where(status: :written).build.proposed?
     assert Book.where(status: "written").build.written?
-    refute Book.where(status: "written").build.proposed?
+    assert_not Book.where(status: "written").build.proposed?
   end
 
   test "update by declaration" do

@@ -49,7 +49,7 @@ class TestRoutingMount < ActionDispatch::IntegrationTest
   def test_app_name_is_properly_generated_when_engine_is_mounted_in_resources
     assert Router.mounted_helpers.method_defined?(:user_fake_mounted_at_resource),
           "A mounted helper should be defined with a parent's prefix"
-    assert Router.named_routes.routes[:user_fake_mounted_at_resource],
+    assert Router.named_routes.key?(:user_fake_mounted_at_resource),
           "A named route should be defined with a parent's prefix"
   end
 

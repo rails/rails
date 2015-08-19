@@ -376,6 +376,7 @@ module ActiveRecord
       attr_accessor :delegate # :nodoc:
       attr_accessor :disable_ddl_transaction # :nodoc:
 
+      # Raises <tt>ActiveRecord::PendingMigrationError</tt> error if any migrations are pending.
       def check_pending!(connection = Base.connection)
         raise ActiveRecord::PendingMigrationError if ActiveRecord::Migrator.needs_migration?(connection)
       end

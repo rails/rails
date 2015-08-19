@@ -100,6 +100,14 @@ class HttpBasicAuthenticationTest < ActionController::TestCase
     assert_no_match(/\n/, result)
   end
 
+  test "succesful authentication with uppercase authorization scheme" do
+    @request.env['HTTP_AUTHORIZATION'] = "BASIC #{::Base64.encode64("lifo:world")}"
+    get :index
+
+    assert_response :success
+    assert_equal 'Hello Secret', @response.body, 'Authentication failed when authorization scheme BASIC'
+  end
+
   test "authentication request without credential" do
     get :display
 

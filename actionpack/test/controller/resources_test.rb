@@ -505,8 +505,8 @@ class ResourcesTest < ActionController::TestCase
       routes = @routes.routes
       routes.each do |route|
         routes.each do |r|
-          next if route === r # skip the comparison instance
-          assert_not_equal [route.conditions, route.path.spec.to_s], [r.conditions, r.path.spec.to_s]
+          next if route == r # skip the comparison instance
+          assert_not_equal [route.conditions, route.path.spec.to_s, route.verb], [r.conditions, r.path.spec.to_s, r.verb]
         end
       end
     end

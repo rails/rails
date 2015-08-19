@@ -385,27 +385,27 @@ module ActiveRecord
     #
     # For example:
     #
-    # class PostsController < ActionController::Base
-    #   after_action :print_accessed_fields, only: :index
+    #   class PostsController < ActionController::Base
+    #     after_action :print_accessed_fields, only: :index
     #
-    #   def index
-    #     @posts = Post.all
+    #     def index
+    #       @posts = Post.all
+    #     end
+    #
+    #     private
+    #
+    #     def print_accessed_fields
+    #       p @posts.first.accessed_fields
+    #     end
     #   end
-    #
-    #   private
-    #
-    #   def print_accessed_fields
-    #     p @posts.first.accessed_fields
-    #   end
-    # end
     #
     # Which allows you to quickly change your code to:
     #
-    # class PostsController < ActionController::Base
-    #   def index
-    #     @posts = Post.select(:id, :title, :author_id, :updated_at)
+    #   class PostsController < ActionController::Base
+    #     def index
+    #       @posts = Post.select(:id, :title, :author_id, :updated_at)
+    #     end
     #   end
-    # end
     def accessed_fields
       @attributes.accessed
     end

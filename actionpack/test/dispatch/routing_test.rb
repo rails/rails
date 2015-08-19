@@ -361,9 +361,12 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
   end
 
   def test_pagemarks
+    tc = self
     draw do
       scope "pagemark", :controller => "pagemarks", :as => :pagemark do
-        get  "new", :path => "build"
+        tc.assert_deprecated do
+          get  "new", :path => "build"
+        end
         post "create", :as => ""
         put  "update"
         get  "remove", :action => :destroy, :as => :remove
@@ -3618,7 +3621,7 @@ private
 end
 
 class TestAltApp < ActionDispatch::IntegrationTest
-  class AltRequest
+  class AltRequest < ActionDispatch::Request
     attr_accessor :path_parameters, :path_info, :script_name
     attr_reader :env
 
@@ -3627,6 +3630,7 @@ class TestAltApp < ActionDispatch::IntegrationTest
       @env = env
       @path_info = "/"
       @script_name = ""
+      super
     end
 
     def request_method

@@ -1,3 +1,24 @@
+*   Add a native JSON data type support in MySQL.
+
+    Example:
+
+        create_table :json_data_type do |t|
+          t.json :settings
+        end
+
+    *Ryuta Kamizono*
+
+*   Descriptive error message when fixtures contain a missing column.
+
+    Closes #21201.
+
+    *Yves Senn*
+
+*   `ActiveRecord::Tasks::PostgreSQLDatabaseTasks` fail if shellout to
+    postgresql commands (like `pg_dump`) is not successful.
+
+    *Bryan Paxton*, *Nate Berkopec*
+
 *   Add `ActiveRecord::Relation#in_batches` to work with records and relations
     in batches.
 

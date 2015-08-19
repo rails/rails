@@ -89,6 +89,7 @@ module ActionDispatch
       class NamedRouteCollection
         include Enumerable
         attr_reader :routes, :url_helpers_module, :path_helpers_module
+        private :routes
 
         def initialize
           @routes  = {}
@@ -143,6 +144,7 @@ module ActionDispatch
         end
 
         def key?(name)
+          return unless name
           routes.key? name.to_sym
         end
 
@@ -356,7 +358,7 @@ module ActionDispatch
 
         @set    = Journey::Routes.new
         @router = Journey::Router.new @set
-        @formatter = Journey::Formatter.new @set
+        @formatter = Journey::Formatter.new self
         @dispatcher_class = Routing::RouteSet::Dispatcher
       end
 
@@ -514,7 +516,7 @@ module ActionDispatch
         routes.empty?
       end
 
-      def add_route(app, conditions = {}, requirements = {}, defaults = {}, name = nil, anchor = true)
+      def add_route(mapping, path_ast, name, anchor)
         raise ArgumentError, "Invalid route name: '#{name}'" unless name.blank? || name.to_s.match(/^[_a-z]\w*$/i)
 
         if name && named_routes[name]
@@ -525,65 +527,10 @@ module ActionDispatch
             "http://guides.rubyonrails.org/routing.html#restricting-the-routes-created"
         end
 
-        path = conditions.delete :path_info
-        ast  = conditions.delete :parsed_path_info
-        required_defaults  = conditions.delete :required_defaults
-        path = build_path(path, ast, requirements, anchor)
-        conditions = build_conditions(conditions)
-
-        route = @set.add_route(app, path, conditions, required_defaults, defaults, name)
+        route = @set.add_route(name, mapping)
         named_routes[name] = route if name
         route
       end
-
-      def build_path(path, ast, requirements, anchor)
-        strexp = Journey::Router::Strexp.new(
-            ast,
-            path,
-            requirements,
-            SEPARATORS,
-            anchor)
-
-        pattern = Journey::Path::Pattern.new(strexp)
-
-        builder = Journey::GTG::Builder.new pattern.spec
-
-        # Get all the symbol nodes followed by literals that are not the
-        # dummy node.
-        symbols = pattern.spec.grep(Journey::Nodes::Symbol).find_all { |n|
-          builder.followpos(n).first.literal?
-        }
-
-        # Get all the symbol nodes preceded by literals.
-        symbols.concat pattern.spec.find_all(&:literal?).map { |n|
-          builder.followpos(n).first
-        }.find_all(&:symbol?)
-
-        symbols.each { |x|
-          x.regexp = /(?:#{Regexp.union(x.regexp, '-')})+/
-        }
-
-        pattern
-      end
-      private :build_path
-
-      def build_conditions(current_conditions)
-        conditions = current_conditions.dup
-
-        # Rack-Mount requires that :request_method be a regular expression.
-        # :request_method represents the HTTP verb that matches this route.
-        #
-        # Here we munge values before they get sent on to rack-mount.
-        verbs = conditions[:request_method] || []
-        unless verbs.empty?
-          conditions[:request_method] = %r[^#{verbs.join('|')}$]
-        end
-
-        conditions.keep_if do |k, _|
-          request_class.public_method_defined?(k)
-        end
-      end
-      private :build_conditions
 
       class Generator
         PARAMETERIZE = lambda do |name, value|

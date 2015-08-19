@@ -155,7 +155,7 @@ module ActionDispatch
 
         def build_cache
           root = { ___routes: [] }
-          routes.each_with_index do |route, i|
+          routes.routes.each_with_index do |route, i|
             leaf = route.required_defaults.inject(root) do |h, tuple|
               h[tuple] ||= {}
             end

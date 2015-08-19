@@ -214,6 +214,7 @@ module ActiveRecord
         @name = name
       end
 
+      # Returns an array of ColumnDefinition objects for the columns of the table.
       def columns; @columns_hash.values; end
 
       # Returns a ColumnDefinition for the column with name +name+.
@@ -369,6 +370,8 @@ module ActiveRecord
         self
       end
 
+      # remove the column +name+ from the table.
+      #   remove_column(:account_id)
       def remove_column(name)
         @columns_hash.delete name.to_s
       end

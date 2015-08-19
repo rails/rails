@@ -24,6 +24,6 @@ class MysqlQuotingTest < ActiveRecord::MysqlTestCase
     @conn.stubs(:full_version).returns('5.6.3')
     @conn.remove_instance_variable(:@version) if @conn.instance_variable_defined?(:@version)
     t = Time.now.change(usec: 1)
-    refute_match(/\.000001\z/, @conn.quoted_date(t))
+    assert_no_match(/\.000001\z/, @conn.quoted_date(t))
   end
 end

@@ -5,11 +5,10 @@ module ActionDispatch
     class Routes # :nodoc:
       include Enumerable
 
-      attr_reader :routes, :named_routes, :custom_routes, :anchored_routes
+      attr_reader :routes, :custom_routes, :anchored_routes
 
       def initialize
         @routes             = []
-        @named_routes       = {}
         @ast                = nil
         @anchored_routes    = []
         @custom_routes      = []
@@ -37,7 +36,6 @@ module ActionDispatch
         routes.clear
         anchored_routes.clear
         custom_routes.clear
-        named_routes.clear
       end
 
       def partition_route(route)
@@ -62,13 +60,9 @@ module ActionDispatch
         end
       end
 
-      # Add a route to the routing table.
-      def add_route(app, path, conditions, required_defaults, defaults, name = nil)
-        route = Route.new(name, app, path, conditions, required_defaults, defaults)
-
-        route.precedence = routes.length
+      def add_route(name, mapping)
+        route = mapping.make_route name, routes.length
         routes << route
-        named_routes[name] = route if name && !named_routes[name]
         partition_route(route)
         clear_cache!
         route

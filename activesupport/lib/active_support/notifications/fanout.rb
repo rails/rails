@@ -111,7 +111,7 @@ module ActiveSupport
           end
         end
 
-        class Timed < Evented
+        class Timed < Evented # :nodoc:
           def publish(name, *args)
             @delegate.call name, *args
           end

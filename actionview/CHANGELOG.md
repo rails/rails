@@ -1,3 +1,12 @@
+*   Make `disable_with` the default behavior for submit tags. Disables the
+    button on submit to prevent double submits.
+
+    *Justin Schiff*
+
+*   Add a break_sequence option to word_wrap so you can specify a custom break.
+
+    * Mauricio Gomez *
+
 *   Add wildcard matching to explicit dependencies.
 
     Turns:

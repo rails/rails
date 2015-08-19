@@ -11,7 +11,7 @@ class TouchLaterTest < ActiveRecord::TestCase
   def test_touch_laster_raise_if_non_persisted
     invoice = Invoice.new
     Invoice.transaction do
-      refute invoice.persisted?
+      assert_not invoice.persisted?
       assert_raises(ActiveRecord::ActiveRecordError) do
         invoice.touch_later
       end
@@ -21,7 +21,7 @@ class TouchLaterTest < ActiveRecord::TestCase
   def test_touch_later_dont_set_dirty_attributes
     invoice = Invoice.create!
     invoice.touch_later
-    refute invoice.changed?
+    assert_not invoice.changed?
   end
 
   def test_touch_later_update_the_attributes
