@@ -21,7 +21,7 @@ module Rails
       def initialize(*)
         super
         self.encoding = "utf-8"
-        @allow_concurrency             = nil
+        @allow_concurrency             = true
         @consider_all_requests_local   = false
         @filter_parameters             = []
         @filter_redirect               = []
