@@ -209,12 +209,16 @@ module Rails
           [
             GemfileEntry.path('rails', Rails::Generators::RAILS_DEV_PATH),
             GemfileEntry.github('sprockets-rails', 'rails/sprockets-rails'),
+            GemfileEntry.github('sprockets', 'rails/sprockets'),
+            GemfileEntry.github('sass-rails', 'rails/sass-rails'),
             GemfileEntry.github('arel', 'rails/arel')
           ]
         elsif options.edge?
           [
             GemfileEntry.github('rails', 'rails/rails'),
             GemfileEntry.github('sprockets-rails', 'rails/sprockets-rails'),
+            GemfileEntry.github('sprockets', 'rails/sprockets'),
+            GemfileEntry.github('sass-rails', 'rails/sass-rails'),
             GemfileEntry.github('arel', 'rails/arel')
           ]
         else
@@ -255,8 +259,6 @@ module Rails
         return [] if options[:skip_sprockets]
 
         gems = []
-        gems << GemfileEntry.version('sass-rails', '~> 5.0',
-                                     'Use SCSS for stylesheets')
 
         gems << GemfileEntry.version('uglifier',
                                    '>= 1.3.0',

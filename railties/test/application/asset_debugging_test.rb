@@ -48,7 +48,7 @@ module ApplicationTests
       assert_no_match(/<script src="\/assets\/xmlhr-([0-z]+)\.js"><\/script>/, last_response.body)
     end
 
-    test "assets aren't concatenated when compile is true is on and debug_assets params is true" do
+    test "assets are served with sourcemaps when compile is true and debug_assets params is true" do
       add_to_env_config "production", "config.assets.compile = true"
 
       ENV["RAILS_ENV"] = "production"
@@ -57,8 +57,7 @@ module ApplicationTests
       class ::PostsController < ActionController::Base ; end
 
       get '/posts?debug_assets=true'
-      assert_match(/<script src="\/assets\/application(\.self)?-([0-z]+)\.js\?body=1"><\/script>/, last_response.body)
-      assert_match(/<script src="\/assets\/xmlhr(\.self)?-([0-z]+)\.js\?body=1"><\/script>/, last_response.body)
+      assert_match(/<script src="\/assets\/application(\.debug)?-([0-z]+)\.js"><\/script>/, last_response.body)
     end
   end
 end
