@@ -51,10 +51,10 @@ GIT
 
 GIT
   remote: git://github.com/rails/sprockets-rails.git
-  revision: ad4a43bd1bb19c86a8bf94a2ad5e477686161490
+  revision: e65e088575be4f6b994823b80a277affb0a57a5e
   branch: master
   specs:
-    sprockets-rails (3.0.0)
+    sprockets-rails (3.0.0.beta2)
       actionpack (>= 4.0)
       activesupport (>= 4.0)
       sprockets (>= 3.0.0)
@@ -120,7 +120,7 @@ PATH
 GEM
   remote: https://rubygems.org/
   specs:
-    amq-protocol (1.9.2)
+    amq-protocol (2.0.0)
     backburner (1.0.0)
       beaneater (~> 1.0)
       dante (> 0.1.5)
@@ -132,9 +132,8 @@ GEM
     builder (3.2.2)
     bunny (1.7.0)
       amq-protocol (>= 1.9.2)
-    byebug (5.0.0)
-      columnize (= 0.9.0)
-    celluloid (0.16.1)
+    byebug (6.0.0)
+    celluloid (0.16.0)
       timers (~> 4.0.0)
     coffee-rails (4.1.0)
       coffee-script (>= 2.2.0)
@@ -143,7 +142,6 @@ GEM
       coffee-script-source
       execjs
     coffee-script-source (1.9.1.1)
-    columnize (0.9.0)
     concurrent-ruby (0.9.1)
     connection_pool (2.2.0)
     dalli (2.7.4)
@@ -154,7 +152,7 @@ GEM
       activerecord (>= 3.0, < 5.0)
       delayed_job (>= 3.0, < 4.1)
     erubis (2.7.0)
-    execjs (2.5.2)
+    execjs (2.6.0)
     hitimes (1.2.2)
     hitimes (1.2.2-x86-mingw32)
     i18n (0.7.0)
@@ -162,7 +160,7 @@ GEM
     kindlerb (0.1.1)
       mustache
       nokogiri
-    loofah (2.0.2)
+    loofah (2.0.3)
       nokogiri (>= 1.5.9)
     metaclass (0.0.4)
     method_source (0.8.2)
@@ -191,7 +189,7 @@ GEM
       rack (>= 1.0)
     rails-deprecated_sanitizer (1.0.3)
       activesupport (>= 4.2.0.alpha)
-    rails-dom-testing (1.0.6)
+    rails-dom-testing (1.0.7)
       activesupport (>= 4.2.0.beta, < 5.0)
       nokogiri (~> 1.6.0)
       rails-deprecated_sanitizer (>= 1.0.1)
@@ -317,4 +315,4 @@ DEPENDENCIES
   w3c_validators
 
 BUNDLED WITH
-   1.10.5
+   1.10.6
