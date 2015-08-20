@@ -2,7 +2,7 @@ require "abstract_unit"
 
 class HeaderTest < ActiveSupport::TestCase
   def make_headers(hash)
-    ActionDispatch::Http::Headers.new hash
+    ActionDispatch::Http::Headers.new ActionDispatch::Request.new hash
   end
 
   setup do

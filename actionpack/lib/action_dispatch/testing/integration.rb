@@ -359,10 +359,10 @@ module ActionDispatch
 
           # this modifies the passed request_env directly
           if headers.present?
-            Http::Headers.new(request_env).merge!(headers)
+            Http::Headers.from_hash(request_env).merge!(headers)
           end
           if env.present?
-            Http::Headers.new(request_env).merge!(env)
+            Http::Headers.from_hash(request_env).merge!(env)
           end
 
           session = Rack::Test::Session.new(_mock_session)

@@ -170,7 +170,7 @@ module ActionDispatch
     #
     #   request.headers["Content-Type"] # => "text/plain"
     def headers
-      @headers ||= Http::Headers.new(@env)
+      @headers ||= Http::Headers.new(self)
     end
 
     # Returns a +String+ with the last requested path including their params.
