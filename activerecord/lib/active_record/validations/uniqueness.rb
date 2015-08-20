@@ -18,7 +18,11 @@ module ActiveRecord
 
         relation = build_relation(finder_class, table, attribute, value)
         if record.persisted? && finder_class.primary_key.to_s != attribute.to_s
-          relation = relation.where.not(finder_class.primary_key => record.id)
+          if finder_class.primary_key
+            relation = relation.where.not(finder_class.primary_key => record.id)
+          else
+            raise UnknownPrimaryKey.new(finder_class, "Can not validate uniqueness for persisted record without primary key.")
+          end
         end
         relation = scope_relation(record, table, relation)
         relation = relation.merge(options[:conditions]) if options[:conditions]

@@ -1,3 +1,10 @@
+*   Uniqueness validator raises descriptive error when running on a persisted
+    record without primary key.
+
+    Closes #21304.
+
+    *Yves Senn*
+
 *   Add a native JSON data type support in MySQL.
 
     Example:
