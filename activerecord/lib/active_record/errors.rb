@@ -219,11 +219,12 @@ module ActiveRecord
   class UnknownPrimaryKey < ActiveRecordError
     attr_reader :model
 
-    def initialize(model)
-      super("Unknown primary key for table #{model.table_name} in model #{model}.")
+    def initialize(model, description = nil)
+      message = "Unknown primary key for table #{model.table_name} in model #{model}."
+      message += "\n#{description}" if description
+      super(message)
       @model = model
     end
-
   end
 
   # Raised when a relation cannot be mutated because it's already loaded.

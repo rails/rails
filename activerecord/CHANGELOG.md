@@ -1,3 +1,10 @@
+*   Uniqueness validator raises descriptive error when running on a persisted
+    record without primary key.
+
+    Closes #21304.
+
+    *Yves Senn*
+
 ## Rails 4.2.4 (August 14, 2015) ##
 
 *   Skip statement cache on through association reader.
