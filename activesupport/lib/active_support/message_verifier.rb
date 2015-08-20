@@ -35,7 +35,7 @@ module ActiveSupport
     end
 
     def verify(signed_message)
-      raise InvalidSignature if signed_message.blank?
+      raise InvalidSignature if signed_message.nil? || !signed_message.valid_encoding? || signed_message.blank?
 
       data, digest = signed_message.split("--")
       if data.present? && digest.present? && ActiveSupport::SecurityUtils.secure_compare(digest, generate_digest(data))
