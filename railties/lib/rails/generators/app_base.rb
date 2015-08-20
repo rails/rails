@@ -212,6 +212,7 @@ module Rails
             GemfileEntry.github('sprockets', 'rails/sprockets'),
             GemfileEntry.github('sass-rails', 'rails/sass-rails'),
             GemfileEntry.github('arel', 'rails/arel')
+            GemfileEntry.github('rack', 'rack/rack')
           ]
         elsif options.edge?
           [
@@ -220,6 +221,7 @@ module Rails
             GemfileEntry.github('sprockets', 'rails/sprockets'),
             GemfileEntry.github('sass-rails', 'rails/sass-rails'),
             GemfileEntry.github('arel', 'rails/arel')
+            GemfileEntry.github('rack', 'rack/rack')
           ]
         else
           [GemfileEntry.version('rails',

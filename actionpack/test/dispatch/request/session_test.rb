@@ -7,7 +7,7 @@ module ActionDispatch
       def test_create_adds_itself_to_env
         env = {}
         s = Session.create(store, env, {})
-        assert_equal s, env[Rack::Session::Abstract::ENV_SESSION_KEY]
+        assert_equal s, env[Rack::RACK_SESSION]
       end
 
       def test_to_hash
