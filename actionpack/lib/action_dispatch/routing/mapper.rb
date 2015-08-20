@@ -150,9 +150,9 @@ module ActionDispatch
                             conditions,
                             required_defaults,
                             defaults,
-                            request_method)
+                            request_method,
+                            precedence)
 
-          route.precedence = precedence
           route
         end
 
