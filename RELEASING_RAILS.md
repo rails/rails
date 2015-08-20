@@ -46,7 +46,7 @@ addressed, and that can impact your release date.
 Ruby implementors have high stakes in making sure Rails works.  Be kind and
 give them a heads up that Rails will be released soonish.
 
-This is only required for major and minor releases, bugfix releases aren't a
+This is only required for major and minor releases, as bugfix releases aren't a
 big enough deal, and are supposed to be backwards compatible.
 
 Send an email just giving a heads up about the upcoming release to these
@@ -168,7 +168,7 @@ commits should be added to the release branch besides regression fixing commits.
 ## Day of release
 
 Many of these steps are the same as for the release candidate, so if you need
-more explanation on a particular step, see the RC steps.
+further explanation on a particular step, see the RC steps.
 
 Today, do this stuff in this order:
 
