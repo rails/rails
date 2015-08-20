@@ -277,7 +277,7 @@ simply be explicit in a comment, like:
 
 ### Low-Level Caching
 
-Sometimes you need to cache a particular value or query result instead of caching view fragments. Rails' caching mechanism works great for storing __any__ kind of information.
+Sometimes you need to cache a particular value or query result instead of caching view fragments. Rails' caching mechanism works great for string __any__ kind of information.
 
 The most efficient way to implement low-level caching is using the `Rails.cache.fetch` method. This method does both reading and writing to the cache. When passed only a single argument, the key is fetched and value from the cache is returned. If a block is passed, the result of the block will be cached to the given key and the result is returned.
 
