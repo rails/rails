@@ -4,6 +4,8 @@ require 'active_support/json/decoding'
 require 'rails/engine'
 
 class TestCaseTest < ActionController::TestCase
+  def self.fixture_path; end;
+
   class TestController < ActionController::Base
     def no_op
       render plain: 'dummy'
@@ -849,10 +851,10 @@ XML
   end
 
   def test_fixture_path_is_accessed_from_self_instead_of_active_support_test_case
-    TestCaseTest.stubs(:fixture_path).returns(FILES_DIR)
-
-    uploaded_file = fixture_file_upload('/mona_lisa.jpg', 'image/png')
-    assert_equal File.open("#{FILES_DIR}/mona_lisa.jpg", READ_PLAIN).read, uploaded_file.read
+    TestCaseTest.stub :fixture_path, FILES_DIR do
+      uploaded_file = fixture_file_upload('/mona_lisa.jpg', 'image/png')
+      assert_equal File.open("#{FILES_DIR}/mona_lisa.jpg", READ_PLAIN).read, uploaded_file.read
+    end
   end
 
   def test_test_uploaded_file_with_binary
@@ -893,13 +895,13 @@ XML
   end
 
   def test_fixture_file_upload_relative_to_fixture_path
-    TestCaseTest.stubs(:fixture_path).returns(FILES_DIR)
-    uploaded_file = fixture_file_upload("mona_lisa.jpg", "image/jpg")
-    assert_equal File.open("#{FILES_DIR}/mona_lisa.jpg", READ_PLAIN).read, uploaded_file.read
+    TestCaseTest.stub :fixture_path, FILES_DIR do
+      uploaded_file = fixture_file_upload("mona_lisa.jpg", "image/jpg")
+      assert_equal File.open("#{FILES_DIR}/mona_lisa.jpg", READ_PLAIN).read, uploaded_file.read
+    end
   end
 
   def test_fixture_file_upload_ignores_nil_fixture_path
-    TestCaseTest.stubs(:fixture_path).returns(nil)
     uploaded_file = fixture_file_upload("#{FILES_DIR}/mona_lisa.jpg", "image/jpg")
     assert_equal File.open("#{FILES_DIR}/mona_lisa.jpg", READ_PLAIN).read, uploaded_file.read
   end
