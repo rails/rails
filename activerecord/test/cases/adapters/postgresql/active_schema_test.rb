@@ -51,6 +51,15 @@ class PostgresqlActiveSchemaTest < ActiveRecord::PostgreSQLTestCase
     assert_equal expected, add_index(:people, :last_name, :unique => true, :where => "state = 'active'", :using => :gist)
   end
 
+  def test_remove_index
+    expected = %(DROP INDEX CONCURRENTLY "index_people_on_last_name")
+    assert_equal expected, remove_index(:people, name: "index_people_on_last_name", algorithm: :concurrently)
+
+    assert_raise ArgumentError do
+      add_index(:people, :last_name, algorithm: :copy)
+    end
+  end
+
   private
     def method_missing(method_symbol, *arguments)
       ActiveRecord::Base.connection.send(method_symbol, *arguments)

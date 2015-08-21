@@ -447,8 +447,15 @@ module ActiveRecord
           execute "CREATE #{index_type} INDEX #{index_algorithm} #{quote_column_name(index_name)} ON #{quote_table_name(table_name)} #{index_using} (#{index_columns})#{index_options}"
         end
 
-        def remove_index!(table_name, index_name) #:nodoc:
-          execute "DROP INDEX #{quote_table_name(index_name)}"
+        def remove_index(table_name, options = {}) #:nodoc:
+          index_name = index_name_for_remove(table_name, options)
+          algorithm =
+            if options.key?(:algorithm)
+              index_algorithms.fetch(options[:algorithm]) do
+                raise ArgumentError.new("Algorithm must be one of the following: #{index_algorithms.keys.map(&:inspect).join(', ')}")
+              end
+            end
+          execute "DROP INDEX #{algorithm} #{quote_table_name(index_name)}"
         end
 
         # Renames an index of a table. Raises error if length of new
