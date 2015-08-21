@@ -545,6 +545,37 @@ module CacheStoreInstrumentation
     @cache.write("key", "foo", expires_in: 60)
     time = Time.now + 61
     Time.stubs(:now).returns(time)
+    @cache.fetch("key") { "foo" }
+    assert_equal 1, @events.count
+    event = @events.first
+    assert_equal "cache_read.active_support", event[:name]
+    assert_equal "key", event[:payload][:key]
+    assert_equal false, event[:payload][:hit]
+  end
+
+  def test_cache_fetch_block_instrumentation_miss
+    @cache.fetch("key") { "foo" }
+    assert_equal 1, @events.count
+    event = @events.first
+    assert_equal "cache_read.active_support", event[:name]
+    assert_equal "key", event[:payload][:key]
+    assert_equal false, event[:payload][:hit]
+  end
+
+  def test_cache_fetch_block_instrumentation_hit
+    @cache.write("key", "foo")
+    @cache.fetch("key") { "foo" }
+    assert_equal 1, @events.count
+    event = @events.first
+    assert_equal "cache_read.active_support", event[:name]
+    assert_equal "key", event[:payload][:key]
+    assert_equal true, event[:payload][:hit]
+  end
+
+  def test_cache_fetch_block_instrumentation_hit_expired
+    @cache.write("key", "foo", expires_in: 60)
+    time = Time.now + 61
+    Time.stubs(:now).returns(time)
     @cache.fetch("key")
     assert_equal 1, @events.count
     event = @events.first

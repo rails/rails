@@ -554,8 +554,12 @@ module ActiveSupport
 
         def find_cached_entry(key, name, options)
           instrument(:read, name, options) do |payload|
-            payload[:super_operation] = :fetch if payload
-            read_entry(key, options)
+            entry = read_entry(key, options)
+            if payload
+              payload[:super_operation] = :fetch
+              payload[:hit] = !!(entry && !entry.expired?)
+            end
+            entry
           end
         end
 

@@ -1,3 +1,8 @@
+*   Add missing :hit attribute in instrumentation payload on cache#fetch
+    when invoked with a block
+
+    *Vivien Barousse*
+
 ## Rails 4.2.5 (November 12, 2015) ##
 
 *   Fix `TimeWithZone#eql?` to properly handle `TimeWithZone` created from `DateTime`:
