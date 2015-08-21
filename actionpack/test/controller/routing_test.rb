@@ -327,12 +327,6 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
     assert_equal '/stuff', controller.url_for({ :controller => '/stuff', :only_path => true })
   end
 
-  def test_ignores_leading_slash
-    rs.clear!
-    rs.draw { get '/:controller(/:action(/:id))'}
-    test_default_setup
-  end
-
   def test_route_with_colon_first
     rs.draw do
       get '/:controller/:action/:id', action: 'index', id: nil
