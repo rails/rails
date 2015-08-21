@@ -42,6 +42,7 @@ class MessageVerifierTest < ActiveSupport::TestCase
     assert_not_verified("#{data.reverse}--#{hash}")
     assert_not_verified("#{data}--#{hash.reverse}")
     assert_not_verified("purejunk")
+    assert_not_verified("\xff") # invalid encoding
   end
 
   def test_alternative_serialization_method

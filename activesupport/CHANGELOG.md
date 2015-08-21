@@ -1,3 +1,8 @@
+*   Handle invalid UTF-8 characters in `MessageVerifier.verify`.
+
+    *Roque Pinel*, *Grey Baker*
+
+
 ## Rails 4.2.4 (August 14, 2015) ##
 
 *   Fix a `SystemStackError` when encoding an `Enumerable` with `json` gem and
