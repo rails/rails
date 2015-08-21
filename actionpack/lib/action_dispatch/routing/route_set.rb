@@ -1,6 +1,5 @@
 require 'action_dispatch/journey'
 require 'forwardable'
-require 'thread_safe'
 require 'active_support/concern'
 require 'active_support/core_ext/object/to_query'
 require 'active_support/core_ext/hash/slice'
@@ -26,7 +25,6 @@ module ActionDispatch
       class Dispatcher < Routing::Endpoint
         def initialize(defaults)
           @defaults = defaults
-          @controller_class_names = ThreadSafe::Cache.new
         end
 
         def dispatcher?; true; end
@@ -68,7 +66,7 @@ module ActionDispatch
       private
 
         def controller_reference(controller_param)
-          const_name = @controller_class_names[controller_param] ||= "#{controller_param.camelize}Controller"
+          const_name = "#{controller_param.camelize}Controller"
           ActiveSupport::Dependencies.constantize(const_name)
         end
 
