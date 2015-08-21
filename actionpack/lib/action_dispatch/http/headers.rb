@@ -41,16 +41,16 @@ module ActionDispatch
 
       # Returns the value for the given key mapped to @env.
       def [](key)
-        env[env_name(key)]
+        @req.get_header env_name(key)
       end
 
       # Sets the given value for the key mapped to @env.
       def []=(key, value)
-        env[env_name(key)] = value
+        @req.set_header env_name(key), value
       end
 
       def key?(key)
-        env.key? env_name(key)
+        @req.has_header? env_name(key)
       end
       alias :include? :key?
 
