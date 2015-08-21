@@ -82,7 +82,7 @@ module ActionDispatch
       # <tt>headers_or_env</tt>.
       def merge!(headers_or_env)
         headers_or_env.each do |key, value|
-          self[env_name(key)] = value
+          @req.set_header env_name(key), value
         end
       end
 
