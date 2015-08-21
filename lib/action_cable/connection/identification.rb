@@ -27,7 +27,7 @@ module ActionCable
 
       private
         def connection_gid(ids)
-          ids.map { |o| o.to_global_id.to_s }.sort.join(":")
+          ids.map { |o| (o.try(:to_global_id) || o).to_s }.sort.join(":")
         end
     end
   end
