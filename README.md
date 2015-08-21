@@ -76,7 +76,7 @@ and may also be used independently outside Rails.
 We encourage you to contribute to Ruby on Rails! Please check out the
 [Contributing to Ruby on Rails guide](http://edgeguides.rubyonrails.org/contributing_to_ruby_on_rails.html) for guidelines about how to proceed. [Join us!](http://contributors.rubyonrails.org)
 
-Everyone interacting in Rails and its sub-project’s codebases, issue trackers, chat rooms, and mailing lists is expected to follow the Rails [code of conduct](CODE_OF_CONDUCT.md).
+Everyone interacting in Rails and its sub-project’s codebases, issue trackers, chat rooms, and mailing lists is expected to follow the Rails [code of conduct](http://rubyonrails.org/conduct/).
 
 ## Code Status
 
