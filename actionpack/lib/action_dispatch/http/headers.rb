@@ -86,7 +86,7 @@ module ActionDispatch
         end
       end
 
-      def env; @req.env; end
+      def env; @req.env.dup; end
 
       private
 
