@@ -420,7 +420,10 @@ module ActiveRecord
         new.migrate direction
       end
 
-      # Disable DDL transactions for this migration.
+      # Disable the transaction wrapping this migration.
+      # You can still create your own transactions even after calling #disable_ddl_transaction!
+      #
+      # For more details read the {"Transactional Migrations" section above}[rdoc-ref:Migration].
       def disable_ddl_transaction!
         @disable_ddl_transaction = true
       end
