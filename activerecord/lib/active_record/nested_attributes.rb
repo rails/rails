@@ -446,7 +446,8 @@ module ActiveRecord
 
       association = association(association_name)
 
-      existing_records = if association.loaded?
+      is_association_loaded = association.loaded?
+      existing_records = if is_association_loaded
         association.target
       else
         attribute_ids = attributes_collection.map {|a| a['id'] || a[:id] }.compact
@@ -461,7 +462,7 @@ module ActiveRecord
             association.build(attributes.except(*UNASSIGNABLE_KEYS))
           end
         elsif existing_record = existing_records.detect { |record| record.id.to_s == attributes['id'].to_s }
-          unless association.loaded? || call_reject_if(association_name, attributes)
+          unless is_association_loaded || call_reject_if(association_name, attributes)
             # Make sure we are operating on the actual object which is in the association's
             # proxy_target array (either by finding it, or adding it if not found)
             target_record = association.target.detect { |record| record == existing_record }
