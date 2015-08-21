@@ -66,13 +66,13 @@ module ActionDispatch
       end
 
       def each(&block)
-        env.each(&block)
+        @req.each_header(&block)
       end
 
       # Returns a new Http::Headers instance containing the contents of
       # <tt>headers_or_env</tt> and the original instance.
       def merge(headers_or_env)
-        headers = Http::Headers.new(ActionDispatch::Request.new(env.dup))
+        headers = @req.dup.headers
         headers.merge!(headers_or_env)
         headers
       end

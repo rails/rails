@@ -27,7 +27,7 @@ GIT
 
 GIT
   remote: git://github.com/rack/rack.git
-  revision: 2cb9430fce32da2f2dbccf9de97ab691351c1408
+  revision: be777e06bf4de18a7786af1e44647e1498ec1a5d
   specs:
     rack (2.0.0.alpha)
       json
@@ -203,7 +203,7 @@ GEM
     nokogiri (1.6.6.2)
       mini_portile (~> 0.6.0)
     pg (0.18.2)
-    psych (2.0.13)
+    psych (2.0.15)
     que (0.10.0)
     racc (1.4.12)
     rack-cache (1.2)
@@ -252,7 +252,7 @@ GEM
     sigdump (0.2.3)
     sinatra (1.0)
       rack (>= 1.0)
-    sneakers (1.1.0)
+    sneakers (1.1.1)
       bunny (>= 1.7.0, <= 2.0.0)
       serverengine (~> 1.5.5)
       thor
