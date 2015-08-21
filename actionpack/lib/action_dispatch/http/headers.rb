@@ -54,6 +54,8 @@ module ActionDispatch
       end
       alias :include? :key?
 
+      DEFAULT = Object.new # :nodoc:
+
       # Returns the value for the given key mapped to @env.
       #
       # If the key is not found and an optional code block is not provided,
@@ -61,8 +63,12 @@ module ActionDispatch
       #
       # If the code block is provided, then it will be run and
       # its result returned.
-      def fetch(key, *args, &block)
-        env.fetch env_name(key), *args, &block
+      def fetch(key, default = DEFAULT)
+        @req.get_header(env_name(key)) do
+          return default unless default == DEFAULT
+          return yield if block_given?
+          raise NameError, key
+        end
       end
 
       def each(&block)
