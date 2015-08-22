@@ -33,7 +33,11 @@ module ActionDispatch
           end
           dispatch(controller, params[:action], req)
         rescue NameError => e
-          raise ActionController::RoutingError, e.message, e.backtrace if @raise_on_name_error
+          if @raise_on_name_error
+            raise ActionController::RoutingError, e.message, e.backtrace
+          else
+            return [404, {'X-Cascade' => 'pass'}, []]
+          end
         end
 
       protected
