@@ -41,7 +41,7 @@ module ActionDispatch
     ENV_METHODS.each do |env|
       class_eval <<-METHOD, __FILE__, __LINE__ + 1
         def #{env.sub(/^HTTP_/n, '').downcase}  # def accept_charset
-          @env["#{env}".freeze]                 #   @env["HTTP_ACCEPT_CHARSET".freeze]
+          get_header "#{env}".freeze            #   get_header "HTTP_ACCEPT_CHARSET".freeze
         end                                     # end
       METHOD
     end
@@ -80,7 +80,7 @@ module ActionDispatch
     end
 
     def key?(key)
-      @env.key?(key)
+      has_header? key
     end
 
     # List of HTTP request methods from the following RFCs:
@@ -232,7 +232,7 @@ module ActionDispatch
     # (case-insensitive), which may need to be manually added depending on the
     # choice of JavaScript libraries and frameworks.
     def xml_http_request?
-      @env['HTTP_X_REQUESTED_WITH'] =~ /XMLHttpRequest/i
+      get_header('HTTP_X_REQUESTED_WITH') =~ /XMLHttpRequest/i
     end
     alias :xhr? :xml_http_request?
 
@@ -244,11 +244,11 @@ module ActionDispatch
     # Returns the IP address of client as a +String+,
     # usually set by the RemoteIp middleware.
     def remote_ip
-      @remote_ip ||= (@env["action_dispatch.remote_ip"] || ip).to_s
+      @remote_ip ||= (get_header("action_dispatch.remote_ip") || ip).to_s
     end
 
     def remote_ip=(remote_ip)
-      @env["action_dispatch.remote_ip".freeze] = remote_ip
+      set_header "action_dispatch.remote_ip".freeze, remote_ip
     end
 
     ACTION_DISPATCH_REQUEST_ID = "action_dispatch.request_id".freeze # :nodoc:
@@ -260,43 +260,43 @@ module ActionDispatch
     # This unique ID is useful for tracing a request from end-to-end as part of logging or debugging.
     # This relies on the rack variable set by the ActionDispatch::RequestId middleware.
     def request_id
-      env[ACTION_DISPATCH_REQUEST_ID]
+      get_header ACTION_DISPATCH_REQUEST_ID
     end
 
     def request_id=(id) # :nodoc:
-      env[ACTION_DISPATCH_REQUEST_ID] = id
+      set_header ACTION_DISPATCH_REQUEST_ID, id
     end
 
     alias_method :uuid, :request_id
 
     def x_request_id # :nodoc:
-      @env[HTTP_X_REQUEST_ID]
+      get_header(HTTP_X_REQUEST_ID)
     end
 
     # Returns the lowercase name of the HTTP server software.
     def server_software
-      (@env['SERVER_SOFTWARE'] && /^([a-zA-Z]+)/ =~ @env['SERVER_SOFTWARE']) ? $1.downcase : nil
+      (get_header('SERVER_SOFTWARE') && /^([a-zA-Z]+)/ =~ get_header('SERVER_SOFTWARE')) ? $1.downcase : nil
     end
 
     # Read the request \body. This is useful for web services that need to
     # work with raw requests directly.
     def raw_post
-      unless @env.include? 'RAW_POST_DATA'
+      unless has_header? 'RAW_POST_DATA'
         raw_post_body = body
-        @env['RAW_POST_DATA'] = raw_post_body.read(content_length)
+        set_header('RAW_POST_DATA', raw_post_body.read(content_length))
         raw_post_body.rewind if raw_post_body.respond_to?(:rewind)
       end
-      @env['RAW_POST_DATA']
+      get_header 'RAW_POST_DATA'
     end
 
     # The request body is an IO input stream. If the RAW_POST_DATA environment
     # variable is already set, wrap it in a StringIO.
     def body
-      if raw_post = @env['RAW_POST_DATA']
+      if raw_post = get_header('RAW_POST_DATA')
         raw_post.force_encoding(Encoding::BINARY)
         StringIO.new(raw_post)
       else
-        @env['rack.input']
+        get_header('rack.input')
       end
     end
 
@@ -307,7 +307,7 @@ module ActionDispatch
     end
 
     def body_stream #:nodoc:
-      @env['rack.input']
+      get_header('rack.input')
     end
 
     # TODO This should be broken apart into AD::Request::Session and probably
@@ -318,7 +318,7 @@ module ActionDispatch
       else
         self.session = {}
       end
-      @env['action_dispatch.request.flash_hash'] = nil
+      set_header('action_dispatch.request.flash_hash', nil)
     end
 
     def session=(session) #:nodoc:
