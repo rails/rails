@@ -41,12 +41,12 @@ class PeopleHelperTest < ActionView::TestCase
         extend ActiveModel::Naming
         def to_model; self; end
         def persisted?; true; end
-        def self.name; 'Mocha::Mock'; end
+        def self.name; 'Minitest::Mock'; end
       }.new "David"
 
       the_model = nil
       extend Module.new {
-        define_method(:mocha_mock_path) { |model, *args|
+        define_method(:minitest_mock_path) { |model, *args|
           the_model = model
           "/people/1"
         }
