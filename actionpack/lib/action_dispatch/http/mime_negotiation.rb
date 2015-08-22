@@ -15,8 +15,8 @@ module ActionDispatch
       # For backward compatibility, the post \format is extracted from the
       # X-Post-Data-Format HTTP header if present.
       def content_mime_type
-        @env["action_dispatch.request.content_type"] ||= begin
-          if @env['CONTENT_TYPE'] =~ /^([^,\;]*)/
+        get_header("action_dispatch.request.content_type") do
+          if get_header('CONTENT_TYPE') =~ /^([^,\;]*)/
             Mime::Type.lookup($1.strip.downcase)
           else
             nil
@@ -30,8 +30,8 @@ module ActionDispatch
 
       # Returns the accepted MIME type for the request.
       def accepts
-        @env["action_dispatch.request.accepts"] ||= begin
-          header = @env['HTTP_ACCEPT'].to_s.strip
+        get_header("action_dispatch.request.accepts") do
+          header = get_header('HTTP_ACCEPT').to_s.strip
 
           if header.empty?
             [content_mime_type]
@@ -52,7 +52,7 @@ module ActionDispatch
       end
 
       def formats
-        @env["action_dispatch.request.formats"] ||= begin
+        get_header("action_dispatch.request.formats") do
           params_readable = begin
                               parameters[:format]
                             rescue ActionController::BadRequest
@@ -102,7 +102,7 @@ module ActionDispatch
       #   end
       def format=(extension)
         parameters[:format] = extension.to_s
-        @env["action_dispatch.request.formats"] = [Mime::Type.lookup_by_extension(parameters[:format])]
+        set_header "action_dispatch.request.formats", [Mime::Type.lookup_by_extension(parameters[:format])]
       end
 
       # Sets the \formats by string extensions. This differs from #format= by allowing you
@@ -121,9 +121,9 @@ module ActionDispatch
       #   end
       def formats=(extensions)
         parameters[:format] = extensions.first.to_s
-        @env["action_dispatch.request.formats"] = extensions.collect do |extension|
+        set_header "action_dispatch.request.formats", extensions.collect { |extension|
           Mime::Type.lookup_by_extension(extension)
-        end
+        }
       end
 
       # Receives an array of mimes and return the first user sent mime that
