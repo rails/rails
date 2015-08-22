@@ -440,6 +440,26 @@ class BasicsTest < ActiveRecord::TestCase
     Post.reset_table_name
   end
 
+  def test_undecorated_table_name
+    ActiveRecord::Base.table_name_prefix = "myblog_"
+    Post.reset_table_name
+    assert_equal "posts", Post.undecorated_table_name
+  ensure
+    ActiveRecord::Base.table_name_prefix = ""
+    Post.reset_table_name
+  end
+
+  def test_undecorated_table_name_with_singular_table_names
+    ActiveRecord::Base.table_name_prefix = "myblog_"
+    Post.pluralize_table_names = false
+    Post.reset_table_name
+    assert_equal "post", Post.undecorated_table_name
+  ensure
+    ActiveRecord::Base.table_name_prefix = ""
+    Post.pluralize_table_names = true
+    Post.reset_table_name
+  end
+
   if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
     def test_update_all_with_order_and_limit
       assert_equal 1, Topic.limit(1).order('id DESC').update_all(:content => 'bulk updated!')

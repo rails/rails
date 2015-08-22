@@ -569,7 +569,7 @@ module ActiveRecord
         end
 
         def derive_join_table
-          ModelSchema.derive_join_table_name active_record.table_name, klass.table_name
+          ModelSchema.derive_join_table_name active_record.undecorated_table_name, klass.undecorated_table_name
         end
 
         def primary_key(klass)

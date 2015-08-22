@@ -63,7 +63,12 @@ module ActiveRecord
     #   records, artists => artists_records
     #   music_artists, music_records => music_artists_records
     def self.derive_join_table_name(first_table, second_table) # :nodoc:
-      [first_table.to_s, second_table.to_s].sort.join("\0").gsub(/^(.*_)(.+)\0\1(.+)/, '\1\2_\3').tr("\0", "_")
+      join_table_name = [first_table.to_s, second_table.to_s].
+                        sort.
+                        join("\0").
+                        gsub(/^(.*_)(.+)\0\1(.+)/, '\1\2_\3').tr("\0", "_")
+
+      "#{ActiveRecord::Base.table_name_prefix}#{join_table_name}#{ActiveRecord::Base.table_name_suffix}"
     end
 
     module ClassMethods
@@ -295,6 +300,12 @@ module ActiveRecord
         reload_schema_from_cache
       end
 
+      # Guesses the table name, but does not decorate it with prefix and suffix information.
+      def undecorated_table_name(class_name = base_class.name)
+        table_name = class_name.to_s.demodulize.underscore
+        pluralize_table_names ? table_name.pluralize : table_name
+      end
+
       private
 
       def schema_loaded?
@@ -332,12 +343,6 @@ module ActiveRecord
         @columns = nil
         @columns_hash = nil
         @attribute_names = nil
-      end
-
-      # Guesses the table name, but does not decorate it with prefix and suffix information.
-      def undecorated_table_name(class_name = base_class.name)
-        table_name = class_name.to_s.demodulize.underscore
-        pluralize_table_names ? table_name.pluralize : table_name
       end
 
       # Computes and returns a table name according to default conventions.

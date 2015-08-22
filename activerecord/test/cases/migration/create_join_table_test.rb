@@ -16,6 +16,35 @@ module ActiveRecord
         end
       end
 
+      def test_create_join_table_honors_table_name_prefix
+        ActiveRecord::Base.table_name_prefix = "music_store_"
+        connection.create_join_table :artists, :musics
+
+        assert connection.tables.include?("music_store_artists_musics")
+      ensure
+        ActiveRecord::Base.table_name_prefix = ""
+      end
+
+      def test_create_join_table_honors_table_name_suffix
+        ActiveRecord::Base.table_name_suffix = "_v2"
+        connection.create_join_table :artists, :musics
+
+        assert connection.tables.include?("artists_musics_v2")
+      ensure
+        ActiveRecord::Base.table_name_suffix = ""
+      end
+
+      def test_create_join_table_honors_table_name_prefix_and_suffix
+        ActiveRecord::Base.table_name_prefix = "music_store_"
+        ActiveRecord::Base.table_name_suffix = "_v2"
+        connection.create_join_table :artists, :musics
+
+        assert connection.tables.include?("music_store_artists_musics_v2")
+      ensure
+        ActiveRecord::Base.table_name_prefix = ""
+        ActiveRecord::Base.table_name_suffix = ""
+      end
+
       def test_create_join_table
         connection.create_join_table :artists, :musics
 
