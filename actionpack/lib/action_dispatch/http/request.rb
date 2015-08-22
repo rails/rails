@@ -20,8 +20,6 @@ module ActionDispatch
     include ActionDispatch::Http::FilterParameters
     include ActionDispatch::Http::URL
 
-    HTTP_X_REQUEST_ID = "HTTP_X_REQUEST_ID".freeze # :nodoc:
-
     autoload :Session, 'action_dispatch/request/session'
     autoload :Utils,   'action_dispatch/request/utils'
 
@@ -36,6 +34,7 @@ module ActionDispatch
         HTTP_ACCEPT_LANGUAGE HTTP_CACHE_CONTROL HTTP_FROM
         HTTP_NEGOTIATE HTTP_PRAGMA HTTP_CLIENT_IP
         HTTP_X_FORWARDED_FOR HTTP_VERSION
+        HTTP_X_REQUEST_ID
         ].freeze
 
     ENV_METHODS.each do |env|
@@ -268,10 +267,6 @@ module ActionDispatch
     end
 
     alias_method :uuid, :request_id
-
-    def x_request_id # :nodoc:
-      get_header(HTTP_X_REQUEST_ID)
-    end
 
     # Returns the lowercase name of the HTTP server software.
     def server_software
