@@ -588,11 +588,13 @@ class AssetTagHelperTest < ActionView::TestCase
       end
     end
 
-    @controller.request.stubs(:ssl?).returns(false)
-    assert_equal "http://assets15.example.com/images/xml.png", image_path("xml.png")
+    @controller.request.stub(:ssl?, false) do
+      assert_equal "http://assets15.example.com/images/xml.png", image_path("xml.png")
+    end
 
-    @controller.request.stubs(:ssl?).returns(true)
-    assert_equal "http://localhost/images/xml.png", image_path("xml.png")
+    @controller.request.stub(:ssl?, true) do
+      assert_equal "http://localhost/images/xml.png", image_path("xml.png")
+    end
   end
 end
 
