@@ -619,13 +619,15 @@ Processing by ArticlesController#index as HTML
 (byebug)
 ```
 
-If we use `next`, we want go deep inside method calls. Instead, byebug will go
-to the next line within the same context. In this case, this is the last line of
-the method, so `byebug` will jump to next next line of the previous frame.
-
+If we use `next`, we won't go deep inside method calls. Instead, `byebug` will
+go to the next line within the same context. In this case, it is the last line
+of the current method, so `byebug` will return to the next line of the caller
++method.
 ```
 (byebug) next
-Next went up a frame because previous frame finished
+
+Next advances to the next line (line 6: `end`), which returns to the next line
+of the caller method:
 
 [4, 13] in /PathTo/project/test_app/app/controllers/articles_controller.rb
     4:   # GET /articles
@@ -642,8 +644,8 @@ Next went up a frame because previous frame finished
 (byebug)
 ```
 
-If we use `step` in the same situation, we will literally go to the next Ruby
-instruction to be executed. In this case, Active Support's `week` method.
+If we use `step` in the same situation, `byebug` will literally go to the next
+Ruby instruction to be executed -- in this case, Active Support's `week` method.
 
 ```
 (byebug) step
