@@ -122,7 +122,7 @@ class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
   class StubDispatcher < ::ActionDispatch::Routing::RouteSet::Dispatcher
     protected
     def controller_reference(controller_param)
-      controller_param
+      controller_param.params[:controller]
     end
 
     def dispatch(controller, action, env)
