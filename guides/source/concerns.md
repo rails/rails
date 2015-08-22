@@ -17,7 +17,7 @@ After reading this guide, you will know:
 Why Use Concerns?
 ----------------------
 
-A concern is essentially a module that contains functions you would like to be able to use for multiple controllers or actions. They are a good way to keep your controllers and models small and keep your code DRY.
+A concern is essentially a module that contains methods you would like to be able to use for multiple controllers or actions. They are a good way to keep your controllers and models small and keep your code DRY.
 
 For example, imagine we are working on a website for a teacher at a college. They have given students the option to book appointments in advance should they want help. The teacher wants to keep track of the appointments they make with their students. Part of that means checking that the start and end of the timerange a student enters make sense.
 
@@ -131,7 +131,7 @@ Inside our new module we can store the `start_before_end` function:
  end
 ```
 
-The module name TimeRangeValidators allows us to store other functions in this module should we need to down the road. A more specific name would make the functionality of the module too limited.
+The module name TimeRangeValidators allows us to store other methods in this module should we need to down the road. A more specific name would make the functionality of the module too limited.
 
 
 Using the Concern within Controllers and/or Models - making code DRYer
@@ -297,4 +297,4 @@ As a result, we do not have repeating code within our models, our models are sma
 Quick Guidelines
 ----------
 
-Write concerns only for functions you find yourself using in multiple models/controllers. In the case of a controller,if you wish to make one smaller but its functions are not used anywhere else, you can use the automatically generated helper files in app/helpers instead.
+Write concerns only for methods you find yourself using in multiple models/controllers. In the case of a controller,if you wish to make one smaller but its methods are not used anywhere else, you can use the automatically generated helper files in app/helpers instead.
