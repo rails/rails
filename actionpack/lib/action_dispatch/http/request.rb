@@ -296,7 +296,7 @@ module ActionDispatch
         raw_post.force_encoding(Encoding::BINARY)
         StringIO.new(raw_post)
       else
-        get_header('rack.input')
+        body_stream
       end
     end
 
