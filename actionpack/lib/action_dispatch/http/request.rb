@@ -29,6 +29,7 @@ module ActionDispatch
         PATH_TRANSLATED REMOTE_HOST
         REMOTE_IDENT REMOTE_USER REMOTE_ADDR
         SERVER_NAME SERVER_PROTOCOL
+        ORIGINAL_SCRIPT_NAME
 
         HTTP_ACCEPT HTTP_ACCEPT_CHARSET HTTP_ACCEPT_ENCODING
         HTTP_ACCEPT_LANGUAGE HTTP_CACHE_CONTROL HTTP_FROM
@@ -125,10 +126,6 @@ module ActionDispatch
 
     def routes=(routes) # :nodoc:
       env["action_dispatch.routes".freeze] = routes
-    end
-
-    def original_script_name # :nodoc:
-      env['ORIGINAL_SCRIPT_NAME'.freeze]
     end
 
     def engine_script_name(_routes) # :nodoc:
