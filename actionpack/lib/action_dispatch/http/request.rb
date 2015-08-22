@@ -121,40 +121,40 @@ module ActionDispatch
     end
 
     def routes # :nodoc:
-      env["action_dispatch.routes".freeze]
+      get_header("action_dispatch.routes".freeze)
     end
 
     def routes=(routes) # :nodoc:
-      env["action_dispatch.routes".freeze] = routes
+      set_header("action_dispatch.routes".freeze, routes)
     end
 
     def engine_script_name(_routes) # :nodoc:
-      env[_routes.env_key]
+      get_header(_routes.env_key)
     end
 
     def engine_script_name=(name) # :nodoc:
-      env[routes.env_key] = name.dup
+      set_header(routes.env_key, name.dup)
     end
 
     def request_method=(request_method) #:nodoc:
       if check_method(request_method)
-        @request_method = env["REQUEST_METHOD"] = request_method
+        @request_method = set_header("REQUEST_METHOD", request_method)
       end
     end
 
     def controller_instance # :nodoc:
-      env['action_controller.instance'.freeze]
+      get_header('action_controller.instance'.freeze)
     end
 
     def controller_instance=(controller) # :nodoc:
-      env['action_controller.instance'.freeze] = controller
+      set_header('action_controller.instance'.freeze, controller)
     end
 
     def show_exceptions? # :nodoc:
       # We're treating `nil` as "unset", and we want the default setting to be
       # `true`.  This logic should be extracted to `env_config` and calculated
       # once.
-      !(env['action_dispatch.show_exceptions'.freeze] == false)
+      !(get_header('action_dispatch.show_exceptions'.freeze) == false)
     end
 
     # Returns a symbol form of the #request_method
@@ -166,7 +166,7 @@ module ActionDispatch
     # even if it was overridden by middleware. See #request_method for
     # more information.
     def method
-      @method ||= check_method(env["rack.methodoverride.original_method"] || env['REQUEST_METHOD'])
+      @method ||= check_method(get_header("rack.methodoverride.original_method") || get_header('REQUEST_METHOD'))
     end
 
     # Returns a symbol form of the #method
@@ -189,7 +189,7 @@ module ActionDispatch
     #    # get '/foo?bar'
     #    request.original_fullpath # => '/foo?bar'
     def original_fullpath
-      @original_fullpath ||= (env["ORIGINAL_FULLPATH"] || fullpath)
+      @original_fullpath ||= (get_header("ORIGINAL_FULLPATH") || fullpath)
     end
 
     # Returns the +String+ full path including params of the last URL requested.
@@ -340,10 +340,10 @@ module ActionDispatch
     # Returns the authorization header regardless of whether it was specified directly or through one of the
     # proxy alternatives.
     def authorization
-      @env['HTTP_AUTHORIZATION']   ||
-      @env['X-HTTP_AUTHORIZATION'] ||
-      @env['X_HTTP_AUTHORIZATION'] ||
-      @env['REDIRECT_X_HTTP_AUTHORIZATION']
+      get_header('HTTP_AUTHORIZATION')   ||
+      get_header('X-HTTP_AUTHORIZATION') ||
+      get_header('X_HTTP_AUTHORIZATION') ||
+      get_header('REDIRECT_X_HTTP_AUTHORIZATION')
     end
 
     # True if the request came from localhost, 127.0.0.1.
@@ -352,11 +352,11 @@ module ActionDispatch
     end
 
     def request_parameters=(params)
-      env["action_dispatch.request.request_parameters".freeze] = params
+      set_header("action_dispatch.request.request_parameters".freeze, params)
     end
 
     def logger
-      env["action_dispatch.logger".freeze]
+      get_header("action_dispatch.logger".freeze)
     end
 
     private
