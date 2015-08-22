@@ -312,6 +312,3 @@ DEPENDENCIES
   turbolinks
   uglifier (>= 1.3.0)
   w3c_validators
-
-BUNDLED WITH
-   1.10.5
