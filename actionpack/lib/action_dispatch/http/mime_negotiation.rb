@@ -15,12 +15,13 @@ module ActionDispatch
       # For backward compatibility, the post \format is extracted from the
       # X-Post-Data-Format HTTP header if present.
       def content_mime_type
-        get_header("action_dispatch.request.content_type") do
-          if get_header('CONTENT_TYPE') =~ /^([^,\;]*)/
+        get_header("action_dispatch.request.content_type") do |k|
+          v = if get_header('CONTENT_TYPE') =~ /^([^,\;]*)/
             Mime::Type.lookup($1.strip.downcase)
           else
             nil
           end
+          set_header k, v
         end
       end
 
@@ -30,14 +31,15 @@ module ActionDispatch
 
       # Returns the accepted MIME type for the request.
       def accepts
-        get_header("action_dispatch.request.accepts") do
+        get_header("action_dispatch.request.accepts") do |k|
           header = get_header('HTTP_ACCEPT').to_s.strip
 
-          if header.empty?
+          v = if header.empty?
             [content_mime_type]
           else
             Mime::Type.parse(header)
           end
+          set_header k, v
         end
       end
 
@@ -52,14 +54,14 @@ module ActionDispatch
       end
 
       def formats
-        get_header("action_dispatch.request.formats") do
+        get_header("action_dispatch.request.formats") do |k|
           params_readable = begin
                               parameters[:format]
                             rescue ActionController::BadRequest
                               false
                             end
 
-          if params_readable
+          v = if params_readable
             Array(Mime[parameters[:format]])
           elsif use_accept_header && valid_accept_header
             accepts
@@ -68,6 +70,7 @@ module ActionDispatch
           else
             [Mime::HTML]
           end
+          set_header k, v
         end
       end
 
