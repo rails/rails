@@ -131,6 +131,7 @@ class LoadingTest < ActiveSupport::TestCase
   test "reload constants on development" do
     add_to_config <<-RUBY
       config.cache_classes = false
+      config.reload_routes_aggressively = true
     RUBY
 
     app_file 'config/routes.rb', <<-RUBY
@@ -205,6 +206,7 @@ class LoadingTest < ActiveSupport::TestCase
   test "added files (like db/schema.rb) also trigger reloading" do
     add_to_config <<-RUBY
       config.cache_classes = false
+      config.reload_routes_aggressively = true
     RUBY
 
     app_file 'config/routes.rb', <<-RUBY
@@ -237,6 +239,7 @@ class LoadingTest < ActiveSupport::TestCase
   test "dependencies reloading is followed by routes reloading" do
     add_to_config <<-RUBY
       config.cache_classes = false
+      config.reload_routes_aggressively = true
     RUBY
 
     app_file 'config/routes.rb', <<-RUBY
@@ -270,6 +273,7 @@ class LoadingTest < ActiveSupport::TestCase
   test "columns migrations also trigger reloading" do
     add_to_config <<-RUBY
       config.cache_classes = false
+      config.reload_routes_aggressively = true
     RUBY
 
     app_file 'config/routes.rb', <<-RUBY

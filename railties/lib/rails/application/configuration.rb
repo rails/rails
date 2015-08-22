@@ -13,7 +13,7 @@ module Rails
                     :railties_order, :relative_url_root, :secret_key_base, :secret_token,
                     :serve_static_files, :ssl_options, :static_cache_control, :static_index,
                     :session_options, :time_zone, :reload_classes_only_on_change,
-                    :beginning_of_week, :filter_redirect, :x
+                    :reload_routes_aggressively, :beginning_of_week, :filter_redirect, :x
 
       attr_writer :log_level
       attr_reader :encoding, :api_only
