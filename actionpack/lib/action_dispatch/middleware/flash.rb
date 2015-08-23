@@ -274,7 +274,7 @@ module ActionDispatch
       req = ActionDispatch::Request.new env
       @app.call(env)
     ensure
-      session    = Request::Session.find(env) || {}
+      session    = Request::Session.find(req) || {}
       flash_hash = req.flash_hash
 
       if flash_hash && (flash_hash.present? || session.key?('flash'))

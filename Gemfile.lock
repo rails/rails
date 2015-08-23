@@ -27,7 +27,7 @@ GIT
 
 GIT
   remote: git://github.com/rack/rack.git
-  revision: be777e06bf4de18a7786af1e44647e1498ec1a5d
+  revision: c94e22401d4719b4d78378c7b63362cd692f9005
   specs:
     rack (2.0.0.alpha)
       json
@@ -79,7 +79,7 @@ GIT
 
 GIT
   remote: git://github.com/rails/sprockets.git
-  revision: 653de5268ba862ea23457291824180c67ad5dc99
+  revision: a61550db7184fc83964fb983547ff09da9efa9be
   branch: master
   specs:
     sprockets (4.0.0)
@@ -236,7 +236,7 @@ GEM
       resque (~> 1.25)
       rufus-scheduler (~> 3.0)
     rufus-scheduler (3.1.3)
-    sass (3.4.16)
+    sass (3.4.17)
     sdoc (0.4.1)
       json (~> 1.7, >= 1.7.7)
       rdoc (~> 4.0)

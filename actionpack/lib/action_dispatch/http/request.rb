@@ -314,11 +314,11 @@ module ActionDispatch
     end
 
     def session=(session) #:nodoc:
-      Session.set @env, session
+      Session.set self, session
     end
 
     def session_options=(options)
-      Session::Options.set @env, options
+      Session::Options.set self, options
     end
 
     # Override Rack's GET method to support indifferent access

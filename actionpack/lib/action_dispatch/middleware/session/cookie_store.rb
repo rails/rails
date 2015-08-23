@@ -71,16 +71,16 @@ module ActionDispatch
         super(app, options.merge!(:cookie_only => true))
       end
 
-      def destroy_session(env, session_id, options)
+      def destroy_session(req, session_id, options)
         new_sid = generate_sid unless options[:drop]
         # Reset hash and Assign the new session id
-        env["action_dispatch.request.unsigned_session_cookie"] = new_sid ? { "session_id" => new_sid } : {}
+        req.set_header("action_dispatch.request.unsigned_session_cookie", new_sid ? { "session_id" => new_sid } : {})
         new_sid
       end
 
-      def load_session(env)
+      def load_session(req)
         stale_session_check! do
-          data = unpacked_cookie_data(env)
+          data = unpacked_cookie_data(req)
           data = persistent_session_id!(data)
           [data["session_id"], data]
         end
@@ -88,20 +88,21 @@ module ActionDispatch
 
       private
 
-      def extract_session_id(env)
+      def extract_session_id(req)
         stale_session_check! do
-          unpacked_cookie_data(env)["session_id"]
+          unpacked_cookie_data(req)["session_id"]
         end
       end
 
-      def unpacked_cookie_data(env)
-        env["action_dispatch.request.unsigned_session_cookie"] ||= begin
-          stale_session_check! do
-            if data = get_cookie(env)
+      def unpacked_cookie_data(req)
+        req.get_header("action_dispatch.request.unsigned_session_cookie") do |k|
+          v = stale_session_check! do
+            if data = get_cookie(req)
               data.stringify_keys!
             end
             data || {}
           end
+          req.set_header k, v
         end
       end
 
@@ -111,21 +112,20 @@ module ActionDispatch
         data
       end
 
-      def set_session(env, sid, session_data, options)
+      def set_session(req, sid, session_data, options)
         session_data["session_id"] = sid
         session_data
       end
 
-      def set_cookie(env, session_id, cookie)
-        cookie_jar(env)[@key] = cookie
+      def set_cookie(request, session_id, cookie)
+        cookie_jar(request)[@key] = cookie
       end
 
-      def get_cookie(env)
-        cookie_jar(env)[@key]
+      def get_cookie(req)
+        cookie_jar(req)[@key]
       end
 
-      def cookie_jar(env)
-        request = ActionDispatch::Request.new(env)
+      def cookie_jar(request)
         request.cookie_jar.signed_or_encrypted
       end
     end
