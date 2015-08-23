@@ -9,6 +9,7 @@
 class Cable.Subscriptions
   constructor: (@consumer) ->
     @subscriptions = []
+    @history = []
 
   create: (channelName, mixin) ->
     channel = channelName
@@ -49,6 +50,10 @@ class Cable.Subscriptions
     for subscription in subscriptions
       subscription[callbackName]?(args...)
 
+      if callbackName in ["initialized", "connected", "disconnected"]
+        {identifier} = subscription
+        @record(notification: {identifier, callbackName, args})
+
   sendCommand: (subscription, command) ->
     {identifier} = subscription
     if identifier is Cable.PING_IDENTIFIER
@@ -56,5 +61,11 @@ class Cable.Subscriptions
     else
       @consumer.send({command, identifier})
 
+  record: (data) ->
+    data.time = new Date()
+    @history = @history.slice(-19)
+    @history.push(data)
+
   toJSON: ->
-    subscription.identifier for subscription in @subscriptions
+    history: @history
+    identifiers: (subscription.identifier for subscription in @subscriptions)
