@@ -1,3 +1,7 @@
+*   Automatically set timestamps on hm:t join table fixtures when no YAML file for the join model exists.
+
+    *Eric Hayes*
+
 *   Fix `touch` option to behave consistently with `Persistence#touch` method.
 
     *Ryuta Kamizono*

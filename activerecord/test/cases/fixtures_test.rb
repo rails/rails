@@ -17,6 +17,9 @@ require "models/course"
 require "models/developer"
 require "models/dog"
 require "models/doubloon"
+require "models/hmt_course"
+require "models/hmt_enrollment"
+require "models/hmt_student"
 require "models/joke"
 require "models/matey"
 require "models/other_dog"
@@ -1237,5 +1240,14 @@ class SameNameDifferentDatabaseFixturesTest < ActiveRecord::TestCase
 
     assert_kind_of Dog, dogs(:sophie)
     assert_kind_of OtherDog, other_dogs(:lassie)
+  end
+end
+
+class HmtAutoTimestampTest < ActiveRecord::TestCase
+  fixtures :hmt_students, :hmt_courses
+
+  test "timestamps are set on hm:t tables when the YAML file is absent" do
+    # NOT NULL constraint exception should not be raised
+    assert_not_nil hmt_students(:alice).hmt_enrollments.first.created_at
   end
 end

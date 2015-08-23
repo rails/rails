@@ -745,19 +745,36 @@ module ActiveRecord
         @primary_key_type ||= model_class && model_class.type_for_attribute(model_class.primary_key).type
       end
 
+      # Used when the join table has no fixtures file
       def add_join_records(rows, row, association)
-        # This is the case when the join table has no fixtures file
         if (targets = row.delete(association.name.to_s))
           table_name  = association.join_table
           column_type = association.primary_key_type
           lhs_key     = association.lhs_key
           rhs_key     = association.rhs_key
+          join_class  = table_name.classify.safe_constantize
 
           targets = targets.is_a?(Array) ? targets : targets.split(/\s*,\s*/)
-          rows[table_name].concat targets.map { |target|
-            { lhs_key => row[primary_key_name],
-              rhs_key => ActiveRecord::FixtureSet.identify(target, column_type) }
-          }
+
+          targets.map! do |target|
+            join_row = {
+              lhs_key => row[primary_key_name],
+              rhs_key => ActiveRecord::FixtureSet.identify(target, column_type)
+            }
+
+            if join_class && join_class.record_timestamps
+              # make sure we only set timestamps defined in join class
+              ts_columns = %w(created_at created_on updated_at updated_on) & join_class.column_names
+
+              ts_columns.each do |column_name|
+                join_row[column_name] = Time.current unless join_row.key?(column_name)
+              end
+            end
+
+            join_row
+          end
+
+          rows[table_name].concat(targets)
         end
       end
 
