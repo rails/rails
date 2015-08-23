@@ -30,9 +30,11 @@ class Cable.ConnectionMonitor
     delete @stoppedAt
     @startedAt = now()
     @poll()
+    document.addEventListener("visibilitychange", @visibilityDidChange)
 
   stop: ->
     @stoppedAt = now()
+    document.removeEventListener("visibilitychange", @visibilityDidChange)
 
   poll: ->
     setTimeout =>
@@ -56,6 +58,13 @@ class Cable.ConnectionMonitor
       secondsSince(@pingedAt) > @staleThreshold.pingedAt
     else
       secondsSince(@startedAt) > @staleThreshold.startedAt
+
+  visibilityDidChange: =>
+    if document.visibilityState is "visible"
+      setTimeout =>
+        if @connectionIsStale() or not @consumer.connection.isOpen()
+          @consumer.connection.reopen()
+      , 200
 
   toJSON: ->
     interval = @getInterval()
