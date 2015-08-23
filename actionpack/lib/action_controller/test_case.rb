@@ -472,7 +472,7 @@ module ActionController
         end
 
         self.cookies.update @request.cookies
-        @request.env['HTTP_COOKIE'] = cookies.to_header
+        @request.set_header 'HTTP_COOKIE', cookies.to_header
         @request.delete_header 'action_dispatch.cookies'
 
         @request          = TestRequest.new scrub_env!(@request.env), @request.session
@@ -480,7 +480,7 @@ module ActionController
         @response.request = @request
         @controller.recycle!
 
-        @request.env['REQUEST_METHOD'] = http_method
+        @request.set_header 'REQUEST_METHOD', http_method
 
         parameters = parameters.symbolize_keys
 
@@ -494,8 +494,10 @@ module ActionController
         @request.flash.update(flash || {})
 
         if xhr
-          @request.env['HTTP_X_REQUESTED_WITH'] = 'XMLHttpRequest'
-          @request.env['HTTP_ACCEPT'] ||= [Mime::JS, Mime::HTML, Mime::XML, 'text/xml', Mime::ALL].join(', ')
+          @request.set_header 'HTTP_X_REQUESTED_WITH', 'XMLHttpRequest'
+          @request.get_header('HTTP_ACCEPT') do |k|
+            @request.set_header k, [Mime::JS, Mime::HTML, Mime::XML, 'text/xml', Mime::ALL].join(', ')
+          end
         end
 
         @controller.request  = @request
