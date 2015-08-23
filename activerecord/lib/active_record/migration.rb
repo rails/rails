@@ -576,7 +576,7 @@ module ActiveRecord
       end
 
       time   = nil
-      ActiveRecord::Base.connection_pool.with_connection do |conn|
+      connection_class.connection_pool.with_connection do |conn|
         time = Benchmark.measure do
           exec_migration(conn, direction)
         end
@@ -633,8 +633,12 @@ module ActiveRecord
       self.verbose = save
     end
 
+    def connection_class
+      ActiveRecord::Base
+    end
+
     def connection
-      @connection || ActiveRecord::Base.connection
+      @connection || connection_class.connection
     end
 
     def method_missing(method, *arguments, &block)

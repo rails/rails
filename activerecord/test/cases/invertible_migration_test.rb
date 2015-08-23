@@ -1,4 +1,5 @@
 require "cases/helper"
+require_dependency 'models/arunit2_model'
 
 module ActiveRecord
   class InvertibleMigrationTest < ActiveRecord::TestCase
@@ -122,6 +123,21 @@ module ActiveRecord
       end
     end
 
+    class Fish < ARUnit2Model; end
+
+    class InvertibleMigrationMultipleDb < SilentMigration
+      def connection_class
+        Fish
+      end
+
+      def change
+        create_table("fishes") do |t|
+          t.column :name, :string
+          t.column :color, :string
+        end
+      end
+    end
+
     setup do
       @verbose_was, ActiveRecord::Migration.verbose = ActiveRecord::Migration.verbose, false
     end
@@ -132,6 +148,7 @@ module ActiveRecord
           ActiveRecord::Base.connection.drop_table(table)
         end
       end
+      Fish.connection.drop_table("fishes") if Fish.connection.table_exists?("fishes")
       ActiveRecord::Migration.verbose = @verbose_was
     end
 
@@ -293,6 +310,14 @@ module ActiveRecord
         assert !connection.index_exists?(:horses, :content, name: "horses_index_named"),
               "horses_index_named index should not exist"
       end
+    end
+
+    def test_migrate_revert_multiple_db
+      migration = InvertibleMigrationMultipleDb.new
+      migration.migrate :up
+      assert Fish.connection.table_exists?("fishes")
+      migration.migrate :down
+      assert !Fish.connection.table_exists?("fishes")
     end
 
   end
