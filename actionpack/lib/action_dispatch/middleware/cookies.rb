@@ -8,48 +8,50 @@ require 'active_support/json'
 module ActionDispatch
   class Request < Rack::Request
     def cookie_jar
-      env['action_dispatch.cookies'.freeze] ||= Cookies::CookieJar.build(self, cookies)
+      get_header('action_dispatch.cookies'.freeze) do |k|
+        self.cookie_jar = Cookies::CookieJar.build(self, cookies)
+      end
     end
 
     # :stopdoc:
     def have_cookie_jar?
-      env.key? 'action_dispatch.cookies'.freeze
+      has_header? 'action_dispatch.cookies'.freeze
     end
 
     def cookie_jar=(jar)
-      env['action_dispatch.cookies'.freeze] = jar
+      set_header 'action_dispatch.cookies'.freeze, jar
     end
 
     def key_generator
-      env[Cookies::GENERATOR_KEY]
+      get_header Cookies::GENERATOR_KEY
     end
 
     def signed_cookie_salt
-      env[Cookies::SIGNED_COOKIE_SALT]
+      get_header Cookies::SIGNED_COOKIE_SALT
     end
 
     def encrypted_cookie_salt
-      env[Cookies::ENCRYPTED_COOKIE_SALT]
+      get_header Cookies::ENCRYPTED_COOKIE_SALT
     end
 
     def encrypted_signed_cookie_salt
-      env[Cookies::ENCRYPTED_SIGNED_COOKIE_SALT]
+      get_header Cookies::ENCRYPTED_SIGNED_COOKIE_SALT
     end
 
     def secret_token
-      env[Cookies::SECRET_TOKEN]
+      get_header Cookies::SECRET_TOKEN
     end
 
     def secret_key_base
-      env[Cookies::SECRET_KEY_BASE]
+      get_header Cookies::SECRET_KEY_BASE
     end
 
     def cookies_serializer
-      env[Cookies::COOKIES_SERIALIZER]
+      get_header Cookies::COOKIES_SERIALIZER
     end
 
     def cookies_digest
-      env[Cookies::COOKIES_DIGEST]
+      get_header Cookies::COOKIES_DIGEST
     end
     # :startdoc:
   end

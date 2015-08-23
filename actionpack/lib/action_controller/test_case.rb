@@ -473,7 +473,7 @@ module ActionController
 
         self.cookies.update @request.cookies
         @request.env['HTTP_COOKIE'] = cookies.to_header
-        @request.env['action_dispatch.cookies'] = nil
+        @request.delete_header 'action_dispatch.cookies'
 
         @request          = TestRequest.new scrub_env!(@request.env), @request.session
         @response         = build_response @response_klass
