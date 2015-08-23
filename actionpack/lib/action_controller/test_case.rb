@@ -510,10 +510,10 @@ module ActionController
 
         @request.env.delete 'HTTP_COOKIE'
 
-        if cookies = @request.env['action_dispatch.cookies']
+        if @request.have_cookie_jar?
           unless @response.committed?
-            cookies.write(@response)
-            self.cookies.update(cookies.instance_variable_get(:@cookies))
+            @request.cookie_jar.write(@response)
+            self.cookies.update(@request.cookie_jar.instance_variable_get(:@cookies))
           end
         end
         @response.prepare!
