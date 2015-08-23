@@ -136,7 +136,7 @@ module ActionController #:nodoc:
         # This is the method that defines the application behavior when a request is found to be unverified.
         def handle_unverified_request
           request = @controller.request
-          request.session = NullSessionHash.new(request.env)
+          request.session = NullSessionHash.new(request)
           request.env['action_dispatch.request.flash_hash'] = nil
           request.env['rack.session.options'] = { skip: true }
           request.cookie_jar = NullCookieJar.build(request, {})
@@ -145,8 +145,8 @@ module ActionController #:nodoc:
         protected
 
         class NullSessionHash < Rack::Session::Abstract::SessionHash #:nodoc:
-          def initialize(env)
-            super(nil, env)
+          def initialize(req)
+            super(nil, req)
             @data = {}
             @loaded = true
           end
