@@ -132,13 +132,9 @@ class MigrationTest < ActiveRecord::TestCase
     Person.connection.drop_table :testings2, if_exists: true
   end
 
-  def connection
-    ActiveRecord::Base.connection
-  end
-
   def test_migration_instance_has_connection
     migration = Class.new(ActiveRecord::Migration).new
-    assert_equal connection, migration.connection
+    assert_equal ActiveRecord::Base.connection, migration.connection
   end
 
   def test_method_missing_delegates_to_connection
