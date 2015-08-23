@@ -369,13 +369,11 @@ class ThreadsController  < ResourcesController; end
 class MessagesController < ResourcesController; end
 class CommentsController < ResourcesController; end
 class ReviewsController < ResourcesController; end
-class LogosController < ResourcesController; end
 
 class AccountsController <  ResourcesController; end
 class AdminController   <  ResourcesController; end
 class ProductsController < ResourcesController; end
 class ImagesController < ResourcesController; end
-class PreferencesController < ResourcesController; end
 
 module Backoffice
   class ProductsController < ResourcesController; end
