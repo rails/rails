@@ -71,9 +71,6 @@ module ActionCable
       include Naming
       include Broadcasting
 
-      on_subscribe   :subscribed
-      on_unsubscribe :unsubscribed
-
       attr_reader :params, :connection
       delegate :logger, to: :connection
 
@@ -138,7 +135,9 @@ module ActionCable
       # Called by the cable connection when its cut so the channel has a chance to cleanup with callbacks.
       # This method is not intended to be called directly by the user. Instead, overwrite the #unsubscribed callback.
       def unsubscribe_from_channel
-        run_unsubscribe_callbacks
+        run_callbacks :unsubscribe do
+          unsubscribed
+        end
         logger.info "#{self.class.name} unsubscribed"
       end
 
@@ -176,7 +175,9 @@ module ActionCable
 
         def subscribe_to_channel
           logger.info "#{self.class.name} subscribing"
-          run_subscribe_callbacks
+          run_callbacks :subscribe do
+            subscribed
+          end
         end
 
 
@@ -204,14 +205,6 @@ module ActionCable
               signature << "(#{arguments.inspect})"
             end
           end
-        end
-
-        def run_subscribe_callbacks
-          self.class.on_subscribe_callbacks.each { |callback| send(callback) }
-        end
-
-        def run_unsubscribe_callbacks
-          self.class.on_unsubscribe_callbacks.each { |callback| send(callback) }
         end
     end
   end

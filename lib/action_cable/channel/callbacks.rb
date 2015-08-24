@@ -1,27 +1,35 @@
+require 'active_support/callbacks'
+
 module ActionCable
   module Channel
     module Callbacks
-      extend ActiveSupport::Concern
+      extend  ActiveSupport::Concern
+      include ActiveSupport::Callbacks
 
       included do
-        class_attribute :on_subscribe_callbacks, :on_unsubscribe_callbacks, instance_reader: false
-
-        self.on_subscribe_callbacks = []
-        self.on_unsubscribe_callbacks = []
+        define_callbacks :subscribe
+        define_callbacks :unsubscribe
       end
 
-      module ClassMethods
-        # Name methods that should be called when the channel is subscribed to.
-        # (These methods should be private, so they're not callable by the user).
-        def on_subscribe(*methods)
-          self.on_subscribe_callbacks += methods
+      class_methods do
+        def before_subscribe(*methods, &block)
+          set_callback(:subscribe, :before, *methods, &block)
         end
 
-        # Name methods that should be called when the channel is unsubscribed from.
-        # (These methods should be private, so they're not callable by the user).
-        def on_unsubscribe(*methods)
-          self.on_unsubscribe_callbacks += methods
+        def after_subscribe(*methods, &block)
+          set_callback(:subscribe, :after, *methods, &block)
         end
+        alias_method :on_subscribe, :after_subscribe
+
+
+        def before_unsubscribe(*methods, &block)
+          set_callback(:unsubscribe, :before, *methods, &block)
+        end
+
+        def after_unsubscribe(*methods, &block)
+          set_callback(:unsubscribe, :after, *methods, &block)
+        end
+        alias_method :on_unsubscribe, :after_unsubscribe
       end
     end
   end
