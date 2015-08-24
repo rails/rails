@@ -368,7 +368,7 @@ module ActionDispatch
           end
 
           def dispatcher(raise_on_name_error)
-            @set.dispatcher raise_on_name_error
+            Routing::RouteSet::Dispatcher.new raise_on_name_error
           end
       end
 

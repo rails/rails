@@ -385,10 +385,6 @@ module ActionDispatch
         @prepend.each { |blk| eval_block(blk) }
       end
 
-      def dispatcher(raise_on_name_error)
-        Routing::RouteSet::Dispatcher.new raise_on_name_error
-      end
-
       module MountedHelpers
         extend ActiveSupport::Concern
         include UrlFor
