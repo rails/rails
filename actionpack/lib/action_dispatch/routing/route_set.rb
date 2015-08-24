@@ -343,6 +343,11 @@ module ActionDispatch
         ActionDispatch::Request
       end
 
+      def make_request(env)
+        request_class.new env
+      end
+      private :make_request
+
       def draw(&block)
         clear! unless @disable_clear_and_finalize
         eval_block(block)
@@ -700,7 +705,7 @@ module ActionDispatch
       end
 
       def call(env)
-        req = request_class.new(env)
+        req = make_request(env)
         req.path_info = Journey::Router::Utils.normalize_path(req.path_info)
         @router.serve(req)
       end
@@ -716,7 +721,7 @@ module ActionDispatch
           raise ActionController::RoutingError, e.message
         end
 
-        req = request_class.new(env)
+        req = make_request(env)
         @router.recognize(req) do |route, params|
           params.merge!(extras)
           params.each do |key, value|
