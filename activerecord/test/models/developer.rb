@@ -50,6 +50,7 @@ class Developer < ActiveRecord::Base
   has_many :firms, :through => :contracts, :source => :firm
   has_many :comments, ->(developer) { where(body: "I'm #{developer.name}") }
   has_many :ratings, through: :comments
+  has_one :ship, dependent: :nullify
 
   scope :jamises, -> { where(:name => 'Jamis') }
 
