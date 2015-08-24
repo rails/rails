@@ -7,6 +7,7 @@ require 'models/computer'
 require 'models/project'
 require 'models/reader'
 require 'models/person'
+require 'models/ship'
 
 class ReadOnlyTest < ActiveRecord::TestCase
   fixtures :authors, :posts, :comments, :developers, :projects, :developers_projects, :people, :readers
