@@ -17,8 +17,6 @@ module ActionDispatch
     end
 
     setup do
-      Rails.stubs(:root).returns(Pathname.new('.'))
-
       @cleaner = ActiveSupport::BacktraceCleaner.new
       @cleaner.add_silencer { |line| line !~ /^lib/ }
     end

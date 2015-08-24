@@ -397,6 +397,7 @@ def jruby_skip(message = '')
 end
 
 require 'mocha/setup' # FIXME: stop using mocha
+require 'minitest/mock'
 
 class ForkingExecutor
   class Server
