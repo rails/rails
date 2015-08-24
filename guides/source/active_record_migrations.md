@@ -652,7 +652,7 @@ can't be done.
 You can use Active Record's ability to rollback migrations using the `revert` method:
 
 ```ruby
-require_relative '2012121212_example_migration'
+require_relative '20121212123456_example_migration'
 
 class FixupExampleMigration < ActiveRecord::Migration
   def change
