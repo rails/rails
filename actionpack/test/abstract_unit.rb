@@ -42,6 +42,8 @@ module Rails
     def env
       @_env ||= ActiveSupport::StringInquirer.new(ENV["RAILS_ENV"] || ENV["RACK_ENV"] || "test")
     end
+
+    def root; end;
   end
 end
 
@@ -397,7 +399,7 @@ def jruby_skip(message = '')
 end
 
 require 'mocha/setup' # FIXME: stop using mocha
-require 'minitest/mock'
+require 'active_support/testing/method_call_assertions'
 
 class ForkingExecutor
   class Server
@@ -468,4 +470,8 @@ end
 if RUBY_ENGINE == "ruby" && PROCESS_COUNT > 0
   # Use N processes (N defaults to 4)
   Minitest.parallel_executor = ForkingExecutor.new(PROCESS_COUNT)
+end
+
+class ActiveSupport::TestCase
+  include ActiveSupport::Testing::MethodCallAssertions
 end

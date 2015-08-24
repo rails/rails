@@ -12,12 +12,6 @@ module ActionDispatch
     class RoutesInspectorTest < ActiveSupport::TestCase
       def setup
         @set = ActionDispatch::Routing::RouteSet.new
-        app = ActiveSupport::OrderedOptions.new
-        app.config = ActiveSupport::OrderedOptions.new
-        app.config.assets = ActiveSupport::OrderedOptions.new
-        app.config.assets.prefix = '/sprockets'
-        Rails.stubs(:application).returns(app)
-        Rails.stubs(:env).returns("development")
       end
 
       def draw(options = {}, &block)
@@ -316,9 +310,6 @@ module ActionDispatch
 
       def test_inspect_routes_shows_resources_route_when_assets_disabled
         @set = ActionDispatch::Routing::RouteSet.new
-        app = ActiveSupport::OrderedOptions.new
-
-        Rails.stubs(:application).returns(app)
 
         output = draw do
           get '/cart', to: 'cart#show'

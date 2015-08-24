@@ -131,9 +131,7 @@ end
 # common test methods
 module RequestForgeryProtectionTests
   def setup
-    @token      = "cf50faa3fe97702ca1ae"
-    @controller.stubs(:valid_authenticity_token?).with{ |_, t| t == @token }.returns(true)
-    @controller.stubs(:valid_authenticity_token?).with{ |_, t| t != @token }.returns(false)
+    @token = Base64.strict_encode64('railstestrailstestrailstestrails')
     @old_request_forgery_protection_token = ActionController::Base.request_forgery_protection_token
     ActionController::Base.request_forgery_protection_token = :custom_authenticity_token
   end
@@ -255,37 +253,53 @@ module RequestForgeryProtectionTests
   end
 
   def test_should_allow_post_with_token
-    assert_not_blocked { post :index, params: { custom_authenticity_token: @token } }
+    session[:_csrf_token] = @token
+    @controller.stub :form_authenticity_token, @token do
+      assert_not_blocked { post :index, params: { custom_authenticity_token: @token } }
+    end
   end
 
   def test_should_allow_patch_with_token
-    assert_not_blocked { patch :index, params: { custom_authenticity_token: @token } }
+    session[:_csrf_token] = @token
+    @controller.stub :form_authenticity_token, @token do
+      assert_not_blocked { patch :index, params: { custom_authenticity_token: @token } }
+    end
   end
 
   def test_should_allow_put_with_token
-    assert_not_blocked { put :index, params: { custom_authenticity_token: @token } }
+    session[:_csrf_token] = @token
+    @controller.stub :form_authenticity_token, @token do
+      assert_not_blocked { put :index, params: { custom_authenticity_token: @token } }
+    end
   end
 
   def test_should_allow_delete_with_token
-    assert_not_blocked { delete :index, params: { custom_authenticity_token: @token } }
+    session[:_csrf_token] = @token
+    @controller.stub :form_authenticity_token, @token do
+      assert_not_blocked { delete :index, params: { custom_authenticity_token: @token } }
+    end
   end
 
   def test_should_allow_post_with_token_in_header
+    session[:_csrf_token] = @token
     @request.env['HTTP_X_CSRF_TOKEN'] = @token
     assert_not_blocked { post :index }
   end
 
   def test_should_allow_delete_with_token_in_header
+    session[:_csrf_token] = @token
     @request.env['HTTP_X_CSRF_TOKEN'] = @token
     assert_not_blocked { delete :index }
   end
 
   def test_should_allow_patch_with_token_in_header
+    session[:_csrf_token] = @token
     @request.env['HTTP_X_CSRF_TOKEN'] = @token
     assert_not_blocked { patch :index }
   end
 
   def test_should_allow_put_with_token_in_header
+    session[:_csrf_token] = @token
     @request.env['HTTP_X_CSRF_TOKEN'] = @token
     assert_not_blocked { put :index }
   end
@@ -339,6 +353,7 @@ module RequestForgeryProtectionTests
 
   # Allow non-GET requests since GET is all a remote <script> tag can muster.
   def test_should_allow_non_get_js_without_xhr_header
+    session[:_csrf_token] = @token
     assert_cross_origin_not_blocked { post :same_origin_js, params: { custom_authenticity_token: @token } }
     assert_cross_origin_not_blocked { post :same_origin_js, params: { format: 'js', custom_authenticity_token: @token } }
     assert_cross_origin_not_blocked do
@@ -412,7 +427,8 @@ class RequestForgeryProtectionControllerUsingResetSessionTest < ActionController
       get :meta
       assert_select 'meta[name=?][content=?]', 'csrf-param', 'custom_authenticity_token'
       assert_select 'meta[name=?]', 'csrf-token'
-      assert_match(/cf50faa3fe97702ca1ae&lt;=\?/, @response.body)
+      regexp = "#{@token}&lt;=\?"
+      assert_match(/#{regexp}/, @response.body)
     end
   end
 end
