@@ -45,11 +45,24 @@ class I18nGenerateMessageValidationTest < ActiveRecord::TestCase
     assert_equal "Validation failed: Title is invalid, Title can't be blank", ActiveRecord::RecordInvalid.new(topic).message
   end
 
+  test "RecordInvalid exception with no errors can be localized" do
+    topic = Topic.new
+    assert_equal "Validation failed, but no errors were set. A callback may have returned false.", ActiveRecord::RecordInvalid.new(topic).message
+  end
+
   test "RecordInvalid exception translation falls back to the :errors namespace" do
     reset_i18n_load_path do
       I18n.backend.store_translations 'en', :errors => {:messages => {:record_invalid => 'fallback message'}}
       topic = Topic.new
       topic.errors.add(:title, :blank)
+      assert_equal "fallback message", ActiveRecord::RecordInvalid.new(topic).message
+    end
+  end
+
+  test "RecordInvalid exception with no errors translation falls back to the :errors namespace" do
+    reset_i18n_load_path do
+      I18n.backend.store_translations 'en', :errors => {:messages => {:record_invalid_no_errors => 'fallback message'}}
+      topic = Topic.new
       assert_equal "fallback message", ActiveRecord::RecordInvalid.new(topic).message
     end
   end

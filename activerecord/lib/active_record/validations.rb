@@ -14,8 +14,12 @@ module ActiveRecord
 
     def initialize(record)
       @record = record
-      errors = @record.errors.full_messages.join(", ")
-      super(I18n.t(:"#{@record.class.i18n_scope}.errors.messages.record_invalid", :errors => errors, :default => :"errors.messages.record_invalid"))
+      if @record.errors.any?
+        errors = @record.errors.full_messages.join(", ")
+        super(I18n.t(:"#{@record.class.i18n_scope}.errors.messages.record_invalid", errors: errors, default: :"errors.messages.record_invalid"))
+      else
+        super(I18n.t(:"#{@record.class.i18n_scope}.errors.messages.record_invalid_no_errors", default: :"errors.messages.record_invalid_no_errors"))
+      end
     end
   end
 

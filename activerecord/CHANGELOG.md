@@ -1,3 +1,8 @@
+*   Show a helpful error message when save!/update!/validate! fails due to a
+    before_validation callback that returned false but did not set errors.
+
+    *Brian Hempel*
+
 *   Only try to nullify has_one target association if the record is persisted.
 
     Fixes #21223.
