@@ -382,8 +382,8 @@ module ActionView
       case name
       when String     then _normalize_layout(name)
       when Proc       then name
-      when true       then Proc.new { _default_layout(formats, true)  }
-      when :default   then Proc.new { _default_layout(formats, false) }
+      when true       then Proc.new { |formats| _default_layout(formats, true)  }
+      when :default   then Proc.new { |formats| _default_layout(formats, false) }
       when false, nil then nil
       else
         raise ArgumentError,
