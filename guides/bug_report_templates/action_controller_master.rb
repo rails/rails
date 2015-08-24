@@ -9,6 +9,7 @@ gemfile(true) do
   source 'https://rubygems.org'
   gem 'rails', github: 'rails/rails'
   gem 'arel', github: 'rails/arel'
+  gem 'rack', github: 'rack/rack'
 end
 
 require 'action_controller/railtie'
@@ -31,7 +32,7 @@ class TestController < ActionController::Base
   include Rails.application.routes.url_helpers
 
   def index
-    render text: 'Home'
+    render plain: 'Home'
   end
 end
 

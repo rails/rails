@@ -31,26 +31,33 @@ module ActionView
     #   stylesheet_link_tag("application")
     #   # => <link href="http://assets.example.com/assets/application.css" media="screen" rel="stylesheet" />
     #
-    # Browsers typically open at most two simultaneous connections to a single
-    # host, which means your assets often have to wait for other assets to finish
-    # downloading. You can alleviate this by using a <tt>%d</tt> wildcard in the
-    # +asset_host+. For example, "assets%d.example.com". If that wildcard is
-    # present Rails distributes asset requests among the corresponding four hosts
-    # "assets0.example.com", ..., "assets3.example.com". With this trick browsers
-    # will open eight simultaneous connections rather than two.
+    # Browsers open a limited number of simultaneous connections to a single
+    # host. The exact number varies by browser and version. This limit may cause
+    # some asset downloads to wait for previous assets to finish before they can
+    # begin. You can use the <tt>%d</tt> wildcard in the +asset_host+ to
+    # distribute the requests over four hosts. For example,
+    # <tt>assets%d.example.com<tt> will spread the asset requests over
+    # "assets0.example.com", ..., "assets3.example.com".
     #
     #   image_tag("rails.png")
     #   # => <img alt="Rails" src="http://assets0.example.com/assets/rails.png" />
     #   stylesheet_link_tag("application")
     #   # => <link href="http://assets2.example.com/assets/application.css" media="screen" rel="stylesheet" />
     #
-    # To do this, you can either setup four actual hosts, or you can use wildcard
-    # DNS to CNAME the wildcard to a single asset host. You can read more about
-    # setting up your DNS CNAME records from your ISP.
+    # This may improve the asset loading performance of your application.
+    # It is also possible the combination of additional connection overhead
+    # (DNS, SSL) and the overall browser connection limits may result in this
+    # solution being slower. You should be sure to measure your actual
+    # performance across targeted browsers both before and after this change.
+    #
+    # To implement the corresponding hosts you can either setup four actual
+    # hosts or use wildcard DNS to CNAME the wildcard to a single asset host.
+    # You can read more about setting up your DNS CNAME records from your ISP.
     #
     # Note: This is purely a browser performance optimization and is not meant
     # for server load balancing. See http://www.die.net/musings/page_load_time/
-    # for background.
+    # for background and http://www.browserscope.org/?category=network for
+    # connection limit data.
     #
     # Alternatively, you can exert more control over the asset host by setting
     # +asset_host+ to a proc like this:
@@ -127,7 +134,7 @@ module ActionView
         return "" unless source.present?
         return source if source =~ URI_REGEXP
 
-        tail, source = source[/([\?#].+)$/], source.sub(/([\?#].+)$/, '')
+        tail, source = source[/([\?#].+)$/], source.sub(/([\?#].+)$/, ''.freeze)
 
         if extname = compute_asset_extname(source, options)
           source = "#{source}#{extname}"

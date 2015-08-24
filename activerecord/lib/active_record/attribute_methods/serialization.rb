@@ -11,7 +11,7 @@ module ActiveRecord
         # serialized object must be of that class on assignment and retrieval.
         # Otherwise <tt>SerializationTypeMismatch</tt> will be raised.
         #
-        # Empty objects as +{}+, in the case of +Hash+, or +[]+, in the case of
+        # Empty objects as <tt>{}</tt>, in the case of +Hash+, or <tt>[]</tt>, in the case of
         # +Array+, will always be persisted as null.
         #
         # Keep in mind that database adapters handle certain serialization tasks

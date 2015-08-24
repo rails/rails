@@ -47,7 +47,8 @@ end
 
 def mysql_56?
   current_adapter?(:MysqlAdapter, :Mysql2Adapter) &&
-    ActiveRecord::Base.connection.send(:version).join(".") >= "5.6.0"
+    ActiveRecord::Base.connection.send(:version) >= '5.6.0' &&
+    ActiveRecord::Base.connection.send(:version) < '5.7.0'
 end
 
 def mysql_enforcing_gtid_consistency?

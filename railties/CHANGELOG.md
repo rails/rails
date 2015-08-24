@@ -1,3 +1,42 @@
+*   Plugins generated using `rails plugin new` are now generated with the
+    version number set to 0.1.0.
+
+    *Daniel Morris*
+
+*   `I18n.load_path` is now reloaded under development so there's no need to
+    restart the server to make new locale files available. Also, I18n will no
+    longer raise for deleted locale files.
+
+    *Kir Shatrov*
+
+*   Add `bin/update` script to update development environment automatically.
+
+    *Mehmet Emin İNAÇ*
+
+*   Fix STATS_DIRECTORIES already defined warning when running rake from within
+    the top level directory of an engine that has a test app.
+
+    Fixes #20510
+
+    *Ersin Akinci*
+
+*   Make enabling or disabling caching in development mode possible with
+    rake dev:cache.
+
+    Running rake dev:cache will create or remove tmp/caching-dev.txt. When this
+    file exists config.action_controller.perform_caching will be set to true in
+    config/environments/development.rb.
+
+    Additionally, a server can be started with either --dev-caching or
+    --no-dev-caching included to toggle caching on startup.
+
+    *Jussi Mertanen*, *Chuck Callebs*
+
+*   Add a `--api` option in order to generate plugins that can be added
+    inside an API application.
+
+    *Robin Dupret*
+
 *   Fix `NoMethodError` when generating a scaffold inside a full engine.
 
     *Yuji Yaginuma*

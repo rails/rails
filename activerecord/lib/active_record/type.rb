@@ -20,6 +20,8 @@ require 'active_record/type/adapter_specific_registry'
 require 'active_record/type/type_map'
 require 'active_record/type/hash_lookup_type_map'
 
+require 'active_record/type/internal/abstract_json'
+
 module ActiveRecord
   module Type
     @registry = AdapterSpecificRegistry.new

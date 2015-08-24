@@ -313,6 +313,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_file "test/test_helper.rb" do |content|
       assert_match(/ActiveRecord::Migrator\.migrations_paths.+\.\.\/test\/dummy\/db\/migrate/, content)
       assert_match(/ActiveRecord::Migrator\.migrations_paths.+<<.+\.\.\/db\/migrate/, content)
+      assert_match(/ActionDispatch::IntegrationTest\.fixture_path = ActiveSupport::TestCase\.fixture_pat/, content)
     end
   end
 
@@ -322,7 +323,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_file "hyphenated-name/app/assets/stylesheets/hyphenated/name"
     assert_file "hyphenated-name/app/assets/images/hyphenated/name"
     assert_file "hyphenated-name/config/routes.rb",                                          /Hyphenated::Name::Engine.routes.draw do/
-    assert_file "hyphenated-name/lib/hyphenated/name/version.rb",                            /module Hyphenated\n  module Name\n    VERSION = "0.0.1"\n  end\nend/
+    assert_file "hyphenated-name/lib/hyphenated/name/version.rb",                            /module Hyphenated\n  module Name\n    VERSION = '0.1.0'\n  end\nend/
     assert_file "hyphenated-name/lib/hyphenated/name/engine.rb",                             /module Hyphenated\n  module Name\n    class Engine < ::Rails::Engine\n      isolate_namespace Hyphenated::Name\n    end\n  end\nend/
     assert_file "hyphenated-name/lib/hyphenated/name.rb",                                    /require "hyphenated\/name\/engine"/
     assert_file "hyphenated-name/test/dummy/config/routes.rb",                               /mount Hyphenated::Name::Engine => "\/hyphenated-name"/
@@ -341,7 +342,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_file "my_hyphenated-name/app/assets/stylesheets/my_hyphenated/name"
     assert_file "my_hyphenated-name/app/assets/images/my_hyphenated/name"
     assert_file "my_hyphenated-name/config/routes.rb",                                             /MyHyphenated::Name::Engine.routes.draw do/
-    assert_file "my_hyphenated-name/lib/my_hyphenated/name/version.rb",                            /module MyHyphenated\n  module Name\n    VERSION = "0.0.1"\n  end\nend/
+    assert_file "my_hyphenated-name/lib/my_hyphenated/name/version.rb",                            /module MyHyphenated\n  module Name\n    VERSION = '0.1.0'\n  end\nend/
     assert_file "my_hyphenated-name/lib/my_hyphenated/name/engine.rb",                             /module MyHyphenated\n  module Name\n    class Engine < ::Rails::Engine\n      isolate_namespace MyHyphenated::Name\n    end\n  end\nend/
     assert_file "my_hyphenated-name/lib/my_hyphenated/name.rb",                                    /require "my_hyphenated\/name\/engine"/
     assert_file "my_hyphenated-name/test/dummy/config/routes.rb",                                  /mount MyHyphenated::Name::Engine => "\/my_hyphenated-name"/
@@ -360,7 +361,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_file "deep-hyphenated-name/app/assets/stylesheets/deep/hyphenated/name"
     assert_file "deep-hyphenated-name/app/assets/images/deep/hyphenated/name"
     assert_file "deep-hyphenated-name/config/routes.rb",                                               /Deep::Hyphenated::Name::Engine.routes.draw do/
-    assert_file "deep-hyphenated-name/lib/deep/hyphenated/name/version.rb",                            /module Deep\n  module Hyphenated\n    module Name\n      VERSION = "0.0.1"\n    end\n  end\nend/
+    assert_file "deep-hyphenated-name/lib/deep/hyphenated/name/version.rb",                            /module Deep\n  module Hyphenated\n    module Name\n      VERSION = '0.1.0'\n    end\n  end\nend/
     assert_file "deep-hyphenated-name/lib/deep/hyphenated/name/engine.rb",                             /module Deep\n  module Hyphenated\n    module Name\n      class Engine < ::Rails::Engine\n        isolate_namespace Deep::Hyphenated::Name\n      end\n    end\n  end\nend/
     assert_file "deep-hyphenated-name/lib/deep/hyphenated/name.rb",                                    /require "deep\/hyphenated\/name\/engine"/
     assert_file "deep-hyphenated-name/test/dummy/config/routes.rb",                                    /mount Deep::Hyphenated::Name::Engine => "\/deep-hyphenated-name"/
@@ -542,6 +543,60 @@ class PluginGeneratorTest < Rails::Generators::TestCase
       assert_match name, contents
       assert_match email, contents
     end
+  end
+
+  def test_skipping_useless_folders_generation_for_api_engines
+    ['--full', '--mountable'].each do |option|
+      run_generator [destination_root, option, '--api']
+
+      assert_no_directory "app/assets"
+      assert_no_directory "app/helpers"
+      assert_no_directory "app/views"
+
+      FileUtils.rm_rf destination_root
+    end
+  end
+
+  def test_application_controller_parent_for_mountable_api_plugins
+    run_generator [destination_root, '--mountable', '--api']
+
+    assert_file "app/controllers/bukkits/application_controller.rb" do |content|
+      assert_match "ApplicationController < ActionController::API", content
+    end
+  end
+
+  def test_dummy_api_application_for_api_plugins
+    run_generator [destination_root, '--api']
+
+    assert_file "test/dummy/config/application.rb" do |content|
+      assert_match "config.api_only = true", content
+    end
+  end
+
+
+  def test_api_generators_configuration_for_api_engines
+    run_generator [destination_root, '--full', '--api']
+
+    assert_file "lib/bukkits/engine.rb" do |content|
+      assert_match "config.generators.api_only = true", content
+    end
+  end
+
+  def test_scaffold_generator_for_mountable_api_plugins
+    run_generator [destination_root, '--mountable', '--api']
+
+    capture(:stdout) do
+      `#{destination_root}/bin/rails g scaffold article`
+    end
+
+    assert_file "app/models/bukkits/article.rb"
+    assert_file "app/controllers/bukkits/articles_controller.rb" do |content|
+      assert_match "only: [:show, :update, :destroy]", content
+    end
+
+    assert_no_directory "app/assets"
+    assert_no_directory "app/helpers"
+    assert_no_directory "app/views"
   end
 
 protected

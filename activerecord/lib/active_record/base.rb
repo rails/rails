@@ -280,6 +280,7 @@ module ActiveRecord #:nodoc:
     extend Explain
     extend Enum
     extend Delegation::DelegateCache
+    extend CollectionCacheKey
 
     include Core
     include Persistence

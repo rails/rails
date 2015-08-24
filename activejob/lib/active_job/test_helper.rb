@@ -7,7 +7,7 @@ module ActiveJob
     extend ActiveSupport::Concern
 
     included do
-      def before_setup
+      def before_setup # :nodoc:
         test_adapter = ActiveJob::QueueAdapters::TestAdapter.new
 
         @old_queue_adapters = (ActiveJob::Base.subclasses << ActiveJob::Base).select do |klass|
@@ -24,7 +24,7 @@ module ActiveJob
         super
       end
 
-      def after_teardown
+      def after_teardown # :nodoc:
         super
         @old_queue_adapters.each do |(klass, adapter)|
           klass.queue_adapter = adapter
@@ -233,10 +233,11 @@ module ActiveJob
         args.assert_valid_keys(:job, :args, :at, :queue)
         serialized_args = serialize_args_for_assertion(args)
         yield
-        matching_job = enqueued_jobs.any? do |job|
+        matching_job = enqueued_jobs.find do |job|
           serialized_args.all? { |key, value| value == job[key] }
         end
         assert matching_job, "No enqueued job found with #{args}"
+        instantiate_job(matching_job)
       ensure
         queue_adapter.enqueued_jobs = original_enqueued_jobs + enqueued_jobs
       end
@@ -254,10 +255,11 @@ module ActiveJob
         args.assert_valid_keys(:job, :args, :at, :queue)
         serialized_args = serialize_args_for_assertion(args)
         perform_enqueued_jobs { yield }
-        matching_job = performed_jobs.any? do |job|
+        matching_job = performed_jobs.find do |job|
           serialized_args.all? { |key, value| value == job[key] }
         end
         assert matching_job, "No performed job found with #{args}"
+        instantiate_job(matching_job)
       ensure
         queue_adapter.performed_jobs = original_performed_jobs + performed_jobs
       end
@@ -310,6 +312,13 @@ module ActiveJob
             serialized_args[:args] = ActiveJob::Arguments.serialize(job_args)
           end
           serialized_args
+        end
+
+        def instantiate_job(payload)
+          job = payload[:job].new(*payload[:args])
+          job.scheduled_at = Time.at(payload[:at]) if payload.key?(:at)
+          job.queue_name = payload[:queue]
+          job
         end
     end
   end

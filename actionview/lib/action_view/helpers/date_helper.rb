@@ -70,7 +70,7 @@ module ActionView
       #   distance_of_time_in_words(Time.now, Time.now)                                               # => less than a minute
       #
       # With the <tt>scope</tt> option, you can define a custom scope for Rails
-      # to lookup the translation.
+      # to look up the translation.
       #
       # For example you can define the following in your locale (e.g. en.yml).
       #
@@ -228,6 +228,7 @@ module ActionView
       #   or the given prompt string.
       # * <tt>:with_css_classes</tt>   - Set to true if you want assign different styles for 'select' tags. This option
       #   automatically set classes 'year', 'month', 'day', 'hour', 'minute' and 'second' for your 'select' tags.
+      # * <tt>:use_hidden</tt>         - Set to true if you only want to generate hidden input tags.
       #
       # If anything is passed in the +html_options+ hash it will be applied to every select tag in the set.
       #
@@ -681,7 +682,7 @@ module ActionView
         content  = args.first || I18n.l(date_or_time, :format => format)
         datetime = date_or_time.acts_like?(:time) ? date_or_time.xmlschema : date_or_time.iso8601
 
-        content_tag(:time, content, options.reverse_merge(:datetime => datetime), &block)
+        content_tag("time".freeze, content, options.reverse_merge(:datetime => datetime), &block)
       end
     end
 
@@ -809,7 +810,7 @@ module ActionView
           1.upto(12) do |month_number|
             options = { :value => month_number }
             options[:selected] = "selected" if month == month_number
-            month_options << content_tag(:option, month_name(month_number), options) + "\n"
+            month_options << content_tag("option".freeze, month_name(month_number), options) + "\n"
           end
           build_select(:month, month_options.join)
         end
@@ -971,7 +972,7 @@ module ActionView
             tag_options[:selected] = "selected" if selected == i
             text = options[:use_two_digit_numbers] ? sprintf("%02d", i) : value
             text = options[:ampm] ? AMPM_TRANSLATION[i] : text
-            select_options << content_tag(:option, text, tag_options)
+            select_options << content_tag("option".freeze, text, tag_options)
           end
 
           (select_options.join("\n") + "\n").html_safe
@@ -991,11 +992,11 @@ module ActionView
           select_options[:class] = [select_options[:class], type].compact.join(' ') if @options[:with_css_classes]
 
           select_html = "\n"
-          select_html << content_tag(:option, '', :value => '') + "\n" if @options[:include_blank]
+          select_html << content_tag("option".freeze, '', :value => '') + "\n" if @options[:include_blank]
           select_html << prompt_option_tag(type, @options[:prompt]) + "\n" if @options[:prompt]
           select_html << select_options_as_html
 
-          (content_tag(:select, select_html.html_safe, select_options) + "\n").html_safe
+          (content_tag("select".freeze, select_html.html_safe, select_options) + "\n").html_safe
         end
 
         # Builds a prompt option tag with supplied options or from default options.
@@ -1012,7 +1013,7 @@ module ActionView
               I18n.translate(:"datetime.prompts.#{type}", :locale => @options[:locale])
           end
 
-          prompt ? content_tag(:option, prompt, :value => '') : ''
+          prompt ? content_tag("option".freeze, prompt, :value => '') : ''
         end
 
         # Builds hidden input tag for date part and value.

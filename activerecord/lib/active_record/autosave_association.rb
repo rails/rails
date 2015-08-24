@@ -222,6 +222,7 @@ module ActiveRecord
               true
             end
             validate validation_method
+            after_validation :_ensure_no_duplicate_errors
           end
         end
     end
@@ -233,7 +234,7 @@ module ActiveRecord
       super
     end
 
-    # Marks this record to be destroyed as part of the parents save transaction.
+    # Marks this record to be destroyed as part of the parent's save transaction.
     # This does _not_ actually destroy the record instantly, rather child record will be destroyed
     # when <tt>parent.save</tt> is called.
     #
@@ -242,7 +243,7 @@ module ActiveRecord
       @marked_for_destruction = true
     end
 
-    # Returns whether or not this record will be destroyed as part of the parents save transaction.
+    # Returns whether or not this record will be destroyed as part of the parent's save transaction.
     #
     # Only useful if the <tt>:autosave</tt> option on the parent is enabled for this associated model.
     def marked_for_destruction?
@@ -324,7 +325,7 @@ module ActiveRecord
       # the parent, <tt>self</tt>, if it wasn't. Skips any <tt>:autosave</tt>
       # enabled records if they're marked_for_destruction? or destroyed.
       def association_valid?(reflection, record)
-        return true if record.destroyed? || record.marked_for_destruction?
+        return true if record.destroyed? || (reflection.options[:autosave] && record.marked_for_destruction?)
 
         validation_context = self.validation_context unless [:create, :update].include?(self.validation_context)
         unless valid = record.valid?(validation_context)
@@ -454,6 +455,12 @@ module ActiveRecord
 
             saved if autosave
           end
+        end
+      end
+
+      def _ensure_no_duplicate_errors
+        errors.messages.each_key do |attribute|
+          errors[attribute].uniq!
         end
       end
   end

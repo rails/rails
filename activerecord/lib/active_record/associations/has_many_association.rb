@@ -16,7 +16,14 @@ module ActiveRecord
         when :restrict_with_error
           unless empty?
             record = klass.human_attribute_name(reflection.name).downcase
-            owner.errors.add(:base, :"restrict_dependent_destroy.many", record: record)
+            message = owner.errors.generate_message(:base, :'restrict_dependent_destroy.many', record: record, raise: true) rescue nil
+            if message
+              ActiveSupport::Deprecation.warn(<<-MESSAGE.squish)
+                The error key `:'restrict_dependent_destroy.many'` has been deprecated and will be removed in Rails 5.1.
+                Please use `:'restrict_dependent_destroy.has_many'` instead.
+              MESSAGE
+            end
+            owner.errors.add(:base, message || :'restrict_dependent_destroy.has_many', record: record)
             throw(:abort)
           end
 
@@ -80,8 +87,15 @@ module ActiveRecord
           [association_scope.limit_value, count].compact.min
         end
 
+
+        # Returns whether a counter cache should be used for this association.
+        #
+        # The counter_cache option must be given on either the owner or inverse
+        # association, and the column must be present on the owner.
         def has_cached_counter?(reflection = reflection())
-          owner.attribute_present?(cached_counter_attribute_name(reflection))
+          if reflection.options[:counter_cache] || (inverse = inverse_which_updates_counter_cache(reflection)) && inverse.options[:counter_cache]
+            owner.attribute_present?(cached_counter_attribute_name(reflection))
+          end
         end
 
         def cached_counter_attribute_name(reflection = reflection())

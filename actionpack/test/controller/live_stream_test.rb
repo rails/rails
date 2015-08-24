@@ -1,5 +1,5 @@
 require 'abstract_unit'
-require 'active_support/concurrency/latch'
+require 'concurrent/atomics'
 Thread.abort_on_exception = true
 
 module ActionController
@@ -125,7 +125,7 @@ module ActionController
       end
 
       def render_text
-        render :text => 'zomg'
+        render plain: 'zomg'
       end
 
       def default_header
@@ -145,7 +145,7 @@ module ActionController
         response.headers['Content-Type'] = 'text/event-stream'
         %w{ hello world }.each do |word|
           response.stream.write word
-          latch.await
+          latch.wait
         end
         response.stream.close
       end
@@ -162,7 +162,7 @@ module ActionController
       end
 
       def with_stale
-        render text: 'stale' if stale?(etag: "123", template: false)
+        render plain: 'stale' if stale?(etag: "123", template: false)
       end
 
       def exception_in_view
@@ -212,7 +212,7 @@ module ActionController
         # .. plus one more, because the #each frees up a slot:
         response.stream.write '.'
 
-        latch.release
+        latch.count_down
 
         # This write will block, and eventually raise
         response.stream.write 'x'
@@ -233,7 +233,7 @@ module ActionController
         end
 
         logger.info 'Work complete'
-        latch.release
+        latch.count_down
       end
     end
 
@@ -278,7 +278,7 @@ module ActionController
     def test_async_stream
       rubinius_skip "https://github.com/rubinius/rubinius/issues/2934"
 
-      @controller.latch = ActiveSupport::Concurrency::Latch.new
+      @controller.latch = Concurrent::CountDownLatch.new
       parts             = ['hello', 'world']
 
       @controller.request  = @request
@@ -289,8 +289,8 @@ module ActionController
         resp.stream.each do |part|
           assert_equal parts.shift, part
           ol = @controller.latch
-          @controller.latch = ActiveSupport::Concurrency::Latch.new
-          ol.release
+          @controller.latch = Concurrent::CountDownLatch.new
+          ol.count_down
         end
       }
 
@@ -300,23 +300,23 @@ module ActionController
     end
 
     def test_abort_with_full_buffer
-      @controller.latch = ActiveSupport::Concurrency::Latch.new
+      @controller.latch = Concurrent::CountDownLatch.new
 
       @request.parameters[:format] = 'plain'
       @controller.request  = @request
       @controller.response = @response
 
-      got_error = ActiveSupport::Concurrency::Latch.new
+      got_error = Concurrent::CountDownLatch.new
       @response.stream.on_error do
         ActionController::Base.logger.warn 'Error while streaming'
-        got_error.release
+        got_error.count_down
       end
 
       t = Thread.new(@response) { |resp|
         resp.await_commit
         _, _, body = resp.to_a
         body.each do |part|
-          @controller.latch.await
+          @controller.latch.wait
           body.close
           break
         end
@@ -325,13 +325,13 @@ module ActionController
       capture_log_output do |output|
         @controller.process :overfill_buffer_and_die
         t.join
-        got_error.await
+        got_error.wait
         assert_match 'Error while streaming', output.rewind && output.read
       end
     end
 
     def test_ignore_client_disconnect
-      @controller.latch = ActiveSupport::Concurrency::Latch.new
+      @controller.latch = Concurrent::CountDownLatch.new
 
       @controller.request  = @request
       @controller.response = @response
@@ -349,7 +349,7 @@ module ActionController
         @controller.process :ignore_client_disconnect
         t.join
         Timeout.timeout(3) do
-          @controller.latch.await
+          @controller.latch.wait
         end
         assert_match 'Work complete', output.rewind && output.read
       end

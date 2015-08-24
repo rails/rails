@@ -92,11 +92,11 @@ module Rails
       # file in <tt>config/environments</tt>.
       #
       #   environment do
-      #     "config.autoload_paths += %W(#{config.root}/extras)"
+      #     "config.action_controller.asset_host = 'cdn.provider.com'"
       #   end
       #
       #   environment(nil, env: "development") do
-      #     "config.autoload_paths += %W(#{config.root}/extras)"
+      #     "config.action_controller.asset_host = 'localhost:3000'"
       #   end
       def environment(data=nil, options={})
         sentinel = /class [a-z_:]+ < Rails::Application/i

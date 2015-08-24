@@ -47,6 +47,15 @@ module ActiveRecord
 
   # Raised when Active Record cannot find record by given id or set of ids.
   class RecordNotFound < ActiveRecordError
+    attr_reader :model, :primary_key, :id
+
+    def initialize(message = nil, model = nil, primary_key = nil, id = nil)
+      @primary_key = primary_key
+      @model = model
+      @id = id
+
+      super(message)
+    end
   end
 
   # Raised by ActiveRecord::Base.save! and ActiveRecord::Base.create! methods when record cannot be
@@ -209,11 +218,12 @@ module ActiveRecord
   class UnknownPrimaryKey < ActiveRecordError
     attr_reader :model
 
-    def initialize(model)
-      super("Unknown primary key for table #{model.table_name} in model #{model}.")
+    def initialize(model, description = nil)
+      message = "Unknown primary key for table #{model.table_name} in model #{model}."
+      message += "\n#{description}" if description
+      super(message)
       @model = model
     end
-
   end
 
   # Raised when a relation cannot be mutated because it's already loaded.

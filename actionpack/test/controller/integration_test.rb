@@ -359,28 +359,28 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
   class IntegrationController < ActionController::Base
     def get
       respond_to do |format|
-        format.html { render :text => "OK", :status => 200 }
-        format.js { render :text => "JS OK", :status => 200 }
+        format.html { render plain: "OK", status: 200 }
+        format.js { render plain: "JS OK", status: 200 }
         format.xml { render :xml => "<root></root>", :status => 200 }
       end
     end
 
     def get_with_params
-      render :text => "foo: #{params[:foo]}", :status => 200
+      render plain: "foo: #{params[:foo]}", status: 200
     end
 
     def post
-      render :text => "Created", :status => 201
+      render plain: "Created", status: 201
     end
 
     def method
-      render :text => "method: #{request.method.downcase}"
+      render plain: "method: #{request.method.downcase}"
     end
 
     def cookie_monster
       cookies["cookie_1"] = nil
       cookies["cookie_3"] = "chocolate"
-      render :text => "Gone", :status => 410
+      render plain: "Gone", status: 410
     end
 
     def set_cookie
@@ -389,7 +389,7 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
     end
 
     def get_cookie
-      render :text => cookies["foo"]
+      render plain: cookies["foo"]
     end
 
     def redirect
@@ -755,12 +755,31 @@ class MetalIntegrationTest < ActionDispatch::IntegrationTest
     assert_equal "http://test.com/", @request.env["HTTP_REFERER"]
   end
 
+  def test_ignores_common_ports_in_host
+    get "http://test.com"
+    assert_equal "test.com", @request.env["HTTP_HOST"]
+
+    get "https://test.com"
+    assert_equal "test.com", @request.env["HTTP_HOST"]
+  end
+
+  def test_keeps_uncommon_ports_in_host
+    get "http://test.com:123"
+    assert_equal "test.com:123", @request.env["HTTP_HOST"]
+
+    get "http://test.com:443"
+    assert_equal "test.com:443", @request.env["HTTP_HOST"]
+
+    get "https://test.com:80"
+    assert_equal "test.com:80", @request.env["HTTP_HOST"]
+  end
+
 end
 
 class ApplicationIntegrationTest < ActionDispatch::IntegrationTest
   class TestController < ActionController::Base
     def index
-      render :text => "index"
+      render plain: "index"
     end
   end
 
@@ -847,7 +866,7 @@ end
 class EnvironmentFilterIntegrationTest < ActionDispatch::IntegrationTest
   class TestController < ActionController::Base
     def post
-      render :text => "Created", :status => 201
+      render plain: "Created", status: 201
     end
   end
 
@@ -880,15 +899,15 @@ end
 class UrlOptionsIntegrationTest < ActionDispatch::IntegrationTest
   class FooController < ActionController::Base
     def index
-      render :text => "foo#index"
+      render plain: "foo#index"
     end
 
     def show
-      render :text => "foo#show"
+      render plain: "foo#show"
     end
 
     def edit
-      render :text => "foo#show"
+      render plain: "foo#show"
     end
   end
 
@@ -898,7 +917,7 @@ class UrlOptionsIntegrationTest < ActionDispatch::IntegrationTest
     end
 
     def index
-      render :text => "foo#index"
+      render plain: "foo#index"
     end
   end
 

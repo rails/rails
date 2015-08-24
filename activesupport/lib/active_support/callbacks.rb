@@ -80,8 +80,12 @@ module ActiveSupport
     #     save
     #   end
     def run_callbacks(kind, &block)
-      callbacks = send("_#{kind}_callbacks")
+      send "_run_#{kind}_callbacks", &block
+    end
 
+    private
+
+    def __run_callbacks__(callbacks, &block)
       if callbacks.empty?
         yield if block_given?
       else
@@ -90,8 +94,6 @@ module ActiveSupport
         runner.call(e).value
       end
     end
-
-    private
 
     # A hook invoked every time a before callback is halted.
     # This can be overridden in AS::Callback implementors in order
@@ -739,10 +741,10 @@ module ActiveSupport
       #   callback chain, preventing following before and around callbacks from
       #   being called and the event from being triggered.
       #   This should be a lambda to be executed.
-      #   The current object and the return result of the callback will be called
-      #   with the lambda.
+      #   The current object and the result lambda of the callback will be provided
+      #   to the terminator lambda.
       #
-      #     define_callbacks :validate, terminator: ->(target, result) { result == false }
+      #     define_callbacks :validate, terminator: ->(target, result_lambda) { result_lambda.call == false }
       #
       #   In this example, if any before validate callbacks returns +false+,
       #   any successive before and around callback is not executed.
@@ -806,6 +808,12 @@ module ActiveSupport
         names.each do |name|
           class_attribute "_#{name}_callbacks"
           set_callbacks name, CallbackChain.new(name, options)
+
+          module_eval <<-RUBY, __FILE__, __LINE__ + 1
+            def _run_#{name}_callbacks(&block)
+              __run_callbacks__(_#{name}_callbacks, &block)
+            end
+          RUBY
         end
       end
 

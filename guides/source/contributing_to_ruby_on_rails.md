@@ -15,6 +15,9 @@ After reading this guide, you will know:
 
 Ruby on Rails is not "someone else's framework." Over the years, hundreds of people have contributed to Ruby on Rails ranging from a single character to massive architectural changes or significant documentation - all with the goal of making Ruby on Rails better for everyone. Even if you don't feel up to writing code or documentation yet, there are a variety of other ways that you can contribute, from reporting issues to testing patches.
 
+As mentioned in [Rails
+README](https://github.com/rails/rails/blob/master/README.md), everyone interacting in Rails and its sub-project’s codebases, issue trackers, chat rooms, and mailing lists is expected to follow the Rails [code of conduct](https://github.com/rails/rails/blob/master/CODE_OF_CONDUCT.md).
+
 --------------------------------------------------------------------------------
 
 Reporting an Issue
@@ -334,7 +337,7 @@ will now run the four of them in turn.
 You can also run any single test separately:
 
 ```bash
-$ ARCONN=sqlite3 ruby -Itest test/cases/associations/has_many_associations_test.rb
+$ ARCONN=sqlite3 bundle exec ruby -Itest test/cases/associations/has_many_associations_test.rb
 ```
 
 To run a single test against all adapters, use:

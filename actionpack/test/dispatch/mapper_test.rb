@@ -4,13 +4,6 @@ module ActionDispatch
   module Routing
     class MapperTest < ActiveSupport::TestCase
       class FakeSet < ActionDispatch::Routing::RouteSet
-        attr_reader :routes
-        alias :set :routes
-
-        def initialize
-          @routes = []
-        end
-
         def resources_path_names
           {}
         end
@@ -19,16 +12,24 @@ module ActionDispatch
           ActionDispatch::Request
         end
 
-        def add_route(*args)
-          routes << args
+        def dispatcher_class
+          RouteSet::Dispatcher
+        end
+
+        def defaults
+          routes.map(&:defaults)
         end
 
         def conditions
-          routes.map { |x| x[1] }
+          routes.map(&:constraints)
         end
 
         def requirements
-          routes.map { |x| x[2] }
+          routes.map(&:path).map(&:requirements)
+        end
+
+        def asts
+          routes.map(&:path).map(&:spec)
         end
       end
 
@@ -36,18 +37,76 @@ module ActionDispatch
         Mapper.new FakeSet.new
       end
 
+      def test_scope_raises_on_anchor
+        fakeset = FakeSet.new
+        mapper = Mapper.new fakeset
+        assert_raises(ArgumentError) do
+          mapper.scope(anchor: false) do
+          end
+        end
+      end
+
+      def test_blows_up_without_via
+        fakeset = FakeSet.new
+        mapper = Mapper.new fakeset
+        assert_raises(ArgumentError) do
+          mapper.match '/', :to => 'posts#index', :as => :main
+        end
+      end
+
+      def test_unscoped_formatted
+        fakeset = FakeSet.new
+        mapper = Mapper.new fakeset
+        mapper.get '/foo', :to => 'posts#index', :as => :main, :format => true
+        assert_equal({:controller=>"posts", :action=>"index"},
+                     fakeset.defaults.first)
+        assert_equal "/foo.:format", fakeset.asts.first.to_s
+      end
+
+      def test_scoped_formatted
+        fakeset = FakeSet.new
+        mapper = Mapper.new fakeset
+        mapper.scope(format: true) do
+          mapper.get '/foo', :to => 'posts#index', :as => :main
+        end
+        assert_equal({:controller=>"posts", :action=>"index"},
+                     fakeset.defaults.first)
+        assert_equal "/foo.:format", fakeset.asts.first.to_s
+      end
+
+      def test_random_keys
+        fakeset = FakeSet.new
+        mapper = Mapper.new fakeset
+        mapper.scope(omg: :awesome) do
+          mapper.get '/', :to => 'posts#index', :as => :main
+        end
+        assert_equal({:omg=>:awesome, :controller=>"posts", :action=>"index"},
+                     fakeset.defaults.first)
+        assert_equal(/^GET$/, fakeset.routes.first.verb)
+      end
+
       def test_mapping_requirements
-        options = { :controller => 'foo', :action => 'bar', :via => :get }
-        m = Mapper::Mapping.build({}, FakeSet.new, '/store/:name(*rest)', nil, options)
-        _, _, requirements, _ = m.to_route
-        assert_equal(/.+?/, requirements[:rest])
+        options = { }
+        scope = Mapper::Scope.new({})
+        ast = Journey::Parser.parse '/store/:name(*rest)'
+        m = Mapper::Mapping.build(scope, FakeSet.new, ast, 'foo', 'bar', nil, [:get], nil, {}, true, options)
+        assert_equal(/.+?/, m.requirements[:rest])
+      end
+
+      def test_via_scope
+        fakeset = FakeSet.new
+        mapper = Mapper.new fakeset
+        mapper.scope(via: :put) do
+          mapper.match '/', :to => 'posts#index', :as => :main
+        end
+        assert_equal(/^PUT$/, fakeset.routes.first.verb)
       end
 
       def test_map_slash
         fakeset = FakeSet.new
         mapper = Mapper.new fakeset
         mapper.get '/', :to => 'posts#index', :as => :main
-        assert_equal '/', fakeset.conditions.first[:path_info]
+        assert_equal '/', fakeset.asts.first.to_s
       end
 
       def test_map_more_slashes
@@ -56,14 +115,14 @@ module ActionDispatch
 
         # FIXME: is this a desired behavior?
         mapper.get '/one/two/', :to => 'posts#index', :as => :main
-        assert_equal '/one/two(.:format)', fakeset.conditions.first[:path_info]
+        assert_equal '/one/two(.:format)', fakeset.asts.first.to_s
       end
 
       def test_map_wildcard
         fakeset = FakeSet.new
         mapper = Mapper.new fakeset
         mapper.get '/*path', :to => 'pages#show'
-        assert_equal '/*path(.:format)', fakeset.conditions.first[:path_info]
+        assert_equal '/*path(.:format)', fakeset.asts.first.to_s
         assert_equal(/.+?/, fakeset.requirements.first[:path])
       end
 
@@ -71,7 +130,7 @@ module ActionDispatch
         fakeset = FakeSet.new
         mapper = Mapper.new fakeset
         mapper.get '/*path/foo/:bar', :to => 'pages#show'
-        assert_equal '/*path/foo/:bar(.:format)', fakeset.conditions.first[:path_info]
+        assert_equal '/*path/foo/:bar(.:format)', fakeset.asts.first.to_s
         assert_equal(/.+?/, fakeset.requirements.first[:path])
       end
 
@@ -79,7 +138,7 @@ module ActionDispatch
         fakeset = FakeSet.new
         mapper = Mapper.new fakeset
         mapper.get '/*foo/*bar', :to => 'pages#show'
-        assert_equal '/*foo/*bar(.:format)', fakeset.conditions.first[:path_info]
+        assert_equal '/*foo/*bar(.:format)', fakeset.asts.first.to_s
         assert_equal(/.+?/, fakeset.requirements.first[:foo])
         assert_equal(/.+?/, fakeset.requirements.first[:bar])
       end
@@ -88,7 +147,7 @@ module ActionDispatch
         fakeset = FakeSet.new
         mapper = Mapper.new fakeset
         mapper.get '/*path', :to => 'pages#show', :format => false
-        assert_equal '/*path', fakeset.conditions.first[:path_info]
+        assert_equal '/*path', fakeset.asts.first.to_s
         assert_nil fakeset.requirements.first[:path]
       end
 
@@ -96,7 +155,7 @@ module ActionDispatch
         fakeset = FakeSet.new
         mapper = Mapper.new fakeset
         mapper.get '/*path', :to => 'pages#show', :format => true
-        assert_equal '/*path.:format', fakeset.conditions.first[:path_info]
+        assert_equal '/*path.:format', fakeset.asts.first.to_s
       end
 
       def test_raising_helpful_error_on_invalid_arguments

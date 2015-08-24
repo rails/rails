@@ -18,11 +18,11 @@ class CacheStoreTest < ActionDispatch::IntegrationTest
     end
 
     def get_session_value
-      render :text => "foo: #{session[:foo].inspect}"
+      render plain: "foo: #{session[:foo].inspect}"
     end
 
     def get_session_id
-      render :text => "#{request.session.id}"
+      render plain: "#{request.session.id}"
     end
 
     def call_reset_session
@@ -170,7 +170,7 @@ class CacheStoreTest < ActionDispatch::IntegrationTest
         @app = self.class.build_app(set) do |middleware|
           @cache = ActiveSupport::Cache::MemoryStore.new
           middleware.use ActionDispatch::Session::CacheStore, :key => '_session_id', :cache => @cache
-          middleware.delete "ActionDispatch::ShowExceptions"
+          middleware.delete ActionDispatch::ShowExceptions
         end
 
         yield

@@ -86,8 +86,8 @@ module ActionDispatch
         end
         # Load routes.rb if it hasn't been loaded.
 
-        generated_path, extra_keys = @routes.generate_extras(options, defaults)
-        found_extras = options.reject { |k, _| ! extra_keys.include? k }
+        generated_path, query_string_keys = @routes.generate_extras(options, defaults)
+        found_extras = options.reject { |k, _| ! query_string_keys.include? k }
 
         msg = message || sprintf("found extras <%s>, not <%s>", found_extras, extras)
         assert_equal(extras, found_extras, msg)
@@ -165,7 +165,7 @@ module ActionDispatch
 
       # ROUTES TODO: These assertions should really work in an integration context
       def method_missing(selector, *args, &block)
-        if defined?(@controller) && @controller && @routes && @routes.named_routes.route_defined?(selector)
+        if defined?(@controller) && @controller && defined?(@routes) && @routes && @routes.named_routes.route_defined?(selector)
           @controller.send(selector, *args, &block)
         else
           super

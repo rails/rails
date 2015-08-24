@@ -48,4 +48,5 @@ module Minitest
   mattr_accessor(:run_with_rails_extension) { false }
 end
 
+Minitest.load_plugins
 Minitest.extensions << 'rails'

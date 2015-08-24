@@ -25,4 +25,6 @@ Gem::Specification.new do |s|
   s.add_dependency 'tzinfo',     '~> 1.1'
   s.add_dependency 'minitest',   '~> 5.1'
   s.add_dependency 'thread_safe','~> 0.3', '>= 0.3.4'
+  s.add_dependency 'concurrent-ruby', '~> 0.9.0'
+  s.add_dependency 'method_source'
 end

@@ -8,7 +8,7 @@ module ActionController
   #
   # You can read more about each approach by clicking the modules below.
   #
-  # Note: To turn off all caching, set
+  # Note: To turn off all caching provided by Action Controller, set
   #   config.action_controller.perform_caching = false
   #
   # == \Caching stores

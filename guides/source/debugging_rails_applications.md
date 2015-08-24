@@ -346,22 +346,11 @@ by asking the debugger for help. Type: `help`
 ```
 (byebug) help
 
-byebug 2.7.0
+  h[elp][ <cmd>[ <subcmd>]]
 
-Type 'help <command-name>' for help on a specific command
-
-Available commands:
-backtrace  delete   enable  help       list    pry next  restart  source     up
-break      disable  eval    info       method  ps        save     step       var
-catch      display  exit    interrupt  next    putl      set      thread
-condition  down     finish  irb        p       quit      show     trace
-continue   edit     frame   kill       pp      reload    skip     undisplay
-```
-
-TIP: To view the help menu for any command use `help <command-name>` at the
-debugger prompt. For example: _`help list`_. You can abbreviate any debugging
-command by supplying just enough letters to distinguish them from other
-commands. For example, you can use `l` for the `list` command.
+  help                -- prints this help.
+  help <cmd>          -- prints help on command <cmd>.
+  help <cmd> <subcmd> -- prints help on <cmd>'s subcommand <subcmd>.
 
 To see the previous ten lines you should type `list-` (or `l-`).
 
@@ -502,7 +491,7 @@ current context:
 
 (byebug) instance_variables
 [:@_action_has_layout, :@_routes, :@_headers, :@_status, :@_request,
- :@_response, :@_env, :@_prefixes, :@_lookup_context, :@_action_name,
+ :@_response, :@_prefixes, :@_lookup_context, :@_action_name,
  :@_response_body, :@marked_for_same_origin_verification, :@_config]
 ```
 
@@ -533,7 +522,7 @@ And then ask again for the instance_variables:
 ```
 (byebug) instance_variables
 [:@_action_has_layout, :@_routes, :@_headers, :@_status, :@_request,
- :@_response, :@_env, :@_prefixes, :@_lookup_context, :@_action_name,
+ :@_response, :@_prefixes, :@_lookup_context, :@_action_name,
  :@_response_body, :@marked_for_same_origin_verification, :@_config,
  :@articles]
 ```
@@ -630,13 +619,15 @@ Processing by ArticlesController#index as HTML
 (byebug)
 ```
 
-If we use `next`, we want go deep inside method calls. Instead, byebug will go
-to the next line within the same context. In this case, this is the last line of
-the method, so `byebug` will jump to next next line of the previous frame.
-
+If we use `next`, we won't go deep inside method calls. Instead, `byebug` will
+go to the next line within the same context. In this case, it is the last line
+of the current method, so `byebug` will return to the next line of the caller
++method.
 ```
 (byebug) next
-Next went up a frame because previous frame finished
+
+Next advances to the next line (line 6: `end`), which returns to the next line
+of the caller method:
 
 [4, 13] in /PathTo/project/test_app/app/controllers/articles_controller.rb
     4:   # GET /articles
@@ -653,8 +644,8 @@ Next went up a frame because previous frame finished
 (byebug)
 ```
 
-If we use `step` in the same situation, we will literally go to the next Ruby
-instruction to be executed. In this case, Active Support's `week` method.
+If we use `step` in the same situation, `byebug` will literally go to the next
+Ruby instruction to be executed -- in this case, Active Support's `week` method.
 
 ```
 (byebug) step
@@ -773,8 +764,8 @@ environment variable. A specific _line_ can also be given.
 
 ### Quitting
 
-To exit the debugger, use the `quit` command (abbreviated `q`), or its alias
-`exit`.
+To exit the debugger, use the `quit` command (abbreviated to `q`). Or, type `q!`
+to bypass the `Really quit? (y/n)` prompt and exit unconditionally.
 
 A simple quit tries to terminate all threads in effect. Therefore your server
 will be stopped and you will have to start it again.

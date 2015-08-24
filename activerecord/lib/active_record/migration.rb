@@ -376,6 +376,7 @@ module ActiveRecord
       attr_accessor :delegate # :nodoc:
       attr_accessor :disable_ddl_transaction # :nodoc:
 
+      # Raises <tt>ActiveRecord::PendingMigrationError</tt> error if any migrations are pending.
       def check_pending!(connection = Base.connection)
         raise ActiveRecord::PendingMigrationError if ActiveRecord::Migrator.needs_migration?(connection)
       end
@@ -408,7 +409,10 @@ module ActiveRecord
         new.migrate direction
       end
 
-      # Disable DDL transactions for this migration.
+      # Disable the transaction wrapping this migration.
+      # You can still create your own transactions even after calling #disable_ddl_transaction!
+      #
+      # For more details read the {"Transactional Migrations" section above}[rdoc-ref:Migration].
       def disable_ddl_transaction!
         @disable_ddl_transaction = true
       end
@@ -716,7 +720,9 @@ module ActiveRecord
       end
     end
 
-    def table_name_options(config = ActiveRecord::Base)
+    # Builds a hash for use in ActiveRecord::Migration#proper_table_name using
+    # the Active Record object's table_name prefix and suffix
+    def table_name_options(config = ActiveRecord::Base) #:nodoc:
       {
         table_name_prefix: config.table_name_prefix,
         table_name_suffix: config.table_name_suffix
@@ -808,7 +814,7 @@ module ActiveRecord
         new(:up, migrations, target_version).migrate
       end
 
-      def down(migrations_paths, target_version = nil, &block)
+      def down(migrations_paths, target_version = nil)
         migrations = migrations(migrations_paths)
         migrations.select! { |m| yield m } if block_given?
 

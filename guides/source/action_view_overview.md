@@ -15,7 +15,7 @@ After reading this guide, you will know:
 What is Action View?
 --------------------
 
-Action View and Action Controller are the two major components of Action Pack. In Rails, web requests are handled by Action Pack, which splits the work into a controller part (performing the logic) and a view part (rendering a template). Typically, Action Controller will be concerned with communicating with the database and performing CRUD actions where necessary. Action View is then responsible for compiling the response.
+In Rails, web requests are handled by [Action Controller](action_controller_overview.html) and Action View. Typically, Action Controller will be concerned with communicating with the database and performing CRUD actions where necessary. Action View is then responsible for compiling the response.
 
 Action View templates are written using embedded Ruby in tags mingled with HTML. To avoid cluttering the templates with boilerplate code, a number of helper classes provide common behavior for forms, dates, and strings. It's also easy to add new helpers to your application as it evolves.
 
@@ -1443,12 +1443,12 @@ Sanitizes a block of CSS code.
 Strips all link tags from text leaving just the link text.
 
 ```ruby
-strip_links("<a href="http://rubyonrails.org">Ruby on Rails</a>")
+strip_links('<a href="http://rubyonrails.org">Ruby on Rails</a>')
 # => Ruby on Rails
 ```
 
 ```ruby
-strip_links("emails to <a href="mailto:me@email.com">me@email.com</a>.")
+strip_links('emails to <a href="mailto:me@email.com">me@email.com</a>.')
 # => emails to me@email.com.
 ```
 

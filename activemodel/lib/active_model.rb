@@ -58,7 +58,6 @@ module ActiveModel
 
     eager_autoload do
       autoload :JSON
-      autoload :Xml
     end
   end
 

@@ -37,6 +37,7 @@ ActiveRecord::Schema.define do
 
   create_table :aircraft, force: true do |t|
     t.string :name
+    t.integer :wheels_count, default: 0, null: false
   end
 
   create_table :articles, force: true do |t|
@@ -129,6 +130,8 @@ ActiveRecord::Schema.define do
     t.column :lock_version, :integer, null: false, default: 0
     t.timestamps null: false
   end
+
+  create_table :carriers, force: true
 
   create_table :categories, force: true do |t|
     t.string :name, null: false
@@ -234,6 +237,11 @@ ActiveRecord::Schema.define do
     t.string  :address_city
     t.string  :address_country
     t.string  :gps_location
+  end
+
+  create_table :customer_carriers, force: true do |t|
+    t.references :customer
+    t.references :carrier
   end
 
   create_table :dashboards, force: true, id: false do |t|
@@ -666,6 +674,8 @@ ActiveRecord::Schema.define do
     t.string :name
     t.integer :pirate_id
     t.integer :update_only_pirate_id
+    # Conventionally named column for counter_cache
+    t.integer :treasures_count, default: 0
     t.datetime :created_at
     t.datetime :created_on
     t.datetime :updated_at
@@ -676,6 +686,15 @@ ActiveRecord::Schema.define do
     t.string :name
     t.integer :ship_id
     t.datetime :updated_at
+  end
+
+  create_table :prisoners, force: true do |t|
+    t.belongs_to :ship
+  end
+
+  create_table :shop_accounts, force: true do |t|
+    t.references :customer
+    t.references :customer_carrier
   end
 
   create_table :speedometers, force: true, id: false do |t|
@@ -933,4 +952,13 @@ end
 
 College.connection.create_table :colleges, force: true do |t|
   t.column :name, :string, null: false
+end
+
+Professor.connection.create_table :professors, force: true do |t|
+  t.column :name, :string, null: false
+end
+
+Professor.connection.create_table :courses_professors, id: false, force: true do |t|
+  t.references :course
+  t.references :professor
 end

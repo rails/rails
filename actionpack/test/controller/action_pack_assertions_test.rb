@@ -43,12 +43,12 @@ class ActionPackAssertionsController < ActionController::Base
 
   def flash_me
     flash['hello'] = 'my name is inigo montoya...'
-    render :text => "Inconceivable!"
+    render plain: "Inconceivable!"
   end
 
   def flash_me_naked
     flash.clear
-    render :text => "wow!"
+    render plain: "wow!"
   end
 
   def assign_this
@@ -57,30 +57,30 @@ class ActionPackAssertionsController < ActionController::Base
   end
 
   def render_based_on_parameters
-    render :text => "Mr. #{params[:name]}"
+    render plain: "Mr. #{params[:name]}"
   end
 
   def render_url
-    render :text => "<div>#{url_for(:action => 'flash_me', :only_path => true)}</div>"
+    render html: "<div>#{url_for(action: 'flash_me', only_path: true)}</div>"
   end
 
   def render_text_with_custom_content_type
-    render :text => "Hello!", :content_type => Mime::RSS
+    render body: "Hello!", content_type: Mime::RSS
   end
 
   def session_stuffing
     session['xmas'] = 'turkey'
-    render :text => "ho ho ho"
+    render plain: "ho ho ho"
   end
 
   def raise_exception_on_get
     raise "get" if request.get?
-    render :text => "request method: #{request.env['REQUEST_METHOD']}"
+    render plain: "request method: #{request.env['REQUEST_METHOD']}"
   end
 
   def raise_exception_on_post
     raise "post" if request.post?
-    render :text => "request method: #{request.env['REQUEST_METHOD']}"
+    render plain: "request method: #{request.env['REQUEST_METHOD']}"
   end
 
   def render_file_absolute_path
@@ -101,7 +101,7 @@ class AssertResponseWithUnexpectedErrorController < ActionController::Base
   end
 
   def show
-    render :text => "Boom", :status => 500
+    render plain: "Boom", status: 500
   end
 end
 
@@ -318,7 +318,7 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
 
   def test_missing_response_code
     process :response404
-    assert @response.missing?
+    assert @response.not_found?
   end
 
   def test_client_error_response_code
@@ -346,12 +346,12 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
 
   def test_successful_response_code
     process :nothing
-    assert @response.success?
+    assert @response.successful?
   end
 
   def test_response_object
     process :nothing
-    assert_kind_of ActionController::TestResponse, @response
+    assert_kind_of ActionDispatch::TestResponse, @response
   end
 
   def test_render_based_on_parameters

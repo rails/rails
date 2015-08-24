@@ -1,4 +1,5 @@
 require 'rack/session/abstract/id'
+require 'active_support/core_ext/hash/conversions'
 require 'active_support/core_ext/object/to_query'
 require 'active_support/core_ext/module/anonymous'
 require 'active_support/core_ext/hash/keys'
@@ -35,21 +36,23 @@ module ActionController
     end
 
     def query_string=(string)
-      @env[Rack::QUERY_STRING] = string
+      set_header Rack::QUERY_STRING, string
     end
 
     def request_parameters=(params)
-      @env["action_dispatch.request.request_parameters"] = params
+      set_header "action_dispatch.request.request_parameters", params
     end
 
-    def assign_parameters(routes, controller_path, action, parameters = {})
-      parameters = parameters.symbolize_keys
-      generated_path, extra_keys = routes.generate_extras(parameters.merge(:controller => controller_path, :action => action))
+    def content_type=(type)
+      set_header 'CONTENT_TYPE', type
+    end
+
+    def assign_parameters(routes, controller_path, action, parameters, generated_path, query_string_keys)
       non_path_parameters = {}
       path_parameters = {}
 
       parameters.each do |key, value|
-        if extra_keys.include?(key) || key == :action || key == :controller
+        if query_string_keys.include?(key)
           non_path_parameters[key] = value
         else
           if value.is_a?(Array)
@@ -68,10 +71,12 @@ module ActionController
         end
       else
         if ENCODER.should_multipart?(non_path_parameters)
-          @env['CONTENT_TYPE'] = ENCODER.content_type
+          self.content_type = ENCODER.content_type
           data = ENCODER.build_multipart non_path_parameters
         else
-          @env['CONTENT_TYPE'] ||= 'application/x-www-form-urlencoded'
+          get_header('CONTENT_TYPE') do |k|
+            set_header k, 'application/x-www-form-urlencoded'
+          end
 
           # FIXME: setting `request_parametes` is normally handled by the
           # params parser middleware, and we should remove this roundtripping
@@ -93,8 +98,8 @@ module ActionController
           end
         end
 
-        @env['CONTENT_LENGTH'] = data.length.to_s
-        @env['rack.input'] = StringIO.new(data)
+        set_header 'CONTENT_LENGTH', data.length.to_s
+        set_header 'rack.input', StringIO.new(data)
       end
 
       @env["PATH_INFO"] ||= generated_path
@@ -132,22 +137,12 @@ module ActionController
     end.new
   end
 
-  class TestResponse < ActionDispatch::TestResponse
-  end
-
   class LiveTestResponse < Live::Response
-    def body
-      @body ||= super
-    end
-
     # Was the response successful?
     alias_method :success?, :successful?
 
     # Was the URL not found?
     alias_method :missing?, :not_found?
-
-    # Were we redirected?
-    alias_method :redirect?, :redirection?
 
     # Was there a server-side error?
     alias_method :error?, :server_error?
@@ -179,6 +174,10 @@ module ActionController
 
     def destroy
       clear
+    end
+
+    def fetch(*args, &block)
+      @data.fetch(*args, &block)
     end
 
     private
@@ -237,7 +236,7 @@ module ActionController
   #      request. You can modify this object before sending the HTTP request. For example,
   #      you might want to set some session properties before sending a GET request.
   # <b>@response</b>::
-  #      An ActionController::TestResponse object, representing the response
+  #      An ActionDispatch::TestResponse object, representing the response
   #      of the last HTTP response. In the above example, <tt>@response</tt> becomes valid
   #      after calling +post+. If the various assert methods are not sufficient, then you
   #      may use this object to inspect the HTTP response in detail.
@@ -457,7 +456,7 @@ module ActionController
         end
 
         if body.present?
-          @request.env['RAW_POST_DATA'] = body
+          @request.set_header 'RAW_POST_DATA', body
         end
 
         if http_method.present?
@@ -479,44 +478,50 @@ module ActionController
         end
 
         self.cookies.update @request.cookies
-        @request.env['HTTP_COOKIE'] = cookies.to_header
-        @request.env['action_dispatch.cookies'] = nil
+        @request.set_header 'HTTP_COOKIE', cookies.to_header
+        @request.delete_header 'action_dispatch.cookies'
 
         @request          = TestRequest.new scrub_env!(@request.env), @request.session
         @response         = build_response @response_klass
         @response.request = @request
         @controller.recycle!
 
-        @request.env['REQUEST_METHOD'] = http_method
+        @request.set_header 'REQUEST_METHOD', http_method
 
-        controller_class_name = @controller.class.anonymous? ?
-          "anonymous" :
-          @controller.class.controller_path
+        parameters = parameters.symbolize_keys
 
-        @request.assign_parameters(@routes, controller_class_name, action.to_s, parameters)
+        generated_extras = @routes.generate_extras(parameters.merge(controller: controller_class_name, action: action.to_s))
+        generated_path = generated_path(generated_extras)
+        query_string_keys = query_parameter_names(generated_extras)
+
+        @request.assign_parameters(@routes, controller_class_name, action.to_s, parameters, generated_path, query_string_keys)
 
         @request.session.update(session) if session
         @request.flash.update(flash || {})
 
         if xhr
-          @request.env['HTTP_X_REQUESTED_WITH'] = 'XMLHttpRequest'
-          @request.env['HTTP_ACCEPT'] ||= [Mime::JS, Mime::HTML, Mime::XML, 'text/xml', Mime::ALL].join(', ')
+          @request.set_header 'HTTP_X_REQUESTED_WITH', 'XMLHttpRequest'
+          @request.get_header('HTTP_ACCEPT') do |k|
+            @request.set_header k, [Mime::JS, Mime::HTML, Mime::XML, 'text/xml', Mime::ALL].join(', ')
+          end
         end
 
         @controller.request  = @request
         @controller.response = @response
 
-        @request.env["SCRIPT_NAME"] ||= @controller.config.relative_url_root
+        @request.get_header("SCRIPT_NAME") do |k|
+          @request.set_header k, @controller.config.relative_url_root
+        end
 
         @controller.recycle!
         @controller.process(action)
 
-        @request.env.delete 'HTTP_COOKIE'
+        @request.delete_header 'HTTP_COOKIE'
 
-        if cookies = @request.env['action_dispatch.cookies']
+        if @request.have_cookie_jar?
           unless @response.committed?
-            cookies.write(@response)
-            self.cookies.update(cookies.instance_variable_get(:@cookies))
+            @request.cookie_jar.write(@response)
+            self.cookies.update(@request.cookie_jar.instance_variable_get(:@cookies))
           end
         end
         @response.prepare!
@@ -528,18 +533,30 @@ module ActionController
         end
 
         if xhr
-          @request.env.delete 'HTTP_X_REQUESTED_WITH'
-          @request.env.delete 'HTTP_ACCEPT'
+          @request.delete_header 'HTTP_X_REQUESTED_WITH'
+          @request.delete_header 'HTTP_ACCEPT'
         end
         @request.query_string = ''
 
         @response
       end
 
+      def controller_class_name
+        @controller.class.anonymous? ? "anonymous" : @controller.class.controller_path
+      end
+
+      def generated_path(generated_extras)
+        generated_extras[0]
+      end
+
+      def query_parameter_names(generated_extras)
+        generated_extras[1] + [:controller, :action]
+      end
+
       def setup_controller_request_and_response
         @controller = nil unless defined? @controller
 
-        @response_klass = TestResponse
+        @response_klass = ActionDispatch::TestResponse
 
         if klass = self.class.controller_class
           if klass < ActionController::Live

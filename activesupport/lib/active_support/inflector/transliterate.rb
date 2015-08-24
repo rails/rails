@@ -58,7 +58,7 @@ module ActiveSupport
     #   I18n.locale = :de
     #   transliterate('Jürgen')
     #   # => "Juergen"
-    def transliterate(string, replacement = "?")
+    def transliterate(string, replacement = "?".freeze)
       I18n.transliterate(ActiveSupport::Multibyte::Unicode.normalize(
         ActiveSupport::Multibyte::Unicode.tidy_bytes(string), :c),
           :replacement => replacement)
@@ -75,13 +75,21 @@ module ActiveSupport
       # Turn unwanted chars into the separator
       parameterized_string.gsub!(/[^a-z0-9\-_]+/i, sep)
       unless sep.nil? || sep.empty?
-        re_sep = Regexp.escape(sep)
+        if sep == "-".freeze
+          re_duplicate_seperator        = /-{2,}/
+          re_leading_trailing_separator = /^-|-$/i
+        else
+          re_sep = Regexp.escape(sep)
+          re_duplicate_seperator        = /#{re_sep}{2,}/
+          re_leading_trailing_separator = /^#{re_sep}|#{re_sep}$/i
+        end
         # No more than one of the separator in a row.
-        parameterized_string.gsub!(/#{re_sep}{2,}/, sep)
+        parameterized_string.gsub!(re_duplicate_seperator, sep)
         # Remove leading/trailing separator.
-        parameterized_string.gsub!(/^#{re_sep}|#{re_sep}$/i, '')
+        parameterized_string.gsub!(re_leading_trailing_separator, ''.freeze)
       end
-      parameterized_string.downcase
+      parameterized_string.downcase!
+      parameterized_string
     end
   end
 end

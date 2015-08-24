@@ -9,6 +9,7 @@ gemfile(true) do
   source 'https://rubygems.org'
   gem 'rails', github: 'rails/rails'
   gem 'arel', github: 'rails/arel'
+  gem 'rack', github: 'rack/rack'
   gem 'sqlite3'
 end
 

@@ -53,7 +53,7 @@ end
 
 class ActionMissingController < ActionController::Base
   def action_missing(action)
-    render :text => "Response for #{action}"
+    render plain: "Response for #{action}"
   end
 end
 

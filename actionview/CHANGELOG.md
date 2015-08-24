@@ -1,3 +1,30 @@
+*   Make `disable_with` the default behavior for submit tags. Disables the
+    button on submit to prevent double submits.
+
+    *Justin Schiff*
+
+*   Add a break_sequence option to word_wrap so you can specify a custom break.
+
+    * Mauricio Gomez *
+
+*   Add wildcard matching to explicit dependencies.
+
+    Turns:
+
+    ```erb
+    <% # Template Dependency: recordings/threads/events/subscribers_changed %>
+    <% # Template Dependency: recordings/threads/events/completed %>
+    <% # Template Dependency: recordings/threads/events/uncompleted %>
+    ```
+
+    Into:
+
+    ```erb
+    <% # Template Dependency: recordings/threads/events/* %>
+    ```
+
+    *Kasper Timm Hansen*
+
 *   Allow defining explicit collection caching using a `# Template Collection: ...`
     directive inside templates.
 

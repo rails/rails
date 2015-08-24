@@ -94,7 +94,7 @@ module ActionController
       end
 
       def has_basic_credentials?(request)
-        request.authorization.present? && (auth_scheme(request) == 'Basic')
+        request.authorization.present? && (auth_scheme(request).downcase == 'basic')
       end
 
       def user_name_and_password(request)
@@ -502,7 +502,7 @@ module ActionController
       def authentication_request(controller, realm, message = nil)
         message ||= "HTTP Token: Access denied.\n"
         controller.headers["WWW-Authenticate"] = %(Token realm="#{realm.tr('"'.freeze, "".freeze)}")
-        controller.__send__ :render, :text => message, :status => :unauthorized
+        controller.__send__ :render, plain: message, status: :unauthorized
       end
     end
   end

@@ -1,3 +1,27 @@
+*   Deprecate `:prefix` option of `number_to_human_size` with no replacement.
+
+    *Jean Boussier*
+
+*   Fix `TimeWithZone#eql?` to properly handle `TimeWithZone` created from `DateTime`:
+        twz = DateTime.now.in_time_zone
+        twz.eql?(twz.dup) => true
+
+    Fixes #14178.
+
+    *Roque Pinel*
+
+*   ActiveSupport::HashWithIndifferentAccess `select` and `reject` will now return
+    enumerator if called without block.
+
+    Fixes #20095
+
+    *Bernard Potocki*
+
+*   Removed `ActiveSupport::Concurrency::Latch`, superseded by `Concurrent::CountDownLatch`
+    from the concurrent-ruby gem.
+
+    *Jerry D'Antonio*
+
 *   Fix not calling `#default` on `HashWithIndifferentAccess#to_hash` when only
     `default_proc` is set, which could raise.
 

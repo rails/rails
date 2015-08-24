@@ -21,6 +21,9 @@ require 'models/column'
 require 'models/record'
 require 'models/admin'
 require 'models/admin/user'
+require 'models/ship'
+require 'models/treasure'
+require 'models/parrot'
 
 class BelongsToAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :topics,
@@ -91,7 +94,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     end
 
     account = model.new
-    refute account.valid?
+    assert_not account.valid?
     assert_equal [{error: :blank}], account.errors.details[:company]
   ensure
     ActiveRecord::Base.belongs_to_required_by_default = original_value
@@ -108,7 +111,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     end
 
     account = model.new
-    refute account.valid?
+    assert_not account.valid?
     assert_equal [{error: :blank}], account.errors.details[:company]
   ensure
     ActiveRecord::Base.belongs_to_required_by_default = original_value
@@ -293,7 +296,8 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     client = Client.find(3)
     client.firm = nil
     client.save
-    assert_nil client.firm(true)
+    client.association(:firm).reload
+    assert_nil client.firm
     assert_nil client.client_of
   end
 
@@ -301,7 +305,8 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     client = Client.create(:name => "Primary key client", :firm_name => companies(:first_firm).name)
     client.firm_with_primary_key = nil
     client.save
-    assert_nil client.firm_with_primary_key(true)
+    client.association(:firm_with_primary_key).reload
+    assert_nil client.firm_with_primary_key
     assert_nil client.client_of
   end
 
@@ -318,11 +323,13 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   def test_polymorphic_association_class
     sponsor = Sponsor.new
     assert_nil sponsor.association(:sponsorable).send(:klass)
-    assert_nil sponsor.sponsorable(force_reload: true)
+    sponsor.association(:sponsorable).reload
+    assert_nil sponsor.sponsorable
 
     sponsor.sponsorable_type = '' # the column doesn't have to be declared NOT NULL
     assert_nil sponsor.association(:sponsorable).send(:klass)
-    assert_nil sponsor.sponsorable(force_reload: true)
+    sponsor.association(:sponsorable).reload
+    assert_nil sponsor.sponsorable
 
     sponsor.sponsorable = Member.new :name => "Bert"
     assert_equal Member, sponsor.association(:sponsorable).send(:klass)
@@ -341,6 +348,22 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   def test_with_select
     assert_equal 1, Company.find(2).firm_with_select.attributes.size
     assert_equal 1, Company.all.merge!(:includes => :firm_with_select ).find(2).firm_with_select.attributes.size
+  end
+
+  def test_belongs_to_without_counter_cache_option
+    # Ship has a conventionally named `treasures_count` column, but the counter_cache
+    # option is not given on the association.
+    ship = Ship.create(name: 'Countless')
+
+    assert_no_difference lambda { ship.reload.treasures_count }, "treasures_count should not be changed unless counter_cache is given on the relation" do
+      treasure = Treasure.new(name: 'Gold', ship: ship)
+      treasure.save
+    end
+
+    assert_no_difference lambda { ship.reload.treasures_count }, "treasures_count should not be changed unless counter_cache is given on the relation" do
+      treasure = ship.treasures.first
+      treasure.destroy
+    end
   end
 
   def test_belongs_to_counter
@@ -557,7 +580,8 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert final_cut.persisted?
     assert firm.persisted?
     assert_equal firm, final_cut.firm
-    assert_equal firm, final_cut.firm(true)
+    final_cut.association(:firm).reload
+    assert_equal firm, final_cut.firm
   end
 
   def test_assignment_before_child_saved_with_primary_key
@@ -569,7 +593,8 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert final_cut.persisted?
     assert firm.persisted?
     assert_equal firm, final_cut.firm_with_primary_key
-    assert_equal firm, final_cut.firm_with_primary_key(true)
+    final_cut.association(:firm_with_primary_key).reload
+    assert_equal firm, final_cut.firm_with_primary_key
   end
 
   def test_new_record_with_foreign_key_but_no_object
@@ -1063,6 +1088,12 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     record = Record.create!
     Column.create! record: record
     assert_equal 1, Column.count
+  end
+
+  def test_association_force_reload_with_only_true_is_deprecated
+    client = Client.find(3)
+
+    assert_deprecated { client.firm(true) }
   end
 end
 

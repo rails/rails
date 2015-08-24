@@ -40,7 +40,7 @@ class FilterTest < ActionController::TestCase
     before_action :ensure_login, :except => [:go_wild]
 
     def go_wild
-      render :text => "gobble"
+      render plain: "gobble"
     end
   end
 
@@ -51,7 +51,7 @@ class FilterTest < ActionController::TestCase
 
     (1..3).each do |i|
       define_method "fail_#{i}" do
-        render :text => i.to_s
+        render plain: i.to_s
       end
     end
 
@@ -222,7 +222,7 @@ class FilterTest < ActionController::TestCase
     skip_before_action :clean_up_tmp, only: :login, if: -> { true }
 
     def login
-      render text: 'ok'
+      render plain: 'ok'
     end
   end
 
@@ -234,7 +234,7 @@ class FilterTest < ActionController::TestCase
     skip_before_action :clean_up_tmp, if: -> { true }, except: :login
 
     def login
-      render text: 'ok'
+      render plain: 'ok'
     end
   end
 
@@ -258,11 +258,11 @@ class FilterTest < ActionController::TestCase
     before_action :ensure_login, :only => :index
 
     def index
-      render :text => 'ok'
+      render plain: 'ok'
     end
 
     def public
-      render :text => 'ok'
+      render plain: 'ok'
     end
   end
 
@@ -272,7 +272,7 @@ class FilterTest < ActionController::TestCase
     before_action :ensure_login
 
     def index
-      render :text => 'ok'
+      render plain: 'ok'
     end
 
     private
@@ -383,7 +383,7 @@ class FilterTest < ActionController::TestCase
     before_action(AuditFilter)
 
     def show
-      render :text => "hello"
+      render plain: "hello"
     end
   end
 
@@ -421,11 +421,11 @@ class FilterTest < ActionController::TestCase
     before_action :second, :only => :foo
 
     def foo
-      render :text => 'foo'
+      render plain: 'foo'
     end
 
     def bar
-      render :text => 'bar'
+      render plain: 'bar'
     end
 
     protected
@@ -442,7 +442,7 @@ class FilterTest < ActionController::TestCase
     before_action :choose
 
     %w(foo bar baz).each do |action|
-      define_method(action) { render :text => action }
+      define_method(action) { render plain: action }
     end
 
     private
@@ -471,7 +471,7 @@ class FilterTest < ActionController::TestCase
       @ran_filter << 'between_before_all_and_after_all'
     end
     def show
-      render :text => 'hello'
+      render plain: 'hello'
     end
   end
 
@@ -481,7 +481,7 @@ class FilterTest < ActionController::TestCase
     def around(controller)
       yield
     rescue ErrorToRescue => ex
-      controller.__send__ :render, :text => "I rescued this: #{ex.inspect}"
+      controller.__send__ :render, plain: "I rescued this: #{ex.inspect}"
     end
   end
 
@@ -819,7 +819,7 @@ class FilterTest < ActionController::TestCase
       response = test_process(RescuedController)
     end
 
-    assert response.success?
+    assert response.successful?
     assert_equal("I rescued this: #<FilterTest::ErrorToRescue: Something made the bad noise.>", response.body)
   end
 

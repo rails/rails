@@ -7,15 +7,15 @@ class HttpTokenAuthenticationTest < ActionController::TestCase
     before_action :authenticate_long_credentials, only: :show
 
     def index
-      render :text => "Hello Secret"
+      render plain: "Hello Secret"
     end
 
     def display
-      render :text => 'Definitely Maybe'
+      render plain: 'Definitely Maybe'
     end
 
     def show
-      render :text => 'Only for loooooong credentials'
+      render plain: 'Only for loooooong credentials'
     end
 
     private

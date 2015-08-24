@@ -1,5 +1,6 @@
 require 'active_support/core_ext/array/extract_options'
 require 'action_dispatch/middleware/stack'
+require 'active_support/deprecation'
 
 module ActionController
   # Extend ActionDispatch middleware stack to make it aware of options
@@ -11,22 +12,14 @@ module ActionController
   #
   class MiddlewareStack < ActionDispatch::MiddlewareStack #:nodoc:
     class Middleware < ActionDispatch::MiddlewareStack::Middleware #:nodoc:
-      def initialize(klass, *args, &block)
-        options = args.extract_options!
-        @only   = Array(options.delete(:only)).map(&:to_s)
-        @except = Array(options.delete(:except)).map(&:to_s)
-        args << options unless options.empty?
-        super
+      def initialize(klass, args, actions, strategy, block)
+        @actions = actions
+        @strategy = strategy
+        super(klass, args, block)
       end
 
       def valid?(action)
-        if @only.present?
-          @only.include?(action)
-        elsif @except.present?
-          !@except.include?(action)
-        else
-          true
-        end
+        @strategy.call @actions, action
       end
     end
 
@@ -36,6 +29,32 @@ module ActionController
       middlewares.reverse.inject(app) do |a, middleware|
         middleware.valid?(action) ? middleware.build(a) : a
       end
+    end
+
+    private
+
+    INCLUDE = ->(list, action) { list.include? action }
+    EXCLUDE = ->(list, action) { !list.include? action }
+    NULL    = ->(list, action) { true }
+
+    def build_middleware(klass, args, block)
+      options = args.extract_options!
+      only   = Array(options.delete(:only)).map(&:to_s)
+      except = Array(options.delete(:except)).map(&:to_s)
+      args << options unless options.empty?
+
+      strategy = NULL
+      list     = nil
+
+      if only.any?
+        strategy = INCLUDE
+        list     = only
+      elsif except.any?
+        strategy = EXCLUDE
+        list     = except
+      end
+
+      Middleware.new(get_class(klass), args, list, strategy, block)
     end
   end
 
@@ -98,11 +117,10 @@ module ActionController
   class Metal < AbstractController::Base
     abstract!
 
-    attr_internal_writer :env
-
     def env
-      @_env ||= {}
+      @_request.env
     end
+    deprecate :env
 
     # Returns the last part of the controller's name, underscored, without the ending
     # <tt>Controller</tt>. For instance, PostsController returns <tt>posts</tt>.
@@ -197,8 +215,7 @@ module ActionController
 
     def set_request!(request) #:nodoc:
       @_request = request
-      @_env = request.env
-      @_env['action_controller.instance'] = self
+      @_request.controller_instance = self
     end
 
     def to_a #:nodoc:
@@ -232,13 +249,13 @@ module ActionController
     end
 
     # Returns a Rack endpoint for the given action name.
-    def self.action(name, klass = ActionDispatch::Request)
+    def self.action(name)
       if middleware_stack.any?
         middleware_stack.build(name) do |env|
-          new.dispatch(name, klass.new(env))
+          new.dispatch(name, ActionDispatch::Request.new(env))
         end
       else
-        lambda { |env| new.dispatch(name, klass.new(env)) }
+        lambda { |env| new.dispatch(name, ActionDispatch::Request.new(env)) }
       end
     end
   end

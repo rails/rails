@@ -1,9 +1,17 @@
+require "active_support/deprecation"
+
 module ActiveRecord
   module Associations
     class SingularAssociation < Association #:nodoc:
       # Implements the reader method, e.g. foo.bar for Foo.has_one :bar
       def reader(force_reload = false)
         if force_reload && klass
+          ActiveSupport::Deprecation.warn(<<-MSG.squish)
+            Passing an argument to force an association to reload is now
+            deprecated and will be removed in Rails 5.1. Please call `reload`
+            on the parent object instead.
+          MSG
+
           klass.uncached { reload }
         elsif !loaded? || stale_target?
           reload
@@ -39,12 +47,7 @@ module ActiveRecord
         end
 
         def get_records
-          if reflection.scope_chain.any?(&:any?) ||
-              scope.eager_loading? ||
-              klass.scope_attributes?
-
-            return scope.limit(1).to_a
-          end
+          return scope.limit(1).to_a if skip_statement_cache?
 
           conn = klass.connection
           sc = reflection.association_scope_cache(conn, owner) do

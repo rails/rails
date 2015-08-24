@@ -1,3 +1,186 @@
+*   Uniqueness validator raises descriptive error when running on a persisted
+    record without primary key.
+
+    Closes #21304.
+
+    *Yves Senn*
+
+*   Add a native JSON data type support in MySQL.
+
+    Example:
+
+        create_table :json_data_type do |t|
+          t.json :settings
+        end
+
+    *Ryuta Kamizono*
+
+*   Descriptive error message when fixtures contain a missing column.
+
+    Closes #21201.
+
+    *Yves Senn*
+
+*   `ActiveRecord::Tasks::PostgreSQLDatabaseTasks` fail if shellout to
+    postgresql commands (like `pg_dump`) is not successful.
+
+    *Bryan Paxton*, *Nate Berkopec*
+
+*   Add `ActiveRecord::Relation#in_batches` to work with records and relations
+    in batches.
+
+    Available options are `of` (batch size), `load`, `begin_at`, and `end_at`.
+
+    Examples:
+
+        Person.in_batches.each_record(&:party_all_night!)
+        Person.in_batches.update_all(awesome: true)
+        Person.in_batches.delete_all
+        Person.in_batches.each do |relation|
+          relation.delete_all
+          sleep 10 # Throttles the delete queries
+        end
+
+    Closes #20933.
+
+    *Sina Siadat*
+
+*   Added methods for PostgreSQL geometric data types to use in migrations
+
+    Example:
+
+        create_table :foo do |t|
+          t.line :foo_line
+          t.lseg :foo_lseg
+          t.box :foo_box
+          t.path :foo_path
+          t.polygon :foo_polygon
+          t.circle :foo_circle
+        end
+
+    *Mehmet Emin İNAÇ*
+
+*   Add `cache_key` to ActiveRecord::Relation.
+
+    Example:
+
+      @users = User.where("name like ?", "%Alberto%")
+      @users.cache_key
+      => "/users/query-5942b155a43b139f2471b872ac54251f-3-20150714212107656125000"
+
+    *Alberto Fernández-Capel*
+
+*   Properly allow uniqueness validations on primary keys.
+
+    Fixes #20966.
+
+    *Sean Griffin*, *presskey*
+
+*   Don't raise an error if an association failed to destroy when `destroy` was
+    called on the parent (as opposed to `destroy!`).
+
+    Fixes #20991.
+
+    *Sean Griffin*
+
+*   `ActiveRecord::RecordNotFound` modified to store model name, primary_key and
+    id of the caller model. It allows the catcher of this exception to make
+    a better decision to what to do with it.
+
+    Example:
+
+        class SomeAbstractController < ActionController::Base
+          rescue_from ActiveRecord::RecordNotFound, with: :redirect_to_404
+
+          private def redirect_to_404(e)
+            return redirect_to(posts_url) if e.model == 'Post'
+            raise
+          end
+        end
+
+    *Sameer Rahmani*
+
+*   Deprecate the keys for association `restrict_dependent_destroy` errors in favor
+    of new key names.
+
+    Previously `has_one` and `has_many` associations were using the
+    `one` and `many` keys respectively. Both of these keys have special
+    meaning in I18n (they are considered to be pluralizations) so by
+    renaming them to `has_one` and `has_many` we make the messages more explicit
+    and most importantly they don't clash with linguistical systems that need to
+    validate translation keys (and their pluralizations).
+
+    The `:'restrict_dependent_destroy.one'` key should be replaced with
+    `:'restrict_dependent_destroy.has_one'`, and `:'restrict_dependent_destroy.many'`
+    with `:'restrict_dependent_destroy.has_many'`.
+
+    *Roque Pinel*, *Christopher Dell*
+
+*   Fix state being carried over from previous transaction.
+
+    Considering the following example where `name` is a required attribute.
+    Before we had `new_record?` returning `true` for a persisted record:
+
+        author = Author.create! name: 'foo'
+        author.name = nil
+        author.save        # => false
+        author.new_record? # => true
+
+    Fixes #20824.
+
+    *Roque Pinel*
+
+*   Correctly ignore `mark_for_destruction` when `autosave` isn't set to `true`
+    when validating associations.
+
+    Fixes #20882.
+
+    *Sean Griffin*
+
+*   Fix a bug where counter_cache doesn't always work with polymorphic
+    relations.
+
+    Fixes #16407.
+
+    *Stefan Kanev*, *Sean Griffin*
+
+*   Ensure that cyclic associations with autosave don't cause duplicate errors
+    to be added to the parent record.
+
+    Fixes #20874.
+
+    *Sean Griffin*
+
+*   Ensure that `ActionController::Parameters` can still be passed to nested
+    attributes.
+
+    Fixes #20922.
+
+    *Sean Griffin*
+
+*   Deprecate force association reload by passing a truthy argument to
+    association method.
+
+    For collection association, you can call `#reload` on association proxy to
+    force a reload:
+
+        @user.posts.reload   # Instead of @user.posts(true)
+
+    For singular association, you can call `#reload` on the parent object to
+    clear its association cache then call the association method:
+
+        @user.reload.profile   # Instead of @user.profile(true)
+
+    Passing a truthy argument to force association to reload will be removed in
+    Rails 5.1.
+
+    *Prem Sichanugrist*
+
+*   Replaced `ActiveSupport::Concurrency::Latch` with `Concurrent::CountDownLatch`
+    from the concurrent-ruby gem.
+
+    *Jerry D'Antonio*
+
 *   Fix through associations using scopes having the scope merged multiple
     times.
 
@@ -73,7 +256,7 @@
 
     *Aster Ryan*
 
-*   Add `:enum_prefix`/`:enum_suffix` option to `enum` definition.
+*   Add `:_prefix` and `:_suffix` options to `enum` definition.
 
     Fixes #17511, #17415.
 
@@ -99,14 +282,12 @@
 
 *   Do not set `sql_mode` if `strict: :default` is specified.
 
-        ```
-        # database.yml
+        # config/database.yml
         production:
           adapter: mysql2
           database: foo_prod
           user: foo
           strict: :default
-        ```
 
     *Ryuta Kamizono*
 
@@ -191,6 +372,10 @@
         end
 
     *Ryuta Kamizono*
+
+*   Remove `ActiveRecord::Serialization::XmlSerializer` from core.
+
+    *Zachary Scott*
 
 *   Make `unscope` aware of "less than" and "greater than" conditions.
 

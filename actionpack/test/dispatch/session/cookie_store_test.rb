@@ -16,25 +16,25 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
     end
 
     def persistent_session_id
-      render :text => session[:session_id]
+      render plain: session[:session_id]
     end
 
     def set_session_value
       session[:foo] = "bar"
-      render :text => Rack::Utils.escape(Verifier.generate(session.to_hash))
+      render plain: Rack::Utils.escape(Verifier.generate(session.to_hash))
     end
 
     def get_session_value
-      render :text => "foo: #{session[:foo].inspect}"
+      render plain: "foo: #{session[:foo].inspect}"
     end
 
     def get_session_id
-      render :text => "id: #{request.session.id}"
+      render plain: "id: #{request.session.id}"
     end
 
     def get_class_after_reset_session
       reset_session
-      render :text => "class: #{session.class}"
+      render plain: "class: #{session.class}"
     end
 
     def call_session_clear
@@ -348,7 +348,7 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
 
         @app = self.class.build_app(set) do |middleware|
           middleware.use ActionDispatch::Session::CookieStore, options
-          middleware.delete "ActionDispatch::ShowExceptions"
+          middleware.delete ActionDispatch::ShowExceptions
         end
 
         yield

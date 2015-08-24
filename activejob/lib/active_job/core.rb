@@ -20,6 +20,9 @@ module ActiveJob
 
       # ID optionally provided by adapter
       attr_accessor :provider_job_id
+
+      # I18n.locale to be used during the job.
+      attr_accessor :locale
     end
 
     # These methods will be included into any Active Job object, adding
@@ -68,7 +71,8 @@ module ActiveJob
         'job_class'  => self.class.name,
         'job_id'     => job_id,
         'queue_name' => queue_name,
-        'arguments'  => serialize_arguments(arguments)
+        'arguments'  => serialize_arguments(arguments),
+        'locale'     => I18n.locale
       }
     end
 
@@ -96,6 +100,7 @@ module ActiveJob
       self.job_id               = job_data['job_id']
       self.queue_name           = job_data['queue_name']
       self.serialized_arguments = job_data['arguments']
+      self.locale               = job_data['locale'] || I18n.locale
     end
 
     private

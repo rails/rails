@@ -93,8 +93,10 @@ class AssociationsTest < ActiveRecord::TestCase
     assert firm.clients.empty?, "New firm should have cached no client objects"
     assert_equal 0, firm.clients.size, "New firm should have cached 0 clients count"
 
-    assert !firm.clients(true).empty?, "New firm should have reloaded client objects"
-    assert_equal 1, firm.clients(true).size, "New firm should have reloaded clients count"
+    ActiveSupport::Deprecation.silence do
+      assert !firm.clients(true).empty?, "New firm should have reloaded client objects"
+      assert_equal 1, firm.clients(true).size, "New firm should have reloaded clients count"
+    end
   end
 
   def test_using_limitable_reflections_helper
@@ -110,10 +112,13 @@ class AssociationsTest < ActiveRecord::TestCase
   def test_force_reload_is_uncached
     firm = Firm.create!("name" => "A New Firm, Inc")
     Client.create!("name" => "TheClient.com", :firm => firm)
-    ActiveRecord::Base.cache do
-      firm.clients.each {}
-      assert_queries(0) { assert_not_nil firm.clients.each {} }
-      assert_queries(1) { assert_not_nil firm.clients(true).each {} }
+
+    ActiveSupport::Deprecation.silence do
+      ActiveRecord::Base.cache do
+        firm.clients.each {}
+        assert_queries(0) { assert_not_nil firm.clients.each {} }
+        assert_queries(1) { assert_not_nil firm.clients(true).each {} }
+      end
     end
   end
 

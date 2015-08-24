@@ -1,3 +1,45 @@
+*   Using strings or symbols for middleware class names is deprecated.  Convert
+    things like this:
+
+      middleware.use "Foo::Bar"
+
+    to this:
+
+      middleware.use Foo::Bar
+
+*   ActionController::TestSession now accepts a default value as well as
+    a block for generating a default value based off the key provided.
+
+    This fixes calls to session#fetch in ApplicationController instances that
+    take more two arguments or a block from raising `ArgumentError: wrong
+    number of arguments (2 for 1)` when performing controller tests.
+
+    *Matthew Gerrior*
+
+*   Fix `ActionController::Parameters#fetch` overwriting `KeyError` returned by
+    default block.
+
+    *Jonas Schuber Erlandsson*, *Roque Pinel*
+
+*   `ActionController::Parameters` no longer inherits from
+    `HashWithIndifferentAccess`
+
+    Inheriting from `HashWithIndifferentAccess` allowed users to call any
+    enumerable methods on `Parameters` object, resulting in a risk of losing the
+    `permitted?` status or even getting back a pure `Hash` object instead of
+    a `Parameters` object with proper sanitization.
+
+    By not inheriting from `HashWithIndifferentAccess`, we are able to make
+    sure that all methods that are defined in `Parameters` object will return
+    a proper `Parameters` object with a correct `permitted?` flag.
+
+    *Prem Sichanugrist*
+
+*   Replaced `ActiveSupport::Concurrency::Latch` with `Concurrent::CountDownLatch`
+    from the concurrent-ruby gem.
+
+    *Jerry D'Antonio*
+
 *   Add ability to filter parameters based on parent keys.
 
         # matches {credit_card: {code: "xxxx"}}
@@ -164,7 +206,8 @@
     *arthurnn*
 
 *   `ActionController#translate` supports symbols as shortcuts.
-    When shortcut is given it also lookups without action name.
+    When a shortcut is given it also performs the lookup without the action
+    name.
 
     *Max Melentiev*
 

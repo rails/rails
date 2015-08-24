@@ -26,7 +26,7 @@ class Rails::MailersController < Rails::ApplicationController # :nodoc:
 
           if part = find_part(part_type)
             response.content_type = part_type
-            render text: part.respond_to?(:decoded) ? part.decoded : part
+            render plain: part.respond_to?(:decoded) ? part.decoded : part
           else
             raise AbstractController::ActionNotFound, "Email part '#{part_type}' not found in #{@preview.name}##{@email_action}"
           end

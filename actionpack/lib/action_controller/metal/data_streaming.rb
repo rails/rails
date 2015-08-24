@@ -85,6 +85,10 @@ module ActionController #:nodoc:
           @to_path = path
         end
 
+        def body
+          File.binread(to_path)
+        end
+
         # Stream the file's contents if Rack::Sendfile isn't present.
         def each
           File.open(to_path, 'rb') do |file|
@@ -126,7 +130,7 @@ module ActionController #:nodoc:
       # See +send_file+ for more information on HTTP Content-* headers and caching.
       def send_data(data, options = {}) #:doc:
         send_file_headers! options
-        render options.slice(:status, :content_type).merge(:text => data)
+        render options.slice(:status, :content_type).merge(body: data)
       end
 
     private

@@ -201,6 +201,10 @@ module ActiveRecord
         true
       end
 
+      def supports_json?
+        postgresql_version >= 90200
+      end
+
       def index_algorithms
         { concurrently: 'CONCURRENTLY' }
       end

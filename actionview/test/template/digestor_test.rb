@@ -1,5 +1,6 @@
 require 'abstract_unit'
 require 'fileutils'
+require 'action_view/dependency_tracker'
 
 class FixtureTemplate
   attr_reader :source, :handler
@@ -15,12 +16,13 @@ end
 class FixtureFinder
   FIXTURES_DIR = "#{File.dirname(__FILE__)}/../fixtures/digestor"
 
-  attr_reader   :details
+  attr_reader   :details, :view_paths
   attr_accessor :formats
   attr_accessor :variants
 
   def initialize
     @details  = {}
+    @view_paths = ActionView::PathSet.new(['digestor'])
     @formats  = []
     @variants = []
   end
@@ -73,6 +75,34 @@ class TemplateDigestorTest < ActionView::TestCase
     assert_digest_difference("messages/show") do
       change_template("messages/_form")
     end
+  end
+
+  def test_explicit_dependency_wildcard
+    assert_digest_difference("events/index") do
+      change_template("events/_completed")
+    end
+  end
+
+  def test_explicit_dependency_wildcard_picks_up_added_file
+    old_caching, ActionView::Resolver.caching = ActionView::Resolver.caching, false
+
+    assert_digest_difference("events/index") do
+      add_template("events/_uncompleted")
+    end
+  ensure
+    remove_template("events/_uncompleted")
+    ActionView::Resolver.caching = old_caching
+  end
+
+  def test_explicit_dependency_wildcard_picks_up_removed_file
+    old_caching, ActionView::Resolver.caching = ActionView::Resolver.caching, false
+    add_template("events/_subscribers_changed")
+
+    assert_digest_difference("events/index") do
+      remove_template("events/_subscribers_changed")
+    end
+  ensure
+    ActionView::Resolver.caching = old_caching
   end
 
   def test_second_level_dependency
@@ -219,7 +249,7 @@ class TemplateDigestorTest < ActionView::TestCase
   end
 
   def test_variants
-    assert_digest_difference("messages/new", false, variants: [:iphone]) do
+    assert_digest_difference("messages/new", variants: [:iphone]) do
       change_template("messages/new",     :iphone)
       change_template("messages/_header", :iphone)
     end
@@ -237,16 +267,6 @@ class TemplateDigestorTest < ActionView::TestCase
     assert_not_equal digest_fridge, digest_phone
     assert_not_equal digest_fridge, digest_fridge_phone
     assert_not_equal digest_phone, digest_fridge_phone
-  end
-
-  def test_cache_template_loading
-    resolver_before = ActionView::Resolver.caching
-    ActionView::Resolver.caching = false
-    assert_digest_difference("messages/edit", true) do
-      change_template("comments/_comment")
-    end
-  ensure
-    ActionView::Resolver.caching = resolver_before
   end
 
   def test_digest_cache_cleanup_with_recursion
@@ -291,9 +311,9 @@ class TemplateDigestorTest < ActionView::TestCase
       end
     end
 
-    def assert_digest_difference(template_name, persistent = false, options = {})
+    def assert_digest_difference(template_name, options = {})
       previous_digest = digest(template_name, options)
-      ActionView::Digestor.cache.clear unless persistent
+      ActionView::Digestor.cache.clear
 
       yield
 
@@ -328,5 +348,10 @@ class TemplateDigestorTest < ActionView::TestCase
       File.open("digestor/#{template_name}.html#{variant}.erb", "w") do |f|
         f.write "\nTHIS WAS CHANGED!"
       end
+    end
+    alias_method :add_template, :change_template
+
+    def remove_template(template_name)
+      File.delete("digestor/#{template_name}.html.erb")
     end
 end

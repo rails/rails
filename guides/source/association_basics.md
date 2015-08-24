@@ -622,6 +622,19 @@ end
 
 We pass `id: false` to `create_table` because that table does not represent a model. That's required for the association to work properly. If you observe any strange behavior in a `has_and_belongs_to_many` association like mangled model IDs, or exceptions about conflicting IDs, chances are you forgot that bit.
 
+You can also use the method `create_join_table`
+
+```ruby
+class CreateAssembliesPartsJoinTable < ActiveRecord::Migration
+  def change
+    create_join_table :assemblies, :parts do |t|
+      t.index :assembly_id
+      t.index :part_id
+    end
+  end
+end
+```
+
 ### Controlling Association Scope
 
 By default, associations look for objects only within the current module's scope. This can be important when you declare Active Record models within a module. For example:

@@ -70,11 +70,13 @@ Here's what a job looks like:
 class GuestsCleanupJob < ActiveJob::Base
   queue_as :default
 
-  def perform(*args)
+  def perform(*guests)
     # Do something later
   end
 end
 ```
+
+Note that you can define `perform` with as many arguments as you want.
 
 ### Enqueue the Job
 
@@ -83,21 +85,26 @@ Enqueue a job like so:
 ```ruby
 # Enqueue a job to be performed as soon the queuing system is
 # free.
-MyJob.perform_later record
+GuestsCleanupJob.perform_later guest
 ```
 
 ```ruby
 # Enqueue a job to be performed tomorrow at noon.
-MyJob.set(wait_until: Date.tomorrow.noon).perform_later(record)
+GuestsCleanupJob.set(wait_until: Date.tomorrow.noon).perform_later(guest)
 ```
 
 ```ruby
 # Enqueue a job to be performed 1 week from now.
-MyJob.set(wait: 1.week).perform_later(record)
+GuestsCleanupJob.set(wait: 1.week).perform_later(guest)
+```
+
+```ruby
+# `perform_now` and `perform_later` will call `perform` under the hood so
+# you can pass as many arguments as defined in the latter.
+GuestsCleanupJob.perform_later(guest1, guest2, filter: 'some_filter')
 ```
 
 That's it!
-
 
 Job Execution
 -------------
@@ -277,6 +284,19 @@ UserMailer.welcome(@user).deliver_now
 
 # If you want to send the email through Active Job use #deliver_later
 UserMailer.welcome(@user).deliver_later
+```
+
+
+Internationalization
+--------------------
+
+Each job uses the `I18n.locale` set when the job was created. Useful if you send
+emails asynchronously:
+
+```ruby
+I18n.locale = :eo
+
+UserMailer.welcome(@user).deliver_later # Email will be localized to Esparanto.
 ```
 
 

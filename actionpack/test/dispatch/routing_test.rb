@@ -168,12 +168,10 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
   end
 
   def test_session_singleton_resource_for_api_app
-    self.class.stub_controllers do |_|
-      config = ActionDispatch::Routing::RouteSet::Config.new
-      config.api_only = true
+    config = ActionDispatch::Routing::RouteSet::Config.new
+    config.api_only = true
 
-      routes = ActionDispatch::Routing::RouteSet.new(config)
-
+    self.class.stub_controllers(config) do |routes|
       routes.draw do
         resource :session do
           get :create
@@ -363,9 +361,12 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
   end
 
   def test_pagemarks
+    tc = self
     draw do
       scope "pagemark", :controller => "pagemarks", :as => :pagemark do
-        get  "new", :path => "build"
+        tc.assert_deprecated do
+          get  "new", :path => "build"
+        end
         post "create", :as => ""
         put  "update"
         get  "remove", :action => :destroy, :as => :remove
@@ -550,11 +551,10 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
   end
 
   def test_projects_for_api_app
-    self.class.stub_controllers do |_|
-      config = ActionDispatch::Routing::RouteSet::Config.new
-      config.api_only = true
+    config = ActionDispatch::Routing::RouteSet::Config.new
+    config.api_only = true
 
-      routes = ActionDispatch::Routing::RouteSet.new(config)
+    self.class.stub_controllers(config) do |routes|
       routes.draw do
         resources :projects, controller: :project
       end
@@ -3621,7 +3621,7 @@ private
 end
 
 class TestAltApp < ActionDispatch::IntegrationTest
-  class AltRequest
+  class AltRequest < ActionDispatch::Request
     attr_accessor :path_parameters, :path_info, :script_name
     attr_reader :env
 
@@ -3630,6 +3630,7 @@ class TestAltApp < ActionDispatch::IntegrationTest
       @env = env
       @path_info = "/"
       @script_name = ""
+      super
     end
 
     def request_method
@@ -3729,7 +3730,7 @@ class TestNamespaceWithControllerOption < ActionDispatch::IntegrationTest
   module ::Admin
     class StorageFilesController < ActionController::Base
       def index
-        render :text => "admin/storage_files#index"
+        render plain: "admin/storage_files#index"
       end
     end
   end
@@ -3824,7 +3825,7 @@ class TestDefaultScope < ActionDispatch::IntegrationTest
   module ::Blog
     class PostsController < ActionController::Base
       def index
-        render :text => "blog/posts#index"
+        render plain: "blog/posts#index"
       end
     end
   end
@@ -4164,13 +4165,13 @@ end
 class TestNamedRouteUrlHelpers < ActionDispatch::IntegrationTest
   class CategoriesController < ActionController::Base
     def show
-      render :text => "categories#show"
+      render plain: "categories#show"
     end
   end
 
   class ProductsController < ActionController::Base
     def show
-      render :text => "products#show"
+      render plain: "products#show"
     end
   end
 
@@ -4265,7 +4266,7 @@ end
 class TestInvalidUrls < ActionDispatch::IntegrationTest
   class FooController < ActionController::Base
     def show
-      render :text => "foo#show"
+      render plain: "foo#show"
     end
   end
 
@@ -4568,7 +4569,7 @@ end
 class TestDefaultUrlOptions < ActionDispatch::IntegrationTest
   class PostsController < ActionController::Base
     def archive
-      render :text => "posts#archive"
+      render plain: "posts#archive"
     end
   end
 

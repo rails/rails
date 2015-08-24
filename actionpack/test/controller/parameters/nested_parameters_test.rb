@@ -136,7 +136,7 @@ class NestedParametersTest < ActiveSupport::TestCase
         authors_attributes: {
           :'0' => { name: 'William Shakespeare', age_of_death: '52' },
           :'1' => { name: 'Unattributed Assistant' },
-          :'2' => { name: %w(injected names)}
+          :'2' => { name: %w(injected names) }
         }
       }
     })

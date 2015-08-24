@@ -1,5 +1,3 @@
-require 'action_dispatch/journey/router/strexp'
-
 module ActionDispatch
   module Journey # :nodoc:
     module Path # :nodoc:
@@ -7,14 +5,20 @@ module ActionDispatch
         attr_reader :spec, :requirements, :anchored
 
         def self.from_string string
-          new Journey::Router::Strexp.build(string, {}, ["/.?"], true)
+          build(string, {}, "/.?", true)
         end
 
-        def initialize(strexp)
-          @spec         = strexp.ast
-          @requirements = strexp.requirements
-          @separators   = strexp.separators.join
-          @anchored     = strexp.anchor
+        def self.build(path, requirements, separators, anchored)
+          parser = Journey::Parser.new
+          ast = parser.parse path
+          new ast, requirements, separators, anchored
+        end
+
+        def initialize(ast, requirements, separators, anchored)
+          @spec         = ast
+          @requirements = requirements
+          @separators   = separators
+          @anchored     = anchored
 
           @names          = nil
           @optional_names = nil
@@ -28,12 +32,12 @@ module ActionDispatch
         end
 
         def ast
-          @spec.grep(Nodes::Symbol).each do |node|
+          @spec.find_all(&:symbol?).each do |node|
             re = @requirements[node.to_sym]
             node.regexp = re if re
           end
 
-          @spec.grep(Nodes::Star).each do |node|
+          @spec.find_all(&:star?).each do |node|
             node = node.left
             node.regexp = @requirements[node.to_sym] || /(.+)/
           end
@@ -53,31 +57,6 @@ module ActionDispatch
           @optional_names ||= spec.grep(Nodes::Group).flat_map { |group|
             group.grep(Nodes::Symbol)
           }.map(&:name).uniq
-        end
-
-        class RegexpOffsets < Journey::Visitors::Visitor # :nodoc:
-          attr_reader :offsets
-
-          def initialize(matchers)
-            @matchers      = matchers
-            @capture_count = [0]
-          end
-
-          def visit(node)
-            super
-            @capture_count
-          end
-
-          def visit_SYMBOL(node)
-            node = node.to_sym
-
-            if @matchers.key?(node)
-              re = /#{@matchers[node]}|/
-              @capture_count.push((re.match('').length - 1) + (@capture_count.last || 0))
-            else
-              @capture_count << (@capture_count.last || 0)
-            end
-          end
         end
 
         class AnchoredRegexp < Journey::Visitors::Visitor # :nodoc:
@@ -189,8 +168,20 @@ module ActionDispatch
           def offsets
             return @offsets if @offsets
 
-            viz = RegexpOffsets.new(@requirements)
-            @offsets = viz.accept(spec)
+            @offsets = [0]
+
+            spec.find_all(&:symbol?).each do |node|
+              node = node.to_sym
+
+              if @requirements.key?(node)
+                re = /#{@requirements[node]}|/
+                @offsets.push((re.match('').length - 1) + @offsets.last)
+              else
+                @offsets << @offsets.last
+              end
+            end
+
+            @offsets
           end
       end
     end

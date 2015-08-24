@@ -155,7 +155,7 @@ behavior out of the box:
 * Making objects serializable
 
   <tt>ActiveModel::Serialization</tt> provides a standard interface for your object
-  to provide +to_json+ or +to_xml+ serialization.
+  to provide +to_json+ serialization.
 
     class SerialPerson
       include ActiveModel::Serialization
@@ -176,13 +176,6 @@ behavior out of the box:
 
     s = SerialPerson.new
     s.to_json             # => "{\"name\":null}"
-
-    class SerialPerson
-      include ActiveModel::Serializers::Xml
-    end
-
-    s = SerialPerson.new
-    s.to_xml              # => "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<serial-person...
 
   {Learn more}[link:classes/ActiveModel/Serialization.html]
 

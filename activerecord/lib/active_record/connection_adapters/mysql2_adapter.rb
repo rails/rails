@@ -41,6 +41,10 @@ module ActiveRecord
         true
       end
 
+      def supports_json?
+        version >= '5.7.8'
+      end
+
       # HELPER METHODS ===========================================
 
       def each_hash(result) # :nodoc:
@@ -254,7 +258,7 @@ module ActiveRecord
       end
 
       def full_version
-        @full_version ||= @connection.info[:version]
+        @full_version ||= @connection.server_info[:version]
       end
 
       def set_field_encoding field_name

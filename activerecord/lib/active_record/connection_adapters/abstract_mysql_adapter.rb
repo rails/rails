@@ -10,6 +10,10 @@ module ActiveRecord
           options[:auto_increment] = true if type == :bigint
           super
         end
+
+        def json(*args, **options)
+          args.each { |name| column(name, :json, options) }
+        end
       end
 
       class ColumnDefinition < ActiveRecord::ConnectionAdapters::ColumnDefinition
@@ -242,17 +246,19 @@ module ActiveRecord
       QUOTED_TRUE, QUOTED_FALSE = '1', '0'
 
       NATIVE_DATABASE_TYPES = {
-        :primary_key => "int(11) auto_increment PRIMARY KEY",
-        :string      => { :name => "varchar", :limit => 255 },
-        :text        => { :name => "text" },
-        :integer     => { :name => "int", :limit => 4 },
-        :float       => { :name => "float" },
-        :decimal     => { :name => "decimal" },
-        :datetime    => { :name => "datetime" },
-        :time        => { :name => "time" },
-        :date        => { :name => "date" },
-        :binary      => { :name => "blob" },
-        :boolean     => { :name => "tinyint", :limit => 1 }
+        primary_key: "int(11) auto_increment PRIMARY KEY",
+        string:      { name: "varchar", limit: 255 },
+        text:        { name: "text" },
+        integer:     { name: "int", limit: 4 },
+        float:       { name: "float" },
+        decimal:     { name: "decimal" },
+        datetime:    { name: "datetime" },
+        time:        { name: "time" },
+        date:        { name: "date" },
+        binary:      { name: "blob" },
+        boolean:     { name: "tinyint", limit: 1 },
+        bigint:      { name: "bigint" },
+        json:        { name: "json" },
       }
 
       INDEX_TYPES  = [:fulltext, :spatial]
@@ -307,7 +313,7 @@ module ActiveRecord
       #
       # http://bugs.mysql.com/bug.php?id=39170
       def supports_transaction_isolation?
-        version[0] >= 5
+        version >= '5.0.0'
       end
 
       def supports_indexes_in_create?
@@ -319,11 +325,11 @@ module ActiveRecord
       end
 
       def supports_views?
-        version[0] >= 5
+        version >= '5.0.0'
       end
 
       def supports_datetime_with_precision?
-        (version[0] == 5 && version[1] >= 6) || version[0] >= 6
+        version >= '5.6.4'
       end
 
       def native_database_types
@@ -384,6 +390,14 @@ module ActiveRecord
 
       def unquoted_false
         0
+      end
+
+      def quoted_date(value)
+        if supports_datetime_with_precision?
+          super
+        else
+          super.sub(/\.\d{6}\z/, '')
+        end
       end
 
       # REFERENTIAL INTEGRITY ====================================
@@ -782,6 +796,7 @@ module ActiveRecord
         m.register_type %r(longblob)i,   Type::Binary.new(limit: 2**32 - 1)
         m.register_type %r(^float)i,     Type::Float.new(limit: 24)
         m.register_type %r(^double)i,    Type::Float.new(limit: 53)
+        m.register_type %r(^json)i,      MysqlJson.new
 
         register_integer_type m, %r(^bigint)i,    limit: 8
         register_integer_type m, %r(^int)i,       limit: 4
@@ -938,7 +953,7 @@ module ActiveRecord
       end
 
       def version
-        @version ||= full_version.scan(/^(\d+)\.(\d+)\.(\d+)/).flatten.map(&:to_i)
+        @version ||= Version.new(full_version.match(/^\d+\.\d+\.\d+/)[0])
       end
 
       def mariadb?
@@ -946,7 +961,7 @@ module ActiveRecord
       end
 
       def supports_rename_index?
-        mariadb? ? false : (version[0] == 5 && version[1] >= 7) || version[0] >= 6
+        mariadb? ? false : version >= '5.7.6'
       end
 
       def configure_connection
@@ -1035,6 +1050,14 @@ module ActiveRecord
         end
       end
 
+      class MysqlJson < Type::Internal::AbstractJson # :nodoc:
+        def changed_in_place?(raw_old_value, new_value)
+          # Normalization is required because MySQL JSON data format includes
+          # the space between the elements.
+          super(serialize(deserialize(raw_old_value)), new_value)
+        end
+      end
+
       class MysqlString < Type::String # :nodoc:
         def serialize(value)
           case value
@@ -1055,6 +1078,8 @@ module ActiveRecord
         end
       end
 
+      ActiveRecord::Type.register(:json, MysqlJson, adapter: :mysql)
+      ActiveRecord::Type.register(:json, MysqlJson, adapter: :mysql2)
       ActiveRecord::Type.register(:string, MysqlString, adapter: :mysql)
       ActiveRecord::Type.register(:string, MysqlString, adapter: :mysql2)
     end

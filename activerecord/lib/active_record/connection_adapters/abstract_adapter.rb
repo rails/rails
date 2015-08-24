@@ -107,6 +107,18 @@ module ActiveRecord
         @prepared_statements = false
       end
 
+      class Version
+        include Comparable
+
+        def initialize(version_string)
+          @version = version_string.split('.').map(&:to_i)
+        end
+
+        def <=>(version_string)
+          @version <=> version_string.split('.').map(&:to_i)
+        end
+      end
+
       class BindCollector < Arel::Collectors::Bind
         def compile(bvs, conn)
           casted_binds = conn.prepare_binds_for_database(bvs)
@@ -251,6 +263,11 @@ module ActiveRecord
 
       # Does this adapter support datetime with precision?
       def supports_datetime_with_precision?
+        false
+      end
+
+      # Does this adapter support json data type?
+      def supports_json?
         false
       end
 

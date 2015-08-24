@@ -6,78 +6,78 @@ require 'rails/engine'
 class TestCaseTest < ActionController::TestCase
   class TestController < ActionController::Base
     def no_op
-      render text: 'dummy'
+      render plain: 'dummy'
     end
 
     def set_flash
       flash["test"] = ">#{flash["test"]}<"
-      render text: 'ignore me'
+      render plain: 'ignore me'
     end
 
     def delete_flash
       flash.delete("test")
-      render :text => 'ignore me'
+      render plain: 'ignore me'
     end
 
     def set_flash_now
       flash.now["test_now"] = ">#{flash["test_now"]}<"
-      render text: 'ignore me'
+      render plain: 'ignore me'
     end
 
     def set_session
       session['string'] = 'A wonder'
       session[:symbol] = 'it works'
-      render text: 'Success'
+      render plain: 'Success'
     end
 
     def reset_the_session
       reset_session
-      render text: 'ignore me'
+      render plain: 'ignore me'
     end
 
     def render_raw_post
       raise ActiveSupport::TestCase::Assertion, "#raw_post is blank" if request.raw_post.blank?
-      render text: request.raw_post
+      render plain: request.raw_post
     end
 
     def render_body
-      render text: request.body.read
+      render plain: request.body.read
     end
 
     def test_params
-      render text: ::JSON.dump(params)
+      render plain: ::JSON.dump(params.to_unsafe_h)
     end
 
     def test_query_parameters
-      render text: ::JSON.dump(request.query_parameters)
+      render plain: ::JSON.dump(request.query_parameters)
     end
 
     def test_request_parameters
-      render text: request.request_parameters.inspect
+      render plain: request.request_parameters.inspect
     end
 
     def test_uri
-      render text: request.fullpath
+      render plain: request.fullpath
     end
 
     def test_format
-      render text: request.format
+      render plain: request.format
     end
 
     def test_query_string
-      render text: request.query_string
+      render plain: request.query_string
     end
 
     def test_protocol
-      render text: request.protocol
+      render plain: request.protocol
     end
 
     def test_headers
-      render text: request.headers.env.to_json
+      render plain: request.headers.env.to_json
     end
 
     def test_html_output
-      render text: <<HTML
+      render plain: <<HTML
 <html>
   <body>
     <a href="/"><img src="/images/button.png" /></a>
@@ -99,7 +99,7 @@ HTML
 
     def test_xml_output
       response.content_type = "application/xml"
-      render text: <<XML
+      render plain: <<XML
 <?xml version="1.0" encoding="UTF-8"?>
 <root>
   <area>area is an empty tag in HTML, raising an error if not in xml mode</area>
@@ -108,15 +108,15 @@ XML
     end
 
     def test_only_one_param
-      render text: (params[:left] && params[:right]) ? "EEP, Both here!" : "OK"
+      render plain: (params[:left] && params[:right]) ? "EEP, Both here!" : "OK"
     end
 
     def test_remote_addr
-      render text: (request.remote_addr || "not specified")
+      render plain: (request.remote_addr || "not specified")
     end
 
     def test_file_upload
-      render text: params[:file].size
+      render plain: params[:file].size
     end
 
     def test_send_file
@@ -170,7 +170,7 @@ XML
     before_action { @dynamic_opt = 'opt' }
 
     def test_url_options_reset
-      render text: url_for(params)
+      render plain: url_for(params)
     end
 
     def default_url_options
@@ -997,7 +997,7 @@ module EngineControllerTests
 
   class BarController < ActionController::Base
     def index
-      render text: 'bar'
+      render plain: 'bar'
     end
   end
 
@@ -1083,7 +1083,7 @@ class AnonymousControllerTest < ActionController::TestCase
   def setup
     @controller = Class.new(ActionController::Base) do
       def index
-        render text: params[:controller]
+        render plain: params[:controller]
       end
     end.new
 
@@ -1104,11 +1104,11 @@ class RoutingDefaultsTest < ActionController::TestCase
   def setup
     @controller = Class.new(ActionController::Base) do
       def post
-        render text: request.fullpath
+        render plain: request.fullpath
       end
 
       def project
-        render text: request.fullpath
+        render plain: request.fullpath
       end
     end.new
 

@@ -52,6 +52,7 @@ module ActionView
 
       def initialize
         @data = SmallCache.new(&KEY_BLOCK)
+        @query_cache = SmallCache.new
       end
 
       # Cache the templates returned by the block
@@ -70,8 +71,17 @@ module ActionView
         end
       end
 
+      def cache_query(query) # :nodoc:
+        if Resolver.caching?
+          @query_cache[query] ||= canonical_no_templates(yield)
+        else
+          yield
+        end
+      end
+
       def clear
         @data.clear
+        @query_cache.clear
       end
 
       private
@@ -114,6 +124,10 @@ module ActionView
       cached(key, [name, prefix, partial], details, locals) do
         find_templates(name, prefix, partial, details)
       end
+    end
+
+    def find_all_with_query(query) # :nodoc:
+      @cache.cache_query(query) { find_template_paths(File.join(@path, query)) }
     end
 
   private
@@ -222,7 +236,7 @@ module ActionView
     end
 
     def escape_entry(entry)
-      entry.gsub(/[*?{}\[\]]/, '\\\\\\&')
+      entry.gsub(/[*?{}\[\]]/, '\\\\\\&'.freeze)
     end
 
     # Returns the file mtime from the filesystem.
@@ -234,7 +248,7 @@ module ActionView
     # from the path, or the handler, we should return the array of formats given
     # to the resolver.
     def extract_handler_and_format_and_variant(path, default_formats)
-      pieces = File.basename(path).split('.')
+      pieces = File.basename(path).split('.'.freeze)
       pieces.shift
 
       extension = pieces.pop

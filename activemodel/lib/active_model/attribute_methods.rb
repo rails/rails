@@ -342,7 +342,7 @@ module ActiveModel
       private
         # The methods +method_missing+ and +respond_to?+ of this module are
         # invoked often in a typical rails, both of which invoke the method
-        # +match_attribute_method?+. The latter method iterates through an
+        # +matched_attribute_method+. The latter method iterates through an
         # array doing regular expression matches, which results in a lot of
         # object creations. Most of the time it returns a +nil+ match. As the
         # match result is always the same given a +method_name+, this cache is
@@ -372,7 +372,7 @@ module ActiveModel
             "define_method(:'#{name}') do |*args|"
           end
 
-          extra = (extra.map!(&:inspect) << "*args").join(", ")
+          extra = (extra.map!(&:inspect) << "*args").join(", ".freeze)
 
           target = if send =~ CALL_COMPILABLE_REGEXP
             "#{"self." unless include_private}#{send}(#{extra})"
@@ -429,7 +429,7 @@ module ActiveModel
       if respond_to_without_attributes?(method, true)
         super
       else
-        match = match_attribute_method?(method.to_s)
+        match = matched_attribute_method(method.to_s)
         match ? attribute_missing(match, *args, &block) : super
       end
     end
@@ -454,7 +454,7 @@ module ActiveModel
         # but found among all methods. Which means that the given method is private.
         false
       else
-        !match_attribute_method?(method.to_s).nil?
+        !matched_attribute_method(method.to_s).nil?
       end
     end
 
@@ -466,7 +466,7 @@ module ActiveModel
     private
       # Returns a struct representing the matching attribute method.
       # The struct's attributes are prefix, base and suffix.
-      def match_attribute_method?(method_name)
+      def matched_attribute_method(method_name)
         matches = self.class.send(:attribute_method_matchers_matching, method_name)
         matches.detect { |match| attribute_method?(match.attr_name) }
       end

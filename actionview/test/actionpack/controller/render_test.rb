@@ -121,7 +121,7 @@ class TestController < ApplicationController
   # :ported:
   def render_hello_world_from_variable
     @person = "david"
-    render :text => "hello #{@person}"
+    render plain: "hello #{@person}"
   end
 
   # :ported:
@@ -143,13 +143,13 @@ class TestController < ApplicationController
 
   # :ported:
   def render_text_hello_world
-    render :text => "hello world"
+    render plain: "hello world"
   end
 
   # :ported:
   def render_text_hello_world_with_layout
     @variable_for_layout = ", I am here!"
-    render :text => "hello world", :layout => true
+    render plain: "hello world", :layout => true
   end
 
   def hello_world_with_layout_false
@@ -212,26 +212,26 @@ class TestController < ApplicationController
 
   # :ported:
   def render_custom_code
-    render :text => "hello world", :status => 404
+    render plain: "hello world", :status => 404
   end
 
   # :ported:
   def render_text_with_nil
-    render :text => nil
+    render plain: nil
   end
 
   # :ported:
   def render_text_with_false
-    render :text => false
+    render plain: false
   end
 
   def render_text_with_resource
-    render :text => Customer.new("David")
+    render plain: Customer.new("David")
   end
 
   # :ported:
   def render_nothing_with_appendix
-    render :text => "appended"
+    render plain: "appended"
   end
 
   # This test is testing 3 things:
@@ -262,7 +262,7 @@ class TestController < ApplicationController
 
   # :ported:
   def blank_response
-    render :text => ' '
+    render plain: ' '
   end
 
   # :ported:
@@ -294,7 +294,7 @@ class TestController < ApplicationController
 
   def hello_in_a_string
     @customers = [ Customer.new("david"), Customer.new("mary") ]
-    render :text => "How's there? " + render_to_string(:template => "test/list")
+    render plain: "How's there? " + render_to_string(:template => "test/list")
   end
 
   def accessing_params_in_template
@@ -362,7 +362,7 @@ class TestController < ApplicationController
 
   def render_to_string_with_assigns
     @before = "i'm before the render"
-    render_to_string :text => "foo"
+    render_to_string plain: "foo"
     @after = "i'm after the render"
     render :template => "test/hello_world"
   end
@@ -409,8 +409,8 @@ class TestController < ApplicationController
 
   # :ported:
   def double_render
-    render :text => "hello"
-    render :text => "world"
+    render plain: "hello"
+    render plain: "world"
   end
 
   def double_redirect
@@ -419,13 +419,13 @@ class TestController < ApplicationController
   end
 
   def render_and_redirect
-    render :text => "hello"
+    render plain: "hello"
     redirect_to :action => "double_render"
   end
 
   def render_to_string_and_render
-    @stuff = render_to_string :text => "here is some cached stuff"
-    render :text => "Hi web users! #{@stuff}"
+    @stuff = render_to_string plain: "here is some cached stuff"
+    render plain: "Hi web users! #{@stuff}"
   end
 
   def render_to_string_with_inline_and_render
@@ -454,7 +454,7 @@ class TestController < ApplicationController
   # :addressed:
   def render_text_with_assigns
     @hello = "world"
-    render :text => "foo"
+    render plain: "foo"
   end
 
   def render_with_assigns_option
@@ -467,7 +467,7 @@ class TestController < ApplicationController
 
   def render_content_type_from_body
     response.content_type = Mime::RSS
-    render :text => "hello world!"
+    render body: "hello world!"
   end
 
   def render_using_layout_around_block
@@ -770,7 +770,7 @@ class RenderTest < ActionController::TestCase
   # :ported:
   def test_do_with_render_text_and_layout
     get :render_text_hello_world_with_layout
-    assert_equal "<html>hello world, I am here!</html>", @response.body
+    assert_equal "{{hello world, I am here!}}\n", @response.body
   end
 
   # :ported:

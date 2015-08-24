@@ -258,7 +258,7 @@ this generates
 
 ```html
 <form action="/articles/1" class="button_to" data-remote="true" method="post">
-  <div><input type="submit" value="An article"></div>
+  <input type="submit" value="An article" />
 </form>
 ```
 
@@ -357,7 +357,7 @@ This gem uses Ajax to speed up page rendering in most applications.
 
 Turbolinks attaches a click handler to all `<a>` on the page. If your browser
 supports
-[PushState](https://developer.mozilla.org/en-US/docs/Web/Guide/API/DOM/Manipulating_the_browser_history#The_pushState()_method),
+[PushState](https://developer.mozilla.org/en-US/docs/Web/Guide/API/DOM/Manipulating_the_browser_history#The_pushState%28%29_method),
 Turbolinks will make an Ajax request for the page, parse the response, and
 replace the entire `<body>` of the page with the `<body>` of the response. It
 will then use PushState to change the URL to the correct one, preserving

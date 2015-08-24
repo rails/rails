@@ -8,6 +8,13 @@ module ActionView
     @@cache          = ThreadSafe::Cache.new
     @@digest_monitor = Monitor.new
 
+    class PerRequestDigestCacheExpiry < Struct.new(:app) # :nodoc:
+      def call(env)
+        ActionView::Digestor.cache.clear
+        app.call(env)
+      end
+    end
+
     class << self
       # Supported options:
       #
@@ -41,10 +48,7 @@ module ActionView
             Digestor
           end
 
-          digest = klass.new(options).digest
-          # Store the actual digest if config.cache_template_loading is true
-          @@cache[cache_key] = stored_digest = digest if ActionView::Resolver.caching?
-          digest
+          @@cache[cache_key] = stored_digest = klass.new(options).digest
         ensure
           # something went wrong or ActionView::Resolver.caching? is false, make sure not to corrupt the @@cache
           @@cache.delete_pair(cache_key, false) if pre_stored && !stored_digest
@@ -68,7 +72,7 @@ module ActionView
     end
 
     def dependencies
-      DependencyTracker.find_dependencies(name, template)
+      DependencyTracker.find_dependencies(name, template, finder.view_paths)
     rescue ActionView::MissingTemplate
       logger.try :error, "  '#{name}' file doesn't exist, so no dependencies"
       []

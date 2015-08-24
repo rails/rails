@@ -161,6 +161,10 @@ module ActionView #:nodoc:
     cattr_accessor :raise_on_missing_translations
     @@raise_on_missing_translations = false
 
+    # Specify whether submit_tag should automatically disable on click
+    cattr_accessor :automatically_disable_submit_tag
+    @@automatically_disable_submit_tag = true
+
     class_attribute :_routes
     class_attribute :logger
 

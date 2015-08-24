@@ -357,8 +357,8 @@ will append `ENGINE=BLACKHOLE` to the SQL statement used to create the table
 
 ### Creating a Join Table
 
-Migration method `create_join_table` creates an HABTM join table. A typical use
-would be:
+The migration method `create_join_table` creates an HABTM (has and belongs to
+many) join table. A typical use would be:
 
 ```ruby
 create_join_table :products, :categories
@@ -367,23 +367,21 @@ create_join_table :products, :categories
 which creates a `categories_products` table with two columns called
 `category_id` and `product_id`. These columns have the option `:null` set to
 `false` by default. This can be overridden by specifying the `:column_options`
-option.
+option:
 
 ```ruby
-create_join_table :products, :categories, column_options: {null: true}
+create_join_table :products, :categories, column_options: { null: true }
 ```
 
-will create the `product_id` and `category_id` with the `:null` option as
-`true`.
-
-You can pass the option `:table_name` when you want to customize the table
-name. For example:
+By default, the name of the join table comes from the union of the first two
+arguments provided to create_join_table, in alphabetical order.
+To customize the name of the table, provide a `:table_name` option:
 
 ```ruby
 create_join_table :products, :categories, table_name: :categorization
 ```
 
-will create a `categorization` table.
+creates a `categorization` table.
 
 `create_join_table` also accepts a block, which you can use to add indices
 (which are not created by default) or additional columns:
@@ -1006,7 +1004,10 @@ such features, the `execute` method can be used to execute arbitrary SQL.
 Migrations and Seed Data
 ------------------------
 
-Some people use migrations to add data to the database:
+The main purpose of Rails' migration feature is to issue commands that modify the 
+schema using a consistent process. Migrations can also be used 
+to add or modify data. This is useful in an existing database that can't be destroyed 
+and recreated, such as a production database. 
 
 ```ruby
 class AddInitialProducts < ActiveRecord::Migration
@@ -1022,9 +1023,11 @@ class AddInitialProducts < ActiveRecord::Migration
 end
 ```
 
-However, Rails has a 'seeds' feature that should be used for seeding a database
-with initial data. It's a really simple feature: just fill up `db/seeds.rb`
-with some Ruby code, and run `rake db:seed`:
+To add initial data after a database is created, Rails has a built-in 
+'seeds' feature that makes the process quick and easy. This is especially 
+useful when reloading the database frequently in development and test environments. 
+It's easy to get started with this feature: just fill up `db/seeds.rb` with some 
+Ruby code, and run `rake db:seed`:
 
 ```ruby
 5.times do |i|

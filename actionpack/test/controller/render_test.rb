@@ -10,16 +10,16 @@ class TestControllerWithExtraEtags < ActionController::Base
   etag { nil  }
 
   def fresh
-    render text: "stale" if stale?(etag: '123', template: false)
+    render plain: "stale" if stale?(etag: '123', template: false)
   end
 
   def array
-    render text: "stale" if stale?(etag: %w(1 2 3), template: false)
+    render plain: "stale" if stale?(etag: %w(1 2 3), template: false)
   end
 
   def with_template
     if stale? template: 'test/hello_world'
-      render text: 'stale'
+      render plain: 'stale'
     end
   end
 end
@@ -622,7 +622,7 @@ class HttpCacheForeverTest < ActionController::TestCase
   class HttpCacheForeverController < ActionController::Base
     def cache_me_forever
       http_cache_forever(public: params[:public], version: params[:version] || 'v1') do
-        render text: 'hello'
+        render plain: 'hello'
       end
     end
   end

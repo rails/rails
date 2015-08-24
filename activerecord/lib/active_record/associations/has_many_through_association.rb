@@ -133,7 +133,7 @@ module ActiveRecord
             if scope.klass.primary_key
               count = scope.destroy_all.length
             else
-              scope.each { |record| record.run_callbacks :destroy }
+              scope.each(&:_run_destroy_callbacks)
 
               arel = scope.arel
 

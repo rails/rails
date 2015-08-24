@@ -8,7 +8,7 @@ require 'models/post'
 class SerializationTest < ActiveRecord::TestCase
   fixtures :books
 
-  FORMATS = [ :xml, :json ]
+  FORMATS = [ :json ]
 
   def setup
     @contact_attributes = {

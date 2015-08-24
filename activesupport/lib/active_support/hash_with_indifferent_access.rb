@@ -92,7 +92,7 @@ module ActiveSupport
     #   hash = ActiveSupport::HashWithIndifferentAccess.new
     #   hash[:key] = 'value'
     #
-    # This value can be later fetched using either +:key+ or +'key'+.
+    # This value can be later fetched using either +:key+ or <tt>'key'</tt>.
     def []=(key, value)
       regular_writer(convert_key(key), convert_value(value, for: :assignment))
     end
@@ -238,10 +238,12 @@ module ActiveSupport
     def to_options!; self end
 
     def select(*args, &block)
+      return to_enum(:select) unless block_given?
       dup.tap { |hash| hash.select!(*args, &block) }
     end
 
     def reject(*args, &block)
+      return to_enum(:reject) unless block_given?
       dup.tap { |hash| hash.reject!(*args, &block) }
     end
 

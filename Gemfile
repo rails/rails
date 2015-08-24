@@ -7,6 +7,7 @@ gem 'rake', '>= 10.3'
 
 # Active Job depends on the URI::GID::MissingModelIDError, which isn't released yet.
 gem 'globalid', github: 'rails/globalid'
+gem 'rack', github: 'rack/rack'
 
 # This needs to be with require false as it is
 # loaded after loading the test library to
@@ -20,8 +21,9 @@ gem 'turbolinks'
 gem 'arel', github: 'rails/arel', branch: 'master'
 gem 'mail', github: 'mikel/mail'
 
-gem 'sprockets', '~> 3.0.0.rc.1'
+gem 'sprockets', github: 'rails/sprockets', branch: 'master'
 gem 'sprockets-rails', github: 'rails/sprockets-rails', branch: 'master'
+gem 'sass-rails', github: 'rails/sass-rails', branch: 'master'
 
 # require: false so bcrypt is loaded only when has_secure_password is used.
 # This is to avoid ActiveModel (and by extension the entire framework)
@@ -31,6 +33,7 @@ gem 'bcrypt', '~> 3.1.10', require: false
 # This needs to be with require false to avoid
 # it being automatically loaded by sprockets
 gem 'uglifier', '>= 1.3.0', require: false
+gem 'sass', '>= 3.3', require: false
 
 group :doc do
   gem 'sdoc', '~> 0.4.0'
@@ -49,7 +52,7 @@ group :job do
   gem 'sidekiq', require: false
   gem 'sucker_punch', require: false
   gem 'delayed_job', require: false
-  gem 'queue_classic', require: false, platforms: :ruby
+  gem 'queue_classic', github: "QueueClassic/queue_classic", require: false, platforms: :ruby
   gem 'sneakers', require: false
   gem 'que', require: false
   gem 'backburner', require: false

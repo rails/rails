@@ -83,7 +83,9 @@ Rails would dispatch that request to the `destroy` method on the `photos` contro
 
 ### CRUD, Verbs, and Actions
 
-In Rails, a resourceful route provides a mapping between HTTP verbs and URLs to controller actions. By convention, each action also maps to particular CRUD operations in a database. A single entry in the routing file, such as:
+In Rails, a resourceful route provides a mapping between HTTP verbs and URLs to
+controller actions. By convention, each action also maps to a specific CRUD
+operation in a database. A single entry in the routing file, such as:
 
 ```ruby
 resources :photos
@@ -615,6 +617,8 @@ get 'photos/:id', to: 'photos#show', defaults: { format: 'jpg' }
 
 Rails would match `photos/12` to the `show` action of `PhotosController`, and set `params[:format]` to `"jpg"`.
 
+NOTE: You cannot override defaults via query parameters - this is for security reasons. The only defaults that can be overridden are dynamic segments via substitution in the URL path.
+
 ### Naming Routes
 
 You can specify a name for any route using the `:as` option:
@@ -793,7 +797,11 @@ get '/stories/:name', to: redirect { |path_params, req| "/articles/#{path_params
 get '/stories', to: redirect { |path_params, req| "/articles/#{req.subdomain}" }
 ```
 
-Please note that this redirection is a 301 "Moved Permanently" redirect. Keep in mind that some web browsers or proxy servers will cache this type of redirect, making the old page inaccessible.
+Please note that default redirection is a 301 "Moved Permanently" redirect. Keep in mind that some web browsers or proxy servers will cache this type of redirect, making the old page inaccessible. You can use the `:status` option to change the response status:
+
+```ruby
+get '/stories/:name', to: redirect('/articles/%{name}', status: 302)
+```
 
 In all of these cases, if you don't provide the leading host (`http://www.example.com`), Rails will take those details from the current request.
 
@@ -1085,6 +1093,20 @@ edit_videos GET  /videos/:identifier/edit(.:format) videos#edit
 
 ```ruby
 Video.find_by(identifier: params[:identifier])
+```
+
+You can override `ActiveRecord::Base#to_param` of a related model to construct
+an URL:
+
+```ruby
+class Video < ActiveRecord::Base
+  def to_param
+    identifier
+  end
+end
+
+video = Video.find_by(identifier: "Roman-Holiday")
+edit_videos_path(video) # => "/videos/Roman-Holiday"
 ```
 
 Inspecting and Testing Routes

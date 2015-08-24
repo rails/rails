@@ -500,6 +500,13 @@ class UrlHelperTest < ActiveSupport::TestCase
                  mail_to("david@loudthinking.com", "David Heinemeier Hansson", class: "admin")
   end
 
+  def test_mail_to_with_special_characters
+    assert_dom_equal(
+      %{<a href="mailto:%23%21%24%25%26%27%2A%2B-%2F%3D%3F%5E_%60%7B%7D%7C%7E@example.org">#!$%&amp;&#39;*+-/=?^_`{}|~@example.org</a>},
+      mail_to("#!$%&'*+-/=?^_`{}|~@example.org")
+    )
+  end
+
   def test_mail_with_options
     assert_dom_equal(
       %{<a href="mailto:me@example.com?cc=ccaddress%40example.com&amp;bcc=bccaddress%40example.com&amp;body=This%20is%20the%20body%20of%20the%20message.&amp;subject=This%20is%20an%20example%20email&amp;reply-to=foo%40bar.com">My email</a>},

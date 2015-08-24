@@ -1,7 +1,6 @@
 require 'generators/generators_test_helper'
 require 'rails/generators/rails/app/app_generator'
 require 'env_helpers'
-require 'minitest/mock'
 
 class ActionsTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
@@ -12,13 +11,11 @@ class ActionsTest < Rails::Generators::TestCase
 
   def setup
     Rails.application = TestApp::Application
-    @mock_generator = Minitest::Mock.new
     super
   end
 
   def teardown
     Rails.application = TestApp::Application.instance
-    @mock_generator.verify
   end
 
   def test_invoke_other_generator_with_shortcut
@@ -150,16 +147,13 @@ class ActionsTest < Rails::Generators::TestCase
   end
 
   def test_git_with_symbol_should_run_command_using_git_scm
-    @mock_generator.expect(:call, nil, ['git init'])
-    generator.stub(:run, @mock_generator) do
+    assert_called_with(generator, :run, ['git init']) do
       action :git, :init
     end
   end
 
   def test_git_with_hash_should_run_each_command_using_git_scm
-    @mock_generator.expect(:call, nil, ["git rm README"])
-    @mock_generator.expect(:call, nil, ["git add ."])
-    generator.stub(:run, @mock_generator) do
+    assert_called_with(generator, :run, [ ["git rm README"], ["git add ."] ]) do
       action :git, rm: 'README', add: '.'
     end
   end
@@ -185,15 +179,13 @@ class ActionsTest < Rails::Generators::TestCase
   end
 
   def test_generate_should_run_script_generate_with_argument_and_options
-    @mock_generator.expect(:call, nil, ['bin/rails generate model MyModel', verbose: false])
-    generator.stub(:run_ruby_script, @mock_generator) do
+    assert_called_with(generator, :run_ruby_script, ['bin/rails generate model MyModel', verbose: false]) do
       action :generate, 'model', 'MyModel'
     end
   end
 
   def test_rake_should_run_rake_command_with_default_env
-    @mock_generator.expect(:call, nil, ["rake log:clear RAILS_ENV=development", verbose: false])
-    generator.stub(:run, @mock_generator) do
+    assert_called_with(generator, :run, ["rake log:clear RAILS_ENV=development", verbose: false]) do
       with_rails_env nil do
         action :rake, 'log:clear'
       end
@@ -201,15 +193,13 @@ class ActionsTest < Rails::Generators::TestCase
   end
 
   def test_rake_with_env_option_should_run_rake_command_in_env
-    @mock_generator.expect(:call, nil, ['rake log:clear RAILS_ENV=production', verbose: false])
-    generator.stub(:run, @mock_generator) do
+    assert_called_with(generator, :run, ['rake log:clear RAILS_ENV=production', verbose: false]) do
       action :rake, 'log:clear', env: 'production'
     end
   end
 
   def test_rake_with_rails_env_variable_should_run_rake_command_in_env
-    @mock_generator.expect(:call, nil, ['rake log:clear RAILS_ENV=production', verbose: false])
-    generator.stub(:run, @mock_generator) do
+    assert_called_with(generator, :run, ['rake log:clear RAILS_ENV=production', verbose: false]) do
       with_rails_env "production" do
         action :rake, 'log:clear'
       end
@@ -217,8 +207,7 @@ class ActionsTest < Rails::Generators::TestCase
   end
 
   def test_env_option_should_win_over_rails_env_variable_when_running_rake
-    @mock_generator.expect(:call, nil, ['rake log:clear RAILS_ENV=production', verbose: false])
-    generator.stub(:run, @mock_generator) do
+    assert_called_with(generator, :run, ['rake log:clear RAILS_ENV=production', verbose: false]) do
       with_rails_env "staging" do
         action :rake, 'log:clear', env: 'production'
       end
@@ -226,8 +215,7 @@ class ActionsTest < Rails::Generators::TestCase
   end
 
   def test_rake_with_sudo_option_should_run_rake_command_with_sudo
-    @mock_generator.expect(:call, nil, ["sudo rake log:clear RAILS_ENV=development", verbose: false])
-    generator.stub(:run, @mock_generator) do
+    assert_called_with(generator, :run, ["sudo rake log:clear RAILS_ENV=development", verbose: false]) do
       with_rails_env nil do
         action :rake, 'log:clear', sudo: true
       end
@@ -235,8 +223,7 @@ class ActionsTest < Rails::Generators::TestCase
   end
 
   def test_capify_should_run_the_capify_command
-    @mock_generator.expect(:call, nil, ['capify .', verbose: false])
-    generator.stub(:run, @mock_generator) do
+    assert_called_with(generator, :run, ['capify .', verbose: false]) do
       action :capify!
     end
   end
@@ -274,8 +261,7 @@ F
 
   def test_readme
     run_generator
-    2.times { @mock_generator.expect(:call, destination_root,[]) }
-    Rails::Generators::AppGenerator.stub(:source_root, @mock_generator) do
+    assert_called(Rails::Generators::AppGenerator, :source_root, times: 2, returns: destination_root) do
       assert_match "application up and running", action(:readme, "README.md")
     end
   end
@@ -283,8 +269,7 @@ F
   def test_readme_with_quiet
     generator(default_arguments, quiet: true)
     run_generator
-    2.times { @mock_generator.expect(:call, destination_root,[]) }
-    Rails::Generators::AppGenerator.stub(:source_root, @mock_generator) do
+    assert_called(Rails::Generators::AppGenerator, :source_root, times: 2, returns: destination_root) do
       assert_no_match "application up and running", action(:readme, "README.md")
     end
   end

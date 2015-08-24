@@ -6,7 +6,17 @@ module ActionDispatch
     # read a notice you put there or <tt>flash["notice"] = "hello"</tt>
     # to put a new one.
     def flash
-      @env[Flash::KEY] ||= Flash::FlashHash.from_session_value(session["flash"])
+      flash = flash_hash
+      return flash if flash
+      self.flash = Flash::FlashHash.from_session_value(session["flash"])
+    end
+
+    def flash=(flash)
+      set_header Flash::KEY, flash
+    end
+
+    def flash_hash # :nodoc:
+      get_header Flash::KEY
     end
   end
 
@@ -263,14 +273,15 @@ module ActionDispatch
     end
 
     def call(env)
+      req = ActionDispatch::Request.new env
       @app.call(env)
     ensure
-      session    = Request::Session.find(env) || {}
-      flash_hash = env[KEY]
+      session    = Request::Session.find(req) || {}
+      flash_hash = req.flash_hash
 
       if flash_hash && (flash_hash.present? || session.key?('flash'))
         session["flash"] = flash_hash.to_session_value
-        env[KEY] = flash_hash.dup
+        req.flash = flash_hash.dup
       end
 
       if (!session.respond_to?(:loaded?) || session.loaded?) && # (reset_session uses {}, which doesn't implement #loaded?)

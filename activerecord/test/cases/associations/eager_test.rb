@@ -1325,6 +1325,14 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_match message, error.message
   end
 
+  test "preload with invalid argument" do
+    exception = assert_raises(ArgumentError) do
+      Author.preload(10).to_a
+    end
+    assert_equal('10 was not recognized for preload', exception.message)
+  end
+
+
   test "preloading readonly association" do
     # has-one
     firm = Firm.where(id: "1").preload(:readonly_account).first!

@@ -8,12 +8,12 @@ classes. Active Model allows for Action Pack helpers to interact with
 plain Ruby objects. Active Model also helps build custom ORMs for use
 outside of the Rails framework.
 
-After reading this guide, you will be able to add to plain Ruby objects:
+After reading this guide, you will know: 
 
-* The ability to behave like an Active Record model.
-* Callbacks and validations like Active Record.
-* Serializers.
-* Integration with the Rails internationalization (i18n) framework.
+* How an Active Record model behaves.
+* How Callbacks and validations work. 
+* How serializers work.
+* The Rails internationalization (i18n) framework.
 
 --------------------------------------------------------------------------------
 
@@ -319,9 +319,8 @@ person.serializable_hash   # => {"name"=>"Bob"}
 
 #### ActiveModel::Serializers
 
-Rails provides two serializers `ActiveModel::Serializers::JSON` and
-`ActiveModel::Serializers::Xml`. Both of these modules automatically include
-the `ActiveModel::Serialization`.
+Rails provides a `ActiveModel::Serializers::JSON` serializer.
+This module automatically include the `ActiveModel::Serialization`.
 
 ##### ActiveModel::Serializers::JSON
 
@@ -377,62 +376,6 @@ json = { name: 'Bob' }.to_json
 person = Person.new
 person.from_json(json) # => #<Person:0x00000100c773f0 @name="Bob">
 person.name            # => "Bob"
-```
-
-##### ActiveModel::Serializers::Xml
-
-To use the `ActiveModel::Serializers::Xml` you only need to change from
-`ActiveModel::Serialization` to `ActiveModel::Serializers::Xml`.
-
-```ruby
-class Person
-  include ActiveModel::Serializers::Xml
-
-  attr_accessor :name
-
-  def attributes
-    {'name' => nil}
-  end
-end
-```
-
-With the `to_xml` you have an XML representing the model.
-
-```ruby
-person = Person.new
-person.to_xml # => "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<person>\n  <name nil=\"true\"/>\n</person>\n"
-person.name = "Bob"
-person.to_xml # => "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<person>\n  <name>Bob</name>\n</person>\n"
-```
-
-From an XML string you define the attributes of the model.
-You need to have the `attributes=` method defined on your class:
-
-```ruby
-class Person
-  include ActiveModel::Serializers::Xml
-
-  attr_accessor :name
-
-  def attributes=(hash)
-    hash.each do |key, value|
-      send("#{key}=", value)
-    end
-  end
-
-  def attributes
-    {'name' => nil}
-  end
-end
-```
-
-Now it is possible to create an instance of person and set the attributes using `from_xml`.
-
-```ruby
-xml = { name: 'Bob' }.to_xml
-person = Person.new
-person.from_xml(xml) # => #<Person:0x00000100c773f0 @name="Bob">
-person.name          # => "Bob"
 ```
 
 ### Translation

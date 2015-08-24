@@ -91,10 +91,10 @@ module ActiveSupport
     def underscore(camel_cased_word)
       return camel_cased_word unless camel_cased_word =~ /[A-Z-]|::/
       word = camel_cased_word.to_s.gsub('::'.freeze, '/'.freeze)
-      word.gsub!(/(?:(?<=([A-Za-z\d]))|\b)(#{inflections.acronym_regex})(?=\b|[^a-z])/) { "#{$1 && '_'}#{$2.downcase}" }
-      word.gsub!(/([A-Z\d]+)([A-Z][a-z])/,'\1_\2')
-      word.gsub!(/([a-z\d])([A-Z])/,'\1_\2')
-      word.tr!("-", "_")
+      word.gsub!(/(?:(?<=([A-Za-z\d]))|\b)(#{inflections.acronym_regex})(?=\b|[^a-z])/) { "#{$1 && '_'.freeze }#{$2.downcase}" }
+      word.gsub!(/([A-Z\d]+)([A-Z][a-z])/, '\1_\2'.freeze)
+      word.gsub!(/([a-z\d])([A-Z])/, '\1_\2'.freeze)
+      word.tr!("-".freeze, "_".freeze)
       word.downcase!
       word
     end
@@ -127,9 +127,9 @@ module ActiveSupport
 
       inflections.humans.each { |(rule, replacement)| break if result.sub!(rule, replacement) }
 
-      result.sub!(/\A_+/, '')
-      result.sub!(/_id\z/, '')
-      result.tr!('_', ' ')
+      result.sub!(/\A_+/, ''.freeze)
+      result.sub!(/_id\z/, ''.freeze)
+      result.tr!('_'.freeze, ' '.freeze)
 
       result.gsub!(/([a-z\d]*)/i) do |match|
         "#{inflections.acronyms[match] || match.downcase}"
@@ -160,7 +160,7 @@ module ActiveSupport
     # This method uses the #pluralize method on the last word in the string.
     #
     #   tableize('RawScaledScorer') # => "raw_scaled_scorers"
-    #   tableize('egg_and_ham')     # => "egg_and_hams"
+    #   tableize('ham_and_egg')     # => "ham_and_eggs"
     #   tableize('fancyCategory')   # => "fancy_categories"
     def tableize(class_name)
       pluralize(underscore(class_name))
@@ -170,7 +170,7 @@ module ActiveSupport
     # names to models. Note that this returns a string and not a Class (To
     # convert to an actual class follow +classify+ with #constantize).
     #
-    #   classify('egg_and_hams') # => "EggAndHam"
+    #   classify('ham_and_eggs') # => "HamAndEgg"
     #   classify('posts')        # => "Post"
     #
     # Singular names are not handled correctly:
@@ -178,14 +178,14 @@ module ActiveSupport
     #   classify('calculus')     # => "Calculu"
     def classify(table_name)
       # strip out any leading schema name
-      camelize(singularize(table_name.to_s.sub(/.*\./, '')))
+      camelize(singularize(table_name.to_s.sub(/.*\./, ''.freeze)))
     end
 
     # Replaces underscores with dashes in the string.
     #
     #   dasherize('puni_puni') # => "puni-puni"
     def dasherize(underscored_word)
-      underscored_word.tr('_', '-')
+      underscored_word.tr('_'.freeze, '-'.freeze)
     end
 
     # Removes the module part from the expression in the string.
@@ -248,7 +248,7 @@ module ActiveSupport
     # NameError is raised when the name is not in CamelCase or the constant is
     # unknown.
     def constantize(camel_cased_word)
-      names = camel_cased_word.split('::')
+      names = camel_cased_word.split('::'.freeze)
 
       # Trigger a built-in NameError exception including the ill-formed constant in the message.
       Object.const_get(camel_cased_word) if names.empty?
@@ -354,7 +354,7 @@ module ActiveSupport
     #   const_regexp("Foo::Bar::Baz") # => "Foo(::Bar(::Baz)?)?"
     #   const_regexp("::")            # => "::"
     def const_regexp(camel_cased_word) #:nodoc:
-      parts = camel_cased_word.split("::")
+      parts = camel_cased_word.split("::".freeze)
 
       return Regexp.escape(camel_cased_word) if parts.blank?
 
@@ -372,7 +372,7 @@ module ActiveSupport
     def apply_inflections(word, rules)
       result = word.to_s.dup
 
-      if word.empty? || inflections.uncountables.include?(result.downcase[/\b\w+\Z/])
+      if word.empty? || inflections.uncountables.uncountable?(result)
         result
       else
         rules.each { |(rule, replacement)| break if result.sub!(rule, replacement) }

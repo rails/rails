@@ -27,6 +27,18 @@ class MethodCallAssertionsTest < ActiveSupport::TestCase
     end
   end
 
+  def test_assert_called_method_with_arguments
+    assert_called(@object, :<<) do
+      @object << 2
+    end
+  end
+
+  def test_assert_called_returns
+    assert_called(@object, :increment, returns: 10) do
+      assert_equal 10, @object.increment
+    end
+  end
+
   def test_assert_called_failure
     error = assert_raises(Minitest::Assertion) do
       assert_called(@object, :increment) do
@@ -94,5 +106,18 @@ class MethodCallAssertionsTest < ActiveSupport::TestCase
     end
 
     assert_equal "Expected increment to be called 0 times, but was called 1 times.\nExpected: 0\n  Actual: 1", error.message
+  end
+
+  def test_stub_any_instance
+    stub_any_instance(Level) do |instance|
+      assert_equal instance, Level.new
+    end
+  end
+
+  def test_stub_any_instance_with_instance
+    stub_any_instance(Level, instance: @object) do |instance|
+      assert_equal @object, instance
+      assert_equal instance, Level.new
+    end
   end
 end

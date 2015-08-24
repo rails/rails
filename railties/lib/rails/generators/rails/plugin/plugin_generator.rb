@@ -17,15 +17,22 @@ module Rails
 
     def app
       if mountable?
-        directory 'app'
-        empty_directory_with_keep_file "app/assets/images/#{namespaced_name}"
+        if api?
+          directory 'app', exclude_pattern: %r{app/(views|helpers)}
+        else
+          directory 'app'
+          empty_directory_with_keep_file "app/assets/images/#{namespaced_name}"
+        end
       elsif full?
         empty_directory_with_keep_file 'app/models'
         empty_directory_with_keep_file 'app/controllers'
-        empty_directory_with_keep_file 'app/views'
-        empty_directory_with_keep_file 'app/helpers'
         empty_directory_with_keep_file 'app/mailers'
-        empty_directory_with_keep_file "app/assets/images/#{namespaced_name}"
+
+        unless api?
+          empty_directory_with_keep_file "app/assets/images/#{namespaced_name}"
+          empty_directory_with_keep_file 'app/helpers'
+          empty_directory_with_keep_file 'app/views'
+        end
       end
     end
 
@@ -82,6 +89,7 @@ task default: :test
       opts = (options || {}).slice(*PASSTHROUGH_OPTIONS)
       opts[:force] = force
       opts[:skip_bundle] = true
+      opts[:api] = options.api?
 
       invoke Rails::Generators::AppGenerator,
         [ File.expand_path(dummy_path, destination_root) ], opts
@@ -96,8 +104,9 @@ task default: :test
     end
 
     def test_dummy_assets
-      template "rails/javascripts.js",  "#{dummy_path}/app/assets/javascripts/application.js", force: true
-      template "rails/stylesheets.css", "#{dummy_path}/app/assets/stylesheets/application.css", force: true
+      template "rails/javascripts.js",    "#{dummy_path}/app/assets/javascripts/application.js", force: true
+      template "rails/stylesheets.css",   "#{dummy_path}/app/assets/stylesheets/application.css", force: true
+      template "rails/dummy_manifest.js", "#{dummy_path}/app/assets/manifest.js", force: true
     end
 
     def test_dummy_clean
@@ -112,6 +121,10 @@ task default: :test
         remove_file "test"
         remove_file "vendor"
       end
+    end
+
+    def assets_manifest
+      template "rails/engine_manifest.js", "app/assets/#{underscored_name}_manifest.js"
     end
 
     def stylesheets
@@ -176,6 +189,9 @@ task default: :test
                                         desc: "If creating plugin in application's directory " +
                                                  "skip adding entry to Gemfile"
 
+      class_option :api,          type: :boolean, default: false,
+                                  desc: "Generate a smaller stack for API application plugins"
+
       def initialize(*args)
         @dummy_path = nil
         super
@@ -209,16 +225,20 @@ task default: :test
         build(:lib)
       end
 
+      def create_assets_manifest_file
+        build(:assets_manifest) unless api?
+      end
+
       def create_public_stylesheets_files
-        build(:stylesheets)
+        build(:stylesheets) unless api?
       end
 
       def create_javascript_files
-        build(:javascripts)
+        build(:javascripts) unless api?
       end
 
       def create_images_directory
-        build(:images)
+        build(:images) unless api?
       end
 
       def create_bin_files
@@ -303,6 +323,10 @@ task default: :test
 
       def with_dummy_app?
         options[:skip_test].blank? || options[:dummy_path] != 'test/dummy'
+      end
+
+      def api?
+        options[:api]
       end
 
       def self.banner

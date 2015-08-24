@@ -85,7 +85,8 @@ module ActiveRecord
     def find_by!(arg, *args)
       where(arg, *args).take!
     rescue RangeError
-      raise RecordNotFound, "Couldn't find #{@klass.name} with an out of range value"
+      raise RecordNotFound.new("Couldn't find #{@klass.name} with an out of range value",
+                               @klass.name)
     end
 
     # Gives a record (or N records if a parameter is supplied) without any implied

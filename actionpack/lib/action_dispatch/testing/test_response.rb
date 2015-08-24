@@ -16,9 +16,6 @@ module ActionDispatch
     # Was the URL not found?
     alias_method :missing?, :not_found?
 
-    # Were we redirected?
-    alias_method :redirect?, :redirection?
-
     # Was there a server-side error?
     alias_method :error?, :server_error?
   end
