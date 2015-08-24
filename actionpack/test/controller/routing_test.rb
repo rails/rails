@@ -1742,40 +1742,10 @@ class RouteSetTest < ActiveSupport::TestCase
 
   include ActionDispatch::RoutingVerbs
 
-  class TestSet < ActionDispatch::Routing::RouteSet
-    def initialize(block)
-      @block = block
-      super()
-    end
-
-    class Dispatcher < ActionDispatch::Routing::RouteSet::Dispatcher
-      def initialize(defaults, set, block)
-        super(defaults)
-        @block = block
-        @set = set
-      end
-
-      def controller_reference(controller_param)
-        block = @block
-        set = @set
-        Class.new(ActionController::Base) {
-          include set.url_helpers
-          define_method(:process) { |name| block.call(self) }
-          def to_a; [200, {}, []]; end
-        }
-      end
-    end
-
-    def dispatcher defaults
-      TestSet::Dispatcher.new defaults, self, @block
-    end
-  end
-
   alias :routes :set
 
   def test_generate_with_optional_params_recalls_last_request
-    controller = nil
-    @set = TestSet.new ->(c) { controller = c }
+    @set = make_set false
 
     set.draw do
       get "blog/", :controller => "blog", :action => "index"
