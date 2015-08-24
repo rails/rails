@@ -17,6 +17,7 @@ require 'models/minivan'
 require 'models/owner'
 require 'models/person'
 require 'models/pet'
+require 'models/ship'
 require 'models/toy'
 require 'rexml/document'
 
