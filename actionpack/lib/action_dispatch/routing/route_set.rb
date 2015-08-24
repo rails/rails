@@ -285,7 +285,7 @@ module ActionDispatch
 
       attr_accessor :formatter, :set, :named_routes, :default_scope, :router
       attr_accessor :disable_clear_and_finalize, :resources_path_names
-      attr_accessor :default_url_options, :dispatcher_class
+      attr_accessor :default_url_options
       attr_reader :env_key
 
       alias :routes :set
@@ -392,7 +392,7 @@ module ActionDispatch
       end
 
       def dispatcher(raise_on_name_error)
-        dispatcher_class.new(raise_on_name_error)
+        @dispatcher_class.new(raise_on_name_error)
       end
 
       module MountedHelpers
