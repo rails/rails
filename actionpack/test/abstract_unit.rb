@@ -116,23 +116,40 @@ class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
     get ':controller(/:action)'
   end
 
-  # Stub Rails dispatcher so it does not get controller references and
-  # simply return the controller#action as Rack::Body.
-  class StubDispatcher < ::ActionDispatch::Routing::RouteSet::Dispatcher
-    protected
-    def controller_reference(controller_param)
-      controller_param.params[:controller]
+  class DeadEndRoutes < ActionDispatch::Routing::RouteSet
+    # Stub Rails dispatcher so it does not get controller references and
+    # simply return the controller#action as Rack::Body.
+    class NullController
+      def initialize(controller_name)
+        @controller = controller_name
+        @action = nil
+      end
+
+      def action(action_name)
+        @action = action_name
+        self
+      end
+
+      def call(env)
+        [200, {'Content-Type' => 'text/html'}, ["#{@controller}##{@action}"]]
+      end
+
+      def new; self; end
     end
 
-    def dispatch(controller, action, env)
-      [200, {'Content-Type' => 'text/html'}, ["#{controller}##{action}"]]
+    class NullControllerRequest < DelegateClass(ActionDispatch::Request)
+      def controller_class
+        NullController.new params[:controller]
+      end
+    end
+
+    def make_request env
+      NullControllerRequest.new super
     end
   end
 
-  def self.stub_controllers(config = nil)
-    route_set = ActionDispatch::Routing::RouteSet.new(*[config].compact)
-    route_set.dispatcher_class = StubDispatcher
-    yield route_set
+  def self.stub_controllers(config = ActionDispatch::Routing::RouteSet::DEFAULT_CONFIG)
+    yield DeadEndRoutes.new(config)
   end
 
   def with_routing(&block)
