@@ -328,7 +328,6 @@ module ActionDispatch
         @set    = Journey::Routes.new
         @router = Journey::Router.new @set
         @formatter = Journey::Formatter.new self
-        @dispatcher_class = Routing::RouteSet::Dispatcher
       end
 
       def relative_url_root
@@ -392,7 +391,7 @@ module ActionDispatch
       end
 
       def dispatcher(raise_on_name_error)
-        @dispatcher_class.new(raise_on_name_error)
+        Routing::RouteSet::Dispatcher.new raise_on_name_error
       end
 
       module MountedHelpers
