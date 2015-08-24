@@ -348,7 +348,7 @@ module ActionDispatch
       end
 
       def server_port
-        @env['SERVER_PORT'].to_i
+        get_header('SERVER_PORT').to_i
       end
 
       # Returns the \domain part of a \host, such as "rubyonrails.org" in "www.rubyonrails.org". You can specify
