@@ -98,7 +98,7 @@ namespace :all do
   task :push            => FRAMEWORKS.map { |f| "#{f}:push"            } + ['rails:push']
 
   task :ensure_clean_state do
-    unless `git status -s | grep -v RAILS_VERSION`.strip.empty?
+    unless `git status -s | grep -v 'RAILS_VERSION\\|CHANGELOG'`.strip.empty?
       abort "[ABORTING] `git status` reports a dirty tree. Make sure all changes are committed"
     end
 

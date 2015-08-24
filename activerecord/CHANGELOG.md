@@ -1,3 +1,5 @@
+## Rails 4.1.13 (August 24, 2015) ##
+
 *   Don't define autosave association callbacks twice from
     `accepts_nested_attributes_for`.
 
