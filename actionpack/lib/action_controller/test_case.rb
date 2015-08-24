@@ -36,11 +36,15 @@ module ActionController
     end
 
     def query_string=(string)
-      @env[Rack::QUERY_STRING] = string
+      set_header Rack::QUERY_STRING, string
     end
 
     def request_parameters=(params)
-      @env["action_dispatch.request.request_parameters"] = params
+      set_header "action_dispatch.request.request_parameters", params
+    end
+
+    def content_type=(type)
+      set_header 'CONTENT_TYPE', type
     end
 
     def assign_parameters(routes, controller_path, action, parameters, generated_path, query_string_keys)
@@ -67,10 +71,12 @@ module ActionController
         end
       else
         if ENCODER.should_multipart?(non_path_parameters)
-          @env['CONTENT_TYPE'] = ENCODER.content_type
+          self.content_type = ENCODER.content_type
           data = ENCODER.build_multipart non_path_parameters
         else
-          @env['CONTENT_TYPE'] ||= 'application/x-www-form-urlencoded'
+          get_header('CONTENT_TYPE') do |k|
+            set_header k, 'application/x-www-form-urlencoded'
+          end
 
           # FIXME: setting `request_parametes` is normally handled by the
           # params parser middleware, and we should remove this roundtripping
@@ -92,8 +98,8 @@ module ActionController
           end
         end
 
-        @env['CONTENT_LENGTH'] = data.length.to_s
-        @env['rack.input'] = StringIO.new(data)
+        set_header 'CONTENT_LENGTH', data.length.to_s
+        set_header 'rack.input', StringIO.new(data)
       end
 
       @env["PATH_INFO"] ||= generated_path
@@ -450,7 +456,7 @@ module ActionController
         end
 
         if body.present?
-          @request.env['RAW_POST_DATA'] = body
+          @request.set_header 'RAW_POST_DATA', body
         end
 
         if http_method.present?
@@ -503,12 +509,14 @@ module ActionController
         @controller.request  = @request
         @controller.response = @response
 
-        @request.env["SCRIPT_NAME"] ||= @controller.config.relative_url_root
+        @request.get_header("SCRIPT_NAME") do |k|
+          @request.set_header k, @controller.config.relative_url_root
+        end
 
         @controller.recycle!
         @controller.process(action)
 
-        @request.env.delete 'HTTP_COOKIE'
+        @request.delete_header 'HTTP_COOKIE'
 
         if @request.have_cookie_jar?
           unless @response.committed?
@@ -525,8 +533,8 @@ module ActionController
         end
 
         if xhr
-          @request.env.delete 'HTTP_X_REQUESTED_WITH'
-          @request.env.delete 'HTTP_ACCEPT'
+          @request.delete_header 'HTTP_X_REQUESTED_WITH'
+          @request.delete_header 'HTTP_ACCEPT'
         end
         @request.query_string = ''
 
