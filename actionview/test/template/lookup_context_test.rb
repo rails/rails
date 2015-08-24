@@ -108,10 +108,11 @@ class LookupContextTest < ActiveSupport::TestCase
   end
 
   test "found templates respects given formats if one cannot be found from template or handler" do
-    ActionView::Template::Handlers::Builder.expects(:default_format).returns(nil)
-    @lookup_context.formats = [:text]
-    template = @lookup_context.find("hello", %w(test))
-    assert_equal [:text], template.formats
+    assert_called(ActionView::Template::Handlers::Builder, :default_format, returns: nil) do
+      @lookup_context.formats = [:text]
+      template = @lookup_context.find("hello", %w(test))
+      assert_equal [:text], template.formats
+    end
   end
 
   test "adds fallbacks to view paths when required" do
@@ -210,45 +211,50 @@ end
 class LookupContextWithFalseCaching < ActiveSupport::TestCase
   def setup
     @resolver = ActionView::FixtureResolver.new("test/_foo.erb" => ["Foo", Time.utc(2000)])
-    ActionView::Resolver.stubs(:caching?).returns(false)
     @lookup_context = ActionView::LookupContext.new(@resolver, {})
   end
 
   test "templates are always found in the resolver but timestamp is checked before being compiled" do
-    template = @lookup_context.find("foo", %w(test), true)
-    assert_equal "Foo", template.source
+    ActionView::Resolver.stub(:caching?, false) do
+      template = @lookup_context.find("foo", %w(test), true)
+      assert_equal "Foo", template.source
 
-    # Now we are going to change the template, but it won't change the returned template
-    # since the timestamp is the same.
-    @resolver.hash["test/_foo.erb"][0] = "Bar"
-    template = @lookup_context.find("foo", %w(test), true)
-    assert_equal "Foo", template.source
+      # Now we are going to change the template, but it won't change the returned template
+      # since the timestamp is the same.
+      @resolver.hash["test/_foo.erb"][0] = "Bar"
+      template = @lookup_context.find("foo", %w(test), true)
+      assert_equal "Foo", template.source
 
-    # Now update the timestamp.
-    @resolver.hash["test/_foo.erb"][1] = Time.now.utc
-    template = @lookup_context.find("foo", %w(test), true)
-    assert_equal "Bar", template.source
+      # Now update the timestamp.
+      @resolver.hash["test/_foo.erb"][1] = Time.now.utc
+      template = @lookup_context.find("foo", %w(test), true)
+      assert_equal "Bar", template.source
+    end
   end
 
   test "if no template was found in the second lookup, with no cache, raise error" do
-    template = @lookup_context.find("foo", %w(test), true)
-    assert_equal "Foo", template.source
+    ActionView::Resolver.stub(:caching?, false) do
+      template = @lookup_context.find("foo", %w(test), true)
+      assert_equal "Foo", template.source
 
-    @resolver.hash.clear
-    assert_raise ActionView::MissingTemplate do
-      @lookup_context.find("foo", %w(test), true)
+      @resolver.hash.clear
+      assert_raise ActionView::MissingTemplate do
+        @lookup_context.find("foo", %w(test), true)
+      end
     end
   end
 
   test "if no template was cached in the first lookup, retrieval should work in the second call" do
-    @resolver.hash.clear
-    assert_raise ActionView::MissingTemplate do
-      @lookup_context.find("foo", %w(test), true)
-    end
+    ActionView::Resolver.stub(:caching?, false) do
+      @resolver.hash.clear
+      assert_raise ActionView::MissingTemplate do
+        @lookup_context.find("foo", %w(test), true)
+      end
 
-    @resolver.hash["test/_foo.erb"] = ["Foo", Time.utc(2000)]
-    template = @lookup_context.find("foo", %w(test), true)
-    assert_equal "Foo", template.source
+      @resolver.hash["test/_foo.erb"] = ["Foo", Time.utc(2000)]
+      template = @lookup_context.find("foo", %w(test), true)
+      assert_equal "Foo", template.source
+    end
   end
 end
 

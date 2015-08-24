@@ -42,14 +42,16 @@ class TranslationHelperTest < ActiveSupport::TestCase
   end
 
   def test_delegates_setting_to_i18n
-    I18n.expects(:translate).with(:foo, :locale => 'en', :raise => true).returns("")
-    translate :foo, :locale => 'en'
+    assert_called_with(I18n, :translate, [:foo, :locale => 'en', :raise => true], returns: "") do
+      translate :foo, :locale => 'en'
+    end
   end
 
   def test_delegates_localize_to_i18n
     @time = Time.utc(2008, 7, 8, 12, 18, 38)
-    I18n.expects(:localize).with(@time)
-    localize @time
+    assert_called_with(I18n, :localize, [@time]) do
+      localize @time
+    end
   end
 
   def test_returns_missing_translation_message_wrapped_into_span
@@ -125,8 +127,9 @@ class TranslationHelperTest < ActiveSupport::TestCase
   end
 
   def test_translate_escapes_interpolations_in_translations_with_a_html_suffix
+    word_struct = Struct.new(:to_s)
     assert_equal '<a>Hello &lt;World&gt;</a>', translate(:'translations.interpolated_html', :word => '<World>')
-    assert_equal '<a>Hello &lt;World&gt;</a>', translate(:'translations.interpolated_html', :word => stub(:to_s => "<World>"))
+    assert_equal '<a>Hello &lt;World&gt;</a>', translate(:'translations.interpolated_html', :word => word_struct.new("<World>"))
   end
 
   def test_translate_with_html_count
