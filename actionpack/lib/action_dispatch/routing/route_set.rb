@@ -171,9 +171,9 @@ module ActionDispatch
             private
 
             def optimized_helper(args)
-              params = parameterize_args(args) { |k|
+              params = parameterize_args(args) do
                 raise_generation_error(args)
-              }
+              end
 
               @route.format params
             end
