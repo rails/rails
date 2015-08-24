@@ -1,4 +1,4 @@
-## Rails 4.2.4 (August 14, 2015) ##
+## Rails 4.2.4 (August 24, 2015) ##
 
 *   Skip statement cache on through association reader.
 
