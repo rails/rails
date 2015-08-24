@@ -19,7 +19,6 @@ begin
 rescue LoadError
   puts "'drb/unix' is not available"
 end
-require 'tempfile'
 
 PROCESS_COUNT = (ENV['N'] || 4).to_i
 
