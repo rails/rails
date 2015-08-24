@@ -1,4 +1,4 @@
-## Rails 4.1.13 (August 14, 2015) ##
+## Rails 4.1.13 (August 24, 2015) ##
 
 *   No changes.
 
