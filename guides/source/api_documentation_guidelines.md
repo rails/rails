@@ -87,7 +87,7 @@ Please use American English (*color*, *center*, *modularize*, etc). See [a list 
 Comma
 -------
 
-Please use Oxford comma (*red, white, and blue* style). See [the detail of Oxford comma](http://en.wikipedia.org/wiki/Serial_comma).
+Please use the Oxford comma (*red, white, and blue* style). See [the detail of Oxford comma](http://en.wikipedia.org/wiki/Serial_comma).
 
 Example Code
 ------------
