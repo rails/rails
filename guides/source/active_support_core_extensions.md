@@ -3303,7 +3303,7 @@ Date.new(2010, 2, 28).advance(days: 1).advance(months: 1)
 
 #### Changing Components
 
-The method `change` allows you to get a new date which is the same as the receiver except for the given year, month or day:
+The method `change` allows you to get a new date which is the same as the receiver except for the given year, month, or day:
 
 ```ruby
 Date.new(2010, 12, 23).change(year: 2011, month: 11)
