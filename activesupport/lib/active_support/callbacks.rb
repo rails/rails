@@ -79,11 +79,20 @@ module ActiveSupport
     #   run_callbacks :save do
     #     save
     #   end
+
+    # Store a frozen copy of a callback string so it doesn't need to be
+    # allocated and de-allocated for every call
+    @@_callbacks_store = {}
+
     def run_callbacks(kind, &block)
-      send "_run_#{kind}_callbacks", &block
+      send callbacks_store(kind), &block
     end
 
     private
+
+    def callbacks_store(kind)
+      @@_callbacks_store[kind] ? @@_callbacks_store[kind] : @@_callbacks_store[kind]  = "_run_#{kind}_callbacks".freeze
+    end
 
     def __run_callbacks__(callbacks, &block)
       if callbacks.empty?
