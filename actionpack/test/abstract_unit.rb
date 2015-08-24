@@ -133,8 +133,6 @@ class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
       def call(env)
         [200, {'Content-Type' => 'text/html'}, ["#{@controller}##{@action}"]]
       end
-
-      def new; self; end
     end
 
     class NullControllerRequest < DelegateClass(ActionDispatch::Request)
