@@ -673,6 +673,7 @@ ActiveRecord::Schema.define do
   create_table :ships, force: true do |t|
     t.string :name
     t.integer :pirate_id
+    t.belongs_to :developer
     t.integer :update_only_pirate_id
     # Conventionally named column for counter_cache
     t.integer :treasures_count, default: 0

@@ -3,6 +3,7 @@ class Ship < ActiveRecord::Base
 
   belongs_to :pirate
   belongs_to :update_only_pirate, :class_name => 'Pirate'
+  belongs_to :developer, dependent: :destroy
   has_many :parts, :class_name => 'ShipPart'
   has_many :treasures
 

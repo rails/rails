@@ -1,3 +1,9 @@
+*   Only try to nullify has_one target association if the record is persisted.
+
+    Fixes #21223.
+
+    *Agis Anastasopoulos*
+
 *   Uniqueness validator raises descriptive error when running on a persisted
     record without primary key.
 
