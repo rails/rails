@@ -28,7 +28,7 @@ module ActionDispatch
 
         def serve(req)
           params = req.path_parameters
-          controller = controller_reference(req) do
+          controller = req.controller_class do
             return [404, {'X-Cascade' => 'pass'}, []]
           end
           dispatch(controller, params[:action], req)
@@ -38,11 +38,6 @@ module ActionDispatch
           else
             return [404, {'X-Cascade' => 'pass'}, []]
           end
-        end
-
-      protected
-        def controller_reference(req, &block)
-          req.controller_class(&block)
         end
 
       private
