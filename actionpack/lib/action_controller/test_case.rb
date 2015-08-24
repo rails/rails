@@ -39,10 +39,6 @@ module ActionController
       set_header Rack::QUERY_STRING, string
     end
 
-    def request_parameters=(params)
-      set_header "action_dispatch.request.request_parameters", params
-    end
-
     def content_type=(type)
       set_header 'CONTENT_TYPE', type
     end
