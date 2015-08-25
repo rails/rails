@@ -623,7 +623,8 @@ Processing by ArticlesController#index as HTML
 If we use `next`, we won't go deep inside method calls. Instead, `byebug` will
 go to the next line within the same context. In this case, it is the last line
 of the current method, so `byebug` will return to the next line of the caller
-+method.
+method.
+
 ```
 (byebug) next
 
