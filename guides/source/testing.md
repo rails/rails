@@ -50,7 +50,7 @@ By default, every Rails application has three environments: development, test, a
 
 Each environment's configuration can be modified similarly. In this case, we can modify our test environment by changing the options found in `config/environments/test.rb`.
 
-NOTE: Your test are run under RAILS_ENV=test.
+NOTE: Your tests are run under `RAILS_ENV=test`.
 
 ### Rails meets Minitest
 
@@ -336,7 +336,8 @@ All the basic assertions such as `assert_equal` defined in `Minitest::Assertions
 
 Each of these classes include `Minitest::Assertions`, allowing us to use all of the basic assertions in our tests.
 
-NOTE: For more information on `Minitest`, refer to [Minitest](http://docs.seattlerb.org/minitest)
+NOTE: For more information on `Minitest`, refer to [its
+documentation](http://docs.seattlerb.org/minitest).
 
 ### The Rails Test Runner
 
@@ -355,7 +356,8 @@ Finished tests in 0.009262s, 107.9680 tests/s, 107.9680 assertions/s.
 
 This will run all test methods from the test case.
 
-You can also run a particular test method from the test case by providing the `-n` or `--name` flag and the `test method name`.
+You can also run a particular test method from the test case by providing the
+`-n` or `--name` flag and the test's method name.
 
 ```bash
 $ bin/rails test test/models/article_test.rb -n test_the_truth
@@ -469,7 +471,8 @@ user_<%= n %>:
 
 #### Fixtures in Action
 
-Rails by default automatically loads all fixtures from the `test/fixtures` directory for your models and controllers test. Loading involves three steps:
+Rails automatically loads all fixtures from the `test/fixtures` directory by
+default. Loading involves three steps:
 
 1. Remove any existing data from the table corresponding to the fixture
 2. Load the fixture data into the table
@@ -505,7 +508,8 @@ Model Testing
 
 Model tests are used to test the various models of your application.
 
-For creating Rails model tests, we use the 'test/model' directory for your application. Rails provides a generator to create an model test skeleton for you.
+Rails model tests are stored under the `test/models` directory. Rails provides
+a generator to create a model test skeleton for you.
 
 ```bash
 $ bin/rails generate test_unit:model article title:string body:text
@@ -563,7 +567,8 @@ We'll start by generating our integration test skeleton:
 $ bin/rails generate integration_test blog_flow
 ```
 
-It should have created a test file placeholder for us, with the output of the previous command you should see:
+It should have created a test file placeholder for us. With the output of the
+previous command you should see:
 
 ```bash
       invoke  test_unit
