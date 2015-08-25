@@ -18,10 +18,9 @@ module ActiveRecord
   #   conversation.archived? # => true
   #   conversation.status    # => "archived"
   #
-  #   # conversation.update! status: 1
+  #   # conversation.status = 1
   #   conversation.status = "archived"
   #
-  #   # conversation.update! status: nil
   #   conversation.status = nil
   #   conversation.status.nil? # => true
   #   conversation.status      # => nil
