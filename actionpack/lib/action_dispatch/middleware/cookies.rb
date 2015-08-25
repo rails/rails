@@ -8,7 +8,7 @@ require 'active_support/json'
 module ActionDispatch
   class Request < Rack::Request
     def cookie_jar
-      get_header('action_dispatch.cookies'.freeze) do |k|
+      get_header('action_dispatch.cookies'.freeze) do
         self.cookie_jar = Cookies::CookieJar.build(self, cookies)
       end
     end
