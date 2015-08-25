@@ -1,5 +1,4 @@
 require "isolation/abstract_unit"
-require 'set'
 
 module ApplicationTests
   class FrameworksTest < ActiveSupport::TestCase
