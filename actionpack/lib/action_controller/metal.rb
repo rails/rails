@@ -247,6 +247,7 @@ module ActionController
       req = ActionDispatch::Request.new env
       action(req.path_parameters[:action]).call(env)
     end
+    class << self; deprecate :call; end
 
     # Returns a Rack endpoint for the given action name.
     def self.action(name)

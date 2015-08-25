@@ -28,8 +28,7 @@ module ActionDispatch
 
         def serve(req)
           params = req.path_parameters
-          controller = req.controller_class
-          dispatch(controller, params[:action], req)
+          dispatch(controller(req), params[:action], req)
         rescue NameError => e
           if @raise_on_name_error
             raise ActionController::RoutingError, e.message, e.backtrace
@@ -40,9 +39,24 @@ module ActionDispatch
 
       private
 
+        def controller(req)
+          req.controller_class
+        end
+
         def dispatch(controller, action, req)
           controller.action(action).call(req.env)
         end
+      end
+
+      class StaticDispatcher < Dispatcher
+        def initialize(controller_class)
+          super(false)
+          @controller_class = controller_class
+        end
+
+        private
+
+        def controller(_); @controller_class; end
       end
 
       # A NamedRouteCollection instance is a collection of named routes, and also
