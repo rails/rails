@@ -519,9 +519,9 @@ class ResourcesTest < ActionController::TestCase
   end
 
   def test_should_create_multiple_singleton_resource_routes
-    with_singleton_resources :account, :logo do
+    with_singleton_resources :account, :product do
       assert_singleton_restful_for :account
-      assert_singleton_restful_for :logo
+      assert_singleton_restful_for :product
     end
   end
 
@@ -1070,8 +1070,8 @@ class ResourcesTest < ActionController::TestCase
   end
 
   def test_singleton_resource_name_is_not_singularized
-    with_singleton_resources(:preferences) do
-      assert_singleton_restful_for :preferences
+    with_singleton_resources(:products) do
+      assert_singleton_restful_for :products
     end
   end
 
