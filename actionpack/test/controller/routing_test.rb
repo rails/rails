@@ -336,6 +336,16 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
     assert_equal({controller: 'content', action: 'translate', url: 'example'}, rs.recognize_path('/example'))
   end
 
+  def test_route_with_regexp_for_action
+    rs.draw { get '/:controller/:action', action: /auth[-|_].+/ }
+
+    assert_equal({ action: 'auth_google', controller: 'content' }, rs.recognize_path('/content/auth_google'))
+    assert_equal({ action: 'auth-facebook', controller: 'content' }, rs.recognize_path('/content/auth-facebook'))
+
+    assert_equal '/content/auth_google', url_for(rs, { controller: "content", action: "auth_google" })
+    assert_equal '/content/auth-facebook', url_for(rs, { controller: "content", action: "auth-facebook" })
+  end
+
   def test_route_with_regexp_for_controller
     rs.draw do
       get ':controller/:admintoken(/:action(/:id))', :controller => /admin\/.+/
