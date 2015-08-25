@@ -1,6 +1,4 @@
 require 'active_support/core_ext/hash/keys'
-require 'active_support/core_ext/module/attribute_accessors'
-require 'active_support/core_ext/object/blank'
 require 'active_support/key_generator'
 require 'active_support/message_verifier'
 require 'active_support/json'
