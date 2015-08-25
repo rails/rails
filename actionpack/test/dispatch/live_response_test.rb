@@ -65,7 +65,7 @@ module ActionController
         latch = Concurrent::CountDownLatch.new
 
         t = Thread.new {
-          @response.stream.each do |chunk|
+          @response.stream.each do
             latch.count_down
           end
         }
