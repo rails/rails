@@ -118,7 +118,7 @@ PATH
       activesupport (= 5.0.0.alpha)
       arel (= 7.0.0.alpha)
     activesupport (5.0.0.alpha)
-      concurrent-ruby (~> 0.9.0)
+      concurrent-ruby (~> 0.9.1)
       i18n (~> 0.7)
       json (~> 1.7, >= 1.7.7)
       method_source
