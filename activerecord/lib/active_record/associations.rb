@@ -619,10 +619,10 @@ module ActiveRecord
     #   @tag = @post.tags.build name: "ruby"
     #   @tag.save
     #
-    # The last line ought to save the through record (a <tt>Taggable</tt>). This will only work if the
+    # The last line ought to save the through record (a <tt>Tagging</tt>). This will only work if the
     # <tt>:inverse_of</tt> is set:
     #
-    #   class Taggable < ActiveRecord::Base
+    #   class Tagging < ActiveRecord::Base
     #     belongs_to :post
     #     belongs_to :tag, inverse_of: :taggings
     #   end
@@ -643,7 +643,7 @@ module ActiveRecord
     # You can turn off the automatic detection of inverse associations by setting
     # the <tt>:inverse_of</tt> option to <tt>false</tt> like so:
     #
-    #   class Taggable < ActiveRecord::Base
+    #   class Tagging < ActiveRecord::Base
     #     belongs_to :tag, inverse_of: false
     #   end
     #
