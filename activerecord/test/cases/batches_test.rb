@@ -69,13 +69,15 @@ class EachTest < ActiveRecord::TestCase
   end
 
   def test_warn_if_limit_scope_is_set
-    ActiveRecord::Base.logger.expects(:warn)
-    Post.limit(1).find_each { |post| post }
+    assert_called(ActiveRecord::Base.logger, :warn) do
+      Post.limit(1).find_each { |post| post }
+    end
   end
 
   def test_warn_if_order_scope_is_set
-    ActiveRecord::Base.logger.expects(:warn)
-    Post.order("title").find_each { |post| post }
+    assert_called(ActiveRecord::Base.logger, :warn) do
+      Post.order("title").find_each { |post| post }
+    end
   end
 
   def test_logger_not_required
@@ -137,14 +139,15 @@ class EachTest < ActiveRecord::TestCase
 
   def test_find_in_batches_should_not_use_records_after_yielding_them_in_case_original_array_is_modified
     not_a_post = "not a post"
-    not_a_post.stubs(:id).raises(StandardError, "not_a_post had #id called on it")
+    def not_a_post.id; end
+    not_a_post.stub(:id, ->{ raise StandardError.new("not_a_post had #id called on it") }) do
+      assert_nothing_raised do
+        Post.find_in_batches(:batch_size => 1) do |batch|
+          assert_kind_of Array, batch
+          assert_kind_of Post, batch.first
 
-    assert_nothing_raised do
-      Post.find_in_batches(:batch_size => 1) do |batch|
-        assert_kind_of Array, batch
-        assert_kind_of Post, batch.first
-
-        batch.map! { not_a_post }
+          batch.map! { not_a_post }
+        end
       end
     end
   end
