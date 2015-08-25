@@ -259,5 +259,15 @@ module ActionController
         lambda { |env| new.dispatch(name, ActionDispatch::Request.new(env)) }
       end
     end
+
+    # Direct dispatch to the controller.  Instantiates the controller, then
+    # executes the action named +name+.
+    def self.dispatch(name, req)
+      if middleware_stack.any?
+        middleware_stack.build(name) { |env| new.dispatch(name, req) }.call req.env
+      else
+        new.dispatch(name, req)
+      end
+    end
   end
 end

@@ -124,16 +124,10 @@ class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
     class NullController
       def initialize(controller_name)
         @controller = controller_name
-        @action = nil
       end
 
-      def action(action_name)
-        @action = action_name
-        self
-      end
-
-      def call(env)
-        [200, {'Content-Type' => 'text/html'}, ["#{@controller}##{@action}"]]
+      def dispatch(action, req)
+        [200, {'Content-Type' => 'text/html'}, ["#{@controller}##{action}"]]
       end
     end
 

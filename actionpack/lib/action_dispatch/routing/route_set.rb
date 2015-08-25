@@ -44,7 +44,7 @@ module ActionDispatch
         end
 
         def dispatch(controller, action, req)
-          controller.action(action).call(req.env)
+          controller.dispatch(action, req)
         end
       end
 
