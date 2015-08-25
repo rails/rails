@@ -12,6 +12,12 @@ module ActionController
       def build_with_env(env = {}) #:nodoc:
         new.tap { |c| c.set_request! ActionDispatch::Request.new(env) }
       end
+
+      def make_response!(request)
+        ActionDispatch::Response.new.tap do |res|
+          res.request = request
+        end
+      end
     end
 
     def set_request!(request) #:nodoc:
@@ -31,8 +37,7 @@ module ActionController
     private
 
     def set_response!(request)
-      @_response         = ActionDispatch::Response.new
-      @_response.request = request
+      @_response = self.class.make_response! request
     end
   end
 end
