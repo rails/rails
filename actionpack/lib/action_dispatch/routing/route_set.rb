@@ -28,9 +28,7 @@ module ActionDispatch
 
         def serve(req)
           params = req.path_parameters
-          controller = req.controller_class do
-            return [404, {'X-Cascade' => 'pass'}, []]
-          end
+          controller = req.controller_class
           dispatch(controller, params[:action], req)
         rescue NameError => e
           if @raise_on_name_error

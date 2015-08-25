@@ -68,16 +68,23 @@ module ActionDispatch
       end
     end
 
+    PASS_NOT_FOUND = Class.new { # :nodoc:
+      def self.action(_); self; end
+      def self.call(_); [404, {'X-Cascade' => 'pass'}, []]; end
+    }
+
     def controller_class
       check_path_parameters!
       params = path_parameters
-      controller_param = params[:controller].underscore if params.key?(:controller)
-      params[:action] ||= 'index'
 
-      yield unless controller_param
-
-      const_name = "#{controller_param.camelize}Controller"
-      ActiveSupport::Dependencies.constantize(const_name)
+      if params.key?(:controller)
+        controller_param = params[:controller].underscore
+        params[:action] ||= 'index'
+        const_name = "#{controller_param.camelize}Controller"
+        ActiveSupport::Dependencies.constantize(const_name)
+      else
+        PASS_NOT_FOUND
+      end
     end
 
     def key?(key)
