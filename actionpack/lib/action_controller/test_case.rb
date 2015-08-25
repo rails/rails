@@ -98,7 +98,9 @@ module ActionController
         set_header 'rack.input', StringIO.new(data)
       end
 
-      @env["PATH_INFO"] ||= generated_path
+      get_header("PATH_INFO") do |k|
+        set_header k, generated_path
+      end
       path_parameters[:controller] = controller_path
       path_parameters[:action] = action
 

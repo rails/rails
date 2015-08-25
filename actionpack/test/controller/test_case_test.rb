@@ -160,7 +160,7 @@ XML
   def setup
     super
     @controller = TestController.new
-    @request.env['PATH_INFO'] = nil
+    @request.delete_header 'PATH_INFO'
     @routes = ActionDispatch::Routing::RouteSet.new.tap do |r|
       r.draw do
         get ':controller(/:action(/:id))'
