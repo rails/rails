@@ -56,10 +56,10 @@ module ActionController
       nil
     end
 
-    def _process_format(format, options = {})
+    def _process_format(format, plain = false)
       super
 
-      if options[:plain]
+      if plain
         self.content_type = Mime::TEXT
       else
         self.content_type ||= format.to_s

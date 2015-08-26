@@ -23,7 +23,7 @@ module AbstractController
     def render(*args, &block)
       options = _normalize_render(*args, &block)
       self.response_body = render_to_body(options)
-      _process_format(rendered_format, options) if rendered_format
+      _process_format(rendered_format, options[:plain]) if rendered_format
       self.response_body
     end
 
@@ -99,7 +99,7 @@ module AbstractController
 
     # Process the rendered format.
     # :api: private
-    def _process_format(format, options = {})
+    def _process_format(format, plain = false)
     end
 
     # Normalize args and options.
