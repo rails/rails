@@ -24,7 +24,11 @@ module AbstractController
       options = _normalize_render(*args, &block)
       self.response_body = render_to_body(options)
       _process_format(rendered_format) if rendered_format
-      self.content_type = Mime::TEXT if options[:plain]
+      if options[:plain]
+        _set_content_type Mime::TEXT.to_s
+      else
+        _set_content_type _get_content_type(rendered_format)
+      end
       self.response_body
     end
 
@@ -101,6 +105,13 @@ module AbstractController
     # Process the rendered format.
     # :api: private
     def _process_format(format)
+    end
+
+    def _get_content_type(rendered_format) # :nodoc:
+      rendered_format.to_s
+    end
+
+    def _set_content_type(type) # :nodoc:
     end
 
     # Normalize args and options.

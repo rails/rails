@@ -56,10 +56,12 @@ module ActionController
       nil
     end
 
-    def _process_format(format)
-      super
+    def _get_content_type(rendered_format)
+      self.content_type || super
+    end
 
-      self.content_type ||= format.to_s
+    def _set_content_type(format)
+      self.content_type = format
     end
 
     # Normalize arguments by catching blocks and setting them on :update.
