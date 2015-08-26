@@ -31,7 +31,7 @@ module ActiveSupport
           # If set, the zeros after the decimal separator will always be stripped (eg.: 1.200 will be 1.2)
           strip_insignificant_zeros: false,
           # The default currency formatting regex. The delimiter is inserted after every 3 digits, reading from right to left.
-          format_mask_regex: "/(\d)(?=(\d\d\d)+(?!\d))/"
+          format_mask_regex: /(\d)(?=(\d\d\d)+(?!\d))/
         },
 
         # Used in number_to_currency
@@ -46,7 +46,7 @@ module ActiveSupport
             precision: 2,
             significant: false,
             strip_insignificant_zeros: false,
-            format_mask_regex: "/(\d)(?=(\d\d\d)+(?!\d))/"
+            format_mask_regex: /(\d)(?=(\d\d\d)+(?!\d))/
           }
         },
 
