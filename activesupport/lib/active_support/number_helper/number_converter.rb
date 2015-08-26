@@ -29,7 +29,9 @@ module ActiveSupport
           # of the number of decimal digits (1234 with precision 2 becomes 1200, 1.23543 becomes 1.2)
           significant: false,
           # If set, the zeros after the decimal separator will always be stripped (eg.: 1.200 will be 1.2)
-          strip_insignificant_zeros: false
+          strip_insignificant_zeros: false,
+          # The default currency formatting regex. The delimiter is inserted after every 3 digits, reading from right to left.
+          format_mask_regex: "/(\d)(?=(\d\d\d)+(?!\d))/"
         },
 
         # Used in number_to_currency
@@ -38,12 +40,13 @@ module ActiveSupport
             format: "%u%n",
             negative_format: "-%u%n",
             unit: "$",
-            # These five are to override number.format and are optional
+            # These six are to override number.format and are optional
             separator: ".",
             delimiter: ",",
             precision: 2,
             significant: false,
-            strip_insignificant_zeros: false
+            strip_insignificant_zeros: false,
+            format_mask_regex: "/(\d)(?=(\d\d\d)+(?!\d))/"
           }
         },
 
