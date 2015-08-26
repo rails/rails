@@ -174,8 +174,8 @@ module ActionController
       clear
     end
 
-    def fetch(*args, &block)
-      @data.fetch(*args, &block)
+    def fetch(key, *args, &block)
+      @data.fetch(key.to_s, *args, &block)
     end
 
     private

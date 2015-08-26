@@ -1,3 +1,8 @@
+*   Updating ActionController::TestSession to behave as a hash with indifferent
+    access:
+
+    *Jeremy Friesen*
+
 *   Using strings or symbols for middleware class names is deprecated.  Convert
     things like this:
 
