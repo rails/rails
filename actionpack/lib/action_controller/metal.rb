@@ -230,7 +230,7 @@ module ActionController
     end
 
     def to_a #:nodoc:
-      response ? response.to_a : [status, headers, response_body]
+      response.to_a
     end
 
     class_attribute :middleware_stack
