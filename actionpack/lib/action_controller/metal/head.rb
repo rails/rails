@@ -28,7 +28,7 @@ module ActionController
       end
 
       status ||= :ok
-      
+
       location = options.delete(:location)
       content_type = options.delete(:content_type)
 
@@ -48,7 +48,7 @@ module ActionController
         headers.delete('Content-Type')
         headers.delete('Content-Length')
       end
-      
+
       true
     end
 
