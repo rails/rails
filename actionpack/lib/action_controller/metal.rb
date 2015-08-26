@@ -211,7 +211,7 @@ module ActionController
     end
 
     def reset_session
-      @_request.reset_session
+      @_request.reset_session if env
     end
 
     class_attribute :middleware_stack
