@@ -153,7 +153,6 @@ module ActionController
     delegate :session, :headers, :to => "@_request"
 
     def initialize
-      @_status = 200
       @_request = nil
       @_response = nil
       @_routes = nil
@@ -194,12 +193,12 @@ module ActionController
     end
 
     def status
-      @_status
+      response.status
     end
     alias :response_code :status # :nodoc:
 
     def status=(status)
-      @_status = Rack::Utils.status_code(status)
+      response.status = Rack::Utils.status_code(status)
     end
 
     def response_body=(body)
