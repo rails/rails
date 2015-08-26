@@ -11,7 +11,6 @@ module ActionController
     extend ActiveSupport::Concern
 
     include AbstractController::Logger
-    include ActionController::RackDelegation
     include ActionController::UrlFor
 
     # Redirects the browser to the target specified in +options+. This parameter can be any one of:

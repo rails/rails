@@ -2,8 +2,6 @@ require "abstract_unit"
 
 module BareMetalTest
   class BareController < ActionController::Metal
-    include ActionController::RackDelegation
-
     def index
       self.response_body = "Hello world"
     end

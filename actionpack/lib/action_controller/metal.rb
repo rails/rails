@@ -1,6 +1,8 @@
 require 'active_support/core_ext/array/extract_options'
 require 'action_dispatch/middleware/stack'
 require 'active_support/deprecation'
+require 'action_dispatch/http/request'
+require 'action_dispatch/http/response'
 
 module ActionController
   # Extend ActionDispatch middleware stack to make it aware of options
@@ -138,20 +140,22 @@ module ActionController
       end
     end
 
+    def self.build_with_env(env = {}) #:nodoc:
+      new.tap { |c|
+        c.set_request! ActionDispatch::Request.new(env)
+        c.set_response! make_response!(c.request)
+      }
+    end
+
     # Delegates to the class' <tt>controller_name</tt>
     def controller_name
       self.class.controller_name
     end
 
-    # The details below can be overridden to support a specific
-    # Request and Response object. The default ActionController::Base
-    # implementation includes RackDelegation, which makes a request
-    # and response object available. You might wish to control the
-    # environment and response manually for performance reasons.
-
     attr_internal :response, :request
     delegate :session, :to => "@_request"
-    delegate :headers, :to => "@_response"
+    delegate :headers, :status=, :location=, :content_type=,
+             :status, :location, :content_type, :to => "@_response"
 
     def initialize
       @_request = nil
@@ -168,38 +172,11 @@ module ActionController
       @_params = val
     end
 
-    # Basic implementations for content_type=, location=, and headers are
-    # provided to reduce the dependency on the RackDelegation module
-    # in Renderer and Redirector.
-
-    def content_type=(type)
-      response.content_type = type
-    end
-
-    def content_type
-      response.content_type
-    end
-
-    def location
-      headers["Location"]
-    end
-
-    def location=(url)
-      headers["Location"] = url
-    end
+    alias :response_code :status # :nodoc:
 
     # Basic url_for that can be overridden for more robust functionality
     def url_for(string)
       string
-    end
-
-    def status
-      response.status
-    end
-    alias :response_code :status # :nodoc:
-
-    def status=(status)
-      response.status = Rack::Utils.status_code(status)
     end
 
     def response_body=(body)
@@ -231,6 +208,10 @@ module ActionController
 
     def to_a #:nodoc:
       response.to_a
+    end
+
+    def reset_session
+      @_request.reset_session
     end
 
     class_attribute :middleware_stack

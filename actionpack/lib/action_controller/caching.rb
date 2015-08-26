@@ -45,7 +45,6 @@ module ActionController
         end
     end
 
-    include RackDelegation
     include AbstractController::Callbacks
 
     include ConfigMethods
