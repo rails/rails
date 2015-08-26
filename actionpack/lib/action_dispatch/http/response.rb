@@ -265,9 +265,6 @@ module ActionDispatch # :nodoc:
     end
 
     # The location header we'll be responding with.
-    def location
-      headers[LOCATION]
-    end
     alias_method :redirect_url, :location
 
     # Sets the location header we'll be responding with.
