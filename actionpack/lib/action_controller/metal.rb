@@ -177,7 +177,7 @@ module ActionController
     end
 
     def content_type
-      request.content_type
+      response.content_type
     end
 
     def location

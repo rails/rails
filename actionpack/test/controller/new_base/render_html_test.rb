@@ -4,6 +4,7 @@ module RenderHtml
   class MinimalController < ActionController::Metal
     include AbstractController::Rendering
     include ActionController::Rendering
+    include ActionView::Rendering
 
     def index
       render html: "Hello World!"
