@@ -176,7 +176,7 @@ module ActionController
     end
 
     def content_type
-      headers["Content-Type"]
+      request.content_type
     end
 
     def location
