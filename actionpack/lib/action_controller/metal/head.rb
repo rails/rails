@@ -36,8 +36,6 @@ module ActionController
         headers[key.to_s.dasherize.split('-').each { |v| v[0] = v[0].chr.upcase }.join('-')] = value.to_s
       end
 
-      response.status = Rack::Utils.status_code(status)
-
       self.status = status
       self.location = url_for(location) if location
 
