@@ -70,9 +70,9 @@ The Rails philosophy includes two major guiding principles:
 
 Creating a New Rails Project
 ----------------------------
-
-The best way to read this guide is to follow it step by step. All steps are important 
-and essential, to run this example application and no additional code or steps are needed.
+The best way to read this guide is to follow it step by step. All steps are 
+essential to run this example application and no additional code or steps are 
+needed.
 
 By following along with this guide, you'll create a Rails project called
 `blog`, a (very) simple weblog. Before you can start building the application,
