@@ -14,11 +14,6 @@ module ActionController
       end
     end
 
-    def response_body=(body)
-      response.body = body if response
-      super
-    end
-
     def reset_session
       @_request.reset_session
     end
