@@ -13,7 +13,7 @@ module ActiveRecord
 
         def replace_keys(record)
           super
-          owner[reflection.foreign_type] = record ? record.class.base_class.name : nil
+          owner[reflection.foreign_type] = record ? record.class.name : nil
         end
 
         def different_target?(record)

@@ -118,13 +118,13 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     post = posts(:thinking)
     assert_instance_of SpecialPost, post
 
-    tagging = tags(:misc).taggings.create(taggable: post)
-    assert_equal "Post", tagging.taggable_type
+    tagging = tags(:misc).taggings.create(:taggable => post)
+    assert_equal "SpecialPost", tagging.taggable_type
   end
 
   def test_polymorphic_has_one_create_model_with_inheritance
-    tagging = tags(:misc).create_tagging(taggable: posts(:thinking))
-    assert_equal "Post", tagging.taggable_type
+    tagging = tags(:misc).create_tagging(:taggable => posts(:thinking))
+    assert_equal "SpecialPost", tagging.taggable_type
   end
 
   def test_set_polymorphic_has_many

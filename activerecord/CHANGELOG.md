@@ -1,5 +1,28 @@
 ## Rails 6.0.0.alpha (Unreleased) ##
 
+*   Fix polymorphic true with inheritance.
+    
+    Example: 
+
+        class Asset < ActiveRecord::Base
+          belongs_to :attachable, polymorphic: true
+        end
+    
+        class Post < ActiveRecord::Base
+          # Post doesn't have a type column
+          has_many :assets, as: :attachable, dependent: :destroy
+        end
+     
+        class GuestPost < Post
+        end
+     
+        class MemberPost < Post
+        end
+
+    Now attachable_type can be Post, GuestPost or MemberPost
+
+    *Dilpreet Singh*
+
 *   Fix `#columns_for_distinct` of MySQL and PostgreSQL to make
     `ActiveRecord::FinderMethods#limited_ids_for` use correct primary key values
     even if `ORDER BY` columns include other table's primary key.
