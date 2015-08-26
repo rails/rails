@@ -252,7 +252,7 @@ module ActionController
 
     # Define some internal variables that should not be propagated to the view.
     PROTECTED_IVARS = AbstractController::Rendering::DEFAULT_PROTECTED_INSTANCE_VARIABLES + [
-      :@_status, :@_headers, :@_params, :@_response, :@_request,
+      :@_params, :@_response, :@_request,
       :@_view_runtime, :@_stream, :@_url_options, :@_action_has_layout ]
 
     def _protected_ivars # :nodoc:
