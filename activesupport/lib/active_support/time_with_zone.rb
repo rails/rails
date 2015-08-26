@@ -369,9 +369,10 @@ module ActiveSupport
       utc.to_time
     end
 
-    # Returns an instance of DateTime in the UTC timezone.
+    # Returns an instance of DateTime with the timezone's UTC offset
     #
-    #   Time.zone.now.to_datetime   # => Tue, 18 Aug 2015 02:32:20 +0000
+    #   Time.zone.now.to_datetime                         # => Tue, 18 Aug 2015 02:32:20 +0000
+    #   Time.current.in_time_zone('Hawaii').to_datetime   # => Mon, 17 Aug 2015 16:32:20 -1000
     def to_datetime
       utc.to_datetime.new_offset(Rational(utc_offset, 86_400))
     end
