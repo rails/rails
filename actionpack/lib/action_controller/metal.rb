@@ -132,6 +132,12 @@ module ActionController
       @controller_name ||= name.demodulize.sub(/Controller$/, '').underscore
     end
 
+    def self.make_response!(request)
+      ActionDispatch::Response.new.tap do |res|
+        res.request = request
+      end
+    end
+
     # Delegates to the class' <tt>controller_name</tt>
     def controller_name
       self.class.controller_name
@@ -143,11 +149,10 @@ module ActionController
     # and response object available. You might wish to control the
     # environment and response manually for performance reasons.
 
-    attr_internal :headers, :response, :request
-    delegate :session, :to => "@_request"
+    attr_internal :response, :request
+    delegate :session, :headers, :to => "@_request"
 
     def initialize
-      @_headers = {"Content-Type" => "text/html"}
       @_status = 200
       @_request = nil
       @_response = nil
@@ -168,7 +173,7 @@ module ActionController
     # in Renderer and Redirector.
 
     def content_type=(type)
-      headers["Content-Type"] = type.to_s
+      response.content_type = type
     end
 
     def content_type
@@ -199,6 +204,7 @@ module ActionController
 
     def response_body=(body)
       body = [body] unless body.nil? || body.respond_to?(:each)
+      response.body = body
       super
     end
 
@@ -207,10 +213,15 @@ module ActionController
       response_body || (response && response.committed?)
     end
 
-    def dispatch(name, request) #:nodoc:
+    def dispatch(name, request, response) #:nodoc:
       set_request!(request)
+      set_response!(response)
       process(name)
       to_a
+    end
+
+    def set_response!(response) # :nodoc:
+      @_response = response
     end
 
     def set_request!(request) #:nodoc:
@@ -253,20 +264,26 @@ module ActionController
     def self.action(name)
       if middleware_stack.any?
         middleware_stack.build(name) do |env|
-          new.dispatch(name, ActionDispatch::Request.new(env))
+          req = ActionDispatch::Request.new(env)
+          res = make_response! req
+          new.dispatch(name, req, res)
         end
       else
-        lambda { |env| new.dispatch(name, ActionDispatch::Request.new(env)) }
+        lambda { |env|
+          req = ActionDispatch::Request.new(env)
+          res = make_response! req
+          new.dispatch(name, req, res)
+        }
       end
     end
 
     # Direct dispatch to the controller.  Instantiates the controller, then
     # executes the action named +name+.
-    def self.dispatch(name, req)
+    def self.dispatch(name, req, res)
       if middleware_stack.any?
-        middleware_stack.build(name) { |env| new.dispatch(name, req) }.call req.env
+        middleware_stack.build(name) { |env| new.dispatch(name, req, res) }.call req.env
       else
-        new.dispatch(name, req)
+        new.dispatch(name, req, res)
       end
     end
   end

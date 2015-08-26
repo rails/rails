@@ -36,6 +36,8 @@ module ActionController
         headers[key.to_s.dasherize.split('-').each { |v| v[0] = v[0].chr.upcase }.join('-')] = value.to_s
       end
 
+      response.status = Rack::Utils.status_code(status)
+
       self.status = status
       self.location = url_for(location) if location
 
@@ -44,9 +46,6 @@ module ActionController
       if include_content?(self.response_code)
         self.content_type = content_type || (Mime[formats.first] if formats)
         self.response.charset = false if self.response
-      else
-        headers.delete('Content-Type')
-        headers.delete('Content-Length')
       end
 
       true

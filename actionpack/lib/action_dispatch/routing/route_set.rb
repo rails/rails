@@ -27,8 +27,10 @@ module ActionDispatch
         def dispatcher?; true; end
 
         def serve(req)
-          params = req.path_parameters
-          dispatch(controller(req), params[:action], req)
+          params     = req.path_parameters
+          controller = controller req
+          res        = controller.make_response! req
+          dispatch(controller, params[:action], req, res)
         rescue NameError => e
           if @raise_on_name_error
             raise ActionController::RoutingError, e.message, e.backtrace
@@ -43,8 +45,8 @@ module ActionDispatch
           req.controller_class
         end
 
-        def dispatch(controller, action, req)
-          controller.dispatch(action, req)
+        def dispatch(controller, action, req, res)
+          controller.dispatch(action, req, res)
         end
       end
 

@@ -121,12 +121,16 @@ class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
   class DeadEndRoutes < ActionDispatch::Routing::RouteSet
     # Stub Rails dispatcher so it does not get controller references and
     # simply return the controller#action as Rack::Body.
-    class NullController
+    class NullController < ::ActionController::Metal
       def initialize(controller_name)
         @controller = controller_name
       end
 
-      def dispatch(action, req)
+      def make_response!(request)
+        self.class.make_response! request
+      end
+
+      def dispatch(action, req, res)
         [200, {'Content-Type' => 'text/html'}, ["#{@controller}##{action}"]]
       end
     end
