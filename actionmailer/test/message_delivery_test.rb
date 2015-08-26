@@ -1,6 +1,5 @@
 require 'abstract_unit'
 require 'active_job'
-require 'minitest/mock'
 require 'mailers/delayed_mailer'
 
 class MessageDeliveryTest < ActiveSupport::TestCase

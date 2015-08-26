@@ -38,8 +38,6 @@ def jruby_skip(message = '')
   skip message if defined?(JRUBY_VERSION)
 end
 
-require 'minitest/mock'
-
 class ActiveSupport::TestCase
   include ActiveSupport::Testing::MethodCallAssertions
 end

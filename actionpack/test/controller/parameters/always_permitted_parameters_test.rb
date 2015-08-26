@@ -1,6 +1,5 @@
 require 'abstract_unit'
 require 'action_controller/metal/strong_parameters'
-require 'minitest/mock'
 
 class AlwaysPermittedParametersTest < ActiveSupport::TestCase
   def setup
