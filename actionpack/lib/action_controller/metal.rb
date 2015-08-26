@@ -150,7 +150,8 @@ module ActionController
     # environment and response manually for performance reasons.
 
     attr_internal :response, :request
-    delegate :session, :headers, :to => "@_request"
+    delegate :session, :to => "@_request"
+    delegate :headers, :to => "@_response"
 
     def initialize
       @_request = nil
