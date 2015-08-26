@@ -241,7 +241,6 @@ module ActiveRecord
     end
 
     def test_migrate_revert_change_column_default
-      index_definition = ["horses", [:name, :color]]
       migration1 = ChangeColumnDefault1.new
       migration1.migrate(:up)
       assert_equal "Sekitoba", Horse.new.name
