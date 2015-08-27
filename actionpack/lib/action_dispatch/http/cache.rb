@@ -55,36 +55,37 @@ module ActionDispatch
         alias :etag? :etag
 
         def last_modified
-          if last = headers[LAST_MODIFIED]
+          if last = get_header(LAST_MODIFIED)
             Time.httpdate(last)
           end
         end
 
         def last_modified?
-          headers.include?(LAST_MODIFIED)
+          have_header? LAST_MODIFIED
         end
 
         def last_modified=(utc_time)
-          headers[LAST_MODIFIED] = utc_time.httpdate
+          set_header LAST_MODIFIED, utc_time.httpdate
         end
 
         def date
-          if date_header = headers[DATE]
+          if date_header = get_header(DATE)
             Time.httpdate(date_header)
           end
         end
 
         def date?
-          headers.include?(DATE)
+          have_header? DATE
         end
 
         def date=(utc_time)
-          headers[DATE] = utc_time.httpdate
+          set_header DATE, utc_time.httpdate
         end
 
         def etag=(etag)
           key = ActiveSupport::Cache.expand_cache_key(etag)
-          @etag = self[ETAG] = %("#{Digest::MD5.hexdigest(key)}")
+          @etag = %("#{Digest::MD5.hexdigest(key)}")
+          set_header ETAG, @etag
         end
 
       private
@@ -96,7 +97,7 @@ module ActionDispatch
         SPECIAL_KEYS  = Set.new(%w[extras no-cache max-age public must-revalidate])
 
         def cache_control_segments
-          if cache_control = self[CACHE_CONTROL]
+          if cache_control = get_header(CACHE_CONTROL)
             cache_control.delete(' ').split(',')
           else
             []
@@ -123,7 +124,7 @@ module ActionDispatch
 
         def prepare_cache_control!
           @cache_control = cache_control_headers
-          @etag = self[ETAG]
+          @etag = get_header ETAG
         end
 
         def handle_conditional_get!
@@ -151,11 +152,11 @@ module ActionDispatch
           control.merge! @cache_control
 
           if control.empty?
-            self[CACHE_CONTROL] = DEFAULT_CACHE_CONTROL
+            set_header CACHE_CONTROL, DEFAULT_CACHE_CONTROL
           elsif control[:no_cache]
-            self[CACHE_CONTROL] = NO_CACHE
+            set_header CACHE_CONTROL, NO_CACHE
             if control[:extras]
-              self[CACHE_CONTROL] += ", #{control[:extras].join(', ')}"
+              set_header(CACHE_CONTROL, get_header(CACHE_CONTROL) + ", #{control[:extras].join(', ')}")
             end
           else
             extras  = control[:extras]
@@ -167,7 +168,7 @@ module ActionDispatch
             options << MUST_REVALIDATE if control[:must_revalidate]
             options.concat(extras) if extras
 
-            self[CACHE_CONTROL] = options.join(", ")
+            set_header CACHE_CONTROL, options.join(", ")
           end
         end
       end
