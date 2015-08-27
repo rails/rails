@@ -1256,6 +1256,7 @@ module ActiveRecord
       #   has_many :reports, -> { readonly }
       #   has_many :subscribers, through: :subscriptions, source: :user
       def has_many(name, scope = nil, options = {}, &extension)
+        associate_on_subclass :has_many, [name, scope, options], extension
         reflection = Builder::HasMany.build(self, name, scope, options, &extension)
         Reflection.add_reflection self, name, reflection
       end
@@ -1383,6 +1384,7 @@ module ActiveRecord
       #   has_one :primary_address, -> { where primary: true }, through: :addressables, source: :addressable
       #   has_one :credit_card, required: true
       def has_one(name, scope = nil, options = {})
+        associate_on_subclass :has_one, [name, scope, options]
         reflection = Builder::HasOne.build(self, name, scope, options)
         Reflection.add_reflection self, name, reflection
       end
@@ -1512,6 +1514,7 @@ module ActiveRecord
       #   belongs_to :company, touch: :employees_last_updated_at
       #   belongs_to :company, required: true
       def belongs_to(name, scope = nil, options = {})
+        associate_on_subclass :belongs_to, [name, scope, options], nil
         reflection = Builder::BelongsTo.build(self, name, scope, options)
         Reflection.add_reflection self, name, reflection
       end
@@ -1677,6 +1680,7 @@ module ActiveRecord
       #   has_and_belongs_to_many :categories, join_table: "prods_cats"
       #   has_and_belongs_to_many :categories, -> { readonly }
       def has_and_belongs_to_many(name, scope = nil, options = {}, &extension)
+        associate_on_subclass :has_and_belongs_to_many, [name, scope, options], extension
         if scope.is_a?(Hash)
           options = scope
           scope   = nil
@@ -1719,6 +1723,28 @@ module ActiveRecord
 
         has_many name, scope, hm_options, &extension
         self._reflections[name.to_s].parent_reflection = [name.to_s, habtm_reflection]
+      end
+
+      # Enables subclasses of abstract class and sti to use the parent associations without repeat
+      # them on each child
+
+      def associate_on_subclass(*args)
+        if abstract_class?
+          ((@associate_on_subclass ||= {})[model_name.name] ||= []) << args
+        end
+      end
+
+      def inherited(subclass)
+        if defined?(@associate_on_subclass) && @associate_on_subclass
+          @associate_on_subclass.each do |parent, assocs|
+            if subclass < parent.constantize
+              assocs.each do |name, args, block|
+                subclass.send name, *args, &block
+              end
+            end
+          end
+        end
+        super
       end
     end
   end
