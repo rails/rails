@@ -1725,8 +1725,8 @@ module ActiveRecord
         self._reflections[name.to_s].parent_reflection = [name.to_s, habtm_reflection]
       end
 
-      # Enables subclasses of abstract class and sti to use the parent associations without repeat
-      # them on each child
+      # Enables subclasses of abstract class to use the parent associations without repeat them on
+      # each child
 
       def associate_on_subclass(*args)
         if abstract_class?
