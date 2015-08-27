@@ -172,13 +172,13 @@ module ActiveRecord
 
     test "an attribute has not been read by default" do
       attribute = Attribute.from_database(:foo, 1, Type::Value.new)
-      assert_not attribute.has_been_read?
+      assert_not attribute.accessed?
     end
 
     test "an attribute has been read when its value is calculated" do
       attribute = Attribute.from_database(:foo, 1, Type::Value.new)
       attribute.value
-      assert attribute.has_been_read?
+      assert attribute.accessed?
     end
 
     test "an attribute can not be mutated if it has not been read,
