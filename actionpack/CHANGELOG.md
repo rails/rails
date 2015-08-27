@@ -1,5 +1,5 @@
-*   Updating ActionController::TestSession to behave as a hash with indifferent
-    access:
+*   Update `ActionController::TestSession#fetch` to behave more like
+    `ActionDispatch::Request::Session#fetch` when using non-string keys.
 
     *Jeremy Friesen*
 
