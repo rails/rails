@@ -1,3 +1,8 @@
+*   Update `ActionController::TestSession#fetch` to behave more like
+    `ActionDispatch::Request::Session#fetch` when using non-string keys.
+
+    *Jeremy Friesen*
+
 ## Rails 4.2.4 (August 24, 2015) ##
 
 *   ActionController::TestSession now accepts a default value as well as
