@@ -518,6 +518,13 @@ class UrlHelperTest < ActiveSupport::TestCase
     )
   end
 
+  def test_mail_to_with_html_safe_string
+    assert_dom_equal(
+      %{<a href="mailto:david@loudthinking.com">david@loudthinking.com</a>},
+      mail_to("david@loudthinking.com".html_safe)
+    )
+  end
+
   def test_mail_to_with_img
     assert_dom_equal %{<a href="mailto:feedback@example.com"><img src="/feedback.png" /></a>},
       mail_to('feedback@example.com', '<img src="/feedback.png" />'.html_safe)
