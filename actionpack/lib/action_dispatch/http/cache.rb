@@ -131,7 +131,7 @@ module ActionDispatch
 
         def handle_conditional_get!
           if etag? || last_modified? || !@cache_control.empty?
-            set_conditional_cache_control!
+            set_conditional_cache_control!(@cache_control)
           end
         end
 
@@ -141,17 +141,17 @@ module ActionDispatch
         PRIVATE               = "private".freeze
         MUST_REVALIDATE       = "must-revalidate".freeze
 
-        def set_conditional_cache_control!
+        def set_conditional_cache_control!(cache_control)
           control = {}
           cc_headers = cache_control_headers
           if extras = cc_headers.delete(:extras)
-            @cache_control[:extras] ||= []
-            @cache_control[:extras] += extras
-            @cache_control[:extras].uniq!
+            cache_control[:extras] ||= []
+            cache_control[:extras] += extras
+            cache_control[:extras].uniq!
           end
 
           control.merge! cc_headers
-          control.merge! @cache_control
+          control.merge! cache_control
 
           if control.empty?
             set_header CACHE_CONTROL, DEFAULT_CACHE_CONTROL
