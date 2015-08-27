@@ -1514,7 +1514,7 @@ module ActiveRecord
       #   belongs_to :company, touch: :employees_last_updated_at
       #   belongs_to :company, required: true
       def belongs_to(name, scope = nil, options = {})
-        associate_on_subclass :belongs_to, [name, scope, options], nil
+        associate_on_subclass :belongs_to, [name, scope, options]
         reflection = Builder::BelongsTo.build(self, name, scope, options)
         Reflection.add_reflection self, name, reflection
       end
