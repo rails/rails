@@ -23,7 +23,7 @@ module ActionDispatch
     autoload :Session, 'action_dispatch/request/session'
     autoload :Utils,   'action_dispatch/request/utils'
 
-    LOCALHOST   = Regexp.union [/^127\.\d{1,3}\.\d{1,3}\.\d{1,3}$/, /^::1$/, /^0:0:0:0:0:0:0:1(%.*)?$/]
+    LOCALHOST   = Regexp.union [/^localhost$/, /^127\.\d{1,3}\.\d{1,3}\.\d{1,3}$/, /^::1$/, /^0:0:0:0:0:0:0:1(%.*)?$/]
 
     ENV_METHODS = %w[ AUTH_TYPE GATEWAY_INTERFACE
         PATH_TRANSLATED REMOTE_HOST
@@ -358,7 +358,7 @@ module ActionDispatch
       get_header('REDIRECT_X_HTTP_AUTHORIZATION')
     end
 
-    # True if the request came from localhost, 127.0.0.1.
+    # True if the request came from localhost, 127.0.0.1, ::1.
     def local?
       LOCALHOST =~ remote_addr && LOCALHOST =~ remote_ip
     end
