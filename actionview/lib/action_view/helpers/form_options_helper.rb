@@ -105,6 +105,10 @@ module ActionView
       #
       # For example:
       #
+      #   select("post", "person_id", collection: Person.all.collect {|p| [ p.name, p.id ] }, include_blank: true)
+      #
+      # With the old deprecated API:
+      #
       #   select("post", "person_id", Person.all.collect {|p| [ p.name, p.id ] }, { include_blank: true })
       #
       # would become:
@@ -137,6 +141,14 @@ module ActionView
       #     end
       #   end
       #
+      # You could also pass a range as the choices parameter
+      #
+      #   select(:object, :method, range: 1..5)
+      #
+      # Or with the old deprecated API:
+      #
+      #   select(:object, :method, 1..5)
+      #
       # ==== Gotcha
       #
       # The HTML specification says when +multiple+ parameter passed to select and all options got deselected
@@ -159,8 +171,23 @@ module ActionView
       # In case if you don't want the helper to generate this hidden field you can specify
       # <tt>include_hidden: false</tt> option.
       #
-      def select(object, method, choices = nil, options = {}, html_options = {}, &block)
-        Tags::Select.new(object, method, self, choices, options, html_options, &block).render
+      def select(object, method, *args, &block)
+        kwargs = %i(prompt include_hidden include_blank disabled selected id required multiple name size index)
+
+        filter_keys = %i(include_blank include_hidden prompt disabled selected)
+        match = args.detect { |arg| arg.respond_to?(:keys) }
+        options = match.select { |k| filter_keys.include? k } if match
+
+        filter_keys = %i(id required multiple name index size)
+        match = args.detect { |arg| arg.respond_to?(:keys) }
+        html_options = match.select { |k| filter_keys.include? k } if match
+
+        #FIXME: Fix this case, here is a quick and dirty workaround for it
+        if html_options.respond_to?(:keys) && options.respond_to?(:keys) && html_options.has_key?(:multiple) && options.has_key?(:disabled)
+          html_options[:disabled] = options[:disabled]
+        end
+
+        exec_with_kwargs(object, method, self, *args, kwargs, options, html_options, &block)
       end
 
       # Returns <tt><select></tt> and <tt><option></tt> tags for the collection of existing return values of
@@ -733,6 +760,29 @@ module ActionView
       end
 
       private
+
+        def exec_with_kwargs(object, method, s, *args, kwargs, options, html_options, &block)
+          if kwarg_request?(kwargs, *args)
+            Tags::Select.new(object, method, s, args[0], options || {}, html_options || {}, &block).render
+          else
+            non_kwarg_request_warning if args.present?
+            Tags::Select.new(object, method, s, args[0], args[1] || {}, args[2] || {}, &block).render
+          end
+        end
+
+        def kwarg_request?(kwargs, *args)
+          args[0].respond_to?(:keys) && args[0].keys.any? { |k| kwargs.include?(k) }
+        end
+
+        def non_kwarg_request_warning
+          ActiveSupport::Deprecation.warn(<<-MSG.strip_heredoc)
+            ActionView::Helpers:FormOptionsHelper methods will accept only
+            keyword arguments in future Rails versions.
+            Example:
+            select("post", "person_id", collection: Person.all.collect {|p| [ p.name, p.id ] }, include_blank: true)
+          MSG
+        end
+
         def option_html_attributes(element)
           if Array === element
             element.select { |e| Hash === e }.reduce({}, :merge!)

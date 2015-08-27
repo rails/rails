@@ -450,15 +450,37 @@ class FormOptionsHelperTest < ActionView::TestCase
     @post.category = "<mus>"
     assert_dom_equal(
       "<select id=\"post_category\" name=\"post[category]\"><option value=\"abe\">abe</option>\n<option value=\"&lt;mus&gt;\" selected=\"selected\">&lt;mus&gt;</option>\n<option value=\"hest\">hest</option></select>",
+      select("post", "category", collection: %w( abe <mus> hest))
+    )
+  end
+
+  def test_deprecated_select
+    @post = Post.new
+    @post.category = "<mus>"
+    assert_dom_equal(
+      "<select id=\"post_category\" name=\"post[category]\"><option value=\"abe\">abe</option>\n<option value=\"&lt;mus&gt;\" selected=\"selected\">&lt;mus&gt;</option>\n<option value=\"hest\">hest</option></select>",
       select("post", "category", %w( abe <mus> hest))
     )
+    assert_deprecated do
+      select("post", "category", %w( abe <mus> hest))
+    end
   end
 
   def test_select_without_multiple
     assert_dom_equal(
       "<select id=\"post_category\" name=\"post[category]\"></select>",
-      select(:post, :category, "", {}, :multiple => false)
+      select(:post, :category, collection: "", multiple: false)
     )
+  end
+
+  def test_deprecated_select_without_multiple
+    assert_dom_equal(
+      "<select id=\"post_category\" name=\"post[category]\"></select>",
+      select(:post, :category, "", {}, multiple: false)
+    )
+    assert_deprecated do
+      select(:post, :category, "", {}, multiple: false)
+    end
   end
 
   def test_select_with_grouped_collection_as_nested_array
@@ -475,8 +497,29 @@ class FormOptionsHelperTest < ActionView::TestCase
         %Q{<option value="so">Somalia</option></optgroup><optgroup label="Europe"><option value="dk">Denmark</option>},
         %Q{<option value="ie">Ireland</option></optgroup></select>},
       ].join("\n"),
+      select("post", "origin", collection: countries_by_continent)
+    )
+  end
+
+  def test_deprecated_select_with_grouped_collection_as_nested_array
+    @post = Post.new
+
+    countries_by_continent = [
+      ["<Africa>", [["<South Africa>", "<sa>"], ["Somalia", "so"]]],
+      ["Europe",   [["Denmark", "dk"], ["Ireland", "ie"]]],
+    ]
+
+    assert_dom_equal(
+      [
+        %Q{<select id="post_origin" name="post[origin]"><optgroup label="&lt;Africa&gt;"><option value="&lt;sa&gt;">&lt;South Africa&gt;</option>},
+        %Q{<option value="so">Somalia</option></optgroup><optgroup label="Europe"><option value="dk">Denmark</option>},
+        %Q{<option value="ie">Ireland</option></optgroup></select>},
+      ].join("\n"),
       select("post", "origin", countries_by_continent)
     )
+    assert_deprecated do
+      select("post", "origin", countries_by_continent)
+    end
   end
 
   def test_select_with_grouped_collection_as_hash
@@ -493,8 +536,29 @@ class FormOptionsHelperTest < ActionView::TestCase
         %Q{<option value="so">Somalia</option></optgroup><optgroup label="Europe"><option value="dk">Denmark</option>},
         %Q{<option value="ie">Ireland</option></optgroup></select>},
       ].join("\n"),
+      select("post", "origin", collection: countries_by_continent)
+    )
+  end
+
+  def test_deprecated_select_with_grouped_collection_as_hash
+    @post = Post.new
+
+    countries_by_continent = {
+      "<Africa>" => [["<South Africa>", "<sa>"], ["Somalia", "so"]],
+      "Europe"   => [["Denmark", "dk"], ["Ireland", "ie"]],
+    }
+
+    assert_dom_equal(
+      [
+        %Q{<select id="post_origin" name="post[origin]"><optgroup label="&lt;Africa&gt;"><option value="&lt;sa&gt;">&lt;South Africa&gt;</option>},
+        %Q{<option value="so">Somalia</option></optgroup><optgroup label="Europe"><option value="dk">Denmark</option>},
+        %Q{<option value="ie">Ireland</option></optgroup></select>},
+      ].join("\n"),
       select("post", "origin", countries_by_continent)
     )
+    assert_deprecated do
+      select("post", "origin", countries_by_continent)
+    end
   end
 
   def test_select_with_boolean_method
@@ -502,11 +566,37 @@ class FormOptionsHelperTest < ActionView::TestCase
     @post.allow_comments = false
     assert_dom_equal(
       "<select id=\"post_allow_comments\" name=\"post[allow_comments]\"><option value=\"true\">true</option>\n<option value=\"false\" selected=\"selected\">false</option></select>",
-      select("post", "allow_comments", %w( true false ))
+      select("post", "allow_comments", collection: %w( true false ))
     )
   end
 
+  def test_deprecated_select_with_boolean_method
+    @post = Post.new
+    @post.allow_comments = false
+    assert_dom_equal(
+      "<select id=\"post_allow_comments\" name=\"post[allow_comments]\"><option value=\"true\">true</option>\n<option value=\"false\" selected=\"selected\">false</option></select>",
+      select("post", "allow_comments", %w( true false ))
+    )
+    assert_deprecated do
+      select("post", "allow_comments", %w( true false ))
+    end
+  end
+
   def test_select_under_fields_for
+    @post = Post.new
+    @post.category = "<mus>"
+
+    output_buffer = fields_for :post, @post do |f|
+      concat f.select(:category, collection: %w( abe <mus> hest))
+    end
+
+    assert_dom_equal(
+      "<select id=\"post_category\" name=\"post[category]\"><option value=\"abe\">abe</option>\n<option value=\"&lt;mus&gt;\" selected=\"selected\">&lt;mus&gt;</option>\n<option value=\"hest\">hest</option></select>",
+      output_buffer
+    )
+  end
+
+  def test_deprecated_select_under_fields_for
     @post = Post.new
     @post.category = "<mus>"
 
@@ -518,6 +608,11 @@ class FormOptionsHelperTest < ActionView::TestCase
       "<select id=\"post_category\" name=\"post[category]\"><option value=\"abe\">abe</option>\n<option value=\"&lt;mus&gt;\" selected=\"selected\">&lt;mus&gt;</option>\n<option value=\"hest\">hest</option></select>",
       output_buffer
     )
+    assert_deprecated do
+      fields_for :post, @post do |f|
+        f.select(:category, %w( abe <mus> hest))
+      end
+    end
   end
 
   def test_fields_for_with_record_inherited_from_hash
@@ -533,7 +628,39 @@ class FormOptionsHelperTest < ActionView::TestCase
     )
   end
 
+  def test_deprecated_fields_for_with_record_inherited_from_hash
+    map = Map.new
+
+    output_buffer = fields_for :map, map do |f|
+      concat f.select(:category, %w( abe <mus> hest))
+    end
+
+    assert_dom_equal(
+      "<select id=\"map_category\" name=\"map[category]\"><option value=\"abe\">abe</option>\n<option value=\"&lt;mus&gt;\" selected=\"selected\">&lt;mus&gt;</option>\n<option value=\"hest\">hest</option></select>",
+      output_buffer
+    )
+    assert_deprecated do
+      fields_for :map, map do |f|
+        f.select(:category, %w( abe <mus> hest))
+      end
+    end
+  end
+
   def test_select_under_fields_for_with_index
+    @post = Post.new
+    @post.category = "<mus>"
+
+    output_buffer = fields_for :post, @post, :index => 108 do |f|
+      concat f.select(:category, collection: %w( abe <mus> hest))
+    end
+
+    assert_dom_equal(
+      "<select id=\"post_108_category\" name=\"post[108][category]\"><option value=\"abe\">abe</option>\n<option value=\"&lt;mus&gt;\" selected=\"selected\">&lt;mus&gt;</option>\n<option value=\"hest\">hest</option></select>",
+      output_buffer
+    )
+  end
+
+  def test_deprecated_select_under_fields_for_with_index
     @post = Post.new
     @post.category = "<mus>"
 
@@ -545,9 +672,29 @@ class FormOptionsHelperTest < ActionView::TestCase
       "<select id=\"post_108_category\" name=\"post[108][category]\"><option value=\"abe\">abe</option>\n<option value=\"&lt;mus&gt;\" selected=\"selected\">&lt;mus&gt;</option>\n<option value=\"hest\">hest</option></select>",
       output_buffer
     )
+    assert_deprecated do
+      fields_for :post, @post, :index => 108 do |f|
+        f.select(:category, %w( abe <mus> hest))
+      end
+    end
   end
 
   def test_select_under_fields_for_with_auto_index
+    @post = Post.new
+    @post.category = "<mus>"
+    def @post.to_param; 108; end
+
+    output_buffer = fields_for "post[]", @post do |f|
+      concat f.select(:category, collection: %w( abe <mus> hest))
+    end
+
+    assert_dom_equal(
+      "<select id=\"post_108_category\" name=\"post[108][category]\"><option value=\"abe\">abe</option>\n<option value=\"&lt;mus&gt;\" selected=\"selected\">&lt;mus&gt;</option>\n<option value=\"hest\">hest</option></select>",
+      output_buffer
+    )
+  end
+
+  def test_deprecated_select_under_fields_for_with_auto_index
     @post = Post.new
     @post.category = "<mus>"
     def @post.to_param; 108; end
@@ -560,6 +707,11 @@ class FormOptionsHelperTest < ActionView::TestCase
       "<select id=\"post_108_category\" name=\"post[108][category]\"><option value=\"abe\">abe</option>\n<option value=\"&lt;mus&gt;\" selected=\"selected\">&lt;mus&gt;</option>\n<option value=\"hest\">hest</option></select>",
       output_buffer
     )
+    assert_deprecated do
+      fields_for "post[]", @post do |f|
+        f.select(:category, %w( abe <mus> hest))
+      end
+    end
   end
 
   def test_select_under_fields_for_with_string_and_given_prompt
@@ -567,7 +719,7 @@ class FormOptionsHelperTest < ActionView::TestCase
     options = "<option value=\"abe\">abe</option><option value=\"mus\">mus</option><option value=\"hest\">hest</option>".html_safe
 
     output_buffer = fields_for :post, @post do |f|
-      concat f.select(:category, options, :prompt => 'The prompt')
+      concat f.select(:category, options, prompt: 'The prompt')
     end
 
     assert_dom_equal(
@@ -605,15 +757,26 @@ class FormOptionsHelperTest < ActionView::TestCase
   end
 
   def test_select_with_multiple_to_add_hidden_input
-    output_buffer =  select(:post, :category, "", {}, :multiple => true)
+    output_buffer =  select(:post, :category, collection: "", multiple: true)
     assert_dom_equal(
       "<input type=\"hidden\" name=\"post[category][]\" value=\"\"/><select multiple=\"multiple\" id=\"post_category\" name=\"post[category][]\"></select>",
       output_buffer
     )
   end
 
+  def test_deprecated_select_with_multiple_to_add_hidden_input
+    output_buffer =  select(:post, :category, "", {}, multiple: true)
+    assert_dom_equal(
+      "<input type=\"hidden\" name=\"post[category][]\" value=\"\"/><select multiple=\"multiple\" id=\"post_category\" name=\"post[category][]\"></select>",
+      output_buffer
+    )
+    assert_deprecated do
+      select(:post, :category, "", {}, multiple: true)
+    end
+  end
+
   def test_select_with_multiple_and_without_hidden_input
-    output_buffer =  select(:post, :category, "", {:include_hidden => false}, :multiple => true)
+    output_buffer =  select(:post, :category, collection: "", include_hidden: false, multiple: true)
     assert_dom_equal(
       "<select multiple=\"multiple\" id=\"post_category\" name=\"post[category][]\"></select>",
       output_buffer
@@ -621,19 +784,42 @@ class FormOptionsHelperTest < ActionView::TestCase
   end
 
   def test_select_with_multiple_and_with_explicit_name_ending_with_brackets
-    output_buffer =  select(:post, :category, [], {include_hidden: false}, multiple: true, name: 'post[category][]')
+    output_buffer =  select(:post, :category, collection: [], include_hidden: false, multiple: true, name: 'post[category][]')
     assert_dom_equal(
       "<select multiple=\"multiple\" id=\"post_category\" name=\"post[category][]\"></select>",
       output_buffer
     )
   end
 
+  def test_deprecated_select_with_multiple_and_with_explicit_name_ending_with_brackets
+    output_buffer =  select(:post, :category, [], {include_hidden: false}, multiple: true, name: 'post[category][]')
+    assert_dom_equal(
+      "<select multiple=\"multiple\" id=\"post_category\" name=\"post[category][]\"></select>",
+      output_buffer
+    )
+    assert_deprecated do
+      select(:post, :category, [], {include_hidden: false}, multiple: true, name: 'post[category][]')
+    end
+  end
+
+  #FIXME: In the implementation their is a quick and dirty workaround for this to work
   def test_select_with_multiple_and_disabled_to_add_disabled_hidden_input
-    output_buffer =  select(:post, :category, "", {}, :multiple => true, :disabled => true)
+    output_buffer =  select(:post, :category, collection: "", multiple: true, disabled: true)
     assert_dom_equal(
       "<input disabled=\"disabled\"type=\"hidden\" name=\"post[category][]\" value=\"\"/><select multiple=\"multiple\" disabled=\"disabled\" id=\"post_category\" name=\"post[category][]\"></select>",
       output_buffer
     )
+  end
+
+  def test_deprecated_select_with_multiple_and_disabled_to_add_disabled_hidden_input
+    output_buffer =  select(:post, :category, "", {}, multiple: true, disabled: true)
+    assert_dom_equal(
+      "<input disabled=\"disabled\"type=\"hidden\" name=\"post[category][]\" value=\"\"/><select multiple=\"multiple\" disabled=\"disabled\" id=\"post_category\" name=\"post[category][]\"></select>",
+      output_buffer
+    )
+    assert_deprecated do
+      select(:post, :category, "", {}, multiple: true, disabled: true)
+    end
   end
 
   def test_select_with_blank
@@ -641,14 +827,26 @@ class FormOptionsHelperTest < ActionView::TestCase
     @post.category = "<mus>"
     assert_dom_equal(
       "<select id=\"post_category\" name=\"post[category]\"><option value=\"\"></option>\n<option value=\"abe\">abe</option>\n<option value=\"&lt;mus&gt;\" selected=\"selected\">&lt;mus&gt;</option>\n<option value=\"hest\">hest</option></select>",
-      select("post", "category", %w( abe <mus> hest), :include_blank => true)
+      select("post", "category", collection: %w(abe <mus> hest), include_blank: true)
     )
+  end
+
+  def test_deprecated_select_with_blank
+    @post = Post.new
+    @post.category = "<mus>"
+    assert_dom_equal(
+      "<select id=\"post_category\" name=\"post[category]\"><option value=\"\"></option>\n<option value=\"abe\">abe</option>\n<option value=\"&lt;mus&gt;\" selected=\"selected\">&lt;mus&gt;</option>\n<option value=\"hest\">hest</option></select>",
+      select("post", "category", %w(abe <mus> hest), include_blank: true)
+    )
+    assert_deprecated do
+      select("post", "category", %w(abe <mus> hest), include_blank: true)
+    end
   end
 
   def test_select_with_include_blank_false_and_required
     @post = Post.new
     @post.category = "<mus>"
-    e = assert_raises(ArgumentError) { select("post", "category", %w( abe <mus> hest), { include_blank: false }, required: 'required') }
+    e = assert_raises(ArgumentError) { select("post", "category", collection: %w( abe <mus> hest), include_blank: false, required: 'required') }
     assert_match(/include_blank cannot be false for a required field./, e.message)
   end
 
@@ -657,8 +855,20 @@ class FormOptionsHelperTest < ActionView::TestCase
     @post.category = "<mus>"
     assert_dom_equal(
       "<select id=\"post_category\" name=\"post[category]\"><option value=\"\">None</option>\n<option value=\"abe\">abe</option>\n<option value=\"&lt;mus&gt;\" selected=\"selected\">&lt;mus&gt;</option>\n<option value=\"hest\">hest</option></select>",
-      select("post", "category", %w( abe <mus> hest), :include_blank => 'None')
+      select("post", "category", collection: %w( abe <mus> hest), include_blank: 'None')
     )
+  end
+
+  def test_deprecated_select_with_blank_as_string
+    @post = Post.new
+    @post.category = "<mus>"
+    assert_dom_equal(
+      "<select id=\"post_category\" name=\"post[category]\"><option value=\"\">None</option>\n<option value=\"abe\">abe</option>\n<option value=\"&lt;mus&gt;\" selected=\"selected\">&lt;mus&gt;</option>\n<option value=\"hest\">hest</option></select>",
+      select("post", "category", %w( abe <mus> hest), include_blank: 'None')
+    )
+    assert_deprecated do
+      select("post", "category", %w( abe <mus> hest), include_blank: 'None')
+    end
   end
 
   def test_select_with_blank_as_string_escaped
@@ -666,8 +876,20 @@ class FormOptionsHelperTest < ActionView::TestCase
     @post.category = "<mus>"
     assert_dom_equal(
       "<select id=\"post_category\" name=\"post[category]\"><option value=\"\">&lt;None&gt;</option>\n<option value=\"abe\">abe</option>\n<option value=\"&lt;mus&gt;\" selected=\"selected\">&lt;mus&gt;</option>\n<option value=\"hest\">hest</option></select>",
-      select("post", "category", %w( abe <mus> hest), :include_blank => '<None>')
+      select("post", "category", collection: %w( abe <mus> hest), include_blank: '<None>')
     )
+  end
+
+  def test_deprecated_select_with_blank_as_string_escaped
+    @post = Post.new
+    @post.category = "<mus>"
+    assert_dom_equal(
+      "<select id=\"post_category\" name=\"post[category]\"><option value=\"\">&lt;None&gt;</option>\n<option value=\"abe\">abe</option>\n<option value=\"&lt;mus&gt;\" selected=\"selected\">&lt;mus&gt;</option>\n<option value=\"hest\">hest</option></select>",
+      select("post", "category", %w( abe <mus> hest), include_blank: '<None>')
+    )
+    assert_deprecated do
+      select("post", "category", %w( abe <mus> hest), include_blank: '<None>')
+    end
   end
 
   def test_select_with_default_prompt
@@ -675,8 +897,20 @@ class FormOptionsHelperTest < ActionView::TestCase
     @post.category = ""
     assert_dom_equal(
       "<select id=\"post_category\" name=\"post[category]\"><option value=\"\">Please select</option>\n<option value=\"abe\">abe</option>\n<option value=\"&lt;mus&gt;\">&lt;mus&gt;</option>\n<option value=\"hest\">hest</option></select>",
-      select("post", "category", %w( abe <mus> hest), :prompt => true)
+      select("post", "category", collection: %w( abe <mus> hest), prompt: true)
     )
+  end
+
+  def test_deprecated_select_with_default_prompt
+    @post = Post.new
+    @post.category = ""
+    assert_dom_equal(
+      "<select id=\"post_category\" name=\"post[category]\"><option value=\"\">Please select</option>\n<option value=\"abe\">abe</option>\n<option value=\"&lt;mus&gt;\">&lt;mus&gt;</option>\n<option value=\"hest\">hest</option></select>",
+      select("post", "category", %w( abe <mus> hest), prompt: true)
+    )
+    assert_deprecated do
+      select("post", "category", %w( abe <mus> hest), prompt: true)
+    end
   end
 
   def test_select_no_prompt_when_select_has_value
@@ -684,8 +918,20 @@ class FormOptionsHelperTest < ActionView::TestCase
     @post.category = "<mus>"
     assert_dom_equal(
       "<select id=\"post_category\" name=\"post[category]\"><option value=\"abe\">abe</option>\n<option value=\"&lt;mus&gt;\" selected=\"selected\">&lt;mus&gt;</option>\n<option value=\"hest\">hest</option></select>",
-      select("post", "category", %w( abe <mus> hest), :prompt => true)
+      select("post", "category", collection: %w( abe <mus> hest), prompt: true)
     )
+  end
+
+  def test_deprecated_select_no_prompt_when_select_has_value
+    @post = Post.new
+    @post.category = "<mus>"
+    assert_dom_equal(
+      "<select id=\"post_category\" name=\"post[category]\"><option value=\"abe\">abe</option>\n<option value=\"&lt;mus&gt;\" selected=\"selected\">&lt;mus&gt;</option>\n<option value=\"hest\">hest</option></select>",
+      select("post", "category", %w( abe <mus> hest), prompt: true)
+    )
+    assert_deprecated do
+      select("post", "category", %w( abe <mus> hest), prompt: true)
+    end
   end
 
   def test_select_with_given_prompt
@@ -693,16 +939,39 @@ class FormOptionsHelperTest < ActionView::TestCase
     @post.category = ""
     assert_dom_equal(
       "<select id=\"post_category\" name=\"post[category]\"><option value=\"\">The prompt</option>\n<option value=\"abe\">abe</option>\n<option value=\"&lt;mus&gt;\">&lt;mus&gt;</option>\n<option value=\"hest\">hest</option></select>",
-      select("post", "category", %w( abe <mus> hest), :prompt => 'The prompt')
+      select("post", "category", collection: %w( abe <mus> hest), prompt: 'The prompt')
     )
+  end
+
+  def test_deprecated_select_with_given_prompt
+    @post = Post.new
+    @post.category = ""
+    assert_dom_equal(
+      "<select id=\"post_category\" name=\"post[category]\"><option value=\"\">The prompt</option>\n<option value=\"abe\">abe</option>\n<option value=\"&lt;mus&gt;\">&lt;mus&gt;</option>\n<option value=\"hest\">hest</option></select>",
+      select("post", "category", %w( abe <mus> hest), prompt:'The prompt')
+    )
+    assert_deprecated do
+      select("post", "category", %w( abe <mus> hest), prompt: 'The prompt')
+    end
   end
 
   def test_select_with_given_prompt_escaped
     @post = Post.new
     assert_dom_equal(
       "<select id=\"post_category\" name=\"post[category]\"><option value=\"\">&lt;The prompt&gt;</option>\n<option value=\"abe\">abe</option>\n<option value=\"&lt;mus&gt;\">&lt;mus&gt;</option>\n<option value=\"hest\">hest</option></select>",
-      select("post", "category", %w( abe <mus> hest), :prompt => '<The prompt>')
+      select("post", "category", collection: %w( abe <mus> hest), prompt: '<The prompt>')
     )
+  end
+
+  def test_deprecated_select_with_given_prompt_escaped
+    @post = Post.new
+    assert_dom_equal(
+      "<select id=\"post_category\" name=\"post[category]\"><option value=\"\">&lt;The prompt&gt;</option>\n<option value=\"abe\">abe</option>\n<option value=\"&lt;mus&gt;\">&lt;mus&gt;</option>\n<option value=\"hest\">hest</option></select>",
+      select("post", "category", %w( abe <mus> hest), prompt: '<The prompt>')
+    )
+    assert_deprecated do
+      select("post", "category", %w( abe <mus> hest), prompt: '<The prompt>')
+    end
   end
 
   def test_select_with_prompt_and_blank
@@ -710,67 +979,172 @@ class FormOptionsHelperTest < ActionView::TestCase
     @post.category = ""
     assert_dom_equal(
       "<select id=\"post_category\" name=\"post[category]\"><option value=\"\">Please select</option>\n<option value=\"\"></option>\n<option value=\"abe\">abe</option>\n<option value=\"&lt;mus&gt;\">&lt;mus&gt;</option>\n<option value=\"hest\">hest</option></select>",
-      select("post", "category", %w( abe <mus> hest), :prompt => true, :include_blank => true)
+      select("post", "category", collection: %w( abe <mus> hest), prompt: true, include_blank: true )
     )
   end
 
-  def test_empty
-    @post = Post.new
-    @post.category = ""
-    assert_dom_equal(
-      "<select id=\"post_category\" name=\"post[category]\"><option value=\"\">Please select</option>\n<option value=\"\"></option>\n</select>",
-      select("post", "category", [], :prompt => true, :include_blank => true)
-    )
-  end
+ def test_deprecated_select_with_prompt_and_blank
+   @post = Post.new
+   @post.category = ""
+   assert_dom_equal(
+     "<select id=\"post_category\" name=\"post[category]\"><option value=\"\">Please select</option>\n<option value=\"\"></option>\n<option value=\"abe\">abe</option>\n<option value=\"&lt;mus&gt;\">&lt;mus&gt;</option>\n<option value=\"hest\">hest</option></select>",
+     select("post", "category", %w( abe <mus> hest), prompt: true, include_blank: true)
+   )
+   assert_deprecated do
+     select("post", "category", %w( abe <mus> hest), prompt: true, include_blank: true)
+   end
+ end
+
+ def test_empty
+   @post = Post.new
+   @post.category = ""
+   assert_dom_equal(
+     "<select id=\"post_category\" name=\"post[category]\"><option value=\"\">Please select</option>\n<option value=\"\"></option>\n</select>",
+     select("post", "category", collection: [], prompt: true, include_blank: true)
+   )
+ end
+
+ def test_deprecated_empty
+   @post = Post.new
+   @post.category = ""
+   assert_dom_equal(
+     "<select id=\"post_category\" name=\"post[category]\"><option value=\"\">Please select</option>\n<option value=\"\"></option>\n</select>",
+     select("post", "category", [], prompt: true, include_blank: true)
+   )
+   assert_deprecated do
+     select("post", "category", [], prompt: true, include_blank: true)
+   end
+ end
 
   def test_select_with_nil
     @post = Post.new
     @post.category = "othervalue"
     assert_dom_equal(
       "<select id=\"post_category\" name=\"post[category]\"><option value=\"\"></option>\n<option value=\"othervalue\" selected=\"selected\">othervalue</option></select>",
+      select("post", "category", collection: [nil, "othervalue"])
+    )
+  end
+
+  def test_deprecated_select_with_nil
+    @post = Post.new
+    @post.category = "othervalue"
+    assert_dom_equal(
+      "<select id=\"post_category\" name=\"post[category]\"><option value=\"\"></option>\n<option value=\"othervalue\" selected=\"selected\">othervalue</option></select>",
       select("post", "category", [nil, "othervalue"])
     )
+    assert_deprecated do
+      select("post", "category", [nil, "othervalue"])
+    end
   end
 
   def test_required_select
     assert_dom_equal(
       %(<select id="post_category" name="post[category]" required="required"><option value=""></option>\n<option value="abe">abe</option>\n<option value="mus">mus</option>\n<option value="hest">hest</option></select>),
+      select("post", "category", collection: %w(abe mus hest), required: true)
+    )
+  end
+
+  def test_deprecated_required_select
+    assert_dom_equal(
+      %(<select id="post_category" name="post[category]" required="required"><option value=""></option>\n<option value="abe">abe</option>\n<option value="mus">mus</option>\n<option value="hest">hest</option></select>),
       select("post", "category", %w(abe mus hest), {}, required: true)
     )
+    assert_deprecated do
+      select("post", "category", %w(abe mus hest), {}, required: true)
+    end
   end
 
   def test_required_select_with_include_blank_prompt
     assert_dom_equal(
       %(<select id="post_category" name="post[category]" required="required"><option value="">Select one</option>\n<option value="abe">abe</option>\n<option value="mus">mus</option>\n<option value="hest">hest</option></select>),
+      select("post", "category", collection: %w(abe mus hest), include_blank: "Select one", required: true)
+    )
+  end
+
+  def test_deprecated_required_select_with_include_blank_prompt
+    assert_dom_equal(
+      %(<select id="post_category" name="post[category]" required="required"><option value="">Select one</option>\n<option value="abe">abe</option>\n<option value="mus">mus</option>\n<option value="hest">hest</option></select>),
       select("post", "category", %w(abe mus hest), { include_blank: "Select one" }, required: true)
     )
+    assert_deprecated do
+      select("post", "category", %w(abe mus hest), { include_blank: "Select one" }, required: true)
+    end
   end
 
   def test_required_select_with_prompt
     assert_dom_equal(
       %(<select id="post_category" name="post[category]" required="required"><option value="">Select one</option>\n<option value="abe">abe</option>\n<option value="mus">mus</option>\n<option value="hest">hest</option></select>),
+      select("post", "category", collection: %w(abe mus hest), prompt: "Select one", required: true)
+    )
+  end
+
+  def test_deprecated_required_select_with_prompt
+    assert_dom_equal(
+      %(<select id="post_category" name="post[category]" required="required"><option value="">Select one</option>\n<option value="abe">abe</option>\n<option value="mus">mus</option>\n<option value="hest">hest</option></select>),
       select("post", "category", %w(abe mus hest), { prompt: "Select one" }, required: true)
     )
+    assert_deprecated do
+      select("post", "category", %w(abe mus hest), { prompt: "Select one" }, required: true)
+    end
   end
 
   def test_required_select_display_size_equals_to_one
     assert_dom_equal(
       %(<select id="post_category" name="post[category]" required="required" size="1"><option value=""></option>\n<option value="abe">abe</option>\n<option value="mus">mus</option>\n<option value="hest">hest</option></select>),
+      select("post", "category", collection: %w(abe mus hest), required: true, size: 1)
+    )
+  end
+
+  def test_deprecated_required_select_display_size_equals_to_one
+    assert_dom_equal(
+      %(<select id="post_category" name="post[category]" required="required" size="1"><option value=""></option>\n<option value="abe">abe</option>\n<option value="mus">mus</option>\n<option value="hest">hest</option></select>),
       select("post", "category", %w(abe mus hest), {}, required: true, size: 1)
     )
+    assert_deprecated do
+      select("post", "category", %w(abe mus hest), {}, required: true, size: 1)
+    end
   end
 
   def test_required_select_with_display_size_bigger_than_one
     assert_dom_equal(
       %(<select id="post_category" name="post[category]" required="required" size="2"><option value="abe">abe</option>\n<option value="mus">mus</option>\n<option value="hest">hest</option></select>),
+      select("post", "category", collection: %w(abe mus hest), required: true, size: 2)
+    )
+  end
+
+  def test_deprecated_required_select_with_display_size_bigger_than_one
+    assert_dom_equal(
+      %(<select id="post_category" name="post[category]" required="required" size="2"><option value="abe">abe</option>\n<option value="mus">mus</option>\n<option value="hest">hest</option></select>),
       select("post", "category", %w(abe mus hest), {}, required: true, size: 2)
     )
+    assert_deprecated do
+      select("post", "category", %w(abe mus hest), {}, required: true, size: 2)
+    end
   end
 
   def test_required_select_with_multiple_option
     assert_dom_equal(
       %(<input name="post[category][]" type="hidden" value=""/><select id="post_category" multiple="multiple" name="post[category][]" required="required"><option value="abe">abe</option>\n<option value="mus">mus</option>\n<option value="hest">hest</option></select>),
+      select("post", "category", collection: %w(abe mus hest), required: true, multiple: true)
+    )
+  end
+
+  def test_deprected_required_select_with_multiple_option
+    assert_dom_equal(
+      %(<input name="post[category][]" type="hidden" value=""/><select id="post_category" multiple="multiple" name="post[category][]" required="required"><option value="abe">abe</option>\n<option value="mus">mus</option>\n<option value="hest">hest</option></select>),
       select("post", "category", %w(abe mus hest), {}, required: true, multiple: true)
+    )
+    assert_deprecated do
+      select("post", "category", %w(abe mus hest), {}, required: true, multiple: true)
+    end
+  end
+
+  def test_select_with_fixnum
+    @post = Post.new
+    @post.category = ""
+    assert_dom_equal(
+      "<select id=\"post_category\" name=\"post[category]\"><option value=\"\">Please select</option>\n<option value=\"\"></option>\n<option value=\"1\">1</option></select>",
+      select("post", "category", collection: [1], prompt: true, include_blank: true)
     )
   end
 
@@ -779,8 +1153,11 @@ class FormOptionsHelperTest < ActionView::TestCase
     @post.category = ""
     assert_dom_equal(
       "<select id=\"post_category\" name=\"post[category]\"><option value=\"\">Please select</option>\n<option value=\"\"></option>\n<option value=\"1\">1</option></select>",
-      select("post", "category", [1], :prompt => true, :include_blank => true)
+      select("post", "category", [1], prompt: true, include_blank: true)
     )
+    assert_deprecated do
+      select("post", "category", [1], :prompt => true, :include_blank => true)
+    end
   end
 
   def test_list_of_lists
@@ -788,7 +1165,16 @@ class FormOptionsHelperTest < ActionView::TestCase
     @post.category = ""
     assert_dom_equal(
       "<select id=\"post_category\" name=\"post[category]\"><option value=\"\">Please select</option>\n<option value=\"\"></option>\n<option value=\"number\">Number</option>\n<option value=\"text\">Text</option>\n<option value=\"boolean\">Yes/No</option></select>",
-      select("post", "category", [["Number", "number"], ["Text", "text"], ["Yes/No", "boolean"]], :prompt => true, :include_blank => true)
+      select("post", "category", collection: [["Number", "number"], ["Text", "text"], ["Yes/No", "boolean"]], prompt: true, include_blank: true)
+    )
+  end
+
+  def test_deprecated_list_of_lists
+    @post = Post.new
+    @post.category = ""
+    assert_dom_equal(
+      "<select id=\"post_category\" name=\"post[category]\"><option value=\"\">Please select</option>\n<option value=\"\"></option>\n<option value=\"number\">Number</option>\n<option value=\"text\">Text</option>\n<option value=\"boolean\">Yes/No</option></select>",
+      select("post", "category", [["Number", "number"], ["Text", "text"], ["Yes/No", "boolean"]], prompt: true, include_blank: true)
     )
   end
 
@@ -797,11 +1183,35 @@ class FormOptionsHelperTest < ActionView::TestCase
     @post.category = "<mus>"
     assert_dom_equal(
       "<select id=\"post_category\" name=\"post[category]\"><option value=\"abe\" selected=\"selected\">abe</option>\n<option value=\"&lt;mus&gt;\">&lt;mus&gt;</option>\n<option value=\"hest\">hest</option></select>",
-      select("post", "category", %w( abe <mus> hest ), :selected => 'abe')
+      select("post", "category", collection: %w( abe <mus> hest ), selected: 'abe')
     )
   end
 
+  def test_deprecated_select_with_selected_value
+    @post = Post.new
+    @post.category = "<mus>"
+    assert_dom_equal(
+      "<select id=\"post_category\" name=\"post[category]\"><option value=\"abe\" selected=\"selected\">abe</option>\n<option value=\"&lt;mus&gt;\">&lt;mus&gt;</option>\n<option value=\"hest\">hest</option></select>",
+      select("post", "category", %w( abe <mus> hest ), selected: 'abe')
+    )
+    assert_deprecated do
+      select("post", "category", %w( abe <mus> hest ), selected: 'abe')
+    end
+  end
+
   def test_select_with_index_option
+    @album = Album.new
+    @album.id = 1
+
+    expected = "<select id=\"album__genre\" name=\"album[][genre]\"><option value=\"rap\">rap</option>\n<option value=\"rock\">rock</option>\n<option value=\"country\">country</option></select>"
+
+    assert_dom_equal(
+      expected,
+      select("album[]", "genre", collection: %w[rap rock country], index: nil)
+    )
+  end
+
+  def test_deprecated_select_with_index_option
     @album = Album.new
     @album.id = 1
 
@@ -825,8 +1235,20 @@ class FormOptionsHelperTest < ActionView::TestCase
     @post.category = "<mus>"
     assert_dom_equal(
       "<select id=\"post_category\" name=\"post[category]\"><option value=\"abe\">abe</option>\n<option value=\"&lt;mus&gt;\">&lt;mus&gt;</option>\n<option value=\"hest\">hest</option></select>",
-      select("post", "category", %w( abe <mus> hest ), :selected => nil)
+      select("post", "category", collection: %w( abe <mus> hest ), selected: nil)
     )
+  end
+
+  def test_deprecated_select_with_selected_nil
+    @post = Post.new
+    @post.category = "<mus>"
+    assert_dom_equal(
+      "<select id=\"post_category\" name=\"post[category]\"><option value=\"abe\">abe</option>\n<option value=\"&lt;mus&gt;\">&lt;mus&gt;</option>\n<option value=\"hest\">hest</option></select>",
+      select("post", "category", %w( abe <mus> hest ), selected: nil)
+    )
+    assert_deprecated do
+      select("post", "category", %w( abe <mus> hest ), selected: nil)
+    end
   end
 
   def test_select_with_disabled_value
@@ -834,24 +1256,58 @@ class FormOptionsHelperTest < ActionView::TestCase
     @post.category = "<mus>"
     assert_dom_equal(
       "<select id=\"post_category\" name=\"post[category]\"><option value=\"abe\">abe</option>\n<option value=\"&lt;mus&gt;\" selected=\"selected\">&lt;mus&gt;</option>\n<option value=\"hest\" disabled=\"disabled\">hest</option></select>",
-      select("post", "category", %w( abe <mus> hest ), :disabled => 'hest')
+      select("post", "category", collection: %w( abe <mus> hest ), disabled: 'hest')
     )
+  end
+
+  def test_deprecated_select_with_disabled_value
+    @post = Post.new
+    @post.category = "<mus>"
+    assert_dom_equal(
+      "<select id=\"post_category\" name=\"post[category]\"><option value=\"abe\">abe</option>\n<option value=\"&lt;mus&gt;\" selected=\"selected\">&lt;mus&gt;</option>\n<option value=\"hest\" disabled=\"disabled\">hest</option></select>",
+      select("post", "category", %w( abe <mus> hest ), disabled: 'hest')
+    )
+    assert_deprecated do
+      select("post", "category", %w( abe <mus> hest ), disabled: 'hest')
+    end
   end
 
   def test_select_not_existing_method_with_selected_value
     @post = Post.new
     assert_dom_equal(
       "<select id=\"post_locale\" name=\"post[locale]\"><option value=\"en\">en</option>\n<option value=\"ru\" selected=\"selected\">ru</option></select>",
-      select("post", "locale", %w( en ru ), :selected => 'ru')
+      select("post", "locale", collection: %w( en ru ), selected: 'ru')
     )
+  end
+
+  def test_deprecated_select_not_existing_method_with_selected_value
+    @post = Post.new
+    assert_dom_equal(
+      "<select id=\"post_locale\" name=\"post[locale]\"><option value=\"en\">en</option>\n<option value=\"ru\" selected=\"selected\">ru</option></select>",
+      select("post", "locale", %w( en ru ), selected: 'ru')
+    )
+    assert_deprecated do
+      select("post", "locale", %w( en ru ), selected: 'ru')
+    end
   end
 
   def test_select_with_prompt_and_selected_value
     @post = Post.new
     assert_dom_equal(
       "<select id=\"post_category\" name=\"post[category]\"><option value=\"one\">one</option>\n<option selected=\"selected\" value=\"two\">two</option></select>",
-      select("post", "category", %w( one two ), :selected => 'two', :prompt => true)
+      select("post", "category", collection: %w( one two ), selected: 'two', prompt: true)
     )
+  end
+
+  def test_deprecated_select_with_prompt_and_selected_value
+    @post = Post.new
+    assert_dom_equal(
+      "<select id=\"post_category\" name=\"post[category]\"><option value=\"one\">one</option>\n<option selected=\"selected\" value=\"two\">two</option></select>",
+      select("post", "category", %w( one two ), selected: 'two', prompt: true)
+    )
+    assert_deprecated do
+      select("post", "category", %w( one two ), selected: 'two', prompt: true)
+    end
   end
 
   def test_select_with_disabled_array
@@ -859,8 +1315,20 @@ class FormOptionsHelperTest < ActionView::TestCase
     @post.category = "<mus>"
     assert_dom_equal(
       "<select id=\"post_category\" name=\"post[category]\"><option value=\"abe\" disabled=\"disabled\">abe</option>\n<option value=\"&lt;mus&gt;\" selected=\"selected\">&lt;mus&gt;</option>\n<option value=\"hest\" disabled=\"disabled\">hest</option></select>",
-      select("post", "category", %w( abe <mus> hest ), :disabled => ['hest', 'abe'])
+      select("post", "category", collection: %w( abe <mus> hest ), disabled: ['hest', 'abe'])
     )
+  end
+
+  def test_deprecated_select_with_disabled_array
+    @post = Post.new
+    @post.category = "<mus>"
+    assert_dom_equal(
+      "<select id=\"post_category\" name=\"post[category]\"><option value=\"abe\" disabled=\"disabled\">abe</option>\n<option value=\"&lt;mus&gt;\" selected=\"selected\">&lt;mus&gt;</option>\n<option value=\"hest\" disabled=\"disabled\">hest</option></select>",
+      select("post", "category", %w( abe <mus> hest ), disabled: ['hest', 'abe'])
+    )
+    assert_deprecated do
+      select("post", "category", %w( abe <mus> hest ), disabled: ['hest', 'abe'])
+    end
   end
 
   def test_select_with_range
@@ -868,8 +1336,20 @@ class FormOptionsHelperTest < ActionView::TestCase
     @post.category = 0
     assert_dom_equal(
       "<select id=\"post_category\" name=\"post[category]\"><option value=\"1\">1</option>\n<option value=\"2\">2</option>\n<option value=\"3\">3</option></select>",
+      select("post", "category", range: 1..3)
+    )
+  end
+
+  def test_deprecated_select_with_range
+    @post = Post.new
+    @post.category = 0
+    assert_dom_equal(
+      "<select id=\"post_category\" name=\"post[category]\"><option value=\"1\">1</option>\n<option value=\"2\">2</option>\n<option value=\"3\">3</option></select>",
       select("post", "category", 1..3)
     )
+    assert_deprecated do
+      select("post", "category", 1..3)
+    end
   end
 
   def test_collection_select
