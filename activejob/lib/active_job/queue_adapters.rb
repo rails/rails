@@ -12,6 +12,7 @@ module ActiveJob
   # * {Sidekiq}[http://sidekiq.org]
   # * {Sneakers}[https://github.com/jondot/sneakers]
   # * {Sucker Punch}[https://github.com/brandonhilkert/sucker_punch]
+  # * {Shoryuken}[https://github.com/phstc/shoryuken]
   # * {Active Job Async Job}[http://api.rubyonrails.org/classes/ActiveJob/QueueAdapters/AsyncAdapter.html]
   # * {Active Job Inline}[http://api.rubyonrails.org/classes/ActiveJob/QueueAdapters/InlineAdapter.html]
   #
@@ -28,6 +29,7 @@ module ActiveJob
   #   | Sidekiq           | Yes   | Yes    | Yes        | Queue      | No      | Job     |
   #   | Sneakers          | Yes   | Yes    | No         | Queue      | Queue   | No      |
   #   | Sucker Punch      | Yes   | Yes    | No         | No         | No      | No      |
+  #   | Shoryuken         | Yes   | Yes    | Yes        | Yes        | Yes     | Yes     |
   #   | Active Job Async  | Yes   | Yes    | Yes        | No         | No      | No      |
   #   | Active Job Inline | No    | Yes    | N/A        | N/A        | N/A     | N/A     |
   #
@@ -118,6 +120,7 @@ module ActiveJob
     autoload :SidekiqAdapter
     autoload :SneakersAdapter
     autoload :SuckerPunchAdapter
+    autoload :ShoryukenAdapter
     autoload :TestAdapter
 
     ADAPTER = 'Adapter'.freeze
