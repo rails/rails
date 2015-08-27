@@ -381,8 +381,6 @@ module ActionDispatch # :nodoc:
     end
 
     def rack_response(status, header)
-      header[SET_COOKIE] = header[SET_COOKIE].join("\n") if header[SET_COOKIE].respond_to?(:join)
-
       if NO_CONTENT_CODES.include?(@status)
         header.delete CONTENT_TYPE
         header.delete 'Content-Length'
