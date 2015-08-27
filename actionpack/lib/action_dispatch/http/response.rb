@@ -257,11 +257,11 @@ module ActionDispatch # :nodoc:
     end
 
     def set_cookie(key, value)
-      ::Rack::Utils.set_cookie_header!(header, key, value)
+      header[SET_COOKIE] = ::Rack::Utils.add_cookie_to_header(header[SET_COOKIE], key, value)
     end
 
     def delete_cookie(key, value={})
-      ::Rack::Utils.delete_cookie_header!(header, key, value)
+      header[SET_COOKIE] = ::Rack::Utils.add_remove_cookie_to_header(header[SET_COOKIE], key, value)
     end
 
     # The location header we'll be responding with.
