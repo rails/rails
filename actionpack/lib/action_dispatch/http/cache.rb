@@ -51,8 +51,7 @@ module ActionDispatch
       end
 
       module Response
-        attr_reader :cache_control, :etag
-        alias :etag? :etag
+        attr_reader :cache_control
 
         def last_modified
           if last = get_header(LAST_MODIFIED)
@@ -84,9 +83,13 @@ module ActionDispatch
 
         def etag=(etag)
           key = ActiveSupport::Cache.expand_cache_key(etag)
-          @etag = %("#{Digest::MD5.hexdigest(key)}")
-          set_header ETAG, @etag
+          set_header ETAG, %("#{Digest::MD5.hexdigest(key)}")
         end
+
+        def etag
+          get_header ETAG
+        end
+        alias :etag? :etag
 
       private
 
@@ -124,7 +127,6 @@ module ActionDispatch
 
         def prepare_cache_control!
           @cache_control = cache_control_headers
-          @etag = get_header ETAG
         end
 
         def handle_conditional_get!
