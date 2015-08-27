@@ -332,7 +332,7 @@ module ActionDispatch
     # Override Rack's GET method to support indifferent access
     def GET
       get_header("action_dispatch.request.query_parameters") do |k|
-        set_header k, normalize_encode_params(super || {})
+        set_header k, Request::Utils.normalize_encode_params(super || {})
       end
     rescue Rack::Utils::ParameterTypeError, Rack::Utils::InvalidParameterError => e
       raise ActionController::BadRequest.new(:query, e)
@@ -342,7 +342,7 @@ module ActionDispatch
     # Override Rack's POST method to support indifferent access
     def POST
       get_header("action_dispatch.request.request_parameters") do
-        self.request_parameters = normalize_encode_params(super || {})
+        self.request_parameters = Request::Utils.normalize_encode_params(super || {})
       end
     rescue Rack::Utils::ParameterTypeError, Rack::Utils::InvalidParameterError => e
       raise ActionController::BadRequest.new(:request, e)
