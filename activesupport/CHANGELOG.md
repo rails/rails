@@ -1,3 +1,16 @@
+*   ActiveSupport `number_to_currency` helper enhancement: It is now possible to
+      override the default regex used for formatting the currency string.
+
+      Without override:
+        number_to_currency(10000000) 
+        # => $10,000,000
+
+      With override:
+        number_to_currency(1234567890.50, unit: "₹", format_mask_regex: /(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/) 
+        # => ₹1,00,00,000
+
+    *Shireesh Jayashetty*
+    
 *   Deprecate `:prefix` option of `number_to_human_size` with no replacement.
 
     *Jean Boussier*
