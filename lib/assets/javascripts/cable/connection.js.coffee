@@ -47,13 +47,19 @@ class Cable.Connection
       @consumer.subscriptions.notify(identifier, "received", message)
 
     open: ->
+      @disconnected = false
       @consumer.subscriptions.reload()
 
     close: ->
-      @consumer.subscriptions.notifyAll("disconnected")
+      @disconnect()
 
     error: ->
-      @consumer.subscriptions.notifyAll("disconnected")
+      @disconnect()
+
+  disconnect: ->
+    return if @disconnected
+    @disconnected = true
+    @consumer.subscriptions.notifyAll("disconnected")
 
   toJSON: ->
     state: @getState()
