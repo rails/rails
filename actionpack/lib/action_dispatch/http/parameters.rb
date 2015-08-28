@@ -1,6 +1,3 @@
-require 'active_support/core_ext/hash/keys'
-require 'active_support/core_ext/hash/indifferent_access'
-
 module ActionDispatch
   module Http
     module Parameters
@@ -33,14 +30,6 @@ module ActionDispatch
       #   {'action' => 'my_action', 'controller' => 'my_controller'}
       def path_parameters
         get_header(PARAMETERS_KEY) || {}
-      end
-
-    private
-
-      # Convert nested Hash to HashWithIndifferentAccess.
-      #
-      def normalize_encode_params(params)
-        ActionDispatch::Request::Utils.normalize_encode_params params
       end
     end
   end
