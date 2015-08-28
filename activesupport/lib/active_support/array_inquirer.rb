@@ -23,7 +23,7 @@ module ActiveSupport
         super
       else
         candidates.any? do |candidate|
-          include?(candidate) || include?(candidate.to_sym)
+          include?(candidate.to_sym) || include?(candidate.to_s)
         end
       end
     end
