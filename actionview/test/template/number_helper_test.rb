@@ -1,3 +1,4 @@
+# encoding: utf-8
 require "abstract_unit"
 
 class NumberHelperTest < ActionView::TestCase
@@ -21,6 +22,7 @@ class NumberHelperTest < ActionView::TestCase
     assert_equal "&lt;b&gt;1,234,567,890.50&lt;/b&gt; $", number_to_currency("1234567890.50", format: "<b>%n</b> %u")
     assert_equal "&lt;b&gt;1,234,567,890.50&lt;/b&gt; $", number_to_currency("-1234567890.50", negative_format: "<b>%n</b> %u")
     assert_equal "&lt;b&gt;1,234,567,890.50&lt;/b&gt; $", number_to_currency("-1234567890.50", 'negative_format' => "<b>%n</b> %u")
+    assert_equal '₹ 12,30,000.00', number_to_currency(1230000, delimiter_pattern: /(\d+?)(?=(\d\d)+(\d)(?!\d))/, unit: '₹', format: "%u %n")
   end
 
   def test_number_to_percentage
