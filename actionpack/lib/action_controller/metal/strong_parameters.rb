@@ -256,11 +256,11 @@ module ActionController
     #   ActionController::Parameters.new(first_name: 'Gaurish', title: nil).require([:first_name, :title])
     #   # => ActionController::ParameterMissing: param is missing or the value is empty: title
     #
-    #   params = ActionController::Parameters.new(first_name: 'Gaurish', title: Mjallo)
+    #   params = ActionController::Parameters.new(first_name: 'Gaurish', title: 'Mjallo')
     #   first_name, title = params.require([:first_name, :title])
     #
     def require(key)
-      return keys.map { |k| require(k) } if key.is_a?(Array)
+      return key.map { |k| require(k) } if key.is_a?(Array)
       value = self[key]
       if value.present? || value == false
         value
