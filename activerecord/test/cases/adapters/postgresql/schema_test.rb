@@ -84,8 +84,8 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
   end
 
   teardown do
-    @connection.execute "DROP SCHEMA #{SCHEMA2_NAME} CASCADE"
-    @connection.execute "DROP SCHEMA #{SCHEMA_NAME} CASCADE"
+    @connection.drop_schema SCHEMA2_NAME, if_exists: true
+    @connection.drop_schema SCHEMA_NAME, if_exists: true
   end
 
   def test_schema_names
@@ -121,10 +121,17 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
     assert !@connection.schema_names.include?("test_schema3")
   end
 
+  def test_drop_schema_if_exists
+    @connection.create_schema "some_schema"
+    assert_includes @connection.schema_names, "some_schema"
+    @connection.drop_schema "some_schema", if_exists: true
+    assert_not_includes @connection.schema_names, "some_schema"
+  end
+
   def test_habtm_table_name_with_schema
+    ActiveRecord::Base.connection.drop_schema "music", if_exists: true
+    ActiveRecord::Base.connection.create_schema "music"
     ActiveRecord::Base.connection.execute <<-SQL
-      DROP SCHEMA IF EXISTS music CASCADE;
-      CREATE SCHEMA music;
       CREATE TABLE music.albums (id serial primary key);
       CREATE TABLE music.songs (id serial primary key);
       CREATE TABLE music.albums_songs (album_id integer, song_id integer);
@@ -134,12 +141,16 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
     Album.create
     assert_equal song, Song.includes(:albums).references(:albums).first
   ensure
-    ActiveRecord::Base.connection.execute "DROP SCHEMA music CASCADE;"
+    ActiveRecord::Base.connection.drop_schema "music", if_exists: true
   end
 
-  def test_raise_drop_schema_with_nonexisting_schema
+  def test_drop_schema_with_nonexisting_schema
     assert_raises(ActiveRecord::StatementInvalid) do
-      @connection.drop_schema "test_schema3"
+      @connection.drop_schema "idontexist"
+    end
+
+    assert_nothing_raised do
+      @connection.drop_schema "idontexist", if_exists: true
     end
   end
 
@@ -462,14 +473,14 @@ class SchemaForeignKeyTest < ActiveRecord::PostgreSQLTestCase
   ensure
     @connection.drop_table "wagons", if_exists: true
     @connection.drop_table "my_schema.trains", if_exists: true
-    @connection.execute "DROP SCHEMA IF EXISTS my_schema"
+    @connection.drop_schema "my_schema", if_exists: true
   end
 end
 
 class DefaultsUsingMultipleSchemasAndDomainTest < ActiveRecord::PostgreSQLTestCase
   setup do
     @connection = ActiveRecord::Base.connection
-    @connection.execute "DROP SCHEMA IF EXISTS schema_1 CASCADE"
+    @connection.drop_schema "schema_1", if_exists: true
     @connection.execute "CREATE SCHEMA schema_1"
     @connection.execute "CREATE DOMAIN schema_1.text AS text"
     @connection.execute "CREATE DOMAIN schema_1.varchar AS varchar"
@@ -487,7 +498,7 @@ class DefaultsUsingMultipleSchemasAndDomainTest < ActiveRecord::PostgreSQLTestCa
 
   teardown do
     @connection.schema_search_path = @old_search_path
-    @connection.execute "DROP SCHEMA IF EXISTS schema_1 CASCADE"
+    @connection.drop_schema "schema_1", if_exists: true
     Default.reset_column_information
   end
 

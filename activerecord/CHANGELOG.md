@@ -1,3 +1,9 @@
+*   PostgreSQL, add `:if_exists` option to `#drop_schema`. This makes it
+    possible to drop a schema that might exist without raising an exception if
+    it doesn't.
+
+    *Yves Senn*
+
 *   Only try to nullify has_one target association if the record is persisted.
 
     Fixes #21223.
