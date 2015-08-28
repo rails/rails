@@ -2,7 +2,17 @@ require "cases/helper"
 require 'models/default'
 require 'support/schema_dumping_helper'
 
+module PGSchemaHelper
+  def with_schema_search_path(schema_search_path)
+    @connection.schema_search_path = schema_search_path
+    yield if block_given?
+  ensure
+    @connection.schema_search_path = "'$user', public"
+  end
+end
+
 class SchemaTest < ActiveRecord::PostgreSQLTestCase
+  include PGSchemaHelper
   self.use_transactional_tests = false
 
   SCHEMA_NAME = 'test_schema'
@@ -415,13 +425,6 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
       end
     end
 
-    def with_schema_search_path(schema_search_path)
-      @connection.schema_search_path = schema_search_path
-      yield if block_given?
-    ensure
-      @connection.schema_search_path = "'$user', public"
-    end
-
     def do_dump_index_tests_for_schema(this_schema_name, first_index_column_name, second_index_column_name, third_index_column_name, fourth_index_column_name)
       with_schema_search_path(this_schema_name) do
         indexes = @connection.indexes(TABLE_NAME).sort_by(&:name)
@@ -528,5 +531,42 @@ class DefaultsUsingMultipleSchemasAndDomainTest < ActiveRecord::PostgreSQLTestCa
   def test_default_containing_quote_and_colons
     @connection.execute "ALTER TABLE defaults ALTER COLUMN string_col SET DEFAULT 'foo''::bar'"
     assert_equal "foo'::bar", Default.new.string_col
+  end
+end
+
+class SchemaWithDotsTest < ActiveRecord::PostgreSQLTestCase
+  include PGSchemaHelper
+  self.use_transactional_tests = false
+
+  setup do
+    @connection = ActiveRecord::Base.connection
+    @connection.create_schema "my.schema"
+  end
+
+  teardown do
+    @connection.drop_schema "my.schema", if_exists: true
+  end
+
+  test "rename_table" do
+    with_schema_search_path('"my.schema"') do
+      @connection.create_table :posts
+      @connection.rename_table :posts, :articles
+      assert_equal ["articles"], @connection.tables
+    end
+  end
+
+  test "Active Record basics" do
+    with_schema_search_path('"my.schema"') do
+      @connection.create_table :articles do |t|
+        t.string :title
+      end
+      article_class = Class.new(ActiveRecord::Base) do
+        self.table_name = '"my.schema".articles'
+      end
+
+      article_class.create!(title: "zOMG, welcome to my blorgh!")
+      welcome_article = article_class.last
+      assert_equal "zOMG, welcome to my blorgh!", welcome_article.title
+    end
   end
 end
