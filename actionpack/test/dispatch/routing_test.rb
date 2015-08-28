@@ -870,6 +870,33 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal 'pass', @response.headers['X-Cascade']
   end
 
+  def test_resource_routes_with_except_all
+    draw do
+      resources :users, :except => :all do
+        resources :posts
+      end
+    end
+
+    get '/users/1/posts'
+    assert_equal 'posts#index', @response.body
+    assert_equal '/users/1/posts', user_posts_path(:user_id => 1)
+
+    get '/users'
+    assert_equal 'pass', @response.headers['X-Cascade']
+    get '/users/1'
+    assert_equal 'pass', @response.headers['X-Cascade']
+    get '/users/new'
+    assert_equal 'pass', @response.headers['X-Cascade']
+    get '/users/1/edit'
+    assert_equal 'pass', @response.headers['X-Cascade']
+    post '/users/1'
+    assert_equal 'pass', @response.headers['X-Cascade']
+    put '/users/1'
+    assert_equal 'pass', @response.headers['X-Cascade']
+    delete '/users/1'
+    assert_equal 'pass', @response.headers['X-Cascade']
+  end
+
   def test_resource_routes_only_create_update_destroy
     draw do
       resource  :past, :only => :destroy

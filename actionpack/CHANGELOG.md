@@ -1,3 +1,11 @@
+*   Add :all to except option in routing.
+
+        resources :users, except: :all do
+          resources :posts, only: :index
+        end
+
+    *Ryoji Yoshioka*
+
 *   Update `ActionController::TestSession#fetch` to behave more like
     `ActionDispatch::Request::Session#fetch` when using non-string keys.
 
