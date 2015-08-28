@@ -86,7 +86,7 @@ module ActiveRecord
           execute "DROP DATABASE IF EXISTS #{quote_table_name(name)}"
         end
 
-        # Returns the list of all tables in the schema search path or a specified schema.
+        # Returns the list of all tables in the schema search path.
         def tables(name = nil)
           query(<<-SQL, 'SCHEMA').map { |row| row[0] }
             SELECT tablename
