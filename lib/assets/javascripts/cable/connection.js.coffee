@@ -11,19 +11,18 @@ class Cable.Connection
       false
 
   open: ->
-    return if @isState("open", "connecting")
-    @webSocket = new WebSocket(@consumer.url)
-    @installEventHandlers()
+    if @isOpen()
+      throw new Error("Must close existing connection before opening")
+    else
+      @webSocket = new WebSocket(@consumer.url)
+      @installEventHandlers()
 
   close: ->
-    return if @isState("closed", "closing")
     @webSocket?.close()
 
   reopen: ->
-    if @isOpen()
-      @closeSilently => @open()
-    else
-      @open()
+    @close()
+    @open()
 
   isOpen: ->
     @isState("open")
@@ -37,26 +36,10 @@ class Cable.Connection
     return state.toLowerCase() for state, value of WebSocket when value is @webSocket?.readyState
     null
 
-  closeSilently: (callback = ->) ->
-    @uninstallEventHandlers()
-    @installEventHandler("close", callback)
-    @installEventHandler("error", callback)
-    try
-      @webSocket.close()
-    finally
-      @uninstallEventHandlers()
-
   installEventHandlers: ->
     for eventName of @events
-      @installEventHandler(eventName)
-
-  installEventHandler: (eventName, handler) ->
-    handler ?= @events[eventName].bind(this)
-    @webSocket.addEventListener(eventName, handler)
-
-  uninstallEventHandlers: ->
-    for eventName of @events
-      @webSocket.removeEventListener(eventName)
+      handler = @events[eventName].bind(this)
+      @webSocket["on#{eventName}"] = handler
 
   events:
     message: (event) ->
@@ -71,7 +54,6 @@ class Cable.Connection
 
     error: ->
       @consumer.subscriptions.notifyAll("disconnected")
-      @closeSilently()
 
   toJSON: ->
     state: @getState()
