@@ -1143,7 +1143,11 @@ module ActionDispatch
             if @only
               Array(@only).map(&:to_sym)
             elsif @except
-              default_actions - Array(@except).map(&:to_sym)
+              if (except_actions = Array(@except).map(&:to_sym)).include?(:all)
+                []
+              else
+                default_actions - except_actions
+              end
             else
               default_actions
             end
@@ -1350,6 +1354,7 @@ module ActionDispatch
         #
         #     resources :cows, except: :show
         #     resources :cows, except: [:show, :index]
+        #     resources :cows, except: :all
         #
         # [:shallow]
         #   Generates shallow routes for nested resource(s). When placed on a parent resource,
