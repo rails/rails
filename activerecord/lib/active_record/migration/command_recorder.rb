@@ -69,7 +69,7 @@ module ActiveRecord
       # invert the +command+.
       def inverse_of(command, args, &block)
         method = :"invert_#{command}"
-        raise IrreversibleMigration unless respond_to?(method, true)
+        raise IrreversibleMigration, "#{method} is not defined, so #{command} is not reversible" unless respond_to?(method, true)
         send(method, args, &block)
       end
 
