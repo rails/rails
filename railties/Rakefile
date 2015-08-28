@@ -26,7 +26,7 @@ end
 Rake::TestTask.new('test:regular') do |t|
   t.libs << 'test' << "#{File.dirname(__FILE__)}/../activesupport/lib"
   t.pattern = 'test/**/*_test.rb'
-  t.warning = true
+  t.warning = false
   t.verbose = true
   t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
 end
