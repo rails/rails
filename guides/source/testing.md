@@ -1115,10 +1115,13 @@ require 'test_helper'
 
 class UserMailerTest < ActionMailer::TestCase
   test "invite" do
+    # Create the email and store it for further assertions
+    email = UserMailer.create_invite('me@example.com',
+                                     'friend@example.com', Time.now)
+
     # Send the email, then test that it got queued
     assert_emails 1 do
-      email = UserMailer.create_invite('me@example.com',
-                                       'friend@example.com', Time.now).deliver_now
+      email.deliver_now
     end
 
     # Test the body of the sent email contains what we expect it to
