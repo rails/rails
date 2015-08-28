@@ -23,8 +23,8 @@ module AbstractController
     def render(*args, &block)
       options = _normalize_render(*args, &block)
       self.response_body = render_to_body(options)
-      if options[:plain]
-        _set_content_type Mime::TEXT.to_s
+      if options[:html]
+        _set_content_type Mime::HTML.to_s
       else
         _set_content_type _get_content_type(rendered_format)
       end
