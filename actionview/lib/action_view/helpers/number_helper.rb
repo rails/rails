@@ -84,6 +84,8 @@ module ActionView
       #   number given by <tt>:format</tt>).  Accepts the same fields
       #   than <tt>:format</tt>, except <tt>%n</tt> is here the
       #   absolute value of the number.
+      #   <tt>:format_mask_regex</tt> - Sets regex to be used for formatting the
+      #   currency string (default is /(\d)(?=(\d\d\d)+(?!\d))/)
       # * <tt>:raise</tt> - If true, raises +InvalidNumberError+ when
       #   the argument is invalid.
       #
@@ -103,6 +105,8 @@ module ActionView
       #   # => R$1234567890,50
       #   number_to_currency(1234567890.50, unit: "R$", separator: ",", delimiter: "", format: "%n %u")
       #   # => 1234567890,50 R$
+      #   number_to_currency(1234567890.50, unit: "₹", format_mask_regex: /(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/)
+      #   # => ₹1,23,45,67,890.50
       def number_to_currency(number, options = {})
         delegate_number_helper_method(:number_to_currency, number, options)
       end
