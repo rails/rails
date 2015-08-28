@@ -48,4 +48,21 @@ class ParametersRequireTest < ActiveSupport::TestCase
       ActionController::Parameters.new(person: {}).require(:person)
     end
   end
+
+  test "require array of params" do
+    safe_params = ActionController::Parameters.new(person: {first_name: 'Gaurish', title: 'Mjallo'})
+      .require(:person)
+      .require([:first_name, :last_name])
+
+    assert_kind_of Array, safe_params
+    assert_equal ['Gaurish', 'Mjallo'], safe_params
+  end
+
+  test "require array when it contains a nil values" do
+    assert_raises(ActionController::ParameterMissing) do
+      safe_params = ActionController::Parameters.new(person: {first_name: 'Gaurish', title: nil})
+        .require(:person)
+        .require([:first_name, :last_name])
+    end
+  end
 end
