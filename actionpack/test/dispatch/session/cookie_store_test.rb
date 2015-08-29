@@ -274,28 +274,32 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
     with_test_route_set(:expire_after => 5.hours) do
       # First request accesses the session
       time = Time.local(2008, 4, 24)
-      Time.stubs(:now).returns(time)
-      expected_expiry = (time + 5.hours).gmtime.strftime("%a, %d %b %Y %H:%M:%S -0000")
+      cookie_body = nil
 
-      cookies[SessionKey] = SignedBar
+      Time.stub :now, time do
+        expected_expiry = (time + 5.hours).gmtime.strftime("%a, %d %b %Y %H:%M:%S -0000")
 
-      get '/set_session_value'
-      assert_response :success
+        cookies[SessionKey] = SignedBar
 
-      cookie_body = response.body
-      assert_equal "_myapp_session=#{cookie_body}; path=/; expires=#{expected_expiry}; HttpOnly",
-        headers['Set-Cookie']
+        get '/set_session_value'
+        assert_response :success
+
+        cookie_body = response.body
+        assert_equal "_myapp_session=#{cookie_body}; path=/; expires=#{expected_expiry}; HttpOnly",
+          headers['Set-Cookie']
+      end
 
       # Second request does not access the session
       time = Time.local(2008, 4, 25)
-      Time.stubs(:now).returns(time)
-      expected_expiry = (time + 5.hours).gmtime.strftime("%a, %d %b %Y %H:%M:%S -0000")
+      Time.stub :now, time do
+        expected_expiry = (time + 5.hours).gmtime.strftime("%a, %d %b %Y %H:%M:%S -0000")
 
-      get '/no_session_access'
-      assert_response :success
+        get '/no_session_access'
+        assert_response :success
 
-      assert_equal "_myapp_session=#{cookie_body}; path=/; expires=#{expected_expiry}; HttpOnly",
-        headers['Set-Cookie']
+        assert_equal "_myapp_session=#{cookie_body}; path=/; expires=#{expected_expiry}; HttpOnly",
+          headers['Set-Cookie']
+      end
     end
   end
 

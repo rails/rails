@@ -1,5 +1,4 @@
 require 'abstract_unit'
-require 'minitest/mock'
 
 class UrlHelperTest < ActiveSupport::TestCase
 

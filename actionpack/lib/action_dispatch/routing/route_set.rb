@@ -1,6 +1,5 @@
 require 'action_dispatch/journey'
 require 'forwardable'
-require 'thread_safe'
 require 'active_support/concern'
 require 'active_support/core_ext/object/to_query'
 require 'active_support/core_ext/hash/slice'
@@ -23,64 +22,43 @@ module ActionDispatch
       class Dispatcher < Routing::Endpoint
         def initialize(raise_on_name_error)
           @raise_on_name_error = raise_on_name_error
-          @controller_class_names = ThreadSafe::Cache.new
         end
 
         def dispatcher?; true; end
 
         def serve(req)
-          req.check_path_parameters!
-          params = req.path_parameters
-
-          prepare_params!(params)
-
-          controller = controller(params, @raise_on_name_error) do
+          params     = req.path_parameters
+          controller = controller req
+          res        = controller.make_response! req
+          dispatch(controller, params[:action], req, res)
+        rescue NameError => e
+          if @raise_on_name_error
+            raise ActionController::RoutingError, e.message, e.backtrace
+          else
             return [404, {'X-Cascade' => 'pass'}, []]
           end
-
-          dispatch(controller, params[:action], req)
-        end
-
-        def prepare_params!(params)
-          normalize_controller!(params)
-          merge_default_action!(params)
-        end
-
-        # If this is a default_controller (i.e. a controller specified by the user)
-        # we should raise an error in case it's not found, because it usually means
-        # a user error. However, if the controller was retrieved through a dynamic
-        # segment, as in :controller(/:action), we should simply return nil and
-        # delegate the control back to Rack cascade. Besides, if this is not a default
-        # controller, it means we should respect the @scope[:module] parameter.
-        def controller(params, raise_on_name_error=true)
-          controller_reference params.fetch(:controller) { yield }
-        rescue NameError => e
-          raise ActionController::RoutingError, e.message, e.backtrace if raise_on_name_error
-          yield
-        end
-
-      protected
-
-        attr_reader :controller_class_names
-
-        def controller_reference(controller_param)
-          const_name = controller_class_names[controller_param] ||= "#{controller_param.camelize}Controller"
-          ActiveSupport::Dependencies.constantize(const_name)
         end
 
       private
 
-        def dispatch(controller, action, req)
-          controller.action(action).call(req.env)
+        def controller(req)
+          req.controller_class
         end
 
-        def normalize_controller!(params)
-          params[:controller] = params[:controller].underscore if params.key?(:controller)
+        def dispatch(controller, action, req, res)
+          controller.dispatch(action, req, res)
+        end
+      end
+
+      class StaticDispatcher < Dispatcher
+        def initialize(controller_class)
+          super(false)
+          @controller_class = controller_class
         end
 
-        def merge_default_action!(params)
-          params[:action] ||= 'index'
-        end
+        private
+
+        def controller(_); @controller_class; end
       end
 
       # A NamedRouteCollection instance is a collection of named routes, and also
@@ -202,9 +180,9 @@ module ActionDispatch
             private
 
             def optimized_helper(args)
-              params = parameterize_args(args) { |k|
+              params = parameterize_args(args) do
                 raise_generation_error(args)
-              }
+              end
 
               @route.format params
             end
@@ -316,7 +294,7 @@ module ActionDispatch
 
       attr_accessor :formatter, :set, :named_routes, :default_scope, :router
       attr_accessor :disable_clear_and_finalize, :resources_path_names
-      attr_accessor :default_url_options, :dispatcher_class
+      attr_accessor :default_url_options
       attr_reader :env_key
 
       alias :routes :set
@@ -359,7 +337,6 @@ module ActionDispatch
         @set    = Journey::Routes.new
         @router = Journey::Router.new @set
         @formatter = Journey::Formatter.new self
-        @dispatcher_class = Routing::RouteSet::Dispatcher
       end
 
       def relative_url_root
@@ -373,6 +350,11 @@ module ActionDispatch
       def request_class
         ActionDispatch::Request
       end
+
+      def make_request(env)
+        request_class.new env
+      end
+      private :make_request
 
       def draw(&block)
         clear! unless @disable_clear_and_finalize
@@ -415,10 +397,6 @@ module ActionDispatch
         set.clear
         formatter.clear
         @prepend.each { |blk| eval_block(blk) }
-      end
-
-      def dispatcher(raise_on_name_error)
-        dispatcher_class.new(raise_on_name_error)
       end
 
       module MountedHelpers
@@ -731,7 +709,7 @@ module ActionDispatch
       end
 
       def call(env)
-        req = request_class.new(env)
+        req = make_request(env)
         req.path_info = Journey::Router::Utils.normalize_path(req.path_info)
         @router.serve(req)
       end
@@ -747,7 +725,7 @@ module ActionDispatch
           raise ActionController::RoutingError, e.message
         end
 
-        req = request_class.new(env)
+        req = make_request(env)
         @router.recognize(req) do |route, params|
           params.merge!(extras)
           params.each do |key, value|
@@ -760,14 +738,13 @@ module ActionDispatch
           req.path_parameters = old_params.merge params
           app = route.app
           if app.matches?(req) && app.dispatcher?
-            dispatcher = app.app
-
-            dispatcher.controller(params, false) do
+            begin
+              req.controller_class
+            rescue NameError
               raise ActionController::RoutingError, "A route matches #{path.inspect}, but references missing controller: #{params[:controller].camelize}Controller"
             end
 
-            dispatcher.prepare_params!(params)
-            return params
+            return req.path_parameters
           end
         end
 

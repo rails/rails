@@ -149,7 +149,7 @@ class ResourcesTest < ActionController::TestCase
         end
       end
 
-      assert_restful_named_routes_for :messages do |options|
+      assert_restful_named_routes_for :messages do
         actions.each_key do |action|
           assert_named_route "/messages/#{action}", "#{action}_messages_path", :action => action
         end
@@ -179,7 +179,7 @@ class ResourcesTest < ActionController::TestCase
         end
       end
 
-      assert_restful_named_routes_for :messages, :path_prefix => 'threads/1/', :name_prefix => 'thread_', :options => { :thread_id => '1' } do |options|
+      assert_restful_named_routes_for :messages, :path_prefix => 'threads/1/', :name_prefix => 'thread_', :options => { :thread_id => '1' } do
         actions.each_key do |action|
           assert_named_route "/threads/1/messages/#{action}", "#{action}_thread_messages_path", :action => action
         end
@@ -206,7 +206,7 @@ class ResourcesTest < ActionController::TestCase
         end
       end
 
-      assert_restful_named_routes_for :messages, :path_prefix => 'threads/1/', :name_prefix => 'thread_', :options => { :thread_id => '1' } do |options|
+      assert_restful_named_routes_for :messages, :path_prefix => 'threads/1/', :name_prefix => 'thread_', :options => { :thread_id => '1' } do
         actions.each_key do |action|
           assert_named_route "/threads/1/messages/#{action}", "#{action}_thread_messages_path", :action => action
         end
@@ -236,7 +236,7 @@ class ResourcesTest < ActionController::TestCase
         end
       end
 
-      assert_restful_named_routes_for :messages, :path_prefix => 'threads/1/', :name_prefix => 'thread_', :options => { :thread_id => '1' } do |options|
+      assert_restful_named_routes_for :messages, :path_prefix => 'threads/1/', :name_prefix => 'thread_', :options => { :thread_id => '1' } do
         actions.each_key do |action|
           assert_named_route "/threads/1/messages/#{action}.xml", "#{action}_thread_messages_path", :action => action, :format => 'xml'
         end
@@ -253,7 +253,7 @@ class ResourcesTest < ActionController::TestCase
           assert_recognizes(options.merge(mark_options), :path => mark_path, :method => method)
         end
 
-        assert_restful_named_routes_for :messages do |options|
+        assert_restful_named_routes_for :messages do
           assert_named_route mark_path, :mark_message_path, mark_options
         end
       end
@@ -278,7 +278,7 @@ class ResourcesTest < ActionController::TestCase
           assert_recognizes(options.merge(mark_options), :path => mark_path, :method => method)
         end
 
-        assert_restful_named_routes_for :messages, :path_names => {:new => 'nuevo'} do |options|
+        assert_restful_named_routes_for :messages, :path_names => {:new => 'nuevo'} do
           assert_named_route mark_path, :mark_message_path, mark_options
         end
       end
@@ -304,7 +304,7 @@ class ResourcesTest < ActionController::TestCase
             assert_recognizes(options.merge(action_options), :path => action_path, :method => method)
           end
 
-          assert_restful_named_routes_for :messages do |options|
+          assert_restful_named_routes_for :messages do
             assert_named_route action_path, "#{action}_message_path".to_sym, action_options
           end
         end
@@ -351,7 +351,7 @@ class ResourcesTest < ActionController::TestCase
         assert_recognizes(options.merge(preview_options), :path => preview_path, :method => :post)
       end
 
-      assert_restful_named_routes_for :messages do |options|
+      assert_restful_named_routes_for :messages do
         assert_named_route preview_path, :preview_new_message_path, preview_options
       end
     end
@@ -373,7 +373,7 @@ class ResourcesTest < ActionController::TestCase
         assert_recognizes(options.merge(preview_options), :path => preview_path, :method => :post)
       end
 
-      assert_restful_named_routes_for :messages, :path_prefix => 'threads/1/', :name_prefix => 'thread_', :options => { :thread_id => '1' } do |options|
+      assert_restful_named_routes_for :messages, :path_prefix => 'threads/1/', :name_prefix => 'thread_', :options => { :thread_id => '1' } do
         assert_named_route preview_path, :preview_new_thread_message_path, preview_options
       end
     end
@@ -395,7 +395,7 @@ class ResourcesTest < ActionController::TestCase
         assert_recognizes(options.merge(preview_options), :path => preview_path, :method => :post)
       end
 
-      assert_restful_named_routes_for :messages, :path_prefix => 'threads/1/', :name_prefix => 'thread_', :options => { :thread_id => '1' } do |options|
+      assert_restful_named_routes_for :messages, :path_prefix => 'threads/1/', :name_prefix => 'thread_', :options => { :thread_id => '1' } do
         assert_named_route preview_path, :preview_new_thread_message_path, preview_options
       end
     end
@@ -519,9 +519,9 @@ class ResourcesTest < ActionController::TestCase
   end
 
   def test_should_create_multiple_singleton_resource_routes
-    with_singleton_resources :account, :logo do
+    with_singleton_resources :account, :product do
       assert_singleton_restful_for :account
-      assert_singleton_restful_for :logo
+      assert_singleton_restful_for :product
     end
   end
 
@@ -553,7 +553,7 @@ class ResourcesTest < ActionController::TestCase
           assert_recognizes(options.merge(reset_options), :path => reset_path, :method => method)
         end
 
-        assert_singleton_named_routes_for :account do |options|
+        assert_singleton_named_routes_for :account do
           assert_named_route reset_path, :reset_account_path, reset_options
         end
       end
@@ -577,7 +577,7 @@ class ResourcesTest < ActionController::TestCase
             assert_recognizes(options.merge(action_options), :path => action_path, :method => method)
           end
 
-          assert_singleton_named_routes_for :account do |options|
+          assert_singleton_named_routes_for :account do
             assert_named_route action_path, "#{action}_account_path".to_sym, action_options
           end
         end
@@ -1070,8 +1070,8 @@ class ResourcesTest < ActionController::TestCase
   end
 
   def test_singleton_resource_name_is_not_singularized
-    with_singleton_resources(:preferences) do
-      assert_singleton_restful_for :preferences
+    with_singleton_resources(:products) do
+      assert_singleton_restful_for :products
     end
   end
 

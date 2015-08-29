@@ -26,7 +26,7 @@ module ActiveSupport
     end
 
     class << self
-      # Creates a new CacheStore object according to the given options.
+      # Creates a new Store object according to the given options.
       #
       # If no arguments are passed to this method, then a new
       # ActiveSupport::Cache::MemoryStore object will be returned.

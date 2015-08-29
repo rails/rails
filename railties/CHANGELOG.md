@@ -1,3 +1,7 @@
+*   `rails server` will now honour the `PORT` environment variable
+
+    *David Cornu*
+
 *   Plugins generated using `rails plugin new` are now generated with the
     version number set to 0.1.0.
 

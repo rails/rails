@@ -315,7 +315,7 @@ module ActionController
       t = Thread.new(@response) { |resp|
         resp.await_commit
         _, _, body = resp.to_a
-        body.each do |part|
+        body.each do
           @controller.latch.wait
           body.close
           break
@@ -339,7 +339,7 @@ module ActionController
       t = Thread.new(@response) { |resp|
         resp.await_commit
         _, _, body = resp.to_a
-        body.each do |part|
+        body.each do
           body.close
           break
         end

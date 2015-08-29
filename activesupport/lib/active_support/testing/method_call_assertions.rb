@@ -1,11 +1,13 @@
+require 'minitest/mock'
+
 module ActiveSupport
   module Testing
     module MethodCallAssertions # :nodoc:
       private
-        def assert_called(object, method_name, message = nil, times: 1)
+        def assert_called(object, method_name, message = nil, times: 1, returns: nil)
           times_called = 0
 
-          object.stub(method_name, proc { times_called += 1 }) { yield }
+          object.stub(method_name, proc { times_called += 1; returns }) { yield }
 
           error = "Expected #{method_name} to be called #{times} times, " \
             "but was called #{times_called} times"

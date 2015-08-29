@@ -1,6 +1,8 @@
 require 'active_support/core_ext/array/extract_options'
 require 'action_dispatch/middleware/stack'
 require 'active_support/deprecation'
+require 'action_dispatch/http/request'
+require 'action_dispatch/http/response'
 
 module ActionController
   # Extend ActionDispatch middleware stack to make it aware of options
@@ -132,23 +134,30 @@ module ActionController
       @controller_name ||= name.demodulize.sub(/Controller$/, '').underscore
     end
 
+    def self.make_response!(request)
+      ActionDispatch::Response.new.tap do |res|
+        res.request = request
+      end
+    end
+
+    def self.build_with_env(env = {}) #:nodoc:
+      new.tap { |c|
+        c.set_request! ActionDispatch::Request.new(env)
+        c.set_response! make_response!(c.request)
+      }
+    end
+
     # Delegates to the class' <tt>controller_name</tt>
     def controller_name
       self.class.controller_name
     end
 
-    # The details below can be overridden to support a specific
-    # Request and Response object. The default ActionController::Base
-    # implementation includes RackDelegation, which makes a request
-    # and response object available. You might wish to control the
-    # environment and response manually for performance reasons.
-
-    attr_internal :headers, :response, :request
+    attr_internal :response, :request
     delegate :session, :to => "@_request"
+    delegate :headers, :status=, :location=, :content_type=,
+             :status, :location, :content_type, :to => "@_response"
 
     def initialize
-      @_headers = {"Content-Type" => "text/html"}
-      @_status = 200
       @_request = nil
       @_response = nil
       @_routes = nil
@@ -163,54 +172,33 @@ module ActionController
       @_params = val
     end
 
-    # Basic implementations for content_type=, location=, and headers are
-    # provided to reduce the dependency on the RackDelegation module
-    # in Renderer and Redirector.
-
-    def content_type=(type)
-      headers["Content-Type"] = type.to_s
-    end
-
-    def content_type
-      headers["Content-Type"]
-    end
-
-    def location
-      headers["Location"]
-    end
-
-    def location=(url)
-      headers["Location"] = url
-    end
+    alias :response_code :status # :nodoc:
 
     # Basic url_for that can be overridden for more robust functionality
     def url_for(string)
       string
     end
 
-    def status
-      @_status
-    end
-    alias :response_code :status # :nodoc:
-
-    def status=(status)
-      @_status = Rack::Utils.status_code(status)
-    end
-
     def response_body=(body)
       body = [body] unless body.nil? || body.respond_to?(:each)
+      response.body = body
       super
     end
 
     # Tests if render or redirect has already happened.
     def performed?
-      response_body || (response && response.committed?)
+      response_body || response.committed?
     end
 
-    def dispatch(name, request) #:nodoc:
+    def dispatch(name, request, response) #:nodoc:
       set_request!(request)
+      set_response!(response)
       process(name)
       to_a
+    end
+
+    def set_response!(response) # :nodoc:
+      @_response = response
     end
 
     def set_request!(request) #:nodoc:
@@ -219,7 +207,11 @@ module ActionController
     end
 
     def to_a #:nodoc:
-      response ? response.to_a : [status, headers, response_body]
+      response.to_a
+    end
+
+    def reset_session
+      @_request.reset_session
     end
 
     class_attribute :middleware_stack
@@ -247,15 +239,32 @@ module ActionController
       req = ActionDispatch::Request.new env
       action(req.path_parameters[:action]).call(env)
     end
+    class << self; deprecate :call; end
 
     # Returns a Rack endpoint for the given action name.
     def self.action(name)
       if middleware_stack.any?
         middleware_stack.build(name) do |env|
-          new.dispatch(name, ActionDispatch::Request.new(env))
+          req = ActionDispatch::Request.new(env)
+          res = make_response! req
+          new.dispatch(name, req, res)
         end
       else
-        lambda { |env| new.dispatch(name, ActionDispatch::Request.new(env)) }
+        lambda { |env|
+          req = ActionDispatch::Request.new(env)
+          res = make_response! req
+          new.dispatch(name, req, res)
+        }
+      end
+    end
+
+    # Direct dispatch to the controller.  Instantiates the controller, then
+    # executes the action named +name+.
+    def self.dispatch(name, req, res)
+      if middleware_stack.any?
+        middleware_stack.build(name) { |env| new.dispatch(name, req, res) }.call req.env
+      else
+        new.dispatch(name, req, res)
       end
     end
   end

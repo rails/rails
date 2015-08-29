@@ -179,7 +179,7 @@ module RenderHtml
 
     test "rendering from minimal controller returns response with text/html content type" do
       get "/render_html/minimal/index"
-      assert_content_type "text/html"
+      assert_content_type "text/html; charset=utf-8"
     end
 
     test "rendering from normal controller returns response with text/html content type" do

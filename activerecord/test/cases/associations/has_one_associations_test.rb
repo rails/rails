@@ -107,6 +107,14 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_nil Account.find(old_account_id).firm_id
   end
 
+  def test_nullification_on_destroyed_association
+    developer = Developer.create!(name: "Someone")
+    ship = Ship.create!(name: "Planet Caravan", developer: developer)
+    ship.destroy
+    assert !ship.persisted?
+    assert !developer.persisted?
+  end
+
   def test_natural_assignment_to_nil_after_destroy
     firm = companies(:rails_core)
     old_account_id = firm.account.id

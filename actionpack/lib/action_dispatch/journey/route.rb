@@ -1,12 +1,10 @@
 module ActionDispatch
   module Journey # :nodoc:
     class Route # :nodoc:
-      attr_reader :app, :path, :defaults, :name
+      attr_reader :app, :path, :defaults, :name, :precedence
 
       attr_reader :constraints
       alias :conditions :constraints
-
-      attr_accessor :precedence
 
       module VerbMatchers
         VERBS = %w{ DELETE GET HEAD OPTIONS LINK PATCH POST PUT TRACE UNLINK }
@@ -51,13 +49,13 @@ module ActionDispatch
 
       def self.build(name, app, path, constraints, required_defaults, defaults)
         request_method_match = verb_matcher(constraints.delete(:request_method))
-        new name, app, path, constraints, required_defaults, defaults, request_method_match
+        new name, app, path, constraints, required_defaults, defaults, request_method_match, 0
       end
 
       ##
       # +path+ is a path constraint.
       # +constraints+ is a hash of constraints to be applied to this route.
-      def initialize(name, app, path, constraints, required_defaults, defaults, request_method_match)
+      def initialize(name, app, path, constraints, required_defaults, defaults, request_method_match, precedence)
         @name        = name
         @app         = app
         @path        = path
@@ -70,7 +68,7 @@ module ActionDispatch
         @required_parts    = nil
         @parts             = nil
         @decorated_ast     = nil
-        @precedence        = 0
+        @precedence        = precedence
         @path_formatter    = @path.build_formatter
       end
 

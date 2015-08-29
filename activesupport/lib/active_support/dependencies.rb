@@ -421,13 +421,13 @@ module ActiveSupport #:nodoc:
 
       bases.each do |root|
         expanded_root = File.expand_path(root)
-        next unless %r{\A#{Regexp.escape(expanded_root)}(/|\\)} =~ expanded_path
+        next unless expanded_path.start_with?(expanded_root)
 
-        nesting = expanded_path[(expanded_root.size)..-1]
-        nesting = nesting[1..-1] if nesting && nesting[0] == ?/
-        next if nesting.blank?
+        root_size = expanded_root.size
+        next if expanded_path[root_size] != ?/.freeze
 
-        paths << nesting.camelize
+        nesting = expanded_path[(root_size + 1)..-1]
+        paths << nesting.camelize unless nesting.blank?
       end
 
       paths.uniq!

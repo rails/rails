@@ -68,7 +68,7 @@ module ActiveRecord
           execute "DROP DATABASE IF EXISTS #{quote_table_name(name)}"
         end
 
-        # Returns the list of all tables in the schema search path or a specified schema.
+        # Returns the list of all tables in the schema search path.
         def tables(name = nil)
           select_values("SELECT tablename FROM pg_tables WHERE schemaname = ANY(current_schemas(false))", 'SCHEMA')
         end
@@ -210,12 +210,12 @@ module ActiveRecord
 
         # Creates a schema for the given schema name.
         def create_schema schema_name
-          execute "CREATE SCHEMA #{schema_name}"
+          execute "CREATE SCHEMA #{quote_schema_name(schema_name)}"
         end
 
         # Drops the schema for the given schema name.
-        def drop_schema schema_name
-          execute "DROP SCHEMA #{schema_name} CASCADE"
+        def drop_schema(schema_name, options = {})
+          execute "DROP SCHEMA#{' IF EXISTS' if options[:if_exists]} #{quote_schema_name(schema_name)} CASCADE"
         end
 
         # Sets the schema search path to a string of comma-separated schema names.
@@ -376,7 +376,7 @@ module ActiveRecord
             new_seq = "#{new_name}_#{pk}_seq"
             idx = "#{table_name}_pkey"
             new_idx = "#{new_name}_pkey"
-            execute "ALTER TABLE #{quote_table_name(seq)} RENAME TO #{quote_table_name(new_seq)}"
+            execute "ALTER TABLE #{seq.quoted} RENAME TO #{quote_table_name(new_seq)}"
             execute "ALTER INDEX #{quote_table_name(idx)} RENAME TO #{quote_table_name(new_idx)}"
           end
 

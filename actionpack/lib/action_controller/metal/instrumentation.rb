@@ -11,7 +11,6 @@ module ActionController
     extend ActiveSupport::Concern
 
     include AbstractController::Logger
-    include ActionController::RackDelegation
 
     attr_internal :view_runtime
 

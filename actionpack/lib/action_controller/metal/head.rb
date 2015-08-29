@@ -28,7 +28,7 @@ module ActionController
       end
 
       status ||= :ok
-      
+
       location = options.delete(:location)
       content_type = options.delete(:content_type)
 
@@ -43,12 +43,9 @@ module ActionController
 
       if include_content?(self.response_code)
         self.content_type = content_type || (Mime[formats.first] if formats)
-        self.response.charset = false if self.response
-      else
-        headers.delete('Content-Type')
-        headers.delete('Content-Length')
+        self.response.charset = false
       end
-      
+
       true
     end
 

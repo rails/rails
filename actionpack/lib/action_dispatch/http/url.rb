@@ -229,10 +229,10 @@ module ActionDispatch
       #   req = Request.new 'HTTP_HOST' => 'example.com:8080'
       #   req.raw_host_with_port # => "example.com:8080"
       def raw_host_with_port
-        if forwarded = env["HTTP_X_FORWARDED_HOST"].presence
+        if forwarded = x_forwarded_host.presence
           forwarded.split(/,\s?/).last
         else
-          env['HTTP_HOST'] || "#{env['SERVER_NAME'] || env['SERVER_ADDR']}:#{env['SERVER_PORT']}"
+          get_header('HTTP_HOST') || "#{server_name || server_addr}:#{get_header('SERVER_PORT')}"
         end
       end
 
@@ -348,7 +348,7 @@ module ActionDispatch
       end
 
       def server_port
-        @env['SERVER_PORT'].to_i
+        get_header('SERVER_PORT').to_i
       end
 
       # Returns the \domain part of a \host, such as "rubyonrails.org" in "www.rubyonrails.org". You can specify

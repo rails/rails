@@ -409,7 +409,10 @@ module ActiveRecord
         new.migrate direction
       end
 
-      # Disable DDL transactions for this migration.
+      # Disable the transaction wrapping this migration.
+      # You can still create your own transactions even after calling #disable_ddl_transaction!
+      #
+      # For more details read the {"Transactional Migrations" section above}[rdoc-ref:Migration].
       def disable_ddl_transaction!
         @disable_ddl_transaction = true
       end
@@ -456,7 +459,7 @@ module ActiveRecord
     # Or equivalently, if +TenderloveMigration+ is defined as in the
     # documentation for Migration:
     #
-    #   require_relative '2012121212_tenderlove_migration'
+    #   require_relative '20121212123456_tenderlove_migration'
     #
     #   class FixupTLMigration < ActiveRecord::Migration
     #     def change
@@ -472,13 +475,13 @@ module ActiveRecord
     def revert(*migration_classes)
       run(*migration_classes.reverse, revert: true) unless migration_classes.empty?
       if block_given?
-        if @connection.respond_to? :revert
-          @connection.revert { yield }
+        if connection.respond_to? :revert
+          connection.revert { yield }
         else
-          recorder = CommandRecorder.new(@connection)
+          recorder = CommandRecorder.new(connection)
           @connection = recorder
           suppress_messages do
-            @connection.revert { yield }
+            connection.revert { yield }
           end
           @connection = recorder.delegate
           recorder.commands.each do |cmd, args, block|
@@ -489,7 +492,7 @@ module ActiveRecord
     end
 
     def reverting?
-      @connection.respond_to?(:reverting) && @connection.reverting
+      connection.respond_to?(:reverting) && connection.reverting
     end
 
     class ReversibleBlockHelper < Struct.new(:reverting) # :nodoc:
@@ -546,7 +549,7 @@ module ActiveRecord
         revert { run(*migration_classes, direction: dir, revert: true) }
       else
         migration_classes.each do |migration_class|
-          migration_class.new.exec_migration(@connection, dir)
+          migration_class.new.exec_migration(connection, dir)
         end
       end
     end
@@ -638,7 +641,7 @@ module ActiveRecord
       arg_list = arguments.map(&:inspect) * ', '
 
       say_with_time "#{method}(#{arg_list})" do
-        unless @connection.respond_to? :revert
+        unless connection.respond_to? :revert
           unless arguments.empty? || [:execute, :enable_extension, :disable_extension].include?(method)
             arguments[0] = proper_table_name(arguments.first, table_name_options)
             if [:rename_table, :add_foreign_key].include?(method) ||
@@ -811,7 +814,7 @@ module ActiveRecord
         new(:up, migrations, target_version).migrate
       end
 
-      def down(migrations_paths, target_version = nil, &block)
+      def down(migrations_paths, target_version = nil)
         migrations = migrations(migrations_paths)
         migrations.select! { |m| yield m } if block_given?
 

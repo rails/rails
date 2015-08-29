@@ -1,3 +1,8 @@
+*   Update `ActionController::TestSession#fetch` to behave more like
+    `ActionDispatch::Request::Session#fetch` when using non-string keys.
+
+    *Jeremy Friesen*
+
 *   Using strings or symbols for middleware class names is deprecated.  Convert
     things like this:
 

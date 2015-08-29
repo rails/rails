@@ -20,6 +20,7 @@ module ActionView
 
   class TestCase
     helper ASharedTestHelper
+    DeveloperStruct = Struct.new(:name)
 
     module SharedTests
       def self.included(test_case)
@@ -50,7 +51,7 @@ module ActionView
     end
 
     test "works without testing a helper module" do
-      assert_equal 'Eloy', render('developers/developer', :developer => stub(:name => 'Eloy'))
+      assert_equal 'Eloy', render('developers/developer', :developer => DeveloperStruct.new('Eloy'))
     end
 
     test "can render a layout with block" do
@@ -69,13 +70,15 @@ module ActionView
     end
 
     test "delegates notice to request.flash[:notice]" do
-      view.request.flash.expects(:[]).with(:notice)
-      view.notice
+      assert_called_with(view.request.flash, :[], [:notice]) do
+        view.notice
+      end
     end
 
     test "delegates alert to request.flash[:alert]" do
-      view.request.flash.expects(:[]).with(:alert)
-      view.alert
+      assert_called_with(view.request.flash, :[], [:alert]) do
+        view.alert
+      end
     end
 
     test "uses controller lookup context" do
@@ -119,7 +122,7 @@ module ActionView
     test "helper class that is being tested is always included in view instance" do
       @controller.controller_path = 'test'
 
-      @customers = [stub(:name => 'Eloy'), stub(:name => 'Manfred')]
+      @customers = [DeveloperStruct.new('Eloy'), DeveloperStruct.new('Manfred')]
       assert_match(/Hello: EloyHello: Manfred/, render(:partial => 'test/from_helper'))
     end
   end
@@ -255,15 +258,15 @@ module ActionView
     end
 
     test "is able to render partials with local variables" do
-      assert_equal 'Eloy', render('developers/developer', :developer => stub(:name => 'Eloy'))
+      assert_equal 'Eloy', render('developers/developer', :developer => DeveloperStruct.new('Eloy'))
       assert_equal 'Eloy', render(:partial => 'developers/developer',
-                                  :locals => { :developer => stub(:name => 'Eloy') })
+                                  :locals => { :developer => DeveloperStruct.new('Eloy') })
     end
 
     test "is able to render partials from templates and also use instance variables" do
       @controller.controller_path = "test"
 
-      @customers = [stub(:name => 'Eloy'), stub(:name => 'Manfred')]
+      @customers = [DeveloperStruct.new('Eloy'), DeveloperStruct.new('Manfred')]
       assert_match(/Hello: EloyHello: Manfred/, render(:file => 'test/list'))
     end
 
@@ -272,7 +275,7 @@ module ActionView
 
       view
 
-      @customers = [stub(:name => 'Eloy'), stub(:name => 'Manfred')]
+      @customers = [DeveloperStruct.new('Eloy'), DeveloperStruct.new('Manfred')]
       assert_match(/Hello: EloyHello: Manfred/, render(:file => 'test/list'))
     end
 

@@ -102,16 +102,21 @@ class MailDeliveryTest < ActiveSupport::TestCase
   end
 
   test "ActionMailer should be told when Mail gets delivered" do
-    DeliveryMailer.expects(:deliver_mail).once
-    DeliveryMailer.welcome.deliver_now
+    DeliveryMailer.delivery_method = :test
+    assert_called(DeliveryMailer, :deliver_mail) do
+      DeliveryMailer.welcome.deliver_now
+    end
   end
 
   test "delivery method can be customized per instance" do
-    Mail::SMTP.any_instance.expects(:deliver!)
-    email = DeliveryMailer.welcome.deliver_now
-    assert_instance_of Mail::SMTP, email.delivery_method
-    email = DeliveryMailer.welcome(delivery_method: :test).deliver_now
-    assert_instance_of Mail::TestMailer, email.delivery_method
+    stub_any_instance(Mail::SMTP, instance: Mail::SMTP.new({})) do |instance|
+      assert_called(instance, :deliver!) do
+        email = DeliveryMailer.welcome.deliver_now
+        assert_instance_of Mail::SMTP, email.delivery_method
+        email = DeliveryMailer.welcome(delivery_method: :test).deliver_now
+        assert_instance_of Mail::TestMailer, email.delivery_method
+      end
+    end
   end
 
   test "delivery method can be customized in subclasses not changing the parent" do
@@ -176,8 +181,11 @@ class MailDeliveryTest < ActiveSupport::TestCase
     old_perform_deliveries = DeliveryMailer.perform_deliveries
     begin
       DeliveryMailer.perform_deliveries = false
-      Mail::Message.any_instance.expects(:deliver!).never
-      DeliveryMailer.welcome.deliver_now
+      stub_any_instance(Mail::Message) do |instance|
+        assert_not_called(instance, :deliver!) do
+          DeliveryMailer.welcome.deliver_now
+        end
+      end
     ensure
       DeliveryMailer.perform_deliveries = old_perform_deliveries
     end

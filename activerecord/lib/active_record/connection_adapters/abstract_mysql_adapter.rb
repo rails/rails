@@ -1050,7 +1050,7 @@ module ActiveRecord
         end
       end
 
-      class MysqlJson < Type::Json # :nodoc:
+      class MysqlJson < Type::Internal::AbstractJson # :nodoc:
         def changed_in_place?(raw_old_value, new_value)
           # Normalization is required because MySQL JSON data format includes
           # the space between the elements.

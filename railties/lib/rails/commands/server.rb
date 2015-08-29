@@ -86,7 +86,7 @@ module Rails
 
     def default_options
       super.merge({
-        Port:               3000,
+        Port:               ENV.fetch('PORT', 3000).to_i,
         DoNotReverseLookup: true,
         environment:        (ENV['RAILS_ENV'] || ENV['RACK_ENV'] || "development").dup,
         daemonize:          false,

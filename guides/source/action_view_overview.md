@@ -1443,12 +1443,12 @@ Sanitizes a block of CSS code.
 Strips all link tags from text leaving just the link text.
 
 ```ruby
-strip_links("<a href="http://rubyonrails.org">Ruby on Rails</a>")
+strip_links('<a href="http://rubyonrails.org">Ruby on Rails</a>')
 # => Ruby on Rails
 ```
 
 ```ruby
-strip_links("emails to <a href="mailto:me@email.com">me@email.com</a>.")
+strip_links('emails to <a href="mailto:me@email.com">me@email.com</a>.')
 # => emails to me@email.com.
 ```
 

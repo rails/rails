@@ -9,6 +9,7 @@ silence_warnings do
 end
 
 require 'active_support/testing/autorun'
+require 'active_support/testing/method_call_assertions'
 require 'action_mailer'
 require 'action_mailer/test_case'
 
@@ -40,4 +41,6 @@ def jruby_skip(message = '')
   skip message if defined?(JRUBY_VERSION)
 end
 
-require 'mocha/setup' # FIXME: stop using mocha
+class ActiveSupport::TestCase
+  include ActiveSupport::Testing::MethodCallAssertions
+end

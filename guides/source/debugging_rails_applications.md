@@ -351,6 +351,7 @@ by asking the debugger for help. Type: `help`
   help                -- prints this help.
   help <cmd>          -- prints help on command <cmd>.
   help <cmd> <subcmd> -- prints help on <cmd>'s subcommand <subcmd>.
+```
 
 To see the previous ten lines you should type `list-` (or `l-`).
 
@@ -458,12 +459,12 @@ The debugger can list, stop, resume and switch between running threads by using
 the `thread` command (or the abbreviated `th`). This command has a handful of
 options:
 
-* `thread` shows the current thread.
-* `thread list` is used to list all threads and their statuses. The plus +
+* `thread`: shows the current thread.
+* `thread list`: is used to list all threads and their statuses. The plus +
 character and the number indicates the current thread of execution.
-* `thread stop _n_` stop thread _n_.
-* `thread resume _n_` resumes thread _n_.
-* `thread switch _n_` switches the current thread context to _n_.
+* `thread stop _n_`: stop thread _n_.
+* `thread resume _n_`: resumes thread _n_.
+* `thread switch _n_`: switches the current thread context to _n_.
 
 This command is very helpful when you are debugging concurrent threads and need
 to verify that there are no race conditions in your code.
@@ -619,13 +620,16 @@ Processing by ArticlesController#index as HTML
 (byebug)
 ```
 
-If we use `next`, we want go deep inside method calls. Instead, byebug will go
-to the next line within the same context. In this case, this is the last line of
-the method, so `byebug` will jump to next next line of the previous frame.
+If we use `next`, we won't go deep inside method calls. Instead, `byebug` will
+go to the next line within the same context. In this case, it is the last line
+of the current method, so `byebug` will return to the next line of the caller
+method.
 
 ```
 (byebug) next
-Next went up a frame because previous frame finished
+
+Next advances to the next line (line 6: `end`), which returns to the next line
+of the caller method:
 
 [4, 13] in /PathTo/project/test_app/app/controllers/articles_controller.rb
     4:   # GET /articles
@@ -642,8 +646,8 @@ Next went up a frame because previous frame finished
 (byebug)
 ```
 
-If we use `step` in the same situation, we will literally go to the next Ruby
-instruction to be executed. In this case, Active Support's `week` method.
+If we use `step` in the same situation, `byebug` will literally go to the next
+Ruby instruction to be executed -- in this case, Active Support's `week` method.
 
 ```
 (byebug) step
@@ -741,12 +745,12 @@ To list all active catchpoints use `catch`.
 There are two ways to resume execution of an application that is stopped in the
 debugger:
 
-* `continue` [line-specification] \(or `c`): resume program execution, at the
+* `continue [line-specification]` \(or `c`): resume program execution, at the
 address where your script last stopped; any breakpoints set at that address are
 bypassed. The optional argument line-specification allows you to specify a line
 number to set a one-time breakpoint which is deleted when that breakpoint is
 reached.
-* `finish` [frame-number] \(or `fin`): execute until the selected stack frame
+* `finish [frame-number]` \(or `fin`): execute until the selected stack frame
 returns. If no frame number is given, the application will run until the
 currently selected frame returns. The currently selected frame starts out the
 most-recent frame or 0 if no frame positioning (e.g up, down or frame) has been

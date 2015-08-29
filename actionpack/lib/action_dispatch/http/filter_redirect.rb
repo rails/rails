@@ -16,7 +16,7 @@ module ActionDispatch
 
       def location_filters
         if request
-          request.env['action_dispatch.redirect_filter'] || []
+          request.get_header('action_dispatch.redirect_filter') || []
         else
           []
         end

@@ -10,7 +10,6 @@ require 'active_record/type/decimal'
 require 'active_record/type/decimal_without_scale'
 require 'active_record/type/float'
 require 'active_record/type/integer'
-require 'active_record/type/json'
 require 'active_record/type/serialized'
 require 'active_record/type/string'
 require 'active_record/type/text'
@@ -20,6 +19,8 @@ require 'active_record/type/unsigned_integer'
 require 'active_record/type/adapter_specific_registry'
 require 'active_record/type/type_map'
 require 'active_record/type/hash_lookup_type_map'
+
+require 'active_record/type/internal/abstract_json'
 
 module ActiveRecord
   module Type
@@ -60,7 +61,6 @@ module ActiveRecord
     register(:decimal, Type::Decimal, override: false)
     register(:float, Type::Float, override: false)
     register(:integer, Type::Integer, override: false)
-    register(:json, Type::Json, override: false)
     register(:string, Type::String, override: false)
     register(:text, Type::Text, override: false)
     register(:time, Type::Time, override: false)

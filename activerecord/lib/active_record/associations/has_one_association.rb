@@ -65,7 +65,7 @@ module ActiveRecord
             when :destroy
               target.destroy
             when :nullify
-              target.update_columns(reflection.foreign_key => nil)
+              target.update_columns(reflection.foreign_key => nil) if target.persisted?
           end
         end
       end

@@ -4,6 +4,7 @@ require 'models/reply'
 require 'models/warehouse_thing'
 require 'models/guid'
 require 'models/event'
+require 'models/dashboard'
 
 class Wizard < ActiveRecord::Base
   self.abstract_class = true
@@ -445,5 +446,27 @@ class UniquenessValidationTest < ActiveRecord::TestCase
 
     key2.key_number = 10
     assert_not key2.valid?
+  end
+
+  def test_validate_uniqueness_without_primary_key
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "dashboards"
+
+      validates_uniqueness_of :dashboard_id
+
+      def self.name; "Dashboard" end
+    end
+
+    abc = klass.create!(dashboard_id: "abc")
+    assert klass.new(dashboard_id: "xyz").valid?
+    assert_not klass.new(dashboard_id: "abc").valid?
+
+    abc.dashboard_id = "def"
+
+    e = assert_raises ActiveRecord::UnknownPrimaryKey do
+      abc.save!
+    end
+    assert_match(/\AUnknown primary key for table dashboards in model/, e.message)
+    assert_match(/Can not validate uniqueness for persisted record without primary key.\z/, e.message)
   end
 end

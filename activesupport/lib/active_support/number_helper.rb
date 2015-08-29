@@ -135,6 +135,9 @@ module ActiveSupport
     #   to ",").
     # * <tt>:separator</tt> - Sets the separator between the
     #   fractional and integer digits (defaults to ".").
+    # * <tt>:delimiter_pattern</tt> - Sets a custom regular expression used for
+    #   deriving the placement of delimiter. Helpful when using currency formats
+    #   like INR.
     #
     # ==== Examples
     #
@@ -147,7 +150,10 @@ module ActiveSupport
     #   number_to_delimited(12345678.05, locale: :fr)    # => 12 345 678,05
     #   number_to_delimited('112a')                      # => 112a
     #   number_to_delimited(98765432.98, delimiter: ' ', separator: ',')
-    #   # => 98 765 432,98
+    #                                                    # => 98 765 432,98
+    #   number_to_delimited("123456.78",
+    #     delimiter_pattern: /(\d+?)(?=(\d\d)+(\d)(?!\d))/)
+    #                                                    # => 1,23,456.78
     def number_to_delimited(number, options = {})
       NumberToDelimitedConverter.convert(number, options)
     end

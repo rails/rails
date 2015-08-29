@@ -150,9 +150,9 @@ module ActionDispatch
                             conditions,
                             required_defaults,
                             defaults,
-                            request_method)
+                            request_method,
+                            precedence)
 
-          route.precedence = precedence
           route
         end
 
@@ -283,12 +283,16 @@ module ActionDispatch
           end
 
           def app(blocks)
-            if to.respond_to?(:call)
-              Constraints.new(to, blocks, Constraints::CALL)
-            elsif blocks.any?
-              Constraints.new(dispatcher(defaults.key?(:controller)), blocks, Constraints::SERVE)
+            if to.is_a?(Class) && to < ActionController::Metal
+              Routing::RouteSet::StaticDispatcher.new to
             else
-              dispatcher(defaults.key?(:controller))
+              if to.respond_to?(:call)
+                Constraints.new(to, blocks, Constraints::CALL)
+              elsif blocks.any?
+                Constraints.new(dispatcher(defaults.key?(:controller)), blocks, Constraints::SERVE)
+              else
+                dispatcher(defaults.key?(:controller))
+              end
             end
           end
 
@@ -368,7 +372,7 @@ module ActionDispatch
           end
 
           def dispatcher(raise_on_name_error)
-            @set.dispatcher raise_on_name_error
+            Routing::RouteSet::Dispatcher.new raise_on_name_error
           end
       end
 

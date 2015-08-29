@@ -4,7 +4,6 @@ module ActionController
   module ConditionalGet
     extend ActiveSupport::Concern
 
-    include RackDelegation
     include Head
 
     included do

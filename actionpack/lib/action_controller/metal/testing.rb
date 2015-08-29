@@ -2,8 +2,6 @@ module ActionController
   module Testing
     extend ActiveSupport::Concern
 
-    include RackDelegation
-
     # TODO : Rewrite tests using controller.headers= to use Rack env
     def headers=(new_headers)
       @_response ||= ActionDispatch::Response.new

@@ -56,14 +56,12 @@ module ActionController
       nil
     end
 
-    def _process_format(format, options = {})
-      super
+    def _get_content_type(rendered_format)
+      self.content_type || super
+    end
 
-      if options[:plain]
-        self.content_type = Mime::TEXT
-      else
-        self.content_type ||= format.to_s
-      end
+    def _set_content_type(format)
+      self.content_type = format
     end
 
     # Normalize arguments by catching blocks and setting them on :update.

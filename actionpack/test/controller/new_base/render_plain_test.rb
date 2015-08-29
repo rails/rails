@@ -157,7 +157,7 @@ module RenderPlain
 
     test "rendering from minimal controller returns response with text/plain content type" do
       get "/render_plain/minimal/index"
-      assert_content_type "text/plain"
+      assert_content_type "text/plain; charset=utf-8"
     end
 
     test "rendering from normal controller returns response with text/plain content type" do

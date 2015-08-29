@@ -1,5 +1,8 @@
 require "cases/helper"
 
+class Horse < ActiveRecord::Base
+end
+
 module ActiveRecord
   class InvertibleMigrationTest < ActiveRecord::TestCase
     class SilentMigration < ActiveRecord::Migration
@@ -73,6 +76,20 @@ module ActiveRecord
         change_table("horses") do |t|
           t.remove_index [:name, :color]
         end
+      end
+    end
+
+    class ChangeColumnDefault1 < SilentMigration
+      def change
+        create_table("horses") do |t|
+          t.column :name, :string, default: "Sekitoba"
+        end
+      end
+    end
+
+    class ChangeColumnDefault2 < SilentMigration
+      def change
+        change_column_default :horses, :name, from: "Sekitoba", to: "Diomed"
       end
     end
 
@@ -221,6 +238,21 @@ module ActiveRecord
       assert revert.connection.table_exists?("horses")
       revert.migrate :up
       assert !revert.connection.table_exists?("horses")
+    end
+
+    def test_migrate_revert_change_column_default
+      migration1 = ChangeColumnDefault1.new
+      migration1.migrate(:up)
+      assert_equal "Sekitoba", Horse.new.name
+
+      migration2 = ChangeColumnDefault2.new
+      migration2.migrate(:up)
+      Horse.reset_column_information
+      assert_equal "Diomed", Horse.new.name
+
+      migration2.migrate(:down)
+      Horse.reset_column_information
+      assert_equal "Sekitoba", Horse.new.name
     end
 
     def test_revert_order

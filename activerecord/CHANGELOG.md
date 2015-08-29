@@ -1,3 +1,34 @@
+*   PostgreSQL, `create_schema`, `drop_schema` and `rename_table` now quote
+    schema names.
+
+    Fixes #21418.
+
+    Example:
+
+        create_schema("my.schema")
+        # CREATE SCHEMA "my.schema";
+
+    *Yves Senn*
+
+*   PostgreSQL, add `:if_exists` option to `#drop_schema`. This makes it
+    possible to drop a schema that might exist without raising an exception if
+    it doesn't.
+
+    *Yves Senn*
+
+*   Only try to nullify has_one target association if the record is persisted.
+
+    Fixes #21223.
+
+    *Agis Anastasopoulos*
+
+*   Uniqueness validator raises descriptive error when running on a persisted
+    record without primary key.
+
+    Closes #21304.
+
+    *Yves Senn*
+
 *   Add a native JSON data type support in MySQL.
 
     Example:
