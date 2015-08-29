@@ -283,9 +283,9 @@ module ActionController
     #
     # but take into account that at some point those ones have to be permitted:
     #
-    #   def user_params
-    #     params.require(:person).permit(:name).tap do |user_params|
-    #       user_params.require(:name) # SAFER
+    #   def person_params
+    #     params.require(:person).permit(:name).tap do |person_params|
+    #       person_params.require(:name) # SAFER
     #     end
     #   end
     #
