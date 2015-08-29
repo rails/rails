@@ -1,3 +1,11 @@
+*   Fix `DateTime#end_of_X` to properly handle `usec`:
+        dt = DateTime.now.end_of_day
+        dt.usec.eql?(999999) => true
+
+    Fixes #21424.
+
+    *Dan Moore*
+
 *   `number_to_currency` and `number_with_delimiter` now accept custom `delimiter_pattern` option 
      to handle placement of delimiter, to support currency formats like INR 
      
