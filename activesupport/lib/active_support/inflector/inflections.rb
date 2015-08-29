@@ -134,8 +134,7 @@ module ActiveSupport
       # always be a string that may include references to the matched data from
       # the rule.
       def plural(rule, replacement)
-        @uncountables.delete(rule) if rule.is_a?(String)
-        @uncountables.delete(replacement)
+        delete_uncountables(rule, replacement)
         @plurals.prepend([rule, replacement])
       end
 
@@ -144,8 +143,7 @@ module ActiveSupport
       # always be a string that may include references to the matched data from
       # the rule.
       def singular(rule, replacement)
-        @uncountables.delete(rule) if rule.is_a?(String)
-        @uncountables.delete(replacement)
+        delete_uncountables(rule, replacement)
         @singulars.prepend([rule, replacement])
       end
 
@@ -204,6 +202,13 @@ module ActiveSupport
       #   human 'legacy_col_person_name', 'Name'
       def human(rule, replacement)
         @humans.prepend([rule, replacement])
+      end
+
+      # Remove the words into @uncontables
+      # if it's defined in rule or replacement
+      def delete_uncountables(rule, replacement)
+        @uncountables.delete(rule) if rule.is_a?(String)
+        @uncountables.delete(replacement)
       end
 
       # Clears the loaded inflections within a given scope (default is
