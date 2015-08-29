@@ -263,7 +263,7 @@ module ActionController
     #   # ActionController::ParameterMissing: param is missing or the value is empty: person
     #
     # When given an array of keys, the method tries to require each one of them
-    # in order. It if succeeds an array with the respective return values is
+    # in order. If it succeeds, an array with the respective return values is
     # returned:
     #
     #   params = ActionController::Parameters.new(user: { ... }, profile: { ... })
