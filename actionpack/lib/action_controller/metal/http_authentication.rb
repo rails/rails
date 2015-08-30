@@ -203,7 +203,7 @@ module ActionController
           password = password_procedure.call(credentials[:username])
           return false unless password
 
-          method = request.env['rack.methodoverride.original_method'] || request.env['REQUEST_METHOD']
+          method = request.get_header('rack.methodoverride.original_method') || request.get_header('REQUEST_METHOD')
           uri    = credentials[:uri]
 
           [true, false].any? do |trailing_question_mark|
