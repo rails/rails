@@ -93,6 +93,18 @@ module ActiveRecord
       end
     end
 
+    class DisableExtension1 < SilentMigration
+      def change
+        enable_extension "hstore"
+      end
+    end
+
+    class DisableExtension2 < SilentMigration
+      def change
+        disable_extension "hstore"
+      end
+    end
+
     class LegacyMigration < ActiveRecord::Migration
       def self.up
         create_table("horses") do |t|
@@ -253,6 +265,27 @@ module ActiveRecord
       migration2.migrate(:down)
       Horse.reset_column_information
       assert_equal "Sekitoba", Horse.new.name
+    end
+
+    if current_adapter?(:PostgreSQLAdapter)
+      def test_migrate_enable_and_disable_extension
+        migration1 = InvertibleMigration.new
+        migration2 = DisableExtension1.new
+        migration3 = DisableExtension2.new
+
+        migration1.migrate(:up)
+        migration2.migrate(:up)
+        assert_equal true, Horse.connection.extension_enabled?('hstore')
+
+        migration3.migrate(:up)
+        assert_equal false, Horse.connection.extension_enabled?('hstore')
+
+        migration3.migrate(:down)
+        assert_equal true, Horse.connection.extension_enabled?('hstore')
+
+        migration2.migrate(:down)
+        assert_equal false, Horse.connection.extension_enabled?('hstore')
+      end
     end
 
     def test_revert_order
