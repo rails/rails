@@ -1,3 +1,33 @@
+*   Add inline output to `bin/rails test`
+
+    Any failures or errors (and skips if running in verbose mode) are output
+    during a test run:
+
+    ```
+    # Running:
+
+    .....S..........................................F
+
+    This failed
+
+    bin/rails test test/models/bunny_test.rb:14
+
+    .................................E
+
+    ArgumentError: Wups! Bet you didn't expect this!
+        test/models/bunny_test.rb:19:in `block in <class:BunnyTest>'
+
+    bin/rails test test/models/bunny_test.rb:18
+
+    ....................
+
+    Finished in 0.069708s, 1477.6019 runs/s, 1448.9106 assertions/s.
+    ```
+
+    Output can be deferred to after a run with the `--defer-output` option.
+
+    *Kasper Timm Hansen*
+
 *   Fix displaying mailer previews on non local requests when config
     `action_mailer.show_previews` is set
 
