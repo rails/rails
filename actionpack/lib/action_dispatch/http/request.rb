@@ -158,6 +158,10 @@ module ActionDispatch
       set_header('action_controller.instance'.freeze, controller)
     end
 
+    def http_auth_salt
+      get_header "action_dispatch.http_auth_salt"
+    end
+
     def show_exceptions? # :nodoc:
       # We're treating `nil` as "unset", and we want the default setting to be
       # `true`.  This logic should be extracted to `env_config` and calculated
