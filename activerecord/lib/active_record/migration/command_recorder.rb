@@ -69,7 +69,12 @@ module ActiveRecord
       # invert the +command+.
       def inverse_of(command, args, &block)
         method = :"invert_#{command}"
-        raise IrreversibleMigration, "This migration uses #{command} that is not automatically reversible, please define down method" unless respond_to?(method, true)
+        raise IrreversibleMigration, <<-MSG.strip_heredoc unless respond_to?(method, true)
+          This migration uses #{command} that is not automatically reversible.
+          There are two ways to mitigate this problem.
+          1. Define up and down methods instead of change method
+          2. Use reversible method in change method
+        MSG
         send(method, args, &block)
       end
 
