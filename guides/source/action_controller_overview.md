@@ -1029,7 +1029,7 @@ There are a couple of things to notice in the above example. We need to make
 sure to close the response stream. Forgetting to close the stream will leave
 the socket open forever. We also have to set the content type to `text/event-stream`
 before we write to the response stream. This is because headers cannot be written
-after the response has been committed (when `response.committed` returns a truthy
+after the response has been committed (when `response.committed?` returns a truthy
 value), which occurs when you `write` or `commit` the response stream.
 
 #### Example Usage
