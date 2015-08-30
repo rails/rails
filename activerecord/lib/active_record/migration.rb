@@ -168,7 +168,7 @@ module ActiveRecord
   #
   #   rails generate migration add_fieldname_to_tablename fieldname:string
   #
-  # This will generate the file <tt>timestamp_add_fieldname_to_tablename</tt>, which will look like this:
+  # This will generate the file <tt>timestamp_add_fieldname_to_tablename.rb</tt>, which will look like this:
   #   class AddFieldnameToTablename < ActiveRecord::Migration
   #     def change
   #       add_column :tablenames, :fieldname, :string

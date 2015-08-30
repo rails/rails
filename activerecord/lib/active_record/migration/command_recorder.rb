@@ -48,7 +48,7 @@ module ActiveRecord
         @reverting = !@reverting
       end
 
-      # record +command+. +command+ should be a method name and arguments.
+      # Record +command+. +command+ should be a method name and arguments.
       # For example:
       #
       #   recorder.record(:method_name, [:arg1, :arg2])
