@@ -11,7 +11,7 @@ module ActiveSupport
       NORMALIZATION_FORMS = [:c, :kc, :d, :kd]
 
       # The Unicode version that is supported by the implementation
-      UNICODE_VERSION = '7.0.0'
+      UNICODE_VERSION = '8.0.0'
 
       # The default normalization used for operations that require
       # normalization. It can be set to any of the normalizations

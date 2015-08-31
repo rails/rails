@@ -1,3 +1,7 @@
+*   Updated Unicode version to 8.0.0
+
+    *Anshul Sharma*
+    
 *   `number_to_currency` and `number_with_delimiter` now accept custom `delimiter_pattern` option
      to handle placement of delimiter, to support currency formats like INR
 
