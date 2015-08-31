@@ -23,7 +23,7 @@ class Cable.ConnectionMonitor
     if @reconnectAttempts is 0
       @reconnectAttempts += 1
       setTimeout =>
-        @consumer.connection.open()
+        @consumer.connection.open() unless @consumer.connection.isOpen()
       , 200
 
   received: ->
