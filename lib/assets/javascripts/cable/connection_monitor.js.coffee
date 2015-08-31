@@ -20,8 +20,7 @@ class Cable.ConnectionMonitor
     @pingedAt = now()
 
   disconnected: ->
-    if @reconnectAttempts is 0
-      @reconnectAttempts += 1
+    if @reconnectAttempts++ is 0
       setTimeout =>
         @consumer.connection.open() unless @consumer.connection.isOpen()
       , 200
@@ -57,7 +56,7 @@ class Cable.ConnectionMonitor
 
   reconnectIfStale: ->
     if @connectionIsStale()
-      @reconnectAttempts += 1
+      @reconnectAttempts++
       @consumer.connection.reopen()
 
   connectionIsStale: ->
