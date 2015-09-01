@@ -1,13 +1,19 @@
-*   `number_to_currency` and `number_with_delimiter` now accept custom `delimiter_pattern` option 
-     to handle placement of delimiter, to support currency formats like INR 
-     
-     Example: 
-        
+*   `ActiveSupport::ArrayInquirer` will now properly find your entry regardless of whether the array
+    values are of type String or type Symbol, and whether you are asking `any?` with a String or
+    a Symbol.
+
+    *Leigh Halliday*
+
+*   `number_to_currency` and `number_with_delimiter` now accept custom `delimiter_pattern` option
+     to handle placement of delimiter, to support currency formats like INR
+
+     Example:
+
         number_to_currency(1230000, delimiter_pattern: /(\d+?)(?=(\d\d)+(\d)(?!\d))/, unit: '₹', format: "%u %n")
-        # => '₹ 12,30,000.00' 
-        
+        # => '₹ 12,30,000.00'
+
     *Vipul A M*
-    
+
 *   Deprecate `:prefix` option of `number_to_human_size` with no replacement.
 
     *Jean Boussier*
