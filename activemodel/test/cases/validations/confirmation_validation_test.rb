@@ -36,6 +36,27 @@ class ConfirmationValidationTest < ActiveModel::TestCase
     assert t.valid?
   end
 
+  def test_title_confirmation_without_case_sensitive
+    Topic.validates_confirmation_of(:title)
+
+    t = Topic.new(title: "We should be confirmed", title_confirmation: "We should be CONFIRMED")
+    assert t.invalid?
+  end
+
+  def test_title_confirmation_with_case_sensitive_true
+    Topic.validates_confirmation_of(:title, case_sensitive: true)
+
+    t = Topic.new(title: "We should be confirmed", title_confirmation: "We should be CONFIRMED")
+    assert t.invalid?
+  end
+
+  def test_title_confirmation_with_case_sensitive_false
+    Topic.validates_confirmation_of(:title, case_sensitive: false)
+
+    t = Topic.new(title: "We should be confirmed", title_confirmation: "We should be CONFIRMED")
+    assert t.valid?
+  end
+
   def test_validates_confirmation_of_for_ruby_class
     Person.validates_confirmation_of :karma
 
