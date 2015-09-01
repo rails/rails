@@ -139,7 +139,7 @@ PATH
       activesupport (= 5.0.0.alpha)
       bundler (>= 1.3.0, < 2.0)
       railties (= 5.0.0.alpha)
-      sprockets-rails
+      sprockets-rails (>= 2.0.0)
     railties (5.0.0.alpha)
       actionpack (= 5.0.0.alpha)
       activesupport (= 5.0.0.alpha)
