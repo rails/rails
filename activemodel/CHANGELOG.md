@@ -1,3 +1,7 @@
+*   Add case_sensitive option for confirmation validator in models.
+
+    *Akshat Sharma*
+
 *   Ensure `method_missing` is called for methods passed to
     `ActiveModel::Serialization#serializable_hash` that don't exist.
 
