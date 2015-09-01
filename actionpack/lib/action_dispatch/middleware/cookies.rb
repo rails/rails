@@ -319,6 +319,13 @@ module ActionDispatch
         self
       end
 
+      def update_cookies_from_jar
+        request_jar = @request.cookie_jar.instance_variable_get(:@cookies)
+        set_cookies = request_jar.reject { |k,_| @delete_cookies.key?(k) }
+
+        @cookies.update set_cookies if set_cookies
+      end
+
       def to_header
         @cookies.map { |k,v| "#{k}=#{v}" }.join ';'
       end

@@ -476,6 +476,7 @@ module ActionController
         end
 
         self.cookies.update @request.cookies
+        self.cookies.update_cookies_from_jar
         @request.set_header 'HTTP_COOKIE', cookies.to_header
         @request.delete_header 'action_dispatch.cookies'
 
