@@ -27,7 +27,7 @@ module ActiveRecord
 
       def test_type_cast_decimal_from_rational_with_precision_and_scale
         type = Decimal.new(precision: 4, scale: 2)
-        assert_equal BigDecimal("0.33"), type.cast(Rational(1, 3))
+        assert_equal BigDecimal("0.33"), type.type_cast_from_user(Rational(1, 3))
       end
 
       def test_type_cast_decimal_from_rational_without_precision_defaults_to_18_36
