@@ -727,12 +727,10 @@ module ActiveRecord
 
       # SHOW VARIABLES LIKE 'name'
       def show_variable(name)
-        begin
-          variables = select_all("select @@#{name} as 'Value'", 'SCHEMA')
-          variables.first['Value'] unless variables.empty?
-        rescue ActiveRecord::StatementInvalid => _e
-          nil
-        end
+        variables = select_all("select @@#{name} as 'Value'", 'SCHEMA')
+        variables.first['Value'] unless variables.empty?
+      rescue ActiveRecord::StatementInvalid
+        nil
       end
 
       # Returns a table's primary key and belonging sequence.
