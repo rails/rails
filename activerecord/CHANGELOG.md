@@ -432,6 +432,13 @@
 
     *Wojciech Wnętrzak*
 
+*   Instantiating an AR model with `ActionController::Parameters` now raises
+    an `ActiveModel::ForbiddenAttributesError` if the parameters include a
+    `type` field that has not been explicitly permitted. Previously, the
+    `type` field was simply ignored in the same situation.
+
+    *Prem Sichanugrist*
+
 *   PostgreSQL, `create_schema`, `drop_schema` and `rename_table` now quote
     schema names.
 
