@@ -25,6 +25,11 @@ module ActiveRecord
         assert_equal BigDecimal("0.33"), type.cast(Rational(1, 3))
       end
 
+      def test_type_cast_decimal_from_rational_with_precision_and_scale
+        type = Decimal.new(precision: 4, scale: 2)
+        assert_equal BigDecimal("0.33"), type.cast(Rational(1, 3))
+      end
+
       def test_type_cast_decimal_from_rational_without_precision_defaults_to_18_36
         type = Decimal.new
         assert_equal BigDecimal("0.333333333333333333E0"), type.cast(Rational(1, 3))
