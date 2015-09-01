@@ -37,7 +37,7 @@ class IPv6IntegrationTest < ActionDispatch::IntegrationTest
       'SERVER_NAME' => '[fd07:2fa:6cff:2112:225:90ff:fec7:22aa]',
       'SERVER_PORT' => 3000 }
 
-    get '/foo', env: request_env
+    get '/foo', {}, request_env
     assert_response :redirect
     assert_equal 'http://[fd07:2fa:6cff:2112:225:90ff:fec7:22aa]:3000/', redirect_to_url
   end
