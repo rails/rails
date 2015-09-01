@@ -258,10 +258,6 @@ module ActionController
       PROTECTED_IVARS
     end
 
-    def self.protected_instance_variables
-      PROTECTED_IVARS
-    end
-
     ActiveSupport.run_load_hooks(:action_controller, self)
   end
 end
