@@ -457,7 +457,6 @@ module ActiveRecord
           message = "#{e.class.name}: #{e.message.force_encoding sql.encoding}: #{sql}"
         end
 
-        @logger.error message if @logger
         exception = translate_exception(e, message)
         exception.set_backtrace e.backtrace
         exception
