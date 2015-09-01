@@ -1,9 +1,3 @@
-*   `ActiveSupport::ArrayInquirer` will now properly find your entry regardless of whether the array
-    values are of type String or type Symbol, and whether you are asking `any?` with a String or
-    a Symbol.
-
-    *Leigh Halliday*
-
 *   `number_to_currency` and `number_with_delimiter` now accept custom `delimiter_pattern` option
      to handle placement of delimiter, to support currency formats like INR
 
