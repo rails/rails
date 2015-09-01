@@ -58,4 +58,10 @@
 
     *Henrik Nyh*
 
+*   Add case_sensitive option for confirmation validator in models.
+
+    See #17351
+
+    *Akshat Sharma*
+
 Please check [4-1-stable](https://github.com/rails/rails/blob/4-1-stable/activemodel/CHANGELOG.md) for previous changes.
