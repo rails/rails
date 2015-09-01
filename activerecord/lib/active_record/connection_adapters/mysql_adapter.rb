@@ -223,7 +223,7 @@ module ActiveRecord
         return @client_encoding if @client_encoding
 
         result = exec_query(
-          "SHOW VARIABLES WHERE Variable_name = 'character_set_client'",
+          "select @@character_set_client",
           'SCHEMA')
         @client_encoding = ENCODINGS[result.rows.last.last]
       end
