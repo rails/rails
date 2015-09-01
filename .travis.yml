@@ -8,12 +8,12 @@ env:
   global:
     - JRUBY_OPTS='--dev -J-Xmx1024M'
 rvm:
-  - rbx
-  - jruby-head
   - 2.0.0
   - 2.1
   - 2.2
   - ruby-head
+  - rbx
+  - jruby-head
 matrix:
   allow_failures:
     - rvm: rbx
