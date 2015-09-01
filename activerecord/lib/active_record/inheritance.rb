@@ -189,8 +189,6 @@ module ActiveRecord
 
       # Detect the subclass from the inheritance column of attrs. If the inheritance column value
       # is not self or a valid subclass, raises ActiveRecord::SubclassNotFound
-      # If this is a StrongParameters hash, and access to inheritance_column is not permitted,
-      # this will ignore the inheritance column and return nil
       def subclass_from_attributes?(attrs)
         attribute_names.include?(inheritance_column) && attrs.respond_to?(:to_h)
       end
