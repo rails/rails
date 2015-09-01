@@ -17,6 +17,11 @@ require 'models/matey'
 require 'models/dog'
 require 'models/car'
 require 'models/tyre'
+require 'models/ship'
+require 'models/chef'
+require 'models/cake_designer'
+require 'models/drink_designer'
+require 'models/contract'
 
 class FinderTest < ActiveRecord::TestCase
   fixtures :companies, :topics, :entrants, :developers, :developers_projects, :posts, :comments, :accounts, :authors, :customers, :categories, :categorizations, :cars
@@ -1120,6 +1125,71 @@ class FinderTest < ActiveRecord::TestCase
 
     assert_equal tyre, honda.tyres.custom_find_by(id: tyre.id)
     assert_equal tyre2, zyke.tyres.custom_find_by(id: tyre2.id)
+  end
+
+  test "where_exists with straightforward association" do
+    developer = Developer.create!(name: "I'm with ship!")
+    another_developer = Developer.create!(name: ':-(')
+
+    ship = Ship.create!(developer: developer, name: 'Alpha')
+    another_ship = Ship.create!(name: 'Beta')
+
+    result = Developer.where_exists(:ship).pluck(:id)
+
+    assert_includes result, developer.id
+    assert_not_includes result, another_developer.id
+
+    result = Developer.where_not_exists(:ship).pluck(:id)
+
+    assert_includes result, another_developer.id
+    assert_not_includes result, developer.id
+
+    result = Ship.where_exists(:developer, name: "I'm with ship!").pluck(:id)
+
+    assert_includes result, ship.id
+    assert_not_includes result, another_ship.id
+
+    result = Ship.where_exists(:developer, name: ':-(')
+
+    assert_not_includes result, ship.id
+    assert_not_includes result, another_ship.id
+  end
+
+  test "where_exists with polymorphic association" do
+    cake_chef = Chef.create!
+    drink_chef = Chef.create!
+    unemployed_chef = Chef.create!
+
+    cake_designer = CakeDesigner.create!(chef: cake_chef)
+    another_cake_designer = CakeDesigner.create!
+    drink_designer = DrinkDesigner.create!(chef: drink_chef)
+
+    result = Chef.where_exists(:employable).pluck(:id)
+
+    assert_includes result, cake_chef.id
+    assert_includes result, drink_chef.id
+    assert_not_includes result, unemployed_chef.id
+
+    result = CakeDesigner.where_exists(:chef).pluck(:id)
+
+    assert_includes result, cake_designer.id
+    assert_not_includes result, another_cake_designer.id
+  end
+
+  test "where_exists with through association" do
+    firm = Firm.create!(name: 'The Company')
+    another_firm = Firm.create!(name: 'The Other Company')
+
+    developer = Developer.create!(name: 'John')
+    another_developer = Developer.create!(name: 'Mike')
+
+    Contract.create!(developer: developer, firm: firm)
+    Contract.create!(developer: another_developer, firm: another_firm)
+
+    result = Developer.where_exists(:firms, name: 'The Company').pluck(:id)
+
+    assert_includes result, developer.id
+    assert_not_includes result, another_developer.id
   end
 
   protected

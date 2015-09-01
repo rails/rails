@@ -12,6 +12,7 @@ module ActiveRecord
              :having, :create_with, :uniq, :distinct, :references, :none, :unscope, to: :all
     delegate :count, :average, :minimum, :maximum, :sum, :calculate, to: :all
     delegate :pluck, :ids, to: :all
+    delegate :where_exists, :where_not_exists, to: :all
 
     # Executes a custom SQL query against your database and returns all the results. The results will
     # be returned as an array with columns requested encapsulated as attributes of the model you call

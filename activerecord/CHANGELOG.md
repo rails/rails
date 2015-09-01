@@ -1,3 +1,32 @@
+*   Added `where_exists`, `where_not_exists` to ActiveRecord finder
+    methods.
+
+    Example:
+
+        class User < ActiveRecord::Base
+          belongs_to :group
+        end
+
+        class Group < ActiveRecord::Base
+          has_many :users
+        end
+
+        User.where_exists(:group)
+        # SELECT * FROM users WHERE EXISTS (
+        #   SELECT 1 FROM groups WHERE users.group_id = groups.id)
+
+        User.where_exists(:group, name: ['Some group', 'Another group'])
+        # SELECT * FROM users WHERE EXISTS (
+        #   SELECT 1 FROM groups WHERE users.group_id = groups.id AND
+        #     groups.name IN ('Some group', 'Another group'))
+
+        Group.where_not_exists(:user, ['name LIKE ?', 'Admin'])
+        # SELECT * FROM groups WHERE NOT (EXISTS (
+        #   SELECT 1 FROM users WHERE users.group_id = groups.id AND
+        #      (groups.name LIKE 'ADMIN')))
+
+    *Eugene Zolotarev*
+
 *   PostgreSQL, `create_schema`, `drop_schema` and `rename_table` now quote
     schema names.
 
