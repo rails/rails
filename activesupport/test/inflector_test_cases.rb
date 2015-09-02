@@ -353,4 +353,44 @@ module InflectorTestCases
     'zombie' => 'zombies',
     'genus'  => 'genera'
   }
+
+  UnderscoreNotIgnoringDashes = {
+    'StringWith_no_dashes'  => 'string_with_no_dashes',
+    'StringWith-aDash'      => 'string_with_a_dash',
+    'x-men: the last stand' => 'x_men: the last stand',
+    'e-mail'                => 'e_mail',
+    'Daniel Day-Lewis'      => 'daniel day_lewis',
+    'DANIEL DAY-LEWIS'      => 'daniel day_lewis',
+    '----'                  => '____'
+  }
+
+  UnderscoreIgnoringDashes = {
+    'StringWith_no_dashes'  => 'string_with_no_dashes',
+    'StringWith-aDash'      => 'string_with-a_dash',
+    'x-men: the last stand' => 'x-men: the last stand',
+    'e-mail'                => 'e-mail',
+    'Daniel Day-Lewis'      => 'daniel day-lewis',
+    'DANIEL DAY-LEWIS'      => 'daniel day-lewis',
+    '----'                  => '----'
+  }
+
+  TitleizeNotIgnoringDashes = {
+    'StringWith_no_dashes'  => 'String With No Dashes',
+    'StringWith-aDash'      => 'String With A Dash',
+    'x-men: the last stand' => 'X Men: The Last Stand',
+    'e-mail'                => 'E Mail',
+    'Daniel Day-Lewis'      => 'Daniel Day Lewis',
+    'DANIEL DAY-LEWIS'      => 'Daniel Day Lewis',
+    '----'                  => ''
+  }
+
+  TitleizeIgnoringDashes = {
+    'StringWith_no_dashes'  => 'String With No Dashes',
+    'StringWith-aDash'      => 'String With-A Dash',
+    'x-men: the last stand' => 'X-Men: The Last Stand',
+    'e-mail'                => 'E-Mail',
+    'Daniel Day-Lewis'      => 'Daniel Day-Lewis',
+    'DANIEL DAY-LEWIS'      => 'Daniel Day-Lewis',
+    '----'                  => '----'
+  }
 end

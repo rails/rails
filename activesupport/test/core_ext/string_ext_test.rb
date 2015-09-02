@@ -329,6 +329,32 @@ class StringInflectionsTest < ActiveSupport::TestCase
   def test_safe_constantize
     run_safe_constantize_tests_on(&:safe_constantize)
   end
+
+  test "#underscore without ignore_dashes, doesn't ignore dashes" do
+    UnderscoreNotIgnoringDashes.each do |original, underscored|
+      assert_equal underscored, original.underscore
+      assert_equal underscored, original.underscore(ignore_dashes: false)
+    end
+  end
+
+  test '#underscore with ignore_dashes, ignores dashes' do
+    UnderscoreIgnoringDashes.each do |original, underscored|
+      assert_equal underscored, original.underscore(ignore_dashes: true)
+    end
+  end
+
+  test "#titleize without ignore_dashes, doesn't ignore dashes" do
+    TitleizeNotIgnoringDashes.each do |original, titleized|
+      assert_equal titleized, original.titleize
+      assert_equal titleized, original.titleize(ignore_dashes: false)
+    end
+  end
+
+  test '#titleize with ignore_dashes, ignores dashes' do
+    TitleizeIgnoringDashes.each do |original, titleized|
+      assert_equal titleized, original.titleize(ignore_dashes: true)
+    end
+  end
 end
 
 class StringAccessTest < ActiveSupport::TestCase

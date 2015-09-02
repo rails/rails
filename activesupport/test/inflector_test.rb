@@ -534,4 +534,38 @@ class InflectorTest < ActiveSupport::TestCase
 
     assert_equal "HTTP", ActiveSupport::Inflector.pluralize("HTTP")
   end
+
+  def test_underscore_not_ignoring_dashes
+    UnderscoreNotIgnoringDashes.each do |original, underscored|
+      assert_equal underscored, ActiveSupport::Inflector.underscore(original)
+      assert_equal underscored,
+                   ActiveSupport::Inflector.underscore(original,
+                                                       ignore_dashes: false)
+    end
+  end
+
+  def test_underscore_ignoring_dashes
+    UnderscoreIgnoringDashes.each do |original, underscored|
+      assert_equal underscored,
+                   ActiveSupport::Inflector.underscore(original,
+                                                       ignore_dashes: true)
+    end
+  end
+
+  def test_titleize_not_ignoring_dashes
+    TitleizeNotIgnoringDashes.each do |original, titleized|
+      assert_equal titleized, ActiveSupport::Inflector.titleize(original)
+      assert_equal titleized,
+                   ActiveSupport::Inflector.titleize(original,
+                                                     ignore_dashes: false)
+    end
+  end
+
+  def test_titleize_ignoring_dashes
+    TitleizeIgnoringDashes.each do |original, titleized|
+      assert_equal titleized,
+                   ActiveSupport::Inflector.titleize(original,
+                                                     ignore_dashes: true)
+    end
+  end
 end

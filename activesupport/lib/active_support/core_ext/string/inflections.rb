@@ -99,24 +99,30 @@ class String
   # Capitalizes all the words and replaces some characters in the string to create
   # a nicer looking title. +titleize+ is meant for creating pretty output. It is not
   # used in the Rails internals.
+  # If the +ignore_dashes+ parameter is set to true, then dashes will not be
+  # converted to underscores.
   #
   # +titleize+ is also aliased as +titlecase+.
   #
   #   'man from the boondocks'.titleize # => "Man From The Boondocks"
   #   'x-men: the last stand'.titleize  # => "X Men: The Last Stand"
-  def titleize
-    ActiveSupport::Inflector.titleize(self)
+  #   'x-men: the last stand'.titleize(ignore_dashes: true)
+  #                                     # => "X-Men: The Last Stand"
+  def titleize(ignore_dashes: false)
+    ActiveSupport::Inflector.titleize(self, ignore_dashes: ignore_dashes)
   end
   alias_method :titlecase, :titleize
 
   # The reverse of +camelize+. Makes an underscored, lowercase form from the expression in the string.
+  # If the +ignore_dashes+ parameter is set to true, then dashes will not be
+  # converted to underscores.
   #
   # +underscore+ will also change '::' to '/' to convert namespaces to paths.
   #
   #   'ActiveModel'.underscore         # => "active_model"
   #   'ActiveModel::Errors'.underscore # => "active_model/errors"
-  def underscore
-    ActiveSupport::Inflector.underscore(self)
+  def underscore(ignore_dashes: false)
+    ActiveSupport::Inflector.underscore(self, ignore_dashes: ignore_dashes)
   end
 
   # Replaces underscores with dashes in the string.
