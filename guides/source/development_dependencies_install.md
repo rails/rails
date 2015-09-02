@@ -190,7 +190,7 @@ Follow the instructions given by Homebrew to start these.
 In Ubuntu just run:
 
 ```bash
-$ sudo apt-get install mysql-server libmysqlclient15-dev
+$ sudo apt-get install mysql-server libmysqlclient-dev
 $ sudo apt-get install postgresql postgresql-client postgresql-contrib libpq-dev
 ```
 
