@@ -1,4 +1,5 @@
 require 'action_controller/metal/exceptions'
+require 'cgi'
 
 module ActionController #:nodoc:
   # Methods for sending arbitrary data and for streaming files to the browser,
@@ -155,7 +156,17 @@ module ActionController #:nodoc:
         disposition = options.fetch(:disposition, DEFAULT_SEND_FILE_DISPOSITION)
         unless disposition.nil?
           disposition  = disposition.to_s
-          disposition += %(; filename="#{options[:filename]}") if options[:filename]
+          filename = options[:filename]
+          if filename
+            disposition += %(; filename="#{filename}")
+
+            # Support RFC 6266
+            # http://tools.ietf.org/html/rfc6266#appendix-D
+            unless filename.ascii_only?
+              encoded_filename = CGI::escape(filename)
+              disposition += %(; filename*="#{encoded_filename.encoding}''#{encoded_filename}")
+            end
+          end
           headers['Content-Disposition'] = disposition
         end
 
