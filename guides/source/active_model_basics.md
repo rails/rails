@@ -156,7 +156,7 @@ person.changed? # => false
 person.first_name = "First Name"
 person.first_name # => "First Name"
 
-# returns if any attribute has changed.
+# returns true if any of the attributes have unsaved changes, false otherwise.
 person.changed? # => true
 
 # returns a list of attributes that have changed before saving.
