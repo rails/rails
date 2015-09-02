@@ -1,5 +1,6 @@
 require 'eventmachine'
-EM.epoll
+EventMachine.epoll  if EventMachine.epoll?
+EventMachine.kqueue if EventMachine.kqueue?
 
 require 'set'
 
