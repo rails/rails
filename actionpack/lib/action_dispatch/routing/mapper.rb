@@ -404,7 +404,7 @@ module ActionDispatch
         # because this means it will be matched first. As this is the most popular route
         # of most Rails applications, this is beneficial.
         def root(options = {})
-          match '/', { :as => :root, :via => :get }.merge!(options)
+          match '/', { as: :root, via: :get }.merge!(options)
         end
 
         # Matches a url pattern to one or more routes.
@@ -620,7 +620,7 @@ module ActionDispatch
           target_as       = name_for_action(options[:as], path)
           options[:via] ||= :all
 
-          match(path, options.merge(:to => app, :anchor => false, :format => false))
+          match(path, options.merge(to: app, anchor: false, format: false))
 
           define_generate_prefix(app, target_as) if rails_app
           self
@@ -990,7 +990,7 @@ module ActionDispatch
         #      resources :iphones
         #    end
         def constraints(constraints = {})
-          scope(:constraints => constraints) { yield }
+          scope(constraints: constraints) { yield }
         end
 
         # Allows you to set default parameters for a route, such as this:
@@ -1608,11 +1608,11 @@ module ActionDispatch
               ActiveSupport::Deprecation.warn <<-eowarn
 Specifying strings for both :path and the route path is deprecated.  Change things like this:
 
-  match #{_path.inspect}, :path => #{option_path.inspect}
+  match #{_path.inspect}, path: #{option_path.inspect}
 
 to this:
 
-  match #{option_path.inspect}, :as => #{_path.inspect}, :action => #{path.inspect}
+  match #{option_path.inspect}, as: #{_path.inspect}, action: #{path.inspect}
               eowarn
               route_options[:action] = _path
               route_options[:as] = _path
@@ -1779,7 +1779,7 @@ to this:
           end
 
           def resource_scope(resource) #:nodoc:
-            @scope = @scope.new(:scope_level_resource => resource)
+            @scope = @scope.new(scope_level_resource: resource)
 
             controller(resource.resource_scope) { yield }
           ensure
@@ -1787,7 +1787,7 @@ to this:
           end
 
           def nested_options #:nodoc:
-            options = { :as => parent_resource.member_name }
+            options = { as: parent_resource.member_name }
             options[:constraints] = {
               parent_resource.nested_param => param_constraint
             } if param_constraint?
@@ -1814,8 +1814,8 @@ to this:
           end
 
           def shallow_scope #:nodoc:
-            scope = { :as   => @scope[:shallow_prefix],
-                      :path => @scope[:shallow_path] }
+            scope = { as: @scope[:shallow_prefix],
+                      path: @scope[:shallow_path] }
             @scope = @scope.new scope
 
             yield
@@ -2089,7 +2089,7 @@ to this:
 
       def initialize(set) #:nodoc:
         @set = set
-        @scope = Scope.new({ :path_names => @set.resources_path_names })
+        @scope = Scope.new({ path_names: @set.resources_path_names })
         @concerns = {}
       end
 
