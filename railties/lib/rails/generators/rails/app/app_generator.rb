@@ -78,6 +78,7 @@ module Rails
         template "routes.rb"
         template "application.rb"
         template "environment.rb"
+        template "spring.rb"
         template "secrets.yml"
 
         directory "environments"
