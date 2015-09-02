@@ -32,4 +32,10 @@ class BlankTest < ActiveSupport::TestCase
     BLANK.each { |v| assert_equal nil, v.presence, "#{v.inspect}.presence should return nil" }
     NOT.each   { |v| assert_equal v,   v.presence, "#{v.inspect}.presence should return self" }
   end
+
+  def test_presence_with_block
+    BLANK.each { |v| assert_equal nil, v.presence{|yielded_v| [yielded_v] }, "#{v.inspect}.presence should return nil" }
+    NOT.each   { |v| assert_equal [v], v.presence{|yielded_v| [yielded_v] }, "#{v.inspect}.presence should return self" }
+  end
+
 end

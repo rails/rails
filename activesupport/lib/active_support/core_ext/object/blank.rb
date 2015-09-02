@@ -41,7 +41,13 @@ class Object
   #
   # @return [Object]
   def presence
-    self if present?
+    if present?
+      if block_given?
+        yield self
+      else
+        self
+      end
+    end
   end
 end
 
