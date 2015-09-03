@@ -151,14 +151,14 @@ module ActiveRecord
               scope = all.scoping { instance_exec(*args, &body) }
               scope = scope.extending(extension) if extension
 
-              scope || all
+              (!scope.equal?(self) && scope) || all
             end
           else
             singleton_class.send(:define_method, name) do |*args|
               scope = all.scoping { body.call(*args) }
               scope = scope.extending(extension) if extension
 
-              scope || all
+              (!scope.equal?(self) && scope) || all
             end
           end
         end

@@ -525,4 +525,12 @@ class NamedScopingTest < ActiveRecord::TestCase
     assert_equal 1, SpecialComment.where(body: 'go crazy').created.count
   end
 
+  def test_returning_self_in_scopes_does_not_reset_current_scope
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+      scope :return_self, -> { self }
+    end
+
+    assert klass.none.return_self.blank?
+  end
 end
