@@ -140,7 +140,7 @@ module ActiveSupport
 
         # Translate a file path into a key.
         def file_path_key(path)
-          fname = path[cache_path.to_s.size..-1].split(File::SEPARATOR)[2..-1].join
+          fname = path[cache_path.to_s.size..-1].split(File::SEPARATOR)[3..-1].join
           URI.decode_www_form_component(fname, Encoding::UTF_8)
         end
 
