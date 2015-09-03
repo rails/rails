@@ -358,7 +358,7 @@ module ActionDispatch
       get_header('REDIRECT_X_HTTP_AUTHORIZATION')
     end
 
-    # True if the request came from localhost, 127.0.0.1.
+    # True if the request came from localhost, 127.0.0.1, or ::1.
     def local?
       LOCALHOST =~ remote_addr && LOCALHOST =~ remote_ip
     end
