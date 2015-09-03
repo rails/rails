@@ -939,7 +939,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     # option is not given on the association.
     ship = Ship.create(name: 'Countless', treasures_count: 10)
 
-    assert_not ship.treasures.instance_variable_get('@association').send(:has_cached_counter?)
+    assert_not Ship.reflect_on_association(:treasures).has_cached_counter?
 
     # Count should come from sql count() of treasures rather than treasures_count attribute
     assert_equal ship.treasures.size, 0
