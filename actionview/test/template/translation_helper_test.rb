@@ -60,6 +60,11 @@ class TranslationHelperTest < ActiveSupport::TestCase
     assert_equal true, translate(:"translations.missing").html_safe?
   end
 
+  def test_returns_missing_translation_message_with_interpolation_keys
+    expected = '<span class="translation_missing" title="translation missing: en.translations.missing, interpolation: first_name, last_name">Missing</span>'
+    assert_equal expected, translate(:"translations.missing", :first_name => 'foo', :last_name => 'bar')
+  end
+
   def test_raises_missing_translation_message_with_raise_config_option
     ActionView::Base.raise_on_missing_translations = true
 
