@@ -9,7 +9,77 @@ module ActiveRecord
     end
   end
 
-  # Exception that can be raised to stop migrations from going backwards.
+  # Exception that can be raised to stop migrations from being rolled back.
+  # For example the following migration is not reversible.
+  # Rolling back this migration will raise an ActiveRecord::IrreversibleMigration error.
+  #
+  #   class IrreversibleMigrationExample < ActiveRecord::Migration
+  #     def change
+  #       create_table :distributors do |t|
+  #         t.string :zipcode
+  #       end
+  #
+  #       execute <<-SQL
+  #         ALTER TABLE distributors
+  #           ADD CONSTRAINT zipchk
+  #             CHECK (char_length(zipcode) = 5) NO INHERIT;
+  #       SQL
+  #     end
+  #   end
+  #
+  # There are two ways to mitigate this problem.
+  #
+  # 1. Define <tt>#up</tt> and <tt>#down</tt> methods instead of <tt>#change</tt>:
+  #
+  #  class ReversibleMigrationExample < ActiveRecord::Migration
+  #    def up
+  #      create_table :distributors do |t|
+  #        t.string :zipcode
+  #      end
+  #
+  #      execute <<-SQL
+  #        ALTER TABLE distributors
+  #          ADD CONSTRAINT zipchk
+  #            CHECK (char_length(zipcode) = 5) NO INHERIT;
+  #      SQL
+  #    end
+  #
+  #    def down
+  #      execute <<-SQL
+  #        ALTER TABLE distributors
+  #          DROP CONSTRAINT zipchk
+  #      SQL
+  #
+  #      drop_table :distributors
+  #    end
+  #  end
+  #
+  # 2. Use the #reversible method in <tt>#change</tt> method:
+  #
+  #   class ReversibleMigrationExample < ActiveRecord::Migration
+  #     def change
+  #       create_table :distributors do |t|
+  #         t.string :zipcode
+  #       end
+  #
+  #       reversible do |dir|
+  #         dir.up do
+  #           execute <<-SQL
+  #             ALTER TABLE distributors
+  #               ADD CONSTRAINT zipchk
+  #                 CHECK (char_length(zipcode) = 5) NO INHERIT;
+  #           SQL
+  #         end
+  #
+  #         dir.down do
+  #           execute <<-SQL
+  #             ALTER TABLE distributors
+  #               DROP CONSTRAINT zipchk
+  #           SQL
+  #         end
+  #       end
+  #     end
+  #   end
   class IrreversibleMigration < MigrationError
   end
 
