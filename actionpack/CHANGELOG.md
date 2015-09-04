@@ -127,6 +127,24 @@
 
     *Greg Ose & Ben Toews*
 
+*   Add `ActionController::Renderers::SERIALIZERS` to separate rendering from serialization.
+
+    `ActionController::Renderers#render_to_body` now renders the body in two steps.
+
+    First,it formats the body using the serializer in `Renderers::SERIALIZERS`. The serializer
+    used is either for the params `serializer_name`, when given, else the the format, e.g. `json`.
+    The serializer is a callable object that accepts the resource and the rendering options, e.g.
+    `render json: model` will `SERIALIZERS[:json].call(model, options)`, and
+    `render json: model, serializer_name: :json_api` will `SERIALIZERS[:json_api].call(model,
+    options)`.
+
+    `Renderers::RENDERERS` now only handles non-serialization concerns, such as setting the
+    mime-type, how the data is returned, and handling callbacks.
+
+    Successful rendering requires an existing renderer and serializer.
+
+    *Benjamin Fleischer*
+
 *   Add tests and documentation for `ActionController::Renderers::use_renderers`.
 
     *Benjamin Fleischer*

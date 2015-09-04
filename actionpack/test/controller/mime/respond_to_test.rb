@@ -136,6 +136,7 @@ class RespondToController < ActionController::Base
     end
   end
 
+  # wip
   def json_with_callback
     respond_to do |type|
       type.json { render :json => 'JS', :callback => 'alert' }

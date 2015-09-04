@@ -3,6 +3,7 @@ require 'controller/fake_models'
 require 'pathname'
 
 class RenderXmlTest < ActionController::TestCase
+  # wip
   class XmlRenderable
     def to_xml(options)
       options[:root] ||= "i-am-xml"

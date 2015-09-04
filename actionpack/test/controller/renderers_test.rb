@@ -34,7 +34,11 @@ class RenderersTest < ActionController::TestCase
     def respond_to_mime
       respond_to do |type|
         type.json do
-          render json: JsonRenderable.new
+          if params[:serializer_name]
+            render json: JsonRenderable.new, serializer_name: params[:serializer_name]
+          else
+            render json: JsonRenderable.new
+          end
         end
         type.js   { render json: 'JS', callback: 'alert' }
         type.csv  { render csv: CsvRenderable.new    }
@@ -56,16 +60,20 @@ class RenderersTest < ActionController::TestCase
     @controller.logger = ActiveSupport::Logger.new(nil)
   end
 
-  def test_using_custom_render_option
+  def test_using_custom_render_format
+    ActionController::Renderers.add_serializer :simon do |says, options|
+      "Simon says: #{says}"
+    end
     ActionController.add_renderer :simon do |says, options|
       self.content_type  = Mime[:text]
-      self.response_body = "Simon says: #{says}"
+      says
     end
 
     get :render_simon_says
     assert_equal "Simon says: foo", @response.body
   ensure
     ActionController.remove_renderer :simon
+    ActionController.remove_serializer :simon
   end
 
   def test_raises_missing_template_no_renderer
@@ -78,7 +86,10 @@ class RenderersTest < ActionController::TestCase
 
   def test_adding_csv_rendering_via_renderers_add
     ActionController::Renderers.add :csv do |value, options|
-      send_data value.to_csv, type: Mime[:csv]
+      send_data value, type: Mime[:csv]
+    end
+    ActionController::Renderers.add_serializer :csv do |value, options|
+      value.to_csv
     end
     @request.accept = "text/csv"
     get :respond_to_mime, format: 'csv'
@@ -86,5 +97,50 @@ class RenderersTest < ActionController::TestCase
     assert_equal "c,s,v", @response.body
   ensure
     ActionController::Renderers.remove :csv
+    ActionController::Renderers.remove_serializer :csv
   end
+
+  def test_replacing_serializer
+    default_json_serializer = ActionController::Renderers::SERIALIZERS[:json]
+    get :respond_to_mime, format: 'json'
+    assert_equal JsonRenderable.new.to_json, @response.body
+
+    ActionController::Renderers.remove_serializer :json
+
+    assert_raise ActionController::MissingSerializer do
+      get :respond_to_mime, format: 'json'
+    end
+
+    ActionController::Renderers.add_serializer :json do |json, options|
+      return json if json.is_a?(String)
+
+      json = json.as_json(options) if json.respond_to?(:as_json)
+      json = JSON.pretty_generate(json, options)
+      json
+    end
+    get :respond_to_mime, format: 'json'
+    assert_equal JSON.pretty_generate(JsonRenderable.new.as_json), @response.body
+  ensure
+    ActionController::Renderers::SERIALIZERS[:json] = default_json_serializer
+  end
+
+  def test_serialize_with_serializer_name
+    assert_raise ActionController::MissingSerializer do
+      get :respond_to_mime, format: 'json', params: { serializer_name: :custom_json }
+    end
+
+    ActionController::Renderers.add_serializer :custom_json do |json, options|
+      return json if json.is_a?(String)
+
+      json = json.as_json(options) if json.respond_to?(:as_json)
+      json = JSON.pretty_generate(json, options)
+      json
+    end
+
+    get :respond_to_mime, format: 'json', params: { serializer_name: :custom_json }
+    assert_equal JSON.pretty_generate(JsonRenderable.new.as_json), @response.body
+  ensure
+    ActionController::Renderers.remove_serializer(:custom_json)
+  end
+
 end

@@ -1,6 +1,7 @@
 require 'abstract_unit'
 
 class RendererTest < ActiveSupport::TestCase
+  # wip
   test 'action controller base has a renderer' do
     assert ActionController::Base.renderer
   end
