@@ -1,3 +1,7 @@
+*   `url_for` does not modify its arguments when generating polymorphic URLs.
+
+    *Bernerd Schaefer*
+
 *   Update `ActionController::TestSession#fetch` to behave more like
     `ActionDispatch::Request::Session#fetch` when using non-string keys.
 
