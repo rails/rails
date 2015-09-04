@@ -17,7 +17,7 @@ module ActionDispatch
     #
     # == Usage within the framework
     #
-    # Polymorphic URL helpers are used in a number of places throughout the \Rails framework:
+    # Polymorphic URL helpers are used in a number of places throughout the Rails framework:
     #
     # * <tt>url_for</tt>, so you can use it with a record as the argument, e.g.
     #   <tt>url_for(@article)</tt>;
