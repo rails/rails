@@ -737,18 +737,28 @@ module ActionDispatch
           old_params = req.path_parameters
           req.path_parameters = old_params.merge params
           app = route.app
-          if app.matches?(req) && app.dispatcher?
-            begin
-              req.controller_class
-            rescue NameError
-              raise ActionController::RoutingError, "A route matches #{path.inspect}, but references missing controller: #{params[:controller].camelize}Controller"
+          if app.matches?(req)
+            if app.dispatcher? #RouteSet::Dispatcher
+              begin
+                req.controller_class
+              rescue NameError
+                raise ActionController::RoutingError, "A route matches #{path.inspect}, but references missing controller: #{params[:controller].camelize}Controller"
+              end
+              return req.path_parameters
+            else #Mapper::Constraints (engine case)
+              engine_klass = app.app
+              req.path_info = Journey::Router::Utils.normalize_path(req.path_info)
+              params = engine_klass.routes.recognize_path(req.path_info, {engine: engine_klass})
+              return params
             end
-
-            return req.path_parameters
           end
         end
 
-        raise ActionController::RoutingError, "No route matches #{path.inspect}"
+        if environment[:engine]
+          raise ActionController::RoutingError, "No route matches #{path.inspect} in #{environment[:engine]}"
+        else
+          raise ActionController::RoutingError, "No route matches #{path.inspect}"
+        end
       end
     end
     # :startdoc:

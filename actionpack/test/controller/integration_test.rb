@@ -859,6 +859,16 @@ class ApplicationIntegrationTest < ActionDispatch::IntegrationTest
     self.class
   end
 
+  test "recognize_path for mounted engine in main_app" do
+    parsed_path = self.class.routes.recognize_path('/mounted/baz')
+    assert_equal "application_integration_test/test", parsed_path[:controller]
+    assert_equal "index", parsed_path[:action]
+    exception = assert_raises(ActionController::RoutingError) do
+      ApplicationIntegrationTest.routes.recognize_path('/mounted/unknown')
+    end
+    assert_equal "No route matches \"/unknown\" in ApplicationIntegrationTest::MountedApp", exception.message
+  end
+
   test "includes route helpers" do
     assert_equal '/', empty_string_path
     assert_equal '/foo', foo_path
