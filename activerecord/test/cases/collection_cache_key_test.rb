@@ -1,6 +1,7 @@
 require "cases/helper"
 require "models/computer"
 require "models/developer"
+require "models/ship"
 require "models/project"
 require "models/topic"
 require "models/post"
@@ -11,20 +12,32 @@ module ActiveRecord
     fixtures :developers, :projects, :developers_projects, :topics, :comments, :posts
 
     test "collection_cache_key on model" do
-      assert_match(/\Adevelopers\/query-(\h+)-(\d+)-(\d+)\Z/, Developer.collection_cache_key)
+      assert_match(/\Adevelopers\/collection-digest-(\h+)\Z/, Developer.collection_cache_key)
+    end
+
+    test "collection_cache_key changes when old collection members are replaced" do
+      project = Project.create
+      project.developers.create(updated_at: 2.hours.ago, name: "anonymous")
+      project.developers.create(updated_at: 4.hours.ago, name: "eponymous")
+
+      key1 = project.developers.collection_cache_key
+
+      project.developers.where(name: "eponymous").destroy_all
+      project.developers.create(updated_at: 5.hours.ago, name: "anonymous")
+
+      key2 = project.developers.collection_cache_key
+
+      assert_not_equal key2, key1
     end
 
     test "cache_key for relation" do
       developers = Developer.where(name: "David")
-      last_developer_timestamp = developers.order(updated_at: :desc).first.updated_at
 
-      assert_match(/\Adevelopers\/query-(\h+)-(\d+)-(\d+)\Z/, developers.cache_key)
+      assert_match(/\Adevelopers\/collection-digest-(\h+)\Z/, developers.cache_key)
 
-      /\Adevelopers\/query-(\h+)-(\d+)-(\d+)\Z/ =~ developers.cache_key
+      /\Adevelopers\/collection-digest-(\h+)\Z/ =~ developers.cache_key
 
-      assert_equal Digest::MD5.hexdigest(developers.to_sql), $1
-      assert_equal developers.count.to_s, $2
-      assert_equal last_developer_timestamp.to_s(ActiveRecord::Base.cache_timestamp_format), $3
+      assert_equal Digest::SHA256.hexdigest(developers.pluck(:id, :updated_at).flatten.join("-")), $1
     end
 
     test "it triggers at most one query" do
@@ -39,22 +52,17 @@ module ActiveRecord
       assert_queries(0) { developers.cache_key }
     end
 
-    test "relation cache_key changes when the sql query changes" do
-      developers = Developer.where(name: "David")
-      other_relation =  Developer.where(name: "David").where("1 = 1")
-
-      assert_not_equal developers.cache_key, other_relation.cache_key
-    end
-
     test "cache_key for empty relation" do
       developers = Developer.where(name: "Non Existent Developer")
-      assert_match(/\Adevelopers\/query-(\h+)-0\Z/, developers.cache_key)
+      assert_match(/\Adevelopers\/collection-digest-(\h+)\Z/, developers.cache_key)
     end
 
     test "cache_key with custom timestamp column" do
       topics = Topic.where("title like ?", "%Topic%")
-      last_topic_timestamp = topics(:fifth).written_on.utc.to_s(:usec)
-      assert_match(last_topic_timestamp, topics.cache_key(:written_on))
+
+      expected_key_digest = Digest::SHA256.hexdigest(topics.pluck(:id, :written_on).flatten.join("-"))
+
+      assert_match expected_key_digest, topics.cache_key(:written_on)
     end
 
     test "cache_key with unknown timestamp column" do
@@ -64,7 +72,7 @@ module ActiveRecord
 
     test "collection proxy provides a cache_key" do
       developers = projects(:active_record).developers
-      assert_match(/\Adevelopers\/query-(\h+)-(\d+)-(\d+)\Z/, developers.cache_key)
+      assert_match /\Adevelopers\/collection-digest-(\h+)\Z/, developers.cache_key
     end
   end
 end
