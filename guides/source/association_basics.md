@@ -719,7 +719,7 @@ This happens because `c` and `o.customer` are two different in-memory representa
 
 ```ruby
 class Customer < ActiveRecord::Base
-  has_many :orders, inverse_of: :customer
+  has_many :orders, inverse_of: :customer # optional inverse_of
 end
 
 class Order < ActiveRecord::Base
