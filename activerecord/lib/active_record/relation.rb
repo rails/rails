@@ -442,10 +442,11 @@ module ActiveRecord
     #
     #   Person.destroy_all("last_login < '2004-04-04'")
     #   Person.destroy_all(status: "inactive")
+    #   Person.destroy_all("created_at > ?", Time.now)
     #   Person.where(age: 0..18).destroy_all
-    def destroy_all(conditions = nil)
-      if conditions
-        where(conditions).destroy_all
+    def destroy_all(*conditions)
+      if conditions.present?
+        where(*conditions).destroy_all
       else
         to_a.each(&:destroy).tap { reset }
       end
@@ -487,6 +488,7 @@ module ActiveRecord
     #
     #   Post.delete_all("person_id = 5 AND (category = 'Something' OR category = 'Else')")
     #   Post.delete_all(["person_id = ? AND (category = ? OR category = ?)", 5, 'Something', 'Else'])
+    #   Post.delete_all("person_id = ? AND (category = ? OR category = ?)", 5, 'Something', 'Else')
     #   Post.where(person_id: 5).where(category: ['Something', 'Else']).delete_all
     #
     # Both calls delete the affected posts all at once with a single DELETE statement.
@@ -497,7 +499,7 @@ module ActiveRecord
     #
     #   Post.limit(100).delete_all
     #   # => ActiveRecord::ActiveRecordError: delete_all doesn't support limit
-    def delete_all(conditions = nil)
+    def delete_all(*conditions)
       invalid_methods = INVALID_METHODS_FOR_DELETE_ALL.select { |method|
         if MULTI_VALUE_METHODS.include?(method)
           send("#{method}_values").any?
@@ -511,8 +513,8 @@ module ActiveRecord
         raise ActiveRecordError.new("delete_all doesn't support #{invalid_methods.join(', ')}")
       end
 
-      if conditions
-        where(conditions).delete_all
+      if conditions.present?
+        where(*conditions).delete_all
       else
         stmt = Arel::DeleteManager.new
         stmt.from(table)
