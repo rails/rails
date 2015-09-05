@@ -28,8 +28,17 @@ class ParamsWrapperTest < ActionController::TestCase
     end
   end
 
-  class User; end
-  class Person; end
+  class User
+    def self.attribute_names
+      []
+    end
+  end
+
+  class Person
+    def self.attribute_names
+      []
+    end
+  end
 
   tests UsersController
 
@@ -155,33 +164,28 @@ class ParamsWrapperTest < ActionController::TestCase
   end
 
   def test_derived_wrapped_keys_from_matching_model
-    User.expects(:respond_to?).with(:attribute_names).returns(true)
-    User.expects(:attribute_names).twice.returns(["username"])
-
-    with_default_wrapper_options do
-      @request.env['CONTENT_TYPE'] = 'application/json'
-      post :parse, params: { 'username' => 'sikachu', 'title' => 'Developer' }
-      assert_parameters({ 'username' => 'sikachu', 'title' => 'Developer', 'user' => { 'username' => 'sikachu' }})
+    assert_called(User, :attribute_names, times: 2, returns: ["username"]) do
+      with_default_wrapper_options do
+        @request.env['CONTENT_TYPE'] = 'application/json'
+        post :parse, params: { 'username' => 'sikachu', 'title' => 'Developer' }
+        assert_parameters({ 'username' => 'sikachu', 'title' => 'Developer', 'user' => { 'username' => 'sikachu' }})
+      end
     end
   end
 
   def test_derived_wrapped_keys_from_specified_model
     with_default_wrapper_options do
-      Person.expects(:respond_to?).with(:attribute_names).returns(true)
-      Person.expects(:attribute_names).twice.returns(["username"])
+      assert_called(Person, :attribute_names, times: 2, returns: ["username"]) do
+        UsersController.wrap_parameters Person
 
-      UsersController.wrap_parameters Person
-
-      @request.env['CONTENT_TYPE'] = 'application/json'
-      post :parse, params: { 'username' => 'sikachu', 'title' => 'Developer' }
-      assert_parameters({ 'username' => 'sikachu', 'title' => 'Developer', 'person' => { 'username' => 'sikachu' }})
+        @request.env['CONTENT_TYPE'] = 'application/json'
+        post :parse, params: { 'username' => 'sikachu', 'title' => 'Developer' }
+        assert_parameters({ 'username' => 'sikachu', 'title' => 'Developer', 'person' => { 'username' => 'sikachu' }})
+      end
     end
   end
 
   def test_not_wrapping_abstract_model
-    User.expects(:respond_to?).with(:attribute_names).returns(true)
-    User.expects(:attribute_names).returns([])
-
     with_default_wrapper_options do
       @request.env['CONTENT_TYPE'] = 'application/json'
       post :parse, params: { 'username' => 'sikachu', 'title' => 'Developer' }
