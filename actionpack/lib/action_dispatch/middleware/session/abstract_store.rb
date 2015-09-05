@@ -79,7 +79,7 @@ module ActionDispatch
       end
     end
 
-    class AbstractStore < Rack::Session::Abstract::ID
+    class AbstractStore < Rack::Session::Abstract::Persisted
       include Compatibility
       include StaleSessionCheck
       include SessionObject

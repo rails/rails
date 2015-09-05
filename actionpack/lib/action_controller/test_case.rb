@@ -149,7 +149,7 @@ module ActionController
   # Methods #destroy and #load! are overridden to avoid calling methods on the
   # @store object, which does not exist for the TestSession class.
   class TestSession < Rack::Session::Abstract::SessionHash #:nodoc:
-    DEFAULT_OPTIONS = Rack::Session::Abstract::ID::DEFAULT_OPTIONS
+    DEFAULT_OPTIONS = Rack::Session::Abstract::Persisted::DEFAULT_OPTIONS
 
     def initialize(session = {})
       super(nil, nil)
