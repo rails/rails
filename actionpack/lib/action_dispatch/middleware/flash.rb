@@ -1,7 +1,7 @@
 require 'active_support/core_ext/hash/keys'
 
 module ActionDispatch
-  class Request < Rack::Request
+  class Request
     # Access the contents of the flash. Use <tt>flash["notice"]</tt> to
     # read a notice you put there or <tt>flash["notice"] = "hello"</tt>
     # to put a new one.

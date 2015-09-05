@@ -1,7 +1,7 @@
 require 'rack/session/abstract/id'
 
 module ActionDispatch
-  class Request < Rack::Request
+  class Request
     # Session is responsible for lazily loading the session from store.
     class Session # :nodoc:
       ENV_SESSION_KEY         = Rack::RACK_SESSION # :nodoc:

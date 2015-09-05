@@ -70,7 +70,7 @@ module ActionController
           self.content_type = ENCODER.content_type
           data = ENCODER.build_multipart non_path_parameters
         else
-          get_header('CONTENT_TYPE') do |k|
+          fetch_header('CONTENT_TYPE') do |k|
             set_header k, 'application/x-www-form-urlencoded'
           end
 
@@ -98,7 +98,7 @@ module ActionController
         set_header 'rack.input', StringIO.new(data)
       end
 
-      get_header("PATH_INFO") do |k|
+      fetch_header("PATH_INFO") do |k|
         set_header k, generated_path
       end
       path_parameters[:controller] = controller_path
@@ -500,7 +500,7 @@ module ActionController
 
         if xhr
           @request.set_header 'HTTP_X_REQUESTED_WITH', 'XMLHttpRequest'
-          @request.get_header('HTTP_ACCEPT') do |k|
+          @request.fetch_header('HTTP_ACCEPT') do |k|
             @request.set_header k, [Mime::JS, Mime::HTML, Mime::XML, 'text/xml', Mime::ALL].join(', ')
           end
         end
@@ -508,7 +508,7 @@ module ActionController
         @controller.request  = @request
         @controller.response = @response
 
-        @request.get_header("SCRIPT_NAME") do |k|
+        @request.fetch_header("SCRIPT_NAME") do |k|
           @request.set_header k, @controller.config.relative_url_root
         end
 

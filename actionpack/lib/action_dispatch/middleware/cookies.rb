@@ -4,9 +4,9 @@ require 'active_support/message_verifier'
 require 'active_support/json'
 
 module ActionDispatch
-  class Request < Rack::Request
+  class Request
     def cookie_jar
-      get_header('action_dispatch.cookies'.freeze) do
+      fetch_header('action_dispatch.cookies'.freeze) do
         self.cookie_jar = Cookies::CookieJar.build(self, cookies)
       end
     end

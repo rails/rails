@@ -13,12 +13,14 @@ require 'action_dispatch/http/url'
 require 'active_support/core_ext/array/conversions'
 
 module ActionDispatch
-  class Request < Rack::Request
+  class Request
+    include Rack::Request::Helpers
     include ActionDispatch::Http::Cache::Request
     include ActionDispatch::Http::MimeNegotiation
     include ActionDispatch::Http::Parameters
     include ActionDispatch::Http::FilterParameters
     include ActionDispatch::Http::URL
+    include Rack::Request::Env
 
     autoload :Session, 'action_dispatch/request/session'
     autoload :Utils,   'action_dispatch/request/utils'
@@ -335,7 +337,7 @@ module ActionDispatch
 
     # Override Rack's GET method to support indifferent access
     def GET
-      get_header("action_dispatch.request.query_parameters") do |k|
+      fetch_header("action_dispatch.request.query_parameters") do |k|
         set_header k, Request::Utils.normalize_encode_params(super || {})
       end
     rescue Rack::Utils::ParameterTypeError, Rack::Utils::InvalidParameterError => e
@@ -345,7 +347,7 @@ module ActionDispatch
 
     # Override Rack's POST method to support indifferent access
     def POST
-      get_header("action_dispatch.request.request_parameters") do
+      fetch_header("action_dispatch.request.request_parameters") do
         self.request_parameters = Request::Utils.normalize_encode_params(super || {})
       end
     rescue Rack::Utils::ParameterTypeError, Rack::Utils::InvalidParameterError => e

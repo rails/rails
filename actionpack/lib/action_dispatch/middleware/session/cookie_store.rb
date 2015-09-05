@@ -95,7 +95,7 @@ module ActionDispatch
       end
 
       def unpacked_cookie_data(req)
-        req.get_header("action_dispatch.request.unsigned_session_cookie") do |k|
+        req.fetch_header("action_dispatch.request.unsigned_session_cookie") do |k|
           v = stale_session_check! do
             if data = get_cookie(req)
               data.stringify_keys!
