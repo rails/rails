@@ -19,7 +19,7 @@ module ActiveSupport
           mock = Minitest::Mock.new
 
           if args.all? { |arg| arg.is_a?(Array) }
-            args.each { |arg| mock.expect(:call, returns, arg) }
+            args.each { |arg| mock.expect(:call, (returns.respond_to?(:call) ? returns.call(arg) : returns), arg) }
           else
             mock.expect(:call, returns, args)
           end
