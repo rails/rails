@@ -749,20 +749,23 @@ end
 class RequestFormat < BaseRequestTest
   test "xml format" do
     request = stub_request
-    request.expects(:parameters).at_least_once.returns({ :format => 'xml' })
-    assert_equal Mime::XML, request.format
+    assert_called(request, :parameters, times: 2, returns: {format: :xml}) do
+      assert_equal Mime::XML, request.format
+    end
   end
 
   test "xhtml format" do
     request = stub_request
-    request.expects(:parameters).at_least_once.returns({ :format => 'xhtml' })
-    assert_equal Mime::HTML, request.format
+    assert_called(request, :parameters, times: 2, returns: {format: :xhtml}) do
+      assert_equal Mime::HTML, request.format
+    end
   end
 
   test "txt format" do
     request = stub_request
-    request.expects(:parameters).at_least_once.returns({ :format => 'txt' })
-    assert_equal Mime::TEXT, request.format
+    assert_called(request, :parameters, times: 2, returns: {format: :txt}) do
+      assert_equal Mime::TEXT, request.format
+    end
   end
 
   test "XMLHttpRequest" do
@@ -770,21 +773,25 @@ class RequestFormat < BaseRequestTest
       'HTTP_X_REQUESTED_WITH' => 'XMLHttpRequest',
       'HTTP_ACCEPT' => [Mime::JS, Mime::HTML, Mime::XML, "text/xml", Mime::ALL].join(",")
     )
-    request.expects(:parameters).at_least_once.returns({})
-    assert request.xhr?
-    assert_equal Mime::JS, request.format
+
+    assert_called(request, :parameters, times: 1, returns: {}) do
+      assert request.xhr?
+      assert_equal Mime::JS, request.format
+    end
   end
 
   test "can override format with parameter negative" do
     request = stub_request
-    request.expects(:parameters).at_least_once.returns({ :format => :txt })
-    assert !request.format.xml?
+    assert_called(request, :parameters, times: 2, returns: {format: :txt}) do
+      assert !request.format.xml?
+    end
   end
 
   test "can override format with parameter positive" do
     request = stub_request
-    request.expects(:parameters).at_least_once.returns({ :format => :xml })
-    assert request.format.xml?
+    assert_called(request, :parameters, times: 2, returns: {format: :xml}) do
+      assert request.format.xml?
+    end
   end
 
   test "formats text/html with accept header" do
@@ -810,23 +817,26 @@ class RequestFormat < BaseRequestTest
 
   test "formats format:text with accept header" do
     request = stub_request
-    request.expects(:parameters).at_least_once.returns({ :format => :txt })
-    assert_equal [Mime::TEXT], request.formats
+    assert_called(request, :parameters, times: 2, returns: {format: :txt}) do
+      assert_equal [Mime::TEXT], request.formats
+    end
   end
 
   test "formats format:unknown with accept header" do
     request = stub_request
-    request.expects(:parameters).at_least_once.returns({ :format => :unknown })
-    assert_instance_of Mime::NullType, request.format
+    assert_called(request, :parameters, times: 2, returns: {format: :unknown}) do
+      assert_instance_of Mime::NullType, request.format
+    end
   end
 
   test "format is not nil with unknown format" do
     request = stub_request
-    request.expects(:parameters).at_least_once.returns({ format: :hello })
-    assert request.format.nil?
-    assert_not request.format.html?
-    assert_not request.format.xml?
-    assert_not request.format.json?
+    assert_called(request, :parameters, times: 2, returns: {format: :hello}) do
+      assert request.format.nil?
+      assert_not request.format.html?
+      assert_not request.format.xml?
+      assert_not request.format.json?
+    end
   end
 
   test "format does not throw exceptions when malformed parameters" do
@@ -837,8 +847,9 @@ class RequestFormat < BaseRequestTest
 
   test "formats with xhr request" do
     request = stub_request 'HTTP_X_REQUESTED_WITH' => "XMLHttpRequest"
-    request.expects(:parameters).at_least_once.returns({})
-    assert_equal [Mime::JS], request.formats
+    assert_called(request, :parameters, times: 1, returns: {}) do
+      assert_equal [Mime::JS], request.formats
+    end
   end
 
   test "ignore_accept_header" do
@@ -847,30 +858,37 @@ class RequestFormat < BaseRequestTest
 
     begin
       request = stub_request 'HTTP_ACCEPT' => 'application/xml'
-      request.expects(:parameters).at_least_once.returns({})
-      assert_equal [ Mime::HTML ], request.formats
+      assert_called(request, :parameters, times: 1, returns: {}) do
+        assert_equal [ Mime::HTML ], request.formats
+      end
 
       request = stub_request 'HTTP_ACCEPT' => 'koz-asked/something-crazy'
-      request.expects(:parameters).at_least_once.returns({})
-      assert_equal [ Mime::HTML ], request.formats
+      assert_called(request, :parameters, times: 1, returns: {}) do
+        assert_equal [ Mime::HTML ], request.formats
+      end
 
       request = stub_request 'HTTP_ACCEPT' => '*/*;q=0.1'
-      request.expects(:parameters).at_least_once.returns({})
-      assert_equal [ Mime::HTML ], request.formats
+      assert_called(request, :parameters, times: 1, returns: {}) do
+        assert_equal [ Mime::HTML ], request.formats
+      end
 
       request = stub_request 'HTTP_ACCEPT' => 'application/jxw'
-      request.expects(:parameters).at_least_once.returns({})
-      assert_equal [ Mime::HTML ], request.formats
+      assert_called(request, :parameters, times: 1, returns: {}) do
+        assert_equal [ Mime::HTML ], request.formats
+      end
 
       request = stub_request 'HTTP_ACCEPT' => 'application/xml',
                              'HTTP_X_REQUESTED_WITH' => "XMLHttpRequest"
-      request.expects(:parameters).at_least_once.returns({})
-      assert_equal [ Mime::JS ], request.formats
+
+      assert_called(request, :parameters, times: 1, returns: {}) do
+        assert_equal [ Mime::JS ], request.formats
+      end
 
       request = stub_request 'HTTP_ACCEPT' => 'application/xml',
                              'HTTP_X_REQUESTED_WITH' => "XMLHttpRequest"
-      request.expects(:parameters).at_least_once.returns({:format => :json})
-      assert_equal [ Mime::JSON ], request.formats
+      assert_called(request, :parameters, times: 2, returns: {format: :json}) do
+        assert_equal [ Mime::JSON ], request.formats
+      end
     ensure
       ActionDispatch::Request.ignore_accept_header = old_ignore_accept_header
     end
@@ -922,12 +940,14 @@ end
 class RequestParameters < BaseRequestTest
   test "parameters" do
     request = stub_request
-    request.expects(:request_parameters).at_least_once.returns({ "foo" => 1 })
-    request.expects(:query_parameters).at_least_once.returns({ "bar" => 2 })
 
-    assert_equal({"foo" => 1, "bar" => 2}, request.parameters)
-    assert_equal({"foo" => 1}, request.request_parameters)
-    assert_equal({"bar" => 2}, request.query_parameters)
+    assert_called(request, :request_parameters, times: 2, returns: {"foo" => 1}) do
+      assert_called(request, :query_parameters, times: 2, returns: {"bar" => 2}) do
+        assert_equal({"foo" => 1, "bar" => 2}, request.parameters)
+        assert_equal({"foo" => 1}, request.request_parameters)
+        assert_equal({"bar" => 2}, request.query_parameters)
+      end
+    end
   end
 
   test "parameters not accessible after rack parse error" do
