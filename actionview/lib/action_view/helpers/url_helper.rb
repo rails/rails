@@ -464,11 +464,11 @@ module ActionView
 
         extras = %w{ cc bcc body subject reply_to }.map! { |item|
           option = html_options.delete(item).presence || next
-          "#{item.dasherize}=#{Rack::Utils.escape_path(option)}"
+          "#{item.dasherize}=#{ERB::Util.url_encode(option)}"
         }.compact
         extras = extras.empty? ? '' : '?' + extras.join('&')
 
-        encoded_email_address =  Rack::Utils.escape_path(email_address)
+        encoded_email_address = ERB::Util.url_encode(email_address).gsub("%40", "@")
         html_options["href"] = "mailto:#{encoded_email_address}#{extras}"
 
         content_tag("a".freeze, name || email_address, html_options, &block)
