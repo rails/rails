@@ -221,10 +221,6 @@ module ActionDispatch
           end
       end
 
-      protected
-
-      def request; @parent_jar.request; end
-
       private
 
       def upgrade_legacy_signed_cookies?
@@ -440,6 +436,9 @@ module ActionDispatch
         commit(options)
         @parent_jar[name] = options
       end
+
+      protected
+        def request; @parent_jar.request; end
 
       private
         def parse(name, data); data; end
