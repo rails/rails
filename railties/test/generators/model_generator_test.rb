@@ -334,6 +334,11 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     assert_match(/The name 'Object' is either already used in your application or reserved/, content)
   end
 
+  def test_check_application_module_collision
+    content = capture(:stderr){ run_generator ["TestApp::account"] }
+    assert_match(/The module 'TestApp' is already defined as the base module of the application/, content)
+  end
+
   def test_index_is_added_for_belongs_to_association
     run_generator ["account", "supplier:belongs_to"]
 
