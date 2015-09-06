@@ -1,3 +1,8 @@
+*   Deprecate passing conditions to `ActiveRecord::Relation#delete_all`
+    and `ActiveRecord::Relation#destroy_all`
+
+    *Wojciech Wnętrzak*
+
 *   PostgreSQL, `create_schema`, `drop_schema` and `rename_table` now quote
     schema names.
 
