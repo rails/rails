@@ -2,7 +2,6 @@ require 'active_record_unit'
 require 'active_record/railties/controller_runtime'
 require 'fixtures/project'
 require 'active_support/log_subscriber/test_helper'
-require 'action_controller/log_subscriber'
 
 ActionController::Base.include(ActiveRecord::Railties::ControllerRuntime)
 
