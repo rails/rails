@@ -422,19 +422,27 @@ module ActionDispatch
       def [](name)
         @parent_jar[name.to_s]
       end
-    end
 
-    class PermanentCookieJar < AbstractCookieJar # :nodoc:
       def []=(name, options)
         if options.is_a?(Hash)
           options.symbolize_keys!
         else
-          options = { :value => options }
+          options = { value: options }
         end
 
-        options[:expires] = 20.years.from_now
+        commit(options)
         @parent_jar[name] = options
       end
+
+      private
+        def commit(options); end
+    end
+
+    class PermanentCookieJar < AbstractCookieJar # :nodoc:
+      private
+        def commit(options)
+          options[:expires] = 20.years.from_now
+        end
     end
 
     class JsonSerializer # :nodoc:
