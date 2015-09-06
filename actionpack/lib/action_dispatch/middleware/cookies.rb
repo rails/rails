@@ -412,7 +412,7 @@ module ActionDispatch
         end
     end
 
-    class PermanentCookieJar #:nodoc:
+    class AbstractCookieJar # :nodoc:
       include ChainedCookieJars
 
       def initialize(parent_jar)
@@ -422,7 +422,9 @@ module ActionDispatch
       def [](name)
         @parent_jar[name.to_s]
       end
+    end
 
+    class PermanentCookieJar < AbstractCookieJar # :nodoc:
       def []=(name, options)
         if options.is_a?(Hash)
           options.symbolize_keys!
