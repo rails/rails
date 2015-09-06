@@ -496,12 +496,11 @@ module ActionDispatch
         end
     end
 
-    class SignedCookieJar #:nodoc:
-      include ChainedCookieJars
+    class SignedCookieJar < AbstractCookieJar # :nodoc:
       include SerializedCookieJars
 
       def initialize(parent_jar)
-        @parent_jar = parent_jar
+        super
         secret = key_generator.generate_key(request.signed_cookie_salt)
         @verifier = ActiveSupport::MessageVerifier.new(secret, digest: digest, serializer: ActiveSupport::MessageEncryptor::NullSerializer)
       end
@@ -514,21 +513,13 @@ module ActionDispatch
         end
       end
 
-      # Signs and sets the cookie named +name+. The second argument may be the cookie's
-      # value or a hash of options as documented above.
-      def []=(name, options)
-        if options.is_a?(Hash)
-          options.symbolize_keys!
+      private
+        def commit(options)
           options[:value] = @verifier.generate(serialize(options[:value]))
-        else
-          options = { :value => @verifier.generate(serialize(options)) }
+
+          raise CookieOverflow if options[:value].bytesize > MAX_COOKIE_SIZE
         end
 
-        raise CookieOverflow if options[:value].bytesize > MAX_COOKIE_SIZE
-        @parent_jar[name] = options
-      end
-
-      private
         def verify(signed_message)
           @verifier.verify(signed_message)
         rescue ActiveSupport::MessageVerifier::InvalidSignature
