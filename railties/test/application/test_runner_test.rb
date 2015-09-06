@@ -340,6 +340,11 @@ module ApplicationTests
       assert_match '0 runs, 0 assertions', run_test_command('')
     end
 
+    def test_raise_error_when_specified_file_does_not_exist
+      error = capture(:stderr) { run_test_command('test/not_exists.rb') }
+      assert_match(%r{cannot load such file.+test/not_exists\.rb}, error)
+    end
+
     private
       def run_test_command(arguments = 'test/unit/test_test.rb')
         Dir.chdir(app_path) { `bin/rails t #{arguments}` }
