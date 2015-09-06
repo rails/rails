@@ -1,3 +1,10 @@
+*   Support dropping indexes concurrently in Postgres.
+
+    See http://www.postgresql.org/docs/9.4/static/sql-dropindex.html for more
+    details.
+
+    *Grey Baker*
+
 *   Deprecate passing conditions to `ActiveRecord::Relation#delete_all`
     and `ActiveRecord::Relation#destroy_all`
 

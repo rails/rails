@@ -607,10 +607,7 @@ module ActiveRecord
       #   remove_index :accounts, name: :by_branch_party
       #
       def remove_index(table_name, options = {})
-        remove_index!(table_name, index_name_for_remove(table_name, options))
-      end
-
-      def remove_index!(table_name, index_name) #:nodoc:
+        index_name = index_name_for_remove(table_name, options)
         execute "DROP INDEX #{quote_column_name(index_name)} ON #{quote_table_name(table_name)}"
       end
 
