@@ -226,10 +226,6 @@ module ActionDispatch
       def upgrade_legacy_signed_cookies?
         request.secret_token.present? && request.secret_key_base.present?
       end
-
-      def key_generator
-        request.key_generator
-      end
     end
 
     # Passing the ActiveSupport::MessageEncryptor::NullSerializer downstream
@@ -500,6 +496,10 @@ module ActionDispatch
 
         def digest
           request.cookies_digest || 'SHA1'
+        end
+
+        def key_generator
+          request.key_generator
         end
     end
 
