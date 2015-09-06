@@ -541,12 +541,11 @@ module ActionDispatch
       end
     end
 
-    class EncryptedCookieJar #:nodoc:
-      include ChainedCookieJars
+    class EncryptedCookieJar < AbstractCookieJar # :nodoc:
       include SerializedCookieJars
 
       def initialize(parent_jar)
-        @parent_jar = parent_jar
+        super
 
         if ActiveSupport::LegacyKeyGenerator === key_generator
           raise "You didn't set secrets.secret_key_base, which is required for this cookie jar. " +
@@ -566,22 +565,13 @@ module ActionDispatch
         end
       end
 
-      # Encrypts and sets the cookie named +name+. The second argument may be the cookie's
-      # value or a hash of options as documented above.
-      def []=(name, options)
-        if options.is_a?(Hash)
-          options.symbolize_keys!
-        else
-          options = { :value => options }
+      private
+        def commit(options)
+          options[:value] = @encryptor.encrypt_and_sign(serialize(options[:value]))
+
+          raise CookieOverflow if options[:value].bytesize > MAX_COOKIE_SIZE
         end
 
-        options[:value] = @encryptor.encrypt_and_sign(serialize(options[:value]))
-
-        raise CookieOverflow if options[:value].bytesize > MAX_COOKIE_SIZE
-        @parent_jar[name] = options
-      end
-
-      private
         def decrypt_and_verify(encrypted_message)
           @encryptor.decrypt_and_verify(encrypted_message)
         rescue ActiveSupport::MessageVerifier::InvalidSignature, ActiveSupport::MessageEncryptor::InvalidMessage
