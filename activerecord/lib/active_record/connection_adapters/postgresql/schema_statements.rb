@@ -101,15 +101,19 @@ module ActiveRecord
 
         # Verifies existence of an index with a given name.
         def index_name_exists?(table_name, index_name, default)
+          table = Utils.extract_schema_qualified_name(table_name.to_s)
+          index = Utils.extract_schema_qualified_name(index_name.to_s)
+
           select_value(<<-SQL, 'SCHEMA').to_i > 0
             SELECT COUNT(*)
             FROM pg_class t
             INNER JOIN pg_index d ON t.oid = d.indrelid
             INNER JOIN pg_class i ON d.indexrelid = i.oid
+            LEFT JOIN pg_namespace n ON n.oid = i.relnamespace
             WHERE i.relkind = 'i'
-              AND i.relname = '#{index_name}'
-              AND t.relname = '#{table_name}'
-              AND i.relnamespace IN (SELECT oid FROM pg_namespace WHERE nspname = ANY (current_schemas(false)) )
+              AND i.relname = '#{index.identifier}'
+              AND t.relname = '#{table.identifier}'
+              AND n.nspname = #{index.schema ? "'#{index.schema}'" : 'ANY (current_schemas(false))'}
           SQL
         end
 
@@ -450,7 +454,7 @@ module ActiveRecord
         def remove_index(table_name, options = {}) #:nodoc:
           index_name = index_name_for_remove(table_name, options)
           algorithm =
-            if options.key?(:algorithm)
+            if Hash === options && options.key?(:algorithm)
               index_algorithms.fetch(options[:algorithm]) do
                 raise ArgumentError.new("Algorithm must be one of the following: #{index_algorithms.keys.map(&:inspect).join(', ')}")
               end
