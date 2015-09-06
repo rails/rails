@@ -551,19 +551,15 @@ module ActionDispatch
 
       private
         def parse(name, encrypted_message)
-          deserialize name, decrypt_and_verify(encrypted_message)
+          deserialize name, @encryptor.decrypt_and_verify(encrypted_message)
+        rescue ActiveSupport::MessageVerifier::InvalidSignature, ActiveSupport::MessageEncryptor::InvalidMessage
+          nil
         end
 
         def commit(options)
           options[:value] = @encryptor.encrypt_and_sign(serialize(options[:value]))
 
           raise CookieOverflow if options[:value].bytesize > MAX_COOKIE_SIZE
-        end
-
-        def decrypt_and_verify(encrypted_message)
-          @encryptor.decrypt_and_verify(encrypted_message)
-        rescue ActiveSupport::MessageVerifier::InvalidSignature, ActiveSupport::MessageEncryptor::InvalidMessage
-          nil
         end
     end
 
@@ -576,7 +572,7 @@ module ActionDispatch
 
       private
         def parse(name, encrypted_or_signed_message)
-          deserialize(name, decrypt_and_verify(encrypted_or_signed_message)) || verify_and_upgrade_legacy_signed_message(name, encrypted_or_signed_message)
+          super || verify_and_upgrade_legacy_signed_message(name, encrypted_or_signed_message)
         end
     end
 
