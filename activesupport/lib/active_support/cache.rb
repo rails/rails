@@ -12,10 +12,12 @@ require 'active_support/core_ext/string/inflections'
 module ActiveSupport
   # See ActiveSupport::Cache::Store for documentation.
   module Cache
-    autoload :FileStore,     'active_support/cache/file_store'
-    autoload :MemoryStore,   'active_support/cache/memory_store'
-    autoload :MemCacheStore, 'active_support/cache/mem_cache_store'
-    autoload :NullStore,     'active_support/cache/null_store'
+    extend ActiveSupport::Autoload
+
+    autoload :FileStore
+    autoload :MemoryStore
+    autoload :MemCacheStore
+    autoload :NullStore
 
     # These options mean something to all cache implementations. Individual cache
     # implementations may support additional options.
