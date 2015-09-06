@@ -253,6 +253,11 @@ module ActionDispatch
       rescue ActiveSupport::MessageVerifier::InvalidSignature
         nil
       end
+
+      private
+        def parse(name, signed_message)
+          super || verify_and_upgrade_legacy_signed_message(name, signed_message)
+        end
     end
 
     class CookieJar #:nodoc:
@@ -526,11 +531,6 @@ module ActionDispatch
     # re-saves them using the new key generator to provide a smooth upgrade path.
     class UpgradeLegacySignedCookieJar < SignedCookieJar #:nodoc:
       include VerifyAndUpgradeLegacySignedMessage
-
-      private
-        def parse(name, signed_message)
-          super || verify_and_upgrade_legacy_signed_message(name, signed_message)
-        end
     end
 
     class EncryptedCookieJar < AbstractCookieJar # :nodoc:
@@ -569,11 +569,6 @@ module ActionDispatch
     # encrypts and re-saves them using the new key generator to provide a smooth upgrade path.
     class UpgradeLegacyEncryptedCookieJar < EncryptedCookieJar #:nodoc:
       include VerifyAndUpgradeLegacySignedMessage
-
-      private
-        def parse(name, encrypted_or_signed_message)
-          super || verify_and_upgrade_legacy_signed_message(name, encrypted_or_signed_message)
-        end
     end
 
     def initialize(app)
