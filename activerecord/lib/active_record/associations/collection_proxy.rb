@@ -615,8 +615,8 @@ module ActiveRecord
       end
 
       # Destroys the +records+ supplied and removes them from the collection.
-      # This method will _always_ remove record from the database ignoring
-      # the +:dependent+ option. Returns an array with the removed records.
+      # This method will _always_ remove record from the database.
+      # Returns an array with the removed records.
       #
       #   class Person < ActiveRecord::Base
       #     has_many :pets
