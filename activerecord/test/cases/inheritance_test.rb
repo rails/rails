@@ -6,6 +6,7 @@ require 'models/project'
 require 'models/subscriber'
 require 'models/vegetables'
 require 'models/shop'
+require 'action_controller/metal/strong_parameters'
 
 module InheritanceTestHelper
   def with_store_full_sti_class(&block)
@@ -223,6 +224,11 @@ class InheritanceTest < ActiveRecord::TestCase
     end
   end
 
+  def test_new_with_action_controller_parameters
+    params = ActionController::Parameters.new(type: 'Firm').permit(:type)
+    firm = Company.new params
+    assert_equal Firm, firm.class
+  end
 
   def test_new_with_complex_inheritance
     assert_nothing_raised { Client.new(type: 'VerySpecialClient') }
