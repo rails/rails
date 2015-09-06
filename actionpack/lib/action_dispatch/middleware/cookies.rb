@@ -510,19 +510,13 @@ module ActionDispatch
 
       private
         def parse(name, signed_message)
-          deserialize name, verify(signed_message)
+          deserialize name, @verifier.verified(signed_message)
         end
 
         def commit(options)
           options[:value] = @verifier.generate(serialize(options[:value]))
 
           raise CookieOverflow if options[:value].bytesize > MAX_COOKIE_SIZE
-        end
-
-        def verify(signed_message)
-          @verifier.verify(signed_message)
-        rescue ActiveSupport::MessageVerifier::InvalidSignature
-          nil
         end
     end
 
@@ -535,7 +529,7 @@ module ActionDispatch
 
       private
         def parse(name, signed_message)
-          deserialize(name, verify(signed_message)) || verify_and_upgrade_legacy_signed_message(name, signed_message)
+          super || verify_and_upgrade_legacy_signed_message(name, signed_message)
         end
     end
 
