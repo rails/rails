@@ -29,12 +29,21 @@ module Minitest
     options[:patterns] = opts.order!
   end
 
+  # Running several Rake tasks in a single command would trip up the runner,
+  # as the patterns would also contain the other Rake tasks.
+  def self.rake_run(patterns) # :nodoc:
+    @rake_patterns = patterns
+    run
+  end
+
   def self.plugin_rails_init(options)
     self.run_with_rails_extension = true
 
     ENV["RAILS_ENV"] = options[:environment] || "test"
 
-    ::Rails::TestRequirer.require_files options[:patterns] unless run_with_autorun
+    unless run_with_autorun
+      ::Rails::TestRequirer.require_files @rake_patterns || options[:patterns]
+    end
 
     unless options[:full_backtrace] || ENV["BACKTRACE"]
       # Plugin can run without Rails loaded, check before filtering.
