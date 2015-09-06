@@ -420,7 +420,9 @@ module ActionDispatch
       end
 
       def [](name)
-        @parent_jar[name.to_s]
+        if data = @parent_jar[name.to_s]
+          parse name, data
+        end
       end
 
       def []=(name, options)
@@ -435,6 +437,7 @@ module ActionDispatch
       end
 
       private
+        def parse(name, data); data; end
         def commit(options); end
     end
 
@@ -505,15 +508,11 @@ module ActionDispatch
         @verifier = ActiveSupport::MessageVerifier.new(secret, digest: digest, serializer: ActiveSupport::MessageEncryptor::NullSerializer)
       end
 
-      # Returns the value of the cookie by +name+ if it is untampered,
-      # returns +nil+ otherwise or if no such cookie exists.
-      def [](name)
-        if signed_message = @parent_jar[name]
+      private
+        def parse(name, signed_message)
           deserialize name, verify(signed_message)
         end
-      end
 
-      private
         def commit(options)
           options[:value] = @verifier.generate(serialize(options[:value]))
 
@@ -534,11 +533,10 @@ module ActionDispatch
     class UpgradeLegacySignedCookieJar < SignedCookieJar #:nodoc:
       include VerifyAndUpgradeLegacySignedMessage
 
-      def [](name)
-        if signed_message = @parent_jar[name]
+      private
+        def parse(name, signed_message)
           deserialize(name, verify(signed_message)) || verify_and_upgrade_legacy_signed_message(name, signed_message)
         end
-      end
     end
 
     class EncryptedCookieJar < AbstractCookieJar # :nodoc:
@@ -557,15 +555,11 @@ module ActionDispatch
         @encryptor = ActiveSupport::MessageEncryptor.new(secret, sign_secret, digest: digest, serializer: ActiveSupport::MessageEncryptor::NullSerializer)
       end
 
-      # Returns the value of the cookie by +name+ if it is untampered,
-      # returns +nil+ otherwise or if no such cookie exists.
-      def [](name)
-        if encrypted_message = @parent_jar[name]
+      private
+        def parse(name, encrypted_message)
           deserialize name, decrypt_and_verify(encrypted_message)
         end
-      end
 
-      private
         def commit(options)
           options[:value] = @encryptor.encrypt_and_sign(serialize(options[:value]))
 
@@ -586,11 +580,10 @@ module ActionDispatch
     class UpgradeLegacyEncryptedCookieJar < EncryptedCookieJar #:nodoc:
       include VerifyAndUpgradeLegacySignedMessage
 
-      def [](name)
-        if encrypted_or_signed_message = @parent_jar[name]
+      private
+        def parse(name, encrypted_or_signed_message)
           deserialize(name, decrypt_and_verify(encrypted_or_signed_message)) || verify_and_upgrade_legacy_signed_message(name, encrypted_or_signed_message)
         end
-      end
     end
 
     def initialize(app)
