@@ -1,6 +1,6 @@
 require 'thread_safe'
 
-module ActiveRecord
+module ActiveModel
   module Type
     class TypeMap # :nodoc:
       def initialize

@@ -5,13 +5,6 @@ module ActiveRecord
   module ConnectionAdapters
     # An abstract definition of a column in a table.
     class Column
-      FALSE_VALUES = [false, 0, '0', 'f', 'F', 'false', 'FALSE', 'off', 'OFF'].to_set
-
-      module Format
-        ISO_DATE = /\A(\d{4})-(\d\d)-(\d\d)\z/
-        ISO_DATETIME = /\A(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d):(\d\d)(\.\d+)?\z/
-      end
-
       attr_reader :name, :null, :sql_type_metadata, :default, :default_function, :collation
 
       delegate :precision, :scale, :limit, :type, :sql_type, to: :sql_type_metadata, allow_nil: true

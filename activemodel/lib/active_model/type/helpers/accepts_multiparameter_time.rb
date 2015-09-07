@@ -1,4 +1,4 @@
-module ActiveRecord
+module ActiveModel
   module Type
     module Helpers
       class AcceptsMultiparameterTime < Module # :nodoc:
@@ -17,10 +17,7 @@ module ActiveRecord
             end
             return unless values_hash[1] && values_hash[2] && values_hash[3]
             values = values_hash.sort.map(&:last)
-            ::Time.send(
-              ActiveRecord::Base.default_timezone,
-              *values
-            )
+            ::Time.send(default_timezone, *values)
           end
           private :value_from_multiparameter_assignment
         end
