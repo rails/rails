@@ -89,7 +89,7 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
   end
 
   def test_end_of_day
-    assert_equal DateTime.civil(2005,2,4,23,59,59,999999), DateTime.civil(2005,2,4,10,10,10).end_of_day
+    assert_equal "Fri, 04 Feb 2005 23:59:59.999999 +0000", DateTime.civil(2005,2,4,10,10,10).end_of_day.strftime("%a, %d %b %Y %H:%M:%S.%6N %z")
   end
 
   def test_beginning_of_hour
@@ -97,7 +97,8 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
   end
 
   def test_end_of_hour
-    assert_equal DateTime.civil(2005,2,4,19,59,59,999999), DateTime.civil(2005,2,4,19,30,10).end_of_hour
+    assert_equal "Fri, 04 Feb 2005 19:59:59.999999 +0000", DateTime.civil(2005,2,4,19,30,10).end_of_hour.strftime("%a, %d %b %Y %H:%M:%S.%6N %z")
+    assert_equal 999999, DateTime.civil(2005,2,4,19,30,10).end_of_hour.usec
   end
 
   def test_beginning_of_minute
@@ -105,17 +106,20 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
   end
 
   def test_end_of_minute
-    assert_equal DateTime.civil(2005,2,4,19,30,59,999999), DateTime.civil(2005,2,4,19,30,10).end_of_minute
+    assert_equal "Fri, 04 Feb 2005 19:30:59.999999 +0000", DateTime.civil(2005,2,4,19,30,10).end_of_minute.strftime("%a, %d %b %Y %H:%M:%S.%6N %z")
+    assert_equal 999999, DateTime.civil(2005,2,4,19,30,10).end_of_minute.usec
   end
 
   def test_end_of_second
-    assert_equal DateTime.civil(2005,2,4,19,30,10,999999), DateTime.civil(2005,2,4,19,30,10).end_of_second
+    assert_equal "Fri, 04 Feb 2005 19:30:10.999999 +0000", DateTime.civil(2005,2,4,19,30,10).end_of_second.strftime("%a, %d %b %Y %H:%M:%S.%6N %z")
+    assert_equal 999999, DateTime.civil(2005,2,4,19,30,10).end_of_second.usec
   end
 
   def test_end_of_month
-    assert_equal DateTime.civil(2005,3,31,23,59,59,999999), DateTime.civil(2005,3,20,10,10,10).end_of_month
-    assert_equal DateTime.civil(2005,2,28,23,59,59,999999), DateTime.civil(2005,2,20,10,10,10).end_of_month
-    assert_equal DateTime.civil(2005,4,30,23,59,59,999999), DateTime.civil(2005,4,20,10,10,10).end_of_month
+    assert_equal "Thu, 31 Mar 2005 23:59:59.999999 +0000", DateTime.civil(2005,3,20,10,10,10).end_of_month.strftime("%a, %d %b %Y %H:%M:%S.%6N %z")
+    assert_equal "Fri, 28 Feb 2005 23:59:59.999999 +0000", DateTime.civil(2005,2,20,10,10,10).end_of_month.strftime("%a, %d %b %Y %H:%M:%S.%6N %z")
+    assert_equal "Thu, 30 Apr 2005 23:59:59.999999 +0000", DateTime.civil(2005,4,20,10,10,10).end_of_month.strftime("%a, %d %b %Y %H:%M:%S.%6N %z")
+    assert_equal 999999, DateTime.civil(2005,2,4,20,10,10,10).end_of_month.usec
   end
 
   def test_last_year
