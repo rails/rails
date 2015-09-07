@@ -24,12 +24,12 @@ module ActiveRecord
     end
 
     def build_from_hash(attributes)
-      attributes = convert_dot_notation_to_hash(attributes.stringify_keys)
+      attributes = convert_dot_notation_to_hash(attributes)
       expand_from_hash(attributes)
     end
 
     def create_binds(attributes)
-      attributes = convert_dot_notation_to_hash(attributes.stringify_keys)
+      attributes = convert_dot_notation_to_hash(attributes)
       create_binds_for_hash(attributes)
     end
 
