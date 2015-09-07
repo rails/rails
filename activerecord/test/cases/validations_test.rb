@@ -52,6 +52,13 @@ class ValidationsTest < ActiveRecord::TestCase
     assert r.valid?(:special_case)
   end
 
+  def test_invalid_using_multiple_contexts
+    r = WrongReply.new(:title => 'Wrong Create')
+    assert r.invalid?([:special_case, :create])
+    assert_equal "Invalid", r.errors[:author_name].join
+    assert_equal "is Wrong Create", r.errors[:title].join
+  end
+
   def test_validate
     r = WrongReply.new
 
