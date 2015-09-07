@@ -229,7 +229,7 @@ db_namespace = namespace :db do
   end
 
   namespace :schema do
-    desc 'Creates a db/schema.rb file that is portable against any DB supported by AR'
+    desc 'Creates a db/schema.rb file that is portable against any DB supported by Active Record'
     task :dump => [:environment, :load_config] do
       require 'active_record/schema_dumper'
       filename = ENV['SCHEMA'] || File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, 'schema.rb')
