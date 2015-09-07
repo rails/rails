@@ -1,3 +1,14 @@
+*   Global `migrations_paths` configuration now being considered by
+    `Migrator.migrate(...)`. This now works as expected:
+
+      ```ruby
+      ActiveRecord::Tasks::DatabaseTasks.tap do |config|
+        config.migrations_paths = ['custom/migration/path']
+      end
+      ```
+
+    *Tobias Bielohlawek*
+
 *   Support dropping indexes concurrently in PostgreSQL.
 
     See http://www.postgresql.org/docs/9.4/static/sql-dropindex.html for more
