@@ -1,4 +1,4 @@
-*   Support dropping indexes concurrently in Postgres.
+*   Support dropping indexes concurrently in PostgreSQL.
 
     See http://www.postgresql.org/docs/9.4/static/sql-dropindex.html for more
     details.
@@ -6,7 +6,7 @@
     *Grey Baker*
 
 *   Deprecate passing conditions to `ActiveRecord::Relation#delete_all`
-    and `ActiveRecord::Relation#destroy_all`
+    and `ActiveRecord::Relation#destroy_all`.
 
     *Wojciech Wnętrzak*
 
@@ -37,7 +37,7 @@
 *   Uniqueness validator raises descriptive error when running on a persisted
     record without primary key.
 
-    Closes #21304.
+    Fixes #21304.
 
     *Yves Senn*
 
@@ -53,7 +53,7 @@
 
 *   Descriptive error message when fixtures contain a missing column.
 
-    Closes #21201.
+    Fixes #21201.
 
     *Yves Senn*
 
@@ -77,11 +77,11 @@
           sleep 10 # Throttles the delete queries
         end
 
-    Closes #20933.
+    Fixes #20933.
 
     *Sina Siadat*
 
-*   Added methods for PostgreSQL geometric data types to use in migrations
+*   Added methods for PostgreSQL geometric data types to use in migrations.
 
     Example:
 
@@ -1107,7 +1107,7 @@
 
 *   `eager_load` preserves readonly flag for associations.
 
-    Closes #15853.
+    Fixes #15853.
 
     *Takashi Kokubun*
 
@@ -1163,7 +1163,7 @@
 *   Fix bug with `ActiveRecord::Type::Numeric` that caused negative values to
     be marked as having changed when set to the same negative value.
 
-    Closes #18161.
+    Fixes #18161.
 
     *Daniel Fox*
 
@@ -1178,7 +1178,7 @@
     before loading the schema. This is left for the user to do.
     `db:test:prepare` will still purge the database.
 
-    Closes #17945.
+    Fixes #17945.
 
     *Yves Senn*
 
