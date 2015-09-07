@@ -1,6 +1,6 @@
-require 'active_record/type/string'
+require 'active_model/type/string'
 
-module ActiveRecord
+module ActiveModel
   module Type
     class Text < String # :nodoc:
       def type

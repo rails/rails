@@ -1,4 +1,4 @@
-module ActiveRecord
+module ActiveModel
   module Type
     module Helpers
       module TimeValue # :nodoc:
@@ -10,7 +10,7 @@ module ActiveRecord
           end
 
           if value.acts_like?(:time)
-            zone_conversion_method = ActiveRecord::Base.default_timezone == :utc ? :getutc : :getlocal
+            zone_conversion_method = is_utc? ? :getutc : :getlocal
 
             if value.respond_to?(zone_conversion_method)
               value = value.send(zone_conversion_method)
@@ -18,6 +18,14 @@ module ActiveRecord
           end
 
           value
+        end
+        
+        def is_utc?
+          ::Time.zone_default =~ 'UTC'
+        end
+        
+        def default_timezone
+          ::Time.zone_default
         end
 
         def type_cast_for_schema(value)
@@ -33,21 +41,24 @@ module ActiveRecord
         def new_time(year, mon, mday, hour, min, sec, microsec, offset = nil)
           # Treat 0000-00-00 00:00:00 as nil.
           return if year.nil? || (year == 0 && mon == 0 && mday == 0)
+          
 
           if offset
             time = ::Time.utc(year, mon, mday, hour, min, sec, microsec) rescue nil
             return unless time
 
             time -= offset
-            Base.default_timezone == :utc ? time : time.getlocal
+            is_utc? ? time : time.getlocal
           else
-            ::Time.public_send(Base.default_timezone, year, mon, mday, hour, min, sec, microsec) rescue nil
+            ::Time.public_send(default_timezone, year, mon, mday, hour, min, sec, microsec) rescue nil
           end
         end
+        
+        ISO_DATETIME = /\A(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d):(\d\d)(\.\d+)?\z/
 
         # Doesn't handle time zones.
         def fast_string_to_time(string)
-          if string =~ ConnectionAdapters::Column::Format::ISO_DATETIME
+          if string =~ ISO_DATETIME
             microsec = ($7.to_r * 1_000_000).to_i
             new_time $1.to_i, $2.to_i, $3.to_i, $4.to_i, $5.to_i, $6.to_i, microsec
           end

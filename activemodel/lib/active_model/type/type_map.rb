@@ -1,6 +1,6 @@
 require 'concurrent'
 
-module ActiveRecord
+module ActiveModel
   module Type
     class TypeMap # :nodoc:
       def initialize

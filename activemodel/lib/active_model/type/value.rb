@@ -1,4 +1,4 @@
-module ActiveRecord
+module ActiveModel
   module Type
     class Value
       attr_reader :precision, :scale, :limit

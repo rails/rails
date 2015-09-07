@@ -1,4 +1,4 @@
-module ActiveRecord
+module ActiveModel
   module Type
     class Date < Value # :nodoc:
       include Helpers::AcceptsMultiparameterTime.new
@@ -24,8 +24,9 @@ module ActiveRecord
         end
       end
 
+      ISO_DATE = /\A(\d{4})-(\d\d)-(\d\d)\z/
       def fast_string_to_date(string)
-        if string =~ ConnectionAdapters::Column::Format::ISO_DATE
+        if string =~ ISO_DATE
           new_date $1.to_i, $2.to_i, $3.to_i
         end
       end
