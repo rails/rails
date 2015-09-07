@@ -1,3 +1,9 @@
+*   `bin/rake db:migrate` uses
+    `ActiveRecord::Tasks::DatabaseTasks.migrations_paths` instead of
+    `Migrator.migrations_paths`.
+
+    *Tobias Bielohlawek*
+
 *   Fix `rewhere` in a `has_many` association.
 
     Fixes #21955.
