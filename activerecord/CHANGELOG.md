@@ -1,3 +1,9 @@
+*   `bin/rake db:migrate` uses
+    `ActiveRecord::Tasks::DatabaseTasks.migrations_paths` instead of
+    `Migrator.migrations_paths`.
+
+    *Tobias Bielohlawek*
+
 *   Support dropping indexes concurrently in PostgreSQL.
 
     See http://www.postgresql.org/docs/9.4/static/sql-dropindex.html for more

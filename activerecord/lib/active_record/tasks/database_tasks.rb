@@ -134,7 +134,7 @@ module ActiveRecord
         version = ENV["VERSION"] ? ENV["VERSION"].to_i : nil
         scope   = ENV['SCOPE']
         verbose_was, Migration.verbose = Migration.verbose, verbose
-        Migrator.migrate(Migrator.migrations_paths, version) do |migration|
+        Migrator.migrate(migrations_paths, version) do |migration|
           scope.blank? || scope == migration.scope
         end
       ensure
