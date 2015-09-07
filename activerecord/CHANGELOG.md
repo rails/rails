@@ -1,3 +1,7 @@
+*   Correct query for PostgreSQL 8.2 compatibility.
+
+    *Ben Murphy*, *Matthew Draper*
+
 *   `bin/rake db:migrate` uses
     `ActiveRecord::Tasks::DatabaseTasks.migrations_paths` instead of
     `Migrator.migrations_paths`.
