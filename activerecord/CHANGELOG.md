@@ -1,3 +1,7 @@
+*   Correct query for PostgreSQL 8.2 compatibility.
+
+    *Ben Murphy*, *Matthew Draper*
+
 *   Uniqueness validator raises descriptive error when running on a persisted
     record without primary key.
 
