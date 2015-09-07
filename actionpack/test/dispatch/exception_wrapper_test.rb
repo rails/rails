@@ -22,7 +22,7 @@ module ActionDispatch
     end
 
     test '#source_extracts fetches source fragments for every backtrace entry' do
-      exception = TestError.new("lib/file.rb:42:in `index'")
+      exception = TestError.new("lib/file.rb:42:in 'index'")
       wrapper = ExceptionWrapper.new(nil, exception)
 
       assert_called_with(wrapper, :source_fragment, ['lib/file.rb', 42], returns: 'foo') do
@@ -51,10 +51,10 @@ module ActionDispatch
     end
 
     test '#application_trace returns traces only from the application' do
-      exception = TestError.new(caller.prepend("lib/file.rb:42:in `index'"))
+      exception = TestError.new(caller.prepend("lib/file.rb:42:in 'index'"))
       wrapper = ExceptionWrapper.new(@cleaner, exception)
 
-      assert_equal [ "lib/file.rb:42:in `index'" ], wrapper.application_trace
+      assert_equal [ "lib/file.rb:42:in 'index'" ], wrapper.application_trace
     end
 
     test '#application_trace cannot be nil' do
@@ -66,7 +66,7 @@ module ActionDispatch
     end
 
     test '#framework_trace returns traces outside the application' do
-      exception = TestError.new(caller.prepend("lib/file.rb:42:in `index'"))
+      exception = TestError.new(caller.prepend("lib/file.rb:42:in 'index'"))
       wrapper = ExceptionWrapper.new(@cleaner, exception)
 
       assert_equal caller, wrapper.framework_trace
@@ -81,7 +81,7 @@ module ActionDispatch
     end
 
     test '#full_trace returns application and framework traces' do
-      exception = TestError.new(caller.prepend("lib/file.rb:42:in `index'"))
+      exception = TestError.new(caller.prepend("lib/file.rb:42:in 'index'"))
       wrapper = ExceptionWrapper.new(@cleaner, exception)
 
       assert_equal exception.backtrace, wrapper.full_trace
@@ -96,15 +96,15 @@ module ActionDispatch
     end
 
     test '#traces returns every trace by category enumerated with an index' do
-      exception = TestError.new("lib/file.rb:42:in `index'", "/gems/rack.rb:43:in `index'")
+      exception = TestError.new("lib/file.rb:42:in 'index'", "/gems/rack.rb:43:in 'index'")
       wrapper = ExceptionWrapper.new(@cleaner, exception)
 
       assert_equal({
-        'Application Trace' => [ id: 0, trace: "lib/file.rb:42:in `index'" ],
-        'Framework Trace' => [ id: 1, trace: "/gems/rack.rb:43:in `index'" ],
+        'Application Trace' => [ id: 0, trace: "lib/file.rb:42:in 'index'" ],
+        'Framework Trace' => [ id: 1, trace: "/gems/rack.rb:43:in 'index'" ],
         'Full Trace' => [
-          { id: 0, trace: "lib/file.rb:42:in `index'" },
-          { id: 1, trace: "/gems/rack.rb:43:in `index'" }
+          { id: 0, trace: "lib/file.rb:42:in 'index'" },
+          { id: 1, trace: "/gems/rack.rb:43:in 'index'" }
         ]
       }, wrapper.traces)
     end
