@@ -54,7 +54,7 @@ module ActiveRecord
     # Validations with no <tt>:on</tt> option will run no matter the context. Validations with
     # some <tt>:on</tt> option will only run in the specified context.
     def valid?(context = nil)
-      context ||= (new_record? ? :create : :update)
+      context ||= default_validation_context
       output = super(context)
       errors.empty? && output
     end
@@ -62,6 +62,10 @@ module ActiveRecord
     alias_method :validate, :valid?
 
   protected
+
+    def default_validation_context
+      [new_record? ? :create : :update]
+    end
 
     def raise_validation_error
       raise(RecordInvalid.new(self))
