@@ -99,12 +99,13 @@ module ActiveRecord
           self.default_scopes += [scope]
         end
 
-        def build_default_scope(base_rel = relation) # :nodoc:
+        def build_default_scope(base_rel = nil) # :nodoc:
           return if abstract_class?
           if !Base.is_a?(method(:default_scope).owner)
             # The user has defined their own default scope method, so call that
             evaluate_default_scope { default_scope }
           elsif default_scopes.any?
+            base_rel ||= relation
             evaluate_default_scope do
               default_scopes.inject(base_rel) do |default_scope, scope|
                 default_scope.merge(base_rel.scoping { scope.call })
