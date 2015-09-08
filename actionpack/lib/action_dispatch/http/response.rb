@@ -206,10 +206,10 @@ module ActionDispatch # :nodoc:
     def charset=(charset)
       header_info = parse_content_type(get_header(CONTENT_TYPE))
       if false == charset
-        set_header CONTENT_TYPE, header_info.mime_type.to_s
+        set_header CONTENT_TYPE, header_info.mime_type
       else
-        content_type = header_info.mime_type || Mime::TEXT
-        set_content_type content_type.to_s, charset || self.class.default_charset
+        content_type = header_info.mime_type || Mime::TEXT.to_s
+        set_content_type content_type, charset || self.class.default_charset
       end
     end
 
@@ -322,14 +322,14 @@ module ActionDispatch # :nodoc:
     def parse_content_type(content_type)
       if content_type
         type, charset = content_type.split(/;\s*charset=/)
-        ContentTypeHeader.new(Mime::Type.lookup(type), charset)
+        ContentTypeHeader.new(type, charset)
       else
         ContentTypeHeader.new(nil, nil)
       end
     end
 
     def set_content_type(content_type, charset)
-      type = content_type.to_s.dup
+      type = content_type.dup
       type << "; charset=#{charset}" if charset
       set_header CONTENT_TYPE, type
     end
