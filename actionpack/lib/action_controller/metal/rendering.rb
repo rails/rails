@@ -56,12 +56,14 @@ module ActionController
       nil
     end
 
-    def _get_content_type(rendered_format)
-      self.content_type || rendered_format.to_s
+    def _set_html_content_type
+      self.content_type = Mime::HTML.to_s
     end
 
-    def _set_content_type(format)
-      self.content_type = format
+    def _set_rendered_content_type(format)
+      unless response.content_type
+        self.content_type = format.to_s
+      end
     end
 
     # Normalize arguments by catching blocks and setting them on :update.

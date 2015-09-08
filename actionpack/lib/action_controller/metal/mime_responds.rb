@@ -191,7 +191,7 @@ module ActionController #:nodoc:
 
       if format = collector.negotiate_format(request)
         _process_format(format)
-        _set_content_type _get_content_type format
+        _set_rendered_content_type format
         response = collector.response
         response ? response.call : render({})
       else
