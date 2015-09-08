@@ -163,6 +163,7 @@ class DirtyTest < ActiveRecord::TestCase
     assert parrot.title_changed?
     assert_nil parrot.title_was
     assert_equal parrot.name_change, parrot.title_change
+    assert_equal parrot.name, parrot["title"]
   end
 
   def test_restore_attribute!
