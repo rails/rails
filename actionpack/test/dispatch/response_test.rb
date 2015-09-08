@@ -49,6 +49,11 @@ class ResponseTest < ActiveSupport::TestCase
     assert_equal 'utf-8', @response.charset
   end
 
+  def test_setting_content_type_header_impacts_content_type_method
+    @response.headers['Content-Type'] = "application/aaron"
+    assert_equal 'application/aaron', @response.content_type
+  end
+
   test "simple output" do
     @response.body = "Hello, World!"
 
