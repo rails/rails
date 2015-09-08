@@ -1,3 +1,30 @@
+*   Make it easier to opt in to `config.force_ssl` and `config.ssl_options` by
+    making them less dangerous to try and easier to disable.
+
+    SSL redirect:
+      * Move `:host` and `:port` options within `redirect: { … }`. Deprecate.
+      * Introduce `:status` and `:body` to customize the redirect response.
+        The 301 permanent default makes it difficult to test the redirect and
+        back out of it since browsers remember the 301. Test with a 302 or 307
+        instead, then switch to 301 once you're confident that all is well.
+
+    HTTP Strict Transport Security (HSTS):
+      * Shorter max-age. Shorten the default max-age from 1 year to 180 days,
+        the low end for https://www.ssllabs.com/ssltest/ grading and greater
+        than the 18-week minimum to qualify for browser preload lists.
+      * Disabling HSTS. Setting `hsts: false` now sets `hsts { expires: 0 }`
+        instead of omitting the header. Omitting does nothing to disable HSTS
+        since browsers hang on to your previous settings until they expire.
+        Sending `{ hsts: { expires: 0 }}` flushes out old browser settings and
+        actually disables HSTS:
+          http://tools.ietf.org/html/rfc6797#section-6.1.1
+      * HSTS Preload. Introduce `preload: true` to set the `preload` flag,
+        indicating that your site may be included in browser preload lists,
+        including Chrome, Firefox, Safari, IE11, and Edge. Submit your site:
+          https://hstspreload.appspot.com
+
+    *Jeremy Daer*
+
 *   Update `ActionController::TestSession#fetch` to behave more like
     `ActionDispatch::Request::Session#fetch` when using non-string keys.
 
