@@ -67,6 +67,13 @@ class ResponseTest < ActiveSupport::TestCase
     assert_equal 200, ActionDispatch::Response.new('200 OK').status
   end
 
+  def test_only_set_charset_still_defaults_to_text_html
+    response = ActionDispatch::Response.new
+    response.charset = "utf-16"
+    _,headers,_ = response.to_a
+    assert_equal "text/html; charset=utf-16", headers['Content-Type']
+  end
+
   test "utf8 output" do
     @response.body = [1090, 1077, 1089, 1090].pack("U*")
 
