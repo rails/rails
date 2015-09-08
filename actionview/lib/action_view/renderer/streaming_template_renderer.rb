@@ -4,7 +4,7 @@ module ActionView
   # == TODO
   #
   # * Support streaming from child templates, partials and so on.
-  # * Integrate exceptions with exceptron
+  # * Integrate exceptions with exception
   # * Rack::Cache needs to support streaming bodies
   class StreamingTemplateRenderer < TemplateRenderer #:nodoc:
     # A valid Rack::Body (i.e. it responds to each).
@@ -28,7 +28,7 @@ module ActionView
       private
 
       # This is the same logging logic as in ShowExceptions middleware.
-      # TODO Once "exceptron" is in, refactor this piece to simply re-use exceptron.
+      # TODO Once "exception" is in, refactor this piece to simply re-use exception.
       def log_error(exception) #:nodoc:
         logger = ActionView::Base.logger
         return unless logger
