@@ -174,7 +174,7 @@ module ActionDispatch # :nodoc:
 
     # Sets the HTTP content type.
     def content_type=(content_type)
-      header_info = parse_content_type(get_header(CONTENT_TYPE))
+      header_info = parse_content_type
       set_content_type content_type.to_s, header_info.charset || self.class.default_charset
     end
 
@@ -188,7 +188,7 @@ module ActionDispatch # :nodoc:
     # information.
 
     def content_type
-      type = parse_content_type(get_header(CONTENT_TYPE)).mime_type
+      type = parse_content_type.mime_type
       type && type.to_s
     end
 
@@ -204,7 +204,7 @@ module ActionDispatch # :nodoc:
     #   response.charset = 'utf-16' # => 'utf-16'
     #   response.charset = nil      # => 'utf-8'
     def charset=(charset)
-      header_info = parse_content_type(get_header(CONTENT_TYPE))
+      header_info = parse_content_type
       if false == charset
         set_header CONTENT_TYPE, header_info.mime_type
       else
@@ -216,7 +216,7 @@ module ActionDispatch # :nodoc:
     # The charset of the response. HTML wants to know the encoding of the
     # content you're giving them, so we need to send that along.
     def charset
-      header_info = parse_content_type(get_header(CONTENT_TYPE))
+      header_info = parse_content_type
       header_info.charset || self.class.default_charset
     end
 
@@ -320,7 +320,8 @@ module ActionDispatch # :nodoc:
     ContentTypeHeader = Struct.new :mime_type, :charset
     NullContentTypeHeader = ContentTypeHeader.new nil, nil
 
-    def parse_content_type(content_type)
+    def parse_content_type
+      content_type = get_header CONTENT_TYPE
       if content_type
         type, charset = content_type.split(/;\s*charset=/)
         type = nil if type.empty?
@@ -360,7 +361,7 @@ module ActionDispatch # :nodoc:
     def assign_default_content_type_and_charset!
       return if content_type
 
-      ct = parse_content_type get_header(CONTENT_TYPE)
+      ct = parse_content_type
       set_content_type(ct.mime_type || Mime::HTML.to_s,
                        ct.charset || self.class.default_charset)
     end
