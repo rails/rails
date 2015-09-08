@@ -82,7 +82,7 @@ module ActiveRecord
 
       private
 
-      def matches_adapter?(adapter: nil, **)
+      def matches_adapter?(adapter: nil, **kwargs)
         (self.adapter.nil? || adapter == self.adapter)
       end
 
