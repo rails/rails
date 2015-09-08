@@ -8,10 +8,17 @@ class ValidationsContextTest < ActiveModel::TestCase
   end
 
   ERROR_MESSAGE = "Validation error from validator"
+  ANOTHER_ERROR_MESSAGE = "Another validation error from validator"
 
   class ValidatorThatAddsErrors < ActiveModel::Validator
     def validate(record)
       record.errors[:base] << ERROR_MESSAGE
+    end
+  end
+
+  class AnotherValidatorThatAddsErrors < ActiveModel::Validator
+    def validate(record)
+      record.errors[:base] << ANOTHER_ERROR_MESSAGE
     end
   end
 
@@ -45,5 +52,17 @@ class ValidationsContextTest < ActiveModel::TestCase
 
     assert topic.invalid?(:context2), "Validation did not run on context2 when 'on' is set to context1 and context2"
     assert topic.errors[:base].include?(ERROR_MESSAGE)
+  end
+
+  test "with a class that validating a model for a multiple contexts" do
+    Topic.validates_with(ValidatorThatAddsErrors, on: :context1)
+    Topic.validates_with(AnotherValidatorThatAddsErrors, on: :context2)
+
+    topic = Topic.new
+    assert topic.valid?, "Validation ran with no context given when 'on' is set to context1 and context2"
+
+    assert topic.invalid?([:context1, :context2]), "Validation did not run on context1 when 'on' is set to context1 and context2"
+    assert topic.errors[:base].include?(ERROR_MESSAGE)
+    assert topic.errors[:base].include?(ANOTHER_ERROR_MESSAGE)
   end
 end
