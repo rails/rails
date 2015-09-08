@@ -830,7 +830,7 @@ class PolymorphicControllerTest < ActionController::TestCase
   def test_existing_nested_resource_with_params
     @controller = SessionsController.new
 
-    get :edit, params: { workshop_id: 1, id: 1, format: "json"  }
+    get :edit, workshop_id: 1, id: 1, format: "json"
     assert_equal %{/workshops/1/sessions/1.json\n<a href="/workshops/1/sessions/1.json">Session</a>}, @response.body
   end
 end
