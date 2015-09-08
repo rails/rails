@@ -10,7 +10,7 @@ module ActiveRecord
         Registration
       end
       
-      def recoration_registration_klass
+      def decoration_registration_klass
         DecorationRegistration
       end
     end

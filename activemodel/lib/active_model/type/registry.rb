@@ -24,7 +24,7 @@ module ActiveModel
       end
 
       def add_modifier(options, klass, **args)
-        registrations << recoration_registration_klass.new(options, klass, **args)
+        registrations << decoration_registration_klass.new(options, klass, **args)
       end
 
       protected
@@ -37,7 +37,7 @@ module ActiveModel
         Registration
       end
       
-      def recoration_registration_klass
+      def decoration_registration_klass
         DecorationRegistration
       end
     end
