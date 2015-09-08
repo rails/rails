@@ -1,3 +1,7 @@
+*   `url_for` does not modify its arguments when generating polymorphic URLs.
+
+    *Bernerd Schaefer*
+
 *   Make it easier to opt in to `config.force_ssl` and `config.ssl_options` by
     making them less dangerous to try and easier to disable.
 
