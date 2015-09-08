@@ -84,35 +84,53 @@ module ActiveRecord
   end
 
   class DuplicateMigrationVersionError < MigrationError#:nodoc:
-    def initialize(version)
-      super("Multiple migrations have the version number #{version}")
+    def initialize(version = nil)
+      if version
+        super("Multiple migrations have the version number #{version}.")
+      else
+        super("Duplicate migration version error.")
+      end
     end
   end
 
   class DuplicateMigrationNameError < MigrationError#:nodoc:
-    def initialize(name)
-      super("Multiple migrations have the name #{name}")
+    def initialize(name = nil)
+      if name
+        super("Multiple migrations have the name #{name}.")
+      else
+        super("Duplicate migration name.")
+      end
     end
   end
 
   class UnknownMigrationVersionError < MigrationError #:nodoc:
-    def initialize(version)
-      super("No migration with version number #{version}")
+    def initialize(version = nil)
+      if version
+        super("No migration with version number #{version}.")
+      else
+        super("Unknown migration version.")
+      end
     end
   end
 
   class IllegalMigrationNameError < MigrationError#:nodoc:
-    def initialize(name)
-      super("Illegal name for migration file: #{name}\n\t(only lower case letters, numbers, and '_' allowed)")
+    def initialize(name = nil)
+      if name
+        super("Illegal name for migration file: #{name}\n\t(only lower case letters, numbers, and '_' allowed).")
+      else
+        super("Illegal name for migration.")
+      end
     end
   end
 
   class PendingMigrationError < MigrationError#:nodoc:
-    def initialize
-      if defined?(Rails.env)
-        super("Migrations are pending. To resolve this issue, run:\n\n\tbin/rake db:migrate RAILS_ENV=#{::Rails.env}")
+    def initialize(message = nil)
+      if !message && defined?(Rails.env)
+        super("Migrations are pending. To resolve this issue, run:\n\n\tbin/rake db:migrate RAILS_ENV=#{::Rails.env}.")
+      elsif !message
+        super("Migrations are pending. To resolve this issue, run:\n\n\tbin/rake db:migrate.")
       else
-        super("Migrations are pending. To resolve this issue, run:\n\n\tbin/rake db:migrate")
+        super
       end
     end
   end
