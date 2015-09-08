@@ -13,6 +13,7 @@ module ActiveRecord
     def initialize(table)
       @table = table
       @handlers = []
+      @handlers_cache = {}
 
       register_handler(BasicObject, BasicObjectHandler.new(self))
       register_handler(Class, ClassHandler.new(self))
@@ -137,7 +138,11 @@ module ActiveRecord
     end
 
     def handler_for(object)
-      @handlers.detect { |klass, _| klass === object }.last
+      if handler = @handlers_cache[object.class]
+        handler
+      else
+        @handlers_cache[object.class] = @handlers.detect { |klass, _| klass === object }.last
+      end
     end
 
     def can_be_bound?(column_name, value)
