@@ -1096,7 +1096,7 @@ you and wait for a connection from the pool. If it cannot get a connection, a
 timeout error similar to that given below will be thrown.
 
 ```ruby
-ActiveRecord::ConnectionTimeoutError - could not obtain a database connection within 5 seconds. The max pool size is currently 5; consider increasing it:
+ActiveRecord::ConnectionTimeoutError - could not obtain a database connection within 5.000 seconds (waited 5.000 seconds)
 ```
 
 If you get the above error, you might want to increase the size of the
