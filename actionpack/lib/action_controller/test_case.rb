@@ -78,7 +78,9 @@ module ActionController
           # params parser middleware, and we should remove this roundtripping
           # when we switch to caling `call` on the controller
 
-          case content_mime_type.ref
+          case content_mime_type.to_sym
+          when nil
+            raise "Unknown Content-Type: #{content_type}"
           when :json
             data = ActiveSupport::JSON.encode(non_path_parameters)
             params = ActiveSupport::JSON.decode(data).with_indifferent_access
@@ -90,7 +92,8 @@ module ActionController
           when :url_encoded_form
             data = non_path_parameters.to_query
           else
-            raise "Unknown Content-Type: #{content_type}"
+            data = non_path_parameters.to_query
+            self.request_parameters = non_path_parameters
           end
         end
 
