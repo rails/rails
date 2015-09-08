@@ -23,6 +23,12 @@ module ActiveRecord
         table_name[0...table_alias_length].tr('.', '_')
       end
 
+      # Returns an array of table names.
+      #
+      def tables(name = nil)
+        raise NotImplementedError, "tables is not implemented"
+      end
+
       # Checks to see if the table +table_name+ exists on the database.
       #
       #   table_exists?(:developers)
