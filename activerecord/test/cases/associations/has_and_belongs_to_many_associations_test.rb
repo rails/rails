@@ -95,6 +95,15 @@ class DeveloperWithExtendOption < Developer
   has_and_belongs_to_many :projects, extend: NamedExtension
 end
 
+class ProjectUnscopingDavidDefaultScope < ActiveRecord::Base
+  self.table_name = 'projects'
+  has_and_belongs_to_many :developers, -> { unscope(where: 'name') },
+    class_name: "LazyBlockDeveloperCalledDavid",
+    join_table: "developers_projects",
+    foreign_key: "project_id",
+    association_foreign_key: "developer_id"
+end
+
 class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :categories, :posts, :categories_posts, :developers, :projects, :developers_projects,
            :parrots, :pirates, :parrots_pirates, :treasures, :price_estimates, :tags, :taggings, :computers
@@ -935,5 +944,17 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
       professor.courses << course
     end
     assert_equal 1, professor.courses.count
+  end
+
+  def test_habtm_scope_can_unscope
+    project = ProjectUnscopingDavidDefaultScope.new
+    project.save!
+
+    developer = LazyBlockDeveloperCalledDavid.new(name: "Not David")
+    developer.save!
+    project.developers << developer
+
+    projects = ProjectUnscopingDavidDefaultScope.includes(:developers).where(id: project.id)
+    assert_equal 1, projects.first.developers.size
   end
 end
