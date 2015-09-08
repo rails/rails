@@ -188,8 +188,7 @@ module ActionDispatch # :nodoc:
     # information.
 
     def content_type
-      type = parse_content_type.mime_type
-      type && type.to_s
+      parse_content_type.mime_type
     end
 
     def sending_file=(v)
