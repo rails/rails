@@ -240,7 +240,7 @@ module ActiveRecord
       end
 
       # Returns a hash where the keys are column names and the values are
-      # default values when instantiating the AR object for this table.
+      # default values when instantiating the Active Record object for this table.
       def column_defaults
         load_schema
         _default_attributes.to_hash

@@ -327,7 +327,7 @@ Active Record
 
 * Implemented `ActiveRecord::Relation#explain`.
 
-* Implements `AR::Base.silence_auto_explain` which allows the user to selectively disable automatic EXPLAINs within a block.
+* Implements `ActiveRecord::Base.silence_auto_explain` which allows the user to selectively disable automatic EXPLAINs within a block.
 
 * Implements automatic EXPLAIN logging for slow queries. A new configuration parameter `config.active_record.auto_explain_threshold_in_seconds` determines what's to be considered a slow query. Setting that to nil disables this feature. Defaults are 0.5 in development mode, and nil in test and production modes. Rails 3.2 supports this feature in SQLite, MySQL (mysql2 adapter), and PostgreSQL.
 
