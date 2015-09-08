@@ -1,3 +1,8 @@
+*   `url_for` does not modify its arguments when generating polymorphic URLs.
+
+    *Bernerd Schaefer*
+
+
 ## Rails 4.2.4 (August 24, 2015) ##
 
 * No Changes *
