@@ -402,7 +402,7 @@ module ActionDispatch # :nodoc:
     end
 
     def rack_response(status, header)
-      if NO_CONTENT_CODES.include?(@status)
+      if NO_CONTENT_CODES.include?(status)
         header.delete CONTENT_TYPE
         header.delete 'Content-Length'
         [status, header, []]
