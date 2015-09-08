@@ -107,7 +107,6 @@ module AbstractController
     end
 
     def _get_content_type(rendered_format) # :nodoc:
-      rendered_format.to_s
     end
 
     def _set_content_type(type) # :nodoc:

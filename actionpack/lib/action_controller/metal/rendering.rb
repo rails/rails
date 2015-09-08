@@ -57,7 +57,7 @@ module ActionController
     end
 
     def _get_content_type(rendered_format)
-      self.content_type || super
+      self.content_type || rendered_format.to_s
     end
 
     def _set_content_type(format)
