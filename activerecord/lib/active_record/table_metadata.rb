@@ -12,13 +12,13 @@ module ActiveRecord
     def resolve_column_aliases(hash)
       # This method is a hot spot, so for now, use Hash[] to dup the hash.
       #   https://bugs.ruby-lang.org/issues/7166
-      hash = Hash[hash]
-      hash.keys.grep(Symbol) do |key|
-        if klass.attribute_alias? key
-          hash[klass.attribute_alias(key)] = hash.delete key
+      new_hash = Hash[hash]
+      hash.each do |key, _|
+        if (key.is_a?(Symbol)) && klass.attribute_alias?(key)
+          new_hash[klass.attribute_alias(key)] = new_hash.delete(key)
         end
       end
-      hash
+      new_hash
     end
 
     def arel_attribute(column_name)
