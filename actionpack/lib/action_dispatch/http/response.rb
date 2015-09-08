@@ -136,18 +136,26 @@ module ActionDispatch # :nodoc:
       @committed    = false
       @sending      = false
       @sent         = false
-      @content_type = nil
-      @charset      = self.class.default_charset
 
-      if content_type = self[CONTENT_TYPE]
-        type, charset = content_type.split(/;\s*charset=/)
-        @content_type = Mime::Type.lookup(type)
-        @charset = charset || self.class.default_charset
-      end
+      content_type  = parse_content_type self[CONTENT_TYPE]
+      @content_type = content_type.mime_type
+      @charset      = content_type.charset
 
       prepare_cache_control!
 
       yield self if block_given?
+    end
+
+    ContentTypeHeader = Struct.new :mime_type, :charset
+
+    def parse_content_type(content_type)
+      if content_type
+        type, charset = content_type.split(/;\s*charset=/)
+        ContentTypeHeader.new(Mime::Type.lookup(type),
+                              charset || self.class.default_charset)
+      else
+        ContentTypeHeader.new(nil, self.class.default_charset)
+      end
     end
 
     def have_header?(key);  headers.key? key;   end
