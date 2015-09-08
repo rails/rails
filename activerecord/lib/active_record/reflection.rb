@@ -32,6 +32,7 @@ module ActiveRecord
     end
 
     def self.add_reflection(ar, name, reflection)
+      ar.clear_reflections_cache
       ar._reflections = ar._reflections.merge(name.to_s => reflection)
     end
 
@@ -67,16 +68,21 @@ module ActiveRecord
       #
       # @api public
       def reflections
-        ref = {}
-        _reflections.each do |name, reflection|
-          parent_name, parent_reflection = reflection.parent_reflection
-          if parent_name
-            ref[parent_name] = parent_reflection
-          else
-            ref[name] = reflection
+        @__reflections ||= begin
+          ref = {}
+
+          _reflections.each do |name, reflection|
+            parent_name, parent_reflection = reflection.parent_reflection
+
+            if parent_name
+              ref[parent_name] = parent_reflection
+            else
+              ref[name] = reflection
+            end
           end
+
+          ref
         end
-        ref
       end
 
       # Returns an array of AssociationReflection objects for all the
@@ -115,6 +121,10 @@ module ActiveRecord
       #   @api public
       def reflect_on_all_autosave_associations
         reflections.values.select { |reflection| reflection.options[:autosave] }
+      end
+
+      def clear_reflections_cache #:nodoc:
+        @__reflections = nil
       end
     end
 
