@@ -881,7 +881,7 @@ module ActiveRecord
         !!@association.include?(record)
       end
 
-      def arel
+      def arel #:nodoc:
         scope.arel
       end
 
