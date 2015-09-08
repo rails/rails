@@ -20,6 +20,12 @@ GIT
       redis-namespace
 
 GIT
+  remote: git://github.com/brianmario/mysql2.git
+  revision: 4d76557499b762d5a62aebb7f6a56510ad221eab
+  specs:
+    mysql2 (0.4.0)
+
+GIT
   remote: git://github.com/mikel/mail.git
   revision: 64ef1a12efcdda53fd63e1456c2c564044bf82ce
   branch: master
@@ -203,7 +209,6 @@ GEM
     multi_json (1.11.2)
     mustache (1.0.2)
     mysql (2.9.1)
-    mysql2 (0.3.19)
     nokogiri (1.6.6.2)
       mini_portile (~> 0.6.0)
     nokogiri (1.6.6.2-x64-mingw32)
@@ -313,7 +318,7 @@ DEPENDENCIES
   minitest (< 5.3.4)
   mocha (~> 0.14)
   mysql (>= 2.9.0)
-  mysql2 (>= 0.3.18)
+  mysql2 (>= 0.4.0)!
   nokogiri (>= 1.4.5)
   pg (>= 0.18.0)
   psych (~> 2.0)
