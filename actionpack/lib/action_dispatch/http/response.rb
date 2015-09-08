@@ -318,6 +318,7 @@ module ActionDispatch # :nodoc:
   private
 
     ContentTypeHeader = Struct.new :mime_type, :charset
+    NullContentTypeHeader = ContentTypeHeader.new nil, nil
 
     def parse_content_type(content_type)
       if content_type
@@ -325,7 +326,7 @@ module ActionDispatch # :nodoc:
         type = nil if type.empty?
         ContentTypeHeader.new(type, charset)
       else
-        ContentTypeHeader.new(nil, nil)
+        NullContentTypeHeader
       end
     end
 
