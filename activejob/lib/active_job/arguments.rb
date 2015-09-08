@@ -55,11 +55,11 @@ module ActiveJob
       private_constant :GLOBALID_KEY, :SYMBOL_KEYS_KEY, :WITH_INDIFFERENT_ACCESS_KEY
 
       def serialize_argument(argument)
+        return convert_to_global_id_hash(argument) if argument.respond_to?(:to_global_id)
+
         case argument
         when *TYPE_WHITELIST
           argument
-        when GlobalID::Identification
-          convert_to_global_id_hash(argument)
         when Array
           argument.map { |arg| serialize_argument(arg) }
         when ActiveSupport::HashWithIndifferentAccess

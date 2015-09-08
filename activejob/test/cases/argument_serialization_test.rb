@@ -5,6 +5,8 @@ require 'active_support/core_ext/hash/indifferent_access'
 require 'jobs/kwargs_job'
 
 class ArgumentSerializationTest < ActiveSupport::TestCase
+  class PersonPresenter < DelegateClass(Person); end
+
   setup do
     @person = Person.find('5')
   end
@@ -33,6 +35,10 @@ class ArgumentSerializationTest < ActiveSupport::TestCase
 
   test 'should convert records to Global IDs' do
     assert_arguments_roundtrip [@person]
+  end
+
+  test 'should convert objects responded to_global_id to Global IDs' do
+    assert_arguments_roundtrip [PersonPresenter.new(@person)]
   end
 
   test 'should dive deep into arrays and hashes' do
