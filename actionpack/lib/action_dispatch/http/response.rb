@@ -38,8 +38,6 @@ module ActionDispatch # :nodoc:
     # The HTTP status code.
     attr_reader :status
 
-    attr_writer :sending_file
-
     # Get headers for this response.
     attr_reader :header
 
@@ -47,20 +45,6 @@ module ActionDispatch # :nodoc:
 
     delegate :[], :[]=, :to => :@header
     delegate :each, :to => :@stream
-
-    # Sets the HTTP response's content MIME type. For example, in the controller
-    # you could write this:
-    #
-    #  response.content_type = "text/plain"
-    #
-    # If a character set has been defined for this response (see charset=) then
-    # the character set information will also be included in the content type
-    # information.
-    attr_reader   :content_type
-
-    # The charset of the response. HTML wants to know the encoding of the
-    # content you're giving them, so we need to send that along.
-    attr_reader :charset
 
     CONTENT_TYPE = "Content-Type".freeze
     SET_COOKIE   = "Set-Cookie".freeze
@@ -130,20 +114,29 @@ module ActionDispatch # :nodoc:
 
       self.body, self.status = body, status
 
-      @sending_file = false
       @blank        = false
       @cv           = new_cond
       @committed    = false
       @sending      = false
       @sent         = false
 
-      content_type  = parse_content_type self[CONTENT_TYPE]
-      @content_type = content_type.mime_type
-      @charset      = content_type.charset
-
       prepare_cache_control!
 
       yield self if block_given?
+    end
+
+    # Sets the HTTP response's content MIME type. For example, in the controller
+    # you could write this:
+    #
+    #  response.content_type = "text/plain"
+    #
+    # If a character set has been defined for this response (see charset=) then
+    # the character set information will also be included in the content type
+    # information.
+
+    def content_type
+      type = parse_content_type(self[CONTENT_TYPE]).mime_type
+      type && type.to_s
     end
 
     ContentTypeHeader = Struct.new :mime_type, :charset
@@ -151,10 +144,9 @@ module ActionDispatch # :nodoc:
     def parse_content_type(content_type)
       if content_type
         type, charset = content_type.split(/;\s*charset=/)
-        ContentTypeHeader.new(Mime::Type.lookup(type),
-                              charset || self.class.default_charset)
+        ContentTypeHeader.new(Mime::Type.lookup(type), charset)
       else
-        ContentTypeHeader.new(nil, self.class.default_charset)
+        ContentTypeHeader.new(nil, nil)
       end
     end
 
@@ -207,7 +199,25 @@ module ActionDispatch # :nodoc:
 
     # Sets the HTTP content type.
     def content_type=(content_type)
-      @content_type = content_type.to_s
+      header_info = parse_content_type(get_header(CONTENT_TYPE))
+      type = content_type.to_s.dup
+      type << "; charset=#{header_info.charset || self.class.default_charset}"
+
+      set_header CONTENT_TYPE, type
+    end
+
+    # The charset of the response. HTML wants to know the encoding of the
+    # content you're giving them, so we need to send that along.
+
+    def charset
+      header_info = parse_content_type(get_header(CONTENT_TYPE))
+      header_info.charset || self.class.default_charset
+    end
+
+    def sending_file=(v)
+      if true == v
+        self.charset = false
+      end
     end
 
     # Sets the HTTP character set. In case of nil parameter
@@ -216,7 +226,16 @@ module ActionDispatch # :nodoc:
     #   response.charset = 'utf-16' # => 'utf-16'
     #   response.charset = nil      # => 'utf-8'
     def charset=(charset)
-      @charset = charset.nil? ? self.class.default_charset : charset
+      header_info = parse_content_type(get_header(CONTENT_TYPE))
+      charset = charset.nil? ? self.class.default_charset : charset
+      if false == charset
+        set_header CONTENT_TYPE, header_info.mime_type.to_s
+      else
+        content_type = header_info.mime_type || Mime::TEXT
+        type = content_type.to_s.dup
+        type << "; charset=#{charset}"
+        set_header CONTENT_TYPE, type
+      end
     end
 
     # The response code of the request.
@@ -340,16 +359,13 @@ module ActionDispatch # :nodoc:
     def assign_default_content_type_and_charset!
       return if get_header(CONTENT_TYPE).present?
 
-      @content_type ||= Mime::HTML
-
-      type = @content_type.to_s.dup
-      type << "; charset=#{charset}" if append_charset?
+      ct = parse_content_type get_header(CONTENT_TYPE)
+      content_type = ct.mime_type || Mime::HTML
+      charset = ct.charset || self.class.default_charset
+      type = content_type.to_s.dup
+      type << "; charset=#{charset}"
 
       set_header CONTENT_TYPE, type
-    end
-
-    def append_charset?
-      !@sending_file && @charset != false
     end
 
     class RackBody
