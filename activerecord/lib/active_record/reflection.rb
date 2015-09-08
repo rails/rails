@@ -125,7 +125,7 @@ module ActiveRecord
       end
 
       def clear_reflections_cache #:nodoc:
-        @__reflection = nil
+        @__reflections = nil
       end
     end
 
