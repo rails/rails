@@ -955,10 +955,6 @@ module ActiveRecord
         Array(@migrations_paths)
       end
 
-      def migrations_path
-        migrations_paths.first
-      end
-
       def migrations(paths)
         paths = Array(paths)
 
