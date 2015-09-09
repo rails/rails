@@ -66,6 +66,7 @@ module ActiveRecord
       include Internal::Timezone
     end
     
+    Helpers          = ActiveModel::Type::Helpers
     BigInteger          = ActiveModel::Type::BigInteger
     Binary              = ActiveModel::Type::Binary
     Boolean             = ActiveModel::Type::Boolean
@@ -75,11 +76,10 @@ module ActiveRecord
     Integer             = ActiveModel::Type::Integer
     String              = ActiveModel::Type::String
     Text                = ActiveModel::Type::Text
-    UnsignedInteger = ActiveModel::Type::UnsignedInteger
-    
-    Value       = ActiveModel::Type::Value
-    TypeMap     = ActiveModel::Type::TypeMap
-    HashLookupTypeMap     = ActiveModel::Type::HashLookupTypeMap
+    UnsignedInteger     = ActiveModel::Type::UnsignedInteger
+    Value               = ActiveModel::Type::Value
+    TypeMap             = ActiveModel::Type::TypeMap
+    HashLookupTypeMap   = ActiveModel::Type::HashLookupTypeMap
 
     register(:big_integer, Type::BigInteger, override: false)
     register(:binary, Type::Binary, override: false)
