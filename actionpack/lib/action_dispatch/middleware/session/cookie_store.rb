@@ -53,7 +53,7 @@ module ActionDispatch
     #
     # Note that changing the secret key will invalidate all existing sessions!
     #
-    # Because CookieStore extends Rack::Session::Abstract::ID, many of the
+    # Because CookieStore extends Rack::Session::Abstract::Persisted, many of the
     # options described there can be used to customize the session cookie that
     # is generated. For example:
     #
