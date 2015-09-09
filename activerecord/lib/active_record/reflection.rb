@@ -99,7 +99,8 @@ module ActiveRecord
       #   @api public
       def reflect_on_all_associations(macro = nil)
         association_reflections = reflections.values
-        macro ? association_reflections.select { |reflection| reflection.macro == macro } : association_reflections
+        association_reflections.select! { |reflection| reflection.macro == macro } if macro
+        association_reflections
       end
 
       # Returns the AssociationReflection object for the +association+ (use the symbol).
@@ -166,6 +167,54 @@ module ActiveRecord
 
       def constraints
         scope_chain.flatten
+      end
+
+      def counter_cache_column
+        if belongs_to?
+          if options[:counter_cache] == true
+            "#{active_record.name.demodulize.underscore.pluralize}_count"
+          elsif options[:counter_cache]
+            options[:counter_cache].to_s
+          end
+        else
+          options[:counter_cache] ? options[:counter_cache].to_s : "#{name}_count"
+        end
+      end
+
+      # This shit is nasty. We need to avoid the following situation:
+      #
+      #   * An associated record is deleted via record.destroy
+      #   * Hence the callbacks run, and they find a belongs_to on the record with a
+      #     :counter_cache options which points back at our owner. So they update the
+      #     counter cache.
+      #   * In which case, we must make sure to *not* update the counter cache, or else
+      #     it will be decremented twice.
+      #
+      # Hence this method.
+      def inverse_which_updates_counter_cache
+        return @inverse_which_updates_counter_cache if defined?(@inverse_which_updates_counter_cache)
+        @inverse_which_updates_counter_cache = klass.reflect_on_all_associations(:belongs_to).find do |inverse|
+          inverse.counter_cache_column == counter_cache_column
+        end
+      end
+      alias inverse_updates_counter_cache? inverse_which_updates_counter_cache
+
+      def inverse_updates_counter_in_memory?
+        inverse_of && inverse_which_updates_counter_cache == inverse_of
+      end
+
+      # Returns whether a counter cache should be used for this association.
+      #
+      # The counter_cache option must be given on either the owner or inverse
+      # association, and the column must be present on the owner.
+      def has_cached_counter?
+        options[:counter_cache] ||
+          inverse_which_updates_counter_cache && inverse_which_updates_counter_cache.options[:counter_cache] &&
+          !!active_record.columns_hash[counter_cache_column]
+      end
+
+      def counter_must_be_updated_by_has_many?
+        !inverse_updates_counter_in_memory? && has_cached_counter?
       end
 
       def alias_candidate(name)
@@ -328,14 +377,6 @@ module ActiveRecord
 
       def active_record_primary_key
         @active_record_primary_key ||= options[:primary_key] || primary_key(active_record)
-      end
-
-      def counter_cache_column
-        if options[:counter_cache] == true
-          "#{active_record.name.demodulize.underscore.pluralize}_count"
-        elsif options[:counter_cache]
-          options[:counter_cache].to_s
-        end
       end
 
       def check_validity!
