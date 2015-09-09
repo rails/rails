@@ -10,7 +10,7 @@ class File
   #
   # This method needs to create a temporary file. By default it will create it
   # in the same directory as the destination file. If you don't like this
-  # behaviour you can provide a different directory but it must be on the
+  # behavior you can provide a different directory but it must be on the
   # same physical filesystem as the file you're trying to write.
   #
   #   File.atomic_write('/data/something.important', '/data/tmp') do |file|
