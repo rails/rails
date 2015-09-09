@@ -941,10 +941,6 @@ module ActiveRecord
         migrations(migrations_paths).any?
       end
 
-      def last_version
-        last_migration.version
-      end
-
       def last_migration #:nodoc:
         migrations(migrations_paths).last || NullMigration.new
       end
