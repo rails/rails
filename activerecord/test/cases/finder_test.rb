@@ -17,6 +17,7 @@ require 'models/matey'
 require 'models/dog'
 require 'models/car'
 require 'models/tyre'
+require 'models/electron'
 
 class FinderTest < ActiveRecord::TestCase
   fixtures :companies, :topics, :entrants, :developers, :developers_projects, :posts, :comments, :accounts, :authors, :customers, :categories, :categorizations, :cars
@@ -797,6 +798,18 @@ class FinderTest < ActiveRecord::TestCase
   def test_find_by_one_attribute
     assert_equal topics(:first), Topic.find_by_title("The First Topic")
     assert_nil Topic.find_by_title("The First Topic!")
+  end
+
+  def test_find_by_does_not_overwrite_method_on_class
+    Electron.create(name: 'First Electron')
+
+    assert_equal 0, Electron.times_called_find_by_name
+
+    Electron.find_by_name('First Electron')
+    assert_equal 1, Electron.times_called_find_by_name
+
+    Electron.find_by_name('Some Other Electron')
+    assert_equal 2, Electron.times_called_find_by_name
   end
 
   def test_find_by_one_attribute_bang
