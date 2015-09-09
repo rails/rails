@@ -55,9 +55,10 @@ module ActiveRecord
 
     test '#order! on non-string does not attempt regexp match for references' do
       obj = Object.new
-      obj.expects(:=~).never
-      assert relation.order!(obj)
-      assert_equal [obj], relation.order_values
+      assert_not_called(obj, :=~) do
+        assert relation.order!(obj)
+        assert_equal [obj], relation.order_values
+      end
     end
 
     test '#references!' do

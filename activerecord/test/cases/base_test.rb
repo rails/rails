@@ -1299,9 +1299,10 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_compute_type_no_method_error
-    ActiveSupport::Dependencies.stubs(:safe_constantize).raises(NoMethodError)
-    assert_raises NoMethodError do
-      ActiveRecord::Base.send :compute_type, 'InvalidModel'
+    ActiveSupport::Dependencies.stub(:safe_constantize, proc{ raise NoMethodError }) do
+      assert_raises NoMethodError do
+        ActiveRecord::Base.send :compute_type, 'InvalidModel'
+      end
     end
   end
 
@@ -1315,18 +1316,20 @@ class BasicsTest < ActiveRecord::TestCase
       error = e
     end
 
-    ActiveSupport::Dependencies.stubs(:safe_constantize).raises(e)
+    ActiveSupport::Dependencies.stub(:safe_constantize, proc{ raise e }) do
 
-    exception = assert_raises NameError do
-      ActiveRecord::Base.send :compute_type, 'InvalidModel'
+      exception = assert_raises NameError do
+        ActiveRecord::Base.send :compute_type, 'InvalidModel'
+      end
+      assert_equal error.message, exception.message
     end
-    assert_equal error.message, exception.message
   end
 
   def test_compute_type_argument_error
-    ActiveSupport::Dependencies.stubs(:safe_constantize).raises(ArgumentError)
-    assert_raises ArgumentError do
-      ActiveRecord::Base.send :compute_type, 'InvalidModel'
+    ActiveSupport::Dependencies.stub(:safe_constantize, proc{ raise ArgumentError }) do
+      assert_raises ArgumentError do
+        ActiveRecord::Base.send :compute_type, 'InvalidModel'
+      end
     end
   end
 
