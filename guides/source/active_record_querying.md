@@ -10,7 +10,7 @@ After reading this guide, you will know:
 * How to find records using a variety of methods and conditions.
 * How to specify the order, retrieved attributes, grouping, and other properties of the found records.
 * How to use eager loading to reduce the number of database queries needed for data retrieval.
-* How to use dynamic finders methods.
+* How to use dynamic finder methods.
 * How to use method chaining to use multiple ActiveRecord methods together.
 * How to check for the existence of particular records.
 * How to perform various calculations on Active Record models.
@@ -392,7 +392,7 @@ Now what if that number could vary, say as an argument from somewhere? The find 
 Client.where("orders_count = ?", params[:orders])
 ```
 
-Active Record will go through the first element in the conditions value and any additional elements will replace the question marks `(?)` in the first element.
+Active Record will take the first argument as the conditions string and any additional arguments will replace the question marks `(?)` in it.
 
 If you want to specify multiple conditions:
 
@@ -420,7 +420,7 @@ TIP: For more information on the dangers of SQL injection, see the [Ruby on Rail
 
 #### Placeholder Conditions
 
-Similar to the `(?)` replacement style of params, you can also specify keys/values hash in your array conditions:
+Similar to the `(?)` replacement style of params, you can also specify keys in your conditions string along with a corresponding keys/values hash:
 
 ```ruby
 Client.where("created_at >= :start_date AND created_at <= :end_date",
@@ -431,7 +431,7 @@ This makes for clearer readability if you have a large number of variable condit
 
 ### Hash Conditions
 
-Active Record also allows you to pass in hash conditions which can increase the readability of your conditions syntax. With hash conditions, you pass in a hash with keys of the fields you want conditionalised and the values of how you want to conditionalise them:
+Active Record also allows you to pass in hash conditions which can increase the readability of your conditions syntax. With hash conditions, you pass in a hash with keys of the fields you want qualified and the values of how you want to qualify them:
 
 NOTE: Only equality, range and subset checking are possible with Hash conditions.
 
@@ -531,7 +531,7 @@ Client.order("orders_count ASC, created_at DESC")
 Client.order("orders_count ASC", "created_at DESC")
 ```
 
-If you want to call `order` multiple times e.g. in different context, new order will append previous one:
+If you want to call `order` multiple times, subsequent orders will be appended to the first:
 
 ```ruby
 Client.order("orders_count ASC").order("created_at DESC")
@@ -619,9 +619,9 @@ SELECT * FROM clients LIMIT 5 OFFSET 30
 Group
 -----
 
-To apply a `GROUP BY` clause to the SQL fired by the finder, you can specify the `group` method on the find.
+To apply a `GROUP BY` clause to the SQL fired by the finder, you can use the `group` method.
 
-For example, if you want to find a collection of the dates orders were created on:
+For example, if you want to find a collection of the dates on which orders were created:
 
 ```ruby
 Order.select("date(created_at) as ordered_date, sum(price) as total_price").group("date(created_at)")
@@ -639,7 +639,7 @@ GROUP BY date(created_at)
 
 ### Total of grouped items
 
-To get the total of grouped items on a single query call `count` after the `group`.
+To get the total of grouped items on a single query, call `count` after the `group`.
 
 ```ruby
 Order.group(:status).count
@@ -675,7 +675,7 @@ GROUP BY date(created_at)
 HAVING sum(price) > 100
 ```
 
-This will return single order objects for each day, but only those that are ordered more than $100 in a day.
+This returns the date and total price for each order object, grouped by the day they were ordered and where the price is more than $100.
 
 Overriding Conditions
 ---------------------
@@ -705,8 +705,7 @@ Article.where(id: 10, trashed: false).unscope(where: :id)
 # SELECT "articles".* FROM "articles" WHERE trashed = 0
 ```
 
-A relation which has used `unscope` will affect any relation it is
-merged in to:
+A relation which has used `unscope` will affect any relation into which it is merged:
 
 ```ruby
 Article.order('id asc').merge(Article.unscope(:order))
@@ -750,7 +749,7 @@ SELECT * FROM articles WHERE id = 10
 SELECT * FROM comments WHERE article_id = 10 ORDER BY name
 ```
 
-In case the `reorder` clause is not used, the SQL executed would be:
+In the case where the `reorder` clause is not used, the SQL executed would be:
 
 ```sql
 SELECT * FROM articles WHERE id = 10
@@ -839,7 +838,7 @@ end
 Readonly Objects
 ----------------
 
-Active Record provides `readonly` method on a relation to explicitly disallow modification of any of the returned objects. Any attempt to alter a readonly record will not succeed, raising an `ActiveRecord::ReadOnlyRecord` exception.
+Active Record provides the `readonly` method on a relation to explicitly disallow modification of any of the returned objects. Any attempt to alter a readonly record will not succeed, raising an `ActiveRecord::ReadOnlyRecord` exception.
 
 ```ruby
 client = Client.readonly.first
@@ -1052,7 +1051,7 @@ SELECT categories.* FROM categories
 
 ### Specifying Conditions on the Joined Tables
 
-You can specify conditions on the joined tables using the regular [Array](#array-conditions) and [String](#pure-string-conditions) conditions. [Hash conditions](#hash-conditions) provides a special syntax for specifying conditions for the joined tables:
+You can specify conditions on the joined tables using the regular [Array](#array-conditions) and [String](#pure-string-conditions) conditions. [Hash conditions](#hash-conditions) provide a special syntax for specifying conditions for the joined tables:
 
 ```ruby
 time_range = (Time.now.midnight - 1.day)..Time.now.midnight
@@ -1091,7 +1090,7 @@ This code looks fine at the first sight. But the problem lies within the total n
 
 Active Record lets you specify in advance all the associations that are going to be loaded. This is possible by specifying the `includes` method of the `Model.find` call. With `includes`, Active Record ensures that all of the specified associations are loaded using the minimum possible number of queries.
 
-Revisiting the above case, we could rewrite `Client.limit(10)` to use eager load addresses:
+Revisiting the above case, we could rewrite `Client.limit(10)` to eager load addresses:
 
 ```ruby
 clients = Client.includes(:address).limit(10)
@@ -1428,7 +1427,7 @@ It's common that you need to find a record or create it if it doesn't exist. You
 
 ### `find_or_create_by`
 
-The `find_or_create_by` method checks whether a record with the attributes exists. If it doesn't, then `create` is called. Let's see an example.
+The `find_or_create_by` method checks whether a record with the specified attributes exists. If it doesn't, then `create` is called. Let's see an example.
 
 Suppose you want to find a client named 'Andy', and if there's none, create one. You can do so by running:
 
@@ -1868,6 +1867,6 @@ following pointers may be helpful:
 
 * SQLite3: [EXPLAIN QUERY PLAN](http://www.sqlite.org/eqp.html)
 
-* MySQL: [EXPLAIN Output Format](http://dev.mysql.com/doc/refman/5.6/en/explain-output.html)
+* MySQL: [EXPLAIN Output Format](http://dev.mysql.com/doc/refman/5.7/en/explain-output.html)
 
 * PostgreSQL: [Using EXPLAIN](http://www.postgresql.org/docs/current/static/using-explain.html)
