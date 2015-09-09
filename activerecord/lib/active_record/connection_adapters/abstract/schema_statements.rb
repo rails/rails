@@ -859,7 +859,7 @@ module ActiveRecord
         ActiveRecord::SchemaMigration.create_table
       end
 
-      def assume_migrated_upto_version(version, migrations_paths = ActiveRecord::Migrator.migrations_paths)
+      def assume_migrated_upto_version(version, migrations_paths)
         migrations_paths = Array(migrations_paths)
         version = version.to_i
         sm_table = quote_table_name(ActiveRecord::Migrator.schema_migrations_table_name)
