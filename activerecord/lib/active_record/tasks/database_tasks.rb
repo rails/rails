@@ -221,12 +221,6 @@ module ActiveRecord
         end
       end
 
-      def load_schema_current_if_exists(format = ActiveRecord::Base.schema_format, file = nil, environment = env)
-        if File.exist?(file || schema_file(format))
-          load_schema_current(format, file, environment)
-        end
-      end
-
       def load_schema_current(format = ActiveRecord::Base.schema_format, file = nil, environment = env)
         each_current_configuration(environment) { |configuration|
           load_schema configuration, format, file
