@@ -1,4 +1,4 @@
-# Arel [![Build Status](https://secure.travis-ci.org/rails/arel.svg?branch=master)](http://travis-ci.org/rails/arel) [![Dependency Status](https://gemnasium.com/rails/arel.svg)](https://gemnasium.com/rails/arel)
+# Arel
 
 * http://github.com/rails/arel
 
@@ -222,6 +222,12 @@ photos.project(photo_clicks.as("photo_clicks"))
  FROM "photos"
 ```
 
-### License
+## Contributing to Arel
 
-Arel is released under the [MIT License](http://opensource.org/licenses/MIT).
+Arel is work of many contributors. You're encouraged to submit pull requests, propose
+features and discuss issues.
+
+See [CONTRIBUTING](CONTRIBUTING.md).
+
+## License
+Arel is released under the [MIT License](http://www.opensource.org/licenses/MIT).
