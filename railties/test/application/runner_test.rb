@@ -36,6 +36,24 @@ module ApplicationTests
       assert_match "42", Dir.chdir(app_path) { `bin/rails runner "puts User.count"` }
     end
 
+    def test_should_warn_about_missing_file_on_name_error
+      error = capture(:stderr) do
+        Dir.chdir(app_path) { `bin/rails runner "bin/count_users.rb"` }
+      end
+
+      assert_equal 1, $?.exitstatus
+      assert_match "NameError", error
+      assert_match "verify the file exists and is readable", error
+    end
+
+    def test_should_warn_about_missing_file_on_syntax_error
+      error = capture(:stderr) do
+        Dir.chdir(app_path) { `bin/rails runner "/count_users.rb"` }
+      end
+
+      assert_match "SyntaxError", error
+    end
+
     def test_should_run_file
       app_file "bin/count_users.rb", <<-SCRIPT
       puts User.count

@@ -58,5 +58,11 @@ elsif File.exist?(code_or_file)
   $0 = code_or_file
   Kernel.load code_or_file
 else
-  eval(code_or_file, binding, __FILE__, __LINE__)
+  begin
+    eval(code_or_file, binding, __FILE__, __LINE__)
+  rescue SyntaxError, NameError => err
+    $stderr.puts "The argument to runner was evaluated as ruby with a #{err.class.name}: '#{code_or_file}'."
+    $stderr.puts "    If this is a file, please verify the file exists and is readable."
+    exit 1
+  end
 end
