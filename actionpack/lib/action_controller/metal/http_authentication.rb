@@ -431,7 +431,7 @@ module ActionController
 
       def authenticate(controller, &login_procedure)
         token, options = token_and_options(controller.request)
-        unless token.blank?
+        if token.present?
           login_procedure.call(token, options)
         end
       end

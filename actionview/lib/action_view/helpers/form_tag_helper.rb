@@ -582,7 +582,7 @@ module ActionView
       #   # => <fieldset class="format"><p><input id="name" name="name" type="text" /></p></fieldset>
       def field_set_tag(legend = nil, options = nil, &block)
         output = tag(:fieldset, options, true)
-        output.safe_concat(content_tag("legend".freeze, legend)) unless legend.blank?
+        output.safe_concat(content_tag("legend".freeze, legend)) if legend.present?
         output.concat(capture(&block)) if block_given?
         output.safe_concat("</fieldset>")
       end

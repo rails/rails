@@ -60,7 +60,7 @@ class ActiveRecordTestConnector
       # Load actionpack sqlite3 tables
       def load_schema
         File.read(File.dirname(__FILE__) + "/fixtures/db_definitions/sqlite.sql").split(';').each do |sql|
-          ActiveRecord::Base.connection.execute(sql) unless sql.blank?
+          ActiveRecord::Base.connection.execute(sql) if sql.present?
         end
       end
 
