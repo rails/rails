@@ -132,7 +132,7 @@ module ActiveSupport
 
     # Returns a string of the object's date, time, zone and offset from UTC.
     #
-    #   Time.zone.now.httpdate  # => "Thu, 04 Dec 2014 11:00:25 EST -05:00"
+    #   Time.zone.now.inspect # => "Thu, 04 Dec 2014 11:00:25 EST -05:00"
     def inspect
       "#{time.strftime('%a, %d %b %Y %H:%M:%S')} #{zone} #{formatted_offset}"
     end
