@@ -97,9 +97,8 @@ module ActionController
   # environment they should only be set once at boot-time and never mutated at
   # runtime.
   #
-  # <tt>ActionController::Parameters</tt> inherits from
-  # <tt>ActiveSupport::HashWithIndifferentAccess</tt>, this means
-  # that you can fetch values using either <tt>:key</tt> or <tt>"key"</tt>.
+  # You can fetch values of <tt>ActionController::Parameters</tt> using either
+  # <tt>:key</tt> or <tt>"key"</tt>.
   #
   #   params = ActionController::Parameters.new(key: 'value')
   #   params[:key]  # => "value"
