@@ -727,6 +727,22 @@ Rails.application.routes.draw do
 end
 ```
 
+or using a class method:
+
+```ruby
+class BlacklistConstraint
+  def self.matches?(request)
+    ips = Blacklist.retrieve_ips
+    ips.include?(request.remote_ip)
+  end
+end
+
+Rails.application.routes.draw do
+  get '*path', to: 'blacklist#index',
+    constraints: BlacklistConstraint
+end
+```
+
 You can also specify constraints as a lambda:
 
 ```ruby
