@@ -1482,6 +1482,25 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert firm.companies.exists?(:name => 'child')
   end
 
+  def test_restrict_with_error_with_locale
+    I18n.backend = I18n::Backend::Simple.new
+    I18n.backend.store_translations 'en', activerecord: {attributes: {restricted_with_error_firm: {companies: 'client companies'}}}
+    firm = RestrictedWithErrorFirm.create!(:name => 'restrict')
+    firm.companies.create(:name => 'child')
+
+    assert !firm.companies.empty?
+
+    firm.destroy
+
+    assert !firm.errors.empty?
+
+    assert_equal "Cannot delete record because dependent client companies exist", firm.errors[:base].first
+    assert RestrictedWithErrorFirm.exists?(:name => 'restrict')
+    assert firm.companies.exists?(:name => 'child')
+  ensure
+    I18n.backend.reload!
+  end
+
   def test_included_in_collection
     assert_equal true, companies(:first_firm).clients.include?(Client.find(2))
   end
