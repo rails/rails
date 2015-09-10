@@ -710,6 +710,10 @@ ActiveRecord::Schema.define do
     t.string :sponsorable_type
   end
 
+  create_table :storage_devices, force: true do |t|
+    t.string :type, default: 'HardDrive'
+  end
+
   create_table :string_key_objects, id: false, primary_key: :id, force: true do |t|
     t.string     :id
     t.string     :name

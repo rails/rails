@@ -6,6 +6,7 @@ require 'models/project'
 require 'models/subscriber'
 require 'models/vegetables'
 require 'models/shop'
+require 'models/storage_devices'
 
 module InheritanceTestHelper
   def with_store_full_sti_class(&block)
@@ -189,6 +190,20 @@ class InheritanceTest < ActiveRecord::TestCase
   def test_inheritance_new_with_subclass
     firm = Company.new(:type => 'Firm')
     assert_equal Firm, firm.class
+  end
+
+  def test_inheritance_new_with_default_subclass
+    harddrive = StorageDevice.new
+    assert_equal HardDrive, harddrive.class
+  end
+
+  def test_inheritance_new_with_default_subclass_and_specified_subclass
+    flashdrive = StorageDevice.new(:type => 'FlashDrive')
+    assert_equal FlashDrive, flashdrive.class
+  end
+
+  def test_inheritance_new_with_default_subclass_specify_invalid_type
+    assert_raise(ActiveRecord::SubclassNotFound) { StorageDevice.new(:type => 'InvalidType') }
   end
 
   def test_new_with_abstract_class
