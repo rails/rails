@@ -685,7 +685,7 @@ module ActiveRecord
             AND fk.table_name = '#{table_name}'
         SQL
 
-        create_table_info = select_one("SHOW CREATE TABLE #{quote_table_name(table_name)}")["Create Table"]
+        create_table_info = create_table_info(table_name)
 
         fk_info.map do |row|
           options = {
@@ -702,7 +702,7 @@ module ActiveRecord
       end
 
       def table_options(table_name)
-        create_table_info = select_one("SHOW CREATE TABLE #{quote_table_name(table_name)}")["Create Table"]
+        create_table_info = create_table_info(table_name)
 
         # strip create_definitions and partition_options
         raw_table_options = create_table_info.sub(/\A.*\n\) /m, '').sub(/\n\/\*!.*\*\/\n\z/m, '').strip
@@ -1016,6 +1016,11 @@ module ActiveRecord
           when 'SET NULL'; :nullify
           end
         end
+      end
+
+      def create_table_info(table_name) # :nodoc:
+        @create_table_info_cache = {}
+        @create_table_info_cache[table_name] ||= select_one("SHOW CREATE TABLE #{quote_table_name(table_name)}")["Create Table"]
       end
 
       def create_table_definition(name, temporary = false, options = nil, as = nil) # :nodoc:
