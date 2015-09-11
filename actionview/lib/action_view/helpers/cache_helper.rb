@@ -59,6 +59,32 @@ module ActionView
       #     <%= render project.topics %>
       #   <% end %>
       #
+      # ==== Fragments with assets
+      #
+      # Cache blocks which contain asset urls need to be busted whenever the assets change.
+      #
+      # For example if we have the following:
+      #
+      #   <% cache :static_image, assets: true do %>
+      #     <%= link_to image_tag('logo.png') %>
+      #   <% end %>
+      #
+      # When a deployment is made where either `Rails.env`, `Rails.application.config.assets.version`,
+      # or `Sprockets::VERSION` change, all assets will automatically generate a new thumbprint.
+      # Any cached fragments containing this filename needs to be busted or they will 404.
+      #
+      # In the above example, the key for `:static_image` will be modified to be the following instead:
+      #
+      #   [:static_image, Rails.application.assets.version]
+      #
+      # Rails.application.assets.version is set by `Sprockets` and is equal to
+      # `"#{Rails.env}-#{Rails.application.config.assets.version}-#{Sprockets::VERSION}"`
+      # Do not confuse with `Rails.application.config.assets.version` which is configurable.
+      #
+      # If the image asset is modified between deployments, it is up to the developer to bump
+      # `Rails.application.config.assets.version` in order to cause the assets and cache fragments to be
+      # regenerated. Note that new assets added to a cache fragment will also need to bump the asset version.
+      #
       # ==== Implicit dependencies
       #
       # Most template dependencies can be derived from calls to render in the template itself.
@@ -208,11 +234,11 @@ module ActionView
       #
       # The digest will be generated using +virtual_path:+ if it is provided.
       #
-      def cache_fragment_name(name = {}, skip_digest: nil, virtual_path: nil)
+      def cache_fragment_name(name = {}, skip_digest: nil, virtual_path: nil, assets: false)
         if skip_digest
-          name
+          fragment_name_with_assets(name, assets)
         else
-          fragment_name_with_digest(name, virtual_path)
+          fragment_name_with_assets(fragment_name_with_digest(name, virtual_path), assets)
         end
       end
 
@@ -232,6 +258,15 @@ module ActionView
           name  = controller.url_for(name).split("://").last if name.is_a?(Hash)
           digest = Digestor.digest name: virtual_path, finder: lookup_context, dependencies: view_cache_dependencies
           [ name, digest ]
+        else
+          name
+        end
+      end
+
+      def fragment_name_with_assets(name, assets = false) #:nodoc:
+        if assets
+          asset_version = Rails.application.assets.try(:version) || "#{Rails.env}-#{Rails.application.config.assets.version}"
+          Array.wrap(name) + [asset_version]
         else
           name
         end
