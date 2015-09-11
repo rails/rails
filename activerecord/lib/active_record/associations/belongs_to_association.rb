@@ -32,11 +32,18 @@ module ActiveRecord
       end
 
       def decrement_counters # :nodoc:
-        with_cache_name { |name| decrement_counter name }
+        if require_counter_update? && foreign_key_present?
+          klass.decrement_counter(reflection.counter_cache_column, target_id)
+        end
       end
 
       def increment_counters # :nodoc:
-        with_cache_name { |name| increment_counter name }
+        if require_counter_update? && foreign_key_present?
+          klass.increment_counter(reflection.counter_cache_column, target_id)
+          if target && !stale_target?
+            target.increment(reflection.counter_cache_column)
+          end
+        end
       end
 
       private
@@ -45,32 +52,14 @@ module ActiveRecord
           !loaded? && foreign_key_present? && klass
         end
 
-        def with_cache_name
-          counter_cache_name = reflection.counter_cache_column
-          return unless counter_cache_name && owner.persisted?
-          yield counter_cache_name
+        def require_counter_update?
+          reflection.counter_cache_column && owner.persisted?
         end
 
         def update_counters(record)
-          with_cache_name do |name|
-            return unless different_target? record
-            record.class.increment_counter(name, record.id)
-            decrement_counter name
-          end
-        end
-
-        def decrement_counter(counter_cache_name)
-          if foreign_key_present?
-            klass.decrement_counter(counter_cache_name, target_id)
-          end
-        end
-
-        def increment_counter(counter_cache_name)
-          if foreign_key_present?
-            klass.increment_counter(counter_cache_name, target_id)
-            if target && !stale_target?
-              target.increment(counter_cache_name)
-            end
+          if require_counter_update? && different_target?(record)
+            record.class.increment_counter(reflection.counter_cache_column, record.id)
+            decrement_counters
           end
         end
 
