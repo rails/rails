@@ -110,6 +110,28 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
     assert Post.joins(:misc_tags).where(:id => posts(:welcome).id).empty?
   end
 
+  def test_rejoins_to_readd_joins_value
+    relation = Post.joins(:author_favorites)
+
+    relation.rejoins(:author_addresses)
+
+    assert_equal [:author_addresses], relation.joins_values
+  end
+
+  def test_construct_finder_sql_ignores_empty_joins_hash
+    relation = Post.joins(:author_favorites)
+
+    sql = relation.rejoins({}).to_sql
+    assert_no_match(/JOIN/i, sql)
+  end
+
+  def test_construct_finder_sql_ignores_empty_joins_array
+    relation = Post.joins(:author_favorites)
+
+    sql = relation.rejoins([]).to_sql
+    assert_no_match(/JOIN/i, sql)
+  end
+
   test "the default scope of the target is applied when joining associations" do
     author = Author.create! name: "Jon"
     author.categorizations.create!
