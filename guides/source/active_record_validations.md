@@ -809,6 +809,24 @@ class Person < ActiveRecord::Base
 end
 ```
 
+Even though `:on` allows to control when the validations should run, sometimes there can be
+a need to run different validations defined for different contexts at the same time. For example,
+if you want to run `on: :create` and `on: :update` validations at the same time, it can be achieved
+by passing an array of such contexts to `#valid?` method.
+
+```ruby
+class Person < ActiveRecord::Base
+  validates :email, presence: true, on: :create
+  validates :age, presence: true, on: :update
+end
+
+person = Person.new
+person.valid?([:create, :update]) # => false
+person.errors.messages            # => {:email=>["can't be blank"], :age=>["can't be blank"]}
+```
+
+Similar to `#valid?`, multiple contexts can be passed to `#invalid?` method too.
+
 Strict Validations
 ------------------
 
