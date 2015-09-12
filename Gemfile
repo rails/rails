@@ -79,7 +79,13 @@ group :test do
 end
 
 platforms :ruby do
-  gem 'nokogiri', '>= 1.4.5'
+  if Bundler::WINDOWS
+    # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
+    gem 'tzinfo-data'
+    gem 'nokogiri', '>= 1.6.7.rc3'
+  else
+    gem 'nokogiri', '>= 1.4.5'
+  end
 
   # Needed for compiling the ActionDispatch::Journey parser
   gem 'racc', '>=1.4.6', require: false
