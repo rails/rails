@@ -143,7 +143,7 @@ module ActiveRecord
       def merge_single_values
         relation.lock_value ||= other.lock_value
 
-        unless other.create_with_value.blank?
+        if other.create_with_value.present?
           relation.create_with_value = (relation.create_with_value || {}).merge(other.create_with_value)
         end
       end
