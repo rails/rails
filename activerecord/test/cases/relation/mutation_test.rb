@@ -115,6 +115,14 @@ module ActiveRecord
       assert_equal "posts", node.expr.relation.name
     end
 
+    test '#rejoins!' do
+      @relation = Post.relation.joins(:author_favorites)
+
+      assert relation.rejoins!(:author_addresses).equal?(relation)
+      assert_equal [:author_addresses], relation.joins_values
+      assert relation.joins_values
+    end
+
     test 'reverse_order!' do
       @relation = Post.order('title ASC, comments_count DESC')
 
