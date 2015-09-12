@@ -113,7 +113,7 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
   def test_rejoins_to_readd_joins_value
     relation = Post.joins(:author_favorites)
 
-    relation.rejoins(:author_addresses)
+    relation.rejoins!(:author_addresses)
 
     assert_equal [:author_addresses], relation.joins_values
   end
@@ -161,10 +161,11 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
 
   test "the rejoined query returns correct records" do
     author = Author.create! name: "Jon"
-    author.categories.create! name: 'Not Special'
-    author.special_categories.create! name: 'Special'
+    post = author.posts.create! title: 'Special Post', body: ""
 
-    categories_query = author.categories.joins(:special_categorizations)
-    assert_equal 1, categories_query.rejoins(:categories).where("categories.name", "Not Special").count
+    post.create_very_special_comment(body: "very special")
+
+    query = author.posts.joins(:special_comments)
+    assert_equal 1, query.rejoins(:very_special_comment).where.not("comments.body", "very special").count
   end
 end

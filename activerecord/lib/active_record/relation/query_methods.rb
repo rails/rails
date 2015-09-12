@@ -428,6 +428,19 @@ module ActiveRecord
       self
     end
 
+    def rejoins(*args)
+      check_if_method_has_arguments!(:rejoins, args)
+      spawn.rejoins!(*args)
+    end
+
+    def rejoins!(*args)
+      args.compact!
+      args.flatten!
+
+      self.joins_values = args
+      self
+    end
+
     # Returns a new relation, which is the result of filtering the current relation
     # according to the conditions in the arguments.
     #
