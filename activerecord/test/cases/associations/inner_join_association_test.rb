@@ -158,4 +158,13 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
     assert_equal 0, categories.first.special_categorizations.size
     assert_equal 1, categories.second.special_categorizations.size
   end
+
+  test "the rejoined query returns correct records" do
+    author = Author.create! name: "Jon"
+    author.categories.create! name: 'Not Special'
+    author.special_categories.create! name: 'Special'
+
+    categories_query = author.categories.joins(:special_categorizations)
+    assert_equal 1, categories_query.rejoins(:categories).where("categories.name", "Not Special").count
+  end
 end
