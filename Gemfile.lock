@@ -151,6 +151,10 @@ GEM
   remote: https://rubygems.org/
   specs:
     amq-protocol (2.0.0)
+    aws-sdk-core (2.0.48)
+      builder (~> 3.0)
+      jmespath (~> 1.0)
+      multi_json (~> 1.0)
     backburner (1.0.0)
       beaneater (~> 1.0)
       dante (> 0.1.5)
@@ -186,6 +190,8 @@ GEM
     hitimes (1.2.2)
     hitimes (1.2.2-x86-mingw32)
     i18n (0.7.0)
+    jmespath (1.0.2)
+      multi_json (~> 1.0)
     json (1.8.3)
     kindlerb (0.1.1)
       mustache
@@ -251,6 +257,9 @@ GEM
     sequel (4.25.0)
     serverengine (1.5.10)
       sigdump (~> 0.2.2)
+    shoryuken (1.0.3)
+      aws-sdk-core (~> 2.0.21)
+      celluloid (~> 0.16.0)
     sidekiq (3.4.2)
       celluloid (~> 0.16.0)
       connection_pool (~> 2.2, >= 2.2.0)
@@ -333,6 +342,7 @@ DEPENDENCIES
   sass-rails!
   sdoc (~> 0.4.0)
   sequel
+  shoryuken
   sidekiq
   sneakers
   sprockets!
