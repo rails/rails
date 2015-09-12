@@ -7,10 +7,6 @@ class Rails::InfoController < Rails::ApplicationController # :nodoc:
 
   before_action :require_local!
 
-  def index
-    redirect_to action: :routes
-  end
-
   def properties
     @info = Rails::Info.to_html
     @page_title = 'Properties'
