@@ -1,3 +1,17 @@
+*   Deprecate `connection.tables` on the SQLite3 and MySQL adapters.
+    Also deprecate passing arguments to `#tables`.
+    And deprecate `table_exists?`.
+
+    The `#tables` method of some adapters (mysql, mysql2, sqlite3) would return
+    both tables and views while others (postgresql) just return tables. To make
+    their behavior consistent, `#tables` will return only tables in the future.
+
+    The `#table_exists?` method would check both tables and views. To make
+    their behavior consistent with `#tables`, `#table_exists?` will check only
+    tables in the future.
+
+    *Yuichiro Kaneko*
+
 *   Improve support for non Active Record objects on `validates_associated`
 
     Skipping `marked_for_destruction?` when the associated object does not responds

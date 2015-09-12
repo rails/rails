@@ -284,9 +284,9 @@ module ActiveRecord
 
       def test_tables
         with_example_table do
-          assert_equal %w{ ex }, @conn.tables
+          ActiveSupport::Deprecation.silence { assert_equal %w{ ex }, @conn.tables }
           with_example_table 'id integer PRIMARY KEY AUTOINCREMENT, number integer', 'people' do
-            assert_equal %w{ ex people }.sort, @conn.tables.sort
+            ActiveSupport::Deprecation.silence { assert_equal %w{ ex people }.sort, @conn.tables.sort }
           end
         end
       end
@@ -297,7 +297,9 @@ module ActiveRecord
           WHERE type IN ('table','view') AND name <> 'sqlite_sequence'
         SQL
         assert_logged [[sql.squish, 'SCHEMA', []]] do
-          @conn.tables('hello')
+          ActiveSupport::Deprecation.silence do
+            @conn.tables('hello')
+          end
         end
       end
 
@@ -316,7 +318,9 @@ module ActiveRecord
             WHERE type IN ('table','view') AND name <> 'sqlite_sequence' AND name = 'ex'
           SQL
           assert_logged [[sql.squish, 'SCHEMA', []]] do
-            assert @conn.table_exists?('ex')
+            ActiveSupport::Deprecation.silence do
+              assert @conn.table_exists?('ex')
+            end
           end
         end
       end

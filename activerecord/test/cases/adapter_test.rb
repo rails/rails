@@ -23,7 +23,8 @@ module ActiveRecord
     end
 
     def test_tables
-      tables = @connection.tables
+      tables = nil
+      ActiveSupport::Deprecation.silence { tables = @connection.tables }
       assert tables.include?("accounts")
       assert tables.include?("authors")
       assert tables.include?("tasks")
@@ -31,9 +32,15 @@ module ActiveRecord
     end
 
     def test_table_exists?
-      assert @connection.table_exists?("accounts")
-      assert !@connection.table_exists?("nonexistingtable")
-      assert !@connection.table_exists?(nil)
+      ActiveSupport::Deprecation.silence do
+        assert @connection.table_exists?("accounts")
+        assert !@connection.table_exists?("nonexistingtable")
+        assert !@connection.table_exists?(nil)
+      end
+    end
+
+    def test_table_exists_checking_both_tables_and_views_is_deprecated
+      assert_deprecated { @connection.table_exists?("accounts") }
     end
 
     def test_data_sources
@@ -245,6 +252,16 @@ module ActiveRecord
 
         assert_not_nil error.cause
       end
+    end
+
+    if current_adapter?(:MysqlAdapter, :Mysql2Adapter, :SQLite3Adapter)
+      def test_tables_returning_both_tables_and_views_is_deprecated
+        assert_deprecated { @connection.tables }
+      end
+    end
+
+    def test_passing_arguments_to_tables_is_deprecated
+      assert_deprecated { @connection.tables(:books) }
     end
   end
 

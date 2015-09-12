@@ -45,7 +45,7 @@ module ViewBehavior
   def test_table_exists
     view_name = Ebook.table_name
     # TODO: switch this assertion around once we changed #tables to not return views.
-    assert @connection.table_exists?(view_name), "'#{view_name}' table should exist"
+    ActiveSupport::Deprecation.silence { assert @connection.table_exists?(view_name), "'#{view_name}' table should exist" }
   end
 
   def test_views_ara_valid_data_sources
@@ -87,7 +87,7 @@ class ViewWithPrimaryKeyTest < ActiveRecord::TestCase
   end
 
   def drop_view(name)
-    @connection.execute "DROP VIEW #{name}" if @connection.table_exists? name
+    @connection.execute "DROP VIEW #{name}" if @connection.view_exists? name
   end
 end
 
@@ -106,7 +106,7 @@ class ViewWithoutPrimaryKeyTest < ActiveRecord::TestCase
   end
 
   teardown do
-    @connection.execute "DROP VIEW paperbacks" if @connection.table_exists? "paperbacks"
+    @connection.execute "DROP VIEW paperbacks" if @connection.view_exists? "paperbacks"
   end
 
   def test_reading
@@ -125,7 +125,8 @@ class ViewWithoutPrimaryKeyTest < ActiveRecord::TestCase
 
   def test_table_exists
     view_name = Paperback.table_name
-    assert @connection.table_exists?(view_name), "'#{view_name}' table should exist"
+    # TODO: switch this assertion around once we changed #tables to not return views.
+    ActiveSupport::Deprecation.silence { assert @connection.table_exists?(view_name), "'#{view_name}' table should exist" }    
   end
 
   def test_column_definitions
@@ -167,7 +168,7 @@ class UpdateableViewTest < ActiveRecord::TestCase
   end
 
   teardown do
-    @connection.execute "DROP VIEW printed_books" if @connection.table_exists? "printed_books"
+    @connection.execute "DROP VIEW printed_books" if @connection.view_exists? "printed_books"
   end
 
   def test_update_record
@@ -209,8 +210,7 @@ class MaterializedViewTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def drop_view(name)
-    @connection.execute "DROP MATERIALIZED VIEW #{name}" if @connection.table_exists? name
-
+    @connection.execute "DROP MATERIALIZED VIEW #{name}" if @connection.view_exists? name
   end
 end
 end

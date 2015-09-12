@@ -59,13 +59,13 @@ module ActiveRecord
         assert_equal 'id', @omgpost.primary_key
       end
 
-      def test_table_exists?
+      def test_data_source_exists?
         name = @omgpost.table_name
-        assert @connection.table_exists?(name), "#{name} table should exist"
+        assert @connection.data_source_exists?(name), "#{name} data_source should exist"
       end
 
-      def test_table_exists_wrong_schema
-        assert(!@connection.table_exists?("#{@db_name}.zomg"), "table should not exist")
+      def test_data_source_exists_wrong_schema
+        assert(!@connection.data_source_exists?("#{@db_name}.zomg"), "data_source should not exist")
       end
 
       def test_dump_indexes

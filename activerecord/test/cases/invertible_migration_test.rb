@@ -157,8 +157,10 @@ module ActiveRecord
 
     teardown do
       %w[horses new_horses].each do |table|
-        if ActiveRecord::Base.connection.table_exists?(table)
-          ActiveRecord::Base.connection.drop_table(table)
+        ActiveSupport::Deprecation.silence do
+          if ActiveRecord::Base.connection.table_exists?(table)
+            ActiveRecord::Base.connection.drop_table(table)
+          end
         end
       end
       ActiveRecord::Migration.verbose = @verbose_was
@@ -189,14 +191,14 @@ module ActiveRecord
     def test_migrate_up
       migration = InvertibleMigration.new
       migration.migrate(:up)
-      assert migration.connection.table_exists?("horses"), "horses should exist"
+      ActiveSupport::Deprecation.silence { assert migration.connection.table_exists?("horses"), "horses should exist" }
     end
 
     def test_migrate_down
       migration = InvertibleMigration.new
       migration.migrate :up
       migration.migrate :down
-      assert !migration.connection.table_exists?("horses")
+      ActiveSupport::Deprecation.silence { assert !migration.connection.table_exists?("horses") }
     end
 
     def test_migrate_revert
@@ -204,11 +206,11 @@ module ActiveRecord
       revert = InvertibleRevertMigration.new
       migration.migrate :up
       revert.migrate :up
-      assert !migration.connection.table_exists?("horses")
+      ActiveSupport::Deprecation.silence { assert !migration.connection.table_exists?("horses") }
       revert.migrate :down
-      assert migration.connection.table_exists?("horses")
+      ActiveSupport::Deprecation.silence { assert migration.connection.table_exists?("horses") }
       migration.migrate :down
-      assert !migration.connection.table_exists?("horses")
+      ActiveSupport::Deprecation.silence { assert !migration.connection.table_exists?("horses") }
     end
 
     def test_migrate_revert_by_part
@@ -216,18 +218,24 @@ module ActiveRecord
       received = []
       migration = InvertibleByPartsMigration.new
       migration.test = ->(dir){
-        assert migration.connection.table_exists?("horses")
-        assert migration.connection.table_exists?("new_horses")
+        ActiveSupport::Deprecation.silence do
+          assert migration.connection.table_exists?("horses")
+          assert migration.connection.table_exists?("new_horses")
+        end
         received << dir
       }
       migration.migrate :up
       assert_equal [:both, :up], received
-      assert !migration.connection.table_exists?("horses")
-      assert migration.connection.table_exists?("new_horses")
+      ActiveSupport::Deprecation.silence do
+        assert !migration.connection.table_exists?("horses")
+        assert migration.connection.table_exists?("new_horses")
+      end
       migration.migrate :down
       assert_equal [:both, :up, :both, :down], received
-      assert migration.connection.table_exists?("horses")
-      assert !migration.connection.table_exists?("new_horses")
+      ActiveSupport::Deprecation.silence do
+        assert migration.connection.table_exists?("horses")
+        assert !migration.connection.table_exists?("new_horses")
+      end
     end
 
     def test_migrate_revert_whole_migration
@@ -236,20 +244,20 @@ module ActiveRecord
         revert = RevertWholeMigration.new(klass)
         migration.migrate :up
         revert.migrate :up
-        assert !migration.connection.table_exists?("horses")
+        ActiveSupport::Deprecation.silence { assert !migration.connection.table_exists?("horses") }
         revert.migrate :down
-        assert migration.connection.table_exists?("horses")
+        ActiveSupport::Deprecation.silence { assert migration.connection.table_exists?("horses") }
         migration.migrate :down
-        assert !migration.connection.table_exists?("horses")
+        ActiveSupport::Deprecation.silence { assert !migration.connection.table_exists?("horses") }
       end
     end
 
     def test_migrate_nested_revert_whole_migration
       revert = NestedRevertWholeMigration.new(InvertibleRevertMigration)
       revert.migrate :down
-      assert revert.connection.table_exists?("horses")
+      ActiveSupport::Deprecation.silence { assert revert.connection.table_exists?("horses") }
       revert.migrate :up
-      assert !revert.connection.table_exists?("horses")
+      ActiveSupport::Deprecation.silence { assert !revert.connection.table_exists?("horses") }
     end
 
     def test_migrate_revert_change_column_default
@@ -314,24 +322,24 @@ module ActiveRecord
 
     def test_legacy_up
       LegacyMigration.migrate :up
-      assert ActiveRecord::Base.connection.table_exists?("horses"), "horses should exist"
+      ActiveSupport::Deprecation.silence { assert ActiveRecord::Base.connection.table_exists?("horses"), "horses should exist" }
     end
 
     def test_legacy_down
       LegacyMigration.migrate :up
       LegacyMigration.migrate :down
-      assert !ActiveRecord::Base.connection.table_exists?("horses"), "horses should not exist"
+      ActiveSupport::Deprecation.silence { assert !ActiveRecord::Base.connection.table_exists?("horses"), "horses should not exist" }
     end
 
     def test_up
       LegacyMigration.up
-      assert ActiveRecord::Base.connection.table_exists?("horses"), "horses should exist"
+      ActiveSupport::Deprecation.silence { assert ActiveRecord::Base.connection.table_exists?("horses"), "horses should exist" }
     end
 
     def test_down
       LegacyMigration.up
       LegacyMigration.down
-      assert !ActiveRecord::Base.connection.table_exists?("horses"), "horses should not exist"
+      ActiveSupport::Deprecation.silence { assert !ActiveRecord::Base.connection.table_exists?("horses"), "horses should not exist" }
     end
 
     def test_migrate_down_with_table_name_prefix
@@ -340,7 +348,7 @@ module ActiveRecord
       migration = InvertibleMigration.new
       migration.migrate(:up)
       assert_nothing_raised { migration.migrate(:down) }
-      assert !ActiveRecord::Base.connection.table_exists?("p_horses_s"), "p_horses_s should not exist"
+      ActiveSupport::Deprecation.silence { assert !ActiveRecord::Base.connection.table_exists?("p_horses_s"), "p_horses_s should not exist" }
     ensure
       ActiveRecord::Base.table_name_prefix = ActiveRecord::Base.table_name_suffix = ''
     end

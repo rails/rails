@@ -21,7 +21,7 @@ module ActiveRecord
       end
 
       def table_exists?
-        connection.table_exists?(table_name)
+        ActiveSupport::Deprecation.silence { connection.table_exists?(table_name) }
       end
 
       def create_table(limit=nil)
