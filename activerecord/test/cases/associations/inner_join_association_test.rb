@@ -118,14 +118,14 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
     assert_equal [:author_addresses], relation.joins_values
   end
 
-  def test_construct_finder_sql_ignores_empty_joins_hash
+  def test_construct_finder_sql_ignores_empty_rejoins_hash
     relation = Post.joins(:author_favorites)
 
     sql = relation.rejoins({}).to_sql
     assert_no_match(/JOIN/i, sql)
   end
 
-  def test_construct_finder_sql_ignores_empty_joins_array
+  def test_construct_finder_sql_ignores_empty_rejoins_array
     relation = Post.joins(:author_favorites)
 
     sql = relation.rejoins([]).to_sql
