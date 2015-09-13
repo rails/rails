@@ -1027,7 +1027,7 @@ module ActiveRecord
         when 0..0xfff;           "varbinary(#{limit})"
         when nil;                "blob"
         when 0x1000..0xffffffff; "blob(#{limit})"
-        else raise(ActiveRecordError, "No binary type has character length #{limit}")
+        else raise(ActiveRecordError, "No binary type has byte length #{limit}")
         end
       end
 
@@ -1048,7 +1048,7 @@ module ActiveRecord
         when nil, 0x100..0xffff;    'text'
         when 0x10000..0xffffff;     'mediumtext'
         when 0x1000000..0xffffffff; 'longtext'
-        else raise(ActiveRecordError, "No text type has character length #{limit}")
+        else raise(ActiveRecordError, "No text type has byte length #{limit}")
         end
       end
 
