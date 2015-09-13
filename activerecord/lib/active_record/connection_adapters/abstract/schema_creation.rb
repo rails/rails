@@ -14,8 +14,10 @@ module ActiveRecord
           send m, o
         end
 
-        delegate :quote_column_name, :quote_table_name, :quote_default_expression, :type_to_sql, to: :@conn
-        private :quote_column_name, :quote_table_name, :quote_default_expression, :type_to_sql
+        delegate :quote_column_name, :quote_table_name, :quote_default_expression, :type_to_sql,
+          :options_include_default?,  to: :@conn
+        private :quote_column_name, :quote_table_name, :quote_default_expression, :type_to_sql,
+          :options_include_default?
 
         private
 
@@ -87,10 +89,6 @@ module ActiveRecord
               sql << " PRIMARY KEY"
             end
             sql
-          end
-
-          def options_include_default?(options)
-            options.include?(:default) && !(options[:null] == false && options[:default].nil?)
           end
 
           def action_sql(action, dependency)
