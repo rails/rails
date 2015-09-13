@@ -246,7 +246,7 @@ module ActiveRecord
       QUOTED_TRUE, QUOTED_FALSE = '1', '0'
 
       NATIVE_DATABASE_TYPES = {
-        primary_key: "int(11) auto_increment PRIMARY KEY",
+        primary_key: "int auto_increment PRIMARY KEY",
         string:      { name: "varchar", limit: 255 },
         text:        { name: "text" },
         integer:     { name: "int", limit: 4 },
@@ -1036,8 +1036,9 @@ module ActiveRecord
         when 1; 'tinyint'
         when 2; 'smallint'
         when 3; 'mediumint'
-        when nil, 4, 11; 'int(11)'  # compatibility with MySQL default
+        when nil, 4; 'int'
         when 5..8; 'bigint'
+        when 11; 'int(11)' # backward compatibility with Rails 2.0
         else raise(ActiveRecordError, "No integer type has byte size #{limit}")
         end
       end
