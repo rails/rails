@@ -110,6 +110,28 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
     assert Post.joins(:misc_tags).where(:id => posts(:welcome).id).empty?
   end
 
+  def test_rejoins_to_readd_joins_value
+    relation = Post.joins(:author_favorites)
+
+    relation.rejoins!(:author_addresses)
+
+    assert_equal [:author_addresses], relation.joins_values
+  end
+
+  def test_construct_finder_sql_ignores_empty_rejoins_hash
+    relation = Post.joins(:author_favorites)
+
+    sql = relation.rejoins({}).to_sql
+    assert_no_match(/JOIN/i, sql)
+  end
+
+  def test_construct_finder_sql_ignores_empty_rejoins_array
+    relation = Post.joins(:author_favorites)
+
+    sql = relation.rejoins([]).to_sql
+    assert_no_match(/JOIN/i, sql)
+  end
+
   test "the default scope of the target is applied when joining associations" do
     author = Author.create! name: "Jon"
     author.categorizations.create!
@@ -135,5 +157,15 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
     categories = author.categories.eager_load(:special_categorizations).order(:name).to_a
     assert_equal 0, categories.first.special_categorizations.size
     assert_equal 1, categories.second.special_categorizations.size
+  end
+
+  test "the rejoined query returns correct records" do
+    author = Author.create! name: "Jon"
+    post = author.posts.create! title: 'Special Post', body: ""
+
+    post.create_very_special_comment(body: "very special")
+
+    query = author.posts.joins(:special_comments)
+    assert_equal 1, query.rejoins(:very_special_comment).where.not("comments.body", "very special").count
   end
 end
