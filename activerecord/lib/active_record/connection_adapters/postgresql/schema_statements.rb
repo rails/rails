@@ -90,6 +90,30 @@ module ActiveRecord
           SQL
         end
 
+        def views # :nodoc:
+          select_values(<<-SQL, 'SCHEMA')
+            SELECT c.relname
+            FROM pg_class c
+            LEFT JOIN pg_namespace n ON n.oid = c.relnamespace
+            WHERE c.relkind IN ('v','m') -- (v)iew, (m)aterialized view
+            AND n.nspname = ANY (current_schemas(false))
+          SQL
+        end
+
+        def view_exists?(view_name) # :nodoc:
+          name = Utils.extract_schema_qualified_name(view_name.to_s)
+          return false unless name.identifier
+
+          select_values(<<-SQL, 'SCHEMA').any?
+            SELECT c.relname
+            FROM pg_class c
+            LEFT JOIN pg_namespace n ON n.oid = c.relnamespace
+            WHERE c.relkind IN ('v','m') -- (v)iew, (m)aterialized view
+            AND c.relname = '#{name.identifier}'
+            AND n.nspname = #{name.schema ? "'#{name.schema}'" : 'ANY (current_schemas(false))'}
+          SQL
+        end
+
         def drop_table(table_name, options = {}) # :nodoc:
           execute "DROP TABLE#{' IF EXISTS' if options[:if_exists]} #{quote_table_name(table_name)}#{' CASCADE' if options[:force] == :cascade}"
         end
