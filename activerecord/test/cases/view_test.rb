@@ -1,7 +1,9 @@
 require "cases/helper"
 require "models/book"
+require "support/schema_dumping_helper"
 
 module ViewBehavior
+  include SchemaDumpingHelper
   extend ActiveSupport::Concern
 
   included do
@@ -62,6 +64,11 @@ module ViewBehavior
     end
     assert_nil model.primary_key
   end
+
+  def test_does_not_dump_view_as_table
+    schema = dump_table_schema "ebooks"
+    assert_no_match %r{create_table "ebooks"}, schema
+  end
 end
 
 if ActiveRecord::Base.connection.supports_views?
@@ -79,6 +86,7 @@ class ViewWithPrimaryKeyTest < ActiveRecord::TestCase
 end
 
 class ViewWithoutPrimaryKeyTest < ActiveRecord::TestCase
+  include SchemaDumpingHelper
   fixtures :books
 
   class Paperback < ActiveRecord::Base; end
@@ -126,6 +134,11 @@ class ViewWithoutPrimaryKeyTest < ActiveRecord::TestCase
 
   def test_does_not_have_a_primary_key
     assert_nil Paperback.primary_key
+  end
+
+  def test_does_not_dump_view_as_table
+    schema = dump_table_schema "paperbacks"
+    assert_no_match %r{create_table "paperbacks"}, schema
   end
 end
 
