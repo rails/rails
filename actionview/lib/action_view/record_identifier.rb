@@ -11,7 +11,7 @@ module ActionView
   #     <%= post.body %>
   #   <% end %>
   #
-  # When +post+ is a new, unsaved ActiveRecord::Base intance, the resulting HTML
+  # When +post+ is a new, unsaved ActiveRecord::Base instance, the resulting HTML
   # is:
   #
   #    <div id="new_post" class="post">
