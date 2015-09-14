@@ -23,7 +23,7 @@ application from scratch. It does not assume that you have any prior experience
 with Rails. However, to get the most out of it, you need to have some
 prerequisites installed:
 
-* The [Ruby](https://www.ruby-lang.org/en/downloads) language version 2.2.2 or newer.
+* The [Ruby](https://www.ruby-lang.org/en/downloads) language version 2.2.3 or newer.
 * Right version of [Development Kit](http://rubyinstaller.org/downloads/), if you
   are using Windows.
 * The [RubyGems](https://rubygems.org) packaging system, which is installed with
@@ -92,7 +92,7 @@ current version of Ruby installed:
 
 ```bash
 $ ruby -v
-ruby 2.2.2p95
+ruby 2.2.3p173
 ```
 
 TIP: A number of tools exist to help you quickly install Ruby and Ruby
