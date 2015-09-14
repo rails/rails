@@ -79,13 +79,7 @@ group :test do
 end
 
 platforms :ruby do
-  if Bundler::WINDOWS
-    # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
-    gem 'tzinfo-data'
-    gem 'nokogiri', '>= 1.6.7.rc3'
-  else
-    gem 'nokogiri', '>= 1.4.5'
-  end
+  gem 'nokogiri', '>= 1.6.7.rc3'
 
   # Needed for compiling the ActionDispatch::Journey parser
   gem 'racc', '>=1.4.6', require: false
@@ -133,3 +127,4 @@ end
 
 # A gem necessary for ActiveRecord tests with IBM DB
 gem 'ibm_db' if ENV['IBM_DB']
+gem 'tzinfo-data', platforms: [:mingw, :mswin, :x64_mingw, :jruby]

@@ -83,7 +83,7 @@ GIT
 
 GIT
   remote: git://github.com/rails/sprockets.git
-  revision: 9675919a2733c2888a236756395f08b2294631bb
+  revision: edae5cdfa241b0fb0fcb756b25cd561c3d8b7f29
   branch: master
   specs:
     sprockets (4.0.0)
@@ -151,7 +151,7 @@ GEM
   remote: https://rubygems.org/
   specs:
     amq-protocol (2.0.0)
-    backburner (1.0.0)
+    backburner (1.1.0)
       beaneater (~> 1.0)
       dante (> 0.1.5)
     bcrypt (3.1.10)
@@ -183,8 +183,8 @@ GEM
       delayed_job (>= 3.0, < 4.1)
     erubis (2.7.0)
     execjs (2.6.0)
-    hitimes (1.2.2)
-    hitimes (1.2.2-x86-mingw32)
+    hitimes (1.2.3)
+    hitimes (1.2.3-x86-mingw32)
     i18n (0.7.0)
     json (1.8.3)
     kindlerb (0.1.1)
@@ -194,7 +194,7 @@ GEM
       nokogiri (>= 1.5.9)
     metaclass (0.0.4)
     method_source (0.8.2)
-    mime-types (2.6.1)
+    mime-types (2.6.2)
     mini_portile (0.7.0.rc4)
     minitest (5.3.3)
     mocha (0.14.0)
