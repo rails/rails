@@ -92,6 +92,26 @@ Then make sure that all your job classes inherit from it.
 
 See [#19034](https://github.com/rails/rails/pull/19034) for more details.
 
+### ActiveRecord belongs_to associations required by default
+
+In Rails 5.0, ActiveRecord models that have a `belongs_to` relationship set
+to `nil` will cause a validation error.  You can disable this for individual
+relationships by adding `optional: true` to the relationship:
+
+```
+class Widget < ActiveRecord::Base
+  # Some widgets do not have a factory
+  belongs_to :factory, optional: true
+end
+```
+
+You can revert to the Rails 4.x default behavior for all of your models by
+changing `config/initializers/active_record_belongs_to_required_by_default.rb`:
+
+```
+Rails.application.config.active_record.belongs_to_required_by_default = false
+```
+
 Upgrading from Rails 4.1 to Rails 4.2
 -------------------------------------
 
