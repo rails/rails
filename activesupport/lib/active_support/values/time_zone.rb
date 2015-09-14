@@ -23,7 +23,7 @@ module ActiveSupport
   #     config.time_zone = 'Eastern Time (US & Canada)'
   #   end
   #
-  #   Time.zone      # => #<TimeZone:0x514834...>
+  #   Time.zone      # => #<ActiveSupport::TimeZone:0x514834...>
   #   Time.zone.name # => "Eastern Time (US & Canada)"
   #   Time.zone.now  # => Sun, 18 May 2008 14:30:44 EDT -04:00
   #
@@ -195,7 +195,7 @@ module ActiveSupport
       # Assumes self represents an offset from UTC in seconds (as returned from
       # Time#utc_offset) and turns this into an +HH:MM formatted string.
       #
-      #   TimeZone.seconds_to_utc_offset(-21_600) # => "-06:00"
+      #   ActiveSupport::TimeZone.seconds_to_utc_offset(-21_600) # => "-06:00"
       def seconds_to_utc_offset(seconds, colon = true)
         format = colon ? UTC_OFFSET_WITH_COLON : UTC_OFFSET_WITHOUT_COLON
         sign = (seconds < 0 ? '-' : '+')
