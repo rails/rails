@@ -1,3 +1,10 @@
+*   Ensure an injected Timeout::Error does not corrupt the local state of the
+    Postgres adapter or the pg library's connection handling.
+
+    Fixes #1627.
+
+    *Lukas Fittl*
+
 *   Correct query for PostgreSQL 8.2 compatibility.
 
     *Ben Murphy*, *Matthew Draper*

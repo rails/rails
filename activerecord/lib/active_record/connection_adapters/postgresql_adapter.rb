@@ -599,11 +599,19 @@ module ActiveRecord
         FEATURE_NOT_SUPPORTED = "0A000" #:nodoc:
 
         def execute_and_clear(sql, name, binds)
-          result = without_prepared_statement?(binds) ? exec_no_cache(sql, name, binds) :
-                                                        exec_cache(sql, name, binds)
-          ret = yield result
-          result.clear
-          ret
+          result = nil
+
+          # Unfortunately neither this adapter's prepared statement handling,
+          # nor the pg gem can handle a Timeout::Error reliably - so defer them
+          # until its safe to raise and we don't corrupt any internal state.
+          Thread.handle_interrupt(Timeout::Error => :never) do
+            result = without_prepared_statement?(binds) ? exec_no_cache(sql, name, binds) :
+                                                          exec_cache(sql, name, binds)
+          end
+
+          yield result
+        ensure
+          result.clear if result
         end
 
         def exec_no_cache(sql, name, binds)
