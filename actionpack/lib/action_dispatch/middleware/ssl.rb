@@ -15,7 +15,8 @@ module ActionDispatch
   #
   # Configure HSTS with `hsts: { … }`:
   #   * `expires`: How long, in seconds, these settings will stick. Defaults to
-  #     `18.weeks`, the minimum required to qualify for browser preload lists.
+  #     `180.days` (recommended). The minimum required to qualify for browser
+  #     preload lists is `18.weeks`.
   #   * `subdomains`: Set to `true` to tell the browser to apply these settings
   #     to all subdomains. This protects your cookies from interception by a
   #     vulnerable site on a subdomain. Defaults to `false`.
