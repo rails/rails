@@ -11,10 +11,14 @@ module ActionController
       # Documentation at ActionController::Renderer#render
       delegate :render, to: :renderer
 
+      RENDERER_LOCK = Mutex.new
+
       # Returns a renderer class (inherited from ActionController::Renderer)
       # for the controller.
       def renderer
-        @renderer ||= Renderer.for(self)
+        @renderer || RENDERER_LOCK.synchronize do
+          @renderer ||= Renderer.for(self)
+        end
       end
     end
 
