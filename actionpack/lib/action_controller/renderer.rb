@@ -64,7 +64,7 @@ module ActionController
     def initialize(controller, env, defaults)
       @controller = controller
       @defaults = defaults
-      @env = normalize_keys(defaults).merge normalize_keys(env)
+      @env = normalize_keys defaults.merge(env)
       @env['action_dispatch.routes'] = controller._routes
     end
 
