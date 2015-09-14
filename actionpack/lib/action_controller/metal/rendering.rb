@@ -13,12 +13,19 @@ module ActionController
 
       RENDERER_LOCK = Mutex.new
 
-      # Returns a renderer class (inherited from ActionController::Renderer)
+      attr_writer :renderer
+
+      # Returns a renderer instance (inherited from ActionController::Renderer)
       # for the controller.
       def renderer
         @renderer || RENDERER_LOCK.synchronize do
           @renderer ||= Renderer.for(self)
         end
+      end
+
+      def inherited(klass)
+        klass.renderer = nil
+        super
       end
     end
 
