@@ -248,6 +248,7 @@ module ActionController
     MODULES.each do |mod|
       include mod
     end
+    setup_renderer!
 
     # Define some internal variables that should not be propagated to the view.
     PROTECTED_IVARS = AbstractController::Rendering::DEFAULT_PROTECTED_INSTANCE_VARIABLES + [

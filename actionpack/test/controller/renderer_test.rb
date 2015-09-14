@@ -1,6 +1,10 @@
 require 'abstract_unit'
 
 class RendererTest < ActiveSupport::TestCase
+  test 'action controller base has a renderer' do
+    assert ActionController::Base.renderer
+  end
+
   test 'creating with a controller' do
     controller = CommentsController
     renderer   = ActionController::Renderer.for controller
