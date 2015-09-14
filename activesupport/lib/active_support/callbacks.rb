@@ -126,14 +126,10 @@ module ActiveSupport
         def self.build(callback_sequence, user_callback, user_conditions, chain_config, filter)
           halted_lambda = chain_config[:terminator]
 
-          if chain_config.key?(:terminator) && user_conditions.any?
+          if user_conditions.any?
             halting_and_conditional(callback_sequence, user_callback, user_conditions, halted_lambda, filter)
-          elsif chain_config.key? :terminator
-            halting(callback_sequence, user_callback, halted_lambda, filter)
-          elsif user_conditions.any?
-            conditional(callback_sequence, user_callback, user_conditions)
           else
-            simple callback_sequence, user_callback
+            halting(callback_sequence, user_callback, halted_lambda, filter)
           end
         end
 
@@ -175,42 +171,15 @@ module ActiveSupport
           end
         end
         private_class_method :halting
-
-        def self.conditional(callback_sequence, user_callback, user_conditions)
-          callback_sequence.before do |env|
-            target = env.target
-            value  = env.value
-
-            if user_conditions.all? { |c| c.call(target, value) }
-              user_callback.call target, value
-            end
-
-            env
-          end
-        end
-        private_class_method :conditional
-
-        def self.simple(callback_sequence, user_callback)
-          callback_sequence.before do |env|
-            user_callback.call env.target, env.value
-
-            env
-          end
-        end
-        private_class_method :simple
       end
 
       class After
         def self.build(callback_sequence, user_callback, user_conditions, chain_config)
           if chain_config[:skip_after_callbacks_if_terminated]
-            if chain_config.key?(:terminator) && user_conditions.any?
+            if user_conditions.any?
               halting_and_conditional(callback_sequence, user_callback, user_conditions)
-            elsif chain_config.key?(:terminator)
-              halting(callback_sequence, user_callback)
-            elsif user_conditions.any?
-              conditional callback_sequence, user_callback, user_conditions
             else
-              simple callback_sequence, user_callback
+              halting(callback_sequence, user_callback)
             end
           else
             if user_conditions.any?
@@ -273,14 +242,10 @@ module ActiveSupport
 
       class Around
         def self.build(callback_sequence, user_callback, user_conditions, chain_config)
-          if chain_config.key?(:terminator) && user_conditions.any?
+          if user_conditions.any?
             halting_and_conditional(callback_sequence, user_callback, user_conditions)
-          elsif chain_config.key? :terminator
-            halting(callback_sequence, user_callback)
-          elsif user_conditions.any?
-            conditional(callback_sequence, user_callback, user_conditions)
           else
-            simple(callback_sequence, user_callback)
+            halting(callback_sequence, user_callback)
           end
         end
 
@@ -318,33 +283,6 @@ module ActiveSupport
           end
         end
         private_class_method :halting
-
-        def self.conditional(callback_sequence, user_callback, user_conditions)
-          callback_sequence.around do |env, &run|
-            target = env.target
-            value  = env.value
-
-            if user_conditions.all? { |c| c.call(target, value) }
-              user_callback.call(target, value) {
-                run.call.value
-              }
-              env
-            else
-              run.call
-            end
-          end
-        end
-        private_class_method :conditional
-
-        def self.simple(callback_sequence, user_callback)
-          callback_sequence.around do |env, &run|
-            user_callback.call(env.target, env.value) {
-              run.call.value
-            }
-            env
-          end
-        end
-        private_class_method :simple
       end
     end
 
