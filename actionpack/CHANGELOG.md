@@ -1,3 +1,7 @@
+*   `all_helpers_from_path` needs to consider Dir.glob on a case insensitive FS.
+
+    *Lukas Fittl*
+
 *   `url_for` does not modify its arguments when generating polymorphic URLs.
 
     *Bernerd Schaefer*
