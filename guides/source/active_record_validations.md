@@ -273,9 +273,13 @@ available helpers.
 This method validates that a checkbox on the user interface was checked when a
 form was submitted. This is typically used when the user needs to agree to your
 application's terms of service, confirm that some text is read, or any similar
-concept. This validation is very specific to web applications and this
-'acceptance' does not need to be recorded anywhere in your database (if you
-don't have a field for it, the helper will just create a virtual attribute).
+concept.
+
+This validation is very specific to web applications and this
+'acceptance' does not need to be recorded anywhere in your database. If you
+don't have a field for it, the helper will just create a virtual attribute. If
+the field does exist in your database, the `accept` option must be set to
+`true` or else the validation will not run.
 
 ```ruby
 class Person < ActiveRecord::Base
