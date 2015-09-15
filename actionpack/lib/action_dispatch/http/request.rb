@@ -324,7 +324,7 @@ module ActionDispatch
       else
         self.session = {}
       end
-      set_header('action_dispatch.request.flash_hash', nil)
+      self.flash = nil
     end
 
     def session=(session) #:nodoc:
