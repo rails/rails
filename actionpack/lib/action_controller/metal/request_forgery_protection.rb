@@ -138,7 +138,7 @@ module ActionController #:nodoc:
           request = @controller.request
           request.session = NullSessionHash.new(request)
           request.flash = nil
-          request.env['rack.session.options'] = { skip: true }
+          request.session_options = { skip: true }
           request.cookie_jar = NullCookieJar.build(request, {})
         end
 
