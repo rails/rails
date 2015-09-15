@@ -65,14 +65,18 @@ module ActionController
       @controller = controller
       @defaults = defaults
       @env = normalize_keys defaults.merge(env)
-      @env['action_dispatch.routes'] = controller._routes
     end
 
     # Render templates with any options from ActionController::Base#render_to_string.
     def render(*args)
       raise 'missing controller' unless controller
 
-      instance = controller.build_with_env(@env)
+      request = ActionDispatch::Request.new @env
+      request.routes = controller._routes
+
+      instance = controller.new
+      instance.set_request! request
+      instance.set_response! controller.make_response!(request)
       instance.render_to_string(*args)
     end
 

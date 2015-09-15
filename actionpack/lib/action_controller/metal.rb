@@ -140,13 +140,6 @@ module ActionController
       end
     end
 
-    def self.build_with_env(env = {}) #:nodoc:
-      new.tap { |c|
-        c.set_request! ActionDispatch::Request.new(env)
-        c.set_response! make_response!(c.request)
-      }
-    end
-
     # Delegates to the class' <tt>controller_name</tt>
     def controller_name
       self.class.controller_name
