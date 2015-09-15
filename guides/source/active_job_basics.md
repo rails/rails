@@ -85,7 +85,7 @@ Enqueue a job like so:
 ```ruby
 # Enqueue a job to be performed as soon the queuing system is
 # free.
-GuestsCleanupJob.perform_later guest
+GuestsCleanupJob.perform_later(guest)
 ```
 
 ```ruby
@@ -129,8 +129,6 @@ You can easily set your queuing backend:
 module YourApp
   class Application < Rails::Application
     # Be sure to have the adapter's gem in your Gemfile
-    # and follow the adapter's specific installation
-    # and deployment instructions.
     config.active_job.queue_adapter = :sidekiq
   end
 end
