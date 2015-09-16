@@ -273,10 +273,11 @@ class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase
   end
 
   def test_should_modify_an_existing_record_if_there_is_a_matching_composite_id
-    @ship.stubs(:id).returns('ABC1X')
-    @pirate.ship_attributes = { :id => @ship.id, :name => 'Davy Jones Gold Dagger' }
+    @ship.stub(:id, 'ABC1X') do
+      @pirate.ship_attributes = { :id => @ship.id, :name => 'Davy Jones Gold Dagger' }
 
-    assert_equal 'Davy Jones Gold Dagger', @pirate.ship.name
+      assert_equal 'Davy Jones Gold Dagger', @pirate.ship.name
+    end
   end
 
   def test_should_destroy_an_existing_record_if_there_is_a_matching_id_and_destroy_is_truthy
@@ -457,10 +458,11 @@ class TestNestedAttributesOnABelongsToAssociation < ActiveRecord::TestCase
   end
 
   def test_should_modify_an_existing_record_if_there_is_a_matching_composite_id
-    @pirate.stubs(:id).returns('ABC1X')
-    @ship.pirate_attributes = { :id => @pirate.id, :catchphrase => 'Arr' }
+    @pirate.stub(:id, 'ABC1X') do
+      @ship.pirate_attributes = { :id => @pirate.id, :catchphrase => 'Arr' }
 
-    assert_equal 'Arr', @ship.pirate.catchphrase
+      assert_equal 'Arr', @ship.pirate.catchphrase
+    end
   end
 
   def test_should_destroy_an_existing_record_if_there_is_a_matching_id_and_destroy_is_truthy
@@ -638,17 +640,19 @@ module NestedAttributesOnACollectionAssociationTests
   end
 
   def test_should_take_a_hash_with_composite_id_keys_and_assign_the_attributes_to_the_associated_models
-    @child_1.stubs(:id).returns('ABC1X')
-    @child_2.stubs(:id).returns('ABC2X')
+    @child_1.stub(:id, 'ABC1X') do
+      @child_2.stub(:id, 'ABC2X') do
 
-    @pirate.attributes = {
-      association_getter => [
-        { :id => @child_1.id, :name => 'Grace OMalley' },
-        { :id => @child_2.id, :name => 'Privateers Greed' }
-      ]
-    }
+        @pirate.attributes = {
+          association_getter => [
+            { :id => @child_1.id, :name => 'Grace OMalley' },
+            { :id => @child_2.id, :name => 'Privateers Greed' }
+          ]
+        }
 
-    assert_equal ['Grace OMalley', 'Privateers Greed'], [@child_1.name, @child_2.name]
+        assert_equal ['Grace OMalley', 'Privateers Greed'], [@child_1.name, @child_2.name]
+      end
+    end
   end
 
   def test_should_raise_RecordNotFound_if_an_id_is_given_but_doesnt_return_a_record

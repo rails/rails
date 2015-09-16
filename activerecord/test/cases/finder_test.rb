@@ -178,8 +178,9 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_exists_does_not_instantiate_records
-    Developer.expects(:instantiate).never
-    Developer.exists?
+    assert_not_called(Developer, :instantiate) do
+      Developer.exists?
+    end
   end
 
   def test_find_by_array_of_one_id
