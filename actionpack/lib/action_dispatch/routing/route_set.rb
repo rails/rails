@@ -310,7 +310,7 @@ module ActionDispatch
           DEPRECATED_STRING_OPTIONS = %w[controller action]
 
           def deprecate_string_options(options)
-            options ||= {}
+            options = options.to_h
             deprecated_string_options = options.keys & DEPRECATED_STRING_OPTIONS
             if deprecated_string_options.any?
               msg = "Calling URL helpers with string keys #{deprecated_string_options.join(", ")} is deprecated. Use symbols instead."
