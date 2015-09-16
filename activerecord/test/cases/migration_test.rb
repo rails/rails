@@ -87,6 +87,22 @@ class MigrationTest < ActiveRecord::TestCase
     ActiveRecord::Migrator.migrations_paths = old_path
   end
 
+  def test_does_not_rollback_to_unknown_version
+    migrations_path = MIGRATIONS_ROOT + "/valid"
+    old_path = ActiveRecord::Migrator.migrations_paths
+    ActiveRecord::Migrator.migrations_paths = migrations_path
+    ActiveRecord::Migrator.up(migrations_path)
+
+    assert_raises ActiveRecord::UnknownSchemaVersionError do
+      bad_version = MIGRATIONS_ROOT + "/valid/1_valid_people_have_last_names.rb"
+      ActiveRecord::Migrator.down(MIGRATIONS_ROOT + "/valid", bad_version)
+    end
+    assert_equal 3, ActiveRecord::Migrator.current_version
+    assert_equal false, ActiveRecord::Migrator.needs_migration?
+  ensure
+    ActiveRecord::Migrator.migrations_paths = old_path
+  end
+
   def test_migration_detection_without_schema_migration_table
     ActiveRecord::Base.connection.drop_table 'schema_migrations', if_exists: true
 

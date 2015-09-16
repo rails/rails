@@ -1,3 +1,9 @@
+*   Verify the target schema version before rolling back.
+    Don't rollback database to version 0 when `rake db:migrate` is
+    executed with incorrect VERSION.
+
+    *Vlad Yarotsky*
+
 *   Correct query for PostgreSQL 8.2 compatibility.
 
     *Ben Murphy*, *Matthew Draper*
