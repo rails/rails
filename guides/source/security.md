@@ -245,7 +245,7 @@ Or the attacker places the code into the onmouseover event handler of an image:
 <img src="http://www.harmless.com/img" width="400" height="400" onmouseover="..." />
 ```
 
-There are many other possibilities, like using a `<script>` tag to make a cross-site request to a URL with a JSONP or JavaScript response. The response is executable code that the attacker can find a way to run, possibly extracting sensitive data. To protect against this data leakage, we disallow cross-site `<script>` tags. Only Ajax requests may have JavaScript responses since `XMLHttpRequest` is subject to the browser Same-Origin policy - meaning only your site can initiate the request.
+There are many other possibilities, like using a `<script>` tag to make a cross-site request to a URL with a JSONP or JavaScript response. The response is executable code that the attacker can find a way to run, possibly extracting sensitive data. To protect against this data leakage, we disallow dynamic JS responses for anything other than ajax requests irrespective of the origin. Only Ajax requests may have JavaScript responses since `XmlHttpRequest` is subject to the browser Same-Origin policy - meaning only your site can initiate ajax requests.
 
 To protect against all other forged requests, we introduce a _required security token_ that our site knows but other sites don't know. We include the security token in requests and verify it on the server. This is a one-liner in your application controller, and is the default for newly created rails applications:
 
