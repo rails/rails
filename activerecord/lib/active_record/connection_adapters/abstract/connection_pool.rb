@@ -587,7 +587,7 @@ module ActiveRecord
       end
 
       #--
-      # From the discussion on Github:
+      # From the discussion on GitHub:
       #  https://github.com/rails/rails/pull/14938#commitcomment-6601951
       # This hook-in method allows for easier monkey-patching fixes needed by
       # JRuby users that use Fibers.
