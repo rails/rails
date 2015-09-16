@@ -158,7 +158,7 @@ module ActiveRecord
       # generates:
       #
       #   CREATE TABLE suppliers (
-      #     id int(11) DEFAULT NULL auto_increment PRIMARY KEY
+      #     id int(11) auto_increment PRIMARY KEY
       #   ) ENGINE=InnoDB DEFAULT CHARSET=utf8
       #
       # ====== Rename the primary key column
@@ -170,7 +170,7 @@ module ActiveRecord
       # generates:
       #
       #   CREATE TABLE objects (
-      #     guid int(11) DEFAULT NULL auto_increment PRIMARY KEY,
+      #     guid int(11) auto_increment PRIMARY KEY,
       #     name varchar(80)
       #   )
       #
