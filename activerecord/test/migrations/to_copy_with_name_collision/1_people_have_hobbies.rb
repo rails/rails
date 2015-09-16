@@ -1,4 +1,4 @@
-class PeopleHaveLastNames < ActiveRecord::Migration
+class PeopleHaveLastNames < ActiveRecord::Migration.version("#{::ActiveRecord::Migration.current_version}")
   def self.up
     add_column "people", "hobbies", :string
   end

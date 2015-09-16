@@ -1,4 +1,4 @@
-class CreateArticles < ActiveRecord::Migration
+class CreateArticles < ActiveRecord::Migration.version("#{::ActiveRecord::Migration.current_version}")
   def self.up
   end
 

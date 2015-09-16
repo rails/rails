@@ -1,4 +1,4 @@
-class InnocentJointable < ActiveRecord::Migration
+class InnocentJointable < ActiveRecord::Migration.version("#{::ActiveRecord::Migration.current_version}")
   def self.up
     create_table("people_reminders", :id => false) do |t|
       t.column :reminder_id, :integer
