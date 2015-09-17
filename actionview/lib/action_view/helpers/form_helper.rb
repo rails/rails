@@ -1880,8 +1880,8 @@ module ActionView
       #           create: "Add %{model}"
       #
       # ==== Examples
-      #   button("Create a post")
-      #   # => <button name='button' type='submit'>Add post</button>
+      #   button("Create post")
+      #   # => <button name='button' type='submit'>Create post</button>
       #
       #   button do
       #     content_tag(:strong, 'Ask me!')
