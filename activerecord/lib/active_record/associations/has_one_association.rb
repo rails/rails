@@ -1,5 +1,5 @@
 module ActiveRecord
-  # = Active Record Belongs To Has One Association
+  # = Active Record Has One Association
   module Associations
     class HasOneAssociation < SingularAssociation #:nodoc:
       include ForeignAssociation
