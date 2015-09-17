@@ -1880,7 +1880,7 @@ module ActionView
       #           create: "Add %{model}"
       #
       # ==== Examples
-      #   button("Create a post")
+      #   button("Create post")
       #   # => <button name='button' type='submit'>Create post</button>
       #
       #   button do
