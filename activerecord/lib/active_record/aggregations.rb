@@ -25,7 +25,7 @@ module ActiveRecord
       end
 
     # Active Record implements aggregation through a macro-like class method called +composed_of+
-    # for representing attributes  as value objects. It expresses relationships like "Account [is]
+    # for representing attributes as value objects. It expresses relationships like "Account [is]
     # composed of Money [among other things]" or "Person [is] composed of [an] address". Each call
     # to the macro adds a description of how the value objects are created from the attributes of
     # the entity object (when the entity is initialized either as a new object or from finding an
