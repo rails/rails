@@ -1,3 +1,13 @@
+*   Use the default inheritance `:type` when instantiating a new object.
+
+    Example:
+
+        # In the schema, BaseModel specifies 'SubType' as the default `:type` value
+        subtype = BaseModel.new
+        assert_equals SubType, subtype.class
+
+    *Eric Siegel*
+
 *   Correct query for PostgreSQL 8.2 compatibility.
 
     *Ben Murphy*, *Matthew Draper*

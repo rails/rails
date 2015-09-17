@@ -192,11 +192,18 @@ module ActiveRecord
       # If this is a StrongParameters hash, and access to inheritance_column is not permitted,
       # this will ignore the inheritance column and return nil
       def subclass_from_attributes?(attrs)
-        attribute_names.include?(inheritance_column) && attrs.is_a?(Hash)
+        inheritance_default = column_defaults[inheritance_column]
+
+        attribute_names.include?(inheritance_column) &&
+          (attrs.is_a?(Hash) or inheritance_default.present?)
       end
 
       def subclass_from_attributes(attrs)
-        subclass_name = attrs.with_indifferent_access[inheritance_column]
+        # Add the inheritance_column's default value.
+        indifferent_attrs = (attrs || {}).with_indifferent_access
+        indifferent_attrs[inheritance_column] ||= column_defaults[inheritance_column]
+
+        subclass_name = indifferent_attrs.with_indifferent_access[inheritance_column]
 
         if subclass_name.present?
           subclass = find_sti_class(subclass_name)
