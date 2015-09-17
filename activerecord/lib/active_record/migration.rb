@@ -135,6 +135,16 @@ module ActiveRecord
     end
   end
 
+  class UnknownSchemaVersionError < MigrationError#:nodoc:
+    def initialize(version = nil)
+      if version
+        super("No schema version found with version number #{version}.")
+      else
+        super("Unknown schema version.")
+      end
+    end
+  end
+
   # = Active Record Migrations
   #
   # Migrations can manage the evolution of a schema used by several physical
@@ -903,6 +913,10 @@ module ActiveRecord
       end
 
       def down(migrations_paths, target_version = nil)
+        unless target_version.nil?
+          ensure_version_exists!(target_version)
+        end
+
         migrations = migrations(migrations_paths)
         migrations.select! { |m| yield m } if block_given?
 
@@ -980,6 +994,11 @@ module ActiveRecord
           version = finish ? finish.version : 0
           send(direction, migrations_paths, version)
         end
+      end
+
+      def ensure_version_exists!(version)
+        get_all_versions.include?(version) or
+          raise UnknownSchemaVersionError, version
       end
     end
 
