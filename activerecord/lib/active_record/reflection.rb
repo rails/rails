@@ -66,7 +66,6 @@ module ActiveRecord
       #
       #   Account.reflections # => {"balance" => AggregateReflection}
       #
-      # @api public
       def reflections
         @__reflections ||= begin
           ref = {}
@@ -96,7 +95,6 @@ module ActiveRecord
       #   Account.reflect_on_all_associations             # returns an array of all associations
       #   Account.reflect_on_all_associations(:has_many)  # returns an array of all has_many associations
       #
-      #   @api public
       def reflect_on_all_associations(macro = nil)
         association_reflections = reflections.values
         association_reflections.select! { |reflection| reflection.macro == macro } if macro
@@ -108,24 +106,20 @@ module ActiveRecord
       #   Account.reflect_on_association(:owner)             # returns the owner AssociationReflection
       #   Invoice.reflect_on_association(:line_items).macro  # returns :has_many
       #
-      #   @api public
       def reflect_on_association(association)
         reflections[association.to_s]
       end
 
-      #   @api private
       def _reflect_on_association(association) #:nodoc:
         _reflections[association.to_s]
       end
 
       # Returns an array of AssociationReflection objects for all associations which have <tt>:autosave</tt> enabled.
-      #
-      #   @api public
       def reflect_on_all_autosave_associations
         reflections.values.select { |reflection| reflection.options[:autosave] }
       end
 
-      def clear_reflections_cache #:nodoc:
+      def clear_reflections_cache # :nodoc:
         @__reflections = nil
       end
     end
