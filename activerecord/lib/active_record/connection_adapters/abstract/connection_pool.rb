@@ -364,7 +364,7 @@ module ActiveRecord
 
       # Is there an open connection that is being used for the current thread?
       #
-      # This method only works for connections that have been abtained through
+      # This method only works for connections that have been obtained through
       # #connection or #with_connection methods, connections obtained through
       # #checkout will not be detected by #active_connection?
       def active_connection?
@@ -427,7 +427,7 @@ module ActiveRecord
       # The pool first tries to gain ownership of all connections, if unable to
       # do so within a timeout interval (default duration is
       # +spec.config[:checkout_timeout] * 2+ seconds), the pool is forcefully
-      # disconneted wihout any regard for other connection owning threads.
+      # disconnected without any regard for other connection owning threads.
       def disconnect!
         disconnect(false)
       end
