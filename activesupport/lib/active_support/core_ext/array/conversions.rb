@@ -32,7 +32,7 @@ class Array
   #   ['one', 'two', 'three'].to_sentence # => "one, two, and three"
   #
   #   ['one', 'two'].to_sentence(passing: 'invalid option')
-  #   # => ArgumentError: Unknown key :passing
+  #   # => ArgumentError: Unknown key: :passing. Valid keys are: :words_connector, :two_words_connector, :last_word_connector, :locale
   #
   #   ['one', 'two'].to_sentence(two_words_connector: '-')
   #   # => "one-two"
