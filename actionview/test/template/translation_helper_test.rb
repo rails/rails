@@ -60,6 +60,12 @@ class TranslationHelperTest < ActiveSupport::TestCase
     assert_equal true, translate(:"translations.missing").html_safe?
   end
 
+  def test_returns_missing_translation_message_with_unescaped_interpolation
+    expected = '<span class="translation_missing" title="translation missing: en.translations.missing, name: Kir, year: 2015, vulnerable: &amp;quot; onclick=&amp;quot;alert()&amp;quot;">Missing</span>'
+    assert_equal expected, translate(:"translations.missing", name: "Kir", year: "2015", vulnerable: %{" onclick="alert()"})
+    assert translate(:"translations.missing").html_safe?
+  end
+
   def test_raises_missing_translation_message_with_raise_config_option
     ActionView::Base.raise_on_missing_translations = true
 
