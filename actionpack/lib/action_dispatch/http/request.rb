@@ -348,7 +348,7 @@ module ActionDispatch
     # Override Rack's POST method to support indifferent access
     def POST
       fetch_header("action_dispatch.request.request_parameters") do
-        pr = parse_formatted_parameters(self, params_parsers) do |params|
+        pr = parse_formatted_parameters(params_parsers) do |params|
           super || {}
         end
         self.request_parameters = Request::Utils.normalize_encode_params(pr)
