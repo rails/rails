@@ -1126,3 +1126,46 @@ class IntegrationRequestsWithSessionSetup < ActionDispatch::IntegrationTest
     assert_equal({"user_name"=>"david"}, cookies.to_hash)
   end
 end
+
+class IntegrationRequestEncodersTest < ActionDispatch::IntegrationTest
+  class FooController < ActionController::Base
+    def foos
+      render plain: 'ok'
+    end
+  end
+
+  def test_encoding_as_json
+    assert_encoded_as :json, content_type: 'application/json'
+  end
+
+  def test_encoding_as_without_mime_registration
+    assert_raise ArgumentError do
+      ActionDispatch::IntegrationTest.register_encoder :wibble
+    end
+  end
+
+  def test_registering_custom_encoder
+    Mime::Type.register 'text/wibble', :wibble
+
+    ActionDispatch::IntegrationTest.register_encoder(:wibble, &:itself)
+
+    assert_encoded_as :wibble, content_type: 'text/wibble',
+      parsed_parameters: Hash.new # Unregistered MIME Type can't be parsed
+  ensure
+    Mime::Type.unregister :wibble
+  end
+
+  private
+    def assert_encoded_as(format, content_type:, parsed_parameters: { 'foo' => 'fighters' })
+      with_routing do |routes|
+        routes.draw { post ':action' => FooController }
+
+        post '/foos', params: { foo: 'fighters' }, as: format
+
+        assert_response :success
+        assert_match "foos.#{format}", request.path
+        assert_equal content_type, request.content_type
+        assert_equal parsed_parameters, request.request_parameters
+      end
+    end
+end
