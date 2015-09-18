@@ -883,7 +883,21 @@ end
 
 class MemoryStoreTest < ActiveSupport::TestCase
   def setup
-    @record_size = ActiveSupport::Cache.lookup_store(:memory_store).send(:cached_size, 1, ActiveSupport::Cache::Entry.new("aaaaaaaaaa"))
+    @cache = ActiveSupport::Cache.lookup_store(:memory_store, :expires_in => 60)
+  end
+
+  def real_cache_size
+    Marshal.dump(@cache.instance_variable_get(:@data)).bytesize - Marshal.dump({}).bytesize
+  end
+
+  def teardown
+    reported_cache_size = @cache.instance_variable_get(:@cache_size)
+    assert real_cache_size <= reported_cache_size, "Real cache size (#{real_cache_size}) > reported size (#{reported_cache_size})"
+  end
+
+  def limit_cache_size
+    memory_store = ActiveSupport::Cache.lookup_store(:memory_store)
+    @record_size = memory_store.send(:cached_size, 1, ActiveSupport::Cache::Entry.new('aaaaaaaaaa'))
     @cache = ActiveSupport::Cache.lookup_store(:memory_store, :expires_in => 60, :size => @record_size * 10 + 1)
   end
 
@@ -892,6 +906,7 @@ class MemoryStoreTest < ActiveSupport::TestCase
   include CacheIncrementDecrementBehavior
 
   def test_prune_size
+    limit_cache_size
     @cache.write(1, "aaaaaaaaaa") && sleep(0.001)
     @cache.write(2, "bbbbbbbbbb") && sleep(0.001)
     @cache.write(3, "cccccccccc") && sleep(0.001)
@@ -908,6 +923,7 @@ class MemoryStoreTest < ActiveSupport::TestCase
   end
 
   def test_prune_size_on_write
+    limit_cache_size
     @cache.write(1, "aaaaaaaaaa") && sleep(0.001)
     @cache.write(2, "bbbbbbbbbb") && sleep(0.001)
     @cache.write(3, "cccccccccc") && sleep(0.001)
@@ -935,6 +951,7 @@ class MemoryStoreTest < ActiveSupport::TestCase
   end
 
   def test_prune_size_on_write_based_on_key_length
+    limit_cache_size
     @cache.write(1, "aaaaaaaaaa") && sleep(0.001)
     @cache.write(2, "bbbbbbbbbb") && sleep(0.001)
     @cache.write(3, "cccccccccc") && sleep(0.001)
@@ -959,6 +976,7 @@ class MemoryStoreTest < ActiveSupport::TestCase
   end
 
   def test_pruning_is_capped_at_a_max_time
+    limit_cache_size
     def @cache.delete_entry (*args)
       sleep(0.01)
       super
@@ -1157,6 +1175,25 @@ class CacheStoreLoggerTest < ActiveSupport::TestCase
 end
 
 class CacheEntryTest < ActiveSupport::TestCase
+
+  def overhead(max=true)
+    entry = ActiveSupport::Cache::Entry.new('')
+    entry.instance_variable_set(:@created_at, 1442605140.405094)
+    if max
+      # Sets reasonable limits for maximum serialized object size.
+      entry.instance_variable_set(:@s, 1.gigabytes)
+      entry.instance_variable_set(:@compressed, true)
+      entry.instance_variable_set(:@expires_in, 315576000.8171825)
+      entry.instance_variable_set(:@created_at, 1758169899.8171825)
+    end
+    Marshal.dump(entry).bytesize - Marshal.dump('').bytesize
+  end
+
+  def test_overhead
+    assert_equal ActiveSupport::Cache::Entry.new(nil).class::MAX_OVERHEAD, overhead
+    assert_equal ActiveSupport::Cache::Entry.new(nil).class::MIN_OVERHEAD, overhead(false)
+  end
+
   def test_expired
     entry = ActiveSupport::Cache::Entry.new("value")
     assert !entry.expired?, 'entry not expired'
@@ -1178,6 +1215,6 @@ class CacheEntryTest < ActiveSupport::TestCase
     value = "value" * 100
     entry = ActiveSupport::Cache::Entry.new(value)
     assert_equal value, entry.value
-    assert_equal value.bytesize, entry.size
+    assert_equal value.bytesize + ActiveSupport::Cache::Entry::MAX_STRING_OVERHEAD, entry.size
   end
 end
