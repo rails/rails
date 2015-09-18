@@ -313,7 +313,7 @@ class ProductsController < ApplicationController
 
     ...
 
-    # Run the same query again
+    # Encounter the same query again, so it's pulled from cache
     @products = Product.all
   end
 
