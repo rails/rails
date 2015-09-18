@@ -379,6 +379,10 @@ module ActiveRecord
   #
   #    config.active_record.timestamped_migrations = false
   #
+  # Migrations can now, by default, be sorted by the time they were invoked:
+  #
+  #    config.active_record.schema_migrations_by_invocation_time = true
+  #
   # In application.rb.
   #
   # == Reversible Migrations
@@ -749,7 +753,7 @@ module ActiveRecord
       FileUtils.mkdir_p(destination) unless File.exist?(destination)
 
       destination_migrations = ActiveRecord::Migrator.migrations(destination)
-      last = destination_migrations.last
+      last = destination_migrations.to_a.last
       sources.each do |scope, path|
         source_migrations = ActiveRecord::Migrator.migrations(path)
 
@@ -844,9 +848,27 @@ module ActiveRecord
       File.mtime filename
     end
 
+    def created_at
+      schema_migration.try(:created_at)
+    end
+
+    def self.sort!(migrations)
+      migrations.sort! do |a, b|
+        ActiveRecord::SchemaMigration.sorter(a, b)
+      end
+    end
+
     delegate :migrate, :announce, :write, :disable_ddl_transaction, to: :migration
 
     private
+
+      def schema_migration
+        if ActiveRecord::SchemaMigration.table_exists?
+          ActiveRecord::SchemaMigration.where(version: version).first
+        else
+          nil
+        end
+      end
 
       def migration
         @migration ||= load_migration
@@ -922,15 +944,17 @@ module ActiveRecord
       end
 
       def get_all_versions(connection = Base.connection)
-        if connection.table_exists?(schema_migrations_table_name)
-          SchemaMigration.all.map { |x| x.version.to_i }.sort
+        if ActiveRecord::SchemaMigration.table_exists?
+          SchemaMigration.all.sort do |a, b|
+            ActiveRecord::SchemaMigration.sorter(a, b)
+          end.map(&:version)
         else
           []
         end
       end
 
       def current_version(connection = Base.connection)
-        get_all_versions(connection).max || 0
+        get_all_versions(connection).to_a.last || 0
       end
 
       def needs_migration?(connection = Base.connection)
@@ -942,7 +966,7 @@ module ActiveRecord
       end
 
       def last_migration #:nodoc:
-        migrations(migrations_paths).last || NullMigration.new
+        migrations(migrations_paths).to_a.last || NullMigration.new
       end
 
       def migrations_paths
@@ -966,7 +990,7 @@ module ActiveRecord
           MigrationProxy.new(name, version, file, scope)
         end
 
-        migrations.sort_by(&:version)
+        MigrationProxy.sort!(migrations)
       end
 
       private
@@ -997,7 +1021,7 @@ module ActiveRecord
     end
 
     def current_version
-      migrated.max || 0
+      migrated.to_a.last || 0
     end
 
     def current_migration
@@ -1047,7 +1071,7 @@ module ActiveRecord
     end
 
     def migrations
-      down? ? @migrations.reverse : @migrations.sort_by(&:version)
+      down? ? @migrations.reverse : MigrationProxy.sort!(@migrations)
     end
 
     def pending_migrations

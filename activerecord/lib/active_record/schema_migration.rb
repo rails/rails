@@ -20,6 +20,10 @@ module ActiveRecord
         "#{table_name_prefix}unique_#{ActiveRecord::Base.schema_migrations_table_name}#{table_name_suffix}"
       end
 
+      def created_at_index_name
+        "#{table_name_prefix}created_at_#{ActiveRecord::Base.schema_migrations_table_name}#{table_name_suffix}"
+      end
+
       def table_exists?
         connection.table_exists?(table_name)
       end
@@ -31,8 +35,10 @@ module ActiveRecord
 
           connection.create_table(table_name, id: false) do |t|
             t.column :version, :string, version_options
+            t.column :created_at, :datetime, null: false
           end
           connection.add_index table_name, :version, unique: true, name: index_name
+          connection.add_index table_name, :created_at, name: created_at_index_name
         end
       end
 
@@ -50,6 +56,34 @@ module ActiveRecord
       def normalized_versions
         pluck(:version).map { |v| normalize_migration_number v }
       end
+
+      def sorter(a, b)
+        if ActiveRecord::Base.schema_migrations_by_invocation_time
+          if a.created_at.nil?
+            if b.created_at.nil?
+              a.version <=> b.version
+            else
+              1
+            end
+          else
+            if b.created_at.nil?
+              -1
+            else
+              if a.created_at == b.created_at
+                a.version <=> b.version
+              else
+                a.created_at <=> b.created_at
+              end
+            end
+          end
+        else
+          a.version <=> b.version
+        end
+      end
+    end
+
+    def normalized_version
+      self.class.normalize_migration_number(version)
     end
 
     def version

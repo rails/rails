@@ -55,7 +55,7 @@ module ApplicationTests
            bin/rake db:migrate`
           output = `bin/rake db:migrate:status`
           assert_match(%r{database:\s+\S*#{Regexp.escape(expected_database)}}, output)
-          assert_match(/up\s+\d{14}\s+Create books/, output)
+          assert_match(/up\s+\d{14}\s+.{24}\s+Create books/, output)
         end
       end
 

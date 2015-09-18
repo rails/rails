@@ -78,6 +78,12 @@ module ActiveRecord
 
       ##
       # :singleton-method:
+      # Should migrations be managed by invocation time
+      mattr_accessor :schema_migrations_by_invocation_time, instance_writer: false
+      self.schema_migrations_by_invocation_time = false
+
+      ##
+      # :singleton-method:
       # Specify whether schema dump should happen at the end of the
       # db:migrate rake task. This is true by default, which is useful for the
       # development environment. This should ideally be false in the production

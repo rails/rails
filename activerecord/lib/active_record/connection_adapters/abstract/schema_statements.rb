@@ -882,9 +882,17 @@ module ActiveRecord
       def dump_schema_information #:nodoc:
         sm_table = ActiveRecord::Migrator.schema_migrations_table_name
 
-        ActiveRecord::SchemaMigration.order('version').map { |sm|
-          "INSERT INTO #{sm_table} (version) VALUES ('#{sm.version}');"
-        }.join "\n\n"
+        column_names = ActiveRecord::SchemaMigration.column_names
+        column_names_cs = column_names.join(', ')
+
+        ActiveRecord::SchemaMigration.all.sort do |a, b|
+          ActiveRecord::SchemaMigration.sorter(a, b)
+        end.map do |sm|
+          quoted_values_cs = column_names.map do |column_name|
+            ActiveRecord::SchemaMigration.connection.quote(sm.attributes[column_name])
+          end.join(', ')
+          "INSERT INTO #{sm_table} (#{column_names_cs}) VALUES (#{quoted_values_cs});"
+        end.join "\n\n"
       end
 
       # Should not be called normally, but this operation is non-destructive.
@@ -905,7 +913,7 @@ module ActiveRecord
         end
 
         unless migrated.include?(version)
-          execute "INSERT INTO #{sm_table} (version) VALUES ('#{version}')"
+          ActiveRecord::SchemaMigration.create!(version: version)
         end
 
         inserted = Set.new
@@ -913,7 +921,7 @@ module ActiveRecord
           if inserted.include?(v)
             raise "Duplicate migration #{v}. Please renumber your migrations to resolve the conflict."
           elsif v < version
-            execute "INSERT INTO #{sm_table} (version) VALUES ('#{v}')"
+            ActiveRecord::SchemaMigration.create!(version: v)
             inserted << v
           end
         end

@@ -94,30 +94,44 @@ db_namespace = namespace :db do
     desc 'Display status of migrations'
     task :status => [:environment, :load_config] do
       unless ActiveRecord::SchemaMigration.table_exists?
-        abort 'Schema migrations table does not exist yet.'
+        puts 'Schema migrations table does not exist yet.'
+        next  # means "return" for rake task
       end
-      db_list = ActiveRecord::SchemaMigration.normalized_versions
+      MigrationStatus = Struct.new(:status, :version, :created_at, :name)
 
-      file_list =
-          ActiveRecord::Tasks::DatabaseTasks.migrations_paths.flat_map do |path|
-            # match "20091231235959_some_name.rb" and "001_some_name.rb" pattern
-            Dir.foreach(path).grep(/^(\d{3,})_(.+)\.rb$/) do
-              version = ActiveRecord::SchemaMigration.normalize_migration_number($1)
-              status = db_list.delete(version) ? 'up' : 'down'
-              [status, version, $2.humanize]
+      all_migrations_by_version = ActiveRecord::SchemaMigration.all.map do |schema_migration|
+        MigrationStatus.new(:up, schema_migration.normalized_version, schema_migration.created_at, nil)
+      end.index_by(&:version)
+
+      ActiveRecord::Migrator.migrations_paths.each do |path|
+        Dir.foreach(path) do |file|
+          # match "20091231235959_some_name.rb" and "001_some_name.rb" pattern
+          if match_data = /^(\d{3,})_(.+)\.rb$/.match(file)
+            if all_migrations_by_version.has_key?(match_data[1])
+              all_migrations_by_version[match_data[1]].name = match_data[2].humanize
+            else
+              all_migrations_by_version[match_data[1]] = MigrationStatus.new(
+                :down,
+                ActiveRecord::SchemaMigration.normalize_migration_number(match_data[1]),
+                nil,
+                match_data[2].humanize
+              )
             end
           end
+        end
+      end
 
-      db_list.map! do |version|
-        ['up', version, '********** NO FILE **********']
-      end
-      # output
       puts "\ndatabase: #{ActiveRecord::Base.connection_config[:database]}\n\n"
-      puts "#{'Status'.center(8)}  #{'Migration ID'.ljust(14)}  Migration Name"
-      puts "-" * 50
-      (db_list + file_list).sort_by { |_, version, _| version }.each do |status, version, name|
-        puts "#{status.center(8)}  #{version.ljust(14)}  #{name}"
+      header = "#{'Status'.center(8)}  #{'Migration ID'.ljust(14)}  #{'Migration Run'.ljust(24)}  Migration Name"
+      puts header
+      puts "-" * header.length
+
+      all_migrations_by_version.values.sort do |a, b|
+        ActiveRecord::SchemaMigration.sorter(a, b)
+      end.each do |migration|
+        puts "#{migration.status.to_s.center(8)}  #{migration.version.ljust(14)}  #{migration.created_at.to_s.ljust(24)}  #{migration.name.present? ? migration.name : '********** NO FILE **********'}"
       end
+
       puts
     end
   end

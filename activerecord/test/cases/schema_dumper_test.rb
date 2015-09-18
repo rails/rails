@@ -7,6 +7,11 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
   setup do
     ActiveRecord::SchemaMigration.create_table
+    ActiveRecord::Base.schema_migrations_by_invocation_time = false
+  end
+
+  def teardown
+    ActiveRecord::Base.schema_migrations_by_invocation_time = false
   end
 
   def standard_dump
@@ -24,11 +29,27 @@ class SchemaDumperTest < ActiveRecord::TestCase
     end
 
     schema_info = ActiveRecord::Base.connection.dump_schema_information
-    assert_match(/20100201010101.*20100301010101/m, schema_info)
+    assert_match(/20100101010101.*20100201010101.*20100301010101/m, schema_info)
   ensure
     ActiveRecord::SchemaMigration.delete_all
   end
 
+  unless current_adapter?(:MysqlAdapter) || current_adapter?(:Mysql2Adapter) 
+    # Mysql's created_at timestamp doesn't seem to have subsecond resolution - meh
+    def test_dump_schema_information_outputs_ordered_by_created_at
+      ActiveRecord::Base.schema_migrations_by_invocation_time = true
+      versions = %w{ 20100201010101 20100301010101 20100101010101 }
+      versions.each do |v|
+        ActiveRecord::SchemaMigration.create!(:version => v)
+      end
+
+      schema_info = ActiveRecord::Base.connection.dump_schema_information
+      assert_match(/20100201010101.*20100301010101.*20100101010101/m, schema_info)
+    ensure
+      ActiveRecord::SchemaMigration.delete_all
+    end
+  end
+  
   def test_magic_comment
     assert_match "# encoding: #{Encoding.default_external.name}", standard_dump
   end
