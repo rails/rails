@@ -450,9 +450,9 @@ module ActionView
             disable_with_text ||= value.clone
             tag_options.deep_merge!("data" => { "disable_with" => disable_with_text })
           else
-            tag_options.delete("data-disable-with")
             tag_options["data"].delete(:disable_with) if tag_options["data"]
           end
+          tag_options.delete("data-disable-with")
         end
 
         tag :input, tag_options
