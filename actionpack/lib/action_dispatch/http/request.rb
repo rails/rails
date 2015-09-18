@@ -349,9 +349,9 @@ module ActionDispatch
     def POST
       fetch_header("action_dispatch.request.request_parameters") do
         pr = parse_formatted_parameters(self, params_parsers) do |params|
-          Request::Utils.normalize_encode_params(super || {})
+          super || {}
         end
-        self.request_parameters = pr
+        self.request_parameters = Request::Utils.normalize_encode_params(pr)
       end
     rescue Rack::Utils::ParameterTypeError, Rack::Utils::InvalidParameterError => e
       raise ActionController::BadRequest.new(:request, e)

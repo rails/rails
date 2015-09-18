@@ -21,8 +21,7 @@ module ActionDispatch
     DEFAULT_PARSERS = {
       Mime::JSON => lambda { |raw_post|
         data = ActiveSupport::JSON.decode(raw_post)
-        data = {:_json => data} unless data.is_a?(Hash)
-        Request::Utils.normalize_encode_params(data)
+        data.is_a?(Hash) ? data : {:_json => data}
       }
     }
 
