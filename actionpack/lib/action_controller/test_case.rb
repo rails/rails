@@ -91,8 +91,8 @@ module ActionController
           when :url_encoded_form
             data = non_path_parameters.to_query
           else
+            @custom_param_parsers[content_mime_type] = ->(_) { non_path_parameters }
             data = non_path_parameters.to_query
-            self.request_parameters = non_path_parameters
           end
         end
 
