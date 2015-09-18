@@ -77,10 +77,6 @@ module ActionController
             set_header k, 'application/x-www-form-urlencoded'
           end
 
-          # FIXME: setting `request_parametes` is normally handled by the
-          # params parser middleware, and we should remove this roundtripping
-          # when we switch to caling `call` on the controller
-
           case content_mime_type.to_sym
           when nil
             raise "Unknown Content-Type: #{content_type}"
