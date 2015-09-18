@@ -83,8 +83,6 @@ module ActionController
             raise "Unknown Content-Type: #{content_type}"
           when :json
             data = ActiveSupport::JSON.encode(non_path_parameters)
-            params = ActiveSupport::JSON.decode(data).with_indifferent_access
-            self.request_parameters = params
           when :xml
             data = non_path_parameters.to_xml
             params = Hash.from_xml(data)['hash']
