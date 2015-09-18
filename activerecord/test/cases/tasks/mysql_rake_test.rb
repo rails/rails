@@ -274,11 +274,23 @@ module ActiveRecord
       filename = "awesome-file.sql"
       Kernel.expects(:system).with("mysqldump", "--result-file", filename, "--no-data", "test-db").returns(false)
 
-      warnings = capture(:stderr) do
+      # There doesn't seem to be a good way to get a handle on a Process::Status object without actually
+      # creating a child process, hence this to populate $?
+      system("not_a_real_program_#{SecureRandom.hex}")
+      assert_raise(RuntimeError) {
         ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename)
-      end
+      }
+    end
 
-      assert_match(/Could not dump the database structure/, warnings)
+    def test_warn_when_external_structure_dump_command_execution_fails
+      filename = "awesome-file.sql"
+      Kernel.expects(:system)
+        .with("mysqldump", "--result-file", filename, "--no-data", "test-db")
+        .returns(nil)
+
+      assert_raise(RuntimeError) {
+        ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename)
+      }
     end
 
     def test_structure_dump_with_port_number
@@ -302,6 +314,7 @@ module ActiveRecord
     def test_structure_load
       filename = "awesome-file.sql"
       Kernel.expects(:system).with('mysql', '--execute', %{SET FOREIGN_KEY_CHECKS = 0; SOURCE #{filename}; SET FOREIGN_KEY_CHECKS = 1}, "--database", "test-db")
+        .returns(true)
 
       ActiveRecord::Tasks::DatabaseTasks.structure_load(@configuration, filename)
     end
