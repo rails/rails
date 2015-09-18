@@ -348,11 +348,8 @@ module ActionDispatch
     # Override Rack's POST method to support indifferent access
     def POST
       fetch_header("action_dispatch.request.request_parameters") do
-        default = ->() {
+        pr = parse_formatted_parameters(self, params_parsers) do |params|
           Request::Utils.normalize_encode_params(super || {})
-        }
-        pr = parse_formatted_parameters(self, params_parsers, default) do |params|
-          params
         end
         self.request_parameters = pr
       end
@@ -400,12 +397,12 @@ module ActionDispatch
         name
       end
 
-    def parse_formatted_parameters(request, parsers, default = ->() { nil })
-      return default.call if request.content_length.zero?
+    def parse_formatted_parameters(request, parsers)
+      return yield if request.content_length.zero?
 
-      strategy = parsers.fetch(request.content_mime_type) { return default.call }
+      strategy = parsers.fetch(request.content_mime_type) { return yield }
 
-      yield strategy.call(request.raw_post)
+      strategy.call(request.raw_post)
 
     rescue Rack::QueryParser::InvalidParameterError
       raise
