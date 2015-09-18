@@ -194,7 +194,6 @@ An API application comes with the following middlewares by default:
 - `ActionDispatch::RemoteIp`
 - `ActionDispatch::Reloader`
 - `ActionDispatch::Callbacks`
-- `ActionDispatch::ParamsParser`
 - `Rack::Head`
 - `Rack::ConditionalGet`
 - `Rack::ETag`
@@ -292,9 +291,9 @@ instructions in the `Rack::Sendfile` documentation.
 NOTE: The `Rack::Sendfile` middleware is always outside of the `Rack::Lock`
 mutex, even in single-threaded applications.
 
-### Using ActionDispatch::ParamsParser
+### Using ActionDispatch::Request
 
-`ActionDispatch::ParamsParser` will take parameters from the client in the JSON
+`ActionDispatch::Request#params` will take parameters from the client in the JSON
 format and make them available in your controller inside `params`.
 
 To use this, your client will need to make a request with JSON-encoded parameters
@@ -313,7 +312,7 @@ jQuery.ajax({
 });
 ```
 
-`ActionDispatch::ParamsParser` will see the `Content-Type` and your parameters
+`ActionDispatch::Request` will see the `Content-Type` and your parameters
 will be:
 
 ```ruby
