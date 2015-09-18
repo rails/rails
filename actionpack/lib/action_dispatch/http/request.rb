@@ -361,16 +361,6 @@ module ActionDispatch
     end
     alias :request_parameters :POST
 
-    def params_parsers
-      fetch_header "action_dispatch.request.params_parsers" do
-        {}
-      end
-    end
-
-    def params_parsers= hash
-      set_header "action_dispatch.request.params_parsers", hash
-    end
-
     # Returns the authorization header regardless of whether it was specified directly or through one of the
     # proxy alternatives.
     def authorization
@@ -399,20 +389,5 @@ module ActionDispatch
         HTTP_METHOD_LOOKUP[name] || raise(ActionController::UnknownHttpMethod, "#{name}, accepted HTTP methods are #{HTTP_METHODS[0...-1].join(', ')}, and #{HTTP_METHODS[-1]}")
         name
       end
-
-    def parse_formatted_parameters(request, parsers)
-      return yield if request.content_length.zero?
-
-      strategy = parsers.fetch(request.content_mime_type) { return yield }
-
-      begin
-        strategy.call(request.raw_post)
-      rescue => e # JSON or Ruby code block errors
-        my_logger = logger || ActiveSupport::Logger.new($stderr)
-        my_logger.debug "Error occurred while parsing request parameters.\nContents:\n\n#{request.raw_post}"
-
-        raise ParamsParser::ParseError.new(e.message, e)
-      end
-    end
   end
 end

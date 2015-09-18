@@ -18,26 +18,16 @@ module ActionDispatch
       end
     end
 
-    DEFAULT_PARSERS = {
-      Mime::JSON => lambda { |raw_post|
-        data = ActiveSupport::JSON.decode(raw_post)
-        data.is_a?(Hash) ? data : {:_json => data}
-      }
-    }
-
     # Create a new +ParamsParser+ middleware instance.
     #
     # The +parsers+ argument can take Hash of parsers where key is identifying
     # content mime type, and value is a lambda that is going to process data.
     def initialize(app, parsers = {})
-      @app, @parsers = app, DEFAULT_PARSERS.merge(parsers)
+      @app = app
+      ActionDispatch::Request.parameter_parsers = ActionDispatch::Request::DEFAULT_PARSERS.merge(parsers)
     end
 
     def call(env)
-      request = Request.new(env)
-
-      request.params_parsers = @parsers
-
       @app.call(env)
     end
   end
