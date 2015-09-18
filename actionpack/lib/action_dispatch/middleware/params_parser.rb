@@ -38,8 +38,6 @@ module ActionDispatch
 
       request.params_parsers = @parsers
 
-      request.request_parameters
-
       @app.call(env)
     end
   end
