@@ -353,6 +353,9 @@ module ActionDispatch
         end
         self.request_parameters = Request::Utils.normalize_encode_params(pr)
       end
+    rescue ParamsParser::ParseError # one of the parse strategies blew up
+      self.request_parameters = Request::Utils.normalize_encode_params(super || {})
+      raise
     rescue Rack::Utils::ParameterTypeError, Rack::Utils::InvalidParameterError => e
       raise ActionController::BadRequest.new(:request, e)
     end
@@ -402,16 +405,14 @@ module ActionDispatch
 
       strategy = parsers.fetch(request.content_mime_type) { return yield }
 
-      strategy.call(request.raw_post)
+      begin
+        strategy.call(request.raw_post)
+      rescue => e # JSON or Ruby code block errors
+        my_logger = logger || ActiveSupport::Logger.new($stderr)
+        my_logger.debug "Error occurred while parsing request parameters.\nContents:\n\n#{request.raw_post}"
 
-    rescue Rack::QueryParser::InvalidParameterError
-      raise
-    rescue => e # JSON or Ruby code block errors
-      my_logger = logger || ActiveSupport::Logger.new($stderr)
-      my_logger.debug "Error occurred while parsing request parameters.\nContents:\n\n#{request.raw_post}"
-      request.request_parameters = {}
-
-      raise ParamsParser::ParseError.new(e.message, e)
+        raise ParamsParser::ParseError.new(e.message, e)
+      end
     end
   end
 end
