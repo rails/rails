@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 require "cases/helper"
 require 'models/post'
 require 'models/author'

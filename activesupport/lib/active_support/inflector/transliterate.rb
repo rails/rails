@@ -1,4 +1,3 @@
-# encoding: utf-8
 require 'active_support/core_ext/string/multibyte'
 require 'active_support/i18n'
 
