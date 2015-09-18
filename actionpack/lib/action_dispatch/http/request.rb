@@ -348,12 +348,28 @@ module ActionDispatch
     # Override Rack's POST method to support indifferent access
     def POST
       fetch_header("action_dispatch.request.request_parameters") do
-        self.request_parameters = Request::Utils.normalize_encode_params(super || {})
+        default = ->() {
+          Request::Utils.normalize_encode_params(super || {})
+        }
+        pr = parse_formatted_parameters(self, params_parsers, default) do |params|
+          params
+        end
+        self.request_parameters = pr
       end
     rescue Rack::Utils::ParameterTypeError, Rack::Utils::InvalidParameterError => e
       raise ActionController::BadRequest.new(:request, e)
     end
     alias :request_parameters :POST
+
+    def params_parsers
+      fetch_header "action_dispatch.request.params_parsers" do
+        {}
+      end
+    end
+
+    def params_parsers= hash
+      set_header "action_dispatch.request.params_parsers", hash
+    end
 
     # Returns the authorization header regardless of whether it was specified directly or through one of the
     # proxy alternatives.
@@ -383,5 +399,22 @@ module ActionDispatch
         HTTP_METHOD_LOOKUP[name] || raise(ActionController::UnknownHttpMethod, "#{name}, accepted HTTP methods are #{HTTP_METHODS[0...-1].join(', ')}, and #{HTTP_METHODS[-1]}")
         name
       end
+
+    def parse_formatted_parameters(request, parsers, default = ->() { nil })
+      return default.call if request.content_length.zero?
+
+      strategy = parsers.fetch(request.content_mime_type) { return default.call }
+
+      yield strategy.call(request.raw_post)
+
+    rescue Rack::QueryParser::InvalidParameterError
+      raise
+    rescue => e # JSON or Ruby code block errors
+      my_logger = logger || ActiveSupport::Logger.new($stderr)
+      my_logger.debug "Error occurred while parsing request parameters.\nContents:\n\n#{request.raw_post}"
+      request.request_parameters = {}
+
+      raise ParamsParser::ParseError.new(e.message, e)
+    end
   end
 end
