@@ -33,6 +33,9 @@ module ActionController
 
       self.session = session
       self.session_options = TestSession::DEFAULT_OPTIONS
+      @custom_param_parsers = {
+        Mime::XML => lambda { |raw_post| Hash.from_xml(raw_post)['hash'] }
+      }
     end
 
     def query_string=(string)
@@ -85,8 +88,6 @@ module ActionController
             data = ActiveSupport::JSON.encode(non_path_parameters)
           when :xml
             data = non_path_parameters.to_xml
-            params = Hash.from_xml(data)['hash']
-            self.request_parameters = params
           when :url_encoded_form
             data = non_path_parameters.to_query
           else
@@ -134,6 +135,12 @@ module ActionController
         "multipart/form-data; boundary=#{Rack::Test::MULTIPART_BOUNDARY}"
       end
     end.new
+
+    private
+
+    def params_parsers
+      super.merge @custom_param_parsers
+    end
   end
 
   class LiveTestResponse < Live::Response
