@@ -14,7 +14,7 @@ module ActiveRecord
 
         conn.initialize_schema_migrations_table
 
-        assert_equal "p_unique_schema_migrations_s", conn.indexes(ActiveRecord::Migrator.schema_migrations_table_name)[0][:name]
+        assert_equal ["p_created_at_schema_migrations_s", "p_unique_schema_migrations_s"], conn.indexes(ActiveRecord::Migrator.schema_migrations_table_name).map(&:name).sort
       ensure
         ActiveRecord::Base.table_name_prefix = ""
         ActiveRecord::Base.table_name_suffix = ""

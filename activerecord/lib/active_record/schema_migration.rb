@@ -20,6 +20,10 @@ module ActiveRecord
         "#{table_name_prefix}unique_#{ActiveRecord::Base.schema_migrations_table_name}#{table_name_suffix}"
       end
 
+      def created_at_index_name
+        "#{table_name_prefix}created_at_#{ActiveRecord::Base.schema_migrations_table_name}#{table_name_suffix}"
+      end
+
       def table_exists?
         ActiveSupport::Deprecation.silence { connection.table_exists?(table_name) }
       end
@@ -31,8 +35,10 @@ module ActiveRecord
 
           connection.create_table(table_name, id: false) do |t|
             t.column :version, :string, version_options
+            t.column :created_at, :datetime, null: false
           end
           connection.add_index table_name, :version, unique: true, name: index_name
+          connection.add_index table_name, :created_at, name: created_at_index_name
         end
       end
 

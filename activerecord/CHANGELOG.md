@@ -1730,4 +1730,16 @@
 
     *Yves Senn*
 
+*   Schema Migrations now contain time of creation information to track when
+    migrations were run.
+    ```
+	  database: vagrant_development
+
+	  Status   Migration ID    Migration Run             Migration Name
+	  ---------------------------------------------------------------------------
+	  up       20150918171109  2015-09-18 17:20:22 UTC   ********** NO FILE **********
+	  up       20150918210543  2015-09-18 21:07:10 UTC   Bar
+	  down     20150918210806                            Baz
+    ```
+
 Please check [4-2-stable](https://github.com/rails/rails/blob/4-2-stable/activerecord/CHANGELOG.md) for previous changes.

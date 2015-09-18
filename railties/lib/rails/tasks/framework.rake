@@ -1,6 +1,6 @@
 namespace :rails do
   desc "Update configs and some other initially generated files (or use just update:configs or update:bin)"
-  task update: [ "update:configs", "update:bin" ]
+  task update: [ "update:configs", "update:bin", "update:schema_migrations" ]
 
   desc "Applies the template supplied by LOCATION=(/path/to/template) or URL"
   task template: :environment do
@@ -63,6 +63,19 @@ namespace :rails do
     # desc "Adds new executables to the application bin/ directory"
     task :bin do
       RailsUpdate.invoke_from_app_generator :create_bin_files
+    end
+
+    task :schema_migrations => :environment do
+      if defined?(ActiveRecord) && ActiveRecord::SchemaMigration.table_exists?
+        table_name = ActiveRecord::SchemaMigration.table_name
+        unless ActiveRecord::SchemaMigration.connection.column_exists?(table_name, :created_at)
+          ActiveRecord::SchemaMigration.connection.add_column(table_name, :created_at, :datetime, null: true)
+          ActiveRecord::SchemaMigration.where(created_at: nil).update_all(created_at: Time.now)
+          ActiveRecord::SchemaMigration.reset_column_information
+          ActiveRecord::SchemaMigration.connection.change_column(table_name, :created_at, :datetime, null: false)
+          ActiveRecord::SchemaMigration.connection.add_index(table_name, :created_at, name: ActiveRecord::SchemaMigration.created_at_index_name)
+        end
+      end
     end
   end
 end

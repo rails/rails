@@ -70,14 +70,14 @@ module ApplicationTests
 
           output = `bin/rake db:migrate:status`
 
-          assert_match(/up\s+\d{14}\s+Create users/, output)
-          assert_match(/up\s+\d{14}\s+Add email to users/, output)
+          assert_match(/up\s+\d{14}\s+.{24}\s+Create users/, output)
+          assert_match(/up\s+\d{14}\s+.{24}\s+Add email to users/, output)
 
           `bin/rake db:rollback STEP=1`
           output = `bin/rake db:migrate:status`
 
-          assert_match(/up\s+\d{14}\s+Create users/, output)
-          assert_match(/down\s+\d{14}\s+Add email to users/, output)
+          assert_match(/up\s+\d{14}\s+.{24}\s+Create users/, output)
+          assert_match(/down\s+\d{14}\s+.{24}\s+Add email to users/, output)
         end
       end
 
@@ -91,14 +91,14 @@ module ApplicationTests
 
           output = `bin/rake db:migrate:status`
 
-          assert_match(/up\s+\d{3,}\s+Create users/, output)
-          assert_match(/up\s+\d{3,}\s+Add email to users/, output)
+          assert_match(/up\s+\d{3,}\s+.{24}\s+Create users/, output)
+          assert_match(/up\s+\d{3,}\s+.{24}\s+Add email to users/, output)
 
           `bin/rake db:rollback STEP=1`
           output = `bin/rake db:migrate:status`
 
-          assert_match(/up\s+\d{3,}\s+Create users/, output)
-          assert_match(/down\s+\d{3,}\s+Add email to users/, output)
+          assert_match(/up\s+\d{3,}\s+.{24}\s+Create users/, output)
+          assert_match(/down\s+\d{3,}\s+.{24}\s+Add email to users/, output)
         end
       end
 
@@ -110,20 +110,20 @@ module ApplicationTests
 
            output = `bin/rake db:migrate:status`
 
-           assert_match(/up\s+\d{14}\s+Create users/, output)
-           assert_match(/up\s+\d{14}\s+Add email to users/, output)
+           assert_match(/up\s+\d{14}\s+.{24}\s+Create users/, output)
+           assert_match(/up\s+\d{14}\s+.{24}\s+Add email to users/, output)
 
            `bin/rake db:rollback STEP=2`
            output = `bin/rake db:migrate:status`
 
-           assert_match(/down\s+\d{14}\s+Create users/, output)
-           assert_match(/down\s+\d{14}\s+Add email to users/, output)
+           assert_match(/down\s+\d{14}\s+.{24}\s+Create users/, output)
+           assert_match(/down\s+\d{14}\s+.{24}\s+Add email to users/, output)
 
            `bin/rake db:migrate:redo`
            output = `bin/rake db:migrate:status`
 
-           assert_match(/up\s+\d{14}\s+Create users/, output)
-           assert_match(/up\s+\d{14}\s+Add email to users/, output)
+           assert_match(/up\s+\d{14}\s+.{24}\s+Create users/, output)
+           assert_match(/up\s+\d{14}\s+.{24}\s+Add email to users/, output)
         end
       end
 
@@ -137,20 +137,20 @@ module ApplicationTests
 
            output = `bin/rake db:migrate:status`
 
-           assert_match(/up\s+\d{3,}\s+Create users/, output)
-           assert_match(/up\s+\d{3,}\s+Add email to users/, output)
+           assert_match(/up\s+\d{3,}\s+.{24}\s+Create users/, output)
+           assert_match(/up\s+\d{3,}\s+.{24}\s+Add email to users/, output)
 
            `bin/rake db:rollback STEP=2`
            output = `bin/rake db:migrate:status`
 
-           assert_match(/down\s+\d{3,}\s+Create users/, output)
-           assert_match(/down\s+\d{3,}\s+Add email to users/, output)
+           assert_match(/down\s+\d{3,}\s+.{24}\s+Create users/, output)
+           assert_match(/down\s+\d{3,}\s+.{24}\s+Add email to users/, output)
 
            `bin/rake db:migrate:redo`
            output = `bin/rake db:migrate:status`
 
-           assert_match(/up\s+\d{3,}\s+Create users/, output)
-           assert_match(/up\s+\d{3,}\s+Add email to users/, output)
+           assert_match(/up\s+\d{3,}\s+.{24}\s+Create users/, output)
+           assert_match(/up\s+\d{3,}\s+.{24}\s+Add email to users/, output)
         end
       end
 
@@ -171,8 +171,8 @@ module ApplicationTests
 
            output = `bin/rake db:migrate:status`
 
-           assert_match(/up\s+001\s+One migration/, output)
-           assert_match(/up\s+002\s+Two migration/, output)
+           assert_match(/up\s+001\s+.{24}\s+One migration/, output)
+           assert_match(/up\s+002\s+.{24}\s+Two migration/, output)
         end
       end
 
@@ -219,8 +219,8 @@ module ApplicationTests
           output = `bin/rake db:migrate:status`
           File.write('test.txt', output)
 
-          assert_match(/up\s+\d{14}\s+Create users/, output)
-          assert_match(/up\s+\d{14}\s+\** NO FILE \**/, output)
+          assert_match(/up\s+\d{14}\s+.{24}\s+Create users/, output)
+          assert_match(/up\s+\d{14}\s+.{24}\s+\** NO FILE \**/, output)
         end
       end
     end
