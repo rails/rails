@@ -22,13 +22,9 @@ module ActionDispatch
     #
     # The +parsers+ argument can take Hash of parsers where key is identifying
     # content mime type, and value is a lambda that is going to process data.
-    def initialize(app, parsers = {})
-      @app = app
+    def self.new(app, parsers = {})
       ActionDispatch::Request.parameter_parsers = ActionDispatch::Request::DEFAULT_PARSERS.merge(parsers)
-    end
-
-    def call(env)
-      @app.call(env)
+      app
     end
   end
 end
