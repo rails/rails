@@ -1,4 +1,4 @@
-module ActiveRecord
+module ActiveModel
   module Type
     class UnsignedInteger < Integer # :nodoc:
       private

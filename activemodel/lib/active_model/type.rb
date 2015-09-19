@@ -19,21 +19,16 @@ require 'active_model/type/registry'
 require 'active_model/type/type_map'
 require 'active_model/type/hash_lookup_type_map'
 
-require 'active_record/type/internal/abstract_json'
-require 'active_record/type/internal/timezone'
-require 'active_record/type/serialized'
-require 'active_record/type/adapter_specific_registry'
-
-module ActiveRecord
+module ActiveModel
   module Type
-    @registry = AdapterSpecificRegistry.new
+    @registry = Registry.new
 
     class << self
       attr_accessor :registry # :nodoc:
       delegate :add_modifier, to: :registry
 
       # Add a new type to the registry, allowing it to be referenced as a
-      # symbol by ActiveRecord::Attributes::ClassMethods#attribute.  If your
+      # symbol by ActiveModel::Attributes::ClassMethods#attribute.  If your
       # type is only meant to be used with a specific database adapter, you can
       # do so by passing +adapter: :postgresql+. If your type has the same
       # name as a native type for the current adapter, an exception will be
@@ -44,42 +39,10 @@ module ActiveRecord
         registry.register(type_name, klass, **options, &block)
       end
 
-      def lookup(*args, adapter: current_adapter_name, **kwargs) # :nodoc:
-        registry.lookup(*args, adapter: adapter, **kwargs)
-      end
-
-      private
-
-      def current_adapter_name
-        ActiveRecord::Base.connection.adapter_name.downcase.to_sym
+      def lookup(*args, **kwargs) # :nodoc:
+        registry.lookup(*args, **kwargs)
       end
     end
-
-    class Date < ActiveModel::Type::Date
-      include Internal::Timezone
-    end
-    
-    class DateTime < ActiveModel::Type::DateTime
-      include Internal::Timezone
-    end
-    class Time < ActiveModel::Type::Time
-      include Internal::Timezone
-    end
-    
-    Helpers          = ActiveModel::Type::Helpers
-    BigInteger          = ActiveModel::Type::BigInteger
-    Binary              = ActiveModel::Type::Binary
-    Boolean             = ActiveModel::Type::Boolean
-    Decimal             = ActiveModel::Type::Decimal
-    DecimalWithoutScale = ActiveModel::Type::DecimalWithoutScale
-    Float               = ActiveModel::Type::Float
-    Integer             = ActiveModel::Type::Integer
-    String              = ActiveModel::Type::String
-    Text                = ActiveModel::Type::Text
-    UnsignedInteger     = ActiveModel::Type::UnsignedInteger
-    Value               = ActiveModel::Type::Value
-    TypeMap             = ActiveModel::Type::TypeMap
-    HashLookupTypeMap   = ActiveModel::Type::HashLookupTypeMap
 
     register(:big_integer, Type::BigInteger, override: false)
     register(:binary, Type::Binary, override: false)
