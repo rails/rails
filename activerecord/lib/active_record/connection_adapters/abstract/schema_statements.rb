@@ -996,6 +996,10 @@ module ActiveRecord
         [index_name, index_type, index_columns, index_options, algorithm, using]
       end
 
+      def options_include_default?(options)
+        options.include?(:default) && !(options[:null] == false && options[:default].nil?)
+      end
+
       protected
         def add_index_sort_order(option_strings, column_names, options = {})
           if options.is_a?(Hash) && order = options[:order]
@@ -1020,10 +1024,6 @@ module ActiveRecord
           end
 
           column_names.map {|name| quote_column_name(name) + option_strings[name]}
-        end
-
-        def options_include_default?(options)
-          options.include?(:default) && !(options[:null] == false && options[:default].nil?)
         end
 
         def index_name_for_remove(table_name, options = {})
