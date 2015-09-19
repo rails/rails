@@ -15,9 +15,9 @@ module ActiveRecord
         end
 
         delegate :quote_column_name, :quote_table_name, :quote_default_expression, :type_to_sql,
-          :options_include_default?,  to: :@conn
+          :options_include_default?, :supports_indexes_in_create?, to: :@conn
         private :quote_column_name, :quote_table_name, :quote_default_expression, :type_to_sql,
-          :options_include_default?
+          :options_include_default?, :supports_indexes_in_create?
 
         private
 
@@ -44,6 +44,10 @@ module ActiveRecord
 
             statements = o.columns.map { |c| accept c }
             statements << accept(o.primary_keys) if o.primary_keys
+
+            if supports_indexes_in_create?
+              statements.concat(o.indexes.map { |column_name, options| index_in_create(o.name, column_name, options) })
+            end
 
             create_sql << "(#{statements.join(', ')}) " if statements.present?
             create_sql << "#{o.options}"
