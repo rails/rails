@@ -3,6 +3,10 @@ require 'active_support/inflector'
 class Module
   # Returns the name of the module containing this one.
   #
+  #   module M
+  #     module N
+  #     end
+  #   end
   #   M::N.parent_name # => "M"
   def parent_name
     if defined? @parent_name
