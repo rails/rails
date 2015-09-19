@@ -81,8 +81,7 @@ module ActiveRecord
         super(connection, logger)
 
         @active     = nil
-        @statements = StatementPool.new(@connection,
-                                        self.class.type_cast_config_to_integer(config.fetch(:statement_limit) { 1000 }))
+        @statements = StatementPool.new(self.class.type_cast_config_to_integer(config.fetch(:statement_limit) { 1000 }))
         @config = config
 
         @visitor = Arel::Visitors::SQLite.new self
