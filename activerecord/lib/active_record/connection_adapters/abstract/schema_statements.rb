@@ -164,7 +164,7 @@ module ActiveRecord
       # generates:
       #
       #   CREATE TABLE suppliers (
-      #     id int(11) auto_increment PRIMARY KEY
+      #     id int auto_increment PRIMARY KEY
       #   ) ENGINE=InnoDB DEFAULT CHARSET=utf8
       #
       # ====== Rename the primary key column
@@ -176,7 +176,7 @@ module ActiveRecord
       # generates:
       #
       #   CREATE TABLE objects (
-      #     guid int(11) auto_increment PRIMARY KEY,
+      #     guid int auto_increment PRIMARY KEY,
       #     name varchar(80)
       #   )
       #
@@ -330,7 +330,7 @@ module ActiveRecord
       # [<tt>:bulk</tt>]
       #   Set this to true to make this a bulk alter query, such as
       #
-      #     ALTER TABLE `users` ADD COLUMN age INT(11), ADD COLUMN birthdate DATETIME ...
+      #     ALTER TABLE `users` ADD COLUMN age INT, ADD COLUMN birthdate DATETIME ...
       #
       #   Defaults to false.
       #

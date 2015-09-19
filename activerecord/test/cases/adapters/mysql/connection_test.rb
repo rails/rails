@@ -183,7 +183,7 @@ class MysqlConnectionTest < ActiveRecord::MysqlTestCase
 
   def with_example_table(&block)
     definition ||= <<-SQL
-      `id` int(11) auto_increment PRIMARY KEY,
+      `id` int auto_increment PRIMARY KEY,
       `data` varchar(255)
     SQL
     super(@connection, 'ex', definition, &block)
