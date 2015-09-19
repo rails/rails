@@ -1,3 +1,7 @@
+*   Add `#views` and `#view_exists?` methods on connection adapters.
+
+    *Ryuta Kamizono*
+
 *   Correctly dump composite primary key.
 
     Example:

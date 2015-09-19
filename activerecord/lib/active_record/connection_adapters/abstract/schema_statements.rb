@@ -36,6 +36,19 @@ module ActiveRecord
         tables.include?(table_name.to_s)
       end
 
+      # Returns an array of view names defined in the database.
+      def views
+        raise NotImplementedError, "#views is not implemented"
+      end
+
+      # Checks to see if the view +view_name+ exists on the database.
+      #
+      #   view_exists?(:ebooks)
+      #
+      def view_exists?(view_name)
+        views.include?(view_name.to_s)
+      end
+
       # Returns an array of indexes for the given table.
       # def indexes(table_name, name = nil) end
 

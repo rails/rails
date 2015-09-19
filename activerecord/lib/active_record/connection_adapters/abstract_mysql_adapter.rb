@@ -550,6 +550,22 @@ module ActiveRecord
         tables(nil, schema, table).any?
       end
 
+      def views # :nodoc:
+        select_values("SHOW FULL TABLES WHERE table_type = 'VIEW'", 'SCHEMA')
+      end
+
+      def view_exists?(view_name) # :nodoc:
+        return false unless view_name.present?
+
+        schema, name = view_name.to_s.split('.', 2)
+        schema, name = @config[:database], schema unless name # A view was provided without a schema
+
+        sql = "SELECT table_name FROM information_schema.tables WHERE table_type = 'VIEW'"
+        sql << " AND table_schema = #{quote(schema)} AND table_name = #{quote(name)}"
+
+        select_values(sql, 'SCHEMA').any?
+      end
+
       # Returns an array of indexes for the given table.
       def indexes(table_name, name = nil) #:nodoc:
         indexes = []

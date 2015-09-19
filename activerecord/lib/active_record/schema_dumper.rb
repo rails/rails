@@ -89,7 +89,7 @@ HEADER
       end
 
       def tables(stream)
-        sorted_tables = @connection.tables.sort
+        sorted_tables = @connection.tables.sort - @connection.views
 
         sorted_tables.each do |table_name|
           table(table_name, stream) unless ignored?(table_name)
