@@ -1,5 +1,3 @@
-require 'active_support/core_ext/object/try'
-
 class String
   # Strips indentation in heredocs.
   #
