@@ -175,7 +175,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_equal category_attrs , category.attributes_before_type_cast
   end
 
-  if current_adapter?(:MysqlAdapter)
+  if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
     def test_read_attributes_before_type_cast_on_boolean
       bool = Boolean.create({ "value" => false })
       if RUBY_PLATFORM =~ /java/
