@@ -41,7 +41,7 @@ class Numeric
   #  1000.to_s(:percentage, delimiter: '.', separator: ',') # => 1.000,000%
   #  302.24398923423.to_s(:percentage, precision: 5)        # => 302.24399%
   #  1000.to_s(:percentage, locale: :fr)                    # => 1 000,000%
-  #  100.to_s(:percentage, format: '%n  %')                 # => 100  %
+  #  100.to_s(:percentage, format: '%n  %')                 # => 100.000  %
   #
   #  Delimited:
   #  12345678.to_s(:delimited)                     # => 12,345,678
@@ -78,7 +78,7 @@ class Numeric
   #  1234567.to_s(:human_size, precision: 2)                 # => 1.2 MB
   #  483989.to_s(:human_size, precision: 2)                  # => 470 KB
   #  1234567.to_s(:human_size, precision: 2, separator: ',') # => 1,2 MB
-  #  1234567890123.to_s(:human_size, precision: 5)           # => "1.1229 TB"
+  #  1234567890123.to_s(:human_size, precision: 5)           # => "1.1228 TB"
   #  524288000.to_s(:human_size, precision: 5)               # => "500 MB"
   #
   #  Human-friendly format:
