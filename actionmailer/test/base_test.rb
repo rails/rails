@@ -449,7 +449,7 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal("Format with any!", email.parts[1].body.encoded)
   end
 
-  test 'test' do
+  test 'explicit without specifying format with format.any' do
     error = assert_raises(ArgumentError) do
       BaseMailer.explicit_without_specifying_format_with_any.parts
     end
