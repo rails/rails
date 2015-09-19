@@ -143,7 +143,18 @@ class SendFileTest < ActionController::TestCase
     }
 
     @controller.headers = {}
-    assert_raise(ArgumentError) { @controller.send(:send_file_headers!, options) }
+    error = assert_raise(ArgumentError) { @controller.send(:send_file_headers!, options) }
+    assert_equal "Unknown MIME type #{options[:type]}", error.message
+  end
+
+  def test_send_file_headers_with_nil_content_type
+    options = {
+      :type => nil
+    }
+
+    @controller.headers = {}
+    error = assert_raise(ArgumentError) { @controller.send(:send_file_headers!, options) }
+    assert_equal ":type option required", error.message
   end
 
   def test_send_file_headers_guess_type_from_extension
