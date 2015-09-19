@@ -1,3 +1,14 @@
+*   Correctly dump composite primary key.
+
+    Example:
+
+        create_table :barcodes, primary_key: ["region", "code"] do |t|
+          t.string :region
+          t.integer :code
+        end
+
+    *Ryuta Kamizono*
+
 *   Lookup the attribute name for `restrict_with_error` messages on the
     model class that defines the association.
 

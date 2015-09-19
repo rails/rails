@@ -57,6 +57,7 @@ module ActiveRecord
           create_sql = "CREATE#{' TEMPORARY' if o.temporary} TABLE #{quote_table_name(name)} "
 
           statements = o.columns.map { |c| accept c }
+          statements << accept(o.primary_keys) if o.primary_keys
           statements.concat(o.indexes.map { |column_name, options| index_in_create(name, column_name, options) })
 
           create_sql << "(#{statements.join(', ')}) " if statements.present?
@@ -735,21 +736,25 @@ module ActiveRecord
 
       # Returns a table's primary key and belonging sequence.
       def pk_and_sequence_for(table)
-        execute_and_free("SHOW CREATE TABLE #{quote_table_name(table)}", 'SCHEMA') do |result|
-          create_table = each_hash(result).first[:"Create Table"]
-          if create_table.to_s =~ /PRIMARY KEY\s+(?:USING\s+\w+\s+)?\((.+)\)/
-            keys = $1.split(",").map { |key| key.delete('`"') }
-            keys.length == 1 ? [keys.first, nil] : nil
-          else
-            nil
-          end
+        if pk = primary_key(table)
+          [ pk, nil ]
         end
       end
 
-      # Returns just a table's primary key
-      def primary_key(table)
-        pk_and_sequence = pk_and_sequence_for(table)
-        pk_and_sequence && pk_and_sequence.first
+      def primary_keys(table_name) # :nodoc:
+        raise ArgumentError unless table_name.present?
+
+        schema, name = table_name.to_s.split('.', 2)
+        schema, name = @config[:database], schema unless name # A table was provided without a schema
+
+        select_values(<<-SQL.strip_heredoc, 'SCHEMA')
+          SELECT column_name
+          FROM information_schema.key_column_usage
+          WHERE constraint_name = 'PRIMARY'
+            AND table_schema = #{quote(schema)}
+            AND table_name = #{quote(name)}
+          ORDER BY ordinal_position
+        SQL
       end
 
       def case_sensitive_modifier(node, table_attribute)

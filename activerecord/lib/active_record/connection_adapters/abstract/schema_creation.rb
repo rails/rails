@@ -38,12 +38,19 @@ module ActiveRecord
           end
 
           def visit_TableDefinition(o)
-            create_sql = "CREATE#{' TEMPORARY' if o.temporary} TABLE "
-            create_sql << "#{quote_table_name(o.name)} "
-            create_sql << "(#{o.columns.map { |c| accept c }.join(', ')}) " unless o.as
+            create_sql = "CREATE#{' TEMPORARY' if o.temporary} TABLE #{quote_table_name(o.name)} "
+
+            statements = o.columns.map { |c| accept c }
+            statements << accept(o.primary_keys) if o.primary_keys
+
+            create_sql << "(#{statements.join(', ')}) " if statements.present?
             create_sql << "#{o.options}"
             create_sql << " AS #{@conn.to_sql(o.as)}" if o.as
             create_sql
+          end
+
+          def visit_PrimaryKeyDefinition(o)
+            "PRIMARY KEY (#{o.name.join(', ')})"
           end
 
           def visit_AddForeignKey(o)

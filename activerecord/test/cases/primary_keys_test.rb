@@ -241,6 +241,33 @@ class PrimaryKeyAnyTypeTest < ActiveRecord::TestCase
   end
 end
 
+class CompositePrimaryKeyTest < ActiveRecord::TestCase
+  include SchemaDumpingHelper
+
+  self.use_transactional_tests = false
+
+  def setup
+    @connection = ActiveRecord::Base.connection
+    @connection.create_table(:barcodes, primary_key: ["region", "code"], force: true) do |t|
+      t.string :region
+      t.integer :code
+    end
+  end
+
+  def teardown
+    @connection.drop_table(:barcodes, if_exists: true)
+  end
+
+  def test_composite_primary_key
+    assert_equal ["region", "code"], @connection.primary_keys("barcodes")
+  end
+
+  def test_collectly_dump_composite_primary_key
+    schema = dump_table_schema "barcodes"
+    assert_match %r{create_table "barcodes", primary_key: \["region", "code"\]}, schema
+  end
+end
+
 if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
   class PrimaryKeyWithAnsiQuotesTest < ActiveRecord::TestCase
     self.use_transactional_tests = false
