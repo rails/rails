@@ -1,4 +1,3 @@
-
 module InflectorTestCases
   SingularToPlural = {
     "search"      => "searches",

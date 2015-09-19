@@ -1,4 +1,3 @@
-
 require "cases/helper"
 require 'support/ddl_helper'
 
