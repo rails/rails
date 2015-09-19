@@ -1,5 +1,5 @@
 require 'tzinfo'
-require 'thread_safe'
+require 'concurrent'
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/object/try'
 
@@ -189,7 +189,7 @@ module ActiveSupport
     UTC_OFFSET_WITH_COLON = '%s%02d:%02d'
     UTC_OFFSET_WITHOUT_COLON = UTC_OFFSET_WITH_COLON.tr(':', '')
 
-    @lazy_zones_map = ThreadSafe::Cache.new
+    @lazy_zones_map = Concurrent::Map.new
 
     class << self
       # Assumes self represents an offset from UTC in seconds (as returned from

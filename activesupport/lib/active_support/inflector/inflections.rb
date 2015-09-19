@@ -1,4 +1,4 @@
-require 'thread_safe'
+require 'concurrent'
 require 'active_support/core_ext/array/prepend_and_append'
 require 'active_support/i18n'
 
@@ -25,7 +25,7 @@ module ActiveSupport
     # singularization rules that is runs. This guarantees that your rules run
     # before any of the rules that may already have been loaded.
     class Inflections
-      @__instance__ = ThreadSafe::Cache.new
+      @__instance__ = Concurrent::Map.new
 
       class Uncountables < Array
         def initialize
