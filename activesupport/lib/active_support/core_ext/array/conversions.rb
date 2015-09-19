@@ -85,7 +85,9 @@ class Array
   # Extends <tt>Array#to_s</tt> to convert a collection of elements into a
   # comma separated id list if <tt>:db</tt> argument is given as the format.
   #
-  #   Blog.all.to_formatted_s(:db) # => "1,2,3"
+  #   Blog.all.to_formatted_s(:db)  # => "1,2,3"
+  #   Blog.none.to_formatted_s(:db) # => "null"
+  #   [1,2].to_formatted_s          # => "[1, 2]"
   def to_formatted_s(format = :default)
     case format
     when :db
