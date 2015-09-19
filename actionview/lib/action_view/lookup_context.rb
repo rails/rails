@@ -1,4 +1,4 @@
-require 'thread_safe'
+require 'concurrent'
 require 'active_support/core_ext/module/remove_method'
 require 'active_support/core_ext/module/attribute_accessors'
 require 'action_view/template/resolver'
@@ -62,7 +62,7 @@ module ActionView
       alias :object_hash :hash
 
       attr_reader :hash
-      @details_keys = ThreadSafe::Cache.new
+      @details_keys = Concurrent::Map.new
 
       def self.get(details)
         if details[:formats]

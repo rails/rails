@@ -1,3 +1,8 @@
+*   Replaced deprecated `ThreadSafe::Cache` with its successor `Concurrent::Map` now that
+    the thread_safe gem has been merged into concurrent-ruby.
+
+    *Jerry D'Antonio*
+
 *   Updated Unicode version to 8.0.0
 
     *Anshul Sharma*

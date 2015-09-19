@@ -1,5 +1,4 @@
 require 'concurrent'
-require 'thread_safe'
 
 module ActiveJob
   # == Active Job Async Job
@@ -31,7 +30,7 @@ module ActiveJob
       fallback_policy: :caller_runs # shouldn't matter -- 0 max queue
     }.freeze
 
-    QUEUES = ThreadSafe::Cache.new do |hash, queue_name| #:nodoc:
+    QUEUES = Concurrent::Map.new do |hash, queue_name| #:nodoc:
       hash.compute_if_absent(queue_name) { ActiveJob::AsyncJob.create_thread_pool }
     end
 
