@@ -242,7 +242,7 @@ end
 
 >> person = Person.new
 >> person.valid?
->> person.errors.details[:name] #=> [{error: :blank}]
+>> person.errors.details[:name] # => [{error: :blank}]
 ```
 
 Using `details` with custom validators is covered in the [Working with
