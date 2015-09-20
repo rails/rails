@@ -327,11 +327,12 @@ if current_adapter?(:PostgreSQLAdapter, :MysqlAdapter, :Mysql2Adapter)
 
     if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
       test "primary key column type with options" do
-        @connection.create_table(:widgets, id: :primary_key, limit: 8, force: true)
+        @connection.create_table(:widgets, id: :primary_key, limit: 8, unsigned: true, force: true)
         column = @connection.columns(:widgets).find { |c| c.name == 'id' }
         assert column.auto_increment?
         assert_equal :integer, column.type
         assert_equal 8, column.limit
+        assert column.unsigned?
       end
     end
   end

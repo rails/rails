@@ -14,10 +14,26 @@ module ActiveRecord
         def json(*args, **options)
           args.each { |name| column(name, :json, options) }
         end
+
+        def unsigned_integer(*args, **options)
+          args.each { |name| column(name, :unsigned_integer, options) }
+        end
+
+        def unsigned_bigint(*args, **options)
+          args.each { |name| column(name, :unsigned_bigint, options) }
+        end
+
+        def unsigned_float(*args, **options)
+          args.each { |name| column(name, :unsigned_float, options) }
+        end
+
+        def unsigned_decimal(*args, **options)
+          args.each { |name| column(name, :unsigned_decimal, options) }
+        end
       end
 
       class ColumnDefinition < ActiveRecord::ConnectionAdapters::ColumnDefinition
-        attr_accessor :charset
+        attr_accessor :charset, :unsigned
       end
 
       class TableDefinition < ActiveRecord::ConnectionAdapters::TableDefinition
@@ -29,7 +45,11 @@ module ActiveRecord
           when :primary_key
             column.type = :integer
             column.auto_increment = true
+          when /\Aunsigned_(?<type>.+)\z/
+            column.type = $~[:type].to_sym
+            column.unsigned = true
           end
+          column.unsigned ||= options[:unsigned]
           column.charset = options[:charset]
           column
         end
@@ -50,6 +70,11 @@ module ActiveRecord
 
         def visit_DropForeignKey(name)
           "DROP FOREIGN KEY #{name}"
+        end
+
+        def visit_ColumnDefinition(o)
+          o.sql_type = type_to_sql(o.type, o.limit, o.precision, o.scale, o.unsigned)
+          super
         end
 
         def visit_AddColumnDefinition(o)
@@ -104,12 +129,23 @@ module ActiveRecord
         spec = {}
         if column.auto_increment?
           spec[:id] = ':bigint' if column.bigint?
+          spec[:unsigned] = 'true' if column.unsigned?
           return if spec.empty?
         else
           spec[:id] = column.type.inspect
           spec.merge!(prepare_column_options(column).delete_if { |key, _| [:name, :type, :null].include?(key) })
         end
         spec
+      end
+
+      def prepare_column_options(column)
+        spec = super
+        spec[:unsigned] = 'true' if column.unsigned?
+        spec
+      end
+
+      def migration_keys
+        super + [:unsigned]
       end
 
       private
@@ -156,6 +192,10 @@ module ActiveRecord
 
         def blob_or_text_column?
           sql_type =~ /blob/i || type == :text
+        end
+
+        def unsigned?
+          /unsigned/ === sql_type
         end
 
         def case_sensitive?
@@ -793,8 +833,8 @@ module ActiveRecord
       end
 
       # Maps logical Rails types to MySQL-specific data types.
-      def type_to_sql(type, limit = nil, precision = nil, scale = nil)
-        case type.to_s
+      def type_to_sql(type, limit = nil, precision = nil, scale = nil, unsigned = nil)
+        sql = case type.to_s
         when 'binary'
           binary_to_sql(limit)
         when 'integer'
@@ -802,8 +842,11 @@ module ActiveRecord
         when 'text'
           text_to_sql(limit)
         else
-          super
+          super(type, limit, precision, scale)
         end
+
+        sql << ' unsigned' if unsigned && type != :primary_key
+        sql
       end
 
       # SHOW VARIABLES LIKE 'name'
@@ -1180,6 +1223,8 @@ module ActiveRecord
       ActiveRecord::Type.register(:json, MysqlJson, adapter: :mysql2)
       ActiveRecord::Type.register(:string, MysqlString, adapter: :mysql)
       ActiveRecord::Type.register(:string, MysqlString, adapter: :mysql2)
+      ActiveRecord::Type.register(:unsigned_integer, Type::UnsignedInteger, adapter: :mysql)
+      ActiveRecord::Type.register(:unsigned_integer, Type::UnsignedInteger, adapter: :mysql2)
     end
   end
 end
