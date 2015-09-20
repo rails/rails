@@ -1865,15 +1865,15 @@ The methods `to_date`, `to_time`, and `to_datetime` are basically convenience wr
 
 ```ruby
 "2010-07-27".to_date              # => Tue, 27 Jul 2010
-"2010-07-27 23:37:00".to_time     # => Tue Jul 27 23:37:00 UTC 2010
+"2010-07-27 23:37:00".to_time     # => 2010-07-27 23:37:00 +0200
 "2010-07-27 23:37:00".to_datetime # => Tue, 27 Jul 2010 23:37:00 +0000
 ```
 
 `to_time` receives an optional argument `:utc` or `:local`, to indicate which time zone you want the time in:
 
 ```ruby
-"2010-07-27 23:42:00".to_time(:utc)   # => Tue Jul 27 23:42:00 UTC 2010
-"2010-07-27 23:42:00".to_time(:local) # => Tue Jul 27 23:42:00 +0200 2010
+"2010-07-27 23:42:00".to_time(:utc)   # => 2010-07-27 23:42:00 UTC
+"2010-07-27 23:42:00".to_time(:local) # => 2010-07-27 23:42:00 +0200
 ```
 
 Default is `:utc`.
