@@ -625,33 +625,24 @@ module ActiveRecord
         show_variable 'collation_database'
       end
 
-      def tables(name = nil, database = nil, like = nil) #:nodoc:
-        sql = "SHOW TABLES "
-        sql << "IN #{quote_table_name(database)} " if database
-        sql << "LIKE #{quote(like)}" if like
-
-        execute_and_free(sql, 'SCHEMA') do |result|
-          result.collect(&:first)
-        end
+      def tables(name = nil) # :nodoc:
+        select_values("SHOW FULL TABLES", 'SCHEMA')
       end
 
       def truncate(table_name, name = nil)
         execute "TRUNCATE TABLE #{quote_table_name(table_name)}", name
       end
 
-      def table_exists?(name)
-        return false unless name.present?
-        return true if tables(nil, nil, name).any?
+      def table_exists?(table_name)
+        return false unless table_name.present?
 
-        name          = name.to_s
-        schema, table = name.split('.', 2)
+        schema, name = table_name.to_s.split('.', 2)
+        schema, name = @config[:database], schema unless name # A table was provided without a schema
 
-        unless table # A table was provided without a schema
-          table  = schema
-          schema = nil
-        end
+        sql = "SELECT table_name FROM information_schema.tables "
+        sql << "WHERE table_schema = #{quote(schema)} AND table_name = #{quote(name)}"
 
-        tables(nil, schema, table).any?
+        select_values(sql, 'SCHEMA').any?
       end
 
       def views # :nodoc:
