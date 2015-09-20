@@ -284,6 +284,7 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
     # Controller
     assert_file "app/controllers/test_app/admin/roles_controller.rb" do |content|
       assert_match(/module TestApp\n  class Admin::RolesController < ApplicationController/, content)
+      assert_match(%r(require_dependency "test_app/application_controller"), content)
     end
 
     assert_file "test/controllers/test_app/admin/roles_controller_test.rb",
