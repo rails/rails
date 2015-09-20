@@ -559,6 +559,8 @@ module ActiveRecord
       #
       #   CREATE INDEX by_name ON accounts(name(10))
       #
+      # ====== Creating an index with specific key lengths for multiple keys
+      #
       #   add_index(:accounts, [:name, :surname], name: 'by_name_surname', length: {name: 10, surname: 15})
       #
       # generates:
