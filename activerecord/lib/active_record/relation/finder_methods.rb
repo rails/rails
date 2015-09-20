@@ -146,10 +146,11 @@ module ActiveRecord
     #   [#<Person id:4>, #<Person id:3>, #<Person id:2>]
     def last(limit = nil)
       if limit
-        if order_values.empty? && primary_key
-          order(arel_table[primary_key].desc).limit(limit).reverse
+        relation = ordered
+        if relation.order_values.empty?
+          relation.to_a.last(limit)
         else
-          to_a.last(limit)
+          find_nth_with_limit(0, limit, relation: relation.reverse_order).reverse
         end
       else
         find_last
@@ -484,13 +485,26 @@ module ActiveRecord
       find_nth(index, offset_index) or raise RecordNotFound.new("Couldn't find #{@klass.name} with [#{arel.where_sql(@klass.arel_engine)}]")
     end
 
-    def find_nth_with_limit(offset, limit)
-      relation = if order_values.empty? && primary_key
-                   order(arel_table[primary_key].asc)
-                 else
-                   self
-                 end
+    # TODO: Decide how users' models should declare their natural ordering.
+    # Override this method? Declare a scope? Declare a set of fields with
+    # `#order` arg style?
+    def natural_ordering
+      if primary_key
+        order arel_table[primary_key].asc
+      else
+        raise "No natural ordering on #{name} since it has no primary key. Override #{name}.natural_ordering to provide your own, or use e.g. #take instead of #first."
+      end
+    end
 
+    def ordered
+      if order_values.empty?
+        natural_ordering
+      else
+        self
+      end
+    end
+
+    def find_nth_with_limit(offset, limit, relation: ordered)
       relation = relation.offset(offset) unless offset.zero?
       relation.limit(limit).to_a
     end
@@ -503,7 +517,7 @@ module ActiveRecord
           if limit_value
             to_a.last
           else
-            reverse_order.limit(1).to_a.first
+            find_nth_with_limit(0, 1, relation: ordered.reverse_order).first
           end
       end
     end
