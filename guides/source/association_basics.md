@@ -768,7 +768,7 @@ The `belongs_to` association creates a one-to-one match with another model. In d
 
 When you declare a `belongs_to` association, the declaring class automatically gains five methods related to the association:
 
-* `association(force_reload = false)`
+* `association`
 * `association=(associate)`
 * `build_association(attributes = {})`
 * `create_association(attributes = {})`
@@ -794,7 +794,7 @@ create_customer!
 
 NOTE: When initializing a new `has_one` or `belongs_to` association you must use the `build_` prefix to build the association, rather than the `association.build` method that would be used for `has_many` or `has_and_belongs_to_many` associations. To create one, use the `create_` prefix.
 
-##### `association(force_reload = false)`
+##### `association`
 
 The `association` method returns the associated object, if any. If no associated object is found, it returns `nil`.
 
@@ -802,7 +802,11 @@ The `association` method returns the associated object, if any. If no associated
 @customer = @order.customer
 ```
 
-If the associated object has already been retrieved from the database for this object, the cached version will be returned. To override this behavior (and force a database read), pass `true` as the `force_reload` argument.
+If the associated object has already been retrieved from the database for this object, the cached version will be returned. To override this behavior (and force a database read), call `#reload` on the parent object.
+
+```ruby
+@customer = @order.reload.customer
+```
 
 ##### `association=(associate)`
 
@@ -1113,7 +1117,7 @@ The `has_one` association creates a one-to-one match with another model. In data
 
 When you declare a `has_one` association, the declaring class automatically gains five methods related to the association:
 
-* `association(force_reload = false)`
+* `association`
 * `association=(associate)`
 * `build_association(attributes = {})`
 * `create_association(attributes = {})`
@@ -1139,7 +1143,7 @@ create_account!
 
 NOTE: When initializing a new `has_one` or `belongs_to` association you must use the `build_` prefix to build the association, rather than the `association.build` method that would be used for `has_many` or `has_and_belongs_to_many` associations. To create one, use the `create_` prefix.
 
-##### `association(force_reload = false)`
+##### `association`
 
 The `association` method returns the associated object, if any. If no associated object is found, it returns `nil`.
 
@@ -1147,7 +1151,11 @@ The `association` method returns the associated object, if any. If no associated
 @account = @supplier.account
 ```
 
-If the associated object has already been retrieved from the database for this object, the cached version will be returned. To override this behavior (and force a database read), pass `true` as the `force_reload` argument.
+If the associated object has already been retrieved from the database for this object, the cached version will be returned. To override this behavior (and force a database read), call `#reload` on the parent object.
+
+```ruby
+@account = @supplier.reload.account
+```
 
 ##### `association=(associate)`
 
@@ -1380,7 +1388,7 @@ The `has_many` association creates a one-to-many relationship with another model
 
 When you declare a `has_many` association, the declaring class automatically gains 16 methods related to the association:
 
-* `collection(force_reload = false)`
+* `collection`
 * `collection<<(object, ...)`
 * `collection.delete(object, ...)`
 * `collection.destroy(object, ...)`
@@ -1408,7 +1416,7 @@ end
 Each instance of the `Customer` model will have these methods:
 
 ```ruby
-orders(force_reload = false)
+orders
 orders<<(object, ...)
 orders.delete(object, ...)
 orders.destroy(object, ...)
@@ -1426,7 +1434,7 @@ orders.create(attributes = {})
 orders.create!(attributes = {})
 ```
 
-##### `collection(force_reload = false)`
+##### `collection`
 
 The `collection` method returns an array of all of the associated objects. If there are no associated objects, it returns an empty array.
 
@@ -1892,7 +1900,7 @@ The `has_and_belongs_to_many` association creates a many-to-many relationship wi
 
 When you declare a `has_and_belongs_to_many` association, the declaring class automatically gains 16 methods related to the association:
 
-* `collection(force_reload = false)`
+* `collection`
 * `collection<<(object, ...)`
 * `collection.delete(object, ...)`
 * `collection.destroy(object, ...)`
@@ -1920,7 +1928,7 @@ end
 Each instance of the `Part` model will have these methods:
 
 ```ruby
-assemblies(force_reload = false)
+assemblies
 assemblies<<(object, ...)
 assemblies.delete(object, ...)
 assemblies.destroy(object, ...)
@@ -1945,7 +1953,7 @@ If the join table for a `has_and_belongs_to_many` association has additional col
 WARNING: The use of extra attributes on the join table in a `has_and_belongs_to_many` association is deprecated. If you require this sort of complex behavior on the table that joins two models in a many-to-many relationship, you should use a `has_many :through` association instead of `has_and_belongs_to_many`.
 
 
-##### `collection(force_reload = false)`
+##### `collection`
 
 The `collection` method returns an array of all of the associated objects. If there are no associated objects, it returns an empty array.
 
