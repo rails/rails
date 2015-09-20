@@ -161,6 +161,14 @@ module ActiveRecord
       # DATABASE STATEMENTS ======================================
       #++
 
+      def select_all(arel, name = nil, binds = [])
+        if ExplainRegistry.collect? && prepared_statements
+          unprepared_statement { super }
+        else
+          super
+        end
+      end
+
       def select_rows(sql, name = nil, binds = [])
         @connection.query_with_result = true
         rows = exec_query(sql, name, binds).rows
