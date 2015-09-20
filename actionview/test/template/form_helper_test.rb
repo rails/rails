@@ -366,7 +366,7 @@ class FormHelperTest < ActionView::TestCase
     )
   end
 
-  def test_label_with_to_model_and_overriden_model_name
+  def test_label_with_to_model_and_overridden_model_name
     with_locale :label do
       assert_dom_equal(
         %{<label for="post_delegator_title">Delegate model_name title</label>},
