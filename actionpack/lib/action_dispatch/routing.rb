@@ -146,6 +146,7 @@ module ActionDispatch
   #     get 'geocode/:postalcode' => :show, constraints: {
   #       postalcode: /\d{5}(-\d{4})?/
   #     }
+  #   end
   #
   # Constraints can include the 'ignorecase' and 'extended syntax' regular
   # expression modifiers:
