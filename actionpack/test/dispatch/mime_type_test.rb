@@ -163,10 +163,12 @@ class MimeTypeTest < ActiveSupport::TestCase
     types.each do |type|
       mime = Mime::Type[type.upcase]
       assert mime.respond_to?("#{type}?"), "#{mime.inspect} does not respond to #{type}?"
-      assert mime.send("#{type}?"), "#{mime.inspect} is not #{type}?"
+      assert_equal type, mime.symbol, "#{mime.inspect} is not #{type}?"
       invalid_types = types - [type]
       invalid_types.delete(:html) if Mime::Type.html_types.include?(type)
-      invalid_types.each { |other_type| assert !mime.send("#{other_type}?"), "#{mime.inspect} is #{other_type}?" }
+      invalid_types.each { |other_type|
+        assert_not_equal mime.symbol, other_type, "#{mime.inspect} is #{other_type}?"
+      }
     end
   end
 

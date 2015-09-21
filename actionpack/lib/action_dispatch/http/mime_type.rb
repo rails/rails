@@ -331,6 +331,7 @@ to:
       @@html_types.include?(to_sym) || @string =~ /html/
     end
 
+    def all?; false; end
 
     private
 
@@ -347,6 +348,11 @@ to:
 
     def respond_to_missing?(method, include_private = false) #:nodoc:
       method.to_s.ends_with? '?'
+    end
+
+    class All < Type
+      def all?; true; end
+      def html?; true; end
     end
   end
 

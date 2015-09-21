@@ -33,4 +33,4 @@ Mime::Type.register "application/pdf", :pdf, [], %w(pdf)
 Mime::Type.register "application/zip", :zip, [], %w(zip)
 
 # Create Mime::ALL but do not add it to the SET.
-Mime::Type.add_type :ALL, Mime::Type.new("*/*", :all, [])
+Mime::Type.add_type :ALL, Mime::Type::All.new("*/*", :all, [])
