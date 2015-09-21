@@ -1897,14 +1897,4 @@ class RelationTest < ActiveRecord::TestCase
   def test_relation_join_method
     assert_equal 'Thank you for the welcome,Thank you again for the welcome', Post.first.comments.join(",")
   end
-
-  def test_selecting_aliased_attribute_quotes_column_name_when_from_is_used
-    klass = Class.new(ActiveRecord::Base) do
-      self.table_name = :test_with_keyword_column_name
-      alias_attribute :description, :desc
-    end
-    klass.create!(description: "foo")
-
-    assert_equal ["foo"], klass.select(:description).from(klass.all).map(&:desc)
-  end
 end

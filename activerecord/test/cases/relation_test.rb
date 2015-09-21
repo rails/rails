@@ -243,16 +243,21 @@ module ActiveRecord
     end
 
     def test_select_quotes_when_using_from_clause
-      if sqlite3_version_includes_quoting_bug?
-        skip <<-ERROR.squish
-          You are using an outdated version of SQLite3 which has a bug in
-          quoted column names. Please update SQLite3 and rebuild the sqlite3
-          ruby gem
-        ERROR
-      end
+      skip_if_sqlite3_version_includes_quoting_bug
       quoted_join = ActiveRecord::Base.connection.quote_table_name("join")
       selected = Post.select(:join).from(Post.select("id as #{quoted_join}")).map(&:join)
       assert_equal Post.pluck(:id), selected
+    end
+
+    def test_selecting_aliased_attribute_quotes_column_name_when_from_is_used
+      skip_if_sqlite3_version_includes_quoting_bug
+      klass = Class.new(ActiveRecord::Base) do
+        self.table_name = :test_with_keyword_column_name
+        alias_attribute :description, :desc
+      end
+      klass.create!(description: "foo")
+
+      assert_equal ["foo"], klass.select(:description).from(klass.all).map(&:desc)
     end
 
     def test_relation_merging_with_merged_joins_as_strings
@@ -291,6 +296,16 @@ module ActiveRecord
     end
 
     private
+
+    def skip_if_sqlite3_version_includes_quoting_bug
+      if sqlite3_version_includes_quoting_bug?
+        skip <<-ERROR.squish
+          You are using an outdated version of SQLite3 which has a bug in
+          quoted column names. Please update SQLite3 and rebuild the sqlite3
+          ruby gem
+        ERROR
+      end
+    end
 
     def sqlite3_version_includes_quoting_bug?
       if current_adapter?(:SQLite3Adapter)
