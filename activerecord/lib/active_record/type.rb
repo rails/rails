@@ -16,13 +16,14 @@ require 'active_model/type/time'
 require 'active_model/type/unsigned_integer'
 
 require 'active_model/type/registry'
-require 'active_model/type/type_map'
-require 'active_model/type/hash_lookup_type_map'
 
 require 'active_record/type/internal/abstract_json'
 require 'active_record/type/internal/timezone'
 require 'active_record/type/serialized'
 require 'active_record/type/adapter_specific_registry'
+
+require 'active_record/type/type_map'
+require 'active_record/type/hash_lookup_type_map'
 
 module ActiveRecord
   module Type
@@ -78,8 +79,6 @@ module ActiveRecord
     Text                = ActiveModel::Type::Text
     UnsignedInteger     = ActiveModel::Type::UnsignedInteger
     Value               = ActiveModel::Type::Value
-    TypeMap             = ActiveModel::Type::TypeMap
-    HashLookupTypeMap   = ActiveModel::Type::HashLookupTypeMap
 
     register(:big_integer, Type::BigInteger, override: false)
     register(:binary, Type::Binary, override: false)

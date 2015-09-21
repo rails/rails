@@ -16,8 +16,6 @@ require 'active_model/type/time'
 require 'active_model/type/unsigned_integer'
 
 require 'active_model/type/registry'
-require 'active_model/type/type_map'
-require 'active_model/type/hash_lookup_type_map'
 
 module ActiveModel
   module Type
