@@ -7,28 +7,14 @@ module ActiveRecord
         end
 
         def cast(value)
-          if value.is_a?(Array)
-            value.map { |v| cast(v) }
-          elsif value.is_a?(Hash)
+          if value.is_a?(Hash)
             set_time_zone_without_conversion(super)
-          elsif value.respond_to?(:in_time_zone)
+          else
             begin
               user_input_in_time_zone(value) || super
             rescue ArgumentError
               nil
             end
-          end
-        end
-
-        private
-
-        def convert_time_to_time_zone(value)
-          if value.is_a?(Array)
-            value.map { |v| convert_time_to_time_zone(v) }
-          elsif value.acts_like?(:time)
-            value.in_time_zone
-          else
-            value
           end
         end
 

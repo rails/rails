@@ -6,7 +6,7 @@ module ActiveRecord
           include Type::Helpers::Mutable
 
           attr_reader :subtype, :delimiter
-          delegate :type, :user_input_in_time_zone, :limit, to: :subtype
+          delegate :type, :limit, to: :subtype
 
           def initialize(subtype, delimiter = ',')
             @subtype = subtype
@@ -48,6 +48,16 @@ module ActiveRecord
           def type_cast_for_schema(value)
             return super unless value.is_a?(::Array)
             "[" + value.map { |v| subtype.type_cast_for_schema(v) }.join(", ") + "]"
+          end
+
+          def user_input_in_time_zone(value)
+            return unless value.is_a?(::Array) && subtype.respond_to?(:user_input_in_time_zone)
+            value.map { |v| subtype.user_input_in_time_zone(v) }
+          end
+
+          def convert_time_to_time_zone(value)
+            return value unless value.is_a?(::Array) && subtype.respond_to?(:convert_time_to_time_zone)
+            value.map { |v| subtype.convert_time_to_time_zone(v) }
           end
 
           private

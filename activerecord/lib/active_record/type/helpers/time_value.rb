@@ -25,7 +25,15 @@ module ActiveRecord
         end
 
         def user_input_in_time_zone(value)
-          value.in_time_zone
+          value.try(:in_time_zone)
+        end
+
+        def convert_time_to_time_zone(value)
+          if value.acts_like?(:time)
+            value.in_time_zone
+          else
+            value
+          end
         end
 
         private
