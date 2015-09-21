@@ -65,14 +65,6 @@ module ActiveRecord
         end
       end
 
-      def test_tables_quoting
-        @conn.tables(nil, "foo-bar", nil)
-        flunk
-      rescue => e
-        # assertion for *quoted* database properly
-        assert_match(/database 'foo-bar'/, e.inspect)
-      end
-
       def test_pk_and_sequence_for
         with_example_table do
           pk, seq = @conn.pk_and_sequence_for('ex')
