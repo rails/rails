@@ -388,6 +388,11 @@ module ActiveSupport
     end
     alias_method :kind_of?, :is_a?
 
+    # An instance of ActiveSupport::TimeWithZone is never blank
+    def blank?
+      false
+    end
+
     def freeze
       period; utc; time # preload instance variables before freezing
       super

@@ -127,3 +127,14 @@ class Numeric #:nodoc:
     false
   end
 end
+
+class Time #:nodoc:
+  # No Time is blank:
+  #
+  #   Time.now.blank? # => false
+  #
+  # @return [false]
+  def blank?
+    false
+  end
+end
