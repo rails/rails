@@ -318,9 +318,7 @@ to:
     def =~(mime_type)
       return false unless mime_type
       regexp = Regexp.new(Regexp.quote(mime_type.to_s))
-      (@synonyms + [ self ]).any? do |synonym|
-        synonym.to_s =~ regexp
-      end
+      @synonyms.any? { |synonym| synonym.to_s =~ regexp } || @string =~ regexp
     end
 
     def html?
