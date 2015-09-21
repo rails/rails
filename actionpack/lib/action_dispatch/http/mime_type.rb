@@ -5,20 +5,29 @@ require 'active_support/core_ext/string/starts_ends_with'
 require 'active_support/deprecation'
 
 module Mime
-  class Mimes < Array
-    def symbols
-      @symbols ||= map(&:to_sym)
+  class Mimes
+    include Enumerable
+
+    def initialize
+      @mimes = []
+      @symbols = nil
     end
 
-    %w(<< concat shift unshift push pop []= clear compact! collect!
-    delete delete_at delete_if flatten! map! insert reject! reverse!
-    replace slice! sort! uniq!).each do |method|
-      module_eval <<-CODE, __FILE__, __LINE__ + 1
-        def #{method}(*)
-          @symbols = nil
-          super
-        end
-      CODE
+    def each
+      @mimes.each { |x| yield x }
+    end
+
+    def <<(type)
+      @mimes << type
+      @symbols = nil
+    end
+
+    def delete_if
+      @mimes.delete_if { |x| yield x }.tap { @symbols = nil }
+    end
+
+    def symbols
+      @symbols ||= map(&:to_sym)
     end
   end
 
@@ -214,12 +223,13 @@ to:
 
         SET << new_mime
 
-        ([string] + mime_type_synonyms).each { |str| LOOKUP[str] = SET.last } unless skip_lookup
-        ([symbol] + extension_synonyms).each { |ext| EXTENSION_LOOKUP[ext.to_s] = SET.last }
+        ([string] + mime_type_synonyms).each { |str| LOOKUP[str] = new_mime } unless skip_lookup
+        ([symbol] + extension_synonyms).each { |ext| EXTENSION_LOOKUP[ext.to_s] = new_mime }
 
         @register_callbacks.each do |callback|
           callback.call(new_mime)
         end
+        new_mime
       end
 
       def parse(accept_header)
