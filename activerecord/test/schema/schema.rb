@@ -912,6 +912,10 @@ ActiveRecord::Schema.define do
     t.string :overloaded_string_with_limit, limit: 255
     t.string :string_with_default, default: 'the original default'
   end
+
+  create_table :test_with_keyword_column_name, force: true do |t|
+    t.string :desc
+  end
 end
 
 Course.connection.create_table :courses, force: true do |t|

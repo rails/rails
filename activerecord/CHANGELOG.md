@@ -1,3 +1,9 @@
+*   Ensure `select` quotes aliased attributes, even when using `from`.
+
+    Fixes #21488
+
+    *Sean Griffin & @johanlunds*
+
 *   Correct query for PostgreSQL 8.2 compatibility.
 
     *Ben Murphy*, *Matthew Draper*
