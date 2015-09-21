@@ -107,7 +107,7 @@ module ActiveRecord
 
     def max_updated_column_timestamp(timestamp_names = timestamp_attributes_for_update)
       timestamp_names
-        .map { |attr| self[attr] }
+        .map { |attr| self[attr] || self.respond_to?(attr) }
         .compact
         .map(&:to_time)
         .max
