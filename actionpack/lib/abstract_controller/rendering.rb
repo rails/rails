@@ -19,7 +19,6 @@ module AbstractController
 
     # Normalizes arguments, options and then delegates render_to_body and
     # sticks the result in <tt>self.response_body</tt>.
-    # :api: public
     def render(*args, &block)
       options = _normalize_render(*args, &block)
       self.response_body = render_to_body(options)
@@ -41,19 +40,16 @@ module AbstractController
     # (as ActionController extends it to be anything that
     # responds to the method each), this method needs to be
     # overridden in order to still return a string.
-    # :api: plugin
     def render_to_string(*args, &block)
       options = _normalize_render(*args, &block)
       render_to_body(options)
     end
 
     # Performs the actual template rendering.
-    # :api: public
     def render_to_body(options = {})
     end
 
     # Returns Content-Type of rendered content
-    # :api: public
     def rendered_format
       Mime::TEXT
     end
@@ -66,7 +62,6 @@ module AbstractController
 
     # This method should return a hash with assigns.
     # You can overwrite this configuration per controller.
-    # :api: public
     def view_assigns
       protected_vars = _protected_ivars
       variables      = instance_variables
@@ -80,7 +75,6 @@ module AbstractController
     # Normalize args by converting <tt>render "foo"</tt> to
     # <tt>render :action => "foo"</tt> and <tt>render "foo/bar"</tt> to
     # <tt>render :file => "foo/bar"</tt>.
-    # :api: plugin
     def _normalize_args(action=nil, options={})
       if action.is_a? Hash
         action
@@ -90,19 +84,16 @@ module AbstractController
     end
 
     # Normalize options.
-    # :api: plugin
     def _normalize_options(options)
       options
     end
 
     # Process extra options.
-    # :api: plugin
     def _process_options(options)
       options
     end
 
     # Process the rendered format.
-    # :api: private
     def _process_format(format)
     end
 
@@ -113,7 +104,6 @@ module AbstractController
     end
 
     # Normalize args and options.
-    # :api: private
     def _normalize_render(*args, &block)
       options = _normalize_args(*args, &block)
       #TODO: remove defined? when we restore AP <=> AV dependency
