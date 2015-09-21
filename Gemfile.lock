@@ -91,7 +91,7 @@ GIT
 
 GIT
   remote: git://github.com/rails/turbolinks.git
-  revision: 6d2ffc0e9eadb047ca5febbc08da8d92acab78c4
+  revision: 4bb563cd777875d3ad73cf007c26334f2aa8dc37
   branch: master
   specs:
     turbolinks (3.0.0)
