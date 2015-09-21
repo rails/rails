@@ -17,9 +17,12 @@ require 'models/matey'
 require 'models/dog'
 require 'models/car'
 require 'models/tyre'
+require 'models/device'
 
 class FinderTest < ActiveRecord::TestCase
-  fixtures :companies, :topics, :entrants, :developers, :developers_projects, :posts, :comments, :accounts, :authors, :customers, :categories, :categorizations, :cars
+  fixtures :companies, :topics, :entrants, :developers, :developers_projects,
+           :posts, :comments, :accounts, :authors, :customers, :categories,
+           :categorizations, :devices, :cars
 
   def test_find_by_id_with_hash
     assert_raises(ActiveRecord::StatementInvalid) do
@@ -812,6 +815,27 @@ class FinderTest < ActiveRecord::TestCase
     dog = Dog.create(alias: dog_alias)
 
     assert_equal dog, Dog.find_by_alias(dog_alias)
+  end
+
+  def test_find_by_attribute_that_called_by_super
+    assert_equal devices(:macbook), Device.find_by_mac_address('ABCDEF')
+    assert_equal devices(:macbook), Device.find_by_mac_address('ABCDEF')
+  end
+
+  def test_find_by_attribute_method_container
+    Topic.find_by_title!("The First Topic")
+    Topic.find_by_title("The First Topic")
+    module_with_find_by_methods = Topic.singleton_class.ancestors.first
+    assert_equal true, module_with_find_by_methods.instance_methods.include?(:find_by_title)
+    assert_equal true, module_with_find_by_methods.instance_methods.include?(:find_by_title!)
+  end
+
+  def test_find_by_attribute_method_container_for_two_model
+    Topic.find_by_title("The First Topic")
+    Device.find_by_mac_address('ABCDEF')
+    module_with_find_by_methods = Topic.singleton_class.ancestors.first
+    assert_equal true, module_with_find_by_methods.instance_methods.include?(:find_by_title)
+    assert_equal false, module_with_find_by_methods.instance_methods.include?(:find_by_mac_address)
   end
 
   def test_find_by_one_attribute_that_is_an_alias
