@@ -42,16 +42,16 @@ module ActiveModel
       end
     end
 
-    register(:big_integer, Type::BigInteger, override: false)
-    register(:binary, Type::Binary, override: false)
-    register(:boolean, Type::Boolean, override: false)
-    register(:date, Type::Date, override: false)
-    register(:date_time, Type::DateTime, override: false)
-    register(:decimal, Type::Decimal, override: false)
-    register(:float, Type::Float, override: false)
-    register(:integer, Type::Integer, override: false)
-    register(:string, Type::String, override: false)
-    register(:text, Type::Text, override: false)
-    register(:time, Type::Time, override: false)
+    register(:big_integer, Type::BigInteger)
+    register(:binary, Type::Binary)
+    register(:boolean, Type::Boolean)
+    register(:date, Type::Date)
+    register(:date_time, Type::DateTime)
+    register(:decimal, Type::Decimal)
+    register(:float, Type::Float)
+    register(:integer, Type::Integer)
+    register(:string, Type::String)
+    register(:text, Type::Text)
+    register(:time, Type::Time)
   end
 end
