@@ -1,4 +1,4 @@
-module ActiveRecord
+module ActiveModel
   module Type
     module Helpers
       module Mutable # :nodoc:
