@@ -1,4 +1,3 @@
-require 'set'
 require 'singleton'
 require 'active_support/core_ext/module/attribute_accessors'
 require 'active_support/core_ext/string/starts_ends_with'
@@ -95,9 +94,6 @@ to:
   #     end
   #   end
   class Type
-    @@html_types = Set.new [:html, :all]
-    cattr_reader :html_types
-
     attr_reader :symbol
 
     @register_callbacks = []
@@ -301,7 +297,7 @@ to:
     end
 
     def ref
-      to_sym || to_s
+      symbol || to_s
     end
 
     def ===(list)
@@ -328,7 +324,7 @@ to:
     end
 
     def html?
-      @@html_types.include?(to_sym) || @string =~ /html/
+      symbol == :html || @string =~ /html/
     end
 
     def all?; false; end
