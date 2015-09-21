@@ -316,7 +316,7 @@ to:
     end
 
     def =~(mime_type)
-      return false if mime_type.blank?
+      return false unless mime_type
       regexp = Regexp.new(Regexp.quote(mime_type.to_s))
       (@synonyms + [ self ]).any? do |synonym|
         synonym.to_s =~ regexp
