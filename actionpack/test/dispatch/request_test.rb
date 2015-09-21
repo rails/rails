@@ -909,7 +909,13 @@ class RequestMimeType < BaseRequestTest
   end
 
   test "content type with charset" do
-    assert_equal Mime::XML, stub_request('CONTENT_TYPE' => 'application/xml; charset=UTF-8').content_mime_type
+    request = stub_request('CONTENT_TYPE' => 'application/xml; charset=UTF-8')
+
+    assert_equal(Mime::XML, request.content_mime_type)
+    assert_equal('application/xml', request.media_type)
+    assert_equal('UTF-8', request.content_charset)
+    assert_equal({ 'charset' => 'UTF-8' }, request.media_type_params)
+    assert_equal('application/xml; charset=UTF-8', request.content_type)
   end
 
   test "user agent" do
