@@ -12,7 +12,7 @@ class RenderOtherTest < ActionController::TestCase
 
   def test_using_custom_render_option
     ActionController.add_renderer :simon do |says, options|
-      self.content_type  = Mime::TEXT
+      self.content_type  = Mime::Type[:TEXT]
       self.response_body = "Simon says: #{says}"
     end
 

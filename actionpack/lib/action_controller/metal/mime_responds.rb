@@ -229,14 +229,14 @@ module ActionController #:nodoc:
         @responses = {}
         @variant = variant
 
-        mimes.each { |mime| @responses["Mime::#{mime.upcase}".constantize] = nil }
+        mimes.each { |mime| @responses[Mime::Type[mime.to_sym.upcase]] = nil }
       end
 
       def any(*args, &block)
         if args.any?
           args.each { |type| send(type, &block) }
         else
-          custom(Mime::ALL, &block)
+          custom(Mime::Type[:ALL], &block)
         end
       end
       alias :all :any
@@ -251,7 +251,7 @@ module ActionController #:nodoc:
       end
 
       def response
-        response = @responses.fetch(format, @responses[Mime::ALL])
+        response = @responses.fetch(format, @responses[Mime::Type[:ALL]])
         if response.is_a?(VariantCollector) # `format.html.phone` - variant inline syntax
           response.variant
         elsif response.nil? || response.arity == 0 # `format.html` - just a format, call its block

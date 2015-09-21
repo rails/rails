@@ -13,7 +13,7 @@ class MimeTypeTest < ActiveSupport::TestCase
   test "unregister" do
     begin
       Mime::Type.register("text/x-mobile", :mobile)
-      assert Mime.const_defined?(:MOBILE)
+      assert Mime::Type.registered?(:MOBILE)
       assert_equal Mime::Type[:MOBILE], Mime::LOOKUP['text/x-mobile']
       assert_equal Mime::Type[:MOBILE], Mime::EXTENSION_LOOKUP['mobile']
 
@@ -157,7 +157,7 @@ class MimeTypeTest < ActiveSupport::TestCase
     types = Mime::SET.symbols.uniq - [:all, :iphone]
 
     # Remove custom Mime::Type instances set in other tests, like Mime::GIF and Mime::IPHONE
-    types.delete_if { |type| !Mime.const_defined?(type.upcase) }
+    types.delete_if { |type| !Mime::Type.registered?(type.upcase) }
 
     types.each do |type|
       mime = Mime::Type[type.upcase]
@@ -184,7 +184,7 @@ class MimeTypeTest < ActiveSupport::TestCase
     all_types = Mime::SET.symbols
     all_types.uniq!
     # Remove custom Mime::Type instances set in other tests, like Mime::GIF and Mime::IPHONE
-    all_types.delete_if { |type| !Mime.const_defined?(type.upcase) }
+    all_types.delete_if { |type| !Mime::Type.registered?(type.upcase) }
   end
 
   test "references gives preference to symbols before strings" do

@@ -59,11 +59,11 @@ to:
         ActiveSupport::Deprecation.warn <<-eow
 Accessing mime types via constants is deprecated.  Please change:
 
-  `Mime::#{sym}`
+  `Mime.const_defined?(#{sym})`
 
 to:
 
-  `Mime::Type[:#{sym}]`
+  `Mime::Type.registered?(:#{sym})`
         eow
         true
       else

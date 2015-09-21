@@ -89,7 +89,7 @@ class SendFileTest < ActionController::TestCase
   # Test that send_file_headers! is setting the correct HTTP headers.
   def test_send_file_headers_bang
     options = {
-      :type => Mime::PNG,
+      :type => Mime::Type[:PNG],
       :disposition => 'disposition',
       :filename => 'filename'
     }
@@ -115,7 +115,7 @@ class SendFileTest < ActionController::TestCase
 
   def test_send_file_headers_with_disposition_as_a_symbol
     options = {
-      :type => Mime::PNG,
+      :type => Mime::Type[:PNG],
       :disposition => :disposition,
       :filename => 'filename'
     }

@@ -66,9 +66,9 @@ module ActionDispatch
           elsif use_accept_header && valid_accept_header
             accepts
           elsif xhr?
-            [Mime::JS]
+            [Mime::Type[:JS]]
           else
-            [Mime::HTML]
+            [Mime::Type[:HTML]]
           end
           set_header k, v
         end
@@ -134,14 +134,14 @@ module ActionDispatch
       #
       def negotiate_mime(order)
         formats.each do |priority|
-          if priority == Mime::ALL
+          if priority == Mime::Type[:ALL]
             return order.first
           elsif order.include?(priority)
             return priority
           end
         end
 
-        order.include?(Mime::ALL) ? format : nil
+        order.include?(Mime::Type[:ALL]) ? format : nil
       end
 
       protected
