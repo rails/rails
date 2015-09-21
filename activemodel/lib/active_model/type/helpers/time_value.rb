@@ -19,11 +19,11 @@ module ActiveModel
 
           value
         end
-        
+
         def is_utc?
           ::Time.zone_default =~ 'UTC'
         end
-        
+
         def default_timezone
           ::Time.zone_default
         end
@@ -41,7 +41,6 @@ module ActiveModel
         def new_time(year, mon, mday, hour, min, sec, microsec, offset = nil)
           # Treat 0000-00-00 00:00:00 as nil.
           return if year.nil? || (year == 0 && mon == 0 && mday == 0)
-          
 
           if offset
             time = ::Time.utc(year, mon, mday, hour, min, sec, microsec) rescue nil
@@ -53,7 +52,7 @@ module ActiveModel
             ::Time.public_send(default_timezone, year, mon, mday, hour, min, sec, microsec) rescue nil
           end
         end
-        
+
         ISO_DATETIME = /\A(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d):(\d\d)(\.\d+)?\z/
 
         # Doesn't handle time zones.

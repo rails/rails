@@ -57,7 +57,7 @@ module ActiveRecord
       end
 
       def default_value
-        @default_value ||= Value.new
+        @default_value ||= ActiveModel::Type::Value.new
       end
     end
   end

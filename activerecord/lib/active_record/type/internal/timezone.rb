@@ -5,7 +5,7 @@ module ActiveRecord
         def is_utc?
           ActiveRecord::Base.default_timezone == :utc
         end
-        
+
         def default_timezone
           ActiveRecord::Base.default_timezone
         end
