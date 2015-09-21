@@ -1,3 +1,5 @@
+require "active_support/core_ext/time/zones"
+
 module ActiveModel
   module Type
     module Helpers
@@ -21,11 +23,15 @@ module ActiveModel
         end
 
         def is_utc?
-          ::Time.zone_default =~ 'UTC'
+          ::Time.zone_default.nil? || ::Time.zone_default =~ 'UTC'
         end
 
         def default_timezone
-          ::Time.zone_default
+          if is_utc?
+            :utc
+          else
+            :local
+          end
         end
 
         def type_cast_for_schema(value)
