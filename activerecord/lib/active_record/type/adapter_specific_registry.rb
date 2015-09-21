@@ -4,14 +4,20 @@ module ActiveRecord
   # :stopdoc:
   module Type
     class AdapterSpecificRegistry < ActiveModel::Type::Registry
+      def add_modifier(options, klass, **args)
+        registrations << DecorationRegistration.new(options, klass, **args)
+      end
+
       private
-      
+
       def registration_klass
         Registration
       end
-      
-      def decoration_registration_klass
-        DecorationRegistration
+
+      def find_registration(symbol, *args)
+        registrations
+          .select { |registration| registration.matches?(symbol, *args) }
+          .max
       end
     end
 
@@ -118,8 +124,7 @@ module ActiveRecord
     end
   end
 
-  class TypeConflictError < ::ActiveModel::TypeConflictError
+  class TypeConflictError < StandardError
   end
-
   # :startdoc:
 end
