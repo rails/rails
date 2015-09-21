@@ -229,7 +229,7 @@ module ActionController #:nodoc:
         @responses = {}
         @variant = variant
 
-        mimes.each { |mime| @responses[Mime::Type[mime.to_sym.upcase]] = nil }
+        mimes.each { |mime| @responses[Mime::Type[mime.upcase.to_sym]] = nil }
       end
 
       def any(*args, &block)
