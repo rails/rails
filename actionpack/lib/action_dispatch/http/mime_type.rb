@@ -160,9 +160,9 @@ module Mime
       end
 
       def register(string, symbol, mime_type_synonyms = [], extension_synonyms = [], skip_lookup = false)
-        Mime.const_set(symbol.upcase, Type.new(string, symbol, mime_type_synonyms))
+        new_mime = Type.new(string, symbol, mime_type_synonyms)
+        Mime.const_set(symbol.upcase, new_mime)
 
-        new_mime = Mime.const_get(symbol.upcase)
         SET << new_mime
 
         ([string] + mime_type_synonyms).each { |str| LOOKUP[str] = SET.last } unless skip_lookup
