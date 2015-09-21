@@ -943,6 +943,10 @@ ActiveRecord::Schema.define do
     t.string :token
     t.string :auth_token
   end
+
+  create_table :test_with_keyword_column_name, force: true do |t|
+    t.string :desc
+  end
 end
 
 Course.connection.create_table :courses, force: true do |t|

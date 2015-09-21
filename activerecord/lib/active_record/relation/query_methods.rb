@@ -250,7 +250,7 @@ module ActiveRecord
     def _select!(*fields) # :nodoc:
       fields.flatten!
       fields.map! do |field|
-        klass.attribute_alias?(field) ? klass.attribute_alias(field) : field
+        klass.attribute_alias?(field) ? klass.attribute_alias(field).to_sym : field
       end
       self.select_values += fields
       self

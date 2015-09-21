@@ -1,3 +1,9 @@
+*   Ensure `select` quotes aliased attributes, even when using `from`.
+
+    Fixes #21488
+
+    *Sean Griffin & @johanlunds*
+
 *   MySQL: support `unsigned` numeric data types.
 
     Example:
