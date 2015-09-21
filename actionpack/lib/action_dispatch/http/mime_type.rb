@@ -2,6 +2,7 @@ require 'set'
 require 'singleton'
 require 'active_support/core_ext/module/attribute_accessors'
 require 'active_support/core_ext/string/starts_ends_with'
+require 'active_support/deprecation'
 
 module Mime
   class Mimes < Array
@@ -35,6 +36,40 @@ module Mime
       return type if type.is_a?(Type)
       EXTENSION_LOOKUP.fetch(type.to_s) { |k| yield k }
     end
+
+    def const_missing(sym)
+      if Mime::Type.registered?(sym)
+        ActiveSupport::Deprecation.warn <<-eow
+Accessing mime types via constants is deprecated.  Please change:
+
+  `Mime::#{sym}`
+
+to:
+
+  `Mime::Type[:#{sym}]`
+        eow
+        Mime::Type[sym]
+      else
+        super
+      end
+    end
+
+    def const_defined?(sym, inherit = true)
+      if Mime::Type.registered?(sym)
+        ActiveSupport::Deprecation.warn <<-eow
+Accessing mime types via constants is deprecated.  Please change:
+
+  `Mime::#{sym}`
+
+to:
+
+  `Mime::Type[:#{sym}]`
+        eow
+        true
+      else
+        super
+      end
+    end
   end
 
   # Encapsulates the notion of a mime type. Can be used at render time, for example, with:
@@ -66,7 +101,7 @@ module Mime
       def initialize(index, name, q = nil)
         @index = index
         @name = name
-        q ||= 0.0 if @name == Mime::ALL.to_s # default wildcard match to end of list
+        q ||= 0.0 if @name == Mime::Type[:ALL].to_s # default wildcard match to end of list
         @q = ((q || 1.0).to_f * 100).to_i
       end
 
@@ -120,7 +155,7 @@ module Mime
         end
 
         def app_xml_idx
-          @app_xml_idx ||= index(Mime::XML.to_s)
+          @app_xml_idx ||= index(Mime::Type[:XML].to_s)
         end
 
         def text_xml
@@ -137,12 +172,26 @@ module Mime
         end
     end
 
+    TYPES = {}
+
     class << self
       TRAILING_STAR_REGEXP = /(text|application)\/\*/
       PARAMETER_SEPARATOR_REGEXP = /;\s*\w+="?\w+"?/
 
       def register_callback(&block)
         @register_callbacks << block
+      end
+
+      def registered?(symbol)
+        TYPES.key? symbol
+      end
+
+      def [](symbol)
+        TYPES[symbol]
+      end
+
+      def add_type(symbol, type)
+        TYPES[symbol] = type
       end
 
       def lookup(string)
@@ -161,7 +210,7 @@ module Mime
 
       def register(string, symbol, mime_type_synonyms = [], extension_synonyms = [], skip_lookup = false)
         new_mime = Type.new(string, symbol, mime_type_synonyms)
-        Mime.const_set(symbol.upcase, new_mime)
+        add_type symbol.upcase, new_mime
 
         SET << new_mime
 
@@ -216,8 +265,7 @@ module Mime
       #   Mime::Type.unregister(:mobile)
       def unregister(symbol)
         symbol = symbol.upcase
-        mime = Mime.const_get(symbol)
-        Mime.instance_eval { remove_const(symbol) }
+        mime = TYPES.delete symbol
 
         SET.delete_if { |v| v.eql?(mime) }
         LOOKUP.delete_if { |_,v| v.eql?(mime) }
