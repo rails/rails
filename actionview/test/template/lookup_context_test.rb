@@ -27,7 +27,7 @@ class LookupContextTest < ActiveSupport::TestCase
   end
 
   test "normalizes details on initialization" do
-    assert_equal Mime::SET, @lookup_context.formats
+    assert_equal Mime::SET.to_a, @lookup_context.formats
     assert_equal :en, @lookup_context.locale
   end
 
@@ -48,11 +48,11 @@ class LookupContextTest < ActiveSupport::TestCase
 
   test "handles */* formats" do
     @lookup_context.formats = ["*/*"]
-    assert_equal Mime::SET, @lookup_context.formats
+    assert_equal Mime::SET.to_a, @lookup_context.formats
   end
 
   test "handles explicitly defined */* formats fallback to :js" do
-    @lookup_context.formats = [:js, Mime::ALL]
+    @lookup_context.formats = [:js, Mime::Type[:ALL]]
     assert_equal [:js, *Mime::SET.symbols], @lookup_context.formats
   end
 
