@@ -276,7 +276,9 @@ module ActionController
 
       # Checks if we should perform parameters wrapping.
       def _wrapper_enabled?
-        ref = request.content_mime_type.try(:ref)
+        return false unless request.has_content_type?
+
+        ref = request.content_mime_type.ref
         _wrapper_formats.include?(ref) && _wrapper_key && !request.request_parameters[_wrapper_key]
       end
   end
