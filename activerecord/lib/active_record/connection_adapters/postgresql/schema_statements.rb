@@ -73,6 +73,16 @@ module ActiveRecord
           select_values("SELECT tablename FROM pg_tables WHERE schemaname = ANY(current_schemas(false))", 'SCHEMA')
         end
 
+        def data_sources # :nodoc
+          select_values(<<-SQL, 'SCHEMA')
+            SELECT c.relname
+            FROM pg_class c
+            LEFT JOIN pg_namespace n ON n.oid = c.relnamespace
+            WHERE c.relkind IN ('r', 'v','m') -- (r)elation/table, (v)iew, (m)aterialized view
+            AND n.nspname = ANY (current_schemas(false))
+          SQL
+        end
+
         # Returns true if table exists.
         # If the schema is not specified as part of +name+ then it will only find tables within
         # the current schema search path (regardless of permissions to access tables in other schemas)
@@ -89,6 +99,7 @@ module ActiveRecord
               AND n.nspname = #{name.schema ? "'#{name.schema}'" : 'ANY (current_schemas(false))'}
           SQL
         end
+        alias data_source_exists? table_exists?
 
         def views # :nodoc:
           select_values(<<-SQL, 'SCHEMA')

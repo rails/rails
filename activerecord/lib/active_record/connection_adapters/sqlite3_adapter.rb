@@ -319,10 +319,12 @@ module ActiveRecord
           row['name']
         end
       end
+      alias data_sources tables
 
       def table_exists?(table_name)
         table_name && tables(nil, table_name).any?
       end
+      alias data_source_exists? table_exists?
 
       def views # :nodoc:
         select_values("SELECT name FROM sqlite_master WHERE type = 'view' AND name <> 'sqlite_sequence'", 'SCHEMA')
