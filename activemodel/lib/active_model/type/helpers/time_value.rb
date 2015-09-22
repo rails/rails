@@ -5,11 +5,7 @@ module ActiveModel
     module Helpers
       module TimeValue # :nodoc:
         def serialize(value)
-          if precision && value.respond_to?(:usec)
-            number_of_insignificant_digits = 6 - precision
-            round_power = 10 ** number_of_insignificant_digits
-            value = value.change(usec: value.usec / round_power * round_power)
-          end
+          value = apply_seconds_precision(value)
 
           if value.acts_like?(:time)
             zone_conversion_method = is_utc? ? :getutc : :getlocal
@@ -32,6 +28,13 @@ module ActiveModel
           else
             :local
           end
+        end
+
+        def apply_seconds_precision(value)
+          return value unless precision && value.respond_to?(:usec)
+          number_of_insignificant_digits = 6 - precision
+          round_power = 10 ** number_of_insignificant_digits
+          value.change(usec: value.usec / round_power * round_power)
         end
 
         def type_cast_for_schema(value)

@@ -1,3 +1,23 @@
+*   Fixed taking precision into count when assigning a value to timestamp attribute
+
+    Timestamp column can have less precision than ruby timestamp
+    In result in how big a fraction of a second can be stored in the
+    database.
+
+
+      m = Model.create!
+      m.created_at.usec == m.reload.created_at.usec
+        # => false
+        # due to different precision in Time.now and database column
+
+    If the precision is low enough, (mysql default is 0, so it is always low
+    enough by default) the value changes when model is reloaded from the
+    database. This patch fixes that issue ensuring that any timestamp
+    assigned as an attribute is converted to column precision under the
+    attribute.
+
+    *Bogdan Gusiev*
+
 *   Ensure `select` quotes aliased attributes, even when using `from`.
 
     Fixes #21488

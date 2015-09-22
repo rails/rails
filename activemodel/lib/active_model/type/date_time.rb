@@ -12,11 +12,11 @@ module ActiveModel
 
       private
 
-      def cast_value(string)
-        return string unless string.is_a?(::String)
-        return if string.empty?
+      def cast_value(value)
+        return apply_seconds_precision(value) unless value.is_a?(::String)
+        return if value.empty?
 
-        fast_string_to_time(string) || fallback_string_to_time(string)
+        fast_string_to_time(value) || fallback_string_to_time(value)
       end
 
       # '0.123456' -> 123456
