@@ -32,6 +32,11 @@
 
     *Yves Senn*, *Matthew Draper*
 
+*   Add `ActiveRecord::Base.ignored_columns` to make some columns
+    invisible from ActiveRecord.
+
+    *Jean Boussier*
+
 *   `ActiveRecord::Tasks::MySQLDatabaseTasks` fails if shellout to
     mysql commands (like `mysqldump`) is not successful.
 
