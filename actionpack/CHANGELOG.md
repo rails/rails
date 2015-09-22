@@ -5,7 +5,7 @@
 
     To this:
 
-      Mime::Types[:HTML]
+      Mime::Type[:HTML]
 
     This change is so that Rails will not manage a list of constants, and fixes
     an issue where if a type isn't registered you could possibly get the wrong
