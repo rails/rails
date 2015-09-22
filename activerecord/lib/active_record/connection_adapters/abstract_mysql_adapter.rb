@@ -628,6 +628,7 @@ module ActiveRecord
       def tables(name = nil) # :nodoc:
         select_values("SHOW FULL TABLES", 'SCHEMA')
       end
+      alias data_sources tables
 
       def truncate(table_name, name = nil)
         execute "TRUNCATE TABLE #{quote_table_name(table_name)}", name
@@ -644,6 +645,7 @@ module ActiveRecord
 
         select_values(sql, 'SCHEMA').any?
       end
+      alias data_source_exists? table_exists?
 
       def views # :nodoc:
         select_values("SHOW FULL TABLES WHERE table_type = 'VIEW'", 'SCHEMA')

@@ -29,7 +29,7 @@ module ActiveRecord
       def test_clearing
         @cache.columns('posts')
         @cache.columns_hash('posts')
-        @cache.tables('posts')
+        @cache.data_sources('posts')
         @cache.primary_keys('posts')
 
         @cache.clear!
@@ -40,17 +40,22 @@ module ActiveRecord
       def test_dump_and_load
         @cache.columns('posts')
         @cache.columns_hash('posts')
-        @cache.tables('posts')
+        @cache.data_sources('posts')
         @cache.primary_keys('posts')
 
         @cache = Marshal.load(Marshal.dump(@cache))
 
         assert_equal 11, @cache.columns('posts').size
         assert_equal 11, @cache.columns_hash('posts').size
-        assert @cache.tables('posts')
+        assert @cache.data_sources('posts')
         assert_equal 'id', @cache.primary_keys('posts')
       end
 
+      def test_table_methods_deprecation
+        assert_deprecated { assert @cache.table_exists?('posts') }
+        assert_deprecated { assert @cache.tables('posts') }
+        assert_deprecated { @cache.clear_table_cache!('posts') }
+      end
     end
   end
 end

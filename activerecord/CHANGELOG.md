@@ -1,3 +1,13 @@
+*   Introduce `connection.data_sources` and `connection.data_source_exists?`.
+    These methods determine what relations can be used to back Active Record
+    models (usually tables and views).
+
+    Also deprecate `SchemaCache#tables`, `SchemaCache#table_exists?` and
+    `SchemaCache#clear_table_cache!` in favor of their new data source
+    counterparts.
+
+    *Yves Senn*, *Matthew Draper*
+
 *   `ActiveRecord::Tasks::MySQLDatabaseTasks` fails if shellout to
     mysql commands (like `mysqldump`) is not successful.
 

@@ -23,6 +23,20 @@ module ActiveRecord
         table_name[0...table_alias_length].tr('.', '_')
       end
 
+      # Returns the relation names useable to back Active Record models.
+      # For most adapters this means all #tables and #views.
+      def data_sources
+        tables | views
+      end
+
+      # Checks to see if the data source +name+ exists on the database.
+      #
+      #   data_source_exists?(:ebooks)
+      #
+      def data_source_exists?(name)
+        data_sources.include?(name.to_s)
+      end
+
       # Returns an array of table names defined in the database.
       def tables(name = nil)
         raise NotImplementedError, "#tables is not implemented"

@@ -213,7 +213,7 @@ module ActiveRecord
 
       # Indicates whether the table associated with this class exists
       def table_exists?
-        connection.schema_cache.table_exists?(table_name)
+        connection.schema_cache.data_source_exists?(table_name)
       end
 
       def attributes_builder # :nodoc:
@@ -290,7 +290,7 @@ module ActiveRecord
       def reset_column_information
         connection.clear_cache!
         undefine_attribute_methods
-        connection.schema_cache.clear_table_cache!(table_name)
+        connection.schema_cache.clear_data_source_cache!(table_name)
 
         reload_schema_from_cache
       end

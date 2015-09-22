@@ -255,7 +255,7 @@ db_namespace = namespace :db do
         filename = File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, "schema_cache.dump")
 
         con.schema_cache.clear!
-        con.tables.each { |table| con.schema_cache.add(table) }
+        con.data_sources.each { |table| con.schema_cache.add(table) }
         open(filename, 'wb') { |f| f.write(Marshal.dump(con.schema_cache)) }
       end
 

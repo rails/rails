@@ -7,7 +7,7 @@ module ActiveRecord
 
   module ConnectionAdapters
     class FakeAdapter < AbstractAdapter
-      attr_accessor :tables, :primary_keys
+      attr_accessor :data_sources, :primary_keys
 
       @columns = Hash.new { |h,k| h[k] = [] }
       class << self
@@ -16,7 +16,7 @@ module ActiveRecord
 
       def initialize(connection, logger)
         super
-        @tables       = []
+        @data_sources = []
         @primary_keys = {}
         @columns      = self.class.columns
       end
@@ -37,7 +37,7 @@ module ActiveRecord
         @columns[table_name]
       end
 
-      def table_exists?(*)
+      def data_source_exists?(*)
         true
       end
 
