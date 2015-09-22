@@ -165,16 +165,18 @@ class MailDeliveryTest < ActiveSupport::TestCase
 
   test "non registered delivery methods raises errors" do
     DeliveryMailer.delivery_method = :unknown
-    assert_raise RuntimeError do
+    error = assert_raise RuntimeError do
       DeliveryMailer.welcome.deliver_now
     end
+    assert_equal "Invalid delivery method :unknown", error.message
   end
 
   test "undefined delivery methods raises errors" do
     DeliveryMailer.delivery_method = nil
-    assert_raise RuntimeError do
+    error = assert_raise RuntimeError do
       DeliveryMailer.welcome.deliver_now
     end
+    assert_equal "Delivery method cannot be nil", error.message
   end
 
   test "does not perform deliveries if requested" do
