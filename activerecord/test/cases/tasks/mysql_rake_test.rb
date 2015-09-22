@@ -270,15 +270,16 @@ module ActiveRecord
       ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename)
     end
 
-    def test_warn_when_external_structure_dump_fails
+    def test_warn_when_external_structure_dump_command_execution_fails
       filename = "awesome-file.sql"
-      Kernel.expects(:system).with("mysqldump", "--result-file", filename, "--no-data", "--routines", "test-db").returns(false)
+      Kernel.expects(:system)
+        .with("mysqldump", "--result-file", filename, "--no-data", "--routines", "test-db")
+        .returns(false)
 
-      warnings = capture(:stderr) do
+      e = assert_raise(RuntimeError) {
         ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename)
-      end
-
-      assert_match(/Could not dump the database structure/, warnings)
+      }
+      assert_match(/^failed to execute: `mysqldump`$/, e.message)
     end
 
     def test_structure_dump_with_port_number
@@ -311,6 +312,7 @@ module ActiveRecord
     def test_structure_load
       filename = "awesome-file.sql"
       Kernel.expects(:system).with('mysql', '--execute', %{SET FOREIGN_KEY_CHECKS = 0; SOURCE #{filename}; SET FOREIGN_KEY_CHECKS = 1}, "--database", "test-db")
+        .returns(true)
 
       ActiveRecord::Tasks::DatabaseTasks.structure_load(@configuration, filename)
     end

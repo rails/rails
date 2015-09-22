@@ -1,3 +1,8 @@
+*   `ActiveRecord::Tasks::MySQLDatabaseTasks` fails if shellout to
+    mysql commands (like `mysqldump`) is not successful.
+
+    *Steve Mitchell*
+
 *   Ensure `select` quotes aliased attributes, even when using `from`.
 
     Fixes #21488
