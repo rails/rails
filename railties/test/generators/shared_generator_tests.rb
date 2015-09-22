@@ -109,7 +109,6 @@ module SharedGeneratorTests
       template
     end
 
-    generator = generator([destination_root], template: path)
     generator([destination_root], template: path).stub(:open, check_open, template) do
       quietly { assert_match(/It works!/, capture(:stdout) { generator.invoke_all }) }
     end
