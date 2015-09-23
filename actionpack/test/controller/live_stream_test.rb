@@ -112,7 +112,7 @@ module ActionController
     class TestController < ActionController::Base
       include ActionController::Live
 
-      attr_accessor :latch, :tc
+      attr_accessor :latch, :tc, :error_latch
 
       def self.controller_path
         'test'
@@ -204,6 +204,12 @@ module ActionController
       end
 
       def overfill_buffer_and_die
+        logger = ActionController::Base.logger || Logger.new($stdout)
+        response.stream.on_error do
+          logger.warn 'Error while streaming'
+          error_latch.count_down
+        end
+
         # Write until the buffer is full. It doesn't expose that
         # information directly, so we must hard-code its size:
         10.times do
@@ -291,31 +297,23 @@ module ActionController
 
     def test_abort_with_full_buffer
       @controller.latch = Concurrent::CountDownLatch.new
-
-      @request.parameters[:format] = 'plain'
-      @controller.request  = @request
-      @controller.response = @response
-
-      got_error = Concurrent::CountDownLatch.new
-      @response.stream.on_error do
-        ActionController::Base.logger.warn 'Error while streaming'
-        got_error.count_down
-      end
-
-      t = Thread.new(@response) { |resp|
-        resp.await_commit
-        _, _, body = resp.to_a
-        body.each do
-          @controller.latch.wait
-          body.close
-          break
-        end
-      }
+      @controller.error_latch = Concurrent::CountDownLatch.new
 
       capture_log_output do |output|
-        @controller.process :overfill_buffer_and_die
+        get :overfill_buffer_and_die, :format => 'plain'
+
+        t = Thread.new(response) { |resp|
+          resp.await_commit
+          _, _, body = resp.to_a
+          body.each do
+            @controller.latch.wait
+            body.close
+            break
+          end
+        }
+
         t.join
-        got_error.wait
+        @controller.error_latch.wait
         assert_match 'Error while streaming', output.rewind && output.read
       end
     end
