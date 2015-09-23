@@ -170,7 +170,9 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     part = ShipPart.create(name: 'cockpit')
     updated_at = part.updated_at
 
-    ship.parts << part
+    travel(1.second) do
+      ship.parts << part
+    end
 
     assert_equal part.ship, ship
     assert_not_equal part.updated_at, updated_at

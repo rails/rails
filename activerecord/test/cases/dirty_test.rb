@@ -467,8 +467,10 @@ class DirtyTest < ActiveRecord::TestCase
       topic.save!
 
       updated_at = topic.updated_at
-      topic.content[:hello] = 'world'
-      topic.save!
+      travel(1.second) do
+        topic.content[:hello] = 'world'
+        topic.save!
+      end
 
       assert_not_equal updated_at, topic.updated_at
       assert_equal 'world', topic.content[:hello]
@@ -521,6 +523,9 @@ class DirtyTest < ActiveRecord::TestCase
     assert_equal Hash.new, pirate.previous_changes
 
     pirate = Pirate.find_by_catchphrase("arrr")
+
+    travel(1.second)
+
     pirate.catchphrase = "Me Maties!"
     pirate.save!
 
@@ -532,6 +537,9 @@ class DirtyTest < ActiveRecord::TestCase
     assert !pirate.previous_changes.key?('created_on')
 
     pirate = Pirate.find_by_catchphrase("Me Maties!")
+
+    travel(1.second)
+
     pirate.catchphrase = "Thar She Blows!"
     pirate.save
 
@@ -541,6 +549,8 @@ class DirtyTest < ActiveRecord::TestCase
     assert_not_nil pirate.previous_changes['updated_on'][1]
     assert !pirate.previous_changes.key?('parrot_id')
     assert !pirate.previous_changes.key?('created_on')
+
+    travel(1.second)
 
     pirate = Pirate.find_by_catchphrase("Thar She Blows!")
     pirate.update(catchphrase: "Ahoy!")
@@ -552,6 +562,8 @@ class DirtyTest < ActiveRecord::TestCase
     assert !pirate.previous_changes.key?('parrot_id')
     assert !pirate.previous_changes.key?('created_on')
 
+    travel(1.second)
+
     pirate = Pirate.find_by_catchphrase("Ahoy!")
     pirate.update_attribute(:catchphrase, "Ninjas suck!")
 
@@ -561,6 +573,8 @@ class DirtyTest < ActiveRecord::TestCase
     assert_not_nil pirate.previous_changes['updated_on'][1]
     assert !pirate.previous_changes.key?('parrot_id')
     assert !pirate.previous_changes.key?('created_on')
+  ensure
+    travel_back
   end
 
   if ActiveRecord::Base.connection.supports_migrations?

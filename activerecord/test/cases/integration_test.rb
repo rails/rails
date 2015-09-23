@@ -125,6 +125,7 @@ class IntegrationTest < ActiveRecord::TestCase
   end
 
   def test_cache_key_format_is_precise_enough
+    skip("Subsecond precision is not supported") unless subsecond_precision_supported?
     dev = Developer.first
     key = dev.cache_key
     dev.touch
