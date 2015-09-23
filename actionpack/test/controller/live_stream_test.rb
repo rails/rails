@@ -281,10 +281,9 @@ module ActionController
       @controller.latch = Concurrent::CountDownLatch.new
       parts             = ['hello', 'world']
 
-      @controller.request  = @request
-      @controller.response = @response
+      get :blocking_stream
 
-      t = Thread.new(@response) { |resp|
+      t = Thread.new(response) { |resp|
         resp.await_commit
         resp.stream.each do |part|
           assert_equal parts.shift, part
@@ -293,8 +292,6 @@ module ActionController
           ol.count_down
         end
       }
-
-      @controller.process :blocking_stream
 
       assert t.join(3), 'timeout expired before the thread terminated'
     end
