@@ -320,20 +320,18 @@ module ActionController
     def test_ignore_client_disconnect
       @controller.latch = Concurrent::CountDownLatch.new
 
-      @controller.request  = @request
-      @controller.response = @response
-
-      t = Thread.new(@response) { |resp|
-        resp.await_commit
-        _, _, body = resp.to_a
-        body.each do
-          body.close
-          break
-        end
-      }
-
       capture_log_output do |output|
-        @controller.process :ignore_client_disconnect
+        get :ignore_client_disconnect
+
+        t = Thread.new(response) { |resp|
+          resp.await_commit
+          _, _, body = resp.to_a
+          body.each do
+            body.close
+            break
+          end
+        }
+
         t.join
         Timeout.timeout(3) do
           @controller.latch.wait
