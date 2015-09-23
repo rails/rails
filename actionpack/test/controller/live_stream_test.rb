@@ -263,7 +263,6 @@ module ActionController
     end
 
     def test_write_to_stream
-      @controller = TestController.new
       get :basic_stream
       assert_equal "helloworld", @response.body
       assert_equal 'text/event-stream', @response.headers['Content-Type']
