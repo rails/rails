@@ -585,7 +585,7 @@ module ActionController
       end
 
       def build_response(klass)
-        klass.new
+        klass.create
       end
 
       included do

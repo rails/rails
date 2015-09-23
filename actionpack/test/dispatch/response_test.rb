@@ -4,7 +4,7 @@ require 'rack/content_length'
 
 class ResponseTest < ActiveSupport::TestCase
   def setup
-    @response = ActionDispatch::Response.new
+    @response = ActionDispatch::Response.create
   end
 
   def test_can_wait_until_commit
@@ -217,7 +217,7 @@ class ResponseTest < ActiveSupport::TestCase
         'X-Content-Type-Options' => 'nosniff',
         'X-XSS-Protection' => '1;'
       }
-      resp = ActionDispatch::Response.new.tap { |response|
+      resp = ActionDispatch::Response.create.tap { |response|
         response.body = 'Hello'
       }
       resp.to_a
@@ -236,7 +236,7 @@ class ResponseTest < ActiveSupport::TestCase
       ActionDispatch::Response.default_headers = {
         'X-XX-XXXX' => 'Here is my phone number'
       }
-      resp = ActionDispatch::Response.new.tap { |response|
+      resp = ActionDispatch::Response.create.tap { |response|
         response.body = 'Hello'
       }
       resp.to_a

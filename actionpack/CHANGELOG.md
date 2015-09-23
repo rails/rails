@@ -1,3 +1,8 @@
+*   ActionDispatch::Response#new no longer applies default headers.  If you want
+    default headers applied to the response object, then call
+    `ActionDispatch::Response.create`.  This change only impacts people who are
+    directly constructing an `ActionDispatch::Response` object.
+
 *   Accessing mime types via constants like `Mime::HTML` is deprecated.  Please
     change code like this:
 

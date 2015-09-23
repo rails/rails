@@ -236,6 +236,10 @@ module ActionController
         end
       end
 
+      def initialize(status = 200, header = {}, body = [])
+        super(status, Header.new(self, header), body)
+      end
+
       private
 
       def before_committed
@@ -255,10 +259,6 @@ module ActionController
         buf = Live::Buffer.new response
         body.each { |part| buf.write part }
         buf
-      end
-
-      def merge_default_headers(original, default)
-        Header.new self, super
       end
 
       def handle_conditional_get!
