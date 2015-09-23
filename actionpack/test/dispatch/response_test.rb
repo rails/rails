@@ -149,14 +149,19 @@ class ResponseTest < ActiveSupport::TestCase
     status, headers, body = @response.to_a
     assert_equal "user_name=david; path=/", headers["Set-Cookie"]
     assert_equal({"user_name" => "david"}, @response.cookies)
+  end
 
-    @response = ActionDispatch::TestResponse.new
+  test "multiple cookies" do
     @response.set_cookie("user_name", :value => "david", :path => "/")
     @response.set_cookie("login", :value => "foo&bar", :path => "/", :expires => Time.utc(2005, 10, 10,5))
     status, headers, body = @response.to_a
     assert_equal "user_name=david; path=/\nlogin=foo%26bar; path=/; expires=Mon, 10 Oct 2005 05:00:00 -0000", headers["Set-Cookie"]
     assert_equal({"login" => "foo&bar", "user_name" => "david"}, @response.cookies)
+  end
 
+  test "delete cookies" do
+    @response.set_cookie("user_name", :value => "david", :path => "/")
+    @response.set_cookie("login", :value => "foo&bar", :path => "/", :expires => Time.utc(2005, 10, 10,5))
     @response.delete_cookie("login")
     status, headers, body = @response.to_a
     assert_equal({"user_name" => "david", "login" => nil}, @response.cookies)
