@@ -15,7 +15,7 @@ module ActiveRecord
       # them into a valid SQL fragment for a WHERE clause.
       #   ["name='%s' and group_id='%s'", "foo'bar", 4]  returns  "name='foo''bar' and group_id='4'"
       #   "name='foo''bar' and group_id='4'" returns "name='foo''bar' and group_id='4'"
-      def sanitize_sql_for_conditions(condition, table_name = self.table_name)
+      def sanitize_sql_for_conditions(condition)
         return nil if condition.blank?
 
         case condition
