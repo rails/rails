@@ -449,11 +449,11 @@ module ApplicationTests
 
       get "/rails/mailers/notifier/foo.html"
       assert_equal 200, last_response.status
-      assert_match '<option selected value="?part=text%2Fhtml">View as HTML email</option>', last_response.body
+      assert_match '<option selected value="text%2Fhtml">View as HTML email</option>', last_response.body
 
       get "/rails/mailers/notifier/foo.txt"
       assert_equal 200, last_response.status
-      assert_match '<option selected value="?part=text%2Fplain">View as plain-text email</option>', last_response.body
+      assert_match '<option selected value="text%2Fplain">View as plain-text email</option>', last_response.body
     end
 
     test "mailer previews create correct links when loaded on a subdirectory" do
@@ -516,7 +516,7 @@ module ApplicationTests
 
       get "/rails/mailers/notifier/foo"
       assert_equal 200, last_response.status
-      assert_match %r[<iframe seamless name="messageBody"], last_response.body
+      assert_match %r[<iframe seamless name="mailBody"], last_response.body
 
       get "/rails/mailers/notifier/foo?part=text/plain"
       assert_equal 200, last_response.status
@@ -557,7 +557,7 @@ module ApplicationTests
 
       get "/rails/mailers/notifier/foo"
       assert_equal 200, last_response.status
-      assert_match %r[<iframe seamless name="messageBody"], last_response.body
+      assert_match %r[<iframe seamless name="mailBody"], last_response.body
 
       get "/rails/mailers/notifier/foo?part=text/plain"
       assert_equal 200, last_response.status
@@ -603,7 +603,7 @@ module ApplicationTests
 
       get "/rails/mailers/notifier/foo"
       assert_equal 200, last_response.status
-      assert_match %r[<iframe seamless name="messageBody"], last_response.body
+      assert_match %r[<iframe seamless name="mailBody"], last_response.body
 
       get "/rails/mailers/notifier/foo?part=text/plain"
       assert_equal 200, last_response.status
@@ -661,7 +661,7 @@ module ApplicationTests
 
       get "/rails/mailers/notifier/foo"
       assert_equal 200, last_response.status
-      assert_match %r[<iframe seamless name="messageBody"], last_response.body
+      assert_match %r[<iframe seamless name="mailBody"], last_response.body
 
       get "/rails/mailers/notifier/foo?part=text/plain"
       assert_equal 200, last_response.status
