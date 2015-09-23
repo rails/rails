@@ -262,7 +262,6 @@ module ActionController
     end
 
     def test_set_cookie
-      @controller = TestController.new
       get :set_cookie
       assert_equal({'hello' => 'world'}, @response.cookies)
       assert_equal "hello world", @response.body
@@ -352,11 +351,8 @@ module ActionController
     end
 
     def test_live_stream_default_header
-      @controller.request  = @request
-      @controller.response = @response
-      @controller.process :default_header
-      _, headers, _ = @response.prepare!
-      assert headers['Content-Type']
+      get :default_header
+      assert response.headers['Content-Type']
     end
 
     def test_render_text
@@ -425,13 +421,13 @@ module ActionController
 
     def test_stale_without_etag
       get :with_stale
-      assert_equal 200, @response.status.to_i
+      assert_equal 200, response.status.to_i
     end
 
     def test_stale_with_etag
       @request.if_none_match = Digest::MD5.hexdigest("123")
       get :with_stale
-      assert_equal 304, @response.status.to_i
+      assert_equal 304, response.status.to_i
     end
   end
 
