@@ -22,7 +22,7 @@ module ActiveRecord
     #   p1.save
     #
     #   p2.first_name = "should fail"
-    #   p2.save # Raises a ActiveRecord::StaleObjectError
+    #   p2.save # Raises an ActiveRecord::StaleObjectError
     #
     # Optimistic locking will also check for stale data when objects are destroyed. Example:
     #
@@ -32,7 +32,7 @@ module ActiveRecord
     #   p1.first_name = "Michael"
     #   p1.save
     #
-    #   p2.destroy # Raises a ActiveRecord::StaleObjectError
+    #   p2.destroy # Raises an ActiveRecord::StaleObjectError
     #
     # You're then responsible for dealing with the conflict by rescuing the exception and either rolling back, merging,
     # or otherwise apply the business logic needed to resolve the conflict.
