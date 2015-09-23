@@ -1,3 +1,7 @@
+*   Properly inflect words that end in "zz". e.g. buzz -> buzzes
+
+    *Jay Hayes*
+
 *   Short-circuit `blank?` on date and time values since they are never blank.
 
     Fixes #21657
