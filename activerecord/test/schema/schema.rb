@@ -536,10 +536,17 @@ ActiveRecord::Schema.define do
     t.column :color, :string
     t.column :parrot_sti_class, :string
     t.column :killer_id, :integer
-    t.column :created_at, :datetime, precision: 0
-    t.column :created_on, :datetime, precision: 0
-    t.column :updated_at, :datetime, precision: 0
-    t.column :updated_on, :datetime, precision: 0
+    if subsecond_precision_supported?
+      t.column :created_at, :datetime, precision: 0
+      t.column :created_on, :datetime, precision: 0
+      t.column :updated_at, :datetime, precision: 0
+      t.column :updated_on, :datetime, precision: 0
+    else
+      t.column :created_at, :datetime
+      t.column :created_on, :datetime
+      t.column :updated_at, :datetime
+      t.column :updated_on, :datetime
+    end
   end
 
   create_table :parrots_pirates, id: false, force: true do |t|
@@ -582,15 +589,24 @@ ActiveRecord::Schema.define do
   create_table :pets, primary_key: :pet_id, force: true do |t|
     t.string :name
     t.integer :owner_id, :integer
-    t.timestamps null: false, precision: 6
+    if subsecond_precision_supported?
+      t.timestamps null: false, precision: 6
+    else
+      t.timestamps null: false
+    end
   end
 
   create_table :pirates, force: true do |t|
     t.column :catchphrase, :string
     t.column :parrot_id, :integer
     t.integer :non_validated_parrot_id
-    t.column :created_on, :datetime, precision: 6
-    t.column :updated_on, :datetime, precision: 6
+    if subsecond_precision_supported?
+      t.column :created_on, :datetime, precision: 6
+      t.column :updated_on, :datetime, precision: 6
+    else
+      t.column :created_on, :datetime
+      t.column :updated_on, :datetime
+    end
   end
 
   create_table :posts, force: true do |t|
@@ -700,7 +716,11 @@ ActiveRecord::Schema.define do
   create_table :ship_parts, force: true do |t|
     t.string :name
     t.integer :ship_id
-    t.datetime :updated_at, precision: 6
+    if subsecond_precision_supported?
+      t.datetime :updated_at, precision: 6
+    else
+      t.datetime :updated_at
+    end
   end
 
   create_table :prisoners, force: true do |t|
