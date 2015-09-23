@@ -295,6 +295,8 @@ module ActiveRecord
       # [<tt>:force</tt>]
       #   Set to true to drop the table before creating it.
       #   Defaults to false.
+      # [<tt>:primary_key_type</tt>]
+      #   The type of primary key. Defaults to +:integer+.
       #
       # Note that +create_join_table+ does not create any indices by default; you can use
       # its block form to do so yourself:
@@ -318,14 +320,15 @@ module ActiveRecord
       def create_join_table(table_1, table_2, options = {})
         join_table_name = find_join_table_name(table_1, table_2, options)
 
+        primary_key_type = options.delete(:primary_key_type) || :integer
         column_options = options.delete(:column_options) || {}
         column_options.reverse_merge!(null: false)
 
         t1_column, t2_column = [table_1, table_2].map{ |t| t.to_s.singularize.foreign_key }
 
         create_table(join_table_name, options.merge!(id: false)) do |td|
-          td.integer t1_column, column_options
-          td.integer t2_column, column_options
+          td.send(primary_key_type, t1_column, column_options)
+          td.send(primary_key_type, t2_column, column_options)
           yield td if block_given?
         end
       end
