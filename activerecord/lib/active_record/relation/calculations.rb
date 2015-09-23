@@ -70,9 +70,9 @@ module ActiveRecord
     # +calculate+ for examples with options.
     #
     #   Person.sum(:age) # => 4562
-    def sum(*args)
-      return super if block_given?
-      calculate(:sum, *args)
+    def sum(column_name = nil, &block)
+      return super &block if block_given?
+      calculate(:sum, column_name)
     end
 
     # This calculates aggregate values in the given column. Methods for count, sum, average,
