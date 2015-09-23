@@ -1,3 +1,14 @@
+*   Add `:primary_key_type` option to `#create_join_table`. This makes it
+    possible to use `#create_join_table` if you are using a non-integer type in
+    primary key.
+
+    Example:
+
+        create_join_table :foo, :bar, primary_key_type: :uuid do |t|
+        end
+
+    *Yuji Yaginuma*
+
 *   Introduce `connection.data_sources` and `connection.data_source_exists?`.
     These methods determine what relations can be used to back Active Record
     models (usually tables and views).

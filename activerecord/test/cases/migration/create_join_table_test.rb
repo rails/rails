@@ -20,6 +20,7 @@ module ActiveRecord
         connection.create_join_table :artists, :musics
 
         assert_equal %w(artist_id music_id), connection.columns(:artists_musics).map(&:name).sort
+        assert_equal %i(integer integer), connection.columns(:artists_musics).map(&:type).sort
       end
 
       def test_create_join_table_set_not_null_by_default
@@ -76,6 +77,11 @@ module ActiveRecord
         end
 
         assert_equal [%w(artist_id music_id)], connection.indexes(:artists_musics).map(&:columns)
+      end
+
+      def test_create_join_table_with_primary_key_type_options
+        connection.create_join_table :artists, :musics, primary_key_type: :string
+        assert_equal %i(string string), connection.columns(:artists_musics).map(&:type).sort
       end
 
       def test_drop_join_table
