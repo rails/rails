@@ -20,6 +20,55 @@ class SendFileController < ActionController::Base
     send_file(file_path, options)
   end
 
+  def test_send_file_headers_bang
+    options = {
+      :type => Mime::Type[:PNG],
+      :disposition => 'disposition',
+      :filename => 'filename'
+    }
+
+    self.headers = {}
+    send_data "foo", options
+  end
+
+  def test_send_file_headers_with_disposition_as_a_symbol
+    options = {
+      :type => Mime::Type[:PNG],
+      :disposition => :disposition,
+      :filename => 'filename'
+    }
+
+    self.headers = {}
+    send_data "foo", options
+  end
+
+  def test_send_file_headers_with_mime_lookup_with_symbol
+    options = {
+      :type => :png
+    }
+
+    self.headers = {}
+    send_data "foo", options
+  end
+
+  def test_send_file_headers_with_bad_symbol
+    options = { :type => :this_type_is_not_registered }
+    self.headers = {}
+    send_data "foo", options
+  end
+
+  def test_send_file_headers_with_nil_content_type
+    options = { :type => nil }
+    self.headers = {}
+    send_data "foo", options
+  end
+
+  def test_send_file_headers_guess_type_from_extension
+    options = { :filename => params[:filename] }
+    self.headers = {}
+    send_data "foo", options
+  end
+
   def data
     send_data(file_data, options)
   end
@@ -88,72 +137,38 @@ class SendFileTest < ActionController::TestCase
 
   # Test that send_file_headers! is setting the correct HTTP headers.
   def test_send_file_headers_bang
-    options = {
-      :type => Mime::Type[:PNG],
-      :disposition => 'disposition',
-      :filename => 'filename'
-    }
-
     # Do it a few times: the resulting headers should be identical
     # no matter how many times you send with the same options.
     # Test resolving Ticket #458.
-    @controller.headers = {}
-    @controller.send(:send_file_headers!, options)
-    @controller.send(:send_file_headers!, options)
-    @controller.send(:send_file_headers!, options)
+    5.times do
+      get :test_send_file_headers_bang
 
-    h = @controller.headers
-    assert_equal 'image/png', @controller.content_type
-    assert_equal 'disposition; filename="filename"', h['Content-Disposition']
-    assert_equal 'binary', h['Content-Transfer-Encoding']
-
-    # test overriding Cache-Control: no-cache header to fix IE open/save dialog
-    @controller.send(:send_file_headers!, options)
-    @controller.response.prepare!
-    assert_equal 'private', h['Cache-Control']
+      assert_equal 'image/png', response.content_type
+      assert_equal 'disposition; filename="filename"', response.get_header('Content-Disposition')
+      assert_equal 'binary', response.get_header('Content-Transfer-Encoding')
+      assert_equal 'private', response.get_header('Cache-Control')
+    end
   end
 
   def test_send_file_headers_with_disposition_as_a_symbol
-    options = {
-      :type => Mime::Type[:PNG],
-      :disposition => :disposition,
-      :filename => 'filename'
-    }
+    get :test_send_file_headers_with_disposition_as_a_symbol
 
-    @controller.headers = {}
-    @controller.send(:send_file_headers!, options)
-    assert_equal 'disposition; filename="filename"', @controller.headers['Content-Disposition']
+    assert_equal 'disposition; filename="filename"', response.get_header('Content-Disposition')
   end
 
   def test_send_file_headers_with_mime_lookup_with_symbol
-    options = {
-      :type => :png
-    }
-
-    @controller.headers = {}
-    @controller.send(:send_file_headers!, options)
-
-    assert_equal 'image/png', @controller.content_type
+    get __method__
+    assert_equal 'image/png', response.content_type
   end
 
 
   def test_send_file_headers_with_bad_symbol
-    options = {
-      :type => :this_type_is_not_registered
-    }
-
-    @controller.headers = {}
-    error = assert_raise(ArgumentError) { @controller.send(:send_file_headers!, options) }
-    assert_equal "Unknown MIME type #{options[:type]}", error.message
+    error = assert_raise(ArgumentError) { get __method__ }
+    assert_equal "Unknown MIME type this_type_is_not_registered", error.message
   end
 
   def test_send_file_headers_with_nil_content_type
-    options = {
-      :type => nil
-    }
-
-    @controller.headers = {}
-    error = assert_raise(ArgumentError) { @controller.send(:send_file_headers!, options) }
+    error = assert_raise(ArgumentError) { get __method__ }
     assert_equal ":type option required", error.message
   end
 
@@ -169,10 +184,8 @@ class SendFileTest < ActionController::TestCase
       'file.unk' => 'application/octet-stream',
       'zip' => 'application/octet-stream'
     }.each do |filename,expected_type|
-      options = { :filename => filename }
-      @controller.headers = {}
-      @controller.send(:send_file_headers!, options)
-      assert_equal expected_type, @controller.content_type
+      get __method__, params: { filename: filename }
+      assert_equal expected_type, response.content_type
     end
   end
 
