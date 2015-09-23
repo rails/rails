@@ -639,7 +639,7 @@ However, because you are developing the `blorgh` engine on your local machine,
 you will need to specify the `:path` option in your `Gemfile`:
 
 ```ruby
-gem 'blorgh', path: "/path/to/blorgh"
+gem 'blorgh', path: "path/to/blorgh"
 ```
 
 Then run `bundle` to install the gem.
