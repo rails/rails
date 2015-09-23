@@ -4,7 +4,6 @@ module ActiveRecord
   class AttributeTest < ActiveRecord::TestCase
     setup do
       @type = Minitest::Mock.new
-      @type.expect(:==, false, [false])
     end
 
     teardown do

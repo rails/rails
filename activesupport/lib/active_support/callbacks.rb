@@ -536,22 +536,11 @@ module ActiveSupport
         Proc.new do |target, result_lambda|
           terminate = true
           catch(:abort) do
-            result = result_lambda.call if result_lambda.is_a?(Proc)
-            if halt_and_display_warning_on_return_false && result == false
-              display_deprecation_warning_for_false_terminator
-            else
-              terminate = false
-            end
+            result_lambda.call if result_lambda.is_a?(Proc)
+            terminate = false
           end
           terminate
         end
-      end
-
-      def display_deprecation_warning_for_false_terminator
-        ActiveSupport::Deprecation.warn(<<-MSG.squish)
-          Returning `false` in a callback will not implicitly halt a callback chain in the next release of Rails.
-          To explicitly halt a callback chain, please use `throw :abort` instead.
-        MSG
       end
     end
 
@@ -686,7 +675,8 @@ module ActiveSupport
       #
       #   In this example, if any before validate callbacks returns +false+,
       #   any successive before and around callback is not executed.
-      #   Defaults to +false+, meaning no value halts the chain.
+      #
+      #   The default terminator halts the chain when a callback throws +:abort+.
       #
       # * <tt>:skip_after_callbacks_if_terminated</tt> - Determines if after
       #   callbacks should be terminated by the <tt>:terminator</tt> option. By
@@ -763,6 +753,30 @@ module ActiveSupport
 
       def set_callbacks(name, callbacks)
         send "_#{name}_callbacks=", callbacks
+      end
+
+      def deprecated_false_terminator
+        Proc.new do |target, result_lambda|
+          terminate = true
+          catch(:abort) do
+            result = result_lambda.call if result_lambda.is_a?(Proc)
+            if CallbackChain.halt_and_display_warning_on_return_false && result == false
+              display_deprecation_warning_for_false_terminator
+            else
+              terminate = false
+            end
+          end
+          terminate
+        end
+      end
+
+      private
+
+      def display_deprecation_warning_for_false_terminator
+        ActiveSupport::Deprecation.warn(<<-MSG.squish)
+          Returning `false` in Active Record and Active Model callbacks will not implicitly halt a callback chain in the next release of Rails.
+          To explicitly halt the callback chain, please use `throw :abort` instead.
+        MSG
       end
     end
   end
