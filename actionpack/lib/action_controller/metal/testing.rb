@@ -2,11 +2,6 @@ module ActionController
   module Testing
     extend ActiveSupport::Concern
 
-    # TODO : Rewrite tests using controller.headers= to use Rack env
-    def headers=(new_headers)
-      @_response.headers.replace(new_headers)
-    end
-
     # Behavior specific to functional tests
     module Functional # :nodoc:
       def set_response!(request)

@@ -27,7 +27,6 @@ class SendFileController < ActionController::Base
       :filename => 'filename'
     }
 
-    self.headers = {}
     send_data "foo", options
   end
 
@@ -38,34 +37,27 @@ class SendFileController < ActionController::Base
       :filename => 'filename'
     }
 
-    self.headers = {}
     send_data "foo", options
   end
 
   def test_send_file_headers_with_mime_lookup_with_symbol
-    options = {
-      :type => :png
-    }
+    options = { :type => :png }
 
-    self.headers = {}
     send_data "foo", options
   end
 
   def test_send_file_headers_with_bad_symbol
     options = { :type => :this_type_is_not_registered }
-    self.headers = {}
     send_data "foo", options
   end
 
   def test_send_file_headers_with_nil_content_type
     options = { :type => nil }
-    self.headers = {}
     send_data "foo", options
   end
 
   def test_send_file_headers_guess_type_from_extension
     options = { :filename => params[:filename] }
-    self.headers = {}
     send_data "foo", options
   end
 
