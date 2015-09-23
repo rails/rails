@@ -13,6 +13,7 @@ module InflectorTestCases
     "jeans"       => "jeans",
     "funky jeans" => "funky jeans",
     "my money"    => "my money",
+    "buzz"        => "buzzes",
 
     "category"    => "categories",
     "query"       => "queries",
