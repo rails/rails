@@ -71,7 +71,7 @@ module ActiveRecord
     #
     #   Person.sum(:age) # => 4562
     def sum(column_name = nil, &block)
-      return super &block if block_given?
+      return super(&block) if block_given?
       calculate(:sum, column_name)
     end
 
