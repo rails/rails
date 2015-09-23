@@ -95,8 +95,8 @@
     <% if @email.multipart? %>
       <dd>
         <select onchange="document.getElementsByName('messageBody')[0].src=this.options[this.selectedIndex].value;">
-          <option <%= request.format == Mime::HTML ? 'selected' : '' %> value="?part=text%2Fhtml">View as HTML email</option>
-          <option <%= request.format == Mime::TEXT ? 'selected' : '' %> value="?part=text%2Fplain">View as plain-text email</option>
+          <option <%= request.format == Mime::Type[:HTML] ? 'selected' : '' %> value="?part=text%2Fhtml">View as HTML email</option>
+          <option <%= request.format == Mime::Type[:TEXT] ? 'selected' : '' %> value="?part=text%2Fplain">View as plain-text email</option>
         </select>
       </dd>
     <% end %>
