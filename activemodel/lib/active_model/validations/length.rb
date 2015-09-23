@@ -50,7 +50,7 @@ module ActiveModel
         end
 
         keys.each do |key|
-          value = options[key]
+          value = options[key].is_a?(Proc) ? options[key].call : options[key]
 
           unless (value.is_a?(Integer) && value >= 0) || value == Float::INFINITY
             raise ArgumentError, ":#{key} must be a nonnegative Integer or Infinity"
@@ -64,7 +64,7 @@ module ActiveModel
         errors_options = options.except(*RESERVED_OPTIONS)
 
         CHECKS.each do |key, validity_check|
-          next unless check_value = options[key]
+          next unless check_value = options[key].is_a?(Proc) ? options[key].call : options[key]
 
           if !value.nil? || skip_nil_check?(key)
             next if value_length.send(validity_check, check_value)
