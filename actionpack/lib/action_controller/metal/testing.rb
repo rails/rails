@@ -4,7 +4,6 @@ module ActionController
 
     # TODO : Rewrite tests using controller.headers= to use Rack env
     def headers=(new_headers)
-      @_response ||= ActionDispatch::Response.new
       @_response.headers.replace(new_headers)
     end
 
