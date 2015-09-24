@@ -1578,7 +1578,7 @@ class BasicsTest < ActiveRecord::TestCase
     refute_includes Developer.columns_hash.keys, 'first_name'
   end
 
-  test "ignored columns have no attirbute methods" do
+  test "ignored columns have no attribute methods" do
     refute Developer.new.respond_to?(:first_name)
     refute Developer.new.respond_to?(:first_name=)
     refute Developer.new.respond_to?(:first_name?)
