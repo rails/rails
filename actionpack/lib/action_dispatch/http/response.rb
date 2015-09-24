@@ -348,6 +348,7 @@ module ActionDispatch # :nodoc:
       return if committed?
       assign_default_content_type_and_charset!
       handle_conditional_get!
+      handle_no_content!
     end
 
     def before_sending
@@ -405,10 +406,15 @@ module ActionDispatch # :nodoc:
       end
     end
 
+    def handle_no_content!
+      if NO_CONTENT_CODES.include?(@status)
+        @header.delete CONTENT_TYPE
+        @header.delete 'Content-Length'
+      end
+    end
+
     def rack_response(status, header)
       if NO_CONTENT_CODES.include?(status)
-        header.delete CONTENT_TYPE
-        header.delete 'Content-Length'
         [status, header, []]
       else
         [status, header, RackBody.new(self)]
