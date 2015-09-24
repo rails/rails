@@ -102,6 +102,12 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 60,   c[2]
   end
 
+  def test_should_qualify_fields_by_group
+    assert_nothing_raised do
+      AuditLog.joins(:developer).group(:id).count
+    end
+  end
+
   def test_should_order_by_grouped_field
     c = Account.group(:firm_id).order("firm_id").sum(:credit_limit)
     assert_equal [1, 2, 6, 9], c.keys.compact

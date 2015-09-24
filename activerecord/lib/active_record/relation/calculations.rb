@@ -300,6 +300,7 @@ module ActiveRecord
         if field.respond_to?(:as)
           field.as(aliaz)
         else
+          field = "#{table_name}.#{field}" if columns_hash.key?(field.to_s)
           "#{field} AS #{aliaz}"
         end
       }
