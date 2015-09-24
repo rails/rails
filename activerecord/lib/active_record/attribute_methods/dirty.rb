@@ -52,11 +52,13 @@ module ActiveRecord
 
       def changes_applied
         @previous_mutation_tracker = @mutation_tracker
+        @changed_attributes = HashWithIndifferentAccess.new
         store_original_attributes
       end
 
       def clear_changes_information
         @previous_mutation_tracker = nil
+        @changed_attributes = HashWithIndifferentAccess.new
         store_original_attributes
       end
 
