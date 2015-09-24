@@ -147,6 +147,39 @@ xml.rss("version" => "2.0", "xmlns:dc" => "http://purl.org/dc/elements/1.1/") do
 end
 ```
 
+#### Jbuilder
+[Jbuilder](https://github.com/rails/jbuilder) is a gem that's
+maintained by the Rails team and included in the default Rails Gemfile.
+It's similar to Builder, but is used to generate JSON, instead of XML.
+
+If you don't have it, you can add the following to your Gemfile:
+
+```ruby
+gem 'jbuilder'
+```
+
+A Jbuilder object named `json` is automatically made available to templates with
+a `.jbuilder` extension.
+
+Here is a basic example:
+
+```ruby
+json.name("Alex")
+json.email("alex@example.com")
+```
+
+would produce:
+
+```json
+{
+  "name": "Alex",
+  "email: "alex@example.com"
+}
+```
+
+See the [Jbuilder documention](https://github.com/rails/jbuilder#jbuilder) for
+more examples and information.
+
 #### Template Caching
 
 By default, Rails will compile each template to a method in order to render it. When you alter a template, Rails will check the file's modification time and recompile it in development mode.
