@@ -353,7 +353,7 @@ db_namespace = namespace :db do
       ActiveRecord::Tasks::DatabaseTasks.purge ActiveRecord::Base.configurations['test']
     end
 
-    # desc 'Check for pending migrations and load the test schema'
+    # desc 'Load the test schema'
     task :prepare => %w(environment load_config) do
       unless ActiveRecord::Base.configurations.blank?
         db_namespace['test:load'].invoke
