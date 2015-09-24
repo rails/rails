@@ -68,13 +68,15 @@ module ActiveSupport
         }
         before = exps.map(&:call)
 
-        yield
+        retval = yield
 
         expressions.zip(exps).each_with_index do |(code, e), i|
           error  = "#{code.inspect} didn't change by #{difference}"
           error  = "#{message}.\n#{error}" if message
           assert_equal(before[i] + difference, e.call, error)
         end
+
+        retval
       end
 
       # Assertion that the numeric result of evaluating an expression is not
