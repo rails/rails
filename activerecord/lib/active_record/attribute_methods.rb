@@ -96,7 +96,7 @@ module ActiveRecord
         end
       end
 
-      # Raises a <tt>ActiveRecord::DangerousAttributeError</tt> exception when an
+      # Raises an <tt>ActiveRecord::DangerousAttributeError</tt> exception when an
       # \Active \Record method is defined in the model, otherwise +false+.
       #
       #   class Person < ActiveRecord::Base
