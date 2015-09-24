@@ -297,7 +297,7 @@ module ActiveRecord
       ]
       select_values += select_values unless having_clause.empty?
 
-      select_values.concat group_fields.zip(group_aliases).map { |field,aliaz|
+      select_values.concat arel_columns(group_fields).zip(group_aliases).map { |field,aliaz|
         if field.respond_to?(:as)
           field.as(aliaz)
         else
