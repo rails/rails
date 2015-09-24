@@ -843,27 +843,9 @@ above the "Title" output inside `app/views/blorgh/articles/show.html.erb`:
 ```html+erb
 <p>
   <b>Author:</b>
-  <%= @article.author %>
+  <%= @article.author.name %>
 </p>
 ```
-
-By outputting `@article.author` using the `<%=` tag, the `to_s` method will be
-called on the object. By default, this will look quite ugly:
-
-```
-#<User:0x00000100ccb3b0>
-```
-
-This is undesirable. It would be much better to have the user's name there. To
-do this, add a `to_s` method to the `User` class within the application:
-
-```ruby
-def to_s
-  name
-end
-```
-
-Now instead of the ugly Ruby object output, the author's name will be displayed.
 
 #### Using a Controller Provided by the Application
 
