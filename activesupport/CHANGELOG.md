@@ -1,3 +1,14 @@
+*   `assert_difference` and `assert_no_difference` now returns the result of the
+    yielded block.
+
+    Example:
+
+      post = assert_difference -> { Post.count }, 1 do
+        Post.create
+      end
+
+    *Lucas Mazza*
+
 *   Short-circuit `blank?` on date and time values since they are never blank.
 
     Fixes #21657
@@ -12,7 +23,7 @@
 *   Updated Unicode version to 8.0.0
 
     *Anshul Sharma*
-    
+
 *   `number_to_currency` and `number_with_delimiter` now accept custom `delimiter_pattern` option
      to handle placement of delimiter, to support currency formats like INR
 
