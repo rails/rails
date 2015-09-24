@@ -761,7 +761,7 @@ module ActiveRecord
         end
 
         def extract_table_ref_from_insert_sql(sql) # :nodoc:
-          sql[/into\s+([^\(]*).*values\s*\(/im]
+          sql[/into\s("[A-Za-z0-9_."\[\]\s]+"|[A-Za-z0-9_."\[\]]+)\s*/im]
           $1.strip if $1
         end
 
