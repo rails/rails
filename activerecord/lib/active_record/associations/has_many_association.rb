@@ -103,7 +103,7 @@ module ActiveRecord
             counter = reflection.counter_cache_column
             owner[counter] ||= 0
             owner[counter] += difference
-            owner.send(:clear_attribute_changes, counter) # eww
+            owner.send(:clear_attribute_change, counter) # eww
           end
         end
 

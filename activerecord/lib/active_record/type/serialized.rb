@@ -41,6 +41,12 @@ module ActiveRecord
         ActiveRecord::Store::IndifferentHashAccessor
       end
 
+      def assert_valid_value(value)
+        if coder.respond_to?(:assert_valid_value)
+          coder.assert_valid_value(value)
+        end
+      end
+
       private
 
       def default_value?(value)

@@ -80,6 +80,11 @@ module ActiveRecord
       attributes.select { |_, attr| attr.has_been_read? }.keys
     end
 
+    def map(&block)
+      new_attributes = attributes.transform_values(&block)
+      AttributeSet.new(new_attributes)
+    end
+
     protected
 
     attr_reader :attributes

@@ -11,6 +11,14 @@ module ActiveModel
             end
           end
 
+          define_method(:assert_valid_value) do |value|
+            if value.is_a?(Hash)
+              value_from_multiparameter_assignment(value)
+            else
+              super(value)
+            end
+          end
+
           define_method(:value_from_multiparameter_assignment) do |values_hash|
             defaults.each do |k, v|
               values_hash[k] ||= v

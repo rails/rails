@@ -16,7 +16,7 @@ module ActiveRecord
         end
       end
 
-      def changed_in_place_from?(old_value)
+      def changed_from?(old_value)
         super || changed_from?(database_default.value)
       end
 

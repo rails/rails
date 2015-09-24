@@ -38,19 +38,37 @@ module ActiveRecord
         end
       end
 
+      def init_internals
+        super
+        @original_attributes = @attributes.dup
+      end
+
       def initialize_dup(other) # :nodoc:
         super
-        calculate_changes_from_defaults
+        @original_attributes = self.class._default_attributes.dup
       end
 
       def changes_applied
         super
-        store_original_raw_attributes
+        store_original_attributes
       end
 
       def clear_changes_information
         super
-        original_raw_attributes.clear
+        store_original_attributes
+      end
+
+      def raw_write_attribute(attr_name, *)
+        result = super
+        clear_attribute_change(attr_name)
+        result
+      end
+
+      def clear_attribute_changes(attr_names)
+        super
+        attr_names.each do |attr_name|
+          clear_attribute_change(attr_name)
+        end
       end
 
       def changed_attributes
@@ -59,7 +77,7 @@ module ActiveRecord
         if defined?(@cached_changed_attributes)
           @cached_changed_attributes
         else
-          super.reverse_merge(attributes_changed_in_place).freeze
+          calculate_changed_attributes.freeze
         end
       end
 
@@ -70,58 +88,20 @@ module ActiveRecord
       end
 
       def attribute_changed_in_place?(attr_name)
-        old_value = original_raw_attribute(attr_name)
-        @attributes[attr_name].changed_in_place_from?(old_value)
+        original_database_value = @original_attributes[attr_name].value_before_type_cast
+        @attributes[attr_name].changed_in_place_from?(original_database_value)
       end
 
       private
 
       def changes_include?(attr_name)
-        super || attribute_changed_in_place?(attr_name)
+        attr_name = attr_name.to_s
+        super || attribute_modified?(attr_name) || attribute_changed_in_place?(attr_name)
       end
 
-      def calculate_changes_from_defaults
-        @changed_attributes = nil
-        self.class.column_defaults.each do |attr, orig_value|
-          set_attribute_was(attr, orig_value) if _field_changed?(attr, orig_value)
-        end
-      end
-
-      # Wrap write_attribute to remember original attribute value.
-      def write_attribute(attr, value)
-        attr = attr.to_s
-
-        old_value = old_attribute_value(attr)
-
-        result = super
-        store_original_raw_attribute(attr)
-        save_changed_attribute(attr, old_value)
-        result
-      end
-
-      def raw_write_attribute(attr, value)
-        attr = attr.to_s
-
-        result = super
-        original_raw_attributes[attr] = value
-        result
-      end
-
-      def save_changed_attribute(attr, old_value)
-        clear_changed_attributes_cache
-        if attribute_changed_by_setter?(attr)
-          clear_attribute_changes(attr) unless _field_changed?(attr, old_value)
-        else
-          set_attribute_was(attr, old_value) if _field_changed?(attr, old_value)
-        end
-      end
-
-      def old_attribute_value(attr)
-        if attribute_changed?(attr)
-          changed_attributes[attr]
-        else
-          clone_attribute_value(:_read_attribute, attr)
-        end
+      def clear_attribute_change(attr_name)
+        attr_name = attr_name.to_s
+        @original_attributes[attr_name] = @attributes[attr_name].dup
       end
 
       def _update_record(*)
@@ -136,40 +116,21 @@ module ActiveRecord
         changed & self.class.column_names
       end
 
-      def _field_changed?(attr, old_value)
-        @attributes[attr].changed_from?(old_value)
+      def attribute_modified?(attr_name)
+        @attributes[attr_name].changed_from?(@original_attributes.fetch_value(attr_name))
       end
 
-      def attributes_changed_in_place
-        changed_in_place.each_with_object({}) do |attr_name, h|
-          orig = @attributes[attr_name].original_value
-          h[attr_name] = orig
+      def store_original_attributes
+        @original_attributes = @attributes.map do |attr|
+          attr.with_value_from_database(attr.value_for_database)
         end
       end
 
-      def changed_in_place
-        self.class.attribute_names.select do |attr_name|
-          attribute_changed_in_place?(attr_name)
-        end
-      end
-
-      def original_raw_attribute(attr_name)
-        original_raw_attributes.fetch(attr_name) do
-          read_attribute_before_type_cast(attr_name)
-        end
-      end
-
-      def original_raw_attributes
-        @original_raw_attributes ||= {}
-      end
-
-      def store_original_raw_attribute(attr_name)
-        original_raw_attributes[attr_name] = @attributes[attr_name].value_for_database rescue nil
-      end
-
-      def store_original_raw_attributes
-        attribute_names.each do |attr|
-          store_original_raw_attribute(attr)
+      def calculate_changed_attributes
+        attribute_names.each_with_object({}.with_indifferent_access) do |attr_name, result|
+          if changes_include?(attr_name)
+            result[attr_name] = @original_attributes.fetch_value(attr_name)
+          end
         end
       end
 

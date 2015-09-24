@@ -118,7 +118,7 @@ module ActiveRecord
         elsif mapping.has_value?(value)
           mapping.key(value)
         else
-          raise ArgumentError, "'#{value}' is not a valid #{name}"
+          assert_valid_value(value)
         end
       end
 
@@ -129,6 +129,12 @@ module ActiveRecord
 
       def serialize(value)
         mapping.fetch(value, value)
+      end
+
+      def assert_valid_value(value)
+        unless value.blank? || mapping.has_key?(value) || mapping.has_value?(value)
+          raise ArgumentError, "'#{value}' is not a valid #{name}"
+        end
       end
 
       protected

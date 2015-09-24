@@ -91,6 +91,9 @@ module ActiveModel
           limit == other.limit
       end
 
+      def assert_valid_value(*)
+      end
+
       private
 
       # Convenience method for types which do not need separate type casting
