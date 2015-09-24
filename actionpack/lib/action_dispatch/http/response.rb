@@ -32,6 +32,29 @@ module ActionDispatch # :nodoc:
   #    end
   #  end
   class Response
+    class Header < DelegateClass(Hash) # :nodoc:
+      def initialize(response, header)
+        @response = response
+        super(header)
+      end
+
+      def []=(k,v)
+        if @response.committed?
+          raise ActionDispatch::IllegalStateError, 'header already sent'
+        end
+
+        super
+      end
+
+      def merge(other)
+        self.class.new @response, __getobj__.merge(other)
+      end
+
+      def to_hash
+        __getobj__.dup
+      end
+    end
+
     # The request that the response is responding to.
     attr_accessor :request
 
@@ -118,7 +141,7 @@ module ActionDispatch # :nodoc:
     def initialize(status = 200, header = {}, body = [])
       super()
 
-      @header = header
+      @header = Header.new(self, header)
 
       self.body, self.status = body, status
 

@@ -213,33 +213,6 @@ module ActionController
     end
 
     class Response < ActionDispatch::Response #:nodoc: all
-      class Header < DelegateClass(Hash) # :nodoc:
-        def initialize(response, header)
-          @response = response
-          super(header)
-        end
-
-        def []=(k,v)
-          if @response.committed?
-            raise ActionDispatch::IllegalStateError, 'header already sent'
-          end
-
-          super
-        end
-
-        def merge(other)
-          self.class.new @response, __getobj__.merge(other)
-        end
-
-        def to_hash
-          __getobj__.dup
-        end
-      end
-
-      def initialize(status = 200, header = {}, body = [])
-        super(status, Header.new(self, header), body)
-      end
-
       private
 
       def before_committed
