@@ -1,3 +1,7 @@
+*   Correctly apply `unscope` when preloading through associations.
+
+    *Jimmy Bourassa*
+
 *   Fixed taking precision into count when assigning a value to timestamp attribute
 
     Timestamp column can have less precision than ruby timestamp
