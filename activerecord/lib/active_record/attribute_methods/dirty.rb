@@ -51,12 +51,12 @@ module ActiveRecord
       end
 
       def changes_applied
-        super
+        @previous_mutation_tracker = @mutation_tracker
         store_original_attributes
       end
 
       def clear_changes_information
-        super
+        @previous_mutation_tracker = nil
         store_original_attributes
       end
 
@@ -89,6 +89,10 @@ module ActiveRecord
         end
       end
 
+      def previous_changes
+        previous_mutation_tracker.changes
+      end
+
       def attribute_changed_in_place?(attr_name)
         @mutation_tracker.changed_in_place?(attr_name)
       end
@@ -117,6 +121,10 @@ module ActiveRecord
 
       def store_original_attributes
         @mutation_tracker = @mutation_tracker.now_tracking(@attributes)
+      end
+
+      def previous_mutation_tracker
+        @previous_mutation_tracker ||= NullMutationTracker.new
       end
 
       def cache_changed_attributes

@@ -13,6 +13,14 @@ module ActiveRecord
       end
     end
 
+    def changes
+      attr_names.each_with_object({}.with_indifferent_access) do |attr_name, result|
+        if changed?(attr_name)
+          result[attr_name] = [original_attributes.fetch_value(attr_name), attributes.fetch_value(attr_name)]
+        end
+      end
+    end
+
     def changed?(attr_name)
       attr_name = attr_name.to_s
       modified?(attr_name) || changed_in_place?(attr_name)
@@ -50,6 +58,27 @@ module ActiveRecord
       attributes.map do |attr|
         attr.with_value_from_database(attr.value_for_database)
       end
+    end
+  end
+
+  class NullMutationTracker
+    def changed_values
+      {}
+    end
+
+    def changes
+      {}
+    end
+
+    def changed?(*)
+      false
+    end
+
+    def changed_in_place?(*)
+      false
+    end
+
+    def forget_change(*)
     end
   end
 end
