@@ -1,3 +1,7 @@
+*   Correctly apply `unscope` when preloading through associations.
+
+    *Jimmy Bourassa*
+
 *   Ensure `select` quotes aliased attributes, even when using `from`.
 
     Fixes #21488
