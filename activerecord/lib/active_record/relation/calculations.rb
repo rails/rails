@@ -297,10 +297,11 @@ module ActiveRecord
       select_values += select_values unless having_clause.empty?
 
       select_values.concat group_fields.zip(group_aliases).map { |field,aliaz|
+        field = arel_columns([field]).first
+        
         if field.respond_to?(:as)
           field.as(aliaz)
         else
-          field = "#{table_name}.#{field}" if columns_hash.key?(field.to_s)
           "#{field} AS #{aliaz}"
         end
       }
