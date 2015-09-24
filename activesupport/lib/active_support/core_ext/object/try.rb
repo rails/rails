@@ -94,7 +94,7 @@ class Object
   # :call-seq:
   #   try!(*a, &b)
   #
-  # Same as #try, but raises a NoMethodError exception if the receiver is
+  # Same as #try, but raises a +NoMethodError+ exception if the receiver is
   # not +nil+ and does not implement the tried method.
   #
   #   "a".try!(:upcase) # => "A"
