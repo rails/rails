@@ -89,11 +89,8 @@ class DirtyTest < ActiveRecord::TestCase
       target = Class.new(ActiveRecord::Base)
       target.table_name = 'pirates'
 
-      pirate = target.create
-      p pirate.created_on
+      pirate = target.create!
       pirate.created_on = pirate.created_on
-      p pirate.created_on
-      p pirate.changes
       assert !pirate.created_on_changed?
     end
   end
