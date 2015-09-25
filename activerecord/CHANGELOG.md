@@ -1,3 +1,10 @@
+*   Qualify column name inserted by `group` in calculation
+
+    Giving `group` an unqualified column name now works, even if the relation
+    has `JOIN` with another table which also has a column of the name.
+
+    *Soutaro Matsumoto*
+
 *   Don't require a database connection to load a class which uses acceptance
     validations.
 
