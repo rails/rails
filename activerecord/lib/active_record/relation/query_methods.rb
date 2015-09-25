@@ -264,7 +264,7 @@ module ActiveRecord
     # Returns an array with distinct records based on the +group+ attribute:
     #
     #   User.select([:id, :name])
-    #   => [#<User id: 1, name: "Oscar">, #<User id: 2, name: "Oscar">, #<User id: 3, name: "Foo">
+    #   => [#<User id: 1, name: "Oscar">, #<User id: 2, name: "Oscar">, #<User id: 3, name: "Foo">]
     #
     #   User.group(:name)
     #   => [#<User id: 3, name: "Foo", ...>, #<User id: 2, name: "Oscar", ...>]
