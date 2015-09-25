@@ -1108,7 +1108,7 @@ NOTE. If you are running in a multi-threaded environment, there could be a chanc
 Custom configuration
 --------------------
 
-You can configure your own code through the Rails configuration object with custom configuration. It works like this:
+You can configure your own code through the Rails configuration object with custom configuration under the `config.x` property. It works like this:
 
   ```ruby
   config.x.payment_processing.schedule = :daily
