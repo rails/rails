@@ -276,18 +276,7 @@ module ActionDispatch
       req = ActionDispatch::Request.new env
       @app.call(env)
     ensure
-      session    = req.session || {}
-      flash_hash = req.flash_hash
-
-      if flash_hash && (flash_hash.present? || session.key?('flash'))
-        session["flash"] = flash_hash.to_session_value
-        req.flash = flash_hash.dup
-      end
-
-      if (!session.respond_to?(:loaded?) || session.loaded?) && # (reset_session uses {}, which doesn't implement #loaded?)
-        session.key?('flash') && session['flash'].nil?
-        session.delete('flash')
-      end
+      req.commit_flash
     end
   end
 end

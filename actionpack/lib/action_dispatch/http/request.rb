@@ -277,6 +277,21 @@ module ActionDispatch
       set_header ACTION_DISPATCH_REQUEST_ID, id
     end
 
+    def commit_flash
+      session    = self.session || {}
+      flash_hash = self.flash_hash
+
+      if flash_hash && (flash_hash.present? || session.key?('flash'))
+        session["flash"] = flash_hash.to_session_value
+        self.flash = flash_hash.dup
+      end
+
+      if (!session.respond_to?(:loaded?) || session.loaded?) && # (reset_session uses {}, which doesn't implement #loaded?)
+        session.key?('flash') && session['flash'].nil?
+        session.delete('flash')
+      end
+    end
+
     alias_method :uuid, :request_id
 
     # Returns the lowercase name of the HTTP server software.
