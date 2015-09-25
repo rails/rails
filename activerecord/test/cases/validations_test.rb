@@ -168,4 +168,15 @@ class ValidationsTest < ActiveRecord::TestCase
   ensure
     Topic.reset_column_information
   end
+
+  def test_acceptance_validator_doesnt_require_db_connection
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = 'posts'
+    end
+    klass.reset_column_information
+
+    assert_no_queries do
+      klass.validates_acceptance_of(:foo)
+    end
+  end
 end

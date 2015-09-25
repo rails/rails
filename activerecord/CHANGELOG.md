@@ -1,3 +1,8 @@
+*   Don't require a database connection to load a class which uses acceptance
+    validations.
+
+    *Sean Griffin*
+
 *   Correctly apply `unscope` when preloading through associations.
 
     *Jimmy Bourassa*
