@@ -18,6 +18,21 @@ module ActionDispatch
     def flash_hash # :nodoc:
       get_header Flash::KEY
     end
+
+    def commit_flash # :nodoc:
+      session    = self.session || {}
+      flash_hash = self.flash_hash
+
+      if flash_hash && (flash_hash.present? || session.key?('flash'))
+        session["flash"] = flash_hash.to_session_value
+        self.flash = flash_hash.dup
+      end
+
+      if (!session.respond_to?(:loaded?) || session.loaded?) && # (reset_session uses {}, which doesn't implement #loaded?)
+        session.key?('flash') && session['flash'].nil?
+        session.delete('flash')
+      end
+    end
   end
 
   # The flash provides a way to pass temporary primitive-types (String, Array, Hash) between actions. Anything you place in the flash will be exposed
@@ -268,15 +283,6 @@ module ActionDispatch
       end
     end
 
-    def initialize(app)
-      @app = app
-    end
-
-    def call(env)
-      req = ActionDispatch::Request.new env
-      @app.call(env)
-    ensure
-      req.commit_flash
-    end
+    def self.new(app) app; end
   end
 end

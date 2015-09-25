@@ -187,6 +187,7 @@ module ActionController
       set_request!(request)
       set_response!(response)
       process(name)
+      request.commit_flash
       to_a
     end
 
