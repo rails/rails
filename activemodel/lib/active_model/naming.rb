@@ -164,7 +164,7 @@ module ActiveModel
       @route_key << "_index" if @plural == @singular
     end
 
-    # Transform the model name into a more humane format, using I18n. By default,
+    # Transform the model name into a more human format, using I18n. By default,
     # it will underscore then humanize the class name.
     #
     #   class BlogPost
