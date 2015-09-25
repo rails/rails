@@ -131,7 +131,7 @@ to:
           exchange_xml_items if app_xml_idx > text_xml_idx  # make sure app_xml is ahead of text_xml in the list
           delete_at(text_xml_idx)                 # delete text_xml from the list
         elsif text_xml_idx
-          text_xml.name = Mime::XML.to_s
+          text_xml.name = Mime::Type[:XML].to_s
         end
 
         # Look for more specific XML-based types and sort them ahead of app/xml
@@ -255,11 +255,11 @@ to:
         parse_data_with_trailing_star($1) if accept_header =~ TRAILING_STAR_REGEXP
       end
 
-      # For an input of <tt>'text'</tt>, returns <tt>[Mime::JSON, Mime::XML, Mime::ICS,
-      # Mime::HTML, Mime::CSS, Mime::CSV, Mime::JS, Mime::YAML, Mime::TEXT]</tt>.
+      # For an input of <tt>'text'</tt>, returns <tt>[Mime::Type[:JSON], Mime::Type[:XML], Mime::Type[:ICS],
+      # Mime::Type[:HTML], Mime::Type[:CSS], Mime::Type[:CSV], Mime::Type[:JS], Mime::Type[:YAML], Mime::Type[:TEXT]</tt>.
       #
-      # For an input of <tt>'application'</tt>, returns <tt>[Mime::HTML, Mime::JS,
-      # Mime::XML, Mime::YAML, Mime::ATOM, Mime::JSON, Mime::RSS, Mime::URL_ENCODED_FORM]</tt>.
+      # For an input of <tt>'application'</tt>, returns <tt>[Mime::Type[:HTML], Mime::Type[:JS],
+      # Mime::Type[:XML], Mime::Type[:YAML], Mime::Type[:ATOM], Mime::Type[:JSON], Mime::Type[:RSS], Mime::Type[:URL_ENCODED_FORM]</tt>.
       def parse_data_with_trailing_star(input)
         Mime::SET.select { |m| m =~ input }
       end
