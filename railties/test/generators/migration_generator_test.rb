@@ -221,6 +221,19 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_add_uuid_to_create_table_migration
+    previous_value = Rails.application.config.active_record.primary_key
+    Rails.application.config.active_record.primary_key = :uuid
+    run_generator ["create_books"]
+    assert_migration "db/migrate/create_books.rb" do |content|
+      assert_method :change, content do |change|
+        assert_match(/create_table :books, id: :uuid/, change)
+      end
+    end
+
+    Rails.application.config.active_record.primary_key = previous_value
+  end
+
   def test_should_create_empty_migrations_if_name_not_start_with_add_or_remove_or_create
     migration = "delete_books"
     run_generator [migration, "title:string", "content:text"]

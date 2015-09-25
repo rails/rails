@@ -30,6 +30,11 @@ module Rails
         end
       end
 
+      def id_kind
+        kind = Rails.application.config.active_record.primary_key rescue nil
+        ", id: :#{kind}" if kind
+      end
+
       def create_migration(destination, data, config = {}, &block)
         action Rails::Generators::Actions::CreateMigration.new(self, destination, block || data.to_s, config)
       end

@@ -1,3 +1,10 @@
+*   Add ability to default to `uuid` as primary key when generating database migrations
+
+    Set `Rails.application.config.active_record.primary_key = :uuid`
+    or `config.active_record.primary_key = :uuid` in config/application.rb
+
+    *Jon McCartie*
+
 *   Qualify column name inserted by `group` in calculation
 
     Giving `group` an unqualified column name now works, even if the relation
