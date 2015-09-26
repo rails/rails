@@ -21,7 +21,7 @@ GIT
 
 GIT
   remote: git://github.com/mikel/mail.git
-  revision: 64ef1a12efcdda53fd63e1456c2c564044bf82ce
+  revision: dc0f89bb33722ec1e6fa404a34055fe6e0189651
   branch: master
   specs:
     mail (2.6.3.edge)
@@ -29,7 +29,7 @@ GIT
 
 GIT
   remote: git://github.com/rack/rack.git
-  revision: c28f271d0c91f45e13bfa8f07bed445ef91f41de
+  revision: 028438ffffd95ce1f6197d38c04fa5ea6a034a85
   branch: master
   specs:
     rack (2.0.0.alpha)
@@ -37,24 +37,25 @@ GIT
 
 GIT
   remote: git://github.com/rails/arel.git
-  revision: 935796f4fd7d75950db87156d6540028a9044fdf
+  revision: 77ec13b46af2926bfcfc3073685711c874b0d272
   branch: master
   specs:
     arel (7.0.0.alpha)
 
 GIT
   remote: git://github.com/rails/globalid.git
-  revision: 4df66fb9e9f0c832d29119aa8bc30be55a614b71
+  revision: 1d8fca667740570d204fd955a0bd39ac539bac7f
+  branch: master
   specs:
-    globalid (0.3.5)
+    globalid (0.3.6)
       activesupport (>= 4.1.0)
 
 GIT
   remote: git://github.com/rails/jquery-rails.git
-  revision: 38053f45402f1ccc4cce5dd8c7005ec707376db3
+  revision: 04fcfa29b859eef9479f89b6a799d00212902385
   branch: master
   specs:
-    jquery-rails (4.0.4)
+    jquery-rails (4.0.5)
       rails-dom-testing (~> 1.0)
       railties (>= 4.2.0)
       thor (>= 0.14, < 2.0)
@@ -72,13 +73,29 @@ GIT
 
 GIT
   remote: git://github.com/rails/sprockets-rails.git
-  revision: 6389649358846f37507206885e3ece145862a0be
+  revision: bbb44d22be4e6c5ff13d16d5edaf00bae45e1088
   branch: master
   specs:
-    sprockets-rails (3.0.0.beta1)
+    sprockets-rails (3.0.0.beta2)
       actionpack (>= 4.0)
       activesupport (>= 4.0)
-      sprockets (>= 3.0.0, < 4.0)
+      sprockets (>= 3.0.0)
+
+GIT
+  remote: git://github.com/rails/sprockets.git
+  revision: c87e3e5fbff4f3038fc872f12976356ec527d3bf
+  branch: master
+  specs:
+    sprockets (4.0.0)
+      rack (>= 1, < 3)
+
+GIT
+  remote: git://github.com/rails/turbolinks.git
+  revision: eac0a3e43a69b341abdd55ef1bc45d1d4cfaf8a9
+  branch: master
+  specs:
+    turbolinks (3.0.0)
+      coffee-rails
 
 PATH
   remote: .
@@ -118,7 +135,6 @@ PATH
       json (~> 1.7, >= 1.7.7)
       method_source
       minitest (~> 5.1)
-      thread_safe (~> 0.3, >= 0.3.4)
       tzinfo (~> 1.1)
     rails (5.0.0.alpha)
       actionmailer (= 5.0.0.alpha)
@@ -167,13 +183,16 @@ GEM
     connection_pool (2.2.0)
     dalli (2.7.4)
     dante (0.2.0)
-    delayed_job (4.0.6)
+    delayed_job (4.1.1)
       activesupport (>= 3.0, < 5.0)
-    delayed_job_active_record (4.0.3)
-      activerecord (>= 3.0, < 5.0)
-      delayed_job (>= 3.0, < 4.1)
+    delayed_job_active_record (4.1.0)
+      activerecord (>= 3.0, < 5)
+      delayed_job (>= 3.0, < 5)
     erubis (2.7.0)
     execjs (2.6.0)
+    ffi (1.9.10)
+    ffi (1.9.10-x64-mingw32)
+    ffi (1.9.10-x86-mingw32)
     hitimes (1.2.3)
     hitimes (1.2.3-x86-mingw32)
     i18n (0.7.0)
@@ -181,6 +200,9 @@ GEM
     kindlerb (0.1.1)
       mustache
       nokogiri
+    listen (3.0.3)
+      rb-fsevent (>= 0.9.3)
+      rb-inotify (>= 0.9)
     loofah (2.0.3)
       nokogiri (>= 1.5.9)
     metaclass (0.0.4)
@@ -194,22 +216,15 @@ GEM
     multi_json (1.11.2)
     mustache (1.0.2)
     mysql (2.9.1)
-    mysql2 (0.4.0)
+    mysql2 (0.4.1)
     nokogiri (1.6.7.rc3)
-      mini_portile (~> 0.7.0.rc4)
-    nokogiri (1.6.7.rc3-x64-mingw32)
-      mini_portile (~> 0.7.0.rc4)
-    nokogiri (1.6.7.rc3-x86-mingw32)
       mini_portile (~> 0.7.0.rc4)
     pg (0.18.3)
     psych (2.0.15)
     que (0.11.2)
     racc (1.4.12)
-    rack (1.6.4)
     rack-cache (1.2)
       rack (>= 0.4)
-    rack-protection (1.5.3)
-      rack
     rack-test (0.6.3)
       rack (>= 1.0)
     rails-deprecated_sanitizer (1.0.3)
@@ -221,7 +236,7 @@ GEM
     rails-html-sanitizer (1.0.2)
       loofah (~> 2.0)
     rake (10.4.2)
-    rb-fsevent (0.9.5)
+    rb-fsevent (0.9.6)
     rb-inotify (0.9.5)
       ffi (>= 0.5.0)
     rdoc (4.2.0)
@@ -240,7 +255,7 @@ GEM
       redis (~> 3.0)
       resque (~> 1.25)
       rufus-scheduler (~> 3.0)
-    rufus-scheduler (3.1.4)
+    rufus-scheduler (3.1.5)
     sass (3.4.18)
     sdoc (0.4.1)
       json (~> 1.7, >= 1.7.7)
@@ -262,23 +277,20 @@ GEM
       serverengine (~> 1.5.5)
       thor
       thread (~> 0.1.7)
-    sprockets (3.0.3)
-      rack (~> 1.0)
     sqlite3 (1.3.10)
     stackprof (0.2.7)
-    sucker_punch (1.5.0)
-      celluloid (~> 0.16.0)
+    sucker_punch (1.5.1)
+      celluloid (= 0.16.0)
     thor (0.19.1)
     thread (0.1.7)
     thread_safe (0.3.5)
-    tilt (2.0.1)
-    timers (4.0.1)
+    timers (4.0.4)
       hitimes
-    turbolinks (2.5.3)
-      coffee-rails
     tzinfo (1.2.2)
       thread_safe (~> 0.1)
-    uglifier (2.7.1)
+    tzinfo-data (1.2015.6)
+      tzinfo (>= 1.0.0)
+    uglifier (2.7.2)
       execjs (>= 0.3.0)
       json (>= 1.8.0)
     vegas (0.1.11)
@@ -314,14 +326,14 @@ DEPENDENCIES
   minitest (< 5.3.4)
   mocha (~> 0.14)
   mysql (>= 2.9.0)
-  mysql2 (>= 0.3.18)
-  nokogiri (>= 1.4.5)
+  mysql2 (>= 0.4.0)
+  nokogiri (>= 1.6.7.rc3)
   pg (>= 0.18.0)
   psych (~> 2.0)
   qu-rails!
   qu-redis
   que
-  queue_classic
+  queue_classic!
   racc (>= 1.4.6)
   rack!
   rack-cache (~> 1.2)
@@ -336,12 +348,13 @@ DEPENDENCIES
   sequel
   sidekiq
   sneakers
-  sprockets (~> 3.0.0.rc.1)
+  sprockets!
   sprockets-rails!
   sqlite3 (~> 1.3.6)
   stackprof
   sucker_punch
-  turbolinks
+  turbolinks!
+  tzinfo-data
   uglifier (>= 1.3.0)
   w3c_validators
 
