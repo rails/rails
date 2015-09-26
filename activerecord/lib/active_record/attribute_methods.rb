@@ -106,7 +106,7 @@ module ActiveRecord
       #   end
       #
       #   Person.instance_method_already_implemented?(:save)
-      #   # => ActiveRecord::DangerousAttributeError: save is defined by ActiveRecord
+      #   # => ActiveRecord::DangerousAttributeError: save is defined by Active Record. Check to make sure that you don't have an attribute or method with the same name.
       #
       #   Person.instance_method_already_implemented?(:name)
       #   # => false
