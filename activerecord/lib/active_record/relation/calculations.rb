@@ -338,7 +338,6 @@ module ActiveRecord
     #   column_alias_for("sum(id)")                  # => "sum_id"
     #   column_alias_for("count(distinct users.id)") # => "count_distinct_users_id"
     #   column_alias_for("count(*)")                 # => "count_all"
-    #   column_alias_for("count", "id")              # => "count_id"
     def column_alias_for(keys)
       if keys.respond_to? :name
         keys = "#{keys.relation.name}.#{keys.name}"
