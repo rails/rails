@@ -2297,6 +2297,27 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, output_buffer
   end
 
+  def test_deep_nested_fields_for
+    @comment.save
+    form_for(:posts) do |f|
+      f.fields_for('post[]', @post) do |f2|
+        f2.text_field(:id)
+        @post.comments.each do |comment|
+          concat f2.fields_for('comment[]', comment) { |c|
+            concat c.text_field(:name)
+          }
+        end
+      end
+    end
+
+    expected = whole_form do
+      "<input name='posts[post][0][comment][1][name]' type='text' id='posts_post_0_comment_1_name' value='comment #1' />"
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+
   def test_nested_fields_for_with_nested_collections
     form_for(@post, as: 'post[]') do |f|
       concat f.text_field(:title)
