@@ -262,6 +262,7 @@ ActiveRecord::Schema.define do
   create_table :developers, force: true do |t|
     t.string   :name
     t.integer  :salary, default: 70000
+    t.integer  :firm_id
     t.datetime :created_at
     t.datetime :updated_at
     t.datetime :created_on
@@ -631,6 +632,7 @@ ActiveRecord::Schema.define do
   create_table :projects, force: true do |t|
     t.string :name
     t.string :type
+    t.integer :firm_id
   end
 
   create_table :randomly_named_table, force: true do |t|

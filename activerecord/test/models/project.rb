@@ -11,6 +11,8 @@ class Project < ActiveRecord::Base
                             :before_remove => Proc.new {|o, r| o.developers_log << "before_removing#{r.id}"},
                             :after_remove => Proc.new {|o, r| o.developers_log << "after_removing#{r.id}"}
   has_and_belongs_to_many :well_payed_salary_groups, -> { group("developers.salary").having("SUM(salary) > 10000").select("SUM(salary) as salary") }, :class_name => "Developer"
+  belongs_to :firm
+  has_one :lead_developer, through: :firm, inverse_of: :contracted_projects
 
   attr_accessor :developers_log
   after_initialize :set_developers_log
