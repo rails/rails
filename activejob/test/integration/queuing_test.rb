@@ -84,4 +84,16 @@ class QueuingTest < ActiveSupport::TestCase
       I18n.locale = :en
     end
   end
+
+  test 'should run job with higher priority first' do
+    skip unless adapter_is?(:delayed_job, :que)
+
+    wait_until = Time.now + 3.seconds
+    TestJob.set(wait_until: wait_until, priority: 20).perform_later "#{@id}.1"
+    TestJob.set(wait_until: wait_until, priority: 10).perform_later "#{@id}.2"
+    wait_for_jobs_to_finish_for(10.seconds)
+    assert job_executed "#{@id}.1"
+    assert job_executed "#{@id}.2"
+    assert job_executed_at("#{@id}.2") < job_executed_at("#{@id}.1")
+  end
 end
