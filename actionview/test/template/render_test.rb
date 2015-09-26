@@ -627,6 +627,16 @@ class CachedCollectionViewRenderTest < CachedViewRenderTest
       @view.render(partial: "test/customer", collection: [customer], cache: ->(item) { [item, 'key'] })
   end
 
+  test "with caching with custom key and rendering with different key" do
+    customer = Customer.new("david")
+    key = cache_key([customer, 'key'], "test/_customer")
+
+    ActionView::PartialRenderer.collection_cache.write(key, 'Hello')
+
+    assert_equal "Hello: david",
+      @view.render(partial: "test/customer", collection: [customer], cache: ->(item) { [item, 'another_key'] })
+  end
+
   test "automatic caching with inferred cache name" do
     customer = CachedCustomer.new("david")
     key = cache_key(customer, "test/_cached_customer")
