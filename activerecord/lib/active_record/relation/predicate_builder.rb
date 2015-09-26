@@ -67,7 +67,7 @@ module ActiveRecord
     #         Arel::Nodes::And.new([range.start, range.end])
     #       )
     #     end
-    #     ActiveRecord::PredicateBuilder.register_handler(MyCustomDateRange, handler)
+    #     ActiveRecord::PredicateBuilder.new("users").register_handler(MyCustomDateRange, handler)
     def register_handler(klass, handler)
       @handlers.unshift([klass, handler])
     end
