@@ -3,8 +3,9 @@ require 'listen'
 module ActiveSupport
   class FileEventedUpdateChecker
     attr_reader :listener
-    def initialize(files, directories={}, &block)
-      @files = files.map { |f| File.expand_path(f)}.to_set
+
+    def initialize(files, directories = {}, &block)
+      @files = files.map { |f| File.expand_path(f) }.to_set
       @dirs = Hash.new
       directories.each do |key,value|
         @dirs[File.expand_path(key)] = Array(value) if !Array(value).empty?

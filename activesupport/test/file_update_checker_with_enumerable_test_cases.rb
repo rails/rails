@@ -13,21 +13,21 @@ module FileUpdateCheckerWithEnumerableTestCases
 
   def test_should_not_execute_the_block_if_no_paths_are_given
     i = 0
-    checker = build_new_watcher([]){ i += 1}
+    checker = build_new_watcher([]) { i += 1 }
     checker.execute_if_updated
     assert_equal 0, i
   end
 
   def test_should_not_invoke_the_block_if_no_file_has_changed
     i = 0
-    checker = build_new_watcher(FILES){ i += 1 }
+    checker = build_new_watcher(FILES) { i += 1 }
     5.times { assert !checker.execute_if_updated }
     assert_equal 0, i
   end
 
   def test_should_invoke_the_block_if_a_file_has_changed
     i = 0
-    checker = build_new_watcher(FILES){ i += 1 }
+    checker = build_new_watcher(FILES) { i += 1 }
     sleep(1)
     FileUtils.touch(FILES)
     sleep(1) #extra
@@ -37,7 +37,7 @@ module FileUpdateCheckerWithEnumerableTestCases
 
   def test_should_be_robust_enough_to_handle_deleted_files
     i = 0
-    checker = build_new_watcher(FILES){ i += 1 }
+    checker = build_new_watcher(FILES) { i += 1 }
     FileUtils.rm(FILES)
     sleep(1) #extra
     assert checker.execute_if_updated
@@ -50,7 +50,7 @@ module FileUpdateCheckerWithEnumerableTestCases
     time = Time.mktime(now.year + 1, now.month, now.day) # wrong mtime from the future
     File.utime time, time, FILES[2]
 
-    checker = build_new_watcher(FILES){ i += 1 }
+    checker = build_new_watcher(FILES) { i += 1 }
 
     sleep(1)
     FileUtils.touch(FILES[0..1])
@@ -61,7 +61,7 @@ module FileUpdateCheckerWithEnumerableTestCases
 
   def test_should_cache_updated_result_until_execute
     i = 0
-    checker = build_new_watcher(FILES){ i += 1 }
+    checker = build_new_watcher(FILES) { i += 1 }
     assert !checker.updated?
 
     sleep(1)
@@ -74,7 +74,7 @@ module FileUpdateCheckerWithEnumerableTestCases
 
   def test_should_invoke_the_block_if_a_watched_dir_changed_its_glob
     i = 0
-    checker = build_new_watcher([], "tmp_watcher" => [:txt]){ i += 1 }
+    checker = build_new_watcher([], "tmp_watcher" => [:txt]) { i += 1 }
     FileUtils.cd "tmp_watcher" do
       FileUtils.touch(FILES)
     end
@@ -85,7 +85,7 @@ module FileUpdateCheckerWithEnumerableTestCases
 
   def test_should_not_invoke_the_block_if_a_watched_dir_changed_its_glob
     i = 0
-    checker = build_new_watcher([], "tmp_watcher" => :rb){ i += 1 }
+    checker = build_new_watcher([], "tmp_watcher" => :rb) { i += 1 }
     FileUtils.cd "tmp_watcher" do
       FileUtils.touch(FILES)
     end
@@ -99,7 +99,7 @@ module FileUpdateCheckerWithEnumerableTestCases
     FileUtils.touch(FILES.map { |file_name| "tmp_watcher/valid,yetstrange,path,/#{file_name}" })
 
     test = Thread.new do
-      build_new_watcher([],"tmp_watcher/valid,yetstrange,path," => :txt) { i += 1 }
+      build_new_watcher([], "tmp_watcher/valid,yetstrange,path," => :txt) { i += 1 }
       Thread.exit
     end
     test.priority = -1

@@ -7,7 +7,8 @@ MTIME_FIXTURES_PATH = File.expand_path("../fixtures", __FILE__)
 
 class FileUpdateCheckerWithEnumerableTest < ActiveSupport::TestCase
   include FileUpdateCheckerWithEnumerableTestCases
-  def build_new_watcher(files, dirs={}, &block)
+
+  def build_new_watcher(files, dirs = {}, &block)
     ActiveSupport::FileUpdateChecker.new(files, dirs, &block)
   end
 end
