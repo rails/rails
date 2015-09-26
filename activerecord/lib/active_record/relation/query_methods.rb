@@ -713,7 +713,7 @@ module ActiveRecord
     #
     #   users = User.readonly
     #   users.first.save
-    #   => ActiveRecord::ReadOnlyRecord: ActiveRecord::ReadOnlyRecord
+    #   => ActiveRecord::ReadOnlyRecord: User is marked as readonly
     def readonly(value = true)
       spawn.readonly!(value)
     end
