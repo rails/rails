@@ -154,10 +154,10 @@ class MimeTypeTest < ActiveSupport::TestCase
   end
 
   test "type convenience methods" do
-    # Don't test Mime::ALL, since it Mime::ALL#html? == true
+    # Don't test Mime::Type[:ALL], since it Mime::Type[:ALL].html? == true
     types = Mime::SET.symbols.uniq - [:all, :iphone]
 
-    # Remove custom Mime::Type instances set in other tests, like Mime::GIF and Mime::IPHONE
+    # Remove custom Mime::Type instances set in other tests, like Mime::Type[:GIF] and Mime::Type[:IPHONE]
     types.delete_if { |type| !Mime::Type.registered?(type.upcase) }
 
     types.each do |type|
@@ -186,7 +186,7 @@ class MimeTypeTest < ActiveSupport::TestCase
   test "verifiable mime types" do
     all_types = Mime::SET.symbols
     all_types.uniq!
-    # Remove custom Mime::Type instances set in other tests, like Mime::GIF and Mime::IPHONE
+    # Remove custom Mime::Type instances set in other tests, like Mime::Type[:GIF] and Mime::Type[:IPHONE]
     all_types.delete_if { |type| !Mime::Type.registered?(type.upcase) }
   end
 
