@@ -1,5 +1,5 @@
 module ActiveRecord
-  class AttributeMutationTracker
+  class AttributeMutationTracker # :nodoc:
     def initialize(attributes, original_attributes)
       @attributes = attributes
       @original_attributes = original_attributes
@@ -61,7 +61,7 @@ module ActiveRecord
     end
   end
 
-  class NullMutationTracker
+  class NullMutationTracker # :nodoc:
     def changed_values
       {}
     end
