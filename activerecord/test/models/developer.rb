@@ -54,6 +54,9 @@ class Developer < ActiveRecord::Base
   has_many :ratings, through: :comments
   has_one :ship, dependent: :nullify
 
+  belongs_to :firm
+  has_many :contracted_projects, class_name: "Project"
+
   scope :jamises, -> { where(:name => 'Jamis') }
 
   validates_inclusion_of :salary, :in => 50000..200000

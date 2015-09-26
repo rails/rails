@@ -175,6 +175,20 @@ module ActiveRecord
         end
       end
 
+      def inverse_of
+        return unless inverse_name
+
+        @inverse_of ||= klass._reflect_on_association inverse_name
+      end
+
+      def check_validity_of_inverse!
+        unless polymorphic?
+          if has_inverse? && inverse_of.nil?
+            raise InverseOfAssociationNotFoundError.new(self)
+          end
+        end
+      end
+
       # This shit is nasty. We need to avoid the following situation:
       #
       #   * An associated record is deleted via record.destroy
@@ -377,14 +391,6 @@ module ActiveRecord
         check_validity_of_inverse!
       end
 
-      def check_validity_of_inverse!
-        unless polymorphic?
-          if has_inverse? && inverse_of.nil?
-            raise InverseOfAssociationNotFoundError.new(self)
-          end
-        end
-      end
-
       def check_preloadable!
         return unless scope
 
@@ -434,12 +440,6 @@ module ActiveRecord
 
       def has_inverse?
         inverse_name
-      end
-
-      def inverse_of
-        return unless inverse_name
-
-        @inverse_of ||= klass._reflect_on_association inverse_name
       end
 
       def polymorphic_inverse_of(associated_class)
@@ -923,6 +923,8 @@ module ActiveRecord
         def primary_key(klass)
           klass.primary_key || raise(UnknownPrimaryKey.new(klass))
         end
+
+        def inverse_name; delegate_reflection.send(:inverse_name); end
 
       private
         def derive_class_name

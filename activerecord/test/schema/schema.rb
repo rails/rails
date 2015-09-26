@@ -252,6 +252,7 @@ ActiveRecord::Schema.define do
     t.string   :name
     t.string   :first_name
     t.integer  :salary, default: 70000
+    t.integer :firm_id
     if subsecond_precision_supported?
       t.datetime :created_at, precision: 6
       t.datetime :updated_at, precision: 6
@@ -658,6 +659,7 @@ ActiveRecord::Schema.define do
   create_table :projects, force: true do |t|
     t.string :name
     t.string :type
+    t.integer :firm_id
   end
 
   create_table :randomly_named_table1, force: true do |t|
