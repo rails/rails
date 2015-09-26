@@ -1304,7 +1304,7 @@ module ApplicationTests
       assert_equal 'custom key', Rails.application.config.my_custom_config['key']
     end
 
-    test "config_for with syntax error show a more descritive exception" do
+    test "config_for with syntax error show a more descriptive exception" do
       app_file 'config/custom.yml', <<-RUBY
       development:
         key: foo:
