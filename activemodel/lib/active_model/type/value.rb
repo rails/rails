@@ -1,4 +1,4 @@
-module ActiveRecord
+module ActiveModel
   module Type
     class Value
       attr_reader :precision, :scale, :limit
@@ -89,6 +89,9 @@ module ActiveRecord
           precision == other.precision &&
           scale == other.scale &&
           limit == other.limit
+      end
+
+      def assert_valid_value(*)
       end
 
       private

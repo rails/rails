@@ -1,16 +1,14 @@
-module ActiveRecord
+require "active_support/core_ext/time/zones"
+
+module ActiveModel
   module Type
     module Helpers
       module TimeValue # :nodoc:
         def serialize(value)
-          if precision && value.respond_to?(:usec)
-            number_of_insignificant_digits = 6 - precision
-            round_power = 10 ** number_of_insignificant_digits
-            value = value.change(usec: value.usec / round_power * round_power)
-          end
+          value = apply_seconds_precision(value)
 
           if value.acts_like?(:time)
-            zone_conversion_method = ActiveRecord::Base.default_timezone == :utc ? :getutc : :getlocal
+            zone_conversion_method = is_utc? ? :getutc : :getlocal
 
             if value.respond_to?(zone_conversion_method)
               value = value.send(zone_conversion_method)
@@ -18,6 +16,25 @@ module ActiveRecord
           end
 
           value
+        end
+
+        def is_utc?
+          ::Time.zone_default.nil? || ::Time.zone_default =~ 'UTC'
+        end
+
+        def default_timezone
+          if is_utc?
+            :utc
+          else
+            :local
+          end
+        end
+
+        def apply_seconds_precision(value)
+          return value unless precision && value.respond_to?(:usec)
+          number_of_insignificant_digits = 6 - precision
+          round_power = 10 ** number_of_insignificant_digits
+          value.change(usec: value.usec / round_power * round_power)
         end
 
         def type_cast_for_schema(value)
@@ -39,15 +56,17 @@ module ActiveRecord
             return unless time
 
             time -= offset
-            Base.default_timezone == :utc ? time : time.getlocal
+            is_utc? ? time : time.getlocal
           else
-            ::Time.public_send(Base.default_timezone, year, mon, mday, hour, min, sec, microsec) rescue nil
+            ::Time.public_send(default_timezone, year, mon, mday, hour, min, sec, microsec) rescue nil
           end
         end
 
+        ISO_DATETIME = /\A(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d):(\d\d)(\.\d+)?\z/
+
         # Doesn't handle time zones.
         def fast_string_to_time(string)
-          if string =~ ConnectionAdapters::Column::Format::ISO_DATETIME
+          if string =~ ISO_DATETIME
             microsec = ($7.to_r * 1_000_000).to_i
             new_time $1.to_i, $2.to_i, $3.to_i, $4.to_i, $5.to_i, $6.to_i, microsec
           end

@@ -1,5 +1,3 @@
-# encoding: utf-8
-
 class Object
   # An object is blank if it's false, empty, or a whitespace string.
   # For example, +false+, '', '   ', +nil+, [], and {} are all blank.
@@ -123,6 +121,17 @@ class Numeric #:nodoc:
   #
   #   1.blank? # => false
   #   0.blank? # => false
+  #
+  # @return [false]
+  def blank?
+    false
+  end
+end
+
+class Time #:nodoc:
+  # No Time is blank:
+  #
+  #   Time.now.blank? # => false
   #
   # @return [false]
   def blank?

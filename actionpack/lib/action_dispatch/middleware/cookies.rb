@@ -396,17 +396,30 @@ module ActionDispatch
       end
 
       def write(headers)
-        @set_cookies.each { |k, v| ::Rack::Utils.set_cookie_header!(headers, k, v) if write_cookie?(v) }
-        @delete_cookies.each { |k, v| ::Rack::Utils.delete_cookie_header!(headers, k, v) }
+        headers[HTTP_HEADER] = make_set_cookie_header headers[HTTP_HEADER]
       end
 
       mattr_accessor :always_write_cookie
       self.always_write_cookie = false
 
       private
-        def write_cookie?(cookie)
-          request.ssl? || !cookie[:secure] || always_write_cookie
-        end
+
+      def make_set_cookie_header(header)
+        header = @set_cookies.inject(header) { |m, (k, v)|
+          if write_cookie?(v)
+            ::Rack::Utils.add_cookie_to_header(m, k, v)
+          else
+            m
+          end
+        }
+        @delete_cookies.inject(header) { |m, (k, v)|
+          ::Rack::Utils.add_remove_cookie_to_header(m, k, v)
+        }
+      end
+
+      def write_cookie?(cookie)
+        request.ssl? || !cookie[:secure] || always_write_cookie
+      end
     end
 
     class AbstractCookieJar # :nodoc:

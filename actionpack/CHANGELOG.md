@@ -1,3 +1,21 @@
+*   ActionDispatch::Response#new no longer applies default headers.  If you want
+    default headers applied to the response object, then call
+    `ActionDispatch::Response.create`.  This change only impacts people who are
+    directly constructing an `ActionDispatch::Response` object.
+
+*   Accessing mime types via constants like `Mime::HTML` is deprecated.  Please
+    change code like this:
+
+      Mime::HTML
+
+    To this:
+
+      Mime::Type[:HTML]
+
+    This change is so that Rails will not manage a list of constants, and fixes
+    an issue where if a type isn't registered you could possibly get the wrong
+    object.
+
 *   `url_for` does not modify its arguments when generating polymorphic URLs.
 
     *Bernerd Schaefer*

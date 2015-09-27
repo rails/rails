@@ -14,15 +14,7 @@ module ActionView
         end
 
         def render(&block)
-          render_collection do |item, value, text, default_html_options|
-            builder = instantiate_builder(RadioButtonBuilder, item, value, text, default_html_options)
-
-            if block_given?
-              @template_object.capture(builder, &block)
-            else
-              render_component(builder)
-            end
-          end
+          render_collection_for(RadioButtonBuilder, &block)
         end
 
         private

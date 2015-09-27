@@ -137,7 +137,7 @@ module ActiveRecord
       #
       # In order to get around this problem, #transaction will emulate the effect
       # of nested transactions, by using savepoints:
-      # http://dev.mysql.com/doc/refman/5.6/en/savepoint.html
+      # http://dev.mysql.com/doc/refman/5.7/en/savepoint.html
       # Savepoints are supported by MySQL and PostgreSQL. SQLite3 version >= '3.6.8'
       # supports savepoints.
       #
@@ -190,7 +190,7 @@ module ActiveRecord
       # semantics of these different levels:
       #
       # * http://www.postgresql.org/docs/current/static/transaction-iso.html
-      # * https://dev.mysql.com/doc/refman/5.6/en/set-transaction.html
+      # * https://dev.mysql.com/doc/refman/5.7/en/set-transaction.html
       #
       # An <tt>ActiveRecord::TransactionIsolationError</tt> will be raised if:
       #

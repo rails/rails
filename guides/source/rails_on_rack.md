@@ -121,7 +121,6 @@ use ActiveRecord::QueryCache
 use ActionDispatch::Cookies
 use ActionDispatch::Session::CookieStore
 use ActionDispatch::Flash
-use ActionDispatch::ParamsParser
 use Rack::Head
 use Rack::ConditionalGet
 use Rack::ETag
@@ -283,10 +282,6 @@ Much of Action Controller's functionality is implemented as Middlewares. The fol
 **`ActionDispatch::Flash`**
 
 * Sets up the flash keys. Only available if `config.action_controller.session_store` is set to a value.
-
-**`ActionDispatch::ParamsParser`**
-
-* Parses out parameters from the request into `params`.
 
 **`Rack::Head`**
 

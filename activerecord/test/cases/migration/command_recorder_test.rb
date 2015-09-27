@@ -31,7 +31,8 @@ module ActiveRecord
       end
 
       def test_unknown_commands_delegate
-        recorder = CommandRecorder.new(stub(:foo => 'bar'))
+        recorder = Struct.new(:foo)
+        recorder = CommandRecorder.new(recorder.new('bar'))
         assert_equal 'bar', recorder.foo
       end
 

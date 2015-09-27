@@ -11,6 +11,7 @@ GlobalID.app = 'aj'
 if ENV['AJ_INTEGRATION_TESTS']
   require 'support/integration/helper'
 else
+  ActiveJob::Base.logger = Logger.new(nil)
   require "adapters/#{@adapter}"
 end
 

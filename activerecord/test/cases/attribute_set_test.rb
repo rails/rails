@@ -160,6 +160,9 @@ module ActiveRecord
         return if value.nil?
         value + " from database"
       end
+
+      def assert_valid_value(*)
+      end
     end
 
     test "write_from_database sets the attribute with database typecasting" do
@@ -206,6 +209,17 @@ module ActiveRecord
       attributes.fetch_value(:foo)
 
       assert_equal [:foo], attributes.accessed
+    end
+
+    test "#map returns a new attribute set with the changes applied" do
+      builder = AttributeSet::Builder.new(foo: Type::Integer.new, bar: Type::Integer.new)
+      attributes = builder.build_from_database(foo: "1", bar: "2")
+      new_attributes = attributes.map do |attr|
+        attr.with_cast_value(attr.value + 1)
+      end
+
+      assert_equal 2, new_attributes.fetch_value(:foo)
+      assert_equal 3, new_attributes.fetch_value(:bar)
     end
   end
 end

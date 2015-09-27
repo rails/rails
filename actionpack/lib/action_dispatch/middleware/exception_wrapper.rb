@@ -61,7 +61,7 @@ module ActionDispatch
     end
 
     def traces
-      appplication_trace_with_ids = []
+      application_trace_with_ids = []
       framework_trace_with_ids = []
       full_trace_with_ids = []
 
@@ -69,7 +69,7 @@ module ActionDispatch
         trace_with_id = { id: idx, trace: trace }
 
         if application_trace.include?(trace)
-          appplication_trace_with_ids << trace_with_id
+          application_trace_with_ids << trace_with_id
         else
           framework_trace_with_ids << trace_with_id
         end
@@ -78,7 +78,7 @@ module ActionDispatch
       end
 
       {
-        "Application Trace" => appplication_trace_with_ids,
+        "Application Trace" => application_trace_with_ids,
         "Framework Trace" => framework_trace_with_ids,
         "Full Trace" => full_trace_with_ids
       }

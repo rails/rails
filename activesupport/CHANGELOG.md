@@ -1,7 +1,29 @@
+*   `assert_difference` and `assert_no_difference` now returns the result of the
+    yielded block.
+
+    Example:
+
+      post = assert_difference -> { Post.count }, 1 do
+        Post.create
+      end
+
+    *Lucas Mazza*
+
+*   Short-circuit `blank?` on date and time values since they are never blank.
+
+    Fixes #21657
+
+    *Andrew White*
+
+*   Replaced deprecated `ThreadSafe::Cache` with its successor `Concurrent::Map` now that
+    the thread_safe gem has been merged into concurrent-ruby.
+
+    *Jerry D'Antonio*
+
 *   Updated Unicode version to 8.0.0
 
     *Anshul Sharma*
-    
+
 *   `number_to_currency` and `number_with_delimiter` now accept custom `delimiter_pattern` option
      to handle placement of delimiter, to support currency formats like INR
 
@@ -266,20 +288,17 @@
 
     The preferred method to halt a callback chain from now on is to explicitly
     `throw(:abort)`.
-    In the past, returning `false` in an ActiveSupport callback had the side
-    effect of halting the callback chain. This is not recommended anymore and,
-    depending on the value of
-    `Callbacks::CallbackChain.halt_and_display_warning_on_return_false`, will
-    either not work at all or display a deprecation warning.
+    In the past, callbacks could only be halted by explicitly providing a
+    terminator and by having a callback match the conditions of the terminator.
 
 *   Add `Callbacks::CallbackChain.halt_and_display_warning_on_return_false`
 
     Setting `Callbacks::CallbackChain.halt_and_display_warning_on_return_false`
-    to `true` will let an app support the deprecated way of halting callback
-    chains by returning `false`.
+    to `true` will let an app support the deprecated way of halting Active Record,
+    Active Model and Active Model validations callback chains by returning `false`.
 
     Setting the value to `false` will tell the app to ignore any `false` value
-    returned by callbacks, and only halt the chain upon `throw(:abort)`.
+    returned by those callbacks, and only halt the chain upon `throw(:abort)`.
 
     The value can also be set with the Rails configuration option
     `config.active_support.halt_callback_chains_on_return_false`.
@@ -289,7 +308,7 @@
     For new Rails 5.0 apps, its value is set to `false` in an initializer, so
     these apps will support the new behavior by default.
 
-    *claudiob*
+    *claudiob*, *Roque Pinel*
 
 *   Changes arguments and default value of CallbackChain's `:terminator` option
 

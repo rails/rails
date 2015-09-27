@@ -18,48 +18,13 @@ module ActionDispatch
       end
     end
 
-    DEFAULT_PARSERS = {
-      Mime::JSON => lambda { |raw_post|
-        data = ActiveSupport::JSON.decode(raw_post)
-        data = {:_json => data} unless data.is_a?(Hash)
-        Request::Utils.normalize_encode_params(data)
-      }
-    }
-
     # Create a new +ParamsParser+ middleware instance.
     #
     # The +parsers+ argument can take Hash of parsers where key is identifying
     # content mime type, and value is a lambda that is going to process data.
-    def initialize(app, parsers = {})
-      @app, @parsers = app, DEFAULT_PARSERS.merge(parsers)
+    def self.new(app, parsers = {})
+      ActionDispatch::Request.parameter_parsers = ActionDispatch::Request::DEFAULT_PARSERS.merge(parsers)
+      app
     end
-
-    def call(env)
-      request = Request.new(env)
-
-      parse_formatted_parameters(request, @parsers) do |params|
-        request.request_parameters = params
-      end
-
-      @app.call(env)
-    end
-
-    private
-      def parse_formatted_parameters(request, parsers)
-        return if request.content_length.zero?
-
-        strategy = parsers.fetch(request.content_mime_type) { return nil }
-
-        yield strategy.call(request.raw_post)
-
-      rescue => e # JSON or Ruby code block errors
-        logger(request).debug "Error occurred while parsing request parameters.\nContents:\n\n#{request.raw_post}"
-
-        raise ParseError.new(e.message, e)
-      end
-
-      def logger(request)
-        request.logger || ActiveSupport::Logger.new($stderr)
-      end
   end
 end

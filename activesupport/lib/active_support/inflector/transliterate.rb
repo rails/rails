@@ -1,4 +1,3 @@
-# encoding: utf-8
 require 'active_support/core_ext/string/multibyte'
 require 'active_support/i18n'
 
@@ -76,15 +75,15 @@ module ActiveSupport
       parameterized_string.gsub!(/[^a-z0-9\-_]+/i, sep)
       unless sep.nil? || sep.empty?
         if sep == "-".freeze
-          re_duplicate_seperator        = /-{2,}/
+          re_duplicate_separator        = /-{2,}/
           re_leading_trailing_separator = /^-|-$/i
         else
           re_sep = Regexp.escape(sep)
-          re_duplicate_seperator        = /#{re_sep}{2,}/
+          re_duplicate_separator        = /#{re_sep}{2,}/
           re_leading_trailing_separator = /^#{re_sep}|#{re_sep}$/i
         end
         # No more than one of the separator in a row.
-        parameterized_string.gsub!(re_duplicate_seperator, sep)
+        parameterized_string.gsub!(re_duplicate_separator, sep)
         # Remove leading/trailing separator.
         parameterized_string.gsub!(re_leading_trailing_separator, ''.freeze)
       end

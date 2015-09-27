@@ -43,7 +43,6 @@ module ApplicationTests
         "ActionDispatch::Cookies",
         "ActionDispatch::Session::CookieStore",
         "ActionDispatch::Flash",
-        "ActionDispatch::ParamsParser",
         "Rack::Head",
         "Rack::ConditionalGet",
         "Rack::ETag"
@@ -70,7 +69,6 @@ module ApplicationTests
         "ActionDispatch::Callbacks",
         "ActiveRecord::ConnectionAdapters::ConnectionManagement",
         "ActiveRecord::QueryCache",
-        "ActionDispatch::ParamsParser",
         "Rack::Head",
         "Rack::ConditionalGet",
         "Rack::ETag"

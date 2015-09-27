@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 require "cases/helper"
 require 'models/post'
 require 'models/author'
@@ -206,7 +204,7 @@ class BasicsTest < ActiveRecord::TestCase
     )
 
     # For adapters which support microsecond resolution.
-    if current_adapter?(:PostgreSQLAdapter, :SQLite3Adapter) || mysql_56?
+    if subsecond_precision_supported?
       assert_equal 11, Topic.find(1).written_on.sec
       assert_equal 223300, Topic.find(1).written_on.usec
       assert_equal 9900, Topic.find(2).written_on.usec
@@ -1299,9 +1297,10 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_compute_type_no_method_error
-    ActiveSupport::Dependencies.stubs(:safe_constantize).raises(NoMethodError)
-    assert_raises NoMethodError do
-      ActiveRecord::Base.send :compute_type, 'InvalidModel'
+    ActiveSupport::Dependencies.stub(:safe_constantize, proc{ raise NoMethodError }) do
+      assert_raises NoMethodError do
+        ActiveRecord::Base.send :compute_type, 'InvalidModel'
+      end
     end
   end
 
@@ -1315,18 +1314,20 @@ class BasicsTest < ActiveRecord::TestCase
       error = e
     end
 
-    ActiveSupport::Dependencies.stubs(:safe_constantize).raises(e)
+    ActiveSupport::Dependencies.stub(:safe_constantize, proc{ raise e }) do
 
-    exception = assert_raises NameError do
-      ActiveRecord::Base.send :compute_type, 'InvalidModel'
+      exception = assert_raises NameError do
+        ActiveRecord::Base.send :compute_type, 'InvalidModel'
+      end
+      assert_equal error.message, exception.message
     end
-    assert_equal error.message, exception.message
   end
 
   def test_compute_type_argument_error
-    ActiveSupport::Dependencies.stubs(:safe_constantize).raises(ArgumentError)
-    assert_raises ArgumentError do
-      ActiveRecord::Base.send :compute_type, 'InvalidModel'
+    ActiveSupport::Dependencies.stub(:safe_constantize, proc{ raise ArgumentError }) do
+      assert_raises ArgumentError do
+        ActiveRecord::Base.send :compute_type, 'InvalidModel'
+      end
     end
   end
 
@@ -1569,5 +1570,23 @@ class BasicsTest < ActiveRecord::TestCase
     Topic.reset_column_information
 
     assert_not topic.id_changed?
+  end
+
+  test "ignored columns are not present in columns_hash" do
+    cache_columns = Developer.connection.schema_cache.columns_hash(Developer.table_name)
+    assert_includes cache_columns.keys, 'first_name'
+    refute_includes Developer.columns_hash.keys, 'first_name'
+  end
+
+  test "ignored columns have no attribute methods" do
+    refute Developer.new.respond_to?(:first_name)
+    refute Developer.new.respond_to?(:first_name=)
+    refute Developer.new.respond_to?(:first_name?)
+  end
+
+  test "ignored columns don't prevent explicit declaration of attribute methods" do
+    assert Developer.new.respond_to?(:last_name)
+    assert Developer.new.respond_to?(:last_name=)
+    assert Developer.new.respond_to?(:last_name?)
   end
 end

@@ -302,7 +302,7 @@ specify to make your test failure messages clearer. It's not required.
 The above are a subset of assertions that minitest supports. For an exhaustive &
 more up-to-date list, please check
 [Minitest API documentation](http://docs.seattlerb.org/minitest/), specifically
-[`Minitest::Assertions`](http://docs.seattlerb.org/minitest/Minitest/Assertions.html)
+[`Minitest::Assertions`](http://docs.seattlerb.org/minitest/Minitest/Assertions.html).
 
 Because of the modular nature of the testing framework, it is possible to create your own assertions. In fact, that's exactly what Rails does. It includes some specialized assertions to make your life easier.
 
@@ -478,7 +478,7 @@ default. Loading involves three steps:
 2. Load the fixture data into the table
 3. Dump the fixture data into a method in case you want to access it directly
 
-TIP: In order to remove existing data from the database, Rails tries to disable referential integrity triggers (like foreign keys and check constraints). If you are getting annoying permission errors on running tests, make sure the database user has privilege to disable these triggers in testing environment. (In PostgreSQL, only superusers can disable all triggers. Read more about PostgreSQL permissions [here](http://blog.endpoint.com/2012/10/postgres-system-triggers-error.html))
+TIP: In order to remove existing data from the database, Rails tries to disable referential integrity triggers (like foreign keys and check constraints). If you are getting annoying permission errors on running tests, make sure the database user has privilege to disable these triggers in testing environment. (In PostgreSQL, only superusers can disable all triggers. Read more about PostgreSQL permissions [here](http://blog.endpoint.com/2012/10/postgres-system-triggers-error.html)).
 
 #### Fixtures are Active Record objects
 
@@ -750,9 +750,9 @@ end
 
 After a request has been made and processed, you will have 3 Hash objects ready for use:
 
-* `cookies` - Any cookies that are set.
-* `flash` - Any objects living in the flash.
-* `session` - Any object living in session variables.
+* `cookies` - Any cookies that are set
+* `flash` - Any objects living in the flash
+* `session` - Any object living in session variables
 
 As is the case with normal Hash objects, you can access the values by referencing the keys by string. You can also reference them by symbol name. For example:
 

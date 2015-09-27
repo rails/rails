@@ -126,14 +126,10 @@ module ActiveSupport
         def self.build(callback_sequence, user_callback, user_conditions, chain_config, filter)
           halted_lambda = chain_config[:terminator]
 
-          if chain_config.key?(:terminator) && user_conditions.any?
+          if user_conditions.any?
             halting_and_conditional(callback_sequence, user_callback, user_conditions, halted_lambda, filter)
-          elsif chain_config.key? :terminator
-            halting(callback_sequence, user_callback, halted_lambda, filter)
-          elsif user_conditions.any?
-            conditional(callback_sequence, user_callback, user_conditions)
           else
-            simple callback_sequence, user_callback
+            halting(callback_sequence, user_callback, halted_lambda, filter)
           end
         end
 
@@ -175,42 +171,15 @@ module ActiveSupport
           end
         end
         private_class_method :halting
-
-        def self.conditional(callback_sequence, user_callback, user_conditions)
-          callback_sequence.before do |env|
-            target = env.target
-            value  = env.value
-
-            if user_conditions.all? { |c| c.call(target, value) }
-              user_callback.call target, value
-            end
-
-            env
-          end
-        end
-        private_class_method :conditional
-
-        def self.simple(callback_sequence, user_callback)
-          callback_sequence.before do |env|
-            user_callback.call env.target, env.value
-
-            env
-          end
-        end
-        private_class_method :simple
       end
 
       class After
         def self.build(callback_sequence, user_callback, user_conditions, chain_config)
           if chain_config[:skip_after_callbacks_if_terminated]
-            if chain_config.key?(:terminator) && user_conditions.any?
+            if user_conditions.any?
               halting_and_conditional(callback_sequence, user_callback, user_conditions)
-            elsif chain_config.key?(:terminator)
-              halting(callback_sequence, user_callback)
-            elsif user_conditions.any?
-              conditional callback_sequence, user_callback, user_conditions
             else
-              simple callback_sequence, user_callback
+              halting(callback_sequence, user_callback)
             end
           else
             if user_conditions.any?
@@ -273,14 +242,10 @@ module ActiveSupport
 
       class Around
         def self.build(callback_sequence, user_callback, user_conditions, chain_config)
-          if chain_config.key?(:terminator) && user_conditions.any?
+          if user_conditions.any?
             halting_and_conditional(callback_sequence, user_callback, user_conditions)
-          elsif chain_config.key? :terminator
-            halting(callback_sequence, user_callback)
-          elsif user_conditions.any?
-            conditional(callback_sequence, user_callback, user_conditions)
           else
-            simple(callback_sequence, user_callback)
+            halting(callback_sequence, user_callback)
           end
         end
 
@@ -318,33 +283,6 @@ module ActiveSupport
           end
         end
         private_class_method :halting
-
-        def self.conditional(callback_sequence, user_callback, user_conditions)
-          callback_sequence.around do |env, &run|
-            target = env.target
-            value  = env.value
-
-            if user_conditions.all? { |c| c.call(target, value) }
-              user_callback.call(target, value) {
-                run.call.value
-              }
-              env
-            else
-              run.call
-            end
-          end
-        end
-        private_class_method :conditional
-
-        def self.simple(callback_sequence, user_callback)
-          callback_sequence.around do |env, &run|
-            user_callback.call(env.target, env.value) {
-              run.call.value
-            }
-            env
-          end
-        end
-        private_class_method :simple
       end
     end
 
@@ -598,22 +536,11 @@ module ActiveSupport
         Proc.new do |target, result_lambda|
           terminate = true
           catch(:abort) do
-            result = result_lambda.call if result_lambda.is_a?(Proc)
-            if halt_and_display_warning_on_return_false && result == false
-              display_deprecation_warning_for_false_terminator
-            else
-              terminate = false
-            end
+            result_lambda.call if result_lambda.is_a?(Proc)
+            terminate = false
           end
           terminate
         end
-      end
-
-      def display_deprecation_warning_for_false_terminator
-        ActiveSupport::Deprecation.warn(<<-MSG.squish)
-          Returning `false` in a callback will not implicitly halt a callback chain in the next release of Rails.
-          To explicitly halt a callback chain, please use `throw :abort` instead.
-        MSG
       end
     end
 
@@ -748,7 +675,8 @@ module ActiveSupport
       #
       #   In this example, if any before validate callbacks returns +false+,
       #   any successive before and around callback is not executed.
-      #   Defaults to +false+, meaning no value halts the chain.
+      #
+      #   The default terminator halts the chain when a callback throws +:abort+.
       #
       # * <tt>:skip_after_callbacks_if_terminated</tt> - Determines if after
       #   callbacks should be terminated by the <tt>:terminator</tt> option. By
@@ -825,6 +753,30 @@ module ActiveSupport
 
       def set_callbacks(name, callbacks)
         send "_#{name}_callbacks=", callbacks
+      end
+
+      def deprecated_false_terminator
+        Proc.new do |target, result_lambda|
+          terminate = true
+          catch(:abort) do
+            result = result_lambda.call if result_lambda.is_a?(Proc)
+            if CallbackChain.halt_and_display_warning_on_return_false && result == false
+              display_deprecation_warning_for_false_terminator
+            else
+              terminate = false
+            end
+          end
+          terminate
+        end
+      end
+
+      private
+
+      def display_deprecation_warning_for_false_terminator
+        ActiveSupport::Deprecation.warn(<<-MSG.squish)
+          Returning `false` in Active Record and Active Model callbacks will not implicitly halt a callback chain in the next release of Rails.
+          To explicitly halt the callback chain, please use `throw :abort` instead.
+        MSG
       end
     end
   end

@@ -66,7 +66,6 @@ module ActiveRecord
       #
       #   Account.reflections # => {"balance" => AggregateReflection}
       #
-      # @api public
       def reflections
         @__reflections ||= begin
           ref = {}
@@ -96,7 +95,6 @@ module ActiveRecord
       #   Account.reflect_on_all_associations             # returns an array of all associations
       #   Account.reflect_on_all_associations(:has_many)  # returns an array of all has_many associations
       #
-      #   @api public
       def reflect_on_all_associations(macro = nil)
         association_reflections = reflections.values
         association_reflections.select! { |reflection| reflection.macro == macro } if macro
@@ -108,24 +106,20 @@ module ActiveRecord
       #   Account.reflect_on_association(:owner)             # returns the owner AssociationReflection
       #   Invoice.reflect_on_association(:line_items).macro  # returns :has_many
       #
-      #   @api public
       def reflect_on_association(association)
         reflections[association.to_s]
       end
 
-      #   @api private
       def _reflect_on_association(association) #:nodoc:
         _reflections[association.to_s]
       end
 
       # Returns an array of AssociationReflection objects for all associations which have <tt>:autosave</tt> enabled.
-      #
-      #   @api public
       def reflect_on_all_autosave_associations
         reflections.values.select { |reflection| reflection.options[:autosave] }
       end
 
-      def clear_reflections_cache #:nodoc:
+      def clear_reflections_cache # :nodoc:
         @__reflections = nil
       end
     end
@@ -178,6 +172,20 @@ module ActiveRecord
           end
         else
           options[:counter_cache] ? options[:counter_cache].to_s : "#{name}_count"
+        end
+      end
+
+      def inverse_of
+        return unless inverse_name
+
+        @inverse_of ||= klass._reflect_on_association inverse_name
+      end
+
+      def check_validity_of_inverse!
+        unless polymorphic?
+          if has_inverse? && inverse_of.nil?
+            raise InverseOfAssociationNotFoundError.new(self)
+          end
         end
       end
 
@@ -383,14 +391,6 @@ module ActiveRecord
         check_validity_of_inverse!
       end
 
-      def check_validity_of_inverse!
-        unless polymorphic?
-          if has_inverse? && inverse_of.nil?
-            raise InverseOfAssociationNotFoundError.new(self)
-          end
-        end
-      end
-
       def check_preloadable!
         return unless scope
 
@@ -440,12 +440,6 @@ module ActiveRecord
 
       def has_inverse?
         inverse_name
-      end
-
-      def inverse_of
-        return unless inverse_name
-
-        @inverse_of ||= klass._reflect_on_association inverse_name
       end
 
       def polymorphic_inverse_of(associated_class)
@@ -929,6 +923,8 @@ module ActiveRecord
         def primary_key(klass)
           klass.primary_key || raise(UnknownPrimaryKey.new(klass))
         end
+
+        def inverse_name; delegate_reflection.send(:inverse_name); end
 
       private
         def derive_class_name

@@ -23,6 +23,9 @@ module ActiveRecord
     class ChangeColumnDefinition < Struct.new(:column, :name) #:nodoc:
     end
 
+    class PrimaryKeyDefinition < Struct.new(:name) # :nodoc:
+    end
+
     class ForeignKeyDefinition < Struct.new(:from_table, :to_table, :options) #:nodoc:
       def name
         options[:name]
@@ -207,11 +210,17 @@ module ActiveRecord
         @columns_hash = {}
         @indexes = {}
         @foreign_keys = {}
+        @primary_keys = nil
         @native = types
         @temporary = temporary
         @options = options
         @as = as
         @name = name
+      end
+
+      def primary_keys(name = nil) # :nodoc:
+        @primary_keys = PrimaryKeyDefinition.new(name) if name
+        @primary_keys
       end
 
       # Returns an array of ColumnDefinition objects for the columns of the table.
@@ -236,8 +245,8 @@ module ActiveRecord
       #
       # Available options are (none of these exists by default):
       # * <tt>:limit</tt> -
-      #   Requests a maximum column length. This is number of characters for <tt>:string</tt> and
-      #   <tt>:text</tt> columns and number of bytes for <tt>:binary</tt> and <tt>:integer</tt> columns.
+      #   Requests a maximum column length. This is number of characters for a <tt>:string</tt> column
+      #   and number of bytes for <tt>:text</tt>, <tt>:binary</tt> and <tt>:integer</tt> columns.
       # * <tt>:default</tt> -
       #   The column's default value. Use nil for NULL.
       # * <tt>:null</tt> -

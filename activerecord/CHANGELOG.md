@@ -1,3 +1,97 @@
+*   Don't require a database connection to load a class which uses acceptance
+    validations.
+
+    *Sean Griffin*
+
+*   Correctly apply `unscope` when preloading through associations.
+
+    *Jimmy Bourassa*
+
+*   Fixed taking precision into count when assigning a value to timestamp attribute
+
+    Timestamp column can have less precision than ruby timestamp
+    In result in how big a fraction of a second can be stored in the
+    database.
+
+
+      m = Model.create!
+      m.created_at.usec == m.reload.created_at.usec
+        # => false
+        # due to different precision in Time.now and database column
+
+    If the precision is low enough, (mysql default is 0, so it is always low
+    enough by default) the value changes when model is reloaded from the
+    database. This patch fixes that issue ensuring that any timestamp
+    assigned as an attribute is converted to column precision under the
+    attribute.
+
+    *Bogdan Gusiev*
+
+*   Introduce `connection.data_sources` and `connection.data_source_exists?`.
+    These methods determine what relations can be used to back Active Record
+    models (usually tables and views).
+
+    Also deprecate `SchemaCache#tables`, `SchemaCache#table_exists?` and
+    `SchemaCache#clear_table_cache!` in favor of their new data source
+    counterparts.
+
+    *Yves Senn*, *Matthew Draper*
+
+*   Add `ActiveRecord::Base.ignored_columns` to make some columns
+    invisible from ActiveRecord.
+
+    *Jean Boussier*
+
+*   `ActiveRecord::Tasks::MySQLDatabaseTasks` fails if shellout to
+    mysql commands (like `mysqldump`) is not successful.
+
+    *Steve Mitchell*
+
+*   Ensure `select` quotes aliased attributes, even when using `from`.
+
+    Fixes #21488
+
+    *Sean Griffin & @johanlunds*
+
+*   MySQL: support `unsigned` numeric data types.
+
+    Example:
+
+        create_table :foos do |t|
+          t.unsigned_integer :quantity
+          t.unsigned_bigint  :total
+          t.unsigned_float   :percentage
+          t.unsigned_decimal :price, precision: 10, scale: 2
+        end
+
+    The `unsigned: true` option may be used for the primary key:
+
+        create_table :foos, id: :bigint, unsigned: true do |t|
+          …
+        end
+
+    *Ryuta Kamizono*
+
+*   Add `#views` and `#view_exists?` methods on connection adapters.
+
+    *Ryuta Kamizono*
+
+*   Correctly dump composite primary key.
+
+    Example:
+
+        create_table :barcodes, primary_key: ["region", "code"] do |t|
+          t.string :region
+          t.integer :code
+        end
+
+    *Ryuta Kamizono*
+
+*   Lookup the attribute name for `restrict_with_error` messages on the
+    model class that defines the association.
+
+    *kuboon*, *Ronak Jangir*
+
 *   Correct query for PostgreSQL 8.2 compatibility.
 
     *Ben Murphy*, *Matthew Draper*

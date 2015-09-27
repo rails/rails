@@ -5,9 +5,11 @@ require 'support/schema_dumping_helper'
 module PGSchemaHelper
   def with_schema_search_path(schema_search_path)
     @connection.schema_search_path = schema_search_path
+    @connection.schema_cache.clear!
     yield if block_given?
   ensure
     @connection.schema_search_path = "'$user', public"
+    @connection.schema_cache.clear!
   end
 end
 

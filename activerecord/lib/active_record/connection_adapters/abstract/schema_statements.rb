@@ -23,6 +23,20 @@ module ActiveRecord
         table_name[0...table_alias_length].tr('.', '_')
       end
 
+      # Returns the relation names useable to back Active Record models.
+      # For most adapters this means all #tables and #views.
+      def data_sources
+        tables | views
+      end
+
+      # Checks to see if the data source +name+ exists on the database.
+      #
+      #   data_source_exists?(:ebooks)
+      #
+      def data_source_exists?(name)
+        data_sources.include?(name.to_s)
+      end
+
       # Returns an array of table names defined in the database.
       def tables(name = nil)
         raise NotImplementedError, "#tables is not implemented"
@@ -34,6 +48,19 @@ module ActiveRecord
       #
       def table_exists?(table_name)
         tables.include?(table_name.to_s)
+      end
+
+      # Returns an array of view names defined in the database.
+      def views
+        raise NotImplementedError, "#views is not implemented"
+      end
+
+      # Checks to see if the view +view_name+ exists on the database.
+      #
+      #   view_exists?(:ebooks)
+      #
+      def view_exists?(view_name)
+        views.include?(view_name.to_s)
       end
 
       # Returns an array of indexes for the given table.
@@ -91,6 +118,12 @@ module ActiveRecord
                                       (!options.key?(:scale)     || c.scale == options[:scale]) &&
                                       (!options.key?(:default)   || c.default == options[:default]) &&
                                       (!options.key?(:null)      || c.null == options[:null]) }
+      end
+
+      # Returns just a table's primary key
+      def primary_key(table_name)
+        pks = primary_keys(table_name)
+        pks.first if pks.one?
       end
 
       # Creates a new table with the name +table_name+. +table_name+ may either
@@ -158,7 +191,7 @@ module ActiveRecord
       # generates:
       #
       #   CREATE TABLE suppliers (
-      #     id int(11) DEFAULT NULL auto_increment PRIMARY KEY
+      #     id int auto_increment PRIMARY KEY
       #   ) ENGINE=InnoDB DEFAULT CHARSET=utf8
       #
       # ====== Rename the primary key column
@@ -170,7 +203,7 @@ module ActiveRecord
       # generates:
       #
       #   CREATE TABLE objects (
-      #     guid int(11) DEFAULT NULL auto_increment PRIMARY KEY,
+      #     guid int auto_increment PRIMARY KEY,
       #     name varchar(80)
       #   )
       #
@@ -220,7 +253,11 @@ module ActiveRecord
             Base.get_primary_key table_name.to_s.singularize
           end
 
-          td.primary_key pk, options.fetch(:id, :primary_key), options
+          if pk.is_a?(Array)
+            td.primary_keys pk
+          else
+            td.primary_key pk, options.fetch(:id, :primary_key), options
+          end
         end
 
         yield td if block_given?
@@ -235,10 +272,6 @@ module ActiveRecord
           td.indexes.each_pair do |column_name, index_options|
             add_index(table_name, column_name, index_options)
           end
-        end
-
-        td.foreign_keys.each_pair do |other_table_name, foreign_key_options|
-          add_foreign_key(table_name, other_table_name, foreign_key_options)
         end
 
         result
@@ -320,7 +353,7 @@ module ActiveRecord
       # [<tt>:bulk</tt>]
       #   Set this to true to make this a bulk alter query, such as
       #
-      #     ALTER TABLE `users` ADD COLUMN age INT(11), ADD COLUMN birthdate DATETIME ...
+      #     ALTER TABLE `users` ADD COLUMN age INT, ADD COLUMN birthdate DATETIME ...
       #
       #   Defaults to false.
       #
@@ -539,6 +572,8 @@ module ActiveRecord
       # generates:
       #
       #   CREATE INDEX by_name ON accounts(name(10))
+      #
+      # ====== Creating an index with specific key lengths for multiple keys
       #
       #   add_index(:accounts, [:name, :surname], name: 'by_name_surname', length: {name: 10, surname: 15})
       #
@@ -769,15 +804,7 @@ module ActiveRecord
       def add_foreign_key(from_table, to_table, options = {})
         return unless supports_foreign_keys?
 
-        options[:column] ||= foreign_key_column_for(to_table)
-
-        options = {
-          column: options[:column],
-          primary_key: options[:primary_key],
-          name: foreign_key_name(from_table, options),
-          on_delete: options[:on_delete],
-          on_update: options[:on_update]
-        }
+        options = foreign_key_options(from_table, to_table, options)
         at = create_alter_table from_table
         at.add_foreign_key to_table, options
 
@@ -843,6 +870,13 @@ module ActiveRecord
         suffix = Base.table_name_suffix
         name = table_name.to_s =~ /#{prefix}(.+)#{suffix}/ ? $1 : table_name.to_s
         "#{name.singularize}_id"
+      end
+
+      def foreign_key_options(from_table, to_table, options) # :nodoc:
+        options = options.dup
+        options[:column] ||= foreign_key_column_for(to_table)
+        options[:name]   ||= foreign_key_name(from_table, options)
+        options
       end
 
       def dump_schema_information #:nodoc:
@@ -986,6 +1020,10 @@ module ActiveRecord
         [index_name, index_type, index_columns, index_options, algorithm, using]
       end
 
+      def options_include_default?(options)
+        options.include?(:default) && !(options[:null] == false && options[:default].nil?)
+      end
+
       protected
         def add_index_sort_order(option_strings, column_names, options = {})
           if options.is_a?(Hash) && order = options[:order]
@@ -1010,10 +1048,6 @@ module ActiveRecord
           end
 
           column_names.map {|name| quote_column_name(name) + option_strings[name]}
-        end
-
-        def options_include_default?(options)
-          options.include?(:default) && !(options[:null] == false && options[:default].nil?)
         end
 
         def index_name_for_remove(table_name, options = {})

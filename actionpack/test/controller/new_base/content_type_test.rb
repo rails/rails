@@ -7,12 +7,12 @@ module ContentType
     end
 
     def set_on_response_obj
-      response.content_type = Mime::RSS
+      response.content_type = Mime::Type[:RSS]
       render body: "Hello world!"
     end
 
     def set_on_render
-      render body: "Hello world!", content_type: Mime::RSS
+      render body: "Hello world!", content_type: Mime::Type[:RSS]
     end
   end
 

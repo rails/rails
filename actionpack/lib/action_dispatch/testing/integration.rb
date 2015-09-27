@@ -354,7 +354,7 @@ module ActionDispatch
           if xhr
             headers ||= {}
             headers['HTTP_X_REQUESTED_WITH'] = 'XMLHttpRequest'
-            headers['HTTP_ACCEPT'] ||= [Mime::JS, Mime::HTML, Mime::XML, 'text/xml', Mime::ALL].join(', ')
+            headers['HTTP_ACCEPT'] ||= [Mime::Type[:JS], Mime::Type[:HTML], Mime::Type[:XML], 'text/xml', Mime::Type[:ALL]].join(', ')
           end
 
           # this modifies the passed request_env directly

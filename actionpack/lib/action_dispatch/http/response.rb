@@ -32,6 +32,29 @@ module ActionDispatch # :nodoc:
   #    end
   #  end
   class Response
+    class Header < DelegateClass(Hash) # :nodoc:
+      def initialize(response, header)
+        @response = response
+        super(header)
+      end
+
+      def []=(k,v)
+        if @response.committed?
+          raise ActionDispatch::IllegalStateError, 'header already sent'
+        end
+
+        super
+      end
+
+      def merge(other)
+        self.class.new @response, __getobj__.merge(other)
+      end
+
+      def to_hash
+        __getobj__.dup
+      end
+    end
+
     # The request that the response is responding to.
     attr_accessor :request
 
@@ -103,14 +126,22 @@ module ActionDispatch # :nodoc:
       end
     end
 
+    def self.create(status = 200, header = {}, body = [], default_headers: self.default_headers)
+      header = merge_default_headers(header, default_headers)
+      new status, header, body
+    end
+
+    def self.merge_default_headers(original, default)
+      default.respond_to?(:merge) ? default.merge(original) : original
+    end
+
     # The underlying body, as a streamable object.
     attr_reader :stream
 
-    def initialize(status = 200, header = {}, body = [], default_headers: self.class.default_headers)
+    def initialize(status = 200, header = {}, body = [])
       super()
 
-      header = merge_default_headers(header, default_headers)
-      @header = header
+      @header = Header.new(self, header)
 
       self.body, self.status = body, status
 
@@ -340,13 +371,10 @@ module ActionDispatch # :nodoc:
       return if committed?
       assign_default_content_type_and_charset!
       handle_conditional_get!
+      handle_no_content!
     end
 
     def before_sending
-    end
-
-    def merge_default_headers(original, default)
-      default.respond_to?(:merge) ? default.merge(original) : original
     end
 
     def build_buffer(response, body)
@@ -361,7 +389,7 @@ module ActionDispatch # :nodoc:
       return if content_type
 
       ct = parse_content_type
-      set_content_type(ct.mime_type || Mime::HTML.to_s,
+      set_content_type(ct.mime_type || Mime::Type[:HTML].to_s,
                        ct.charset || self.class.default_charset)
     end
 
@@ -401,10 +429,15 @@ module ActionDispatch # :nodoc:
       end
     end
 
-    def rack_response(status, header)
+    def handle_no_content!
       if NO_CONTENT_CODES.include?(@status)
-        header.delete CONTENT_TYPE
-        header.delete 'Content-Length'
+        @header.delete CONTENT_TYPE
+        @header.delete 'Content-Length'
+      end
+    end
+
+    def rack_response(status, header)
+      if NO_CONTENT_CODES.include?(status)
         [status, header, []]
       else
         [status, header, RackBody.new(self)]

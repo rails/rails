@@ -151,7 +151,6 @@ class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
       middleware.use ActionDispatch::ShowExceptions, ActionDispatch::PublicExceptions.new("#{FIXTURE_LOAD_PATH}/public")
       middleware.use ActionDispatch::DebugExceptions
       middleware.use ActionDispatch::Callbacks
-      middleware.use ActionDispatch::ParamsParser
       middleware.use ActionDispatch::Cookies
       middleware.use ActionDispatch::Flash
       middleware.use Rack::Head

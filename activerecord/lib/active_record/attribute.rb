@@ -55,6 +55,7 @@ module ActiveRecord
     end
 
     def with_value_from_user(value)
+      type.assert_valid_value(value)
       self.class.from_user(name, value, type)
     end
 

@@ -10,7 +10,7 @@ module ActionDispatch
         self.ignore_accept_header = false
       end
 
-      # The MIME type of the HTTP request, such as Mime::XML.
+      # The MIME type of the HTTP request, such as Mime::Type[:XML].
       #
       # For backward compatibility, the post \format is extracted from the
       # X-Post-Data-Format HTTP header if present.
@@ -29,6 +29,10 @@ module ActionDispatch
         content_mime_type && content_mime_type.to_s
       end
 
+      def has_content_type?
+        has_header? 'CONTENT_TYPE'
+      end
+
       # Returns the accepted MIME type for the request.
       def accepts
         fetch_header("action_dispatch.request.accepts") do |k|
@@ -45,9 +49,9 @@ module ActionDispatch
 
       # Returns the MIME type for the \format used in the request.
       #
-      #   GET /posts/5.xml   | request.format => Mime::XML
-      #   GET /posts/5.xhtml | request.format => Mime::HTML
-      #   GET /posts/5       | request.format => Mime::HTML or MIME::JS, or request.accepts.first
+      #   GET /posts/5.xml   | request.format => Mime::Type[:XML]
+      #   GET /posts/5.xhtml | request.format => Mime::Type[:HTML]
+      #   GET /posts/5       | request.format => Mime::Type[:HTML] or Mime::Type[:JS], or request.accepts.first
       #
       def format(view_path = [])
         formats.first || Mime::NullType.instance
@@ -66,9 +70,9 @@ module ActionDispatch
           elsif use_accept_header && valid_accept_header
             accepts
           elsif xhr?
-            [Mime::JS]
+            [Mime::Type[:JS]]
           else
-            [Mime::HTML]
+            [Mime::Type[:HTML]]
           end
           set_header k, v
         end
@@ -134,14 +138,14 @@ module ActionDispatch
       #
       def negotiate_mime(order)
         formats.each do |priority|
-          if priority == Mime::ALL
+          if priority == Mime::Type[:ALL]
             return order.first
           elsif order.include?(priority)
             return priority
           end
         end
 
-        order.include?(Mime::ALL) ? format : nil
+        order.include?(Mime::Type[:ALL]) ? format : nil
       end
 
       protected

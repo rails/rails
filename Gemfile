@@ -17,7 +17,7 @@ gem 'mocha', '~> 0.14', require: false
 gem 'rack-cache', '~> 1.2'
 gem 'jquery-rails', github: 'rails/jquery-rails', branch: 'master'
 gem 'coffee-rails', '~> 4.1.0'
-gem 'turbolinks'
+gem 'turbolinks', github: 'rails/turbolinks', branch: 'master'
 gem 'arel', github: 'rails/arel', branch: 'master'
 gem 'mail', github: 'mikel/mail', branch: 'master'
 
@@ -79,7 +79,7 @@ group :test do
 end
 
 platforms :ruby do
-  gem 'nokogiri', '>= 1.4.5'
+  gem 'nokogiri', '>= 1.6.7.rc3'
 
   # Needed for compiling the ActionDispatch::Journey parser
   gem 'racc', '>=1.4.6', require: false
@@ -127,3 +127,4 @@ end
 
 # A gem necessary for ActiveRecord tests with IBM DB
 gem 'ibm_db' if ENV['IBM_DB']
+gem 'tzinfo-data', platforms: [:mingw, :mswin, :x64_mingw, :jruby]

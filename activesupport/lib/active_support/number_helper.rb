@@ -118,7 +118,7 @@ module ActiveSupport
     #   number_to_percentage(1000, locale: :fr)                    # => 1 000,000%
     #   number_to_percentage:(1000, precision: nil)                # => 1000%
     #   number_to_percentage('98a')                                # => 98a%
-    #   number_to_percentage(100, format: '%n  %')                 # => 100  %
+    #   number_to_percentage(100, format: '%n  %')                 # => 100.000  %
     def number_to_percentage(number, options = {})
       NumberToPercentageConverter.convert(number, options)
     end

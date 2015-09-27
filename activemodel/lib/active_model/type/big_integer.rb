@@ -1,6 +1,6 @@
-require 'active_record/type/integer'
+require 'active_model/type/integer'
 
-module ActiveRecord
+module ActiveModel
   module Type
     class BigInteger < Integer # :nodoc:
       private

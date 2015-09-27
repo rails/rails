@@ -1,11 +1,11 @@
-require 'thread_safe'
+require 'concurrent'
 require 'action_view/dependency_tracker'
 require 'monitor'
 
 module ActionView
   class Digestor
     cattr_reader(:cache)
-    @@cache          = ThreadSafe::Cache.new
+    @@cache          = Concurrent::Map.new
     @@digest_monitor = Monitor.new
 
     class PerRequestDigestCacheExpiry < Struct.new(:app) # :nodoc:
@@ -28,7 +28,7 @@ module ActionView
         cache_key = ([ options[:name], options[:finder].details_key.hash ].compact + Array.wrap(options[:dependencies])).join('.')
 
         # this is a correctly done double-checked locking idiom
-        # (ThreadSafe::Cache's lookups have volatile semantics)
+        # (Concurrent::Map's lookups have volatile semantics)
         @@cache[cache_key] || @@digest_monitor.synchronize do
           @@cache.fetch(cache_key) do # re-check under lock
             compute_and_store_digest(cache_key, options)

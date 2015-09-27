@@ -5,20 +5,13 @@ module ActiveRecord
   module ConnectionAdapters
     # An abstract definition of a column in a table.
     class Column
-      FALSE_VALUES = [false, 0, '0', 'f', 'F', 'false', 'FALSE', 'off', 'OFF'].to_set
-
-      module Format
-        ISO_DATE = /\A(\d{4})-(\d\d)-(\d\d)\z/
-        ISO_DATETIME = /\A(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d):(\d\d)(\.\d+)?\z/
-      end
-
       attr_reader :name, :null, :sql_type_metadata, :default, :default_function, :collation
 
       delegate :precision, :scale, :limit, :type, :sql_type, to: :sql_type_metadata, allow_nil: true
 
       # Instantiates a new column in the table.
       #
-      # +name+ is the column's name, such as <tt>supplier_id</tt> in <tt>supplier_id int(11)</tt>.
+      # +name+ is the column's name, such as <tt>supplier_id</tt> in <tt>supplier_id int</tt>.
       # +default+ is the type-casted default value, such as +new+ in <tt>sales_stage varchar(20) default 'new'</tt>.
       # +sql_type_metadata+ is various information about the type of the column
       # +null+ determines if this column allows +NULL+ values.

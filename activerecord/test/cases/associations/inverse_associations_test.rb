@@ -13,6 +13,9 @@ require 'models/mixed_case_monkey'
 require 'models/admin'
 require 'models/admin/account'
 require 'models/admin/user'
+require 'models/developer'
+require 'models/company'
+require 'models/project'
 
 class AutomaticInverseFindingTests < ActiveRecord::TestCase
   fixtures :ratings, :comments, :cars
@@ -197,6 +200,16 @@ class InverseAssociationTests < ActiveRecord::TestCase
 
     belongs_to_ref = Sponsor.reflect_on_association(:sponsor_club)
     assert_nil belongs_to_ref.inverse_of
+  end
+
+  def test_this_inverse_stuff
+    firm = Firm.create!(name: 'Adequate Holdings')
+    Project.create!(name: 'Project 1', firm: firm)
+    Developer.create!(name: 'Gorbypuff', firm: firm)
+
+    new_project = Project.last
+    assert Project.reflect_on_association(:lead_developer).inverse_of.present?, "Expected inverse of to be present"
+    assert new_project.lead_developer.present?, "Expected lead developer to be present on the project"
   end
 end
 

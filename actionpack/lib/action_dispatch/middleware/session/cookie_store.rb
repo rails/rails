@@ -62,11 +62,7 @@ module ActionDispatch
     # would set the session cookie to expire automatically 14 days after creation.
     # Other useful options include <tt>:key</tt>, <tt>:secure</tt> and
     # <tt>:httponly</tt>.
-    class CookieStore < Rack::Session::Abstract::Persisted
-      include Compatibility
-      include StaleSessionCheck
-      include SessionObject
-
+    class CookieStore < AbstractStore
       def initialize(app, options={})
         super(app, options.merge!(:cookie_only => true))
       end

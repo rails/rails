@@ -239,7 +239,7 @@ You can quickly test the RDoc output with the following command:
 
 ```
 $ echo "+:to_param+" | rdoc --pipe
-#=> <p><code>:to_param</code></p>
+# => <p><code>:to_param</code></p>
 ```
 
 ### Regular Font

@@ -178,8 +178,9 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_exists_does_not_instantiate_records
-    Developer.expects(:instantiate).never
-    Developer.exists?
+    assert_not_called(Developer, :instantiate) do
+      Developer.exists?
+    end
   end
 
   def test_find_by_array_of_one_id
@@ -700,12 +701,12 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_bind_arity
-    assert_nothing_raised                                 { bind '' }
+    assert_nothing_raised                                { bind '' }
     assert_raise(ActiveRecord::PreparedStatementInvalid) { bind '', 1 }
 
     assert_raise(ActiveRecord::PreparedStatementInvalid) { bind '?' }
-    assert_nothing_raised                                 { bind '?', 1 }
-    assert_raise(ActiveRecord::PreparedStatementInvalid) { bind '?', 1, 1  }
+    assert_nothing_raised                                { bind '?', 1 }
+    assert_raise(ActiveRecord::PreparedStatementInvalid) { bind '?', 1, 1 }
   end
 
   def test_named_bind_variables
@@ -718,6 +719,12 @@ class FinderTest < ActiveRecord::TestCase
     assert_nil Company.where(["name = :name", { name: "37signals!" }]).first
     assert_nil Company.where(["name = :name", { name: "37signals!' OR 1=1" }]).first
     assert_kind_of Time, Topic.where(["id = :id", { id: 1 }]).first.written_on
+  end
+
+  def test_named_bind_arity
+    assert_nothing_raised                                { bind "name = :name", { name: "37signals" } }
+    assert_nothing_raised                                { bind "name = :name", { name: "37signals", id: 1 } }
+    assert_raise(ActiveRecord::PreparedStatementInvalid) { bind "name = :name", { id: 1 } }
   end
 
   class SimpleEnumerable

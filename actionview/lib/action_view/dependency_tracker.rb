@@ -1,9 +1,9 @@
-require 'thread_safe'
+require 'concurrent'
 require 'action_view/path_set'
 
 module ActionView
   class DependencyTracker # :nodoc:
-    @trackers = ThreadSafe::Cache.new
+    @trackers = Concurrent::Map.new
 
     def self.find_dependencies(name, template, view_paths = nil)
       tracker = @trackers[template.handler]

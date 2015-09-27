@@ -55,7 +55,7 @@ module AbstractController
     # Returns Content-Type of rendered content
     # :api: public
     def rendered_format
-      Mime::TEXT
+      Mime::Type[:TEXT]
     end
 
     DEFAULT_PROTECTED_INSTANCE_VARIABLES = Set.new %i(

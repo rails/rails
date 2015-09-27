@@ -72,7 +72,7 @@ class TouchLaterTest < ActiveRecord::TestCase
   end
 
   def test_touch_touches_immediately_with_a_custom_time
-    time = Time.now.utc - 25.days
+    time = (Time.now.utc - 25.days).change(nsec: 0)
     topic = Topic.create!(updated_at: time, created_at: time)
     assert_equal time, topic.updated_at
     assert_equal time, topic.created_at

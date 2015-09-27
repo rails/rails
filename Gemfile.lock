@@ -29,7 +29,7 @@ GIT
 
 GIT
   remote: git://github.com/rack/rack.git
-  revision: 4224c028c71c4ccca7cdb3e5a10c51af797a4d4d
+  revision: c28f271d0c91f45e13bfa8f07bed445ef91f41de
   branch: master
   specs:
     rack (2.0.0.alpha)
@@ -37,14 +37,14 @@ GIT
 
 GIT
   remote: git://github.com/rails/arel.git
-  revision: d5432b4616ff43fbb14540d351eed351e21bb20e
+  revision: 77ec13b46af2926bfcfc3073685711c874b0d272
   branch: master
   specs:
     arel (7.0.0.alpha)
 
 GIT
   remote: git://github.com/rails/globalid.git
-  revision: 8178ff2dc898a8f49dd71f6eb46f2a09712462de
+  revision: 1d8fca667740570d204fd955a0bd39ac539bac7f
   branch: master
   specs:
     globalid (0.3.6)
@@ -52,7 +52,7 @@ GIT
 
 GIT
   remote: git://github.com/rails/jquery-rails.git
-  revision: 01cb69b17083c8eb8daba13a8daba4907b1c3813
+  revision: 04fcfa29b859eef9479f89b6a799d00212902385
   branch: master
   specs:
     jquery-rails (4.0.5)
@@ -62,18 +62,18 @@ GIT
 
 GIT
   remote: git://github.com/rails/sass-rails.git
-  revision: 805cb17722b8a13ff00dffe20283a6ba2c9a45dc
+  revision: a3b25261a3d31ed9ff5dd6e841b777790fc86c55
   branch: master
   specs:
     sass-rails (6.0.0)
       railties (>= 4.0.0, < 5.0)
-      sass (~> 3.3)
+      sass (~> 3.4)
       sprockets (>= 4.0)
       sprockets-rails (< 4.0)
 
 GIT
   remote: git://github.com/rails/sprockets-rails.git
-  revision: e65e088575be4f6b994823b80a277affb0a57a5e
+  revision: 600f981fe79ff2d4179baf84bd18fac5acb58b5e
   branch: master
   specs:
     sprockets-rails (3.0.0.beta2)
@@ -83,11 +83,19 @@ GIT
 
 GIT
   remote: git://github.com/rails/sprockets.git
-  revision: 408e4ad79df056f6f2199e495782363c22a95c04
+  revision: edae5cdfa241b0fb0fcb756b25cd561c3d8b7f29
   branch: master
   specs:
     sprockets (4.0.0)
-      rack (~> 2.x)
+      rack (> 1, < 3)
+
+GIT
+  remote: git://github.com/rails/turbolinks.git
+  revision: 4bb563cd777875d3ad73cf007c26334f2aa8dc37
+  branch: master
+  specs:
+    turbolinks (3.0.0)
+      coffee-rails
 
 PATH
   remote: .
@@ -122,12 +130,11 @@ PATH
       activesupport (= 5.0.0.alpha)
       arel (= 7.0.0.alpha)
     activesupport (5.0.0.alpha)
-      concurrent-ruby (~> 0.9.1)
+      concurrent-ruby (~> 1.0.0.pre2, < 2.0.0)
       i18n (~> 0.7)
       json (~> 1.7, >= 1.7.7)
       method_source
       minitest (~> 5.1)
-      thread_safe (~> 0.3, >= 0.3.4)
       tzinfo (~> 1.1)
     rails (5.0.0.alpha)
       actionmailer (= 5.0.0.alpha)
@@ -151,7 +158,7 @@ GEM
   remote: https://rubygems.org/
   specs:
     amq-protocol (2.0.0)
-    backburner (1.0.0)
+    backburner (1.1.0)
       beaneater (~> 1.0)
       dante (> 0.1.5)
     bcrypt (3.1.10)
@@ -160,8 +167,8 @@ GEM
     beaneater (1.0.0)
     benchmark-ips (2.3.0)
     builder (3.2.2)
-    bunny (2.0.0)
-      amq-protocol (>= 1.9.2)
+    bunny (2.2.0)
+      amq-protocol (>= 2.0.0)
     byebug (6.0.2)
     celluloid (0.16.0)
       timers (~> 4.0.0)
@@ -172,7 +179,7 @@ GEM
       coffee-script-source
       execjs
     coffee-script-source (1.9.1.1)
-    concurrent-ruby (0.9.1)
+    concurrent-ruby (1.0.0.pre2)
     connection_pool (2.2.0)
     dalli (2.7.4)
     dante (0.2.0)
@@ -183,8 +190,8 @@ GEM
       delayed_job (>= 3.0, < 4.1)
     erubis (2.7.0)
     execjs (2.6.0)
-    hitimes (1.2.2)
-    hitimes (1.2.2-x86-mingw32)
+    hitimes (1.2.3)
+    hitimes (1.2.3-x86-mingw32)
     i18n (0.7.0)
     json (1.8.3)
     kindlerb (0.1.1)
@@ -194,8 +201,8 @@ GEM
       nokogiri (>= 1.5.9)
     metaclass (0.0.4)
     method_source (0.8.2)
-    mime-types (2.6.1)
-    mini_portile (0.6.2)
+    mime-types (2.6.2)
+    mini_portile (0.7.0.rc4)
     minitest (5.3.3)
     mocha (0.14.0)
       metaclass (~> 0.0.1)
@@ -204,15 +211,15 @@ GEM
     mustache (1.0.2)
     mysql (2.9.1)
     mysql2 (0.4.0)
-    nokogiri (1.6.6.2)
-      mini_portile (~> 0.6.0)
-    nokogiri (1.6.6.2-x64-mingw32)
-      mini_portile (~> 0.6.0)
-    nokogiri (1.6.6.2-x86-mingw32)
-      mini_portile (~> 0.6.0)
-    pg (0.18.2)
+    nokogiri (1.6.7.rc3)
+      mini_portile (~> 0.7.0.rc4)
+    nokogiri (1.6.7.rc3-x64-mingw32)
+      mini_portile (~> 0.7.0.rc4)
+    nokogiri (1.6.7.rc3-x86-mingw32)
+      mini_portile (~> 0.7.0.rc4)
+    pg (0.18.3)
     psych (2.0.15)
-    que (0.10.0)
+    que (0.11.2)
     racc (1.4.12)
     rack-cache (1.2)
       rack (>= 0.4)
@@ -243,12 +250,12 @@ GEM
       redis (~> 3.0)
       resque (~> 1.25)
       rufus-scheduler (~> 3.0)
-    rufus-scheduler (3.1.3)
-    sass (3.4.17)
+    rufus-scheduler (3.1.4)
+    sass (3.4.18)
     sdoc (0.4.1)
       json (~> 1.7, >= 1.7.7)
       rdoc (~> 4.0)
-    sequel (4.25.0)
+    sequel (4.26.0)
     serverengine (1.5.10)
       sigdump (~> 0.2.2)
     sidekiq (3.4.2)
@@ -260,8 +267,8 @@ GEM
     sigdump (0.2.3)
     sinatra (1.0)
       rack (>= 1.0)
-    sneakers (1.1.1)
-      bunny (>= 1.7.0, <= 2.0.0)
+    sneakers (2.2.0)
+      bunny (~> 2.2.0)
       serverengine (~> 1.5.5)
       thor
       thread (~> 0.1.7)
@@ -272,13 +279,13 @@ GEM
     thor (0.19.1)
     thread (0.1.7)
     thread_safe (0.3.5)
-    timers (4.0.1)
+    timers (4.0.4)
       hitimes
-    turbolinks (2.5.3)
-      coffee-rails
     tzinfo (1.2.2)
       thread_safe (~> 0.1)
-    uglifier (2.7.1)
+    tzinfo-data (1.2015.6)
+      tzinfo (>= 1.0.0)
+    uglifier (2.7.2)
       execjs (>= 0.3.0)
       json (>= 1.8.0)
     vegas (0.1.11)
@@ -314,7 +321,7 @@ DEPENDENCIES
   mocha (~> 0.14)
   mysql (>= 2.9.0)
   mysql2 (>= 0.4.0)
-  nokogiri (>= 1.4.5)
+  nokogiri (>= 1.6.7.rc3)
   pg (>= 0.18.0)
   psych (~> 2.0)
   qu-rails!
@@ -340,7 +347,8 @@ DEPENDENCIES
   sqlite3 (~> 1.3.6)
   stackprof
   sucker_punch
-  turbolinks
+  turbolinks!
+  tzinfo-data
   uglifier (>= 1.3.0)
   w3c_validators
 

@@ -65,7 +65,7 @@ class ActionPackAssertionsController < ActionController::Base
   end
 
   def render_text_with_custom_content_type
-    render body: "Hello!", content_type: Mime::RSS
+    render body: "Hello!", content_type: Mime::Type[:RSS]
   end
 
   def session_stuffing

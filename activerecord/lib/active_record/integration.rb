@@ -84,7 +84,7 @@ module ActiveRecord
       # Values longer than 20 characters will be truncated. The value
       # is truncated word by word.
       #
-      #   user = User.find_by(name: 'David HeinemeierHansson')
+      #   user = User.find_by(name: 'David Heinemeier Hansson')
       #   user.id         # => 125
       #   user_path(user) # => "/users/125-david"
       #

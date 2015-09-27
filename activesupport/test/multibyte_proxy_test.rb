@@ -1,4 +1,3 @@
-
 require 'abstract_unit'
 
 class MultibyteProxyText < ActiveSupport::TestCase

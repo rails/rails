@@ -974,6 +974,11 @@ class ResponseDefaultHeadersTest < ActionController::TestCase
       headers.delete params[:header]
       head :ok, 'C' => '3'
     end
+
+    # Render a head response, but don't touch default headers
+    def leave_alone
+      head :ok
+    end
   end
 
   def before_setup
@@ -999,9 +1004,13 @@ class ResponseDefaultHeadersTest < ActionController::TestCase
   end
 
   test "response contains default headers" do
-    # Response headers start out with the defaults
-    assert_equal @defaults, response.headers
+    get :leave_alone
 
+    # Response headers start out with the defaults
+    assert_equal @defaults.merge('Content-Type' => 'text/html'), response.headers
+  end
+
+  test "response deletes a default header" do
     get :remove_header, params: { header: 'A' }
     assert_response :ok
 

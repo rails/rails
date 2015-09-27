@@ -15,7 +15,7 @@ module ActiveRecord
 
         when :restrict_with_error
           unless empty?
-            record = klass.human_attribute_name(reflection.name).downcase
+            record = owner.class.human_attribute_name(reflection.name).downcase
             message = owner.errors.generate_message(:base, :'restrict_dependent_destroy.many', record: record, raise: true) rescue nil
             if message
               ActiveSupport::Deprecation.warn(<<-MESSAGE.squish)
@@ -104,7 +104,7 @@ module ActiveRecord
             counter = reflection.counter_cache_column
             owner[counter] ||= 0
             owner[counter] += difference
-            owner.send(:clear_attribute_changes, counter) # eww
+            owner.send(:clear_attribute_change, counter) # eww
           end
         end
 

@@ -33,6 +33,9 @@ module ActionController
 
       self.session = session
       self.session_options = TestSession::DEFAULT_OPTIONS
+      @custom_param_parsers = {
+        Mime::Type[:XML] => lambda { |raw_post| Hash.from_xml(raw_post)['hash'] }
+      }
     end
 
     def query_string=(string)
@@ -74,26 +77,18 @@ module ActionController
             set_header k, 'application/x-www-form-urlencoded'
           end
 
-          # FIXME: setting `request_parametes` is normally handled by the
-          # params parser middleware, and we should remove this roundtripping
-          # when we switch to caling `call` on the controller
-
           case content_mime_type.to_sym
           when nil
             raise "Unknown Content-Type: #{content_type}"
           when :json
             data = ActiveSupport::JSON.encode(non_path_parameters)
-            params = ActiveSupport::JSON.decode(data).with_indifferent_access
-            self.request_parameters = params
           when :xml
             data = non_path_parameters.to_xml
-            params = Hash.from_xml(data)['hash']
-            self.request_parameters = params
           when :url_encoded_form
             data = non_path_parameters.to_query
           else
+            @custom_param_parsers[content_mime_type] = ->(_) { non_path_parameters }
             data = non_path_parameters.to_query
-            self.request_parameters = non_path_parameters
           end
         end
 
@@ -136,6 +131,12 @@ module ActionController
         "multipart/form-data; boundary=#{Rack::Test::MULTIPART_BOUNDARY}"
       end
     end.new
+
+    private
+
+    def params_parsers
+      super.merge @custom_param_parsers
+    end
   end
 
   class LiveTestResponse < Live::Response
@@ -401,7 +402,7 @@ module ActionController
         MSG
 
         @request.env['HTTP_X_REQUESTED_WITH'] = 'XMLHttpRequest'
-        @request.env['HTTP_ACCEPT'] ||= [Mime::JS, Mime::HTML, Mime::XML, 'text/xml', Mime::ALL].join(', ')
+        @request.env['HTTP_ACCEPT'] ||= [Mime::Type[:JS], Mime::Type[:HTML], Mime::Type[:XML], 'text/xml', Mime::Type[:ALL]].join(', ')
         __send__(*args).tap do
           @request.env.delete 'HTTP_X_REQUESTED_WITH'
           @request.env.delete 'HTTP_ACCEPT'
@@ -504,7 +505,7 @@ module ActionController
         if xhr
           @request.set_header 'HTTP_X_REQUESTED_WITH', 'XMLHttpRequest'
           @request.fetch_header('HTTP_ACCEPT') do |k|
-            @request.set_header k, [Mime::JS, Mime::HTML, Mime::XML, 'text/xml', Mime::ALL].join(', ')
+            @request.set_header k, [Mime::Type[:JS], Mime::Type[:HTML], Mime::Type[:XML], 'text/xml', Mime::Type[:ALL]].join(', ')
           end
         end
 
@@ -584,7 +585,7 @@ module ActionController
       end
 
       def build_response(klass)
-        klass.new
+        klass.create
       end
 
       included do

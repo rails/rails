@@ -1,8 +1,9 @@
 require "cases/helper"
+require "active_model/type"
 
-module ActiveRecord
+module ActiveModel
   module Type
-    class DecimalTest < ActiveRecord::TestCase
+    class DecimalTest < ActiveModel::TestCase
       def test_type_cast_decimal
         type = Decimal.new
         assert_equal BigDecimal.new("0"), type.cast(BigDecimal.new("0"))

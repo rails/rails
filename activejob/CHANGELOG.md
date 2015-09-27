@@ -1,3 +1,7 @@
+*   Add job priorities to Active Job.
+
+    *wvengen*
+
 *   Implement a simple `AsyncJob` processor and associated `AsyncAdapter` that
     queue jobs to a `concurrent-ruby` thread pool.
 

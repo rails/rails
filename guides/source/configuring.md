@@ -214,7 +214,6 @@ Every Rails application comes with a standard set of middleware which it uses in
 * `ActionDispatch::Cookies` sets cookies for the request.
 * `ActionDispatch::Session::CookieStore` is responsible for storing the session in cookies. An alternate middleware can be used for this by changing the `config.action_controller.session_store` to an alternate value. Additionally, options passed to this can be configured by using `config.action_controller.session_options`.
 * `ActionDispatch::Flash` sets up the `flash` keys. Only available if `config.action_controller.session_store` is set to a value.
-* `ActionDispatch::ParamsParser` parses out parameters from the request into `params`.
 * `Rack::MethodOverride` allows the method to be overridden if `params[:_method]` is set. This is the middleware which supports the PATCH, PUT, and DELETE HTTP method types.
 * `Rack::Head` converts HEAD requests to GET requests and serves them as so.
 
