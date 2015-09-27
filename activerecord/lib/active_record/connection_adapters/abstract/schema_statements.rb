@@ -507,7 +507,7 @@ module ActiveRecord
         raise NotImplementedError, "change_column_default is not implemented"
       end
 
-      # Sets or removes a +NOT NULL+ constraint on a column. The +null+ flag
+      # Sets or removes a <tt>NOT NULL</tt> constraint on a column. The +null+ flag
       # indicates whether the value can be +NULL+. For example
       #
       #   change_column_null(:users, :nickname, false)
@@ -519,7 +519,7 @@ module ActiveRecord
       # allows them to be +NULL+ (drops the constraint).
       #
       # The method accepts an optional fourth argument to replace existing
-      # +NULL+s with some other value. Use that one when enabling the
+      # <tt>NULL</tt>s with some other value. Use that one when enabling the
       # constraint if needed, since otherwise those rows would not be valid.
       #
       # Please note the fourth argument does not set a column's default.
