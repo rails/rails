@@ -42,7 +42,8 @@ module Minitest
     ENV["RAILS_ENV"] = options[:environment] || "test"
 
     unless run_with_autorun
-      ::Rails::TestRequirer.require_files @rake_patterns || options[:patterns]
+      patterns = defined?(@rake_patterns) ? @rake_patterns : options[:patterns]
+      ::Rails::TestRequirer.require_files(patterns)
     end
 
     unless options[:full_backtrace] || ENV["BACKTRACE"]
