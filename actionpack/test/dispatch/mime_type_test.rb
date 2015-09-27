@@ -18,7 +18,7 @@ class MimeTypeTest < ActiveSupport::TestCase
       assert_equal Mime::Type[:MOBILE], Mime::EXTENSION_LOOKUP['mobile']
 
       Mime::Type.unregister(:mobile)
-      assert !Mime.const_defined?(:MOBILE), "Mime::MOBILE should not be defined"
+      assert !Mime::Type.registered?(:MOBILE), "Mime::MOBILE should not be defined"
       assert !Mime::LOOKUP.has_key?('text/x-mobile'), "Mime::LOOKUP should not have key ['text/x-mobile]"
       assert !Mime::EXTENSION_LOOKUP.has_key?('mobile'), "Mime::EXTENSION_LOOKUP should not have key ['mobile]"
     ensure
@@ -181,6 +181,10 @@ class MimeTypeTest < ActiveSupport::TestCase
     assert_deprecated do
       assert Mime::ALL.all?,  "Mime::ALL is not all?"
     end
+  end
+
+  test "deprecated const_defined?" do
+    assert_deprecated { Mime.const_defined?(:ALL) }
   end
 
   test "verifiable mime types" do
