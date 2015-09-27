@@ -8,9 +8,9 @@ module ActiveRecord
     # If one or more records can not be found for the requested ids, then RecordNotFound will be raised. If the primary key
     # is an integer, find by id coerces its arguments using +to_i+.
     #
-    #   Person.find(1)          # returns the object for ID = 1
-    #   Person.find("1")        # returns the object for ID = 1
-    #   Person.find("31-sarah") # returns the object for ID = 31
+    #   Person.find(1)          # returns the object with ID = 1
+    #   Person.find("1")        # returns the object with ID = 1
+    #   Person.find("31-sarah") # returns the object with ID = 31
     #   Person.find(1, 2, 6)    # returns an array for objects with IDs in (1, 2, 6)
     #   Person.find([7, 17])    # returns an array for objects with IDs in (7, 17)
     #   Person.find([1])        # returns an array for the object with ID = 1
@@ -72,8 +72,8 @@ module ActiveRecord
     #
     # If no record is found, returns <tt>nil</tt>.
     #
-    #   Post.find_by name: 'Spartacus', rating: 4
-    #   Post.find_by "published_at < ?", 2.weeks.ago
+    #   Post.find_by(name: 'Spartacus', rating: 4)
+    #   Post.find_by("published_at < ?", 2.weeks.ago)
     def find_by(arg, *args)
       where(arg, *args).take
     rescue RangeError
