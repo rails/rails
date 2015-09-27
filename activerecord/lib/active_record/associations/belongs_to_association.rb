@@ -65,8 +65,8 @@ module ActiveRecord
 
         def update_counters(record)
           if require_counter_update? && different_target?(record)
-            record.class.increment_counter(reflection.counter_cache_column, record.id)
-            #record.increment!(name)
+            #record.class.increment_counter(reflection.counter_cache_column, record.id)
+            record.increment!(reflection.counter_cache_column)
             decrement_counters
           end
         end
