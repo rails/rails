@@ -34,14 +34,21 @@ module ActiveRecord
       def decrement_counters # :nodoc:
         if require_counter_update? && foreign_key_present?
           klass.decrement_counter(reflection.counter_cache_column, target_id)
+          #if target && !stale_target?
+            #target.decrement(reflection.counter_cache_column)
+          #else
+            #klass.decrement_counter(reflection.counter_cache_column, target_id)
+          #end
         end
       end
 
       def increment_counters # :nodoc:
         if require_counter_update? && foreign_key_present?
-          klass.increment_counter(reflection.counter_cache_column, target_id)
+          #klass.increment_counter(reflection.counter_cache_column, target_id)
           if target && !stale_target?
-            target.increment(reflection.counter_cache_column)
+            target.increment!(reflection.counter_cache_column)
+          else
+            klass.increment_counter(reflection.counter_cache_column, target_id)
           end
         end
       end
@@ -59,6 +66,7 @@ module ActiveRecord
         def update_counters(record)
           if require_counter_update? && different_target?(record)
             record.class.increment_counter(reflection.counter_cache_column, record.id)
+            #record.increment!(name)
             decrement_counters
           end
         end
