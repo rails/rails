@@ -10,7 +10,7 @@ module ActiveRecord
       def replace(record)
         if record
           raise_on_type_mismatch!(record)
-          update_counters(record)
+          update_counters_on_replace(record)
           replace_keys(record)
           set_inverse_instance(record)
           @updated = true
@@ -32,28 +32,24 @@ module ActiveRecord
       end
 
       def decrement_counters # :nodoc:
-        if require_counter_update? && foreign_key_present?
-          #klass.decrement_counter(reflection.counter_cache_column, target_id)
-          if target && !stale_target?
-            target.decrement!(reflection.counter_cache_column)
-          else
-            klass.decrement_counter(reflection.counter_cache_column, target_id)
-          end
-        end
+        update_counters(-1)
       end
 
       def increment_counters # :nodoc:
-        if require_counter_update? && foreign_key_present?
-          #klass.increment_counter(reflection.counter_cache_column, target_id)
-          if target && !stale_target?
-            target.increment!(reflection.counter_cache_column)
-          else
-            klass.increment_counter(reflection.counter_cache_column, target_id)
-          end
-        end
+        update_counters(1)
       end
 
       private
+
+        def update_counters(by)
+          if require_counter_update? && foreign_key_present?
+            if target && !stale_target?
+              target.increment!(reflection.counter_cache_column, by)
+            else
+              klass.update_counters(target_id, reflection.counter_cache_column => by)
+            end
+          end
+        end
 
         def find_target?
           !loaded? && foreign_key_present? && klass
@@ -63,9 +59,8 @@ module ActiveRecord
           reflection.counter_cache_column && owner.persisted?
         end
 
-        def update_counters(record)
+        def update_counters_on_replace(record)
           if require_counter_update? && different_target?(record)
-            #record.class.increment_counter(reflection.counter_cache_column, record.id)
             record.increment!(reflection.counter_cache_column)
             decrement_counters
           end

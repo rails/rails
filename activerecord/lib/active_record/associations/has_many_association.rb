@@ -93,12 +93,6 @@ module ActiveRecord
           end
         end
 
-        def update_counter_in_database(difference, reflection = reflection())
-          if reflection.has_cached_counter?
-            owner.class.update_counters(owner.id, reflection.counter_cache_column => difference)
-          end
-        end
-
         def update_counter_in_memory(difference, reflection = reflection())
           if reflection.counter_must_be_updated_by_has_many?
             counter = reflection.counter_cache_column
