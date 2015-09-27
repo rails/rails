@@ -5,6 +5,10 @@ gemspec
 # We need a newish Rake since Active Job sets its test tasks' descriptions.
 gem 'rake', '>= 10.3'
 
+# Active Support depends on a prerelease concurrent-ruby 1.0.0, so track
+# latest master as it approaches release.
+gem 'concurrent-ruby', '~> 1.0.0.pre2', github: 'ruby-concurrency/concurrent-ruby'
+
 # Active Job depends on the URI::GID::MissingModelIDError, which isn't released yet.
 gem 'globalid', github: 'rails/globalid', branch: 'master'
 gem 'rack', github: 'rack/rack', branch: 'master'
@@ -21,8 +25,8 @@ gem 'turbolinks', github: 'rails/turbolinks', branch: 'master'
 gem 'arel', github: 'rails/arel', branch: 'master'
 gem 'mail', github: 'mikel/mail', branch: 'master'
 
-gem 'sprockets', github: 'rails/sprockets', branch: 'master'
-gem 'sprockets-rails', github: 'rails/sprockets-rails', branch: 'master'
+gem 'sprockets', '~> 4.0', github: 'rails/sprockets', branch: 'master'
+gem 'sprockets-rails', '~> 3.0.0.beta3', github: 'rails/sprockets-rails', branch: 'master'
 gem 'sass-rails', github: 'rails/sass-rails', branch: 'master'
 
 # require: false so bcrypt is loaded only when has_secure_password is used.

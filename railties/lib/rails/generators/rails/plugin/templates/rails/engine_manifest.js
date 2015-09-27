@@ -1,6 +1,6 @@
 <% if mountable? -%>
-<% unless options.skip_javascript -%>
-//= link ./javascripts/<%= namespaced_name %>/application.js
+<% if !options.skip_javascript -%>
+//= link_directory ../javascripts/<%= namespaced_name %> .js
 <% end -%>
-//= link ./stylesheets/<%= namespaced_name %>/application.css
+//= link_directory ../stylesheets/<%= namespaced_name %> .css
 <% end -%>

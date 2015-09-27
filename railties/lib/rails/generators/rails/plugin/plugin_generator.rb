@@ -106,7 +106,7 @@ task default: :test
     def test_dummy_assets
       template "rails/javascripts.js",    "#{dummy_path}/app/assets/javascripts/application.js", force: true
       template "rails/stylesheets.css",   "#{dummy_path}/app/assets/stylesheets/application.css", force: true
-      template "rails/dummy_manifest.js", "#{dummy_path}/app/assets/manifest.js", force: true
+      template "rails/dummy_manifest.js", "#{dummy_path}/app/assets/config/manifest.js", force: true
     end
 
     def test_dummy_clean
@@ -124,7 +124,7 @@ task default: :test
     end
 
     def assets_manifest
-      template "rails/engine_manifest.js", "app/assets/#{underscored_name}_manifest.js"
+      template "rails/engine_manifest.js", "app/assets/config/#{underscored_name}_manifest.js"
     end
 
     def stylesheets
