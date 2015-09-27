@@ -33,12 +33,12 @@ module ActiveRecord
 
       def decrement_counters # :nodoc:
         if require_counter_update? && foreign_key_present?
-          klass.decrement_counter(reflection.counter_cache_column, target_id)
-          #if target && !stale_target?
-            #target.decrement(reflection.counter_cache_column)
-          #else
-            #klass.decrement_counter(reflection.counter_cache_column, target_id)
-          #end
+          #klass.decrement_counter(reflection.counter_cache_column, target_id)
+          if target && !stale_target?
+            target.decrement!(reflection.counter_cache_column)
+          else
+            klass.decrement_counter(reflection.counter_cache_column, target_id)
+          end
         end
       end
 
