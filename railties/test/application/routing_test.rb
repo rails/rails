@@ -23,7 +23,7 @@ module ApplicationTests
 
     test "rails/info in development" do
       app("development")
-      app "/rails/info"
+      get "/rails/info"
       assert_equal 302, last_response.status
     end
 
