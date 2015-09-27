@@ -102,8 +102,7 @@ module ActiveRecord
         def update_counter_in_memory(difference, reflection = reflection())
           if reflection.counter_must_be_updated_by_has_many?
             counter = reflection.counter_cache_column
-            owner[counter] ||= 0
-            owner[counter] += difference
+            owner.increment(counter, difference)
             owner.send(:clear_attribute_change, counter) # eww
           end
         end
