@@ -34,12 +34,8 @@ module ActiveRecord
 
     def value
       # `defined?` is cheaper than `||=` when we get back falsy values
-      @value = original_value unless defined?(@value)
+      @value = type_cast(value_before_type_cast) unless defined?(@value)
       @value
-    end
-
-    def original_value
-      type_cast(value_before_type_cast)
     end
 
     def value_for_database
