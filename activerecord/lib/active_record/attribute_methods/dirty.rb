@@ -47,7 +47,7 @@ module ActiveRecord
       def initialize_dup(other) # :nodoc:
         super
         @mutation_tracker = AttributeMutationTracker.new(@attributes,
-                                                         self.class._default_attributes.dup)
+                                                         self.class._default_attributes.deep_dup)
       end
 
       def changes_applied

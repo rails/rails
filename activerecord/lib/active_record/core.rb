@@ -296,7 +296,7 @@ module ActiveRecord
     #   # Instantiates a single new object
     #   User.new(first_name: 'Jamie')
     def initialize(attributes = nil)
-      @attributes = self.class._default_attributes.dup
+      @attributes = self.class._default_attributes.deep_dup
       self.class.define_attribute_methods
 
       init_internals
@@ -366,7 +366,7 @@ module ActiveRecord
 
     ##
     def initialize_dup(other) # :nodoc:
-      @attributes = @attributes.dup
+      @attributes = @attributes.deep_dup
       @attributes.reset(self.class.primary_key)
 
       _run_initialize_callbacks

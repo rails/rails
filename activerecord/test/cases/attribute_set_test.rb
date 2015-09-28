@@ -29,7 +29,7 @@ module ActiveRecord
       assert_equal :bar, attributes[:bar].name
     end
 
-    test "duping creates a new hash and dups each attribute" do
+    test "duping creates a new hash, but does not dup the attributes" do
       builder = AttributeSet::Builder.new(foo: Type::Integer.new, bar: Type::String.new)
       attributes = builder.build_from_database(foo: 1, bar: 'foo')
 
@@ -38,6 +38,24 @@ module ActiveRecord
       attributes[:bar].value
 
       duped = attributes.dup
+      duped.write_from_database(:foo, 2)
+      duped[:bar].value << 'bar'
+
+      assert_equal 1, attributes[:foo].value
+      assert_equal 2, duped[:foo].value
+      assert_equal 'foobar', attributes[:bar].value
+      assert_equal 'foobar', duped[:bar].value
+    end
+
+    test "deep_duping creates a new hash and dups each attribute" do
+      builder = AttributeSet::Builder.new(foo: Type::Integer.new, bar: Type::String.new)
+      attributes = builder.build_from_database(foo: 1, bar: 'foo')
+
+      # Ensure the type cast value is cached
+      attributes[:foo].value
+      attributes[:bar].value
+
+      duped = attributes.deep_dup
       duped.write_from_database(:foo, 2)
       duped[:bar].value << 'bar'
 
