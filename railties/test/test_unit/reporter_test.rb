@@ -86,6 +86,30 @@ class TestUnitReporterTest < ActiveSupport::TestCase
     assert_no_match 'Failed tests:', @output.string
   end
 
+  test "fail fast interrupts run on failure" do
+    fail_fast = Rails::TestUnitReporter.new @output, fail_fast: true
+    interrupt_raised = false
+
+    # Minitest passes through Interrupt, catch it manually.
+    begin
+      fail_fast.record(failed_test)
+    rescue Interrupt
+      interrupt_raised = true
+    ensure
+      assert interrupt_raised, 'Expected Interrupt to be raised.'
+    end
+  end
+
+  test "fail fast does not interrupt run errors or skips" do
+    fail_fast = Rails::TestUnitReporter.new @output, fail_fast: true
+
+    fail_fast.record(errored_test)
+    assert_no_match 'Failed tests:', @output.string
+
+    fail_fast.record(skipped_test)
+    assert_no_match 'Failed tests:', @output.string
+  end
+
   private
   def assert_rerun_snippet_count(snippet_count)
     assert_equal snippet_count, @output.string.scan(%r{^bin/rails test }).size

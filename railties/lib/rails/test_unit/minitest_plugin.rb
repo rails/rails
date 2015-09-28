@@ -33,6 +33,11 @@ module Minitest
       options[:output_inline] = false
     end
 
+    opts.on("-f", "--fail-fast",
+            "Abort test run on first failure") do
+      options[:fail_fast] = true
+    end
+
     options[:patterns] = opts.order!
   end
 

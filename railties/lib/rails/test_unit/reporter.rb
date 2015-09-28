@@ -17,6 +17,10 @@ module Rails
         io.puts format_rerun_snippet(result)
         io.puts
       end
+
+      if fail_fast? && result.failure && !result.error? && !result.skipped?
+        raise Interrupt
+      end
     end
 
     def report
@@ -46,6 +50,10 @@ module Rails
     private
       def output_inline?
         options.fetch(:output_inline, true)
+      end
+
+      def fail_fast?
+        options[:fail_fast]
       end
 
       def format_rerun_snippet(result)

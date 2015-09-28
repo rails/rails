@@ -1,3 +1,35 @@
+*   Add fail fast to `bin/rails test`
+
+    Adding `--fail-fast` or `-f` when running tests will interrupt the run on
+    the first failure:
+
+    ```
+    # Running:
+
+    ................................................S......E
+
+    ArgumentError: Wups! Bet you didn't expect this!
+        test/models/bunny_test.rb:19:in `block in <class:BunnyTest>'
+
+    bin/rails test test/models/bunny_test.rb:18
+
+    ....................................F
+
+    This failed
+
+    bin/rails test test/models/bunny_test.rb:14
+
+    Interrupted. Exiting...
+
+
+    Finished in 0.051427s, 1808.3872 runs/s, 1769.4972 assertions/s.
+
+    ```
+
+    Note that any unexpected errors don't abort the run.
+
+    *Kasper Timm Hansen*
+
 *   Add inline output to `bin/rails test`
 
     Any failures or errors (and skips if running in verbose mode) are output
