@@ -233,10 +233,6 @@ module ActionController
         body.each { |part| buf.write part }
         buf
       end
-
-      def handle_conditional_get!
-        super unless committed?
-      end
     end
 
     def process(name)
