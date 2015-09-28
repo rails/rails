@@ -542,9 +542,6 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
     developer.save!
 
-    assert_equal "50000", developer.salary_before_type_cast
-    assert_equal 1337, developer.name_before_type_cast
-
     assert_equal 50000, developer.salary
     assert_equal "1337", developer.name
   end

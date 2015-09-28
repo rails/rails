@@ -182,12 +182,49 @@ module ActiveRecord
       assert attribute.has_been_read?
     end
 
+    test "an attribute is not changed if it hasn't been assigned or mutated" do
+      attribute = Attribute.from_database(:foo, 1, Type::Value.new)
+
+      refute attribute.changed?
+    end
+
+    test "an attribute is changed if it's been assigned a new value" do
+      attribute = Attribute.from_database(:foo, 1, Type::Value.new)
+      changed = attribute.with_value_from_user(2)
+
+      assert changed.changed?
+    end
+
+    test "an attribute is not changed if it's assigned the same value" do
+      attribute = Attribute.from_database(:foo, 1, Type::Value.new)
+      unchanged = attribute.with_value_from_user(1)
+
+      refute unchanged.changed?
+    end
+
     test "an attribute can not be mutated if it has not been read,
       and skips expensive calculations" do
       type_which_raises_from_all_methods = Object.new
       attribute = Attribute.from_database(:foo, "bar", type_which_raises_from_all_methods)
 
-      assert_not attribute.changed_in_place_from?("bar")
+      assert_not attribute.changed_in_place?
+    end
+
+    test "an attribute is changed if it has been mutated" do
+      attribute = Attribute.from_database(:foo, "bar", Type::String.new)
+      attribute.value << "!"
+
+      assert attribute.changed_in_place?
+      assert attribute.changed?
+    end
+
+    test "an attribute can forget its changes" do
+      attribute = Attribute.from_database(:foo, "bar", Type::String.new)
+      changed = attribute.with_value_from_user("foo")
+      forgotten = changed.forgetting_assignment
+
+      assert changed.changed? # sanity check
+      refute forgotten.changed?
     end
 
     test "with_value_from_user validates the value" do

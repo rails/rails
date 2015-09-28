@@ -41,13 +41,15 @@ module ActiveRecord
 
       def init_internals
         super
-        @mutation_tracker = AttributeMutationTracker.new(@attributes, @attributes.dup)
+        @mutation_tracker = AttributeMutationTracker.new(@attributes)
       end
 
       def initialize_dup(other) # :nodoc:
         super
-        @mutation_tracker = AttributeMutationTracker.new(@attributes,
-                                                         self.class._default_attributes.deep_dup)
+        @attributes = self.class._default_attributes.map do |attr|
+          attr.with_value_from_user(@attributes.fetch_value(attr.name))
+        end
+        @mutation_tracker = AttributeMutationTracker.new(@attributes)
       end
 
       def changes_applied
@@ -122,7 +124,8 @@ module ActiveRecord
       end
 
       def store_original_attributes
-        @mutation_tracker = @mutation_tracker.now_tracking(@attributes)
+        @attributes = @attributes.map(&:forgetting_assignment)
+        @mutation_tracker = AttributeMutationTracker.new(@attributes)
       end
 
       def previous_mutation_tracker
