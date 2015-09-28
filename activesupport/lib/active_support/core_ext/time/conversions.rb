@@ -55,7 +55,8 @@ class Time
   alias_method :to_default_s, :to_s
   alias_method :to_s, :to_formatted_s
 
-  # Returns the UTC offset as an +HH:MM formatted string.
+  # Returns a formatted string of the offset from UTC, or an alternative
+  # string if the time zone is already UTC.
   #
   #   Time.local(2000).formatted_offset        # => "-06:00"
   #   Time.local(2000).formatted_offset(false) # => "-0600"
