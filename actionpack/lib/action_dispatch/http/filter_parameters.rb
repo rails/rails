@@ -30,12 +30,12 @@ module ActionDispatch
         @filtered_path       = nil
       end
 
-      # Return a hash of parameters with all sensitive data replaced.
+      # Returns a hash of parameters with all sensitive data replaced.
       def filtered_parameters
         @filtered_parameters ||= parameter_filter.filter(parameters)
       end
 
-      # Return a hash of request.env with all sensitive data replaced.
+      # Returns a hash of request.env with all sensitive data replaced.
       def filtered_env
         @filtered_env ||= env_filter.filter(@env)
       end

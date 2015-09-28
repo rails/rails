@@ -540,7 +540,7 @@ module ActionController
     end
     alias_method :delete_if, :reject!
 
-    # Return values that were assigned to the given +keys+. Note that all the
+    # Returns values that were assigned to the given +keys+. Note that all the
     # +Hash+ objects will be converted to <tt>ActionController::Parameters</tt>.
     def values_at(*keys)
       convert_value_to_parameters(@parameters.values_at(*keys))

@@ -135,7 +135,7 @@ module DateAndTime
     end
     alias :at_end_of_quarter :end_of_quarter
 
-    # Return a new date/time at the beginning of the year.
+    # Returns a new date/time at the beginning of the year.
     #
     #   today = Date.today # => Fri, 10 Jul 2015
     #   today.beginning_of_year # => Thu, 01 Jan 2015

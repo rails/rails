@@ -16,7 +16,7 @@ class Time
       super || (self == Time && other.is_a?(ActiveSupport::TimeWithZone))
     end
 
-    # Return the number of days in the given month.
+    # Returns the number of days in the given month.
     # If no year is specified, it will use the current year.
     def days_in_month(month, year = now.year)
       if month == 2 && ::Date.gregorian_leap?(year)
