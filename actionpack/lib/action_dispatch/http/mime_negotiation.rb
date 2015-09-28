@@ -81,9 +81,9 @@ module ActionDispatch
         if variant.all? { |v| v.is_a?(Symbol) }
           @variant = ActiveSupport::ArrayInquirer.new(variant)
         else
-          raise ArgumentError, "request.variant must be set to a Symbol or an Array of Symbols.\n" \
-            "For security reasons, never directly set the variant to a user-provided value,\n" \
-            "like params[:variant].to_sym. Check user-provided value against a whitelist first,\n" \
+          raise ArgumentError, "request.variant must be set to a Symbol or an Array of Symbols. " \
+            "For security reasons, never directly set the variant to a user-provided value, " \
+            "like params[:variant].to_sym. Check user-provided value against a whitelist first, " \
             "then set the variant: request.variant = :tablet if params[:variant] == 'tablet'"
         end
       end
