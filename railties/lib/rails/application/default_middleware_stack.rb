@@ -50,12 +50,13 @@ module Rails
           middleware.use ::Rack::Runtime
           middleware.use ::Rack::MethodOverride unless config.api_only
           middleware.use ::ActionDispatch::RequestId
+          # Must come before Rails::Rack::Logger otherwise wrong IP is logged when :remote_ip is used as log tag
+          middleware.use ::ActionDispatch::RemoteIp, config.action_dispatch.ip_spoofing_check, config.action_dispatch.trusted_proxies
 
           # Must come after Rack::MethodOverride to properly log overridden methods
           middleware.use ::Rails::Rack::Logger, config.log_tags
           middleware.use ::ActionDispatch::ShowExceptions, show_exceptions_app
           middleware.use ::ActionDispatch::DebugExceptions, app
-          middleware.use ::ActionDispatch::RemoteIp, config.action_dispatch.ip_spoofing_check, config.action_dispatch.trusted_proxies
 
           unless config.cache_classes
             middleware.use ::ActionDispatch::Reloader, lambda { reload_dependencies? }
