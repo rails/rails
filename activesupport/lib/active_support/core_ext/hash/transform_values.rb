@@ -6,6 +6,7 @@ class Hash
   #   # => { a: 2, b: 4, c: 6 }
   def transform_values
     return enum_for(:transform_values) unless block_given?
+    return {} if empty?
     result = self.class.new
     each do |key, value|
       result[key] = yield(value)
