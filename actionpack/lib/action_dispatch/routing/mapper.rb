@@ -632,6 +632,7 @@ module ActionDispatch
                   super(options)
                 else
                   prefix_options = options.slice(*_route.segment_keys)
+                  prefix_options[:relative_url_root] = ''.freeze
                   # we must actually delete prefix segment keys to avoid passing them to next url_for
                   _route.segment_keys.each { |k| options.delete(k) }
                   _routes.url_helpers.send("#{name}_path", prefix_options)
