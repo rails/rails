@@ -641,7 +641,7 @@ TIP: You don't have to update the database configurations manually. If you look 
 
 ### Connection Preference
 
-Since there are two ways to set your connection, via environment variable it is important to understand how the two can interact.
+Since there are two ways to configure your connection (using `config/database.yml` or using an environment variable) it is important to understand how they can interact.
 
 If you have an empty `config/database.yml` file but your `ENV['DATABASE_URL']` is present, then Rails will connect to the database via your environment variable:
 
