@@ -711,13 +711,6 @@ action for a Person model, `params[:person]` would usually be a hash of all the 
 
 Fundamentally HTML forms don't know about any sort of structured data, all they generate is name-value pairs, where pairs are just plain strings. The arrays and hashes you see in your application are the result of some parameter naming conventions that Rails uses.
 
-TIP: You may find you can try out examples in this section faster by using the console to directly invoke Rack's parameter parser. For example,
-
-```ruby
-Rack::Utils.parse_query "name=fred&phone=0123456789"
-# => {"name"=>"fred", "phone"=>"0123456789"}
-```
-
 ### Basic Structures
 
 The two basic structures are arrays and hashes. Hashes mirror the syntax used for accessing the value in `params`. For example, if a form contains:
