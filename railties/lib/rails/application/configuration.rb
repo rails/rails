@@ -36,7 +36,6 @@ module Rails
         @time_zone                     = "UTC"
         @beginning_of_week             = :monday
         @log_level                     = nil
-        @middleware                    = app_middleware
         @generators                    = app_generators
         @cache_store                   = [ :file_store, "#{root}/tmp/cache/" ]
         @railties_order                = [:all]

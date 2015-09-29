@@ -505,7 +505,7 @@ module Rails
     # Returns the underlying rack application for this engine.
     def app
       @app ||= begin
-        config.middleware = config.middleware.merge_into(default_middleware_stack)
+        config.middleware = config.app_middleware.merge_into(config.middleware).merge_into(default_middleware_stack)
         config.middleware.build(endpoint)
       end
     end
