@@ -430,18 +430,21 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
     def do_dump_index_tests_for_schema(this_schema_name, first_index_column_name, second_index_column_name, third_index_column_name, fourth_index_column_name)
       with_schema_search_path(this_schema_name) do
         indexes = @connection.indexes(TABLE_NAME).sort_by(&:name)
-        assert_equal 4,indexes.size
+        assert_equal 5, indexes.size
 
         do_dump_index_assertions_for_one_index(indexes[0], INDEX_A_NAME, first_index_column_name)
         do_dump_index_assertions_for_one_index(indexes[1], INDEX_B_NAME, second_index_column_name)
-        do_dump_index_assertions_for_one_index(indexes[2], INDEX_D_NAME, third_index_column_name)
-        do_dump_index_assertions_for_one_index(indexes[3], INDEX_E_NAME, fourth_index_column_name)
+        do_dump_index_assertions_for_one_index(indexes[3], INDEX_D_NAME, third_index_column_name)
+        do_dump_index_assertions_for_one_index(indexes[4], INDEX_E_NAME, fourth_index_column_name)
 
-        indexes.select{|i| i.name != INDEX_E_NAME}.each do |index|
+        indexes.reject{|i| [INDEX_E_NAME, INDEX_C_NAME].include?(i.name)}.each do |index|
            assert_equal :btree, index.using
         end
-        assert_equal :gin, indexes.select{|i| i.name == INDEX_E_NAME}[0].using
-        assert_equal :desc, indexes.select{|i| i.name == INDEX_D_NAME}[0].orders[INDEX_D_COLUMN]
+        assert_equal :gin, indexes.detect{|i| i.name == INDEX_E_NAME}.using
+        assert_equal :desc, indexes.detect{|i| i.name == INDEX_D_NAME}.orders[INDEX_D_COLUMN]
+
+        assert_equal :gin, indexes.detect{|i| i.name == INDEX_C_NAME}.using
+        assert_equal 0, indexes.detect{|i| i.name == INDEX_C_NAME}.columns.size
       end
     end
 

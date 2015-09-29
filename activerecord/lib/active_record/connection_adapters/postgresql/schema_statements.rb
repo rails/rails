@@ -188,23 +188,11 @@ module ActiveRecord
             inddef = row[3]
             oid = row[4]
 
-            columns = Hash[query(<<-SQL, "SCHEMA")]
-            SELECT a.attnum, a.attname
-            FROM pg_attribute a
-            WHERE a.attrelid = #{oid}
-            AND a.attnum IN (#{indkey.join(",")})
-            SQL
-
-            column_names = columns.values_at(*indkey).compact
-
-            unless column_names.empty?
-              # add info on sort order for columns (only desc order is explicitly specified, asc is the default)
-              desc_order_columns = inddef.scan(/(\w+) DESC/).flatten
-              orders = desc_order_columns.any? ? Hash[desc_order_columns.map {|order_column| [order_column, :desc]}] : {}
-              where = inddef.scan(/WHERE (.+)$/).flatten[0]
-              using = inddef.scan(/USING (.+?) /).flatten[0].to_sym
-
-              IndexDefinition.new(table_name, index_name, unique, column_names, [], orders, where, nil, using)
+            # A zero in this array indicates that the corresponding index attribute is an expression over the table columns, rather than a simple column reference
+            if row[2] == "0"
+              build_func_index_definition(table_name, index_name, unique, inddef)
+            else
+              build_index_definition(table_name, index_name, indkey, unique, inddef, oid)
             end
           end.compact
         end
@@ -619,6 +607,34 @@ module ActiveRecord
             scale: cast_type.scale,
           )
           PostgreSQLTypeMetadata.new(simple_type, oid: oid, fmod: fmod)
+        end
+
+        def build_index_definition(table_name, index_name, indkey, unique, inddef, oid)
+          columns = Hash[query(<<-SQL, "SCHEMA")]
+            SELECT a.attnum, a.attname
+            FROM pg_attribute a
+            WHERE a.attrelid = #{oid}
+            AND a.attnum IN (#{indkey.join(",")})
+            SQL
+
+          column_names = columns.values_at(*indkey).compact
+
+          return if column_names.empty?
+
+          # add info on sort order for columns (only desc order is explicitly specified, asc is the default)
+          desc_order_columns = inddef.scan(/(\w+) DESC/).flatten
+          orders = desc_order_columns.any? ? Hash[desc_order_columns.map {|order_column| [order_column, :desc]}] : {}
+          where = inddef.scan(/WHERE (.+)$/).flatten[0]
+          using = inddef.scan(/USING (.+?) /).flatten[0].to_sym
+
+          IndexDefinition.new(table_name, index_name, unique, column_names, [], orders, where, nil, using)
+        end
+
+        def build_func_index_definition(table_name, index_name, unique, inddef)
+          where = inddef.scan(/WHERE (.+)$/).flatten[0]
+          using = inddef.scan(/USING (.+?) /).flatten[0].to_sym
+
+          IndexDefinition.new(table_name, index_name, unique, [], [], {}, where, nil, using)
         end
       end
     end
