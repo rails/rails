@@ -508,7 +508,8 @@ module Rails
     def app
       @app || @app_build_lock.synchronize {
         @app ||= begin
-          config.middleware = build_middleware.merge_into(default_middleware_stack)
+          stack = default_middleware_stack
+          config.middleware = build_middleware.merge_into(stack)
           config.middleware.build(endpoint)
         end
       }
