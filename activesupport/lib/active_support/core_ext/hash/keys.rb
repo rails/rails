@@ -64,7 +64,7 @@ class Hash
   alias_method :to_options!, :symbolize_keys!
 
   # Validates all keys in a hash match <tt>*valid_keys</tt>, raising
-  # ArgumentError on a mismatch.
+  # +ArgumentError+ on a mismatch.
   #
   # Note that keys are treated differently than HashWithIndifferentAccess,
   # meaning that string and symbol keys will not match.
