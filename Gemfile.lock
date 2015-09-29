@@ -21,7 +21,7 @@ GIT
 
 GIT
   remote: git://github.com/mikel/mail.git
-  revision: 64ef1a12efcdda53fd63e1456c2c564044bf82ce
+  revision: dc0f89bb33722ec1e6fa404a34055fe6e0189651
   branch: master
   specs:
     mail (2.6.3.edge)
@@ -29,7 +29,7 @@ GIT
 
 GIT
   remote: git://github.com/rack/rack.git
-  revision: c28f271d0c91f45e13bfa8f07bed445ef91f41de
+  revision: 028438ffffd95ce1f6197d38c04fa5ea6a034a85
   branch: master
   specs:
     rack (2.0.0.alpha)
@@ -73,7 +73,7 @@ GIT
 
 GIT
   remote: git://github.com/rails/sprockets-rails.git
-  revision: 600f981fe79ff2d4179baf84bd18fac5acb58b5e
+  revision: bbb44d22be4e6c5ff13d16d5edaf00bae45e1088
   branch: master
   specs:
     sprockets-rails (3.0.0.beta2)
@@ -83,15 +83,15 @@ GIT
 
 GIT
   remote: git://github.com/rails/sprockets.git
-  revision: edae5cdfa241b0fb0fcb756b25cd561c3d8b7f29
+  revision: c87e3e5fbff4f3038fc872f12976356ec527d3bf
   branch: master
   specs:
     sprockets (4.0.0)
-      rack (> 1, < 3)
+      rack (>= 1, < 3)
 
 GIT
   remote: git://github.com/rails/turbolinks.git
-  revision: 4bb563cd777875d3ad73cf007c26334f2aa8dc37
+  revision: eac0a3e43a69b341abdd55ef1bc45d1d4cfaf8a9
   branch: master
   specs:
     turbolinks (3.0.0)
@@ -183,13 +183,16 @@ GEM
     connection_pool (2.2.0)
     dalli (2.7.4)
     dante (0.2.0)
-    delayed_job (4.0.6)
+    delayed_job (4.1.1)
       activesupport (>= 3.0, < 5.0)
-    delayed_job_active_record (4.0.3)
-      activerecord (>= 3.0, < 5.0)
-      delayed_job (>= 3.0, < 4.1)
+    delayed_job_active_record (4.1.0)
+      activerecord (>= 3.0, < 5)
+      delayed_job (>= 3.0, < 5)
     erubis (2.7.0)
     execjs (2.6.0)
+    ffi (1.9.10)
+    ffi (1.9.10-x64-mingw32)
+    ffi (1.9.10-x86-mingw32)
     hitimes (1.2.3)
     hitimes (1.2.3-x86-mingw32)
     i18n (0.7.0)
@@ -197,6 +200,9 @@ GEM
     kindlerb (0.1.1)
       mustache
       nokogiri
+    listen (3.0.3)
+      rb-fsevent (>= 0.9.3)
+      rb-inotify (>= 0.9)
     loofah (2.0.3)
       nokogiri (>= 1.5.9)
     metaclass (0.0.4)
@@ -210,12 +216,8 @@ GEM
     multi_json (1.11.2)
     mustache (1.0.2)
     mysql (2.9.1)
-    mysql2 (0.4.0)
+    mysql2 (0.4.1)
     nokogiri (1.6.7.rc3)
-      mini_portile (~> 0.7.0.rc4)
-    nokogiri (1.6.7.rc3-x64-mingw32)
-      mini_portile (~> 0.7.0.rc4)
-    nokogiri (1.6.7.rc3-x86-mingw32)
       mini_portile (~> 0.7.0.rc4)
     pg (0.18.3)
     psych (2.0.15)
@@ -234,6 +236,9 @@ GEM
     rails-html-sanitizer (1.0.2)
       loofah (~> 2.0)
     rake (10.4.2)
+    rb-fsevent (0.9.6)
+    rb-inotify (0.9.5)
+      ffi (>= 0.5.0)
     rdoc (4.2.0)
     redcarpet (3.2.3)
     redis (3.2.1)
@@ -250,7 +255,7 @@ GEM
       redis (~> 3.0)
       resque (~> 1.25)
       rufus-scheduler (~> 3.0)
-    rufus-scheduler (3.1.4)
+    rufus-scheduler (3.1.5)
     sass (3.4.18)
     sdoc (0.4.1)
       json (~> 1.7, >= 1.7.7)
@@ -316,6 +321,7 @@ DEPENDENCIES
   jquery-rails!
   json
   kindlerb (= 0.1.1)
+  listen (~> 3.0.2)
   mail!
   minitest (< 5.3.4)
   mocha (~> 0.14)
