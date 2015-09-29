@@ -53,7 +53,7 @@ module ActiveRecord
 
     test "cache_key with custom timestamp column" do
       topics = Topic.where("title like ?", "%Topic%")
-      last_topic_timestamp = topics(:fifth).written_on.utc.to_s(:nsec)
+      last_topic_timestamp = topics(:fifth).written_on.utc.to_s(:usec)
       assert_match(last_topic_timestamp, topics.cache_key(:written_on))
     end
 

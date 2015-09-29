@@ -81,7 +81,7 @@ class IntegrationTest < ActiveRecord::TestCase
 
   def test_cache_key_format_for_existing_record_with_updated_at
     dev = Developer.first
-    assert_equal "developers/#{dev.id}-#{dev.updated_at.utc.to_s(:nsec)}", dev.cache_key
+    assert_equal "developers/#{dev.id}-#{dev.updated_at.utc.to_s(:usec)}", dev.cache_key
   end
 
   def test_cache_key_format_for_existing_record_with_updated_at_and_custom_cache_timestamp_format
@@ -111,19 +111,19 @@ class IntegrationTest < ActiveRecord::TestCase
   def test_cache_key_for_updated_on
     dev = Developer.first
     dev.updated_at = nil
-    assert_equal "developers/#{dev.id}-#{dev.updated_on.utc.to_s(:nsec)}", dev.cache_key
+    assert_equal "developers/#{dev.id}-#{dev.updated_on.utc.to_s(:usec)}", dev.cache_key
   end
 
   def test_cache_key_for_newer_updated_at
     dev = Developer.first
     dev.updated_at += 3600
-    assert_equal "developers/#{dev.id}-#{dev.updated_at.utc.to_s(:nsec)}", dev.cache_key
+    assert_equal "developers/#{dev.id}-#{dev.updated_at.utc.to_s(:usec)}", dev.cache_key
   end
 
   def test_cache_key_for_newer_updated_on
     dev = Developer.first
     dev.updated_on += 3600
-    assert_equal "developers/#{dev.id}-#{dev.updated_on.utc.to_s(:nsec)}", dev.cache_key
+    assert_equal "developers/#{dev.id}-#{dev.updated_on.utc.to_s(:usec)}", dev.cache_key
   end
 
   def test_cache_key_format_is_precise_enough
@@ -134,8 +134,16 @@ class IntegrationTest < ActiveRecord::TestCase
     assert_not_equal key, dev.cache_key
   end
 
+  def test_cache_key_format_is_not_too_precise
+    skip("Subsecond precision is not supported") unless subsecond_precision_supported?
+    dev = Developer.first
+    dev.touch
+    key = dev.cache_key
+    assert_equal key, dev.reload.cache_key
+  end
+
   def test_named_timestamps_for_cache_key
     owner = owners(:blackbeard)
-    assert_equal "owners/#{owner.id}-#{owner.happy_at.utc.to_s(:nsec)}", owner.cache_key(:updated_at, :happy_at)
+    assert_equal "owners/#{owner.id}-#{owner.happy_at.utc.to_s(:usec)}", owner.cache_key(:updated_at, :happy_at)
   end
 end
