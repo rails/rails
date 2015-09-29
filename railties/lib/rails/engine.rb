@@ -508,7 +508,7 @@ module Rails
     def app
       @app || @app_build_lock.synchronize {
         @app ||= begin
-          config.middleware = config.app_middleware.merge_into(config.middleware).merge_into(default_middleware_stack)
+          config.middleware = build_middleware.merge_into(default_middleware_stack)
           config.middleware.build(endpoint)
         end
       }
@@ -692,6 +692,12 @@ module Rails
 
     def _all_load_paths #:nodoc:
       @_all_load_paths ||= (config.paths.load_paths + _all_autoload_paths).uniq
+    end
+
+    private
+
+    def build_middleware
+      config.middleware
     end
   end
 end
