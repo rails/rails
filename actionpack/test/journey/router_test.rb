@@ -497,17 +497,6 @@ module ActionDispatch
 
       private
 
-      def add_routes router, paths, anchor = true
-        paths.each do |path|
-          if String === path
-            path  = Path::Pattern.from_string path
-          else
-            path
-          end
-          add_route @app, path, {}, [], {}, {}
-        end
-      end
-
       def rails_env env, klass = ActionDispatch::Request
         klass.new(rack_env(env))
       end
