@@ -401,7 +401,7 @@ module ActionView
     # ==== Parameters
     # * <tt>formats</tt> - The formats accepted to this layout
     # * <tt>require_layout</tt> - If set to true and layout is not found,
-    #   an ArgumentError exception is raised (defaults to false)
+    #   an +ArgumentError+ exception is raised (defaults to false)
     #
     # ==== Returns
     # * <tt>template</tt> - The template object for the default layout (or nil)

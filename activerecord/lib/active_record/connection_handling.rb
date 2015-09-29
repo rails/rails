@@ -42,7 +42,7 @@ module ActiveRecord
     #
     #   ActiveRecord::Base.establish_connection(:production)
     #
-    # The exceptions AdapterNotSpecified, AdapterNotFound and ArgumentError
+    # The exceptions +AdapterNotSpecified+, +AdapterNotFound+ and +ArgumentError+
     # may be returned on an error.
     def establish_connection(spec = nil)
       spec     ||= DEFAULT_ENV.call.to_sym
