@@ -932,8 +932,11 @@ If you set the `:dependent` option to:
 
 * `:destroy`, when the object is destroyed, `destroy` will be called on its
 associated objects.
-* `:delete`, when the object is destroyed, all its associated objects will be
+* `:delete_all`, when the object is destroyed, all its associated objects will be
 deleted directly from the database without calling their `destroy` method.
+* `:nullify`, causes the foreign key to be set to `NULL`. Callbacks are not executed.
+* `:restrict_with_exception`, causes an exception to be raised if there is an associated record
+* `:restrict_with_error`, causes an error to be added to the owner if there is an associated object
 
 WARNING: You should not specify this option on a `belongs_to` association that is connected with a `has_many` association on the other class. Doing so can lead to orphaned records in your database.
 
