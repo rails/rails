@@ -7,7 +7,10 @@ module ApplicationTests
     include Rack::Test::Methods
 
     def setup
-      build_app(initializers: true)
+      # FIXME: shush Sass warning spam, not relevant to testing Railties
+      Kernel.silence_warnings do
+        build_app(initializers: true)
+      end
 
       app_file "app/assets/javascripts/application.js", "//= require_tree ."
       app_file "app/assets/javascripts/xmlhr.js", "function f1() { alert(); }"
@@ -33,12 +36,19 @@ module ApplicationTests
       teardown_app
     end
 
+    # FIXME: shush Sass warning spam, not relevant to testing Railties
+    def get(*)
+      Kernel.silence_warnings { super }
+    end
+
     test "assets are concatenated when debug is off and compile is off either if debug_assets param is provided" do
       # config.assets.debug and config.assets.compile are false for production environment
       ENV["RAILS_ENV"] = "production"
       output = Dir.chdir(app_path){ `bin/rake assets:precompile --trace 2>&1` }
       assert $?.success?, output
-      require "#{app_path}/config/environment"
+
+      # Load app env
+      app "production"
 
       class ::PostsController < ActionController::Base ; end
 
@@ -51,8 +61,8 @@ module ApplicationTests
     test "assets are served with sourcemaps when compile is true and debug_assets params is true" do
       add_to_env_config "production", "config.assets.compile = true"
 
-      ENV["RAILS_ENV"] = "production"
-      require "#{app_path}/config/environment"
+      # Load app env
+      app "production"
 
       class ::PostsController < ActionController::Base ; end
 
