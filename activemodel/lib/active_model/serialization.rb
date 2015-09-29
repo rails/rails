@@ -31,9 +31,9 @@ module ActiveModel
   # of the attributes hash's keys. In order to override this behavior, take a look
   # at the private method +read_attribute_for_serialization+.
   #
-  # The JSON serialization is provided by default when you include the
-  # <tt>ActiveModel::Serialization</tt> module, so there is no need to explicitly
-  # include it.
+  # ActiveModel::Serializers::JSON module automatically includes
+  # the <tt>ActiveModel::Serialization</tt> module, so there is no need to
+  # explicitly include <tt>ActiveModel::Serialization</tt>.
   #
   # A minimal implementation including JSON would be:
   #
