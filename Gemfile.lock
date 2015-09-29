@@ -99,7 +99,7 @@ GIT
 
 GIT
   remote: git://github.com/ruby-concurrency/concurrent-ruby.git
-  revision: d15c5d624612c07dc6d2bf4af27b5c00eb6ae12b
+  revision: c0e52022e5388ed984935bbd59f281c501071760
   specs:
     concurrent-ruby (1.0.0.pre2)
 
