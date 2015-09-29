@@ -57,6 +57,59 @@ class TestUnitReporterTest < ActiveSupport::TestCase
     end
   end
 
+  test "outputs failures inline" do
+    @reporter.record(failed_test)
+    @reporter.report
+
+    assert_match %r{\A\n\nboo\n\nbin/rails test .*test/test_unit/reporter_test.rb:6\n\n\z}, @output.string
+  end
+
+  test "outputs errors inline" do
+    @reporter.record(errored_test)
+    @reporter.report
+
+    assert_match %r{\A\n\nArgumentError: wups\n    No backtrace\n\nbin/rails test .*test/test_unit/reporter_test.rb:6\n\n\z}, @output.string
+  end
+
+  test "outputs skipped tests inline if verbose" do
+    verbose = Rails::TestUnitReporter.new @output, verbose: true
+    verbose.record(skipped_test)
+    verbose.report
+
+    assert_match %r{\A\n\nskipchurches, misstemples\n\nbin/rails test .*test/test_unit/reporter_test.rb:6\n\n\z}, @output.string
+  end
+
+  test "does not output rerun snippets after run" do
+    @reporter.record(failed_test)
+    @reporter.report
+
+    assert_no_match 'Failed tests:', @output.string
+  end
+
+  test "fail fast interrupts run on failure" do
+    fail_fast = Rails::TestUnitReporter.new @output, fail_fast: true
+    interrupt_raised = false
+
+    # Minitest passes through Interrupt, catch it manually.
+    begin
+      fail_fast.record(failed_test)
+    rescue Interrupt
+      interrupt_raised = true
+    ensure
+      assert interrupt_raised, 'Expected Interrupt to be raised.'
+    end
+  end
+
+  test "fail fast does not interrupt run errors or skips" do
+    fail_fast = Rails::TestUnitReporter.new @output, fail_fast: true
+
+    fail_fast.record(errored_test)
+    assert_no_match 'Failed tests:', @output.string
+
+    fail_fast.record(skipped_test)
+    assert_no_match 'Failed tests:', @output.string
+  end
+
   private
   def assert_rerun_snippet_count(snippet_count)
     assert_equal snippet_count, @output.string.scan(%r{^bin/rails test }).size
@@ -72,6 +125,12 @@ class TestUnitReporterTest < ActiveSupport::TestCase
     ft
   end
 
+  def errored_test
+    et = ExampleTest.new(:woot)
+    et.failures << Minitest::UnexpectedError.new(ArgumentError.new("wups"))
+    et
+  end
+
   def passing_test
     ExampleTest.new(:woot)
   end
@@ -79,7 +138,7 @@ class TestUnitReporterTest < ActiveSupport::TestCase
   def skipped_test
     st = ExampleTest.new(:woot)
     st.failures << begin
-                     raise Minitest::Skip
+                     raise Minitest::Skip, "skipchurches, misstemples"
                    rescue Minitest::Assertion => e
                      e
                    end

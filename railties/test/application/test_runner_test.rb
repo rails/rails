@@ -340,6 +340,36 @@ module ApplicationTests
       assert_match '0 runs, 0 assertions', run_test_command('')
     end
 
+    def test_output_inline_by_default
+      app_file 'test/models/post_test.rb', <<-RUBY
+        require 'test_helper'
+
+        class PostTest < ActiveSupport::TestCase
+          def test_post
+            assert false, 'wups!'
+          end
+        end
+      RUBY
+
+      output = run_test_command('test/models/post_test.rb')
+      assert_match %r{Running:\n\nF\n\nwups!\n\nbin/rails test test/models/post_test.rb:4}, output
+    end
+
+    def test_fail_fast
+      app_file 'test/models/post_test.rb', <<-RUBY
+        require 'test_helper'
+
+        class PostTest < ActiveSupport::TestCase
+          def test_post
+            assert false, 'wups!'
+          end
+        end
+      RUBY
+
+      assert_match(/Interrupt/,
+        capture(:stderr) { run_test_command('test/models/post_test.rb --fail-fast') })
+    end
+
     def test_raise_error_when_specified_file_does_not_exist
       error = capture(:stderr) { run_test_command('test/not_exists.rb') }
       assert_match(%r{cannot load such file.+test/not_exists\.rb}, error)
