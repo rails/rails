@@ -335,9 +335,5 @@ Module.new do
   File.open("#{app_template_path}/config/boot.rb", 'w') do |f|
     f.puts "require '#{environment}'"
     f.puts "require 'rails/all'"
-
-    # Preempt the Bundler.require in config/application.rb and silence warning
-    # spam from our gem dependencies (👋 hello Sass 😁)
-    f.puts "Kernel.silence_warnings { Bundler.require(*Rails.groups) }"
   end
 end unless defined?(RAILS_ISOLATED_ENGINE)

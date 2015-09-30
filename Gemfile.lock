@@ -103,6 +103,13 @@ GIT
   specs:
     concurrent-ruby (1.0.0.pre3)
 
+GIT
+  remote: git://github.com/sass/sass.git
+  revision: 4ef8e3167985ace91b2105916756bd93c5d7bba6
+  branch: stable
+  specs:
+    sass (3.4.18)
+
 PATH
   remote: .
   specs:
@@ -256,7 +263,6 @@ GEM
       resque (~> 1.25)
       rufus-scheduler (~> 3.0)
     rufus-scheduler (3.1.4)
-    sass (3.4.18)
     sdoc (0.4.1)
       json (~> 1.7, >= 1.7.7)
       rdoc (~> 4.0)
@@ -342,7 +348,7 @@ DEPENDENCIES
   redcarpet (~> 3.2.3)
   resque
   resque-scheduler
-  sass (>= 3.3)
+  sass!
   sass-rails!
   sdoc (~> 0.4.0)
   sequel
