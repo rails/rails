@@ -351,9 +351,15 @@ class FormTagHelperTest < ActionView::TestCase
     assert_dom_equal expected, actual
   end
 
-  def test_text_field_disabled
+  def test_text_field_tag_disabled
     actual = text_field_tag "title", "Hello!", disabled: true
     expected = %(<input id="title" name="title" disabled="disabled" type="text" value="Hello!" />)
+    assert_dom_equal expected, actual
+  end
+
+  def test_text_field_tag_with_placeholder_option
+    actual = text_field_tag "title", "Hello!", placeholder: 'Enter search term...'
+    expected = %(<input id="title" name="title" placeholder="Enter search term..." type="text" value="Hello!" />)
     assert_dom_equal expected, actual
   end
 
