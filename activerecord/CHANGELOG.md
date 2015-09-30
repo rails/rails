@@ -1,3 +1,132 @@
+*   Allow fixtures files to set the model class in the YAML file itself.
+
+    To load the fixtures file `accounts.yml` as the `User` model, use:
+
+          _fixture:
+            model_class: User
+          david:
+            name: David
+
+    Fixes #9516.
+
+    *Roque Pinel*
+
+*   Don't require a database connection to load a class which uses acceptance
+    validations.
+
+    *Sean Griffin*
+
+*   Correctly apply `unscope` when preloading through associations.
+
+    *Jimmy Bourassa*
+
+*   Fixed taking precision into count when assigning a value to timestamp attribute
+
+    Timestamp column can have less precision than ruby timestamp
+    In result in how big a fraction of a second can be stored in the
+    database.
+
+
+      m = Model.create!
+      m.created_at.usec == m.reload.created_at.usec
+        # => false
+        # due to different precision in Time.now and database column
+
+    If the precision is low enough, (mysql default is 0, so it is always low
+    enough by default) the value changes when model is reloaded from the
+    database. This patch fixes that issue ensuring that any timestamp
+    assigned as an attribute is converted to column precision under the
+    attribute.
+
+    *Bogdan Gusiev*
+
+*   Introduce `connection.data_sources` and `connection.data_source_exists?`.
+    These methods determine what relations can be used to back Active Record
+    models (usually tables and views).
+
+    Also deprecate `SchemaCache#tables`, `SchemaCache#table_exists?` and
+    `SchemaCache#clear_table_cache!` in favor of their new data source
+    counterparts.
+
+    *Yves Senn*, *Matthew Draper*
+
+*   Add `ActiveRecord::Base.ignored_columns` to make some columns
+    invisible from ActiveRecord.
+
+    *Jean Boussier*
+
+*   `ActiveRecord::Tasks::MySQLDatabaseTasks` fails if shellout to
+    mysql commands (like `mysqldump`) is not successful.
+
+    *Steve Mitchell*
+
+*   Ensure `select` quotes aliased attributes, even when using `from`.
+
+    Fixes #21488
+
+    *Sean Griffin & @johanlunds*
+
+*   MySQL: support `unsigned` numeric data types.
+
+    Example:
+
+        create_table :foos do |t|
+          t.unsigned_integer :quantity
+          t.unsigned_bigint  :total
+          t.unsigned_float   :percentage
+          t.unsigned_decimal :price, precision: 10, scale: 2
+        end
+
+    The `unsigned: true` option may be used for the primary key:
+
+        create_table :foos, id: :bigint, unsigned: true do |t|
+          …
+        end
+
+    *Ryuta Kamizono*
+
+*   Add `#views` and `#view_exists?` methods on connection adapters.
+
+    *Ryuta Kamizono*
+
+*   Correctly dump composite primary key.
+
+    Example:
+
+        create_table :barcodes, primary_key: ["region", "code"] do |t|
+          t.string :region
+          t.integer :code
+        end
+
+    *Ryuta Kamizono*
+
+*   Lookup the attribute name for `restrict_with_error` messages on the
+    model class that defines the association.
+
+    *kuboon*, *Ronak Jangir*
+
+*   Correct query for PostgreSQL 8.2 compatibility.
+
+    *Ben Murphy*, *Matthew Draper*
+
+*   `bin/rake db:migrate` uses
+    `ActiveRecord::Tasks::DatabaseTasks.migrations_paths` instead of
+    `Migrator.migrations_paths`.
+
+    *Tobias Bielohlawek*
+
+*   Support dropping indexes concurrently in PostgreSQL.
+
+    See http://www.postgresql.org/docs/9.4/static/sql-dropindex.html for more
+    details.
+
+    *Grey Baker*
+
+*   Deprecate passing conditions to `ActiveRecord::Relation#delete_all`
+    and `ActiveRecord::Relation#destroy_all`.
+
+    *Wojciech Wnętrzak*
+
 *   PostgreSQL, `create_schema`, `drop_schema` and `rename_table` now quote
     schema names.
 
@@ -25,7 +154,7 @@
 *   Uniqueness validator raises descriptive error when running on a persisted
     record without primary key.
 
-    Closes #21304.
+    Fixes #21304.
 
     *Yves Senn*
 
@@ -41,7 +170,7 @@
 
 *   Descriptive error message when fixtures contain a missing column.
 
-    Closes #21201.
+    Fixes #21201.
 
     *Yves Senn*
 
@@ -65,11 +194,11 @@
           sleep 10 # Throttles the delete queries
         end
 
-    Closes #20933.
+    Fixes #20933.
 
     *Sina Siadat*
 
-*   Added methods for PostgreSQL geometric data types to use in migrations
+*   Added methods for PostgreSQL geometric data types to use in migrations.
 
     Example:
 
@@ -1095,7 +1224,7 @@
 
 *   `eager_load` preserves readonly flag for associations.
 
-    Closes #15853.
+    Fixes #15853.
 
     *Takashi Kokubun*
 
@@ -1151,7 +1280,7 @@
 *   Fix bug with `ActiveRecord::Type::Numeric` that caused negative values to
     be marked as having changed when set to the same negative value.
 
-    Closes #18161.
+    Fixes #18161.
 
     *Daniel Fox*
 
@@ -1166,7 +1295,7 @@
     before loading the schema. This is left for the user to do.
     `db:test:prepare` will still purge the database.
 
-    Closes #17945.
+    Fixes #17945.
 
     *Yves Senn*
 

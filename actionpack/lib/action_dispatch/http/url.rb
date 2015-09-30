@@ -1,11 +1,10 @@
 require 'active_support/core_ext/module/attribute_accessors'
-require 'active_support/core_ext/hash/slice'
 
 module ActionDispatch
   module Http
     module URL
       IP_HOST_REGEXP  = /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/
-      HOST_REGEXP     = /(^[^:]+:\/\/)?([^:]+)(?::(\d+$))?/
+      HOST_REGEXP     = /(^[^:]+:\/\/)?(\[[^\]]+\]|[^:]+)(?::(\d+$))?/
       PROTOCOL_REGEXP = /^([^:]+)(:)?(\/\/)?$/
 
       mattr_accessor :tld_length
@@ -184,7 +183,7 @@ module ActionDispatch
         end
       end
 
-      def initialize(env)
+      def initialize
         super
         @protocol = nil
         @port     = nil

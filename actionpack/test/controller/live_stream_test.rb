@@ -112,7 +112,7 @@ module ActionController
     class TestController < ActionController::Base
       include ActionController::Live
 
-      attr_accessor :latch, :tc
+      attr_accessor :latch, :tc, :error_latch
 
       def self.controller_path
         'test'
@@ -204,6 +204,12 @@ module ActionController
       end
 
       def overfill_buffer_and_die
+        logger = ActionController::Base.logger || Logger.new($stdout)
+        response.stream.on_error do
+          logger.warn 'Error while streaming'
+          error_latch.count_down
+        end
+
         # Write until the buffer is full. It doesn't expose that
         # information directly, so we must hard-code its size:
         10.times do
@@ -256,20 +262,12 @@ module ActionController
     end
 
     def test_set_cookie
-      @controller = TestController.new
       get :set_cookie
       assert_equal({'hello' => 'world'}, @response.cookies)
       assert_equal "hello world", @response.body
     end
 
-    def test_set_response!
-      @controller.set_response!(@request)
-      assert_kind_of(Live::Response, @controller.response)
-      assert_equal @request, @controller.response.request
-    end
-
     def test_write_to_stream
-      @controller = TestController.new
       get :basic_stream
       assert_equal "helloworld", @response.body
       assert_equal 'text/event-stream', @response.headers['Content-Type']
@@ -281,10 +279,9 @@ module ActionController
       @controller.latch = Concurrent::CountDownLatch.new
       parts             = ['hello', 'world']
 
-      @controller.request  = @request
-      @controller.response = @response
+      get :blocking_stream
 
-      t = Thread.new(@response) { |resp|
+      t = Thread.new(response) { |resp|
         resp.await_commit
         resp.stream.each do |part|
           assert_equal parts.shift, part
@@ -294,38 +291,28 @@ module ActionController
         end
       }
 
-      @controller.process :blocking_stream
-
       assert t.join(3), 'timeout expired before the thread terminated'
     end
 
     def test_abort_with_full_buffer
       @controller.latch = Concurrent::CountDownLatch.new
-
-      @request.parameters[:format] = 'plain'
-      @controller.request  = @request
-      @controller.response = @response
-
-      got_error = Concurrent::CountDownLatch.new
-      @response.stream.on_error do
-        ActionController::Base.logger.warn 'Error while streaming'
-        got_error.count_down
-      end
-
-      t = Thread.new(@response) { |resp|
-        resp.await_commit
-        _, _, body = resp.to_a
-        body.each do
-          @controller.latch.wait
-          body.close
-          break
-        end
-      }
+      @controller.error_latch = Concurrent::CountDownLatch.new
 
       capture_log_output do |output|
-        @controller.process :overfill_buffer_and_die
+        get :overfill_buffer_and_die, :format => 'plain'
+
+        t = Thread.new(response) { |resp|
+          resp.await_commit
+          _, _, body = resp.to_a
+          body.each do
+            @controller.latch.wait
+            body.close
+            break
+          end
+        }
+
         t.join
-        got_error.wait
+        @controller.error_latch.wait
         assert_match 'Error while streaming', output.rewind && output.read
       end
     end
@@ -333,20 +320,18 @@ module ActionController
     def test_ignore_client_disconnect
       @controller.latch = Concurrent::CountDownLatch.new
 
-      @controller.request  = @request
-      @controller.response = @response
-
-      t = Thread.new(@response) { |resp|
-        resp.await_commit
-        _, _, body = resp.to_a
-        body.each do
-          body.close
-          break
-        end
-      }
-
       capture_log_output do |output|
-        @controller.process :ignore_client_disconnect
+        get :ignore_client_disconnect
+
+        t = Thread.new(response) { |resp|
+          resp.await_commit
+          _, _, body = resp.to_a
+          body.each do
+            body.close
+            break
+          end
+        }
+
         t.join
         Timeout.timeout(3) do
           @controller.latch.wait
@@ -364,11 +349,8 @@ module ActionController
     end
 
     def test_live_stream_default_header
-      @controller.request  = @request
-      @controller.response = @response
-      @controller.process :default_header
-      _, headers, _ = @response.prepare!
-      assert headers['Content-Type']
+      get :default_header
+      assert response.headers['Content-Type']
     end
 
     def test_render_text
@@ -437,13 +419,13 @@ module ActionController
 
     def test_stale_without_etag
       get :with_stale
-      assert_equal 200, @response.status.to_i
+      assert_equal 200, response.status.to_i
     end
 
     def test_stale_with_etag
       @request.if_none_match = Digest::MD5.hexdigest("123")
       get :with_stale
-      assert_equal 304, @response.status.to_i
+      assert_equal 304, response.status.to_i
     end
   end
 

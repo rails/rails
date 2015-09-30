@@ -229,10 +229,9 @@ module ActionView
       def fragment_name_with_digest(name, virtual_path) #:nodoc:
         virtual_path ||= @virtual_path
         if virtual_path
-          names  = Array(name.is_a?(Hash) ? controller.url_for(name).split("://").last : name)
+          name  = controller.url_for(name).split("://").last if name.is_a?(Hash)
           digest = Digestor.digest name: virtual_path, finder: lookup_context, dependencies: view_cache_dependencies
-
-          [ *names, digest ]
+          [ name, digest ]
         else
           name
         end

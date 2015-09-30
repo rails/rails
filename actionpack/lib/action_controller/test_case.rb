@@ -33,6 +33,9 @@ module ActionController
 
       self.session = session
       self.session_options = TestSession::DEFAULT_OPTIONS
+      @custom_param_parsers = {
+        Mime::Type[:XML] => lambda { |raw_post| Hash.from_xml(raw_post)['hash'] }
+      }
     end
 
     def query_string=(string)
@@ -70,27 +73,22 @@ module ActionController
           self.content_type = ENCODER.content_type
           data = ENCODER.build_multipart non_path_parameters
         else
-          get_header('CONTENT_TYPE') do |k|
+          fetch_header('CONTENT_TYPE') do |k|
             set_header k, 'application/x-www-form-urlencoded'
           end
 
-          # FIXME: setting `request_parametes` is normally handled by the
-          # params parser middleware, and we should remove this roundtripping
-          # when we switch to caling `call` on the controller
-
-          case content_mime_type.ref
+          case content_mime_type.to_sym
+          when nil
+            raise "Unknown Content-Type: #{content_type}"
           when :json
             data = ActiveSupport::JSON.encode(non_path_parameters)
-            params = ActiveSupport::JSON.decode(data).with_indifferent_access
-            self.request_parameters = params
           when :xml
             data = non_path_parameters.to_xml
-            params = Hash.from_xml(data)['hash']
-            self.request_parameters = params
           when :url_encoded_form
             data = non_path_parameters.to_query
           else
-            raise "Unknown Content-Type: #{content_type}"
+            @custom_param_parsers[content_mime_type] = ->(_) { non_path_parameters }
+            data = non_path_parameters.to_query
           end
         end
 
@@ -98,7 +96,7 @@ module ActionController
         set_header 'rack.input', StringIO.new(data)
       end
 
-      get_header("PATH_INFO") do |k|
+      fetch_header("PATH_INFO") do |k|
         set_header k, generated_path
       end
       path_parameters[:controller] = controller_path
@@ -133,6 +131,12 @@ module ActionController
         "multipart/form-data; boundary=#{Rack::Test::MULTIPART_BOUNDARY}"
       end
     end.new
+
+    private
+
+    def params_parsers
+      super.merge @custom_param_parsers
+    end
   end
 
   class LiveTestResponse < Live::Response
@@ -149,7 +153,7 @@ module ActionController
   # Methods #destroy and #load! are overridden to avoid calling methods on the
   # @store object, which does not exist for the TestSession class.
   class TestSession < Rack::Session::Abstract::SessionHash #:nodoc:
-    DEFAULT_OPTIONS = Rack::Session::Abstract::ID::DEFAULT_OPTIONS
+    DEFAULT_OPTIONS = Rack::Session::Abstract::Persisted::DEFAULT_OPTIONS
 
     def initialize(session = {})
       super(nil, nil)
@@ -398,7 +402,7 @@ module ActionController
         MSG
 
         @request.env['HTTP_X_REQUESTED_WITH'] = 'XMLHttpRequest'
-        @request.env['HTTP_ACCEPT'] ||= [Mime::JS, Mime::HTML, Mime::XML, 'text/xml', Mime::ALL].join(', ')
+        @request.env['HTTP_ACCEPT'] ||= [Mime::Type[:JS], Mime::Type[:HTML], Mime::Type[:XML], 'text/xml', Mime::Type[:ALL]].join(', ')
         __send__(*args).tap do
           @request.env.delete 'HTTP_X_REQUESTED_WITH'
           @request.env.delete 'HTTP_ACCEPT'
@@ -476,6 +480,7 @@ module ActionController
         end
 
         self.cookies.update @request.cookies
+        self.cookies.update_cookies_from_jar
         @request.set_header 'HTTP_COOKIE', cookies.to_header
         @request.delete_header 'action_dispatch.cookies'
 
@@ -499,15 +504,15 @@ module ActionController
 
         if xhr
           @request.set_header 'HTTP_X_REQUESTED_WITH', 'XMLHttpRequest'
-          @request.get_header('HTTP_ACCEPT') do |k|
-            @request.set_header k, [Mime::JS, Mime::HTML, Mime::XML, 'text/xml', Mime::ALL].join(', ')
+          @request.fetch_header('HTTP_ACCEPT') do |k|
+            @request.set_header k, [Mime::Type[:JS], Mime::Type[:HTML], Mime::Type[:XML], 'text/xml', Mime::Type[:ALL]].join(', ')
           end
         end
 
         @controller.request  = @request
         @controller.response = @response
 
-        @request.get_header("SCRIPT_NAME") do |k|
+        @request.fetch_header("SCRIPT_NAME") do |k|
           @request.set_header k, @controller.config.relative_url_root
         end
 
@@ -580,7 +585,7 @@ module ActionController
       end
 
       def build_response(klass)
-        klass.new
+        klass.create
       end
 
       included do

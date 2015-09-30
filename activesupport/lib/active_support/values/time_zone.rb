@@ -1,5 +1,5 @@
 require 'tzinfo'
-require 'thread_safe'
+require 'concurrent'
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/object/try'
 
@@ -23,7 +23,7 @@ module ActiveSupport
   #     config.time_zone = 'Eastern Time (US & Canada)'
   #   end
   #
-  #   Time.zone      # => #<TimeZone:0x514834...>
+  #   Time.zone      # => #<ActiveSupport::TimeZone:0x514834...>
   #   Time.zone.name # => "Eastern Time (US & Canada)"
   #   Time.zone.now  # => Sun, 18 May 2008 14:30:44 EDT -04:00
   #
@@ -189,13 +189,13 @@ module ActiveSupport
     UTC_OFFSET_WITH_COLON = '%s%02d:%02d'
     UTC_OFFSET_WITHOUT_COLON = UTC_OFFSET_WITH_COLON.tr(':', '')
 
-    @lazy_zones_map = ThreadSafe::Cache.new
+    @lazy_zones_map = Concurrent::Map.new
 
     class << self
       # Assumes self represents an offset from UTC in seconds (as returned from
       # Time#utc_offset) and turns this into an +HH:MM formatted string.
       #
-      #   TimeZone.seconds_to_utc_offset(-21_600) # => "-06:00"
+      #   ActiveSupport::TimeZone.seconds_to_utc_offset(-21_600) # => "-06:00"
       def seconds_to_utc_offset(seconds, colon = true)
         format = colon ? UTC_OFFSET_WITH_COLON : UTC_OFFSET_WITHOUT_COLON
         sign = (seconds < 0 ? '-' : '+')
@@ -285,8 +285,12 @@ module ActiveSupport
       end
     end
 
-    # Returns the offset of this time zone as a formatted string, of the
-    # format "+HH:MM".
+    # Returns a formatted string of the offset from UTC, or an alternative
+    # string if the time zone is already UTC.
+    #
+    #   zone = ActiveSupport::TimeZone['Central Time (US & Canada)']
+    #   zone.formatted_offset        # => "-06:00"
+    #   zone.formatted_offset(false) # => "-0600"
     def formatted_offset(colon=true, alternate_utc_string = nil)
       utc_offset == 0 && alternate_utc_string || self.class.seconds_to_utc_offset(utc_offset, colon)
     end

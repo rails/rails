@@ -4,17 +4,14 @@ module Rails
   class Engine
     class Configuration < ::Rails::Railtie::Configuration
       attr_reader :root
-      attr_writer :middleware, :eager_load_paths, :autoload_once_paths, :autoload_paths
+      attr_accessor :middleware
+      attr_writer :eager_load_paths, :autoload_once_paths, :autoload_paths
 
       def initialize(root=nil)
         super()
         @root = root
         @generators = app_generators.dup
-      end
-
-      # Returns the middleware stack for the engine.
-      def middleware
-        @middleware ||= Rails::Configuration::MiddlewareStackProxy.new
+        @middleware = Rails::Configuration::MiddlewareStackProxy.new
       end
 
       # Holds generators configuration:

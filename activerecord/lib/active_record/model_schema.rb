@@ -50,6 +50,13 @@ module ActiveRecord
       class_attribute :pluralize_table_names, instance_writer: false
       self.pluralize_table_names = true
 
+      ##
+      # :singleton-method:
+      # Accessor for the list of columns names the model should ignore. Ignored columns won't have attribute
+      # accessors defined, and won't be referenced in SQL queries.
+      class_attribute :ignored_columns, instance_accessor: false
+      self.ignored_columns = [].freeze
+
       self.inheritance_column = 'type'
 
       delegate :type_for_attribute, to: :class
@@ -213,7 +220,7 @@ module ActiveRecord
 
       # Indicates whether the table associated with this class exists
       def table_exists?
-        connection.schema_cache.table_exists?(table_name)
+        connection.schema_cache.data_source_exists?(table_name)
       end
 
       def attributes_builder # :nodoc:
@@ -240,7 +247,7 @@ module ActiveRecord
       end
 
       # Returns a hash where the keys are column names and the values are
-      # default values when instantiating the AR object for this table.
+      # default values when instantiating the Active Record object for this table.
       def column_defaults
         load_schema
         _default_attributes.to_hash
@@ -290,7 +297,7 @@ module ActiveRecord
       def reset_column_information
         connection.clear_cache!
         undefine_attribute_methods
-        connection.schema_cache.clear_table_cache!(table_name)
+        connection.schema_cache.clear_data_source_cache!(table_name)
 
         reload_schema_from_cache
       end
@@ -308,7 +315,7 @@ module ActiveRecord
       end
 
       def load_schema!
-        @columns_hash = connection.schema_cache.columns_hash(table_name)
+        @columns_hash = connection.schema_cache.columns_hash(table_name).except(*ignored_columns)
         @columns_hash.each do |name, column|
           warn_if_deprecated_type(column)
           define_attribute(

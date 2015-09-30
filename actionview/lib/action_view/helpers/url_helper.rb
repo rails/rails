@@ -464,7 +464,7 @@ module ActionView
 
         extras = %w{ cc bcc body subject reply_to }.map! { |item|
           option = html_options.delete(item).presence || next
-          "#{item.dasherize}=#{Rack::Utils.escape_path(option)}"
+          "#{item.dasherize}=#{ERB::Util.url_encode(option)}"
         }.compact
         extras = extras.empty? ? '' : '?' + extras.join('&')
 

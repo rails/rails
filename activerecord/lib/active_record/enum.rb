@@ -118,7 +118,7 @@ module ActiveRecord
         elsif mapping.has_value?(value)
           mapping.key(value)
         else
-          raise ArgumentError, "'#{value}' is not a valid #{name}"
+          assert_valid_value(value)
         end
       end
 
@@ -129,6 +129,12 @@ module ActiveRecord
 
       def serialize(value)
         mapping.fetch(value, value)
+      end
+
+      def assert_valid_value(value)
+        unless value.blank? || mapping.has_key?(value) || mapping.has_value?(value)
+          raise ArgumentError, "'#{value}' is not a valid #{name}"
+        end
       end
 
       protected
@@ -204,30 +210,22 @@ module ActiveRecord
 
       def detect_enum_conflict!(enum_name, method_name, klass_method = false)
         if klass_method && dangerous_class_method?(method_name)
-          raise ArgumentError, ENUM_CONFLICT_MESSAGE % {
-            enum: enum_name,
-            klass: self.name,
-            type: 'class',
-            method: method_name,
-            source: 'Active Record'
-          }
+          raise_conflict_error(enum_name, method_name, type: 'class')
         elsif !klass_method && dangerous_attribute_method?(method_name)
-          raise ArgumentError, ENUM_CONFLICT_MESSAGE % {
-            enum: enum_name,
-            klass: self.name,
-            type: 'instance',
-            method: method_name,
-            source: 'Active Record'
-          }
+          raise_conflict_error(enum_name, method_name)
         elsif !klass_method && method_defined_within?(method_name, _enum_methods_module, Module)
-          raise ArgumentError, ENUM_CONFLICT_MESSAGE % {
-            enum: enum_name,
-            klass: self.name,
-            type: 'instance',
-            method: method_name,
-            source: 'another enum'
-          }
+          raise_conflict_error(enum_name, method_name, source: 'another enum')
         end
+      end
+
+      def raise_conflict_error(enum_name, method_name, type: 'instance', source: 'Active Record')
+        raise ArgumentError, ENUM_CONFLICT_MESSAGE % {
+          enum: enum_name,
+          klass: self.name,
+          type: type,
+          method: method_name,
+          source: source
+        }
       end
   end
 end

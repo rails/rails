@@ -15,7 +15,7 @@ module ActiveRecord
 
         when :restrict_with_error
           unless empty?
-            record = klass.human_attribute_name(reflection.name).downcase
+            record = owner.class.human_attribute_name(reflection.name).downcase
             message = owner.errors.generate_message(:base, :'restrict_dependent_destroy.many', record: record, raise: true) rescue nil
             if message
               ActiveSupport::Deprecation.warn(<<-MESSAGE.squish)
@@ -50,7 +50,7 @@ module ActiveRecord
       end
 
       def empty?
-        if has_cached_counter?
+        if reflection.has_cached_counter?
           size.zero?
         else
           super
@@ -73,8 +73,8 @@ module ActiveRecord
         # If the collection is empty the target is set to an empty array and
         # the loaded flag is set to true as well.
         def count_records
-          count = if has_cached_counter?
-            owner._read_attribute cached_counter_attribute_name
+          count = if reflection.has_cached_counter?
+            owner._read_attribute reflection.counter_cache_column
           else
             scope.count
           end
@@ -87,75 +87,24 @@ module ActiveRecord
           [association_scope.limit_value, count].compact.min
         end
 
-
-        # Returns whether a counter cache should be used for this association.
-        #
-        # The counter_cache option must be given on either the owner or inverse
-        # association, and the column must be present on the owner.
-        def has_cached_counter?(reflection = reflection())
-          if reflection.options[:counter_cache] || (inverse = inverse_which_updates_counter_cache(reflection)) && inverse.options[:counter_cache]
-            owner.attribute_present?(cached_counter_attribute_name(reflection))
-          end
-        end
-
-        def cached_counter_attribute_name(reflection = reflection())
-          if reflection.options[:counter_cache]
-            reflection.options[:counter_cache].to_s
-          else
-            "#{reflection.name}_count"
-          end
-        end
-
         def update_counter(difference, reflection = reflection())
           update_counter_in_database(difference, reflection)
           update_counter_in_memory(difference, reflection)
         end
 
         def update_counter_in_database(difference, reflection = reflection())
-          if has_cached_counter?(reflection)
-            counter = cached_counter_attribute_name(reflection)
-            owner.class.update_counters(owner.id, counter => difference)
+          if reflection.has_cached_counter?
+            owner.class.update_counters(owner.id, reflection.counter_cache_column => difference)
           end
         end
 
         def update_counter_in_memory(difference, reflection = reflection())
-          if counter_must_be_updated_by_has_many?(reflection)
-            counter = cached_counter_attribute_name(reflection)
+          if reflection.counter_must_be_updated_by_has_many?
+            counter = reflection.counter_cache_column
+            owner[counter] ||= 0
             owner[counter] += difference
-            owner.send(:clear_attribute_changes, counter) # eww
+            owner.send(:clear_attribute_change, counter) # eww
           end
-        end
-
-        # This shit is nasty. We need to avoid the following situation:
-        #
-        #   * An associated record is deleted via record.destroy
-        #   * Hence the callbacks run, and they find a belongs_to on the record with a
-        #     :counter_cache options which points back at our owner. So they update the
-        #     counter cache.
-        #   * In which case, we must make sure to *not* update the counter cache, or else
-        #     it will be decremented twice.
-        #
-        # Hence this method.
-        def inverse_which_updates_counter_cache(reflection = reflection())
-          counter_name = cached_counter_attribute_name(reflection)
-          inverse_which_updates_counter_named(counter_name, reflection)
-        end
-        alias inverse_updates_counter_cache? inverse_which_updates_counter_cache
-
-        def inverse_which_updates_counter_named(counter_name, reflection)
-          reflection.klass._reflections.values.find { |inverse_reflection|
-            inverse_reflection.belongs_to? &&
-            inverse_reflection.counter_cache_column == counter_name
-          }
-        end
-
-        def inverse_updates_counter_in_memory?(reflection)
-          inverse = inverse_which_updates_counter_cache(reflection)
-          inverse && inverse == reflection.inverse_of
-        end
-
-        def counter_must_be_updated_by_has_many?(reflection)
-          !inverse_updates_counter_in_memory?(reflection) && has_cached_counter?(reflection)
         end
 
         def delete_count(method, scope)
@@ -175,7 +124,7 @@ module ActiveRecord
         def delete_records(records, method)
           if method == :destroy
             records.each(&:destroy!)
-            update_counter(-records.length) unless inverse_updates_counter_cache?
+            update_counter(-records.length) unless reflection.inverse_updates_counter_cache?
           else
             scope = self.scope.where(reflection.klass.primary_key => records)
             update_counter(-delete_count(method, scope))

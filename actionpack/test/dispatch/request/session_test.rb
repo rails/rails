@@ -110,7 +110,7 @@ module ActionDispatch
         Class.new {
           def load_session(env); [1, {}]; end
           def session_exists?(env); true; end
-          def destroy_session(env, id, options); 123; end
+          def delete_session(env, id, options); 123; end
         }.new
       end
     end

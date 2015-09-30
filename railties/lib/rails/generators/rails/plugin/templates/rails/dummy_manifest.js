@@ -1,11 +1,11 @@
 
 <% unless api? -%>
-//= link_tree ./images
+//= link_tree ../images
 <% end -%>
 <% unless options.skip_javascript -%>
-//= link ./javascripts/application.js
+//= link_directory ../javascripts .js
 <% end -%>
-//= link ./stylesheets/application.css
+//= link_directory ../stylesheets .css
 <% if mountable? && !api? -%>
 //= link <%= underscored_name %>_manifest.js
 <% end -%>

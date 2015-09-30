@@ -379,7 +379,6 @@ module RequestForgeryProtectionTests
   end
 
   def test_should_not_raise_error_if_token_is_not_a_string
-    @controller.unstub(:valid_authenticity_token?)
     assert_blocked do
       patch :index, params: { custom_authenticity_token: { foo: 'bar' } }
     end

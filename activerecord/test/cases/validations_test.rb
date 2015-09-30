@@ -52,6 +52,13 @@ class ValidationsTest < ActiveRecord::TestCase
     assert r.valid?(:special_case)
   end
 
+  def test_invalid_using_multiple_contexts
+    r = WrongReply.new(:title => 'Wrong Create')
+    assert r.invalid?([:special_case, :create])
+    assert_equal "Invalid", r.errors[:author_name].join
+    assert_equal "is Wrong Create", r.errors[:title].join
+  end
+
   def test_validate
     r = WrongReply.new
 
@@ -160,5 +167,16 @@ class ValidationsTest < ActiveRecord::TestCase
     assert topic.valid?
   ensure
     Topic.reset_column_information
+  end
+
+  def test_acceptance_validator_doesnt_require_db_connection
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = 'posts'
+    end
+    klass.reset_column_information
+
+    assert_no_queries do
+      klass.validates_acceptance_of(:foo)
+    end
   end
 end

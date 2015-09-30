@@ -1,6 +1,10 @@
 require 'abstract_unit'
 
 class RendererTest < ActiveSupport::TestCase
+  test 'action controller base has a renderer' do
+    assert ActionController::Base.renderer
+  end
+
   test 'creating with a controller' do
     controller = CommentsController
     renderer   = ActionController::Renderer.for controller
@@ -57,8 +61,7 @@ class RendererTest < ActiveSupport::TestCase
   end
 
   test 'rendering with defaults' do
-    renderer = ApplicationController.renderer
-    renderer.defaults[:https] = true
+    renderer = ApplicationController.renderer.new https: true
     content = renderer.render inline: '<%= request.ssl? %>'
 
     assert_equal 'true', content
@@ -67,8 +70,8 @@ class RendererTest < ActiveSupport::TestCase
   test 'same defaults from the same controller' do
     renderer_defaults = ->(controller) { controller.renderer.defaults }
 
-    assert renderer_defaults[AccountsController].equal? renderer_defaults[AccountsController]
-    assert_not renderer_defaults[AccountsController].equal? renderer_defaults[CommentsController]
+    assert_equal renderer_defaults[AccountsController], renderer_defaults[AccountsController]
+    assert_equal renderer_defaults[AccountsController], renderer_defaults[CommentsController]
   end
 
   test 'rendering with different formats' do
@@ -82,18 +85,6 @@ class RendererTest < ActiveSupport::TestCase
 
   test 'rendering with helpers' do
     assert_equal "<p>1\n<br />2</p>", render[inline: '<%= simple_format "1\n2" %>']
-  end
-  
-  test 'rendering from inherited renderer' do
-    inherited = Class.new ApplicationController.renderer do
-      defaults[:script_name] = 'script'
-      def render(options)
-        super options.merge(locals: { param: :value })
-      end
-    end
-
-    template = '<%= url_for controller: :foo, action: :bar, param: param %>'
-    assert_equal 'script/foo/bar?param=value', inherited.render(inline: template)
   end
 
   private

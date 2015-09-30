@@ -53,7 +53,7 @@ module ActionDispatch
     #
     # Note that changing the secret key will invalidate all existing sessions!
     #
-    # Because CookieStore extends Rack::Session::Abstract::ID, many of the
+    # Because CookieStore extends Rack::Session::Abstract::Persisted, many of the
     # options described there can be used to customize the session cookie that
     # is generated. For example:
     #
@@ -62,16 +62,12 @@ module ActionDispatch
     # would set the session cookie to expire automatically 14 days after creation.
     # Other useful options include <tt>:key</tt>, <tt>:secure</tt> and
     # <tt>:httponly</tt>.
-    class CookieStore < Rack::Session::Abstract::ID
-      include Compatibility
-      include StaleSessionCheck
-      include SessionObject
-
+    class CookieStore < AbstractStore
       def initialize(app, options={})
         super(app, options.merge!(:cookie_only => true))
       end
 
-      def destroy_session(req, session_id, options)
+      def delete_session(req, session_id, options)
         new_sid = generate_sid unless options[:drop]
         # Reset hash and Assign the new session id
         req.set_header("action_dispatch.request.unsigned_session_cookie", new_sid ? { "session_id" => new_sid } : {})
@@ -95,7 +91,7 @@ module ActionDispatch
       end
 
       def unpacked_cookie_data(req)
-        req.get_header("action_dispatch.request.unsigned_session_cookie") do |k|
+        req.fetch_header("action_dispatch.request.unsigned_session_cookie") do |k|
           v = stale_session_check! do
             if data = get_cookie(req)
               data.stringify_keys!
@@ -112,7 +108,7 @@ module ActionDispatch
         data
       end
 
-      def set_session(req, sid, session_data, options)
+      def write_session(req, sid, session_data, options)
         session_data["session_id"] = sid
         session_data
       end

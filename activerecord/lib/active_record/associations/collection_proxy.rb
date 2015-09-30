@@ -127,7 +127,7 @@ module ActiveRecord
       #   #    ]
       #
       #   person.pets.find(1) # => #<Pet id: 1, name: "Fancy-Fancy", person_id: 1>
-      #   person.pets.find(4) # => ActiveRecord::RecordNotFound: Couldn't find Pet with id=4
+      #   person.pets.find(4) # => ActiveRecord::RecordNotFound: Couldn't find Pet with 'id'=4
       #
       #   person.pets.find(2) { |pet| pet.name.downcase! }
       #   # => #<Pet id: 2, name: "fancy-fancy", person_id: 1>
@@ -443,7 +443,7 @@ module ActiveRecord
       #   person.pets.delete_all
       #
       #   Pet.find(1, 2, 3)
-      #   # => ActiveRecord::RecordNotFound
+      #   # => ActiveRecord::RecordNotFound: Couldn't find all Pets with 'id': (1, 2, 3)
       #
       # If it is set to <tt>:delete_all</tt>, all the objects are deleted
       # *without* calling their +destroy+ method.
@@ -463,7 +463,7 @@ module ActiveRecord
       #   person.pets.delete_all
       #
       #   Pet.find(1, 2, 3)
-      #   # => ActiveRecord::RecordNotFound
+      #   # => ActiveRecord::RecordNotFound: Couldn't find all Pets with 'id': (1, 2, 3)
       def delete_all(dependent = nil)
         @association.delete_all(dependent)
       end
@@ -557,7 +557,7 @@ module ActiveRecord
       #   # => [#<Pet id: 2, name: "Spook", person_id: 1>]
       #
       #   Pet.find(1, 3)
-      #   # => ActiveRecord::RecordNotFound: Couldn't find all Pets with IDs (1, 3)
+      #   # => ActiveRecord::RecordNotFound: Couldn't find all Pets with 'id': (1, 3)
       #
       # If it is set to <tt>:delete_all</tt>, all the +records+ are deleted
       # *without* calling their +destroy+ method.
@@ -585,7 +585,7 @@ module ActiveRecord
       #   #    ]
       #
       #   Pet.find(1)
-      #   # => ActiveRecord::RecordNotFound: Couldn't find Pet with id=1
+      #   # => ActiveRecord::RecordNotFound: Couldn't find Pet with 'id'=1
       #
       # You can pass +Fixnum+ or +String+ values, it finds the records
       # responding to the +id+ and executes delete on them.
@@ -649,7 +649,7 @@ module ActiveRecord
       #   person.pets.size  # => 0
       #   person.pets       # => []
       #
-      #   Pet.find(1, 2, 3) # => ActiveRecord::RecordNotFound: Couldn't find all Pets with IDs (1, 2, 3)
+      #   Pet.find(1, 2, 3) # => ActiveRecord::RecordNotFound: Couldn't find all Pets with 'id': (1, 2, 3)
       #
       # You can pass +Fixnum+ or +String+ values, it finds the records
       # responding to the +id+ and then deletes them from the database.
@@ -681,7 +681,7 @@ module ActiveRecord
       #   person.pets.size  # => 0
       #   person.pets       # => []
       #
-      #   Pet.find(4, 5, 6) # => ActiveRecord::RecordNotFound: Couldn't find all Pets with IDs (4, 5, 6)
+      #   Pet.find(4, 5, 6) # => ActiveRecord::RecordNotFound: Couldn't find all Pets with 'id': (4, 5, 6)
       def destroy(*records)
         @association.destroy(*records)
       end
@@ -881,7 +881,7 @@ module ActiveRecord
         !!@association.include?(record)
       end
 
-      def arel
+      def arel #:nodoc:
         scope.arel
       end
 

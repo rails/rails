@@ -5,9 +5,11 @@ require 'support/schema_dumping_helper'
 module PGSchemaHelper
   def with_schema_search_path(schema_search_path)
     @connection.schema_search_path = schema_search_path
+    @connection.schema_cache.clear!
     yield if block_given?
   ensure
     @connection.schema_search_path = "'$user', public"
+    @connection.schema_cache.clear!
   end
 end
 
@@ -321,11 +323,11 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
 
   def test_with_uppercase_index_name
     @connection.execute "CREATE INDEX \"things_Index\" ON #{SCHEMA_NAME}.things (name)"
-    assert_nothing_raised { @connection.remove_index! "things", "#{SCHEMA_NAME}.things_Index"}
+    assert_nothing_raised { @connection.remove_index "things", name: "#{SCHEMA_NAME}.things_Index"}
     @connection.execute "CREATE INDEX \"things_Index\" ON #{SCHEMA_NAME}.things (name)"
 
     with_schema_search_path SCHEMA_NAME do
-      assert_nothing_raised { @connection.remove_index! "things", "things_Index"}
+      assert_nothing_raised { @connection.remove_index "things", name: "things_Index"}
     end
   end
 

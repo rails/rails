@@ -1,3 +1,5 @@
+require 'active_record/attribute'
+
 module ActiveRecord
   class AttributeSet # :nodoc:
     class Builder # :nodoc:
@@ -45,8 +47,14 @@ module ActiveRecord
       delegate_hash[key] = value
     end
 
+    def deep_dup
+      dup.tap do |copy|
+        copy.instance_variable_set(:@delegate_hash, delegate_hash.transform_values(&:dup))
+      end
+    end
+
     def initialize_dup(_)
-      @delegate_hash = delegate_hash.transform_values(&:dup)
+      @delegate_hash = Hash[delegate_hash]
       super
     end
 

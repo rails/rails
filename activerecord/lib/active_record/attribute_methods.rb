@@ -1,7 +1,7 @@
 require 'active_support/core_ext/enumerable'
 require 'active_support/core_ext/string/filters'
 require 'mutex_m'
-require 'thread_safe'
+require 'concurrent'
 
 module ActiveRecord
   # = Active Record Attribute Methods
@@ -37,7 +37,7 @@ module ActiveRecord
     class AttributeMethodCache
       def initialize
         @module = Module.new
-        @method_cache = ThreadSafe::Cache.new
+        @method_cache = Concurrent::Map.new
       end
 
       def [](name)
@@ -96,7 +96,7 @@ module ActiveRecord
         end
       end
 
-      # Raises a <tt>ActiveRecord::DangerousAttributeError</tt> exception when an
+      # Raises an <tt>ActiveRecord::DangerousAttributeError</tt> exception when an
       # \Active \Record method is defined in the model, otherwise +false+.
       #
       #   class Person < ActiveRecord::Base
@@ -106,7 +106,7 @@ module ActiveRecord
       #   end
       #
       #   Person.instance_method_already_implemented?(:save)
-      #   # => ActiveRecord::DangerousAttributeError: save is defined by ActiveRecord
+      #   # => ActiveRecord::DangerousAttributeError: save is defined by Active Record. Check to make sure that you don't have an attribute or method with the same name.
       #
       #   Person.instance_method_already_implemented?(:name)
       #   # => false

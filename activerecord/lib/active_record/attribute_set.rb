@@ -60,8 +60,14 @@ module ActiveRecord
       super
     end
 
+    def deep_dup
+      dup.tap do |copy|
+        copy.instance_variable_set(:@attributes, attributes.deep_dup)
+      end
+    end
+
     def initialize_dup(_)
-      @attributes = attributes.deep_dup
+      @attributes = attributes.dup
       super
     end
 
@@ -78,6 +84,11 @@ module ActiveRecord
 
     def accessed
       attributes.select { |_, attr| attr.has_been_read? }.keys
+    end
+
+    def map(&block)
+      new_attributes = attributes.transform_values(&block)
+      AttributeSet.new(new_attributes)
     end
 
     protected

@@ -450,21 +450,21 @@ class FormTagHelperTest < ActionView::TestCase
     ActionView::Base.automatically_disable_submit_tag = true
   end
 
-  def test_data_disable_with_string
+  def test_submit_tag_having_data_disable_with_string
     assert_dom_equal(
       %(<input data-disable-with="Processing..." data-confirm="Are you sure?" name='commit' type="submit" value="Save" />),
       submit_tag("Save", { "data-disable-with" => "Processing...", "data-confirm" => "Are you sure?" })
     )
   end
 
-  def test_data_disable_with_boolean
+  def test_submit_tag_having_data_disable_with_boolean
     assert_dom_equal(
       %(<input data-confirm="Are you sure?" name='commit' type="submit" value="Save" />),
       submit_tag("Save", { "data-disable-with" => false, "data-confirm" => "Are you sure?" })
     )
   end
 
-  def test_data_hash_disable_with_boolean
+  def test_submit_tag_having_data_hash_disable_with_boolean
     assert_dom_equal(
       %(<input data-confirm="Are you sure?" name='commit' type="submit" value="Save" />),
       submit_tag("Save", { :data => { :confirm => "Are you sure?", :disable_with => false } })
@@ -484,6 +484,14 @@ class FormTagHelperTest < ActionView::TestCase
       submit_tag("Save", :data => { :confirm => "Are you sure?" })
     )
   end
+
+  def test_submit_tag_doesnt_have_data_disable_with_twice
+    assert_equal(
+      %(<input type="submit" name="commit" value="Save" data-confirm="Are you sure?" data-disable-with="Processing..." />),
+      submit_tag("Save", { "data-disable-with" => "Processing...", "data-confirm" => "Are you sure?" })
+    )
+  end
+
 
   def test_button_tag
     assert_dom_equal(

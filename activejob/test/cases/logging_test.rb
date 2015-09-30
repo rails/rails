@@ -74,6 +74,14 @@ class LoggingTest < ActiveSupport::TestCase
     assert_match(%r{Performing.*gid://aj/Person/123}, @logger.messages)
   end
 
+  def test_globalid_nested_parameter_logging
+    person = Person.new(123)
+    LoggingJob.perform_later(person: person)
+    assert_match(%r{Enqueued.*gid://aj/Person/123}, @logger.messages)
+    assert_match(%r{Dummy, here is it: .*#<Person:.*>}, @logger.messages)
+    assert_match(%r{Performing.*gid://aj/Person/123}, @logger.messages)
+  end
+
   def test_enqueue_job_logging
     HelloJob.perform_later "Cristian"
     assert_match(/Enqueued HelloJob \(Job ID: .*?\) to .*?:.*Cristian/, @logger.messages)

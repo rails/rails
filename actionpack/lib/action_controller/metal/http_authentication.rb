@@ -34,7 +34,7 @@ module ActionController
     #
     #       def authenticate
     #         case request.format
-    #         when Mime::XML, Mime::ATOM
+    #         when Mime::Type[:XML], Mime::Type[:ATOM]
     #           if user = authenticate_with_http_basic { |u, p| @account.users.authenticate(u, p) }
     #             @current_user = user
     #           else
@@ -203,7 +203,7 @@ module ActionController
           password = password_procedure.call(credentials[:username])
           return false unless password
 
-          method = request.env['rack.methodoverride.original_method'] || request.env['REQUEST_METHOD']
+          method = request.get_header('rack.methodoverride.original_method') || request.get_header('REQUEST_METHOD')
           uri    = credentials[:uri]
 
           [true, false].any? do |trailing_question_mark|
@@ -260,8 +260,8 @@ module ActionController
       end
 
       def secret_token(request)
-        key_generator  = request.env["action_dispatch.key_generator"]
-        http_auth_salt = request.env["action_dispatch.http_auth_salt"]
+        key_generator  = request.key_generator
+        http_auth_salt = request.http_auth_salt
         key_generator.generate_key(http_auth_salt)
       end
 
@@ -361,7 +361,7 @@ module ActionController
     #
     #       def authenticate
     #         case request.format
-    #         when Mime::XML, Mime::ATOM
+    #         when Mime::Type[:XML], Mime::Type[:ATOM]
     #           if user = authenticate_with_http_token { |t, o| @account.users.authenticate(t, o) }
     #             @current_user = user
     #           else
@@ -436,15 +436,17 @@ module ActionController
         end
       end
 
-      # Parses the token and options out of the token authorization header. If
-      # the header looks like this:
+      # Parses the token and options out of the token authorization header.
+      # The value for the Authorization header is expected to have the prefix
+      # <tt>"Token"</tt> or <tt>"Bearer"</tt>. If the header looks like this:
       #   Authorization: Token token="abc", nonce="def"
-      # Then the returned token is "abc", and the options is {nonce: "def"}
+      # Then the returned token is <tt>"abc"</tt>, and the options are
+      # <tt>{nonce: "def"}</tt>
       #
       # request - ActionDispatch::Request instance with the current headers.
       #
-      # Returns an Array of [String, Hash] if a token is present.
-      # Returns nil if no token is found.
+      # Returns an +Array+ of <tt>[String, Hash]</tt> if a token is present.
+      # Returns +nil+ if no token is found.
       def token_and_options(request)
         authorization_request = request.authorization.to_s
         if authorization_request[TOKEN_REGEX]

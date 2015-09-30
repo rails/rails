@@ -28,7 +28,7 @@ module ActionDispatch
     # Used by the `Static` class to check the existence of a valid file
     # in the server's `public/` directory (see Static#call).
     def match?(path)
-      path = URI.parser.unescape(path)
+      path = ::Rack::Utils.unescape_path path
       return false unless path.valid_encoding?
       path = Rack::Utils.clean_path_info path
 
@@ -43,7 +43,7 @@ module ActionDispatch
         end
 
       }
-        return ::Rack::Utils.escape(match)
+        return ::Rack::Utils.escape_path(match)
       end
     end
 
@@ -90,7 +90,7 @@ module ActionDispatch
       def gzip_file_path(path)
         can_gzip_mime = content_type(path) =~ /\A(?:text\/|application\/javascript)/
         gzip_path     = "#{path}.gz"
-        if can_gzip_mime && File.exist?(File.join(@root, ::Rack::Utils.unescape(gzip_path)))
+        if can_gzip_mime && File.exist?(File.join(@root, ::Rack::Utils.unescape_path(gzip_path)))
           gzip_path
         else
           false

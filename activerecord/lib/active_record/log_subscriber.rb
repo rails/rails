@@ -47,20 +47,40 @@ module ActiveRecord
         binds = "  " + payload[:binds].map { |attr| render_bind(attr) }.inspect
       end
 
-      name = color(name, nil, true)
+      name = colorize_payload_name(name, payload[:name])
       sql  = color(sql, sql_color(sql), true)
 
       debug "  #{name}  #{sql}#{binds}"
     end
 
+    private
+
+    def colorize_payload_name(name, payload_name)
+      if payload_name.blank? || payload_name == "SQL" # SQL vs Model Load/Exists
+        color(name, MAGENTA, true)
+      else
+        color(name, CYAN, true)
+      end
+    end
+
     def sql_color(sql)
       case sql
-        when /\s*\Ainsert/i      then GREEN
-        when /\s*\Aselect/i      then BLUE
-        when /\s*\Aupdate/i      then YELLOW
-        when /\s*\Adelete/i      then RED
-        when /transaction\s*\Z/i then CYAN
-        else MAGENTA
+        when /\A\s*rollback/mi
+          RED
+        when /\s*.*?select .*for update/mi, /\A\s*lock/mi
+          WHITE
+        when /\A\s*select/i
+          BLUE
+        when /\A\s*insert/i
+          GREEN
+        when /\A\s*update/i
+          YELLOW
+        when /\A\s*delete/i
+          RED
+        when /transaction\s*\Z/i
+          CYAN
+        else
+          MAGENTA
       end
     end
 

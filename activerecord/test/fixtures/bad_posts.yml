@@ -1,0 +1,9 @@
+# Please do not use this fixture without `set_fixture_class` as Post
+
+_fixture:
+  model_class: BadPostModel
+
+bad_welcome:
+  author_id: 1
+  title: Welcome to the another weblog
+  body: It's really nice today

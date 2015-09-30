@@ -23,7 +23,7 @@ module ActiveRecord
         end
       rescue error_class => error
         if error.respond_to?(:errno) && error.errno == ACCESS_DENIED_ERROR
-          $stdout.print error.error
+          $stdout.print error.message
           establish_connection root_configuration_without_database
           connection.create_database configuration['database'], creation_options
           if configuration['username'] != 'root'
@@ -56,22 +56,21 @@ module ActiveRecord
       end
 
       def structure_dump(filename)
-        args = prepare_command_options('mysqldump')
+        args = prepare_command_options
         args.concat(["--result-file", "#{filename}"])
         args.concat(["--no-data"])
         args.concat(["--routines"])
         args.concat(["#{configuration['database']}"])
-        unless Kernel.system(*args)
-          $stderr.puts "Could not dump the database structure. "\
-                       "Make sure `mysqldump` is in your PATH and check the command output for warnings."
-        end
+
+        run_cmd('mysqldump', args, 'dumping')
       end
 
       def structure_load(filename)
-        args = prepare_command_options('mysql')
+        args = prepare_command_options
         args.concat(['--execute', %{SET FOREIGN_KEY_CHECKS = 0; SOURCE #{filename}; SET FOREIGN_KEY_CHECKS = 1}])
         args.concat(["--database", "#{configuration['database']}"])
-        Kernel.system(*args)
+
+        run_cmd('mysql', args, 'loading')
       end
 
       private
@@ -130,7 +129,7 @@ IDENTIFIED BY '#{configuration['password']}' WITH GRANT OPTION;
         $stdin.gets.strip
       end
 
-      def prepare_command_options(command)
+      def prepare_command_options
         args = {
           'host'      => '--host',
           'port'      => '--port',
@@ -145,7 +144,17 @@ IDENTIFIED BY '#{configuration['password']}' WITH GRANT OPTION;
           'sslkey'    => '--ssl-key'
         }.map { |opt, arg| "#{arg}=#{configuration[opt]}" if configuration[opt] }.compact
 
-        [command, *args]
+        args
+      end
+
+      def run_cmd(cmd, args, action)
+        fail run_cmd_error(cmd, args, action) unless Kernel.system(cmd, *args)
+      end
+
+      def run_cmd_error(cmd, args, action)
+        msg = "failed to execute: `#{cmd}`\n"
+        msg << "Please check the output above for any errors and make sure that `#{cmd}` is installed in your PATH and has proper permissions.\n\n"
+        msg
       end
     end
   end

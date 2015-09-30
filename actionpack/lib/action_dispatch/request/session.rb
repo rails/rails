@@ -1,7 +1,7 @@
 require 'rack/session/abstract/id'
 
 module ActionDispatch
-  class Request < Rack::Request
+  class Request
     # Session is responsible for lazily loading the session from store.
     class Session # :nodoc:
       ENV_SESSION_KEY         = Rack::RACK_SESSION # :nodoc:
@@ -77,7 +77,7 @@ module ActionDispatch
       def destroy
         clear
         options = self.options || {}
-        @by.send(:destroy_session, @req, options.id(@req), options)
+        @by.send(:delete_session, @req, options.id(@req), options)
 
         # Load the new sid to be written with the response
         @loaded = false

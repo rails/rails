@@ -6,8 +6,10 @@ module ActiveRecord
       included do
         # Stores the default scope for the class.
         class_attribute :default_scopes, instance_writer: false, instance_predicate: false
+        class_attribute :default_scope_override, instance_predicate: false
 
         self.default_scopes = []
+        self.default_scope_override = nil
       end
 
       module ClassMethods
@@ -99,12 +101,18 @@ module ActiveRecord
           self.default_scopes += [scope]
         end
 
-        def build_default_scope(base_rel = relation) # :nodoc:
+        def build_default_scope(base_rel = nil) # :nodoc:
           return if abstract_class?
-          if !Base.is_a?(method(:default_scope).owner)
+
+          if self.default_scope_override.nil?
+            self.default_scope_override = !Base.is_a?(method(:default_scope).owner)
+          end
+
+          if self.default_scope_override
             # The user has defined their own default scope method, so call that
             evaluate_default_scope { default_scope }
           elsif default_scopes.any?
+            base_rel ||= relation
             evaluate_default_scope do
               default_scopes.inject(base_rel) do |default_scope, scope|
                 default_scope.merge(base_rel.scoping { scope.call })

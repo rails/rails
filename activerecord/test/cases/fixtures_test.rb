@@ -7,15 +7,16 @@ require 'models/binary'
 require 'models/book'
 require 'models/bulb'
 require 'models/category'
+require 'models/comment'
 require 'models/company'
 require 'models/computer'
 require 'models/course'
 require 'models/developer'
+require 'models/doubloon'
 require 'models/joke'
 require 'models/matey'
 require 'models/parrot'
 require 'models/pirate'
-require 'models/doubloon'
 require 'models/post'
 require 'models/randomly_named_c1'
 require 'models/reply'
@@ -408,9 +409,11 @@ class FixturesWithoutInstantiationTest < ActiveRecord::TestCase
   end
 
   def test_reloading_fixtures_through_accessor_methods
+    topic = Struct.new(:title)
     assert_equal "The First Topic", topics(:first).title
-    @loaded_fixtures['topics']['first'].expects(:find).returns(stub(:title => "Fresh Topic!"))
-    assert_equal "Fresh Topic!", topics(:first, true).title
+    assert_called(@loaded_fixtures['topics']['first'], :find, returns: topic.new("Fresh Topic!")) do
+      assert_equal "Fresh Topic!", topics(:first, true).title
+    end
   end
 end
 
@@ -511,6 +514,38 @@ class OverRideFixtureMethodTest < ActiveRecord::TestCase
   def test_fixture_methods_can_be_overridden
     x = topics :first
     assert_equal 'omg', x.title
+  end
+end
+
+class FixtureWithSetModelClassTest < ActiveRecord::TestCase
+  fixtures :other_posts, :other_comments
+
+  # Set to false to blow away fixtures cache and ensure our fixtures are loaded
+  # and thus takes into account the +set_model_class+.
+  self.use_transactional_tests = false
+
+  def test_uses_fixture_class_defined_in_yaml
+    assert_kind_of Post, other_posts(:second_welcome)
+  end
+
+  def test_loads_the_associations_to_fixtures_with_set_model_class
+    post = other_posts(:second_welcome)
+    comment = other_comments(:second_greetings)
+    assert_equal [comment], post.comments
+    assert_equal post, comment.post
+  end
+end
+
+class SetFixtureClassPrevailsTest < ActiveRecord::TestCase
+  set_fixture_class bad_posts: Post
+  fixtures :bad_posts
+
+  # Set to false to blow away fixtures cache and ensure our fixtures are loaded
+  # and thus takes into account the +set_model_class+.
+  self.use_transactional_tests = false
+
+  def test_uses_set_fixture_class
+    assert_kind_of Post, bad_posts(:bad_welcome)
   end
 end
 

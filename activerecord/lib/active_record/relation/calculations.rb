@@ -70,9 +70,9 @@ module ActiveRecord
     # +calculate+ for examples with options.
     #
     #   Person.sum(:age) # => 4562
-    def sum(*args)
-      return super if block_given?
-      calculate(:sum, *args)
+    def sum(column_name = nil, &block)
+      return super(&block) if block_given?
+      calculate(:sum, column_name)
     end
 
     # This calculates aggregate values in the given column. Methods for count, sum, average,
@@ -338,7 +338,6 @@ module ActiveRecord
     #   column_alias_for("sum(id)")                  # => "sum_id"
     #   column_alias_for("count(distinct users.id)") # => "count_distinct_users_id"
     #   column_alias_for("count(*)")                 # => "count_all"
-    #   column_alias_for("count", "id")              # => "count_id"
     def column_alias_for(keys)
       if keys.respond_to? :name
         keys = "#{keys.relation.name}.#{keys.name}"

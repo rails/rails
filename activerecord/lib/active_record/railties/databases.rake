@@ -79,7 +79,7 @@ db_namespace = namespace :db do
     task :up => [:environment, :load_config] do
       version = ENV['VERSION'] ? ENV['VERSION'].to_i : nil
       raise 'VERSION is required' unless version
-      ActiveRecord::Migrator.run(:up, ActiveRecord::Migrator.migrations_paths, version)
+      ActiveRecord::Migrator.run(:up, ActiveRecord::Tasks::DatabaseTasks.migrations_paths, version)
       db_namespace['_dump'].invoke
     end
 
@@ -87,7 +87,7 @@ db_namespace = namespace :db do
     task :down => [:environment, :load_config] do
       version = ENV['VERSION'] ? ENV['VERSION'].to_i : nil
       raise 'VERSION is required - To go down one migration, run db:rollback' unless version
-      ActiveRecord::Migrator.run(:down, ActiveRecord::Migrator.migrations_paths, version)
+      ActiveRecord::Migrator.run(:down, ActiveRecord::Tasks::DatabaseTasks.migrations_paths, version)
       db_namespace['_dump'].invoke
     end
 
@@ -99,7 +99,7 @@ db_namespace = namespace :db do
       db_list = ActiveRecord::SchemaMigration.normalized_versions
 
       file_list =
-          ActiveRecord::Migrator.migrations_paths.flat_map do |path|
+          ActiveRecord::Tasks::DatabaseTasks.migrations_paths.flat_map do |path|
             # match "20091231235959_some_name.rb" and "001_some_name.rb" pattern
             Dir.foreach(path).grep(/^(\d{3,})_(.+)\.rb$/) do
               version = ActiveRecord::SchemaMigration.normalize_migration_number($1)
@@ -125,14 +125,14 @@ db_namespace = namespace :db do
   desc 'Rolls the schema back to the previous version (specify steps w/ STEP=n).'
   task :rollback => [:environment, :load_config] do
     step = ENV['STEP'] ? ENV['STEP'].to_i : 1
-    ActiveRecord::Migrator.rollback(ActiveRecord::Migrator.migrations_paths, step)
+    ActiveRecord::Migrator.rollback(ActiveRecord::Tasks::DatabaseTasks.migrations_paths, step)
     db_namespace['_dump'].invoke
   end
 
   # desc 'Pushes the schema to the next version (specify steps w/ STEP=n).'
   task :forward => [:environment, :load_config] do
     step = ENV['STEP'] ? ENV['STEP'].to_i : 1
-    ActiveRecord::Migrator.forward(ActiveRecord::Migrator.migrations_paths, step)
+    ActiveRecord::Migrator.forward(ActiveRecord::Tasks::DatabaseTasks.migrations_paths, step)
     db_namespace['_dump'].invoke
   end
 
@@ -160,7 +160,7 @@ db_namespace = namespace :db do
 
   # desc "Raises an error if there are pending migrations"
   task :abort_if_pending_migrations => [:environment, :load_config] do
-    pending_migrations = ActiveRecord::Migrator.open(ActiveRecord::Migrator.migrations_paths).pending_migrations
+    pending_migrations = ActiveRecord::Migrator.open(ActiveRecord::Tasks::DatabaseTasks.migrations_paths).pending_migrations
 
     if pending_migrations.any?
       puts "You have #{pending_migrations.size} pending #{pending_migrations.size > 1 ? 'migrations:' : 'migration:'}"
@@ -229,7 +229,7 @@ db_namespace = namespace :db do
   end
 
   namespace :schema do
-    desc 'Creates a db/schema.rb file that is portable against any DB supported by AR'
+    desc 'Creates a db/schema.rb file that is portable against any DB supported by Active Record'
     task :dump => [:environment, :load_config] do
       require 'active_record/schema_dumper'
       filename = ENV['SCHEMA'] || File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, 'schema.rb')
@@ -255,7 +255,7 @@ db_namespace = namespace :db do
         filename = File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, "schema_cache.dump")
 
         con.schema_cache.clear!
-        con.tables.each { |table| con.schema_cache.add(table) }
+        con.data_sources.each { |table| con.schema_cache.add(table) }
         open(filename, 'wb') { |f| f.write(Marshal.dump(con.schema_cache)) }
       end
 
@@ -353,7 +353,7 @@ db_namespace = namespace :db do
       ActiveRecord::Tasks::DatabaseTasks.purge ActiveRecord::Base.configurations['test']
     end
 
-    # desc 'Check for pending migrations and load the test schema'
+    # desc 'Load the test schema'
     task :prepare => %w(environment load_config) do
       unless ActiveRecord::Base.configurations.blank?
         db_namespace['test:load'].invoke
@@ -384,7 +384,7 @@ namespace :railties do
         puts "Copied migration #{migration.basename} from #{name}"
       end
 
-      ActiveRecord::Migration.copy(ActiveRecord::Migrator.migrations_paths.first, railties,
+      ActiveRecord::Migration.copy(ActiveRecord::Tasks::DatabaseTasks.migrations_paths.first, railties,
                                     :on_skip => on_skip, :on_copy => on_copy)
     end
   end

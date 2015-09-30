@@ -75,15 +75,13 @@ class MigrationTest < ActiveRecord::TestCase
 
     ActiveRecord::Migrator.up(migrations_path)
     assert_equal 3, ActiveRecord::Migrator.current_version
-    assert_equal 3, ActiveRecord::Migrator.last_version
     assert_equal false, ActiveRecord::Migrator.needs_migration?
 
     ActiveRecord::Migrator.down(MIGRATIONS_ROOT + "/valid")
     assert_equal 0, ActiveRecord::Migrator.current_version
-    assert_equal 3, ActiveRecord::Migrator.last_version
     assert_equal true, ActiveRecord::Migrator.needs_migration?
 
-    ActiveRecord::SchemaMigration.create!(:version => ActiveRecord::Migrator.last_version)
+    ActiveRecord::SchemaMigration.create!(version: 3)
     assert_equal true, ActiveRecord::Migrator.needs_migration?
   ensure
     ActiveRecord::Migrator.migrations_paths = old_path

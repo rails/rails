@@ -123,6 +123,18 @@ END
         end
       end
 
+      def test_removes_fixture_config_row
+        File.open(::File.join(FIXTURES_ROOT, 'other_posts.yml')) do |fh|
+          assert_equal(['second_welcome'], fh.each.map { |name, _| name })
+        end
+      end
+
+      def test_extracts_model_class_from_config_row
+        File.open(::File.join(FIXTURES_ROOT, 'other_posts.yml')) do |fh|
+          assert_equal 'Post', fh.model_class
+        end
+      end
+
       private
       def tmp_yaml(name, contents)
         t = Tempfile.new name

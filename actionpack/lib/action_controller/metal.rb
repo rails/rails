@@ -135,16 +135,9 @@ module ActionController
     end
 
     def self.make_response!(request)
-      ActionDispatch::Response.new.tap do |res|
+      ActionDispatch::Response.create.tap do |res|
         res.request = request
       end
-    end
-
-    def self.build_with_env(env = {}) #:nodoc:
-      new.tap { |c|
-        c.set_request! ActionDispatch::Request.new(env)
-        c.set_response! make_response!(c.request)
-      }
     end
 
     # Delegates to the class' <tt>controller_name</tt>
@@ -194,6 +187,7 @@ module ActionController
       set_request!(request)
       set_response!(response)
       process(name)
+      request.commit_flash
       to_a
     end
 

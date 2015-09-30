@@ -314,11 +314,11 @@ Upgrading from Rails 4.0 to Rails 4.1
 
 ### CSRF protection from remote `<script>` tags
 
-Or, "whaaat my tests are failing!!!?"
+Or, "whaaat my tests are failing!!!?" or "my `<script>` widget is busted!!"
 
 Cross-site request forgery (CSRF) protection now covers GET requests with
-JavaScript responses, too. This prevents a third-party site from referencing
-your JavaScript URL and attempting to run it to extract sensitive data.
+JavaScript responses, too. This prevents a third-party site from remotely
+referencing your JavaScript with a `<script>` tag to extract sensitive data.
 
 This means that your functional and integration tests that use
 
@@ -334,8 +334,9 @@ xhr :get, :index, format: :js
 
 to explicitly test an `XmlHttpRequest`.
 
-If you really mean to load JavaScript from remote `<script>` tags, skip CSRF
-protection on that action.
+Note: Your own `<script>` tags are treated as cross-origin and blocked by
+default, too. If you really mean to load JavaScript from `<script>` tags,
+you must now explicitly skip CSRF protection on those actions.
 
 ### Spring
 
@@ -895,7 +896,7 @@ CatalogProduct < ActiveRecord::Base
 end
 ```
 
-* Note that the the prefix takes scopes into account as well, so relations between `Catalog::Category` and `Catalog::Product` or `Catalog::Category` and `CatalogProduct` need to be updated similarly.
+* Note that the prefix takes scopes into account as well, so relations between `Catalog::Category` and `Catalog::Product` or `Catalog::Category` and `CatalogProduct` need to be updated similarly.
 
 ### Active Resource
 

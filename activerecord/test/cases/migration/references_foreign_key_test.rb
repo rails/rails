@@ -32,6 +32,14 @@ module ActiveRecord
         assert_equal [], @connection.foreign_keys("testings")
       end
 
+      test "foreign keys can be created in one query" do
+        assert_queries(1) do
+          @connection.create_table :testings do |t|
+            t.references :testing_parent, foreign_key: true
+          end
+        end
+      end
+
       test "options hash can be passed" do
         @connection.change_table :testing_parents do |t|
           t.integer :other_id

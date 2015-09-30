@@ -449,6 +449,13 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal("Format with any!", email.parts[1].body.encoded)
   end
 
+  test 'explicit without specifying format with format.any' do
+    error = assert_raises(ArgumentError) do
+      BaseMailer.explicit_without_specifying_format_with_any.parts
+    end
+    assert_equal "You have to supply at least one format", error.message
+  end
+
   test "explicit multipart with format(Hash)" do
     email = BaseMailer.explicit_multipart_with_options(true)
     email.ready_to_send!

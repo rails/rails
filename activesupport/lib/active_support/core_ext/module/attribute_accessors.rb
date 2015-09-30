@@ -19,9 +19,9 @@ class Module
   # The attribute name must be a valid method name in Ruby.
   #
   #   module Foo
-  #     mattr_reader :"1_Badname "
+  #     mattr_reader :"1_Badname"
   #   end
-  #   # => NameError: invalid attribute name
+  #   # => NameError: invalid attribute name: 1_Badname
   #
   # If you want to opt out the creation on the instance reader method, pass
   # <tt>instance_reader: false</tt> or <tt>instance_accessor: false</tt>.

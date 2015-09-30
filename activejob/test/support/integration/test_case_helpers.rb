@@ -42,8 +42,12 @@ module TestCaseHelpers
       end
     end
 
-    def job_executed
-      Dummy::Application.root.join("tmp/#{@id}").exist?
+    def job_executed(id=@id)
+      Dummy::Application.root.join("tmp/#{id}").exist?
+    end
+
+    def job_executed_at(id=@id)
+      File.new(Dummy::Application.root.join("tmp/#{id}")).ctime
     end
 
     def job_output

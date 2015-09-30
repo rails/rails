@@ -1,5 +1,3 @@
-require 'active_support/core_ext/hash/keys'
-require 'active_support/core_ext/object/duplicable'
 require 'action_dispatch/http/parameter_filter'
 
 module ActionDispatch
@@ -25,7 +23,7 @@ module ActionDispatch
       NULL_PARAM_FILTER = ParameterFilter.new # :nodoc:
       NULL_ENV_FILTER   = ParameterFilter.new ENV_MATCH # :nodoc:
 
-      def initialize(env)
+      def initialize
         super
         @filtered_parameters = nil
         @filtered_env        = nil
@@ -50,13 +48,13 @@ module ActionDispatch
     protected
 
       def parameter_filter
-        parameter_filter_for get_header("action_dispatch.parameter_filter") {
+        parameter_filter_for fetch_header("action_dispatch.parameter_filter") {
           return NULL_PARAM_FILTER
         }
       end
 
       def env_filter
-        user_key = get_header("action_dispatch.parameter_filter") {
+        user_key = fetch_header("action_dispatch.parameter_filter") {
           return NULL_ENV_FILTER
         }
         parameter_filter_for(Array(user_key) + ENV_MATCH)

@@ -1,5 +1,5 @@
 require 'thread'
-require 'thread_safe'
+require 'concurrent'
 require 'monitor'
 
 module ActiveRecord
@@ -337,7 +337,7 @@ module ActiveRecord
         # that case +conn.owner+ attr should be consulted.
         # Access and modification of +@thread_cached_conns+ does not require
         # synchronization.
-        @thread_cached_conns = ThreadSafe::Cache.new(:initial_capacity => @size)
+        @thread_cached_conns = Concurrent::Map.new(:initial_capacity => @size)
 
         @connections         = []
         @automatic_reconnect = true
@@ -364,7 +364,7 @@ module ActiveRecord
 
       # Is there an open connection that is being used for the current thread?
       #
-      # This method only works for connections that have been abtained through
+      # This method only works for connections that have been obtained through
       # #connection or #with_connection methods, connections obtained through
       # #checkout will not be detected by #active_connection?
       def active_connection?
@@ -427,7 +427,7 @@ module ActiveRecord
       # The pool first tries to gain ownership of all connections, if unable to
       # do so within a timeout interval (default duration is
       # +spec.config[:checkout_timeout] * 2+ seconds), the pool is forcefully
-      # disconneted wihout any regard for other connection owning threads.
+      # disconnected without any regard for other connection owning threads.
       def disconnect!
         disconnect(false)
       end
@@ -587,7 +587,7 @@ module ActiveRecord
       end
 
       #--
-      # From the discussion on Github:
+      # From the discussion on GitHub:
       #  https://github.com/rails/rails/pull/14938#commitcomment-6601951
       # This hook-in method allows for easier monkey-patching fixes needed by
       # JRuby users that use Fibers.
@@ -824,11 +824,11 @@ module ActiveRecord
         # These caches are keyed by klass.name, NOT klass. Keying them by klass
         # alone would lead to memory leaks in development mode as all previous
         # instances of the class would stay in memory.
-        @owner_to_pool = ThreadSafe::Cache.new(:initial_capacity => 2) do |h,k|
-          h[k] = ThreadSafe::Cache.new(:initial_capacity => 2)
+        @owner_to_pool = Concurrent::Map.new(:initial_capacity => 2) do |h,k|
+          h[k] = Concurrent::Map.new(:initial_capacity => 2)
         end
-        @class_to_pool = ThreadSafe::Cache.new(:initial_capacity => 2) do |h,k|
-          h[k] = ThreadSafe::Cache.new
+        @class_to_pool = Concurrent::Map.new(:initial_capacity => 2) do |h,k|
+          h[k] = Concurrent::Map.new
         end
       end
 

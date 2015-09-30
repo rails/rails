@@ -28,9 +28,22 @@ module SharedGeneratorTests
 
   def assert_generates_with_bundler(options = {})
     generator([destination_root], options)
-    generator.expects(:bundle_command).with('install').once
-    generator.stubs(:bundle_command).with('exec spring binstub --all')
-    quietly { generator.invoke_all }
+
+    command_check = -> command do
+      @install_called ||= 0
+
+      case command
+      when 'install'
+        @install_called += 1
+        assert_equal 1, @install_called, "install expected to be called once, but was called #{@install_called} times"
+      when 'exec spring binstub --all'
+        # Called when running tests with spring, let through unscathed.
+      end
+    end
+
+    generator.stub :bundle_command, command_check do
+      quietly { generator.invoke_all }
+    end
   end
 
   def test_generation_runs_bundle_install
@@ -91,8 +104,14 @@ module SharedGeneratorTests
     template = %{ say "It works!" }
     template.instance_eval "def read; self; end" # Make the string respond to read
 
-    generator([destination_root], template: path).expects(:open).with(path, 'Accept' => 'application/x-thor-template').returns(template)
-    quietly { assert_match(/It works!/, capture(:stdout) { generator.invoke_all }) }
+    check_open = -> *args do
+      assert_equal [ path, 'Accept' => 'application/x-thor-template' ], args
+      template
+    end
+
+    generator([destination_root], template: path).stub(:open, check_open, template) do
+      quietly { assert_match(/It works!/, capture(:stdout) { generator.invoke_all }) }
+    end
   end
 
   def test_dev_option
@@ -107,18 +126,19 @@ module SharedGeneratorTests
   end
 
   def test_skip_gemfile
-    generator([destination_root], skip_gemfile: true).expects(:bundle_command).never
-    quietly { generator.invoke_all }
-    assert_no_file 'Gemfile'
+    assert_not_called(generator([destination_root], skip_gemfile: true), :bundle_command) do
+      quietly { generator.invoke_all }
+      assert_no_file 'Gemfile'
+    end
   end
 
   def test_skip_bundle
-    generator([destination_root], skip_bundle: true).expects(:bundle_command).never
-    quietly { generator.invoke_all }
-
-    # skip_bundle is only about running bundle install, ensure the Gemfile is still
-    # generated.
-    assert_file 'Gemfile'
+    assert_not_called(generator([destination_root], skip_bundle: true), :bundle_command) do
+      quietly { generator.invoke_all }
+      # skip_bundle is only about running bundle install, ensure the Gemfile is still
+      # generated.
+      assert_file 'Gemfile'
+    end
   end
 
   def test_skip_git

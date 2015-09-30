@@ -2,6 +2,7 @@ require 'rails/railtie'
 require 'rails/engine/railties'
 require 'active_support/core_ext/module/delegation'
 require 'pathname'
+require 'thread'
 
 module Rails
   # <tt>Rails::Engine</tt> allows you to wrap a specific Rails application or subset of
@@ -434,6 +435,7 @@ module Rails
       @env_config          = nil
       @helpers             = nil
       @routes              = nil
+      @app_build_lock      = Mutex.new
       super
     end
 
@@ -504,10 +506,13 @@ module Rails
 
     # Returns the underlying rack application for this engine.
     def app
-      @app ||= begin
-        config.middleware = config.middleware.merge_into(default_middleware_stack)
-        config.middleware.build(endpoint)
-      end
+      @app || @app_build_lock.synchronize {
+        @app ||= begin
+          stack = default_middleware_stack
+          config.middleware = build_middleware.merge_into(stack)
+          config.middleware.build(endpoint)
+        end
+      }
     end
 
     # Returns the endpoint for this engine. If none is registered,
@@ -688,6 +693,12 @@ module Rails
 
     def _all_load_paths #:nodoc:
       @_all_load_paths ||= (config.paths.load_paths + _all_autoload_paths).uniq
+    end
+
+    private
+
+    def build_middleware
+      config.middleware
     end
   end
 end

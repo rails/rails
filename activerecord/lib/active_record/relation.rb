@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 require "arel/collectors/bind"
 
 module ActiveRecord
@@ -418,7 +417,7 @@ module ActiveRecord
       end
     end
 
-    # Destroys the records matching +conditions+ by instantiating each
+    # Destroys the records by instantiating each
     # record and calling its +destroy+ method. Each object's callbacks are
     # executed (including <tt>:dependent</tt> association options). Returns the
     # collection of objects that were destroyed; each will be frozen, to
@@ -431,20 +430,15 @@ module ActiveRecord
     # rows quickly, without concern for their associations or callbacks, use
     # +delete_all+ instead.
     #
-    # ==== Parameters
-    #
-    # * +conditions+ - A string, array, or hash that specifies which records
-    #   to destroy. If omitted, all records are destroyed. See the
-    #   Conditions section in the introduction to ActiveRecord::Base for
-    #   more information.
-    #
     # ==== Examples
     #
-    #   Person.destroy_all("last_login < '2004-04-04'")
-    #   Person.destroy_all(status: "inactive")
     #   Person.where(age: 0..18).destroy_all
     def destroy_all(conditions = nil)
       if conditions
+        ActiveSupport::Deprecation.warn(<<-MESSAGE.squish)
+          Passing conditions to destroy_all is deprecated and will be removed in Rails 5.1.
+          To achieve the same use where(conditions).destroy_all
+        MESSAGE
         where(conditions).destroy_all
       else
         to_a.each(&:destroy).tap { reset }
@@ -478,15 +472,13 @@ module ActiveRecord
       end
     end
 
-    # Deletes the records matching +conditions+ without instantiating the records
+    # Deletes the records without instantiating the records
     # first, and hence not calling the +destroy+ method nor invoking callbacks. This
     # is a single SQL DELETE statement that goes straight to the database, much more
     # efficient than +destroy_all+. Be careful with relations though, in particular
     # <tt>:dependent</tt> rules defined on associations are not honored. Returns the
     # number of rows affected.
     #
-    #   Post.delete_all("person_id = 5 AND (category = 'Something' OR category = 'Else')")
-    #   Post.delete_all(["person_id = ? AND (category = ? OR category = ?)", 5, 'Something', 'Else'])
     #   Post.where(person_id: 5).where(category: ['Something', 'Else']).delete_all
     #
     # Both calls delete the affected posts all at once with a single DELETE statement.
@@ -512,6 +504,10 @@ module ActiveRecord
       end
 
       if conditions
+        ActiveSupport::Deprecation.warn(<<-MESSAGE.squish)
+          Passing conditions to delete_all is deprecated and will be removed in Rails 5.1.
+          To achieve the same use where(conditions).delete_all
+        MESSAGE
         where(conditions).delete_all
       else
         stmt = Arel::DeleteManager.new

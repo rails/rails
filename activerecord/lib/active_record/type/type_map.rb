@@ -1,12 +1,12 @@
-require 'thread_safe'
+require 'concurrent'
 
 module ActiveRecord
   module Type
     class TypeMap # :nodoc:
       def initialize
         @mapping = {}
-        @cache = ThreadSafe::Cache.new do |h, key|
-          h.fetch_or_store(key, ThreadSafe::Cache.new)
+        @cache = Concurrent::Map.new do |h, key|
+          h.fetch_or_store(key, Concurrent::Map.new)
         end
       end
 
@@ -57,7 +57,7 @@ module ActiveRecord
       end
 
       def default_value
-        @default_value ||= Value.new
+        @default_value ||= ActiveModel::Type::Value.new
       end
     end
   end

@@ -1,7 +1,7 @@
 module ActiveRecord
   module Type
-    class Serialized < DelegateClass(Type::Value) # :nodoc:
-      include Helpers::Mutable
+    class Serialized < DelegateClass(ActiveModel::Type::Value) # :nodoc:
+      include ActiveModel::Type::Helpers::Mutable
 
       attr_reader :subtype, :coder
 
@@ -39,6 +39,12 @@ module ActiveRecord
 
       def accessor
         ActiveRecord::Store::IndifferentHashAccessor
+      end
+
+      def assert_valid_value(value)
+        if coder.respond_to?(:assert_valid_value)
+          coder.assert_valid_value(value)
+        end
       end
 
       private

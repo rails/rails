@@ -299,30 +299,42 @@ class CacheHelperOutputBufferTest < ActionController::TestCase
   def test_output_buffer
     output_buffer = ActionView::OutputBuffer.new
     controller = MockController.new
-    cache_helper = Object.new
+    cache_helper = Class.new do
+      def self.controller; end;
+      def self.output_buffer; end;
+      def self.output_buffer=; end;
+    end
     cache_helper.extend(ActionView::Helpers::CacheHelper)
-    cache_helper.expects(:controller).returns(controller).at_least(0)
-    cache_helper.expects(:output_buffer).returns(output_buffer).at_least(0)
-    # if the output_buffer is changed, the new one should be html_safe and of the same type
-    cache_helper.expects(:output_buffer=).with(responds_with(:html_safe?, true)).with(instance_of(output_buffer.class)).at_least(0)
 
-    assert_nothing_raised do
-      cache_helper.send :fragment_for, 'Test fragment name', 'Test fragment', &Proc.new{ nil }
+    cache_helper.stub :controller, controller do
+      cache_helper.stub :output_buffer, output_buffer do
+        assert_called_with cache_helper, :output_buffer=, [output_buffer.class.new(output_buffer)] do
+          assert_nothing_raised do
+            cache_helper.send :fragment_for, 'Test fragment name', 'Test fragment', &Proc.new{ nil }
+          end
+        end
+      end
     end
   end
 
   def test_safe_buffer
     output_buffer = ActiveSupport::SafeBuffer.new
     controller = MockController.new
-    cache_helper = Object.new
+    cache_helper = Class.new do
+      def self.controller; end;
+      def self.output_buffer; end;
+      def self.output_buffer=; end;
+    end
     cache_helper.extend(ActionView::Helpers::CacheHelper)
-    cache_helper.expects(:controller).returns(controller).at_least(0)
-    cache_helper.expects(:output_buffer).returns(output_buffer).at_least(0)
-    # if the output_buffer is changed, the new one should be html_safe and of the same type
-    cache_helper.expects(:output_buffer=).with(responds_with(:html_safe?, true)).with(instance_of(output_buffer.class)).at_least(0)
 
-    assert_nothing_raised do
-      cache_helper.send :fragment_for, 'Test fragment name', 'Test fragment', &Proc.new{ nil }
+    cache_helper.stub :controller, controller do
+      cache_helper.stub :output_buffer, output_buffer do
+        assert_called_with cache_helper, :output_buffer=, [output_buffer.class.new(output_buffer)] do
+          assert_nothing_raised do
+            cache_helper.send :fragment_for, 'Test fragment name', 'Test fragment', &Proc.new{ nil }
+          end
+        end
+      end
     end
   end
 end

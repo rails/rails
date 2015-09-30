@@ -1,3 +1,12 @@
+*   Add a `hidden_field` on the `collection_radio_buttons` to avoid raising a error
+    when the only input on the form is the `collection_radio_buttons`.
+
+    *Mauro George*
+
+*   `url_for` does not modify its arguments when generating polymorphic URLs.
+
+    *Bernerd Schaefer*
+
 *   `number_to_currency` and `number_with_delimiter` now accept custom `delimiter_pattern` option 
      to handle placement of delimiter, to support currency formats like INR 
      

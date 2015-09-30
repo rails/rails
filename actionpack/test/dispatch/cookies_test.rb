@@ -653,6 +653,15 @@ class CookiesTest < ActionController::TestCase
     end
   end
 
+  def test_cookie_jar_mutated_by_request_persists_on_future_requests
+    get :authenticate
+    cookie_jar = @request.cookie_jar
+    cookie_jar.signed[:user_id] = 123
+    assert_equal ["user_name", "user_id"], @request.cookie_jar.instance_variable_get(:@cookies).keys
+    get :get_signed_cookie
+    assert_equal ["user_name", "user_id"], @request.cookie_jar.instance_variable_get(:@cookies).keys
+  end
+
   def test_raises_argument_error_if_missing_secret
     assert_raise(ArgumentError, nil.inspect) {
       @request.env["action_dispatch.key_generator"] = ActiveSupport::LegacyKeyGenerator.new(nil)

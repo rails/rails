@@ -134,7 +134,7 @@ module ActiveRecord
         version = ENV["VERSION"] ? ENV["VERSION"].to_i : nil
         scope   = ENV['SCOPE']
         verbose_was, Migration.verbose = Migration.verbose, verbose
-        Migrator.migrate(Migrator.migrations_paths, version) do |migration|
+        Migrator.migrate(migrations_paths, version) do |migration|
           scope.blank? || scope == migration.scope
         end
       ensure
@@ -218,12 +218,6 @@ module ActiveRecord
           File.join(db_dir, "schema.rb")
         when :sql
           File.join(db_dir, "structure.sql")
-        end
-      end
-
-      def load_schema_current_if_exists(format = ActiveRecord::Base.schema_format, file = nil, environment = env)
-        if File.exist?(file || schema_file(format))
-          load_schema_current(format, file, environment)
         end
       end
 

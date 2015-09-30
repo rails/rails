@@ -4,7 +4,7 @@ require 'rack/content_length'
 
 class ResponseTest < ActiveSupport::TestCase
   def setup
-    @response = ActionDispatch::Response.new
+    @response = ActionDispatch::Response.create
   end
 
   def test_can_wait_until_commit
@@ -49,6 +49,11 @@ class ResponseTest < ActiveSupport::TestCase
     assert_equal 'utf-8', @response.charset
   end
 
+  def test_setting_content_type_header_impacts_content_type_method
+    @response.headers['Content-Type'] = "application/aaron"
+    assert_equal 'application/aaron', @response.content_type
+  end
+
   test "simple output" do
     @response.body = "Hello, World!"
 
@@ -65,6 +70,13 @@ class ResponseTest < ActiveSupport::TestCase
 
   test "status handled properly in initialize" do
     assert_equal 200, ActionDispatch::Response.new('200 OK').status
+  end
+
+  def test_only_set_charset_still_defaults_to_text_html
+    response = ActionDispatch::Response.new
+    response.charset = "utf-16"
+    _,headers,_ = response.to_a
+    assert_equal "text/html; charset=utf-16", headers['Content-Type']
   end
 
   test "utf8 output" do
@@ -137,12 +149,19 @@ class ResponseTest < ActiveSupport::TestCase
     status, headers, body = @response.to_a
     assert_equal "user_name=david; path=/", headers["Set-Cookie"]
     assert_equal({"user_name" => "david"}, @response.cookies)
+  end
 
+  test "multiple cookies" do
+    @response.set_cookie("user_name", :value => "david", :path => "/")
     @response.set_cookie("login", :value => "foo&bar", :path => "/", :expires => Time.utc(2005, 10, 10,5))
     status, headers, body = @response.to_a
     assert_equal "user_name=david; path=/\nlogin=foo%26bar; path=/; expires=Mon, 10 Oct 2005 05:00:00 -0000", headers["Set-Cookie"]
     assert_equal({"login" => "foo&bar", "user_name" => "david"}, @response.cookies)
+  end
 
+  test "delete cookies" do
+    @response.set_cookie("user_name", :value => "david", :path => "/")
+    @response.set_cookie("login", :value => "foo&bar", :path => "/", :expires => Time.utc(2005, 10, 10,5))
     @response.delete_cookie("login")
     status, headers, body = @response.to_a
     assert_equal({"user_name" => "david", "login" => nil}, @response.cookies)
@@ -166,13 +185,13 @@ class ResponseTest < ActiveSupport::TestCase
   test "read charset and content type" do
     resp = ActionDispatch::Response.new.tap { |response|
       response.charset = 'utf-16'
-      response.content_type = Mime::XML
+      response.content_type = Mime::Type[:XML]
       response.body = 'Hello'
     }
     resp.to_a
 
     assert_equal('utf-16', resp.charset)
-    assert_equal(Mime::XML, resp.content_type)
+    assert_equal(Mime::Type[:XML], resp.content_type)
 
     assert_equal('application/xml; charset=utf-16', resp.headers['Content-Type'])
   end
@@ -198,7 +217,7 @@ class ResponseTest < ActiveSupport::TestCase
         'X-Content-Type-Options' => 'nosniff',
         'X-XSS-Protection' => '1;'
       }
-      resp = ActionDispatch::Response.new.tap { |response|
+      resp = ActionDispatch::Response.create.tap { |response|
         response.body = 'Hello'
       }
       resp.to_a
@@ -217,7 +236,7 @@ class ResponseTest < ActiveSupport::TestCase
       ActionDispatch::Response.default_headers = {
         'X-XX-XXXX' => 'Here is my phone number'
       }
-      resp = ActionDispatch::Response.new.tap { |response|
+      resp = ActionDispatch::Response.create.tap { |response|
         response.body = 'Hello'
       }
       resp.to_a
@@ -305,7 +324,7 @@ class ResponseIntegrationTest < ActionDispatch::IntegrationTest
     @app = lambda { |env|
       ActionDispatch::Response.new.tap { |resp|
         resp.charset = 'utf-16'
-        resp.content_type = Mime::XML
+        resp.content_type = Mime::Type[:XML]
         resp.body = 'Hello'
       }.to_a
     }
@@ -314,7 +333,7 @@ class ResponseIntegrationTest < ActionDispatch::IntegrationTest
     assert_response :success
 
     assert_equal('utf-16', @response.charset)
-    assert_equal(Mime::XML, @response.content_type)
+    assert_equal(Mime::Type[:XML], @response.content_type)
 
     assert_equal('application/xml; charset=utf-16', @response.headers['Content-Type'])
   end
@@ -330,7 +349,7 @@ class ResponseIntegrationTest < ActionDispatch::IntegrationTest
     assert_response :success
 
     assert_equal('utf-16', @response.charset)
-    assert_equal(Mime::XML, @response.content_type)
+    assert_equal(Mime::Type[:XML], @response.content_type)
 
     assert_equal('application/xml; charset=utf-16', @response.headers['Content-Type'])
   end

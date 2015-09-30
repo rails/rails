@@ -14,6 +14,8 @@ module Minitest
     opts.separator ""
     opts.separator "    bin/rails test test/controllers test/integration/login_test.rb"
     opts.separator ""
+    opts.separator "By default test failures and errors are reported inline during a run."
+    opts.separator ""
 
     opts.separator "Rails options:"
     opts.on("-e", "--environment ENV",
@@ -26,7 +28,24 @@ module Minitest
       options[:full_backtrace] = true
     end
 
+    opts.on("-d", "--defer-output",
+            "Output test failures and errors after the test run") do
+      options[:output_inline] = false
+    end
+
+    opts.on("-f", "--fail-fast",
+            "Abort test run on first failure") do
+      options[:fail_fast] = true
+    end
+
     options[:patterns] = opts.order!
+  end
+
+  # Running several Rake tasks in a single command would trip up the runner,
+  # as the patterns would also contain the other Rake tasks.
+  def self.rake_run(patterns) # :nodoc:
+    @rake_patterns = patterns
+    run
   end
 
   def self.plugin_rails_init(options)
@@ -34,7 +53,10 @@ module Minitest
 
     ENV["RAILS_ENV"] = options[:environment] || "test"
 
-    ::Rails::TestRequirer.require_files options[:patterns] unless run_with_autorun
+    unless run_with_autorun
+      patterns = defined?(@rake_patterns) ? @rake_patterns : options[:patterns]
+      ::Rails::TestRequirer.require_files(patterns)
+    end
 
     unless options[:full_backtrace] || ENV["BACKTRACE"]
       # Plugin can run without Rails loaded, check before filtering.

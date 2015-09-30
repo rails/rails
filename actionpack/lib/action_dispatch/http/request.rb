@@ -13,12 +13,14 @@ require 'action_dispatch/http/url'
 require 'active_support/core_ext/array/conversions'
 
 module ActionDispatch
-  class Request < Rack::Request
+  class Request
+    include Rack::Request::Helpers
     include ActionDispatch::Http::Cache::Request
     include ActionDispatch::Http::MimeNegotiation
     include ActionDispatch::Http::Parameters
     include ActionDispatch::Http::FilterParameters
     include ActionDispatch::Http::URL
+    include Rack::Request::Env
 
     autoload :Session, 'action_dispatch/request/session'
     autoload :Utils,   'action_dispatch/request/utils'
@@ -156,6 +158,10 @@ module ActionDispatch
 
     def controller_instance=(controller) # :nodoc:
       set_header('action_controller.instance'.freeze, controller)
+    end
+
+    def http_auth_salt
+      get_header "action_dispatch.http_auth_salt"
     end
 
     def show_exceptions? # :nodoc:
@@ -318,7 +324,7 @@ module ActionDispatch
       else
         self.session = {}
       end
-      set_header('action_dispatch.request.flash_hash', nil)
+      self.flash = nil
     end
 
     def session=(session) #:nodoc:
@@ -331,7 +337,7 @@ module ActionDispatch
 
     # Override Rack's GET method to support indifferent access
     def GET
-      get_header("action_dispatch.request.query_parameters") do |k|
+      fetch_header("action_dispatch.request.query_parameters") do |k|
         set_header k, Request::Utils.normalize_encode_params(super || {})
       end
     rescue Rack::Utils::ParameterTypeError, Rack::Utils::InvalidParameterError => e
@@ -341,9 +347,15 @@ module ActionDispatch
 
     # Override Rack's POST method to support indifferent access
     def POST
-      get_header("action_dispatch.request.request_parameters") do
-        self.request_parameters = Request::Utils.normalize_encode_params(super || {})
+      fetch_header("action_dispatch.request.request_parameters") do
+        pr = parse_formatted_parameters(params_parsers) do |params|
+          super || {}
+        end
+        self.request_parameters = Request::Utils.normalize_encode_params(pr)
       end
+    rescue ParamsParser::ParseError # one of the parse strategies blew up
+      self.request_parameters = Request::Utils.normalize_encode_params(super || {})
+      raise
     rescue Rack::Utils::ParameterTypeError, Rack::Utils::InvalidParameterError => e
       raise ActionController::BadRequest.new(:request, e)
     end
@@ -358,7 +370,7 @@ module ActionDispatch
       get_header('REDIRECT_X_HTTP_AUTHORIZATION')
     end
 
-    # True if the request came from localhost, 127.0.0.1.
+    # True if the request came from localhost, 127.0.0.1, or ::1.
     def local?
       LOCALHOST =~ remote_addr && LOCALHOST =~ remote_ip
     end
@@ -370,6 +382,9 @@ module ActionDispatch
 
     def logger
       get_header("action_dispatch.logger".freeze)
+    end
+
+    def commit_flash
     end
 
     private

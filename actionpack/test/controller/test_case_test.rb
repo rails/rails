@@ -627,6 +627,31 @@ XML
     assert_equal "application/json", parsed_env["CONTENT_TYPE"]
   end
 
+  def test_mutating_content_type_headers_for_plain_text_files_sets_the_header
+    @request.headers['Content-Type'] = 'text/plain'
+    post :render_body, params: { name: 'foo.txt' }
+
+    assert_equal 'text/plain', @request.headers['Content-type']
+    assert_equal 'foo.txt', @request.request_parameters[:name]
+    assert_equal 'render_body', @request.path_parameters[:action]
+  end
+
+  def test_mutating_content_type_headers_for_html_files_sets_the_header
+    @request.headers['Content-Type'] = 'text/html'
+    post :render_body, params: { name: 'foo.html' }
+
+    assert_equal 'text/html', @request.headers['Content-type']
+    assert_equal 'foo.html', @request.request_parameters[:name]
+    assert_equal 'render_body', @request.path_parameters[:action]
+  end
+
+  def test_mutating_content_type_headers_for_non_registered_mime_type_raises_an_error
+    assert_raises(RuntimeError) do
+      @request.headers['Content-Type'] = 'type/fake'
+      post :render_body, params: { name: 'foo.fake' }
+    end
+  end
+
   def test_id_converted_to_string
     get :test_params, params: {
       id: 20, foo: Object.new
@@ -949,6 +974,11 @@ class ResponseDefaultHeadersTest < ActionController::TestCase
       headers.delete params[:header]
       head :ok, 'C' => '3'
     end
+
+    # Render a head response, but don't touch default headers
+    def leave_alone
+      head :ok
+    end
   end
 
   def before_setup
@@ -974,9 +1004,13 @@ class ResponseDefaultHeadersTest < ActionController::TestCase
   end
 
   test "response contains default headers" do
-    # Response headers start out with the defaults
-    assert_equal @defaults, response.headers
+    get :leave_alone
 
+    # Response headers start out with the defaults
+    assert_equal @defaults.merge('Content-Type' => 'text/html'), response.headers
+  end
+
+  test "response deletes a default header" do
     get :remove_header, params: { header: 'A' }
     assert_response :ok
 

@@ -1,6 +1,6 @@
 require 'set'
 require 'thread'
-require 'thread_safe'
+require 'concurrent'
 require 'pathname'
 require 'active_support/core_ext/module/aliasing'
 require 'active_support/core_ext/module/attribute_accessors'
@@ -585,7 +585,7 @@ module ActiveSupport #:nodoc:
 
     class ClassCache
       def initialize
-        @store = ThreadSafe::Cache.new
+        @store = Concurrent::Map.new
       end
 
       def empty?

@@ -36,6 +36,21 @@ module ActiveRecord
       assert !@connection.table_exists?(nil)
     end
 
+    def test_data_sources
+      data_sources = @connection.data_sources
+      assert data_sources.include?("accounts")
+      assert data_sources.include?("authors")
+      assert data_sources.include?("tasks")
+      assert data_sources.include?("topics")
+    end
+
+    def test_data_source_exists?
+      assert @connection.data_source_exists?("accounts")
+      assert @connection.data_source_exists?(:accounts)
+      assert_not @connection.data_source_exists?("nonexistingtable")
+      assert_not @connection.data_source_exists?(nil)
+    end
+
     def test_indexes
       idx_name = "accounts_idx"
 
@@ -63,7 +78,7 @@ module ActiveRecord
       end
     end
 
-    if current_adapter?(:MysqlAdapter)
+    if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
       def test_charset
         assert_not_nil @connection.charset
         assert_not_equal 'character_set_database', @connection.charset

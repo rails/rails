@@ -785,6 +785,13 @@ class SessionsController < ActionController::Base
     @session = Session.new(params[:id])
     render inline: "<%= url_for([@workshop, @session]) %>\n<%= link_to('Session', [@workshop, @session]) %>"
   end
+
+  def edit
+    @workshop = Workshop.new(params[:workshop_id])
+    @session = Session.new(params[:id])
+    @url = [@workshop, @session, format: params[:format]]
+    render inline: "<%= url_for(@url) %>\n<%= link_to('Session', @url) %>"
+  end
 end
 
 class PolymorphicControllerTest < ActionController::TestCase
@@ -814,5 +821,12 @@ class PolymorphicControllerTest < ActionController::TestCase
 
     get :show, params: { workshop_id: 1, id: 1 }
     assert_equal %{/workshops/1/sessions/1\n<a href="/workshops/1/sessions/1">Session</a>}, @response.body
+  end
+
+  def test_existing_nested_resource_with_params
+    @controller = SessionsController.new
+
+    get :edit, params: { workshop_id: 1, id: 1, format: "json"  }
+    assert_equal %{/workshops/1/sessions/1.json\n<a href="/workshops/1/sessions/1.json">Session</a>}, @response.body
   end
 end

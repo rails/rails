@@ -24,12 +24,12 @@ module ActiveRecord
     end
 
     def build_from_hash(attributes)
-      attributes = convert_dot_notation_to_hash(attributes.stringify_keys)
+      attributes = convert_dot_notation_to_hash(attributes)
       expand_from_hash(attributes)
     end
 
     def create_binds(attributes)
-      attributes = convert_dot_notation_to_hash(attributes.stringify_keys)
+      attributes = convert_dot_notation_to_hash(attributes)
       create_binds_for_hash(attributes)
     end
 
@@ -67,7 +67,7 @@ module ActiveRecord
     #         Arel::Nodes::And.new([range.start, range.end])
     #       )
     #     end
-    #     ActiveRecord::PredicateBuilder.register_handler(MyCustomDateRange, handler)
+    #     ActiveRecord::PredicateBuilder.new("users").register_handler(MyCustomDateRange, handler)
     def register_handler(klass, handler)
       @handlers.unshift([klass, handler])
     end

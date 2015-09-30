@@ -14,7 +14,7 @@ module ActiveSupport
   #   Time.zone = 'Eastern Time (US & Canada)'        # => 'Eastern Time (US & Canada)'
   #   Time.zone.local(2007, 2, 10, 15, 30, 45)        # => Sat, 10 Feb 2007 15:30:45 EST -05:00
   #   Time.zone.parse('2007-02-10 15:30:45')          # => Sat, 10 Feb 2007 15:30:45 EST -05:00
-  #   Time.zone.at(1170361845)                        # => Sat, 10 Feb 2007 15:30:45 EST -05:00
+  #   Time.zone.at(1171139445)                        # => Sat, 10 Feb 2007 15:30:45 EST -05:00
   #   Time.zone.now                                   # => Sun, 18 May 2008 13:07:55 EDT -04:00
   #   Time.utc(2007, 2, 10, 20, 30, 45).in_time_zone  # => Sat, 10 Feb 2007 15:30:45 EST -05:00
   #
@@ -132,7 +132,7 @@ module ActiveSupport
 
     # Returns a string of the object's date, time, zone and offset from UTC.
     #
-    #   Time.zone.now.httpdate  # => "Thu, 04 Dec 2014 11:00:25 EST -05:00"
+    #   Time.zone.now.inspect # => "Thu, 04 Dec 2014 11:00:25 EST -05:00"
     def inspect
       "#{time.strftime('%a, %d %b %Y %H:%M:%S')} #{zone} #{formatted_offset}"
     end
@@ -387,6 +387,11 @@ module ActiveSupport
       klass == ::Time || super
     end
     alias_method :kind_of?, :is_a?
+
+    # An instance of ActiveSupport::TimeWithZone is never blank
+    def blank?
+      false
+    end
 
     def freeze
       period; utc; time # preload instance variables before freezing

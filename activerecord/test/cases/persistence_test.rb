@@ -126,7 +126,7 @@ class PersistenceTest < ActiveRecord::TestCase
     assert ! topics_by_mary.empty?
 
     assert_difference('Topic.count', -topics_by_mary.size) do
-      destroyed = Topic.destroy_all(conditions).sort_by(&:id)
+      destroyed = Topic.where(conditions).destroy_all.sort_by(&:id)
       assert_equal topics_by_mary, destroyed
       assert destroyed.all?(&:frozen?), "destroyed topics should be frozen"
     end

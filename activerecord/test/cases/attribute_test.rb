@@ -4,7 +4,6 @@ module ActiveRecord
   class AttributeTest < ActiveRecord::TestCase
     setup do
       @type = Minitest::Mock.new
-      @type.expect(:==, false, [false])
     end
 
     teardown do
@@ -108,6 +107,9 @@ module ActiveRecord
       def deserialize(value)
         value + " from database"
       end
+
+      def assert_valid_value(*)
+      end
     end
 
     test "with_value_from_user returns a new attribute with the value from the user" do
@@ -186,6 +188,22 @@ module ActiveRecord
       attribute = Attribute.from_database(:foo, "bar", type_which_raises_from_all_methods)
 
       assert_not attribute.changed_in_place_from?("bar")
+    end
+
+    test "with_value_from_user validates the value" do
+      type = Type::Value.new
+      type.define_singleton_method(:assert_valid_value) do |value|
+        if value == 1
+          raise ArgumentError
+        end
+      end
+
+      attribute = Attribute.from_database(:foo, 1, type)
+      assert_equal 1, attribute.value
+      assert_equal 2, attribute.with_value_from_user(2).value
+      assert_raises ArgumentError do
+        attribute.with_value_from_user(1)
+      end
     end
   end
 end

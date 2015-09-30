@@ -242,7 +242,7 @@ end
 
 >> person = Person.new
 >> person.valid?
->> person.errors.details[:name] #=> [{error: :blank}]
+>> person.errors.details[:name] # => [{error: :blank}]
 ```
 
 Using `details` with custom validators is covered in the [Working with
@@ -273,9 +273,13 @@ available helpers.
 This method validates that a checkbox on the user interface was checked when a
 form was submitted. This is typically used when the user needs to agree to your
 application's terms of service, confirm that some text is read, or any similar
-concept. This validation is very specific to web applications and this
-'acceptance' does not need to be recorded anywhere in your database (if you
-don't have a field for it, the helper will just create a virtual attribute).
+concept.
+
+This validation is very specific to web applications and this
+'acceptance' does not need to be recorded anywhere in your database. If you
+don't have a field for it, the helper will just create a virtual attribute. If
+the field does exist in your database, the `accept` option must be set to
+`true` or else the validation will not run.
 
 ```ruby
 class Person < ActiveRecord::Base
@@ -345,6 +349,16 @@ confirmation, make sure to add a presence check for the confirmation attribute
 class Person < ActiveRecord::Base
   validates :email, confirmation: true
   validates :email_confirmation, presence: true
+end
+```
+
+There is also a `:case_sensitive` option that you can use to define whether the
+confirmation constraint will be case sensitive or not. This option defaults to
+true.
+
+```ruby
+class Person < ActiveRecord::Base
+  validates :email, confirmation: { case_sensitive: false }
 end
 ```
 
@@ -626,7 +640,7 @@ class Holiday < ActiveRecord::Base
     message: "should happen once per year" }
 end
 ```
-Should you wish to create a database constraint to prevent possible violations of a uniqueness validation using the `:scope` option, you must create a unique index on both columns in your database. See [the MySQL manual](http://dev.mysql.com/doc/refman/5.6/en/multiple-column-indexes.html) for more details about multiple column indexes or [the PostgreSQL manual](http://www.postgresql.org/docs/current/static/ddl-constraints.html) for examples of unique constraints that refer to a group of columns.
+Should you wish to create a database constraint to prevent possible violations of a uniqueness validation using the `:scope` option, you must create a unique index on both columns in your database. See [the MySQL manual](http://dev.mysql.com/doc/refman/5.7/en/multiple-column-indexes.html) for more details about multiple column indexes or [the PostgreSQL manual](http://www.postgresql.org/docs/current/static/ddl-constraints.html) for examples of unique constraints that refer to a group of columns.
 
 There is also a `:case_sensitive` option that you can use to define whether the
 uniqueness constraint will be case sensitive or not. This option defaults to

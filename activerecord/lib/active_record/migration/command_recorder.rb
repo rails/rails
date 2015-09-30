@@ -5,10 +5,22 @@ module ActiveRecord
     # knows how to invert the following commands:
     #
     # * add_column
+    # * add_foreign_key
     # * add_index
+    # * add_reference
     # * add_timestamps
-    # * create_table
+    # * change_column_default (must supply a :from and :to option)
+    # * change_column_null
     # * create_join_table
+    # * create_table
+    # * disable_extension
+    # * drop_join_table
+    # * drop_table (must supply a block)
+    # * enable_extension
+    # * remove_column (must supply a type)
+    # * remove_foreign_key (must supply a second table)
+    # * remove_index
+    # * remove_reference
     # * remove_timestamps
     # * rename_column
     # * rename_index
@@ -17,7 +29,7 @@ module ActiveRecord
       ReversibleAndIrreversibleMethods = [:create_table, :create_join_table, :rename_table, :add_column, :remove_column,
         :rename_index, :rename_column, :add_index, :remove_index, :add_timestamps, :remove_timestamps,
         :change_column_default, :add_reference, :remove_reference, :transaction,
-        :drop_join_table, :drop_table, :execute_block, :enable_extension,
+        :drop_join_table, :drop_table, :execute_block, :enable_extension, :disable_extension,
         :change_column, :execute, :remove_columns, :change_column_null,
         :add_foreign_key, :remove_foreign_key
       ]
@@ -48,7 +60,7 @@ module ActiveRecord
         @reverting = !@reverting
       end
 
-      # record +command+. +command+ should be a method name and arguments.
+      # Record +command+. +command+ should be a method name and arguments.
       # For example:
       #
       #   recorder.record(:method_name, [:arg1, :arg2])
@@ -69,7 +81,12 @@ module ActiveRecord
       # invert the +command+.
       def inverse_of(command, args, &block)
         method = :"invert_#{command}"
-        raise IrreversibleMigration unless respond_to?(method, true)
+        raise IrreversibleMigration, <<-MSG.strip_heredoc unless respond_to?(method, true)
+          This migration uses #{command}, which is not automatically reversible.
+          To make the migration reversible you can either:
+          1. Define #up and #down methods in place of the #change method.
+          2. Use the #reversible method to define reversible behavior.
+        MSG
         send(method, args, &block)
       end
 
