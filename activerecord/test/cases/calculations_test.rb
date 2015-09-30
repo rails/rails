@@ -102,6 +102,25 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 60,   c[2]
   end
 
+  def test_should_generate_valid_sql_with_joins_and_group
+    assert_nothing_raised ActiveRecord::StatementInvalid do
+      AuditLog.joins(:developer).group(:id).count
+    end
+  end
+
+  def test_should_calculate_against_given_relation
+    developer = Developer.create!(name: "developer")
+    developer.audit_logs.create!(message: "first log")
+    developer.audit_logs.create!(message: "second log")
+
+    c = developer.audit_logs.joins(:developer).group(:id).count
+
+    assert_equal developer.audit_logs.count, c.size
+    developer.audit_logs.each do |log|
+      assert_equal 1, c[log.id]
+    end
+  end
+
   def test_should_order_by_grouped_field
     c = Account.group(:firm_id).order("firm_id").sum(:credit_limit)
     assert_equal [1, 2, 6, 9], c.keys.compact
