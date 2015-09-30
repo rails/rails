@@ -1,3 +1,16 @@
+*   Allow fixtures files to set the model class in the YAML file itself.
+
+    To load the fixtures file `accounts.yml` as the `User` model, use:
+
+          _fixture:
+            model_class: User
+          david:
+            name: David
+
+    Fixes #9516.
+
+    *Roque Pinel*
+
 *   Don't require a database connection to load a class which uses acceptance
     validations.
 
