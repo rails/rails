@@ -357,6 +357,3 @@ DEPENDENCIES
   tzinfo-data
   uglifier (>= 1.3.0)
   w3c_validators
-
-BUNDLED WITH
-   1.10.6
