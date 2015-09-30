@@ -99,9 +99,9 @@ GIT
 
 GIT
   remote: git://github.com/ruby-concurrency/concurrent-ruby.git
-  revision: c0e52022e5388ed984935bbd59f281c501071760
+  revision: 10ceb96c146d2937b66e7a444445e5ab9edbeb7c
   specs:
-    concurrent-ruby (1.0.0.pre2)
+    concurrent-ruby (1.0.0.pre3)
 
 PATH
   remote: .
@@ -136,7 +136,7 @@ PATH
       activesupport (= 5.0.0.alpha)
       arel (= 7.0.0.alpha)
     activesupport (5.0.0.alpha)
-      concurrent-ruby (~> 1.0.0.pre2, < 2.0.0)
+      concurrent-ruby (~> 1.0.0.pre3, < 2.0.0)
       i18n (~> 0.7)
       json (~> 1.7, >= 1.7.7)
       method_source
@@ -314,7 +314,7 @@ DEPENDENCIES
   benchmark-ips
   byebug
   coffee-rails (~> 4.1.0)
-  concurrent-ruby (~> 1.0.0.pre2)!
+  concurrent-ruby (~> 1.0.0.pre3)!
   dalli (>= 2.2.1)
   delayed_job
   delayed_job_active_record

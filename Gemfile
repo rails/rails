@@ -7,7 +7,7 @@ gem 'rake', '>= 10.3'
 
 # Active Support depends on a prerelease concurrent-ruby 1.0.0, so track
 # latest master as it approaches release.
-gem 'concurrent-ruby', '~> 1.0.0.pre2', github: 'ruby-concurrency/concurrent-ruby'
+gem 'concurrent-ruby', '~> 1.0.0.pre3', github: 'ruby-concurrency/concurrent-ruby'
 
 # Active Job depends on the URI::GID::MissingModelIDError, which isn't released yet.
 gem 'globalid', github: 'rails/globalid', branch: 'master'
