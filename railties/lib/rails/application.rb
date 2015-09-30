@@ -156,15 +156,6 @@ module Rails
       self
     end
 
-    # Implements call according to the Rack API. It simply
-    # dispatches the request to the underlying middleware stack.
-    def call(env)
-      req = ActionDispatch::Request.new env
-      env["ORIGINAL_FULLPATH"] = req.fullpath
-      env["ORIGINAL_SCRIPT_NAME"] = req.script_name
-      super(env)
-    end
-
     # Reload application routes regardless if they changed or not.
     def reload_routes!
       routes_reloader.reload!
@@ -516,6 +507,13 @@ module Rails
     end
 
     private
+
+    def build_request(env)
+      req = super
+      env["ORIGINAL_FULLPATH"] = req.fullpath
+      env["ORIGINAL_SCRIPT_NAME"] = req.script_name
+      req
+    end
 
     def build_middleware
       config.app_middleware + super

@@ -523,11 +523,8 @@ module Rails
 
     # Define the Rack API for this engine.
     def call(env)
-      env.merge!(env_config)
-      req = ActionDispatch::Request.new env
-      req.routes = routes
-      req.engine_script_name = req.script_name
-      app.call(env)
+      req = build_request env
+      app.call req.env
     end
 
     # Defines additional Rack env configuration that is added on each call.
@@ -696,6 +693,14 @@ module Rails
     end
 
     private
+
+    def build_request(env)
+      env.merge!(env_config)
+      req = ActionDispatch::Request.new env
+      req.routes = routes
+      req.engine_script_name = req.script_name
+      req
+    end
 
     def build_middleware
       config.middleware
