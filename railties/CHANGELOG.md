@@ -296,10 +296,11 @@
 
     Newly generated Rails apps have a new initializer called
     `callback_terminator.rb` which sets the value of the configuration option
-    `config.active_support.halt_callback_chains_on_return_false` to `false`.
+    `ActiveSupport.halt_callback_chains_on_return_false` to `false`.
 
-    As a result, new Rails apps do not halt callback chains when a callback
-    returns `false`; only when they are explicitly halted with `throw(:abort)`.
+    As a result, new Rails apps do not halt Active Record and Active Model
+    callback chains when a callback returns `false`; only when they are
+    explicitly halted with `throw(:abort)`.
 
     The terminator is *not* added when running `rake rails:update`, so returning
     `false` will still work on old apps ported to Rails 5, displaying a

@@ -119,10 +119,10 @@
 
     The preferred method to halt a callback chain from now on is to explicitly
     `throw(:abort)`.
-    In the past, returning `false` in an ActiveModel or ActiveModel::Validations
-    `before_` callback had the side effect of halting the callback chain.
+    In the past, returning `false` in an Active Model `before_` callback had
+    the side effect of halting the callback chain.
     This is not recommended anymore and, depending on the value of the
-    `config.active_support.halt_callback_chains_on_return_false` option, will
+    `ActiveSupport.halt_callback_chains_on_return_false` option, will
     either not work at all or display a deprecation warning.
 
 

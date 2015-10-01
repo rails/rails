@@ -291,17 +291,14 @@
     In the past, callbacks could only be halted by explicitly providing a
     terminator and by having a callback match the conditions of the terminator.
 
-*   Add `Callbacks::CallbackChain.halt_and_display_warning_on_return_false`
+*   Add `ActiveSupport.halt_callback_chains_on_return_false`
 
-    Setting `Callbacks::CallbackChain.halt_and_display_warning_on_return_false`
+    Setting `ActiveSupport.halt_callback_chains_on_return_false`
     to `true` will let an app support the deprecated way of halting Active Record,
-    Active Model and Active Model validations callback chains by returning `false`.
+    and Active Model callback chains by returning `false`.
 
     Setting the value to `false` will tell the app to ignore any `false` value
     returned by those callbacks, and only halt the chain upon `throw(:abort)`.
-
-    The value can also be set with the Rails configuration option
-    `config.active_support.halt_callback_chains_on_return_false`.
 
     When the configuration option is missing, its value is `true`, so older apps
     ported to Rails 5.0 will not break (but display a deprecation warning).

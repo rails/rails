@@ -4,6 +4,7 @@ require 'active_support/core_ext/array/extract_options'
 require 'active_support/core_ext/class/attribute'
 require 'active_support/core_ext/kernel/reporting'
 require 'active_support/core_ext/kernel/singleton_class'
+require 'active_support/core_ext/module/attribute_accessors'
 require 'active_support/core_ext/string/filters'
 require 'active_support/deprecation'
 require 'thread'
@@ -65,6 +66,12 @@ module ActiveSupport
     end
 
     CALLBACK_FILTER_TYPES = [:before, :after, :around]
+
+    # If true, Active Record and Active Model callbacks returning +false+ will
+    # halt the entire callback chain and display a deprecation message.
+    # If false, callback chains will only be halted by calling +throw :abort+.
+    # Defaults to +true+.
+    mattr_accessor(:halt_and_display_warning_on_return_false) { true }
 
     # Runs the callbacks for the given event.
     #
@@ -450,12 +457,6 @@ module ActiveSupport
 
       attr_reader :name, :config
 
-      # If true, any callback returning +false+ will halt the entire callback
-      # chain and display a deprecation message. If false, callback chains will
-      # only be halted by calling +throw :abort+. Defaults to +true+.
-      class_attribute :halt_and_display_warning_on_return_false
-      self.halt_and_display_warning_on_return_false = true
-
       def initialize(name, config)
         @name = name
         @config = {
@@ -760,7 +761,7 @@ module ActiveSupport
           terminate = true
           catch(:abort) do
             result = result_lambda.call if result_lambda.is_a?(Proc)
-            if CallbackChain.halt_and_display_warning_on_return_false && result == false
+            if Callbacks.halt_and_display_warning_on_return_false && result == false
               display_deprecation_warning_for_false_terminator
             else
               terminate = false

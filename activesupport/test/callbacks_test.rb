@@ -776,7 +776,7 @@ module CallbacksTest
 
   class CallbackFalseTerminatorWithConfigTrueTest < ActiveSupport::TestCase
     def setup
-      ActiveSupport::Callbacks::CallbackChain.halt_and_display_warning_on_return_false = true
+      ActiveSupport::Callbacks.halt_and_display_warning_on_return_false = true
     end
 
     def test_returning_false_does_not_halt_callback_if_config_variable_is_true
@@ -789,7 +789,7 @@ module CallbacksTest
 
   class CallbackFalseTerminatorWithConfigFalseTest < ActiveSupport::TestCase
     def setup
-      ActiveSupport::Callbacks::CallbackChain.halt_and_display_warning_on_return_false = false
+      ActiveSupport::Callbacks.halt_and_display_warning_on_return_false = false
     end
 
     def test_returning_false_does_not_halt_callback_if_config_variable_is_false

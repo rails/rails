@@ -1117,7 +1117,7 @@
     In the past, returning `false` in an Active Record `before_` callback had the
     side effect of halting the callback chain.
     This is not recommended anymore and, depending on the value of the
-    `config.active_support.halt_callback_chains_on_return_false` option, will
+    `ActiveSupport.halt_callback_chains_on_return_false` option, will
     either not work at all or display a deprecation warning.
 
     *claudiob*
