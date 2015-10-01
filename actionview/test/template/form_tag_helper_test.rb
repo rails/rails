@@ -64,6 +64,18 @@ class FormTagHelperTest < ActionView::TestCase
     assert_dom_equal expected, actual
   end
 
+  def test_check_box_tag_disabled
+    actual = check_box_tag "admin","1", false, disabled: true
+    expected = %(<input id="admin" disabled="disabled" name="admin" type="checkbox" value="1" />)
+    assert_dom_equal expected, actual
+  end
+
+  def test_check_box_tag_default_checked
+    actual = check_box_tag "admin","1", true
+    expected = %(<input id="admin" checked="checked" name="admin" type="checkbox" value="1" />)
+    assert_dom_equal expected, actual
+  end
+
   def test_check_box_tag_id_sanitized
     label_elem = root_elem(check_box_tag("project[2][admin]"))
     assert_match VALID_HTML_ID, label_elem['id']
