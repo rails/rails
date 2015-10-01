@@ -41,10 +41,9 @@ class FormTagHelperTest < ActionView::TestCase
   def whole_form(action = "http://www.example.com", options = {})
     out = form_text(action, options) + hidden_fields(options)
 
-    if block_given?
-      out << yield << "</form>"
-    end
-
+    content = yield if block_given?
+    out << yield if content.present?
+    out << "</form>"
     out
   end
 

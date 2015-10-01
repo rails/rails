@@ -20,7 +20,7 @@ module ActionView
       mattr_accessor :embed_authenticity_token_in_remote_forms
       self.embed_authenticity_token_in_remote_forms = false
 
-      # Starts a form tag that points the action to an url configured with <tt>url_for_options</tt> just like
+      # Starts a form tag that points the action to a URL configured with <tt>url_for_options</tt> just like
       # ActionController::Base#url_for. The method for the form defaults to POST.
       #
       # ==== Options
@@ -28,35 +28,36 @@ module ActionView
       # * <tt>:method</tt> - The method to use when submitting the form, usually either "get" or "post".
       #   If "patch", "put", "delete", or another verb is used, a hidden input with name <tt>_method</tt>
       #   is added to simulate the verb over post.
-      # * <tt>:authenticity_token</tt> - Authenticity token to use in the form. Use only if you need to
+      # * <tt>:authenticity_token</tt> - To use authenticity token in the form. Use only if you need to
       #   pass custom authenticity token string, or to not add authenticity_token field at all
-      #   (by passing <tt>false</tt>).  Remote forms may omit the embedded authenticity token
+      #   (by passing <tt>false</tt>). Remote forms may omit the embedded authenticity token
       #   by setting <tt>config.action_view.embed_authenticity_token_in_remote_forms = false</tt>.
       #   This is helpful when you're fragment-caching the form. Remote forms get the
       #   authenticity token from the <tt>meta</tt> tag, so embedding is unnecessary unless you
       #   support browsers without JavaScript.
       # * <tt>:remote</tt> - If set to true, will allow the Unobtrusive JavaScript drivers to control the
       #   submit behavior. By default this behavior is an ajax submit.
-      # * <tt>:enforce_utf8</tt> - If set to false, a hidden input with name utf8 is not output.
+      # * <tt>:enforce_utf8</tt> - If set to false, a hidden input with name utf8 is not included
+      #   in the output.
       # * Any other key creates standard HTML attributes for the tag.
       #
       # ==== Examples
       #   form_tag('/posts')
-      #   # => <form action="/posts" method="post">
+      #   # => <form action="/posts" accept-charset="UTF-8" method="post"><input name="utf8" type="hidden" value="&#x2713;" /></form>
       #
       #   form_tag('/posts/1', method: :put)
-      #   # => <form action="/posts/1" method="post"> ... <input name="_method" type="hidden" value="put" /> ...
+      #   # => <form action="/posts/1" accept-charset="UTF-8" method="post"><input name="utf8" type="hidden" value="&#x2713;" /><input type="hidden" name="_method" value="put" /></form>
       #
       #   form_tag('/upload', multipart: true)
-      #   # => <form action="/upload" method="post" enctype="multipart/form-data">
+      #   # => <form enctype="multipart/form-data" action="/upload" accept-charset="UTF-8" method="post"><input name="utf8" type="hidden" value="&#x2713;" /></form>
       #
       #   <%= form_tag('/posts') do -%>
       #     <div><%= submit_tag 'Save' %></div>
       #   <% end -%>
-      #   # => <form action="/posts" method="post"><div><input type="submit" name="commit" value="Save" /></div></form>
+      #   # => <form enctype="multipart/form-data" action="/posts" accept-charset="UTF-8" method="post"><div><input type="submit" name="commit" value="Save" /></div></form>
       #
-      #   <%= form_tag('/posts', remote: true) %>
-      #   # => <form action="/posts" method="post" data-remote="true">
+      #   form_tag('/posts', remote: true)
+      #   # => <form action="/posts" accept-charset="UTF-8" data-remote="true" method="post"><input name="utf8" type="hidden" value="&#x2713;" /></form>
       #
       #   form_tag('http://far.away.com/form', authenticity_token: false)
       #   # form without authenticity token
@@ -64,13 +65,13 @@ module ActionView
       #   form_tag('http://far.away.com/form', authenticity_token: "cf50faa3fe97702ca1ae")
       #   # form with custom authenticity token
       #
+      #   form_tag('/posts', enforce_utf8: false)
+      #   # => <form action="/posts" accept-charset="UTF-8" method="post"></form>
+      #
       def form_tag(url_for_options = {}, options = {}, &block)
         html_options = html_options_for_form(url_for_options, options)
-        if block_given?
-          form_tag_with_body(html_options, capture(&block))
-        else
-          form_tag_html(html_options)
-        end
+        content = capture(&block) if block_given?
+        form_tag_with_body(html_options, content)
       end
 
       # Creates a dropdown selection box, or if the <tt>:multiple</tt> option is set to true, a multiple
@@ -890,7 +891,7 @@ module ActionView
 
         def form_tag_with_body(html_options, content)
           output = form_tag_html(html_options)
-          output << content
+          output << content if content.present?
           output.safe_concat("</form>")
         end
 
