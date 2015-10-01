@@ -49,6 +49,8 @@ module ActiveSupport
           assert_equal("+18005551212", number_helper.number_to_phone(8005551212, :country_code => 1, :delimiter => ''))
           assert_equal("22-555-1212", number_helper.number_to_phone(225551212))
           assert_equal("+45-22-555-1212", number_helper.number_to_phone(225551212, :country_code => 45))
+          assert_nil(number_helper.number_to_phone('1234a567', country_code: 91))
+          assert_raise(InvalidNumberError) { number_helper.number_to_phone('1234a4567', raise: true) }
         end
       end
 
@@ -67,6 +69,8 @@ module ActiveSupport
           assert_equal("1,234,567,890.50 - K&#269;", number_helper.number_to_currency("-1234567890.50", {:unit => "K&#269;", :format => "%n %u", :negative_format => "%n - %u"}))
           assert_equal("0.00", number_helper.number_to_currency(+0.0, {:unit => "", :negative_format => "(%n)"}))
           assert_equal("(0.00)", number_helper.number_to_currency(-0.0, {:unit => "", :negative_format => "(%n)"}))
+          assert_nil number_helper.number_to_currency('1234a4567')
+          assert_raise(InvalidNumberError) { number_helper.number_to_currency('1234a4567', raise: true) }
         end
       end
 
@@ -91,10 +95,11 @@ module ActiveSupport
           assert_equal("1000%", number_helper.number_to_percentage(1000, precision: nil))
           assert_equal("1000.1%", number_helper.number_to_percentage(1000.1, precision: nil))
           assert_equal("-0.13 %", number_helper.number_to_percentage("-0.13", precision: nil, format: "%n %"))
+          assert_raise(InvalidNumberError) { number_helper.number_to_percentage('1234a4567', raise: true) }
         end
       end
 
-      def test_to_delimited
+      def test_number_to_delimited
         [@instance_with_helpers, TestClassWithClassNumberHelpers, ActiveSupport::NumberHelper].each do |number_helper|
           assert_equal("12,345,678", number_helper.number_to_delimited(12345678))
           assert_equal("0", number_helper.number_to_delimited(0))
@@ -117,9 +122,11 @@ module ActiveSupport
           assert_equal '12,345,678-05', number_helper.number_to_delimited(12345678.05, :separator => '-')
           assert_equal '12.345.678,05', number_helper.number_to_delimited(12345678.05, :separator => ',', :delimiter => '.')
         end
+        assert_nil number_helper.number_to_delimited('1234a4567')
+        assert_raise(InvalidNumberError) { number_helper.number_to_delimited('1234a4567', raise: true) }
       end
 
-      def test_to_rounded
+      def test_number_to_rounded
         [@instance_with_helpers, TestClassWithClassNumberHelpers, ActiveSupport::NumberHelper].each do |number_helper|
           assert_equal("-111.235", number_helper.number_to_rounded(-111.2346))
           assert_equal("111.235", number_helper.number_to_rounded(111.2346))
@@ -145,6 +152,8 @@ module ActiveSupport
           assert_equal("111.2346" + "0"*96, number_helper.number_to_rounded('111.2346', :precision => 100))
           assert_equal("111.2346", number_helper.number_to_rounded(Rational(1112346, 10000), :precision => 4))
           assert_equal('0.00', number_helper.number_to_rounded(Rational(0, 1), :precision => 2))
+          assert_nil number_helper.number_to_rounded('a')
+          assert_raise(InvalidNumberError) { number_helper.number_to_rounded('a', raise: true) }
         end
       end
 
@@ -231,6 +240,8 @@ module ActiveSupport
           assert_equal '10 KB',   number_helper.number_to_human_size(kilobytes(10.000), :precision => 4)
           assert_equal '1 Byte',   number_helper.number_to_human_size(1.1)
           assert_equal '10 Bytes', number_helper.number_to_human_size(10)
+          assert_nil number_helper.number_to_human_size '123abc'
+          assert_raise(InvalidNumberError) { number_helper.number_to_human_size('123abc', raise: true) }
         end
       end
 
@@ -296,6 +307,8 @@ module ActiveSupport
           assert_equal '1.2346 Million', number_helper.number_to_human(1234567, :precision => 4, :significant => false)
           assert_equal '1,2 Million', number_helper.number_to_human(1234567, :precision => 1, :significant => false, :separator => ',')
           assert_equal '1 Million', number_helper.number_to_human(1234567, :precision => 0, :significant => true, :separator => ',') #significant forced to false
+          assert_nil number_helper.number_to_human('abc')
+          assert_raise(InvalidNumberError) { number_helper.number_to_human('abc', raise: true) }
         end
       end
 
