@@ -388,10 +388,9 @@ class TimeZoneTest < ActiveSupport::TestCase
     end
   end
 
-  def test_utc_offset_lazy_loaded_from_tzinfo_when_not_passed_in_to_initialize
+  def test_utc_offset_loaded_from_tzinfo_when_not_passed_in_to_initialize
     tzinfo = TZInfo::Timezone.get('America/New_York')
     zone = ActiveSupport::TimeZone.create(tzinfo.name, nil, tzinfo)
-    assert_equal nil, zone.instance_variable_get('@utc_offset')
     assert_equal(-18_000, zone.utc_offset)
   end
 
@@ -452,6 +451,12 @@ class TimeZoneTest < ActiveSupport::TestCase
     assert zone =~ /Eastern/
     assert zone =~ /New_York/
     assert zone !~ /Nonexistent_Place/
+  end
+
+  def test_frozen_object_and_to_s
+    ActiveSupport::TimeZone.instance_variable_get(:@lazy_zones_map).delete('Tokelau Is.')
+    ActiveSupport::TimeZone['Tokelau Is.'].freeze
+    assert_nothing_raised(RuntimeError) { ActiveSupport::TimeZone['Tokelau Is.'].to_s }
   end
 
   def test_to_s
