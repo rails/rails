@@ -1,3 +1,44 @@
+*   Make `db:migrate:status` to render `1_some.rb` format migrate files.
+
+    These files are in `db/migrate`:
+
+        * 1_valid_people_have_last_names.rb
+        * 20150819202140_irreversible_migration.rb
+        * 20150823202140_add_admin_flag_to_users.rb
+        * 20150823202141_migration_tests.rb
+        * 2_we_need_reminders.rb
+        * 3_innocent_jointable.rb
+
+    Before:
+
+        $ bundle exec rake db:migrate:status
+        ...
+
+         Status   Migration ID    Migration Name
+        --------------------------------------------------
+           up     001             ********** NO FILE **********
+           up     002             ********** NO FILE **********
+           up     003             ********** NO FILE **********
+           up     20150819202140  Irreversible migration
+           up     20150823202140  Add admin flag to users
+           up     20150823202141  Migration tests
+
+    After:
+
+        $ bundle exec rake db:migrate:status
+        ...
+
+         Status   Migration ID    Migration Name
+        --------------------------------------------------
+           up     001             Valid people have last names
+           up     002             We need reminders
+           up     003             Innocent jointable
+           up     20150819202140  Irreversible migration
+           up     20150823202140  Add admin flag to users
+           up     20150823202141  Migration tests
+
+    *Yuichiro Kaneko*
+
 *   Define `ActiveRecord::Sanitization.sanitize_sql_for_order` and use it inside
     `preprocess_order_args`.
 
