@@ -198,8 +198,12 @@ class FormTagHelperTest < ActionView::TestCase
     expected = %(<input id="person_gender_m" name="person[gender]" type="radio" value="m" />)
     assert_dom_equal expected, actual
 
-    actual = radio_button_tag('ctrlname', 'apache2.2')
-    expected = %(<input id="ctrlname_apache2.2" name="ctrlname" type="radio" value="apache2.2" />)
+    actual = radio_button_tag('ctrlname', 'apache2.2', true)
+    expected = %(<input id="ctrlname_apache2.2" name="ctrlname" type="radio" value="apache2.2" checked="checked"/>)
+    assert_dom_equal expected, actual
+
+    actual = radio_button_tag('ctrlname', 'apache2.2', true, class: 'webservers')
+    expected = %(<input id="ctrlname_apache2.2" name="ctrlname" type="radio" class="webservers" value="apache2.2" checked="checked"/>)
     assert_dom_equal expected, actual
   end
 
