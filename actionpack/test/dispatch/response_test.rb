@@ -196,7 +196,17 @@ class ResponseTest < ActiveSupport::TestCase
     assert_equal('application/xml; charset=utf-16', resp.headers['Content-Type'])
   end
 
-  test "read content type without charset" do
+  test "read content type with default charset utf-8" do
+    original = ActionDispatch::Response.default_charset
+    begin
+      resp = ActionDispatch::Response.new(200, { "Content-Type" => "text/xml" })
+      assert_equal('utf-8', resp.charset)
+    ensure
+      ActionDispatch::Response.default_charset = original
+    end
+  end
+
+  test "read content type with charset utf-16" do
     jruby_skip "https://github.com/jruby/jruby/issues/3138"
 
     original = ActionDispatch::Response.default_charset
