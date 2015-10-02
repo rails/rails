@@ -681,4 +681,36 @@ class CalculationsTest < ActiveRecord::TestCase
     end
     assert block_called
   end
+
+  def test_having_with_strong_parameters
+    protected_params = Class.new do
+      attr_reader :permitted
+      alias :permitted? :permitted
+
+      def initialize(parameters)
+        @parameters = parameters
+        @permitted = false
+      end
+
+      def to_h
+        @parameters
+      end
+
+      def permit!
+        @permitted = true
+        self
+      end
+    end
+
+    params = protected_params.new(credit_limit: '50')
+
+    assert_raises(ActiveModel::ForbiddenAttributesError) do
+      Account.group(:id).having(params)
+    end
+
+    result = Account.group(:id).having(params.permit!)
+    assert_equal 50, result[0].credit_limit
+    assert_equal 50, result[1].credit_limit
+    assert_equal 50, result[2].credit_limit
+  end
 end

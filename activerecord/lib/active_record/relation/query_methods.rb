@@ -558,11 +558,8 @@ module ActiveRecord
     end
 
     def where!(opts, *rest) # :nodoc:
-      if Hash === opts
-        opts = sanitize_forbidden_attributes(opts)
-        references!(PredicateBuilder.references(opts))
-      end
-
+      opts = sanitize_forbidden_attributes(opts)
+      references!(PredicateBuilder.references(opts)) if Hash === opts
       self.where_clause += where_clause_factory.build(opts, rest)
       self
     end
@@ -619,6 +616,7 @@ module ActiveRecord
     end
 
     def having!(opts, *rest) # :nodoc:
+      opts = sanitize_forbidden_attributes(opts)
       references!(PredicateBuilder.references(opts)) if Hash === opts
 
       self.having_clause += having_clause_factory.build(opts, rest)
