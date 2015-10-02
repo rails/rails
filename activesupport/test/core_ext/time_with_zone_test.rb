@@ -110,14 +110,14 @@ class TimeWithZoneTest < ActiveSupport::TestCase
     @twz += 0.1234560001 # advance the time by a fraction of a second
     assert_equal "1999-12-31T19:00:00.123-05:00", @twz.xmlschema(3)
     assert_equal "1999-12-31T19:00:00.123456-05:00", @twz.xmlschema(6)
-    assert_equal "1999-12-31T19:00:00.123456-05:00", @twz.xmlschema(12)
+    assert_equal "1999-12-31T19:00:00.123456000100-05:00", @twz.xmlschema(12)
   end
 
   def test_xmlschema_with_fractional_seconds_lower_than_hundred_thousand
     @twz += 0.001234 # advance the time by a fraction
     assert_equal "1999-12-31T19:00:00.001-05:00", @twz.xmlschema(3)
     assert_equal "1999-12-31T19:00:00.001234-05:00", @twz.xmlschema(6)
-    assert_equal "1999-12-31T19:00:00.001234-05:00", @twz.xmlschema(12)
+    assert_equal "1999-12-31T19:00:00.001234000000-05:00", @twz.xmlschema(12)
   end
 
   def test_xmlschema_with_nil_fractional_seconds
