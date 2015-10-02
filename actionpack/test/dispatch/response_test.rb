@@ -293,6 +293,65 @@ class ResponseTest < ActiveSupport::TestCase
   end
 end
 
+class ResponseHeadersTest < ActiveSupport::TestCase
+  def setup
+    @response = ActionDispatch::Response.create
+    @response.set_header 'Foo', '1'
+  end
+
+  test 'have_header?' do
+    assert @response.have_header? 'Foo'
+    assert_not @response.have_header? 'foo'
+    assert_not @response.have_header? nil
+  end
+
+  test 'get_header' do
+    assert_equal '1', @response.get_header('Foo')
+    assert_nil @response.get_header('foo')
+    assert_nil @response.get_header(nil)
+  end
+
+  test 'set_header' do
+    assert_equal '2', @response.set_header('Foo', '2')
+    assert @response.have_header?('Foo')
+    assert_equal '2', @response.get_header('Foo')
+
+    assert_nil @response.set_header('Foo', nil)
+    assert @response.have_header?('Foo')
+    assert_nil @response.get_header('Foo')
+  end
+
+  test 'delete_header' do
+    assert_nil @response.delete_header(nil)
+
+    assert_nil @response.delete_header('foo')
+    assert @response.have_header?('Foo')
+
+    assert_equal '1', @response.delete_header('Foo')
+    assert_not @response.have_header?('Foo')
+  end
+
+  test 'add_header' do
+    # Add a value to an existing header
+    assert_equal '1,2', @response.add_header('Foo', '2')
+    assert_equal '1,2', @response.get_header('Foo')
+
+    # Add nil to an existing header
+    assert_equal '1,2', @response.add_header('Foo', nil)
+    assert_equal '1,2', @response.get_header('Foo')
+
+    # Add nil to a nonexistent header
+    assert_nil @response.add_header('Bar', nil)
+    assert_not @response.have_header?('Bar')
+    assert_nil @response.get_header('Bar')
+
+    # Add a value to a nonexistent header
+    assert_equal '1', @response.add_header('Bar', '1')
+    assert @response.have_header?('Bar')
+    assert_equal '1', @response.get_header('Bar')
+  end
+end
+
 class ResponseIntegrationTest < ActionDispatch::IntegrationTest
   test "response cache control from railsish app" do
     @app = lambda { |env|
