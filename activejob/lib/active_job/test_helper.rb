@@ -290,15 +290,15 @@ module ActiveJob
                to: :queue_adapter
 
       private
-        def clear_enqueued_jobs
+        def clear_enqueued_jobs # :nodoc:
           enqueued_jobs.clear
         end
 
-        def clear_performed_jobs
+        def clear_performed_jobs # :nodoc:
           performed_jobs.clear
         end
 
-        def enqueued_jobs_size(only: nil)
+        def enqueued_jobs_size(only: nil) # :nodoc:
           if only
             enqueued_jobs.select { |job| job.fetch(:job) == only }.size
           else
@@ -306,7 +306,7 @@ module ActiveJob
           end
         end
 
-        def serialize_args_for_assertion(args)
+        def serialize_args_for_assertion(args) # :nodoc:
           serialized_args = args.dup
           if job_args = serialized_args.delete(:args)
             serialized_args[:args] = ActiveJob::Arguments.serialize(job_args)
@@ -314,7 +314,7 @@ module ActiveJob
           serialized_args
         end
 
-        def instantiate_job(payload)
+        def instantiate_job(payload) # :nodoc:
           job = payload[:job].new(*payload[:args])
           job.scheduled_at = Time.at(payload[:at]) if payload.key?(:at)
           job.queue_name = payload[:queue]
