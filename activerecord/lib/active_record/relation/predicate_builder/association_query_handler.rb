@@ -33,7 +33,11 @@ module ActiveRecord
       def ids
         case value
         when Relation
-          value.select(primary_key)
+          if value.select_values.empty?
+            value.select(primary_key)
+          else
+            value
+          end
         when Array
           value.map { |v| convert_to_id(v) }
         else
