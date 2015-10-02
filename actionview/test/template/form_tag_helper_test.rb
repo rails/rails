@@ -182,6 +182,24 @@ class FormTagHelperTest < ActionView::TestCase
     assert_dom_equal expected, actual
   end
 
+  def test_password_field_tag_disabled
+    actual = password_field_tag "password", nil, disabled: true
+    expected = %(<input disabled="disabled" id="password" name="password" type="password" />)
+    assert_dom_equal expected, actual
+  end
+
+  def test_password_field_tag_with_size
+    actual = password_field_tag "password", nil, size: 6
+    expected = %(<input id="password" name="password" size= 6 type="password" />)
+    assert_dom_equal expected, actual
+  end
+
+  def test_password_field_tag_with_maxlength
+    actual = password_field_tag "password", nil, maxlength: 4
+    expected = %(<input id="password" name="password" maxlength="4" type="password" />)
+    assert_dom_equal expected, actual
+  end
+
   def test_multiple_field_tags_with_same_options
     options = {class: 'important'}
     assert_dom_equal %(<input name="title" type="file" id="title" class="important"/>), file_field_tag("title", options)
