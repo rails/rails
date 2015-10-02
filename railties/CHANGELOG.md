@@ -1,3 +1,6 @@
+*   Removed Rack::Runtime from the default stack.  It can be added back via
+    `config.middleware.use ::Rack::Runtime`.
+
 *   Add fail fast to `bin/rails test`
 
     Adding `--fail-fast` or `-f` when running tests will interrupt the run on
