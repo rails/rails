@@ -35,7 +35,9 @@ module ActiveRecord
       # <tt>reload</tt> the record and clears changed attributes.
       def reload(*)
         super.tap do
-          clear_changes_information
+          @mutation_tracker = AttributeMutationTracker.new(@attributes)
+          @previous_mutation_tracker = nil
+          @changed_attributes = HashWithIndifferentAccess.new
         end
       end
 

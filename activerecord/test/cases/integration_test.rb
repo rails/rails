@@ -96,7 +96,9 @@ class IntegrationTest < ActiveRecord::TestCase
     owner.update_column :updated_at, Time.current
     key = owner.cache_key
 
-    assert pet.touch
+    travel(1.second) do
+      assert pet.touch
+    end
     assert_not_equal key, owner.reload.cache_key
   end
 
