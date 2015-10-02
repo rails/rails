@@ -3,6 +3,75 @@ require 'openssl'
 require 'active_support/key_generator'
 require 'active_support/message_verifier'
 
+class CookieJarTest < ActiveSupport::TestCase
+  attr_reader :request
+
+  def setup
+    @request = ActionDispatch::Request.new({})
+  end
+
+  def test_fetch
+    x = Object.new
+    assert_not request.cookie_jar.key?('zzzzzz')
+    assert_equal x, request.cookie_jar.fetch('zzzzzz', x)
+    assert_not request.cookie_jar.key?('zzzzzz')
+  end
+
+  def test_fetch_exists
+    x = Object.new
+    request.cookie_jar['foo'] = 'bar'
+    assert_equal 'bar', request.cookie_jar.fetch('foo', x)
+  end
+
+  def test_fetch_block
+    x = Object.new
+    assert_not request.cookie_jar.key?('zzzzzz')
+    assert_equal x, request.cookie_jar.fetch('zzzzzz') { x }
+  end
+
+  def test_key_is_to_s
+    request.cookie_jar['foo'] = 'bar'
+    assert_equal 'bar', request.cookie_jar.fetch(:foo)
+  end
+
+  def test_fetch_type_error
+    assert_raises(KeyError) do
+      request.cookie_jar.fetch(:omglolwut)
+    end
+  end
+
+  def test_each
+    request.cookie_jar['foo'] = :bar
+    list = []
+    request.cookie_jar.each do |k,v|
+      list << [k, v]
+    end
+
+    assert_equal [['foo', :bar]], list
+  end
+
+  def test_enumerable
+    request.cookie_jar['foo'] = :bar
+    actual = request.cookie_jar.map { |k,v| [k.to_s, v.to_s] }
+    assert_equal [['foo', 'bar']], actual
+  end
+
+  def test_key_methods
+    assert !request.cookie_jar.key?(:foo)
+    assert !request.cookie_jar.has_key?("foo")
+
+    request.cookie_jar[:foo] = :bar
+    assert request.cookie_jar.key?(:foo)
+    assert request.cookie_jar.has_key?("foo")
+  end
+
+  def test_write_doesnt_set_a_nil_header
+    headers = {}
+    request.cookie_jar.write(headers)
+    assert !headers.include?('Set-Cookie')
+  end
+end
+
 class CookiesTest < ActionController::TestCase
   class CustomSerializer
     def self.load(value)
@@ -11,16 +80,6 @@ class CookiesTest < ActionController::TestCase
 
     def self.dump(value)
       value.to_s + " was dumped"
-    end
-  end
-
-  class JSONWrapper
-    def initialize(obj)
-      @obj = obj
-    end
-
-    def as_json(options = nil)
-      "wrapped: #{@obj.as_json(options)}"
     end
   end
 
@@ -88,11 +147,6 @@ class CookiesTest < ActionController::TestCase
       head :ok
     end
 
-    def set_wrapped_signed_cookie
-      cookies.signed[:user_id] = JSONWrapper.new(45)
-      head :ok
-    end
-
     def get_signed_cookie
       cookies.signed[:user_id]
       head :ok
@@ -100,6 +154,21 @@ class CookiesTest < ActionController::TestCase
 
     def set_encrypted_cookie
       cookies.encrypted[:foo] = 'bar'
+      head :ok
+    end
+
+    class JSONWrapper
+      def initialize(obj)
+        @obj = obj
+      end
+
+      def as_json(options = nil)
+        "wrapped: #{@obj.as_json(options)}"
+      end
+    end
+
+    def set_wrapped_signed_cookie
+      cookies.signed[:user_id] = JSONWrapper.new(45)
       head :ok
     end
 
@@ -207,68 +276,18 @@ class CookiesTest < ActionController::TestCase
 
   tests TestController
 
+  SALT = 'b3c631c314c0bbca50c1b2843150fe33'
+
   def setup
     super
-    @request.env["action_dispatch.key_generator"] = ActiveSupport::KeyGenerator.new("b3c631c314c0bbca50c1b2843150fe33", iterations: 2)
-    @request.env["action_dispatch.signed_cookie_salt"] = "b3c631c314c0bbca50c1b2843150fe33"
-    @request.env["action_dispatch.encrypted_cookie_salt"] = "b3c631c314c0bbca50c1b2843150fe33"
-    @request.env["action_dispatch.encrypted_signed_cookie_salt"] = "b3c631c314c0bbca50c1b2843150fe33"
+
+    @request.env["action_dispatch.key_generator"] = ActiveSupport::KeyGenerator.new(SALT, iterations: 2)
+
+    @request.env["action_dispatch.signed_cookie_salt"] =
+      @request.env["action_dispatch.encrypted_cookie_salt"] =
+      @request.env["action_dispatch.encrypted_signed_cookie_salt"] = SALT
+
     @request.host = "www.nextangle.com"
-  end
-
-  def test_fetch
-    x = Object.new
-    assert_not request.cookie_jar.key?('zzzzzz')
-    assert_equal x, request.cookie_jar.fetch('zzzzzz', x)
-    assert_not request.cookie_jar.key?('zzzzzz')
-  end
-
-  def test_fetch_exists
-    x = Object.new
-    request.cookie_jar['foo'] = 'bar'
-    assert_equal 'bar', request.cookie_jar.fetch('foo', x)
-  end
-
-  def test_fetch_block
-    x = Object.new
-    assert_not request.cookie_jar.key?('zzzzzz')
-    assert_equal x, request.cookie_jar.fetch('zzzzzz') { x }
-  end
-
-  def test_key_is_to_s
-    request.cookie_jar['foo'] = 'bar'
-    assert_equal 'bar', request.cookie_jar.fetch(:foo)
-  end
-
-  def test_fetch_type_error
-    assert_raises(KeyError) do
-      request.cookie_jar.fetch(:omglolwut)
-    end
-  end
-
-  def test_each
-    request.cookie_jar['foo'] = :bar
-    list = []
-    request.cookie_jar.each do |k,v|
-      list << [k, v]
-    end
-
-    assert_equal [['foo', :bar]], list
-  end
-
-  def test_enumerable
-    request.cookie_jar['foo'] = :bar
-    actual = request.cookie_jar.map { |k,v| [k.to_s, v.to_s] }
-    assert_equal [['foo', 'bar']], actual
-  end
-
-  def test_key_methods
-    assert !request.cookie_jar.key?(:foo)
-    assert !request.cookie_jar.has_key?("foo")
-
-    request.cookie_jar[:foo] = :bar
-    assert request.cookie_jar.key?(:foo)
-    assert request.cookie_jar.has_key?("foo")
   end
 
   def test_setting_cookie
@@ -1083,11 +1102,11 @@ class CookiesTest < ActionController::TestCase
     assert_equal "david", cookies[:user_name]
 
     get :noop
-    assert_nil @response.headers["Set-Cookie"]
+    assert !@response.headers.include?("Set-Cookie")
     assert_equal "david", cookies[:user_name]
 
     get :noop
-    assert_nil @response.headers["Set-Cookie"]
+    assert !@response.headers.include?("Set-Cookie")
     assert_equal "david", cookies[:user_name]
   end
 
