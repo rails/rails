@@ -1,8 +1,10 @@
 *   Fix `ActiveSupport::TimeZone#to_s` to not mutate  frozen
     `ActiveSupport::TimeZone` object.
-        ActiveSupport::TimeZone['Hawaii'].freeze
-        ActiveSupport::TimeZone['Hawaii'].to_s => does not raise RuntimeError 
 
+    Example:
+
+      ActiveSupport::TimeZone['Hawaii'].freeze
+      ActiveSupport::TimeZone['Hawaii'].to_s => does not raise RuntimeError
 
     *Pema Geyleg*
 
