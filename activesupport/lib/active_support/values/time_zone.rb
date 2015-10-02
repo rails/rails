@@ -270,14 +270,19 @@ module ActiveSupport
     # that Ruby uses to represent time zone offsets (see Time#utc_offset).
     def initialize(name, utc_offset = nil, tzinfo = nil)
       @name = name
+      @utc_offset = utc_offset
       @tzinfo = tzinfo || TimeZone.find_tzinfo(name)
-      @current_period = @tzinfo.current_period
-      @utc_offset = utc_offset || @current_period.try!(:utc_offset)
+      @current_period = nil
     end
 
     # Returns the offset of this time zone from UTC in seconds.
     def utc_offset
-      @utc_offset || @current_period.try!(:utc_offset)
+      if @utc_offset
+        @utc_offset
+      else
+        @current_period ||= tzinfo.current_period if tzinfo
+        @current_period.utc_offset if @current_period
+      end
     end
 
     # Returns a formatted string of the offset from UTC, or an alternative
@@ -434,6 +439,12 @@ module ActiveSupport
     def encode_with(coder) #:nodoc:
       coder.tag ="!ruby/object:#{self.class}"
       coder.map = { 'name' => tzinfo.name }
+    end
+
+    # Sets @current_period instance variable before freezing the instances
+    def freeze
+      utc_offset
+      super
     end
 
     private
