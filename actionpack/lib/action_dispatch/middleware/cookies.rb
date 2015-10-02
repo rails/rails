@@ -396,7 +396,8 @@ module ActionDispatch
       end
 
       def write(headers)
-        headers[HTTP_HEADER] = make_set_cookie_header headers[HTTP_HEADER]
+        hv = make_set_cookie_header headers[HTTP_HEADER]
+        headers[HTTP_HEADER] = hv if hv
       end
 
       mattr_accessor :always_write_cookie
