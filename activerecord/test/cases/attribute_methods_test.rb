@@ -534,18 +534,26 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   def test_converted_values_are_returned_after_assignment
     developer = Developer.new(name: 1337, salary: "50000")
 
+    assert_kind_of String, developer.salary_before_type_cast
     assert_equal "50000", developer.salary_before_type_cast
+    assert_kind_of Fixnum, developer.name_before_type_cast
     assert_equal 1337, developer.name_before_type_cast
 
+    assert_kind_of Fixnum, developer.salary
     assert_equal 50000, developer.salary
+    assert_kind_of String, developer.name
     assert_equal "1337", developer.name
 
     developer.save!
 
+    assert_kind_of String, developer.salary_before_type_cast
     assert_equal "50000", developer.salary_before_type_cast
+    assert_kind_of Fixnum, developer.name_before_type_cast
     assert_equal 1337, developer.name_before_type_cast
 
+    assert_kind_of Fixnum, developer.salary
     assert_equal 50000, developer.salary
+    assert_kind_of String, developer.name
     assert_equal "1337", developer.name
   end
 
