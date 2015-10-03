@@ -46,6 +46,8 @@ module ActiveRecord
   end
 
   class NullMutationTracker # :nodoc:
+    include Singleton
+
     def changed_values
       {}
     end

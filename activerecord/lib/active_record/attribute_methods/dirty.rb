@@ -133,7 +133,7 @@ module ActiveRecord
       end
 
       def previous_mutation_tracker
-        @previous_mutation_tracker ||= NullMutationTracker.new
+        @previous_mutation_tracker ||= NullMutationTracker.instance
       end
 
       def cache_changed_attributes
