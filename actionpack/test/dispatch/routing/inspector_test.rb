@@ -77,6 +77,17 @@ module ActionDispatch
         ], output
       end
 
+      def test_articles_inspect_with_multiple_verbs
+        output = draw do
+          match 'articles/:id', to: 'articles#update', via: [:put, :patch]
+        end
+
+        assert_equal [
+          "Prefix Verb      URI Pattern             Controller#Action",
+          "       PUT|PATCH /articles/:id(.:format) articles#update"
+        ], output
+      end
+
       def test_inspect_shows_custom_assets
         output = draw do
           get '/custom/assets', :to => 'custom_assets#show'
