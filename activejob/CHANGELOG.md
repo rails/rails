@@ -1,3 +1,7 @@
+*   Support passing array to `assert_enqueued_jobs` in `:only` option.
+
+    *Wojciech Wnętrzak*
+
 *   Add job priorities to Active Job.
 
     *wvengen*
