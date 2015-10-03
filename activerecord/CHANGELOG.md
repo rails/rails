@@ -1,3 +1,7 @@
+*   Make AR::Base #increment! and decrement! concurrency safe
+
+    *Bogdan Gusiev*
+
 *   Don't require a database connection to load a class which uses acceptance
     validations.
 

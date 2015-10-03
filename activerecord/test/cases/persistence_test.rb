@@ -120,6 +120,15 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_equal 59, accounts(:signals37, :reload).credit_limit
   end
 
+  def test_increment_updates_counter_in_db_using_offset
+    a1 = accounts(:signals37)
+    initial_credit = a1.credit_limit
+    a2 = Account.find(accounts(:signals37).id)
+    a1.increment!(:credit_limit)
+    a2.increment!(:credit_limit)
+    assert_equal initial_credit + 2, a1.reload.credit_limit
+  end
+
   def test_destroy_all
     conditions = "author_name = 'Mary'"
     topics_by_mary = Topic.all.merge!(:where => conditions, :order => 'id').to_a
