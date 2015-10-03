@@ -244,7 +244,7 @@ config.middleware.swap ActionController::Failsafe, Lifo::Failsafe
 They can also be removed from the stack completely:
 
 ```ruby
-config.middleware.delete "Rack::MethodOverride"
+config.middleware.delete Rack::MethodOverride
 ```
 
 ### Configuring i18n
