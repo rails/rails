@@ -226,6 +226,10 @@ module ActiveJob
       #     assert_enqueued_with(job: MyJob, args: [1,2,3], queue: 'low') do
       #       MyJob.perform_later(1,2,3)
       #     end
+      #
+      #     assert_enqueued_with(job: MyJob, at: Date.tomorrow.noon) do
+      #       MyJob.set(wait_until: Date.tomorrow.noon).perform_later
+      #     end
       #   end
       def assert_enqueued_with(args = {}, &_block)
         original_enqueued_jobs = enqueued_jobs.dup
@@ -247,6 +251,10 @@ module ActiveJob
       #   def test_assert_performed_with
       #     assert_performed_with(job: MyJob, args: [1,2,3], queue: 'high') do
       #       MyJob.perform_later(1,2,3)
+      #     end
+      #
+      #     assert_performed_with(job: MyJob, at: Date.tomorrow.noon) do
+      #       MyJob.set(wait_until: Date.tomorrow.noon).perform_later
       #     end
       #   end
       def assert_performed_with(args = {}, &_block)
@@ -307,11 +315,10 @@ module ActiveJob
         end
 
         def serialize_args_for_assertion(args) # :nodoc:
-          serialized_args = args.dup
-          if job_args = serialized_args.delete(:args)
-            serialized_args[:args] = ActiveJob::Arguments.serialize(job_args)
+          args.dup.tap do |serialized_args|
+            serialized_args[:args] = ActiveJob::Arguments.serialize(serialized_args[:args]) if serialized_args[:args]
+            serialized_args[:at]   = serialized_args[:at].to_f if serialized_args[:at]
           end
-          serialized_args
         end
 
         def instantiate_job(payload) # :nodoc:

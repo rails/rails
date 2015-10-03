@@ -218,6 +218,12 @@ class EnqueuedJobsTest < ActiveJob::TestCase
     end
   end
 
+  def test_assert_enqueued_job_with_at_option
+    assert_enqueued_with(job: HelloJob, at: Date.tomorrow.noon) do
+      HelloJob.set(wait_until: Date.tomorrow.noon).perform_later
+    end
+  end
+
   def test_assert_enqueued_job_with_global_id_args
     ricardo = Person.new(9)
     assert_enqueued_with(job: HelloJob, args: [ricardo]) do
@@ -439,15 +445,21 @@ class PerformedJobsTest < ActiveJob::TestCase
 
   def test_assert_performed_job_failure
     assert_raise ActiveSupport::TestCase::Assertion do
-      assert_performed_with(job: LoggingJob, at: Date.tomorrow.noon, queue: 'default') do
-        NestedJob.set(wait_until: Date.tomorrow.noon).perform_later
+      assert_performed_with(job: LoggingJob) do
+        HelloJob.perform_later
       end
     end
 
     assert_raise ActiveSupport::TestCase::Assertion do
-      assert_performed_with(job: NestedJob, at: Date.tomorrow.noon, queue: 'low') do
-        NestedJob.set(queue: 'low', wait_until: Date.tomorrow.noon).perform_later
+      assert_performed_with(job: HelloJob, queue: 'low') do
+        HelloJob.set(queue: 'important').perform_later
       end
+    end
+  end
+
+  def test_assert_performed_job_with_at_option
+    assert_performed_with(job: HelloJob, at: Date.tomorrow.noon) do
+      HelloJob.set(wait_until: Date.tomorrow.noon).perform_later
     end
   end
 
