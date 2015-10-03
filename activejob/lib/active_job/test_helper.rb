@@ -300,7 +300,7 @@ module ActiveJob
 
         def enqueued_jobs_size(only: nil) # :nodoc:
           if only
-            enqueued_jobs.select { |job| job.fetch(:job) == only }.size
+            enqueued_jobs.select { |job| Array(only).include?(job.fetch(:job)) }.size
           else
             enqueued_jobs.size
           end
