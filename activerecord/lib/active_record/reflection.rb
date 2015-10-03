@@ -62,7 +62,7 @@ module ActiveRecord
         aggregate_reflections[aggregation.to_s]
       end
 
-      # Returns a Hash of name of the reflection as the key and a AssociationReflection as the value.
+      # Returns a Hash of name of the reflection as the key and an AssociationReflection as the value.
       #
       #   Account.reflections # => {"balance" => AggregateReflection}
       #
