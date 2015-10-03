@@ -236,14 +236,19 @@ module ActiveRecord
 
     def test_join_with_sql_params
       post = Post.create!(title: "haha", body: "huhu")
-      comments_with_ratings = post.comments.sample(2)
-      comments_with_ratings.each do |comment|
-        comment.ratings.create!
+      5.times do |count|
+        post.comments.create!(body: "hu #{count}")
       end
 
-      comments = Comment.joins('inner join ratings on ratings.comment_id = ?', post.comment_ids)
+      comment_with_rating = post.comments.sample
+      comment_with_rating.ratings.create!
 
-      assert_equal comments_with_ratings, comments
+      comments = Comment.joins(
+        'inner join ratings on ratings.comment_id = comments.id AND ratings.comment_id = ?',
+        comment_with_rating.id
+      )
+
+      assert_equal comment_with_rating, comments.first
     end
 
     def test_join_with_multiple_sql_params
@@ -269,17 +274,20 @@ module ActiveRecord
 
     def test_join_with_keyword_sql_params
       post = Post.create!(title: "haha", body: "huhu")
+      5.times do |count|
+        post.comments.create!(body: "hu #{count}")
+      end
       comments_with_ratings = post.comments.sample(2)
       comments_with_ratings.each do |comment|
         comment.ratings.create!
       end
 
       comments = Comment.joins(
-        'inner join ratings on ratings.comment_id = :id',
-        id: post.comment_ids
+        'inner join ratings on ratings.comment_id = comments.id AND ratings.comment_id IN (:ids)',
+        ids: post.comment_ids
       )
 
-      assert_equal comments_with_ratings, comments
+      assert_equal comments_with_ratings.sort, comments.sort
     end
 
     def test_join_with_multiple_keyword_sql_params
