@@ -112,7 +112,7 @@ module ActiveModel
       def password=(unencrypted_password)
         if unencrypted_password.nil?
           self.password_digest = nil
-        elsif !unencrypted_password.empty?
+        elsif !unencrypted_password.to_s.empty?
           @password = unencrypted_password
           cost = ActiveModel::SecurePassword.min_cost ? BCrypt::Engine::MIN_COST : BCrypt::Engine.cost
           self.password_digest = BCrypt::Password.create(unencrypted_password, cost: cost)
