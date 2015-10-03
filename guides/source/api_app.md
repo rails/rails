@@ -188,6 +188,7 @@ An API application comes with the following middlewares by default:
 - `ActiveSupport::Cache::Strategy::LocalCache::Middleware`
 - `ActionDispatch::RequestId`
 - `Rails::Rack::Logger`
+- `Rack::Runtime`
 - `ActionDispatch::ShowExceptions`
 - `ActionDispatch::DebugExceptions`
 - `ActionDispatch::RemoteIp`

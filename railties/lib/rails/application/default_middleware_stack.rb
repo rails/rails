@@ -47,6 +47,7 @@ module Rails
             end
           end
 
+          middleware.use ::Rack::Runtime
           middleware.use ::Rack::MethodOverride unless config.api_only
           middleware.use ::ActionDispatch::RequestId
 

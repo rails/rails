@@ -27,8 +27,9 @@ module ApplicationTests
         "Rack::Sendfile",
         "ActionDispatch::Static",
         "ActionDispatch::LoadInterlock",
-        "Rack::MethodOverride",
         "ActiveSupport::Cache::Strategy::LocalCache",
+        "Rack::Runtime",
+        "Rack::MethodOverride",
         "ActionDispatch::RequestId",
         "Rails::Rack::Logger", # must come after Rack::MethodOverride to properly log overridden methods
         "ActionDispatch::ShowExceptions",
@@ -58,6 +59,7 @@ module ApplicationTests
         "ActionDispatch::Static",
         "ActionDispatch::LoadInterlock",
         "ActiveSupport::Cache::Strategy::LocalCache",
+        "Rack::Runtime",
         "ActionDispatch::RequestId",
         "Rails::Rack::Logger", # must come after Rack::MethodOverride to properly log overridden methods
         "ActionDispatch::ShowExceptions",
@@ -166,19 +168,19 @@ module ApplicationTests
     end
 
     test "can delete a middleware from the stack even if insert_before is added after delete" do
-      add_to_config "config.middleware.delete ActionDispatch::ShowExceptions"
-      add_to_config "config.middleware.insert_before(ActionDispatch::ShowExceptions, Rack::Config)"
+      add_to_config "config.middleware.delete Rack::Runtime"
+      add_to_config "config.middleware.insert_before(Rack::Runtime, Rack::Config)"
       boot!
       assert middleware.include?("Rack::Config")
-      assert_not middleware.include?("ActionDispatch::ShowExceptions")
+      assert_not middleware.include?("Rack::Runtime")
     end
 
     test "can delete a middleware from the stack even if insert_after is added after delete" do
-      add_to_config "config.middleware.delete ActionDispatch::ShowExceptions"
-      add_to_config "config.middleware.insert_after(ActionDispatch::ShowExceptions, Rack::Config)"
+      add_to_config "config.middleware.delete Rack::Runtime"
+      add_to_config "config.middleware.insert_after(Rack::Runtime, Rack::Config)"
       boot!
       assert middleware.include?("Rack::Config")
-      assert_not middleware.include?("ActionDispatch::ShowExceptions")
+      assert_not middleware.include?("Rack::Runtime")
     end
 
     test "includes exceptions middlewares even if action_dispatch.show_exceptions is disabled" do
@@ -216,12 +218,12 @@ module ApplicationTests
     test "Rails.cache does not respond to middleware" do
       add_to_config "config.cache_store = :memory_store"
       boot!
-      assert_equal "Rack::MethodOverride", middleware.fourth
+      assert_equal "Rack::Runtime", middleware.fourth
     end
 
     test "Rails.cache does respond to middleware" do
       boot!
-      assert_equal "ActiveSupport::Cache::Strategy::LocalCache", middleware.fifth
+      assert_equal "Rack::Runtime", middleware.fifth
     end
 
     test "insert middleware before" do
