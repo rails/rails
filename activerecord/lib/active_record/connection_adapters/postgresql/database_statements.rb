@@ -8,7 +8,7 @@ module ActiveRecord
         end
 
         class ExplainPrettyPrinter # :nodoc:
-          # Pretty prints the result of a EXPLAIN in a way that resembles the output of the
+          # Pretty prints the result of an EXPLAIN in a way that resembles the output of the
           # PostgreSQL shell:
           #
           #                                     QUERY PLAN

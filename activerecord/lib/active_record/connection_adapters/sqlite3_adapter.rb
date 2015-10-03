@@ -218,7 +218,7 @@ module ActiveRecord
       end
 
       class ExplainPrettyPrinter
-        # Pretty prints the result of a EXPLAIN QUERY PLAN in a way that resembles
+        # Pretty prints the result of an EXPLAIN QUERY PLAN in a way that resembles
         # the output of the SQLite shell:
         #
         #   0|0|0|SEARCH TABLE users USING INTEGER PRIMARY KEY (rowid=?) (~1 rows)
