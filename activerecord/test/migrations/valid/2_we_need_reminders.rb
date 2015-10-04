@@ -1,4 +1,4 @@
-class WeNeedReminders < ActiveRecord::Migration
+class WeNeedReminders < ActiveRecord::Migration.version("4.2")
   def self.up
     create_table("reminders") do |t|
       t.column :content, :text

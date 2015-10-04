@@ -5,7 +5,7 @@ end
 
 module ActiveRecord
   class InvertibleMigrationTest < ActiveRecord::TestCase
-    class SilentMigration < ActiveRecord::Migration
+    class SilentMigration < ActiveRecord::Migration.version("4.2")
       def write(text = '')
         # sssshhhhh!!
       end
@@ -105,7 +105,7 @@ module ActiveRecord
       end
     end
 
-    class LegacyMigration < ActiveRecord::Migration
+    class LegacyMigration < ActiveRecord::Migration.version("#{::ActiveRecord::Migration.current_version}")
       def self.up
         create_table("horses") do |t|
           t.column :content, :text

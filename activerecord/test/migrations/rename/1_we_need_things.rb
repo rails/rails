@@ -1,4 +1,4 @@
-class WeNeedThings < ActiveRecord::Migration
+class WeNeedThings < ActiveRecord::Migration.version("#{::ActiveRecord::Migration.current_version}")
   def self.up
     create_table("things") do |t|
       t.column :content, :text

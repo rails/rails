@@ -3,13 +3,13 @@ require "cases/helper"
 class PostgresqlExtensionMigrationTest < ActiveRecord::PostgreSQLTestCase
   self.use_transactional_tests = false
 
-  class EnableHstore < ActiveRecord::Migration
+  class EnableHstore < ActiveRecord::Migration.version("#{::ActiveRecord::Migration.current_version}")
     def change
       enable_extension "hstore"
     end
   end
 
-  class DisableHstore < ActiveRecord::Migration
+  class DisableHstore < ActiveRecord::Migration.version("#{::ActiveRecord::Migration.current_version}")
     def change
       disable_extension "hstore"
     end

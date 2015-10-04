@@ -1,4 +1,4 @@
-class ValidWithTimestampsWeNeedReminders < ActiveRecord::Migration
+class ValidWithTimestampsWeNeedReminders < ActiveRecord::Migration.version("#{::ActiveRecord::Migration.current_version}")
   def self.up
     create_table("reminders") do |t|
       t.column :content, :text

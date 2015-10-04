@@ -432,7 +432,47 @@ module ActiveRecord
   # are in a Migration with <tt>self.disable_ddl_transaction!</tt>.
   class Migration
     autoload :CommandRecorder, 'active_record/migration/command_recorder'
+    require 'active_record/migration/versioning'
 
+    def self.inherited(subclass) # :nodoc:
+      if subclass.superclass == Migration && subclass.version_number.nil? && subclass != Schema
+        raise \
+          "Directly inheriting from ActiveRecord::Migration is deprecated. " \
+          "Please specify the Rails release the migration was written for:\n" \
+          "\n" \
+          "  class #{subclass} < ActiveRecord::Migration.version('4.2')"
+          "\n" \
+      end
+    end
+
+    @@version_number = nil
+
+    # Allows end users to specify which ActiveRecord::Migration they would like to use,
+    # in case of breaking changes.
+    #
+    # @param [String] version
+    def self.version(version)
+      accepted_version_numbers = ["3.2", "4.2", "5.0"]
+      version_class = "V#{version.to_s.tr('.', '_')}"
+      @@version_number = version_class
+      unless ActiveRecord::Migration.const_defined?(version_class)
+        raise "Unkown version number: #{version}, " \
+          "only the following version numbers are accepted: #{accepted_version_numbers.sort.join(', ')}"
+      end
+      ActiveRecord::Migration.const_get(version_class)
+    end
+
+    # Returns the current ActiveRecord::Migration version
+    # @return [String]
+    def self.version_number
+      @@version_number
+    end
+
+    # Returns the latest possible ActiveRecord::Migration version
+    # @return [Float] version
+    def self.current_version
+      ::ActiveRecord::VERSION::STRING.to_f
+    end
 
     # This class is used to verify that all migrations have been run before
     # loading a web page if config.active_record.migration_error is set to :page_load
