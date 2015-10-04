@@ -57,28 +57,28 @@ module ActionMailer
 
       protected
 
-        def initialize_test_deliveries
+        def initialize_test_deliveries # :nodoc:
           set_delivery_method :test
           @old_perform_deliveries = ActionMailer::Base.perform_deliveries
           ActionMailer::Base.perform_deliveries = true
         end
 
-        def restore_test_deliveries
+        def restore_test_deliveries # :nodoc:
           restore_delivery_method
           ActionMailer::Base.perform_deliveries = @old_perform_deliveries
           ActionMailer::Base.deliveries.clear
         end
 
-        def set_delivery_method(method)
+        def set_delivery_method(method) # :nodoc:
           @old_delivery_method = ActionMailer::Base.delivery_method
           ActionMailer::Base.delivery_method = method
         end
 
-        def restore_delivery_method
+        def restore_delivery_method # :nodoc:
           ActionMailer::Base.delivery_method = @old_delivery_method
         end
 
-        def set_expected_mail
+        def set_expected_mail # :nodoc:
           @expected = Mail.new
           @expected.content_type ["text", "plain", { "charset" => charset }]
           @expected.mime_version = '1.0'
