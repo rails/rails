@@ -299,10 +299,10 @@ class ResponseHeadersTest < ActiveSupport::TestCase
     @response.set_header 'Foo', '1'
   end
 
-  test 'have_header?' do
-    assert @response.have_header? 'Foo'
-    assert_not @response.have_header? 'foo'
-    assert_not @response.have_header? nil
+  test 'has_header?' do
+    assert @response.has_header? 'Foo'
+    assert_not @response.has_header? 'foo'
+    assert_not @response.has_header? nil
   end
 
   test 'get_header' do
@@ -313,11 +313,11 @@ class ResponseHeadersTest < ActiveSupport::TestCase
 
   test 'set_header' do
     assert_equal '2', @response.set_header('Foo', '2')
-    assert @response.have_header?('Foo')
+    assert @response.has_header?('Foo')
     assert_equal '2', @response.get_header('Foo')
 
     assert_nil @response.set_header('Foo', nil)
-    assert @response.have_header?('Foo')
+    assert @response.has_header?('Foo')
     assert_nil @response.get_header('Foo')
   end
 
@@ -325,10 +325,10 @@ class ResponseHeadersTest < ActiveSupport::TestCase
     assert_nil @response.delete_header(nil)
 
     assert_nil @response.delete_header('foo')
-    assert @response.have_header?('Foo')
+    assert @response.has_header?('Foo')
 
     assert_equal '1', @response.delete_header('Foo')
-    assert_not @response.have_header?('Foo')
+    assert_not @response.has_header?('Foo')
   end
 
   test 'add_header' do
@@ -342,12 +342,12 @@ class ResponseHeadersTest < ActiveSupport::TestCase
 
     # Add nil to a nonexistent header
     assert_nil @response.add_header('Bar', nil)
-    assert_not @response.have_header?('Bar')
+    assert_not @response.has_header?('Bar')
     assert_nil @response.get_header('Bar')
 
     # Add a value to a nonexistent header
     assert_equal '1', @response.add_header('Bar', '1')
-    assert @response.have_header?('Bar')
+    assert @response.has_header?('Bar')
     assert_equal '1', @response.get_header('Bar')
   end
 end

@@ -59,7 +59,7 @@ module ActionDispatch
         end
 
         def last_modified?
-          have_header? LAST_MODIFIED
+          has_header? LAST_MODIFIED
         end
 
         def last_modified=(utc_time)
@@ -73,7 +73,7 @@ module ActionDispatch
         end
 
         def date?
-          have_header? DATE
+          has_header? DATE
         end
 
         def date=(utc_time)
