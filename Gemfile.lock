@@ -98,12 +98,6 @@ GIT
       coffee-rails
 
 GIT
-  remote: git://github.com/ruby-concurrency/concurrent-ruby.git
-  revision: 10ceb96c146d2937b66e7a444445e5ab9edbeb7c
-  specs:
-    concurrent-ruby (1.0.0.pre3)
-
-GIT
   remote: git://github.com/sass/sass.git
   revision: 4ef8e3167985ace91b2105916756bd93c5d7bba6
   branch: stable
@@ -192,6 +186,7 @@ GEM
       coffee-script-source
       execjs
     coffee-script-source (1.9.1.1)
+    concurrent-ruby (1.0.0.pre3)
     connection_pool (2.2.0)
     dalli (2.7.4)
     dante (0.2.0)
@@ -320,7 +315,6 @@ DEPENDENCIES
   benchmark-ips
   byebug
   coffee-rails (~> 4.1.0)
-  concurrent-ruby (~> 1.0.0.pre3)!
   dalli (>= 2.2.1)
   delayed_job
   delayed_job_active_record
