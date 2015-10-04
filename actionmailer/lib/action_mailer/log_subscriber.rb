@@ -29,7 +29,7 @@ module ActionMailer
       end
     end
 
-    # Use the logger configured for ActionMailer::Base
+    # Use the logger configured for ActionMailer::Base.
     def logger
       ActionMailer::Base.logger
     end

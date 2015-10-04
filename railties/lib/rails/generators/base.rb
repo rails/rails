@@ -302,13 +302,13 @@ module Rails
           default_for_option(Rails::Generators.options, name, options, options[:default])
         end
 
-        # Return default aliases for the option name given doing a lookup in
+        # Returns default aliases for the option name given doing a lookup in
         # Rails::Generators.aliases.
         def self.default_aliases_for_option(name, options)
           default_for_option(Rails::Generators.aliases, name, options, options[:aliases])
         end
 
-        # Return default for the option name given doing a lookup in config.
+        # Returns default for the option name given doing a lookup in config.
         def self.default_for_option(config, name, options, default)
           if generator_name and c = config[generator_name.to_sym] and c.key?(name)
             c[name]

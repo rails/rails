@@ -388,7 +388,7 @@ module ActiveSupport
       time_now.utc.in_time_zone(self)
     end
 
-    # Return the current date in this time zone.
+    # Returns the current date in this time zone.
     def today
       tzinfo.now.to_date
     end

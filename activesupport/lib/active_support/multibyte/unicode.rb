@@ -256,7 +256,7 @@ module ActiveSupport
       # * <tt>string</tt> - The string to perform normalization on.
       # * <tt>form</tt> - The form you want to normalize in. Should be one of
       #   the following: <tt>:c</tt>, <tt>:kc</tt>, <tt>:d</tt>, or <tt>:kd</tt>.
-      #   Default is ActiveSupport::Multibyte.default_normalization_form.
+      #   Default is ActiveSupport::Multibyte::Unicode.default_normalization_form.
       def normalize(string, form=nil)
         form ||= @default_normalization_form
         # See http://www.unicode.org/reports/tr15, Table 1

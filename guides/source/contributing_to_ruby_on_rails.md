@@ -318,7 +318,7 @@ $ cd activerecord
 $ bundle exec rake test:sqlite3
 ```
 
-You can now run the tests as you did for `sqlite3`. The tasks are respectively
+You can now run the tests as you did for `sqlite3`. The tasks are respectively:
 
 ```bash
 test:mysql

@@ -947,7 +947,7 @@ module ActiveRecord
 
       def migrations_paths
         @migrations_paths ||= ['db/migrate']
-        # just to not break things if someone uses: migration_path = some_string
+        # just to not break things if someone uses: migrations_path = some_string
         Array(@migrations_paths)
       end
 

@@ -161,7 +161,7 @@ module Rails
       routes_reloader.reload!
     end
 
-    # Return the application's KeyGenerator
+    # Returns the application's KeyGenerator
     def key_generator
       # number of iterations selected based on consultation with the google security
       # team. Details at https://github.com/rails/rails/pull/6952#issuecomment-7661220
