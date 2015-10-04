@@ -51,9 +51,9 @@ class Time
 
   # Returns the number of seconds since 00:00:00.
   #
-  #   Time.new(2012, 8, 29,  0,  0,  0).seconds_since_midnight # => 0
-  #   Time.new(2012, 8, 29, 12, 34, 56).seconds_since_midnight # => 45296
-  #   Time.new(2012, 8, 29, 23, 59, 59).seconds_since_midnight # => 86399
+  #   Time.new(2012, 8, 29,  0,  0,  0).seconds_since_midnight # => 0.0
+  #   Time.new(2012, 8, 29, 12, 34, 56).seconds_since_midnight # => 45296.0
+  #   Time.new(2012, 8, 29, 23, 59, 59).seconds_since_midnight # => 86399.0
   def seconds_since_midnight
     to_i - change(:hour => 0).to_i + (usec / 1.0e+6)
   end
