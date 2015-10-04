@@ -24,7 +24,7 @@ class Time
   #
   # This method is aliased to <tt>to_s</tt>.
   #
-  #   time = Time.now                    # => Thu Jan 18 06:10:17 CST 2007
+  #   time = Time.now                    # => 2007-01-18 06:10:17 -06:00
   #
   #   time.to_formatted_s(:time)         # => "06:10"
   #   time.to_s(:time)                   # => "06:10"
