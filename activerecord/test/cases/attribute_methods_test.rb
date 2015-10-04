@@ -824,6 +824,16 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_equal nil, Topic.new.read_attribute(nil)
   end
 
+
+  def test_read_attribute_as_aliase
+    topic = Topic.new
+    title = "Hello"
+    topic.write_attribute("heading", title)
+    assert_equal title, topic["title"]
+    assert_equal title, topic.read_attribute("heading")
+  end
+
+
   # If B < A, and A defines an accessor for 'foo', we don't want to override
   # that by defining a 'foo' method in the generated methods module for B.
   # (That module will be inserted between the two, e.g. [B, <GeneratedAttributes>, A].)

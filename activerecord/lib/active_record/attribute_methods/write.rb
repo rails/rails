@@ -57,6 +57,9 @@ module ActiveRecord
 
       def write_attribute_with_type_cast(attr_name, value, should_type_cast)
         attr_name = attr_name.to_s
+        if aliased_name = attribute_aliases[attr_name]
+          attr_name = aliased_name
+        end
         attr_name = self.class.primary_key if attr_name == 'id' && self.class.primary_key
 
         if should_type_cast

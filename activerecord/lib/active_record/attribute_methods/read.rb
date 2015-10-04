@@ -61,6 +61,9 @@ module ActiveRecord
       # to a date object, like Date.new(2004, 12, 12)).
       def read_attribute(attr_name, &block)
         name = attr_name.to_s
+        if aliased_name = attribute_aliases[name]
+          name = aliased_name
+        end
         name = self.class.primary_key if name == 'id'.freeze
         _read_attribute(name, &block)
       end
