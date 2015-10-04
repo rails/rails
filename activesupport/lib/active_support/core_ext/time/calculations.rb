@@ -18,7 +18,7 @@ class Time
 
     # Return the number of days in the given month.
     # If no year is specified, it will use the current year.
-    def days_in_month(month, year = now.year)
+    def days_in_month(month, year = current.year)
       if month == 2 && ::Date.gregorian_leap?(year)
         29
       else
