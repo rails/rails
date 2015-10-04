@@ -42,6 +42,24 @@ class HeaderTest < ActiveSupport::TestCase
     assert_equal "127.0.0.1", @headers["HTTP_HOST"]
   end
 
+  test "add to multivalued headers" do
+    # Sets header when not present
+    @headers.add 'Foo', '1'
+    assert_equal '1', @headers['Foo']
+
+    # Ignores nil values
+    @headers.add 'Foo', nil
+    assert_equal '1', @headers['Foo']
+
+    # Converts value to string
+    @headers.add 'Foo', 1
+    assert_equal '1,1', @headers['Foo']
+
+    # Case-insensitive
+    @headers.add 'fOo', 2
+    assert_equal '1,1,2', @headers['foO']
+  end
+
   test "headers can contain numbers" do
     @headers["Content-MD5"] = "Q2hlY2sgSW50ZWdyaXR5IQ=="
 

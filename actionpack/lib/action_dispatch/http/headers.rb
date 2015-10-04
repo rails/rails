@@ -49,6 +49,11 @@ module ActionDispatch
         @req.set_header env_name(key), value
       end
 
+      # Add a value to a multivalued header like Vary or Accept-Encoding.
+      def add(key, value)
+        @req.add_header env_name(key), value
+      end
+
       def key?(key)
         @req.has_header? env_name(key)
       end

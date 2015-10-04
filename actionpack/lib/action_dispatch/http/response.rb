@@ -156,30 +156,10 @@ module ActionDispatch # :nodoc:
       yield self if block_given?
     end
 
-    def have_header?(key);  headers.key? key;   end
+    def has_header?(key);   headers.key? key;   end
     def get_header(key);    headers[key];       end
     def set_header(key, v); headers[key] = v;   end
     def delete_header(key); headers.delete key; end
-
-    # Add a header that may have multiple values.
-    #
-    # Example:
-    #   response.add_header 'Vary', 'Accept'
-    #   response.add_header 'Vary', 'Accept-Encoding'
-    #   response.add_header 'Vary', 'Cookie'
-    #
-    #   assert_equal 'Accept,Accept-Encoding,Cookie', response.get_header 'Vary'
-    #
-    # http://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.2
-    def add_header(key, v)
-      if v.nil?
-        get_header key
-      elsif have_header? key
-        set_header key, "#{get_header key},#{v}"
-      else
-        set_header key, v
-      end
-    end
 
     def await_commit
       synchronize do

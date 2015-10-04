@@ -29,7 +29,7 @@ GIT
 
 GIT
   remote: git://github.com/rack/rack.git
-  revision: c28f271d0c91f45e13bfa8f07bed445ef91f41de
+  revision: c617ea99c12a5bfe026e00476ff37e714e01891a
   branch: master
   specs:
     rack (2.0.0.alpha)
