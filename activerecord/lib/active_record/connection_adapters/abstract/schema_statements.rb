@@ -702,9 +702,11 @@ module ActiveRecord
       # [<tt>:index</tt>]
       #   Add an appropriate index. Defaults to false.
       # [<tt>:foreign_key</tt>]
-      #   Add an appropriate foreign key. Defaults to false.
+      #   Add an appropriate foreign key constraint. Defaults to false.
       # [<tt>:polymorphic</tt>]
       #   Whether an additional +_type+ column should be added. Defaults to false.
+      # [<tt>:null</tt>]
+      #   Whether the column allows nulls. Defaults to true.
       #
       # ====== Create a user_id integer column
       #
