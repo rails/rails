@@ -72,6 +72,17 @@ module ActiveRecord
         end
       end
 
+      if mysql_function_defaults_supported?
+        def test_mysql_rename_column_preserves_default_options
+          TestModel.reset_column_information
+          assert_nothing_raised(StatementInvalid) do
+            add_column "test_models", "mysql_tested_at", :datetime, null: false, default: 'CURRENT_TIMESTAMP'
+            rename_column "test_models", "mysql_tested_at", "should_not_fail_at"
+            remove_column "test_models", "should_not_fail_at"
+          end
+        end
+      end
+
       def test_rename_nonexistent_column
         exception = if current_adapter?(:PostgreSQLAdapter, :OracleAdapter)
                       ActiveRecord::StatementInvalid
