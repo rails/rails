@@ -195,7 +195,7 @@ class SendFileTest < ActionController::TestCase
   %w(file data).each do |method|
     define_method "test_send_#{method}_status" do
       @controller.options = { :stream => false, :status => 500 }
-      assert_nothing_raised { assert_not_nil process(method) }
+      assert_not_nil process(method)
       assert_equal 500, @response.status
     end
 

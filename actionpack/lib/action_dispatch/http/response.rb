@@ -39,7 +39,7 @@ module ActionDispatch # :nodoc:
       end
 
       def []=(k,v)
-        if @response.committed?
+        if @response.sending? || @response.sent?
           raise ActionDispatch::IllegalStateError, 'header already sent'
         end
 
@@ -279,6 +279,10 @@ module ActionDispatch # :nodoc:
       @stream.body
     end
 
+    def write(string)
+      @stream.write string
+    end
+
     EMPTY = " "
 
     # Allows you to manually set or override the response body.
@@ -292,6 +296,40 @@ module ActionDispatch # :nodoc:
           @stream = build_buffer self, munge_body_object(body)
         end
       end
+    end
+
+    # Avoid having to pass an open file handle as the response body.
+    # Rack::Sendfile will usually intercept the response and uses
+    # the path directly, so there is no reason to open the file.
+    class FileBody #:nodoc:
+      attr_reader :to_path
+
+      def initialize(path)
+        @to_path = path
+      end
+
+      def body
+        File.binread(to_path)
+      end
+
+      # Stream the file's contents if Rack::Sendfile isn't present.
+      def each
+        File.open(to_path, 'rb') do |file|
+          while chunk = file.read(16384)
+            yield chunk
+          end
+        end
+      end
+    end
+
+    # Send the file stored at +path+ as the response body.
+    def send_file(path)
+      commit!
+      @stream = FileBody.new(path)
+    end
+
+    def reset_body!
+      @stream = build_buffer(self, [])
     end
 
     def body_parts
