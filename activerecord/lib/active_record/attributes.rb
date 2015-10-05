@@ -5,9 +5,6 @@ module ActiveRecord
   module Attributes
     extend ActiveSupport::Concern
 
-    # :nodoc:
-    Type = ActiveRecord::Type
-
     included do
       class_attribute :attributes_to_define_after_schema_loads, instance_accessor: false # :internal:
       self.attributes_to_define_after_schema_loads = {}
