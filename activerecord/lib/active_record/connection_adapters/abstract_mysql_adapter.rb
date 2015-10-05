@@ -102,6 +102,11 @@ module ActiveRecord
           super
         end
 
+        def quote_default_expression(value, column) #:nodoc:
+          return value if option_is_a_function?(value)
+          super
+        end
+
         def add_column_position!(sql, options)
           if options[:first]
             sql << " FIRST"
@@ -109,6 +114,24 @@ module ActiveRecord
             sql << " AFTER #{quote_column_name(options[:after])}"
           end
           sql
+        end
+
+        def option_is_a_function?(option)
+          return false if option.blank? or
+            option =~ /\(\w+\)$/ or
+            !mysql_version_supports_function_defaults?
+
+          # append parenthesis to ensure function syntax.
+          _o = option.dup
+          _o += "()" unless _o =~ /\(\)$/
+
+          @conn.select_value("SELECT #{_o}").present?
+        rescue StandardError => e
+          return false
+        end
+
+        def mysql_version_supports_function_defaults?
+          @conn.send(:version) >= '5.6.5'
         end
 
         def index_in_create(table_name, column_name, options)
