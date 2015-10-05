@@ -4,11 +4,10 @@ module AbstractController
   module Collector
     def self.generate_method_for_mime(mime)
       sym = mime.is_a?(Symbol) ? mime : mime.to_sym
-      const = sym.upcase
       class_eval <<-RUBY, __FILE__, __LINE__ + 1
-        def #{sym}(*args, &block)                # def html(*args, &block)
-          custom(Mime::Type[:#{const}], *args, &block)  #   custom(Mime::Type[:HTML], *args, &block)
-        end                                      # end
+        def #{sym}(*args, &block)
+          custom(Mime[:#{sym}], *args, &block)
+        end
       RUBY
     end
 
@@ -23,17 +22,13 @@ module AbstractController
   protected
 
     def method_missing(symbol, &block)
-      const_name = symbol.upcase
-
-      unless Mime::Type.registered?(const_name)
+      unless mime_constant = Mime[symbol]
         raise NoMethodError, "To respond to a custom format, register it as a MIME type first: " \
           "http://guides.rubyonrails.org/action_controller_overview.html#restful-downloads. " \
           "If you meant to respond to a variant like :tablet or :phone, not a custom format, " \
           "be sure to nest your variant response within a format response: " \
           "format.html { |html| html.tablet { ... } }"
       end
-
-      mime_constant = Mime::Type[const_name]
 
       if Mime::SET.include?(mime_constant)
         AbstractController::Collector.generate_method_for_mime(mime_constant)

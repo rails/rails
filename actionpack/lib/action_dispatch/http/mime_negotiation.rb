@@ -10,7 +10,7 @@ module ActionDispatch
         self.ignore_accept_header = false
       end
 
-      # The MIME type of the HTTP request, such as Mime::Type[:XML].
+      # The MIME type of the HTTP request, such as Mime[:xml].
       #
       # For backward compatibility, the post \format is extracted from the
       # X-Post-Data-Format HTTP header if present.
@@ -49,9 +49,9 @@ module ActionDispatch
 
       # Returns the MIME type for the \format used in the request.
       #
-      #   GET /posts/5.xml   | request.format => Mime::Type[:XML]
-      #   GET /posts/5.xhtml | request.format => Mime::Type[:HTML]
-      #   GET /posts/5       | request.format => Mime::Type[:HTML] or Mime::Type[:JS], or request.accepts.first
+      #   GET /posts/5.xml   | request.format => Mime[:xml]
+      #   GET /posts/5.xhtml | request.format => Mime[:html]
+      #   GET /posts/5       | request.format => Mime[:html] or Mime[:js], or request.accepts.first
       #
       def format(view_path = [])
         formats.first || Mime::NullType.instance
@@ -70,9 +70,9 @@ module ActionDispatch
           elsif use_accept_header && valid_accept_header
             accepts
           elsif xhr?
-            [Mime::Type[:JS]]
+            [Mime[:js]]
           else
-            [Mime::Type[:HTML]]
+            [Mime[:html]]
           end
           set_header k, v
         end
@@ -138,14 +138,14 @@ module ActionDispatch
       #
       def negotiate_mime(order)
         formats.each do |priority|
-          if priority == Mime::Type[:ALL]
+          if priority == Mime::ALL
             return order.first
           elsif order.include?(priority)
             return priority
           end
         end
 
-        order.include?(Mime::Type[:ALL]) ? format : nil
+        order.include?(Mime::ALL) ? format : nil
       end
 
       protected

@@ -427,7 +427,7 @@ module ActionDispatch # :nodoc:
       return if content_type
 
       ct = parse_content_type
-      set_content_type(ct.mime_type || Mime::Type[:HTML].to_s,
+      set_content_type(ct.mime_type || Mime[:html].to_s,
                        ct.charset || self.class.default_charset)
     end
 

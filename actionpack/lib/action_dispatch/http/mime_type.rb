@@ -46,7 +46,8 @@ module Mime
     end
 
     def const_missing(sym)
-      if Mime::Type.registered?(sym)
+      ext = sym.downcase
+      if Mime[ext]
         ActiveSupport::Deprecation.warn <<-eow
 Accessing mime types via constants is deprecated.  Please change:
 
@@ -54,16 +55,17 @@ Accessing mime types via constants is deprecated.  Please change:
 
 to:
 
-  `Mime::Type[:#{sym}]`
+  `Mime[:#{ext}]`
         eow
-        Mime::Type[sym]
+        Mime[ext]
       else
         super
       end
     end
 
     def const_defined?(sym, inherit = true)
-      if Mime::Type.registered?(sym)
+      ext = sym.downcase
+      if Mime[ext]
         ActiveSupport::Deprecation.warn <<-eow
 Accessing mime types via constants is deprecated.  Please change:
 
@@ -71,7 +73,7 @@ Accessing mime types via constants is deprecated.  Please change:
 
 to:
 
-  `Mime::Type.registered?(:#{sym})`
+  `Mime[:#{ext}]`
         eow
         true
       else
@@ -106,7 +108,7 @@ to:
       def initialize(index, name, q = nil)
         @index = index
         @name = name
-        q ||= 0.0 if @name == Mime::Type[:ALL].to_s # default wildcard match to end of list
+        q ||= 0.0 if @name == '*/*'.freeze # default wildcard match to end of list
         @q = ((q || 1.0).to_f * 100).to_i
       end
 
@@ -131,7 +133,7 @@ to:
           exchange_xml_items if app_xml_idx > text_xml_idx  # make sure app_xml is ahead of text_xml in the list
           delete_at(text_xml_idx)                 # delete text_xml from the list
         elsif text_xml_idx
-          text_xml.name = Mime::Type[:XML].to_s
+          text_xml.name = Mime[:xml].to_s
         end
 
         # Look for more specific XML-based types and sort them ahead of app/xml
@@ -160,7 +162,7 @@ to:
         end
 
         def app_xml_idx
-          @app_xml_idx ||= index(Mime::Type[:XML].to_s)
+          @app_xml_idx ||= index(Mime[:xml].to_s)
         end
 
         def text_xml
@@ -177,26 +179,12 @@ to:
         end
     end
 
-    TYPES = {}
-
     class << self
       TRAILING_STAR_REGEXP = /(text|application)\/\*/
       PARAMETER_SEPARATOR_REGEXP = /;\s*\w+="?\w+"?/
 
       def register_callback(&block)
         @register_callbacks << block
-      end
-
-      def registered?(symbol)
-        TYPES.key? symbol
-      end
-
-      def [](symbol)
-        TYPES[symbol]
-      end
-
-      def add_type(symbol, type)
-        TYPES[symbol] = type
       end
 
       def lookup(string)
@@ -215,7 +203,6 @@ to:
 
       def register(string, symbol, mime_type_synonyms = [], extension_synonyms = [], skip_lookup = false)
         new_mime = Type.new(string, symbol, mime_type_synonyms)
-        add_type symbol.upcase, new_mime
 
         SET << new_mime
 
@@ -255,13 +242,13 @@ to:
         parse_data_with_trailing_star($1) if accept_header =~ TRAILING_STAR_REGEXP
       end
 
-      # For an input of <tt>'text'</tt>, returns <tt>[Mime::Type[:JSON], Mime::Type[:XML], Mime::Type[:ICS],
-      # Mime::Type[:HTML], Mime::Type[:CSS], Mime::Type[:CSV], Mime::Type[:JS], Mime::Type[:YAML], Mime::Type[:TEXT]</tt>.
+      # For an input of <tt>'text'</tt>, returns <tt>[Mime[:json], Mime[:xml], Mime[:ics],
+      # Mime[:html], Mime[:css], Mime[:csv], Mime[:js], Mime[:yaml], Mime[:text]</tt>.
       #
-      # For an input of <tt>'application'</tt>, returns <tt>[Mime::Type[:HTML], Mime::Type[:JS],
-      # Mime::Type[:XML], Mime::Type[:YAML], Mime::Type[:ATOM], Mime::Type[:JSON], Mime::Type[:RSS], Mime::Type[:URL_ENCODED_FORM]</tt>.
-      def parse_data_with_trailing_star(input)
-        Mime::SET.select { |m| m =~ input }
+      # For an input of <tt>'application'</tt>, returns <tt>[Mime[:html], Mime[:js],
+      # Mime[:xml], Mime[:yaml], Mime[:atom], Mime[:json], Mime[:rss], Mime[:url_encoded_form]</tt>.
+      def parse_data_with_trailing_star(type)
+        Mime::SET.select { |m| m =~ type }
       end
 
       # This method is opposite of register method.
@@ -270,12 +257,12 @@ to:
       #
       #   Mime::Type.unregister(:mobile)
       def unregister(symbol)
-        symbol = symbol.upcase
-        mime = TYPES.delete symbol
-
-        SET.delete_if { |v| v.eql?(mime) }
-        LOOKUP.delete_if { |_,v| v.eql?(mime) }
-        EXTENSION_LOOKUP.delete_if { |_,v| v.eql?(mime) }
+        symbol = symbol.downcase
+        if mime = Mime[symbol]
+          SET.delete_if { |v| v.eql?(mime) }
+          LOOKUP.delete_if { |_, v| v.eql?(mime) }
+          EXTENSION_LOOKUP.delete_if { |_, v| v.eql?(mime) }
+        end
       end
     end
 
@@ -343,12 +330,23 @@ to:
     def respond_to_missing?(method, include_private = false) #:nodoc:
       method.to_s.ends_with? '?'
     end
-
-    class All < Type
-      def all?; true; end
-      def html?; true; end
-    end
   end
+
+  class AllType < Type
+    include Singleton
+
+    def initialize
+      super '*/*', :all
+    end
+
+    def all?; true; end
+    def html?; true; end
+  end
+
+  # ALL isn't a real MIME type, so we don't register it for lookup with the
+  # other concrete types. It's a wildcard match that we use for `respond_to`
+  # negotiation internals.
+  ALL = AllType.instance
 
   class NullType
     include Singleton

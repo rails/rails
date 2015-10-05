@@ -4,7 +4,7 @@ module ActionDispatch
       PARAMETERS_KEY = 'action_dispatch.request.path_parameters'
 
       DEFAULT_PARSERS = {
-        Mime::Type[:JSON] => lambda { |raw_post|
+        Mime[:json] => lambda { |raw_post|
           data = ActiveSupport::JSON.decode(raw_post)
           data.is_a?(Hash) ? data : {:_json => data}
         }

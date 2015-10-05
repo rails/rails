@@ -31,7 +31,7 @@ class Rails::MailersController < Rails::ApplicationController # :nodoc:
             raise AbstractController::ActionNotFound, "Email part '#{part_type}' not found in #{@preview.name}##{@email_action}"
           end
         else
-          @part = find_preferred_part(request.format, Mime::Type[:HTML], Mime::Type[:TEXT])
+          @part = find_preferred_part(request.format, Mime[:html], Mime[:text])
           render action: 'email', layout: false, formats: %w[html]
         end
       else

@@ -22,7 +22,7 @@ class SendFileController < ActionController::Base
 
   def test_send_file_headers_bang
     options = {
-      :type => Mime::Type[:PNG],
+      :type => Mime[:png],
       :disposition => 'disposition',
       :filename => 'filename'
     }
@@ -32,7 +32,7 @@ class SendFileController < ActionController::Base
 
   def test_send_file_headers_with_disposition_as_a_symbol
     options = {
-      :type => Mime::Type[:PNG],
+      :type => Mime[:png],
       :disposition => :disposition,
       :filename => 'filename'
     }

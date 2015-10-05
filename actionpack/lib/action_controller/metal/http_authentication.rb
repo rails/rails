@@ -34,7 +34,7 @@ module ActionController
     #
     #       def authenticate
     #         case request.format
-    #         when Mime::Type[:XML], Mime::Type[:ATOM]
+    #         when Mime[:xml], Mime[:atom]
     #           if user = authenticate_with_http_basic { |u, p| @account.users.authenticate(u, p) }
     #             @current_user = user
     #           else
@@ -361,7 +361,7 @@ module ActionController
     #
     #       def authenticate
     #         case request.format
-    #         when Mime::Type[:XML], Mime::Type[:ATOM]
+    #         when Mime[:xml], Mime[:atom]
     #           if user = authenticate_with_http_token { |t, o| @account.users.authenticate(t, o) }
     #             @current_user = user
     #           else
