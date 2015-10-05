@@ -669,7 +669,14 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
       # One query for columns (delete_me table)
       # One query for primary key (delete_me table)
       # One query to do the bulk change
-      assert_queries(3, :ignore_none => true) do
+      if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
+        # One query to do function support check on mysql
+        query_count = 4
+      else
+        query_count = 3
+      end
+
+      assert_queries(query_count, :ignore_none => true) do
         with_bulk_change_table do |t|
           t.change :name, :string, :default => 'NONAME'
           t.change :birthdate, :datetime
