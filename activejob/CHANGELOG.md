@@ -1,3 +1,8 @@
+*   Fixed serializing `:at` option for `assert_enqueued_with`
+    and `assert_performed_with`.
+
+    *Wojciech Wnętrzak*
+
 *   Support passing array to `assert_enqueued_jobs` in `:only` option.
 
     *Wojciech Wnętrzak*
