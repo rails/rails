@@ -226,7 +226,7 @@ module ActiveModel
     # (See ActiveModel::Name for more information).
     #
     #   class Person
-    #     include ActiveModel::Model
+    #     extend ActiveModel::Naming
     #   end
     #
     #   Person.model_name.name     # => "Person"
