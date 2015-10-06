@@ -19,12 +19,12 @@ module ActiveJob
       #
       # Returns a String that will be passed to #aj_load when executing job.
       def aj_dump(value)
-        raise NotImplementedError, "Implementation for #{self.class}##{__method__} must be provided"
+        raise NotImplementedError, "Implementation for #{self}.#{__method__} must be provided"
       end
 
       # Used to deserialize an argument. Return value of this method will be actual argument passed to the job instance.
       def aj_load(value)
-        raise NotImplementedError, "Implementation for #{self.class}##{__method__} must be provided"
+        raise NotImplementedError, "Implementation for #{self}.#{__method__} must be provided"
       end
 
     end
