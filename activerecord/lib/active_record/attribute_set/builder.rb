@@ -68,9 +68,28 @@ module ActiveRecord
       end
     end
 
+    def ==(other)
+      if other.is_a?(LazyAttributeHash)
+        materialize == other.materialize
+      else
+        materialize == other
+      end
+    end
+
     protected
 
     attr_reader :types, :values, :additional_types, :delegate_hash
+
+    def materialize
+      unless @materialized
+        values.each_key { |key| self[key] }
+        types.each_key { |key| self[key] }
+        unless frozen?
+          @materialized = true
+        end
+      end
+      delegate_hash
+    end
 
     private
 
@@ -84,17 +103,6 @@ module ActiveRecord
       elsif types.key?(name)
         delegate_hash[name] = Attribute.uninitialized(name, type)
       end
-    end
-
-    def materialize
-      unless @materialized
-        values.each_key { |key| self[key] }
-        types.each_key { |key| self[key] }
-        unless frozen?
-          @materialized = true
-        end
-      end
-      delegate_hash
     end
   end
 end
