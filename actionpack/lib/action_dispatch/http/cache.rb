@@ -82,19 +82,15 @@ module ActionDispatch
 
         def etag=(etag)
           key = ActiveSupport::Cache.expand_cache_key(etag)
-          set_header ETAG, %("#{Digest::MD5.hexdigest(key)}")
+          super %("#{Digest::MD5.hexdigest(key)}")
         end
 
-        def etag
-          get_header ETAG
-        end
-        alias :etag? :etag
+        def etag?; etag; end
 
       private
 
         DATE          = 'Date'.freeze
         LAST_MODIFIED = "Last-Modified".freeze
-        ETAG          = "ETag".freeze
         CACHE_CONTROL = "Cache-Control".freeze
         SPECIAL_KEYS  = Set.new(%w[extras no-cache max-age public must-revalidate])
 
