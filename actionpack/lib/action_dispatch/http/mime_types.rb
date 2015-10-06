@@ -31,6 +31,3 @@ Mime::Type.register "application/json", :json, %w( text/x-json application/jsonr
 
 Mime::Type.register "application/pdf", :pdf, [], %w(pdf)
 Mime::Type.register "application/zip", :zip, [], %w(zip)
-
-# Create Mime::Type[:ALL] but do not add it to the SET.
-Mime::Type.add_type :ALL, Mime::Type::All.new("*/*", :all, [])

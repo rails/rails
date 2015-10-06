@@ -466,7 +466,7 @@ class TestController < ApplicationController
   end
 
   def render_content_type_from_body
-    response.content_type = Mime::RSS
+    response.content_type = Mime[:rss]
     render body: "hello world!"
   end
 

@@ -750,33 +750,33 @@ class RequestFormat < BaseRequestTest
   test "xml format" do
     request = stub_request
     assert_called(request, :parameters, times: 2, returns: {format: :xml}) do
-      assert_equal Mime::Type[:XML], request.format
+      assert_equal Mime[:xml], request.format
     end
   end
 
   test "xhtml format" do
     request = stub_request
     assert_called(request, :parameters, times: 2, returns: {format: :xhtml}) do
-      assert_equal Mime::Type[:HTML], request.format
+      assert_equal Mime[:html], request.format
     end
   end
 
   test "txt format" do
     request = stub_request
     assert_called(request, :parameters, times: 2, returns: {format: :txt}) do
-      assert_equal Mime::Type[:TEXT], request.format
+      assert_equal Mime[:text], request.format
     end
   end
 
   test "XMLHttpRequest" do
     request = stub_request(
       'HTTP_X_REQUESTED_WITH' => 'XMLHttpRequest',
-      'HTTP_ACCEPT' => [Mime::Type[:JS], Mime::Type[:HTML], Mime::Type[:XML], "text/xml", Mime::Type[:ALL]].join(",")
+      'HTTP_ACCEPT' => [Mime[:js], Mime[:html], Mime[:xml], "text/xml", "*/*"].join(",")
     )
 
     assert_called(request, :parameters, times: 1, returns: {}) do
       assert request.xhr?
-      assert_equal Mime::Type[:JS], request.format
+      assert_equal Mime[:js], request.format
     end
   end
 
@@ -796,29 +796,29 @@ class RequestFormat < BaseRequestTest
 
   test "formats text/html with accept header" do
     request = stub_request 'HTTP_ACCEPT' => 'text/html'
-    assert_equal [Mime::Type[:HTML]], request.formats
+    assert_equal [Mime[:html]], request.formats
   end
 
   test "formats blank with accept header" do
     request = stub_request 'HTTP_ACCEPT' => ''
-    assert_equal [Mime::Type[:HTML]], request.formats
+    assert_equal [Mime[:html]], request.formats
   end
 
   test "formats XMLHttpRequest with accept header" do
     request = stub_request 'HTTP_X_REQUESTED_WITH' => "XMLHttpRequest"
-    assert_equal [Mime::Type[:JS]], request.formats
+    assert_equal [Mime[:js]], request.formats
   end
 
   test "formats application/xml with accept header" do
     request = stub_request('CONTENT_TYPE' => 'application/xml; charset=UTF-8',
                            'HTTP_X_REQUESTED_WITH' => "XMLHttpRequest")
-    assert_equal [Mime::Type[:XML]], request.formats
+    assert_equal [Mime[:xml]], request.formats
   end
 
   test "formats format:text with accept header" do
     request = stub_request
     assert_called(request, :parameters, times: 2, returns: {format: :txt}) do
-      assert_equal [Mime::Type[:TEXT]], request.formats
+      assert_equal [Mime[:text]], request.formats
     end
   end
 
@@ -848,7 +848,7 @@ class RequestFormat < BaseRequestTest
   test "formats with xhr request" do
     request = stub_request 'HTTP_X_REQUESTED_WITH' => "XMLHttpRequest"
     assert_called(request, :parameters, times: 1, returns: {}) do
-      assert_equal [Mime::Type[:JS]], request.formats
+      assert_equal [Mime[:js]], request.formats
     end
   end
 
@@ -859,35 +859,35 @@ class RequestFormat < BaseRequestTest
     begin
       request = stub_request 'HTTP_ACCEPT' => 'application/xml'
       assert_called(request, :parameters, times: 1, returns: {}) do
-        assert_equal [ Mime::Type[:HTML] ], request.formats
+        assert_equal [ Mime[:html] ], request.formats
       end
 
       request = stub_request 'HTTP_ACCEPT' => 'koz-asked/something-crazy'
       assert_called(request, :parameters, times: 1, returns: {}) do
-        assert_equal [ Mime::Type[:HTML] ], request.formats
+        assert_equal [ Mime[:html] ], request.formats
       end
 
       request = stub_request 'HTTP_ACCEPT' => '*/*;q=0.1'
       assert_called(request, :parameters, times: 1, returns: {}) do
-        assert_equal [ Mime::Type[:HTML] ], request.formats
+        assert_equal [ Mime[:html] ], request.formats
       end
 
       request = stub_request 'HTTP_ACCEPT' => 'application/jxw'
       assert_called(request, :parameters, times: 1, returns: {}) do
-        assert_equal [ Mime::Type[:HTML] ], request.formats
+        assert_equal [ Mime[:html] ], request.formats
       end
 
       request = stub_request 'HTTP_ACCEPT' => 'application/xml',
                              'HTTP_X_REQUESTED_WITH' => "XMLHttpRequest"
 
       assert_called(request, :parameters, times: 1, returns: {}) do
-        assert_equal [ Mime::Type[:JS] ], request.formats
+        assert_equal [ Mime[:js] ], request.formats
       end
 
       request = stub_request 'HTTP_ACCEPT' => 'application/xml',
                              'HTTP_X_REQUESTED_WITH' => "XMLHttpRequest"
       assert_called(request, :parameters, times: 2, returns: {format: :json}) do
-        assert_equal [ Mime::Type[:JSON] ], request.formats
+        assert_equal [ Mime[:json] ], request.formats
       end
     ensure
       ActionDispatch::Request.ignore_accept_header = old_ignore_accept_header
@@ -897,7 +897,7 @@ end
 
 class RequestMimeType < BaseRequestTest
   test "content type" do
-    assert_equal Mime::Type[:HTML], stub_request('CONTENT_TYPE' => 'text/html').content_mime_type
+    assert_equal Mime[:html], stub_request('CONTENT_TYPE' => 'text/html').content_mime_type
   end
 
   test "no content type" do
@@ -905,11 +905,11 @@ class RequestMimeType < BaseRequestTest
   end
 
   test "content type is XML" do
-    assert_equal Mime::Type[:XML], stub_request('CONTENT_TYPE' => 'application/xml').content_mime_type
+    assert_equal Mime[:xml], stub_request('CONTENT_TYPE' => 'application/xml').content_mime_type
   end
 
   test "content type with charset" do
-    assert_equal Mime::Type[:XML], stub_request('CONTENT_TYPE' => 'application/xml; charset=UTF-8').content_mime_type
+    assert_equal Mime[:xml], stub_request('CONTENT_TYPE' => 'application/xml; charset=UTF-8').content_mime_type
   end
 
   test "user agent" do
@@ -922,9 +922,9 @@ class RequestMimeType < BaseRequestTest
       'HTTP_X_REQUESTED_WITH' => "XMLHttpRequest"
     )
 
-    assert_equal nil, request.negotiate_mime([Mime::Type[:XML], Mime::Type[:JSON]])
-    assert_equal Mime::Type[:HTML], request.negotiate_mime([Mime::Type[:XML], Mime::Type[:HTML]])
-    assert_equal Mime::Type[:HTML], request.negotiate_mime([Mime::Type[:XML], Mime::Type[:ALL]])
+    assert_equal nil, request.negotiate_mime([Mime[:xml], Mime[:json]])
+    assert_equal Mime[:html], request.negotiate_mime([Mime[:xml], Mime[:html]])
+    assert_equal Mime[:html], request.negotiate_mime([Mime[:xml], Mime::ALL])
   end
 
   test "negotiate_mime with content_type" do
@@ -933,7 +933,7 @@ class RequestMimeType < BaseRequestTest
       'HTTP_X_REQUESTED_WITH' => "XMLHttpRequest"
     )
 
-    assert_equal Mime::Type[:XML], request.negotiate_mime([Mime::Type[:XML], Mime::Type[:CSV]])
+    assert_equal Mime[:xml], request.negotiate_mime([Mime[:xml], Mime[:csv]])
   end
 end
 

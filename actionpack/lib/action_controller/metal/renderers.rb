@@ -68,11 +68,11 @@ module ActionController
     #   ActionController::Renderers.add :csv do |obj, options|
     #     filename = options[:filename] || 'data'
     #     str = obj.respond_to?(:to_csv) ? obj.to_csv : obj.to_s
-    #     send_data str, type: Mime::Type[:CSV],
+    #     send_data str, type: Mime[:csv],
     #       disposition: "attachment; filename=#{filename}.csv"
     #   end
     #
-    # Note that we used Mime::Type[:CSV] for the csv mime type as it comes with Rails.
+    # Note that we used Mime[:csv] for the csv mime type as it comes with Rails.
     # For a custom renderer, you'll need to register a mime type with
     # <tt>Mime::Type.register</tt>.
     #
@@ -116,24 +116,24 @@ module ActionController
       json = json.to_json(options) unless json.kind_of?(String)
 
       if options[:callback].present?
-        if content_type.nil? || content_type == Mime::Type[:JSON]
-          self.content_type = Mime::Type[:JS]
+        if content_type.nil? || content_type == Mime[:json]
+          self.content_type = Mime[:js]
         end
 
         "/**/#{options[:callback]}(#{json})"
       else
-        self.content_type ||= Mime::Type[:JSON]
+        self.content_type ||= Mime[:json]
         json
       end
     end
 
     add :js do |js, options|
-      self.content_type ||= Mime::Type[:JS]
+      self.content_type ||= Mime[:js]
       js.respond_to?(:to_js) ? js.to_js(options) : js
     end
 
     add :xml do |xml, options|
-      self.content_type ||= Mime::Type[:XML]
+      self.content_type ||= Mime[:xml]
       xml.respond_to?(:to_xml) ? xml.to_xml(options) : xml
     end
   end

@@ -10,11 +10,15 @@
 
     To this:
 
-      Mime::Type[:HTML]
+      Mime[:html]
 
     This change is so that Rails will not manage a list of constants, and fixes
     an issue where if a type isn't registered you could possibly get the wrong
     object.
+
+    `Mime[:html]` is available in older versions of Rails, too, so you can
+    safely change libraries and plugins and maintain compatibility with
+    multiple versions of Rails.
 
 *   `url_for` does not modify its arguments when generating polymorphic URLs.
 
