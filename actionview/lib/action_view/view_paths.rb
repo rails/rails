@@ -61,8 +61,7 @@ module ActionView
       #
       # ==== Parameters
       # * <tt>path</tt> - If a String is provided, it gets converted into
-      #   the default view path. You may also provide a custom view path
-      #   (see ActionView::PathSet for more information)
+      #   the default view path.
       def append_view_path(path)
         self._view_paths = view_paths + Array(path)
       end
@@ -71,8 +70,7 @@ module ActionView
       #
       # ==== Parameters
       # * <tt>path</tt> - If a String is provided, it gets converted into
-      #   the default view path. You may also provide a custom view path
-      #   (see ActionView::PathSet for more information)
+      #   the default view path.
       def prepend_view_path(path)
         self._view_paths = ActionView::PathSet.new(Array(path) + view_paths)
       end
@@ -85,8 +83,8 @@ module ActionView
       # Set the view paths.
       #
       # ==== Parameters
-      # * <tt>paths</tt> - If a PathSet is provided, use that;
-      #   otherwise, process the parameter into a PathSet.
+      # * <tt>paths</tt> - If an Array of String is provided, it gets converted into
+      #   the default view paths.
       def view_paths=(paths)
         self._view_paths = ActionView::PathSet.new(Array(paths))
       end
