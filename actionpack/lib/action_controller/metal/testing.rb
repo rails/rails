@@ -4,9 +4,6 @@ module ActionController
 
     # Behavior specific to functional tests
     module Functional # :nodoc:
-      def set_response!(request)
-      end
-
       def recycle!
         @_url_options = nil
         self.formats = nil
