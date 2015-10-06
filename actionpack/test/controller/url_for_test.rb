@@ -9,6 +9,7 @@ module AbstractController
 
       def teardown
         W.default_url_options.clear
+        ActionDispatch::Routing::RouteSet.relative_url_root = nil
       end
 
       def test_nested_optional
@@ -262,7 +263,15 @@ module AbstractController
         assert_equal('https://www.basecamphq.com/subdir/c/a/i',
           W.new.url_for(:controller => 'c', :action => 'a', :id => 'i', :protocol => 'https')
         )
-        ActionDispatch::Routing::RouteSet.relative_url_root = nil
+      end
+
+      def test_relative_url_root_is_ignored_if_generating_prefix
+        # `config.relative_url_root` is set by ENV['RAILS_RELATIVE_URL_ROOT']
+        ActionDispatch::Routing::RouteSet.relative_url_root = '/subdir'
+        add_host!
+        assert_equal('https://www.basecamphq.com/c/a/i',
+          W.new.url_for(:controller => 'c', :action => 'a', :id => 'i', :protocol => 'https', :_prefix => true)
+        )
       end
 
       def test_named_routes

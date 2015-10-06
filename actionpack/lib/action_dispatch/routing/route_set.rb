@@ -783,7 +783,11 @@ module ActionDispatch
         recall  = options.delete(:_recall) { {} }
 
         original_script_name = options.delete(:original_script_name)
-        script_name = find_script_name options
+        script_name = if options.delete(:_prefix)
+                        options.delete(:script_name) || ''
+                      else
+                        find_script_name options
+                      end
 
         if original_script_name
           script_name = original_script_name + script_name
