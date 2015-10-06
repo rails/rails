@@ -1,3 +1,9 @@
+*   Added javascript to update the URL on mailer previews with the currently
+    selected email format. Reloading the page now keeps you on your selected
+    format rather than going back to the default html version.
+
+    *James Kerr*
+
 *   Add fail fast to `bin/rails test`
 
     Adding `--fail-fast` or `-f` when running tests will interrupt the run on
