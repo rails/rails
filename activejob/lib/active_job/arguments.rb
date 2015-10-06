@@ -52,7 +52,11 @@ module ActiveJob
       SYMBOL_KEYS_KEY = '_aj_symbol_keys'.freeze
       # :nodoc:
       WITH_INDIFFERENT_ACCESS_KEY = '_aj_hash_with_indifferent_access'.freeze
-      private_constant :GLOBALID_KEY, :SYMBOL_KEYS_KEY, :WITH_INDIFFERENT_ACCESS_KEY
+      # :nodoc:
+      CUSTOM_SERIALIZATION_CLASS_KEY = '_aj_custom_serialization_class'.freeze
+      # :nodoc:
+      CUSTOM_SERIALIZATION_VALUE_KEY = '_aj_custom_serialization_value'.freeze
+      private_constant :GLOBALID_KEY, :SYMBOL_KEYS_KEY, :WITH_INDIFFERENT_ACCESS_KEY, :CUSTOM_SERIALIZATION_CLASS_KEY, :CUSTOM_SERIALIZATION_VALUE_KEY
 
       def serialize_argument(argument)
         case argument
@@ -60,6 +64,8 @@ module ActiveJob
           argument
         when GlobalID::Identification
           convert_to_global_id_hash(argument)
+        when ActiveJob::Serialization
+          { CUSTOM_SERIALIZATION_CLASS_KEY => argument.class.to_s, CUSTOM_SERIALIZATION_VALUE_KEY => argument.aj_dump }
         when Array
           argument.map { |arg| serialize_argument(arg) }
         when ActiveSupport::HashWithIndifferentAccess
@@ -87,6 +93,8 @@ module ActiveJob
         when Hash
           if serialized_global_id?(argument)
             deserialize_global_id argument
+          elsif custom_serialization?(argument)
+            deserialize_custom_argument argument
           else
             deserialize_hash(argument)
           end
@@ -101,6 +109,14 @@ module ActiveJob
 
       def deserialize_global_id(hash)
         GlobalID::Locator.locate hash[GLOBALID_KEY]
+      end
+
+      def custom_serialization?(hash)
+        hash.size == 2 and hash.include?(CUSTOM_SERIALIZATION_CLASS_KEY) and hash.include?(CUSTOM_SERIALIZATION_VALUE_KEY)
+      end
+
+      def deserialize_custom_argument(hash)
+        hash[CUSTOM_SERIALIZATION_CLASS_KEY].constantize.aj_load(hash[CUSTOM_SERIALIZATION_VALUE_KEY])
       end
 
       def serialize_hash(argument)
