@@ -15,7 +15,7 @@ module ActiveRecord
       self.cache_timestamp_format = :nsec
     end
 
-    # Returns a String, which Action Pack uses for constructing an URL to this
+    # Returns a String, which Action Pack uses for constructing a URL to this
     # object. The default implementation returns this record's id as a String,
     # or nil if this record's unsaved.
     #

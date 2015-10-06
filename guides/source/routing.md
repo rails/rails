@@ -1096,7 +1096,7 @@ Video.find_by(identifier: params[:identifier])
 ```
 
 You can override `ActiveRecord::Base#to_param` of a related model to construct
-an URL:
+a URL:
 
 ```ruby
 class Video < ActiveRecord::Base
