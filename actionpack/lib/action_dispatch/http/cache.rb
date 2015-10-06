@@ -91,11 +91,10 @@ module ActionDispatch
 
         DATE          = 'Date'.freeze
         LAST_MODIFIED = "Last-Modified".freeze
-        CACHE_CONTROL = "Cache-Control".freeze
         SPECIAL_KEYS  = Set.new(%w[extras no-cache max-age public must-revalidate])
 
         def cache_control_segments
-          if cache_control = get_header(CACHE_CONTROL)
+          if cache_control = _cache_control
             cache_control.delete(' ').split(',')
           else
             []
@@ -149,11 +148,11 @@ module ActionDispatch
           control.merge! cache_control
 
           if control.empty?
-            set_header CACHE_CONTROL, DEFAULT_CACHE_CONTROL
+            self._cache_control = DEFAULT_CACHE_CONTROL
           elsif control[:no_cache]
-            set_header CACHE_CONTROL, NO_CACHE
+            self._cache_control = NO_CACHE
             if control[:extras]
-              set_header(CACHE_CONTROL, get_header(CACHE_CONTROL) + ", #{control[:extras].join(', ')}")
+              self._cache_control = _cache_control + ", #{control[:extras].join(', ')}"
             end
           else
             extras  = control[:extras]
@@ -165,7 +164,7 @@ module ActionDispatch
             options << MUST_REVALIDATE if control[:must_revalidate]
             options.concat(extras) if extras
 
-            set_header CACHE_CONTROL, options.join(", ")
+            self._cache_control = options.join(", ")
           end
         end
       end
