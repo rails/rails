@@ -64,6 +64,10 @@ module ActiveRecord
       end
     end
 
+    def ==(other)
+      attributes == other.attributes
+    end
+
     protected
 
     attr_reader :attributes

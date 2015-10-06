@@ -196,5 +196,15 @@ module ActiveRecord
       attributes.freeze
       assert_equal({ foo: "1" }, attributes.to_hash)
     end
+
+    test "comparison for equality is correctly implemented" do
+      builder = AttributeSet::Builder.new(foo: Type::Integer.new, bar: Type::Integer.new)
+      attributes = builder.build_from_database(foo: "1", bar: "2")
+      attributes2 = builder.build_from_database(foo: "1", bar: "2")
+      attributes3 = builder.build_from_database(foo: "2", bar: "2")
+
+      assert_equal attributes, attributes2
+      assert_not_equal attributes2, attributes3
+    end
   end
 end
