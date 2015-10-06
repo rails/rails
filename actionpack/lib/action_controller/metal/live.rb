@@ -36,8 +36,9 @@ module ActionController
     extend ActiveSupport::Concern
 
     module ClassMethods
-      def make_response!(request)
-        if request.env["HTTP_VERSION"] == "HTTP/1.0"
+      def make_response!(response)
+        request = response.request
+        if request.get_header("HTTP_VERSION") == "HTTP/1.0"
           super
         else
           Live::Response.new.tap do |res|
@@ -293,8 +294,8 @@ module ActionController
       response.close if response
     end
 
-    def set_response!(request)
-      @_response = self.class.make_response! request
+    def set_response!(response)
+      @_response = self.class.make_response! response
     end
   end
 end

@@ -509,15 +509,14 @@ module ActionController
           end
         end
 
-        @controller.request  = @request
-        @controller.response = @response
-
         @request.fetch_header("SCRIPT_NAME") do |k|
           @request.set_header k, @controller.config.relative_url_root
         end
 
         @controller.recycle!
-        @controller.process(action)
+        @controller.dispatch(action, @request, @response)
+        @request = @controller.request
+        @response = @controller.response
 
         @request.delete_header 'HTTP_COOKIE'
 
