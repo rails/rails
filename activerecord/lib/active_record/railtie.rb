@@ -121,7 +121,7 @@ module ActiveRecord
 
     # This sets the database configuration from Configuration#database_configuration
     # and then establishes the connection.
-    initializer "active_record.initialize_database" do |app|
+    initializer "active_record.initialize_database" do
       ActiveSupport.on_load(:active_record) do
         self.configurations = Rails.application.config.database_configuration
 
