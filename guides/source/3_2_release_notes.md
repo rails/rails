@@ -154,7 +154,7 @@ Railties
     rails g scaffold Post title:string:index author:uniq price:decimal{7,2}
     ```
 
-    will create indexes for `title` and `author` with the latter being an unique index. Some types such as decimal accept custom options. In the example, `price` will be a decimal column with precision and scale set to 7 and 2 respectively.
+    will create indexes for `title` and `author` with the latter being a unique index. Some types such as decimal accept custom options. In the example, `price` will be a decimal column with precision and scale set to 7 and 2 respectively.
 
 * Turn gem has been removed from default Gemfile.
 
