@@ -32,7 +32,7 @@ module ActionView
     #
     # ==== Examples
     #   <%= url_for(action: 'index') %>
-    #   # => /blog/
+    #   # => /blogs/
     #
     #   <%= url_for(action: 'find', controller: 'books') %>
     #   # => /books/find
