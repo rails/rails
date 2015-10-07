@@ -172,7 +172,7 @@ module ActionCable
             origin_host = URI.parse(env['HTTP_ORIGIN']).host
 
             allowed = if server.config.allowed_request_origins.present?
-              Array.wrap(server.config.allowed_request_origins).include? origin_host
+              Array(server.config.allowed_request_origins).include? origin_host
             else
               request.host == origin_host
             end
