@@ -341,45 +341,21 @@ module ApplicationTests
     end
 
     def test_output_inline_by_default
-      app_file 'test/models/post_test.rb', <<-RUBY
-        require 'test_helper'
-
-        class PostTest < ActiveSupport::TestCase
-          def test_post
-            assert false, 'wups!'
-          end
-        end
-      RUBY
+      create_test_file :models, 'post', pass: false
 
       output = run_test_command('test/models/post_test.rb')
-      assert_match %r{Running:\n\nF\n\nwups!\n\nbin/rails test test/models/post_test.rb:4}, output
+      assert_match %r{Running:\n\nPostTest\nF\n\nwups!\n\nbin/rails test test/models/post_test.rb:4}, output
     end
 
-    def test_no_failure_output_after_run_if_outputting_inline
-      app_file 'test/models/post_test.rb', <<-RUBY
-        require 'test_helper'
-
-        class PostTest < ActiveSupport::TestCase
-          def test_post
-            assert false, 'wups!'
-          end
-        end
-      RUBY
+    def test_only_inline_failure_output
+      create_test_file :models, 'post', pass: false
 
       output = run_test_command('test/models/post_test.rb')
       assert_match %r{Finished in.*\n\n1 runs, 1 assertions}, output
     end
 
     def test_fail_fast
-      app_file 'test/models/post_test.rb', <<-RUBY
-        require 'test_helper'
-
-        class PostTest < ActiveSupport::TestCase
-          def test_post
-            assert false, 'wups!'
-          end
-        end
-      RUBY
+      create_test_file :models, 'post', pass: false
 
       assert_match(/Interrupt/,
         capture(:stderr) { run_test_command('test/models/post_test.rb --fail-fast') })
@@ -441,14 +417,14 @@ module ApplicationTests
         app_file 'db/schema.rb', ''
       end
 
-      def create_test_file(path = :unit, name = 'test')
+      def create_test_file(path = :unit, name = 'test', pass: true)
         app_file "test/#{path}/#{name}_test.rb", <<-RUBY
           require 'test_helper'
 
           class #{name.camelize}Test < ActiveSupport::TestCase
             def test_truth
               puts "#{name.camelize}Test"
-              assert true
+              assert #{pass}, 'wups!'
             end
           end
         RUBY
