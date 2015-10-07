@@ -3,6 +3,16 @@ require "rails/test_unit/reporter"
 require "rails/test_unit/test_requirer"
 
 module Minitest
+  mattr_accessor(:hide_aggregated_results) { false }
+
+  module AggregatedResultSuppresion
+    def aggregated_results
+      super unless Minitest.hide_aggregated_results
+    end
+  end
+
+  SummaryReporter.prepend AggregatedResultSuppresion
+
   def self.plugin_rails_options(opts, options)
     opts.separator ""
     opts.separator "Usage: bin/rails test [options] [files or directories]"
@@ -38,6 +48,7 @@ module Minitest
       options[:fail_fast] = true
     end
 
+    options[:output_inline] = true
     options[:patterns] = opts.order!
   end
 
@@ -62,6 +73,9 @@ module Minitest
       # Plugin can run without Rails loaded, check before filtering.
       Minitest.backtrace_filter = ::Rails.backtrace_cleaner if ::Rails.respond_to?(:backtrace_cleaner)
     end
+
+    # Disable the extra failure output after a run, unless output is deferred.
+    self.hide_aggregated_results = options[:output_inline]
 
     self.reporter << ::Rails::TestUnitReporter.new(options[:io], options)
   end

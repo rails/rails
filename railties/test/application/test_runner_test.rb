@@ -355,6 +355,21 @@ module ApplicationTests
       assert_match %r{Running:\n\nF\n\nwups!\n\nbin/rails test test/models/post_test.rb:4}, output
     end
 
+    def test_no_failure_output_after_run_if_outputting_inline
+      app_file 'test/models/post_test.rb', <<-RUBY
+        require 'test_helper'
+
+        class PostTest < ActiveSupport::TestCase
+          def test_post
+            assert false, 'wups!'
+          end
+        end
+      RUBY
+
+      output = run_test_command('test/models/post_test.rb')
+      assert_match %r{Finished in.*\n\n1 runs, 1 assertions}, output
+    end
+
     def test_fail_fast
       app_file 'test/models/post_test.rb', <<-RUBY
         require 'test_helper'
