@@ -296,7 +296,7 @@ emails asynchronously:
 ```ruby
 I18n.locale = :eo
 
-UserMailer.welcome(@user).deliver_later # Email will be localized to Esparanto.
+UserMailer.welcome(@user).deliver_later # Email will be localized to Esperanto.
 ```
 
 
