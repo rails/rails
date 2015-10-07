@@ -242,6 +242,15 @@ class EnqueuedJobsTest < ActiveJob::TestCase
 
     assert_equal "No enqueued job found with {:job=>HelloJob, :args=>[#{wilma.inspect}]}", error.message
   end
+
+  def test_assert_enqueued_job_does_not_change_jobs_count
+    HelloJob.perform_later
+    assert_enqueued_with(job: HelloJob) do
+      HelloJob.perform_later
+    end
+
+    assert_equal 2, ActiveJob::Base.queue_adapter.enqueued_jobs.count
+  end
 end
 
 class PerformedJobsTest < ActiveJob::TestCase
@@ -486,5 +495,17 @@ class PerformedJobsTest < ActiveJob::TestCase
     end
 
     assert_equal "No performed job found with {:job=>HelloJob, :args=>[#{wilma.inspect}]}", error.message
+  end
+
+  def test_assert_performed_job_does_not_change_jobs_count
+    assert_performed_with(job: HelloJob) do
+      HelloJob.perform_later
+    end
+
+    assert_performed_with(job: HelloJob) do
+      HelloJob.perform_later
+    end
+
+    assert_equal 2, ActiveJob::Base.queue_adapter.performed_jobs.count
   end
 end
