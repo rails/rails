@@ -69,10 +69,12 @@ module ActiveSupport
     #   parameterize("Donald E. Knuth") # => "donald-e-knuth"
     #   parameterize("^trés|Jolie-- ")  # => "tres-jolie"
     def parameterize(string, sep = '-')
-      # replace accented chars with their ascii equivalents
+      # Replace accented chars with their ASCII equivalents.
       parameterized_string = transliterate(string)
-      # Turn unwanted chars into the separator
+
+      # Turn unwanted chars into the separator.
       parameterized_string.gsub!(/[^a-z0-9\-_]+/i, sep)
+
       unless sep.nil? || sep.empty?
         if sep == "-".freeze
           re_duplicate_separator        = /-{2,}/
@@ -87,6 +89,7 @@ module ActiveSupport
         # Remove leading/trailing separator.
         parameterized_string.gsub!(re_leading_trailing_separator, ''.freeze)
       end
+
       parameterized_string.downcase!
       parameterized_string
     end
