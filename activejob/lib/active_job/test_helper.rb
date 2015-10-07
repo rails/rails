@@ -231,19 +231,17 @@ module ActiveJob
       #       MyJob.set(wait_until: Date.tomorrow.noon).perform_later
       #     end
       #   end
-      def assert_enqueued_with(args = {}, &_block)
-        original_enqueued_jobs = enqueued_jobs.dup
-        clear_enqueued_jobs
+      def assert_enqueued_with(args = {})
+        original_enqueued_jobs_count = enqueued_jobs.count
         args.assert_valid_keys(:job, :args, :at, :queue)
         serialized_args = serialize_args_for_assertion(args)
         yield
-        matching_job = enqueued_jobs.find do |job|
+        in_block_jobs = enqueued_jobs.drop(original_enqueued_jobs_count)
+        matching_job = in_block_jobs.find do |job|
           serialized_args.all? { |key, value| value == job[key] }
         end
         assert matching_job, "No enqueued job found with #{args}"
         instantiate_job(matching_job)
-      ensure
-        queue_adapter.enqueued_jobs = original_enqueued_jobs + enqueued_jobs
       end
 
       # Asserts that the job passed in the block has been performed with the given arguments.
@@ -257,19 +255,17 @@ module ActiveJob
       #       MyJob.set(wait_until: Date.tomorrow.noon).perform_later
       #     end
       #   end
-      def assert_performed_with(args = {}, &_block)
-        original_performed_jobs = performed_jobs.dup
-        clear_performed_jobs
+      def assert_performed_with(args = {})
+        original_performed_jobs_count = performed_jobs.count
         args.assert_valid_keys(:job, :args, :at, :queue)
         serialized_args = serialize_args_for_assertion(args)
         perform_enqueued_jobs { yield }
-        matching_job = performed_jobs.find do |job|
+        in_block_jobs = performed_jobs.drop(original_performed_jobs_count)
+        matching_job = in_block_jobs.find do |job|
           serialized_args.all? { |key, value| value == job[key] }
         end
         assert matching_job, "No performed job found with #{args}"
         instantiate_job(matching_job)
-      ensure
-        queue_adapter.performed_jobs = original_performed_jobs + performed_jobs
       end
 
       def perform_enqueued_jobs(only: nil)
@@ -308,9 +304,9 @@ module ActiveJob
 
         def enqueued_jobs_size(only: nil) # :nodoc:
           if only
-            enqueued_jobs.select { |job| Array(only).include?(job.fetch(:job)) }.size
+            enqueued_jobs.count { |job| Array(only).include?(job.fetch(:job)) }
           else
-            enqueued_jobs.size
+            enqueued_jobs.count
           end
         end
 
