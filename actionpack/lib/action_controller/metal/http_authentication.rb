@@ -94,11 +94,15 @@ module ActionController
       end
 
       def has_basic_credentials?(request)
-        request.authorization.present? && (auth_scheme(request).downcase == 'basic')
+        request.authorization.present? && (auth_scheme(request).downcase == 'basic') && !user_name_or_password_blank?(request)
       end
 
       def user_name_and_password(request)
         decode_credentials(request).split(':', 2)
+      end
+
+      def user_name_or_password_blank?(request)
+        user_name_and_password(request).all?(&:blank?)
       end
 
       def decode_credentials(request)
