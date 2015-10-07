@@ -49,7 +49,7 @@ module Rails
 
     private
       def output_inline?
-        options.fetch(:output_inline, true)
+        options[:output_inline]
       end
 
       def fail_fast?

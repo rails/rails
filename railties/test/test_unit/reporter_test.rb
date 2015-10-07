@@ -8,7 +8,7 @@ class TestUnitReporterTest < ActiveSupport::TestCase
 
   setup do
     @output = StringIO.new
-    @reporter = Rails::TestUnitReporter.new @output
+    @reporter = Rails::TestUnitReporter.new @output, output_inline: true
   end
 
   test "prints rerun snippet to run a single failed test" do
@@ -72,7 +72,7 @@ class TestUnitReporterTest < ActiveSupport::TestCase
   end
 
   test "outputs skipped tests inline if verbose" do
-    verbose = Rails::TestUnitReporter.new @output, verbose: true
+    verbose = Rails::TestUnitReporter.new @output, verbose: true, output_inline: true
     verbose.record(skipped_test)
     verbose.report
 
