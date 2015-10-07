@@ -40,7 +40,9 @@ When called without arguments like this, it creates a `<form>` tag which, when s
 </form>
 ```
 
-You'll notice that the HTML contains `input` element with type `hidden`. This `input` is important, because the form cannot be successfully submitted without it. The hidden input element has name attribute of `utf8` enforces browsers to properly respect your form's character encoding and is generated for all forms whether their actions are "GET" or "POST". The second input element with name `authenticity_token` is a security feature of Rails called **cross-site request forgery protection**, and form helpers generate it for every non-GET form (provided that this security feature is enabled). You can read more about this in the [Security Guide](security.html#cross-site-request-forgery-csrf).
+You'll notice that the HTML contains an `input` element with type `hidden`. This `input` is important, because the form cannot be successfully submitted without it. The hidden input element with the name `utf8` enforces browsers to properly respect your form's character encoding and is generated for all forms whether their action is "GET" or "POST".
+
+The second input element with the name `authenticity_token` is a security feature of Rails called **cross-site request forgery protection**, and form helpers generate it for every non-GET form (provided that this security feature is enabled). You can read more about this in the [Security Guide](security.html#cross-site-request-forgery-csrf).
 
 ### A Generic Search Form
 
@@ -103,9 +105,9 @@ checkboxes, text fields, and radio buttons. These basic helpers, with names
 ending in `_tag` (such as `text_field_tag` and `check_box_tag`), generate just a
 single `<input>` element. The first parameter to these is always the name of the
 input. When the form is submitted, the name will be passed along with the form
-data, and will make its way to the `params` hash in the controller with the
-value entered by the user for that field. For example, if the form contains `<%=
-text_field_tag(:query) %>`, then you would be able to get the value of this
+data, and will make its way to the `params` in the controller with the
+value entered by the user for that field. For example, if the form contains
+`<%= text_field_tag(:query) %>`, then you would be able to get the value of this
 field in the controller with `params[:query]`.
 
 When naming inputs, Rails uses certain conventions that make it possible to submit parameters with non-scalar values such as arrays or hashes, which will also be accessible in `params`. You can read more about them in [chapter 7 of this guide](#understanding-parameter-naming-conventions). For details on the precise usage of these helpers, please refer to the [API documentation](http://api.rubyonrails.org/classes/ActionView/Helpers/FormTagHelper.html).
@@ -212,7 +214,7 @@ month, week, URL, email, number and range inputs are HTML5 controls.
 If you require your app to have a consistent experience in older browsers,
 you will need an HTML5 polyfill (provided by CSS and/or JavaScript).
 There is definitely [no shortage of solutions for this](https://github.com/Modernizr/Modernizr/wiki/HTML5-Cross-Browser-Polyfills), although a popular tool at the moment is
-[Modernizr](http://www.modernizr.com/), which provides a simple way to add functionality based on the presence of
+[Modernizr](https://modernizr.com/), which provides a simple way to add functionality based on the presence of
 detected HTML5 features.
 
 TIP: If you're using password input fields (for any purpose), you might want to configure your application to prevent those parameters from being logged. You can learn about this in the [Security Guide](security.html#logging).
@@ -376,7 +378,7 @@ output:
 </form>
 ```
 
-When parsing POSTed data, Rails will take into account the special `_method` parameter and acts as if the HTTP method was the one specified inside it ("PATCH" in this example).
+When parsing POSTed data, Rails will take into account the special `_method` parameter and act as if the HTTP method was the one specified inside it ("PATCH" in this example).
 
 Making Select Boxes with Ease
 -----------------------------
