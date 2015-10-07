@@ -1,3 +1,11 @@
+*   Fix regression in mounted engine named routes generation for app deployed to
+    a subdirectory. `relative_url_root` was prepended to the path twice (e.g.
+    "/subdir/subdir/engine_path" instead of "/subdir/engine_path")
+
+    Fixes #20920. Fixes #21459.
+
+    *Matthew Erhard*
+
 *   ActionDispatch::Response#new no longer applies default headers.  If you want
     default headers applied to the response object, then call
     `ActionDispatch::Response.create`.  This change only impacts people who are
