@@ -6,6 +6,7 @@ module ActionCable
       attr_accessor :logger, :log_tags
       attr_accessor :connection_class, :worker_pool_size
       attr_accessor :redis_path, :channels_path
+      attr_accessor :disable_request_forgery_protection, :allowed_request_origins
 
       def initialize
         @logger   = Rails.logger
@@ -16,6 +17,8 @@ module ActionCable
 
         @redis_path    = Rails.root.join('config/redis/cable.yml')
         @channels_path = Rails.root.join('app/channels')
+
+        @disable_request_forgery_protection = false
       end
 
       def channel_paths

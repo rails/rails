@@ -16,6 +16,7 @@ class ActionCable::Connection::BaseTest < ActiveSupport::TestCase
 
   setup do
     @server = TestServer.new
+    @server.config.disable_request_forgery_protection = true
 
     env = Rack::MockRequest.env_for "/test", 'HTTP_CONNECTION' => 'upgrade', 'HTTP_UPGRADE' => 'websocket'
     @connection = Connection.new(@server, env)

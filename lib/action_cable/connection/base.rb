@@ -71,7 +71,7 @@ module ActionCable
       def process
         logger.info started_request_message
 
-        if websocket.possible?
+        if websocket.possible? && allow_request_origin?
           websocket.on(:open)    { |event| send_async :on_open   }
           websocket.on(:message) { |event| on_message event.data }
           websocket.on(:close)   { |event| send_async :on_close  }
@@ -164,6 +164,28 @@ module ActionCable
           disconnect if respond_to?(:disconnect)
         end
 
+
+        def allow_request_origin?
+          return true if server.config.disable_request_forgery_protection
+
+          if env['HTTP_ORIGIN'].present?
+            origin_host = URI.parse(env['HTTP_ORIGIN']).host
+
+            allowed = if server.config.allowed_request_origins.present?
+              Array.wrap(server.config.allowed_request_origins).include? origin_host
+            else
+              request.host == origin_host
+            end
+
+            logger.error("Request origin not allowed: #{env['HTTP_ORIGIN']}") unless allowed
+            allowed
+          else
+            logger.error("Request origin missing.")
+            false
+          end
+        rescue URI::InvalidURIError
+          false
+        end
 
         def respond_to_successful_request
           websocket.rack_response
