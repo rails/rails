@@ -74,12 +74,12 @@ class TimestampTest < ActiveRecord::TestCase
   end
 
   def test_touching_updates_timestamp_with_given_time
-    previously_updated_at = @developer.updated_at 
-    new_time = Time.utc(2015, 2, 16, 0, 0, 0) 
-    @developer.touch(time: new_time) 
+    previously_updated_at = @developer.updated_at
+    new_time = Time.utc(2015, 2, 16, 0, 0, 0)
+    @developer.touch(time: new_time)
 
-    assert_not_equal previously_updated_at, @developer.updated_at 
-    assert_equal new_time, @developer.updated_at 
+    assert_not_equal previously_updated_at, @developer.updated_at
+    assert_equal new_time, @developer.updated_at
   end
 
   def test_touching_an_attribute_updates_timestamp
@@ -101,9 +101,9 @@ class TimestampTest < ActiveRecord::TestCase
   end
 
   def test_touching_an_attribute_updates_timestamp_with_given_time
-    previously_updated_at = @developer.updated_at 
+    previously_updated_at = @developer.updated_at
     previously_created_at = @developer.created_at
-    new_time = Time.utc(2015, 2, 16, 4, 54, 0) 
+    new_time = Time.utc(2015, 2, 16, 4, 54, 0)
     @developer.touch(:created_at, time: new_time)
 
     assert_not_equal previously_created_at, @developer.created_at
@@ -473,6 +473,16 @@ class TimestampsWithoutTransactionTest < ActiveRecord::TestCase
       post.save! # should not try to assign and persist created_at, updated_at
       assert_nil post.created_at
       assert_nil post.updated_at
+    end
+  end
+
+  def test_do_read_timestamps_even_if_they_are_not_attributes
+    with_example_table ActiveRecord::Base.connection, "timestamp_attribute_posts", "id integer primary key" do
+      post = TimestampAttributePost.create(id: 1)
+      time = Time.now
+      # updated_at can't be saved to the model's table, but can be read for the cache_key
+      post.updated_at = time.utc
+      assert_equal post.cache_key, "timestamps_without_transaction_test/timestamp_attribute_posts/1-#{time.to_s(:nsec)}"
     end
   end
 end
