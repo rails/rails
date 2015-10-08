@@ -1,3 +1,9 @@
+*   Avoid leaking the first relation we call `first` on, per model.
+
+    Fixes #21921.
+
+    *Matthew Draper*, *Jean Boussier*
+
 *   Remove unused `pk_and_sequence_for` in AbstractMysqlAdapter.
 
     *Ryuta Kamizono*
