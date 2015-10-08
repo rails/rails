@@ -1,3 +1,7 @@
+*   Remove unused `pk_and_sequence_for` in AbstractMysqlAdapter.
+
+    *Ryuta Kamizono*
+
 *   Allow fixtures files to set the model class in the YAML file itself.
 
     To load the fixtures file `accounts.yml` as the `User` model, use:

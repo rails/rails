@@ -850,13 +850,6 @@ module ActiveRecord
         nil
       end
 
-      # Returns a table's primary key and belonging sequence.
-      def pk_and_sequence_for(table)
-        if pk = primary_key(table)
-          [ pk, nil ]
-        end
-      end
-
       def primary_keys(table_name) # :nodoc:
         raise ArgumentError unless table_name.present?
 
