@@ -7,7 +7,7 @@
 
     *Bernerd Schaefer*
 
-*   `number_to_currency` and `number_with_delimiter` now accepts acustom `delimiter_pattern` option 
+*   `number_to_currency` and `number_with_delimiter` now accepts a custom `delimiter_pattern` option 
      to handle placement of delimiter, to support currency formats like INR 
      
      Example: 
