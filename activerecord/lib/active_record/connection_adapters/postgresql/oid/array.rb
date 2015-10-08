@@ -59,7 +59,10 @@ module ActiveRecord
           end
 
           def cast_value_for_database(value)
-            if value.is_a?(::Array)
+            if subtype.is_a?(ActiveRecord::ConnectionAdapters::PostgreSQL::OID::Point)
+              quoted_values = value.map { |item| quote_and_escape(subtype.type_cast_for_database(item)) }
+              "{#{quoted_values.join(delimiter)}}"
+            elsif value.is_a?(::Array)
               casted_values = value.map { |item| cast_value_for_database(item) }
               "{#{casted_values.join(delimiter)}}"
             else
