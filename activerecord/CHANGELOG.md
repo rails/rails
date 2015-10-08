@@ -1,3 +1,9 @@
+*   Avoid leaking the first relation we call `first` on, per model.
+
+    Fixes #21921.
+
+    *Matthew Draper*, *Jean Boussier*
+
 *   Allow deserialization of Active Record models that were YAML encoded prior
     to Rails 4.2
 
