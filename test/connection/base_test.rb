@@ -3,7 +3,7 @@ require 'stubs/test_server'
 
 class ActionCable::Connection::BaseTest < ActiveSupport::TestCase
   class Connection < ActionCable::Connection::Base
-    attr_reader :websocket, :heartbeat, :subscriptions, :message_buffer, :connected
+    attr_reader :websocket, :subscriptions, :message_buffer, :connected
 
     def connect
       @connected = true
@@ -40,7 +40,6 @@ class ActionCable::Connection::BaseTest < ActiveSupport::TestCase
   test "on connection open" do
     assert ! @connection.connected
 
-    EventMachine.expects(:add_periodic_timer)
     @connection.websocket.expects(:transmit).with(regexp_matches(/\_ping/))
     @connection.message_buffer.expects(:process!)
 
@@ -56,7 +55,6 @@ class ActionCable::Connection::BaseTest < ActiveSupport::TestCase
     @connection.send :on_open
     assert @connection.connected
 
-    EventMachine.expects(:cancel_timer)
     @connection.subscriptions.expects(:unsubscribe_from_all)
     @connection.send :on_close
 

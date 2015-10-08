@@ -4,6 +4,8 @@ module ActionCable
     # you can't use this collection as an full list of all the connections established against your application. Use RemoteConnections for that.
     # As such, this is primarily for internal use.
     module Connections
+      BEAT_INTERVAL = 3
+
       def connections
         @connections ||= []
       end
@@ -14,6 +16,15 @@ module ActionCable
 
       def remove_connection(connection)
         connections.delete connection
+      end
+
+      # Websocket connection implementations differ on when they'll mark a connection as stale. We basically never want a connection to go stale, as you
+      # then can't rely on being able to receive and send to it. So there's a 3 second heartbeat running on all connections. If the beat fails, we automatically
+      # disconnect.
+      def setup_heartbeat_timer
+        @heartbeat_timer ||= EventMachine.add_periodic_timer(BEAT_INTERVAL) do
+          EM.next_tick { connections.map &:beat }
+        end
       end
 
       def open_connections_statistics

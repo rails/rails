@@ -59,7 +59,6 @@ module ActionCable
         @logger = new_tagged_logger
 
         @websocket      = ActionCable::Connection::WebSocket.new(env)
-        @heartbeat      = ActionCable::Connection::Heartbeat.new(self)
         @subscriptions  = ActionCable::Connection::Subscriptions.new(self)
         @message_buffer = ActionCable::Connection::MessageBuffer.new(self)
 
@@ -115,6 +114,10 @@ module ActionCable
         { identifier: connection_identifier, started_at: @started_at, subscriptions: subscriptions.identifiers }
       end
 
+      def beat
+        transmit({ identifier: '_ping', message: Time.now.to_i }.to_json)
+      end
+
 
       protected
         # The request that initiated the websocket connection is available here. This gives access to the environment, cookies, etc.
@@ -133,14 +136,14 @@ module ActionCable
 
       private
         attr_reader :websocket
-        attr_reader :heartbeat, :subscriptions, :message_buffer
+        attr_reader :subscriptions, :message_buffer
 
         def on_open
           server.add_connection(self)
 
           connect if respond_to?(:connect)
           subscribe_to_internal_channel
-          heartbeat.start
+          beat
 
           message_buffer.process!
         rescue ActionCable::Connection::Authorization::UnauthorizedError
@@ -159,7 +162,6 @@ module ActionCable
 
           subscriptions.unsubscribe_from_all
           unsubscribe_from_internal_channel
-          heartbeat.stop
 
           disconnect if respond_to?(:disconnect)
         end

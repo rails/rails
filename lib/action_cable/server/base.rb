@@ -18,6 +18,7 @@ module ActionCable
 
       # Called by rack to setup the server.
       def call(env)
+        setup_heartbeat_timer
         config.connection_class.new(self, env).process
       end
 
