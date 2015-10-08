@@ -39,8 +39,12 @@ module ActiveRecord
           end
         end
 
-        # Adds a class method for retrieving and querying objects. A \scope
-        # represents a narrowing of a database query, such as
+        # Adds a class method for retrieving and querying objects.
+        # The method is intended to return an <tt>ActiveRecord::Relation</tt>
+        # object, which is composable with other scopes.
+        # If it returns +nil+ or +false+, an <tt>all</tt> scope is returned instead.
+        #
+        # A \scope represents a narrowing of a database query, such as
         # <tt>where(color: :red).select('shirts.*').includes(:washing_instructions)</tt>.
         #
         #   class Shirt < ActiveRecord::Base
@@ -66,7 +70,8 @@ module ActiveRecord
         #   end
         #
         # Unlike <tt>Shirt.find(...)</tt>, however, the object returned by
-        # <tt>Shirt.red</tt> is not an Array; it resembles the association object
+        # <tt>Shirt.red</tt> is not an Array but an <tt>ActiveRecord::Relation</tt>,
+        # which is composable with other scopes; it resembles the association object
         # constructed by a +has_many+ declaration. For instance, you can invoke
         # <tt>Shirt.red.first</tt>, <tt>Shirt.red.count</tt>,
         # <tt>Shirt.red.where(size: 'small')</tt>. Also, just as with the
