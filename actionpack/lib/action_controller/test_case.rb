@@ -210,11 +210,11 @@ module ActionController
   #       # Simulate a POST response with the given HTTP parameters.
   #       post(:create, params: { book: { title: "Love Hina" }})
   #
-  #       # Assert that the controller tried to redirect us to
+  #       # Asserts that the controller tried to redirect us to
   #       # the created book's URI.
   #       assert_response :found
   #
-  #       # Assert that the controller really put the book in the database.
+  #       # Asserts that the controller really put the book in the database.
   #       assert_not_nil Book.find_by(title: "Love Hina")
   #     end
   #   end
