@@ -84,21 +84,13 @@ module ActionView
       when Hash
         options = options.symbolize_keys
         unless options.key?(:only_path)
-          if options[:host].nil?
-            options[:only_path] = _generate_paths_by_default
-          else
-            options[:only_path] = false
-          end
+          options[:only_path] = only_path?(options[:host])
         end
 
         super(options)
       when ActionController::Parameters
         unless options.key?(:only_path)
-          if options[:host].nil?
-            options[:only_path] = _generate_paths_by_default
-          else
-            options[:only_path] = false
-          end
+          options[:only_path] = only_path?(options[:host])
         end
 
         super(options)
@@ -146,6 +138,10 @@ module ActionView
 
       def _generate_paths_by_default
         true
+      end
+
+      def only_path?(host)
+        _generate_paths_by_default unless host
       end
   end
 end
