@@ -59,7 +59,7 @@ module ActionDispatch
       path_parameters.each do |key, value|
         next unless value.respond_to?(:valid_encoding?)
         unless value.valid_encoding?
-          raise ActionController::BadRequest, "Invalid parameter: #{key} => #{value}"
+          raise ActionController::InvalidParameterEncoding.new(key, value)
         end
       end
     end
