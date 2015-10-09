@@ -42,6 +42,7 @@ module ActionDispatch
         def terminal?; false; end
         def star?; false; end
         def cat?; false; end
+        def group?; false; end
       end
 
       class Terminal < Node # :nodoc:
@@ -95,6 +96,7 @@ module ActionDispatch
 
       class Group < Unary # :nodoc:
         def type; :GROUP; end
+        def group?; true; end
       end
 
       class Star < Unary # :nodoc:
