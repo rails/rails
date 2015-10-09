@@ -441,6 +441,12 @@ module ActiveSupport
       coder.map = { 'name' => tzinfo.name }
     end
 
+    # Sets @current_period instance variable before freezing the instances
+    def freeze
+      utc_offset
+      super
+    end
+
     private
       def parts_to_time(parts, now)
         return if parts.empty?

@@ -1,3 +1,13 @@
+*   Fix `ActiveSupport::TimeZone#to_s` to not mutate  frozen
+    `ActiveSupport::TimeZone` object.
+
+    Example:
+
+      ActiveSupport::TimeZone['Hawaii'].freeze
+      ActiveSupport::TimeZone['Hawaii'].to_s => does not raise RuntimeError
+
+    *Pema Geyleg*
+
 *   `assert_difference` and `assert_no_difference` now returns the result of the
     yielded block.
 
