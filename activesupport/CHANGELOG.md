@@ -1,3 +1,7 @@
+*   `Cache#fetch` instrumentation marks whether it was a `:hit`.
+
+    *Robin Clowers*
+
 *   `assert_difference` and `assert_no_difference` now returns the result of the
     yielded block.
 
