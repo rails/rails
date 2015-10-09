@@ -92,7 +92,8 @@ module Rails
             cd current_path
           end
 
-          def prepare_destination # :nodoc:
+          # Clears all files and directories in destination.
+          def prepare_destination
             rm_rf(destination_root)
             mkdir_p(destination_root)
           end
