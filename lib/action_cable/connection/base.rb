@@ -111,7 +111,12 @@ module ActionCable
       # Return a basic hash of statistics for the connection keyed with `identifier`, `started_at`, and `subscriptions`.
       # This can be returned by a health check against the connection.
       def statistics
-        { identifier: connection_identifier, started_at: @started_at, subscriptions: subscriptions.identifiers }
+        {
+          identifier: connection_identifier,
+          started_at: @started_at,
+          subscriptions: subscriptions.identifiers,
+          request_id: @env['action_dispatch.request_id']
+        }
       end
 
       def beat
