@@ -46,7 +46,7 @@ module ActionDispatch
         end
 
         def names
-          @names ||= spec.grep(Nodes::Symbol).map(&:name)
+          @names ||= spec.find_all(&:symbol?).map(&:name)
         end
 
         def required_names
@@ -54,8 +54,8 @@ module ActionDispatch
         end
 
         def optional_names
-          @optional_names ||= spec.grep(Nodes::Group).flat_map { |group|
-            group.grep(Nodes::Symbol)
+          @optional_names ||= spec.find_all(&:group?).flat_map { |group|
+            group.find_all(&:symbol?)
           }.map(&:name).uniq
         end
 
