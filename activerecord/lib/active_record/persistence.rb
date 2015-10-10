@@ -332,16 +332,18 @@ module ActiveRecord
     # Saving is not subjected to validation checks. Returns +true+ if the
     # record could be saved.
     def increment!(attribute, by = 1)
-      increment(attribute, by).update_attribute(attribute, self[attribute])
+      increment(attribute, by)
+      change = public_send(attribute) - (attribute_was(attribute.to_s) || 0)
+      self.class.update_counters(id, attribute => change)
+      clear_attribute_change(attribute) # eww
+      self
     end
 
     # Initializes +attribute+ to zero if +nil+ and subtracts the value passed as +by+ (default is 1).
     # The decrement is performed directly on the underlying attribute, no setter is invoked.
     # Only makes sense for number-based attributes. Returns +self+.
     def decrement(attribute, by = 1)
-      self[attribute] ||= 0
-      self[attribute] -= by
-      self
+      increment(attribute, -by)
     end
 
     # Wrapper around +decrement+ that saves the record. This method differs from
@@ -349,7 +351,7 @@ module ActiveRecord
     # Saving is not subjected to validation checks. Returns +true+ if the
     # record could be saved.
     def decrement!(attribute, by = 1)
-      decrement(attribute, by).update_attribute(attribute, self[attribute])
+      increment!(attribute, -by)
     end
 
     # Assigns to +attribute+ the boolean opposite of <tt>attribute?</tt>. So

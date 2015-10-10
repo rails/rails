@@ -1,3 +1,8 @@
+*   Concurrent `AR::Base#increment!` and `#decrement!` on the same record
+    are all reflected in the database rather than overwriting each other.
+
+    *Bogdan Gusiev*
+
 *   Avoid leaking the first relation we call `first` on, per model.
 
     Fixes #21921.

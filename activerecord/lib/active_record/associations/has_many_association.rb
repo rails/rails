@@ -88,21 +88,15 @@ module ActiveRecord
         end
 
         def update_counter(difference, reflection = reflection())
-          update_counter_in_database(difference, reflection)
-          update_counter_in_memory(difference, reflection)
-        end
-
-        def update_counter_in_database(difference, reflection = reflection())
           if reflection.has_cached_counter?
-            owner.class.update_counters(owner.id, reflection.counter_cache_column => difference)
+            owner.increment!(reflection.counter_cache_column, difference)
           end
         end
 
         def update_counter_in_memory(difference, reflection = reflection())
           if reflection.counter_must_be_updated_by_has_many?
             counter = reflection.counter_cache_column
-            owner[counter] ||= 0
-            owner[counter] += difference
+            owner.increment(counter, difference)
             owner.send(:clear_attribute_change, counter) # eww
           end
         end
