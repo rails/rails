@@ -1,3 +1,11 @@
+*   Allow multiple `root` routes in same scope level. Example:
+
+    ```ruby
+    root 'blog#show', constraints: ->(req) { Hostname.blog_site?(req.host) }
+    root 'landing#show'
+    ```
+    *Rafael Sales*
+
 *   Fix regression in mounted engine named routes generation for app deployed to
     a subdirectory. `relative_url_root` was prepended to the path twice (e.g.
     "/subdir/subdir/engine_path" instead of "/subdir/engine_path")
