@@ -117,8 +117,8 @@ module ActiveSupport
     # string if the time zone is already UTC.
     #
     #   Time.zone = 'Eastern Time (US & Canada)'   # => "Eastern Time (US & Canada)"
-    #   Time.zone.now.formatted_offset(true)       # => "-04:00"
-    #   Time.zone.now.formatted_offset(false)      # => "-0400"
+    #   Time.zone.now.formatted_offset(true)       # => "-05:00"
+    #   Time.zone.now.formatted_offset(false)      # => "-0500"
     #   Time.zone = 'UTC'                          # => "UTC"
     #   Time.zone.now.formatted_offset(true, "0")  # => "0"
     def formatted_offset(colon = true, alternate_utc_string = nil)
@@ -128,14 +128,14 @@ module ActiveSupport
     # Returns the time zone abbreviation.
     #
     #   Time.zone = 'Eastern Time (US & Canada)'   # => "Eastern Time (US & Canada)"
-    #   Time.zone.now.zone # => "EDT"
+    #   Time.zone.now.zone # => "EST"
     def zone
       period.zone_identifier.to_s
     end
 
     # Returns a string of the object's date, time, zone and offset from UTC.
     #
-    #   Time.zone.now.inspect # => "Thu, 04 Dec 2014 11:00:25 EDT -04:00"
+    #   Time.zone.now.inspect # => "Thu, 04 Dec 2014 11:00:25 EST -05:00"
     def inspect
       "#{time.strftime('%a, %d %b %Y %H:%M:%S')} #{zone} #{formatted_offset}"
     end
@@ -143,7 +143,7 @@ module ActiveSupport
     # Returns a string of the object's date and time in the ISO 8601 standard
     # format.
     #
-    #   Time.zone.now.xmlschema  # => "2014-12-04T11:02:37-04:00"
+    #   Time.zone.now.xmlschema  # => "2014-12-04T11:02:37-05:00"
     def xmlschema(fraction_digits = 0)
       "#{time.strftime(PRECISIONS[fraction_digits.to_i])}#{formatted_offset(true, 'Z'.freeze)}"
     end
@@ -284,8 +284,8 @@ module ActiveSupport
     # the current object's time and the +other+ time.
     #
     #   Time.zone = 'Eastern Time (US & Canada)' # => 'Eastern Time (US & Canada)'
-    #   now = Time.zone.now # => Sun, 02 Nov 2014 01:26:28 EDT -04:00
-    #   now - 1000          # => Sun, 02 Nov 2014 01:09:48 EDT -04:00
+    #   now = Time.zone.now # => Sun, 02 Nov 2014 01:26:28 EST -05:00
+    #   now - 1000          # => Sun, 02 Nov 2014 01:09:48 EST -05:00
     #
     # If subtracting a Duration of variable length (i.e., years, months, days),
     # move backward from #time, otherwise move backward from #utc, for accuracy
