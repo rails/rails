@@ -47,11 +47,10 @@ module ActionDispatch
       request = ActionDispatch::Request.new env
       _, headers, body = response = @app.call(env)
 
-      if headers['X-Cascade'] == 'pass'
+      if headers['X-Cascade'] == 'pass' && !request.headers['CONTENT_TYPE'] == 'application/json'
         body.close if body.respond_to?(:close)
         raise ActionController::RoutingError, "No route matches [#{env['REQUEST_METHOD']}] #{env['PATH_INFO'].inspect}"
       end
-
       response
     rescue Exception => exception
       raise exception unless request.show_exceptions?
