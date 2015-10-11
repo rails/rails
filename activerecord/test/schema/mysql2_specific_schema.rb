@@ -40,6 +40,17 @@ BEGIN
 END
 SQL
 
+  ActiveRecord::Base.connection.execute <<-SQL
+DROP PROCEDURE IF EXISTS topics;
+SQL
+
+  ActiveRecord::Base.connection.execute <<-SQL
+CREATE PROCEDURE topics(IN num INT) SQL SECURITY INVOKER
+BEGIN
+  select * from topics limit num;
+END
+SQL
+
   ActiveRecord::Base.connection.drop_table "enum_tests", if_exists: true
 
   ActiveRecord::Base.connection.execute <<-SQL
