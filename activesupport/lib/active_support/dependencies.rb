@@ -25,21 +25,21 @@ module ActiveSupport #:nodoc:
     # :doc:
 
     # Execute the supplied block without interference from any
-    # concurrent loads
+    # concurrent loads.
     def self.run_interlock
       Dependencies.interlock.running { yield }
     end
 
     # Execute the supplied block while holding an exclusive lock,
     # preventing any other thread from being inside a #run_interlock
-    # block at the same time
+    # block at the same time.
     def self.load_interlock
       Dependencies.interlock.loading { yield }
     end
 
     # Execute the supplied block while holding an exclusive lock,
     # preventing any other thread from being inside a #run_interlock
-    # block at the same time
+    # block at the same time.
     def self.unload_interlock
       Dependencies.interlock.unloading { yield }
     end

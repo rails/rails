@@ -3,7 +3,7 @@ require 'active_support/core_ext/class/attribute'
 require 'active_support/subscriber'
 
 module ActiveSupport
-  # ActiveSupport::LogSubscriber is an object set to consume
+  # ActiveSupport::LogSubscriber is an object set to consume.
   # ActiveSupport::Notifications with the sole purpose of logging them.
   # The log subscriber dispatches notifications to a registered object based
   # on its given namespace.
