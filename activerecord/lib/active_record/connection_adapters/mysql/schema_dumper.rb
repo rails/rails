@@ -30,7 +30,10 @@ module ActiveRecord
           end
 
           def schema_type(column)
-            if column.sql_type == "tinyblob"
+            case column.sql_type
+            when /\Atimestamp\b/
+              :timestamp
+            when "tinyblob"
               :blob
             else
               super
@@ -38,7 +41,7 @@ module ActiveRecord
           end
 
           def schema_precision(column)
-            super unless /time/.match?(column.sql_type) && column.precision == 0
+            super unless /\A(?:date)?time(?:stamp)?\b/.match?(column.sql_type) && column.precision == 0
           end
 
           def schema_collation(column)

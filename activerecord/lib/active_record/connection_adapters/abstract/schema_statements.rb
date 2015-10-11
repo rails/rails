@@ -1071,7 +1071,7 @@ module ActiveRecord
               raise ArgumentError, "Error adding decimal column: precision cannot be empty if scale is specified"
             end
 
-          elsif [:datetime, :time, :interval].include?(type) && precision ||= native[:precision]
+          elsif [:datetime, :timestamp, :time, :interval].include?(type) && precision ||= native[:precision]
             if (0..6) === precision
               column_type_sql << "(#{precision})"
             else

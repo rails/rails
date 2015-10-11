@@ -75,6 +75,11 @@ module ActiveRecord
 
           super
         end
+
+        private
+          def aliased_types(name, fallback)
+            fallback
+          end
       end
 
       class Table < ActiveRecord::ConnectionAdapters::Table

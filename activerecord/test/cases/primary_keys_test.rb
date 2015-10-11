@@ -291,6 +291,14 @@ class PrimaryKeyAnyTypeTest < ActiveRecord::TestCase
     schema = dump_table_schema "barcodes"
     assert_match %r{create_table "barcodes", primary_key: "code", id: :string, limit: 42}, schema
   end
+
+  if current_adapter?(:Mysql2Adapter) && subsecond_precision_supported?
+    test "schema typed primary key column" do
+      @connection.create_table(:scheduled_logs, id: :timestamp, precision: 6, force: true)
+      schema = dump_table_schema("scheduled_logs")
+      assert_match %r/create_table "scheduled_logs", id: :timestamp, precision: 6/, schema
+    end
+  end
 end
 
 class CompositePrimaryKeyTest < ActiveRecord::TestCase
