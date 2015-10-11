@@ -1,69 +1,12 @@
+require 'active_record/connection_adapters/abstract_adapter'
+require 'active_record/connection_adapters/mysql/schema_definitions'
+
 require 'active_support/core_ext/string/strip'
 
 module ActiveRecord
   module ConnectionAdapters
     class AbstractMysqlAdapter < AbstractAdapter
       include Savepoints
-
-      module ColumnMethods
-        def primary_key(name, type = :primary_key, **options)
-          options[:auto_increment] = true if type == :bigint
-          super
-        end
-
-        def json(*args, **options)
-          args.each { |name| column(name, :json, options) }
-        end
-
-        def unsigned_integer(*args, **options)
-          args.each { |name| column(name, :unsigned_integer, options) }
-        end
-
-        def unsigned_bigint(*args, **options)
-          args.each { |name| column(name, :unsigned_bigint, options) }
-        end
-
-        def unsigned_float(*args, **options)
-          args.each { |name| column(name, :unsigned_float, options) }
-        end
-
-        def unsigned_decimal(*args, **options)
-          args.each { |name| column(name, :unsigned_decimal, options) }
-        end
-      end
-
-      class ColumnDefinition < ActiveRecord::ConnectionAdapters::ColumnDefinition
-        attr_accessor :charset, :unsigned
-      end
-
-      class TableDefinition < ActiveRecord::ConnectionAdapters::TableDefinition
-        include ColumnMethods
-
-        def new_column_definition(name, type, options) # :nodoc:
-          column = super
-          case column.type
-          when :primary_key
-            column.type = :integer
-            column.auto_increment = true
-          when /\Aunsigned_(?<type>.+)\z/
-            column.type = $~[:type].to_sym
-            column.unsigned = true
-          end
-          column.unsigned ||= options[:unsigned]
-          column.charset = options[:charset]
-          column
-        end
-
-        private
-
-        def create_column_definition(name, type)
-          ColumnDefinition.new(name, type)
-        end
-      end
-
-      class Table < ActiveRecord::ConnectionAdapters::Table
-        include ColumnMethods
-      end
 
       class SchemaCreation < AbstractAdapter::SchemaCreation
         private
@@ -118,7 +61,7 @@ module ActiveRecord
       end
 
       def update_table_definition(table_name, base) # :nodoc:
-        Table.new(table_name, base)
+        MySQL::Table.new(table_name, base)
       end
 
       def schema_creation
@@ -1143,7 +1086,7 @@ module ActiveRecord
       end
 
       def create_table_definition(name, temporary = false, options = nil, as = nil) # :nodoc:
-        TableDefinition.new(native_database_types, name, temporary, options, as)
+        MySQL::TableDefinition.new(native_database_types, name, temporary, options, as)
       end
 
       def binary_to_sql(limit) # :nodoc:
