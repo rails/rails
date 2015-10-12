@@ -168,23 +168,12 @@ module ActionCable
         def allow_request_origin?
           return true if server.config.disable_request_forgery_protection
 
-          if env['HTTP_ORIGIN'].present?
-            origin_host = URI.parse(env['HTTP_ORIGIN']).host
-
-            allowed = if server.config.allowed_request_origins.present?
-              Array(server.config.allowed_request_origins).include? origin_host
-            else
-              request.host == origin_host
-            end
-
-            logger.error("Request origin not allowed: #{env['HTTP_ORIGIN']}") unless allowed
-            allowed
+          if Array(server.config.allowed_request_origins).include? env['HTTP_ORIGIN']
+            true
           else
-            logger.error("Request origin missing.")
+            logger.error("Request origin not allowed: #{env['HTTP_ORIGIN']}")
             false
           end
-        rescue URI::InvalidURIError
-          false
         end
 
         def respond_to_successful_request

@@ -16,9 +16,10 @@ class ActionCable::Connection::BaseTest < ActiveSupport::TestCase
 
   setup do
     @server = TestServer.new
+    @server.config.allowed_request_origins = %w( http://rubyonrails.com )
 
     env = Rack::MockRequest.env_for "/test", 'HTTP_CONNECTION' => 'upgrade', 'HTTP_UPGRADE' => 'websocket',
-      'SERVER_NAME' => 'rubyonrails.com', 'HTTP_ORIGIN' => 'http://rubyonrails.com'
+      'HTTP_ORIGIN' => 'http://rubyonrails.com'
 
     @connection = Connection.new(@server, env)
     @response = @connection.process
