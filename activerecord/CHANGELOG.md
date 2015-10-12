@@ -1,3 +1,7 @@
+*   No longer pass depreacted option `-i` to `pg_dump`.
+
+    *Paul Sadauskas*
+
 *   Concurrent `AR::Base#increment!` and `#decrement!` on the same record
     are all reflected in the database rather than overwriting each other.
 

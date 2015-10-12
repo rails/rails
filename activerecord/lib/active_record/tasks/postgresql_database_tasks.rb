@@ -54,7 +54,7 @@ module ActiveRecord
           ActiveRecord::Base.dump_schemas
         end
 
-        args = ['-i', '-s', '-x', '-O', '-f', filename]
+        args = ['-s', '-x', '-O', '-f', filename]
         unless search_path.blank?
           args << search_path.split(',').map do |part|
             "--schema=#{part.strip}"
