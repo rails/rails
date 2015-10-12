@@ -82,7 +82,7 @@ module ActionDispatch
         end
         assert_equal({:omg=>:awesome, :controller=>"posts", :action=>"index"},
                      fakeset.defaults.first)
-        assert_equal(/^GET$/, fakeset.routes.first.verb)
+        assert_equal("GET", fakeset.routes.first.verb)
       end
 
       def test_mapping_requirements
@@ -99,7 +99,7 @@ module ActionDispatch
         mapper.scope(via: :put) do
           mapper.match '/', :to => 'posts#index', :as => :main
         end
-        assert_equal(/^PUT$/, fakeset.routes.first.verb)
+        assert_equal("PUT", fakeset.routes.first.verb)
       end
 
       def test_map_slash

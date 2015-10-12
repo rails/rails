@@ -163,7 +163,7 @@ module ActionDispatch
       end
 
       def verb
-        %r[^#{verbs.join('|')}$]
+        verbs.join('|')
       end
 
       private
