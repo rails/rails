@@ -226,7 +226,7 @@ task default: :test
       end
 
       def create_assets_manifest_file
-        build(:assets_manifest) unless api?
+        build(:assets_manifest) if !api? && engine?
       end
 
       def create_public_stylesheets_files
