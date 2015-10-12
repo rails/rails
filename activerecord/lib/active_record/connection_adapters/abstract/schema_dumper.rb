@@ -20,7 +20,7 @@ module ActiveRecord
 
       # This can be overridden on an Adapter level basis to support other
       # extended datatypes (Example: Adding an array option in the
-      # PostgreSQLAdapter)
+      # PostgreSQL::ColumnDumper)
       def prepare_column_options(column)
         spec = {}
         spec[:name]      = column.name.inspect

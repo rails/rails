@@ -9,6 +9,7 @@ require "active_record/connection_adapters/postgresql/oid"
 require "active_record/connection_adapters/postgresql/quoting"
 require "active_record/connection_adapters/postgresql/referential_integrity"
 require "active_record/connection_adapters/postgresql/schema_definitions"
+require "active_record/connection_adapters/postgresql/schema_dumper"
 require "active_record/connection_adapters/postgresql/schema_statements"
 require "active_record/connection_adapters/postgresql/type_metadata"
 require "active_record/connection_adapters/postgresql/utils"
@@ -117,59 +118,12 @@ module ActiveRecord
       include PostgreSQL::ReferentialIntegrity
       include PostgreSQL::SchemaStatements
       include PostgreSQL::DatabaseStatements
+      include PostgreSQL::ColumnDumper
       include Savepoints
 
       def schema_creation # :nodoc:
         PostgreSQL::SchemaCreation.new self
       end
-
-      def column_spec_for_primary_key(column)
-        spec = {}
-        if column.serial?
-          return unless column.bigint?
-          spec[:id] = ':bigserial'
-        elsif column.type == :uuid
-          spec[:id] = ':uuid'
-          spec[:default] = column.default_function.inspect
-        else
-          spec[:id] = column.type.inspect
-          spec.merge!(prepare_column_options(column).delete_if { |key, _| [:name, :type, :null].include?(key) })
-        end
-        spec
-      end
-
-      # Adds +:array+ option to the default set provided by the
-      # AbstractAdapter
-      def prepare_column_options(column) # :nodoc:
-        spec = super
-        spec[:array] = 'true' if column.array?
-        spec
-      end
-
-      # Adds +:array+ as a valid migration key
-      def migration_keys
-        super + [:array]
-      end
-
-      def schema_type(column)
-        return super unless column.serial?
-
-        if column.bigint?
-          'bigserial'
-        else
-          'serial'
-        end
-      end
-      private :schema_type
-
-      def schema_default(column)
-        if column.default_function
-          column.default_function.inspect unless column.serial?
-        else
-          super
-        end
-      end
-      private :schema_default
 
       # Returns +true+, since this connection adapter supports prepared statement
       # caching.
