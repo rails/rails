@@ -5,10 +5,13 @@ module ActionCable
       include ActiveSupport::Callbacks
       include Celluloid
 
+      attr_reader :connection
       define_callbacks :work
-      include ClearDatabaseConnections
+      include ActiveRecordConnectionManagement
 
       def invoke(receiver, method, *args)
+        @connection = receiver
+
         run_callbacks :work do
           receiver.send method, *args
         end
@@ -20,6 +23,8 @@ module ActionCable
       end
 
       def run_periodic_timer(channel, callback)
+        @connection = channel.connection
+
         run_callbacks :work do
           callback.respond_to?(:call) ? channel.instance_exec(&callback) : channel.send(callback)
         end

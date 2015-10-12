@@ -4,6 +4,8 @@ module ActionCable
     # ActiveSupport::TaggedLogging-enhanced Rails.logger, as that logger will reset the tags between requests.
     # The connection is long-lived, so it needs its own set of tags for its independent duration.
     class TaggedLoggerProxy
+      attr_reader :tags
+
       def initialize(logger, tags:)
         @logger = logger
         @tags = tags.flatten
@@ -22,7 +24,8 @@ module ActionCable
 
       protected
         def log(type, message)
-          @logger.tagged(*@tags) { @logger.send type, message }
+          current_tags = tags - @logger.formatter.current_tags
+          @logger.tagged(*current_tags) { @logger.send type, message }
         end
     end
   end

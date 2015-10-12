@@ -6,6 +6,6 @@ module ActionCable
     autoload :Configuration, 'action_cable/server/configuration'
 
     autoload :Worker, 'action_cable/server/worker'
-    autoload :ClearDatabaseConnections, 'action_cable/server/worker/clear_database_connections'
+    autoload :ActiveRecordConnectionManagement, 'action_cable/server/worker/active_record_connection_management'
   end
 end

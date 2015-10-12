@@ -2,7 +2,7 @@ module ActionCable
   module Server
     class Worker
       # Clear active connections between units of work so the long-running channel or connection processes do not hoard connections.
-      module ClearDatabaseConnections
+      module ActiveRecordConnectionManagement
         extend ActiveSupport::Concern
 
         included do
@@ -12,7 +12,7 @@ module ActionCable
         end
 
         def with_database_connections
-          yield
+          ActiveRecord::Base.logger.tagged(*connection.logger.tags) { yield }
         ensure
           ActiveRecord::Base.clear_active_connections!
         end
