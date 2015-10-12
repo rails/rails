@@ -60,6 +60,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     run_generator
     assert_file "README.rdoc", /Bukkits/
     assert_no_file "config/routes.rb"
+    assert_no_file "app/assets/config/bukkits_manifest.js"
     assert_file "test/test_helper.rb" do |content|
       assert_match(/require.+test\/dummy\/config\/environment/, content)
       assert_match(/ActiveRecord::Migrator\.migrations_paths.+test\/dummy\/db\/migrate/, content)
