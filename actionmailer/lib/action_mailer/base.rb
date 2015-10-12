@@ -883,8 +883,9 @@ module ActionMailer
     def collect_responses(headers) #:nodoc:
       responses = []
 
+      templates_name = headers.delete(:template_name) || action_name
       if block_given?
-        collector = ActionMailer::Collector.new(lookup_context) { render(action_name) }
+        collector = ActionMailer::Collector.new(lookup_context) { render(templates_name) }
         yield(collector)
         responses = collector.responses
       elsif headers[:body]
@@ -894,7 +895,6 @@ module ActionMailer
         }
       else
         templates_path = headers.delete(:template_path) || self.class.mailer_name
-        templates_name = headers.delete(:template_name) || action_name
 
         each_template(Array(templates_path), templates_name) do |template|
           self.formats = template.formats

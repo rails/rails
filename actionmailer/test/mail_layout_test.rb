@@ -25,6 +25,13 @@ class AutoLayoutMailer < ActionMailer::Base
       format.html { render }
     end
   end
+
+  def multipart_overriding_template_name(type = nil)
+    mail(content_type: type, template_name: 'multipart') do |format|
+      format.text
+      format.html
+    end
+  end
 end
 
 class ExplicitLayoutMailer < ActionMailer::Base
@@ -51,6 +58,18 @@ class LayoutMailerTest < ActiveSupport::TestCase
 
   def test_should_pickup_multipart_layout
     mail = AutoLayoutMailer.multipart
+    assert_equal "multipart/alternative", mail.mime_type
+    assert_equal 2, mail.parts.size
+
+    assert_equal 'text/plain', mail.parts.first.mime_type
+    assert_equal "text/plain layout - text/plain multipart", mail.parts.first.body.to_s
+
+    assert_equal 'text/html', mail.parts.last.mime_type
+    assert_equal "Hello from layout text/html multipart", mail.parts.last.body.to_s
+  end
+
+  def test_should_pickup_multipart_overriding_template_name_layout_and_use_default_render
+    mail = AutoLayoutMailer.multipart_overriding_template_name
     assert_equal "multipart/alternative", mail.mime_type
     assert_equal 2, mail.parts.size
 
