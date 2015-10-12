@@ -17,7 +17,7 @@ module ActionDispatch
       end
 
       def verb
-        super.source.gsub(/[$^]/, '')
+        super.source.gsub(/\\A|\\Z/, '')
       end
 
       def path
