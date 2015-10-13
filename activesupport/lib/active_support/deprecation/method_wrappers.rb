@@ -30,16 +30,16 @@ module ActiveSupport
         deprecator = options.delete(:deprecator) || ActiveSupport::Deprecation.instance
         method_names += options.keys
 
-        method_names.each do |method_name|
-          mod = Module.new do
+        mod = Module.new do
+          method_names.each do |method_name|
             define_method(method_name) do |*args, &block|
               deprecator.deprecation_warning(method_name, options[method_name])
               super(*args, &block)
             end
           end
-
-          target_module.prepend(mod)
         end
+
+        target_module.prepend(mod)
       end
     end
   end
