@@ -604,12 +604,6 @@ module ActiveRecord
       self
     end
 
-    private def structurally_compatible_for_or?(other) # :nodoc:
-      Relation::SINGLE_VALUE_METHODS.all? { |m| send("#{m}_value") == other.send("#{m}_value") } &&
-        (Relation::MULTI_VALUE_METHODS - [:extending]).all? { |m| send("#{m}_values") == other.send("#{m}_values") } &&
-        (Relation::CLAUSE_METHODS - [:having, :where]).all? { |m| send("#{m}_clause") != other.send("#{m}_clause") }
-    end
-
     # Allows to specify a HAVING clause. Note that you can't use HAVING
     # without also specifying a GROUP clause.
     #
@@ -1093,6 +1087,12 @@ module ActiveRecord
       if args.blank?
         raise ArgumentError, "The method .#{method_name}() must contain arguments."
       end
+    end
+
+    def structurally_compatible_for_or?(other)
+      Relation::SINGLE_VALUE_METHODS.all? { |m| send("#{m}_value") == other.send("#{m}_value") } &&
+        (Relation::MULTI_VALUE_METHODS - [:extending]).all? { |m| send("#{m}_values") == other.send("#{m}_values") } &&
+        (Relation::CLAUSE_METHODS - [:having, :where]).all? { |m| send("#{m}_clause") != other.send("#{m}_clause") }
     end
 
     def new_where_clause
