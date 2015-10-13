@@ -302,5 +302,11 @@ module ActiveRecord
       assert_raises(ActiveModel::ForbiddenAttributesError) { Author.where(params) }
       assert_equal author, Author.where(params.permit!).first
     end
+
+    def test_where_with_unsupported_arguments
+      author = authors(:david)
+
+      assert_raises(ArgumentError) { Author.where(42) }
+    end
   end
 end
