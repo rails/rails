@@ -8,6 +8,7 @@ and scalable. It's a full-stack offering that provides both a client-side
 JavaScript framework and a server-side Ruby framework. You have access to your full
 domain model written with ActiveRecord or your ORM of choice.
 
+
 ## Terminology
 
 A single Action Cable server can handle multiple connection instances. It has one
@@ -33,8 +34,9 @@ As you can see, this is a fairly deep architectural stack. There's a lot of new 
 to identify the new pieces, and on top of that, you're dealing with both client and server side
 reflections of each unit.
 
+## Examples
 
-## A full-stack example
+### A full-stack example
 
 The first thing you must do is define your `ApplicationCable::Connection` class in Ruby. This
 is the place where you authorize the incoming connection, and proceed to establish it
@@ -99,7 +101,7 @@ itself. This just gives you the plumbing. To make stuff happen, you need content
 is defined by declaring channels on the server and allowing the consumer to subscribe to them.
 
 
-## Channel example 1: User appearances
+### Channel example 1: User appearances
 
 Here's a simple example of a channel that tracks whether a user is online or not and what page they're on.
 (This is useful for creating presence features like showing a green dot next to a user name if they're online).
@@ -165,7 +167,7 @@ Finally, we expose `App.appearance` to the machinations of the application itsel
 Turbolinks `page:change` callback and allowing the user to click a data-behavior link that triggers the `#away` call.
 
 
-## Channel example 2: Receiving new web notifications
+### Channel example 2: Receiving new web notifications
 
 The appearance example was all about exposing server functionality to client-side invocation over the websocket connection.
 But the great thing about websockets is that it's a two-way street. So now let's show an example where the server invokes
@@ -177,21 +179,23 @@ streams:
 ```ruby
 # app/channels/web_notifications_channel.rb
 class WebNotificationsChannel < ApplicationCable::Channel
-   def subscribed
-     stream_from "web_notifications_#{current_user.id}"
-   end
+  def subscribed
+    stream_from "web_notifications_#{current_user.id}"
+  end
  end
 ```
 
 ```coffeescript
-# Somewhere in your app this is called, perhaps from a NewCommentJob
-ActionCable.server.broadcast \
-  "web_notifications_#{current_user.id}", { title: 'New things!', body: 'All the news that is fit to print' }
-
 # Client-side which assumes you've already requested the right to send web notifications
 App.cable.subscriptions.create "WebNotificationsChannel",
   received: (data) ->
     new Notification data['title'], body: data['body']
+```
+
+```ruby
+# Somewhere in your app this is called, perhaps from a NewCommentJob
+ActionCable.server.broadcast \
+  "web_notifications_#{current_user.id}", { title: 'New things!', body: 'All the news that is fit to print' }
 ```
 
 The `ActionCable.server.broadcast` call places a message in the Redis' pubsub queue under a separate broadcasting name for each user. For a user with an ID of 1, the broadcasting name would be `web_notifications_1`.
@@ -199,9 +203,69 @@ The channel has been instructed to stream everything that arrives at `web_notifi
 `#received(data)` callback. The data is the hash sent as the second parameter to the server-side broadcast call, JSON encoded for the trip
 across the wire, and unpacked for the data argument arriving to `#received`.
 
-## More complete examples
+
+### Passing Parameters to Channel
+
+You can pass parameters from the client side to the server side when creating a subscription. For example:
+
+```ruby
+# app/channels/chat_channel.rb
+class ChatChannel < ApplicationCable::Channel
+  def subscribed
+    stream_from "chat_#{params[:room]}"
+  end
+ end
+```
+
+Pass an object as the first argument to `subscriptions.create`, and that object will become your params hash in your cable channel. The keyword `channel` is required.
+
+```coffeescript
+# Client-side which assumes you've already requested the right to send web notifications
+App.cable.subscriptions.create {channel: "ChatChannel", room: "Best Room"},
+  received: (data) ->
+    new Message data['sent_by'], body: data['body']
+```
+
+```ruby
+# Somewhere in your app this is called, perhaps from a NewCommentJob
+ActionCable.server.broadcast \
+  "chat_#{room}", { sent_by: 'Paul', body: 'This is a cool chat app.' }
+```
+
+
+### Rebroadcasting message
+
+A common use case is to rebroadcast a message sent by one client to any other connected clients.
+
+```ruby
+# app/channels/chat_channel.rb
+class ChatChannel < ApplicationCable::Channel
+  def subscribed
+    stream_from "chat_#{params[:room]}"
+  end
+
+  def receive(data)
+    ActionCable.server.broadcast "chat_#{params[:room]}", data
+  end
+end
+```
+
+```coffeescript
+# Client-side which assumes you've already requested the right to send web notifications
+sub = App.cable.subscriptions.create {channel: "ChatChannel", room: "Best Room"},
+  received: (data) ->
+    new Message data['sent_by'], body: data['body']
+
+sub.send {sent_by: 'Peter', body: 'Hello Paul, thanks for the compliment.'}
+```
+
+The rebroadcast will be received by all connected clients, _including_ the client that sent the message. Note that params are the same as they were when you subscribed to the channel.
+
+
+### More complete examples
 
 See the [rails/actioncable-examples](http://github.com/rails/actioncable-examples) repository for a full example of how to setup Action Cable in a Rails app and adding channels.
+
 
 ## Configuration
 
@@ -244,9 +308,11 @@ For a full list of all configuration options, see the `ActionCable::Server::Conf
 
 Also note that your server must provide at least the same number of database connections as you have workers. The default worker pool is set to 100, so that means you have to make at least that available. You can change that in `config/database.yml` through the `pool` attribute.
 
-## Starting the cable server
 
-As mentioned, the cable server(s) is separated from your normal application server. It's still a rack application, but it is its own rack
+## Running the cable server
+
+### Standalone
+The cable server(s) is separated from your normal application server. It's still a rack application, but it is its own rack
 application. The recommended basic setup is as follows:
 
 ```ruby
@@ -268,9 +334,26 @@ bundle exec puma -p 28080  cable/config.ru
 The above will start a cable server on port 28080. Remember to point your client-side setup against that using something like:
 `App.cable.createConsumer('ws://basecamp.dev:28080')`.
 
+### In app
+
+If you are using a threaded server like Puma or Thin, the current implementation of ActionCable can run side-along with your Rails application. For example, to listen for websocket requests on `/websocket`, match requests on that path:
+
+```ruby
+# config/routes.rb
+Example::Application.routes.draw do
+  match "/websocket", :to => ActionCable.server, via: [:get, :post]
+end
+```
+
+You can use `App.cable.createConsumer('ws://' + window.location.host + '/websocket')` to connect to the cable server.
+
+For every instance of your server you create and for every worker your server spawns, you will also have a new instance of ActionCable, but the use of Redis keeps messages synced across connections.
+
+### Notes
+
 Beware that currently the cable server will _not_ auto-reload any changes in the framework. As we've discussed, long-running cable connections mean long-running objects. We don't yet have a way of reloading the classes of those objects in a safe manner. So when you change your channels, or the model your channels use, you must restart the cable server.
 
-Note: We'll get all this abstracted properly when the framework is integrated into Rails.
+We'll get all this abstracted properly when the framework is integrated into Rails.
 
 
 ## Dependencies
@@ -281,7 +364,6 @@ be alleviated in the future, but for the moment that's what it is. So be sure to
 Redis installed and running.
 
 The Ruby side of things is built on top of [faye-websocket](https://github.com/faye/faye-websocket-ruby) and [celluloid](https://github.com/celluloid/celluloid).
-
 
 
 ## Deployment
