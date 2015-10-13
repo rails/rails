@@ -1,3 +1,10 @@
+*   Make it possible to pass `:to_table` when adding a foreign key through
+    `add_reference`.
+
+    Fixes #21563.
+
+    *Yves Senn*
+
 *   No longer pass depreacted option `-i` to `pg_dump`.
 
     *Paul Sadauskas*

@@ -123,15 +123,19 @@ module ActiveRecord
       end
 
       def foreign_key_options
-        as_options(foreign_key)
+        as_options(foreign_key).merge(column: column_name)
       end
 
       def columns
-        result = [["#{name}_id", type, options]]
+        result = [[column_name, type, options]]
         if polymorphic
           result.unshift(["#{name}_type", :string, polymorphic_options])
         end
         result
+      end
+
+      def column_name
+        "#{name}_id"
       end
 
       def column_names
@@ -139,7 +143,9 @@ module ActiveRecord
       end
 
       def foreign_table_name
-        Base.pluralize_table_names ? name.to_s.pluralize : name
+        foreign_key_options.fetch(:to_table) do
+          Base.pluralize_table_names ? name.to_s.pluralize : name
+        end
       end
     end
 

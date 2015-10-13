@@ -53,6 +53,15 @@ module ActiveRecord
         assert_equal "other_id", fk.primary_key
       end
 
+      test "to_table option can be passed" do
+        @connection.create_table :testings do |t|
+          t.references :parent, foreign_key: { to_table: :testing_parents }
+        end
+        fks = @connection.foreign_keys("testings")
+        assert_equal([["testings", "testing_parents", "parent_id"]],
+                     fks.map {|fk| [fk.from_table, fk.to_table, fk.column] })
+      end
+
       test "foreign keys cannot be added to polymorphic relations when creating the table" do
         @connection.create_table :testings do |t|
           assert_raises(ArgumentError) do

@@ -724,6 +724,10 @@ module ActiveRecord
       #
       #   add_reference(:products, :supplier, foreign_key: true)
       #
+      # ====== Create a supplier_id column and a foreign key to the firms table
+      #
+      #   add_reference(:products, :supplier, foreign_key: {to_table: :firms})
+      #
       def add_reference(table_name, *args)
         ReferenceDefinition.new(*args).add_to(update_table_definition(table_name, self))
       end
