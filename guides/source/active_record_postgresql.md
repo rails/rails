@@ -85,7 +85,7 @@ Book.where("array_length(ratings, 1) >= 3")
 
 * [type definition](http://www.postgresql.org/docs/current/static/hstore.html)
 
-NOTE: you need to enable the `hstore` extension to use hstore.
+NOTE: You need to enable the `hstore` extension to use hstore.
 
 ```ruby
 # db/migrate/20131009135255_create_profiles.rb
@@ -252,6 +252,7 @@ article.save!
 ```
 
 To add a new value before/after existing one you should use [ALTER TYPE](http://www.postgresql.org/docs/current/static/sql-altertype.html):
+
 ```ruby
 # db/migrate/20150720144913_add_new_state_to_articles.rb
 # NOTE: ALTER TYPE ... ADD VALUE cannot be executed inside of a transaction block so here we are using disable_ddl_transaction!
@@ -264,9 +265,10 @@ def up
 end
 ```
 
-NOTE: by now we can't drop ENUM values. You can read why [here](http://www.postgresql.org/message-id/29F36C7C98AB09499B1A209D48EAA615B7653DBC8A@mail2a.alliedtesting.com).
+NOTE: ENUM values can't be dropped currently. You can read why [here](http://www.postgresql.org/message-id/29F36C7C98AB09499B1A209D48EAA615B7653DBC8A@mail2a.alliedtesting.com).
 
 Hint: to show all the values of the all enums you have, you should call this query in `bin/rails db` or `psql` console:
+
 ```sql
 SELECT n.nspname AS enum_schema,
        t.typname AS enum_name,
@@ -282,7 +284,7 @@ SELECT n.nspname AS enum_schema,
 * [pgcrypto generator function](http://www.postgresql.org/docs/current/static/pgcrypto.html#AEN159361)
 * [uuid-ossp generator functions](http://www.postgresql.org/docs/current/static/uuid-ossp.html)
 
-NOTE: you need to enable the `pgcrypto` (only PostgreSQL >= 9.4) or `uuid-ossp`
+NOTE: You need to enable the `pgcrypto` (only PostgreSQL >= 9.4) or `uuid-ossp`
 extension to use uuid.
 
 ```ruby
@@ -397,7 +399,7 @@ A point is casted to an array containing `x` and `y` coordinates.
 UUID Primary Keys
 -----------------
 
-NOTE: you need to enable the `pgcrypto` (only PostgreSQL >= 9.4) or `uuid-ossp`
+NOTE: You need to enable the `pgcrypto` (only PostgreSQL >= 9.4) or `uuid-ossp`
 extension to generate random UUIDs.
 
 ```ruby
