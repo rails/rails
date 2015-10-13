@@ -1,3 +1,10 @@
+*   Queries such as `Computer.joins(:monitor).group(:status).count` will now be
+    interpreted as  `Computer.joins(:monitor).group('computers.status').count`
+    so that when `Computer` and `Monitor` have both `status` columns we don't
+    have conflicts in projection.
+
+    *Rafael Sales*
+
 *   ActiveRecord::Relation#count: raise an ArgumentError when finder options
     are specified or an ActiveRecord::StatementInvalid when an invalid type
     is provided for a column name (e.g. a Hash).
