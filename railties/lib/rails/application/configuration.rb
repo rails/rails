@@ -11,12 +11,12 @@ module Rails
                     :eager_load, :exceptions_app, :file_watcher, :filter_parameters,
                     :force_ssl, :helpers_paths, :logger, :log_formatter, :log_tags,
                     :railties_order, :relative_url_root, :secret_key_base, :secret_token,
-                    :serve_static_files, :ssl_options, :static_cache_control, :static_index,
+                    :serve_static_files, :ssl_options, :static_index, :public_file_server,
                     :session_options, :time_zone, :reload_classes_only_on_change,
                     :beginning_of_week, :filter_redirect, :x
 
       attr_writer :log_level
-      attr_reader :encoding, :api_only
+      attr_reader :encoding, :api_only, :static_cache_control
 
       def initialize(*)
         super
@@ -27,8 +27,8 @@ module Rails
         @filter_redirect               = []
         @helpers_paths                 = []
         @serve_static_files            = true
-        @static_cache_control          = nil
         @static_index                  = "index"
+        @public_file_server            = ActiveSupport::OrderedOptions.new
         @force_ssl                     = false
         @ssl_options                   = {}
         @session_store                 = :cookie_store
@@ -50,6 +50,14 @@ module Rails
         @secret_key_base               = nil
         @api_only                      = false
         @x                             = Custom.new
+      end
+
+      def static_cache_control=(value)
+        ActiveSupport::Deprecation.warn("static_cache_control is deprecated and will be removed in Rails 5.1. " \
+                                        "Please use `config.public_file_server.headers = {'Cache-Control' => #{value}} " \
+                                        "instead.")
+
+        @static_cache_control = value
       end
 
       def encoding=(value)

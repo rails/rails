@@ -1,3 +1,22 @@
+*   Deprecate `config.static_cache_control` in favor of
+    `config.public_file_server.headers`
+
+    *Yuki Nishijima*
+
+*   Add the ability of returning arbitrary headers to ActionDispatch::Static
+
+    Now ActionDispatch::Static can accept HTTP headers so that developers
+    will have control of returning arbitrary headers like
+    'Access-Control-Allow-Origin' when a response is delivered. They can be
+    configured with `#config`:
+
+      config.public_file_server.headers = {
+        "Cache-Control"               => "public, max-age=60",
+        "Access-Control-Allow-Origin" => "http://rubyonrails.org"
+      }
+
+    *Yuki Nishijima*
+
 *   Allow multiple `root` routes in same scope level. Example:
 
     ```ruby
