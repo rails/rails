@@ -119,7 +119,7 @@ HEADER
             if pk != 'id'
               tbl.print %Q(, primary_key: "#{pk}")
             end
-            pkcolspec = @connection.column_spec_for_primary_key(pkcol)
+            pkcolspec = @connection.column_spec_for_primary_key(pkcol, @types)
             if pkcolspec
               pkcolspec.each do |key, value|
                 tbl.print ", #{key}: #{value}"

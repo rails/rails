@@ -125,7 +125,7 @@ module ActiveRecord
         PostgreSQL::SchemaCreation.new self
       end
 
-      def column_spec_for_primary_key(column)
+      def column_spec_for_primary_key(column, types)
         spec = {}
         if column.serial?
           return unless column.sql_type == 'bigint'
@@ -135,7 +135,7 @@ module ActiveRecord
           spec[:default] = column.default_function.inspect
         else
           spec[:id] = column.type.inspect
-          spec.merge!(prepare_column_options(column).delete_if { |key, _| [:name, :type, :null].include?(key) })
+          spec.merge!(prepare_column_options(column, types).delete_if { |key, _| [:name, :type, :null].include?(key) })
         end
         spec
       end
