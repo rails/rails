@@ -435,7 +435,14 @@ module ActiveRecord
       first, *rest = args
 
       if first.is_a?(String) && !rest.empty?
-        [@klass.send(:sanitize_sql, args)]
+        sanitized = @klass.send(:sanitize_sql, args)
+
+        if sanitized == first
+          # List of joins rather than raw SQL + params
+          args
+        else
+          [sanitized]
+        end
       else
         args
       end
