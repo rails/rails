@@ -1,12 +1,14 @@
 require 'active_record/connection_adapters/abstract_adapter'
 require 'active_record/connection_adapters/mysql/schema_creation'
 require 'active_record/connection_adapters/mysql/schema_definitions'
+require 'active_record/connection_adapters/mysql/schema_dumper'
 
 require 'active_support/core_ext/string/strip'
 
 module ActiveRecord
   module ConnectionAdapters
     class AbstractMysqlAdapter < AbstractAdapter
+      include MySQL::ColumnDumper
       include Savepoints
 
       def update_table_definition(table_name, base) # :nodoc:
@@ -16,49 +18,6 @@ module ActiveRecord
       def schema_creation
         MySQL::SchemaCreation.new(self)
       end
-
-      def column_spec_for_primary_key(column)
-        spec = {}
-        if column.auto_increment?
-          spec[:id] = ':bigint' if column.bigint?
-          spec[:unsigned] = 'true' if column.unsigned?
-          return if spec.empty?
-        else
-          spec[:id] = column.type.inspect
-          spec.merge!(prepare_column_options(column).delete_if { |key, _| [:name, :type, :null].include?(key) })
-        end
-        spec
-      end
-
-      def prepare_column_options(column)
-        spec = super
-        spec[:unsigned] = 'true' if column.unsigned?
-        spec
-      end
-
-      def migration_keys
-        super + [:unsigned]
-      end
-
-      private
-
-      def schema_limit(column)
-        super unless column.type == :boolean
-      end
-
-      def schema_precision(column)
-        super unless /time/ === column.sql_type && column.precision == 0
-      end
-
-      def schema_collation(column)
-        if column.collation && table_name = column.instance_variable_get(:@table_name)
-          @collation_cache ||= {}
-          @collation_cache[table_name] ||= select_one("SHOW TABLE STATUS LIKE '#{table_name}'")["Collation"]
-          column.collation.inspect if column.collation != @collation_cache[table_name]
-        end
-      end
-
-      public
 
       class Column < ConnectionAdapters::Column # :nodoc:
         delegate :strict, :extra, to: :sql_type_metadata, allow_nil: true
