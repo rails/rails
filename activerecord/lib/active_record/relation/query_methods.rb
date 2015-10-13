@@ -427,18 +427,19 @@ module ActiveRecord
     def joins!(*args) # :nodoc:
       args.compact!
       args.flatten!
-      self.joins_values += build_join(args)
+      self.joins_values += build_join(*args)
       self
     end
 
-    def build_join(args)
+    def build_join(*args)
       first, *rest = args
 
-      if first.is_a?(String) && !rest.empty?
-        sanitized = @klass.send(:sanitize_sql, args)
+      if first.is_a?(String) && rest.present?
+        sanitized = @klass.send(:sanitize_sql, [first, *rest])
 
         if sanitized == first
-          # List of joins rather than raw SQL + params
+          # First string doesn't contain any parameter substitution: args is a list of raw SQL
+          # strings.
           args
         else
           [sanitized]
