@@ -186,14 +186,16 @@ class WebNotificationsChannel < ApplicationCable::Channel
 ```
 
 ```coffeescript
-# Somewhere in your app this is called, perhaps from a NewCommentJob
-ActionCable.server.broadcast \
-  "web_notifications_#{current_user.id}", { title: 'New things!', body: 'All the news that is fit to print' }
-
 # Client-side which assumes you've already requested the right to send web notifications
 App.cable.subscriptions.create "WebNotificationsChannel",
   received: (data) ->
     new Notification data['title'], body: data['body']
+```
+
+```ruby
+# Somewhere in your app this is called, perhaps from a NewCommentJob
+ActionCable.server.broadcast \
+  "web_notifications_#{current_user.id}", { title: 'New things!', body: 'All the news that is fit to print' }
 ```
 
 The `ActionCable.server.broadcast` call places a message in the Redis' pubsub queue under a separate broadcasting name for each user. For a user with an ID of 1, the broadcasting name would be `web_notifications_1`.
