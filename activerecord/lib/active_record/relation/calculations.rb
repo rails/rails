@@ -275,6 +275,7 @@ module ActiveRecord
       else
         group_fields = group_attrs
       end
+      group_fields = arel_columns(group_fields)
 
       group_aliases = group_fields.map { |field|
         column_alias_for(field)
@@ -299,7 +300,7 @@ module ActiveRecord
       ]
       select_values += select_values unless having_clause.empty?
 
-      select_values.concat arel_columns(group_fields).zip(group_aliases).map { |field,aliaz|
+      select_values.concat group_fields.zip(group_aliases).map { |field,aliaz|
         if field.respond_to?(:as)
           field.as(aliaz)
         else

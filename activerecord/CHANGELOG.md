@@ -1,3 +1,10 @@
+*   Queries such as `Computer.joins(:monitor).group(:status).count` will now be
+    interpreted as  `Computer.joins(:monitor).group('computers.status').count`
+    so that when `Computer` and `Monitor` have both `status` columns we don't
+    have conflicts in projection.
+
+    *Rafael Sales*
+
 *   Add ability to default to `uuid` as primary key when generating database migrations
 
     Set `Rails.application.config.active_record.primary_key = :uuid`
