@@ -11,15 +11,21 @@ module Rails
       attr_reader :migration_number, :migration_file_name, :migration_class_name
 
       module ClassMethods
-        def migration_lookup_at(dirname) #:nodoc:
+        # Look up all migrations for given destination (default +db/migrate+ directory) 
+        # and return an array.
+        def migration_lookup_at(dirname)
           Dir.glob("#{dirname}/[0-9]*_*.rb")
         end
 
-        def migration_exists?(dirname, file_name) #:nodoc:
+        # Look up for file name without migration number at given destination and 
+        # result will be entire file name with path otherwise it returns nil.
+        def migration_exists?(dirname, file_name)
           migration_lookup_at(dirname).grep(/\d+_#{file_name}.rb$/).first
         end
 
-        def current_migration_number(dirname) #:nodoc:
+        # Look up for given destination (default +db/migrate+ directory) and 
+        # return highest migration version number.
+        def current_migration_number(dirname)
           migration_lookup_at(dirname).collect do |file|
             File.basename(file).split("_").first.to_i
           end.max.to_i
