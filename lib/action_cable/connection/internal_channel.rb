@@ -15,14 +15,14 @@ module ActionCable
             @_internal_redis_subscriptions ||= []
             @_internal_redis_subscriptions << [ internal_redis_channel, callback ]
 
-            pubsub.subscribe(internal_redis_channel, &callback)
+            EM.next_tick { pubsub.subscribe(internal_redis_channel, &callback) }
             logger.info "Registered connection (#{connection_identifier})"
           end
         end
 
         def unsubscribe_from_internal_channel
           if @_internal_redis_subscriptions.present?
-            @_internal_redis_subscriptions.each { |channel, callback| pubsub.unsubscribe_proc(channel, callback) }
+            @_internal_redis_subscriptions.each { |channel, callback| EM.next_tick { pubsub.unsubscribe_proc(channel, callback) } }
           end
         end
 
