@@ -99,7 +99,6 @@ module ActionCable
 
       # Close the websocket connection.
       def close
-        logger.error "Closing connection"
         websocket.close
       end
 

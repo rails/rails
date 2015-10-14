@@ -139,7 +139,6 @@ module ActionCable
       # This method is not intended to be called directly by the user. Instead, overwrite the #unsubscribed callback.
       def unsubscribe_from_channel
         run_unsubscribe_callbacks
-        logger.info "#{self.class.name} unsubscribed"
       end
 
 
@@ -175,7 +174,6 @@ module ActionCable
 
 
         def subscribe_to_channel
-          logger.info "#{self.class.name} subscribing"
           run_subscribe_callbacks
         end
 
