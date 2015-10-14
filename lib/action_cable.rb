@@ -17,6 +17,8 @@ require 'em-hiredis'
 require 'redis'
 
 require 'action_cable/engine' if defined?(Rails)
+require 'action_cable/railtie' if defined?(Rails)
+
 require 'action_cable/version'
 
 module ActionCable
