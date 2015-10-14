@@ -78,6 +78,42 @@ class ImmutableDeveloper < ActiveRecord::Base
     end
 end
 
+class RelatedProject < ActiveRecord::Base
+  self.table_name = 'projects'
+end
+
+class RelatedDeveloper < ActiveRecord::Base
+  self.table_name = 'developers'
+end
+
+class RelatedDeveloperProject < ActiveRecord::Base
+  self.table_name = 'developers_projects'
+
+  belongs_to :developer, :class => RelatedProject, :foreign_key => 'developer_id'
+  belongs_to :project, :class => RelatedDeveloper, :foreign_key => 'project_id'
+end
+
+class RelatedProject < ActiveRecord::Base
+  has_many :developers_projects, :class => RelatedDeveloperProject, :foreign_key => 'project_id'
+  has_many :developers, :class => RelatedDeveloper, :through => :developers_projects
+end
+
+class RelatedDeveloper < ActiveRecord::Base
+  has_many :developers_projects, :class => RelatedDeveloperProject, :foreign_key => 'developer_id'
+  has_many :projects, :class => RelatedProject, :through => :developers_projects, :dependent => :destroy
+
+  before_dependent_destroy :store_projects_in_memory
+
+  attr_reader :projects_in_memory
+
+  private
+    def store_projects_in_memory
+      @projects_in_memory = self.projects.map do |project|
+        RelatedProject.find_by_id(project.id)
+      end
+    end
+end
+
 class DeveloperWithCanceledCallbacks < ActiveRecord::Base
   self.table_name = 'developers'
 
@@ -174,6 +210,8 @@ end
 
 class CallbacksTest < ActiveRecord::TestCase
   fixtures :developers
+  fixtures :projects
+  fixtures :developers_projects
 
   def test_initialize
     david = CallbackDeveloper.new
@@ -467,6 +505,15 @@ class CallbacksTest < ActiveRecord::TestCase
       assert !someone.save
     end
     assert_save_callbacks_not_called(someone)
+  end
+
+  #TODO handle delete_all and nullify as well. Also, handle around hook
+  def test_before_dependent_destroy_happens_before_dependent_destroy_regardless_of_order
+    andy = RelatedDeveloper.find(1)
+    projects = andy.projects.map(&:clone)
+    assert !projects.empty?
+    andy.destroy!
+    assert_equal projects, andy.projects_in_memory
   end
 
   def test_deprecated_before_create_returning_false
