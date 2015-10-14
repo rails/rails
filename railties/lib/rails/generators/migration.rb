@@ -10,22 +10,22 @@ module Rails
       extend ActiveSupport::Concern
       attr_reader :migration_number, :migration_file_name, :migration_class_name
 
-      module ClassMethods
-        def migration_lookup_at(dirname) #:nodoc:
+      module ClassMethods #:nodoc:
+        def migration_lookup_at(dirname)
           Dir.glob("#{dirname}/[0-9]*_*.rb")
         end
 
-        def migration_exists?(dirname, file_name) #:nodoc:
+        def migration_exists?(dirname, file_name)
           migration_lookup_at(dirname).grep(/\d+_#{file_name}.rb$/).first
         end
 
-        def current_migration_number(dirname) #:nodoc:
+        def current_migration_number(dirname)
           migration_lookup_at(dirname).collect do |file|
             File.basename(file).split("_").first.to_i
           end.max.to_i
         end
 
-        def next_migration_number(dirname) #:nodoc:
+        def next_migration_number(dirname)
           raise NotImplementedError
         end
       end
