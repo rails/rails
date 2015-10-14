@@ -426,14 +426,14 @@ class ApplicationController < ActionController::Base
 
   private
 
-  # Finds the User with the ID stored in the session with the key
-  # :current_user_id This is a common way to handle user login in
-  # a Rails application; logging in sets the session value and
-  # logging out removes it.
-  def current_user
-    @_current_user ||= session[:current_user_id] &&
-      User.find_by(id: session[:current_user_id])
-  end
+    # Finds the User with the ID stored in the session with the key
+    # :current_user_id This is a common way to handle user login in
+    # a Rails application; logging in sets the session value and
+    # logging out removes it.
+    def current_user
+      @_current_user ||= session[:current_user_id] &&
+        User.find_by(id: session[:current_user_id])
+    end
 end
 ```
 
@@ -681,12 +681,12 @@ class ApplicationController < ActionController::Base
 
   private
 
-  def require_login
-    unless logged_in?
-      flash[:error] = "You must be logged in to access this section"
-      redirect_to new_login_url # halts request cycle
+    def require_login
+      unless logged_in?
+        flash[:error] = "You must be logged in to access this section"
+        redirect_to new_login_url # halts request cycle
+      end
     end
-  end
 end
 ```
 
@@ -718,15 +718,15 @@ class ChangesController < ApplicationController
 
   private
 
-  def wrap_in_transaction
-    ActiveRecord::Base.transaction do
-      begin
-        yield
-      ensure
-        raise ActiveRecord::Rollback
+    def wrap_in_transaction
+      ActiveRecord::Base.transaction do
+        begin
+          yield
+        ensure
+          raise ActiveRecord::Rollback
+        end
       end
     end
-  end
 end
 ```
 
