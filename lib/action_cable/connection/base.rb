@@ -143,13 +143,12 @@ module ActionCable
         attr_reader :subscriptions, :message_buffer
 
         def on_open
-          server.add_connection(self)
-
           connect if respond_to?(:connect)
           subscribe_to_internal_channel
           beat
 
           message_buffer.process!
+          server.add_connection(self)
         rescue ActionCable::Connection::Authorization::UnauthorizedError
           respond_to_invalid_request
           close
