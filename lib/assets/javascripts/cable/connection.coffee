@@ -48,6 +48,7 @@ class Cable.Connection
     for eventName of @events
       handler = @events[eventName].bind(this)
       @webSocket["on#{eventName}"] = handler
+    return
 
   events:
     message: (event) ->
