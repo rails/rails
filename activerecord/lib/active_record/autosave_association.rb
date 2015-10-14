@@ -143,7 +143,7 @@ module ActiveRecord
       Associations::Builder::Association.extensions << AssociationBuilderExtension
     end
 
-    module ClassMethods
+    module ClassMethods # :nodoc:
       private
 
         def define_non_cyclic_method(name, &block)
