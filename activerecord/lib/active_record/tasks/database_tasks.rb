@@ -18,13 +18,13 @@ module ActiveRecord
     #
     # The possible config values are:
     #
-    #   * +env+: current environment (like Rails.env).
-    #   * +database_configuration+: configuration of your databases (as in +config/database.yml+).
-    #   * +db_dir+: your +db+ directory.
-    #   * +fixtures_path+: a path to fixtures directory.
-    #   * +migrations_paths+: a list of paths to directories with migrations.
-    #   * +seed_loader+: an object which will load seeds, it needs to respond to the +load_seed+ method.
-    #   * +root+: a path to the root of the application.
+    # * +env+: current environment (like Rails.env).
+    # * +database_configuration+: configuration of your databases (as in +config/database.yml+).
+    # * +db_dir+: your +db+ directory.
+    # * +fixtures_path+: a path to fixtures directory.
+    # * +migrations_paths+: a list of paths to directories with migrations.
+    # * +seed_loader+: an object which will load seeds, it needs to respond to the +load_seed+ method.
+    # * +root+: a path to the root of the application.
     #
     # Example usage of +DatabaseTasks+ outside Rails could look as such:
     #
