@@ -10,12 +10,13 @@ class Cable.Connection
     else
       false
 
-  open: ->
-    if @isOpen()
-      throw new Error("Must close existing connection before opening")
+  open: =>
+    if @webSocket and not @isState("closed")
+      throw new Error("Existing connection must be closed before opening")
     else
       @webSocket = new WebSocket(@consumer.url)
       @installEventHandlers()
+      true
 
   close: ->
     @webSocket?.close()
