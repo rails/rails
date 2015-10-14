@@ -278,7 +278,7 @@ module ActiveRecord
       :before_destroy, :around_destroy, :after_destroy, :after_commit, :after_rollback
     ]
 
-    module ClassMethods
+    module ClassMethods # :nodoc:
       include ActiveModel::Callbacks
     end
 
