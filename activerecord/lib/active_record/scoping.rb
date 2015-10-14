@@ -30,7 +30,7 @@ module ActiveRecord
       end
     end
 
-    def populate_with_current_scope_attributes
+    def populate_with_current_scope_attributes # :nodoc:
       return unless self.class.scope_attributes?
 
       self.class.scope_attributes.each do |att,value|
@@ -38,7 +38,7 @@ module ActiveRecord
       end
     end
 
-    def initialize_internals_callback
+    def initialize_internals_callback # :nodoc:
       super
       populate_with_current_scope_attributes
     end
