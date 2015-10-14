@@ -389,7 +389,7 @@ module ActiveRecord
       # specified by the +:dependent+ option. If no +:dependent+ option is given,
       # then it will follow the default strategy.
       #
-      # For +has_many :through+ associations, the default deletion strategy is
+      # For <tt>has_many :through</tt> associations, the default deletion strategy is
       # +:delete_all+.
       #
       # For +has_many+ associations, the default deletion strategy is +:nullify+.
@@ -424,7 +424,7 @@ module ActiveRecord
       #   #       #<Pet id: 3, name: "Choo-Choo", person_id: nil>
       #   #    ]
       #
-      # Both +has_many+ and +has_many :through+ dependencies default to the
+      # Both +has_many+ and <tt>has_many :through</tt> dependencies default to the
       # +:delete_all+ strategy if the +:dependent+ option is set to +:destroy+.
       # Records are not instantiated and callbacks will not be fired.
       #
@@ -500,7 +500,7 @@ module ActiveRecord
       # then it will follow the default strategy. Returns an array with the
       # deleted records.
       #
-      # For +has_many :through+ associations, the default deletion strategy is
+      # For <tt>has_many :through</tt> associations, the default deletion strategy is
       # +:delete_all+.
       #
       # For +has_many+ associations, the default deletion strategy is +:nullify+.
