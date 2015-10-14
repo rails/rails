@@ -20,10 +20,6 @@ class Cable.ConnectionMonitor
     @pingedAt = now()
 
   disconnected: ->
-    if @reconnectAttempts++ is 0
-      setTimeout =>
-        @consumer.connection.open() unless @consumer.connection.isOpen()
-      , 200
 
   received: ->
     @pingedAt = now()
