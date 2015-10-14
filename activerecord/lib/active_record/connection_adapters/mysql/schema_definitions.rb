@@ -7,6 +7,10 @@ module ActiveRecord
           super
         end
 
+        def blob(*args, **options)
+          args.each { |name| column(name, :blob, options) }
+        end
+
         def json(*args, **options)
           args.each { |name| column(name, :json, options) }
         end

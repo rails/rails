@@ -27,6 +27,14 @@ module ActiveRecord
 
         private
 
+        def schema_type(column)
+          if column.sql_type == 'tinyblob'
+            'blob'
+          else
+            super
+          end
+        end
+
         def schema_limit(column)
           super unless column.type == :boolean
         end
