@@ -331,7 +331,7 @@ module ActiveRecord
         # of the cache is to speed-up +connection+ method, it is not the authoritative
         # registry of which thread owns which connection, that is tracked by
         # +connection.owner+ attr on each +connection+ instance.
-        # The invariant works like this: if there is mapping of +thread => conn+,
+        # The invariant works like this: if there is mapping of <tt>thread => conn</tt>,
         # then that +thread+ does indeed own that +conn+, however an absence of a such
         # mapping does not mean that the +thread+ doesn't own the said connection, in
         # that case +conn.owner+ attr should be consulted.
@@ -342,7 +342,7 @@ module ActiveRecord
         @connections         = []
         @automatic_reconnect = true
 
-        # Connection pool allows for concurrent (outside the main `synchronize` section)
+        # Connection pool allows for concurrent (outside the main +synchronize+ section)
         # establishment of new connections. This variable tracks the number of threads
         # currently in the process of independently establishing connections to the DB.
         @now_connecting = 0
@@ -408,7 +408,7 @@ module ActiveRecord
       # Raises:
       # - +ExclusiveConnectionTimeoutError+ if unable to gain ownership of all
       #   connections in the pool within a timeout interval (default duration is
-      #   +spec.config[:checkout_timeout] * 2+ seconds).
+      #   <tt>spec.config[:checkout_timeout] * 2</tt> seconds).
       def disconnect(raise_on_acquisition_timeout = true)
         with_exclusively_acquired_all_connections(raise_on_acquisition_timeout) do
           synchronize do
@@ -426,7 +426,7 @@ module ActiveRecord
       #
       # The pool first tries to gain ownership of all connections, if unable to
       # do so within a timeout interval (default duration is
-      # +spec.config[:checkout_timeout] * 2+ seconds), the pool is forcefully
+      # <tt>spec.config[:checkout_timeout] * 2</tt> seconds), the pool is forcefully
       # disconnected without any regard for other connection owning threads.
       def disconnect!
         disconnect(false)
@@ -438,7 +438,7 @@ module ActiveRecord
       # Raises:
       # - +ExclusiveConnectionTimeoutError+ if unable to gain ownership of all
       #   connections in the pool within a timeout interval (default duration is
-      #   +spec.config[:checkout_timeout] * 2+ seconds).
+      #   <tt>spec.config[:checkout_timeout] * 2</tt> seconds).
       def clear_reloadable_connections(raise_on_acquisition_timeout = true)
         num_new_conns_required = 0
 
@@ -474,7 +474,7 @@ module ActiveRecord
       #
       # The pool first tries to gain ownership of all connections, if unable to
       # do so within a timeout interval (default duration is
-      # +spec.config[:checkout_timeout] * 2+ seconds), the pool forcefully
+      # <tt>spec.config[:checkout_timeout] * 2</tt> seconds), the pool forcefully
       # clears the cache and reloads connections without any regard for other
       # connection owning threads.
       def clear_reloadable_connections!
@@ -628,10 +628,10 @@ module ActiveRecord
           end
         end
       rescue ExclusiveConnectionTimeoutError
-        # `raise_on_acquisition_timeout == false` means we are directed to ignore any
+        # <tt>raise_on_acquisition_timeout == false</tt> means we are directed to ignore any
         # timeouts and are expected to just give up: we've obtained as many connections
         # as possible, note that in a case like that we don't return any of the
-        # `newly_checked_out` connections.
+        # +newly_checked_out+ connections.
 
         if raise_on_acquisition_timeout
           release_newly_checked_out = true
@@ -694,12 +694,12 @@ module ActiveRecord
       # Implementation detail: the connection returned by +acquire_connection+
       # will already be "+connection.lease+ -ed" to the current thread.
       def acquire_connection(checkout_timeout)
-        # NOTE: we rely on `@available.poll` and `try_to_checkout_new_connection` to
-        # `conn.lease` the returned connection (and to do this in a `synchronized`
+        # NOTE: we rely on +@available.poll+ and +try_to_checkout_new_connection+ to
+        # +conn.lease+ the returned connection (and to do this in a +synchronized+
         # section), this is not the cleanest implementation, as ideally we would
-        # `synchronize { conn.lease }` in this method, but by leaving it to `@available.poll`
-        # and `try_to_checkout_new_connection` we can piggyback on `synchronize` sections
-        # of the said methods and avoid an additional `synchronize` overhead.
+        # <tt>synchronize { conn.lease }</tt> in this method, but by leaving it to +@available.poll+
+        # and +try_to_checkout_new_connection+ we can piggyback on +synchronize+ sections
+        # of the said methods and avoid an additional +synchronize+ overhead.
         if conn = @available.poll || try_to_checkout_new_connection
           conn
         else
