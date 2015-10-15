@@ -1541,6 +1541,13 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal 'David', topic2.reload.author_name
   end
 
+  def test_update_on_relation_passing_active_record_object_is_deprecated
+    topic = Topic.create!(title: 'Foo', author_name: nil)
+    assert_deprecated(/update/) do
+      Topic.where(id: topic.id).update(topic, title: 'Bar')
+    end
+  end
+
   def test_distinct
     tag1 = Tag.create(:name => 'Foo')
     tag2 = Tag.create(:name => 'Foo')
