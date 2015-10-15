@@ -16,7 +16,7 @@ module ActiveRecord
       # +sql_type_metadata+ is various information about the type of the column
       # +null+ determines if this column allows +NULL+ values.
       def initialize(name, default, sql_type_metadata = nil, null = true, default_function = nil, collation = nil)
-        @name = name
+        @name = name.freeze
         @sql_type_metadata = sql_type_metadata
         @null = null
         @default = default
