@@ -2358,4 +2358,8 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal [bulb.id], car.bulb_ids
     assert_no_queries { car.bulb_ids }
   end
+
+    def test_rewhere
+      assert_equal 'SELECT "comments".* FROM "comments" WHERE "comments"."post_id" = 99', posts(:welcome).comments_with_rewhere.to_sql
+    end
 end
