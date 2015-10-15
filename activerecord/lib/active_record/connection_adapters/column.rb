@@ -31,7 +31,7 @@ module ActiveRecord
       # It will be mapped to one of the standard Rails SQL types in the <tt>type</tt> attribute.
       # +null+ determines if this column allows +NULL+ values.
       def initialize(name, default, cast_type, sql_type = nil, null = true)
-        @name             = name
+        @name             = name.freeze
         @cast_type        = cast_type
         @sql_type         = sql_type
         @null             = null
