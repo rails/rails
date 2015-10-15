@@ -39,7 +39,8 @@ class Hash
   #   hash[:a][:c] # => nil
   #   dup[:a][:c]  # => "c"
   def deep_dup
-    each_with_object(dup) do |(key, value), hash|
+    hash = dup
+    each_pair do |key, value|
       if key.frozen? && ::String === key
         hash[key] = value.deep_dup
       else
@@ -47,5 +48,6 @@ class Hash
         hash[key.deep_dup] = value.deep_dup
       end
     end
+    hash
   end
 end
