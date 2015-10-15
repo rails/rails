@@ -12,12 +12,7 @@ module ActiveModel
       private
 
       def cast_value(value)
-        result = super
-        if ::String === result
-          ::String.new(result)
-        else
-          result
-        end
+        ::String.new(super)
       end
     end
   end
