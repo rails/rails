@@ -51,7 +51,22 @@ class TimeWithZoneTest < ActiveSupport::TestCase
 
   def test_utc?
     assert_equal false, @twz.utc?
+
     assert_equal true, ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone['UTC']).utc?
+    assert_equal true, ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone['Etc/UTC']).utc?
+    assert_equal true, ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone['Universal']).utc?
+    assert_equal true, ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone['UCT']).utc?
+    assert_equal true, ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone['Etc/UCT']).utc?
+    assert_equal true, ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone['Etc/Universal']).utc?
+
+    assert_equal false, ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone['Africa/Abidjan']).utc?
+    assert_equal false, ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone['Africa/Banjul']).utc?
+    assert_equal false, ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone['Africa/Freetown']).utc?
+    assert_equal false, ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone['GMT']).utc?
+    assert_equal false, ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone['GMT0']).utc?
+    assert_equal false, ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone['Greenwich']).utc?
+    assert_equal false, ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone['Iceland']).utc?
+    assert_equal false, ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone['Africa/Monrovia']).utc?
   end
 
   def test_formatted_offset
