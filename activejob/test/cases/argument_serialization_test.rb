@@ -1,7 +1,6 @@
 require 'helper'
 require 'active_job/arguments'
 require 'models/person'
-require 'models/custom_type'
 require 'active_support/core_ext/hash/indifferent_access'
 require 'jobs/kwargs_job'
 
@@ -53,6 +52,11 @@ class ArgumentSerializationTest < ActiveSupport::TestCase
     assert_not_instance_of ActiveSupport::HashWithIndifferentAccess, perform_round_trip([symbol_key]).first
     assert_not_instance_of ActiveSupport::HashWithIndifferentAccess, perform_round_trip([string_key]).first
     assert_instance_of ActiveSupport::HashWithIndifferentAccess, perform_round_trip([indifferent_access]).first
+  end
+
+  # Used in the following test
+  CustomType = Struct.new('CustomType', :foo, :bar) do
+    include ActiveJob::Serialization
   end
 
   test 'should use custom serialization when implemented' do
