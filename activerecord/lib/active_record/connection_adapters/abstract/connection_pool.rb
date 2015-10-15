@@ -960,12 +960,11 @@ module ActiveRecord
       def call(env)
         testing = env['rack.test']
 
-        response = @app.call(env)
-        response[2] = ::Rack::BodyProxy.new(response[2]) do
+        status, headers, body = @app.call(env)
+        proxy = ::Rack::BodyProxy.new(body) do
           ActiveRecord::Base.clear_active_connections! unless testing
         end
-
-        response
+        [status, headers, proxy]
       rescue Exception
         ActiveRecord::Base.clear_active_connections! unless testing
         raise
