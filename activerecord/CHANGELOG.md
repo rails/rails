@@ -1,3 +1,8 @@
+*   Add an immutable string type to help reduce memory usage for apps which do
+    not need mutation detection on Strings.
+
+    *Sean Griffin*
+
 *   Give `AcriveRecord::Relation#update` its own deprecation warning when
     passed an `ActiveRecord::Base` instance.
 

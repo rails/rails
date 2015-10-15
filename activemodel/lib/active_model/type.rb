@@ -9,6 +9,7 @@ require 'active_model/type/date_time'
 require 'active_model/type/decimal'
 require 'active_model/type/decimal_without_scale'
 require 'active_model/type/float'
+require 'active_model/type/immutable_string'
 require 'active_model/type/integer'
 require 'active_model/type/string'
 require 'active_model/type/text'
@@ -49,6 +50,7 @@ module ActiveModel
     register(:date_time, Type::DateTime)
     register(:decimal, Type::Decimal)
     register(:float, Type::Float)
+    register(:immutable_string, Type::ImmutableString)
     register(:integer, Type::Integer)
     register(:string, Type::String)
     register(:text, Type::Text)
