@@ -87,7 +87,7 @@ module ActionCable
         if websocket.alive?
           subscriptions.execute_command ActiveSupport::JSON.decode(data_in_json)
         else
-          logger.error "Received data without a live websocket (#{data.inspect})"
+          logger.error "Received data without a live websocket (#{data_in_json.inspect})"
         end
       end
 
