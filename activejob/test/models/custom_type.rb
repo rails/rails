@@ -13,18 +13,4 @@ class CustomType
   def ==(obj)
     obj.is_a?(CustomType) && obj.foo == foo && obj.bar == bar
   end
-
-  # Simplest implementation of serialization interface
-  class << self
-
-    def aj_dump(value)
-      Marshal.dump(value)
-    end
-
-    def aj_load(value)
-      Marshal.load(value)
-    end
-
-  end
-
 end
