@@ -37,6 +37,9 @@ module ActiveRecord
   module Timestamp
     extend ActiveSupport::Concern
 
+    TIMESTAMP_ATTRIBUTES_FOR_CREATE = [:created_at, :created_on]
+    TIMESTAMP_ATTRIBUTES_FOR_UPDATE = [:updated_at, :updated_on]
+
     included do
       class_attribute :record_timestamps
       self.record_timestamps = true
@@ -94,11 +97,11 @@ module ActiveRecord
     end
 
     def timestamp_attributes_for_update
-      [:updated_at, :updated_on]
+      TIMESTAMP_ATTRIBUTES_FOR_UPDATE
     end
 
     def timestamp_attributes_for_create
-      [:created_at, :created_on]
+      TIMESTAMP_ATTRIBUTES_FOR_CREATE
     end
 
     def all_timestamp_attributes

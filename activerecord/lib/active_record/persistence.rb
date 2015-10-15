@@ -334,7 +334,7 @@ module ActiveRecord
     def increment!(attribute, by = 1)
       increment(attribute, by)
       change = public_send(attribute) - (attribute_was(attribute.to_s) || 0)
-      self.class.update_counters(id, attribute => change)
+      self.class.update_counters(id, { attribute => change }, true)
       clear_attribute_change(attribute) # eww
       self
     end

@@ -129,6 +129,15 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_equal initial_credit + 2, a1.reload.credit_limit
   end
 
+  def test_increment_updates_timestamps
+    topic = topics(:first)
+    topic.update_columns(updated_at: Time.now.prev_month)
+    previously_updated_at = topic.updated_at
+
+    topic.increment!(:replies_count)
+    assert_not_equal previously_updated_at, topic.reload.updated_at
+  end
+
   def test_destroy_all
     conditions = "author_name = 'Mary'"
     topics_by_mary = Topic.all.merge!(:where => conditions, :order => 'id').to_a
