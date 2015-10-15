@@ -417,6 +417,13 @@ module ActiveRecord
       elsif id == :all
         to_a.each { |record| record.update(attributes) }
       else
+        if ActiveRecord::Base === id
+          id = id.id
+          ActiveSupport::Deprecation.warn(<<-MSG.squish)
+            You are passing an instance of ActiveRecord::Base to `update`.
+            Please pass the id of the object by calling `.id`
+          MSG
+        end
         object = find(id)
         object.update(attributes)
         object

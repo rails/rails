@@ -1,3 +1,10 @@
+*   Give `AcriveRecord::Relation#update` its own deprecation warning when
+    passed an `ActiveRecord::Base` instance.
+
+    Fixes #21945.
+
+    *Ted Johansson*
+
 *   Make it possible to pass `:to_table` when adding a foreign key through
     `add_reference`.
 
