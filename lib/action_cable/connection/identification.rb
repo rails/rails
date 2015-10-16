@@ -22,7 +22,7 @@ module ActionCable
 
       # Return a single connection identifier that combines the value of all the registered identifiers into a single gid.
       def connection_identifier
-        if @connection_identifier.blank?
+        unless defined? @connection_identifier
           @connection_identifier = connection_gid identifiers.map { |id| instance_variable_get("@#{id}") }.compact
         end
 

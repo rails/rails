@@ -23,6 +23,11 @@ class ActionCable::Channel::BaseTest < ActiveSupport::TestCase
     on_subscribe :toggle_subscribed
     on_unsubscribe :toggle_subscribed
 
+    def initialize(*)
+      @subscribed = false
+      super
+    end
+
     def subscribed
       @room = Room.new params[:id]
       @actions = []

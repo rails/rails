@@ -24,7 +24,7 @@ module ActionCable
       def setup_heartbeat_timer
         EM.next_tick do
           @heartbeat_timer ||= EventMachine.add_periodic_timer(BEAT_INTERVAL) do
-            EM.next_tick { connections.map &:beat }
+            EM.next_tick { connections.map(&:beat) }
           end
         end
       end
