@@ -1,8 +1,15 @@
 require 'test_helper'
 require 'stubs/test_server'
 
-class ActionCable::Connection::CrossSiteForgeryTest < ActiveSupport::TestCase
+class ActionCable::Connection::CrossSiteForgeryTest < ActionCable::TestCase
   HOST = 'rubyonrails.com'
+
+  class Connection < ActionCable::Connection::Base
+    def send_async(method, *args)
+      # Bypass Celluloid
+      send method, *args
+    end
+  end
 
   setup do
     @server = TestServer.new
@@ -45,7 +52,13 @@ class ActionCable::Connection::CrossSiteForgeryTest < ActiveSupport::TestCase
     end
 
     def connect_with_origin(origin)
-      ActionCable::Connection::Base.new(@server, env_for_origin(origin)).process
+      response = nil
+
+      run_in_eventmachine do
+        response = Connection.new(@server, env_for_origin(origin)).process
+      end
+
+      response
     end
 
     def env_for_origin(origin)

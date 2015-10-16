@@ -1,7 +1,7 @@
 require 'test_helper'
 require 'stubs/test_server'
 
-class ActionCable::Connection::AuthorizationTest < ActiveSupport::TestCase
+class ActionCable::Connection::AuthorizationTest < ActionCable::TestCase
   class Connection < ActionCable::Connection::Base
     attr_reader :websocket
 
@@ -10,17 +10,15 @@ class ActionCable::Connection::AuthorizationTest < ActiveSupport::TestCase
     end
   end
 
-  setup do
-    @server = TestServer.new
-
-    env = Rack::MockRequest.env_for "/test", 'HTTP_CONNECTION' => 'upgrade', 'HTTP_UPGRADE' => 'websocket'
-    @connection = Connection.new(@server, env)
-  end
-
   test "unauthorized connection" do
-    @connection.websocket.expects(:close)
+    run_in_eventmachine do
+      server = TestServer.new
+      env = Rack::MockRequest.env_for "/test", 'HTTP_CONNECTION' => 'upgrade', 'HTTP_UPGRADE' => 'websocket'
 
-    @connection.process
-    @connection.send :on_open
+      connection = Connection.new(server, env)
+      connection.websocket.expects(:close)
+      connection.process
+      connection.send :on_open
+    end
   end
 end

@@ -11,6 +11,9 @@ class WorkerTest < ActiveSupport::TestCase
     def process(message)
       @last_action =  [ :process, message ]
     end
+
+    def connection
+    end
   end
 
   setup do

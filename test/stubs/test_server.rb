@@ -9,4 +9,7 @@ class TestServer
     @logger = ActiveSupport::TaggedLogging.new ActiveSupport::Logger.new(StringIO.new)
     @config = OpenStruct.new(log_tags: [])
   end
+
+  def send_async
+  end
 end
