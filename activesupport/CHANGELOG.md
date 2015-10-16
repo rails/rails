@@ -1,3 +1,8 @@
+*   Fix `ActiveSupport::Deprecation#deprecate_methods` to report using the
+    current deprecator instance, where applicable.
+
+    *Brandon Dunne*
+
 *   `Cache#fetch` instrumentation marks whether it was a `:hit`.
 
     *Robin Clowers*
