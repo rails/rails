@@ -3,6 +3,7 @@ require 'active_job/arguments'
 require 'models/person'
 require 'active_support/core_ext/hash/indifferent_access'
 require 'jobs/kwargs_job'
+require 'minitest/mock'
 
 class ArgumentSerializationTest < ActiveSupport::TestCase
   setup do
@@ -54,7 +55,7 @@ class ArgumentSerializationTest < ActiveSupport::TestCase
     assert_instance_of ActiveSupport::HashWithIndifferentAccess, perform_round_trip([indifferent_access]).first
   end
 
-  # Used in the following test
+  # Used in the following test, this will work out of the box because only uses basic types
   CustomType = Struct.new('CustomType', :foo, :bar) do
     include ActiveJob::Serialization
   end
@@ -62,6 +63,28 @@ class ArgumentSerializationTest < ActiveSupport::TestCase
   test 'should use custom serialization when implemented' do
     value = CustomType.new(rand(1000), rand(1000))
     assert_arguments_roundtrip [value]
+  end
+
+  # This class has an Object instance variable, thus it won't be accepted by YAML.safe_load
+  class ComplexType
+    include ActiveJob::Serialization
+    def initialize
+      @x = Object.new
+    end
+  end
+
+  test 'should disallow types rejected by YAML.safe_load default configuration' do
+    assert_raises ActiveJob::DeserializationError do
+      perform_round_trip [ComplexType.new]
+    end
+  end
+
+  test 'should raise when YAML does not support safe_load' do
+    ::YAML.stub :respond_to?, false do
+      assert_raises NotImplementedError, 'To use automatic unserialization your YAML library must support #safe_load' do
+        perform_round_trip [ComplexType.new]
+      end
+    end
   end
 
   test 'should disallow non-string/symbol hash keys' do
