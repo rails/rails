@@ -39,7 +39,8 @@ class ActionCable::TestCase < ActiveSupport::TestCase
     EM.run do
       yield
 
-      EM::Timer.new(0.1) { EM.stop }
+      EM.run_deferred_callbacks
+      EM.stop
     end
   end
 end
