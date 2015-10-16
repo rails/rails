@@ -1,10 +1,19 @@
-sudo: false
+language: ruby
 cache: bundler
+sudo: false
+
 rvm:
   - 2.2
   - ruby-head
+
+gemfile:
+  - Gemfile
+  - gemfiles/rails_4-2-stable.gemfile
+
 matrix:
   fast_finish: true
+  allow_failures: ruby-head
+
 notifications:
   email: false
   irc:

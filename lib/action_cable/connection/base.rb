@@ -1,4 +1,4 @@
-require 'action_dispatch/http/request'
+require 'action_dispatch'
 
 module ActionCable
   module Connection

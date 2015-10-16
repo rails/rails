@@ -1,1 +1,2 @@
-test/tests.log
+/gemfiles/*.lock
+/test/tests.log
