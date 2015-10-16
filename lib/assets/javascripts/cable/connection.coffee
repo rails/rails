@@ -1,5 +1,7 @@
 # Encapsulate the cable connection held by the consumer. This is an internal class not intended for direct user manipulation.
 class Cable.Connection
+  @reopenDelay: 500
+
   constructor: (@consumer) ->
     @open()
 
@@ -10,19 +12,25 @@ class Cable.Connection
     else
       false
 
-  open: ->
-    if @isOpen()
-      throw new Error("Must close existing connection before opening")
+  open: =>
+    if @webSocket and not @isState("closed")
+      throw new Error("Existing connection must be closed before opening")
     else
       @webSocket = new WebSocket(@consumer.url)
       @installEventHandlers()
+      true
 
   close: ->
     @webSocket?.close()
 
   reopen: ->
-    @close()
-    @open()
+    if @isState("closed")
+      @open()
+    else
+      try
+        @close()
+      finally
+        setTimeout(@open, @constructor.reopenDelay)
 
   isOpen: ->
     @isState("open")
@@ -40,6 +48,7 @@ class Cable.Connection
     for eventName of @events
       handler = @events[eventName].bind(this)
       @webSocket["on#{eventName}"] = handler
+    return
 
   events:
     message: (event) ->

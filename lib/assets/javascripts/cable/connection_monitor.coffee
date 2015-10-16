@@ -1,15 +1,13 @@
 # Responsible for ensuring the cable connection is in good health by validating the heartbeat pings sent from the server, and attempting
 # revival reconnections if things go astray. Internal class, not intended for direct user manipulation.
 class Cable.ConnectionMonitor
-  identifier: Cable.PING_IDENTIFIER
-
-  pollInterval:
-    min: 2
+  @pollInterval:
+    min: 3
     max: 30
 
-  staleThreshold:
-    startedAt: 4
-    pingedAt: 8
+  @staleThreshold: 6 # Server::Connections::BEAT_INTERVAL * 2 (missed two pings)
+
+  identifier: Cable.PING_IDENTIFIER
 
   constructor: (@consumer) ->
     @consumer.subscriptions.add(this)
@@ -18,12 +16,10 @@ class Cable.ConnectionMonitor
   connected: ->
     @reset()
     @pingedAt = now()
+    delete @disconnectedAt
 
   disconnected: ->
-    if @reconnectAttempts++ is 0
-      setTimeout =>
-        @consumer.connection.open() unless @consumer.connection.isOpen()
-      , 200
+    @disconnectedAt = now()
 
   received: ->
     @pingedAt = now()
@@ -50,20 +46,21 @@ class Cable.ConnectionMonitor
     , @getInterval()
 
   getInterval: ->
-    {min, max} = @pollInterval
-    interval = 4 * Math.log(@reconnectAttempts + 1)
+    {min, max} = @constructor.pollInterval
+    interval = 5 * Math.log(@reconnectAttempts + 1)
     clamp(interval, min, max) * 1000
 
   reconnectIfStale: ->
     if @connectionIsStale()
       @reconnectAttempts++
-      @consumer.connection.reopen()
+      unless @disconnectedRecently()
+        @consumer.connection.reopen()
 
   connectionIsStale: ->
-    if @pingedAt
-      secondsSince(@pingedAt) > @staleThreshold.pingedAt
-    else
-      secondsSince(@startedAt) > @staleThreshold.startedAt
+    secondsSince(@pingedAt ? @startedAt) > @constructor.staleThreshold
+
+  disconnectedRecently: ->
+    @disconnectedAt and secondsSince(@disconnectedAt) < @constructor.staleThreshold
 
   visibilityDidChange: =>
     if document.visibilityState is "visible"
