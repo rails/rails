@@ -21,7 +21,10 @@ module ActiveRecord
 
           parts = predicate_builder.build_from_hash(attributes)
         else
-          raise ArgumentError, "Unsupported argument type: #{opts} (#{opts.class})"
+          unless opts.respond_to?(:to_h)
+            raise ArgumentError, "Unsupported argument type: #{opts} (#{opts.class})"
+          end
+          parts = [opts]
         end
 
         WhereClause.new(parts, binds)
