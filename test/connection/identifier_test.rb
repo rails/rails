@@ -40,7 +40,7 @@ class ActionCable::Connection::IdentifierTest < ActionCable::TestCase
       open_connection_with_stubbed_pubsub
 
       @connection.websocket.expects(:close)
-      message = { 'type' => 'disconnect' }.to_json
+      message = ActiveSupport::JSON.encode('type' => 'disconnect')
       @connection.process_internal_message message
     end
   end
@@ -50,7 +50,7 @@ class ActionCable::Connection::IdentifierTest < ActionCable::TestCase
       open_connection_with_stubbed_pubsub
 
       @connection.websocket.expects(:close).never
-      message = { 'type' => 'unknown' }.to_json
+      message = ActiveSupport::JSON.encode('type' => 'unknown')
       @connection.process_internal_message message
     end
   end

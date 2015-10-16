@@ -1,3 +1,5 @@
+require 'set'
+
 module ActionCable
   module Channel
     # The channel provides the basic structure of grouping behavior into logical units when communicating over the WebSocket connection.
@@ -159,7 +161,7 @@ module ActionCable
         # the proper channel identifier marked as the recipient.
         def transmit(data, via: nil)
           logger.info "#{self.class.name} transmitting #{data.inspect}".tap { |m| m << " (via #{via})" if via }
-          connection.transmit({ identifier: @identifier, message: data }.to_json)
+          connection.transmit ActiveSupport::JSON.encode(identifier: @identifier, message: data)
         end
 
 

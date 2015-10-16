@@ -1,3 +1,5 @@
+require 'faye/websocket'
+
 module ActionCable
   module Connection
     # Decorate the Faye::WebSocket with helpers we need.

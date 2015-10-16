@@ -1,3 +1,5 @@
+require 'em-hiredis'
+
 module ActionCable
   module Server
     # A singleton ActionCable::Server instance is available via ActionCable.server. It's used by the rack process that starts the cable server, but

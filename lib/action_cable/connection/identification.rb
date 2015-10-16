@@ -1,3 +1,5 @@
+require 'set'
+
 module ActionCable
   module Connection
     module Identification
@@ -31,7 +33,13 @@ module ActionCable
 
       private
         def connection_gid(ids)
-          ids.map { |o| (o.try(:to_global_id) || o).to_s }.sort.join(":")
+          ids.map do |o|
+            if o.respond_to? :to_global_id
+              o.to_global_id
+            else
+              o.to_s
+            end
+          end.sort.join(":")
         end
     end
   end

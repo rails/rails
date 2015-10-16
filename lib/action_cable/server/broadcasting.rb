@@ -1,3 +1,5 @@
+require 'redis'
+
 module ActionCable
   module Server
     # Broadcasting is how other parts of your application can send messages to the channel subscribers. As explained in Channel, most of the time, these
@@ -44,7 +46,7 @@ module ActionCable
 
           def broadcast(message)
             server.logger.info "[ActionCable] Broadcasting to #{broadcasting}: #{message}"
-            server.broadcasting_redis.publish broadcasting, message.to_json
+            server.broadcasting_redis.publish broadcasting, ActiveSupport::JSON.encode(message)
           end
         end
     end

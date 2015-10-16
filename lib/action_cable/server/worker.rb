@@ -1,3 +1,6 @@
+require 'celluloid'
+require 'active_support/callbacks'
+
 module ActionCable
   module Server
     # Worker used by Server.send_async to do connection work in threads. Only for internal use.

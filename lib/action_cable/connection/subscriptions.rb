@@ -1,3 +1,5 @@
+require 'active_support/core_ext/hash/indifferent_access'
+
 module ActionCable
   module Connection
     # Collection class for all the channel subscriptions established on a given connection. Responsible for routing incoming commands that arrive on

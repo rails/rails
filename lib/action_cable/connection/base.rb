@@ -119,7 +119,7 @@ module ActionCable
       end
 
       def beat
-        transmit({ identifier: '_ping', message: Time.now.to_i }.to_json)
+        transmit ActiveSupport::JSON.encode(identifier: '_ping', message: Time.now.to_i)
       end
 
 
@@ -203,7 +203,7 @@ module ActionCable
             request.filtered_path,
             websocket.possible? ? ' [WebSocket]' : '',
             request.ip,
-            Time.now.to_default_s ]
+            Time.now.to_s ]
         end
 
         def finished_request_message
@@ -211,7 +211,7 @@ module ActionCable
             request.filtered_path,
             websocket.possible? ? ' [WebSocket]' : '',
             request.ip,
-            Time.now.to_default_s ]
+            Time.now.to_s ]
         end
     end
   end
