@@ -4,8 +4,8 @@ require 'action_cable/version'
 Gem::Specification.new do |s|
   s.name        = 'actioncable'
   s.version     = ActionCable::VERSION
-  s.summary     = 'Websockets framework for Rails.'
-  s.description = 'Structure many real-time application concerns into channels over a single websockets connection.'
+  s.summary     = 'WebSocket framework for Rails.'
+  s.description = 'Structure many real-time application concerns into channels over a single WebSocket connection.'
   s.license     = 'MIT'
 
   s.author   = ['Pratik Naik', 'David Heinemeier Hansson']

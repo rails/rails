@@ -22,7 +22,7 @@ Celluloid.logger = Logger.new(StringIO.new)
 
 class Faye::WebSocket
   # We don't want Faye to start the EM reactor in tests because it makes testing much harder.
-  # We want to be able to start and stop EW loop in tests to make things simpler.
+  # We want to be able to start and stop EM loop in tests to make things simpler.
   def self.ensure_reactor_running
     # no-op
   end

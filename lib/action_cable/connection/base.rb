@@ -2,7 +2,7 @@ require 'action_dispatch/http/request'
 
 module ActionCable
   module Connection
-    # For every websocket the cable server is accepting, a Connection object will be instantiated. This instance becomes the parent
+    # For every WebSocket the cable server is accepting, a Connection object will be instantiated. This instance becomes the parent
     # of all the channel subscriptions that are created from there on. Incoming messages are then routed to these channel subscriptions
     # based on an identifier sent by the cable consumer. The Connection itself does not deal with any specific application logic beyond
     # authentication and authorization.
@@ -37,8 +37,8 @@ module ActionCable
     # established for that current_user (and potentially disconnect them if the user was removed from an account). You can declare as many
     # identification indexes as you like. Declaring an identification means that a attr_accessor is automatically set for that key.
     #
-    # Second, we rely on the fact that the websocket connection is established with the cookies from the domain being sent along. This makes
-    # it easy to use signed cookies that were set when logging in via a web interface to authorize the websocket connection.
+    # Second, we rely on the fact that the WebSocket connection is established with the cookies from the domain being sent along. This makes
+    # it easy to use signed cookies that were set when logging in via a web interface to authorize the WebSocket connection.
     #
     # Finally, we add a tag to the connection-specific logger with name of the current user to easily distinguish their messages in the log.
     #
@@ -65,7 +65,7 @@ module ActionCable
         @started_at = Time.now
       end
 
-      # Called by the server when a new websocket connection is established. This configures the callbacks intended for overwriting by the user.
+      # Called by the server when a new WebSocket connection is established. This configures the callbacks intended for overwriting by the user.
       # This method should not be called directly. Rely on the #connect (and #disconnect) callback instead.
       def process
         logger.info started_request_message
@@ -87,17 +87,17 @@ module ActionCable
         if websocket.alive?
           subscriptions.execute_command ActiveSupport::JSON.decode(data_in_json)
         else
-          logger.error "Received data without a live websocket (#{data_in_json.inspect})"
+          logger.error "Received data without a live WebSocket (#{data_in_json.inspect})"
         end
       end
 
-      # Send raw data straight back down the websocket. This is not intended to be called directly. Use the #transmit available on the
+      # Send raw data straight back down the WebSocket. This is not intended to be called directly. Use the #transmit available on the
       # Channel instead, as that'll automatically address the correct subscriber and wrap the message in JSON.
       def transmit(data)
         websocket.transmit data
       end
 
-      # Close the websocket connection.
+      # Close the WebSocket connection.
       def close
         websocket.close
       end
@@ -124,7 +124,7 @@ module ActionCable
 
 
       protected
-        # The request that initiated the websocket connection is available here. This gives access to the environment, cookies, etc.
+        # The request that initiated the WebSocket connection is available here. This gives access to the environment, cookies, etc.
         def request
           @request ||= begin
             environment = Rails.application.env_config.merge(env) if defined?(Rails.application) && Rails.application
@@ -132,7 +132,7 @@ module ActionCable
           end
         end
 
-        # The cookies of the request that initiated the websocket connection. Useful for performing authorization checks.
+        # The cookies of the request that initiated the WebSocket connection. Useful for performing authorization checks.
         def cookies
           request.cookie_jar
         end
@@ -201,7 +201,7 @@ module ActionCable
           'Started %s "%s"%s for %s at %s' % [
             request.request_method,
             request.filtered_path,
-            websocket.possible? ? ' [Websocket]' : '',
+            websocket.possible? ? ' [WebSocket]' : '',
             request.ip,
             Time.now.to_default_s ]
         end
@@ -209,7 +209,7 @@ module ActionCable
         def finished_request_message
           'Finished "%s"%s for %s at %s' % [
             request.filtered_path,
-            websocket.possible? ? ' [Websocket]' : '',
+            websocket.possible? ? ' [WebSocket]' : '',
             request.ip,
             Time.now.to_default_s ]
         end

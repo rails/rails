@@ -1,7 +1,7 @@
-# Action Cable – Integrated websockets for Rails
+# Action Cable – Integrated WebSockets for Rails
 [![Build Status](https://travis-ci.org/rails/actioncable.svg)](https://travis-ci.org/rails/actioncable)
 
-Action Cable seamlessly integrates websockets with the rest of your Rails application.
+Action Cable seamlessly integrates WebSockets with the rest of your Rails application.
 It allows for real-time features to be written in Ruby in the same style
 and form as the rest of your Rails application, while still being performant
 and scalable. It's a full-stack offering that provides both a client-side
@@ -12,9 +12,9 @@ domain model written with ActiveRecord or your ORM of choice.
 ## Terminology
 
 A single Action Cable server can handle multiple connection instances. It has one
-connection instance per websocket connection. A single user may have multiple
-websockets open to your application if they use multiple browser tabs or devices.
-The client of a websocket connection is called the consumer.
+connection instance per WebSocket connection. A single user may have multiple
+WebSockets open to your application if they use multiple browser tabs or devices.
+The client of a WebSocket connection is called the consumer.
 
 Each consumer can in turn subscribe to multiple cable channels. Each channel encapsulates
 a logical unit of work, similar to what a controller does in a regular MVC setup. For example, you could have a `ChatChannel` and a `AppearancesChannel`, and a consumer could be subscribed to either
@@ -169,8 +169,8 @@ Turbolinks `page:change` callback and allowing the user to click a data-behavior
 
 ### Channel example 2: Receiving new web notifications
 
-The appearance example was all about exposing server functionality to client-side invocation over the websocket connection.
-But the great thing about websockets is that it's a two-way street. So now let's show an example where the server invokes
+The appearance example was all about exposing server functionality to client-side invocation over the WebSocket connection.
+But the great thing about WebSockets is that it's a two-way street. So now let's show an example where the server invokes
 action on the client.
 
 This is a web notification channel that allows you to trigger client-side web notifications when you broadcast to the right
@@ -336,7 +336,7 @@ The above will start a cable server on port 28080. Remember to point your client
 
 ### In app
 
-If you are using a threaded server like Puma or Thin, the current implementation of ActionCable can run side-along with your Rails application. For example, to listen for websocket requests on `/websocket`, match requests on that path:
+If you are using a threaded server like Puma or Thin, the current implementation of ActionCable can run side-along with your Rails application. For example, to listen for WebSocket requests on `/websocket`, match requests on that path:
 
 ```ruby
 # config/routes.rb
@@ -359,7 +359,7 @@ We'll get all this abstracted properly when the framework is integrated into Rai
 ## Dependencies
 
 Action Cable is currently tied to Redis through its use of the pubsub feature to route
-messages back and forth over the websocket cable connection. This dependency may well
+messages back and forth over the WebSocket cable connection. This dependency may well
 be alleviated in the future, but for the moment that's what it is. So be sure to have
 Redis installed and running.
 

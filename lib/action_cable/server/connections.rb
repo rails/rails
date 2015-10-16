@@ -18,7 +18,7 @@ module ActionCable
         connections.delete connection
       end
 
-      # Websocket connection implementations differ on when they'll mark a connection as stale. We basically never want a connection to go stale, as you
+      # WebSocket connection implementations differ on when they'll mark a connection as stale. We basically never want a connection to go stale, as you
       # then can't rely on being able to receive and send to it. So there's a 3 second heartbeat running on all connections. If the beat fails, we automatically
       # disconnect.
       def setup_heartbeat_timer
