@@ -1,3 +1,9 @@
+*   `where` raises ArgumentError on unsupported types.
+
+    Fixes #20473.
+
+    *Jake Worth*
+
 *   Add an immutable string type to help reduce memory usage for apps which do
     not need mutation detection on Strings.
 
