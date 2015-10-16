@@ -65,7 +65,7 @@ module ActiveJob
         when GlobalID::Identification
           convert_to_global_id_hash(argument)
         when ActiveJob::Serialization
-          { CUSTOM_SERIALIZATION_CLASS_KEY => argument.class.to_s, CUSTOM_SERIALIZATION_VALUE_KEY => argument.aj_dump }
+          { CUSTOM_SERIALIZATION_CLASS_KEY => argument.class.to_s, CUSTOM_SERIALIZATION_VALUE_KEY => argument.serialize_to_job }
         when Array
           argument.map { |arg| serialize_argument(arg) }
         when ActiveSupport::HashWithIndifferentAccess
@@ -116,7 +116,7 @@ module ActiveJob
       end
 
       def deserialize_custom_argument(hash)
-        hash[CUSTOM_SERIALIZATION_CLASS_KEY].constantize.aj_load(hash[CUSTOM_SERIALIZATION_VALUE_KEY])
+        hash[CUSTOM_SERIALIZATION_CLASS_KEY].constantize.serialize_from_job(hash[CUSTOM_SERIALIZATION_VALUE_KEY])
       end
 
       def serialize_hash(argument)

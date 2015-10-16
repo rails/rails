@@ -15,8 +15,8 @@ module ActiveJob
     extend ActiveSupport::Concern
 
     # Instance method is just a shortcut for object serialization
-    def aj_dump
-      self.class.aj_dump(self).to_s
+    def serialize_to_job
+      self.class.serialize_to_job(self).to_s
     end
 
     module ClassMethods
@@ -24,7 +24,7 @@ module ActiveJob
       # passed to `#load` when unserialized.
       #
       # Returns a String that will be passed to #aj_load when executing job.
-      def aj_dump(value)
+      def serialize_to_job(value)
         ::YAML.dump(value)
       end
 
@@ -35,7 +35,7 @@ module ActiveJob
       #
       # If your ruby implementation doesn't support YAML.safe_load or you need potentially unsafe types you'll need
       # to override this method because default serialization won't work.
-      def aj_load(value)
+      def serialize_from_job(value)
         if ::YAML.respond_to?(:safe_load)
           # Allow this class and symbols deserialization. If this raises a Psych::DisallowedClass it will be wrapped
           # in an ActiveJob::DeserializationError instance giving user a proper error message.
