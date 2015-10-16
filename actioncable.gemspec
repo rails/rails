@@ -28,7 +28,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'puma'
   s.add_development_dependency 'mocha'
 
-  s.files = Dir['README', 'lib/**/*']
+  s.files = Dir['README.md', 'lib/**/*']
   s.has_rdoc = false
 
   s.require_path = 'lib'
