@@ -1,4 +1,4 @@
-$:.push File.expand_path("../lib", __FILE__)
+$:.unshift File.expand_path("../lib", __FILE__)
 require 'action_cable/version'
 
 Gem::Specification.new do |s|
