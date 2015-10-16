@@ -1761,8 +1761,6 @@ module ActiveRecord
       #   By default this is guessed to be the name of the associated class in lower-case and "_id" suffixed.
       #   So if a Person class makes a #has_and_belongs_to_many association to Project,
       #   the association will use "project_id" as the default <tt>:association_foreign_key</tt>.
-      # [:readonly]
-      #   If true, all the associated objects are readonly through the association.
       # [:validate]
       #   If +false+, don't validate the associated objects when saving the parent object. +true+ by default.
       # [:autosave]
