@@ -552,6 +552,8 @@ module ActiveRecord
         WhereChain.new(spawn)
       elsif opts.blank?
         self
+      elsif !opts.is_a?(String) && !opts.respond_to?(:to_h)
+        raise ArgumentError, "Unsupported argument type: #{opts} (#{opts.class})"
       else
         spawn.where!(opts, *rest)
       end
