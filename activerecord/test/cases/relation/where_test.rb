@@ -304,8 +304,6 @@ module ActiveRecord
     end
 
     def test_where_with_unsupported_arguments
-      author = authors(:david)
-
       assert_raises(ArgumentError) { Author.where(42) }
     end
   end
