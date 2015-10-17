@@ -8,6 +8,7 @@ Bundler.setup
 Bundler.require :default, :test
 
 require 'puma'
+require 'em-hiredis'
 require 'mocha/mini_test'
 
 require 'rack/mock'

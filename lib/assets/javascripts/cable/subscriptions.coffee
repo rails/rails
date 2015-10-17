@@ -21,13 +21,11 @@ class Cable.Subscriptions
   add: (subscription) ->
     @subscriptions.push(subscription)
     @notify(subscription, "initialized")
-    if @sendCommand(subscription, "subscribe")
-      @notify(subscription, "connected")
+    @sendCommand(subscription, "subscribe")
 
   reload: ->
     for subscription in @subscriptions
-      if @sendCommand(subscription, "subscribe")
-        @notify(subscription, "connected")
+      @sendCommand(subscription, "subscribe")
 
   remove: (subscription) ->
     @subscriptions = (s for s in @subscriptions when s isnt subscription)

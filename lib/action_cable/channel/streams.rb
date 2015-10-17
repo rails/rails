@@ -69,12 +69,18 @@ module ActionCable
       # Start streaming from the named <tt>broadcasting</tt> pubsub queue. Optionally, you can pass a <tt>callback</tt> that'll be used
       # instead of the default of just transmitting the updates straight to the subscriber.
       def stream_from(broadcasting, callback = nil)
+        # Hold off the confirmation until pubsub#subscribe is successful
+        defer_subscription_confirmation!
+
         callback ||= default_stream_callback(broadcasting)
-
         streams << [ broadcasting, callback ]
-        EM.next_tick { pubsub.subscribe broadcasting, &callback }
 
-        logger.info "#{self.class.name} is streaming from #{broadcasting}"
+        EM.next_tick do
+          pubsub.subscribe(broadcasting, &callback).callback do |reply|
+            transmit_subscription_confirmation
+            logger.info "#{self.class.name} is streaming from #{broadcasting}"
+          end
+        end
       end
 
       # Start streaming the pubsub queue for the <tt>model</tt> in this channel. Optionally, you can pass a
