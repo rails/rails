@@ -45,7 +45,7 @@ class ActionCable::Channel::StreamTest < ActionCable::TestCase
 
       EM::Timer.new(0.1) do
         expected = ActiveSupport::JSON.encode "identifier" => "{id: 1}", "type" => "confirm_subscription"
-        assert_equal expected, connection.last_transmission, "Did not receive verification confirmation within 0.1s"
+        assert_equal expected, connection.last_transmission, "Did not receive subscription confirmation within 0.1s"
 
         EM.run_deferred_callbacks
         EM.stop
