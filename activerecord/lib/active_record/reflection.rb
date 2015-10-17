@@ -548,9 +548,14 @@ module ActiveRecord
         end
 
         def derive_class_name
-          class_name = name.to_s
-          class_name = class_name.singularize if collection?
-          class_name.camelize
+          blk = ActiveRecord::Base.derive_class_name_for_association_reflection
+          if blk
+            instance_exec(name, &blk)
+          else
+            class_name = name.to_s
+            class_name = class_name.singularize if collection?
+            class_name.camelize
+          end
         end
 
         def derive_foreign_key

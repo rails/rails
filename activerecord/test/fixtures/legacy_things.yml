@@ -1,3 +1,8 @@
 obtuse:
   id: 1
   tps_report_number: 500
+
+polymorphic:
+  id: 2
+  resource_type: reference
+  resource_id: 1

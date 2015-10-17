@@ -64,7 +64,7 @@ module ActiveRecord
             end
 
             if reflection.type
-              value = foreign_klass.base_class.name
+              value = foreign_klass.base_class.polymorphic_name
               column = klass.columns_hash[reflection.type.to_s]
 
               substitute = klass.connection.substitute_at(column)
