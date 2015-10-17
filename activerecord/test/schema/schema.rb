@@ -390,6 +390,8 @@ ActiveRecord::Schema.define do
   create_table :legacy_things, force: true do |t|
     t.integer :tps_report_number
     t.integer :version, null: false, default: 0
+    t.string  :resource_type
+    t.integer :resource_id
   end
 
   create_table :lessons, force: true do |t|

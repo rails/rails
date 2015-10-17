@@ -224,6 +224,26 @@ module ActiveRecord
       autoload :AliasTracker
     end
 
+    included do
+      # Set with a block to be executed in place of the ActiveRecord::AssociationReflection#derive_class_name.
+      # Used to change the default way the contents of a polymorphic type column is mapped into an ActiveRecord class.
+      #
+      # module ActiveRecord
+      #   class Railtie < Rails::Railtie # :nodoc:
+      #     config.active_record.derive_class_name_for_association_reflection = Proc.new do |name|
+      #       # Context is the instance of ActiveRecord::Reflection
+      #       # Default implementation is shown
+      #       class_name = name.to_s
+      #       class_name = class_name.singularize if collection?
+      #       class_name.camelize
+      #     end
+      #   end
+      # end
+      #
+      mattr_accessor :derive_class_name_for_association_reflection, instance_writer: false
+      self.derive_class_name_for_association_reflection = false
+    end
+
     # Returns the association instance for the given name, instantiating it if it doesn't already exist
     def association(name) #:nodoc:
       association = association_instance_get(name)
@@ -1820,6 +1840,12 @@ module ActiveRecord
         has_many name, scope, hm_options, &extension
         self._reflections[name.to_s].parent_reflection = habtm_reflection
       end
+
+      # By default, use the base class name for polymorphic identification.
+      def polymorphic_name
+        base_class.name
+      end
+
     end
   end
 end
