@@ -197,7 +197,7 @@ person.last_name_change # => nil
 
 ### Validations
 
-`ActiveModel::Validations` module adds the ability to validate class objects
+The `ActiveModel::Validations` module adds the ability to validate class objects
 like in Active Record.
 
 ```ruby
@@ -292,7 +292,7 @@ objects.
 
 ### Serialization
 
-`ActiveModel::Serialization` provides a basic serialization for your object.
+`ActiveModel::Serialization` provides basic serialization for your object.
 You need to declare an attributes hash which contains the attributes you want to
 serialize. Attributes must be strings, not symbols.
 
@@ -339,7 +339,7 @@ class Person
 end
 ```
 
-With the `as_json` you have a hash representing the model.
+With the `as_json` method you have a hash representing the model.
 
 ```ruby
 person = Person.new
@@ -408,7 +408,7 @@ Person.human_attribute_name('name') # => "Nome"
 
 ### Lint Tests
 
-`ActiveModel::Lint::Tests` allow you to test whether an object is compliant with
+`ActiveModel::Lint::Tests` allows you to test whether an object is compliant with
 the Active Model API.
 
 * app/models/person.rb
@@ -461,14 +461,14 @@ an accessor named `password` with certain validations on it.
 
 #### Requirements
 
-`ActiveModel::SecurePassword` depends on the [`bcrypt`](https://github.com/codahale/bcrypt-ruby 'BCrypt'),
+`ActiveModel::SecurePassword` depends on [`bcrypt`](https://github.com/codahale/bcrypt-ruby 'BCrypt'),
 so include this gem in your Gemfile to use `ActiveModel::SecurePassword` correctly.
 In order to make this work, the model must have an accessor named `password_digest`.
 The `has_secure_password` will add the following validations on the `password` accessor:
 
 1. Password should be present.
 2. Password should be equal to its confirmation.
-3. This maximum length of a password is 72 (required by `bcrypt` on which ActiveModel::SecurePassword depends)
+3. The maximum length of a password is 72 (required by `bcrypt` on which ActiveModel::SecurePassword depends)
 
 #### Examples
 
@@ -489,7 +489,7 @@ person.password = 'aditya'
 person.password_confirmation = 'nomatch'
 person.valid? # => false
 
-# When the length of password, exceeds 72.
+# When the length of password exceeds 72.
 person.password = person.password_confirmation = 'a' * 100
 person.valid? # => false
 
