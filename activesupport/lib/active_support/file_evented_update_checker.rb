@@ -1,19 +1,26 @@
 require 'listen'
+require 'set'
+require 'pathname'
 
 module ActiveSupport
   class FileEventedUpdateChecker
     attr_reader :listener
-    def initialize(files, directories={}, &block)
-      @files = files.map { |f| File.expand_path(f)}.to_set
-      @dirs = Hash.new
-      directories.each do |key,value|
-        @dirs[File.expand_path(key)] = Array(value) if !Array(value).empty?
+
+    def initialize(files, dirs={}, &block)
+      @files = files.map {|f| expand_path(f)}.to_set
+
+      @dirs = {}
+      dirs.each do |dir, exts|
+        @dirs[expand_path(dir)] = Array(exts).map(&:to_s)
       end
+
       @block = block
       @modified = false
-      watch_dirs = base_directories
-      @listener = Listen.to(*watch_dirs,&method(:changed)) if !watch_dirs.empty?
-      @listener.start if @listener
+
+      if (watch_dirs = base_directories).any?
+        @listener = Listen.to(*watch_dirs, &method(:changed))
+        @listener.start
+      end
     end
 
     def updated?
@@ -30,38 +37,72 @@ module ActiveSupport
       if updated?
         execute
         true
-      else
-        false
       end
     end
 
     private
 
-    def watching?(file)
-      return true if @files.include?(file)
-      cfile = file
-      while !cfile.eql? "/"
-        cfile = File.expand_path("#{cfile}/..")
-        if !@dirs[cfile].nil? and file.end_with?(*(@dirs[cfile].map {|ext| ".#{ext.to_s}"}))
-          return true
-        end
-      end
-      false
+    def expand_path(fname)
+      File.expand_path(fname)
     end
 
     def changed(modified, added, removed)
       return if updated?
-      if (modified + added + removed).any? { |f| watching? f }
+
+      if (modified + added + removed).any? {|f| watching?(f)}
         @modified = true
       end
     end
 
-    def base_directories
-      (@files.map { |f| existing_parent(File.expand_path("#{f}/..")) } + @dirs.keys.map {|dir| existing_parent(dir)}).uniq
+    def watching?(file)
+      file = expand_path(file)
+      return true if @files.member?(file)
+
+      file = Pathname.new(file)
+      return false if file.directory?
+
+      ext = file.extname.sub(/\A\./, '')
+      dir = file.dirname
+
+      loop do
+        if @dirs.fetch(dir.to_path, []).include?(ext)
+          break true
+        else
+          if dir.root? # TODO: find a common parent directory in initialize
+            break false
+          end
+          dir = dir.parent
+        end
+      end
     end
 
-    def existing_parent(path)
-      File.exist?(path) ? path : existing_parent(File.expand_path("#{path}/.."))
+    # TODO: Better return a list of non-nested directories.
+    def base_directories
+      [].tap do |bd|
+        bd.concat @files.map {|f| existing_parent(File.dirname(f))}
+        bd.concat @dirs.keys.map {|dir| existing_parent(dir)}
+        bd.compact!
+        bd.uniq!
+      end
+    end
+
+    def existing_parent(dir)
+      dir = Pathname.new(File.expand_path(dir))
+
+      loop do
+        if dir.directory?
+          break dir.to_path
+        else
+          if dir.root?
+            # Edge case in which not even the root exists. For example, Windows
+            # paths could have a non-existing drive letter. Since the parent of
+            # root is root, we need to break to prevent an infinite loop.
+            break
+          else
+            dir = dir.parent
+          end
+        end
+      end
     end
   end
 end
