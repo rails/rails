@@ -796,11 +796,28 @@ class FileStoreTest < ActiveSupport::TestCase
     @cache.write('foo', 'bar', expires_in: 10)
     @cache.write('baz', 'qux')
     @cache.write('quux', 'corge', expires_in: 20)
+
+    k1, k2, k3, k4, k5, k6 = 'a', ['a','b'] * 175, ['ab','c'] * 140, ['abc','de'] * 100, ['abce','efg'] * 80, ['abc','de'] * 1000
+
+    @cache.write(k1, 'alpha',   expires_in: 1)
+    @cache.write(k2, 'beta',    expires_in: 2)
+    @cache.write(k3, 'gamma',   expires_in: 3)
+    @cache.write(k4, 'delta',   expires_in: 4)
+    @cache.write(k5, 'epsilon', expires_in: 5)
+    @cache.write(k6, 'zeta',    expires_in: 6)
+
     Time.stub(:now, time + 15) do
       @cache.cleanup
       assert_not @cache.exist?('foo')
       assert @cache.exist?('baz')
       assert @cache.exist?('quux')
+
+      assert_not @cache.exist?(k1)
+      assert_not @cache.exist?(k2)
+      assert_not @cache.exist?(k3)
+      assert_not @cache.exist?(k4)
+      assert_not @cache.exist?(k5)
+      assert_not @cache.exist?(k6)
     end
   end
 
