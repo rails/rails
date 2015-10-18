@@ -237,10 +237,6 @@ task default: :test
         build(:javascripts) unless api?
       end
 
-      def create_images_directory
-        build(:images) unless api?
-      end
-
       def create_bin_files
         build(:bin)
       end
