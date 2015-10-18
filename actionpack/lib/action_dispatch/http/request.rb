@@ -338,7 +338,10 @@ module ActionDispatch
     # Override Rack's GET method to support indifferent access
     def GET
       fetch_header("action_dispatch.request.query_parameters") do |k|
-        set_header k, Request::Utils.normalize_encode_params(super || {})
+        rack_query_params = super || {}
+        # Check for non UTF-8 parameter values, which would cause errors later
+        Request::Utils.check_param_encoding(rack_query_params)
+        set_header k, Request::Utils.normalize_encode_params(rack_query_params)
       end
     rescue Rack::Utils::ParameterTypeError, Rack::Utils::InvalidParameterError => e
       raise ActionController::BadRequest.new("Invalid query parameters: #{e.message}", e)

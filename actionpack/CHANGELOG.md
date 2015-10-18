@@ -1,3 +1,11 @@
+*   Catch invalid UTF-8 querystring values and respond with BadRequest
+
+    Check querystring params for invalid UTF-8 characters, and raise an
+    ActionController::BadRequest error if present. Previously these strings
+    would typically trigger errors further down the stack.
+
+    *Grey Baker*
+
 *   Parse RSS/ATOM responses as XML, not HTML.
 
     *Alexander Kaupanin*
