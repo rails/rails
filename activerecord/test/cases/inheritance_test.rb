@@ -353,7 +353,7 @@ class InheritanceTest < ActiveRecord::TestCase
 
   def test_scope_inherited_properly
     assert_nothing_raised { Company.of_first_firm.to_sql }
-    assert_nothing_raised { Client.of_first_firm }
+    assert_nothing_raised { Client.of_first_firm.to_sql }
   end
 end
 
