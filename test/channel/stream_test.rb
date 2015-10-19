@@ -70,7 +70,7 @@ class ActionCable::Channel::StreamTest < ActionCable::TestCase
       EM.run_deferred_callbacks
 
       expected = ActiveSupport::JSON.encode "identifier" => "test_channel", "type" => "confirm_subscription"
-      assert_equal expected, connection.last_transmission, "Did not receive subscription confirmation within 0.1s"
+      assert_equal expected, connection.last_transmission, "Did not receive subscription confirmation"
 
       assert_equal 1, connection.transmissions.size
       EM.stop
