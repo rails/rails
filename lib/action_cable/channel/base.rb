@@ -73,6 +73,8 @@ module ActionCable
       include Naming
       include Broadcasting
 
+      SUBSCRIPTION_CONFIRMATION_INTERNAL_MESSAGE = 'confirm_subscription'.freeze
+
       on_subscribe   :subscribed
       on_unsubscribe :unsubscribed
 
@@ -120,6 +122,10 @@ module ActionCable
         @identifier = identifier
         @params     = params
 
+        # When a channel is streaming via redis pubsub, we want to delay the confirmation
+        # transmission until redis pubsub subscription is confirmed.
+        @defer_subscription_confirmation = false
+
         delegate_connection_identifiers
         subscribe_to_channel
       end
@@ -165,6 +171,15 @@ module ActionCable
         end
 
 
+      protected
+        def defer_subscription_confirmation!
+          @defer_subscription_confirmation = true
+        end
+
+        def defer_subscription_confirmation?
+          @defer_subscription_confirmation
+        end
+
       private
         def delegate_connection_identifiers
           connection.identifiers.each do |identifier|
@@ -177,6 +192,7 @@ module ActionCable
 
         def subscribe_to_channel
           run_subscribe_callbacks
+          transmit_subscription_confirmation unless defer_subscription_confirmation?
         end
 
 
@@ -213,6 +229,12 @@ module ActionCable
         def run_unsubscribe_callbacks
           self.class.on_unsubscribe_callbacks.each { |callback| send(callback) }
         end
+
+        def transmit_subscription_confirmation
+          logger.info "#{self.class.name} is transmitting the subscription confirmation"
+          connection.transmit ActiveSupport::JSON.encode(identifier: @identifier, type: SUBSCRIPTION_CONFIRMATION_INTERNAL_MESSAGE)
+        end
+
     end
   end
 end
