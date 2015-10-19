@@ -73,7 +73,7 @@ module ActionCable
       include Naming
       include Broadcasting
 
-      SUBSCRIPTION_CONFIRMATION_INTERNAL_MESSAGE = 'confirm_subscription'
+      SUBSCRIPTION_CONFIRMATION_INTERNAL_MESSAGE = 'confirm_subscription'.freeze
 
       on_subscribe   :subscribed
       on_unsubscribe :unsubscribed
