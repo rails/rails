@@ -1,3 +1,10 @@
+*   Show helpful message in `BadRequest` exceptions due to invalid path
+    parameter encodings.
+
+    Fixes #21923.
+
+    *Agis Anastasopoulos*
+
 *   Deprecate `config.static_cache_control` in favor of
     `config.public_file_server.headers`
 
