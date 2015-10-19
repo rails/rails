@@ -58,7 +58,7 @@ class ActionCable::Channel::StreamTest < ActionCable::TestCase
     end
   end
 
-  test "stream_from subscription confirmation should only be sent out once" do
+  test "subscription confirmation should only be sent out once" do
     EM.run do
       connection = TestConnection.new
       connection.stubs(:pubsub).returns EM::Hiredis.connect.pubsub
