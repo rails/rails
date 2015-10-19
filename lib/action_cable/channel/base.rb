@@ -180,6 +180,10 @@ module ActionCable
           @defer_subscription_confirmation
         end
 
+        def subscription_confirmation_sent?
+          @subscription_confirmation_sent
+        end
+
       private
         def delegate_connection_identifiers
           connection.identifiers.each do |identifier|
@@ -231,8 +235,12 @@ module ActionCable
         end
 
         def transmit_subscription_confirmation
-          logger.info "#{self.class.name} is transmitting the subscription confirmation"
-          connection.transmit ActiveSupport::JSON.encode(identifier: @identifier, type: SUBSCRIPTION_CONFIRMATION_INTERNAL_MESSAGE)
+          unless subscription_confirmation_sent?
+            logger.info "#{self.class.name} is transmitting the subscription confirmation"
+            connection.transmit ActiveSupport::JSON.encode(identifier: @identifier, type: SUBSCRIPTION_CONFIRMATION_INTERNAL_MESSAGE)
+
+            @subscription_confirmation_sent = true
+          end
         end
 
     end

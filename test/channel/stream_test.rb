@@ -10,6 +10,11 @@ class ActionCable::Channel::StreamTest < ActionCable::TestCase
         stream_from "test_room_#{@room.id}"
       end
     end
+
+    def send_confirmation
+      transmit_subscription_confirmation
+    end
+
   end
 
   test "streaming start and stop" do
@@ -50,6 +55,25 @@ class ActionCable::Channel::StreamTest < ActionCable::TestCase
         EM.run_deferred_callbacks
         EM.stop
       end
+    end
+  end
+
+  test "stream_from subscription confirmation should only be sent out once" do
+    EM.run do
+      connection = TestConnection.new
+      connection.stubs(:pubsub).returns EM::Hiredis.connect.pubsub
+
+      channel = ChatChannel.new connection, "test_channel"
+      channel.send_confirmation
+      channel.send_confirmation
+
+      EM.run_deferred_callbacks
+
+      expected = ActiveSupport::JSON.encode "identifier" => "test_channel", "type" => "confirm_subscription"
+      assert_equal expected, connection.last_transmission, "Did not receive subscription confirmation within 0.1s"
+
+      assert_equal 1, connection.transmissions.size
+      EM.stop
     end
   end
 
