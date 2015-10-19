@@ -5,12 +5,10 @@ module ActionController
   class BadRequest < ActionControllerError #:nodoc:
     attr_reader :original_exception
 
-    def initialize(type = nil, e = nil)
-      return super() unless type && e
-
-      super("Invalid #{type} parameters: #{e.message}")
+    def initialize(msg = nil, e = nil)
+      super(msg)
       @original_exception = e
-      set_backtrace e.backtrace
+      set_backtrace e.backtrace if e
     end
   end
 

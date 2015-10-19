@@ -65,7 +65,7 @@ module ActionDispatch
       path_parameters.each do |key, value|
         next unless value.respond_to?(:valid_encoding?)
         unless value.valid_encoding?
-          raise ActionController::BadRequest, "Invalid parameter: #{key} => #{value}"
+          raise ActionController::BadRequest, "Invalid parameter encoding: #{key} => #{value.inspect}"
         end
       end
     end
@@ -341,7 +341,7 @@ module ActionDispatch
         set_header k, Request::Utils.normalize_encode_params(super || {})
       end
     rescue Rack::Utils::ParameterTypeError, Rack::Utils::InvalidParameterError => e
-      raise ActionController::BadRequest.new(:query, e)
+      raise ActionController::BadRequest.new("Invalid query parameters: #{e.message}", e)
     end
     alias :query_parameters :GET
 
@@ -357,7 +357,7 @@ module ActionDispatch
       self.request_parameters = Request::Utils.normalize_encode_params(super || {})
       raise
     rescue Rack::Utils::ParameterTypeError, Rack::Utils::InvalidParameterError => e
-      raise ActionController::BadRequest.new(:request, e)
+      raise ActionController::BadRequest.new("Invalid request parameters: #{e.message}", e)
     end
     alias :request_parameters :POST
 
