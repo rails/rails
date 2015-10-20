@@ -168,7 +168,7 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
 
   def test_raise_wraped_exception_on_bad_prepare
     assert_raises(ActiveRecord::StatementInvalid) do
-      @connection.exec_query "select * from developers where id = ?", 'sql', [[nil, 1]]
+      @connection.exec_query "select * from developers where id = ?", 'sql', [bind_param(1)]
     end
   end
 

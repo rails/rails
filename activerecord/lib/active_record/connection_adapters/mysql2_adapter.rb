@@ -142,7 +142,7 @@ module ActiveRecord
         super
       end
 
-      def exec_query(sql, name = 'SQL', binds = [])
+      def exec_query(sql, name = 'SQL', binds = [], prepare: false)
         result = execute(sql, name)
         @connection.next_result while @connection.more_results?
         ActiveRecord::Result.new(result.fields, result.to_a)

@@ -1,3 +1,8 @@
+*   Don't cache prepared statements containing an IN clause or a SQL literal, as
+    these queries will change often and are unlikely to have a cache hit.
+
+    *Sean Griffin*
+
 *   Fix `rewhere` in a `has_many` association.
 
     Fixes #21955.

@@ -29,7 +29,17 @@ module ActiveRecord
       # Returns an ActiveRecord::Result instance.
       def select_all(arel, name = nil, binds = [])
         arel, binds = binds_from_relation arel, binds
-        select(to_sql(arel, binds), name, binds)
+        sql = to_sql(arel, binds)
+        if arel.is_a?(String)
+          preparable = false
+        else
+          preparable = visitor.preparable
+        end
+        if prepared_statements && preparable
+          select_prepared(sql, name, binds)
+        else
+          select(sql, name, binds)
+        end
       end
 
       # Returns a record hash with the column names as keys and column values
@@ -67,7 +77,7 @@ module ActiveRecord
       # Executes +sql+ statement in the context of this connection using
       # +binds+ as the bind substitutes. +name+ is logged along with
       # the executed +sql+ statement.
-      def exec_query(sql, name = 'SQL', binds = [])
+      def exec_query(sql, name = 'SQL', binds = [], prepare: false)
       end
 
       # Executes insert +sql+ statement in the context of this connection using
@@ -358,9 +368,12 @@ module ActiveRecord
 
         # Returns an ActiveRecord::Result instance.
         def select(sql, name = nil, binds = [])
-          exec_query(sql, name, binds)
+          exec_query(sql, name, binds, prepare: false)
         end
 
+        def select_prepared(sql, name = nil, binds = [])
+          exec_query(sql, name, binds, prepare: true)
+        end
 
         # Returns the last auto-generated ID from the affected table.
         def insert_sql(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil)

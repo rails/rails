@@ -235,11 +235,11 @@ module ActiveRecord
         @client_encoding = ENCODINGS[result.rows.last.last]
       end
 
-      def exec_query(sql, name = 'SQL', binds = [])
+      def exec_query(sql, name = 'SQL', binds = [], prepare: false)
         if without_prepared_statement?(binds)
           result_set, affected_rows = exec_without_stmt(sql, name)
         else
-          result_set, affected_rows = exec_stmt(sql, name, binds)
+          result_set, affected_rows = exec_stmt(sql, name, binds, cache_stmt: prepare)
         end
 
         yield affected_rows if block_given?
@@ -378,12 +378,12 @@ module ActiveRecord
 
       private
 
-      def exec_stmt(sql, name, binds)
+      def exec_stmt(sql, name, binds, cache_stmt: false)
         cache = {}
         type_casted_binds = binds.map { |attr| type_cast(attr.value_for_database) }
 
         log(sql, name, binds) do
-          if binds.empty?
+          if binds.empty? || !cache_stmt
             stmt = @connection.prepare(sql)
           else
             cache = @statements[sql] ||= {
@@ -399,7 +399,7 @@ module ActiveRecord
             # place when an error occurs. To support older MySQL versions, we
             # need to close the statement and delete the statement from the
             # cache.
-            if binds.empty?
+            if binds.empty? || !cache_stmt
               stmt.close
             else
               @statements.delete sql

@@ -89,6 +89,7 @@ module ActiveRecord
 
         if self.class.type_cast_config_to_boolean(config.fetch(:prepared_statements) { true })
           @prepared_statements = true
+          @visitor.extend(DetermineIfPreparableVisitor)
         else
           @prepared_statements = false
         end
@@ -231,15 +232,18 @@ module ActiveRecord
         end
       end
 
-      def exec_query(sql, name = nil, binds = [])
+      def exec_query(sql, name = nil, binds = [], prepare: false)
         type_casted_binds = binds.map { |attr| type_cast(attr.value_for_database) }
 
         log(sql, name, binds) do
           # Don't cache statements if they are not prepared
-          if without_prepared_statement?(binds)
+          unless prepare
             stmt    = @connection.prepare(sql)
             begin
               cols    = stmt.columns
+              unless without_prepared_statement?(binds)
+                stmt.bind_params(type_casted_binds)
+              end
               records = stmt.to_a
             ensure
               stmt.close
@@ -252,7 +256,7 @@ module ActiveRecord
             stmt = cache[:stmt]
             cols = cache[:cols] ||= stmt.columns
             stmt.reset!
-            stmt.bind_params type_casted_binds
+            stmt.bind_params(type_casted_binds)
           end
 
           ActiveRecord::Result.new(cols, stmt.to_a)

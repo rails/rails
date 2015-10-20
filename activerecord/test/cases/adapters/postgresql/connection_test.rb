@@ -127,7 +127,7 @@ module ActiveRecord
 
     def test_statement_key_is_logged
       bind = Relation::QueryAttribute.new(nil, 1, Type::Value.new)
-      @connection.exec_query('SELECT $1::integer', 'SQL', [bind])
+      @connection.exec_query('SELECT $1::integer', 'SQL', [bind], prepare: true)
       name = @subscriber.payloads.last[:statement_name]
       assert name
       res = @connection.exec_query("EXPLAIN (FORMAT JSON) EXECUTE #{name}(1)")
