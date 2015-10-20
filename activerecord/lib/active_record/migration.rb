@@ -194,17 +194,18 @@ module ActiveRecord
   #
   # == Available transformations
   #
+  # === Creation
+  #
+  # * <tt>create_join_table(table_1, table_2, options)</tt>: Creates a join
+  #   table having its name as the lexical order of the first two
+  #   arguments. See
+  #   ActiveRecord::ConnectionAdapters::SchemaStatements#create_join_table for
+  #   details.
   # * <tt>create_table(name, options)</tt>: Creates a table called +name+ and
   #   makes the table object available to a block that can then add columns to it,
   #   following the same format as +add_column+. See example above. The options hash
   #   is for fragments like "DEFAULT CHARSET=UTF-8" that are appended to the create
   #   table definition.
-  # * <tt>drop_table(name)</tt>: Drops the table called +name+.
-  # * <tt>change_table(name, options)</tt>: Allows to make column alterations to
-  #   the table called +name+. It makes the table object available to a block that
-  #   can then add/remove columns, indexes or foreign keys to it.
-  # * <tt>rename_table(old_name, new_name)</tt>: Renames the table called +old_name+
-  #   to +new_name+.
   # * <tt>add_column(table_name, column_name, type, options)</tt>: Adds a new column
   #   to the table called +table_name+
   #   named +column_name+ specified to be one of the following types:
@@ -215,24 +216,59 @@ module ActiveRecord
   #   Other options include <tt>:limit</tt> and <tt>:null</tt> (e.g.
   #   <tt>{ limit: 50, null: false }</tt>) -- see
   #   ActiveRecord::ConnectionAdapters::TableDefinition#column for details.
-  # * <tt>rename_column(table_name, column_name, new_column_name)</tt>: Renames
-  #   a column but keeps the type and content.
-  # * <tt>change_column(table_name, column_name, type, options)</tt>:  Changes
-  #   the column to a different type using the same parameters as add_column.
-  # * <tt>remove_column(table_name, column_name, type, options)</tt>: Removes the column
-  #   named +column_name+ from the table called +table_name+.
+  # * <tt>add_foreign_key(from_table, to_table, options)</tt>: Adds a new
+  #   foreign key. +from_table+ is the table with the key column, +to_table+ contains
+  #   the referenced primary key.
   # * <tt>add_index(table_name, column_names, options)</tt>: Adds a new index
   #   with the name of the column. Other options include
   #   <tt>:name</tt>, <tt>:unique</tt> (e.g.
   #   <tt>{ name: 'users_name_index', unique: true }</tt>) and <tt>:order</tt>
   #   (e.g. <tt>{ order: { name: :desc } }</tt>).
+  # * <tt>add_reference(:table_name, :reference_name)</tt>: Adds a new column
+  #   +reference_name_id+ by default an integer. See
+  #   ActiveRecord::ConnectionAdapters::SchemaStatements#add_reference for details.
+  # * <tt>add_timestamps(table_name, options)</tt>: Adds timestamps (+created_at+
+  #   and +updated_at+) columns to +table_name+.
+  #
+  # === Modification
+  #
+  # * <tt>change_column(table_name, column_name, type, options)</tt>:  Changes
+  #   the column to a different type using the same parameters as add_column.
+  # * <tt>change_column_default(table_name, column_name, default)</tt>: Sets a
+  #   default value for +column_name+ definded by +default+ on +table_name+.
+  # * <tt>change_column_null(table_name, column_name, null, default = nil)</tt>:
+  #   Sets or removes a +NOT NULL+ constraint on +column_name+. The +null+ flag
+  #   indicates whether the value can be +NULL+. See
+  #   ActiveRecord::ConnectionAdapters::SchemaStatements#change_column_null for
+  #   details.
+  # * <tt>change_table(name, options)</tt>: Allows to make column alterations to
+  #   the table called +name+. It makes the table object available to a block that
+  #   can then add/remove columns, indexes or foreign keys to it.
+  # * <tt>rename_column(table_name, column_name, new_column_name)</tt>: Renames
+  #   a column but keeps the type and content.
+  # * <tt>rename_index(table_name, old_name, new_name)</tt>: Renames an index.
+  # * <tt>rename_table(old_name, new_name)</tt>: Renames the table called +old_name+
+  #   to +new_name+.
+  #
+  # === Deletion
+  #
+  # * <tt>drop_table(name)</tt>: Drops the table called +name+.
+  # * <tt>drop_join_table(table_1, table_2, options)</tt>: Drops the join table
+  #   specified by the given arguments.
+  # * <tt>remove_column(table_name, column_name, type, options)</tt>: Removes the column
+  #   named +column_name+ from the table called +table_name+.
+  # * <tt>remove_columns(table_name, *column_names)</tt>: Removes the given
+  #   columns from the table definition.
+  # * <tt>remove_foreign_key(from_table, options_or_to_table)</tt>: Removes the
+  #   given foreign key from the table called +table_name+.
   # * <tt>remove_index(table_name, column: column_names)</tt>: Removes the index
   #   specified by +column_names+.
   # * <tt>remove_index(table_name, name: index_name)</tt>: Removes the index
   #   specified by +index_name+.
-  # * <tt>add_reference(:table_name, :reference_name)</tt>: Adds a new column
-  #   +reference_name_id+ by default an integer. See
-  #   ActiveRecord::ConnectionAdapters::SchemaStatements#add_reference for details.
+  # * <tt>remove_reference(table_name, ref_name, options)</tt>: Removes the
+  #   reference(s) on +table_name+ specified by +ref_name+.
+  # * <tt>remove_timestamps(table_name, options)</tt>: Removes the timestamp
+  #   columns (+created_at+ and +updated_at+) from the table definition.
   #
   # == Irreversible transformations
   #
