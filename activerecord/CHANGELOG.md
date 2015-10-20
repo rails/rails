@@ -1,3 +1,9 @@
+*   Don't cache arguments in #find_by if they are an ActiveRecord::Relation
+
+    Fixes #20817
+
+    *Hiroaki Izu*
+
 *   Qualify column name inserted by `group` in calculation
 
     Giving `group` an unqualified column name now works, even if the relation

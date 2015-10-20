@@ -177,7 +177,7 @@ module ActiveRecord
         hash = args.first
 
         return super if hash.values.any? { |v|
-          v.nil? || Array === v || Hash === v
+          v.nil? || Array === v || Hash === v || Relation === v
         }
 
         # We can't cache Post.find_by(author: david) ...yet
