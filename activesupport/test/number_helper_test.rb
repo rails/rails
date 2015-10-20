@@ -296,6 +296,8 @@ module ActiveSupport
           assert_equal '1.2346 Million', number_helper.number_to_human(1234567, :precision => 4, :significant => false)
           assert_equal '1,2 Million', number_helper.number_to_human(1234567, :precision => 1, :significant => false, :separator => ',')
           assert_equal '1 Million', number_helper.number_to_human(1234567, :precision => 0, :significant => true, :separator => ',') #significant forced to false
+          assert_equal '1 Million', number_helper.number_to_human(999999)
+          assert_equal '1 Billion', number_helper.number_to_human(999999999)
         end
       end
 

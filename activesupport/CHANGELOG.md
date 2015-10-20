@@ -1,3 +1,8 @@
+*   Fix `number_to_human` so that 999999999 rounds to "1 Billion" instead of
+    "1000 Million".
+
+    *Max Jacobson*
+
 *   Fix `ActiveSupport::Deprecation#deprecate_methods` to report using the
     current deprecator instance, where applicable.
 
