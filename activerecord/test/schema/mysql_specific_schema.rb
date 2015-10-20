@@ -45,9 +45,9 @@ DROP PROCEDURE IF EXISTS topics;
 SQL
 
   ActiveRecord::Base.connection.execute <<-SQL
-CREATE PROCEDURE topics() SQL SECURITY INVOKER
+CREATE PROCEDURE topics(IN num INT) SQL SECURITY INVOKER
 BEGIN
-	select * from topics limit 1;
+  select * from topics limit num;
 END
 SQL
 

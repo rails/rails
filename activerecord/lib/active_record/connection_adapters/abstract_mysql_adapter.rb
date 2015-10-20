@@ -168,6 +168,10 @@ module ActiveRecord
         end
       end
 
+      def version
+        @version ||= Version.new(full_version.match(/^\d+\.\d+\.\d+/)[0])
+      end
+
       # Returns true, since this connection adapter supports migrations.
       def supports_migrations?
         true
@@ -929,10 +933,6 @@ module ActiveRecord
         # Materialized subquery by adding distinct
         # to work with MySQL 5.7.6 which sets optimizer_switch='derived_merge=on'
         subselect.from subsubselect.distinct.as('__active_record_temp')
-      end
-
-      def version
-        @version ||= Version.new(full_version.match(/^\d+\.\d+\.\d+/)[0])
       end
 
       def mariadb?
