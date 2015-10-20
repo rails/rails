@@ -1,7 +1,6 @@
 require 'abstract_unit'
 require 'action_view'
 require 'action_controller'
-require 'active_support/deprecation'
 
 class I18nTestMailer < ActionMailer::Base
   configure do |c|
