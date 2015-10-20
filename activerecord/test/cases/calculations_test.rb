@@ -31,8 +31,17 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 318, Account.sum(:credit_limit)
   end
 
+  def test_should_sum_arel_attribute
+    assert_equal 318, Account.sum(Account.arel_table[:credit_limit])
+  end
+
   def test_should_average_field
     value = Account.average(:credit_limit)
+    assert_equal 53.0, value
+  end
+
+  def test_should_average_arel_attribute
+    value = Account.average(Account.arel_table[:credit_limit])
     assert_equal 53.0, value
   end
 
@@ -60,12 +69,24 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 60, Account.maximum(:credit_limit)
   end
 
+  def test_should_get_maximum_of_arel_attribute
+    assert_equal 60, Account.maximum(Account.arel_table[:credit_limit])
+  end
+
   def test_should_get_maximum_of_field_with_include
     assert_equal 55, Account.where("companies.name != 'Summit'").references(:companies).includes(:firm).maximum(:credit_limit)
   end
 
+  def test_should_get_maximum_of_arel_attribute_with_include
+    assert_equal 55, Account.where("companies.name != 'Summit'").references(:companies).includes(:firm).maximum(Account.arel_table[:credit_limit])
+  end
+
   def test_should_get_minimum_of_field
     assert_equal 50, Account.minimum(:credit_limit)
+  end
+
+  def test_should_get_minimum_of_arel_attribute
+    assert_equal 50, Account.minimum(Account.arel_table[:credit_limit])
   end
 
   def test_should_group_by_field
@@ -148,6 +169,14 @@ class CalculationsTest < ActiveRecord::TestCase
 
     assert_equal 3, accounts.count(:firm_id)
     assert_equal 3, accounts.select(:firm_id).count
+  end
+
+  def test_limit_should_apply_before_count_arel_attribute
+    accounts = Account.limit(3).where('firm_id IS NOT NULL')
+
+    firm_id_attribute = Account.arel_table[:firm_id]
+    assert_equal 3, accounts.count(firm_id_attribute)
+    assert_equal 3, accounts.select(firm_id_attribute).count
   end
 
   def test_count_should_shortcut_with_limit_zero
@@ -372,8 +401,21 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 6, Account.select("DISTINCT accounts.id").includes(:firm).count
   end
 
+  def test_count_selected_arel_attribute
+    assert_equal 5, Account.select(Account.arel_table[:firm_id]).count
+    assert_equal 4, Account.distinct.select(Account.arel_table[:firm_id]).count
+  end
+
   def test_count_with_column_parameter
     assert_equal 5, Account.count(:firm_id)
+  end
+
+  def test_count_with_arel_attribute
+    assert_equal 5, Account.count(Account.arel_table[:firm_id])
+  end
+
+  def test_count_with_arel_star
+    assert_equal 6, Account.count(Arel.star)
   end
 
   def test_count_with_distinct
@@ -395,6 +437,16 @@ class CalculationsTest < ActiveRecord::TestCase
   def test_should_count_field_in_joined_table
     assert_equal 5, Account.joins(:firm).count('companies.id')
     assert_equal 4, Account.joins(:firm).distinct.count('companies.id')
+  end
+
+  def test_count_arel_attribute_in_joined_table_with
+    assert_equal 5, Account.joins(:firm).count(Company.arel_table[:id])
+    assert_equal 4, Account.joins(:firm).distinct.count(Company.arel_table[:id])
+  end
+
+  def test_count_selected_arel_attribute_in_joined_table
+    assert_equal 5, Account.joins(:firm).select(Company.arel_table[:id]).count
+    assert_equal 4, Account.joins(:firm).distinct.select(Company.arel_table[:id]).count
   end
 
   def test_should_count_field_in_joined_table_with_group_by

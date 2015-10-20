@@ -219,6 +219,8 @@ module ActiveRecord
     end
 
     def aggregate_column(column_name)
+      return column_name if Arel::Expressions === column_name
+
       if @klass.column_names.include?(column_name.to_s)
         Arel::Attribute.new(@klass.unscoped.table, column_name)
       else
@@ -367,9 +369,9 @@ module ActiveRecord
       end
     end
 
-    # TODO: refactor to allow non-string `select_values` (eg. Arel nodes).
     def select_for_count
       if select_values.present?
+        return select_values.first if select_values.one?
         select_values.join(", ")
       else
         :all
