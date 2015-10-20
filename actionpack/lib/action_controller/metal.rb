@@ -1,6 +1,5 @@
 require 'active_support/core_ext/array/extract_options'
 require 'action_dispatch/middleware/stack'
-require 'active_support/deprecation'
 require 'action_dispatch/http/request'
 require 'action_dispatch/http/response'
 

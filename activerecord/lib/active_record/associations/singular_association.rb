@@ -1,5 +1,3 @@
-require "active_support/deprecation"
-
 module ActiveRecord
   module Associations
     class SingularAssociation < Association #:nodoc:

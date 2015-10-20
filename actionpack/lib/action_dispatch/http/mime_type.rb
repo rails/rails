@@ -1,7 +1,6 @@
 require 'singleton'
 require 'active_support/core_ext/module/attribute_accessors'
 require 'active_support/core_ext/string/starts_ends_with'
-require 'active_support/deprecation'
 
 module Mime
   class Mimes
