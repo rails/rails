@@ -94,7 +94,8 @@ module ActiveSupport #:nodoc:
       #   string.mb_chars.slice!(0..3) # => #<ActiveSupport::Multibyte::Chars:0x00000002eb80a0 @wrapped_string="Welo">
       #   string # => 'me'
       def slice!(*args)
-        chars(@wrapped_string.slice!(*args))
+        string_sliced = @wrapped_string.slice!(*args)
+        string_sliced ? chars(string_sliced) : nil
       end
 
       # Reverses all characters in the string.

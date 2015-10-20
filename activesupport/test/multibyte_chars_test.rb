@@ -413,6 +413,10 @@ class MultibyteCharsUTF8BehaviourTest < ActiveSupport::TestCase
     assert_equal 'にち', @chars.slice!(1..2)
   end
 
+  def test_slice_bang_returns_nil_on_out_of_bound_arguments
+    assert_equal nil, @chars.mb_chars.slice!(9..10)
+  end
+
   def test_slice_bang_removes_the_slice_from_the_receiver
     chars = 'úüù'.mb_chars
     chars.slice!(0,2)
