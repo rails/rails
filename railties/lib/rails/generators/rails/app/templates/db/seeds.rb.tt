@@ -1,7 +1,19 @@
 # This file should contain all the record creation needed to seed the database with its default values.
 # The data can then be loaded with the rake db:seed (or created alongside the db with db:setup).
 #
+# Data in db/seeds.rb should be usable in all environments.
+#
+# But sometimes it's useful to also populate the database with dummy data.
+#
+# It is also a good practice for this file to be idempotent. That is,
+# that it can be run multiple times on an app without duplicating data.
+#
 # Examples:
 #
 #   cities = City.create([{ name: 'Chicago' }, { name: 'Copenhagen' }])
 #   Mayor.create(name: 'Emanuel', city: cities.first)
+#
+#   dummy_data_envs = Set.new(%w[test development])
+#   if dummy_data_envs.include?(Rails.env)
+#     5.times {|i| City.create(name: "City#{i}")) }
+#   end

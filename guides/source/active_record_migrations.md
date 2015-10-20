@@ -1037,8 +1037,17 @@ It's easy to get started with this feature: just fill up `db/seeds.rb` with some
 Ruby code, and run `rake db:seed`:
 
 ```ruby
-5.times do |i|
-  Product.create(name: "Product ##{i}", description: "A product.")
+# Data in db/seeds.rb should be usable in all environments.
+#
+# For example, all environments might need the same Brands defined:
+Brand.create(name: "OurBrand", slug: "our-brand")
+#
+# But sometimes it's useful to also populate the database with dummy data.
+dummy_data_envs = Set.new(%w[test development])
+if dummy_data_envs.include?(Rails.env)
+  5.times do |i|
+    Product.create(name: "Product ##{i}", description: "A product.")
+  end
 end
 ```
 
