@@ -304,7 +304,9 @@ All these configuration options are delegated to the `I18n` library.
   `:all` which always dumps all schemas regardless of the schema_search_path,
   or a string of comma separated schemas.
 
-* `config.active_record.belongs_to_required_by_default` is a boolean value and controls whether `belongs_to` association is required by default.
+* `config.active_record.belongs_to_required_by_default` is a boolean
+  value and controls whether validation error is triggered by default if
+  `belongs_to` association is not present.
 
 * `config.active_record.warn_on_records_fetched_greater_than` allows setting a
   warning threshold for query result size. If the number of records returned
