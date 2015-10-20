@@ -1,3 +1,10 @@
+*   Add ability to default to `uuid` as primary key when generating database migrations
+
+    Set `Rails.application.config.active_record.primary_key = :uuid`
+    or `config.active_record.primary_key = :uuid` in config/application.rb
+
+    *Jon McCartie*
+
 *   Don't cache arguments in #find_by if they are an ActiveRecord::Relation
 
     Fixes #20817
