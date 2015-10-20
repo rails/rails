@@ -134,6 +134,7 @@ module ActiveRecord
         time:        { name: "time" },
         date:        { name: "date" },
         binary:      { name: "blob" },
+        blob:        { name: "blob" },
         boolean:     { name: "tinyint", limit: 1 },
         bigint:      { name: "bigint" },
         json:        { name: "json" },
@@ -679,12 +680,18 @@ module ActiveRecord
       # Maps logical Rails types to MySQL-specific data types.
       def type_to_sql(type, limit = nil, precision = nil, scale = nil, unsigned = nil)
         sql = case type.to_s
-        when 'binary'
-          binary_to_sql(limit)
         when 'integer'
           integer_to_sql(limit)
         when 'text'
           text_to_sql(limit)
+        when 'blob'
+          binary_to_sql(limit)
+        when 'binary'
+          if (0..0xfff) === limit
+            "varbinary(#{limit})"
+          else
+            binary_to_sql(limit)
+          end
         else
           super(type, limit, precision, scale)
         end
@@ -997,15 +1004,6 @@ module ActiveRecord
         MySQL::TableDefinition.new(native_database_types, name, temporary, options, as)
       end
 
-      def binary_to_sql(limit) # :nodoc:
-        case limit
-        when 0..0xfff;           "varbinary(#{limit})"
-        when nil;                "blob"
-        when 0x1000..0xffffffff; "blob(#{limit})"
-        else raise(ActiveRecordError, "No binary type has byte length #{limit}")
-        end
-      end
-
       def integer_to_sql(limit) # :nodoc:
         case limit
         when 1; 'tinyint'
@@ -1025,6 +1023,16 @@ module ActiveRecord
         when 0x10000..0xffffff;     'mediumtext'
         when 0x1000000..0xffffffff; 'longtext'
         else raise(ActiveRecordError, "No text type has byte length #{limit}")
+        end
+      end
+
+      def binary_to_sql(limit) # :nodoc:
+        case limit
+        when 0..0xff;               'tinyblob'
+        when nil, 0x100..0xffff;    'blob'
+        when 0x10000..0xffffff;     'mediumblob'
+        when 0x1000000..0xffffffff; 'longblob'
+        else raise(ActiveRecordError, "No binary type has byte length #{limit}")
         end
       end
 
