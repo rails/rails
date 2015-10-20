@@ -20,7 +20,7 @@ module ActiveModel
       def validate_each(record, attr_name, value)
         before_type_cast = :"#{attr_name}_before_type_cast"
 
-        raw_value = record.send(before_type_cast) if record.respond_to?(before_type_cast)
+        raw_value = record.send(before_type_cast) if record.respond_to?(before_type_cast) && record.send(before_type_cast) != value
         raw_value ||= value
 
         if record_attribute_changed_in_place?(record, attr_name)
@@ -29,16 +29,14 @@ module ActiveModel
 
         return if options[:allow_nil] && raw_value.nil?
 
-        unless value = parse_raw_value_as_a_number(raw_value)
+        unless is_number?(raw_value)
           record.errors.add(attr_name, :not_a_number, filtered_options(raw_value))
           return
         end
 
-        if allow_only_integer?(record)
-          unless value = parse_raw_value_as_an_integer(raw_value)
-            record.errors.add(attr_name, :not_an_integer, filtered_options(raw_value))
-            return
-          end
+        if allow_only_integer?(record) && !is_integer?(raw_value)
+          record.errors.add(attr_name, :not_an_integer, filtered_options(raw_value))
+          return
         end
 
         options.slice(*CHECKS.keys).each do |option, option_value|
@@ -64,14 +62,15 @@ module ActiveModel
 
     protected
 
-      def parse_raw_value_as_a_number(raw_value)
-        Kernel.Float(raw_value) if raw_value !~ /\A0[xX]/
+      def is_number?(raw_value)
+        parsed_value = Kernel.Float(raw_value) if raw_value !~ /\A0[xX]/
+        !parsed_value.nil?
       rescue ArgumentError, TypeError
-        nil
+        false
       end
 
-      def parse_raw_value_as_an_integer(raw_value)
-        raw_value.to_i if raw_value.to_s =~ /\A[+-]?\d+\z/
+      def is_integer?(raw_value)
+        /\A[+-]?\d+\z/ === raw_value.to_s
       end
 
       def filtered_options(value)
