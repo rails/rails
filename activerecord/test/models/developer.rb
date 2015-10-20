@@ -15,6 +15,8 @@ class Developer < ActiveRecord::Base
     end
   end
 
+  belongs_to :mentor
+
   accepts_nested_attributes_for :projects
 
   has_and_belongs_to_many :shared_computers, class_name: "Computer"
