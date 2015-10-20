@@ -1,3 +1,7 @@
+*   Parse RSS/ATOM responses as XML, not HTML.
+
+    *Alexander Kaupanin*
+
 *   Fix regression in mounted engine named routes generation for app deployed to
     a subdirectory. `relative_url_root` was prepended to the path twice (e.g.
     "/subdir/subdir/engine_path" instead of "/subdir/engine_path")
