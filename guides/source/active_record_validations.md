@@ -149,8 +149,10 @@ false` as an argument. This technique should be used with caution.
 
 ### `valid?` and `invalid?`
 
-To verify whether or not an object is valid, Rails uses the `valid?` method.
-You can also use this method on your own. `valid?` triggers your validations
+Before saving an ActiveRecord object, Rails runs your validations.
+If these validations produce any errors, Rails does not save the object.
+
+You can also run these validations on your own. `valid?` triggers your validations
 and returns true if no errors were found in the object, and false otherwise.
 As you saw above:
 
@@ -168,8 +170,9 @@ through the `errors.messages` instance method, which returns a collection of err
 By definition, an object is valid if this collection is empty after running
 validations.
 
-Note that an object instantiated with `new` will not report errors even if it's
-technically invalid, because validations are not run when using `new`.
+Note that an object instantiated with `new` will not report errors
+even if it's technically invalid, because validations are automatically run
+only when the object is saved, such as with the `create` or `save` methods.
 
 ```ruby
 class Person < ActiveRecord::Base
@@ -986,6 +989,10 @@ class method, passing in the symbols for the validation methods' names.
 You can pass more than one symbol for each class method and the respective
 validations will be run in the same order as they were registered.
 
+The `valid?` method will verify that the errors collection is empty,
+so your custom validation methods should add errors to it when you
+wish validation to fail:
+
 ```ruby
 class Invoice < ActiveRecord::Base
   validate :expiration_date_cannot_be_in_the_past,
@@ -1005,9 +1012,10 @@ class Invoice < ActiveRecord::Base
 end
 ```
 
-By default such validations will run every time you call `valid?`. It is also
-possible to control when to run these custom validations by giving an `:on`
-option to the `validate` method, with either: `:create` or `:update`.
+By default, such validations will run every time you call `valid?`
+or save the object. But it is also possible to control when to run these
+custom validations by giving an `:on` option to the `validate` method,
+with either: `:create` or `:update`.
 
 ```ruby
 class Invoice < ActiveRecord::Base
