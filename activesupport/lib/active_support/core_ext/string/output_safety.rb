@@ -37,7 +37,7 @@ class ERB
       if s.html_safe?
         s
       else
-        s.gsub(HTML_ESCAPE_REGEXP, HTML_ESCAPE)
+        ActiveSupport::Multibyte::Unicode.tidy_bytes(s).gsub(HTML_ESCAPE_REGEXP, HTML_ESCAPE)
       end
     end
     module_function :unwrapped_html_escape
@@ -50,7 +50,7 @@ class ERB
     #   html_escape_once('&lt;&lt; Accept & Checkout')
     #   # => "&lt;&lt; Accept &amp; Checkout"
     def html_escape_once(s)
-      result = s.to_s.gsub(HTML_ESCAPE_ONCE_REGEXP, HTML_ESCAPE)
+      result = ActiveSupport::Multibyte::Unicode.tidy_bytes(s.to_s).gsub(HTML_ESCAPE_ONCE_REGEXP, HTML_ESCAPE)
       s.html_safe? ? result.html_safe : result
     end
 

@@ -1,3 +1,12 @@
+*   Handle invalid UTF-8 strings when HTML escaping
+
+    Use `ActiveSupport::Multibyte::Unicode.tidy_bytes` to handle invalid UTF-8
+    strings in `ERB::Util.unwrapped_html_escape` and `ERB::Util.html_escape_once`.
+    Prevents user-entered input passed from a querystring into a form field from
+    causing invalid byte sequence errors.
+
+    *Grey Baker*
+
 *   Update `ActiveSupport::Multibyte::Chars#slice!` to return `nil` if the
     arguments are out of bounds, to mirror the behavior of `String#slice!`
 

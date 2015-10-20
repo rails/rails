@@ -782,8 +782,8 @@ class OutputSafetyTest < ActiveSupport::TestCase
   end
 
   test "ERB::Util.html_escape should correctly handle invalid UTF-8 strings" do
-    string = [192, 60].pack('CC')
-    expected = 192.chr + "&lt;"
+    string = "\251 <"
+    expected = "© &lt;"
     assert_equal expected, ERB::Util.html_escape(string)
   end
 
@@ -798,6 +798,12 @@ class OutputSafetyTest < ActiveSupport::TestCase
 
     assert_equal escaped_string, ERB::Util.html_escape_once(string)
     assert_equal escaped_string, ERB::Util.html_escape_once(escaped_string)
+  end
+
+  test "ERB::Util.html_escape_once should correctly handle invalid UTF-8 strings" do
+    string = "\251 <"
+    expected = "© &lt;"
+    assert_equal expected, ERB::Util.html_escape_once(string)
   end
 end
 
