@@ -86,7 +86,8 @@ module ActiveSupport #:nodoc:
       end
 
       # Works like <tt>String#slice!</tt>, but returns an instance of
-      # Chars, or nil if the string was not modified.
+      # Chars, or nil if the string was not modified. The string will not be
+      # modified if the range given is out of bounds
       #
       #   string = 'Welcome'
       #   string.mb_chars.slice!(3)    # => #<ActiveSupport::Multibyte::Chars:0x000000038109b8 @wrapped_string="c">
@@ -95,7 +96,9 @@ module ActiveSupport #:nodoc:
       #   string # => 'me'
       def slice!(*args)
         string_sliced = @wrapped_string.slice!(*args)
-        string_sliced ? chars(string_sliced) : nil
+        if string_sliced
+          chars(string_sliced)
+        end
       end
 
       # Reverses all characters in the string.
