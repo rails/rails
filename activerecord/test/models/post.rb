@@ -67,7 +67,6 @@ class Post < ActiveRecord::Base
   end
 
   has_many :comments_with_extend_2, extend: [NamedExtension, NamedExtension2], class_name: "Comment", foreign_key: "post_id"
-  has_many :comments_with_rewhere, -> { rewhere(post_id: 2) }, class_name: "Comment"
 
   has_many :author_favorites, :through => :author
   has_many :author_categorizations, :through => :author, :source => :categorizations
