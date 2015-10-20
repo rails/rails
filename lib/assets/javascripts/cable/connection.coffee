@@ -58,6 +58,8 @@ class Cable.Connection
         switch type
           when Cable.INTERNAL_MESSAGES.SUBSCRIPTION_CONFIRMATION
             @consumer.subscriptions.notify(identifier, "connected")
+          when Cable.INTERNAL_MESSAGES.SUBSCRIPTION_REJECTION
+            @consumer.subscriptions.rejectSubscription(identifier)
       else
         @consumer.subscriptions.notify(identifier, "received", message)
 

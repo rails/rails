@@ -27,10 +27,21 @@ class Cable.Subscriptions
     for subscription in @subscriptions
       @sendCommand(subscription, "subscribe")
 
+  rejectSubscription: (identifier) ->
+    subscriptions = @findAll(identifier)
+
+    for subscription in subscriptions
+      @removeSubscription(subscription)
+      @notify(subscription, "rejected")
+  
   remove: (subscription) ->
-    @subscriptions = (s for s in @subscriptions when s isnt subscription)
+    @removeSubscription(subscription)
+
     unless @findAll(subscription.identifier).length
       @sendCommand(subscription, "unsubscribe")
+
+  removeSubscription: (subscription) ->
+    @subscriptions = (s for s in @subscriptions when s isnt subscription)
 
   findAll: (identifier) ->
     s for s in @subscriptions when s.identifier is identifier
@@ -48,7 +59,7 @@ class Cable.Subscriptions
     for subscription in subscriptions
       subscription[callbackName]?(args...)
 
-      if callbackName in ["initialized", "connected", "disconnected"]
+      if callbackName in ["initialized", "connected", "disconnected", "rejected"]
         {identifier} = subscription
         @record(notification: {identifier, callbackName, args})
 
