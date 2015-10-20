@@ -1,3 +1,10 @@
+*   Qualify column name inserted by `group` in calculation
+
+    Giving `group` an unqualified column name now works, even if the relation
+    has `JOIN` with another table which also has a column of the name.
+
+    *Soutaro Matsumoto*
+
 *   Don't cache prepared statements containing an IN clause or a SQL literal, as
     these queries will change often and are unlikely to have a cache hit.
 
