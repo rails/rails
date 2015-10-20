@@ -1,7 +1,7 @@
 require 'active_support/core_ext/big_decimal/conversions'
 require 'active_support/number_helper'
 
-class Numeric
+module ActiveSupport::NumericWithFormat
 
   # Provides options for converting numbers into formatted strings.
   # Options are provided for phone numbers, currency, percentage,
@@ -97,7 +97,10 @@ class Numeric
   #  1234567.to_s(:human, precision: 1,
   #                   separator: ',',
   #                   significant: false)                   # => "1,2 Million"
-  def to_formatted_s(format = :default, options = {})
+  def to_s(*args)
+    format, options = args
+    options ||= {}
+
     case format
     when :phone
       return ActiveSupport::NumberHelper.number_to_phone(self, options)
@@ -114,32 +117,16 @@ class Numeric
     when :human_size
       return ActiveSupport::NumberHelper.number_to_human_size(self, options)
     else
-      self.to_default_s
+      super
     end
   end
 
-  [Fixnum, Bignum].each do |klass|
-    klass.class_eval do
-      alias_method :to_default_s, :to_s
-      def to_s(base_or_format = 10, options = nil)
-        if base_or_format.is_a?(Symbol)
-          to_formatted_s(base_or_format, options || {})
-        else
-          to_default_s(base_or_format)
-        end
-      end
-    end
+  def to_formatted_s(*args)
+    to_s(*args)
   end
+  deprecate to_formatted_s: :to_s
+end
 
-  Float.class_eval do
-    alias_method :to_default_s, :to_s
-    def to_s(*args)
-      if args.empty?
-        to_default_s
-      else
-        to_formatted_s(*args)
-      end
-    end
-  end
-
+[Fixnum, Bignum, Float, BigDecimal].each do |klass|
+  klass.prepend(ActiveSupport::NumericWithFormat)
 end
