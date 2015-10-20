@@ -1,3 +1,8 @@
+*   Update `ActiveSupport::Multibyte::Chars#slice!` to return `nil` if the
+    arguments are out of bounds, to mirror the behavior of `String#slice!`
+
+    *Gourav Tiwari*
+
 *   Fix `number_to_human` so that 999999999 rounds to "1 Billion" instead of
     "1000 Million".
 
