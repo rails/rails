@@ -1,3 +1,9 @@
+*   Fix `rewhere` in a `has_many` association.
+
+    Fixes #21955.
+
+    *Josh Branchaud*, *Kal*
+
 *   `where` raises ArgumentError on unsupported types.
 
     Fixes #20473.
