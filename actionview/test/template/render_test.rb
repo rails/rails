@@ -272,6 +272,24 @@ module RenderTestCases
       @view.render(:partial => "test/local_inspector", :collection => [ Customer.new("mary") ])
   end
 
+  class CustomCustomerCollection
+    include Enumerable
+    attr_reader :instances
+
+    def initialize(instances)
+      @instances = instances
+    end
+
+    delegate :each, :size, :length, to: :@instances
+  end
+
+  def test_render_partial_collection_should_raise_if_missing_to_ary 
+    custom_collection = CustomCustomerCollection.new([Customer.new("david"), Customer.new("scott")])
+    assert_raises NoMethodError do
+      @view.render(partial: "test/customer", collection: custom_collection)
+    end
+  end
+
   def test_render_partial_with_empty_collection_should_return_nil
     assert_nil @view.render(:partial => "test/customer", :collection => [])
   end
