@@ -20,6 +20,8 @@ module ActiveRecord
           attributes, binds = predicate_builder.create_binds(attributes)
 
           parts = predicate_builder.build_from_hash(attributes)
+        when Arel::Nodes::Node, Symbol
+          parts = [opts]
         else
           parts = [opts]
         end
