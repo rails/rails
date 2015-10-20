@@ -24,6 +24,8 @@ require 'models/membership'
 require 'models/club'
 require 'models/categorization'
 require 'models/sponsor'
+require 'models/mentor'
+require 'models/contract'
 
 class EagerAssociationTest < ActiveRecord::TestCase
   fixtures :posts, :comments, :authors, :essays, :author_addresses, :categories, :categories_posts,
@@ -1216,6 +1218,16 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_no_queries { assert_equal 2, posts[0].categories[0].categorizations.length }
     assert_no_queries { assert_equal 1, posts[0].categories[1].categorizations.length }
     assert_no_queries { assert_equal 2, posts[1].categories[0].categorizations.length }
+  end
+
+  def test_eager_load_multiple_associations_with_references
+    mentor = Mentor.create!(name: "Barış Can DAYLIK")
+    developer = Developer.create!(name: "Mehmet Emin İNAÇ", mentor: mentor)
+    Contract.create!(developer: developer)
+    project = Project.create!(name: "VNGRS", mentor: mentor)
+    project.developers << developer
+    projects = Project.references(:mentors).includes(mentor: { developers: :contracts }, developers: :contracts)
+    assert_equal projects.last.mentor.developers.first.contracts, projects.last.developers.last.contracts
   end
 
   test "scoping with a circular preload" do
