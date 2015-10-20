@@ -21,7 +21,7 @@ GIT
 
 GIT
   remote: git://github.com/mikel/mail.git
-  revision: 64ef1a12efcdda53fd63e1456c2c564044bf82ce
+  revision: 9c313a401729b9aa9177878836829a61adf67b54
   branch: master
   specs:
     mail (2.6.3.edge)
@@ -29,7 +29,7 @@ GIT
 
 GIT
   remote: git://github.com/rack/rack.git
-  revision: e836fad64ba3a79f8169ef44aa97b7004fca5e86
+  revision: 35599cfc2751e0ee611c0ff799924b8e7fe0c0b4
   branch: master
   specs:
     rack (2.0.0.alpha)
@@ -37,7 +37,7 @@ GIT
 
 GIT
   remote: git://github.com/rails/arel.git
-  revision: 77ec13b46af2926bfcfc3073685711c874b0d272
+  revision: 3c429c5d86e9e2201c2a35d934ca6a8911c18e69
   branch: master
   specs:
     arel (7.0.0.alpha)
@@ -62,7 +62,7 @@ GIT
 
 GIT
   remote: git://github.com/rails/sass-rails.git
-  revision: a3b25261a3d31ed9ff5dd6e841b777790fc86c55
+  revision: 6e4eee736bcbfa5b2962467673c7a51abf434c67
   branch: master
   specs:
     sass-rails (6.0.0)
@@ -73,7 +73,7 @@ GIT
 
 GIT
   remote: git://github.com/rails/sprockets-rails.git
-  revision: 77098c5acd9f27613875097ce6587aff9d871d7f
+  revision: 93a45b1c463a063ec7cf4d160107b67aa3db7a1a
   branch: master
   specs:
     sprockets-rails (3.0.0.beta3)
@@ -83,15 +83,15 @@ GIT
 
 GIT
   remote: git://github.com/rails/sprockets.git
-  revision: edae5cdfa241b0fb0fcb756b25cd561c3d8b7f29
+  revision: 5a77f8b007b8ec61edd783c48baf9d971f1c684d
   branch: master
   specs:
     sprockets (4.0.0)
-      rack (> 1, < 3)
+      rack (>= 1, < 3)
 
 GIT
   remote: git://github.com/rails/turbolinks.git
-  revision: 4bb563cd777875d3ad73cf007c26334f2aa8dc37
+  revision: 83d4b3d2c52a681f07900c28adb28bc8da604733
   branch: master
   specs:
     turbolinks (3.0.0)
@@ -99,10 +99,10 @@ GIT
 
 GIT
   remote: git://github.com/sass/sass.git
-  revision: 4ef8e3167985ace91b2105916756bd93c5d7bba6
+  revision: 4e3e1d5684cc29073a507578fc977434ff488c93
   branch: stable
   specs:
-    sass (3.4.18)
+    sass (3.4.19)
 
 PATH
   remote: .
@@ -177,8 +177,23 @@ GEM
     bunny (2.2.0)
       amq-protocol (>= 2.0.0)
     byebug (6.0.2)
-    celluloid (0.16.0)
-      timers (~> 4.0.0)
+    celluloid (0.17.2)
+      celluloid-essentials
+      celluloid-extras
+      celluloid-fsm
+      celluloid-pool
+      celluloid-supervision
+      timers (>= 4.1.1)
+    celluloid-essentials (0.20.5)
+      timers (>= 4.1.1)
+    celluloid-extras (0.20.5)
+      timers (>= 4.1.1)
+    celluloid-fsm (0.20.5)
+      timers (>= 4.1.1)
+    celluloid-pool (0.20.5)
+      timers (>= 4.1.1)
+    celluloid-supervision (0.20.5)
+      timers (>= 4.1.1)
     coffee-rails (4.1.0)
       coffee-script (>= 2.2.0)
       railties (>= 4.0.0, < 5.0)
@@ -186,15 +201,15 @@ GEM
       coffee-script-source
       execjs
     coffee-script-source (1.9.1.1)
-    concurrent-ruby (1.0.0.pre3)
+    concurrent-ruby (1.0.0.pre4)
     connection_pool (2.2.0)
     dalli (2.7.4)
     dante (0.2.0)
-    delayed_job (4.0.6)
+    delayed_job (4.1.1)
       activesupport (>= 3.0, < 5.0)
-    delayed_job_active_record (4.0.3)
-      activerecord (>= 3.0, < 5.0)
-      delayed_job (>= 3.0, < 4.1)
+    delayed_job_active_record (4.1.0)
+      activerecord (>= 3.0, < 5)
+      delayed_job (>= 3.0, < 5)
     erubis (2.7.0)
     execjs (2.6.0)
     hitimes (1.2.3)
@@ -217,18 +232,14 @@ GEM
     multi_json (1.11.2)
     mustache (1.0.2)
     mysql (2.9.1)
-    mysql2 (0.4.0)
+    mysql2 (0.4.1)
     nokogiri (1.6.7.rc3)
-      mini_portile (~> 0.7.0.rc4)
-    nokogiri (1.6.7.rc3-x64-mingw32)
-      mini_portile (~> 0.7.0.rc4)
-    nokogiri (1.6.7.rc3-x86-mingw32)
       mini_portile (~> 0.7.0.rc4)
     pg (0.18.3)
     psych (2.0.15)
     que (0.11.2)
-    racc (1.4.12)
-    rack-cache (1.2)
+    racc (1.4.13)
+    rack-cache (1.5.0)
       rack (>= 0.4)
     rack-test (0.6.3)
       rack (>= 1.0)
@@ -257,15 +268,15 @@ GEM
       redis (~> 3.0)
       resque (~> 1.25)
       rufus-scheduler (~> 3.0)
-    rufus-scheduler (3.1.4)
+    rufus-scheduler (3.1.7)
     sdoc (0.4.1)
       json (~> 1.7, >= 1.7.7)
       rdoc (~> 4.0)
-    sequel (4.26.0)
-    serverengine (1.5.10)
+    sequel (4.27.0)
+    serverengine (1.5.11)
       sigdump (~> 0.2.2)
-    sidekiq (3.4.2)
-      celluloid (~> 0.16.0)
+    sidekiq (3.5.1)
+      celluloid (~> 0.17.2)
       connection_pool (~> 2.2, >= 2.2.0)
       json (~> 1.0)
       redis (~> 3.2, >= 3.2.1)
@@ -273,23 +284,23 @@ GEM
     sigdump (0.2.3)
     sinatra (1.0)
       rack (>= 1.0)
-    sneakers (2.2.0)
+    sneakers (2.3.5)
       bunny (~> 2.2.0)
-      serverengine (~> 1.5.5)
+      serverengine (~> 1.5.11)
       thor
       thread (~> 0.1.7)
-    sqlite3 (1.3.10)
+    sqlite3 (1.3.11)
     stackprof (0.2.7)
-    sucker_punch (1.5.1)
-      celluloid (= 0.16.0)
+    sucker_punch (1.6.0)
+      celluloid (~> 0.17.2)
     thor (0.19.1)
     thread (0.1.7)
     thread_safe (0.3.5)
-    timers (4.0.4)
+    timers (4.1.1)
       hitimes
     tzinfo (1.2.2)
       thread_safe (~> 0.1)
-    tzinfo-data (1.2015.6)
+    tzinfo-data (1.2015.7)
       tzinfo (>= 1.0.0)
     uglifier (2.7.2)
       execjs (>= 0.3.0)
