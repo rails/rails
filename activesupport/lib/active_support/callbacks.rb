@@ -748,15 +748,15 @@ module ActiveSupport
 
       protected
 
-      def get_callbacks(name)
+      def get_callbacks(name) # :nodoc:
         send "_#{name}_callbacks"
       end
 
-      def set_callbacks(name, callbacks)
+      def set_callbacks(name, callbacks) # :nodoc:
         send "_#{name}_callbacks=", callbacks
       end
 
-      def deprecated_false_terminator
+      def deprecated_false_terminator # :nodoc:
         Proc.new do |target, result_lambda|
           terminate = true
           catch(:abort) do
