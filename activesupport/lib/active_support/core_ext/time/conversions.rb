@@ -6,6 +6,7 @@ class Time
     :db           => '%Y-%m-%d %H:%M:%S',
     :number       => '%Y%m%d%H%M%S',
     :nsec         => '%Y%m%d%H%M%S%9N',
+    :usec         => '%Y%m%d%H%M%S%6N',
     :time         => '%H:%M',
     :short        => '%d %b %H:%M',
     :long         => '%B %d, %Y %H:%M',

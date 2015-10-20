@@ -10,9 +10,9 @@ module ActiveRecord
       # Indicates the format used to generate the timestamp in the cache key.
       # Accepts any of the symbols in <tt>Time::DATE_FORMATS</tt>.
       #
-      # This is +:nsec+, by default.
+      # This is +:usec+, by default.
       class_attribute :cache_timestamp_format, :instance_writer => false
-      self.cache_timestamp_format = :nsec
+      self.cache_timestamp_format = :usec
     end
 
     # Returns a String, which Action Pack uses for constructing a URL to this
