@@ -1,3 +1,7 @@
+*   Parse RSS/ATOM responses as XML, not HTML.
+
+    *Alexander Kaupanin*
+
 *   Show helpful message in `BadRequest` exceptions due to invalid path
     parameter encodings.
 
