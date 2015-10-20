@@ -482,8 +482,16 @@ module ActiveRecord
         show_variable 'collation_database'
       end
 
-      def tables(name = nil) # :nodoc:
-        select_values("SHOW FULL TABLES", 'SCHEMA')
+      def tables(name = nil, database = nil, like = nil) #:nodoc:
+        database ||= current_database
+
+        sql = "SELECT table_name FROM information_schema.tables "
+        sql << "WHERE table_schema = #{quote(database)}"
+        sql << " AND table_name = #{quote(like)}" if like
+
+        execute_and_free(sql, 'SCHEMA') do |result|
+          result.collect(&:first)
+        end
       end
       alias data_sources tables
 
