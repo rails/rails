@@ -762,6 +762,11 @@ class FileStoreTest < ActiveSupport::TestCase
     assert_equal 1, @cache.read("a"*10000)
   end
 
+  def test_long_uri_encoded_keys
+    @cache.write("%"*870, 1)
+    assert_equal 1, @cache.read("%"*870)
+  end
+
   def test_key_transformation
     key = @cache.send(:key_file_path, "views/index?id=1")
     assert_equal "views/index?id=1", @cache.send(:file_path_key, key)
