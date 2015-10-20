@@ -203,13 +203,13 @@ module ActiveRecord
 
     def test_structure_dump
       filename = "awesome-file.sql"
-      Kernel.expects(:system).with("pg_dump -i -s -x -O -f #{filename}  my-app-db").returns(true)
+      Kernel.expects(:system).with('pg_dump', '-i', '-s', '-x', '-O', '-f', filename, 'my-app-db').returns(true)
       @connection.expects(:schema_search_path).returns("foo")
 
       ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename)
       assert File.exist?(filename)
     ensure
-      FileUtils.rm(filename)
+      FileUtils.rm(filename) if File.exist?(filename)
     end
   end
 
@@ -228,15 +228,15 @@ module ActiveRecord
 
     def test_structure_load
       filename = "awesome-file.sql"
-      Kernel.expects(:system).with("psql -q -f #{filename} my-app-db")
+      Kernel.expects(:system).with('psql', '-q', '-f', filename, 'my-app-db').returns(true)
 
       ActiveRecord::Tasks::DatabaseTasks.structure_load(@configuration, filename)
     end
 
     def test_structure_load_accepts_path_with_spaces
       filename = "awesome file.sql"
-      Kernel.expects(:system).with("psql -q -f awesome\\ file.sql my-app-db")
-
+      Kernel.expects(:system).with('psql', '-q', '-f', 'awesome file.sql', 'my-app-db').returns(true)
+      
       ActiveRecord::Tasks::DatabaseTasks.structure_load(@configuration, filename)
     end
   end
