@@ -163,12 +163,16 @@ EOT
       #   (Help message output)
       #
       def write_error_message(command)
-        puts "Error: Command '#{command}' not recognized"
-        if %x{rake #{command} --dry-run 2>&1 } && $?.success?
-          puts "Did you mean: `$ rake #{command}` ?\n\n"
+        puts "Error: Command '#{command}' not a valid rails command"
+        require APP_PATH
+        Rails.application.load_tasks
+        if Rake::Task.task_defined?(command)
+          puts "Running: `$ bin/rake #{command}` instead\n\n"
+          system("bin/rake #{command}")
+        else
+          write_help_message
+          exit(1)
         end
-        write_help_message
-        exit(1)
       end
 
       def parse_command(command)
