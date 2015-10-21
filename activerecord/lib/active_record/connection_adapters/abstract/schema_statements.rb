@@ -446,12 +446,81 @@ module ActiveRecord
         execute "DROP TABLE#{' IF EXISTS' if options[:if_exists]} #{quote_table_name(table_name)}"
       end
 
-      # Adds a new column to the named table.
-      # See TableDefinition#column for details of the options you can use.
+      # Add a new +type+ column named +column_name+ to +table_name+.
       #
-      # Note: Not all options will be available, generally this command should
-      # ignore most of them. In favor of doing a low-level call to simply
-      # create a column.
+      # The +type+ parameter is normally one of the migrations native types,
+      # which is one of the following:
+      # <tt>:primary_key</tt>, <tt>:string</tt>, <tt>:text</tt>,
+      # <tt>:integer</tt>, <tt>:bigint</tt>, <tt>:float</tt>, <tt>:decimal</tt>,
+      # <tt>:datetime</tt>, <tt>:time</tt>, <tt>:date</tt>,
+      # <tt>:binary</tt>, <tt>:boolean</tt>.
+      #
+      # You may use a type not in this list as long as it is supported by your
+      # database (for example, "polygon" in MySQL), but this will not be database
+      # agnostic and should usually be avoided.
+      #
+      # Available options are (none of these exists by default):
+      # * <tt>:limit</tt> -
+      #   Requests a maximum column length. This is number of characters for a <tt>:string</tt> column
+      #   and number of bytes for <tt>:text</tt>, <tt>:binary</tt> and <tt>:integer</tt> columns.
+      # * <tt>:default</tt> -
+      #   The column's default value. Use nil for NULL.
+      # * <tt>:null</tt> -
+      #   Allows or disallows +NULL+ values in the column. This option could
+      #   have been named <tt>:null_allowed</tt>.
+      # * <tt>:precision</tt> -
+      #   Specifies the precision for a <tt>:decimal</tt> column.
+      # * <tt>:scale</tt> -
+      #   Specifies the scale for a <tt>:decimal</tt> column.
+      #
+      # Note: The precision is the total number of significant digits
+      # and the scale is the number of digits that can be stored following
+      # the decimal point. For example, the number 123.45 has a precision of 5
+      # and a scale of 2. A decimal with a precision of 5 and a scale of 2 can
+      # range from -999.99 to 999.99.
+      #
+      # Please be aware of different RDBMS implementations behavior with
+      # <tt>:decimal</tt> columns:
+      # * The SQL standard says the default scale should be 0, <tt>:scale</tt> <=
+      #   <tt>:precision</tt>, and makes no comments about the requirements of
+      #   <tt>:precision</tt>.
+      # * MySQL: <tt>:precision</tt> [1..63], <tt>:scale</tt> [0..30].
+      #   Default is (10,0).
+      # * PostgreSQL: <tt>:precision</tt> [1..infinity],
+      #   <tt>:scale</tt> [0..infinity]. No default.
+      # * SQLite2: Any <tt>:precision</tt> and <tt>:scale</tt> may be used.
+      #   Internal storage as strings. No default.
+      # * SQLite3: No restrictions on <tt>:precision</tt> and <tt>:scale</tt>,
+      #   but the maximum supported <tt>:precision</tt> is 16. No default.
+      # * Oracle: <tt>:precision</tt> [1..38], <tt>:scale</tt> [-84..127].
+      #   Default is (38,0).
+      # * DB2: <tt>:precision</tt> [1..63], <tt>:scale</tt> [0..62].
+      #   Default unknown.
+      # * SqlServer?: <tt>:precision</tt> [1..38], <tt>:scale</tt> [0..38].
+      #   Default (38,0).
+      #
+      # == Examples
+      #
+      #  add_column(:users, :picture, :binary, limit: 2.megabytes)
+      #  # ALTER TABLE "users" ADD "picture" blob(2097152)
+      #
+      #  add_column(:articles, :status, :string, limit: 20, default: 'draft', null: false)
+      #  # ALTER TABLE "articles" ADD "status" varchar(20) DEFAULT 'draft' NOT NULL
+      #
+      #  add_column(:answers, :bill_gates_money, :decimal, precision: 15, scale: 2)
+      #  # ALTER TABLE "answers" ADD "bill_gates_money" decimal(15,2)
+      #
+      #  add_column(:measurements, :sensor_reading, :decimal, precision: 30, scale: 20)
+      #  # ALTER TABLE "measurements" ADD "sensor_reading" decimal(30,20)
+      #
+      #  # While :scale defaults to zero on most databases, it
+      #  # probably wouldn't hurt to include it.
+      #  add_column(:measurements, :huge_integer, :decimal, precision: 30)
+      #  # ALTER TABLE "measurements" ADD "huge_integer" decimal(30)
+      #
+      #  # Defines a column with a database-specific type.
+      #  add_column(:shapes, :triangle, 'polygon')
+      #  # ALTER TABLE "shapes" ADD "triangle" polygon
       def add_column(table_name, column_name, type, options = {})
         at = create_alter_table table_name
         at.add_column(column_name, type, options)
