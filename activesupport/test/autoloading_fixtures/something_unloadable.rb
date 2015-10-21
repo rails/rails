@@ -1,0 +1,3 @@
+class SomethingUnloadable
+  unloadable
+end

@@ -771,6 +771,8 @@ module ActiveSupport #:nodoc:
         parent.instance_eval { remove_const to_remove }
       rescue NameError
         log "the constant #{const} is not reachable anymore, skipping"
+      ensure
+        loaded.delete(expanded)
       end
     end
 
