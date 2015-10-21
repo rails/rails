@@ -6,6 +6,13 @@ class Module
     end
   end
 
+  # Removes the named singleton method, if it exists.
+  def remove_possible_singleton_method(method)
+    singleton_class.instance_eval do
+      remove_possible_method(method)
+    end
+  end
+
   # Replaces the existing method definition, if there is one, with the passed
   # block as its body.
   def redefine_method(method, &block)
