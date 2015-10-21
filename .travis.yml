@@ -25,6 +25,7 @@ env:
     - "GEM=ar:postgresql"
     - "GEM=aj:integration"
     - "GEM=guides"
+    - "GEM=ita"
 rvm:
   - 2.2.3
   - ruby-head
