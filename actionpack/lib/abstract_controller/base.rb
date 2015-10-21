@@ -1,8 +1,8 @@
 require 'erubis'
-require 'set'
 require 'active_support/configurable'
 require 'active_support/descendants_tracker'
 require 'active_support/core_ext/module/anonymous'
+require 'active_support/core_ext/module/attr_internal'
 
 module AbstractController
   class Error < StandardError #:nodoc:
@@ -88,7 +88,7 @@ module AbstractController
       # Returns the full controller name, underscored, without the ending Controller.
       #
       #   class MyApp::MyPostsController < AbstractController::Base
-      #     end
+      #
       #   end
       #
       #   MyApp::MyPostsController.controller_path # => "my_app/my_posts"
@@ -96,7 +96,7 @@ module AbstractController
       # ==== Returns
       # * <tt>String</tt>
       def controller_path
-        @controller_path ||= name.sub(/Controller$/, '').underscore unless anonymous?
+        @controller_path ||= name.sub(/Controller$/, ''.freeze).underscore unless anonymous?
       end
 
       # Refresh the cached action_methods when a new action_method is added.
@@ -148,9 +148,6 @@ module AbstractController
     #
     # ==== Parameters
     # * <tt>action_name</tt> - The name of an action to be tested
-    #
-    # ==== Returns
-    # * <tt>TrueClass</tt>, <tt>FalseClass</tt>
     def available_action?(action_name)
       _find_action_name(action_name).present?
     end
@@ -170,9 +167,6 @@ module AbstractController
       #
       # ==== Parameters
       # * <tt>name</tt> - The name of an action to be tested
-      #
-      # ==== Returns
-      # * <tt>TrueClass</tt>, <tt>FalseClass</tt>
       #
       # :api: private
       def action_method?(name)

@@ -1,5 +1,4 @@
 require 'rake/testtask'
-require 'rubygems/package_task'
 
 desc "Default Task"
 task default: [ :test ]
@@ -19,10 +18,4 @@ namespace :test do
       sh(Gem.ruby, '-w', '-Ilib:test', file)
     end or raise "Failures"
   end
-end
-
-spec = eval(File.read('actionmailer.gemspec'))
-
-Gem::PackageTask.new(spec) do |p|
-  p.gem_spec = spec
 end

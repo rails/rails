@@ -1,3 +1,167 @@
+*   Added javascript to update the URL on mailer previews with the currently
+    selected email format. Reloading the page now keeps you on your selected
+    format rather than going back to the default html version.
+
+    *James Kerr*
+
+*   Add fail fast to `bin/rails test`
+
+    Adding `--fail-fast` or `-f` when running tests will interrupt the run on
+    the first failure:
+
+    ```
+    # Running:
+
+    ................................................S......E
+
+    ArgumentError: Wups! Bet you didn't expect this!
+        test/models/bunny_test.rb:19:in `block in <class:BunnyTest>'
+
+    bin/rails test test/models/bunny_test.rb:18
+
+    ....................................F
+
+    This failed
+
+    bin/rails test test/models/bunny_test.rb:14
+
+    Interrupted. Exiting...
+
+
+    Finished in 0.051427s, 1808.3872 runs/s, 1769.4972 assertions/s.
+
+    ```
+
+    Note that any unexpected errors don't abort the run.
+
+    *Kasper Timm Hansen*
+
+*   Add inline output to `bin/rails test`
+
+    Any failures or errors (and skips if running in verbose mode) are output
+    during a test run:
+
+    ```
+    # Running:
+
+    .....S..........................................F
+
+    This failed
+
+    bin/rails test test/models/bunny_test.rb:14
+
+    .................................E
+
+    ArgumentError: Wups! Bet you didn't expect this!
+        test/models/bunny_test.rb:19:in `block in <class:BunnyTest>'
+
+    bin/rails test test/models/bunny_test.rb:18
+
+    ....................
+
+    Finished in 0.069708s, 1477.6019 runs/s, 1448.9106 assertions/s.
+    ```
+
+    Output can be deferred to after a run with the `--defer-output` option.
+
+    *Kasper Timm Hansen*
+
+*   Fix displaying mailer previews on non local requests when config
+    `action_mailer.show_previews` is set
+
+    *Wojciech Wnętrzak*
+
+*   `rails server` will now honour the `PORT` environment variable
+
+    *David Cornu*
+
+*   Plugins generated using `rails plugin new` are now generated with the
+    version number set to 0.1.0.
+
+    *Daniel Morris*
+
+*   `I18n.load_path` is now reloaded under development so there's no need to
+    restart the server to make new locale files available. Also, I18n will no
+    longer raise for deleted locale files.
+
+    *Kir Shatrov*
+
+*   Add `bin/update` script to update development environment automatically.
+
+    *Mehmet Emin İNAÇ*
+
+*   Fix STATS_DIRECTORIES already defined warning when running rake from within
+    the top level directory of an engine that has a test app.
+
+    Fixes #20510
+
+    *Ersin Akinci*
+
+*   Make enabling or disabling caching in development mode possible with
+    rake dev:cache.
+
+    Running rake dev:cache will create or remove tmp/caching-dev.txt. When this
+    file exists config.action_controller.perform_caching will be set to true in
+    config/environments/development.rb.
+
+    Additionally, a server can be started with either --dev-caching or
+    --no-dev-caching included to toggle caching on startup.
+
+    *Jussi Mertanen*, *Chuck Callebs*
+
+*   Add a `--api` option in order to generate plugins that can be added
+    inside an API application.
+
+    *Robin Dupret*
+
+*   Fix `NoMethodError` when generating a scaffold inside a full engine.
+
+    *Yuji Yaginuma*
+
+*   Adding support for passing a block to the `add_source` action of a custom generator
+
+    *Mike Dalton*, *Hirofumi Wakasugi*
+
+*   `assert_file` understands paths with special characters
+    (eg. `v0.1.4~alpha+nightly`).
+
+    *Diego Carrion*
+
+*   Remove ContentLength middleware from the defaults.  If you want it, just
+    add it as a middleware in your config.
+
+    *Egg McMuffin*
+
+*   Make it possible to customize the executable inside rerun snippets.
+
+    *Yves Senn*
+
+*   Add support for API only apps.
+    Middleware stack was slimmed down and it has only the needed
+    middleware for API apps & generators generates the right files,
+    folders and configurations.
+
+    *Santiago Pastorino & Jorge Bejar*
+
+*   Make generated scaffold functional tests work inside engines.
+
+    *Yuji Yaginuma*
+
+*   Generator a `.keep` file in the `tmp` folder by default as many scripts
+    assume the existence of this folder and most would fail if it is absent.
+
+    See #20299.
+
+    *Yoong Kang Lim*, *Sunny Juneja*
+
+*   `config.static_index` configures directory `index.html` filename
+
+    Set `config.static_index` to serve a static directory index file not named
+    `index`. E.g. to serve `main.html` instead of `index.html` for directory
+    requests, set `config.static_index` to `"main"`.
+
+    *Eliot Sykes*
+
 *   `bin/setup` uses built-in rake tasks (`log:clear`, `tmp:clear`).
 
     *Mohnish Thallavajhula*
@@ -138,10 +302,11 @@
 
     Newly generated Rails apps have a new initializer called
     `callback_terminator.rb` which sets the value of the configuration option
-    `config.active_support.halt_callback_chains_on_return_false` to `false`.
+    `ActiveSupport.halt_callback_chains_on_return_false` to `false`.
 
-    As a result, new Rails apps do not halt callback chains when a callback
-    returns `false`; only when they are explicitly halted with `throw(:abort)`.
+    As a result, new Rails apps do not halt Active Record and Active Model
+    callback chains when a callback returns `false`; only when they are
+    explicitly halted with `throw(:abort)`.
 
     The terminator is *not* added when running `rake rails:update`, so returning
     `false` will still work on old apps ported to Rails 5, displaying a

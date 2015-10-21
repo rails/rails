@@ -1,5 +1,5 @@
 require 'action_view/renderer/partial_renderer/collection_caching'
-require 'thread_safe'
+require 'concurrent'
 
 module ActionView
   class PartialIteration
@@ -283,8 +283,8 @@ module ActionView
   class PartialRenderer < AbstractRenderer
     include CollectionCaching
 
-    PREFIXED_PARTIAL_NAMES = ThreadSafe::Cache.new do |h, k|
-      h[k] = ThreadSafe::Cache.new
+    PREFIXED_PARTIAL_NAMES = Concurrent::Map.new do |h, k|
+      h[k] = Concurrent::Map.new
     end
 
     def initialize(*)
@@ -347,8 +347,6 @@ module ActionView
       content = layout.render(view, locals){ content } if layout
       content
     end
-
-    private
 
     # Sets up instance variables needed for rendering a partial. This method
     # finds the options and details and extracts them. The method also contains
@@ -522,7 +520,7 @@ module ActionView
 
     def retrieve_variable(path, as)
       variable = as || begin
-        base = path[-1] == "/" ? "" : File.basename(path)
+        base = path[-1] == "/".freeze ? "".freeze : File.basename(path)
         raise_invalid_identifier(path) unless base =~ /\A_?(.*)(?:\.\w+)*\z/
         $1.to_sym
       end

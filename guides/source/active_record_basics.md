@@ -142,7 +142,7 @@ end
 This will create a `Product` model, mapped to a `products` table at the
 database. By doing this you'll also have the ability to map the columns of each
 row in that table with the attributes of the instances of your model. Suppose
-that the `products` table was created using an SQL sentence like:
+that the `products` table was created using an SQL statement like:
 
 ```sql
 CREATE TABLE products (
@@ -260,7 +260,7 @@ david = User.find_by(name: 'David')
 
 ```ruby
 # find all users named David who are Code Artists and sort by created_at in reverse chronological order
-users = User.where(name: 'David', occupation: 'Code Artist').order('created_at DESC')
+users = User.where(name: 'David', occupation: 'Code Artist').order(created_at: :desc)
 ```
 
 You can learn more about querying an Active Record model in the [Active Record

@@ -89,7 +89,7 @@ class DirtyTest < ActiveRecord::TestCase
       target = Class.new(ActiveRecord::Base)
       target.table_name = 'pirates'
 
-      pirate = target.create
+      pirate = target.create!
       pirate.created_on = pirate.created_on
       assert !pirate.created_on_changed?
     end
@@ -467,8 +467,10 @@ class DirtyTest < ActiveRecord::TestCase
       topic.save!
 
       updated_at = topic.updated_at
-      topic.content[:hello] = 'world'
-      topic.save!
+      travel(1.second) do
+        topic.content[:hello] = 'world'
+        topic.save!
+      end
 
       assert_not_equal updated_at, topic.updated_at
       assert_equal 'world', topic.content[:hello]
@@ -521,6 +523,9 @@ class DirtyTest < ActiveRecord::TestCase
     assert_equal Hash.new, pirate.previous_changes
 
     pirate = Pirate.find_by_catchphrase("arrr")
+
+    travel(1.second)
+
     pirate.catchphrase = "Me Maties!"
     pirate.save!
 
@@ -532,6 +537,9 @@ class DirtyTest < ActiveRecord::TestCase
     assert !pirate.previous_changes.key?('created_on')
 
     pirate = Pirate.find_by_catchphrase("Me Maties!")
+
+    travel(1.second)
+
     pirate.catchphrase = "Thar She Blows!"
     pirate.save
 
@@ -541,6 +549,8 @@ class DirtyTest < ActiveRecord::TestCase
     assert_not_nil pirate.previous_changes['updated_on'][1]
     assert !pirate.previous_changes.key?('parrot_id')
     assert !pirate.previous_changes.key?('created_on')
+
+    travel(1.second)
 
     pirate = Pirate.find_by_catchphrase("Thar She Blows!")
     pirate.update(catchphrase: "Ahoy!")
@@ -552,6 +562,8 @@ class DirtyTest < ActiveRecord::TestCase
     assert !pirate.previous_changes.key?('parrot_id')
     assert !pirate.previous_changes.key?('created_on')
 
+    travel(1.second)
+
     pirate = Pirate.find_by_catchphrase("Ahoy!")
     pirate.update_attribute(:catchphrase, "Ninjas suck!")
 
@@ -561,6 +573,8 @@ class DirtyTest < ActiveRecord::TestCase
     assert_not_nil pirate.previous_changes['updated_on'][1]
     assert !pirate.previous_changes.key?('parrot_id')
     assert !pirate.previous_changes.key?('created_on')
+  ensure
+    travel_back
   end
 
   if ActiveRecord::Base.connection.supports_migrations?
@@ -578,6 +592,7 @@ class DirtyTest < ActiveRecord::TestCase
   end
 
   def test_datetime_attribute_can_be_updated_with_fractional_seconds
+    skip "Fractional seconds are not supported" unless subsecond_precision_supported?
     in_time_zone 'Paris' do
       target = Class.new(ActiveRecord::Base)
       target.table_name = 'topics'
@@ -621,32 +636,6 @@ class DirtyTest < ActiveRecord::TestCase
       a.reload
       assert_not_nil a.id
     end
-  end
-
-  test "defaults with type that implements `serialize`" do
-    type = Class.new(ActiveRecord::Type::Value) do
-      def cast(value)
-        value.to_i
-      end
-
-      def serialize(value)
-        value.to_s
-      end
-    end
-
-    model_class = Class.new(ActiveRecord::Base) do
-      self.table_name = 'numeric_data'
-      attribute :foo, type.new, default: 1
-    end
-
-    model = model_class.new
-    assert_not model.foo_changed?
-
-    model = model_class.new(foo: 1)
-    assert_not model.foo_changed?
-
-    model = model_class.new(foo: '1')
-    assert_not model.foo_changed?
   end
 
   test "in place mutation detection" do
@@ -727,6 +716,22 @@ class DirtyTest < ActiveRecord::TestCase
     pirate.catchphrase = "arrrr matey!"
 
     assert pirate.catchphrase_changed?(from: "arrrr", to: "arrrr matey!")
+  end
+
+  test "getters with side effects are allowed" do
+    klass = Class.new(Pirate) do
+      def catchphrase
+        if super.blank?
+          update_attribute(:catchphrase, "arr") # what could possibly go wrong?
+        end
+        super
+      end
+    end
+
+    pirate = klass.create!(catchphrase: "lol")
+    pirate.update_attribute(:catchphrase, nil)
+
+    assert_equal "arr", pirate.catchphrase
   end
 
   private

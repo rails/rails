@@ -8,7 +8,7 @@ module ActiveSupport
 
     def try!(*a, &b)
       if a.empty? && block_given?
-        if b.arity.zero?
+        if b.arity == 0
           instance_eval(&b)
         else
           yield self
@@ -94,7 +94,7 @@ class Object
   # :call-seq:
   #   try!(*a, &b)
   #
-  # Same as #try, but raises a NoMethodError exception if the receiver is
+  # Same as #try, but raises a +NoMethodError+ exception if the receiver is
   # not +nil+ and does not implement the tried method.
   #
   #   "a".try!(:upcase) # => "A"

@@ -26,7 +26,7 @@ module ActiveSupport
     end
 
     class << self
-      # Creates a new CacheStore object according to the given options.
+      # Creates a new Store object according to the given options.
       #
       # If no arguments are passed to this method, then a new
       # ActiveSupport::Cache::MemoryStore object will be returned.
@@ -277,13 +277,18 @@ module ActiveSupport
           options = merged_options(options)
           key = namespaced_key(name, options)
 
-          cached_entry = find_cached_entry(key, name, options) unless options[:force]
-          entry = handle_expired_entry(cached_entry, key, options)
+          instrument(:read, name, options) do |payload|
+            cached_entry = read_entry(key, options) unless options[:force]
+            payload[:super_operation] = :fetch if payload
+            entry = handle_expired_entry(cached_entry, key, options)
 
-          if entry
-            get_entry_value(entry, name, options)
-          else
-            save_block_result_to_cache(name, options) { |_name| yield _name }
+            if entry
+              payload[:hit] = true if payload
+              get_entry_value(entry, name, options)
+            else
+              payload[:hit] = false if payload
+              save_block_result_to_cache(name, options) { |_name| yield _name }
+            end
           end
         else
           read(name, options)
@@ -554,13 +559,6 @@ module ActiveSupport
         def log
           return unless logger && logger.debug? && !silence?
           logger.debug(yield)
-        end
-
-        def find_cached_entry(key, name, options)
-          instrument(:read, name, options) do |payload|
-            payload[:super_operation] = :fetch if payload
-            read_entry(key, options)
-          end
         end
 
         def handle_expired_entry(entry, key, options)

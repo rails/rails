@@ -1,5 +1,8 @@
 require "cases/helper"
 
+class Horse < ActiveRecord::Base
+end
+
 module ActiveRecord
   class InvertibleMigrationTest < ActiveRecord::TestCase
     class SilentMigration < ActiveRecord::Migration
@@ -76,6 +79,32 @@ module ActiveRecord
       end
     end
 
+    class ChangeColumnDefault1 < SilentMigration
+      def change
+        create_table("horses") do |t|
+          t.column :name, :string, default: "Sekitoba"
+        end
+      end
+    end
+
+    class ChangeColumnDefault2 < SilentMigration
+      def change
+        change_column_default :horses, :name, from: "Sekitoba", to: "Diomed"
+      end
+    end
+
+    class DisableExtension1 < SilentMigration
+      def change
+        enable_extension "hstore"
+      end
+    end
+
+    class DisableExtension2 < SilentMigration
+      def change
+        disable_extension "hstore"
+      end
+    end
+
     class LegacyMigration < ActiveRecord::Migration
       def self.up
         create_table("horses") do |t|
@@ -144,13 +173,17 @@ module ActiveRecord
     end
 
     def test_exception_on_removing_index_without_column_option
-      RemoveIndexMigration1.new.migrate(:up)
-      migration = RemoveIndexMigration2.new
-      migration.migrate(:up)
+      index_definition = ["horses", [:name, :color]]
+      migration1 = RemoveIndexMigration1.new
+      migration1.migrate(:up)
+      assert migration1.connection.index_exists?(*index_definition)
 
-      assert_raises(IrreversibleMigration) do
-        migration.migrate(:down)
-      end
+      migration2 = RemoveIndexMigration2.new
+      migration2.migrate(:up)
+      assert_not migration2.connection.index_exists?(*index_definition)
+
+      migration2.migrate(:down)
+      assert migration2.connection.index_exists?(*index_definition)
     end
 
     def test_migrate_up
@@ -217,6 +250,42 @@ module ActiveRecord
       assert revert.connection.table_exists?("horses")
       revert.migrate :up
       assert !revert.connection.table_exists?("horses")
+    end
+
+    def test_migrate_revert_change_column_default
+      migration1 = ChangeColumnDefault1.new
+      migration1.migrate(:up)
+      assert_equal "Sekitoba", Horse.new.name
+
+      migration2 = ChangeColumnDefault2.new
+      migration2.migrate(:up)
+      Horse.reset_column_information
+      assert_equal "Diomed", Horse.new.name
+
+      migration2.migrate(:down)
+      Horse.reset_column_information
+      assert_equal "Sekitoba", Horse.new.name
+    end
+
+    if current_adapter?(:PostgreSQLAdapter)
+      def test_migrate_enable_and_disable_extension
+        migration1 = InvertibleMigration.new
+        migration2 = DisableExtension1.new
+        migration3 = DisableExtension2.new
+
+        migration1.migrate(:up)
+        migration2.migrate(:up)
+        assert_equal true, Horse.connection.extension_enabled?('hstore')
+
+        migration3.migrate(:up)
+        assert_equal false, Horse.connection.extension_enabled?('hstore')
+
+        migration3.migrate(:down)
+        assert_equal true, Horse.connection.extension_enabled?('hstore')
+
+        migration2.migrate(:down)
+        assert_equal false, Horse.connection.extension_enabled?('hstore')
+      end
     end
 
     def test_revert_order

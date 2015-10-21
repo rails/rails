@@ -1,5 +1,4 @@
 require 'rake/testtask'
-require 'rubygems/package_task'
 
 require File.expand_path(File.dirname(__FILE__)) + "/test/config"
 require File.expand_path(File.dirname(__FILE__)) + "/test/support/config"
@@ -84,29 +83,20 @@ end
   task "isolated_test_#{adapter}" => ["#{adapter}:env", "test:isolated:#{adapter}"]
 end
 
-rule '.sqlite3' do |t|
-  sh %Q{sqlite3 "#{t.name}" "create table a (a integer); drop table a;"}
-end
-
-task :test_sqlite3 => [
-  'test/fixtures/fixture_database.sqlite3',
-  'test/fixtures/fixture_database_2.sqlite3'
-]
-
 namespace :db do
   namespace :mysql do
     desc 'Build the MySQL test databases'
     task :build do
       config = ARTest.config['connections']['mysql']
-      %x( mysql --user=#{config['arunit']['username']} -e "create DATABASE #{config['arunit']['database']} DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_unicode_ci ")
-      %x( mysql --user=#{config['arunit2']['username']} -e "create DATABASE #{config['arunit2']['database']} DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_unicode_ci ")
+      %x( mysql --user=#{config['arunit']['username']} --password=#{config['arunit']['password']} -e "create DATABASE #{config['arunit']['database']} DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_unicode_ci ")
+      %x( mysql --user=#{config['arunit2']['username']} --password=#{config['arunit2']['password']} -e "create DATABASE #{config['arunit2']['database']} DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_unicode_ci ")
     end
 
     desc 'Drop the MySQL test databases'
     task :drop do
       config = ARTest.config['connections']['mysql']
-      %x( mysqladmin --user=#{config['arunit']['username']} -f drop #{config['arunit']['database']} )
-      %x( mysqladmin --user=#{config['arunit2']['username']} -f drop #{config['arunit2']['database']} )
+      %x( mysqladmin --user=#{config['arunit']['username']} --password=#{config['arunit']['password']} -f drop #{config['arunit']['database']} )
+      %x( mysqladmin --user=#{config['arunit2']['username']} --password=#{config['arunit2']['password']} -f drop #{config['arunit2']['database']} )
     end
 
     desc 'Rebuild the MySQL test databases'
@@ -150,10 +140,4 @@ task :lines do
   load File.expand_path('..', File.dirname(__FILE__)) + '/tools/line_statistics'
   files = FileList["lib/active_record/**/*.rb"]
   CodeTools::LineStatistics.new(files).print_loc
-end
-
-spec = eval(File.read('activerecord.gemspec'))
-
-Gem::PackageTask.new(spec) do |p|
-  p.gem_spec = spec
 end

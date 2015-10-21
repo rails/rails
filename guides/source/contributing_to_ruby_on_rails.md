@@ -15,6 +15,9 @@ After reading this guide, you will know:
 
 Ruby on Rails is not "someone else's framework." Over the years, hundreds of people have contributed to Ruby on Rails ranging from a single character to massive architectural changes or significant documentation - all with the goal of making Ruby on Rails better for everyone. Even if you don't feel up to writing code or documentation yet, there are a variety of other ways that you can contribute, from reporting issues to testing patches.
 
+As mentioned in [Rails
+README](https://github.com/rails/rails/blob/master/README.md), everyone interacting in Rails and its sub-projects' codebases, issue trackers, chat rooms, and mailing lists is expected to follow the Rails [code of conduct](https://github.com/rails/rails/blob/master/CODE_OF_CONDUCT.md).
+
 --------------------------------------------------------------------------------
 
 Reporting an Issue
@@ -28,7 +31,7 @@ NOTE: Bugs in the most recent released version of Ruby on Rails are likely to ge
 
 If you've found a problem in Ruby on Rails which is not a security risk, do a search on GitHub under [Issues](https://github.com/rails/rails/issues) in case it has already been reported. If you are unable to find any open GitHub issues addressing the problem you found, your next step will be to [open a new one](https://github.com/rails/rails/issues/new). (See the next section for reporting security issues.)
 
-Your issue report should contain a title and a clear description of the issue at the bare minimum. You should include as much relevant information as possible and should at least post a code sample that demonstrates the issue. It would be even better if you could include a unit test that shows how the expected behavior is not occurring. Your goal should be to make it easy for yourself - and others - to replicate the bug and figure out a fix.
+Your issue report should contain a title and a clear description of the issue at the bare minimum. You should include as much relevant information as possible and should at least post a code sample that demonstrates the issue. It would be even better if you could include a unit test that shows how the expected behavior is not occurring. Your goal should be to make it easy for yourself - and others - to reproduce the bug and figure out a fix.
 
 Then, don't get your hopes up! Unless you have a "Code Red, Mission Critical, the World is Coming to an End" kind of bug, you're creating this issue report in the hope that others with the same problem will be able to collaborate with you on solving it. Do not expect that the issue report will automatically see any activity or that others will jump to fix it. Creating an issue like this is mostly to help yourself start on the path of fixing the problem and for others to confirm it with an "I'm having this problem too" comment.
 
@@ -61,7 +64,7 @@ can expect it to be marked "invalid" as soon as it's reviewed.
 
 Sometimes, the line between 'bug' and 'feature' is a hard one to draw.
 Generally, a feature is anything that adds new behavior, while a bug is
-anything that fixes already existing behavior that is misbehaving. Sometimes,
+anything that causes incorrect behavior. Sometimes,
 the core team will have to make a judgement call. That said, the distinction
 generally just affects which release your patch will get in to; we love feature
 submissions! They just won't get backported to maintenance branches.
@@ -125,7 +128,7 @@ Contributing to the Rails Documentation
 Ruby on Rails has two main sets of documentation: the guides, which help you
 learn about Ruby on Rails, and the API, which serves as a reference.
 
-You can help improve the Rails guides by making them more coherent, consistent or readable, adding missing information, correcting factual errors, fixing typos, or bringing it up to date with the latest edge Rails. To get involved in the translation of Rails guides, please see [Translating Rails Guides](https://wiki.github.com/rails/docrails/translating-rails-guides).
+You can help improve the Rails guides by making them more coherent, consistent or readable, adding missing information, correcting factual errors, fixing typos, or bringing them up to date with the latest edge Rails. To get involved in the translation of Rails guides, please see [Translating Rails Guides](https://wiki.github.com/rails/docrails/translating-rails-guides).
 
 You can either open a pull request to [Rails](http://github.com/rails/rails) or
 ask the [Rails core team](http://rubyonrails.org/core) for commit access on
@@ -295,7 +298,7 @@ You can run a single test through ruby. For instance:
 
 ```bash
 $ cd actionmailer
-$ ruby -w -Itest test/mail_layout_test.rb -n test_explicit_class_layout
+$ bundle exec ruby -w -Itest test/mail_layout_test.rb -n test_explicit_class_layout
 ```
 
 The `-n` option allows you to run a single method instead of the whole
@@ -315,7 +318,7 @@ $ cd activerecord
 $ bundle exec rake test:sqlite3
 ```
 
-You can now run the tests as you did for `sqlite3`. The tasks are respectively
+You can now run the tests as you did for `sqlite3`. The tasks are respectively:
 
 ```bash
 test:mysql
@@ -334,7 +337,7 @@ will now run the four of them in turn.
 You can also run any single test separately:
 
 ```bash
-$ ARCONN=sqlite3 ruby -Itest test/cases/associations/has_many_associations_test.rb
+$ ARCONN=sqlite3 bundle exec ruby -Itest test/cases/associations/has_many_associations_test.rb
 ```
 
 To run a single test against all adapters, use:

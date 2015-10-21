@@ -44,6 +44,7 @@ module ActionDispatch
     end
 
     def call(env)
+      request = ActionDispatch::Request.new env
       _, headers, body = response = @app.call(env)
 
       if headers['X-Cascade'] == 'pass'
@@ -53,18 +54,18 @@ module ActionDispatch
 
       response
     rescue Exception => exception
-      raise exception if env['action_dispatch.show_exceptions'] == false
-      render_exception(env, exception)
+      raise exception unless request.show_exceptions?
+      render_exception(request, exception)
     end
 
     private
 
-    def render_exception(env, exception)
-      wrapper = ExceptionWrapper.new(env, exception)
-      log_error(env, wrapper)
+    def render_exception(request, exception)
+      backtrace_cleaner = request.get_header('action_dispatch.backtrace_cleaner')
+      wrapper = ExceptionWrapper.new(backtrace_cleaner, exception)
+      log_error(request, wrapper)
 
-      if env['action_dispatch.show_detailed_exceptions']
-        request = Request.new(env)
+      if request.get_header('action_dispatch.show_detailed_exceptions')
         traces = wrapper.traces
 
         trace_to_show = 'Application Trace'
@@ -106,8 +107,8 @@ module ActionDispatch
       [status, {'Content-Type' => "#{format}; charset=#{Response.default_charset}", 'Content-Length' => body.bytesize.to_s}, [body]]
     end
 
-    def log_error(env, wrapper)
-      logger = logger(env)
+    def log_error(request, wrapper)
+      logger = logger(request)
       return unless logger
 
       exception = wrapper.exception
@@ -123,8 +124,8 @@ module ActionDispatch
       end
     end
 
-    def logger(env)
-      env['action_dispatch.logger'] || stderr_logger
+    def logger(request)
+      request.logger || stderr_logger
     end
 
     def stderr_logger

@@ -1,5 +1,4 @@
 require 'rake/testtask'
-require 'rubygems/package_task'
 
 task :default => :test
 
@@ -27,15 +26,7 @@ end
 Rake::TestTask.new('test:regular') do |t|
   t.libs << 'test' << "#{File.dirname(__FILE__)}/../activesupport/lib"
   t.pattern = 'test/**/*_test.rb'
-  t.warning = true
+  t.warning = false
   t.verbose = true
   t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
-end
-
-# Generate GEM ----------------------------------------------------------------------------
-
-spec = eval(File.read('railties.gemspec'))
-
-Gem::PackageTask.new(spec) do |pkg|
-  pkg.gem_spec = spec
 end

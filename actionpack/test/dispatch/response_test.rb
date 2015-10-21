@@ -4,7 +4,7 @@ require 'rack/content_length'
 
 class ResponseTest < ActiveSupport::TestCase
   def setup
-    @response = ActionDispatch::Response.new
+    @response = ActionDispatch::Response.create
   end
 
   def test_can_wait_until_commit
@@ -42,6 +42,18 @@ class ResponseTest < ActiveSupport::TestCase
     assert_equal Encoding::UTF_8, response.body.encoding
   end
 
+  def test_response_charset_writer
+    @response.charset = 'utf-16'
+    assert_equal 'utf-16', @response.charset
+    @response.charset = nil
+    assert_equal 'utf-8', @response.charset
+  end
+
+  def test_setting_content_type_header_impacts_content_type_method
+    @response.headers['Content-Type'] = "application/aaron"
+    assert_equal 'application/aaron', @response.content_type
+  end
+
   test "simple output" do
     @response.body = "Hello, World!"
 
@@ -60,6 +72,13 @@ class ResponseTest < ActiveSupport::TestCase
     assert_equal 200, ActionDispatch::Response.new('200 OK').status
   end
 
+  def test_only_set_charset_still_defaults_to_text_html
+    response = ActionDispatch::Response.new
+    response.charset = "utf-16"
+    _,headers,_ = response.to_a
+    assert_equal "text/html; charset=utf-16", headers['Content-Type']
+  end
+
   test "utf8 output" do
     @response.body = [1090, 1077, 1089, 1090].pack("U*")
 
@@ -72,12 +91,14 @@ class ResponseTest < ActiveSupport::TestCase
 
   test "content type" do
     [204, 304].each do |c|
+      @response = ActionDispatch::Response.new
       @response.status = c.to_s
       _, headers, _ = @response.to_a
       assert !headers.has_key?("Content-Type"), "#{c} should not have Content-Type header"
     end
 
     [200, 302, 404, 500].each do |c|
+      @response = ActionDispatch::Response.new
       @response.status = c.to_s
       _, headers, _ = @response.to_a
       assert headers.has_key?("Content-Type"), "#{c} did not have Content-Type header"
@@ -125,17 +146,23 @@ class ResponseTest < ActiveSupport::TestCase
 
   test "cookies" do
     @response.set_cookie("user_name", :value => "david", :path => "/")
-    status, headers, body = @response.to_a
+    _status, headers, _body = @response.to_a
     assert_equal "user_name=david; path=/", headers["Set-Cookie"]
     assert_equal({"user_name" => "david"}, @response.cookies)
+  end
 
+  test "multiple cookies" do
+    @response.set_cookie("user_name", :value => "david", :path => "/")
     @response.set_cookie("login", :value => "foo&bar", :path => "/", :expires => Time.utc(2005, 10, 10,5))
-    status, headers, body = @response.to_a
+    _status, headers, _body = @response.to_a
     assert_equal "user_name=david; path=/\nlogin=foo%26bar; path=/; expires=Mon, 10 Oct 2005 05:00:00 -0000", headers["Set-Cookie"]
     assert_equal({"login" => "foo&bar", "user_name" => "david"}, @response.cookies)
+  end
 
+  test "delete cookies" do
+    @response.set_cookie("user_name", :value => "david", :path => "/")
+    @response.set_cookie("login", :value => "foo&bar", :path => "/", :expires => Time.utc(2005, 10, 10,5))
     @response.delete_cookie("login")
-    status, headers, body = @response.to_a
     assert_equal({"user_name" => "david", "login" => nil}, @response.cookies)
   end
 
@@ -157,18 +184,30 @@ class ResponseTest < ActiveSupport::TestCase
   test "read charset and content type" do
     resp = ActionDispatch::Response.new.tap { |response|
       response.charset = 'utf-16'
-      response.content_type = Mime::XML
+      response.content_type = Mime[:xml]
       response.body = 'Hello'
     }
     resp.to_a
 
     assert_equal('utf-16', resp.charset)
-    assert_equal(Mime::XML, resp.content_type)
+    assert_equal(Mime[:xml], resp.content_type)
 
     assert_equal('application/xml; charset=utf-16', resp.headers['Content-Type'])
   end
 
-  test "read content type without charset" do
+  test "read content type with default charset utf-8" do
+    original = ActionDispatch::Response.default_charset
+    begin
+      resp = ActionDispatch::Response.new(200, { "Content-Type" => "text/xml" })
+      assert_equal('utf-8', resp.charset)
+    ensure
+      ActionDispatch::Response.default_charset = original
+    end
+  end
+
+  test "read content type with charset utf-16" do
+    jruby_skip "https://github.com/jruby/jruby/issues/3138"
+
     original = ActionDispatch::Response.default_charset
     begin
       ActionDispatch::Response.default_charset = 'utf-16'
@@ -187,7 +226,7 @@ class ResponseTest < ActiveSupport::TestCase
         'X-Content-Type-Options' => 'nosniff',
         'X-XSS-Protection' => '1;'
       }
-      resp = ActionDispatch::Response.new.tap { |response|
+      resp = ActionDispatch::Response.create.tap { |response|
         response.body = 'Hello'
       }
       resp.to_a
@@ -206,7 +245,7 @@ class ResponseTest < ActiveSupport::TestCase
       ActionDispatch::Response.default_headers = {
         'X-XX-XXXX' => 'Here is my phone number'
       }
-      resp = ActionDispatch::Response.new.tap { |response|
+      resp = ActionDispatch::Response.create.tap { |response|
         response.body = 'Hello'
       }
       resp.to_a
@@ -253,6 +292,65 @@ class ResponseTest < ActiveSupport::TestCase
   end
 end
 
+class ResponseHeadersTest < ActiveSupport::TestCase
+  def setup
+    @response = ActionDispatch::Response.create
+    @response.set_header 'Foo', '1'
+  end
+
+  test 'has_header?' do
+    assert @response.has_header? 'Foo'
+    assert_not @response.has_header? 'foo'
+    assert_not @response.has_header? nil
+  end
+
+  test 'get_header' do
+    assert_equal '1', @response.get_header('Foo')
+    assert_nil @response.get_header('foo')
+    assert_nil @response.get_header(nil)
+  end
+
+  test 'set_header' do
+    assert_equal '2', @response.set_header('Foo', '2')
+    assert @response.has_header?('Foo')
+    assert_equal '2', @response.get_header('Foo')
+
+    assert_nil @response.set_header('Foo', nil)
+    assert @response.has_header?('Foo')
+    assert_nil @response.get_header('Foo')
+  end
+
+  test 'delete_header' do
+    assert_nil @response.delete_header(nil)
+
+    assert_nil @response.delete_header('foo')
+    assert @response.has_header?('Foo')
+
+    assert_equal '1', @response.delete_header('Foo')
+    assert_not @response.has_header?('Foo')
+  end
+
+  test 'add_header' do
+    # Add a value to an existing header
+    assert_equal '1,2', @response.add_header('Foo', '2')
+    assert_equal '1,2', @response.get_header('Foo')
+
+    # Add nil to an existing header
+    assert_equal '1,2', @response.add_header('Foo', nil)
+    assert_equal '1,2', @response.get_header('Foo')
+
+    # Add nil to a nonexistent header
+    assert_nil @response.add_header('Bar', nil)
+    assert_not @response.has_header?('Bar')
+    assert_nil @response.get_header('Bar')
+
+    # Add a value to a nonexistent header
+    assert_equal '1', @response.add_header('Bar', '1')
+    assert @response.has_header?('Bar')
+    assert_equal '1', @response.get_header('Bar')
+  end
+end
+
 class ResponseIntegrationTest < ActionDispatch::IntegrationTest
   test "response cache control from railsish app" do
     @app = lambda { |env|
@@ -294,7 +392,7 @@ class ResponseIntegrationTest < ActionDispatch::IntegrationTest
     @app = lambda { |env|
       ActionDispatch::Response.new.tap { |resp|
         resp.charset = 'utf-16'
-        resp.content_type = Mime::XML
+        resp.content_type = Mime[:xml]
         resp.body = 'Hello'
       }.to_a
     }
@@ -303,7 +401,7 @@ class ResponseIntegrationTest < ActionDispatch::IntegrationTest
     assert_response :success
 
     assert_equal('utf-16', @response.charset)
-    assert_equal(Mime::XML, @response.content_type)
+    assert_equal(Mime[:xml], @response.content_type)
 
     assert_equal('application/xml; charset=utf-16', @response.headers['Content-Type'])
   end
@@ -319,7 +417,7 @@ class ResponseIntegrationTest < ActionDispatch::IntegrationTest
     assert_response :success
 
     assert_equal('utf-16', @response.charset)
-    assert_equal(Mime::XML, @response.content_type)
+    assert_equal(Mime[:xml], @response.content_type)
 
     assert_equal('application/xml; charset=utf-16', @response.headers['Content-Type'])
   end

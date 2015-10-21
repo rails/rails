@@ -86,6 +86,9 @@ class Firm < Company
 
   has_many :association_with_references, -> { references(:foo) }, :class_name => 'Client'
 
+  has_one :lead_developer, class_name: "Developer"
+  has_many :projects
+
   def log
     @log ||= []
   end

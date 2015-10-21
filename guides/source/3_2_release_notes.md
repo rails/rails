@@ -81,7 +81,7 @@ $ cd myapp
 
 Rails now uses a `Gemfile` in the application root to determine the gems you require for your application to start. This `Gemfile` is processed by the [Bundler](https://github.com/carlhuda/bundler) gem, which then installs all your dependencies. It can even install all the dependencies locally to your application so that it doesn't depend on the system gems.
 
-More information: [Bundler homepage](http://gembundler.com)
+More information: [Bundler homepage](http://bundler.io/)
 
 ### Living on the Edge
 
@@ -327,7 +327,7 @@ Active Record
 
 * Implemented `ActiveRecord::Relation#explain`.
 
-* Implements `AR::Base.silence_auto_explain` which allows the user to selectively disable automatic EXPLAINs within a block.
+* Implements `ActiveRecord::Base.silence_auto_explain` which allows the user to selectively disable automatic EXPLAINs within a block.
 
 * Implements automatic EXPLAIN logging for slow queries. A new configuration parameter `config.active_record.auto_explain_threshold_in_seconds` determines what's to be considered a slow query. Setting that to nil disables this feature. Defaults are 0.5 in development mode, and nil in test and production modes. Rails 3.2 supports this feature in SQLite, MySQL (mysql2 adapter), and PostgreSQL.
 

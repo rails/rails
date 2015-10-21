@@ -156,16 +156,16 @@ module ActionController #:nodoc:
     # It works for both inline:
     #
     #   respond_to do |format|
-    #     format.html.any   { render text: "any"   }
-    #     format.html.phone { render text: "phone" }
+    #     format.html.any   { render html: "any"   }
+    #     format.html.phone { render html: "phone" }
     #   end
     #
     # and block syntax:
     #
     #   respond_to do |format|
     #     format.html do |variant|
-    #       variant.any(:tablet, :phablet){ render text: "any" }
-    #       variant.phone { render text: "phone" }
+    #       variant.any(:tablet, :phablet){ render html: "any" }
+    #       variant.phone { render html: "phone" }
     #     end
     #   end
     #
@@ -191,6 +191,7 @@ module ActionController #:nodoc:
 
       if format = collector.negotiate_format(request)
         _process_format(format)
+        _set_rendered_content_type format
         response = collector.response
         response ? response.call : render({})
       else
@@ -228,7 +229,7 @@ module ActionController #:nodoc:
         @responses = {}
         @variant = variant
 
-        mimes.each { |mime| @responses["Mime::#{mime.upcase}".constantize] = nil }
+        mimes.each { |mime| @responses[Mime[mime]] = nil }
       end
 
       def any(*args, &block)

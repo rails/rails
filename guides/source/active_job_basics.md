@@ -4,7 +4,7 @@ Active Job Basics
 =================
 
 This guide provides you with all you need to get started in creating,
-enqueueing and executing background jobs.
+enqueuing and executing background jobs.
 
 After reading this guide, you will know:
 
@@ -20,7 +20,7 @@ Introduction
 ------------
 
 Active Job is a framework for declaring jobs and making them run on a variety
-of queueing backends. These jobs can be everything from regularly scheduled
+of queuing backends. These jobs can be everything from regularly scheduled
 clean-ups, to billing charges, to mailings. Anything that can be chopped up
 into small units of work and run in parallel, really.
 
@@ -28,11 +28,14 @@ into small units of work and run in parallel, really.
 The Purpose of Active Job
 -----------------------------
 The main point is to ensure that all Rails apps will have a job infrastructure
-in place, even if it's in the form of an "immediate runner". We can then have
-framework features and other gems build on top of that, without having to
-worry about API differences between various job runners such as Delayed Job
-and Resque. Picking your queuing backend becomes more of an operational concern,
-then. And you'll be able to switch between them without having to rewrite your jobs.
+in place. We can then have framework features and other gems build on top of that,
+without having to worry about API differences between various job runners such as
+Delayed Job and Resque. Picking your queuing backend becomes more of an operational
+concern, then. And you'll be able to switch between them without having to rewrite
+your jobs.
+
+NOTE: Rails by default comes with an "immediate runner" queuing implementation.
+That means that each job that has been enqueued will run immediately.
 
 
 Creating a Job
@@ -67,49 +70,59 @@ Here's what a job looks like:
 class GuestsCleanupJob < ActiveJob::Base
   queue_as :default
 
-  def perform(*args)
+  def perform(*guests)
     # Do something later
   end
 end
 ```
+
+Note that you can define `perform` with as many arguments as you want.
 
 ### Enqueue the Job
 
 Enqueue a job like so:
 
 ```ruby
-# Enqueue a job to be performed as soon the queueing system is
+# Enqueue a job to be performed as soon the queuing system is
 # free.
-MyJob.perform_later record
+GuestsCleanupJob.perform_later guest
 ```
 
 ```ruby
 # Enqueue a job to be performed tomorrow at noon.
-MyJob.set(wait_until: Date.tomorrow.noon).perform_later(record)
+GuestsCleanupJob.set(wait_until: Date.tomorrow.noon).perform_later(guest)
 ```
 
 ```ruby
 # Enqueue a job to be performed 1 week from now.
-MyJob.set(wait: 1.week).perform_later(record)
+GuestsCleanupJob.set(wait: 1.week).perform_later(guest)
+```
+
+```ruby
+# `perform_now` and `perform_later` will call `perform` under the hood so
+# you can pass as many arguments as defined in the latter.
+GuestsCleanupJob.perform_later(guest1, guest2, filter: 'some_filter')
 ```
 
 That's it!
 
-
 Job Execution
 -------------
 
-If no adapter is set, the job is immediately executed.
+For enqueuing and executing jobs you need to set up a queuing backend, that is to
+say you need to decide for a 3rd-party queuing library that Rails should use.
+Rails itself does not provide a sophisticated queuing system and just executes the
+job immediately if no adapter is set.
 
 ### Backends
 
-Active Job has built-in adapters for multiple queueing backends (Sidekiq,
+Active Job has built-in adapters for multiple queuing backends (Sidekiq,
 Resque, Delayed Job and others). To get an up-to-date list of the adapters
 see the API Documentation for [ActiveJob::QueueAdapters](http://api.rubyonrails.org/classes/ActiveJob/QueueAdapters.html).
 
 ### Setting the Backend
 
-You can easily set your queueing backend:
+You can easily set your queuing backend:
 
 ```ruby
 # config/application.rb
@@ -123,6 +136,19 @@ module YourApp
 end
 ```
 
+### Starting the Backend
+
+Since jobs run in parallel to your Rails application, most queuing libraries
+require that you start a library-specific queuing service (in addition to
+starting your Rails app) for the job processing to work. Refer to library
+documentation for instructions on starting your queue backend.
+
+Here is a noncomprehensive list of documentation:
+
+- [Sidekiq](https://github.com/mperham/sidekiq/wiki/Active-Job)
+- [Resque](https://github.com/resque/resque/wiki/ActiveJob)
+- [Sucker Punch](https://github.com/brandonhilkert/sucker_punch#active-job)
+- [Queue Classic](https://github.com/QueueClassic/queue_classic#active-job)
 
 Queues
 ------
@@ -212,7 +238,7 @@ end
 ProcessVideoJob.perform_later(Video.last)
 ```
 
-NOTE: Make sure your queueing backend "listens" on your queue name. For some
+NOTE: Make sure your queuing backend "listens" on your queue name. For some
 backends you need to specify the queues to listen to.
 
 
@@ -270,6 +296,19 @@ UserMailer.welcome(@user).deliver_later
 ```
 
 
+Internationalization
+--------------------
+
+Each job uses the `I18n.locale` set when the job was created. Useful if you send
+emails asynchronously:
+
+```ruby
+I18n.locale = :eo
+
+UserMailer.welcome(@user).deliver_later # Email will be localized to Esperanto.
+```
+
+
 GlobalID
 --------
 
@@ -320,6 +359,13 @@ class GuestsCleanupJob < ActiveJob::Base
 end
 ```
 
+### Deserialization
+
+GlobalID allows serializing full Active Record objects passed to `#perform`.
+
+If a passed record is deleted after the job is enqueued but before the `#perform`
+method is called Active Job will raise an `ActiveJob::DeserializationError`
+exception.
 
 Job Testing
 --------------

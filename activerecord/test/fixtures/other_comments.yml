@@ -1,0 +1,6 @@
+_fixture:
+  model_class: Comment
+
+second_greetings:
+  post: second_welcome
+  body: Thank you for the second welcome

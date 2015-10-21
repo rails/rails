@@ -125,8 +125,24 @@ module ActiveRecord
       assert_equal "from user", model.wibble
     end
 
+    test "procs for default values" do
+      klass = Class.new(OverloadedType) do
+        @@counter = 0
+        attribute :counter, :integer, default: -> { @@counter += 1 }
+      end
+
+      assert_equal 1, klass.new.counter
+      assert_equal 2, klass.new.counter
+    end
+
+    test "user provided defaults are persisted even if unchanged" do
+      model = OverloadedType.create!
+
+      assert_equal "the overloaded default", model.reload.string_with_default
+    end
+
     if current_adapter?(:PostgreSQLAdapter)
-      test "arrays types can be specified" do
+      test "array types can be specified" do
         klass = Class.new(OverloadedType) do
           attribute :my_array, :string, limit: 50, array: true
           attribute :my_int_array, :integer, array: true
@@ -136,7 +152,7 @@ module ActiveRecord
           Type::String.new(limit: 50))
         int_array = ConnectionAdapters::PostgreSQL::OID::Array.new(
           Type::Integer.new)
-        refute_equal string_array, int_array
+        assert_not_equal string_array, int_array
         assert_equal string_array, klass.type_for_attribute("my_array")
         assert_equal int_array, klass.type_for_attribute("my_int_array")
       end
@@ -151,7 +167,7 @@ module ActiveRecord
           Type::String.new(limit: 50))
         int_range = ConnectionAdapters::PostgreSQL::OID::Range.new(
           Type::Integer.new)
-        refute_equal string_range, int_range
+        assert_not_equal string_range, int_range
         assert_equal string_range, klass.type_for_attribute("my_range")
         assert_equal int_range, klass.type_for_attribute("my_int_range")
       end

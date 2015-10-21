@@ -26,5 +26,43 @@ module ApplicationTests
 
       assert_not last_response.headers.has_key?('Cache-Control'), "Cache-Control should not be set"
     end
+
+    test "headers for static files are configurable" do
+      app_file "public/about.html", 'static'
+      add_to_config <<-CONFIG
+        config.public_file_server.headers = {
+          "Access-Control-Allow-Origin" => "http://rubyonrails.org",
+          "Cache-Control"               => "public, max-age=60"
+        }
+      CONFIG
+
+      require "#{app_path}/config/environment"
+
+      get '/about.html'
+
+      assert_equal 'http://rubyonrails.org', last_response.headers["Access-Control-Allow-Origin"]
+      assert_equal 'public, max-age=60',     last_response.headers["Cache-Control"]
+    end
+
+    test "static_index defaults to 'index'" do
+      app_file "public/index.html", "/index.html"
+      
+      require "#{app_path}/config/environment"
+
+      get '/'
+      
+      assert_equal "/index.html\n", last_response.body
+    end
+
+    test "static_index configurable" do
+      app_file "public/other-index.html", "/other-index.html"
+      add_to_config "config.static_index = 'other-index'"
+      
+      require "#{app_path}/config/environment"
+
+      get '/'
+
+      assert_equal "/other-index.html\n", last_response.body
+    end
   end
 end

@@ -4,7 +4,7 @@ require 'support/connection_helper'
 
 module ActiveRecord
   module ConnectionAdapters
-    class PostgreSQLAdapterTest < ActiveRecord::TestCase
+    class PostgreSQLAdapterTest < ActiveRecord::PostgreSQLTestCase
       include DdlHelper
       include ConnectionHelper
 
@@ -119,6 +119,20 @@ module ActiveRecord
       def test_exec_insert_with_returning_disabled_and_no_sequence_name_given
         connection = connection_without_insert_returning
         result = connection.exec_insert("insert into postgresql_partitioned_table_parent (number) VALUES (1)", nil, [], 'id')
+        expect = connection.query('select max(id) from postgresql_partitioned_table_parent').first.first
+        assert_equal expect.to_i, result.rows.first.first
+      end
+
+      def test_exec_insert_default_values_with_returning_disabled_and_no_sequence_name_given
+        connection = connection_without_insert_returning
+        result = connection.exec_insert("insert into postgresql_partitioned_table_parent DEFAULT VALUES", nil, [], 'id')
+        expect = connection.query('select max(id) from postgresql_partitioned_table_parent').first.first
+        assert_equal expect.to_i, result.rows.first.first
+      end
+
+      def test_exec_insert_default_values_quoted_schema_with_returning_disabled_and_no_sequence_name_given
+        connection = connection_without_insert_returning
+        result = connection.exec_insert('insert into "public"."postgresql_partitioned_table_parent" DEFAULT VALUES', nil, [], 'id')
         expect = connection.query('select max(id) from postgresql_partitioned_table_parent').first.first
         assert_equal expect.to_i, result.rows.first.first
       end

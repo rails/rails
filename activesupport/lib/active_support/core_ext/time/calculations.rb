@@ -3,6 +3,7 @@ require 'active_support/core_ext/time/conversions'
 require 'active_support/time_with_zone'
 require 'active_support/core_ext/time/zones'
 require 'active_support/core_ext/date_and_time/calculations'
+require 'active_support/core_ext/date/calculations'
 
 class Time
   include DateAndTime::Calculations
@@ -15,9 +16,9 @@ class Time
       super || (self == Time && other.is_a?(ActiveSupport::TimeWithZone))
     end
 
-    # Return the number of days in the given month.
+    # Returns the number of days in the given month.
     # If no year is specified, it will use the current year.
-    def days_in_month(month, year = now.year)
+    def days_in_month(month, year = current.year)
       if month == 2 && ::Date.gregorian_leap?(year)
         29
       else
@@ -50,9 +51,9 @@ class Time
 
   # Returns the number of seconds since 00:00:00.
   #
-  #   Time.new(2012, 8, 29,  0,  0,  0).seconds_since_midnight # => 0
-  #   Time.new(2012, 8, 29, 12, 34, 56).seconds_since_midnight # => 45296
-  #   Time.new(2012, 8, 29, 23, 59, 59).seconds_since_midnight # => 86399
+  #   Time.new(2012, 8, 29,  0,  0,  0).seconds_since_midnight # => 0.0
+  #   Time.new(2012, 8, 29, 12, 34, 56).seconds_since_midnight # => 45296.0
+  #   Time.new(2012, 8, 29, 23, 59, 59).seconds_since_midnight # => 86399.0
   def seconds_since_midnight
     to_i - change(:hour => 0).to_i + (usec / 1.0e+6)
   end
@@ -98,7 +99,7 @@ class Time
     elsif zone
       ::Time.local(new_year, new_month, new_day, new_hour, new_min, new_sec, new_usec)
     else
-      raise ArgumentError, 'argument out of range' if new_usec > 999999
+      raise ArgumentError, 'argument out of range' if new_usec >= 1000000
       ::Time.new(new_year, new_month, new_day, new_hour, new_min, new_sec + (new_usec.to_r / 1000000), utc_offset)
     end
   end
@@ -108,6 +109,12 @@ class Time
   # takes a hash with any of these keys: <tt>:years</tt>, <tt>:months</tt>,
   # <tt>:weeks</tt>, <tt>:days</tt>, <tt>:hours</tt>, <tt>:minutes</tt>,
   # <tt>:seconds</tt>.
+  #
+  #   Time.new(2015, 8, 1, 14, 35, 0).advance(seconds: 1) # => 2015-08-01 14:35:01 -0700
+  #   Time.new(2015, 8, 1, 14, 35, 0).advance(minutes: 1) # => 2015-08-01 14:36:00 -0700
+  #   Time.new(2015, 8, 1, 14, 35, 0).advance(hours: 1)   # => 2015-08-01 15:35:00 -0700
+  #   Time.new(2015, 8, 1, 14, 35, 0).advance(days: 1)    # => 2015-08-02 14:35:00 -0700
+  #   Time.new(2015, 8, 1, 14, 35, 0).advance(weeks: 1)   # => 2015-08-08 14:35:00 -0700
   def advance(options)
     unless options[:weeks].nil?
       options[:weeks], partial_weeks = options[:weeks].divmod(1)

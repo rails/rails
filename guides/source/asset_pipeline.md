@@ -403,13 +403,13 @@ When using the asset pipeline, paths to assets must be re-written and
 underscored in Ruby) for the following asset classes: image, font, video, audio,
 JavaScript and stylesheet.
 
-* `image-url("rails.png")` becomes `url(/assets/rails.png)`
-* `image-path("rails.png")` becomes `"/assets/rails.png"`.
+* `image-url("rails.png")` returns `url(/assets/rails.png)`
+* `image-path("rails.png")` returns `"/assets/rails.png"`
 
 The more generic form can also be used:
 
-* `asset-url("rails.png")` becomes `url(/assets/rails.png)`
-* `asset-path("rails.png")` becomes `"/assets/rails.png"`
+* `asset-url("rails.png")` returns `url(/assets/rails.png)`
+* `asset-path("rails.png")` returns `"/assets/rails.png"`
 
 #### JavaScript/CoffeeScript and ERB
 

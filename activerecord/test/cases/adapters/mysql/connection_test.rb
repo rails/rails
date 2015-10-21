@@ -2,7 +2,7 @@ require "cases/helper"
 require 'support/connection_helper'
 require 'support/ddl_helper'
 
-class MysqlConnectionTest < ActiveRecord::TestCase
+class MysqlConnectionTest < ActiveRecord::MysqlTestCase
   include ConnectionHelper
   include DdlHelper
 
@@ -26,7 +26,7 @@ class MysqlConnectionTest < ActiveRecord::TestCase
       run_without_connection do
         ar_config = ARTest.connection_config['arunit']
 
-        url = "mysql://#{ar_config["username"]}@localhost/#{ar_config["database"]}"
+        url = "mysql://#{ar_config["username"]}:#{ar_config["password"]}@localhost/#{ar_config["database"]}"
         Klass.establish_connection(url)
         assert_equal ar_config['database'], Klass.connection.current_database
       end
@@ -118,15 +118,6 @@ class MysqlConnectionTest < ActiveRecord::TestCase
     end
   end
 
-  # Test that MySQL allows multiple results for stored procedures
-  if defined?(Mysql) && Mysql.const_defined?(:CLIENT_MULTI_RESULTS)
-    def test_multi_results
-      rows = ActiveRecord::Base.connection.select_rows('CALL ten();')
-      assert_equal 10, rows[0][0].to_i, "ten() did not return 10 as expected: #{rows.inspect}"
-      assert @connection.active?, "Bad connection use by 'MysqlAdapter.select_rows'"
-    end
-  end
-
   def test_mysql_connection_collation_is_configured
     assert_equal 'utf8_unicode_ci', @connection.show_variable('collation_connection')
     assert_equal 'utf8_general_ci', ARUnit2Model.connection.show_variable('collation_connection')
@@ -183,7 +174,7 @@ class MysqlConnectionTest < ActiveRecord::TestCase
 
   def with_example_table(&block)
     definition ||= <<-SQL
-      `id` int(11) auto_increment PRIMARY KEY,
+      `id` int auto_increment PRIMARY KEY,
       `data` varchar(255)
     SQL
     super(@connection, 'ex', definition, &block)

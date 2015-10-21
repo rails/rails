@@ -36,7 +36,7 @@ module ActiveRecord
               WHERE
                 t.typname IN (%s)
                 OR t.typtype IN (%s)
-                OR t.typinput::varchar = 'array_in'
+                OR t.typinput = 'array_in(cstring,oid,integer)'::regprocedure
                 OR t.typelem != 0
             SQL
           end

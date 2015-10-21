@@ -24,7 +24,8 @@ module ActiveRecord
       #
       # NOTE: This validation will not fail if the association hasn't been
       # assigned. If you want to ensure that the association is both present and
-      # guaranteed to be valid, you also need to use +validates_presence_of+.
+      # guaranteed to be valid, you also need to use
+      # {validates_presence_of}[rdoc-ref:Validations::ClassMethods#validates_presence_of].
       #
       # Configuration options:
       #

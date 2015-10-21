@@ -67,6 +67,14 @@ class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
     assert_no_difference_when_adding_callbacks_twice_for Pirate, :parrots
   end
 
+  def test_cyclic_autosaves_do_not_add_multiple_validations
+    ship = ShipWithoutNestedAttributes.new
+    ship.prisoners.build
+
+    assert_not ship.valid?
+    assert_equal 1, ship.errors[:name].length
+  end
+
   private
 
   def assert_no_difference_when_adding_callbacks_twice_for(model, association_name)
@@ -149,7 +157,8 @@ class TestDefaultAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCas
     assert_equal a, firm.account
     assert firm.save
     assert_equal a, firm.account
-    assert_equal a, firm.account(true)
+    firm.association(:account).reload
+    assert_equal a, firm.account
   end
 
   def test_assignment_before_either_saved
@@ -162,7 +171,8 @@ class TestDefaultAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCas
     assert firm.persisted?
     assert a.persisted?
     assert_equal a, firm.account
-    assert_equal a, firm.account(true)
+    firm.association(:account).reload
+    assert_equal a, firm.account
   end
 
   def test_not_resaved_when_unchanged
@@ -248,7 +258,8 @@ class TestDefaultAutosaveAssociationOnABelongsToAssociation < ActiveRecord::Test
     assert apple.save
     assert apple.persisted?
     assert_equal apple, client.firm
-    assert_equal apple, client.firm(true)
+    client.association(:firm).reload
+    assert_equal apple, client.firm
   end
 
   def test_assignment_before_either_saved
@@ -261,7 +272,8 @@ class TestDefaultAutosaveAssociationOnABelongsToAssociation < ActiveRecord::Test
     assert final_cut.persisted?
     assert apple.persisted?
     assert_equal apple, final_cut.firm
-    assert_equal apple, final_cut.firm(true)
+    final_cut.association(:firm).reload
+    assert_equal apple, final_cut.firm
   end
 
   def test_store_two_association_with_one_save
@@ -456,7 +468,7 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
     assert_equal new_client, companies(:first_firm).clients_of_firm.last
     assert !companies(:first_firm).save
     assert !new_client.persisted?
-    assert_equal 2, companies(:first_firm).clients_of_firm(true).size
+    assert_equal 2, companies(:first_firm).clients_of_firm.reload.size
   end
 
   def test_adding_before_save
@@ -481,7 +493,7 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
     assert_equal no_of_clients + 2, Client.count  # Clients were saved to database.
 
     assert_equal 2, new_firm.clients_of_firm.size
-    assert_equal 2, new_firm.clients_of_firm(true).size
+    assert_equal 2, new_firm.clients_of_firm.reload.size
   end
 
   def test_assign_ids
@@ -510,7 +522,7 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
     company.name += '-changed'
     assert_queries(2) { assert company.save }
     assert new_client.persisted?
-    assert_equal 3, company.clients_of_firm(true).size
+    assert_equal 3, company.clients_of_firm.reload.size
   end
 
   def test_build_many_before_save
@@ -519,7 +531,7 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
 
     company.name += '-changed'
     assert_queries(3) { assert company.save }
-    assert_equal 4, company.clients_of_firm(true).size
+    assert_equal 4, company.clients_of_firm.reload.size
   end
 
   def test_build_via_block_before_save
@@ -530,7 +542,7 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
     company.name += '-changed'
     assert_queries(2) { assert company.save }
     assert new_client.persisted?
-    assert_equal 3, company.clients_of_firm(true).size
+    assert_equal 3, company.clients_of_firm.reload.size
   end
 
   def test_build_many_via_block_before_save
@@ -543,7 +555,7 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
 
     company.name += '-changed'
     assert_queries(3) { assert company.save }
-    assert_equal 4, company.clients_of_firm(true).size
+    assert_equal 4, company.clients_of_firm.reload.size
   end
 
   def test_replace_on_new_object
@@ -1141,6 +1153,13 @@ class TestAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCase
 
   def test_should_not_load_the_associated_model
     assert_queries(1) { @pirate.catchphrase = 'Arr'; @pirate.save! }
+  end
+
+  def test_mark_for_destruction_is_ignored_without_autosave_true
+    ship = ShipWithoutNestedAttributes.new(name: "The Black Flag")
+    ship.parts.build.mark_for_destruction
+
+    assert_not ship.valid?
   end
 end
 

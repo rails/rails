@@ -43,29 +43,29 @@ class RescueController < ActionController::Base
   rescue_from NotAllowed, :with => proc { head :forbidden }
   rescue_from 'RescueController::NotAllowedToRescueAsString', :with => proc { head :forbidden }
 
-  rescue_from InvalidRequest, :with => proc { |exception| render :text => exception.message }
-  rescue_from 'InvalidRequestToRescueAsString', :with => proc { |exception| render :text => exception.message }
+  rescue_from InvalidRequest, with: proc { |exception| render plain: exception.message }
+  rescue_from 'InvalidRequestToRescueAsString', with: proc { |exception| render plain: exception.message }
 
   rescue_from BadGateway do
-    head :status => 502
+    head 502
   end
   rescue_from 'BadGatewayToRescueAsString' do
-    head :status => 502
+    head 502
   end
 
   rescue_from ResourceUnavailable do |exception|
-    render :text => exception.message
+    render plain: exception.message
   end
   rescue_from 'ResourceUnavailableToRescueAsString' do |exception|
-    render :text => exception.message
+    render plain: exception.message
   end
 
   rescue_from ActionView::TemplateError do
-    render :text => 'action_view templater error'
+    render plain: 'action_view templater error'
   end
 
   rescue_from IOError do
-    render :text => 'io error'
+    render plain: 'io error'
   end
 
   before_action(only: :before_action_raises) { raise 'umm nice' }
@@ -74,7 +74,7 @@ class RescueController < ActionController::Base
   end
 
   def raises
-    render :text => 'already rendered'
+    render plain: 'already rendered'
     raise "don't panic!"
   end
 
@@ -246,12 +246,15 @@ class RescueControllerTest < ActionController::TestCase
   end
 
   def test_rescue_handler_with_argument
-    @controller.expects(:show_errors).once.with { |e| e.is_a?(Exception) }
-    get :record_invalid
+    assert_called_with @controller, :show_errors, [Exception] do
+      get :record_invalid
+    end
   end
+
   def test_rescue_handler_with_argument_as_string
-    @controller.expects(:show_errors).once.with { |e| e.is_a?(Exception) }
-    get :record_invalid_raise_as_string
+    assert_called_with @controller, :show_errors, [Exception] do
+      get :record_invalid_raise_as_string
+    end
   end
 
   def test_proc_rescue_handler
@@ -302,7 +305,7 @@ class RescueTest < ActionDispatch::IntegrationTest
     rescue_from RecordInvalid, :with => :show_errors
 
     def foo
-      render :text => "foo"
+      render plain: "foo"
     end
 
     def invalid
@@ -315,7 +318,7 @@ class RescueTest < ActionDispatch::IntegrationTest
 
     protected
       def show_errors(exception)
-        render :text => exception.message
+        render plain: exception.message
       end
   end
 

@@ -1,4 +1,3 @@
-# encoding: utf-8
 module ActiveSupport
   module Multibyte
     module Unicode
@@ -11,7 +10,7 @@ module ActiveSupport
       NORMALIZATION_FORMS = [:c, :kc, :d, :kd]
 
       # The Unicode version that is supported by the implementation
-      UNICODE_VERSION = '7.0.0'
+      UNICODE_VERSION = '8.0.0'
 
       # The default normalization used for operations that require
       # normalization. It can be set to any of the normalizations
@@ -58,7 +57,7 @@ module ActiveSupport
       # Returns a regular expression pattern that matches the passed Unicode
       # codepoints.
       def self.codepoints_to_pattern(array_of_codepoints) #:nodoc:
-        array_of_codepoints.collect{ |e| [e].pack 'U*' }.join('|')
+        array_of_codepoints.collect{ |e| [e].pack 'U*'.freeze }.join('|'.freeze)
       end
       TRAILERS_PAT = /(#{codepoints_to_pattern(LEADERS_AND_TRAILERS)})+\Z/u
       LEADERS_PAT = /\A(#{codepoints_to_pattern(LEADERS_AND_TRAILERS)})+/u
@@ -257,7 +256,7 @@ module ActiveSupport
       # * <tt>string</tt> - The string to perform normalization on.
       # * <tt>form</tt> - The form you want to normalize in. Should be one of
       #   the following: <tt>:c</tt>, <tt>:kc</tt>, <tt>:d</tt>, or <tt>:kd</tt>.
-      #   Default is ActiveSupport::Multibyte.default_normalization_form.
+      #   Default is ActiveSupport::Multibyte::Unicode.default_normalization_form.
       def normalize(string, form=nil)
         form ||= @default_normalization_form
         # See http://www.unicode.org/reports/tr15, Table 1
@@ -273,7 +272,7 @@ module ActiveSupport
             compose(reorder_characters(decompose(:compatibility, codepoints)))
           else
             raise ArgumentError, "#{form} is not a valid normalization variant", caller
-        end.pack('U*')
+        end.pack('U*'.freeze)
       end
 
       def downcase(string)
@@ -338,7 +337,7 @@ module ActiveSupport
           end
 
           # Redefine the === method so we can write shorter rules for grapheme cluster breaks
-          @boundary.each do |k,_|
+          @boundary.each_key do |k|
             @boundary[k].instance_eval do
               def ===(other)
                 detect { |i| i === other } ? true : false

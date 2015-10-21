@@ -80,6 +80,12 @@ class BaseMailer < ActionMailer::Base
     end
   end
 
+  def explicit_without_specifying_format_with_any(hash = {})
+    mail(hash) do |format|
+      format.any
+    end
+  end
+
   def explicit_multipart_with_options(include_html = false)
     mail do |format|
       format.text(content_transfer_encoding: "base64"){ render "welcome" }

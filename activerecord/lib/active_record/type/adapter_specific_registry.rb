@@ -1,35 +1,24 @@
+require 'active_model/type/registry'
+
 module ActiveRecord
   # :stopdoc:
   module Type
-    class AdapterSpecificRegistry
-      def initialize
-        @registrations = []
-      end
-
-      def register(type_name, klass = nil, **options, &block)
-        block ||= proc { |_, *args| klass.new(*args) }
-        registrations << Registration.new(type_name, block, **options)
-      end
-
-      def lookup(symbol, *args)
-        registration = registrations
-          .select { |r| r.matches?(symbol, *args) }
-          .max
-
-        if registration
-          registration.call(self, symbol, *args)
-        else
-          raise ArgumentError, "Unknown type #{symbol.inspect}"
-        end
-      end
-
+    class AdapterSpecificRegistry < ActiveModel::Type::Registry
       def add_modifier(options, klass, **args)
         registrations << DecorationRegistration.new(options, klass, **args)
       end
 
-      protected
+      private
 
-      attr_reader :registrations
+      def registration_klass
+        Registration
+      end
+
+      def find_registration(symbol, *args)
+        registrations
+          .select { |registration| registration.matches?(symbol, *args) }
+          .max
+      end
     end
 
     class Registration
@@ -137,6 +126,5 @@ module ActiveRecord
 
   class TypeConflictError < StandardError
   end
-
   # :startdoc:
 end

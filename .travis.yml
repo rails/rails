@@ -4,6 +4,11 @@ script: 'ci/travis.rb'
 before_install:
   - gem install bundler
   - "rm ${BUNDLE_GEMFILE}.lock"
+  - curl -L https://github.com/kr/beanstalkd/archive/v1.10.tar.gz | tar xz -C /tmp
+  - cd /tmp/beanstalkd-1.10/
+  - make
+  - ./beanstalkd &
+  - cd $TRAVIS_BUILD_DIR
 before_script:
   - bundle update
 cache: bundler
@@ -19,17 +24,14 @@ env:
     - "GEM=ar:sqlite3"
     - "GEM=ar:postgresql"
     - "GEM=aj:integration"
+    - "GEM=guides"
 rvm:
-  - 2.2.2
+  - 2.2.3
   - ruby-head
-  - rbx-2
-  - jruby-head
 matrix:
   allow_failures:
     - env: "GEM=ar:mysql"
     - rvm: ruby-head
-    - rvm: rbx-2
-    - rvm: jruby-head
   fast_finish: true
 notifications:
   email: false

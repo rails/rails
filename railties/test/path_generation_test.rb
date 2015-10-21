@@ -11,26 +11,26 @@ class PathGenerationTest < ActiveSupport::TestCase
       super()
     end
 
-    class Dispatcher < ActionDispatch::Routing::RouteSet::Dispatcher
-      def initialize(defaults, set, block)
-        super(defaults)
+    class Request < DelegateClass(ActionDispatch::Request)
+      def initialize(target, url_helpers, block)
+        super(target)
+        @url_helpers = url_helpers
         @block = block
-        @set = set
       end
 
-      def controller_reference(controller_param)
+      def controller_class
+        url_helpers = @url_helpers
         block = @block
-        set = @set
         Class.new(ActionController::Base) {
-          include set.url_helpers
+          include url_helpers
           define_method(:process) { |name| block.call(self) }
           def to_a; [200, {}, []]; end
         }
       end
     end
 
-    def dispatcher defaults
-      TestSet::Dispatcher.new defaults, self, @block
+    def make_request(env)
+      Request.new super, self.url_helpers, @block
     end
   end
 

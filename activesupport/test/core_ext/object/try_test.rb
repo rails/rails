@@ -121,7 +121,7 @@ class ObjectTryTest < ActiveSupport::TestCase
     assert_equal 5, Decorator.new(@string).size
   end
 
-  def test_try_with_overriden_method_on_delegator
+  def test_try_with_overridden_method_on_delegator
     assert_equal 'overridden reverse', Decorator.new(@string).reverse
   end
 

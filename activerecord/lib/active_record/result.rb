@@ -1,7 +1,8 @@
 module ActiveRecord
   ###
-  # This class encapsulates a Result returned from calling +exec_query+ on any
-  # database connection adapter. For example:
+  # This class encapsulates a result returned from calling
+  # {#exec_query}[rdoc-ref:ConnectionAdapters::DatabaseStatements#exec_query]
+  # on any database connection adapter. For example:
   #
   #   result = ActiveRecord::Base.connection.exec_query('SELECT id, title, body FROM posts')
   #   result # => #<ActiveRecord::Result:0xdeadbeef>

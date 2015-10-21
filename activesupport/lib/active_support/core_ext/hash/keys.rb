@@ -1,10 +1,14 @@
 class Hash
-  # Returns a new hash with all keys converted using the block operation.
+  # Returns a new hash with all keys converted using the +block+ operation.
   #
   #  hash = { name: 'Rob', age: '28' }
   #
-  #  hash.transform_keys{ |key| key.to_s.upcase }
-  #  # => {"NAME"=>"Rob", "AGE"=>"28"}
+  #  hash.transform_keys { |key| key.to_s.upcase } # => {"NAME"=>"Rob", "AGE"=>"28"}
+  #
+  # If you do not provide a +block+, it will return an Enumerator
+  # for chaining with other methods:
+  #
+  #  hash.transform_keys.with_index { |k, i| [k, i].join } # => {"name0"=>"Rob", "age1"=>"28"}
   def transform_keys
     return enum_for(:transform_keys) unless block_given?
     result = self.class.new
@@ -14,8 +18,8 @@ class Hash
     result
   end
 
-  # Destructively converts all keys using the block operations.
-  # Same as transform_keys but modifies +self+.
+  # Destructively converts all keys using the +block+ operations.
+  # Same as +transform_keys+ but modifies +self+.
   def transform_keys!
     return enum_for(:transform_keys!) unless block_given?
     keys.each do |key|
@@ -60,7 +64,7 @@ class Hash
   alias_method :to_options!, :symbolize_keys!
 
   # Validates all keys in a hash match <tt>*valid_keys</tt>, raising
-  # ArgumentError on a mismatch.
+  # +ArgumentError+ on a mismatch.
   #
   # Note that keys are treated differently than HashWithIndifferentAccess,
   # meaning that string and symbol keys will not match.

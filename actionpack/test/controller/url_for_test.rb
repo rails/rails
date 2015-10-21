@@ -451,6 +451,26 @@ module AbstractController
         end
       end
 
+      def test_url_for_with_array_is_unmodified
+        with_routing do |set|
+          set.draw do
+            namespace :admin do
+              resources :posts
+            end
+          end
+
+          kls = Class.new { include set.url_helpers }
+          kls.default_url_options[:host] = 'www.basecamphq.com'
+
+          original_components = [:new, :admin, :post, { param: 'value' }]
+          components = original_components.dup
+
+          kls.new.url_for(components)
+
+          assert_equal(original_components, components)
+        end
+      end
+
       private
         def extract_params(url)
           url.split('?', 2).last.split('&').sort

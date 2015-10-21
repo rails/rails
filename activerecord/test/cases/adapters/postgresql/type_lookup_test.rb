@@ -1,6 +1,6 @@
 require 'cases/helper'
 
-class PostgresqlTypeLookupTest < ActiveRecord::TestCase
+class PostgresqlTypeLookupTest < ActiveRecord::PostgreSQLTestCase
   setup do
     @connection = ActiveRecord::Base.connection
   end

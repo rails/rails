@@ -13,14 +13,14 @@ require 'action_dispatch/http/url'
 require 'active_support/core_ext/array/conversions'
 
 module ActionDispatch
-  class Request < Rack::Request
+  class Request
+    include Rack::Request::Helpers
     include ActionDispatch::Http::Cache::Request
     include ActionDispatch::Http::MimeNegotiation
     include ActionDispatch::Http::Parameters
     include ActionDispatch::Http::FilterParameters
     include ActionDispatch::Http::URL
-
-    HTTP_X_REQUEST_ID = "HTTP_X_REQUEST_ID".freeze # :nodoc:
+    include Rack::Request::Env
 
     autoload :Session, 'action_dispatch/request/session'
     autoload :Utils,   'action_dispatch/request/utils'
@@ -31,15 +31,20 @@ module ActionDispatch
         PATH_TRANSLATED REMOTE_HOST
         REMOTE_IDENT REMOTE_USER REMOTE_ADDR
         SERVER_NAME SERVER_PROTOCOL
+        ORIGINAL_SCRIPT_NAME
 
         HTTP_ACCEPT HTTP_ACCEPT_CHARSET HTTP_ACCEPT_ENCODING
         HTTP_ACCEPT_LANGUAGE HTTP_CACHE_CONTROL HTTP_FROM
-        HTTP_NEGOTIATE HTTP_PRAGMA ].freeze
+        HTTP_NEGOTIATE HTTP_PRAGMA HTTP_CLIENT_IP
+        HTTP_X_FORWARDED_FOR HTTP_VERSION
+        HTTP_X_REQUEST_ID HTTP_X_FORWARDED_HOST
+        SERVER_ADDR
+        ].freeze
 
     ENV_METHODS.each do |env|
       class_eval <<-METHOD, __FILE__, __LINE__ + 1
         def #{env.sub(/^HTTP_/n, '').downcase}  # def accept_charset
-          @env["#{env}"]                        #   @env["HTTP_ACCEPT_CHARSET"]
+          get_header "#{env}".freeze            #   get_header "HTTP_ACCEPT_CHARSET".freeze
         end                                     # end
       METHOD
     end
@@ -60,13 +65,32 @@ module ActionDispatch
       path_parameters.each do |key, value|
         next unless value.respond_to?(:valid_encoding?)
         unless value.valid_encoding?
-          raise ActionController::BadRequest, "Invalid parameter: #{key} => #{value}"
+          raise ActionController::BadRequest, "Invalid parameter encoding: #{key} => #{value.inspect}"
         end
       end
     end
 
+    PASS_NOT_FOUND = Class.new { # :nodoc:
+      def self.action(_); self; end
+      def self.call(_); [404, {'X-Cascade' => 'pass'}, []]; end
+    }
+
+    def controller_class
+      check_path_parameters!
+      params = path_parameters
+
+      if params.key?(:controller)
+        controller_param = params[:controller].underscore
+        params[:action] ||= 'index'
+        const_name = "#{controller_param.camelize}Controller"
+        ActiveSupport::Dependencies.constantize(const_name)
+      else
+        PASS_NOT_FOUND
+      end
+    end
+
     def key?(key)
-      @env.key?(key)
+      has_header? key
     end
 
     # List of HTTP request methods from the following RFCs:
@@ -103,25 +127,48 @@ module ActionDispatch
     # the application should use), this \method returns the overridden
     # value, not the original.
     def request_method
-      @request_method ||= check_method(env["REQUEST_METHOD"])
+      @request_method ||= check_method(super)
     end
 
     def routes # :nodoc:
-      env["action_dispatch.routes".freeze]
+      get_header("action_dispatch.routes".freeze)
     end
 
-    def original_script_name # :nodoc:
-      env['ORIGINAL_SCRIPT_NAME'.freeze]
+    def routes=(routes) # :nodoc:
+      set_header("action_dispatch.routes".freeze, routes)
     end
 
     def engine_script_name(_routes) # :nodoc:
-      env[_routes.env_key]
+      get_header(_routes.env_key)
+    end
+
+    def engine_script_name=(name) # :nodoc:
+      set_header(routes.env_key, name.dup)
     end
 
     def request_method=(request_method) #:nodoc:
       if check_method(request_method)
-        @request_method = env["REQUEST_METHOD"] = request_method
+        @request_method = set_header("REQUEST_METHOD", request_method)
       end
+    end
+
+    def controller_instance # :nodoc:
+      get_header('action_controller.instance'.freeze)
+    end
+
+    def controller_instance=(controller) # :nodoc:
+      set_header('action_controller.instance'.freeze, controller)
+    end
+
+    def http_auth_salt
+      get_header "action_dispatch.http_auth_salt"
+    end
+
+    def show_exceptions? # :nodoc:
+      # We're treating `nil` as "unset", and we want the default setting to be
+      # `true`.  This logic should be extracted to `env_config` and calculated
+      # once.
+      !(get_header('action_dispatch.show_exceptions'.freeze) == false)
     end
 
     # Returns a symbol form of the #request_method
@@ -133,7 +180,7 @@ module ActionDispatch
     # even if it was overridden by middleware. See #request_method for
     # more information.
     def method
-      @method ||= check_method(env["rack.methodoverride.original_method"] || env['REQUEST_METHOD'])
+      @method ||= check_method(get_header("rack.methodoverride.original_method") || get_header('REQUEST_METHOD'))
     end
 
     # Returns a symbol form of the #method
@@ -141,47 +188,11 @@ module ActionDispatch
       HTTP_METHOD_LOOKUP[method]
     end
 
-    # Is this a GET (or HEAD) request?
-    # Equivalent to <tt>request.request_method_symbol == :get</tt>.
-    def get?
-      HTTP_METHOD_LOOKUP[request_method] == :get
-    end
-
-    # Is this a POST request?
-    # Equivalent to <tt>request.request_method_symbol == :post</tt>.
-    def post?
-      HTTP_METHOD_LOOKUP[request_method] == :post
-    end
-
-    # Is this a PATCH request?
-    # Equivalent to <tt>request.request_method == :patch</tt>.
-    def patch?
-      HTTP_METHOD_LOOKUP[request_method] == :patch
-    end
-
-    # Is this a PUT request?
-    # Equivalent to <tt>request.request_method_symbol == :put</tt>.
-    def put?
-      HTTP_METHOD_LOOKUP[request_method] == :put
-    end
-
-    # Is this a DELETE request?
-    # Equivalent to <tt>request.request_method_symbol == :delete</tt>.
-    def delete?
-      HTTP_METHOD_LOOKUP[request_method] == :delete
-    end
-
-    # Is this a HEAD request?
-    # Equivalent to <tt>request.request_method_symbol == :head</tt>.
-    def head?
-      HTTP_METHOD_LOOKUP[request_method] == :head
-    end
-
     # Provides access to the request's HTTP headers, for example:
     #
     #   request.headers["Content-Type"] # => "text/plain"
     def headers
-      @headers ||= Http::Headers.new(@env)
+      @headers ||= Http::Headers.new(self)
     end
 
     # Returns a +String+ with the last requested path including their params.
@@ -192,7 +203,7 @@ module ActionDispatch
     #    # get '/foo?bar'
     #    request.original_fullpath # => '/foo?bar'
     def original_fullpath
-      @original_fullpath ||= (env["ORIGINAL_FULLPATH"] || fullpath)
+      @original_fullpath ||= (get_header("ORIGINAL_FULLPATH") || fullpath)
     end
 
     # Returns the +String+ full path including params of the last URL requested.
@@ -231,7 +242,7 @@ module ActionDispatch
     # (case-insensitive), which may need to be manually added depending on the
     # choice of JavaScript libraries and frameworks.
     def xml_http_request?
-      @env['HTTP_X_REQUESTED_WITH'] =~ /XMLHttpRequest/i
+      get_header('HTTP_X_REQUESTED_WITH') =~ /XMLHttpRequest/i
     end
     alias :xhr? :xml_http_request?
 
@@ -243,7 +254,11 @@ module ActionDispatch
     # Returns the IP address of client as a +String+,
     # usually set by the RemoteIp middleware.
     def remote_ip
-      @remote_ip ||= (@env["action_dispatch.remote_ip"] || ip).to_s
+      @remote_ip ||= (get_header("action_dispatch.remote_ip") || ip).to_s
+    end
+
+    def remote_ip=(remote_ip)
+      set_header "action_dispatch.remote_ip".freeze, remote_ip
     end
 
     ACTION_DISPATCH_REQUEST_ID = "action_dispatch.request_id".freeze # :nodoc:
@@ -255,54 +270,50 @@ module ActionDispatch
     # This unique ID is useful for tracing a request from end-to-end as part of logging or debugging.
     # This relies on the rack variable set by the ActionDispatch::RequestId middleware.
     def request_id
-      env[ACTION_DISPATCH_REQUEST_ID]
+      get_header ACTION_DISPATCH_REQUEST_ID
     end
 
     def request_id=(id) # :nodoc:
-      env[ACTION_DISPATCH_REQUEST_ID] = id
+      set_header ACTION_DISPATCH_REQUEST_ID, id
     end
 
     alias_method :uuid, :request_id
 
-    def x_request_id # :nodoc
-      @env[HTTP_X_REQUEST_ID]
-    end
-
     # Returns the lowercase name of the HTTP server software.
     def server_software
-      (@env['SERVER_SOFTWARE'] && /^([a-zA-Z]+)/ =~ @env['SERVER_SOFTWARE']) ? $1.downcase : nil
+      (get_header('SERVER_SOFTWARE') && /^([a-zA-Z]+)/ =~ get_header('SERVER_SOFTWARE')) ? $1.downcase : nil
     end
 
     # Read the request \body. This is useful for web services that need to
     # work with raw requests directly.
     def raw_post
-      unless @env.include? 'RAW_POST_DATA'
+      unless has_header? 'RAW_POST_DATA'
         raw_post_body = body
-        @env['RAW_POST_DATA'] = raw_post_body.read(content_length)
+        set_header('RAW_POST_DATA', raw_post_body.read(content_length))
         raw_post_body.rewind if raw_post_body.respond_to?(:rewind)
       end
-      @env['RAW_POST_DATA']
+      get_header 'RAW_POST_DATA'
     end
 
     # The request body is an IO input stream. If the RAW_POST_DATA environment
     # variable is already set, wrap it in a StringIO.
     def body
-      if raw_post = @env['RAW_POST_DATA']
+      if raw_post = get_header('RAW_POST_DATA')
         raw_post.force_encoding(Encoding::BINARY)
         StringIO.new(raw_post)
       else
-        @env['rack.input']
+        body_stream
       end
     end
 
-    # returns true if request content mime type is
+    # Returns true if the request's content MIME type is
     # +application/x-www-form-urlencoded+ or +multipart/form-data+.
     def form_data?
       FORM_DATA_MEDIA_TYPES.include?(content_mime_type.to_s)
     end
 
     def body_stream #:nodoc:
-      @env['rack.input']
+      get_header('rack.input')
     end
 
     # TODO This should be broken apart into AD::Request::Session and probably
@@ -313,51 +324,68 @@ module ActionDispatch
       else
         self.session = {}
       end
-      @env['action_dispatch.request.flash_hash'] = nil
+      self.flash = nil
     end
 
     def session=(session) #:nodoc:
-      Session.set @env, session
+      Session.set self, session
     end
 
     def session_options=(options)
-      Session::Options.set @env, options
+      Session::Options.set self, options
     end
 
     # Override Rack's GET method to support indifferent access
     def GET
-      @env["action_dispatch.request.query_parameters"] ||= Utils.deep_munge(normalize_encode_params(super || {}))
+      fetch_header("action_dispatch.request.query_parameters") do |k|
+        set_header k, Request::Utils.normalize_encode_params(super || {})
+      end
     rescue Rack::Utils::ParameterTypeError, Rack::Utils::InvalidParameterError => e
-      raise ActionController::BadRequest.new(:query, e)
+      raise ActionController::BadRequest.new("Invalid query parameters: #{e.message}", e)
     end
     alias :query_parameters :GET
 
     # Override Rack's POST method to support indifferent access
     def POST
-      @env["action_dispatch.request.request_parameters"] ||= Utils.deep_munge(normalize_encode_params(super || {}))
+      fetch_header("action_dispatch.request.request_parameters") do
+        pr = parse_formatted_parameters(params_parsers) do |params|
+          super || {}
+        end
+        self.request_parameters = Request::Utils.normalize_encode_params(pr)
+      end
+    rescue ParamsParser::ParseError # one of the parse strategies blew up
+      self.request_parameters = Request::Utils.normalize_encode_params(super || {})
+      raise
     rescue Rack::Utils::ParameterTypeError, Rack::Utils::InvalidParameterError => e
-      raise ActionController::BadRequest.new(:request, e)
+      raise ActionController::BadRequest.new("Invalid request parameters: #{e.message}", e)
     end
     alias :request_parameters :POST
 
     # Returns the authorization header regardless of whether it was specified directly or through one of the
     # proxy alternatives.
     def authorization
-      @env['HTTP_AUTHORIZATION']   ||
-      @env['X-HTTP_AUTHORIZATION'] ||
-      @env['X_HTTP_AUTHORIZATION'] ||
-      @env['REDIRECT_X_HTTP_AUTHORIZATION']
+      get_header('HTTP_AUTHORIZATION')   ||
+      get_header('X-HTTP_AUTHORIZATION') ||
+      get_header('X_HTTP_AUTHORIZATION') ||
+      get_header('REDIRECT_X_HTTP_AUTHORIZATION')
     end
 
-    # True if the request came from localhost, 127.0.0.1.
+    # True if the request came from localhost, 127.0.0.1, or ::1.
     def local?
       LOCALHOST =~ remote_addr && LOCALHOST =~ remote_ip
     end
 
-    protected
-      def parse_query(*)
-        Utils.deep_munge(super)
-      end
+    def request_parameters=(params)
+      raise if params.nil?
+      set_header("action_dispatch.request.request_parameters".freeze, params)
+    end
+
+    def logger
+      get_header("action_dispatch.logger".freeze)
+    end
+
+    def commit_flash
+    end
 
     private
       def check_method(name)

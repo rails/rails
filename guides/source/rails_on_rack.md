@@ -58,23 +58,6 @@ class Server < ::Rack::Server
 end
 ```
 
-Here's how it loads the middlewares:
-
-```ruby
-def middleware
-  middlewares = []
-  middlewares << [::Rack::ContentLength]
-  Hash.new(middlewares)
-end
-```
-
-`Rails::Rack::Debugger` is primarily useful only in the development environment. The following table explains the usage of the loaded middlewares:
-
-| Middleware              | Purpose                                                                           |
-| ----------------------- | --------------------------------------------------------------------------------- |
-| `Rails::Rack::Debugger` | Starts Debugger                                                                   |
-| `Rack::ContentLength`   | Counts the number of bytes in the response and set the HTTP Content-Length header |
-
 ### `rackup`
 
 To use `rackup` instead of Rails' `rails server`, you can put the following inside `config.ru` of your Rails application's root directory:
@@ -82,9 +65,6 @@ To use `rackup` instead of Rails' `rails server`, you can put the following insi
 ```ruby
 # Rails.root/config.ru
 require ::File.expand_path('../config/environment', __FILE__)
-
-use Rails::Rack::Debugger
-use Rack::ContentLength
 run Rails.application
 ```
 
@@ -141,7 +121,6 @@ use ActiveRecord::QueryCache
 use ActionDispatch::Cookies
 use ActionDispatch::Session::CookieStore
 use ActionDispatch::Flash
-use ActionDispatch::ParamsParser
 use Rack::Head
 use Rack::ConditionalGet
 use Rack::ETag
@@ -192,7 +171,7 @@ Add the following lines to your application configuration:
 
 ```ruby
 # config/application.rb
-config.middleware.delete "Rack::Lock"
+config.middleware.delete Rack::Lock
 ```
 
 And now if you inspect the middleware stack, you'll find that `Rack::Lock` is
@@ -212,16 +191,16 @@ If you want to remove session related middleware, do the following:
 
 ```ruby
 # config/application.rb
-config.middleware.delete "ActionDispatch::Cookies"
-config.middleware.delete "ActionDispatch::Session::CookieStore"
-config.middleware.delete "ActionDispatch::Flash"
+config.middleware.delete ActionDispatch::Cookies
+config.middleware.delete ActionDispatch::Session::CookieStore
+config.middleware.delete ActionDispatch::Flash
 ```
 
 And to remove browser related middleware,
 
 ```ruby
 # config/application.rb
-config.middleware.delete "Rack::MethodOverride"
+config.middleware.delete Rack::MethodOverride
 ```
 
 ### Internal Middleware Stack
@@ -304,10 +283,6 @@ Much of Action Controller's functionality is implemented as Middlewares. The fol
 
 * Sets up the flash keys. Only available if `config.action_controller.session_store` is set to a value.
 
-**`ActionDispatch::ParamsParser`**
-
-* Parses out parameters from the request into `params`.
-
 **`Rack::Head`**
 
 * Converts HEAD requests to `GET` requests and serves them as so.
@@ -329,8 +304,6 @@ Resources
 
 * [Official Rack Website](http://rack.github.io)
 * [Introducing Rack](http://chneukirchen.org/blog/archive/2007/02/introducing-rack.html)
-* [Ruby on Rack #1 - Hello Rack!](http://m.onkey.org/ruby-on-rack-1-hello-rack)
-* [Ruby on Rack #2 - The Builder](http://m.onkey.org/ruby-on-rack-2-the-builder)
 
 ### Understanding Middlewares
 

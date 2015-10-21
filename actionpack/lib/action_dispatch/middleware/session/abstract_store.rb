@@ -36,6 +36,11 @@ module ActionDispatch
         @default_options.delete(:sidbits)
         @default_options.delete(:secure_random)
       end
+
+      private
+      def make_request(env)
+        ActionDispatch::Request.new env
+      end
     end
 
     module StaleSessionCheck
@@ -65,8 +70,8 @@ module ActionDispatch
     end
 
     module SessionObject # :nodoc:
-      def prepare_session(env)
-        Request::Session.create(self, env, @default_options)
+      def prepare_session(req)
+        Request::Session.create(self, req, @default_options)
       end
 
       def loaded_session?(session)
@@ -74,15 +79,14 @@ module ActionDispatch
       end
     end
 
-    class AbstractStore < Rack::Session::Abstract::ID
+    class AbstractStore < Rack::Session::Abstract::Persisted
       include Compatibility
       include StaleSessionCheck
       include SessionObject
 
       private
 
-      def set_cookie(env, session_id, cookie)
-        request = ActionDispatch::Request.new(env)
+      def set_cookie(request, session_id, cookie)
         request.cookie_jar[key] = cookie
       end
     end

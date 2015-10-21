@@ -44,6 +44,29 @@ class Rails::ServerTest < ActiveSupport::TestCase
     end
   end
 
+  def test_environment_with_port
+    switch_env "PORT", "1234" do
+      server = Rails::Server.new
+      assert_equal 1234, server.options[:Port]
+    end
+  end
+
+  def test_caching_without_option
+    args = []
+    options = Rails::Server::Options.new.parse!(args)
+    assert_equal nil, options[:caching]
+  end
+
+  def test_caching_with_option
+    args = ["--dev-caching"]
+    options = Rails::Server::Options.new.parse!(args)
+    assert_equal true, options[:caching]
+
+    args = ["--no-dev-caching"]
+    options = Rails::Server::Options.new.parse!(args)
+    assert_equal false, options[:caching]
+  end
+
   def test_log_stdout
     with_rack_env nil do
       with_rails_env nil do

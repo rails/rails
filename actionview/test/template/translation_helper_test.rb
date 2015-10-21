@@ -42,20 +42,28 @@ class TranslationHelperTest < ActiveSupport::TestCase
   end
 
   def test_delegates_setting_to_i18n
-    I18n.expects(:translate).with(:foo, :locale => 'en', :raise => true).returns("")
-    translate :foo, :locale => 'en'
+    assert_called_with(I18n, :translate, [:foo, :locale => 'en', :raise => true], returns: "") do
+      translate :foo, :locale => 'en'
+    end
   end
 
   def test_delegates_localize_to_i18n
     @time = Time.utc(2008, 7, 8, 12, 18, 38)
-    I18n.expects(:localize).with(@time)
-    localize @time
+    assert_called_with(I18n, :localize, [@time]) do
+      localize @time
+    end
   end
 
   def test_returns_missing_translation_message_wrapped_into_span
     expected = '<span class="translation_missing" title="translation missing: en.translations.missing">Missing</span>'
     assert_equal expected, translate(:"translations.missing")
     assert_equal true, translate(:"translations.missing").html_safe?
+  end
+
+  def test_returns_missing_translation_message_with_unescaped_interpolation
+    expected = '<span class="translation_missing" title="translation missing: en.translations.missing, name: Kir, year: 2015, vulnerable: &amp;quot; onclick=&amp;quot;alert()&amp;quot;">Missing</span>'
+    assert_equal expected, translate(:"translations.missing", name: "Kir", year: "2015", vulnerable: %{" onclick="alert()"})
+    assert translate(:"translations.missing").html_safe?
   end
 
   def test_raises_missing_translation_message_with_raise_config_option
@@ -125,8 +133,9 @@ class TranslationHelperTest < ActiveSupport::TestCase
   end
 
   def test_translate_escapes_interpolations_in_translations_with_a_html_suffix
+    word_struct = Struct.new(:to_s)
     assert_equal '<a>Hello &lt;World&gt;</a>', translate(:'translations.interpolated_html', :word => '<World>')
-    assert_equal '<a>Hello &lt;World&gt;</a>', translate(:'translations.interpolated_html', :word => stub(:to_s => "<World>"))
+    assert_equal '<a>Hello &lt;World&gt;</a>', translate(:'translations.interpolated_html', :word => word_struct.new("<World>"))
   end
 
   def test_translate_with_html_count

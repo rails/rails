@@ -57,9 +57,6 @@ module ActiveRecord
     def test_empty_where_values_hash
       relation = Relation.new(FakeKlass, :b, nil)
       assert_equal({}, relation.where_values_hash)
-
-      relation.where! :hello
-      assert_equal({}, relation.where_values_hash)
     end
 
     def test_has_values
@@ -153,10 +150,10 @@ module ActiveRecord
     end
 
     test 'merging a hash into a relation' do
-      relation = Relation.new(FakeKlass, :b, nil)
-      relation = relation.merge where: :lol, readonly: true
+      relation = Relation.new(Post, Post.arel_table, Post.predicate_builder)
+      relation = relation.merge where: {name: :lol}, readonly: true
 
-      assert_equal Relation::WhereClause.new([:lol], []), relation.where_clause
+      assert_equal({"name"=>:lol}, relation.where_clause.to_h)
       assert_equal true, relation.readonly_value
     end
 
@@ -185,7 +182,7 @@ module ActiveRecord
     end
 
     test '#values returns a dup of the values' do
-      relation = Relation.new(FakeKlass, :b, nil).where! :foo
+      relation = Relation.new(Post, Post.arel_table, Post.predicate_builder).where!(name: :foo)
       values   = relation.values
 
       values[:where] = nil
@@ -319,6 +316,24 @@ module ActiveRecord
       assert_equal false, post.respond_to?(:title), "post should not respond_to?(:body) since invoking it raises exception"
     end
 
+    def test_select_quotes_when_using_from_clause
+      skip_if_sqlite3_version_includes_quoting_bug
+      quoted_join = ActiveRecord::Base.connection.quote_table_name("join")
+      selected = Post.select(:join).from(Post.select("id as #{quoted_join}")).map(&:join)
+      assert_equal Post.pluck(:id), selected
+    end
+
+    def test_selecting_aliased_attribute_quotes_column_name_when_from_is_used
+      skip_if_sqlite3_version_includes_quoting_bug
+      klass = Class.new(ActiveRecord::Base) do
+        self.table_name = :test_with_keyword_column_name
+        alias_attribute :description, :desc
+      end
+      klass.create!(description: "foo")
+
+      assert_equal ["foo"], klass.select(:description).from(klass.all).map(&:desc)
+    end
+
     def test_relation_merging_with_merged_joins_as_strings
       join_string = "LEFT OUTER JOIN #{Rating.quoted_table_name} ON #{SpecialComment.quoted_table_name}.id = #{Rating.quoted_table_name}.comment_id"
       special_comments_with_ratings = SpecialComment.joins join_string
@@ -352,6 +367,27 @@ module ActiveRecord
       UpdateAllTestModel.update_all(body: "value from user", type: nil) # No STI
 
       assert_equal "type cast from database", UpdateAllTestModel.first.body
+    end
+
+    private
+
+    def skip_if_sqlite3_version_includes_quoting_bug
+      if sqlite3_version_includes_quoting_bug?
+        skip <<-ERROR.squish
+          You are using an outdated version of SQLite3 which has a bug in
+          quoted column names. Please update SQLite3 and rebuild the sqlite3
+          ruby gem
+        ERROR
+      end
+    end
+
+    def sqlite3_version_includes_quoting_bug?
+      if current_adapter?(:SQLite3Adapter)
+        selected_quoted_column_names = ActiveRecord::Base.connection.exec_query(
+          'SELECT "join" FROM (SELECT id AS "join" FROM posts) subquery'
+        ).columns
+        ["join"] != selected_quoted_column_names
+      end
     end
   end
 end

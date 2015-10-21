@@ -9,7 +9,7 @@ module ActiveRecord
       extend ActiveSupport::Concern
 
       module ClassMethods
-        # Returns an <tt>ActiveRecord::Relation</tt> scope object.
+        # Returns an ActiveRecord::Relation scope object.
         #
         #   posts = Post.all
         #   posts.size # Fires "select count(*) from  posts" and returns the count
@@ -20,7 +20,7 @@ module ActiveRecord
         #   fruits = fruits.limit(10) if limited?
         #
         # You can define a scope that applies to all finders using
-        # <tt>ActiveRecord::Base.default_scope</tt>.
+        # {default_scope}[rdoc-ref:Scoping::Default::ClassMethods#default_scope].
         def all
           if current_scope
             current_scope.clone
@@ -39,8 +39,13 @@ module ActiveRecord
           end
         end
 
-        # Adds a class method for retrieving and querying objects. A \scope
-        # represents a narrowing of a database query, such as
+        # Adds a class method for retrieving and querying objects.
+        # The method is intended to return an ActiveRecord::Relation
+        # object, which is composable with other scopes.
+        # If it returns nil or false, an
+        # {all}[rdoc-ref:Scoping::Named::ClassMethods#all] scope is returned instead.
+        #
+        # A \scope represents a narrowing of a database query, such as
         # <tt>where(color: :red).select('shirts.*').includes(:washing_instructions)</tt>.
         #
         #   class Shirt < ActiveRecord::Base
@@ -48,12 +53,12 @@ module ActiveRecord
         #     scope :dry_clean_only, -> { joins(:washing_instructions).where('washing_instructions.dry_clean_only = ?', true) }
         #   end
         #
-        # The above calls to +scope+ define class methods <tt>Shirt.red</tt> and
+        # The above calls to #scope define class methods <tt>Shirt.red</tt> and
         # <tt>Shirt.dry_clean_only</tt>. <tt>Shirt.red</tt>, in effect,
         # represents the query <tt>Shirt.where(color: 'red')</tt>.
         #
         # You should always pass a callable object to the scopes defined
-        # with +scope+. This ensures that the scope is re-evaluated each
+        # with #scope. This ensures that the scope is re-evaluated each
         # time it is called.
         #
         # Note that this is simply 'syntactic sugar' for defining an actual
@@ -66,14 +71,15 @@ module ActiveRecord
         #   end
         #
         # Unlike <tt>Shirt.find(...)</tt>, however, the object returned by
-        # <tt>Shirt.red</tt> is not an Array; it resembles the association object
-        # constructed by a +has_many+ declaration. For instance, you can invoke
-        # <tt>Shirt.red.first</tt>, <tt>Shirt.red.count</tt>,
+        # <tt>Shirt.red</tt> is not an Array but an ActiveRecord::Relation,
+        # which is composable with other scopes; it resembles the association object
+        # constructed by a {has_many}[rdoc-ref:Associations::ClassMethods#has_many]
+        # declaration. For instance, you can invoke <tt>Shirt.red.first</tt>, <tt>Shirt.red.count</tt>,
         # <tt>Shirt.red.where(size: 'small')</tt>. Also, just as with the
         # association objects, named \scopes act like an Array, implementing
         # Enumerable; <tt>Shirt.red.each(&block)</tt>, <tt>Shirt.red.first</tt>,
         # and <tt>Shirt.red.inject(memo, &block)</tt> all behave as if
-        # <tt>Shirt.red</tt> really was an Array.
+        # <tt>Shirt.red</tt> really was an array.
         #
         # These named \scopes are composable. For instance,
         # <tt>Shirt.red.dry_clean_only</tt> will produce all shirts that are
@@ -84,7 +90,8 @@ module ActiveRecord
         #
         # All scopes are available as class methods on the ActiveRecord::Base
         # descendant upon which the \scopes were defined. But they are also
-        # available to +has_many+ associations. If,
+        # available to {has_many}[rdoc-ref:Associations::ClassMethods#has_many]
+        # associations. If,
         #
         #   class Person < ActiveRecord::Base
         #     has_many :shirts
@@ -93,8 +100,8 @@ module ActiveRecord
         # then <tt>elton.shirts.red.dry_clean_only</tt> will return all of
         # Elton's red, dry clean only shirts.
         #
-        # \Named scopes can also have extensions, just as with +has_many+
-        # declarations:
+        # \Named scopes can also have extensions, just as with
+        # {has_many}[rdoc-ref:Associations::ClassMethods#has_many] declarations:
         #
         #   class Shirt < ActiveRecord::Base
         #     scope :red, -> { where(color: 'red') } do

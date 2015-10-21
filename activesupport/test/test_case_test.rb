@@ -56,6 +56,14 @@ class AssertDifferenceTest < ActiveSupport::TestCase
     end
   end
 
+  def test_assert_difference_retval
+    incremented = assert_difference '@object.num', +1 do
+      @object.increment
+    end
+
+    assert_equal incremented, 1
+  end
+
   def test_assert_difference_with_implicit_difference
     assert_difference '@object.num' do
       @object.increment

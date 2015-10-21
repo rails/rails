@@ -104,4 +104,18 @@ class ConfirmationValidationTest < ActiveModel::TestCase
     assert_equal "expected title", model.title_confirmation,
      "confirmation validation should not override the writer"
   end
+
+  def test_title_confirmation_with_case_sensitive_option_true
+    Topic.validates_confirmation_of(:title, case_sensitive: true)
+
+    t = Topic.new(title: "title", title_confirmation: "Title")
+    assert t.invalid?
+  end
+
+  def test_title_confirmation_with_case_sensitive_option_false
+    Topic.validates_confirmation_of(:title, case_sensitive: false)
+
+    t = Topic.new(title: "title", title_confirmation: "Title")
+    assert t.valid?
+  end
 end

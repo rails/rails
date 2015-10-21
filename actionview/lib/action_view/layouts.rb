@@ -277,7 +277,7 @@ module ActionView
         remove_possible_method(:_layout)
 
         prefixes    = _implied_layout_name =~ /\blayouts/ ? [] : ["layouts"]
-        default_behavior = "lookup_context.find_all('#{_implied_layout_name}', #{prefixes.inspect}).first || super"
+        default_behavior = "lookup_context.find_all('#{_implied_layout_name}', #{prefixes.inspect}, false, [], { formats: formats }).first || super"
         name_clause = if name
           default_behavior
         else
@@ -315,25 +315,16 @@ module ActionView
             name_clause
         end
 
-        if self._layout_conditions.empty?
-          self.class_eval <<-RUBY, __FILE__, __LINE__ + 1
-            def _layout
+        self.class_eval <<-RUBY, __FILE__, __LINE__ + 1
+          def _layout(formats)
+            if _conditional_layout?
               #{layout_definition}
+            else
+              #{name_clause}
             end
-            private :_layout
-          RUBY
-        else
-          self.class_eval <<-RUBY, __FILE__, __LINE__ + 1
-            def _layout
-              if _conditional_layout?
-                #{layout_definition}
-              else
-                #{name_clause}
-              end
-            end
-            private :_layout
-          RUBY
-        end
+          end
+          private :_layout
+        RUBY
       end
 
       private
@@ -381,7 +372,7 @@ module ActionView
     end
 
     # This will be overwritten by _write_layout_method
-    def _layout; end
+    def _layout(*); end
 
     # Determine the layout for a given name, taking into account the name type.
     #
@@ -391,8 +382,8 @@ module ActionView
       case name
       when String     then _normalize_layout(name)
       when Proc       then name
-      when true       then Proc.new { _default_layout(true)  }
-      when :default   then Proc.new { _default_layout(false) }
+      when true       then Proc.new { |formats| _default_layout(formats, true)  }
+      when :default   then Proc.new { |formats| _default_layout(formats, false) }
       when false, nil then nil
       else
         raise ArgumentError,
@@ -408,14 +399,15 @@ module ActionView
     # Optionally raises an exception if the layout could not be found.
     #
     # ==== Parameters
+    # * <tt>formats</tt> - The formats accepted to this layout
     # * <tt>require_layout</tt> - If set to true and layout is not found,
-    #   an ArgumentError exception is raised (defaults to false)
+    #   an +ArgumentError+ exception is raised (defaults to false)
     #
     # ==== Returns
     # * <tt>template</tt> - The template object for the default layout (or nil)
-    def _default_layout(require_layout = false)
+    def _default_layout(formats, require_layout = false)
       begin
-        value = _layout if action_has_layout?
+        value = _layout(formats) if action_has_layout?
       rescue NameError => e
         raise e, "Could not render layout: #{e.message}"
       end

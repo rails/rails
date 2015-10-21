@@ -75,7 +75,7 @@ module ActionView #:nodoc:
   #
   #   Headline: <%= local_assigns[:headline] %>
   #
-  # This is useful in cases where you aren't sure if the local variable has been assigned. Alternately, you could also use
+  # This is useful in cases where you aren't sure if the local variable has been assigned. Alternatively, you could also use
   # <tt>defined? headline</tt> to first check if the variable has been assigned before using it.
   #
   # === Template caching
@@ -160,6 +160,10 @@ module ActionView #:nodoc:
     # Specify whether an error should be raised for missing translations
     cattr_accessor :raise_on_missing_translations
     @@raise_on_missing_translations = false
+
+    # Specify whether submit_tag should automatically disable on click
+    cattr_accessor :automatically_disable_submit_tag
+    @@automatically_disable_submit_tag = true
 
     class_attribute :_routes
     class_attribute :logger

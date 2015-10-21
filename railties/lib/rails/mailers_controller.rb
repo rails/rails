@@ -3,7 +3,7 @@ require 'rails/application_controller'
 class Rails::MailersController < Rails::ApplicationController # :nodoc:
   prepend_view_path ActionDispatch::DebugExceptions::RESCUES_TEMPLATE_PATH
 
-  before_action :require_local!
+  before_action :require_local!, unless: :show_previews?
   before_action :find_preview, only: :preview
 
   def index
@@ -26,12 +26,12 @@ class Rails::MailersController < Rails::ApplicationController # :nodoc:
 
           if part = find_part(part_type)
             response.content_type = part_type
-            render text: part.respond_to?(:decoded) ? part.decoded : part
+            render plain: part.respond_to?(:decoded) ? part.decoded : part
           else
             raise AbstractController::ActionNotFound, "Email part '#{part_type}' not found in #{@preview.name}##{@email_action}"
           end
         else
-          @part = find_preferred_part(request.format, Mime::HTML, Mime::TEXT)
+          @part = find_preferred_part(request.format, Mime[:html], Mime[:text])
           render action: 'email', layout: false, formats: %w[html]
         end
       else
@@ -41,6 +41,10 @@ class Rails::MailersController < Rails::ApplicationController # :nodoc:
   end
 
   protected
+    def show_previews?
+      ActionMailer::Base.show_previews
+    end
+
     def find_preview
       candidates = []
       params[:path].to_s.scan(%r{/|$}){ candidates << $` }

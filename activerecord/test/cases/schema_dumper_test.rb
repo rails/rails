@@ -215,7 +215,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
     def test_schema_dump_includes_length_for_mysql_blob_and_text_fields
       output = standard_dump
-      assert_match %r{t\.binary\s+"tiny_blob",\s+limit: 255$}, output
+      assert_match %r{t\.blob\s+"tiny_blob",\s+limit: 255$}, output
       assert_match %r{t\.binary\s+"normal_blob",\s+limit: 65535$}, output
       assert_match %r{t\.binary\s+"medium_blob",\s+limit: 16777215$}, output
       assert_match %r{t\.binary\s+"long_blob",\s+limit: 4294967295$}, output
@@ -239,7 +239,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
   def test_schema_dump_includes_decimal_options
     output = dump_all_table_schema([/^[^n]/])
-    assert_match %r{precision: 3,[[:space:]]+scale: 2,[[:space:]]+default: 2\.78}, output
+    assert_match %r{precision: 3,[[:space:]]+scale: 2,[[:space:]]+default: "2\.78"}, output
   end
 
   if current_adapter?(:PostgreSQLAdapter)
@@ -251,6 +251,11 @@ class SchemaDumperTest < ActiveRecord::TestCase
     def test_schema_dump_includes_limit_on_array_type
       output = standard_dump
       assert_match %r{t\.integer\s+"big_int_data_points\",\s+limit: 8,\s+array: true}, output
+    end
+
+    def test_schema_dump_allows_array_of_decimal_defaults
+      output = standard_dump
+      assert_match %r{t\.decimal\s+"decimal_array_default",\s+default: \["1.23", "3.45"\],\s+array: true}, output
     end
 
     if ActiveRecord::Base.connection.supports_extensions?

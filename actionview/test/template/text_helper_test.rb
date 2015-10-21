@@ -366,6 +366,10 @@ class TextHelperTest < ActionView::TestCase
     assert_equal options, passed_options
   end
 
+  def test_word_wrap_with_custom_break_sequence
+    assert_equal("1234567890\r\n1234567890\r\n1234567890", word_wrap("1234567890 " * 3, line_width: 2, break_sequence: "\r\n"))
+  end
+
   def test_pluralization
     assert_equal("1 count", pluralize(1, "count"))
     assert_equal("2 counts", pluralize(2, "count"))
@@ -381,6 +385,18 @@ class TextHelperTest < ActionView::TestCase
     assert_equal("10 buffaloes", pluralize(10, "buffalo"))
     assert_equal("1 berry", pluralize(1, "berry"))
     assert_equal("12 berries", pluralize(12, "berry"))
+  end
+
+  def test_pluralization_with_locale
+    ActiveSupport::Inflector.inflections(:de) do |inflect|
+      inflect.plural(/(person)$/i, '\1en')
+      inflect.singular(/(person)en$/i, '\1')
+    end
+
+    assert_equal("2 People", pluralize(2, "Person", locale: :en))
+    assert_equal("2 Personen", pluralize(2, "Person", locale: :de))
+
+    ActiveSupport::Inflector.inflections(:de).clear
   end
 
   def test_cycle_class

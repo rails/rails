@@ -1,57 +1,56 @@
 require 'rack/session/abstract/id'
 
 module ActionDispatch
-  class Request < Rack::Request
+  class Request
     # Session is responsible for lazily loading the session from store.
     class Session # :nodoc:
-      ENV_SESSION_KEY         = Rack::Session::Abstract::ENV_SESSION_KEY # :nodoc:
-      ENV_SESSION_OPTIONS_KEY = Rack::Session::Abstract::ENV_SESSION_OPTIONS_KEY # :nodoc:
+      ENV_SESSION_KEY         = Rack::RACK_SESSION # :nodoc:
+      ENV_SESSION_OPTIONS_KEY = Rack::RACK_SESSION_OPTIONS # :nodoc:
 
       # Singleton object used to determine if an optional param wasn't specified
       Unspecified = Object.new
       
       # Creates a session hash, merging the properties of the previous session if any
-      def self.create(store, env, default_options)
-        session_was = find env
-        session     = Request::Session.new(store, env)
+      def self.create(store, req, default_options)
+        session_was = find req
+        session     = Request::Session.new(store, req)
         session.merge! session_was if session_was
 
-        set(env, session)
-        Options.set(env, Request::Session::Options.new(store, env, default_options))
+        set(req, session)
+        Options.set(req, Request::Session::Options.new(store, default_options))
         session
       end
 
-      def self.find(env)
-        env[ENV_SESSION_KEY]
+      def self.find(req)
+        req.get_header ENV_SESSION_KEY
       end
 
-      def self.set(env, session)
-        env[ENV_SESSION_KEY] = session
+      def self.set(req, session)
+        req.set_header ENV_SESSION_KEY, session
       end
 
       class Options #:nodoc:
-        def self.set(env, options)
-          env[ENV_SESSION_OPTIONS_KEY] = options
+        def self.set(req, options)
+          req.set_header ENV_SESSION_OPTIONS_KEY, options
         end
 
-        def self.find(env)
-          env[ENV_SESSION_OPTIONS_KEY]
+        def self.find(req)
+          req.get_header ENV_SESSION_OPTIONS_KEY
         end
 
-        def initialize(by, env, default_options)
+        def initialize(by, default_options)
           @by       = by
-          @env      = env
           @delegate = default_options.dup
         end
 
         def [](key)
-          if key == :id
-            @delegate.fetch(key) {
-              @delegate[:id] = @by.send(:extract_session_id, @env)
-            }
-          else
-            @delegate[key]
-          end
+          @delegate[key]
+        end
+
+        def id(req)
+          @delegate.fetch(:id) {
+            @by.send(:extract_session_id, req)
+          }
         end
 
         def []=(k,v);         @delegate[k] = v; end
@@ -59,38 +58,40 @@ module ActionDispatch
         def values_at(*args); @delegate.values_at(*args); end
       end
 
-      def initialize(by, env)
+      def initialize(by, req)
         @by       = by
-        @env      = env
+        @req      = req
         @delegate = {}
         @loaded   = false
         @exists   = nil # we haven't checked yet
       end
 
       def id
-        options[:id]
+        options.id(@req)
       end
 
       def options
-        Options.find @env
+        Options.find @req
       end
 
       def destroy
         clear
         options = self.options || {}
-        new_sid = @by.send(:destroy_session, @env, options[:id], options)
-        options[:id] = new_sid # Reset session id with a new value or nil
+        @by.send(:delete_session, @req, options.id(@req), options)
 
         # Load the new sid to be written with the response
         @loaded = false
         load_for_write!
       end
 
+      # Returns value of the key stored in the session or
+      # nil if the given key is not found in the session.
       def [](key)
         load_for_read!
         @delegate[key.to_s]
       end
 
+      # Returns true if the session has the given key or false.
       def has_key?(key)
         load_for_read!
         @delegate.key?(key.to_s)
@@ -98,39 +99,69 @@ module ActionDispatch
       alias :key? :has_key?
       alias :include? :has_key?
 
+      # Returns keys of the session as Array.
       def keys
         @delegate.keys
       end
 
+      # Returns values of the session as Array.
       def values
         @delegate.values
       end
 
+      # Writes given value to given key of the session.
       def []=(key, value)
         load_for_write!
         @delegate[key.to_s] = value
       end
 
+      # Clears the session.
       def clear
         load_for_write!
         @delegate.clear
       end
 
+      # Returns the session as Hash.
       def to_hash
         load_for_read!
         @delegate.dup.delete_if { |_,v| v.nil? }
       end
 
+      # Updates the session with given Hash.
+      #
+      #   session.to_hash
+      #   # => {"session_id"=>"e29b9ea315edf98aad94cc78c34cc9b2"}
+      #
+      #   session.update({ "foo" => "bar" })
+      #   # => {"session_id"=>"e29b9ea315edf98aad94cc78c34cc9b2", "foo" => "bar"}
+      #
+      #   session.to_hash
+      #   # => {"session_id"=>"e29b9ea315edf98aad94cc78c34cc9b2", "foo" => "bar"}
       def update(hash)
         load_for_write!
         @delegate.update stringify_keys(hash)
       end
 
+      # Deletes given key from the session.
       def delete(key)
         load_for_write!
         @delegate.delete key.to_s
       end
 
+      # Returns value of given key from the session, or raises +KeyError+
+      # if can't find given key in case of not setted dafault value.
+      # Returns default value if specified.
+      #
+      #   session.fetch(:foo)
+      #   # => KeyError: key not found: "foo"
+      #
+      #   session.fetch(:foo, :bar)
+      #   # => :bar
+      #
+      #   session.fetch(:foo) do
+      #     :bar
+      #   end
+      #   # => :bar
       def fetch(key, default=Unspecified, &block)
         load_for_read!
         if default == Unspecified
@@ -150,7 +181,7 @@ module ActionDispatch
 
       def exists?
         return @exists unless @exists.nil?
-        @exists = @by.send(:session_exists?, @env)
+        @exists = @by.send(:session_exists?, @req)
       end
 
       def loaded?
@@ -178,7 +209,7 @@ module ActionDispatch
       end
 
       def load!
-        id, session = @by.load_session @env
+        id, session = @by.load_session @req
         options[:id] = id
         @delegate.replace(stringify_keys(session))
         @loaded = true

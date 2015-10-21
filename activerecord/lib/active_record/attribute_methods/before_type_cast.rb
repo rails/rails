@@ -2,7 +2,7 @@ module ActiveRecord
   module AttributeMethods
     # = Active Record Attribute Methods Before Type Cast
     #
-    # <tt>ActiveRecord::AttributeMethods::BeforeTypeCast</tt> provides a way to
+    # ActiveRecord::AttributeMethods::BeforeTypeCast provides a way to
     # read the value of the attributes before typecasting and deserialization.
     #
     #   class Task < ActiveRecord::Base

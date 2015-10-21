@@ -24,7 +24,7 @@ module ActiveRecord
         protected
 
         def define_method_attribute=(name)
-          safe_name = name.unpack('h*').first
+          safe_name = name.unpack('h*'.freeze).first
           ActiveRecord::AttributeMethods::AttrNames.set_name_cache safe_name, name
 
           generated_attribute_methods.module_eval <<-STR, __FILE__, __LINE__ + 1
@@ -45,7 +45,7 @@ module ActiveRecord
         write_attribute_with_type_cast(attr_name, value, true)
       end
 
-      def raw_write_attribute(attr_name, value)
+      def raw_write_attribute(attr_name, value) # :nodoc:
         write_attribute_with_type_cast(attr_name, value, false)
       end
 

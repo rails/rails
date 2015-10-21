@@ -20,6 +20,7 @@ module ActionView
 
   class TestCase
     helper ASharedTestHelper
+    DeveloperStruct = Struct.new(:name)
 
     module SharedTests
       def self.included(test_case)
@@ -50,7 +51,7 @@ module ActionView
     end
 
     test "works without testing a helper module" do
-      assert_equal 'Eloy', render('developers/developer', :developer => stub(:name => 'Eloy'))
+      assert_equal 'Eloy', render('developers/developer', :developer => DeveloperStruct.new('Eloy'))
     end
 
     test "can render a layout with block" do
@@ -69,13 +70,15 @@ module ActionView
     end
 
     test "delegates notice to request.flash[:notice]" do
-      view.request.flash.expects(:[]).with(:notice)
-      view.notice
+      assert_called_with(view.request.flash, :[], [:notice]) do
+        view.notice
+      end
     end
 
     test "delegates alert to request.flash[:alert]" do
-      view.request.flash.expects(:[]).with(:alert)
-      view.alert
+      assert_called_with(view.request.flash, :[], [:alert]) do
+        view.alert
+      end
     end
 
     test "uses controller lookup context" do
@@ -119,7 +122,7 @@ module ActionView
     test "helper class that is being tested is always included in view instance" do
       @controller.controller_path = 'test'
 
-      @customers = [stub(:name => 'Eloy'), stub(:name => 'Manfred')]
+      @customers = [DeveloperStruct.new('Eloy'), DeveloperStruct.new('Manfred')]
       assert_match(/Hello: EloyHello: Manfred/, render(:partial => 'test/from_helper'))
     end
   end
@@ -209,7 +212,7 @@ module ActionView
     end
 
     test "is able to use routes" do
-      controller.request.assign_parameters(@routes, 'foo', 'index')
+      controller.request.assign_parameters(@routes, 'foo', 'index', {}, '/foo', [])
       assert_equal '/foo', url_for
       assert_equal '/bar', url_for(:controller => 'bar')
     end
@@ -255,15 +258,15 @@ module ActionView
     end
 
     test "is able to render partials with local variables" do
-      assert_equal 'Eloy', render('developers/developer', :developer => stub(:name => 'Eloy'))
+      assert_equal 'Eloy', render('developers/developer', :developer => DeveloperStruct.new('Eloy'))
       assert_equal 'Eloy', render(:partial => 'developers/developer',
-                                  :locals => { :developer => stub(:name => 'Eloy') })
+                                  :locals => { :developer => DeveloperStruct.new('Eloy') })
     end
 
     test "is able to render partials from templates and also use instance variables" do
       @controller.controller_path = "test"
 
-      @customers = [stub(:name => 'Eloy'), stub(:name => 'Manfred')]
+      @customers = [DeveloperStruct.new('Eloy'), DeveloperStruct.new('Manfred')]
       assert_match(/Hello: EloyHello: Manfred/, render(:file => 'test/list'))
     end
 
@@ -272,7 +275,7 @@ module ActionView
 
       view
 
-      @customers = [stub(:name => 'Eloy'), stub(:name => 'Manfred')]
+      @customers = [DeveloperStruct.new('Eloy'), DeveloperStruct.new('Manfred')]
       assert_match(/Hello: EloyHello: Manfred/, render(:file => 'test/list'))
     end
 
@@ -303,64 +306,6 @@ module ActionView
 
       assert_select 'form'
       assert_select 'b.foo'
-    end
-  end
-
-  class RenderTemplateTest < ActionView::TestCase
-    test "supports specifying templates with a Regexp" do
-      controller.controller_path = "fun"
-      render(:template => "fun/games/hello_world")
-      assert_template %r{\Afun/games/hello_world\Z}
-    end
-
-    test "supports specifying partials" do
-      controller.controller_path = "test"
-      render(:template => "test/calling_partial_with_layout")
-      assert_template :partial => "_partial_for_use_in_layout"
-    end
-
-    test "supports specifying locals (passing)" do
-      controller.controller_path = "test"
-      render(:template => "test/calling_partial_with_layout")
-      assert_template :partial => "_partial_for_use_in_layout", :locals => { :name => "David" }
-    end
-
-    test "supports specifying locals (failing)" do
-      controller.controller_path = "test"
-      render(:template => "test/calling_partial_with_layout")
-      e = assert_raise ActiveSupport::TestCase::Assertion do
-        assert_template :partial => "_partial_for_use_in_layout", :locals => { :name => "Somebody Else" }
-      end
-      assert_match(/Somebody Else.*David/m, e.message)
-    end
-
-    test 'supports different locals on the same partial' do
-      controller.controller_path = "test"
-      render(:template => "test/render_two_partials")
-      assert_template partial: '_partial', locals: { 'first' => '1' }
-      assert_template partial: '_partial', locals: { 'second' => '2' }
-    end
-
-    test 'raises descriptive error message when template was not rendered' do
-      controller.controller_path = "test"
-      render(template: "test/hello_world_with_partial")
-      e = assert_raise ActiveSupport::TestCase::Assertion do
-        assert_template partial: 'i_was_never_rendered', locals: { 'did_not' => 'happen' }
-      end
-      assert_match "i_was_never_rendered to be rendered but it was not.", e.message
-      assert_match 'Expected ["/test/partial"] to include "i_was_never_rendered"', e.message
-    end
-
-    test 'specifying locals works when the partial is inside a directory with underline prefix' do
-      controller.controller_path = "test"
-      render(template: 'test/render_partial_inside_directory')
-      assert_template partial: 'test/_directory/_partial_with_locales', locals: { 'name' => 'Jane' }
-    end
-
-    test 'specifying locals works when the partial is inside a directory without underline prefix' do
-      controller.controller_path = "test"
-      render(template: 'test/render_partial_inside_directory')
-      assert_template partial: 'test/_directory/partial_with_locales', locals: { 'name' => 'Jane' }
     end
   end
 

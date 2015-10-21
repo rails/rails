@@ -6,6 +6,7 @@ module ActiveSupport
   #   h[:girl] = 'Mary'
   #   h[:boy]  # => 'John'
   #   h[:girl] # => 'Mary'
+  #   h[:dog]  # => nil
   #
   # Using +OrderedOptions+, the above code could be reduced to:
   #
@@ -14,6 +15,13 @@ module ActiveSupport
   #   h.girl = 'Mary'
   #   h.boy  # => 'John'
   #   h.girl # => 'Mary'
+  #   h.dog  # => nil
+  #
+  # To raise an exception when the value is blank, append a
+  # bang to the key name, like:
+  #
+  #   h.dog! # => raises KeyError
+  #
   class OrderedOptions < Hash
     alias_method :_get, :[] # preserve the original #[] method
     protected :_get # make it protected

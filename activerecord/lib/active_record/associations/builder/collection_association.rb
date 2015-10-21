@@ -2,7 +2,7 @@
 
 require 'active_record/associations'
 
-module ActiveRecord::Associations::Builder
+module ActiveRecord::Associations::Builder # :nodoc:
   class CollectionAssociation < Association #:nodoc:
 
     CALLBACKS = [:before_add, :after_add, :before_remove, :after_remove]

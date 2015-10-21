@@ -1,4 +1,4 @@
-require 'thread_safe'
+require 'concurrent'
 require 'openssl'
 
 module ActiveSupport
@@ -28,7 +28,7 @@ module ActiveSupport
   class CachingKeyGenerator
     def initialize(key_generator)
       @key_generator = key_generator
-      @cache_keys = ThreadSafe::Cache.new
+      @cache_keys = Concurrent::Map.new
     end
 
     # Returns a derived key suitable for use.  The default key_size is chosen

@@ -50,6 +50,13 @@ module ActiveRecord
       class_attribute :pluralize_table_names, instance_writer: false
       self.pluralize_table_names = true
 
+      ##
+      # :singleton-method:
+      # Accessor for the list of columns names the model should ignore. Ignored columns won't have attribute
+      # accessors defined, and won't be referenced in SQL queries.
+      class_attribute :ignored_columns, instance_accessor: false
+      self.ignored_columns = [].freeze
+
       self.inheritance_column = 'type'
 
       delegate :type_for_attribute, to: :class
@@ -213,7 +220,7 @@ module ActiveRecord
 
       # Indicates whether the table associated with this class exists
       def table_exists?
-        connection.schema_cache.table_exists?(table_name)
+        connection.schema_cache.data_source_exists?(table_name)
       end
 
       def attributes_builder # :nodoc:
@@ -240,7 +247,7 @@ module ActiveRecord
       end
 
       # Returns a hash where the keys are column names and the values are
-      # default values when instantiating the AR object for this table.
+      # default values when instantiating the Active Record object for this table.
       def column_defaults
         load_schema
         _default_attributes.to_hash
@@ -290,7 +297,7 @@ module ActiveRecord
       def reset_column_information
         connection.clear_cache!
         undefine_attribute_methods
-        connection.schema_cache.clear_table_cache!(table_name)
+        connection.schema_cache.clear_data_source_cache!(table_name)
 
         reload_schema_from_cache
       end
@@ -308,8 +315,9 @@ module ActiveRecord
       end
 
       def load_schema!
-        @columns_hash = connection.schema_cache.columns_hash(table_name)
+        @columns_hash = connection.schema_cache.columns_hash(table_name).except(*ignored_columns)
         @columns_hash.each do |name, column|
+          warn_if_deprecated_type(column)
           define_attribute(
             name,
             connection.lookup_cast_type_from_column(column),
@@ -354,6 +362,28 @@ module ActiveRecord
         else
           # STI subclasses always use their superclass' table.
           base.table_name
+        end
+      end
+
+      def warn_if_deprecated_type(column)
+        return if attributes_to_define_after_schema_loads.key?(column.name)
+        if column.respond_to?(:oid) && column.sql_type.start_with?("point")
+          if column.array?
+            array_arguments = ", array: true"
+          else
+            array_arguments = ""
+          end
+          ActiveSupport::Deprecation.warn(<<-WARNING.strip_heredoc)
+            The behavior of the `:point` type will be changing in Rails 5.1 to
+            return a `Point` object, rather than an `Array`. If you'd like to
+            keep the old behavior, you can add this line to #{self.name}:
+
+              attribute :#{column.name}, :legacy_point#{array_arguments}
+
+            If you'd like the new behavior today, you can add this line:
+
+              attribute :#{column.name}, :rails_5_1_point#{array_arguments}
+          WARNING
         end
       end
     end

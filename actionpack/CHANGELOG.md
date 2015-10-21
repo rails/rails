@@ -1,3 +1,190 @@
+*   Parse RSS/ATOM responses as XML, not HTML.
+
+    *Alexander Kaupanin*
+
+*   Show helpful message in `BadRequest` exceptions due to invalid path
+    parameter encodings.
+
+    Fixes #21923.
+
+    *Agis Anastasopoulos*
+
+*   Deprecate `config.static_cache_control` in favor of
+    `config.public_file_server.headers`
+
+    *Yuki Nishijima*
+
+*   Add the ability of returning arbitrary headers to ActionDispatch::Static
+
+    Now ActionDispatch::Static can accept HTTP headers so that developers
+    will have control of returning arbitrary headers like
+    'Access-Control-Allow-Origin' when a response is delivered. They can be
+    configured with `#config`:
+
+      config.public_file_server.headers = {
+        "Cache-Control"               => "public, max-age=60",
+        "Access-Control-Allow-Origin" => "http://rubyonrails.org"
+      }
+
+    *Yuki Nishijima*
+
+*   Allow multiple `root` routes in same scope level. Example:
+
+    ```ruby
+    root 'blog#show', constraints: ->(req) { Hostname.blog_site?(req.host) }
+    root 'landing#show'
+    ```
+    *Rafael Sales*
+
+*   Fix regression in mounted engine named routes generation for app deployed to
+    a subdirectory. `relative_url_root` was prepended to the path twice (e.g.
+    "/subdir/subdir/engine_path" instead of "/subdir/engine_path")
+
+    Fixes #20920. Fixes #21459.
+
+    *Matthew Erhard*
+
+*   ActionDispatch::Response#new no longer applies default headers.  If you want
+    default headers applied to the response object, then call
+    `ActionDispatch::Response.create`.  This change only impacts people who are
+    directly constructing an `ActionDispatch::Response` object.
+
+*   Accessing mime types via constants like `Mime::HTML` is deprecated.  Please
+    change code like this:
+
+      Mime::HTML
+
+    To this:
+
+      Mime[:html]
+
+    This change is so that Rails will not manage a list of constants, and fixes
+    an issue where if a type isn't registered you could possibly get the wrong
+    object.
+
+    `Mime[:html]` is available in older versions of Rails, too, so you can
+    safely change libraries and plugins and maintain compatibility with
+    multiple versions of Rails.
+
+*   `url_for` does not modify its arguments when generating polymorphic URLs.
+
+    *Bernerd Schaefer*
+
+*   Make it easier to opt in to `config.force_ssl` and `config.ssl_options` by
+    making them less dangerous to try and easier to disable.
+
+    SSL redirect:
+      * Move `:host` and `:port` options within `redirect: { … }`. Deprecate.
+      * Introduce `:status` and `:body` to customize the redirect response.
+        The 301 permanent default makes it difficult to test the redirect and
+        back out of it since browsers remember the 301. Test with a 302 or 307
+        instead, then switch to 301 once you're confident that all is well.
+
+    HTTP Strict Transport Security (HSTS):
+      * Shorter max-age. Shorten the default max-age from 1 year to 180 days,
+        the low end for https://www.ssllabs.com/ssltest/ grading and greater
+        than the 18-week minimum to qualify for browser preload lists.
+      * Disabling HSTS. Setting `hsts: false` now sets `hsts { expires: 0 }`
+        instead of omitting the header. Omitting does nothing to disable HSTS
+        since browsers hang on to your previous settings until they expire.
+        Sending `{ hsts: { expires: 0 }}` flushes out old browser settings and
+        actually disables HSTS:
+          http://tools.ietf.org/html/rfc6797#section-6.1.1
+      * HSTS Preload. Introduce `preload: true` to set the `preload` flag,
+        indicating that your site may be included in browser preload lists,
+        including Chrome, Firefox, Safari, IE11, and Edge. Submit your site:
+          https://hstspreload.appspot.com
+
+    *Jeremy Daer*
+
+*   Update `ActionController::TestSession#fetch` to behave more like
+    `ActionDispatch::Request::Session#fetch` when using non-string keys.
+
+    *Jeremy Friesen*
+
+*   Using strings or symbols for middleware class names is deprecated.  Convert
+    things like this:
+
+      middleware.use "Foo::Bar"
+
+    to this:
+
+      middleware.use Foo::Bar
+
+*   ActionController::TestSession now accepts a default value as well as
+    a block for generating a default value based off the key provided.
+
+    This fixes calls to session#fetch in ApplicationController instances that
+    take more two arguments or a block from raising `ArgumentError: wrong
+    number of arguments (2 for 1)` when performing controller tests.
+
+    *Matthew Gerrior*
+
+*   Fix `ActionController::Parameters#fetch` overwriting `KeyError` returned by
+    default block.
+
+    *Jonas Schuber Erlandsson*, *Roque Pinel*
+
+*   `ActionController::Parameters` no longer inherits from
+    `HashWithIndifferentAccess`
+
+    Inheriting from `HashWithIndifferentAccess` allowed users to call any
+    enumerable methods on `Parameters` object, resulting in a risk of losing the
+    `permitted?` status or even getting back a pure `Hash` object instead of
+    a `Parameters` object with proper sanitization.
+
+    By not inheriting from `HashWithIndifferentAccess`, we are able to make
+    sure that all methods that are defined in `Parameters` object will return
+    a proper `Parameters` object with a correct `permitted?` flag.
+
+    *Prem Sichanugrist*
+
+*   Replaced `ActiveSupport::Concurrency::Latch` with `Concurrent::CountDownLatch`
+    from the concurrent-ruby gem.
+
+    *Jerry D'Antonio*
+
+*   Add ability to filter parameters based on parent keys.
+
+        # matches {credit_card: {code: "xxxx"}}
+        # doesn't match {file: { code: "xxxx"}}
+        config.filter_parameters += [ "credit_card.code" ]
+
+    See #13897.
+
+    *Guillaume Malette*
+
+*   Deprecate passing first parameter as `Hash` and default status code for `head` method.
+
+    *Mehmet Emin İNAÇ*
+
+*   Adds`Rack::Utils::ParameterTypeError` and `Rack::Utils::InvalidParameterError`
+    to the rescue_responses hash in `ExceptionWrapper` (Rack recommends
+    integrators serve 400s for both of these).
+
+    *Grey Baker*
+
+*   Add support for API only apps.
+    ActionController::API is added as a replacement of
+    ActionController::Base for this kind of applications.
+
+    *Santiago Pastorino & Jorge Bejar*
+
+*   Remove `assigns` and `assert_template`. Both methods have been extracted
+    into a gem at https://github.com/rails/rails-controller-testing.
+
+    See #18950.
+
+    *Alan Guo Xiang Tan*
+
+*   `FileHandler` and `Static` middleware initializers accept `index` argument
+    to configure the directory index file name. Defaults to `index` (as in
+    `index.html`).
+
+    See #20017.
+
+    *Eliot Sykes*
+
 *   Deprecate `:nothing` option for `render` method.
 
     *Mehmet Emin İNAÇ*
@@ -53,6 +240,16 @@
     `Actiondispatch::Http:URL.host` to raise a `NoMethodError`.
 
     *Adam Forsyth*
+
+*   Allow `Bearer` as token-keyword in `Authorization-Header`.
+
+    Aditionally to `Token`, the keyword `Bearer` is acceptable as a keyword
+    for the auth-token. The `Bearer` keyword is described in the original
+    OAuth RFC and used in libraries like Angular-JWT.
+
+    See #19094.
+
+    *Peter Schröder*
 
 *   Drop request class from RouteSet constructor.
 
@@ -113,7 +310,8 @@
     *arthurnn*
 
 *   `ActionController#translate` supports symbols as shortcuts.
-    When shortcut is given it also lookups without action name.
+    When a shortcut is given it also performs the lookup without the action
+    name.
 
     *Max Melentiev*
 
@@ -181,13 +379,13 @@
 
 *   Preserve default url options when generating URLs.
 
-    Fixes an issue that would cause default_url_options to be lost when
+    Fixes an issue that would cause `default_url_options` to be lost when
     generating URLs with fewer positional arguments than parameters in the
     route definition.
 
     *Tekin Suleyman*
 
-*   Deprecate *_via_redirect integration test methods.
+*   Deprecate `*_via_redirect` integration test methods.
 
     Use `follow_redirect!` manually after the request call for the same behavior.
 
@@ -210,11 +408,11 @@
 
     *Jonas Baumann*
 
-*   Deprecate all *_filter callbacks in favor of *_action callbacks.
+*   Deprecate all `*_filter` callbacks in favor of `*_action` callbacks.
 
     *Rafael Mendonça França*
 
-*   Allow you to pass `prepend: false` to protect_from_forgery to have the
+*   Allow you to pass `prepend: false` to `protect_from_forgery` to have the
     verification callback appended instead of prepended to the chain.
     This allows you to let the verification step depend on prior callbacks.
 

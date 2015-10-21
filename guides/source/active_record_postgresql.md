@@ -85,7 +85,7 @@ Book.where("array_length(ratings, 1) >= 3")
 
 * [type definition](http://www.postgresql.org/docs/current/static/hstore.html)
 
-NOTE: you need to enable the `hstore` extension to use hstore.
+NOTE: You need to enable the `hstore` extension to use hstore.
 
 ```ruby
 # db/migrate/20131009135255_create_profiles.rb
@@ -220,11 +220,22 @@ normal text columns:
 
 ```ruby
 # db/migrate/20131220144913_create_articles.rb
-execute <<-SQL
-  CREATE TYPE article_status AS ENUM ('draft', 'published');
-SQL
-create_table :articles do |t|
-  t.column :status, :article_status
+def up
+  execute <<-SQL
+    CREATE TYPE article_status AS ENUM ('draft', 'published');
+  SQL
+  create_table :articles do |t|
+    t.column :status, :article_status
+  end
+end
+
+# NOTE: It's important to drop table before dropping enum.
+def down
+  drop_table :articles
+
+  execute <<-SQL
+    DROP TYPE article_status;
+  SQL
 end
 
 # app/models/article.rb
@@ -240,19 +251,46 @@ article.status = "published"
 article.save!
 ```
 
+To add a new value before/after existing one you should use [ALTER TYPE](http://www.postgresql.org/docs/current/static/sql-altertype.html):
+
+```ruby
+# db/migrate/20150720144913_add_new_state_to_articles.rb
+# NOTE: ALTER TYPE ... ADD VALUE cannot be executed inside of a transaction block so here we are using disable_ddl_transaction!
+disable_ddl_transaction!
+
+def up
+  execute <<-SQL
+    ALTER TYPE article_status ADD VALUE IF NOT EXISTS 'archived' AFTER 'published';
+  SQL
+end
+```
+
+NOTE: ENUM values can't be dropped currently. You can read why [here](http://www.postgresql.org/message-id/29F36C7C98AB09499B1A209D48EAA615B7653DBC8A@mail2a.alliedtesting.com).
+
+Hint: to show all the values of the all enums you have, you should call this query in `bin/rails db` or `psql` console:
+
+```sql
+SELECT n.nspname AS enum_schema,
+       t.typname AS enum_name,
+       e.enumlabel AS enum_value
+  FROM pg_type t
+      JOIN pg_enum e ON t.oid = e.enumtypid
+      JOIN pg_catalog.pg_namespace n ON n.oid = t.typnamespace
+```
+
 ### UUID
 
 * [type definition](http://www.postgresql.org/docs/current/static/datatype-uuid.html)
 * [pgcrypto generator function](http://www.postgresql.org/docs/current/static/pgcrypto.html#AEN159361)
 * [uuid-ossp generator functions](http://www.postgresql.org/docs/current/static/uuid-ossp.html)
 
-NOTE: you need to enable the `pgcrypto` (only PostgreSQL >= 9.4) or `uuid-ossp`
+NOTE: You need to enable the `pgcrypto` (only PostgreSQL >= 9.4) or `uuid-ossp`
 extension to use uuid.
 
 ```ruby
 # db/migrate/20131220144913_create_revisions.rb
 create_table :revisions do |t|
-  t.column :identifier, :uuid
+  t.uuid :identifier
 end
 
 # app/models/revision.rb
@@ -266,13 +304,14 @@ revision = Revision.first
 revision.identifier # => "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
 ```
 
-You can use `uuid` type to define references in migrations
+You can use `uuid` type to define references in migrations:
 
 ```ruby
 # db/migrate/20150418012400_create_blog.rb
-create_table :posts, id: :uuid
+enable_extension 'pgcrypto' unless extension_enabled?('pgcrypto')
+create_table :posts, id: :uuid, default: 'gen_random_uuid()'
 
-create_table :comments, id: :uuid do |t|
+create_table :comments, id: :uuid, default: 'gen_random_uuid()' do |t|
   # t.belongs_to :post, type: :uuid
   t.references :post, type: :uuid
 end
@@ -287,6 +326,8 @@ class Comment < ActiveRecord::Base
   belongs_to :post
 end
 ```
+
+See [this section](#uuid-primary-keys) for more details on using UUIDs as primary key.
 
 ### Bit String Types
 
@@ -358,7 +399,7 @@ A point is casted to an array containing `x` and `y` coordinates.
 UUID Primary Keys
 -----------------
 
-NOTE: you need to enable the `pgcrypto` (only PostgreSQL >= 9.4) or `uuid-ossp`
+NOTE: You need to enable the `pgcrypto` (only PostgreSQL >= 9.4) or `uuid-ossp`
 extension to generate random UUIDs.
 
 ```ruby
@@ -376,6 +417,9 @@ end
 device = Device.create
 device.id # => "814865cd-5a1d-4771-9306-4268f188fe9e"
 ```
+
+NOTE: `uuid_generate_v4()` (from `uuid-ossp`) is assumed if no `:default` option was
+passed to `create_table`.
 
 Full Text Search
 ----------------

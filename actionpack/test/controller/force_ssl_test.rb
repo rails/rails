@@ -2,11 +2,11 @@ require 'abstract_unit'
 
 class ForceSSLController < ActionController::Base
   def banana
-    render :text => "monkey"
+    render plain: "monkey"
   end
 
   def cheeseburger
-    render :text => "sikachu"
+    render plain: "sikachu"
   end
 end
 
@@ -26,7 +26,7 @@ class ForceSSLCustomOptions < ForceSSLController
   force_ssl :notice => 'Foo, Bar!', :only => :redirect_notice
 
   def force_ssl_action
-    render :text => action_name
+    render plain: action_name
   end
 
   alias_method :redirect_host, :force_ssl_action
@@ -40,15 +40,15 @@ class ForceSSLCustomOptions < ForceSSLController
   alias_method :redirect_notice, :force_ssl_action
 
   def use_flash
-    render :text => flash[:message]
+    render plain: flash[:message]
   end
 
   def use_alert
-    render :text => flash[:alert]
+    render plain: flash[:alert]
   end
 
   def use_notice
-    render :text => flash[:notice]
+    render plain: flash[:notice]
   end
 end
 
@@ -85,10 +85,10 @@ end
 
 class RedirectToSSL < ForceSSLController
   def banana
-    force_ssl_redirect || render(:text => 'monkey')
+    force_ssl_redirect || render(plain: 'monkey')
   end
   def cheeseburger
-    force_ssl_redirect('secure.cheeseburger.host') || render(:text => 'ihaz')
+    force_ssl_redirect('secure.cheeseburger.host') || render(plain: 'ihaz')
   end
 end
 
@@ -240,8 +240,8 @@ class ForceSSLFlashTest < ActionController::TestCase
     @request.env.delete('PATH_INFO')
 
     get :use_flash
-    assert_equal "hello", assigns["flash_copy"]["that"]
-    assert_equal "hello", assigns["flashy"]
+    assert_equal "hello", @controller.instance_variable_get("@flash_copy")["that"]
+    assert_equal "hello", @controller.instance_variable_get("@flashy")
   end
 end
 

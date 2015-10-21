@@ -5,16 +5,22 @@ class WebServiceTest < ActionDispatch::IntegrationTest
   class TestController < ActionController::Base
     def assign_parameters
       if params[:full]
-        render :text => dump_params_keys
+        render plain: dump_params_keys
       else
-        render :text => (params.keys - ['controller', 'action']).sort.join(", ")
+        render plain: (params.keys - ['controller', 'action']).sort.join(", ")
       end
     end
 
     def dump_params_keys(hash = params)
       hash.keys.sort.inject("") do |s, k|
         value = hash[k]
-        value = Hash === value ? "(#{dump_params_keys(value)})" : ""
+
+        if value.is_a?(Hash) || value.is_a?(ActionController::Parameters)
+          value = "(#{dump_params_keys(value)})"
+        else
+          value = ""
+        end
+
         s << ", " unless s.empty?
         s << "#{k}#{value}"
       end
@@ -59,7 +65,7 @@ class WebServiceTest < ActionDispatch::IntegrationTest
 
   def test_register_and_use_json_simple
     with_test_route_set do
-      with_params_parsers Mime::JSON => Proc.new { |data| ActiveSupport::JSON.decode(data)['request'].with_indifferent_access } do
+      with_params_parsers Mime[:json] => Proc.new { |data| ActiveSupport::JSON.decode(data)['request'].with_indifferent_access } do
         post "/",
           params: '{"request":{"summary":"content...","title":"JSON"}}',
           headers: { 'CONTENT_TYPE' => 'application/json' }
@@ -91,24 +97,28 @@ class WebServiceTest < ActionDispatch::IntegrationTest
   end
 
   def test_parsing_json_doesnot_rescue_exception
-    with_test_route_set do
-      with_params_parsers Mime::JSON => Proc.new { |data| raise Interrupt } do
-        assert_raises(Interrupt) do
-          post "/",
-            params: '{"title":"JSON"}}',
-            headers: { 'CONTENT_TYPE' => 'application/json' }
-        end
+    req = Class.new(ActionDispatch::Request) do
+      def params_parsers
+        { Mime[:json] => Proc.new { |data| raise Interrupt } }
       end
+
+      def content_length; get_header('rack.input').length; end
+    end.new({ 'rack.input' => StringIO.new('{"title":"JSON"}}'), 'CONTENT_TYPE' => 'application/json' })
+
+    assert_raises(Interrupt) do
+      req.request_parameters
     end
   end
 
   private
     def with_params_parsers(parsers = {})
       old_session = @integration_session
-      @app = ActionDispatch::ParamsParser.new(app.routes, parsers)
+      original_parsers = ActionDispatch::Request.parameter_parsers
+      ActionDispatch::Request.parameter_parsers = original_parsers.merge parsers
       reset!
       yield
     ensure
+      ActionDispatch::Request.parameter_parsers = original_parsers
       @integration_session = old_session
     end
 

@@ -1,7 +1,7 @@
 require "cases/helper"
 require 'support/connection_helper'
 
-class PostgresqlDomainTest < ActiveRecord::TestCase
+class PostgresqlDomainTest < ActiveRecord::PostgreSQLTestCase
   include ConnectionHelper
 
   class PostgresqlDomain < ActiveRecord::Base

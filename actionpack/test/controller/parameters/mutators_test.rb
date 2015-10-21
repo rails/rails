@@ -62,11 +62,15 @@ class ParametersMutatorsTest < ActiveSupport::TestCase
   end
 
   test "select! retains permitted status" do
+    jruby_skip "https://github.com/jruby/jruby/issues/3137"
+
     @params.permit!
     assert @params.select! { |k| k != "person" }.permitted?
   end
 
   test "select! retains unpermitted status" do
+    jruby_skip "https://github.com/jruby/jruby/issues/3137"
+
     assert_not @params.select! { |k| k != "person" }.permitted?
   end
 

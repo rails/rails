@@ -164,7 +164,7 @@ class String
   #
   #   <%= link_to(@person.name, person_path) %>
   #   # => <a href="/person/1-donald-e-knuth">Donald E. Knuth</a>
-  def parameterize(sep = '-')
+  def parameterize(sep = '-'.freeze)
     ActiveSupport::Inflector.parameterize(self, sep)
   end
 
@@ -172,7 +172,7 @@ class String
   # uses the +pluralize+ method on the last word in the string.
   #
   #   'RawScaledScorer'.tableize # => "raw_scaled_scorers"
-  #   'egg_and_ham'.tableize     # => "egg_and_hams"
+  #   'ham_and_egg'.tableize     # => "ham_and_eggs"
   #   'fancyCategory'.tableize   # => "fancy_categories"
   def tableize
     ActiveSupport::Inflector.tableize(self)
@@ -182,7 +182,7 @@ class String
   # Note that this returns a string and not a class. (To convert to an actual class
   # follow +classify+ with +constantize+.)
   #
-  #   'egg_and_hams'.classify # => "EggAndHam"
+  #   'ham_and_eggs'.classify # => "HamAndEgg"
   #   'posts'.classify        # => "Post"
   def classify
     ActiveSupport::Inflector.classify(self)

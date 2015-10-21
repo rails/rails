@@ -149,8 +149,10 @@ false` as an argument. This technique should be used with caution.
 
 ### `valid?` and `invalid?`
 
-To verify whether or not an object is valid, Rails uses the `valid?` method.
-You can also use this method on your own. `valid?` triggers your validations
+Before saving an ActiveRecord object, Rails runs your validations.
+If these validations produce any errors, Rails does not save the object.
+
+You can also run these validations on your own. `valid?` triggers your validations
 and returns true if no errors were found in the object, and false otherwise.
 As you saw above:
 
@@ -168,8 +170,9 @@ through the `errors.messages` instance method, which returns a collection of err
 By definition, an object is valid if this collection is empty after running
 validations.
 
-Note that an object instantiated with `new` will not report errors even if it's
-technically invalid, because validations are not run when using `new`.
+Note that an object instantiated with `new` will not report errors
+even if it's technically invalid, because validations are automatically run
+only when the object is saved, such as with the `create` or `save` methods.
 
 ```ruby
 class Person < ActiveRecord::Base
@@ -242,7 +245,7 @@ end
 
 >> person = Person.new
 >> person.valid?
->> person.errors.details[:name] #=> [{error: :blank}]
+>> person.errors.details[:name] # => [{error: :blank}]
 ```
 
 Using `details` with custom validators is covered in the [Working with
@@ -273,9 +276,13 @@ available helpers.
 This method validates that a checkbox on the user interface was checked when a
 form was submitted. This is typically used when the user needs to agree to your
 application's terms of service, confirm that some text is read, or any similar
-concept. This validation is very specific to web applications and this
-'acceptance' does not need to be recorded anywhere in your database (if you
-don't have a field for it, the helper will just create a virtual attribute).
+concept.
+
+This validation is very specific to web applications and this
+'acceptance' does not need to be recorded anywhere in your database. If you
+don't have a field for it, the helper will just create a virtual attribute. If
+the field does exist in your database, the `accept` option must be set to
+`true` or else the validation will not run.
 
 ```ruby
 class Person < ActiveRecord::Base
@@ -345,6 +352,16 @@ confirmation, make sure to add a presence check for the confirmation attribute
 class Person < ActiveRecord::Base
   validates :email, confirmation: true
   validates :email_confirmation, presence: true
+end
+```
+
+There is also a `:case_sensitive` option that you can use to define whether the
+confirmation constraint will be case sensitive or not. This option defaults to
+true.
+
+```ruby
+class Person < ActiveRecord::Base
+  validates :email, confirmation: { case_sensitive: false }
 end
 ```
 
@@ -552,7 +569,6 @@ Since `false.blank?` is true, if you want to validate the presence of a boolean
 field you should use one of the following validations:
 
 ```ruby
-validates :boolean_field_name, presence: true
 validates :boolean_field_name, inclusion: { in: [true, false] }
 validates :boolean_field_name, exclusion: { in: [nil] }
 ```
@@ -627,7 +643,7 @@ class Holiday < ActiveRecord::Base
     message: "should happen once per year" }
 end
 ```
-Should you wish to create a database constraint to prevent possible violations of a uniqueness validation using the `:scope` option, you must create a unique index on both columns in your database. See [the MySQL manual](http://dev.mysql.com/doc/refman/5.6/en/multiple-column-indexes.html) for more details about multiple column indexes or [the PostgreSQL manual](http://www.postgresql.org/docs/current/static/ddl-constraints.html) for examples of unique constraints that refer to a group of columns.
+Should you wish to create a database constraint to prevent possible violations of a uniqueness validation using the `:scope` option, you must create a unique index on both columns in your database. See [the MySQL manual](http://dev.mysql.com/doc/refman/5.7/en/multiple-column-indexes.html) for more details about multiple column indexes or [the PostgreSQL manual](http://www.postgresql.org/docs/current/static/ddl-constraints.html) for examples of unique constraints that refer to a group of columns.
 
 There is also a `:case_sensitive` option that you can use to define whether the
 uniqueness constraint will be case sensitive or not. This option defaults to
@@ -966,11 +982,16 @@ own custom validators.
 
 You can also create methods that verify the state of your models and add
 messages to the `errors` collection when they are invalid. You must then
-register these methods by using the `validate` class method, passing in the
-symbols for the validation methods' names.
+register these methods by using the `validate`
+([API](http://api.rubyonrails.org/classes/ActiveModel/Validations/ClassMethods.html#method-i-validate))
+class method, passing in the symbols for the validation methods' names.
 
 You can pass more than one symbol for each class method and the respective
 validations will be run in the same order as they were registered.
+
+The `valid?` method will verify that the errors collection is empty,
+so your custom validation methods should add errors to it when you
+wish validation to fail:
 
 ```ruby
 class Invoice < ActiveRecord::Base
@@ -991,9 +1012,10 @@ class Invoice < ActiveRecord::Base
 end
 ```
 
-By default such validations will run every time you call `valid?`. It is also
-possible to control when to run these custom validations by giving an `:on`
-option to the `validate` method, with either: `:create` or `:update`.
+By default, such validations will run every time you call `valid?`
+or save the object. But it is also possible to control when to run these
+custom validations by giving an `:on` option to the `validate` method,
+with either: `:create` or `:update`.
 
 ```ruby
 class Invoice < ActiveRecord::Base

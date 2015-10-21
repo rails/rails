@@ -47,18 +47,41 @@ module ActiveRecord
         binds = "  " + payload[:binds].map { |attr| render_bind(attr) }.inspect
       end
 
-      if odd?
-        name = color(name, CYAN, true)
-        sql  = color(sql, nil, true)
-      else
-        name = color(name, MAGENTA, true)
-      end
+      name = colorize_payload_name(name, payload[:name])
+      sql  = color(sql, sql_color(sql), true)
 
       debug "  #{name}  #{sql}#{binds}"
     end
 
-    def odd?
-      @odd = !@odd
+    private
+
+    def colorize_payload_name(name, payload_name)
+      if payload_name.blank? || payload_name == "SQL" # SQL vs Model Load/Exists
+        color(name, MAGENTA, true)
+      else
+        color(name, CYAN, true)
+      end
+    end
+
+    def sql_color(sql)
+      case sql
+        when /\A\s*rollback/mi
+          RED
+        when /\s*.*?select .*for update/mi, /\A\s*lock/mi
+          WHITE
+        when /\A\s*select/i
+          BLUE
+        when /\A\s*insert/i
+          GREEN
+        when /\A\s*update/i
+          YELLOW
+        when /\A\s*delete/i
+          RED
+        when /transaction\s*\Z/i
+          CYAN
+        else
+          MAGENTA
+      end
     end
 
     def logger

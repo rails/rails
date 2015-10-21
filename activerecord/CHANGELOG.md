@@ -1,3 +1,529 @@
+*   Add ability to default to `uuid` as primary key when generating database migrations
+
+    Set `Rails.application.config.active_record.primary_key = :uuid`
+    or `config.active_record.primary_key = :uuid` in config/application.rb
+
+    *Jon McCartie*
+
+*   Don't cache arguments in #find_by if they are an ActiveRecord::Relation
+
+    Fixes #20817
+
+    *Hiroaki Izu*
+
+*   Qualify column name inserted by `group` in calculation
+
+    Giving `group` an unqualified column name now works, even if the relation
+    has `JOIN` with another table which also has a column of the name.
+
+    *Soutaro Matsumoto*
+
+*   Don't cache prepared statements containing an IN clause or a SQL literal, as
+    these queries will change often and are unlikely to have a cache hit.
+
+    *Sean Griffin*
+
+*   Fix `rewhere` in a `has_many` association.
+
+    Fixes #21955.
+
+    *Josh Branchaud*, *Kal*
+
+*   `where` raises ArgumentError on unsupported types.
+
+    Fixes #20473.
+
+    *Jake Worth*
+
+*   Add an immutable string type to help reduce memory usage for apps which do
+    not need mutation detection on Strings.
+
+    *Sean Griffin*
+
+*   Give `AcriveRecord::Relation#update` its own deprecation warning when
+    passed an `ActiveRecord::Base` instance.
+
+    Fixes #21945.
+
+    *Ted Johansson*
+
+*   Make it possible to pass `:to_table` when adding a foreign key through
+    `add_reference`.
+
+    Fixes #21563.
+
+    *Yves Senn*
+
+*   No longer pass depreacted option `-i` to `pg_dump`.
+
+    *Paul Sadauskas*
+
+*   Concurrent `AR::Base#increment!` and `#decrement!` on the same record
+    are all reflected in the database rather than overwriting each other.
+
+    *Bogdan Gusiev*
+
+*   Avoid leaking the first relation we call `first` on, per model.
+
+    Fixes #21921.
+
+    *Matthew Draper*, *Jean Boussier*
+
+*   Remove unused `pk_and_sequence_for` in AbstractMysqlAdapter.
+
+    *Ryuta Kamizono*
+
+*   Allow fixtures files to set the model class in the YAML file itself.
+
+    To load the fixtures file `accounts.yml` as the `User` model, use:
+
+          _fixture:
+            model_class: User
+          david:
+            name: David
+
+    Fixes #9516.
+
+    *Roque Pinel*
+
+*   Don't require a database connection to load a class which uses acceptance
+    validations.
+
+    *Sean Griffin*
+
+*   Correctly apply `unscope` when preloading through associations.
+
+    *Jimmy Bourassa*
+
+*   Fixed taking precision into count when assigning a value to timestamp attribute
+
+    Timestamp column can have less precision than ruby timestamp
+    In result in how big a fraction of a second can be stored in the
+    database.
+
+
+      m = Model.create!
+      m.created_at.usec == m.reload.created_at.usec
+        # => false
+        # due to different precision in Time.now and database column
+
+    If the precision is low enough, (mysql default is 0, so it is always low
+    enough by default) the value changes when model is reloaded from the
+    database. This patch fixes that issue ensuring that any timestamp
+    assigned as an attribute is converted to column precision under the
+    attribute.
+
+    *Bogdan Gusiev*
+
+*   Introduce `connection.data_sources` and `connection.data_source_exists?`.
+    These methods determine what relations can be used to back Active Record
+    models (usually tables and views).
+
+    Also deprecate `SchemaCache#tables`, `SchemaCache#table_exists?` and
+    `SchemaCache#clear_table_cache!` in favor of their new data source
+    counterparts.
+
+    *Yves Senn*, *Matthew Draper*
+
+*   Add `ActiveRecord::Base.ignored_columns` to make some columns
+    invisible from ActiveRecord.
+
+    *Jean Boussier*
+
+*   `ActiveRecord::Tasks::MySQLDatabaseTasks` fails if shellout to
+    mysql commands (like `mysqldump`) is not successful.
+
+    *Steve Mitchell*
+
+*   Ensure `select` quotes aliased attributes, even when using `from`.
+
+    Fixes #21488
+
+    *Sean Griffin & @johanlunds*
+
+*   MySQL: support `unsigned` numeric data types.
+
+    Example:
+
+        create_table :foos do |t|
+          t.unsigned_integer :quantity
+          t.unsigned_bigint  :total
+          t.unsigned_float   :percentage
+          t.unsigned_decimal :price, precision: 10, scale: 2
+        end
+
+    The `unsigned: true` option may be used for the primary key:
+
+        create_table :foos, id: :bigint, unsigned: true do |t|
+          …
+        end
+
+    *Ryuta Kamizono*
+
+*   Add `#views` and `#view_exists?` methods on connection adapters.
+
+    *Ryuta Kamizono*
+
+*   Correctly dump composite primary key.
+
+    Example:
+
+        create_table :barcodes, primary_key: ["region", "code"] do |t|
+          t.string :region
+          t.integer :code
+        end
+
+    *Ryuta Kamizono*
+
+*   Lookup the attribute name for `restrict_with_error` messages on the
+    model class that defines the association.
+
+    *kuboon*, *Ronak Jangir*
+
+*   Correct query for PostgreSQL 8.2 compatibility.
+
+    *Ben Murphy*, *Matthew Draper*
+
+*   `bin/rake db:migrate` uses
+    `ActiveRecord::Tasks::DatabaseTasks.migrations_paths` instead of
+    `Migrator.migrations_paths`.
+
+    *Tobias Bielohlawek*
+
+*   Support dropping indexes concurrently in PostgreSQL.
+
+    See http://www.postgresql.org/docs/9.4/static/sql-dropindex.html for more
+    details.
+
+    *Grey Baker*
+
+*   Deprecate passing conditions to `ActiveRecord::Relation#delete_all`
+    and `ActiveRecord::Relation#destroy_all`.
+
+    *Wojciech Wnętrzak*
+
+*   PostgreSQL, `create_schema`, `drop_schema` and `rename_table` now quote
+    schema names.
+
+    Fixes #21418.
+
+    Example:
+
+        create_schema("my.schema")
+        # CREATE SCHEMA "my.schema";
+
+    *Yves Senn*
+
+*   PostgreSQL, add `:if_exists` option to `#drop_schema`. This makes it
+    possible to drop a schema that might exist without raising an exception if
+    it doesn't.
+
+    *Yves Senn*
+
+*   Only try to nullify has_one target association if the record is persisted.
+
+    Fixes #21223.
+
+    *Agis Anastasopoulos*
+
+*   Uniqueness validator raises descriptive error when running on a persisted
+    record without primary key.
+
+    Fixes #21304.
+
+    *Yves Senn*
+
+*   Add a native JSON data type support in MySQL.
+
+    Example:
+
+        create_table :json_data_type do |t|
+          t.json :settings
+        end
+
+    *Ryuta Kamizono*
+
+*   Descriptive error message when fixtures contain a missing column.
+
+    Fixes #21201.
+
+    *Yves Senn*
+
+*   `ActiveRecord::Tasks::PostgreSQLDatabaseTasks` fail if shellout to
+    postgresql commands (like `pg_dump`) is not successful.
+
+    *Bryan Paxton*, *Nate Berkopec*
+
+*   Add `ActiveRecord::Relation#in_batches` to work with records and relations
+    in batches.
+
+    Available options are `of` (batch size), `load`, `begin_at`, and `end_at`.
+
+    Examples:
+
+        Person.in_batches.each_record(&:party_all_night!)
+        Person.in_batches.update_all(awesome: true)
+        Person.in_batches.delete_all
+        Person.in_batches.each do |relation|
+          relation.delete_all
+          sleep 10 # Throttles the delete queries
+        end
+
+    Fixes #20933.
+
+    *Sina Siadat*
+
+*   Added methods for PostgreSQL geometric data types to use in migrations.
+
+    Example:
+
+        create_table :foo do |t|
+          t.line :foo_line
+          t.lseg :foo_lseg
+          t.box :foo_box
+          t.path :foo_path
+          t.polygon :foo_polygon
+          t.circle :foo_circle
+        end
+
+    *Mehmet Emin İNAÇ*
+
+*   Add `cache_key` to ActiveRecord::Relation.
+
+    Example:
+
+      @users = User.where("name like ?", "%Alberto%")
+      @users.cache_key
+      => "/users/query-5942b155a43b139f2471b872ac54251f-3-20150714212107656125000"
+
+    *Alberto Fernández-Capel*
+
+*   Properly allow uniqueness validations on primary keys.
+
+    Fixes #20966.
+
+    *Sean Griffin*, *presskey*
+
+*   Don't raise an error if an association failed to destroy when `destroy` was
+    called on the parent (as opposed to `destroy!`).
+
+    Fixes #20991.
+
+    *Sean Griffin*
+
+*   `ActiveRecord::RecordNotFound` modified to store model name, primary_key and
+    id of the caller model. It allows the catcher of this exception to make
+    a better decision to what to do with it.
+
+    Example:
+
+        class SomeAbstractController < ActionController::Base
+          rescue_from ActiveRecord::RecordNotFound, with: :redirect_to_404
+
+          private def redirect_to_404(e)
+            return redirect_to(posts_url) if e.model == 'Post'
+            raise
+          end
+        end
+
+    *Sameer Rahmani*
+
+*   Deprecate the keys for association `restrict_dependent_destroy` errors in favor
+    of new key names.
+
+    Previously `has_one` and `has_many` associations were using the
+    `one` and `many` keys respectively. Both of these keys have special
+    meaning in I18n (they are considered to be pluralizations) so by
+    renaming them to `has_one` and `has_many` we make the messages more explicit
+    and most importantly they don't clash with linguistical systems that need to
+    validate translation keys (and their pluralizations).
+
+    The `:'restrict_dependent_destroy.one'` key should be replaced with
+    `:'restrict_dependent_destroy.has_one'`, and `:'restrict_dependent_destroy.many'`
+    with `:'restrict_dependent_destroy.has_many'`.
+
+    *Roque Pinel*, *Christopher Dell*
+
+*   Fix state being carried over from previous transaction.
+
+    Considering the following example where `name` is a required attribute.
+    Before we had `new_record?` returning `true` for a persisted record:
+
+        author = Author.create! name: 'foo'
+        author.name = nil
+        author.save        # => false
+        author.new_record? # => true
+
+    Fixes #20824.
+
+    *Roque Pinel*
+
+*   Correctly ignore `mark_for_destruction` when `autosave` isn't set to `true`
+    when validating associations.
+
+    Fixes #20882.
+
+    *Sean Griffin*
+
+*   Fix a bug where counter_cache doesn't always work with polymorphic
+    relations.
+
+    Fixes #16407.
+
+    *Stefan Kanev*, *Sean Griffin*
+
+*   Ensure that cyclic associations with autosave don't cause duplicate errors
+    to be added to the parent record.
+
+    Fixes #20874.
+
+    *Sean Griffin*
+
+*   Ensure that `ActionController::Parameters` can still be passed to nested
+    attributes.
+
+    Fixes #20922.
+
+    *Sean Griffin*
+
+*   Deprecate force association reload by passing a truthy argument to
+    association method.
+
+    For collection association, you can call `#reload` on association proxy to
+    force a reload:
+
+        @user.posts.reload   # Instead of @user.posts(true)
+
+    For singular association, you can call `#reload` on the parent object to
+    clear its association cache then call the association method:
+
+        @user.reload.profile   # Instead of @user.profile(true)
+
+    Passing a truthy argument to force association to reload will be removed in
+    Rails 5.1.
+
+    *Prem Sichanugrist*
+
+*   Replaced `ActiveSupport::Concurrency::Latch` with `Concurrent::CountDownLatch`
+    from the concurrent-ruby gem.
+
+    *Jerry D'Antonio*
+
+*   Fix through associations using scopes having the scope merged multiple
+    times.
+
+    Fixes #20721.
+    Fixes #20727.
+
+    *Sean Griffin*
+
+*   `ActiveRecord::Base.dump_schema_after_migration` applies migration tasks
+    other than `db:migrate`. (eg. `db:rollback`, `db:migrate:dup`, ...)
+
+    Fixes #20743.
+
+    *Yves Senn*
+
+*   Add alternate syntax to make `change_column_default` reversible.
+
+    User can pass in `:from` and `:to` to make `change_column_default` command
+    become reversible.
+
+    Example:
+
+        change_column_default :posts, :status, from: nil, to: "draft"
+        change_column_default :users, :authorized, from: true, to: false
+
+    *Prem Sichanugrist*
+
+*   Prevent error when using `force_reload: true` on an unassigned polymorphic
+    belongs_to association.
+
+    Fixes #20426.
+
+    *James Dabbs*
+
+*   Correctly raise `ActiveRecord::AssociationTypeMismatch` when assigning
+    a wrong type to a namespaced association.
+
+    Fixes #20545.
+
+    *Diego Carrion*
+
+*   `validates_absence_of` respects `marked_for_destruction?`.
+
+    Fixes #20449.
+
+    *Yves Senn*
+
+*   Include the `Enumerable` module in `ActiveRecord::Relation`
+
+    *Sean Griffin & bogdan*
+
+*   Use `Enumerable#sum` in `ActiveRecord::Relation` if a block is given.
+
+    *Sean Griffin*
+
+*   Let `WITH` queries (Common Table Expressions) be explainable.
+
+    *Vladimir Kochnev*
+
+*   Make `remove_index :table, :column` reversible.
+
+    *Yves Senn*
+
+*   Fixed an error which would occur in dirty checking when calling
+    `update_attributes` from a getter.
+
+    Fixes #20531.
+
+    *Sean Griffin*
+
+*   Make `remove_foreign_key` reversible. Any foreign key options must be
+    specified, similar to `remove_column`.
+
+    *Aster Ryan*
+
+*   Add `:_prefix` and `:_suffix` options to `enum` definition.
+
+    Fixes #17511, #17415.
+
+    *Igor Kapkov*
+
+*   Correctly handle decimal arrays with defaults in the schema dumper.
+
+    Fixes #20515.
+
+    *Sean Griffin & jmondo*
+
+*   Deprecate the PostgreSQL `:point` type in favor of a new one which will return
+    `Point` objects instead of an `Array`
+
+    *Sean Griffin*
+
+*   Ensure symbols passed to `ActiveRecord::Relation#select` are always treated
+    as columns.
+
+    Fixes #20360.
+
+    *Sean Griffin*
+
+*   Do not set `sql_mode` if `strict: :default` is specified.
+
+        # config/database.yml
+        production:
+          adapter: mysql2
+          database: foo_prod
+          user: foo
+          strict: :default
+
+    *Ryuta Kamizono*
+
+*   Allow proc defaults to be passed to the attributes API. See documentation
+    for examples.
+
+    *Sean Griffin*, *Kir Shatrov*
+
 *   SQLite: `:collation` support for string and text columns.
 
     Example:
@@ -30,7 +556,8 @@
 
     *Jonathan Worek*
 
-*   Pass `:extend` option for `has_and_belongs_to_many` associations to the underlying `has_many :through`.
+*   Pass `:extend` option for `has_and_belongs_to_many` associations to the
+    underlying `has_many :through`.
 
     *Jaehyun Shin*
 
@@ -73,6 +600,10 @@
         end
 
     *Ryuta Kamizono*
+
+*   Remove `ActiveRecord::Serialization::XmlSerializer` from core.
+
+    *Zachary Scott*
 
 *   Make `unscope` aware of "less than" and "greater than" conditions.
 
@@ -265,7 +796,7 @@
 
     *Josef Šimánek*
 
-*   Fixed ActiveRecord::Relation#becomes! and changed_attributes issues for type
+*   Fixed `ActiveRecord::Relation#becomes!` and `changed_attributes` issues for type
     columns.
 
     Fixes #17139.
@@ -448,8 +979,8 @@
 
     *Henrik Nygren*
 
-*   Fixed ActiveRecord::Relation#group method when an argument is an SQL
-    reserved key word:
+*   Fixed `ActiveRecord::Relation#group` method when an argument is an SQL
+    reserved keyword:
 
     Example:
 
@@ -458,7 +989,7 @@
 
     *Bogdan Gusiev*
 
-*   Added the `#or` method on ActiveRecord::Relation, allowing use of the OR
+*   Added the `#or` method on `ActiveRecord::Relation`, allowing use of the OR
     operator to combine WHERE or HAVING clauses.
 
     Example:
@@ -658,10 +1189,10 @@
 
     The preferred method to halt a callback chain from now on is to explicitly
     `throw(:abort)`.
-    In the past, returning `false` in an ActiveRecord `before_` callback had the
+    In the past, returning `false` in an Active Record `before_` callback had the
     side effect of halting the callback chain.
     This is not recommended anymore and, depending on the value of the
-    `config.active_support.halt_callback_chains_on_return_false` option, will
+    `ActiveSupport.halt_callback_chains_on_return_false` option, will
     either not work at all or display a deprecation warning.
 
     *claudiob*
@@ -768,7 +1299,7 @@
 
 *   `eager_load` preserves readonly flag for associations.
 
-    Closes #15853.
+    Fixes #15853.
 
     *Takashi Kokubun*
 
@@ -824,7 +1355,7 @@
 *   Fix bug with `ActiveRecord::Type::Numeric` that caused negative values to
     be marked as having changed when set to the same negative value.
 
-    Closes #18161.
+    Fixes #18161.
 
     *Daniel Fox*
 
@@ -839,7 +1370,7 @@
     before loading the schema. This is left for the user to do.
     `db:test:prepare` will still purge the database.
 
-    Closes #17945.
+    Fixes #17945.
 
     *Yves Senn*
 

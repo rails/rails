@@ -24,8 +24,11 @@ with Rails. However, to get the most out of it, you need to have some
 prerequisites installed:
 
 * The [Ruby](https://www.ruby-lang.org/en/downloads) language version 2.2.2 or newer.
-* The [RubyGems](https://rubygems.org) packaging system, which is installed with Ruby
-  versions 1.9 and later. To learn more about RubyGems, please read the [RubyGems Guides](http://guides.rubygems.org).
+* Right version of [Development Kit](http://rubyinstaller.org/downloads/), if you
+  are using Windows.
+* The [RubyGems](https://rubygems.org) packaging system, which is installed with
+  Ruby by default. To learn more about RubyGems, please read the
+  [RubyGems Guides](http://guides.rubygems.org).
 * A working installation of the [SQLite3 Database](https://www.sqlite.org).
 
 Rails is a web application framework running on the Ruby programming language.
@@ -34,7 +37,6 @@ curve diving straight into Rails. There are several curated lists of online reso
 for learning Ruby:
 
 * [Official Ruby Programming Language website](https://www.ruby-lang.org/en/documentation/)
-* [reSRC's List of Free Programming Books](http://resrc.io/list/10/list-of-free-programming-books/#ruby)
 
 Be aware that some resources, while still excellent, cover versions of Ruby as old as
 1.6, and commonly 1.8, and will not include some syntax that you will see in day-to-day
@@ -69,10 +71,9 @@ The Rails philosophy includes two major guiding principles:
 
 Creating a New Rails Project
 ----------------------------
-
-The best way to use this guide is to follow each step as it happens, no code or
-step needed to make this example application has been left out, so you can
-literally follow along step by step.
+The best way to read this guide is to follow it step by step. All steps are
+essential to run this example application and no additional code or steps are
+needed.
 
 By following along with this guide, you'll create a Rails project called
 `blog`, a (very) simple weblog. Before you can start building the application,
@@ -89,16 +90,16 @@ Open up a command line prompt. On Mac OS X open Terminal.app, on Windows choose
 dollar sign `$` should be run in the command line. Verify that you have a
 current version of Ruby installed:
 
+```bash
+$ ruby -v
+ruby 2.2.2p95
+```
+
 TIP: A number of tools exist to help you quickly install Ruby and Ruby
 on Rails on your system. Windows users can use [Rails Installer](http://railsinstaller.org),
 while Mac OS X users can use [Tokaido](https://github.com/tokaido/tokaidoapp).
 For more installation methods for most Operating Systems take a look at
 [ruby-lang.org](https://www.ruby-lang.org/en/documentation/installation/).
-
-```bash
-$ ruby -v
-ruby 2.2.2p95
-```
 
 Many popular UNIX-like OSes ship with an acceptable version of SQLite3.
 On Windows, if you installed Rails through Rails Installer, you
@@ -163,7 +164,7 @@ of the files and folders that Rails created by default:
 | File/Folder | Purpose |
 | ----------- | ------- |
 |app/|Contains the controllers, models, views, helpers, mailers and assets for your application. You'll focus on this folder for the remainder of this guide.|
-|bin/|Contains the rails script that starts your app and can contain other scripts you use to setup, deploy or run your application.|
+|bin/|Contains the rails script that starts your app and can contain other scripts you use to setup, update, deploy or run your application.|
 |config/|Configure your application's routes, database, and more. This is covered in more detail in [Configuring Rails Applications](configuring.html).|
 |config.ru|Rack configuration for Rack based servers used to start the application.|
 |db/|Contains your current database schema, as well as the database migrations.|
@@ -298,6 +299,7 @@ Rails.application.routes.draw do
 
   # The priority is based upon order of creation:
   # first created -> highest priority.
+  # See how all your routes lay out with "rake routes".
   #
   # You can have the root of your site routed with "root"
   # root 'welcome#index'
@@ -400,7 +402,7 @@ a controller called `ArticlesController`. You can do this by running this
 command:
 
 ```bash
-$ bin/rails g controller articles
+$ bin/rails generate controller articles
 ```
 
 If you open up the newly generated `app/controllers/articles_controller.rb`
@@ -619,7 +621,7 @@ def create
 end
 ```
 
-The `render` method here is taking a very simple hash with a key of `plain` and
+The `render` method here is taking a very simple hash with a key of `:plain` and
 value of `params[:article].inspect`. The `params` method is the object which
 represents the parameters (or fields) coming in from the form. The `params`
 method returns an `ActiveSupport::HashWithIndifferentAccess` object, which
@@ -1240,7 +1242,9 @@ article we want to show the form back to the user.
 We reuse the `article_params` method that we defined earlier for the create
 action.
 
-TIP: It is not necessary to pass all the attributes to `update`. For example, if `@article.update(title: 'A new title')` were called, Rails would only update the `title` attribute, leaving all other attributes untouched.
+TIP: It is not necessary to pass all the attributes to `update`. For example,
+if `@article.update(title: 'A new title')` was called, Rails would only update
+the `title` attribute, leaving all other attributes untouched.
 
 Finally, we want to show a link to the `edit` action in the list of all the
 articles, so let's add that now to `app/views/articles/index.html.erb` to make
@@ -1543,20 +1547,17 @@ class CreateComments < ActiveRecord::Migration
     create_table :comments do |t|
       t.string :commenter
       t.text :body
-
-      # this line adds an integer column called `article_id`.
-      t.references :article, index: true
+      t.references :article, index: true, foreign_key: true
 
       t.timestamps null: false
     end
-    add_foreign_key :comments, :articles
   end
 end
 ```
 
-The `t.references` line sets up a foreign key column for the association between
-the two models. An index for this association is also created on this column.
-Go ahead and run the migration:
+The `t.references` line creates an integer column called `article_id`, an index
+for it, and a foreign key constraint that points to the `id` column of the `articles`
+table. Go ahead and run the migration:
 
 ```bash
 $ bin/rake db:migrate
@@ -1569,8 +1570,6 @@ run against the current database, so in this case you will just see:
 ==  CreateComments: migrating =================================================
 -- create_table(:comments)
    -> 0.0115s
--- add_foreign_key(:comments, :articles)
-   -> 0.0000s
 ==  CreateComments: migrated (0.0119s) ========================================
 ```
 

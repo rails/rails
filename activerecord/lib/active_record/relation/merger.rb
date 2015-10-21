@@ -87,11 +87,11 @@ module ActiveRecord
         return if other.preload_values.empty? && other.includes_values.empty?
 
         if other.klass == relation.klass
-          relation.preload! other.preload_values unless other.preload_values.empty?
-          relation.includes! other.includes_values unless other.includes_values.empty?
+          relation.preload!(*other.preload_values) unless other.preload_values.empty?
+          relation.includes!(other.includes_values) unless other.includes_values.empty?
         else
-          reflection = relation.klass.reflect_on_all_associations.find do |reflection|
-            reflection.class_name == other.klass.name
+          reflection = relation.klass.reflect_on_all_associations.find do |r|
+            r.class_name == other.klass.name
           end || return
 
           unless other.preload_values.empty?
@@ -148,11 +148,15 @@ module ActiveRecord
         end
       end
 
+      CLAUSE_METHOD_NAMES = CLAUSE_METHODS.map do |name|
+        ["#{name}_clause", "#{name}_clause="]
+      end
+
       def merge_clauses
-        CLAUSE_METHODS.each do |name|
-          clause = relation.send("#{name}_clause")
-          other_clause = other.send("#{name}_clause")
-          relation.send("#{name}_clause=", clause.merge(other_clause))
+        CLAUSE_METHOD_NAMES.each do |(reader, writer)|
+          clause = relation.send(reader)
+          other_clause = other.send(reader)
+          relation.send(writer, clause.merge(other_clause))
         end
       end
     end

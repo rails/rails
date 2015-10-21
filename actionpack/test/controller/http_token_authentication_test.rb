@@ -7,15 +7,15 @@ class HttpTokenAuthenticationTest < ActionController::TestCase
     before_action :authenticate_long_credentials, only: :show
 
     def index
-      render :text => "Hello Secret"
+      render plain: "Hello Secret"
     end
 
     def display
-      render :text => 'Definitely Maybe'
+      render plain: 'Definitely Maybe'
     end
 
     def show
-      render :text => 'Only for loooooong credentials'
+      render plain: 'Only for loooooong credentials'
     end
 
     private
@@ -80,11 +80,18 @@ class HttpTokenAuthenticationTest < ActionController::TestCase
   end
 
   test "authentication request with badly formatted header" do
-    @request.env['HTTP_AUTHORIZATION'] = "Token foobar"
+    @request.env['HTTP_AUTHORIZATION'] = 'Token token$"lifo"'
     get :index
 
     assert_response :unauthorized
     assert_equal "HTTP Token: Access denied.\n", @response.body, "Authentication header was not properly parsed"
+  end
+
+  test "successful authentication request with Bearer instead of Token" do
+    @request.env['HTTP_AUTHORIZATION'] = 'Bearer lifo'
+    get :index
+
+    assert_response :success
   end
 
   test "authentication request without credential" do

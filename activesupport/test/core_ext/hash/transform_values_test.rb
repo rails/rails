@@ -53,9 +53,21 @@ class TransformValuesTest < ActiveSupport::TestCase
     assert_equal Enumerator, enumerator.class
   end
 
+  test "transform_values! returns an Enumerator if no block is given" do
+    original = { a: 'a', b: 'b' }
+    enumerator = original.transform_values!
+    assert_equal Enumerator, enumerator.class
+  end
+
   test "transform_values is chainable with Enumerable methods" do
     original = { a: 'a', b: 'b' }
     mapped = original.transform_values.with_index { |v, i| [v, i].join }
     assert_equal({ a: 'a0', b: 'b1' }, mapped)
+  end
+
+  test "transform_values! is chainable with Enumerable methods" do
+    original = { a: 'a', b: 'b' }
+    original.transform_values!.with_index { |v, i| [v, i].join }
+    assert_equal({ a: 'a0', b: 'b1' }, original)
   end
 end

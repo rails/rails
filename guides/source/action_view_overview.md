@@ -15,7 +15,7 @@ After reading this guide, you will know:
 What is Action View?
 --------------------
 
-Action View and Action Controller are the two major components of Action Pack. In Rails, web requests are handled by Action Pack, which splits the work into a controller part (performing the logic) and a view part (rendering a template). Typically, Action Controller will be concerned with communicating with the database and performing CRUD actions where necessary. Action View is then responsible for compiling the response.
+In Rails, web requests are handled by [Action Controller](action_controller_overview.html) and Action View. Typically, Action Controller will be concerned with communicating with the database and performing CRUD actions where necessary. Action View is then responsible for compiling the response.
 
 Action View templates are written using embedded Ruby in tags mingled with HTML. To avoid cluttering the templates with boilerplate code, a number of helper classes provide common behavior for forms, dates, and strings. It's also easy to add new helpers to your application as it evolves.
 
@@ -147,6 +147,39 @@ xml.rss("version" => "2.0", "xmlns:dc" => "http://purl.org/dc/elements/1.1/") do
 end
 ```
 
+#### Jbuilder
+[Jbuilder](https://github.com/rails/jbuilder) is a gem that's
+maintained by the Rails team and included in the default Rails Gemfile.
+It's similar to Builder, but is used to generate JSON, instead of XML.
+
+If you don't have it, you can add the following to your Gemfile:
+
+```ruby
+gem 'jbuilder'
+```
+
+A Jbuilder object named `json` is automatically made available to templates with
+a `.jbuilder` extension.
+
+Here is a basic example:
+
+```ruby
+json.name("Alex")
+json.email("alex@example.com")
+```
+
+would produce:
+
+```json
+{
+  "name": "Alex",
+  "email: "alex@example.com"
+}
+```
+
+See the [Jbuilder documention](https://github.com/rails/jbuilder#jbuilder) for
+more examples and information.
+
 #### Template Caching
 
 By default, Rails will compile each template to a method in order to render it. When you alter a template, Rails will check the file's modification time and recompile it in development mode.
@@ -214,7 +247,8 @@ By default `ActionView::Partials::PartialRenderer` has its object in a local var
 <%= render partial: "product" %>
 ```
 
-within product we'll get `@product` in the local variable `product`, as if we had written:
+within `_product` partial we'll get `@product` in the local variable `product`,
+as if we had written:
 
 ```erb
 <%= render partial: "product", locals: { product: @product } %>
@@ -706,7 +740,7 @@ Returns a select tag with options for each of the minutes 0 through 59 with the 
 
 ```ruby
 # Generates a select field for minutes that defaults to the minutes for the time provided.
-select_minute(Time.now + 6.hours)
+select_minute(Time.now + 10.minutes)
 ```
 
 #### select_month
@@ -724,7 +758,7 @@ Returns a select tag with options for each of the seconds 0 through 59 with the 
 
 ```ruby
 # Generates a select field for seconds that defaults to the seconds for the time provided
-select_second(Time.now + 16.minutes)
+select_second(Time.now + 16.seconds)
 ```
 
 #### select_time
@@ -1058,14 +1092,6 @@ If `@article.author_ids` is [1], this would return:
 <input name="article[author_ids][]" type="hidden" value="" />
 ```
 
-#### country_options_for_select
-
-Returns a string of option tags for pretty much any country in the world.
-
-#### country_select
-
-Returns select and option tags for the given object and method, using country_options_for_select to generate the list of option tags.
-
 #### option_groups_from_collection_for_select
 
 Returns a string of `option` tags, like `options_from_collection_for_select`, but groups them by `optgroup` tags based on the object relationships of the arguments.
@@ -1152,8 +1178,8 @@ If `@article.person_id` is 1, this would become:
 <select name="article[person_id]">
   <option value=""></option>
   <option value="1" selected="selected">David</option>
-  <option value="2">Sam</option>
-  <option value="3">Tobias</option>
+  <option value="2">Eileen</option>
+  <option value="3">Rafael</option>
 </select>
 ```
 
@@ -1221,7 +1247,7 @@ file_field_tag 'attachment'
 
 #### form_tag
 
-Starts a form tag that points the action to an url configured with `url_for_options` just like `ActionController::Base#url_for`.
+Starts a form tag that points the action to a url configured with `url_for_options` just like `ActionController::Base#url_for`.
 
 ```html+erb
 <%= form_tag '/articles' do %>
@@ -1428,7 +1454,7 @@ This sanitize helper will HTML encode all tags and strip all attributes that are
 sanitize @article.body
 ```
 
-If either the `:attributes` or `:tags` options are passed, only the mentioned tags and attributes are allowed and nothing else.
+If either the `:attributes` or `:tags` options are passed, only the mentioned attributes and tags are allowed and nothing else.
 
 ```ruby
 sanitize @article.body, tags: %w(table tr td), attributes: %w(id class style)
@@ -1450,12 +1476,12 @@ Sanitizes a block of CSS code.
 Strips all link tags from text leaving just the link text.
 
 ```ruby
-strip_links("<a href="http://rubyonrails.org">Ruby on Rails</a>")
+strip_links('<a href="http://rubyonrails.org">Ruby on Rails</a>')
 # => Ruby on Rails
 ```
 
 ```ruby
-strip_links("emails to <a href="mailto:me@email.com">me@email.com</a>.")
+strip_links('emails to <a href="mailto:me@email.com">me@email.com</a>.')
 # => emails to me@email.com.
 ```
 

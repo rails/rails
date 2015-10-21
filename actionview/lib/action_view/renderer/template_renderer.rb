@@ -57,7 +57,7 @@ module ActionView
     end
 
     def render_with_layout(path, locals) #:nodoc:
-      layout  = path && find_layout(path, locals.keys)
+      layout  = path && find_layout(path, locals.keys, [formats.first])
       content = yield(layout)
 
       if layout
@@ -72,27 +72,28 @@ module ActionView
     # This is the method which actually finds the layout using details in the lookup
     # context object. If no layout is found, it checks if at least a layout with
     # the given name exists across all details before raising the error.
-    def find_layout(layout, keys)
-      with_layout_format { resolve_layout(layout, keys) }
+    def find_layout(layout, keys, formats)
+      resolve_layout(layout, keys, formats)
     end
 
-    def resolve_layout(layout, keys)
+    def resolve_layout(layout, keys, formats)
+      details = @details.dup
+      details[:formats] = formats
+
       case layout
       when String
         begin
           if layout =~ /^\//
-            with_fallbacks { find_template(layout, nil, false, keys, @details) }
+            with_fallbacks { find_template(layout, nil, false, keys, details) }
           else
-            find_template(layout, nil, false, keys, @details)
+            find_template(layout, nil, false, keys, details)
           end
         rescue ActionView::MissingTemplate
           all_details = @details.merge(:formats => @lookup_context.default_formats)
           raise unless template_exists?(layout, nil, false, keys, all_details)
         end
       when Proc
-        resolve_layout(layout.call, keys)
-      when FalseClass
-        nil
+        resolve_layout(layout.call(formats), keys, formats)
       else
         layout
       end

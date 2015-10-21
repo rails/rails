@@ -4,7 +4,7 @@ require 'models/comment'
 
 module ActiveRecord
   module ConnectionAdapters
-    class Mysql2SchemaTest < ActiveRecord::TestCase
+    class Mysql2SchemaTest < ActiveRecord::Mysql2TestCase
       fixtures :posts
 
       def setup
@@ -34,14 +34,6 @@ module ActiveRecord
 
       def test_table_exists_wrong_schema
         assert(!@connection.table_exists?("#{@db_name}.zomg"), "table should not exist")
-      end
-
-      def test_tables_quoting
-        @connection.tables(nil, "foo-bar", nil)
-        flunk
-      rescue => e
-        # assertion for *quoted* database properly
-        assert_match(/database 'foo-bar'/, e.inspect)
       end
 
       def test_dump_indexes

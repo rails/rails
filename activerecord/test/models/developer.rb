@@ -7,11 +7,15 @@ module DeveloperProjectsAssociationExtension2
 end
 
 class Developer < ActiveRecord::Base
+  self.ignored_columns = %w(first_name last_name)
+
   has_and_belongs_to_many :projects do
     def find_most_recent
       order("id DESC").first
     end
   end
+
+  belongs_to :mentor
 
   accepts_nested_attributes_for :projects
 
@@ -50,6 +54,10 @@ class Developer < ActiveRecord::Base
   has_many :firms, :through => :contracts, :source => :firm
   has_many :comments, ->(developer) { where(body: "I'm #{developer.name}") }
   has_many :ratings, through: :comments
+  has_one :ship, dependent: :nullify
+
+  belongs_to :firm
+  has_many :contracted_projects, class_name: "Project"
 
   scope :jamises, -> { where(:name => 'Jamis') }
 
@@ -59,6 +67,9 @@ class Developer < ActiveRecord::Base
   before_create do |developer|
     developer.audit_logs.build :message => "Computer created"
   end
+
+  attr_accessor :last_name
+  define_attribute_method 'last_name'
 
   def log=(message)
     audit_logs.build :message => message

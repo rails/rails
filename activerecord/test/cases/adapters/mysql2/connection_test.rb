@@ -1,7 +1,7 @@
 require "cases/helper"
 require 'support/connection_helper'
 
-class MysqlConnectionTest < ActiveRecord::TestCase
+class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
   include ConnectionHelper
 
   fixtures :comments

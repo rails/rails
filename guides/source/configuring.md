@@ -88,8 +88,6 @@ application. Accepts a valid week day symbol (e.g. `:monday`).
     end
     ```
 
-* `config.dependency_loading` is a flag that allows you to disable constant autoloading setting it to false. It only has effect if `config.cache_classes` is true, which it is by default in production mode.
-
 * `config.eager_load` when true, eager loads all registered `config.eager_load_namespaces`. This includes your application, engines, Rails frameworks and any other registered namespace.
 
 * `config.eager_load_namespaces` registers namespaces that are eager loaded when `config.eager_load` is true. All namespaces in the list must respond to the `eager_load!` method.
@@ -163,8 +161,6 @@ pipeline is enabled. It is set to true by default.
 
 * `config.assets.cache_store` defines the cache store that Sprockets will use. The default is the Rails file store.
 
-* `config.assets.version` is an option string that is used in MD5 hash generation. This can be changed to force all files to be recompiled.
-
 * `config.assets.compile` is a boolean that can be used to turn on live Sprockets compilation in production.
 
 * `config.assets.logger` accepts a logger conforming to the interface of Log4r or the default Ruby `Logger` class. Defaults to the same configured at `config.logger`. Setting `config.assets.logger` to false will turn off served assets logging.
@@ -185,12 +181,13 @@ The full set of methods that can be used in this block are as follows:
 * `assets` allows to create assets on generating a scaffold. Defaults to `true`.
 * `force_plural` allows pluralized model names. Defaults to `false`.
 * `helper` defines whether or not to generate helpers. Defaults to `true`.
-* `integration_tool` defines which integration tool to use. Defaults to `nil`.
+* `integration_tool` defines which integration tool to use to generate integration tests. Defaults to `:test_unit`.
 * `javascripts` turns on the hook for JavaScript files in generators. Used in Rails for when the `scaffold` generator is run. Defaults to `true`.
 * `javascript_engine` configures the engine to be used (for eg. coffee) when generating assets. Defaults to `:js`.
 * `orm` defines which orm to use. Defaults to `false` and will use Active Record by default.
 * `resource_controller` defines which generator to use for generating a controller when using `rails generate resource`. Defaults to `:controller`.
-* `resource_route` defines whether inject resource route definition in routes or not. Defaults to `true`.
+* `resource_route` defines whether a resource route definition should be generated
+  or not. Defaults to `true`.
 * `scaffold_controller` different from `resource_controller`, defines which generator to use for generating a _scaffolded_ controller when using `rails generate scaffold`. Defaults to `:scaffold_controller`.
 * `stylesheets` turns on the hook for stylesheets in generators. Used in Rails for when the `scaffold` generator is run, but this hook can be used in other generates as well. Defaults to `true`.
 * `stylesheet_engine` configures the stylesheet engine (for eg. sass) to be used when generating assets. Defaults to `:css`.
@@ -202,7 +199,7 @@ The full set of methods that can be used in this block are as follows:
 Every Rails application comes with a standard set of middleware which it uses in this order in the development environment:
 
 * `ActionDispatch::SSL` forces every request to be under HTTPS protocol. Will be available if `config.force_ssl` is set to `true`. Options passed to this can be configured by using `config.ssl_options`.
-* `ActionDispatch::Static` is used to serve static assets. Disabled if `config.serve_static_files` is `false`.
+* `ActionDispatch::Static` is used to serve static assets. Disabled if `config.serve_static_files` is `false`. Set `config.static_index` if you need to serve a static directory index file that is not named `index`. For example, to serve `main.html` instead of `index.html` for directory requests, set `config.static_index` to `"main"`.
 * `Rack::Lock` wraps the app in mutex so it can only be called by a single thread at a time. Only enabled when `config.cache_classes` is `false`.
 * `ActiveSupport::Cache::Strategy::LocalCache` serves as a basic memory backed cache. This cache is not thread safe and is intended only for serving as a temporary memory cache for a single thread.
 * `Rack::Runtime` sets an `X-Runtime` header, containing the time (in seconds) taken to execute the request.
@@ -217,7 +214,6 @@ Every Rails application comes with a standard set of middleware which it uses in
 * `ActionDispatch::Cookies` sets cookies for the request.
 * `ActionDispatch::Session::CookieStore` is responsible for storing the session in cookies. An alternate middleware can be used for this by changing the `config.action_controller.session_store` to an alternate value. Additionally, options passed to this can be configured by using `config.action_controller.session_options`.
 * `ActionDispatch::Flash` sets up the `flash` keys. Only available if `config.action_controller.session_store` is set to a value.
-* `ActionDispatch::ParamsParser` parses out parameters from the request into `params`.
 * `Rack::MethodOverride` allows the method to be overridden if `params[:_method]` is set. This is the middleware which supports the PATCH, PUT, and DELETE HTTP method types.
 * `Rack::Head` converts HEAD requests to GET requests and serves them as so.
 
@@ -248,7 +244,7 @@ config.middleware.swap ActionController::Failsafe, Lifo::Failsafe
 They can also be removed from the stack completely:
 
 ```ruby
-config.middleware.delete "Rack::MethodOverride"
+config.middleware.delete Rack::MethodOverride
 ```
 
 ### Configuring i18n
@@ -270,8 +266,8 @@ All these configuration options are delegated to the `I18n` library.
 * `config.active_record.logger` accepts a logger conforming to the interface of Log4r or the default Ruby Logger class, which is then passed on to any new database connections made. You can retrieve this logger by calling `logger` on either an Active Record model class or an Active Record model instance. Set to `nil` to disable logging.
 
 * `config.active_record.primary_key_prefix_type` lets you adjust the naming for primary key columns. By default, Rails assumes that primary key columns are named `id` (and this configuration option doesn't need to be set.) There are two other choices:
-** `:table_name` would make the primary key for the Customer class `customerid`
-** `:table_name_with_underscore` would make the primary key for the Customer class `customer_id`
+    * `:table_name` would make the primary key for the Customer class `customerid`
+    * `:table_name_with_underscore` would make the primary key for the Customer class `customer_id`
 
 * `config.active_record.table_name_prefix` lets you set a global string to be prepended to table names. If you set this to `northwest_`, then the Customer class will look for `northwest_customers` as its table. The default is an empty string.
 
@@ -308,7 +304,9 @@ All these configuration options are delegated to the `I18n` library.
   `:all` which always dumps all schemas regardless of the schema_search_path,
   or a string of comma separated schemas.
 
-* `config.active_record.belongs_to_required_by_default` is a boolean value and controls whether `belongs_to` association is required by default.
+* `config.active_record.belongs_to_required_by_default` is a boolean value and
+  controls whether a record fails validation if `belongs_to` association is not
+  present.
 
 * `config.active_record.warn_on_records_fetched_greater_than` allows setting a
   warning threshold for query result size. If the number of records returned
@@ -329,7 +327,7 @@ The schema dumper adds one additional configuration option:
 
 * `config.action_controller.asset_host` sets the host for the assets. Useful when CDNs are used for hosting assets rather than the application server itself.
 
-* `config.action_controller.perform_caching` configures whether the application should perform caching or not. Set to false in development mode, true in production.
+* `config.action_controller.perform_caching` configures whether the application should perform the caching features provided by the Action Controller component or not. Set to false in development mode, true in production.
 
 * `config.action_controller.default_static_extension` configures the extension used for cached pages. Defaults to `.html`.
 
@@ -417,7 +415,7 @@ encrypted cookies salt value. Defaults to `'signed encrypted cookie'`.
 
 `config.action_view` includes a small number of configuration settings:
 
-* `config.action_view.field_error_proc` provides an HTML generator for displaying errors that come from Active Record. The default is
+* `config.action_view.field_error_proc` provides an HTML generator for displaying errors that come from Active Model. The default is
 
     ```ruby
     Proc.new do |html_tag, instance|
@@ -453,6 +451,9 @@ encrypted cookies salt value. Defaults to `'signed encrypted cookie'`.
 
 * `config.action_view.raise_on_missing_translations` determines whether an
   error should be raised for missing translations.
+
+* `config.action_view.automatically_disable_submit_tag` determines whether
+  submit_tag should automatically disable on click, this defaults to true.
 
 ### Configuring Action Mailer
 
@@ -519,6 +520,9 @@ There are a number of settings available on `config.action_mailer`:
     config.action_mailer.show_previews = false
     ```
 
+* `config.action_mailer.deliver_later_queue_name` specifies the queue name for
+  mailers. By default this is `mailers`.
+
 ### Configuring Active Support
 
 There are a few configuration options available in Active Support:
@@ -533,7 +537,7 @@ There are a few configuration options available in Active Support:
 
 * `config.active_support.time_precision` sets the precision of JSON encoded time values. Defaults to `3`.
 
-* `config.active_support.halt_callback_chains_on_return_false` specifies whether ActiveRecord, ActiveModel and ActiveModel::Validations callback chains can be halted by returning `false` in a 'before' callback. Defaults to `true`.
+* `ActiveSupport.halt_callback_chains_on_return_false` specifies whether Active Record and Active Model callback chains can be halted by returning `false` in a 'before' callback. Defaults to `true`.
 
 * `ActiveSupport::Logger.silencer` is set to `false` to disable the ability to silence logging in a block. The default is `true`.
 
@@ -639,7 +643,7 @@ TIP: You don't have to update the database configurations manually. If you look 
 
 ### Connection Preference
 
-Since there are two ways to set your connection, via environment variable it is important to understand how the two can interact.
+Since there are two ways to configure your connection (using `config/database.yml` or using an environment variable) it is important to understand how they can interact.
 
 If you have an empty `config/database.yml` file but your `ENV['DATABASE_URL']` is present, then Rails will connect to the database via your environment variable:
 
@@ -1084,28 +1088,28 @@ development:
   timeout: 5000
 ```
 
-Since the connection pooling is handled inside of Active Record by default, all application servers (Thin, mongrel, Unicorn etc.) should behave the same. Initially, the database connection pool is empty and it will create additional connections as the demand for them increases, until it reaches the connection pool limit.
+Since the connection pooling is handled inside of Active Record by default, all application servers (Thin, mongrel, Unicorn etc.) should behave the same. The database connection pool is initially empty. As demand for connections increases it will create them until it reaches the connection pool limit.
 
-Any one request will check out a connection the first time it requires access to the database, after which it will check the connection back in, at the end of the request, meaning that the additional connection slot will be available again for the next request in the queue.
+Any one request will check out a connection the first time it requires access to the database. At the end of the request it will check the connection back in. This means that the additional connection slot will be available again for the next request in the queue.
 
 If you try to use more connections than are available, Active Record will block
-and wait for a connection from the pool. When it cannot get connection, a timeout
-error similar to given below will be thrown.
+you and wait for a connection from the pool. If it cannot get a connection, a
+timeout error similar to that given below will be thrown.
 
 ```ruby
-ActiveRecord::ConnectionTimeoutError - could not obtain a database connection within 5 seconds. The max pool size is currently 5; consider increasing it:
+ActiveRecord::ConnectionTimeoutError - could not obtain a database connection within 5.000 seconds (waited 5.000 seconds)
 ```
 
-If you get the above error, you might want to increase the size of connection
-pool by incrementing the `pool` option in `database.yml`
+If you get the above error, you might want to increase the size of the
+connection pool by incrementing the `pool` option in `database.yml`
 
-NOTE. If you are running in a multi-threaded environment, there could be a chance that several threads may be accessing multiple connections simultaneously. So depending on your current request load, you could very well have multiple threads contending for a limited amount of connections.
+NOTE. If you are running in a multi-threaded environment, there could be a chance that several threads may be accessing multiple connections simultaneously. So depending on your current request load, you could very well have multiple threads contending for a limited number of connections.
 
 
 Custom configuration
 --------------------
 
-You can configure your own code through the Rails configuration object with custom configuration. It works like this:
+You can configure your own code through the Rails configuration object with custom configuration under the `config.x` property. It works like this:
 
   ```ruby
   config.x.payment_processing.schedule = :daily

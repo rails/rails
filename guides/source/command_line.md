@@ -64,10 +64,10 @@ $ cd commandsapp
 $ bin/rails server
 => Booting WEBrick
 => Rails 5.0.0 application starting in development on http://localhost:3000
-=> Call with -d to detach
+=> Run `rails server -h` for more startup options
 => Ctrl-C to shutdown server
 [2013-08-07 02:00:01] INFO  WEBrick 1.3.1
-[2013-08-07 02:00:01] INFO  ruby 2.0.0 (2013-06-27) [x86_64-darwin11.2.0]
+[2013-08-07 02:00:01] INFO  ruby 2.2.2 (2015-06-27) [x86_64-darwin11.2.0]
 [2013-08-07 02:00:01] INFO  WEBrick::HTTPServer#start: pid=69680 port=3000
 ```
 
@@ -260,7 +260,13 @@ $ bin/rake db:migrate
 ==  CreateHighScores: migrated (0.0019s) ======================================
 ```
 
-INFO: Let's talk about unit tests. Unit tests are code that tests and makes assertions about code. In unit testing, we take a little part of code, say a method of a model, and test its inputs and outputs. Unit tests are your friend. The sooner you make peace with the fact that your quality of life will drastically increase when you unit test your code, the better. Seriously. We'll make one in a moment.
+INFO: Let's talk about unit tests. Unit tests are code that tests and makes assertions 
+about code. In unit testing, we take a little part of code, say a method of a model, 
+and test its inputs and outputs. Unit tests are your friend. The sooner you make 
+peace with the fact that your quality of life will drastically increase when you unit 
+test your code, the better. Seriously. Please visit 
+[the testing guide](http://guides.rubyonrails.org/testing.html) for an in-depth 
+look at unit testing.
 
 Let's see the interface Rails created for us.
 
@@ -406,7 +412,7 @@ Ruby version              2.2.2 (x86_64-linux)
 RubyGems version          2.4.6
 Rack version              1.6
 JavaScript Runtime        Node.js (V8)
-Middleware                Rack::Sendfile, ActionDispatch::Static, Rack::Lock, #<ActiveSupport::Cache::Strategy::LocalCache::Middleware:0x007ffd131a7c88>, Rack::Runtime, Rack::MethodOverride, ActionDispatch::RequestId, Rails::Rack::Logger, ActionDispatch::ShowExceptions, ActionDispatch::DebugExceptions, ActionDispatch::RemoteIp, ActionDispatch::Reloader, ActionDispatch::Callbacks, ActiveRecord::Migration::CheckPending, ActiveRecord::ConnectionAdapters::ConnectionManagement, ActiveRecord::QueryCache, ActionDispatch::Cookies, ActionDispatch::Session::CookieStore, ActionDispatch::Flash, ActionDispatch::ParamsParser, Rack::Head, Rack::ConditionalGet, Rack::ETag
+Middleware                Rack::Sendfile, ActionDispatch::Static, Rack::Lock, #<ActiveSupport::Cache::Strategy::LocalCache::Middleware:0x007ffd131a7c88>, Rack::Runtime, Rack::MethodOverride, ActionDispatch::RequestId, Rails::Rack::Logger, ActionDispatch::ShowExceptions, ActionDispatch::DebugExceptions, ActionDispatch::RemoteIp, ActionDispatch::Reloader, ActionDispatch::Callbacks, ActiveRecord::Migration::CheckPending, ActiveRecord::ConnectionAdapters::ConnectionManagement, ActiveRecord::QueryCache, ActionDispatch::Cookies, ActionDispatch::Session::CookieStore, ActionDispatch::Flash, Rack::Head, Rack::ConditionalGet, Rack::ETag
 Application root          /home/foobar/commandsapp
 Environment               development
 Database adapter          sqlite3

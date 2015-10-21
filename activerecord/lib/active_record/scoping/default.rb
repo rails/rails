@@ -6,8 +6,10 @@ module ActiveRecord
       included do
         # Stores the default scope for the class.
         class_attribute :default_scopes, instance_writer: false, instance_predicate: false
+        class_attribute :default_scope_override, instance_predicate: false
 
         self.default_scopes = []
+        self.default_scope_override = nil
       end
 
       module ClassMethods
@@ -53,7 +55,7 @@ module ActiveRecord
         #
         #   Article.all # => SELECT * FROM articles WHERE published = true
         #
-        # The +default_scope+ is also applied while creating/building a record.
+        # The #default_scope is also applied while creating/building a record.
         # It is not applied while updating a record.
         #
         #   Article.new.published    # => true
@@ -63,7 +65,7 @@ module ActiveRecord
         # +default_scope+ macro, and it will be called when building the
         # default scope.)
         #
-        # If you use multiple +default_scope+ declarations in your model then
+        # If you use multiple #default_scope declarations in your model then
         # they will be merged together:
         #
         #   class Article < ActiveRecord::Base
@@ -74,7 +76,7 @@ module ActiveRecord
         #   Article.all # => SELECT * FROM articles WHERE published = true AND rating = 'G'
         #
         # This is also the case with inheritance and module includes where the
-        # parent or module defines a +default_scope+ and the child or including
+        # parent or module defines a #default_scope and the child or including
         # class defines a second one.
         #
         # If you need to do more complex things with a default scope, you can
@@ -99,11 +101,18 @@ module ActiveRecord
           self.default_scopes += [scope]
         end
 
-        def build_default_scope(base_rel = relation) # :nodoc:
-          if !Base.is_a?(method(:default_scope).owner)
+        def build_default_scope(base_rel = nil) # :nodoc:
+          return if abstract_class?
+
+          if self.default_scope_override.nil?
+            self.default_scope_override = !Base.is_a?(method(:default_scope).owner)
+          end
+
+          if self.default_scope_override
             # The user has defined their own default scope method, so call that
             evaluate_default_scope { default_scope }
           elsif default_scopes.any?
+            base_rel ||= relation
             evaluate_default_scope do
               default_scopes.inject(base_rel) do |default_scope, scope|
                 default_scope.merge(base_rel.scoping { scope.call })

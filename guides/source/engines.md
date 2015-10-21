@@ -150,7 +150,7 @@ When you include the engine into an application later on, you will do so with
 this line in the Rails application's `Gemfile`:
 
 ```ruby
-gem 'blorgh', path: "vendor/engines/blorgh"
+gem 'blorgh', path: 'engines/blorgh'
 ```
 
 Don't forget to run `bundle install` as usual. By specifying it as a gem within
@@ -639,7 +639,7 @@ However, because you are developing the `blorgh` engine on your local machine,
 you will need to specify the `:path` option in your `Gemfile`:
 
 ```ruby
-gem 'blorgh', path: "/path/to/blorgh"
+gem 'blorgh', path: 'engines/blorgh'
 ```
 
 Then run `bundle` to install the gem.
@@ -670,7 +670,7 @@ pre-defined path which may be customizable.
 The engine contains migrations for the `blorgh_articles` and `blorgh_comments`
 table which need to be created in the application's database so that the
 engine's models can query them correctly. To copy these migrations into the
-application use this command:
+application run the following command from the `test/dummy` directory of your Rails engine:
 
 ```bash
 $ rake blorgh:install:migrations
@@ -689,8 +689,8 @@ haven't been copied over already. The first run for this command will output
 something such as this:
 
 ```bash
-Copied migration [timestamp_1]_create_blorgh_articles.rb from blorgh
-Copied migration [timestamp_2]_create_blorgh_comments.rb from blorgh
+Copied migration [timestamp_1]_create_blorgh_articles.blorgh.rb from blorgh
+Copied migration [timestamp_2]_create_blorgh_comments.blorgh.rb from blorgh
 ```
 
 The first timestamp (`[timestamp_1]`) will be the current time, and the second
@@ -822,9 +822,9 @@ Notice that only _one_ migration was copied over here. This is because the first
 two migrations were copied over the first time this command was run.
 
 ```
-NOTE Migration [timestamp]_create_blorgh_articles.rb from blorgh has been skipped. Migration with the same name already exists. 
-NOTE Migration [timestamp]_create_blorgh_comments.rb from blorgh has been skipped. Migration with the same name already exists. 
-Copied migration [timestamp]_add_author_id_to_blorgh_articles.rb from blorgh
+NOTE Migration [timestamp]_create_blorgh_articles.blorgh.rb from blorgh has been skipped. Migration with the same name already exists.
+NOTE Migration [timestamp]_create_blorgh_comments.blorgh.rb from blorgh has been skipped. Migration with the same name already exists.
+Copied migration [timestamp]_add_author_id_to_blorgh_articles.blorgh.rb from blorgh
 ```
 
 Run the migration using:
@@ -843,27 +843,9 @@ above the "Title" output inside `app/views/blorgh/articles/show.html.erb`:
 ```html+erb
 <p>
   <b>Author:</b>
-  <%= @article.author %>
+  <%= @article.author.name %>
 </p>
 ```
-
-By outputting `@article.author` using the `<%=` tag, the `to_s` method will be
-called on the object. By default, this will look quite ugly:
-
-```
-#<User:0x00000100ccb3b0>
-```
-
-This is undesirable. It would be much better to have the user's name there. To
-do this, add a `to_s` method to the `User` class within the application:
-
-```ruby
-def to_s
-  name
-end
-```
-
-Now instead of the ugly Ruby object output, the author's name will be displayed.
 
 #### Using a Controller Provided by the Application
 

@@ -30,26 +30,36 @@ module ActionDispatch
       HTTP_HEADER = /\A[A-Za-z0-9-]+\z/
 
       include Enumerable
-      attr_reader :env
 
-      def initialize(env = {}) # :nodoc:
-        @env = env
+      def self.from_hash(hash)
+        new ActionDispatch::Request.new hash
+      end
+
+      def initialize(request) # :nodoc:
+        @req = request
       end
 
       # Returns the value for the given key mapped to @env.
       def [](key)
-        @env[env_name(key)]
+        @req.get_header env_name(key)
       end
 
       # Sets the given value for the key mapped to @env.
       def []=(key, value)
-        @env[env_name(key)] = value
+        @req.set_header env_name(key), value
+      end
+
+      # Add a value to a multivalued header like Vary or Accept-Encoding.
+      def add(key, value)
+        @req.add_header env_name(key), value
       end
 
       def key?(key)
-        @env.key? env_name(key)
+        @req.has_header? env_name(key)
       end
       alias :include? :key?
+
+      DEFAULT = Object.new # :nodoc:
 
       # Returns the value for the given key mapped to @env.
       #
@@ -58,18 +68,22 @@ module ActionDispatch
       #
       # If the code block is provided, then it will be run and
       # its result returned.
-      def fetch(key, *args, &block)
-        @env.fetch env_name(key), *args, &block
+      def fetch(key, default = DEFAULT)
+        @req.fetch_header(env_name(key)) do
+          return default unless default == DEFAULT
+          return yield if block_given?
+          raise NameError, key
+        end
       end
 
       def each(&block)
-        @env.each(&block)
+        @req.each_header(&block)
       end
 
       # Returns a new Http::Headers instance containing the contents of
       # <tt>headers_or_env</tt> and the original instance.
       def merge(headers_or_env)
-        headers = Http::Headers.new(env.dup)
+        headers = @req.dup.headers
         headers.merge!(headers_or_env)
         headers
       end
@@ -79,11 +93,14 @@ module ActionDispatch
       # <tt>headers_or_env</tt>.
       def merge!(headers_or_env)
         headers_or_env.each do |key, value|
-          self[env_name(key)] = value
+          @req.set_header env_name(key), value
         end
       end
 
+      def env; @req.env.dup; end
+
       private
+
       # Converts a HTTP header name to an environment variable name if it is
       # not contained within the headers hash.
       def env_name(key)

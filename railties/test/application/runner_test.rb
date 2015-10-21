@@ -25,15 +25,15 @@ module ApplicationTests
     end
 
     def test_should_include_runner_in_shebang_line_in_help_without_option
-      assert_match "/rails runner", Dir.chdir(app_path) { `bundle exec rails runner` }
+      assert_match "/rails runner", Dir.chdir(app_path) { `bin/rails runner` }
     end
 
     def test_should_include_runner_in_shebang_line_in_help
-      assert_match "/rails runner", Dir.chdir(app_path) { `bundle exec rails runner --help` }
+      assert_match "/rails runner", Dir.chdir(app_path) { `bin/rails runner --help` }
     end
 
     def test_should_run_ruby_statement
-      assert_match "42", Dir.chdir(app_path) { `bundle exec rails runner "puts User.count"` }
+      assert_match "42", Dir.chdir(app_path) { `bin/rails runner "puts User.count"` }
     end
 
     def test_should_run_file
@@ -41,7 +41,7 @@ module ApplicationTests
       puts User.count
       SCRIPT
 
-      assert_match "42", Dir.chdir(app_path) { `bundle exec rails runner "bin/count_users.rb"` }
+      assert_match "42", Dir.chdir(app_path) { `bin/rails runner "bin/count_users.rb"` }
     end
 
     def test_should_set_dollar_0_to_file
@@ -49,7 +49,7 @@ module ApplicationTests
       puts $0
       SCRIPT
 
-      assert_match "bin/dollar0.rb", Dir.chdir(app_path) { `bundle exec rails runner "bin/dollar0.rb"` }
+      assert_match "bin/dollar0.rb", Dir.chdir(app_path) { `bin/rails runner "bin/dollar0.rb"` }
     end
 
     def test_should_set_dollar_program_name_to_file
@@ -57,7 +57,7 @@ module ApplicationTests
       puts $PROGRAM_NAME
       SCRIPT
 
-      assert_match "bin/program_name.rb", Dir.chdir(app_path) { `bundle exec rails runner "bin/program_name.rb"` }
+      assert_match "bin/program_name.rb", Dir.chdir(app_path) { `bin/rails runner "bin/program_name.rb"` }
     end
 
     def test_with_hook
@@ -67,22 +67,22 @@ module ApplicationTests
         end
       RUBY
 
-      assert_match "true", Dir.chdir(app_path) { `bundle exec rails runner "puts Rails.application.config.ran"` }
+      assert_match "true", Dir.chdir(app_path) { `bin/rails runner "puts Rails.application.config.ran"` }
     end
 
     def test_default_environment
-      assert_match "development", Dir.chdir(app_path) { `bundle exec rails runner "puts Rails.env"` }
+      assert_match "development", Dir.chdir(app_path) { `bin/rails runner "puts Rails.env"` }
     end
 
     def test_environment_with_rails_env
       with_rails_env "production" do
-        assert_match "production", Dir.chdir(app_path) { `bundle exec rails runner "puts Rails.env"` }
+        assert_match "production", Dir.chdir(app_path) { `bin/rails runner "puts Rails.env"` }
       end
     end
 
     def test_environment_with_rack_env
       with_rack_env "production" do
-        assert_match "production", Dir.chdir(app_path) { `bundle exec rails runner "puts Rails.env"` }
+        assert_match "production", Dir.chdir(app_path) { `bin/rails runner "puts Rails.env"` }
       end
     end
   end

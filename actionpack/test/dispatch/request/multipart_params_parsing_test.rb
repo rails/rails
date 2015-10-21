@@ -17,7 +17,7 @@ class MultipartParamsParsingTest < ActionDispatch::IntegrationTest
     end
 
     def read
-      render :text => "File: #{params[:uploaded_data].read}"
+      render plain: "File: #{params[:uploaded_data].read}"
     end
   end
 
@@ -59,6 +59,17 @@ class MultipartParamsParsingTest < ActionDispatch::IntegrationTest
 
     file = params['file']
     assert_equal 'file.txt', file.original_filename
+    assert_equal "text/plain", file.content_type
+    assert_equal 'contents', file.read
+  end
+
+  test "parses utf8 filename with percent character" do
+    params = parse_multipart('utf8_filename')
+    assert_equal %w(file foo), params.keys.sort
+    assert_equal 'bar', params['foo']
+
+    file = params['file']
+    assert_equal 'ファイル%名.txt', file.original_filename
     assert_equal "text/plain", file.content_type
     assert_equal 'contents', file.read
   end

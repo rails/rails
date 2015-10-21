@@ -69,8 +69,8 @@ module ActiveSupport
   # is able to take the arguments as they come and provide an object-oriented
   # interface to that data.
   #
-  # It is also possible to pass an object as the second parameter passed to the
-  # <tt>subscribe</tt> method instead of a block:
+  # It is also possible to pass an object which responds to <tt>call</tt> method
+  # as the second parameter to the <tt>subscribe</tt> method instead of a block:
   #
   #   module ActionController
   #     class PageRequest

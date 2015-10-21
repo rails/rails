@@ -1,6 +1,6 @@
 require 'set'
 require 'thread'
-require 'thread_safe'
+require 'concurrent'
 require 'pathname'
 require 'active_support/core_ext/module/aliasing'
 require 'active_support/core_ext/module/attribute_accessors'
@@ -12,11 +12,39 @@ require 'active_support/core_ext/kernel/reporting'
 require 'active_support/core_ext/load_error'
 require 'active_support/core_ext/name_error'
 require 'active_support/core_ext/string/starts_ends_with'
+require "active_support/dependencies/interlock"
 require 'active_support/inflector'
 
 module ActiveSupport #:nodoc:
   module Dependencies #:nodoc:
     extend self
+
+    mattr_accessor :interlock
+    self.interlock = Interlock.new
+
+    # :doc:
+
+    # Execute the supplied block without interference from any
+    # concurrent loads
+    def self.run_interlock
+      Dependencies.interlock.running { yield }
+    end
+
+    # Execute the supplied block while holding an exclusive lock,
+    # preventing any other thread from being inside a #run_interlock
+    # block at the same time
+    def self.load_interlock
+      Dependencies.interlock.loading { yield }
+    end
+
+    # Execute the supplied block while holding an exclusive lock,
+    # preventing any other thread from being inside a #run_interlock
+    # block at the same time
+    def self.unload_interlock
+      Dependencies.interlock.unloading { yield }
+    end
+
+    # :nodoc:
 
     # Should we turn on Ruby warnings on the first load of dependent files?
     mattr_accessor :warnings_on_first_load
@@ -128,7 +156,7 @@ module ActiveSupport #:nodoc:
 
           # Normalize the list of new constants, and add them to the list we will return
           new_constants.each do |suffix|
-            constants << ([namespace, suffix] - ["Object"]).join("::")
+            constants << ([namespace, suffix] - ["Object"]).join("::".freeze)
           end
         end
         constants
@@ -325,9 +353,11 @@ module ActiveSupport #:nodoc:
 
     def clear
       log_call
-      loaded.clear
-      loading.clear
-      remove_unloadable_constants!
+      Dependencies.unload_interlock do
+        loaded.clear
+        loading.clear
+        remove_unloadable_constants!
+      end
     end
 
     def require_or_load(file_name, const_path = nil)
@@ -336,39 +366,44 @@ module ActiveSupport #:nodoc:
       expanded = File.expand_path(file_name)
       return if loaded.include?(expanded)
 
-      # Record that we've seen this file *before* loading it to avoid an
-      # infinite loop with mutual dependencies.
-      loaded << expanded
-      loading << expanded
+      Dependencies.load_interlock do
+        # Maybe it got loaded while we were waiting for our lock:
+        return if loaded.include?(expanded)
 
-      begin
-        if load?
-          log "loading #{file_name}"
+        # Record that we've seen this file *before* loading it to avoid an
+        # infinite loop with mutual dependencies.
+        loaded << expanded
+        loading << expanded
 
-          # Enable warnings if this file has not been loaded before and
-          # warnings_on_first_load is set.
-          load_args = ["#{file_name}.rb"]
-          load_args << const_path unless const_path.nil?
+        begin
+          if load?
+            log "loading #{file_name}"
 
-          if !warnings_on_first_load or history.include?(expanded)
-            result = load_file(*load_args)
+            # Enable warnings if this file has not been loaded before and
+            # warnings_on_first_load is set.
+            load_args = ["#{file_name}.rb"]
+            load_args << const_path unless const_path.nil?
+
+            if !warnings_on_first_load or history.include?(expanded)
+              result = load_file(*load_args)
+            else
+              enable_warnings { result = load_file(*load_args) }
+            end
           else
-            enable_warnings { result = load_file(*load_args) }
+            log "requiring #{file_name}"
+            result = require file_name
           end
-        else
-          log "requiring #{file_name}"
-          result = require file_name
+        rescue Exception
+          loaded.delete expanded
+          raise
+        ensure
+          loading.pop
         end
-      rescue Exception
-        loaded.delete expanded
-        raise
-      ensure
-        loading.pop
-      end
 
-      # Record history *after* loading so first load gets warnings.
-      history << expanded
-      result
+        # Record history *after* loading so first load gets warnings.
+        history << expanded
+        result
+      end
     end
 
     # Is the provided constant path defined?
@@ -386,13 +421,13 @@ module ActiveSupport #:nodoc:
 
       bases.each do |root|
         expanded_root = File.expand_path(root)
-        next unless %r{\A#{Regexp.escape(expanded_root)}(/|\\)} =~ expanded_path
+        next unless expanded_path.start_with?(expanded_root)
 
-        nesting = expanded_path[(expanded_root.size)..-1]
-        nesting = nesting[1..-1] if nesting && nesting[0] == ?/
-        next if nesting.blank?
+        root_size = expanded_root.size
+        next if expanded_path[root_size] != ?/.freeze
 
-        paths << nesting.camelize
+        nesting = expanded_path[(root_size + 1)..-1]
+        paths << nesting.camelize unless nesting.blank?
       end
 
       paths.uniq!
@@ -401,7 +436,7 @@ module ActiveSupport #:nodoc:
 
     # Search for a file in autoload_paths matching the provided suffix.
     def search_for_file(path_suffix)
-      path_suffix = path_suffix.sub(/(\.rb)?$/, ".rb")
+      path_suffix = path_suffix.sub(/(\.rb)?$/, ".rb".freeze)
 
       autoload_paths.each do |root|
         path = File.join(root, path_suffix)
@@ -486,7 +521,7 @@ module ActiveSupport #:nodoc:
 
       if file_path
         expanded = File.expand_path(file_path)
-        expanded.sub!(/\.rb\z/, '')
+        expanded.sub!(/\.rb\z/, ''.freeze)
 
         if loading.include?(expanded)
           raise "Circular dependency detected while autoloading constant #{qualified_name}"
@@ -550,7 +585,7 @@ module ActiveSupport #:nodoc:
 
     class ClassCache
       def initialize
-        @store = ThreadSafe::Cache.new
+        @store = Concurrent::Map.new
       end
 
       def empty?

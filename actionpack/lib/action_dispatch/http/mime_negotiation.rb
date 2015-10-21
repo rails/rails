@@ -10,17 +10,18 @@ module ActionDispatch
         self.ignore_accept_header = false
       end
 
-      # The MIME type of the HTTP request, such as Mime::XML.
+      # The MIME type of the HTTP request, such as Mime[:xml].
       #
       # For backward compatibility, the post \format is extracted from the
       # X-Post-Data-Format HTTP header if present.
       def content_mime_type
-        @env["action_dispatch.request.content_type"] ||= begin
-          if @env['CONTENT_TYPE'] =~ /^([^,\;]*)/
+        fetch_header("action_dispatch.request.content_type") do |k|
+          v = if get_header('CONTENT_TYPE') =~ /^([^,\;]*)/
             Mime::Type.lookup($1.strip.downcase)
           else
             nil
           end
+          set_header k, v
         end
       end
 
@@ -28,46 +29,52 @@ module ActionDispatch
         content_mime_type && content_mime_type.to_s
       end
 
+      def has_content_type?
+        has_header? 'CONTENT_TYPE'
+      end
+
       # Returns the accepted MIME type for the request.
       def accepts
-        @env["action_dispatch.request.accepts"] ||= begin
-          header = @env['HTTP_ACCEPT'].to_s.strip
+        fetch_header("action_dispatch.request.accepts") do |k|
+          header = get_header('HTTP_ACCEPT').to_s.strip
 
-          if header.empty?
+          v = if header.empty?
             [content_mime_type]
           else
             Mime::Type.parse(header)
           end
+          set_header k, v
         end
       end
 
       # Returns the MIME type for the \format used in the request.
       #
-      #   GET /posts/5.xml   | request.format => Mime::XML
-      #   GET /posts/5.xhtml | request.format => Mime::HTML
-      #   GET /posts/5       | request.format => Mime::HTML or MIME::JS, or request.accepts.first
+      #   GET /posts/5.xml   | request.format => Mime[:xml]
+      #   GET /posts/5.xhtml | request.format => Mime[:html]
+      #   GET /posts/5       | request.format => Mime[:html] or Mime[:js], or request.accepts.first
       #
       def format(view_path = [])
         formats.first || Mime::NullType.instance
       end
 
       def formats
-        @env["action_dispatch.request.formats"] ||= begin
+        fetch_header("action_dispatch.request.formats") do |k|
           params_readable = begin
                               parameters[:format]
                             rescue ActionController::BadRequest
                               false
                             end
 
-          if params_readable
+          v = if params_readable
             Array(Mime[parameters[:format]])
           elsif use_accept_header && valid_accept_header
             accepts
           elsif xhr?
-            [Mime::JS]
+            [Mime[:js]]
           else
-            [Mime::HTML]
+            [Mime[:html]]
           end
+          set_header k, v
         end
       end
 
@@ -102,7 +109,7 @@ module ActionDispatch
       #   end
       def format=(extension)
         parameters[:format] = extension.to_s
-        @env["action_dispatch.request.formats"] = [Mime::Type.lookup_by_extension(parameters[:format])]
+        set_header "action_dispatch.request.formats", [Mime::Type.lookup_by_extension(parameters[:format])]
       end
 
       # Sets the \formats by string extensions. This differs from #format= by allowing you
@@ -121,9 +128,9 @@ module ActionDispatch
       #   end
       def formats=(extensions)
         parameters[:format] = extensions.first.to_s
-        @env["action_dispatch.request.formats"] = extensions.collect do |extension|
+        set_header "action_dispatch.request.formats", extensions.collect { |extension|
           Mime::Type.lookup_by_extension(extension)
-        end
+        }
       end
 
       # Receives an array of mimes and return the first user sent mime that

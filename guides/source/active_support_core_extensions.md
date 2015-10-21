@@ -172,7 +172,7 @@ NOTE: Defined in `active_support/core_ext/object/duplicable.rb`.
 
 ### `deep_dup`
 
-The `deep_dup` method returns deep copy of a given object. Normally, when you `dup` an object that contains other objects, Ruby does not `dup` them, so it creates a shallow copy of the object. If you have an array with a string, for example, it will look like this:
+The `deep_dup` method returns a deep copy of a given object. Normally, when you `dup` an object that contains other objects, Ruby does not `dup` them, so it creates a shallow copy of the object. If you have an array with a string, for example, it will look like this:
 
 ```ruby
 array     = ['string']
@@ -453,7 +453,7 @@ NOTE: Defined in `active_support/core_ext/object/instance_variables.rb`.
 
 #### `instance_variable_names`
 
-The method `instance_variable_names` returns an array.  Each name includes the "@" sign.
+The method `instance_variable_names` returns an array. Each name includes the "@" sign.
 
 ```ruby
 class C
@@ -1865,15 +1865,15 @@ The methods `to_date`, `to_time`, and `to_datetime` are basically convenience wr
 
 ```ruby
 "2010-07-27".to_date              # => Tue, 27 Jul 2010
-"2010-07-27 23:37:00".to_time     # => Tue Jul 27 23:37:00 UTC 2010
+"2010-07-27 23:37:00".to_time     # => 2010-07-27 23:37:00 +0200
 "2010-07-27 23:37:00".to_datetime # => Tue, 27 Jul 2010 23:37:00 +0000
 ```
 
 `to_time` receives an optional argument `:utc` or `:local`, to indicate which time zone you want the time in:
 
 ```ruby
-"2010-07-27 23:42:00".to_time(:utc)   # => Tue Jul 27 23:42:00 UTC 2010
-"2010-07-27 23:42:00".to_time(:local) # => Tue Jul 27 23:42:00 +0200 2010
+"2010-07-27 23:42:00".to_time(:utc)   # => 2010-07-27 23:42:00 UTC
+"2010-07-27 23:42:00".to_time(:local) # => 2010-07-27 23:42:00 +0200
 ```
 
 Default is `:utc`.
@@ -1935,6 +1935,8 @@ as well as adding or subtracting their results from a Time object. For example:
 # equivalent to Time.current.advance(months: 4, years: 5)
 (4.months + 5.years).from_now
 ```
+
+NOTE: Defined in `active_support/core_ext/numeric/time.rb`
 
 ### Formatting
 
@@ -2071,30 +2073,22 @@ Extensions to `BigDecimal`
 --------------------------
 ### `to_s`
 
-The method `to_s` is aliased to `to_formatted_s`. This provides a convenient way to display a BigDecimal value in floating-point notation:
+The method `to_s` provides a default specifier of "F". This means that a simple call to `to_s` will result in floating point representation instead of engineering notation:
 
 ```ruby
 BigDecimal.new(5.00, 6).to_s  # => "5.0"
 ```
 
-### `to_formatted_s`
-
-Te method `to_formatted_s` provides a default specifier of "F".  This means that a simple call to `to_formatted_s` or `to_s` will result in floating point representation instead of engineering notation:
-
-```ruby
-BigDecimal.new(5.00, 6).to_formatted_s  # => "5.0"
-```
-
 and that symbol specifiers are also supported:
 
 ```ruby
-BigDecimal.new(5.00, 6).to_formatted_s(:db)  # => "5.0"
+BigDecimal.new(5.00, 6).to_s(:db)  # => "5.0"
 ```
 
 Engineering notation is still supported:
 
 ```ruby
-BigDecimal.new(5.00, 6).to_formatted_s("e")  # => "0.5E1"
+BigDecimal.new(5.00, 6).to_s("e")  # => "0.5E1"
 ```
 
 Extensions to `Enumerable`
@@ -2189,6 +2183,16 @@ removed:
 
 ```ruby
 ["David", "Rafael", "Aaron", "Todd"].without("Aaron", "Todd") # => ["David", "Rafael"]
+```
+
+NOTE: Defined in `active_support/core_ext/enumerable.rb`.
+
+### `pluck`
+
+The method `pluck` returns an array based on the given key:
+
+```ruby
+[{ name: "David" }, { name: "Rafael" }, { name: "Aaron" }].pluck(:name) # => ["David", "Rafael", "Aaron"]
 ```
 
 NOTE: Defined in `active_support/core_ext/enumerable.rb`.
@@ -2883,7 +2887,7 @@ The method `transform_values` accepts a block and returns a hash that has applie
 ```
 There's also the bang variant `transform_values!` that applies the block operations to values in the very receiver.
 
-NOTE: Defined in `active_support/core_text/hash/transform_values.rb`.
+NOTE: Defined in `active_support/core_ext/hash/transform_values.rb`.
 
 ### Slicing
 

@@ -4,8 +4,8 @@ require 'active_support/core_ext/module/anonymous'
 require 'action_dispatch/http/mime_type'
 
 module ActionController
-  # Wraps the parameters hash into a nested hash. This will allow clients to submit
-  # POST requests without having to specify any root elements.
+  # Wraps the parameters hash into a nested hash. This will allow clients to
+  # submit requests without having to specify any root elements.
   #
   # This functionality is enabled in +config/initializers/wrap_parameters.rb+
   # and can be customized.
@@ -14,7 +14,7 @@ module ActionController
   # a non-empty array:
   #
   #     class UsersController < ApplicationController
-  #       wrap_parameters format: [:json, :xml]
+  #       wrap_parameters format: [:json, :xml, :url_encoded_form, :multipart_form]
   #     end
   #
   # If you enable +ParamsWrapper+ for +:json+ format, instead of having to
@@ -40,7 +40,7 @@ module ActionController
   #       wrap_parameters :person, include: [:username, :password]
   #     end
   #
-  # On ActiveRecord models with no +:include+ or +:exclude+ option set,
+  # On Active Record models with no +:include+ or +:exclude+ option set,
   # it will only wrap the parameters returned by the class method
   # <tt>attribute_names</tt>.
   #
@@ -276,7 +276,9 @@ module ActionController
 
       # Checks if we should perform parameters wrapping.
       def _wrapper_enabled?
-        ref = request.content_mime_type.try(:ref)
+        return false unless request.has_content_type?
+
+        ref = request.content_mime_type.ref
         _wrapper_formats.include?(ref) && _wrapper_key && !request.request_parameters[_wrapper_key]
       end
   end

@@ -1,6 +1,6 @@
 module ActiveRecord
   class Relation
-    class WhereClauseFactory
+    class WhereClauseFactory # :nodoc:
       def initialize(klass, predicate_builder)
         @klass = klass
         @predicate_builder = predicate_builder
@@ -15,12 +15,15 @@ module ActiveRecord
         when Hash
           attributes = predicate_builder.resolve_column_aliases(opts)
           attributes = klass.send(:expand_hash_conditions_for_aggregates, attributes)
+          attributes.stringify_keys!
 
           attributes, binds = predicate_builder.create_binds(attributes)
 
           parts = predicate_builder.build_from_hash(attributes)
-        else
+        when Arel::Nodes::Node
           parts = [opts]
+        else
+          raise ArgumentError, "Unsupported argument type: #{opts} (#{opts.class})"
         end
 
         WhereClause.new(parts, binds)

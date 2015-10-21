@@ -16,11 +16,11 @@ module ActiveRecord
     config.app_generators.orm :active_record, :migration => true,
                                               :timestamps => true
 
-    config.app_middleware.insert_after "::ActionDispatch::Callbacks",
-      "ActiveRecord::QueryCache"
+    config.app_middleware.insert_after ::ActionDispatch::Callbacks,
+      ActiveRecord::QueryCache
 
-    config.app_middleware.insert_after "::ActionDispatch::Callbacks",
-      "ActiveRecord::ConnectionAdapters::ConnectionManagement"
+    config.app_middleware.insert_after ::ActionDispatch::Callbacks,
+      ActiveRecord::ConnectionAdapters::ConnectionManagement
 
     config.action_dispatch.rescue_responses.merge!(
       'ActiveRecord::RecordNotFound'   => :not_found,
@@ -78,8 +78,8 @@ module ActiveRecord
 
     initializer "active_record.migration_error" do
       if config.active_record.delete(:migration_error) == :page_load
-        config.app_middleware.insert_after "::ActionDispatch::Callbacks",
-          "ActiveRecord::Migration::CheckPending"
+        config.app_middleware.insert_after ::ActionDispatch::Callbacks,
+          ActiveRecord::Migration::CheckPending
       end
     end
 
@@ -121,7 +121,7 @@ module ActiveRecord
 
     # This sets the database configuration from Configuration#database_configuration
     # and then establishes the connection.
-    initializer "active_record.initialize_database" do |app|
+    initializer "active_record.initialize_database" do
       ActiveSupport.on_load(:active_record) do
         self.configurations = Rails.application.config.database_configuration
 
@@ -156,8 +156,8 @@ end_warning
       ActiveSupport.on_load(:active_record) do
         ActionDispatch::Reloader.send(hook) do
           if ActiveRecord::Base.connected?
-            ActiveRecord::Base.clear_reloadable_connections!
             ActiveRecord::Base.clear_cache!
+            ActiveRecord::Base.clear_reloadable_connections!
           end
         end
       end

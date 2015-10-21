@@ -65,18 +65,6 @@ module ActiveRecord
         boolean:      { name: "boolean" }
       }
 
-      class Version
-        include Comparable
-
-        def initialize(version_string)
-          @version = version_string.split('.').map(&:to_i)
-        end
-
-        def <=>(version_string)
-          @version <=> version_string.split('.').map(&:to_i)
-        end
-      end
-
       class StatementPool < ConnectionAdapters::StatementPool
         private
 
@@ -93,8 +81,7 @@ module ActiveRecord
         super(connection, logger)
 
         @active     = nil
-        @statements = StatementPool.new(@connection,
-                                        self.class.type_cast_config_to_integer(config.fetch(:statement_limit) { 1000 }))
+        @statements = StatementPool.new(self.class.type_cast_config_to_integer(config.fetch(:statement_limit) { 1000 }))
         @config = config
 
         @visitor = Arel::Visitors::SQLite.new self
@@ -102,6 +89,7 @@ module ActiveRecord
 
         if self.class.type_cast_config_to_boolean(config.fetch(:prepared_statements) { true })
           @prepared_statements = true
+          @visitor.extend(DetermineIfPreparableVisitor)
         else
           @prepared_statements = false
         end
@@ -231,7 +219,7 @@ module ActiveRecord
       end
 
       class ExplainPrettyPrinter
-        # Pretty prints the result of a EXPLAIN QUERY PLAN in a way that resembles
+        # Pretty prints the result of an EXPLAIN QUERY PLAN in a way that resembles
         # the output of the SQLite shell:
         #
         #   0|0|0|SEARCH TABLE users USING INTEGER PRIMARY KEY (rowid=?) (~1 rows)
@@ -244,15 +232,18 @@ module ActiveRecord
         end
       end
 
-      def exec_query(sql, name = nil, binds = [])
+      def exec_query(sql, name = nil, binds = [], prepare: false)
         type_casted_binds = binds.map { |attr| type_cast(attr.value_for_database) }
 
         log(sql, name, binds) do
           # Don't cache statements if they are not prepared
-          if without_prepared_statement?(binds)
+          unless prepare
             stmt    = @connection.prepare(sql)
             begin
               cols    = stmt.columns
+              unless without_prepared_statement?(binds)
+                stmt.bind_params(type_casted_binds)
+              end
               records = stmt.to_a
             ensure
               stmt.close
@@ -265,7 +256,7 @@ module ActiveRecord
             stmt = cache[:stmt]
             cols = cache[:cols] ||= stmt.columns
             stmt.reset!
-            stmt.bind_params type_casted_binds
+            stmt.bind_params(type_casted_binds)
           end
 
           ActiveRecord::Result.new(cols, stmt.to_a)
@@ -332,9 +323,24 @@ module ActiveRecord
           row['name']
         end
       end
+      alias data_sources tables
 
       def table_exists?(table_name)
         table_name && tables(nil, table_name).any?
+      end
+      alias data_source_exists? table_exists?
+
+      def views # :nodoc:
+        select_values("SELECT name FROM sqlite_master WHERE type = 'view' AND name <> 'sqlite_sequence'", 'SCHEMA')
+      end
+
+      def view_exists?(view_name) # :nodoc:
+        return false unless view_name.present?
+
+        sql = "SELECT name FROM sqlite_master WHERE type = 'view' AND name <> 'sqlite_sequence'"
+        sql << " AND name = #{quote(view_name)}"
+
+        select_values(sql, 'SCHEMA').any?
       end
 
       # Returns an array of +Column+ objects for the table specified by +table_name+.
@@ -381,13 +387,13 @@ module ActiveRecord
         end
       end
 
-      def primary_key(table_name) #:nodoc:
+      def primary_keys(table_name) # :nodoc:
         pks = table_structure(table_name).select { |f| f['pk'] > 0 }
-        return nil unless pks.count == 1
-        pks[0]['name']
+        pks.sort_by { |f| f['pk'] }.map { |f| f['name'] }
       end
 
-      def remove_index!(table_name, index_name) #:nodoc:
+      def remove_index(table_name, options = {}) #:nodoc:
+        index_name = index_name_for_remove(table_name, options)
         exec_query "DROP INDEX #{quote_column_name(index_name)}"
       end
 
@@ -422,7 +428,9 @@ module ActiveRecord
         end
       end
 
-      def change_column_default(table_name, column_name, default) #:nodoc:
+      def change_column_default(table_name, column_name, default_or_changes) #:nodoc:
+        default = extract_new_default_value(default_or_changes)
+
         alter_table(table_name) do |definition|
           definition[column_name].default = default
         end

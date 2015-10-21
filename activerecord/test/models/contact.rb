@@ -3,7 +3,7 @@ module ContactFakeColumns
     base.class_eval do
       establish_connection(:adapter => 'fake')
 
-      connection.tables = [table_name]
+      connection.data_sources = [table_name]
       connection.primary_keys = {
         table_name => 'id'
       }

@@ -7,7 +7,7 @@ This guide covers the user-facing features of Rails routing.
 
 After reading this guide, you will know:
 
-* How to interpret the code in `routes.rb`.
+* How to interpret the code in `config/routes.rb`.
 * How to construct your own routes, using either the preferred resourceful style or the `match` method.
 * What parameters to expect an action to receive.
 * How to automatically create paths and URLs using route helpers.
@@ -79,11 +79,13 @@ it asks the router to map it to a controller action. If the first matching route
 resources :photos
 ```
 
-Rails would dispatch that request to the `destroy` method on the `photos` controller with `{ id: '17' }` in `params`.
+Rails would dispatch that request to the `destroy` action on the `photos` controller with `{ id: '17' }` in `params`.
 
 ### CRUD, Verbs, and Actions
 
-In Rails, a resourceful route provides a mapping between HTTP verbs and URLs to controller actions. By convention, each action also maps to particular CRUD operations in a database. A single entry in the routing file, such as:
+In Rails, a resourceful route provides a mapping between HTTP verbs and URLs to
+controller actions. By convention, each action also maps to a specific CRUD
+operation in a database. A single entry in the routing file, such as:
 
 ```ruby
 resources :photos
@@ -615,6 +617,8 @@ get 'photos/:id', to: 'photos#show', defaults: { format: 'jpg' }
 
 Rails would match `photos/12` to the `show` action of `PhotosController`, and set `params[:format]` to `"jpg"`.
 
+NOTE: You cannot override defaults via query parameters - this is for security reasons. The only defaults that can be overridden are dynamic segments via substitution in the URL path.
+
 ### Naming Routes
 
 You can specify a name for any route using the `:as` option:
@@ -793,7 +797,11 @@ get '/stories/:name', to: redirect { |path_params, req| "/articles/#{path_params
 get '/stories', to: redirect { |path_params, req| "/articles/#{req.subdomain}" }
 ```
 
-Please note that this redirection is a 301 "Moved Permanently" redirect. Keep in mind that some web browsers or proxy servers will cache this type of redirect, making the old page inaccessible.
+Please note that default redirection is a 301 "Moved Permanently" redirect. Keep in mind that some web browsers or proxy servers will cache this type of redirect, making the old page inaccessible. You can use the `:status` option to change the response status:
+
+```ruby
+get '/stories/:name', to: redirect('/articles/%{name}', status: 302)
+```
 
 In all of these cases, if you don't provide the leading host (`http://www.example.com`), Rails will take those details from the current request.
 
@@ -809,13 +817,16 @@ As long as `Sprockets` responds to `call` and returns a `[status, headers, body]
 
 NOTE: For the curious, `'articles#index'` actually expands out to `ArticlesController.action(:index)`, which returns a valid Rack application.
 
-If you specify a rack application as the endpoint for a matcher remember that the route will be unchanged in the receiving application. With the following route your rack application should expect the route to be '/admin':
+If you specify a Rack application as the endpoint for a matcher, remember that
+the route will be unchanged in the receiving application. With the following
+route your Rack application should expect the route to be '/admin':
 
 ```ruby
 match '/admin', to: AdminApp, via: :all
 ```
 
-If you would prefer to have your rack application receive requests at the root path instead use mount:
+If you would prefer to have your Rack application receive requests at the root
+path instead, use mount:
 
 ```ruby
 mount AdminApp, at: '/admin'
@@ -1084,6 +1095,20 @@ edit_videos GET  /videos/:identifier/edit(.:format) videos#edit
 Video.find_by(identifier: params[:identifier])
 ```
 
+You can override `ActiveRecord::Base#to_param` of a related model to construct
+a URL:
+
+```ruby
+class Video < ActiveRecord::Base
+  def to_param
+    identifier
+  end
+end
+
+video = Video.find_by(identifier: "Roman-Holiday")
+edit_videos_path(video) # => "/videos/Roman-Holiday"
+```
+
 Inspecting and Testing Routes
 -----------------------------
 
@@ -1093,7 +1118,7 @@ Rails offers facilities for inspecting and testing your routes.
 
 To get a complete list of the available routes in your application, visit `http://localhost:3000/rails/info/routes` in your browser while your server is running in the **development** environment. You can also execute the `rake routes` command in your terminal to produce the same output.
 
-Both methods will list all of your routes, in the same order that they appear in `routes.rb`. For each route, you'll see:
+Both methods will list all of your routes, in the same order that they appear in `config/routes.rb`. For each route, you'll see:
 
 * The route name (if any)
 * The HTTP verb used (if the route doesn't respond to all verbs)

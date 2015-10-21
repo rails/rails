@@ -53,7 +53,7 @@ class Time
 
     # Returns a TimeZone instance matching the time zone provided.
     # Accepts the time zone in any format supported by <tt>Time.zone=</tt>.
-    # Raises an ArgumentError for invalid time zones.
+    # Raises an +ArgumentError+ for invalid time zones.
     #
     #   Time.find_zone! "America/New_York" # => #<ActiveSupport::TimeZone @name="America/New_York" ...>
     #   Time.find_zone! "EST"              # => #<ActiveSupport::TimeZone @name="EST" ...>
@@ -65,7 +65,8 @@ class Time
       if !time_zone || time_zone.is_a?(ActiveSupport::TimeZone)
         time_zone
       else
-        # lookup timezone based on identifier (unless we've been passed a TZInfo::Timezone)
+        # Look up the timezone based on the identifier (unless we've been
+        # passed a TZInfo::Timezone)
         unless time_zone.respond_to?(:period_for_local)
           time_zone = ActiveSupport::TimeZone[time_zone] || TZInfo::Timezone.get(time_zone)
         end

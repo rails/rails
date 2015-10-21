@@ -4,43 +4,50 @@ require "active_support/log_subscriber/test_helper"
 class RespondToController < ActionController::Base
   layout :set_layout
 
+  before_action {
+    case params[:v]
+    when String then request.variant = params[:v].to_sym
+    when Array then request.variant = params[:v].map(&:to_sym)
+    end
+  }
+
   def html_xml_or_rss
     respond_to do |type|
-      type.html { render :text => "HTML"    }
-      type.xml  { render :text => "XML"     }
-      type.rss  { render :text => "RSS"     }
-      type.all  { render :text => "Nothing" }
+      type.html { render body: "HTML"    }
+      type.xml  { render body: "XML"     }
+      type.rss  { render body: "RSS"     }
+      type.all  { render body: "Nothing" }
     end
   end
 
   def js_or_html
     respond_to do |type|
-      type.html { render :text => "HTML"    }
-      type.js   { render :text => "JS"      }
-      type.all  { render :text => "Nothing" }
+      type.html { render body: "HTML"    }
+      type.js   { render body: "JS"      }
+      type.all  { render body: "Nothing" }
     end
   end
 
   def json_or_yaml
     respond_to do |type|
-      type.json { render :text => "JSON" }
-      type.yaml { render :text => "YAML" }
+      type.json { render body: "JSON" }
+      type.yaml { render body: "YAML" }
     end
   end
 
   def html_or_xml
     respond_to do |type|
-      type.html { render :text => "HTML"    }
-      type.xml  { render :text => "XML"     }
-      type.all  { render :text => "Nothing" }
+      type.html { render body: "HTML"    }
+      type.xml  { render body: "XML"     }
+      type.all  { render body: "Nothing" }
     end
   end
 
   def json_xml_or_html
     respond_to do |type|
-      type.json { render :text => 'JSON' }
+      type.json { render body: 'JSON' }
       type.xml { render :xml => 'XML' }
-      type.html { render :text => 'HTML' }
+      type.html { render body: 'HTML' }
     end
   end
 
@@ -49,14 +56,14 @@ class RespondToController < ActionController::Base
     request.format = :xml
 
     respond_to do |type|
-      type.html { render :text => "HTML"    }
-      type.xml  { render :text => "XML"     }
+      type.html { render body: "HTML"    }
+      type.xml  { render body: "XML"     }
     end
   end
 
   def just_xml
     respond_to do |type|
-      type.xml  { render :text => "XML" }
+      type.xml  { render body: "XML" }
     end
   end
 
@@ -74,52 +81,52 @@ class RespondToController < ActionController::Base
   def using_defaults_with_all
     respond_to do |type|
       type.html
-      type.all{ render text: "ALL" }
+      type.all { render body: "ALL" }
     end
   end
 
   def made_for_content_type
     respond_to do |type|
-      type.rss  { render :text => "RSS"  }
-      type.atom { render :text => "ATOM" }
-      type.all  { render :text => "Nothing" }
+      type.rss  { render body: "RSS"  }
+      type.atom { render body: "ATOM" }
+      type.all  { render body: "Nothing" }
     end
   end
 
   def custom_type_handling
     respond_to do |type|
-      type.html { render :text => "HTML"    }
-      type.custom("application/crazy-xml")  { render :text => "Crazy XML"  }
-      type.all  { render :text => "Nothing" }
+      type.html { render body: "HTML"    }
+      type.custom("application/crazy-xml")  { render body: "Crazy XML"  }
+      type.all  { render body: "Nothing" }
     end
   end
 
 
   def custom_constant_handling
     respond_to do |type|
-      type.html   { render :text => "HTML"   }
-      type.mobile { render :text => "Mobile" }
+      type.html   { render body: "HTML"   }
+      type.mobile { render body: "Mobile" }
     end
   end
 
   def custom_constant_handling_without_block
     respond_to do |type|
-      type.html   { render :text => "HTML"   }
+      type.html   { render body: "HTML"   }
       type.mobile
     end
   end
 
   def handle_any
     respond_to do |type|
-      type.html { render :text => "HTML" }
-      type.any(:js, :xml) { render :text => "Either JS or XML" }
+      type.html { render body: "HTML" }
+      type.any(:js, :xml) { render body: "Either JS or XML" }
     end
   end
 
   def handle_any_any
     respond_to do |type|
-      type.html { render :text => 'HTML' }
-      type.any { render :text => 'Whatever you ask for, I got it' }
+      type.html { render body: 'HTML' }
+      type.any { render body: 'Whatever you ask for, I got it' }
     end
   end
 
@@ -160,15 +167,15 @@ class RespondToController < ActionController::Base
     request.variant = :mobile
 
     respond_to do |type|
-      type.html { render text: "mobile" }
+      type.html { render body: "mobile" }
     end
   end
 
   def multiple_variants_for_format
     respond_to do |type|
       type.html do |html|
-        html.tablet { render text: "tablet" }
-        html.phone  { render text: "phone" }
+        html.tablet { render body: "tablet" }
+        html.phone  { render body: "phone" }
       end
     end
   end
@@ -176,7 +183,7 @@ class RespondToController < ActionController::Base
   def variant_plus_none_for_format
     respond_to do |format|
       format.html do |variant|
-        variant.phone { render text: "phone" }
+        variant.phone { render body: "phone" }
         variant.none
       end
     end
@@ -184,9 +191,9 @@ class RespondToController < ActionController::Base
 
   def variant_inline_syntax
     respond_to do |format|
-      format.js         { render text: "js"    }
-      format.html.none  { render text: "none"  }
-      format.html.phone { render text: "phone" }
+      format.js         { render body: "js"    }
+      format.html.none  { render body: "none"  }
+      format.html.phone { render body: "phone" }
     end
   end
 
@@ -201,8 +208,8 @@ class RespondToController < ActionController::Base
   def variant_any
     respond_to do |format|
       format.html do |variant|
-        variant.any(:tablet, :phablet){ render text: "any" }
-        variant.phone { render text: "phone" }
+        variant.any(:tablet, :phablet){ render body: "any" }
+        variant.phone { render body: "phone" }
       end
     end
   end
@@ -210,23 +217,23 @@ class RespondToController < ActionController::Base
   def variant_any_any
     respond_to do |format|
       format.html do |variant|
-        variant.any   { render text: "any"   }
-        variant.phone { render text: "phone" }
+        variant.any   { render body: "any"   }
+        variant.phone { render body: "phone" }
       end
     end
   end
 
   def variant_inline_any
     respond_to do |format|
-      format.html.any(:tablet, :phablet){ render text: "any" }
-      format.html.phone { render text: "phone" }
+      format.html.any(:tablet, :phablet){ render body: "any" }
+      format.html.phone { render body: "phone" }
     end
   end
 
   def variant_inline_any_any
     respond_to do |format|
-      format.html.phone { render text: "phone" }
-      format.html.any   { render text: "any"   }
+      format.html.phone { render body: "phone" }
+      format.html.any   { render body: "any"   }
     end
   end
 
@@ -239,16 +246,16 @@ class RespondToController < ActionController::Base
 
   def variant_any_with_none
     respond_to do |format|
-      format.html.any(:none, :phone){ render text: "none or phone" }
+      format.html.any(:none, :phone){ render body: "none or phone" }
     end
   end
 
   def format_any_variant_any
     respond_to do |format|
-      format.html { render text: "HTML" }
+      format.html { render body: "HTML" }
       format.any(:js, :xml) do |variant|
-        variant.phone{ render text: "phone" }
-        variant.any(:tablet, :phablet){ render text: "tablet" }
+        variant.phone{ render body: "phone" }
+        variant.any(:tablet, :phablet){ render body: "tablet" }
       end
     end
   end
@@ -612,8 +619,7 @@ class RespondToControllerTest < ActionController::TestCase
     logger = ActiveSupport::LogSubscriber::TestHelper::MockLogger.new
     old_logger, ActionController::Base.logger = ActionController::Base.logger, logger
 
-    @request.variant = :invalid
-    get :variant_with_implicit_rendering
+    get :variant_with_implicit_rendering, params: { v: :invalid }
     assert_response :no_content
     assert_equal 1, logger.logged(:info).select{ |s| s =~ /No template found/ }.size, "Implicit head :no_content not logged"
   ensure
@@ -626,28 +632,24 @@ class RespondToControllerTest < ActionController::TestCase
   end
 
   def test_variant_with_implicit_rendering
-    @request.variant = :implicit
-    get :variant_with_implicit_rendering
+    get :variant_with_implicit_rendering, params: { v: :implicit }
     assert_response :no_content
   end
 
   def test_variant_with_implicit_template_rendering
-    @request.variant = :mobile
-    get :variant_with_implicit_rendering
+    get :variant_with_implicit_rendering, params: { v: :mobile }
     assert_equal "text/html", @response.content_type
     assert_equal "mobile", @response.body
   end
 
   def test_variant_with_format_and_custom_render
-    @request.variant = :phone
-    get :variant_with_format_and_custom_render
+    get :variant_with_format_and_custom_render, params: { v: :phone }
     assert_equal "text/html", @response.content_type
     assert_equal "mobile", @response.body
   end
 
   def test_multiple_variants_for_format
-    @request.variant = :tablet
-    get :multiple_variants_for_format
+    get :multiple_variants_for_format, params: { v: :tablet }
     assert_equal "text/html", @response.content_type
     assert_equal "tablet", @response.body
   end
@@ -667,32 +669,27 @@ class RespondToControllerTest < ActionController::TestCase
     assert_equal "text/html", @response.content_type
     assert_equal "none", @response.body
 
-    @request.variant = :phone
-    get :variant_inline_syntax
+    get :variant_inline_syntax, params: { v: :phone }
     assert_equal "text/html", @response.content_type
     assert_equal "phone", @response.body
   end
 
   def test_variant_inline_syntax_without_block
-    @request.variant = :phone
-    get :variant_inline_syntax_without_block
+    get :variant_inline_syntax_without_block, params: { v: :phone }
     assert_equal "text/html", @response.content_type
     assert_equal "phone", @response.body
   end
 
   def test_variant_any
-    @request.variant = :phone
-    get :variant_any
+    get :variant_any, params: { v: :phone }
     assert_equal "text/html", @response.content_type
     assert_equal "phone", @response.body
 
-    @request.variant = :tablet
-    get :variant_any
+    get :variant_any, params: { v: :tablet }
     assert_equal "text/html", @response.content_type
     assert_equal "any", @response.body
 
-    @request.variant = :phablet
-    get :variant_any
+    get :variant_any, params: { v: :phablet }
     assert_equal "text/html", @response.content_type
     assert_equal "any", @response.body
   end
@@ -702,54 +699,45 @@ class RespondToControllerTest < ActionController::TestCase
     assert_equal "text/html", @response.content_type
     assert_equal "any", @response.body
 
-    @request.variant = :phone
-    get :variant_any_any
+    get :variant_any_any, params: { v: :phone }
     assert_equal "text/html", @response.content_type
     assert_equal "phone", @response.body
 
-    @request.variant = :yolo
-    get :variant_any_any
+    get :variant_any_any, params: { v: :yolo }
     assert_equal "text/html", @response.content_type
     assert_equal "any", @response.body
   end
 
   def test_variant_inline_any
-    @request.variant = :phone
-    get :variant_any
+    get :variant_any, params: { v: :phone }
     assert_equal "text/html", @response.content_type
     assert_equal "phone", @response.body
 
-    @request.variant = :tablet
-    get :variant_inline_any
+    get :variant_inline_any, params: { v: :tablet }
     assert_equal "text/html", @response.content_type
     assert_equal "any", @response.body
 
-    @request.variant = :phablet
-    get :variant_inline_any
+    get :variant_inline_any, params: { v: :phablet }
     assert_equal "text/html", @response.content_type
     assert_equal "any", @response.body
   end
 
   def test_variant_inline_any_any
-    @request.variant = :phone
-    get :variant_inline_any_any
+    get :variant_inline_any_any, params: { v: :phone }
     assert_equal "text/html", @response.content_type
     assert_equal "phone", @response.body
 
-    @request.variant = :yolo
-    get :variant_inline_any_any
+    get :variant_inline_any_any, params: { v: :yolo }
     assert_equal "text/html", @response.content_type
     assert_equal "any", @response.body
   end
 
   def test_variant_any_implicit_render
-    @request.variant = :tablet
-    get :variant_any_implicit_render
+    get :variant_any_implicit_render, params: { v: :tablet }
     assert_equal "text/html", @response.content_type
     assert_equal "tablet", @response.body
 
-    @request.variant = :phablet
-    get :variant_any_implicit_render
+    get :variant_any_implicit_render, params: { v: :phablet }
     assert_equal "text/html", @response.content_type
     assert_equal "phablet", @response.body
   end
@@ -759,37 +747,53 @@ class RespondToControllerTest < ActionController::TestCase
     assert_equal "text/html", @response.content_type
     assert_equal "none or phone", @response.body
 
-    @request.variant = :phone
-    get :variant_any_with_none
+    get :variant_any_with_none, params: { v: :phone }
     assert_equal "text/html", @response.content_type
     assert_equal "none or phone", @response.body
   end
 
   def test_format_any_variant_any
-    @request.variant = :tablet
-    get :format_any_variant_any, format: :js
+    get :format_any_variant_any, format: :js, params: { v: :tablet }
     assert_equal "text/javascript", @response.content_type
     assert_equal "tablet", @response.body
   end
 
   def test_variant_negotiation_inline_syntax
-    @request.variant = [:tablet, :phone]
-    get :variant_inline_syntax_without_block
+    get :variant_inline_syntax_without_block, params: { v: [:tablet, :phone] }
     assert_equal "text/html", @response.content_type
     assert_equal "phone", @response.body
   end
 
   def test_variant_negotiation_block_syntax
-    @request.variant = [:tablet, :phone]
-    get :variant_plus_none_for_format
+    get :variant_plus_none_for_format, params: { v: [:tablet, :phone] }
     assert_equal "text/html", @response.content_type
     assert_equal "phone", @response.body
   end
 
   def test_variant_negotiation_without_block
-    @request.variant = [:tablet, :phone]
-    get :variant_inline_syntax_without_block
+    get :variant_inline_syntax_without_block, params: { v: [:tablet, :phone] }
     assert_equal "text/html", @response.content_type
     assert_equal "phone", @response.body
+  end
+end
+
+class RespondToWithBlockOnDefaultRenderController < ActionController::Base
+  def show
+    default_render do
+      render body: 'default_render yielded'
+    end
+  end
+end
+
+class RespondToWithBlockOnDefaultRenderControllerTest < ActionController::TestCase
+  def setup
+    super
+    @request.host = "www.example.com"
+  end
+
+  def test_default_render_uses_block_when_no_template_exists
+    get :show
+    assert_equal "default_render yielded", @response.body
+    assert_equal "text/plain", @response.content_type
   end
 end

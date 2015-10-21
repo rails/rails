@@ -4,7 +4,7 @@ module DateAndTime
     # if Time.zone_default is set. Otherwise, it returns the current time.
     #
     #   Time.zone = 'Hawaii'        # => 'Hawaii'
-    #   DateTime.utc(2000).in_time_zone # => Fri, 31 Dec 1999 14:00:00 HST -10:00
+    #   Time.utc(2000).in_time_zone # => Fri, 31 Dec 1999 14:00:00 HST -10:00
     #   Date.new(2000).in_time_zone  # => Sat, 01 Jan 2000 00:00:00 HST -10:00
     #
     # This method is similar to Time#localtime, except that it uses <tt>Time.zone</tt> as the local zone
@@ -14,7 +14,6 @@ module DateAndTime
     # and the conversion will be based on that zone instead of <tt>Time.zone</tt>.
     #
     #   Time.utc(2000).in_time_zone('Alaska') # => Fri, 31 Dec 1999 15:00:00 AKST -09:00
-    #   DateTime.utc(2000).in_time_zone('Alaska') # => Fri, 31 Dec 1999 15:00:00 AKST -09:00
     #   Date.new(2000).in_time_zone('Alaska')  # => Sat, 01 Jan 2000 00:00:00 AKST -09:00
     def in_time_zone(zone = ::Time.zone)
       time_zone = ::Time.find_zone! zone

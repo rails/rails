@@ -24,8 +24,8 @@ module ActionView
       def initialize
         super
         self.class.controller_path = ""
-        @request = ActionController::TestRequest.new
-        @response = ActionController::TestResponse.new
+        @request = ActionController::TestRequest.create
+        @response = ActionDispatch::TestResponse.new
 
         @request.env.delete('PATH_INFO')
         @params = {}
@@ -263,9 +263,15 @@ module ActionView
       end
 
       def method_missing(selector, *args)
-        if @controller.respond_to?(:_routes) &&
-          ( @controller._routes.named_routes.route_defined?(selector) ||
-            @controller._routes.mounted_helpers.method_defined?(selector) )
+        begin
+          routes = @controller.respond_to?(:_routes) && @controller._routes
+        rescue
+          # Dont call routes, if there is an error on _routes call
+        end
+
+        if routes &&
+           ( routes.named_routes.route_defined?(selector) ||
+             routes.mounted_helpers.method_defined?(selector) )
           @controller.__send__(selector, *args)
         else
           super

@@ -118,7 +118,7 @@ module ActiveSupport
     #   number_to_percentage(1000, locale: :fr)                    # => 1 000,000%
     #   number_to_percentage:(1000, precision: nil)                # => 1000%
     #   number_to_percentage('98a')                                # => 98a%
-    #   number_to_percentage(100, format: '%n  %')                 # => 100  %
+    #   number_to_percentage(100, format: '%n  %')                 # => 100.000  %
     def number_to_percentage(number, options = {})
       NumberToPercentageConverter.convert(number, options)
     end
@@ -135,6 +135,9 @@ module ActiveSupport
     #   to ",").
     # * <tt>:separator</tt> - Sets the separator between the
     #   fractional and integer digits (defaults to ".").
+    # * <tt>:delimiter_pattern</tt> - Sets a custom regular expression used for
+    #   deriving the placement of delimiter. Helpful when using currency formats
+    #   like INR.
     #
     # ==== Examples
     #
@@ -147,7 +150,10 @@ module ActiveSupport
     #   number_to_delimited(12345678.05, locale: :fr)    # => 12 345 678,05
     #   number_to_delimited('112a')                      # => 112a
     #   number_to_delimited(98765432.98, delimiter: ' ', separator: ',')
-    #   # => 98 765 432,98
+    #                                                    # => 98 765 432,98
+    #   number_to_delimited("123456.78",
+    #     delimiter_pattern: /(\d+?)(?=(\d\d)+(\d)(?!\d))/)
+    #                                                    # => 1,23,456.78
     def number_to_delimited(number, options = {})
       NumberToDelimitedConverter.convert(number, options)
     end
@@ -220,8 +226,6 @@ module ActiveSupport
     # * <tt>:strip_insignificant_zeros</tt> - If +true+ removes
     #   insignificant zeros after the decimal separator (defaults to
     #   +true+)
-    # * <tt>:prefix</tt> - If +:si+ formats the number using the SI
-    #   prefix (defaults to :binary)
     #
     # ==== Examples
     #

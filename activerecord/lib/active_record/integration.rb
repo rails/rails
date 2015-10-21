@@ -10,12 +10,12 @@ module ActiveRecord
       # Indicates the format used to generate the timestamp in the cache key.
       # Accepts any of the symbols in <tt>Time::DATE_FORMATS</tt>.
       #
-      # This is +:nsec+, by default.
+      # This is +:usec+, by default.
       class_attribute :cache_timestamp_format, :instance_writer => false
-      self.cache_timestamp_format = :nsec
+      self.cache_timestamp_format = :usec
     end
 
-    # Returns a String, which Action Pack uses for constructing an URL to this
+    # Returns a String, which Action Pack uses for constructing a URL to this
     # object. The default implementation returns this record's id as a String,
     # or nil if this record's unsaved.
     #
@@ -84,7 +84,7 @@ module ActiveRecord
       # Values longer than 20 characters will be truncated. The value
       # is truncated word by word.
       #
-      #   user = User.find_by(name: 'David HeinemeierHansson')
+      #   user = User.find_by(name: 'David Heinemeier Hansson')
       #   user.id         # => 125
       #   user_path(user) # => "/users/125-david"
       #

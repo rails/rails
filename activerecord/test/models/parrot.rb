@@ -21,9 +21,3 @@ end
 class DeadParrot < Parrot
   belongs_to :killer, :class_name => 'Pirate', foreign_key: :killer_id
 end
-
-class FunkyParrot < Parrot
-  before_destroy do
-    raise "before_destroy was called"
-  end
-end

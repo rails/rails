@@ -15,6 +15,8 @@ module ActiveJob
 
     # Includes the setter method for changing the active queue adapter.
     module ClassMethods
+      # Returns the backend queue provider. The default queue adapter
+      # is the +:inline+ queue. See QueueAdapters for more information.
       def queue_adapter
         _queue_adapter
       end

@@ -10,13 +10,13 @@ module ActiveRecord
     #   end
     #
     #   class Book < ActiveRecord::Base
-    #     # columns: title, sales
+    #     # columns: title, sales, author_id
     #   end
     #
     # When you load an author with all associated books Active Record will make
     # multiple queries like this:
     #
-    #   Author.includes(:books).where(:name => ['bell hooks', 'Homer').to_a
+    #   Author.includes(:books).where(name: ['bell hooks', 'Homer']).to_a
     #
     #   => SELECT `authors`.* FROM `authors` WHERE `name` IN ('bell hooks', 'Homer')
     #   => SELECT `books`.* FROM `books` WHERE `author_id` IN (2, 5)
@@ -116,7 +116,7 @@ module ActiveRecord
         when String
           preloaders_for_one(association.to_sym, records, scope)
         else
-          raise ArgumentError, "#{association.inspect} was not recognised for preload"
+          raise ArgumentError, "#{association.inspect} was not recognized for preload"
         end
       end
 
@@ -160,7 +160,7 @@ module ActiveRecord
         h
       end
 
-      class AlreadyLoaded
+      class AlreadyLoaded # :nodoc:
         attr_reader :owners, :reflection
 
         def initialize(klass, owners, reflection, preload_scope)
@@ -175,7 +175,7 @@ module ActiveRecord
         end
       end
 
-      class NullPreloader
+      class NullPreloader # :nodoc:
         def self.new(klass, owners, reflection, preload_scope); self; end
         def self.run(preloader); end
         def self.preloaded_records; []; end

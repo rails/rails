@@ -175,13 +175,20 @@ class TransactionTest < ActiveRecord::TestCase
     assert topic.new_record?, "#{topic.inspect} should be new record"
   end
 
+  def test_transaction_state_is_cleared_when_record_is_persisted
+    author = Author.create! name: 'foo'
+    author.name = nil
+    assert_not author.save
+    assert_not author.new_record?
+  end
+
   def test_update_should_rollback_on_failure
     author = Author.find(1)
     posts_count = author.posts.size
     assert posts_count > 0
     status = author.update(name: nil, post_ids: [])
     assert !status
-    assert_equal posts_count, author.posts(true).size
+    assert_equal posts_count, author.posts.reload.size
   end
 
   def test_update_should_rollback_on_failure!
@@ -191,7 +198,7 @@ class TransactionTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::RecordInvalid) do
       author.update!(name: nil, post_ids: [])
     end
-    assert_equal posts_count, author.posts(true).size
+    assert_equal posts_count, author.posts.reload.size
   end
 
   def test_cancellation_from_returning_false_in_before_filter
@@ -480,13 +487,17 @@ class TransactionTest < ActiveRecord::TestCase
   end
 
   def test_rollback_when_commit_raises
-    Topic.connection.expects(:begin_db_transaction)
-    Topic.connection.expects(:commit_db_transaction).raises('OH NOES')
-    Topic.connection.expects(:rollback_db_transaction)
+    assert_called(Topic.connection, :begin_db_transaction) do
+      Topic.connection.stub(:commit_db_transaction, ->{ raise('OH NOES') }) do
+        assert_called(Topic.connection, :rollback_db_transaction) do
 
-    assert_raise RuntimeError do
-      Topic.transaction do
-        # do nothing
+          e = assert_raise RuntimeError do
+            Topic.transaction do
+              # do nothing
+            end
+          end
+          assert_equal 'OH NOES', e.message
+        end
       end
     end
   end

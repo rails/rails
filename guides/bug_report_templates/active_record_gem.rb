@@ -1,5 +1,17 @@
-# Activate the gem you are reporting the issue against.
-gem 'activerecord', '4.2.0'
+begin
+  require 'bundler/inline'
+rescue LoadError => e
+  $stderr.puts 'Bundler version 1.10 or later is required. Please update your Bundler'
+  raise e
+end
+
+gemfile(true) do
+  source 'https://rubygems.org'
+  # Activate the gem you are reporting the issue against.
+  gem 'activerecord', '4.2.0'
+  gem 'sqlite3'
+end
+
 require 'active_record'
 require 'minitest/autorun'
 require 'logger'

@@ -3,6 +3,7 @@ class Ship < ActiveRecord::Base
 
   belongs_to :pirate
   belongs_to :update_only_pirate, :class_name => 'Pirate'
+  belongs_to :developer, dependent: :destroy
   has_many :parts, :class_name => 'ShipPart'
   has_many :treasures
 
@@ -17,6 +18,18 @@ class Ship < ActiveRecord::Base
   def cancel_save_callback_method
     throw(:abort)
   end
+end
+
+class ShipWithoutNestedAttributes < ActiveRecord::Base
+  self.table_name = "ships"
+  has_many :prisoners, inverse_of: :ship, foreign_key: :ship_id
+  has_many :parts, class_name: "ShipPart", foreign_key: :ship_id
+
+  validates :name, presence: true
+end
+
+class Prisoner < ActiveRecord::Base
+  belongs_to :ship, autosave: true, class_name: "ShipWithoutNestedAttributes", inverse_of: :prisoners
 end
 
 class FamousShip < ActiveRecord::Base

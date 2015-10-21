@@ -3,7 +3,10 @@ require 'test_helper'
 <% module_namespacing do -%>
 class <%= controller_class_name %>ControllerTest < ActionController::TestCase
   setup do
-    @<%= singular_table_name %> = <%= table_name %>(:one)
+    @<%= singular_table_name %> = <%= fixture_name %>(:one)
+<% if mountable_engine? -%>
+    @routes = Engine.routes
+<% end -%>
   end
 
   test "should get index" do

@@ -1,29 +1,29 @@
 require "cases/helper"
 
-class Group < ActiveRecord::Base
-  Group.table_name = 'group'
-  belongs_to :select
-  has_one :values
-end
-
-class Select < ActiveRecord::Base
-  Select.table_name = 'select'
-  has_many :groups
-end
-
-class Values < ActiveRecord::Base
-  Values.table_name = 'values'
-end
-
-class Distinct < ActiveRecord::Base
-  Distinct.table_name = 'distinct'
-  has_and_belongs_to_many :selects
-  has_many :values, :through => :groups
-end
-
 # a suite of tests to ensure the ConnectionAdapters#MysqlAdapter can handle tables with
 # reserved word names (ie: group, order, values, etc...)
-class MysqlReservedWordTest < ActiveRecord::TestCase
+class MysqlReservedWordTest < ActiveRecord::MysqlTestCase
+  class Group < ActiveRecord::Base
+    Group.table_name = 'group'
+    belongs_to :select
+    has_one :values
+  end
+
+  class Select < ActiveRecord::Base
+    Select.table_name = 'select'
+    has_many :groups
+  end
+
+  class Values < ActiveRecord::Base
+    Values.table_name = 'values'
+  end
+
+  class Distinct < ActiveRecord::Base
+    Distinct.table_name = 'distinct'
+    has_and_belongs_to_many :selects
+    has_many :values, :through => :groups
+  end
+
   def setup
     @connection = ActiveRecord::Base.connection
 

@@ -294,7 +294,7 @@ module ActionDispatch
           if kwarg_request?(args)
             process(http_method, path, *args)
           else
-            non_kwarg_request_warning if args.present?
+            non_kwarg_request_warning if args.any?
             process(http_method, path, { params: args[0], headers: args[1] })
           end
         end
@@ -325,7 +325,11 @@ module ActionDispatch
           if path =~ %r{://}
             location = URI.parse(path)
             https! URI::HTTPS === location if location.scheme
-            host! "#{location.host}:#{location.port}" if location.host
+            if url_host = location.host
+              default = Rack::Request::DEFAULT_PORTS[location.scheme]
+              url_host += ":#{location.port}" if default != location.port
+              host! url_host
+            end
             path = location.query ? "#{location.path}?#{location.query}" : location.path
           end
 
@@ -350,15 +354,15 @@ module ActionDispatch
           if xhr
             headers ||= {}
             headers['HTTP_X_REQUESTED_WITH'] = 'XMLHttpRequest'
-            headers['HTTP_ACCEPT'] ||= [Mime::JS, Mime::HTML, Mime::XML, 'text/xml', Mime::ALL].join(', ')
+            headers['HTTP_ACCEPT'] ||= [Mime[:js], Mime[:html], Mime[:xml], 'text/xml', '*/*'].join(', ')
           end
 
           # this modifies the passed request_env directly
           if headers.present?
-            Http::Headers.new(request_env).merge!(headers)
+            Http::Headers.from_hash(request_env).merge!(headers)
           end
           if env.present?
-            Http::Headers.new(request_env).merge!(env)
+            Http::Headers.from_hash(request_env).merge!(env)
           end
 
           session = Rack::Test::Session.new(_mock_session)
@@ -374,7 +378,7 @@ module ActionDispatch
           @html_document = nil
           @url_options = nil
 
-          @controller = session.last_request.env['action_controller.instance']
+          @controller = @request.controller_instance
 
           response.status
         end
@@ -391,7 +395,7 @@ module ActionDispatch
 
       attr_reader :app
 
-      def before_setup
+      def before_setup # :nodoc:
         @app = nil
         @integration_session = nil
         super
@@ -429,7 +433,6 @@ module ActionDispatch
           # reset the html_document variable, except for cookies/assigns calls
           unless method == 'cookies' || method == 'assigns'
             @html_document = nil
-            reset_template_assertion
           end
 
           integration_session.__send__(method, *args).tap do

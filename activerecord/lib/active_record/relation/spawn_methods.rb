@@ -10,7 +10,7 @@ module ActiveRecord
       clone
     end
 
-    # Merges in the conditions from <tt>other</tt>, if <tt>other</tt> is an <tt>ActiveRecord::Relation</tt>.
+    # Merges in the conditions from <tt>other</tt>, if <tt>other</tt> is an ActiveRecord::Relation.
     # Returns an array representing the intersection of the resulting records with <tt>other</tt>, if <tt>other</tt> is an array.
     #   Post.where(published: true).joins(:comments).merge( Comment.where(spam: false) )
     #   # Performs a single join query with both where conditions.

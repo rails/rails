@@ -31,6 +31,11 @@ module ActiveRecord
           Utils.extract_schema_qualified_name(name.to_s).quoted
         end
 
+        # Quotes schema names for use in SQL queries.
+        def quote_schema_name(name)
+          PGconn.quote_ident(name)
+        end
+
         def quote_table_name_for_assignment(table, attr)
           quote_column_name(attr)
         end

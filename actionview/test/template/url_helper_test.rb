@@ -1,5 +1,4 @@
 require 'abstract_unit'
-require 'minitest/mock'
 
 class UrlHelperTest < ActiveSupport::TestCase
 
@@ -500,6 +499,13 @@ class UrlHelperTest < ActiveSupport::TestCase
                  mail_to("david@loudthinking.com", "David Heinemeier Hansson", class: "admin")
   end
 
+  def test_mail_to_with_special_characters
+    assert_dom_equal(
+      %{<a href="mailto:%23%21%24%25%26%27%2A%2B-%2F%3D%3F%5E_%60%7B%7D%7C%7E@example.org">#!$%&amp;&#39;*+-/=?^_`{}|~@example.org</a>},
+      mail_to("#!$%&'*+-/=?^_`{}|~@example.org")
+    )
+  end
+
   def test_mail_with_options
     assert_dom_equal(
       %{<a href="mailto:me@example.com?cc=ccaddress%40example.com&amp;bcc=bccaddress%40example.com&amp;body=This%20is%20the%20body%20of%20the%20message.&amp;subject=This%20is%20an%20example%20email&amp;reply-to=foo%40bar.com">My email</a>},
@@ -779,6 +785,13 @@ class SessionsController < ActionController::Base
     @session = Session.new(params[:id])
     render inline: "<%= url_for([@workshop, @session]) %>\n<%= link_to('Session', [@workshop, @session]) %>"
   end
+
+  def edit
+    @workshop = Workshop.new(params[:workshop_id])
+    @session = Session.new(params[:id])
+    @url = [@workshop, @session, format: params[:format]]
+    render inline: "<%= url_for(@url) %>\n<%= link_to('Session', @url) %>"
+  end
 end
 
 class PolymorphicControllerTest < ActionController::TestCase
@@ -808,5 +821,12 @@ class PolymorphicControllerTest < ActionController::TestCase
 
     get :show, params: { workshop_id: 1, id: 1 }
     assert_equal %{/workshops/1/sessions/1\n<a href="/workshops/1/sessions/1">Session</a>}, @response.body
+  end
+
+  def test_existing_nested_resource_with_params
+    @controller = SessionsController.new
+
+    get :edit, params: { workshop_id: 1, id: 1, format: "json"  }
+    assert_equal %{/workshops/1/sessions/1.json\n<a href="/workshops/1/sessions/1.json">Session</a>}, @response.body
   end
 end

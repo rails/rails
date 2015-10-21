@@ -3,7 +3,7 @@ module ActiveRecord
     extend ActiveSupport::Concern
 
     module ClassMethods
-      # Example using has_secure_token
+      # Example using #has_secure_token
       #
       #   # Schema: User(token:string, auth_token:string)
       #   class User < ActiveRecord::Base
@@ -18,11 +18,11 @@ module ActiveRecord
       #   user.regenerate_token # => true
       #   user.regenerate_auth_token # => true
       #
-      # SecureRandom::base58 is used to generate the 24-character unique token, so collisions are highly unlikely.
+      # <tt>SecureRandom::base58</tt> is used to generate the 24-character unique token, so collisions are highly unlikely.
       #
       # Note that it's still possible to generate a race condition in the database in the same way that
-      # <tt>validates_uniqueness_of</tt> can. You're encouraged to add a unique index in the database to deal
-      # with this even more unlikely scenario.
+      # {validates_uniqueness_of}[rdoc-ref:Validations::ClassMethods#validates_uniqueness_of] can.
+      # You're encouraged to add a unique index in the database to deal with this even more unlikely scenario.
       def has_secure_token(attribute = :token)
         # Load securerandom only when has_secure_token is used.
         require 'active_support/core_ext/securerandom'

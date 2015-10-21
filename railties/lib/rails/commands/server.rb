@@ -34,6 +34,9 @@ module Rails
           opts.on("-P", "--pid=pid", String,
                   "Specifies the PID file.",
                   "Default: tmp/pids/server.pid") { |v| options[:pid] = v }
+          opts.on("-C", "--[no-]dev-caching",
+                  "Specifies whether to perform caching in development.",
+                  "true or false") { |v| options[:caching] = v }
 
           opts.separator ""
 
@@ -67,6 +70,7 @@ module Rails
       print_boot_information
       trap(:INT) { exit }
       create_tmp_directories
+      setup_dev_caching
       log_to_stdout if options[:log_stdout]
 
       super
@@ -77,32 +81,31 @@ module Rails
     end
 
     def middleware
-      middlewares = []
-      middlewares << [::Rack::ContentLength]
-
-      # FIXME: add Rack::Lock in the case people are using webrick.
-      # This is to remain backwards compatible for those who are
-      # running webrick in production. We should consider removing this
-      # in development.
-      if server.name == 'Rack::Handler::WEBrick'
-        middlewares << [::Rack::Lock]
-      end
-
-      Hash.new(middlewares)
+      Hash.new([])
     end
 
     def default_options
       super.merge({
-        Port:               3000,
+        Port:               ENV.fetch('PORT', 3000).to_i,
         DoNotReverseLookup: true,
         environment:        (ENV['RAILS_ENV'] || ENV['RACK_ENV'] || "development").dup,
         daemonize:          false,
-        pid:                File.expand_path("tmp/pids/server.pid"),
-        config:             File.expand_path("config.ru")
+        caching:            false,
+        pid:                File.expand_path("tmp/pids/server.pid")
       })
     end
 
     private
+
+      def setup_dev_caching
+        return unless options[:environment] == "development"
+
+        if options[:caching] == false
+          delete_cache_file
+        elsif options[:caching]
+          create_cache_file
+        end
+      end
 
       def print_boot_information
         url = "#{options[:SSLEnable] ? 'https' : 'http'}://#{options[:Host]}:#{options[:Port]}"
@@ -111,6 +114,14 @@ module Rails
         puts "=> Run `rails server -h` for more startup options"
 
         puts "=> Ctrl-C to shutdown server" unless options[:daemonize]
+      end
+
+      def create_cache_file
+        FileUtils.touch("tmp/caching-dev.txt")
+      end
+
+      def delete_cache_file
+        FileUtils.rm("tmp/caching-dev.txt") if File.exist?("tmp/caching-dev.txt")
       end
 
       def create_tmp_directories

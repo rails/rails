@@ -6,6 +6,7 @@ class Time
     :db           => '%Y-%m-%d %H:%M:%S',
     :number       => '%Y%m%d%H%M%S',
     :nsec         => '%Y%m%d%H%M%S%9N',
+    :usec         => '%Y%m%d%H%M%S%6N',
     :time         => '%H:%M',
     :short        => '%d %b %H:%M',
     :long         => '%B %d, %Y %H:%M',
@@ -24,7 +25,7 @@ class Time
   #
   # This method is aliased to <tt>to_s</tt>.
   #
-  #   time = Time.now                    # => Thu Jan 18 06:10:17 CST 2007
+  #   time = Time.now                    # => 2007-01-18 06:10:17 -06:00
   #
   #   time.to_formatted_s(:time)         # => "06:10"
   #   time.to_s(:time)                   # => "06:10"
@@ -55,7 +56,8 @@ class Time
   alias_method :to_default_s, :to_s
   alias_method :to_s, :to_formatted_s
 
-  # Returns the UTC offset as an +HH:MM formatted string.
+  # Returns a formatted string of the offset from UTC, or an alternative
+  # string if the time zone is already UTC.
   #
   #   Time.local(2000).formatted_offset        # => "-06:00"
   #   Time.local(2000).formatted_offset(false) # => "-0600"

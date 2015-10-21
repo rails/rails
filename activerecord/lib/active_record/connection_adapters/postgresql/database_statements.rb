@@ -8,7 +8,7 @@ module ActiveRecord
         end
 
         class ExplainPrettyPrinter # :nodoc:
-          # Pretty prints the result of a EXPLAIN in a way that resembles the output of the
+          # Pretty prints the result of an EXPLAIN in a way that resembles the output of the
           # PostgreSQL shell:
           #
           #                                     QUERY PLAN
@@ -156,8 +156,8 @@ module ActiveRecord
           end
         end
 
-        def exec_query(sql, name = 'SQL', binds = [])
-          execute_and_clear(sql, name, binds) do |result|
+        def exec_query(sql, name = 'SQL', binds = [], prepare: false)
+          execute_and_clear(sql, name, binds, prepare: prepare) do |result|
             types = {}
             fields = result.fields
             fields.each_with_index do |fname, i|

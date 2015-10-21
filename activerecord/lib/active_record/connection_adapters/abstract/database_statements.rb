@@ -29,7 +29,17 @@ module ActiveRecord
       # Returns an ActiveRecord::Result instance.
       def select_all(arel, name = nil, binds = [])
         arel, binds = binds_from_relation arel, binds
-        select(to_sql(arel, binds), name, binds)
+        sql = to_sql(arel, binds)
+        if arel.is_a?(String)
+          preparable = false
+        else
+          preparable = visitor.preparable
+        end
+        if prepared_statements && preparable
+          select_prepared(sql, name, binds)
+        else
+          select(sql, name, binds)
+        end
       end
 
       # Returns a record hash with the column names as keys and column values
@@ -67,7 +77,7 @@ module ActiveRecord
       # Executes +sql+ statement in the context of this connection using
       # +binds+ as the bind substitutes. +name+ is logged along with
       # the executed +sql+ statement.
-      def exec_query(sql, name = 'SQL', binds = [])
+      def exec_query(sql, name = 'SQL', binds = [], prepare: false)
       end
 
       # Executes insert +sql+ statement in the context of this connection using
@@ -137,7 +147,7 @@ module ActiveRecord
       #
       # In order to get around this problem, #transaction will emulate the effect
       # of nested transactions, by using savepoints:
-      # http://dev.mysql.com/doc/refman/5.6/en/savepoint.html
+      # http://dev.mysql.com/doc/refman/5.7/en/savepoint.html
       # Savepoints are supported by MySQL and PostgreSQL. SQLite3 version >= '3.6.8'
       # supports savepoints.
       #
@@ -190,9 +200,9 @@ module ActiveRecord
       # semantics of these different levels:
       #
       # * http://www.postgresql.org/docs/current/static/transaction-iso.html
-      # * https://dev.mysql.com/doc/refman/5.6/en/set-transaction.html
+      # * https://dev.mysql.com/doc/refman/5.7/en/set-transaction.html
       #
-      # An <tt>ActiveRecord::TransactionIsolationError</tt> will be raised if:
+      # An ActiveRecord::TransactionIsolationError will be raised if:
       #
       # * The adapter does not support setting the isolation level
       # * You are joining an existing open transaction
@@ -289,8 +299,12 @@ module ActiveRecord
         columns = schema_cache.columns_hash(table_name)
 
         binds = fixture.map do |name, value|
-          type = lookup_cast_type_from_column(columns[name])
-          Relation::QueryAttribute.new(name, value, type)
+          if column = columns[name]
+            type = lookup_cast_type_from_column(column)
+            Relation::QueryAttribute.new(name, value, type)
+          else
+            raise Fixture::FixtureError, %(table "#{table_name}" has no column named "#{name}".)
+          end
         end
         key_list = fixture.keys.map { |name| quote_column_name(name) }
         value_list = prepare_binds_for_database(binds).map do |value|
@@ -354,9 +368,12 @@ module ActiveRecord
 
         # Returns an ActiveRecord::Result instance.
         def select(sql, name = nil, binds = [])
-          exec_query(sql, name, binds)
+          exec_query(sql, name, binds, prepare: false)
         end
 
+        def select_prepared(sql, name = nil, binds = [])
+          exec_query(sql, name, binds, prepare: true)
+        end
 
         # Returns the last auto-generated ID from the affected table.
         def insert_sql(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil)

@@ -1,4 +1,4 @@
-require 'thread_safe'
+require 'concurrent'
 require 'active_support/core_ext/module/remove_method'
 require 'active_support/core_ext/module/attribute_accessors'
 require 'action_view/template/resolver'
@@ -6,10 +6,11 @@ require 'action_view/template/resolver'
 module ActionView
   # = Action View Lookup Context
   #
-  # LookupContext is the object responsible to hold all information required to lookup
-  # templates, i.e. view paths and details. The LookupContext is also responsible to
-  # generate a key, given to view paths, used in the resolver cache lookup. Since
-  # this key is generated just once during the request, it speeds up all cache accesses.
+  # <tt>LookupContext</tt> is the object responsible for holding all information
+  # required for looking up templates, i.e. view paths and details.
+  # <tt>LookupContext</tt> is also responsible for generating a key, given to
+  # view paths, used in the resolver cache lookup. Since this key is generated
+  # only once during the request, it speeds up all cache accesses.
   class LookupContext #:nodoc:
     attr_accessor :prefixes, :rendered_format
 
@@ -19,7 +20,7 @@ module ActionView
     mattr_accessor :registered_details
     self.registered_details = []
 
-    def self.register_detail(name, options = {}, &block)
+    def self.register_detail(name, &block)
       self.registered_details << name
       initialize = registered_details.map { |n| "@details[:#{n}] = details[:#{n}] || default_#{n}" }
 
@@ -54,14 +55,14 @@ module ActionView
     end
     register_detail(:formats) { ActionView::Base.default_formats || [:html, :text, :js, :css,  :xml, :json] }
     register_detail(:variants) { [] }
-    register_detail(:handlers){ Template::Handlers.extensions }
+    register_detail(:handlers) { Template::Handlers.extensions }
 
     class DetailsKey #:nodoc:
       alias :eql? :equal?
       alias :object_hash :hash
 
       attr_reader :hash
-      @details_keys = ThreadSafe::Cache.new
+      @details_keys = Concurrent::Map.new
 
       def self.get(details)
         if details[:formats]
@@ -172,13 +173,13 @@ module ActionView
       # name instead of the prefix.
       def normalize_name(name, prefixes) #:nodoc:
         prefixes = prefixes.presence
-        parts    = name.to_s.split('/')
+        parts    = name.to_s.split('/'.freeze)
         parts.shift if parts.first.empty?
         name     = parts.pop
 
         return name, prefixes || [""] if parts.empty?
 
-        parts    = parts.join('/')
+        parts    = parts.join('/'.freeze)
         prefixes = prefixes ? prefixes.map { |p| "#{p}/#{parts}" } : [parts]
 
         return name, prefixes
@@ -203,7 +204,7 @@ module ActionView
     # add :html as fallback to :js.
     def formats=(values)
       if values
-        values.concat(default_formats) if values.delete "*/*"
+        values.concat(default_formats) if values.delete "*/*".freeze
         if values == [:js]
           values << :html
           @html_fallback_for_js = true
@@ -227,22 +228,6 @@ module ActionView
       end
 
       super(default_locale)
-    end
-
-    # Uses the first format in the formats array for layout lookup.
-    def with_layout_format
-      if formats.size == 1
-        yield
-      else
-        old_formats = formats
-        _set_detail(:formats, formats[0,1])
-
-        begin
-          yield
-        ensure
-          _set_detail(:formats, old_formats)
-        end
-      end
     end
   end
 end

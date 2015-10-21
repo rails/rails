@@ -1,6 +1,5 @@
 require 'abstract_unit'
 require 'active_model'
-require 'fileutils'
 
 class ApplicationController < ActionController::Base
   self.view_paths = File.join(FIXTURE_LOAD_PATH, "actionpack")
@@ -122,7 +121,7 @@ class TestController < ApplicationController
   # :ported:
   def render_hello_world_from_variable
     @person = "david"
-    render :text => "hello #{@person}"
+    render plain: "hello #{@person}"
   end
 
   # :ported:
@@ -144,13 +143,13 @@ class TestController < ApplicationController
 
   # :ported:
   def render_text_hello_world
-    render :text => "hello world"
+    render plain: "hello world"
   end
 
   # :ported:
   def render_text_hello_world_with_layout
     @variable_for_layout = ", I am here!"
-    render :text => "hello world", :layout => true
+    render plain: "hello world", :layout => true
   end
 
   def hello_world_with_layout_false
@@ -213,26 +212,26 @@ class TestController < ApplicationController
 
   # :ported:
   def render_custom_code
-    render :text => "hello world", :status => 404
+    render plain: "hello world", :status => 404
   end
 
   # :ported:
   def render_text_with_nil
-    render :text => nil
+    render plain: nil
   end
 
   # :ported:
   def render_text_with_false
-    render :text => false
+    render plain: false
   end
 
   def render_text_with_resource
-    render :text => Customer.new("David")
+    render plain: Customer.new("David")
   end
 
   # :ported:
   def render_nothing_with_appendix
-    render :text => "appended"
+    render plain: "appended"
   end
 
   # This test is testing 3 things:
@@ -263,7 +262,7 @@ class TestController < ApplicationController
 
   # :ported:
   def blank_response
-    render :text => ' '
+    render plain: ' '
   end
 
   # :ported:
@@ -295,7 +294,7 @@ class TestController < ApplicationController
 
   def hello_in_a_string
     @customers = [ Customer.new("david"), Customer.new("mary") ]
-    render :text => "How's there? " + render_to_string(:template => "test/list")
+    render plain: "How's there? " + render_to_string(:template => "test/list")
   end
 
   def accessing_params_in_template
@@ -363,7 +362,7 @@ class TestController < ApplicationController
 
   def render_to_string_with_assigns
     @before = "i'm before the render"
-    render_to_string :text => "foo"
+    render_to_string plain: "foo"
     @after = "i'm after the render"
     render :template => "test/hello_world"
   end
@@ -410,8 +409,8 @@ class TestController < ApplicationController
 
   # :ported:
   def double_render
-    render :text => "hello"
-    render :text => "world"
+    render plain: "hello"
+    render plain: "world"
   end
 
   def double_redirect
@@ -420,13 +419,13 @@ class TestController < ApplicationController
   end
 
   def render_and_redirect
-    render :text => "hello"
+    render plain: "hello"
     redirect_to :action => "double_render"
   end
 
   def render_to_string_and_render
-    @stuff = render_to_string :text => "here is some cached stuff"
-    render :text => "Hi web users! #{@stuff}"
+    @stuff = render_to_string plain: "here is some cached stuff"
+    render plain: "Hi web users! #{@stuff}"
   end
 
   def render_to_string_with_inline_and_render
@@ -455,7 +454,7 @@ class TestController < ApplicationController
   # :addressed:
   def render_text_with_assigns
     @hello = "world"
-    render :text => "foo"
+    render plain: "foo"
   end
 
   def render_with_assigns_option
@@ -467,8 +466,8 @@ class TestController < ApplicationController
   end
 
   def render_content_type_from_body
-    response.content_type = Mime::RSS
-    render :text => "hello world!"
+    response.content_type = Mime[:rss]
+    render body: "hello world!"
   end
 
   def render_using_layout_around_block
@@ -679,33 +678,24 @@ class RenderTest < ActionController::TestCase
     ActionView::Base.logger = nil
   end
 
-  def case_sensitive_file_system?
-    fname = '.case_sensitive_file_system_test'
-    FileUtils.touch(fname)
-    !File.exist?(fname.upcase)
-  ensure
-    FileUtils.rm_f(fname)
-  end
-
   # :ported:
   def test_simple_show
     get :hello_world
     assert_response 200
     assert_response :success
-    assert_template "test/hello_world"
     assert_equal "<html>Hello world!</html>", @response.body
   end
 
   # :ported:
   def test_renders_default_template_for_missing_action
     get :'hyphen-ated'
-    assert_template 'test/hyphen-ated'
+    assert_equal "hyphen-ated.erb", @response.body
   end
 
   # :ported:
   def test_render
     get :render_hello_world
-    assert_template "test/hello_world"
+    assert_equal "Hello world!", @response.body
   end
 
   def test_line_offset
@@ -721,26 +711,24 @@ class RenderTest < ActionController::TestCase
   # :ported: compatibility
   def test_render_with_forward_slash
     get :render_hello_world_with_forward_slash
-    assert_template "test/hello_world"
+    assert_equal "Hello world!", @response.body
   end
 
   # :ported:
   def test_render_in_top_directory
     get :render_template_in_top_directory
-    assert_template "shared"
     assert_equal "Elastica", @response.body
   end
 
   # :ported:
   def test_render_in_top_directory_with_slash
     get :render_template_in_top_directory_with_slash
-    assert_template "shared"
     assert_equal "Elastica", @response.body
   end
 
   def test_render_process
     get :render_action_hello_world_as_string
-    assert_equal ["Hello world!"], @controller.process(:render_action_hello_world_as_string)
+    assert_equal "Hello world!", @controller.process(:render_action_hello_world_as_string)
   end
 
   # :ported:
@@ -752,19 +740,12 @@ class RenderTest < ActionController::TestCase
   # :ported:
   def test_render_action
     get :render_action_hello_world
-    assert_template "test/hello_world"
+    assert_equal "Hello world!", @response.body
   end
 
   def test_render_action_upcased
-    action = :render_action_upcased_hello_world
-
-    if case_sensitive_file_system?
-      assert_raise ActionView::MissingTemplate do
-        get action
-      end
-    else
-      get action
-      assert_template 'test/Hello_world'
+    assert_raise ActionView::MissingTemplate do
+      get :render_action_upcased_hello_world
     end
   end
 
@@ -772,13 +753,12 @@ class RenderTest < ActionController::TestCase
   def test_render_action_hello_world_as_string
     get :render_action_hello_world_as_string
     assert_equal "Hello world!", @response.body
-    assert_template "test/hello_world"
   end
 
   # :ported:
   def test_render_action_with_symbol
     get :render_action_hello_world_with_symbol
-    assert_template "test/hello_world"
+    assert_equal "Hello world!", @response.body
   end
 
   # :ported:
@@ -790,7 +770,7 @@ class RenderTest < ActionController::TestCase
   # :ported:
   def test_do_with_render_text_and_layout
     get :render_text_hello_world_with_layout
-    assert_equal "<html>hello world, I am here!</html>", @response.body
+    assert_equal "{{hello world, I am here!}}\n", @response.body
   end
 
   # :ported:
@@ -966,7 +946,7 @@ class RenderTest < ActionController::TestCase
 
   def test_render_to_string_inline
     get :render_to_string_with_inline_and_render
-    assert_template "test/hello_world"
+    assert_equal 'Hello world!', @response.body
   end
 
   # :ported:
@@ -1051,8 +1031,8 @@ class RenderTest < ActionController::TestCase
 
   def test_render_to_string_doesnt_break_assigns
     get :render_to_string_with_assigns
-    assert_equal "i'm before the render", assigns(:before)
-    assert_equal "i'm after the render", assigns(:after)
+    assert_equal "i'm before the render", @controller.instance_variable_get(:@before)
+    assert_equal "i'm after the render", @controller.instance_variable_get(:@after)
   end
 
   def test_bad_render_to_string_still_throws_exception
@@ -1061,8 +1041,8 @@ class RenderTest < ActionController::TestCase
 
   def test_render_to_string_that_throws_caught_exception_doesnt_break_assigns
     assert_nothing_raised { get :render_to_string_with_caught_exception }
-    assert_equal "i'm before the render", assigns(:before)
-    assert_equal "i'm after the render", assigns(:after)
+    assert_equal "i'm before the render", @controller.instance_variable_get(:@before)
+    assert_equal "i'm after the render", @controller.instance_variable_get(:@after)
   end
 
   def test_accessing_params_in_template_with_layout
@@ -1123,7 +1103,7 @@ class RenderTest < ActionController::TestCase
   # :addressed:
   def test_render_text_with_assigns
     get :render_text_with_assigns
-    assert_equal "world", assigns["hello"]
+    assert_equal "world", @controller.instance_variable_get(:@hello)
   end
 
   def test_render_text_with_assigns_option
@@ -1142,7 +1122,7 @@ class RenderTest < ActionController::TestCase
     assert_equal "<title>Putting stuff in the title!</title>\nGreat stuff!\n", @response.body
   end
 
-  def test_overwritting_rendering_relative_file_with_extension
+  def test_overwriting_rendering_relative_file_with_extension
     get :hello_world_from_rxml_using_template
     assert_equal "<html>\n  <p>Hello</p>\n</html>\n", @response.body
 
@@ -1189,22 +1169,22 @@ class RenderTest < ActionController::TestCase
 
   def test_render_to_string_partial
     get :render_to_string_with_partial
-    assert_equal "only partial", assigns(:partial_only)
-    assert_equal "Hello: david", assigns(:partial_with_locals)
+    assert_equal "only partial", @controller.instance_variable_get(:@partial_only)
+    assert_equal "Hello: david", @controller.instance_variable_get(:@partial_with_locals)
     assert_equal "text/html", @response.content_type
   end
 
   def test_render_to_string_with_template_and_html_partial
     get :render_to_string_with_template_and_html_partial
-    assert_equal "**only partial**\n", assigns(:text)
-    assert_equal "<strong>only partial</strong>\n", assigns(:html)
+    assert_equal "**only partial**\n", @controller.instance_variable_get(:@text)
+    assert_equal "<strong>only partial</strong>\n", @controller.instance_variable_get(:@html)
     assert_equal "<strong>only html partial</strong>\n", @response.body
     assert_equal "text/html", @response.content_type
   end
 
   def test_render_to_string_and_render_with_different_formats
     get :render_to_string_and_render_with_different_formats
-    assert_equal "<strong>only partial</strong>\n", assigns(:html)
+    assert_equal "<strong>only partial</strong>\n", @controller.instance_variable_get(:@html)
     assert_equal "**only partial**\n", @response.body
     assert_equal "text/plain", @response.content_type
   end
@@ -1228,21 +1208,18 @@ class RenderTest < ActionController::TestCase
 
   def test_partial_with_form_builder
     get :partial_with_form_builder
-    assert_match(/<label/, @response.body)
-    assert_template('test/_form')
+    assert_equal "<label for=\"post_title\">Title</label>\n", @response.body
   end
 
   def test_partial_with_form_builder_subclass
     get :partial_with_form_builder_subclass
-    assert_match(/<label/, @response.body)
-    assert_template('test/_labelling_form')
+    assert_equal "<label for=\"post_title\">Title</label>\n", @response.body
   end
 
   def test_nested_partial_with_form_builder
     @controller = Fun::GamesController.new
     get :nested_partial_with_form_builder
-    assert_match(/<label/, @response.body)
-    assert_template('fun/games/_form')
+    assert_equal "<label for=\"post_title\">Title</label>\n", @response.body
   end
 
   def test_namespaced_object_partial
@@ -1286,48 +1263,29 @@ class RenderTest < ActionController::TestCase
     assert_equal "Bonjour: davidBonjour: mary", @response.body
   end
 
-  def test_locals_option_to_assert_template_is_not_supported
-    get :partial_collection_with_locals
-
-    warning_buffer = StringIO.new
-    $stderr = warning_buffer
-
-    assert_template partial: 'customer_greeting', locals: { greeting: 'Bonjour' }
-    assert_equal "the :locals option to #assert_template is only supported in a ActionView::TestCase\n", warning_buffer.string
-  ensure
-    $stderr = STDERR
-  end
-
   def test_partial_collection_with_spacer
     get :partial_collection_with_spacer
     assert_equal "Hello: davidonly partialHello: mary", @response.body
-    assert_template :partial => '_customer'
   end
 
   def test_partial_collection_with_spacer_which_uses_render
     get :partial_collection_with_spacer_which_uses_render
     assert_equal "Hello: davidpartial html\npartial with partial\nHello: mary", @response.body
-    assert_template :partial => '_customer'
   end
 
   def test_partial_collection_shorthand_with_locals
     get :partial_collection_shorthand_with_locals
     assert_equal "Bonjour: davidBonjour: mary", @response.body
-    assert_template :partial => 'customers/_customer', :count => 2
-    assert_template :partial => '_completely_fake_and_made_up_template_that_cannot_possibly_be_rendered', :count => 0
   end
 
   def test_partial_collection_shorthand_with_different_types_of_records
     get :partial_collection_shorthand_with_different_types_of_records
     assert_equal "Bonjour bad customer: mark0Bonjour good customer: craig1Bonjour bad customer: john2Bonjour good customer: zach3Bonjour good customer: brandon4Bonjour bad customer: dan5", @response.body
-    assert_template :partial => 'good_customers/_good_customer', :count => 3
-    assert_template :partial => 'bad_customers/_bad_customer', :count => 3
   end
 
   def test_empty_partial_collection
     get :empty_partial_collection
     assert_equal " ", @response.body
-    assert_template :partial => false
   end
 
   def test_partial_with_hash_object

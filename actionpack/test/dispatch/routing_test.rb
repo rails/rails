@@ -1,4 +1,3 @@
-# encoding: UTF-8
 require 'erb'
 require 'abstract_unit'
 require 'controller/fake_controllers'
@@ -167,6 +166,44 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal '/session/reset', reset_session_path
   end
 
+  def test_session_singleton_resource_for_api_app
+    config = ActionDispatch::Routing::RouteSet::Config.new
+    config.api_only = true
+
+    self.class.stub_controllers(config) do |routes|
+      routes.draw do
+        resource :session do
+          get :create
+          post :reset
+        end
+      end
+      @app = RoutedRackApp.new routes
+    end
+
+    get '/session'
+    assert_equal 'sessions#create', @response.body
+    assert_equal '/session', session_path
+
+    post '/session'
+    assert_equal 'sessions#create', @response.body
+
+    put '/session'
+    assert_equal 'sessions#update', @response.body
+
+    delete '/session'
+    assert_equal 'sessions#destroy', @response.body
+
+    post '/session/reset'
+    assert_equal 'sessions#reset', @response.body
+    assert_equal '/session/reset', reset_session_path
+
+    get '/session/new'
+    assert_equal 'Not Found', @response.body
+
+    get '/session/edit'
+    assert_equal 'Not Found', @response.body
+  end
+
   def test_session_info_nested_singleton_resource
     draw do
       resource :session do
@@ -323,9 +360,12 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
   end
 
   def test_pagemarks
+    tc = self
     draw do
       scope "pagemark", :controller => "pagemarks", :as => :pagemark do
-        get  "new", :path => "build"
+        tc.assert_deprecated do
+          get  "new", :path => "build"
+        end
         post "create", :as => ""
         put  "update"
         get  "remove", :action => :destroy, :as => :remove
@@ -507,6 +547,40 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     get '/projects/1/edit'
     assert_equal 'project#edit', @response.body
     assert_equal '/projects/1/edit', edit_project_path(:id => '1')
+  end
+
+  def test_projects_for_api_app
+    config = ActionDispatch::Routing::RouteSet::Config.new
+    config.api_only = true
+
+    self.class.stub_controllers(config) do |routes|
+      routes.draw do
+        resources :projects, controller: :project
+      end
+      @app = RoutedRackApp.new routes
+    end
+
+    get '/projects'
+    assert_equal 'project#index', @response.body
+    assert_equal '/projects', projects_path
+
+    post '/projects'
+    assert_equal 'project#create', @response.body
+
+    get '/projects.xml'
+    assert_equal 'project#index', @response.body
+    assert_equal '/projects.xml', projects_path(format: 'xml')
+
+    get '/projects/1'
+    assert_equal 'project#show', @response.body
+    assert_equal '/projects/1', project_path(id: '1')
+
+    get '/projects/1.xml'
+    assert_equal 'project#show', @response.body
+    assert_equal '/projects/1.xml', project_path(id: '1', format: 'xml')
+
+    get '/projects/1/edit'
+    assert_equal 'Not Found', @response.body
   end
 
   def test_projects_with_post_action_and_new_path_on_collection
@@ -3492,12 +3566,11 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       mount lambda { |env| [200, {}, [env['REQUEST_METHOD']]] }, at: '/'
     end
 
-    # TODO: HEAD request should match `get /home` rather than the
+    # HEAD request should match `get /home` rather than the
     # lower-precedence Rack app mounted at `/`.
     head '/home'
     assert_response :ok
-    #assert_equal 'test#index', @response.body
-    assert_equal 'HEAD', @response.body
+    assert_equal 'test#index', @response.body
 
     # But the Rack app can still respond to its own HEAD requests.
     head '/foobar'
@@ -3547,7 +3620,7 @@ private
 end
 
 class TestAltApp < ActionDispatch::IntegrationTest
-  class AltRequest
+  class AltRequest < ActionDispatch::Request
     attr_accessor :path_parameters, :path_info, :script_name
     attr_reader :env
 
@@ -3556,6 +3629,7 @@ class TestAltApp < ActionDispatch::IntegrationTest
       @env = env
       @path_info = "/"
       @script_name = ""
+      super
     end
 
     def request_method
@@ -3655,7 +3729,7 @@ class TestNamespaceWithControllerOption < ActionDispatch::IntegrationTest
   module ::Admin
     class StorageFilesController < ActionController::Base
       def index
-        render :text => "admin/storage_files#index"
+        render plain: "admin/storage_files#index"
       end
     end
   end
@@ -3750,7 +3824,7 @@ class TestDefaultScope < ActionDispatch::IntegrationTest
   module ::Blog
     class PostsController < ActionController::Base
       def index
-        render :text => "blog/posts#index"
+        render plain: "blog/posts#index"
       end
     end
   end
@@ -4090,13 +4164,13 @@ end
 class TestNamedRouteUrlHelpers < ActionDispatch::IntegrationTest
   class CategoriesController < ActionController::Base
     def show
-      render :text => "categories#show"
+      render plain: "categories#show"
     end
   end
 
   class ProductsController < ActionController::Base
     def show
-      render :text => "products#show"
+      render plain: "products#show"
     end
   end
 
@@ -4115,11 +4189,11 @@ class TestNamedRouteUrlHelpers < ActionDispatch::IntegrationTest
   include Routes.url_helpers
 
   test "url helpers do not ignore nil parameters when using non-optimized routes" do
-    Routes.stubs(:optimize_routes_generation?).returns(false)
-
-    get "/categories/1"
-    assert_response :success
-    assert_raises(ActionController::UrlGenerationError) { product_path(nil) }
+    Routes.stub :optimize_routes_generation?, false do
+      get "/categories/1"
+      assert_response :success
+      assert_raises(ActionController::UrlGenerationError) { product_path(nil) }
+    end
   end
 end
 
@@ -4191,7 +4265,7 @@ end
 class TestInvalidUrls < ActionDispatch::IntegrationTest
   class FooController < ActionController::Base
     def show
-      render :text => "foo#show"
+      render plain: "foo#show"
     end
   end
 
@@ -4494,7 +4568,7 @@ end
 class TestDefaultUrlOptions < ActionDispatch::IntegrationTest
   class PostsController < ActionController::Base
     def archive
-      render :text => "posts#archive"
+      render plain: "posts#archive"
     end
   end
 

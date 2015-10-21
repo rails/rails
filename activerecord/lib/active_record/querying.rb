@@ -6,7 +6,7 @@ module ActiveRecord
     delegate :find_or_create_by, :find_or_create_by!, :find_or_initialize_by, to: :all
     delegate :find_by, :find_by!, to: :all
     delegate :destroy, :destroy_all, :delete, :delete_all, :update, :update_all, to: :all
-    delegate :find_each, :find_in_batches, to: :all
+    delegate :find_each, :find_in_batches, :in_batches, to: :all
     delegate :select, :group, :order, :except, :reorder, :limit, :offset, :joins, :or,
              :where, :rewhere, :preload, :eager_load, :includes, :from, :lock, :readonly,
              :having, :create_with, :uniq, :distinct, :references, :none, :unscope, to: :all

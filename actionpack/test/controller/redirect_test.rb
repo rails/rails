@@ -3,8 +3,8 @@ require 'abstract_unit'
 class RedirectController < ActionController::Base
   # empty method not used anywhere to ensure methods like
   # `status` and `location` aren't called on `redirect_to` calls
-  def status; render :text => 'called status'; end
-  def location; render :text => 'called location'; end
+  def status; render plain: 'called status'; end
+  def location; render plain: 'called location'; end
 
   def simple_redirect
     redirect_to :action => "hello_world"
@@ -48,11 +48,6 @@ class RedirectController < ActionController::Base
 
   def module_redirect
     redirect_to :controller => 'module_test/module_redirect', :action => "hello_world"
-  end
-
-  def redirect_with_assigns
-    @hello = "world"
-    redirect_to :action => "hello_world"
   end
 
   def redirect_to_url
@@ -215,12 +210,6 @@ class RedirectTest < ActionController::TestCase
     assert_redirected_to :controller => 'module_test/module_redirect', :action => 'hello_world'
   end
 
-  def test_redirect_with_assigns
-    get :redirect_with_assigns
-    assert_response :redirect
-    assert_equal "world", assigns["hello"]
-  end
-
   def test_redirect_to_url
     get :redirect_to_url
     assert_response :redirect
@@ -277,15 +266,17 @@ class RedirectTest < ActionController::TestCase
   end
 
   def test_redirect_to_nil
-    assert_raise(ActionController::ActionControllerError) do
+    error = assert_raise(ActionController::ActionControllerError) do
       get :redirect_to_nil
     end
+    assert_equal "Cannot redirect to nil!", error.message
   end
 
   def test_redirect_to_params
-    assert_raise(ActionController::ActionControllerError) do
+    error = assert_raise(ActionController::ActionControllerError) do
       get :redirect_to_params
     end
+    assert_equal "Cannot redirect to a parameter hash!", error.message
   end
 
   def test_redirect_to_with_block

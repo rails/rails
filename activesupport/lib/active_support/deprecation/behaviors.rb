@@ -39,8 +39,8 @@ module ActiveSupport
     }
 
     # Behavior module allows to determine how to display deprecation messages.
-    # You can set any behaviors from +DEFAULT_BEHAVIORS+ constant or create
-    # custom behavior. Available behaviors:
+    # You can create a custom behavior or set any from the +DEFAULT_BEHAVIORS+
+    # constant. Available behaviors are:
     #
     # [+raise+]   Raise <tt>ActiveSupport::DeprecationException</tt>.
     # [+stderr+]  Log all deprecation warnings to +$stderr+.
@@ -49,7 +49,7 @@ module ActiveSupport
     # [+silence+] Do nothing.
     #
     # Setting behaviors only affects deprecations that happen after boot time.
-    # For more information you can read documentation for +behavior=+ method.
+    # For more information you can read the documentation of the +behavior=+ method.
     module Behavior
       # Whether to print a backtrace along with the warning.
       attr_accessor :debug

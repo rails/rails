@@ -2,13 +2,16 @@ require 'cases/helper'
 require 'models/invoice'
 require 'models/line_item'
 require 'models/topic'
+require 'models/node'
+require 'models/tree'
 
 class TouchLaterTest < ActiveRecord::TestCase
+  fixtures :nodes, :trees
 
   def test_touch_laster_raise_if_non_persisted
     invoice = Invoice.new
     Invoice.transaction do
-      refute invoice.persisted?
+      assert_not invoice.persisted?
       assert_raises(ActiveRecord::ActiveRecordError) do
         invoice.touch_later
       end
@@ -18,7 +21,7 @@ class TouchLaterTest < ActiveRecord::TestCase
   def test_touch_later_dont_set_dirty_attributes
     invoice = Invoice.create!
     invoice.touch_later
-    refute invoice.changed?
+    assert_not invoice.changed?
   end
 
   def test_touch_later_update_the_attributes
@@ -69,7 +72,7 @@ class TouchLaterTest < ActiveRecord::TestCase
   end
 
   def test_touch_touches_immediately_with_a_custom_time
-    time = Time.now.utc - 25.days
+    time = (Time.now.utc - 25.days).change(nsec: 0)
     topic = Topic.create!(updated_at: time, created_at: time)
     assert_equal time, topic.updated_at
     assert_equal time, topic.created_at
@@ -89,5 +92,23 @@ class TouchLaterTest < ActiveRecord::TestCase
     assert_queries(0) do
       invoice.touch_later
     end
+  end
+
+  def test_touching_three_deep
+    skip "Pending from #19324"
+
+    previous_tree_updated_at        = trees(:root).updated_at
+    previous_grandparent_updated_at = nodes(:grandparent).updated_at
+    previous_parent_updated_at      = nodes(:parent_a).updated_at
+    previous_child_updated_at       = nodes(:child_one_of_a).updated_at
+
+    travel 5.seconds
+
+    Node.create! parent: nodes(:child_one_of_a), tree: trees(:root)
+
+    assert_not_equal nodes(:child_one_of_a).reload.updated_at, previous_child_updated_at
+    assert_not_equal nodes(:parent_a).reload.updated_at, previous_parent_updated_at
+    assert_not_equal nodes(:grandparent).reload.updated_at, previous_grandparent_updated_at
+    assert_not_equal trees(:root).reload.updated_at, previous_tree_updated_at
   end
 end

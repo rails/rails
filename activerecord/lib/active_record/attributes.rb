@@ -1,10 +1,9 @@
+require 'active_record/attribute/user_provided_default'
+
 module ActiveRecord
   # See ActiveRecord::Attributes::ClassMethods for documentation
   module Attributes
     extend ActiveSupport::Concern
-
-    # :nodoc:
-    Type = ActiveRecord::Type
 
     included do
       class_attribute :attributes_to_define_after_schema_loads, instance_accessor: false # :internal:
@@ -16,7 +15,7 @@ module ActiveRecord
       # type of existing attributes if needed. This allows control over how
       # values are converted to and from SQL when assigned to a model. It also
       # changes the behavior of values passed to
-      # ActiveRecord::QueryMethods#where. This will let you use
+      # {ActiveRecord::Base.where}[rdoc-ref:QueryMethods#where]. This will let you use
       # your domain objects across much of Active Record, without having to
       # rely on implementation details or monkey patching.
       #
@@ -80,7 +79,15 @@ module ActiveRecord
       #
       #   StoreListing.new.my_string # => "new default"
       #
-      # Attributes do not need to be backed by a database column.
+      #   class Product < ActiveRecord::Base
+      #     attribute :my_default_proc, :datetime, default: -> { Time.now }
+      #   end
+      #
+      #   Product.new.my_default_proc # => 2015-05-30 11:04:48 -0600
+      #   sleep 1
+      #   Product.new.my_default_proc # => 2015-05-30 11:04:49 -0600
+      #
+      # \Attributes do not need to be backed by a database column.
       #
       #   class MyModel < ActiveRecord::Base
       #     attribute :my_string, :string
@@ -112,7 +119,7 @@ module ActiveRecord
       #
       #   class MoneyType < ActiveRecord::Type::Integer
       #     def cast(value)
-      #       if value.include?('$')
+      #       if !value.kind_of(Numeric) && value.include?('$')
       #         price_in_dollars = value.gsub(/\$/, '').to_f
       #         super(price_in_dollars * 100)
       #       else
@@ -137,9 +144,9 @@ module ActiveRecord
       # to be referenced by a symbol, see ActiveRecord::Type.register. You can
       # also pass a type object directly, in place of a symbol.
       #
-      # ==== Querying
+      # ==== \Querying
       #
-      # When ActiveRecord::QueryMethods#where is called, it will
+      # When {ActiveRecord::Base.where}[rdoc-ref:QueryMethods#where] is called, it will
       # use the type defined by the model class to convert the value to SQL,
       # calling +serialize+ on your type object. For example:
       #
@@ -202,7 +209,8 @@ module ActiveRecord
       #
       # +default+ The default value to use when no value is provided. If this option
       # is not passed, the previous default value (if any) will be used.
-      # Otherwise, the default will be +nil+.
+      # Otherwise, the default will be +nil+. A proc can also be passed, and
+      # will be called once each time a new value is needed.
       #
       # +user_provided_default+ Whether the default value should be cast using
       # +cast+ or +deserialize+.
@@ -236,7 +244,12 @@ module ActiveRecord
         if value == NO_DEFAULT_PROVIDED
           default_attribute = _default_attributes[name].with_type(type)
         elsif from_user
-          default_attribute = Attribute.from_user(name, value, type)
+          default_attribute = Attribute::UserProvidedDefault.new(
+            name,
+            value,
+            type,
+            _default_attributes[name],
+          )
         else
           default_attribute = Attribute.from_database(name, value, type)
         end

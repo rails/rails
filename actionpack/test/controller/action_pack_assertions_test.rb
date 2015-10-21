@@ -5,9 +5,6 @@ class ActionPackAssertionsController < ActionController::Base
 
   def nothing() head :ok end
 
-  def hello_world() render :template => "test/hello_world"; end
-  def hello_repeating_in_path() render :template => "test/hello/hello"; end
-
   def hello_xml_world() render :template => "test/hello_xml_world"; end
 
   def hello_xml_world_pdf
@@ -19,8 +16,6 @@ class ActionPackAssertionsController < ActionController::Base
     response.headers["Content-Type"] = "application/pdf; charset=utf-8"
     render :template => "test/hello_xml_world"
   end
-
-  def partial() render :partial => 'test/partial'; end
 
   def redirect_internal() redirect_to "/nothing"; end
 
@@ -48,12 +43,12 @@ class ActionPackAssertionsController < ActionController::Base
 
   def flash_me
     flash['hello'] = 'my name is inigo montoya...'
-    render :text => "Inconceivable!"
+    render plain: "Inconceivable!"
   end
 
   def flash_me_naked
     flash.clear
-    render :text => "wow!"
+    render plain: "wow!"
   end
 
   def assign_this
@@ -62,40 +57,30 @@ class ActionPackAssertionsController < ActionController::Base
   end
 
   def render_based_on_parameters
-    render :text => "Mr. #{params[:name]}"
+    render plain: "Mr. #{params[:name]}"
   end
 
   def render_url
-    render :text => "<div>#{url_for(:action => 'flash_me', :only_path => true)}</div>"
+    render html: "<div>#{url_for(action: 'flash_me', only_path: true)}</div>"
   end
 
   def render_text_with_custom_content_type
-    render :text => "Hello!", :content_type => Mime::RSS
-  end
-
-  def render_with_layout
-    @variable_for_layout = nil
-    render "test/hello_world", :layout => "layouts/standard"
-  end
-
-  def render_with_layout_and_partial
-    @variable_for_layout = nil
-    render "test/hello_world_with_partial", :layout => "layouts/standard"
+    render body: "Hello!", content_type: Mime[:rss]
   end
 
   def session_stuffing
     session['xmas'] = 'turkey'
-    render :text => "ho ho ho"
+    render plain: "ho ho ho"
   end
 
   def raise_exception_on_get
     raise "get" if request.get?
-    render :text => "request method: #{request.env['REQUEST_METHOD']}"
+    render plain: "request method: #{request.env['REQUEST_METHOD']}"
   end
 
   def raise_exception_on_post
     raise "post" if request.post?
-    render :text => "request method: #{request.env['REQUEST_METHOD']}"
+    render plain: "request method: #{request.env['REQUEST_METHOD']}"
   end
 
   def render_file_absolute_path
@@ -116,7 +101,7 @@ class AssertResponseWithUnexpectedErrorController < ActionController::Base
   end
 
   def show
-    render :text => "Boom", :status => 500
+    render plain: "Boom", status: 500
   end
 end
 
@@ -304,14 +289,6 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
     assert session.empty?
   end
 
-  def test_render_template_action
-    process :nothing
-    assert_template nil
-
-    process :hello_world
-    assert_template 'hello_world'
-  end
-
   def test_redirection_location
     process :redirect_internal
     assert_equal 'http://test.host/nothing', @response.redirect_url
@@ -341,7 +318,7 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
 
   def test_missing_response_code
     process :response404
-    assert @response.missing?
+    assert @response.not_found?
   end
 
   def test_client_error_response_code
@@ -369,12 +346,12 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
 
   def test_successful_response_code
     process :nothing
-    assert @response.success?
+    assert @response.successful?
   end
 
   def test_response_object
     process :nothing
-    assert_kind_of ActionController::TestResponse, @response
+    assert_kind_of ActionDispatch::TestResponse, @response
   end
 
   def test_render_based_on_parameters
@@ -452,192 +429,6 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
     get :show
     assert_response 500
     assert_equal 'Boom', response.body
-  end
-end
-
-class AssertTemplateTest < ActionController::TestCase
-  tests ActionPackAssertionsController
-
-  def test_with_invalid_hash_keys_raises_argument_error
-    assert_raise(ArgumentError) do
-      assert_template foo: "bar"
-    end
-  end
-
-  def test_with_partial
-    get :partial
-    assert_template :partial => '_partial'
-  end
-
-  def test_file_with_absolute_path_success
-    get :render_file_absolute_path
-    assert_template :file => File.expand_path('../../../README.rdoc', __FILE__)
-  end
-
-  def test_file_with_relative_path_success
-    get :render_file_relative_path
-    assert_template :file => 'README.rdoc'
-  end
-
-  def test_with_file_failure
-    get :render_file_absolute_path
-    assert_raise(ActiveSupport::TestCase::Assertion) do
-      assert_template :file => 'test/hello_world'
-    end
-
-    get :render_file_absolute_path
-    assert_raise(ActiveSupport::TestCase::Assertion) do
-      assert_template file: nil
-    end
-  end
-
-  def test_with_nil_passes_when_no_template_rendered
-    get :nothing
-    assert_template nil
-  end
-
-  def test_with_nil_fails_when_template_rendered
-    get :hello_world
-    assert_raise(ActiveSupport::TestCase::Assertion) do
-      assert_template nil
-    end
-  end
-
-  def test_with_empty_string_fails_when_template_rendered
-    get :hello_world
-    assert_raise(ActiveSupport::TestCase::Assertion) do
-      assert_template ""
-    end
-  end
-
-  def test_with_empty_string_fails_when_no_template_rendered
-    get :nothing
-    assert_raise(ActiveSupport::TestCase::Assertion) do
-      assert_template ""
-    end
-  end
-
-  def test_passes_with_correct_string
-    get :hello_world
-    assert_template 'hello_world'
-    assert_template 'test/hello_world'
-  end
-
-  def test_passes_with_correct_symbol
-    get :hello_world
-    assert_template :hello_world
-  end
-
-  def test_fails_with_incorrect_string
-    get :hello_world
-    assert_raise(ActiveSupport::TestCase::Assertion) do
-      assert_template 'hello_planet'
-    end
-  end
-
-  def test_fails_with_incorrect_string_that_matches
-    get :hello_world
-    assert_raise(ActiveSupport::TestCase::Assertion) do
-      assert_template 'est/he'
-    end
-  end
-
-  def test_fails_with_repeated_name_in_path
-    get :hello_repeating_in_path
-    assert_raise(ActiveSupport::TestCase::Assertion) do
-      assert_template 'test/hello'
-    end
-  end
-
-  def test_fails_with_incorrect_symbol
-    get :hello_world
-    assert_raise(ActiveSupport::TestCase::Assertion) do
-      assert_template :hello_planet
-    end
-  end
-
-  def test_fails_with_incorrect_symbol_that_matches
-    get :hello_world
-    assert_raise(ActiveSupport::TestCase::Assertion) do
-      assert_template :"est/he"
-    end
-  end
-
-  def test_fails_with_wrong_layout
-    get :render_with_layout
-    assert_raise(ActiveSupport::TestCase::Assertion) do
-      assert_template :layout => "application"
-    end
-  end
-
-  def test_fails_expecting_no_layout
-    get :render_with_layout
-    assert_raise(ActiveSupport::TestCase::Assertion) do
-      assert_template :layout => nil
-    end
-  end
-
-  def test_fails_expecting_not_known_layout
-    get :render_with_layout
-    assert_raise(ArgumentError) do
-      assert_template :layout => 1
-    end
-  end
-
-  def test_passes_with_correct_layout
-    get :render_with_layout
-    assert_template :layout => "layouts/standard"
-  end
-
-  def test_passes_with_layout_and_partial
-    get :render_with_layout_and_partial
-    assert_template :layout => "layouts/standard"
-  end
-
-  def test_passed_with_no_layout
-    get :hello_world
-    assert_template :layout => nil
-  end
-
-  def test_passed_with_no_layout_false
-    get :hello_world
-    assert_template :layout => false
-  end
-
-  def test_passes_with_correct_layout_without_layouts_prefix
-    get :render_with_layout
-    assert_template :layout => "standard"
-  end
-
-  def test_passes_with_correct_layout_symbol
-    get :render_with_layout
-    assert_template :layout => :standard
-  end
-
-  def test_assert_template_reset_between_requests
-    get :hello_world
-    assert_template 'test/hello_world'
-
-    get :nothing
-    assert_template nil
-
-    get :partial
-    assert_template partial: 'test/_partial'
-
-    get :nothing
-    assert_template partial: nil
-
-    get :render_with_layout
-    assert_template layout: 'layouts/standard'
-
-    get :nothing
-    assert_template layout: nil
-
-    get :render_file_relative_path
-    assert_template file: 'README.rdoc'
-
-    get :nothing
-    assert_template file: nil
   end
 end
 

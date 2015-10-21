@@ -1,3 +1,4 @@
+require 'active_support/duration'
 require 'active_support/values/time_zone'
 require 'active_support/core_ext/object/acts_like'
 
@@ -13,7 +14,7 @@ module ActiveSupport
   #   Time.zone = 'Eastern Time (US & Canada)'        # => 'Eastern Time (US & Canada)'
   #   Time.zone.local(2007, 2, 10, 15, 30, 45)        # => Sat, 10 Feb 2007 15:30:45 EST -05:00
   #   Time.zone.parse('2007-02-10 15:30:45')          # => Sat, 10 Feb 2007 15:30:45 EST -05:00
-  #   Time.zone.at(1170361845)                        # => Sat, 10 Feb 2007 15:30:45 EST -05:00
+  #   Time.zone.at(1171139445)                        # => Sat, 10 Feb 2007 15:30:45 EST -05:00
   #   Time.zone.now                                   # => Sun, 18 May 2008 13:07:55 EDT -04:00
   #   Time.utc(2007, 2, 10, 20, 30, 45).in_time_zone  # => Sat, 10 Feb 2007 15:30:45 EST -05:00
   #
@@ -39,6 +40,9 @@ module ActiveSupport
     def self.name
       'Time'
     end
+
+    PRECISIONS = Hash.new { |h, n| h[n] = "%FT%T.%#{n}N".freeze }
+    PRECISIONS[0] = '%FT%T'.freeze
 
     include Comparable
     attr_reader :time_zone
@@ -98,7 +102,7 @@ module ActiveSupport
     #   Time.zone = 'Eastern Time (US & Canada)'    # => 'Eastern Time (US & Canada)'
     #   Time.zone.now.utc?                          # => false
     def utc?
-      time_zone.name == 'UTC'
+      period.offset.abbreviation == :UTC || period.offset.abbreviation == :UCT
     end
     alias_method :gmt?, :utc?
 
@@ -131,7 +135,7 @@ module ActiveSupport
 
     # Returns a string of the object's date, time, zone and offset from UTC.
     #
-    #   Time.zone.now.httpdate  # => "Thu, 04 Dec 2014 11:00:25 EST -05:00"
+    #   Time.zone.now.inspect # => "Thu, 04 Dec 2014 11:00:25 EST -05:00"
     def inspect
       "#{time.strftime('%a, %d %b %Y %H:%M:%S')} #{zone} #{formatted_offset}"
     end
@@ -141,11 +145,7 @@ module ActiveSupport
     #
     #   Time.zone.now.xmlschema  # => "2014-12-04T11:02:37-05:00"
     def xmlschema(fraction_digits = 0)
-      fraction = if fraction_digits.to_i > 0
-        (".%06i" % time.usec)[0, fraction_digits.to_i + 1]
-      end
-
-      "#{time.strftime("%Y-%m-%dT%H:%M:%S")}#{fraction}#{formatted_offset(true, 'Z')}"
+      "#{time.strftime(PRECISIONS[fraction_digits.to_i])}#{formatted_offset(true, 'Z'.freeze)}"
     end
     alias_method :iso8601, :xmlschema
 
@@ -245,8 +245,9 @@ module ActiveSupport
       utc.future?
     end
 
+    # Returns +true+ if +other+ is equal to current object.
     def eql?(other)
-      utc.eql?(other)
+      other.eql?(utc)
     end
 
     def hash
@@ -328,6 +329,11 @@ module ActiveSupport
       EOV
     end
 
+    # Returns Array of parts of Time in sequence of
+    # [seconds, minutes, hours, day, month, year, weekday, yearday, dst?, zone].
+    #
+    #   now = Time.zone.now     # => Tue, 18 Aug 2015 02:29:27 UTC +00:00
+    #   now.to_a                # => [27, 29, 2, 18, 8, 2015, 2, 230, false, "UTC"]
     def to_a
       [time.sec, time.min, time.hour, time.day, time.mon, time.year, time.wday, time.yday, dst?, zone]
     end
@@ -357,11 +363,15 @@ module ActiveSupport
       utc.to_r
     end
 
-    # Return an instance of Time in the system timezone.
+    # Returns an instance of Time in the system timezone.
     def to_time
       utc.to_time
     end
 
+    # Returns an instance of DateTime with the timezone's UTC offset
+    #
+    #   Time.zone.now.to_datetime                         # => Tue, 18 Aug 2015 02:32:20 +0000
+    #   Time.current.in_time_zone('Hawaii').to_datetime   # => Mon, 17 Aug 2015 16:32:20 -1000
     def to_datetime
       utc.to_datetime.new_offset(Rational(utc_offset, 86_400))
     end
@@ -376,6 +386,11 @@ module ActiveSupport
       klass == ::Time || super
     end
     alias_method :kind_of?, :is_a?
+
+    # An instance of ActiveSupport::TimeWithZone is never blank
+    def blank?
+      false
+    end
 
     def freeze
       period; utc; time # preload instance variables before freezing

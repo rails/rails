@@ -30,7 +30,7 @@ module ActiveRecord
       end
     end
 
-    def populate_with_current_scope_attributes
+    def populate_with_current_scope_attributes # :nodoc:
       return unless self.class.scope_attributes?
 
       self.class.scope_attributes.each do |att,value|
@@ -38,7 +38,7 @@ module ActiveRecord
       end
     end
 
-    def initialize_internals_callback
+    def initialize_internals_callback # :nodoc:
       super
       populate_with_current_scope_attributes
     end
@@ -59,8 +59,8 @@ module ActiveRecord
     #
     #   registry.value_for(:current_scope, "Board")
     #
-    # You will obtain whatever was defined in +some_new_scope+. The +value_for+
-    # and +set_value_for+ methods are delegated to the current +ScopeRegistry+
+    # You will obtain whatever was defined in +some_new_scope+. The #value_for
+    # and #set_value_for methods are delegated to the current ScopeRegistry
     # object, so the above example code can also be called as:
     #
     #   ActiveRecord::Scoping::ScopeRegistry.set_value_for(:current_scope,

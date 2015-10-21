@@ -106,7 +106,25 @@ class Hash
     #   # => {"hash"=>{"foo"=>1, "bar"=>2}}
     #
     # +DisallowedType+ is raised if the XML contains attributes with <tt>type="yaml"</tt> or
-    # <tt>type="symbol"</tt>. Use <tt>Hash.from_trusted_xml</tt> to parse this XML.
+    # <tt>type="symbol"</tt>. Use <tt>Hash.from_trusted_xml</tt> to
+    # parse this XML.
+    #
+    # Custom +disallowed_types+ can also be passed in the form of an
+    # array.
+    #
+    #   xml = <<-XML
+    #     <?xml version="1.0" encoding="UTF-8"?>
+    #       <hash>
+    #         <foo type="integer">1</foo>
+    #         <bar type="string">"David"</bar>
+    #       </hash>
+    #   XML
+    #
+    #   hash = Hash.from_xml(xml, ['integer'])
+    #   # => ActiveSupport::XMLConverter::DisallowedType: Disallowed type attribute: "integer"
+    #
+    # Note that passing custom disallowed types will override the default types,
+    # which are Symbol and YAML.
     def from_xml(xml, disallowed_types = nil)
       ActiveSupport::XMLConverter.new(xml, disallowed_types).to_h
     end

@@ -3,7 +3,7 @@ require "cases/helper"
 class SchemaThing < ActiveRecord::Base
 end
 
-class SchemaAuthorizationTest < ActiveRecord::TestCase
+class SchemaAuthorizationTest < ActiveRecord::PostgreSQLTestCase
   self.use_transactional_tests = false
 
   TABLE_NAME = 'schema_things'
@@ -31,7 +31,7 @@ class SchemaAuthorizationTest < ActiveRecord::TestCase
     set_session_auth
     @connection.execute "RESET search_path"
     USERS.each do |u|
-      @connection.execute "DROP SCHEMA #{u} CASCADE"
+      @connection.drop_schema u
       @connection.execute "DROP USER #{u}"
     end
   end

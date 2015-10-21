@@ -1,6 +1,5 @@
 require 'fileutils'
 require 'uri'
-require 'set'
 
 module ActionController
   # \Caching is a cheap way of speeding up slow applications by keeping the result of
@@ -8,7 +7,7 @@ module ActionController
   #
   # You can read more about each approach by clicking the modules below.
   #
-  # Note: To turn off all caching, set
+  # Note: To turn off all caching provided by Action Controller, set
   #   config.action_controller.perform_caching = false
   #
   # == \Caching stores
@@ -46,7 +45,6 @@ module ActionController
         end
     end
 
-    include RackDelegation
     include AbstractController::Callbacks
 
     include ConfigMethods

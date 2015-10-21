@@ -107,5 +107,6 @@ _SQL
 
   create_table :bigint_array, force: true do |t|
     t.integer :big_int_data_points, limit: 8, array: true
+    t.decimal :decimal_array_default, array: true, default: [1.23, 3.45]
   end
 end

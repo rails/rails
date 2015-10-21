@@ -199,7 +199,7 @@ module ActionController #:nodoc:
       def _process_options(options) #:nodoc:
         super
         if options[:stream]
-          if env["HTTP_VERSION"] == "HTTP/1.0"
+          if request.version == "HTTP/1.0"
             options.delete(:stream)
           else
             headers["Cache-Control"] ||= "no-cache"

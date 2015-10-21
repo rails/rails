@@ -1,6 +1,5 @@
 require 'abstract_unit'
 require 'controller/fake_models'
-require 'pathname'
 
 class TestControllerWithExtraEtags < ActionController::Base
   etag { nil  }
@@ -10,17 +9,22 @@ class TestControllerWithExtraEtags < ActionController::Base
   etag { nil  }
 
   def fresh
-    render text: "stale" if stale?(etag: '123', template: false)
+    render plain: "stale" if stale?(etag: '123', template: false)
   end
 
   def array
-    render text: "stale" if stale?(etag: %w(1 2 3), template: false)
+    render plain: "stale" if stale?(etag: %w(1 2 3), template: false)
   end
 
   def with_template
     if stale? template: 'test/hello_world'
-      render text: 'stale'
+      render plain: 'stale'
     end
+  end
+end
+
+class ImplicitRenderTestController < ActionController::Base
+  def empty_action
   end
 end
 
@@ -133,6 +137,14 @@ class TestController < ActionController::Base
     fresh_when(:last_modified => Time.now.utc.beginning_of_day, :etag => [ :foo, 123 ])
   end
 
+  def head_with_status_hash
+    head status: :created
+  end
+
+  def head_with_hash_does_not_include_status
+    head warning: :deprecated
+  end
+
   def head_created
     head :created
   end
@@ -146,31 +158,31 @@ class TestController < ActionController::Base
   end
 
   def head_with_location_header
-    head :location => "/foo"
+    head :ok, :location => "/foo"
   end
 
   def head_with_location_object
-    head :location => Customer.new("david", 1)
+    head :ok, :location => Customer.new("david", 1)
   end
 
   def head_with_symbolic_status
-    head :status => params[:status].intern
+    head params[:status].intern
   end
 
   def head_with_integer_status
-    head :status => params[:status].to_i
+    head params[:status].to_i
   end
 
   def head_with_string_status
-    head :status => params[:status]
+    head params[:status]
   end
 
   def head_with_custom_header
-    head :x_custom_header => "something"
+    head :ok, :x_custom_header => "something"
   end
 
   def head_with_www_authenticate_header
-    head 'WWW-Authenticate' => 'something'
+    head :ok, 'WWW-Authenticate' => 'something'
   end
 
   def head_with_status_code_first
@@ -222,8 +234,6 @@ class MetalTestController < ActionController::Metal
   include AbstractController::Rendering
   include ActionView::Rendering
   include ActionController::Rendering
-  include ActionController::RackDelegation
-
 
   def accessing_logger_in_template
     render :inline =>  "<%= logger.class %>"
@@ -282,9 +292,10 @@ class ExpiresInRenderTest < ActionController::TestCase
 
   def test_date_header_when_expires_in
     time = Time.mktime(2011,10,30)
-    Time.stubs(:now).returns(time)
-    get :conditional_hello_with_expires_in
-    assert_equal Time.now.httpdate, @response.headers["Date"]
+    Time.stub :now, time do
+      get :conditional_hello_with_expires_in
+      assert_equal Time.now.httpdate, @response.headers["Date"]
+    end
   end
 end
 
@@ -463,6 +474,15 @@ class MetalRenderTest < ActionController::TestCase
   end
 end
 
+class ImplicitRenderTest < ActionController::TestCase
+  tests ImplicitRenderTestController
+
+  def test_implicit_no_content_response
+    get :empty_action
+    assert_response :no_content
+  end
+end
+
 class HeadRenderTest < ActionController::TestCase
   tests TestController
 
@@ -474,6 +494,19 @@ class HeadRenderTest < ActionController::TestCase
     post :head_created
     assert @response.body.blank?
     assert_response :created
+  end
+
+  def test_passing_hash_to_head_as_first_parameter_deprecated
+    assert_deprecated do
+      get :head_with_status_hash
+    end
+  end
+
+  def test_head_with_default_value_is_deprecated
+    assert_deprecated do
+      get :head_with_hash_does_not_include_status
+      assert_response :ok
+    end
   end
 
   def test_head_created_with_application_json_content_type
@@ -587,7 +620,7 @@ class HttpCacheForeverTest < ActionController::TestCase
   class HttpCacheForeverController < ActionController::Base
     def cache_me_forever
       http_cache_forever(public: params[:public], version: params[:version] || 'v1') do
-        render text: 'hello'
+        render plain: 'hello'
       end
     end
   end

@@ -35,8 +35,8 @@ module ActionView
     #     <select name="post[person_id]" id="post_person_id">
     #       <option value="">None</option>
     #       <option value="1">David</option>
-    #       <option value="2" selected="selected">Sam</option>
-    #       <option value="3">Tobias</option>
+    #       <option value="2" selected="selected">Eileen</option>
+    #       <option value="3">Rafael</option>
     #     </select>
     #
     # * <tt>:prompt</tt> - set to true or a prompt string. When the select element doesn't have a value yet, this prepends an option with a generic prompt -- "Please select" -- or the given prompt string.
@@ -48,8 +48,8 @@ module ActionView
     #     <select name="post[person_id]" id="post_person_id">
     #       <option value="">Select Person</option>
     #       <option value="1">David</option>
-    #       <option value="2">Sam</option>
-    #       <option value="3">Tobias</option>
+    #       <option value="2">Eileen</option>
+    #       <option value="3">Rafael</option>
     #     </select>
     #
     # * <tt>:index</tt> - like the other form helpers, +select+ can accept an <tt>:index</tt> option to manually set the ID used in the resulting output. Unlike other helpers, +select+ expects this
@@ -112,8 +112,8 @@ module ActionView
       #   <select name="post[person_id]" id="post_person_id">
       #     <option value=""></option>
       #     <option value="1" selected="selected">David</option>
-      #     <option value="2">Sam</option>
-      #     <option value="3">Tobias</option>
+      #     <option value="2">Eileen</option>
+      #     <option value="3">Rafael</option>
       #   </select>
       #
       # assuming the associated person has ID 1.
@@ -456,7 +456,7 @@ module ActionView
           option_tags = options_from_collection_for_select(
             group.send(group_method), option_key_method, option_value_method, selected_key)
 
-          content_tag(:optgroup, option_tags, label: group.send(group_label_method))
+          content_tag("optgroup".freeze, option_tags, label: group.send(group_label_method))
         end.join.html_safe
       end
 
@@ -528,7 +528,7 @@ module ActionView
         body = "".html_safe
 
         if prompt
-          body.safe_concat content_tag(:option, prompt_text(prompt), value: "")
+          body.safe_concat content_tag("option".freeze, prompt_text(prompt), value: "")
         end
 
         grouped_options.each do |container|
@@ -541,14 +541,14 @@ module ActionView
           end
 
           html_attributes = { label: label }.merge!(html_attributes)
-          body.safe_concat content_tag(:optgroup, options_for_select(container, selected_key), html_attributes)
+          body.safe_concat content_tag("optgroup".freeze, options_for_select(container, selected_key), html_attributes)
         end
 
         body
       end
 
       # Returns a string of option tags for pretty much any time zone in the
-      # world. Supply a ActiveSupport::TimeZone name as +selected+ to have it
+      # world. Supply an ActiveSupport::TimeZone name as +selected+ to have it
       # marked as the selected option tag. You can also supply an array of
       # ActiveSupport::TimeZone objects as +priority_zones+, so that they will
       # be listed above the rest of the (long) list. (You can use
@@ -556,7 +556,7 @@ module ActionView
       # of the US time zones, or a Regexp to select the zones of your choice)
       #
       # The +selected+ parameter must be either +nil+, or a string that names
-      # a ActiveSupport::TimeZone.
+      # an ActiveSupport::TimeZone.
       #
       # By default, +model+ is the ActiveSupport::TimeZone constant (which can
       # be obtained in Active Record as a value object). The only requirement
@@ -577,7 +577,7 @@ module ActionView
           end
 
           zone_options.safe_concat options_for_select(convert_zones[priority_zones], selected)
-          zone_options.safe_concat content_tag(:option, '-------------', value: '', disabled: true)
+          zone_options.safe_concat content_tag("option".freeze, '-------------', value: '', disabled: true)
           zone_options.safe_concat "\n"
 
           zones = zones - priority_zones
@@ -644,6 +644,24 @@ module ActionView
       #   collection_radio_buttons(:post, :author_id, Author.all, :id, :name_with_initial) do |b|
       #      b.label(:"data-value" => b.value) { b.radio_button + b.text }
       #   end
+      #
+      # ==== Gotcha
+      #
+      # The HTML specification says when nothing is select on a collection of radio buttons
+      # web browsers do not send any value to server.
+      # Unfortunately this introduces a gotcha:
+      # if a +User+ model has a +category_id+ field, and in the form none category is selected no +category_id+ parameter is sent. So,
+      # any strong parameters idiom like
+      #
+      #   params.require(:user).permit(...)
+      #
+      # will raise an error since no +{user: ...}+ will be present.
+      #
+      # To prevent this the helper generates an auxiliary hidden field before
+      # every collection of radio buttons. The hidden field has the same name as collection radio button and blank value.
+      #
+      # In case if you don't want the helper to generate this hidden field you can specify
+      # <tt>include_hidden: false</tt> option.
       def collection_radio_buttons(object, method, collection, value_method, text_method, options = {}, html_options = {}, &block)
         Tags::CollectionRadioButtons.new(object, method, self, collection, value_method, text_method, options, html_options).render(&block)
       end
@@ -707,6 +725,27 @@ module ActionView
       #   collection_check_boxes(:post, :author_ids, Author.all, :id, :name_with_initial) do |b|
       #      b.label(:"data-value" => b.value) { b.check_box + b.text }
       #   end
+      #
+      # ==== Gotcha
+      #
+      # When no selection is made for a collection of checkboxes most
+      # web browsers will not send any value.
+      #
+      # For example, if we have a +User+ model with +category_ids+ field and we
+      # have the following code in our update action:
+      #
+      #   @user.update(params[:user])
+      #
+      # If no +category_ids+ are selected then we can safely assume this field
+      # will not be updated.
+      #
+      # This is possible thanks to a hidden field generated by the helper method
+      # for every collection of checkboxes.
+      # This hidden field is given the same field name as the checkboxes with a
+      # blank value.
+      #
+      # In the rare case you don't want this hidden field, you can pass the
+      # <tt>include_hidden: false</tt> option to the helper method.
       def collection_check_boxes(object, method, collection, value_method, text_method, options = {}, html_options = {}, &block)
         Tags::CollectionCheckBoxes.new(object, method, self, collection, value_method, text_method, options, html_options).render(&block)
       end

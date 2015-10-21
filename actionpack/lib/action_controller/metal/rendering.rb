@@ -1,3 +1,5 @@
+require 'active_support/core_ext/string/filters'
+
 module ActionController
   module Rendering
     extend ActiveSupport::Concern
@@ -8,10 +10,17 @@ module ActionController
       # Documentation at ActionController::Renderer#render
       delegate :render, to: :renderer
 
-      # Returns a renderer class (inherited from ActionController::Renderer)
+      # Returns a renderer instance (inherited from ActionController::Renderer)
       # for the controller.
-      def renderer
-        @renderer ||= Renderer.for(self)
+      attr_reader :renderer
+
+      def setup_renderer! # :nodoc:
+        @renderer = Renderer.for(self)
+      end
+
+      def inherited(klass)
+        klass.setup_renderer!
+        super
       end
     end
 
@@ -53,13 +62,13 @@ module ActionController
       nil
     end
 
-    def _process_format(format, options = {})
-      super
+    def _set_html_content_type
+      self.content_type = Mime[:html].to_s
+    end
 
-      if options[:plain]
-        self.content_type = Mime::TEXT
-      else
-        self.content_type ||= format.to_s
+    def _set_rendered_content_type(format)
+      unless response.content_type
+        self.content_type = format.to_s
       end
     end
 
@@ -73,6 +82,17 @@ module ActionController
     # Normalize both text and status options.
     def _normalize_options(options) #:nodoc:
       _normalize_text(options)
+
+      if options[:text]
+        ActiveSupport::Deprecation.warn <<-WARNING.squish
+          `render :text` is deprecated because it does not actually render a
+          `text/plain` response. Switch to `render plain: 'plain text'` to
+          render as `text/plain`, `render html: '<strong>HTML</strong>'` to
+          render as `text/html`, or `render body: 'raw'` to match the deprecated
+          behavior and render with the default Content-Type, which is
+          `text/plain`.
+        WARNING
+      end
 
       if options[:html]
         options[:html] = ERB::Util.html_escape(options[:html])

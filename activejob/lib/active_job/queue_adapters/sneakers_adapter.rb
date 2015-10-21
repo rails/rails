@@ -1,5 +1,5 @@
 require 'sneakers'
-require 'thread'
+require 'monitor'
 
 module ActiveJob
   module QueueAdapters

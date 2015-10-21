@@ -130,7 +130,7 @@ module ActionView
       @source            = source
       @identifier        = identifier
       @handler           = handler
-      @cache_name        = extract_resource_cache_call_name
+      @cache_name        = extract_resource_cache_name
       @compiled          = false
       @original_encoding = nil
       @locals            = details[:locals] || []
@@ -141,7 +141,7 @@ module ActionView
       @compile_mutex     = Mutex.new
     end
 
-    # Returns if the underlying handler supports streaming. If so,
+    # Returns whether the underlying handler supports streaming. If so,
     # a streaming buffer *may* be passed when it start rendering.
     def supports_streaming?
       handler.respond_to?(:supports_streaming?) && handler.supports_streaming?
@@ -154,7 +154,7 @@ module ActionView
     # we use a bang in this instrumentation because you don't want to
     # consume this in production. This is only slow if it's being listened to.
     def render(view, locals, buffer=nil, &block)
-      instrument("!render_template") do
+      instrument("!render_template".freeze) do
         compile!(view)
         view.send(method_name, locals, buffer, &block)
       end
@@ -190,7 +190,7 @@ module ActionView
     end
 
     def inspect
-      @inspect ||= defined?(Rails.root) ? identifier.sub("#{Rails.root}/", '') : identifier
+      @inspect ||= defined?(Rails.root) ? identifier.sub("#{Rails.root}/", ''.freeze) : identifier
     end
 
     # This method is responsible for properly setting the encoding of the
@@ -337,27 +337,41 @@ module ActionView
       def method_name #:nodoc:
         @method_name ||= begin
           m = "_#{identifier_method_name}__#{@identifier.hash}_#{__id__}"
-          m.tr!('-', '_')
+          m.tr!('-'.freeze, '_'.freeze)
           m
         end
       end
 
       def identifier_method_name #:nodoc:
-        inspect.tr('^a-z_', '_')
+        inspect.tr('^a-z_'.freeze, '_'.freeze)
       end
 
       def instrument(action, &block)
         payload = { virtual_path: @virtual_path, identifier: @identifier }
-        ActiveSupport::Notifications.instrument("#{action}.action_view", payload, &block)
+        case action
+        when "!render_template".freeze
+          ActiveSupport::Notifications.instrument("!render_template.action_view".freeze, payload, &block)
+        else
+          ActiveSupport::Notifications.instrument("#{action}.action_view".freeze, payload, &block)
+        end
       end
 
-      def extract_resource_cache_call_name
-        $1 if @handler.respond_to?(:resource_cache_call_pattern) &&
-          @source =~ @handler.resource_cache_call_pattern
+      EXPLICIT_COLLECTION = /# Template Collection: (?<resource_name>\w+)/
+
+      def extract_resource_cache_name
+        if match = @source.match(EXPLICIT_COLLECTION) || resource_cache_call_match
+          match[:resource_name]
+        end
+      end
+
+      def resource_cache_call_match
+        if @handler.respond_to?(:resource_cache_call_pattern)
+          @source.match(@handler.resource_cache_call_pattern)
+        end
       end
 
       def inferred_cache_name
-        @inferred_cache_name ||= @virtual_path.split('/').last.sub('_', '')
+        @inferred_cache_name ||= @virtual_path.split('/'.freeze).last.sub('_'.freeze, ''.freeze)
       end
   end
 end

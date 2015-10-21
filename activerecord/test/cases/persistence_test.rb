@@ -17,6 +17,7 @@ require 'models/minivan'
 require 'models/owner'
 require 'models/person'
 require 'models/pet'
+require 'models/ship'
 require 'models/toy'
 require 'rexml/document'
 
@@ -119,13 +120,22 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_equal 59, accounts(:signals37, :reload).credit_limit
   end
 
+  def test_increment_updates_counter_in_db_using_offset
+    a1 = accounts(:signals37)
+    initial_credit = a1.credit_limit
+    a2 = Account.find(accounts(:signals37).id)
+    a1.increment!(:credit_limit)
+    a2.increment!(:credit_limit)
+    assert_equal initial_credit + 2, a1.reload.credit_limit
+  end
+
   def test_destroy_all
     conditions = "author_name = 'Mary'"
     topics_by_mary = Topic.all.merge!(:where => conditions, :order => 'id').to_a
     assert ! topics_by_mary.empty?
 
     assert_difference('Topic.count', -topics_by_mary.size) do
-      destroyed = Topic.destroy_all(conditions).sort_by(&:id)
+      destroyed = Topic.where(conditions).destroy_all.sort_by(&:id)
       assert_equal topics_by_mary, destroyed
       assert destroyed.all?(&:frozen?), "destroyed topics should be frozen"
     end

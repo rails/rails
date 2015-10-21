@@ -766,34 +766,30 @@ module CallbacksTest
   end
 
   class CallbackFalseTerminatorWithoutConfigTest < ActiveSupport::TestCase
-    def test_returning_false_halts_callback_if_config_variable_is_not_set
+    def test_returning_false_does_not_halt_callback_if_config_variable_is_not_set
       obj = CallbackFalseTerminator.new
-      assert_deprecated do
-        obj.save
-        assert_equal :second, obj.halted
-        assert !obj.saved
-      end
+      obj.save
+      assert_equal nil, obj.halted
+      assert obj.saved
     end
   end
 
   class CallbackFalseTerminatorWithConfigTrueTest < ActiveSupport::TestCase
     def setup
-      ActiveSupport::Callbacks::CallbackChain.halt_and_display_warning_on_return_false = true
+      ActiveSupport::Callbacks.halt_and_display_warning_on_return_false = true
     end
 
-    def test_returning_false_halts_callback_if_config_variable_is_true
+    def test_returning_false_does_not_halt_callback_if_config_variable_is_true
       obj = CallbackFalseTerminator.new
-      assert_deprecated do
-        obj.save
-        assert_equal :second, obj.halted
-        assert !obj.saved
-      end
+      obj.save
+      assert_equal nil, obj.halted
+      assert obj.saved
     end
   end
 
   class CallbackFalseTerminatorWithConfigFalseTest < ActiveSupport::TestCase
     def setup
-      ActiveSupport::Callbacks::CallbackChain.halt_and_display_warning_on_return_false = false
+      ActiveSupport::Callbacks.halt_and_display_warning_on_return_false = false
     end
 
     def test_returning_false_does_not_halt_callback_if_config_variable_is_false

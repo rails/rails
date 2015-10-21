@@ -5,7 +5,7 @@ module ActiveRecord
     class DatabaseAlreadyExists < StandardError; end # :nodoc:
     class DatabaseNotSupported < StandardError; end # :nodoc:
 
-    # <tt>ActiveRecord::Tasks::DatabaseTasks</tt> is a utility class, which encapsulates
+    # ActiveRecord::Tasks::DatabaseTasks is a utility class, which encapsulates
     # logic behind common tasks used to manage database and migrations.
     #
     # The tasks defined here are used with Rake tasks provided by Active Record.
@@ -18,15 +18,15 @@ module ActiveRecord
     #
     # The possible config values are:
     #
-    #   * +env+: current environment (like Rails.env).
-    #   * +database_configuration+: configuration of your databases (as in +config/database.yml+).
-    #   * +db_dir+: your +db+ directory.
-    #   * +fixtures_path+: a path to fixtures directory.
-    #   * +migrations_paths+: a list of paths to directories with migrations.
-    #   * +seed_loader+: an object which will load seeds, it needs to respond to the +load_seed+ method.
-    #   * +root+: a path to the root of the application.
+    # * +env+: current environment (like Rails.env).
+    # * +database_configuration+: configuration of your databases (as in +config/database.yml+).
+    # * +db_dir+: your +db+ directory.
+    # * +fixtures_path+: a path to fixtures directory.
+    # * +migrations_paths+: a list of paths to directories with migrations.
+    # * +seed_loader+: an object which will load seeds, it needs to respond to the +load_seed+ method.
+    # * +root+: a path to the root of the application.
     #
-    # Example usage of +DatabaseTasks+ outside Rails could look as such:
+    # Example usage of DatabaseTasks outside Rails could look as such:
     #
     #   include ActiveRecord::Tasks
     #   DatabaseTasks.database_configuration = YAML.load_file('my_database_config.yml')
@@ -134,7 +134,7 @@ module ActiveRecord
         version = ENV["VERSION"] ? ENV["VERSION"].to_i : nil
         scope   = ENV['SCOPE']
         verbose_was, Migration.verbose = Migration.verbose, verbose
-        Migrator.migrate(Migrator.migrations_paths, version) do |migration|
+        Migrator.migrate(migrations_paths, version) do |migration|
           scope.blank? || scope == migration.scope
         end
       ensure
@@ -218,12 +218,6 @@ module ActiveRecord
           File.join(db_dir, "schema.rb")
         when :sql
           File.join(db_dir, "structure.sql")
-        end
-      end
-
-      def load_schema_current_if_exists(format = ActiveRecord::Base.schema_format, file = nil, environment = env)
-        if File.exist?(file || schema_file(format))
-          load_schema_current(format, file, environment)
         end
       end
 

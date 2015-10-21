@@ -647,6 +647,25 @@ class RelationTest < ActiveRecord::TestCase
     end
   end
 
+  def test_preloading_with_associations_default_scopes_and_merges
+    post = Post.create! title: 'Uhuu', body: 'body'
+    reader = Reader.create! post_id: post.id, person_id: 1
+
+    post_rel = PostWithPreloadDefaultScope.preload(:readers).joins(:readers).where(title: 'Uhuu')
+    result_post = PostWithPreloadDefaultScope.all.merge(post_rel).to_a.first
+
+    assert_no_queries do
+      assert_equal [reader], result_post.readers.to_a
+    end
+
+    post_rel = PostWithIncludesDefaultScope.includes(:readers).where(title: 'Uhuu')
+    result_post = PostWithIncludesDefaultScope.all.merge(post_rel).to_a.first
+
+    assert_no_queries do
+      assert_equal [reader], result_post.readers.to_a
+    end
+  end
+
   def test_loading_with_one_association
     posts = Post.preload(:comments)
     post = posts.find { |p| p.id == 1 }
@@ -912,11 +931,23 @@ class RelationTest < ActiveRecord::TestCase
     assert davids.loaded?
   end
 
+  def test_destroy_all_with_conditions_is_deprecated
+    assert_deprecated do
+      assert_difference('Author.count', -1) { Author.destroy_all(name: 'David') }
+    end
+  end
+
   def test_delete_all
     davids = Author.where(:name => 'David')
 
     assert_difference('Author.count', -1) { davids.delete_all }
     assert ! davids.loaded?
+  end
+
+  def test_delete_all_with_conditions_is_deprecated
+    assert_deprecated do
+      assert_difference('Author.count', -1) { Author.delete_all(name: 'David') }
+    end
   end
 
   def test_delete_all_loaded
@@ -1508,6 +1539,13 @@ class RelationTest < ActiveRecord::TestCase
     # Testing that the before_update callbacks have run
     assert_equal 'David', topic1.reload.author_name
     assert_equal 'David', topic2.reload.author_name
+  end
+
+  def test_update_on_relation_passing_active_record_object_is_deprecated
+    topic = Topic.create!(title: 'Foo', author_name: nil)
+    assert_deprecated(/update/) do
+      Topic.where(id: topic.id).update(topic, title: 'Bar')
+    end
   end
 
   def test_distinct

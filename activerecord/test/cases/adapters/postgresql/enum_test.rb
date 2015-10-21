@@ -1,7 +1,7 @@
 require "cases/helper"
 require 'support/connection_helper'
 
-class PostgresqlEnumTest < ActiveRecord::TestCase
+class PostgresqlEnumTest < ActiveRecord::PostgreSQLTestCase
   include ConnectionHelper
 
   class PostgresqlEnum < ActiveRecord::Base

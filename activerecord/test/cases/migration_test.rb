@@ -75,15 +75,13 @@ class MigrationTest < ActiveRecord::TestCase
 
     ActiveRecord::Migrator.up(migrations_path)
     assert_equal 3, ActiveRecord::Migrator.current_version
-    assert_equal 3, ActiveRecord::Migrator.last_version
     assert_equal false, ActiveRecord::Migrator.needs_migration?
 
     ActiveRecord::Migrator.down(MIGRATIONS_ROOT + "/valid")
     assert_equal 0, ActiveRecord::Migrator.current_version
-    assert_equal 3, ActiveRecord::Migrator.last_version
     assert_equal true, ActiveRecord::Migrator.needs_migration?
 
-    ActiveRecord::SchemaMigration.create!(:version => ActiveRecord::Migrator.last_version)
+    ActiveRecord::SchemaMigration.create!(version: 3)
     assert_equal true, ActiveRecord::Migrator.needs_migration?
   ensure
     ActiveRecord::Migrator.migrations_paths = old_path
@@ -115,7 +113,7 @@ class MigrationTest < ActiveRecord::TestCase
   end
 
   def test_migration_version
-    ActiveRecord::Migrator.run(:up, MIGRATIONS_ROOT + "/version_check", 20131219224947)
+    assert_nothing_raised { ActiveRecord::Migrator.run(:up, MIGRATIONS_ROOT + "/version_check", 20131219224947) }
   end
 
   def test_create_table_with_force_true_does_not_drop_nonexisting_table
@@ -132,13 +130,9 @@ class MigrationTest < ActiveRecord::TestCase
     Person.connection.drop_table :testings2, if_exists: true
   end
 
-  def connection
-    ActiveRecord::Base.connection
-  end
-
   def test_migration_instance_has_connection
     migration = Class.new(ActiveRecord::Migration).new
-    assert_equal connection, migration.connection
+    assert_equal ActiveRecord::Base.connection, migration.connection
   end
 
   def test_method_missing_delegates_to_connection

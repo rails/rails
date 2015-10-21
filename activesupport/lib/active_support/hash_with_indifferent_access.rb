@@ -92,7 +92,7 @@ module ActiveSupport
     #   hash = ActiveSupport::HashWithIndifferentAccess.new
     #   hash[:key] = 'value'
     #
-    # This value can be later fetched using either +:key+ or +'key'+.
+    # This value can be later fetched using either +:key+ or <tt>'key'</tt>.
     def []=(key, value)
       regular_writer(convert_key(key), convert_value(value, for: :assignment))
     end
@@ -188,7 +188,7 @@ module ActiveSupport
     #   dup[:a][:c]  # => "c"
     def dup
       self.class.new(self).tap do |new_hash|
-        new_hash.default = default
+        set_defaults(new_hash)
       end
     end
 
@@ -238,16 +238,20 @@ module ActiveSupport
     def to_options!; self end
 
     def select(*args, &block)
+      return to_enum(:select) unless block_given?
       dup.tap { |hash| hash.select!(*args, &block) }
     end
 
     def reject(*args, &block)
+      return to_enum(:reject) unless block_given?
       dup.tap { |hash| hash.reject!(*args, &block) }
     end
 
     # Convert to a regular hash with string keys.
     def to_hash
-      _new_hash = Hash.new(default)
+      _new_hash = Hash.new
+      set_defaults(_new_hash)
+
       each do |key, value|
         _new_hash[key] = convert_value(value, for: :to_hash)
       end
@@ -273,6 +277,14 @@ module ActiveSupport
           value.map! { |e| convert_value(e, options) }
         else
           value
+        end
+      end
+
+      def set_defaults(target)
+        if default_proc
+          target.default_proc = default_proc.dup
+        else
+          target.default = default
         end
       end
   end
