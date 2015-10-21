@@ -210,7 +210,7 @@ module ActiveRecord
       # An array of ColumnDefinition objects, representing the column changes
       # that have been defined.
       attr_accessor :indexes
-      attr_reader :name, :temporary, :options, :as, :foreign_keys
+      attr_reader :name, :temporary, :options, :as, :foreign_keys, :native
 
       def initialize(types, name, temporary, options, as = nil)
         @columns_hash = {}
@@ -386,10 +386,6 @@ module ActiveRecord
       private
       def create_column_definition(name, type)
         ColumnDefinition.new name, type
-      end
-
-      def native
-        @native
       end
 
       def aliased_types(name, fallback)
