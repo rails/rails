@@ -1,5 +1,4 @@
 require 'action_dispatch/journey'
-require 'forwardable'
 require 'active_support/concern'
 require 'active_support/core_ext/object/to_query'
 require 'active_support/core_ext/hash/slice'
