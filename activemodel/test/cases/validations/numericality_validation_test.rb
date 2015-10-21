@@ -4,6 +4,7 @@ require 'models/topic'
 require 'models/person'
 
 require 'bigdecimal'
+require 'active_support/core_ext/big_decimal'
 
 class NumericalityValidationTest < ActiveModel::TestCase
 
@@ -74,7 +75,7 @@ class NumericalityValidationTest < ActiveModel::TestCase
   def test_validates_numericality_with_greater_than_using_differing_numeric_types
     Topic.validates_numericality_of :approved, greater_than: BigDecimal.new('97.18')
 
-    invalid!([-97.18, BigDecimal.new('97.18'), BigDecimal('-97.18')], 'must be greater than 0.9718E2')
+    invalid!([-97.18, BigDecimal.new('97.18'), BigDecimal('-97.18')], 'must be greater than 97.18')
     valid!([97.18, 98, BigDecimal.new('98')]) # Notice the 97.18 as a float is greater than 97.18 as a BigDecimal due to floating point precision
   end
 
@@ -88,7 +89,7 @@ class NumericalityValidationTest < ActiveModel::TestCase
   def test_validates_numericality_with_greater_than_or_equal_using_differing_numeric_types
     Topic.validates_numericality_of :approved, greater_than_or_equal_to: BigDecimal.new('97.18') 
 
-    invalid!([-97.18, 97.17, 97, BigDecimal.new('97.17'), BigDecimal.new('-97.18')], 'must be greater than or equal to 0.9718E2')
+    invalid!([-97.18, 97.17, 97, BigDecimal.new('97.17'), BigDecimal.new('-97.18')], 'must be greater than or equal to 97.18')
     valid!([97.18, 98, BigDecimal.new('97.19')])
   end
 
@@ -102,7 +103,7 @@ class NumericalityValidationTest < ActiveModel::TestCase
   def test_validates_numericality_with_equal_to_using_differing_numeric_types
     Topic.validates_numericality_of :approved, equal_to: BigDecimal.new('97.18')
 
-    invalid!([-97.18, 97.18], 'must be equal to 0.9718E2')
+    invalid!([-97.18, 97.18], 'must be equal to 97.18')
     valid!([BigDecimal.new('97.18')])
   end
 
@@ -116,7 +117,7 @@ class NumericalityValidationTest < ActiveModel::TestCase
   def test_validates_numericality_with_less_than_using_differing_numeric_types
     Topic.validates_numericality_of :approved, less_than: BigDecimal.new('97.18')
 
-    invalid!([97.18, BigDecimal.new('97.18')], 'must be less than 0.9718E2')
+    invalid!([97.18, BigDecimal.new('97.18')], 'must be less than 97.18')
     valid!([-97.0, 97.0, -97, 97, BigDecimal.new('-97'), BigDecimal.new('97')])
   end
 
@@ -130,7 +131,7 @@ class NumericalityValidationTest < ActiveModel::TestCase
   def test_validates_numericality_with_less_than_or_equal_to_using_differing_numeric_types
     Topic.validates_numericality_of :approved, less_than_or_equal_to: BigDecimal.new('97.18')
 
-    invalid!([97.18, 98], 'must be less than or equal to 0.9718E2')
+    invalid!([97.18, 98], 'must be less than or equal to 97.18')
     valid!([-97.18, BigDecimal.new('-97.18'), BigDecimal.new('97.18')])
   end
 
