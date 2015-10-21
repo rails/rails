@@ -428,24 +428,6 @@ module ActiveRecord
       self
     end
 
-    def build_join(*args)
-      first, *rest = args
-
-      if first.is_a?(String) && rest.present?
-        sanitized = @klass.send(:sanitize_sql, [first, *rest])
-
-        if sanitized == first
-          # First string doesn't contain any parameter substitution: args is a list of raw SQL
-          # strings.
-          args
-        else
-          [sanitized]
-        end
-      else
-        args
-      end
-    end
-
     # Returns a new relation, which is the result of filtering the current relation
     # according to the conditions in the arguments.
     #
@@ -952,6 +934,24 @@ module ActiveRecord
         opts.arel.as(name.to_s)
       else
         opts
+      end
+    end
+
+    def build_join(*args)
+      first, *rest = args
+
+      if first.is_a?(String) && rest.present?
+        sanitized = @klass.send(:sanitize_sql, args)
+
+        if sanitized == first
+          # First string doesn't contain any parameter substitution: args is a list of raw SQL
+          # strings.
+          args
+        else
+          [sanitized]
+        end
+      else
+        args
       end
     end
 
