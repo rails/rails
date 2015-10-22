@@ -55,13 +55,16 @@ class Cable.Connection
       {identifier, message, type} = JSON.parse(event.data)
 
       if type?
-        switch type
-          when Cable.INTERNAL_MESSAGES.SUBSCRIPTION_CONFIRMATION
-            @consumer.subscriptions.notify(identifier, "connected")
-          when Cable.INTERNAL_MESSAGES.SUBSCRIPTION_REJECTION
-            @consumer.subscriptions.rejectSubscription(identifier)
+        @handleTypeMessage(type)
       else
         @consumer.subscriptions.notify(identifier, "received", message)
+
+    onTypeMessage: (type) ->
+      switch type
+        when Cable.INTERNAL_MESSAGES.SUBSCRIPTION_CONFIRMATION
+          @consumer.subscriptions.notify(identifier, "connected")
+        when Cable.INTERNAL_MESSAGES.SUBSCRIPTION_REJECTION
+          @consumer.subscriptions.reject(identifier)
 
     open: ->
       @disconnected = false

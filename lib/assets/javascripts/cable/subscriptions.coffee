@@ -23,28 +23,26 @@ class Cable.Subscriptions
     @notify(subscription, "initialized")
     @sendCommand(subscription, "subscribe")
 
-  reload: ->
-    for subscription in @subscriptions
-      @sendCommand(subscription, "subscribe")
-
-  rejectSubscription: (identifier) ->
-    subscriptions = @findAll(identifier)
-
-    for subscription in subscriptions
-      @removeSubscription(subscription)
-      @notify(subscription, "rejected")
-  
   remove: (subscription) ->
-    @removeSubscription(subscription)
+    @forget(subscription)
 
     unless @findAll(subscription.identifier).length
       @sendCommand(subscription, "unsubscribe")
 
-  removeSubscription: (subscription) ->
+  reject: (identifier) ->
+    for subscription in @findAll(identifier)
+      @forget(subscription)
+      @notify(subscription, "rejected")
+
+  forget: (subscription) ->
     @subscriptions = (s for s in @subscriptions when s isnt subscription)
 
   findAll: (identifier) ->
     s for s in @subscriptions when s.identifier is identifier
+
+  reload: ->
+    for subscription in @subscriptions
+      @sendCommand(subscription, "subscribe")
 
   notifyAll: (callbackName, args...) ->
     for subscription in @subscriptions
