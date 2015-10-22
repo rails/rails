@@ -40,6 +40,8 @@ ActiveRecord::Schema.define do
     char2 character varying(50) default 'a varchar field',
     char3 text default 'a text field',
     bigint_default bigint default 0::bigint,
+    uuid_default uuid default 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
+    uuid_default_function uuid default uuid_generate_v4(),
     multiline_default text DEFAULT '--- []
 
 '::text

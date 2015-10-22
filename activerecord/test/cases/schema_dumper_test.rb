@@ -248,6 +248,12 @@ class SchemaDumperTest < ActiveRecord::TestCase
       assert_match %r{t\.integer\s+"bigint_default",\s+limit: 8,\s+default: 0}, output
     end
 
+    def test_schema_dump_includes_uuid_default
+      output = standard_dump
+      assert_match %r{t\.uuid\s+"uuid_default",\s+default: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"}, output
+      assert_match %r{t\.uuid\s+"uuid_default_function",\s+default: "uuid_generate_v4\(\)"}, output
+    end
+
     def test_schema_dump_includes_limit_on_array_type
       output = standard_dump
       assert_match %r{t\.integer\s+"big_int_data_points\",\s+limit: 8,\s+array: true}, output
