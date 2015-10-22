@@ -6,7 +6,8 @@ module ActiveRecord
         private
 
         def preload(preloader)
-          associated_records_by_owner(preloader).each do |owner, associated_records|
+          associated_records_by_owner(preloader).each do |owner_id, associated_records|
+            owner = ObjectSpace._id2ref(owner_id)
             record = associated_records.first
 
             association = owner.association(reflection.name)

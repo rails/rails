@@ -18,7 +18,7 @@ module ActiveRecord
           through_records = owners.map do |owner|
             association = owner.association through_reflection.name
 
-            [owner, Array(association.reader)]
+            [owner.object_id, Array(association.reader)]
           end
 
           reset_association owners, through_reflection.name
