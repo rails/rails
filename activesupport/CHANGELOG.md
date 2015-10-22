@@ -1,3 +1,19 @@
+*   Change Integer#year to return a Fixnum instead of a Float to improve
+    consistency.
+
+    Integer#years returned a Float while the rest of the accompanying methods
+    (days, weeks, months, etc.) return a Fixnum.
+
+    Before:
+
+    1.year # => 31557600.0
+
+    After:
+
+    1.year # => 31557600
+
+    *Konstantinos Rousis*
+
 *   Handle invalid UTF-8 strings when HTML escaping
 
     Use `ActiveSupport::Multibyte::Unicode.tidy_bytes` to handle invalid UTF-8
