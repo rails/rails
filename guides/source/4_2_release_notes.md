@@ -37,7 +37,7 @@ Major Features
 Active Job is a new framework in Rails 4.2. It is a common interface on top of
 queuing systems like [Resque](https://github.com/resque/resque), [Delayed
 Job](https://github.com/collectiveidea/delayed_job),
-[Sidekiq](https://github.com/mperham/sidekiq) and more.
+[Sidekiq](https://github.com/mperham/sidekiq), and more.
 
 Jobs written with the Active Job API run on any of the supported queues thanks
 to their respective adapters. Active Job comes pre-configured with an inline
