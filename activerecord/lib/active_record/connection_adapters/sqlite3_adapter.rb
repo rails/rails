@@ -311,22 +311,18 @@ module ActiveRecord
 
       # SCHEMA STATEMENTS ========================================
 
-      def tables(name = nil, table_name = nil) #:nodoc:
-        sql = <<-SQL
-          SELECT name
-          FROM sqlite_master
-          WHERE (type = 'table' OR type = 'view') AND NOT name = 'sqlite_sequence'
-        SQL
-        sql << " AND name = #{quote_table_name(table_name)}" if table_name
-
-        exec_query(sql, 'SCHEMA').map do |row|
-          row['name']
-        end
+      def tables(name = nil) # :nodoc:
+        select_values("SELECT name FROM sqlite_master WHERE type IN ('table','view') AND name <> 'sqlite_sequence'", 'SCHEMA')
       end
       alias data_sources tables
 
       def table_exists?(table_name)
-        table_name && tables(nil, table_name).any?
+        return false unless table_name.present?
+
+        sql = "SELECT name FROM sqlite_master WHERE type IN ('table','view') AND name <> 'sqlite_sequence'"
+        sql << " AND name = #{quote(table_name)}"
+
+        select_values(sql, 'SCHEMA').any?
       end
       alias data_source_exists? table_exists?
 
