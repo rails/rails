@@ -463,7 +463,7 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
   def test_get_xml_rss_atom
     %w[ application/xml application/rss+xml application/atom+xml ].each do |mime_string|
       with_test_route_set do
-        get "/get", {}, {"HTTP_ACCEPT" => mime_string}
+        get "/get", headers: {"HTTP_ACCEPT" => mime_string}
         assert_equal 200, status
         assert_equal "OK", status_message
         assert_response 200
