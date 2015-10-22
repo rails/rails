@@ -10,8 +10,8 @@ module ActiveRecord
           reflection.source_reflection
         end
 
-        def associated_records_by_owner(preloader)
-          preloader.preload(owners,
+        def associated_records_by_owner
+          Preloader.new.preload(owners,
                             through_reflection.name,
                             through_scope)
 
@@ -25,7 +25,7 @@ module ActiveRecord
 
           middle_records = through_records.flat_map { |(_,rec)| rec }
 
-          preloaders = preloader.preload(middle_records,
+          preloaders = Preloader.new.preload(middle_records,
                                          source_reflection.name,
                                          reflection_scope)
 

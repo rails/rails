@@ -143,7 +143,7 @@ module ActiveRecord
         grouped_records(association, records).flat_map do |reflection, klasses|
           klasses.map do |rhs_klass, rs|
             loader = preloader_for(reflection, rs, rhs_klass).new(rhs_klass, rs, reflection, scope)
-            loader.run self
+            loader.run
             loader
           end
         end
@@ -168,7 +168,7 @@ module ActiveRecord
           @reflection = reflection
         end
 
-        def run(preloader); end
+        def run; end
 
         def preloaded_records
           owners.flat_map { |owner| owner.association(reflection.name).target }
@@ -177,7 +177,7 @@ module ActiveRecord
 
       class NullPreloader # :nodoc:
         def self.new(klass, owners, reflection, preload_scope); self; end
-        def self.run(preloader); end
+        def self.run; end
         def self.preloaded_records; []; end
       end
 
