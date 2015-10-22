@@ -26,7 +26,7 @@ module Rails
       #
       #   config.generators.colorize_logging = false
       #
-      def generators #:nodoc:
+      def generators
         @generators ||= Rails::Configuration::Generators.new
         yield(@generators) if block_given?
         @generators
