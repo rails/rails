@@ -275,15 +275,10 @@ module ActiveRecord
       else
         group_fields = group_attrs
       end
+      group_fields = arel_columns(group_fields)
 
-      group_aliases = group_fields.map { |field|
-        column_alias_for(field)
-      }
-      group_columns = group_aliases.zip(group_fields).map { |aliaz,field|
-        [aliaz, field]
-      }
-
-      group = group_fields
+      group_aliases = group_fields.map { |field| column_alias_for(field) }
+      group_columns = group_aliases.zip(group_fields)
 
       if operation == 'count' && column_name == :all
         aggregate_alias = 'count_all'
@@ -299,7 +294,7 @@ module ActiveRecord
       ]
       select_values += select_values unless having_clause.empty?
 
-      select_values.concat arel_columns(group_fields).zip(group_aliases).map { |field,aliaz|
+      select_values.concat group_columns.map { |aliaz, field|
         if field.respond_to?(:as)
           field.as(aliaz)
         else
@@ -308,7 +303,7 @@ module ActiveRecord
       }
 
       relation = except(:group)
-      relation.group_values  = group
+      relation.group_values  = group_fields
       relation.select_values = select_values
 
       calculated_data = @klass.connection.select_all(relation, nil, relation.bound_attributes)
