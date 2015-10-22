@@ -15,11 +15,11 @@ module ActiveRecord
           @preloaded_records = []
         end
 
-        def run(preloader)
-          preload(preloader)
+        def run
+          preload
         end
 
-        def preload(preloader)
+        def preload
           raise NotImplementedError
         end
 
@@ -61,7 +61,7 @@ module ActiveRecord
 
         private
 
-        def associated_records_by_owner(preloader)
+        def associated_records_by_owner
           records = load_records
           owners.each_with_object({}) do |owner, result|
             result[owner] = records[convert_key(owner[owner_key_name])] || []
