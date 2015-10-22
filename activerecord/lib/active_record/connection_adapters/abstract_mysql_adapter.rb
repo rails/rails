@@ -6,6 +6,13 @@ module ActiveRecord
     class AbstractMysqlAdapter < AbstractAdapter
       include Savepoints
 
+      class TableDefinition < ActiveRecord::ConnectionAdapters::TableDefinition
+        def primary_key(name, type = :primary_key, options = {})
+          options[:auto_increment] ||= type == :bigint
+          super
+        end
+      end
+
       class SchemaCreation < AbstractAdapter::SchemaCreation
         def visit_AddColumn(o)
           add_column_position!(super, column_options(o))
@@ -56,6 +63,18 @@ module ActiveRecord
 
       def schema_creation
         SchemaCreation.new self
+      end
+
+      def column_spec_for_primary_key(column, types)
+        spec = {}
+        if column.extra == 'auto_increment'
+          return unless column.limit == 8
+          spec[:id] = ':bigint'
+        else
+          spec[:id] = column.type.inspect
+          spec.merge!(prepare_column_options(column, types).delete_if { |key, _| [:name, :type, :null].include?(key) })
+        end
+        spec
       end
 
       def prepare_column_options(column, types) # :nodoc:
@@ -877,6 +896,10 @@ module ActiveRecord
           when 'SET NULL'; :nullify
           end
         end
+      end
+
+      def create_table_definition(name, temporary, options, as = nil) # :nodoc:
+        TableDefinition.new(native_database_types, name, temporary, options, as)
       end
 
       class MysqlDateTime < Type::DateTime # :nodoc:

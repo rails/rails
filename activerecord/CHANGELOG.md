@@ -1,3 +1,25 @@
+*   Improve a dump of the primary key support. If it is not a default primary key,
+    correctly dump the type and options.
+
+    Fixes #14169, #16599.
+
+    *Ryuta Kamizono*
+
+*   Add bigint primary key support for MySQL.
+
+    Example:
+
+        create_table :foos, id: :bigint do |t|
+        end
+
+    *Ryuta Kamizono*
+
+*   Support for any type primary key.
+
+    Fixes #14194.
+
+    *Ryuta Kamizono*
+
 *   Fix `rewhere` in a `has_many` association.
 
     Fixes #21955.
