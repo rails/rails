@@ -184,9 +184,7 @@ module ActionController
     # ActionController::Base except the ones passed as arguments:
     #
     #   class MyBaseController < ActionController::Metal
-    #     ActionController::Base.without_modules(:ParamsWrapper, :Streaming).each do |left|
-    #       include left
-    #     end
+    #     include *ActionController::Base.without_modules(:ParamsWrapper, :Streaming)
     #   end
     #
     # This gives better control over what you want to exclude and makes it
@@ -245,9 +243,7 @@ module ActionController
       ParamsWrapper
     ]
 
-    MODULES.each do |mod|
-      include mod
-    end
+    include *MODULES
     setup_renderer!
 
     # Define some internal variables that should not be propagated to the view.

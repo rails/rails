@@ -91,9 +91,7 @@ module ActionController
     # the ones passed as arguments:
     #
     #   class MyAPIBaseController < ActionController::Metal
-    #     ActionController::API.without_modules(:ForceSSL, :UrlFor).each do |left|
-    #       include left
-    #     end
+    #     include *ActionController::API.without_modules(:ForceSSL, :UrlFor)
     #   end
     #
     # This gives better control over what you want to exclude and makes it easier
@@ -137,9 +135,7 @@ module ActionController
       ParamsWrapper
     ]
 
-    MODULES.each do |mod|
-      include mod
-    end
+    include *MODULES
 
     ActiveSupport.run_load_hooks(:action_controller, self)
   end
