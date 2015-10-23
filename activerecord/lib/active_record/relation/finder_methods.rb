@@ -117,7 +117,7 @@ module ActiveRecord
     #
     def first(limit = nil)
       if limit
-        find_nth_with_limit(offset_index, limit)
+        find_nth_with_limit_and_offset(0, limit, offset: offset_index)
       else
         find_nth 0
       end
@@ -492,6 +492,9 @@ module ActiveRecord
       if loaded?
         @records[index]
       else
+        # TODO: once the offset argument is removed we rely on offset_index
+        # within find_nth_with_limit, rather than pass it in via
+        # find_nth_with_limit_and_offset
         if offset
           ActiveSupport::Deprecation.warn(<<-MSG.squish)
             Passing an offset argument to find_nth is deprecated,
@@ -500,8 +503,7 @@ module ActiveRecord
         else
           offset = offset_index
         end
-        offset += index
-        @offsets[offset] ||= find_nth_with_limit(offset, 1).first
+        @offsets[offset + index] ||= find_nth_with_limit_and_offset(index, 1, offset: offset).first
       end
     end
 
@@ -509,14 +511,16 @@ module ActiveRecord
       find_nth(index) or raise RecordNotFound.new("Couldn't find #{@klass.name} with [#{arel.where_sql(@klass.arel_engine)}]")
     end
 
-    def find_nth_with_limit(offset, limit)
+    def find_nth_with_limit(index, limit)
+      # TODO: once the offset argument is removed from find_nth,
+      # find_nth_with_limit_and_offset can be merged into this method
       relation = if order_values.empty? && primary_key
                    order(arel_table[primary_key].asc)
                  else
                    self
                  end
 
-      relation = relation.offset(offset) unless offset.zero?
+      relation = relation.offset(index) unless index.zero?
       relation.limit(limit).to_a
     end
 
@@ -530,6 +534,17 @@ module ActiveRecord
           else
             reverse_order.limit(1).to_a.first
           end
+      end
+    end
+
+    private
+
+    def find_nth_with_limit_and_offset(index, limit, offset:) # :nodoc:
+      if loaded?
+        @records[index, limit]
+      else
+        index += offset
+        find_nth_with_limit(index, limit)
       end
     end
   end

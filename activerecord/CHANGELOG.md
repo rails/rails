@@ -1,3 +1,8 @@
+*   When calling `first` with a `limit` argument, return directly from the
+    `loaded?` records if available.
+
+    *Ben Woosley*
+
 *   Deprecate sending the `offset` argument to `find_nth`. Please use the
     `offset` method on relation instead.
 

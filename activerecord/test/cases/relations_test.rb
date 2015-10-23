@@ -111,10 +111,21 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_loaded_first
     topics = Topic.all.order('id ASC')
+    topics.to_a # force load
 
-    assert_queries(1) do
-      topics.to_a # force load
-      2.times { assert_equal "The First Topic", topics.first.title }
+    assert_no_queries do
+      assert_equal "The First Topic", topics.first.title
+    end
+
+    assert topics.loaded?
+  end
+
+  def test_loaded_first_with_limit
+    topics = Topic.all.order('id ASC')
+    topics.to_a # force load
+
+    assert_no_queries do
+      assert_equal "The First Topic", topics.first(2).first.title
     end
 
     assert topics.loaded?
