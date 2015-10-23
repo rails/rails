@@ -235,12 +235,14 @@ module ActiveJob
         original_enqueued_jobs_count = enqueued_jobs.count
         args.assert_valid_keys(:job, :args, :at, :queue)
         serialized_args = serialize_args_for_assertion(args)
+        at = serialized_args.delete(:at)
         yield
         in_block_jobs = enqueued_jobs.drop(original_enqueued_jobs_count)
         matching_job = in_block_jobs.find do |job|
           serialized_args.all? { |key, value| value == job[key] }
         end
         assert matching_job, "No enqueued job found with #{args}"
+        assert_in_delta at, matching_job[:at], 0.5, "No enqueued job found at #{args[:at]}" if at
         instantiate_job(matching_job)
       end
 
@@ -259,12 +261,14 @@ module ActiveJob
         original_performed_jobs_count = performed_jobs.count
         args.assert_valid_keys(:job, :args, :at, :queue)
         serialized_args = serialize_args_for_assertion(args)
+        at = serialized_args.delete(:at)
         perform_enqueued_jobs { yield }
         in_block_jobs = performed_jobs.drop(original_performed_jobs_count)
         matching_job = in_block_jobs.find do |job|
           serialized_args.all? { |key, value| value == job[key] }
         end
         assert matching_job, "No performed job found with #{args}"
+        assert_in_delta at, matching_job[:at], 0.5, "No performed job found at #{args[:at]}" if at
         instantiate_job(matching_job)
       end
 

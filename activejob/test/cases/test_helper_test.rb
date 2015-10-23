@@ -224,6 +224,12 @@ class EnqueuedJobsTest < ActiveJob::TestCase
     end
   end
 
+  def test_assert_enqueued_job_with_relative_at_option
+    assert_enqueued_with(job: HelloJob, at: 5.minutes.from_now) do
+      HelloJob.set(wait: 5.minutes).perform_later
+    end
+  end
+
   def test_assert_enqueued_job_with_global_id_args
     ricardo = Person.new(9)
     assert_enqueued_with(job: HelloJob, args: [ricardo]) do
@@ -474,6 +480,18 @@ class PerformedJobsTest < ActiveJob::TestCase
     assert_raise ActiveSupport::TestCase::Assertion do
       assert_performed_with(job: HelloJob, at: Date.today.noon) do
         HelloJob.set(wait_until: Date.tomorrow.noon).perform_later
+      end
+    end
+  end
+
+  def test_assert_performed_job_with_relative_at_option
+    assert_performed_with(job: HelloJob, at: 5.minutes.from_now) do
+      HelloJob.set(wait: 5.minutes).perform_later
+    end
+
+    assert_raise ActiveSupport::TestCase::Assertion do
+      assert_performed_with(job: HelloJob, at: 2.minutes.from_now) do
+        HelloJob.set(wait: 1.minute).perform_later
       end
     end
   end

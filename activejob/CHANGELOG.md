@@ -1,3 +1,8 @@
+*   `assert_enqueued_with` and `assert_performed_with` can now test jobs
+    with relative delay.
+
+    *Vlado Cingel*
+
 *   Fixed serializing `:at` option for `assert_enqueued_with`
     and `assert_performed_with`.
 
