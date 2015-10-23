@@ -388,8 +388,14 @@ module ActionController
     end
 
     def test_exception_callback_when_committed
+      current_threads = Thread.list
+
       capture_log_output do |output|
         get :exception_with_callback, format: 'text/event-stream'
+
+        # Wait on the execution of all threads
+        (Thread.list - current_threads).each(&:join)
+
         assert_equal %(data: "500 Internal Server Error"\n\n), response.body
         assert_match 'An exception occurred...', output.rewind && output.read
         assert_stream_closed
