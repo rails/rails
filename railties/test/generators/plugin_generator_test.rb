@@ -440,6 +440,19 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_unnecessary_files_are_not_generated_in_dummy_application
+    run_generator
+    assert_no_file 'test/dummy/.gitignore'
+    assert_no_file 'test/dummy/db/seeds.rb'
+    assert_no_file 'test/dummy/Gemfile'
+    assert_no_file 'test/dummy/public/robots.txt'
+    assert_no_file 'test/dummy/README.md'
+    assert_no_directory 'test/dummy/lib/tasks'
+    assert_no_directory 'test/dummy/doc'
+    assert_no_directory 'test/dummy/test'
+    assert_no_directory 'test/dummy/vendor'
+  end
+
   def test_skipping_test_files
     run_generator [destination_root, "--skip-test"]
     assert_no_file "test"

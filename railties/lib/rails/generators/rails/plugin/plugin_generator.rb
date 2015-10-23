@@ -117,7 +117,7 @@ task default: :test
         remove_file "Gemfile"
         remove_file "lib/tasks"
         remove_file "public/robots.txt"
-        remove_file "README"
+        remove_file "README.md"
         remove_file "test"
         remove_file "vendor"
       end
