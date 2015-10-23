@@ -7,8 +7,8 @@ module ActionCable
         class_attribute :periodic_timers, instance_reader: false
         self.periodic_timers = []
 
-        on_subscribe   :start_periodic_timers
-        on_unsubscribe :stop_periodic_timers
+        after_subscribe   :start_periodic_timers
+        after_unsubscribe :stop_periodic_timers
       end
 
       module ClassMethods

@@ -75,9 +75,6 @@ module ActionCable
 
       SUBSCRIPTION_CONFIRMATION_INTERNAL_MESSAGE = 'confirm_subscription'.freeze
 
-      on_subscribe   :subscribed
-      on_unsubscribe :unsubscribed
-
       attr_reader :params, :connection
       delegate :logger, to: :connection
 
@@ -146,7 +143,7 @@ module ActionCable
       # Called by the cable connection when its cut so the channel has a chance to cleanup with callbacks.
       # This method is not intended to be called directly by the user. Instead, overwrite the #unsubscribed callback.
       def unsubscribe_from_channel
-        run_unsubscribe_callbacks
+        _run_unsubscribe_callbacks { unsubscribed }
       end
 
 
@@ -195,7 +192,7 @@ module ActionCable
 
 
         def subscribe_to_channel
-          run_subscribe_callbacks
+          _run_subscribe_callbacks { subscribed }
           transmit_subscription_confirmation unless defer_subscription_confirmation?
         end
 
@@ -226,14 +223,6 @@ module ActionCable
           end
         end
 
-        def run_subscribe_callbacks
-          self.class.on_subscribe_callbacks.each { |callback| send(callback) }
-        end
-
-        def run_unsubscribe_callbacks
-          self.class.on_unsubscribe_callbacks.each { |callback| send(callback) }
-        end
-
         def transmit_subscription_confirmation
           unless subscription_confirmation_sent?
             logger.info "#{self.class.name} is transmitting the subscription confirmation"
@@ -242,7 +231,6 @@ module ActionCable
             @subscription_confirmation_sent = true
           end
         end
-
     end
   end
 end

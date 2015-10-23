@@ -20,8 +20,8 @@ class ActionCable::Channel::BaseTest < ActiveSupport::TestCase
 
   class ChatChannel < BasicChannel
     attr_reader :room, :last_action
-    on_subscribe :toggle_subscribed
-    on_unsubscribe :toggle_subscribed
+    after_subscribe :toggle_subscribed
+    after_unsubscribe :toggle_subscribed
 
     def initialize(*)
       @subscribed = false
