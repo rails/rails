@@ -1,3 +1,8 @@
+*   Deprecate sending the `offset` argument to `find_nth`. Please use the
+    `offset` method on relation instead.
+
+    *Ben Woosley*
+
 ## Rails 5.0.0.beta1 (December 18, 2015) ##
 
 *   Order the result of `find(ids)` to match the passed array, if the relation
