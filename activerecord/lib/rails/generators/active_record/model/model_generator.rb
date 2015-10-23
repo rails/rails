@@ -7,14 +7,13 @@ module ActiveRecord
 
       check_class_collision
 
-      class_option :migration,  :type => :boolean
-      class_option :timestamps, :type => :boolean
-      class_option :parent,     :type => :string, :desc => "The parent class for the generated model"
-      class_option :indexes,    :type => :boolean, :default => true, :desc => "Add indexes for references and belongs_to columns"
+      class_option :migration, type: :boolean
+      class_option :timestamps, type: :boolean
+      class_option :parent, type: :string, desc: "The parent class for the generated model"
+      class_option :indexes, type: :boolean, default: true, desc: "Add indexes for references and belongs_to columns"
+      class_option :primary_key_type, type: :string, desc: "The type for primary key"
 
-      
       # creates the migration file for the model.
-
       def create_migration_file
         return unless options[:migration] && options[:parent].nil?
         attributes.each { |a| a.attr_options.delete(:index) if a.reference? && !a.has_index? } if options[:indexes] == false

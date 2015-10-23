@@ -374,6 +374,15 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_add_uuid_to_create_table_migration
+    run_generator ["account", "--primary_key_type=uuid"]
+    assert_migration "db/migrate/create_accounts.rb" do |content|
+      assert_method :change, content do |change|
+        assert_match(/create_table :accounts, id: :uuid/, change)
+      end
+    end
+  end
+
   def test_required_belongs_to_adds_required_association
     run_generator ["account", "supplier:references{required}"]
 
