@@ -1,6 +1,6 @@
 GIT
   remote: git://github.com/rack/rack.git
-  revision: 6216a3f8a3560639ee1ddadc1e0d6bf9e5f31830
+  revision: 35599cfc2751e0ee611c0ff799924b8e7fe0c0b4
   specs:
     rack (2.0.0.alpha)
       json
@@ -13,7 +13,7 @@ GIT
 
 GIT
   remote: git://github.com/rails/rails.git
-  revision: 960de47f0eef79d234eb3cfc47fabb470fef1529
+  revision: f94e328cf801fd5c8055b06c4ee5439273146833
   specs:
     actionpack (5.0.0.alpha)
       actionview (= 5.0.0.alpha)
@@ -59,7 +59,7 @@ GEM
   remote: https://rubygems.org/
   specs:
     builder (3.2.2)
-    celluloid (0.16.1)
+    celluloid (0.16.0)
       timers (~> 4.0.0)
     coffee-rails (4.1.0)
       coffee-script (>= 2.2.0)
@@ -92,7 +92,7 @@ GEM
       metaclass (~> 0.0.1)
     nokogiri (1.6.6.2)
       mini_portile (~> 0.6.0)
-    puma (2.12.2)
+    puma (2.14.0)
     rack-test (0.6.3)
       rack (>= 1.0)
     rails-deprecated_sanitizer (1.0.3)
