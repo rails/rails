@@ -5,6 +5,8 @@ module ActiveRecord
     class MigrationGenerator < Base # :nodoc:
       argument :attributes, :type => :array, :default => [], :banner => "field[:type][:index] field[:type][:index]"
 
+      class_option :primary_key_type, type: :string, desc: "The type for primary key"
+
       def create_migration_file
         set_local_assigns!
         validate_file_name!

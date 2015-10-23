@@ -13,6 +13,13 @@ module ActiveRecord
           ActiveRecord::Migration.next_migration_number(next_migration_number)
         end
       end
+
+      private
+
+        def primary_key_type
+          key_type = options[:primary_key_type]
+          ", id: :#{key_type}" if key_type
+        end
     end
   end
 end
