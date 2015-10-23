@@ -4,6 +4,7 @@ class DirtyTest < ActiveModel::TestCase
   class DirtyModel
     include ActiveModel::Dirty
     define_attribute_methods :name, :color, :size
+    attr_reader :name, :color, :size
 
     def initialize
       @name = nil
@@ -11,26 +12,14 @@ class DirtyTest < ActiveModel::TestCase
       @size = nil
     end
 
-    def name
-      @name
-    end
-
     def name=(val)
       name_will_change!
       @name = val
     end
 
-    def color
-      @color
-    end
-
     def color=(val)
       color_will_change! unless val == @color
       @color = val
-    end
-
-    def size
-      @size
     end
 
     def size=(val)
