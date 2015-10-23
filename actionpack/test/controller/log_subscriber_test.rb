@@ -5,6 +5,7 @@ require "action_controller/log_subscriber"
 module Another
   class LogSubscribersController < ActionController::Base
     wrap_parameters :person, :include => :name, :format => :json
+    attr_reader :last_payload
 
     class SpecialException < Exception
     end
@@ -78,10 +79,6 @@ module Another
       super
       payload[:test_key] = "test_value"
       @last_payload = payload
-    end
-
-    def last_payload
-      @last_payload
     end
   end
 end
