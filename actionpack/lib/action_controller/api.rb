@@ -135,7 +135,7 @@ module ActionController
       ParamsWrapper
     ]
 
-    include *MODULES
+    include *MODULES.reverse
 
     ActiveSupport.run_load_hooks(:action_controller, self)
   end

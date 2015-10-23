@@ -243,7 +243,7 @@ module ActionController
       ParamsWrapper
     ]
 
-    include *MODULES
+    include *MODULES.reverse
     setup_renderer!
 
     # Define some internal variables that should not be propagated to the view.
