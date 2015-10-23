@@ -8,7 +8,7 @@ rvm:
 
 gemfile:
   - Gemfile
-  - gemfiles/rails_4-2-stable.gemfile
+  - gemfiles/Gemfile.rails-4-2
 
 matrix:
   fast_finish: true
