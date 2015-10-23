@@ -28,10 +28,28 @@ env:
 rvm:
   - 2.2.3
   - ruby-head
+  - jruby-9.0.3.0
 matrix:
   allow_failures:
     - env: "GEM=ar:mysql"
     - rvm: ruby-head
+  exclude:
+    - env: "GEM=railties"
+      rvm: jruby-9.0.3.0
+    - env: "GEM=am,amo,as,av,aj"
+      rvm: jruby-9.0.3.0
+    - env: "GEM=ar:mysql"
+      rvm: jruby-9.0.3.0
+    - env: "GEM=ar:mysql2"
+      rvm: jruby-9.0.3.0
+    - env: "GEM=ar:sqlite3"
+      rvm: jruby-9.0.3.0
+    - env: "GEM=ar:postgresql"
+      rvm: jruby-9.0.3.0
+    - env: "GEM=aj:integration"
+      rvm: jruby-9.0.3.0
+    - env: "GEM=guides"
+      rvm: jruby-9.0.3.0
   fast_finish: true
 notifications:
   email: false
