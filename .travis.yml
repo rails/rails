@@ -12,7 +12,8 @@ gemfile:
 
 matrix:
   fast_finish: true
-  allow_failures: ruby-head
+  allow_failures:
+    - ruby-head
 
 notifications:
   email: false
