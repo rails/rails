@@ -65,6 +65,7 @@ module ActiveSupport
     end
 
     private
+    attr_reader :verifier
 
     def _encrypt(value)
       cipher = new_cipher
@@ -98,10 +99,6 @@ module ActiveSupport
 
     def new_cipher
       OpenSSL::Cipher::Cipher.new(@cipher)
-    end
-
-    def verifier
-      @verifier
     end
   end
 end
