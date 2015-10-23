@@ -383,7 +383,7 @@ module ActiveRecord
         type_casted_binds = binds.map { |attr| type_cast(attr.value_for_database) }
 
         log(sql, name, binds) do
-          if binds.empty? || !cache_stmt
+          if !cache_stmt
             stmt = @connection.prepare(sql)
           else
             cache = @statements[sql] ||= {
@@ -399,7 +399,7 @@ module ActiveRecord
             # place when an error occurs. To support older MySQL versions, we
             # need to close the statement and delete the statement from the
             # cache.
-            if binds.empty? || !cache_stmt
+            if !cache_stmt
               stmt.close
             else
               @statements.delete sql
@@ -417,7 +417,7 @@ module ActiveRecord
           affected_rows = stmt.affected_rows
 
           stmt.free_result
-          stmt.close if binds.empty?
+          stmt.close if !cache_stmt
 
           [result_set, affected_rows]
         end
