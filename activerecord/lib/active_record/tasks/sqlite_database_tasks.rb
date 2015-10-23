@@ -42,14 +42,7 @@ module ActiveRecord
       end
 
       private
-
-      def configuration
-        @configuration
-      end
-
-      def root
-        @root
-      end
+      attr_reader :configuration, :root
     end
   end
 end
