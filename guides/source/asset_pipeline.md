@@ -662,7 +662,7 @@ generates something like this:
 rel="stylesheet" />
 ```
 
-Note: with the Asset Pipeline the :cache and :concat options aren't used
+NOTE: with the Asset Pipeline the `:cache` and `:concat` options aren't used
 anymore, delete these options from the `javascript_include_tag` and
 `stylesheet_link_tag`.
 
