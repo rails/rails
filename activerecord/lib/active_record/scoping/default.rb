@@ -17,7 +17,7 @@ module ActiveRecord
         #
         #   class Post < ActiveRecord::Base
         #     def self.default_scope
-        #       where published: true
+        #       where(published: true)
         #     end
         #   end
         #
