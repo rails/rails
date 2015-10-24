@@ -957,3 +957,22 @@ class RoutingDefaultsTest < ActionController::TestCase
     assert_equal '/projects/2', @response.body
   end
 end
+
+class CleanTeardownTest < ActionController::TestCase
+  test "can teardown gracefully when setup errors early" do
+    test_case = Class.new(ActionController::TestCase) do
+      tests BarController
+
+      def before_setup
+        raise "zomg!"
+      end
+
+      def test_success
+        # noop
+      end
+    end
+
+    result = Minitest.run_one_method test_case, :test_success
+    assert_equal ["zomg!"], result.failures.map {|f| f.error.message }
+  end
+end

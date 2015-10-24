@@ -1,3 +1,8 @@
+*   `ActionController::TestCase` can teardown gracefully if an error is raised
+    early in the `setup` chain.
+
+    *Yves Senn*
+
 *   Parse RSS/ATOM responses as XML, not HTML.
 
     *Alexander Kaupanin*

@@ -55,6 +55,8 @@ module ActionController
     end
 
     def teardown_subscriptions
+      return unless defined?(@_subscribers)
+
       @_subscribers.each do |subscriber|
         ActiveSupport::Notifications.unsubscribe(subscriber)
       end
