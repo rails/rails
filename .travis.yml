@@ -13,8 +13,6 @@ before_script:
   - bundle update
 cache: bundler
 env:
-  global:
-    - JRUBY_OPTS='-J-Xmx1024M'
   matrix:
     - "GEM=railties"
     - "GEM=ap"
