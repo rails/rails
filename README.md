@@ -319,7 +319,7 @@ application. The recommended basic setup is as follows:
 
 ```ruby
 # cable/config.ru
-require ::File.expand_path('../../config/environment',  __FILE__)
+require ::File.expand_path('../../config/environment', __FILE__)
 Rails.application.eager_load!
 
 require 'action_cable/process/logging'
@@ -330,7 +330,7 @@ run ActionCable.server
 Then you start the server using a binstub in bin/cable ala:
 ```
 #!/bin/bash
-bundle exec puma -p 28080  cable/config.ru
+bundle exec puma -p 28080 cable/config.ru
 ```
 
 The above will start a cable server on port 28080. Remember to point your client-side setup against that using something like:
