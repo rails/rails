@@ -375,7 +375,7 @@ module ActiveRecord
     #
     # This means it can be used in association definitions:
     #
-    #   has_many :comments, -> { unscope where: :trashed }
+    #   has_many :comments, -> { unscope(where: :trashed) }
     #
     def unscope(*args)
       check_if_method_has_arguments!(:unscope, args)

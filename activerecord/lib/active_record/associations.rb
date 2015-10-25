@@ -508,7 +508,7 @@ module ActiveRecord
     # to customize them. For example, to add a condition:
     #
     #   class Blog < ActiveRecord::Base
-    #     has_many :published_posts, -> { where published: true }, class_name: 'Post'
+    #     has_many :published_posts, -> { where(published: true) }, class_name: 'Post'
     #   end
     #
     # Inside the <tt>-> { ... }</tt> block you can use all of the usual Relation methods.
@@ -520,7 +520,7 @@ module ActiveRecord
     # events that occur on the user's birthday:
     #
     #   class User < ActiveRecord::Base
-    #     has_many :birthday_events, ->(user) { where starts_on: user.birthday }, class_name: 'Event'
+    #     has_many :birthday_events, ->(user) { where(starts_on: user.birthday) }, class_name: 'Event'
     #   end
     #
     # Note: Joining, eager loading and preloading of these associations is not fully possible.
@@ -895,7 +895,7 @@ module ActiveRecord
     # In this case it is usually more natural to include an association which has conditions defined on it:
     #
     #   class Post < ActiveRecord::Base
-    #     has_many :approved_comments, -> { where approved: true }, class_name: 'Comment'
+    #     has_many :approved_comments, -> { where(approved: true) }, class_name: 'Comment'
     #   end
     #
     #   Post.includes(:approved_comments)
@@ -1345,10 +1345,10 @@ module ActiveRecord
       #   association objects.
       #
       # Option examples:
-      #   has_many :comments, -> { order "posted_on" }
-      #   has_many :comments, -> { includes :author }
+      #   has_many :comments, -> { order("posted_on") }
+      #   has_many :comments, -> { includes(:author) }
       #   has_many :people, -> { where(deleted: false).order("name") }, class_name: "Person"
-      #   has_many :tracks, -> { order "position" }, dependent: :destroy
+      #   has_many :tracks, -> { order("position") }, dependent: :destroy
       #   has_many :comments, dependent: :nullify
       #   has_many :tags, as: :taggable
       #   has_many :reports, -> { readonly }
@@ -1476,12 +1476,12 @@ module ActiveRecord
       #   has_one :credit_card, dependent: :destroy  # destroys the associated credit card
       #   has_one :credit_card, dependent: :nullify  # updates the associated records foreign
       #                                                 # key value to NULL rather than destroying it
-      #   has_one :last_comment, -> { order 'posted_on' }, class_name: "Comment"
-      #   has_one :project_manager, -> { where role: 'project_manager' }, class_name: "Person"
+      #   has_one :last_comment, -> { order('posted_on') }, class_name: "Comment"
+      #   has_one :project_manager, -> { where(role: 'project_manager') }, class_name: "Person"
       #   has_one :attachment, as: :attachable
       #   has_one :boss, -> { readonly }
       #   has_one :club, through: :membership
-      #   has_one :primary_address, -> { where primary: true }, through: :addressables, source: :addressable
+      #   has_one :primary_address, -> { where(primary: true) }, through: :addressables, source: :addressable
       #   has_one :credit_card, required: true
       def has_one(name, scope = nil, options = {})
         reflection = Builder::HasOne.build(self, name, scope, options)
@@ -1721,7 +1721,7 @@ module ActiveRecord
       # query when you access the associated collection.
       #
       # Scope examples:
-      #   has_and_belongs_to_many :projects, -> { includes :milestones, :manager }
+      #   has_and_belongs_to_many :projects, -> { includes(:milestones, :manager) }
       #   has_and_belongs_to_many :categories, ->(category) {
       #     where("default_category = ?", category.name)
       #   }
@@ -1774,7 +1774,7 @@ module ActiveRecord
       #
       # Option examples:
       #   has_and_belongs_to_many :projects
-      #   has_and_belongs_to_many :projects, -> { includes :milestones, :manager }
+      #   has_and_belongs_to_many :projects, -> { includes(:milestones, :manager) }
       #   has_and_belongs_to_many :nations, class_name: "Country"
       #   has_and_belongs_to_many :categories, join_table: "prods_cats"
       #   has_and_belongs_to_many :categories, -> { readonly }
