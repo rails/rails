@@ -83,10 +83,10 @@ class AutomaticInverseFindingTests < ActiveRecord::TestCase
 
     assert_equal rating.comment, comment, "The Rating's comment should be the original Comment"
 
-    rating.comment.body = "Brogramming is the act of programming, like a bro."
+    rating.comment.body = "Fennec foxes are the smallest of the foxes."
     assert_equal rating.comment.body, comment.body, "Changing the Comment's body on the association should change the original Comment's body"
 
-    comment.body = "Broseiden is the king of the sea of bros."
+    comment.body = "Kittens are adorable."
     assert_equal comment.body, rating.comment.body, "Changing the original Comment's body should change the Comment's body on the association"
   end
 
@@ -97,10 +97,10 @@ class AutomaticInverseFindingTests < ActiveRecord::TestCase
 
     assert_equal rating.comment, comment, "The Rating's comment should be the original Comment"
 
-    rating.comment.body = "Brogramming is the act of programming, like a bro."
+    rating.comment.body = "Fennec foxes are the smallest of the foxes."
     assert_equal rating.comment.body, comment.body, "Changing the Comment's body on the association should change the original Comment's body"
 
-    comment.body = "Broseiden is the king of the sea of bros."
+    comment.body = "Kittens are adorable."
     assert_equal comment.body, rating.comment.body, "Changing the original Comment's body should change the Comment's body on the association"
   end
 

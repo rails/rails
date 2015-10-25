@@ -93,13 +93,13 @@ class ShowExceptionsTest < ActionDispatch::IntegrationTest
       assert_kind_of AbstractController::ActionNotFound, env["action_dispatch.exception"]
       assert_equal "/404", env["PATH_INFO"]
       assert_equal "/not_found_original_exception", env["action_dispatch.original_path"]
-      [404, { "Content-Type" => "text/plain" }, ["YOU FAILED BRO"]]
+      [404, { "Content-Type" => "text/plain" }, ["YOU FAILED"]]
     end
 
     @app = ActionDispatch::ShowExceptions.new(Boomer.new, exceptions_app)
     get "/not_found_original_exception", headers: { 'action_dispatch.show_exceptions' => true }
     assert_response 404
-    assert_equal "YOU FAILED BRO", body
+    assert_equal "YOU FAILED", body
   end
 
   test "returns an empty response if custom exceptions app returns X-Cascade pass" do

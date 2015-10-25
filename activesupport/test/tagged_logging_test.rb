@@ -72,11 +72,11 @@ class TaggedLoggingTest < ActiveSupport::TestCase
   test "keeps each tag in their own thread" do
     @logger.tagged("BCX") do
       Thread.new do
-        @logger.tagged("OMG") { @logger.info "Cool story bro" }
+        @logger.tagged("OMG") { @logger.info "Cool story" }
       end.join
       @logger.info "Funky time"
     end
-    assert_equal "[OMG] Cool story bro\n[BCX] Funky time\n", @output.string
+    assert_equal "[OMG] Cool story\n[BCX] Funky time\n", @output.string
   end
 
   test "keeps each tag in their own instance" do
@@ -84,11 +84,11 @@ class TaggedLoggingTest < ActiveSupport::TestCase
     @other_logger = ActiveSupport::TaggedLogging.new(MyLogger.new(@other_output))
     @logger.tagged("OMG") do
       @other_logger.tagged("BCX") do
-        @logger.info "Cool story bro"
+        @logger.info "Cool story"
         @other_logger.info "Funky time"
       end
     end
-    assert_equal "[OMG] Cool story bro\n", @output.string
+    assert_equal "[OMG] Cool story\n", @output.string
     assert_equal "[BCX] Funky time\n", @other_output.string
   end
 
@@ -97,11 +97,11 @@ class TaggedLoggingTest < ActiveSupport::TestCase
       Thread.new do
         @logger.tagged("OMG") do
           @logger.flush
-          @logger.info "Cool story bro"
+          @logger.info "Cool story"
         end
       end.join
     end
-    assert_equal "[FLUSHED]\nCool story bro\n", @output.string
+    assert_equal "[FLUSHED]\nCool story\n", @output.string
   end
 
   test "mixed levels of tagging" do
