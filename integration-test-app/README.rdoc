@@ -1,28 +1,36 @@
-== README
+== Integration Test App -- Integration Testing for Rails
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
-
-Things you may want to cover:
-
-* Ruby version
-
-* System dependencies
-
-* Configuration
-
-* Database creation
-
-* Database initialization
-
-* How to run the test suite
-
-* Services (job queues, cache servers, search engines, etc.)
-
-* Deployment instructions
-
-* ...
+Integration Test App is a Rails app inside Rails that tests core features
+of Rails. It is meant to catch regressions that would not be found by the
+gem unit tests. Its Gemfile points to the local Rails, and tests covered
+by `rake test` will be included in the continuous integration suite.
 
 
-Please feel free to use a different markup language if you do not plan to run
-<tt>rake doc:app</tt>.
+== Download and installation
+
+Source code can be downloaded as part of the Rails project on GitHub:
+
+* https://github.com/rails/rails/tree/master/integration-test-app
+
+
+== License
+
+Integration Test App is released under the MIT license:
+
+* http://www.opensource.org/licenses/MIT
+
+
+== Support
+
+API documentation is at:
+
+* http://api.rubyonrails.org
+
+Bug reports can be filed for the Ruby on Rails project here:
+
+* https://github.com/rails/rails/issues
+
+Feature requests should be discussed on the rails-core mailing list here:
+
+* https://groups.google.com/forum/?fromgroups#!forum/rubyonrails-core
+
