@@ -186,6 +186,10 @@ module ActiveRecord
         def self.preloaded_records; []; end
       end
 
+      # Returns a class containing the logic needed to load preload the data
+      # and attach it to a relation. For example +Preloader::Association+ or
+      # +Preloader::HasManyThrough+. The class returned implements a `run` method
+      # that accepts a preloader.
       def preloader_for(reflection, owners, rhs_klass)
         return NullPreloader unless rhs_klass
 
