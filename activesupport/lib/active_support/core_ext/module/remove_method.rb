@@ -16,7 +16,20 @@ class Module
   # Replaces the existing method definition, if there is one, with the passed
   # block as its body.
   def redefine_method(method, &block)
+    visibility = method_visibility(method)
     remove_possible_method(method)
     define_method(method, &block)
+    send(visibility, method)
+  end
+
+  def method_visibility(method) # :nodoc:
+    case
+    when private_method_defined?(method)
+      :private
+    when protected_method_defined?(method)
+      :protected
+    else
+      :public
+    end
   end
 end
