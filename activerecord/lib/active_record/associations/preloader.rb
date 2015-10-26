@@ -132,6 +132,11 @@ module ActiveRecord
         }
       end
 
+      # Loads all the given data into +records+ for a singular +association+.
+      #
+      # Functions by instantiating a preloader class such as Preloader::HasManyThrough and
+      # call the +run+ method for each passed in class in the +records+ argument.
+      #
       # Not all records have the same class, so group then preload group on the reflection
       # itself so that if various subclass share the same association then we do not split
       # them unnecessarily
