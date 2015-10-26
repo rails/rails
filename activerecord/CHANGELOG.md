@@ -1,3 +1,31 @@
+*   Add option to index errors in nested attributes
+
+    For models which have nested attributes, errors within those models will
+    now be indexed if :index_errors is specified when defining a
+    has_many relationship, or if its set in the global config.
+
+    E.X.
+
+    ```ruby
+    class Guitar < ActiveRecord::Base
+      has_many :tuning_pegs
+      accepts_nested_attributes_for :tuning_pegs
+    end
+
+    class TuningPeg < ActiveRecord::Base
+      belongs_to :guitar
+      validates_numericality_of :pitch
+    end
+    ```
+
+     - Old style
+     - `guitar.errors["tuning_pegs.pitch"] = ["is not a number"]`
+
+     - New style (if defined globally, or set in has_many_relationship)
+     - `guitar.errors["tuning_pegs[1].pitch"] = ["is not a number"]`
+
+    *Michael Probber and Terence Sun*
+
 *   Exit with non-zero status for failed database rake tasks.
 
     *Jay Hayes*

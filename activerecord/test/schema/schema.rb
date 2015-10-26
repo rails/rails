@@ -348,6 +348,10 @@ ActiveRecord::Schema.define do
     t.column :key, :string
   end
 
+  create_table :guitar, force: true do |t|
+    t.string :color
+  end
+
   create_table :inept_wizards, force: true do |t|
     t.column :name, :string, null: false
     t.column :city, :string, null: false
@@ -849,6 +853,11 @@ ActiveRecord::Schema.define do
     t.column :looter_id, :integer
     t.column :looter_type, :string
     t.belongs_to :ship
+  end
+
+  create_table :tuning_pegs, force: true do |t|
+    t.integer :guitar_id
+    t.float :pitch
   end
 
   create_table :tyres, force: true do |t|

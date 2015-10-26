@@ -313,6 +313,10 @@ All these configuration options are delegated to the `I18n` library.
   by a query exceeds the threshold, a warning is logged. This can be used to
   identify queries which might be causing memory bloat.
 
+* `config.active_record.index_nested_attribute_errors` allows errors for nested
+  has_many relationships to be displayed with an index as well as the error.
+  Defaults to false.
+
 The MySQL adapter adds one additional configuration option:
 
 * `ActiveRecord::ConnectionAdapters::MysqlAdapter.emulate_booleans` controls whether Active Record will consider all `tinyint(1)` columns in a MySQL database to be booleans and is true by default.
