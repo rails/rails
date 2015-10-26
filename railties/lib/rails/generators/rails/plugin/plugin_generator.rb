@@ -37,7 +37,7 @@ module Rails
     end
 
     def readme
-      template "README.rdoc"
+      template "README.md"
     end
 
     def gemfile

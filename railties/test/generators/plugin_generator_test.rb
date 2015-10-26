@@ -6,7 +6,7 @@ DEFAULT_PLUGIN_FILES = %w(
   .gitignore
   Gemfile
   Rakefile
-  README.rdoc
+  README.md
   bukkits.gemspec
   MIT-LICENSE
   lib
@@ -58,7 +58,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
 
   def test_generating_without_options
     run_generator
-    assert_file "README.rdoc", /Bukkits/
+    assert_file "README.md", /Bukkits/
     assert_no_file "config/routes.rb"
     assert_no_file "app/assets/config/bukkits_manifest.js"
     assert_file "test/test_helper.rb" do |content|
@@ -386,7 +386,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
   def test_creating_gemspec
     run_generator
     assert_file "bukkits.gemspec", /s.name\s+= "bukkits"/
-    assert_file "bukkits.gemspec", /s.files = Dir\["\{app,config,db,lib\}\/\*\*\/\*", "MIT-LICENSE", "Rakefile", "README\.rdoc"\]/
+    assert_file "bukkits.gemspec", /s.files = Dir\["\{app,config,db,lib\}\/\*\*\/\*", "MIT-LICENSE", "Rakefile", "README\.md"\]/
     assert_file "bukkits.gemspec", /s.version\s+ = Bukkits::VERSION/
   end
 

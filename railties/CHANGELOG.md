@@ -1,3 +1,7 @@
+*   Newly generated plugins get a `README.md` in Markdown.
+
+    *Yuji Yaginuma*
+
 *   The generated config file for the development environment includes a new
     config line, commented out, showing how to enable the evented file watcher.
 
