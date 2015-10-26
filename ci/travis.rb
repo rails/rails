@@ -24,7 +24,7 @@ class Build
     'av'       => 'actionview',
     'aj'       => 'activejob',
     'guides'   => 'guides',
-    'ita'      => 'integration-test-app'
+    'ita'      => 'integration-test-app',
   }
 
   attr_reader :component, :options
