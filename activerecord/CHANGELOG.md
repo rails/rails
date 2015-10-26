@@ -1,3 +1,7 @@
+*   Exit with non-zero status for failed database rake tasks.
+
+    *Jay Hayes*
+
 *   Queries such as `Computer.joins(:monitor).group(:status).count` will now be
     interpreted as  `Computer.joins(:monitor).group('computers.status').count`
     so that when `Computer` and `Monitor` have both `status` columns we don't

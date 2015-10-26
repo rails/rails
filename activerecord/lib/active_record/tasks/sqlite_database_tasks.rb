@@ -19,11 +19,15 @@ module ActiveRecord
         path = Pathname.new configuration['database']
         file = path.absolute? ? path.to_s : File.join(root, path)
 
-        FileUtils.rm(file) if File.exist?(file)
+        FileUtils.rm(file)
+      rescue Errno::ENOENT => error
+        raise NoDatabaseError.new(error.message, error)
       end
 
       def purge
         drop
+      rescue NoDatabaseError
+      ensure
         create
       end
 

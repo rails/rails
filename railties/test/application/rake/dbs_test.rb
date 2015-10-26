@@ -49,6 +49,58 @@ module ApplicationTests
         db_create_and_drop database_url_db_name
       end
 
+      def with_database_existing
+        Dir.chdir(app_path) do
+          set_database_url
+          `bin/rake db:create`
+          yield
+          `bin/rake db:drop`
+        end
+      end
+
+      test 'db:create failure because database exists' do
+        with_database_existing do
+          output = `bin/rake db:create 2>&1`
+          assert_match /already exists/, output
+          assert_equal 0, $?.exitstatus
+        end
+      end
+
+      def with_bad_permissions
+        Dir.chdir(app_path) do
+          set_database_url
+          FileUtils.chmod("-w", "db")
+          yield
+          FileUtils.chmod("+w", "db")
+        end
+      end
+
+      test 'db:create failure because bad permissions' do
+        with_bad_permissions do
+          output = `bin/rake db:create 2>&1`
+          assert_match /Couldn't create database/, output
+          assert_equal 1, $?.exitstatus
+        end
+      end
+
+      test 'db:drop failure because database does not exist' do
+        Dir.chdir(app_path) do
+          output = `bin/rake db:drop 2>&1`
+          assert_match /does not exist/, output
+          assert_equal 0, $?.exitstatus
+        end
+      end
+
+      test 'db:drop failure because bad permissions' do
+        with_database_existing do
+          with_bad_permissions do
+            output = `bin/rake db:drop 2>&1`
+            assert_match /Couldn't drop/, output
+            assert_equal 1, $?.exitstatus
+          end
+        end
+      end
+
       def db_migrate_and_status(expected_database)
         Dir.chdir(app_path) do
           `bin/rails generate model book title:string;
