@@ -1,3 +1,8 @@
+*   Changed render partial with a collection to check that the collection supports to_ary, if not
+    a 'NoMethodError' exception will be thrown.
+
+    *Jason Clark*
+    
 *   Collection input propagates input's `id` to the label's `for` attribute when
     using html options as the last element of collection.
 
