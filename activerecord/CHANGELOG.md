@@ -1,3 +1,7 @@
+*   Allow bigint with default nil for avoiding auto increment primary key.
+
+    *Ryuta Kamizono*
+
 *   Alias `ActiveRecord::Relation#left_joins` to
     `ActiveRecord::Relation#left_outer_joins`.
 

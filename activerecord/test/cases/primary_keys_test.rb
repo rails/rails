@@ -280,6 +280,32 @@ if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
       con.reconnect!
     end
   end
+
+  class PrimaryKeyBigintNilDefaultTest < ActiveRecord::TestCase
+    include SchemaDumpingHelper
+
+    self.use_transactional_tests = false
+
+    def setup
+      @connection = ActiveRecord::Base.connection
+      @connection.create_table(:bigint_defaults, id: :bigint, default: nil, force: true)
+    end
+
+    def teardown
+      @connection.drop_table :bigint_defaults, if_exists: true
+    end
+
+    test "primary key with bigint allows default override via nil" do
+      column = @connection.columns(:bigint_defaults).find { |c| c.name == 'id' }
+      assert column.bigint?
+      assert_not column.auto_increment?
+    end
+
+    test "schema dump primary key with bigint default nil" do
+      schema = dump_table_schema "bigint_defaults"
+      assert_match %r{create_table "bigint_defaults", id: :bigint, default: nil}, schema
+    end
+  end
 end
 
 if current_adapter?(:PostgreSQLAdapter, :MysqlAdapter, :Mysql2Adapter)
