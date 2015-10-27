@@ -12,7 +12,7 @@ class Company < AbstractCompany
   has_many :developers, :through => :contracts
 
   scope :of_first_firm, lambda {
-    joins(:accounts => :firm).
+    joins(:account => :firm).
     where('firms.id' => 1)
   }
 
