@@ -351,6 +351,9 @@ class InheritanceTest < ActiveRecord::TestCase
     assert_nothing_raised { s = SpecialSubscriber.new("name" => "And breaaaaathe!"); s.id = 'roger'; s.save }
   end
 
+  # NOTE: this test only cares that `Client` responds to `of_first_firm`,
+  # indicating that it inherited the scope from `Company`. It does not care
+  # if the scope and its joins and conditions are valid.
   def test_scope_inherited_properly
     assert_nothing_raised { Company.of_first_firm }
     assert_nothing_raised { Client.of_first_firm }
