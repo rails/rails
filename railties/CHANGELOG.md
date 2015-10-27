@@ -1,3 +1,7 @@
+*   Route generator should be idempotent
+    running generators several times no longer require you to cleanup routes.rb
+
+    *Thiago Pinto*
 *   Allow passing an environment to `config_for`.
 
     *Simon Eskildsen*
