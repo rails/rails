@@ -129,6 +129,18 @@ module Rails
           uncountable? ? "#{plural_table_name}_index" : plural_table_name
         end
 
+        def show_helper
+          "#{singular_table_name}_url(@#{singular_table_name})"
+        end
+
+        def edit_helper
+          "edit_#{show_helper}"
+        end
+
+        def new_helper
+          "new_#{show_helper}"
+        end
+
         def singular_table_name
           @singular_table_name ||= (pluralize_table_names? ? table_name.singularize : table_name)
         end
