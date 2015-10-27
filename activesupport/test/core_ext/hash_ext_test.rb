@@ -913,6 +913,13 @@ class HashExtTest < ActiveSupport::TestCase
     assert_equal [], hash[:c]
   end
 
+  def test_slice_bang_does_not_crash_large_hash
+    original = (1..200_000).map {|i| [i, i] }.to_h
+    expected = { 1 => 1 }
+    original.slice!(1)
+    assert_equal expected, original
+  end
+
   def test_extract
     original = {:a => 1, :b => 2, :c => 3, :d => 4}
     expected = {:a => 1, :b => 2}

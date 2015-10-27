@@ -30,12 +30,12 @@ class Hash
   #   # => {:c=>3, :d=>4}
   def slice!(*keys)
     keys.map! { |key| convert_key(key) } if respond_to?(:convert_key, true)
-    omit = slice(*self.keys - keys)
-    hash = slice(*keys)
-    hash.default      = default
-    hash.default_proc = default_proc if default_proc
-    replace(hash)
-    omit
+    self.each_with_object(self.class.new) do|(key, value), omit|
+      unless keys.include? key
+        self.delete key
+        omit[key] = value
+      end
+    end
   end
 
   # Removes and returns the key/value pairs matching the given keys.
