@@ -34,7 +34,7 @@ db_namespace = namespace :db do
     end
   end
 
-  # desc "Empty the database from DATABASE_URL or config/database.yml for the current RAILS_ENV (use db:drop:all to drop all databases in the config). Without RAILS_ENV it defaults to purging the development and test databases."
+  # desc "Empty the database from DATABASE_URL or config/database.yml for the current RAILS_ENV (use db:purge:all to purge all databases in the config). Without RAILS_ENV it defaults to purging the development and test databases."
   task :purge => [:load_config] do
     ActiveRecord::Tasks::DatabaseTasks.purge_current
   end
