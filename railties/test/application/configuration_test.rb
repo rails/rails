@@ -417,6 +417,19 @@ module ApplicationTests
       end
     end
 
+    test "raise when secrets.secret_key_base is not a type of string" do
+      app_file 'config/secrets.yml', <<-YAML
+        development:
+          secret_key_base: 123
+      YAML
+
+      app 'development'
+
+      assert_raise(ArgumentError) do
+        app.key_generator
+      end
+    end
+
     test "prefer secrets.secret_token over config.secret_token" do
       app_file 'config/initializers/secret_token.rb', <<-RUBY
         Rails.application.config.secret_token = ""
