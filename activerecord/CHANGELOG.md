@@ -4,19 +4,17 @@
     now be indexed if :index_errors is specified when defining a
     has_many relationship, or if its set in the global config.
 
-    E.X.
+    Example:
 
-    ```ruby
-    class Guitar < ActiveRecord::Base
-      has_many :tuning_pegs
-      accepts_nested_attributes_for :tuning_pegs
-    end
+        class Guitar < ActiveRecord::Base
+          has_many :tuning_pegs
+          accepts_nested_attributes_for :tuning_pegs
+        end
 
-    class TuningPeg < ActiveRecord::Base
-      belongs_to :guitar
-      validates_numericality_of :pitch
-    end
-    ```
+        class TuningPeg < ActiveRecord::Base
+          belongs_to :guitar
+          validates_numericality_of :pitch
+        end
 
      - Old style
      - `guitar.errors["tuning_pegs.pitch"] = ["is not a number"]`
@@ -142,9 +140,8 @@
     database.
 
 
-      m = Model.create!
-      m.created_at.usec == m.reload.created_at.usec
-        # => false
+        m = Model.create!
+        m.created_at.usec == m.reload.created_at.usec # => false
         # due to different precision in Time.now and database column
 
     If the precision is low enough, (mysql default is 0, so it is always low
@@ -332,9 +329,9 @@
 
     Example:
 
-      @users = User.where("name like ?", "%Alberto%")
-      @users.cache_key
-      => "/users/query-5942b155a43b139f2471b872ac54251f-3-20150714212107656125000"
+        @users = User.where("name like ?", "%Alberto%")
+        @users.cache_key
+        # => "/users/query-5942b155a43b139f2471b872ac54251f-3-20150714212107656125000"
 
     *Alberto Fernández-Capel*
 
