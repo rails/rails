@@ -1,5 +1,7 @@
 require 'mail'
 require 'action_mailer/collector'
+require 'action_mailer/null_mail'
+require 'action_mailer/late_attachments_proxy'
 require 'active_support/core_ext/string/inflections'
 require 'active_support/core_ext/hash/except'
 require 'active_support/core_ext/module/anonymous'
@@ -424,13 +426,11 @@ module ActionMailer
     abstract!
 
     include AbstractController::Rendering
-
     include AbstractController::Logger
     include AbstractController::Helpers
     include AbstractController::Translation
     include AbstractController::AssetPaths
     include AbstractController::Callbacks
-
     include ActionView::Layouts
 
     PROTECTED_IVARS = AbstractController::Rendering::DEFAULT_PROTECTED_INSTANCE_VARIABLES + [:@_action_has_layout]
@@ -444,11 +444,12 @@ module ActionMailer
     private_class_method :new #:nodoc:
 
     class_attribute :default_params
+
     self.default_params = {
       mime_version: "1.0",
       charset:      "UTF-8",
       content_type: "text/plain",
-      parts_order:  [ "text/plain", "text/enriched", "text/html" ]
+      parts_order:  ["text/plain", "text/enriched", "text/html"]
     }.freeze
 
     class << self
@@ -466,28 +467,14 @@ module ActionMailer
       # Either a class, string or symbol can be passed in as the Observer.
       # If a string or symbol is passed in it will be camelized and constantized.
       def register_observer(observer)
-        delivery_observer = case observer
-          when String, Symbol
-            observer.to_s.camelize.constantize
-          else
-            observer
-          end
-
-        Mail.register_observer(delivery_observer)
+        Mail.register_observer(class_from_value(observer))
       end
 
       # Register an Interceptor which will be called before mail is sent.
       # Either a class, string or symbol can be passed in as the Interceptor.
       # If a string or symbol is passed in it will be camelized and constantized.
       def register_interceptor(interceptor)
-        delivery_interceptor = case interceptor
-          when String, Symbol
-            interceptor.to_s.camelize.constantize
-          else
-            interceptor
-          end
-
-        Mail.register_interceptor(delivery_interceptor)
+        Mail.register_interceptor(class_from_value(interceptor))
       end
 
       # Returns the name of current mailer. This method is also being used as a path for a view lookup.
@@ -495,9 +482,10 @@ module ActionMailer
       def mailer_name
         @mailer_name ||= anonymous? ? "anonymous" : name.underscore
       end
+
       # Allows to set the name of current mailer.
       attr_writer :mailer_name
-      alias :controller_path :mailer_name
+      alias_method :controller_path, :mailer_name
 
       # Sets the defaults through app configuration:
       #
@@ -508,10 +496,11 @@ module ActionMailer
         self.default_params = default_params.merge(value).freeze if value
         default_params
       end
+
       # Allows to set defaults through app configuration:
       #
       #    config.action_mailer.default_options = { from: "no-reply@example.org" }
-      alias :default_options= :default
+      alias_method :default_options=, :default
 
       # Receives a raw email, parses it into an email object, decodes it,
       # instantiates a new mailer, and passes the email object to the mailer
@@ -566,11 +555,15 @@ module ActionMailer
       end
 
       def method_missing(method_name, *args) # :nodoc:
-        if action_methods.include?(method_name.to_s)
-          MessageDelivery.new(self, method_name, *args)
-        else
-          super
-        end
+        return MessageDelivery.new(self, method_name, *args) if action_methods.include?(method_name.to_s)
+        super
+      end
+
+    private
+
+      def class_from_value(value)
+        return value unless [String, Symbol].include?(value.class)
+        value.to_s.camelize.constantize
       end
     end
 
@@ -580,14 +573,14 @@ module ActionMailer
     # will be initialized according to the named method. If not, the mailer will
     # remain uninitialized (useful when you only need to invoke the "receive"
     # method, for instance).
-    def initialize(method_name=nil, *args)
+    def initialize(method_name = nil, *args)
       super()
       @_mail_was_called = false
       @_message = Mail.new
       process(method_name, *args) if method_name
     end
 
-    def process(method_name, *args) #:nodoc:
+    def process(method_name, *) #:nodoc:
       payload = {
         mailer: self.class.name,
         action: method_name
@@ -596,19 +589,6 @@ module ActionMailer
       ActiveSupport::Notifications.instrument("process.action_mailer", payload) do
         super
         @_message = NullMail.new unless @_mail_was_called
-      end
-    end
-
-    class NullMail #:nodoc:
-      def body; '' end
-      def header; {} end
-
-      def respond_to?(string, include_all=false)
-        true
-      end
-
-      def method_missing(*args)
-        nil
       end
     end
 
@@ -652,11 +632,8 @@ module ActionMailer
     # +nil+ in order to reset the value otherwise another field will be added
     # for the same header.
     def headers(args = nil)
-      if args
-        @_message.headers(args)
-      else
-        @_message
-      end
+      return message.headers(args) if args
+      message
     end
 
     # Allows you to add attachments to an email, like so:
@@ -690,22 +667,8 @@ module ActionMailer
     #  mail.attachments[0]                # => Mail::Part (first attachment)
     #
     def attachments
-      if @_mail_was_called
-        LateAttachmentsProxy.new(@_message.attachments)
-      else
-        @_message.attachments
-      end
-    end
-
-    class LateAttachmentsProxy < SimpleDelegator
-      def inline; _raise_error end
-      def []=(_name, _content); _raise_error end
-
-      private
-        def _raise_error
-          raise RuntimeError, "Can't add attachments after `mail` was called.\n" \
-                              "Make sure to use `attachments[]=` before calling `mail`."
-        end
+      return LateAttachmentsProxy.new(message.attachments) if @_mail_was_called
+      message.attachments
     end
 
     # The main method that creates the message and renders the email templates. There are
@@ -799,49 +762,14 @@ module ActionMailer
     #   end
     #
     def mail(headers = {}, &block)
-      return @_message if @_mail_was_called && headers.blank? && !block
+      return message if @_mail_was_called && headers.blank? && !block
 
-      m = @_message
+      process_headers_from_user(headers)
+      wrap_delivery_behavior!(* extract_delivery_behavior_options)
+      assign_headers_to_message
+      render_message(&block)
 
-      # At the beginning, do not consider class default for content_type
-      content_type = headers[:content_type]
-
-      # Call all the procs (if any)
-      default_values = {}
-      self.class.default.each do |k,v|
-        default_values[k] = v.is_a?(Proc) ? instance_eval(&v) : v
-      end
-
-      # Handle defaults
-      headers = headers.reverse_merge(default_values)
-      headers[:subject] ||= default_i18n_subject
-
-      # Apply charset at the beginning so all fields are properly quoted
-      m.charset = charset = headers[:charset]
-
-      # Set configure delivery behavior
-      wrap_delivery_behavior!(headers.delete(:delivery_method), headers.delete(:delivery_method_options))
-
-      # Assign all headers except parts_order, content_type, body, template_name, and template_path
-      assignable = headers.except(:parts_order, :content_type, :body, :template_name, :template_path)
-      assignable.each { |k, v| m[k] = v }
-
-      # Render the templates and blocks
-      responses = collect_responses(headers, &block)
-      @_mail_was_called = true
-
-      create_parts_from_responses(m, responses)
-
-      # Setup content type, reapply charset and handle parts order
-      m.content_type = set_content_type(m, content_type, headers[:content_type])
-      m.charset      = charset
-
-      if m.multipart?
-        m.body.set_sort_order(headers[:parts_order])
-        m.body.sort_parts!
-      end
-
-      m
+      message
     end
 
   protected
@@ -855,22 +783,11 @@ module ActionMailer
     # If there is no content type passed in via headers, and there are no
     # attachments, or the message is multipart, then the default content type is
     # used.
-    def set_content_type(m, user_content_type, class_default)
-      params = m.content_type_parameters || {}
-      case
-      when user_content_type.present?
-        user_content_type
-      when m.has_attachments?
-        if m.attachments.detect(&:inline?)
-          ["multipart", "related", params]
-        else
-          ["multipart", "mixed", params]
-        end
-      when m.multipart?
-        ["multipart", "alternative", params]
-      else
-        m.content_type || class_default
-      end
+    def set_content_type(user_content_type, class_default)
+      return user_content_type if user_content_type.present?
+      return content_type_for_message_with_attachments if message.has_attachments?
+      return content_type_for_multipart_message if message.multipart?
+      message.content_type || class_default
     end
 
     # Translates the +subject+ using Rails I18n class under <tt>[mailer_scope, action_name]</tt> scope.
@@ -883,54 +800,24 @@ module ActionMailer
     end
 
     def collect_responses(headers) #:nodoc:
-      responses = []
-
-      if block_given?
-        collector = ActionMailer::Collector.new(lookup_context) { render(action_name) }
-        yield(collector)
-        responses = collector.responses
-      elsif headers[:body]
-        responses << {
-          body: headers.delete(:body),
-          content_type: self.class.default[:content_type] || "text/plain"
-        }
-      else
-        templates_path = headers.delete(:template_path) || self.class.mailer_name
-        templates_name = headers.delete(:template_name) || action_name
-
-        each_template(Array(templates_path), templates_name) do |template|
-          self.formats = template.formats
-
-          responses << {
-            body: render(template: template),
-            content_type: template.type.to_s
-          }
-        end
-      end
-
-      responses
+      return collect_responses_from_block(&Proc.new) if block_given?
+      return collect_responses_from_body(headers) if headers[:body]
+      collect_responses_from_templates(headers)
     end
 
     def each_template(paths, name, &block) #:nodoc:
       templates = lookup_context.find_all(name, paths)
       if templates.empty?
-        raise ActionView::MissingTemplate.new(paths, name, paths, false, 'mailer')
+        fail ActionView::MissingTemplate.new(paths, name, paths, false, 'mailer')
       else
         templates.uniq(&:formats).each(&block)
       end
     end
 
-    def create_parts_from_responses(m, responses) #:nodoc:
-      if responses.size == 1 && !m.has_attachments?
-        responses[0].each { |k,v| m[k] = v }
-      elsif responses.size > 1 && m.has_attachments?
-        container = Mail::Part.new
-        container.content_type = "multipart/alternative"
-        responses.each { |r| insert_part(container, r, m.charset) }
-        m.add_part(container)
-      else
-        responses.each { |r| insert_part(m, r, m.charset) }
-      end
+    def create_parts_from_responses(responses) #:nodoc:
+      return create_singlepart_no_attachments(responses) if responses.size == 1 && !message.has_attachments?
+      return create_multipart_with_attachments(responses) if responses.size > 1 && message.has_attachments?
+      create_multipart(responses)
     end
 
     def insert_part(container, response, charset) #:nodoc:
@@ -942,6 +829,115 @@ module ActionMailer
     # Emails do not support relative path links.
     def self.supports_path?
       false
+    end
+
+  private
+
+    def default_values
+      @_default_values ||= self.class.default.map do |key, value|
+        [
+          key,
+          value.is_a?(Proc) ? instance_eval(&value) : value
+        ]
+      end.to_h
+    end
+
+    def content_type_for_message_with_attachments
+      [
+        "multipart",
+        message.attachments.detect(&:inline?) ? "related" : "mixed",
+        message.content_type_parameters || {}
+      ]
+    end
+
+    def content_type_for_multipart_message
+      [
+        "multipart",
+        "alternative",
+        message.content_type_parameters || {}
+      ]
+    end
+
+    def handle_parts_order
+      return unless message.multipart?
+      message.body.set_sort_order(@headers[:parts_order])
+      message.body.sort_parts!
+    end
+
+    def process_headers_from_user(headers)
+      @headers = headers
+      @user_content_type = headers[:content_type]
+      apply_defaults
+      message.charset = @original_charset = @headers[:charset]
+    end
+
+    def apply_defaults
+      @headers = @headers.reverse_merge(default_values)
+      @headers[:subject] ||= default_i18n_subject
+    end
+
+    def extract_delivery_behavior_options
+      [@headers.delete(:delivery_method), @headers.delete(:delivery_method_options)]
+    end
+
+    def assign_headers_to_message
+      assignable = @headers.except(:parts_order, :content_type, :body, :template_name, :template_path)
+      assignable.each { |k, v| message[k] = v }
+    end
+
+    def render_message(&block)
+      responses = collect_responses(@headers, &block)
+      @_mail_was_called = true
+      create_parts_from_responses(responses)
+      update_message_headers_after_render
+    end
+
+    def update_message_headers_after_render
+      message.content_type = set_content_type(@user_content_type, @headers[:content_type])
+      message.charset      = @original_charset
+      handle_parts_order
+    end
+
+    def collect_responses_from_block
+      collector = ActionMailer::Collector.new(lookup_context) { render(action_name) }
+      yield(collector)
+      collector.responses
+    end
+
+    def collect_responses_from_body(headers)
+      [{
+        body: headers.delete(:body),
+        content_type: self.class.default[:content_type] || "text/plain"
+      }]
+    end
+
+    def collect_responses_from_templates(headers)
+      templates_path = headers.delete(:template_path) || self.class.mailer_name
+      templates_name = headers.delete(:template_name) || action_name
+
+      each_template(Array(templates_path), templates_name).map do |template|
+        self.formats = template.formats
+
+        {
+          body: render(template: template),
+          content_type: template.type.to_s
+        }
+      end
+    end
+
+    def create_singlepart_no_attachments(responses)
+      responses[0].each { |k, v| message[k] = v }
+    end
+
+    def create_multipart_with_attachments(responses)
+      container = Mail::Part.new
+      container.content_type = "multipart/alternative"
+      responses.each { |r| insert_part(container, r, message.charset) }
+      message.add_part(container)
+    end
+
+    def create_multipart(responses)
+      responses.each { |r| insert_part(message, r, message.charset) }
     end
 
     ActiveSupport.run_load_hooks(:action_mailer, self)
