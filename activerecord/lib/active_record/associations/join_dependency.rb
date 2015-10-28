@@ -144,7 +144,8 @@ module ActiveRecord
         column_aliases = aliases.column_aliases join_root
 
         result_set.each { |row_hash|
-          primary_id = type_caster.type_cast row_hash[primary_key]
+          parent_key = primary_key ? row_hash[primary_key] : row_hash
+          primary_id = type_caster.type_cast parent_key
           parent = parents[primary_id] ||= join_root.instantiate(row_hash, column_aliases)
           construct(parent, join_root, row_hash, result_set, seen, model_cache, aliases)
         }

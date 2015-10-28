@@ -883,4 +883,23 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     child.special_projects << SpecialProject.new("name" => "Special Project")
     assert_equal true, child.save
   end
+
+  def test_preloaded_associations_size
+    assert_equal Project.first.salaried_developers.size,
+      Project.preload(:salaried_developers).first.salaried_developers.size
+
+    assert_equal Project.includes(:salaried_developers).references(:salaried_developers).first.salaried_developers.size,
+      Project.preload(:salaried_developers).first.salaried_developers.size
+
+    # Nested HATBM
+    first_project = Developer.first.projects.first
+    preloaded_first_project =
+      Developer.preload(projects: :salaried_developers).
+        first.
+        projects.
+        detect { |p| p.id == first_project.id }
+
+    assert preloaded_first_project.salaried_developers.loaded?, true
+    assert_equal first_project.salaried_developers.size, preloaded_first_project.salaried_developers.size
+  end
 end
