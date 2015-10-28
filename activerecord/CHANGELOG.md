@@ -1,3 +1,22 @@
+*   Includes HABTM returns correct size now. It's caused by the join dependency
+    only instantiates one HABTM object because the join table hasn't a primary key.
+
+    Fixes #16032.
+
+    Examples:
+
+        before:
+
+        Project.first.salaried_developers.size # => 3
+        Project.includes(:salaried_developers).first.salaried_developers.size # => 1
+
+        after:
+
+        Project.first.salaried_developers.size # => 3
+        Project.includes(:salaried_developers).first.salaried_developers.size # => 3
+
+    *Bigxiang*
+
 *   Add option to index errors in nested attributes
 
     For models which have nested attributes, errors within those models will
