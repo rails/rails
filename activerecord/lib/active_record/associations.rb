@@ -149,7 +149,7 @@ module ActiveRecord
   class HasOneThroughNestedAssociationsAreReadonly < ThroughNestedAssociationsAreReadonly #:nodoc:
   end
 
-  # This error is raised when trying to eager load a poloymorphic association using a JOIN.
+  # This error is raised when trying to eager load a polymorphic association using a JOIN.
   # Eager loading polymorphic associations is only possible with
   # {ActiveRecord::Relation#preload}[rdoc-ref:QueryMethods#preload].
   class EagerLoadPolymorphicError < ActiveRecordError
