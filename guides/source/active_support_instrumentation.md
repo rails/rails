@@ -232,6 +232,7 @@ Active Record
 | `:sql`           | SQL statement         |
 | `:name`          | Name of the operation |
 | `:connection_id` | `self.object_id`      |
+| `:binds`         | Bind parameters       |
 
 INFO. The adapters will add their own data as well.
 
