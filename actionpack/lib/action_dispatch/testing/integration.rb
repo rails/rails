@@ -131,35 +131,35 @@ module ActionDispatch
       # Performs a GET request, following any subsequent redirect.
       # See +request_via_redirect+ for more information.
       def get_via_redirect(path, *args)
-        ActiveSupport::Deprecation.warn('`get_via_redirect` is deprecated and will be removed in the next version of Rails. Please use follow_redirect! manually after the request call for the same behavior.')
+        ActiveSupport::Deprecation.warn('`get_via_redirect` is deprecated and will be removed in Rails 5.1. Please use follow_redirect! manually after the request call for the same behavior.')
         request_via_redirect(:get, path, *args)
       end
 
       # Performs a POST request, following any subsequent redirect.
       # See +request_via_redirect+ for more information.
       def post_via_redirect(path, *args)
-        ActiveSupport::Deprecation.warn('`post_via_redirect` is deprecated and will be removed in the next version of Rails. Please use follow_redirect! manually after the request call for the same behavior.')
+        ActiveSupport::Deprecation.warn('`post_via_redirect` is deprecated and will be removed in Rails 5.1. Please use follow_redirect! manually after the request call for the same behavior.')
         request_via_redirect(:post, path, *args)
       end
 
       # Performs a PATCH request, following any subsequent redirect.
       # See +request_via_redirect+ for more information.
       def patch_via_redirect(path, *args)
-        ActiveSupport::Deprecation.warn('`patch_via_redirect` is deprecated and will be removed in the next version of Rails. Please use follow_redirect! manually after the request call for the same behavior.')
+        ActiveSupport::Deprecation.warn('`patch_via_redirect` is deprecated and will be removed in Rails 5.1. Please use follow_redirect! manually after the request call for the same behavior.')
         request_via_redirect(:patch, path, *args)
       end
 
       # Performs a PUT request, following any subsequent redirect.
       # See +request_via_redirect+ for more information.
       def put_via_redirect(path, *args)
-        ActiveSupport::Deprecation.warn('`put_via_redirect` is deprecated and will be removed in the next version of Rails. Please use follow_redirect! manually after the request call for the same behavior.')
+        ActiveSupport::Deprecation.warn('`put_via_redirect` is deprecated and will be removed in Rails 5.1. Please use follow_redirect! manually after the request call for the same behavior.')
         request_via_redirect(:put, path, *args)
       end
 
       # Performs a DELETE request, following any subsequent redirect.
       # See +request_via_redirect+ for more information.
       def delete_via_redirect(path, *args)
-        ActiveSupport::Deprecation.warn('`delete_via_redirect` is deprecated and will be removed in the next version of Rails. Please use follow_redirect! manually after the request call for the same behavior.')
+        ActiveSupport::Deprecation.warn('`delete_via_redirect` is deprecated and will be removed in Rails 5.1. Please use follow_redirect! manually after the request call for the same behavior.')
         request_via_redirect(:delete, path, *args)
       end
     end
