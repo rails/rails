@@ -3,15 +3,6 @@ module ActiveJob
   #
   # Active Job has adapters for the following queueing backends:
   #
-  # * {Backburner}[https://github.com/nesquena/backburner]
-  # * {Delayed Job}[https://github.com/collectiveidea/delayed_job]
-  # * {Qu}[https://github.com/bkeepers/qu]
-  # * {Que}[https://github.com/chanks/que]
-  # * {queue_classic}[https://github.com/QueueClassic/queue_classic]
-  # * {Resque 1.x}[https://github.com/resque/resque/tree/1-x-stable]
-  # * {Sidekiq}[http://sidekiq.org]
-  # * {Sneakers}[https://github.com/jondot/sneakers]
-  # * {Sucker Punch}[https://github.com/brandonhilkert/sucker_punch]
   # * {Active Job Async Job}[http://api.rubyonrails.org/classes/ActiveJob/QueueAdapters/AsyncAdapter.html]
   # * {Active Job Inline}[http://api.rubyonrails.org/classes/ActiveJob/QueueAdapters/InlineAdapter.html]
   #
@@ -19,15 +10,6 @@ module ActiveJob
   #
   #   |                   | Async | Queues | Delayed    | Priorities | Timeout | Retries |
   #   |-------------------|-------|--------|------------|------------|---------|---------|
-  #   | Backburner        | Yes   | Yes    | Yes        | Yes        | Job     | Global  |
-  #   | Delayed Job       | Yes   | Yes    | Yes        | Job        | Global  | Global  |
-  #   | Qu                | Yes   | Yes    | No         | No         | No      | Global  |
-  #   | Que               | Yes   | Yes    | Yes        | Job        | No      | Job     |
-  #   | queue_classic     | Yes   | Yes    | Yes*       | No         | No      | No      |
-  #   | Resque            | Yes   | Yes    | Yes (Gem)  | Queue      | Global  | Yes     |
-  #   | Sidekiq           | Yes   | Yes    | Yes        | Queue      | No      | Job     |
-  #   | Sneakers          | Yes   | Yes    | No         | Queue      | Queue   | No      |
-  #   | Sucker Punch      | Yes   | Yes    | No         | No         | No      | No      |
   #   | Active Job Async  | Yes   | Yes    | Yes        | No         | No      | No      |
   #   | Active Job Inline | No    | Yes    | N/A        | N/A        | N/A     | N/A     |
   #
@@ -41,20 +23,6 @@ module ActiveJob
   #
   # Yes: Jobs may set which queue they are run in with queue_as or by using the set
   # method.
-  #
-  # ==== Delayed
-  #
-  # Yes: The adapter will run the job in the future through perform_later.
-  #
-  # (Gem): An additional gem is required to use perform_later with this adapter.
-  #
-  # No: The adapter will run jobs at the next opportunity and cannot use perform_later.
-  #
-  # N/A: The adapter does not support queueing.
-  #
-  # NOTE:
-  # queue_classic supports job scheduling since version 3.1.
-  # For older versions you can use the queue_classic-later gem.
   #
   # ==== Priorities
   #
@@ -117,8 +85,8 @@ module ActiveJob
     class << self
       # Returns adapter for specified name.
       #
-      #   ActiveJob::QueueAdapters.lookup(:sidekiq)
-      #   # => ActiveJob::QueueAdapters::SidekiqAdapter
+      #   ActiveJob::QueueAdapters.lookup(:async)
+      #   # => ActiveJob::QueueAdapters::AsyncAdapter
       def lookup(name)
         const_get(name.to_s.camelize << ADAPTER)
       end
