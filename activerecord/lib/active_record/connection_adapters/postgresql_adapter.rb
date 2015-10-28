@@ -159,6 +159,10 @@ module ActiveRecord
         postgresql_version >= 90200
       end
 
+      def supports_table_locking?
+        true
+      end
+
       def index_algorithms
         { concurrently: 'CONCURRENTLY' }
       end
