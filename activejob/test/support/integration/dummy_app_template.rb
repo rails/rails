@@ -1,7 +1,3 @@
-if ENV['AJ_ADAPTER'] == 'delayed_job'
-  generate "delayed_job:active_record", "--quiet"
-end
-
 rake("db:migrate")
 
 initializer 'activejob.rb', <<-CODE

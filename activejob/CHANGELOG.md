@@ -1,3 +1,7 @@
+*   Remove all third party queueing adapters.
+
+    *Jon Moss*
+
 *   Fixed serializing `:at` option for `assert_enqueued_with`
     and `assert_performed_with`.
 
