@@ -331,14 +331,29 @@ module ActiveRecord
         validation_context = self.validation_context unless [:create, :update].include?(self.validation_context)
         unless valid = record.valid?(validation_context)
           if reflection.options[:autosave]
+            indexed_attribute = !index.nil? && (reflection.options[:index_errors] || ActiveRecord::Base.index_nested_attribute_errors)
+
             record.errors.each do |attribute, message|
-              if index.nil? || (!reflection.options[:index_errors] && !ActiveRecord::Base.index_nested_attribute_errors)
-                attribute = "#{reflection.name}.#{attribute}"
-              else
+              if indexed_attribute
                 attribute = "#{reflection.name}[#{index}].#{attribute}"
+              else
+                attribute = "#{reflection.name}.#{attribute}"
               end
               errors[attribute] << message
               errors[attribute].uniq!
+            end
+
+            record.errors.details.each_key do |attribute|
+              if indexed_attribute
+                reflection_attribute = "#{reflection.name}[#{index}].#{attribute}"
+              else
+                reflection_attribute = "#{reflection.name}.#{attribute}"
+              end
+
+              record.errors.details[attribute].each do |error|
+                errors.details[reflection_attribute] << error
+                errors.details[reflection_attribute].uniq!
+              end
             end
           else
             errors.add(reflection.name)
