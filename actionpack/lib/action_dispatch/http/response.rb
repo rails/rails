@@ -149,7 +149,6 @@ module ActionDispatch # :nodoc:
 
       self.body, self.status = body, status
 
-      @blank        = false
       @cv           = new_cond
       @committed    = false
       @sending      = false
@@ -287,12 +286,8 @@ module ActionDispatch # :nodoc:
       @stream.write string
     end
 
-    EMPTY = " "
-
     # Allows you to manually set or override the response body.
     def body=(body)
-      @blank = true if body == EMPTY
-
       if body.respond_to?(:to_path)
         @stream = body
       else
