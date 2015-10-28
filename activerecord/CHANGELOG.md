@@ -1,3 +1,19 @@
+*   Add support for bidirectional destroy dependencies.
+
+    Fixes #13609.
+
+    Example:
+
+        class Content < ActiveRecord::Base
+          has_one :position, dependent: :destroy
+        end
+
+        class Position < ActiveRecord::Base
+          belongs_to :content, dependent: :destroy
+        end
+
+    *Seb Jacobs*
+
 *   Includes HABTM returns correct size now. It's caused by the join dependency
     only instantiates one HABTM object because the join table hasn't a primary key.
 
