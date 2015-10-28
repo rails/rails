@@ -116,9 +116,12 @@ job immediately if no adapter is set.
 
 ### Backends
 
-Active Job has built-in adapters for multiple queuing backends (Sidekiq,
-Resque, Delayed Job and others). To get an up-to-date list of the adapters
-see the API Documentation for [ActiveJob::QueueAdapters](http://api.rubyonrails.org/classes/ActiveJob/QueueAdapters.html).
+Active Job has built-in adapters that are meant to be used in
+development and testing only. To get an up-to-date list of the adapters
+see the API Documentation for [ActiveJob::QueueAdapters](http://api.rubyonrails.org/classes/ActiveJob/QueueAdapters.html). To use queuing backends such as Sidekiq,
+Resque, Delayed Job, etc. make sure your queuing library contains an
+`ActiveJob::QueueAdapters` class. See below if you want to build your
+own!
 
 ### Setting the Backend
 
@@ -372,3 +375,33 @@ Job Testing
 
 You can find detailed instructions on how to test your jobs in the
 [testing guide](testing.html#testing-jobs).
+
+
+Build a Queue Adapter
+--------------
+
+To build an ActiveJob queue adapter, you simply need a class that will
+respond to two methods: `enqueue`, and `enqueue_at`. For examples of
+queue adapters, feel free to check out
+`ActiveJob::QueueAdapters::AsyncAdapter`. Below is a simplified version
+of a queueing adapter:
+
+```ruby
+module ActiveJob
+  module QueueAdapters
+    class MyTestAdapter
+      def enqueue(job) #:nodoc:
+        # this is where you plug into your queueing library!
+        # for example...
+        ActiveJob::AsyncJob.enqueue(job.serialize, queue: job.queue_name)
+      end
+
+      def enqueue_at(job, timestamp) #:nodoc:
+        # this is where you plug into your queueing library!
+        # for example...
+        ActiveJob::AsyncJob.enqueue_at(job.serialize, timestamp, queue: job.queue_name)
+      end
+    end
+  end
+end
+```
