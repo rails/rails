@@ -25,6 +25,7 @@ class CodeStatisticsCalculator #:nodoc:
   }
 
   PATTERNS[:minitest] = PATTERNS[:rb].merge method: /^\s*(def|test)\s+['"_a-z]/
+  PATTERNS[:rake] = PATTERNS[:rb]
 
   def initialize(lines = 0, code_lines = 0, classes = 0, methods = 0)
     @lines = lines

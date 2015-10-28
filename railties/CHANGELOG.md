@@ -1,3 +1,7 @@
+*   Allow rake:stats to account for rake tasks in lib/tasks
+
+    *Kevin Deisz*
+
 *   Added javascript to update the URL on mailer previews with the currently
     selected email format. Reloading the page now keeps you on your selected
     format rather than going back to the default html version.
