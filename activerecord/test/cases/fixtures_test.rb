@@ -955,3 +955,17 @@ class FixturesWithAbstractBelongsTo < ActiveRecord::TestCase
     assert_equal pirates(:blackbeard), doubloons(:blackbeards_doubloon).pirate
   end
 end
+
+class FixtureClassNamesTest < ActiveRecord::TestCase
+  def setup
+    @saved_cache = self.fixture_class_names.dup
+  end
+
+  def teardown
+    self.fixture_class_names.replace(@saved_cache)
+  end
+
+  test "fixture_class_names returns nil for unregistered identifier" do
+    assert_nil self.fixture_class_names['unregistered_identifier']
+  end
+end
