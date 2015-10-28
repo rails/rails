@@ -522,7 +522,7 @@ module ActionController
         @request.delete_header 'HTTP_COOKIE'
 
         if @request.have_cookie_jar?
-          unless @response.committed?
+          unless @request.cookie_jar.committed?
             @request.cookie_jar.write(@response)
             self.cookies.update(@request.cookie_jar.instance_variable_get(:@cookies))
           end

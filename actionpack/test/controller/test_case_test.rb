@@ -139,7 +139,7 @@ XML
 
     def delete_cookie
       cookies.delete("foo")
-      head :ok
+      render plain: 'ok'
     end
 
     def test_without_body
