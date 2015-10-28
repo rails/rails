@@ -66,6 +66,14 @@ class TranslationHelperTest < ActiveSupport::TestCase
     assert translate(:"translations.missing").html_safe?
   end
 
+  def test_returns_missing_translation_message_does_filters_out_i18n_options
+    expected = '<span class="translation_missing" title="translation missing: en.translations.missing, year: 2015">Missing</span>'
+    assert_equal expected, translate(:"translations.missing", year: '2015', default: [])
+
+    expected = '<span class="translation_missing" title="translation missing: en.scoped.translations.missing, year: 2015">Missing</span>'
+    assert_equal expected, translate(:"translations.missing", year: '2015', scope: %i(scoped))
+  end
+
   def test_raises_missing_translation_message_with_raise_config_option
     ActionView::Base.raise_on_missing_translations = true
 
