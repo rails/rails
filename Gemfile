@@ -48,18 +48,6 @@ gem 'dalli', '>= 2.2.1'
 
 # Active Job.
 group :job do
-  gem 'resque', require: false
-  gem 'resque-scheduler', require: false
-  gem 'sidekiq', require: false
-  gem 'sucker_punch', require: false
-  gem 'delayed_job', require: false
-  gem 'queue_classic', github: "QueueClassic/queue_classic", branch: 'master', require: false, platforms: :ruby
-  gem 'sneakers', require: false
-  gem 'que', require: false
-  gem 'backburner', require: false
-  gem 'qu-rails', github: "bkeepers/qu", branch: "master", require: false
-  gem 'qu-redis', require: false
-  gem 'delayed_job_active_record', require: false
   gem 'sequel', require: false
 end
 
