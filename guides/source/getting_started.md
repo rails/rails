@@ -511,7 +511,7 @@ method called `form_for`. To use this method, add this code into
 `app/views/articles/new.html.erb`:
 
 ```html+erb
-<%= form_for :article do |f| %>
+<%= form_for @article do |f| %>
   <p>
     <%= f.label :title %><br>
     <%= f.text_field :title %>
@@ -553,7 +553,7 @@ Edit the `form_for` line inside `app/views/articles/new.html.erb` to look like
 this:
 
 ```html+erb
-<%= form_for :article, url: articles_path do |f| %>
+<%= form_for @article, url: articles_path do |f| %>
 ```
 
 In this example, the `articles_path` helper is passed to the `:url` option.
@@ -952,7 +952,7 @@ Now, add another link in `app/views/articles/new.html.erb`, underneath the
 form, to go back to the `index` action:
 
 ```erb
-<%= form_for :article, url: articles_path do |f| %>
+<%= form_for @article, url: articles_path do |f| %>
   ...
 <% end %>
 
@@ -1063,7 +1063,7 @@ something went wrong. To do that, you'll modify
 `app/views/articles/new.html.erb` to check for error messages:
 
 ```html+erb
-<%= form_for :article, url: articles_path do |f| %>
+<%= form_for @article, url: articles_path do |f| %>
 
   <% if @article.errors.any? %>
     <div id="error_explanation">
@@ -1155,7 +1155,7 @@ it look as follows:
 ```html+erb
 <h1>Editing article</h1>
 
-<%= form_for :article, url: article_path(@article), method: :patch do |f| %>
+<%= form_for @article, url: article_path(@article), method: :patch do |f| %>
 
   <% if @article.errors.any? %>
     <div id="error_explanation">
