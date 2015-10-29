@@ -281,13 +281,8 @@ module ActiveRecord
         true
       end
 
-      # Enable standard-conforming strings if available.
       def set_standard_conforming_strings
-        execute(<<-SQL, 'SCHEMA')
-          UPDATE pg_settings
-          SET setting = 'on'
-          WHERE name = 'standard_conforming_strings' AND context = 'user'
-        SQL
+        execute('SET standard_conforming_strings = on', 'SCHEMA')
       end
 
       def supports_ddl_transactions?
@@ -652,7 +647,7 @@ module ActiveRecord
           self.client_min_messages = @config[:min_messages] || 'warning'
           self.schema_search_path = @config[:schema_search_path] || @config[:schema_order]
 
-          # Use standard-conforming strings if available so we don't have to do the E'...' dance.
+          # Use standard-conforming strings so we don't have to do the E'...' dance.
           set_standard_conforming_strings
 
           # If using Active Record's time zone support configure the connection to return
