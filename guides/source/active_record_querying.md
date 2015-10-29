@@ -80,7 +80,7 @@ The methods are:
 * `reorder`
 * `reverse_order`
 * `select`
-* `uniq`
+* `distinct`
 * `where`
 
 All of the above methods return an instance of `ActiveRecord::Relation`.
@@ -999,7 +999,7 @@ SELECT categories.* FROM categories
   INNER JOIN articles ON articles.category_id = categories.id
 ```
 
-Or, in English: "return a Category object for all categories with articles". Note that you will see duplicate categories if more than one article has the same category. If you want unique categories, you can use `Category.joins(:articles).uniq`.
+Or, in English: "return a Category object for all categories with articles". Note that you will see duplicate categories if more than one article has the same category. If you want unique categories, you can use `Category.joins(:articles).distinct`.
 
 #### Joining Multiple Associations
 
