@@ -1221,12 +1221,6 @@ class EagerAssociationTest < ActiveRecord::TestCase
     end
   end
 
-  def test_join_eager_with_nil_order_should_generate_valid_sql
-    assert_nothing_raised(ActiveRecord::StatementInvalid) do
-      Post.includes(:comments).order(nil).where(:comments => {:body => "Thank you for the welcome"}).first
-    end
-  end
-
   def test_deep_including_through_habtm
     # warm up habtm cache
     posts = Post.all.merge!(:includes => {:categories => :categorizations}, :order => "posts.id").to_a

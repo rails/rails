@@ -134,7 +134,10 @@ module ActiveRecord
           else
             scope.joins!(reflection_scope.joins_values)
           end
-          scope.order! preload_values[:order] || values[:order]
+
+          if order_values = preload_values[:order] || values[:order]
+            scope.order!(order_values)
+          end
 
           if preload_values[:reordering] || values[:reordering]
             scope.reordering_value = true
