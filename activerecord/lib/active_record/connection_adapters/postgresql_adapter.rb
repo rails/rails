@@ -293,6 +293,10 @@ module ActiveRecord
         true
       end
 
+      def supports_advisory_locks?
+        true
+      end
+
       def supports_explain?
         true
       end
@@ -309,6 +313,20 @@ module ActiveRecord
 
       def supports_materialized_views?
         postgresql_version >= 90300
+      end
+
+      def get_advisory_lock(key) # :nodoc:
+        unless key.is_a?(Integer) && key.bit_length <= 63
+          raise(ArgumentError, "Postgres requires advisory lock keys to be a signed 64 bit integer")
+        end
+        select_value("SELECT pg_try_advisory_lock(#{key});")
+      end
+
+      def release_advisory_lock(key) # :nodoc:
+        unless key.is_a?(Integer) && key.bit_length <= 63
+          raise(ArgumentError, "Postgres requires advisory lock keys to be a signed 64 bit integer")
+        end
+        select_value("SELECT pg_advisory_unlock(#{key})")
       end
 
       def enable_extension(name)

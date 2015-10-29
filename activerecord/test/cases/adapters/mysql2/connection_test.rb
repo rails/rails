@@ -131,4 +131,32 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
   ensure
     @connection.execute "DROP TABLE `bar_baz`"
   end
+
+  def test_get_and_release_advisory_lock
+    key = "test_key"
+
+    got_lock = @connection.get_advisory_lock(key)
+    assert got_lock, "get_advisory_lock should have returned true but it didn't"
+
+    assert_equal test_lock_free(key), false,
+      "expected the test advisory lock to be held but it wasn't"
+
+    released_lock = @connection.release_advisory_lock(key)
+    assert released_lock, "expected release_advisory_lock to return true but it didn't"
+
+    assert test_lock_free(key), 'expected the test key to be available after releasing'
+  end
+
+  def test_release_non_existent_advisory_lock
+    fake_key = "fake_key"
+    released_non_existent_lock = @connection.release_advisory_lock(fake_key)
+    assert_equal released_non_existent_lock, false,
+      'expected release_advisory_lock to return false when there was no lock to release'
+  end
+
+  protected
+
+  def test_lock_free(key)
+    @connection.select_value("SELECT IS_FREE_LOCK('#{key}');") == 1
+  end
 end

@@ -209,5 +209,47 @@ module ActiveRecord
         ActiveRecord::Base.establish_connection(orig_connection.deep_merge({:variables => {:debug_print_plan => :default}}))
       end
     end
+
+    def test_get_and_release_advisory_lock
+      key = 5295901941911233559
+      list_advisory_locks = <<-SQL
+        SELECT locktype,
+              (classid::bigint << 32) | objid::bigint AS lock_key
+        FROM pg_locks
+        WHERE locktype = 'advisory'
+      SQL
+
+      got_lock = @connection.get_advisory_lock(key)
+      assert got_lock, "get_advisory_lock should have returned true but it didn't"
+
+      advisory_lock = @connection.query(list_advisory_locks).find {|l| l[1] == key}
+      assert advisory_lock,
+        "expected to find an advisory lock with key #{key} but there wasn't one"
+
+      released_lock = @connection.release_advisory_lock(key)
+      assert released_lock, "expected release_advisory_lock to return true but it didn't"
+
+      advisory_locks = @connection.query(list_advisory_locks).select {|l| l[1] == key}
+      assert_empty advisory_locks,
+        "expected to have released advisory lock with key #{key} but it was still held"
+    end
+
+    def test_release_non_existent_advisory_lock
+      fake_key = 2940075057017742022
+      with_warning_suppression do
+        released_non_existent_lock = @connection.release_advisory_lock(fake_key)
+        assert_equal released_non_existent_lock, false,
+          'expected release_advisory_lock to return false when there was no lock to release'
+      end
+    end
+
+    protected
+
+    def with_warning_suppression
+      log_level = @connection.client_min_messages
+      @connection.client_min_messages = 'error'
+      yield
+      @connection.client_min_messages = log_level
+    end
   end
 end

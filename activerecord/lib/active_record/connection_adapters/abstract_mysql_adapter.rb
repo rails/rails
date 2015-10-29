@@ -220,6 +220,20 @@ module ActiveRecord
         version >= '5.6.4'
       end
 
+      # 5.0.0 definitely supports it, possibly supported by earlier versions but
+      # not sure
+      def supports_advisory_locks?
+        version >= '5.0.0'
+      end
+
+      def get_advisory_lock(key, timeout = 0) # :nodoc:
+        select_value("SELECT GET_LOCK('#{key}', #{timeout});").to_s == '1'
+      end
+
+      def release_advisory_lock(key) # :nodoc:
+        select_value("SELECT RELEASE_LOCK('#{key}')").to_s == '1'
+      end
+
       def native_database_types
         NATIVE_DATABASE_TYPES
       end
