@@ -15,6 +15,14 @@ class Project < ActiveRecord::Base
   belongs_to :firm
   has_one :lead_developer, through: :firm, inverse_of: :contracted_projects
 
+  begin
+    previous_value, ActiveRecord::Base.belongs_to_required_by_default =
+      ActiveRecord::Base.belongs_to_required_by_default, true
+    has_and_belongs_to_many :developers_required_by_default, class_name: "Developer"
+  ensure
+    ActiveRecord::Base.belongs_to_required_by_default = previous_value
+  end
+
   attr_accessor :developers_log
   after_initialize :set_developers_log
 
