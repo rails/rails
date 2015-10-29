@@ -1168,6 +1168,24 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_equal 1, mary.unique_categorized_post_ids.length
   end
 
+  def test_preloading_has_one_using_reorder
+    klass = Class.new(ActiveRecord::Base) do
+      def self.name; "TempAuthor"; end
+      self.table_name = "authors"
+      has_one :post, class_name: "PostWithDefaultScope", foreign_key: :author_id
+      has_one :reorderd_post, -> { reorder(title: :desc) }, class_name: "PostWithDefaultScope", foreign_key: :author_id
+    end
+
+    author = klass.first
+    # PRECONDITION: make sure ordering results in different results
+    assert_not_equal author.post, author.reorderd_post
+
+    preloaded_reorderd_post = klass.preload(:reorderd_post).first.reorderd_post
+
+    assert_equal author.reorderd_post, preloaded_reorderd_post
+    assert_equal Post.order(title: :desc).first.title, preloaded_reorderd_post.title
+  end
+
   def test_preloading_polymorphic_with_custom_foreign_type
     sponsor = sponsors(:moustache_club_sponsor_for_groucho)
     groucho = members(:groucho)

@@ -1,3 +1,9 @@
+*   Set `scope.reordering_value` to `true` if :reordering values are specified.
+
+    Fixes #21886.
+
+    *Hiroaki Izu*
+
 *   Avoid disabling errors on the PostgreSQL connection when enabling the
     standard_conforming_strings setting. Errors were previously disabled because
     the setting wasn't writable in Postgres 8.1 and didn't exist in earlier
