@@ -875,9 +875,7 @@ module ActiveRecord
       self.pre_loaded_fixtures = false
       self.config = ActiveRecord::Base
 
-      self.fixture_class_names = Hash.new do |h, fixture_set_name|
-        h[fixture_set_name] = ActiveRecord::FixtureSet.default_fixture_model_name(fixture_set_name, self.config)
-      end
+      self.fixture_class_names = {}
 
       silence_warnings do
         define_singleton_method :use_transactional_tests do
