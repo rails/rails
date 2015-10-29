@@ -294,7 +294,9 @@ This check is performed only if `terms_of_service` is not `nil`.
 The default error message for this helper is _"must be accepted"_.
 
 It can receive an `:accept` option, which determines the value that will be
-considered acceptance. It defaults to "1" and can be easily changed.
+considered acceptance. It defaults to "1" and can be easily changed. This
+should be set to, or include, +true+ if you are validating a database column,
+since the attribute is typecast from "1" to +true+ before validation.
 
 ```ruby
 class Person < ActiveRecord::Base
