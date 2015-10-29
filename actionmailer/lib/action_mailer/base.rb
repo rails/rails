@@ -802,15 +802,7 @@ module ActionMailer
       # At the beginning, do not consider class default for content_type
       content_type = headers[:content_type]
 
-      # Call all the procs (if any)
-      default_values = {}
-      self.class.default.each do |k,v|
-        default_values[k] = v.is_a?(Proc) ? instance_eval(&v) : v
-      end
-
-      # Handle defaults
-      headers = headers.reverse_merge(default_values)
-      headers[:subject] ||= default_i18n_subject
+      headers = apply_defaults(headers)
 
       # Apply charset at the beginning so all fields are properly quoted
       m.charset = charset = headers[:charset]
@@ -839,6 +831,20 @@ module ActionMailer
 
       m
     end
+
+    def apply_defaults(headers)
+      default_values = self.class.default.map do |key, value|
+        [
+          key,
+          value.is_a?(Proc) ? instance_eval(&value) : value
+        ]
+      end.to_h
+
+      headers_with_defaults = headers.reverse_merge(default_values)
+      headers_with_defaults[:subject] ||= default_i18n_subject
+      headers_with_defaults
+    end
+    private :apply_defaults
 
   protected
 
