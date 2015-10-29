@@ -1042,7 +1042,7 @@ class HashExtTest < ActiveSupport::TestCase
     hash = Hash.new
     hash.default_proc = proc { |h, k| raise "walrus" }
 
-    assert_nothing_raised { HashWithIndifferentAccess.new_from_hash_copying_default(hash) }
+    assert_deprecated { HashWithIndifferentAccess.new_from_hash_copying_default(hash) }
   end
 
   def test_new_with_to_hash_conversion_copies_default
