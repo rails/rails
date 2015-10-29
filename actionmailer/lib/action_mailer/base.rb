@@ -879,33 +879,33 @@ module ActionMailer
     end
 
     def collect_responses(headers) #:nodoc:
-      responses = []
-
       if block_given?
         collector = ActionMailer::Collector.new(lookup_context) { render(action_name) }
         yield(collector)
-        responses = collector.responses
+        collector.responses
       elsif headers[:body]
-        responses << {
+        [{
           body: headers.delete(:body),
           content_type: self.class.default[:content_type] || "text/plain"
-        }
+        }]
       else
-        templates_path = headers.delete(:template_path) || self.class.mailer_name
-        templates_name = headers.delete(:template_name) || action_name
-
-        each_template(Array(templates_path), templates_name) do |template|
-          self.formats = template.formats
-
-          responses << {
-            body: render(template: template),
-            content_type: template.type.to_s
-          }
-        end
+        collect_responses_from_templates(headers)
       end
-
-      responses
     end
+
+    def collect_responses_from_templates(headers)
+      templates_path = headers.delete(:template_path) || self.class.mailer_name
+      templates_name = headers.delete(:template_name) || action_name
+
+      each_template(Array(templates_path), templates_name).map do |template|
+	self.formats = template.formats
+	{
+	  body: render(template: template),
+	  content_type: template.type.to_s
+	}
+      end
+    end
+    private :collect_responses_from_templates
 
     def each_template(paths, name, &block) #:nodoc:
       templates = lookup_context.find_all(name, paths)
