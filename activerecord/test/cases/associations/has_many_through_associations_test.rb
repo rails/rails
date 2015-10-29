@@ -1111,10 +1111,10 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_has_many_through_with_default_scope_on_the_target
     person = people(:michael)
-    assert_equal [posts(:thinking)], person.first_posts
+    assert_equal [posts(:thinking).id], person.first_posts.map(&:id)
 
     readers(:michael_authorless).update(first_post_id: 1)
-    assert_equal [posts(:thinking)], person.reload.first_posts
+    assert_equal [posts(:thinking).id], person.reload.first_posts.map(&:id)
   end
 
   def test_has_many_through_with_includes_in_through_association_scope

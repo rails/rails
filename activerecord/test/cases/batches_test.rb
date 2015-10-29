@@ -161,7 +161,7 @@ class EachTest < ActiveRecord::TestCase
     end
     # posts.first will be ordered using id only. Title order scope should not apply here
     assert_not_equal first_post, posts.first
-    assert_equal posts(:welcome), posts.first
+    assert_equal posts(:welcome).id, posts.first.id
   end
 
   def test_find_in_batches_should_not_ignore_the_default_scope_if_it_is_other_then_order
