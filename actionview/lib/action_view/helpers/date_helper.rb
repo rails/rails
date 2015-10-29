@@ -845,14 +845,11 @@ module ActionView
       private
         %w( sec min hour day month year ).each do |method|
           define_method(method) do
-            if @datetime
-              if @datetime.kind_of?(Hash)
-                @datetime[method.to_sym]
-              elsif @datetime.kind_of?(Numeric)
-                @datetime
-              else
-                @datetime.send(method)
-              end
+            case @datetime
+            when Hash then @datetime[method.to_sym]
+            when Numeric then @datetime
+            when nil then nil
+            else @datetime.send(method)
             end
           end
         end
