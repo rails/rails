@@ -797,39 +797,37 @@ module ActionMailer
     def mail(headers = {}, &block)
       return @_message if @_mail_was_called && headers.blank? && !block
 
-      m = @_message
-
       # At the beginning, do not consider class default for content_type
       content_type = headers[:content_type]
 
       headers = apply_defaults(headers)
 
       # Apply charset at the beginning so all fields are properly quoted
-      m.charset = charset = headers[:charset]
+      message.charset = charset = headers[:charset]
 
       # Set configure delivery behavior
       wrap_delivery_behavior!(headers.delete(:delivery_method), headers.delete(:delivery_method_options))
 
       # Assign all headers except parts_order, content_type, body, template_name, and template_path
       assignable = headers.except(:parts_order, :content_type, :body, :template_name, :template_path)
-      assignable.each { |k, v| m[k] = v }
+      assignable.each { |k, v| message[k] = v }
 
       # Render the templates and blocks
       responses = collect_responses(headers, &block)
       @_mail_was_called = true
 
-      create_parts_from_responses(m, responses)
+      create_parts_from_responses(message, responses)
 
       # Setup content type, reapply charset and handle parts order
-      m.content_type = set_content_type(m, content_type, headers[:content_type])
-      m.charset      = charset
+      message.content_type = set_content_type(message, content_type, headers[:content_type])
+      message.charset      = charset
 
-      if m.multipart?
-        m.body.set_sort_order(headers[:parts_order])
-        m.body.sort_parts!
+      if message.multipart?
+        message.body.set_sort_order(headers[:parts_order])
+        message.body.sort_parts!
       end
 
-      m
+      message
     end
 
     def apply_defaults(headers)
