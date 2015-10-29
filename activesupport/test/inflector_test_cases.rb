@@ -69,6 +69,7 @@ module InflectorTestCases
     "perspective" => "perspectives",
 
     "ox"          => "oxen",
+    "cactus"      => "cacti",
     "photo"       => "photos",
     "buffalo"     => "buffaloes",
     "tomato"      => "tomatoes",
