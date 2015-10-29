@@ -1,8 +1,11 @@
-*   Use `UPDATE` rather than `SET` when enabling the `standard_conforming_strings`
-    setting as this allows us to avoid disabling errors on the PostgreSQL connection.
-    The former behavior would cause problems when using a connection pooling tool like
-    PgBouncer because it's not guaranteed to have the same connection between calls to
-    `execute` and it could leave the connection with errors disabled.
+*   Avoid disabling errors on the PostgreSQL connection when enabling the
+    standard_conforming_strings setting. Errors were previously disabled because
+    the setting wasn't writable in Postgres 8.1 and didn't exist in earlier
+    versions. Now Rails only supports Postgres 8.2+ we're fine to assume the
+    setting exists. Disabling errors caused problems when using a connection
+    pooling tool like PgBouncer because it's not guaranteed to have the same
+    connection between calls to `execute` and it could leave the connection
+    with errors disabled.
 
     Fixes #22101.
 
