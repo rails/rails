@@ -181,7 +181,7 @@ module ActiveRecord
             "or overwrite #{name}.inheritance_column to use another column for that information."
         end
         unless subclass == self || descendants.include?(subclass)
-          raise SubclassNotFound, "Invalid single-table inheritance type: #{type_name} is not a subclass of #{name}"
+          raise SubclassNotFound, "Invalid single-table inheritance type: #{subclass.name} is not a subclass of #{name}"
         end
         subclass
       end

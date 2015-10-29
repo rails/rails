@@ -14,6 +14,7 @@ module ActiveRecord
         @db_name    = db
 
         @omgpost = Class.new(ActiveRecord::Base) do
+          self.inheritance_column = :disabled
           self.table_name = "#{db}.#{table}"
           def self.name; 'Post'; end
         end
