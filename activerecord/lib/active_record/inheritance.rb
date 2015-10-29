@@ -175,9 +175,9 @@ module ActiveRecord
           end
         rescue NameError
           raise SubclassNotFound,
-            "The single-table inheritance mechanism failed to locate the subclass: '#{type_name}'. " +
-            "This error is raised because the column '#{inheritance_column}' is reserved for storing the class in case of inheritance. " +
-            "Please rename this column if you didn't intend it to be used for storing the inheritance class " +
+            "The single-table inheritance mechanism failed to locate the subclass: '#{type_name}'. " \
+            "This error is raised because the column '#{inheritance_column}' is reserved for storing the class in case of inheritance. " \
+            "Please rename this column if you didn't intend it to be used for storing the inheritance class " \
             "or overwrite #{name}.inheritance_column to use another column for that information."
         end
         unless subclass == self || descendants.include?(subclass)
