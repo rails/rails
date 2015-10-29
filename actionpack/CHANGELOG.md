@@ -1,7 +1,3 @@
-*   ActionController::Base#process() now only takes an action name, rather
-    than an action name and *args.  The *args were not being used in regular
-    applications outside tests.
-
 *   Catch invalid UTF-8 querystring values and respond with BadRequest
 
     Check querystring params for invalid UTF-8 characters, and raise an
