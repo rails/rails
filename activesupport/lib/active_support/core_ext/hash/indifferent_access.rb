@@ -6,7 +6,7 @@ class Hash
   #
   #   { a: 1 }.with_indifferent_access['a'] # => 1
   def with_indifferent_access
-    ActiveSupport::HashWithIndifferentAccess.new_from_hash_copying_default(self)
+    ActiveSupport::HashWithIndifferentAccess.new(self)
   end
 
   # Called when object is nested under an object that receives

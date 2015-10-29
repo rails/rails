@@ -1,3 +1,9 @@
+*   `HashWithIndifferentAccess.new` respects the default value or proc on objects
+    that respond to `#to_hash`. `.new_from_hash_copying_default` simply invokes `.new`.
+    All calls to `.new_from_hash_copying_default` are replaced with `.new`.
+
+    *Gordon Chan*
+
 *   Change Integer#year to return a Fixnum instead of a Float to improve
     consistency.
 
