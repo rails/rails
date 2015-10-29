@@ -1539,9 +1539,10 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_form_for_requires_block
-    assert_raises(ArgumentError) do
-      form_for(:post, @post, html: { id: 'create-post' })
+    error = assert_raises(ArgumentError) do
+      form_for(@post, html: { id: 'create-post' })
     end
+    assert_equal "Missing block", error.message
   end
 
   def test_form_for_requires_arguments
