@@ -2163,7 +2163,7 @@ You can use any of the standard [querying methods](active_record_querying.html) 
 * `order`
 * `readonly`
 * `select`
-* `uniq`
+* `distinct`
 
 ##### `where`
 
@@ -2239,9 +2239,9 @@ If you use the `readonly` method, then the associated objects will be read-only 
 
 The `select` method lets you override the SQL `SELECT` clause that is used to retrieve data about the associated objects. By default, Rails retrieves all columns.
 
-##### `uniq`
+##### `distinct`
 
-Use the `uniq` method to remove duplicates from the collection.
+Use the `distinct` method to remove duplicates from the collection.
 
 #### When are Objects Saved?
 
