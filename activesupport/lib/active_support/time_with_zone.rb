@@ -284,8 +284,8 @@ module ActiveSupport
     # the current object's time and the +other+ time.
     #
     #   Time.zone = 'Eastern Time (US & Canada)' # => 'Eastern Time (US & Canada)'
-    #   now = Time.zone.now # => Sun, 02 Nov 2014 01:26:28 EST -05:00
-    #   now - 1000          # => Sun, 02 Nov 2014 01:09:48 EST -05:00
+    #   now = Time.zone.now # => Mon, 03 Nov 2014 00:26:28 EST -05:00
+    #   now - 1000          # => Mon, 03 Nov 2014 00:09:48 EST -05:00
     #
     # If subtracting a Duration of variable length (i.e., years, months, days),
     # move backward from #time, otherwise move backward from #utc, for accuracy
@@ -294,8 +294,8 @@ module ActiveSupport
     # For instance, a time - 24.hours will go subtract exactly 24 hours, while a
     # time - 1.day will subtract 23-25 hours, depending on the day.
     #
-    #   now - 24.hours      # => Sat, 01 Nov 2014 02:26:28 EDT -04:00
-    #   now - 1.day         # => Sat, 01 Nov 2014 01:26:28 EDT -04:00
+    #   now - 24.hours      # => Sun, 02 Nov 2014 01:26:28 EDT -04:00
+    #   now - 1.day         # => Sun, 02 Nov 2014 00:26:28 EDT -04:00
     def -(other)
       if other.acts_like?(:time)
         to_time - other.to_time
