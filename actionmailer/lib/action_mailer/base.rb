@@ -466,29 +466,25 @@ module ActionMailer
       # Either a class, string or symbol can be passed in as the Observer.
       # If a string or symbol is passed in it will be camelized and constantized.
       def register_observer(observer)
-        delivery_observer = case observer
-          when String, Symbol
-            observer.to_s.camelize.constantize
-          else
-            observer
-          end
-
-        Mail.register_observer(delivery_observer)
+        Mail.register_observer(class_from_value(observer))
       end
 
       # Register an Interceptor which will be called before mail is sent.
       # Either a class, string or symbol can be passed in as the Interceptor.
       # If a string or symbol is passed in it will be camelized and constantized.
       def register_interceptor(interceptor)
-        delivery_interceptor = case interceptor
-          when String, Symbol
-            interceptor.to_s.camelize.constantize
-          else
-            interceptor
-          end
-
-        Mail.register_interceptor(delivery_interceptor)
+        Mail.register_interceptor(class_from_value(interceptor))
       end
+
+      def class_from_value(value)
+        case value
+        when String, Symbol
+          value.to_s.camelize.constantize
+        else
+          value
+        end
+      end
+      private :class_from_value
 
       # Returns the name of current mailer. This method is also being used as a path for a view lookup.
       # If this is an anonymous mailer, this method will return +anonymous+ instead.
