@@ -1,3 +1,7 @@
+*   Allow `date_select` helper selected option to accept hash like the default options.
+
+    *Lecky Lao*
+
 *   Collection input propagates input's `id` to the label's `for` attribute when
     using html options as the last element of collection.
 
