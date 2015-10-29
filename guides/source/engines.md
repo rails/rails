@@ -239,6 +239,24 @@ NOTE: The `ApplicationController` class inside an engine is named just like a
 Rails application in order to make it easier for you to convert your
 applications into engines.
 
+WARNING: Due to the way Rails autoloads controllers, it could happen that the main
+application's `ApplicationController` were loaded before the engine's `ApplicationController`.
+In such case, the Ruby interpreter would not load the latter class and your engine's
+controllers would miss methods defined in it (because they would inherit from main 
+`ApplicationController`. For this reason the code in engine's controllers must explicitly
+tell Ruby they depend on the right application controller. This can be achieved with
+a single line at the top of the controllers files. For example:
+
+```ruby
+# articles_controller.rb:
+require_dependency "blorgh/application_controller"  # Explicit dependency required!
+module Blorgh
+  class ArticlesController < ApplicationController
+    ...
+  end
+end
+```
+
 Lastly, the `app/views` directory contains a `layouts` folder, which contains a
 file at `blorgh/application.html.erb`. This file allows you to specify a layout
 for the engine. If this engine is to be used as a stand-alone engine, then you
