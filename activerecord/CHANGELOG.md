@@ -1,9 +1,3 @@
-*   Set `scope.reordering_value` to `true` if :reordering values are specified.
-
-    Fixes #21886.
-
-    *Hiroaki Izu*
-
 *   Add support for bidirectional destroy dependencies.
 
     Fixes #13609.
