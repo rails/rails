@@ -313,7 +313,7 @@ module ActiveRecord
         execute(<<-SQL, 'SCHEMA')
           UPDATE pg_settings
           SET setting = 'on'
-          WHERE name = 'standard_conforming_strings'
+          WHERE name = 'standard_conforming_strings' AND context = 'user'
         SQL
       end
 
