@@ -1,3 +1,13 @@
+*   Use `UPDATE` rather than `SET` when enabling the `standard_conforming_strings`
+    setting as this allows us to avoid disabling errors on the PostgreSQL connection.
+    The former behavior would cause problems when using a connection pooling tool like
+    PgBouncer because it's not guaranteed to have the same connection between calls to
+    `execute` and it could leave the connection with errors disabled.
+
+    Fixes #22101.
+
+    *Harry Marr*
+
 *   Includes HABTM returns correct size now. It's caused by the join dependency
     only instantiates one HABTM object because the join table hasn't a primary key.
 
