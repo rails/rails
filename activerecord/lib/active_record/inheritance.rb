@@ -55,7 +55,7 @@ module ActiveRecord
           subclass = subclass_from_attributes(attrs)
         end
 
-        if subclass
+        if subclass && subclass != self
           subclass.new(*args, &block)
         else
           super
@@ -167,17 +167,23 @@ module ActiveRecord
       end
 
       def find_sti_class(type_name)
-        if store_full_sti_class
-          ActiveSupport::Dependencies.constantize(type_name)
-        else
-          compute_type(type_name)
+        subclass = begin
+          if store_full_sti_class
+            ActiveSupport::Dependencies.constantize(type_name)
+          else
+            compute_type(type_name)
+          end
+        rescue NameError
+          raise SubclassNotFound,
+            "The single-table inheritance mechanism failed to locate the subclass: '#{type_name}'. " \
+            "This error is raised because the column '#{inheritance_column}' is reserved for storing the class in case of inheritance. " \
+            "Please rename this column if you didn't intend it to be used for storing the inheritance class " \
+            "or overwrite #{name}.inheritance_column to use another column for that information."
         end
-      rescue NameError
-        raise SubclassNotFound,
-          "The single-table inheritance mechanism failed to locate the subclass: '#{type_name}'. " +
-          "This error is raised because the column '#{inheritance_column}' is reserved for storing the class in case of inheritance. " +
-          "Please rename this column if you didn't intend it to be used for storing the inheritance class " +
-          "or overwrite #{name}.inheritance_column to use another column for that information."
+        unless subclass == self || descendants.include?(subclass)
+          raise SubclassNotFound, "Invalid single-table inheritance type: #{subclass.name} is not a subclass of #{name}"
+        end
+        subclass
       end
 
       def type_condition(table = arel_table)
@@ -199,15 +205,7 @@ module ActiveRecord
         subclass_name = attrs.with_indifferent_access[inheritance_column]
 
         if subclass_name.present?
-          subclass = find_sti_class(subclass_name)
-
-          if subclass.name != self.name
-            unless descendants.include?(subclass)
-              raise ActiveRecord::SubclassNotFound.new("Invalid single-table inheritance type: #{subclass.name} is not a subclass of #{name}")
-            end
-
-            subclass
-          end
+          find_sti_class(subclass_name)
         end
       end
     end
