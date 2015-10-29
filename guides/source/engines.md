@@ -243,7 +243,7 @@ WARNING: Due to the way Rails autoloads controllers, it could happen that the ma
 application's `ApplicationController` were loaded before the engine's `ApplicationController`.
 In such case, the Ruby interpreter would not load the latter class and your engine's
 controllers would miss methods defined in it (because they would inherit from main 
-`ApplicationController`. For this reason the code in engine's controllers must explicitly
+`ApplicationController`). For this reason the code in engine's controllers must explicitly
 tell Ruby they depend on the right application controller. This can be achieved with
 a single line at the top of the controllers files. For example:
 
