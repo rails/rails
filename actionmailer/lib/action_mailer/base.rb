@@ -808,9 +808,7 @@ module ActionMailer
       # Set configure delivery behavior
       wrap_delivery_behavior!(headers.delete(:delivery_method), headers.delete(:delivery_method_options))
 
-      # Assign all headers except parts_order, content_type, body, template_name, and template_path
-      assignable = headers.except(:parts_order, :content_type, :body, :template_name, :template_path)
-      assignable.each { |k, v| message[k] = v }
+      assign_headers_to_message(headers)
 
       # Render the templates and blocks
       responses = collect_responses(headers, &block)
@@ -843,6 +841,11 @@ module ActionMailer
       headers_with_defaults
     end
     private :apply_defaults
+
+    def assign_headers_to_message(headers)
+      assignable = headers.except(:parts_order, :content_type, :body, :template_name, :template_path)
+      assignable.each { |k, v| message[k] = v }
+    end
 
   protected
 
