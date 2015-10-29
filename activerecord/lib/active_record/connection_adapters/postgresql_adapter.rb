@@ -283,10 +283,11 @@ module ActiveRecord
 
       # Enable standard-conforming strings if available.
       def set_standard_conforming_strings
-        old, self.client_min_messages = client_min_messages, 'panic'
-        execute('SET standard_conforming_strings = on', 'SCHEMA') rescue nil
-      ensure
-        self.client_min_messages = old
+        execute(<<-SQL, 'SCHEMA')
+          UPDATE pg_settings
+          SET setting = 'on'
+          WHERE name = 'standard_conforming_strings' AND context = 'user'
+        SQL
       end
 
       def supports_ddl_transactions?
