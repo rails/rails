@@ -1,5 +1,6 @@
 require 'active_support/base64'
 require 'active_support/core_ext/object/blank'
+require 'active_support/security_utils'
 
 module ActionController
   module HttpAuthentication
@@ -111,7 +112,11 @@ module ActionController
           def http_basic_authenticate_with(options = {})
             before_filter(options.except(:name, :password, :realm)) do
               authenticate_or_request_with_http_basic(options[:realm] || "Application") do |name, password|
-                name == options[:name] && password == options[:password]
+                # This comparison uses & so that it doesn't short circuit and
+                # uses `variable_size_secure_compare` so that length information
+                # isn't leaked.
+                ActiveSupport::SecurityUtils.variable_size_secure_compare(name, options[:name]) &
+                  ActiveSupport::SecurityUtils.variable_size_secure_compare(password, options[:password])
               end
             end
           end
