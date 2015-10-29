@@ -905,11 +905,11 @@ module ActionMailer
       templates_name = headers.delete(:template_name) || action_name
 
       each_template(Array(templates_path), templates_name).map do |template|
-	self.formats = template.formats
-	{
-	  body: render(template: template),
-	  content_type: template.type.to_s
-	}
+        self.formats = template.formats
+        {
+          body: render(template: template),
+          content_type: template.type.to_s
+        }
       end
     end
     private :collect_responses_from_templates
