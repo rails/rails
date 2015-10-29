@@ -1,3 +1,7 @@
+*   Support passing an array to `order` for SQL parameter sanitization.
+
+    *Aaron Suggs*
+
 *   Avoid disabling errors on the PostgreSQL connection when enabling the
     standard_conforming_strings setting. Errors were previously disabled because
     the setting wasn't writable in Postgres 8.1 and didn't exist in earlier
