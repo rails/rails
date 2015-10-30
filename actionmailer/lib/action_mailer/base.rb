@@ -795,7 +795,7 @@ module ActionMailer
     #   end
     #
     def mail(headers = {}, &block)
-      return @_message if @_mail_was_called && headers.blank? && !block
+      return message if @_mail_was_called && headers.blank? && !block
 
       # At the beginning, do not consider class default for content_type
       content_type = headers[:content_type]
@@ -808,7 +808,7 @@ module ActionMailer
       # Set configure delivery behavior
       wrap_delivery_behavior!(headers.delete(:delivery_method), headers.delete(:delivery_method_options))
 
-      assign_headers_to_message(headers)
+      assign_headers_to_message(message, headers)
 
       # Render the templates and blocks
       responses = collect_responses(headers, &block)
@@ -828,6 +828,8 @@ module ActionMailer
       message
     end
 
+  private
+
     def apply_defaults(headers)
       default_values = self.class.default.map do |key, value|
         [
@@ -840,9 +842,8 @@ module ActionMailer
       headers_with_defaults[:subject] ||= default_i18n_subject
       headers_with_defaults
     end
-    private :apply_defaults
 
-    def assign_headers_to_message(headers)
+    def assign_headers_to_message(message, headers)
       assignable = headers.except(:parts_order, :content_type, :body, :template_name, :template_path)
       assignable.each { |k, v| message[k] = v }
     end
