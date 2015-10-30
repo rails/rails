@@ -1,6 +1,19 @@
 namespace :rails do
+  def parse_args
+    options = {}
+    o = OptionParser.new
+    o.banner = "Usage: rake rails:update -- [options]"
+    o.on("-o", "--skip-active-record") { options[:skip_active_record] = true }
+    args = o.order!(ARGV) {}
+    o.parse!(args)
+    options
+  end
+
   desc "Update configs and some other initially generated files (or use just update:configs or update:bin)"
-  task update: [ "update:configs", "update:bin" ]
+  task :update do
+    Rake::Task['rails:update:configs'].invoke(parse_args)
+    Rake::Task['rails:update:bin'].invoke
+  end
 
   desc "Applies the template supplied by LOCATION=(/path/to/template) or URL"
   task template: :environment do
@@ -37,16 +50,15 @@ namespace :rails do
 
   namespace :update do
     class RailsUpdate
-      def self.invoke_from_app_generator(method)
-        app_generator.send(method)
+      def self.invoke_from_app_generator(method, options)
+        app_generator(options).send(method)
       end
 
-      def self.app_generator
+      def self.app_generator(options)
         @app_generator ||= begin
           require 'rails/generators'
           require 'rails/generators/rails/app/app_generator'
-          skip_options = { skip_active_record: true } if ENV['skip_active_record']
-          gen = Rails::Generators::AppGenerator.new ["rails"], { with_dispatchers: true }.merge(skip_options || {}),
+          gen = Rails::Generators::AppGenerator.new ["rails"], { with_dispatchers: true }.merge(options),
             destination_root: Rails.root
           File.exist?(Rails.root.join("config", "application.rb")) ?
             gen.send(:app_const) : gen.send(:valid_const?)
@@ -56,14 +68,16 @@ namespace :rails do
     end
 
     # desc "Update config/boot.rb from your current rails install"
-    task :configs do
-      RailsUpdate.invoke_from_app_generator :create_boot_file
-      RailsUpdate.invoke_from_app_generator :update_config_files
+    task :configs, [:options] do |t, update_args|
+      skip_options = (update_args[:options] || {}).merge(parse_args)
+
+      RailsUpdate.invoke_from_app_generator :create_boot_file, skip_options 
+      RailsUpdate.invoke_from_app_generator :update_config_files, skip_options 
     end
 
     # desc "Adds new executables to the application bin/ directory"
     task :bin do
-      RailsUpdate.invoke_from_app_generator :create_bin_files
+      RailsUpdate.invoke_from_app_generator :create_bin_files, {} 
     end
   end
 end
