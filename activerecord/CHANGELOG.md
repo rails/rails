@@ -1,3 +1,8 @@
+*   Alias `ActiveRecord::Relation#left_joins` to
+    `ActiveRecord::Relation#left_outer_joins`.
+
+    *Takashi Kokubun*
+
 *   Added `ActiveRecord::Relation#left_outer_joins`.
 
     Example:
