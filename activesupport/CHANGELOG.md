@@ -1,3 +1,5 @@
+## Rails 4.2.5.rc1 (October 30, 2015) ##
+
 *   Fix `TimeWithZone#eql?` to properly handle `TimeWithZone` created from `DateTime`:
         twz = DateTime.now.in_time_zone
         twz.eql?(twz.dup) => true

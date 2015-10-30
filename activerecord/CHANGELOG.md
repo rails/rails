@@ -1,3 +1,5 @@
+## Rails 4.2.5.rc1 (October 30, 2015) ##
+
 *   Set `scope.reordering_value` to `true` if :reordering values are specified.
 
     Fixes #21886.

@@ -1,3 +1,8 @@
+## Rails 4.2.5.rc1 (October 30, 2015) ##
+
+*   No changes.
+
+
 ## Rails 4.2.4 (August 24, 2015) ##
 
 *   Include I18n.locale into job serialization/deserialization and use it around
