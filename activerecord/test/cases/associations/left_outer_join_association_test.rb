@@ -29,6 +29,11 @@ class LeftOuterJoinAssociationTest < ActiveRecord::TestCase
     assert_equal Author.count, Author.left_outer_joins(:posts).count
   end
 
+  def test_left_outer_join_by_left_joins
+    assert_not_equal Author.count, Author.joins(:posts).count
+    assert_equal Author.count, Author.left_joins(:posts).count
+  end
+
   def test_construct_finder_sql_ignores_empty_left_outer_joins_hash
     queries = capture_sql { Author.left_outer_joins({}) }
     assert queries.none? { |sql| /LEFT OUTER JOIN/i =~ sql }
