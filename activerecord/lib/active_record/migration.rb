@@ -135,6 +135,14 @@ module ActiveRecord
     end
   end
 
+  class ConcurrentMigrationError < MigrationError #:nodoc:
+    DEFAULT_MESSAGE = "Cannot run migrations because another migration process is currently running.".freeze
+
+    def initialize(message = DEFAULT_MESSAGE)
+      super
+    end
+  end
+
   # = Active Record Migrations
   #
   # Migrations can manage the evolution of a schema used by several physical
@@ -1042,32 +1050,18 @@ module ActiveRecord
     alias :current :current_migration
 
     def run
-      migration = migrations.detect { |m| m.version == @target_version }
-      raise UnknownMigrationVersionError.new(@target_version) if migration.nil?
-      unless (up? && migrated.include?(migration.version.to_i)) || (down? && !migrated.include?(migration.version.to_i))
-        begin
-          execute_migration_in_transaction(migration, @direction)
-        rescue => e
-          canceled_msg = use_transaction?(migration) ? ", this migration was canceled" : ""
-          raise StandardError, "An error has occurred#{canceled_msg}:\n\n#{e}", e.backtrace
-        end
+      if use_advisory_lock?
+        with_advisory_lock { run_without_lock }
+      else
+        run_without_lock
       end
     end
 
     def migrate
-      if !target && @target_version && @target_version > 0
-        raise UnknownMigrationVersionError.new(@target_version)
-      end
-
-      runnable.each do |migration|
-        Base.logger.info "Migrating to #{migration.name} (#{migration.version})" if Base.logger
-
-        begin
-          execute_migration_in_transaction(migration, @direction)
-        rescue => e
-          canceled_msg = use_transaction?(migration) ? "this and " : ""
-          raise StandardError, "An error has occurred, #{canceled_msg}all later migrations canceled:\n\n#{e}", e.backtrace
-        end
+      if use_advisory_lock?
+        with_advisory_lock { migrate_without_lock }
+      else
+        migrate_without_lock
       end
     end
 
@@ -1092,10 +1086,45 @@ module ActiveRecord
     end
 
     def migrated
-      @migrated_versions ||= Set.new(self.class.get_all_versions)
+      @migrated_versions || load_migrated
+    end
+
+    def load_migrated
+      @migrated_versions = Set.new(self.class.get_all_versions)
     end
 
     private
+
+    def run_without_lock
+      migration = migrations.detect { |m| m.version == @target_version }
+      raise UnknownMigrationVersionError.new(@target_version) if migration.nil?
+      unless (up? && migrated.include?(migration.version.to_i)) || (down? && !migrated.include?(migration.version.to_i))
+        begin
+          execute_migration_in_transaction(migration, @direction)
+        rescue => e
+          canceled_msg = use_transaction?(migration) ? ", this migration was canceled" : ""
+          raise StandardError, "An error has occurred#{canceled_msg}:\n\n#{e}", e.backtrace
+        end
+      end
+    end
+
+    def migrate_without_lock
+      if !target && @target_version && @target_version > 0
+        raise UnknownMigrationVersionError.new(@target_version)
+      end
+
+      runnable.each do |migration|
+        Base.logger.info "Migrating to #{migration.name} (#{migration.version})" if Base.logger
+
+        begin
+          execute_migration_in_transaction(migration, @direction)
+        rescue => e
+          canceled_msg = use_transaction?(migration) ? "this and " : ""
+          raise StandardError, "An error has occurred, #{canceled_msg}all later migrations canceled:\n\n#{e}", e.backtrace
+        end
+      end
+    end
+
     def ran?(migration)
       migrated.include?(migration.version.to_i)
     end
@@ -1156,6 +1185,26 @@ module ActiveRecord
 
     def use_transaction?(migration)
       !migration.disable_ddl_transaction && Base.connection.supports_ddl_transactions?
+    end
+
+    def use_advisory_lock?
+      Base.connection.supports_advisory_locks?
+    end
+
+    def with_advisory_lock
+      key = generate_migrator_advisory_lock_key
+      got_lock = Base.connection.get_advisory_lock(key)
+      raise ConcurrentMigrationError unless got_lock
+      load_migrated # reload schema_migrations to be sure it wasn't changed by another process before we got the lock
+      yield
+    ensure
+      Base.connection.release_advisory_lock(key) if got_lock
+    end
+
+    MIGRATOR_SALT = 2053462845
+    def generate_migrator_advisory_lock_key
+      db_name_hash = Zlib.crc32(Base.connection.current_database)
+      MIGRATOR_SALT * db_name_hash
     end
   end
 end

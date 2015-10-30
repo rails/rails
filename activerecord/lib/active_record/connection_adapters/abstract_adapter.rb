@@ -214,6 +214,11 @@ module ActiveRecord
         false
       end
 
+      # Does this adapter support application-enforced advisory locking?
+      def supports_advisory_locks?
+        false
+      end
+
       # Should primary key values be selected from their corresponding
       # sequence before the insert statement? If true, next_sequence_value
       # is called before each insert to set the record's primary key.
@@ -278,6 +283,20 @@ module ActiveRecord
 
       # This is meant to be implemented by the adapters that support extensions
       def enable_extension(name)
+      end
+
+      # This is meant to be implemented by the adapters that support advisory
+      # locks
+      #
+      # Return true if we got the lock, otherwise false
+      def get_advisory_lock(key) # :nodoc:
+      end
+
+      # This is meant to be implemented by the adapters that support advisory
+      # locks.
+      #
+      # Return true if we released the lock, otherwise false
+      def release_advisory_lock(key) # :nodoc:
       end
 
       # A list of extensions, to be filled in by adapters that support them.
