@@ -902,8 +902,8 @@ module ActionMailer
     end
 
     def collect_responses_from_templates(headers)
-      templates_path = headers.delete(:template_path) || self.class.mailer_name
-      templates_name = headers.delete(:template_name) || action_name
+      templates_path = headers[:template_path] || self.class.mailer_name
+      templates_name = headers[:template_name] || action_name
 
       each_template(Array(templates_path), templates_name).map do |template|
         self.formats = template.formats
