@@ -606,30 +606,26 @@ class MigrationTest < ActiveRecord::TestCase
     end
 
     def with_another_process_holding_lock(lock_key)
-      other_process_has_lock = false
-      test_terminated = false
+      thread_lock = Concurrent::CountDownLatch.new
+      test_terminated = Concurrent::CountDownLatch.new
 
       other_process = Thread.new do
         begin
           conn = ActiveRecord::Base.connection_pool.checkout
           conn.get_advisory_lock(lock_key)
-          other_process_has_lock = true
-          while !test_terminated do # hold the lock open until we tested everything
-            sleep(0.01)
-          end
+          thread_lock.count_down
+          test_terminated.wait # hold the lock open until we tested everything
         ensure
           conn.release_advisory_lock(lock_key)
           ActiveRecord::Base.connection_pool.checkin(conn)
         end
       end
 
-      while !other_process_has_lock # wait until the 'other process' has the lock
-        sleep(0.01)
-      end
+      thread_lock.wait # wait until the 'other process' has the lock
 
       yield
 
-      test_terminated = true
+      test_terminated.count_down
       other_process.join
     end
 end
