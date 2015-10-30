@@ -1,3 +1,7 @@
+*   Allow passing an environment to `config_for`.
+
+    *Simon Eskildsen*
+
 *   Allow rake:stats to account for rake tasks in lib/tasks
 
     *Kevin Deisz*
