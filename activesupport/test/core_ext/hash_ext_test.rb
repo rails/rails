@@ -1613,7 +1613,6 @@ class HashToXmlTest < ActiveSupport::TestCase
     assert_not_same hash_wia, hash_wia.with_indifferent_access
   end
 
-
   def test_allows_setting_frozen_array_values_with_indifferent_access
     value = [1, 2, 3].freeze
     hash = HashWithIndifferentAccess.new
