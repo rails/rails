@@ -1367,5 +1367,21 @@ module ApplicationTests
 
       assert_match 'YAML syntax error occurred while parsing', exception.message
     end
+
+    test "config_for allows overriding the environment" do
+      app_file 'config/custom.yml', <<-RUBY
+        test:
+          key: 'walrus'
+        production:
+            key: 'unicorn'
+      RUBY
+
+      add_to_config <<-RUBY
+          config.my_custom_config = config_for('custom', env: 'production')
+      RUBY
+      require "#{app_path}/config/environment"
+
+      assert_equal 'unicorn', Rails.application.config.my_custom_config['key']
+    end
   end
 end
