@@ -466,6 +466,16 @@ module ActiveRecord
   #
   # Remember that you can still open your own transactions, even if you
   # are in a Migration with <tt>self.disable_ddl_transaction!</tt>.
+  #
+  # == schema_migrations Table Locking ==
+  #
+  # If Transactional Migrations are enabled and the database adapter supports
+  # ACCESS EXCLUSIVE table locking, the migration will automatically attempt to
+  # obtain an ACCESS EXCLUSIVE lock on the schema_migrations table before
+  # running the migration.
+  #
+  # This means that even if multiple migrations are executed simultaneously, we
+  # can guarantee that each individual migration will be run exactly once.
   class Migration
     autoload :CommandRecorder, 'active_record/migration/command_recorder'
 
@@ -1092,10 +1102,15 @@ module ActiveRecord
     end
 
     def migrated
-      @migrated_versions ||= Set.new(self.class.get_all_versions)
+      @migrated_versions || load_migrated
     end
 
     private
+
+    def load_migrated
+      @migrated_versions = Set.new(self.class.get_all_versions)
+    end
+
     def ran?(migration)
       migrated.include?(migration.version.to_i)
     end
@@ -1148,7 +1163,9 @@ module ActiveRecord
     # Wrap the migration in a transaction only if supported by the adapter.
     def ddl_transaction(migration)
       if use_transaction?(migration)
-        Base.transaction { yield }
+        Base.transaction do
+          serial_migration(migration) { yield }
+        end
       else
         yield
       end
@@ -1156,6 +1173,41 @@ module ActiveRecord
 
     def use_transaction?(migration)
       !migration.disable_ddl_transaction && Base.connection.supports_ddl_transactions?
+    end
+
+    # If serial migrations are enforced, get a lock on the schema_migrations
+    # table to ensure that another process can't run this migration.
+    def serial_migration(migration)
+      if use_serial_migration?
+        Base.connection.execute(lock_schema_migrations_table_sql)
+        if unmigrated?(migration)
+          yield
+        else
+          Base.logger.warn("Another process already ran #{migration.name} (#{migration.version}), skipping this migration.") if Base.logger
+          return false # nothing to do in this case
+        end
+      else
+        yield
+      end
+    end
+
+    def use_serial_migration?
+      Base.connection.supports_table_locking?
+    end
+
+    def lock_schema_migrations_table_sql
+      "LOCK TABLE #{self.class.schema_migrations_table_name} IN ACCESS EXCLUSIVE MODE"
+    end
+
+    # Another process might have changed the schema_migrations table since we
+    # last checked. Reload and recheck it here
+    def unmigrated?(migration)
+      load_migrated
+      if up?
+        !ran?(migration)
+      elsif down?
+        ran?(migration)
+      end
     end
   end
 end
