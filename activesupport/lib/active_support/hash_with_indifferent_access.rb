@@ -269,7 +269,7 @@ module ActiveSupport
             value.nested_under_indifferent_access
           end
         elsif value.is_a?(Array)
-          unless options[:for] == :assignment
+          if options[:for] != :assignment || value.frozen?
             value = value.dup
           end
           value.map! { |e| convert_value(e, options) }
