@@ -38,7 +38,7 @@ class InfoTest < ActiveSupport::TestCase
   end
 
   def test_rails_version
-    assert_property 'Rails version', 
+    assert_property 'Rails version',
       File.read(File.realpath('../../../RAILS_VERSION', __FILE__)).chomp
   end
 
