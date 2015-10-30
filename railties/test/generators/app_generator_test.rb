@@ -264,7 +264,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     if defined?(JRUBY_VERSION)
       assert_gem "activerecord-jdbcmysql-adapter"
     else
-      assert_gem "mysql2"
+      assert_gem "mysql2", "'>= 0.3.18', '< 0.5'"
     end
   end
 
@@ -279,7 +279,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     if defined?(JRUBY_VERSION)
       assert_gem "activerecord-jdbcpostgresql-adapter"
     else
-      assert_gem "pg"
+      assert_gem "pg", "'~> 0.18'"
     end
   end
 
@@ -686,7 +686,11 @@ class AppGeneratorTest < Rails::Generators::TestCase
     capture(:stdout) { generator.send(*args, &block) }
   end
 
-  def assert_gem(gem)
-    assert_file "Gemfile", /^\s*gem\s+["']#{gem}["']$*/
+  def assert_gem(gem, constraint = nil)
+    if constraint
+      assert_file "Gemfile", /^\s*gem\s+["']#{gem}["'], #{constraint}$*/
+    else
+      assert_file "Gemfile", /^\s*gem\s+["']#{gem}["']$*/
+    end
   end
 end
