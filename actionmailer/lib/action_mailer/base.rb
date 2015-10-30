@@ -441,8 +441,6 @@ module ActionMailer
 
     helper ActionMailer::MailHelper
 
-    private_class_method :new #:nodoc:
-
     class_attribute :default_params
     self.default_params = {
       mime_version: "1.0",
@@ -580,11 +578,10 @@ module ActionMailer
     # will be initialized according to the named method. If not, the mailer will
     # remain uninitialized (useful when you only need to invoke the "receive"
     # method, for instance).
-    def initialize(method_name=nil, *args)
+    def initialize
       super()
       @_mail_was_called = false
       @_message = Mail.new
-      process(method_name, *args) if method_name
     end
 
     def process(method_name, *args) #:nodoc:

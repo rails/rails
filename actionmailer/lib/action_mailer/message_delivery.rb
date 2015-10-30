@@ -21,7 +21,11 @@ module ActionMailer
     end
 
     def __getobj__ #:nodoc:
-      @obj ||= @mailer.send(:new, @mail_method, *@args).message
+      @obj ||= begin
+                 mailer = @mailer.new
+                 mailer.process @mail_method, *@args
+                 mailer.message
+               end
     end
 
     def __setobj__(obj) #:nodoc:
