@@ -1,3 +1,8 @@
+## Rails 4.1.14.rc1 (October 30, 2015) ##
+
+*   No changes.
+
+
 ## Rails 4.1.13 (August 24, 2015) ##
 
 *   No changes.

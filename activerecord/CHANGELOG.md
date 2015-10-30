@@ -1,3 +1,5 @@
+## Rails 4.1.14.rc1 (October 30, 2015) ##
+
 *   Includes HABTM returns correct size now. It's caused by the join dependency
     only instantiates one HABTM object because the join table hasn't a primary key.
 
