@@ -441,11 +441,13 @@ module ActiveRecord
 
       spawn.left_outer_joins!(*args)
     end
+    alias :left_joins :left_outer_joins
 
     def left_outer_joins!(*args) # :nodoc:
       self.left_outer_joins_values += args
       self
     end
+    alias :left_joins! :left_outer_joins!
 
     # Returns a new relation, which is the result of filtering the current relation
     # according to the conditions in the arguments.
