@@ -160,7 +160,8 @@ module Rails
 
       def database_gemfile_entry
         return [] if options[:skip_active_record]
-        GemfileEntry.version gem_for_database, nil,
+        gem_name, gem_version = gem_for_database
+        GemfileEntry.version gem_name, gem_version,
                             "Use #{options[:database]} as the database for Active Record"
       end
 
@@ -196,6 +197,16 @@ module Rails
         def padding(max_width)
           ' ' * (max_width - name.length + 2)
         end
+
+        def version
+          version = super
+
+          if version.is_a?(Array)
+            version.join("', '")
+          else
+            version
+          end
+        end
       end
 
       def rails_gemfile_entry
@@ -214,16 +225,16 @@ module Rails
       def gem_for_database
         # %w( mysql oracle postgresql sqlite3 frontbase ibm_db sqlserver jdbcmysql jdbcsqlite3 jdbcpostgresql )
         case options[:database]
-        when "oracle"         then "ruby-oci8"
-        when "postgresql"     then "pg"
-        when "frontbase"      then "ruby-frontbase"
-        when "mysql"          then "mysql2"
-        when "sqlserver"      then "activerecord-sqlserver-adapter"
-        when "jdbcmysql"      then "activerecord-jdbcmysql-adapter"
-        when "jdbcsqlite3"    then "activerecord-jdbcsqlite3-adapter"
-        when "jdbcpostgresql" then "activerecord-jdbcpostgresql-adapter"
-        when "jdbc"           then "activerecord-jdbc-adapter"
-        else options[:database]
+        when "oracle"         then ["ruby-oci8", nil]
+        when "postgresql"     then ["pg", ["~> 0.11"]]
+        when "frontbase"      then ["ruby-frontbase", nil]
+        when "mysql"          then ["mysql2", ["~> 0.3.13"]]
+        when "sqlserver"      then ["activerecord-sqlserver-adapter", nil]
+        when "jdbcmysql"      then ["activerecord-jdbcmysql-adapter", nil]
+        when "jdbcsqlite3"    then ["activerecord-jdbcsqlite3-adapter", nil]
+        when "jdbcpostgresql" then ["activerecord-jdbcpostgresql-adapter", nil]
+        when "jdbc"           then ["activerecord-jdbc-adapter", nil]
+        else [options[:database], nil]
         end
       end
 

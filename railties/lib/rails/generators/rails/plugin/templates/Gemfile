@@ -11,7 +11,7 @@ gemspec
 
 <% if options[:skip_gemspec] -%>
 group :development do
-  gem "<%= gem_for_database %>"
+  gem "<%= gem_for_database[0] %>"
 end
 <% else -%>
 # Declare any dependencies that are still in development here instead of in
