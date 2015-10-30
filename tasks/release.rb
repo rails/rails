@@ -66,13 +66,24 @@ directory "pkg"
 end
 
 namespace :changelog do
+  task :header do
+    (FRAMEWORKS + ['guides']).each do |fw|
+      require 'date'
+      fname = File.join fw, 'CHANGELOG.md'
+
+      header = "## Rails #{version} (#{Date.today.strftime('%B %d, %Y')}) ##\n\n*   No changes.\n\n\n"
+      contents = header + File.read(fname)
+      File.open(fname, 'wb') { |f| f.write contents }
+    end
+  end
+
   task :release_date do
     (FRAMEWORKS + ['guides']).each do |fw|
       require 'date'
-      replace = '\1(' + Date.today.strftime('%B %d, %Y') + ')'
+      replace = "## Rails #{version} (#{Date.today.strftime('%B %d, %Y')}) ##\n"
       fname = File.join fw, 'CHANGELOG.md'
 
-      contents = File.read(fname).sub(/^([^(]*)\(unreleased\)/, replace)
+      contents = File.read(fname).sub(/^(## Rails .*)\n/, replace)
       File.open(fname, 'wb') { |f| f.write contents }
     end
   end
