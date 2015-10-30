@@ -16,11 +16,11 @@ class LeftOuterJoinAssociationTest < ActiveRecord::TestCase
 
   def test_construct_finder_sql_does_not_table_name_collide_on_duplicate_associations
     assert_nothing_raised do
-      sql = capture_sql do
+      queries = capture_sql do
         Person.left_outer_joins(:agents => {:agents => :agents})
               .left_outer_joins(:agents => {:agents => {:primary_contact => :agents}}).to_a
-      end.first
-      assert_match(/agents_people_4/i, sql)
+      end
+      assert queries.any? { |sql| /agents_people_4/i =~ sql }
     end
   end
 
@@ -30,13 +30,13 @@ class LeftOuterJoinAssociationTest < ActiveRecord::TestCase
   end
 
   def test_construct_finder_sql_ignores_empty_left_outer_joins_hash
-    sql = capture_sql { Author.left_outer_joins({}) }.first
-    assert_no_match(/LEFT OUTER JOIN/i, sql)
+    queries = capture_sql { Author.left_outer_joins({}) }
+    assert queries.none? { |sql| /LEFT OUTER JOIN/i =~ sql }
   end
 
   def test_construct_finder_sql_ignores_empty_left_outer_joins_array
-    sql = capture_sql { Author.left_outer_joins([]) }.first
-    assert_no_match(/LEFT OUTER JOIN/i, sql)
+    queries = capture_sql { Author.left_outer_joins([]) }
+    assert queries.none? { |sql| /LEFT OUTER JOIN/i =~ sql }
   end
 
   def test_left_outer_joins_forbids_to_use_string_as_argument
@@ -44,9 +44,9 @@ class LeftOuterJoinAssociationTest < ActiveRecord::TestCase
   end
 
   def test_join_conditions_added_to_join_clause
-    sql = capture_sql { Author.left_outer_joins(:essays).to_a }.first
-    assert_match(/writer_type.*?=.*?(Author|\?|\$1)/i, sql)
-    assert_no_match(/WHERE/i, sql)
+    queries = capture_sql { Author.left_outer_joins(:essays).to_a }
+    assert queries.any? { |sql| /writer_type.*?=.*?(Author|\?|\$1)/i =~ sql }
+    assert queries.none? { |sql| /WHERE/i =~ sql }
   end
 
   def test_find_with_sti_join
