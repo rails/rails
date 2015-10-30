@@ -150,9 +150,18 @@ class LookupContextTest < ActiveSupport::TestCase
     keys << @lookup_context.details_key
     assert_equal 3, keys.uniq.size
 
+    @lookup_context.formats = ['html']
+    keys << @lookup_context.details_key
+    assert_equal 3, keys.uniq.size
+
     @lookup_context.formats = nil
     keys << @lookup_context.details_key
     assert_equal 3, keys.uniq.size
+
+    @lookup_context.formats = [:xml]
+    keys << @lookup_context.details_key
+    assert_equal 4, keys.uniq.size
+
   end
 
   test "gives the key forward to the resolver, so it can be used as cache key" do

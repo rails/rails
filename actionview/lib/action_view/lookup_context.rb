@@ -67,7 +67,9 @@ module ActionView
       def self.get(details)
         if details[:formats]
           details = details.dup
-          details[:formats] &= Mime::SET.symbols
+          details[:formats] = Mime::SET.symbols.select do |symbol|
+            details[:formats].include?(symbol) || details[:formats].any? { |string| string == symbol.to_s }
+          end
         end
         @details_keys[details] ||= new
       end
