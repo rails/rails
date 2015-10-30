@@ -538,7 +538,7 @@ module ActiveSupport
         end
 
         def instrument(operation, key, options = nil)
-          log { "Cache #{operation}: #{key}#{options.blank? ? "" : " (#{options.inspect})"}" }
+          log { "Cache #{operation}: #{namespaced_key(key, options)}#{options.blank? ? "" : " (#{options.inspect})"}" }
 
           payload = { :key => key }
           payload.merge!(options) if options.is_a?(Hash)
