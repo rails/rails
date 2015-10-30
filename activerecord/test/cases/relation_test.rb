@@ -231,6 +231,83 @@ module ActiveRecord
       assert_equal 3, relation.where(id: post.id).pluck(:id).size
     end
 
+    def test_join_with_sql_params
+      post = Post.create!(title: "haha", body: "huhu")
+      5.times do |count|
+        post.comments.create!(body: "hu #{count}")
+      end
+
+      comment_with_rating = post.comments.sample
+      comment_with_rating.ratings.create!
+
+      comments = Comment.joins(
+        'inner join ratings on ratings.comment_id = comments.id AND ratings.comment_id = ?',
+        comment_with_rating.id
+      )
+
+      assert_equal comment_with_rating, comments.first
+    end
+
+    def test_join_with_multiple_sql_params
+      post = Post.create!(title: "haha", body: "huhu")
+      5.times do |count|
+        post.comments.create!(body: "hu #{count}")
+      end
+
+      comments_with_ratings = post.comments.sample(2)
+      comments_with_ratings.each do |comment|
+        comment.ratings.create!
+      end
+
+      posts = Post.joins(
+        'inner join comments on comments.post_id = posts.id AND comments.post_id = ? '\
+        'inner join ratings on ratings.comment_id = comments.id AND ratings.comment_id = ?',
+        post.id,
+        comments_with_ratings.first.id
+      )
+
+      assert_equal posts, [post]
+    end
+
+    def test_join_with_keyword_sql_params
+      post = Post.create!(title: "haha", body: "huhu")
+      5.times do |count|
+        post.comments.create!(body: "hu #{count}")
+      end
+      comments_with_ratings = post.comments.sample(2)
+      comments_with_ratings.each do |comment|
+        comment.ratings.create!
+      end
+
+      comments = Comment.joins(
+        'inner join ratings on ratings.comment_id = comments.id AND ratings.comment_id IN (:ids)',
+        ids: post.comment_ids
+      )
+
+      assert_equal comments_with_ratings.sort, comments.sort
+    end
+
+    def test_join_with_multiple_keyword_sql_params
+      post = Post.create!(title: "haha", body: "huhu")
+      5.times do |count|
+        post.comments.create!(body: "hu #{count}")
+      end
+
+      comments_with_ratings = post.comments.sample(2)
+      comments_with_ratings.each do |comment|
+        comment.ratings.create!
+      end
+
+      posts = Post.joins(
+        'inner join comments on comments.post_id = posts.id AND comments.post_id = :post_id '\
+        'inner join ratings on ratings.comment_id = comments.id AND ratings.comment_id = :comment_id',
+        post_id: post.id,
+        comment_id: comments_with_ratings.first.id
+      )
+
+      assert_equal posts, [post]
+    end
+
     def test_respond_to_for_non_selected_element
       post = Post.select(:title).first
       assert_equal false, post.respond_to?(:body), "post should not respond_to?(:body) since invoking it raises exception"
