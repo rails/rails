@@ -69,6 +69,7 @@ The methods are:
 * `having`
 * `includes`
 * `joins`
+* `left_outer_joins`
 * `limit`
 * `lock`
 * `none`
@@ -935,25 +936,30 @@ end
 Joining Tables
 --------------
 
-Active Record provides a finder method called `joins` for specifying `JOIN` clauses on the resulting SQL. There are multiple ways to use the `joins` method.
+Active Record provides two finder methods for specifying `JOIN` clauses on the
+resulting SQL: `joins` and `left_outer_joins`.
+While `joins` should be used for `INNER JOIN` or custom queries,
+`left_outer_joins` is used for queries using `LEFT OUTER JOIN`.
 
-### Using a String SQL Fragment
+### `joins`
+
+There are multiple ways to use the `joins` method.
+
+#### Using a String SQL Fragment
 
 You can just supply the raw SQL specifying the `JOIN` clause to `joins`:
 
 ```ruby
-Client.joins('LEFT OUTER JOIN addresses ON addresses.client_id = clients.id')
+Author.joins("INNER JOIN posts ON posts.author_id = author.id AND posts.published = 't'")
 ```
 
 This will result in the following SQL:
 
 ```sql
-SELECT clients.* FROM clients LEFT OUTER JOIN addresses ON addresses.client_id = clients.id
+SELECT clients.* FROM clients INNER JOIN posts ON posts.author_id = author.id AND posts.published = 't'
 ```
 
-### Using Array/Hash of Named Associations
-
-WARNING: This method only works with `INNER JOIN`.
+#### Using Array/Hash of Named Associations
 
 Active Record lets you use the names of the [associations](association_basics.html) defined on the model as a shortcut for specifying `JOIN` clauses for those associations when using the `joins` method.
 
@@ -986,7 +992,7 @@ end
 
 Now all of the following will produce the expected join queries using `INNER JOIN`:
 
-#### Joining a Single Association
+##### Joining a Single Association
 
 ```ruby
 Category.joins(:articles)
@@ -1017,7 +1023,7 @@ SELECT articles.* FROM articles
 
 Or, in English: "return all articles that have a category and at least one comment". Note again that articles with multiple comments will show up multiple times.
 
-#### Joining Nested Associations (Single Level)
+##### Joining Nested Associations (Single Level)
 
 ```ruby
 Article.joins(comments: :guest)
@@ -1033,7 +1039,7 @@ SELECT articles.* FROM articles
 
 Or, in English: "return all articles that have a comment made by a guest."
 
-#### Joining Nested Associations (Multiple Level)
+##### Joining Nested Associations (Multiple Level)
 
 ```ruby
 Category.joins(articles: [{ comments: :guest }, :tags])
@@ -1049,7 +1055,7 @@ SELECT categories.* FROM categories
   INNER JOIN tags ON tags.article_id = articles.id
 ```
 
-### Specifying Conditions on the Joined Tables
+#### Specifying Conditions on the Joined Tables
 
 You can specify conditions on the joined tables using the regular [Array](#array-conditions) and [String](#pure-string-conditions) conditions. [Hash conditions](#hash-conditions) provide a special syntax for specifying conditions for the joined tables:
 
@@ -1066,6 +1072,26 @@ Client.joins(:orders).where(orders: { created_at: time_range })
 ```
 
 This will find all clients who have orders that were created yesterday, again using a `BETWEEN` SQL expression.
+
+### `left_outer_joins`
+
+If you want to select a set of records whether or not they have associated
+records you can use the `left_outer_joins` method.
+
+```ruby
+Author.left_outer_joins(:posts).uniq.select('authors.*, COUNT(posts.*) AS posts_count').group('authors.id')
+```
+
+Which produces:
+
+```sql
+SELECT DISTINCT authors.*, COUNT(posts.*) AS posts_count FROM "authors"
+LEFT OUTER JOIN posts ON posts.author_id = authors.id GROUP BY authors.id
+```
+
+Which means: "return all authors with their count of posts, whether or not they
+have any posts at all"
+
 
 Eager Loading Associations
 --------------------------

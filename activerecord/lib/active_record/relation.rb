@@ -4,7 +4,7 @@ module ActiveRecord
   # = Active Record \Relation
   class Relation
     MULTI_VALUE_METHODS  = [:includes, :eager_load, :preload, :select, :group,
-                            :order, :joins, :references,
+                            :order, :joins, :left_outer_joins, :references,
                             :extending, :unscope]
 
     SINGLE_VALUE_METHODS = [:limit, :offset, :lock, :readonly, :reordering,

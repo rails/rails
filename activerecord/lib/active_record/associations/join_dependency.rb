@@ -103,9 +103,14 @@ module ActiveRecord
         join_root.drop(1).map!(&:reflection)
       end
 
-      def join_constraints(outer_joins)
+      def join_constraints(outer_joins, join_type)
         joins = join_root.children.flat_map { |child|
-          make_inner_joins join_root, child
+
+          if join_type == Arel::Nodes::OuterJoin
+            make_left_outer_joins join_root, child
+          else
+            make_inner_joins join_root, child
+          end
         }
 
         joins.concat outer_joins.flat_map { |oj|
@@ -174,6 +179,14 @@ module ActiveRecord
         info      = make_constraints parent, child, tables, join_type
 
         [info] + child.children.flat_map { |c| make_outer_joins(child, c) }
+      end
+
+      def make_left_outer_joins(parent, child)
+        tables    = child.tables
+        join_type = Arel::Nodes::OuterJoin
+        info      = make_constraints parent, child, tables, join_type
+
+        [info] + child.children.flat_map { |c| make_left_outer_joins(child, c) }
       end
 
       def make_inner_joins(parent, child)

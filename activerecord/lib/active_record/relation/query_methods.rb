@@ -428,6 +428,25 @@ module ActiveRecord
       self
     end
 
+    # Performs a left outer joins on +args+:
+    #
+    #   User.left_outer_joins(:posts)
+    #   => SELECT "users".* FROM "users" LEFT OUTER JOIN "posts" ON "posts"."user_id" = "users"."id"
+    #
+    def left_outer_joins(*args)
+      check_if_method_has_arguments!(:left_outer_joins, args)
+
+      args.compact!
+      args.flatten!
+
+      spawn.left_outer_joins!(*args)
+    end
+
+    def left_outer_joins!(*args) # :nodoc:
+      self.left_outer_joins_values += args
+      self
+    end
+
     # Returns a new relation, which is the result of filtering the current relation
     # according to the conditions in the arguments.
     #
@@ -878,6 +897,7 @@ module ActiveRecord
       arel = Arel::SelectManager.new(table)
 
       build_joins(arel, joins_values.flatten) unless joins_values.empty?
+      build_left_outer_joins(arel, left_outer_joins_values.flatten) unless left_outer_joins_values.empty?
 
       arel.where(where_clause.ast) unless where_clause.empty?
       arel.having(having_clause.ast) unless having_clause.empty?
@@ -937,6 +957,19 @@ module ActiveRecord
       end
     end
 
+    def build_left_outer_joins(manager, outer_joins)
+      buckets = outer_joins.group_by do |join|
+        case join
+        when Hash, Symbol, Array
+          :association_join
+        else
+          raise ArgumentError, 'only Hash, Symbol and Array are allowed'
+        end
+      end
+
+      build_join_query(manager, buckets, Arel::Nodes::OuterJoin)
+    end
+
     def build_joins(manager, joins)
       buckets = joins.group_by do |join|
         case join
@@ -952,6 +985,11 @@ module ActiveRecord
           raise 'unknown class: %s' % join.class.name
         end
       end
+
+      build_join_query(manager, buckets, Arel::Nodes::InnerJoin)
+    end
+
+    def build_join_query(manager, buckets, join_type)
       buckets.default = []
 
       association_joins         = buckets[:association_join]
@@ -967,7 +1005,7 @@ module ActiveRecord
         join_list
       )
 
-      join_infos = join_dependency.join_constraints stashed_association_joins
+      join_infos = join_dependency.join_constraints stashed_association_joins, join_type
 
       join_infos.each do |info|
         info.joins.each { |join| manager.from(join) }
