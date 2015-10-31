@@ -3,7 +3,7 @@ require 'active_support/core_ext/object/blank'
 module ActiveSupport
   module Testing
     module Assertions
-      # Assert that an expression is not truthy. Passes if <tt>object</tt> is
+      # Asserts that an expression is not truthy. Passes if <tt>object</tt> is
       # +nil+ or +false+. "Truthy" means "considered true in a conditional"
       # like <tt>if foo</tt>.
       #

@@ -40,7 +40,7 @@ module ActionMailer
       end
     end
 
-    # Assert that no emails have been sent.
+    # Asserts that no emails have been sent.
     #
     #   def test_emails
     #     assert_no_emails
