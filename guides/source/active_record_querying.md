@@ -185,6 +185,8 @@ SELECT * FROM clients ORDER BY clients.id ASC LIMIT 1
 
 The `first` method returns `nil` if no matching record is found and no exception will be raised.
 
+If your [default scope](active_record_querying.html#applying-a-default-scope) contains an order method, `first` will return the first record according to this ordering.
+
 You can pass in a numerical argument to the `first` method to return up to that number of results. For example
 
 ```ruby
@@ -220,6 +222,8 @@ SELECT * FROM clients ORDER BY clients.id DESC LIMIT 1
 ```
 
 The `last` method returns `nil` if no matching record is found and no exception will be raised.
+
+If your [default scope](active_record_querying.html#applying-a-default-scope) contains an order method, `last` will return the last record according to this ordering.
 
 You can pass in a numerical argument to the `last` method to return up to that number of results. For example
 
