@@ -20,6 +20,10 @@ module ActiveRecord
       def self.table_name
         'fake_table'
       end
+
+      def self.sanitize_sql_for_order(sql)
+        sql
+      end
     end
 
     def test_construction

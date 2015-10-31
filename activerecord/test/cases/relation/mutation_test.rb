@@ -22,6 +22,10 @@ module ActiveRecord
       def sanitize_sql(sql)
         sql
       end
+
+      def sanitize_sql_for_order(sql)
+        sql
+      end
     end
 
     def relation
