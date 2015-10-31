@@ -1090,7 +1090,7 @@ config.active_record.auto_explain_threshold_in_seconds = 0.5
 
 ### config/environments/test.rb
 
-The `mass_assignment_sanitizer` configuration setting should also be be added to `config/environments/test.rb`:
+The `mass_assignment_sanitizer` configuration setting should also be added to `config/environments/test.rb`:
 
 ```ruby
 # Raise exception on mass assignment protection for Active Record models
