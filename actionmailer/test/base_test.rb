@@ -564,6 +564,9 @@ class BaseTest < ActiveSupport::TestCase
 
     mail = BaseMailer.welcome_from_another_path(['unknown/invalid', 'another.path/base_mailer']).deliver_now
     assert_equal("Welcome from another path", mail.body.encoded)
+
+    mail = BaseMailer.welcome_from_another_path(File.expand_path('another.path/base_mailer', FIXTURE_LOAD_PATH)).deliver_now
+    assert_equal("Welcome from another path", mail.body.encoded)
   end
 
   test "assets tags should use ActionMailer's asset_host settings" do

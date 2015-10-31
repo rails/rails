@@ -1,3 +1,14 @@
+*   Add support for absolute paths in :template_path option.
+
+    Example:
+
+        mail(to: recipients,
+             template_path: '/custom/template/path')
+
+    Fixes #22047.
+
+    *Yuichi Takeuchi*
+
 ## Rails 5.0.0.beta1 (December 18, 2015) ##
 
 *   `config.force_ssl = true` will set
