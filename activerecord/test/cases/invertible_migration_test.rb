@@ -51,6 +51,14 @@ module ActiveRecord
       end
     end
 
+    class InvertibleTransactionByPartsMigration < InvertibleByPartsMigration
+      def change
+        transaction do
+          super
+        end
+      end
+    end
+
     class NonInvertibleMigration < SilentMigration
       def change
         create_table("horses") do |t|
@@ -343,6 +351,28 @@ module ActiveRecord
       assert !ActiveRecord::Base.connection.table_exists?("p_horses_s"), "p_horses_s should not exist"
     ensure
       ActiveRecord::Base.table_name_prefix = ActiveRecord::Base.table_name_suffix = ''
+    end
+
+    # Nested transactions in migrations don't work with MySQL
+    unless current_adapter?(:MysqlAdapter, :Mysql2Adapter)
+      def test_migrate_revert_transaction_by_part
+        InvertibleMigration.new.migrate :up
+        received = []
+        migration = InvertibleTransactionByPartsMigration.new
+        migration.test = ->(dir){
+          assert migration.connection.table_exists?("horses")
+          assert migration.connection.table_exists?("new_horses")
+          received << dir
+        }
+        migration.migrate :up
+        assert_equal [:both, :up], received
+        assert !migration.connection.table_exists?("horses")
+        assert migration.connection.table_exists?("new_horses")
+        migration.migrate :down
+        assert_equal [:both, :up, :both, :down], received
+        assert migration.connection.table_exists?("horses")
+        assert !migration.connection.table_exists?("new_horses")
+      end
     end
 
     # MySQL 5.7 and Oracle do not allow to create duplicate indexes on the same columns
