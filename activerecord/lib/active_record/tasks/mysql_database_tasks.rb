@@ -2,7 +2,7 @@ module ActiveRecord
   module Tasks # :nodoc:
     class MySQLDatabaseTasks # :nodoc:
       DEFAULT_CHARSET     = ENV['CHARSET']   || 'utf8'
-      DEFAULT_COLLATION   = ENV['COLLATION'] || 'utf8_unicode_ci'
+      DEFAULT_COLLATION   = ENV['COLLATION'] || 'utf8_general_ci'
       ACCESS_DENIED_ERROR = 1045
 
       delegate :connection, :establish_connection, to: ActiveRecord::Base
