@@ -1,3 +1,8 @@
+*   Use advisory locking to raise a ConcurrentMigrationError instead of
+    attempting to migrate when another migration is currently running.
+
+    *Sam Davies*
+
 *   Added `ActiveRecord::Relation#left_outer_joins`.
 
     Example:
