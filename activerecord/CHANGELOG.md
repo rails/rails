@@ -1,3 +1,10 @@
+*   Made the commands inside a `transaction` in a reverted migration also
+    run reverted.
+
+    Fixes #21484.
+
+    *David Verhasselt*
+
 *   Added `ActiveRecord::Relation#left_outer_joins`.
 
     Example:

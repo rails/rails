@@ -616,9 +616,7 @@ module ActiveRecord
             connection.revert { yield }
           end
           @connection = recorder.delegate
-          recorder.commands.each do |cmd, args, block|
-            send(cmd, *args, &block)
-          end
+          recorder.replay(self)
         end
       end
     end

@@ -110,12 +110,17 @@ module ActiveRecord
         yield delegate.update_table_definition(table_name, self)
       end
 
+      def replay(receiving_object)
+        commands.each do |cmd, args, block|
+          receiving_object.send(cmd, *args, &block)
+        end
+      end
+
       private
 
       module StraightReversions
         private
-        { transaction:       :transaction,
-          execute_block:     :execute_block,
+        { execute_block:     :execute_block,
           create_table:      :drop_table,
           create_join_table: :drop_join_table,
           add_column:        :remove_column,
@@ -134,6 +139,17 @@ module ActiveRecord
       end
 
       include StraightReversions
+
+      def invert_transaction(args)
+        sub_recorder = CommandRecorder.new(delegate)
+        sub_recorder.revert { yield }
+
+        inverted_block = proc do
+          sub_recorder.replay(self)
+        end
+
+        [:transaction, args, inverted_block]
+      end
 
       def invert_drop_table(args, &block)
         if args.size == 1 && block == nil
@@ -223,6 +239,15 @@ module ActiveRecord
         reversed_args << remove_options if remove_options
 
         [:add_foreign_key, reversed_args]
+      end
+
+      # Returns all commands recorded while executing &block.
+      def capture_commands(&block)
+        previous, @commands = @commands, []
+        yield
+        @commands
+      ensure
+        @commands = previous
       end
 
       # Forwards any missing method call to the \target.
