@@ -2028,17 +2028,6 @@ NOTE: Defined in `active_support/core_ext/numeric/conversions.rb`.
 Extensions to `Integer`
 -----------------------
 
-### `multiple_of?`
-
-The method `multiple_of?` tests whether an integer is multiple of the argument:
-
-```ruby
-2.multiple_of?(1) # => true
-1.multiple_of?(2) # => false
-```
-
-NOTE: Defined in `active_support/core_ext/integer/multiple.rb`.
-
 ### `ordinal`
 
 The method `ordinal` returns the ordinal suffix string corresponding to the receiver integer:
@@ -2564,7 +2553,7 @@ The method `split` divides an array by a separator and returns the resulting chu
 If a block is passed the separators are those elements of the array for which the block returns true:
 
 ```ruby
-(-5..5).to_a.split { |i| i.multiple_of?(4) }
+(-5..5).to_a.split { |i| i % 4 == 0 }
 # => [[-5], [-3, -2, -1], [1, 2, 3], [5]]
 ```
 
