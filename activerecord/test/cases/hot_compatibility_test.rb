@@ -87,10 +87,21 @@ class HotCompatibilityTest < ActiveRecord::TestCase
           ddl_connection.add_column :owner_hot_compatibilities, :baz, :string
 
           # we can still reload the object in a transaction
+          3.times do
+            begin
+              @klass_owner.transaction do
+                record.reload
+                assert_equal 'bar', record.bar
+              end
+            rescue
+            end
+          end
+
           @klass_owner.transaction do
             record.reload
             assert_equal 'bar', record.bar
           end
+
         ensure
           ActiveRecord::Base.connection_pool.checkin ddl_connection
         end
