@@ -477,6 +477,7 @@ module ActiveRecord
   class Migration
     autoload :CommandRecorder, 'active_record/migration/command_recorder'
 
+    MigrationFilenameRegexp = /\A([0-9]+)_([_a-z0-9]*)\.?([_a-z0-9]*)?\.rb\z/ # :nodoc:
 
     # This class is used to verify that all migrations have been run before
     # loading a web page if config.active_record.migration_error is set to :page_load
@@ -995,14 +996,21 @@ module ActiveRecord
         Array(@migrations_paths)
       end
 
+      def match_to_migration_filename?(filename) # :nodoc:
+        File.basename(filename) =~ Migration::MigrationFilenameRegexp
+      end
+
+      def parse_migration_filename(filename) # :nodoc:
+        File.basename(filename).scan(Migration::MigrationFilenameRegexp).first
+      end
+
       def migrations(paths)
         paths = Array(paths)
 
         files = Dir[*paths.map { |p| "#{p}/**/[0-9]*_*.rb" }]
 
         migrations = files.map do |file|
-          version, name, scope = file.scan(/([0-9]+)_([_a-z0-9]*)\.?([_a-z0-9]*)?\.rb\z/).first
-
+          version, name, scope = parse_migration_filename(file)
           raise IllegalMigrationNameError.new(file) unless version
           version = version.to_i
           name = name.camelize
