@@ -1,7 +1,9 @@
 require 'cases/helper'
+require 'support/connection_helper'
 
 class HotCompatibilityTest < ActiveRecord::TestCase
   self.use_transactional_tests = false
+  include ConnectionHelper
 
   setup do
     @klass = Class.new(ActiveRecord::Base) do
@@ -50,5 +52,88 @@ class HotCompatibilityTest < ActiveRecord::TestCase
     record.save!
     record.reload
     assert_equal 'bar', record.foo
+  end
+
+  if current_adapter?(:PostgreSQLAdapter)
+    test "cleans up after prepared statement failure in a transaction" do
+      with_two_connections do |original_connection, ddl_connection|
+        record = @klass.create! bar: 'bar'
+
+        # prepare the reload statement in a transaction
+        @klass.transaction do
+          record.reload
+        end
+
+        # add a new column
+        ddl_connection.add_column :hot_compatibilities, :baz, :string
+
+        assert_raise(ActiveRecord::PreparedStatementCacheExpired) do
+          @klass.transaction do
+            record.reload
+          end
+        end
+
+        prepared_statement_cache = @klass.connection
+          .instance_variable_get(:@statements)
+          .instance_variable_get(:@cache)[Process.pid]
+
+        assert_empty prepared_statement_cache,
+          "expected prepared statement cache to be empty but it wasn't"
+      end
+    end
+
+    test "cleans up after prepared statement failure in nested transactions" do
+      with_two_connections do |original_connection, ddl_connection|
+        record = @klass.create! bar: 'bar'
+
+        # prepare the reload statement in a transaction
+        @klass.transaction do
+          record.reload
+        end
+
+        # add a new column
+        ddl_connection.add_column :hot_compatibilities, :baz, :string
+
+        assert_raise(ActiveRecord::PreparedStatementCacheExpired) do
+          @klass.transaction do
+            @klass.transaction do
+              @klass.transaction do
+                record.reload
+              end
+            end
+          end
+        end
+
+        prepared_statement_cache = @klass.connection
+          .instance_variable_get(:@statements)
+          .instance_variable_get(:@cache)[Process.pid]
+
+        assert_empty prepared_statement_cache,
+          "expected prepared statement cache to be empty but it wasn't"
+      end
+    end
+  end
+
+  private
+
+  # Rails will automatically clear the prepared statements on the connection
+  # that runs the migration, so we use two connections to simulate what would
+  # actually happen on a production system; we'd have one connection running the
+  # migration from the rake task ("ddl_connection" here), and we'd have another
+  # connection in a web worker.
+  def with_two_connections
+    run_without_connection do |original_connection|
+      ActiveRecord::Base.establish_connection(original_connection.merge(pool_size: 2))
+      begin
+        ddl_connection = ActiveRecord::Base.connection_pool.checkout
+        begin
+          yield original_connection, ddl_connection
+        ensure
+          ActiveRecord::Base.connection_pool.checkin ddl_connection
+        end
+      ensure
+        ActiveRecord::Base.clear_all_connections!
+      end
+    end
   end
 end

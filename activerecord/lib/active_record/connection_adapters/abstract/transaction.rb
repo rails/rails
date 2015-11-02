@@ -188,7 +188,10 @@ module ActiveRecord
         transaction = begin_transaction options
         yield
       rescue Exception => error
-        rollback_transaction if transaction
+        if transaction
+          rollback_transaction
+          after_failure_actions(transaction, error)
+        end
         raise
       ensure
         unless error
@@ -214,7 +217,16 @@ module ActiveRecord
       end
 
       private
+
         NULL_TRANSACTION = NullTransaction.new
+
+        # Deallocate invalidated prepared statements outside of the transaction
+        def after_failure_actions(transaction, error)
+          return unless transaction.is_a?(RealTransaction)
+          return unless error.is_a?(ActiveRecord::PreparedStatementCacheExpired)
+          @connection.clear_cache!
+        end
+
     end
   end
 end
