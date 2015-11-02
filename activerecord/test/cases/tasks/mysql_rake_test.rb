@@ -104,7 +104,7 @@ module ActiveRecord
       def test_database_created_by_root
         assert_permissions_granted_for "pat"
         @connection.expects(:create_database).
-          with('my-app-db', :charset => 'utf8', :collation => 'utf8_unicode_ci')
+          with('my-app-db', {})
 
         ActiveRecord::Tasks::DatabaseTasks.create @configuration
       end
