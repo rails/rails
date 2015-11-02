@@ -1,3 +1,8 @@
+*   Define `ActiveRecord::Sanitization.sanitize_sql_for_order` and use it inside
+    `preprocess_order_args`.
+
+    *Yuichiro Kaneko*
+
 *   Allow bigint with default nil for avoiding auto increment primary key.
 
     *Ryuta Kamizono*

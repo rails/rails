@@ -53,6 +53,22 @@ module ActiveRecord
         end
       end
 
+      # Accepts an array, or string of SQL conditions and sanitizes
+      # them into a valid SQL fragment for a ORDER clause.
+      #
+      #   sanitize_sql_for_order(["field(id, ?)", [1,3,2]])
+      #   # => "field(id, 1,3,2)"
+      #
+      #   sanitize_sql_for_order("id ASC")
+      #   # => "id ASC"
+      def sanitize_sql_for_order(condition)
+        if condition.is_a?(Array) && condition.first.to_s.include?('?')
+          sanitize_sql_array(condition)
+        else
+          condition
+        end
+      end
+
       # Accepts a hash of SQL conditions and replaces those attributes
       # that correspond to a {#composed_of}[rdoc-ref:Aggregations::ClassMethods#composed_of]
       # relationship with their expanded aggregate attribute values.
