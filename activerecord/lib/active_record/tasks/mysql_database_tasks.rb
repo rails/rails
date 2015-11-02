@@ -1,8 +1,6 @@
 module ActiveRecord
   module Tasks # :nodoc:
     class MySQLDatabaseTasks # :nodoc:
-      DEFAULT_CHARSET     = ENV['CHARSET']   || 'utf8'
-      DEFAULT_COLLATION   = ENV['COLLATION'] || 'utf8_unicode_ci'
       ACCESS_DENIED_ERROR = 1045
 
       delegate :connection, :establish_connection, to: ActiveRecord::Base
@@ -87,12 +85,6 @@ module ActiveRecord
         Hash.new.tap do |options|
           options[:charset]     = configuration['encoding']   if configuration.include? 'encoding'
           options[:collation]   = configuration['collation']  if configuration.include? 'collation'
-
-          # Set default charset only when collation isn't set.
-          options[:charset]   ||= DEFAULT_CHARSET unless options[:collation]
-
-          # Set default collation only when charset is also default.
-          options[:collation] ||= DEFAULT_COLLATION if options[:charset] == DEFAULT_CHARSET
         end
       end
 

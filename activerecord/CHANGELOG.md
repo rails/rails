@@ -1,3 +1,10 @@
+*   Remove `DEFAULT_CHARSET` and `DEFAULT_COLLATION` in `MySQLDatabaseTasks`.
+
+    We should omit the collation entirely rather than providing a default.
+    Then the choice is the responsibility of the server and MySQL distribution.
+
+    *Ryuta Kamizono*
+
 *   Alias `ActiveRecord::Relation#left_joins` to
     `ActiveRecord::Relation#left_outer_joins`.
 
