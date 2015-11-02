@@ -3,7 +3,7 @@ module ActiveRecord
     module MySQL
       module ColumnMethods
         def primary_key(name, type = :primary_key, **options)
-          options[:auto_increment] = true if type == :bigint
+          options[:auto_increment] = true if type == :bigint && !options.key?(:default)
           super
         end
 

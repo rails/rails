@@ -1,3 +1,7 @@
+*   Allow bigint with default nil for avoiding auto increment primary key.
+
+    *Ryuta Kamizono*
+
 *   Remove `DEFAULT_CHARSET` and `DEFAULT_COLLATION` in `MySQLDatabaseTasks`.
 
     We should omit the collation entirely rather than providing a default.
