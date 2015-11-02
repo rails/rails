@@ -203,6 +203,14 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal Topic.order(:id).to_sql, Topic.order(:id => :asc).to_sql
   end
 
+  def test_repeated_merge_does_not_generate_duplicated_sql
+    relation = Post.joins(:comments)
+    relation_to_merge = Comment.joins(:post)
+    single_merge = relation.merge(relation_to_merge)
+    double_merge = relation.merge(relation_to_merge).merge(relation_to_merge)
+    assert_equal single_merge.to_sql, double_merge.to_sql
+  end
+
   def test_finding_with_desc_order_with_string
     topics = Topic.order(id: "desc")
     assert_equal 5, topics.to_a.size
