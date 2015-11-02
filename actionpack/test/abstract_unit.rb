@@ -384,6 +384,7 @@ class ReviewsController < ResourcesController; end
 class AccountsController <  ResourcesController; end
 class AdminController   <  ResourcesController; end
 class ProductsController < ResourcesController; end
+class ProductController < ResourcesController; end
 class ImagesController < ResourcesController; end
 
 module Backoffice

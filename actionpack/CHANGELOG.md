@@ -1,3 +1,14 @@
+*   Allow `singular: true` to map singular resources to singular controllers.
+    For example,
+
+    ```ruby
+    resource :profile, singular: true
+    ```
+
+    will map to `ProfileController`.
+
+    *Jerome Dalbert*
+
 *   Catch invalid UTF-8 querystring values and respond with BadRequest
 
     Check querystring params for invalid UTF-8 characters, and raise an

@@ -165,7 +165,7 @@ creates six different routes in your application, all mapping to the `Geocoders`
 | PATCH/PUT | /geocoder      | geocoders#update  | update the one and only geocoder resource     |
 | DELETE    | /geocoder      | geocoders#destroy | delete the geocoder resource                  |
 
-NOTE: Because you might want to use the same controller for a singular route (`/account`) and a plural route (`/accounts/45`), singular resources map to plural controllers. So that, for example, `resource :photo` and `resources :photos` creates both singular and plural routes that map to the same controller (`PhotosController`).
+NOTE: Because you might want to use the same controller for a singular route (`/account`) and a plural route (`/accounts/45`), singular resources map to plural controllers by default. So that, for example, `resource :photo` and `resources :photos` creates both singular and plural routes that map to the same controller (`PhotosController`). If you just want to use a singular controller, add `singular: true` to the resource declaration.
 
 A singular resourceful route generates these helpers:
 

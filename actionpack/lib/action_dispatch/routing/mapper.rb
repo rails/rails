@@ -1111,7 +1111,7 @@ module ActionDispatch
         # CANONICAL_ACTIONS holds all actions that does not need a prefix or
         # a path appended since they fit properly in their scope level.
         VALID_ON_OPTIONS  = [:new, :collection, :member]
-        RESOURCE_OPTIONS  = [:as, :controller, :path, :only, :except, :param, :concerns]
+        RESOURCE_OPTIONS  = [:as, :controller, :path, :only, :except, :param, :concerns, :singular]
         CANONICAL_ACTIONS = %w(index create new show update destroy)
 
         class Resource #:nodoc:
@@ -1152,20 +1152,20 @@ module ActionDispatch
             @as || @name
           end
 
-          def plural
-            @plural ||= name.to_s
+          def plural_name
+            @plural_name ||= name.to_s
           end
 
-          def singular
-            @singular ||= name.to_s.singularize
+          def singular_name
+            @singular_name ||= name.to_s.singularize
           end
 
-          alias :member_name :singular
+          alias :member_name :singular_name
 
-          # Checks for uncountable plurals, and appends "_index" if the plural
-          # and singular form are the same.
+          # Checks for uncountable plural names, and appends "_index" if the
+          # plural and singular names are the same.
           def collection_name
-            singular == plural ? "#{plural}_index" : plural
+            singular_name == plural_name ? "#{plural_name}_index" : plural_name
           end
 
           def resource_scope
@@ -1185,7 +1185,7 @@ module ActionDispatch
           end
 
           def nested_param
-            :"#{singular}_#{param}"
+            :"#{singular_name}_#{param}"
           end
 
           def nested_scope
@@ -1201,9 +1201,10 @@ module ActionDispatch
 
         class SingletonResource < Resource #:nodoc:
           def initialize(entities, api_only, shallow, options)
+            @singular_controller = options[:singular]
             super
             @as         = nil
-            @controller = (options[:controller] || plural).to_s
+            @controller = (options[:controller] || suffixed_name).to_s
             @as         = options[:as]
           end
 
@@ -1215,16 +1216,20 @@ module ActionDispatch
             end
           end
 
-          def plural
-            @plural ||= name.to_s.pluralize
+          def suffixed_name
+            @singular_controller ? singular_name : plural_name
           end
 
-          def singular
-            @singular ||= name.to_s
+          def plural_name
+            @plural_name ||= name.to_s.pluralize
           end
 
-          alias :member_name :singular
-          alias :collection_name :singular
+          def singular_name
+            @singular_name ||= name.to_s
+          end
+
+          alias :member_name :singular_name
+          alias :collection_name :singular_name
 
           alias :member_scope :path
           alias :nested_scope :path
