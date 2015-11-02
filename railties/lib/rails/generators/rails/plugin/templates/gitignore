@@ -6,5 +6,4 @@ pkg/
 <%= dummy_path %>/db/*.sqlite3-journal
 <%= dummy_path %>/log/*.log
 <%= dummy_path %>/tmp/
-<%= dummy_path %>/.sass-cache
 <% end -%>
