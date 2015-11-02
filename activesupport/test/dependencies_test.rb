@@ -732,6 +732,16 @@ class DependenciesTest < ActiveSupport::TestCase
     remove_constants(:C)
   end
 
+  def test_unloadable_constants_should_be_loadable_after_being_cleared
+    with_autoloading_fixtures do
+      assert_kind_of Class, SomethingUnloadable
+      assert ActiveSupport::Dependencies.explicitly_unloadable_constants.include?(SomethingUnloadable.name)
+      ActiveSupport::Dependencies.clear
+      assert ! defined?(SomethingUnloadable)
+      assert_kind_of Class, SomethingUnloadable
+    end
+  end
+
   def test_new_contants_in_without_constants
     assert_equal [], (ActiveSupport::Dependencies.new_constants_in(Object) { })
     assert ActiveSupport::Dependencies.constant_watch_stack.all? {|k,v| v.empty? }
