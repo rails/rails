@@ -149,7 +149,7 @@ module AbstractController
     # ==== Parameters
     # * <tt>action_name</tt> - The name of an action to be tested
     def available_action?(action_name)
-      _find_action_name(action_name).present?
+      _find_action_name(action_name)
     end
 
     # Returns true if the given controller is capable of rendering
