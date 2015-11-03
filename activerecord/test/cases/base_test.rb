@@ -26,7 +26,7 @@ require 'models/bird'
 require 'models/car'
 require 'models/bulb'
 require 'rexml/document'
-require 'concurrent/atomics'
+require 'concurrent/atomic/count_down_latch'
 
 class FirstAbstractClass < ActiveRecord::Base
   self.abstract_class = true

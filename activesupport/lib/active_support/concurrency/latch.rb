@@ -1,4 +1,4 @@
-require 'concurrent/atomics'
+require 'concurrent/atomic/count_down_latch'
 
 module ActiveSupport
   module Concurrency
@@ -8,7 +8,7 @@ module ActiveSupport
         ActiveSupport::Deprecation.warn("ActiveSupport::Concurrency::Latch is deprecated. Please use Concurrent::CountDownLatch instead.")
         super(count)
       end
-      
+
       alias_method :release, :count_down
 
       def await

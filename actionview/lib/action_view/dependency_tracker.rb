@@ -1,4 +1,4 @@
-require 'concurrent'
+require 'concurrent/map'
 require 'action_view/path_set'
 
 module ActionView

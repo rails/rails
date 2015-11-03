@@ -1,4 +1,7 @@
-require 'concurrent'
+require 'concurrent/map'
+require 'concurrent/scheduled_task'
+require 'concurrent/executor/thread_pool_executor'
+require 'concurrent/utility/processor_counter'
 
 module ActiveJob
   # == Active Job Async Job
