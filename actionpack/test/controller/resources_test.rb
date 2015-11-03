@@ -1075,6 +1075,16 @@ class ResourcesTest < ActionController::TestCase
     end
   end
 
+  def test_singular_singleton_resource_maps_to_singular_controller
+    with_routing do |set|
+      set.draw do
+        resource :product, singular: true
+      end
+
+      assert_routing '/product', controller: 'product', action: 'show'
+    end
+  end
+
   protected
     def with_restful_routing(*args)
       options = args.extract_options!
