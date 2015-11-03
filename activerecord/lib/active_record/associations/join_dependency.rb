@@ -45,7 +45,7 @@ module ActiveRecord
         Column = Struct.new(:name, :alias)
       end
 
-      attr_reader :alias_tracker, :base_klass, :join_root
+      attr_reader :base, :associations, :joins
 
       def self.make_tree(associations)
         hash = {}
@@ -93,10 +93,26 @@ module ActiveRecord
       #    joins # =>  []
       #
       def initialize(base, associations, joins)
-        @alias_tracker = AliasTracker.create_with_joins(base.connection, base.table_name, joins, base.type_caster)
-        tree = self.class.make_tree associations
-        @join_root = JoinBase.new base, build(tree, base)
-        @join_root.children.each { |child| construct_tables! @join_root, child }
+        @base = base
+        @associations = associations
+        @joins = joins
+        build_join_root
+      end
+
+      def build_join_root
+        join_root.children.each { |child| construct_tables! join_root, child }
+      end
+
+      def join_root
+        @join_root ||= JoinBase.new base, build(tree, base)
+      end
+
+      def tree
+        @tree ||= self.class.make_tree associations
+      end
+
+      def alias_tracker
+        @alias_tracker ||= AliasTracker.create_with_joins(base.connection, base.table_name, joins, base.type_caster)
       end
 
       def reflections
