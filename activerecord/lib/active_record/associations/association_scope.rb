@@ -63,12 +63,14 @@ module ActiveRecord
         key = join_keys.key
         foreign_key = join_keys.foreign_key
 
+        # we should pass only table name to #where
+        table_name = table.name.split(".").last
         value = transform_value(owner[foreign_key])
-        scope = scope.where(table.name => { key => value })
+        scope = scope.where(table_name => { key => value })
 
         if reflection.type
           polymorphic_type = transform_value(owner.class.base_class.name)
-          scope = scope.where(table.name => { reflection.type => polymorphic_type })
+          scope = scope.where(table_name => { reflection.type => polymorphic_type })
         end
 
         scope

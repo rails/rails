@@ -1,11 +1,12 @@
 require "cases/helper"
 require 'models/post'
 require 'models/comment'
+require 'models/category'
 
 module ActiveRecord
   module ConnectionAdapters
     class Mysql2SchemaTest < ActiveRecord::Mysql2TestCase
-      fixtures :posts
+      fixtures :posts, :categories, :categories_posts
 
       def setup
         @connection = ActiveRecord::Base.connection
@@ -88,6 +89,22 @@ module ActiveRecord
 
         assert_nil index_c.using
         assert_equal :fulltext, index_c.type
+      end
+
+      def test_has_many_through_table_name_with_db
+        post_table_name                = Post.table_name
+        category_post_table_name       = Post::CategoryPost.table_name
+        category_table_name            = Category.table_name
+        Post.table_name                = "#{Post.connection_pool.spec.config[:database]}.#{post_table_name}"
+        Post::CategoryPost.table_name  = "#{Post::CategoryPost.connection_pool.spec.config[:database]}.#{category_post_table_name}"
+        Category.table_name            = "#{Category.connection_pool.spec.config[:database]}.#{category_table_name}"
+
+        assert_equal [1, 2], Post.first.scategories.map(&:id).sort
+        assert_equal [1, 2, 4, 6, 8], Category.first.posts.map(&:id).sort
+      ensure
+        Post.table_name                = post_table_name
+        Post::CategoryPost.table_name  = category_post_table_name
+        Category.table_name            = category_table_name
       end
 
       unless mysql_enforcing_gtid_consistency?

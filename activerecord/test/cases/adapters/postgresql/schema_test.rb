@@ -74,6 +74,24 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
     has_and_belongs_to_many :songs
   end
 
+  class CarDriver < ActiveRecord::Base
+    self.table_name = "taxi.car_drivers"
+    belongs_to :car
+    belongs_to :driver
+  end
+
+  class Car < ActiveRecord::Base
+    self.table_name = "taxi.cars"
+    has_many :car_drivers
+    has_many :drivers, through: :car_drivers
+  end
+
+  class Driver < ActiveRecord::Base
+    self.table_name = "taxi.drivers"
+    has_many :car_drivers
+    has_many :cars, through: :car_drivers
+  end
+
   def setup
     @connection = ActiveRecord::Base.connection
     @connection.execute "CREATE SCHEMA #{SCHEMA_NAME} CREATE TABLE #{TABLE_NAME} (#{COLUMNS.join(',')})"
@@ -154,6 +172,27 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
     assert_equal song, Song.includes(:albums).references(:albums).first
   ensure
     ActiveRecord::Base.connection.drop_schema "music", if_exists: true
+  end
+
+  def test_has_many_through_table_name_with_schema
+    ActiveRecord::Base.connection.drop_schema "taxi", if_exists: true
+    ActiveRecord::Base.connection.create_schema "taxi"
+    ActiveRecord::Base.connection.execute <<-SQL
+      CREATE TABLE taxi.cars (id serial primary key);
+      CREATE TABLE taxi.drivers (id serial primary key);
+      CREATE TABLE taxi.car_drivers (id serial primary key, car_id integer, driver_id integer);
+    SQL
+
+    car1 = Car.create
+    car2 = Car.create
+    driver1 = Driver.create(cars: [car1])
+    driver2 = Driver.create(cars: [car1, car2])
+    driver3 = Driver.create(cars: [car2])
+
+    assert_equal [driver1, driver2], Car.first.drivers.to_a
+    assert_equal [car2], Driver.find(driver3.id).cars.to_a
+  ensure
+    ActiveRecord::Base.connection.drop_schema "taxi", if_exists: true
   end
 
   def test_drop_schema_with_nonexisting_schema
