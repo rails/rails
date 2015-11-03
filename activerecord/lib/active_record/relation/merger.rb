@@ -122,9 +122,21 @@ module ActiveRecord
           join_dependency = ActiveRecord::Associations::JoinDependency.new(other.klass,
                                                                            joins_dependency,
                                                                            [])
-          relation.joins! rest
 
-          @relation = relation.joins join_dependency
+          unless join_already_merged?(join_dependency)
+            relation.joins! rest
+            @relation = relation.joins join_dependency
+          end
+        end
+      end
+
+      def join_already_merged?(to_merge)
+        relation.joins_values.select do |joins_value|
+          joins_value.is_a? ActiveRecord::Associations::JoinDependency
+        end.each do |merged|
+          if merged.tree == to_merge.tree && merged.base == to_merge.tree && merged.joins.empty?
+            return true
+          end
         end
       end
 
