@@ -308,34 +308,44 @@ module ApplicationTests
       assert_equal Pathname.new(app_path).join("somewhere"), Rails.public_path
     end
 
-    test "In production mode, config.serve_static_files is off by default" do
+    test "In production mode, config.public_file_server.enabled is off by default" do
       restore_default_config
 
       with_rails_env "production" do
         app 'production'
-        assert_not app.config.serve_static_files
+        assert_not app.config.public_file_server.enabled
       end
     end
 
-    test "In production mode, config.serve_static_files is enabled when RAILS_SERVE_STATIC_FILES is set" do
+    test "In production mode, config.public_file_server.enabled is enabled when RAILS_SERVE_STATIC_FILES is set" do
       restore_default_config
 
       with_rails_env "production" do
         switch_env "RAILS_SERVE_STATIC_FILES", "1" do
           app 'production'
-          assert app.config.serve_static_files
+          assert app.config.public_file_server.enabled
         end
       end
     end
 
-    test "In production mode, config.serve_static_files is disabled when RAILS_SERVE_STATIC_FILES is blank" do
+    test "In production mode, config.public_file_server.enabled is disabled when RAILS_SERVE_STATIC_FILES is blank" do
       restore_default_config
 
       with_rails_env "production" do
         switch_env "RAILS_SERVE_STATIC_FILES", " " do
           app 'production'
-          assert_not app.config.serve_static_files
+          assert_not app.config.public_file_server.enabled
         end
+      end
+    end
+
+    test "config.serve_static_files is deprecated" do
+      make_basic_app do |application|
+        assert_deprecated do
+          application.config.serve_static_files = true
+        end
+
+        assert application.config.public_file_server.enabled
       end
     end
 

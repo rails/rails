@@ -1,7 +1,26 @@
+*   Deprecate `serve_static_files` in favor of `public_file_server.enabled`.
+
+    Unifies the static asset options under `public_file_server`.
+
+    To upgrade, replace occurrences of:
+
+    ```
+    config.serve_static_files = # false or true
+    ```
+
+    in your environment files, with:
+
+    ```
+    config.public_file_server.enabled = # false or true
+    ```
+
+    *Kasper Timm Hansen*
+
 *   Route generator should be idempotent
     running generators several times no longer require you to cleanup routes.rb
 
     *Thiago Pinto*
+
 *   Allow passing an environment to `config_for`.
 
     *Simon Eskildsen*
