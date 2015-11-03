@@ -138,7 +138,7 @@ module ActiveSupport
     # If invalid string is provided, it will raise +ActiveSupport::Duration::ISO8601Parser::ParsingError+.
     def self.parse!(iso8601duration)
       parts = ISO8601Parser.new(iso8601duration).parts
-      time  = ::Time.now
+      time  = ::Time.current
       new(time.advance(parts) - time, parts)
     end
 
