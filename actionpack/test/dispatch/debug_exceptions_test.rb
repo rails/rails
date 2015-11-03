@@ -42,7 +42,11 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
       when "/unprocessable_entity"
         raise ActionController::InvalidAuthenticityToken
       when "/not_found_original_exception"
-        raise ActionView::Template::Error.new('template', AbstractController::ActionNotFound.new)
+        begin
+          raise AbstractController::ActionNotFound.new
+        rescue
+          raise ActionView::Template::Error.new('template')
+        end
       when "/missing_template"
         raise ActionView::MissingTemplate.new(%w(foo), 'foo/index', %w(foo), false, 'mailer')
       when "/bad_request"
@@ -56,12 +60,12 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
       when "/syntax_error_into_view"
         begin
           eval 'broke_syntax ='
-        rescue Exception => e
+        rescue Exception
           template = ActionView::Template.new(File.read(__FILE__),
                                               __FILE__,
                                               ActionView::Template::Handlers::Raw.new,
                                               {})
-          raise ActionView::Template::Error.new(template, e)
+          raise ActionView::Template::Error.new(template)
         end
       when "/framework_raises"
         method_that_raises

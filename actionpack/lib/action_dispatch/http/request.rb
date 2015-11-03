@@ -344,7 +344,7 @@ module ActionDispatch
         set_header k, Request::Utils.normalize_encode_params(rack_query_params)
       end
     rescue Rack::Utils::ParameterTypeError, Rack::Utils::InvalidParameterError => e
-      raise ActionController::BadRequest.new("Invalid query parameters: #{e.message}", e)
+      raise ActionController::BadRequest.new("Invalid query parameters: #{e.message}")
     end
     alias :query_parameters :GET
 
@@ -360,7 +360,7 @@ module ActionDispatch
       self.request_parameters = Request::Utils.normalize_encode_params(super || {})
       raise
     rescue Rack::Utils::ParameterTypeError, Rack::Utils::InvalidParameterError => e
-      raise ActionController::BadRequest.new("Invalid request parameters: #{e.message}", e)
+      raise ActionController::BadRequest.new("Invalid request parameters: #{e.message}")
     end
     alias :request_parameters :POST
 

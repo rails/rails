@@ -744,9 +744,10 @@ class PersistenceTest < ActiveRecord::TestCase
     assert !topic.approved?
     assert_equal "The First Topic", topic.title
 
-    assert_raise(ActiveRecord::RecordNotUnique, ActiveRecord::StatementInvalid) do
+    error = assert_raise(ActiveRecord::RecordNotUnique, ActiveRecord::StatementInvalid) do
       topic.update_attributes(id: 3, title: "Hm is it possible?")
     end
+    assert_not_nil error.cause
     assert_not_equal "Hm is it possible?", Topic.find(3).title
 
     topic.update_attributes(id: 1234)

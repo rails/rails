@@ -1012,8 +1012,8 @@ class RequestParameters < BaseRequestTest
       request.parameters
     end
 
-    assert e.original_exception
-    assert_equal e.original_exception.backtrace, e.backtrace
+    assert_not_nil e.cause
+    assert_equal e.cause.backtrace, e.backtrace
   end
 end
 

@@ -151,14 +151,16 @@ module ActiveRecord
 
     def test_uniqueness_violations_are_translated_to_specific_exception
       @connection.execute "INSERT INTO subscribers(nick) VALUES('me')"
-      assert_raises(ActiveRecord::RecordNotUnique) do
+      error = assert_raises(ActiveRecord::RecordNotUnique) do
         @connection.execute "INSERT INTO subscribers(nick) VALUES('me')"
       end
+
+      assert_not_nil error.cause
     end
 
     unless current_adapter?(:SQLite3Adapter)
       def test_foreign_key_violations_are_translated_to_specific_exception
-        assert_raises(ActiveRecord::InvalidForeignKey) do
+        error = assert_raises(ActiveRecord::InvalidForeignKey) do
           # Oracle adapter uses prefetched primary key values from sequence and passes them to connection adapter insert method
           if @connection.prefetch_primary_key?
             id_value = @connection.next_sequence_value(@connection.default_sequence_name("fk_test_has_fk", "id"))
@@ -167,6 +169,8 @@ module ActiveRecord
             @connection.execute "INSERT INTO fk_test_has_fk (fk_id) VALUES (0)"
           end
         end
+
+        assert_not_nil error.cause
       end
 
       def test_foreign_key_violations_are_translated_to_specific_exception_with_validate_false
@@ -174,11 +178,13 @@ module ActiveRecord
           self.table_name = 'fk_test_has_fk'
         end
 
-        assert_raises(ActiveRecord::InvalidForeignKey) do
+        error = assert_raises(ActiveRecord::InvalidForeignKey) do
           has_fk = klass_has_fk.new
           has_fk.fk_id = 1231231231
           has_fk.save(validate: false)
         end
+
+        assert_not_nil error.cause
       end
     end
 
@@ -231,11 +237,13 @@ module ActiveRecord
 
     unless current_adapter?(:PostgreSQLAdapter)
       def test_log_invalid_encoding
-        assert_raise ActiveRecord::StatementInvalid do
+        error = assert_raise ActiveRecord::StatementInvalid do
           @connection.send :log, "SELECT 'ы' FROM DUAL" do
             raise 'ы'.force_encoding(Encoding::ASCII_8BIT)
           end
         end
+
+        assert_not_nil error.cause
       end
     end
   end
