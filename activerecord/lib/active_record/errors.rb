@@ -94,13 +94,21 @@ module ActiveRecord
 
   # Superclass for all database execution errors.
   #
-  # Wraps the underlying database error as +original_exception+.
+  # Wraps the underlying database error as +cause+.
   class StatementInvalid < ActiveRecordError
-    attr_reader :original_exception
 
     def initialize(message = nil, original_exception = nil)
-      @original_exception = original_exception
-      super(message)
+      if original_exception
+        ActiveSupport::Deprecation.warn("Passing #original_exception is deprecated and has no effect. " \
+                                        "Exceptions will automatically capture the original exception.", caller)
+      end
+
+      super(message || $!.try(:message))
+    end
+
+    def original_exception
+      ActiveSupport::Deprecation.warn("#original_exception is deprecated. Use #cause instead.", caller)
+      cause
     end
   end
 

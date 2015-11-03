@@ -325,7 +325,7 @@ module ActionView
             template = refresh(view)
             template.encode!
           end
-          raise Template::Error.new(template, e)
+          raise Template::Error.new(template)
         end
       end
 

@@ -193,8 +193,8 @@ module ActiveRecord
         }
         begin
           statement.execute(hash.values, self, connection).first
-        rescue TypeError => e
-          raise ActiveRecord::StatementInvalid.new(e.message, e)
+        rescue TypeError
+          raise ActiveRecord::StatementInvalid
         rescue RangeError
           nil
         end

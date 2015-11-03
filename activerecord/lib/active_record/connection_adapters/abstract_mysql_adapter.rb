@@ -867,9 +867,9 @@ module ActiveRecord
       def translate_exception(exception, message)
         case error_number(exception)
         when 1062
-          RecordNotUnique.new(message, exception)
+          RecordNotUnique.new(message)
         when 1452
-          InvalidForeignKey.new(message, exception)
+          InvalidForeignKey.new(message)
         else
           super
         end

@@ -55,11 +55,11 @@ module ActionDispatch
 
         begin
           strategy.call(raw_post)
-        rescue => e # JSON or Ruby code block errors
+        rescue # JSON or Ruby code block errors
           my_logger = logger || ActiveSupport::Logger.new($stderr)
           my_logger.debug "Error occurred while parsing request parameters.\nContents:\n\n#{raw_post}"
 
-          raise ParamsParser::ParseError.new(e.message, e)
+          raise ParamsParser::ParseError
         end
       end
 

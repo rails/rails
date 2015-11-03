@@ -9,13 +9,21 @@ class ShowExceptionsTest < ActionDispatch::IntegrationTest
       when "/not_found"
         raise AbstractController::ActionNotFound
       when "/bad_params"
-        raise ActionDispatch::ParamsParser::ParseError.new("", StandardError.new)
+        begin
+          raise StandardError.new
+        rescue
+          raise ActionDispatch::ParamsParser::ParseError
+        end
       when "/method_not_allowed"
         raise ActionController::MethodNotAllowed, 'PUT'
       when "/unknown_http_method"
         raise ActionController::UnknownHttpMethod
       when "/not_found_original_exception"
-        raise ActionView::Template::Error.new('template', AbstractController::ActionNotFound.new)
+        begin
+          raise AbstractController::ActionNotFound.new
+        rescue
+          raise ActionView::Template::Error.new('template')
+        end
       else
         raise "puke!"
       end

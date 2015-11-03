@@ -352,8 +352,8 @@ module RenderTestCases
     exception = assert_raises ActionView::Template::Error do
       @controller_view.render("partial_name_local_variable")
     end
-    assert_instance_of NameError, exception.original_exception
-    assert_equal :partial_name_local_variable, exception.original_exception.name
+    assert_instance_of NameError, exception.cause
+    assert_equal :partial_name_local_variable, exception.cause.name
   end
 
   # TODO: The reason for this test is unclear, improve documentation
@@ -590,14 +590,14 @@ class LazyViewRenderTest < ActiveSupport::TestCase
   def test_render_utf8_template_with_incompatible_external_encoding
     with_external_encoding Encoding::SHIFT_JIS do
       e = assert_raises(ActionView::Template::Error) { @view.render(:file => "test/utf8", :formats => [:html], :layouts => "layouts/yield") }
-      assert_match 'Your template was not saved as valid Shift_JIS', e.original_exception.message
+      assert_match 'Your template was not saved as valid Shift_JIS', e.cause.message
     end
   end
 
   def test_render_utf8_template_with_partial_with_incompatible_encoding
     with_external_encoding Encoding::SHIFT_JIS do
       e = assert_raises(ActionView::Template::Error) { @view.render(:file => "test/utf8_magic_with_bare_partial", :formats => [:html], :layouts => "layouts/yield") }
-      assert_match 'Your template was not saved as valid Shift_JIS', e.original_exception.message
+      assert_match 'Your template was not saved as valid Shift_JIS', e.cause.message
     end
   end
 
