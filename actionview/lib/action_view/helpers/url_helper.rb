@@ -471,7 +471,7 @@ module ActionView
         }.compact
         extras = extras.empty? ? '' : '?' + ERB::Util.html_escape(extras.join('&'))
 
-        encoded_email_address = ERB::Util.url_encode(email_address.to_str).gsub("%40", "@")
+        encoded_email_address = ERB::Util.url_encode(email_address ? email_address.to_str : '').gsub("%40", "@")
         html_options["href"] = "mailto:#{encoded_email_address}#{extras}".html_safe
 
         content_tag(:a, name || email_address, html_options, &block)
