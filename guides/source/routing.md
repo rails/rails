@@ -154,18 +154,18 @@ This resourceful route:
 resource :geocoder
 ```
 
-creates six different routes in your application, all mapping to the `Geocoders` controller:
+creates six different routes in your application, all mapping to the `Geocoder` controller:
 
 | HTTP Verb | Path           | Controller#Action | Used for                                      |
 | --------- | -------------- | ----------------- | --------------------------------------------- |
-| GET       | /geocoder/new  | geocoders#new     | return an HTML form for creating the geocoder |
-| POST      | /geocoder      | geocoders#create  | create the new geocoder                       |
-| GET       | /geocoder      | geocoders#show    | display the one and only geocoder resource    |
-| GET       | /geocoder/edit | geocoders#edit    | return an HTML form for editing the geocoder  |
-| PATCH/PUT | /geocoder      | geocoders#update  | update the one and only geocoder resource     |
-| DELETE    | /geocoder      | geocoders#destroy | delete the geocoder resource                  |
+| GET       | /geocoder/new  | geocoder#new     | return an HTML form for creating the geocoder |
+| POST      | /geocoder      | geocoder#create  | create the new geocoder                       |
+| GET       | /geocoder      | geocoder#show    | display the one and only geocoder resource    |
+| GET       | /geocoder/edit | geocoder#edit    | return an HTML form for editing the geocoder  |
+| PATCH/PUT | /geocoder      | geocoder#update  | update the one and only geocoder resource     |
+| DELETE    | /geocoder      | geocoder#destroy | delete the geocoder resource                  |
 
-NOTE: Because you might want to use the same controller for a singular route (`/account`) and a plural route (`/accounts/45`), singular resources map to plural controllers. So that, for example, `resource :photo` and `resources :photos` creates both singular and plural routes that map to the same controller (`PhotosController`).
+TIP: If you want to use the same controller for a singular route (`/account`) and a plural route (`/accounts/45`), use the `plural_controller: true` option to map both routes to `AccountsController`.
 
 A singular resourceful route generates these helpers:
 

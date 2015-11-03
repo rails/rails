@@ -141,28 +141,28 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
 
     get '/session'
-    assert_equal 'sessions#create', @response.body
+    assert_equal 'session#create', @response.body
     assert_equal '/session', session_path
 
     post '/session'
-    assert_equal 'sessions#create', @response.body
+    assert_equal 'session#create', @response.body
 
     put '/session'
-    assert_equal 'sessions#update', @response.body
+    assert_equal 'session#update', @response.body
 
     delete '/session'
-    assert_equal 'sessions#destroy', @response.body
+    assert_equal 'session#destroy', @response.body
 
     get '/session/new'
-    assert_equal 'sessions#new', @response.body
+    assert_equal 'session#new', @response.body
     assert_equal '/session/new', new_session_path
 
     get '/session/edit'
-    assert_equal 'sessions#edit', @response.body
+    assert_equal 'session#edit', @response.body
     assert_equal '/session/edit', edit_session_path
 
     post '/session/reset'
-    assert_equal 'sessions#reset', @response.body
+    assert_equal 'session#reset', @response.body
     assert_equal '/session/reset', reset_session_path
   end
 
@@ -181,20 +181,20 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
 
     get '/session'
-    assert_equal 'sessions#create', @response.body
+    assert_equal 'session#create', @response.body
     assert_equal '/session', session_path
 
     post '/session'
-    assert_equal 'sessions#create', @response.body
+    assert_equal 'session#create', @response.body
 
     put '/session'
-    assert_equal 'sessions#update', @response.body
+    assert_equal 'session#update', @response.body
 
     delete '/session'
-    assert_equal 'sessions#destroy', @response.body
+    assert_equal 'session#destroy', @response.body
 
     post '/session/reset'
-    assert_equal 'sessions#reset', @response.body
+    assert_equal 'session#reset', @response.body
     assert_equal '/session/reset', reset_session_path
 
     get '/session/new'
@@ -212,7 +212,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
 
     get '/session/info'
-    assert_equal 'infos#show', @response.body
+    assert_equal 'info#show', @response.body
     assert_equal '/session/info', session_info_path
   end
 
@@ -226,7 +226,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
 
     get '/session/crush'
-    assert_equal 'sessions#crush', @response.body
+    assert_equal 'session#crush', @response.body
     assert_equal '/session/crush', crush_session_path
   end
 
@@ -688,15 +688,15 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
 
     get '/projects/1/manager'
-    assert_equal 'managers#show', @response.body
+    assert_equal 'manager#show', @response.body
     assert_equal '/projects/1/manager', project_super_manager_path(:project_id => '1')
 
     get '/projects/1/manager/new'
-    assert_equal 'managers#new', @response.body
+    assert_equal 'manager#new', @response.body
     assert_equal '/projects/1/manager/new', new_project_super_manager_path(:project_id => '1')
 
     post '/projects/1/manager/fire'
-    assert_equal 'managers#fire', @response.body
+    assert_equal 'manager#fire', @response.body
     assert_equal '/projects/1/manager/fire', fire_project_super_manager_path(:project_id => '1')
   end
 
@@ -749,7 +749,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal '/projects/1/people/1', project_person_path(:project_id => '1', :id => '1')
 
     get '/projects/1/people/1/7a2dec8/avatar'
-    assert_equal 'avatars#show', @response.body
+    assert_equal 'avatar#show', @response.body
     assert_equal '/projects/1/people/1/7a2dec8/avatar', project_person_avatar_path(:project_id => '1', :person_id => '1', :access_token => '7a2dec8')
 
     put '/projects/1/people/1/accessible_projects'
@@ -812,7 +812,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal '/projects/1/posts/1/preview', preview_project_post_path(:project_id => '1', :id => '1')
 
     get '/projects/1/posts/1/subscription'
-    assert_equal 'subscriptions#show', @response.body
+    assert_equal 'subscription#show', @response.body
     assert_equal '/projects/1/posts/1/subscription', project_post_subscription_path(:project_id => '1', :post_id => '1')
 
     get '/projects/1/posts/1/comments'
@@ -878,19 +878,19 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
 
     delete '/past'
-    assert_equal 'pasts#destroy', @response.body
+    assert_equal 'past#destroy', @response.body
     assert_equal '/past', past_path
 
     patch '/present'
-    assert_equal 'presents#update', @response.body
+    assert_equal 'present#update', @response.body
     assert_equal '/present', present_path
 
     put '/present'
-    assert_equal 'presents#update', @response.body
+    assert_equal 'present#update', @response.body
     assert_equal '/present', present_path
 
     post '/future'
-    assert_equal 'futures#create', @response.body
+    assert_equal 'future#create', @response.body
     assert_equal '/future', future_path
   end
 
@@ -972,15 +972,15 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal '/pt/projetos/1/editar', edit_pt_project_path(1)
 
     get '/pt/administrador'
-    assert_equal 'admins#show', @response.body
+    assert_equal 'admin#show', @response.body
     assert_equal '/pt/administrador', pt_admin_path
 
     get '/pt/administrador/novo'
-    assert_equal 'admins#new', @response.body
+    assert_equal 'admin#new', @response.body
     assert_equal '/pt/administrador/novo', new_pt_admin_path
 
     put '/pt/administrador/ativar'
-    assert_equal 'admins#activate', @response.body
+    assert_equal 'admin#activate', @response.body
     assert_equal '/pt/administrador/ativar', activate_pt_admin_path
   end
 
@@ -1079,15 +1079,15 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
 
     get '/account/subscription'
-    assert_equal 'account/subscriptions#show', @response.body
+    assert_equal 'account/subscription#show', @response.body
     assert_equal '/account/subscription', account_subscription_path
 
     get '/account/credit'
-    assert_equal 'account/credits#show', @response.body
+    assert_equal 'account/credit#show', @response.body
     assert_equal '/account/credit', account_credit_path
 
     get '/account/credit_card'
-    assert_equal 'account/credit_cards#show', @response.body
+    assert_equal 'account/credit_card#show', @response.body
     assert_equal '/account/credit_card', account_credit_card_path
   end
 
@@ -1101,7 +1101,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
 
     get '/account/admin/subscription'
-    assert_equal 'account/admin/subscriptions#show', @response.body
+    assert_equal 'account/admin/subscription#show', @response.body
     assert_equal '/account/admin/subscription', account_admin_subscription_path
   end
 
@@ -1120,11 +1120,11 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
     get '/clients/1/google/account'
     assert_equal '/clients/1/google/account', client_google_account_path(1)
-    assert_equal 'google/accounts#show', @response.body
+    assert_equal 'google/account#show', @response.body
 
     get '/clients/1/google/account/secret/info'
     assert_equal '/clients/1/google/account/secret/info', client_google_account_secret_info_path(1)
-    assert_equal 'google/secret/infos#show', @response.body
+    assert_equal 'google/secret/info#show', @response.body
   end
 
   def test_namespace_with_options
@@ -1395,7 +1395,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
     get "/user"
     assert_response :success
-    assert_equal "users#show", @response.body
+    assert_equal "user#show", @response.body
     assert_equal "/user", user_path
 
     get "/user.html"
@@ -1769,7 +1769,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     get '/dashboard', headers: { 'REMOTE_ADDR' => '10.0.0.100' }
     assert_equal 'pass', @response.headers['X-Cascade']
     get '/dashboard', headers: { 'REMOTE_ADDR' => '192.168.1.100' }
-    assert_equal 'dashboards#show', @response.body
+    assert_equal 'dashboard#show', @response.body
   end
 
   def test_root_works_in_the_resources_scope
@@ -1790,7 +1790,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
 
     get '/token'
-    assert_equal 'api/tokens#show', @response.body
+    assert_equal 'api/token#show', @response.body
     assert_equal '/token', token_path
   end
 
@@ -1798,16 +1798,16 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     draw do
       scope :path => 'api' do
         resource :me
-        get '/' => 'mes#index'
+        get '/' => 'me#index'
       end
     end
 
     get '/api/me'
-    assert_equal 'mes#show', @response.body
+    assert_equal 'me#show', @response.body
     assert_equal '/api/me', me_path
 
     get '/api'
-    assert_equal 'mes#index', @response.body
+    assert_equal 'me#index', @response.body
   end
 
   def test_symbol_scope
@@ -1815,7 +1815,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       scope :path => 'api' do
         scope :v2 do
           resource :me, as: 'v2_me'
-          get '/' => 'mes#index'
+          get '/' => 'me#index'
         end
 
         scope :v3, :admin do
@@ -1825,14 +1825,14 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
 
     get '/api/v2/me'
-    assert_equal 'mes#show', @response.body
+    assert_equal 'me#show', @response.body
     assert_equal '/api/v2/me', v2_me_path
 
     get '/api/v2'
-    assert_equal 'mes#index', @response.body
+    assert_equal 'me#index', @response.body
 
     get '/api/v3/admin/me'
-    assert_equal 'mes#show', @response.body
+    assert_equal 'me#show', @response.body
   end
 
   def test_url_generator_for_generic_route
@@ -1909,13 +1909,13 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal 'projects#preview', @response.body
 
     post '/pt/administrador/novo/preview'
-    assert_equal 'admins#preview', @response.body
+    assert_equal 'admin#preview', @response.body
 
     post '/pt/products/novo/preview'
     assert_equal 'products#preview', @response.body
 
     post '/profile/new/preview'
-    assert_equal 'profiles#preview', @response.body
+    assert_equal 'profile#preview', @response.body
   end
 
   def test_resource_merges_options_from_scope
@@ -2007,15 +2007,15 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal '/api/players/2/edit', edit_api_player_path(:id => '2')
 
     get '/api/teams/1/captain'
-    assert_equal 'api/captains#show', @response.body
+    assert_equal 'api/captain#show', @response.body
     assert_equal '/api/teams/1/captain', api_team_captain_path(:team_id => '1')
 
     get '/api/teams/1/captain/new'
-    assert_equal 'api/captains#new', @response.body
+    assert_equal 'api/captain#new', @response.body
     assert_equal '/api/teams/1/captain/new', new_api_team_captain_path(:team_id => '1')
 
     get '/api/teams/1/captain/edit'
-    assert_equal 'api/captains#edit', @response.body
+    assert_equal 'api/captain#edit', @response.body
     assert_equal '/api/teams/1/captain/edit', edit_api_team_captain_path(:team_id => '1')
 
     get '/threads'
@@ -2035,7 +2035,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal '/threads/1/edit', edit_thread_path(:id => '1')
 
     get '/threads/1/owner'
-    assert_equal 'owners#show', @response.body
+    assert_equal 'owner#show', @response.body
     assert_equal '/threads/1/owner', thread_owner_path(:thread_id => '1')
 
     get '/threads/1/messages'
@@ -2279,7 +2279,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         get "secret/profile" => "customers#secret", :on => :member
         post "preview" => "customers#preview", :as => :another_preview, :on => :new
         resource :avatar do
-          get "thumbnail" => "avatars#thumbnail", :as => :thumbnail, :on => :member
+          get "thumbnail" => "avatar#thumbnail", :as => :thumbnail, :on => :member
         end
         resources :invoices do
           get "outstanding" => "invoices#outstanding", :on => :collection
@@ -2534,7 +2534,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_raises(ActionController::UrlGenerationError){ movie_path(:movie_id => '00001', :id => '00001') }
 
     get '/movies/0001/trailer'
-    assert_equal 'trailers#show', @response.body
+    assert_equal 'trailer#show', @response.body
     assert_equal '/movies/0001/trailer', movie_trailer_path(:movie_id => '0001')
 
     get '/movies/00001/trailer'
@@ -2571,7 +2571,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_raise(NoMethodError) { edit_only_club_player_path(:club_id => '1', :id => '2') }
 
     get '/only/clubs/1/chairman'
-    assert_equal 'only/chairmen#show', @response.body
+    assert_equal 'only/chairman#show', @response.body
     assert_equal '/only/clubs/1/chairman', only_club_chairman_path(:club_id => '1')
 
     get '/only/clubs/1/chairman/edit'
@@ -2608,7 +2608,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_raise(NoMethodError) { edit_except_club_player_path(:club_id => '1', :id => '2') }
 
     get '/except/clubs/1/chairman'
-    assert_equal 'except/chairmen#show', @response.body
+    assert_equal 'except/chairman#show', @response.body
     assert_equal '/except/clubs/1/chairman', except_club_chairman_path(:club_id => '1')
 
     get '/except/clubs/1/chairman/edit'
@@ -2651,7 +2651,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal '/only/sectors/1/companies/2', only_sector_company_path(:sector_id => '1', :id => '2')
 
     get '/only/sectors/1/leader'
-    assert_equal 'only/leaders#show', @response.body
+    assert_equal 'only/leader#show', @response.body
     assert_equal '/only/sectors/1/leader', only_sector_leader_path(:sector_id => '1')
   end
 
@@ -2690,7 +2690,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal '/except/sectors/1/companies/2', except_sector_company_path(:sector_id => '1', :id => '2')
 
     get '/except/sectors/1/leader'
-    assert_equal 'except/leaders#show', @response.body
+    assert_equal 'except/leader#show', @response.body
     assert_equal '/except/sectors/1/leader', except_sector_leader_path(:sector_id => '1')
   end
 
@@ -2945,7 +2945,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal '/pages/Ruby_on_Rails', wiki_page_path(:id => 'Ruby_on_Rails')
 
     get '/my_account'
-    assert_equal 'wiki_accounts#show', @response.body
+    assert_equal 'wiki_account#show', @response.body
     assert_equal '/my_account', wiki_account_path
   end
 
