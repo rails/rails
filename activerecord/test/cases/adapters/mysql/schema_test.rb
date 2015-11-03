@@ -18,12 +18,6 @@ module ActiveRecord
           self.table_name = "#{db}.#{table}"
           def self.name; 'Post'; end
         end
-
-        @connection.create_table "mysql_doubles"
-      end
-
-      teardown do
-        @connection.drop_table "mysql_doubles", if_exists: true
       end
 
       class MysqlDouble < ActiveRecord::Base
@@ -31,13 +25,16 @@ module ActiveRecord
       end
 
       def test_float_limits
-        @connection.add_column :mysql_doubles, :float_no_limit, :float
-        @connection.add_column :mysql_doubles, :float_short, :float, limit: 5
-        @connection.add_column :mysql_doubles, :float_long, :float, limit: 53
+        @connection.create_table :mysql_doubles do |t|
+          t.float :float_no_limit
+          t.float :float_short, limit: 5
+          t.float :float_long, limit: 53
 
-        @connection.add_column :mysql_doubles, :float_23, :float, limit: 23
-        @connection.add_column :mysql_doubles, :float_24, :float, limit: 24
-        @connection.add_column :mysql_doubles, :float_25, :float, limit: 25
+          t.float :float_23, limit: 23
+          t.float :float_24, limit: 24
+          t.float :float_25, limit: 25
+        end
+
         MysqlDouble.reset_column_information
 
         column_no_limit = MysqlDouble.columns.find { |c| c.name == 'float_no_limit' }
@@ -56,6 +53,8 @@ module ActiveRecord
         assert_equal 24, column_23.limit
         assert_equal 24, column_24.limit
         assert_equal 53, column_25.limit
+      ensure
+        @connection.drop_table "mysql_doubles", if_exists: true
       end
 
       def test_schema
