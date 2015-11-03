@@ -1111,7 +1111,7 @@ module ActionDispatch
         # CANONICAL_ACTIONS holds all actions that does not need a prefix or
         # a path appended since they fit properly in their scope level.
         VALID_ON_OPTIONS  = [:new, :collection, :member]
-        RESOURCE_OPTIONS  = [:as, :controller, :path, :only, :except, :param, :concerns]
+        RESOURCE_OPTIONS  = [:as, :controller, :path, :only, :except, :param, :concerns, :plural_controller]
         CANONICAL_ACTIONS = %w(index create new show update destroy)
 
         class Resource #:nodoc:
@@ -1201,9 +1201,10 @@ module ActionDispatch
 
         class SingletonResource < Resource #:nodoc:
           def initialize(entities, api_only, shallow, options)
+            @plural_controller = options[:plural_controller]
             super
             @as         = nil
-            @controller = (options[:controller] || plural).to_s
+            @controller = (options[:controller] || suffixed_name).to_s
             @as         = options[:as]
           end
 
@@ -1213,6 +1214,10 @@ module ActionDispatch
             else
               [:show, :create, :update, :destroy, :new, :edit]
             end
+          end
+
+          def suffixed_name
+            @plural_controller ? plural : name.to_s
           end
 
           def plural

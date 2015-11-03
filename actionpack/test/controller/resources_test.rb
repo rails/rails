@@ -513,14 +513,14 @@ class ResourcesTest < ActionController::TestCase
   end
 
   def test_should_create_singleton_resource_routes
-    with_singleton_resources :account do
-      assert_singleton_restful_for :account
+    with_singleton_resources :profile do
+      assert_singleton_restful_for :profile
     end
   end
 
   def test_should_create_multiple_singleton_resource_routes
-    with_singleton_resources :account, :product do
-      assert_singleton_restful_for :account
+    with_singleton_resources :profile, :product do
+      assert_singleton_restful_for :profile
       assert_singleton_restful_for :product
     end
   end
@@ -529,12 +529,12 @@ class ResourcesTest < ActionController::TestCase
     with_routing do |set|
       set.draw do
         resource :admin, :controller => 'admin' do
-          resource :account
+          resource :profile
         end
       end
 
       assert_singleton_restful_for :admin, :controller => 'admin'
-      assert_singleton_restful_for :account, :name_prefix => "admin_", :path_prefix => 'admin/'
+      assert_singleton_restful_for :profile, :name_prefix => "admin_", :path_prefix => 'admin/'
     end
   end
 
@@ -542,18 +542,18 @@ class ResourcesTest < ActionController::TestCase
     [:patch, :put, :post].each do |method|
       with_routing do |set|
         set.draw do
-          resource :account do
+          resource :profile do
             match :reset, :on => :member, :via => method
           end
         end
 
         reset_options = {:action => 'reset'}
-        reset_path    = "/account/reset"
-        assert_singleton_routes_for :account do |options|
+        reset_path    = "/profile/reset"
+        assert_singleton_routes_for :profile do |options|
           assert_recognizes(options.merge(reset_options), :path => reset_path, :method => method)
         end
 
-        assert_singleton_named_routes_for :account do
+        assert_singleton_named_routes_for :profile do
           assert_named_route reset_path, :reset_account_path, reset_options
         end
       end
@@ -564,7 +564,7 @@ class ResourcesTest < ActionController::TestCase
     [:patch, :put, :post].each do |method|
       with_routing do |set|
         set.draw do
-          resource :account do
+          resource :profile do
             match :reset, :on => :member, :via => method
             match :disable, :on => :member, :via => method
           end
@@ -572,13 +572,13 @@ class ResourcesTest < ActionController::TestCase
 
         %w(reset disable).each do |action|
           action_options = {:action => action}
-          action_path    = "/account/#{action}"
-          assert_singleton_routes_for :account do |options|
+          action_path    = "/profile/#{action}"
+          assert_singleton_routes_for :profile do |options|
             assert_recognizes(options.merge(action_options), :path => action_path, :method => method)
           end
 
-          assert_singleton_named_routes_for :account do
-            assert_named_route action_path, "#{action}_account_path".to_sym, action_options
+          assert_singleton_named_routes_for :profile do
+            assert_named_route action_path, "#{action}_profile_path".to_sym, action_options
           end
         end
       end
@@ -588,13 +588,13 @@ class ResourcesTest < ActionController::TestCase
   def test_should_nest_resources_in_singleton_resource
     with_routing do |set|
       set.draw do
-        resource :account do
+        resource :profile do
           resources :messages
         end
       end
 
-      assert_singleton_restful_for :account
-      assert_simply_restful_for :messages, :name_prefix => "account_", :path_prefix => 'account/'
+      assert_singleton_restful_for :profile
+      assert_simply_restful_for :messages, :name_prefix => "profile_", :path_prefix => 'profile/'
     end
   end
 
@@ -602,14 +602,14 @@ class ResourcesTest < ActionController::TestCase
     with_routing do |set|
       set.draw do
         scope ':site_id' do
-          resource(:account) do
+          resource(:profile) do
             resources :messages
           end
         end
       end
 
-      assert_singleton_restful_for :account, :path_prefix => '7/', :options => { :site_id => '7' }
-      assert_simply_restful_for :messages, :name_prefix => "account_", :path_prefix => '7/account/', :options => { :site_id => '7' }
+      assert_singleton_restful_for :profile, :path_prefix => '7/', :options => { :site_id => '7' }
+      assert_simply_restful_for :messages, :name_prefix => "profile_", :path_prefix => '7/profile/', :options => { :site_id => '7' }
     end
   end
 
@@ -668,16 +668,16 @@ class ResourcesTest < ActionController::TestCase
     with_routing do |set|
       set.draw do
         scope '/admin' do
-          resource :account, :as => :admin_account do
+          resource :profile, :as => :admin_profile do
             get :login, :on => :member
             get :preview, :on => :new
           end
         end
       end
-      assert_singleton_restful_for :account, :name_prefix => 'admin_', :path_prefix => 'admin/'
-      assert_named_route "/admin/account/login", "login_admin_account_path", {}
-      assert_named_route "/admin/account/new", "new_admin_account_path", {}
-      assert_named_route "/admin/account/new/preview", "preview_new_admin_account_path", {}
+      assert_singleton_restful_for :profile, :name_prefix => 'admin_', :path_prefix => 'admin/'
+      assert_named_route "/admin/profile/login", "login_admin_profile_path", {}
+      assert_named_route "/admin/profile/new", "new_admin_profile_path", {}
+      assert_named_route "/admin/profile/new/preview", "preview_new_admin_profile_path", {}
     end
   end
 
@@ -808,11 +808,11 @@ class ResourcesTest < ActionController::TestCase
   def test_singleton_resource_has_only_show_action
     with_routing do |set|
       set.draw do
-        resource :account, :only => :show
+        resource :profile, :only => :show
       end
 
-      assert_singleton_resource_allowed_routes('accounts', {},                    :show, [:index, :new, :create, :edit, :update, :destroy])
-      assert_singleton_resource_allowed_routes('accounts', { :format => 'xml' },  :show, [:index, :new, :create, :edit, :update, :destroy])
+      assert_singleton_resource_allowed_routes('profile', {},                    :show, [:index, :new, :create, :edit, :update, :destroy])
+      assert_singleton_resource_allowed_routes('profile', { :format => 'xml' },  :show, [:index, :new, :create, :edit, :update, :destroy])
     end
   end
 
@@ -830,11 +830,11 @@ class ResourcesTest < ActionController::TestCase
   def test_singleton_resource_does_not_have_destroy_action
     with_routing do |set|
       set.draw do
-        resource :account, :except => :destroy
+        resource :profile, :except => :destroy
       end
 
-      assert_singleton_resource_allowed_routes('accounts', {},                    [:new, :create, :show, :edit, :update], :destroy)
-      assert_singleton_resource_allowed_routes('accounts', { :format => 'xml' },  [:new, :create, :show, :edit, :update], :destroy)
+      assert_singleton_resource_allowed_routes('profile', {},                    [:new, :create, :show, :edit, :update], :destroy)
+      assert_singleton_resource_allowed_routes('profile', { :format => 'xml' },  [:new, :create, :show, :edit, :update], :destroy)
     end
   end
 
@@ -880,39 +880,39 @@ class ResourcesTest < ActionController::TestCase
   def test_singleton_resource_has_only_create_action_and_named_route
     with_routing do |set|
       set.draw do
-        resource :account, :only => :create
+        resource :profile, :only => :create
       end
 
-      assert_singleton_resource_allowed_routes('accounts', {},                    :create, [:new, :show, :edit, :update, :destroy])
-      assert_singleton_resource_allowed_routes('accounts', { :format => 'xml' },  :create, [:new, :show, :edit, :update, :destroy])
+      assert_singleton_resource_allowed_routes('profile', {},                    :create, [:new, :show, :edit, :update, :destroy])
+      assert_singleton_resource_allowed_routes('profile', { :format => 'xml' },  :create, [:new, :show, :edit, :update, :destroy])
 
-      assert_not_nil set.named_routes[:account]
+      assert_not_nil set.named_routes[:profile]
     end
   end
 
   def test_singleton_resource_has_only_update_action_and_named_route
     with_routing do |set|
       set.draw do
-        resource :account, :only => :update
+        resource :profile, :only => :update
       end
 
-      assert_singleton_resource_allowed_routes('accounts', {},                    :update, [:new, :create, :show, :edit, :destroy])
-      assert_singleton_resource_allowed_routes('accounts', { :format => 'xml' },  :update, [:new, :create, :show, :edit, :destroy])
+      assert_singleton_resource_allowed_routes('profile', {},                    :update, [:new, :create, :show, :edit, :destroy])
+      assert_singleton_resource_allowed_routes('profile', { :format => 'xml' },  :update, [:new, :create, :show, :edit, :destroy])
 
-      assert_not_nil set.named_routes[:account]
+      assert_not_nil set.named_routes[:profile]
     end
   end
 
   def test_singleton_resource_has_only_destroy_action_and_named_route
     with_routing do |set|
       set.draw do
-        resource :account, :only => :destroy
+        resource :profile, :only => :destroy
       end
 
-      assert_singleton_resource_allowed_routes('accounts', {},                    :destroy, [:new, :create, :show, :edit, :update])
-      assert_singleton_resource_allowed_routes('accounts', { :format => 'xml' },  :destroy, [:new, :create, :show, :edit, :update])
+      assert_singleton_resource_allowed_routes('profile', {},                    :destroy, [:new, :create, :show, :edit, :update])
+      assert_singleton_resource_allowed_routes('profile', { :format => 'xml' },  :destroy, [:new, :create, :show, :edit, :update])
 
-      assert_not_nil set.named_routes[:account]
+      assert_not_nil set.named_routes[:profile]
     end
   end
 
@@ -951,18 +951,18 @@ class ResourcesTest < ActionController::TestCase
   def test_singleton_resource_has_only_member_action
     with_routing do |set|
       set.draw do
-        resource :account, :only => [] do
+        resource :profile, :only => [] do
           member do
             get :signup
           end
         end
       end
 
-      assert_singleton_resource_allowed_routes('accounts', {},                    [], [:new, :create, :show, :edit, :update, :destroy])
-      assert_singleton_resource_allowed_routes('accounts', { :format => 'xml' },  [], [:new, :create, :show, :edit, :update, :destroy])
+      assert_singleton_resource_allowed_routes('profile', {},                    [], [:new, :create, :show, :edit, :update, :destroy])
+      assert_singleton_resource_allowed_routes('profile', { :format => 'xml' },  [], [:new, :create, :show, :edit, :update, :destroy])
 
-      assert_recognizes({ :controller => 'accounts', :action => 'signup' },                   :path => 'account/signup',      :method => :get)
-      assert_recognizes({ :controller => 'accounts', :action => 'signup', :format => 'xml' }, :path => 'account/signup.xml',  :method => :get)
+      assert_recognizes({ :controller => 'profile', :action => 'signup' },                   :path => 'profile/signup',      :method => :get)
+      assert_recognizes({ :controller => 'profile', :action => 'signup', :format => 'xml' }, :path => 'profile/signup.xml',  :method => :get)
     end
   end
 
@@ -1042,7 +1042,7 @@ class ResourcesTest < ActionController::TestCase
         resource :product
       end
 
-      assert_routing '/product', :controller => 'products', :action => 'show'
+      assert_routing '/product', :controller => 'product', :action => 'show'
       assert set.recognize_path("/product", :method => :get)
     end
   end
@@ -1072,6 +1072,16 @@ class ResourcesTest < ActionController::TestCase
   def test_singleton_resource_name_is_not_singularized
     with_singleton_resources(:products) do
       assert_singleton_restful_for :products
+    end
+  end
+
+  def test_singleton_resource_with_plural_option_maps_to_plural_controller
+    with_routing do |set|
+      set.draw do
+        resource :product, plural_controller: true
+      end
+
+      assert_routing '/product', controller: 'products', action: 'show'
     end
   end
 
@@ -1238,7 +1248,7 @@ class ResourcesTest < ActionController::TestCase
 
     def assert_singleton_routes_for(singleton_name, options = {})
       route_options = (options[:options] ||= {}).dup
-      route_options[:controller] = options[:controller] || singleton_name.to_s.pluralize
+      route_options[:controller] = options[:controller] || singleton_name.to_s
 
       full_path           = "/#{options[:path_prefix]}#{options[:as] || singleton_name}"
       new_path            = "#{full_path}/new"
@@ -1273,7 +1283,7 @@ class ResourcesTest < ActionController::TestCase
 
     def assert_singleton_named_routes_for(singleton_name, options = {})
       route_options = (options[:options] ||= {}).dup
-      controller_name = route_options[:controller] || options[:controller] || singleton_name.to_s.pluralize
+      controller_name = route_options[:controller] || options[:controller] || singleton_name.to_s
       @controller = "#{controller_name.camelize}Controller".constantize.new
       @controller.singleton_class.include(@routes.url_helpers)
       get :show, params: route_options

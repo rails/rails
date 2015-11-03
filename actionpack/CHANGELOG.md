@@ -1,3 +1,16 @@
+*   Map singular resources to singular controllers by default.
+    
+    For example,
+
+    ```ruby
+    resource :profile
+    ```
+
+    will map to `ProfileController`. Adding `plural_controller: true` to the
+    resource declaration will map to `ProfilesController`.
+
+    *Jerome Dalbert*
+
 *   Catch invalid UTF-8 querystring values and respond with BadRequest
 
     Check querystring params for invalid UTF-8 characters, and raise an
