@@ -138,12 +138,12 @@ module AbstractController
       self.class.action_methods
     end
 
-    # Returns true if a method for the action is available and
-    # can be dispatched, false otherwise.
+    # Returns method name for the action if available and
+    # can be dispatched, nil otherwise.
     #
     # Notice that <tt>action_methods.include?("foo")</tt> may return
-    # false and <tt>available_action?("foo")</tt> returns true because
-    # this method considers actions that are also available
+    # false and <tt>available_action?("foo")</tt> returns thruthy value
+    # because this method considers actions that are also available
     # through other means, for example, implicit render ones.
     #
     # ==== Parameters
