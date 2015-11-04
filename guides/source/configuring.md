@@ -122,7 +122,7 @@ defaults to `:debug` for all environments. The available log levels are: `:debug
 
 * `secrets.secret_key_base` is used for specifying a key which allows sessions for the application to be verified against a known secure key to prevent tampering. Applications get `secrets.secret_key_base` initialized to a random key present in `config/secrets.yml`.
 
-* `config.serve_static_files` configures Rails to serve static files. This option defaults to true, but in the production environment it is set to false because the server software (e.g. NGINX or Apache) used to run the application should serve static files instead. If you are running or testing your app in production mode using WEBrick (it is not recommended to use WEBrick in production) set the option to true. Otherwise, you won't be able to use page caching and request for files that exist under the public directory.
+* `config.public_file_server.enabled` configures Rails to serve static files from the public directory. This option defaults to true, but in the production environment it is set to false because the server software (e.g. NGINX or Apache) used to run the application should serve static files instead. If you are running or testing your app in production mode using WEBrick (it is not recommended to use WEBrick in production) set the option to true. Otherwise, you won't be able to use page caching and request for files that exist under the public directory.
 
 * `config.session_store` is usually set up in `config/initializers/session_store.rb` and specifies what class to use to store the session. Possible values are `:cookie_store` which is the default, `:mem_cache_store`, and `:disabled`. The last one tells Rails not to deal with sessions. Custom session stores can also be specified:
 
@@ -199,7 +199,7 @@ The full set of methods that can be used in this block are as follows:
 Every Rails application comes with a standard set of middleware which it uses in this order in the development environment:
 
 * `ActionDispatch::SSL` forces every request to be under HTTPS protocol. Will be available if `config.force_ssl` is set to `true`. Options passed to this can be configured by using `config.ssl_options`.
-* `ActionDispatch::Static` is used to serve static assets. Disabled if `config.serve_static_files` is `false`. Set `config.static_index` if you need to serve a static directory index file that is not named `index`. For example, to serve `main.html` instead of `index.html` for directory requests, set `config.static_index` to `"main"`.
+* `ActionDispatch::Static` is used to serve static assets. Disabled if `config.public_file_server.enabled` is `false`. Set `config.static_index` if you need to serve a static directory index file that is not named `index`. For example, to serve `main.html` instead of `index.html` for directory requests, set `config.static_index` to `"main"`.
 * `Rack::Lock` wraps the app in mutex so it can only be called by a single thread at a time. Only enabled when `config.cache_classes` is `false`.
 * `ActiveSupport::Cache::Strategy::LocalCache` serves as a basic memory backed cache. This cache is not thread safe and is intended only for serving as a temporary memory cache for a single thread.
 * `Rack::Runtime` sets an `X-Runtime` header, containing the time (in seconds) taken to execute the request.

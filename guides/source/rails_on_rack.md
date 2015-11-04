@@ -213,7 +213,7 @@ Much of Action Controller's functionality is implemented as Middlewares. The fol
 
 **`ActionDispatch::Static`**
 
-* Used to serve static files. Disabled if `config.serve_static_files` is `false`.
+* Used to serve static files from the public directory. Disabled if `config.public_file_server.enabled` is `false`.
 
 **`Rack::Lock`**
 
