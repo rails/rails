@@ -84,7 +84,7 @@ module ActiveSupport
     end
 
     def existing_parent(dir)
-      dir = Pathname.new(File.expand_path(dir))
+      dir = Pathname.new(expand_path(dir))
 
       loop do
         if dir.directory?
