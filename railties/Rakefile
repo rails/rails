@@ -5,20 +5,33 @@ task :default => :test
 desc "Run all unit tests"
 task :test => 'test:isolated'
 
+dash_i = [
+  'test',
+  'lib',
+  "#{File.dirname(__FILE__)}/../activesupport/lib",
+  "#{File.dirname(__FILE__)}/../actionpack/lib",
+  "#{File.dirname(__FILE__)}/../activemodel/lib"
+]
+
+dash_i.reverse_each do |x|
+  $:.unshift x unless $:.include? x
+end
+$-w = true
+
+require 'bundler/setup' unless defined?(Bundler)
+require 'active_support'
+
 namespace :test do
   task :isolated do
     dirs = (ENV["TEST_DIR"] || ENV["TEST_DIRS"] || "**").split(",")
     test_files = dirs.map { |dir| "test/#{dir}/*_test.rb" }
     Dir[*test_files].each do |file|
       next true if file.include?("fixtures")
-      dash_i = [
-        'test',
-        'lib',
-        "#{File.dirname(__FILE__)}/../activesupport/lib",
-        "#{File.dirname(__FILE__)}/../actionpack/lib",
-        "#{File.dirname(__FILE__)}/../activemodel/lib"
-      ]
-      ruby "-w", "-I#{dash_i.join ':'}", file
+      puts "#{FileUtils::RUBY} -w -I#{dash_i.join ':'} #{file}"
+
+      # We could run these in parallel, but pretty much all of the
+      # railties tests already run in parallel, so ¯\_(⊙︿⊙)_/¯
+      Process.waitpid fork { ARGV.clear; load file }
     end
   end
 end
