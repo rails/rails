@@ -7,7 +7,7 @@ module ActiveSupport
     # See http://en.wikipedia.org/wiki/ISO_8601#Durations
     # Parts of code and logic are taken from ISO8601 gem by Arnau Siches (@arnau).
     # This parser isn't so strict and allows negative parts to be present in pattern.
-    class ISO8601Parser
+    class ISO8601Parser # :nodoc:
       class ParsingError < ::ArgumentError; end
 
       PERIOD_OR_COMMA = /\.|,/
@@ -25,22 +25,6 @@ module ActiveSupport
 
       DATE_COMPONENTS = [:years, :months, :days]
       TIME_COMPONENTS = [:hours, :minutes, :seconds]
-
-      class << self
-        # Parses valid ISO8601 Duration string to hash of components or raises a +ParsingError+ instead
-        def parse!(string)
-          new(string).parse!
-        end
-
-        # Parses valid ISO8601 Duration string to hash of components or returns +nil+ instead
-        def parse(string)
-          begin
-            parse!(string)
-          rescue ParsingError
-            nil
-          end
-        end
-      end
 
       attr_reader :parts, :scanner
       attr_accessor :mode, :sign
