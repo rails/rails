@@ -76,7 +76,7 @@ module ActionCable
       SUBSCRIPTION_CONFIRMATION_INTERNAL_MESSAGE = 'confirm_subscription'.freeze
       SUBSCRIPTION_REJECTION_INTERNAL_MESSAGE = 'reject_subscription'.freeze
 
-      attr_reader :params, :connection, ::identifier
+      attr_reader :params, :connection, :identifier
       delegate :logger, to: :connection
 
       class << self
