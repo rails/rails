@@ -1,3 +1,8 @@
+*   No longer pass deprecated option `-i` to `pg_dump`.
+
+    *Paul Sadauskas*
+
+
 ## Rails 4.1.14.rc1 (October 30, 2015) ##
 
 *   Includes HABTM returns correct size now. It's caused by the join dependency
@@ -28,6 +33,7 @@
     Fixes #18704.
 
     *Sean Griffin*
+
 
 ## Rails 4.1.12 (June 25, 2015) ##
 

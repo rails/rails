@@ -202,7 +202,7 @@ module ActiveRecord
 
     def test_structure_dump
       filename = "awesome-file.sql"
-      Kernel.expects(:system).with("pg_dump -i -s -x -O -f #{filename}  my-app-db").returns(true)
+      Kernel.expects(:system).with("pg_dump -s -x -O -f #{filename}  my-app-db").returns(true)
       @connection.expects(:schema_search_path).returns("foo")
 
       ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename)
