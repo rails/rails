@@ -151,7 +151,6 @@ module ActionCable
           server.add_connection(self)
         rescue ActionCable::Connection::Authorization::UnauthorizedError
           respond_to_invalid_request
-          close
         end
 
         def on_message(message)
@@ -186,6 +185,8 @@ module ActionCable
         end
 
         def respond_to_invalid_request
+          close if websocket.alive?
+
           logger.info finished_request_message
           [ 404, { 'Content-Type' => 'text/plain' }, [ 'Page not found' ] ]
         end
