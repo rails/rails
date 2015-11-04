@@ -16,6 +16,28 @@
 
     *Kasper Timm Hansen*
 
+*   Deprecate `config.static_cache_control` in favor of
+    `config.public_file_server.headers`.
+
+    To upgrade, replace occurrences of:
+
+    ```
+    config.static_cache_control = 'public, max-age=60'
+    ```
+
+    in your environment files, with:
+
+    ```
+    config.public_file_server.headers = {
+      'Cache-Control' => 'public, max-age=60'
+    }
+    ```
+
+    `config.public_file_server.headers` can set arbitrary headers, sent along when
+    a response is delivered.
+
+    *Yuki Nishijima*
+
 *   Route generator should be idempotent
     running generators several times no longer require you to cleanup routes.rb
 
