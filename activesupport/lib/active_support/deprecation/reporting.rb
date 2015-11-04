@@ -83,7 +83,7 @@ module ActiveSupport
 
           rails_gem_root = File.expand_path("../../../../..", __FILE__) + "/"
           offending_line = callstack.find { |frame|
-            !frame.absolute_path.start_with?(rails_gem_root)
+            frame.absolute_path && !frame.absolute_path.start_with?(rails_gem_root)
           } || callstack.first
           [offending_line.path, offending_line.lineno, offending_line.label]
         end
