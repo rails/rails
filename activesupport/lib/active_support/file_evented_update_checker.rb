@@ -4,8 +4,6 @@ require 'pathname'
 
 module ActiveSupport
   class FileEventedUpdateChecker
-    attr_reader :listener
-
     def initialize(files, dirs={}, &block)
       @files = files.map {|f| expand_path(f)}.to_set
 
@@ -18,8 +16,7 @@ module ActiveSupport
       @modified = false
 
       if (watch_dirs = base_directories).any?
-        @listener = Listen.to(*watch_dirs, &method(:changed))
-        @listener.start
+        Listen.to(*watch_dirs, &method(:changed)).start
       end
     end
 
