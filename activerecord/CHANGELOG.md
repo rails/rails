@@ -60,7 +60,7 @@
 
     *Takashi Kokubun*
 
-*   Use advisory locking to raise a ConcurrentMigrationError instead of
+*   Use advisory locking to raise a `ConcurrentMigrationError` instead of
     attempting to migrate when another migration is currently running.
 
     *Sam Davies*
@@ -80,7 +80,7 @@
     *Aaron Suggs*
 
 *   Avoid disabling errors on the PostgreSQL connection when enabling the
-    standard_conforming_strings setting. Errors were previously disabled because
+    `standard_conforming_strings` setting. Errors were previously disabled because
     the setting wasn't writable in Postgres 8.1 and didn't exist in earlier
     versions. Now Rails only supports Postgres 8.2+ we're fine to assume the
     setting exists. Disabling errors caused problems when using a connection
@@ -92,7 +92,7 @@
 
     *Harry Marr*
 
-*   Set `scope.reordering_value` to `true` if :reordering values are specified.
+*   Set `scope.reordering_value` to `true` if `:reordering`-values are specified.
 
     Fixes #21886.
 
@@ -151,13 +151,13 @@
           validates_numericality_of :pitch
         end
 
-     - Old style
-     - `guitar.errors["tuning_pegs.pitch"] = ["is not a number"]`
+        # Old style
+        guitar.errors["tuning_pegs.pitch"] = ["is not a number"]
 
-     - New style (if defined globally, or set in has_many_relationship)
-     - `guitar.errors["tuning_pegs[1].pitch"] = ["is not a number"]`
+        # New style (if defined globally, or set in has_many_relationship)
+        guitar.errors["tuning_pegs[1].pitch"] = ["is not a number"]
 
-    *Michael Probber and Terence Sun*
+    *Michael Probber*, *Terence Sun*
 
 *   Exit with non-zero status for failed database rake tasks.
 
@@ -170,21 +170,23 @@
 
     *Rafael Sales*
 
-*   Add ability to default to `uuid` as primary key when generating database migrations
+*   Add ability to default to `uuid` as primary key when generating database migrations.
 
-    config.generators do |g|
-      g.orm :active_record, primary_key_type: :uuid
-    end
+    Example:
+
+      config.generators do |g|
+        g.orm :active_record, primary_key_type: :uuid
+      end
 
     *Jon McCartie*
 
-*   Don't cache arguments in #find_by if they are an ActiveRecord::Relation
+*   Don't cache arguments in `#find_by` if they are an `ActiveRecord::Relation`.
 
     Fixes #20817
 
     *Hiroaki Izu*
 
-*   Qualify column name inserted by `group` in calculation
+*   Qualify column name inserted by `group` in calculation.
 
     Giving `group` an unqualified column name now works, even if the relation
     has `JOIN` with another table which also has a column of the name.
@@ -209,7 +211,7 @@
     *Jake Worth*
 
 *   Add an immutable string type to help reduce memory usage for apps which do
-    not need mutation detection on Strings.
+    not need mutation detection on strings.
 
     *Sean Griffin*
 
@@ -242,7 +244,7 @@
 
     *Matthew Draper*, *Jean Boussier*
 
-*   Remove unused `pk_and_sequence_for` in AbstractMysqlAdapter.
+*   Remove unused `pk_and_sequence_for` in `AbstractMysqlAdapter`.
 
     *Ryuta Kamizono*
 
@@ -268,7 +270,7 @@
 
     *Jimmy Bourassa*
 
-*   Fixed taking precision into count when assigning a value to timestamp attribute
+*   Fixed taking precision into count when assigning a value to timestamp attribute.
 
     Timestamp column can have less precision than ruby timestamp
     In result in how big a fraction of a second can be stored in the
@@ -298,7 +300,7 @@
     *Yves Senn*, *Matthew Draper*
 
 *   Add `ActiveRecord::Base.ignored_columns` to make some columns
-    invisible from ActiveRecord.
+    invisible from Active Record.
 
     *Jean Boussier*
 
