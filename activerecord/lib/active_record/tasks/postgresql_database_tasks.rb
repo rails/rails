@@ -44,7 +44,7 @@ module ActiveRecord
 
       def structure_dump(filename)
         set_psql_env
-        args = ['-i', '-s', '-x', '-O', '-f', filename]
+        args = ['-s', '-x', '-O', '-f', filename]
         search_path = configuration['schema_search_path']
         unless search_path.blank?
           args << search_path.split(',').map do |part|
