@@ -248,6 +248,13 @@ end
 @person.try { |p| "#{p.first_name} #{p.last_name}" }
 ```
 
+Note that `try` will swallow no-method errors, returning nil instead. If you want to protect against typos, use `try!` instead:
+
+```ruby
+@number.try(:nest)  # => nil
+@number.try!(:nest) # NoMethodError: undefined method `nest' for 1:Fixnum
+```
+
 NOTE: Defined in `active_support/core_ext/object/try.rb`.
 
 ### `class_eval(*args, &block)`
