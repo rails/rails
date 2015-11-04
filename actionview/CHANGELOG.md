@@ -1,3 +1,7 @@
+*   Restrict `url_for :back` to valid, non-JavaScript URLs. GH#14444
+
+    *Damien Burke*
+
 *   Allow `date_select` helper selected option to accept hash like the default options.
 
     *Lecky Lao*
