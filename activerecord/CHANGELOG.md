@@ -227,7 +227,7 @@
 
     *Yves Senn*
 
-*   No longer pass depreacted option `-i` to `pg_dump`.
+*   No longer pass deprecated option `-i` to `pg_dump`.
 
     *Paul Sadauskas*
 
