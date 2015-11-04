@@ -1159,7 +1159,7 @@ false:
 
 ```ruby
 group :development do
-  gem 'listen'
+  gem 'listen', '~> 3.0.4'
 end
 ```
 
