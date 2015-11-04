@@ -11,7 +11,6 @@ module ActiveSupport
     #     include ActiveSupport::LogSubscriber::TestHelper
     #
     #     setup do
-    #       super
     #       ActiveRecord::LogSubscriber.attach_to(:active_record)
     #     end
     #
