@@ -143,7 +143,9 @@ module ActionCable
       # Called by the cable connection when its cut so the channel has a chance to cleanup with callbacks.
       # This method is not intended to be called directly by the user. Instead, overwrite the #unsubscribed callback.
       def unsubscribe_from_channel
-        _run_unsubscribe_callbacks { unsubscribed }
+        run_callbacks :unsubscribe do
+          unsubscribed
+        end
       end
 
 
@@ -192,7 +194,9 @@ module ActionCable
 
 
         def subscribe_to_channel
-          _run_subscribe_callbacks { subscribed }
+          run_callbacks :subscribe do
+            subscribed
+          end
           transmit_subscription_confirmation unless defer_subscription_confirmation?
         end
 
@@ -227,7 +231,6 @@ module ActionCable
           unless subscription_confirmation_sent?
             logger.info "#{self.class.name} is transmitting the subscription confirmation"
             connection.transmit ActiveSupport::JSON.encode(identifier: @identifier, type: SUBSCRIPTION_CONFIRMATION_INTERNAL_MESSAGE)
-
             @subscription_confirmation_sent = true
           end
         end

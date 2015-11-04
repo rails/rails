@@ -15,6 +15,9 @@ matrix:
   allow_failures:
     - ruby-head
 
+services:
+  - redis-server
+
 notifications:
   email: false
   irc:
