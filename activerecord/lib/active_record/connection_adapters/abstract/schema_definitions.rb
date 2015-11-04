@@ -202,13 +202,9 @@ module ActiveRecord
     #     end
     #   end
     #
-    # The table definitions
-    # The Columns are stored as a ColumnDefinition in the #columns attribute.
     class TableDefinition
       include ColumnMethods
 
-      # An array of ColumnDefinition objects, representing the column changes
-      # that have been defined.
       attr_accessor :indexes
       attr_reader :name, :temporary, :options, :as, :foreign_keys, :native
 
