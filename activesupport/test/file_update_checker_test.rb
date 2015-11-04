@@ -3,8 +3,6 @@ require 'fileutils'
 require 'thread'
 require 'file_update_checker_with_enumerable_test_cases'
 
-MTIME_FIXTURES_PATH = File.expand_path('fixtures', __dir__)
-
 class FileUpdateCheckerTest < ActiveSupport::TestCase
   include FileUpdateCheckerWithEnumerableTestCases
 
