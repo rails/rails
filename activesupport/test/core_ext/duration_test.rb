@@ -224,7 +224,7 @@ class DurationTest < ActiveSupport::TestCase
   def test_iso8601_parsing_wrong_patterns_with_raise
     invalid_patterns = ['', 'P', 'PT', 'P1YT', 'T', 'PW', 'P1Y1W', '~P1Y', '.P1Y', 'P1.5Y0.5M', 'P1.5Y1M', 'P1.5MT10.5S']
     invalid_patterns.each do |pattern|
-      assert_raise ActiveSupport::Duration::ISO8601Parser::ParsingError do
+      assert_raise ActiveSupport::Duration::ISO8601Parser::ParsingError, pattern.inspect do
         ActiveSupport::Duration.parse!(pattern)
       end
     end
@@ -233,7 +233,7 @@ class DurationTest < ActiveSupport::TestCase
   def test_iso8601_parsing_wrong_patterns_with_nil
     invalid_patterns = ['', 'P', 'PT', 'P1YT', 'T', 'PW', 'P1Y1W', '~P1Y', '.P1Y', 'P1.5Y0.5M', 'P1.5Y1M', 'P1.5MT10.5S']
     invalid_patterns.each do |pattern|
-      assert_nil ActiveSupport::Duration.parse(pattern)
+      assert_nil ActiveSupport::Duration.parse(pattern), pattern.inspect
     end
   end
 
@@ -249,7 +249,7 @@ class DurationTest < ActiveSupport::TestCase
       ['PT1.4S',   (1.4).seconds             ],
     ]
     expectations.each do |expected_output, duration|
-      assert_equal expected_output, duration.iso8601
+      assert_equal expected_output, duration.iso8601, expected_output.inspect
     end
   end
 
@@ -268,7 +268,7 @@ class DurationTest < ActiveSupport::TestCase
         [5,   'PT1.40000S',   (1.4).seconds                     ],
     ]
     expectations.each do |precision, expected_output, duration|
-      assert_equal expected_output, duration.iso8601(precision: precision)
+      assert_equal expected_output, duration.iso8601(precision: precision), expected_output.inspect
     end
   end
 
@@ -279,7 +279,7 @@ class DurationTest < ActiveSupport::TestCase
     time = Time.now
     patterns.each do |pattern|
       duration = ActiveSupport::Duration.parse(pattern)
-      assert_equal time+duration, time+ActiveSupport::Duration.parse(duration.iso8601)
+      assert_equal time+duration, time+ActiveSupport::Duration.parse(duration.iso8601), pattern.inspect
     end
   end
 
