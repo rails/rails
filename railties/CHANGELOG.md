@@ -1,7 +1,48 @@
+*   Deprecate `serve_static_files` in favor of `public_file_server.enabled`.
+
+    Unifies the static asset options under `public_file_server`.
+
+    To upgrade, replace occurrences of:
+
+    ```
+    config.serve_static_files = # false or true
+    ```
+
+    in your environment files, with:
+
+    ```
+    config.public_file_server.enabled = # false or true
+    ```
+
+    *Kasper Timm Hansen*
+
+*   Deprecate `config.static_cache_control` in favor of
+    `config.public_file_server.headers`.
+
+    To upgrade, replace occurrences of:
+
+    ```
+    config.static_cache_control = 'public, max-age=60'
+    ```
+
+    in your environment files, with:
+
+    ```
+    config.public_file_server.headers = {
+      'Cache-Control' => 'public, max-age=60'
+    }
+    ```
+
+    `config.public_file_server.headers` can set arbitrary headers, sent along when
+    a response is delivered.
+
+    *Yuki Nishijima*
+
 *   Route generator should be idempotent
     running generators several times no longer require you to cleanup routes.rb
 
     *Thiago Pinto*
+
 *   Allow passing an environment to `config_for`.
 
     *Simon Eskildsen*

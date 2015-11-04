@@ -17,11 +17,6 @@
 
     *Agis Anastasopoulos*
 
-*   Deprecate `config.static_cache_control` in favor of
-    `config.public_file_server.headers`
-
-    *Yuki Nishijima*
-
 *   Add the ability of returning arbitrary headers to ActionDispatch::Static
 
     Now ActionDispatch::Static can accept HTTP headers so that developers

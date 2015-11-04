@@ -17,7 +17,7 @@ module Rails
 
           middleware.use ::Rack::Sendfile, config.action_dispatch.x_sendfile_header
 
-          if config.serve_static_files
+          if config.public_file_server.enabled
             headers = config.public_file_server.headers || {}
             headers['Cache-Control'.freeze] = config.static_cache_control if config.static_cache_control
 
