@@ -32,6 +32,10 @@ module <%= app_const_base %>
     # The default locale is :en and all translations from config/locales/*.rb,yml are auto loaded.
     # config.i18n.load_path += Dir[Rails.root.join('my', 'locales', '*.{rb,yml}').to_s]
     # config.i18n.default_locale = :de
+
+    # Set Active Job adapter, there are multiple queuing backends like Sidekiq, Resque, Delayed Job and others.
+    # For the complete list of the adapters see the API Documentation for ActiveJob::QueueAdapters.
+    # config.active_job.queue_adapter = :sidekiq
 <%- if options[:api] -%>
 
     # Only loads a smaller set of middleware suitable for API only apps.
