@@ -155,8 +155,8 @@ module ApplicationTests
       assert_not_includes middleware, "ActionDispatch::LoadInterlock"
     end
 
-    test "removes static asset server if serve_static_files is disabled" do
-      add_to_config "config.serve_static_files = false"
+    test "removes static asset server if public_file_server.enabled is disabled" do
+      add_to_config "config.public_file_server.enabled = false"
       boot!
       assert !middleware.include?("ActionDispatch::Static")
     end
