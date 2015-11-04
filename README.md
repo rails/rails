@@ -63,6 +63,8 @@ module ApplicationCable
   end
 end
 ```
+Here `identified_by` is a connection identifier that can be used to find the specific connection again or later.
+Note that anything marked as an identifier will automatically create a delegate by the same name on any channel instances created off the connection.
 
 Then you should define your `ApplicationCable::Channel` class in Ruby. This is the place where you put
 shared logic between your channels.
@@ -317,7 +319,7 @@ application. The recommended basic setup is as follows:
 
 ```ruby
 # cable/config.ru
-require ::File.expand_path('../../config/environment',  __FILE__)
+require ::File.expand_path('../../config/environment', __FILE__)
 Rails.application.eager_load!
 
 require 'action_cable/process/logging'
@@ -328,7 +330,7 @@ run ActionCable.server
 Then you start the server using a binstub in bin/cable ala:
 ```
 #!/bin/bash
-bundle exec puma -p 28080  cable/config.ru
+bundle exec puma -p 28080 cable/config.ru
 ```
 
 The above will start a cable server on port 28080. Remember to point your client-side setup against that using something like:

@@ -76,10 +76,7 @@ module ActionCable
       SUBSCRIPTION_CONFIRMATION_INTERNAL_MESSAGE = 'confirm_subscription'.freeze
       SUBSCRIPTION_REJECTION_INTERNAL_MESSAGE = 'reject_subscription'.freeze
 
-      on_subscribe   :subscribed
-      on_unsubscribe :unsubscribed
-
-      attr_reader :params, :connection, :identifier
+      attr_reader :params, :connection, ::identifier
       delegate :logger, to: :connection
 
       class << self
@@ -147,7 +144,9 @@ module ActionCable
       # Called by the cable connection when its cut so the channel has a chance to cleanup with callbacks.
       # This method is not intended to be called directly by the user. Instead, overwrite the #unsubscribed callback.
       def unsubscribe_from_channel
-        run_unsubscribe_callbacks
+        run_callbacks :unsubscribe do
+          unsubscribed
+        end
       end
 
 
@@ -202,7 +201,9 @@ module ActionCable
 
 
         def subscribe_to_channel
-          run_subscribe_callbacks
+          run_callbacks :subscribe do
+            subscribed
+          end
 
           if subscription_rejected?
             reject_subscription
@@ -238,19 +239,10 @@ module ActionCable
           end
         end
 
-        def run_subscribe_callbacks
-          self.class.on_subscribe_callbacks.each { |callback| send(callback) }
-        end
-
-        def run_unsubscribe_callbacks
-          self.class.on_unsubscribe_callbacks.each { |callback| send(callback) }
-        end
-
         def transmit_subscription_confirmation
           unless subscription_confirmation_sent?
             logger.info "#{self.class.name} is transmitting the subscription confirmation"
             connection.transmit ActiveSupport::JSON.encode(identifier: @identifier, type: SUBSCRIPTION_CONFIRMATION_INTERNAL_MESSAGE)
-
             @subscription_confirmation_sent = true
           end
         end
@@ -264,7 +256,6 @@ module ActionCable
           logger.info "#{self.class.name} is transmitting the subscription rejection"
           connection.transmit ActiveSupport::JSON.encode(identifier: @identifier, type: SUBSCRIPTION_REJECTION_INTERNAL_MESSAGE)
         end
-
     end
   end
 end

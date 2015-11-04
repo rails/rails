@@ -8,11 +8,15 @@ rvm:
 
 gemfile:
   - Gemfile
-  - gemfiles/rails_4-2-stable.gemfile
+  - gemfiles/Gemfile.rails-4-2
 
 matrix:
   fast_finish: true
-  allow_failures: ruby-head
+  allow_failures:
+    - ruby-head
+
+services:
+  - redis-server
 
 notifications:
   email: false
