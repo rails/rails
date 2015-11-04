@@ -1,72 +1,138 @@
-require 'active_support/core_ext/hash/slice'
+require 'strscan'
 
 module ActiveSupport
   class Duration
     # Parses a string formatted according to ISO 8601 Duration into the hash .
     #
     # See http://en.wikipedia.org/wiki/ISO_8601#Durations
-    # Parts of code are taken from ISO8601 gem by Arnau Siches (@arnau).
+    # Parts of code and logic are taken from ISO8601 gem by Arnau Siches (@arnau).
     # This parser isn't so strict and allows negative parts to be present in pattern.
     class ISO8601Parser
-      attr_reader :parts
+      class ParsingError < ::ArgumentError; end
 
-      class ParsingError < ::StandardError; end
+      PERIOD_OR_COMMA = /\.|,/
+      PERIOD = '.'.freeze
+      COMMA = ','.freeze
 
-      def initialize(iso8601duration)
-        @raw = iso8601duration
-        parse_iso_duration!
-        construct_parts
-        validate_parts!
+      SIGN_MARKER = /\A\-|\+|/
+      DATE_MARKER = /P/
+      TIME_MARKER = /T/
+      DATE_COMPONENT = /(\-?\d+(?:[.,]\d+)?)(Y|M|D|W)/
+      TIME_COMPONENT = /(\-?\d+(?:[.,]\d+)?)(H|M|S)/
+
+      DATE_TO_PART = { 'Y' => :years, 'M' => :months, 'W' => :weeks, 'D' => :days }
+      TIME_TO_PART = { 'H' => :hours, 'M' => :minutes, 'S' => :seconds }
+
+      DATE_COMPONENTS = [:years, :months, :days]
+      TIME_COMPONENTS = [:hours, :minutes, :seconds]
+
+      class << self
+        # Parses valid ISO8601 Duration string to hash of components or raises a +ParsingError+ instead
+        def parse!(string)
+          new(string).parse!
+        end
+
+        # Parses valid ISO8601 Duration string to hash of components or returns +nil+ instead
+        def parse(string)
+          begin
+            parse!(string)
+          rescue ParsingError
+            nil
+          end
+        end
+      end
+
+      attr_reader :parts, :scanner
+      attr_accessor :mode, :sign
+
+      def initialize(string)
+        @scanner = StringScanner.new(string)
+        @parts = {}
+        @mode = :start
+        @sign = 1
+      end
+
+      def parse!
+        while !finished?
+          case mode
+            when :start
+              if scan(SIGN_MARKER)
+                self.sign = (scanner.matched == '-') ? -1 : 1
+                self.mode = :sign
+              else
+                raise_parsing_error
+              end
+
+            when :sign
+              if scan(DATE_MARKER)
+                self.mode = :date
+              else
+                raise_parsing_error
+              end
+
+            when :date
+              if scan(TIME_MARKER)
+                self.mode = :time
+              elsif scan(DATE_COMPONENT)
+                parts[DATE_TO_PART[scanner[2]]] = number * sign
+              else
+                raise_parsing_error
+              end
+
+            when :time
+              if scan(TIME_COMPONENT)
+                parts[TIME_TO_PART[scanner[2]]] = number * sign
+              else
+                raise_parsing_error
+              end
+
+          end
+        end
+
+        validate!
+        parts
       end
 
       private
-        def parse_iso_duration!
-          @match = @raw.match(/^
-                      (?<sign>\+|-)?
-                      P(?:
-                        (?:
-                          (?:(?<years>-?\d+(?:[,.]\d+)?)Y)?
-                          (?:(?<months>-?\d+(?:[.,]\d+)?)M)?
-                          (?:(?<days>-?\d+(?:[.,]\d+)?)D)?
-                          (?<time>T
-                            (?:(?<hours>-?\d+(?:[.,]\d+)?)H)?
-                            (?:(?<minutes>-?\d+(?:[.,]\d+)?)M)?
-                            (?:(?<seconds>-?\d+(?:[.,]\d+)?)S)?
-                          )?
-                        ) |
-                        (?<weeks>-?\d+(?:[.,]\d+)?W)
-                      ) # Duration
-                    $/x) || raise(ParsingError.new("Invalid ISO 8601 duration: #{@raw}"))
+
+      def finished?
+        scanner.eos?
+      end
+
+      # Parses number which can be a float with either comma or period
+      def number
+        scanner[1] =~ PERIOD_OR_COMMA ? scanner[1].tr(COMMA, PERIOD).to_f : scanner[1].to_i
+      end
+
+      def scan(pattern)
+        scanner.scan(pattern)
+      end
+
+      def raise_parsing_error(reason = nil)
+        raise ParsingError, "Invalid ISO 8601 duration: #{scanner.string.inspect} #{reason}".strip
+      end
+
+      # Checks for various semantic errors as stated in ISO 8601 standard
+      def validate!
+        raise_parsing_error('is empty duration') if parts.empty?
+
+        # Mixing any of Y, M, D with W is invalid
+        if parts.key?(:weeks) && (parts.keys & DATE_COMPONENTS).any?
+          raise_parsing_error('mixing weeks with other date parts not allowed')
         end
 
-        # Constructs parts compatible with +ActiveSupport::Duration+ ones.
-        def construct_parts
-          sign = @match[:sign] == '-' ? -1 : 1
-          @parts = @match.names.zip(@match.captures).each_with_object({}) do |(key, capture), parts|
-            if capture
-              part = capture =~ /\d+[\.,]\d+/ ? capture.sub(',', '.').to_f : capture.to_i
-              parts[key.to_sym] = sign * part
-            end
-          end
-          @parts = ::Hash[@parts].slice(:years, :months, :weeks, :days, :hours, :minutes, :seconds)
+        # Specifying an empty T part is invalid
+        if mode == :time && (parts.keys & TIME_COMPONENTS).empty?
+          raise_parsing_error('time part marker is present but time part is empty')
         end
 
-        # Checks for various semantic errors as stated in ISO 8601 standard
-        def validate_parts!
-          # Validate that is not empty duration (just string 'P')
-          if @parts.empty?
-            raise ParsingError.new("Invalid ISO 8601 duration: #{@raw} empty duration or empty time part)")
-          end
-          # or time part is not empty if 'T' marker present
-          if @match[:time].present? && @match[:time][1..-1].empty?
-            raise ParsingError.new("Invalid ISO 8601 duration: #{@raw} time part marker is present but time part is empty")
-          end
-          # Validate fractions (standard allows only last part to be fractional)
-          fractions = @parts.values.reject(&:zero?).select { |a| (a % 1) != 0 }
-          unless fractions.empty? || (fractions.size == 1 && fractions.last == @parts.values.reject(&:zero?).last)
-            raise ParsingError.new("Invalid ISO 8601 duration: #{@raw} (only last part can be fractional)")
-          end
+        fractions = parts.values.reject(&:zero?).select { |a| (a % 1) != 0 }
+        unless fractions.empty? || (fractions.size == 1 && fractions.last == @parts.values.reject(&:zero?).last)
+          raise_parsing_error '(only last part can be fractional)'
         end
+
+        return true
+      end
     end
   end
 end

@@ -13,7 +13,7 @@
         (3.years + 3.days).iso8601
         # => "P3Y3D"
 
-    *Andrey Novikov*, *Arnau Siches*
+    *Andrey Novikov*, *Arnau Siches*, *Andrew White*
 
 *   Add `Integer#positive?` and `Integer#negative?` query methods
     in the vein of `Fixnum#zero?`.
