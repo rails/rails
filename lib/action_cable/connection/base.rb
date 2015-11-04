@@ -48,7 +48,7 @@ module ActionCable
       include InternalChannel
       include Authorization
 
-      attr_reader :server, :env
+      attr_reader :server, :env, :subscriptions
       delegate :worker_pool, :pubsub, to: :server
 
       attr_reader :logger
@@ -140,7 +140,7 @@ module ActionCable
 
       private
         attr_reader :websocket
-        attr_reader :subscriptions, :message_buffer
+        attr_reader :message_buffer
 
         def on_open
           connect if respond_to?(:connect)

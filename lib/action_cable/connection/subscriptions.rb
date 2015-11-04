@@ -37,8 +37,12 @@ module ActionCable
 
       def remove(data)
         logger.info "Unsubscribing from channel: #{data['identifier']}"
-        subscriptions[data['identifier']].unsubscribe_from_channel
-        subscriptions.delete(data['identifier'])
+        remove_subscription subscriptions[data['identifier']]
+      end
+
+      def remove_subscription(subscription)
+        subscription.unsubscribe_from_channel
+        subscriptions.delete(subscription.identifier)
       end
 
       def perform_action(data)
