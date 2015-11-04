@@ -908,12 +908,12 @@ require 'test_helper'
 
 class ArticlesControllerTest < ActionController::TestCase
   # called before every single test
-  def setup
+  setup do
     @article = articles(:one)
   end
 
   # called after every single test
-  def teardown
+  teardown do
     # when controller is using cache it may be a good idea to reset it afterwards
     Rails.cache.clear
   end

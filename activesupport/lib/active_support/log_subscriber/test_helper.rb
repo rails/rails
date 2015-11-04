@@ -10,7 +10,7 @@ module ActiveSupport
     #   class SyncLogSubscriberTest < ActiveSupport::TestCase
     #     include ActiveSupport::LogSubscriber::TestHelper
     #
-    #     def setup
+    #     setup do
     #       super
     #       ActiveRecord::LogSubscriber.attach_to(:active_record)
     #     end
