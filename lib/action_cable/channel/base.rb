@@ -66,6 +66,22 @@ module ActionCable
     #
     # Also note that in this example, current_user is available because it was marked as an identifying attribute on the connection.
     # All such identifiers will automatically create a delegation method of the same name on the channel instance.
+    #
+    # == Rejecting subscription requests
+    #
+    # A channel can reject a subscription request in the #subscribed callback by invoking #reject!
+    #
+    # Example:
+    #
+    #   class ChatChannel < ApplicationCable::Channel
+    #     def subscribed
+    #       @room = Chat::Room[params[:room_number]]
+    #       reject! unless current_user.can_access?(@room)
+    #     end
+    #   end
+    #
+    # In this example, the subscription will be rejected if the current_user does not have access to the chat room.
+    # On the client-side, Channel#rejected callback will get invoked when the server rejects the subscription request.
     class Base
       include Callbacks
       include PeriodicTimers

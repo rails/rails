@@ -141,6 +141,9 @@ App.appearance = App.cable.subscriptions.create "AppearanceChannel",
   connected: ->
     # Called once the subscription has been successfully completed
 
+  rejected: ->
+    # Called when the subscription is rejected by the server
+
   appear: ->
     @perform 'appear', appearing_on: @appearingOn()
 
