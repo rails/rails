@@ -64,6 +64,9 @@ class HotCompatibilityTest < ActiveRecord::TestCase
           record.reload
         end
 
+        assert get_prepared_statement_cache(@klass.connection).any?,
+          "expected prepared statement cache to have something in it"
+
         # add a new column
         ddl_connection.add_column :hot_compatibilities, :baz, :string
 
@@ -73,11 +76,7 @@ class HotCompatibilityTest < ActiveRecord::TestCase
           end
         end
 
-        prepared_statement_cache = @klass.connection
-          .instance_variable_get(:@statements)
-          .instance_variable_get(:@cache)[Process.pid]
-
-        assert_empty prepared_statement_cache,
+        assert_empty get_prepared_statement_cache(@klass.connection),
           "expected prepared statement cache to be empty but it wasn't"
       end
     end
@@ -90,6 +89,9 @@ class HotCompatibilityTest < ActiveRecord::TestCase
         @klass.transaction do
           record.reload
         end
+
+        assert get_prepared_statement_cache(@klass.connection).any?,
+          "expected prepared statement cache to have something in it"
 
         # add a new column
         ddl_connection.add_column :hot_compatibilities, :baz, :string
@@ -104,17 +106,18 @@ class HotCompatibilityTest < ActiveRecord::TestCase
           end
         end
 
-        prepared_statement_cache = @klass.connection
-          .instance_variable_get(:@statements)
-          .instance_variable_get(:@cache)[Process.pid]
-
-        assert_empty prepared_statement_cache,
+        assert_empty get_prepared_statement_cache(@klass.connection),
           "expected prepared statement cache to be empty but it wasn't"
       end
     end
   end
 
   private
+
+  def get_prepared_statement_cache(connection)
+    connection.instance_variable_get(:@statements)
+      .instance_variable_get(:@cache)[Process.pid]
+  end
 
   # Rails will automatically clear the prepared statements on the connection
   # that runs the migration, so we use two connections to simulate what would
