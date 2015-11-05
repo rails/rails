@@ -1,3 +1,7 @@
+*   Generate valid `week_field` input values according to http://www.w3.org/TR/html-markup/datatypes.html#form.data.week
+
+    *Christoph Geschwind*
+
 *   Restrict `url_for :back` to valid, non-JavaScript URLs. GH#14444
 
     *Damien Burke*
