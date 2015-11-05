@@ -1,6 +1,7 @@
-require "cases/helper"
-require "cases/migration/helper"
+require 'cases/helper'
+require 'cases/migration/helper'
 require 'bigdecimal/util'
+require 'concurrent/atomic/count_down_latch'
 
 require 'models/person'
 require 'models/topic'
