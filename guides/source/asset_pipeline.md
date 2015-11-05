@@ -1029,7 +1029,9 @@ value is set to seconds with a maximum possible value of `31536000` which is one
 year. You can do this in your rails application by setting
 
 ```
-config.static_cache_control = "public, max-age=31536000"
+config.public_file_server.headers = {
+  'Cache-Control' => 'public, max-age=31536000'
+}
 ```
 
 Now when your application serves an asset in production, the CDN will store the
