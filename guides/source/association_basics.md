@@ -16,7 +16,7 @@ After reading this guide, you will know:
 Why Associations?
 -----------------
 
-Why do we need associations between models? Because they make common operations simpler and easier in your code. For example, consider a simple Rails application that includes a model for customers and a model for orders. Each customer can have many orders. Without associations, the model declarations would look like this:
+In Rails, an _association_ is a connection between two Active Record models. Why do we need associations between models? Because they make common operations simpler and easier in your code. For example, consider a simple Rails application that includes a model for customers and a model for orders. Each customer can have many orders. Without associations, the model declarations would look like this:
 
 ```ruby
 class Customer < ActiveRecord::Base
@@ -71,7 +71,7 @@ To learn more about the different types of associations, read the next section o
 The Types of Associations
 -------------------------
 
-In Rails, an _association_ is a connection between two Active Record models. Associations are implemented using macro-style calls, so that you can declaratively add features to your models. For example, by declaring that one model `belongs_to` another, you instruct Rails to maintain Primary Key-Foreign Key information between instances of the two models, and you also get a number of utility methods added to your model. Rails supports six types of associations:
+Rails supports six types of associations:
 
 * `belongs_to`
 * `has_one`
@@ -79,6 +79,8 @@ In Rails, an _association_ is a connection between two Active Record models. Ass
 * `has_many :through`
 * `has_one :through`
 * `has_and_belongs_to_many`
+
+Associations are implemented using macro-style calls, so that you can declaratively add features to your models. For example, by declaring that one model `belongs_to` another, you instruct Rails to maintain [Primary Key](https://en.wikipedia.org/wiki/Unique_key)-[Foreign Key](https://en.wikipedia.org/wiki/Foreign_key) information between instances of the two models, and you also get a number of utility methods added to your model.
 
 In the remainder of this guide, you'll learn how to declare and use the various forms of associations. But first, a quick introduction to the situations where each association type is appropriate.
 
