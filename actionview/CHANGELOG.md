@@ -1,3 +1,8 @@
+*   Generate `week_field` input values using a 1-based index and not a 0-based index
+    as per the W3 spec: http://www.w3.org/TR/html-markup/datatypes.html#form.data.week
+
+    *Christoph Geschwind*
+
 *   Allow `host` option in `javascript_include_tag` and `stylesheet_link_tag` helpers
 
     *Grzegorz Witek*
