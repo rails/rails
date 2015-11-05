@@ -76,7 +76,7 @@ module ActionCable
     #   class ChatChannel < ApplicationCable::Channel
     #     def subscribed
     #       @room = Chat::Room[params[:room_number]]
-    #       reject! unless current_user.can_access?(@room)
+    #       reject unless current_user.can_access?(@room)
     #     end
     #   end
     #
@@ -198,7 +198,7 @@ module ActionCable
           @subscription_confirmation_sent
         end
 
-        def reject!
+        def reject
           @reject_subscription = true
         end
 

@@ -5,7 +5,7 @@ require 'stubs/room'
 class ActionCable::Channel::RejectionTest < ActiveSupport::TestCase
   class SecretChannel < ActionCable::Channel::Base
     def subscribed
-      reject! if params[:id] > 0
+      reject if params[:id] > 0
     end
   end
 
