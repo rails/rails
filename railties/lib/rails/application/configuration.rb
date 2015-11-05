@@ -56,9 +56,12 @@ module Rails
       end
 
       def static_cache_control=(value)
-        ActiveSupport::Deprecation.warn("static_cache_control is deprecated and will be removed in Rails 5.1. " \
-                                        "Please use `config.public_file_server.headers = {'Cache-Control' => #{value}} " \
-                                        "instead.")
+        ActiveSupport::Deprecation.warn <<-eow.strip_heredoc
+          `static_cache_control` is deprecated and will be removed in Rails 5.1.
+          Please use
+          `config.public_file_server.headers = { 'Cache-Control' => '#{value}' }`
+          instead.
+        eow
 
         @static_cache_control = value
       end
