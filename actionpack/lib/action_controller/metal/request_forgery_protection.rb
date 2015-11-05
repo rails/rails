@@ -35,7 +35,7 @@ module ActionController #:nodoc:
   # <tt>ApplicationController</tt> (by default: <tt>:exception</tt>):
   #
   #   class ApplicationController < ActionController::Base
-  #     protect_from_forgery unless: -> { request.format.json? }
+  #     protect_from_forgery unless: -> { request.content_type == 'application/json' }
   #   end
   #
   # CSRF protection is turned on with the <tt>protect_from_forgery</tt> method.
