@@ -1,3 +1,5 @@
+## Rails 4.2.5.rc2 (November 05, 2015) ##
+
 *   No longer pass deprecated option `-i` to `pg_dump`.
 
     *Paul Sadauskas*

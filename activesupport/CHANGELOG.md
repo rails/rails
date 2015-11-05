@@ -1,3 +1,8 @@
+## Rails 4.2.5.rc2 (November 05, 2015) ##
+
+*   No changes.
+
+
 ## Rails 4.2.5.rc1 (October 30, 2015) ##
 
 *   Fix `TimeWithZone#eql?` to properly handle `TimeWithZone` created from `DateTime`:
