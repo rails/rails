@@ -19,6 +19,20 @@ module ActiveRecord
         table_name[0...table_alias_length].tr('.', '_')
       end
 
+      # Returns the relation names useable to back Active Record models.
+      # For most adapters this means all tables and views.
+      def data_sources
+        tables
+      end
+
+      # Checks to see if the data source +name+ exists on the database.
+      #
+      #   data_source_exists?(:ebooks)
+      #
+      def data_source_exists?(name)
+        data_sources.include?(name.to_s)
+      end
+
       # Checks to see if the table +table_name+ exists on the database.
       #
       #   table_exists?(:developers)

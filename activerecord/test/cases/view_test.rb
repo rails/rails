@@ -33,7 +33,13 @@ module ViewBehavior
 
   def test_table_exists
     view_name = Ebook.table_name
+    # TODO: switch this assertion around once we changed #tables to not return views.
     assert @connection.table_exists?(view_name), "'#{view_name}' table should exist"
+  end
+
+  def test_views_ara_valid_data_sources
+    view_name = Ebook.table_name
+    assert @connection.data_source_exists?(view_name), "'#{view_name}' should be a data source"
   end
 
   def test_column_definitions

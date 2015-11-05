@@ -407,6 +407,7 @@ module ActiveRecord
           result.collect { |field| field.first }
         end
       end
+      alias data_sources tables
 
       def truncate(table_name, name = nil)
         execute "TRUNCATE TABLE #{quote_table_name(table_name)}", name
@@ -426,6 +427,7 @@ module ActiveRecord
 
         tables(nil, schema, table).any?
       end
+      alias data_source_exists? table_exists?
 
       # Returns an array of indexes for the given table.
       def indexes(table_name, name = nil) #:nodoc:
