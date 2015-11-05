@@ -1,5 +1,5 @@
 require 'mutex_m'
-require 'concurrent'
+require 'concurrent/map'
 
 module ActiveSupport
   module Notifications

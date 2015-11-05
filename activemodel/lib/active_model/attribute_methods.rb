@@ -1,4 +1,4 @@
-require 'concurrent'
+require 'concurrent/map'
 require 'mutex_m'
 
 module ActiveModel

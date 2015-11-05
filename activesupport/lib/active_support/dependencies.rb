@@ -1,6 +1,6 @@
 require 'set'
 require 'thread'
-require 'concurrent'
+require 'concurrent/map'
 require 'pathname'
 require 'active_support/core_ext/module/aliasing'
 require 'active_support/core_ext/module/attribute_accessors'

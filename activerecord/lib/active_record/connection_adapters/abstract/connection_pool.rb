@@ -1,5 +1,5 @@
 require 'thread'
-require 'concurrent'
+require 'concurrent/map'
 require 'monitor'
 
 module ActiveRecord

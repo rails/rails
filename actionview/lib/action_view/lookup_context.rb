@@ -1,4 +1,4 @@
-require 'concurrent'
+require 'concurrent/map'
 require 'active_support/core_ext/module/remove_method'
 require 'active_support/core_ext/module/attribute_accessors'
 require 'action_view/template/resolver'
