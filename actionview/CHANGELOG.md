@@ -1,3 +1,9 @@
+*   Generate `week_field` input values using a 1-based index and not a 0-based index
+    as per the W3 spec: http://www.w3.org/TR/html-markup/datatypes.html#form.data.week
+
+    *Christoph Geschwind*
+
+
 ## Rails 4.1.14.rc1 (October 30, 2015) ##
 
 *   No changes.

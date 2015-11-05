@@ -912,7 +912,7 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_week_field
-    expected = %{<input id="post_written_on" name="post[written_on]" type="week" value="2004-W24" />}
+    expected = %{<input id="post_written_on" name="post[written_on]" type="week" value="2004-W25" />}
     assert_dom_equal(expected, week_field("post", "written_on"))
   end
 
@@ -923,13 +923,13 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_week_field_with_datetime_value
-    expected = %{<input id="post_written_on" name="post[written_on]" type="week" value="2004-W24" />}
+    expected = %{<input id="post_written_on" name="post[written_on]" type="week" value="2004-W25" />}
     @post.written_on = DateTime.new(2004, 6, 15, 1, 2, 3)
     assert_dom_equal(expected, week_field("post", "written_on"))
   end
 
   def test_week_field_with_extra_attrs
-    expected = %{<input id="post_written_on" step="2" max="2010-W51" min="2000-W06" name="post[written_on]" type="week" value="2004-W24" />}
+    expected = %{<input id="post_written_on" step="2" max="2010-W51" min="2000-W06" name="post[written_on]" type="week" value="2004-W25" />}
     @post.written_on = DateTime.new(2004, 6, 15, 1, 2, 3)
     min_value = DateTime.new(2000, 2, 13)
     max_value = DateTime.new(2010, 12, 23)
@@ -939,11 +939,17 @@ class FormHelperTest < ActionView::TestCase
 
   def test_week_field_with_timewithzone_value
     previous_time_zone, Time.zone = Time.zone, 'UTC'
-    expected = %{<input id="post_written_on" name="post[written_on]" type="week" value="2004-W24" />}
+    expected = %{<input id="post_written_on" name="post[written_on]" type="week" value="2004-W25" />}
     @post.written_on = Time.zone.parse('2004-06-15 15:30:45')
     assert_dom_equal(expected, week_field("post", "written_on"))
   ensure
     Time.zone = previous_time_zone
+  end
+
+  def test_week_field_week_number_base
+    expected = %{<input id="post_written_on" name="post[written_on]" type="week" value="2015-W01" />}
+    @post.written_on = DateTime.new(2015, 1, 1, 1, 2, 3)
+    assert_dom_equal(expected, week_field("post", "written_on"))
   end
 
   def test_url_field
