@@ -20,10 +20,6 @@ module ActiveRecord
         end
       end
 
-      class MysqlDouble < ActiveRecord::Base
-        self.table_name = "mysql_doubles"
-      end
-
       def test_float_limits
         @connection.create_table :mysql_doubles do |t|
           t.float :float_no_limit
@@ -35,15 +31,13 @@ module ActiveRecord
           t.float :float_25, limit: 25
         end
 
-        MysqlDouble.reset_column_information
+        column_no_limit = @connection.columns(:mysql_doubles).find { |c| c.name == 'float_no_limit' }
+        column_short = @connection.columns(:mysql_doubles).find { |c| c.name == 'float_short' }
+        column_long = @connection.columns(:mysql_doubles).find { |c| c.name == 'float_long' }
 
-        column_no_limit = MysqlDouble.columns.find { |c| c.name == 'float_no_limit' }
-        column_short = MysqlDouble.columns.find { |c| c.name == 'float_short' }
-        column_long = MysqlDouble.columns.find { |c| c.name == 'float_long' }
-
-        column_23 = MysqlDouble.columns.find { |c| c.name == 'float_23' }
-        column_24 = MysqlDouble.columns.find { |c| c.name == 'float_24' }
-        column_25 = MysqlDouble.columns.find { |c| c.name == 'float_25' }
+        column_23 = @connection.columns(:mysql_doubles).find { |c| c.name == 'float_23' }
+        column_24 = @connection.columns(:mysql_doubles).find { |c| c.name == 'float_24' }
+        column_25 = @connection.columns(:mysql_doubles).find { |c| c.name == 'float_25' }
 
         # Mysql floats are precision 0..24, Mysql doubles are precision 25..53
         assert_equal 24, column_no_limit.limit
