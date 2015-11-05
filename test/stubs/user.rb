@@ -6,6 +6,6 @@ class User
   end
 
   def to_global_id
-    "User##{name}"
+    GlobalID.new("User##{name}")
   end
 end
