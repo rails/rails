@@ -655,6 +655,14 @@ module LocalCacheBehavior
     end
   end
 
+  def test_local_cache_of_read_nil
+    @cache.with_local_cache do
+      assert_equal nil, @cache.read('foo')
+      @cache.send(:bypass_local_cache) { @cache.write 'foo', 'bar' }
+      assert_equal nil, @cache.read('foo')
+    end
+  end
+
   def test_local_cache_of_delete
     @cache.with_local_cache do
       @cache.write('foo', 'bar')
