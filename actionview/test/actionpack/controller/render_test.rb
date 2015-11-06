@@ -869,6 +869,10 @@ class RenderTest < ActionController::TestCase
     assert_raise(AbstractController::ActionNotFound) { get :determine_layout }
   end
 
+  def test_action_is_empty
+    assert_raise(AbstractController::ActionNotFound, "No action responded to []") { get '' }
+  end
+
   # :ported:
   def test_access_to_request_in_view
     get :accessing_request_in_template
