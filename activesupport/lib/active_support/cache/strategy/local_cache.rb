@@ -113,6 +113,27 @@ module ActiveSupport
             end
           end
 
+          def read_multi_entry(keys, options) # :nodoc:
+            return super unless cache = local_cache
+
+            # read from local cache
+            results = cache.read_multi_entry(keys, options).delete_if { |_k,v| v.nil? }
+            missing_keys = keys - results.keys
+
+            # for all missing keys hit the backend
+            if missing_keys.any?
+              missing = super(missing_keys, options)
+              missing_keys.each do |key|
+                cache.write_entry(key, missing[key] || Entry.new(nil), options) # cache result or nil
+              end
+              results.merge!(missing)
+            end
+
+            results.delete_if { |k,v| !v || v.value.nil? } # behave like memcached and do not return missing keys
+
+            results
+          end
+
           def write_entry(key, entry, options) # :nodoc:
             local_cache.write_entry(key, entry, options) if local_cache
             super

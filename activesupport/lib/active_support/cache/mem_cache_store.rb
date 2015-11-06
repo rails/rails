@@ -90,24 +90,6 @@ module ActiveSupport
         end
       end
 
-      # Reads multiple values from the cache using a single call to the
-      # servers for all keys. Options can be passed in the last argument.
-      def read_multi(*names)
-        options = names.extract_options!
-        options = merged_options(options)
-
-        instrument_multi(:read, names, options) do
-          keys_to_names = Hash[names.map{|name| [normalize_key(name, options), name]}]
-          raw_values = @data.get_multi(keys_to_names.keys, :raw => true)
-          values = {}
-          raw_values.each do |key, value|
-            entry = deserialize_entry(value)
-            values[keys_to_names[key]] = entry.value unless entry.expired?
-          end
-          values
-        end
-      end
-
       # Increment a cached value. This method uses the memcached incr atomic
       # operator and can only be used on values written with the :raw option.
       # Calling it on a value not stored with :raw will initialize that value
@@ -157,6 +139,13 @@ module ActiveSupport
         rescue Dalli::DalliError => e
           logger.error("DalliError (#{e}): #{e.message}") if logger
           nil
+        end
+
+        # Read multiple entries from the cache.
+        def read_multi_entry(keys, options)
+          @data.get_multi(keys, options).each_with_object({}) do |(key, value), values|
+            values[key] = deserialize_entry(value)
+          end
         end
 
         # Write an entry to the cache.

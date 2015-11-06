@@ -481,8 +481,7 @@ module CacheStoreBehavior
   end
 
   def test_really_long_keys
-    key = ""
-    900.times{key << "x"}
+    key = "x" * 900
     assert @cache.write(key, "bar")
     assert_equal "bar", @cache.read(key)
     assert_equal "bar", @cache.fetch(key)
@@ -637,6 +636,43 @@ module LocalCacheBehavior
     @cache.with_local_cache do
       @cache.send(:local_cache).write 'foo', 'bar'
       assert_equal 'bar', @cache.send(:local_cache).fetch('foo')
+    end
+  end
+
+  def test_local_cache_of_read_multi
+    @cache.write('foo', 'bar')
+
+    @cache.with_local_cache do
+      # reads
+      assert_equal({"foo"=>"bar"}, @cache.read_multi('foo', 'bar'))
+
+      # ignores options
+      assert_equal({"foo"=>"bar"}, @cache.read_multi('foo', 'bar', foo: :bar))
+
+      # combines from local and backend
+      @cache.send(:local_cache).write(@cache.send(:normalize_key, "foo", {}), "baz")
+      @cache.send(:bypass_local_cache) { @cache.write 'baz', 'foo' }
+      assert_equal({"foo"=>"baz", "baz"=>"foo"}, @cache.read_multi('foo', 'baz'))
+
+      # stores values fetched from backend
+      @cache.send(:bypass_local_cache) { @cache.write 'foo2', 'foo' }
+      assert_equal({"foo2"=>"foo"}, @cache.read_multi('foo2'))
+      assert_equal "foo", @cache.send(:local_cache).read(@cache.send(:normalize_key, "foo2", {}))
+
+      # can read values that was cached through read_multi
+      @cache.send(:bypass_local_cache) { @cache.write 'foo2', 'bar' }
+      assert_equal "foo", @cache.read("foo2")
+    end
+  end
+
+  def test_local_cache_of_read_multi_nil
+    @cache.read('foo') # store nil in cache for foo
+
+    @cache.with_local_cache do
+      assert_equal({}, @cache.read_multi('foo', 'bar')) # store nil in cache for bar
+      @cache.send(:bypass_local_cache) { @cache.write 'foo', 'bar' }
+      @cache.send(:bypass_local_cache) { @cache.write 'bar', 'baz' }
+      assert_equal({}, @cache.read_multi("foo", "bar")) # reading nils from local cache
     end
   end
 
@@ -1005,6 +1041,18 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     cache.clear
     cache.write("foo", Marshal.dump([]))
     assert_equal [], cache.read("foo")
+  end
+
+  def test_local_cache_raw_values_read_multi
+    cache = ActiveSupport::Cache.lookup_store(:mem_cache_store, :raw => true)
+    cache.clear
+    data = cache.instance_variable_get(:@data)
+    cache.with_local_cache do
+      data.set("foo", "2", 1, raw: true)
+      assert_equal({"foo" => "2"}, cache.read_multi("foo")) # reading from backend
+      data.set("foo", "READ FROM BACKEND")
+      assert_equal({"foo" => "2"}, cache.read_multi("foo")) # now reading from local cache
+    end
   end
 
   def test_local_cache_raw_values
