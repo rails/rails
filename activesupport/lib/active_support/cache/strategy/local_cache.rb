@@ -48,10 +48,6 @@ module ActiveSupport
             @data.clear
           end
 
-          def fetch(*args, &block)
-            @data.fetch(*args, &block)
-          end
-
           def read_entry(key, options)
             @data[key]
           end
@@ -63,6 +59,10 @@ module ActiveSupport
 
           def delete_entry(key, options)
             !!@data.delete(key)
+          end
+
+          def fetch_entry(key, options = nil) # :nodoc:
+            @data.fetch(key) { @data[key] = yield }
           end
         end
 
@@ -103,11 +103,7 @@ module ActiveSupport
         protected
           def read_entry(key, options) # :nodoc:
             if cache = local_cache
-              cache.fetch(key) do
-                entry = super
-                cache.write_entry(key, entry, options)
-                entry
-              end
+              cache.fetch_entry(key) { super }
             else
               super
             end
