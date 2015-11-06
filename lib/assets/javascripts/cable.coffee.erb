@@ -1,0 +1,8 @@
+#= require_self
+#= require cable/consumer
+
+@Cable =
+  INTERNAL: <%= ActionCable::INTERNAL.to_json %>
+
+  createConsumer: (url) ->
+    new Cable.Consumer url

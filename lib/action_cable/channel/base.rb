@@ -89,9 +89,6 @@ module ActionCable
       include Naming
       include Broadcasting
 
-      SUBSCRIPTION_CONFIRMATION_INTERNAL_MESSAGE = 'confirm_subscription'.freeze
-      SUBSCRIPTION_REJECTION_INTERNAL_MESSAGE = 'reject_subscription'.freeze
-
       attr_reader :params, :connection, :identifier
       delegate :logger, to: :connection
 
@@ -258,7 +255,7 @@ module ActionCable
         def transmit_subscription_confirmation
           unless subscription_confirmation_sent?
             logger.info "#{self.class.name} is transmitting the subscription confirmation"
-            connection.transmit ActiveSupport::JSON.encode(identifier: @identifier, type: SUBSCRIPTION_CONFIRMATION_INTERNAL_MESSAGE)
+            connection.transmit ActiveSupport::JSON.encode(identifier: @identifier, type: ActionCable::INTERNAL[:message_types][:confirmation])
             @subscription_confirmation_sent = true
           end
         end
@@ -270,7 +267,7 @@ module ActionCable
 
         def transmit_subscription_rejection
           logger.info "#{self.class.name} is transmitting the subscription rejection"
-          connection.transmit ActiveSupport::JSON.encode(identifier: @identifier, type: SUBSCRIPTION_REJECTION_INTERNAL_MESSAGE)
+          connection.transmit ActiveSupport::JSON.encode(identifier: @identifier, type: ActionCable::INTERNAL[:message_types][:rejection])
         end
     end
   end

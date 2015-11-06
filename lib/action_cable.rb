@@ -5,6 +5,16 @@ require 'action_cable/version'
 module ActionCable
   extend ActiveSupport::Autoload
 
+  INTERNAL = {
+    identifiers: {
+      ping: '_ping'.freeze
+    },
+    message_types: {
+      confirmation: 'confirm_subscription'.freeze,
+      rejection: 'reject_subscription'.freeze
+    }
+  }
+
   # Singleton instance of the server
   module_function def server
     @server ||= ActionCable::Server::Base.new
