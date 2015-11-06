@@ -311,6 +311,11 @@ module ActionDispatch
           def check_part(name, part, path_params, hash)
             if part
               hash[name] = yield(part)
+
+              if hash[name].blank?
+                message = ":#{name} can't be blank, please check your routes."
+                raise ArgumentError, message
+              end
             else
               unless path_params.include?(name)
                 message = "Missing :#{name} key on routes definition, please check your routes."
