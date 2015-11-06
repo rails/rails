@@ -1,3 +1,8 @@
+*   Change connection management middleware to return a new response with
+    a body proxy, rather than mutating the original.
+
+    *Kevin Buchanan*
+
 *   Make `db:migrate:status` to render `1_some.rb` format migrate files.
 
     These files are in `db/migrate`:
