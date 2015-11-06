@@ -10,6 +10,7 @@ module ActiveSupport
     # FileStore implements the Strategy::LocalCache strategy which implements
     # an in-memory cache inside of a block.
     class FileStore < Store
+      prepend Strategy::LocalCache
       attr_reader :cache_path
 
       DIR_FORMATTER = "%03X"
@@ -20,7 +21,6 @@ module ActiveSupport
       def initialize(cache_path, options = nil)
         super(options)
         @cache_path = cache_path.to_s
-        extend Strategy::LocalCache
       end
 
       # Deletes all items from the cache. In this case it deletes all the entries in the specified

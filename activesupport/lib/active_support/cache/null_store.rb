@@ -8,10 +8,7 @@ module ActiveSupport
     # be cached inside blocks that utilize this strategy. See
     # ActiveSupport::Cache::Strategy::LocalCache for more details.
     class NullStore < Store
-      def initialize(options = nil)
-        super(options)
-        extend Strategy::LocalCache
-      end
+      prepend Strategy::LocalCache
 
       def clear(options = nil)
       end
