@@ -55,7 +55,7 @@ class Cable.Connection
       {identifier, message, type} = JSON.parse(event.data)
 
       if type?
-        @handleTypeMessage(type)
+        @onTypeMessage(type)
       else
         @consumer.subscriptions.notify(identifier, "received", message)
 
