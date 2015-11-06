@@ -63,7 +63,7 @@ class Cable.Subscriptions
 
   sendCommand: (subscription, command) ->
     {identifier} = subscription
-    if identifier is Cable.PING_IDENTIFIER
+    if identifier is Cable.INTERNAL.identifiers.ping
       @consumer.connection.isOpen()
     else
       @consumer.send({command, identifier})
