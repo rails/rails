@@ -24,6 +24,31 @@ module ActiveSupport
     # MemCacheStore implements the Strategy::LocalCache strategy which implements
     # an in-memory cache inside of a block.
     class MemCacheStore < Store
+      # Provide support for raw values in the local cache strategy.
+      module LocalCacheWithRaw # :nodoc:
+        protected
+        def read_entry(key, options)
+          entry = super
+          if options[:raw] && local_cache && entry
+            entry = deserialize_entry(entry.value)
+          end
+          entry
+        end
+
+        def write_entry(key, entry, options) # :nodoc:
+          retval = super
+          if options[:raw] && local_cache && retval
+            raw_entry = Entry.new(entry.value.to_s)
+            raw_entry.expires_at = entry.expires_at
+            local_cache.write_entry(key, raw_entry, options)
+          end
+          retval
+        end
+      end
+
+      prepend Strategy::LocalCache
+      prepend LocalCacheWithRaw
+
       ESCAPE_KEY_CHARS = /[\x00-\x20%\x7F-\xFF]/n
 
       # Creates a new Dalli::Client instance with specified addresses and options.
@@ -63,9 +88,6 @@ module ActiveSupport
           UNIVERSAL_OPTIONS.each{|name| mem_cache_options.delete(name)}
           @data = self.class.build_mem_cache(*(addresses + [mem_cache_options]))
         end
-
-        extend Strategy::LocalCache
-        extend LocalCacheWithRaw
       end
 
       # Reads multiple values from the cache using a single call to the
@@ -181,28 +203,6 @@ module ActiveSupport
             nil
           end
         end
-
-      # Provide support for raw values in the local cache strategy.
-      module LocalCacheWithRaw # :nodoc:
-        protected
-          def read_entry(key, options)
-            entry = super
-            if options[:raw] && local_cache && entry
-               entry = deserialize_entry(entry.value)
-            end
-            entry
-          end
-
-          def write_entry(key, entry, options) # :nodoc:
-            retval = super
-            if options[:raw] && local_cache && retval
-              raw_entry = Entry.new(entry.value.to_s)
-              raw_entry.expires_at = entry.expires_at
-              local_cache.write_entry(key, raw_entry, options)
-            end
-            retval
-          end
-      end
     end
   end
 end
