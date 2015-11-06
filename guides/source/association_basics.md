@@ -240,13 +240,15 @@ class CreateAppointments < ActiveRecord::Migration
 end
 ```
 
-The collection of join models can be managed via the API. For example, if you assign
+The collection of join models can be managed via the [`has_many` association methods](#has-many-association-reference).
+For example, if you assign:
 
 ```ruby
 physician.patients = patients
 ```
 
-new join models are created for newly associated objects, and if some are gone their rows are deleted.
+Then new join models are automatically created for the newly associated objects.
+If some that existed previously are now missing, then their join rows are automatically deleted.
 
 WARNING: Automatic deletion of join models is direct, no destroy callbacks are triggered.
 
