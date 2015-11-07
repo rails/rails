@@ -83,6 +83,18 @@ class EnumerableTests < ActiveSupport::TestCase
                  payments.index_by.each(&:price))
   end
 
+  def test_count_by
+    payments = GenericEnumerable.new([ Payment.new(5), Payment.new(10), Payment.new(10) ])
+    assert_equal({ 5 => 1, 10 => 2 }, payments.count_by(&:price))
+    assert_equal(nil, payments.count_by(&:price)[2])
+    assert_equal Enumerator, payments.count_by.class
+    if Enumerator.method_defined? :size
+      assert_equal nil, payments.count_by.size
+      assert_equal 42, (1..42).count_by.size
+    end
+    assert_equal({ 5 => 1, 10 => 2 }, payments.count_by.each(&:price))
+  end
+
   def test_many
     assert_equal false, GenericEnumerable.new([]         ).many?
     assert_equal false, GenericEnumerable.new([ 1 ]      ).many?

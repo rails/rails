@@ -39,6 +39,27 @@ module Enumerable
     end
   end
 
+  # Groups an enumerable by result of the block and returns a hash
+  # where the keys are the evaluated result from the block and
+  # the values are the number of elements per group.
+  #
+  #   people.count_by(&:country)
+  #     => { "GER" => 7, "BRA" => 1, ...}
+  #   people.count_by { |person| [person.country, person.age] }
+  #     => { ["GER", 30] => 2, ["GER", 20] => 1, ["BRA", 25] => 1, ...}
+  def count_by
+    if block_given?
+      inject({}) do |hash, elem|
+        result = yield(elem)
+        hash[result] ||= 0
+        hash[result] += 1
+        hash
+      end
+    else
+      to_enum(:count_by) { size if respond_to?(:size) }
+    end
+  end
+
   # Returns +true+ if the enumerable has more than 1 element. Functionally
   # equivalent to <tt>enum.to_a.size > 1</tt>. Can be called with a block too,
   # much like any?, so <tt>people.many? { |p| p.age > 26 }</tt> returns +true+
