@@ -458,6 +458,22 @@ class TimeZoneTest < ActiveSupport::TestCase
     assert_equal "(GMT+05:30) New Delhi", ActiveSupport::TimeZone['New Delhi'].to_s
   end
 
+  def test_to_s_with_utc_total_offset_in_summer_time
+    zone = ActiveSupport::TimeZone['Amsterdam']
+    Time.stub(:now, Time.new(2000, 6)) do
+      assert_equal "(GMT+02:00) Amsterdam", zone.to_s(utc_total_offset: true)
+      assert_equal "(GMT+01:00) Amsterdam", zone.to_s(utc_total_offset: false)
+    end
+  end
+
+  def test_to_s_with_utc_total_offset_in_non_summer_time
+    zone = ActiveSupport::TimeZone['Amsterdam']
+    Time.stub(:now, Time.new(2000, 12)) do
+      assert_equal "(GMT+01:00) Amsterdam", zone.to_s(utc_total_offset: true)
+      assert_equal "(GMT+01:00) Amsterdam", zone.to_s(utc_total_offset: false)
+    end
+  end
+
   def test_all_sorted
     all = ActiveSupport::TimeZone.all
     1.upto( all.length-1 ) do |i|
