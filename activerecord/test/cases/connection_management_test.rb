@@ -98,7 +98,7 @@ module ActiveRecord
       test "doesn't mutate the original response" do
         original_response = [200, {}, 'hi']
         app = lambda { |_| original_response }
-        response_body = ConnectionManagement.new(app).call(@env)[2]
+        ConnectionManagement.new(app).call(@env)[2]
         assert_equal original_response.last, 'hi'
       end
     end
