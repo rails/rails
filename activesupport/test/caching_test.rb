@@ -879,6 +879,14 @@ class FileStoreTest < ActiveSupport::TestCase
       assert_equal 111, @cache.send(:key_file_path, 111)
     end
   end
+
+  def test_can_call_deprecated_modify_value
+    assert_deprecated "`modify_value` is deprecated" do
+      @cache.write('foo', 1)
+      @cache.send(:modify_value, 'foo', 1, {})
+    end
+    assert_equal 2, @cache.read('foo')
+  end
 end
 
 class MemoryStoreTest < ActiveSupport::TestCase
@@ -981,6 +989,14 @@ class MemoryStoreTest < ActiveSupport::TestCase
     assert_equal false, @cache.write(1, "aaaaaaaaaa", :unless_exist => true)
     @cache.write(1, nil)
     assert_equal false, @cache.write(1, "aaaaaaaaaa", :unless_exist => true)
+  end
+
+  def test_can_call_deprecated_modify_value
+    assert_deprecated "`modify_value` is deprecated" do
+      @cache.write('foo', 1)
+      @cache.send(:modify_value, 'foo', 1, {})
+    end
+    assert_equal 2, @cache.read('foo')
   end
 end
 

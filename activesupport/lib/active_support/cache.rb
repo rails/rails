@@ -428,8 +428,11 @@ module ActiveSupport
       # Options are passed to the underlying cache implementation.
       #
       # All implementations may not support this method.
-      def increment(name, amount = 1, options = nil)
-        raise NotImplementedError.new("#{self.class.name} does not support increment")
+      def increment(name, amount = 1, options = {})
+        options = merged_options(options)
+        instrument(:increment, name, :amount => amount) do
+          increment_entry(normalize_key(name, options), amount, options)
+        end
       end
 
       # Decrement an integer value in the cache.
@@ -437,8 +440,11 @@ module ActiveSupport
       # Options are passed to the underlying cache implementation.
       #
       # All implementations may not support this method.
-      def decrement(name, amount = 1, options = nil)
-        raise NotImplementedError.new("#{self.class.name} does not support decrement")
+      def decrement(name, amount = 1, options = {})
+        options = merged_options(options)
+        instrument(:increment, name, :amount => amount) do
+          decrement_entry(normalize_key(name, options), amount, options)
+        end
       end
 
       # Cleanup the cache by removing expired entries.
@@ -496,6 +502,14 @@ module ActiveSupport
         # implement this method.
         def delete_entry(key, options) # :nodoc:
           raise NotImplementedError.new
+        end
+
+        def increment_entry(key, amount)
+          raise NotImplementedError.new("#{self.class.name} does not support increment_entry")
+        end
+
+        def decrement_entry(key, amount)
+          raise NotImplementedError.new("#{self.class.name} does not support decrement_entry")
         end
 
       private

@@ -42,18 +42,6 @@ module ActiveSupport
         end
       end
 
-      # Increments an already existing integer value that is stored in the cache.
-      # If the key is not found nothing is done.
-      def increment(name, amount = 1, options = nil)
-        modify_value(name, amount, options)
-      end
-
-      # Decrements an already existing integer value that is stored in the cache.
-      # If the key is not found nothing is done.
-      def decrement(name, amount = 1, options = nil)
-        modify_value(name, -amount, options)
-      end
-
       def delete_matched(matcher, options = nil)
         options = merged_options(options)
         instrument(:delete_matched, matcher.inspect) do
@@ -95,6 +83,18 @@ module ActiveSupport
               false
             end
           end
+        end
+
+        # Increments an already existing integer value that is stored in the cache.
+        # If the key is not found nothing is done.
+        def increment_entry(key, amount, options)
+          modify_entry(key, amount, options)
+        end
+
+        # Decrements an already existing integer value that is stored in the cache.
+        # If the key is not found nothing is done.
+        def decrement_entry(key, amount, options)
+          modify_entry(key, -amount, options)
         end
 
       private
@@ -181,6 +181,11 @@ module ActiveSupport
         # Modifies the amount of an already existing integer value that is stored in the cache.
         # If the key is not found nothing is done.
         def modify_value(name, amount, options)
+          ActiveSupport::Deprecation.warn(<<-MESSAGE.strip_heredoc)
+            `modify_value` is deprecated and will be removed from Rails 5.1.
+            Please use `modify_entry` which takes a fully resolved key.
+          MESSAGE
+
           file_name = normalize_key(name, options)
 
           lock_file(file_name) do
@@ -189,6 +194,17 @@ module ActiveSupport
             if num = read(name, options)
               num = num.to_i + amount
               write(name, num, options)
+            end
+          end
+        end
+
+        # Modifies the amount of an already existing integer value that is stored in the cache.
+        # If the key is not found nothing is done.
+        def modify_entry(key, amount, options)
+          lock_file key do
+            if num = read_entry(key, options)
+              num = num.value.to_i + amount
+              write_entry(key, Entry.new(num), options)
               num
             end
           end

@@ -108,34 +108,6 @@ module ActiveSupport
         end
       end
 
-      # Increment a cached value. This method uses the memcached incr atomic
-      # operator and can only be used on values written with the :raw option.
-      # Calling it on a value not stored with :raw will initialize that value
-      # to zero.
-      def increment(name, amount = 1, options = nil) # :nodoc:
-        options = merged_options(options)
-        instrument(:increment, name, :amount => amount) do
-          @data.incr(normalize_key(name, options), amount)
-        end
-      rescue Dalli::DalliError => e
-        logger.error("DalliError (#{e}): #{e.message}") if logger
-        nil
-      end
-
-      # Decrement a cached value. This method uses the memcached decr atomic
-      # operator and can only be used on values written with the :raw option.
-      # Calling it on a value not stored with :raw will initialize that value
-      # to zero.
-      def decrement(name, amount = 1, options = nil) # :nodoc:
-        options = merged_options(options)
-        instrument(:decrement, name, :amount => amount) do
-          @data.decr(normalize_key(name, options), amount)
-        end
-      rescue Dalli::DalliError => e
-        logger.error("DalliError (#{e}): #{e.message}") if logger
-        nil
-      end
-
       # Clear the entire cache on all memcached servers. This method should
       # be used with care when shared cache is being used.
       def clear(options = nil)
@@ -180,6 +152,28 @@ module ActiveSupport
         rescue Dalli::DalliError => e
           logger.error("DalliError (#{e}): #{e.message}") if logger
           false
+        end
+
+        # Increment a cached value. This method uses the memcached incr atomic
+        # operator and can only be used on values written with the :raw option.
+        # Calling it on a value not stored with :raw will initialize that value
+        # to zero.
+        def increment_entry(key, amount, options)
+          @data.incr(key, amount)
+        rescue Dalli::DalliError => e
+          logger.error("DalliError (#{e}): #{e.message}") if logger
+          nil
+        end
+
+        # Decrement a cached value. This method uses the memcached decr atomic
+        # operator and can only be used on values written with the :raw option.
+        # Calling it on a value not stored with :raw will initialize that value
+        # to zero.
+        def decrement_entry(key, amount, options)
+          @data.decr(key, amount)
+        rescue Dalli::DalliError => e
+          logger.error("DalliError (#{e}): #{e.message}") if logger
+          nil
         end
 
       private

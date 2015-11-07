@@ -73,16 +73,6 @@ module ActiveSupport
         @pruning
       end
 
-      # Increment an integer value in the cache.
-      def increment(name, amount = 1, options = nil)
-        modify_value(name, amount, options)
-      end
-
-      # Decrement an integer value in the cache.
-      def decrement(name, amount = 1, options = nil)
-        modify_value(name, -amount, options)
-      end
-
       def delete_matched(matcher, options = nil)
         options = merged_options(options)
         instrument(:delete_matched, matcher.inspect) do
@@ -152,12 +142,37 @@ module ActiveSupport
 
       private
 
+        # Increment an integer value in the cache.
+        def increment_entry(key, amount, options)
+          modify_entry key, amount, options
+        end
+
+        # Decrement an integer value in the cache.
+        def decrement_entry(key, amount, options)
+          modify_entry key, -amount, options
+        end
+
         def modify_value(name, amount, options)
+          ActiveSupport::Deprecation.warn(<<-MESSAGE.strip_heredoc)
+            `modify_value` is deprecated and will be removed from Rails 5.1.
+            Please use `modify_entry` which takes a fully resolved key.
+          MESSAGE
+
           synchronize do
             options = merged_options(options)
+
             if num = read(name, options)
               num = num.to_i + amount
               write(name, num, options)
+            end
+          end
+        end
+
+        def modify_entry(key, amount, options)
+          synchronize do
+            if num = read_entry(key, options)
+              num = num.value.to_i + amount
+              write_entry(key, Entry.new(num), options)
               num
             end
           end

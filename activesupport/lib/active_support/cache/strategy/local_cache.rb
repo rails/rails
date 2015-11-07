@@ -90,21 +90,8 @@ module ActiveSupport
           super
         end
 
-        def increment(name, amount = 1, options = nil) # :nodoc:
-          return super unless local_cache
-          value = bypass_local_cache{super}
-          write_cache_value(name, value, options)
-          value
-        end
-
-        def decrement(name, amount = 1, options = nil) # :nodoc:
-          return super unless local_cache
-          value = bypass_local_cache{super}
-          write_cache_value(name, value, options)
-          value
-        end
-
         protected
+
           def read_entry(key, options) # :nodoc:
             if cache = local_cache
               cache.fetch_entry(key) { super }
@@ -118,6 +105,20 @@ module ActiveSupport
             super
           end
 
+          def increment_entry(key, amount, options) # :nodoc:
+            return super unless cache = local_cache
+            value = bypass_local_cache { super }
+            cache.write_entry(key, Entry.new(value), options)
+            value
+          end
+
+          def decrement_entry(key, amount, options) # :nodoc:
+            return super unless cache = local_cache
+            entry = bypass_local_cache { super }
+            cache.write_entry(key, Entry.new(entry), options)
+            entry
+          end
+
           def delete_entry(key, options) # :nodoc:
             local_cache.delete_entry(key, options) if local_cache
             super
@@ -125,20 +126,17 @@ module ActiveSupport
 
           def set_cache_value(value, name, amount, options) # :nodoc:
             ActiveSupport::Deprecation.warn(<<-MESSAGE.strip_heredoc)
-              `set_cache_value` is deprecated and will be removed from Rails 5.1.
-              Please use `write_cache_value`
+              `set_cache_value` is deprecated and will be removed from Rails 5.1.\
+              Please use `local_cache.write`.
             MESSAGE
-            write_cache_value name, value, options
-          end
 
-          def write_cache_value(name, value, options) # :nodoc:
-            name = normalize_key(name, options)
+            key = normalize_key(name, options)
             cache = local_cache
             cache.mute do
               if value
-                cache.write(name, value, options)
+                cache.write(key, value, options)
               else
-                cache.delete(name, options)
+                cache.delete(key, options)
               end
             end
           end

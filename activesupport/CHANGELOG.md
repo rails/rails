@@ -1,9 +1,19 @@
+*   `ActiveSupport::Cache::Store` now uses `increment_entry` and `decrement_entry` internally, 
+     overwrite these in your subclasses to not duplicate instrumentation logic and use LocalCache
+     for increment and decrement.
+     
+    `ActiveSupport::Cache::MemoryStore#modify_value`, and 
+    `ActiveSupport::Cache::FileStore#modify_value` 
+    are deprecated and replaced with `modify_entry` which takes a fully resolved key. 
+    
+    *Michael Grosser*
+
 *   `ActiveSupport::Cache::Store#namespaced_key`, 
     `ActiveSupport::Cache::MemCachedStore#escape_key`, and 
     `ActiveSupport::Cache::FileStore#key_file_path` 
     are deprecated and replaced with `normalize_key` that now calls `super`.
     
-    `ActiveSupport::Cache::LocaleCache#set_cache_value` is deprecated and replaced with `write_cache_value`.
+    `ActiveSupport::Cache::LocaleCache#set_cache_value` is deprecated and replaced with `local_cache.write`.
     
     *Michael Grosser*
 
