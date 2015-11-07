@@ -62,7 +62,8 @@ module ActiveRecord
         time:         { name: "time" },
         date:         { name: "date" },
         binary:       { name: "blob" },
-        boolean:      { name: "boolean" }
+        boolean:      { name: "boolean" },
+        bigint:       { name: "bigint" },
       }
 
       class StatementPool < ConnectionAdapters::StatementPool
