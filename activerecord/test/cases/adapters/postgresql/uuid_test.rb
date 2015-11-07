@@ -59,44 +59,9 @@ class PostgresqlUUIDTest < ActiveRecord::PostgreSQLTestCase
     assert_equal(nil, UUIDType.last.guid)
   end
 
-  def test_treat_invalid_uuid_as_nil
-    uuid = UUIDType.create! guid: 'foobar'
-    assert_equal(nil, uuid.guid)
-  end
-
-  def test_invalid_uuid_dont_modify_before_type_cast
-    uuid = UUIDType.new guid: 'foobar'
-    assert_equal 'foobar', uuid.guid_before_type_cast
-  end
-
-  def test_acceptable_uuid_regex
-    # Valid uuids
-    ['A0EEBC99-9C0B-4EF8-BB6D-6BB9BD380A11',
-     '{a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11}',
-     'a0eebc999c0b4ef8bb6d6bb9bd380a11',
-     'a0ee-bc99-9c0b-4ef8-bb6d-6bb9-bd38-0a11',
-     '{a0eebc99-9c0b4ef8-bb6d6bb9-bd380a11}',
-     # The following is not a valid RFC 4122 UUID, but PG doesn't seem to care,
-     # so we shouldn't block it either. (Pay attention to "fb6d" – the "f" here
-     # is invalid – it must be one of 8, 9, A, B, a, b according to the spec.)
-     '{a0eebc99-9c0b-4ef8-fb6d-6bb9bd380a11}',
-    ].each do |valid_uuid|
-      uuid = UUIDType.new guid: valid_uuid
-      assert_not_nil uuid.guid
-    end
-
-    # Invalid uuids
-    [['A0EEBC99-9C0B-4EF8-BB6D-6BB9BD380A11'],
-     Hash.new,
-     0,
-     0.0,
-     true,
-     'Z0000C99-9C0B-4EF8-BB6D-6BB9BD380A11',
-     'a0eebc999r0b4ef8ab6d6bb9bd380a11',
-     'a0ee-bc99------4ef8-bb6d-6bb9-bd38-0a11',
-     '{a0eebc99-bb6d6bb9-bd380a11}'].each do |invalid_uuid|
-      uuid = UUIDType.new guid: invalid_uuid
-      assert_nil uuid.guid
+  def test_invalid_uuid
+    assert_raise ActiveRecord::StatementInvalid do
+      UUIDType.create! guid: "invalid"
     end
   end
 
@@ -286,7 +251,7 @@ class PostgresqlUUIDTestInverseOf < ActiveRecord::PostgreSQLTestCase
 
     def test_find_with_uuid
       UuidPost.create!
-      assert_raise ActiveRecord::RecordNotFound do
+      assert_raise ActiveRecord::StatementInvalid do
         UuidPost.find(123456)
       end
 
@@ -294,7 +259,9 @@ class PostgresqlUUIDTestInverseOf < ActiveRecord::PostgreSQLTestCase
 
     def test_find_by_with_uuid
       UuidPost.create!
-      assert_nil UuidPost.find_by(id: 789)
+      assert_raise ActiveRecord::StatementInvalid do
+        UuidPost.find_by(id: 789)
+      end
     end
   end
 
