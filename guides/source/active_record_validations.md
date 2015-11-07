@@ -457,21 +457,6 @@ class Person < ActiveRecord::Base
 end
 ```
 
-This helper counts characters by default, but you can split the value in a
-different way using the `:tokenizer` option:
-
-```ruby
-class Essay < ActiveRecord::Base
-  validates :content, length: {
-    minimum: 300,
-    maximum: 400,
-    tokenizer: lambda { |str| str.split(/\s+/) },
-    too_short: "must have at least %{count} words",
-    too_long: "must have at most %{count} words"
-  }
-end
-```
-
 Note that the default error messages are plural (e.g., "is too short (minimum
 is %{count} characters)"). For this reason, when `:minimum` is 1 you should
 provide a personalized message or use `presence: true` instead. When
