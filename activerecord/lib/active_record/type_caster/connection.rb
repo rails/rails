@@ -1,6 +1,6 @@
 module ActiveRecord
   module TypeCaster
-    class Connection
+    class Connection # :nodoc:
       def initialize(klass, table_name)
         @klass = klass
         @table_name = table_name

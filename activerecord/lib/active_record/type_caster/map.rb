@@ -1,6 +1,6 @@
 module ActiveRecord
   module TypeCaster
-    class Map
+    class Map # :nodoc:
       def initialize(types)
         @types = types
       end
