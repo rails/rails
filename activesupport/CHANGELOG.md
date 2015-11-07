@@ -1,3 +1,9 @@
+*   Avoid a TZInfo::AmbiguousTime exception with `Time.zone.local` when the
+    clocks are set back, but the time zone does not observe DST before or after
+    the transition.
+
+    *Phil Ross*
+
 *   `HashWithIndifferentAccess.new` respects the default value or proc on objects
     that respond to `#to_hash`. `.new_from_hash_copying_default` simply invokes `.new`.
     All calls to `.new_from_hash_copying_default` are replaced with `.new`.

@@ -473,7 +473,9 @@ module ActiveSupport
         # so transfer time values to a utc constructor if necessary
         @time = transfer_time_values_to_utc_constructor(@time) unless @time.utc?
         begin
-          period || @time_zone.period_for_local(@time)
+          # resolve ambiguity by selecting the DST or earliest occurrence of
+          # the local time
+          period || @time_zone.period_for_local(@time, true) {|periods| periods.first }
         rescue ::TZInfo::PeriodNotFound
           # time is in the "spring forward" hour gap, so we're moving the time forward one hour and trying again
           @time += 1.hour

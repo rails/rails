@@ -196,6 +196,17 @@ class TimeZoneTest < ActiveSupport::TestCase
     assert_equal 'EDT', twz.zone
   end
 
+  def test_local_handles_non_dst_clock_set_back
+    # If the clocks are set back during a transition from one non-DST observance
+    # to another, the time of the transition will be ambiguous. The earlier
+    # observance will be selected to mirror behaviour of DST to non-DST transitions.
+    # Such a transition occurred at 02:00 local time in Moscow on 26 October 2014.
+    zone = ActiveSupport::TimeZone['Moscow']
+    twz = zone.local(2014,10,26,1)
+    assert_equal Time.utc(2014,10,26,1), twz.time
+    assert_equal Time.utc(2014,10,25,21), twz.utc
+  end
+
   def test_at
     zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
     secs = 946684800.0
