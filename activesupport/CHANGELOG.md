@@ -1,3 +1,12 @@
+* Updated `parameterize` to preserve the case of a string, optionally.
+
+    Example:
+
+      parameterize("Donald E. Knuth", separator: '_') # => "donald_e_knuth"
+      parameterize("Donald E. Knuth", preserve_case: true) # => "Donald-E-Knuth"
+
+    *Swaathi Kakarla*
+
 *   `HashWithIndifferentAccess.new` respects the default value or proc on objects
     that respond to `#to_hash`. `.new_from_hash_copying_default` simply invokes `.new`.
     All calls to `.new_from_hash_copying_default` are replaced with `.new`.

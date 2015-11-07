@@ -164,8 +164,26 @@ class String
   #
   #   <%= link_to(@person.name, person_path) %>
   #   # => <a href="/person/1-donald-e-knuth">Donald E. Knuth</a>
-  def parameterize(sep = '-'.freeze)
-    ActiveSupport::Inflector.parameterize(self, sep)
+  #   
+  # To preserve the case of the characters in a string, use the `preserve_case` argument.
+  #
+  #   class Person
+  #     def to_param
+  #       "#{id}-#{name.parameterize(preserve_case: true)}"
+  #     end
+  #   end
+  #
+  #   @person = Person.find(1)
+  #   # => #<Person id: 1, name: "Donald E. Knuth">
+  #
+  #   <%= link_to(@person.name, person_path) %>
+  #   # => <a href="/person/1-Donald-E-Knuth">Donald E. Knuth</a>
+  def parameterize(sep = :unused, separator: '-', preserve_case: false)
+    unless sep == :unused
+      ActiveSupport::Deprecation.warn("Passing the separator argument as a positional parameter is deprecated and will soon be removed. Use `separator: '#{sep}'` instead.")
+      separator = sep
+    end
+    ActiveSupport::Inflector.parameterize(self, separator: separator, preserve_case: preserve_case)
   end
 
   # Creates the name of a table like Rails does for models to table names. This method
