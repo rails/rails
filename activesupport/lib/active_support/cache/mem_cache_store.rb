@@ -97,7 +97,7 @@ module ActiveSupport
         options = merged_options(options)
 
         instrument_multi(:read, names, options) do
-          keys_to_names = Hash[names.map{|name| [escape_key(namespaced_key(name, options)), name]}]
+          keys_to_names = Hash[names.map{|name| [normalize_key(name, options), name]}]
           raw_values = @data.get_multi(keys_to_names.keys, :raw => true)
           values = {}
           raw_values.each do |key, value|
@@ -115,7 +115,7 @@ module ActiveSupport
       def increment(name, amount = 1, options = nil) # :nodoc:
         options = merged_options(options)
         instrument(:increment, name, :amount => amount) do
-          @data.incr(escape_key(namespaced_key(name, options)), amount)
+          @data.incr(normalize_key(name, options), amount)
         end
       rescue Dalli::DalliError => e
         logger.error("DalliError (#{e}): #{e.message}") if logger
@@ -129,7 +129,7 @@ module ActiveSupport
       def decrement(name, amount = 1, options = nil) # :nodoc:
         options = merged_options(options)
         instrument(:decrement, name, :amount => amount) do
-          @data.decr(escape_key(namespaced_key(name, options)), amount)
+          @data.decr(normalize_key(name, options), amount)
         end
       rescue Dalli::DalliError => e
         logger.error("DalliError (#{e}): #{e.message}") if logger
@@ -153,7 +153,7 @@ module ActiveSupport
       protected
         # Read an entry from the cache.
         def read_entry(key, options) # :nodoc:
-          deserialize_entry(@data.get(escape_key(key), options))
+          deserialize_entry(@data.get(key, options))
         rescue Dalli::DalliError => e
           logger.error("DalliError (#{e}): #{e.message}") if logger
           nil
@@ -168,7 +168,7 @@ module ActiveSupport
             # Set the memcache expire a few minutes in the future to support race condition ttls on read
             expires_in += 5.minutes
           end
-          @data.send(method, escape_key(key), value, expires_in, options)
+          @data.send(method, key, value, expires_in, options)
         rescue Dalli::DalliError => e
           logger.error("DalliError (#{e}): #{e.message}") if logger
           false
@@ -176,7 +176,7 @@ module ActiveSupport
 
         # Delete an entry from the cache.
         def delete_entry(key, options) # :nodoc:
-          @data.delete(escape_key(key))
+          @data.delete(key)
         rescue Dalli::DalliError => e
           logger.error("DalliError (#{e}): #{e.message}") if logger
           false
@@ -187,8 +187,8 @@ module ActiveSupport
         # Memcache keys are binaries. So we need to force their encoding to binary
         # before applying the regular expression to ensure we are escaping all
         # characters properly.
-        def escape_key(key)
-          key = key.to_s.dup
+        def normalize_key(key, options)
+          key = super.dup
           key = key.force_encoding(Encoding::ASCII_8BIT)
           key = key.gsub(ESCAPE_KEY_CHARS){ |match| "%#{match.getbyte(0).to_s(16).upcase}" }
           key = "#{key[0, 213]}:md5:#{Digest::MD5.hexdigest(key)}" if key.size > 250
