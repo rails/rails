@@ -1,3 +1,7 @@
+*   Raise error when adding unreachable included blocks to concerns.
+
+    *David Verhasselt*
+
 *   `HashWithIndifferentAccess.new` respects the default value or proc on objects
     that respond to `#to_hash`. `.new_from_hash_copying_default` simply invokes `.new`.
     All calls to `.new_from_hash_copying_default` are replaced with `.new`.

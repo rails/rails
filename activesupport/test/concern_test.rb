@@ -126,4 +126,16 @@ class ConcernTest < ActiveSupport::TestCase
       end
     end
   end
+
+  def test_raise_when_included_block_unreacable
+    test_module = Module.new do
+      extend ActiveSupport::Concern
+    end
+
+    @klass.include(test_module)
+
+    assert_raises(ActiveSupport::Concern::UnreachableIncludedBlock) do
+      test_module.included {}
+    end
+  end
 end

@@ -104,6 +104,13 @@ module ActiveSupport
       end
     end
 
+    class UnreachableIncludedBlock < StandardError #:nodoc:
+      def initialize
+        super "This 'included' block will never be run because the Concern was already included. " +
+          "Check your code for circular references from the Concern to the including class."
+      end
+    end
+
     def self.extended(base) #:nodoc:
       base.instance_variable_set(:@_dependencies, [])
     end
@@ -124,9 +131,11 @@ module ActiveSupport
     def included(base = nil, &block)
       if base.nil?
         raise MultipleIncludedBlocks if instance_variable_defined?(:@_included_block)
+        raise UnreachableIncludedBlock if @_already_included
 
         @_included_block = block
       else
+        @_already_included = true
         super
       end
     end
