@@ -633,6 +633,13 @@ module LocalCacheBehavior
     end
   end
 
+  def test_local_cache_fetch
+    @cache.with_local_cache do
+      @cache.send(:local_cache).write 'foo', 'bar'
+      assert_equal 'bar', @cache.send(:local_cache).fetch('foo')
+    end
+  end
+
   def test_local_cache_of_write_nil
     @cache.with_local_cache do
       assert @cache.write('foo', nil)
@@ -1102,11 +1109,11 @@ class CacheStoreLoggerTest < ActiveSupport::TestCase
   def test_log_with_proc_namespace
     proc = Proc.new do
       "proc_namespace"
-    end    
+    end
     @cache.fetch('foo', {:namespace => proc}) { 'bar' }
     assert_match %r{proc_namespace:foo}, @buffer.string
   end
-  
+
   def test_mute_logging
     @cache.mute { @cache.fetch('foo') { 'bar' } }
     assert @buffer.string.blank?
