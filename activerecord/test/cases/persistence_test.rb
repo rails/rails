@@ -966,4 +966,16 @@ class PersistenceTest < ActiveRecord::TestCase
       widget.reset_column_information
     end
   end
+
+  def test_reset_column_information_resets_children
+    child = Class.new(Topic)
+    child.new # force schema to load
+
+    ActiveRecord::Base.connection.add_column(:topics, :foo, :string)
+    Topic.reset_column_information
+
+    assert_equal "bar", child.new(foo: :bar).foo
+  ensure
+    ActiveRecord::Base.connection.remove_column(:topics, :foo)
+  end
 end

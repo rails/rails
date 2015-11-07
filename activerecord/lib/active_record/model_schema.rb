@@ -339,6 +339,9 @@ module ActiveRecord
         @columns = nil
         @columns_hash = nil
         @attribute_names = nil
+        direct_descendants.each do |descendant|
+          descendant.send(:reload_schema_from_cache)
+        end
       end
 
       # Guesses the table name, but does not decorate it with prefix and suffix information.
