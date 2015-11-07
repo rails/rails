@@ -104,7 +104,7 @@ module ActiveRecord
       super
     end
 
-    class EnumType < Type::Value
+    class EnumType < Type::Value # :nodoc:
       def initialize(name, mapping)
         @name = name
         @mapping = mapping
