@@ -977,5 +977,6 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_equal "bar", child.new(foo: :bar).foo
   ensure
     ActiveRecord::Base.connection.remove_column(:topics, :foo)
+    Topic.reset_column_information
   end
 end
