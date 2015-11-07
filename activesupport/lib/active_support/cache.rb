@@ -333,19 +333,16 @@ module ActiveSupport
         options = merged_options(options)
 
         instrument_multi(:read, names, options) do |payload|
-          results = {}
-          names.each do |name|
-            key = normalize_key(name, options)
-            entry = read_entry(key, options)
+          keys_to_names = Hash[names.map { |name| [normalize_key(name, options), name] }]
+          read_multi_entry(keys_to_names.keys, options).each_with_object({}) do |(key, entry), results|
             if entry
               if entry.expired?
                 delete_entry(key, options)
               else
-                results[name] = entry.value
+                results[keys_to_names[key]] = entry.value
               end
             end
           end
-          results
         end
       end
 
@@ -484,6 +481,13 @@ module ActiveSupport
         # this method.
         def read_entry(key, options) # :nodoc:
           raise NotImplementedError.new
+        end
+
+        # Read multiple entries from the cache implementation.
+        def read_multi_entry(keys, options)
+          keys.each_with_object({}) do |key, values|
+            values[key] = read_entry(key, options)
+          end
         end
 
         # Write an entry to the cache implementation. Subclasses must implement
