@@ -21,9 +21,51 @@ module Enumerable
     if block_given?
       map(&block).sum(identity)
     else
-      inject { |sum, element| sum + element } || identity
+      inject(:+) || identity
     end
   end
+
+  
+  # Calculates a product by multiplying numeric elements
+  # [5, 15, 10].mult # => 750
+  #
+  # returns nil if blank or any element is nil
+  def mult(identity = 1, &block)
+    return nil if (self.blank? || self.include?(nil))
+    raise "All elements must be numeric" if self.any? { |x| x.is_a? String }
+
+    if block_given?
+      map(&block).mult(identity)
+    else
+      inject(:*) || identity
+    end
+  end 
+   
+
+  # Calculates a mean average of the elements
+  def avg(identity = 0, &block)
+    return nil if (self.blank? || self.include?(nil))
+    raise "All elements must be numeric" if self.any? { |x| x.is_a? String }
+
+    if block_given?
+      map(&block).avg(identity)
+    else
+      (inject(:+).to_f / self.count) || identity
+    end
+  end 
+
+
+  # Calculates a median average of the elements
+  def median(identity = 0, &block)
+    return nil if (self.blank? || self.include?(nil))
+    raise "All elements must be numeric" if self.any? { |x| x.is_a? String }
+
+    if block_given?
+      map(&block).median(identity)
+    else
+      (self.sort[(self.length - 1) / 2] + self.sort[self.length / 2]) / 2.0 || identity
+    end
+  end   
 
   # Convert an enumerable to a hash.
   #

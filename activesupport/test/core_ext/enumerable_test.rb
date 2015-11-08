@@ -20,6 +20,14 @@ class EnumerableTests < ActiveSupport::TestCase
     def each
       @values.each{|v| yield v}
     end
+
+    def count
+      @values.count
+    end
+
+    def length
+      @values.length
+    end
   end
 
   def test_sums
@@ -69,6 +77,85 @@ class EnumerableTests < ActiveSupport::TestCase
     assert_equal 10, (10..10).sum
     assert_equal 42, (10...10).sum(42)
   end
+
+  def test_mult
+    expected_raise = RuntimeError
+
+    enum = GenericEnumerable.new([5, 15, 10])
+    assert_equal 750, enum.mult
+    assert_equal 6000, enum.mult { |i| i * 2}
+
+    enum = GenericEnumerable.new(%w(a b c))
+    assert_raise(expected_raise) { enum.mult }
+    assert_raise(expected_raise) { enum.mult { |i| i * 2 } }
+
+    payments = GenericEnumerable.new([ Payment.new(5), Payment.new(15), Payment.new(10) ])
+    assert_equal 750, payments.mult(&:price)
+    assert_equal 6000, payments.mult { |p| p.price * 2 }
+  end 
+
+  def test_nil_mult
+    assert_equal nil, GenericEnumerable.new([5, 15, nil]).mult
+
+    payments = GenericEnumerable.new([ Payment.new(5), Payment.new(15), Payment.new(10), Payment.new(nil) ])
+    assert_equal nil, payments.mult(&:price)
+
+    assert_equal 0, payments.mult { |p| p.price.to_i * 2 }
+  end  
+
+  def test_empty_mult
+    assert_nil GenericEnumerable.new([]).each.mult
+    assert_nil GenericEnumerable.new([]).each.mult { |i| i + 10 }
+    assert_nil GenericEnumerable.new([]).each.mult(Payment.new(0))
+  end 
+
+  def test_range_mult
+    expected_raise = RuntimeError
+
+    assert_equal 384, (1..4).mult { |i| i * 2 }
+    assert_equal 24, (1..4).mult
+    assert_equal 24, (1..4.5).mult
+    assert_equal 6, (1...4).mult
+    assert_raise(expected_raise) { ('a'..'c').mult }
+    assert_equal 1220136825991110068701238785423046926253574342803192842192413588385845373153881997605496447502203281863013616477148203584163378722078177200480785205159329285477907571939330603772960859086270429174547882424912726344305670173270769461062802310452644218878789465754777149863494367781037644274033827365397471386477878495438489595537537990423241061271326984327745715546309977202781014561081188373709531016356324432987029563896628911658974769572087926928871281780070265174507768410719624390394322536422605234945850129918571501248706961568141625359056693423813008856249246891564126775654481886506593847951775360894005745238940335798476363944905313062323749066445048824665075946735862074637925184200459369692981022263971952597190945217823331756934581508552332820762820023402626907898342451712006207714640979456116127629145951237229913340169552363850942885592018727433795173014586357570828355780158735432768888680120399882384702151467605445407663535984174430480128938313896881639487469658817504506926365338175055478128640000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000, (1..500).mult
+    assert_equal 0, (0..10_000).mult
+    assert_equal 1, (10..1).mult
+    assert_equal 5, (10..1).mult(5)
+    assert_equal 10, (10..10).mult
+    assert_equal 42, (10...10).mult(42)
+  end   
+
+  def test_avgs
+    expected_raise = RuntimeError
+
+    enum = GenericEnumerable.new([5, 15, 10])
+    assert_equal 10.0, enum.avg
+    assert_equal 20.0, enum.avg { |i| i * 2}
+
+    enum = GenericEnumerable.new(%w(a b c))
+    assert_raise(expected_raise) { enum.avg }
+    assert_raise(expected_raise) { enum.avg { |i| i * 2 } }
+
+    payments = GenericEnumerable.new([ Payment.new(5), Payment.new(15), Payment.new(10) ])
+    assert_equal 10.0, payments.avg(&:price)
+    assert_equal 20.0, payments.avg { |p| p.price * 2 }
+  end 
+
+  def test_medians
+    expected_raise = RuntimeError
+
+    enum = GenericEnumerable.new([5, 15, 10, 200, 70])
+    assert_equal 15.0, enum.median
+    assert_equal 30.0, enum.median { |i| i * 2}
+
+    enum = GenericEnumerable.new(%w(a b c))
+    assert_raise(expected_raise) { enum.median }
+    assert_raise(expected_raise) { enum.median { |i| i * 2 } }
+
+    payments = GenericEnumerable.new([ Payment.new(5), Payment.new(15), Payment.new(10), Payment.new(200), Payment.new(70)])
+    assert_equal 15.0, payments.median(&:price)
+    assert_equal 30.0, payments.median { |p| p.price * 2 }
+  end    
 
   def test_index_by
     payments = GenericEnumerable.new([ Payment.new(5), Payment.new(15), Payment.new(10) ])
