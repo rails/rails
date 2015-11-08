@@ -13,9 +13,9 @@ module ActiveSupport
         @dirs[@ph.xpath(dir)] = Array(exts).map {|ext| @ph.normalize_extension(ext)}
       end
 
-      @block    = block
-      @modified = false
-      @lcsp     = @ph.longest_common_subpath(@dirs.keys)
+      @block   = block
+      @updated = false
+      @lcsp    = @ph.longest_common_subpath(@dirs.keys)
 
       if (watch_dirs = base_directories).any?
         Listen.to(*watch_dirs, &method(:changed)).start
@@ -23,13 +23,13 @@ module ActiveSupport
     end
 
     def updated?
-      @modified
+      @updated
     end
 
     def execute
       @block.call
     ensure
-      @modified = false
+      @updated = false
     end
 
     def execute_if_updated
@@ -43,7 +43,7 @@ module ActiveSupport
 
     def changed(modified, added, removed)
       unless updated?
-        @modified = (modified + added + removed).any? {|f| watching?(f)}
+        @updated = (modified + added + removed).any? {|f| watching?(f)}
       end
     end
 
