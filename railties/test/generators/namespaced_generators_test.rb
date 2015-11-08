@@ -396,4 +396,28 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
     # Stylesheets (should not be removed)
     assert_file "app/assets/stylesheets/scaffold.css"
   end
+
+  def test_api_scaffold_with_namespace_on_invoke
+    run_generator [ "admin/role", "name:string", "description:string", "--api" ]
+
+    # Model
+    assert_file "app/models/test_app/admin.rb", /module TestApp\n  module Admin/
+    assert_file "app/models/test_app/admin/role.rb", /module TestApp\n  class Admin::Role < ActiveRecord::Base/
+    assert_file "test/models/test_app/admin/role_test.rb", /module TestApp\n  class Admin::RoleTest < ActiveSupport::TestCase/
+    assert_file "test/fixtures/test_app/admin/roles.yml"
+    assert_migration "db/migrate/create_test_app_admin_roles.rb"
+
+    # Route
+    assert_file "config/routes.rb" do |route|
+      assert_match(/^  namespace :admin do\n    resources :roles\n  end$/, route)
+    end
+
+    # Controller
+    assert_file "app/controllers/test_app/admin/roles_controller.rb" do |content|
+      assert_match(/module TestApp\n  class Admin::RolesController < ApplicationController/, content)
+      assert_match(%r(require_dependency "test_app/application_controller"), content)
+    end
+    assert_file "test/controllers/test_app/admin/roles_controller_test.rb",
+                /module TestApp\n  class Admin::RolesControllerTest < ActionController::TestCase/
+  end
 end
