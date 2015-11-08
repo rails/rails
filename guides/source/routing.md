@@ -145,7 +145,15 @@ get 'profile', to: 'users#show'
 Passing a `String` to `get` will expect a `controller#action` format, while passing a `Symbol` will map directly to an action:
 
 ```ruby
-get 'profile', to: :show
+get 'profile', to: 'users#show', controller: 'users'
+```
+
+or
+
+```ruby
+resource :user do
+ get 'profile', to: :show
+end
 ```
 
 This resourceful route:
