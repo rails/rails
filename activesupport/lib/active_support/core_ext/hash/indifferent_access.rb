@@ -20,4 +20,14 @@ class Hash
   #   { a: b }.with_indifferent_access['a'] # calls b.nested_under_indifferent_access
   #   # => {"b"=>1}
   alias nested_under_indifferent_access with_indifferent_access
+
+  alias_method :original_eql?, :==
+  def ==(other)
+    if other.is_a?(HashWithIndifferentAccess)
+      with_indifferent_access.original_eql?(other)
+    else
+      original_eql?(other)
+    end
+  end
+  alias_method :eql?, :==
 end

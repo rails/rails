@@ -263,6 +263,11 @@ module ActiveSupport
       _new_hash
     end
 
+    def ==(other)
+      super(other.try(:with_indifferent_access))
+    end
+    alias_method :eql?, :==
+
     protected
       def convert_key(key)
         key.kind_of?(Symbol) ? key.to_s : key

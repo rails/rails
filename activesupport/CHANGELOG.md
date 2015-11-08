@@ -1,3 +1,8 @@
+*   Fix equality check on instances of `Hash` and
+    `ActiveSupport::HashWithIndifferentAccess`.
+
+    *Ali Ismayilov*
+
 *   Implements an evented file system monitor to asynchronously detect changes
     in the application source code, routes, locales, etc.
 
