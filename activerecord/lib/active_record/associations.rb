@@ -196,10 +196,10 @@ module ActiveRecord
     #
     # === A word of warning
     #
-    # Don't create associations that have the same name as instance methods of
+    # Don't create associations that have the same name as [instance methods](http://apidock.com/rails/ActiveRecord/Base) of
     # <tt>ActiveRecord::Base</tt>. Since the association adds a method with that name to
-    # its model, it will override the inherited method and break things.
-    # For instance, +attributes+ and +connection+ would be bad choices for association names.
+    # its model, using an association with the same name as one provided by <tt>ActiveRecord::Base</tt> will override the method inherited through <tt>ActiveRecord::Base</tt> and will break things.
+    # For instance, +attributes+ and +connection+ would be bad choices for association names, because those named already exist in the list of <tt>ActiveRecord::Base</tt> instance methods.
     #
     # == Auto-generated methods
     #
