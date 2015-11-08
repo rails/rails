@@ -1,3 +1,11 @@
+*   Improve support for non Active Record objects on `validates_associated`
+
+    Skipping `marked_for_destruction?` when the associated object does not responds
+    to it make easier to validate virtual associations built on top of Active Model
+    objects and/or serialized objects that implement a `valid?` instance method.
+
+    *Kassio Borges*, *Lucas Mazza*
+
 *   Change connection management middleware to return a new response with
     a body proxy, rather than mutating the original.
 
