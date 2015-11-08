@@ -5,7 +5,7 @@ module ActionView
         private
 
           def format_date(value)
-            value.try(:strftime, "%Y-W%W")
+            value.try(:strftime, "%Y-W%V")
           end
       end
     end
