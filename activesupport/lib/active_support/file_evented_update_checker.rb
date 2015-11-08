@@ -3,17 +3,19 @@ require 'set'
 require 'pathname'
 
 module ActiveSupport
-  class FileEventedUpdateChecker
+  class FileEventedUpdateChecker #:nodoc: all
     def initialize(files, dirs={}, &block)
-      @files = files.map {|f| expand_path(f)}.to_set
+      @ph    = PathHelper.new
+      @files = files.map {|f| @ph.xpath(f)}.to_set
 
       @dirs = {}
       dirs.each do |dir, exts|
-        @dirs[expand_path(dir)] = Array(exts).map(&:to_s)
+        @dirs[@ph.xpath(dir)] = Array(exts).map {|ext| @ph.normalize_extension(ext)}
       end
 
-      @block = block
+      @block    = block
       @modified = false
+      @lcsp     = @ph.longest_common_subpath(@dirs.keys)
 
       if (watch_dirs = base_directories).any?
         Listen.to(*watch_dirs, &method(:changed)).start
@@ -39,35 +41,31 @@ module ActiveSupport
 
     private
 
-    def expand_path(fname)
-      File.expand_path(fname)
-    end
-
     def changed(modified, added, removed)
-      return if updated?
-
-      if (modified + added + removed).any? {|f| watching?(f)}
-        @modified = true
+      unless updated?
+        @modified = (modified + added + removed).any? {|f| watching?(f)}
       end
     end
 
     def watching?(file)
-      file = expand_path(file)
-      return true if @files.member?(file)
+      file = @ph.xpath(file)
 
-      file = Pathname.new(file)
+      return true  if @files.member?(file)
       return false if file.directory?
 
-      ext = file.extname.sub(/\A\./, '')
+      ext = @ph.normalize_extension(file.extname)
       dir = file.dirname
 
       loop do
-        if @dirs.fetch(dir.to_path, []).include?(ext)
+        if @dirs.fetch(dir, []).include?(ext)
           break true
         else
-          if dir.root? # TODO: find a common parent directory in initialize
-            break false
+          if @lcsp
+            break false if dir == @lcsp
+          else
+            break false if dir.root?
           end
+
           dir = dir.parent
         end
       end
@@ -76,27 +74,62 @@ module ActiveSupport
     # TODO: Better return a list of non-nested directories.
     def base_directories
       [].tap do |bd|
-        bd.concat @files.map {|f| existing_parent(File.dirname(f))}
-        bd.concat @dirs.keys.map {|dir| existing_parent(dir)}
+        bd.concat @files.map {|f| @ph.existing_parent(f.dirname)}
+        bd.concat @dirs.keys.map {|dir| @ph.existing_parent(dir)}
         bd.compact!
         bd.uniq!
       end
     end
 
-    def existing_parent(dir)
-      dir = Pathname.new(expand_path(dir))
+    class PathHelper
+      def xpath(path)
+        Pathname.new(path).expand_path
+      end
 
-      loop do
-        if dir.directory?
-          break dir.to_path
-        else
-          if dir.root?
-            # Edge case in which not even the root exists. For example, Windows
-            # paths could have a non-existing drive letter. Since the parent of
-            # root is root, we need to break to prevent an infinite loop.
-            break
+      def normalize_extension(ext)
+        ext.to_s.sub(/\A\./, '')
+      end
+
+      # Given a collection of Pathname objects returns the longest subpath
+      # common to all of them, or +nil+ if there is none.
+      def longest_common_subpath(paths)
+        return if paths.empty?
+
+        csp = Pathname.new(paths[0])
+
+        paths[1..-1].each do |path|
+          loop do
+            break if path.ascend do |ascendant|
+              break true if ascendant == csp
+            end
+
+            if csp.root?
+              # A root directory is not an ascendant of path. This may happen
+              # if there are paths in different drives on Windows.
+              return
+            else
+              csp = csp.parent
+            end
+          end
+        end
+
+        csp
+      end
+
+      # Returns the deepest existing ascendant, which could be the argument itself.
+      def existing_parent(dir)
+        loop do
+          if dir.directory?
+            break dir
           else
-            dir = dir.parent
+            if dir.root?
+              # Edge case in which not even the root exists. For example, Windows
+              # paths could have a non-existing drive letter. Since the parent of
+              # root is root, we need to break to prevent an infinite loop.
+              break
+            else
+              dir = dir.parent
+            end
           end
         end
       end
