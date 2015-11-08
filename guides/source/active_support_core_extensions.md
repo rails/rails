@@ -1710,6 +1710,20 @@ The method `parameterize` normalizes its receiver in a way that can be used in p
 "Kurt Gödel".parameterize # => "kurt-godel"
 ```
 
+To preserve the case of the string, set the `preserve_case` argument to true. By default, `preserve_case` is set to false.
+
+```ruby
+"John Smith".parameterize(preserve_case: true) # => "John-Smith"
+"Kurt Gödel".parameterize(preserve_case: true) # => "Kurt-Godel"
+```
+
+To use a custom separator, override the `separator` argument.
+
+```ruby
+"John Smith".parameterize(separator: "_") # => "john\_smith"
+"Kurt Gödel".parameterize(separator: "_") # => "kurt\_godel"
+```
+
 In fact, the result string is wrapped in an instance of `ActiveSupport::Multibyte::Chars`.
 
 NOTE: Defined in `active_support/core_ext/string/inflections.rb`.

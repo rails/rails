@@ -9,7 +9,7 @@ class Hash
   #
   #   { a: 1, b: 2 }.transform_values.with_index { |v, i| [v, i].join.to_i } # => { a: 10, b: 21 }
   def transform_values
-    return enum_for(:transform_values) unless block_given?
+    return enum_for(:transform_values) { size } unless block_given?
     return {} if empty?
     result = self.class.new
     each do |key, value|
@@ -21,7 +21,7 @@ class Hash
   # Destructively converts all values using the +block+ operations.
   # Same as +transform_values+ but modifies +self+.
   def transform_values!
-    return enum_for(:transform_values!) unless block_given?
+    return enum_for(:transform_values!) { size } unless block_given?
     each do |key, value|
       self[key] = yield(value)
     end

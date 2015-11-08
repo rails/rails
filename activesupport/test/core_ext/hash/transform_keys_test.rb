@@ -18,15 +18,17 @@ class TransformKeysTest < ActiveSupport::TestCase
     assert_same original, mapped
   end
 
-  test "transform_keys returns an Enumerator if no block is given" do
+  test "transform_keys returns a sized Enumerator if no block is given" do
     original = { a: 'a', b: 'b' }
     enumerator = original.transform_keys
+    assert_equal original.size, enumerator.size
     assert_equal Enumerator, enumerator.class
   end
 
-  test "transform_keys! returns an Enumerator if no block is given" do
+  test "transform_keys! returns a sized Enumerator if no block is given" do
     original = { a: 'a', b: 'b' }
     enumerator = original.transform_keys!
+    assert_equal original.size, enumerator.size
     assert_equal Enumerator, enumerator.class
   end
 
