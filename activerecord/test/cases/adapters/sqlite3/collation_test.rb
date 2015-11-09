@@ -28,6 +28,20 @@ class SQLite3CollationTest < ActiveRecord::SQLite3TestCase
     assert_equal 'RTRIM', column.collation
   end
 
+  test "add column with escaped name with collation" do
+    @connection.add_column :collation_table_sqlite3, :"foo\"bar", :string, collation: 'RTRIM'
+
+    column = @connection.columns(:collation_table_sqlite3).find { |c| c.name == 'foo"bar' }
+    assert_equal :string, column.type
+    assert_equal 'RTRIM', column.collation
+
+    @connection.add_column :collation_table_sqlite3, :"foo,bar", :string, collation: 'RTRIM'
+
+    column = @connection.columns(:collation_table_sqlite3).find { |c| c.name == 'foo,bar' }
+    assert_equal :string, column.type
+    assert_equal 'RTRIM', column.collation
+  end
+
   test "add column with collation" do
     @connection.add_column :collation_table_sqlite3, :title, :string, collation: 'RTRIM'
 

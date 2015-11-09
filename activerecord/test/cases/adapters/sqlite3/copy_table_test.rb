@@ -75,9 +75,20 @@ class CopyTableTest < ActiveRecord::SQLite3TestCase
     test_copy_table 'binaries', 'binaries2'
   end
 
+  def test_copy_table_with_foreign_key_constraints
+    test_copy_table('authors', 'authors2') do
+      original_fk = @connection.foreign_keys('authors')
+      copied_fk = @connection.foreign_keys('authors2').each do |fkd|
+        # Prevent false negative due to changed name of copied table
+        fkd.from_table = 'authors'
+      end
+      assert_equal original_fk, copied_fk
+    end
+  end
+
 protected
   def copy_table(from, to, options = {})
-    @connection.copy_table(from, to, {:temporary => true}.merge(options))
+    @connection.copy_table(from, to, options)
   end
 
   def column_names(table)

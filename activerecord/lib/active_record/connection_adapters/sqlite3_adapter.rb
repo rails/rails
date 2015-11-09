@@ -92,6 +92,8 @@ module ActiveRecord
         else
           @prepared_statements = false
         end
+
+        execute('PRAGMA foreign_keys = 1')
       end
 
       def supports_ddl_transactions?
@@ -167,6 +169,10 @@ module ActiveRecord
       end
 
       def supports_explain?
+        true
+      end
+
+      def supports_foreign_keys?
         true
       end
 
@@ -308,6 +314,26 @@ module ActiveRecord
         log('rollback transaction',nil) { @connection.rollback }
       end
 
+      # REFERNTIAL INTEGRITY =====================================
+
+      def disable_referential_integrity #:nodoc:
+        if select_value("PRAGMA foreign_keys") != 1
+          yield
+        else
+          begin
+            execute("PRAGMA foreign_keys = 0")
+            if select_value("PRAGMA foreign_keys") != 0
+              # SQLite does not support disabling referential integrity within transactions,
+              # see https://www.sqlite.org/pragma.html#pragma_foreign_keys
+              raise ActiveRecord::StatementInvalid, "Cannot disable referential integrity while a transaction is active"
+            end
+            yield
+          ensure
+            execute("PRAGMA foreign_keys = 1")
+          end
+        end
+      end
+
       # SCHEMA STATEMENTS ========================================
 
       def tables(name = nil) # :nodoc:
@@ -384,15 +410,7 @@ module ActiveRecord
       # Returns an array of indexes for the given table.
       def indexes(table_name, name = nil) #:nodoc:
         exec_query("PRAGMA index_list(#{quote_table_name(table_name)})", 'SCHEMA').map do |row|
-          sql = <<-SQL
-            SELECT sql
-            FROM sqlite_master
-            WHERE name=#{quote(row['name'])} AND type='index'
-            UNION ALL
-            SELECT sql
-            FROM sqlite_temp_master
-            WHERE name=#{quote(row['name'])} AND type='index'
-          SQL
+          sql = "SELECT sql FROM sqlite_master WHERE name=#{quote(row['name'])} AND type='index'"
           index_sql = exec_query(sql).first['sql']
           match = /\sWHERE\s+(.+)$/i.match(index_sql)
           where = match[1] if match
@@ -485,21 +503,61 @@ module ActiveRecord
         rename_column_indexes(table_name, column.name, new_column_name)
       end
 
-      protected
-
-        def table_structure(table_name)
-          structure = exec_query("PRAGMA table_info(#{quote_table_name(table_name)})", 'SCHEMA')
-          raise(ActiveRecord::StatementInvalid, "Could not find table '#{table_name}'") if structure.empty?
-          table_structure_with_collation(table_name, structure)
+      def foreign_keys(table_name)
+        col_fk_names = {}
+        table_structure(table_name).each do |col|
+          col.fetch('foreign_keys', []).each do |fk|
+            if fk.has_key?('name')
+              col_fk_names[[col['name'], fk['to_table'], fk['target_column']]] = fk['name']
+            end
+          end
         end
+
+        exec_query("PRAGMA foreign_key_list(#{quote_table_name(table_name)})", 'SCHEMA').map do |row|
+          pkey = row['to']
+          if pkey.nil?
+            pkeys = primary_keys(row['table'])
+            if pkeys.length == 1
+              pkey = pkeys.first
+            else
+              # FIXME ForeignKeyDefinition can only refer to a single target column, so
+              # for now we'll have to just ignore any multi-column targets.
+              next nil
+            end
+          end
+
+          ForeignKeyDefinition.new(table_name.to_s, row['table'], {
+            name: col_fk_names[[row['from'], row['table'], row['to']]],
+            column: row['from'],
+            primary_key: pkey,
+            on_delete: extract_foreign_key_action(row['on_delete']),
+            on_update: extract_foreign_key_action(row['on_update'])
+          })
+        end.compact
+      end
+
+      def add_foreign_key(from_table, to_table, options = {}) #:nodoc:
+        options = foreign_key_options(from_table, to_table, options)
+        alter_table(from_table) do |definition|
+          definition.foreign_key(to_table, options)
+        end
+      end
+
+      def remove_foreign_key(from_table, options_or_to_table = {})
+        foreign_key_for!(from_table, options_or_to_table)
+        alter_table(from_table) do |definition|
+          definition.remove_foreign_key(options_or_to_table)
+        end
+      end
+
+      protected
 
         def alter_table(table_name, options = {}) #:nodoc:
           altered_table_name = "a#{table_name}"
           caller = lambda {|definition| yield definition if block_given?}
 
           transaction do
-            move_table(table_name, altered_table_name,
-              options.merge(:temporary => true))
+            move_table(table_name, altered_table_name, options)
             move_table(altered_table_name, table_name, &caller)
           end
         end
@@ -526,6 +584,9 @@ module ActiveRecord
                 :limit => column.limit, :default => column.default,
                 :precision => column.precision, :scale => column.scale,
                 :null => column.null, collation: column.collation)
+            end
+            foreign_keys(from).each do |fk|
+              @definition.foreign_key fk.to_table, fk.options
             end
             yield @definition if block_given?
           end
@@ -583,49 +644,167 @@ module ActiveRecord
           #   column *column_name* is not unique
           when /column(s)? .* (is|are) not unique/, /UNIQUE constraint failed: .*/
             RecordNotUnique.new(message)
+          when /FOREIGN KEY constraint failed/
+            InvalidForeignKey.new(message)
           else
             super
           end
         end
 
       private
+        # Quoting styles documented at http://www.sqlite.org/lang_keywords.html
+        # SQLite uses the repeated-quote style of escaping, e.g. "foo""" == 'foo"'
+        SCHEMA_TOKEN_REGEX = /
+            '  (?: [^']  | '' )* '  # Single-quoted string
+          | "  (?: [^"]  | "" )* "  # Double-quoted string
+          | `  (?: [^`]  | `` )* `  # Backtick-quoted string
+          | \[     [^\]]       * \] # Bracket-bounded string
+          | \w+                     # Raw unquoted literal
+          | [(),]                   # Symbols
+        /x.freeze
         COLLATE_REGEX = /.*\"(\w+)\".*collate\s+\"(\w+)\".*/i.freeze
 
-        def table_structure_with_collation(table_name, basic_structure)
-          collation_hash = {}
-          sql            = "SELECT sql FROM
-                              (SELECT * FROM sqlite_master UNION ALL
-                               SELECT * FROM sqlite_temp_master)
-                            WHERE type='table' and name='#{ table_name }' \;"
-
-          # Result will have following sample string
-          # CREATE TABLE "users" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-          #                       "password_digest" varchar COLLATE "NOCASE");
-          result = exec_query(sql, 'SCHEMA').first
-
-          if result
-            # Splitting with left parantheses and picking up last will return all
-            # columns separated with comma(,).
-            columns_string = result["sql"].split('(').last
-
-            columns_string.split(',').each do |column_string|
-              # This regex will match the column name and collation type and will save
-              # the value in $1 and $2 respectively.
-              collation_hash[$1] = $2 if (COLLATE_REGEX =~ column_string)
+        def dequote_token(token)
+          return "" if token.blank?
+          quote_char = token[0]
+          if ["'", '"', '[', '`'].include?(quote_char)
+            token = token[1..-2] # Remove wrappnig quote characters
+            if quote_char != '[' # The bracket syntax doesn't allow escapes
+              token = token.gsub("#{quote_char}#{quote_char}", quote_char)
             end
+          end
+          token
+        end
 
-            basic_structure.map! do |column|
-              column_name = column['name']
+        def table_structure(table_name)
+          structure = exec_query("PRAGMA table_info(#{quote_table_name(table_name)})", 'SCHEMA')
+          raise(ActiveRecord::StatementInvalid, "Could not find table '#{table_name}'") if structure.empty?
 
-              if collation_hash.has_key? column_name
-                column['collation'] = collation_hash[column_name]
+          sql = "SELECT sql FROM sqlite_master WHERE type='table' and name=#{ quote(table_name) }"
+          result = exec_query(sql, 'SCHEMA').first
+          unless result
+            return structure
+          end
+
+          table_tokens = result["sql"].scan(SCHEMA_TOKEN_REGEX)
+          if table_tokens[-2..-1].map{|t| t.upcase} == ["WITHOUT", "ROWID"]
+            table_tokens = table_tokens[0..-3] # Remove 'WITHOUT ROWID' from the end
+          end
+
+          if table_tokens[0..1].map{|t| t.upcase} != ["CREATE", "TABLE"]
+            raise ActiveRecord::StatementInvalid, "Can't find CREATE TABLE schema: #{result["sql"]}"
+          end
+          table_tokens = table_tokens[3..-1] # Skip past 'CREATE TABLE tablename'
+
+          if table_tokens.first != "(" or table_tokens.last != ")"
+            raise ActiveRecord::StatementInvalid, "Incomplete CREATE TABLE schema: #{result["sql"]}"
+          end
+
+          cur_column = nil
+          cur_tokens = []
+          paren_depth = 0
+          table_tokens.each do |token|
+            if token == "("
+              paren_depth += 1
+              if paren_depth > 1
+                cur_tokens << token
+              end
+            elsif token == "," or token == ")"
+              if paren_depth == 1
+                # This ")" or "," is a divider between two groups of tokens, so let's
+                # parse the tokens we've accumulated so far
+                column_info = parse_constraint_tokens(cur_column, cur_tokens)
+                column_info.each do |col_name, info|
+                  affected = structure.find { |col| col['name'] == col_name }
+                  unless affected.nil?
+                    if info.has_key?('collation')
+                      affected['collation'] = info['collation']
+                    end
+                    if info.has_key?('foreign_keys')
+                      (affected['foreign_keys'] ||= []).concat(info['foreign_keys'])
+                    end
+                  end
+                end
+
+                cur_column = nil
+                cur_tokens = []
+              else
+                # This ")" or "," is within a group of tokens
+                cur_tokens << token
               end
 
-              column
+              if token == ")"
+                paren_depth -= 1
+              end
+            elsif cur_column.nil?
+              # See https://www.sqlite.org/syntax/table-constraint.html
+              if ["CONSTRAINT", "PRIMARY", "UNIQUE", "CHECK", "FOREIGN"].include?(token.upcase)
+                cur_tokens << token
+                cur_column = :table_constraint
+              else
+                cur_column = dequote_token(token)
+              end
+            else
+              cur_tokens << token
             end
-          else
-            basic_structure.to_hash
           end
+
+          structure
+        end
+
+        def extract_foreign_key_action(string)
+          case string
+          when 'NO ACTION' then nil
+          when 'RESTRICT' then :restrict
+          when 'SET NULL' then :nullify
+          when 'CASCADE' then :cascade
+          when 'SET DEFAULT' then nil # SchemaStatements::add_foreign_key doesn't support it
+          end
+        end
+
+        # See https://www.sqlite.org/syntax/table-constraint.html
+        # and https://www.sqlite.org/syntax/column-constraint.html
+        # and https://www.sqlite.org/syntax/foreign-key-clause.html
+        def parse_constraint_tokens(column_context, tokens)
+          info = Hash.new { |h,k| h[k] = {} }
+
+          constraint_name = nil
+
+          while tokens.length > 0
+            t = tokens.shift
+
+            if t.upcase == "CONSTRAINT"
+              # SQLite3 allows any constraint to have an optional name
+              constraint_name = dequote_token(tokens.shift)
+            elsif t.upcase == "COLLATE"
+              info[column_context]['collation'] = dequote_token(tokens.shift)
+              constraint_name = nil
+            elsif t.upcase == "FOREIGN" and tokens.fourth == ")"
+              # This 'FOREIGN KEY' specifies which source column is being referred to
+              # in the upcoming 'REFERENCES' clause.
+              # FIXME ForeignKeyDefinition can only represent a single source column, so for now
+              # if we have more than one column in this FOREIGN KEY clause we'll just skip it.
+              tokens.shift(2) # KEY (
+              column_context = dequote_token(tokens.shift)
+              tokens.shift # )
+            elsif t.upcase == "REFERENCES"
+              foreign_key_info = { 'to_table' => dequote_token(tokens.shift) }
+              foreign_key_info['name'] = constraint_name unless constraint_name.nil?
+
+              # FIXME ForeignKeyDefinition can only refer to a single target column, so
+              # for now we'll have to just ignore any multi-column targets.
+              if tokens.first == "(" and tokens.third == ")"
+                tokens.shift # (
+                foreign_key_info['target_column'] = dequote_token(tokens.shift)
+                tokens.shift # )
+              end
+
+              (info[column_context]['foreign_keys'] ||= []).push foreign_key_info
+              constraint_name = nil
+            end
+          end
+
+          info
         end
     end
   end

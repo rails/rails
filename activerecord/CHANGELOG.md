@@ -1,3 +1,7 @@
+*   Add support for foreign key constraints to SQLite3 adapter
+
+    *David Mike Simon*
+
 *   Fix `rake db:structure:dump` on Postgres when multiple schemas are used.
 
     Fixes #22346.

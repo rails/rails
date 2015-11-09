@@ -443,6 +443,8 @@ module ActiveRecord
 
         def test_create_table_with_force_cascade_drops_dependent_objects
           skip "MySQL > 5.5 does not drop dependent objects with DROP TABLE CASCADE" if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
+          skip "SQLite does not drop dependent objects with DROP TABLE CASCADE" if current_adapter?(:SQLite3Adapter)
+
           # can't re-create table referenced by foreign key
           assert_raises(ActiveRecord::StatementInvalid) do
             @connection.create_table :trains, force: true

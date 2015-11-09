@@ -332,6 +332,22 @@ module ActiveRecord
         foreign_keys[table_name] = options
       end
 
+      def remove_foreign_key(options_or_to_table) # :nodoc:
+        if options_or_to_table.is_a?(Hash) and options_or_to_table.has_key?(:name)
+          foreign_keys.delete_if do |table_name, options|
+            options[:name].to_s == options_or_to_table[:name].to_s
+          end
+        elsif options_or_to_table.is_a?(Hash) and options_or_to_table.has_key?(:column)
+          foreign_keys.delete_if do |table_name, options|
+            options[:column].to_s == options_or_to_table[:column].to_s
+          end
+        elsif options_or_to_table.is_a?(String) or options_or_to_table.is_a?(Symbol)
+          foreign_keys.delete options_or_to_table.to_s
+        else
+          raise ArgumentError, "remove_foreign_key needs either a table name or a foreign key options hash with :name or :column"
+        end
+      end
+
       # Appends <tt>:datetime</tt> columns <tt>:created_at</tt> and
       # <tt>:updated_at</tt> to the table. See {connection.add_timestamps}[rdoc-ref:SchemaStatements#add_timestamps]
       #
@@ -429,6 +445,7 @@ module ActiveRecord
     #     t.change_default
     #     t.rename
     #     t.references
+    #     t.foreign_key
     #     t.belongs_to
     #     t.string
     #     t.text
@@ -444,6 +461,7 @@ module ActiveRecord
     #     t.boolean
     #     t.remove
     #     t.remove_references
+    #     t.remove_foreign_key
     #     t.remove_belongs_to
     #     t.remove_index
     #     t.remove_timestamps
@@ -613,6 +631,14 @@ module ActiveRecord
       # See {connection.add_foreign_key}[rdoc-ref:SchemaStatements#add_foreign_key]
       def foreign_key(*args) # :nodoc:
         @base.add_foreign_key(name, *args)
+      end
+
+      # Removes a foreign key.
+      # t.remove_foreign_key(:authors)
+      #
+      # See {connection.remove_foreign_key}[rdoc-ref:SchemaStatements#remove_foreign_key]
+      def remove_foreign_key(*args) # :nodoc:
+        @base.remove_foreign_key(name, *args)
       end
 
       # Checks to see if a foreign key exists.
