@@ -13,7 +13,7 @@ module FileUpdateCheckerWithEnumerableTestCases
   end
 
   def setup
-    @tmpdir = Dir.mktmpdir
+    @tmpdir = Dir.mktmpdir(nil, __dir__)
 
     @files = %w(foo.rb bar.rb baz.rb).map {|f| "#{@tmpdir}/#{f}"}
     FileUtils.touch(@files)
