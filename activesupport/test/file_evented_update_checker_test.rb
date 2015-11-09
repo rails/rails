@@ -5,7 +5,7 @@ require 'file_update_checker_with_enumerable_test_cases'
 class FileEventedUpdateCheckerTest < ActiveSupport::TestCase
   include FileUpdateCheckerWithEnumerableTestCases
 
-  def build_new_watcher(files=[], dirs={}, &block)
+  def new_checker(files=[], dirs={}, &block)
     ActiveSupport::FileEventedUpdateChecker.new(files, dirs, &block)
   end
 
