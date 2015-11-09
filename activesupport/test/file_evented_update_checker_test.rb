@@ -6,7 +6,9 @@ class FileEventedUpdateCheckerTest < ActiveSupport::TestCase
   include FileUpdateCheckerWithEnumerableTestCases
 
   def new_checker(files=[], dirs={}, &block)
-    ActiveSupport::FileEventedUpdateChecker.new(files, dirs, &block)
+    ActiveSupport::FileEventedUpdateChecker.new(files, dirs, &block).tap do
+      wait
+    end
   end
 
   def teardown
@@ -15,7 +17,7 @@ class FileEventedUpdateCheckerTest < ActiveSupport::TestCase
   end
 
   def wait
-    sleep 0.5
+    sleep 1
   end
 end
 
