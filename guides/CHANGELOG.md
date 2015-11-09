@@ -1,3 +1,6 @@
+*   New section in Testing Guide - Testing Time Sensitive Code
+    *Gaurish Sharma*
+
 *   Add code of conduct to contributing guide
 
     *Jon Moss*

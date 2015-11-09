@@ -1232,3 +1232,31 @@ class ProductTest < ActiveJob::TestCase
   end
 end
 ```
+
+Testing Time-Dependent Code
+---------------------------
+
+You might have code in your rails app, that is time sensitive. For example,
+you want to give some gifts to users but only after they have been a member for 1month
+which is calculated from their activation date. to test such business logic in your tests
+you will need to time travel in your tests.
+
+Fortunately, Rails provides inbuild helper methods which allow you time travel in your test code,
+allowing you assert that your time-sensitve code works as expected.
+
+Here is an example using [`travel_to`](http://api.rubyonrails.org/classes/ActiveSupport/Testing/TimeHelpers.html#method-i-travel_to) helper
+
+
+```ruby
+user = User.create(name: 'Gaurish', activation_date: Date.new(2004, 10, 24))
+assert_not user.applicable_for_gifting? # `activation_date` => Wed, 24 Nov 2004
+travel_to Date.new(2004, 11, 24) do
+  assert_equal Date.new(2004, 10, 24), user.activation_date # inside the trave_to block `Date.current` is mocked
+  assert user.applicable_for_gifting? # `activation_date` => Sun, 24 Oct 2004
+end
+assert_equal Date.new(2004, 10, 24), user.activation_date # Outside the block, changed are undone
+```
+
+Please see [`ActiveSupport::TimeHelpers` API Documentation](http://api.rubyonrails.org/classes/ActiveSupport/Testing/TimeHelpers.html)
+for in-depth information about the available time helpers.
+
