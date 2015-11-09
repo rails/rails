@@ -19,6 +19,16 @@ class FileEventedUpdateCheckerTest < ActiveSupport::TestCase
   def wait
     sleep 1
   end
+
+  def touch(files)
+    super
+    wait # wait for the events to fire
+  end
+
+  def rm_f(files)
+    super
+    wait
+  end
 end
 
 class FileEventedUpdateCheckerPathHelperTest < ActiveSupport::TestCase

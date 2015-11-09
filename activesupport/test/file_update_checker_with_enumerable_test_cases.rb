@@ -3,15 +3,6 @@ require 'fileutils'
 module FileUpdateCheckerWithEnumerableTestCases
   include FileUtils
 
-  def wait
-    # noop
-  end
-
-  def touch(files)
-    sleep 1
-    super
-  end
-
   def setup
     @tmpdir = Dir.mktmpdir(nil, __dir__)
 
@@ -20,7 +11,7 @@ module FileUpdateCheckerWithEnumerableTestCases
   end
 
   def teardown
-    rm_rf(@tmpdir)
+    FileUtils.rm_rf(@tmpdir)
   end
 
   def test_should_not_execute_the_block_if_no_paths_are_given
@@ -47,7 +38,6 @@ module FileUpdateCheckerWithEnumerableTestCases
     checker = new_checker(@files) { i += 1 }
 
     touch(@files)
-    wait
 
     assert checker.execute_if_updated
     assert_equal 1, i
@@ -60,18 +50,16 @@ module FileUpdateCheckerWithEnumerableTestCases
     assert !checker.updated?
 
     rm_f(@files)
-    wait
 
     assert checker.updated?
   end
 
-  def test_should_be_robust_enough_to_handle_deleted_files
+  def test_should_detect_deleted_files
     i = 0
 
     checker = new_checker(@files) { i += 1 }
 
     rm_f(@files)
-    wait
 
     assert checker.execute_if_updated
     assert_equal 1, i
@@ -87,7 +75,6 @@ module FileUpdateCheckerWithEnumerableTestCases
     checker = new_checker(@files) { i += 1 }
 
     touch(@files[1..-1])
-    wait
 
     assert checker.execute_if_updated
     assert_equal 1, i
@@ -100,7 +87,6 @@ module FileUpdateCheckerWithEnumerableTestCases
     assert !checker.updated?
 
     touch(@files)
-    wait
 
     assert checker.updated?
     checker.execute
@@ -113,7 +99,6 @@ module FileUpdateCheckerWithEnumerableTestCases
     checker = new_checker([], @tmpdir => :rb) { i += 1 }
 
     touch(@files)
-    wait
 
     assert checker.execute_if_updated
     assert_equal 1, i
@@ -125,7 +110,6 @@ module FileUpdateCheckerWithEnumerableTestCases
     checker = new_checker([], @tmpdir => :txt) { i += 1 }
 
     touch(@files)
-    wait
 
     assert !checker.execute_if_updated
     assert_equal 0, i
@@ -138,7 +122,6 @@ module FileUpdateCheckerWithEnumerableTestCases
     checker = new_checker([non_existing]) { i += 1 }
 
     touch(non_existing)
-    wait
 
     assert checker.execute_if_updated
     assert_equal 1, i
@@ -157,7 +140,6 @@ module FileUpdateCheckerWithEnumerableTestCases
     assert_equal 0, i
 
     touch("#{subdir}/nested.rb")
-    wait
 
     assert checker.execute_if_updated
     assert_equal 1, i
@@ -172,20 +154,17 @@ module FileUpdateCheckerWithEnumerableTestCases
     checker = new_checker([], @tmpdir => :rb, subdir => :txt) { i += 1 }
 
     touch("#{@tmpdir}/new.txt")
-    wait
 
     assert !checker.execute_if_updated
     assert_equal 0, i
 
     # subdir does not look for Ruby files, but its parent @tmpdir does.
     touch("#{subdir}/nested.rb")
-    wait
 
     assert checker.execute_if_updated
     assert_equal 1, i
 
     touch("#{subdir}/nested.txt")
-    wait
 
     assert checker.execute_if_updated
     assert_equal 2, i
