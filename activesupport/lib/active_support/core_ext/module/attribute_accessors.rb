@@ -5,7 +5,7 @@ require 'active_support/core_ext/array/extract_options'
 # attributes.
 class Module
   # Defines a class attribute and creates a class and instance reader methods.
-  # The underlying the class variable is set to +nil+, if it is not previously
+  # The underlying class variable is set to +nil+, if it is not previously
   # defined.
   #
   #   module HairColors
