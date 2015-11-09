@@ -23,7 +23,7 @@ module FileUpdateCheckerWithEnumerableTestCases
     assert_equal 0, i
   end
 
-  def test_should_not_invoke_the_block_if_no_file_has_changed
+  def test_should_not_execute_the_block_if_no_files_change
     i = 0
 
     checker = new_checker(@files) { i += 1 }
@@ -32,7 +32,7 @@ module FileUpdateCheckerWithEnumerableTestCases
     assert_equal 0, i
   end
 
-  def test_should_invoke_the_block_if_a_file_has_changed
+  def test_should_execute_the_block_once_when_files_change
     i = 0
 
     checker = new_checker(@files) { i += 1 }
@@ -54,7 +54,7 @@ module FileUpdateCheckerWithEnumerableTestCases
     assert checker.updated?
   end
 
-  def test_should_detect_deleted_files
+  def test_should_execute_the_block_once_when_files_are_deleted
     i = 0
 
     checker = new_checker(@files) { i += 1 }
@@ -93,7 +93,7 @@ module FileUpdateCheckerWithEnumerableTestCases
     assert !checker.updated?
   end
 
-  def test_should_invoke_the_block_if_a_watched_dir_changes
+  def test_should_execute_the_block_if_files_change_in_a_watched_directory
     i = 0
 
     checker = new_checker([], @tmpdir => :rb) { i += 1 }
@@ -104,7 +104,7 @@ module FileUpdateCheckerWithEnumerableTestCases
     assert_equal 1, i
   end
 
-  def test_should_not_invoke_the_block_if_a_watched_dir_does_not_change
+  def test_should_not_execute_the_block_if_the_file_extension_is_not_watched
     i = 0
 
     checker = new_checker([], @tmpdir => :txt) { i += 1 }
