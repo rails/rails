@@ -10,6 +10,11 @@ class FileEventedUpdateCheckerTest < ActiveSupport::TestCase
   def build_new_watcher(files, dirs={}, &block)
     ActiveSupport::FileEventedUpdateChecker.new(files, dirs, &block)
   end
+
+  def teardown
+    super
+    Listen.stop
+  end
 end
 
 class FileEventedUpdateCheckerPathHelperTest < ActiveSupport::TestCase
