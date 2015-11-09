@@ -56,13 +56,13 @@ module FileUpdateCheckerWithEnumerableTestCases
   def test_updated_should_become_true_when_watched_files_are_deleted
     i = 0
 
-    watcher = new_checker(@files) { i += 1 }
-    assert !watcher.updated?
+    checker = new_checker(@files) { i += 1 }
+    assert !checker.updated?
 
     rm_f(@files)
     wait
 
-    assert watcher.updated?
+    assert checker.updated?
   end
 
   def test_should_be_robust_enough_to_handle_deleted_files
