@@ -155,7 +155,7 @@ Failed assertion, no message given.
 1 tests, 1 assertions, 1 failures, 0 errors, 0 skips
 ```
 
-In the output, `F` denotes a failure. You can see the corresponding trace shown under `1)` along with the name of the failing test. The next few lines contain the stack trace followed by a message which mentions the actual value and the expected value by the assertion. The default assertion messages provide just enough information to help pinpoint the error. To make the assertion failure message more readable, every assertion provides an optional message parameter, as shown here:
+In the output, `F` denotes a failure. You can see the corresponding trace shown under `1)` along with the name of the failing test. The next few lines contain the stack trace followed by a message that mentions the actual value and the expected value by the assertion. The default assertion messages provide just enough information to help pinpoint the error. To make the assertion failure message more readable, every assertion provides an optional message parameter, as shown here:
 
 ```ruby
 test "should not save article without title" do
@@ -523,7 +523,7 @@ Model tests don't have their own superclass like `ActionMailer::TestCase` instea
 Integration Testing
 -------------------
 
-Integration tests are used to test how various parts of your application interact. They are generally used to test important work flows within your application.
+Integration tests are used to test how various parts of your application interact. They are generally used to test important workflows within your application.
 
 For creating Rails integration tests, we use the 'test/integration' directory for your application. Rails provides a generator to create an integration test skeleton for you.
 
