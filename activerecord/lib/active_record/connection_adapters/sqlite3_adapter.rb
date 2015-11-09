@@ -637,15 +637,19 @@ module ActiveRecord
         end
 
         def translate_exception(exception, message)
-          case exception.message
-          # SQLite 3.8.2 returns a newly formatted error message:
-          #   UNIQUE constraint failed: *table_name*.*column_name*
-          # Older versions of SQLite return:
-          #   column *column_name* is not unique
-          when /column(s)? .* (is|are) not unique/, /UNIQUE constraint failed: .*/
-            RecordNotUnique.new(message)
-          when /FOREIGN KEY constraint failed/
-            InvalidForeignKey.new(message)
+          if exception.is_a? ::SQLite3::ConstraintException
+            case exception.message
+            # SQLite 3.8.2 returns a newly formatted error message:
+            #   UNIQUE constraint failed: *table_name*.*column_name*
+            # Older versions of SQLite return:
+            #   column *column_name* is not unique
+            when /column(s)? .* (is|are) not unique/, /^UNIQUE constraint failed: .*/i
+              RecordNotUnique.new(message)
+            when /^FOREIGN KEY constraint failed/i
+              InvalidForeignKey.new(message)
+            else
+              super
+            end
           else
             super
           end
@@ -662,7 +666,6 @@ module ActiveRecord
           | \w+                     # Raw unquoted literal
           | [(),]                   # Symbols
         /x.freeze
-        COLLATE_REGEX = /.*\"(\w+)\".*collate\s+\"(\w+)\".*/i.freeze
 
         def dequote_token(token)
           return "" if token.blank?
