@@ -778,8 +778,6 @@ class FinderTest < ActiveRecord::TestCase
     quoted_bambi_and_thumper = ActiveRecord::Base.connection.quote("Bambi\nand\nThumper")
     assert_equal "name=#{quoted_bambi}", bind('name=?', "Bambi")
     assert_equal "name=#{quoted_bambi_and_thumper}", bind('name=?', "Bambi\nand\nThumper")
-    assert_equal "name=#{quoted_bambi}", bind('name=?', "Bambi".mb_chars)
-    assert_equal "name=#{quoted_bambi_and_thumper}", bind('name=?', "Bambi\nand\nThumper".mb_chars)
   end
 
   def test_bind_record
