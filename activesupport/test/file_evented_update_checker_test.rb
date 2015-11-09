@@ -1,19 +1,21 @@
 require 'abstract_unit'
-require 'fileutils'
-require 'thread'
 require 'pathname'
 require 'file_update_checker_with_enumerable_test_cases'
 
 class FileEventedUpdateCheckerTest < ActiveSupport::TestCase
   include FileUpdateCheckerWithEnumerableTestCases
 
-  def build_new_watcher(files, dirs={}, &block)
+  def build_new_watcher(files=[], dirs={}, &block)
     ActiveSupport::FileEventedUpdateChecker.new(files, dirs, &block)
   end
 
   def teardown
     super
     Listen.stop
+  end
+
+  def wait
+    sleep 0.5
   end
 end
 
