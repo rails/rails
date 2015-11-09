@@ -1,4 +1,4 @@
-*   Allow `host` option in `javascript_include_tag` and `stylesheet_tag` helpers
+*   Allow `host` option in `javascript_include_tag` and `stylesheet_link_tag` helpers
 
     *Grzegorz Witek*
 
