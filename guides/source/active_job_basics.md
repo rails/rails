@@ -83,7 +83,7 @@ Note that you can define `perform` with as many arguments as you want.
 Enqueue a job like so:
 
 ```ruby
-# Enqueue a job to be performed as soon the queuing system is
+# Enqueue a job to be performed as soon as the queuing system is
 # free.
 GuestsCleanupJob.perform_later guest
 ```
