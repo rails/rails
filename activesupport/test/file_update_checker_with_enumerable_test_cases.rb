@@ -130,4 +130,64 @@ module FileUpdateCheckerWithEnumerableTestCases
     assert !checker.execute_if_updated
     assert_equal 0, i
   end
+
+  def test_does_not_assume_files_exist_on_instantiation
+    i = 0
+
+    non_existing = "#{@tmpdir}/non_existing.rb"
+    checker = new_checker([non_existing]) { i += 1 }
+
+    touch(non_existing)
+    wait
+
+    assert checker.execute_if_updated
+    assert_equal 1, i
+  end
+
+  def test_detects_files_in_new_subdirectories
+    i = 0
+
+    checker = new_checker([], @tmpdir => :rb) { i += 1 }
+
+    subdir = "#{@tmpdir}/subdir"
+    mkdir(subdir)
+    wait
+
+    assert !checker.execute_if_updated
+    assert_equal 0, i
+
+    touch("#{subdir}/nested.rb")
+    wait
+
+    assert checker.execute_if_updated
+    assert_equal 1, i
+  end
+
+  def test_looked_up_extensions_are_inherited_in_subdirectories_not_listening_to_them
+    i = 0
+
+    subdir = "#{@tmpdir}/subdir"
+    mkdir(subdir)
+
+    checker = new_checker([], @tmpdir => :rb, subdir => :txt) { i += 1 }
+
+    touch("#{@tmpdir}/new.txt")
+    wait
+
+    assert !checker.execute_if_updated
+    assert_equal 0, i
+
+    # subdir does not look for Ruby files, but its parent @tmpdir does.
+    touch("#{subdir}/nested.rb")
+    wait
+
+    assert checker.execute_if_updated
+    assert_equal 1, i
+
+    touch("#{subdir}/nested.txt")
+    wait
+
+    assert checker.execute_if_updated
+    assert_equal 2, i
+  end
 end
