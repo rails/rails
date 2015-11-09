@@ -7,11 +7,16 @@ module FileUpdateCheckerWithEnumerableTestCases
     # noop
   end
 
+  def touch(files)
+    sleep 1
+    super
+  end
+
   def setup
     @tmpdir = Dir.mktmpdir
 
     @files = %w(foo.rb bar.rb baz.rb).map {|f| "#{@tmpdir}/#{f}"}
-    touch(@files)
+    FileUtils.touch(@files)
   end
 
   def teardown
@@ -41,7 +46,6 @@ module FileUpdateCheckerWithEnumerableTestCases
 
     checker = new_checker(@files) { i += 1 }
 
-    sleep 1
     touch(@files)
     wait
 
@@ -82,7 +86,6 @@ module FileUpdateCheckerWithEnumerableTestCases
 
     checker = new_checker(@files) { i += 1 }
 
-    sleep 1
     touch(@files[1..-1])
     wait
 
@@ -96,7 +99,6 @@ module FileUpdateCheckerWithEnumerableTestCases
     checker = new_checker(@files) { i += 1 }
     assert !checker.updated?
 
-    sleep 1
     touch(@files)
     wait
 
@@ -110,7 +112,6 @@ module FileUpdateCheckerWithEnumerableTestCases
 
     checker = new_checker([], @tmpdir => :rb) { i += 1 }
 
-    sleep 1
     touch(@files)
     wait
 
