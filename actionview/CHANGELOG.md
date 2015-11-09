@@ -1,3 +1,7 @@
+*   Allow `host` option in `javascript_include_tag` and `stylesheet_tag` helpers
+
+    *Grzegorz Witek*
+
 *   Restrict `url_for :back` to valid, non-JavaScript URLs. GH#14444
 
     *Damien Burke*

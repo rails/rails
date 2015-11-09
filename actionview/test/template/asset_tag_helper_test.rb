@@ -97,6 +97,7 @@ class AssetTagHelperTest < ActionView::TestCase
     %(javascript_include_tag("bank")) => %(<script src="/javascripts/bank.js" ></script>),
     %(javascript_include_tag("bank.js")) => %(<script src="/javascripts/bank.js" ></script>),
     %(javascript_include_tag("bank", :lang => "vbscript")) => %(<script lang="vbscript" src="/javascripts/bank.js" ></script>),
+    %(javascript_include_tag("bank", :host => "assets.example.com")) => %(<script src="http://assets.example.com/javascripts/bank.js"></script>),
 
     %(javascript_include_tag("http://example.com/all")) => %(<script src="http://example.com/all"></script>),
     %(javascript_include_tag("http://example.com/all.js")) => %(<script src="http://example.com/all.js"></script>),
@@ -141,6 +142,7 @@ class AssetTagHelperTest < ActionView::TestCase
     %(stylesheet_link_tag("/elsewhere/file")) => %(<link href="/elsewhere/file.css" media="screen" rel="stylesheet" />),
     %(stylesheet_link_tag("subdir/subdir")) => %(<link href="/stylesheets/subdir/subdir.css" media="screen" rel="stylesheet" />),
     %(stylesheet_link_tag("bank", :media => "all")) => %(<link href="/stylesheets/bank.css" media="all" rel="stylesheet" />),
+    %(stylesheet_link_tag("bank", :host => "assets.example.com")) => %(<link href="http://assets.example.com/stylesheets/bank.css" media="screen" rel="stylesheet" />),
 
     %(stylesheet_link_tag("http://www.example.com/styles/style")) => %(<link href="http://www.example.com/styles/style" media="screen" rel="stylesheet" />),
     %(stylesheet_link_tag("http://www.example.com/styles/style.css")) => %(<link href="http://www.example.com/styles/style.css" media="screen" rel="stylesheet" />),
