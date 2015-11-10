@@ -27,6 +27,47 @@ module ActiveSupport
   #     i18n_reloader.execute_if_updated
   #   end
   class FileUpdateChecker
+    # The ChangedFile class provides a means of accessing information about
+    # a file which has recently been changed. The class provides information
+    # about the time of the change, the path for the file which was changed
+    # and the type of change (whether the file was modified, added, or
+    # removed).
+    class ChangedFile
+      class << self
+        VALID_CHANGE_TYPES = [:modified, :added, :removed]
+
+        # Converts a path and change type into a hash of attributes. The hash
+        # contains the path, the type, and the current time.
+        def notifications_hash(path, type)
+          check_change_type!(type)
+          {:path => path, :type => type, :time => Time.now}
+        end
+
+        # Checks to make sure the change type is valid.
+        def check_change_type!(type)
+          if !VALID_CHANGE_TYPES.include?(type)
+            raise ArgumentError, "Change type #{type} is invalid. Valid change types are :#{VALID_CHANGE_TYPES.join(', :')}"
+          end
+        end
+      end
+
+      attr_accessor :path, :time, :type
+
+      def initialize(path, type)
+        self.class.check_change_type!(type)
+
+        @path = path
+        @type = type
+        @time = Time.now
+      end
+
+      # Converts the ChangedFile object to a hash that can be passed as payload
+      # in the Notifications system.
+      def to_notifications_hash
+        {:path => path, :type => type, :time => time}
+      end
+    end
+
     # It accepts two parameters on initialization. The first is an array
     # of files and the second is an optional hash of directories. The hash must
     # have directories as keys and the value is an array of extensions to be

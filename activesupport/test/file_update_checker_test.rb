@@ -4,6 +4,36 @@ require 'thread'
 
 MTIME_FIXTURES_PATH = File.expand_path("../fixtures", __FILE__)
 
+class FileUpdateCheckerChangedFileClassTest < ActiveSupport::TestCase
+
+  def test_intialize_changed_file_object_and_convert_to_hash
+    path = "/tmp/gone/in/60/seconds.txt"
+    type = :removed
+    changed_file = ActiveSupport::FileUpdateChecker::ChangedFile.new(path, type)
+
+    notify_hash = changed_file.to_notifications_hash
+    assert_equal path, notify_hash[:path]
+    assert_equal type, notify_hash[:type]
+
+    notify_hash_2 = ActiveSupport::FileUpdateChecker::ChangedFile.notifications_hash(path, type)
+    assert_equal path, notify_hash_2[:path]
+    assert_equal type, notify_hash_2[:type]
+  end
+
+  def test_initialize_changed_file_object_with_incorrect_type_raises_exception
+    path = "/tmp/path.txt"
+    type = :blah
+
+    assert_raises(ArgumentError) do
+      ActiveSupport::FileUpdateChecker::ChangedFile.new(path, type)
+    end
+
+    assert_raises(ArgumentError) do
+      ActiveSupport::FileUpdateChecker::ChangedFile.notifications_hash(path, type)
+    end
+  end
+end
+
 class FileUpdateCheckerWithEnumerableTest < ActiveSupport::TestCase
   FILES = %w(1.txt 2.txt 3.txt)
 
