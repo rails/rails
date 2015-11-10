@@ -41,46 +41,46 @@ module ActiveSupport
 
     private
 
-    def changed(modified, added, removed)
-      unless updated?
-        @updated = (modified + added + removed).any? {|f| watching?(f)}
-      end
-    end
-
-    def watching?(file)
-      file = @ph.xpath(file)
-
-      return true  if @files.member?(file)
-      return false if file.directory?
-
-      ext = @ph.normalize_extension(file.extname)
-      dir = file.dirname
-
-      loop do
-        if @dirs.fetch(dir, []).include?(ext)
-          break true
-        else
-          if @lcsp
-            break false if dir == @lcsp
-          else
-            break false if dir.root?
-          end
-
-          dir = dir.parent
+      def changed(modified, added, removed)
+        unless updated?
+          @updated = (modified + added + removed).any? {|f| watching?(f)}
         end
       end
-    end
 
-    def directories_to_watch
-      bd = []
+      def watching?(file)
+        file = @ph.xpath(file)
 
-      bd.concat @files.map {|f| @ph.existing_parent(f.dirname)}
-      bd.concat @dirs.keys.map {|dir| @ph.existing_parent(dir)}
-      bd.compact!
-      bd.uniq!
+        return true  if @files.member?(file)
+        return false if file.directory?
 
-      @ph.filter_out_descendants(bd)
-    end
+        ext = @ph.normalize_extension(file.extname)
+        dir = file.dirname
+
+        loop do
+          if @dirs.fetch(dir, []).include?(ext)
+            break true
+          else
+            if @lcsp
+              break false if dir == @lcsp
+            else
+              break false if dir.root?
+            end
+
+            dir = dir.parent
+          end
+        end
+      end
+
+      def directories_to_watch
+        bd = []
+
+        bd.concat @files.map {|f| @ph.existing_parent(f.dirname)}
+        bd.concat @dirs.keys.map {|dir| @ph.existing_parent(dir)}
+        bd.compact!
+        bd.uniq!
+
+        @ph.filter_out_descendants(bd)
+      end
 
     class PathHelper
       using Module.new {
