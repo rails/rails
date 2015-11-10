@@ -1,3 +1,8 @@
+* Added `Time#days_in_year` to return the number of days in the given year, or the
+  current year if no argument is provided.
+
+  *Jon Pascoe*
+
 * Updated `parameterize` to preserve the case of a string, optionally.
 
     Example:

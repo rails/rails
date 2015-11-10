@@ -26,6 +26,12 @@ class Time
       end
     end
 
+    # Returns the number of days in the given year.
+    # If no year is specified, it will use the current year.
+    def days_in_year(year = current.year)
+      days_in_month(2, year) + 337
+    end
+
     # Returns <tt>Time.zone.now</tt> when <tt>Time.zone</tt> or <tt>config.time_zone</tt> are set, otherwise just returns <tt>Time.now</tt>.
     def current
       ::Time.zone ? ::Time.zone.now : ::Time.now
