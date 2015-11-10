@@ -1,6 +1,6 @@
 require 'fileutils'
 
-module FileUpdateCheckerWithEnumerableTestCases
+module FileUpdateCheckerSharedTests
   include FileUtils
 
   def tmpdir

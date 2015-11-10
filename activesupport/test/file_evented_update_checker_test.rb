@@ -1,9 +1,9 @@
 require 'abstract_unit'
 require 'pathname'
-require 'file_update_checker_with_enumerable_test_cases'
+require 'file_update_checker_shared_tests'
 
 class FileEventedUpdateCheckerTest < ActiveSupport::TestCase
-  include FileUpdateCheckerWithEnumerableTestCases
+  include FileUpdateCheckerSharedTests
 
   def new_checker(files=[], dirs={}, &block)
     ActiveSupport::FileEventedUpdateChecker.new(files, dirs, &block).tap do

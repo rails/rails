@@ -1,8 +1,8 @@
 require 'abstract_unit'
-require 'file_update_checker_with_enumerable_test_cases'
+require 'file_update_checker_shared_tests'
 
 class FileUpdateCheckerTest < ActiveSupport::TestCase
-  include FileUpdateCheckerWithEnumerableTestCases
+  include FileUpdateCheckerSharedTests
 
   def new_checker(files=[], dirs={}, &block)
     ActiveSupport::FileUpdateChecker.new(files, dirs, &block)
