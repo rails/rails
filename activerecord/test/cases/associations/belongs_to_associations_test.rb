@@ -23,6 +23,8 @@ require 'models/admin/user'
 require 'models/ship'
 require 'models/treasure'
 require 'models/parrot'
+require 'models/snip'
+require 'models/snap'
 
 class BelongsToAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :topics,
@@ -1095,6 +1097,17 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     client = Client.find(3)
 
     assert_deprecated { client.firm(true) }
+  end
+
+  # See https://github.com/rails/rails/issues/20602
+  def test_belongs_to_without_primary_key
+    snip = Snip.create!
+    snap = snip.snaps.create!
+    snap2 = snip.snaps.create!
+
+    snaps = Snap.where(snip: Snap.all.select(:snip_id))
+    assert_equal [snap.id, snap2.id], snaps.map(&:id) # nils because there's no primary key
+    assert_equal [snap.snip_id, snap2.snip_id], snaps.map(&:snip_id)
   end
 end
 
