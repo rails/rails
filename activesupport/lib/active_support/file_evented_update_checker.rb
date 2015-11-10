@@ -126,19 +126,8 @@ module ActiveSupport
 
       # Returns the deepest existing ascendant, which could be the argument itself.
       def existing_parent(dir)
-        loop do
-          if dir.directory?
-            break dir
-          else
-            if dir.root?
-              # Edge case in which not even the root exists. For example, Windows
-              # paths could have a non-existing drive letter. Since the parent of
-              # root is root, we need to break to prevent an infinite loop.
-              break
-            else
-              dir = dir.parent
-            end
-          end
+        dir.ascend do |ascendant|
+          break ascendant if ascendant.directory?
         end
       end
 
