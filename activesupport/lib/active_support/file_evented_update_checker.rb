@@ -83,6 +83,14 @@ module ActiveSupport
     end
 
     class PathHelper
+      using Module.new {
+        refine Pathname do
+          def ascendant_of?(other)
+            other.to_s =~ /\A#{Regexp.quote(to_s)}#{Pathname::SEPARATOR_PAT}?/
+          end
+        end
+      }
+
       def xpath(path)
         Pathname.new(path).expand_path
       end
@@ -96,25 +104,24 @@ module ActiveSupport
       def longest_common_subpath(paths)
         return if paths.empty?
 
-        csp = Pathname.new(paths[0])
+        lcsp = Pathname.new(paths[0])
 
         paths[1..-1].each do |path|
           loop do
-            break if path.ascend do |ascendant|
-              break true if ascendant == csp
-            end
+            break if lcsp.ascendant_of?(path)
 
-            if csp.root?
-              # A root directory is not an ascendant of path. This may happen
-              # if there are paths in different drives on Windows.
+            if lcsp.root?
+              # If we get here a root directory is not an ascendant of path.
+              # This may happen if there are paths in different drives on
+              # Windows.
               return
             else
-              csp = csp.parent
+              lcsp = lcsp.parent
             end
           end
         end
 
-        csp
+        lcsp
       end
 
       # Returns the deepest existing ascendant, which could be the argument itself.
@@ -139,22 +146,15 @@ module ActiveSupport
       def filter_out_descendants(directories)
         return directories if directories.length < 2
 
-        sorted      = directories.sort_by {|dir| dir.each_filename.to_a.length}
+        sorted_by_nparts = directories.sort_by {|dir| dir.each_filename.to_a.length}
         descendants = []
 
-        until sorted.empty?
-          directory = sorted.shift
+        until sorted_by_nparts.empty?
+          dir = sorted_by_nparts.shift
 
-          sorted.each do |candidate_to_descendant|
-            if candidate_to_descendant.to_path.start_with?(directory.to_path)
-              dparts = directory.each_filename.to_a
-              cparts = candidate_to_descendant.each_filename.to_a
-
-              if cparts[0, dparts.length] == dparts
-                descendants << candidate_to_descendant
-              end
-            end
-          end
+          descendants.concat sorted_by_nparts.select { |possible_descendant|
+            dir.ascendant_of?(possible_descendant)
+          }
         end
 
         directories - descendants
