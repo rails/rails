@@ -536,6 +536,7 @@ module ActiveSupport
           key = "#{prefix}:#{key}" if prefix
           key
         end
+        alias namespaced_key normalize_key
 
         def instrument(operation, key, options = nil)
           log { "Cache #{operation}: #{normalize_key(key, options)}#{options.blank? ? "" : " (#{options.inspect})"}" }

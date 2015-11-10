@@ -123,7 +123,7 @@ module ActiveSupport
             super
           end
 
-          def set_cache_value(value, name, amount, options) # :nodoc:
+          def set_cache_value(name, value, options) # :nodoc:
             name = normalize_key(name, options)
             cache = local_cache
             cache.mute do

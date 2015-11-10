@@ -60,7 +60,7 @@ module ActiveSupport
           matcher = key_matcher(matcher, options)
           search_dir(cache_path) do |path|
             key = file_path_key(path)
-            delete_entry(normalize_key(key, options), options) if key.match(matcher)
+            delete_entry(path, options) if key.match(matcher)
           end
         end
       end
