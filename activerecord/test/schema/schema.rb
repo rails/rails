@@ -744,6 +744,14 @@ ActiveRecord::Schema.define do
     end
   end
 
+  create_table :snaps, id: false, force: true do |t|
+    t.integer :snip_id
+  end
+
+  create_table :snips, force: true do |t|
+    t.integer :post_id
+  end
+
   create_table :prisoners, force: true do |t|
     t.belongs_to :ship
   end

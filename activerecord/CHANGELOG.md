@@ -1,3 +1,12 @@
+*   Subqueries such as the following example (`Group` has no primary key)
+    now work without having to specify `item_id` in the query:
+
+    `Group.where(item: Groups.all.select(:item_id))`
+
+    Fixes #20602
+
+    *Tim Breitkreutz*
+
 *   Improve support for non Active Record objects on `validates_associated`
 
     Skipping `marked_for_destruction?` when the associated object does not responds
