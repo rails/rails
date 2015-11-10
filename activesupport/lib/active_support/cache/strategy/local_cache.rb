@@ -79,22 +79,26 @@ module ActiveSupport
         end
 
         def clear(options = nil) # :nodoc:
-          local_cache.clear(options) if local_cache
+          return super unless cache = local_cache
+          cache.clear(options)
           super
         end
 
         def cleanup(options = nil) # :nodoc:
-          local_cache.clear(options) if local_cache
+          return super unless cache = local_cache
+          cache.clear(options)
           super
         end
 
         def increment(name, amount = 1, options = nil) # :nodoc:
+          return super unless local_cache
           value = bypass_local_cache{super}
           set_cache_value(value, name, amount, options)
           value
         end
 
         def decrement(name, amount = 1, options = nil) # :nodoc:
+          return super unless local_cache
           value = bypass_local_cache{super}
           set_cache_value(value, name, amount, options)
           value
@@ -120,13 +124,12 @@ module ActiveSupport
           end
 
           def set_cache_value(value, name, amount, options) # :nodoc:
-            if local_cache
-              local_cache.mute do
-                if value
-                  local_cache.write(name, value, options)
-                else
-                  local_cache.delete(name, options)
-                end
+            cache = local_cache
+            cache.mute do
+              if value
+                cache.write(name, value, options)
+              else
+                cache.delete(name, options)
               end
             end
           end
