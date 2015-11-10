@@ -93,7 +93,7 @@ module FileUpdateCheckerWithEnumerableTestCases
     assert !checker.updated?
   end
 
-  def test_should_execute_the_block_if_files_change_in_a_watched_directory
+  def test_should_execute_the_block_if_files_change_in_a_watched_directory_one_extension
     i = 0
 
     checker = new_checker([], @tmpdir => :rb) { i += 1 }
@@ -102,6 +102,22 @@ module FileUpdateCheckerWithEnumerableTestCases
 
     assert checker.execute_if_updated
     assert_equal 1, i
+  end
+
+  def test_should_execute_the_block_if_files_change_in_a_watched_directory_several_extensions
+    i = 0
+
+    checker = new_checker([], @tmpdir => [:rb, :txt]) { i += 1 }
+
+    touch("#{@tmpdir}/foo.rb")
+
+    assert checker.execute_if_updated
+    assert_equal 1, i
+
+    touch("#{@tmpdir}/foo.rb")
+
+    assert checker.execute_if_updated
+    assert_equal 2, i
   end
 
   def test_should_not_execute_the_block_if_the_file_extension_is_not_watched
