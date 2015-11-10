@@ -17,8 +17,8 @@ module ActiveSupport
       @updated = false
       @lcsp    = @ph.longest_common_subpath(@dirs.keys)
 
-      if (watch_dirs = base_directories).any?
-        Listen.to(*watch_dirs, &method(:changed)).start
+      if (dtw = directories_to_watch).any?
+        Listen.to(*dtw, &method(:changed)).start
       end
     end
 
@@ -71,14 +71,15 @@ module ActiveSupport
       end
     end
 
-    # TODO: Better return a list of non-nested directories.
-    def base_directories
-      [].tap do |bd|
-        bd.concat @files.map {|f| @ph.existing_parent(f.dirname)}
-        bd.concat @dirs.keys.map {|dir| @ph.existing_parent(dir)}
-        bd.compact!
-        bd.uniq!
-      end
+    def directories_to_watch
+      bd = []
+
+      bd.concat @files.map {|f| @ph.existing_parent(f.dirname)}
+      bd.concat @dirs.keys.map {|dir| @ph.existing_parent(dir)}
+      bd.compact!
+      bd.uniq!
+
+      @ph.filter_out_descendants(bd)
     end
 
     class PathHelper
@@ -132,6 +133,31 @@ module ActiveSupport
             end
           end
         end
+      end
+
+      # Filters out directories which are descendants of others in the collection (stable).
+      def filter_out_descendants(directories)
+        return directories if directories.length < 2
+
+        sorted      = directories.sort_by {|dir| dir.each_filename.to_a.length}
+        descendants = []
+
+        until sorted.empty?
+          directory = sorted.shift
+
+          sorted.each do |candidate_to_descendant|
+            if candidate_to_descendant.to_path.start_with?(directory.to_path)
+              dparts = directory.each_filename.to_a
+              cparts = candidate_to_descendant.each_filename.to_a
+
+              if cparts[0, dparts.length] == dparts
+                descendants << candidate_to_descendant
+              end
+            end
+          end
+        end
+
+        directories - descendants
       end
     end
   end

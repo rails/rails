@@ -88,4 +88,34 @@ class FileEventedUpdateCheckerPathHelperTest < ActiveSupport::TestCase
     assert_equal wd, @ph.existing_parent(wd.join('non-existing/directory'))
     assert_equal pn('/'), @ph.existing_parent(pn('/non-existing/directory'))
   end
+
+  test '#filter_out_descendants returns the same collection if there are no descendants (empty)' do
+    assert_equal [], @ph.filter_out_descendants([])
+  end
+
+  test '#filter_out_descendants returns the same collection if there are no descendants (one)' do
+    assert_equal ['/foo'], @ph.filter_out_descendants(['/foo'])
+  end
+
+  test '#filter_out_descendants returns the same collection if there are no descendants (several)' do
+    paths = %w(
+      /Rails.root/app/controllers
+      /Rails.root/app/models
+      /Rails.root/app/helpers
+    ).map {|path| pn(path)}
+
+    assert_equal paths, @ph.filter_out_descendants(paths)
+  end
+
+  test '#filter_out_descendants filters out descendants preserving order' do
+    paths = %w(
+      /Rails.root/app/controllers
+      /Rails.root/app/controllers/concerns
+      /Rails.root/app/models
+      /Rails.root/app/models/concerns
+      /Rails.root/app/helpers
+    ).map {|path| pn(path)}
+
+    assert_equal paths.values_at(0, 2, 4), @ph.filter_out_descendants(paths)
+  end
 end
