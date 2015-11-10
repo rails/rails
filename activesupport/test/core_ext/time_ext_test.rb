@@ -617,6 +617,25 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     end
   end
 
+  def test_days_in_year_with_year
+    assert_equal 365, Time.days_in_year(2005)
+    assert_equal 366, Time.days_in_year(2004)
+    assert_equal 366, Time.days_in_year(2000)
+    assert_equal 365, Time.days_in_year(1900)
+  end
+
+  def test_days_in_year_in_common_year_without_year_arg
+    Time.stub(:now, Time.utc(2007)) do
+      assert_equal 365, Time.days_in_year
+    end
+  end
+
+  def test_days_in_year_in_leap_year_without_year_arg
+    Time.stub(:now, Time.utc(2008)) do
+      assert_equal 366, Time.days_in_year
+    end
+  end
+
   def test_last_month_on_31st
     assert_equal Time.local(2004, 2, 29), Time.local(2004, 3, 31).last_month
   end
