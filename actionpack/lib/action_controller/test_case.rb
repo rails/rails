@@ -28,6 +28,7 @@ module ActionController
     end
     private_class_method :default_env
 
+    # Returns a new instance of TestRequest
     def initialize(env, session)
       super(env)
 
