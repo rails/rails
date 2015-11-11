@@ -12,6 +12,7 @@ module ActiveRecord
 
     # Merges in the conditions from <tt>other</tt>, if <tt>other</tt> is an <tt>ActiveRecord::Relation</tt>.
     # Returns an array representing the intersection of the resulting records with <tt>other</tt>, if <tt>other</tt> is an array.
+    #
     #   Post.where(published: true).joins(:comments).merge( Comment.where(spam: false) )
     #   # Performs a single join query with both where conditions.
     #
@@ -37,11 +38,14 @@ module ActiveRecord
     end
 
     def merge!(other) # :nodoc:
-      if !other.is_a?(Relation) && other.respond_to?(:to_proc)
+      if other.is_a?(Hash)
+        Relation::HashMerger.new(self, other).merge
+      elsif other.is_a?(Relation)
+        Relation::Merger.new(self, other).merge
+      elsif other.respond_to?(:to_proc)
         instance_exec(&other)
       else
-        klass = other.is_a?(Hash) ? Relation::HashMerger : Relation::Merger
-        klass.new(self, other).merge
+        raise ArgumentError, "#{other.inspect} is not an ActiveRecord::Relation"
       end
     end
 
