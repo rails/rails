@@ -15,7 +15,6 @@ module ActionDispatch
   class FileHandler
     def initialize(root, index: 'index', headers: {})
       @root          = root.chomp('/')
-      @compiled_root = /^#{Regexp.escape(root)}/
       @file_server   = ::Rack::File.new(@root, headers)
       @index         = index
     end
