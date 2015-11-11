@@ -1,3 +1,14 @@
+*   Implements an evented file system monitor to asynchronously detect changes
+    in the application source code, routes, locales, etc.
+
+    To opt-in load the [listen](https://github.com/guard/listen) gem in `Gemfile`:
+
+      group :development do
+        gem 'listen', '~> 3.0.4'
+      end
+
+    *Puneet Agarwal* and *Xavier Noria*
+
 * Updated `parameterize` to preserve the case of a string, optionally.
 
     Example:

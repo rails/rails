@@ -1,3 +1,8 @@
+*   Generated `Gemfile`s for new applications include a new dependency on
+    [listen](https://github.com/guard/listen) commented out.
+
+    *Puneet Agarwal* and *Xavier Noria*
+
 *   Deprecate `serve_static_files` in favor of `public_file_server.enabled`.
 
     Unifies the static asset options under `public_file_server`.
