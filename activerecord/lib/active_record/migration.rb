@@ -263,7 +263,7 @@ module ActiveRecord
   # * <tt>drop_table(name)</tt>: Drops the table called +name+.
   # * <tt>drop_join_table(table_1, table_2, options)</tt>: Drops the join table
   #   specified by the given arguments.
-  # * <tt>remove_column(table_name, column_name, type, options)</tt>: Removes the column
+  # * <tt>remove_column(table_name, column_name, options)</tt>: Removes the column
   #   named +column_name+ from the table called +table_name+.
   # * <tt>remove_columns(table_name, *column_names)</tt>: Removes the given
   #   columns from the table definition.
