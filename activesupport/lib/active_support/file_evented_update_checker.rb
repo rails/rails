@@ -130,22 +130,22 @@ module ActiveSupport
       end
 
       # Filters out directories which are descendants of others in the collection (stable).
-      def filter_out_descendants(directories)
-        return directories if directories.length < 2
+      def filter_out_descendants(dirs)
+        return dirs if dirs.length < 2
 
-        sorted_by_nparts = directories.sort_by { |dir| dir.each_filename.to_a.length }
+        dirs_sorted_by_nparts = dirs.sort_by { |dir| dir.each_filename.to_a.length }
         descendants = []
 
-        until sorted_by_nparts.empty?
-          dir = sorted_by_nparts.shift
+        until dirs_sorted_by_nparts.empty?
+          dir = dirs_sorted_by_nparts.shift
 
-          descendants.concat sorted_by_nparts.select { |possible_descendant|
-            dir.ascendant_of?(possible_descendant)
-          }
+          dirs_sorted_by_nparts.reject! do |possible_descendant|
+            dir.ascendant_of?(possible_descendant) && descendants << possible_descendant
+          end
         end
 
         # Array#- preserves order.
-        directories - descendants
+        dirs - descendants
       end
     end
   end
