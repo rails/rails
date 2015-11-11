@@ -9,17 +9,17 @@
 
     *Puneet Agarwal* and *Xavier Noria*
 
-* Added `Time#days_in_year` to return the number of days in the given year, or the
-  current year if no argument is provided.
+*   Added `Time#days_in_year` to return the number of days in the given year, or the
+    current year if no argument is provided.
 
-  *Jon Pascoe*
+    *Jon Pascoe*
 
-* Updated `parameterize` to preserve the case of a string, optionally.
+*   Updated `parameterize` to preserve the case of a string, optionally.
 
     Example:
 
-      parameterize("Donald E. Knuth", separator: '_') # => "donald_e_knuth"
-      parameterize("Donald E. Knuth", preserve_case: true) # => "Donald-E-Knuth"
+        parameterize("Donald E. Knuth", separator: '_') # => "donald_e_knuth"
+        parameterize("Donald E. Knuth", preserve_case: true) # => "Donald-E-Knuth"
 
     *Swaathi Kakarla*
 
