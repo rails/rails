@@ -44,7 +44,7 @@ module Rails
         @railties_order                = [:all]
         @relative_url_root             = ENV["RAILS_RELATIVE_URL_ROOT"]
         @reload_classes_only_on_change = true
-        @file_watcher                  = ActiveSupport::FileUpdateChecker
+        @file_watcher                  = file_update_checker
         @exceptions_app                = nil
         @autoflush_log                 = true
         @log_formatter                 = ActiveSupport::Logger::SimpleFormatter.new
@@ -181,6 +181,14 @@ module Rails
       end
 
       private
+        def file_update_checker
+          if defined?(Listen) && Listen::Adapter.select() != Listen::Adapter::Polling
+            ActiveSupport::FileEventedUpdateChecker
+          else
+            ActiveSupport::FileUpdateChecker
+          end
+        end
+
         class Custom #:nodoc:
           def initialize
             @configurations = Hash.new

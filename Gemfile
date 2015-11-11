@@ -45,6 +45,7 @@ end
 
 # Active Support.
 gem 'dalli', '>= 2.2.1'
+gem 'listen', '~> 3.0.4'
 
 # Active Job.
 group :job do

@@ -1,3 +1,14 @@
+*   Implements an evented file system monitor to asynchronously detect changes
+    in the application source code, routes, locales, etc.
+
+    To opt-in load the [listen](https://github.com/guard/listen) gem in `Gemfile`:
+
+        group :development do
+          gem 'listen', '~> 3.0.4'
+        end
+
+    *Puneet Agarwal* and *Xavier Noria*
+
 * Added `Time#days_in_year` to return the number of days in the given year, or the
   current year if no argument is provided.
 

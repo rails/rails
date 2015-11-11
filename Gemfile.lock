@@ -212,6 +212,9 @@ GEM
       delayed_job (>= 3.0, < 5)
     erubis (2.7.0)
     execjs (2.6.0)
+    ffi (1.9.10)
+    ffi (1.9.10-x64-mingw32)
+    ffi (1.9.10-x86-mingw32)
     hitimes (1.2.3)
     hitimes (1.2.3-x86-mingw32)
     i18n (0.7.0)
@@ -219,6 +222,9 @@ GEM
     kindlerb (0.1.1)
       mustache
       nokogiri
+    listen (3.0.4)
+      rb-fsevent (>= 0.9.3)
+      rb-inotify (>= 0.9)
     loofah (2.0.3)
       nokogiri (>= 1.5.9)
     metaclass (0.0.4)
@@ -252,6 +258,9 @@ GEM
     rails-html-sanitizer (1.0.2)
       loofah (~> 2.0)
     rake (10.4.2)
+    rb-fsevent (0.9.6)
+    rb-inotify (0.9.5)
+      ffi (>= 0.5.0)
     rdoc (4.2.0)
     redcarpet (3.2.3)
     redis (3.2.1)
@@ -333,6 +342,7 @@ DEPENDENCIES
   jquery-rails!
   json
   kindlerb (= 0.1.1)
+  listen (~> 3.0.4)
   mail!
   minitest (< 5.3.4)
   mocha (~> 0.14)
