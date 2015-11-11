@@ -144,6 +144,7 @@ module ActiveSupport
           }
         end
 
+        # Array#- preserves order.
         directories - descendants
       end
     end
