@@ -1,6 +1,7 @@
 require 'fileutils'
 
 module FileUpdateCheckerSharedTests
+  extend ActiveSupport::Testing::Declarative
   include FileUtils
 
   def tmpdir
@@ -19,7 +20,7 @@ module FileUpdateCheckerSharedTests
     FileUtils.rm_rf(@tmpdir) if @tmpdir
   end
 
-  def test_should_not_execute_the_block_if_no_paths_are_given
+  test 'should not execute the block if no paths are given' do
     i = 0
 
     checker = new_checker { i += 1 }
@@ -28,7 +29,7 @@ module FileUpdateCheckerSharedTests
     assert_equal 0, i
   end
 
-  def test_should_not_execute_the_block_if_no_files_change
+  test 'should not execute the block if no files change' do
     i = 0
 
     FileUtils.touch(tmpfiles)
@@ -39,7 +40,7 @@ module FileUpdateCheckerSharedTests
     assert_equal 0, i
   end
 
-  def test_should_execute_the_block_once_when_files_are_created
+  test 'should execute the block once when files are created' do
     i = 0
 
     checker = new_checker(tmpfiles) { i += 1 }
@@ -50,7 +51,7 @@ module FileUpdateCheckerSharedTests
     assert_equal 1, i
   end
 
-  def test_should_execute_the_block_once_when_files_are_modified
+  test 'should execute the block once when files are modified' do
     i = 0
 
     FileUtils.touch(tmpfiles)
@@ -63,7 +64,7 @@ module FileUpdateCheckerSharedTests
     assert_equal 1, i
   end
 
-  def test_should_execute_the_block_once_when_files_are_deleted
+  test 'should execute the block once when files are deleted' do
     i = 0
 
     FileUtils.touch(tmpfiles)
@@ -77,7 +78,7 @@ module FileUpdateCheckerSharedTests
   end
 
 
-  def test_updated_should_become_true_when_watched_files_are_created
+  test 'updated should become true when watched files are created' do
     i = 0
 
     checker = new_checker(tmpfiles) { i += 1 }
@@ -89,7 +90,7 @@ module FileUpdateCheckerSharedTests
   end
 
 
-  def test_updated_should_become_true_when_watched_files_are_modified
+  test 'updated should become true when watched files are modified' do
     i = 0
 
     FileUtils.touch(tmpfiles)
@@ -102,7 +103,7 @@ module FileUpdateCheckerSharedTests
     assert checker.updated?
   end
 
-  def test_updated_should_become_true_when_watched_files_are_deleted
+  test 'updated should become true when watched files are deleted' do
     i = 0
 
     FileUtils.touch(tmpfiles)
@@ -115,7 +116,7 @@ module FileUpdateCheckerSharedTests
     assert checker.updated?
   end
 
-  def test_should_be_robust_to_handle_files_with_wrong_modified_time
+  test 'should be robust to handle files with wrong modified time' do
     i = 0
 
     FileUtils.touch(tmpfiles)
@@ -132,7 +133,7 @@ module FileUpdateCheckerSharedTests
     assert_equal 1, i
   end
 
-  def test_should_cache_updated_result_until_execute
+  test 'should cache updated result until execute' do
     i = 0
 
     checker = new_checker(tmpfiles) { i += 1 }
@@ -145,7 +146,7 @@ module FileUpdateCheckerSharedTests
     assert !checker.updated?
   end
 
-  def test_should_execute_the_block_if_files_change_in_a_watched_directory_one_extension
+  test 'should execute the block if files change in a watched directory one extension' do
     i = 0
 
     checker = new_checker([], tmpdir => :rb) { i += 1 }
@@ -156,7 +157,7 @@ module FileUpdateCheckerSharedTests
     assert_equal 1, i
   end
 
-  def test_should_execute_the_block_if_files_change_in_a_watched_directory_several_extensions
+  test 'should execute the block if files change in a watched directory several extensions' do
     i = 0
 
     checker = new_checker([], tmpdir => [:rb, :txt]) { i += 1 }
@@ -172,7 +173,7 @@ module FileUpdateCheckerSharedTests
     assert_equal 2, i
   end
 
-  def test_should_not_execute_the_block_if_the_file_extension_is_not_watched
+  test 'should not execute the block if the file extension is not watched' do
     i = 0
 
     checker = new_checker([], tmpdir => :txt) { i += 1 }
@@ -183,7 +184,7 @@ module FileUpdateCheckerSharedTests
     assert_equal 0, i
   end
 
-  def test_does_not_assume_files_exist_on_instantiation
+  test 'does not assume files exist on instantiation' do
     i = 0
 
     non_existing = tmpfile('non_existing.rb')
@@ -195,7 +196,7 @@ module FileUpdateCheckerSharedTests
     assert_equal 1, i
   end
 
-  def test_detects_files_in_new_subdirectories
+  test 'detects files in new subdirectories' do
     i = 0
 
     checker = new_checker([], tmpdir => :rb) { i += 1 }
@@ -213,7 +214,7 @@ module FileUpdateCheckerSharedTests
     assert_equal 1, i
   end
 
-  def test_looked_up_extensions_are_inherited_in_subdirectories_not_listening_to_them
+  test 'looked up extensions are inherited in subdirectories not listening to them' do
     i = 0
 
     subdir = tmpfile('subdir')
