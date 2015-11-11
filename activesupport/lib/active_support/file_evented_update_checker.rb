@@ -50,23 +50,19 @@ module ActiveSupport
       def watching?(file)
         file = @ph.xpath(file)
 
-        return true  if @files.member?(file)
-        return false if file.directory?
+        if @files.member?(file)
+          true
+        elsif file.directory?
+          false
+        else
+          ext = @ph.normalize_extension(file.extname)
 
-        ext = @ph.normalize_extension(file.extname)
-        dir = file.dirname
-
-        loop do
-          if @dirs.fetch(dir, []).include?(ext)
-            break true
-          else
-            if @lcsp
-              break false if dir == @lcsp
-            else
-              break false if dir.root?
+          file.dirname.ascend do |dir|
+            if @dirs.fetch(dir, []).include?(ext)
+              break true
+            elsif dir == @lcsp || dir.root?
+              break false
             end
-
-            dir = dir.parent
           end
         end
       end
