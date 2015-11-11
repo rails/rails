@@ -107,9 +107,7 @@ module ActiveSupport
         lcsp = Pathname.new(paths[0])
 
         paths[1..-1].each do |path|
-          loop do
-            break if lcsp.ascendant_of?(path)
-
+          until lcsp.ascendant_of?(path)
             if lcsp.root?
               # If we get here a root directory is not an ascendant of path.
               # This may happen if there are paths in different drives on
