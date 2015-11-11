@@ -260,6 +260,13 @@ module ActiveRecord
       assert_equal 3, authors(:david).posts.merge(posts_with_special_comments_with_ratings).count.length
     end
 
+    def test_merge_raises_with_invalid_argument
+      assert_raises ArgumentError do
+        relation = Relation.new(FakeKlass, :b)
+        relation.merge(true)
+      end
+    end
+
     class EnsureRoundTripTypeCasting < ActiveRecord::Type::Value
       def type
         :string
