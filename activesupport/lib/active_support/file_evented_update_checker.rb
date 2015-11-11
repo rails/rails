@@ -72,14 +72,11 @@ module ActiveSupport
       end
 
       def directories_to_watch
-        bd = []
+        dtw = (@files + @dirs.keys).map {|f| @ph.existing_parent(f)}
+        dtw.compact!
+        dtw.uniq!
 
-        bd.concat @files.map {|f| @ph.existing_parent(f.dirname)}
-        bd.concat @dirs.keys.map {|dir| @ph.existing_parent(dir)}
-        bd.compact!
-        bd.uniq!
-
-        @ph.filter_out_descendants(bd)
+        @ph.filter_out_descendants(dtw)
       end
 
     class PathHelper
