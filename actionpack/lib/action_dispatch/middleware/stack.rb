@@ -15,7 +15,11 @@ module ActionDispatch
       def name; klass.name; end
 
       def inspect
-        klass.to_s
+        if klass.is_a?(Class)
+          klass.to_s
+        else
+          klass.class.to_s
+        end
       end
 
       def build(app)
