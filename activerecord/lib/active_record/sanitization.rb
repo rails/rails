@@ -144,7 +144,7 @@ module ActiveRecord
       #   # => "name='foo''bar' and group_id='4'"
       def sanitize_sql_array(ary)
         statement, *values = ary
-        if values.first.is_a?(Hash) && statement =~ /:\w+/
+        if values.first.is_a?(Hash)
           replace_named_bind_variables(statement, values.first)
         elsif statement.include?('?')
           replace_bind_variables(statement, values)

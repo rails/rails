@@ -58,6 +58,11 @@ class SanitizeTest < ActiveRecord::TestCase
     assert_equal 'normal string 42', Binary.send(:sanitize_sql_like, 'normal string 42', '!')
   end
 
+  def test_sanitize_sql_array_handles_named_bind_variables
+    assert_equal "name='%s'", Binary.send(:sanitize_sql_array, ["name='%s'", name: "Bambi"])
+    assert_equal "name=?", Binary.send(:sanitize_sql_array, ["name=?", name: "Bambi"])
+  end
+
   def test_sanitize_sql_like_example_use_case
     searchable_post = Class.new(Post) do
       def self.search(term)
