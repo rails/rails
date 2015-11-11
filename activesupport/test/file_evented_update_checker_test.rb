@@ -118,4 +118,33 @@ class FileEventedUpdateCheckerPathHelperTest < ActiveSupport::TestCase
 
     assert_equal paths.values_at(0, 2, 4), @ph.filter_out_descendants(paths)
   end
+
+  test '#filter_out_descendants works on path units' do
+    paths = %w(
+      /foo/bar
+      /foo/barrrr
+    ).map { |path| pn(path) }
+
+    assert_equal paths, @ph.filter_out_descendants(paths)
+  end
+
+  test '#filter_out_descendants deals correctly with the root directory' do
+    paths = %w(
+      /
+      /foo
+      /foo/bar
+    ).map { |path| pn(path) }
+
+    assert_equal paths.values_at(0), @ph.filter_out_descendants(paths)
+  end
+
+  test '#filter_out_descendants preserves duplicates' do
+    paths = %w(
+      /foo
+      /foo/bar
+      /foo
+    ).map { |path| pn(path) }
+
+    assert_equal paths.values_at(0, 2), @ph.filter_out_descendants(paths)
+  end
 end

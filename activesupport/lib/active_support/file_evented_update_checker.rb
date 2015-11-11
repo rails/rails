@@ -79,7 +79,14 @@ module ActiveSupport
       using Module.new {
         refine Pathname do
           def ascendant_of?(other)
-            other.to_s =~ /\A#{Regexp.quote(to_s)}#{Pathname::SEPARATOR_PAT}?/
+            if self != other && other.to_s.start_with?(to_s)
+              # On Windows each_filename does not include the drive letter,
+              # but the test above already detects if they differ.
+              parts = each_filename.to_a
+              other_parts = other.each_filename.to_a
+
+              other_parts[0, parts.length] == parts
+            end
           end
         end
       }
