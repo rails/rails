@@ -12,7 +12,7 @@ module FileUpdateCheckerSharedTests
   end
 
   def tmpfiles
-    @tmpfiles ||= %w(foo.rb bar.rb baz.rb).map {|f| tmpfile(f)}
+    @tmpfiles ||= %w(foo.rb bar.rb baz.rb).map { |f| tmpfile(f) }
   end
 
   def teardown

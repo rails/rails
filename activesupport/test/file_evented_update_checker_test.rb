@@ -5,7 +5,7 @@ require 'file_update_checker_shared_tests'
 class FileEventedUpdateCheckerTest < ActiveSupport::TestCase
   include FileUpdateCheckerSharedTests
 
-  def new_checker(files=[], dirs={}, &block)
+  def new_checker(files = [], dirs = {}, &block)
     ActiveSupport::FileEventedUpdateChecker.new(files, dirs, &block).tap do
       wait
     end
@@ -61,7 +61,7 @@ class FileEventedUpdateCheckerPathHelperTest < ActiveSupport::TestCase
       /foo/bar
       /foo/baz
       /foo/bar/baz/woo/zoo
-    ).map {|path| pn(path)}
+    ).map { |path| pn(path) }
 
     assert_equal pn('/foo'), @ph.longest_common_subpath(paths)
   end
@@ -72,7 +72,7 @@ class FileEventedUpdateCheckerPathHelperTest < ActiveSupport::TestCase
       /foo/baz
       /foo/bar/baz/woo/zoo
       /wadus
-    ).map {|path| pn(path)}
+    ).map { |path| pn(path) }
 
     assert_equal pn('/'), @ph.longest_common_subpath(paths)
   end
@@ -102,7 +102,7 @@ class FileEventedUpdateCheckerPathHelperTest < ActiveSupport::TestCase
       /Rails.root/app/controllers
       /Rails.root/app/models
       /Rails.root/app/helpers
-    ).map {|path| pn(path)}
+    ).map { |path| pn(path) }
 
     assert_equal paths, @ph.filter_out_descendants(paths)
   end
@@ -114,7 +114,7 @@ class FileEventedUpdateCheckerPathHelperTest < ActiveSupport::TestCase
       /Rails.root/app/models
       /Rails.root/app/models/concerns
       /Rails.root/app/helpers
-    ).map {|path| pn(path)}
+    ).map { |path| pn(path) }
 
     assert_equal paths.values_at(0, 2, 4), @ph.filter_out_descendants(paths)
   end

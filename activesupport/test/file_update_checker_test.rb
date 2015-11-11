@@ -4,7 +4,7 @@ require 'file_update_checker_shared_tests'
 class FileUpdateCheckerTest < ActiveSupport::TestCase
   include FileUpdateCheckerSharedTests
 
-  def new_checker(files=[], dirs={}, &block)
+  def new_checker(files = [], dirs = {}, &block)
     ActiveSupport::FileUpdateChecker.new(files, dirs, &block)
   end
 

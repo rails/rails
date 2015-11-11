@@ -4,13 +4,13 @@ require 'pathname'
 
 module ActiveSupport
   class FileEventedUpdateChecker #:nodoc: all
-    def initialize(files, dirs={}, &block)
+    def initialize(files, dirs = {}, &block)
       @ph    = PathHelper.new
-      @files = files.map {|f| @ph.xpath(f)}.to_set
+      @files = files.map { |f| @ph.xpath(f) }.to_set
 
       @dirs = {}
       dirs.each do |dir, exts|
-        @dirs[@ph.xpath(dir)] = Array(exts).map {|ext| @ph.normalize_extension(ext)}
+        @dirs[@ph.xpath(dir)] = Array(exts).map { |ext| @ph.normalize_extension(ext) }
       end
 
       @block   = block
@@ -43,7 +43,7 @@ module ActiveSupport
 
       def changed(modified, added, removed)
         unless updated?
-          @updated = (modified + added + removed).any? {|f| watching?(f)}
+          @updated = (modified + added + removed).any? { |f| watching?(f) }
         end
       end
 
@@ -68,7 +68,7 @@ module ActiveSupport
       end
 
       def directories_to_watch
-        dtw = (@files + @dirs.keys).map {|f| @ph.existing_parent(f)}
+        dtw = (@files + @dirs.keys).map { |f| @ph.existing_parent(f) }
         dtw.compact!
         dtw.uniq!
 
@@ -126,7 +126,7 @@ module ActiveSupport
       def filter_out_descendants(directories)
         return directories if directories.length < 2
 
-        sorted_by_nparts = directories.sort_by {|dir| dir.each_filename.to_a.length}
+        sorted_by_nparts = directories.sort_by { |dir| dir.each_filename.to_a.length }
         descendants = []
 
         until sorted_by_nparts.empty?
