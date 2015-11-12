@@ -1,11 +1,8 @@
-## Rails 4.1.14.rc2 (November 05, 2015) ##
+## Rails 4.1.14 (November 12, 2015) ##
 
 *   No longer pass deprecated option `-i` to `pg_dump`.
 
     *Paul Sadauskas*
-
-
-## Rails 4.1.14.rc1 (October 30, 2015) ##
 
 *   Includes HABTM returns correct size now. It's caused by the join dependency
     only instantiates one HABTM object because the join table hasn't a primary key.

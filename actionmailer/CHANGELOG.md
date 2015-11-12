@@ -1,4 +1,4 @@
-## Rails 4.1.14.rc2 (November 05, 2015) ##
+## Rails 4.1.14 (November 12, 2015) ##
 
 *   No changes.
 
