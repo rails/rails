@@ -1,4 +1,4 @@
-## Rails 4.2.5.rc1 (October 30, 2015) ##
+## Rails 4.2.5 (November 12, 2015) ##
 
 *   No changes.
 
@@ -11,6 +11,7 @@
     Fixes #20799.
 
     *Johannes Opper*
+
 
 ## Rails 4.2.3 (June 25, 2015) ##
 

@@ -4,12 +4,12 @@
 
     *Yves Senn*, *Matthew Draper*
 
+
+## Rails 4.2.5 (November 12, 2015) ##
+
 *   No longer pass deprecated option `-i` to `pg_dump`.
 
     *Paul Sadauskas*
-
-
-## Rails 4.2.5.rc1 (October 30, 2015) ##
 
 *   Set `scope.reordering_value` to `true` if :reordering values are specified.
 

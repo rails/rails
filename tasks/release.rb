@@ -109,7 +109,7 @@ namespace :all do
   task :push            => FRAMEWORKS.map { |f| "#{f}:push"            } + ['rails:push']
 
   task :ensure_clean_state do
-    unless `git status -s | grep -v 'RAILS_VERSION\\|CHANGELOG'`.strip.empty?
+    unless `git status -s | grep -v 'RAILS_VERSION\\|CHANGELOG\\|Gemfile.lock'`.strip.empty?
       abort "[ABORTING] `git status` reports a dirty tree. Make sure all changes are committed"
     end
 
@@ -117,6 +117,10 @@ namespace :all do
       abort "[ABORTING] `git tag` shows that #{tag} already exists. Has this version already\n"\
             "           been released? Git tagging can be skipped by setting SKIP_TAG=1"
     end
+  end
+
+  task :bundle do
+    sh 'bundle check'
   end
 
   task :commit do
@@ -135,5 +139,5 @@ namespace :all do
     sh "git push --tags"
   end
 
-  task :release => %w(ensure_clean_state build commit tag push)
+  task :release => %w(ensure_clean_state build bundle commit tag push)
 end

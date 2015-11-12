@@ -1,4 +1,4 @@
-## Rails 4.2.5.rc1 (October 30, 2015) ##
+## Rails 4.2.5 (November 12, 2015) ##
 
 *   Fix displaying mailer previews on non local requests when config
     `action_mailer.show_previews` is set
