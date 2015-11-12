@@ -364,7 +364,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
         assert_select 'pre code a:first', %r{test/dispatch/debug_exceptions_test\.rb:\d+:in `call}
       end
 
-      # assert framework trace that that threw the error is first
+      # assert framework trace that threw the error is first
       assert_select '#Framework-Trace' do
         assert_select 'pre code a:first', /method_that_raises/
       end
