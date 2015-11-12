@@ -1,3 +1,12 @@
+*   Allow override of base job class used for ActiveJob-powered mail delivery.
+
+    This allows you to catch errors in Job deserialization by using
+    `rescue_from` in your own base class.
+
+    `ActionMailer::Base.delivery_job_class = MyDeliveryJobClass`
+
+    *Drew Ulmer*
+
 *   `config.force_ssl = true` will set
     `config.action_mailer.default_url_options = { protocol: 'https' }`
 
