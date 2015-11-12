@@ -5,6 +5,8 @@
 
     `ActionMailer::Base.delivery_job_class = MyDeliveryJobClass`
 
+    Fixes #19793.
+
     *Drew Ulmer*
 
 *   `config.force_ssl = true` will set
