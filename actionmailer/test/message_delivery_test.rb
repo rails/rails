@@ -100,10 +100,14 @@ class MessageDeliveryTest < ActiveSupport::TestCase
   end
 
   test "can override base job class" do
-    assert_performed_with(job: RescueJob, args: ['DelayedMailer', 'test_message', 'deliver_now', 1, 2, 3], queue: "another_queue") do
-      ActionMailer::Base.delivery_job_class = RescueJob
-      @mail.deliver_later(queue: :another_queue)
-      ActionMailer::Base.delivery_job_class = ActionMailer::DeliveryJob
+    begin
+      original_job_class = ActionMailer::Base.delivery_job_class
+      assert_performed_with(job: RescueJob, args: ['DelayedMailer', 'test_message', 'deliver_now', 1, 2, 3], queue: "another_queue") do
+        ActionMailer::Base.delivery_job_class = RescueJob
+        @mail.deliver_later(queue: :another_queue)
+      end
+    ensure
+      ActionMailer::Base.delivery_job_class = original_job_class
     end
   end
 end
