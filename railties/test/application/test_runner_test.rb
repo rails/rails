@@ -344,7 +344,7 @@ module ApplicationTests
       create_test_file :models, 'post', pass: false
 
       output = run_test_command('test/models/post_test.rb')
-      assert_match %r{Running:\n\nPostTest\nF\n\nwups!\n\nbin/rails test test/models/post_test.rb:4}, output
+      assert_match %r{Running:\n\nPostTest\nF\n\nwups!\n\nbin/rails test test/models/post_test.rb:6}, output
     end
 
     def test_only_inline_failure_output

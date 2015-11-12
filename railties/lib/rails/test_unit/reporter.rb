@@ -57,8 +57,14 @@ module Rails
       end
 
       def format_rerun_snippet(result)
-        location, line = result.method(result.name).source_location
-        "#{self.executable} #{relative_path_for(location)}:#{line}"
+        # Try to extract path to assertion from backtrace.
+        if result.location =~ /\[(.*)\]\z/
+          assertion_path = $1
+        else
+          assertion_path = result.method(result.name).source_location.join(':')
+        end
+
+        "#{self.executable} #{relative_path_for(assertion_path)}"
       end
   end
 end
