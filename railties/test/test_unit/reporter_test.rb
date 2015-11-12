@@ -15,7 +15,7 @@ class TestUnitReporterTest < ActiveSupport::TestCase
     @reporter.record(failed_test)
     @reporter.report
 
-    assert_match %r{^bin/rails test .*test/test_unit/reporter_test.rb:6$}, @output.string
+    assert_match %r{^bin/rails test .*test/test_unit/reporter_test.rb:\d+$}, @output.string
     assert_rerun_snippet_count 1
   end
 
@@ -51,7 +51,7 @@ class TestUnitReporterTest < ActiveSupport::TestCase
       @reporter.record(failed_test)
       @reporter.report
 
-      assert_match %r{^bin/test .*test/test_unit/reporter_test.rb:6$}, @output.string
+      assert_match %r{^bin/test .*test/test_unit/reporter_test.rb:\d+$}, @output.string
     ensure
       Rails::TestUnitReporter.executable = original_executable
     end
@@ -61,7 +61,7 @@ class TestUnitReporterTest < ActiveSupport::TestCase
     @reporter.record(failed_test)
     @reporter.report
 
-    assert_match %r{\A\n\nboo\n\nbin/rails test .*test/test_unit/reporter_test.rb:6\n\n\z}, @output.string
+    assert_match %r{\A\n\nboo\n\nbin/rails test .*test/test_unit/reporter_test.rb:\d+\n\n\z}, @output.string
   end
 
   test "outputs errors inline" do
@@ -76,7 +76,7 @@ class TestUnitReporterTest < ActiveSupport::TestCase
     verbose.record(skipped_test)
     verbose.report
 
-    assert_match %r{\A\n\nskipchurches, misstemples\n\nbin/rails test .*test/test_unit/reporter_test.rb:6\n\n\z}, @output.string
+    assert_match %r{\A\n\nskipchurches, misstemples\n\nbin/rails test .*test/test_unit/reporter_test.rb:\d+\n\n\z}, @output.string
   end
 
   test "does not output rerun snippets after run" do
