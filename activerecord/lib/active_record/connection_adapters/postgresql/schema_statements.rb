@@ -70,6 +70,12 @@ module ActiveRecord
 
         # Returns the list of all tables in the schema search path.
         def tables(name = nil)
+          if name
+            ActiveSupport::Deprecation.warn(<<-MSG.squish)
+              Passing arguments to #tables is deprecated without replacement.
+            MSG
+          end
+
           select_values("SELECT tablename FROM pg_tables WHERE schemaname = ANY(current_schemas(false))", 'SCHEMA')
         end
 
@@ -87,6 +93,16 @@ module ActiveRecord
         # If the schema is not specified as part of +name+ then it will only find tables within
         # the current schema search path (regardless of permissions to access tables in other schemas)
         def table_exists?(name)
+          ActiveSupport::Deprecation.warn(<<-MSG.squish)
+            #table_exists? currently checks both tables and views.
+            This behavior is deprecated and will be changed with Rails 5.1 to only check tables.
+            Use #data_source_exists? instead.
+          MSG
+
+          data_source_exists?(name)
+        end
+
+        def data_source_exists?(name)
           name = Utils.extract_schema_qualified_name(name.to_s)
           return false unless name.identifier
 
@@ -99,7 +115,6 @@ module ActiveRecord
               AND n.nspname = #{name.schema ? "'#{name.schema}'" : 'ANY (current_schemas(false))'}
           SQL
         end
-        alias data_source_exists? table_exists?
 
         def views # :nodoc:
           select_values(<<-SQL, 'SCHEMA')

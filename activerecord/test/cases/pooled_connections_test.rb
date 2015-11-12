@@ -44,7 +44,7 @@ class PooledConnectionsTest < ActiveRecord::TestCase
         conn = ActiveRecord::Base.connection_pool.checkout
         ActiveRecord::Base.connection_pool.checkin conn
         @connection_count += 1
-        ActiveRecord::Base.connection.tables
+        ActiveRecord::Base.connection.data_sources
       rescue ActiveRecord::ConnectionTimeoutError
         @timed_out += 1
       end

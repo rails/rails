@@ -224,7 +224,7 @@ class PrimaryKeyAnyTypeTest < ActiveRecord::TestCase
   end
 
   teardown do
-    @connection.drop_table(:barcodes) if @connection.table_exists? :barcodes
+    @connection.drop_table(:barcodes, if_exists: true)
   end
 
   def test_any_type_primary_key

@@ -164,7 +164,7 @@ class ReferencesWithoutForeignKeySupportTest < ActiveRecord::TestCase
       t.references :testing_parent, foreign_key: true
     end
 
-    assert_includes @connection.tables, "testings"
+    assert_includes @connection.data_sources, "testings"
   end
 end
 end

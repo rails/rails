@@ -967,10 +967,12 @@ module ActiveRecord
       end
 
       def get_all_versions(connection = Base.connection)
-        if connection.table_exists?(schema_migrations_table_name)
-          SchemaMigration.all.map { |x| x.version.to_i }.sort
-        else
-          []
+        ActiveSupport::Deprecation.silence do
+          if connection.table_exists?(schema_migrations_table_name)
+            SchemaMigration.all.map { |x| x.version.to_i }.sort
+          else
+            []
+          end
         end
       end
 

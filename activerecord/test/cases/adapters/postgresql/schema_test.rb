@@ -184,42 +184,42 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
     @connection.exec_query("alter table developers drop column zomg", 'sql', []) if altered
   end
 
-  def test_table_exists?
+  def test_data_source_exists?
     [Thing1, Thing2, Thing3, Thing4].each do |klass|
       name = klass.table_name
-      assert @connection.table_exists?(name), "'#{name}' table should exist"
+      assert @connection.data_source_exists?(name), "'#{name}' data_source should exist"
     end
   end
 
-  def test_table_exists_when_on_schema_search_path
+  def test_data_source_exists_when_on_schema_search_path
     with_schema_search_path(SCHEMA_NAME) do
-      assert(@connection.table_exists?(TABLE_NAME), "table should exist and be found")
+      assert(@connection.data_source_exists?(TABLE_NAME), "data_source should exist and be found")
     end
   end
 
-  def test_table_exists_when_not_on_schema_search_path
+  def test_data_source_exists_when_not_on_schema_search_path
     with_schema_search_path('PUBLIC') do
-      assert(!@connection.table_exists?(TABLE_NAME), "table exists but should not be found")
+      assert(!@connection.data_source_exists?(TABLE_NAME), "data_source exists but should not be found")
     end
   end
 
-  def test_table_exists_wrong_schema
-    assert(!@connection.table_exists?("foo.things"), "table should not exist")
+  def test_data_source_exists_wrong_schema
+    assert(!@connection.data_source_exists?("foo.things"), "data_source should not exist")
   end
 
-  def test_table_exists_quoted_names
+  def test_data_source_exists_quoted_names
     [ %("#{SCHEMA_NAME}"."#{TABLE_NAME}"), %(#{SCHEMA_NAME}."#{TABLE_NAME}"), %(#{SCHEMA_NAME}."#{TABLE_NAME}")].each do |given|
-      assert(@connection.table_exists?(given), "table should exist when specified as #{given}")
+      assert(@connection.data_source_exists?(given), "data_source should exist when specified as #{given}")
     end
     with_schema_search_path(SCHEMA_NAME) do
       given = %("#{TABLE_NAME}")
-      assert(@connection.table_exists?(given), "table should exist when specified as #{given}")
+      assert(@connection.data_source_exists?(given), "data_source should exist when specified as #{given}")
     end
   end
 
-  def test_table_exists_quoted_table
+  def test_data_source_exists_quoted_table
     with_schema_search_path(SCHEMA_NAME) do
-        assert(@connection.table_exists?('"things.table"'), "table should exist")
+      assert(@connection.data_source_exists?('"things.table"'), "data_source should exist")
     end
   end
 

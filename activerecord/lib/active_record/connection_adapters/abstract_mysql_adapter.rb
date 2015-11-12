@@ -497,18 +497,43 @@ module ActiveRecord
       end
 
       def tables(name = nil) # :nodoc:
+        ActiveSupport::Deprecation.warn(<<-MSG.squish)
+          #tables currently returns both tables and views.
+          This behavior is deprecated and will be changed with Rails 5.1 to only return tables.
+          Use #data_sources instead.
+        MSG
+
+        if name
+          ActiveSupport::Deprecation.warn(<<-MSG.squish)
+            Passing arguments to #tables is deprecated without replacement.
+          MSG
+        end
+
+        data_sources
+      end
+
+      def data_sources
         sql = "SELECT table_name FROM information_schema.tables "
         sql << "WHERE table_schema = #{quote(@config[:database])}"
 
         select_values(sql, 'SCHEMA')
       end
-      alias data_sources tables
 
       def truncate(table_name, name = nil)
         execute "TRUNCATE TABLE #{quote_table_name(table_name)}", name
       end
 
       def table_exists?(table_name)
+        ActiveSupport::Deprecation.warn(<<-MSG.squish)
+          #table_exists? currently checks both tables and views.
+          This behavior is deprecated and will be changed with Rails 5.1 to only check tables.
+          Use #data_source_exists? instead.
+        MSG
+
+        data_source_exists?(table_name)
+      end
+
+      def data_source_exists?(table_name)
         return false unless table_name.present?
 
         schema, name = table_name.to_s.split('.', 2)
@@ -519,7 +544,6 @@ module ActiveRecord
 
         select_values(sql, 'SCHEMA').any?
       end
-      alias data_source_exists? table_exists?
 
       def views # :nodoc:
         select_values("SHOW FULL TABLES WHERE table_type = 'VIEW'", 'SCHEMA')
