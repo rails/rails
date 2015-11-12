@@ -17,7 +17,7 @@ module FileUpdateCheckerSharedTests
   end
 
   def teardown
-    FileUtils.rm_rf(@tmpdir) if @tmpdir
+    FileUtils.rm_rf(@tmpdir) if defined? @tmpdir
   end
 
   test 'should not execute the block if no paths are given' do
