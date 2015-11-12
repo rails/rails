@@ -79,13 +79,8 @@ module ActiveSupport
       using Module.new {
         refine Pathname do
           def ascendant_of?(other)
-            if self != other && other.to_s.start_with?(to_s)
-              # On Windows each_filename does not include the drive letter,
-              # but the test above already detects if they differ.
-              parts = each_filename.to_a
-              other_parts = other.each_filename.to_a
-
-              other_parts[0, parts.length] == parts
+            self != other && other.ascend do |ascendant|
+              break true if self == ascendant
             end
           end
         end
