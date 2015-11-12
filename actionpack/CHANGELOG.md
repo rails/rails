@@ -1,9 +1,4 @@
-## Rails 4.2.5.rc2 (November 05, 2015) ##
-
-*   No changes.
-
-
-## Rails 4.2.5.rc1 (October 30, 2015) ##
+## Rails 4.2.5 (November 12, 2015) ##
 
 *   `ActionController::TestCase` can teardown gracefully if an error is raised
     early in the `setup` chain.
