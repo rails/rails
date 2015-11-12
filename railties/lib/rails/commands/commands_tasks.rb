@@ -1,4 +1,3 @@
-require 'rails/commands/assets'
 require 'rails/commands/cache_digests'
 require 'rails/commands/command'
 require 'rails/commands/core'
