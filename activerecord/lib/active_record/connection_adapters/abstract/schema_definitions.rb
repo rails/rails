@@ -333,16 +333,16 @@ module ActiveRecord
       end
 
       def remove_foreign_key(options_or_to_table) # :nodoc:
-        if options_or_to_table.is_a?(Hash) and options_or_to_table.has_key?(:name)
-          foreign_keys.delete_if do |table_name, options|
-            options[:name].to_s == options_or_to_table[:name].to_s
+        if options_or_to_table.is_a?(Hash)
+          name_or_column = if options_or_to_table.has_key?(:name) then :name
+                           elsif options_or_to_table.has_key?(:column) then :column
+                           else raise ArgumentError, "options hash must have :name or :column"
+                           end
+          foreign_keys.delete_if do |_, options|
+            options[name_or_column].to_s == options_or_to_table[name_or_column].to_s
           end
-        elsif options_or_to_table.is_a?(Hash) and options_or_to_table.has_key?(:column)
-          foreign_keys.delete_if do |table_name, options|
-            options[:column].to_s == options_or_to_table[:column].to_s
-          end
-        elsif options_or_to_table.is_a?(String) or options_or_to_table.is_a?(Symbol)
-          foreign_keys.delete options_or_to_table.to_s
+        elsif options_or_to_table.is_a?(String) || options_or_to_table.is_a?(Symbol)
+          foreign_keys.delete(options_or_to_table.to_s)
         else
           raise ArgumentError, "remove_foreign_key needs either a table name or a foreign key options hash with :name or :column"
         end
