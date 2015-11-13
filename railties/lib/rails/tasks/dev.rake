@@ -1,7 +1,6 @@
 namespace :dev do
+  desc 'Toggle development mode caching on/off'
   task :cache do
-    desc 'Toggle development mode caching on/off'
-
     if File.exist? 'tmp/caching-dev.txt'
       File.delete 'tmp/caching-dev.txt'
       puts 'Development mode is no longer being cached.'
