@@ -239,6 +239,27 @@ NOTE: The `ApplicationController` class inside an engine is named just like a
 Rails application in order to make it easier for you to convert your
 applications into engines.
 
+NOTE: Because of the way that Ruby does constant lookup you may run into a situation
+where your engine controller is inheriting from the main application controller and
+not your engine's application controller. Ruby is able to resolve the `ApplicationController` constant, and therefore the autoloading mechanism is not triggered. See the section [When Constants Aren't Missed](autoloading_and_reloading_constants.html#when-constants-aren-t-missed) of the [Autoloading and Reloading Constants](autoloading_and_reloading_constants.html) guide for further details. The best way to prevent this from
+happening is to use `require_dependency` to ensure that the engine's application
+controller is loaded. For example:
+
+``` ruby
+# app/controllers/blorgh/articles_controller.rb:
+require_dependency "blorgh/application_controller"
+
+module Blorgh
+  class ArticlesController < ApplicationController
+    ...
+  end
+end
+```
+
+WARNING: Don't use `require` because it will break the automatic reloading of classes
+in the development environment - using `require_dependency` ensures that classes are
+loaded and unloaded in the correct manner.
+
 Lastly, the `app/views` directory contains a `layouts` folder, which contains a
 file at `blorgh/application.html.erb`. This file allows you to specify a layout
 for the engine. If this engine is to be used as a stand-alone engine, then you
