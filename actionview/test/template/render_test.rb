@@ -247,6 +247,8 @@ module RenderTestCases
 
   def test_render_object
     assert_equal "Hello: david", @view.render(:partial => "test/customer", :object => Customer.new("david"))
+    assert_equal "FalseClass", @view.render(:partial => "test/klass", :object => false)
+    assert_equal "NilClass", @view.render(:partial => "test/klass", :object => nil)
   end
 
   def test_render_object_with_array
