@@ -1,3 +1,8 @@
+*   Fix parsing JSON time in `YYYY-MM-DD hh:mm:ss` (without `Z`).
+    Before such time was considered in UTC timezone, now, to comply with standard, it uses local timezone.
+
+    *Grzegorz Witek*
+
 *   Match `HashWithIndifferentAccess#default`'s behaviour with `Hash#default`.
 
     *David Cornu*
