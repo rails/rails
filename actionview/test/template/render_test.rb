@@ -616,14 +616,14 @@ class CachedCollectionViewRenderTest < CachedViewRenderTest
   class CachedCustomer < Customer; end
 
   teardown do
-    ActionView::PartialRenderer.collection_cache.clear
+    ActionView::PartialRenderer::CollectionRenderer.collection_cache.clear
   end
 
   test "with custom key" do
     customer = Customer.new("david")
     key = cache_key([customer, 'key'], "test/_customer")
 
-    ActionView::PartialRenderer.collection_cache.write(key, 'Hello')
+    ActionView::PartialRenderer::CollectionRenderer.collection_cache.write(key, 'Hello')
 
     assert_equal "Hello",
       @view.render(partial: "test/customer", collection: [customer], cache: ->(item) { [item, 'key'] })
@@ -633,7 +633,7 @@ class CachedCollectionViewRenderTest < CachedViewRenderTest
     customer = Customer.new("david")
     key = cache_key([customer, 'key'], "test/_customer")
 
-    ActionView::PartialRenderer.collection_cache.write(key, 'Hello')
+    ActionView::PartialRenderer::CollectionRenderer.collection_cache.write(key, 'Hello')
 
     assert_equal "Hello: david",
       @view.render(partial: "test/customer", collection: [customer], cache: ->(item) { [item, 'another_key'] })
@@ -643,7 +643,7 @@ class CachedCollectionViewRenderTest < CachedViewRenderTest
     customer = CachedCustomer.new("david")
     key = cache_key(customer, "test/_cached_customer")
 
-    ActionView::PartialRenderer.collection_cache.write(key, 'Cached')
+    ActionView::PartialRenderer::CollectionRenderer.collection_cache.write(key, 'Cached')
 
     assert_equal "Cached",
       @view.render(partial: "test/cached_customer", collection: [customer])
@@ -653,7 +653,7 @@ class CachedCollectionViewRenderTest < CachedViewRenderTest
     customer = CachedCustomer.new("david")
     key = cache_key(customer, "test/_cached_customer_as")
 
-    ActionView::PartialRenderer.collection_cache.write(key, 'Cached')
+    ActionView::PartialRenderer::CollectionRenderer.collection_cache.write(key, 'Cached')
 
     assert_equal "Cached",
       @view.render(partial: "test/cached_customer_as", collection: [customer], as: :buyer)
