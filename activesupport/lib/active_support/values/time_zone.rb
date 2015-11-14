@@ -86,7 +86,8 @@ module ActiveSupport
       "Paris"                        => "Europe/Paris",
       "Amsterdam"                    => "Europe/Amsterdam",
       "Berlin"                       => "Europe/Berlin",
-      "Bern"                         => "Europe/Berlin",
+      "Bern"                         => "Europe/Zurich",
+      "Zurich"                       => "Europe/Zurich",
       "Rome"                         => "Europe/Rome",
       "Stockholm"                    => "Europe/Stockholm",
       "Vienna"                       => "Europe/Vienna",
@@ -179,6 +180,7 @@ module ActiveSupport
       "Chatham Is."                  => "Pacific/Chatham",
       "Samoa"                        => "Pacific/Apia"
     }
+    DEPRECATED_RAILS_TIMEZONE_NAMES = ['Bern']
 
     UTC_OFFSET_WITH_COLON = '%s%02d:%02d'
     UTC_OFFSET_WITHOUT_COLON = UTC_OFFSET_WITH_COLON.tr(':', '')
@@ -227,6 +229,7 @@ module ActiveSupport
         case arg
           when String
           begin
+            warn_if_deprecated(arg)
             @lazy_zones_map[arg] ||= create(arg)
           rescue TZInfo::InvalidTimezoneIdentifier
             nil
@@ -250,6 +253,12 @@ module ActiveSupport
           @zones_map ||= begin
             MAPPING.each_key {|place| self[place]} # load all the zones
             @lazy_zones_map
+          end
+        end
+
+        def warn_if_deprecated(arg)
+          if DEPRECATED_RAILS_TIMEZONE_NAMES.include?(arg)
+            ActiveSupport::Deprecation.warn "ActiveSupport::TimeZone[\"#{arg}\"] is deprecated."
           end
         end
     end

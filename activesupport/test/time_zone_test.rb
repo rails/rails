@@ -454,6 +454,12 @@ class TimeZoneTest < ActiveSupport::TestCase
     assert zone !~ /Nonexistent_Place/
   end
 
+  def test_deprecated_zone
+    assert_deprecated 'ActiveSupport::TimeZone["Bern"] is deprecated.' do
+      ActiveSupport::TimeZone['Bern']
+    end
+  end
+
   def test_to_s
     assert_equal "(GMT+05:30) New Delhi", ActiveSupport::TimeZone['New Delhi'].to_s
   end
