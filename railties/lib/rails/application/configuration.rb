@@ -14,7 +14,7 @@ module Rails
                     :eager_load, :exceptions_app, :file_watcher, :filter_parameters,
                     :force_ssl, :helpers_paths, :logger, :log_formatter, :log_tags,
                     :railties_order, :relative_url_root, :secret_key_base, :secret_token,
-                    :ssl_options, :static_index, :public_file_server,
+                    :ssl_options, :public_file_server,
                     :session_options, :time_zone, :reload_classes_only_on_change,
                     :beginning_of_week, :filter_redirect, :x
 
@@ -29,9 +29,9 @@ module Rails
         @filter_parameters             = []
         @filter_redirect               = []
         @helpers_paths                 = []
-        @static_index                  = "index"
         @public_file_server            = ActiveSupport::OrderedOptions.new
         @public_file_server.enabled    = true
+        @public_file_server.index_name = "index"
         @force_ssl                     = false
         @ssl_options                   = {}
         @session_store                 = :cookie_store
