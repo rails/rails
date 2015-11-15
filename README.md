@@ -187,7 +187,7 @@ class WebNotificationsChannel < ApplicationCable::Channel
   def subscribed
     stream_from "web_notifications_#{current_user.id}"
   end
- end
+end
 ```
 
 ```coffeescript
@@ -219,14 +219,14 @@ class ChatChannel < ApplicationCable::Channel
   def subscribed
     stream_from "chat_#{params[:room]}"
   end
- end
+end
 ```
 
 Pass an object as the first argument to `subscriptions.create`, and that object will become your params hash in your cable channel. The keyword `channel` is required.
 
 ```coffeescript
 # Client-side which assumes you've already requested the right to send web notifications
-App.cable.subscriptions.create {channel: "ChatChannel", room: "Best Room"},
+App.cable.subscriptions.create { channel: "ChatChannel", room: "Best Room" },
   received: (data) ->
     new Message data['sent_by'], body: data['body']
 ```
@@ -257,11 +257,11 @@ end
 
 ```coffeescript
 # Client-side which assumes you've already requested the right to send web notifications
-sub = App.cable.subscriptions.create {channel: "ChatChannel", room: "Best Room"},
+sub = App.cable.subscriptions.create { channel: "ChatChannel", room: "Best Room" },
   received: (data) ->
     new Message data['sent_by'], body: data['body']
 
-sub.send {sent_by: 'Peter', body: 'Hello Paul, thanks for the compliment.'}
+sub.send { sent_by: 'Peter', body: 'Hello Paul, thanks for the compliment.' }
 ```
 
 The rebroadcast will be received by all connected clients, _including_ the client that sent the message. Note that params are the same as they were when you subscribed to the channel.
