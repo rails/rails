@@ -203,9 +203,22 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     bulb = car.bulbs.create
     assert_equal 'defaulty', bulb.name
+  end
 
-    bulb = car.bulbs.create(:name => 'exotic')
+  def test_build_and_create_from_association_should_respect_passed_attributes_over_default_scope
+    car = Car.create(name: 'honda')
+
+    bulb = car.bulbs.build(name: 'exotic')
     assert_equal 'exotic', bulb.name
+
+    bulb = car.bulbs.create(name: 'exotic')
+    assert_equal 'exotic', bulb.name
+
+    bulb = car.awesome_bulbs.build(frickinawesome: false)
+    assert_equal false, bulb.frickinawesome
+
+    bulb = car.awesome_bulbs.create(frickinawesome: false)
+    assert_equal false, bulb.frickinawesome
   end
 
   def test_build_from_association_should_respect_scope

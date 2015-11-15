@@ -163,9 +163,12 @@ module ActiveRecord
         @reflection = @owner.class._reflect_on_association(reflection_name)
       end
 
-      def initialize_attributes(record) #:nodoc:
+      def initialize_attributes(record, except_from_scope_attributes = nil) #:nodoc:
+        except_from_scope_attributes ||= {}
         skip_assign = [reflection.foreign_key, reflection.type].compact
-        attributes = create_scope.except(*(record.changed - skip_assign))
+        assigned_keys = record.changed
+        assigned_keys += except_from_scope_attributes.keys.map(&:to_s)
+        attributes = create_scope.except(*(assigned_keys - skip_assign))
         record.assign_attributes(attributes)
         set_inverse_instance(record)
       end
@@ -248,7 +251,7 @@ module ActiveRecord
 
         def build_record(attributes)
           reflection.build_association(attributes) do |record|
-            initialize_attributes(record)
+            initialize_attributes(record, attributes)
           end
         end
 
