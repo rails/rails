@@ -62,7 +62,7 @@ module ActiveRecord
 
       def schema_limit(column)
         limit = column.limit
-        limit.inspect if limit && limit != native_database_types[column.type][:limit]
+        limit.inspect if limit
       end
 
       def schema_precision(column)
