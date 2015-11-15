@@ -1236,25 +1236,19 @@ end
 Testing Time-Dependent Code
 ---------------------------
 
-You might have code in your rails app, that is time sensitive. For example,
-you want to give some gifts to users but only after they have been a member for month
-which is calculated from their activation date. To test such business logic in your tests
-you will need to time travel in your tests.
+Rails provides inbuilt helper methods that enable you to assert that your time-sensitve code works as expected.
 
-Fortunately, Rails provides inbuild helper methods which allow you time travel in your test code,
-allowing you assert that your time-sensitve code works as expected.
-
-Here is an example using [`travel_to`](http://api.rubyonrails.org/classes/ActiveSupport/Testing/TimeHelpers.html#method-i-travel_to) helper
-
+Here is an example using the [`travel_to`](http://api.rubyonrails.org/classes/ActiveSupport/Testing/TimeHelpers.html#method-i-travel_to) helper:
 
 ```ruby
+# Lets say that a user is eligible for gifting a month after they register.
 user = User.create(name: 'Gaurish', activation_date: Date.new(2004, 10, 24))
-assert_not user.applicable_for_gifting? # `activation_date` => Wed, 24 Nov 2004
+assert_not user.applicable_for_gifting?
 travel_to Date.new(2004, 11, 24) do
   assert_equal Date.new(2004, 10, 24), user.activation_date # inside the travel_to block `Date.current` is mocked
-  assert user.applicable_for_gifting? # `activation_date` => Sun, 24 Oct 2004
+  assert user.applicable_for_gifting?
 end
-assert_equal Date.new(2004, 10, 24), user.activation_date # Outside the block, changed are undone
+assert_equal Date.new(2004, 10, 24), user.activation_date # The change was visible only inside the `travel_to` block.
 ```
 
 Please see [`ActiveSupport::TimeHelpers` API Documentation](http://api.rubyonrails.org/classes/ActiveSupport/Testing/TimeHelpers.html)
