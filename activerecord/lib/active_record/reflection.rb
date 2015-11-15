@@ -327,7 +327,7 @@ module ActiveRecord
       end
 
       def foreign_key
-        @foreign_key ||= options[:foreign_key] || derive_foreign_key
+        @foreign_key ||= options[:foreign_key] || derive_foreign_key.freeze
       end
 
       def association_foreign_key
