@@ -127,7 +127,7 @@ module ActiveRecord
         assert_raises ArgumentError do
           @connection.add_foreign_key :astronauts, :rockets, nullify: true
         end
-        valid_options = [:column, :primary_key, :name, :on_delete, :on_update]
+        valid_options = [:column, :primary_key, :name, :on_delete, :on_update, :to_table]
         begin
           @connection.add_foreign_key :astronauts, :rockets, nullify: true
         rescue => e

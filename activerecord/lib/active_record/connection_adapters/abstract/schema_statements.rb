@@ -1199,7 +1199,7 @@ module ActiveRecord
       end
 
       def validate_foreign_key_options(options) # :nodoc:
-        valid_options = [:column, :primary_key, :name, :on_delete, :on_update]
+        valid_options = [:column, :primary_key, :name, :on_delete, :on_update, :to_table]
         return true if options.blank?
         options.each do |option, value|
           raise ArgumentError, "'#{option}' is not a valid option. Valid options are: '#{valid_options.join(", ")}'" unless valid_options.include?(option)
