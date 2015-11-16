@@ -19,6 +19,8 @@ require 'models/person'
 require 'models/pet'
 require 'models/ship'
 require 'models/toy'
+require 'models/admin'
+require 'models/admin/user'
 require 'rexml/document'
 
 class PersistenceTest < ActiveRecord::TestCase
@@ -162,6 +164,21 @@ class PersistenceTest < ActiveRecord::TestCase
     original_errors = company.errors
     client = company.becomes(Client)
     assert_equal original_errors, client.errors
+  end
+
+  def test_becomes_errors_base
+    child_class = Class.new(Admin::User) do
+      store_accessor :settings, :foo
+
+      def self.name; 'Admin::ChildUser'; end
+    end
+
+    admin = Admin::User.new
+    cc = admin.becomes(child_class)
+    assert_equal cc.errors.instance_variable_get("@base"), cc
+    assert_nothing_raised do
+      cc.errors.add :foo, :invalid
+    end
   end
 
   def test_dupd_becomes_persists_changes_from_the_original
