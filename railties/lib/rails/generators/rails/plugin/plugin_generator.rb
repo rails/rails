@@ -148,9 +148,8 @@ task default: :test
     end
 
     def bin(force = false)
-      return unless engine?
-
-      directory "bin", force: force do |content|
+      bin_file = engine? ? 'bin/rails.tt' : 'bin/test.tt'
+      template bin_file, force: force do |content|
         "#{shebang}\n" + content
       end
       chmod "bin", 0755, verbose: false
