@@ -134,9 +134,7 @@ module ActiveRecord
         time:        { name: "time" },
         date:        { name: "date" },
         binary:      { name: "blob" },
-        blob:        { name: "blob" },
         boolean:     { name: "tinyint", limit: 1 },
-        bigint:      { name: "bigint" },
         json:        { name: "json" },
       }
 
