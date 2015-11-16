@@ -275,7 +275,7 @@ module ActiveSupport
       def fetch(name, options = nil)
         if block_given?
           options = merged_options(options)
-          key = namespaced_key(name, options)
+          key = normalize_key(name, options)
 
           instrument(:read, name, options) do |payload|
             cached_entry = read_entry(key, options) unless options[:force]
@@ -302,7 +302,7 @@ module ActiveSupport
       # Options are passed to the underlying cache implementation.
       def read(name, options = nil)
         options = merged_options(options)
-        key = namespaced_key(name, options)
+        key = normalize_key(name, options)
         instrument(:read, name, options) do |payload|
           entry = read_entry(key, options)
           if entry
@@ -334,7 +334,7 @@ module ActiveSupport
         instrument_multi(:read, names, options) do |payload|
           results = {}
           names.each do |name|
-            key = namespaced_key(name, options)
+            key = normalize_key(name, options)
             entry = read_entry(key, options)
             if entry
               if entry.expired?
@@ -386,7 +386,7 @@ module ActiveSupport
 
         instrument(:write, name, options) do
           entry = Entry.new(value, options)
-          write_entry(namespaced_key(name, options), entry, options)
+          write_entry(normalize_key(name, options), entry, options)
         end
       end
 
@@ -397,7 +397,7 @@ module ActiveSupport
         options = merged_options(options)
 
         instrument(:delete, name) do
-          delete_entry(namespaced_key(name, options), options)
+          delete_entry(normalize_key(name, options), options)
         end
       end
 
@@ -408,7 +408,7 @@ module ActiveSupport
         options = merged_options(options)
 
         instrument(:exist?, name) do
-          entry = read_entry(namespaced_key(name, options), options)
+          entry = read_entry(normalize_key(name, options), options)
           (entry && !entry.expired?) || false
         end
       end
@@ -529,16 +529,17 @@ module ActiveSupport
 
         # Prefix a key with the namespace. Namespace and key will be delimited
         # with a colon.
-        def namespaced_key(key, options)
+        def normalize_key(key, options)
           key = expanded_key(key)
           namespace = options[:namespace] if options
           prefix = namespace.is_a?(Proc) ? namespace.call : namespace
           key = "#{prefix}:#{key}" if prefix
           key
         end
+        alias namespaced_key normalize_key
 
         def instrument(operation, key, options = nil)
-          log { "Cache #{operation}: #{namespaced_key(key, options)}#{options.blank? ? "" : " (#{options.inspect})"}" }
+          log { "Cache #{operation}: #{normalize_key(key, options)}#{options.blank? ? "" : " (#{options.inspect})"}" }
 
           payload = { :key => key }
           payload.merge!(options) if options.is_a?(Hash)

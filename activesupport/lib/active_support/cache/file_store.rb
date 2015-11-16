@@ -60,7 +60,7 @@ module ActiveSupport
           matcher = key_matcher(matcher, options)
           search_dir(cache_path) do |path|
             key = file_path_key(path)
-            delete_entry(key, options) if key.match(matcher)
+            delete_entry(path, options) if key.match(matcher)
           end
         end
       end
@@ -68,9 +68,8 @@ module ActiveSupport
       protected
 
         def read_entry(key, options)
-          file_name = key_file_path(key)
-          if File.exist?(file_name)
-            File.open(file_name) { |f| Marshal.load(f) }
+          if File.exist?(key)
+            File.open(key) { |f| Marshal.load(f) }
           end
         rescue => e
           logger.error("FileStoreError (#{e}): #{e.message}") if logger
@@ -78,23 +77,21 @@ module ActiveSupport
         end
 
         def write_entry(key, entry, options)
-          file_name = key_file_path(key)
-          return false if options[:unless_exist] && File.exist?(file_name)
-          ensure_cache_path(File.dirname(file_name))
-          File.atomic_write(file_name, cache_path) {|f| Marshal.dump(entry, f)}
+          return false if options[:unless_exist] && File.exist?(key)
+          ensure_cache_path(File.dirname(key))
+          File.atomic_write(key, cache_path) {|f| Marshal.dump(entry, f)}
           true
         end
 
         def delete_entry(key, options)
-          file_name = key_file_path(key)
-          if File.exist?(file_name)
+          if File.exist?(key)
             begin
-              File.delete(file_name)
-              delete_empty_directories(File.dirname(file_name))
+              File.delete(key)
+              delete_empty_directories(File.dirname(key))
               true
             rescue => e
               # Just in case the error was caused by another process deleting the file first.
-              raise e if File.exist?(file_name)
+              raise e if File.exist?(key)
               false
             end
           end
@@ -118,7 +115,8 @@ module ActiveSupport
         end
 
         # Translate a key into a file path.
-        def key_file_path(key)
+        def normalize_key(key, options)
+          key = super
           fname = URI.encode_www_form_component(key)
 
           if fname.size > FILEPATH_MAX_SIZE
@@ -175,7 +173,7 @@ module ActiveSupport
         # Modifies the amount of an already existing integer value that is stored in the cache.
         # If the key is not found nothing is done.
         def modify_value(name, amount, options)
-          file_name = key_file_path(namespaced_key(name, options))
+          file_name = normalize_key(name, options)
 
           lock_file(file_name) do
             options = merged_options(options)

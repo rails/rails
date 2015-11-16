@@ -93,14 +93,14 @@ module ActiveSupport
         def increment(name, amount = 1, options = nil) # :nodoc:
           return super unless local_cache
           value = bypass_local_cache{super}
-          set_cache_value(value, name, amount, options)
+          set_cache_value(name, value, options)
           value
         end
 
         def decrement(name, amount = 1, options = nil) # :nodoc:
           return super unless local_cache
           value = bypass_local_cache{super}
-          set_cache_value(value, name, amount, options)
+          set_cache_value(name, value, options)
           value
         end
 
@@ -123,7 +123,8 @@ module ActiveSupport
             super
           end
 
-          def set_cache_value(value, name, amount, options) # :nodoc:
+          def set_cache_value(name, value, options) # :nodoc:
+            name = normalize_key(name, options)
             cache = local_cache
             cache.mute do
               if value
