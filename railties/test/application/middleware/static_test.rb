@@ -44,7 +44,7 @@ module ApplicationTests
       assert_equal 'public, max-age=60',     last_response.headers["Cache-Control"]
     end
 
-    test "static_index defaults to 'index'" do
+    test "public_file_server.index_name defaults to 'index'" do
       app_file "public/index.html", "/index.html"
       
       require "#{app_path}/config/environment"
@@ -54,10 +54,10 @@ module ApplicationTests
       assert_equal "/index.html\n", last_response.body
     end
 
-    test "static_index configurable" do
+    test "public_file_server.index_name configurable" do
       app_file "public/other-index.html", "/other-index.html"
-      add_to_config "config.static_index = 'other-index'"
-      
+      add_to_config "config.public_file_server.index_name = 'other-index'"
+
       require "#{app_path}/config/environment"
 
       get '/'

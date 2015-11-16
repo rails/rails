@@ -1,3 +1,8 @@
+*   Make `static_index` part of the `config.public_file_server` config and
+    call it `public_file_server.index_name`.
+
+    *Yuki Nishijima*
+
 *   Generated `Gemfile`s for new applications include a new dependency on
     [listen](https://github.com/guard/listen) commented out.
 
