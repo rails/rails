@@ -114,7 +114,7 @@ ActiveRecord::Schema.define do
   create_table :bulbs, force: true do |t|
     t.integer :car_id
     t.string  :name
-    t.boolean :frickinawesome
+    t.boolean :frickinawesome, default: false
     t.string :color
   end
 
