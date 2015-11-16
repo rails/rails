@@ -9,7 +9,7 @@
 
     *Puneet Agarwal* and *Xavier Noria*
 
-*   Added `Time#days_in_year` to return the number of days in the given year, or the
+*   Added `Time.days_in_year` to return the number of days in the given year, or the
     current year if no argument is provided.
 
     *Jon Pascoe*
