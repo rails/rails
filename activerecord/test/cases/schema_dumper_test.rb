@@ -353,6 +353,38 @@ class SchemaDumperTest < ActiveRecord::TestCase
     ActiveRecord::Base.table_name_suffix = ActiveRecord::Base.table_name_prefix = ''
     $stdout = original
   end
+
+  def test_schema_dump_with_table_name_prefix_and_ignoring_tables
+    original, $stdout = $stdout, StringIO.new
+
+    create_cat_migration = Class.new(ActiveRecord::Migration) do
+      def change
+        create_table("cats") do |t|
+        end
+        create_table("omg_cats") do |t|
+        end
+      end
+    end
+
+    original_table_name_prefix = ActiveRecord::Base.table_name_prefix
+    original_schema_dumper_ignore_tables = ActiveRecord::SchemaDumper.ignore_tables
+    ActiveRecord::Base.table_name_prefix = 'omg_'
+    ActiveRecord::SchemaDumper.ignore_tables = ["cats"]
+    migration = create_cat_migration.new
+    migration.migrate(:up)
+
+    stream = StringIO.new
+    output = ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection, stream).string
+
+    assert_match %r{create_table "omg_cats"}, output
+    refute_match %r{create_table "cats"}, output
+  ensure
+    migration.migrate(:down)
+    ActiveRecord::Base.table_name_prefix = original_table_name_prefix
+    ActiveRecord::SchemaDumper.ignore_tables = original_schema_dumper_ignore_tables
+
+    $stdout = original
+  end
 end
 
 class SchemaDumperDefaultsTest < ActiveRecord::TestCase
