@@ -1,3 +1,9 @@
+*   Except keys of `build_record`'s argument from `create_scope` in `initialize_attributes`.
+
+    Fixes #22101.
+
+    *Yuichiro Kaneko*
+
 *   Deprecate `connection.tables` on the SQLite3 and MySQL adapters.
     Also deprecate passing arguments to `#tables`.
     And deprecate `table_exists?`.
