@@ -40,10 +40,12 @@ module ActiveRecord
     def merge!(other) # :nodoc:
       if other.is_a?(Hash)
         Relation::HashMerger.new(self, other).merge
+      elsif other.is_a?(Relation)
+        Relation::Merger.new(self, other).merge
       elsif other.respond_to?(:to_proc)
         instance_exec(&other)
       else
-        Relation::Merger.new(self, other).merge
+        raise ArgumentError, "#{other.inspect} is not an ActiveRecord::Relation"
       end
     end
 
