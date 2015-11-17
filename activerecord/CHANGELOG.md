@@ -1,3 +1,9 @@
+*   Except keys of `build_record`'s argument from `create_scope` in `initialize_attributes`.
+
+    Fixes #21893.
+
+    *Yuichiro Kaneko*
+
 *   No longer pass deprecated option `-i` to `pg_dump`.
 
     *Paul Sadauskas*

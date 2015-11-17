@@ -4,6 +4,7 @@ class Car < ActiveRecord::Base
   has_many :funky_bulbs, class_name: 'FunkyBulb', dependent: :destroy
   has_many :failed_bulbs, class_name: 'FailedBulb', dependent: :destroy
   has_many :foo_bulbs, -> { where(:name => 'foo') }, :class_name => "Bulb"
+  has_many :awesome_bulbs, -> { awesome }, class_name: "Bulb"
 
   has_one :bulb
 
