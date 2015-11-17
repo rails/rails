@@ -24,6 +24,10 @@ module ActiveRecord
       def self.sanitize_sql_for_order(sql)
         sql
       end
+
+      def self.arel_table
+        Post.arel_table
+      end
     end
 
     def test_construction
