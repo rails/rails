@@ -176,7 +176,7 @@ GEM
     builder (3.2.2)
     bunny (2.2.0)
       amq-protocol (>= 2.0.0)
-    byebug (6.0.2)
+    byebug (8.2.0)
     celluloid (0.17.2)
       celluloid-essentials
       celluloid-extras
