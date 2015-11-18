@@ -723,7 +723,7 @@ $ bin/rails runner 'puts ActiveRecord::Base.configurations'
 
 Here the connection information in `ENV['DATABASE_URL']` is ignored, note the different adapter and database name.
 
-Since it is possible to embed ERB in your `config/database.yml` it is best practice to explicitly show you are using the `ENV['DATABASE_URL']` to connect to your database. This is especially useful in production since you should not commit secrets like your database password into your source control (such as Git).
+Since it is possible to embed ERB in your `config/database.yml` it is the best practice to explicitly show you are using the `ENV['DATABASE_URL']` to connect to your database. This is especially useful in production since you should not commit secrets like your database password into your source control (such as Git).
 
 ```
 $ cat config/database.yml
