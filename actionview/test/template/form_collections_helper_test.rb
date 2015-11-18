@@ -56,7 +56,7 @@ class FormCollectionsHelperTest < ActionView::TestCase
     with_collection_radio_buttons :user, :active, collection, :last, :first, :disabled => [true, false]
 
     assert_select 'input[type=radio][value=true][disabled=disabled]'
-    assert_select 'input[type=radio][value=false][disabled=disabled]'
+    assert_select 'input[type=radio][disabled=disabled]'
     assert_no_select 'input[type=radio][value=other][disabled=disabled]'
   end
 
@@ -73,7 +73,7 @@ class FormCollectionsHelperTest < ActionView::TestCase
     with_collection_radio_buttons :user, :active, collection, :last, :first, :readonly => [true, false]
 
     assert_select 'input[type=radio][value=true][readonly=readonly]'
-    assert_select 'input[type=radio][value=false][readonly=readonly]'
+    assert_select 'input[type=radio][readonly=readonly]'
     assert_no_select 'input[type=radio][value=other][readonly=readonly]'
   end
 
@@ -90,7 +90,7 @@ class FormCollectionsHelperTest < ActionView::TestCase
     with_collection_radio_buttons :user, :active, collection, :last, :first, {}, :class => 'special-radio'
 
     assert_select 'input[type=radio][value=true].special-radio#user_active_true'
-    assert_select 'input[type=radio][value=false].special-radio#user_active_false'
+    assert_select 'input[type=radio].special-radio#user_active_false'
   end
 
   test 'collection radio accepts html options as the last element of array' do
@@ -98,7 +98,7 @@ class FormCollectionsHelperTest < ActionView::TestCase
     with_collection_radio_buttons :user, :active, collection, :second, :first
 
     assert_select 'input[type=radio][value=true].foo#user_active_true'
-    assert_select 'input[type=radio][value=false].bar#user_active_false'
+    assert_select 'input[type=radio].bar#user_active_false'
   end
 
   test 'collection radio sets the label class defined inside the block' do
@@ -174,7 +174,7 @@ class FormCollectionsHelperTest < ActionView::TestCase
     assert_select 'label.true[for=user_active_true]', 'true' do
       assert_select 'input#user_active_true[type=radio]'
     end
-    assert_select 'label.false[for=user_active_false]', 'false' do
+    assert_select 'label[for=user_active_false]', 'false' do
       assert_select 'input#user_active_false[type=radio]'
     end
   end
@@ -195,7 +195,7 @@ class FormCollectionsHelperTest < ActionView::TestCase
   test 'collection radio accepts checked item which has a value of false' do
     with_collection_radio_buttons :user, :active, [[1, true], [0, false]], :last, :first, :checked => false
     assert_no_select 'input[type=radio][value=true][checked=checked]'
-    assert_select 'input[type=radio][value=false][checked=checked]'
+    assert_select 'input[type=radio][checked=checked]'
   end
 
   test 'collection radio buttons generates only one hidden field for the entire collection, to ensure something will be sent back to the server when posting an empty collection' do
@@ -505,7 +505,7 @@ class FormCollectionsHelperTest < ActionView::TestCase
     assert_select 'label.true[for=user_active_true]', 'true' do
       assert_select 'input#user_active_true[type=checkbox]'
     end
-    assert_select 'label.false[for=user_active_false]', 'false' do
+    assert_select 'label[for=user_active_false]', 'false' do
       assert_select 'input#user_active_false[type=checkbox]'
     end
   end

@@ -162,7 +162,7 @@ module ActionView
                 output << sep
                 output << boolean_tag_option(key)
               end
-            elsif !value.nil?
+            elsif value
               output << sep
               output << tag_option(key, value, escape)
             end
