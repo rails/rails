@@ -211,33 +211,33 @@ module ActiveRecord
     end
 
     def test_get_and_release_advisory_lock
-      key = 5295901941911233559
+      lock_id = 5295901941911233559
       list_advisory_locks = <<-SQL
         SELECT locktype,
-              (classid::bigint << 32) | objid::bigint AS lock_key
+              (classid::bigint << 32) | objid::bigint AS lock_id
         FROM pg_locks
         WHERE locktype = 'advisory'
       SQL
 
-      got_lock = @connection.get_advisory_lock(key)
+      got_lock = @connection.get_advisory_lock(lock_id)
       assert got_lock, "get_advisory_lock should have returned true but it didn't"
 
-      advisory_lock = @connection.query(list_advisory_locks).find {|l| l[1] == key}
+      advisory_lock = @connection.query(list_advisory_locks).find {|l| l[1] == lock_id}
       assert advisory_lock,
-        "expected to find an advisory lock with key #{key} but there wasn't one"
+        "expected to find an advisory lock with lock_id #{lock_id} but there wasn't one"
 
-      released_lock = @connection.release_advisory_lock(key)
+      released_lock = @connection.release_advisory_lock(lock_id)
       assert released_lock, "expected release_advisory_lock to return true but it didn't"
 
-      advisory_locks = @connection.query(list_advisory_locks).select {|l| l[1] == key}
+      advisory_locks = @connection.query(list_advisory_locks).select {|l| l[1] == lock_id}
       assert_empty advisory_locks,
-        "expected to have released advisory lock with key #{key} but it was still held"
+        "expected to have released advisory lock with lock_id #{lock_id} but it was still held"
     end
 
     def test_release_non_existent_advisory_lock
-      fake_key = 2940075057017742022
+      fake_lock_id = 2940075057017742022
       with_warning_suppression do
-        released_non_existent_lock = @connection.release_advisory_lock(fake_key)
+        released_non_existent_lock = @connection.release_advisory_lock(fake_lock_id)
         assert_equal released_non_existent_lock, false,
           'expected release_advisory_lock to return false when there was no lock to release'
       end
