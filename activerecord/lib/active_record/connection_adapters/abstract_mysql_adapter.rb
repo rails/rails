@@ -224,12 +224,12 @@ module ActiveRecord
         version >= '5.0.0'
       end
 
-      def get_advisory_lock(key, timeout = 0) # :nodoc:
-        select_value("SELECT GET_LOCK('#{key}', #{timeout});").to_s == '1'
+      def get_advisory_lock(lock_name, timeout = 0) # :nodoc:
+        select_value("SELECT GET_LOCK('#{lock_name}', #{timeout});").to_s == '1'
       end
 
-      def release_advisory_lock(key) # :nodoc:
-        select_value("SELECT RELEASE_LOCK('#{key}')").to_s == '1'
+      def release_advisory_lock(lock_name) # :nodoc:
+        select_value("SELECT RELEASE_LOCK('#{lock_name}')").to_s == '1'
       end
 
       def native_database_types
