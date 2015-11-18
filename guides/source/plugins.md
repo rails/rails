@@ -294,7 +294,7 @@ Getting closer... Now we will implement the code of the `acts_as_yaffle` method 
 
 module Yaffle
   module ActsAsYaffle
-   extend ActiveSupport::Concern
+    extend ActiveSupport::Concern
 
     included do
     end
