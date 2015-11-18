@@ -12,7 +12,7 @@ module ActionCable
         end
 
         def with_database_connections
-          ActiveRecord::Base.logger.tagged(*connection.logger.tags) { yield }
+          connection.logger.tag(ActiveRecord::Base.logger) { yield }
         ensure
           ActiveRecord::Base.clear_active_connections!
         end
