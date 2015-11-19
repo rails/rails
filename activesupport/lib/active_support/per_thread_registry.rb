@@ -1,3 +1,5 @@
+require 'active_support/core_ext/module/delegation'
+
 module ActiveSupport
   # This module is used to encapsulate access to thread local variables.
   #
