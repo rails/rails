@@ -1374,8 +1374,15 @@ Client.unscoped.load
 
 This method removes all scoping and will do a normal query on the table.
 
-Note that chaining `unscoped` with a `scope` does not work. In these cases, it is
-recommended that you use the block form of `unscoped`:
+```ruby
+Client.unscoped.all
+# SELECT "clients".* FROM "clients"
+
+Client.where(published: false).unscoped.all
+# SELECT "clients".* FROM "clients"
+```
+
+`unscoped` can also accept a block.
 
 ```ruby
 Client.unscoped {
