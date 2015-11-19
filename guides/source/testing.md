@@ -54,10 +54,12 @@ NOTE: Your tests are run under `RAILS_ENV=test`.
 
 ### Rails meets Minitest
 
-If you remember when you used the `rails generate scaffold` command from the [Getting Started with Rails](getting_started.html) guide. We created our first resource among other things it created test stubs in the `test` directory:
+If you remember when you used the `rails generate model` command from the
+[Getting Started with Rails](getting_started.html) guide. We created our first
+model among other things it created test stubs in the `test` directory:
 
 ```bash
-$ bin/rails generate scaffold article title:string body:text
+$ bin/rails generate model article title:string body:text
 ...
 create  app/models/article.rb
 create  test/models/article_test.rb
@@ -649,14 +651,31 @@ You should test for things such as:
 * was the correct object stored in the response template?
 * was the appropriate message displayed to the user in the view?
 
-Now that we have used Rails scaffold generator for our `Article` resource, it has already created the controller code and tests. You can take look at the file `articles_controller_test.rb` in the `test/controllers` directory.
+The easiest way to see functional tests in action is to generate a controller
+scaffold:
 
-The following command will generate a controller test case with a filled up
-test for each of the seven default actions.
+```bash
+$ bin/rails generate scaffold_controller article title:string body:test
+...
+create  app/controllers/articles_controller.rb
+...
+invoke  test_unit
+create    test/controllers/articles_controller_test.rb
+...
+```
+
+This will generate the controller code and tests for an `Article` resource.
+You can take look at the file `articles_controller_test.rb` in the `test/controllers` directory.
+
+If you already have a controller and just want to generate the test scaffold code for
+each of the seven default actions, you can use the following command:
 
 ```bash
 $ bin/rails generate test_unit:scaffold article
+...
+invoke  test_unit
 create test/controllers/articles_controller_test.rb
+...
 ```
 
 Let me take you through one such test, `test_should_get_index` from the file `articles_controller_test.rb`.
@@ -1253,4 +1272,3 @@ assert_equal Date.new(2004, 10, 24), user.activation_date # The change was visib
 
 Please see [`ActiveSupport::TimeHelpers` API Documentation](http://api.rubyonrails.org/classes/ActiveSupport/Testing/TimeHelpers.html)
 for in-depth information about the available time helpers.
-
