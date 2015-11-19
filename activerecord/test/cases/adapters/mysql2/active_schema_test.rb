@@ -16,7 +16,7 @@ class Mysql2ActiveSchemaTest < ActiveRecord::Mysql2TestCase
   end
 
   def test_add_index
-    # add_index calls table_exists? and index_name_exists? which can't work since execute is stubbed
+    # add_index calls data_source_exists? and index_name_exists? which can't work since execute is stubbed
     def (ActiveRecord::Base.connection).data_source_exists?(*); true; end
     def (ActiveRecord::Base.connection).index_name_exists?(*); false; end
 

@@ -16,8 +16,8 @@ class MysqlActiveSchemaTest < ActiveRecord::MysqlTestCase
   end
 
   def test_add_index
-    # add_index calls table_exists? and index_name_exists? which can't work since execute is stubbed
-    def (ActiveRecord::Base.connection).table_exists?(*); true; end
+    # add_index calls data_source_exists? and index_name_exists? which can't work since execute is stubbed
+    def (ActiveRecord::Base.connection).data_source_exists?(*); true; end
     def (ActiveRecord::Base.connection).index_name_exists?(*); false; end
 
     expected = "CREATE  INDEX `index_people_on_last_name`  ON `people` (`last_name`) "
@@ -60,7 +60,7 @@ class MysqlActiveSchemaTest < ActiveRecord::MysqlTestCase
   end
 
   def test_index_in_create
-    def (ActiveRecord::Base.connection).table_exists?(*); false; end
+    def (ActiveRecord::Base.connection).data_source_exists?(*); false; end
 
     %w(SPATIAL FULLTEXT UNIQUE).each do |type|
       expected = "CREATE TABLE `people` (#{type} INDEX `index_people_on_last_name`  (`last_name`) ) ENGINE=InnoDB"
@@ -78,7 +78,7 @@ class MysqlActiveSchemaTest < ActiveRecord::MysqlTestCase
   end
 
   def test_index_in_bulk_change
-    def (ActiveRecord::Base.connection).table_exists?(*); true; end
+    def (ActiveRecord::Base.connection).data_source_exists?(*); true; end
     def (ActiveRecord::Base.connection).index_name_exists?(*); false; end
 
     %w(SPATIAL FULLTEXT UNIQUE).each do |type|
@@ -152,7 +152,7 @@ class MysqlActiveSchemaTest < ActiveRecord::MysqlTestCase
   end
 
   def test_indexes_in_create
-    ActiveRecord::Base.connection.stubs(:table_exists?).with(:temp).returns(false)
+    ActiveRecord::Base.connection.stubs(:data_source_exists?).with(:temp).returns(false)
     ActiveRecord::Base.connection.stubs(:index_name_exists?).with(:index_temp_on_zip).returns(false)
 
     expected = "CREATE TEMPORARY TABLE `temp` ( INDEX `index_temp_on_zip`  (`zip`) ) ENGINE=InnoDB AS SELECT id, name, zip FROM a_really_complicated_query"
