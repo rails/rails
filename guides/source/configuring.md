@@ -35,7 +35,7 @@ In general, the work of configuring Rails means configuring the components of Ra
 For example, the `config/application.rb` file includes this setting:
 
 ```ruby
-config.autoload_paths += %W(#{config.root}/extras)
+config.time_zone = 'Central Time (US & Canada)'
 ```
 
 This is a setting for Rails itself. If you want to pass settings to individual Rails components, you can do so via the same `config` object in `config/application.rb`:
