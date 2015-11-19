@@ -597,8 +597,7 @@ module ActiveRecord
       end
 
       def create_table(table_name, options = {}) #:nodoc:
-        default_table_options = @config.fetch(:default_table_options, "ENGINE=InnoDB")
-        super(table_name, options.reverse_merge(options: default_table_options))
+        super(table_name, options.reverse_merge(:options => "ENGINE=InnoDB"))
       end
 
       def bulk_change_table(table_name, operations) #:nodoc:

@@ -1020,23 +1020,4 @@ class CopyMigrationsTest < ActiveRecord::TestCase
     ActiveRecord::Base.logger = old
   end
 
-  if current_adapter?(:Mysql2Adapter)
-    def test_default_table_options
-      config = ActiveRecord::Base.configurations['arunit'].merge(
-        encoding: 'utf8mb4',
-        default_table_options: "ENGINE=InnoDB CHARACTER SET utf8mb4",
-      )
-      ActiveRecord::Base.establish_connection(config)
-
-      ActiveRecord::Base.connection.create_table(:foos) do |t|
-        t.string :emoji
-      end
-      ActiveRecord::Base.connection.execute("INSERT INTO foos (emoji) VALUES ('💩')")
-      emoji = ActiveRecord::Base.connection.execute("SELECT emoji FROM foos").first.first
-      assert_equal "💩", emoji
-    ensure
-      ActiveRecord::Base.connection.drop_table(:foos, if_exists: true)
-      ActiveRecord::Base.establish_connection(:arunit)
-    end
-  end
 end

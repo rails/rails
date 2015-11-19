@@ -1,8 +1,3 @@
-*   Allow specifying the default options for new tables on mysql and mysql2 in
-    database.yml, via the key `default_table_options`.
-
-    *Sean Griffin*
-
 *   Except keys of `build_record`'s argument from `create_scope` in `initialize_attributes`.
 
     Fixes #21893.
