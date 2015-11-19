@@ -1,3 +1,12 @@
+*   Fix `rake db:structure:dump` on Postgres when multiple schemas are used.
+
+    If postgresql is being used and there are multiple schemas listed on the
+    `schema_search_path`, then `structure.sql` dumps (triggered by `rake
+    db:structure:dump` or `config.active_record.schema_format = :sql`) began
+    failing in Rails 4.2.5.
+
+    *Nick Muerdter*
+
 *   Except keys of `build_record`'s argument from `create_scope` in `initialize_attributes`.
 
     Fixes #21893.

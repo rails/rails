@@ -56,9 +56,9 @@ module ActiveRecord
 
         args = ['-s', '-x', '-O', '-f', filename]
         unless search_path.blank?
-          args << search_path.split(',').map do |part|
+          args += search_path.split(',').map do |part|
             "--schema=#{part.strip}"
-          end.join(' ')
+          end
         end
         args << configuration['database']
         run_cmd('pg_dump', args, 'dumping')
