@@ -27,7 +27,7 @@ module Kindle
 
       generate_document_metadata(mobi_outfile)
 
-      puts "Creating MOBI document with kindlegen. This make take a while."
+      puts "Creating MOBI document with kindlegen. This may take a while."
       cmd = "kindlerb . > #{File.absolute_path logfile} 2>&1"
       puts cmd
       system(cmd)
