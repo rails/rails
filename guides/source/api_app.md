@@ -221,7 +221,7 @@ For instance, using the `stale?` method:
 
 ```ruby
 def show
- @post = Post.find(params[:id])
+  @post = Post.find(params[:id])
 
   if stale?(last_modified: @post.updated_at)
     render json: @post
@@ -240,7 +240,7 @@ cross-client caching in the call to `stale?`:
 
 ```ruby
 def show
- @post = Post.find(params[:id])
+  @post = Post.find(params[:id])
 
   if stale?(last_modified: @post.updated_at, public: true)
     render json: @post
