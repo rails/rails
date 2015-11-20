@@ -53,10 +53,8 @@ class TestRequestTest < ActiveSupport::TestCase
     assert_cookies({"user_name" => "david"}, req.cookie_jar)
   end
 
-  test "does not complain when Rails.application is nil" do
-    Rails.stubs(:application).returns(nil)
+  test "does not complain when there is no application config" do
     req = ActionDispatch::TestRequest.create({})
-
     assert_equal false, req.env.empty?
   end
 

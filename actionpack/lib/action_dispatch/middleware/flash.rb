@@ -1,23 +1,6 @@
 require 'active_support/core_ext/hash/keys'
 
 module ActionDispatch
-  class Request < Rack::Request
-    # Access the contents of the flash. Use <tt>flash["notice"]</tt> to
-    # read a notice you put there or <tt>flash["notice"] = "hello"</tt>
-    # to put a new one.
-    def flash
-      @env[Flash::KEY] ||= Flash::FlashHash.from_session_value(session["flash"])
-    end
-
-    def flash=(flash)
-      @env[Flash::KEY] = flash
-    end
-
-    def flash_hash # :nodoc:
-      @env[Flash::KEY]
-    end
-  end
-
   # The flash provides a way to pass temporary primitive-types (String, Array, Hash) between actions. Anything you place in the flash will be exposed
   # to the very next action and then cleared out. This is a great way of doing notices and alerts, such as a create
   # action that sets <tt>flash[:notice] = "Post successfully created"</tt> before redirecting to a display action that can
@@ -54,6 +37,40 @@ module ActionDispatch
   # See docs on the FlashHash class for more details about the flash.
   class Flash
     KEY = 'action_dispatch.request.flash_hash'.freeze
+
+    module RequestMethods
+      # Access the contents of the flash. Use <tt>flash["notice"]</tt> to
+      # read a notice you put there or <tt>flash["notice"] = "hello"</tt>
+      # to put a new one.
+      def flash
+        flash = flash_hash
+        return flash if flash
+        self.flash = Flash::FlashHash.from_session_value(session["flash"])
+      end
+
+      def flash=(flash)
+        set_header Flash::KEY, flash
+      end
+
+      def flash_hash # :nodoc:
+        get_header Flash::KEY
+      end
+
+      def commit_flash # :nodoc:
+        session    = self.session || {}
+        flash_hash = self.flash_hash
+
+        if flash_hash && (flash_hash.present? || session.key?('flash'))
+          session["flash"] = flash_hash.to_session_value
+          self.flash = flash_hash.dup
+        end
+
+        if (!session.respond_to?(:loaded?) || session.loaded?) && # (reset_session uses {}, which doesn't implement #loaded?)
+            session.key?('flash') && session['flash'].nil?
+          session.delete('flash')
+        end
+      end
+    end
 
     class FlashNow #:nodoc:
       attr_accessor :flash
@@ -266,26 +283,10 @@ module ActionDispatch
       end
     end
 
-    def initialize(app)
-      @app = app
-    end
+    def self.new(app) app; end
+  end
 
-    def call(env)
-      req = ActionDispatch::Request.new env
-      @app.call(env)
-    ensure
-      session    = Request::Session.find(env) || {}
-      flash_hash = req.flash_hash
-
-      if flash_hash && (flash_hash.present? || session.key?('flash'))
-        session["flash"] = flash_hash.to_session_value
-        req.flash = flash_hash.dup
-      end
-
-      if (!session.respond_to?(:loaded?) || session.loaded?) && # (reset_session uses {}, which doesn't implement #loaded?)
-        session.key?('flash') && session['flash'].nil?
-        session.delete('flash')
-      end
-    end
+  class Request
+    prepend Flash::RequestMethods
   end
 end

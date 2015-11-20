@@ -5,10 +5,11 @@ class Module
   # option is not used.
   class DelegationError < NoMethodError; end
 
-  RUBY_RESERVED_WORDS = Set.new(
-    %w(alias and BEGIN begin break case class def defined? do else elsif END
-       end ensure false for if in module next nil not or redo rescue retry
-       return self super then true undef unless until when while yield)
+  DELEGATION_RESERVED_METHOD_NAMES = Set.new(
+    %w(_ arg args alias and BEGIN begin block break case class def defined? do
+       else elsif END end ensure false for if in module next nil not or redo
+       rescue retry return self super then true undef unless until when while
+       yield)
   ).freeze
 
   # Provides a +delegate+ class method to easily expose contained objects'
@@ -171,7 +172,7 @@ class Module
     line = line.to_i
 
     to = to.to_s
-    to = "self.#{to}" if RUBY_RESERVED_WORDS.include?(to)
+    to = "self.#{to}" if DELEGATION_RESERVED_METHOD_NAMES.include?(to)
 
     methods.each do |method|
       # Attribute writer methods only accept one argument. Makes sure []=

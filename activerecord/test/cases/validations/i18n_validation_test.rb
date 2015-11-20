@@ -53,8 +53,9 @@ class I18nValidationTest < ActiveRecord::TestCase
     test "validates_uniqueness_of on generated message #{name}" do
       Topic.validates_uniqueness_of :title, validation_options
       @topic.title = unique_topic.title
-      @topic.errors.expects(:generate_message).with(:title, :taken, generate_message_options.merge(:value => 'unique!'))
-      @topic.valid?
+      assert_called_with(@topic.errors, :generate_message, [:title, :taken, generate_message_options.merge(:value => 'unique!')]) do
+        @topic.valid?
+      end
     end
   end
 
@@ -63,8 +64,9 @@ class I18nValidationTest < ActiveRecord::TestCase
   COMMON_CASES.each do |name, validation_options, generate_message_options|
     test "validates_associated on generated message #{name}" do
       Topic.validates_associated :replies, validation_options
-      replied_topic.errors.expects(:generate_message).with(:replies, :invalid, generate_message_options.merge(:value => replied_topic.replies))
-      replied_topic.save
+      assert_called_with(replied_topic.errors, :generate_message, [:replies, :invalid, generate_message_options.merge(:value => replied_topic.replies)]) do
+        replied_topic.save
+      end
     end
   end
 

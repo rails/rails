@@ -1,5 +1,6 @@
 require 'active_record/type'
 require 'active_support/core_ext/benchmark'
+require 'active_record/connection_adapters/determine_if_preparable_visitor'
 require 'active_record/connection_adapters/schema_cache'
 require 'active_record/connection_adapters/sql_type_metadata'
 require 'active_record/connection_adapters/abstract/schema_dumper'
@@ -51,15 +52,15 @@ module ActiveRecord
     # related classes form the abstraction layer which makes this possible.
     # An AbstractAdapter represents a connection to a database, and provides an
     # abstract interface for database-specific functionality such as establishing
-    # a connection, escaping values, building the right SQL fragments for ':offset'
-    # and ':limit' options, etc.
+    # a connection, escaping values, building the right SQL fragments for +:offset+
+    # and +:limit+ options, etc.
     #
     # All the concrete database adapters follow the interface laid down in this class.
-    # ActiveRecord::Base.connection returns an AbstractAdapter object, which
+    # {ActiveRecord::Base.connection}[rdoc-ref:ConnectionHandling#connection] returns an AbstractAdapter object, which
     # you can use.
     #
     # Most of the methods in the adapter are useful during migrations. Most
-    # notably, the instance methods provided by SchemaStatement are very useful.
+    # notably, the instance methods provided by SchemaStatements are very useful.
     class AbstractAdapter
       ADAPTER_NAME = 'Abstract'.freeze
       include Quoting, DatabaseStatements, SchemaStatements
@@ -213,6 +214,11 @@ module ActiveRecord
         false
       end
 
+      # Does this adapter support application-enforced advisory locking?
+      def supports_advisory_locks?
+        false
+      end
+
       # Should primary key values be selected from their corresponding
       # sequence before the insert statement? If true, next_sequence_value
       # is called before each insert to set the record's primary key.
@@ -266,12 +272,31 @@ module ActiveRecord
         false
       end
 
+      # Does this adapter support json data type?
+      def supports_json?
+        false
+      end
+
       # This is meant to be implemented by the adapters that support extensions
       def disable_extension(name)
       end
 
       # This is meant to be implemented by the adapters that support extensions
       def enable_extension(name)
+      end
+
+      # This is meant to be implemented by the adapters that support advisory
+      # locks
+      #
+      # Return true if we got the lock, otherwise false
+      def get_advisory_lock(lock_id) # :nodoc:
+      end
+
+      # This is meant to be implemented by the adapters that support advisory
+      # locks.
+      #
+      # Return true if we released the lock, otherwise false
+      def release_advisory_lock(lock_id) # :nodoc:
       end
 
       # A list of extensions, to be filled in by adapters that support them.
@@ -343,7 +368,7 @@ module ActiveRecord
       end
 
       # Checks whether the connection to the database is still active (i.e. not stale).
-      # This is done under the hood by calling <tt>active?</tt>. If the connection
+      # This is done under the hood by calling #active?. If the connection
       # is no longer active, then this method will reconnect to the database.
       def verify!(*ignored)
         reconnect! unless active?
@@ -513,7 +538,7 @@ module ActiveRecord
 
       def translate_exception(exception, message)
         # override in derived class
-        ActiveRecord::StatementInvalid.new(message, exception)
+        ActiveRecord::StatementInvalid.new(message)
       end
 
       def without_prepared_statement?(binds)

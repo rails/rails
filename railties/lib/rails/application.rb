@@ -156,26 +156,20 @@ module Rails
       self
     end
 
-    # Implements call according to the Rack API. It simply
-    # dispatches the request to the underlying middleware stack.
-    def call(env)
-      req = ActionDispatch::Request.new env
-      env["ORIGINAL_FULLPATH"] = req.fullpath
-      env["ORIGINAL_SCRIPT_NAME"] = req.script_name
-      super(env)
-    end
-
     # Reload application routes regardless if they changed or not.
     def reload_routes!
       routes_reloader.reload!
     end
 
-    # Return the application's KeyGenerator
+    # Returns the application's KeyGenerator
     def key_generator
       # number of iterations selected based on consultation with the google security
       # team. Details at https://github.com/rails/rails/pull/6952#issuecomment-7661220
       @caching_key_generator ||=
         if secrets.secret_key_base
+          unless secrets.secret_key_base.kind_of?(String)
+            raise ArgumentError, "`secret_key_base` for #{Rails.env} environment must be a type of String, change this value in `config/secrets.yml`"
+          end
           key_generator = ActiveSupport::KeyGenerator.new(secrets.secret_key_base, iterations: 1000)
           ActiveSupport::CachingKeyGenerator.new(key_generator)
         else
@@ -224,12 +218,12 @@ module Rails
     #     Rails.application.configure do
     #       config.middleware.use ExceptionNotifier, config_for(:exception_notification)
     #     end
-    def config_for(name)
+    def config_for(name, env: Rails.env)
       yaml = Pathname.new("#{paths["config"].existent.first}/#{name}.yml")
 
       if yaml.exist?
         require "erb"
-        (YAML.load(ERB.new(yaml.read).result) || {})[Rails.env] || {}
+        (YAML.load(ERB.new(yaml.read).result) || {})[env] || {}
       else
         raise "Could not load configuration. No such file - #{yaml}"
       end
@@ -513,6 +507,19 @@ module Rails
           raise "Missing `secret_key_base` for '#{Rails.env}' environment, set this value in `config/secrets.yml`"
         end
       end
+    end
+
+    private
+
+    def build_request(env)
+      req = super
+      env["ORIGINAL_FULLPATH"] = req.fullpath
+      env["ORIGINAL_SCRIPT_NAME"] = req.script_name
+      req
+    end
+
+    def build_middleware
+      config.app_middleware + super
     end
   end
 end

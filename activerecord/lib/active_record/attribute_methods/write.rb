@@ -45,7 +45,7 @@ module ActiveRecord
         write_attribute_with_type_cast(attr_name, value, true)
       end
 
-      def raw_write_attribute(attr_name, value)
+      def raw_write_attribute(attr_name, value) # :nodoc:
         write_attribute_with_type_cast(attr_name, value, false)
       end
 

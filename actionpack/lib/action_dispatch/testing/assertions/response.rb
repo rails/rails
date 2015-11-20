@@ -21,10 +21,10 @@ module ActionDispatch
       # or its symbolic equivalent <tt>assert_response(:not_implemented)</tt>.
       # See Rack::Utils::SYMBOL_TO_STATUS_CODE for a full list.
       #
-      #   # assert that the response was a redirection
+      #   # Asserts that the response was a redirection
       #   assert_response :redirect
       #
-      #   # assert that the response code was status code 401 (unauthorized)
+      #   # Asserts that the response code was status code 401 (unauthorized)
       #   assert_response 401
       def assert_response(type, message = nil)
         if Symbol === type
@@ -42,20 +42,20 @@ module ActionDispatch
         end
       end
 
-      # Assert that the redirection options passed in match those of the redirect called in the latest action.
+      # Asserts that the redirection options passed in match those of the redirect called in the latest action.
       # This match can be partial, such that <tt>assert_redirected_to(controller: "weblog")</tt> will also
       # match the redirection of <tt>redirect_to(controller: "weblog", action: "show")</tt> and so on.
       #
-      #   # assert that the redirection was to the "index" action on the WeblogController
+      #   # Asserts that the redirection was to the "index" action on the WeblogController
       #   assert_redirected_to controller: "weblog", action: "index"
       #
-      #   # assert that the redirection was to the named route login_url
+      #   # Asserts that the redirection was to the named route login_url
       #   assert_redirected_to login_url
       #
-      #   # assert that the redirection was to the url for @customer
+      #   # Asserts that the redirection was to the url for @customer
       #   assert_redirected_to @customer
       #
-      #   # asserts that the redirection matches the regular expression
+      #   # Asserts that the redirection matches the regular expression
       #   assert_redirected_to %r(\Ahttp://example.org)
       def assert_redirected_to(options = {}, message=nil)
         assert_response(:redirect, message)

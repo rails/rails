@@ -24,6 +24,8 @@ require 'models/molecule'
 require 'models/member'
 require 'models/member_detail'
 require 'models/organization'
+require 'models/guitar'
+require 'models/tuning_peg'
 
 class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
   def test_autosave_validation
@@ -395,6 +397,40 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociationWithAcceptsNestedAttrib
     assert_not invalid_electron.valid?
     assert valid_electron.valid?
     assert_not molecule.persisted?, 'Molecule should not be persisted when its electrons are invalid'
+  end
+
+  def test_errors_should_be_indexed_when_passed_as_array
+    guitar = Guitar.new
+    tuning_peg_valid = TuningPeg.new
+    tuning_peg_valid.pitch = 440.0
+    tuning_peg_invalid = TuningPeg.new
+
+    guitar.tuning_pegs = [tuning_peg_valid, tuning_peg_invalid]
+
+    assert_not tuning_peg_invalid.valid?
+    assert tuning_peg_valid.valid?
+    assert_not guitar.valid?
+    assert_equal ["is not a number"], guitar.errors["tuning_pegs[1].pitch"]
+    assert_not_equal ["is not a number"], guitar.errors["tuning_pegs.pitch"]
+  end
+
+  def test_errors_should_be_indexed_when_global_flag_is_set
+    old_attribute_config = ActiveRecord::Base.index_nested_attribute_errors
+    ActiveRecord::Base.index_nested_attribute_errors = true
+
+    molecule = Molecule.new
+    valid_electron = Electron.new(name: 'electron')
+    invalid_electron = Electron.new
+
+    molecule.electrons = [valid_electron, invalid_electron]
+
+    assert_not invalid_electron.valid?
+    assert valid_electron.valid?
+    assert_not molecule.valid?
+    assert_equal ["can't be blank"], molecule.errors["electrons[1].name"]
+    assert_not_equal ["can't be blank"], molecule.errors["electrons.name"]
+  ensure
+    ActiveRecord::Base.index_nested_attribute_errors = old_attribute_config
   end
 
   def test_valid_adding_with_nested_attributes

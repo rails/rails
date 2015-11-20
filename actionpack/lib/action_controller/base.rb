@@ -213,7 +213,6 @@ module ActionController
       Renderers::All,
       ConditionalGet,
       EtagWithTemplateDigest,
-      RackDelegation,
       Caching,
       MimeResponds,
       ImplicitRender,
@@ -249,17 +248,14 @@ module ActionController
     MODULES.each do |mod|
       include mod
     end
+    setup_renderer!
 
     # Define some internal variables that should not be propagated to the view.
     PROTECTED_IVARS = AbstractController::Rendering::DEFAULT_PROTECTED_INSTANCE_VARIABLES + [
-      :@_status, :@_headers, :@_params, :@_response, :@_request,
+      :@_params, :@_response, :@_request,
       :@_view_runtime, :@_stream, :@_url_options, :@_action_has_layout ]
 
     def _protected_ivars # :nodoc:
-      PROTECTED_IVARS
-    end
-
-    def self.protected_instance_variables
       PROTECTED_IVARS
     end
 

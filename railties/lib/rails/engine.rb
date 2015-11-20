@@ -2,6 +2,7 @@ require 'rails/railtie'
 require 'rails/engine/railties'
 require 'active_support/core_ext/module/delegation'
 require 'pathname'
+require 'thread'
 
 module Rails
   # <tt>Rails::Engine</tt> allows you to wrap a specific Rails application or subset of
@@ -357,12 +358,7 @@ module Rails
           Rails::Railtie::Configuration.eager_load_namespaces << base
 
           base.called_from = begin
-            call_stack = if Kernel.respond_to?(:caller_locations)
-              caller_locations.map { |l| l.absolute_path || l.path }
-            else
-              # Remove the line number from backtraces making sure we don't leave anything behind
-              caller.map { |p| p.sub(/:\d+.*/, '') }
-            end
+            call_stack = caller_locations.map { |l| l.absolute_path || l.path }
 
             File.dirname(call_stack.detect { |p| p !~ %r[railties[\w.-]*/lib/rails|rack[\w.-]*/lib/rack] })
           end
@@ -434,6 +430,7 @@ module Rails
       @env_config          = nil
       @helpers             = nil
       @routes              = nil
+      @app_build_lock      = Mutex.new
       super
     end
 
@@ -504,10 +501,13 @@ module Rails
 
     # Returns the underlying rack application for this engine.
     def app
-      @app ||= begin
-        config.middleware = config.middleware.merge_into(default_middleware_stack)
-        config.middleware.build(endpoint)
-      end
+      @app || @app_build_lock.synchronize {
+        @app ||= begin
+          stack = default_middleware_stack
+          config.middleware = build_middleware.merge_into(stack)
+          config.middleware.build(endpoint)
+        end
+      }
     end
 
     # Returns the endpoint for this engine. If none is registered,
@@ -518,11 +518,8 @@ module Rails
 
     # Define the Rack API for this engine.
     def call(env)
-      env.merge!(env_config)
-      req = ActionDispatch::Request.new env
-      req.routes = routes
-      req.engine_script_name = req.script_name
-      app.call(env)
+      req = build_request env
+      app.call req.env
     end
 
     # Defines additional Rack env configuration that is added on each call.
@@ -688,6 +685,20 @@ module Rails
 
     def _all_load_paths #:nodoc:
       @_all_load_paths ||= (config.paths.load_paths + _all_autoload_paths).uniq
+    end
+
+    private
+
+    def build_request(env)
+      env.merge!(env_config)
+      req = ActionDispatch::Request.new env
+      req.routes = routes
+      req.engine_script_name = req.script_name
+      req
+    end
+
+    def build_middleware
+      config.middleware
     end
   end
 end

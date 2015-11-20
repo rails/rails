@@ -3,10 +3,9 @@ module ActiveRecord
     class StatementPool
       include Enumerable
 
-      def initialize(connection, max = 1000)
+      def initialize(max = 1000)
         @cache = Hash.new { |h,pid| h[pid] = {} }
-        @connection = connection
-        @max        = max
+        @max = max
       end
 
       def each(&block)

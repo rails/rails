@@ -1,5 +1,5 @@
 module ActionDispatch
-  class Request < Rack::Request
+  class Request
     class Utils # :nodoc:
 
       mattr_accessor :perform_deep_munge
@@ -10,6 +10,21 @@ module ActionDispatch
           NoNilParamEncoder.normalize_encode_params params
         else
           ParamEncoder.normalize_encode_params params
+        end
+      end
+
+      def self.check_param_encoding(params)
+        case params
+        when Array
+          params.each { |element| check_param_encoding(element) }
+        when Hash
+          params.each_value { |value| check_param_encoding(value) }
+        when String
+          unless params.valid_encoding?
+            # Raise Rack::Utils::InvalidParameterError for consistency with Rack.
+            # ActionDispatch::Request#GET will re-raise as a BadRequest error.
+            raise Rack::Utils::InvalidParameterError, "Non UTF-8 value: #{params}"
+          end
         end
       end
 

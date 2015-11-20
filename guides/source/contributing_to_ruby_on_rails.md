@@ -15,6 +15,9 @@ After reading this guide, you will know:
 
 Ruby on Rails is not "someone else's framework." Over the years, hundreds of people have contributed to Ruby on Rails ranging from a single character to massive architectural changes or significant documentation - all with the goal of making Ruby on Rails better for everyone. Even if you don't feel up to writing code or documentation yet, there are a variety of other ways that you can contribute, from reporting issues to testing patches.
 
+As mentioned in [Rails
+README](https://github.com/rails/rails/blob/master/README.md), everyone interacting in Rails and its sub-projects' codebases, issue trackers, chat rooms, and mailing lists is expected to follow the Rails [code of conduct](https://github.com/rails/rails/blob/master/CODE_OF_CONDUCT.md).
+
 --------------------------------------------------------------------------------
 
 Reporting an Issue
@@ -125,11 +128,11 @@ Contributing to the Rails Documentation
 Ruby on Rails has two main sets of documentation: the guides, which help you
 learn about Ruby on Rails, and the API, which serves as a reference.
 
-You can help improve the Rails guides by making them more coherent, consistent or readable, adding missing information, correcting factual errors, fixing typos, or bringing it up to date with the latest edge Rails. To get involved in the translation of Rails guides, please see [Translating Rails Guides](https://wiki.github.com/rails/docrails/translating-rails-guides).
+You can help improve the Rails guides by making them more coherent, consistent or readable, adding missing information, correcting factual errors, fixing typos, or bringing them up to date with the latest edge Rails.
 
 You can either open a pull request to [Rails](http://github.com/rails/rails) or
 ask the [Rails core team](http://rubyonrails.org/core) for commit access on
-[docrails](http://github.com/rails/docrails) if you contribute regularly.
+docrails if you contribute regularly.
 Please do not open pull requests in docrails, if you'd like to get feedback on your
 change, ask for it in [Rails](http://github.com/rails/rails) instead.
 
@@ -315,7 +318,7 @@ $ cd activerecord
 $ bundle exec rake test:sqlite3
 ```
 
-You can now run the tests as you did for `sqlite3`. The tasks are respectively
+You can now run the tests as you did for `sqlite3`. The tasks are respectively:
 
 ```bash
 test:mysql

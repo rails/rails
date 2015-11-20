@@ -1,4 +1,3 @@
-# encoding: UTF-8
 require 'erb'
 require 'abstract_unit'
 require 'controller/fake_controllers'
@@ -4190,11 +4189,11 @@ class TestNamedRouteUrlHelpers < ActionDispatch::IntegrationTest
   include Routes.url_helpers
 
   test "url helpers do not ignore nil parameters when using non-optimized routes" do
-    Routes.stubs(:optimize_routes_generation?).returns(false)
-
-    get "/categories/1"
-    assert_response :success
-    assert_raises(ActionController::UrlGenerationError) { product_path(nil) }
+    Routes.stub :optimize_routes_generation?, false do
+      get "/categories/1"
+      assert_response :success
+      assert_raises(ActionController::UrlGenerationError) { product_path(nil) }
+    end
   end
 end
 

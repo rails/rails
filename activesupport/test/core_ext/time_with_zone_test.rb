@@ -51,7 +51,22 @@ class TimeWithZoneTest < ActiveSupport::TestCase
 
   def test_utc?
     assert_equal false, @twz.utc?
+
     assert_equal true, ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone['UTC']).utc?
+    assert_equal true, ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone['Etc/UTC']).utc?
+    assert_equal true, ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone['Universal']).utc?
+    assert_equal true, ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone['UCT']).utc?
+    assert_equal true, ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone['Etc/UCT']).utc?
+    assert_equal true, ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone['Etc/Universal']).utc?
+
+    assert_equal false, ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone['Africa/Abidjan']).utc?
+    assert_equal false, ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone['Africa/Banjul']).utc?
+    assert_equal false, ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone['Africa/Freetown']).utc?
+    assert_equal false, ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone['GMT']).utc?
+    assert_equal false, ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone['GMT0']).utc?
+    assert_equal false, ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone['Greenwich']).utc?
+    assert_equal false, ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone['Iceland']).utc?
+    assert_equal false, ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone['Africa/Monrovia']).utc?
   end
 
   def test_formatted_offset
@@ -110,14 +125,14 @@ class TimeWithZoneTest < ActiveSupport::TestCase
     @twz += 0.1234560001 # advance the time by a fraction of a second
     assert_equal "1999-12-31T19:00:00.123-05:00", @twz.xmlschema(3)
     assert_equal "1999-12-31T19:00:00.123456-05:00", @twz.xmlschema(6)
-    assert_equal "1999-12-31T19:00:00.123456-05:00", @twz.xmlschema(12)
+    assert_equal "1999-12-31T19:00:00.123456000100-05:00", @twz.xmlschema(12)
   end
 
   def test_xmlschema_with_fractional_seconds_lower_than_hundred_thousand
     @twz += 0.001234 # advance the time by a fraction
     assert_equal "1999-12-31T19:00:00.001-05:00", @twz.xmlschema(3)
     assert_equal "1999-12-31T19:00:00.001234-05:00", @twz.xmlschema(6)
-    assert_equal "1999-12-31T19:00:00.001234-05:00", @twz.xmlschema(12)
+    assert_equal "1999-12-31T19:00:00.001234000000-05:00", @twz.xmlschema(12)
   end
 
   def test_xmlschema_with_nil_fractional_seconds

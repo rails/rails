@@ -34,6 +34,7 @@ module ActiveSupport
   autoload :Dependencies
   autoload :DescendantsTracker
   autoload :FileUpdateChecker
+  autoload :FileEventedUpdateChecker
   autoload :LogSubscriber
   autoload :Notifications
 
@@ -75,11 +76,11 @@ module ActiveSupport
   cattr_accessor :test_order # :nodoc:
 
   def self.halt_callback_chains_on_return_false
-    Callbacks::CallbackChain.halt_and_display_warning_on_return_false
+    Callbacks.halt_and_display_warning_on_return_false
   end
 
   def self.halt_callback_chains_on_return_false=(value)
-    Callbacks::CallbackChain.halt_and_display_warning_on_return_false = value
+    Callbacks.halt_and_display_warning_on_return_false = value
   end
 end
 

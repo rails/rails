@@ -41,10 +41,20 @@ module ActionView
       end
 
       def _back_url # :nodoc:
-        referrer = controller.respond_to?(:request) && controller.request.env["HTTP_REFERER"]
-        referrer || 'javascript:history.back()'
+        _filtered_referrer || 'javascript:history.back()'
       end
       protected :_back_url
+
+      def _filtered_referrer # :nodoc:
+        if controller.respond_to?(:request)
+          referrer = controller.request.env["HTTP_REFERER"]
+          if referrer && URI(referrer).scheme != 'javascript'
+            referrer
+          end
+        end
+      rescue URI::InvalidURIError
+      end
+      protected :_filtered_referrer
 
       # Creates an anchor element of the given +name+ using a URL created by the set of +options+.
       # See the valid options in the documentation for +url_for+. It's also possible to
@@ -464,7 +474,7 @@ module ActionView
 
         extras = %w{ cc bcc body subject reply_to }.map! { |item|
           option = html_options.delete(item).presence || next
-          "#{item.dasherize}=#{Rack::Utils.escape_path(option)}"
+          "#{item.dasherize}=#{ERB::Util.url_encode(option)}"
         }.compact
         extras = extras.empty? ? '' : '?' + extras.join('&')
 

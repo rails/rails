@@ -172,7 +172,7 @@ NOTE: Defined in `active_support/core_ext/object/duplicable.rb`.
 
 ### `deep_dup`
 
-The `deep_dup` method returns deep copy of a given object. Normally, when you `dup` an object that contains other objects, Ruby does not `dup` them, so it creates a shallow copy of the object. If you have an array with a string, for example, it will look like this:
+The `deep_dup` method returns a deep copy of a given object. Normally, when you `dup` an object that contains other objects, Ruby does not `dup` them, so it creates a shallow copy of the object. If you have an array with a string, for example, it will look like this:
 
 ```ruby
 array     = ['string']
@@ -246,6 +246,13 @@ end
 
 ```ruby
 @person.try { |p| "#{p.first_name} #{p.last_name}" }
+```
+
+Note that `try` will swallow no-method errors, returning nil instead. If you want to protect against typos, use `try!` instead:
+
+```ruby
+@number.try(:nest)  # => nil
+@number.try!(:nest) # NoMethodError: undefined method `nest' for 1:Fixnum
 ```
 
 NOTE: Defined in `active_support/core_ext/object/try.rb`.
@@ -453,7 +460,7 @@ NOTE: Defined in `active_support/core_ext/object/instance_variables.rb`.
 
 #### `instance_variable_names`
 
-The method `instance_variable_names` returns an array.  Each name includes the "@" sign.
+The method `instance_variable_names` returns an array. Each name includes the "@" sign.
 
 ```ruby
 class C
@@ -1703,6 +1710,20 @@ The method `parameterize` normalizes its receiver in a way that can be used in p
 "Kurt Gödel".parameterize # => "kurt-godel"
 ```
 
+To preserve the case of the string, set the `preserve_case` argument to true. By default, `preserve_case` is set to false.
+
+```ruby
+"John Smith".parameterize(preserve_case: true) # => "John-Smith"
+"Kurt Gödel".parameterize(preserve_case: true) # => "Kurt-Godel"
+```
+
+To use a custom separator, override the `separator` argument.
+
+```ruby
+"John Smith".parameterize(separator: "_") # => "john\_smith"
+"Kurt Gödel".parameterize(separator: "_") # => "kurt\_godel"
+```
+
 In fact, the result string is wrapped in an instance of `ActiveSupport::Multibyte::Chars`.
 
 NOTE: Defined in `active_support/core_ext/string/inflections.rb`.
@@ -1865,15 +1886,15 @@ The methods `to_date`, `to_time`, and `to_datetime` are basically convenience wr
 
 ```ruby
 "2010-07-27".to_date              # => Tue, 27 Jul 2010
-"2010-07-27 23:37:00".to_time     # => Tue Jul 27 23:37:00 UTC 2010
+"2010-07-27 23:37:00".to_time     # => 2010-07-27 23:37:00 +0200
 "2010-07-27 23:37:00".to_datetime # => Tue, 27 Jul 2010 23:37:00 +0000
 ```
 
 `to_time` receives an optional argument `:utc` or `:local`, to indicate which time zone you want the time in:
 
 ```ruby
-"2010-07-27 23:42:00".to_time(:utc)   # => Tue Jul 27 23:42:00 UTC 2010
-"2010-07-27 23:42:00".to_time(:local) # => Tue Jul 27 23:42:00 +0200 2010
+"2010-07-27 23:42:00".to_time(:utc)   # => 2010-07-27 23:42:00 UTC
+"2010-07-27 23:42:00".to_time(:local) # => 2010-07-27 23:42:00 +0200
 ```
 
 Default is `:utc`.
@@ -2073,30 +2094,22 @@ Extensions to `BigDecimal`
 --------------------------
 ### `to_s`
 
-The method `to_s` is aliased to `to_formatted_s`. This provides a convenient way to display a BigDecimal value in floating-point notation:
+The method `to_s` provides a default specifier of "F". This means that a simple call to `to_s` will result in floating point representation instead of engineering notation:
 
 ```ruby
 BigDecimal.new(5.00, 6).to_s  # => "5.0"
 ```
 
-### `to_formatted_s`
-
-Te method `to_formatted_s` provides a default specifier of "F".  This means that a simple call to `to_formatted_s` or `to_s` will result in floating point representation instead of engineering notation:
-
-```ruby
-BigDecimal.new(5.00, 6).to_formatted_s  # => "5.0"
-```
-
 and that symbol specifiers are also supported:
 
 ```ruby
-BigDecimal.new(5.00, 6).to_formatted_s(:db)  # => "5.0"
+BigDecimal.new(5.00, 6).to_s(:db)  # => "5.0"
 ```
 
 Engineering notation is still supported:
 
 ```ruby
-BigDecimal.new(5.00, 6).to_formatted_s("e")  # => "0.5E1"
+BigDecimal.new(5.00, 6).to_s("e")  # => "0.5E1"
 ```
 
 Extensions to `Enumerable`

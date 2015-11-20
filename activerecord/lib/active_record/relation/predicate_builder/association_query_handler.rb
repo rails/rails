@@ -10,10 +10,10 @@ module ActiveRecord
 
         table = value.associated_table
         if value.base_class
-          queries[table.association_foreign_type] = value.base_class.name
+          queries[table.association_foreign_type.to_s] = value.base_class.name
         end
 
-        queries[table.association_foreign_key] = value.ids
+        queries[table.association_foreign_key.to_s] = value.ids
         predicate_builder.build_from_hash(queries)
       end
 

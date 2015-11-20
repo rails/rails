@@ -54,6 +54,8 @@ module ActiveRecord
         autoload :BelongsTo,           'active_record/associations/preloader/belongs_to'
       end
 
+      NULL_RELATION = Struct.new(:values, :where_clause, :joins_values).new({}, Relation::WhereClause.empty, [])
+
       # Eager loads the named associations for the given Active Record record(s).
       #
       # In this description, 'association name' shall refer to the name passed
@@ -88,9 +90,6 @@ module ActiveRecord
       #   [ :books, :author ]
       #   { author: :avatar }
       #   [ :books, { author: :avatar } ]
-
-      NULL_RELATION = Struct.new(:values, :where_clause, :joins_values).new({}, Relation::WhereClause.empty, [])
-
       def preload(records, associations, preload_scope = nil)
         records       = Array.wrap(records).compact.uniq
         associations  = Array.wrap(associations)
@@ -107,6 +106,7 @@ module ActiveRecord
 
       private
 
+      # Loads all the given data into +records+ for the +association+.
       def preloaders_on(association, records, scope)
         case association
         when Hash
@@ -116,7 +116,7 @@ module ActiveRecord
         when String
           preloaders_for_one(association.to_sym, records, scope)
         else
-          raise ArgumentError, "#{association.inspect} was not recognised for preload"
+          raise ArgumentError, "#{association.inspect} was not recognized for preload"
         end
       end
 
@@ -132,6 +132,11 @@ module ActiveRecord
         }
       end
 
+      # Loads all the given data into +records+ for a singular +association+.
+      #
+      # Functions by instantiating a preloader class such as Preloader::HasManyThrough and
+      # call the +run+ method for each passed in class in the +records+ argument.
+      #
       # Not all records have the same class, so group then preload group on the reflection
       # itself so that if various subclass share the same association then we do not split
       # them unnecessarily
@@ -181,6 +186,10 @@ module ActiveRecord
         def self.preloaded_records; []; end
       end
 
+      # Returns a class containing the logic needed to load preload the data
+      # and attach it to a relation. For example +Preloader::Association+ or
+      # +Preloader::HasManyThrough+. The class returned implements a `run` method
+      # that accepts a preloader.
       def preloader_for(reflection, owners, rhs_klass)
         return NullPreloader unless rhs_klass
 

@@ -1,4 +1,3 @@
-# encoding: utf-8
 module ActiveSupport
   module Multibyte
     module Unicode
@@ -11,7 +10,7 @@ module ActiveSupport
       NORMALIZATION_FORMS = [:c, :kc, :d, :kd]
 
       # The Unicode version that is supported by the implementation
-      UNICODE_VERSION = '7.0.0'
+      UNICODE_VERSION = '8.0.0'
 
       # The default normalization used for operations that require
       # normalization. It can be set to any of the normalizations
@@ -257,7 +256,7 @@ module ActiveSupport
       # * <tt>string</tt> - The string to perform normalization on.
       # * <tt>form</tt> - The form you want to normalize in. Should be one of
       #   the following: <tt>:c</tt>, <tt>:kc</tt>, <tt>:d</tt>, or <tt>:kd</tt>.
-      #   Default is ActiveSupport::Multibyte.default_normalization_form.
+      #   Default is ActiveSupport::Multibyte::Unicode.default_normalization_form.
       def normalize(string, form=nil)
         form ||= @default_normalization_form
         # See http://www.unicode.org/reports/tr15, Table 1

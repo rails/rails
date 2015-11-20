@@ -1,5 +1,4 @@
 require "isolation/abstract_unit"
-require 'set'
 
 module ApplicationTests
   class FrameworksTest < ActiveSupport::TestCase
@@ -48,6 +47,17 @@ module ApplicationTests
 
       require "#{app_path}/config/environment"
       assert_equal "test.rails", ActionMailer::Base.default_url_options[:host]
+    end
+
+    test "Default to HTTPS for ActionMailer URLs when force_ssl is on" do
+      app_file "config/environments/development.rb", <<-RUBY
+        Rails.application.configure do
+          config.force_ssl = true
+        end
+      RUBY
+
+      require "#{app_path}/config/environment"
+      assert_equal "https", ActionMailer::Base.default_url_options[:protocol]
     end
 
     test "includes url helpers as action methods" do

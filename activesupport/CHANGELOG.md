@@ -1,3 +1,114 @@
+*   Implements an evented file system monitor to asynchronously detect changes
+    in the application source code, routes, locales, etc.
+
+    To opt-in load the [listen](https://github.com/guard/listen) gem in `Gemfile`:
+
+        group :development do
+          gem 'listen', '~> 3.0.4'
+        end
+
+    *Puneet Agarwal* and *Xavier Noria*
+
+*   Added `Time.days_in_year` to return the number of days in the given year, or the
+    current year if no argument is provided.
+
+    *Jon Pascoe*
+
+*   Updated `parameterize` to preserve the case of a string, optionally.
+
+    Example:
+
+        parameterize("Donald E. Knuth", separator: '_') # => "donald_e_knuth"
+        parameterize("Donald E. Knuth", preserve_case: true) # => "Donald-E-Knuth"
+
+    *Swaathi Kakarla*
+
+*   `HashWithIndifferentAccess.new` respects the default value or proc on objects
+    that respond to `#to_hash`. `.new_from_hash_copying_default` simply invokes `.new`.
+    All calls to `.new_from_hash_copying_default` are replaced with `.new`.
+
+    *Gordon Chan*
+
+*   Change Integer#year to return a Fixnum instead of a Float to improve
+    consistency.
+
+    Integer#years returned a Float while the rest of the accompanying methods
+    (days, weeks, months, etc.) return a Fixnum.
+
+    Before:
+
+    1.year # => 31557600.0
+
+    After:
+
+    1.year # => 31557600
+
+    *Konstantinos Rousis*
+
+*   Handle invalid UTF-8 strings when HTML escaping
+
+    Use `ActiveSupport::Multibyte::Unicode.tidy_bytes` to handle invalid UTF-8
+    strings in `ERB::Util.unwrapped_html_escape` and `ERB::Util.html_escape_once`.
+    Prevents user-entered input passed from a querystring into a form field from
+    causing invalid byte sequence errors.
+
+    *Grey Baker*
+
+*   Update `ActiveSupport::Multibyte::Chars#slice!` to return `nil` if the
+    arguments are out of bounds, to mirror the behavior of `String#slice!`
+
+    *Gourav Tiwari*
+
+*   Fix `number_to_human` so that 999999999 rounds to "1 Billion" instead of
+    "1000 Million".
+
+    *Max Jacobson*
+
+*   Fix `ActiveSupport::Deprecation#deprecate_methods` to report using the
+    current deprecator instance, where applicable.
+
+    *Brandon Dunne*
+
+*   `Cache#fetch` instrumentation marks whether it was a `:hit`.
+
+    *Robin Clowers*
+
+*   `assert_difference` and `assert_no_difference` now returns the result of the
+    yielded block.
+
+    Example:
+
+      post = assert_difference -> { Post.count }, 1 do
+        Post.create
+      end
+
+    *Lucas Mazza*
+
+*   Short-circuit `blank?` on date and time values since they are never blank.
+
+    Fixes #21657
+
+    *Andrew White*
+
+*   Replaced deprecated `ThreadSafe::Cache` with its successor `Concurrent::Map` now that
+    the thread_safe gem has been merged into concurrent-ruby.
+
+    *Jerry D'Antonio*
+
+*   Updated Unicode version to 8.0.0
+
+    *Anshul Sharma*
+
+*   `number_to_currency` and `number_with_delimiter` now accept custom `delimiter_pattern` option
+     to handle placement of delimiter, to support currency formats like INR
+
+     Example:
+
+        number_to_currency(1230000, delimiter_pattern: /(\d+?)(?=(\d\d)+(\d)(?!\d))/, unit: '₹', format: "%u %n")
+        # => '₹ 12,30,000.00'
+
+    *Vipul A M*
+
 *   Deprecate `:prefix` option of `number_to_human_size` with no replacement.
 
     *Jean Boussier*
@@ -252,30 +363,24 @@
 
     The preferred method to halt a callback chain from now on is to explicitly
     `throw(:abort)`.
-    In the past, returning `false` in an ActiveSupport callback had the side
-    effect of halting the callback chain. This is not recommended anymore and,
-    depending on the value of
-    `Callbacks::CallbackChain.halt_and_display_warning_on_return_false`, will
-    either not work at all or display a deprecation warning.
+    In the past, callbacks could only be halted by explicitly providing a
+    terminator and by having a callback match the conditions of the terminator.
 
-*   Add `Callbacks::CallbackChain.halt_and_display_warning_on_return_false`
+*   Add `ActiveSupport.halt_callback_chains_on_return_false`
 
-    Setting `Callbacks::CallbackChain.halt_and_display_warning_on_return_false`
-    to `true` will let an app support the deprecated way of halting callback
-    chains by returning `false`.
+    Setting `ActiveSupport.halt_callback_chains_on_return_false`
+    to `true` will let an app support the deprecated way of halting Active Record,
+    and Active Model callback chains by returning `false`.
 
     Setting the value to `false` will tell the app to ignore any `false` value
-    returned by callbacks, and only halt the chain upon `throw(:abort)`.
-
-    The value can also be set with the Rails configuration option
-    `config.active_support.halt_callback_chains_on_return_false`.
+    returned by those callbacks, and only halt the chain upon `throw(:abort)`.
 
     When the configuration option is missing, its value is `true`, so older apps
     ported to Rails 5.0 will not break (but display a deprecation warning).
     For new Rails 5.0 apps, its value is set to `false` in an initializer, so
     these apps will support the new behavior by default.
 
-    *claudiob*
+    *claudiob*, *Roque Pinel*
 
 *   Changes arguments and default value of CallbackChain's `:terminator` option
 

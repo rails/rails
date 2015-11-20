@@ -27,6 +27,18 @@ class MethodCallAssertionsTest < ActiveSupport::TestCase
     end
   end
 
+  def test_assert_called_method_with_arguments
+    assert_called(@object, :<<) do
+      @object << 2
+    end
+  end
+
+  def test_assert_called_returns
+    assert_called(@object, :increment, returns: 10) do
+      assert_equal 10, @object.increment
+    end
+  end
+
   def test_assert_called_failure
     error = assert_raises(Minitest::Assertion) do
       assert_called(@object, :increment) do

@@ -14,33 +14,34 @@ module ActiveRecord
     #   Person.distinct.count(:age)
     #   # => counts the number of different age values
     #
-    # If +count+ is used with +group+, it returns a Hash whose keys represent the aggregated column,
+    # If #count is used with {Relation#group}[rdoc-ref:QueryMethods#group],
+    # it returns a Hash whose keys represent the aggregated column,
     # and the values are the respective amounts:
     #
     #   Person.group(:city).count
     #   # => { 'Rome' => 5, 'Paris' => 3 }
     #
-    # If +count+ is used with +group+ for multiple columns, it returns a Hash whose
+    # If #count is used with {Relation#group}[rdoc-ref:QueryMethods#group] for multiple columns, it returns a Hash whose
     # keys are an array containing the individual values of each column and the value
-    # of each key would be the +count+.
+    # of each key would be the #count.
     #
     #   Article.group(:status, :category).count
     #   # =>  {["draft", "business"]=>10, ["draft", "technology"]=>4,
     #          ["published", "business"]=>0, ["published", "technology"]=>2}
     #
-    # If +count+ is used with +select+, it will count the selected columns:
+    # If #count is used with {Relation#select}[rdoc-ref:QueryMethods#select], it will count the selected columns:
     #
     #   Person.select(:age).count
     #   # => counts the number of different age values
     #
-    # Note: not all valid +select+ expressions are valid +count+ expressions. The specifics differ
+    # Note: not all valid {Relation#select}[rdoc-ref:QueryMethods#select] expressions are valid #count expressions. The specifics differ
     # between databases. In invalid cases, an error from the database is thrown.
     def count(column_name = nil)
       calculate(:count, column_name)
     end
 
     # Calculates the average value on a given column. Returns +nil+ if there's
-    # no row. See +calculate+ for examples with options.
+    # no row. See #calculate for examples with options.
     #
     #   Person.average(:age) # => 35.8
     def average(column_name)
@@ -49,7 +50,7 @@ module ActiveRecord
 
     # Calculates the minimum value on a given column. The value is returned
     # with the same data type of the column, or +nil+ if there's no row. See
-    # +calculate+ for examples with options.
+    # #calculate for examples with options.
     #
     #   Person.minimum(:age) # => 7
     def minimum(column_name)
@@ -58,7 +59,7 @@ module ActiveRecord
 
     # Calculates the maximum value on a given column. The value is returned
     # with the same data type of the column, or +nil+ if there's no row. See
-    # +calculate+ for examples with options.
+    # #calculate for examples with options.
     #
     #   Person.maximum(:age) # => 93
     def maximum(column_name)
@@ -66,38 +67,17 @@ module ActiveRecord
     end
 
     # Calculates the sum of values on a given column. The value is returned
-    # with the same data type of the column, 0 if there's no row. See
-    # +calculate+ for examples with options.
+    # with the same data type of the column, +0+ if there's no row. See
+    # #calculate for examples with options.
     #
     #   Person.sum(:age) # => 4562
-    def sum(*args)
-      return super if block_given?
-      calculate(:sum, *args)
+    def sum(column_name = nil, &block)
+      return super(&block) if block_given?
+      calculate(:sum, column_name)
     end
 
-    # This calculates aggregate values in the given column. Methods for count, sum, average,
-    # minimum, and maximum have been added as shortcuts.
-    #
-    # There are two basic forms of output:
-    #
-    #   * Single aggregate value: The single value is type cast to Fixnum for COUNT, Float
-    #     for AVG, and the given column's type for everything else.
-    #
-    #   * Grouped values: This returns an ordered hash of the values and groups them. It
-    #     takes either a column name, or the name of a belongs_to association.
-    #
-    #       values = Person.group('last_name').maximum(:age)
-    #       puts values["Drake"]
-    #       # => 43
-    #
-    #       drake  = Family.find_by(last_name: 'Drake')
-    #       values = Person.group(:family).maximum(:age) # Person belongs_to :family
-    #       puts values[drake]
-    #       # => 43
-    #
-    #       values.each do |family, max_age|
-    #       ...
-    #       end
+    # This calculates aggregate values in the given column. Methods for #count, #sum, #average,
+    # #minimum, and #maximum have been added as shortcuts.
     #
     #   Person.calculate(:count, :all) # The same as Person.count
     #   Person.average(:age) # SELECT AVG(age) FROM people...
@@ -106,6 +86,27 @@ module ActiveRecord
     #   Person.group(:last_name).having("min(age) > 17").minimum(:age)
     #
     #   Person.sum("2 * age")
+    #
+    # There are two basic forms of output:
+    #
+    # * Single aggregate value: The single value is type cast to Fixnum for COUNT, Float
+    #   for AVG, and the given column's type for everything else.
+    #
+    # * Grouped values: This returns an ordered hash of the values and groups them. It
+    #   takes either a column name, or the name of a belongs_to association.
+    #
+    #      values = Person.group('last_name').maximum(:age)
+    #      puts values["Drake"]
+    #      # => 43
+    #
+    #      drake  = Family.find_by(last_name: 'Drake')
+    #      values = Person.group(:family).maximum(:age) # Person belongs_to :family
+    #      puts values[drake]
+    #      # => 43
+    #
+    #      values.each do |family, max_age|
+    #        ...
+    #      end
     def calculate(operation, column_name)
       if column_name.is_a?(Symbol) && attribute_alias?(column_name)
         column_name = attribute_alias(column_name)
@@ -118,7 +119,7 @@ module ActiveRecord
       end
     end
 
-    # Use <tt>pluck</tt> as a shortcut to select one or more attributes without
+    # Use #pluck as a shortcut to select one or more attributes without
     # loading a bunch of records just to grab the attributes you want.
     #
     #   Person.pluck(:name)
@@ -127,7 +128,7 @@ module ActiveRecord
     #
     #   Person.all.map(&:name)
     #
-    # Pluck returns an <tt>Array</tt> of attribute values type-casted to match
+    # Pluck returns an Array of attribute values type-casted to match
     # the plucked column names, if they can be deduced. Plucking an SQL fragment
     # returns String values by default.
     #
@@ -151,7 +152,7 @@ module ActiveRecord
     #   # SELECT DATEDIFF(updated_at, created_at) FROM people
     #   # => ['0', '27761', '173']
     #
-    # See also +ids+.
+    # See also #ids.
     #
     def pluck(*column_names)
       column_names.map! do |column_name|
@@ -218,6 +219,8 @@ module ActiveRecord
     end
 
     def aggregate_column(column_name)
+      return column_name if Arel::Expressions === column_name
+
       if @klass.column_names.include?(column_name.to_s)
         Arel::Attribute.new(@klass.unscoped.table, column_name)
       else
@@ -272,15 +275,10 @@ module ActiveRecord
       else
         group_fields = group_attrs
       end
+      group_fields = arel_columns(group_fields)
 
-      group_aliases = group_fields.map { |field|
-        column_alias_for(field)
-      }
-      group_columns = group_aliases.zip(group_fields).map { |aliaz,field|
-        [aliaz, field]
-      }
-
-      group = group_fields
+      group_aliases = group_fields.map { |field| column_alias_for(field) }
+      group_columns = group_aliases.zip(group_fields)
 
       if operation == 'count' && column_name == :all
         aggregate_alias = 'count_all'
@@ -296,7 +294,7 @@ module ActiveRecord
       ]
       select_values += select_values unless having_clause.empty?
 
-      select_values.concat group_fields.zip(group_aliases).map { |field,aliaz|
+      select_values.concat group_columns.map { |aliaz, field|
         if field.respond_to?(:as)
           field.as(aliaz)
         else
@@ -305,7 +303,7 @@ module ActiveRecord
       }
 
       relation = except(:group)
-      relation.group_values  = group
+      relation.group_values  = group_fields
       relation.select_values = select_values
 
       calculated_data = @klass.connection.select_all(relation, nil, relation.bound_attributes)
@@ -338,7 +336,6 @@ module ActiveRecord
     #   column_alias_for("sum(id)")                  # => "sum_id"
     #   column_alias_for("count(distinct users.id)") # => "count_distinct_users_id"
     #   column_alias_for("count(*)")                 # => "count_all"
-    #   column_alias_for("count", "id")              # => "count_id"
     def column_alias_for(keys)
       if keys.respond_to? :name
         keys = "#{keys.relation.name}.#{keys.name}"
@@ -367,9 +364,9 @@ module ActiveRecord
       end
     end
 
-    # TODO: refactor to allow non-string `select_values` (eg. Arel nodes).
     def select_for_count
       if select_values.present?
+        return select_values.first if select_values.one?
         select_values.join(", ")
       else
         :all

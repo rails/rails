@@ -1,11 +1,8 @@
-require 'active_support/core_ext/hash/except'
 require 'active_support/core_ext/hash/reverse_merge'
 require 'active_support/core_ext/hash/slice'
 require 'active_support/core_ext/enumerable'
 require 'active_support/core_ext/array/extract_options'
-require 'active_support/core_ext/module/remove_method'
-require 'active_support/inflector'
-require 'active_support/deprecation'
+require 'active_support/core_ext/regexp'
 require 'action_dispatch/routing/redirection'
 require 'action_dispatch/routing/endpoint'
 
@@ -109,6 +106,7 @@ module ActionDispatch
           @default_action     = default_action
           @ast                = ast
           @anchor             = anchor
+          @via                = via
 
           path_params = ast.find_all(&:symbol?).map(&:to_sym)
 
@@ -140,9 +138,19 @@ module ActionDispatch
           @defaults = formats[:defaults].merge(@defaults).merge(normalize_defaults(options))
 
           @required_defaults = (split_options[:required_defaults] || []).map(&:first)
-          unless via == [:all]
-            @conditions[:request_method] = via.map { |m| m.to_s.dasherize.upcase }
-          end
+        end
+
+        def make_route(name, precedence)
+          route = Journey::Route.new(name,
+                            application,
+                            path,
+                            conditions,
+                            required_defaults,
+                            defaults,
+                            request_method,
+                            precedence)
+
+          route
         end
 
         def application
@@ -160,36 +168,32 @@ module ActionDispatch
         def build_conditions(current_conditions, request_class)
           conditions = current_conditions.dup
 
-          # Rack-Mount requires that :request_method be a regular expression.
-          # :request_method represents the HTTP verb that matches this route.
-          #
-          # Here we munge values before they get sent on to rack-mount.
-          verbs = conditions[:request_method] || []
-          unless verbs.empty?
-            conditions[:request_method] = %r[^#{verbs.join('|')}$]
-          end
-
           conditions.keep_if do |k, _|
             request_class.public_method_defined?(k)
           end
         end
         private :build_conditions
 
-        def build_path(ast, requirements, anchor)
-          pattern = Journey::Path::Pattern.new(ast, requirements, SEPARATORS, anchor)
+        def request_method
+          @via.map { |x| Journey::Route.verb_matcher(x) }
+        end
+        private :request_method
 
-          builder = Journey::GTG::Builder.new ast
+        JOINED_SEPARATORS = SEPARATORS.join # :nodoc:
+
+        def build_path(ast, requirements, anchor)
+          pattern = Journey::Path::Pattern.new(ast, requirements, JOINED_SEPARATORS, anchor)
 
           # Get all the symbol nodes followed by literals that are not the
           # dummy node.
-          symbols = ast.grep(Journey::Nodes::Symbol).find_all { |n|
-            builder.followpos(n).first.literal?
-          }
+          symbols = ast.find_all { |n|
+            n.cat? && n.left.symbol? && n.right.cat? && n.right.left.literal?
+          }.map(&:left)
 
           # Get all the symbol nodes preceded by literals.
-          symbols.concat ast.find_all(&:literal?).map { |n|
-            builder.followpos(n).first
-          }.find_all(&:symbol?)
+          symbols.concat ast.find_all { |n|
+            n.cat? && n.left.literal? && n.right.cat? && n.right.left.symbol?
+          }.map { |n| n.right.left }
 
           symbols.each { |x|
             x.regexp = /(?:#{Regexp.union(x.regexp, '-')})+/
@@ -276,12 +280,16 @@ module ActionDispatch
           end
 
           def app(blocks)
-            if to.respond_to?(:call)
-              Constraints.new(to, blocks, Constraints::CALL)
-            elsif blocks.any?
-              Constraints.new(dispatcher(defaults.key?(:controller)), blocks, Constraints::SERVE)
+            if to.is_a?(Class) && to < ActionController::Metal
+              Routing::RouteSet::StaticDispatcher.new to
             else
-              dispatcher(defaults.key?(:controller))
+              if to.respond_to?(:call)
+                Constraints.new(to, blocks, Constraints::CALL)
+              elsif blocks.any?
+                Constraints.new(dispatcher(defaults.key?(:controller)), blocks, Constraints::SERVE)
+              else
+                dispatcher(defaults.key?(:controller))
+              end
             end
           end
 
@@ -361,7 +369,7 @@ module ActionDispatch
           end
 
           def dispatcher(raise_on_name_error)
-            @set.dispatcher raise_on_name_error
+            Routing::RouteSet::Dispatcher.new raise_on_name_error
           end
       end
 
@@ -393,7 +401,8 @@ module ActionDispatch
         # because this means it will be matched first. As this is the most popular route
         # of most Rails applications, this is beneficial.
         def root(options = {})
-          match '/', { :as => :root, :via => :get }.merge!(options)
+          name = has_named_route?(:root) ? nil : :root
+          match '/', { as: name, via:  :get }.merge!(options)
         end
 
         # Matches a url pattern to one or more routes.
@@ -473,7 +482,7 @@ module ActionDispatch
         #      resources :user, param: :name
         #
         #   You can override <tt>ActiveRecord::Base#to_param</tt> of a related
-        #   model to construct an URL:
+        #   model to construct a URL:
         #
         #      class User < ActiveRecord::Base
         #        def to_param
@@ -628,7 +637,7 @@ module ActionDispatch
 
         # Query if the following named route was already defined.
         def has_named_route?(name)
-          @set.named_routes.routes[name.to_sym]
+          @set.named_routes.key? name
         end
 
         private
@@ -656,6 +665,7 @@ module ActionDispatch
                   super(options)
                 else
                   prefix_options = options.slice(*_route.segment_keys)
+                  prefix_options[:relative_url_root] = ''.freeze
                   # we must actually delete prefix segment keys to avoid passing them to next url_for
                   _route.segment_keys.each { |k| options.delete(k) }
                   _routes.url_helpers.send("#{name}_path", prefix_options)
@@ -1857,7 +1867,7 @@ to this:
               # and return nil in case it isn't. Otherwise, we pass the invalid name
               # forward so the underlying router engine treats it and raises an exception.
               if as.nil?
-                candidate unless candidate !~ /\A[_a-z]/i || @set.named_routes.key?(candidate)
+                candidate unless candidate !~ /\A[_a-z]/i || has_named_route?(candidate)
               else
                 candidate
               end

@@ -107,6 +107,14 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_nil Account.find(old_account_id).firm_id
   end
 
+  def test_nullification_on_destroyed_association
+    developer = Developer.create!(name: "Someone")
+    ship = Ship.create!(name: "Planet Caravan", developer: developer)
+    ship.destroy
+    assert !ship.persisted?
+    assert !developer.persisted?
+  end
+
   def test_natural_assignment_to_nil_after_destroy
     firm = companies(:rails_core)
     old_account_id = firm.account.id
@@ -209,6 +217,24 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_equal "Cannot delete record because a dependent account exists", firm.errors[:base].first
     assert RestrictedWithErrorFirm.exists?(:name => 'restrict')
     assert firm.account.present?
+  end
+
+  def test_restrict_with_error_with_locale
+    I18n.backend = I18n::Backend::Simple.new
+    I18n.backend.store_translations 'en', activerecord: {attributes: {restricted_with_error_firm: {account: 'firm account'}}}
+    firm = RestrictedWithErrorFirm.create!(name: 'restrict')
+    firm.create_account(credit_limit: 10)
+
+    assert_not_nil firm.account
+
+    firm.destroy
+
+    assert !firm.errors.empty?
+    assert_equal "Cannot delete record because a dependent firm account exists", firm.errors[:base].first
+    assert RestrictedWithErrorFirm.exists?(name: 'restrict')
+    assert firm.account.present?
+  ensure
+    I18n.backend.reload!
   end
 
   def test_successful_build_association

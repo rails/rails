@@ -150,7 +150,7 @@ When you include the engine into an application later on, you will do so with
 this line in the Rails application's `Gemfile`:
 
 ```ruby
-gem 'blorgh', path: "vendor/engines/blorgh"
+gem 'blorgh', path: 'engines/blorgh'
 ```
 
 Don't forget to run `bundle install` as usual. By specifying it as a gem within
@@ -238,6 +238,27 @@ application.
 NOTE: The `ApplicationController` class inside an engine is named just like a
 Rails application in order to make it easier for you to convert your
 applications into engines.
+
+NOTE: Because of the way that Ruby does constant lookup you may run into a situation
+where your engine controller is inheriting from the main application controller and
+not your engine's application controller. Ruby is able to resolve the `ApplicationController` constant, and therefore the autoloading mechanism is not triggered. See the section [When Constants Aren't Missed](autoloading_and_reloading_constants.html#when-constants-aren-t-missed) of the [Autoloading and Reloading Constants](autoloading_and_reloading_constants.html) guide for further details. The best way to prevent this from
+happening is to use `require_dependency` to ensure that the engine's application
+controller is loaded. For example:
+
+``` ruby
+# app/controllers/blorgh/articles_controller.rb:
+require_dependency "blorgh/application_controller"
+
+module Blorgh
+  class ArticlesController < ApplicationController
+    ...
+  end
+end
+```
+
+WARNING: Don't use `require` because it will break the automatic reloading of classes
+in the development environment - using `require_dependency` ensures that classes are
+loaded and unloaded in the correct manner.
 
 Lastly, the `app/views` directory contains a `layouts` folder, which contains a
 file at `blorgh/application.html.erb`. This file allows you to specify a layout
@@ -639,7 +660,7 @@ However, because you are developing the `blorgh` engine on your local machine,
 you will need to specify the `:path` option in your `Gemfile`:
 
 ```ruby
-gem 'blorgh', path: "/path/to/blorgh"
+gem 'blorgh', path: 'engines/blorgh'
 ```
 
 Then run `bundle` to install the gem.
@@ -670,7 +691,7 @@ pre-defined path which may be customizable.
 The engine contains migrations for the `blorgh_articles` and `blorgh_comments`
 table which need to be created in the application's database so that the
 engine's models can query them correctly. To copy these migrations into the
-application use this command:
+application run the following command from the `test/dummy` directory of your Rails engine:
 
 ```bash
 $ rake blorgh:install:migrations
@@ -843,27 +864,9 @@ above the "Title" output inside `app/views/blorgh/articles/show.html.erb`:
 ```html+erb
 <p>
   <b>Author:</b>
-  <%= @article.author %>
+  <%= @article.author.name %>
 </p>
 ```
-
-By outputting `@article.author` using the `<%=` tag, the `to_s` method will be
-called on the object. By default, this will look quite ugly:
-
-```
-#<User:0x00000100ccb3b0>
-```
-
-This is undesirable. It would be much better to have the user's name there. To
-do this, add a `to_s` method to the `User` class within the application:
-
-```ruby
-def to_s
-  name
-end
-```
-
-Now instead of the ugly Ruby object output, the author's name will be displayed.
 
 #### Using a Controller Provided by the Application
 

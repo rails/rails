@@ -548,7 +548,7 @@ module ActionView
       end
 
       # Returns a string of option tags for pretty much any time zone in the
-      # world. Supply a ActiveSupport::TimeZone name as +selected+ to have it
+      # world. Supply an ActiveSupport::TimeZone name as +selected+ to have it
       # marked as the selected option tag. You can also supply an array of
       # ActiveSupport::TimeZone objects as +priority_zones+, so that they will
       # be listed above the rest of the (long) list. (You can use
@@ -556,7 +556,7 @@ module ActionView
       # of the US time zones, or a Regexp to select the zones of your choice)
       #
       # The +selected+ parameter must be either +nil+, or a string that names
-      # a ActiveSupport::TimeZone.
+      # an ActiveSupport::TimeZone.
       #
       # By default, +model+ is the ActiveSupport::TimeZone constant (which can
       # be obtained in Active Record as a value object). The only requirement
@@ -644,6 +644,24 @@ module ActionView
       #   collection_radio_buttons(:post, :author_id, Author.all, :id, :name_with_initial) do |b|
       #      b.label(:"data-value" => b.value) { b.radio_button + b.text }
       #   end
+      #
+      # ==== Gotcha
+      #
+      # The HTML specification says when nothing is select on a collection of radio buttons
+      # web browsers do not send any value to server.
+      # Unfortunately this introduces a gotcha:
+      # if a +User+ model has a +category_id+ field, and in the form none category is selected no +category_id+ parameter is sent. So,
+      # any strong parameters idiom like
+      #
+      #   params.require(:user).permit(...)
+      #
+      # will raise an error since no +{user: ...}+ will be present.
+      #
+      # To prevent this the helper generates an auxiliary hidden field before
+      # every collection of radio buttons. The hidden field has the same name as collection radio button and blank value.
+      #
+      # In case if you don't want the helper to generate this hidden field you can specify
+      # <tt>include_hidden: false</tt> option.
       def collection_radio_buttons(object, method, collection, value_method, text_method, options = {}, html_options = {}, &block)
         Tags::CollectionRadioButtons.new(object, method, self, collection, value_method, text_method, options, html_options).render(&block)
       end

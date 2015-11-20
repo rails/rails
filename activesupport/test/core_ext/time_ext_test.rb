@@ -534,6 +534,7 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal "17:44",                           time.to_s(:time)
     assert_equal "20050221174430",                  time.to_s(:number)
     assert_equal "20050221174430123456789",         time.to_s(:nsec)
+    assert_equal "20050221174430123456",            time.to_s(:usec)
     assert_equal "February 21, 2005 17:44",         time.to_s(:long)
     assert_equal "February 21st, 2005 17:44",       time.to_s(:long_ordinal)
     with_env_tz "UTC" do
@@ -613,6 +614,25 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
   def test_days_in_month_feb_in_leap_year_without_year_arg
     Time.stub(:now, Time.utc(2008)) do
       assert_equal 29, Time.days_in_month(2)
+    end
+  end
+
+  def test_days_in_year_with_year
+    assert_equal 365, Time.days_in_year(2005)
+    assert_equal 366, Time.days_in_year(2004)
+    assert_equal 366, Time.days_in_year(2000)
+    assert_equal 365, Time.days_in_year(1900)
+  end
+
+  def test_days_in_year_in_common_year_without_year_arg
+    Time.stub(:now, Time.utc(2007)) do
+      assert_equal 365, Time.days_in_year
+    end
+  end
+
+  def test_days_in_year_in_leap_year_without_year_arg
+    Time.stub(:now, Time.utc(2008)) do
+      assert_equal 366, Time.days_in_year
     end
   end
 

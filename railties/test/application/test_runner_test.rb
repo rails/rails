@@ -340,6 +340,32 @@ module ApplicationTests
       assert_match '0 runs, 0 assertions', run_test_command('')
     end
 
+    def test_output_inline_by_default
+      create_test_file :models, 'post', pass: false
+
+      output = run_test_command('test/models/post_test.rb')
+      assert_match %r{Running:\n\nPostTest\nF\n\nwups!\n\nbin/rails test test/models/post_test.rb:6}, output
+    end
+
+    def test_only_inline_failure_output
+      create_test_file :models, 'post', pass: false
+
+      output = run_test_command('test/models/post_test.rb')
+      assert_match %r{Finished in.*\n\n1 runs, 1 assertions}, output
+    end
+
+    def test_fail_fast
+      create_test_file :models, 'post', pass: false
+
+      assert_match(/Interrupt/,
+        capture(:stderr) { run_test_command('test/models/post_test.rb --fail-fast') })
+    end
+
+    def test_raise_error_when_specified_file_does_not_exist
+      error = capture(:stderr) { run_test_command('test/not_exists.rb') }
+      assert_match(%r{cannot load such file.+test/not_exists\.rb}, error)
+    end
+
     private
       def run_test_command(arguments = 'test/unit/test_test.rb')
         Dir.chdir(app_path) { `bin/rails t #{arguments}` }
@@ -391,14 +417,14 @@ module ApplicationTests
         app_file 'db/schema.rb', ''
       end
 
-      def create_test_file(path = :unit, name = 'test')
+      def create_test_file(path = :unit, name = 'test', pass: true)
         app_file "test/#{path}/#{name}_test.rb", <<-RUBY
           require 'test_helper'
 
           class #{name.camelize}Test < ActiveSupport::TestCase
             def test_truth
               puts "#{name.camelize}Test"
-              assert true
+              assert #{pass}, 'wups!'
             end
           end
         RUBY

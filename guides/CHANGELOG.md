@@ -1,3 +1,7 @@
+*   Add code of conduct to contributing guide
+
+    *Jon Moss*
+
 *   New section in Configuring: Configuring Active Job
 
     *Eliot Sykes*

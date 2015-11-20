@@ -25,15 +25,7 @@ Rails tests can also simulate browser requests and thus you can test your applic
 Introduction to Testing
 -----------------------
 
-Testing support was woven into the Rails fabric from the beginning. It wasn't an "oh! let's bolt on support for running tests because they're new and cool" epiphany. Just about every Rails application interacts heavily with a database and, as a result, your tests will need a database to interact with as well. To write efficient tests, you'll need to understand how to set up this database and populate it with sample data.
-
-### The Test Environment
-
-By default, every Rails application has three environments: development, test, and production. The database for each one of them is configured in `config/database.yml`.
-
-A dedicated test database allows you to set up and interact with test data in isolation. This way your tests can mangle test data with confidence, without worrying about the data in the development or production databases.
-
-Also, each environment's configuration can be modified similarly. In this case, we can modify our test environment by changing the options found in `config/environments/test.rb`.
+Testing support was woven into the Rails fabric from the beginning. It wasn't an "oh! let's bolt on support for running tests because they're new and cool" epiphany.
 
 ### Rails Sets up for Testing from the Word Go
 
@@ -51,139 +43,28 @@ Fixtures are a way of organizing test data; they reside in the `fixtures` direct
 
 The `test_helper.rb` file holds the default configuration for your tests.
 
-### The Low-Down on Fixtures
 
-For good tests, you'll need to give some thought to setting up test data.
-In Rails, you can handle this by defining and customizing fixtures.
-You can find comprehensive documentation in the [Fixtures API documentation](http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html).
+### The Test Environment
 
-#### What Are Fixtures?
+By default, every Rails application has three environments: development, test, and production.
 
-_Fixtures_ is a fancy word for sample data. Fixtures allow you to populate your testing database with predefined data before your tests run. Fixtures are database independent and written in YAML. There is one file per model.
+Each environment's configuration can be modified similarly. In this case, we can modify our test environment by changing the options found in `config/environments/test.rb`.
 
-You'll find fixtures under your `test/fixtures` directory. When you run `rails generate model` to create a new model, Rails automatically creates fixture stubs in this directory.
+NOTE: Your tests are run under `RAILS_ENV=test`.
 
-#### YAML
+### Rails meets Minitest
 
-YAML-formatted fixtures are a human-friendly way to describe your sample data. These types of fixtures have the **.yml** file extension (as in `users.yml`).
-
-Here's a sample YAML fixture file:
-
-```yaml
-# lo & behold! I am a YAML comment!
-david:
-  name: David Heinemeier Hansson
-  birthday: 1979-10-15
-  profession: Systems development
-
-steve:
-  name: Steve Ross Kellock
-  birthday: 1974-09-27
-  profession: guy with keyboard
-```
-
-Each fixture is given a name followed by an indented list of colon-separated key/value pairs. Records are typically separated by a blank line. You can place comments in a fixture file by using the # character in the first column.
-
-If you are working with [associations](/association_basics.html), you can simply
-define a reference node between two different fixtures. Here's an example with
-a `belongs_to`/`has_many` association:
-
-```yaml
-# In fixtures/categories.yml
-about:
-  name: About
-
-# In fixtures/articles.yml
-one:
-  title: Welcome to Rails!
-  body: Hello world!
-  category: about
-```
-
-Notice the `category` key of the `one` article found in `fixtures/articles.yml` has a value of `about`. This tells Rails to load the category `about` found in `fixtures/categories.yml`.
-
-NOTE: For associations to reference one another by name, you cannot specify the `id:` attribute on the associated fixtures. Rails will auto assign a primary key to be consistent between runs. For more information on this association behavior please read the [Fixtures API documentation](http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html).
-
-#### ERB'in It Up
-
-ERB allows you to embed Ruby code within templates. The YAML fixture format is pre-processed with ERB when Rails loads fixtures. This allows you to use Ruby to help you generate some sample data. For example, the following code generates a thousand users:
-
-```erb
-<% 1000.times do |n| %>
-user_<%= n %>:
-  username: <%= "user#{n}" %>
-  email: <%= "user#{n}@example.com" %>
-<% end %>
-```
-
-#### Fixtures in Action
-
-Rails by default automatically loads all fixtures from the `test/fixtures` directory for your models and controllers test. Loading involves three steps:
-
-1. Remove any existing data from the table corresponding to the fixture
-2. Load the fixture data into the table
-3. Dump the fixture data into a method in case you want to access it directly
-
-TIP: In order to remove existing data from the database, Rails tries to disable referential integrity triggers (like foreign keys and check constraints). If you are getting annoying permission errors on running tests, make sure the database user has privilege to disable these triggers in testing environment. (In PostgreSQL, only superusers can disable all triggers. Read more about PostgreSQL permissions [here](http://blog.endpoint.com/2012/10/postgres-system-triggers-error.html))
-
-#### Fixtures are Active Record objects
-
-Fixtures are instances of Active Record. As mentioned in point #3 above, you can access the object directly because it is automatically available as a method whose scope is local of the test case. For example:
-
-```ruby
-# this will return the User object for the fixture named david
-users(:david)
-
-# this will return the property for david called id
-users(:david).id
-
-# one can also access methods available on the User class
-email(david.partner.email, david.location_tonight)
-```
-
-To get multiple fixtures at once, you can pass in a list of fixture names. For example:
-
-```ruby
-# this will return an array containing the fixtures david and steve
-users(:david, :steve)
-```
-
-### Console Tasks for Running your Tests
-
-Rails comes with a CLI command to run tests.
-Here are some examples of how to use it:
+If you remember when you used the `rails generate model` command from the
+[Getting Started with Rails](getting_started.html) guide. We created our first
+model among other things it created test stubs in the `test` directory:
 
 ```bash
-$ bin/rails test # run all tests in the `test` directory
-$ bin/rails test test/controllers # run all tests from specific directory
-$ bin/rails test test/models/post_test.rb # run specific test
-$ bin/rails test test/models/post_test.rb:44 # run specific test and line
-```
-
-We will cover each of types Rails tests listed above in this guide.
-
-Model Testing
-------------------------
-
-For this guide we will be using the application we built in the [Getting Started with Rails](getting_started.html) guide.
-
-If you remember when you used the `rails generate scaffold` command from earlier. We created our first resource among other things it created a test stub in the `test/models` directory:
-
-```bash
-$ bin/rails generate scaffold article title:string body:text
+$ bin/rails generate model article title:string body:text
 ...
 create  app/models/article.rb
 create  test/models/article_test.rb
 create  test/fixtures/articles.yml
 ...
-```
-
-You can also generate the test stub for a model using the following command:
-
-```bash
-$ bin/rails generate test_unit:model article title:string body:text
-create  test/models/article_test.rb
-create  test/fixtures/articles.yml
 ```
 
 The default test stub in `test/models/article_test.rb` looks like this:
@@ -250,47 +131,6 @@ An assertion is a line of code that evaluates an object (or expression) for expe
 
 Every test must contain at least one assertion, with no restriction as to how many assertions are allowed. Only when all the assertions are successful will the test pass.
 
-### Maintaining the test database schema
-
-In order to run your tests, your test database will need to have the current
-structure. The test helper checks whether your test database has any pending
-migrations. If so, it will try to load your `db/schema.rb` or `db/structure.sql`
-into the test database. If migrations are still pending, an error will be
-raised. Usually this indicates that your schema is not fully migrated. Running
-the migrations against the development database (`bin/rake db:migrate`) will
-bring the schema up to date.
-
-NOTE: If existing migrations required modifications, the test database needs to
-be rebuilt. This can be done by executing `bin/rake db:test:prepare`.
-
-### Running Tests
-
-Running a test is as simple as invoking the file containing the test cases through `rails test` command.
-
-```bash
-$ bin/rails test test/models/article_test.rb
-.
-
-Finished tests in 0.009262s, 107.9680 tests/s, 107.9680 assertions/s.
-
-1 tests, 1 assertions, 0 failures, 0 errors, 0 skips
-```
-
-This will run all test methods from the test case.
-
-You can also run a particular test method from the test case by running the test and providing the `test method name`.
-
-```bash
-$ bin/rails test test/models/article_test.rb test_the_truth
-.
-
-Finished tests in 0.009064s, 110.3266 tests/s, 110.3266 assertions/s.
-
-1 tests, 1 assertions, 0 failures, 0 errors, 0 skips
-```
-
-The `.` (dot) above indicates a passing test. When a test fails you see an `F`; when a test throws an error you see an `E` in its place. The last line of the output is the summary.
-
 #### Your first failing test
 
 To see how a test failure is reported, you can add a failing test to the `article_test.rb` test case.
@@ -317,7 +157,7 @@ Failed assertion, no message given.
 1 tests, 1 assertions, 1 failures, 0 errors, 0 skips
 ```
 
-In the output, `F` denotes a failure. You can see the corresponding trace shown under `1)` along with the name of the failing test. The next few lines contain the stack trace followed by a message which mentions the actual value and the expected value by the assertion. The default assertion messages provide just enough information to help pinpoint the error. To make the assertion failure message more readable, every assertion provides an optional message parameter, as shown here:
+In the output, `F` denotes a failure. You can see the corresponding trace shown under `1)` along with the name of the failing test. The next few lines contain the stack trace followed by a message that mentions the actual value and the expected value by the assertion. The default assertion messages provide just enough information to help pinpoint the error. To make the assertion failure message more readable, every assertion provides an optional message parameter, as shown here:
 
 ```ruby
 test "should not save article without title" do
@@ -443,8 +283,8 @@ specify to make your test failure messages clearer. It's not required.
 | `assert_no_match( regexp, string, [msg] )`                       | Ensures that a string doesn't match the regular expression.|
 | `assert_includes( collection, obj, [msg] )`                      | Ensures that `obj` is in `collection`.|
 | `assert_not_includes( collection, obj, [msg] )`                  | Ensures that `obj` is not in `collection`.|
-| `assert_in_delta( expected, actual, [delta], [msg] )`           | Ensures that the numbers `expected` and `actual` are within `delta` of each other.|
-| `assert_not_in_delta( expected, actual, [delta], [msg] )`       | Ensures that the numbers `expected` and `actual` are not within `delta` of each other.|
+| `assert_in_delta( expected, actual, [delta], [msg] )`            | Ensures that the numbers `expected` and `actual` are within `delta` of each other.|
+| `assert_not_in_delta( expected, actual, [delta], [msg] )`        | Ensures that the numbers `expected` and `actual` are not within `delta` of each other.|
 | `assert_throws( symbol, [msg] ) { block }`                       | Ensures that the given block throws the symbol.|
 | `assert_raises( exception1, exception2, ... ) { block }`         | Ensures that the given block raises one of the given exceptions.|
 | `assert_nothing_raised( exception1, exception2, ... ) { block }` | Ensures that the given block doesn't raise one of the given exceptions.|
@@ -464,7 +304,7 @@ specify to make your test failure messages clearer. It's not required.
 The above are a subset of assertions that minitest supports. For an exhaustive &
 more up-to-date list, please check
 [Minitest API documentation](http://docs.seattlerb.org/minitest/), specifically
-[`Minitest::Assertions`](http://docs.seattlerb.org/minitest/Minitest/Assertions.html)
+[`Minitest::Assertions`](http://docs.seattlerb.org/minitest/Minitest/Assertions.html).
 
 Because of the modular nature of the testing framework, it is possible to create your own assertions. In fact, that's exactly what Rails does. It includes some specialized assertions to make your life easier.
 
@@ -481,11 +321,11 @@ Rails adds some custom assertions of its own to the `minitest` framework:
 | `assert_recognizes(expected_options, path, extras={}, message=nil)`               | Asserts that the routing of the given path was handled correctly and that the parsed options (given in the expected_options hash) match path. Basically, it asserts that Rails recognizes the route given by expected_options.|
 | `assert_generates(expected_path, options, defaults={}, extras = {}, message=nil)` | Asserts that the provided options can be used to generate the provided path. This is the inverse of assert_recognizes. The extras parameter is used to tell the request the names and values of additional request parameters that would be in a query string. The message parameter allows you to specify a custom error message for assertion failures.|
 | `assert_response(type, message = nil)`                                            | Asserts that the response comes with a specific status code. You can specify `:success` to indicate 200-299, `:redirect` to indicate 300-399, `:missing` to indicate 404, or `:error` to match the 500-599 range. You can also pass an explicit status number or its symbolic equivalent. For more information, see [full list of status codes](http://rubydoc.info/github/rack/rack/master/Rack/Utils#HTTP_STATUS_CODES-constant) and how their [mapping](http://rubydoc.info/github/rack/rack/master/Rack/Utils#SYMBOL_TO_STATUS_CODE-constant) works.|
-| `assert_redirected_to(options = {}, message=nil)`                                 | Assert that the redirection options passed in match those of the redirect called in the latest action. This match can be partial, such that `assert_redirected_to(controller: "weblog")` will also match the redirection of `redirect_to(controller: "weblog", action: "show")` and so on. You can also pass named routes such as `assert_redirected_to root_path` and Active Record objects such as `assert_redirected_to @article`.|
+| `assert_redirected_to(options = {}, message=nil)`                                 | Asserts that the redirection options passed in match those of the redirect called in the latest action. This match can be partial, such that `assert_redirected_to(controller: "weblog")` will also match the redirection of `redirect_to(controller: "weblog", action: "show")` and so on. You can also pass named routes such as `assert_redirected_to root_path` and Active Record objects such as `assert_redirected_to @article`.|
 
 You'll see the usage of some of these assertions in the next chapter.
 
-### A Brief Note About Minitest
+### A Brief Note About Test Cases
 
 All the basic assertions such as `assert_equal` defined in `Minitest::Assertions` are also available in the classes we use in our own test cases. In fact, Rails provides the following classes for you to inherit from:
 
@@ -498,7 +338,303 @@ All the basic assertions such as `assert_equal` defined in `Minitest::Assertions
 
 Each of these classes include `Minitest::Assertions`, allowing us to use all of the basic assertions in our tests.
 
-NOTE: For more information on `Minitest`, refer to [Minitest](http://docs.seattlerb.org/minitest)
+NOTE: For more information on `Minitest`, refer to [its
+documentation](http://docs.seattlerb.org/minitest).
+
+### The Rails Test Runner
+
+We can run all of our tests at once by using the `rails test` command.
+
+Or we can run a single test by passing the `rails test` command the filename containing the test cases.
+
+```bash
+$ bin/rails test test/models/article_test.rb
+.
+
+Finished tests in 0.009262s, 107.9680 tests/s, 107.9680 assertions/s.
+
+1 tests, 1 assertions, 0 failures, 0 errors, 0 skips
+```
+
+This will run all test methods from the test case.
+
+You can also run a particular test method from the test case by providing the
+`-n` or `--name` flag and the test's method name.
+
+```bash
+$ bin/rails test test/models/article_test.rb -n test_the_truth
+.
+
+Finished tests in 0.009064s, 110.3266 tests/s, 110.3266 assertions/s.
+
+1 tests, 1 assertions, 0 failures, 0 errors, 0 skips
+```
+
+You can also run a test at a specific line by providing the line number.
+
+```bash
+$ bin/rails test test/models/post_test.rb:44 # run specific test and line
+```
+
+You can also run an entire directory of tests by providing the path to the directory.
+
+```bash
+$ bin/rails test test/controllers # run all tests from specific directory
+```
+
+
+The Test Database
+-----------------
+
+Just about every Rails application interacts heavily with a database and, as a result, your tests will need a database to interact with as well. To write efficient tests, you'll need to understand how to set up this database and populate it with sample data.
+
+By default, every Rails application has three environments: development, test, and production. The database for each one of them is configured in `config/database.yml`.
+
+A dedicated test database allows you to set up and interact with test data in isolation. This way your tests can mangle test data with confidence, without worrying about the data in the development or production databases.
+
+
+### Maintaining the test database schema
+
+In order to run your tests, your test database will need to have the current
+structure. The test helper checks whether your test database has any pending
+migrations. If so, it will try to load your `db/schema.rb` or `db/structure.sql`
+into the test database. If migrations are still pending, an error will be
+raised. Usually this indicates that your schema is not fully migrated. Running
+the migrations against the development database (`bin/rake db:migrate`) will
+bring the schema up to date.
+
+NOTE: If existing migrations required modifications, the test database needs to
+be rebuilt. This can be done by executing `bin/rake db:test:prepare`.
+
+### The Low-Down on Fixtures
+
+For good tests, you'll need to give some thought to setting up test data.
+In Rails, you can handle this by defining and customizing fixtures.
+You can find comprehensive documentation in the [Fixtures API documentation](http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html).
+
+#### What Are Fixtures?
+
+_Fixtures_ is a fancy word for sample data. Fixtures allow you to populate your testing database with predefined data before your tests run. Fixtures are database independent and written in YAML. There is one file per model.
+
+You'll find fixtures under your `test/fixtures` directory. When you run `rails generate model` to create a new model, Rails automatically creates fixture stubs in this directory.
+
+#### YAML
+
+YAML-formatted fixtures are a human-friendly way to describe your sample data. These types of fixtures have the **.yml** file extension (as in `users.yml`).
+
+Here's a sample YAML fixture file:
+
+```yaml
+# lo & behold! I am a YAML comment!
+david:
+  name: David Heinemeier Hansson
+  birthday: 1979-10-15
+  profession: Systems development
+
+steve:
+  name: Steve Ross Kellock
+  birthday: 1974-09-27
+  profession: guy with keyboard
+```
+
+Each fixture is given a name followed by an indented list of colon-separated key/value pairs. Records are typically separated by a blank line. You can place comments in a fixture file by using the # character in the first column.
+
+If you are working with [associations](/association_basics.html), you can simply
+define a reference node between two different fixtures. Here's an example with
+a `belongs_to`/`has_many` association:
+
+```yaml
+# In fixtures/categories.yml
+about:
+  name: About
+
+# In fixtures/articles.yml
+one:
+  title: Welcome to Rails!
+  body: Hello world!
+  category: about
+```
+
+Notice the `category` key of the `one` article found in `fixtures/articles.yml` has a value of `about`. This tells Rails to load the category `about` found in `fixtures/categories.yml`.
+
+NOTE: For associations to reference one another by name, you cannot specify the `id:` attribute on the associated fixtures. Rails will auto assign a primary key to be consistent between runs. For more information on this association behavior please read the [Fixtures API documentation](http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html).
+
+#### ERB'in It Up
+
+ERB allows you to embed Ruby code within templates. The YAML fixture format is pre-processed with ERB when Rails loads fixtures. This allows you to use Ruby to help you generate some sample data. For example, the following code generates a thousand users:
+
+```erb
+<% 1000.times do |n| %>
+user_<%= n %>:
+  username: <%= "user#{n}" %>
+  email: <%= "user#{n}@example.com" %>
+<% end %>
+```
+
+#### Fixtures in Action
+
+Rails automatically loads all fixtures from the `test/fixtures` directory by
+default. Loading involves three steps:
+
+1. Remove any existing data from the table corresponding to the fixture
+2. Load the fixture data into the table
+3. Dump the fixture data into a method in case you want to access it directly
+
+TIP: In order to remove existing data from the database, Rails tries to disable referential integrity triggers (like foreign keys and check constraints). If you are getting annoying permission errors on running tests, make sure the database user has privilege to disable these triggers in testing environment. (In PostgreSQL, only superusers can disable all triggers. Read more about PostgreSQL permissions [here](http://blog.endpoint.com/2012/10/postgres-system-triggers-error.html)).
+
+#### Fixtures are Active Record objects
+
+Fixtures are instances of Active Record. As mentioned in point #3 above, you can access the object directly because it is automatically available as a method whose scope is local of the test case. For example:
+
+```ruby
+# this will return the User object for the fixture named david
+users(:david)
+
+# this will return the property for david called id
+users(:david).id
+
+# one can also access methods available on the User class
+email(david.partner.email, david.location_tonight)
+```
+
+To get multiple fixtures at once, you can pass in a list of fixture names. For example:
+
+```ruby
+# this will return an array containing the fixtures david and steve
+users(:david, :steve)
+```
+
+
+Model Testing
+-------------
+
+Model tests are used to test the various models of your application.
+
+Rails model tests are stored under the `test/models` directory. Rails provides
+a generator to create a model test skeleton for you.
+
+```bash
+$ bin/rails generate test_unit:model article title:string body:text
+create  test/models/article_test.rb
+create  test/fixtures/articles.yml
+```
+
+Model tests don't have their own superclass like `ActionMailer::TestCase` instead they inherit from `ActiveSupport::TestCase`.
+
+
+Integration Testing
+-------------------
+
+Integration tests are used to test how various parts of your application interact. They are generally used to test important workflows within your application.
+
+For creating Rails integration tests, we use the 'test/integration' directory for your application. Rails provides a generator to create an integration test skeleton for you.
+
+```bash
+$ bin/rails generate integration_test user_flows
+      exists  test/integration/
+      create  test/integration/user_flows_test.rb
+```
+
+Here's what a freshly-generated integration test looks like:
+
+```ruby
+require 'test_helper'
+
+class UserFlowsTest < ActionDispatch::IntegrationTest
+  # test "the truth" do
+  #   assert true
+  # end
+end
+```
+
+Inheriting from `ActionDispatch::IntegrationTest` comes with some advantages. This makes available some additional helpers to use in your integration tests.
+
+### Helpers Available for Integration Tests
+
+In addition to the standard testing helpers, inheriting `ActionDispatch::IntegrationTest` comes with some additional helpers available when writing integration tests. Let's briefly introduce you to the three categories of helpers you get to choose from.
+
+For dealing with the integration test runner, see [`ActionDispatch::Integration::Runner`](http://api.rubyonrails.org/classes/ActionDispatch/Integration/Runner.html).
+
+When performing requests, you will have [`ActionDispatch::Integration::RequestHelpers`](http://api.rubyonrails.org/classes/ActionDispatch/Integration/RequestHelpers.html) available for your use.
+
+If you'd like to modify the session, or state of your integration test you should look for [`ActionDispatch::Integration::Session`](http://api.rubyonrails.org/classes/ActionDispatch/Integration/Session.html) to help.
+
+### Implementing an integration test
+
+Let's add an integration test to our blog application. We'll start with a basic workflow of creating a new blog article, to verify that everything is working properly.
+
+We'll start by generating our integration test skeleton:
+
+```bash
+$ bin/rails generate integration_test blog_flow
+```
+
+It should have created a test file placeholder for us. With the output of the
+previous command you should see:
+
+```bash
+      invoke  test_unit
+      create    test/integration/blog_flow_test.rb
+```
+
+Now let's open that file and write our first assertion:
+
+```ruby
+require 'test_helper'
+
+class BlogFlowTest < ActionDispatch::IntegrationTest
+  test "can see the welcome page" do
+    get "/"
+    assert_select "h1", "Welcome#index"
+  end
+end
+```
+
+If you remember from earlier in the "Testing Views" section we covered `assert_select` to query the resulting HTML of a request.
+
+When visit our root path, we should see `welcome/index.html.erb` rendered for the view. So this assertion should pass.
+
+#### Creating articles integration
+
+How about testing our ability to create a new article in our blog and see the resulting article.
+
+```ruby
+test "can create an article" do
+  get "/articles/new"
+  assert_response :success
+
+  post "/articles",
+    params: { article: { title: "can create", body: "article successfully." } }
+  assert_response :redirect
+  follow_redirect!
+  assert_response :success
+  assert_select "p", "Title:\n  can create"
+end
+```
+
+Let's break this test down so we can understand it.
+
+We start by calling the `:new` action on our Articles controller. This response should be successful.
+
+After this we make a post request to the `:create` action of our Articles controller:
+
+```ruby
+post "/articles",
+  params: { article: { title: "can create", body: "article successfully." } }
+assert_response :redirect
+follow_redirect!
+```
+
+The two lines following the request are to handle the redirect we setup when creating a new article.
+
+NOTE: Don't forget to call `follow_redirect!` if you plan to make subsequent requests after a redirect is made.
+
+Finally we can assert that our response was successful and our new article is readable on the page.
+
+#### Taking it further
+
+We were able to successfully test a very small workflow for visiting our blog and creating a new article. If we wanted to take this further we could add tests for commenting, removing articles, or editing comments. Integration tests are a great place to experiment with all kinds of use-cases for our applications.
+
 
 Functional Tests for Your Controllers
 -------------------------------------
@@ -515,14 +651,31 @@ You should test for things such as:
 * was the correct object stored in the response template?
 * was the appropriate message displayed to the user in the view?
 
-Now that we have used Rails scaffold generator for our `Article` resource, it has already created the controller code and tests. You can take look at the file `articles_controller_test.rb` in the `test/controllers` directory.
+The easiest way to see functional tests in action is to generate a controller
+scaffold:
 
-The following command will generate a controller test case with a filled up
-test for each of the seven default actions.
+```bash
+$ bin/rails generate scaffold_controller article title:string body:test
+...
+create  app/controllers/articles_controller.rb
+...
+invoke  test_unit
+create    test/controllers/articles_controller_test.rb
+...
+```
+
+This will generate the controller code and tests for an `Article` resource.
+You can take look at the file `articles_controller_test.rb` in the `test/controllers` directory.
+
+If you already have a controller and just want to generate the test scaffold code for
+each of the seven default actions, you can use the following command:
 
 ```bash
 $ bin/rails generate test_unit:scaffold article
+...
+invoke  test_unit
 create test/controllers/articles_controller_test.rb
+...
 ```
 
 Let me take you through one such test, `test_should_get_index` from the file `articles_controller_test.rb`.
@@ -530,7 +683,7 @@ Let me take you through one such test, `test_should_get_index` from the file `ar
 ```ruby
 # articles_controller_test.rb
 class ArticlesControllerTest < ActionController::TestCase
-  test_should_get_index do
+  test "should get index" do
     get :index
     assert_response :success
     assert_includes @response.body, 'Articles'
@@ -572,7 +725,7 @@ NOTE: If you try running `test_should_create_article` test from `articles_contro
 Let us modify `test_should_create_article` test in `articles_controller_test.rb` so that all our test pass:
 
 ```ruby
-test_should_create_article do
+test "should create article" do
   assert_difference('Article.count') do
     post :create, params: { article: { title: 'Some title' } }
   end
@@ -616,9 +769,9 @@ end
 
 After a request has been made and processed, you will have 3 Hash objects ready for use:
 
-* `cookies` - Any cookies that are set.
-* `flash` - Any objects living in the flash.
-* `session` - Any object living in session variables.
+* `cookies` - Any cookies that are set
+* `flash` - Any objects living in the flash
+* `session` - Any object living in session variables
 
 As is the case with normal Hash objects, you can access the values by referencing the keys by string. You can also reference them by symbol name. For example:
 
@@ -663,7 +816,7 @@ successfully creates a new Article.
 Let's start by adding this assertion to our `test_should_create_article` test:
 
 ```ruby
-test_should_create_article do
+test "should create article" do
   assert_difference('Article.count') do
     post :create, params: { article: { title: 'Some title' } }
   end
@@ -774,12 +927,12 @@ require 'test_helper'
 
 class ArticlesControllerTest < ActionController::TestCase
   # called before every single test
-  def setup
+  setup do
     @article = articles(:one)
   end
 
   # called after every single test
-  def teardown
+  teardown do
     # when controller is using cache it may be a good idea to reset it afterwards
     Rails.cache.clear
   end
@@ -844,33 +997,7 @@ end
 Testing Routes
 --------------
 
-Like everything else in your Rails application, it is recommended that you test your routes. Below are example tests for the routes of default `show` and `create` action of `Articles` controller above and it should look like:
-
-```ruby
-class ArticleRoutesTest < ActionController::TestCase
-  test "should route to article" do
-    assert_routing '/articles/1', { controller: "articles", action: "show", id: "1" }
-  end
-
-  test "should route to create article" do
-    assert_routing({ method: 'post', path: '/articles' }, { controller: "articles", action: "create" })
-  end
-end
-```
-
-I've added this file here `test/controllers/articles_routes_test.rb` and if we run the test we should see:
-
-```bash
-$ bin/rails test test/controllers/articles_routes_test.rb
-
-# Running:
-
-..
-
-Finished in 0.069381s, 28.8263 runs/s, 86.4790 assertions/s.
-
-2 runs, 6 assertions, 0 failures, 0 errors, 0 skips
-```
+Like everything else in your Rails application, you can test your routes.
 
 For more information on routing assertions available in Rails, see the API documentation for [`ActionDispatch::Assertions::RoutingAssertions`](http://api.rubyonrails.org/classes/ActionDispatch/Assertions/RoutingAssertions.html).
 
@@ -960,8 +1087,6 @@ have to use a mixin like this:
 
 ```ruby
 class UserHelperTest < ActionView::TestCase
-  include UserHelper
-
   test "should return the user name" do
     # ...
   end
@@ -970,118 +1095,6 @@ end
 
 Moreover, since the test class extends from `ActionView::TestCase`, you have
 access to Rails' helper methods such as `link_to` or `pluralize`.
-
-Integration Testing
--------------------
-
-Integration tests are used to test how various parts of your application interact. They are generally used to test important work flows within your application.
-
-For creating Rails integration tests, we use the 'test/integration' directory for your application. Rails provides a generator to create an integration test skeleton for you.
-
-```bash
-$ bin/rails generate integration_test user_flows
-      exists  test/integration/
-      create  test/integration/user_flows_test.rb
-```
-
-Here's what a freshly-generated integration test looks like:
-
-```ruby
-require 'test_helper'
-
-class UserFlowsTest < ActionDispatch::IntegrationTest
-  # test "the truth" do
-  #   assert true
-  # end
-end
-```
-
-Inheriting from `ActionDispatch::IntegrationTest` comes with some advantages. This makes available some additional helpers to use in your integration tests.
-
-### Helpers Available for Integration Tests
-
-In addition to the standard testing helpers, inheriting `ActionDispatch::IntegrationTest` comes with some additional helpers available when writing integration tests. Let's briefly introduce you to the three categories of helpers you get to choose from.
-
-For dealing with the integration test runner, see [`ActionDispatch::Integration::Runner`](http://api.rubyonrails.org/classes/ActionDispatch/Integration/Runner.html).
-
-When performing requests, you will have [`ActionDispatch::Integration::RequestHelpers`](http://api.rubyonrails.org/classes/ActionDispatch/Integration/RequestHelpers.html) available for your use.
-
-If you'd like to modify the session, or state of your integration test you should look for [`ActionDispatch::Integration::Session`](http://api.rubyonrails.org/classes/ActionDispatch/Integration/Session.html) to help.
-
-### Implementing an integration test
-
-Let's add an integration test to our blog application. We'll start with a basic workflow of creating a new blog article, to verify that everything is working properly.
-
-We'll start by generating our integration test skeleton:
-
-```bash
-$ bin/rails generate integration_test blog_flow
-```
-
-It should have created a test file placeholder for us, with the output of the previous command you should see:
-
-```bash
-      invoke  test_unit
-      create    test/integration/blog_flow_test.rb
-```
-
-Now let's open that file and write our first assertion:
-
-```ruby
-require 'test_helper'
-
-class BlogFlowTest < ActionDispatch::IntegrationTest
-  test "can see the welcome page" do
-    get "/"
-    assert_select "h1", "Welcome#index"
-  end
-end
-```
-
-If you remember from earlier in the "Testing Views" section we covered `assert_select` to query the resulting HTML of a request.
-
-When visit our root path, we should see `welcome/index.html.erb` rendered for the view. So this assertion should pass.
-
-#### Creating articles integration
-
-How about testing our ability to create a new article in our blog and see the resulting article.
-
-```ruby
-test "can create an article" do
-  get "/articles/new"
-  assert_response :success
-
-  post "/articles",
-    params: { article: { title: "can create", body: "article successfully." } }
-  assert_response :redirect
-  follow_redirect!
-  assert_response :success
-  assert_select "p", "Title:\n  can create"
-end
-```
-
-Let's break this test down so we can understand it.
-
-We start by calling the `:new` action on our Articles controller. This response should be successful.
-
-After this we make a post request to the `:create` action of our Articles controller:
-
-```ruby
-post "/articles",
-  params: { article: { title: "can create", body: "article successfully." } }
-assert_response :redirect
-follow_redirect!
-```
-
-The two lines following the request are to handle the redirect we setup when creating a new article.
-
-NOTE: Don't forget to call `follow_redirect!` if you plan to make subsequent requests after a redirect is made.
-
-Finally we can assert that our response was successful and our new article is readable on the page.
-
-#### Taking it further
-
-We were able to successfully test a very small workflow for visiting our blog and creating a new article. If we wanted to take this further we could add tests for commenting, removing articles, or editing comments. Integration tests are a great place to experiment with all kinds of use-cases for our applications.
 
 Testing Your Mailers
 --------------------
@@ -1121,10 +1134,13 @@ require 'test_helper'
 
 class UserMailerTest < ActionMailer::TestCase
   test "invite" do
+    # Create the email and store it for further assertions
+    email = UserMailer.create_invite('me@example.com',
+                                     'friend@example.com', Time.now)
+
     # Send the email, then test that it got queued
     assert_emails 1 do
-      email = UserMailer.create_invite('me@example.com',
-                                       'friend@example.com', Time.now).deliver_now
+      email.deliver_now
     end
 
     # Test the body of the sent email contains what we expect it to
@@ -1236,15 +1252,23 @@ class ProductTest < ActiveJob::TestCase
 end
 ```
 
-Other Testing Approaches
-------------------------
+Testing Time-Dependent Code
+---------------------------
 
-The built-in `minitest` based testing is not the only way to test Rails applications. Rails developers have come up with a wide variety of other approaches and aids for testing, including:
+Rails provides inbuilt helper methods that enable you to assert that your time-sensitve code works as expected.
 
-* [NullDB](http://avdi.org/projects/nulldb/), a way to speed up testing by avoiding database use.
-* [Factory Girl](https://github.com/thoughtbot/factory_girl/tree/master), a replacement for fixtures.
-* [Fixture Builder](https://github.com/rdy/fixture_builder), a tool that compiles Ruby factories into fixtures before a test run.
-* [MiniTest::Spec Rails](https://github.com/metaskills/minitest-spec-rails), use the MiniTest::Spec DSL within your rails tests.
-* [Shoulda](http://www.thoughtbot.com/projects/shoulda), an extension to `test/unit` with additional helpers, macros, and assertions.
-* [RSpec](http://relishapp.com/rspec), a behavior-driven development framework
-* [Capybara](http://jnicklas.github.com/capybara/), Acceptance test framework for web applications
+Here is an example using the [`travel_to`](http://api.rubyonrails.org/classes/ActiveSupport/Testing/TimeHelpers.html#method-i-travel_to) helper:
+
+```ruby
+# Lets say that a user is eligible for gifting a month after they register.
+user = User.create(name: 'Gaurish', activation_date: Date.new(2004, 10, 24))
+assert_not user.applicable_for_gifting?
+travel_to Date.new(2004, 11, 24) do
+  assert_equal Date.new(2004, 10, 24), user.activation_date # inside the travel_to block `Date.current` is mocked
+  assert user.applicable_for_gifting?
+end
+assert_equal Date.new(2004, 10, 24), user.activation_date # The change was visible only inside the `travel_to` block.
+```
+
+Please see [`ActiveSupport::TimeHelpers` API Documentation](http://api.rubyonrails.org/classes/ActiveSupport/Testing/TimeHelpers.html)
+for in-depth information about the available time helpers.

@@ -9,7 +9,7 @@ class ActiveJobTestCaseTest < ActiveJob::TestCase
   # the `class_attribute` inheritance
   class TestClassAttributeInheritanceJob < ActiveJob::Base
     def self.queue_adapter=(*)
-      raise 'Attemping to break `class_attribute` inheritance, bad!'
+      raise 'Attempting to break `class_attribute` inheritance, bad!'
     end
   end
 

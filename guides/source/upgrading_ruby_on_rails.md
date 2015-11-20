@@ -55,23 +55,26 @@ Upgrading from Rails 4.2 to Rails 5.0
 
 ### Halting callback chains by returning `false`
 
-In Rails 4.2, when a 'before' callback returns `false` in ActiveRecord,
-ActiveModel and ActiveModel::Validations, then the entire callback chain
-is halted. In other words, successive 'before' callbacks are not executed,
-and neither is the action wrapped in callbacks.
+In Rails 4.2, when a 'before' callback returns `false` in Active Record
+and Active Model, then the entire callback chain is halted. In other words,
+successive 'before' callbacks are not executed, and neither is the action wrapped
+in callbacks.
 
-In Rails 5.0, returning `false` in a callback will not have this side effect
-of halting the callback chain. Instead, callback chains must be explicitly
-halted by calling `throw(:abort)`.
+In Rails 5.0, returning `false` in an Active Record or Active Model callback
+will not have this side effect of halting the callback chain. Instead, callback
+chains must be explicitly halted by calling `throw(:abort)`.
 
-When you upgrade from Rails 4.2 to Rails 5.0, returning `false` in a callback
-will still halt the callback chain, but you will receive a deprecation warning
-about this upcoming change.
+When you upgrade from Rails 4.2 to Rails 5.0, returning `false` in those kind of
+callbacks will still halt the callback chain, but you will receive a deprecation
+warning about this upcoming change.
 
 When you are ready, you can opt into the new behavior and remove the deprecation
 warning by adding the following configuration to your `config/application.rb`:
 
-    config.active_support.halt_callback_chains_on_return_false = false
+    ActiveSupport.halt_callback_chains_on_return_false = false
+
+Note that this option will not affect Active Support callbacks since they never
+halted the chain when any value was returned.
 
 See [#17227](https://github.com/rails/rails/pull/17227) for more details.
 
@@ -314,11 +317,11 @@ Upgrading from Rails 4.0 to Rails 4.1
 
 ### CSRF protection from remote `<script>` tags
 
-Or, "whaaat my tests are failing!!!?"
+Or, "whaaat my tests are failing!!!?" or "my `<script>` widget is busted!!"
 
 Cross-site request forgery (CSRF) protection now covers GET requests with
-JavaScript responses, too. This prevents a third-party site from referencing
-your JavaScript URL and attempting to run it to extract sensitive data.
+JavaScript responses, too. This prevents a third-party site from remotely
+referencing your JavaScript with a `<script>` tag to extract sensitive data.
 
 This means that your functional and integration tests that use
 
@@ -334,8 +337,9 @@ xhr :get, :index, format: :js
 
 to explicitly test an `XmlHttpRequest`.
 
-If you really mean to load JavaScript from remote `<script>` tags, skip CSRF
-protection on that action.
+Note: Your own `<script>` tags are treated as cross-origin and blocked by
+default, too. If you really mean to load JavaScript from `<script>` tags,
+you must now explicitly skip CSRF protection on those actions.
 
 ### Spring
 
@@ -895,7 +899,7 @@ CatalogProduct < ActiveRecord::Base
 end
 ```
 
-* Note that the the prefix takes scopes into account as well, so relations between `Catalog::Category` and `Catalog::Product` or `Catalog::Category` and `CatalogProduct` need to be updated similarly.
+* Note that the prefix takes scopes into account as well, so relations between `Catalog::Category` and `Catalog::Product` or `Catalog::Category` and `CatalogProduct` need to be updated similarly.
 
 ### Active Resource
 
@@ -1086,7 +1090,7 @@ config.active_record.auto_explain_threshold_in_seconds = 0.5
 
 ### config/environments/test.rb
 
-The `mass_assignment_sanitizer` configuration setting should also be be added to `config/environments/test.rb`:
+The `mass_assignment_sanitizer` configuration setting should also be added to `config/environments/test.rb`:
 
 ```ruby
 # Raise exception on mass assignment protection for Active Record models
@@ -1187,8 +1191,10 @@ You can help test performance with these additions to your test environment:
 
 ```ruby
 # Configure static asset server for tests with Cache-Control for performance
-config.serve_static_files = true
-config.static_cache_control = 'public, max-age=3600'
+config.public_file_server.enabled = true
+config.public_file_server.headers = {
+  'Cache-Control' => 'public, max-age=3600'
+}
 ```
 
 ### config/initializers/wrap_parameters.rb

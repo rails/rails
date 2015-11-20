@@ -3,16 +3,23 @@ require 'active_support/core_ext/hash'
 module ActiveJob
   # Raised when an exception is raised during job arguments deserialization.
   #
-  # Wraps the original exception raised as +original_exception+.
+  # Wraps the original exception raised as +cause+.
   class DeserializationError < StandardError
+    def initialize(e = nil) #:nodoc:
+      if e
+        ActiveSupport::Deprecation.warn("Passing #original_exception is deprecated and has no effect. " \
+                                        "Exceptions will automatically capture the original exception.", caller)
+      end
+
+      super("Error while trying to deserialize arguments: #{$!.message}")
+      set_backtrace $!.backtrace
+    end
+
     # The original exception that was raised during deserialization of job
     # arguments.
-    attr_reader :original_exception
-
-    def initialize(e) #:nodoc:
-      super("Error while trying to deserialize arguments: #{e.message}")
-      @original_exception = e
-      set_backtrace e.backtrace
+    def original_exception
+      ActiveSupport::Deprecation.warn("#original_exception is deprecated. Use #cause instead.", caller)
+      cause
     end
   end
 
@@ -41,8 +48,8 @@ module ActiveJob
     # All other types are deserialized using GlobalID.
     def deserialize(arguments)
       arguments.map { |argument| deserialize_argument(argument) }
-    rescue => e
-      raise DeserializationError.new(e)
+    rescue
+      raise DeserializationError
     end
 
     private

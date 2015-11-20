@@ -18,9 +18,9 @@ module ActiveRecord
         spec.merge!(prepare_column_options(column).delete_if { |key, _| [:name, :type].include?(key) })
       end
 
-      # This can be overridden on a Adapter level basis to support other
+      # This can be overridden on an Adapter level basis to support other
       # extended datatypes (Example: Adding an array option in the
-      # PostgreSQLAdapter)
+      # PostgreSQL::ColumnDumper)
       def prepare_column_options(column)
         spec = {}
         spec[:name]      = column.name.inspect

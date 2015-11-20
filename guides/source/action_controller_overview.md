@@ -810,7 +810,7 @@ The [Security Guide](security.html) has more about this and a lot of other secur
 The Request and Response Objects
 --------------------------------
 
-In every controller there are two accessor methods pointing to the request and the response objects associated with the request cycle that is currently in execution. The `request` method contains an instance of `AbstractRequest` and the `response` method returns a response object representing what is going to be sent back to the client.
+In every controller there are two accessor methods pointing to the request and the response objects associated with the request cycle that is currently in execution. The `request` method contains an instance of `ActionDispatch::Request` and the `response` method returns a response object representing what is going to be sent back to the client.
 
 ### The `request` Object
 
@@ -1029,7 +1029,7 @@ There are a couple of things to notice in the above example. We need to make
 sure to close the response stream. Forgetting to close the stream will leave
 the socket open forever. We also have to set the content type to `text/event-stream`
 before we write to the response stream. This is because headers cannot be written
-after the response has been committed (when `response.committed` returns a truthy
+after the response has been committed (when `response.committed?` returns a truthy
 value), which occurs when you `write` or `commit` the response stream.
 
 #### Example Usage
@@ -1114,11 +1114,11 @@ Rescue
 
 Most likely your application is going to contain bugs or otherwise throw an exception that needs to be handled. For example, if the user follows a link to a resource that no longer exists in the database, Active Record will throw the `ActiveRecord::RecordNotFound` exception.
 
-Rails' default exception handling displays a "500 Server Error" message for all exceptions. If the request was made locally, a nice traceback and some added information gets displayed so you can figure out what went wrong and deal with it. If the request was remote Rails will just display a simple "500 Server Error" message to the user, or a "404 Not Found" if there was a routing error or a record could not be found. Sometimes you might want to customize how these errors are caught and how they're displayed to the user. There are several levels of exception handling available in a Rails application:
+Rails default exception handling displays a "500 Server Error" message for all exceptions. If the request was made locally, a nice traceback and some added information gets displayed so you can figure out what went wrong and deal with it. If the request was remote Rails will just display a simple "500 Server Error" message to the user, or a "404 Not Found" if there was a routing error or a record could not be found. Sometimes you might want to customize how these errors are caught and how they're displayed to the user. There are several levels of exception handling available in a Rails application:
 
 ### The Default 500 and 404 Templates
 
-By default a production application will render either a 404 or a 500 error message. These messages are contained in static HTML files in the `public` folder, in `404.html` and `500.html` respectively. You can customize these files to add some extra information and layout, but remember that they are static; i.e. you can't use RHTML or layouts in them, just plain HTML.
+By default a production application will render either a 404 or a 500 error message. These messages are contained in static HTML files in the `public` folder, in `404.html` and `500.html` respectively. You can customize these files to add some extra information and style, but remember that they are static HTML; i.e. you can't use ERB, SCSS, CoffeeScript, or layouts for them.
 
 ### `rescue_from`
 
@@ -1174,7 +1174,7 @@ end
 
 WARNING: You shouldn't do `rescue_from Exception` or `rescue_from StandardError` unless you have a particular reason as it will cause serious side-effects (e.g. you won't be able to see exception details and tracebacks during development).
 
-NOTE: Certain exceptions are only rescuable from the `ApplicationController` class, as they are raised before the controller gets initialized and the action gets executed. See Pratik Naik's [article](http://m.onkey.org/2008/7/20/rescue-from-dispatching) on the subject for more information.
+NOTE: Certain exceptions are only rescuable from the `ApplicationController` class, as they are raised before the controller gets initialized and the action gets executed. 
 
 Force HTTPS protocol
 --------------------

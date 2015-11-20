@@ -31,12 +31,11 @@ module ActiveModel
   # of the attributes hash's keys. In order to override this behavior, take a look
   # at the private method +read_attribute_for_serialization+.
   #
-  # Most of the time though, either the JSON or XML serializations are needed.
-  # Both of these modules automatically include the
-  # <tt>ActiveModel::Serialization</tt> module, so there is no need to
-  # explicitly include it.
+  # ActiveModel::Serializers::JSON module automatically includes
+  # the <tt>ActiveModel::Serialization</tt> module, so there is no need to
+  # explicitly include <tt>ActiveModel::Serialization</tt>.
   #
-  # A minimal implementation including XML and JSON would be:
+  # A minimal implementation including JSON would be:
   #
   #   class Person
   #     include ActiveModel::Serializers::JSON

@@ -1,6 +1,6 @@
 module ActiveRecord
   module TypeCaster
-    class Connection
+    class Connection # :nodoc:
       def initialize(klass, table_name)
         @klass = klass
         @table_name = table_name
@@ -20,7 +20,7 @@ module ActiveRecord
       private
 
       def column_for(attribute_name)
-        if connection.schema_cache.table_exists?(table_name)
+        if connection.schema_cache.data_source_exists?(table_name)
           connection.schema_cache.columns_hash(table_name)[attribute_name.to_s]
         end
       end

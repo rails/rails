@@ -1,6 +1,6 @@
 require 'set'
 require 'thread'
-require 'thread_safe'
+require 'concurrent/map'
 require 'pathname'
 require 'active_support/core_ext/module/aliasing'
 require 'active_support/core_ext/module/attribute_accessors'
@@ -25,21 +25,21 @@ module ActiveSupport #:nodoc:
     # :doc:
 
     # Execute the supplied block without interference from any
-    # concurrent loads
+    # concurrent loads.
     def self.run_interlock
       Dependencies.interlock.running { yield }
     end
 
     # Execute the supplied block while holding an exclusive lock,
     # preventing any other thread from being inside a #run_interlock
-    # block at the same time
+    # block at the same time.
     def self.load_interlock
       Dependencies.interlock.loading { yield }
     end
 
     # Execute the supplied block while holding an exclusive lock,
     # preventing any other thread from being inside a #run_interlock
-    # block at the same time
+    # block at the same time.
     def self.unload_interlock
       Dependencies.interlock.unloading { yield }
     end
@@ -421,13 +421,13 @@ module ActiveSupport #:nodoc:
 
       bases.each do |root|
         expanded_root = File.expand_path(root)
-        next unless %r{\A#{Regexp.escape(expanded_root)}(/|\\)} =~ expanded_path
+        next unless expanded_path.start_with?(expanded_root)
 
-        nesting = expanded_path[(expanded_root.size)..-1]
-        nesting = nesting[1..-1] if nesting && nesting[0] == ?/
-        next if nesting.blank?
+        root_size = expanded_root.size
+        next if expanded_path[root_size] != ?/.freeze
 
-        paths << nesting.camelize
+        nesting = expanded_path[(root_size + 1)..-1]
+        paths << nesting.camelize unless nesting.blank?
       end
 
       paths.uniq!
@@ -585,7 +585,7 @@ module ActiveSupport #:nodoc:
 
     class ClassCache
       def initialize
-        @store = ThreadSafe::Cache.new
+        @store = Concurrent::Map.new
       end
 
       def empty?

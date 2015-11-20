@@ -1,5 +1,5 @@
 require 'action_view/renderer/partial_renderer/collection_caching'
-require 'thread_safe'
+require 'concurrent/map'
 
 module ActionView
   class PartialIteration
@@ -283,8 +283,8 @@ module ActionView
   class PartialRenderer < AbstractRenderer
     include CollectionCaching
 
-    PREFIXED_PARTIAL_NAMES = ThreadSafe::Cache.new do |h, k|
-      h[k] = ThreadSafe::Cache.new
+    PREFIXED_PARTIAL_NAMES = Concurrent::Map.new do |h, k|
+      h[k] = Concurrent::Map.new
     end
 
     def initialize(*)
@@ -337,7 +337,7 @@ module ActionView
         layout = find_template(layout.to_s, @template_keys)
       end
 
-      object ||= locals[as]
+      object = locals[as] if object.nil? # Respect object when object is false
       locals[as] = object if @has_object
 
       content = @template.render(view, locals) do |*name|

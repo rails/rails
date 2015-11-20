@@ -1,8 +1,8 @@
 require 'erubis'
-require 'set'
 require 'active_support/configurable'
 require 'active_support/descendants_tracker'
 require 'active_support/core_ext/module/anonymous'
+require 'active_support/core_ext/module/attr_internal'
 
 module AbstractController
   class Error < StandardError #:nodoc:
@@ -149,7 +149,7 @@ module AbstractController
     # ==== Parameters
     # * <tt>action_name</tt> - The name of an action to be tested
     def available_action?(action_name)
-      _find_action_name(action_name).present?
+      _find_action_name(action_name)
     end
 
     # Returns true if the given controller is capable of rendering

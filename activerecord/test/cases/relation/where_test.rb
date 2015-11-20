@@ -276,5 +276,35 @@ module ActiveRecord
 
       assert_equal essays(:david_modest_proposal), essay
     end
+
+    def test_where_with_strong_parameters
+      protected_params = Class.new do
+        attr_reader :permitted
+        alias :permitted? :permitted
+
+        def initialize(parameters)
+          @parameters = parameters
+          @permitted = false
+        end
+
+        def to_h
+          @parameters
+        end
+
+        def permit!
+          @permitted = true
+          self
+        end
+      end
+
+      author = authors(:david)
+      params = protected_params.new(name: author.name)
+      assert_raises(ActiveModel::ForbiddenAttributesError) { Author.where(params) }
+      assert_equal author, Author.where(params.permit!).first
+    end
+
+    def test_where_with_unsupported_arguments
+      assert_raises(ArgumentError) { Author.where(42) }
+    end
   end
 end

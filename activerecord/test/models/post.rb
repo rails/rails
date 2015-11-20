@@ -185,6 +185,7 @@ class SubStiPost < StiPost
 end
 
 class FirstPost < ActiveRecord::Base
+  self.inheritance_column = :disabled
   self.table_name = 'posts'
   default_scope { where(:id => 1) }
 
@@ -193,6 +194,7 @@ class FirstPost < ActiveRecord::Base
 end
 
 class PostWithDefaultInclude < ActiveRecord::Base
+  self.inheritance_column = :disabled
   self.table_name = 'posts'
   default_scope { includes(:comments) }
   has_many :comments, :foreign_key => :post_id
@@ -204,6 +206,7 @@ class PostWithSpecialCategorization < Post
 end
 
 class PostWithDefaultScope < ActiveRecord::Base
+  self.inheritance_column = :disabled
   self.table_name = 'posts'
   default_scope { order(:title) }
 end
@@ -225,11 +228,13 @@ class PostWithIncludesDefaultScope < ActiveRecord::Base
 end
 
 class SpecialPostWithDefaultScope < ActiveRecord::Base
+  self.inheritance_column = :disabled
   self.table_name = 'posts'
   default_scope { where(:id => [1, 5,6]) }
 end
 
 class PostThatLoadsCommentsInAnAfterSaveHook < ActiveRecord::Base
+  self.inheritance_column = :disabled
   self.table_name = 'posts'
   has_many :comments, class_name: "CommentThatAutomaticallyAltersPostBody", foreign_key: :post_id
 
@@ -239,6 +244,7 @@ class PostThatLoadsCommentsInAnAfterSaveHook < ActiveRecord::Base
 end
 
 class PostWithAfterCreateCallback < ActiveRecord::Base
+  self.inheritance_column = :disabled
   self.table_name = 'posts'
   has_many :comments, foreign_key: :post_id
 
@@ -248,6 +254,7 @@ class PostWithAfterCreateCallback < ActiveRecord::Base
 end
 
 class PostWithCommentWithDefaultScopeReferencesAssociation < ActiveRecord::Base
+  self.inheritance_column = :disabled
   self.table_name = 'posts'
   has_many :comment_with_default_scope_references_associations, foreign_key: :post_id
   has_one :first_comment, class_name: "CommentWithDefaultScopeReferencesAssociation", foreign_key: :post_id

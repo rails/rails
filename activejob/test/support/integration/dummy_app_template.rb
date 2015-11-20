@@ -1,7 +1,8 @@
 if ENV['AJ_ADAPTER'] == 'delayed_job'
   generate "delayed_job:active_record", "--quiet"
-  rake("db:migrate")
 end
+
+rake("db:migrate")
 
 initializer 'activejob.rb', <<-CODE
 require "#{File.expand_path("../jobs_manager.rb",  __FILE__)}"

@@ -14,38 +14,30 @@ module ActiveRecord
         @db_name    = db
 
         @omgpost = Class.new(ActiveRecord::Base) do
+          self.inheritance_column = :disabled
           self.table_name = "#{db}.#{table}"
           def self.name; 'Post'; end
         end
-
-        @connection.create_table "mysql_doubles"
-      end
-
-      teardown do
-        @connection.drop_table "mysql_doubles", if_exists: true
-      end
-
-      class MysqlDouble < ActiveRecord::Base
-        self.table_name = "mysql_doubles"
       end
 
       def test_float_limits
-        @connection.add_column :mysql_doubles, :float_no_limit, :float
-        @connection.add_column :mysql_doubles, :float_short, :float, limit: 5
-        @connection.add_column :mysql_doubles, :float_long, :float, limit: 53
+        @connection.create_table :mysql_doubles do |t|
+          t.float :float_no_limit
+          t.float :float_short, limit: 5
+          t.float :float_long, limit: 53
 
-        @connection.add_column :mysql_doubles, :float_23, :float, limit: 23
-        @connection.add_column :mysql_doubles, :float_24, :float, limit: 24
-        @connection.add_column :mysql_doubles, :float_25, :float, limit: 25
-        MysqlDouble.reset_column_information
+          t.float :float_23, limit: 23
+          t.float :float_24, limit: 24
+          t.float :float_25, limit: 25
+        end
 
-        column_no_limit = MysqlDouble.columns.find { |c| c.name == 'float_no_limit' }
-        column_short = MysqlDouble.columns.find { |c| c.name == 'float_short' }
-        column_long = MysqlDouble.columns.find { |c| c.name == 'float_long' }
+        column_no_limit = @connection.columns(:mysql_doubles).find { |c| c.name == 'float_no_limit' }
+        column_short = @connection.columns(:mysql_doubles).find { |c| c.name == 'float_short' }
+        column_long = @connection.columns(:mysql_doubles).find { |c| c.name == 'float_long' }
 
-        column_23 = MysqlDouble.columns.find { |c| c.name == 'float_23' }
-        column_24 = MysqlDouble.columns.find { |c| c.name == 'float_24' }
-        column_25 = MysqlDouble.columns.find { |c| c.name == 'float_25' }
+        column_23 = @connection.columns(:mysql_doubles).find { |c| c.name == 'float_23' }
+        column_24 = @connection.columns(:mysql_doubles).find { |c| c.name == 'float_24' }
+        column_25 = @connection.columns(:mysql_doubles).find { |c| c.name == 'float_25' }
 
         # Mysql floats are precision 0..24, Mysql doubles are precision 25..53
         assert_equal 24, column_no_limit.limit
@@ -55,6 +47,8 @@ module ActiveRecord
         assert_equal 24, column_23.limit
         assert_equal 24, column_24.limit
         assert_equal 53, column_25.limit
+      ensure
+        @connection.drop_table "mysql_doubles", if_exists: true
       end
 
       def test_schema
@@ -65,13 +59,13 @@ module ActiveRecord
         assert_equal 'id', @omgpost.primary_key
       end
 
-      def test_table_exists?
+      def test_data_source_exists?
         name = @omgpost.table_name
-        assert @connection.table_exists?(name), "#{name} table should exist"
+        assert @connection.data_source_exists?(name), "#{name} data_source should exist"
       end
 
-      def test_table_exists_wrong_schema
-        assert(!@connection.table_exists?("#{@db_name}.zomg"), "table should not exist")
+      def test_data_source_exists_wrong_schema
+        assert(!@connection.data_source_exists?("#{@db_name}.zomg"), "data_source should not exist")
       end
 
       def test_dump_indexes

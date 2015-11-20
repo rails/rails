@@ -31,7 +31,7 @@ module ActiveRecord
       # This is due to the way Object#blank? handles boolean values:
       # <tt>false.blank? # => true</tt>.
       #
-      # This validator defers to the ActiveModel validation for presence, adding the
+      # This validator defers to the Active Model validation for presence, adding the
       # check to see that an associated object is not marked for destruction. This
       # prevents the parent object from validating successfully and saving, which then
       # deletes the associated object, thus putting the parent object into an invalid
@@ -39,7 +39,8 @@ module ActiveRecord
       #
       # NOTE: This validation will not fail while using it with an association
       # if the latter was assigned but not valid. If you want to ensure that
-      # it is both present and valid, you also need to use +validates_associated+.
+      # it is both present and valid, you also need to use
+      # {validates_associated}[rdoc-ref:Validations::ClassMethods#validates_associated].
       #
       # Configuration options:
       # * <tt>:message</tt> - A custom error message (default is: "can't be blank").
@@ -57,7 +58,7 @@ module ActiveRecord
       #   or <tt>unless: Proc.new { |user| user.signup_step <= 2 }</tt>). The method,
       #   proc or string should return or evaluate to a +true+ or +false+ value.
       # * <tt>:strict</tt> - Specifies whether validation should be strict.
-      #   See <tt>ActiveModel::Validation#validates!</tt> for more information.
+      #   See ActiveModel::Validation#validates! for more information.
       def validates_presence_of(*attr_names)
         validates_with PresenceValidator, _merge_attributes(attr_names)
       end

@@ -169,7 +169,7 @@ directory. Files in this directory are served by the Sprockets middleware.
 
 Assets can still be placed in the `public` hierarchy. Any assets under `public`
 will be served as static files by the application or web server when
-`config.serve_static_files` is set to true. You should use `app/assets` for
+`config.public_file_server.enabled` is set to true. You should use `app/assets` for
 files that must undergo some pre-processing before they are served.
 
 In production, Rails precompiles these files to `public/assets` by default. The
@@ -662,7 +662,7 @@ generates something like this:
 rel="stylesheet" />
 ```
 
-Note: with the Asset Pipeline the :cache and :concat options aren't used
+NOTE: with the Asset Pipeline the `:cache` and `:concat` options aren't used
 anymore, delete these options from the `javascript_include_tag` and
 `stylesheet_link_tag`.
 
@@ -1021,7 +1021,7 @@ header](http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.9) is a W3C
 specification that describes how a request can be cached. When no CDN is used, a
 browser will use this information to cache contents. This is very helpful for
 assets that are not modified so that a browser does not need to re-download a
-website's CSS or javascript on every request. Generally we want our Rails server
+website's CSS or JavaScript on every request. Generally we want our Rails server
 to tell our CDN (and browser) that the asset is "public", that means any cache
 can store the request. Also we commonly want to set `max-age` which is how long
 the cache will store the object before invalidating the cache. The `max-age`
@@ -1029,7 +1029,9 @@ value is set to seconds with a maximum possible value of `31536000` which is one
 year. You can do this in your rails application by setting
 
 ```
-config.static_cache_control = "public, max-age=31536000"
+config.public_file_server.headers = {
+  'Cache-Control' => 'public, max-age=31536000'
+}
 ```
 
 Now when your application serves an asset in production, the CDN will store the

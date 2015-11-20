@@ -1,4 +1,3 @@
-
 require "cases/helper"
 require 'support/ddl_helper'
 
@@ -66,40 +65,8 @@ module ActiveRecord
         end
       end
 
-      def test_tables_quoting
-        @conn.tables(nil, "foo-bar", nil)
-        flunk
-      rescue => e
-        # assertion for *quoted* database properly
-        assert_match(/database 'foo-bar'/, e.inspect)
-      end
-
-      def test_pk_and_sequence_for
-        with_example_table do
-          pk, seq = @conn.pk_and_sequence_for('ex')
-          assert_equal 'id', pk
-          assert_equal @conn.default_sequence_name('ex', 'id'), seq
-        end
-      end
-
-      def test_pk_and_sequence_for_with_non_standard_primary_key
-        with_example_table '`code` INT(11) auto_increment, PRIMARY KEY (`code`)' do
-          pk, seq = @conn.pk_and_sequence_for('ex')
-          assert_equal 'code', pk
-          assert_equal @conn.default_sequence_name('ex', 'code'), seq
-        end
-      end
-
-      def test_pk_and_sequence_for_with_custom_index_type_pk
-        with_example_table '`id` INT(11) auto_increment, PRIMARY KEY USING BTREE (`id`)' do
-          pk, seq = @conn.pk_and_sequence_for('ex')
-          assert_equal 'id', pk
-          assert_equal @conn.default_sequence_name('ex', 'id'), seq
-        end
-      end
-
       def test_composite_primary_key
-        with_example_table '`id` INT(11), `number` INT(11), foo INT(11), PRIMARY KEY (`id`, `number`)' do
+        with_example_table '`id` INT, `number` INT, foo INT, PRIMARY KEY (`id`, `number`)' do
           assert_nil @conn.primary_key('ex')
         end
       end
@@ -141,7 +108,7 @@ module ActiveRecord
 
       def with_example_table(definition = nil, &block)
         definition ||= <<-SQL
-          `id` int(11) auto_increment PRIMARY KEY,
+          `id` int auto_increment PRIMARY KEY,
           `number` integer,
           `data` varchar(255)
         SQL

@@ -21,6 +21,12 @@ module ApplicationTests
       assert_equal 200, last_response.status
     end
 
+    test "rails/info in development" do
+      app("development")
+      get "/rails/info"
+      assert_equal 302, last_response.status
+    end
+
     test "rails/info/routes in development" do
       app("development")
       get "/rails/info/routes"
@@ -60,6 +66,12 @@ module ApplicationTests
     test "rails/welcome in production" do
       app("production")
       get "/"
+      assert_equal 404, last_response.status
+    end
+
+    test "rails/info in production" do
+      app("production")
+      get "/rails/info"
       assert_equal 404, last_response.status
     end
 

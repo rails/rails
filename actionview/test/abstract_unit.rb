@@ -16,6 +16,7 @@ silence_warnings do
 end
 
 require 'active_support/testing/autorun'
+require 'active_support/testing/method_call_assertions'
 require 'action_controller'
 require 'action_view'
 require 'action_view/testing/resolvers'
@@ -150,7 +151,6 @@ class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
       middleware.use ActionDispatch::ShowExceptions, ActionDispatch::PublicExceptions.new("#{FIXTURE_LOAD_PATH}/public")
       middleware.use ActionDispatch::DebugExceptions
       middleware.use ActionDispatch::Callbacks
-      middleware.use ActionDispatch::ParamsParser
       middleware.use ActionDispatch::Cookies
       middleware.use ActionDispatch::Flash
       middleware.use Rack::Head
@@ -281,3 +281,6 @@ def jruby_skip(message = '')
 end
 
 require 'mocha/setup' # FIXME: stop using mocha
+class ActiveSupport::TestCase
+  include ActiveSupport::Testing::MethodCallAssertions
+end

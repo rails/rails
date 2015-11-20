@@ -1,5 +1,4 @@
 require 'abstract_unit'
-require 'digest/sha1'
 require "active_support/log_subscriber/test_helper"
 
 # common controller actions
@@ -132,10 +131,7 @@ end
 # common test methods
 module RequestForgeryProtectionTests
   def setup
-    @token      = "cf50faa3fe97702ca1ae"
-    @controller.stubs(:form_authenticity_token).returns(@token)
-    @controller.stubs(:valid_authenticity_token?).with{ |_, t| t == @token }.returns(true)
-    @controller.stubs(:valid_authenticity_token?).with{ |_, t| t != @token }.returns(false)
+    @token = Base64.strict_encode64('railstestrailstestrailstestrails')
     @old_request_forgery_protection_token = ActionController::Base.request_forgery_protection_token
     ActionController::Base.request_forgery_protection_token = :custom_authenticity_token
   end
@@ -145,17 +141,21 @@ module RequestForgeryProtectionTests
   end
 
   def test_should_render_form_with_token_tag
-    assert_not_blocked do
-      get :index
+    @controller.stub :form_authenticity_token, @token do
+      assert_not_blocked do
+        get :index
+      end
+      assert_select 'form>input[name=?][value=?]', 'custom_authenticity_token', @token
     end
-    assert_select 'form>input[name=?][value=?]', 'custom_authenticity_token', @token
   end
 
   def test_should_render_button_to_with_token_tag
-    assert_not_blocked do
-      get :show_button
+    @controller.stub :form_authenticity_token, @token do
+      assert_not_blocked do
+        get :show_button
+      end
+      assert_select 'form>input[name=?][value=?]', 'custom_authenticity_token', @token
     end
-    assert_select 'form>input[name=?][value=?]', 'custom_authenticity_token', @token
   end
 
   def test_should_render_form_without_token_tag_if_remote
@@ -199,17 +199,21 @@ module RequestForgeryProtectionTests
   end
 
   def test_should_render_form_with_token_tag_if_remote_and_authenticity_token_requested
-    assert_not_blocked do
-      get :form_for_remote_with_token
+    @controller.stub :form_authenticity_token, @token do
+      assert_not_blocked do
+        get :form_for_remote_with_token
+      end
+      assert_select 'form>input[name=?][value=?]', 'custom_authenticity_token', @token
     end
-    assert_select 'form>input[name=?][value=?]', 'custom_authenticity_token', @token
   end
 
   def test_should_render_form_with_token_tag_with_authenticity_token_requested
-    assert_not_blocked do
-      get :form_for_with_token
+    @controller.stub :form_authenticity_token, @token do
+      assert_not_blocked do
+        get :form_for_with_token
+      end
+      assert_select 'form>input[name=?][value=?]', 'custom_authenticity_token', @token
     end
-    assert_select 'form>input[name=?][value=?]', 'custom_authenticity_token', @token
   end
 
   def test_should_allow_get
@@ -249,37 +253,53 @@ module RequestForgeryProtectionTests
   end
 
   def test_should_allow_post_with_token
-    assert_not_blocked { post :index, params: { custom_authenticity_token: @token } }
+    session[:_csrf_token] = @token
+    @controller.stub :form_authenticity_token, @token do
+      assert_not_blocked { post :index, params: { custom_authenticity_token: @token } }
+    end
   end
 
   def test_should_allow_patch_with_token
-    assert_not_blocked { patch :index, params: { custom_authenticity_token: @token } }
+    session[:_csrf_token] = @token
+    @controller.stub :form_authenticity_token, @token do
+      assert_not_blocked { patch :index, params: { custom_authenticity_token: @token } }
+    end
   end
 
   def test_should_allow_put_with_token
-    assert_not_blocked { put :index, params: { custom_authenticity_token: @token } }
+    session[:_csrf_token] = @token
+    @controller.stub :form_authenticity_token, @token do
+      assert_not_blocked { put :index, params: { custom_authenticity_token: @token } }
+    end
   end
 
   def test_should_allow_delete_with_token
-    assert_not_blocked { delete :index, params: { custom_authenticity_token: @token } }
+    session[:_csrf_token] = @token
+    @controller.stub :form_authenticity_token, @token do
+      assert_not_blocked { delete :index, params: { custom_authenticity_token: @token } }
+    end
   end
 
   def test_should_allow_post_with_token_in_header
+    session[:_csrf_token] = @token
     @request.env['HTTP_X_CSRF_TOKEN'] = @token
     assert_not_blocked { post :index }
   end
 
   def test_should_allow_delete_with_token_in_header
+    session[:_csrf_token] = @token
     @request.env['HTTP_X_CSRF_TOKEN'] = @token
     assert_not_blocked { delete :index }
   end
 
   def test_should_allow_patch_with_token_in_header
+    session[:_csrf_token] = @token
     @request.env['HTTP_X_CSRF_TOKEN'] = @token
     assert_not_blocked { patch :index }
   end
 
   def test_should_allow_put_with_token_in_header
+    session[:_csrf_token] = @token
     @request.env['HTTP_X_CSRF_TOKEN'] = @token
     assert_not_blocked { put :index }
   end
@@ -333,6 +353,7 @@ module RequestForgeryProtectionTests
 
   # Allow non-GET requests since GET is all a remote <script> tag can muster.
   def test_should_allow_non_get_js_without_xhr_header
+    session[:_csrf_token] = @token
     assert_cross_origin_not_blocked { post :same_origin_js, params: { custom_authenticity_token: @token } }
     assert_cross_origin_not_blocked { post :same_origin_js, params: { format: 'js', custom_authenticity_token: @token } }
     assert_cross_origin_not_blocked do
@@ -358,7 +379,6 @@ module RequestForgeryProtectionTests
   end
 
   def test_should_not_raise_error_if_token_is_not_a_string
-    @controller.unstub(:valid_authenticity_token?)
     assert_blocked do
       patch :index, params: { custom_authenticity_token: { foo: 'bar' } }
     end
@@ -402,11 +422,13 @@ class RequestForgeryProtectionControllerUsingResetSessionTest < ActionController
   end
 
   test 'should emit a csrf-param meta tag and a csrf-token meta tag' do
-    @controller.stubs(:form_authenticity_token).returns(@token + '<=?')
-    get :meta
-    assert_select 'meta[name=?][content=?]', 'csrf-param', 'custom_authenticity_token'
-    assert_select 'meta[name=?]', 'csrf-token'
-    assert_match(/cf50faa3fe97702ca1ae&lt;=\?/, @response.body)
+    @controller.stub :form_authenticity_token, @token + '<=?' do
+      get :meta
+      assert_select 'meta[name=?][content=?]', 'csrf-param', 'custom_authenticity_token'
+      assert_select 'meta[name=?]', 'csrf-token'
+      regexp = "#{@token}&lt;=\?"
+      assert_match(/#{regexp}/, @response.body)
+    end
   end
 end
 
@@ -485,30 +507,36 @@ class FreeCookieControllerTest < ActionController::TestCase
   def setup
     @controller = FreeCookieController.new
     @token      = "cf50faa3fe97702ca1ae"
-
-    SecureRandom.stubs(:base64).returns(@token)
     super
   end
 
   def test_should_not_render_form_with_token_tag
-    get :index
-    assert_select 'form>div>input[name=?][value=?]', 'authenticity_token', @token, false
+    SecureRandom.stub :base64, @token do
+      get :index
+      assert_select 'form>div>input[name=?][value=?]', 'authenticity_token', @token, false
+    end
   end
 
   def test_should_not_render_button_to_with_token_tag
-    get :show_button
-    assert_select 'form>div>input[name=?][value=?]', 'authenticity_token', @token, false
+    SecureRandom.stub :base64, @token do
+      get :show_button
+      assert_select 'form>div>input[name=?][value=?]', 'authenticity_token', @token, false
+    end
   end
 
   def test_should_allow_all_methods_without_token
-    [:post, :patch, :put, :delete].each do |method|
-      assert_nothing_raised { send(method, :index)}
+    SecureRandom.stub :base64, @token do
+      [:post, :patch, :put, :delete].each do |method|
+        assert_nothing_raised { send(method, :index)}
+      end
     end
   end
 
   test 'should not emit a csrf-token meta tag' do
-    get :meta
-    assert @response.body.blank?
+    SecureRandom.stub :base64, @token do
+      get :meta
+      assert @response.body.blank?
+    end
   end
 end
 
@@ -529,11 +557,11 @@ class CustomAuthenticityParamControllerTest < ActionController::TestCase
 
   def test_should_not_warn_if_form_authenticity_param_matches_form_authenticity_token
     ActionController::Base.logger = @logger
-    @controller.stubs(:valid_authenticity_token?).returns(:true)
-
     begin
-      post :index, params: { custom_token_name: 'foobar' }
-      assert_equal 0, @logger.logged(:warn).size
+      @controller.stub :valid_authenticity_token?, :true do
+        post :index, params: { custom_token_name: 'foobar' }
+        assert_equal 0, @logger.logged(:warn).size
+      end
     ensure
       ActionController::Base.logger = @old_logger
     end

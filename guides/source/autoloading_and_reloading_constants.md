@@ -790,7 +790,7 @@ Constant Reloading
 When `config.cache_classes` is false Rails is able to reload autoloaded
 constants.
 
-For example, in you're in a console session and edit some file behind the
+For example, if you're in a console session and edit some file behind the
 scenes, the code can be reloaded with the `reload!` command:
 
 ```

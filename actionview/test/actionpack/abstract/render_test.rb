@@ -1,5 +1,4 @@
 require 'abstract_unit'
-require 'active_support/deprecation'
 
 module AbstractController
   module Testing

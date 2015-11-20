@@ -20,7 +20,7 @@ module ActionView
       mattr_accessor :embed_authenticity_token_in_remote_forms
       self.embed_authenticity_token_in_remote_forms = false
 
-      # Starts a form tag that points the action to an url configured with <tt>url_for_options</tt> just like
+      # Starts a form tag that points the action to a url configured with <tt>url_for_options</tt> just like
       # ActionController::Base#url_for. The method for the form defaults to POST.
       #
       # ==== Options
@@ -414,34 +414,48 @@ module ActionView
       #   the form is processed normally, otherwise no action is taken.
       # * <tt>:disable_with</tt> - Value of this parameter will be used as the value for a
       #   disabled version of the submit button when the form is submitted. This feature is
-      #   provided by the unobtrusive JavaScript driver.
+      #   provided by the unobtrusive JavaScript driver. To disable this feature for a single submit tag
+      #   pass <tt>:data => { disable_with: false }</tt> Defaults to value attribute.
       #
       # ==== Examples
       #   submit_tag
-      #   # => <input name="commit" type="submit" value="Save changes" />
+      #   # => <input name="commit" data-disable-with="Save changes" type="submit" value="Save changes" />
       #
       #   submit_tag "Edit this article"
-      #   # => <input name="commit" type="submit" value="Edit this article" />
+      #   # => <input name="commit" data-disable-with="Edit this article" type="submit" value="Edit this article" />
       #
       #   submit_tag "Save edits", disabled: true
-      #   # => <input disabled="disabled" name="commit" type="submit" value="Save edits" />
+      #   # => <input disabled="disabled" name="commit" data-disable-with="Save edits" type="submit" value="Save edits" />
       #
-      #   submit_tag "Complete sale", data: { disable_with: "Please wait..." }
-      #   # => <input name="commit" data-disable-with="Please wait..." type="submit" value="Complete sale" />
+      #   submit_tag "Complete sale", data: { disable_with: "Submitting..." }
+      #   # => <input name="commit" data-disable-with="Submitting..." type="submit" value="Complete sale" />
       #
       #   submit_tag nil, class: "form_submit"
       #   # => <input class="form_submit" name="commit" type="submit" />
       #
       #   submit_tag "Edit", class: "edit_button"
-      #   # => <input class="edit_button" name="commit" type="submit" value="Edit" />
+      #   # => <input class="edit_button" data-disable-with="Edit" name="commit" type="submit" value="Edit" />
       #
       #   submit_tag "Save", data: { confirm: "Are you sure?" }
-      #   # => <input name='commit' type='submit' value='Save' data-confirm="Are you sure?" />
+      #   # => <input name='commit' type='submit' value='Save' data-disable-with="Save" data-confirm="Are you sure?" />
       #
       def submit_tag(value = "Save changes", options = {})
         options = options.stringify_keys
+        tag_options = { "type" => "submit", "name" => "commit", "value" => value }.update(options)
 
-        tag :input, { "type" => "submit", "name" => "commit", "value" => value }.update(options)
+        if ActionView::Base.automatically_disable_submit_tag
+          unless tag_options["data-disable-with"] == false || (tag_options["data"] && tag_options["data"][:disable_with] == false)
+            disable_with_text = tag_options["data-disable-with"]
+            disable_with_text ||= tag_options["data"][:disable_with] if tag_options["data"]
+            disable_with_text ||= value.clone
+            tag_options.deep_merge!("data" => { "disable_with" => disable_with_text })
+          else
+            tag_options["data"].delete(:disable_with) if tag_options["data"]
+          end
+          tag_options.delete("data-disable-with")
+        end
+
+        tag :input, tag_options
       end
 
       # Creates a button element that defines a <tt>submit</tt> button,

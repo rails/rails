@@ -6,6 +6,7 @@ Que::Job.class_eval do
     if args.last.is_a?(Hash)
       options = args.pop
       options.delete(:run_at)
+      options.delete(:priority)
       args << options unless options.empty?
     end
     self.run(*args)

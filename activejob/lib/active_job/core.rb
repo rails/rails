@@ -18,6 +18,9 @@ module ActiveJob
       # Queue in which the job will reside.
       attr_writer :queue_name
 
+      # Priority that the job will have (lower is more priority).
+      attr_writer :priority
+
       # ID optionally provided by adapter
       attr_accessor :provider_job_id
 
@@ -43,6 +46,7 @@ module ActiveJob
       # * <tt>:wait</tt> - Enqueues the job with the specified delay
       # * <tt>:wait_until</tt> - Enqueues the job at the time specified
       # * <tt>:queue</tt> - Enqueues the job on the specified queue
+      # * <tt>:priority</tt> - Enqueues the job with the specified priority
       #
       # ==== Examples
       #
@@ -51,6 +55,7 @@ module ActiveJob
       #    VideoJob.set(wait_until: Time.now.tomorrow).perform_later(Video.last)
       #    VideoJob.set(queue: :some_queue, wait: 5.minutes).perform_later(Video.last)
       #    VideoJob.set(queue: :some_queue, wait_until: Time.now.tomorrow).perform_later(Video.last)
+      #    VideoJob.set(queue: :some_queue, wait: 5.minutes, priority: 10).perform_later(Video.last)
       def set(options={})
         ConfiguredJob.new(self, options)
       end
@@ -62,6 +67,7 @@ module ActiveJob
       @arguments  = arguments
       @job_id     = SecureRandom.uuid
       @queue_name = self.class.queue_name
+      @priority   = self.class.priority
     end
 
     # Returns a hash with the job data that can safely be passed to the
@@ -71,6 +77,7 @@ module ActiveJob
         'job_class'  => self.class.name,
         'job_id'     => job_id,
         'queue_name' => queue_name,
+        'priority'   => priority,
         'arguments'  => serialize_arguments(arguments),
         'locale'     => I18n.locale
       }
@@ -99,6 +106,7 @@ module ActiveJob
     def deserialize(job_data)
       self.job_id               = job_data['job_id']
       self.queue_name           = job_data['queue_name']
+      self.priority             = job_data['priority']
       self.serialized_arguments = job_data['arguments']
       self.locale               = job_data['locale'] || I18n.locale
     end

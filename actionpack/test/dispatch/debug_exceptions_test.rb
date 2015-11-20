@@ -42,7 +42,11 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
       when "/unprocessable_entity"
         raise ActionController::InvalidAuthenticityToken
       when "/not_found_original_exception"
-        raise ActionView::Template::Error.new('template', AbstractController::ActionNotFound.new)
+        begin
+          raise AbstractController::ActionNotFound.new
+        rescue
+          raise ActionView::Template::Error.new('template')
+        end
       when "/missing_template"
         raise ActionView::MissingTemplate.new(%w(foo), 'foo/index', %w(foo), false, 'mailer')
       when "/bad_request"
@@ -56,12 +60,12 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
       when "/syntax_error_into_view"
         begin
           eval 'broke_syntax ='
-        rescue Exception => e
+        rescue Exception
           template = ActionView::Template.new(File.read(__FILE__),
                                               __FILE__,
                                               ActionView::Template::Handlers::Raw.new,
                                               {})
-          raise ActionView::Template::Error.new(template, e)
+          raise ActionView::Template::Error.new(template)
         end
       when "/framework_raises"
         method_that_raises
@@ -69,14 +73,6 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
         raise "puke!"
       end
     end
-  end
-
-  def setup
-    app = ActiveSupport::OrderedOptions.new
-    app.config = ActiveSupport::OrderedOptions.new
-    app.config.assets = ActiveSupport::OrderedOptions.new
-    app.config.assets.prefix = '/sprockets'
-    Rails.stubs(:application).returns(app)
   end
 
   RoutesApp = Struct.new(:routes).new(SharedTestRoutes)
@@ -280,9 +276,12 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
 
   test 'uses backtrace cleaner from env' do
     @app = DevelopmentApp
-    cleaner = stub(:clean => ['passed backtrace cleaner'])
-    get "/", headers: { 'action_dispatch.show_exceptions' => true, 'action_dispatch.backtrace_cleaner' => cleaner }
-    assert_match(/passed backtrace cleaner/, body)
+    backtrace_cleaner = ActiveSupport::BacktraceCleaner.new
+
+    backtrace_cleaner.stub :clean, ['passed backtrace cleaner'] do
+      get "/", headers: { 'action_dispatch.show_exceptions' => true, 'action_dispatch.backtrace_cleaner' => backtrace_cleaner }
+      assert_match(/passed backtrace cleaner/, body)
+    end
   end
 
   test 'logs exception backtrace when all lines silenced' do
@@ -338,36 +337,37 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
 
   test 'debug exceptions app shows user code that caused the error in source view' do
     @app = DevelopmentApp
-    Rails.stubs(:root).returns(Pathname.new('.'))
-    cleaner = ActiveSupport::BacktraceCleaner.new.tap do |bc|
-      bc.add_silencer { |line| line =~ /method_that_raises/ }
-      bc.add_silencer { |line| line !~ %r{test/dispatch/debug_exceptions_test.rb} }
-    end
+    Rails.stub :root, Pathname.new('.') do
+      cleaner = ActiveSupport::BacktraceCleaner.new.tap do |bc|
+        bc.add_silencer { |line| line =~ /method_that_raises/ }
+        bc.add_silencer { |line| line !~ %r{test/dispatch/debug_exceptions_test.rb} }
+      end
 
-    get '/framework_raises', headers: { 'action_dispatch.backtrace_cleaner' => cleaner }
+      get '/framework_raises', headers: { 'action_dispatch.backtrace_cleaner' => cleaner }
 
-    # Assert correct error
-    assert_response 500
-    assert_select 'h2', /error in framework/
+      # Assert correct error
+      assert_response 500
+      assert_select 'h2', /error in framework/
 
-    # assert source view line is the call to method_that_raises
-    assert_select 'div.source:not(.hidden)' do
-      assert_select 'pre .line.active', /method_that_raises/
-    end
+      # assert source view line is the call to method_that_raises
+      assert_select 'div.source:not(.hidden)' do
+        assert_select 'pre .line.active', /method_that_raises/
+      end
 
-    # assert first source view (hidden) that throws the error
-    assert_select 'div.source:first' do
-      assert_select 'pre .line.active', /raise StandardError\.new/
-    end
+      # assert first source view (hidden) that throws the error
+      assert_select 'div.source:first' do
+        assert_select 'pre .line.active', /raise StandardError\.new/
+      end
 
-    # assert application trace refers to line that calls method_that_raises is first
-    assert_select '#Application-Trace' do
-      assert_select 'pre code a:first', %r{test/dispatch/debug_exceptions_test\.rb:\d+:in `call}
-    end
+      # assert application trace refers to line that calls method_that_raises is first
+      assert_select '#Application-Trace' do
+        assert_select 'pre code a:first', %r{test/dispatch/debug_exceptions_test\.rb:\d+:in `call}
+      end
 
-    # assert framework trace that that threw the error is first
-    assert_select '#Framework-Trace' do
-      assert_select 'pre code a:first', /method_that_raises/
+      # assert framework trace that threw the error is first
+      assert_select '#Framework-Trace' do
+        assert_select 'pre code a:first', /method_that_raises/
+      end
     end
   end
 end

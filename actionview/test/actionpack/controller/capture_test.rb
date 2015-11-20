@@ -54,7 +54,7 @@ class CaptureTest < ActionController::TestCase
     assert_equal expected_content_for_output, @response.body
   end
 
-  def test_should_concatentate_content_for
+  def test_should_concatenate_content_for
     get :content_for_concatenated
     assert_equal expected_content_for_output, @response.body
   end

@@ -143,15 +143,49 @@ class StringInflectionsTest < ActiveSupport::TestCase
     end
   end
 
+  def test_string_parameterized_normal_preserve_case
+    StringToParameterizedPreserveCase.each do |normal, slugged|
+      assert_equal(normal.parameterize(preserve_case: true), slugged)
+    end
+  end
+
   def test_string_parameterized_no_separator
     StringToParameterizeWithNoSeparator.each do |normal, slugged|
-      assert_equal(normal.parameterize(''), slugged)
+      assert_equal(normal.parameterize(separator: ''), slugged)
+    end
+  end
+
+  def test_string_parameterized_no_separator_deprecated
+    StringToParameterizeWithNoSeparator.each do |normal, slugged|
+      assert_deprecated(/Passing the separator argument as a positional parameter is deprecated and will soon be removed. Use `separator: ''` instead./i) do
+        assert_equal(normal.parameterize(''), slugged)
+      end
+    end
+  end
+
+  def test_string_parameterized_no_separator_preserve_case
+    StringToParameterizePreserveCaseWithNoSeparator.each do |normal, slugged|
+      assert_equal(normal.parameterize(separator: '', preserve_case: true), slugged)
     end
   end
 
   def test_string_parameterized_underscore
     StringToParameterizeWithUnderscore.each do |normal, slugged|
-      assert_equal(normal.parameterize('_'), slugged)
+      assert_equal(normal.parameterize(separator: '_'), slugged)
+    end
+  end
+
+  def test_string_parameterized_underscore_deprecated
+    StringToParameterizeWithUnderscore.each do |normal, slugged|
+      assert_deprecated(/Passing the separator argument as a positional parameter is deprecated and will soon be removed. Use `separator: '_'` instead./i) do
+        assert_equal(normal.parameterize('_'), slugged)
+      end
+    end
+  end
+
+  def test_string_parameterized_underscore_preserve_case
+    StringToParameterizePreserceCaseWithUnderscore.each do |normal, slugged|
+      assert_equal(normal.parameterize(separator: '_', preserve_case: true), slugged)
     end
   end
 
@@ -782,8 +816,8 @@ class OutputSafetyTest < ActiveSupport::TestCase
   end
 
   test "ERB::Util.html_escape should correctly handle invalid UTF-8 strings" do
-    string = [192, 60].pack('CC')
-    expected = 192.chr + "&lt;"
+    string = "\251 <"
+    expected = "© &lt;"
     assert_equal expected, ERB::Util.html_escape(string)
   end
 
@@ -798,6 +832,12 @@ class OutputSafetyTest < ActiveSupport::TestCase
 
     assert_equal escaped_string, ERB::Util.html_escape_once(string)
     assert_equal escaped_string, ERB::Util.html_escape_once(escaped_string)
+  end
+
+  test "ERB::Util.html_escape_once should correctly handle invalid UTF-8 strings" do
+    string = "\251 <"
+    expected = "© &lt;"
+    assert_equal expected, ERB::Util.html_escape_once(string)
   end
 end
 

@@ -18,7 +18,7 @@ module ActionDispatch
       end
 
       # Get a session from the cache.
-      def get_session(env, sid)
+      def find_session(env, sid)
         unless sid and session = @cache.read(cache_key(sid))
           sid, session = generate_sid, {}
         end
@@ -26,7 +26,7 @@ module ActionDispatch
       end
 
       # Set a session in the cache.
-      def set_session(env, sid, session, options)
+      def write_session(env, sid, session, options)
         key = cache_key(sid)
         if session
           @cache.write(key, session, :expires_in => options[:expire_after])
@@ -37,7 +37,7 @@ module ActionDispatch
       end
 
       # Remove a session from the cache.
-      def destroy_session(env, sid, options)
+      def delete_session(env, sid, options)
         @cache.delete(cache_key(sid))
         generate_sid
       end

@@ -1,3 +1,110 @@
+*   Catch invalid UTF-8 querystring values and respond with BadRequest
+
+    Check querystring params for invalid UTF-8 characters, and raise an
+    ActionController::BadRequest error if present. Previously these strings
+    would typically trigger errors further down the stack.
+
+    *Grey Baker*
+
+*   Parse RSS/ATOM responses as XML, not HTML.
+
+    *Alexander Kaupanin*
+
+*   Show helpful message in `BadRequest` exceptions due to invalid path
+    parameter encodings.
+
+    Fixes #21923.
+
+    *Agis Anastasopoulos*
+
+*   Add the ability of returning arbitrary headers to ActionDispatch::Static
+
+    Now ActionDispatch::Static can accept HTTP headers so that developers
+    will have control of returning arbitrary headers like
+    'Access-Control-Allow-Origin' when a response is delivered. They can be
+    configured with `#config`:
+
+      config.public_file_server.headers = {
+        "Cache-Control"               => "public, max-age=60",
+        "Access-Control-Allow-Origin" => "http://rubyonrails.org"
+      }
+
+    *Yuki Nishijima*
+
+*   Allow multiple `root` routes in same scope level. Example:
+
+    ```ruby
+    root 'blog#show', constraints: ->(req) { Hostname.blog_site?(req.host) }
+    root 'landing#show'
+    ```
+    *Rafael Sales*
+
+*   Fix regression in mounted engine named routes generation for app deployed to
+    a subdirectory. `relative_url_root` was prepended to the path twice (e.g.
+    "/subdir/subdir/engine_path" instead of "/subdir/engine_path")
+
+    Fixes #20920. Fixes #21459.
+
+    *Matthew Erhard*
+
+*   ActionDispatch::Response#new no longer applies default headers.  If you want
+    default headers applied to the response object, then call
+    `ActionDispatch::Response.create`.  This change only impacts people who are
+    directly constructing an `ActionDispatch::Response` object.
+
+*   Accessing mime types via constants like `Mime::HTML` is deprecated.  Please
+    change code like this:
+
+      Mime::HTML
+
+    To this:
+
+      Mime[:html]
+
+    This change is so that Rails will not manage a list of constants, and fixes
+    an issue where if a type isn't registered you could possibly get the wrong
+    object.
+
+    `Mime[:html]` is available in older versions of Rails, too, so you can
+    safely change libraries and plugins and maintain compatibility with
+    multiple versions of Rails.
+
+*   `url_for` does not modify its arguments when generating polymorphic URLs.
+
+    *Bernerd Schaefer*
+
+*   Make it easier to opt in to `config.force_ssl` and `config.ssl_options` by
+    making them less dangerous to try and easier to disable.
+
+    SSL redirect:
+      * Move `:host` and `:port` options within `redirect: { … }`. Deprecate.
+      * Introduce `:status` and `:body` to customize the redirect response.
+        The 301 permanent default makes it difficult to test the redirect and
+        back out of it since browsers remember the 301. Test with a 302 or 307
+        instead, then switch to 301 once you're confident that all is well.
+
+    HTTP Strict Transport Security (HSTS):
+      * Shorter max-age. Shorten the default max-age from 1 year to 180 days,
+        the low end for https://www.ssllabs.com/ssltest/ grading and greater
+        than the 18-week minimum to qualify for browser preload lists.
+      * Disabling HSTS. Setting `hsts: false` now sets `hsts { expires: 0 }`
+        instead of omitting the header. Omitting does nothing to disable HSTS
+        since browsers hang on to your previous settings until they expire.
+        Sending `{ hsts: { expires: 0 }}` flushes out old browser settings and
+        actually disables HSTS:
+          http://tools.ietf.org/html/rfc6797#section-6.1.1
+      * HSTS Preload. Introduce `preload: true` to set the `preload` flag,
+        indicating that your site may be included in browser preload lists,
+        including Chrome, Firefox, Safari, IE11, and Edge. Submit your site:
+          https://hstspreload.appspot.com
+
+    *Jeremy Daer*
+
+*   Update `ActionController::TestSession#fetch` to behave more like
+    `ActionDispatch::Request::Session#fetch` when using non-string keys.
+
+    *Jeremy Friesen*
+
 *   Using strings or symbols for middleware class names is deprecated.  Convert
     things like this:
 

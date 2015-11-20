@@ -1,6 +1,58 @@
+*   Respect value of `:object` if `:object` is false when rendering.
+
+    Fixes #22260.
+
+    *Yuichiro Kaneko*
+
+*   Generate `week_field` input values using a 1-based index and not a 0-based index
+    as per the W3 spec: http://www.w3.org/TR/html-markup/datatypes.html#form.data.week
+
+    *Christoph Geschwind*
+
+*   Allow `host` option in `javascript_include_tag` and `stylesheet_link_tag` helpers
+
+    *Grzegorz Witek*
+
+*   Restrict `url_for :back` to valid, non-JavaScript URLs. GH#14444
+
+    *Damien Burke*
+
+*   Allow `date_select` helper selected option to accept hash like the default options.
+
+    *Lecky Lao*
+
+*   Collection input propagates input's `id` to the label's `for` attribute when
+    using html options as the last element of collection.
+
+    *Vasiliy Ermolovich*
+
+*   Add a `hidden_field` on the `collection_radio_buttons` to avoid raising a error
+    when the only input on the form is the `collection_radio_buttons`.
+
+    *Mauro George*
+
+*   `url_for` does not modify its arguments when generating polymorphic URLs.
+
+    *Bernerd Schaefer*
+
+*   `number_to_currency` and `number_with_delimiter` now accept custom `delimiter_pattern` option 
+     to handle placement of delimiter, to support currency formats like INR 
+     
+     Example: 
+        
+        number_to_currency(1230000, delimiter_pattern: /(\d+?)(?=(\d\d)+(\d)(?!\d))/, unit: '₹', format: "%u %n")
+        # => '₹ 12,30,000.00' 
+        
+    *Vipul A M*
+    
+*   Make `disable_with` the default behavior for submit tags. Disables the
+    button on submit to prevent double submits.
+
+    *Justin Schiff*
+
 *   Add a break_sequence option to word_wrap so you can specify a custom break.
 
-    * Mauricio Gomez *
+    *Mauricio Gomez*
 
 *   Add wildcard matching to explicit dependencies.
 
@@ -165,7 +217,7 @@
 
     *Nikolay Shebanov*
 
-*   Add a `hidden_field` on the `file_field` to avoid raise a error when the only
+*   Add a `hidden_field` on the `file_field` to avoid raising an error when the only
     input on the form is the `file_field`.
 
     *Mauro George*

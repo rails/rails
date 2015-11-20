@@ -112,7 +112,7 @@ module ActiveRecord
       end
 
       # Finds an object in the collection responding to the +id+. Uses the same
-      # rules as <tt>ActiveRecord::Base.find</tt>. Returns <tt>ActiveRecord::RecordNotFound</tt>
+      # rules as ActiveRecord::Base.find. Returns ActiveRecord::RecordNotFound
       # error if the object cannot be found.
       #
       #   class Person < ActiveRecord::Base
@@ -127,7 +127,7 @@ module ActiveRecord
       #   #    ]
       #
       #   person.pets.find(1) # => #<Pet id: 1, name: "Fancy-Fancy", person_id: 1>
-      #   person.pets.find(4) # => ActiveRecord::RecordNotFound: Couldn't find Pet with id=4
+      #   person.pets.find(4) # => ActiveRecord::RecordNotFound: Couldn't find Pet with 'id'=4
       #
       #   person.pets.find(2) { |pet| pet.name.downcase! }
       #   # => #<Pet id: 2, name: "fancy-fancy", person_id: 1>
@@ -171,27 +171,27 @@ module ActiveRecord
         @association.first(*args)
       end
 
-      # Same as +first+ except returns only the second record.
+      # Same as #first except returns only the second record.
       def second(*args)
         @association.second(*args)
       end
 
-      # Same as +first+ except returns only the third record.
+      # Same as #first except returns only the third record.
       def third(*args)
         @association.third(*args)
       end
 
-      # Same as +first+ except returns only the fourth record.
+      # Same as #first except returns only the fourth record.
       def fourth(*args)
         @association.fourth(*args)
       end
 
-      # Same as +first+ except returns only the fifth record.
+      # Same as #first except returns only the fifth record.
       def fifth(*args)
         @association.fifth(*args)
       end
 
-      # Same as +first+ except returns only the forty second record.
+      # Same as #first except returns only the forty second record.
       # Also known as accessing "the reddit".
       def forty_two(*args)
         @association.forty_two(*args)
@@ -227,6 +227,31 @@ module ActiveRecord
         @association.last(*args)
       end
 
+      # Gives a record (or N records if a parameter is supplied) from the collection
+      # using the same rules as <tt>ActiveRecord::Base.take</tt>.
+      #
+      #   class Person < ActiveRecord::Base
+      #     has_many :pets
+      #   end
+      #
+      #   person.pets
+      #   # => [
+      #   #       #<Pet id: 1, name: "Fancy-Fancy", person_id: 1>,
+      #   #       #<Pet id: 2, name: "Spook", person_id: 1>,
+      #   #       #<Pet id: 3, name: "Choo-Choo", person_id: 1>
+      #   #    ]
+      #
+      #   person.pets.take # => #<Pet id: 1, name: "Fancy-Fancy", person_id: 1>
+      #
+      #   person.pets.take(2)
+      #   # => [
+      #   #      #<Pet id: 1, name: "Fancy-Fancy", person_id: 1>,
+      #   #      #<Pet id: 2, name: "Spook", person_id: 1>
+      #   #    ]
+      #
+      #   another_person_without.pets         # => []
+      #   another_person_without.pets.take    # => nil
+      #   another_person_without.pets.take(2) # => []
       def take(n = nil)
         @association.take(n)
       end
@@ -290,7 +315,7 @@ module ActiveRecord
         @association.create(attributes, &block)
       end
 
-      # Like +create+, except that if the record is invalid, raises an exception.
+      # Like #create, except that if the record is invalid, raises an exception.
       #
       #   class Person
       #     has_many :pets
@@ -307,8 +332,8 @@ module ActiveRecord
       end
 
       # Add one or more records to the collection by setting their foreign keys
-      # to the association's primary key. Since << flattens its argument list and
-      # inserts each record, +push+ and +concat+ behave identically. Returns +self+
+      # to the association's primary key. Since #<< flattens its argument list and
+      # inserts each record, +push+ and #concat behave identically. Returns +self+
       # so method calls may be chained.
       #
       #   class Person < ActiveRecord::Base
@@ -364,7 +389,7 @@ module ActiveRecord
       # specified by the +:dependent+ option. If no +:dependent+ option is given,
       # then it will follow the default strategy.
       #
-      # For +has_many :through+ associations, the default deletion strategy is
+      # For <tt>has_many :through</tt> associations, the default deletion strategy is
       # +:delete_all+.
       #
       # For +has_many+ associations, the default deletion strategy is +:nullify+.
@@ -399,7 +424,7 @@ module ActiveRecord
       #   #       #<Pet id: 3, name: "Choo-Choo", person_id: nil>
       #   #    ]
       #
-      # Both +has_many+ and +has_many :through+ dependencies default to the
+      # Both +has_many+ and <tt>has_many :through</tt> dependencies default to the
       # +:delete_all+ strategy if the +:dependent+ option is set to +:destroy+.
       # Records are not instantiated and callbacks will not be fired.
       #
@@ -418,7 +443,7 @@ module ActiveRecord
       #   person.pets.delete_all
       #
       #   Pet.find(1, 2, 3)
-      #   # => ActiveRecord::RecordNotFound
+      #   # => ActiveRecord::RecordNotFound: Couldn't find all Pets with 'id': (1, 2, 3)
       #
       # If it is set to <tt>:delete_all</tt>, all the objects are deleted
       # *without* calling their +destroy+ method.
@@ -438,7 +463,7 @@ module ActiveRecord
       #   person.pets.delete_all
       #
       #   Pet.find(1, 2, 3)
-      #   # => ActiveRecord::RecordNotFound
+      #   # => ActiveRecord::RecordNotFound: Couldn't find all Pets with 'id': (1, 2, 3)
       def delete_all(dependent = nil)
         @association.delete_all(dependent)
       end
@@ -475,7 +500,7 @@ module ActiveRecord
       # then it will follow the default strategy. Returns an array with the
       # deleted records.
       #
-      # For +has_many :through+ associations, the default deletion strategy is
+      # For <tt>has_many :through</tt> associations, the default deletion strategy is
       # +:delete_all+.
       #
       # For +has_many+ associations, the default deletion strategy is +:nullify+.
@@ -532,7 +557,7 @@ module ActiveRecord
       #   # => [#<Pet id: 2, name: "Spook", person_id: 1>]
       #
       #   Pet.find(1, 3)
-      #   # => ActiveRecord::RecordNotFound: Couldn't find all Pets with IDs (1, 3)
+      #   # => ActiveRecord::RecordNotFound: Couldn't find all Pets with 'id': (1, 3)
       #
       # If it is set to <tt>:delete_all</tt>, all the +records+ are deleted
       # *without* calling their +destroy+ method.
@@ -560,7 +585,7 @@ module ActiveRecord
       #   #    ]
       #
       #   Pet.find(1)
-      #   # => ActiveRecord::RecordNotFound: Couldn't find Pet with id=1
+      #   # => ActiveRecord::RecordNotFound: Couldn't find Pet with 'id'=1
       #
       # You can pass +Fixnum+ or +String+ values, it finds the records
       # responding to the +id+ and executes delete on them.
@@ -624,7 +649,7 @@ module ActiveRecord
       #   person.pets.size  # => 0
       #   person.pets       # => []
       #
-      #   Pet.find(1, 2, 3) # => ActiveRecord::RecordNotFound: Couldn't find all Pets with IDs (1, 2, 3)
+      #   Pet.find(1, 2, 3) # => ActiveRecord::RecordNotFound: Couldn't find all Pets with 'id': (1, 2, 3)
       #
       # You can pass +Fixnum+ or +String+ values, it finds the records
       # responding to the +id+ and then deletes them from the database.
@@ -656,7 +681,7 @@ module ActiveRecord
       #   person.pets.size  # => 0
       #   person.pets       # => []
       #
-      #   Pet.find(4, 5, 6) # => ActiveRecord::RecordNotFound: Couldn't find all Pets with IDs (4, 5, 6)
+      #   Pet.find(4, 5, 6) # => ActiveRecord::RecordNotFound: Couldn't find all Pets with 'id': (4, 5, 6)
       def destroy(*records)
         @association.destroy(*records)
       end
@@ -856,7 +881,7 @@ module ActiveRecord
         !!@association.include?(record)
       end
 
-      def arel
+      def arel #:nodoc:
         scope.arel
       end
 

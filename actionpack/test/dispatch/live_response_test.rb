@@ -1,5 +1,5 @@
 require 'abstract_unit'
-require 'concurrent/atomics'
+require 'concurrent/atomic/count_down_latch'
 
 module ActionController
   module Live
@@ -65,7 +65,7 @@ module ActionController
         latch = Concurrent::CountDownLatch.new
 
         t = Thread.new {
-          @response.stream.each do |chunk|
+          @response.stream.each do
             latch.count_down
           end
         }
@@ -83,6 +83,8 @@ module ActionController
 
       def test_headers_cannot_be_written_after_close
         @response.stream.close
+        # we can add data until it's actually written, which happens on `each`
+        @response.each { |x| }
 
         e = assert_raises(ActionDispatch::IllegalStateError) do
           @response.headers['Content-Length'] = "zomg"

@@ -17,8 +17,6 @@ module ActionDispatch
     end
 
     setup do
-      Rails.stubs(:root).returns(Pathname.new('.'))
-
       @cleaner = ActiveSupport::BacktraceCleaner.new
       @cleaner.add_silencer { |line| line !~ /^lib/ }
     end
@@ -27,27 +25,29 @@ module ActionDispatch
       exception = TestError.new("lib/file.rb:42:in `index'")
       wrapper = ExceptionWrapper.new(nil, exception)
 
-      wrapper.expects(:source_fragment).with('lib/file.rb', 42).returns('foo')
-
-      assert_equal [ code: 'foo', line_number: 42 ], wrapper.source_extracts
+      assert_called_with(wrapper, :source_fragment, ['lib/file.rb', 42], returns: 'foo') do
+        assert_equal [ code: 'foo', line_number: 42 ], wrapper.source_extracts
+      end
     end
 
     test '#source_extracts works with Windows paths' do
       exc = TestError.new("c:/path/to/rails/app/controller.rb:27:in 'index':")
 
       wrapper = ExceptionWrapper.new(nil, exc)
-      wrapper.expects(:source_fragment).with('c:/path/to/rails/app/controller.rb', 27).returns('nothing')
 
-      assert_equal [ code: 'nothing', line_number: 27 ], wrapper.source_extracts
+      assert_called_with(wrapper, :source_fragment, ['c:/path/to/rails/app/controller.rb', 27], returns: 'nothing') do
+        assert_equal [ code: 'nothing', line_number: 27 ], wrapper.source_extracts
+      end
     end
 
     test '#source_extracts works with non standard backtrace' do
       exc = TestError.new('invalid')
 
       wrapper = ExceptionWrapper.new(nil, exc)
-      wrapper.expects(:source_fragment).with('invalid', 0).returns('nothing')
 
-      assert_equal [ code: 'nothing', line_number: 0 ], wrapper.source_extracts
+      assert_called_with(wrapper, :source_fragment, ['invalid', 0], returns: 'nothing') do
+        assert_equal [ code: 'nothing', line_number: 0 ], wrapper.source_extracts
+      end
     end
 
     test '#application_trace returns traces only from the application' do

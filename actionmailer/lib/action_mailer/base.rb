@@ -132,6 +132,8 @@ module ActionMailer
   #
   #   config.action_mailer.default_url_options = { host: "example.com" }
   #
+  # By default when <tt>config.force_ssl</tt> is true, URLs generated for hosts will use the HTTPS protocol.
+  #
   # = Sending mail
   #
   # Once a mailer action and template are defined, you can deliver your message or defer its creation and
@@ -414,7 +416,7 @@ module ActionMailer
   # * <tt>deliveries</tt> - Keeps an array of all the emails sent out through the Action Mailer with
   #   <tt>delivery_method :test</tt>. Most useful for unit and functional testing.
   #
-  # * <tt>deliver_later_queue_name</tt> - The name of the queue used with <tt>deliver_later</tt>
+  # * <tt>deliver_later_queue_name</tt> - The name of the queue used with <tt>deliver_later</tt>.
   class Base < AbstractController::Base
     include DeliveryMethods
     include Previews
@@ -438,8 +440,6 @@ module ActionMailer
     end
 
     helper ActionMailer::MailHelper
-
-    private_class_method :new #:nodoc:
 
     class_attribute :default_params
     self.default_params = {
@@ -578,11 +578,10 @@ module ActionMailer
     # will be initialized according to the named method. If not, the mailer will
     # remain uninitialized (useful when you only need to invoke the "receive"
     # method, for instance).
-    def initialize(method_name=nil, *args)
+    def initialize
       super()
       @_mail_was_called = false
       @_message = Mail.new
-      process(method_name, *args) if method_name
     end
 
     def process(method_name, *args) #:nodoc:

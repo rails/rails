@@ -7,7 +7,7 @@ module ActionDispatch
   # See Response for more information on controller response objects.
   class TestResponse < Response
     def self.from_response(response)
-      new response.status, response.headers, response.body, default_headers: nil
+      new response.status, response.headers, response.body
     end
 
     # Was the response successful?

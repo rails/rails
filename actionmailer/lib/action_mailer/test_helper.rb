@@ -2,7 +2,7 @@ require 'active_job'
 
 module ActionMailer
   # Provides helper methods for testing Action Mailer, including #assert_emails
-  # and #assert_no_emails
+  # and #assert_no_emails.
   module TestHelper
     include ActiveJob::TestHelper
 
@@ -40,7 +40,7 @@ module ActionMailer
       end
     end
 
-    # Assert that no emails have been sent.
+    # Asserts that no emails have been sent.
     #
     #   def test_emails
     #     assert_no_emails

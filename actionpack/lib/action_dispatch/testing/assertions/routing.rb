@@ -14,14 +14,14 @@ module ActionDispatch
       # requiring a specific HTTP method. The hash should contain a :path with the incoming request path
       # and a :method containing the required HTTP verb.
       #
-      #   # assert that POSTing to /items will call the create action on ItemsController
+      #   # Asserts that POSTing to /items will call the create action on ItemsController
       #   assert_recognizes({controller: 'items', action: 'create'}, {path: 'items', method: :post})
       #
       # You can also pass in +extras+ with a hash containing URL parameters that would normally be in the query string. This can be used
-      # to assert that values in the query string string will end up in the params hash correctly. To test query strings you must use the
+      # to assert that values in the query string will end up in the params hash correctly. To test query strings you must use the
       # extras argument, appending the query string on the path directly will not work. For example:
       #
-      #   # assert that a path of '/items/list/1?view=print' returns the correct options
+      #   # Asserts that a path of '/items/list/1?view=print' returns the correct options
       #   assert_recognizes({controller: 'items', action: 'list', id: '1', view: 'print'}, 'items/list/1', { view: "print" })
       #
       # The +message+ parameter allows you to pass in an error message that is displayed upon failure.
@@ -104,13 +104,13 @@ module ActionDispatch
       # The +extras+ hash allows you to specify options that would normally be provided as a query string to the action. The
       # +message+ parameter allows you to specify a custom error message to display upon failure.
       #
-      #  # Assert a basic route: a controller with the default action (index)
+      #  # Asserts a basic route: a controller with the default action (index)
       #  assert_routing '/home', controller: 'home', action: 'index'
       #
       #  # Test a route generated with a specific controller, action, and parameter (id)
       #  assert_routing '/entries/show/23', controller: 'entries', action: 'show', id: 23
       #
-      #  # Assert a basic route (controller + default action), with an error message if it fails
+      #  # Asserts a basic route (controller + default action), with an error message if it fails
       #  assert_routing '/store', { controller: 'store', action: 'index' }, {}, {}, 'Route for store index not generated properly'
       #
       #  # Tests a route, providing a defaults hash

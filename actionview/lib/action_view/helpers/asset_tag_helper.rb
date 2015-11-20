@@ -55,7 +55,7 @@ module ActionView
       #   # => <script src="http://www.example.com/xmlhr.js"></script>
       def javascript_include_tag(*sources)
         options = sources.extract_options!.stringify_keys
-        path_options = options.extract!('protocol', 'extname').symbolize_keys
+        path_options = options.extract!('protocol', 'extname', 'host').symbolize_keys
         sources.uniq.map { |source|
           tag_options = {
             "src" => path_to_javascript(source, path_options)
@@ -91,7 +91,7 @@ module ActionView
       #   #    <link href="/css/stylish.css" media="screen" rel="stylesheet" />
       def stylesheet_link_tag(*sources)
         options = sources.extract_options!.stringify_keys
-        path_options = options.extract!('protocol').symbolize_keys
+        path_options = options.extract!('protocol', 'host').symbolize_keys
 
         sources.uniq.map { |source|
           tag_options = {
@@ -136,7 +136,7 @@ module ActionView
         tag(
           "link",
           "rel"   => tag_options[:rel] || "alternate",
-          "type"  => tag_options[:type] || Mime::Type.lookup_by_extension(type.to_s).to_s,
+          "type"  => tag_options[:type] || Mime[type].to_s,
           "title" => tag_options[:title] || type.to_s.upcase,
           "href"  => url_options.is_a?(Hash) ? url_for(url_options.merge(:only_path => false)) : url_options
         )

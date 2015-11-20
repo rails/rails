@@ -1,4 +1,3 @@
-
 require 'active_support/core_ext/hash/keys'
 require 'active_support/core_ext/string/output_safety'
 require 'active_support/number_helper'
@@ -140,7 +139,7 @@ module ActionView
       #   number_to_percentage(302.24398923423, precision: 5)              # => 302.24399%
       #   number_to_percentage(1000, locale: :fr)                          # => 1 000,000%
       #   number_to_percentage("98a")                                      # => 98a%
-      #   number_to_percentage(100, format: "%n  %")                       # => 100  %
+      #   number_to_percentage(100, format: "%n  %")                       # => 100.000  %
       #
       #   number_to_percentage("98a", raise: true)                         # => InvalidNumberError
       def number_to_percentage(number, options = {})

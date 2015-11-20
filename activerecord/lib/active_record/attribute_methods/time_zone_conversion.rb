@@ -13,7 +13,7 @@ module ActiveRecord
             set_time_zone_without_conversion(super)
           elsif value.respond_to?(:in_time_zone)
             begin
-              user_input_in_time_zone(value) || super
+              super(user_input_in_time_zone(value)) || super
             rescue ArgumentError
               nil
             end

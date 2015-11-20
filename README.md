@@ -34,7 +34,7 @@ Ruby code (ERB files). Views are typically rendered to generate a controller res
 or to generate the body of an email. In Rails, View generation is handled by Action View.
 You can read more about Action View in its [README](actionview/README.rdoc).
 
-Active Record, Action Pack, and Action View can each be used independently outside Rails.
+Active Record, Active Model, Action Pack, and Action View can each be used independently outside Rails.
 In addition to them, Rails also comes with Action Mailer ([README](actionmailer/README.rdoc)), a library
 to generate and send emails; Active Job ([README](activejob/README.md)), a
 framework for declaring jobs and making them run on a variety of queueing
@@ -75,6 +75,8 @@ and may also be used independently outside Rails.
 
 We encourage you to contribute to Ruby on Rails! Please check out the
 [Contributing to Ruby on Rails guide](http://edgeguides.rubyonrails.org/contributing_to_ruby_on_rails.html) for guidelines about how to proceed. [Join us!](http://contributors.rubyonrails.org)
+
+Everyone interacting in Rails and its sub-projects' codebases, issue trackers, chat rooms, and mailing lists is expected to follow the Rails [code of conduct](http://rubyonrails.org/conduct/).
 
 ## Code Status
 

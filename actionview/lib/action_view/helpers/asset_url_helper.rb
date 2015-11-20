@@ -48,10 +48,10 @@ module ActionView
     # It is also possible the combination of additional connection overhead
     # (DNS, SSL) and the overall browser connection limits may result in this
     # solution being slower. You should be sure to measure your actual
-    # performance across targeted browers both before and after this change.
+    # performance across targeted browsers both before and after this change.
     #
     # To implement the corresponding hosts you can either setup four actual
-    # hosts or use wildcard DNS to CNAME the wilcard to a single asset host.
+    # hosts or use wildcard DNS to CNAME the wildcard to a single asset host.
     # You can read more about setting up your DNS CNAME records from your ISP.
     #
     # Note: This is purely a browser performance optimization and is not meant

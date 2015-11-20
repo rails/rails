@@ -1,9 +1,9 @@
-module ActiveRecord::Associations::Builder
+module ActiveRecord::Associations::Builder # :nodoc:
   class HasAndBelongsToMany # :nodoc:
-    class JoinTableResolver
+    class JoinTableResolver # :nodoc:
       KnownTable = Struct.new :join_table
 
-      class KnownClass
+      class KnownClass # :nodoc:
         def initialize(lhs_class, rhs_class_name)
           @lhs_class      = lhs_class
           @rhs_class_name = rhs_class_name
@@ -62,13 +62,13 @@ module ActiveRecord::Associations::Builder
         end
 
         def self.add_left_association(name, options)
-          belongs_to name, options
+          belongs_to name, required: false, **options
           self.left_reflection = _reflect_on_association(name)
         end
 
         def self.add_right_association(name, options)
           rhs_name = name.to_s.singularize.to_sym
-          belongs_to rhs_name, options
+          belongs_to rhs_name, required: false, **options
           self.right_reflection = _reflect_on_association(rhs_name)
         end
 

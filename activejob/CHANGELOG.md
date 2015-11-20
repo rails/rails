@@ -1,3 +1,21 @@
+*   Fixed serializing `:at` option for `assert_enqueued_with`
+    and `assert_performed_with`.
+
+    *Wojciech Wnętrzak*
+
+*   Support passing array to `assert_enqueued_jobs` in `:only` option.
+
+    *Wojciech Wnętrzak*
+
+*   Add job priorities to Active Job.
+
+    *wvengen*
+
+*   Implement a simple `AsyncJob` processor and associated `AsyncAdapter` that
+    queue jobs to a `concurrent-ruby` thread pool.
+
+    *Jerry D'Antonio*
+
 *   Implement `provider_job_id` for `queue_classic` adapter. This requires the
     latest, currently unreleased, version of queue_classic.
 

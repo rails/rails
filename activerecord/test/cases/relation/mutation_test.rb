@@ -22,13 +22,17 @@ module ActiveRecord
       def sanitize_sql(sql)
         sql
       end
+
+      def sanitize_sql_for_order(sql)
+        sql
+      end
     end
 
     def relation
       @relation ||= Relation.new FakeKlass.new('posts'), Post.arel_table, Post.predicate_builder
     end
 
-    (Relation::MULTI_VALUE_METHODS - [:references, :extending, :order, :unscope, :select]).each do |method|
+    (Relation::MULTI_VALUE_METHODS - [:references, :extending, :order, :unscope, :select, :left_joins]).each do |method|
       test "##{method}!" do
         assert relation.public_send("#{method}!", :foo).equal?(relation)
         assert_equal [:foo], relation.public_send("#{method}_values")
@@ -55,9 +59,10 @@ module ActiveRecord
 
     test '#order! on non-string does not attempt regexp match for references' do
       obj = Object.new
-      obj.expects(:=~).never
-      assert relation.order!(obj)
-      assert_equal [obj], relation.order_values
+      assert_not_called(obj, :=~) do
+        assert relation.order!(obj)
+        assert_equal [obj], relation.order_values
+      end
     end
 
     test '#references!' do

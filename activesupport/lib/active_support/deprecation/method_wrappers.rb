@@ -9,37 +9,61 @@ module ActiveSupport
       #   module Fred
       #     extend self
       #
-      #     def foo; end
-      #     def bar; end
-      #     def baz; end
+      #     def aaa; end
+      #     def bbb; end
+      #     def ccc; end
+      #     def ddd; end
+      #     def eee; end
       #   end
       #
-      #   ActiveSupport::Deprecation.deprecate_methods(Fred, :foo, bar: :qux, baz: 'use Bar#baz instead')
-      #   # => [:foo, :bar, :baz]
+      # Using the default deprecator:
+      #   ActiveSupport::Deprecation.deprecate_methods(Fred, :aaa, bbb: :zzz, ccc: 'use Bar#ccc instead')
+      #   # => [:aaa, :bbb, :ccc]
       #
-      #   Fred.foo
-      #   # => "DEPRECATION WARNING: foo is deprecated and will be removed from Rails 4.1."
+      #   Fred.aaa
+      #   # DEPRECATION WARNING: aaa is deprecated and will be removed from Rails 5.0. (called from irb_binding at (irb):10)
+      #   # => nil
       #
-      #   Fred.bar
-      #   # => "DEPRECATION WARNING: bar is deprecated and will be removed from Rails 4.1 (use qux instead)."
+      #   Fred.bbb
+      #   # DEPRECATION WARNING: bbb is deprecated and will be removed from Rails 5.0 (use zzz instead). (called from irb_binding at (irb):11)
+      #   # => nil
       #
-      #   Fred.baz
-      #   # => "DEPRECATION WARNING: baz is deprecated and will be removed from Rails 4.1 (use Bar#baz instead)."
+      #   Fred.ccc
+      #   # DEPRECATION WARNING: ccc is deprecated and will be removed from Rails 5.0 (use Bar#ccc instead). (called from irb_binding at (irb):12)
+      #   # => nil
+      #
+      # Passing in a custom deprecator:
+      #   custom_deprecator = ActiveSupport::Deprecation.new('next-release', 'MyGem')
+      #   ActiveSupport::Deprecation.deprecate_methods(Fred, ddd: :zzz, deprecator: custom_deprecator)
+      #   # => [:ddd]
+      #
+      #   Fred.ddd
+      #   DEPRECATION WARNING: ddd is deprecated and will be removed from MyGem next-release (use zzz instead). (called from irb_binding at (irb):15)
+      #   # => nil
+      #
+      # Using a custom deprecator directly:
+      #   custom_deprecator = ActiveSupport::Deprecation.new('next-release', 'MyGem')
+      #   custom_deprecator.deprecate_methods(Fred, eee: :zzz)
+      #   # => [:eee]
+      #
+      #   Fred.eee
+      #   DEPRECATION WARNING: eee is deprecated and will be removed from MyGem next-release (use zzz instead). (called from irb_binding at (irb):18)
+      #   # => nil
       def deprecate_methods(target_module, *method_names)
         options = method_names.extract_options!
-        deprecator = options.delete(:deprecator) || ActiveSupport::Deprecation.instance
+        deprecator = options.delete(:deprecator) || self
         method_names += options.keys
 
-        method_names.each do |method_name|
-          mod = Module.new do
+        mod = Module.new do
+          method_names.each do |method_name|
             define_method(method_name) do |*args, &block|
               deprecator.deprecation_warning(method_name, options[method_name])
               super(*args, &block)
             end
           end
-
-          target_module.prepend(mod)
         end
+
+        target_module.prepend(mod)
       end
     end
   end

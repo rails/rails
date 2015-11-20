@@ -4,6 +4,8 @@ require 'active_support/json/decoding'
 require 'rails/engine'
 
 class TestCaseTest < ActionController::TestCase
+  def self.fixture_path; end;
+
   class TestController < ActionController::Base
     def no_op
       render plain: 'dummy'
@@ -73,7 +75,7 @@ class TestCaseTest < ActionController::TestCase
     end
 
     def test_headers
-      render plain: request.headers.env.to_json
+      render plain: ::JSON.dump(request.headers.env)
     end
 
     def test_html_output
@@ -137,7 +139,7 @@ XML
 
     def delete_cookie
       cookies.delete("foo")
-      head :ok
+      render plain: 'ok'
     end
 
     def test_without_body
@@ -158,7 +160,7 @@ XML
   def setup
     super
     @controller = TestController.new
-    @request.env['PATH_INFO'] = nil
+    @request.delete_header 'PATH_INFO'
     @routes = ActionDispatch::Routing::RouteSet.new.tap do |r|
       r.draw do
         get ':controller(/:action(/:id))'
@@ -625,6 +627,31 @@ XML
     assert_equal "application/json", parsed_env["CONTENT_TYPE"]
   end
 
+  def test_mutating_content_type_headers_for_plain_text_files_sets_the_header
+    @request.headers['Content-Type'] = 'text/plain'
+    post :render_body, params: { name: 'foo.txt' }
+
+    assert_equal 'text/plain', @request.headers['Content-type']
+    assert_equal 'foo.txt', @request.request_parameters[:name]
+    assert_equal 'render_body', @request.path_parameters[:action]
+  end
+
+  def test_mutating_content_type_headers_for_html_files_sets_the_header
+    @request.headers['Content-Type'] = 'text/html'
+    post :render_body, params: { name: 'foo.html' }
+
+    assert_equal 'text/html', @request.headers['Content-type']
+    assert_equal 'foo.html', @request.request_parameters[:name]
+    assert_equal 'render_body', @request.path_parameters[:action]
+  end
+
+  def test_mutating_content_type_headers_for_non_registered_mime_type_raises_an_error
+    assert_raises(RuntimeError) do
+      @request.headers['Content-Type'] = 'type/fake'
+      post :render_body, params: { name: 'foo.fake' }
+    end
+  end
+
   def test_id_converted_to_string
     get :test_params, params: {
       id: 20, foo: Object.new
@@ -849,10 +876,10 @@ XML
   end
 
   def test_fixture_path_is_accessed_from_self_instead_of_active_support_test_case
-    TestCaseTest.stubs(:fixture_path).returns(FILES_DIR)
-
-    uploaded_file = fixture_file_upload('/mona_lisa.jpg', 'image/png')
-    assert_equal File.open("#{FILES_DIR}/mona_lisa.jpg", READ_PLAIN).read, uploaded_file.read
+    TestCaseTest.stub :fixture_path, FILES_DIR do
+      uploaded_file = fixture_file_upload('/mona_lisa.jpg', 'image/png')
+      assert_equal File.open("#{FILES_DIR}/mona_lisa.jpg", READ_PLAIN).read, uploaded_file.read
+    end
   end
 
   def test_test_uploaded_file_with_binary
@@ -893,13 +920,13 @@ XML
   end
 
   def test_fixture_file_upload_relative_to_fixture_path
-    TestCaseTest.stubs(:fixture_path).returns(FILES_DIR)
-    uploaded_file = fixture_file_upload("mona_lisa.jpg", "image/jpg")
-    assert_equal File.open("#{FILES_DIR}/mona_lisa.jpg", READ_PLAIN).read, uploaded_file.read
+    TestCaseTest.stub :fixture_path, FILES_DIR do
+      uploaded_file = fixture_file_upload("mona_lisa.jpg", "image/jpg")
+      assert_equal File.open("#{FILES_DIR}/mona_lisa.jpg", READ_PLAIN).read, uploaded_file.read
+    end
   end
 
   def test_fixture_file_upload_ignores_nil_fixture_path
-    TestCaseTest.stubs(:fixture_path).returns(nil)
     uploaded_file = fixture_file_upload("#{FILES_DIR}/mona_lisa.jpg", "image/jpg")
     assert_equal File.open("#{FILES_DIR}/mona_lisa.jpg", READ_PLAIN).read, uploaded_file.read
   end
@@ -947,6 +974,11 @@ class ResponseDefaultHeadersTest < ActionController::TestCase
       headers.delete params[:header]
       head :ok, 'C' => '3'
     end
+
+    # Render a head response, but don't touch default headers
+    def leave_alone
+      head :ok
+    end
   end
 
   def before_setup
@@ -972,9 +1004,13 @@ class ResponseDefaultHeadersTest < ActionController::TestCase
   end
 
   test "response contains default headers" do
-    # Response headers start out with the defaults
-    assert_equal @defaults, response.headers
+    get :leave_alone
 
+    # Response headers start out with the defaults
+    assert_equal @defaults.merge('Content-Type' => 'text/html'), response.headers
+  end
+
+  test "response deletes a default header" do
     get :remove_header, params: { header: 'A' }
     assert_response :ok
 

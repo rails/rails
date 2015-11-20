@@ -1,3 +1,8 @@
+*   `config.force_ssl = true` will set
+    `config.action_mailer.default_url_options = { protocol: 'https' }`
+
+    *Andrew Kampjes*
+
 *   Add `config.action_mailer.deliver_later_queue_name` configuration to set the
     mailer queue name.
 

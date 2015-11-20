@@ -170,7 +170,7 @@ class ACLogSubscriberTest < ActionController::TestCase
   def test_process_action_with_view_runtime
     get :show
     wait
-    assert_match(/Completed 200 OK in [\d]ms/, logs[1])
+    assert_match(/Completed 200 OK in \d+ms/, logs[1])
   end
 
   def test_append_info_to_payload_is_called_even_with_exception

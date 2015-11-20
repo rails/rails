@@ -1,5 +1,3 @@
-require 'active_support/deprecation/reporting'
-
 module ActionDispatch
   # ActionDispatch::Reloader provides prepare and cleanup callbacks,
   # intended to assist with code reloading during development.

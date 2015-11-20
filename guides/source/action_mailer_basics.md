@@ -760,8 +760,8 @@ config.action_mailer.smtp_settings = {
   enable_starttls_auto: true  }
 ```
 Note: As of July 15, 2014, Google increased [its security measures](https://support.google.com/accounts/answer/6010255) and now blocks attempts from apps it deems less secure.
-You can change your gmail settings [here](https://www.google.com/settings/security/lesssecureapps) to allow the attempts or 
-use another ESP to send email by replacing 'smpt.gmail.com' above with the address of your provider.
+You can change your gmail settings [here](https://www.google.com/settings/security/lesssecureapps) to allow the attempts or
+use another ESP to send email by replacing 'smtp.gmail.com' above with the address of your provider.
 
 Mailer Testing
 --------------

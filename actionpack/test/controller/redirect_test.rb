@@ -266,15 +266,17 @@ class RedirectTest < ActionController::TestCase
   end
 
   def test_redirect_to_nil
-    assert_raise(ActionController::ActionControllerError) do
+    error = assert_raise(ActionController::ActionControllerError) do
       get :redirect_to_nil
     end
+    assert_equal "Cannot redirect to nil!", error.message
   end
 
   def test_redirect_to_params
-    assert_raise(ActionController::ActionControllerError) do
+    error = assert_raise(ActionController::ActionControllerError) do
       get :redirect_to_params
     end
+    assert_equal "Cannot redirect to a parameter hash!", error.message
   end
 
   def test_redirect_to_with_block

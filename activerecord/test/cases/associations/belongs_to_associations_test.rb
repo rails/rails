@@ -1,6 +1,5 @@
 require 'cases/helper'
 require 'models/developer'
-require 'models/computer'
 require 'models/project'
 require 'models/company'
 require 'models/topic'
@@ -501,7 +500,9 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     line_item = LineItem.create!
     invoice = Invoice.create!(line_items: [line_item])
     initial = invoice.updated_at
-    line_item.touch
+    travel(1.second) do
+      line_item.touch
+    end
 
     assert_not_equal initial, invoice.reload.updated_at
   end

@@ -744,8 +744,9 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_get_ids_for_has_many_through_with_conditions_should_not_preload
     Tagging.create!(:taggable_type => 'Post', :taggable_id => posts(:welcome).id, :tag => tags(:misc))
-    ActiveRecord::Associations::Preloader.expects(:new).never
-    posts(:welcome).misc_tag_ids
+    assert_not_called(ActiveRecord::Associations::Preloader, :new) do
+      posts(:welcome).misc_tag_ids
+    end
   end
 
   def test_get_ids_for_loaded_associations
@@ -765,9 +766,10 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_association_proxy_transaction_method_starts_transaction_in_association_class
-    Tag.expects(:transaction)
-    Post.first.tags.transaction do
-      # nothing
+    assert_called(Tag, :transaction) do
+      Post.first.tags.transaction do
+        # nothing
+      end
     end
   end
 
@@ -1109,10 +1111,10 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_has_many_through_with_default_scope_on_the_target
     person = people(:michael)
-    assert_equal [posts(:thinking)], person.first_posts
+    assert_equal [posts(:thinking).id], person.first_posts.map(&:id)
 
     readers(:michael_authorless).update(first_post_id: 1)
-    assert_equal [posts(:thinking)], person.reload.first_posts
+    assert_equal [posts(:thinking).id], person.reload.first_posts.map(&:id)
   end
 
   def test_has_many_through_with_includes_in_through_association_scope

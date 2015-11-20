@@ -226,20 +226,22 @@ module ActiveJob
       #     assert_enqueued_with(job: MyJob, args: [1,2,3], queue: 'low') do
       #       MyJob.perform_later(1,2,3)
       #     end
+      #
+      #     assert_enqueued_with(job: MyJob, at: Date.tomorrow.noon) do
+      #       MyJob.set(wait_until: Date.tomorrow.noon).perform_later
+      #     end
       #   end
-      def assert_enqueued_with(args = {}, &_block)
-        original_enqueued_jobs = enqueued_jobs.dup
-        clear_enqueued_jobs
+      def assert_enqueued_with(args = {})
+        original_enqueued_jobs_count = enqueued_jobs.count
         args.assert_valid_keys(:job, :args, :at, :queue)
         serialized_args = serialize_args_for_assertion(args)
         yield
-        matching_job = enqueued_jobs.find do |job|
+        in_block_jobs = enqueued_jobs.drop(original_enqueued_jobs_count)
+        matching_job = in_block_jobs.find do |job|
           serialized_args.all? { |key, value| value == job[key] }
         end
         assert matching_job, "No enqueued job found with #{args}"
-        instanciate_job(matching_job)
-      ensure
-        queue_adapter.enqueued_jobs = original_enqueued_jobs + enqueued_jobs
+        instantiate_job(matching_job)
       end
 
       # Asserts that the job passed in the block has been performed with the given arguments.
@@ -248,20 +250,22 @@ module ActiveJob
       #     assert_performed_with(job: MyJob, args: [1,2,3], queue: 'high') do
       #       MyJob.perform_later(1,2,3)
       #     end
+      #
+      #     assert_performed_with(job: MyJob, at: Date.tomorrow.noon) do
+      #       MyJob.set(wait_until: Date.tomorrow.noon).perform_later
+      #     end
       #   end
-      def assert_performed_with(args = {}, &_block)
-        original_performed_jobs = performed_jobs.dup
-        clear_performed_jobs
+      def assert_performed_with(args = {})
+        original_performed_jobs_count = performed_jobs.count
         args.assert_valid_keys(:job, :args, :at, :queue)
         serialized_args = serialize_args_for_assertion(args)
         perform_enqueued_jobs { yield }
-        matching_job = performed_jobs.find do |job|
+        in_block_jobs = performed_jobs.drop(original_performed_jobs_count)
+        matching_job = in_block_jobs.find do |job|
           serialized_args.all? { |key, value| value == job[key] }
         end
         assert matching_job, "No performed job found with #{args}"
-        instanciate_job(matching_job)
-      ensure
-        queue_adapter.performed_jobs = original_performed_jobs + performed_jobs
+        instantiate_job(matching_job)
       end
 
       def perform_enqueued_jobs(only: nil)
@@ -290,31 +294,30 @@ module ActiveJob
                to: :queue_adapter
 
       private
-        def clear_enqueued_jobs
+        def clear_enqueued_jobs # :nodoc:
           enqueued_jobs.clear
         end
 
-        def clear_performed_jobs
+        def clear_performed_jobs # :nodoc:
           performed_jobs.clear
         end
 
-        def enqueued_jobs_size(only: nil)
+        def enqueued_jobs_size(only: nil) # :nodoc:
           if only
-            enqueued_jobs.select { |job| job.fetch(:job) == only }.size
+            enqueued_jobs.count { |job| Array(only).include?(job.fetch(:job)) }
           else
-            enqueued_jobs.size
+            enqueued_jobs.count
           end
         end
 
-        def serialize_args_for_assertion(args)
-          serialized_args = args.dup
-          if job_args = serialized_args.delete(:args)
-            serialized_args[:args] = ActiveJob::Arguments.serialize(job_args)
+        def serialize_args_for_assertion(args) # :nodoc:
+          args.dup.tap do |serialized_args|
+            serialized_args[:args] = ActiveJob::Arguments.serialize(serialized_args[:args]) if serialized_args[:args]
+            serialized_args[:at]   = serialized_args[:at].to_f if serialized_args[:at]
           end
-          serialized_args
         end
 
-        def instanciate_job(payload)
+        def instantiate_job(payload) # :nodoc:
           job = payload[:job].new(*payload[:args])
           job.scheduled_at = Time.at(payload[:at]) if payload.key?(:at)
           job.queue_name = payload[:queue]

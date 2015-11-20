@@ -158,6 +158,7 @@ module ActionPack
 
       ['/posts/ping',[    { :controller => 'posts', :action => 'ping' }]],
       ['/posts/show/1',[  { :controller => 'posts', :action => 'show', :id => '1' }]],
+      ['/posts/show/1',[  { :controller => 'posts', :action => 'show', :id => '1', :format => '' }]],
       ['/posts',[         { :controller => 'posts' }]],
       ['/posts',[         { :controller => 'posts', :action => 'index' }]],
       ['/posts/create',[  { :action => 'create' }, {:day=>nil, :month=>nil, :controller=>"posts", :action=>"show_date"}, '/blog']],

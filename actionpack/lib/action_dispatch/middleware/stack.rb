@@ -15,7 +15,11 @@ module ActionDispatch
       def name; klass.name; end
 
       def inspect
-        klass.to_s
+        if klass.is_a?(Class)
+          klass.to_s
+        else
+          klass.class.to_s
+        end
       end
 
       def build(app)
@@ -87,7 +91,7 @@ module ActionDispatch
       middlewares.freeze.reverse.inject(app) { |a, e| e.build(a) }
     end
 
-  protected
+    private
 
     def assert_index(index, where)
       index = get_class index
@@ -95,8 +99,6 @@ module ActionDispatch
       raise "No such middleware to insert #{where}: #{index.inspect}" unless i
       i
     end
-
-    private
 
     def get_class(klass)
       if klass.is_a?(String) || klass.is_a?(Symbol)

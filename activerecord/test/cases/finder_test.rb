@@ -178,8 +178,9 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_exists_does_not_instantiate_records
-    Developer.expects(:instantiate).never
-    Developer.exists?
+    assert_not_called(Developer, :instantiate) do
+      Developer.exists?
+    end
   end
 
   def test_find_by_array_of_one_id
@@ -262,6 +263,12 @@ class FinderTest < ActiveRecord::TestCase
   def test_find_by_sql_with_sti_on_joined_table
     accounts = Account.find_by_sql("SELECT * FROM accounts INNER JOIN companies ON companies.id = accounts.firm_id")
     assert_equal [Account], accounts.collect(&:class).uniq
+  end
+
+  def test_find_by_association_subquery
+    author = authors(:david)
+    assert_equal author.post, Post.find_by(author: Author.where(id: author))
+    assert_equal author.post, Post.find_by(author_id: Author.where(id: author))
   end
 
   def test_take
@@ -700,12 +707,12 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_bind_arity
-    assert_nothing_raised                                 { bind '' }
+    assert_nothing_raised                                { bind '' }
     assert_raise(ActiveRecord::PreparedStatementInvalid) { bind '', 1 }
 
     assert_raise(ActiveRecord::PreparedStatementInvalid) { bind '?' }
-    assert_nothing_raised                                 { bind '?', 1 }
-    assert_raise(ActiveRecord::PreparedStatementInvalid) { bind '?', 1, 1  }
+    assert_nothing_raised                                { bind '?', 1 }
+    assert_raise(ActiveRecord::PreparedStatementInvalid) { bind '?', 1, 1 }
   end
 
   def test_named_bind_variables
@@ -718,6 +725,12 @@ class FinderTest < ActiveRecord::TestCase
     assert_nil Company.where(["name = :name", { name: "37signals!" }]).first
     assert_nil Company.where(["name = :name", { name: "37signals!' OR 1=1" }]).first
     assert_kind_of Time, Topic.where(["id = :id", { id: 1 }]).first.written_on
+  end
+
+  def test_named_bind_arity
+    assert_nothing_raised                                { bind "name = :name", { name: "37signals" } }
+    assert_nothing_raised                                { bind "name = :name", { name: "37signals", id: 1 } }
+    assert_raise(ActiveRecord::PreparedStatementInvalid) { bind "name = :name", { id: 1 } }
   end
 
   class SimpleEnumerable

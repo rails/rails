@@ -1,55 +1,55 @@
 require 'active_support/core_ext/hash/keys'
-require 'active_support/core_ext/module/attribute_accessors'
-require 'active_support/core_ext/object/blank'
 require 'active_support/key_generator'
 require 'active_support/message_verifier'
 require 'active_support/json'
 
 module ActionDispatch
-  class Request < Rack::Request
+  class Request
     def cookie_jar
-      env['action_dispatch.cookies'.freeze] ||= Cookies::CookieJar.build(self, cookies)
+      fetch_header('action_dispatch.cookies'.freeze) do
+        self.cookie_jar = Cookies::CookieJar.build(self, cookies)
+      end
     end
 
     # :stopdoc:
     def have_cookie_jar?
-      env.key? 'action_dispatch.cookies'.freeze
+      has_header? 'action_dispatch.cookies'.freeze
     end
 
     def cookie_jar=(jar)
-      env['action_dispatch.cookies'.freeze] = jar
+      set_header 'action_dispatch.cookies'.freeze, jar
     end
 
     def key_generator
-      env[Cookies::GENERATOR_KEY]
+      get_header Cookies::GENERATOR_KEY
     end
 
     def signed_cookie_salt
-      env[Cookies::SIGNED_COOKIE_SALT]
+      get_header Cookies::SIGNED_COOKIE_SALT
     end
 
     def encrypted_cookie_salt
-      env[Cookies::ENCRYPTED_COOKIE_SALT]
+      get_header Cookies::ENCRYPTED_COOKIE_SALT
     end
 
     def encrypted_signed_cookie_salt
-      env[Cookies::ENCRYPTED_SIGNED_COOKIE_SALT]
+      get_header Cookies::ENCRYPTED_SIGNED_COOKIE_SALT
     end
 
     def secret_token
-      env[Cookies::SECRET_TOKEN]
+      get_header Cookies::SECRET_TOKEN
     end
 
     def secret_key_base
-      env[Cookies::SECRET_KEY_BASE]
+      get_header Cookies::SECRET_KEY_BASE
     end
 
     def cookies_serializer
-      env[Cookies::COOKIES_SERIALIZER]
+      get_header Cookies::COOKIES_SERIALIZER
     end
 
     def cookies_digest
-      env[Cookies::COOKIES_DIGEST]
+      get_header Cookies::COOKIES_DIGEST
     end
     # :startdoc:
   end
@@ -221,18 +221,10 @@ module ActionDispatch
           end
       end
 
-      protected
-
-      def request; @parent_jar.request; end
-
       private
 
       def upgrade_legacy_signed_cookies?
         request.secret_token.present? && request.secret_key_base.present?
-      end
-
-      def key_generator
-        request.key_generator
       end
     end
 
@@ -253,6 +245,11 @@ module ActionDispatch
       rescue ActiveSupport::MessageVerifier::InvalidSignature
         nil
       end
+
+      private
+        def parse(name, signed_message)
+          super || verify_and_upgrade_legacy_signed_message(name, signed_message)
+        end
     end
 
     class CookieJar #:nodoc:
@@ -317,6 +314,13 @@ module ActionDispatch
       def update(other_hash)
         @cookies.update other_hash.stringify_keys
         self
+      end
+
+      def update_cookies_from_jar
+        request_jar = @request.cookie_jar.instance_variable_get(:@cookies)
+        set_cookies = request_jar.reject { |k,_| @delete_cookies.key?(k) }
+
+        @cookies.update set_cookies if set_cookies
       end
 
       def to_header
@@ -392,20 +396,35 @@ module ActionDispatch
       end
 
       def write(headers)
-        @set_cookies.each { |k, v| ::Rack::Utils.set_cookie_header!(headers, k, v) if write_cookie?(v) }
-        @delete_cookies.each { |k, v| ::Rack::Utils.delete_cookie_header!(headers, k, v) }
+        if header = make_set_cookie_header(headers[HTTP_HEADER])
+          headers[HTTP_HEADER] = header
+        end
       end
 
       mattr_accessor :always_write_cookie
       self.always_write_cookie = false
 
       private
-        def write_cookie?(cookie)
-          request.ssl? || !cookie[:secure] || always_write_cookie
-        end
+
+      def make_set_cookie_header(header)
+        header = @set_cookies.inject(header) { |m, (k, v)|
+          if write_cookie?(v)
+            ::Rack::Utils.add_cookie_to_header(m, k, v)
+          else
+            m
+          end
+        }
+        @delete_cookies.inject(header) { |m, (k, v)|
+          ::Rack::Utils.add_remove_cookie_to_header(m, k, v)
+        }
+      end
+
+      def write_cookie?(cookie)
+        request.ssl? || !cookie[:secure] || always_write_cookie
+      end
     end
 
-    class PermanentCookieJar #:nodoc:
+    class AbstractCookieJar # :nodoc:
       include ChainedCookieJars
 
       def initialize(parent_jar)
@@ -413,19 +432,35 @@ module ActionDispatch
       end
 
       def [](name)
-        @parent_jar[name.to_s]
+        if data = @parent_jar[name.to_s]
+          parse name, data
+        end
       end
 
       def []=(name, options)
         if options.is_a?(Hash)
           options.symbolize_keys!
         else
-          options = { :value => options }
+          options = { value: options }
         end
 
-        options[:expires] = 20.years.from_now
+        commit(options)
         @parent_jar[name] = options
       end
+
+      protected
+        def request; @parent_jar.request; end
+
+      private
+        def parse(name, data); data; end
+        def commit(options); end
+    end
+
+    class PermanentCookieJar < AbstractCookieJar # :nodoc:
+      private
+        def commit(options)
+          options[:expires] = 20.years.from_now
+        end
     end
 
     class JsonSerializer # :nodoc:
@@ -477,45 +512,30 @@ module ActionDispatch
         def digest
           request.cookies_digest || 'SHA1'
         end
+
+        def key_generator
+          request.key_generator
+        end
     end
 
-    class SignedCookieJar #:nodoc:
-      include ChainedCookieJars
+    class SignedCookieJar < AbstractCookieJar # :nodoc:
       include SerializedCookieJars
 
       def initialize(parent_jar)
-        @parent_jar = parent_jar
+        super
         secret = key_generator.generate_key(request.signed_cookie_salt)
         @verifier = ActiveSupport::MessageVerifier.new(secret, digest: digest, serializer: ActiveSupport::MessageEncryptor::NullSerializer)
       end
 
-      # Returns the value of the cookie by +name+ if it is untampered,
-      # returns +nil+ otherwise or if no such cookie exists.
-      def [](name)
-        if signed_message = @parent_jar[name]
-          deserialize name, verify(signed_message)
-        end
-      end
-
-      # Signs and sets the cookie named +name+. The second argument may be the cookie's
-      # value or a hash of options as documented above.
-      def []=(name, options)
-        if options.is_a?(Hash)
-          options.symbolize_keys!
-          options[:value] = @verifier.generate(serialize(options[:value]))
-        else
-          options = { :value => @verifier.generate(serialize(options)) }
-        end
-
-        raise CookieOverflow if options[:value].bytesize > MAX_COOKIE_SIZE
-        @parent_jar[name] = options
-      end
-
       private
-        def verify(signed_message)
-          @verifier.verify(signed_message)
-        rescue ActiveSupport::MessageVerifier::InvalidSignature
-          nil
+        def parse(name, signed_message)
+          deserialize name, @verifier.verified(signed_message)
+        end
+
+        def commit(options)
+          options[:value] = @verifier.generate(serialize(options[:value]))
+
+          raise CookieOverflow if options[:value].bytesize > MAX_COOKIE_SIZE
         end
     end
 
@@ -525,20 +545,13 @@ module ActionDispatch
     # re-saves them using the new key generator to provide a smooth upgrade path.
     class UpgradeLegacySignedCookieJar < SignedCookieJar #:nodoc:
       include VerifyAndUpgradeLegacySignedMessage
-
-      def [](name)
-        if signed_message = @parent_jar[name]
-          deserialize(name, verify(signed_message)) || verify_and_upgrade_legacy_signed_message(name, signed_message)
-        end
-      end
     end
 
-    class EncryptedCookieJar #:nodoc:
-      include ChainedCookieJars
+    class EncryptedCookieJar < AbstractCookieJar # :nodoc:
       include SerializedCookieJars
 
       def initialize(parent_jar)
-        @parent_jar = parent_jar
+        super
 
         if ActiveSupport::LegacyKeyGenerator === key_generator
           raise "You didn't set secrets.secret_key_base, which is required for this cookie jar. " +
@@ -550,34 +563,17 @@ module ActionDispatch
         @encryptor = ActiveSupport::MessageEncryptor.new(secret, sign_secret, digest: digest, serializer: ActiveSupport::MessageEncryptor::NullSerializer)
       end
 
-      # Returns the value of the cookie by +name+ if it is untampered,
-      # returns +nil+ otherwise or if no such cookie exists.
-      def [](name)
-        if encrypted_message = @parent_jar[name]
-          deserialize name, decrypt_and_verify(encrypted_message)
-        end
-      end
-
-      # Encrypts and sets the cookie named +name+. The second argument may be the cookie's
-      # value or a hash of options as documented above.
-      def []=(name, options)
-        if options.is_a?(Hash)
-          options.symbolize_keys!
-        else
-          options = { :value => options }
-        end
-
-        options[:value] = @encryptor.encrypt_and_sign(serialize(options[:value]))
-
-        raise CookieOverflow if options[:value].bytesize > MAX_COOKIE_SIZE
-        @parent_jar[name] = options
-      end
-
       private
-        def decrypt_and_verify(encrypted_message)
-          @encryptor.decrypt_and_verify(encrypted_message)
+        def parse(name, encrypted_message)
+          deserialize name, @encryptor.decrypt_and_verify(encrypted_message)
         rescue ActiveSupport::MessageVerifier::InvalidSignature, ActiveSupport::MessageEncryptor::InvalidMessage
           nil
+        end
+
+        def commit(options)
+          options[:value] = @encryptor.encrypt_and_sign(serialize(options[:value]))
+
+          raise CookieOverflow if options[:value].bytesize > MAX_COOKIE_SIZE
         end
     end
 
@@ -587,12 +583,6 @@ module ActionDispatch
     # encrypts and re-saves them using the new key generator to provide a smooth upgrade path.
     class UpgradeLegacyEncryptedCookieJar < EncryptedCookieJar #:nodoc:
       include VerifyAndUpgradeLegacySignedMessage
-
-      def [](name)
-        if encrypted_or_signed_message = @parent_jar[name]
-          deserialize(name, decrypt_and_verify(encrypted_or_signed_message)) || verify_and_upgrade_legacy_signed_message(name, encrypted_or_signed_message)
-        end
-      end
     end
 
     def initialize(app)

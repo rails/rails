@@ -15,7 +15,7 @@ module ActiveRecord
       end
 
       def teardown
-        rename_table :octopi, :test_models if connection.table_exists? :octopi
+        ActiveSupport::Deprecation.silence { rename_table :octopi, :test_models if connection.table_exists? :octopi }
         super
       end
 
@@ -83,7 +83,7 @@ module ActiveRecord
           enable_extension!('uuid-ossp', connection)
           connection.create_table :cats, id: :uuid
           assert_nothing_raised { rename_table :cats, :felines }
-          assert connection.table_exists? :felines
+          ActiveSupport::Deprecation.silence { assert connection.table_exists? :felines }
         ensure
           disable_extension!('uuid-ossp', connection)
           connection.drop_table :cats, if_exists: true

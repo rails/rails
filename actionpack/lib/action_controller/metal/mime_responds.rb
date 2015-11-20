@@ -91,11 +91,11 @@ module ActionController #:nodoc:
     # and accept Rails' defaults, life will be much easier.
     #
     # If you need to use a MIME type which isn't supported by default, you can register your own handlers in
-    # config/initializers/mime_types.rb as follows.
+    # +config/initializers/mime_types.rb+ as follows.
     #
     #   Mime::Type.register "image/jpg", :jpg
     #
-    # Respond to also allows you to specify a common block for different formats by using any:
+    # Respond to also allows you to specify a common block for different formats by using +any+:
     #
     #   def index
     #     @people = Person.all
@@ -151,7 +151,7 @@ module ActionController #:nodoc:
     #     format.html.none  { render "trash" }
     #   end
     #
-    # Variants also support common `any`/`all` block that formats have.
+    # Variants also support common +any+/+all+ block that formats have.
     #
     # It works for both inline:
     #
@@ -174,7 +174,7 @@ module ActionController #:nodoc:
     #   request.variant = [:tablet, :phone]
     #
     # which will work similarly to formats and MIME types negotiation. If there will be no
-    # :tablet variant declared, :phone variant will be picked:
+    # +:tablet+ variant declared, +:phone+ variant will be picked:
     #
     #   respond_to do |format|
     #     format.html.none
@@ -191,6 +191,7 @@ module ActionController #:nodoc:
 
       if format = collector.negotiate_format(request)
         _process_format(format)
+        _set_rendered_content_type format
         response = collector.response
         response ? response.call : render({})
       else
@@ -228,7 +229,7 @@ module ActionController #:nodoc:
         @responses = {}
         @variant = variant
 
-        mimes.each { |mime| @responses["Mime::#{mime.upcase}".constantize] = nil }
+        mimes.each { |mime| @responses[Mime[mime]] = nil }
       end
 
       def any(*args, &block)

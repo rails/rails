@@ -1,4 +1,3 @@
-
 require 'abstract_unit'
 require 'multibyte_test_helpers'
 

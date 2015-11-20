@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 require "cases/helper"
 require 'support/schema_dumping_helper'
 

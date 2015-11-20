@@ -3,8 +3,8 @@ require 'active_support/core_ext/uri'
 
 module ActionDispatch
   # This middleware returns a file's contents from disk in the body response.
-  # When initialized, it can accept an optional 'Cache-Control' header, which
-  # will be set when a response containing a file's contents is delivered.
+  # When initialized, it can accept optional HTTP headers, which will be set
+  # when a response containing a file's contents is delivered.
   #
   # This middleware will render the file specified in `env["PATH_INFO"]`
   # where the base path is in the +root+ directory. For example, if the +root+
@@ -13,12 +13,10 @@ module ActionDispatch
   # located at `public/assets/application.js` if the file exists. If the file
   # does not exist, a 404 "File not Found" response will be returned.
   class FileHandler
-    def initialize(root, cache_control, index: 'index')
+    def initialize(root, index: 'index', headers: {})
       @root          = root.chomp('/')
-      @compiled_root = /^#{Regexp.escape(root)}/
-      headers        = cache_control && { 'Cache-Control' => cache_control }
-      @file_server = ::Rack::File.new(@root, headers)
-      @index = index
+      @file_server   = ::Rack::File.new(@root, headers)
+      @index         = index
     end
 
     # Takes a path to a file. If the file is found, has valid encoding, and has
@@ -28,7 +26,7 @@ module ActionDispatch
     # Used by the `Static` class to check the existence of a valid file
     # in the server's `public/` directory (see Static#call).
     def match?(path)
-      path = URI.parser.unescape(path)
+      path = ::Rack::Utils.unescape_path path
       return false unless path.valid_encoding?
       path = Rack::Utils.clean_path_info path
 
@@ -43,7 +41,7 @@ module ActionDispatch
         end
 
       }
-        return ::Rack::Utils.escape(match)
+        return ::Rack::Utils.escape_path(match)
       end
     end
 
@@ -90,7 +88,7 @@ module ActionDispatch
       def gzip_file_path(path)
         can_gzip_mime = content_type(path) =~ /\A(?:text\/|application\/javascript)/
         gzip_path     = "#{path}.gz"
-        if can_gzip_mime && File.exist?(File.join(@root, ::Rack::Utils.unescape(gzip_path)))
+        if can_gzip_mime && File.exist?(File.join(@root, ::Rack::Utils.unescape_path(gzip_path)))
           gzip_path
         else
           false
@@ -108,9 +106,16 @@ module ActionDispatch
   # produce a directory traversal using this middleware. Only 'GET' and 'HEAD'
   # requests will result in a file being returned.
   class Static
-    def initialize(app, path, cache_control = nil, index: 'index')
+    def initialize(app, path, deprecated_cache_control = :not_set, index: 'index', headers: {})
+      if deprecated_cache_control != :not_set
+        ActiveSupport::Deprecation.warn("The `cache_control` argument is deprecated," \
+                                        "replaced by `headers: { 'Cache-Control' => #{deprecated_cache_control} }`, " \
+                                        " and will be removed in Rails 5.1.")
+        headers['Cache-Control'.freeze] = deprecated_cache_control
+      end
+
       @app = app
-      @file_handler = FileHandler.new(path, cache_control, index: index)
+      @file_handler = FileHandler.new(path, index: index, headers: headers)
     end
 
     def call(env)

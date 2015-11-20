@@ -299,6 +299,22 @@ class Animal
     assert_equal 0, @code_statistics_calculator.methods
   end
 
+  test 'count rake tasks' do
+    code = <<-'CODE'
+      task :test_task do
+        puts 'foo'
+      end
+
+    CODE
+
+    @code_statistics_calculator.add_by_io(StringIO.new(code), :rake)
+
+    assert_equal 4, @code_statistics_calculator.lines
+    assert_equal 3, @code_statistics_calculator.code_lines
+    assert_equal 0, @code_statistics_calculator.classes
+    assert_equal 0, @code_statistics_calculator.methods
+  end
+
   private
     def temp_file(name, content)
       dir = File.expand_path '../fixtures/tmp', __FILE__

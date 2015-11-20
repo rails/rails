@@ -16,10 +16,6 @@ module ActionDispatch
         app.app
       end
 
-      def verb
-        super.source.gsub(/[$^]/, '')
-      end
-
       def path
         super.spec.to_s
       end

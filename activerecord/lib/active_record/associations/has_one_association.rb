@@ -1,5 +1,5 @@
 module ActiveRecord
-  # = Active Record Belongs To Has One Association
+  # = Active Record Has One Association
   module Associations
     class HasOneAssociation < SingularAssociation #:nodoc:
       include ForeignAssociation
@@ -11,7 +11,7 @@ module ActiveRecord
 
         when :restrict_with_error
           if load_target
-            record = klass.human_attribute_name(reflection.name).downcase
+            record = owner.class.human_attribute_name(reflection.name).downcase
             message = owner.errors.generate_message(:base, :'restrict_dependent_destroy.one', record: record, raise: true) rescue nil
             if message
               ActiveSupport::Deprecation.warn(<<-MESSAGE.squish)
@@ -65,7 +65,7 @@ module ActiveRecord
             when :destroy
               target.destroy
             when :nullify
-              target.update_columns(reflection.foreign_key => nil)
+              target.update_columns(reflection.foreign_key => nil) if target.persisted?
           end
         end
       end

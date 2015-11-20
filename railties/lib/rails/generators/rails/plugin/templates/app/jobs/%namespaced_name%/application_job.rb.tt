@@ -1,0 +1,5 @@
+<%= wrap_in_modules <<-rb.strip_heredoc
+  class ApplicationJob < ActiveJob::Base
+  end
+rb
+%>

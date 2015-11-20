@@ -1,11 +1,11 @@
-module ActiveRecord::Associations::Builder
+module ActiveRecord::Associations::Builder # :nodoc:
   class HasMany < CollectionAssociation #:nodoc:
     def self.macro
       :has_many
     end
 
     def self.valid_options(options)
-      super + [:primary_key, :dependent, :as, :through, :source, :source_type, :inverse_of, :counter_cache, :join_table, :foreign_type]
+      super + [:primary_key, :dependent, :as, :through, :source, :source_type, :inverse_of, :counter_cache, :join_table, :foreign_type, :index_errors]
     end
 
     def self.valid_dependent_options

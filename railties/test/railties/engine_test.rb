@@ -1205,7 +1205,7 @@ YAML
 
     test "engine can be properly mounted at root" do
       add_to_config("config.action_dispatch.show_exceptions = false")
-      add_to_config("config.serve_static_files = false")
+      add_to_config("config.public_file_server.enabled = false")
 
       @plugin.write "lib/bukkits.rb", <<-RUBY
         module Bukkits
@@ -1286,6 +1286,55 @@ YAML
         end
       RUBY
 
+
+      @plugin.write "app/controllers/bukkits/bukkit_controller.rb", <<-RUBY
+        class Bukkits::BukkitController < ActionController::Base
+          def index
+            render text: main_app.bar_path
+          end
+        end
+      RUBY
+
+      boot_rails
+
+      get("/bukkits/bukkit", {}, {'SCRIPT_NAME' => '/foo'})
+      assert_equal '/foo/bar', last_response.body
+
+      get("/bar", {}, {'SCRIPT_NAME' => '/foo'})
+      assert_equal '/foo/bukkits/bukkit', last_response.body
+    end
+
+    test "paths are properly generated when application is mounted at sub-path and relative_url_root is set" do
+      add_to_config "config.relative_url_root = '/foo'"
+
+      @plugin.write "lib/bukkits.rb", <<-RUBY
+        module Bukkits
+          class Engine < ::Rails::Engine
+            isolate_namespace Bukkits
+          end
+        end
+      RUBY
+
+      app_file "app/controllers/bar_controller.rb", <<-RUBY
+        class BarController < ApplicationController
+          def index
+            render text: bukkits.bukkit_path
+          end
+        end
+      RUBY
+
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          get '/bar' => 'bar#index', :as => 'bar'
+          mount Bukkits::Engine => "/bukkits", :as => "bukkits"
+        end
+      RUBY
+
+      @plugin.write "config/routes.rb", <<-RUBY
+        Bukkits::Engine.routes.draw do
+          get '/bukkit' => 'bukkit#index'
+        end
+      RUBY
 
       @plugin.write "app/controllers/bukkits/bukkit_controller.rb", <<-RUBY
         class Bukkits::BukkitController < ActionController::Base

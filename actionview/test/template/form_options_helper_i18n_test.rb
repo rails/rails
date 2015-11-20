@@ -14,8 +14,9 @@ class FormOptionsHelperI18nTests < ActionView::TestCase
   end
 
   def test_select_with_prompt_true_translates_prompt_message
-    I18n.expects(:translate).with('helpers.select.prompt', { :default => 'Please select' })
-    select('post', 'category', [], :prompt => true)
+    assert_called_with(I18n, :translate, ['helpers.select.prompt', { :default => 'Please select' }]) do
+      select('post', 'category', [], :prompt => true)
+    end
   end
 
   def test_select_with_translated_prompt

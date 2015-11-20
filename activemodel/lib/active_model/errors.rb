@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 require 'active_support/core_ext/array/conversions'
 require 'active_support/core_ext/string/inflections'
 require 'active_support/core_ext/object/deep_dup'

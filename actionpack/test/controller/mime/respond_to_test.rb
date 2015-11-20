@@ -81,7 +81,7 @@ class RespondToController < ActionController::Base
   def using_defaults_with_all
     respond_to do |type|
       type.html
-      type.all{ render body: "ALL" }
+      type.all { render body: "ALL" }
     end
   end
 

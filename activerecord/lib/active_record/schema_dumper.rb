@@ -89,7 +89,7 @@ HEADER
       end
 
       def tables(stream)
-        sorted_tables = @connection.tables.sort
+        sorted_tables = @connection.data_sources.sort - @connection.views
 
         sorted_tables.each do |table_name|
           table(table_name, stream) unless ignored?(table_name)
@@ -112,20 +112,27 @@ HEADER
           tbl = StringIO.new
 
           # first dump primary key column
-          pk = @connection.primary_key(table)
+          if @connection.respond_to?(:primary_keys)
+            pk = @connection.primary_keys(table)
+            pk = pk.first unless pk.size > 1
+          else
+            pk = @connection.primary_key(table)
+          end
 
           tbl.print "  create_table #{remove_prefix_and_suffix(table).inspect}"
-          pkcol = columns.detect { |c| c.name == pk }
-          if pkcol
-            if pk != 'id'
-              tbl.print %Q(, primary_key: "#{pk}")
-            end
+
+          case pk
+          when String
+            tbl.print ", primary_key: #{pk.inspect}" unless pk == 'id'
+            pkcol = columns.detect { |c| c.name == pk }
             pkcolspec = @connection.column_spec_for_primary_key(pkcol)
             if pkcolspec
               pkcolspec.each do |key, value|
                 tbl.print ", #{key}: #{value}"
               end
             end
+          when Array
+            tbl.print ", primary_key: #{pk.inspect}"
           else
             tbl.print ", id: false"
           end
@@ -247,7 +254,7 @@ HEADER
       end
 
       def ignored?(table_name)
-        ['schema_migrations', ignore_tables].flatten.any? do |ignored|
+        [ActiveRecord::Base.schema_migrations_table_name, ignore_tables].flatten.any? do |ignored|
           ignored === remove_prefix_and_suffix(table_name)
         end
       end

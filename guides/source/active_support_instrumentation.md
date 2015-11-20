@@ -232,6 +232,7 @@ Active Record
 | `:sql`           | SQL statement         |
 | `:name`          | Name of the operation |
 | `:connection_id` | `self.object_id`      |
+| `:binds`         | Bind parameters       |
 
 INFO. The adapters will add their own data as well.
 
@@ -395,6 +396,38 @@ INFO. Cache stores may add their own keys
 }
 ```
 
+Active Job
+--------
+
+### enqueue_at.active_job
+
+| Key          | Value                                  |
+| ------------ | -------------------------------------- |
+| `:adapter`   | QueueAdapter object processing the job |
+| `:job`       | Job object                             |
+
+### enqueue.active_job
+
+| Key          | Value                                  |
+| ------------ | -------------------------------------- |
+| `:adapter`   | QueueAdapter object processing the job |
+| `:job`       | Job object                             |
+
+### perform_start.active_job
+
+| Key          | Value                                  |
+| ------------ | -------------------------------------- |
+| `:adapter`   | QueueAdapter object processing the job |
+| `:job`       | Job object                             |
+
+### perform.active_job
+
+| Key          | Value                                  |
+| ------------ | -------------------------------------- |
+| `:adapter`   | QueueAdapter object processing the job |
+| `:job`       | Job object                             |
+
+
 Railties
 --------
 
@@ -425,7 +458,7 @@ The block receives the following arguments:
 * The name of the event
 * Time when it started
 * Time when it finished
-* An unique ID for this event
+* A unique ID for this event
 * The payload (described in previous sections)
 
 ```ruby

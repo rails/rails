@@ -17,7 +17,7 @@ module ActiveRecord
     #   Person.where("administrator = 1").order("created_on DESC").find(1)
     #
     # NOTE: The returned records may not be in the same order as the ids you
-    # provide since database rows are unordered. You'd need to provide an explicit <tt>order</tt>
+    # provide since database rows are unordered. You'd need to provide an explicit QueryMethods#order
     # option if you want the results are sorted.
     #
     # ==== Find with lock
@@ -34,7 +34,7 @@ module ActiveRecord
     #     person.save!
     #   end
     #
-    # ==== Variations of +find+
+    # ==== Variations of #find
     #
     #   Person.where(name: 'Spartacus', rating: 4)
     #   # returns a chainable list (which can be empty).
@@ -48,7 +48,7 @@ module ActiveRecord
     #   Person.where(name: 'Spartacus', rating: 4).first_or_create
     #   # returns the first item or creates it and returns it.
     #
-    # ==== Alternatives for +find+
+    # ==== Alternatives for #find
     #
     #   Person.where(name: 'Spartacus', rating: 4).exists?(conditions = :none)
     #   # returns a boolean indicating if any record with the given conditions exist.
@@ -80,8 +80,8 @@ module ActiveRecord
       nil
     end
 
-    # Like <tt>find_by</tt>, except that if no record is found, raises
-    # an <tt>ActiveRecord::RecordNotFound</tt> error.
+    # Like #find_by, except that if no record is found, raises
+    # an ActiveRecord::RecordNotFound error.
     def find_by!(arg, *args)
       where(arg, *args).take!
     rescue RangeError
@@ -100,8 +100,8 @@ module ActiveRecord
       limit ? limit(limit).to_a : find_take
     end
 
-    # Same as +take+ but raises <tt>ActiveRecord::RecordNotFound</tt> if no record
-    # is found. Note that <tt>take!</tt> accepts no arguments.
+    # Same as #take but raises ActiveRecord::RecordNotFound if no record
+    # is found. Note that #take! accepts no arguments.
     def take!
       take or raise RecordNotFound.new("Couldn't find #{@klass.name} with [#{arel.where_sql(@klass.arel_engine)}]")
     end
@@ -123,8 +123,8 @@ module ActiveRecord
       end
     end
 
-    # Same as +first+ but raises <tt>ActiveRecord::RecordNotFound</tt> if no record
-    # is found. Note that <tt>first!</tt> accepts no arguments.
+    # Same as #first but raises ActiveRecord::RecordNotFound if no record
+    # is found. Note that #first! accepts no arguments.
     def first!
       find_nth! 0
     end
@@ -156,8 +156,8 @@ module ActiveRecord
       end
     end
 
-    # Same as +last+ but raises <tt>ActiveRecord::RecordNotFound</tt> if no record
-    # is found. Note that <tt>last!</tt> accepts no arguments.
+    # Same as #last but raises ActiveRecord::RecordNotFound if no record
+    # is found. Note that #last! accepts no arguments.
     def last!
       last or raise RecordNotFound.new("Couldn't find #{@klass.name} with [#{arel.where_sql(@klass.arel_engine)}]")
     end
@@ -172,7 +172,7 @@ module ActiveRecord
       find_nth(1, offset_index)
     end
 
-    # Same as +second+ but raises <tt>ActiveRecord::RecordNotFound</tt> if no record
+    # Same as #second but raises ActiveRecord::RecordNotFound if no record
     # is found.
     def second!
       find_nth! 1
@@ -188,7 +188,7 @@ module ActiveRecord
       find_nth(2, offset_index)
     end
 
-    # Same as +third+ but raises <tt>ActiveRecord::RecordNotFound</tt> if no record
+    # Same as #third but raises ActiveRecord::RecordNotFound if no record
     # is found.
     def third!
       find_nth! 2
@@ -204,7 +204,7 @@ module ActiveRecord
       find_nth(3, offset_index)
     end
 
-    # Same as +fourth+ but raises <tt>ActiveRecord::RecordNotFound</tt> if no record
+    # Same as #fourth but raises ActiveRecord::RecordNotFound if no record
     # is found.
     def fourth!
       find_nth! 3
@@ -220,7 +220,7 @@ module ActiveRecord
       find_nth(4, offset_index)
     end
 
-    # Same as +fifth+ but raises <tt>ActiveRecord::RecordNotFound</tt> if no record
+    # Same as #fifth but raises ActiveRecord::RecordNotFound if no record
     # is found.
     def fifth!
       find_nth! 4
@@ -236,14 +236,14 @@ module ActiveRecord
       find_nth(41, offset_index)
     end
 
-    # Same as +forty_two+ but raises <tt>ActiveRecord::RecordNotFound</tt> if no record
+    # Same as #forty_two but raises ActiveRecord::RecordNotFound if no record
     # is found.
     def forty_two!
       find_nth! 41
     end
 
-    # Returns +true+ if a record exists in the table that matches the +id+ or
-    # conditions given, or +false+ otherwise. The argument can take six forms:
+    # Returns true if a record exists in the table that matches the +id+ or
+    # conditions given, or false otherwise. The argument can take six forms:
     #
     # * Integer - Finds the record with this primary key.
     # * String - Finds the record with a primary key corresponding to this
@@ -256,7 +256,7 @@ module ActiveRecord
     # * No args - Returns +false+ if the table is empty, +true+ otherwise.
     #
     # For more information about specifying conditions as a hash or array,
-    # see the Conditions section in the introduction to <tt>ActiveRecord::Base</tt>.
+    # see the Conditions section in the introduction to ActiveRecord::Base.
     #
     # Note: You can't pass in a condition as a string (like <tt>name =
     # 'Jamie'</tt>), since it would be sanitized and then queried against
@@ -298,7 +298,7 @@ module ActiveRecord
     end
 
     # This method is called whenever no records are found with either a single
-    # id or multiple ids and raises a +ActiveRecord::RecordNotFound+ exception.
+    # id or multiple ids and raises a ActiveRecord::RecordNotFound exception.
     #
     # The error message is different depending on whether a single id or
     # multiple ids are provided. If multiple ids are provided, then the number

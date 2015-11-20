@@ -26,7 +26,7 @@ module ActiveSupport
     end
 
     class << self
-      # Creates a new CacheStore object according to the given options.
+      # Creates a new Store object according to the given options.
       #
       # If no arguments are passed to this method, then a new
       # ActiveSupport::Cache::MemoryStore object will be returned.
@@ -275,15 +275,20 @@ module ActiveSupport
       def fetch(name, options = nil)
         if block_given?
           options = merged_options(options)
-          key = namespaced_key(name, options)
+          key = normalize_key(name, options)
 
-          cached_entry = find_cached_entry(key, name, options) unless options[:force]
-          entry = handle_expired_entry(cached_entry, key, options)
+          instrument(:read, name, options) do |payload|
+            cached_entry = read_entry(key, options) unless options[:force]
+            payload[:super_operation] = :fetch if payload
+            entry = handle_expired_entry(cached_entry, key, options)
 
-          if entry
-            get_entry_value(entry, name, options)
-          else
-            save_block_result_to_cache(name, options) { |_name| yield _name }
+            if entry
+              payload[:hit] = true if payload
+              get_entry_value(entry, name, options)
+            else
+              payload[:hit] = false if payload
+              save_block_result_to_cache(name, options) { |_name| yield _name }
+            end
           end
         else
           read(name, options)
@@ -297,7 +302,7 @@ module ActiveSupport
       # Options are passed to the underlying cache implementation.
       def read(name, options = nil)
         options = merged_options(options)
-        key = namespaced_key(name, options)
+        key = normalize_key(name, options)
         instrument(:read, name, options) do |payload|
           entry = read_entry(key, options)
           if entry
@@ -329,7 +334,7 @@ module ActiveSupport
         instrument_multi(:read, names, options) do |payload|
           results = {}
           names.each do |name|
-            key = namespaced_key(name, options)
+            key = normalize_key(name, options)
             entry = read_entry(key, options)
             if entry
               if entry.expired?
@@ -381,7 +386,7 @@ module ActiveSupport
 
         instrument(:write, name, options) do
           entry = Entry.new(value, options)
-          write_entry(namespaced_key(name, options), entry, options)
+          write_entry(normalize_key(name, options), entry, options)
         end
       end
 
@@ -392,7 +397,7 @@ module ActiveSupport
         options = merged_options(options)
 
         instrument(:delete, name) do
-          delete_entry(namespaced_key(name, options), options)
+          delete_entry(normalize_key(name, options), options)
         end
       end
 
@@ -403,7 +408,7 @@ module ActiveSupport
         options = merged_options(options)
 
         instrument(:exist?, name) do
-          entry = read_entry(namespaced_key(name, options), options)
+          entry = read_entry(normalize_key(name, options), options)
           (entry && !entry.expired?) || false
         end
       end
@@ -524,16 +529,17 @@ module ActiveSupport
 
         # Prefix a key with the namespace. Namespace and key will be delimited
         # with a colon.
-        def namespaced_key(key, options)
+        def normalize_key(key, options)
           key = expanded_key(key)
           namespace = options[:namespace] if options
           prefix = namespace.is_a?(Proc) ? namespace.call : namespace
           key = "#{prefix}:#{key}" if prefix
           key
         end
+        alias namespaced_key normalize_key
 
         def instrument(operation, key, options = nil)
-          log { "Cache #{operation}: #{key}#{options.blank? ? "" : " (#{options.inspect})"}" }
+          log { "Cache #{operation}: #{normalize_key(key, options)}#{options.blank? ? "" : " (#{options.inspect})"}" }
 
           payload = { :key => key }
           payload.merge!(options) if options.is_a?(Hash)
@@ -554,13 +560,6 @@ module ActiveSupport
         def log
           return unless logger && logger.debug? && !silence?
           logger.debug(yield)
-        end
-
-        def find_cached_entry(key, name, options)
-          instrument(:read, name, options) do |payload|
-            payload[:super_operation] = :fetch if payload
-            read_entry(key, options)
-          end
         end
 
         def handle_expired_entry(entry, key, options)

@@ -60,7 +60,7 @@ module ActiveRecord
       $stderr.expects(:puts).
         with("Couldn't create database for #{@configuration.inspect}")
 
-      ActiveRecord::Tasks::DatabaseTasks.create @configuration
+      assert_raises(Exception) { ActiveRecord::Tasks::DatabaseTasks.create @configuration }
     end
 
     def test_create_when_database_exists_outputs_info_to_stderr
@@ -204,7 +204,7 @@ module ActiveRecord
     end
 
     def test_structure_dump
-      Kernel.expects(:system).with('pg_dump', '-i', '-s', '-x', '-O', '-f', @filename, 'my-app-db').returns(true)
+      Kernel.expects(:system).with('pg_dump', '-s', '-x', '-O', '-f', @filename, 'my-app-db').returns(true)
 
       ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
     end
@@ -212,7 +212,7 @@ module ActiveRecord
     def test_structure_dump_with_schema_search_path
       @configuration['schema_search_path'] = 'foo,bar'
 
-      Kernel.expects(:system).with('pg_dump', '-i', '-s', '-x', '-O', '-f', @filename, '--schema=foo --schema=bar', 'my-app-db').returns(true)
+      Kernel.expects(:system).with('pg_dump', '-s', '-x', '-O', '-f', @filename, '--schema=foo --schema=bar', 'my-app-db').returns(true)
 
       ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
     end
@@ -220,7 +220,7 @@ module ActiveRecord
     def test_structure_dump_with_schema_search_path_and_dump_schemas_all
       @configuration['schema_search_path'] = 'foo,bar'
 
-      Kernel.expects(:system).with("pg_dump", '-i', '-s', '-x', '-O', '-f', @filename,  'my-app-db').returns(true)
+      Kernel.expects(:system).with("pg_dump", '-s', '-x', '-O', '-f', @filename,  'my-app-db').returns(true)
 
       with_dump_schemas(:all) do
         ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
@@ -228,7 +228,7 @@ module ActiveRecord
     end
 
     def test_structure_dump_with_dump_schemas_string
-      Kernel.expects(:system).with("pg_dump", '-i', '-s', '-x', '-O', '-f', @filename, '--schema=foo --schema=bar', "my-app-db").returns(true)
+      Kernel.expects(:system).with("pg_dump", '-s', '-x', '-O', '-f', @filename, '--schema=foo --schema=bar', "my-app-db").returns(true)
 
       with_dump_schemas('foo,bar') do
         ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)

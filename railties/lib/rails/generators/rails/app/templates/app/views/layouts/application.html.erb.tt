@@ -1,23 +1,24 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <title><%= camelized %></title>
-  <%- if options[:skip_javascript] -%>
-  <%%= stylesheet_link_tag    'application', media: 'all' %>
-  <%- else -%>
-    <%- if gemfile_entries.any? { |m| m.name == 'turbolinks' } -%>
-  <%%= stylesheet_link_tag    'application', media: 'all', 'data-turbolinks-track' => true %>
-  <%%= javascript_include_tag 'application', 'data-turbolinks-track' => true %>
+  <head>
+    <title><%= camelized %></title>
+    <%- if options[:skip_javascript] -%>
+    <%%= stylesheet_link_tag    'application', media: 'all' %>
     <%- else -%>
-  <%%= stylesheet_link_tag    'application', media: 'all' %>
-  <%%= javascript_include_tag 'application' %>
+      <%- if gemfile_entries.any? { |m| m.name == 'turbolinks' } -%>
+    <%%= stylesheet_link_tag    'application', media: 'all', 'data-turbolinks-track' => true %>
+    <%%= javascript_include_tag 'application', 'data-turbolinks-track' => true %>
+      <%- else -%>
+    <%%= stylesheet_link_tag    'application', media: 'all' %>
+    <%%= javascript_include_tag 'application' %>
+      <%- end -%>
     <%- end -%>
-  <%- end -%>
-  <%%= csrf_meta_tags %>
-</head>
-<body>
+    <%%= csrf_meta_tags %>
+  </head>
 
-<%%= yield %>
+  <body>
 
-</body>
+    <%%= yield %>
+
+  </body>
 </html>

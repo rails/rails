@@ -18,10 +18,9 @@ module ActiveRecord
   #   conversation.archived? # => true
   #   conversation.status    # => "archived"
   #
-  #   # conversation.update! status: 1
+  #   # conversation.status = 1
   #   conversation.status = "archived"
   #
-  #   # conversation.update! status: nil
   #   conversation.status = nil
   #   conversation.status.nil? # => true
   #   conversation.status      # => nil
@@ -47,13 +46,13 @@ module ActiveRecord
   # Good practice is to let the first declared status be the default.
   #
   # Finally, it's also possible to explicitly map the relation between attribute and
-  # database integer with a +Hash+:
+  # database integer with a hash:
   #
   #   class Conversation < ActiveRecord::Base
   #     enum status: { active: 0, archived: 1 }
   #   end
   #
-  # Note that when an +Array+ is used, the implicit mapping from the values to database
+  # Note that when an array is used, the implicit mapping from the values to database
   # integers is derived from the order the values appear in the array. In the example,
   # <tt>:active</tt> is mapped to +0+ as it's the first element, and <tt>:archived</tt>
   # is mapped to +1+. In general, the +i+-th element is mapped to <tt>i-1</tt> in the
@@ -61,7 +60,7 @@ module ActiveRecord
   #
   # Therefore, once a value is added to the enum array, its position in the array must
   # be maintained, and new values should only be added to the end of the array. To
-  # remove unused values, the explicit +Hash+ syntax should be used.
+  # remove unused values, the explicit hash syntax should be used.
   #
   # In rare circumstances you might need to access the mapping directly.
   # The mappings are exposed through a class method with the pluralized attribute
@@ -105,7 +104,7 @@ module ActiveRecord
       super
     end
 
-    class EnumType < Type::Value
+    class EnumType < Type::Value # :nodoc:
       def initialize(name, mapping)
         @name = name
         @mapping = mapping
@@ -119,7 +118,7 @@ module ActiveRecord
         elsif mapping.has_value?(value)
           mapping.key(value)
         else
-          raise ArgumentError, "'#{value}' is not a valid #{name}"
+          assert_valid_value(value)
         end
       end
 
@@ -130,6 +129,12 @@ module ActiveRecord
 
       def serialize(value)
         mapping.fetch(value, value)
+      end
+
+      def assert_valid_value(value)
+        unless value.blank? || mapping.has_key?(value) || mapping.has_value?(value)
+          raise ArgumentError, "'#{value}' is not a valid #{name}"
+        end
       end
 
       protected
@@ -205,30 +210,22 @@ module ActiveRecord
 
       def detect_enum_conflict!(enum_name, method_name, klass_method = false)
         if klass_method && dangerous_class_method?(method_name)
-          raise ArgumentError, ENUM_CONFLICT_MESSAGE % {
-            enum: enum_name,
-            klass: self.name,
-            type: 'class',
-            method: method_name,
-            source: 'Active Record'
-          }
+          raise_conflict_error(enum_name, method_name, type: 'class')
         elsif !klass_method && dangerous_attribute_method?(method_name)
-          raise ArgumentError, ENUM_CONFLICT_MESSAGE % {
-            enum: enum_name,
-            klass: self.name,
-            type: 'instance',
-            method: method_name,
-            source: 'Active Record'
-          }
+          raise_conflict_error(enum_name, method_name)
         elsif !klass_method && method_defined_within?(method_name, _enum_methods_module, Module)
-          raise ArgumentError, ENUM_CONFLICT_MESSAGE % {
-            enum: enum_name,
-            klass: self.name,
-            type: 'instance',
-            method: method_name,
-            source: 'another enum'
-          }
+          raise_conflict_error(enum_name, method_name, source: 'another enum')
         end
+      end
+
+      def raise_conflict_error(enum_name, method_name, type: 'instance', source: 'Active Record')
+        raise ArgumentError, ENUM_CONFLICT_MESSAGE % {
+          enum: enum_name,
+          klass: self.name,
+          type: type,
+          method: method_name,
+          source: source
+        }
       end
   end
 end

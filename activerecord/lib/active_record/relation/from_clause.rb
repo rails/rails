@@ -1,6 +1,6 @@
 module ActiveRecord
   class Relation
-    class FromClause
+    class FromClause # :nodoc:
       attr_reader :value, :name
 
       def initialize(value, name)

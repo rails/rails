@@ -53,7 +53,7 @@ module ActiveRecord
       $stderr.expects(:puts).
         with("Couldn't create database for #{@configuration.inspect}")
 
-      ActiveRecord::Tasks::DatabaseTasks.create @configuration, '/rails/root'
+      assert_raises(Exception) { ActiveRecord::Tasks::DatabaseTasks.create @configuration, '/rails/root' }
     end
   end
 

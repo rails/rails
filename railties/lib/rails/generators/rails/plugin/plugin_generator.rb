@@ -104,8 +104,9 @@ task default: :test
     end
 
     def test_dummy_assets
-      template "rails/javascripts.js",  "#{dummy_path}/app/assets/javascripts/application.js", force: true
-      template "rails/stylesheets.css", "#{dummy_path}/app/assets/stylesheets/application.css", force: true
+      template "rails/javascripts.js",    "#{dummy_path}/app/assets/javascripts/application.js", force: true
+      template "rails/stylesheets.css",   "#{dummy_path}/app/assets/stylesheets/application.css", force: true
+      template "rails/dummy_manifest.js", "#{dummy_path}/app/assets/config/manifest.js", force: true
     end
 
     def test_dummy_clean
@@ -116,10 +117,14 @@ task default: :test
         remove_file "Gemfile"
         remove_file "lib/tasks"
         remove_file "public/robots.txt"
-        remove_file "README"
+        remove_file "README.md"
         remove_file "test"
         remove_file "vendor"
       end
+    end
+
+    def assets_manifest
+      template "rails/engine_manifest.js", "app/assets/config/#{underscored_name}_manifest.js"
     end
 
     def stylesheets
@@ -220,16 +225,16 @@ task default: :test
         build(:lib)
       end
 
+      def create_assets_manifest_file
+        build(:assets_manifest) if !api? && engine?
+      end
+
       def create_public_stylesheets_files
         build(:stylesheets) unless api?
       end
 
       def create_javascript_files
         build(:javascripts) unless api?
-      end
-
-      def create_images_directory
-        build(:images) unless api?
       end
 
       def create_bin_files

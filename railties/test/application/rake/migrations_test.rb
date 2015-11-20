@@ -154,6 +154,28 @@ module ApplicationTests
         end
       end
 
+      test 'running migrations with not timestamp head migration files' do
+        Dir.chdir(app_path) do
+
+          app_file "db/migrate/1_one_migration.rb", <<-MIGRATION
+            class OneMigration < ActiveRecord::Migration
+            end
+          MIGRATION
+
+          app_file "db/migrate/02_two_migration.rb", <<-MIGRATION
+            class TwoMigration < ActiveRecord::Migration
+            end
+          MIGRATION
+
+          `bin/rake db:migrate`
+
+           output = `bin/rake db:migrate:status`
+
+           assert_match(/up\s+001\s+One migration/, output)
+           assert_match(/up\s+002\s+Two migration/, output)
+        end
+      end
+
       test 'schema generation when dump_schema_after_migration is set' do
         add_to_config('config.active_record.dump_schema_after_migration = false')
 

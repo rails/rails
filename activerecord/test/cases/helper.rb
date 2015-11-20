@@ -3,6 +3,7 @@ require File.expand_path('../../../../load_paths', __FILE__)
 require 'config'
 
 require 'active_support/testing/autorun'
+require 'active_support/testing/method_call_assertions'
 require 'stringio'
 
 require 'active_record'
@@ -45,10 +46,8 @@ def in_memory_db?
   ActiveRecord::Base.connection_pool.spec.config[:database] == ":memory:"
 end
 
-def mysql_56?
-  current_adapter?(:MysqlAdapter, :Mysql2Adapter) &&
-    ActiveRecord::Base.connection.send(:version) >= '5.6.0' &&
-    ActiveRecord::Base.connection.send(:version) < '5.7.0'
+def subsecond_precision_supported?
+  !current_adapter?(:MysqlAdapter, :Mysql2Adapter) || ActiveRecord::Base.connection.version >= '5.6.4'
 end
 
 def mysql_enforcing_gtid_consistency?
@@ -141,6 +140,7 @@ require "cases/validations_repair_helper"
 class ActiveSupport::TestCase
   include ActiveRecord::TestFixtures
   include ActiveRecord::ValidationsRepairHelper
+  include ActiveSupport::Testing::MethodCallAssertions
 
   self.fixture_path = FIXTURES_ROOT
   self.use_instantiated_fixtures  = false

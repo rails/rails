@@ -20,7 +20,7 @@ module ActiveSupport
 
       private
         def method_missing(called, *args, &block)
-          warn caller, called, args
+          warn caller_locations, called, args
           target.__send__(called, *args, &block)
         end
     end
@@ -111,7 +111,7 @@ module ActiveSupport
     #
     #   PLANETS = %w(mercury venus earth mars jupiter saturn uranus neptune pluto)
     #
-    #   (In a later update, the orignal implementation of `PLANETS` has been removed.)
+    #   (In a later update, the original implementation of `PLANETS` has been removed.)
     #
     #   PLANETS_POST_2006 = %w(mercury venus earth mars jupiter saturn uranus neptune)
     #   PLANETS = ActiveSupport::Deprecation::DeprecatedConstantProxy.new('PLANETS', 'PLANETS_POST_2006')

@@ -1,6 +1,5 @@
 require 'abstract_unit'
 require 'controller/fake_models'
-require 'pathname'
 
 class TestControllerWithExtraEtags < ActionController::Base
   etag { nil  }
@@ -235,8 +234,6 @@ class MetalTestController < ActionController::Metal
   include AbstractController::Rendering
   include ActionView::Rendering
   include ActionController::Rendering
-  include ActionController::RackDelegation
-
 
   def accessing_logger_in_template
     render :inline =>  "<%= logger.class %>"
@@ -295,9 +292,10 @@ class ExpiresInRenderTest < ActionController::TestCase
 
   def test_date_header_when_expires_in
     time = Time.mktime(2011,10,30)
-    Time.stubs(:now).returns(time)
-    get :conditional_hello_with_expires_in
-    assert_equal Time.now.httpdate, @response.headers["Date"]
+    Time.stub :now, time do
+      get :conditional_hello_with_expires_in
+      assert_equal Time.now.httpdate, @response.headers["Date"]
+    end
   end
 end
 
@@ -631,13 +629,13 @@ class HttpCacheForeverTest < ActionController::TestCase
 
   def test_cache_with_public
     get :cache_me_forever, params: {public: true}
-    assert_equal "max-age=#{100.years.to_i}, public", @response.headers["Cache-Control"]
+    assert_equal "max-age=#{100.years}, public", @response.headers["Cache-Control"]
     assert_not_nil @response.etag
   end
 
   def test_cache_with_private
     get :cache_me_forever
-    assert_equal "max-age=#{100.years.to_i}, private", @response.headers["Cache-Control"]
+    assert_equal "max-age=#{100.years}, private", @response.headers["Cache-Control"]
     assert_not_nil @response.etag
     assert_response :success
   end

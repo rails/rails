@@ -147,6 +147,39 @@ xml.rss("version" => "2.0", "xmlns:dc" => "http://purl.org/dc/elements/1.1/") do
 end
 ```
 
+#### Jbuilder
+[Jbuilder](https://github.com/rails/jbuilder) is a gem that's
+maintained by the Rails team and included in the default Rails Gemfile.
+It's similar to Builder, but is used to generate JSON, instead of XML.
+
+If you don't have it, you can add the following to your Gemfile:
+
+```ruby
+gem 'jbuilder'
+```
+
+A Jbuilder object named `json` is automatically made available to templates with
+a `.jbuilder` extension.
+
+Here is a basic example:
+
+```ruby
+json.name("Alex")
+json.email("alex@example.com")
+```
+
+would produce:
+
+```json
+{
+  "name": "Alex",
+  "email: "alex@example.com"
+}
+```
+
+See the [Jbuilder documention](https://github.com/rails/jbuilder#jbuilder) for
+more examples and information.
+
 #### Template Caching
 
 By default, Rails will compile each template to a method in order to render it. When you alter a template, Rails will check the file's modification time and recompile it in development mode.
@@ -1214,7 +1247,7 @@ file_field_tag 'attachment'
 
 #### form_tag
 
-Starts a form tag that points the action to an url configured with `url_for_options` just like `ActionController::Base#url_for`.
+Starts a form tag that points the action to a url configured with `url_for_options` just like `ActionController::Base#url_for`.
 
 ```html+erb
 <%= form_tag '/articles' do %>
@@ -1443,12 +1476,12 @@ Sanitizes a block of CSS code.
 Strips all link tags from text leaving just the link text.
 
 ```ruby
-strip_links("<a href="http://rubyonrails.org">Ruby on Rails</a>")
+strip_links('<a href="http://rubyonrails.org">Ruby on Rails</a>')
 # => Ruby on Rails
 ```
 
 ```ruby
-strip_links("emails to <a href="mailto:me@email.com">me@email.com</a>.")
+strip_links('emails to <a href="mailto:me@email.com">me@email.com</a>.')
 # => emails to me@email.com.
 ```
 

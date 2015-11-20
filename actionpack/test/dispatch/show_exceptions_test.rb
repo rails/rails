@@ -9,13 +9,21 @@ class ShowExceptionsTest < ActionDispatch::IntegrationTest
       when "/not_found"
         raise AbstractController::ActionNotFound
       when "/bad_params"
-        raise ActionDispatch::ParamsParser::ParseError.new("", StandardError.new)
+        begin
+          raise StandardError.new
+        rescue
+          raise ActionDispatch::ParamsParser::ParseError
+        end
       when "/method_not_allowed"
         raise ActionController::MethodNotAllowed, 'PUT'
       when "/unknown_http_method"
         raise ActionController::UnknownHttpMethod
       when "/not_found_original_exception"
-        raise ActionView::Template::Error.new('template', AbstractController::ActionNotFound.new)
+        begin
+          raise AbstractController::ActionNotFound.new
+        rescue
+          raise ActionView::Template::Error.new('template')
+        end
       else
         raise "puke!"
       end
@@ -93,13 +101,13 @@ class ShowExceptionsTest < ActionDispatch::IntegrationTest
       assert_kind_of AbstractController::ActionNotFound, env["action_dispatch.exception"]
       assert_equal "/404", env["PATH_INFO"]
       assert_equal "/not_found_original_exception", env["action_dispatch.original_path"]
-      [404, { "Content-Type" => "text/plain" }, ["YOU FAILED BRO"]]
+      [404, { "Content-Type" => "text/plain" }, ["YOU FAILED"]]
     end
 
     @app = ActionDispatch::ShowExceptions.new(Boomer.new, exceptions_app)
     get "/not_found_original_exception", headers: { 'action_dispatch.show_exceptions' => true }
     assert_response 404
-    assert_equal "YOU FAILED BRO", body
+    assert_equal "YOU FAILED", body
   end
 
   test "returns an empty response if custom exceptions app returns X-Cascade pass" do

@@ -110,7 +110,7 @@ module ActiveRecord
         def update_through_counter?(method)
           case method
           when :destroy
-            !inverse_updates_counter_cache?(through_reflection)
+            !through_reflection.inverse_updates_counter_cache?
           when :nullify
             false
           else

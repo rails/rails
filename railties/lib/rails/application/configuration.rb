@@ -3,6 +3,9 @@ require 'active_support/file_update_checker'
 require 'rails/engine/configuration'
 require 'rails/source_annotation_extractor'
 
+require 'active_support/deprecation'
+require 'active_support/core_ext/string/strip' # for strip_heredoc
+
 module Rails
   class Application
     class Configuration < ::Rails::Engine::Configuration
@@ -11,12 +14,12 @@ module Rails
                     :eager_load, :exceptions_app, :file_watcher, :filter_parameters,
                     :force_ssl, :helpers_paths, :logger, :log_formatter, :log_tags,
                     :railties_order, :relative_url_root, :secret_key_base, :secret_token,
-                    :serve_static_files, :ssl_options, :static_cache_control, :static_index,
+                    :ssl_options, :public_file_server,
                     :session_options, :time_zone, :reload_classes_only_on_change,
                     :beginning_of_week, :filter_redirect, :x
 
       attr_writer :log_level
-      attr_reader :encoding, :api_only
+      attr_reader :encoding, :api_only, :static_cache_control
 
       def initialize(*)
         super
@@ -26,9 +29,9 @@ module Rails
         @filter_parameters             = []
         @filter_redirect               = []
         @helpers_paths                 = []
-        @serve_static_files            = true
-        @static_cache_control          = nil
-        @static_index                  = "index"
+        @public_file_server            = ActiveSupport::OrderedOptions.new
+        @public_file_server.enabled    = true
+        @public_file_server.index_name = "index"
         @force_ssl                     = false
         @ssl_options                   = {}
         @session_store                 = :cookie_store
@@ -36,13 +39,12 @@ module Rails
         @time_zone                     = "UTC"
         @beginning_of_week             = :monday
         @log_level                     = nil
-        @middleware                    = app_middleware
         @generators                    = app_generators
         @cache_store                   = [ :file_store, "#{root}/tmp/cache/" ]
         @railties_order                = [:all]
         @relative_url_root             = ENV["RAILS_RELATIVE_URL_ROOT"]
         @reload_classes_only_on_change = true
-        @file_watcher                  = ActiveSupport::FileUpdateChecker
+        @file_watcher                  = file_update_checker
         @exceptions_app                = nil
         @autoflush_log                 = true
         @log_formatter                 = ActiveSupport::Logger::SimpleFormatter.new
@@ -51,6 +53,35 @@ module Rails
         @secret_key_base               = nil
         @api_only                      = false
         @x                             = Custom.new
+      end
+
+      def static_cache_control=(value)
+        ActiveSupport::Deprecation.warn <<-eow.strip_heredoc
+          `static_cache_control` is deprecated and will be removed in Rails 5.1.
+          Please use
+          `config.public_file_server.headers = { 'Cache-Control' => '#{value}' }`
+          instead.
+        eow
+
+        @static_cache_control = value
+      end
+
+      def serve_static_files
+        ActiveSupport::Deprecation.warn <<-eow.strip_heredoc
+          `serve_static_files` is deprecated and will be removed in Rails 5.1.
+          Please use `public_file_server.enabled` instead.
+        eow
+
+        @public_file_server.enabled
+      end
+
+      def serve_static_files=(value)
+        ActiveSupport::Deprecation.warn <<-eow.strip_heredoc
+          `serve_static_files` is deprecated and will be removed in Rails 5.1.
+          Please use `public_file_server.enabled = #{value}` instead.
+        eow
+
+        @public_file_server.enabled = value
       end
 
       def encoding=(value)
@@ -150,6 +181,14 @@ module Rails
       end
 
       private
+        def file_update_checker
+          if defined?(Listen) && Listen::Adapter.select() != Listen::Adapter::Polling
+            ActiveSupport::FileEventedUpdateChecker
+          else
+            ActiveSupport::FileUpdateChecker
+          end
+        end
+
         class Custom #:nodoc:
           def initialize
             @configurations = Hash.new

@@ -10,8 +10,8 @@ module SecureRandom
   #
   # The result may contain alphanumeric characters except 0, O, I and l
   #
-  #   p SecureRandom.base58 #=> "4kUgL2pdQMSCQtjE"
-  #   p SecureRandom.base58(24) #=> "77TMHrHJFvFDwodq8w7Ev2m7"
+  #   p SecureRandom.base58 # => "4kUgL2pdQMSCQtjE"
+  #   p SecureRandom.base58(24) # => "77TMHrHJFvFDwodq8w7Ev2m7"
   #
   def self.base58(n = 16)
     SecureRandom.random_bytes(n).unpack("C*").map do |byte|

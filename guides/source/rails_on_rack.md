@@ -121,7 +121,6 @@ use ActiveRecord::QueryCache
 use ActionDispatch::Cookies
 use ActionDispatch::Session::CookieStore
 use ActionDispatch::Flash
-use ActionDispatch::ParamsParser
 use Rack::Head
 use Rack::ConditionalGet
 use Rack::ETag
@@ -172,7 +171,7 @@ Add the following lines to your application configuration:
 
 ```ruby
 # config/application.rb
-config.middleware.delete "Rack::Lock"
+config.middleware.delete Rack::Lock
 ```
 
 And now if you inspect the middleware stack, you'll find that `Rack::Lock` is
@@ -192,16 +191,16 @@ If you want to remove session related middleware, do the following:
 
 ```ruby
 # config/application.rb
-config.middleware.delete "ActionDispatch::Cookies"
-config.middleware.delete "ActionDispatch::Session::CookieStore"
-config.middleware.delete "ActionDispatch::Flash"
+config.middleware.delete ActionDispatch::Cookies
+config.middleware.delete ActionDispatch::Session::CookieStore
+config.middleware.delete ActionDispatch::Flash
 ```
 
 And to remove browser related middleware,
 
 ```ruby
 # config/application.rb
-config.middleware.delete "Rack::MethodOverride"
+config.middleware.delete Rack::MethodOverride
 ```
 
 ### Internal Middleware Stack
@@ -214,7 +213,7 @@ Much of Action Controller's functionality is implemented as Middlewares. The fol
 
 **`ActionDispatch::Static`**
 
-* Used to serve static files. Disabled if `config.serve_static_files` is `false`.
+* Used to serve static files from the public directory. Disabled if `config.public_file_server.enabled` is `false`.
 
 **`Rack::Lock`**
 
@@ -283,10 +282,6 @@ Much of Action Controller's functionality is implemented as Middlewares. The fol
 **`ActionDispatch::Flash`**
 
 * Sets up the flash keys. Only available if `config.action_controller.session_store` is set to a value.
-
-**`ActionDispatch::ParamsParser`**
-
-* Parses out parameters from the request into `params`.
 
 **`Rack::Head`**
 

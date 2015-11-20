@@ -12,12 +12,6 @@ module ActionDispatch
     class RoutesInspectorTest < ActiveSupport::TestCase
       def setup
         @set = ActionDispatch::Routing::RouteSet.new
-        app = ActiveSupport::OrderedOptions.new
-        app.config = ActiveSupport::OrderedOptions.new
-        app.config.assets = ActiveSupport::OrderedOptions.new
-        app.config.assets.prefix = '/sprockets'
-        Rails.stubs(:application).returns(app)
-        Rails.stubs(:env).returns("development")
       end
 
       def draw(options = {}, &block)
@@ -80,6 +74,17 @@ module ActionDispatch
         assert_equal [
           "Prefix Verb URI Pattern     Controller#Action",
           "  cart GET  /cart(.:format) cart#show"
+        ], output
+      end
+
+      def test_articles_inspect_with_multiple_verbs
+        output = draw do
+          match 'articles/:id', to: 'articles#update', via: [:put, :patch]
+        end
+
+        assert_equal [
+          "Prefix Verb      URI Pattern             Controller#Action",
+          "       PUT|PATCH /articles/:id(.:format) articles#update"
         ], output
       end
 
@@ -316,9 +321,6 @@ module ActionDispatch
 
       def test_inspect_routes_shows_resources_route_when_assets_disabled
         @set = ActionDispatch::Routing::RouteSet.new
-        app = ActiveSupport::OrderedOptions.new
-
-        Rails.stubs(:application).returns(app)
 
         output = draw do
           get '/cart', to: 'cart#show'

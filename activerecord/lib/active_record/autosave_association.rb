@@ -1,10 +1,10 @@
 module ActiveRecord
   # = Active Record Autosave Association
   #
-  # +AutosaveAssociation+ is a module that takes care of automatically saving
+  # AutosaveAssociation is a module that takes care of automatically saving
   # associated records when their parent is saved. In addition to saving, it
   # also destroys any associated records that were marked for destruction.
-  # (See +mark_for_destruction+ and <tt>marked_for_destruction?</tt>).
+  # (See #mark_for_destruction and #marked_for_destruction?).
   #
   # Saving of the parent, its associations, and the destruction of marked
   # associations, all happen inside a transaction. This should never leave the
@@ -125,7 +125,6 @@ module ActiveRecord
   # Now it _is_ removed from the database:
   #
   #   Comment.find_by(id: id).nil? # => true
-
   module AutosaveAssociation
     extend ActiveSupport::Concern
 
@@ -141,9 +140,11 @@ module ActiveRecord
 
     included do
       Associations::Builder::Association.extensions << AssociationBuilderExtension
+      mattr_accessor :index_nested_attribute_errors, instance_writer: false
+      self.index_nested_attribute_errors = false
     end
 
-    module ClassMethods
+    module ClassMethods # :nodoc:
       private
 
         def define_non_cyclic_method(name, &block)
@@ -234,7 +235,7 @@ module ActiveRecord
       super
     end
 
-    # Marks this record to be destroyed as part of the parents save transaction.
+    # Marks this record to be destroyed as part of the parent's save transaction.
     # This does _not_ actually destroy the record instantly, rather child record will be destroyed
     # when <tt>parent.save</tt> is called.
     #
@@ -243,7 +244,7 @@ module ActiveRecord
       @marked_for_destruction = true
     end
 
-    # Returns whether or not this record will be destroyed as part of the parents save transaction.
+    # Returns whether or not this record will be destroyed as part of the parent's save transaction.
     #
     # Only useful if the <tt>:autosave</tt> option on the parent is enabled for this associated model.
     def marked_for_destruction?
@@ -316,7 +317,7 @@ module ActiveRecord
       def validate_collection_association(reflection)
         if association = association_instance_get(reflection.name)
           if records = associated_records_to_validate_or_save(association, new_record?, reflection.options[:autosave])
-            records.each { |record| association_valid?(reflection, record) }
+            records.each_with_index { |record, index| association_valid?(reflection, record, index) }
           end
         end
       end
@@ -324,14 +325,18 @@ module ActiveRecord
       # Returns whether or not the association is valid and applies any errors to
       # the parent, <tt>self</tt>, if it wasn't. Skips any <tt>:autosave</tt>
       # enabled records if they're marked_for_destruction? or destroyed.
-      def association_valid?(reflection, record)
+      def association_valid?(reflection, record, index=nil)
         return true if record.destroyed? || (reflection.options[:autosave] && record.marked_for_destruction?)
 
         validation_context = self.validation_context unless [:create, :update].include?(self.validation_context)
         unless valid = record.valid?(validation_context)
           if reflection.options[:autosave]
             record.errors.each do |attribute, message|
-              attribute = "#{reflection.name}.#{attribute}"
+              if index.nil? || (!reflection.options[:index_errors] && !ActiveRecord::Base.index_nested_attribute_errors)
+                attribute = "#{reflection.name}.#{attribute}"
+              else
+                attribute = "#{reflection.name}[#{index}].#{attribute}"
+              end
               errors[attribute] << message
               errors[attribute].uniq!
             end
@@ -353,7 +358,7 @@ module ActiveRecord
       # <tt>:autosave</tt> is enabled on the association.
       #
       # In addition, it destroys all children that were marked for destruction
-      # with mark_for_destruction.
+      # with #mark_for_destruction.
       #
       # This all happens inside a transaction, _if_ the Transactions module is included into
       # ActiveRecord::Base after the AutosaveAssociation module, which it does by default.
@@ -396,7 +401,7 @@ module ActiveRecord
       # on the association.
       #
       # In addition, it will destroy the association if it was marked for
-      # destruction with mark_for_destruction.
+      # destruction with #mark_for_destruction.
       #
       # This all happens inside a transaction, _if_ the Transactions module is included into
       # ActiveRecord::Base after the AutosaveAssociation module, which it does by default.

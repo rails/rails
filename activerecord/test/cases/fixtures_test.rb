@@ -7,16 +7,16 @@ require 'models/binary'
 require 'models/book'
 require 'models/bulb'
 require 'models/category'
+require 'models/comment'
 require 'models/company'
 require 'models/computer'
 require 'models/course'
 require 'models/developer'
-require 'models/computer'
+require 'models/doubloon'
 require 'models/joke'
 require 'models/matey'
 require 'models/parrot'
 require 'models/pirate'
-require 'models/doubloon'
 require 'models/post'
 require 'models/randomly_named_c1'
 require 'models/reply'
@@ -259,18 +259,19 @@ class FixturesTest < ActiveRecord::TestCase
   def test_fixtures_are_set_up_with_database_env_variable
     db_url_tmp = ENV['DATABASE_URL']
     ENV['DATABASE_URL'] = "sqlite3::memory:"
-    ActiveRecord::Base.stubs(:configurations).returns({})
-    test_case = Class.new(ActiveRecord::TestCase) do
-      fixtures :accounts
+    ActiveRecord::Base.stub(:configurations, {}) do
+      test_case = Class.new(ActiveRecord::TestCase) do
+        fixtures :accounts
 
-      def test_fixtures
-        assert accounts(:signals37)
+        def test_fixtures
+          assert accounts(:signals37)
+        end
       end
+
+      result = test_case.new(:test_fixtures).run
+
+      assert result.passed?, "Expected #{result.name} to pass:\n#{result}"
     end
-
-    result = test_case.new(:test_fixtures).run
-
-    assert result.passed?, "Expected #{result.name} to pass:\n#{result}"
   ensure
     ENV['DATABASE_URL'] = db_url_tmp
   end
@@ -408,9 +409,11 @@ class FixturesWithoutInstantiationTest < ActiveRecord::TestCase
   end
 
   def test_reloading_fixtures_through_accessor_methods
+    topic = Struct.new(:title)
     assert_equal "The First Topic", topics(:first).title
-    @loaded_fixtures['topics']['first'].expects(:find).returns(stub(:title => "Fresh Topic!"))
-    assert_equal "Fresh Topic!", topics(:first, true).title
+    assert_called(@loaded_fixtures['topics']['first'], :find, returns: topic.new("Fresh Topic!")) do
+      assert_equal "Fresh Topic!", topics(:first, true).title
+    end
   end
 end
 
@@ -511,6 +514,38 @@ class OverRideFixtureMethodTest < ActiveRecord::TestCase
   def test_fixture_methods_can_be_overridden
     x = topics :first
     assert_equal 'omg', x.title
+  end
+end
+
+class FixtureWithSetModelClassTest < ActiveRecord::TestCase
+  fixtures :other_posts, :other_comments
+
+  # Set to false to blow away fixtures cache and ensure our fixtures are loaded
+  # and thus takes into account the +set_model_class+.
+  self.use_transactional_tests = false
+
+  def test_uses_fixture_class_defined_in_yaml
+    assert_kind_of Post, other_posts(:second_welcome)
+  end
+
+  def test_loads_the_associations_to_fixtures_with_set_model_class
+    post = other_posts(:second_welcome)
+    comment = other_comments(:second_greetings)
+    assert_equal [comment], post.comments
+    assert_equal post, comment.post
+  end
+end
+
+class SetFixtureClassPrevailsTest < ActiveRecord::TestCase
+  set_fixture_class bad_posts: Post
+  fixtures :bad_posts
+
+  # Set to false to blow away fixtures cache and ensure our fixtures are loaded
+  # and thus takes into account the +set_model_class+.
+  self.use_transactional_tests = false
+
+  def test_uses_set_fixture_class
+    assert_kind_of Post, bad_posts(:bad_welcome)
   end
 end
 
@@ -918,5 +953,19 @@ class FixturesWithAbstractBelongsTo < ActiveRecord::TestCase
   test "creates fixtures with belongs_to associations defined in abstract base classes" do
     assert_not_nil doubloons(:blackbeards_doubloon)
     assert_equal pirates(:blackbeard), doubloons(:blackbeards_doubloon).pirate
+  end
+end
+
+class FixtureClassNamesTest < ActiveRecord::TestCase
+  def setup
+    @saved_cache = self.fixture_class_names.dup
+  end
+
+  def teardown
+    self.fixture_class_names.replace(@saved_cache)
+  end
+
+  test "fixture_class_names returns nil for unregistered identifier" do
+    assert_nil self.fixture_class_names['unregistered_identifier']
   end
 end

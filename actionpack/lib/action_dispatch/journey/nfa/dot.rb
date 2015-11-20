@@ -1,5 +1,3 @@
-# encoding: utf-8
-
 module ActionDispatch
   module Journey # :nodoc:
     module NFA # :nodoc:

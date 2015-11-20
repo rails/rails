@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 require "cases/helper"
 require 'models/post'
 require 'models/author'
@@ -28,7 +26,7 @@ require 'models/bird'
 require 'models/car'
 require 'models/bulb'
 require 'rexml/document'
-require 'concurrent/atomics'
+require 'concurrent/atomic/count_down_latch'
 
 class FirstAbstractClass < ActiveRecord::Base
   self.abstract_class = true
@@ -206,7 +204,7 @@ class BasicsTest < ActiveRecord::TestCase
     )
 
     # For adapters which support microsecond resolution.
-    if current_adapter?(:PostgreSQLAdapter, :SQLite3Adapter) || mysql_56?
+    if subsecond_precision_supported?
       assert_equal 11, Topic.find(1).written_on.sec
       assert_equal 223300, Topic.find(1).written_on.usec
       assert_equal 9900, Topic.find(2).written_on.usec
@@ -946,6 +944,34 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal BigDecimal("1000234000567.95"), m1.big_bank_balance
   end
 
+  def test_numeric_fields_with_scale
+    m = NumericData.new(
+      :bank_balance => 1586.43122334,
+      :big_bank_balance => BigDecimal("234000567.952344"),
+      :world_population => 6000000000,
+      :my_house_population => 3
+    )
+    assert m.save
+
+    m1 = NumericData.find(m.id)
+    assert_not_nil m1
+
+    # As with migration_test.rb, we should make world_population >= 2**62
+    # to cover 64-bit platforms and test it is a Bignum, but the main thing
+    # is that it's an Integer.
+    assert_kind_of Integer, m1.world_population
+    assert_equal 6000000000, m1.world_population
+
+    assert_kind_of Fixnum, m1.my_house_population
+    assert_equal 3, m1.my_house_population
+
+    assert_kind_of BigDecimal, m1.bank_balance
+    assert_equal BigDecimal("1586.43"), m1.bank_balance
+
+    assert_kind_of BigDecimal, m1.big_bank_balance
+    assert_equal BigDecimal("234000567.95"), m1.big_bank_balance
+  end
+
   def test_auto_id
     auto = AutoId.new
     auto.save
@@ -1178,40 +1204,8 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal last, Developer.all.merge!(:order => :salary).to_a.last
   end
 
-  def test_abstract_class
-    assert !ActiveRecord::Base.abstract_class?
-    assert LoosePerson.abstract_class?
-    assert !LooseDescendant.abstract_class?
-  end
-
   def test_abstract_class_table_name
     assert_nil AbstractCompany.table_name
-  end
-
-  def test_descends_from_active_record
-    assert !ActiveRecord::Base.descends_from_active_record?
-
-    # Abstract subclass of AR::Base.
-    assert LoosePerson.descends_from_active_record?
-
-    # Concrete subclass of an abstract class.
-    assert LooseDescendant.descends_from_active_record?
-
-    # Concrete subclass of AR::Base.
-    assert TightPerson.descends_from_active_record?
-
-    # Concrete subclass of a concrete class but has no type column.
-    assert TightDescendant.descends_from_active_record?
-
-    # Concrete subclass of AR::Base.
-    assert Post.descends_from_active_record?
-
-    # Abstract subclass of a concrete class which has a type column.
-    # This is pathological, as you'll never have Sub < Abstract < Concrete.
-    assert !StiPost.descends_from_active_record?
-
-    # Concrete subclasses an abstract class which has a type column.
-    assert !SubStiPost.descends_from_active_record?
   end
 
   def test_find_on_abstract_base_class_doesnt_use_type_condition
@@ -1256,50 +1250,6 @@ class BasicsTest < ActiveRecord::TestCase
     assert_match(/Quiet/, log.string)
   ensure
     ActiveRecord::Base.logger = original_logger
-  end
-
-  def test_compute_type_success
-    assert_equal Author, ActiveRecord::Base.send(:compute_type, 'Author')
-  end
-
-  def test_compute_type_nonexistent_constant
-    e = assert_raises NameError do
-      ActiveRecord::Base.send :compute_type, 'NonexistentModel'
-    end
-    assert_equal 'uninitialized constant ActiveRecord::Base::NonexistentModel', e.message
-    assert_equal 'ActiveRecord::Base::NonexistentModel', e.name
-  end
-
-  def test_compute_type_no_method_error
-    ActiveSupport::Dependencies.stubs(:safe_constantize).raises(NoMethodError)
-    assert_raises NoMethodError do
-      ActiveRecord::Base.send :compute_type, 'InvalidModel'
-    end
-  end
-
-  def test_compute_type_on_undefined_method
-    error = nil
-    begin
-      Class.new(Author) do
-        alias_method :foo, :bar
-      end
-    rescue => e
-      error = e
-    end
-
-    ActiveSupport::Dependencies.stubs(:safe_constantize).raises(e)
-
-    exception = assert_raises NameError do
-      ActiveRecord::Base.send :compute_type, 'InvalidModel'
-    end
-    assert_equal error.message, exception.message
-  end
-
-  def test_compute_type_argument_error
-    ActiveSupport::Dependencies.stubs(:safe_constantize).raises(ArgumentError)
-    assert_raises ArgumentError do
-      ActiveRecord::Base.send :compute_type, 'InvalidModel'
-    end
   end
 
   def test_clear_cache!
@@ -1541,5 +1491,23 @@ class BasicsTest < ActiveRecord::TestCase
     Topic.reset_column_information
 
     assert_not topic.id_changed?
+  end
+
+  test "ignored columns are not present in columns_hash" do
+    cache_columns = Developer.connection.schema_cache.columns_hash(Developer.table_name)
+    assert_includes cache_columns.keys, 'first_name'
+    refute_includes Developer.columns_hash.keys, 'first_name'
+  end
+
+  test "ignored columns have no attribute methods" do
+    refute Developer.new.respond_to?(:first_name)
+    refute Developer.new.respond_to?(:first_name=)
+    refute Developer.new.respond_to?(:first_name?)
+  end
+
+  test "ignored columns don't prevent explicit declaration of attribute methods" do
+    assert Developer.new.respond_to?(:last_name)
+    assert Developer.new.respond_to?(:last_name=)
+    assert Developer.new.respond_to?(:last_name?)
   end
 end

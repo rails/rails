@@ -194,7 +194,7 @@ module RailsGuides
       layout = kindle? ? 'kindle/layout' : 'layout'
 
       File.open(output_path, 'w') do |f|
-        view = ActionView::Base.new(source_dir, :edge => @edge, :version => @version, :mobi => "kindle/#{mobi}")
+        view = ActionView::Base.new(source_dir, :edge => @edge, :version => @version, :mobi => "kindle/#{mobi}", :lang => @lang)
         view.extend(Helpers)
 
         if guide =~ /\.(\w+)\.erb$/

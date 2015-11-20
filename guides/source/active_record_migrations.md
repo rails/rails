@@ -454,8 +454,6 @@ number of digits after the decimal point.
 are using a dynamic value (such as a date), the default will only be calculated
 the first time (i.e. on the date the migration is applied).
 * `index`        Adds an index for the column.
-* `required`     Adds `required: true` for `belongs_to` associations and
-`null: false` to the column in the migration.
 
 Some adapters may support additional options; see the adapter specific API docs
 for further information.
@@ -522,20 +520,27 @@ majority of cases, where Active Record knows how to reverse the migration
 automatically. Currently, the `change` method supports only these migration
 definitions:
 
-* `add_column`
-* `add_index`
-* `add_reference`
-* `add_timestamps`
-* `add_foreign_key`
-* `create_table`
-* `create_join_table`
-* `drop_table` (must supply a block)
-* `drop_join_table` (must supply a block)
-* `remove_timestamps`
-* `rename_column`
-* `rename_index`
-* `remove_reference`
-* `rename_table`
+* add_column
+* add_foreign_key
+* add_index
+* add_reference
+* add_timestamps
+* change_column_default (must supply a :from and :to option)
+* change_column_null
+* create_join_table
+* create_table
+* disable_extension
+* drop_join_table
+* drop_table (must supply a block)
+* enable_extension
+* remove_column (must supply a type)
+* remove_foreign_key (must supply a second table)
+* remove_index
+* remove_reference
+* remove_timestamps
+* rename_column
+* rename_index
+* rename_table
 
 `change_table` is also reversible, as long as the block does not call `change`,
 `change_default` or `remove`.
@@ -652,7 +657,7 @@ can't be done.
 You can use Active Record's ability to rollback migrations using the `revert` method:
 
 ```ruby
-require_relative '2012121212_example_migration'
+require_relative '20121212123456_example_migration'
 
 class FixupExampleMigration < ActiveRecord::Migration
   def change
@@ -782,7 +787,7 @@ The `rake db:reset` task will drop the database and set it up again. This is
 functionally equivalent to `rake db:drop db:setup`.
 
 NOTE: This is not the same as running all the migrations. It will only use the
-contents of the current `schema.rb` file. If a migration can't be rolled back,
+contents of the current `db/schema.rb` or `db/structure.sql` file. If a migration can't be rolled back,
 `rake db:reset` may not help you. To find out more about dumping the schema see
 [Schema Dumping and You](#schema-dumping-and-you) section.
 

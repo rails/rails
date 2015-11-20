@@ -9,41 +9,137 @@ module ActiveRecord
     end
   end
 
-  # Exception that can be raised to stop migrations from going backwards.
+  # Exception that can be raised to stop migrations from being rolled back.
+  # For example the following migration is not reversible.
+  # Rolling back this migration will raise an ActiveRecord::IrreversibleMigration error.
+  #
+  #   class IrreversibleMigrationExample < ActiveRecord::Migration
+  #     def change
+  #       create_table :distributors do |t|
+  #         t.string :zipcode
+  #       end
+  #
+  #       execute <<-SQL
+  #         ALTER TABLE distributors
+  #           ADD CONSTRAINT zipchk
+  #             CHECK (char_length(zipcode) = 5) NO INHERIT;
+  #       SQL
+  #     end
+  #   end
+  #
+  # There are two ways to mitigate this problem.
+  #
+  # 1. Define <tt>#up</tt> and <tt>#down</tt> methods instead of <tt>#change</tt>:
+  #
+  #  class ReversibleMigrationExample < ActiveRecord::Migration
+  #    def up
+  #      create_table :distributors do |t|
+  #        t.string :zipcode
+  #      end
+  #
+  #      execute <<-SQL
+  #        ALTER TABLE distributors
+  #          ADD CONSTRAINT zipchk
+  #            CHECK (char_length(zipcode) = 5) NO INHERIT;
+  #      SQL
+  #    end
+  #
+  #    def down
+  #      execute <<-SQL
+  #        ALTER TABLE distributors
+  #          DROP CONSTRAINT zipchk
+  #      SQL
+  #
+  #      drop_table :distributors
+  #    end
+  #  end
+  #
+  # 2. Use the #reversible method in <tt>#change</tt> method:
+  #
+  #   class ReversibleMigrationExample < ActiveRecord::Migration
+  #     def change
+  #       create_table :distributors do |t|
+  #         t.string :zipcode
+  #       end
+  #
+  #       reversible do |dir|
+  #         dir.up do
+  #           execute <<-SQL
+  #             ALTER TABLE distributors
+  #               ADD CONSTRAINT zipchk
+  #                 CHECK (char_length(zipcode) = 5) NO INHERIT;
+  #           SQL
+  #         end
+  #
+  #         dir.down do
+  #           execute <<-SQL
+  #             ALTER TABLE distributors
+  #               DROP CONSTRAINT zipchk
+  #           SQL
+  #         end
+  #       end
+  #     end
+  #   end
   class IrreversibleMigration < MigrationError
   end
 
   class DuplicateMigrationVersionError < MigrationError#:nodoc:
-    def initialize(version)
-      super("Multiple migrations have the version number #{version}")
+    def initialize(version = nil)
+      if version
+        super("Multiple migrations have the version number #{version}.")
+      else
+        super("Duplicate migration version error.")
+      end
     end
   end
 
   class DuplicateMigrationNameError < MigrationError#:nodoc:
-    def initialize(name)
-      super("Multiple migrations have the name #{name}")
+    def initialize(name = nil)
+      if name
+        super("Multiple migrations have the name #{name}.")
+      else
+        super("Duplicate migration name.")
+      end
     end
   end
 
   class UnknownMigrationVersionError < MigrationError #:nodoc:
-    def initialize(version)
-      super("No migration with version number #{version}")
+    def initialize(version = nil)
+      if version
+        super("No migration with version number #{version}.")
+      else
+        super("Unknown migration version.")
+      end
     end
   end
 
   class IllegalMigrationNameError < MigrationError#:nodoc:
-    def initialize(name)
-      super("Illegal name for migration file: #{name}\n\t(only lower case letters, numbers, and '_' allowed)")
+    def initialize(name = nil)
+      if name
+        super("Illegal name for migration file: #{name}\n\t(only lower case letters, numbers, and '_' allowed).")
+      else
+        super("Illegal name for migration.")
+      end
     end
   end
 
   class PendingMigrationError < MigrationError#:nodoc:
-    def initialize
-      if defined?(Rails.env)
-        super("Migrations are pending. To resolve this issue, run:\n\n\tbin/rake db:migrate RAILS_ENV=#{::Rails.env}")
+    def initialize(message = nil)
+      if !message && defined?(Rails.env)
+        super("Migrations are pending. To resolve this issue, run:\n\n\tbin/rake db:migrate RAILS_ENV=#{::Rails.env}.")
+      elsif !message
+        super("Migrations are pending. To resolve this issue, run:\n\n\tbin/rake db:migrate.")
       else
-        super("Migrations are pending. To resolve this issue, run:\n\n\tbin/rake db:migrate")
+        super
       end
+    end
+  end
+
+  class ConcurrentMigrationError < MigrationError #:nodoc:
+    DEFAULT_MESSAGE = "Cannot run migrations because another migration process is currently running.".freeze
+
+    def initialize(message = DEFAULT_MESSAGE)
+      super
     end
   end
 
@@ -106,17 +202,18 @@ module ActiveRecord
   #
   # == Available transformations
   #
+  # === Creation
+  #
+  # * <tt>create_join_table(table_1, table_2, options)</tt>: Creates a join
+  #   table having its name as the lexical order of the first two
+  #   arguments. See
+  #   ActiveRecord::ConnectionAdapters::SchemaStatements#create_join_table for
+  #   details.
   # * <tt>create_table(name, options)</tt>: Creates a table called +name+ and
   #   makes the table object available to a block that can then add columns to it,
   #   following the same format as +add_column+. See example above. The options hash
   #   is for fragments like "DEFAULT CHARSET=UTF-8" that are appended to the create
   #   table definition.
-  # * <tt>drop_table(name)</tt>: Drops the table called +name+.
-  # * <tt>change_table(name, options)</tt>: Allows to make column alterations to
-  #   the table called +name+. It makes the table object available to a block that
-  #   can then add/remove columns, indexes or foreign keys to it.
-  # * <tt>rename_table(old_name, new_name)</tt>: Renames the table called +old_name+
-  #   to +new_name+.
   # * <tt>add_column(table_name, column_name, type, options)</tt>: Adds a new column
   #   to the table called +table_name+
   #   named +column_name+ specified to be one of the following types:
@@ -127,24 +224,59 @@ module ActiveRecord
   #   Other options include <tt>:limit</tt> and <tt>:null</tt> (e.g.
   #   <tt>{ limit: 50, null: false }</tt>) -- see
   #   ActiveRecord::ConnectionAdapters::TableDefinition#column for details.
-  # * <tt>rename_column(table_name, column_name, new_column_name)</tt>: Renames
-  #   a column but keeps the type and content.
-  # * <tt>change_column(table_name, column_name, type, options)</tt>:  Changes
-  #   the column to a different type using the same parameters as add_column.
-  # * <tt>remove_column(table_name, column_name, type, options)</tt>: Removes the column
-  #   named +column_name+ from the table called +table_name+.
+  # * <tt>add_foreign_key(from_table, to_table, options)</tt>: Adds a new
+  #   foreign key. +from_table+ is the table with the key column, +to_table+ contains
+  #   the referenced primary key.
   # * <tt>add_index(table_name, column_names, options)</tt>: Adds a new index
   #   with the name of the column. Other options include
   #   <tt>:name</tt>, <tt>:unique</tt> (e.g.
   #   <tt>{ name: 'users_name_index', unique: true }</tt>) and <tt>:order</tt>
   #   (e.g. <tt>{ order: { name: :desc } }</tt>).
+  # * <tt>add_reference(:table_name, :reference_name)</tt>: Adds a new column
+  #   +reference_name_id+ by default an integer. See
+  #   ActiveRecord::ConnectionAdapters::SchemaStatements#add_reference for details.
+  # * <tt>add_timestamps(table_name, options)</tt>: Adds timestamps (+created_at+
+  #   and +updated_at+) columns to +table_name+.
+  #
+  # === Modification
+  #
+  # * <tt>change_column(table_name, column_name, type, options)</tt>:  Changes
+  #   the column to a different type using the same parameters as add_column.
+  # * <tt>change_column_default(table_name, column_name, default)</tt>: Sets a
+  #   default value for +column_name+ definded by +default+ on +table_name+.
+  # * <tt>change_column_null(table_name, column_name, null, default = nil)</tt>:
+  #   Sets or removes a +NOT NULL+ constraint on +column_name+. The +null+ flag
+  #   indicates whether the value can be +NULL+. See
+  #   ActiveRecord::ConnectionAdapters::SchemaStatements#change_column_null for
+  #   details.
+  # * <tt>change_table(name, options)</tt>: Allows to make column alterations to
+  #   the table called +name+. It makes the table object available to a block that
+  #   can then add/remove columns, indexes or foreign keys to it.
+  # * <tt>rename_column(table_name, column_name, new_column_name)</tt>: Renames
+  #   a column but keeps the type and content.
+  # * <tt>rename_index(table_name, old_name, new_name)</tt>: Renames an index.
+  # * <tt>rename_table(old_name, new_name)</tt>: Renames the table called +old_name+
+  #   to +new_name+.
+  #
+  # === Deletion
+  #
+  # * <tt>drop_table(name)</tt>: Drops the table called +name+.
+  # * <tt>drop_join_table(table_1, table_2, options)</tt>: Drops the join table
+  #   specified by the given arguments.
+  # * <tt>remove_column(table_name, column_name, type, options)</tt>: Removes the column
+  #   named +column_name+ from the table called +table_name+.
+  # * <tt>remove_columns(table_name, *column_names)</tt>: Removes the given
+  #   columns from the table definition.
+  # * <tt>remove_foreign_key(from_table, options_or_to_table)</tt>: Removes the
+  #   given foreign key from the table called +table_name+.
   # * <tt>remove_index(table_name, column: column_names)</tt>: Removes the index
   #   specified by +column_names+.
   # * <tt>remove_index(table_name, name: index_name)</tt>: Removes the index
   #   specified by +index_name+.
-  # * <tt>add_reference(:table_name, :reference_name)</tt>: Adds a new column
-  #   +reference_name_id+ by default a integer. See
-  #   ActiveRecord::ConnectionAdapters::SchemaStatements#add_reference for details.
+  # * <tt>remove_reference(table_name, ref_name, options)</tt>: Removes the
+  #   reference(s) on +table_name+ specified by +ref_name+.
+  # * <tt>remove_timestamps(table_name, options)</tt>: Removes the timestamp
+  #   columns (+created_at+ and +updated_at+) from the table definition.
   #
   # == Irreversible transformations
   #
@@ -168,7 +300,7 @@ module ActiveRecord
   #
   #   rails generate migration add_fieldname_to_tablename fieldname:string
   #
-  # This will generate the file <tt>timestamp_add_fieldname_to_tablename</tt>, which will look like this:
+  # This will generate the file <tt>timestamp_add_fieldname_to_tablename.rb</tt>, which will look like this:
   #   class AddFieldnameToTablename < ActiveRecord::Migration
   #     def change
   #       add_column :tablenames, :fieldname, :string
@@ -345,6 +477,7 @@ module ActiveRecord
   class Migration
     autoload :CommandRecorder, 'active_record/migration/command_recorder'
 
+    MigrationFilenameRegexp = /\A([0-9]+)_([_a-z0-9]*)\.?([_a-z0-9]*)?\.rb\z/ # :nodoc:
 
     # This class is used to verify that all migrations have been run before
     # loading a web page if config.active_record.migration_error is set to :page_load
@@ -376,6 +509,7 @@ module ActiveRecord
       attr_accessor :delegate # :nodoc:
       attr_accessor :disable_ddl_transaction # :nodoc:
 
+      # Raises <tt>ActiveRecord::PendingMigrationError</tt> error if any migrations are pending.
       def check_pending!(connection = Base.connection)
         raise ActiveRecord::PendingMigrationError if ActiveRecord::Migrator.needs_migration?(connection)
       end
@@ -408,7 +542,10 @@ module ActiveRecord
         new.migrate direction
       end
 
-      # Disable DDL transactions for this migration.
+      # Disable the transaction wrapping this migration.
+      # You can still create your own transactions even after calling #disable_ddl_transaction!
+      #
+      # For more details read the {"Transactional Migrations" section above}[rdoc-ref:Migration].
       def disable_ddl_transaction!
         @disable_ddl_transaction = true
       end
@@ -455,7 +592,7 @@ module ActiveRecord
     # Or equivalently, if +TenderloveMigration+ is defined as in the
     # documentation for Migration:
     #
-    #   require_relative '2012121212_tenderlove_migration'
+    #   require_relative '20121212123456_tenderlove_migration'
     #
     #   class FixupTLMigration < ActiveRecord::Migration
     #     def change
@@ -471,13 +608,13 @@ module ActiveRecord
     def revert(*migration_classes)
       run(*migration_classes.reverse, revert: true) unless migration_classes.empty?
       if block_given?
-        if @connection.respond_to? :revert
-          @connection.revert { yield }
+        if connection.respond_to? :revert
+          connection.revert { yield }
         else
-          recorder = CommandRecorder.new(@connection)
+          recorder = CommandRecorder.new(connection)
           @connection = recorder
           suppress_messages do
-            @connection.revert { yield }
+            connection.revert { yield }
           end
           @connection = recorder.delegate
           recorder.commands.each do |cmd, args, block|
@@ -488,7 +625,7 @@ module ActiveRecord
     end
 
     def reverting?
-      @connection.respond_to?(:reverting) && @connection.reverting
+      connection.respond_to?(:reverting) && connection.reverting
     end
 
     class ReversibleBlockHelper < Struct.new(:reverting) # :nodoc:
@@ -545,7 +682,7 @@ module ActiveRecord
         revert { run(*migration_classes, direction: dir, revert: true) }
       else
         migration_classes.each do |migration_class|
-          migration_class.new.exec_migration(@connection, dir)
+          migration_class.new.exec_migration(connection, dir)
         end
       end
     end
@@ -637,7 +774,7 @@ module ActiveRecord
       arg_list = arguments.map(&:inspect) * ', '
 
       say_with_time "#{method}(#{arg_list})" do
-        unless @connection.respond_to? :revert
+        unless connection.respond_to? :revert
           unless arguments.empty? || [:execute, :enable_extension, :disable_extension].include?(method)
             arguments[0] = proper_table_name(arguments.first, table_name_options)
             if [:rename_table, :add_foreign_key].include?(method) ||
@@ -810,7 +947,7 @@ module ActiveRecord
         new(:up, migrations, target_version).migrate
       end
 
-      def down(migrations_paths, target_version = nil, &block)
+      def down(migrations_paths, target_version = nil)
         migrations = migrations(migrations_paths)
         migrations.select! { |m| yield m } if block_given?
 
@@ -830,10 +967,12 @@ module ActiveRecord
       end
 
       def get_all_versions(connection = Base.connection)
-        if connection.table_exists?(schema_migrations_table_name)
-          SchemaMigration.all.map { |x| x.version.to_i }.sort
-        else
-          []
+        ActiveSupport::Deprecation.silence do
+          if connection.table_exists?(schema_migrations_table_name)
+            SchemaMigration.all.map { |x| x.version.to_i }.sort
+          else
+            []
+          end
         end
       end
 
@@ -849,22 +988,22 @@ module ActiveRecord
         migrations(migrations_paths).any?
       end
 
-      def last_version
-        last_migration.version
-      end
-
       def last_migration #:nodoc:
         migrations(migrations_paths).last || NullMigration.new
       end
 
       def migrations_paths
         @migrations_paths ||= ['db/migrate']
-        # just to not break things if someone uses: migration_path = some_string
+        # just to not break things if someone uses: migrations_path = some_string
         Array(@migrations_paths)
       end
 
-      def migrations_path
-        migrations_paths.first
+      def match_to_migration_filename?(filename) # :nodoc:
+        File.basename(filename) =~ Migration::MigrationFilenameRegexp
+      end
+
+      def parse_migration_filename(filename) # :nodoc:
+        File.basename(filename).scan(Migration::MigrationFilenameRegexp).first
       end
 
       def migrations(paths)
@@ -873,8 +1012,7 @@ module ActiveRecord
         files = Dir[*paths.map { |p| "#{p}/**/[0-9]*_*.rb" }]
 
         migrations = files.map do |file|
-          version, name, scope = file.scan(/([0-9]+)_([_a-z0-9]*)\.?([_a-z0-9]*)?\.rb\z/).first
-
+          version, name, scope = parse_migration_filename(file)
           raise IllegalMigrationNameError.new(file) unless version
           version = version.to_i
           name = name.camelize
@@ -922,32 +1060,18 @@ module ActiveRecord
     alias :current :current_migration
 
     def run
-      migration = migrations.detect { |m| m.version == @target_version }
-      raise UnknownMigrationVersionError.new(@target_version) if migration.nil?
-      unless (up? && migrated.include?(migration.version.to_i)) || (down? && !migrated.include?(migration.version.to_i))
-        begin
-          execute_migration_in_transaction(migration, @direction)
-        rescue => e
-          canceled_msg = use_transaction?(migration) ? ", this migration was canceled" : ""
-          raise StandardError, "An error has occurred#{canceled_msg}:\n\n#{e}", e.backtrace
-        end
+      if use_advisory_lock?
+        with_advisory_lock { run_without_lock }
+      else
+        run_without_lock
       end
     end
 
     def migrate
-      if !target && @target_version && @target_version > 0
-        raise UnknownMigrationVersionError.new(@target_version)
-      end
-
-      runnable.each do |migration|
-        Base.logger.info "Migrating to #{migration.name} (#{migration.version})" if Base.logger
-
-        begin
-          execute_migration_in_transaction(migration, @direction)
-        rescue => e
-          canceled_msg = use_transaction?(migration) ? "this and " : ""
-          raise StandardError, "An error has occurred, #{canceled_msg}all later migrations canceled:\n\n#{e}", e.backtrace
-        end
+      if use_advisory_lock?
+        with_advisory_lock { migrate_without_lock }
+      else
+        migrate_without_lock
       end
     end
 
@@ -972,10 +1096,45 @@ module ActiveRecord
     end
 
     def migrated
-      @migrated_versions ||= Set.new(self.class.get_all_versions)
+      @migrated_versions || load_migrated
+    end
+
+    def load_migrated
+      @migrated_versions = Set.new(self.class.get_all_versions)
     end
 
     private
+
+    def run_without_lock
+      migration = migrations.detect { |m| m.version == @target_version }
+      raise UnknownMigrationVersionError.new(@target_version) if migration.nil?
+      unless (up? && migrated.include?(migration.version.to_i)) || (down? && !migrated.include?(migration.version.to_i))
+        begin
+          execute_migration_in_transaction(migration, @direction)
+        rescue => e
+          canceled_msg = use_transaction?(migration) ? ", this migration was canceled" : ""
+          raise StandardError, "An error has occurred#{canceled_msg}:\n\n#{e}", e.backtrace
+        end
+      end
+    end
+
+    def migrate_without_lock
+      if !target && @target_version && @target_version > 0
+        raise UnknownMigrationVersionError.new(@target_version)
+      end
+
+      runnable.each do |migration|
+        Base.logger.info "Migrating to #{migration.name} (#{migration.version})" if Base.logger
+
+        begin
+          execute_migration_in_transaction(migration, @direction)
+        rescue => e
+          canceled_msg = use_transaction?(migration) ? "this and " : ""
+          raise StandardError, "An error has occurred, #{canceled_msg}all later migrations canceled:\n\n#{e}", e.backtrace
+        end
+      end
+    end
+
     def ran?(migration)
       migrated.include?(migration.version.to_i)
     end
@@ -1036,6 +1195,26 @@ module ActiveRecord
 
     def use_transaction?(migration)
       !migration.disable_ddl_transaction && Base.connection.supports_ddl_transactions?
+    end
+
+    def use_advisory_lock?
+      Base.connection.supports_advisory_locks?
+    end
+
+    def with_advisory_lock
+      lock_id = generate_migrator_advisory_lock_id
+      got_lock = Base.connection.get_advisory_lock(lock_id)
+      raise ConcurrentMigrationError unless got_lock
+      load_migrated # reload schema_migrations to be sure it wasn't changed by another process before we got the lock
+      yield
+    ensure
+      Base.connection.release_advisory_lock(lock_id) if got_lock
+    end
+
+    MIGRATOR_SALT = 2053462845
+    def generate_migrator_advisory_lock_id
+      db_name_hash = Zlib.crc32(Base.connection.current_database)
+      MIGRATOR_SALT * db_name_hash
     end
   end
 end

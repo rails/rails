@@ -95,6 +95,15 @@ class DeveloperWithExtendOption < Developer
   has_and_belongs_to_many :projects, extend: NamedExtension
 end
 
+class ProjectUnscopingDavidDefaultScope < ActiveRecord::Base
+  self.table_name = 'projects'
+  has_and_belongs_to_many :developers, -> { unscope(where: 'name') },
+    class_name: "LazyBlockDeveloperCalledDavid",
+    join_table: "developers_projects",
+    foreign_key: "project_id",
+    association_foreign_key: "developer_id"
+end
+
 class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :categories, :posts, :categories_posts, :developers, :projects, :developers_projects,
            :parrots, :pirates, :parrots_pirates, :treasures, :price_estimates, :tags, :taggings, :computers
@@ -796,9 +805,10 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_association_proxy_transaction_method_starts_transaction_in_association_class
-    Post.expects(:transaction)
-    Category.first.posts.transaction do
-      # nothing
+    assert_called(Post, :transaction) do
+      Category.first.posts.transaction do
+        # nothing
+      end
     end
   end
 
@@ -934,5 +944,42 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
       professor.courses << course
     end
     assert_equal 1, professor.courses.count
+  end
+
+  def test_habtm_scope_can_unscope
+    project = ProjectUnscopingDavidDefaultScope.new
+    project.save!
+
+    developer = LazyBlockDeveloperCalledDavid.new(name: "Not David")
+    developer.save!
+    project.developers << developer
+
+    projects = ProjectUnscopingDavidDefaultScope.includes(:developers).where(id: project.id)
+    assert_equal 1, projects.first.developers.size
+  end
+
+  def test_preloaded_associations_size
+    assert_equal Project.first.salaried_developers.size,
+      Project.preload(:salaried_developers).first.salaried_developers.size
+
+    assert_equal Project.includes(:salaried_developers).references(:salaried_developers).first.salaried_developers.size,
+      Project.preload(:salaried_developers).first.salaried_developers.size
+
+    # Nested HATBM
+    first_project = Developer.first.projects.first
+    preloaded_first_project =
+      Developer.preload(projects: :salaried_developers).
+        first.
+        projects.
+        detect { |p| p.id == first_project.id }
+
+    assert preloaded_first_project.salaried_developers.loaded?, true
+    assert_equal first_project.salaried_developers.size, preloaded_first_project.salaried_developers.size
+  end
+
+  def test_has_and_belongs_to_many_is_useable_with_belongs_to_required_by_default
+    assert_difference "Project.first.developers_required_by_default.size", 1 do
+      Project.first.developers_required_by_default.create!(name: "Sean", salary: 50000)
+    end
   end
 end

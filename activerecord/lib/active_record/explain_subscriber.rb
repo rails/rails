@@ -14,7 +14,7 @@ module ActiveRecord
     end
 
     # SCHEMA queries cannot be EXPLAINed, also we do not want to run EXPLAIN on
-    # our own EXPLAINs now matter how loopingly beautiful that would be.
+    # our own EXPLAINs no matter how loopingly beautiful that would be.
     #
     # On the other hand, we want to monitor the performance of our real database
     # queries, not the performance of the access to the query cache.

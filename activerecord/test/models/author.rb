@@ -144,9 +144,6 @@ class Author < ActiveRecord::Base
 
   has_many :posts_with_signature, ->(record) { where("posts.title LIKE ?", "%by #{record.name.downcase}%") }, class_name: "Post"
 
-  scope :relation_include_posts, -> { includes(:posts) }
-  scope :relation_include_tags,  -> { includes(:tags) }
-
   attr_accessor :post_log
   after_initialize :set_post_log
 

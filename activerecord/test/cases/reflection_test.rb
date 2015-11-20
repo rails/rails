@@ -393,12 +393,14 @@ class ReflectionTest < ActiveRecord::TestCase
     product = Struct.new(:table_name, :pluralize_table_names).new('products', true)
 
     reflection = ActiveRecord::Reflection.create(:has_many, :categories, nil, {}, product)
-    reflection.stubs(:klass).returns(category)
-    assert_equal 'categories_products', reflection.join_table
+    reflection.stub(:klass, category) do
+      assert_equal 'categories_products', reflection.join_table
+    end
 
     reflection = ActiveRecord::Reflection.create(:has_many, :products, nil, {}, category)
-    reflection.stubs(:klass).returns(product)
-    assert_equal 'categories_products', reflection.join_table
+    reflection.stub(:klass, product) do
+      assert_equal 'categories_products', reflection.join_table
+    end
   end
 
   def test_join_table_with_common_prefix
@@ -406,12 +408,14 @@ class ReflectionTest < ActiveRecord::TestCase
     product = Struct.new(:table_name, :pluralize_table_names).new('catalog_products', true)
 
     reflection = ActiveRecord::Reflection.create(:has_many, :categories, nil, {}, product)
-    reflection.stubs(:klass).returns(category)
-    assert_equal 'catalog_categories_products', reflection.join_table
+    reflection.stub(:klass, category) do
+      assert_equal 'catalog_categories_products', reflection.join_table
+    end
 
     reflection = ActiveRecord::Reflection.create(:has_many, :products, nil, {}, category)
-    reflection.stubs(:klass).returns(product)
-    assert_equal 'catalog_categories_products', reflection.join_table
+    reflection.stub(:klass, product) do
+      assert_equal 'catalog_categories_products', reflection.join_table
+    end
   end
 
   def test_join_table_with_different_prefix
@@ -419,12 +423,14 @@ class ReflectionTest < ActiveRecord::TestCase
     page = Struct.new(:table_name, :pluralize_table_names).new('content_pages', true)
 
     reflection = ActiveRecord::Reflection.create(:has_many, :categories, nil, {}, page)
-    reflection.stubs(:klass).returns(category)
-    assert_equal 'catalog_categories_content_pages', reflection.join_table
+    reflection.stub(:klass, category) do
+      assert_equal 'catalog_categories_content_pages', reflection.join_table
+    end
 
     reflection = ActiveRecord::Reflection.create(:has_many, :pages, nil, {}, category)
-    reflection.stubs(:klass).returns(page)
-    assert_equal 'catalog_categories_content_pages', reflection.join_table
+    reflection.stub(:klass, page) do
+      assert_equal 'catalog_categories_content_pages', reflection.join_table
+    end
   end
 
   def test_join_table_can_be_overridden
@@ -432,12 +438,14 @@ class ReflectionTest < ActiveRecord::TestCase
     product = Struct.new(:table_name, :pluralize_table_names).new('products', true)
 
     reflection = ActiveRecord::Reflection.create(:has_many, :categories, nil, { :join_table => 'product_categories' }, product)
-    reflection.stubs(:klass).returns(category)
-    assert_equal 'product_categories', reflection.join_table
+    reflection.stub(:klass, category) do
+      assert_equal 'product_categories', reflection.join_table
+    end
 
     reflection = ActiveRecord::Reflection.create(:has_many, :products, nil, { :join_table => 'product_categories' }, category)
-    reflection.stubs(:klass).returns(product)
-    assert_equal 'product_categories', reflection.join_table
+    reflection.stub(:klass, product) do
+      assert_equal 'product_categories', reflection.join_table
+    end
   end
 
   def test_includes_accepts_symbols

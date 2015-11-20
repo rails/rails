@@ -109,8 +109,6 @@ class RoutingConcernsTest < ActionDispatch::IntegrationTest
   end
 
   def test_concerns_executes_block_in_context_of_current_mapper
-    jruby_skip "https://github.com/jruby/jruby/issues/3143"
-
     mapper = ActionDispatch::Routing::Mapper.new(ActionDispatch::Routing::RouteSet.new)
     mapper.concern :test_concern do
       resources :things

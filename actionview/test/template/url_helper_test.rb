@@ -1,5 +1,4 @@
 require 'abstract_unit'
-require 'minitest/mock'
 
 class UrlHelperTest < ActiveSupport::TestCase
 
@@ -48,6 +47,23 @@ class UrlHelperTest < ActiveSupport::TestCase
 
   def test_url_for_with_back_and_no_referer
     @controller = Struct.new(:request).new(Struct.new(:env).new({}))
+    assert_equal 'javascript:history.back()', url_for(:back)
+  end
+
+  def test_url_for_with_back_and_no_controller
+    @controller = nil
+    assert_equal 'javascript:history.back()', url_for(:back)
+  end
+
+  def test_url_for_with_back_and_javascript_referer
+    referer = 'javascript:alert(document.cookie)'
+    @controller = Struct.new(:request).new(Struct.new(:env).new("HTTP_REFERER" => referer))
+    assert_equal 'javascript:history.back()', url_for(:back)
+  end
+
+  def test_url_for_with_invalid_referer
+    referer = 'THIS IS NOT A URL'
+    @controller = Struct.new(:request).new(Struct.new(:env).new("HTTP_REFERER" => referer))
     assert_equal 'javascript:history.back()', url_for(:back)
   end
 
@@ -524,6 +540,20 @@ class UrlHelperTest < ActiveSupport::TestCase
       mail_to('feedback@example.com', '<img src="/feedback.png" />'.html_safe)
   end
 
+  def test_mail_to_with_html_safe_string
+    assert_dom_equal(
+      %{<a href="mailto:david@loudthinking.com">david@loudthinking.com</a>},
+      mail_to("david@loudthinking.com".html_safe)
+    )
+  end
+
+  def test_mail_to_with_nil
+    assert_dom_equal(
+      %{<a href="mailto:"></a>},
+      mail_to(nil)
+    )
+  end
+
   def test_mail_to_returns_html_safe_string
     assert mail_to("david@loudthinking.com").html_safe?
   end
@@ -786,6 +816,13 @@ class SessionsController < ActionController::Base
     @session = Session.new(params[:id])
     render inline: "<%= url_for([@workshop, @session]) %>\n<%= link_to('Session', [@workshop, @session]) %>"
   end
+
+  def edit
+    @workshop = Workshop.new(params[:workshop_id])
+    @session = Session.new(params[:id])
+    @url = [@workshop, @session, format: params[:format]]
+    render inline: "<%= url_for(@url) %>\n<%= link_to('Session', @url) %>"
+  end
 end
 
 class PolymorphicControllerTest < ActionController::TestCase
@@ -815,5 +852,12 @@ class PolymorphicControllerTest < ActionController::TestCase
 
     get :show, params: { workshop_id: 1, id: 1 }
     assert_equal %{/workshops/1/sessions/1\n<a href="/workshops/1/sessions/1">Session</a>}, @response.body
+  end
+
+  def test_existing_nested_resource_with_params
+    @controller = SessionsController.new
+
+    get :edit, params: { workshop_id: 1, id: 1, format: "json"  }
+    assert_equal %{/workshops/1/sessions/1.json\n<a href="/workshops/1/sessions/1.json">Session</a>}, @response.body
   end
 end

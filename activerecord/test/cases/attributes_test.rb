@@ -172,5 +172,18 @@ module ActiveRecord
         assert_equal int_range, klass.type_for_attribute("my_int_range")
       end
     end
+
+    test "attributes added after subclasses load are inherited" do
+      parent = Class.new(ActiveRecord::Base) do
+        self.table_name = "topics"
+      end
+
+      child = Class.new(parent)
+      child.new # => force a schema load
+
+      parent.attribute(:foo, Type::Value.new)
+
+      assert_equal(:bar, child.new(foo: :bar).foo)
+    end
   end
 end

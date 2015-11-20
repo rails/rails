@@ -141,7 +141,7 @@ module ActionView
       @compile_mutex     = Mutex.new
     end
 
-    # Returns if the underlying handler supports streaming. If so,
+    # Returns whether the underlying handler supports streaming. If so,
     # a streaming buffer *may* be passed when it start rendering.
     def supports_streaming?
       handler.respond_to?(:supports_streaming?) && handler.supports_streaming?
@@ -325,7 +325,7 @@ module ActionView
             template = refresh(view)
             template.encode!
           end
-          raise Template::Error.new(template, e)
+          raise Template::Error.new(template)
         end
       end
 

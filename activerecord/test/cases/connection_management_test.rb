@@ -92,7 +92,14 @@ module ActiveRecord
         app = lambda { |_| [200, {}, body] }
         response_body = ConnectionManagement.new(app).call(@env)[2]
         assert response_body.respond_to?(:to_path)
-        assert_equal response_body.to_path, "/path"
+        assert_equal "/path", response_body.to_path
+      end
+
+      test "doesn't mutate the original response" do
+        original_response = [200, {}, 'hi']
+        app = lambda { |_| original_response }
+        ConnectionManagement.new(app).call(@env)[2]
+        assert_equal 'hi', original_response.last
       end
     end
   end

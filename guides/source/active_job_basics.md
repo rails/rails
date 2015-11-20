@@ -83,7 +83,7 @@ Note that you can define `perform` with as many arguments as you want.
 Enqueue a job like so:
 
 ```ruby
-# Enqueue a job to be performed as soon the queuing system is
+# Enqueue a job to be performed as soon as the queuing system is
 # free.
 GuestsCleanupJob.perform_later guest
 ```
@@ -136,10 +136,19 @@ module YourApp
 end
 ```
 
-NOTE: Since jobs run in parallel to your Rails application, most queuing libraries
+### Starting the Backend
+
+Since jobs run in parallel to your Rails application, most queuing libraries
 require that you start a library-specific queuing service (in addition to
-starting your Rails app) for the job processing to work. For information on
-how to do that refer to the documentation of your respective library.
+starting your Rails app) for the job processing to work. Refer to library
+documentation for instructions on starting your queue backend.
+
+Here is a noncomprehensive list of documentation:
+
+- [Sidekiq](https://github.com/mperham/sidekiq/wiki/Active-Job)
+- [Resque](https://github.com/resque/resque/wiki/ActiveJob)
+- [Sucker Punch](https://github.com/brandonhilkert/sucker_punch#active-job)
+- [Queue Classic](https://github.com/QueueClassic/queue_classic#active-job)
 
 Queues
 ------
@@ -296,7 +305,7 @@ emails asynchronously:
 ```ruby
 I18n.locale = :eo
 
-UserMailer.welcome(@user).deliver_later # Email will be localized to Esparanto.
+UserMailer.welcome(@user).deliver_later # Email will be localized to Esperanto.
 ```
 
 

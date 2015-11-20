@@ -58,7 +58,7 @@ module SidekiqJobsManager
                                        timeout: 1,
                                       })
       Sidekiq.average_scheduled_poll_interval = 0.5
-      Sidekiq::Scheduled.const_set :INITIAL_WAIT, 1
+      Sidekiq.options[:poll_interval_average] = 1
       begin
         sidekiq.run
         continue_write.puts "started"

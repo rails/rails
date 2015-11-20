@@ -44,6 +44,13 @@ class Rails::ServerTest < ActiveSupport::TestCase
     end
   end
 
+  def test_environment_with_port
+    switch_env "PORT", "1234" do
+      server = Rails::Server.new
+      assert_equal 1234, server.options[:Port]
+    end
+  end
+
   def test_caching_without_option
     args = []
     options = Rails::Server::Options.new.parse!(args)

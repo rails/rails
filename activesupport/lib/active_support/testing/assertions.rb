@@ -3,7 +3,7 @@ require 'active_support/core_ext/object/blank'
 module ActiveSupport
   module Testing
     module Assertions
-      # Assert that an expression is not truthy. Passes if <tt>object</tt> is
+      # Asserts that an expression is not truthy. Passes if <tt>object</tt> is
       # +nil+ or +false+. "Truthy" means "considered true in a conditional"
       # like <tt>if foo</tt>.
       #
@@ -68,13 +68,15 @@ module ActiveSupport
         }
         before = exps.map(&:call)
 
-        yield
+        retval = yield
 
         expressions.zip(exps).each_with_index do |(code, e), i|
           error  = "#{code.inspect} didn't change by #{difference}"
           error  = "#{message}.\n#{error}" if message
           assert_equal(before[i] + difference, e.call, error)
         end
+
+        retval
       end
 
       # Assertion that the numeric result of evaluating an expression is not

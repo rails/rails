@@ -37,6 +37,13 @@ class JsonParamsParsingTest < ActionDispatch::IntegrationTest
     )
   end
 
+  test "parses json params for application/vnd.api+json" do
+    assert_parses(
+      {"person" => {"name" => "David"}},
+      "{\"person\": {\"name\": \"David\"}}", { 'CONTENT_TYPE' => 'application/vnd.api+json' }
+    )
+  end
+
   test "nils are stripped from collections" do
     assert_parses(
       {"person" => []},
@@ -69,8 +76,8 @@ class JsonParamsParsingTest < ActionDispatch::IntegrationTest
         $stderr = StringIO.new # suppress the log
         json = "[\"person]\": {\"name\": \"David\"}}"
         exception = assert_raise(ActionDispatch::ParamsParser::ParseError) { post "/parse", json, {'CONTENT_TYPE' => 'application/json', 'action_dispatch.show_exceptions' => false} }
-        assert_equal JSON::ParserError, exception.original_exception.class
-        assert_equal exception.original_exception.message, exception.message
+        assert_equal JSON::ParserError, exception.cause.class
+        assert_equal exception.cause.message, exception.message
       ensure
         $stderr = STDERR
       end
@@ -133,6 +140,13 @@ class RootLessJSONParamsParsingTest < ActionDispatch::IntegrationTest
     assert_parses(
       {"user" => {"username" => "sikachu"}, "username" => "sikachu"},
       "{\"username\": \"sikachu\"}", { 'CONTENT_TYPE' => 'application/jsonrequest' }
+    )
+  end
+
+  test "parses json params for application/vnd.api+json" do
+    assert_parses(
+      {"user" => {"username" => "sikachu"}, "username" => "sikachu"},
+      "{\"username\": \"sikachu\"}", { 'CONTENT_TYPE' => 'application/vnd.api+json' }
     )
   end
 

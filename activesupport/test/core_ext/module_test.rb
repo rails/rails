@@ -83,6 +83,16 @@ Product = Struct.new(:name) do
   end
 end
 
+class Block
+  def hello?
+    true
+  end
+end
+
+HasBlock = Struct.new(:block) do
+  delegate :hello?, to: :block
+end
+
 class ParameterSet
   delegate :[], :[]=, :to => :@params
 
@@ -299,6 +309,11 @@ class ModuleTest < ActiveSupport::TestCase
 
     # Nested NoMethodError is the same name as the delegation
     assert_raise(NoMethodError) { product.type_name }
+  end
+
+  def test_delegation_with_method_arguments
+    has_block = HasBlock.new(Block.new)
+    assert has_block.hello?
   end
 
   def test_parent

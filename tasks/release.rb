@@ -66,13 +66,24 @@ directory "pkg"
 end
 
 namespace :changelog do
+  task :header do
+    (FRAMEWORKS + ['guides']).each do |fw|
+      require 'date'
+      fname = File.join fw, 'CHANGELOG.md'
+
+      header = "## Rails #{version} (#{Date.today.strftime('%B %d, %Y')}) ##\n\n*   No changes.\n\n\n"
+      contents = header + File.read(fname)
+      File.open(fname, 'wb') { |f| f.write contents }
+    end
+  end
+
   task :release_date do
     (FRAMEWORKS + ['guides']).each do |fw|
       require 'date'
-      replace = '\1(' + Date.today.strftime('%B %d, %Y') + ')'
+      replace = "## Rails #{version} (#{Date.today.strftime('%B %d, %Y')}) ##\n"
       fname = File.join fw, 'CHANGELOG.md'
 
-      contents = File.read(fname).sub(/^([^(]*)\(unreleased\)/, replace)
+      contents = File.read(fname).sub(/^(## Rails .*)\n/, replace)
       File.open(fname, 'wb') { |f| f.write contents }
     end
   end
@@ -98,7 +109,7 @@ namespace :all do
   task :push            => FRAMEWORKS.map { |f| "#{f}:push"            } + ['rails:push']
 
   task :ensure_clean_state do
-    unless `git status -s | grep -v RAILS_VERSION`.strip.empty?
+    unless `git status -s | grep -v 'RAILS_VERSION\\|CHANGELOG\\|Gemfile.lock'`.strip.empty?
       abort "[ABORTING] `git status` reports a dirty tree. Make sure all changes are committed"
     end
 
@@ -106,6 +117,10 @@ namespace :all do
       abort "[ABORTING] `git tag` shows that #{tag} already exists. Has this version already\n"\
             "           been released? Git tagging can be skipped by setting SKIP_TAG=1"
     end
+  end
+
+  task :bundle do
+    sh 'bundle check'
   end
 
   task :commit do
@@ -124,5 +139,5 @@ namespace :all do
     sh "git push --tags"
   end
 
-  task :release => %w(ensure_clean_state build commit tag push)
+  task :release => %w(ensure_clean_state build bundle commit tag push)
 end

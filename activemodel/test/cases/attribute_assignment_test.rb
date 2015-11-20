@@ -70,7 +70,7 @@ class AttributeAssignmentTest < ActiveModel::TestCase
     end
   end
 
-  test "an ArgumentError is raised if a non-hash-like obejct is passed" do
+  test "an ArgumentError is raised if a non-hash-like object is passed" do
     assert_raises(ArgumentError) do
       Model.new(1)
     end

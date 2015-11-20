@@ -44,7 +44,7 @@ end
 Enqueue a job like so:
 
 ```ruby
-MyJob.perform_later record  # Enqueue a job to be performed as soon the queueing system is free.
+MyJob.perform_later record  # Enqueue a job to be performed as soon as the queueing system is free.
 ```
 
 ```ruby

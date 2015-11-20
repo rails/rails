@@ -23,7 +23,7 @@ class Integer
   alias :month :months
 
   def years
-    ActiveSupport::Duration.new(self * 365.25.days, [[:years, self]])
+    ActiveSupport::Duration.new(self * 365.25.days.to_i, [[:years, self]])
   end
   alias :year :years
 end

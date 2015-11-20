@@ -84,7 +84,9 @@ class TimestampTest < ActiveRecord::TestCase
 
   def test_touching_an_attribute_updates_timestamp
     previously_created_at = @developer.created_at
-    @developer.touch(:created_at)
+    travel(1.second) do
+      @developer.touch(:created_at)
+    end
 
     assert !@developer.created_at_changed? , 'created_at should not be changed'
     assert !@developer.changed?, 'record should not be changed'
@@ -199,8 +201,10 @@ class TimestampTest < ActiveRecord::TestCase
     owner = pet.owner
     previously_owner_updated_at = owner.updated_at
 
-    pet.name = "Fluffy the Third"
-    pet.save
+    travel(1.second) do
+      pet.name = "Fluffy the Third"
+      pet.save
+    end
 
     assert_not_equal previously_owner_updated_at, pet.owner.updated_at
   end
@@ -210,7 +214,9 @@ class TimestampTest < ActiveRecord::TestCase
     owner = pet.owner
     previously_owner_updated_at = owner.updated_at
 
-    pet.destroy
+    travel(1.second) do
+      pet.destroy
+    end
 
     assert_not_equal previously_owner_updated_at, pet.owner.updated_at
   end
@@ -254,8 +260,10 @@ class TimestampTest < ActiveRecord::TestCase
     owner.update_columns(happy_at: 3.days.ago)
     previously_owner_updated_at = owner.updated_at
 
-    pet.name = "I'm a parrot"
-    pet.save
+    travel(1.second) do
+      pet.name = "I'm a parrot"
+      pet.save
+    end
 
     assert_not_equal previously_owner_updated_at, pet.owner.updated_at
   end

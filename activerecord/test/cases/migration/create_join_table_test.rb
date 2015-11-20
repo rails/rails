@@ -12,7 +12,9 @@ module ActiveRecord
 
       teardown do
         %w(artists_musics musics_videos catalog).each do |table_name|
-          connection.drop_table table_name if connection.tables.include?(table_name)
+          ActiveSupport::Deprecation.silence do
+            connection.drop_table table_name if connection.table_exists?(table_name)
+          end
         end
       end
 
@@ -82,62 +84,62 @@ module ActiveRecord
         connection.create_join_table :artists, :musics
         connection.drop_join_table :artists, :musics
 
-        assert !connection.tables.include?('artists_musics')
+        ActiveSupport::Deprecation.silence { assert !connection.table_exists?('artists_musics') }
       end
 
       def test_drop_join_table_with_strings
         connection.create_join_table :artists, :musics
         connection.drop_join_table 'artists', 'musics'
 
-        assert !connection.tables.include?('artists_musics')
+        ActiveSupport::Deprecation.silence { assert !connection.table_exists?('artists_musics') }
       end
 
       def test_drop_join_table_with_the_proper_order
         connection.create_join_table :videos, :musics
         connection.drop_join_table :videos, :musics
 
-        assert !connection.tables.include?('musics_videos')
+        ActiveSupport::Deprecation.silence { assert !connection.table_exists?('musics_videos') }
       end
 
       def test_drop_join_table_with_the_table_name
         connection.create_join_table :artists, :musics, table_name: :catalog
         connection.drop_join_table :artists, :musics, table_name: :catalog
 
-        assert !connection.tables.include?('catalog')
+        ActiveSupport::Deprecation.silence { assert !connection.table_exists?('catalog') }
       end
 
       def test_drop_join_table_with_the_table_name_as_string
         connection.create_join_table :artists, :musics, table_name: 'catalog'
         connection.drop_join_table :artists, :musics, table_name: 'catalog'
 
-        assert !connection.tables.include?('catalog')
+        ActiveSupport::Deprecation.silence { assert !connection.table_exists?('catalog') }
       end
 
       def test_drop_join_table_with_column_options
         connection.create_join_table :artists, :musics, column_options: {null: true}
         connection.drop_join_table :artists, :musics, column_options: {null: true}
 
-        assert !connection.tables.include?('artists_musics')
+        ActiveSupport::Deprecation.silence { assert !connection.table_exists?('artists_musics') }
       end
 
       def test_create_and_drop_join_table_with_common_prefix
         with_table_cleanup do
           connection.create_join_table 'audio_artists', 'audio_musics'
-          assert_includes connection.tables, 'audio_artists_musics'
+          ActiveSupport::Deprecation.silence { assert connection.table_exists?('audio_artists_musics') }
 
           connection.drop_join_table 'audio_artists', 'audio_musics'
-          assert !connection.tables.include?('audio_artists_musics'), "Should have dropped join table, but didn't"
+          ActiveSupport::Deprecation.silence { assert !connection.table_exists?('audio_artists_musics'), "Should have dropped join table, but didn't" }
         end
       end
 
       private
 
         def with_table_cleanup
-          tables_before = connection.tables
+          tables_before = connection.data_sources
 
           yield
         ensure
-          tables_after = connection.tables - tables_before
+          tables_after = connection.data_sources - tables_before
 
           tables_after.each do |table|
             connection.drop_table table

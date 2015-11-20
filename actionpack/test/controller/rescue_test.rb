@@ -132,11 +132,19 @@ class RescueController < ActionController::Base
   end
 
   def io_error_in_view
-    raise ActionView::TemplateError.new(nil, IOError.new('this is io error'))
+    begin
+      raise IOError.new('this is io error')
+    rescue
+      raise ActionView::TemplateError.new(nil)
+    end
   end
 
   def zero_division_error_in_view
-    raise ActionView::TemplateError.new(nil, ZeroDivisionError.new('this is zero division error'))
+    begin
+      raise ZeroDivisionError.new('this is zero division error')
+    rescue
+      raise ActionView::TemplateError.new(nil)
+    end
   end
 
   protected
@@ -246,12 +254,15 @@ class RescueControllerTest < ActionController::TestCase
   end
 
   def test_rescue_handler_with_argument
-    @controller.expects(:show_errors).once.with { |e| e.is_a?(Exception) }
-    get :record_invalid
+    assert_called_with @controller, :show_errors, [Exception] do
+      get :record_invalid
+    end
   end
+
   def test_rescue_handler_with_argument_as_string
-    @controller.expects(:show_errors).once.with { |e| e.is_a?(Exception) }
-    get :record_invalid_raise_as_string
+    assert_called_with @controller, :show_errors, [Exception] do
+      get :record_invalid_raise_as_string
+    end
   end
 
   def test_proc_rescue_handler

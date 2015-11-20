@@ -23,7 +23,8 @@ module ActiveRecord
     end
 
     def test_tables
-      tables = @connection.tables
+      tables = nil
+      ActiveSupport::Deprecation.silence { tables = @connection.tables }
       assert tables.include?("accounts")
       assert tables.include?("authors")
       assert tables.include?("tasks")
@@ -31,9 +32,30 @@ module ActiveRecord
     end
 
     def test_table_exists?
-      assert @connection.table_exists?("accounts")
-      assert !@connection.table_exists?("nonexistingtable")
-      assert !@connection.table_exists?(nil)
+      ActiveSupport::Deprecation.silence do
+        assert @connection.table_exists?("accounts")
+        assert !@connection.table_exists?("nonexistingtable")
+        assert !@connection.table_exists?(nil)
+      end
+    end
+
+    def test_table_exists_checking_both_tables_and_views_is_deprecated
+      assert_deprecated { @connection.table_exists?("accounts") }
+    end
+
+    def test_data_sources
+      data_sources = @connection.data_sources
+      assert data_sources.include?("accounts")
+      assert data_sources.include?("authors")
+      assert data_sources.include?("tasks")
+      assert data_sources.include?("topics")
+    end
+
+    def test_data_source_exists?
+      assert @connection.data_source_exists?("accounts")
+      assert @connection.data_source_exists?(:accounts)
+      assert_not @connection.data_source_exists?("nonexistingtable")
+      assert_not @connection.data_source_exists?(nil)
     end
 
     def test_indexes
@@ -63,7 +85,7 @@ module ActiveRecord
       end
     end
 
-    if current_adapter?(:MysqlAdapter)
+    if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
       def test_charset
         assert_not_nil @connection.charset
         assert_not_equal 'character_set_database', @connection.charset
@@ -136,14 +158,16 @@ module ActiveRecord
 
     def test_uniqueness_violations_are_translated_to_specific_exception
       @connection.execute "INSERT INTO subscribers(nick) VALUES('me')"
-      assert_raises(ActiveRecord::RecordNotUnique) do
+      error = assert_raises(ActiveRecord::RecordNotUnique) do
         @connection.execute "INSERT INTO subscribers(nick) VALUES('me')"
       end
+
+      assert_not_nil error.cause
     end
 
     unless current_adapter?(:SQLite3Adapter)
       def test_foreign_key_violations_are_translated_to_specific_exception
-        assert_raises(ActiveRecord::InvalidForeignKey) do
+        error = assert_raises(ActiveRecord::InvalidForeignKey) do
           # Oracle adapter uses prefetched primary key values from sequence and passes them to connection adapter insert method
           if @connection.prefetch_primary_key?
             id_value = @connection.next_sequence_value(@connection.default_sequence_name("fk_test_has_fk", "id"))
@@ -152,6 +176,8 @@ module ActiveRecord
             @connection.execute "INSERT INTO fk_test_has_fk (fk_id) VALUES (0)"
           end
         end
+
+        assert_not_nil error.cause
       end
 
       def test_foreign_key_violations_are_translated_to_specific_exception_with_validate_false
@@ -159,11 +185,13 @@ module ActiveRecord
           self.table_name = 'fk_test_has_fk'
         end
 
-        assert_raises(ActiveRecord::InvalidForeignKey) do
+        error = assert_raises(ActiveRecord::InvalidForeignKey) do
           has_fk = klass_has_fk.new
           has_fk.fk_id = 1231231231
           has_fk.save(validate: false)
         end
+
+        assert_not_nil error.cause
       end
     end
 
@@ -216,12 +244,24 @@ module ActiveRecord
 
     unless current_adapter?(:PostgreSQLAdapter)
       def test_log_invalid_encoding
-        assert_raise ActiveRecord::StatementInvalid do
+        error = assert_raise ActiveRecord::StatementInvalid do
           @connection.send :log, "SELECT 'ы' FROM DUAL" do
             raise 'ы'.force_encoding(Encoding::ASCII_8BIT)
           end
         end
+
+        assert_not_nil error.cause
       end
+    end
+
+    if current_adapter?(:MysqlAdapter, :Mysql2Adapter, :SQLite3Adapter)
+      def test_tables_returning_both_tables_and_views_is_deprecated
+        assert_deprecated { @connection.tables }
+      end
+    end
+
+    def test_passing_arguments_to_tables_is_deprecated
+      assert_deprecated { @connection.tables(:books) }
     end
   end
 

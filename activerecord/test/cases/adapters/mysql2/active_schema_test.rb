@@ -17,7 +17,7 @@ class Mysql2ActiveSchemaTest < ActiveRecord::Mysql2TestCase
 
   def test_add_index
     # add_index calls table_exists? and index_name_exists? which can't work since execute is stubbed
-    def (ActiveRecord::Base.connection).table_exists?(*); true; end
+    def (ActiveRecord::Base.connection).data_source_exists?(*); true; end
     def (ActiveRecord::Base.connection).index_name_exists?(*); false; end
 
     expected = "CREATE  INDEX `index_people_on_last_name`  ON `people` (`last_name`) "
@@ -60,7 +60,7 @@ class Mysql2ActiveSchemaTest < ActiveRecord::Mysql2TestCase
   end
 
   def test_index_in_create
-    def (ActiveRecord::Base.connection).table_exists?(*); false; end
+    def (ActiveRecord::Base.connection).data_source_exists?(*); false; end
 
     %w(SPATIAL FULLTEXT UNIQUE).each do |type|
       expected = "CREATE TABLE `people` (#{type} INDEX `index_people_on_last_name`  (`last_name`) ) ENGINE=InnoDB"
@@ -78,7 +78,7 @@ class Mysql2ActiveSchemaTest < ActiveRecord::Mysql2TestCase
   end
 
   def test_index_in_bulk_change
-    def (ActiveRecord::Base.connection).table_exists?(*); true; end
+    def (ActiveRecord::Base.connection).data_source_exists?(*); true; end
     def (ActiveRecord::Base.connection).index_name_exists?(*); false; end
 
     %w(SPATIAL FULLTEXT UNIQUE).each do |type|
@@ -100,17 +100,15 @@ class Mysql2ActiveSchemaTest < ActiveRecord::Mysql2TestCase
     assert_equal "DROP TABLE `people`", drop_table(:people)
   end
 
-  if current_adapter?(:Mysql2Adapter)
-    def test_create_mysql_database_with_encoding
-      assert_equal "CREATE DATABASE `matt` DEFAULT CHARACTER SET `utf8`", create_database(:matt)
-      assert_equal "CREATE DATABASE `aimonetti` DEFAULT CHARACTER SET `latin1`", create_database(:aimonetti, {:charset => 'latin1'})
-      assert_equal "CREATE DATABASE `matt_aimonetti` DEFAULT CHARACTER SET `big5` COLLATE `big5_chinese_ci`", create_database(:matt_aimonetti, {:charset => :big5, :collation => :big5_chinese_ci})
-    end
+  def test_create_mysql_database_with_encoding
+    assert_equal "CREATE DATABASE `matt` DEFAULT CHARACTER SET `utf8`", create_database(:matt)
+    assert_equal "CREATE DATABASE `aimonetti` DEFAULT CHARACTER SET `latin1`", create_database(:aimonetti, {:charset => 'latin1'})
+    assert_equal "CREATE DATABASE `matt_aimonetti` DEFAULT CHARACTER SET `big5` COLLATE `big5_chinese_ci`", create_database(:matt_aimonetti, {:charset => :big5, :collation => :big5_chinese_ci})
+  end
 
-    def test_recreate_mysql_database_with_encoding
-      create_database(:luca, {:charset => 'latin1'})
-      assert_equal "CREATE DATABASE `luca` DEFAULT CHARACTER SET `latin1`", recreate_database(:luca, {:charset => 'latin1'})
-    end
+  def test_recreate_mysql_database_with_encoding
+    create_database(:luca, {:charset => 'latin1'})
+    assert_equal "CREATE DATABASE `luca` DEFAULT CHARACTER SET `latin1`", recreate_database(:luca, {:charset => 'latin1'})
   end
 
   def test_add_column
@@ -154,7 +152,7 @@ class Mysql2ActiveSchemaTest < ActiveRecord::Mysql2TestCase
   end
 
   def test_indexes_in_create
-    ActiveRecord::Base.connection.stubs(:table_exists?).with(:temp).returns(false)
+    ActiveRecord::Base.connection.stubs(:data_source_exists?).with(:temp).returns(false)
     ActiveRecord::Base.connection.stubs(:index_name_exists?).with(:index_temp_on_zip).returns(false)
 
     expected = "CREATE TEMPORARY TABLE `temp` ( INDEX `index_temp_on_zip`  (`zip`) ) ENGINE=InnoDB AS SELECT id, name, zip FROM a_really_complicated_query"

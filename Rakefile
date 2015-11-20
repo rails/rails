@@ -1,4 +1,3 @@
-require 'sdoc'
 require 'net/http'
 
 $:.unshift File.expand_path('..', __FILE__)

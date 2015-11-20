@@ -115,7 +115,6 @@ module ActionController
       Rendering,
       Renderers::All,
       ConditionalGet,
-      RackDelegation,
       BasicImplicitRender,
       StrongParameters,
 

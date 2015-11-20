@@ -3,7 +3,7 @@
 #   rake notes
 #   rake notes:optimize
 #
-# and friends. See <tt>rake -T notes</tt> and <tt>railties/lib/tasks/annotations.rake</tt>.
+# and friends. See <tt>rake -T notes</tt> and <tt>railties/lib/rails/tasks/annotations.rake</tt>.
 #
 # Annotation objects are triplets <tt>:line</tt>, <tt>:tag</tt>, <tt>:text</tt> that
 # represent the line where the annotation lives, its tag, and its text. Note

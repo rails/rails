@@ -466,7 +466,7 @@ class TestController < ApplicationController
   end
 
   def render_content_type_from_body
-    response.content_type = Mime::RSS
+    response.content_type = Mime[:rss]
     render body: "hello world!"
   end
 
@@ -728,7 +728,7 @@ class RenderTest < ActionController::TestCase
 
   def test_render_process
     get :render_action_hello_world_as_string
-    assert_equal ["Hello world!"], @controller.process(:render_action_hello_world_as_string)
+    assert_equal "Hello world!", @controller.process(:render_action_hello_world_as_string)
   end
 
   # :ported:
@@ -1122,7 +1122,7 @@ class RenderTest < ActionController::TestCase
     assert_equal "<title>Putting stuff in the title!</title>\nGreat stuff!\n", @response.body
   end
 
-  def test_overwritting_rendering_relative_file_with_extension
+  def test_overwriting_rendering_relative_file_with_extension
     get :hello_world_from_rxml_using_template
     assert_equal "<html>\n  <p>Hello</p>\n</html>\n", @response.body
 

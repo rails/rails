@@ -313,9 +313,9 @@ class MigratorTest < ActiveRecord::TestCase
     _, migrator = migrator_class(3)
 
     ActiveRecord::Base.connection.drop_table "schema_migrations", if_exists: true
-    assert_not ActiveRecord::Base.connection.table_exists?('schema_migrations')
+    ActiveSupport::Deprecation.silence { assert_not ActiveRecord::Base.connection.table_exists?('schema_migrations') }
     migrator.migrate("valid", 1)
-    assert ActiveRecord::Base.connection.table_exists?('schema_migrations')
+    ActiveSupport::Deprecation.silence { assert ActiveRecord::Base.connection.table_exists?('schema_migrations') }
   end
 
   def test_migrator_forward

@@ -1,5 +1,3 @@
-require 'shellwords'
-
 module Rails
   module Generators
     module Testing
