@@ -274,8 +274,11 @@ See the [rails/actioncable-examples](http://github.com/rails/actioncable-example
 
 ## Configuration
 
-The only must-configure part of Action Cable is the Redis connection. By default, `ActionCable::Server::Base` will look for a configuration
-file in `Rails.root.join('config/redis/cable.yml')`. The file must follow the following format:
+Action Cable has two required configurations: the Redis connection and specifying allowed request origins.
+
+### Redis
+
+By default, `ActionCable::Server::Base` will look for a configuration file in `Rails.root.join('config/redis/cable.yml')`. The file must follow the following format:
 
 ```yaml
 production: &production
@@ -298,6 +301,24 @@ a Rails initializer with something like:
 ```ruby
 ActionCable.server.config.redis_path = Rails.root('somewhere/else/cable.yml')
 ```
+
+### Allowed Request Origins
+
+Action Cable will only accepting requests from specified origins, which are passed to the server config as an array:
+
+```ruby
+ActionCable.server.config.allowed_request_origins = %w( http://rubyonrails.com )
+```
+
+To disable and allow requests from any origin:
+
+```ruby
+ActionCable.server.config.disable_request_forgery_protection = true
+```
+
+By default, Action Cable allows all requests from localhost:3000 when running in the development environment.
+
+### Other Configurations
 
 The other common option to configure is the log tags applied to the per-connection logger. Here's close to what we're using in Basecamp:
 
