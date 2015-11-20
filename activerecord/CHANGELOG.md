@@ -1,3 +1,7 @@
+*   Add prepared statements support for `Mysql2Adapter`.
+
+    *Ryuta Kamizono*
+
 *   Except keys of `build_record`'s argument from `create_scope` in `initialize_attributes`.
 
     Fixes #21893.

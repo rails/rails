@@ -104,6 +104,13 @@ GIT
   specs:
     sass (3.4.19)
 
+GIT
+  remote: git://github.com/sodabrew/mysql2.git
+  revision: be9a3457aeb806c062aa984e927d11d0854aa300
+  branch: stmt_close_crash
+  specs:
+    mysql2 (0.4.1)
+
 PATH
   remote: .
   specs:
@@ -238,7 +245,6 @@ GEM
     multi_json (1.11.2)
     mustache (1.0.2)
     mysql (2.9.1)
-    mysql2 (0.4.1)
     nokogiri (1.6.7.rc3)
       mini_portile (~> 0.7.0.rc4)
     pg (0.18.3)
@@ -347,7 +353,7 @@ DEPENDENCIES
   minitest (< 5.3.4)
   mocha (~> 0.14)
   mysql (>= 2.9.0)
-  mysql2 (>= 0.4.0)
+  mysql2!
   nokogiri (>= 1.6.7.rc3)
   pg (>= 0.18.0)
   psych (~> 2.0)
