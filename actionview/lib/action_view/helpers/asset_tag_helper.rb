@@ -205,6 +205,8 @@ module ActionView
       #   # => <img alt="Icon" height="32" src="/icons/icon.gif" width="32" />
       #   image_tag("/icons/icon.gif", class: "menu_icon")
       #   # => <img alt="Icon" class="menu_icon" src="/icons/icon.gif" />
+      #   image_tag("/icons/icon.gif", data: { title: 'Rails Application' })
+      #   # => <img data-title="Rails Application" src="/icons/icon.gif" />
       def image_tag(source, options={})
         options = options.symbolize_keys
         check_for_image_tag_errors(options)
