@@ -34,10 +34,23 @@ class ValidationsContextTest < ActiveModel::TestCase
     assert topic.valid?(:create), "Validation doesn't run on create if 'on' is set to update"
   end
 
+  test "with a class that adds errors excluding create and validating a new model" do
+    Topic.validates_with(ValidatorThatAddsErrors, except: :create)
+    topic = Topic.new
+    assert topic.valid?(:create), "Validation does run on create if 'except' is set to create"
+  end
+
   test "with a class that adds errors on create and validating a new model" do
     Topic.validates_with(ValidatorThatAddsErrors, on: :create)
     topic = Topic.new
     assert topic.invalid?(:create), "Validation does run on create if 'on' is set to create"
+    assert topic.errors[:base].include?(ERROR_MESSAGE)
+  end
+
+  test "with a class that adds errors excluding update and validating a new model" do
+    Topic.validates_with(ValidatorThatAddsErrors, except: :update)
+    topic = Topic.new
+    assert topic.invalid?(:create), "Validation doesn't run on create if 'except' is set to update"
     assert topic.errors[:base].include?(ERROR_MESSAGE)
   end
 
@@ -54,6 +67,21 @@ class ValidationsContextTest < ActiveModel::TestCase
     assert topic.errors[:base].include?(ERROR_MESSAGE)
   end
 
+  test "with a class that adds errors excluding multiple contexts and validating a new model" do
+    Topic.validates_with(ValidatorThatAddsErrors, except: [:context1, :context2])
+
+    topic = Topic.new
+    assert topic.valid?(:context1), "Validation ran on context1 when 'except' is set to context1 and context2"
+
+    assert topic.valid?(:context2), "Validation ran on context2 when 'except' is set to context1 and context2"
+
+    assert topic.invalid?, "Validation did not run with no context given when 'except' is set to context1 and context2"
+    assert topic.errors[:base].include?(ERROR_MESSAGE)
+
+    assert topic.invalid?(:context3), "Validation did not run on context3 when 'except' is set to context1 and context2"
+    assert topic.errors[:base].include?(ERROR_MESSAGE)
+  end
+
   test "with a class that validating a model for a multiple contexts" do
     Topic.validates_with(ValidatorThatAddsErrors, on: :context1)
     Topic.validates_with(AnotherValidatorThatAddsErrors, on: :context2)
@@ -64,5 +92,25 @@ class ValidationsContextTest < ActiveModel::TestCase
     assert topic.invalid?([:context1, :context2]), "Validation did not run on context1 when 'on' is set to context1 and context2"
     assert topic.errors[:base].include?(ERROR_MESSAGE)
     assert topic.errors[:base].include?(ANOTHER_ERROR_MESSAGE)
+  end
+
+  test "with a class that validating a model excluding multiple contexts" do
+    Topic.validates_with(ValidatorThatAddsErrors, except: :context1)
+    Topic.validates_with(AnotherValidatorThatAddsErrors, except: :context2)
+
+    topic = Topic.new
+    assert topic.invalid?, "Validation didn't run with no context given when 'except' is set to context1 and context2"
+    assert topic.errors[:base].include?(ERROR_MESSAGE)
+    assert topic.errors[:base].include?(ANOTHER_ERROR_MESSAGE)
+
+    assert topic.invalid?(:context1), "Validation didn't run with no context given when 'except' is set to context1"
+    assert !topic.errors[:base].include?(ERROR_MESSAGE)
+    assert topic.errors[:base].include?(ANOTHER_ERROR_MESSAGE)
+
+    assert topic.invalid?(:context2), "Validation didn't run with no context given when 'except' is set to context2"
+    assert topic.errors[:base].include?(ERROR_MESSAGE)
+    assert !topic.errors[:base].include?(ANOTHER_ERROR_MESSAGE)
+
+    assert topic.valid?([:context1, :context2]), "Validation ran on context1 and context2 when 'except' is set to context1 and context2"
   end
 end

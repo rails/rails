@@ -32,6 +32,7 @@ class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
     person = Class.new(ActiveRecord::Base) {
       self.table_name = 'people'
       validate :should_be_cool, :on => :create
+      validate :should_be_awesome, :except => :create
       def self.name; 'Person'; end
 
       private
@@ -39,6 +40,12 @@ class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
       def should_be_cool
         unless self.first_name == 'cool'
           errors.add :first_name, "not cool"
+        end
+      end
+
+      def should_be_awesome
+        unless self.first_name == 'awesome'
+          errors.add :first_name, "not awesome"
         end
       end
     }
@@ -49,7 +56,7 @@ class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
     }
 
     u = person.create!(first_name: 'cool')
-    u.update_attributes!(first_name: 'nah') # still valid because validation only applies on 'create'
+    u.update_attributes!(first_name: 'awesome')
     assert reference.create!(person: u).persisted?
   end
 
