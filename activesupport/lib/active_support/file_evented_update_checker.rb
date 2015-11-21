@@ -1,6 +1,8 @@
 require 'listen'
 require 'set'
 require 'pathname'
+require 'thread'
+require 'concurrent/atomic/atomic_boolean'
 
 module ActiveSupport
   class FileEventedUpdateChecker #:nodoc: all
@@ -14,22 +16,24 @@ module ActiveSupport
       end
 
       @block   = block
-      @updated = false
+      @updated = Concurrent::AtomicBoolean.new(false)
       @lcsp    = @ph.longest_common_subpath(@dirs.keys)
 
       if (dtw = directories_to_watch).any?
         Listen.to(*dtw, &method(:changed)).start
       end
+
+      @mutex = Mutex.new
     end
 
     def updated?
-      @updated
+      @updated.true?
     end
 
     def execute
       @block.call
     ensure
-      @updated = false
+      @updated.make_false
     end
 
     def execute_if_updated
@@ -42,8 +46,10 @@ module ActiveSupport
     private
 
       def changed(modified, added, removed)
-        unless updated?
-          @updated = (modified + added + removed).any? { |f| watching?(f) }
+        @mutex.synchronize do
+          unless updated?
+            @updated.value = (modified + added + removed).any? { |f| watching?(f) }
+          end
         end
       end
 
