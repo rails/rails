@@ -31,9 +31,8 @@ module ActiveSupport
     end
 
     def execute
-      @block.call
-    ensure
       @updated.make_false
+      @block.call
     end
 
     def execute_if_updated
