@@ -358,6 +358,14 @@ module ActiveRecord
     # if the predicate returns +true+ the attribute will become +false+. This
     # method toggles directly the underlying value without calling any setter.
     # Returns +self+.
+    #
+    # Example:
+    #
+    #   user = User.first
+    #   user.banned? # => false
+    #   user.toggle(:banned)
+    #   user.banned? # => true
+    #
     def toggle(attribute)
       self[attribute] = !public_send("#{attribute}?")
       self
