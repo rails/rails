@@ -1399,6 +1399,31 @@ You can specify an exclamation point (`!`) on the end of the dynamic finders to 
 
 If you want to find both by name and locked, you can chain these finders together by simply typing "`and`" between the fields. For example, `Client.find_by_first_name_and_locked("Ryan", true)`.
 
+Enums
+-----
+
+Rails have a convenient keyword `enum`, used to map an integer column to a set
+of possible values.
+
+```ruby
+class Book < ActiveRecord::Base
+  enum availability: [:available, :unavailable]
+end
+```
+
+Enums are a simple way to reduce boilerplate code, since it automatically
+creates [scopes](#scopes) and adds some sintax sugar while querying.
+
+```ruby
+# Both examples below query just available books.
+Book.available
+# or
+Book.where(availability: :available)
+```
+
+Read the full documentation for enums
+[in the Rails API](http://api.rubyonrails.org/classes/ActiveRecord/Enum.html).
+
 Understanding The Method Chaining
 ---------------------------------
 
