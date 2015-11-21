@@ -78,7 +78,7 @@ class QueuingTest < ActiveSupport::TestCase
       TestJob.perform_later @id
       wait_for_jobs_to_finish_for(5.seconds)
       assert job_executed
-      assert_equal 'de', job_output
+      assert_equal 'de', job_executed_in_locale
     ensure
       I18n.available_locales = [:en]
       I18n.locale = :en
