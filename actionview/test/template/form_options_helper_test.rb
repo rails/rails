@@ -22,17 +22,15 @@ class FormOptionsHelperTest < ActionView::TestCase
       def to_s; name; end
     end
 
-    ZONES_BY_ID = %w(A B C D E).map { |id| [ id, FakeZone.new(id) ] }.to_h
-
     module ClassMethods
-      def [](id); use_fake_zones ? ZONES_BY_ID[id] : super(id); end
-      def all; use_fake_zones ? ZONES_BY_ID.values : super; end
+      def [](id); fake_zones ? fake_zones[id] : super; end
+      def all; fake_zones ? fake_zones.values : super; end
       def dummy; :test; end
     end
 
     def self.prepended(base)
       class << base
-        mattr_accessor(:use_fake_zones) { false }
+        mattr_accessor(:fake_zones)
         prepend ClassMethods
       end
     end
@@ -41,12 +39,15 @@ class FormOptionsHelperTest < ActionView::TestCase
   ActiveSupport::TimeZone.prepend FakeZones
 
   setup do
-    @fake_timezones = FakeZones::ZONES_BY_ID.values
-    ActiveSupport::TimeZone.use_fake_zones = true
+    ActiveSupport::TimeZone.fake_zones = %w(A B C D E).map do |id|
+      [ id, FakeZones::FakeZone.new(id) ]
+    end.to_h
+
+    @fake_timezones = ActiveSupport::TimeZone.all
   end
 
   teardown do
-    ActiveSupport::TimeZone.use_fake_zones = false
+    ActiveSupport::TimeZone.fake_zones = nil
   end
 
   def test_collection_options
