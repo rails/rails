@@ -1,7 +1,6 @@
 require 'listen'
 require 'set'
 require 'pathname'
-require 'thread'
 require 'concurrent/atomic/atomic_boolean'
 
 module ActiveSupport
@@ -22,8 +21,6 @@ module ActiveSupport
       if (dtw = directories_to_watch).any?
         Listen.to(*dtw, &method(:changed)).start
       end
-
-      @mutex = Mutex.new
     end
 
     def updated?
@@ -45,10 +42,8 @@ module ActiveSupport
     private
 
       def changed(modified, added, removed)
-        @mutex.synchronize do
-          unless updated?
-            @updated.value = (modified + added + removed).any? { |f| watching?(f) }
-          end
+        unless updated?
+          @updated.make_true if (modified + added + removed).any? { |f| watching?(f) }
         end
       end
 
