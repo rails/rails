@@ -1203,8 +1203,14 @@ class FormOptionsHelperTest < ActionView::TestCase
                  html
   end
 
-  def test_time_zone_select_with_priority_zones_as_regexp_using_grep_finds_no_zones
+  def test_time_zone_select_with_priority_zones_is_not_implemented_with_grep
     @firm = Firm.new("D")
+
+    # `time_zone_select` can't be written with `grep` because Active Support
+    # time zones don't support implicit string coercion with `to_str`.
+    @fake_timezones.each do |tz|
+      def tz.===(zone); raise Exception; end
+    end
 
     html = time_zone_select("firm", "time_zone", /A|D/)
     assert_dom_equal "<select id=\"firm_time_zone\" name=\"firm[time_zone]\">" +
