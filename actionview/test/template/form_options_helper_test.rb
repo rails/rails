@@ -1187,7 +1187,7 @@ class FormOptionsHelperTest < ActionView::TestCase
   def test_time_zone_select_with_priority_zones_as_regexp
     @firm = Firm.new("D")
 
-    @fake_timezones.each_with_index do |tz, i|
+    @fake_timezones.each do |tz|
       def tz.=~(re); %(A D).include?(name) end
     end
 
