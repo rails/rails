@@ -1,7 +1,11 @@
 require 'cases/helper'
 require 'active_support/core_ext/hash/indifferent_access'
-require 'models/person'
+
 require 'models/company'
+require 'models/person'
+require 'models/ship'
+require 'models/ship_part'
+require 'models/treasure'
 
 class ProtectedParams
   attr_accessor :permitted
