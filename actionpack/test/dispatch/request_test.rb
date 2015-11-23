@@ -1212,3 +1212,23 @@ class RequestVariant < BaseRequestTest
     end
   end
 end
+
+class RequestFormData < BaseRequestTest
+  test 'media_type is from the FORM_DATA_MEDIA_TYPES array' do
+    assert stub_request('CONTENT_TYPE' => 'application/x-www-form-urlencoded').form_data?
+    assert stub_request('CONTENT_TYPE' => 'multipart/form-data').form_data?
+  end
+
+  test 'media_type is not from the FORM_DATA_MEDIA_TYPES array' do
+    assert !stub_request('CONTENT_TYPE' => 'application/xml').form_data?
+    assert !stub_request('CONTENT_TYPE' => 'multipart/related').form_data?
+  end
+
+  test 'no Content-Type header is provided and the request_method is POST' do
+    request = stub_request('REQUEST_METHOD' => 'POST')
+
+    assert_equal '', request.media_type
+    assert_equal 'POST', request.request_method
+    assert !request.form_data?
+  end
+end

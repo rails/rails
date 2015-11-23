@@ -306,10 +306,16 @@ module ActionDispatch
       end
     end
 
-    # Returns true if the request's content MIME type is
-    # +application/x-www-form-urlencoded+ or +multipart/form-data+.
+    # Determine whether the request body contains form-data by checking
+    # the request Content-Type for one of the media-types:
+    # "application/x-www-form-urlencoded" or "multipart/form-data". The
+    # list of form-data media types can be modified through the
+    # +FORM_DATA_MEDIA_TYPES+ array.
+    #
+    # A request body is not assumed to contain form-data when no
+    # Content-Type header is provided and the request_method is POST.
     def form_data?
-      FORM_DATA_MEDIA_TYPES.include?(content_mime_type.to_s)
+      FORM_DATA_MEDIA_TYPES.include?(media_type)
     end
 
     def body_stream #:nodoc:
