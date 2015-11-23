@@ -441,8 +441,6 @@ module ActionMailer
 
     helper ActionMailer::MailHelper
 
-    private_class_method :find_class #:nodoc:
-
     class_attribute :default_params
     self.default_params = {
       mime_version: "1.0",
@@ -462,16 +460,16 @@ module ActionMailer
         interceptors.flatten.compact.each { |interceptor| register_interceptor(interceptor) }
       end
 
-      # Unregister one or more Interceptors which would be called before mail is sent.
-      def unregister_interceptors(*interceptors)
-        interceptors.flatten.compact.each { |interceptor| unregister_interceptor(interceptor) }
-      end
-
       # Register an Observer which will be notified when mail is delivered.
       # Either a class, string or symbol can be passed in as the Observer.
       # If a string or symbol is passed in it will be camelized and constantized.
       def register_observer(observer)
-        delivery_observer = find_class(observer)
+        delivery_observer = case observer
+          when String, Symbol
+            observer.to_s.camelize.constantize
+          else
+            observer
+          end
 
         Mail.register_observer(delivery_observer)
       end
@@ -480,18 +478,14 @@ module ActionMailer
       # Either a class, string or symbol can be passed in as the Interceptor.
       # If a string or symbol is passed in it will be camelized and constantized.
       def register_interceptor(interceptor)
-        delivery_interceptor = find_class(interceptor)
+        delivery_interceptor = case interceptor
+          when String, Symbol
+            interceptor.to_s.camelize.constantize
+          else
+            interceptor
+          end
 
         Mail.register_interceptor(delivery_interceptor)
-      end
-
-      # Unregister a previously registered interceptor.
-      # Either a class, string or symbol can be passed in as the Interceptor.
-      # If a string or symbol is passed in it will be camelized and constantized.
-      def unregister_interceptor(interceptor)
-        delivery_interceptor = find_class(interceptor)
-
-        Mail.unregister_interceptor(delivery_interceptor)
       end
 
       # Returns the name of current mailer. This method is also being used as a path for a view lookup.
@@ -845,15 +839,6 @@ module ActionMailer
       end
 
       m
-    end
-
-    def self.find_class(klass_or_string_or_symbol)
-      case klass_or_string_or_symbol
-      when String, Symbol
-        klass_or_string_or_symbol.to_s.camelize.constantize
-      else
-        klass_or_string_or_symbol
-      end
     end
 
   protected

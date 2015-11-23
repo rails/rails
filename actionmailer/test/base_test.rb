@@ -707,47 +707,6 @@ class BaseTest < ActiveSupport::TestCase
     end
   end
 
-  test "you can unregister an interceptor to the mail object that gets passed the mail object before delivery" do
-    mail_side_effects do
-      ActionMailer::Base.register_interceptor(MyInterceptor)
-      ActionMailer::Base.unregister_interceptor(MyInterceptor)
-      mail = BaseMailer.welcome
-      MyInterceptor.expects(:delivering_email).with(mail).never
-      mail.deliver_now
-    end
-  end
-
-  test "you can unregister an interceptor using its stringified name to the mail object that gets passed the mail object before delivery" do
-    mail_side_effects do
-      ActionMailer::Base.register_interceptor("BaseTest::MyInterceptor")
-      ActionMailer::Base.unregister_interceptor("BaseTest::MyInterceptor")
-      mail = BaseMailer.welcome
-      MyInterceptor.expects(:delivering_email).with(mail).never
-      mail.deliver_now
-    end
-  end
-
-  test "you can unregister an interceptor using its symbolized underscored name to the mail object that gets passed the mail object before delivery" do
-    mail_side_effects do
-      ActionMailer::Base.register_interceptor(:"base_test/my_interceptor")
-      ActionMailer::Base.unregister_interceptor(:"base_test/my_interceptor")
-      mail = BaseMailer.welcome
-      MyInterceptor.expects(:delivering_email).with(mail).never
-      mail.deliver_now
-    end
-  end
-
-  test "you can unregister multiple interceptors to the mail object that both get passed the mail object before delivery" do
-    mail_side_effects do
-      ActionMailer::Base.register_interceptors("BaseTest::MyInterceptor", MySecondInterceptor)
-      ActionMailer::Base.unregister_interceptors("BaseTest::MyInterceptor", MySecondInterceptor)
-      mail = BaseMailer.welcome
-      MyInterceptor.expects(:delivering_email).with(mail).never
-      MySecondInterceptor.expects(:delivering_email).with(mail).never
-      mail.deliver_now
-    end
-  end
-
   test "being able to put proc's into the defaults hash and they get evaluated on mail sending" do
     mail1 = ProcMailer.welcome['X-Proc-Method']
     yesterday = 1.day.ago
@@ -984,42 +943,5 @@ class BasePreviewInterceptorsTest < ActiveSupport::TestCase
         end
       end
     end
-  end
-
-  test "you can unregister a preview interceptor to the mail object that gets passed the mail object before previewing" do
-    ActionMailer::Base.register_preview_interceptor(MyInterceptor)
-    ActionMailer::Base.unregister_preview_interceptor(MyInterceptor)
-    mail = BaseMailer.welcome
-    BaseMailerPreview.any_instance.stubs(:welcome).returns(mail)
-    MyInterceptor.expects(:previewing_email).with(mail).never
-    BaseMailerPreview.call(:welcome)
-  end
-
-  test "you can unregister a preview interceptor using its stringified name to the mail object that gets passed the mail object before previewing" do
-    ActionMailer::Base.register_preview_interceptor("BasePreviewInterceptorsTest::MyInterceptor")
-    ActionMailer::Base.unregister_preview_interceptor("BasePreviewInterceptorsTest::MyInterceptor")
-    mail = BaseMailer.welcome
-    BaseMailerPreview.any_instance.stubs(:welcome).returns(mail)
-    MyInterceptor.expects(:previewing_email).with(mail).never
-    BaseMailerPreview.call(:welcome)
-  end
-
-  test "you can unregister an interceptor using its symbolized underscored name to the mail object that gets passed the mail object before previewing" do
-    ActionMailer::Base.register_preview_interceptor(:"base_preview_interceptors_test/my_interceptor")
-    ActionMailer::Base.unregister_preview_interceptor(:"base_preview_interceptors_test/my_interceptor")
-    mail = BaseMailer.welcome
-    BaseMailerPreview.any_instance.stubs(:welcome).returns(mail)
-    MyInterceptor.expects(:previewing_email).with(mail).never
-    BaseMailerPreview.call(:welcome)
-  end
-
-  test "you can unregister multiple preview interceptors to the mail object that both get passed the mail object before previewing" do
-    ActionMailer::Base.register_preview_interceptors("BasePreviewInterceptorsTest::MyInterceptor", MySecondInterceptor)
-    ActionMailer::Base.unregister_preview_interceptors("BasePreviewInterceptorsTest::MyInterceptor", MySecondInterceptor)
-    mail = BaseMailer.welcome
-    BaseMailerPreview.any_instance.stubs(:welcome).returns(mail)
-    MyInterceptor.expects(:previewing_email).with(mail).never
-    MySecondInterceptor.expects(:previewing_email).with(mail).never
-    BaseMailerPreview.call(:welcome)
   end
 end

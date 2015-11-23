@@ -1,10 +1,3 @@
-*   Add `Base.unregister_interceptor`, `Base.unregister_interceptors`,
-    `Base.unregister_preview_interceptor` and `Base.unregister_preview_interceptors`.
-    This makes it possible to dynamically add and remove email interceptors
-    at runtime in the same way they're registered.
-
-    *Claudio Ortolina*
-
 *   `config.force_ssl = true` will set
     `config.action_mailer.default_url_options = { protocol: 'https' }`
 
