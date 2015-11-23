@@ -198,10 +198,11 @@ module ActiveRecord
       # If this is a StrongParameters hash, and access to inheritance_column is not permitted,
       # this will ignore the inheritance column and return nil
       def subclass_from_attributes?(attrs)
-        attribute_names.include?(inheritance_column) && attrs.is_a?(Hash)
+        attribute_names.include?(inheritance_column) && (attrs.is_a?(Hash) || attrs.respond_to?(:permitted?))
       end
 
       def subclass_from_attributes(attrs)
+        attrs = attrs.to_h if attrs.respond_to?(:permitted?)
         subclass_name = attrs.with_indifferent_access[inheritance_column]
 
         if subclass_name.present?
