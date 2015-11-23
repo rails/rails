@@ -162,7 +162,7 @@ module RailsGuides
     def select_only(guides)
       prefixes = ENV['ONLY'].split(",").map(&:strip)
       guides.select do |guide|
-        prefixes.any? { |p| guide.start_with?(p) || guide.start_with?("kindle") }
+        guide.start_with?('kindle'.freeze, *prefixes)
       end
     end
 
