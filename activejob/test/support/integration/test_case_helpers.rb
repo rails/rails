@@ -42,15 +42,23 @@ module TestCaseHelpers
       end
     end
 
+    def job_file(id)
+      Dummy::Application.root.join("tmp/#{id}")
+    end
+
     def job_executed(id=@id)
-      Dummy::Application.root.join("tmp/#{id}").exist?
+      job_file(id).exist?
+    end
+
+    def job_data(id)
+      Marshal.load(File.binread(job_file(id)))
     end
 
     def job_executed_at(id=@id)
-      File.new(Dummy::Application.root.join("tmp/#{id}")).ctime
+      job_data(id)["executed_at"]
     end
 
-    def job_output
-      File.read Dummy::Application.root.join("tmp/#{@id}")
+    def job_executed_in_locale(id=@id)
+      job_data(id)["locale"]
     end
 end
