@@ -40,12 +40,6 @@ module ActiveRecord
         assert_respond_to target, method
       end
     end
-
-    ActiveRecord::Delegation::BLACKLISTED_ARRAY_METHODS.each do |method|
-      define_method "test_#{method}_is_not_delegated_to_Array" do
-        assert_raises(NoMethodError) { call_method(target, method) }
-      end
-    end
   end
 
   class DelegationAssociationTest < DelegationTest
