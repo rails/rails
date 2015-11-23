@@ -148,6 +148,42 @@ NOTE: To help our CI servers you should add [ci skip] to your documentation comm
 
 WARNING: Docrails has a very strict policy: no code can be touched whatsoever, no matter how trivial or small the change. Only RDoc and guides can be edited via docrails. Also, CHANGELOGs should never be edited in docrails.
 
+Translating Rails Guides
+------------------------
+
+We are happy to have people volunteer to translate the Rails guides into their own language.
+If you want to translate the Rails guides in your own language, follows these steps:
+
+* Fork the project (rails/rails).
+* Add a source folder for your own language, for example: *guides/source/it-IT* for Italian.
+* Copy the contents of *guides/source* into your own language directory and translate them.
+* Do NOT translate the HTML files, as they are automatically generated.
+
+To generate the guides in HTML format cd into the *guides* direcotry then run (eg. for it-IT):
+
+```bash
+$ bundle install
+$ bundle exec rake guides:generate:html GUIDES_LANGUAGE=it-IT
+```
+
+This will generate the guides in an *output* directory.
+
+NOTE: The instructions are for Rails > 4. The Redcarpet Gem doesn't work with JRuby.
+
+Translation efforts we know about (various versions):
+
+* **Italian**: [https://github.com/rixlabs/docrails](https://github.com/rixlabs/docrails)
+* **Spanish**: [http://wiki.github.com/gramos/docrails](http://wiki.github.com/gramos/docrails)
+* **Polish**: [http://github.com/apohllo/docrails/tree/master](http://github.com/apohllo/docrails/tree/master)
+* **French** : [http://github.com/railsfrance/docrails](http://github.com/railsfrance/docrails)
+* **Czech** : [https://github.com/rubyonrails-cz/docrails/tree/czech](https://github.com/rubyonrails-cz/docrails/tree/czech)
+* **Turkish** : [https://github.com/ujk/docrails/tree/master](https://github.com/ujk/docrails/tree/master)
+* **Korean** : [https://github.com/rorlakr/rails-guides](https://github.com/rorlakr/rails-guides)
+* **Simplified Chinese** : [https://github.com/ruby-china/guides](https://github.com/ruby-china/guides)
+* **Traditional Chinese** : [https://github.com/docrails-tw/guides](https://github.com/docrails-tw/guides)
+* **Russian** : [https://github.com/morsbox/rusrails](https://github.com/morsbox/rusrails)
+* **Japanese** : [https://github.com/yasslab/railsguides.jp](https://github.com/yasslab/railsguides.jp)
+
 Contributing to the Rails Code
 ------------------------------
 
