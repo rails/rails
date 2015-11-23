@@ -104,6 +104,11 @@ module ActiveRecord
         end
       end
 
+      def new_column(field, default, sql_type_metadata = nil, null = true, default_function = nil, collation = nil) # :nodoc:
+        field = set_field_encoding(field)
+        super
+      end
+
       def error_number(exception) # :nodoc:
         exception.errno if exception.respond_to?(:errno)
       end
@@ -463,7 +468,7 @@ module ActiveRecord
         @full_version ||= @connection.server_info
       end
 
-      def set_field_encoding field_name
+      def set_field_encoding(field_name)
         field_name.force_encoding(client_encoding)
         if internal_enc = Encoding.default_internal
           field_name = field_name.encode!(internal_enc)

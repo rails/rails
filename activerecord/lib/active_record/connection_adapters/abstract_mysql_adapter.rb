@@ -588,10 +588,8 @@ module ActiveRecord
         sql = "SHOW FULL FIELDS FROM #{quote_table_name(table_name)}"
         execute_and_free(sql, 'SCHEMA') do |result|
           each_hash(result).map do |field|
-            field_name = set_field_encoding(field[:Field])
-            sql_type = field[:Type]
-            type_metadata = fetch_type_metadata(sql_type, field[:Extra])
-            new_column(field_name, field[:Default], type_metadata, field[:Null] == "YES", nil, field[:Collation])
+            type_metadata = fetch_type_metadata(field[:Type], field[:Extra])
+            new_column(field[:Field], field[:Default], type_metadata, field[:Null] == "YES", nil, field[:Collation])
           end
         end
       end
