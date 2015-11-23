@@ -57,6 +57,10 @@ module ActiveRecord
         end
       end
 
+      def associate_record(record)
+        set_owner_attributes(record)
+      end
+
       private
 
         # Returns the number of records in this collection.

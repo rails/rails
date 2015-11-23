@@ -345,6 +345,22 @@ class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase
     @pirate.update(update_only_ship_attributes: { id: @pirate.ship.id, name: 'Mayflower' })
   end
 
+  def test_accepts_nested_attributes_and_has_many_work_with_validate_presence_of
+    assert Pirate.new.update(
+      :catchphrase => "Don' botharrr talkin' like one, savvy?",
+      treasures: [
+        Treasure.new(name: 'pearl')
+      ]
+    )
+  end
+
+  def test_accepts_nested_attributes_and_has_one_work_with_validate_presence_of
+    assert Pirate.new.update(
+      :catchphrase => "Don' botharrr talkin' like one, savvy?",
+      ship: Ship.new(name: 'foo')
+    )
+  end
+
   def test_should_create_new_model_when_nothing_is_there_and_update_only_is_true
     @ship.delete
 

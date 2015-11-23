@@ -556,6 +556,8 @@ module ActiveRecord
                                   "new records could not be saved."
           end
 
+          associate_all_records(target)
+
           target
         end
 
@@ -644,6 +646,14 @@ module ActiveRecord
           collection = fetch_first_nth_or_last_using_find?(args) ? scope : load_target
           collection.send(type, *args).tap do |record|
             set_inverse_instance record if record.is_a? ActiveRecord::Base
+          end
+        end
+
+        def associate_all_records(target)
+          if owner.new_record? && target.all? {|record| record.new_record? }
+            target.each do |new_record|
+              associate_record(new_record)
+            end
           end
         end
     end
