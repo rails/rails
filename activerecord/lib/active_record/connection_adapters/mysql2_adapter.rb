@@ -185,10 +185,6 @@ module ActiveRecord
       def full_version
         @full_version ||= @connection.server_info[:version]
       end
-
-      def set_field_encoding field_name
-        field_name
-      end
     end
   end
 end
