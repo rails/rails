@@ -1,174 +1,163 @@
-require 'abstract_unit'
+# require 'abstract_unit'
 # require 'pathname'
 # require 'file_update_checker_shared_tests'
-require 'fileutils'
 require 'tmpdir'
 require 'listen'
 
-class FileEventedUpdateCheckerTest < ActiveSupport::TestCase
-  # include FileUpdateCheckerSharedTests
-
-  # def new_checker(files = [], dirs = {}, &block)
-  #   # ActiveSupport::FileEventedUpdateChecker.new(files, dirs, &block).tap do
-  #   #   wait
-  #   # end
-  #   Listen.to(tmpdir, &proc{}).start
-
-  #   wait
-
-  #   skip
-  # end
-
-  # def teardown
-  #   super
-  #   Listen.stop
-  # end
-
-  # def wait
-  #   sleep 1
-  # end
-
-  # def touch(files)
-  #   super
-  #   wait # wait for the events to fire
-  # end
-
-  # def rm_f(files)
-  #   super
-  #   wait
-  # end
-  
-  def setup
-    @tmpdir = Dir.mktmpdir
-  end
-  
-  def teardown
-    FileUtils.rm_rf(@tmpdir)
-    Listen.stop
-  end
-  
-  20.times do |i|
-    test "starting 20 Listen watchers causes the build to fail (#{i+1}/20)" do
-      Listen.to(@tmpdir, &proc{}).start
+20.times do
+  Dir.mktmpdir do |tmpdir|
+    begin
+      Listen.to(tmpdir, &proc{}).start
       sleep 1
+    ensure
+      Listen.stop
     end
   end
 end
 
-class FileEventedUpdateCheckerPathHelperTest < ActiveSupport::TestCase
-  def pn(path)
-    Pathname.new(path)
-  end
+# class FileEventedUpdateCheckerTest < ActiveSupport::TestCase
+#   include FileUpdateCheckerSharedTests
 
-  setup do
-    @ph = ActiveSupport::FileEventedUpdateChecker::PathHelper.new
-  end
+#   def new_checker(files = [], dirs = {}, &block)
+#     ActiveSupport::FileEventedUpdateChecker.new(files, dirs, &block).tap do
+#       wait
+#     end
+#   end
 
-  test '#xpath returns the expanded path as a Pathname object' do
-    assert_equal pn(__FILE__).expand_path, @ph.xpath(__FILE__)
-  end
+#   def teardown
+#     super
+#     Listen.stop
+#   end
 
-  test '#normalize_extension returns a bare extension as is' do
-    assert_equal 'rb', @ph.normalize_extension('rb')
-  end
+#   def wait
+#     sleep 1
+#   end
 
-  test '#normalize_extension removes a leading dot' do
-    assert_equal 'rb', @ph.normalize_extension('.rb')
-  end
+#   def touch(files)
+#     super
+#     wait # wait for the events to fire
+#   end
 
-  test '#normalize_extension supports symbols' do
-    assert_equal 'rb', @ph.normalize_extension(:rb)
-  end
+#   def rm_f(files)
+#     super
+#     wait
+#   end
+# end
 
-  test '#longest_common_subpath finds the longest common subpath, if there is one' do
-    paths = %w(
-      /foo/bar
-      /foo/baz
-      /foo/bar/baz/woo/zoo
-    ).map { |path| pn(path) }
+# class FileEventedUpdateCheckerPathHelperTest < ActiveSupport::TestCase
+#   def pn(path)
+#     Pathname.new(path)
+#   end
 
-    assert_equal pn('/foo'), @ph.longest_common_subpath(paths)
-  end
+#   setup do
+#     @ph = ActiveSupport::FileEventedUpdateChecker::PathHelper.new
+#   end
 
-  test '#longest_common_subpath returns the root directory as an edge case' do
-    paths = %w(
-      /foo/bar
-      /foo/baz
-      /foo/bar/baz/woo/zoo
-      /wadus
-    ).map { |path| pn(path) }
+#   test '#xpath returns the expanded path as a Pathname object' do
+#     assert_equal pn(__FILE__).expand_path, @ph.xpath(__FILE__)
+#   end
 
-    assert_equal pn('/'), @ph.longest_common_subpath(paths)
-  end
+#   test '#normalize_extension returns a bare extension as is' do
+#     assert_equal 'rb', @ph.normalize_extension('rb')
+#   end
 
-  test '#longest_common_subpath returns nil for an empty collection' do
-    assert_nil @ph.longest_common_subpath([])
-  end
+#   test '#normalize_extension removes a leading dot' do
+#     assert_equal 'rb', @ph.normalize_extension('.rb')
+#   end
 
-  test '#existing_parent returns the most specific existing ascendant' do
-    wd = Pathname.getwd
+#   test '#normalize_extension supports symbols' do
+#     assert_equal 'rb', @ph.normalize_extension(:rb)
+#   end
 
-    assert_equal wd, @ph.existing_parent(wd)
-    assert_equal wd, @ph.existing_parent(wd.join('non-existing/directory'))
-    assert_equal pn('/'), @ph.existing_parent(pn('/non-existing/directory'))
-  end
+#   test '#longest_common_subpath finds the longest common subpath, if there is one' do
+#     paths = %w(
+#       /foo/bar
+#       /foo/baz
+#       /foo/bar/baz/woo/zoo
+#     ).map { |path| pn(path) }
 
-  test '#filter_out_descendants returns the same collection if there are no descendants (empty)' do
-    assert_equal [], @ph.filter_out_descendants([])
-  end
+#     assert_equal pn('/foo'), @ph.longest_common_subpath(paths)
+#   end
 
-  test '#filter_out_descendants returns the same collection if there are no descendants (one)' do
-    assert_equal ['/foo'], @ph.filter_out_descendants(['/foo'])
-  end
+#   test '#longest_common_subpath returns the root directory as an edge case' do
+#     paths = %w(
+#       /foo/bar
+#       /foo/baz
+#       /foo/bar/baz/woo/zoo
+#       /wadus
+#     ).map { |path| pn(path) }
 
-  test '#filter_out_descendants returns the same collection if there are no descendants (several)' do
-    paths = %w(
-      /Rails.root/app/controllers
-      /Rails.root/app/models
-      /Rails.root/app/helpers
-    ).map { |path| pn(path) }
+#     assert_equal pn('/'), @ph.longest_common_subpath(paths)
+#   end
 
-    assert_equal paths, @ph.filter_out_descendants(paths)
-  end
+#   test '#longest_common_subpath returns nil for an empty collection' do
+#     assert_nil @ph.longest_common_subpath([])
+#   end
 
-  test '#filter_out_descendants filters out descendants preserving order' do
-    paths = %w(
-      /Rails.root/app/controllers
-      /Rails.root/app/controllers/concerns
-      /Rails.root/app/models
-      /Rails.root/app/models/concerns
-      /Rails.root/app/helpers
-    ).map { |path| pn(path) }
+#   test '#existing_parent returns the most specific existing ascendant' do
+#     wd = Pathname.getwd
 
-    assert_equal paths.values_at(0, 2, 4), @ph.filter_out_descendants(paths)
-  end
+#     assert_equal wd, @ph.existing_parent(wd)
+#     assert_equal wd, @ph.existing_parent(wd.join('non-existing/directory'))
+#     assert_equal pn('/'), @ph.existing_parent(pn('/non-existing/directory'))
+#   end
 
-  test '#filter_out_descendants works on path units' do
-    paths = %w(
-      /foo/bar
-      /foo/barrrr
-    ).map { |path| pn(path) }
+#   test '#filter_out_descendants returns the same collection if there are no descendants (empty)' do
+#     assert_equal [], @ph.filter_out_descendants([])
+#   end
 
-    assert_equal paths, @ph.filter_out_descendants(paths)
-  end
+#   test '#filter_out_descendants returns the same collection if there are no descendants (one)' do
+#     assert_equal ['/foo'], @ph.filter_out_descendants(['/foo'])
+#   end
 
-  test '#filter_out_descendants deals correctly with the root directory' do
-    paths = %w(
-      /
-      /foo
-      /foo/bar
-    ).map { |path| pn(path) }
+#   test '#filter_out_descendants returns the same collection if there are no descendants (several)' do
+#     paths = %w(
+#       /Rails.root/app/controllers
+#       /Rails.root/app/models
+#       /Rails.root/app/helpers
+#     ).map { |path| pn(path) }
 
-    assert_equal paths.values_at(0), @ph.filter_out_descendants(paths)
-  end
+#     assert_equal paths, @ph.filter_out_descendants(paths)
+#   end
 
-  test '#filter_out_descendants preserves duplicates' do
-    paths = %w(
-      /foo
-      /foo/bar
-      /foo
-    ).map { |path| pn(path) }
+#   test '#filter_out_descendants filters out descendants preserving order' do
+#     paths = %w(
+#       /Rails.root/app/controllers
+#       /Rails.root/app/controllers/concerns
+#       /Rails.root/app/models
+#       /Rails.root/app/models/concerns
+#       /Rails.root/app/helpers
+#     ).map { |path| pn(path) }
 
-    assert_equal paths.values_at(0, 2), @ph.filter_out_descendants(paths)
-  end
-end
+#     assert_equal paths.values_at(0, 2, 4), @ph.filter_out_descendants(paths)
+#   end
+
+#   test '#filter_out_descendants works on path units' do
+#     paths = %w(
+#       /foo/bar
+#       /foo/barrrr
+#     ).map { |path| pn(path) }
+
+#     assert_equal paths, @ph.filter_out_descendants(paths)
+#   end
+
+#   test '#filter_out_descendants deals correctly with the root directory' do
+#     paths = %w(
+#       /
+#       /foo
+#       /foo/bar
+#     ).map { |path| pn(path) }
+
+#     assert_equal paths.values_at(0), @ph.filter_out_descendants(paths)
+#   end
+
+#   test '#filter_out_descendants preserves duplicates' do
+#     paths = %w(
+#       /foo
+#       /foo/bar
+#       /foo
+#     ).map { |path| pn(path) }
+
+#     assert_equal paths.values_at(0, 2), @ph.filter_out_descendants(paths)
+#   end
+# end
