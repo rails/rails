@@ -1039,7 +1039,7 @@ module ActiveRecord
       end
 
       def create_table_definition(name, temporary = false, options = nil, as = nil) # :nodoc:
-        MySQL::TableDefinition.new(native_database_types, name, temporary, options, as)
+        MySQL::TableDefinition.new(name, temporary, options, as)
       end
 
       def integer_to_sql(limit) # :nodoc:
