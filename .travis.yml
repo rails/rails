@@ -13,11 +13,12 @@ before_script:
   - bundle update
 cache: bundler
 env:
+  global:
+    - "LISTEN_GEM_DEBUGGING=2"
   matrix:
     - "GEM=as"
 rvm:
   - 2.2.3
-  - ruby-head
 matrix:
   allow_failures:
     - rvm: ruby-head
