@@ -3,6 +3,7 @@
 # require 'file_update_checker_shared_tests'
 require 'tmpdir'
 require 'listen'
+require 'fileutils'
 
 20.times do
   Dir.mktmpdir do |tmpdir|
@@ -12,6 +13,12 @@ require 'listen'
     ensure
       Listen.stop
     end
+  end
+end
+
+20.times do
+  Dir.glob("../**/*") do |entry|
+    File.open(entry, 'r') { puts "Opened #{entry}" } if File.file?(entry)
   end
 end
 
