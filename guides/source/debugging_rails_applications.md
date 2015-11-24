@@ -862,8 +862,8 @@ such as Valgrind.
 
 ### Valgrind
 
-[Valgrind](http://valgrind.org/) is a Linux-only application for detecting
-C-based memory leaks and race conditions.
+[Valgrind](http://valgrind.org/) is an application for detecting C-based memory
+leaks and race conditions.
 
 There are Valgrind tools that can automatically detect many memory management
 and threading bugs, and profile your programs in detail. For example, if a C
