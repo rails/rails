@@ -104,11 +104,8 @@ class MultibyteConformanceTest < ActiveSupport::TestCase
 
   protected
     def each_line_of_norm_tests(&block)
-      lines = 0
-      max_test_lines = 0 # Don't limit below 38, because that's the header of the testfile
       File.open(File.join(CACHE_DIR, UNIDATA_FILE), 'r') do | f |
-        until f.eof? || (max_test_lines > 38 and lines > max_test_lines)
-          lines += 1
+        until f.eof?
           line = f.gets.chomp!
           next if (line.empty? || line =~ /^\#/)
 
