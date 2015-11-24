@@ -474,7 +474,7 @@ module ActionMailer
         Mail.register_interceptor(observer_class_for(interceptor))
       end
 
-      def observer_class_for(value)
+      def observer_class_for(value) # :nodoc:
         case value
         when String, Symbol
           value.to_s.camelize.constantize
