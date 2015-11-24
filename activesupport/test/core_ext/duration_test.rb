@@ -280,7 +280,7 @@ class DurationTest < ActiveSupport::TestCase
     ]
     # That could be weird, but if we parse P1Y1M0.5D and output it to ISO 8601, we'll get P1Y1MT12.0H
     # So we check that initially parsed and reparsed duration added to time will result in the same time
-    time = Time.now
+    time = Time.current
     patterns.each do |pattern|
       duration = ActiveSupport::Duration.parse(pattern)
       assert_equal time+duration, time+ActiveSupport::Duration.parse(duration.iso8601), pattern.inspect
