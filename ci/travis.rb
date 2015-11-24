@@ -99,7 +99,16 @@ class Build
 
   def rake(*tasks)
     tasks.each do |task|
-      cmd = "bundle exec rake #{task}"
+      cmd = "bundle exec rake #{task} && " \
+            "bundle exec rake #{task} && " \
+            "bundle exec rake #{task} && " \
+            "bundle exec rake #{task} && " \
+            "bundle exec rake #{task} && " \
+            "bundle exec rake #{task} && " \
+            "bundle exec rake #{task} && " \
+            "bundle exec rake #{task} && " \
+            "bundle exec rake #{task} && " \
+            "bundle exec rake #{task}"
       puts "Running command: #{cmd}"
       return false unless system(cmd)
     end
@@ -121,7 +130,7 @@ end
 results = {}
 
 ENV['GEM'].split(',').each do |gem|
-  [false, true].each do |isolated|
+  [false].each do |isolated|
     next if ENV['TRAVIS_PULL_REQUEST'] && ENV['TRAVIS_PULL_REQUEST'] != 'false' && isolated
     next if gem == 'railties' && isolated
     next if gem == 'aj:integration' && isolated
