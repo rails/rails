@@ -825,28 +825,7 @@ module ActionMailer
       message
     end
 
-  private
-
-    def apply_defaults(headers)
-      default_values = self.class.default.map do |key, value|
-        [
-          key,
-          value.is_a?(Proc) ? instance_eval(&value) : value
-        ]
-      end.to_h
-
-      headers_with_defaults = headers.reverse_merge(default_values)
-      headers_with_defaults[:subject] ||= default_i18n_subject
-      headers_with_defaults
-    end
-
-    def assign_headers_to_message(message, headers)
-      assignable = headers.except(:parts_order, :content_type, :body, :template_name,
-                                  :template_path, :delivery_method, :delivery_method_options)
-      assignable.each { |k, v| message[k] = v }
-    end
-
-  protected
+    protected
 
     # Used by #mail to set the content type of the message.
     #
@@ -899,20 +878,6 @@ module ActionMailer
       end
     end
 
-    def collect_responses_from_templates(headers)
-      templates_path = headers[:template_path] || self.class.mailer_name
-      templates_name = headers[:template_name] || action_name
-
-      each_template(Array(templates_path), templates_name).map do |template|
-        self.formats = template.formats
-        {
-          body: render(template: template),
-          content_type: template.type.to_s
-        }
-      end
-    end
-    private :collect_responses_from_templates
-
     def each_template(paths, name, &block) #:nodoc:
       templates = lookup_context.find_all(name, paths)
       if templates.empty?
@@ -944,6 +909,40 @@ module ActionMailer
     # Emails do not support relative path links.
     def self.supports_path?
       false
+    end
+
+    private
+
+    def apply_defaults(headers)
+      default_values = self.class.default.map do |key, value|
+        [
+          key,
+          value.is_a?(Proc) ? instance_eval(&value) : value
+        ]
+      end.to_h
+
+      headers_with_defaults = headers.reverse_merge(default_values)
+      headers_with_defaults[:subject] ||= default_i18n_subject
+      headers_with_defaults
+    end
+
+    def assign_headers_to_message(message, headers)
+      assignable = headers.except(:parts_order, :content_type, :body, :template_name,
+                                  :template_path, :delivery_method, :delivery_method_options)
+      assignable.each { |k, v| message[k] = v }
+    end
+
+    def collect_responses_from_templates(headers)
+      templates_path = headers[:template_path] || self.class.mailer_name
+      templates_name = headers[:template_name] || action_name
+
+      each_template(Array(templates_path), templates_name).map do |template|
+        self.formats = template.formats
+        {
+          body: render(template: template),
+          content_type: template.type.to_s
+        }
+      end
     end
 
     ActiveSupport.run_load_hooks(:action_mailer, self)
