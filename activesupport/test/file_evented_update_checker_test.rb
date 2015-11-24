@@ -47,9 +47,11 @@ class FileEventedUpdateCheckerTest < ActiveSupport::TestCase
     Listen.stop
   end
   
-  test 'starting a single Listen watcher causes the build to fail' do
-    Listen.to(@tmpdir, &proc{}).start
-    sleep 1
+  20.times do |i|
+    test "starting 20 Listen watchers causes the build to fail (#{i+1}/20)" do
+      Listen.to(@tmpdir, &proc{}).start
+      sleep 1
+    end
   end
 end
 
