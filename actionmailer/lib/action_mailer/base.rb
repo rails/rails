@@ -803,7 +803,7 @@ module ActionMailer
       message.charset = charset = headers[:charset]
 
       # Set configure delivery behavior
-      wrap_delivery_behavior!(headers.delete(:delivery_method), headers.delete(:delivery_method_options))
+      wrap_delivery_behavior!(headers[:delivery_method], headers[:delivery_method_options])
 
       assign_headers_to_message(message, headers)
 
@@ -841,7 +841,8 @@ module ActionMailer
     end
 
     def assign_headers_to_message(message, headers)
-      assignable = headers.except(:parts_order, :content_type, :body, :template_name, :template_path)
+      assignable = headers.except(:parts_order, :content_type, :body, :template_name,
+                                  :template_path, :delivery_method, :delivery_method_options)
       assignable.each { |k, v| message[k] = v }
     end
 
