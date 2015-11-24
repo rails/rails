@@ -238,16 +238,16 @@ class DurationTest < ActiveSupport::TestCase
   end
 
   def test_iso8601_output
-    # As (1.year + 1.month + 1.day + 1.hour).iso8601 will output P1Y1M1DT3600S (weird), test for these not included
     expectations = [
-      ['P1Y',        1.year                    ],
-      #['P1W',        1.week                    ], # Actually 1.week returns 7 days
-      ['P1Y1M',      1.year + 1.month          ],
-      ['P1Y1M1D',    1.year + 1.month + 1.day  ],
-      ['-P1Y1D',     -1.year - 1.day           ],
-      ['P1Y-1DT-1S', 1.year - 1.day - 1.second ], # Parts with different signs are exists for example in PostgreSQL interval datatype
-      ['PT1S',       1.second                  ],
-      ['PT1.4S',     (1.4).seconds             ],
+      ['P1Y',           1.year                           ],
+      ['P7D',           1.week                           ], # 1.week returns 7 days duration
+      ['P1Y1M',         1.year + 1.month                 ],
+      ['P1Y1M1D',       1.year + 1.month + 1.day         ],
+      ['-P1Y1D',        -1.year - 1.day                  ],
+      ['P1Y-1DT-1S',    1.year - 1.day - 1.second        ], # Parts with different signs are exists in PostgreSQL interval datatype
+      ['PT1S',          1.second                         ],
+      ['PT1.4S',        (1.4).seconds                    ],
+      ['P1Y1M1DT3600S', 1.year + 1.month + 1.day + 1.hour], # 1.hour equals to 3600 usual seconds
     ]
     expectations.each do |expected_output, duration|
       assert_equal expected_output, duration.iso8601, expected_output.inspect
@@ -286,5 +286,4 @@ class DurationTest < ActiveSupport::TestCase
       assert_equal time+duration, time+ActiveSupport::Duration.parse(duration.iso8601), pattern.inspect
     end
   end
-
 end
