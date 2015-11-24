@@ -863,49 +863,6 @@ module ActionMailer
       I18n.t(:subject, interpolations.merge(scope: [mailer_scope, action_name], default: action_name.humanize))
     end
 
-    def collect_responses(headers) #:nodoc:
-      if block_given?
-        collector = ActionMailer::Collector.new(lookup_context) { render(action_name) }
-        yield(collector)
-        collector.responses
-      elsif headers[:body]
-        [{
-          body: headers.delete(:body),
-          content_type: self.class.default[:content_type] || "text/plain"
-        }]
-      else
-        collect_responses_from_templates(headers)
-      end
-    end
-
-    def each_template(paths, name, &block) #:nodoc:
-      templates = lookup_context.find_all(name, paths)
-      if templates.empty?
-        raise ActionView::MissingTemplate.new(paths, name, paths, false, 'mailer')
-      else
-        templates.uniq(&:formats).each(&block)
-      end
-    end
-
-    def create_parts_from_responses(m, responses) #:nodoc:
-      if responses.size == 1 && !m.has_attachments?
-        responses[0].each { |k,v| m[k] = v }
-      elsif responses.size > 1 && m.has_attachments?
-        container = Mail::Part.new
-        container.content_type = "multipart/alternative"
-        responses.each { |r| insert_part(container, r, m.charset) }
-        m.add_part(container)
-      else
-        responses.each { |r| insert_part(m, r, m.charset) }
-      end
-    end
-
-    def insert_part(container, response, charset) #:nodoc:
-      response[:charset] ||= charset
-      part = Mail::Part.new(response)
-      container.add_part(part)
-    end
-
     # Emails do not support relative path links.
     def self.supports_path?
       false
@@ -932,6 +889,21 @@ module ActionMailer
       assignable.each { |k, v| message[k] = v }
     end
 
+    def collect_responses(headers)
+      if block_given?
+        collector = ActionMailer::Collector.new(lookup_context) { render(action_name) }
+        yield(collector)
+        collector.responses
+      elsif headers[:body]
+        [{
+          body: headers.delete(:body),
+          content_type: self.class.default[:content_type] || "text/plain"
+        }]
+      else
+        collect_responses_from_templates(headers)
+      end
+    end
+
     def collect_responses_from_templates(headers)
       templates_path = headers[:template_path] || self.class.mailer_name
       templates_name = headers[:template_name] || action_name
@@ -943,6 +915,34 @@ module ActionMailer
           content_type: template.type.to_s
         }
       end
+    end
+
+    def each_template(paths, name, &block)
+      templates = lookup_context.find_all(name, paths)
+      if templates.empty?
+        raise ActionView::MissingTemplate.new(paths, name, paths, false, 'mailer')
+      else
+        templates.uniq(&:formats).each(&block)
+      end
+    end
+
+    def create_parts_from_responses(m, responses)
+      if responses.size == 1 && !m.has_attachments?
+        responses[0].each { |k,v| m[k] = v }
+      elsif responses.size > 1 && m.has_attachments?
+        container = Mail::Part.new
+        container.content_type = "multipart/alternative"
+        responses.each { |r| insert_part(container, r, m.charset) }
+        m.add_part(container)
+      else
+        responses.each { |r| insert_part(m, r, m.charset) }
+      end
+    end
+
+    def insert_part(container, response, charset)
+      response[:charset] ||= charset
+      part = Mail::Part.new(response)
+      container.add_part(part)
     end
 
     ActiveSupport.run_load_hooks(:action_mailer, self)
