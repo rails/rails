@@ -15,9 +15,6 @@ Gem::Specification.new do |s|
   s.license     = "MIT"
 
   s.files = Dir["{app,config,db,lib}/**/*", "MIT-LICENSE", "Rakefile", "README.rdoc"]
-<% unless options.skip_test? -%>
-  s.test_files = Dir["test/**/*"]
-<% end -%>
 
   <%= '# ' if options.dev? || options.edge? -%>s.add_dependency "rails", "~> <%= Rails::VERSION::STRING %>"
 <% unless options[:skip_active_record] -%>
