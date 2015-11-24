@@ -166,6 +166,14 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     assert_equal "text/plain", response.content_type
     assert_match(/RuntimeError\npuke/, body)
 
+    Rails.stub :root, Pathname.new('.') do
+      get "/", headers: xhr_request_env
+
+      assert_response 500
+      assert_match 'Extracted source (around line #', body
+      assert_select 'pre', { count: 0 }, body
+    end
+
     get "/not_found", headers: xhr_request_env
     assert_response 404
     assert_no_match(/<body>/, body)
