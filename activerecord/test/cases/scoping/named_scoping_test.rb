@@ -420,16 +420,16 @@ class NamedScopingTest < ActiveRecord::TestCase
     assert_equal [posts(:sti_comments)], Post.with_special_comments.with_post(4).to_a.uniq
   end
 
-  def test_scopes_batch_finders
+  def test_scopes_in_batches_finders
     assert_equal 4, Topic.approved.count
 
     assert_queries(5) do
-      Topic.approved.find_each(:batch_size => 1) {|t| assert t.approved? }
+      Topic.approved.in_batches(of: 1).each_record { |t| assert t.approved? }
     end
 
     assert_queries(3) do
-      Topic.approved.find_in_batches(:batch_size => 2) do |group|
-        group.each {|t| assert t.approved? }
+      Topic.approved.in_batches(of: 2, load: true) do |group|
+        group.each { |t| assert t.approved? }
       end
     end
   end

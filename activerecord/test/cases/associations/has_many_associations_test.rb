@@ -609,23 +609,23 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 1, firm.clients.where("name = 'Summit'").to_a.length
   end
 
-  def test_find_each
+  def test_each_record_in_batches
     firm = companies(:first_firm)
 
     assert ! firm.clients.loaded?
 
     assert_queries(4) do
-      firm.clients.find_each(:batch_size => 1) {|c| assert_equal firm.id, c.firm_id }
+      firm.clients.in_batches(of: 1).each_record { |c| assert_equal firm.id, c.firm_id }
     end
 
     assert ! firm.clients.loaded?
   end
 
-  def test_find_each_with_conditions
+  def test_each_record_in_batches_with_conditions
     firm = companies(:first_firm)
 
     assert_queries(2) do
-      firm.clients.where(name: 'Microsoft').find_each(batch_size: 1) do |c|
+      firm.clients.where(name: 'Microsoft').in_batches(of: 1).each_record do |c|
         assert_equal firm.id, c.firm_id
         assert_equal "Microsoft", c.name
       end
@@ -634,14 +634,14 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert ! firm.clients.loaded?
   end
 
-  def test_find_in_batches
+  def test_in_batches
     firm = companies(:first_firm)
 
     assert ! firm.clients.loaded?
 
     assert_queries(2) do
-      firm.clients.find_in_batches(:batch_size => 2) do |clients|
-        clients.each {|c| assert_equal firm.id, c.firm_id }
+      firm.clients.in_batches(of: 2, load: true) do |clients|
+        clients.each { |c| assert_equal firm.id, c.firm_id }
       end
     end
 
