@@ -1,39 +1,55 @@
 require 'abstract_unit'
-require 'pathname'
-require 'file_update_checker_shared_tests'
+# require 'pathname'
+# require 'file_update_checker_shared_tests'
+require 'fileutils'
+require 'tmpdir'
 require 'listen'
 
 class FileEventedUpdateCheckerTest < ActiveSupport::TestCase
-  include FileUpdateCheckerSharedTests
+  # include FileUpdateCheckerSharedTests
 
-  def new_checker(files = [], dirs = {}, &block)
-    # ActiveSupport::FileEventedUpdateChecker.new(files, dirs, &block).tap do
-    #   wait
-    # end
-    Listen.to(tmpdir, &proc{}).start
+  # def new_checker(files = [], dirs = {}, &block)
+  #   # ActiveSupport::FileEventedUpdateChecker.new(files, dirs, &block).tap do
+  #   #   wait
+  #   # end
+  #   Listen.to(tmpdir, &proc{}).start
 
-    wait
+  #   wait
 
-    skip
+  #   skip
+  # end
+
+  # def teardown
+  #   super
+  #   Listen.stop
+  # end
+
+  # def wait
+  #   sleep 1
+  # end
+
+  # def touch(files)
+  #   super
+  #   wait # wait for the events to fire
+  # end
+
+  # def rm_f(files)
+  #   super
+  #   wait
+  # end
+  
+  def setup
+    @tmpdir = Dir.mktmpdir
   end
-
+  
   def teardown
-    super
+    FileUtils.rm_rf(@tmpdir)
     Listen.stop
   end
-
-  def wait
+  
+  test 'starting a single Listen watcher causes the build to fail' do
+    Listen.to(@tmpdir, &proc{}).start
     sleep 1
-  end
-
-  def touch(files)
-    super
-    wait # wait for the events to fire
-  end
-
-  def rm_f(files)
-    super
-    wait
   end
 end
 
