@@ -1,38 +1,40 @@
 require 'abstract_unit'
 require 'pathname'
 require 'file_update_checker_shared_tests'
-
-ActiveSupport::FileEventedUpdateChecker
-
-Listen::Adapter.select()
+require 'listen'
 
 class FileEventedUpdateCheckerTest < ActiveSupport::TestCase
-#   include FileUpdateCheckerSharedTests
+  include FileUpdateCheckerSharedTests
 
-#   def new_checker(files = [], dirs = {}, &block)
-#     ActiveSupport::FileEventedUpdateChecker.new(files, dirs, &block).tap do
-#       wait
-#     end
-#   end
+  def new_checker(files = [], dirs = {}, &block)
+    # ActiveSupport::FileEventedUpdateChecker.new(files, dirs, &block).tap do
+    #   wait
+    # end
+    Listen.to(tmpdir, &proc{}).start
 
-#   def teardown
-#     super
-#     Listen.stop
-#   end
+    wait
 
-#   def wait
-#     sleep 1
-#   end
+    skip
+  end
 
-#   def touch(files)
-#     super
-#     wait # wait for the events to fire
-#   end
+  def teardown
+    super
+    Listen.stop
+  end
 
-#   def rm_f(files)
-#     super
-#     wait
-#   end
+  def wait
+    sleep 1
+  end
+
+  def touch(files)
+    super
+    wait # wait for the events to fire
+  end
+
+  def rm_f(files)
+    super
+    wait
+  end
 end
 
 class FileEventedUpdateCheckerPathHelperTest < ActiveSupport::TestCase
