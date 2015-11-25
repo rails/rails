@@ -18,12 +18,10 @@ if ENV['LISTEN'] == '1'
 end
 
 Dir.chdir("..") do
-  20.times do
-    Dir.glob("**/*") do |entry|
-      if File.file?(entry) && !File.zero?(entry)
-        print "Trying to open `#{entry}`... "
-        File.open(entry, 'r') { |f| puts "opened: #{f.readline[0,10]}" }
-      end
+  Dir.glob("**/*") do |entry|
+    if File.file?(entry) && !File.zero?(entry)
+      print "Trying to open `#{entry}`... "
+      File.open(entry, 'r') { |f| puts "opened: #{f.readline[0,10]}" }
     end
   end
 end
