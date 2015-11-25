@@ -208,6 +208,7 @@ module Rails
           "#{test}:model",
           "#{test}:scaffold",
           "#{test}:view",
+          "#{test}:job",
           "#{template}:controller",
           "#{template}:scaffold",
           "#{template}:mailer",
