@@ -78,3 +78,7 @@ div.actions {
   font-size: 12px;
   list-style: square;
 }
+
+label {
+  display: block;
+}
