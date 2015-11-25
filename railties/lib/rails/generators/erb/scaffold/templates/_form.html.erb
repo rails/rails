@@ -14,15 +14,15 @@
 <% attributes.each do |attribute| -%>
   <div class="field">
 <% if attribute.password_digest? -%>
-    <%%= f.label :password %><br>
+    <%%= f.label :password %>
     <%%= f.password_field :password %>
   </div>
 
   <div class="field">
-    <%%= f.label :password_confirmation %><br>
+    <%%= f.label :password_confirmation %>
     <%%= f.password_field :password_confirmation %>
 <% else -%>
-    <%%= f.label :<%= attribute.column_name %> %><br>
+    <%%= f.label :<%= attribute.column_name %> %>
     <%%= f.<%= attribute.field_type %> :<%= attribute.column_name %> %>
 <% end -%>
   </div>
