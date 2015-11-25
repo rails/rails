@@ -99,16 +99,7 @@ class Build
 
   def rake(*tasks)
     tasks.each do |task|
-      cmd = "bundle exec rake #{task} && " \
-            "bundle exec rake #{task} && " \
-            "bundle exec rake #{task} && " \
-            "bundle exec rake #{task} && " \
-            "bundle exec rake #{task} && " \
-            "bundle exec rake #{task} && " \
-            "bundle exec rake #{task} && " \
-            "bundle exec rake #{task} && " \
-            "bundle exec rake #{task} && " \
-            "bundle exec rake #{task}"
+      cmd = "bundle exec rake #{task}"
       puts "Running command: #{cmd}"
       return false unless system(cmd)
     end
