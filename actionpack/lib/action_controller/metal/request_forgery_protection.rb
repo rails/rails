@@ -77,6 +77,10 @@ module ActionController #:nodoc:
       config_accessor :log_warning_on_csrf_failure
       self.log_warning_on_csrf_failure = true
 
+      # Controls whether the Origin header is checked in addition to the CSRF token.
+      config_accessor :forgery_protection_origin_check
+      self.forgery_protection_origin_check = false
+
       helper_method :form_authenticity_token
       helper_method :protect_against_forgery?
     end
@@ -257,8 +261,19 @@ module ActionController #:nodoc:
       # * Does the X-CSRF-Token header match the form_authenticity_token
       def verified_request?
         !protect_against_forgery? || request.get? || request.head? ||
-          valid_authenticity_token?(session, form_authenticity_param) ||
-          valid_authenticity_token?(session, request.headers['X-CSRF-Token'])
+          (valid_request_origin? && any_authenticity_token_valid?)
+      end
+
+      # Checks if any of the authenticity tokens from the request are valid.
+      def any_authenticity_token_valid?
+        request_authenticity_tokens.any? do |token|
+          valid_authenticity_token?(session, token)
+        end
+      end
+
+      # Possible authenticity tokens sent in the request.
+      def request_authenticity_tokens
+        [form_authenticity_param, request.x_csrf_token]
       end
 
       # Sets the token value for the current session.
@@ -335,6 +350,17 @@ module ActionController #:nodoc:
       # Checks if the controller allows forgery protection.
       def protect_against_forgery?
         allow_forgery_protection
+      end
+
+      # Checks if the request originated from the same origin by looking at the
+      # Origin header.
+      def valid_request_origin?
+        if forgery_protection_origin_check
+          # We accept blank origin headers because some user agents don't send it.
+          request.origin.nil? || request.origin == request.base_url
+        else
+          true
+        end
       end
   end
 end
