@@ -17,19 +17,25 @@ if ENV['LISTEN'] == '1'
   end
 end
 
-Dir.chdir("..") do
-  i = 1
+begin
+  GC.disable if ENV['LISTEN'] == '1' 
 
-  Dir.glob("**/*") do |entry|
-    break if i > 5000
+  Dir.chdir("..") do
+    i = 1
   
-    if File.file?(entry) && !File.zero?(entry)
-      print "#{i}) Opening `#{entry}`: "
-      File.open(entry, 'r') { |f| puts f.readline[0,10].inspect }
-    end
+    Dir.glob("**/*") do |entry|
+      break if i > 5000
     
-    i += 1
+      if File.file?(entry) && !File.zero?(entry)
+        print "#{i}) Opening `#{entry}`: "
+        File.open(entry, 'r') { |f| puts f.readline[0,10].inspect }
+      end
+      
+      i += 1
+    end
   end
+ensure
+  GC.enable if ENV['LISTEN'] == '1'
 end
 
 # class FileEventedUpdateCheckerTest < ActiveSupport::TestCase
