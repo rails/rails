@@ -18,11 +18,17 @@ if ENV['LISTEN'] == '1'
 end
 
 Dir.chdir("..") do
+  i = 1
+
   Dir.glob("**/*") do |entry|
+    break if i > 5000
+  
     if File.file?(entry) && !File.zero?(entry)
-      print "Trying to open `#{entry}`... "
-      File.open(entry, 'r') { |f| puts "opened: #{f.readline[0,10]}" }
+      print "#{i}) Opening `#{entry}`: "
+      File.open(entry, 'r') { |f| puts f.readline[0,10].inspect }
     end
+    
+    i += 1
   end
 end
 
