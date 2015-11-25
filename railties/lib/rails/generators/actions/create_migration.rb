@@ -3,6 +3,8 @@ require 'thor/actions'
 module Rails
   module Generators
     module Actions
+      # Thor-action used by migrations. This action give options
+      # as to how migration file conflicts should be resolved.
       class CreateMigration < Thor::Actions::CreateFile
 
         def migration_dir
@@ -13,6 +15,8 @@ module Rails
           @base.migration_file_name
         end
 
+        # Check to see if the migration file being generated contains the
+        # same binary content as an existing migration.
         def identical?
           exists? && File.binread(existing_migration) == render
         end
@@ -39,6 +43,12 @@ module Rails
 
         protected
 
+        # How to handle a conflicting migration.
+        #
+        # In case of identical migrations, do nothing.
+        # In case of force option, delete the old file and create a new file.
+        # In case of skip, do nothing.
+        # In case of matching migration alert user of error.
         def on_conflict_behavior
           options = base.options.merge(config)
           if identical?
