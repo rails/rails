@@ -196,7 +196,7 @@ module ActiveRecord
         logger.warn("Scoped order and limit are ignored, it's forced to be batch order and batch size")
       end
 
-      relation = relation.reorder(table[primary_key].name.to_sym => :asc).limit(of)
+      relation = relation.reorder(primary_key => :asc).limit(of)
       relation = apply_limits(relation, begin_at, end_at)
       batch_relation = relation
 
