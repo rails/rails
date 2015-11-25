@@ -4,13 +4,15 @@
 require 'tmpdir'
 require 'listen'
 
-20.times do
-  Dir.mktmpdir do |tmpdir|
-    begin
-      Listen.to(tmpdir, &proc{}).start
-      sleep 1
-    ensure
-      Listen.stop
+if ENV['LISTEN'] == '1'
+  20.times do
+    Dir.mktmpdir do |tmpdir|
+      begin
+        Listen.to(tmpdir, &proc{}).start
+        sleep 1
+      ensure
+        Listen.stop
+      end
     end
   end
 end

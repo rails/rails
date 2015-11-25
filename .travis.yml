@@ -15,8 +15,10 @@ cache: bundler
 env:
   global:
     - "LISTEN_GEM_DEBUGGING=2"
+    - "GEM=as" 
   matrix:
-    - "GEM=as"
+    - "LISTEN=1"
+    - "LISTEN=0"
 rvm:
   - 2.2.3
 matrix:
