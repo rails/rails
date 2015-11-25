@@ -28,7 +28,7 @@ begin
     
       if File.file?(entry) && !File.zero?(entry)
         print "#{i}) Opening `#{entry}`: "
-        File.open(entry, 'r') { |f| puts f.readline[0,10].inspect }
+        File.open(entry, 'r') { |f| puts f.read(10).inspect }
       end
       
       i += 1
