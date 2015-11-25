@@ -14,7 +14,7 @@ module ActiveSupport
       def warn(message = nil, callstack = nil)
         return if silenced
 
-        callstack ||= caller_locations(2)
+        callstack ||= caller_locations(3)
         deprecation_message(callstack, message).tap do |m|
           behavior.each { |b| b.call(m, callstack) }
         end
@@ -37,7 +37,7 @@ module ActiveSupport
       end
 
       def deprecation_warning(deprecated_method_name, message = nil, caller_backtrace = nil)
-        caller_backtrace ||= caller_locations(2)
+        caller_backtrace ||= caller_locations(3)
         deprecated_method_warning(deprecated_method_name, message).tap do |msg|
           warn(msg, caller_backtrace)
         end
