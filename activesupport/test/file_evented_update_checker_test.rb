@@ -3,7 +3,6 @@
 # require 'file_update_checker_shared_tests'
 require 'tmpdir'
 require 'listen'
-require 'fileutils'
 
 20.times do
   Dir.mktmpdir do |tmpdir|
@@ -16,9 +15,14 @@ require 'fileutils'
   end
 end
 
-20.times do
-  Dir.glob("../**/*") do |entry|
-    File.open(entry, 'r') { puts "Opened #{entry}" } if File.file?(entry)
+Dir.chdir("..") do
+  20.times do
+    Dir.glob("**/*") do |entry|
+      if File.file?(entry) && !File.zero?(entry)
+        print "Trying to open `#{entry}`... "
+        File.open(entry, 'r') { |f| puts "opened: #{f.readline}" }
+      end
+    end
   end
 end
 
