@@ -411,10 +411,30 @@ module ActiveRecord
       self
     end
 
-    # Performs a joins on +args+:
+    # Performs a joins on +args+. The given symbol(s) should match the name of
+    # the association(s).
     #
     #   User.joins(:posts)
-    #   # SELECT "users".* FROM "users" INNER JOIN "posts" ON "posts"."user_id" = "users"."id"
+    #   # SELECT "users".*
+    #   # FROM "users"
+    #   # INNER JOIN "posts" ON "posts"."user_id" = "users"."id"
+    #
+    # Multiple joins:
+    #
+    #   User.joins(:posts, :account)
+    #   # SELECT "users".*
+    #   # FROM "users"
+    #   # INNER JOIN "posts" ON "posts"."user_id" = "users"."id"
+    #   # INNER JOIN "accounts" ON "accounts"."id" = "users"."account_id"
+    #
+    # Nested joins:
+    #
+    #   User.joins(posts: [:comments])
+    #   # SELECT "users".*
+    #   # FROM "users"
+    #   # INNER JOIN "posts" ON "posts"."user_id" = "users"."id"
+    #   # INNER JOIN "comments" "comments_posts"
+    #   #   ON "comments_posts"."post_id" = "posts"."id"
     #
     # You can use strings in order to customize your joins:
     #
