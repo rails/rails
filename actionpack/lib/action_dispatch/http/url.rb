@@ -91,10 +91,12 @@ module ActionDispatch
         end
 
         def extract_domain_from(host, tld_length)
+          tld_length = host.split(".").length - 2
           host.split('.').last(1 + tld_length).join('.')
         end
 
         def extract_subdomains_from(host, tld_length)
+          tld_length = host.split(".").length - 2
           parts = host.split('.')
           parts[0..-(tld_length + 2)]
         end
