@@ -304,6 +304,41 @@ module RequestForgeryProtectionTests
     assert_not_blocked { put :index }
   end
 
+  def test_should_allow_post_with_origin_checking_and_correct_origin
+    forgery_protection_origin_check do
+      session[:_csrf_token] = @token
+      @controller.stub :form_authenticity_token, @token do
+        assert_not_blocked do
+          @request.set_header 'HTTP_ORIGIN', 'http://test.host'
+          post :index, params: { custom_authenticity_token: @token }
+        end
+      end
+    end
+  end
+
+  def test_should_allow_post_with_origin_checking_and_no_origin
+    forgery_protection_origin_check do
+      session[:_csrf_token] = @token
+      @controller.stub :form_authenticity_token, @token do
+        assert_not_blocked do
+          post :index, params: { custom_authenticity_token: @token }
+        end
+      end
+    end
+  end
+
+  def test_should_block_post_with_origin_checking_and_wrong_origin
+    forgery_protection_origin_check do
+      session[:_csrf_token] = @token
+      @controller.stub :form_authenticity_token, @token do
+        assert_blocked do
+          @request.set_header 'HTTP_ORIGIN', 'http://bad.host'
+          post :index, params: { custom_authenticity_token: @token }
+        end
+      end
+    end
+  end
+
   def test_should_warn_on_missing_csrf_token
     old_logger = ActionController::Base.logger
     logger = ActiveSupport::LogSubscriber::TestHelper::MockLogger.new
@@ -404,6 +439,16 @@ module RequestForgeryProtectionTests
 
   def assert_cross_origin_not_blocked
     assert_not_blocked { yield }
+  end
+
+  def forgery_protection_origin_check
+    old_setting = ActionController::Base.forgery_protection_origin_check
+    ActionController::Base.forgery_protection_origin_check = true
+    begin
+      yield
+    ensure
+      ActionController::Base.forgery_protection_origin_check = old_setting
+    end
   end
 end
 
