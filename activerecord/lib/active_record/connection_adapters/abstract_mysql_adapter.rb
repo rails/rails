@@ -2,6 +2,7 @@ require 'active_record/connection_adapters/abstract_adapter'
 require 'active_record/connection_adapters/mysql/schema_creation'
 require 'active_record/connection_adapters/mysql/schema_definitions'
 require 'active_record/connection_adapters/mysql/schema_dumper'
+require 'active_record/connection_adapters/statement_pool'
 
 require 'active_support/core_ext/string/strip'
 
@@ -141,6 +142,14 @@ module ActiveRecord
       INDEX_TYPES  = [:fulltext, :spatial]
       INDEX_USINGS = [:btree, :hash]
 
+      class StatementPool < ConnectionAdapters::StatementPool
+        private
+
+        def dealloc(stmt)
+          stmt[:stmt].close
+        end
+      end
+
       # FIXME: Make the first parameter more similar for the two adapters
       def initialize(connection, logger, connection_options, config)
         super(connection, logger)
@@ -148,6 +157,7 @@ module ActiveRecord
         @quoted_column_names, @quoted_table_names = {}, {}
 
         @visitor = Arel::Visitors::MySQL.new self
+        @statements = StatementPool.new(self.class.type_cast_config_to_integer(config.fetch(:statement_limit) { 1000 }))
 
         if self.class.type_cast_config_to_boolean(config.fetch(:prepared_statements) { true })
           @prepared_statements = true
@@ -181,6 +191,12 @@ module ActiveRecord
       end
 
       def supports_bulk_alter? #:nodoc:
+        true
+      end
+
+      # Returns true, since this connection adapter supports prepared statement
+      # caching.
+      def supports_statement_cache?
         true
       end
 
@@ -391,9 +407,20 @@ module ActiveRecord
         end
       end
 
+      def select_all(arel, name = nil, binds = [])
+        rows = if ExplainRegistry.collect? && prepared_statements
+          unprepared_statement { super }
+        else
+          super
+        end
+        @connection.next_result while @connection.more_results?
+        rows
+      end
+
+      # Clears the prepared statements cache.
       def clear_cache!
-        super
         reload_type_map
+        @statements.clear
       end
 
       # Executes the SQL statement in the context of this connection.
@@ -404,11 +431,26 @@ module ActiveRecord
       # MysqlAdapter has to free a result after using it, so we use this method to write
       # stuff in an abstract way without concerning ourselves about whether it needs to be
       # explicitly freed or not.
-      def execute_and_free(sql, name = nil) #:nodoc:
+      def execute_and_free(sql, name = nil) # :nodoc:
         yield execute(sql, name)
       end
 
-      def update_sql(sql, name = nil) #:nodoc:
+      def exec_delete(sql, name, binds) # :nodoc:
+        if without_prepared_statement?(binds)
+          execute_and_free(sql, name) { @connection.affected_rows }
+        else
+          exec_stmt_and_free(sql, name, binds) { |stmt| stmt.affected_rows }
+        end
+      end
+      alias :exec_update :exec_delete
+
+      def insert_sql(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil) # :nodoc:
+        super
+        id_value || last_inserted_id
+      end
+      alias :create :insert_sql
+
+      def update_sql(sql, name = nil) # :nodoc:
         super
         @connection.affected_rows
       end

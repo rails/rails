@@ -1,3 +1,7 @@
+*   Add prepared statements support for `Mysql2Adapter`.
+
+    *Ryuta Kamizono*
+
 *   Add schema dumping support for PostgreSQL geometric data types.
 
     *Ryuta Kamizono*
