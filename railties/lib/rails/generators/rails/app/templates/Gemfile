@@ -51,7 +51,7 @@ group :development do
 
   # Loading the listen gem enables an evented file system monitor. Check
   # https://github.com/guard/listen#listen-adapters if on Windows or *BSD.
-  # gem 'listen', '~> 3.0.4'
+  # gem 'listen', '~> 3.0.5'
 end
 <% end -%>
 
