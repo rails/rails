@@ -25,14 +25,6 @@ module ActionController
       self._renderers = Set.new.freeze
     end
 
-    module ClassMethods
-      def use_renderers(*args)
-        renderers = _renderers + args
-        self._renderers = renderers.freeze
-      end
-      alias use_renderer use_renderers
-    end
-
     def render_to_body(options)
       _render_to_body_with_renderer(options) || super
     end
