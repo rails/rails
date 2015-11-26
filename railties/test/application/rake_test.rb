@@ -122,7 +122,40 @@ module ApplicationTests
       RUBY
 
       ENV['CONTROLLER'] = 'cart'
+
+      assert_deprecated { Dir.chdir(app_path){ `bin/rake routes` } }
+
       output = Dir.chdir(app_path){ `bin/rake routes` }
+      assert_equal "Prefix Verb URI Pattern     Controller#Action\n  cart GET  /cart(.:format) cart#show\n", output
+    end
+
+    def test_rake_routes_with_global_search_key
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          get '/cart', to: 'cart#show'
+          get '/basketball', to: 'basketball#index'
+        end
+      RUBY
+
+      output = Dir.chdir(app_path){ `bin/rake routes -g show` }
+      assert_equal "Prefix Verb URI Pattern     Controller#Action\n  cart GET  /cart(.:format) cart#show\n", output
+    end
+
+    def test_rake_routes_with_controller_search_key
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          get '/cart', to: 'cart#show'
+          get '/basketball', to: 'basketball#index'
+        end
+      RUBY
+
+      output = Dir.chdir(app_path){ `bin/rake routes -c cart` }
+      assert_equal "Prefix Verb URI Pattern     Controller#Action\n  cart GET  /cart(.:format) cart#show\n", output
+
+      output = Dir.chdir(app_path){ `bin/rake routes -c Cart` }
+      assert_equal "Prefix Verb URI Pattern     Controller#Action\n  cart GET  /cart(.:format) cart#show\n", output
+
+      output = Dir.chdir(app_path){ `bin/rake routes -c CartController` }
       assert_equal "Prefix Verb URI Pattern     Controller#Action\n  cart GET  /cart(.:format) cart#show\n", output
     end
 

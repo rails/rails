@@ -1134,10 +1134,17 @@ For example, here's a small section of the `rake routes` output for a RESTful ro
 edit_user GET    /users/:id/edit(.:format) users#edit
 ```
 
-You may restrict the listing to the routes that map to a particular controller setting the `CONTROLLER` environment variable:
-
+You may restrict the listing to the routes that map to a particular controller using the `--controller` option — or its `-c` shorthand:
 ```bash
-$ CONTROLLER=users bin/rake routes
+$ bin/rake routes --controller users
+$ bin/rake routes -c users
+$ bin/rake routes -c Users
+$ bin/rake routes -c UsersController
+```
+
+You can grep your routes with `-g`, which filters routes by `name`, `verb` or `path`.
+```bash
+$ bin/rake routes -g users
 ```
 
 TIP: You'll find that the output from `rake routes` is much more readable if you widen your terminal window until the output lines don't wrap.
