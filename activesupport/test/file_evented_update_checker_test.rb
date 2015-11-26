@@ -5,11 +5,6 @@ require 'file_update_checker_shared_tests'
 class FileEventedUpdateCheckerTest < ActiveSupport::TestCase
   include FileUpdateCheckerSharedTests
 
-  def setup
-    skip if ENV['LISTEN'] == '0'
-    super
-  end
-
   def new_checker(files = [], dirs = {}, &block)
     ActiveSupport::FileEventedUpdateChecker.new(files, dirs, &block).tap do
       wait

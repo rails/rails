@@ -222,7 +222,7 @@ GEM
     kindlerb (0.1.1)
       mustache
       nokogiri
-    listen (3.0.4)
+    listen (3.0.5)
       rb-fsevent (>= 0.9.3)
       rb-inotify (>= 0.9)
     loofah (2.0.3)
@@ -342,7 +342,7 @@ DEPENDENCIES
   jquery-rails!
   json
   kindlerb (= 0.1.1)
-  listen (~> 3.0.4)
+  listen (~> 3.0.5)
   mail!
   minitest (< 5.3.4)
   mocha (~> 0.14)
