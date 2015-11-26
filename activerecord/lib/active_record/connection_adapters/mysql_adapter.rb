@@ -1,4 +1,5 @@
 require 'active_record/connection_adapters/abstract_mysql_adapter'
+require 'active_record/connection_adapters/statement_pool'
 require 'active_support/core_ext/hash/keys'
 
 gem 'mysql', '~> 2.9'
@@ -69,10 +70,25 @@ module ActiveRecord
     class MysqlAdapter < AbstractMysqlAdapter
       ADAPTER_NAME = 'MySQL'.freeze
 
+      class StatementPool < ConnectionAdapters::StatementPool
+        private
+
+        def dealloc(stmt)
+          stmt[:stmt].close
+        end
+      end
+
       def initialize(connection, logger, connection_options, config)
         super
+        @statements = StatementPool.new(self.class.type_cast_config_to_integer(config.fetch(:statement_limit) { 1000 }))
         @client_encoding = nil
         connect
+      end
+
+      # Returns true, since this connection adapter supports prepared statement
+      # caching.
+      def supports_statement_cache?
+        true
       end
 
       # HELPER METHODS ===========================================
@@ -150,6 +166,27 @@ module ActiveRecord
       # DATABASE STATEMENTS ======================================
       #++
 
+      def select_all(arel, name = nil, binds = [])
+        if ExplainRegistry.collect? && prepared_statements
+          unprepared_statement { super }
+        else
+          super
+        end
+      end
+
+      def select_rows(sql, name = nil, binds = [])
+        @connection.query_with_result = true
+        rows = exec_query(sql, name, binds).rows
+        @connection.more_results && @connection.next_result    # invoking stored procedures with CLIENT_MULTI_RESULTS requires this to tidy up else connection will be dropped
+        rows
+      end
+
+      # Clears the prepared statements cache.
+      def clear_cache!
+        super
+        @statements.clear
+      end
+
       # Taken from here:
       #   https://github.com/tmtm/ruby-mysql/blob/master/lib/mysql/charset.rb
       # Author: TOMITA Masahiro <tommy@tmtm.org>
@@ -195,55 +232,27 @@ module ActiveRecord
 
       # Get the client encoding for this database
       def client_encoding
-        @client_encoding ||= ENCODINGS[select_value("SELECT @@character_set_client", 'SCHEMA')]
-      end
+        return @client_encoding if @client_encoding
 
-      def select_all(arel, name = nil, binds = [])
-        @connection.query_with_result = true
-        super
-      end
-
-      def select_rows(sql, name = nil, binds = [])
-        @connection.query_with_result = true
-        rows = if without_prepared_statement?(binds)
-          execute_and_free(sql, name) { |result| result.to_a }
-        else
-          exec_stmt_and_free(sql, name, binds) { |stmt| stmt.to_a }
-        end
-        @connection.next_result while @connection.more_results?
-        rows
+        result = exec_query(
+          "select @@character_set_client",
+          'SCHEMA')
+        @client_encoding = ENCODINGS[result.rows.last.last]
       end
 
       def exec_query(sql, name = 'SQL', binds = [], prepare: false)
         if without_prepared_statement?(binds)
-          execute_and_free(sql, name) do |result|
-            if result
-              types = {}
-              fields = []
-              result.fetch_fields.each { |field|
-                field_name = field.name
-                fields << field_name
-
-                if field.decimals > 0
-                  types[field_name] = Type::Decimal.new
-                else
-                  types[field_name] = Fields.find_type field
-                end
-              }
-              ActiveRecord::Result.new(fields, result.to_a, types)
-            end
-          end
+          result_set, affected_rows = exec_without_stmt(sql, name)
         else
-          exec_stmt_and_free(sql, name, binds, cache_stmt: prepare) do |stmt, result|
-            if result
-              fields = result.fetch_fields.map(&:name)
-              ActiveRecord::Result.new(fields, stmt.to_a)
-            end
-          end
+          result_set, affected_rows = exec_stmt(sql, name, binds, cache_stmt: prepare)
         end
+
+        yield affected_rows if block_given?
+
+        result_set
       end
 
-      def last_inserted_id(result = nil)
+      def last_inserted_id(result)
         @connection.insert_id
       end
 
@@ -313,16 +322,69 @@ module ActiveRecord
         register_class_with_precision m, %r(time)i,     Fields::Time
       end
 
+      def exec_without_stmt(sql, name = 'SQL') # :nodoc:
+        # Some queries, like SHOW CREATE TABLE don't work through the prepared
+        # statement API. For those queries, we need to use this method. :'(
+        log(sql, name) do
+          result = @connection.query(sql)
+          affected_rows = @connection.affected_rows
+
+          if result
+            types = {}
+            fields = []
+            result.fetch_fields.each { |field|
+              field_name = field.name
+              fields << field_name
+
+              if field.decimals > 0
+                types[field_name] = Type::Decimal.new
+              else
+                types[field_name] = Fields.find_type field
+              end
+            }
+
+            result_set = ActiveRecord::Result.new(fields, result.to_a, types)
+            result.free
+          else
+            result_set = ActiveRecord::Result.new([], [])
+          end
+
+          [result_set, affected_rows]
+        end
+      end
+
       def execute_and_free(sql, name = nil) # :nodoc:
         result = execute(sql, name)
         ret = yield result
-        result.free if result
+        result.free
         ret
+      end
+
+      def insert_sql(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil) #:nodoc:
+        super sql, name
+        id_value || @connection.insert_id
+      end
+      alias :create :insert_sql
+
+      def exec_delete(sql, name, binds) # :nodoc:
+        affected_rows = 0
+
+        exec_query(sql, name, binds) do |n|
+          affected_rows = n
+        end
+
+        affected_rows
+      end
+      alias :exec_update :exec_delete
+
+      def begin_db_transaction #:nodoc:
+        exec_query "BEGIN"
       end
 
       private
 
-      def exec_stmt_and_free(sql, name, binds, cache_stmt: false)
+      def exec_stmt(sql, name, binds, cache_stmt: false)
+        cache = {}
         type_casted_binds = binds.map { |attr| type_cast(attr.value_for_database) }
 
         log(sql, name, binds) do
@@ -330,7 +392,7 @@ module ActiveRecord
             stmt = @connection.prepare(sql)
           else
             cache = @statements[sql] ||= {
-              stmt: @connection.prepare(sql)
+              :stmt => @connection.prepare(sql)
             }
             stmt = cache[:stmt]
           end
@@ -345,18 +407,24 @@ module ActiveRecord
             if !cache_stmt
               stmt.close
             else
-              @statements.delete(sql)
+              @statements.delete sql
             end
             raise e
           end
 
-          result = stmt.result_metadata
-          ret = yield stmt, result
-          result.free if result
+          cols = nil
+          if metadata = stmt.result_metadata
+            cols = cache[:cols] ||= metadata.fetch_fields.map(&:name)
+            metadata.free
+          end
+
+          result_set = ActiveRecord::Result.new(cols, stmt.to_a) if cols
+          affected_rows = stmt.affected_rows
 
           stmt.free_result
           stmt.close if !cache_stmt
-          ret
+
+          [result_set, affected_rows]
         end
       end
 
@@ -386,6 +454,13 @@ module ActiveRecord
       # and don't call 'super', so leave this here even though it looks superfluous.
       def configure_connection
         super
+      end
+
+      def select(sql, name = nil, binds = [])
+        @connection.query_with_result = true
+        rows = super
+        @connection.more_results && @connection.next_result    # invoking stored procedures with CLIENT_MULTI_RESULTS requires this to tidy up else connection will be dropped
+        rows
       end
 
       # Returns the full version of the connected MySQL server.

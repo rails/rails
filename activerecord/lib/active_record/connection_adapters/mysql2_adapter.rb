@@ -1,6 +1,6 @@
 require 'active_record/connection_adapters/abstract_mysql_adapter'
 
-gem 'mysql2', '>= 0.4.2', '< 0.5'
+gem 'mysql2', '>= 0.3.18', '< 0.5'
 require 'mysql2'
 
 module ActiveRecord
@@ -33,6 +33,7 @@ module ActiveRecord
 
       def initialize(connection, logger, connection_options, config)
         super
+        @prepared_statements = false
         configure_connection
       end
 
@@ -125,13 +126,9 @@ module ActiveRecord
       # Returns an array of arrays containing the field values.
       # Order is the same as that returned by +columns+.
       def select_rows(sql, name = nil, binds = [])
-        rows = if without_prepared_statement?(binds)
-          execute_and_free(sql, name) { |result| result.to_a }
-        else
-          exec_stmt_and_free(sql, name, binds) { |stmt, result| result.to_a }
-        end
+        result = execute(sql, name)
         @connection.next_result while @connection.more_results?
-        rows
+        result.to_a
       end
 
       # Executes the SQL statement in the context of this connection.
@@ -146,58 +143,34 @@ module ActiveRecord
       end
 
       def exec_query(sql, name = 'SQL', binds = [], prepare: false)
-        if without_prepared_statement?(binds)
-          execute_and_free(sql, name) do |result|
-            ActiveRecord::Result.new(result.fields, result.to_a) if result
-          end
-        else
-          exec_stmt_and_free(sql, name, binds, cache_stmt: prepare) do |stmt, result|
-            ActiveRecord::Result.new(result.fields, result.to_a) if result
-          end
-        end
+        result = execute(sql, name)
+        @connection.next_result while @connection.more_results?
+        ActiveRecord::Result.new(result.fields, result.to_a)
       end
 
-      def last_inserted_id(result = nil)
+      alias exec_without_stmt exec_query
+
+      def insert_sql(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil)
+        super
+        id_value || @connection.last_id
+      end
+      alias :create :insert_sql
+
+      def exec_insert(sql, name, binds, pk = nil, sequence_name = nil)
+        execute to_sql(sql, binds), name
+      end
+
+      def exec_delete(sql, name, binds)
+        execute to_sql(sql, binds), name
+        @connection.affected_rows
+      end
+      alias :exec_update :exec_delete
+
+      def last_inserted_id(result)
         @connection.last_id
       end
 
       private
-
-      def exec_stmt_and_free(sql, name, binds, cache_stmt: false)
-        if @connection
-          # make sure we carry over any changes to ActiveRecord::Base.default_timezone that have been
-          # made since we established the connection
-          @connection.query_options[:database_timezone] = ActiveRecord::Base.default_timezone
-        end
-
-        type_casted_binds = binds.map { |attr| type_cast(attr.value_for_database) }
-
-        log(sql, name, binds) do
-          if !cache_stmt
-            stmt = @connection.prepare(sql)
-          else
-            cache = @statements[sql] ||= {
-              stmt: @connection.prepare(sql)
-            }
-            stmt = cache[:stmt]
-          end
-
-          begin
-            result = stmt.execute(*type_casted_binds)
-          rescue Mysql2::Error => e
-            if !cache_stmt
-              stmt.close
-            else
-              @statements.delete(sql)
-            end
-            raise e
-          end
-
-          ret = yield stmt, result
-          stmt.close if !cache_stmt
-          ret
-        end
-      end
 
       def connect
         @connection = Mysql2::Client.new(@config)
