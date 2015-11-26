@@ -72,6 +72,10 @@ class Build
     key.join(':')
   end
 
+  def activesupport?
+    gem == 'activesupport'
+  end
+
   def activerecord?
     gem == 'activerecord'
   end
@@ -101,9 +105,20 @@ class Build
     tasks.each do |task|
       cmd = "bundle exec rake #{task}"
       puts "Running command: #{cmd}"
-      return false unless system(cmd)
+      return false unless system(env, cmd)
     end
     true
+  end
+
+  def env
+    if activesupport? && !isolated?
+      # There is a known issue with the listen tests that casuses files to be
+      # incorrectly GC'ed even when they are still in-use. The current is to
+      # only run them in isolation to avoid randomly failing our test suite.
+      { 'LISTEN' => '0' }
+    else
+      {}
+    end
   end
 
   def run_bug_report_templates
