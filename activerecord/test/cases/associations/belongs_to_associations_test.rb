@@ -18,6 +18,7 @@ require 'models/invoice'
 require 'models/line_item'
 require 'models/column'
 require 'models/record'
+require 'models/like'
 
 class BelongsToAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :topics,
@@ -905,5 +906,22 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     record = Record.create!
     Column.create! record: record
     assert_equal 1, Column.count
+  end
+
+  def test_self_query_thru_belongs_to_self_without_primary_key
+    post = posts(:welcome)
+    like = post.likes.create!
+    like2 = post.likes.create!
+
+    likes = Like.where(post: Like.all.select(:post_id))
+    assert_equal [like.id, like2.id], likes.map(&:id)
+    assert_equal [like.post_id, like2.post_id], likes.map(&:post_id)
+  end
+
+  def test_self_query_thru_belongs_to_self_with_primary_key
+    post = posts(:welcome)
+
+    comments = Comment.where(post: post.comments.select(:post_id))
+    assert_equal 2, comments.count
   end
 end

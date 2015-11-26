@@ -1,3 +1,15 @@
+*   Regression bug for selecting from a table using the same table in a where clause via
+    a belongs_to relation.
+
+    E.g.: `Group.where(item: Groups.all.select(:item_id))`
+
+    Worked properly in 4.1.8 and 4.2.0
+
+    Backport of https://github.com/rails/rails/pull/22251
+    Fixes #20602
+
+    *Tim Breitkreutz*
+
 *   No longer pass deprecated option `-i` to `pg_dump`.
 
     *Paul Sadauskas*
