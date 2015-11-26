@@ -379,6 +379,10 @@ ActiveRecord::Schema.define do
     t.references :student
   end
 
+  create_table :likes, id: false, force: true do |t|
+    t.integer :post_id
+  end
+
   create_table :lint_models, force: true
 
   create_table :line_items, force: true do |t|
