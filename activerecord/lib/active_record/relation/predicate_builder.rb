@@ -66,7 +66,7 @@ module ActiveRecord
 
         column = reflection.foreign_key
 
-        if base_class
+        if base_class && base_class.primary_key.present?
           primary_key = reflection.association_primary_key(base_class)
           value = convert_value_to_association_ids(value, primary_key)
         end
@@ -136,7 +136,7 @@ module ActiveRecord
     def self.convert_value_to_association_ids(value, primary_key)
       case value
       when Relation
-        value.select(primary_key)
+        value.select_values.empty? ? value.select(primary_key) : value
       when Array
         value.map { |v| convert_value_to_association_ids(v, primary_key) }
       when Base
