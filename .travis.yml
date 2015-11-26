@@ -14,11 +14,12 @@ before_script:
 cache: bundler
 env:
   global:
-    - "LISTEN_GEM_DEBUGGING=2"
-    - "GEM=as" 
+    - LISTEN_GEM_DEBUGGING=2
+    - GEM=as
   matrix:
-    - "LISTEN=1"
-    - "LISTEN=0"
+    - LISTEN=1 LISTEN_GC_FIX=1
+    - LISTEN=1 LISTEN_GC_FIX=0
+    - LISTEN=0
 rvm:
   - 2.2.3
 matrix:
