@@ -1,3 +1,7 @@
+*   In url_for, never append a question mark to the URL when the query string
+    is empty anyway.  (It used to do that when called like `url_for(controller:
+    'x', action: 'y', q: {})`.)
+
 *   Catch invalid UTF-8 querystring values and respond with BadRequest
 
     Check querystring params for invalid UTF-8 characters, and raise an

@@ -129,6 +129,13 @@ module TestUrlGeneration
       )
     end
 
+    test "generating URLS with empty querystring" do
+      assert_equal "/bars.json", bars_path(
+        a: {},
+        format: 'json'
+      )
+    end
+
   end
 end
 
