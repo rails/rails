@@ -4,6 +4,8 @@ namespace :rails do
     o = OptionParser.new
     o.banner = "Usage: rake rails:update -- [options]"
     o.on("-o", "--skip-active-record") { options[:skip_active_record] = true }
+    o.on("-T", "--skip-test") { options[:skip_test] = true }
+    o.on("-M", "--skip-action-mailer") { options[:skip_action_mailer] = true }
     args = o.order!(ARGV) {}
     o.parse!(args)
     options
