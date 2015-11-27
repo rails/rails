@@ -4,26 +4,6 @@
 require 'tmpdir'
 require 'listen'
 
-require 'rb-inotify/notifier'
-class INotify::Notifier::IO < ::IO
-  def initialize(fd)
-    super(fd, autoclose: false)
-  end
-end
-module BetterClose
-  def close
-    if @io
-      @io.close
-      @io = nil
-      @watchers.clear
-    else
-      super
-    end
-    @fd = nil
-  end
-end
-INotify::Notifier.prepend BetterClose
-
 if ENV['LISTEN'] == '1'
   20.times do
     Dir.mktmpdir do |tmpdir|
