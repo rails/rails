@@ -111,8 +111,14 @@ class Build
   end
 
   def env
-    # Provide extra ENV variables for the build here
-    {}
+    if activesupport? && !isolated?
+      # There is a known issue with the listen tests that casuses files to be
+      # incorrectly GC'ed even when they are still in-use. The current is to
+      # only run them in isolation to avoid randomly failing our test suite.
+      { 'LISTEN' => '0' }
+    else
+      {}
+    end
   end
 
   def run_bug_report_templates
