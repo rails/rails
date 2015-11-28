@@ -667,6 +667,7 @@ ActiveRecord::Schema.define do
     t.references :collection
     t.references :type
     t.string     :name
+    t.float      :price
   end
 
   create_table :product_types, force: true do |t|
