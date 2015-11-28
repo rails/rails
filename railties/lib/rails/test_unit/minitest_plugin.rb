@@ -14,15 +14,16 @@ module Minitest
   SummaryReporter.prepend AggregatedResultSuppresion
 
   def self.plugin_rails_options(opts, options)
+    executable = Rails::TestUnitReporter.executable
     opts.separator ""
-    opts.separator "Usage: bin/rails test [options] [files or directories]"
+    opts.separator "Usage: #{executable} [options] [files or directories]"
     opts.separator "You can run a single test by appending a line number to a filename:"
     opts.separator ""
-    opts.separator "    bin/rails test test/models/user_test.rb:27"
+    opts.separator "    #{executable} test/models/user_test.rb:27"
     opts.separator ""
     opts.separator "You can run multiple files and directories at the same time:"
     opts.separator ""
-    opts.separator "    bin/rails test test/controllers test/integration/login_test.rb"
+    opts.separator "    #{executable} test/controllers test/integration/login_test.rb"
     opts.separator ""
     opts.separator "By default test failures and errors are reported inline during a run."
     opts.separator ""

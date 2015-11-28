@@ -1,3 +1,9 @@
+*   Add `bin/test` script to rails plugin.
+
+    `bin/test` can use the same API as `bin/rails test`.
+
+    *Yuji Yaginuma*
+
 *   Make `static_index` part of the `config.public_file_server` config and
     call it `public_file_server.index_name`.
 
