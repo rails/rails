@@ -1,3 +1,7 @@
+*   Make `assert_recognizes` to traverse mounted engines
+
+    *Yuichiro Kaneko*
+
 *   Add extension synonyms `yml` and `yaml` for MIME type `application/x-yaml`.
 
    *bogdanvlviv*

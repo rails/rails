@@ -13,7 +13,7 @@ module ActionDispatch
       end
 
       def rack_app
-        app.app
+        app.rack_app
       end
 
       def path
@@ -45,7 +45,7 @@ module ActionDispatch
       end
 
       def engine?
-        rack_app.respond_to?(:routes)
+        app.engine?
       end
     end
 
