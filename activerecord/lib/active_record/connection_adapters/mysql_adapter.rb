@@ -82,6 +82,7 @@ module ActiveRecord
         super
         @statements = StatementPool.new(self.class.type_cast_config_to_integer(config.fetch(:statement_limit) { 1000 }))
         @client_encoding = nil
+        @connection_options = connection_options
         connect
       end
 
