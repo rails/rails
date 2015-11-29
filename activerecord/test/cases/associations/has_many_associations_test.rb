@@ -2348,6 +2348,12 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal [first_bulb, second_bulb], car.bulbs
   end
 
+  test 'double insertion of new object to association when same association used in the after create callback of a new object' do
+    car = Car.create!
+    car.bulbs << TrickyBulb.new
+    assert_equal 1, car.bulbs.size
+  end
+
   def test_association_force_reload_with_only_true_is_deprecated
     company = Company.find(1)
 
