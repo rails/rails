@@ -16,8 +16,7 @@ module ActiveRecord
       end
 
       client = Mysql2::Client.new(config)
-      options = [config[:host], config[:username], config[:password], config[:database], config[:port], config[:socket], 0]
-      ConnectionAdapters::Mysql2Adapter.new(client, logger, options, config)
+      ConnectionAdapters::Mysql2Adapter.new(client, logger, nil, config)
     rescue Mysql2::Error => error
       if error.message.include?("Unknown database")
         raise ActiveRecord::NoDatabaseError
