@@ -44,7 +44,7 @@ module ActiveJob
       if @queue_name.is_a?(Proc)
         @queue_name = self.class.queue_name_from_part(instance_exec(&@queue_name))
       end
-      @queue_name
+      @queue_name.freeze
     end
 
   end
