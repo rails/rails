@@ -11,7 +11,7 @@ module ActionDispatch
     class Mapper
       URL_OPTIONS = [:protocol, :subdomain, :domain, :host, :port]
 
-      class Constraints < Endpoint #:nodoc:
+      class Constraints < Routing::Endpoint #:nodoc:
         attr_reader :app, :constraints
 
         SERVE = ->(app, req) { app.serve req }
