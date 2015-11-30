@@ -777,7 +777,36 @@ Topic.create(title: nil).valid? # => true
 As you've already seen, the `:message` option lets you specify the message that
 will be added to the `errors` collection when validation fails. When this
 option is not used, Active Record will use the respective default error message
-for each validation helper.
+for each validation helper. The `:message` option accepts a `String` or `Proc`.
+
+A `String` `:message` value can optionally contain any/all of `%{value}`,
+`%{attribute}`, and `%{model}` which will be dynamically replaced when
+validation fails.
+
+A `Proc` `:message` value is given two arguments: a message key for i18n, and
+a hash with `:model`, `:attribute`, and `:value` key-value pairs.
+
+```ruby
+class Person < ActiveRecord::Base
+  # Hard-coded message
+  validates :name, presence: { message: "must be given please" }
+
+  # Message with dynamic attribute value. %{value} will be replaced with
+  # the actual value of the attribute. %{attribute} and %{model} also
+  # available.
+  validates :age, numericality: { message: "%{value} seems wrong" }
+
+  # Proc
+  validates :username,
+    uniqueness: {
+      # key = "activerecord.errors.models.person.attributes.username.taken"
+      # data = { model: "Person", attribute: "Username", value: <username> }
+      message: ->(key, data) do
+        "#{data[:value]} taken! Try again #{Time.zone.tomorrow}"
+      end
+    }
+end
+```
 
 ### `:on`
 
