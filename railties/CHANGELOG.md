@@ -1,3 +1,9 @@
+*   Allow use of minitest-rails gem with Rails test runner.
+
+    Fixes #22455.
+
+    *Chris Kottom*
+
 *   Add `bin/test` script to rails plugin.
 
     `bin/test` can use the same API as `bin/rails test`.

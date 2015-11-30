@@ -14,7 +14,7 @@ module Minitest
   SummaryReporter.prepend AggregatedResultSuppresion
 
   def self.plugin_rails_options(opts, options)
-    executable = Rails::TestUnitReporter.executable
+    executable = ::Rails::TestUnitReporter.executable
     opts.separator ""
     opts.separator "Usage: #{executable} [options] [files or directories]"
     opts.separator "You can run a single test by appending a line number to a filename:"
