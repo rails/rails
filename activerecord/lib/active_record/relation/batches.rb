@@ -232,7 +232,7 @@ module ActiveRecord
     end
 
     def batch_order
-      "#{quoted_table_name}.#{quoted_primary_key} ASC"
+      { primary_key => :asc }
     end
   end
 end

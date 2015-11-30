@@ -1,3 +1,10 @@
+*   Use the hash syntax in the order clause in `in_batches`. This fixes
+    problems when using fully qualified identifiers as table names for the
+    sqlserver adapter. The fully qualitifed table names may not be used in
+    the order clause.
+
+    *Jippe Holwerda*
+
 *   Add schema dumping support for PostgreSQL geometric data types.
 
     *Ryuta Kamizono*
