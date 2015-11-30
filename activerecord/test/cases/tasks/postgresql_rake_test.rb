@@ -195,21 +195,26 @@ module ActiveRecord
         'adapter'  => 'postgresql',
         'database' => 'my-app-db'
       }
+      @filename = "awesome-file.sql"
 
       ActiveRecord::Base.stubs(:connection).returns(@connection)
       ActiveRecord::Base.stubs(:establish_connection).returns(true)
       Kernel.stubs(:system)
+      File.stubs(:open)
     end
 
     def test_structure_dump
-      filename = "awesome-file.sql"
-      Kernel.expects(:system).with('pg_dump', '-s', '-x', '-O', '-f', filename, 'my-app-db').returns(true)
-      @connection.expects(:schema_search_path).returns("foo")
+      Kernel.expects(:system).with('pg_dump', '-s', '-x', '-O', '-f', @filename, 'my-app-db').returns(true)
 
-      ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename)
-      assert File.exist?(filename)
-    ensure
-      FileUtils.rm(filename) if File.exist?(filename)
+      ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
+    end
+
+    def test_structure_dump_with_schema_search_path
+      @configuration['schema_search_path'] = 'foo,bar'
+
+      Kernel.expects(:system).with('pg_dump', '-s', '-x', '-O', '-f', @filename, '--schema=foo', '--schema=bar', 'my-app-db').returns(true)
+
+      ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
     end
   end
 

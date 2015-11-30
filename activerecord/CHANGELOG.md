@@ -1,3 +1,9 @@
+*   Fix `rake db:structure:dump` on Postgres when multiple schemas are used.
+
+    Fixes #22346.
+
+    *Nick Muerdter*, *ckoenig*
+
 *   Introduce `connection.data_sources` and `connection.data_source_exists?`.
     These methods determine what relations can be used to back Active Record
     models (usually tables and views).
