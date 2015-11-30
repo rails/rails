@@ -211,9 +211,9 @@
 
     Example:
 
-      config.generators do |g|
-        g.orm :active_record, primary_key_type: :uuid
-      end
+        config.generators do |g|
+          g.orm :active_record, primary_key_type: :uuid
+        end
 
     *Jon McCartie*
 
@@ -289,10 +289,10 @@
 
     To load the fixtures file `accounts.yml` as the `User` model, use:
 
-          _fixture:
-            model_class: User
-          david:
-            name: David
+        _fixture:
+          model_class: User
+        david:
+          name: David
 
     Fixes #9516.
 
