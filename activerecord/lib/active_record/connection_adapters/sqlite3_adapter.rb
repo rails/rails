@@ -78,11 +78,10 @@ module ActiveRecord
       end
 
       def initialize(connection, logger, connection_options, config)
-        super(connection, logger)
+        super(connection, logger, config)
 
         @active     = nil
         @statements = StatementPool.new(self.class.type_cast_config_to_integer(config.fetch(:statement_limit) { 1000 }))
-        @config = config
 
         @visitor = Arel::Visitors::SQLite.new self
         @quoted_column_names = {}

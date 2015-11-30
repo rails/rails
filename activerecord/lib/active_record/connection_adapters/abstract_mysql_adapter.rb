@@ -143,8 +143,7 @@ module ActiveRecord
 
       # FIXME: Make the first parameter more similar for the two adapters
       def initialize(connection, logger, connection_options, config)
-        super(connection, logger)
-        @config = config
+        super(connection, logger, config)
         @quoted_column_names, @quoted_table_names = {}, {}
 
         @visitor = Arel::Visitors::MySQL.new self

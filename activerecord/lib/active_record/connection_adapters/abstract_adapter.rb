@@ -95,14 +95,15 @@ module ActiveRecord
 
       attr_reader :prepared_statements
 
-      def initialize(connection, logger = nil, pool = nil) #:nodoc:
+      def initialize(connection, logger = nil, config = {}) # :nodoc:
         super()
 
         @connection          = connection
         @owner               = nil
         @instrumenter        = ActiveSupport::Notifications.instrumenter
         @logger              = logger
-        @pool                = pool
+        @config              = config
+        @pool                = nil
         @schema_cache        = SchemaCache.new self
         @visitor             = nil
         @prepared_statements = false

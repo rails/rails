@@ -192,7 +192,7 @@ module ActiveRecord
 
       # Initializes and connects a PostgreSQL adapter.
       def initialize(connection, logger, connection_parameters, config)
-        super(connection, logger)
+        super(connection, logger, config)
 
         @visitor = Arel::Visitors::PostgreSQL.new self
         if self.class.type_cast_config_to_boolean(config.fetch(:prepared_statements) { true })
@@ -202,7 +202,7 @@ module ActiveRecord
           @prepared_statements = false
         end
 
-        @connection_parameters, @config = connection_parameters, config
+        @connection_parameters = connection_parameters
 
         # @local_tz is initialized as nil to avoid warnings when connect tries to use it
         @local_tz = nil
