@@ -211,6 +211,19 @@ module ActiveRecord
     ensure
       FileUtils.rm(filename) if File.exist?(filename)
     end
+
+    def test_structure_dump_with_schema_search_path
+      filename = "awesome-file.sql"
+      schema_search_path = 'foo, bar'
+      @configuration['schema_search_path'] = schema_search_path
+      Kernel.expects(:system).with('pg_dump', '-s', '-x', '-O', '-f', filename, '--schema=foo', '--schema=bar', 'my-app-db').returns(true)
+      @connection.expects(:schema_search_path).returns(schema_search_path)
+
+      ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename)
+      assert File.exist?(filename)
+    ensure
+      FileUtils.rm(filename) if File.exist?(filename)
+    end
   end
 
   class PostgreSQLStructureLoadTest < ActiveRecord::TestCase
