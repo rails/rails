@@ -1,3 +1,9 @@
+*   Fix `rake db:structure:dump` on Postgres when multiple schemas are used.
+
+    Fixes #22346.
+
+    *Nick Muerdter*, *ckoenig*
+
 *   Add schema dumping support for PostgreSQL geometric data types.
 
     *Ryuta Kamizono*

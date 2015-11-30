@@ -212,7 +212,7 @@ module ActiveRecord
     def test_structure_dump_with_schema_search_path
       @configuration['schema_search_path'] = 'foo,bar'
 
-      Kernel.expects(:system).with('pg_dump', '-s', '-x', '-O', '-f', @filename, '--schema=foo --schema=bar', 'my-app-db').returns(true)
+      Kernel.expects(:system).with('pg_dump', '-s', '-x', '-O', '-f', @filename, '--schema=foo', '--schema=bar', 'my-app-db').returns(true)
 
       ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
     end
@@ -228,7 +228,7 @@ module ActiveRecord
     end
 
     def test_structure_dump_with_dump_schemas_string
-      Kernel.expects(:system).with("pg_dump", '-s', '-x', '-O', '-f', @filename, '--schema=foo --schema=bar', "my-app-db").returns(true)
+      Kernel.expects(:system).with("pg_dump", '-s', '-x', '-O', '-f', @filename, '--schema=foo', '--schema=bar', "my-app-db").returns(true)
 
       with_dump_schemas('foo,bar') do
         ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
