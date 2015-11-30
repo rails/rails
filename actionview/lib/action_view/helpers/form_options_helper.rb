@@ -525,10 +525,10 @@ module ActionView
         prompt  = options[:prompt]
         divider = options[:divider]
 
-        body = "".html_safe
+        body = ""
 
         if prompt
-          body.safe_concat content_tag("option".freeze, prompt_text(prompt), value: "")
+          body << content_tag("option".freeze, prompt_text(prompt), value: "")
         end
 
         grouped_options.each do |container|
@@ -541,10 +541,10 @@ module ActionView
           end
 
           html_attributes = { label: label }.merge!(html_attributes)
-          body.safe_concat content_tag("optgroup".freeze, options_for_select(container, selected_key), html_attributes)
+          body << content_tag("optgroup".freeze, options_for_select(container, selected_key), html_attributes)
         end
 
-        body
+        raw(body)
       end
 
       # Returns a string of option tags for pretty much any time zone in the
