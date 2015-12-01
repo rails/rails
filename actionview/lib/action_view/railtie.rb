@@ -6,6 +6,7 @@ module ActionView
   class Railtie < Rails::Railtie # :nodoc:
     config.action_view = ActiveSupport::OrderedOptions.new
     config.action_view.embed_authenticity_token_in_remote_forms = false
+    config.action_view.debug_missing_translation = true
 
     config.eager_load_namespaces << ActionView
 

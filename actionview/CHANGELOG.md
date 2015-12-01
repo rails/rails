@@ -1,3 +1,12 @@
+*   `I18n.translate` helper will wrap the missing translation keys
+     in a <span> tag only if `debug_missing_translation` configuration
+     be true. Default value is `true`. For example in `application.rb`:
+
+       # in order to turn off missing key wrapping
+       config.action_view.debug_missing_tranlation = false
+
+     *Sameer Rahmani*
+
 *   Respect value of `:object` if `:object` is false when rendering.
 
     Fixes #22260.
