@@ -191,4 +191,9 @@ class StoreTest < ActiveRecord::TestCase
     second_dump = YAML.dump(loaded)
     assert_equal @john, YAML.load(second_dump)
   end
+
+  test "write and read attribute without database column" do
+    @john.shoe_size = 9
+    assert_equal @john.shoe_size, 9
+  end
 end

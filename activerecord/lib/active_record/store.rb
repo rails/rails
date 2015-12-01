@@ -134,7 +134,7 @@ module ActiveRecord
 
     private
       def store_accessor_for(store_attribute)
-        type_for_attribute(store_attribute.to_s).accessor
+        type_for_attribute(store_attribute.to_s).try(:accessor) || StringKeyedHashAccessor
       end
 
       class HashAccessor # :nodoc:
@@ -146,7 +146,7 @@ module ActiveRecord
         def self.write(object, attribute, key, value)
           prepare(object, attribute)
           if value != read(object, attribute, key)
-            object.public_send :"#{attribute}_will_change!"
+            object.public_send :"#{attribute}_will_change!" if object.respond_to?(:"#{attribute}_will_change!")
             object.public_send(attribute)[key] = value
           end
         end
