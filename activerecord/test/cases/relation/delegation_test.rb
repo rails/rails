@@ -27,7 +27,7 @@ module ActiveRecord
 
   module DelegationWhitelistBlacklistTests
     ARRAY_DELEGATES = [
-      :+, :-, :|, :&, :[],
+      :+, :-, :|, :&, :[], :shuffle,
       :all?, :collect, :compact, :detect, :each, :each_cons, :each_with_index,
       :exclude?, :find_all, :flat_map, :group_by, :include?, :length,
       :map, :none?, :one?, :partition, :reject, :reverse,
