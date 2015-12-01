@@ -197,7 +197,7 @@ module ActiveRecord
 
             elapsed = Time.now - t0
             if elapsed >= timeout
-              msg = 'could not obtain a database connection within %0.3f seconds (waited %0.3f seconds)' %
+              msg = 'could not obtain a connection from the pool within %0.3f seconds (waited %0.3f seconds); all pooled connections were in use' %
                 [timeout, elapsed]
               raise ConnectionTimeoutError, msg
             end
