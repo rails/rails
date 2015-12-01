@@ -1,6 +1,6 @@
 module ActiveRecord
   module Type
-    class TypedStore < DelegateClass(Type::Value) # :nodoc:
+    class TypedStore < DelegateClass(ActiveModel::Type::Value) # :nodoc:
       # Creates +TypedStore+ type instance and specifies type caster
       # for key.
       def self.create_from_type(basetype, key, type, **options)
