@@ -223,12 +223,6 @@ module ActionController
         jar.write self unless committed?
       end
 
-      def before_sending
-        super
-        request.cookie_jar.commit!
-        headers.freeze
-      end
-
       def build_buffer(response, body)
         buf = Live::Buffer.new response
         body.each { |part| buf.write part }

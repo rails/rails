@@ -49,6 +49,10 @@ module ActionDispatch
       METHOD
     end
 
+    def self.empty
+      new({})
+    end
+
     def initialize(env)
       super
       @method            = nil

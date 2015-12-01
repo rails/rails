@@ -93,7 +93,7 @@ end
 class ControllerInstanceTests < ActiveSupport::TestCase
   def setup
     @empty = EmptyController.new
-    @empty.set_request!(ActionDispatch::Request.new({}))
+    @empty.set_request!(ActionDispatch::Request.empty)
     @empty.set_response!(EmptyController.make_response!(@empty.request))
     @contained = Submodule::ContainedEmptyController.new
     @empty_controllers = [@empty, @contained]

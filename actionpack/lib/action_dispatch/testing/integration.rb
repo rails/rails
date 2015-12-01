@@ -375,6 +375,7 @@ module ActionDispatch
           @request  = ActionDispatch::Request.new(session.last_request.env)
           response = _mock_session.last_response
           @response = ActionDispatch::TestResponse.from_response(response)
+          @response.request = @request
           @html_document = nil
           @url_options = nil
 

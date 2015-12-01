@@ -5,6 +5,7 @@ require 'rack/content_length'
 class ResponseTest < ActiveSupport::TestCase
   def setup
     @response = ActionDispatch::Response.create
+    @response.request = ActionDispatch::Request.empty
   end
 
   def test_can_wait_until_commit
@@ -39,6 +40,7 @@ class ResponseTest < ActiveSupport::TestCase
   def test_response_body_encoding
     body = ["hello".encode(Encoding::UTF_8)]
     response = ActionDispatch::Response.new 200, {}, body
+    response.request = ActionDispatch::Request.empty
     assert_equal Encoding::UTF_8, response.body.encoding
   end
 
@@ -261,6 +263,7 @@ class ResponseTest < ActiveSupport::TestCase
 
   test "can be explicitly destructured into status, headers and an enumerable body" do
     response = ActionDispatch::Response.new(404, { 'Content-Type' => 'text/plain' }, ['Not Found'])
+    response.request = ActionDispatch::Request.empty
     status, headers, body = *response
 
     assert_equal 404, status
@@ -356,6 +359,7 @@ class ResponseIntegrationTest < ActionDispatch::IntegrationTest
         resp.cache_control[:public] = true
         resp.etag = '123'
         resp.body = 'Hello'
+        resp.request = ActionDispatch::Request.empty
       }.to_a
     }
 
@@ -392,6 +396,7 @@ class ResponseIntegrationTest < ActionDispatch::IntegrationTest
         resp.charset = 'utf-16'
         resp.content_type = Mime[:xml]
         resp.body = 'Hello'
+        resp.request = ActionDispatch::Request.empty
       }.to_a
     }
 

@@ -26,7 +26,7 @@ module BareMetalTest
 
     test "response_body value is wrapped in an array when the value is a String" do
       controller = BareController.new
-      controller.set_request!(ActionDispatch::Request.new({}))
+      controller.set_request!(ActionDispatch::Request.empty)
       controller.set_response!(BareController.make_response!(controller.request))
       controller.index
       assert_equal ["Hello world"], controller.response_body
