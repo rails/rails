@@ -63,6 +63,9 @@ module ActionDispatch
       @ip                = nil
     end
 
+    def commit_cookie_jar! # :nodoc:
+    end
+
     def check_path_parameters!
       # If any of the path parameters has an invalid encoding then
       # raise since it's likely to trigger errors further on.

@@ -12,6 +12,12 @@ module ActionDispatch
     end
 
     # :stopdoc:
+    prepend Module.new {
+      def commit_cookie_jar!
+        cookie_jar.commit!
+      end
+    }
+
     def have_cookie_jar?
       has_header? 'action_dispatch.cookies'.freeze
     end
