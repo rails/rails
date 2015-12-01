@@ -685,7 +685,7 @@ to trigger the heuristic is defined in the conflicting place.
 ### Automatic Modules
 
 When a module acts as a namespace, Rails does not require the application to
-defines a file for it, a directory matching the namespace is enough.
+define a file for it, a directory matching the namespace is enough.
 
 Suppose an application has a back office whose controllers are stored in
 `app/controllers/admin`. If the `Admin` module is not yet loaded when
