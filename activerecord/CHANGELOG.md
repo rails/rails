@@ -1,3 +1,16 @@
+*   Respect the column default values for `inheritance_column` when
+    instantiating records through the base class.
+
+    Fixes #17121.
+
+    Example:
+
+        # The schema of BaseModel has `t.string :type, default: 'SubType'`
+        subtype = BaseModel.new
+        assert_equals SubType, subtype.class
+
+    *Kuldeep Aggarwal*
+
 *   Fix `rake db:structure:dump` on Postgres when multiple schemas are used.
 
     Fixes #22346.

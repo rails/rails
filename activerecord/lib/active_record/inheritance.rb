@@ -51,8 +51,8 @@ module ActiveRecord
         end
 
         attrs = args.first
-        if subclass_from_attributes?(attrs)
-          subclass = subclass_from_attributes(attrs)
+        if attribute_names.include?(inheritance_column)
+          subclass = subclass_from_attributes(attrs) || subclass_from_defaults
         end
 
         if subclass && subclass != self
@@ -197,16 +197,20 @@ module ActiveRecord
       # is not self or a valid subclass, raises ActiveRecord::SubclassNotFound
       # If this is a StrongParameters hash, and access to inheritance_column is not permitted,
       # this will ignore the inheritance column and return nil
-      def subclass_from_attributes?(attrs)
-        attribute_names.include?(inheritance_column) && (attrs.is_a?(Hash) || attrs.respond_to?(:permitted?))
-      end
-
       def subclass_from_attributes(attrs)
         attrs = attrs.to_h if attrs.respond_to?(:permitted?)
-        subclass_name = attrs.with_indifferent_access[inheritance_column]
+        if attrs.is_a?(Hash)
+          subclass_name = attrs.with_indifferent_access[inheritance_column]
 
-        if subclass_name.present?
-          find_sti_class(subclass_name)
+          if subclass_name.present?
+            find_sti_class(subclass_name)
+          end
+        end
+      end
+
+      def subclass_from_defaults
+        if default = columns_hash[inheritance_column].default
+          find_sti_class(default)
         end
       end
     end

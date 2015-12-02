@@ -478,4 +478,25 @@ class InheritanceComputeTypeTest < ActiveRecord::TestCase
     product = Shop::Product.new(:type => phone)
     assert product.save
   end
+
+  def test_inheritance_new_with_subclass_as_default
+    original_type = Company.columns_hash["type"].default
+    ActiveRecord::Base.connection.change_column_default :companies, :type, 'Firm'
+    Company.reset_column_information
+
+    firm = Company.new # without arguments
+    assert_equal 'Firm', firm.type
+    assert_instance_of Firm, firm
+
+    firm = Company.new(firm_name: 'Shri Hans Plastic') # with arguments
+    assert_equal 'Firm', firm.type
+    assert_instance_of Firm, firm
+
+    firm = Company.new(type: 'Client') # overwrite the default type
+    assert_equal 'Client', firm.type
+    assert_instance_of Client, firm
+  ensure
+    ActiveRecord::Base.connection.change_column_default :companies, :type, original_type
+    Company.reset_column_information
+  end
 end
