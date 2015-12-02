@@ -191,6 +191,18 @@ module ActiveRecord
           end
       end
 
+      # Returns true if the given attribute exists, otherwise false.
+      #
+      #   class Person < ActiveRecord::Base
+      #   end
+      #
+      #   Person.has_attribute?('name')   # => true
+      #   Person.has_attribute?(:age)     # => true
+      #   Person.has_attribute?(:nothing) # => false
+      def has_attribute?(attr_name)
+        attribute_types.key?(attr_name.to_s)
+      end
+
       # Returns the column object for the named attribute.
       # Returns a +ActiveRecord::ConnectionAdapters::NullColumn+ if the
       # named attribute does not exist.

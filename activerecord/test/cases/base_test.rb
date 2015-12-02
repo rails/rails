@@ -1345,6 +1345,19 @@ class BasicsTest < ActiveRecord::TestCase
                  Company.attribute_names
   end
 
+  def test_has_attribute
+    assert Company.has_attribute?('id')
+    assert Company.has_attribute?('type')
+    assert Company.has_attribute?('name')
+    assert_not Company.has_attribute?('lastname')
+    assert_not Company.has_attribute?('age')
+  end
+
+  def test_has_attribute_with_symbol
+    assert Company.has_attribute?(:id)
+    assert_not Company.has_attribute?(:age)
+  end
+
   def test_attribute_names_on_table_not_exists
     assert_equal [], NonExistentTable.attribute_names
   end
