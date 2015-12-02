@@ -52,7 +52,8 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     assert_file "app/models/admin.rb", /module Admin/
     assert_file "app/models/admin.rb", /def self\.table_name_prefix/
     assert_file "app/models/admin.rb", /'admin_'/
-    assert_file "app/models/admin/account.rb", /class Admin::Account < ActiveRecord::Base/
+    assert_file "app/models/admin/account.rb", /module Admin/
+    assert_file "app/models/admin/account.rb", /class Account < ActiveRecord::Base/
   end
 
   def test_migration

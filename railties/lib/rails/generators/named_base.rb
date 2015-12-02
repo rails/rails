@@ -41,7 +41,8 @@ module Rails
         # if namespace exists and is not skipped
         def module_namespacing(&block)
           content = capture(&block)
-          content = wrap_with_namespace(content) if engine_namespaced?
+          content = wrap_with_namespace(provided_namespace, content) if provided_namespace
+          content = wrap_with_namespace(engine_namespace.name, content) if engine_namespaced?
           concat(content)
         end
 
@@ -50,9 +51,9 @@ module Rails
           content.each_line.map {|line| line.blank? ? line : "#{spaces}#{line}" }.join
         end
 
-        def wrap_with_namespace(content)
+        def wrap_with_namespace(module_name, content)
           content = indent(content).chomp
-          "module #{engine_namespace.name}\n#{content}\nend\n"
+          "module #{module_name}\n#{content}\nend\n"
         end
 
         def inside_template
@@ -77,8 +78,8 @@ module Rails
         # *Not* the engine namespace, but if someone names their generated
         # item 'Foo::Bar', this will return Foo
         def provided_namespace
-          if class_name.include?("::")
-            class_name.deconstantize
+          if camelized_name_segments.length > 1
+            camelized_name_segments.first
           end
         end
 
@@ -119,7 +120,7 @@ module Rails
         end
 
         def class_name
-          (class_path + [file_name]).map!(&:camelize).join('::')
+          file_name.camelize
         end
 
         def human_name
@@ -179,9 +180,16 @@ module Rails
         end
 
         def assign_names!(name) #:nodoc:
-          @class_path = name.include?('/') ? name.split('/') : name.split('::')
-          @class_path.map!(&:underscore)
+          @class_path = camelized_name_segments.map(&:underscore)
           @file_name = @class_path.pop
+        end
+
+        def camelized_name_segments
+          if name.include?('/')
+            name.split('/').map(&:camelize)
+          else
+            name.split('::').map(&:camelize)
+          end
         end
 
         # Convert attributes array into GeneratedAttribute objects.
