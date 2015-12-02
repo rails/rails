@@ -92,6 +92,10 @@ module ActiveRecord
         else
           @prepared_statements = false
         end
+
+        exec_query('PRAGMA foreign_keys = 1')
+        # This will return 0 or an empty string if we weren't able to enable foreign keys above
+        @foreign_keys_supported = select_value('PRAGMA foreign_keys') == 1
       end
 
       def supports_ddl_transactions?
@@ -170,6 +174,10 @@ module ActiveRecord
         true
       end
 
+      def supports_foreign_keys?
+        @foreign_keys_supported
+      end
+
       # QUOTING ==================================================
 
       def _quote(value) # :nodoc:
@@ -208,9 +216,7 @@ module ActiveRecord
         @quoted_column_names[name] ||= %Q("#{name.to_s.gsub('"', '""')}")
       end
 
-      #--
       # DATABASE STATEMENTS ======================================
-      #++
 
       def explain(arel, binds = [])
         sql = "EXPLAIN QUERY PLAN #{to_sql(arel, binds)}"
@@ -308,6 +314,26 @@ module ActiveRecord
         log('rollback transaction',nil) { @connection.rollback }
       end
 
+      # REFERENTIAL INTEGRITY ====================================
+
+      def disable_referential_integrity #:nodoc:
+        if !supports_foreign_keys? || select_value('PRAGMA foreign_keys') != 1
+          yield
+        else
+          begin
+            execute('PRAGMA foreign_keys = 0')
+            if select_value('PRAGMA foreign_keys') != 0
+              # SQLite does not support disabling referential integrity within transactions,
+              # see https://www.sqlite.org/pragma.html#pragma_foreign_keys
+              raise ActiveRecord::StatementInvalid, "Cannot disable referential integrity while a transaction is active"
+            end
+            yield
+          ensure
+            execute('PRAGMA foreign_keys = 1')
+          end
+        end
+      end
+
       # SCHEMA STATEMENTS ========================================
 
       def tables(name = nil) # :nodoc:
@@ -400,9 +426,13 @@ module ActiveRecord
             table_name,
             row['name'],
             row['unique'] != 0,
-            exec_query("PRAGMA index_info('#{row['name']}')", "SCHEMA").map { |col|
+            exec_query("PRAGMA index_info(#{quote(row['name'])})", 'SCHEMA').map { |col|
               col['name']
-            }, nil, nil, where)
+            },
+            nil,
+            nil,
+            where
+          )
         end
       end
 
@@ -485,21 +515,65 @@ module ActiveRecord
         rename_column_indexes(table_name, column.name, new_column_name)
       end
 
-      protected
+      def foreign_keys(table_name)
+        return [] unless supports_foreign_keys?
 
-        def table_structure(table_name)
-          structure = exec_query("PRAGMA table_info(#{quote_table_name(table_name)})", 'SCHEMA')
-          raise(ActiveRecord::StatementInvalid, "Could not find table '#{table_name}'") if structure.empty?
-          table_structure_with_collation(table_name, structure)
+        col_fk_names = {}
+        table_structure(table_name).each do |col|
+          col.fetch('foreign_keys', []).each do |fk|
+            if fk.has_key?('name')
+              col_fk_names[[col['name'], fk['to_table'], fk['target_column']]] = fk['name']
+            end
+          end
         end
+
+        exec_query("PRAGMA foreign_key_list(#{quote(table_name)})", 'SCHEMA').map do |row|
+          pkey = row['to']
+          if pkey.nil?
+            pkeys = primary_keys(row['table'])
+            if pkeys.length == 1
+              pkey = pkeys.first
+            else
+              # FIXME ForeignKeyDefinition can only refer to a single target column, so
+              # for now we'll have to just ignore any multi-column targets.
+              next nil
+            end
+          end
+
+          ForeignKeyDefinition.new(table_name.to_s, row['table'], {
+            name: col_fk_names[[row['from'], row['table'], row['to']]],
+            column: row['from'],
+            primary_key: pkey,
+            on_delete: extract_foreign_key_action(row['on_delete']),
+            on_update: extract_foreign_key_action(row['on_update'])
+          })
+        end.compact
+      end
+
+      def add_foreign_key(from_table, to_table, options = {}) #:nodoc:
+        return nil unless supports_foreign_keys?
+        options = foreign_key_options(from_table, to_table, options)
+        alter_table(from_table) do |definition|
+          definition.foreign_key(to_table, options)
+        end
+      end
+
+      def remove_foreign_key(from_table, options_or_to_table = {})
+        return nil unless supports_foreign_keys?
+        foreign_key_for!(from_table, options_or_to_table)
+        alter_table(from_table) do |definition|
+          definition.remove_foreign_key(options_or_to_table)
+        end
+      end
+
+      protected
 
         def alter_table(table_name, options = {}) #:nodoc:
           altered_table_name = "a#{table_name}"
           caller = lambda {|definition| yield definition if block_given?}
 
           transaction do
-            move_table(table_name, altered_table_name,
-              options.merge(:temporary => true))
+            move_table(table_name, altered_table_name, options)
             move_table(altered_table_name, table_name, &caller)
           end
         end
@@ -526,6 +600,9 @@ module ActiveRecord
                 :limit => column.limit, :default => column.default,
                 :precision => column.precision, :scale => column.scale,
                 :null => column.null, collation: column.collation)
+            end
+            foreign_keys(from).each do |fk|
+              @definition.foreign_key fk.to_table, fk.options
             end
             yield @definition if block_given?
           end
@@ -576,55 +653,135 @@ module ActiveRecord
         end
 
         def translate_exception(exception, message)
-          case exception.message
-          # SQLite 3.8.2 returns a newly formatted error message:
-          #   UNIQUE constraint failed: *table_name*.*column_name*
-          # Older versions of SQLite return:
-          #   column *column_name* is not unique
-          when /column(s)? .* (is|are) not unique/, /UNIQUE constraint failed: .*/
-            RecordNotUnique.new(message)
+          if exception.is_a? ::SQLite3::ConstraintException
+            case exception.message
+            # SQLite 3.8.2 returns a newly formatted error message:
+            #   UNIQUE constraint failed: *table_name*.*column_name*
+            # Older versions of SQLite return:
+            #   column *column_name* is not unique
+            when /column(s)? .* (is|are) not unique/, /^UNIQUE constraint failed: .*/i
+              RecordNotUnique.new(message)
+            when /^FOREIGN KEY constraint failed/i
+              InvalidForeignKey.new(message)
+            else
+              super
+            end
           else
             super
           end
         end
 
       private
-        COLLATE_REGEX = /.*\"(\w+)\".*collate\s+\"(\w+)\".*/i.freeze
+        # Quoting styles documented at http://www.sqlite.org/lang_keywords.html
+        # SQLite uses the repeated-quote style of escaping, e.g. "foo""" == 'foo"'
+        TOKEN_REGEX = /
+            '  (?: [^']  | '' )* '  # Single-quoted string
+          | "  (?: [^"]  | "" )* "  # Double-quoted string
+          | `  (?: [^`]  | `` )* `  # Backtick-quoted string
+          | \[     [^\]]       * \] # Bracket-bounded string
+          | [\w.+-]+(?=\b)          # Raw unquoted literal
+        /x.freeze
 
-        def table_structure_with_collation(table_name, basic_structure)
-          collation_hash = {}
-          sql            = "SELECT sql FROM
-                              (SELECT * FROM sqlite_master UNION ALL
-                               SELECT * FROM sqlite_temp_master)
-                            WHERE type='table' and name='#{ table_name }' \;"
+        # Matches any arbitrary expression with balanced parentheses
+        PAREN_EXPR_REGEX = /
+          \(                  # Left paren
+          (?<expr>(?:         # Containing an expression, which is any number of:
+              \(\g<expr>*\)   # - Nested parenthetical expressions
+            | #{TOKEN_REGEX}  # - Tokens
+            | [^'"`\[\]\(\)]+ # - Any unquoted characters that don't end the expression
+          )+)
+          \)                 # Right paren
+        /x.freeze
 
-          # Result will have following sample string
-          # CREATE TABLE "users" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-          #                       "password_digest" varchar COLLATE "NOCASE");
-          result = exec_query(sql, 'SCHEMA').first
+        COLUMN_COLLATION_REGEX = /
+          [(,] \s*
+          (?<column_name>#{TOKEN_REGEX})
+          (?: #{TOKEN_REGEX} | #{PAREN_EXPR_REGEX} | \s+ )*?
+          COLLATE \s+
+          (?<collation>#{TOKEN_REGEX})
+        /xi.freeze
 
-          if result
-            # Splitting with left parantheses and picking up last will return all
-            # columns separated with comma(,).
-            columns_string = result["sql"].split('(').last
+        FOREIGN_KEY_COMMON_REGEX = /
+          \bREFERENCES \s+
+          (?<foreign_table>#{TOKEN_REGEX})
+          (?: \s* \( \s* (?<foreign_column>#{TOKEN_REGEX}) \s* \) \s* )?
+          (?<extra_config> (?: #{TOKEN_REGEX} | \s+ )* )
+        /xi.freeze
 
-            columns_string.split(',').each do |column_string|
-              # This regex will match the column name and collation type and will save
-              # the value in $1 and $2 respectively.
-              collation_hash[$1] = $2 if (COLLATE_REGEX =~ column_string)
+        COLUMN_FOREIGN_KEY_REGEX = /
+          [(,] \s*
+          (?!CONSTRAINT\b)
+          (?!FOREIGN\b)
+          (?<source_column>#{TOKEN_REGEX})
+          (?: #{TOKEN_REGEX} | #{PAREN_EXPR_REGEX} | \s+ )*?
+          (?:CONSTRAINT \s+ (?<constraint_name>#{TOKEN_REGEX}) )?
+          \s*
+          #{FOREIGN_KEY_COMMON_REGEX}
+        /xi.freeze
+
+        TABLE_FOREIGN_KEY_REGEX = /
+          \b
+          (?:CONSTRAINT \s+ (?<constraint_name>#{TOKEN_REGEX}) )?
+          \s* FOREIGN \s+ KEY
+          \s* \( \s*
+          (?<source_column>#{TOKEN_REGEX})
+          \s* \) \s*
+          #{FOREIGN_KEY_COMMON_REGEX}
+        /xi.freeze
+
+        def dequote_token(token)
+          return nil if token.nil?
+          return "" if token.blank?
+          quote_char = token[0]
+          if ["'", '"', '[', '`'].include?(quote_char)
+            token = token[1..-2] # Remove wrapping quote characters
+            if quote_char != '[' # The bracket syntax doesn't allow escapes
+              token = token.gsub("#{quote_char}#{quote_char}", quote_char)
             end
+          end
+          token
+        end
 
-            basic_structure.map! do |column|
-              column_name = column['name']
+        def table_structure(table_name)
+          structure = exec_query("PRAGMA table_info(#{quote(table_name)})", 'SCHEMA')
+          raise(ActiveRecord::StatementInvalid, "Could not find table '#{table_name}'") if structure.empty?
 
-              if collation_hash.has_key? column_name
-                column['collation'] = collation_hash[column_name]
-              end
+          query = "SELECT sql FROM sqlite_master WHERE type='table' AND name=#{ quote(table_name) }"
+          result = exec_query(query, 'SCHEMA').first
+          return structure unless result
 
-              column
+          result["sql"].scan(COLUMN_COLLATION_REGEX) do
+            match = $~ # Have to use $~ because String::scan throws away capture group names
+            col_name = dequote_token(match['column_name'])
+            col = structure.find { |c| c['name'] == col_name }
+            col['collation'] = dequote_token(match['collation']) unless col.nil?
+          end
+
+          [COLUMN_FOREIGN_KEY_REGEX, TABLE_FOREIGN_KEY_REGEX].each do |fk_regex|
+            result["sql"].scan(fk_regex) do
+              match = $~ # Have to use $~ because String::scan throws away capture group names
+              foreign_key = {
+                'name' => dequote_token(match['constraint_name']),
+                'to_table' => dequote_token(match['foreign_table']),
+                'target_column' => dequote_token(match['foreign_column'])
+              }
+
+              source_col = dequote_token(match['source_column'])
+              col = structure.find { |c| c['name'] == source_col }
+              (col['foreign_keys'] ||= []) << foreign_key unless col.nil?
             end
-          else
-            basic_structure.to_hash
+          end
+
+          structure
+        end
+
+        def extract_foreign_key_action(string)
+          case string
+          when 'NO ACTION' then nil
+          when 'RESTRICT' then :restrict
+          when 'SET NULL' then :nullify
+          when 'CASCADE' then :cascade
+          when 'SET DEFAULT' then nil # SchemaStatements::add_foreign_key doesn't support it
           end
         end
     end

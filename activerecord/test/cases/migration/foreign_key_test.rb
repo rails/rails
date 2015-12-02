@@ -47,7 +47,7 @@ module ActiveRecord
         assert_equal "fk_name", fk.name
       end
 
-      def test_add_foreign_key_inferes_column
+      def test_add_foreign_key_infers_column
         @connection.add_foreign_key :astronauts, :rockets
 
         foreign_keys = @connection.foreign_keys("astronauts")
@@ -168,7 +168,7 @@ module ActiveRecord
         assert_not @connection.foreign_key_exists?(:astronauts, name: "other_fancy_named_fk")
       end
 
-      def test_remove_foreign_key_inferes_column
+      def test_remove_foreign_key_infers_column
         @connection.add_foreign_key :astronauts, :rockets
 
         assert_equal 1, @connection.foreign_keys("astronauts").size

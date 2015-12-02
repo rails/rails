@@ -984,18 +984,16 @@ ActiveRecord::Schema.define do
   create_table :records, force: true do |t|
   end
 
-  except 'SQLite' do
-    # fk_test_has_fk should be before fk_test_has_pk
-    create_table :fk_test_has_fk, force: true do |t|
-      t.integer :fk_id, null: false
-    end
-
-    create_table :fk_test_has_pk, force: true, primary_key: "pk_id" do |t|
-    end
-
-    add_foreign_key :fk_test_has_fk, :fk_test_has_pk, column: "fk_id", name: "fk_name", primary_key: "pk_id"
-    add_foreign_key :lessons_students, :students
+  # fk_test_has_fk should be before fk_test_has_pk
+  create_table :fk_test_has_fk, force: true do |t|
+    t.integer :fk_id, null: false
   end
+
+  create_table :fk_test_has_pk, force: true, primary_key: "pk_id" do |t|
+  end
+
+  add_foreign_key :fk_test_has_fk, :fk_test_has_pk, column: "fk_id", name: "fk_name", primary_key: "pk_id"
+  add_foreign_key :lessons_students, :students
 
   create_table :overloaded_types, force: true do |t|
     t.float :overloaded_float, default: 500
