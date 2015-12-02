@@ -48,7 +48,7 @@ module Rails
         end
 
         def controller_class_name
-          (controller_class_path + [controller_file_name]).map!(&:camelize).join('::')
+          class_name.pluralize
         end
 
         def controller_i18n_scope

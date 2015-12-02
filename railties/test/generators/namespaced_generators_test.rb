@@ -39,7 +39,7 @@ class NamespacedControllerGeneratorTest < NamespacedGeneratorTestCase
 
   def test_namespaced_controller_with_additional_namespace
     run_generator ["admin/account"]
-    assert_file "app/controllers/test_app/admin/account_controller.rb", /module TestApp/, /  class Admin::AccountController < ApplicationController/ do |contents|
+    assert_file "app/controllers/test_app/admin/account_controller.rb", /module TestApp/, /  module Admin/, /class AccountController < ApplicationController/ do |contents|
       assert_match %r(require_dependency "test_app/application_controller"), contents
     end
   end
@@ -99,7 +99,9 @@ class NamespacedModelGeneratorTest < NamespacedGeneratorTestCase
     assert_file "app/models/test_app/admin.rb", /module TestApp/, /module Admin/
     assert_file "app/models/test_app/admin.rb", /def self\.table_name_prefix/
     assert_file "app/models/test_app/admin.rb", /'test_app_admin_'/
-    assert_file "app/models/test_app/admin/account.rb", /module TestApp/, /class Admin::Account < ActiveRecord::Base/
+    assert_file "app/models/test_app/admin/account.rb", /module TestApp/
+    assert_file "app/models/test_app/admin/account.rb", /module Admin/
+    assert_file "app/models/test_app/admin/account.rb", /class Account < ActiveRecord::Base/
   end
 
   def test_migration
@@ -268,8 +270,12 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
 
     # Model
     assert_file "app/models/test_app/admin.rb", /module TestApp\n  module Admin/
-    assert_file "app/models/test_app/admin/role.rb", /module TestApp\n  class Admin::Role < ActiveRecord::Base/
-    assert_file "test/models/test_app/admin/role_test.rb", /module TestApp\n  class Admin::RoleTest < ActiveSupport::TestCase/
+    assert_file "app/models/test_app/admin/role.rb", /module TestApp/
+    assert_file "app/models/test_app/admin/role.rb", /module Admin/
+    assert_file "app/models/test_app/admin/role.rb", /class Role < ActiveRecord::Base/
+    assert_file "test/models/test_app/admin/role_test.rb", /module TestApp/
+    assert_file "test/models/test_app/admin/role_test.rb", /module Admin/
+    assert_file "test/models/test_app/admin/role_test.rb", /class RoleTest < ActiveSupport::TestCase/
     assert_file "test/fixtures/test_app/admin/roles.yml"
     assert_migration "db/migrate/create_test_app_admin_roles.rb"
 
@@ -280,12 +286,14 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
 
     # Controller
     assert_file "app/controllers/test_app/admin/roles_controller.rb" do |content|
-      assert_match(/module TestApp\n  class Admin::RolesController < ApplicationController/, content)
+      assert_match(/module TestApp/, content)
+      assert_match(/module Admin/, content)
+      assert_match(/class RolesController < ApplicationController/, content)
       assert_match(%r(require_dependency "test_app/application_controller"), content)
     end
 
     assert_file "test/controllers/test_app/admin/roles_controller_test.rb",
-                /module TestApp\n  class Admin::RolesControllerTest < ActionController::TestCase/
+                /module TestApp\n  module Admin\n    class RolesControllerTest < ActionController::TestCase/
 
     # Views
     %w(index edit new show _form).each do |view|
@@ -336,7 +344,7 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
 
     # Model
     assert_file "app/models/test_app/admin/user/special.rb", /module TestApp\n  module Admin/
-    assert_file "app/models/test_app/admin/user/special/role.rb", /module TestApp\n  class Admin::User::Special::Role < ActiveRecord::Base/
+    assert_file "app/models/test_app/admin/user/special/role.rb", /module TestApp\n  module Admin\n    module User\n      module Special\n        class Role < ActiveRecord::Base/
     assert_file "test/models/test_app/admin/user/special/role_test.rb", /module TestApp\n  class Admin::User::Special::RoleTest < ActiveSupport::TestCase/
     assert_file "test/fixtures/test_app/admin/user/special/roles.yml"
     assert_migration "db/migrate/create_test_app_admin_user_special_roles.rb"
@@ -402,8 +410,8 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
 
     # Model
     assert_file "app/models/test_app/admin.rb", /module TestApp\n  module Admin/
-    assert_file "app/models/test_app/admin/role.rb", /module TestApp\n  class Admin::Role < ActiveRecord::Base/
-    assert_file "test/models/test_app/admin/role_test.rb", /module TestApp\n  class Admin::RoleTest < ActiveSupport::TestCase/
+    assert_file "app/models/test_app/admin/role.rb", /module TestApp\n  module Admin\n    class Role < ActiveRecord::Base/
+    assert_file "test/models/test_app/admin/role_test.rb", /module TestApp\n  module Admin\n    class RoleTest < ActiveSupport::TestCase/
     assert_file "test/fixtures/test_app/admin/roles.yml"
     assert_migration "db/migrate/create_test_app_admin_roles.rb"
 
@@ -414,10 +422,10 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
 
     # Controller
     assert_file "app/controllers/test_app/admin/roles_controller.rb" do |content|
-      assert_match(/module TestApp\n  class Admin::RolesController < ApplicationController/, content)
+      assert_match(/module TestApp\n  module Admin\n    class RolesController < ApplicationController/, content)
       assert_match(%r(require_dependency "test_app/application_controller"), content)
     end
     assert_file "test/controllers/test_app/admin/roles_controller_test.rb",
-                /module TestApp\n  class Admin::RolesControllerTest < ActionController::TestCase/
+                /module TestApp\n  module Admin\n    class RolesControllerTest < ActionController::TestCase/
   end
 end
