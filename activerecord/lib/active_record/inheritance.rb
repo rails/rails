@@ -52,7 +52,7 @@ module ActiveRecord
 
         attrs = args.first
         if has_attribute?(inheritance_column)
-          subclass = subclass_from_attributes(attrs) || subclass_from_defaults
+          subclass = subclass_from_attributes(attrs) || subclass_from_attributes(column_defaults)
         end
 
         if subclass && subclass != self
@@ -205,12 +205,6 @@ module ActiveRecord
           if subclass_name.present?
             find_sti_class(subclass_name)
           end
-        end
-      end
-
-      def subclass_from_defaults
-        if default = columns_hash[inheritance_column].default
-          find_sti_class(default)
         end
       end
     end

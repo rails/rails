@@ -500,3 +500,27 @@ class InheritanceComputeTypeTest < ActiveRecord::TestCase
     Company.reset_column_information
   end
 end
+
+class InheritanceAttributeTest < ActiveRecord::TestCase
+
+  class Company < ActiveRecord::Base
+    self.table_name = 'companies'
+    attribute :type, :string, default: "InheritanceAttributeTest::Startup"
+  end
+
+  class Startup < Company
+  end
+
+  class Empire < Company
+  end
+
+  def test_inheritance_new_with_subclass_as_default
+    startup = Company.new # without arguments
+    assert_equal 'InheritanceAttributeTest::Startup', startup.type
+    assert_instance_of Startup, startup
+
+    empire = Company.new(type: 'InheritanceAttributeTest::Empire') # without arguments
+    assert_equal 'InheritanceAttributeTest::Empire', empire.type
+    assert_instance_of Empire, empire
+  end
+end
