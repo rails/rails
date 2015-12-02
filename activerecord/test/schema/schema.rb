@@ -356,7 +356,7 @@ ActiveRecord::Schema.define do
     t.column :key, :string
   end
 
-  create_table :guitar, force: true do |t|
+  create_table :guitars, force: true do |t|
     t.string :color
   end
 
