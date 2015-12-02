@@ -74,6 +74,14 @@ module Rails
           !options[:skip_namespace] && engine_namespace
         end
 
+        # *Not* the engine namespace, but if someone names their generated
+        # item 'Foo::Bar', this will return Foo
+        def provided_namespace
+          if class_name.include?("::")
+            class_name.deconstantize
+          end
+        end
+
         def namespace
           engine_namespace
         end

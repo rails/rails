@@ -24,6 +24,7 @@ class NamedBaseTest < Rails::Generators::TestCase
     assert_name g, 'admin/foo',  :name
     assert_name g, %w(admin),    :class_path
     assert_name g, 'Admin::Foo', :class_name
+    assert_name g, 'Admin',      :provided_namespace
     assert_name g, 'admin/foo',  :file_path
     assert_name g, 'foo',        :file_name
     assert_name g, 'Foo',        :human_name
@@ -38,6 +39,7 @@ class NamedBaseTest < Rails::Generators::TestCase
     assert_name g, 'Admin::Foo', :name
     assert_name g, %w(admin),    :class_path
     assert_name g, 'Admin::Foo', :class_name
+    assert_name g, 'Admin',      :provided_namespace
     assert_name g, 'admin/foo',  :file_path
     assert_name g, 'foo',        :file_name
     assert_name g, 'foo',        :singular_name
