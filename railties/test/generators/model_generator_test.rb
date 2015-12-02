@@ -49,11 +49,11 @@ class ModelGeneratorTest < Rails::Generators::TestCase
 
   def test_model_with_namespace
     run_generator ["admin/account"]
-    assert_file "app/models/admin.rb", /module Admin/
-    assert_file "app/models/admin.rb", /def self\.table_name_prefix/
+    assert_file "app/models/admin.rb", /module Admin\n/
+    assert_file "app/models/admin.rb", /def self\.table_name_prefix\n/
     assert_file "app/models/admin.rb", /'admin_'/
-    assert_file "app/models/admin/account.rb", /module Admin/
-    assert_file "app/models/admin/account.rb", /class Account < ActiveRecord::Base/
+    assert_file "app/models/admin/account.rb", /module Admin\n/
+    assert_file "app/models/admin/account.rb", /class Account < ActiveRecord::Base\n/
   end
 
   def test_migration

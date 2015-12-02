@@ -7,34 +7,34 @@ class NamedBaseTest < Rails::Generators::TestCase
 
   def test_named_generator_with_underscore
     g = generator ['line_item']
-    assert_name g, 'line_item',      :name
-    assert_name g, ['LineItem'],     :camelized_name_segments
-    assert_name g, %w(),             :class_path
-    assert_name g, 'LineItem',       :class_name
-    assert_name g, nil,              :provided_namespace
-    assert_name g, 'line_item',      :file_path
-    assert_name g, 'line_item',      :file_name
-    assert_name g, 'Line item',      :human_name
-    assert_name g, 'line_item',      :singular_name
-    assert_name g, 'line_items',     :plural_name
-    assert_name g, 'line_item',      :i18n_scope
-    assert_name g, 'line_items',     :table_name
+    assert_name g, 'line_item',  :name
+    assert_name g, %w(LineItem), :camelized_name_segments
+    assert_name g, %w(),         :class_path
+    assert_name g, 'LineItem',   :class_name
+    assert_name g, %w(),         :provided_namespaces
+    assert_name g, 'line_item',  :file_path
+    assert_name g, 'line_item',  :file_name
+    assert_name g, 'Line item',  :human_name
+    assert_name g, 'line_item',  :singular_name
+    assert_name g, 'line_items', :plural_name
+    assert_name g, 'line_item',  :i18n_scope
+    assert_name g, 'line_items', :table_name
   end
 
   def test_named_generator_attributes
     g = generator ['admin/foo']
-    assert_name g, 'admin/foo',      :name
-    assert_name g, ['Admin', 'Foo'], :camelized_name_segments
-    assert_name g, %w(admin),        :class_path
-    assert_name g, 'Foo',            :class_name
-    assert_name g, 'Admin',          :provided_namespace
-    assert_name g, 'admin/foo',      :file_path
-    assert_name g, 'foo',            :file_name
-    assert_name g, 'Foo',            :human_name
-    assert_name g, 'foo',            :singular_name
-    assert_name g, 'foos',           :plural_name
-    assert_name g, 'admin.foo',      :i18n_scope
-    assert_name g, 'admin_foos',     :table_name
+    assert_name g, 'admin/foo',   :name
+    assert_name g, %w(Admin Foo), :camelized_name_segments
+    assert_name g, %w(admin),     :class_path
+    assert_name g, 'Foo',         :class_name
+    assert_name g, %w(Admin),     :provided_namespaces
+    assert_name g, 'admin/foo',   :file_path
+    assert_name g, 'foo',         :file_name
+    assert_name g, 'Foo',         :human_name
+    assert_name g, 'foo',         :singular_name
+    assert_name g, 'foos',        :plural_name
+    assert_name g, 'admin.foo',   :i18n_scope
+    assert_name g, 'admin_foos',  :table_name
   end
 
   def test_named_generator_attributes_as_ruby
@@ -43,7 +43,7 @@ class NamedBaseTest < Rails::Generators::TestCase
     assert_name g, ['Admin', 'Foo'], :camelized_name_segments
     assert_name g, %w(admin),        :class_path
     assert_name g, 'Foo',            :class_name
-    assert_name g, 'Admin',          :provided_namespace
+    assert_name g, %w(Admin),        :provided_namespaces
     assert_name g, 'admin/foo',      :file_path
     assert_name g, 'foo',            :file_name
     assert_name g, 'foo',            :singular_name
@@ -65,19 +65,19 @@ class NamedBaseTest < Rails::Generators::TestCase
 
   def test_scaffold_plural_names
     g = generator ['admin/foo']
-    assert_name g, 'admin/foos',  :controller_name
-    assert_name g, 'Admin',       :provided_namespace
-    assert_name g, %w(admin),     :controller_class_path
-    assert_name g, 'Foos',        :controller_class_name
-    assert_name g, 'admin/foos',  :controller_file_path
-    assert_name g, 'foos',        :controller_file_name
-    assert_name g, 'admin.foos',  :controller_i18n_scope
+    assert_name g, 'admin/foos', :controller_name
+    assert_name g, %w(Admin),    :provided_namespaces
+    assert_name g, %w(admin),    :controller_class_path
+    assert_name g, 'Foos',       :controller_class_name
+    assert_name g, 'admin/foos', :controller_file_path
+    assert_name g, 'foos',       :controller_file_name
+    assert_name g, 'admin.foos', :controller_i18n_scope
   end
 
   def test_scaffold_plural_names_as_ruby
     g = generator ['Admin::Foo']
     assert_name g, 'Admin::Foos', :controller_name
-    assert_name g, 'Admin',       :provided_namespace
+    assert_name g, %w(Admin),     :provided_namespaces
     assert_name g, %w(admin),     :controller_class_path
     assert_name g, 'Foos',        :controller_class_name
     assert_name g, 'admin/foos',  :controller_file_path
@@ -132,7 +132,7 @@ class NamedBaseTest < Rails::Generators::TestCase
     assert_name g, 'user',        :i18n_scope
     assert_name g, 'users',       :table_name
     assert_name g, 'Admin::Foos', :controller_name
-    assert_name g, nil,           :provided_namespace # since it'd be for model
+    assert_name g, %w(),          :provided_namespaces # since it'd be for model
     assert_name g, %w(admin),     :controller_class_path
     assert_name g, 'Foos',        :controller_class_name
     assert_name g, 'admin/foos',  :controller_file_path

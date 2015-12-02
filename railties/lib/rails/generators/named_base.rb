@@ -41,8 +41,9 @@ module Rails
         # if namespace exists and is not skipped
         def module_namespacing(&block)
           content = capture(&block)
-          content = wrap_with_namespace(provided_namespace, content) if provided_namespace
-          content = wrap_with_namespace(engine_namespace.name, content) if engine_namespaced?
+          namespaces.reverse.each do |namespace|
+            content = wrap_with_namespace(namespace, content)
+          end
           concat(content)
         end
 
@@ -67,6 +68,14 @@ module Rails
           @inside_template
         end
 
+        def namespaces
+          if engine_namespaced?
+            namespaces = ([engine_namespace.name] + [provided_namespaces]).flatten
+          else
+            namespaces = provided_namespaces
+          end
+        end
+
         def engine_namespace
           Rails::Generators.namespace
         end
@@ -77,10 +86,8 @@ module Rails
 
         # *Not* the engine namespace, but if someone names their generated
         # item 'Foo::Bar', this will return Foo
-        def provided_namespace
-          if camelized_name_segments.length > 1
-            camelized_name_segments.first
-          end
+        def provided_namespaces
+          camelized_name_segments[0...-1]
         end
 
         def namespace

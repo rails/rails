@@ -344,8 +344,17 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
 
     # Model
     assert_file "app/models/test_app/admin/user/special.rb", /module TestApp\n  module Admin/
-    assert_file "app/models/test_app/admin/user/special/role.rb", /module TestApp\n  module Admin\n    module User\n      module Special\n        class Role < ActiveRecord::Base/
-    assert_file "test/models/test_app/admin/user/special/role_test.rb", /module TestApp\n  class Admin::User::Special::RoleTest < ActiveSupport::TestCase/
+    assert_file "app/models/test_app/admin/user/special/role.rb", /module TestApp\n/
+    assert_file "app/models/test_app/admin/user/special/role.rb", /  module Admin\n/
+    assert_file "app/models/test_app/admin/user/special/role.rb", /    module User\n/
+    assert_file "app/models/test_app/admin/user/special/role.rb", /      module Special\n/
+    assert_file "app/models/test_app/admin/user/special/role.rb", /        class Role < ActiveRecord::Base\n/
+
+    assert_file "test/models/test_app/admin/user/special/role_test.rb", /module TestApp\n/
+    assert_file "test/models/test_app/admin/user/special/role_test.rb", /  module Admin\n/
+    assert_file "test/models/test_app/admin/user/special/role_test.rb", /    module User\n/
+    assert_file "test/models/test_app/admin/user/special/role_test.rb", /      module Special\n/
+    assert_file "test/models/test_app/admin/user/special/role_test.rb", /        class RoleTest < ActiveSupport::TestCase/
     assert_file "test/fixtures/test_app/admin/user/special/roles.yml"
     assert_migration "db/migrate/create_test_app_admin_user_special_roles.rb"
 
@@ -356,11 +365,20 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
 
     # Controller
     assert_file "app/controllers/test_app/admin/user/special/roles_controller.rb" do |content|
-      assert_match(/module TestApp\n  class Admin::User::Special::RolesController < ApplicationController/, content)
+      assert_match(/module TestApp\n/, content)
+      assert_match(/  module Admin\n/, content)
+      assert_match(/    module User\n/, content)
+      assert_match(/      module Special\n/, content)
+      assert_match(/        class RolesController < ApplicationController\n/, content)
     end
 
-    assert_file "test/controllers/test_app/admin/user/special/roles_controller_test.rb",
-                /module TestApp\n  class Admin::User::Special::RolesControllerTest < ActionController::TestCase/
+    assert_file "test/controllers/test_app/admin/user/special/roles_controller_test.rb" do |content|
+      assert_match(/module TestApp\n/, content)
+      assert_match(/  module Admin\n/, content)
+      assert_match(/    module User\n/, content)
+      assert_match(/      module Special\n/, content)
+      assert_match(/        class RolesControllerTest < ActionController::TestCase\n/, content)
+    end
 
     # Views
     %w(index edit new show _form).each do |view|
