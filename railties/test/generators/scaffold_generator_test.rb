@@ -205,8 +205,10 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
     # Model
     assert_file "app/models/admin.rb", /module Admin/
-    assert_file "app/models/admin/role.rb", /class Admin::Role < ActiveRecord::Base/
-    assert_file "test/models/admin/role_test.rb", /class Admin::RoleTest < ActiveSupport::TestCase/
+    assert_file "app/models/admin/role.rb", /module Admin\n/
+    assert_file "app/models/admin/role.rb", /  class Role < ActiveRecord::Base\n/
+    assert_file "test/models/admin/role_test.rb", /module Admin\n/
+    assert_file "test/models/admin/role_test.rb", /  class RoleTest < ActiveSupport::TestCase\n/
     assert_file "test/fixtures/admin/roles.yml"
     assert_migration "db/migrate/create_admin_roles.rb"
 
@@ -217,22 +219,23 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
     # Controller
     assert_file "app/controllers/admin/roles_controller.rb" do |content|
-      assert_match(/class Admin::RolesController < ApplicationController/, content)
+      assert_match(/module Admin\n/, content)
+      assert_match(/  class RolesController < ApplicationController\n/, content)
 
       assert_instance_method :index, content do |m|
-        assert_match(/@admin_roles = Admin::Role\.all/, m)
+        assert_match(/@admin_roles = Role\.all/, m)
       end
 
       assert_instance_method :show, content
 
       assert_instance_method :new, content do |m|
-        assert_match(/@admin_role = Admin::Role\.new/, m)
+        assert_match(/@admin_role = Role\.new/, m)
       end
 
       assert_instance_method :edit, content
 
       assert_instance_method :create, content do |m|
-        assert_match(/@admin_role = Admin::Role\.new\(admin_role_params\)/, m)
+        assert_match(/@admin_role = Role\.new\(admin_role_params\)/, m)
         assert_match(/@admin_role\.save/, m)
       end
 
@@ -245,12 +248,13 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
       end
 
       assert_instance_method :set_admin_role, content do |m|
-        assert_match(/@admin_role = Admin::Role\.find\(params\[:id\]\)/, m)
+        assert_match(/@admin_role = Role\.find\(params\[:id\]\)/, m)
       end
     end
 
     assert_file "test/controllers/admin/roles_controller_test.rb",
-                /class Admin::RolesControllerTest < ActionController::TestCase/
+                /module Admin\n/,
+                /  class RolesControllerTest < ActionController::TestCase\n/
 
     # Views
     %w(index edit new show _form).each do |view|
