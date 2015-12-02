@@ -169,6 +169,8 @@ class LoadingTest < ActiveSupport::TestCase
       config.file_watcher = Class.new do
         def initialize(*); end
         def updated?; false; end
+        def execute; end
+        def execute_if_updated; false; end
       end
     RUBY
 
