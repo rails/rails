@@ -1,3 +1,14 @@
+*   Regression bug for selecting from a table using the same table in a where clause via
+    a belongs_to relation.
+
+    E.g.: `Group.where(item: Groups.all.select(:item_id))`
+
+    Worked properly in 4.1.8 and 4.2.0
+
+    Fixes #20602
+
+    *Tim Breitkreutz*
+
 *   Fix `rake db:structure:dump` on Postgres when multiple schemas are used.
 
     Fixes #22346.
