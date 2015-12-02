@@ -55,6 +55,8 @@ module ActiveRecord
           subclass = subclass_from_attributes(attrs)
         end
 
+        subclass ||= subclass_from_defaults
+
         if subclass && subclass != self
           subclass.new(*args, &block)
         else
@@ -199,6 +201,16 @@ module ActiveRecord
       # this will ignore the inheritance column and return nil
       def subclass_from_attributes?(attrs)
         attribute_names.include?(inheritance_column) && (attrs.is_a?(Hash) || attrs.respond_to?(:permitted?))
+      end
+
+      def subclass_from_defaults?
+        attribute_names.include?(inheritance_column) && columns_hash[inheritance_column].try(:default)
+      end
+
+      def subclass_from_defaults
+        if subclass_from_defaults?
+          find_sti_class(columns_hash[inheritance_column].default)
+        end
       end
 
       def subclass_from_attributes(attrs)

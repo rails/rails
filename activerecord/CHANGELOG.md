@@ -1,3 +1,13 @@
+*   Use the default inheritance `:type` when instantiating a new object.
+
+    Example:
+
+        # In the schema, BaseModel specifies 'SubType' as the default `:type` value
+        subtype = BaseModel.new
+        assert_equals SubType, subtype.class
+
+    *Kuldeep Aggarwal*
+
 *   Fix `rake db:structure:dump` on Postgres when multiple schemas are used.
 
     Fixes #22346.
