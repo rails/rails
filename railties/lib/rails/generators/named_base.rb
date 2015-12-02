@@ -41,7 +41,7 @@ module Rails
         # if namespace exists and is not skipped
         def module_namespacing(&block)
           content = capture(&block)
-          content = wrap_with_namespace(content) if namespaced?
+          content = wrap_with_namespace(content) if engine_namespaced?
           concat(content)
         end
 
@@ -52,7 +52,7 @@ module Rails
 
         def wrap_with_namespace(content)
           content = indent(content).chomp
-          "module #{namespace.name}\n#{content}\nend\n"
+          "module #{engine_namespace.name}\n#{content}\nend\n"
         end
 
         def inside_template
@@ -66,12 +66,20 @@ module Rails
           @inside_template
         end
 
-        def namespace
+        def engine_namespace
           Rails::Generators.namespace
         end
 
+        def engine_namespaced?
+          !options[:skip_namespace] && engine_namespace
+        end
+
+        def namespace
+          engine_namespace
+        end
+
         def namespaced?
-          !options[:skip_namespace] && namespace
+          engine_namespaced?
         end
 
         def file_path
@@ -184,7 +192,7 @@ module Rails
         end
 
         def mountable_engine?
-          defined?(ENGINE_ROOT) && namespaced?
+          defined?(ENGINE_ROOT) && engine_namespaced?
         end
 
         # Add a class collisions name to be checked on class initialization. You
