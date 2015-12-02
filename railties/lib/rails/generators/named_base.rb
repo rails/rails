@@ -87,7 +87,11 @@ module Rails
         end
 
         def class_path
-          inside_template? || !namespaced? ? regular_class_path : namespaced_class_path
+          if inside_template? || !namespaced?
+            regular_class_path
+          else
+            namespaced_class_path
+          end
         end
 
         def regular_class_path
