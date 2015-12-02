@@ -48,7 +48,7 @@ module Rails
         end
 
         def controller_class_name
-          class_name.pluralize
+          @controller_file_name.camelize
         end
 
         def controller_i18n_scope

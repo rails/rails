@@ -66,8 +66,9 @@ class NamedBaseTest < Rails::Generators::TestCase
   def test_scaffold_plural_names
     g = generator ['admin/foo']
     assert_name g, 'admin/foos',  :controller_name
+    assert_name g, 'Admin',       :provided_namespace
     assert_name g, %w(admin),     :controller_class_path
-    assert_name g, 'Admin::Foos', :controller_class_name
+    assert_name g, 'Foos',        :controller_class_name
     assert_name g, 'admin/foos',  :controller_file_path
     assert_name g, 'foos',        :controller_file_name
     assert_name g, 'admin.foos',  :controller_i18n_scope
@@ -76,8 +77,9 @@ class NamedBaseTest < Rails::Generators::TestCase
   def test_scaffold_plural_names_as_ruby
     g = generator ['Admin::Foo']
     assert_name g, 'Admin::Foos', :controller_name
+    assert_name g, 'Admin',       :provided_namespace
     assert_name g, %w(admin),     :controller_class_path
-    assert_name g, 'Admin::Foos', :controller_class_name
+    assert_name g, 'Foos',        :controller_class_name
     assert_name g, 'admin/foos',  :controller_file_path
     assert_name g, 'foos',        :controller_file_name
     assert_name g, 'admin.foos',  :controller_i18n_scope
@@ -130,8 +132,9 @@ class NamedBaseTest < Rails::Generators::TestCase
     assert_name g, 'user',        :i18n_scope
     assert_name g, 'users',       :table_name
     assert_name g, 'Admin::Foos', :controller_name
+    assert_name g, nil,           :provided_namespace # since it'd be for model
     assert_name g, %w(admin),     :controller_class_path
-    assert_name g, 'Admin::Foos', :controller_class_name
+    assert_name g, 'Foos',        :controller_class_name
     assert_name g, 'admin/foos',  :controller_file_path
     assert_name g, 'foos',        :controller_file_name
     assert_name g, 'admin.foos',  :controller_i18n_scope
