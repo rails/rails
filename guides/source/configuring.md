@@ -1142,13 +1142,13 @@ You can also use `Rails::Application.config_for` to load whole configuration fil
   # config/application.rb
   module MyApp
     class Application < Rails::Application
-      config.payment = Rails.application.config_for(:payment)
+      config.payment = config_for(:payment)
     end
   end
   ```
 
   ```ruby
-  Rails.configuration.payment.merchant_id # => production_merchant_id or development_merchant_id
+  Rails.configuration.payment['merchant_id'] # => production_merchant_id or development_merchant_id
   ```
 
 Search Engines Indexing
