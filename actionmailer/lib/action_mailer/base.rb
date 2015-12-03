@@ -541,8 +541,8 @@ module ActionMailer
         end
       end
 
-      def respond_to?(method, include_private = false) #:nodoc:
-        super || action_methods.include?(method.to_s)
+      def respond_to_missing?(method, include_private = false) #:nodoc:
+        action_methods.include?(method.to_s)
       end
 
     protected
