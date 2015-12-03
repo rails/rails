@@ -278,18 +278,18 @@ module ActiveSupport
           options = merged_options(options)
           key = normalize_key(name, options)
 
+          entry = nil
           instrument(:read, name, options) do |payload|
             cached_entry = read_entry(key, options) unless options[:force]
-            payload[:super_operation] = :fetch if payload
             entry = handle_expired_entry(cached_entry, key, options)
+            payload[:super_operation] = :fetch if payload
+            payload[:hit] = !!entry if payload
+          end
 
-            if entry
-              payload[:hit] = true if payload
-              get_entry_value(entry, name, options)
-            else
-              payload[:hit] = false if payload
-              save_block_result_to_cache(name, options) { |_name| yield _name }
-            end
+          if entry
+            get_entry_value(entry, name, options)
+          else
+            save_block_result_to_cache(name, options) { |_name| yield _name }
           end
         else
           read(name, options)
