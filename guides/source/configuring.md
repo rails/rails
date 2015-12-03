@@ -1062,11 +1062,11 @@ You can also use Rails::Application.config_for to load whole configuration files
   # config/application.rb
   module MyApp
     class Application < Rails::Application
-      config.x.payment = Rails.application.config_for(:payment)
+      config.x.payment = config_for(:payment)
     end
   end
   ```
 
   ```ruby
-  Rails.configuration.x.payment.merchant_id # => production_merchant_id or development_merchant_id
+  Rails.configuration.x.payment['merchant_id'] # => production_merchant_id or development_merchant_id
   ```
