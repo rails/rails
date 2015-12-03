@@ -111,7 +111,7 @@ module ActionDispatch
         format = content_type
       else
         formatted_body = body.to_json
-        format = Mime::JSON
+        format = Mime[:json]
       end
 
       render(wrapper.status_code, formatted_body, format)
