@@ -50,7 +50,7 @@ module ActionDispatch
       end
 
       module Response
-        attr_reader :cache_control
+        attr_accessor :cache_control
 
         def last_modified
           if last = get_header(LAST_MODIFIED)

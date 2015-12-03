@@ -78,12 +78,12 @@ module ActionDispatch # :nodoc:
     cattr_accessor(:default_headers)
 
     include Rack::Response::Helpers
+    include ActionDispatch::Http::Cache::Response
     # Aliasing these off because AD::Http::Cache::Response defines them
     alias :_cache_control :cache_control
     alias :_cache_control= :cache_control=
 
     include ActionDispatch::Http::FilterRedirect
-    include ActionDispatch::Http::Cache::Response
     include MonitorMixin
 
     class Buffer # :nodoc:
