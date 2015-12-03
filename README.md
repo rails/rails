@@ -162,7 +162,7 @@ $(document).on 'click', '[data-behavior~=appear_away]', ->
 ```
 
 Simply calling `App.cable.subscriptions.create` will setup the subscription, which will call `AppearanceChannel#subscribed`,
-which in turn is linked to original `App.consumer` -> `ApplicationCable::Connection` instances.
+which in turn is linked to original `App.cable` -> `ApplicationCable::Connection` instances.
 
 We then link `App.appearance#appear` to `AppearanceChannel#appear(data)`. This is possible because the server-side
 channel instance will automatically expose the public methods declared on the class (minus the callbacks), so that these
