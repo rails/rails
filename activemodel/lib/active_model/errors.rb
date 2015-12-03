@@ -81,6 +81,18 @@ module ActiveModel
       super
     end
 
+    # Copies the errors from <tt>other</tt>.
+    #
+    # other - The ActiveModel::Errors instance.
+    #
+    # Examples
+    #
+    #   person.errors.copy!(other)
+    def copy!(other) # :nodoc:
+      @messages = other.messages.dup
+      @details  = other.details.dup
+    end
+
     # Clear the error messages.
     #
     #   person.errors.full_messages # => ["name cannot be nil"]

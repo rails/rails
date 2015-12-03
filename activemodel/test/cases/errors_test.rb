@@ -410,4 +410,14 @@ class ErrorsTest < ActiveModel::TestCase
     person.errors.clear
     assert person.errors.details.empty?
   end
+
+  test "copy errors" do
+    errors = ActiveModel::Errors.new(Person.new)
+    errors.add(:name, :invalid)
+    person = Person.new
+    person.errors.copy!(errors)
+
+    assert_equal [:name], person.errors.messages.keys
+    assert_equal [:name], person.errors.details.keys
+  end
 end
