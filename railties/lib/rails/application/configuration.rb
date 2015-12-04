@@ -16,7 +16,7 @@ module Rails
                     :railties_order, :relative_url_root, :secret_key_base, :secret_token,
                     :ssl_options, :public_file_server,
                     :session_options, :time_zone, :reload_classes_only_on_change,
-                    :beginning_of_week, :filter_redirect, :debug_exception_response_format, :x
+                    :beginning_of_week, :filter_redirect, :x
 
       attr_writer :log_level
       attr_reader :encoding, :api_only, :static_cache_control
@@ -52,7 +52,7 @@ module Rails
         @secret_token                    = nil
         @secret_key_base                 = nil
         @api_only                        = false
-        @debug_exception_response_format = :default
+        @debug_exception_response_format = nil
         @x                               = Custom.new
       end
 
@@ -96,6 +96,16 @@ module Rails
       def api_only=(value)
         @api_only = value
         generators.api_only = value
+
+        @debug_exception_response_format ||= :api
+      end
+
+      def debug_exception_response_format
+        @debug_exception_response_format || :default
+      end
+
+      def debug_exception_response_format=(value)
+        @debug_exception_response_format = value
       end
 
       def paths
