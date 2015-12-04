@@ -387,7 +387,6 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     run_generator
     assert_file "bukkits.gemspec", /s.name\s+= "bukkits"/
     assert_file "bukkits.gemspec", /s.files = Dir\["\{app,config,db,lib\}\/\*\*\/\*", "MIT-LICENSE", "Rakefile", "README\.rdoc"\]/
-    assert_file "bukkits.gemspec", /s.test_files = Dir\["test\/\*\*\/\*"\]/
     assert_file "bukkits.gemspec", /s.version\s+ = Bukkits::VERSION/
   end
 
@@ -461,9 +460,6 @@ class PluginGeneratorTest < Rails::Generators::TestCase
   def test_skipping_test_files
     run_generator [destination_root, "--skip-test"]
     assert_no_file "test"
-    assert_file "bukkits.gemspec" do |contents|
-      assert_no_match(/s.test_files = Dir\["test\/\*\*\/\*"\]/, contents)
-    end
     assert_file '.gitignore' do |contents|
       assert_no_match(/test\dummy/, contents)
     end
