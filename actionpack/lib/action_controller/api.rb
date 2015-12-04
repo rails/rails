@@ -137,9 +137,7 @@ module ActionController
       ParamsWrapper
     ]
 
-    MODULES.each do |mod|
-      include mod
-    end
+    include *MODULES
 
     ActiveSupport.run_load_hooks(:action_controller, self)
   end

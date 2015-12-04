@@ -245,9 +245,7 @@ module ActionController
       ParamsWrapper
     ]
 
-    MODULES.each do |mod|
-      include mod
-    end
+    include *MODULES
     setup_renderer!
 
     # Define some internal variables that should not be propagated to the view.
