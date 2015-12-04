@@ -564,7 +564,9 @@ module ActiveSupport #:nodoc:
         end
       end
 
-      return if before_raise_uninitialized_constant(qualified_name)
+      activated_name = before_raise_uninitialized_constant(qualified_name)
+      return  activated_name if activated_name.present?
+
       name_error = NameError.new("uninitialized constant #{qualified_name}", const_name)
       name_error.set_backtrace(caller.reject {|l| l.starts_with? __FILE__ })
       raise name_error
@@ -572,6 +574,7 @@ module ActiveSupport #:nodoc:
     def before_raise_uninitialized_constant(qualified_name)
       #Hook for custom logic for loading classes
       #Method should return true to avoid raising errors
+      return false
     end
 
     # Remove the constants that have been autoloaded, and those that have been
