@@ -61,7 +61,7 @@ module ApplicationTests
       test 'db:create failure because database exists' do
         with_database_existing do
           output = `bin/rake db:create 2>&1`
-          assert_match /already exists/, output
+          assert_match(/already exists/, output)
           assert_equal 0, $?.exitstatus
         end
       end
@@ -78,7 +78,7 @@ module ApplicationTests
       test 'db:create failure because bad permissions' do
         with_bad_permissions do
           output = `bin/rake db:create 2>&1`
-          assert_match /Couldn't create database/, output
+          assert_match(/Couldn't create database/, output)
           assert_equal 1, $?.exitstatus
         end
       end
@@ -86,7 +86,7 @@ module ApplicationTests
       test 'db:drop failure because database does not exist' do
         Dir.chdir(app_path) do
           output = `bin/rake db:drop 2>&1`
-          assert_match /does not exist/, output
+          assert_match(/does not exist/, output)
           assert_equal 0, $?.exitstatus
         end
       end
@@ -95,7 +95,7 @@ module ApplicationTests
         with_database_existing do
           with_bad_permissions do
             output = `bin/rake db:drop 2>&1`
-            assert_match /Couldn't drop/, output
+            assert_match(/Couldn't drop/, output)
             assert_equal 1, $?.exitstatus
           end
         end
