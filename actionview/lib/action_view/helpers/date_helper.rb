@@ -180,6 +180,21 @@ module ActionView
 
       alias_method :distance_of_time_in_words_to_now, :time_ago_in_words
 
+      # Reports an ActiveSupport::Duration in words.
+      #
+      #   duration_in_words(3.minutes)                    # => 3 minutes
+      #   duration_in_words(15.hours)                     # => about 15 hours
+      #   duration_in_words(1.second)                     # => less than a minute
+      #   duration_in_words(1.year - 10.days - 5.hours)   # => 12 months
+      #
+      # Note that you have to pass an ActiveSupport::Duration
+      #
+      def duration_in_words(duration, options = {})
+        distance_of_time_in_words(duration.ago, Time.now, options)
+      end
+
+      alias_method :duration_of_time_in_words, :duration_in_words
+
       # Returns a set of select tags (one for year, month, and day) pre-selected for accessing a specified date-based
       # attribute (identified by +method+) on an object assigned to the template (identified by +object+).
       #
