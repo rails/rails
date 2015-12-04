@@ -1079,6 +1079,8 @@ Below is a comprehensive list of all the initializers found in Rails in the orde
 
 * `disable_dependency_loading` Disables the automatic dependency loading if the `config.eager_load` is set to true.
 
+* `ActionMailer::Base.delivery_job_class` Customize the base class used for ActiveJob-powered ActionMailer deliveries.
+
 Database pooling
 ----------------
 
