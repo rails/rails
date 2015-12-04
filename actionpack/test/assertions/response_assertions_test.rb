@@ -6,7 +6,12 @@ module ActionDispatch
     class ResponseAssertionsTest < ActiveSupport::TestCase
       include ResponseAssertions
 
-      FakeResponse = Struct.new(:response_code) do
+      FakeResponse = Struct.new(:response_code, :location) do
+        def initialize(*)
+          super
+          self.location ||= "http://test.example.com/posts"
+        end
+
         [:successful, :not_found, :redirection, :server_error].each do |sym|
           define_method("#{sym}?") do
             sym == response_code
@@ -57,6 +62,16 @@ module ActionDispatch
         assert_raises(ArgumentError) {
           assert_response :succezz
         }
+      end
+
+      def test_message_when_response_is_redirect_but_asserted_for_status_other_than_redirect
+        @response = FakeResponse.new :redirection, "http://test.host/posts/redirect/1"
+        error = assert_raises(Minitest::Assertion) do
+          assert_response :success
+        end
+
+        expected = "Expected response to be a <success>, but was a redirect to <http://test.host/posts/redirect/1>."
+        assert_match expected, error.message
       end
     end
   end
