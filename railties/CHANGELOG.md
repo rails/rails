@@ -1,3 +1,10 @@
+*   Add Command infrastructure to replace rake.
+
+    Also move `rake dev:cache` to new infrastructure. You'll need to use
+    `rails dev:cache` to toggle development caching from now on.
+
+    *Chuck Callebs*
+
 *   Allow use of minitest-rails gem with Rails test runner.
 
     Fixes #22455.

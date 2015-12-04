@@ -32,11 +32,15 @@ EOT
 
     def initialize(argv)
       @argv = argv
+      @rails_command = Rails::Commands::Command.new(argv)
     end
 
     def run_command!(command)
       command = parse_command(command)
-      if COMMAND_WHITELIST.include?(command)
+
+      if @rails_command.exists?(command)
+        @rails_command.run(command)
+      elsif COMMAND_WHITELIST.include?(command)
         send(command)
       else
         write_error_message(command)
