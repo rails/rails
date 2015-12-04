@@ -182,11 +182,7 @@ module Rails
 
       private
         def file_update_checker
-          if defined?(Listen) && Listen::Adapter.select() != Listen::Adapter::Polling
-            ActiveSupport::FileEventedUpdateChecker
-          else
-            ActiveSupport::FileUpdateChecker
-          end
+          ActiveSupport::FileUpdateChecker
         end
 
         class Custom #:nodoc:
