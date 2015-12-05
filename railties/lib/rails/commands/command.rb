@@ -3,7 +3,7 @@ module Rails
     class Command
       attr_reader :argv
 
-      def initialize(argv = '')
+      def initialize(argv = [])
         @argv = argv
 
         @option_parser = build_option_parser
