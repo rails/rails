@@ -172,12 +172,17 @@ module ActionCable
         def allow_request_origin?
           return true if server.config.disable_request_forgery_protection
 
-          if Array(server.config.allowed_request_origins).include? env['HTTP_ORIGIN']
+          if Array(server.config.allowed_request_origins).any? { |allowed_origin|  allowed_origin === env['HTTP_ORIGIN'] }
             true
           else
             logger.error("Request origin not allowed: #{env['HTTP_ORIGIN']}")
             false
           end
+        end
+
+        def allowed_origins_match? origin
+          allowed_origins = Array(server.config.allowed_request_origins)
+          allowed_origins.any? { |allowed_origin| allowed_origin.is_a?(Regexp) ? allowed_origin =~ origin : allowed_origin == origin }
         end
 
         def respond_to_successful_request
