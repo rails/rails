@@ -535,6 +535,10 @@ module ActiveRecord
       attr_accessor :delegate # :nodoc:
       attr_accessor :disable_ddl_transaction # :nodoc:
 
+      def nearest_delegate # :nodoc:
+        delegate || superclass.nearest_delegate
+      end
+
       # Raises <tt>ActiveRecord::PendingMigrationError</tt> error if any migrations are pending.
       def check_pending!(connection = Base.connection)
         raise ActiveRecord::PendingMigrationError if ActiveRecord::Migrator.needs_migration?(connection)
@@ -561,7 +565,7 @@ module ActiveRecord
       end
 
       def method_missing(name, *args, &block) # :nodoc:
-        (delegate || superclass.delegate).send(name, *args, &block)
+        nearest_delegate.send(name, *args, &block)
       end
 
       def migrate(direction)
