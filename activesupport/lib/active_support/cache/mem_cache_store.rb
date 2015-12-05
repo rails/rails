@@ -36,13 +36,13 @@ module ActiveSupport
         end
 
         def write_entry(key, entry, options) # :nodoc:
-          retval = super
-          if options[:raw] && local_cache && retval
+          if options[:raw] && local_cache
             raw_entry = Entry.new(entry.value.to_s)
             raw_entry.expires_at = entry.expires_at
-            local_cache.write_entry(key, raw_entry, options)
+            super(key, raw_entry, options)
+          else
+            super
           end
-          retval
         end
       end
 
