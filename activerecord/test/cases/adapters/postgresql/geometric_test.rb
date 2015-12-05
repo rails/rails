@@ -262,7 +262,9 @@ class PostgreSQLGeometricLineTest < ActiveRecord::PostgreSQLTestCase
   end
 
   teardown do
-    @connection.drop_table 'postgresql_lines', if_exists: true
+    if defined?(@connection)
+      @connection.drop_table 'postgresql_lines', if_exists: true
+    end
   end
 
   def test_geometric_line_type
