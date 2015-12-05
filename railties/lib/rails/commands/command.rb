@@ -41,7 +41,7 @@ module Rails
         @@command_options = {}
 
         def parse_options_for(command_name)
-          @@command_options.fetch(command_name, -> {}).call(@option_parser, @options)
+          @@command_options.fetch(command_name, proc {}).call(@option_parser, @options)
         end
 
         def build_option_parser
