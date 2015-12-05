@@ -27,10 +27,6 @@ module Rails
         @@command_options[command_name] = options_to_parse
       end
 
-      def self.command_name_for(task_name)
-        task_name.gsub(':', '_').to_sym
-      end
-
       def self.set_banner(command_name, banner)
         options_for(command_name) { |opts, _| opts.banner = banner }
       end
@@ -59,6 +55,10 @@ module Rails
 
         def self.inherited(command)
           @@commands << command
+        end
+
+        def self.command_name_for(task_name)
+          task_name.gsub(':', '_').to_sym
         end
 
         def command_for(command_name)
