@@ -63,14 +63,11 @@ module Rails
 
         def command_for(command_name)
           klass = @@commands.find do |command|
-            command_instance_methods = command.public_instance_methods
-            command_instance_methods.include?(command_name)
+            command.public_instance_methods.include?(command_name)
           end
 
           if klass
             klass.new(@argv)
-          else
-            nil
           end
         end
     end
