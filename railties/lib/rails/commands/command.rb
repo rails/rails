@@ -31,7 +31,7 @@ module Rails
         options_for(command_name) { |opts, _| opts.banner = banner }
       end
 
-      def exists?(task_name)
+      def exists?(task_name) # :nodoc:
         command_name = self.class.command_name_for(task_name)
         !command_for(command_name).nil?
       end
