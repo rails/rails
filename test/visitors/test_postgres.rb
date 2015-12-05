@@ -58,6 +58,13 @@ module Arel
           }
         end
 
+        it "should know how to visit case sensitive" do
+          node = @table[:name].matches('foo%', nil, true)
+          compile(node).must_be_like %{
+            "users"."name" LIKE 'foo%'
+          }
+        end
+
         it "can handle ESCAPE" do
           node = @table[:name].matches('foo!%', '!')
           compile(node).must_be_like %{
@@ -79,6 +86,13 @@ module Arel
           node = @table[:name].does_not_match('foo%')
           compile(node).must_be_like %{
             "users"."name" NOT ILIKE 'foo%'
+          }
+        end
+
+        it "should know how to visit case sensitive" do
+          node = @table[:name].does_not_match('foo%', nil, true)
+          compile(node).must_be_like %{
+            "users"."name" NOT LIKE 'foo%'
           }
         end
 

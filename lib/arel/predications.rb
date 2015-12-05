@@ -118,20 +118,20 @@ Passing a range to `#not_in` is deprecated. Call `#not_between`, instead.
       grouping_all :not_in, others
     end
 
-    def matches other, escape = nil
-      Nodes::Matches.new self, quoted_node(other), escape
+    def matches other, escape = nil, case_sensitive = false
+      Nodes::Matches.new self, quoted_node(other), escape, case_sensitive
     end
 
-    def matches_any others, escape = nil
-      grouping_any :matches, others, escape
+    def matches_any others, escape = nil, case_sensitive = false
+      grouping_any :matches, others, escape, case_sensitive
     end
 
-    def matches_all others, escape = nil
-      grouping_all :matches, others, escape
+    def matches_all others, escape = nil, case_sensitive = false
+      grouping_all :matches, others, escape, case_sensitive
     end
 
-    def does_not_match other, escape = nil
-      Nodes::DoesNotMatch.new self, quoted_node(other), escape
+    def does_not_match other, escape = nil, case_sensitive = false
+      Nodes::DoesNotMatch.new self, quoted_node(other), escape, case_sensitive
     end
 
     def does_not_match_any others, escape = nil
