@@ -16,8 +16,8 @@ module Rails
         parse_options_for(command_name)
         @option_parser.parse! @argv
 
-        if command_instance = command_for(command_name)
-          command_instance.public_send(command_name)
+        if command = command_for(command_name)
+          command.public_send(command_name)
         else
           puts @option_parser
         end
