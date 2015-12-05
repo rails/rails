@@ -132,12 +132,12 @@ class MigrationTest < ActiveRecord::TestCase
   end
 
   def test_migration_instance_has_connection
-    migration = Class.new(ActiveRecord::Migration).new
+    migration = Class.new(ActiveRecord::Migration::Current).new
     assert_equal ActiveRecord::Base.connection, migration.connection
   end
 
   def test_method_missing_delegates_to_connection
-    migration = Class.new(ActiveRecord::Migration) {
+    migration = Class.new(ActiveRecord::Migration::Current) {
       def connection
         Class.new {
           def create_table; "hi mom!"; end
@@ -226,7 +226,7 @@ class MigrationTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::StatementInvalid) { Reminder.first }
   end
 
-  class MockMigration < ActiveRecord::Migration
+  class MockMigration < ActiveRecord::Migration::Current
     attr_reader :went_up, :went_down
     def initialize
       @went_up   = false
@@ -268,7 +268,7 @@ class MigrationTest < ActiveRecord::TestCase
     def test_migrator_one_up_with_exception_and_rollback
       assert_no_column Person, :last_name
 
-      migration = Class.new(ActiveRecord::Migration) {
+      migration = Class.new(ActiveRecord::Migration::Current) {
         def version; 100 end
         def migrate(x)
           add_column "people", "last_name", :string
@@ -289,7 +289,7 @@ class MigrationTest < ActiveRecord::TestCase
     def test_migrator_one_up_with_exception_and_rollback_using_run
       assert_no_column Person, :last_name
 
-      migration = Class.new(ActiveRecord::Migration) {
+      migration = Class.new(ActiveRecord::Migration::Current) {
         def version; 100 end
         def migrate(x)
           add_column "people", "last_name", :string
@@ -310,7 +310,7 @@ class MigrationTest < ActiveRecord::TestCase
     def test_migration_without_transaction
       assert_no_column Person, :last_name
 
-      migration = Class.new(ActiveRecord::Migration) {
+      migration = Class.new(ActiveRecord::Migration::Current) {
         self.disable_ddl_transaction!
 
         def version; 101 end
@@ -525,7 +525,7 @@ class MigrationTest < ActiveRecord::TestCase
 
   if ActiveRecord::Base.connection.supports_advisory_locks?
     def test_migrator_generates_valid_lock_id
-      migration = Class.new(ActiveRecord::Migration).new
+      migration = Class.new(ActiveRecord::Migration::Current).new
       migrator = ActiveRecord::Migrator.new(:up, [migration], 100)
 
       lock_id = migrator.send(:generate_migrator_advisory_lock_id)
@@ -539,7 +539,7 @@ class MigrationTest < ActiveRecord::TestCase
     def test_generate_migrator_advisory_lock_id
       # It is important we are consistent with how we generate this so that
       # exclusive locking works across migrator versions
-      migration = Class.new(ActiveRecord::Migration).new
+      migration = Class.new(ActiveRecord::Migration::Current).new
       migrator = ActiveRecord::Migrator.new(:up, [migration], 100)
 
       lock_id = migrator.send(:generate_migrator_advisory_lock_id)
@@ -556,7 +556,7 @@ class MigrationTest < ActiveRecord::TestCase
     def test_migrator_one_up_with_unavailable_lock
       assert_no_column Person, :last_name
 
-      migration = Class.new(ActiveRecord::Migration) {
+      migration = Class.new(ActiveRecord::Migration::Current) {
         def version; 100 end
         def migrate(x)
           add_column "people", "last_name", :string
@@ -577,7 +577,7 @@ class MigrationTest < ActiveRecord::TestCase
     def test_migrator_one_up_with_unavailable_lock_using_run
       assert_no_column Person, :last_name
 
-      migration = Class.new(ActiveRecord::Migration) {
+      migration = Class.new(ActiveRecord::Migration::Current) {
         def version; 100 end
         def migrate(x)
           add_column "people", "last_name", :string
