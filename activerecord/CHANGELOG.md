@@ -1,3 +1,9 @@
+*   Version the API presented to migration classes, so we can change parameter
+    defaults without breaking existing migrations, or forcing them to be
+    rewritten through a deprecation cycle.
+
+    *Matthew Draper*, *Ravil Bayramgalin*
+
 *   Use bind params for `limit` and `offset`. This will generate significantly
     fewer prepared statements for common tasks like pagination. To support this
     change, passing a string containing a comma to `limit` has been deprecated,
