@@ -298,6 +298,7 @@ module ActiveRecord
     # * \Validations are skipped.
     # * \Callbacks are skipped.
     # * +updated_at+/+updated_on+ are not updated.
+    # * However, attributes are serialized with the same rules as ActiveRecord::Relation#update_all
     #
     # This method raises an ActiveRecord::ActiveRecordError when called on new
     # objects, or when at least one of the attributes is marked as readonly.

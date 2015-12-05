@@ -347,9 +347,8 @@ module ActiveRecord
 
     # Updates all records in the current relation with details given. This method constructs a single SQL UPDATE
     # statement and sends it straight to the database. It does not instantiate the involved models and it does not
-    # trigger Active Record callbacks or validations. Values passed to #update_all will not go through
-    # Active Record's type-casting behavior. It should receive only values that can be passed as-is to the SQL
-    # database.
+    # trigger Active Record callbacks or validations. However, values passed to #update_all will still go through
+    # Active Record's normal type casting and serialization.
     #
     # ==== Parameters
     #
