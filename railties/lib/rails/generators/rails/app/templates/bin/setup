@@ -29,5 +29,5 @@ chdir APP_ROOT do
   system! 'ruby bin/rake log:clear tmp:clear'
 
   puts "\n== Restarting application server =="
-  system! 'ruby bin/rake restart'
+  system! 'rails restart'
 end
