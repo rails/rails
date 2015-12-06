@@ -37,9 +37,7 @@ EOT
     def run_command!(command)
       command = parse_command(command)
 
-      run_with_command = Rails::Commands::Command.run(command, argv)
-
-      if !run_with_command && COMMAND_WHITELIST.include?(command)
+      if COMMAND_WHITELIST.include?(command)
         send(command)
       end
     end

@@ -1,3 +1,5 @@
+require 'rails/commands/commands_tasks'
+
 module Rails
   module Commands
     class Command
@@ -15,7 +17,8 @@ module Rails
 
         if command = command_for(command_name)
           command.new(argv).run(command_name)
-          true # Indicate command was found and run.
+        else
+          Rails::CommandsTasks.new(argv).run_command!(task_name)
         end
       end
 
