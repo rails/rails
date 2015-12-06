@@ -10,17 +10,20 @@ module Rails
         @options = {}
       end
 
-      def run(task_name)
-        command_name = self.class.command_name_for(task_name)
+      def self.run(task_name, argv)
+        command_name = command_name_for(task_name)
 
+        if command = command_for(command_name)
+          command.new(argv).run(command_name)
+          true # Indicate command was found and run.
+        end
+      end
+
+      def run(command_name)
         parse_options_for(command_name)
         @option_parser.parse! @argv
 
-        if command = command_for(command_name)
-          command.public_send(command_name)
-        else
-          puts @option_parser
-        end
+        public_send(command_name)
       end
 
       def self.options_for(command_name, &options_to_parse)
@@ -29,11 +32,6 @@ module Rails
 
       def self.set_banner(command_name, banner)
         options_for(command_name) { |opts, _| opts.banner = banner }
-      end
-
-      def exists?(task_name) # :nodoc:
-        command_name = self.class.command_name_for(task_name)
-        !command_for(command_name).nil?
       end
 
       private
@@ -61,13 +59,9 @@ module Rails
           task_name.gsub(':', '_').to_sym
         end
 
-        def command_for(command_name)
-          klass = @@commands.find do |command|
+        def self.command_for(command_name)
+          @@commands.find do |command|
             command.public_instance_methods.include?(command_name)
-          end
-
-          if klass
-            klass.new(@argv)
           end
         end
     end
