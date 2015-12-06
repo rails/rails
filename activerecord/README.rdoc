@@ -188,7 +188,7 @@ Admit the Database:
 
 The latest version of Active Record can be installed with RubyGems:
 
-  % gem install activerecord
+  $ gem install activerecord
 
 Source code can be downloaded as part of the Rails project on GitHub:
 
@@ -215,4 +215,3 @@ Bug reports can be filed for the Ruby on Rails project here:
 Feature requests should be discussed on the rails-core mailing list here:
 
 * https://groups.google.com/forum/?fromgroups#!forum/rubyonrails-core
-
