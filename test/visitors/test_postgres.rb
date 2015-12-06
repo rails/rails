@@ -53,6 +53,8 @@ module Arel
       describe "Nodes::Matches" do
         it "should know how to visit" do
           node = @table[:name].matches('foo%')
+          node.must_be_kind_of Nodes::Matches
+          node.case_sensitive.must_equal(false)
           compile(node).must_be_like %{
             "users"."name" ILIKE 'foo%'
           }
@@ -60,6 +62,7 @@ module Arel
 
         it "should know how to visit case sensitive" do
           node = @table[:name].matches('foo%', nil, true)
+          node.case_sensitive.must_equal(true)
           compile(node).must_be_like %{
             "users"."name" LIKE 'foo%'
           }
@@ -84,6 +87,8 @@ module Arel
       describe "Nodes::DoesNotMatch" do
         it "should know how to visit" do
           node = @table[:name].does_not_match('foo%')
+          node.must_be_kind_of Nodes::DoesNotMatch
+          node.case_sensitive.must_equal(false)
           compile(node).must_be_like %{
             "users"."name" NOT ILIKE 'foo%'
           }
@@ -91,6 +96,7 @@ module Arel
 
         it "should know how to visit case sensitive" do
           node = @table[:name].does_not_match('foo%', nil, true)
+          node.case_sensitive.must_equal(true)
           compile(node).must_be_like %{
             "users"."name" NOT LIKE 'foo%'
           }
