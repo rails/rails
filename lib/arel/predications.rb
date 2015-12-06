@@ -122,6 +122,10 @@ Passing a range to `#not_in` is deprecated. Call `#not_between`, instead.
       Nodes::Matches.new self, quoted_node(other), escape, case_sensitive
     end
 
+    def matches_regexp other, case_sensitive = true
+      Nodes::Regexp.new self, quoted_node(other), case_sensitive
+    end
+
     def matches_any others, escape = nil, case_sensitive = false
       grouping_any :matches, others, escape, case_sensitive
     end
@@ -132,6 +136,10 @@ Passing a range to `#not_in` is deprecated. Call `#not_between`, instead.
 
     def does_not_match other, escape = nil, case_sensitive = false
       Nodes::DoesNotMatch.new self, quoted_node(other), escape, case_sensitive
+    end
+
+    def does_not_match_regexp other, case_sensitive = true
+      Nodes::NotRegexp.new self, quoted_node(other), case_sensitive
     end
 
     def does_not_match_any others, escape = nil
