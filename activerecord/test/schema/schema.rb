@@ -668,6 +668,7 @@ ActiveRecord::Schema.define do
     t.references :type
     t.string     :name
     t.float      :price
+    t.string     :rating
   end
 
   create_table :product_types, force: true do |t|

@@ -12,13 +12,15 @@ module ActiveRecord
 
       def test_check_for_attribute_value
         [0.5, -0.5, '0.5', -3, 3].each do |val|
-          @product.create(price: val)
-          product = @product.where(price: val).select('price as dummy_price').first
+          @product.create(price: val, rating: "#{val}")
+          product = @product.where(price: val).select('price as dummy_price, rating as dummy_rating').first
           assert_equal product.dummy_price?, true
+          assert_equal product.dummy_rating?, true
         end
-        @product.create(price: 0)
-        product = @product.where(price: 0).select('price as dummy_price').first
+        @product.create(price: 0, rating: '0')
+        product = @product.where(price: 0).select('price as dummy_price, rating as dummy_rating').first
         assert_equal product.dummy_price?, false
+        assert_equal product.dummy_rating?, true
       end
     end
   end
