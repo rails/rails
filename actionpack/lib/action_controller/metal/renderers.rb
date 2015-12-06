@@ -26,6 +26,40 @@ module ActionController
     end
 
     module ClassMethods
+
+      # Adds, by name, a renderer or renderers to the +_renderers+ available
+      # to call within controller actions.
+      #
+      # It is useful when rendering from an <tt>ActionController::Metal</tt> controller or
+      # otherwise to add an available renderer proc to a specific controller.
+      #
+      # Both <tt>ActionController::Base</tt> and <tt>ActionController::API</tt>
+      # include <tt>ActionController::Renderers::All</tt>, making all renderers
+      # avaialable in the controller. See <tt>Renderers::RENDERERS</tt> and <tt>Renderers.add</tt>.
+      #
+      # Since <tt>ActionController::Metal</tt> controllers cannot render, the controller
+      # must include <tt>AbstractController::Rendering</tt>, <tt>ActionController::Rendering</tt>,
+      # and <tt>ActionController::Renderers</tt>, and have at lest one renderer.
+      #
+      # Rather than including <tt>ActionController::Renderers::All</tt> and including all renderers,
+      # you may specify which renderers to include by passing the renderer name or names to
+      # +use_renderers+. For example, a controller that includes only the <tt>:json</tt> renderer
+      # (+_render_with_renderer_json+) might look like:
+      #
+      #   class MetalRenderingController < ActionController::Metal
+      #     include AbstractController::Rendering
+      #     include ActionController::Rendering
+      #     include ActionController::Renderers
+      #
+      #     use_renderers :json
+      #
+      #     def show
+      #       render json: record
+      #     end
+      #   end
+      #
+      # You must specify a +use_renderer+, else the +controller.renderer+ and
+      # +controller._renderers+ will be <tt>nil</tt>, and the action will fail.
       def use_renderers(*args)
         renderers = _renderers + args
         self._renderers = renderers.freeze

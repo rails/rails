@@ -1,3 +1,7 @@
+*   Add tests and documentation for `ActionController::Renderers::use_renderers`.
+
+    *Benjamin Fleischer*
+
 *   Fix `ActionController::Parameters#convert_parameters_to_hashes` to return filtered
     or unfiltered values based on from where it is called, `to_h` or `to_unsafe_h`
     respectively.
