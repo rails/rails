@@ -35,9 +35,9 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
     has_many :replies, class_name: "ReplyWithCallbacks", foreign_key: "parent_id"
 
     after_commit { |record| record.do_after_commit(nil) }
-    after_commit(on: :create) { |record| record.do_after_commit(:create) }
-    after_commit(on: :update) { |record| record.do_after_commit(:update) }
-    after_commit(on: :destroy) { |record| record.do_after_commit(:destroy) }
+    after_create_commit { |record| record.do_after_commit(:create) }
+    after_update_commit { |record| record.do_after_commit(:update) }
+    after_destroy_commit { |record| record.do_after_commit(:destroy) }
     after_rollback { |record| record.do_after_rollback(nil) }
     after_rollback(on: :create) { |record| record.do_after_rollback(:create) }
     after_rollback(on: :update) { |record| record.do_after_rollback(:update) }

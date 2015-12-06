@@ -1,3 +1,21 @@
+*   Introduce after_{create,update,delete}_commit callbacks.
+
+    Before:
+
+        after_commit :add_to_index_later, on: :create
+        after_commit :update_in_index_later, on: :update
+        after_commit :remove_from_index_later, on: :destroy
+
+    After:
+
+        after_create_commit  :add_to_index_later
+        after_update_commit  :update_in_index_later
+        after_destroy_commit :remove_from_index_later
+
+    Fixes #22515.
+
+    *Genadi Samokovarov*
+
 *   Respect the column default values for `inheritance_column` when
     instantiating records through the base class.
 
