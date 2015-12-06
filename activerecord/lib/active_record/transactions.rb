@@ -99,6 +99,16 @@ module ActiveRecord
     # be propagated (after triggering the ROLLBACK), so you should be ready to
     # catch those in your application code.
     #
+    # Exceptions thrown by the ROLLBACK have a #message method that contains
+    # the ActiveRecord error message. 
+    #
+    #   #Example error handling for an invalid record
+    #   rescue ActiveRecord::RecordInvalid => invalid
+    #     p invalid.message
+    #   end
+    #   # => "Validation failed: Name has already been taken"
+    #
+    #
     # One exception is the ActiveRecord::Rollback exception, which will trigger
     # a ROLLBACK when raised, but not be re-raised by the transaction block.
     #
