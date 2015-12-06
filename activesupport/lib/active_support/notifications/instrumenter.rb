@@ -15,14 +15,15 @@ module ActiveSupport
       # and publish it. Notice that events get sent even if an error occurs
       # in the passed-in block.
       def instrument(name, payload={})
-        start name, payload
+        # some of the listeners might have state
+        listeners_state = start name, payload
         begin
           yield payload
         rescue Exception => e
           payload[:exception] = [e.class.name, e.message]
           raise e
         ensure
-          finish name, payload
+          finish_with_state listeners_state, name, payload
         end
       end
 
@@ -34,6 +35,10 @@ module ActiveSupport
       # Send a finish notification with +name+ and +payload+.
       def finish(name, payload)
         @notifier.finish name, @id, payload
+      end
+
+      def finish_with_state(listeners_state, name, payload)
+        @notifier.finish name, @id, payload, listeners_state
       end
 
       private
