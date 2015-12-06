@@ -412,4 +412,23 @@ end
 NOTE: the `:on` option specifies when a callback will be fired. If you
 don't supply the `:on` option the callback will fire for every action.
 
+Since using `after_commit` callback only on create, update or delete is
+common, there are aliases for those operations:
+
+* `after_create_commit`
+* `after_update_commit`
+* `after_destroy_commit`
+
+```ruby
+class PictureFile < ActiveRecord::Base
+  after_destroy_commit :delete_picture_file_from_disk
+
+  def delete_picture_file_from_disk
+    if File.exist?(filepath)
+      File.delete(filepath)
+    end
+  end
+end
+```
+
 WARNING. The `after_commit` and `after_rollback` callbacks are guaranteed to be called for all models created, updated, or destroyed within a transaction block. If any exceptions are raised within one of these callbacks, they will be ignored so that they don't interfere with the other callbacks. As such, if your callback code could raise an exception, you'll need to rescue it and handle it appropriately within the callback.
