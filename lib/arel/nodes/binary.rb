@@ -38,9 +38,7 @@ module Arel
       LessThanOrEqual
       NotEqual
       NotIn
-      NotRegexp
       Or
-      Regexp
       Union
       UnionAll
       Intersect

@@ -26,11 +26,13 @@ module Arel
       end
 
       def visit_Arel_Nodes_Regexp o, collector
-        infix_value o, collector, ' ~ '
+        op = o.case_sensitive ? ' ~ ' : ' ~* '
+        infix_value o, collector, op
       end
 
       def visit_Arel_Nodes_NotRegexp o, collector
-        infix_value o, collector, ' !~ '
+        op = o.case_sensitive ? ' !~ ' : ' !~* '
+        infix_value o, collector, op
       end
 
       def visit_Arel_Nodes_DistinctOn o, collector

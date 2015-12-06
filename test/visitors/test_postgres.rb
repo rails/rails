@@ -120,6 +120,13 @@ module Arel
           }
         end
 
+        it "can handle case insensitive" do
+          node = Arel::Nodes::Regexp.new(@table[:name], Nodes.build_quoted('foo%'), false)
+          compile(node).must_be_like %{
+            "users"."name" ~* 'foo%'
+          }
+        end
+
         it 'can handle subqueries' do
           subquery = @table.project(:id).where(Arel::Nodes::Regexp.new(@table[:name], Nodes.build_quoted('foo%')))
           node = @attr.in subquery
@@ -134,6 +141,13 @@ module Arel
           node = Arel::Nodes::NotRegexp.new(@table[:name], Nodes.build_quoted('foo%'))
           compile(node).must_be_like %{
             "users"."name" !~ 'foo%'
+          }
+        end
+
+        it "can handle case insensitive" do
+          node = Arel::Nodes::NotRegexp.new(@table[:name], Nodes.build_quoted('foo%'), false)
+          compile(node).must_be_like %{
+            "users"."name" !~* 'foo%'
           }
         end
 

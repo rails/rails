@@ -30,6 +30,7 @@ require 'arel/nodes/table_alias'
 require 'arel/nodes/infix_operation'
 require 'arel/nodes/over'
 require 'arel/nodes/matches'
+require 'arel/nodes/regexp'
 
 # nary
 require 'arel/nodes/and'
