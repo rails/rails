@@ -70,8 +70,8 @@ module ActionDispatch
           assert_response :success
         end
 
-        expected = "Expected response to be a <success>, but was a redirect to <http://test.host/posts/redirect/1>."
-        assert_match expected, error.message
+        expected = "Expected response to be a <success>, but was a redirect to <http://test.host/posts/redirect/1>"
+        assert_equal expected, error.message
       end
     end
   end
