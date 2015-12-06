@@ -1,3 +1,5 @@
+ARGV << '--help' if ARGV.empty?
+
 aliases = {
   "g"  => "generate",
   "d"  => "destroy",
@@ -8,15 +10,10 @@ aliases = {
   "t"  => "test",
 }
 
-if ARGV.empty?
-  ARGV << '--help'
-  command = ''
-else
-  command = ARGV.shift
-  command = aliases[command] || command
-end
+command = ARGV.shift
+command = aliases[command] || command
 
-require 'rails/commands/command'
+require 'rails/command'
 require 'rails/commands/dev_cache'
 
-Rails::Commands::Command.run(command, ARGV)
+Rails::Command.run(command, ARGV)

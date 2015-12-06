@@ -1,10 +1,10 @@
-require 'rails/commands/command'
+require 'rails/command'
 
 module Rails
   module Commands
     # This is a wrapper around the Rails dev:cache command
     class DevCache < Command
-      set_banner :dev_cache, 'Toggle development mode caching on/off'      
+      set_banner :dev_cache, 'Toggle development mode caching on/off'
       def dev_cache
         if File.exist? 'tmp/caching-dev.txt'
           File.delete 'tmp/caching-dev.txt'
