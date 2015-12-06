@@ -16,6 +16,13 @@ module ActiveRecord
 
       surreptitiously_touch @_defer_touch_attrs
       self.class.connection.add_transaction_record self
+
+      # touch the parents as we are not calling the after_save callbacks
+      self.class.reflect_on_all_associations(:belongs_to).each do |r|
+        if touch = r.options[:touch]
+          ActiveRecord::Associations::Builder::BelongsTo.touch_record(self, r.foreign_key, r.name, touch, :touch_later)
+        end
+      end
     end
 
     def touch(*names, time: nil) # :nodoc:
@@ -26,6 +33,7 @@ module ActiveRecord
     end
 
     private
+
       def surreptitiously_touch(attrs)
         attrs.each { |attr| write_attribute attr, @_touch_time }
         clear_attribute_changes attrs
@@ -33,9 +41,8 @@ module ActiveRecord
 
       def touch_deferred_attributes
         if has_defer_touch_attrs? && persisted?
-          @_touching_delayed_records = true
           touch(*@_defer_touch_attrs, time: @_touch_time)
-          @_touching_delayed_records, @_defer_touch_attrs, @_touch_time = nil, nil, nil
+          @_defer_touch_attrs, @_touch_time = nil, nil
         end
       end
 
@@ -43,8 +50,9 @@ module ActiveRecord
         defined?(@_defer_touch_attrs) && @_defer_touch_attrs.present?
       end
 
-      def touching_delayed_records?
-        defined?(@_touching_delayed_records) && @_touching_delayed_records
+      def belongs_to_touch_method
+        :touch_later
       end
+
   end
 end

@@ -567,5 +567,9 @@ module ActiveRecord
     ensure
       @_association_destroy_exception = nil
     end
+
+    def belongs_to_touch_method
+      :touch
+    end
   end
 end

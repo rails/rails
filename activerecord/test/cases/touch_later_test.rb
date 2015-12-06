@@ -95,8 +95,6 @@ class TouchLaterTest < ActiveRecord::TestCase
   end
 
   def test_touching_three_deep
-    skip "Pending from #19324"
-
     previous_tree_updated_at        = trees(:root).updated_at
     previous_grandparent_updated_at = nodes(:grandparent).updated_at
     previous_parent_updated_at      = nodes(:parent_a).updated_at
