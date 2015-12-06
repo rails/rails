@@ -1012,6 +1012,36 @@ class RelationTest < ActiveRecord::TestCase
     end
   end
 
+  def test_destroy_all_deprecated_return_value
+    ActiveRecord::Base.destroy_all_in_batches = false
+
+    davids = Author.where(name: 'David')
+
+    assert_deprecated do
+      assert_difference('Author.count', -1) do
+        assert_equal davids.to_a, davids.destroy_all
+      end
+    end
+  ensure
+    ActiveRecord::Base.destroy_all_in_batches = true
+  end
+
+  def test_destroy_all_in_batches
+    davids = Author.where(name: 'David')
+
+    assert_difference('Author.count', -1) do
+      assert_nil davids.destroy_all
+    end
+  end
+
+  def test_destroy_all_in_batches_returns_nothing
+    davids = Author.where(name: 'David')
+
+    assert_difference('Author.count', -1) do
+      assert_nil davids.destroy_all
+    end
+  end
+
   def test_delete_all
     davids = Author.where(:name => 'David')
 

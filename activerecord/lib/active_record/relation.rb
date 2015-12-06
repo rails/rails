@@ -433,28 +433,44 @@ module ActiveRecord
     # Destroys the records by instantiating each
     # record and calling its {#destroy}[rdoc-ref:Persistence#destroy] method.
     # Each object's callbacks are executed (including <tt>:dependent</tt> association options).
-    # Returns the collection of objects that were destroyed; each will be frozen, to
-    # reflect that no changes should be made (since they can't be persisted).
     #
-    # Note: Instantiation, callback execution, and deletion of each
-    # record can be time consuming when you're removing many records at
-    # once. It generates at least one SQL +DELETE+ query per record (or
-    # possibly more, to enforce your callbacks). If you want to delete many
-    # rows quickly, without concern for their associations or callbacks, use
-    # #delete_all instead.
+    # Returns the collection of objects that were destroyed if
+    # +config.active_resource.destroy_all_in_batches+ is set to +false+. Each
+    # will be frozen, to reflect that no changes should be made (since they
+    # can't be persisted).
+    #
+    # Note: Instantiation, callback execution, and deletion of each record can
+    # be time consuming when you're removing many records at once. If you want
+    # to delete many rows quickly, without concern for their associations or
+    # callbacks, use #delete_all instead.
     #
     # ==== Examples
     #
     #   Person.where(age: 0..18).destroy_all
-    def destroy_all(conditions = nil)
-      if conditions
+    #   Person.where(age: 0..18).destroy_all(batch_size: 2000)
+    def destroy_all(conditions_or_options = {})
+      batch_options = conditions_or_options.extract!(:start, :finish, :of)
+      if conditions_or_options.present?
         ActiveSupport::Deprecation.warn(<<-MESSAGE.squish)
           Passing conditions to destroy_all is deprecated and will be removed in Rails 5.1.
           To achieve the same use where(conditions).destroy_all.
         MESSAGE
-        where(conditions).destroy_all
+        where(conditions_or_options).destroy_all
       else
-        records.each(&:destroy).tap { reset }
+        if ActiveRecord::Base.destroy_all_in_batches
+          in_batches(**batch_options).each_record(&:destroy)
+        else
+          ActiveSupport::Deprecation.warn(<<-MESSAGE.strip_heredoc)
+            As of Rails 5.2, destoy_all will no longer returns the collection
+            of objects that were destroyed.
+
+            To transition to the new behaviour set the following in an
+            initializer:
+
+            Rails.application.config.active_record.destroy_all_in_batches = true
+          MESSAGE
+          records.each(&:destroy)
+        end.tap { reset }
       end
     end
 

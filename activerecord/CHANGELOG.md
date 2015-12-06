@@ -1,3 +1,22 @@
+*   Relation#destroy_all is performed in batches to prevent memory hogs.
+
+    To destroy in batches, we had to change the return type of #destoy_all.
+    Since a lot of people may depend on the return type (and it is
+    documented), we left a little transition period quirk.
+
+    Apps upgraded to 5.1 will get a deprecation warning, on the 4.2
+    behaviour. To switch to the destroy in batches the following option
+    should be set:
+
+       config.active_record.destroy_all_in_batches = true
+
+    The option is on by default for newly generated Rails apps. Can be set in
+    an initializer to prevent differences across environments.
+
+    Fixes #22510.
+
+    *Genadi Samokovarov*
+
 *   Support calling the method `merge` in `scope`'s lambda.
 
     *Yasuhiro Sugino*

@@ -32,6 +32,9 @@ QUOTED_TYPE = ActiveRecord::Base.connection.quote_column_name('type')
 # FIXME: Remove this when the deprecation cycle on TZ aware types by default ends.
 ActiveRecord::Base.time_zone_aware_types << :time
 
+# FIXME: Remove this in Rails 5.2 when it's no longer needed.
+ActiveRecord::Base.destroy_all_in_batches = true
+
 def current_adapter?(*types)
   types.any? do |type|
     ActiveRecord::ConnectionAdapters.const_defined?(type) &&
