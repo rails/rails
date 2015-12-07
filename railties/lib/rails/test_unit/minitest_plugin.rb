@@ -57,7 +57,9 @@ module Minitest
   # as the patterns would also contain the other Rake tasks.
   def self.rake_run(patterns) # :nodoc:
     @rake_patterns = patterns
-    run
+    passed = run
+    exit passed unless passed
+    passed
   end
 
   def self.plugin_rails_init(options)

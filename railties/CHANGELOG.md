@@ -1,3 +1,10 @@
+*   Fix setting exit status code for rake test tasks. The exit status code
+    was not set when tests were fired with `rake`. Now, it is being set and it matches
+    behavior of running tests via `rails` command (`rails test`), so no matter if
+    `rake test` or `rails test` command is used the exit code will be set.
+
+    *Arkadiusz Fal*
+
 *   Add Command infrastructure to replace rake.
 
     Also move `rake dev:cache` to new infrastructure. You'll need to use
