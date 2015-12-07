@@ -44,7 +44,7 @@ module Rails
     end
 
     def relative_path_for(file)
-      file.sub(/^#{Rails.root}\/?/, '')
+      file.sub(/^#{app_root}\/?/, '')
     end
 
     private
@@ -65,6 +65,10 @@ module Rails
         end
 
         "#{self.executable} #{relative_path_for(assertion_path)}"
+      end
+
+      def app_root
+        @app_root ||= defined?(ENGINE_ROOT) ? ENGINE_ROOT : Rails.root
       end
   end
 end
