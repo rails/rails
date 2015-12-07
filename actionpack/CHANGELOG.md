@@ -1,3 +1,26 @@
+*   Change the `protect_from_forgery` prepend default to `false`
+
+    Per this comment
+    https://github.com/rails/rails/pull/18334#issuecomment-69234050 we want
+    `protect_from_forgery` to default to `prepend: false`.
+
+    `protect_from_forgery` will now be insterted into the callback chain at the
+    point it is called in your application. This is useful for cases where you
+    want to `protect_from_forgery` after you perform required authentication
+    callbacks or other callbacks that are required to run after forgery protection.
+
+    If you want `protect_from_forgery` callbacks to always run first, regardless of
+    position they are called in your application then you can add `prepend: true`
+    to your `protect_from_forgery` call.
+
+    Example:
+
+    ```ruby
+    protect_from_forgery prepend: true
+    ```
+
+    * Eileen M. Uchitelle*
+
 *   In url_for, never append a question mark to the URL when the query string
     is empty anyway.  (It used to do that when called like `url_for(controller:
     'x', action: 'y', q: {})`.)

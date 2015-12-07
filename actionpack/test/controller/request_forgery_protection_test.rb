@@ -540,10 +540,10 @@ class PrependProtectForgeryBaseControllerTest < ActionController::TestCase
     assert_equal(expected_callback_order, @controller.called_callbacks)
   end
 
-  def test_verify_authenticity_token_is_prepended_by_default
+  def test_verify_authenticity_token_is_not_prepended_by_default
     @controller = PrependDefaultController.new
     get :index
-    expected_callback_order = ["verify_authenticity_token", "custom_action"]
+    expected_callback_order = ["custom_action", "verify_authenticity_token"]
     assert_equal(expected_callback_order, @controller.called_callbacks)
   end
 end
