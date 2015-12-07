@@ -146,7 +146,7 @@ The Base class has the full list of configuration options. Here's an example:
 
 The latest version of Action Mailer can be installed with RubyGems:
 
-  % gem install actionmailer
+  $ gem install actionmailer
 
 Source code can be downloaded as part of the Rails project on GitHub
 
@@ -173,4 +173,3 @@ Bug reports can be filed for the Ruby on Rails project here:
 Feature requests should be discussed on the rails-core mailing list here:
 
 * https://groups.google.com/forum/?fromgroups#!forum/rubyonrails-core
-

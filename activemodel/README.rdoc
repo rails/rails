@@ -235,7 +235,7 @@ behavior out of the box:
 
 The latest version of Active Model can be installed with RubyGems:
 
-  % gem install activemodel
+  $ gem install activemodel
 
 Source code can be downloaded as part of the Rails project on GitHub
 
@@ -262,4 +262,3 @@ Bug reports can be filed for the Ruby on Rails project here:
 Feature requests should be discussed on the rails-core mailing list here:
 
 * https://groups.google.com/forum/?fromgroups#!forum/rubyonrails-core
-
