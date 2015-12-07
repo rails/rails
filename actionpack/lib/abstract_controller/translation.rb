@@ -8,6 +8,10 @@ module AbstractController
     # <tt>I18n.translate("people.index.foo")</tt>. This makes it less repetitive
     # to translate many keys within the same controller / action and gives you a
     # simple framework for scoping them consistently.
+    #
+    # Keys with a '_html' suffix and keys named 'html' are marked as HTML safe.
+    # When you use them in controller the HTML will not be escaped,
+    # like in view's helper
     def translate(key, options = {})
       if key.to_s.first == '.'
         path = controller_path.tr('/', '.')
@@ -16,7 +20,9 @@ module AbstractController
         options[:default] = defaults
         key = "#{path}.#{action_name}#{key}"
       end
-      I18n.translate(key, options)
+      last = key.to_s.split('.').last
+      result = I18n.translate(key, options)
+      last.end_with?('_html') || last == 'html' ? result.html_safe : result
     end
     alias :t :translate
 
