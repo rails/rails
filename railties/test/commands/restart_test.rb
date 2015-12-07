@@ -12,7 +12,7 @@ module CommandsTests
       teardown_app
     end
 
-    test 'restart restarts server' do
+    test 'rails restart restarts server' do
       Dir.chdir(app_path) do
         `rails restart`
         assert File.exist?("tmp/restart.txt")
@@ -25,7 +25,7 @@ module CommandsTests
       end
     end
 
-    test 'rake restart should work even if tmp folder does not exist' do
+    test 'rails restart should work even if tmp folder does not exist' do
       Dir.chdir(app_path) do
         FileUtils.remove_dir('tmp')
         `rails restart`
