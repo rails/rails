@@ -99,7 +99,7 @@ module ActiveRecord
     # be propagated (after triggering the ROLLBACK), so you should be ready to
     # catch those in your application code.
     #
-    # Exceptions thrown by the ROLLBACK have a #message method that contains
+    # Exceptions that trigger the ROLLBACK have a #message method that contains
     # the ActiveRecord error message. 
     #
     #   #Example error handling for an invalid record
