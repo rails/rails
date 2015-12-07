@@ -22,7 +22,6 @@ module CommandsTests
 
     test 'dev:cache deletes file and outputs message' do
       Dir.chdir(app_path) do
-        output = `rails dev:cache`        
         output = `rails dev:cache`
         assert_not File.exist?('tmp/caching-dev.txt')
         assert_match(%r{Development mode is no longer being cached}, output)

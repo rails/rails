@@ -16,7 +16,7 @@
 
     *Dmitry Polushkin*
 
-*   Add case_sensitive option for confirmation validator in models.
+*   Add `case_sensitive` option for confirmation validator in models.
 
     *Akshat Sharma*
 
