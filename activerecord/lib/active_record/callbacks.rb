@@ -208,12 +208,12 @@ module ActiveRecord
   #
   # Sometimes the code needs that the callbacks execute in a specific order. For example, a +before_destroy+
   # callback (+log_children+ in this case) should be executed before the children get destroyed by the
-  # <tt>dependent: destroy</tt> option.
+  # <tt>dependent: :destroy</tt> option.
   #
   # Let's look at the code below:
   #
   #   class Topic < ActiveRecord::Base
-  #     has_many :children, dependent: destroy
+  #     has_many :children, dependent: :destroy
   #
   #     before_destroy :log_children
   #
@@ -228,7 +228,7 @@ module ActiveRecord
   # You can use the +prepend+ option on the +before_destroy+ callback to avoid this.
   #
   #   class Topic < ActiveRecord::Base
-  #     has_many :children, dependent: destroy
+  #     has_many :children, dependent: :destroy
   #
   #     before_destroy :log_children, prepend: true
   #
@@ -238,7 +238,7 @@ module ActiveRecord
   #       end
   #   end
   #
-  # This way, the +before_destroy+ gets executed before the <tt>dependent: destroy</tt> is called, and the data is still available.
+  # This way, the +before_destroy+ gets executed before the <tt>dependent: :destroy</tt> is called, and the data is still available.
   #
   # == \Transactions
   #
