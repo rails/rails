@@ -61,6 +61,11 @@ module ActiveRecord
     end
   end
 
+  # Raised by {#one}[rdoc-ref:FinderMethods#one] when called on a relation that has more
+  # than one result.
+  class MultipleRecords < ActiveRecordError
+  end
+
   # Raised by {ActiveRecord::Base#save!}[rdoc-ref:Persistence#save!] and
   # {ActiveRecord::Base.create!}[rdoc-ref:Persistence::ClassMethods#create!]
   # methods when a record is invalid and can not be saved.
