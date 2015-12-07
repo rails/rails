@@ -303,6 +303,7 @@ module Rails
         if options[:api]
           remove_file 'config/initializers/session_store.rb'
           remove_file 'config/initializers/cookies_serializer.rb'
+          remove_file 'config/initializers/request_forgery_protection.rb'
         end
       end
 
