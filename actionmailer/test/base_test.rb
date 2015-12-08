@@ -493,6 +493,12 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal("TEXT Implicit Multipart", mail.text_part.body.decoded)
   end
 
+  test "you can specify a different template for multipart render" do
+    mail = BaseMailer.implicit_different_template_with_block('explicit_multipart_templates').deliver
+    assert_equal("HTML Explicit Multipart Templates", mail.html_part.body.decoded)
+    assert_equal("TEXT Explicit Multipart Templates", mail.text_part.body.decoded)
+  end
+
   test "should raise if missing template in implicit render" do
     BaseMailer.deliveries.clear
     assert_raises ActionView::MissingTemplate do
