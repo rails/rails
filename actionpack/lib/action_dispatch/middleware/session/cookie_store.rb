@@ -114,7 +114,7 @@ module ActionDispatch
       end
 
       def set_cookie(request, session_id, cookie)
-        if get_cookie(env) != cookie[:value] || cookie[:expires]
+        if get_cookie(request) != cookie[:value] || cookie[:expires]
           cookie_jar(request)[@key] = cookie
         end
       end
