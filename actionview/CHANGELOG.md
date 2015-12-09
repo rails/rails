@@ -1,3 +1,9 @@
+#   Properly render hidden field for collection helpers
+
+    Fixes #22231
+
+    *Kyle Montag*
+
 *   Respect value of `:object` if `:object` is false when rendering.
 
     Fixes #22260.

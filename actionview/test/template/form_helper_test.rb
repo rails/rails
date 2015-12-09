@@ -1604,7 +1604,7 @@ class FormHelperTest < ActionView::TestCase
       "<label for='post_active_true'>true</label>" +
       "<input checked='checked' id='post_active_false' name='post[active]' type='radio' value='false' />" +
       "<label for='post_active_false'>false</label>" +
-      "<input type='hidden' name='post[active][]' value='' />"
+      "<input type='hidden' name='post[active]' value='' />"
     end
 
     assert_dom_equal expected, output_buffer
@@ -1628,7 +1628,7 @@ class FormHelperTest < ActionView::TestCase
       "<label for='post_active_false'>"+
       "<input checked='checked' id='post_active_false' name='post[active]' type='radio' value='false' />" +
       "false</label>" +
-      "<input type='hidden' name='post[active][]' value='' />"
+      "<input type='hidden' name='post[active]' value='' />"
     end
 
     assert_dom_equal expected, output_buffer
@@ -1654,7 +1654,7 @@ class FormHelperTest < ActionView::TestCase
       "<label for='post_active_false'>"+
       "<input checked='checked' id='post_active_false' name='post[active]' type='radio' value='false' />" +
       "false</label>"+
-      "<input type='hidden' name='post[active][]' value='' />" +
+      "<input type='hidden' name='post[active]' value='' />" +
       "<input id='post_id' name='post[id]' type='hidden' value='1' />"
     end
 
@@ -1674,7 +1674,7 @@ class FormHelperTest < ActionView::TestCase
       "<label for='foo_post_active_true'>true</label>" +
       "<input checked='checked' id='foo_post_active_false' name='post[active]' type='radio' value='false' />" +
       "<label for='foo_post_active_false'>false</label>" +
-      "<input type='hidden' name='post[active][]' value='' />"
+      "<input type='hidden' name='post[active]' value='' />"
     end
 
     assert_dom_equal expected, output_buffer
@@ -1693,7 +1693,7 @@ class FormHelperTest < ActionView::TestCase
       "<label for='post_1_active_true'>true</label>" +
       "<input checked='checked' id='post_1_active_false' name='post[1][active]' type='radio' value='false' />" +
       "<label for='post_1_active_false'>false</label>" +
-      "<input type='hidden' name='post[1][active][]' value='' />"
+      "<input type='hidden' name='post[1][active]' value='' />"
     end
 
     assert_dom_equal expected, output_buffer

@@ -97,14 +97,18 @@ module ActionView
           # Append a hidden field to make sure something will be sent back to the
           # server if all radio buttons are unchecked.
           if options.fetch('include_hidden', true)
-            rendered_collection + hidden_field
+            rendered_collection + hidden_field(builder_class)
           else
             rendered_collection
           end
         end
 
-        def hidden_field #:nodoc:
-          hidden_name = @html_options[:name] || "#{tag_name(false, @options[:index])}[]"
+        def hidden_field(builder_class) # :nodoc:
+          builder_class == ActionView::Helpers::Tags::CollectionCheckBoxes::CheckBoxBuilder ?
+              tag = "#{tag_name(false, @options[:index])}[]" :
+              tag = "#{tag_name(false, @options[:index])}"
+
+          hidden_name = @html_options[:name] || tag
           @template_object.hidden_field_tag(hidden_name, "", id: nil)
         end
       end
