@@ -67,8 +67,8 @@ module ActionDispatch
 
           v = if params_readable
             Array(Mime[parameters[:format]])
-          elsif format_from_path_extension
-            [Mime[format_from_path_extension]]
+          elsif format = format_from_path_extension
+            Array(Mime[format])
           elsif use_accept_header && valid_accept_header
             accepts
           elsif xhr?
