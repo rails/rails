@@ -4,7 +4,7 @@ require 'pathname'
 require 'concurrent/atomic/atomic_boolean'
 
 module ActiveSupport
-  class FileEventedUpdateChecker #:nodoc: all
+  class EventedFileUpdateChecker #:nodoc: all
     def initialize(files, dirs = {}, &block)
       @ph    = PathHelper.new
       @files = files.map { |f| @ph.xpath(f) }.to_set
