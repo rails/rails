@@ -23,12 +23,6 @@ Rails.application.configure do
     config.action_controller.perform_caching = false
     config.cache_store = :null_store
   end
-  <%- if options[:api] -%>
-
-  # Return error responses in the format requested by the client
-  # or default to JSON format.
-  config.debug_exception_response_format = :api
-  <%- end -%>
   <%- unless options.skip_action_mailer? -%>
 
   # Don't care if the mailer can't send.
