@@ -417,8 +417,6 @@ NOTE: Changing the secret when using the `CookieStore` will invalidate all exist
 
 In your controller you can access the session through the `session` instance method.
 
-NOTE: Sessions are lazily loaded. If you don't access sessions in your action's code, they will not be loaded. Hence you will never need to disable sessions, just not accessing them will do the job.
-
 Session values are stored using key/value pairs like a hash:
 
 ```ruby
