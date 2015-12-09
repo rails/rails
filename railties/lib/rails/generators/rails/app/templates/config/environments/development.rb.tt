@@ -23,7 +23,6 @@ Rails.application.configure do
     config.action_controller.perform_caching = false
     config.cache_store = :null_store
   end
-
   <%- unless options.skip_action_mailer? -%>
 
   # Don't care if the mailer can't send.
