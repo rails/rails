@@ -30,7 +30,7 @@ module Rails
           'sslca'     => '--ssl-ca',
           'sslcert'   => '--ssl-cert',
           'sslcapath' => '--ssl-capath',
-          'sslcipher' => '--ssh-cipher',
+          'sslcipher' => '--ssl-cipher',
           'sslkey'    => '--ssl-key'
         }.map { |opt, arg| "#{arg}=#{config[opt]}" if config[opt] }.compact
 
