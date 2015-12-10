@@ -35,7 +35,7 @@ EOT
 
     COMMAND_WHITELIST = %w(plugin generate destroy console server dbconsole runner new version help test rake)
 
-    def initialize(argv = ARGV)
+    def initialize(argv)
       @argv = argv
     end
 
