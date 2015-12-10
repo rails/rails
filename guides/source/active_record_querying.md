@@ -1399,6 +1399,36 @@ You can specify an exclamation point (`!`) on the end of the dynamic finders to 
 
 If you want to find both by name and locked, you can chain these finders together by simply typing "`and`" between the fields. For example, `Client.find_by_first_name_and_locked("Ryan", true)`.
 
+Enums
+-----
+
+The `enum` macro maps an integer column to a set of possible values.
+
+```ruby
+class Book < ActiveRecord::Base
+  enum availability: [:available, :unavailable]
+end
+```
+
+This will automatically create the corresponding [scopes](#scopes) to query the
+model. Methods to transition between states and query the current state are also
+added.
+
+```ruby
+# Both examples below query just available books.
+Book.available
+# or
+Book.where(availability: :available)
+
+book = Book.new(availability: :available)
+book.available?   # => true
+book.unavailable! # => true
+book.available?   # => false
+```
+
+Read the full documentation about enums
+[in the Rails API docs](http://api.rubyonrails.org/classes/ActiveRecord/Enum.html).
+
 Understanding The Method Chaining
 ---------------------------------
 
