@@ -7,8 +7,7 @@ aliases = {
   "s"  => "server",
   "db" => "dbconsole",
   "r"  => "runner",
-  "t"  => "test",
-  "k"  => "rake"
+  "t"  => "test"
 }
 
 command = ARGV.shift
