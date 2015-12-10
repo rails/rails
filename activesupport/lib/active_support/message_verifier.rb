@@ -15,7 +15,7 @@ module ActiveSupport
   # In the authentication filter:
   #
   #   id, time = @verifier.verify(cookies[:remember_me])
-  #   if time < Time.now
+  #   if Time.now < time
   #     self.current_user = User.find(id)
   #   end
   #
