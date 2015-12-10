@@ -475,6 +475,31 @@ module Arel
           compile(node).must_equal %("users"."name" || "users"."name")
         end
 
+        it "should handle BitwiseAnd" do
+          node = Arel::Attributes::Integer.new(Table.new(:products), :bitmap) & 16
+          compile(node).must_equal %(("products"."bitmap" & 16))
+        end
+
+        it "should handle BitwiseOr" do
+          node = Arel::Attributes::Integer.new(Table.new(:products), :bitmap) | 16
+          compile(node).must_equal %(("products"."bitmap" | 16))
+        end
+
+        it "should handle BitwiseXor" do
+          node = Arel::Attributes::Integer.new(Table.new(:products), :bitmap) ^ 16
+          compile(node).must_equal %(("products"."bitmap" ^ 16))
+        end
+
+        it "should handle BitwiseShiftLeft" do
+          node = Arel::Attributes::Integer.new(Table.new(:products), :bitmap) << 4
+          compile(node).must_equal %(("products"."bitmap" << 4))
+        end
+
+        it "should handle BitwiseShiftRight" do
+          node = Arel::Attributes::Integer.new(Table.new(:products), :bitmap) >> 4
+          compile(node).must_equal %(("products"."bitmap" >> 4))
+        end
+
         it "should handle arbitrary operators" do
           node = Arel::Nodes::InfixOperation.new(
             '&&',
@@ -482,6 +507,18 @@ module Arel
             Arel::Attributes::String.new(Table.new(:products), :name)
           )
           compile(node).must_equal %("products"."name" && "products"."name")
+        end
+      end
+
+      describe "Nodes::UnaryOperation" do
+        it "should handle BitwiseNot" do
+          node = ~ Arel::Attributes::Integer.new(Table.new(:products), :bitmap)
+          compile(node).must_equal %( ~ "products"."bitmap")
+        end
+
+        it "should handle arbitrary operators" do
+          node = Arel::Nodes::UnaryOperation.new('!', Arel::Attributes::String.new(Table.new(:products), :active))
+          compile(node).must_equal %( ! "products"."active")
         end
       end
 
