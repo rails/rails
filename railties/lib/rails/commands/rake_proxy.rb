@@ -26,7 +26,7 @@ In addition to those, you can now run the rake tasks as rails commands:
       Rake::TaskManager.record_task_metadata = true
       Rake.application.instance_variable_set(:@name, 'rails')
       Rails.application.load_tasks
-      @rake_tasks = Rake.application.tasks.select { |t| t.comment }
+      @rake_tasks = Rake.application.tasks.select(&:comment)
     end
 
     def invoke_rake
