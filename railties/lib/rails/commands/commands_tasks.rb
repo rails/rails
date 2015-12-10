@@ -33,7 +33,7 @@ All commands can be run with -h (or --help) for more information.
 
 EOT
 
-    COMMAND_WHITELIST = %w(plugin generate destroy console server dbconsole runner new version help test rake)
+    COMMAND_WHITELIST = %w(plugin generate destroy console server dbconsole runner new version help test)
 
     def initialize(argv)
       @argv = argv
