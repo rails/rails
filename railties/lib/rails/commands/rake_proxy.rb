@@ -20,11 +20,13 @@ In addition to those, you can now run the rake tasks as rails commands:
     end
 
     def rake_tasks
+      return @rake_tasks if defined?(@rake_tasks)
+
       require_application_and_environment!
       Rake::TaskManager.record_task_metadata = true
       Rake.application.instance_variable_set(:@name, 'rails')
       Rails.application.load_tasks
-      @rake_tasks ||= Rake.application.tasks.select { |t| t.comment }
+      @rake_tasks = Rake.application.tasks.select { |t| t.comment }
     end
 
     def invoke_rake
