@@ -4,7 +4,7 @@ module Rails
   module RakeProxy #:nodoc:
 
     RAKE_TASKS_HELP_MESSAGE = <<-EOT
-In addition to those, you can now run the rake tasks as rails commands:
+In addition to those, you can run the rake tasks as rails commands:
 
     EOT
 
