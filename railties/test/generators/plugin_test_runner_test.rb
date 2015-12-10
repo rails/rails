@@ -1,7 +1,8 @@
-require 'tmpdir'
-require 'abstract_unit'
+require 'generators/plugin_test_helper'
 
 class PluginTestRunnerTest < ActiveSupport::TestCase
+  include PluginTestHelper
+
   def setup
     @destination_root = Dir.mktmpdir('bukkits')
     Dir.chdir(@destination_root) { `bundle exec rails plugin new bukkits --skip-bundle` }
@@ -99,25 +100,5 @@ class PluginTestRunnerTest < ActiveSupport::TestCase
 
     def run_test_command(arguments)
       Dir.chdir(plugin_path) { `bin/test #{arguments}` }
-    end
-
-    def create_test_file(name, pass: true)
-      plugin_file "test/#{name}_test.rb", <<-RUBY
-        require 'test_helper'
-
-        class #{name.camelize}Test < ActiveSupport::TestCase
-          def test_truth
-            puts "#{name.camelize}Test"
-            assert #{pass}, 'wups!'
-          end
-        end
-      RUBY
-    end
-
-    def plugin_file(path, contents, mode: 'w')
-      FileUtils.mkdir_p File.dirname("#{plugin_path}/#{path}")
-      File.open("#{plugin_path}/#{path}", mode) do |f|
-        f.puts contents
-      end
     end
 end
