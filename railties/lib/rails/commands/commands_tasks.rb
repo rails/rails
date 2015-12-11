@@ -174,9 +174,9 @@ EOT
 
       def parse_command(command)
         case command
-        when '--version', '-v', 'version'
+        when '--version', '-v'
           'version'
-        when '--help', '-h', 'help'
+        when '--help', '-h'
           'help'
         else
           command
