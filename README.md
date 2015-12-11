@@ -360,6 +360,7 @@ Beware that currently the cable server will _not_ auto-reload any changes in the
 
 We'll get all this abstracted properly when the framework is integrated into Rails.
 
+The WebSocket server doesn't have access to the session, but it has access to the cookies. This can be used when you need to handle authentication. You can see one way of doing that with Devise in this [article](http://www.rubytutorial.io/actioncable-devise-authentication).
 
 ## Dependencies
 
