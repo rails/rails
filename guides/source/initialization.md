@@ -140,8 +140,7 @@ aliases = {
   "s"  => "server",
   "db" => "dbconsole",
   "r"  => "runner",
-  "t"  => "test",
-  "k"  => "rake"
+  "t"  => "test"
 }
 
 command = ARGV.shift
@@ -164,7 +163,7 @@ If the command is part of the COMMAND_WHITELIST, a method of the same name is ca
 if not we proxy it to rake.
 
 ```ruby
-COMMAND_WHITELIST = %w(plugin generate destroy console server dbconsole application runner new version help rake)
+COMMAND_WHITELIST = %w(plugin generate destroy console server dbconsole application runner new version help)
 
 def run_command!(command)
   command = parse_command(command)
