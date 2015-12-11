@@ -111,14 +111,6 @@ EOT
     end
 
     def rake
-      command = parse_command(ARGV.shift)
-
-      case command
-        when 'help' then ARGV.unshift('--help')
-        when 'version' then ARGV.unshift('--version')
-        else  ARGV.unshift(command)
-      end
-
       invoke_rake
     end
 
