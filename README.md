@@ -151,12 +151,12 @@ App.cable.subscriptions.create "AppearanceChannel",
   rejected: ->
     @uninstall()
 
-  # Calls `AppearanceChannel#appear(data)` on the server
   appear: ->
+    # Calls `AppearanceChannel#appear(data)` on the server
     @perform("appear", appearing_on: $("main").data("appearing-on"))
 
-  # Calls `AppearanceChannel#away` on the server
   away: ->
+    # Calls `AppearanceChannel#away` on the server
     @perform("away")
 
 
