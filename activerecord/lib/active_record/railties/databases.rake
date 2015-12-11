@@ -298,6 +298,14 @@ db_namespace = namespace :db do
   end
 
   namespace :test do
+
+    task :deprecated do
+      Rake.application.top_level_tasks.grep(/^db:test:/).each do |task|
+        $stderr.puts "WARNING: #{task} is deprecated. The Rails test helper now maintains " \
+                     "your test schema automatically, see the release notes for details."
+      end
+    end
+
     # desc "Recreate the test database from the current schema"
     task :load => %w(db:test:purge) do
       case ActiveRecord::Base.schema_format
