@@ -8,3 +8,5 @@ EM.error_handler do |e|
 end
 
 Celluloid.logger = ActionCable.server.logger
+
+ActionCable.server.config.log_to_stdout if Rails.env.development?
