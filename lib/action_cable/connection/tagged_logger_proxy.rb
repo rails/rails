@@ -16,6 +16,15 @@ module ActionCable
         @tags = @tags.uniq
       end
 
+      def tag(logger)
+        if logger.respond_to?(:tagged)
+          current_tags = tags - logger.formatter.current_tags
+          logger.tagged(*current_tags) { yield }
+        else
+          yield
+        end
+      end
+
       %i( debug info warn error fatal unknown ).each do |severity|
         define_method(severity) do |message|
           log severity, message
@@ -24,8 +33,7 @@ module ActionCable
 
       protected
         def log(type, message)
-          current_tags = tags - @logger.formatter.current_tags
-          @logger.tagged(*current_tags) { @logger.send type, message }
+          tag(@logger) { @logger.send type, message }
         end
     end
   end
