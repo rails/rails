@@ -31,7 +31,7 @@ module ActionDispatch
 
         if Symbol === type
           if [:success, :missing, :redirect, :error].include?(type)
-            assert_predicate @response, RESPONSE_PREDICATES[type], message
+            assert @response.send(RESPONSE_PREDICATES[type]), message
           else
             code = Rack::Utils::SYMBOL_TO_STATUS_CODE[type]
             if code.nil?
