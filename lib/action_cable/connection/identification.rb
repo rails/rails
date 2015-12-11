@@ -34,8 +34,8 @@ module ActionCable
       private
         def connection_gid(ids)
           ids.map do |o|
-            if o.respond_to? :to_global_id
-              o.to_global_id
+            if o.respond_to? :to_gid_param
+              o.to_gid_param
             else
               o.to_s
             end

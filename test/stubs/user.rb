@@ -6,6 +6,10 @@ class User
   end
 
   def to_global_id
-    "User##{name}"
+    GlobalID.new("User##{name}")
+  end
+
+  def to_gid_param
+    to_global_id.to_param
   end
 end
