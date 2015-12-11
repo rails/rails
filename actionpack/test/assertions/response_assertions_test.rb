@@ -64,14 +64,35 @@ module ActionDispatch
         }
       end
 
-      def test_message_when_response_is_redirect_but_asserted_for_status_other_than_redirect
-        @response = FakeResponse.new :redirection, "http://test.host/posts/redirect/1"
-        error = assert_raises(Minitest::Assertion) do
-          assert_response :success
-        end
+      def test_error_message_shows_404_when_404_asserted_for_success
+        @response = ActionDispatch::Response.new
+        @response.status = 404
 
-        expected = "Expected response to be a <success>, but was a redirect to <http://test.host/posts/redirect/1>"
-        assert_equal expected, error.message
+        error = assert_raises(Minitest::Assertion) { assert_response :success }
+        expected = "Expected response to be a <success>, but was a <404>"
+        assert_match expected, error.message
+      end
+
+      def test_error_message_shows_302_redirect_when_302_asserted_for_success
+        @response = ActionDispatch::Response.new
+        @response.status = 302
+        @response.location = 'http://test.host/posts/redirect/1'
+
+        error = assert_raises(Minitest::Assertion) { assert_response :success }
+        expected = "Expected response to be a <success>, but was a <302>" \
+                   " redirect to <http://test.host/posts/redirect/1>"
+        assert_match expected, error.message
+      end
+
+      def test_error_message_shows_302_redirect_when_302_asserted_for_301
+        @response = ActionDispatch::Response.new
+        @response.status = 302
+        @response.location = 'http://test.host/posts/redirect/2'
+
+        error = assert_raises(Minitest::Assertion) { assert_response 301 }
+        expected = "Expected response to be a <301>, but was a <302>" \
+                   " redirect to <http://test.host/posts/redirect/2>"
+        assert_match expected, error.message
       end
     end
   end
