@@ -3,5 +3,5 @@
 #
 # Examples:
 #
-#   cities = City.create([{ name: 'Copenhagen' }, { name: 'Chicago' }])
-#   Mayor.create(name: 'Jensen', city: cities.first)
+#   movies = Movie.create([{ name: 'Star Wars' }, { name: 'Lord of the Rings' }])
+#   Characters.create(name: 'Luke', movie: movies.first)
