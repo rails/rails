@@ -330,7 +330,6 @@ You'll see the usage of some of these assertions in the next chapter.
 All the basic assertions such as `assert_equal` defined in `Minitest::Assertions` are also available in the classes we use in our own test cases. In fact, Rails provides the following classes for you to inherit from:
 
 * `ActiveSupport::TestCase`
-* `ActionController::TestCase`
 * `ActionMailer::TestCase`
 * `ActionView::TestCase`
 * `ActionDispatch::IntegrationTest`
@@ -682,9 +681,9 @@ Let me take you through one such test, `test_should_get_index` from the file `ar
 
 ```ruby
 # articles_controller_test.rb
-class ArticlesControllerTest < ActionController::TestCase
+class ArticlesControllerTest < ActionDispatch::IntegrationTest
   test "should get index" do
-    get :index
+    get '/articles'
     assert_response :success
     assert_includes @response.body, 'Articles'
   end
@@ -697,7 +696,7 @@ and also ensuring that the right response body has been generated.
 The `get` method kicks off the web request and populates the results into the response. It accepts 4 arguments:
 
 * The action of the controller you are requesting.
-  This can be in the form of a string or a symbol.
+  This can be in the form of a string or a route (i.e. `articles_url`).
 
 * `params`: option with a hash of request parameters to pass into the action
   (e.g. query string parameters or article variables).
@@ -717,7 +716,7 @@ get(:show, params: { id: 12 }, session: { user_id: 5 })
 Another example: Calling the `:view` action, passing an `id` of 12 as the `params`, this time with no session, but with a flash message.
 
 ```ruby
-get(:view, params: { id: 12 }, flash: { message: 'booya!' })
+get(view_url, params: { id: 12 }, flash: { message: 'booya!' })
 ```
 
 NOTE: If you try running `test_should_create_article` test from `articles_controller_test.rb` it will fail on account of the newly added model level validation and rightly so.
@@ -727,7 +726,7 @@ Let us modify `test_should_create_article` test in `articles_controller_test.rb`
 ```ruby
 test "should create article" do
   assert_difference('Article.count') do
-    post :create, params: { article: { title: 'Some title' } }
+    post '/article', params: { article: { title: 'Some title' } }
   end
 
   assert_redirected_to article_path(Article.last)
@@ -758,7 +757,8 @@ To test AJAX requests, you can specify the `xhr: true` option to `get`, `post`,
 
 ```ruby
 test "ajax request" do
-  get :show, params: { id: articles(:first).id }, xhr: true
+  article = articules(:first)
+  get article_url(article), xhr: true
 
   assert_equal 'hello world', @response.body
   assert_equal "text/javascript", @response.content_type
@@ -799,11 +799,11 @@ can be set directly on the `@request` instance variable:
 ```ruby
 # setting a HTTP Header
 @request.headers["Accept"] = "text/plain, text/html"
-get :index # simulate the request with custom header
+get articles_url # simulate the request with custom header
 
 # setting a CGI variable
 @request.headers["HTTP_REFERER"] = "http://example.com/home"
-post :create # simulate the request with custom env variable
+post article_url # simulate the request with custom env variable
 ```
 
 ### Testing `flash` notices
@@ -818,7 +818,7 @@ Let's start by adding this assertion to our `test_should_create_article` test:
 ```ruby
 test "should create article" do
   assert_difference('Article.count') do
-    post :create, params: { article: { title: 'Some title' } }
+    post article_url, params: { article: { title: 'Some title' } }
   end
 
   assert_redirected_to article_path(Article.last)
@@ -888,7 +888,7 @@ Let's write a test for the `:show` action:
 ```ruby
 test "should show article" do
   article = articles(:one)
-  get :show, params: { id: article.id }
+  get '/article', params: { id: article.id }
   assert_response :success
 end
 ```
@@ -901,7 +901,7 @@ How about deleting an existing Article?
 test "should destroy article" do
   article = articles(:one)
   assert_difference('Article.count', -1) do
-    delete :destroy, params: { id: article.id }
+    delete article_url(article)
   end
 
   assert_redirected_to articles_path
@@ -913,7 +913,7 @@ We can also add a test for updating an existing Article.
 ```ruby
 test "should update article" do
   article = articles(:one)
-  patch :update, params: { id: article.id, article: { title: "updated" } }
+  patch '/article', params: { id: article.id, article: { title: "updated" } }
   assert_redirected_to article_path(article)
 end
 ```
@@ -925,7 +925,7 @@ Our test should now look something like this, disregard the other tests we're le
 ```ruby
 require 'test_helper'
 
-class ArticlesControllerTest < ActionController::TestCase
+class ArticlesControllerTest < ActionDispatch::IntegrationTest
   # called before every single test
   setup do
     @article = articles(:one)
@@ -939,20 +939,20 @@ class ArticlesControllerTest < ActionController::TestCase
 
   test "should show article" do
     # Reuse the @article instance variable from setup
-    get :show, params: { id: @article.id }
+    get article_url(@article)
     assert_response :success
   end
 
   test "should destroy article" do
     assert_difference('Article.count', -1) do
-      delete :destroy, params: { id: @article.id }
+      delete article_url(@article)
     end
 
     assert_redirected_to articles_path
   end
 
   test "should update article" do
-    patch :update, params: { id: @article.id, article: { title: "updated" } }
+    patch article_url(@article), params: { article: { title: "updated" } }
     assert_redirected_to article_path(@article)
   end
 end
@@ -974,7 +974,7 @@ module SignInHelper
   end
 end
 
-class ActionController::TestCase
+class ActionDispatch::IntegrationTest
   include SignInHelper
 end
 ```
@@ -982,13 +982,13 @@ end
 ```ruby
 require 'test_helper'
 
-class ProfileControllerTest < ActionController::TestCase
+class ProfileControllerTest < ActionDispatch::IntegrationTest
 
   test "should show profile" do
     # helper is now reusable from any controller test case
     sign_in users(:david)
 
-    get :show
+    get profile_url
     assert_response :success
   end
 end
@@ -1186,10 +1186,10 @@ Functional testing for mailers involves more than just checking that the email b
 ```ruby
 require 'test_helper'
 
-class UserControllerTest < ActionController::TestCase
+class UserControllerTest < ActionDispatch::IntegrationTest
   test "invite friend" do
     assert_difference 'ActionMailer::Base.deliveries.size', +1 do
-      post :invite_friend, params: { email: 'friend@example.com' }
+      post invite_friend_url, params: { email: 'friend@example.com' }
     end
     invite_email = ActionMailer::Base.deliveries.last
 
