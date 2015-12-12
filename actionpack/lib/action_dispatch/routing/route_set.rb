@@ -30,9 +30,9 @@ module ActionDispatch
           controller = controller req
           res        = controller.make_response! req
           dispatch(controller, params[:action], req, res)
-        rescue NameError => e
+        rescue ActionController::RoutingError
           if @raise_on_name_error
-            raise ActionController::RoutingError, e.message, e.backtrace
+            raise
           else
             return [404, {'X-Cascade' => 'pass'}, []]
           end
@@ -42,6 +42,8 @@ module ActionDispatch
 
         def controller(req)
           req.controller_class
+        rescue NameError => e
+          raise ActionController::RoutingError, e.message, e.backtrace
         end
 
         def dispatch(controller, action, req, res)

@@ -4592,3 +4592,44 @@ class TestDefaultUrlOptions < ActionDispatch::IntegrationTest
     assert_equal '/en/posts/2014/12/13', archived_posts_path(2014, 12, 13)
   end
 end
+
+class TestErrorsInController < ActionDispatch::IntegrationTest
+  class ::PostsController < ActionController::Base
+    def foo
+      nil.i_do_not_exist
+    end
+
+    def bar
+      NonExistingClass.new
+    end
+  end
+
+  Routes = ActionDispatch::Routing::RouteSet.new
+  Routes.draw do
+    get '/:controller(/:action)'
+  end
+
+  APP = build_app Routes
+
+  def app
+    APP
+  end
+
+  def test_legit_no_method_errors_are_not_caught
+    get '/posts/foo'
+    assert_equal 500, response.status
+  end
+
+  def test_legit_name_errors_are_not_caught
+    get '/posts/bar'
+    assert_equal 500, response.status
+  end
+
+  def test_legit_routing_not_found_responses
+    get '/posts/baz'
+    assert_equal 404, response.status
+
+    get '/i_do_not_exist'
+    assert_equal 404, response.status
+  end
+end
