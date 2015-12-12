@@ -1,3 +1,18 @@
+*   Introduce ApplicationRecord, an Active Record layer super type.
+
+    An `ApplicationRecord` let's engines have models, isolated from the main
+    application. Plugin authors can use it to distribute extensions as modules
+    to be included into `ApplicationRecord`, instead of monkey patches. It can
+    also serve as a place for applications to customize the default
+    `ActiveRecord::Base` model behaviour.
+
+    Newly generated applications have `app/models/application_record.rb`
+    present by default. Generators are smart enough to recognize that
+    newly generated models have to inherit from `ApplicationRecord` only if
+    it's present.
+
+    *Genadi Samokovarov*
+
 *   Version the API presented to migration classes, so we can change parameter
     defaults without breaking existing migrations, or forcing them to be
     rewritten through a deprecation cycle.

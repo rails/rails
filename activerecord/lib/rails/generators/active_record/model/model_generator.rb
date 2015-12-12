@@ -43,9 +43,16 @@ module ActiveRecord
 
         # Used by the migration template to determine the parent name of the model
         def parent_class_name
-          options[:parent] || "ActiveRecord::Base"
+          options[:parent] || determine_default_parent_class
         end
 
+        def determine_default_parent_class
+          if File.exist?('app/models/application_record.rb')
+            "ApplicationRecord"
+          else
+            "ActiveRecord::Base"
+          end
+        end
     end
   end
 end

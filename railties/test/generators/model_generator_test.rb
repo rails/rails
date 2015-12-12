@@ -35,6 +35,17 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     assert_no_migration "db/migrate/create_accounts.rb"
   end
 
+  def test_model_with_existent_application_record
+    mkdir_p "#{destination_root}/app/models"
+    touch "#{destination_root}/app/models/application_record.rb"
+
+    Dir.chdir(destination_root) do
+      run_generator ["account"]
+    end
+
+    assert_file "app/models/account.rb", /class Account < ApplicationRecord/
+  end
+
   def test_plural_names_are_singularized
     content = run_generator ["accounts".freeze]
     assert_file "app/models/account.rb", /class Account < ActiveRecord::Base/
