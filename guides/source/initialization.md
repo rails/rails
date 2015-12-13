@@ -139,7 +139,8 @@ aliases = {
   "c"  => "console",
   "s"  => "server",
   "db" => "dbconsole",
-  "r"  => "runner"
+  "r"  => "runner",
+  "t"  => "test"
 }
 
 command = ARGV.shift
@@ -158,19 +159,20 @@ defined here to find the matching command.
 
 ### `rails/commands/command_tasks.rb`
 
-When one types an incorrect rails command, the `run_command` is responsible for
-throwing an error message. If the command is valid, a method of the same name
-is called.
+If the command is part of the COMMAND_WHITELIST, a method of the same name is called,
+if not we proxy it to rake.
 
 ```ruby
 COMMAND_WHITELIST = %w(plugin generate destroy console server dbconsole application runner new version help)
 
 def run_command!(command)
   command = parse_command(command)
+
   if COMMAND_WHITELIST.include?(command)
     send(command)
   else
-    write_error_message(command)
+    ARGV.unshift(command)
+    send(:rake)
   end
 end
 ```

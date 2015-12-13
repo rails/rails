@@ -1,3 +1,5 @@
+require 'rails/commands/rake_proxy'
+
 module Rails
   # This is a class which takes in a rails command and initiates the appropriate
   # initiation sequence.
@@ -5,6 +7,8 @@ module Rails
   # Warning: This class mutates ARGV because some commands require manipulating
   # it before they are run.
   class CommandsTasks # :nodoc:
+    include Rails::RakeProxy
+
     attr_reader :argv
 
     HELP_MESSAGE = <<-EOT
@@ -26,6 +30,7 @@ In addition to those, there are:
  runner       Run a piece of code in the application environment (short-cut alias: "r")
 
 All commands can be run with -h (or --help) for more information.
+
 EOT
 
     COMMAND_WHITELIST = %w(plugin generate destroy console server dbconsole runner new version help test)
@@ -39,6 +44,9 @@ EOT
 
       if COMMAND_WHITELIST.include?(command)
         send(command)
+      else
+        ARGV.unshift(command)
+        send(:rake)
       end
     end
 
@@ -102,6 +110,10 @@ EOT
       end
     end
 
+    def rake
+      invoke_rake
+    end
+
     def version
       argv.unshift '--version'
       require_command!("application")
@@ -109,6 +121,8 @@ EOT
 
     def help
       write_help_message
+      write_rake_tasks_help_message
+      write_rake_tasks
     end
 
     private
