@@ -81,7 +81,7 @@ Awkward, right? We could pull the function definition out of the click handler,
 and turn it into CoffeeScript:
 
 ```coffeescript
-paintIt = (element, backgroundColor, textColor) ->
+@paintIt = (element, backgroundColor, textColor) ->
   element.style.backgroundColor = backgroundColor
   if textColor?
     element.style.color = textColor
@@ -107,7 +107,7 @@ attribute to our link, and then bind a handler to the click event of every link
 that has that attribute:
 
 ```coffeescript
-paintIt = (element, backgroundColor, textColor) ->
+@paintIt = (element, backgroundColor, textColor) ->
   element.style.backgroundColor = backgroundColor
   if textColor?
     element.style.color = textColor
