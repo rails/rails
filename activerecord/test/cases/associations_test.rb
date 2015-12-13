@@ -22,7 +22,7 @@ require "models/interest"
 
 class AssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :developers_projects,
-           :computers, :people, :readers, :authors, :author_favorites
+           :computers, :people, :readers, :authors, :author_addresses, :author_favorites
 
   def test_eager_loading_should_not_change_count_of_children
     liquid = Liquid.create(name: "salty")
@@ -124,7 +124,7 @@ class AssociationsTest < ActiveRecord::TestCase
 end
 
 class AssociationProxyTest < ActiveRecord::TestCase
-  fixtures :authors, :posts, :categorizations, :categories, :developers, :projects, :developers_projects
+  fixtures :authors, :author_addresses, :posts, :categorizations, :categories, :developers, :projects, :developers_projects
 
   def test_push_does_not_load_target
     david = authors(:david)

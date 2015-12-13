@@ -5,7 +5,7 @@ require "models/post"
 require "models/author"
 
 class YamlSerializationTest < ActiveRecord::TestCase
-  fixtures :topics, :authors, :posts
+  fixtures :topics, :authors, :author_addresses, :posts
 
   def test_to_yaml_with_time_with_zone_should_not_raise_exception
     with_timezone_config aware_attributes: true, zone: "Pacific Time (US & Canada)" do
