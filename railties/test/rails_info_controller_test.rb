@@ -6,7 +6,7 @@ module ActionController
   end
 end
 
-class InfoControllerTest < ActionController::TestCase
+class InfoControllerTest < ActionDispatch::IntegrationTest
   tests Rails::InfoController
 
   def setup

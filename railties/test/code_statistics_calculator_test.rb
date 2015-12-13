@@ -26,7 +26,7 @@ class CodeStatisticsCalculatorTest < ActiveSupport::TestCase
 
   test 'count number of methods in MiniTest file' do
     code = <<-RUBY
-      class FooTest < ActionController::TestCase
+      class FooTest < ActionDispatch::IntegrationTest
         test 'expectation' do
           assert true
         end
