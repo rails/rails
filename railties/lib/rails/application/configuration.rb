@@ -44,7 +44,7 @@ module Rails
         @railties_order                  = [:all]
         @relative_url_root               = ENV["RAILS_RELATIVE_URL_ROOT"]
         @reload_classes_only_on_change   = true
-        @file_watcher                    = file_update_checker
+        @file_watcher                    = ActiveSupport::FileUpdateChecker
         @exceptions_app                  = nil
         @autoflush_log                   = true
         @log_formatter                   = ActiveSupport::Logger::SimpleFormatter.new
@@ -191,26 +191,21 @@ module Rails
         SourceAnnotationExtractor::Annotation
       end
 
-      private
-        def file_update_checker
-          ActiveSupport::FileUpdateChecker
+      class Custom #:nodoc:
+        def initialize
+          @configurations = Hash.new
         end
 
-        class Custom #:nodoc:
-          def initialize
-            @configurations = Hash.new
-          end
-
-          def method_missing(method, *args)
-            if method =~ /=$/
-              @configurations[$`.to_sym] = args.first
-            else
-              @configurations.fetch(method) {
-                @configurations[method] = ActiveSupport::OrderedOptions.new
-              }
-            end
+        def method_missing(method, *args)
+          if method =~ /=$/
+            @configurations[$`.to_sym] = args.first
+          else
+            @configurations.fetch(method) {
+              @configurations[method] = ActiveSupport::OrderedOptions.new
+            }
           end
         end
+      end
     end
   end
 end

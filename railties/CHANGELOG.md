@@ -1,3 +1,8 @@
+*   The generated config file for the development environment includes a new
+    config line, commented out, showing how to enable the evented file watcher.
+
+    *Xavier Noria*
+
 *   `config.debug_exception_response_format` configures the format used
     in responses when errors occur in development mode.
 
@@ -37,11 +42,6 @@
     call it `public_file_server.index_name`.
 
     *Yuki Nishijima*
-
-*   Generated `Gemfile`s for new applications include a new dependency on
-    [listen](https://github.com/guard/listen) commented out.
-
-    *Puneet Agarwal* and *Xavier Noria*
 
 *   Deprecate `serve_static_files` in favor of `public_file_server.enabled`.
 

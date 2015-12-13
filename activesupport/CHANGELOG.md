@@ -7,13 +7,18 @@
     
     *Michael Grosser*
 
-*   Implements an evented file system monitor to asynchronously detect changes
-    in the application source code, routes, locales, etc.
+*   Implements an evented file watcher to asynchronously detect changes in the
+    application source code, routes, locales, etc.
 
-    To opt-in load the [listen](https://github.com/guard/listen) gem in `Gemfile`:
+    This watcher is disabled by default, applications my enable it in the configuration:
+
+        # config/environments/development.rb
+        config.file_watcher = ActiveSupport::EventedFileUpdateChecker
+
+    This feature depends on the [listen](https://github.com/guard/listen) gem:
 
         group :development do
-          gem 'listen', '~> 3.0.4'
+          gem 'listen', '~> 3.0.5'
         end
 
     *Puneet Agarwal* and *Xavier Noria*
