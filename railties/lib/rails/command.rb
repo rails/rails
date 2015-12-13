@@ -1,7 +1,7 @@
 require 'rails/commands/commands_tasks'
 
 module Rails
-  class Command
+  class Command #:nodoc:
     attr_reader :argv
 
     def initialize(argv = [])
