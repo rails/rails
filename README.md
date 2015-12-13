@@ -137,40 +137,52 @@ Redis or a database or whatever else. Here's what the client-side of that looks 
 
 ```coffeescript
 # app/assets/javascripts/cable/subscriptions/appearance.coffee
-App.appearance = App.cable.subscriptions.create "AppearanceChannel",
+App.cable.subscriptions.create "AppearanceChannel",
+  # Called when the subscription is ready for use on the server
   connected: ->
-    # Called once the subscription has been successfully completed
+    @install()
+    @appear()
 
+  # Called when the WebSocket connection is closed
+  disconnected: ->
+    @uninstall()
+
+  # Called when the subscription is rejected by the server
   rejected: ->
-    # Called when the subscription is rejected by the server
+    @uninstall()
 
   appear: ->
-    @perform 'appear', appearing_on: @appearingOn()
+    # Calls `AppearanceChannel#appear(data)` on the server
+    @perform("appear", appearing_on: $("main").data("appearing-on"))
 
   away: ->
-    @perform 'away'
+    # Calls `AppearanceChannel#away` on the server
+    @perform("away")
 
-  appearingOn: ->
-    $('main').data 'appearing-on'
 
-$(document).on 'page:change', ->
-  App.appearance.appear()
+  buttonSelector = "[data-behavior~=appear_away]"
 
-$(document).on 'click', '[data-behavior~=appear_away]', ->
-  App.appearance.away()
-  false
+  install: ->
+    $(document).on "page:change.appearance", =>
+      @appear()
+
+    $(document).on "click.appearance", buttonSelector, =>
+      @away()
+      false
+
+    $(buttonSelector).show()
+
+  uninstall: ->
+    $(document).off(".appearance")
+    $(buttonSelector).hide()
 ```
 
 Simply calling `App.cable.subscriptions.create` will setup the subscription, which will call `AppearanceChannel#subscribed`,
 which in turn is linked to original `App.cable` -> `ApplicationCable::Connection` instances.
 
-We then link `App.appearance#appear` to `AppearanceChannel#appear(data)`. This is possible because the server-side
+We then link the client-side `appear` method to `AppearanceChannel#appear(data)`. This is possible because the server-side
 channel instance will automatically expose the public methods declared on the class (minus the callbacks), so that these
-can be reached as remote procedure calls via `App.appearance#perform`.
-
-Finally, we expose `App.appearance` to the machinations of the application itself by hooking the `#appear` call into the
-Turbolinks `page:change` callback and allowing the user to click a data-behavior link that triggers the `#away` call.
-
+can be reached as remote procedure calls via a subscription's `perform` method.
 
 ### Channel example 2: Receiving new web notifications
 
@@ -194,7 +206,7 @@ end
 # Client-side which assumes you've already requested the right to send web notifications
 App.cable.subscriptions.create "WebNotificationsChannel",
   received: (data) ->
-    new Notification data['title'], body: data['body']
+    new Notification data["title"], body: data["body"]
 ```
 
 ```ruby
@@ -228,7 +240,19 @@ Pass an object as the first argument to `subscriptions.create`, and that object 
 # Client-side which assumes you've already requested the right to send web notifications
 App.cable.subscriptions.create { channel: "ChatChannel", room: "Best Room" },
   received: (data) ->
-    new Message data['sent_by'], body: data['body']
+    @appendLine(data)
+
+  appendLine: (data) ->
+    html = @createLine(data)
+    $("[data-chat-room='Best Room']").append(html)
+
+  createLine: (data) ->
+    """
+    <article class="chat-line">
+      <span class="speaker">#{data["sent_by"]}</span>
+      <span class="body">#{data["body"]}</span>
+    </article>
+    """
 ```
 
 ```ruby
@@ -257,11 +281,11 @@ end
 
 ```coffeescript
 # Client-side which assumes you've already requested the right to send web notifications
-sub = App.cable.subscriptions.create { channel: "ChatChannel", room: "Best Room" },
+App.chatChannel = App.cable.subscriptions.create { channel: "ChatChannel", room: "Best Room" },
   received: (data) ->
-    new Message data['sent_by'], body: data['body']
+    # data => { sent_by: "Paul", body: "This is a cool chat app." }
 
-sub.send { sent_by: 'Peter', body: 'Hello Paul, thanks for the compliment.' }
+App.chatChannel.send({ sent_by: "Paul", body: "This is a cool chat app." })
 ```
 
 The rebroadcast will be received by all connected clients, _including_ the client that sent the message. Note that params are the same as they were when you subscribed to the channel.
