@@ -1,4 +1,3 @@
-require 'listen'
 require 'set'
 require 'pathname'
 require 'concurrent/atomic/atomic_boolean'
@@ -19,6 +18,10 @@ module ActiveSupport
       @lcsp    = @ph.longest_common_subpath(@dirs.keys)
 
       if (dtw = directories_to_watch).any?
+        # Loading listen triggers warnings. These are originated by a legit
+        # usage of attr_* macros for private attributes, but adds a lot of noise
+        # to our test suite. Thus, we lazy load it and disable warnings locally.
+        silence_warnings { require 'listen' }
         Listen.to(*dtw, &method(:changed)).start
       end
     end
