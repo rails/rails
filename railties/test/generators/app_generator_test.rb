@@ -505,7 +505,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     assert_file "Gemfile" do |content|
       assert_match(/gem 'web-console',\s+github: 'rails\/web-console'/, content)
-      assert_no_match(/gem 'web-console', '~> 2.0'/, content)
+      assert_no_match(/gem 'web-console', '~> 3.0'/, content)
     end
   end
 
@@ -514,7 +514,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     assert_file "Gemfile" do |content|
       assert_match(/gem 'web-console',\s+github: 'rails\/web-console'/, content)
-      assert_no_match(/gem 'web-console', '~> 2.0'/, content)
+      assert_no_match(/gem 'web-console', '~> 3.0'/, content)
     end
   end
 

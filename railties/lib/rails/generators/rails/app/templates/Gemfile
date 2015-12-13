@@ -41,7 +41,7 @@ group :development do
   <%- if options.dev? || options.edge? -%>
   gem 'web-console', github: 'rails/web-console'
   <%- else -%>
-  gem 'web-console', '~> 2.0'
+  gem 'web-console', '~> 3.0'
   <%- end -%>
 <%- end -%>
 <% if spring_install? -%>
