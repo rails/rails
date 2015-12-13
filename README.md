@@ -330,6 +330,26 @@ ActionCable.server.config.log_tags = [
 ]
 ```
 
+Your websocket url might change between environments. If you host your production server via https, you will need to use the wss scheme
+for your ActionCable server, but development might remain http and use the ws scheme. You might use localhost in development and your
+domain in production. In any case, to vary the websocket url between environments, add the following configuration to each environment:
+
+```ruby
+config.action_cable.url = "ws://example.com:28080"
+```
+
+Then add the following line to your layout before your JavaScript tag:
+
+```erb
+<%= action_cable_meta_tag %>
+```
+
+And finally, create your consumer like so:
+
+```coffeescript
+App.cable = Cable.createConsumer()
+```
+
 For a full list of all configuration options, see the `ActionCable::Server::Configuration` class.
 
 Also note that your server must provide at least the same number of database connections as you have workers. The default worker pool is set to 100, so that means you have to make at least that available. You can change that in `config/database.yml` through the `pool` attribute.
