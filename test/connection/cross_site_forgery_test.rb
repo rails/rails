@@ -40,6 +40,20 @@ class ActionCable::Connection::CrossSiteForgeryTest < ActionCable::TestCase
     assert_origin_not_allowed 'http://hax.com'
   end
 
+  test "explicitly specified a single regexp allowed origin" do
+    @server.config.allowed_request_origins = /.*ha.*/
+    assert_origin_not_allowed 'http://rubyonrails.com'
+    assert_origin_allowed 'http://hax.com'
+  end
+
+  test "explicitly specified multiple regexp allowed origins" do
+    @server.config.allowed_request_origins = [/http:\/\/ruby.*/, /.*rai.s.*com/, 'string' ]
+    assert_origin_allowed 'http://rubyonrails.com'
+    assert_origin_allowed 'http://www.rubyonrails.com'
+    assert_origin_not_allowed 'http://hax.com'
+    assert_origin_not_allowed 'http://rails.co.uk'
+  end
+
   private
     def assert_origin_allowed(origin)
       response = connect_with_origin origin

@@ -304,10 +304,10 @@ ActionCable.server.config.redis_path = Rails.root('somewhere/else/cable.yml')
 
 ### Allowed Request Origins
 
-Action Cable will only accepting requests from specified origins, which are passed to the server config as an array:
+Action Cable will only accept requests from specified origins, which are passed to the server config as an array. The origins can be instances of strings or regular expressions, against which a check for match will be performed.
 
 ```ruby
-ActionCable.server.config.allowed_request_origins = %w( http://rubyonrails.com )
+ActionCable.server.config.allowed_request_origins = ['http://rubyonrails.com', /http:\/\/ruby.*/]
 ```
 
 To disable and allow requests from any origin:
