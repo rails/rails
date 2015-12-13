@@ -180,11 +180,6 @@ module ActionCable
           end
         end
 
-        def allowed_origins_match? origin
-          allowed_origins = Array(server.config.allowed_request_origins)
-          allowed_origins.any? { |allowed_origin| allowed_origin.is_a?(Regexp) ? allowed_origin =~ origin : allowed_origin == origin }
-        end
-
         def respond_to_successful_request
           websocket.rack_response
         end
