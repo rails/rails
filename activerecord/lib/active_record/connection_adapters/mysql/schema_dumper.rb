@@ -14,6 +14,17 @@ module ActiveRecord
         def prepare_column_options(column)
           spec = super
           spec[:unsigned] = "true" if column.unsigned?
+
+          if supports_virtual_columns? && column.virtual?
+            sql = "SELECT generation_expression FROM information_schema.columns" \
+                  " WHERE table_schema = #{quote(@config[:database])}" \
+                  "   AND table_name = #{quote(column.table_name)}" \
+                  "   AND column_name = #{quote(column.name)}"
+            spec[:as] = select_value(sql, "SCHEMA").inspect
+            spec[:stored] = "true" if /\bSTORED\b/.match?(column.extra)
+            spec = { type: schema_type(column).inspect }.merge!(spec)
+          end
+
           spec
         end
 

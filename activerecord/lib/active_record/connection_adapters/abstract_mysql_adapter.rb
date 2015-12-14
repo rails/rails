@@ -141,6 +141,10 @@ module ActiveRecord
         end
       end
 
+      def supports_virtual_columns?
+        !mariadb? && version >= "5.7.5"
+      end
+
       def supports_advisory_locks?
         true
       end

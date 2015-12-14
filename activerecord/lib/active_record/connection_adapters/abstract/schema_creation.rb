@@ -106,6 +106,7 @@ module ActiveRecord
             column_options[:primary_key] = o.primary_key
             column_options[:collation] = o.collation
             column_options[:comment] = o.comment
+            column_options[:as] = o.as
             column_options
           end
 
