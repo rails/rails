@@ -162,8 +162,8 @@ module ActionController
       end
     end
 
-    # Returns a safe +Hash+ representation of this parameter with all
-    # unpermitted keys removed.
+    # Returns a safe <tt>ActiveSupport::HashWithIndifferentAccess</tt>
+    # representation of this parameter with all unpermitted keys removed.
     #
     #   params = ActionController::Parameters.new({
     #     name: 'Senjougahara Hitagi',
@@ -175,15 +175,17 @@ module ActionController
     #   safe_params.to_h # => {"name"=>"Senjougahara Hitagi"}
     def to_h
       if permitted?
-        @parameters.to_h
+        @parameters.deep_dup
       else
         slice(*self.class.always_permitted_parameters).permit!.to_h
       end
     end
 
-    # Returns an unsafe, unfiltered +Hash+ representation of this parameter.
+    # Returns an unsafe, unfiltered
+    # <tt>ActiveSupport::HashWithIndifferentAccess</tt> representation of this
+    # parameter.
     def to_unsafe_h
-      @parameters.to_h
+      @parameters.deep_dup
     end
     alias_method :to_unsafe_hash, :to_unsafe_h
 
