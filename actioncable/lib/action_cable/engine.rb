@@ -7,8 +7,10 @@ module ActionCable
   class Engine < ::Rails::Engine
     config.action_cable = ActiveSupport::OrderedOptions.new
 
-    config.to_prepare do
-      ApplicationController.helper ActionCable::Helpers::ActionCableHelper
+    initializer "action_cable.helpers" do
+      ActiveSupport.on_load(:action_view) do
+        include ActionCable::Helpers::ActionCableHelper
+      end
     end
 
     initializer "action_cable.logger" do
