@@ -1,4 +1,5 @@
 require 'rails/engine'
+require 'action_cable'
 require 'active_support/ordered_options'
 require 'action_cable/helpers/action_cable_helper'
 
