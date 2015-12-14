@@ -450,27 +450,6 @@ So you'll have one set of server processes for your normal web work, and another
 set of server processes for the Action Cable. The former can be single-threaded,
 like Unicorn, but the latter must be multi-threaded, like Puma.
 
-
-## Alpha disclaimer
-
-Action Cable is currently considered alpha software. The API is almost guaranteed to change between
-now and its first production release as part of Rails 5.0. Real applications using the framework
-are all well underway, but as of July 8th, 2015, there are no deployments in the wild yet.
-
-So this current release, which resides in rails/actioncable, is primarily intended for
-the adventurous kind, who do not mind reading the full source code of the framework. And it
-serves as an invitation for all those crafty folks to contribute to and test what we have so far,
-in advance of that general production release.
-
-Action Cable will move from rails/actioncable to rails/rails and become a full-fledged default
-framework alongside Action Pack, Active Record, and the like once we cross the bridge from alpha
-to beta software (which will happen once the API and missing pieces have solidified).
-
-Finally, note that testing is a unfinished/unstarted area of this framework. The framework
-has been developed in-app up until this point. We need to find a good way to allow the user to test
-their connection and channel logic.
-
-
 ## License
 
 Action Cable is released under the MIT license:
