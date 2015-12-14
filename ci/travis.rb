@@ -23,6 +23,7 @@ class Build
     'ar'       => 'activerecord',
     'av'       => 'actionview',
     'aj'       => 'activejob',
+    'ac'       => 'actioncable',
     'guides'   => 'guides'
   }
 
