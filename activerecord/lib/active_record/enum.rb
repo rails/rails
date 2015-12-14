@@ -150,6 +150,16 @@ module ActiveRecord
         # statuses = { }
         enum_values = ActiveSupport::HashWithIndifferentAccess.new
         name        = name.to_sym
+        prefix = if enum_prefix == true
+                   "#{name}_"
+                 elsif enum_prefix
+                   "#{enum_prefix}_"
+                 end
+        suffix = if enum_suffix == true
+                   "_#{name}"
+                 elsif enum_suffix
+                   "_#{enum_suffix}"
+                 end
 
         # def self.statuses statuses end
         detect_enum_conflict!(name, name.to_s.pluralize, true)
@@ -163,17 +173,6 @@ module ActiveRecord
         _enum_methods_module.module_eval do
           pairs = values.respond_to?(:each_pair) ? values.each_pair : values.each_with_index
           pairs.each do |value, i|
-            if enum_prefix == true
-              prefix = "#{name}_"
-            elsif enum_prefix
-              prefix = "#{enum_prefix}_"
-            end
-            if enum_suffix == true
-              suffix = "_#{name}"
-            elsif enum_suffix
-              suffix = "_#{enum_suffix}"
-            end
-
             value_method_name = "#{prefix}#{value}#{suffix}"
             enum_values[value] = i
 
