@@ -359,13 +359,10 @@ DEPENDENCIES
   bcrypt (~> 3.1.10)
   benchmark-ips
   byebug
-  celluloid (~> 0.17.2)
   coffee-rails (~> 4.1.0)
   dalli (>= 2.2.1)
   delayed_job
   delayed_job_active_record
-  em-hiredis (~> 0.3.0)
-  faye-websocket (~> 0.10.0)
   globalid!
   jquery-rails!
   json
@@ -390,7 +387,6 @@ DEPENDENCIES
   rails!
   rake (>= 10.3)
   redcarpet (~> 3.2.3)
-  redis (~> 3.0)
   resque
   resque-scheduler
   sass!
@@ -408,7 +404,6 @@ DEPENDENCIES
   tzinfo-data
   uglifier (>= 1.3.0)
   w3c_validators
-  websocket-driver (~> 0.6.1)
 
 BUNDLED WITH
    1.11.0
