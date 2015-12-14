@@ -25,6 +25,7 @@ env:
     - "GEM=guides"
 rvm:
   - 2.2.3
+  - 2.3.0-preview2
   - ruby-head
 matrix:
   allow_failures:
