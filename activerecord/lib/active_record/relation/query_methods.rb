@@ -677,6 +677,12 @@ module ActiveRecord
     end
 
     def limit!(value) # :nodoc:
+      if ::String === value && value.include?(",")
+        ActiveSupport::Deprecation.warn(<<-WARNING)
+          Passing a string to limit in the form "1,2" is deprecated and will be
+          removed in Rails 5.1. Please call `offset` explicitly instead.
+        WARNING
+      end
       self.limit_value = value
       self
     end
