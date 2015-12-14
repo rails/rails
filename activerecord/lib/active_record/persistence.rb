@@ -215,7 +215,7 @@ module ActiveRecord
       became.instance_variable_set("@changed_attributes", attributes_changed_by_setter)
       became.instance_variable_set("@new_record", new_record?)
       became.instance_variable_set("@destroyed", destroyed?)
-      became.instance_variable_set("@errors", errors)
+      became.errors.copy!(errors)
       became
     end
 
