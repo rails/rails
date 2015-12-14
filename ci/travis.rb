@@ -140,6 +140,7 @@ ENV['GEM'].split(',').each do |gem|
   [false, true].each do |isolated|
     next if ENV['TRAVIS_PULL_REQUEST'] && ENV['TRAVIS_PULL_REQUEST'] != 'false' && isolated
     next if gem == 'railties' && isolated
+    next if gem == 'ac' && isolated
     next if gem == 'aj:integration' && isolated
     next if gem == 'guides' && isolated
 
