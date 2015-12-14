@@ -14,6 +14,13 @@ module ActiveRecord
         def prepare_column_options(column)
           spec = super
           spec[:unsigned] = "true" if column.unsigned?
+
+          if supports_virtual_columns? && column.virtual?
+            spec[:as] = extract_expression_for_virtual_column(column)
+            spec[:stored] = "true" if /\b(?:STORED|PERSISTENT)\b/.match?(column.extra)
+            spec = { type: schema_type(column).inspect }.merge!(spec)
+          end
+
           spec
         end
 
@@ -44,6 +51,21 @@ module ActiveRecord
               @table_collation_cache ||= {}
               @table_collation_cache[table_name] ||= select_one("SHOW TABLE STATUS LIKE '#{table_name}'")["Collation"]
               column.collation.inspect if column.collation != @table_collation_cache[table_name]
+            end
+          end
+
+          def extract_expression_for_virtual_column(column)
+            if mariadb?
+              create_table_info = create_table_info(column.table_name)
+              if %r/#{quote_column_name(column.name)} #{Regexp.quote(column.sql_type)} AS \((?<expression>.+?)\) #{column.extra}/m =~ create_table_info
+                $~[:expression].inspect
+              end
+            else
+              sql = "SELECT generation_expression FROM information_schema.columns" \
+                    " WHERE table_schema = #{quote(@config[:database])}" \
+                    "   AND table_name = #{quote(column.table_name)}" \
+                    "   AND column_name = #{quote(column.name)}"
+              select_value(sql, "SCHEMA").inspect
             end
           end
       end

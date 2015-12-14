@@ -15,6 +15,10 @@ module ActiveRecord
         def auto_increment?
           extra == "auto_increment"
         end
+
+        def virtual?
+          /\b(?:VIRTUAL|STORED|PERSISTENT)\b/.match?(extra)
+        end
       end
     end
   end

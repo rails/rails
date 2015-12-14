@@ -6,23 +6,27 @@ class Mysql2DatetimePrecisionQuotingTest < ActiveRecord::Mysql2TestCase
   end
 
   test "microsecond precision for MySQL gte 5.6.4" do
-    stub_version "5.6.4"
-    assert_microsecond_precision
+    stub_version "5.6.4" do
+      assert_microsecond_precision
+    end
   end
 
   test "no microsecond precision for MySQL lt 5.6.4" do
-    stub_version "5.6.3"
-    assert_no_microsecond_precision
+    stub_version "5.6.3" do
+      assert_no_microsecond_precision
+    end
   end
 
   test "microsecond precision for MariaDB gte 5.3.0" do
-    stub_version "5.5.5-10.1.8-MariaDB-log"
-    assert_microsecond_precision
+    stub_version "5.5.5-10.1.8-MariaDB-log" do
+      assert_microsecond_precision
+    end
   end
 
   test "no microsecond precision for MariaDB lt 5.3.0" do
-    stub_version "5.2.9-MariaDB"
-    assert_no_microsecond_precision
+    stub_version "5.2.9-MariaDB" do
+      assert_no_microsecond_precision
+    end
   end
 
   private
@@ -40,6 +44,9 @@ class Mysql2DatetimePrecisionQuotingTest < ActiveRecord::Mysql2TestCase
 
     def stub_version(full_version_string)
       @connection.stubs(:full_version).returns(full_version_string)
+      @connection.remove_instance_variable(:@version) if @connection.instance_variable_defined?(:@version)
+      yield
+    ensure
       @connection.remove_instance_variable(:@version) if @connection.instance_variable_defined?(:@version)
     end
 end

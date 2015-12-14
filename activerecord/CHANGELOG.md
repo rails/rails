@@ -1,3 +1,22 @@
+*   Virtual/generated column support for MySQL 5.7.5+ and MariaDB 5.2.0+.
+
+    MySQL generated columns: https://dev.mysql.com/doc/refman/5.7/en/create-table-generated-columns.html
+    MariaDB virtual columns: https://mariadb.com/kb/en/mariadb/virtual-computed-columns/
+
+    Declare virtual columns with `t.virtual name, type: …, as: "expression"`.
+    Pass `stored: true` to persist the generated value (false by default).
+
+    Example:
+
+        create_table :generated_columns do |t|
+          t.string  :name
+          t.virtual :upper_name,  type: :string,  as: "UPPER(name)"
+          t.virtual :name_length, type: :integer, as: "LENGTH(name)", stored: true
+          t.index :name_length  # May be indexed, too!
+        end
+
+    *Ryuta Kamizono*
+
 *   Deprecate `initialize_schema_migrations_table` and `initialize_internal_metadata_table`.
 
     *Ryuta Kamizono*

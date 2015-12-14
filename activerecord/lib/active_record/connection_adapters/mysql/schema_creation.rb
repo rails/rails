@@ -2,8 +2,8 @@ module ActiveRecord
   module ConnectionAdapters
     module MySQL
       class SchemaCreation < AbstractAdapter::SchemaCreation
-        delegate :add_sql_comment!, to: :@conn
-        private :add_sql_comment!
+        delegate :add_sql_comment!, :mariadb?, to: :@conn
+        private :add_sql_comment!, :mariadb?
 
         private
 
@@ -32,6 +32,7 @@ module ActiveRecord
           def column_options(o)
             column_options = super
             column_options[:charset] = o.charset
+            column_options[:stored] = o.stored
             column_options
           end
 
@@ -42,6 +43,13 @@ module ActiveRecord
 
             if collation = options[:collation]
               sql << " COLLATE #{collation}"
+            end
+
+            if as = options[:as]
+              sql << " AS (#{as})"
+              if options[:stored]
+                sql << (mariadb? ? " PERSISTENT" : " STORED")
+              end
             end
 
             add_sql_comment!(super, options[:comment])
