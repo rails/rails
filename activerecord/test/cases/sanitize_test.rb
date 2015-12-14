@@ -25,6 +25,16 @@ class SanitizeTest < ActiveRecord::TestCase
     assert_equal "name=#{quoted_bambi_and_thumper}", Binary.send(:sanitize_sql_array, ["name=?", "Bambi\nand\nThumper".mb_chars])
   end
 
+  def test_sanitize_sql_array_handles_named_bind_variables
+    quoted_bambi = ActiveRecord::Base.connection.quote("Bambi")
+    assert_equal "name=#{quoted_bambi}", Binary.send(:sanitize_sql_array, ["name=:name", name: "Bambi"])
+    assert_equal "name=#{quoted_bambi} AND id=1", Binary.send(:sanitize_sql_array, ["name=:name AND id=:id", name: "Bambi", id: 1])
+
+    quoted_bambi_and_thumper = ActiveRecord::Base.connection.quote("Bambi\nand\nThumper")
+    assert_equal "name=#{quoted_bambi_and_thumper}", Binary.send(:sanitize_sql_array, ["name=:name", name: "Bambi\nand\nThumper"])
+    assert_equal "name=#{quoted_bambi_and_thumper} AND name2=#{quoted_bambi_and_thumper}", Binary.send(:sanitize_sql_array, ["name=:name AND name2=:name", name: "Bambi\nand\nThumper"])
+  end
+
   def test_sanitize_sql_array_handles_relations
     david = Author.create!(name: 'David')
     david_posts = david.posts.select(:id)
