@@ -14,6 +14,12 @@ module ActionController
     #
     #   expire_fragment('name_of_cache')
     module Fragments
+      extend ActiveSupport::Concern
+
+      included do
+        helper_method :fragment_cache_key if respond_to?(:helper_method)
+      end
+
       # Given a key (as described in +expire_fragment+), returns
       # a key suitable for use in reading, writing, or expiring a
       # cached fragment. All keys are prefixed with <tt>views/</tt> and uses

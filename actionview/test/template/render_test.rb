@@ -9,6 +9,10 @@ module RenderTestCases
     @assigns = { :secret => 'in the sauce' }
     @view = Class.new(ActionView::Base) do
       def view_cache_dependencies; end
+
+      def fragment_cache_key(key)
+        ActiveSupport::Cache.expand_cache_key(key, :views)
+      end
     end.new(paths, @assigns)
 
     @controller_view = TestController.new.view_context
