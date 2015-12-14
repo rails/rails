@@ -64,6 +64,17 @@ group :job do
   gem 'sequel', require: false
 end
 
+# Action Cable
+group :cable do
+  gem 'faye-websocket',   '~> 0.10.0', require: false
+  gem 'websocket-driver', '~> 0.6.1', require: false
+  gem 'celluloid',        '~> 0.17.2', require: false
+  gem 'em-hiredis',       '~> 0.3.0', require: false
+  gem 'redis',            '~> 3.0', require: false
+
+  gem 'puma', require: false
+end
+
 # Add your own local bundler stuff.
 local_gemfile = File.dirname(__FILE__) + "/.Gemfile"
 instance_eval File.read local_gemfile if File.exist? local_gemfile
