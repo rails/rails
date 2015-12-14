@@ -104,7 +104,7 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
     run_generator ["User", "name:string", "age:integer", "organization:references{polymorphic}"]
 
     assert_file "test/controllers/users_controller_test.rb" do |content|
-      assert_match(/class UsersControllerTest < ActionDispatch::IntegrationTest/, content)
+      assert_match(/class UsersControllerTest < ActionController::TestCase/, content)
       assert_match(/test "should get index"/, content)
       assert_match(/post :create, params: \{ user: \{ age: @user\.age, name: @user\.name, organization_id: @user\.organization_id, organization_type: @user\.organization_type \} \}/, content)
       assert_match(/patch :update, params: \{ id: @user, user: \{ age: @user\.age, name: @user\.name, organization_id: @user\.organization_id, organization_type: @user\.organization_type \} \}/, content)
@@ -115,7 +115,7 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
     run_generator ["User"]
 
     assert_file "test/controllers/users_controller_test.rb" do |content|
-      assert_match(/class UsersControllerTest < ActionDispatch::IntegrationTest/, content)
+      assert_match(/class UsersControllerTest < ActionController::TestCase/, content)
       assert_match(/test "should get index"/, content)
       assert_match(/post :create, params: \{ user: \{  \} \}/, content)
       assert_match(/patch :update, params: \{ id: @user, user: \{  \} \}/, content)
@@ -236,7 +236,7 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
     run_generator ["User", "name:string", "age:integer", "organization:references{polymorphic}", "--api"]
 
     assert_file "test/controllers/users_controller_test.rb" do |content|
-      assert_match(/class UsersControllerTest < ActionDispatch::IntegrationTest/, content)
+      assert_match(/class UsersControllerTest < ActionController::TestCase/, content)
       assert_match(/test "should get index"/, content)
       assert_match(/post :create, params: \{ user: \{ age: @user\.age, name: @user\.name, organization_id: @user\.organization_id, organization_type: @user\.organization_type \} \}/, content)
       assert_match(/patch :update, params: \{ id: @user, user: \{ age: @user\.age, name: @user\.name, organization_id: @user\.organization_id, organization_type: @user\.organization_type \} \}/, content)

@@ -218,7 +218,7 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
                 /class ProductLinesController < ApplicationController/
 
     assert_file "test/controllers/test_app/product_lines_controller_test.rb",
-                /module TestApp\n  class ProductLinesControllerTest < ActionDispatch::IntegrationTest/
+                /module TestApp\n  class ProductLinesControllerTest < ActionController::TestCase/
 
     # Views
     %w(index edit new show _form).each do |view|
@@ -285,7 +285,7 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
     end
 
     assert_file "test/controllers/test_app/admin/roles_controller_test.rb",
-                /module TestApp\n  class Admin::RolesControllerTest < ActionDispatch::IntegrationTest/
+                /module TestApp\n  class Admin::RolesControllerTest < ActionController::TestCase/
 
     # Views
     %w(index edit new show _form).each do |view|
@@ -352,7 +352,7 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
     end
 
     assert_file "test/controllers/test_app/admin/user/special/roles_controller_test.rb",
-                /module TestApp\n  class Admin::User::Special::RolesControllerTest < ActionDispatch::IntegrationTest/
+                /module TestApp\n  class Admin::User::Special::RolesControllerTest < ActionController::TestCase/
 
     # Views
     %w(index edit new show _form).each do |view|
@@ -418,6 +418,6 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
       assert_match(%r(require_dependency "test_app/application_controller"), content)
     end
     assert_file "test/controllers/test_app/admin/roles_controller_test.rb",
-                /module TestApp\n  class Admin::RolesControllerTest < ActionDispatch::IntegrationTest/
+                /module TestApp\n  class Admin::RolesControllerTest < ActionController::TestCase/
   end
 end

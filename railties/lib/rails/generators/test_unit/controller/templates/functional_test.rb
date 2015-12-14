@@ -1,7 +1,7 @@
 require 'test_helper'
 
 <% module_namespacing do -%>
-class <%= class_name %>ControllerTest < ActionDispatch::IntegrationTest
+class <%= class_name %>ControllerTest < ActionController::TestCase
 <% if mountable_engine? -%>
   setup do
     @routes = Engine.routes
@@ -15,7 +15,7 @@ class <%= class_name %>ControllerTest < ActionDispatch::IntegrationTest
 <% else -%>
 <% actions.each do |action| -%>
   test "should get <%= action %>" do
-    get url_for(action: :<%= action %>)
+    get :<%= action %>
     assert_response :success
   end
 
