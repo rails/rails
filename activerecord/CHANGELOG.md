@@ -1,3 +1,12 @@
+*   Use bind params for `limit` and `offset`. This will generate significantly
+    fewer prepared statements for common tasks like pagination. To support this
+    change, passing a string containing a comma to `limit` has been deprecated,
+    and passing an Arel node to `limit` is no longer supported.
+
+    Fixes #22250
+
+    *Sean Griffin*
+
 *   Introduce after_{create,update,delete}_commit callbacks.
 
     Before:

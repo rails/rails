@@ -147,12 +147,6 @@ class BasicsTest < ActiveRecord::TestCase
     end
   end
 
-  unless current_adapter?(:MysqlAdapter, :Mysql2Adapter)
-    def test_limit_should_allow_sql_literal
-      assert_equal 1, Topic.limit(Arel.sql('2-1')).to_a.length
-    end
-  end
-
   def test_select_symbol
     topic_ids = Topic.select(:id).map(&:id).sort
     assert_equal Topic.pluck(:id).sort, topic_ids

@@ -97,7 +97,22 @@ module ActiveRecord
     end
 
     def bound_attributes
-      from_clause.binds + arel.bind_values + where_clause.binds + having_clause.binds
+      result = from_clause.binds + arel.bind_values + where_clause.binds + having_clause.binds
+      if limit_value && !string_containing_comma?(limit_value)
+        result << Attribute.with_cast_value(
+          "LIMIT".freeze,
+          connection.sanitize_limit(limit_value),
+          Type::Value.new,
+        )
+      end
+      if offset_value
+        result << Attribute.with_cast_value(
+          "OFFSET".freeze,
+          offset_value.to_i,
+          Type::Value.new,
+        )
+      end
+      result
     end
 
     def create_with_value # :nodoc:
@@ -677,7 +692,8 @@ module ActiveRecord
     end
 
     def limit!(value) # :nodoc:
-      if ::String === value && value.include?(",")
+      if string_containing_comma?(value)
+        # Remove `string_containing_comma?` when removing this deprecation
         ActiveSupport::Deprecation.warn(<<-WARNING)
           Passing a string to limit in the form "1,2" is deprecated and will be
           removed in Rails 5.1. Please call `offset` explicitly instead.
@@ -933,8 +949,14 @@ module ActiveRecord
 
       arel.where(where_clause.ast) unless where_clause.empty?
       arel.having(having_clause.ast) unless having_clause.empty?
-      arel.take(connection.sanitize_limit(limit_value)) if limit_value
-      arel.skip(offset_value.to_i) if offset_value
+      if limit_value
+        if string_containing_comma?(limit_value)
+          arel.take(connection.sanitize_limit(limit_value))
+        else
+          arel.take(Arel::Nodes::BindParam.new)
+        end
+      end
+      arel.skip(Arel::Nodes::BindParam.new) if offset_value
       arel.group(*arel_columns(group_values.uniq.reject(&:blank?))) unless group_values.empty?
 
       build_order(arel)
@@ -1182,6 +1204,10 @@ module ActiveRecord
 
     def new_from_clause
       Relation::FromClause.empty
+    end
+
+    def string_containing_comma?(value)
+      ::String === value && value.include?(",")
     end
   end
 end
