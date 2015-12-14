@@ -1,4 +1,3 @@
-require 'active_support/core_ext/module/attribute_accessors'
 require 'active_support/logger_silence'
 require 'logger'
 
@@ -6,16 +5,18 @@ module ActiveSupport
   class Logger < ::Logger
     include LoggerSilence
 
+    attr_accessor :broadcast_messages
+
     # Broadcasts logs to multiple loggers.
     def self.broadcast(logger) # :nodoc:
       Module.new do
         define_method(:add) do |*args, &block|
-          logger.add(*args, &block)
+          logger.add(*args, &block) if broadcast_messages
           super(*args, &block)
         end
 
         define_method(:<<) do |x|
-          logger << x
+          logger << x if broadcast_messages
           super(x)
         end
 
@@ -44,6 +45,7 @@ module ActiveSupport
     def initialize(*args)
       super
       @formatter = SimpleFormatter.new
+      @broadcast_messages = true
     end
 
     # Simple formatter which only displays the message.

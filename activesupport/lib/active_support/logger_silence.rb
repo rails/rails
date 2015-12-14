@@ -1,8 +1,9 @@
 require 'active_support/concern'
+require 'active_support/core_ext/module/attribute_accessors'
 
 module LoggerSilence
   extend ActiveSupport::Concern
-  
+
   included do
     cattr_accessor :silencer
     self.silencer = true
