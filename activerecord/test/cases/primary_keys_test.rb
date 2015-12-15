@@ -195,7 +195,7 @@ class PrimaryKeyWithNoConnectionTest < ActiveRecord::TestCase
   end
 end
 
-if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
+if current_adapter?(:Mysql2Adapter)
   class PrimaryKeyWithAnsiQuotesTest < ActiveRecord::TestCase
     self.use_transactional_fixtures = false
 
