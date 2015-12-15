@@ -1,3 +1,7 @@
+*   Deprecate passing string to define callback.
+
+    *Yuichiro Kaneko*
+
 *   `ActiveSupport::Cache::Store#namespaced_key`, 
     `ActiveSupport::Cache::MemCachedStore#escape_key`, and 
     `ActiveSupport::Cache::FileStore#key_file_path` 

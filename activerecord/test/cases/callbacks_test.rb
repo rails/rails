@@ -33,7 +33,7 @@ class CallbackDeveloper < ActiveRecord::Base
   ActiveRecord::Callbacks::CALLBACKS.each do |callback_method|
     next if callback_method.to_s =~ /^around_/
     define_callback_method(callback_method)
-    send(callback_method, callback_string(callback_method))
+    ActiveSupport::Deprecation.silence { send(callback_method, callback_string(callback_method)) }
     send(callback_method, callback_proc(callback_method))
     send(callback_method, callback_object(callback_method))
     send(callback_method) { |model| model.history << [callback_method, :block] }
