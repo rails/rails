@@ -1,11 +1,11 @@
-require 'rails/engine'
-require 'action_cable'
-require 'active_support/ordered_options'
-require 'action_cable/helpers/action_cable_helper'
+require "rails"
+require "action_cable"
+require "action_cable/helpers/action_cable_helper"
 
 module ActionCable
-  class Engine < ::Rails::Engine
+  class Railtie < Rails::Railtie # :nodoc:
     config.action_cable = ActiveSupport::OrderedOptions.new
+    config.eager_load_namespaces << ActionCable
 
     initializer "action_cable.helpers" do
       ActiveSupport.on_load(:action_view) do
