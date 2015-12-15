@@ -91,7 +91,7 @@ The client-side needs to setup a consumer instance of this connection. That's do
 #= require cable
 
 @App = {}
-App.cable = Cable.createConsumer "ws://cable.example.com"
+App.cable = Cable.createConsumer("ws://cable.example.com")
 ```
 
 The ws://cable.example.com address must point to your set of Action Cable servers, and it
@@ -402,7 +402,7 @@ bundle exec puma -p 28080 cable/config.ru
 ```
 
 The above will start a cable server on port 28080. Remember to point your client-side setup against that using something like:
-`App.cable.createConsumer('ws://basecamp.dev:28080')`.
+`App.cable = Cable.createConsumer("ws://basecamp.dev:28080")`.
 
 ### In app
 
@@ -415,7 +415,7 @@ Example::Application.routes.draw do
 end
 ```
 
-You can use `App.cable.createConsumer('ws://' + window.location.host + '/websocket')` to connect to the cable server.
+You can use `App.cable = Cable.createConsumer("/websocket")` to connect to the cable server.
 
 For every instance of your server you create and for every worker your server spawns, you will also have a new instance of ActionCable, but the use of Redis keeps messages synced across connections.
 
