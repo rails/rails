@@ -29,7 +29,7 @@ rvm:
 matrix:
   allow_failures:
     - env: "GEM=ar:mysql"
-    - ruby-head
+    - rvm: ruby-head
   fast_finish: true
 notifications:
   email: false
