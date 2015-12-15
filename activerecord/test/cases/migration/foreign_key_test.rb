@@ -224,7 +224,7 @@ module ActiveRecord
         assert_match %r{\s+add_foreign_key "astronauts",.+on_update: :cascade,.+on_delete: :nullify$}, output
       end
 
-      class CreateCitiesAndHousesMigration < ActiveRecord::Migration
+      class CreateCitiesAndHousesMigration < ActiveRecord::Migration::Current
         def change
           create_table("cities") { |t| }
 
@@ -243,7 +243,7 @@ module ActiveRecord
         silence_stream($stdout) { migration.migrate(:down) }
       end
 
-      class CreateSchoolsAndClassesMigration < ActiveRecord::Migration
+      class CreateSchoolsAndClassesMigration < ActiveRecord::Migration::Current
         def change
           create_table(:schools)
 

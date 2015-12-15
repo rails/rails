@@ -57,12 +57,12 @@ class ModelGeneratorTest < Rails::Generators::TestCase
 
   def test_migration
     run_generator
-    assert_migration "db/migrate/create_accounts.rb", /class CreateAccounts < ActiveRecord::Migration/
+    assert_migration "db/migrate/create_accounts.rb", /class CreateAccounts < ActiveRecord::Migration\[[0-9.]+\]/
   end
 
   def test_migration_with_namespace
     run_generator ["Gallery::Image"]
-    assert_migration "db/migrate/create_gallery_images", /class CreateGalleryImages < ActiveRecord::Migration/
+    assert_migration "db/migrate/create_gallery_images", /class CreateGalleryImages < ActiveRecord::Migration\[[0-9.]+\]/
     assert_no_migration "db/migrate/create_images"
   end
 
@@ -70,7 +70,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     run_generator ["Admin::Gallery::Image"]
     assert_no_migration "db/migrate/create_images"
     assert_no_migration "db/migrate/create_gallery_images"
-    assert_migration "db/migrate/create_admin_gallery_images", /class CreateAdminGalleryImages < ActiveRecord::Migration/
+    assert_migration "db/migrate/create_admin_gallery_images", /class CreateAdminGalleryImages < ActiveRecord::Migration\[[0-9.]+\]/
     assert_migration "db/migrate/create_admin_gallery_images", /create_table :admin_gallery_images/
   end
 
@@ -80,7 +80,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     assert_no_migration "db/migrate/create_images"
     assert_no_migration "db/migrate/create_gallery_images"
     assert_no_migration "db/migrate/create_admin_gallery_images"
-    assert_migration "db/migrate/create_admin_gallery_image", /class CreateAdminGalleryImage < ActiveRecord::Migration/
+    assert_migration "db/migrate/create_admin_gallery_image", /class CreateAdminGalleryImage < ActiveRecord::Migration\[[0-9.]+\]/
     assert_migration "db/migrate/create_admin_gallery_image", /create_table :admin_gallery_image/
   ensure
     ActiveRecord::Base.pluralize_table_names = true
@@ -89,7 +89,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
   def test_migration_with_namespaces_in_model_name_without_plurization
     ActiveRecord::Base.pluralize_table_names = false
     run_generator ["Gallery::Image"]
-    assert_migration "db/migrate/create_gallery_image", /class CreateGalleryImage < ActiveRecord::Migration/
+    assert_migration "db/migrate/create_gallery_image", /class CreateGalleryImage < ActiveRecord::Migration\[[0-9.]+\]/
     assert_no_migration "db/migrate/create_gallery_images"
   ensure
     ActiveRecord::Base.pluralize_table_names = true
@@ -98,7 +98,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
   def test_migration_without_pluralization
     ActiveRecord::Base.pluralize_table_names = false
     run_generator
-    assert_migration "db/migrate/create_account", /class CreateAccount < ActiveRecord::Migration/
+    assert_migration "db/migrate/create_account", /class CreateAccount < ActiveRecord::Migration\[[0-9.]+\]/
     assert_no_migration "db/migrate/create_accounts"
   ensure
     ActiveRecord::Base.pluralize_table_names = true
@@ -193,10 +193,10 @@ class ModelGeneratorTest < Rails::Generators::TestCase
   def test_migration_without_timestamps
     ActiveRecord::Base.timestamped_migrations = false
     run_generator ["account"]
-    assert_file  "db/migrate/001_create_accounts.rb", /class CreateAccounts < ActiveRecord::Migration/
+    assert_file  "db/migrate/001_create_accounts.rb", /class CreateAccounts < ActiveRecord::Migration\[[0-9.]+\]/
 
     run_generator ["project"]
-    assert_file  "db/migrate/002_create_projects.rb", /class CreateProjects < ActiveRecord::Migration/
+    assert_file  "db/migrate/002_create_projects.rb", /class CreateProjects < ActiveRecord::Migration\[[0-9.]+\]/
   ensure
     ActiveRecord::Base.timestamped_migrations = true
   end

@@ -339,7 +339,7 @@ module ActiveRecord
 
       def test_change_column_null
         testing_table_with_only_foo_attribute do
-          notnull_migration = Class.new(ActiveRecord::Migration) do
+          notnull_migration = Class.new(ActiveRecord::Migration::Current) do
             def change
               change_column_null :testings, :foo, false
             end

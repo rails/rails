@@ -63,22 +63,22 @@ module RailtiesTest
 
     test "copying migrations" do
       @plugin.write "db/migrate/1_create_users.rb", <<-RUBY
-        class CreateUsers < ActiveRecord::Migration
+        class CreateUsers < ActiveRecord::Migration::Current
         end
       RUBY
 
       @plugin.write "db/migrate/2_add_last_name_to_users.rb", <<-RUBY
-        class AddLastNameToUsers < ActiveRecord::Migration
+        class AddLastNameToUsers < ActiveRecord::Migration::Current
         end
       RUBY
 
       @plugin.write "db/migrate/3_create_sessions.rb", <<-RUBY
-        class CreateSessions < ActiveRecord::Migration
+        class CreateSessions < ActiveRecord::Migration::Current
         end
       RUBY
 
       app_file "db/migrate/1_create_sessions.rb", <<-RUBY
-        class CreateSessions < ActiveRecord::Migration
+        class CreateSessions < ActiveRecord::Migration::Current
           def up
           end
         end
@@ -123,12 +123,12 @@ module RailtiesTest
       end
 
       @plugin.write "db/migrate/1_create_users.rb", <<-RUBY
-        class CreateUsers < ActiveRecord::Migration
+        class CreateUsers < ActiveRecord::Migration::Current
         end
       RUBY
 
       @blog.write "db/migrate/2_create_blogs.rb", <<-RUBY
-        class CreateBlogs < ActiveRecord::Migration
+        class CreateBlogs < ActiveRecord::Migration::Current
         end
       RUBY
 
@@ -163,11 +163,11 @@ module RailtiesTest
       end
 
       @core.write "db/migrate/1_create_users.rb", <<-RUBY
-        class CreateUsers < ActiveRecord::Migration; end
+        class CreateUsers < ActiveRecord::Migration::Current; end
       RUBY
 
       @api.write "db/migrate/2_create_keys.rb", <<-RUBY
-        class CreateKeys < ActiveRecord::Migration; end
+        class CreateKeys < ActiveRecord::Migration::Current; end
       RUBY
 
       boot_rails
@@ -190,7 +190,7 @@ module RailtiesTest
       RUBY
 
       @plugin.write "db/migrate/0_add_first_name_to_users.rb", <<-RUBY
-        class AddFirstNameToUsers < ActiveRecord::Migration
+        class AddFirstNameToUsers < ActiveRecord::Migration::Current
         end
       RUBY
 

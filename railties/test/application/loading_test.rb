@@ -290,7 +290,7 @@ class LoadingTest < ActiveSupport::TestCase
     extend Rack::Test::Methods
 
     app_file "db/migrate/1_create_posts.rb", <<-MIGRATION
-      class CreatePosts < ActiveRecord::Migration
+      class CreatePosts < ActiveRecord::Migration::Current
         def change
           create_table :posts do |t|
             t.string :title, default: "TITLE"
@@ -306,7 +306,7 @@ class LoadingTest < ActiveSupport::TestCase
     assert_equal "TITLE", last_response.body
 
     app_file "db/migrate/2_add_body_to_posts.rb", <<-MIGRATION
-      class AddBodyToPosts < ActiveRecord::Migration
+      class AddBodyToPosts < ActiveRecord::Migration::Current
         def change
           add_column :posts, :body, :text, default: "BODY"
         end
