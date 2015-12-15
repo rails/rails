@@ -85,7 +85,7 @@ module ActiveRecord
       end
     end
 
-    if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
+    if current_adapter?(:Mysql2Adapter)
       def test_charset
         assert_not_nil @connection.charset
         assert_not_equal 'character_set_database', @connection.charset
@@ -254,7 +254,7 @@ module ActiveRecord
       end
     end
 
-    if current_adapter?(:MysqlAdapter, :Mysql2Adapter, :SQLite3Adapter)
+    if current_adapter?(:Mysql2Adapter, :SQLite3Adapter)
       def test_tables_returning_both_tables_and_views_is_deprecated
         assert_deprecated { @connection.tables }
       end

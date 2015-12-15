@@ -18,7 +18,6 @@ env:
     - "GEM=ap"
     - "GEM=ac"
     - "GEM=am,amo,as,av,aj"
-    - "GEM=ar:mysql"
     - "GEM=ar:mysql2"
     - "GEM=ar:sqlite3"
     - "GEM=ar:postgresql"
@@ -29,7 +28,6 @@ rvm:
   - ruby-head
 matrix:
   allow_failures:
-    - env: "GEM=ar:mysql"
     - rvm: ruby-head
   fast_finish: true
 notifications:

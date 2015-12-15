@@ -150,7 +150,7 @@ class ViewWithoutPrimaryKeyTest < ActiveRecord::TestCase
 end
 
 # sqlite dose not support CREATE, INSERT, and DELETE for VIEW
-if current_adapter?(:MysqlAdapter, :Mysql2Adapter, :PostgreSQLAdapter)
+if current_adapter?(:Mysql2Adapter, :PostgreSQLAdapter)
 class UpdateableViewTest < ActiveRecord::TestCase
   self.use_transactional_tests = false
   fixtures :books
@@ -196,7 +196,7 @@ class UpdateableViewTest < ActiveRecord::TestCase
     end
   end
 end
-end # end fo `if current_adapter?(:MysqlAdapter, :Mysql2Adapter, :PostgreSQLAdapter)`
+end # end fo `if current_adapter?(:Mysql2Adapter, :PostgreSQLAdapter)`
 end # end fo `if ActiveRecord::Base.connection.supports_views?`
 
 if ActiveRecord::Base.connection.respond_to?(:supports_materialized_views?) &&

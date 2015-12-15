@@ -94,8 +94,6 @@ module ActiveRecord
           ArJdbcMySQL::Error
         elsif defined?(Mysql2)
           Mysql2::Error
-        elsif defined?(Mysql)
-          Mysql::Error
         else
           StandardError
         end

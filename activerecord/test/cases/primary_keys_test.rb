@@ -268,7 +268,7 @@ class CompositePrimaryKeyTest < ActiveRecord::TestCase
   end
 end
 
-if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
+if current_adapter?(:Mysql2Adapter)
   class PrimaryKeyWithAnsiQuotesTest < ActiveRecord::TestCase
     self.use_transactional_tests = false
 
@@ -308,7 +308,7 @@ if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
   end
 end
 
-if current_adapter?(:PostgreSQLAdapter, :MysqlAdapter, :Mysql2Adapter)
+if current_adapter?(:PostgreSQLAdapter, :Mysql2Adapter)
   class PrimaryKeyBigSerialTest < ActiveRecord::TestCase
     include SchemaDumpingHelper
 
@@ -351,7 +351,7 @@ if current_adapter?(:PostgreSQLAdapter, :MysqlAdapter, :Mysql2Adapter)
       end
     end
 
-    if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
+    if current_adapter?(:Mysql2Adapter)
       test "primary key column type with options" do
         @connection.create_table(:widgets, id: :primary_key, limit: 8, unsigned: true, force: true)
         column = @connection.columns(:widgets).find { |c| c.name == 'id' }
