@@ -107,7 +107,7 @@ module ActiveRecord
           @preloaded_records = slices.flat_map do |slice|
             records_for(slice)
           end
-          @preloaded_records.group_by do |record| 
+          @preloaded_records.group_by do |record|
             convert_key(record[association_key_name])
           end
         end
@@ -137,6 +137,10 @@ module ActiveRecord
 
           if order_values = preload_values[:order] || values[:order]
             scope.order!(order_values)
+          end
+
+          if group_values = preload_values[:group] || values[:group]
+            scope.group!(group_values)
           end
 
           if preload_values[:reordering] || values[:reordering]

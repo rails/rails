@@ -1,3 +1,10 @@
+*   Pass SQL group by values when including scoped association
+
+    Fixes problem when added `group()` in association scope was lost
+    in eager loaded association.
+
+    *Lucjan Suski*
+
 *   Version the API presented to migration classes, so we can change parameter
     defaults without breaking existing migrations, or forcing them to be
     rewritten through a deprecation cycle.
