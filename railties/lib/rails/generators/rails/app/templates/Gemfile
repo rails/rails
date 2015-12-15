@@ -22,9 +22,6 @@ source 'https://rubygems.org'
 # gem 'capistrano-rails', group: :development
 
 <%- if options.api? -%>
-# Use ActiveModelSerializers to serialize JSON responses
-gem 'active_model_serializers', '~> 0.10.0.rc2'
-
 # Use Rack CORS for handling Cross-Origin Resource Sharing (CORS), making cross-origin AJAX possible
 # gem 'rack-cors'
 
