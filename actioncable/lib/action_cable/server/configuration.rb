@@ -12,7 +12,6 @@ module ActionCable
       attr_accessor :url
 
       def initialize
-        @logger   = Rails.logger
         @log_tags = []
 
         @connection_class  = ApplicationCable::Connection
