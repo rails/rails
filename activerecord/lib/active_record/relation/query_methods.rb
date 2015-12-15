@@ -3,6 +3,7 @@ require "active_record/relation/query_attribute"
 require "active_record/relation/where_clause"
 require "active_record/relation/where_clause_factory"
 require 'active_model/forbidden_attributes_protection'
+require 'active_support/core_ext/string/filters'
 
 module ActiveRecord
   module QueryMethods
@@ -694,7 +695,7 @@ module ActiveRecord
     def limit!(value) # :nodoc:
       if string_containing_comma?(value)
         # Remove `string_containing_comma?` when removing this deprecation
-        ActiveSupport::Deprecation.warn(<<-WARNING)
+        ActiveSupport::Deprecation.warn(<<-WARNING.squish)
           Passing a string to limit in the form "1,2" is deprecated and will be
           removed in Rails 5.1. Please call `offset` explicitly instead.
         WARNING
