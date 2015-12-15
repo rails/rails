@@ -20,6 +20,8 @@ class PostgresqlUUIDTest < ActiveRecord::PostgreSQLTestCase
   end
 
   setup do
+    enable_extension!('uuid-ossp', connection)
+
     connection.create_table "uuid_data_type" do |t|
       t.uuid 'guid'
     end

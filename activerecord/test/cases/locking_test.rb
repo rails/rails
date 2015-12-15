@@ -441,7 +441,7 @@ unless in_memory_db?
       def test_lock_sending_custom_lock_statement
         Person.transaction do
           person = Person.find(1)
-          assert_sql(/LIMIT 1 FOR SHARE NOWAIT/) do
+          assert_sql(/LIMIT \$\d FOR SHARE NOWAIT/) do
             person.lock!('FOR SHARE NOWAIT')
           end
         end

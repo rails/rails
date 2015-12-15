@@ -312,7 +312,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
     end
   end
 
-  class CreateDogMigration < ActiveRecord::Migration
+  class CreateDogMigration < ActiveRecord::Migration::Current
     def up
       create_table("dog_owners") do |t|
       end
@@ -357,7 +357,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
   def test_schema_dump_with_table_name_prefix_and_ignoring_tables
     original, $stdout = $stdout, StringIO.new
 
-    create_cat_migration = Class.new(ActiveRecord::Migration) do
+    create_cat_migration = Class.new(ActiveRecord::Migration::Current) do
       def change
         create_table("cats") do |t|
         end

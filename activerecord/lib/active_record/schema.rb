@@ -27,7 +27,7 @@ module ActiveRecord
   #
   # ActiveRecord::Schema is only supported by database adapters that also
   # support migrations, the two features being very similar.
-  class Schema < Migration
+  class Schema < Migration::Current
     # Eval the given block. All methods available to the current connection
     # adapter are available within the block, so you can easily use the
     # database definition DSL to build up your schema (

@@ -103,7 +103,7 @@ module ApplicationTests
       RUBY
 
       app_file 'db/migrate/20140708012246_create_user.rb', <<-RUBY
-        class CreateUser < ActiveRecord::Migration
+        class CreateUser < ActiveRecord::Migration::Current
           def change
             create_table :users
           end

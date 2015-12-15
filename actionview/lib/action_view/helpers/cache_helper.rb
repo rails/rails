@@ -216,14 +216,6 @@ module ActionView
         end
       end
 
-      # Given a key (as described in ActionController::Caching::Fragments.expire_fragment),
-      # returns a key suitable for use in reading, writing, or expiring a
-      # cached fragment. All keys are prefixed with <tt>views/</tt> and uses
-      # ActiveSupport::Cache.expand_cache_key for the expansion.
-      def fragment_cache_key(key)
-        ActiveSupport::Cache.expand_cache_key(key.is_a?(Hash) ? url_for(key).split("://").last : key, :views)
-      end
-
     private
 
       def fragment_name_with_digest(name, virtual_path) #:nodoc:

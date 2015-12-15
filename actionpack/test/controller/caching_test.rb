@@ -419,3 +419,28 @@ class AutomaticCollectionCacheTest < ActionController::TestCase
     assert_equal 1, @controller.partial_rendered_times
   end
 end
+
+class FragmentCacheKeyTestController < CachingController
+  attr_accessor :account_id
+
+  fragment_cache_key "v1"
+  fragment_cache_key { account_id }
+end
+
+class FragmentCacheKeyTest < ActionController::TestCase
+  def setup
+    super
+    @store = ActiveSupport::Cache::MemoryStore.new
+    @controller = FragmentCacheKeyTestController.new
+    @controller.perform_caching = true
+    @controller.cache_store = @store
+  end
+
+  def test_fragment_cache_key
+    @controller.account_id = "123"
+    assert_equal 'views/v1/123/what a key', @controller.fragment_cache_key('what a key')
+
+    @controller.account_id = nil
+    assert_equal 'views/v1//what a key', @controller.fragment_cache_key('what a key')
+  end
+end

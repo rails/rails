@@ -256,7 +256,7 @@ class ParametersPermitTest < ActiveSupport::TestCase
   end
 
   test "to_h returns empty hash on unpermitted params" do
-    assert @params.to_h.is_a? Hash
+    assert @params.to_h.is_a? ActiveSupport::HashWithIndifferentAccess
     assert_not @params.to_h.is_a? ActionController::Parameters
     assert @params.to_h.empty?
   end
@@ -264,7 +264,7 @@ class ParametersPermitTest < ActiveSupport::TestCase
   test "to_h returns converted hash on permitted params" do
     @params.permit!
 
-    assert @params.to_h.is_a? Hash
+    assert @params.to_h.is_a? ActiveSupport::HashWithIndifferentAccess
     assert_not @params.to_h.is_a? ActionController::Parameters
   end
 
@@ -273,7 +273,7 @@ class ParametersPermitTest < ActiveSupport::TestCase
       ActionController::Parameters.permit_all_parameters = true
       params = ActionController::Parameters.new(crab: "Senjougahara Hitagi")
 
-      assert params.to_h.is_a? Hash
+      assert params.to_h.is_a? ActiveSupport::HashWithIndifferentAccess
       assert_not @params.to_h.is_a? ActionController::Parameters
       assert_equal({ "crab" => "Senjougahara Hitagi" }, params.to_h)
     ensure
@@ -294,7 +294,7 @@ class ParametersPermitTest < ActiveSupport::TestCase
   end
 
   test "to_unsafe_h returns unfiltered params" do
-    assert @params.to_h.is_a? Hash
+    assert @params.to_h.is_a? ActiveSupport::HashWithIndifferentAccess
     assert_not @params.to_h.is_a? ActionController::Parameters
   end
 end
