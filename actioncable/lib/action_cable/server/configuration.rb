@@ -7,7 +7,7 @@ module ActionCable
     class Configuration
       attr_accessor :logger, :log_tags
       attr_accessor :connection_class, :worker_pool_size
-      attr_accessor :redis_path, :channels_path
+      attr_accessor :redis, :channels_path
       attr_accessor :disable_request_forgery_protection, :allowed_request_origins
       attr_accessor :url
 
@@ -18,7 +18,6 @@ module ActionCable
         @connection_class  = ApplicationCable::Connection
         @worker_pool_size  = 100
 
-        @redis_path    = Rails.root.join('config/redis/cable.yml')
         @channels_path = Rails.root.join('app/channels')
 
         @disable_request_forgery_protection = false
@@ -41,26 +40,6 @@ module ActionCable
           Pathname.new(channel_path).basename.to_s.split('.').first.camelize
         end
       end
-
-      def redis
-        @redis ||= config_for(redis_path).with_indifferent_access
-      end
-
-      private
-        # FIXME: Extract this from Rails::Application in a way it can be used here.
-        def config_for(path)
-          if path.exist?
-            require "yaml"
-            require "erb"
-            (YAML.load(ERB.new(path.read).result) || {})[Rails.env] || {}
-          else
-            raise "Could not load configuration. No such file - #{path}"
-          end
-        rescue Psych::SyntaxError => e
-          raise "YAML syntax error occurred while parsing #{path}. " \
-            "Please note that YAML must be consistently indented using spaces. Tabs are not allowed. " \
-            "Error: #{e.message}"
-        end
     end
   end
 end

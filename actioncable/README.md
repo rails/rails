@@ -322,7 +322,7 @@ This format allows you to specify one configuration per Rails environment. You c
 a Rails initializer with something like:
 
 ```ruby
-ActionCable.server.config.redis_path = Rails.root('somewhere/else/cable.yml')
+Rails.application.paths.add "config/redis/cable", with: "somewhere/else/cable.yml"
 ```
 
 ### Allowed Request Origins
