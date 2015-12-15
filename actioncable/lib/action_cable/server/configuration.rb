@@ -1,5 +1,3 @@
-require 'active_support/core_ext/hash/indifferent_access'
-
 module ActionCable
   module Server
     # An instance of this configuration object is available via ActionCable.server.config, which allows you to tweak the configuration points
