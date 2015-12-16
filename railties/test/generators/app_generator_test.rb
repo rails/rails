@@ -618,7 +618,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     folders_with_keep = %w(
       app/assets/images
       app/mailers
-      app/models
       app/controllers/concerns
       app/models/concerns
       lib/tasks
