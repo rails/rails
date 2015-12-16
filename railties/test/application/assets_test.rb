@@ -410,7 +410,7 @@ module ApplicationTests
 
       precompile!
 
-      assert_equal "Post;\n", File.read(Dir["#{app_path}/public/assets/application-*.js"].first)
+      assert_match /Post;/, File.read(Dir["#{app_path}/public/assets/application-*.js"].first)
     end
 
     test "initialization on the assets group should set assets_dir" do
