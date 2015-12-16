@@ -75,6 +75,29 @@ module ActionController
       self.response_body = "<html><body>You are being <a href=\"#{ERB::Util.unwrapped_html_escape(location)}\">redirected</a>.</body></html>"
     end
 
+    # Redirects the browser to the page that issued the request if possible,
+    # otherwise redirects to provided default fallback location.
+    #
+    # This avoids the <tt>ActionController::RedirectBackError</tt> that can
+    # occur if the request has no associated <tt>HTTP_REFERER</tt>.
+    #
+    #   redirect_back fallback_location: { action: "show", id: 5 }
+    #   redirect_back fallback_location: post
+    #   redirect_back fallback_location: "http://www.rubyonrails.org"
+    #   redirect_back fallback_location:  "/images/screenshot.jpg"
+    #   redirect_back fallback_location:  articles_url
+    #   redirect_back fallback_location:  proc { edit_post_url(@post) }
+    #
+    # All options that can be passed to <tt>redirect_to</tt> are accepted as
+    # options and the behavior is indetical.
+    def redirect_back(fallback_location:, **args)
+      if referer = request.headers["Referer"]
+        redirect_to referer, **args
+      else
+        redirect_to fallback_location, **args
+      end
+    end
+
     def _compute_redirect_to_location(request, options) #:nodoc:
       case options
       # The scheme name consist of a letter followed by any combination of

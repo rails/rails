@@ -42,6 +42,10 @@ class RedirectController < ActionController::Base
     redirect_to :back, :status => 307
   end
 
+  def redirect_back_with_status
+    redirect_back(fallback_location: "/things/stuff", status: 307)
+  end
+
   def host_redirect
     redirect_to :action => "other_host", :only_path => false, :host => 'other.test.host'
   end
@@ -246,6 +250,23 @@ class RedirectTest < ActionController::TestCase
       @request.env["HTTP_REFERER"] = nil
       get :redirect_to_back
     }
+  end
+
+  def test_redirect_back
+    referer = "http://www.example.com/coming/from"
+    @request.env["HTTP_REFERER"] = referer
+
+    get :redirect_back_with_status
+
+    assert_response 307
+    assert_equal referer, redirect_to_url
+  end
+
+  def test_redirect_back_with_no_referer
+    get :redirect_back_with_status
+
+    assert_response 307
+    assert_equal "http://test.host/things/stuff", redirect_to_url
   end
 
   def test_redirect_to_record

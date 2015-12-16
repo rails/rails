@@ -628,6 +628,14 @@ You can use `redirect_to` with any arguments that you could use with `link_to` o
 redirect_to :back
 ```
 
+This will raise `ActionController::RedirectBackError` if the request had no
+`HTTP_REFERER` information set. To guard against this case, you can provide a
+fall back redirect URL by using `redirect_back`:
+
+```ruby
+redirect_back(fallback_location: root_path)
+```
+
 #### Getting a Different Redirect Status Code
 
 Rails uses HTTP status code 302, a temporary redirect, when you call `redirect_to`. If you'd like to use a different status code, perhaps 301, a permanent redirect, you can use the `:status` option:

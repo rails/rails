@@ -1,3 +1,9 @@
+*   Add `redirect_back` method to `ActionController::Redirecting` to provide a
+    way to safely redirect to the `HTTP_REFERER` if it is present, falling back
+    to a provided redirect otherwise.
+
+    *Derek Prior*
+
 *   `ActionController::TestCase` will be moved to it's own gem in Rails 5.1
 
     With the speed improvements made to `ActionDispatch::IntegrationTest` we no
