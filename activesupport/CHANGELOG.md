@@ -1,3 +1,8 @@
+*   Deprecated `Module#qualified_const_` in favour of the builtin Module#const_
+    methods.
+
+    *Genadi Samokovarov*
+
 *   Deprecate passing string to define callback.
 
     *Yuichiro Kaneko*
@@ -6,9 +11,9 @@
     `ActiveSupport::Cache::MemCachedStore#escape_key`, and 
     `ActiveSupport::Cache::FileStore#key_file_path` 
     are deprecated and replaced with `normalize_key` that now calls `super`.
-    
+
     `ActiveSupport::Cache::LocaleCache#set_cache_value` is deprecated and replaced with `write_cache_value`.
-    
+
     *Michael Grosser*
 
 *   Implements an evented file watcher to asynchronously detect changes in the
