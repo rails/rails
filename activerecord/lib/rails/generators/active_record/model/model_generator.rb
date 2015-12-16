@@ -29,13 +29,13 @@ module ActiveRecord
         template 'module.rb', File.join('app/models', "#{class_path.join('/')}.rb") if behavior == :invoke
       end
 
-      def attributes_with_index
-        attributes.select { |a| !a.reference? && a.has_index? }
-      end
-
       hook_for :test_framework
 
       protected
+
+        def attributes_with_index
+          attributes.select { |a| !a.reference? && a.has_index? }
+        end
 
         # Used by the migration template to determine the parent name of the model
         def parent_class_name
