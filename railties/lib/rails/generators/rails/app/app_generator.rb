@@ -57,7 +57,7 @@ module Rails
       directory 'app'
 
       keep_file  'app/assets/images'
-      keep_file  'app/assets/javascripts/channels'
+      keep_file  'app/assets/javascripts/channels' unless options[:skip_action_cable]
 
       keep_file  'app/mailers'
 
@@ -84,7 +84,7 @@ module Rails
         directory "environments"
         directory "initializers"
         directory "locales"
-        directory "redis"
+        directory "redis" unless options[:skip_action_cable]
       end
     end
 
