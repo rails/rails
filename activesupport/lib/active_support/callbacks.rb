@@ -295,6 +295,13 @@ module ActiveSupport
 
     class Callback #:nodoc:#
       def self.build(chain, filter, kind, options)
+        if filter.is_a?(String)
+          ActiveSupport::Deprecation.warn(<<-MSG.squish)
+            Passing string to define callback is deprecated and will be removed
+            in Rails 5.1 without replacement.
+          MSG
+        end
+
         new chain.name, filter, kind, options, chain.config
       end
 
@@ -575,7 +582,7 @@ module ActiveSupport
       #   set_callback :save, :before_meth
       #
       # The callback can be specified as a symbol naming an instance method; as a
-      # proc, lambda, or block; as a string to be instance evaluated; or as an
+      # proc, lambda, or block; as a string to be instance evaluated(deprecated); or as an
       # object that responds to a certain method determined by the <tt>:scope</tt>
       # argument to +define_callbacks+.
       #
