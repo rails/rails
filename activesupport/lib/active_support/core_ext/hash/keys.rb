@@ -22,8 +22,10 @@ class Hash
   # Same as +transform_keys+ but modifies +self+.
   def transform_keys!
     return enum_for(:transform_keys!) { size } unless block_given?
-    keys.each do |key|
-      self[yield(key)] = delete(key)
+    dup = self.dup
+    keys.map { |key| delete(key) }
+    dup.keys.each do |key|
+      self[yield(key)] = dup.delete(key) 
     end
     self
   end
