@@ -261,7 +261,15 @@ class ActionsTest < Rails::Generators::TestCase
     content.gsub!(/^\n/, '')
 
     File.open(route_path, "wb") { |file| file.write(content) }
-    assert_file "config/routes.rb", /\.routes\.draw do\n  root 'welcome#index'\nend\n\z/
+
+    routes = <<-F
+Rails.application.routes.draw do
+  root 'welcome#index'
+  mount ActionCable.server => '/cable'
+end
+F
+
+    assert_file "config/routes.rb", routes
 
     action :route, "resources :product_lines"
 
@@ -269,6 +277,7 @@ class ActionsTest < Rails::Generators::TestCase
 Rails.application.routes.draw do
   resources :product_lines
   root 'welcome#index'
+  mount ActionCable.server => '/cable'
 end
 F
     assert_file "config/routes.rb", routes
