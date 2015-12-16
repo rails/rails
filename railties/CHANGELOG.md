@@ -1,3 +1,8 @@
+*   Add --markdown-readme option to `rails plugin` so plugin authors get the option
+    to start with a README.md file.
+
+    *Netto Farah*
+
 *   The generated config file for the development environment includes a new
     config line, commented out, showing how to enable the evented file watcher.
 
