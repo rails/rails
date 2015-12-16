@@ -53,7 +53,7 @@ Don't forget to review the difference, to see if there were any unexpected chang
 Upgrading from Rails 4.2 to Rails 5.0
 -------------------------------------
 
-### Halting callback chains by returning `false`
+### Halting callback chains via `throw(:abort)`
 
 In Rails 4.2, when a 'before' callback returns `false` in Active Record
 and Active Model, then the entire callback chain is halted. In other words,
