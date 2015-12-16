@@ -211,7 +211,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_preserving_time_objects_with_local_time_conversion_to_default_timezone_utc
-    with_env_tz 'America/New_York' do
+    with_env_tz eastern_time_zone do
       with_timezone_config default: :utc do
         time = Time.local(2000)
         topic = Topic.create('written_on' => time)
@@ -224,7 +224,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_preserving_time_objects_with_time_with_zone_conversion_to_default_timezone_utc
-    with_env_tz 'America/New_York' do
+    with_env_tz eastern_time_zone do
       with_timezone_config default: :utc do
         Time.use_zone 'Central Time (US & Canada)' do
           time = Time.zone.local(2000)
@@ -239,7 +239,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_preserving_time_objects_with_utc_time_conversion_to_default_timezone_local
-    with_env_tz 'America/New_York' do
+    with_env_tz eastern_time_zone do
       with_timezone_config default: :local do
         time = Time.utc(2000)
         topic = Topic.create('written_on' => time)
@@ -252,7 +252,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_preserving_time_objects_with_time_with_zone_conversion_to_default_timezone_local
-    with_env_tz 'America/New_York' do
+    with_env_tz eastern_time_zone do
       with_timezone_config default: :local do
         Time.use_zone 'Central Time (US & Canada)' do
           time = Time.zone.local(2000)
@@ -263,6 +263,14 @@ class BasicsTest < ActiveRecord::TestCase
           assert_equal [0, 0, 1, 1, 1, 2000, 6, 1, false, "EST"], saved_time.to_a
         end
       end
+    end
+  end
+
+  def eastern_time_zone
+    if Gem.win_platform?
+      "EST5EDT"
+    else
+      "America/New_York"
     end
   end
 
