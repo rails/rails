@@ -6,6 +6,8 @@ require "active_support/core_ext/hash/indifferent_access"
 module ActionCable
   class Railtie < Rails::Engine # :nodoc:
     config.action_cable = ActiveSupport::OrderedOptions.new
+    config.action_cable.url = '/cable'
+
     config.eager_load_namespaces << ActionCable
 
     initializer "action_cable.helpers" do
