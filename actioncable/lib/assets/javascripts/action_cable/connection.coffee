@@ -1,8 +1,8 @@
 # Encapsulate the cable connection held by the consumer. This is an internal class not intended for direct user manipulation.
 
-{message_types} = Cable.INTERNAL
+{message_types} = ActionCable.INTERNAL
 
-class Cable.Connection
+class ActionCable.Connection
   @reopenDelay: 500
 
   constructor: (@consumer) ->

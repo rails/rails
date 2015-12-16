@@ -1,4 +1,4 @@
-# A new subscription is created through the Cable.Subscriptions instance available on the consumer. 
+# A new subscription is created through the ActionCable.Subscriptions instance available on the consumer. 
 # It provides a number of callbacks and a method for calling remote procedure calls on the corresponding 
 # Channel instance on the server side.
 #
@@ -23,7 +23,7 @@
 #
 # This is how the server component would look:
 #
-#   class AppearanceChannel < ApplicationCable::Channel
+#   class AppearanceChannel < ApplicationActionCable::Channel
 #     def subscribed
 #       current_user.appear
 #     end
@@ -43,7 +43,7 @@
 #
 # The "AppearanceChannel" name is automatically mapped between the client-side subscription creation and the server-side Ruby class name.
 # The AppearanceChannel#appear/away public methods are exposed automatically to client-side invocation through the @perform method.
-class Cable.Subscription
+class ActionCable.Subscription
   constructor: (@subscriptions, params = {}, mixin) ->
     @identifier = JSON.stringify(params)
     extend(this, mixin)

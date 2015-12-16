@@ -1,6 +1,6 @@
-#= require cable
+#= require action_cable
 #= require_self
 #= require ./channels
 
 @App = {}
-App.cable = Cable.createConsumer()
+App.cable = ActionCable.createConsumer()

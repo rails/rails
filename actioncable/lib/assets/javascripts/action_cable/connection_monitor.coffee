@@ -1,13 +1,13 @@
 # Responsible for ensuring the cable connection is in good health by validating the heartbeat pings sent from the server, and attempting
 # revival reconnections if things go astray. Internal class, not intended for direct user manipulation.
-class Cable.ConnectionMonitor
+class ActionCable.ConnectionMonitor
   @pollInterval:
     min: 3
     max: 30
 
   @staleThreshold: 6 # Server::Connections::BEAT_INTERVAL * 2 (missed two pings)
 
-  identifier: Cable.INTERNAL.identifiers.ping
+  identifier: ActionCable.INTERNAL.identifiers.ping
 
   constructor: (@consumer) ->
     @consumer.subscriptions.add(this)

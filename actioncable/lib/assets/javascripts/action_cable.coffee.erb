@@ -1,11 +1,11 @@
 #= require_self
-#= require cable/consumer
+#= require action_cable/consumer
 
-@Cable =
+@ActionCable =
   INTERNAL: <%= ActionCable::INTERNAL.to_json %>
 
   createConsumer: (url = @getConfig("url")) ->
-    new Cable.Consumer @createWebSocketURL(url)
+    new ActionCable.Consumer @createWebSocketURL(url)
 
   getConfig: (name) ->
     element = document.head.querySelector("meta[name='action-cable-#{name}']")

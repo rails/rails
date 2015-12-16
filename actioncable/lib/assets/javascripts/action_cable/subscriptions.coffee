@@ -1,12 +1,12 @@
 # Collection class for creating (and internally managing) channel subscriptions. The only method intended to be triggered by the user
-# us Cable.Subscriptions#create, and it should be called through the consumer like so:
+# us ActionCable.Subscriptions#create, and it should be called through the consumer like so:
 #
 #   @App = {}
-#   App.cable = Cable.createConsumer "ws://example.com/accounts/1"
+#   App.cable = ActionCable.createConsumer "ws://example.com/accounts/1"
 #   App.appearance = App.cable.subscriptions.create "AppearanceChannel"
 #
-# For more details on how you'd configure an actual channel subscription, see Cable.Subscription.
-class Cable.Subscriptions
+# For more details on how you'd configure an actual channel subscription, see ActionCable.Subscription.
+class ActionCable.Subscriptions
   constructor: (@consumer) ->
     @subscriptions = []
     @history = []
@@ -14,7 +14,7 @@ class Cable.Subscriptions
   create: (channelName, mixin) ->
     channel = channelName
     params = if typeof channel is "object" then channel else {channel}
-    new Cable.Subscription this, params, mixin
+    new ActionCable.Subscription this, params, mixin
 
   # Private
 
@@ -63,7 +63,7 @@ class Cable.Subscriptions
 
   sendCommand: (subscription, command) ->
     {identifier} = subscription
-    if identifier is Cable.INTERNAL.identifiers.ping
+    if identifier is ActionCable.INTERNAL.identifiers.ping
       @consumer.connection.isOpen()
     else
       @consumer.send({command, identifier})
