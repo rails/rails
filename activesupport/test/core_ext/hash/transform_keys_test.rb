@@ -43,4 +43,11 @@ class TransformKeysTest < ActiveSupport::TestCase
     original.transform_keys!.with_index { |k, i| [k, i].join.to_sym }
     assert_equal({ a0: 'a', b1: 'b' }, original)
   end
+
+  test "transform_keys! should not override keys" do
+    original = {}
+    (1..5).each { |x| original[x] = x * x }
+
+    original.transform_keys!{ |x| x + 1 }.assert_valid_keys(2, 3, 4, 5, 6)
+  end
 end
