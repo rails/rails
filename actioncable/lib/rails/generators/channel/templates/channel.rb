@@ -1,5 +1,5 @@
 <% module_namespacing do -%>
-class <%= class_name %>Channel < ApplicationChannel
+class <%= class_name %>Channel < ApplicationCable::Channel
   def subscribed
     # stream_from "some_channel"
   end
