@@ -622,15 +622,10 @@ Another way to handle returning responses to an HTTP request is with `redirect_t
 redirect_to photos_url
 ```
 
-You can use `redirect_to` with any arguments that you could use with `link_to` or `url_for`. There's also a special redirect that sends the user back to the page they just came from:
-
-```ruby
-redirect_to :back
-```
-
-This will raise `ActionController::RedirectBackError` if the request had no
-`HTTP_REFERER` information set. To guard against this case, you can provide a
-fall back redirect URL by using `redirect_back`:
+You can use `redirect_back` to return the user to the page they just came from.
+This location is pulled from the `HTTP_REFERER` header which is not guaranteed
+to be set by the browser, so you must provide the `fallback_location`
+to use in this case.
 
 ```ruby
 redirect_back(fallback_location: root_path)

@@ -191,7 +191,11 @@ class RedirectTest < ActionController::TestCase
 
   def test_redirect_to_back_with_status
     @request.env["HTTP_REFERER"] = "http://www.example.com/coming/from"
-    get :redirect_to_back_with_status
+
+    assert_deprecated do
+      get :redirect_to_back_with_status
+    end
+
     assert_response 307
     assert_equal "http://www.example.com/coming/from", redirect_to_url
   end
@@ -240,7 +244,11 @@ class RedirectTest < ActionController::TestCase
 
   def test_redirect_to_back
     @request.env["HTTP_REFERER"] = "http://www.example.com/coming/from"
-    get :redirect_to_back
+
+    assert_deprecated do
+      get :redirect_to_back
+    end
+
     assert_response :redirect
     assert_equal "http://www.example.com/coming/from", redirect_to_url
   end
@@ -248,6 +256,11 @@ class RedirectTest < ActionController::TestCase
   def test_redirect_to_back_with_no_referer
     assert_raise(ActionController::RedirectBackError) {
       @request.env["HTTP_REFERER"] = nil
+
+      assert_deprecated do
+        get :redirect_to_back
+      end
+
       get :redirect_to_back
     }
   end
