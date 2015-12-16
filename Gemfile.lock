@@ -21,7 +21,7 @@ GIT
 
 GIT
   remote: git://github.com/mikel/mail.git
-  revision: 9c313a401729b9aa9177878836829a61adf67b54
+  revision: f0efbd4850d1bc06cdcba6178c282eeaba9c8c43
   branch: master
   specs:
     mail (2.6.3.edge)
@@ -29,7 +29,7 @@ GIT
 
 GIT
   remote: git://github.com/rack/rack.git
-  revision: 35599cfc2751e0ee611c0ff799924b8e7fe0c0b4
+  revision: 96ae9b9fed8d6809383b6f48a5884437e76f8ca4
   branch: master
   specs:
     rack (2.0.0.alpha)
@@ -37,14 +37,14 @@ GIT
 
 GIT
   remote: git://github.com/rails/arel.git
-  revision: 3c429c5d86e9e2201c2a35d934ca6a8911c18e69
+  revision: 899e8428c50c586e6c8d4884b542ac9fdf01e95f
   branch: master
   specs:
     arel (7.0.0.alpha)
 
 GIT
   remote: git://github.com/rails/globalid.git
-  revision: 1d8fca667740570d204fd955a0bd39ac539bac7f
+  revision: 4e74ec6bb60d735ef3c56080f9c9f1dee9cadaaf
   branch: master
   specs:
     globalid (0.3.6)
@@ -61,19 +61,8 @@ GIT
       thor (>= 0.14, < 2.0)
 
 GIT
-  remote: git://github.com/rails/sass-rails.git
-  revision: 6e4eee736bcbfa5b2962467673c7a51abf434c67
-  branch: master
-  specs:
-    sass-rails (6.0.0)
-      railties (>= 4.0.0, < 5.0)
-      sass (~> 3.4)
-      sprockets (>= 4.0)
-      sprockets-rails (< 4.0)
-
-GIT
   remote: git://github.com/rails/sprockets-rails.git
-  revision: 93a45b1c463a063ec7cf4d160107b67aa3db7a1a
+  revision: 06d84e952490d7d391592124f6e3b79f9c596674
   branch: master
   specs:
     sprockets-rails (3.0.0.beta3)
@@ -82,16 +71,8 @@ GIT
       sprockets (>= 3.0.0)
 
 GIT
-  remote: git://github.com/rails/sprockets.git
-  revision: 5a77f8b007b8ec61edd783c48baf9d971f1c684d
-  branch: master
-  specs:
-    sprockets (4.0.0)
-      rack (>= 1, < 3)
-
-GIT
   remote: git://github.com/rails/turbolinks.git
-  revision: 83d4b3d2c52a681f07900c28adb28bc8da604733
+  revision: ad583843fdaa0c1f61462a346a495981ca314460
   branch: master
   specs:
     turbolinks (3.0.0)
@@ -99,10 +80,10 @@ GIT
 
 GIT
   remote: git://github.com/sass/sass.git
-  revision: 4e3e1d5684cc29073a507578fc977434ff488c93
+  revision: bce9509f396225d721501ea1070a6871b708abb1
   branch: stable
   specs:
-    sass (3.4.19)
+    sass (3.4.20)
 
 PATH
   remote: .
@@ -165,17 +146,18 @@ GEM
   remote: https://rubygems.org/
   specs:
     amq-protocol (2.0.0)
-    backburner (1.1.0)
+    backburner (1.2.0)
       beaneater (~> 1.0)
       dante (> 0.1.5)
+    bcrypt (3.1.10)
     bcrypt-ruby (3.0.1)
     bcrypt-ruby (3.0.1-x86-mingw32)
     beaneater (1.0.0)
     benchmark-ips (2.3.0)
     builder (3.2.2)
-    bunny (2.2.0)
+    bunny (2.2.1)
       amq-protocol (>= 2.0.0)
-    byebug (8.2.0)
+    byebug (8.2.1)
     celluloid (0.17.2)
       celluloid-essentials
       celluloid-extras
@@ -199,10 +181,10 @@ GEM
     coffee-script (2.4.1)
       coffee-script-source
       execjs
-    coffee-script-source (1.9.1.1)
+    coffee-script-source (1.10.0)
     concurrent-ruby (1.0.0)
     connection_pool (2.2.0)
-    dalli (2.7.4)
+    dalli (2.7.5)
     dante (0.2.0)
     delayed_job (4.1.1)
       activesupport (>= 3.0, < 5.0)
@@ -228,7 +210,7 @@ GEM
       nokogiri (>= 1.5.9)
     metaclass (0.0.4)
     method_source (0.8.2)
-    mime-types (2.6.2)
+    mime-types (2.99)
     mini_portile2 (2.0.0)
     minitest (5.3.3)
     mocha (0.14.0)
@@ -237,20 +219,23 @@ GEM
     multi_json (1.11.2)
     mustache (1.0.2)
     mysql (2.9.1)
+    mysql (2.9.1-x86-mingw32)
+    mysql2 (0.4.2)
     mysql2 (0.4.2-x64-mingw32)
+    mysql2 (0.4.2-x86-mingw32)
     nokogiri (1.6.7)
       mini_portile2 (~> 2.0.0.rc2)
     nokogiri (1.6.7-x64-mingw32)
       mini_portile2 (~> 2.0.0.rc2)
     nokogiri (1.6.7-x86-mingw32)
       mini_portile2 (~> 2.0.0.rc2)
-    pg (0.18.3)
-    pg (0.18.3-x64-mingw32)
-    pg (0.18.3-x86-mingw32)
-    psych (2.0.15)
+    pg (0.18.4)
+    pg (0.18.4-x64-mingw32)
+    pg (0.18.4-x86-mingw32)
+    psych (2.0.16)
     que (0.11.2)
-    racc (1.4.13)
-    rack-cache (1.5.0)
+    racc (1.4.14)
+    rack-cache (1.5.1)
       rack (>= 0.4)
     rack-test (0.6.3)
       rack (>= 1.0)
@@ -268,7 +253,7 @@ GEM
       ffi (>= 0.5.0)
     rdoc (4.2.0)
     redcarpet (3.2.3)
-    redis (3.2.1)
+    redis (3.2.2)
     redis-namespace (1.5.2)
       redis (~> 3.0, >= 3.0.4)
     resque (1.25.2)
@@ -282,19 +267,18 @@ GEM
       redis (~> 3.0)
       resque (~> 1.25)
       rufus-scheduler (~> 3.0)
-    rufus-scheduler (3.1.7)
+    rufus-scheduler (3.1.10)
     sdoc (0.4.1)
       json (~> 1.7, >= 1.7.7)
       rdoc (~> 4.0)
-    sequel (4.27.0)
+    sequel (4.29.0)
     serverengine (1.5.11)
       sigdump (~> 0.2.2)
-    sidekiq (3.5.1)
-      celluloid (~> 0.17.2)
+    sidekiq (4.0.1)
+      concurrent-ruby (~> 1.0)
       connection_pool (~> 2.2, >= 2.2.0)
       json (~> 1.0)
       redis (~> 3.2, >= 3.2.1)
-      redis-namespace (~> 1.5, >= 1.5.2)
     sigdump (0.2.3)
     sinatra (1.0)
       rack (>= 1.0)
@@ -303,6 +287,9 @@ GEM
       serverengine (~> 1.5.11)
       thor
       thread (~> 0.1.7)
+    sprockets (3.5.2)
+      concurrent-ruby (~> 1.0)
+      rack (> 1, < 3)
     sqlite3 (1.3.11)
     sqlite3 (1.3.11-x64-mingw32)
     sqlite3 (1.3.11-x86-mingw32)
@@ -372,12 +359,10 @@ DEPENDENCIES
   resque
   resque-scheduler
   sass!
-  sass-rails!
   sdoc (~> 0.4.0)
   sequel
   sidekiq
   sneakers
-  sprockets (~> 4.0)!
   sprockets-rails (~> 3.0.0.beta3)!
   sqlite3 (~> 1.3.6)
   stackprof
@@ -388,4 +373,4 @@ DEPENDENCIES
   w3c_validators
 
 BUNDLED WITH
-   1.10.6
+   1.11.0
