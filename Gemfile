@@ -20,9 +20,7 @@ gem 'turbolinks', github: 'rails/turbolinks', branch: 'master'
 gem 'arel', github: 'rails/arel', branch: 'master'
 gem 'mail', github: 'mikel/mail', branch: 'master'
 
-gem 'sprockets', '~> 4.0', github: 'rails/sprockets', branch: 'master'
 gem 'sprockets-rails', '~> 3.0.0.beta3', github: 'rails/sprockets-rails', branch: 'master'
-gem 'sass-rails', github: 'rails/sass-rails', branch: 'master'
 
 # require: false so bcrypt is loaded only when has_secure_password is used.
 # This is to avoid Active Model (and by extension the entire framework)
