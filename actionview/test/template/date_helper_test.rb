@@ -390,11 +390,6 @@ class DateHelperTest < ActionView::TestCase
     expected << "</select>\n"
 
     assert_dom_equal expected, select_month(Time.mktime(2003, 8, 16), {}, :class => 'selector', :accesskey => 'M')
-    #result = select_month(Time.mktime(2003, 8, 16), {}, :class => 'selector', :accesskey => 'M')
-    #assert result.include?('<select id="date_month" name="date[month]"')
-    #assert result.include?('class="selector"')
-    #assert result.include?('accesskey="M"')
-    #assert result.include?('<option value="1">January')
   end
 
   def test_select_month_with_default_prompt
@@ -474,11 +469,6 @@ class DateHelperTest < ActionView::TestCase
     expected << "</select>\n"
 
     assert_dom_equal expected, select_year(Time.mktime(2003, 8, 16), {:start_year => 2003, :end_year => 2005}, :class => 'selector', :accesskey => 'M')
-    #result = select_year(Time.mktime(2003, 8, 16), {:start_year => 2003, :end_year => 2005}, :class => 'selector', :accesskey => 'M')
-    #assert result.include?('<select id="date_year" name="date[year]"')
-    #assert result.include?('class="selector"')
-    #assert result.include?('accesskey="M"')
-    #assert result.include?('<option value="2003"')
   end
 
   def test_select_year_with_default_prompt
@@ -639,12 +629,6 @@ class DateHelperTest < ActionView::TestCase
     expected << "</select>\n"
 
     assert_dom_equal expected, select_minute(Time.mktime(2003, 8, 16, 8, 4, 18), {}, :class => 'selector', :accesskey => 'M')
-
-    #result = select_minute(Time.mktime(2003, 8, 16, 8, 4, 18), {}, :class => 'selector', :accesskey => 'M')
-    #assert result.include?('<select id="date_minute" name="date[minute]"')
-    #assert result.include?('class="selector"')
-    #assert result.include?('accesskey="M"')
-    #assert result.include?('<option value="00">00')
   end
 
   def test_select_minute_with_default_prompt
@@ -709,12 +693,6 @@ class DateHelperTest < ActionView::TestCase
     expected << "</select>\n"
 
     assert_dom_equal expected, select_second(Time.mktime(2003, 8, 16, 8, 4, 18), {}, :class => 'selector', :accesskey => 'M')
-
-    #result = select_second(Time.mktime(2003, 8, 16, 8, 4, 18), {}, :class => 'selector', :accesskey => 'M')
-    #assert result.include?('<select id="date_second" name="date[second]"')
-    #assert result.include?('class="selector"')
-    #assert result.include?('accesskey="M"')
-    #assert result.include?('<option value="00">00')
   end
 
   def test_select_second_with_default_prompt
