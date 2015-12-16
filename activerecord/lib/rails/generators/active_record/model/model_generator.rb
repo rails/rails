@@ -43,7 +43,11 @@ module ActiveRecord
         end
 
         def determine_default_parent_class
-          if File.exist?('app/models/application_record.rb')
+          application_record = nil
+
+          in_root { application_record = File.exist?('app/models/application_record.rb') }
+
+          if application_record
             "ApplicationRecord"
           else
             "ActiveRecord::Base"
