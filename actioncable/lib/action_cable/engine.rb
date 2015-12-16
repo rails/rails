@@ -4,7 +4,7 @@ require "action_cable/helpers/action_cable_helper"
 require "active_support/core_ext/hash/indifferent_access"
 
 module ActionCable
-  class Railtie < Rails::Railtie # :nodoc:
+  class Railtie < Rails::Engine # :nodoc:
     config.action_cable = ActiveSupport::OrderedOptions.new
     config.eager_load_namespaces << ActionCable
 
