@@ -27,8 +27,8 @@ module ActionCable
       app.paths.add "config/redis/cable", with: "config/redis/cable.yml"
 
       ActiveSupport.on_load(:action_cable) do
-        if redis_cable_path = app.config.paths["config/redis/cable"].existent
-          self.redis = Rails.application.config_for(Pathname.new(redis_cable_path.first)).with_indifferent_access
+        if (redis_cable_path = Pathname.new(app.config.paths["config/redis/cable"].first)).exist?
+          self.redis = Rails.application.config_for(redis_cable_path).with_indifferent_access
         end
 
         options.each { |k,v| send("#{k}=", v) }
