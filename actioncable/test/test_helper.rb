@@ -14,9 +14,9 @@ require 'rack/mock'
 # Require all the stubs and models
 Dir[File.dirname(__FILE__) + '/stubs/*.rb'].each {|file| require file }
 
-require 'celluloid'
 $CELLULOID_DEBUG = false
-$CELLULOID_TEST = false
+$CELLULOID_TEST  = false
+require 'celluloid'
 Celluloid.logger = Logger.new(StringIO.new)
 
 require 'faye/websocket'
