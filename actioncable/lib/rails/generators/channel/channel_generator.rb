@@ -10,12 +10,6 @@ module Rails
       def create_channel_file
         template "channel.rb", File.join('app/channels', class_path, "#{file_name}_channel.rb")
         template "assets/channel.coffee", File.join('app/assets/javascripts/channels', class_path, "#{file_name}.coffee")
-
-        if self.behavior == :invoke
-          template "application_cable/connection.rb", 'app/channels/application_cable/connection.rb'
-          template "application_cable/channel.rb", 'app/channels/application_cable/channel.rb'
-          template "assets/consumer.coffee", 'app/assets/javascripts/cable.coffee'
-        end
       end
 
       protected
