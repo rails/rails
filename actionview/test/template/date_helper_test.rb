@@ -390,11 +390,6 @@ class DateHelperTest < ActionView::TestCase
     expected << "</select>\n"
 
     assert_dom_equal expected, select_month(Time.mktime(2003, 8, 16), {}, :class => 'selector', :accesskey => 'M')
-    #result = select_month(Time.mktime(2003, 8, 16), {}, :class => 'selector', :accesskey => 'M')
-    #assert result.include?('<select id="date_month" name="date[month]"')
-    #assert result.include?('class="selector"')
-    #assert result.include?('accesskey="M"')
-    #assert result.include?('<option value="1">January')
   end
 
   def test_select_month_with_default_prompt
