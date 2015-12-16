@@ -80,7 +80,7 @@ group :test do
   gem 'benchmark-ips'
 end
 
-platforms :ruby do
+platforms :ruby, :mswin, :mswin64 do
   gem 'nokogiri', '>= 1.6.7'
 
   # Needed for compiling the ActionDispatch::Journey parser.
