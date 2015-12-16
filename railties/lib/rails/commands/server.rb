@@ -12,7 +12,7 @@ module Rails
         option_parser(options).parse! args
 
         options[:log_stdout] = options[:daemonize].blank? && (options[:environment] || Rails.env) == "development"
-        options[:server]     = args.shift
+        options[:server]     = args.shift || defined?(Puma) ? 'puma' : nil
         options
       end
 
