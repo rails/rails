@@ -168,7 +168,7 @@ What if you need to follow a different naming convention or need to use your
 Rails application with a legacy database? No problem, you can easily override
 the default conventions.
 
-`ApplicationRecord` inherits from `ActionController::Base`, which defines a
+`ApplicationRecord` inherits from `ActiveRecord::Base`, which defines a
 number of helpful methods. You can use the `ActiveRecord::Base.table_name=`
 method to specify the table name that should be used:
 
