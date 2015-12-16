@@ -19,15 +19,15 @@ module ActionCable
     end
 
     initializer "action_cable.set_configs" do |app|
-      app.paths.add "config/redis/cable", with: "config/redis/cable.yml"
-
       options = app.config.action_cable
-
       options.allowed_request_origins ||= "http://localhost:3000" if ::Rails.env.development?
 
+      app.paths.add "config/redis/cable", with: "config/redis/cable.yml"
+
       ActiveSupport.on_load(:action_cable) do
-        path = Pathname.new(paths["config/redis/cable"].existent.first)
-        self.redis = Rails.application.config_for(redis_path).with_indifferent_access
+        if redis_cable_path = app.config.paths["config/redis/cable"].existent
+          self.redis = Rails.application.config_for(Pathname.new(redis_cable_path.first)).with_indifferent_access
+        end
 
         options.each { |k,v| send("#{k}=", v) }
       end
