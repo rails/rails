@@ -37,9 +37,8 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
       assert_no_match(/gem 'coffee-rails'/, content)
       assert_no_match(/gem 'jquery-rails'/, content)
       assert_no_match(/gem 'sass-rails'/, content)
-      assert_no_match(/gem 'jbuilder'/, content)
       assert_no_match(/gem 'web-console'/, content)
-      assert_match(/gem 'active_model_serializers'/, content)
+      assert_match(/# gem 'jbuilder'/, content)
     end
 
     assert_file "config/application.rb" do |content|

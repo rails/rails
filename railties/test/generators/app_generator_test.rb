@@ -334,6 +334,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator [destination_root, "--skip-active-record"]
     assert_no_file "config/database.yml"
     assert_no_file "config/initializers/active_record_belongs_to_required_by_default.rb"
+    assert_no_file "app/models/application_record.rb"
     assert_file "config/application.rb", /#\s+require\s+["']active_record\/railtie["']/
     assert_file "test/test_helper.rb" do |helper_content|
       assert_no_match(/fixtures :all/, helper_content)

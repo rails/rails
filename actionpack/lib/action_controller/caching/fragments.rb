@@ -62,7 +62,7 @@ module ActionController
       # with the specified +key+ value. The key is expanded using
       # ActiveSupport::Cache.expand_cache_key.
       def fragment_cache_key(key)
-        head = self.class.fragment_cache_keys.map { |key| instance_exec(&key) }
+        head = self.class.fragment_cache_keys.map { |k| instance_exec(&k) }
         tail = key.is_a?(Hash) ? url_for(key).split("://").last : key
         ActiveSupport::Cache.expand_cache_key([*head, *tail], :views)
       end

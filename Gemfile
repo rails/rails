@@ -20,14 +20,18 @@ gem 'turbolinks', github: 'rails/turbolinks', branch: 'master'
 gem 'arel', github: 'rails/arel', branch: 'master'
 gem 'mail', github: 'mikel/mail', branch: 'master'
 
-gem 'sprockets', '~> 4.0', github: 'rails/sprockets', branch: 'master'
 gem 'sprockets-rails', '~> 3.0.0.beta3', github: 'rails/sprockets-rails', branch: 'master'
-gem 'sass-rails', github: 'rails/sass-rails', branch: 'master'
 
 # require: false so bcrypt is loaded only when has_secure_password is used.
 # This is to avoid Active Model (and by extension the entire framework)
 # being dependent on a binary library.
-gem 'bcrypt', '~> 3.1.10', require: false
+platforms :mingw, :x64_mingw, :mswin, :mswin64 do
+  gem 'bcrypt-ruby', '~> 3.0.0', require: false
+end
+
+platforms :ruby, :jruby, :rbx do
+  gem 'bcrypt', '~> 3.1.10', require: false
+end
 
 # This needs to be with require false to avoid it being automatically loaded by
 # sprockets.
@@ -85,7 +89,7 @@ group :test do
   gem 'benchmark-ips'
 end
 
-platforms :ruby do
+platforms :ruby, :mswin, :mswin64, :mingw, :x64_mingw do
   gem 'nokogiri', '>= 1.6.7'
 
   # Needed for compiling the ActionDispatch::Journey parser.

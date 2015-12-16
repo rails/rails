@@ -221,8 +221,6 @@ module Rails
       def rails_gemfile_entry
         dev_edge_common = [
             GemfileEntry.github('sprockets-rails', 'rails/sprockets-rails'),
-            GemfileEntry.github('sprockets', 'rails/sprockets'),
-            GemfileEntry.github('sass-rails', 'rails/sass-rails'),
             GemfileEntry.github('arel', 'rails/arel'),
             GemfileEntry.github('rack', 'rack/rack')
           ]
@@ -281,10 +279,8 @@ module Rails
       end
 
       def jbuilder_gemfile_entry
-        return [] if options[:api]
-
         comment = 'Build JSON APIs with ease. Read more: https://github.com/rails/jbuilder'
-        GemfileEntry.version('jbuilder', '~> 2.0', comment)
+        GemfileEntry.new 'jbuilder', '~> 2.0', comment, {}, options[:api]
       end
 
       def coffee_gemfile_entry

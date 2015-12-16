@@ -175,21 +175,6 @@ module ActiveRecord
   #       end
   #   end
   #
-  # The callback macros usually accept a symbol for the method they're supposed to run, but you can also
-  # pass a "method string", which will then be evaluated within the binding of the callback. Example:
-  #
-  #   class Topic < ActiveRecord::Base
-  #     before_destroy 'self.class.delete_all "parent_id = #{id}"'
-  #   end
-  #
-  # Notice that single quotes (') are used so the <tt>#{id}</tt> part isn't evaluated until the callback
-  # is triggered. Also note that these inline callbacks can be stacked just like the regular ones:
-  #
-  #   class Topic < ActiveRecord::Base
-  #     before_destroy 'self.class.delete_all "parent_id = #{id}"',
-  #                    'puts "Evaluated after parents are destroyed"'
-  #   end
-  #
   # == <tt>before_validation*</tt> returning statements
   #
   # If the +before_validation+ callback throws +:abort+, the process will be

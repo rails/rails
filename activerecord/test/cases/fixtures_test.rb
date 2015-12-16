@@ -184,7 +184,6 @@ class FixturesTest < ActiveRecord::TestCase
   end
 
   def test_fixtures_from_root_yml_with_instantiation
-    # assert_equal 2, @accounts.size
     assert_equal 50, @unknown.credit_limit
   end
 

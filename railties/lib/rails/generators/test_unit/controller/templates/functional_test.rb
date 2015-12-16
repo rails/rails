@@ -1,11 +1,9 @@
 require 'test_helper'
 
 <% module_namespacing do -%>
-class <%= class_name %>ControllerTest < ActionController::TestCase
+class <%= class_name %>ControllerTest < ActionDispatch::IntegrationTest
 <% if mountable_engine? -%>
-  setup do
-    @routes = Engine.routes
-  end
+  include Engine.routes.url_helpers
 
 <% end -%>
 <% if actions.empty? -%>
@@ -15,7 +13,7 @@ class <%= class_name %>ControllerTest < ActionController::TestCase
 <% else -%>
 <% actions.each do |action| -%>
   test "should get <%= action %>" do
-    get :<%= action %>
+    get <%= file_name %>_<%= action %>_url
     assert_response :success
   end
 

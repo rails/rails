@@ -10,9 +10,9 @@ module ActiveRecord
       config = config.symbolize_keys
 
       config[:username] = 'root' if config[:username].nil?
-
+      config[:flags] ||= 0
       if Mysql2::Client.const_defined? :FOUND_ROWS
-        config[:flags] = Mysql2::Client::FOUND_ROWS
+        config[:flags] |= Mysql2::Client::FOUND_ROWS
       end
 
       client = Mysql2::Client.new(config)
