@@ -61,9 +61,9 @@ class NumericExtTimeAndDateTimeTest < ActiveSupport::TestCase
   end
 
   def test_duration_after_conversion_is_no_longer_accurate
-    assert_equal 30.days.to_i.seconds.since(@now), 1.month.to_i.seconds.since(@now)
+    assert_equal 30.4375.days.to_i.seconds.since(@now), 1.month.to_i.seconds.since(@now)
     assert_equal 365.25.days.to_f.seconds.since(@now), 1.year.to_f.seconds.since(@now)
-    assert_equal 30.days.to_i.seconds.since(@dtnow), 1.month.to_i.seconds.since(@dtnow)
+    assert_equal 30.4375.days.to_i.seconds.since(@dtnow), 1.month.to_i.seconds.since(@dtnow)
     assert_equal 365.25.days.to_f.seconds.since(@dtnow), 1.year.to_f.seconds.since(@dtnow)
   end
 
