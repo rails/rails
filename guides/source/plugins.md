@@ -17,7 +17,7 @@ After reading this guide, you will know:
 This guide describes how to build a test-driven plugin that will:
 
 * Extend core Ruby classes like Hash and String.
-* Add methods to `ActiveRecord::Base` in the tradition of the `acts_as` plugins.
+* Add methods to `ApplicationRecord` in the tradition of the `acts_as` plugins.
 * Give you information about where to put generators in your plugin.
 
 For the purpose of this guide pretend for a moment that you are an avid bird watcher.
@@ -182,7 +182,6 @@ To start out, write a failing test that shows the behavior you'd like:
 require 'test_helper'
 
 class ActsAsYaffleTest < ActiveSupport::TestCase
-
   def test_a_hickwalls_yaffle_text_field_should_be_last_squawk
     assert_equal "last_squawk", Hickwall.yaffle_text_field
   end
@@ -190,7 +189,6 @@ class ActsAsYaffleTest < ActiveSupport::TestCase
   def test_a_wickwalls_yaffle_text_field_should_be_last_tweet
     assert_equal "last_tweet", Wickwall.yaffle_text_field
   end
-
 end
 ```
 
@@ -234,22 +232,22 @@ like yaffles.
 ```ruby
 # test/dummy/app/models/hickwall.rb
 
-class Hickwall < ActiveRecord::Base
+class Hickwall < ApplicationRecord
   acts_as_yaffle
 end
 
 # test/dummy/app/models/wickwall.rb
 
-class Wickwall < ActiveRecord::Base
+class Wickwall < ApplicationRecord
   acts_as_yaffle yaffle_text_field: :last_tweet
 end
-
 ```
 
 We will also add code to define the `acts_as_yaffle` method.
 
 ```ruby
 # yaffle/lib/yaffle/acts_as_yaffle.rb
+
 module Yaffle
   module ActsAsYaffle
     extend ActiveSupport::Concern
@@ -265,7 +263,13 @@ module Yaffle
   end
 end
 
-ActiveRecord::Base.include(Yaffle::ActsAsYaffle)
+# test/dummy/app/models/application_record.rb
+
+class ApplicationRecord < ActiveRecord::Base
+  include Yaffle::ActsAsYaffle
+
+  self.abstract_class = true
+end
 ```
 
 You can then return to the root directory (`cd ../..`) of your plugin and rerun the tests using `rake`.
@@ -308,7 +312,13 @@ module Yaffle
   end
 end
 
-ActiveRecord::Base.include(Yaffle::ActsAsYaffle)
+# test/dummy/app/models/application_record.rb
+
+class ApplicationRecord < ActiveRecord::Base
+  include Yaffle::ActsAsYaffle
+
+  self.abstract_class = true
+end
 ```
 
 When you run `rake`, you should see the tests all pass:
@@ -329,7 +339,6 @@ To start out, write a failing test that shows the behavior you'd like:
 require 'test_helper'
 
 class ActsAsYaffleTest < ActiveSupport::TestCase
-
   def test_a_hickwalls_yaffle_text_field_should_be_last_squawk
     assert_equal "last_squawk", Hickwall.yaffle_text_field
   end
@@ -382,7 +391,13 @@ module Yaffle
   end
 end
 
-ActiveRecord::Base.include(Yaffle::ActsAsYaffle)
+# test/dummy/app/models/application_record.rb
+
+class ApplicationRecord < ActiveRecord::Base
+  include Yaffle::ActsAsYaffle
+
+  self.abstract_class = true
+end
 ```
 
 Run `rake` one final time and you should see:

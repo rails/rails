@@ -293,6 +293,12 @@ module Rails
         end
       end
 
+      def delete_application_record_skipping_active_record
+        if options[:skip_active_record]
+          remove_file 'app/models/application_record.rb'
+        end
+      end
+
       def delete_active_record_initializers_skipping_active_record
         if options[:skip_active_record]
           remove_file 'config/initializers/active_record_belongs_to_required_by_default.rb'

@@ -508,7 +508,7 @@ Turning the model into this:
 
 ```ruby
 module Blorgh
-  class Article < ActiveRecord::Base
+  class Article < ApplicationRecord
     has_many :comments
   end
 end
@@ -1129,7 +1129,7 @@ end
 ```ruby
 # Blorgh/app/models/article.rb
 
-class Article < ActiveRecord::Base
+class Article < ApplicationRecord
   has_many :comments
 end
 ```
@@ -1150,7 +1150,7 @@ end
 ```ruby
 # Blorgh/app/models/article.rb
 
-class Article < ActiveRecord::Base
+class Article < ApplicationRecord
   has_many :comments
   def summary
     "#{title}"
@@ -1171,7 +1171,7 @@ classes at run time allowing you to significantly modularize your code.
 ```ruby
 # MyApp/app/models/blorgh/article.rb
 
-class Blorgh::Article < ActiveRecord::Base
+class Blorgh::Article < ApplicationRecord
   include Blorgh::Concerns::Models::Article
 
   def time_since_created
@@ -1187,7 +1187,7 @@ end
 ```ruby
 # Blorgh/app/models/article.rb
 
-class Article < ActiveRecord::Base
+class Article < ApplicationRecord
   include Blorgh::Concerns::Models::Article
 end
 ```

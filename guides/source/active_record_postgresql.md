@@ -39,7 +39,7 @@ create_table :documents do |t|
 end
 
 # app/models/document.rb
-class Document < ActiveRecord::Base
+class Document < ApplicationRecord
 end
 
 # Usage
@@ -63,7 +63,7 @@ add_index :books, :tags, using: 'gin'
 add_index :books, :ratings, using: 'gin'
 
 # app/models/book.rb
-class Book < ActiveRecord::Base
+class Book < ApplicationRecord
 end
 
 # Usage
@@ -97,7 +97,7 @@ ActiveRecord::Schema.define do
 end
 
 # app/models/profile.rb
-class Profile < ActiveRecord::Base
+class Profile < ApplicationRecord
 end
 
 # Usage
@@ -122,7 +122,7 @@ create_table :events do |t|
 end
 
 # app/models/event.rb
-class Event < ActiveRecord::Base
+class Event < ApplicationRecord
 end
 
 # Usage
@@ -150,7 +150,7 @@ create_table :events do |t|
 end
 
 # app/models/event.rb
-class Event < ActiveRecord::Base
+class Event < ApplicationRecord
 end
 
 # Usage
@@ -200,7 +200,7 @@ create_table :contacts do |t|
 end
 
 # app/models/contact.rb
-class Contact < ActiveRecord::Base
+class Contact < ApplicationRecord
 end
 
 # Usage
@@ -239,7 +239,7 @@ def down
 end
 
 # app/models/article.rb
-class Article < ActiveRecord::Base
+class Article < ApplicationRecord
 end
 
 # Usage
@@ -294,7 +294,7 @@ create_table :revisions do |t|
 end
 
 # app/models/revision.rb
-class Revision < ActiveRecord::Base
+class Revision < ApplicationRecord
 end
 
 # Usage
@@ -317,12 +317,12 @@ create_table :comments, id: :uuid, default: 'gen_random_uuid()' do |t|
 end
 
 # app/models/post.rb
-class Post < ActiveRecord::Base
+class Post < ApplicationRecord
   has_many :comments
 end
 
 # app/models/comment.rb
-class Comment < ActiveRecord::Base
+class Comment < ApplicationRecord
   belongs_to :post
 end
 ```
@@ -341,7 +341,7 @@ create_table :users, force: true do |t|
 end
 
 # app/models/device.rb
-class User < ActiveRecord::Base
+class User < ApplicationRecord
 end
 
 # Usage
@@ -370,7 +370,7 @@ create_table(:devices, force: true) do |t|
 end
 
 # app/models/device.rb
-class Device < ActiveRecord::Base
+class Device < ApplicationRecord
 end
 
 # Usage
@@ -410,7 +410,7 @@ create_table :devices, id: :uuid, default: 'gen_random_uuid()' do |t|
 end
 
 # app/models/device.rb
-class Device < ActiveRecord::Base
+class Device < ApplicationRecord
 end
 
 # Usage
@@ -434,7 +434,7 @@ end
 execute "CREATE INDEX documents_idx ON documents USING gin(to_tsvector('english', title || ' ' || body));"
 
 # app/models/document.rb
-class Document < ActiveRecord::Base
+class Document < ApplicationRecord
 end
 
 # Usage
@@ -484,7 +484,7 @@ CREATE VIEW articles AS
   SQL
 
 # app/models/article.rb
-class Article < ActiveRecord::Base
+class Article < ApplicationRecord
   self.primary_key = "id"
   def archive!
     update_attribute :archived, true
