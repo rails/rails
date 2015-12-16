@@ -53,8 +53,18 @@ module Arel
       describe "Nodes::Matches" do
         it "should know how to visit" do
           node = @table[:name].matches('foo%')
+          node.must_be_kind_of Nodes::Matches
+          node.case_sensitive.must_equal(false)
           compile(node).must_be_like %{
             "users"."name" ILIKE 'foo%'
+          }
+        end
+
+        it "should know how to visit case sensitive" do
+          node = @table[:name].matches('foo%', nil, true)
+          node.case_sensitive.must_equal(true)
+          compile(node).must_be_like %{
+            "users"."name" LIKE 'foo%'
           }
         end
 
@@ -77,8 +87,18 @@ module Arel
       describe "Nodes::DoesNotMatch" do
         it "should know how to visit" do
           node = @table[:name].does_not_match('foo%')
+          node.must_be_kind_of Nodes::DoesNotMatch
+          node.case_sensitive.must_equal(false)
           compile(node).must_be_like %{
             "users"."name" NOT ILIKE 'foo%'
+          }
+        end
+
+        it "should know how to visit case sensitive" do
+          node = @table[:name].does_not_match('foo%', nil, true)
+          node.case_sensitive.must_equal(true)
+          compile(node).must_be_like %{
+            "users"."name" NOT LIKE 'foo%'
           }
         end
 
@@ -100,34 +120,55 @@ module Arel
 
       describe "Nodes::Regexp" do
         it "should know how to visit" do
-          node = Arel::Nodes::Regexp.new(@table[:name], Nodes.build_quoted('foo%'))
+          node = @table[:name].matches_regexp('foo.*')
+          node.must_be_kind_of Nodes::Regexp
+          node.case_sensitive.must_equal(true)
           compile(node).must_be_like %{
-            "users"."name" ~ 'foo%'
+            "users"."name" ~ 'foo.*'
+          }
+        end
+
+        it "can handle case insensitive" do
+          node = @table[:name].matches_regexp('foo.*', false)
+          node.must_be_kind_of Nodes::Regexp
+          node.case_sensitive.must_equal(false)
+          compile(node).must_be_like %{
+            "users"."name" ~* 'foo.*'
           }
         end
 
         it 'can handle subqueries' do
-          subquery = @table.project(:id).where(Arel::Nodes::Regexp.new(@table[:name], Nodes.build_quoted('foo%')))
+          subquery = @table.project(:id).where(@table[:name].matches_regexp('foo.*'))
           node = @attr.in subquery
           compile(node).must_be_like %{
-            "users"."id" IN (SELECT id FROM "users" WHERE "users"."name" ~ 'foo%')
+            "users"."id" IN (SELECT id FROM "users" WHERE "users"."name" ~ 'foo.*')
           }
         end
       end
 
       describe "Nodes::NotRegexp" do
         it "should know how to visit" do
-          node = Arel::Nodes::NotRegexp.new(@table[:name], Nodes.build_quoted('foo%'))
+          node = @table[:name].does_not_match_regexp('foo.*')
+          node.must_be_kind_of Nodes::NotRegexp
+          node.case_sensitive.must_equal(true)
           compile(node).must_be_like %{
-            "users"."name" !~ 'foo%'
+            "users"."name" !~ 'foo.*'
+          }
+        end
+
+        it "can handle case insensitive" do
+          node = @table[:name].does_not_match_regexp('foo.*', false)
+          node.case_sensitive.must_equal(false)
+          compile(node).must_be_like %{
+            "users"."name" !~* 'foo.*'
           }
         end
 
         it 'can handle subqueries' do
-          subquery = @table.project(:id).where(Arel::Nodes::NotRegexp.new(@table[:name], Nodes.build_quoted('foo%')))
+          subquery = @table.project(:id).where(@table[:name].does_not_match_regexp('foo.*'))
           node = @attr.in subquery
           compile(node).must_be_like %{
-            "users"."id" IN (SELECT id FROM "users" WHERE "users"."name" !~ 'foo%')
+            "users"."id" IN (SELECT id FROM "users" WHERE "users"."name" !~ 'foo.*')
           }
         end
       end
