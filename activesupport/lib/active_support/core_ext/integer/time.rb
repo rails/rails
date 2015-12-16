@@ -18,7 +18,7 @@ class Integer
   #   # equivalent to Time.now.advance(months: 4, years: 5)
   #   (4.months + 5.years).from_now
   def months
-    ActiveSupport::Duration.new(self * 30.4375.days, [[:months, self]])
+    ActiveSupport::Duration.new(self * 30.4375.days.to_i, [[:months, self]])
   end
   alias :month :months
 
