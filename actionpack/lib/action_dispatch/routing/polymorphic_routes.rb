@@ -1,5 +1,3 @@
-require 'action_controller/model_naming'
-
 module ActionDispatch
   module Routing
     # Polymorphic URL helpers are methods for smart resolution to a named route call when
@@ -55,8 +53,6 @@ module ActionDispatch
     #   form_for([blog, @post])         # => "/blog/posts/1"
     #
     module PolymorphicRoutes
-      include ActionController::ModelNaming
-
       # Constructs a call to a named RESTful route for the given record and returns the
       # resulting URL string. For example:
       #
@@ -251,14 +247,12 @@ module ActionDispatch
           args  = []
 
           model = record.to_model
-          name = if record.persisted?
-                   args << model
-                   model.model_name.singular_route_key
-                 else
-                   @key_strategy.call model.model_name
-                 end
-
-          named_route = prefix + "#{name}_#{suffix}"
+          named_route = if model.persisted?
+                          args << model
+                          get_method_for_string model.model_name.singular_route_key
+                        else
+                          get_method_for_class model
+                        end
 
           [named_route, args]
         end
@@ -294,11 +288,12 @@ module ActionDispatch
           when Class
             @key_strategy.call record.model_name
           else
-            if record.persisted?
-              args << record.to_model
-              record.to_model.model_name.singular_route_key
+            model = record.to_model
+            if model.persisted?
+              args << model
+              model.model_name.singular_route_key
             else
-              @key_strategy.call record.to_model.model_name
+              @key_strategy.call model.model_name
             end
           end
 
@@ -312,11 +307,11 @@ module ActionDispatch
 
         def get_method_for_class(klass)
           name   = @key_strategy.call klass.model_name
-          prefix + "#{name}_#{suffix}"
+          get_method_for_string name
         end
 
         def get_method_for_string(str)
-          prefix + "#{str}_#{suffix}"
+          "#{prefix}#{str}_#{suffix}"
         end
 
         [nil, 'new', 'edit'].each do |action|

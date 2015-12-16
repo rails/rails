@@ -1,7 +1,6 @@
-# encoding: utf-8
 require "cases/helper"
 
-class PostgresqlByteaTest < ActiveRecord::TestCase
+class PostgresqlByteaTest < ActiveRecord::PostgreSQLTestCase
   class ByteaDataType < ActiveRecord::Base
     self.table_name = 'bytea_data_type'
   end
@@ -17,10 +16,11 @@ class PostgresqlByteaTest < ActiveRecord::TestCase
       end
     end
     @column = ByteaDataType.columns_hash['payload']
+    @type = ByteaDataType.type_for_attribute("payload")
   end
 
   teardown do
-    @connection.execute 'drop table if exists bytea_data_type'
+    @connection.drop_table 'bytea_data_type', if_exists: true
   end
 
   def test_column
@@ -40,16 +40,16 @@ class PostgresqlByteaTest < ActiveRecord::TestCase
 
     data = "\u001F\x8B"
     assert_equal('UTF-8', data.encoding.name)
-    assert_equal('ASCII-8BIT', @column.type_cast_from_database(data).encoding.name)
+    assert_equal('ASCII-8BIT', @type.deserialize(data).encoding.name)
   end
 
   def test_type_cast_binary_value
     data = "\u001F\x8B".force_encoding("BINARY")
-    assert_equal(data, @column.type_cast_from_database(data))
+    assert_equal(data, @type.deserialize(data))
   end
 
   def test_type_case_nil
-    assert_equal(nil, @column.type_cast_from_database(nil))
+    assert_equal(nil, @type.deserialize(nil))
   end
 
   def test_read_value

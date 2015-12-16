@@ -28,8 +28,6 @@ class DependenciesTest < ActiveSupport::TestCase
   end
 
   def test_depend_on_path
-    skip "LoadError#path does not exist" if RUBY_VERSION < '2.0.0'
-
     expected = assert_raises(LoadError) do
       Kernel.require 'omgwtfbbq'
     end
@@ -72,7 +70,7 @@ class DependenciesTest < ActiveSupport::TestCase
   end
 
   def test_missing_dependency_raises_missing_source_file
-    assert_raise(MissingSourceFile) { require_dependency("missing_service") }
+    assert_raise(LoadError) { require_dependency("missing_service") }
   end
 
   def test_dependency_which_raises_exception_isnt_added_to_loaded_set
@@ -162,7 +160,7 @@ class DependenciesTest < ActiveSupport::TestCase
   def test_ensures_the_expected_constant_is_defined
     with_autoloading_fixtures do
       e = assert_raise(LoadError) { Typo }
-      assert_match %r{Unable to autoload constant Typo, expected .*activesupport/test/autoloading_fixtures/typo.rb to define it}, e.message
+      assert_match %r{Unable to autoload constant Typo, expected .*/test/autoloading_fixtures/typo.rb to define it}, e.message
     end
   end
 
@@ -180,7 +178,7 @@ class DependenciesTest < ActiveSupport::TestCase
       assert_equal 1, TypO
 
       e = assert_raise(LoadError) { Typo }
-      assert_match %r{Unable to autoload constant Typo, expected .*activesupport/test/autoloading_fixtures/typo.rb to define it}, e.message
+      assert_match %r{Unable to autoload constant Typo, expected .*/test/autoloading_fixtures/typo.rb to define it}, e.message
     end
   end
 
@@ -189,7 +187,7 @@ class DependenciesTest < ActiveSupport::TestCase
       assert_kind_of Module, A
       assert_kind_of Class, A::B
       assert_kind_of Class, A::C::D
-      assert_kind_of Class, A::C::E::F
+      assert_kind_of Class, A::C::EM::F
     end
   end
 
@@ -554,24 +552,24 @@ class DependenciesTest < ActiveSupport::TestCase
   def test_const_missing_in_anonymous_modules_loads_top_level_constants
     with_autoloading_fixtures do
       # class_eval STRING pushes the class to the nesting of the eval'ed code.
-      klass = Class.new.class_eval "E"
-      assert_equal E, klass
+      klass = Class.new.class_eval "EM"
+      assert_equal EM, klass
     end
   ensure
-    remove_constants(:E)
+    remove_constants(:EM)
   end
 
   def test_const_missing_in_anonymous_modules_raises_if_the_constant_belongs_to_Object
     with_autoloading_fixtures do
-      require_dependency 'e'
+      require_dependency 'em'
 
       mod = Module.new
-      e = assert_raise(NameError) { mod::E }
-      assert_equal 'E cannot be autoloaded from an anonymous class or module', e.message
-      assert_equal :E, e.name
+      e = assert_raise(NameError) { mod::EM }
+      assert_equal 'EM cannot be autoloaded from an anonymous class or module', e.message
+      assert_equal :EM, e.name
     end
   ensure
-    remove_constants(:E)
+    remove_constants(:EM)
   end
 
   def test_removal_from_tree_should_be_detected
@@ -613,7 +611,7 @@ class DependenciesTest < ActiveSupport::TestCase
 
   def test_nested_load_error_isnt_rescued
     with_loading 'dependencies' do
-      assert_raise(MissingSourceFile) do
+      assert_raise(LoadError) do
         RequiresNonexistent1
       end
     end
@@ -666,19 +664,19 @@ class DependenciesTest < ActiveSupport::TestCase
 
   def test_preexisting_constants_are_not_marked_as_autoloaded
     with_autoloading_fixtures do
-      require_dependency 'e'
-      assert ActiveSupport::Dependencies.autoloaded?(:E)
+      require_dependency 'em'
+      assert ActiveSupport::Dependencies.autoloaded?(:EM)
       ActiveSupport::Dependencies.clear
     end
 
-    Object.const_set :E, Class.new
+    Object.const_set :EM, Class.new
     with_autoloading_fixtures do
-      require_dependency 'e'
-      assert ! ActiveSupport::Dependencies.autoloaded?(:E), "E shouldn't be marked autoloaded!"
+      require_dependency 'em'
+      assert ! ActiveSupport::Dependencies.autoloaded?(:EM), "EM shouldn't be marked autoloaded!"
       ActiveSupport::Dependencies.clear
     end
   ensure
-    remove_constants(:E)
+    remove_constants(:EM)
   end
 
   def test_constants_in_capitalized_nesting_marked_as_autoloaded
@@ -723,12 +721,13 @@ class DependenciesTest < ActiveSupport::TestCase
   end
 
   def test_unloadable_constants_should_receive_callback
-    Object.const_set :C, Class.new
+    Object.const_set :C, Class.new { def self.before_remove_const; end }
     C.unloadable
-    C.expects(:before_remove_const).once
-    assert C.respond_to?(:before_remove_const)
-    ActiveSupport::Dependencies.clear
-    assert !defined?(C)
+    assert_called(C, :before_remove_const, times: 1) do
+      assert C.respond_to?(:before_remove_const)
+      ActiveSupport::Dependencies.clear
+      assert !defined?(C)
+    end
   ensure
     remove_constants(:C)
   end

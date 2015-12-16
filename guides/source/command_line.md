@@ -1,3 +1,5 @@
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+
 The Rails Command Line
 ======================
 
@@ -24,7 +26,7 @@ There are a few commands that are absolutely critical to your everyday usage of 
 * `rails dbconsole`
 * `rails new app_name`
 
-All commands can run with ```-h or --help``` to list more information.
+All commands can run with `-h` or `--help` to list more information.
 
 Let's create a simple Rails application to step through each of these commands in context.
 
@@ -61,11 +63,11 @@ With no further work, `rails server` will run our new shiny Rails app:
 $ cd commandsapp
 $ bin/rails server
 => Booting WEBrick
-=> Rails 4.2.0 application starting in development on http://localhost:3000
-=> Call with -d to detach
+=> Rails 5.0.0 application starting in development on http://localhost:3000
+=> Run `rails server -h` for more startup options
 => Ctrl-C to shutdown server
 [2013-08-07 02:00:01] INFO  WEBrick 1.3.1
-[2013-08-07 02:00:01] INFO  ruby 2.0.0 (2013-06-27) [x86_64-darwin11.2.0]
+[2013-08-07 02:00:01] INFO  ruby 2.2.2 (2015-06-27) [x86_64-darwin11.2.0]
 [2013-08-07 02:00:01] INFO  WEBrick::HTTPServer#start: pid=69680 port=3000
 ```
 
@@ -151,9 +153,9 @@ $ bin/rails generate controller Greetings hello
      create    app/helpers/greetings_helper.rb
      invoke  assets
      invoke    coffee
-     create      app/assets/javascripts/greetings.js.coffee
+     create      app/assets/javascripts/greetings.coffee
      invoke    scss
-     create      app/assets/stylesheets/greetings.css.scss
+     create      app/assets/stylesheets/greetings.scss
 ```
 
 What all did this generate? It made sure a bunch of directories were in our application, and created a controller file, a view file, a functional test file, a helper for the view, a JavaScript file and a stylesheet file.
@@ -239,11 +241,11 @@ $ bin/rails generate scaffold HighScore game:string score:integer
     create      app/views/high_scores/show.json.jbuilder
     invoke  assets
     invoke    coffee
-    create      app/assets/javascripts/high_scores.js.coffee
+    create      app/assets/javascripts/high_scores.coffee
     invoke    scss
-    create      app/assets/stylesheets/high_scores.css.scss
+    create      app/assets/stylesheets/high_scores.scss
     invoke  scss
-   identical    app/assets/stylesheets/scaffolds.css.scss
+   identical    app/assets/stylesheets/scaffolds.scss
 ```
 
 The generator checks that there exist the directories for models, controllers, helpers, layouts, functional and unit tests, stylesheets, creates the views, controller, model and database migration for HighScore (creating the `high_scores` table and fields), takes care of the route for the **resource**, and new tests for everything.
@@ -258,7 +260,13 @@ $ bin/rake db:migrate
 ==  CreateHighScores: migrated (0.0019s) ======================================
 ```
 
-INFO: Let's talk about unit tests. Unit tests are code that tests and makes assertions about code. In unit testing, we take a little part of code, say a method of a model, and test its inputs and outputs. Unit tests are your friend. The sooner you make peace with the fact that your quality of life will drastically increase when you unit test your code, the better. Seriously. We'll make one in a moment.
+INFO: Let's talk about unit tests. Unit tests are code that tests and makes assertions 
+about code. In unit testing, we take a little part of code, say a method of a model, 
+and test its inputs and outputs. Unit tests are your friend. The sooner you make 
+peace with the fact that your quality of life will drastically increase when you unit 
+test your code, the better. Seriously. Please visit 
+[the testing guide](http://guides.rubyonrails.org/testing.html) for an in-depth 
+look at unit testing.
 
 Let's see the interface Rails created for us.
 
@@ -284,7 +292,7 @@ If you wish to test out some code without changing any data, you can do that by 
 
 ```bash
 $ bin/rails console --sandbox
-Loading development environment in sandbox (Rails 4.2.0)
+Loading development environment in sandbox (Rails 5.0.0)
 Any modifications you make will be rolled back on exit
 irb(main):001:0>
 ```
@@ -336,6 +344,12 @@ You can specify the environment in which the `runner` command should operate usi
 $ bin/rails runner -e staging "Model.long_running_method"
 ```
 
+You can even execute ruby code written in a file with runner.
+
+```bash
+$ bin/rails runner lib/code_to_be_run.rb
+```
+
 ### `rails destroy`
 
 Think of `destroy` as the opposite of `generate`. It'll figure out what generate did, and undo it.
@@ -368,7 +382,7 @@ Rake is Ruby Make, a standalone Ruby utility that replaces the Unix utility 'mak
 
 You can get a list of Rake tasks available to you, which will often depend on your current directory, by typing `rake --tasks`. Each task has a description, and should help you find the thing you need.
 
-To get the full backtrace for running rake task you can pass the option ```--trace``` to command line, for example ```rake db:create --trace```.
+To get the full backtrace for running rake task you can pass the option `--trace` to command line, for example `rake db:create --trace`.
 
 ```bash
 $ bin/rake --tasks
@@ -381,10 +395,10 @@ rake db:create          # Create the database from config/database.yml for the c
 rake log:clear          # Truncates all *.log files in log/ to zero bytes (specify which logs with LOGS=test,development)
 rake middleware         # Prints out your Rack middleware stack
 ...
-rake tmp:clear          # Clear session, cache, and socket files from tmp/ (narrow w/ tmp:sessions:clear, tmp:cache:clear, tmp:sockets:clear)
-rake tmp:create         # Creates tmp directories for sessions, cache, sockets, and pids
+rake tmp:clear          # Clear cache and socket files from tmp/ (narrow w/ tmp:cache:clear, tmp:sockets:clear)
+rake tmp:create         # Creates tmp directories for cache, sockets, and pids
 ```
-INFO: You can also use ```rake -T```  to get the list of tasks.
+INFO: You can also use `rake -T`  to get the list of tasks.
 
 ### `about`
 
@@ -393,12 +407,12 @@ INFO: You can also use ```rake -T```  to get the list of tasks.
 ```bash
 $ bin/rake about
 About your application's environment
-Rails version             4.2.0
-Ruby version              1.9.3 (x86_64-linux)
-RubyGems version          1.3.6
-Rack version              1.3
+Rails version             5.0.0
+Ruby version              2.2.2 (x86_64-linux)
+RubyGems version          2.4.6
+Rack version              1.6
 JavaScript Runtime        Node.js (V8)
-Middleware                Rack::Sendfile, ActionDispatch::Static, Rack::Lock, #<ActiveSupport::Cache::Strategy::LocalCache::Middleware:0x007ffd131a7c88>, Rack::Runtime, Rack::MethodOverride, ActionDispatch::RequestId, Rails::Rack::Logger, ActionDispatch::ShowExceptions, ActionDispatch::DebugExceptions, ActionDispatch::RemoteIp, ActionDispatch::Reloader, ActionDispatch::Callbacks, ActiveRecord::Migration::CheckPending, ActiveRecord::ConnectionAdapters::ConnectionManagement, ActiveRecord::QueryCache, ActionDispatch::Cookies, ActionDispatch::Session::CookieStore, ActionDispatch::Flash, ActionDispatch::ParamsParser, Rack::Head, Rack::ConditionalGet, Rack::ETag
+Middleware                Rack::Sendfile, ActionDispatch::Static, Rack::Lock, #<ActiveSupport::Cache::Strategy::LocalCache::Middleware:0x007ffd131a7c88>, Rack::Runtime, Rack::MethodOverride, ActionDispatch::RequestId, Rails::Rack::Logger, ActionDispatch::ShowExceptions, ActionDispatch::DebugExceptions, ActionDispatch::RemoteIp, ActionDispatch::Reloader, ActionDispatch::Callbacks, ActiveRecord::Migration::CheckPending, ActiveRecord::ConnectionAdapters::ConnectionManagement, ActiveRecord::QueryCache, ActionDispatch::Cookies, ActionDispatch::Session::CookieStore, ActionDispatch::Flash, Rack::Head, Rack::ConditionalGet, Rack::ETag
 Application root          /home/foobar/commandsapp
 Environment               development
 Database adapter          sqlite3
@@ -415,15 +429,7 @@ If you want to clear `public/assets` completely, you can use `rake assets:clobbe
 
 The most common tasks of the `db:` Rake namespace are `migrate` and `create`, and it will pay off to try out all of the migration rake tasks (`up`, `down`, `redo`, `reset`). `rake db:version` is useful when troubleshooting, telling you the current version of the database.
 
-More information about migrations can be found in the [Migrations](migrations.html) guide.
-
-### `doc`
-
-The `doc:` namespace has the tools to generate documentation for your app, API documentation, guides. Documentation can also be stripped which is mainly useful for slimming your codebase, like if you're writing a Rails application for an embedded platform.
-
-* `rake doc:app` generates documentation for your application in `doc/app`.
-* `rake doc:guides` generates Rails guides in `doc/guides`.
-* `rake doc:rails` generates API documentation for Rails in `doc/api`.
+More information about migrations can be found in the [Migrations](active_record_migrations.html) guide.
 
 ### `notes`
 
@@ -470,7 +476,7 @@ app/models/article.rb:
 
 NOTE. When using specific annotations and custom annotations, the annotation name (FIXME, BUG etc) is not displayed in the output lines.
 
-By default, `rake notes` will look in the `app`, `config`, `lib`, `bin` and `test` directories. If you would like to search other directories, you can provide them as a comma separated list in an environment variable `SOURCE_ANNOTATION_DIRECTORIES`.
+By default, `rake notes` will look in the `app`, `config`, `db`, `lib` and `test` directories. If you would like to search other directories, you can provide them as a comma separated list in an environment variable `SOURCE_ANNOTATION_DIRECTORIES`.
 
 ```bash
 $ export SOURCE_ANNOTATION_DIRECTORIES='spec,vendor'
@@ -494,15 +500,14 @@ Rails comes with a test suite called Minitest. Rails owes its stability to the u
 
 ### `tmp`
 
-The `Rails.root/tmp` directory is, like the *nix /tmp directory, the holding place for temporary files like sessions (if you're using a file store for sessions), process id files, and cached actions.
+The `Rails.root/tmp` directory is, like the *nix /tmp directory, the holding place for temporary files like process id files and cached actions.
 
 The `tmp:` namespaced tasks will help you clear and create the `Rails.root/tmp` directory:
 
 * `rake tmp:cache:clear` clears `tmp/cache`.
-* `rake tmp:sessions:clear` clears `tmp/sessions`.
 * `rake tmp:sockets:clear` clears `tmp/sockets`.
-* `rake tmp:clear` clears all the three: cache, sessions and sockets.
-* `rake tmp:create` creates tmp directories for sessions, cache, sockets, and pids.
+* `rake tmp:clear` clears all cache and sockets files.
+* `rake tmp:create` creates tmp directories for cache, sockets and pids.
 
 ### Miscellaneous
 
@@ -527,8 +532,8 @@ end
 To pass arguments to your custom rake task:
 
 ```ruby
-task :task_name, [:arg_1] => [:pre_1, :pre_2] do |t, args|
-  # You can use args from here
+task :task_name, [:arg_1] => [:prerequisite_1, :prerequisite_2] do |task, args|
+  argument_1 = args.arg_1
 end
 ```
 

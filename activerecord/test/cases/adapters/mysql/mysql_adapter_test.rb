@@ -1,11 +1,9 @@
-# encoding: utf-8
-
 require "cases/helper"
 require 'support/ddl_helper'
 
 module ActiveRecord
   module ConnectionAdapters
-    class MysqlAdapterTest < ActiveRecord::TestCase
+    class MysqlAdapterTest < ActiveRecord::MysqlTestCase
       include DdlHelper
 
       def setup
@@ -16,7 +14,7 @@ module ActiveRecord
         assert_raise ActiveRecord::NoDatabaseError do
           configuration = ActiveRecord::Base.configurations['arunit'].merge(database: 'inexistent_activerecord_unittest')
           connection = ActiveRecord::Base.mysql_connection(configuration)
-          connection.exec_query('drop table if exists ex')
+          connection.drop_table 'ex', if_exists: true
         end
       end
 
@@ -67,35 +65,9 @@ module ActiveRecord
         end
       end
 
-      def test_tables_quoting
-        @conn.tables(nil, "foo-bar", nil)
-        flunk
-      rescue => e
-        # assertion for *quoted* database properly
-        assert_match(/database 'foo-bar'/, e.inspect)
-      end
-
-      def test_pk_and_sequence_for
-        with_example_table do
-          pk, seq = @conn.pk_and_sequence_for('ex')
-          assert_equal 'id', pk
-          assert_equal @conn.default_sequence_name('ex', 'id'), seq
-        end
-      end
-
-      def test_pk_and_sequence_for_with_non_standard_primary_key
-        with_example_table '`code` INT(11) auto_increment, PRIMARY KEY (`code`)' do
-          pk, seq = @conn.pk_and_sequence_for('ex')
-          assert_equal 'code', pk
-          assert_equal @conn.default_sequence_name('ex', 'code'), seq
-        end
-      end
-
-      def test_pk_and_sequence_for_with_custom_index_type_pk
-        with_example_table '`id` INT(11) auto_increment, PRIMARY KEY USING BTREE (`id`)' do
-          pk, seq = @conn.pk_and_sequence_for('ex')
-          assert_equal 'id', pk
-          assert_equal @conn.default_sequence_name('ex', 'id'), seq
+      def test_composite_primary_key
+        with_example_table '`id` INT, `number` INT, foo INT, PRIMARY KEY (`id`, `number`)' do
+          assert_nil @conn.primary_key('ex')
         end
       end
 
@@ -105,7 +77,7 @@ module ActiveRecord
 
           result = @conn.exec_query('SELECT status FROM ex')
 
-          assert_equal 2, result.column_types['status'].type_cast_from_database(result.last['status'])
+          assert_equal 2, result.column_types['status'].deserialize(result.last['status'])
         end
       end
 
@@ -123,10 +95,10 @@ module ActiveRecord
 
       private
       def insert(ctx, data, table='ex')
-        binds   = data.map { |name, value|
-          [ctx.columns(table).find { |x| x.name == name }, value]
+        binds = data.map { |name, value|
+          Relation::QueryAttribute.new(name, value, Type::Value.new)
         }
-        columns = binds.map(&:first).map(&:name)
+        columns = binds.map(&:name)
 
         sql = "INSERT INTO #{table} (#{columns.join(", ")})
                VALUES (#{(['?'] * columns.length).join(', ')})"
@@ -136,7 +108,7 @@ module ActiveRecord
 
       def with_example_table(definition = nil, &block)
         definition ||= <<-SQL
-          `id` int(11) auto_increment PRIMARY KEY,
+          `id` int auto_increment PRIMARY KEY,
           `number` integer,
           `data` varchar(255)
         SQL

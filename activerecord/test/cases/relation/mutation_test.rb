@@ -22,13 +22,17 @@ module ActiveRecord
       def sanitize_sql(sql)
         sql
       end
+
+      def sanitize_sql_for_order(sql)
+        sql
+      end
     end
 
     def relation
-      @relation ||= Relation.new FakeKlass.new('posts'), Post.arel_table
+      @relation ||= Relation.new FakeKlass.new('posts'), Post.arel_table, Post.predicate_builder
     end
 
-    (Relation::MULTI_VALUE_METHODS - [:references, :extending, :order, :unscope, :select]).each do |method|
+    (Relation::MULTI_VALUE_METHODS - [:references, :extending, :order, :unscope, :select, :left_joins]).each do |method|
       test "##{method}!" do
         assert relation.public_send("#{method}!", :foo).equal?(relation)
         assert_equal [:foo], relation.public_send("#{method}_values")
@@ -55,9 +59,10 @@ module ActiveRecord
 
     test '#order! on non-string does not attempt regexp match for references' do
       obj = Object.new
-      obj.expects(:=~).never
-      assert relation.order!(obj)
-      assert_equal [obj], relation.order_values
+      assert_not_called(obj, :=~) do
+        assert relation.order!(obj)
+        assert_equal [obj], relation.order_values
+      end
     end
 
     test '#references!' do
@@ -81,7 +86,7 @@ module ActiveRecord
       assert_equal [], relation.extending_values
     end
 
-    (Relation::SINGLE_VALUE_METHODS - [:from, :lock, :reordering, :reverse_order, :create_with]).each do |method|
+    (Relation::SINGLE_VALUE_METHODS - [:lock, :reordering, :reverse_order, :create_with, :uniq]).each do |method|
       test "##{method}!" do
         assert relation.public_send("#{method}!", :foo).equal?(relation)
         assert_equal :foo, relation.public_send("#{method}_value")
@@ -90,7 +95,7 @@ module ActiveRecord
 
     test '#from!' do
       assert relation.from!('foo').equal?(relation)
-      assert_equal ['foo', nil], relation.from_value
+      assert_equal 'foo', relation.from_clause.value
     end
 
     test '#lock!' do
@@ -99,7 +104,7 @@ module ActiveRecord
     end
 
     test '#reorder!' do
-      relation = self.relation.order('foo')
+      @relation = self.relation.order('foo')
 
       assert relation.reorder!('bar').equal?(relation)
       assert_equal ['bar'], relation.order_values
@@ -116,7 +121,7 @@ module ActiveRecord
     end
 
     test 'reverse_order!' do
-      relation = Post.order('title ASC, comments_count DESC')
+      @relation = Post.order('title ASC, comments_count DESC')
 
       relation.reverse_order!
 
@@ -136,12 +141,12 @@ module ActiveRecord
     end
 
     test 'test_merge!' do
-      assert relation.merge!(where: :foo).equal?(relation)
-      assert_equal [:foo], relation.where_values
+      assert relation.merge!(select: :foo).equal?(relation)
+      assert_equal [:foo], relation.select_values
     end
 
     test 'merge with a proc' do
-      assert_equal [:foo], relation.merge(-> { where(:foo) }).where_values
+      assert_equal [:foo], relation.merge(-> { select(:foo) }).select_values
     end
 
     test 'none!' do
@@ -153,13 +158,22 @@ module ActiveRecord
     test 'distinct!' do
       relation.distinct! :foo
       assert_equal :foo, relation.distinct_value
-      assert_equal :foo, relation.uniq_value # deprecated access
+
+      assert_deprecated do
+        assert_equal :foo, relation.uniq_value # deprecated access
+      end
     end
 
     test 'uniq! was replaced by distinct!' do
-      relation.uniq! :foo
+      assert_deprecated(/use distinct! instead/) do
+        relation.uniq! :foo
+      end
+
+      assert_deprecated(/use distinct_value instead/) do
+        assert_equal :foo, relation.uniq_value # deprecated access
+      end
+
       assert_equal :foo, relation.distinct_value
-      assert_equal :foo, relation.uniq_value # deprecated access
     end
   end
 end

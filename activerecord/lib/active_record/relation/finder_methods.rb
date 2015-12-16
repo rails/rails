@@ -1,4 +1,3 @@
-require 'active_support/deprecation'
 require 'active_support/core_ext/string/filters'
 
 module ActiveRecord
@@ -6,7 +5,7 @@ module ActiveRecord
     ONE_AS_ONE = '1 AS one'
 
     # Find by id - This can either be a specific id (1), a list of ids (1, 5, 6), or an array of ids ([5, 6, 10]).
-    # If no record can be found for all of the listed ids, then RecordNotFound will be raised. If the primary key
+    # If one or more records can not be found for the requested ids, then RecordNotFound will be raised. If the primary key
     # is an integer, find by id coerces its arguments using +to_i+.
     #
     #   Person.find(1)          # returns the object for ID = 1
@@ -17,10 +16,8 @@ module ActiveRecord
     #   Person.find([1])        # returns an array for the object with ID = 1
     #   Person.where("administrator = 1").order("created_on DESC").find(1)
     #
-    # <tt>ActiveRecord::RecordNotFound</tt> will be raised if one or more ids are not found.
-    #
     # NOTE: The returned records may not be in the same order as the ids you
-    # provide since database rows are unordered. You'd need to provide an explicit <tt>order</tt>
+    # provide since database rows are unordered. You'd need to provide an explicit QueryMethods#order
     # option if you want the results are sorted.
     #
     # ==== Find with lock
@@ -37,7 +34,7 @@ module ActiveRecord
     #     person.save!
     #   end
     #
-    # ==== Variations of +find+
+    # ==== Variations of #find
     #
     #   Person.where(name: 'Spartacus', rating: 4)
     #   # returns a chainable list (which can be empty).
@@ -49,9 +46,9 @@ module ActiveRecord
     #   # returns the first item or returns a new instance (requires you call .save to persist against the database).
     #
     #   Person.where(name: 'Spartacus', rating: 4).first_or_create
-    #   # returns the first item or creates it and returns it, available since Rails 3.2.1.
+    #   # returns the first item or creates it and returns it.
     #
-    # ==== Alternatives for +find+
+    # ==== Alternatives for #find
     #
     #   Person.where(name: 'Spartacus', rating: 4).exists?(conditions = :none)
     #   # returns a boolean indicating if any record with the given conditions exist.
@@ -60,16 +57,13 @@ module ActiveRecord
     #   # returns a chainable list of instances with only the mentioned fields.
     #
     #   Person.where(name: 'Spartacus', rating: 4).ids
-    #   # returns an Array of ids, available since Rails 3.2.1.
+    #   # returns an Array of ids.
     #
     #   Person.where(name: 'Spartacus', rating: 4).pluck(:field1, :field2)
-    #   # returns an Array of the required fields, available since Rails 3.1.
+    #   # returns an Array of the required fields.
     def find(*args)
-      if block_given?
-        to_a.find(*args) { |*block_args| yield(*block_args) }
-      else
-        find_with_ids(*args)
-      end
+      return super if block_given?
+      find_with_ids(*args)
     end
 
     # Finds the first record matching the specified conditions. There
@@ -80,18 +74,19 @@ module ActiveRecord
     #
     #   Post.find_by name: 'Spartacus', rating: 4
     #   Post.find_by "published_at < ?", 2.weeks.ago
-    def find_by(*args)
-      where(*args).take
+    def find_by(arg, *args)
+      where(arg, *args).take
     rescue RangeError
       nil
     end
 
-    # Like <tt>find_by</tt>, except that if no record is found, raises
-    # an <tt>ActiveRecord::RecordNotFound</tt> error.
-    def find_by!(*args)
-      where(*args).take!
+    # Like #find_by, except that if no record is found, raises
+    # an ActiveRecord::RecordNotFound error.
+    def find_by!(arg, *args)
+      where(arg, *args).take!
     rescue RangeError
-      raise RecordNotFound, "Couldn't find #{@klass.name} with an out of range value"
+      raise RecordNotFound.new("Couldn't find #{@klass.name} with an out of range value",
+                               @klass.name)
     end
 
     # Gives a record (or N records if a parameter is supplied) without any implied
@@ -105,8 +100,8 @@ module ActiveRecord
       limit ? limit(limit).to_a : find_take
     end
 
-    # Same as +take+ but raises <tt>ActiveRecord::RecordNotFound</tt> if no record
-    # is found. Note that <tt>take!</tt> accepts no arguments.
+    # Same as #take but raises ActiveRecord::RecordNotFound if no record
+    # is found. Note that #take! accepts no arguments.
     def take!
       take or raise RecordNotFound.new("Couldn't find #{@klass.name} with [#{arel.where_sql(@klass.arel_engine)}]")
     end
@@ -114,23 +109,11 @@ module ActiveRecord
     # Find the first record (or first N records if a parameter is supplied).
     # If no order is defined it will order by primary key.
     #
-    #   Person.first # returns the first object fetched by SELECT * FROM people
+    #   Person.first # returns the first object fetched by SELECT * FROM people ORDER BY people.id LIMIT 1
     #   Person.where(["user_name = ?", user_name]).first
     #   Person.where(["user_name = :u", { u: user_name }]).first
     #   Person.order("created_on DESC").offset(5).first
-    #   Person.first(3) # returns the first three objects fetched by SELECT * FROM people LIMIT 3
-    #
-    # ==== Rails 3
-    #
-    #   Person.first # SELECT "people".* FROM "people" LIMIT 1
-    #
-    # NOTE: Rails 3 may not order this query by the primary key and the order
-    # will depend on the database implementation. In order to ensure that behavior,
-    # use <tt>User.order(:id).first</tt> instead.
-    #
-    # ==== Rails 4
-    #
-    #   Person.first # SELECT "people".* FROM "people" ORDER BY "people"."id" ASC LIMIT 1
+    #   Person.first(3) # returns the first three objects fetched by SELECT * FROM people ORDER BY people.id LIMIT 3
     #
     def first(limit = nil)
       if limit
@@ -140,8 +123,8 @@ module ActiveRecord
       end
     end
 
-    # Same as +first+ but raises <tt>ActiveRecord::RecordNotFound</tt> if no record
-    # is found. Note that <tt>first!</tt> accepts no arguments.
+    # Same as #first but raises ActiveRecord::RecordNotFound if no record
+    # is found. Note that #first! accepts no arguments.
     def first!
       find_nth! 0
     end
@@ -173,8 +156,8 @@ module ActiveRecord
       end
     end
 
-    # Same as +last+ but raises <tt>ActiveRecord::RecordNotFound</tt> if no record
-    # is found. Note that <tt>last!</tt> accepts no arguments.
+    # Same as #last but raises ActiveRecord::RecordNotFound if no record
+    # is found. Note that #last! accepts no arguments.
     def last!
       last or raise RecordNotFound.new("Couldn't find #{@klass.name} with [#{arel.where_sql(@klass.arel_engine)}]")
     end
@@ -189,7 +172,7 @@ module ActiveRecord
       find_nth(1, offset_index)
     end
 
-    # Same as +second+ but raises <tt>ActiveRecord::RecordNotFound</tt> if no record
+    # Same as #second but raises ActiveRecord::RecordNotFound if no record
     # is found.
     def second!
       find_nth! 1
@@ -205,7 +188,7 @@ module ActiveRecord
       find_nth(2, offset_index)
     end
 
-    # Same as +third+ but raises <tt>ActiveRecord::RecordNotFound</tt> if no record
+    # Same as #third but raises ActiveRecord::RecordNotFound if no record
     # is found.
     def third!
       find_nth! 2
@@ -221,7 +204,7 @@ module ActiveRecord
       find_nth(3, offset_index)
     end
 
-    # Same as +fourth+ but raises <tt>ActiveRecord::RecordNotFound</tt> if no record
+    # Same as #fourth but raises ActiveRecord::RecordNotFound if no record
     # is found.
     def fourth!
       find_nth! 3
@@ -237,7 +220,7 @@ module ActiveRecord
       find_nth(4, offset_index)
     end
 
-    # Same as +fifth+ but raises <tt>ActiveRecord::RecordNotFound</tt> if no record
+    # Same as #fifth but raises ActiveRecord::RecordNotFound if no record
     # is found.
     def fifth!
       find_nth! 4
@@ -253,14 +236,14 @@ module ActiveRecord
       find_nth(41, offset_index)
     end
 
-    # Same as +forty_two+ but raises <tt>ActiveRecord::RecordNotFound</tt> if no record
+    # Same as #forty_two but raises ActiveRecord::RecordNotFound if no record
     # is found.
     def forty_two!
       find_nth! 41
     end
 
-    # Returns +true+ if a record exists in the table that matches the +id+ or
-    # conditions given, or +false+ otherwise. The argument can take six forms:
+    # Returns true if a record exists in the table that matches the +id+ or
+    # conditions given, or false otherwise. The argument can take six forms:
     #
     # * Integer - Finds the record with this primary key.
     # * String - Finds the record with a primary key corresponding to this
@@ -273,7 +256,7 @@ module ActiveRecord
     # * No args - Returns +false+ if the table is empty, +true+ otherwise.
     #
     # For more information about specifying conditions as a hash or array,
-    # see the Conditions section in the introduction to <tt>ActiveRecord::Base</tt>.
+    # see the Conditions section in the introduction to ActiveRecord::Base.
     #
     # Note: You can't pass in a condition as a string (like <tt>name =
     # 'Jamie'</tt>), since it would be sanitized and then queried against
@@ -307,15 +290,15 @@ module ActiveRecord
         relation = relation.where(conditions)
       else
         unless conditions == :none
-          relation = where(primary_key => conditions)
+          relation = relation.where(primary_key => conditions)
         end
       end
 
-      connection.select_value(relation, "#{name} Exists", relation.arel.bind_values + relation.bind_values) ? true : false
+      connection.select_value(relation, "#{name} Exists", relation.bound_attributes) ? true : false
     end
 
     # This method is called whenever no records are found with either a single
-    # id or multiple ids and raises a +ActiveRecord::RecordNotFound+ exception.
+    # id or multiple ids and raises a ActiveRecord::RecordNotFound exception.
     #
     # The error message is different depending on whether a single id or
     # multiple ids are provided. If multiple ids are provided, then the number
@@ -365,7 +348,7 @@ module ActiveRecord
           []
         else
           arel = relation.arel
-          rows = connection.select_all(arel, 'SQL', arel.bind_values + relation.bind_values)
+          rows = connection.select_all(arel, 'SQL', relation.bound_attributes)
           join_dependency.instantiate(rows, aliases)
         end
       end
@@ -379,7 +362,7 @@ module ActiveRecord
     def construct_relation_for_association_calculations
       from = arel.froms.first
       if Arel::Table === from
-        apply_join_dependency(self, construct_join_dependency)
+        apply_join_dependency(self, construct_join_dependency(joins_values))
       else
         # FIXME: as far as I can tell, `from` will always be an Arel::Table.
         # There are no tests that test this branch, but presumably it's
@@ -397,7 +380,7 @@ module ActiveRecord
       else
         if relation.limit_value
           limited_ids = limited_ids_for(relation)
-          limited_ids.empty? ? relation.none! : relation.where!(table[primary_key].in(limited_ids))
+          limited_ids.empty? ? relation.none! : relation.where!(primary_key => limited_ids)
         end
         relation.except(:limit, :offset)
       end
@@ -410,7 +393,7 @@ module ActiveRecord
       relation = relation.except(:select).select(values).distinct!
       arel = relation.arel
 
-      id_rows = @klass.connection.select_all(arel, 'SQL', arel.bind_values + relation.bind_values)
+      id_rows = @klass.connection.select_all(arel, 'SQL', relation.bound_attributes)
       id_rows.map {|row| row[primary_key]}
     end
 

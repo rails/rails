@@ -1,6 +1,6 @@
 require "cases/helper"
 
-class MysqlEnumTest < ActiveRecord::TestCase
+class MysqlEnumTest < ActiveRecord::MysqlTestCase
   class EnumTest < ActiveRecord::Base
   end
 

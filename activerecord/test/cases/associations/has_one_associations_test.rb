@@ -8,10 +8,11 @@ require 'models/pirate'
 require 'models/car'
 require 'models/bulb'
 require 'models/author'
+require 'models/image'
 require 'models/post'
 
 class HasOneAssociationsTest < ActiveRecord::TestCase
-  self.use_transactional_fixtures = false unless supports_savepoints?
+  self.use_transactional_tests = false unless supports_savepoints?
   fixtures :accounts, :companies, :developers, :projects, :developers_projects, :ships, :pirates
 
   def setup
@@ -106,6 +107,14 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_nil Account.find(old_account_id).firm_id
   end
 
+  def test_nullification_on_destroyed_association
+    developer = Developer.create!(name: "Someone")
+    ship = Ship.create!(name: "Planet Caravan", developer: developer)
+    ship.destroy
+    assert !ship.persisted?
+    assert !developer.persisted?
+  end
+
   def test_natural_assignment_to_nil_after_destroy
     firm = companies(:rails_core)
     old_account_id = firm.account.id
@@ -177,6 +186,25 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert firm.account.present?
   end
 
+  def test_restrict_with_error_is_deprecated_using_key_one
+    I18n.backend = I18n::Backend::Simple.new
+    I18n.backend.store_translations :en, activerecord: { errors: { messages: { restrict_dependent_destroy: { one: 'message for deprecated key' } } } }
+
+    firm = RestrictedWithErrorFirm.create!(name: 'restrict')
+    firm.create_account(credit_limit: 10)
+
+    assert_not_nil firm.account
+
+    assert_deprecated { firm.destroy }
+
+    assert !firm.errors.empty?
+    assert_equal 'message for deprecated key', firm.errors[:base].first
+    assert RestrictedWithErrorFirm.exists?(name: 'restrict')
+    assert firm.account.present?
+  ensure
+    I18n.backend.reload!
+  end
+
   def test_restrict_with_error
     firm = RestrictedWithErrorFirm.create!(:name => 'restrict')
     firm.create_account(:credit_limit => 10)
@@ -189,6 +217,24 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_equal "Cannot delete record because a dependent account exists", firm.errors[:base].first
     assert RestrictedWithErrorFirm.exists?(:name => 'restrict')
     assert firm.account.present?
+  end
+
+  def test_restrict_with_error_with_locale
+    I18n.backend = I18n::Backend::Simple.new
+    I18n.backend.store_translations 'en', activerecord: {attributes: {restricted_with_error_firm: {account: 'firm account'}}}
+    firm = RestrictedWithErrorFirm.create!(name: 'restrict')
+    firm.create_account(credit_limit: 10)
+
+    assert_not_nil firm.account
+
+    firm.destroy
+
+    assert !firm.errors.empty?
+    assert_equal "Cannot delete record because a dependent firm account exists", firm.errors[:base].first
+    assert RestrictedWithErrorFirm.exists?(name: 'restrict')
+    assert firm.account.present?
+  ensure
+    I18n.backend.reload!
   end
 
   def test_successful_build_association
@@ -236,16 +282,16 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
 
   def test_build_and_create_should_not_happen_within_scope
     pirate = pirates(:blackbeard)
-    scoped_count = pirate.association(:foo_bulb).scope.where_values.count
+    scope = pirate.association(:foo_bulb).scope.where_values_hash
 
     bulb = pirate.build_foo_bulb
-    assert_not_equal scoped_count, bulb.scope_after_initialize.where_values.count
+    assert_not_equal scope, bulb.scope_after_initialize.where_values_hash
 
     bulb = pirate.create_foo_bulb
-    assert_not_equal scoped_count, bulb.scope_after_initialize.where_values.count
+    assert_not_equal scope, bulb.scope_after_initialize.where_values_hash
 
     bulb = pirate.create_foo_bulb!
-    assert_not_equal scoped_count, bulb.scope_after_initialize.where_values.count
+    assert_not_equal scope, bulb.scope_after_initialize.where_values_hash
   end
 
   def test_create_association
@@ -270,6 +316,14 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     account.credit_limit = 5
     account.save
     assert_equal account, firm.reload.account
+  end
+
+  def test_create_with_inexistent_foreign_key_failing
+    firm = Firm.create(name: 'GlobalMegaCorp')
+
+    assert_raises(ActiveRecord::UnknownAttributeError) do
+      firm.create_account_with_inexistent_foreign_key
+    end
   end
 
   def test_build
@@ -323,7 +377,8 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert a.persisted?
     assert_equal a, firm.account
     assert_equal a, firm.account
-    assert_equal a, firm.account(true)
+    firm.association(:account).reload
+    assert_equal a, firm.account
   end
 
   def test_save_still_works_after_accessing_nil_has_one
@@ -565,12 +620,28 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_equal author.post, post
   end
 
+  def test_has_one_loading_for_new_record
+    post = Post.create!(author_id: 42, title: 'foo', body: 'bar')
+    author = Author.new(id: 42)
+    assert_equal post, author.post
+  end
+
   def test_has_one_relationship_cannot_have_a_counter_cache
     assert_raise(ArgumentError) do
       Class.new(ActiveRecord::Base) do
         has_one :thing, counter_cache: true
       end
     end
+  end
+
+  def test_with_polymorphic_has_one_with_custom_columns_name
+    post = Post.create! :title => 'foo', :body => 'bar'
+    image = Image.create!
+
+    post.main_image = image
+    post.reload
+
+    assert_equal image, post.main_image
   end
 
   test 'dangerous association name raises ArgumentError' do
@@ -581,5 +652,11 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
         end
       end
     end
+  end
+
+  def test_association_force_reload_with_only_true_is_deprecated
+    firm = Firm.find(1)
+
+    assert_deprecated { firm.account(true) }
   end
 end

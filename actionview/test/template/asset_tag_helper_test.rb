@@ -1,4 +1,3 @@
-require 'zlib'
 require 'abstract_unit'
 require 'active_support/ordered_options'
 
@@ -98,6 +97,7 @@ class AssetTagHelperTest < ActionView::TestCase
     %(javascript_include_tag("bank")) => %(<script src="/javascripts/bank.js" ></script>),
     %(javascript_include_tag("bank.js")) => %(<script src="/javascripts/bank.js" ></script>),
     %(javascript_include_tag("bank", :lang => "vbscript")) => %(<script lang="vbscript" src="/javascripts/bank.js" ></script>),
+    %(javascript_include_tag("bank", :host => "assets.example.com")) => %(<script src="http://assets.example.com/javascripts/bank.js"></script>),
 
     %(javascript_include_tag("http://example.com/all")) => %(<script src="http://example.com/all"></script>),
     %(javascript_include_tag("http://example.com/all.js")) => %(<script src="http://example.com/all.js"></script>),
@@ -142,6 +142,7 @@ class AssetTagHelperTest < ActionView::TestCase
     %(stylesheet_link_tag("/elsewhere/file")) => %(<link href="/elsewhere/file.css" media="screen" rel="stylesheet" />),
     %(stylesheet_link_tag("subdir/subdir")) => %(<link href="/stylesheets/subdir/subdir.css" media="screen" rel="stylesheet" />),
     %(stylesheet_link_tag("bank", :media => "all")) => %(<link href="/stylesheets/bank.css" media="all" rel="stylesheet" />),
+    %(stylesheet_link_tag("bank", :host => "assets.example.com")) => %(<link href="http://assets.example.com/stylesheets/bank.css" media="screen" rel="stylesheet" />),
 
     %(stylesheet_link_tag("http://www.example.com/styles/style")) => %(<link href="http://www.example.com/styles/style" media="screen" rel="stylesheet" />),
     %(stylesheet_link_tag("http://www.example.com/styles/style.css")) => %(<link href="http://www.example.com/styles/style.css" media="screen" rel="stylesheet" />),
@@ -180,6 +181,7 @@ class AssetTagHelperTest < ActionView::TestCase
     %(image_tag("xml.png")) => %(<img alt="Xml" src="/images/xml.png" />),
     %(image_tag("rss.gif", :alt => "rss syndication")) => %(<img alt="rss syndication" src="/images/rss.gif" />),
     %(image_tag("gold.png", :size => "20")) => %(<img alt="Gold" height="20" src="/images/gold.png" width="20" />),
+    %(image_tag("gold.png", :size => 20)) => %(<img alt="Gold" height="20" src="/images/gold.png" width="20" />),
     %(image_tag("gold.png", :size => "45x70")) => %(<img alt="Gold" height="70" src="/images/gold.png" width="45" />),
     %(image_tag("gold.png", "size" => "45x70")) => %(<img alt="Gold" height="70" src="/images/gold.png" width="45" />),
     %(image_tag("error.png", "size" => "45 x 70")) => %(<img alt="Error" src="/images/error.png" />),
@@ -191,7 +193,8 @@ class AssetTagHelperTest < ActionView::TestCase
     %(image_tag("//www.rubyonrails.com/images/rails.png")) => %(<img alt="Rails" src="//www.rubyonrails.com/images/rails.png" />),
     %(image_tag("mouse.png", :alt => nil)) => %(<img src="/images/mouse.png" />),
     %(image_tag("data:image/gif;base64,R0lGODlhAQABAID/AMDAwAAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==", :alt => nil)) => %(<img src="data:image/gif;base64,R0lGODlhAQABAID/AMDAwAAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==" />),
-    %(image_tag("")) => %(<img src="" />)
+    %(image_tag("")) => %(<img src="" />),
+    %(image_tag("gold.png", data: { title: 'Rails Application' })) => %(<img data-title="Rails Application" src="/images/gold.png" alt="Gold" />)
   }
 
   FaviconLinkToTag = {
@@ -238,6 +241,7 @@ class AssetTagHelperTest < ActionView::TestCase
     %(video_tag("gold.m4v", "size" => "320x240")) => %(<video height="240" src="/videos/gold.m4v" width="320"></video>),
     %(video_tag("trailer.ogg", :poster => "screenshot.png")) => %(<video poster="/images/screenshot.png" src="/videos/trailer.ogg"></video>),
     %(video_tag("error.avi", "size" => "100")) => %(<video height="100" src="/videos/error.avi" width="100"></video>),
+    %(video_tag("error.avi", "size" => 100)) => %(<video height="100" src="/videos/error.avi" width="100"></video>),
     %(video_tag("error.avi", "size" => "100 x 100")) => %(<video src="/videos/error.avi"></video>),
     %(video_tag("error.avi", "size" => "x")) => %(<video src="/videos/error.avi"></video>),
     %(video_tag("http://media.rubyonrails.org/video/rails_blog_2.mov")) => %(<video src="http://media.rubyonrails.org/video/rails_blog_2.mov"></video>),
@@ -307,6 +311,11 @@ class AssetTagHelperTest < ActionView::TestCase
 
   def test_asset_path_tag
     AssetPathToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
+  end
+
+  def test_asset_path_tag_raises_an_error_for_nil_source
+    e = assert_raise(ArgumentError) { asset_path(nil) }
+    assert_equal("nil is not a valid asset source", e.message)
   end
 
   def test_asset_path_tag_to_not_create_duplicate_slashes
@@ -463,6 +472,14 @@ class AssetTagHelperTest < ActionView::TestCase
     assert_equal({:size => '16x10'}, options)
   end
 
+  def test_image_tag_raises_an_error_for_competing_size_arguments
+    exception = assert_raise(ArgumentError) do
+      image_tag("gold.png", :height => "100", :width => "200", :size => "45x70")
+    end
+
+    assert_equal("Cannot pass a :size option with a :height or :width option", exception.message)
+  end
+
   def test_favicon_link_tag
     FaviconLinkToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
   end
@@ -574,11 +591,13 @@ class AssetTagHelperTest < ActionView::TestCase
       end
     end
 
-    @controller.request.stubs(:ssl?).returns(false)
-    assert_equal "http://assets15.example.com/images/xml.png", image_path("xml.png")
+    @controller.request.stub(:ssl?, false) do
+      assert_equal "http://assets15.example.com/images/xml.png", image_path("xml.png")
+    end
 
-    @controller.request.stubs(:ssl?).returns(true)
-    assert_equal "http://localhost/images/xml.png", image_path("xml.png")
+    @controller.request.stub(:ssl?, true) do
+      assert_equal "http://localhost/images/xml.png", image_path("xml.png")
+    end
   end
 end
 

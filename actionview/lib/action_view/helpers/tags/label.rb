@@ -15,20 +15,10 @@ module ActionView
 
           def translation
             method_and_value = @tag_value.present? ? "#{@method_name}.#{@tag_value}" : @method_name
-            @object_name.gsub!(/\[(.*)_attributes\]\[\d+\]/, '.\1')
 
-            if object.respond_to?(:to_model)
-              key = object.model_name.i18n_key
-              i18n_default = ["#{key}.#{method_and_value}".to_sym, ""]
-            end
-
-            i18n_default ||= ""
-            content = I18n.t("#{@object_name}.#{method_and_value}", :default => i18n_default, :scope => "helpers.label").presence
-
-            content ||= if object && object.class.respond_to?(:human_attribute_name)
-                          object.class.human_attribute_name(method_and_value)
-                        end
-
+            content ||= Translator
+              .new(object, @object_name, method_and_value, scope: "helpers.label")
+              .translate
             content ||= @method_name.humanize
 
             content

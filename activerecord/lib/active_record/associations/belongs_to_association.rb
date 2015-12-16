@@ -10,7 +10,7 @@ module ActiveRecord
       def replace(record)
         if record
           raise_on_type_mismatch!(record)
-          update_counters(record)
+          update_counters_on_replace(record)
           replace_keys(record)
           set_inverse_instance(record)
           @updated = true
@@ -32,52 +32,47 @@ module ActiveRecord
       end
 
       def decrement_counters # :nodoc:
-        with_cache_name { |name| decrement_counter name }
+        update_counters(-1)
       end
 
       def increment_counters # :nodoc:
-        with_cache_name { |name| increment_counter name }
+        update_counters(1)
       end
 
       private
+
+        def update_counters(by)
+          if require_counter_update? && foreign_key_present?
+            if target && !stale_target?
+              target.increment!(reflection.counter_cache_column, by)
+            else
+              klass.update_counters(target_id, reflection.counter_cache_column => by)
+            end
+          end
+        end
 
         def find_target?
           !loaded? && foreign_key_present? && klass
         end
 
-        def with_cache_name
-          counter_cache_name = reflection.counter_cache_column
-          return unless counter_cache_name && owner.persisted?
-          yield counter_cache_name
+        def require_counter_update?
+          reflection.counter_cache_column && owner.persisted?
         end
 
-        def update_counters(record)
-          with_cache_name do |name|
-            return unless different_target? record
-            record.class.increment_counter(name, record.id)
-            decrement_counter name
-          end
-        end
-
-        def decrement_counter(counter_cache_name)
-          if foreign_key_present?
-            klass.decrement_counter(counter_cache_name, target_id)
-          end
-        end
-
-        def increment_counter(counter_cache_name)
-          if foreign_key_present?
-            klass.increment_counter(counter_cache_name, target_id)
+        def update_counters_on_replace(record)
+          if require_counter_update? && different_target?(record)
+            record.increment!(reflection.counter_cache_column)
+            decrement_counters
           end
         end
 
         # Checks whether record is different to the current target, without loading it
         def different_target?(record)
-          record.id != owner[reflection.foreign_key]
+          record.id != owner._read_attribute(reflection.foreign_key)
         end
 
         def replace_keys(record)
-          owner[reflection.foreign_key] = record[reflection.association_primary_key(record.class)]
+          owner[reflection.foreign_key] = record._read_attribute(reflection.association_primary_key(record.class))
         end
 
         def remove_keys
@@ -85,7 +80,7 @@ module ActiveRecord
         end
 
         def foreign_key_present?
-          owner[reflection.foreign_key]
+          owner._read_attribute(reflection.foreign_key)
         end
 
         # NOTE - for now, we're only supporting inverse setting from belongs_to back onto
@@ -99,12 +94,13 @@ module ActiveRecord
           if options[:primary_key]
             owner.send(reflection.name).try(:id)
           else
-            owner[reflection.foreign_key]
+            owner._read_attribute(reflection.foreign_key)
           end
         end
 
         def stale_state
-          owner[reflection.foreign_key] && owner[reflection.foreign_key].to_s
+          result = owner._read_attribute(reflection.foreign_key) { |n| owner.send(:missing_attribute, n, caller) }
+          result && result.to_s
         end
     end
   end

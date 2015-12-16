@@ -5,7 +5,7 @@ module ActiveRecord
     class ColumnsTest < ActiveRecord::TestCase
       include ActiveRecord::Migration::TestHelper
 
-      self.use_transactional_fixtures = false
+      self.use_transactional_tests = false
 
       # FIXME: this is more of an integration test with AR::Base and the
       # schema modifications.  Maybe we should move this?
@@ -65,7 +65,7 @@ module ActiveRecord
       if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
         def test_mysql_rename_column_preserves_auto_increment
           rename_column "test_models", "id", "id_test"
-          assert_equal "auto_increment", connection.columns("test_models").find { |c| c.name == "id_test" }.extra
+          assert connection.columns("test_models").find { |c| c.name == "id_test" }.auto_increment?
           TestModel.reset_column_information
         ensure
           rename_column "test_models", "id_test", "id"
@@ -196,7 +196,7 @@ module ActiveRecord
 
         old_columns = connection.columns(TestModel.table_name)
         assert old_columns.find { |c|
-          default = c.type_cast_from_database(c.default)
+          default = connection.lookup_cast_type_from_column(c).deserialize(c.default)
           c.name == 'approved' && c.type == :boolean && default == true
         }
 
@@ -204,11 +204,11 @@ module ActiveRecord
         new_columns = connection.columns(TestModel.table_name)
 
         assert_not new_columns.find { |c|
-          default = c.type_cast_from_database(c.default)
+          default = connection.lookup_cast_type_from_column(c).deserialize(c.default)
           c.name == 'approved' and c.type == :boolean and default == true
         }
         assert new_columns.find { |c|
-          default = c.type_cast_from_database(c.default)
+          default = connection.lookup_cast_type_from_column(c).deserialize(c.default)
           c.name == 'approved' and c.type == :boolean and default == false
         }
         change_column :test_models, :approved, :boolean, :default => true
@@ -265,6 +265,13 @@ module ActiveRecord
         add_column "test_models", "first_name", :string
         connection.change_column_default "test_models", "first_name", nil
         assert_nil TestModel.new.first_name
+      end
+
+      def test_change_column_default_with_from_and_to
+        add_column "test_models", "first_name", :string
+        connection.change_column_default "test_models", "first_name", from: nil, to: "Tester"
+
+        assert_equal "Tester", TestModel.new.first_name
       end
 
       def test_remove_column_no_second_parameter_raises_exception

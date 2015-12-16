@@ -69,11 +69,31 @@ class ModuleAttributeAccessorTest < ActiveSupport::TestCase
       end
     end
     assert_equal "invalid attribute name: 1nvalid", exception.message
+
+    exception = assert_raises NameError do
+      Class.new do
+        mattr_reader "valid_part\ninvalid_part"
+      end
+    end
+    assert_equal "invalid attribute name: valid_part\ninvalid_part", exception.message
+
+    exception = assert_raises NameError do
+      Class.new do
+        mattr_writer "valid_part\ninvalid_part"
+      end
+    end
+    assert_equal "invalid attribute name: valid_part\ninvalid_part", exception.message
   end
 
   def test_should_use_default_value_if_block_passed
     assert_equal 'default_accessor_value', @module.defa
     assert_equal 'default_reader_value', @module.defr
     assert_equal 'default_writer_value', @module.class_variable_get('@@defw')
+  end
+
+  def test_should_not_invoke_default_value_block_multiple_times
+    count = 0
+    @module.cattr_accessor(:defcount){ count += 1 }
+    assert_equal 1, count
   end
 end

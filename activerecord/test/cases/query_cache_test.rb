@@ -184,7 +184,7 @@ class QueryCacheTest < ActiveRecord::TestCase
       # Oracle adapter returns count() as Fixnum or Float
       if current_adapter?(:OracleAdapter)
         assert_kind_of Numeric, Task.connection.select_value("SELECT count(*) AS count_all FROM tasks")
-      elsif current_adapter?(:SQLite3Adapter, :Mysql2Adapter)
+      elsif current_adapter?(:SQLite3Adapter, :Mysql2Adapter, :PostgreSQLAdapter)
         # Future versions of the sqlite3 adapter will return numeric
         assert_instance_of Fixnum,
          Task.connection.select_value("SELECT count(*) AS count_all FROM tasks")
@@ -212,6 +212,38 @@ class QueryCacheTest < ActiveRecord::TestCase
   ensure
     ActiveRecord::Base.configurations = conf
   end
+
+  def test_query_cache_doesnt_leak_cached_results_of_rolled_back_queries
+    ActiveRecord::Base.connection.enable_query_cache!
+    post = Post.first
+
+    Post.transaction do
+      post.update_attributes(title: 'rollback')
+      assert_equal 1, Post.where(title: 'rollback').to_a.count
+      raise ActiveRecord::Rollback
+    end
+
+    assert_equal 0, Post.where(title: 'rollback').to_a.count
+
+    ActiveRecord::Base.connection.uncached do
+      assert_equal 0, Post.where(title: 'rollback').to_a.count
+    end
+
+    begin
+      Post.transaction do
+        post.update_attributes(title: 'rollback')
+        assert_equal 1, Post.where(title: 'rollback').to_a.count
+        raise 'broken'
+      end
+    rescue Exception
+    end
+
+    assert_equal 0, Post.where(title: 'rollback').to_a.count
+
+    ActiveRecord::Base.connection.uncached do
+      assert_equal 0, Post.where(title: 'rollback').to_a.count
+    end
+  end
 end
 
 class QueryCacheExpiryTest < ActiveRecord::TestCase
@@ -230,61 +262,66 @@ class QueryCacheExpiryTest < ActiveRecord::TestCase
   end
 
   def test_find
-    Task.connection.expects(:clear_query_cache).times(1)
-
-    assert !Task.connection.query_cache_enabled
-    Task.cache do
-      assert Task.connection.query_cache_enabled
-      Task.find(1)
-
-      Task.uncached do
-        assert !Task.connection.query_cache_enabled
+    assert_called(Task.connection, :clear_query_cache) do
+      assert !Task.connection.query_cache_enabled
+      Task.cache do
+        assert Task.connection.query_cache_enabled
         Task.find(1)
-      end
 
-      assert Task.connection.query_cache_enabled
+        Task.uncached do
+          assert !Task.connection.query_cache_enabled
+          Task.find(1)
+        end
+
+        assert Task.connection.query_cache_enabled
+      end
+      assert !Task.connection.query_cache_enabled
     end
-    assert !Task.connection.query_cache_enabled
   end
 
   def test_update
-    Task.connection.expects(:clear_query_cache).times(2)
-    Task.cache do
-      task = Task.find(1)
-      task.starting = Time.now.utc
-      task.save!
+    assert_called(Task.connection, :clear_query_cache, times: 2) do
+      Task.cache do
+        task = Task.find(1)
+        task.starting = Time.now.utc
+        task.save!
+      end
     end
   end
 
   def test_destroy
-    Task.connection.expects(:clear_query_cache).times(2)
-    Task.cache do
-      Task.find(1).destroy
+    assert_called(Task.connection, :clear_query_cache, times: 2) do
+      Task.cache do
+        Task.find(1).destroy
+      end
     end
   end
 
   def test_insert
-    ActiveRecord::Base.connection.expects(:clear_query_cache).times(2)
-    Task.cache do
-      Task.create!
+    assert_called(ActiveRecord::Base.connection, :clear_query_cache, times: 2) do
+      Task.cache do
+        Task.create!
+      end
     end
   end
 
   def test_cache_is_expired_by_habtm_update
-    ActiveRecord::Base.connection.expects(:clear_query_cache).times(2)
-    ActiveRecord::Base.cache do
-      c = Category.first
-      p = Post.first
-      p.categories << c
+    assert_called(ActiveRecord::Base.connection, :clear_query_cache, times: 2) do
+      ActiveRecord::Base.cache do
+        c = Category.first
+        p = Post.first
+        p.categories << c
+      end
     end
   end
 
   def test_cache_is_expired_by_habtm_delete
-    ActiveRecord::Base.connection.expects(:clear_query_cache).times(2)
-    ActiveRecord::Base.cache do
-      p = Post.find(1)
-      assert p.categories.any?
-      p.categories.delete_all
+    assert_called(ActiveRecord::Base.connection, :clear_query_cache, times: 2) do
+      ActiveRecord::Base.cache do
+        p = Post.find(1)
+        assert p.categories.any?
+        p.categories.delete_all
+      end
     end
   end
 end

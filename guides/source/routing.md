@@ -1,3 +1,5 @@
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+
 Rails Routing from the Outside In
 =================================
 
@@ -5,7 +7,7 @@ This guide covers the user-facing features of Rails routing.
 
 After reading this guide, you will know:
 
-* How to interpret the code in `routes.rb`.
+* How to interpret the code in `config/routes.rb`.
 * How to construct your own routes, using either the preferred resourceful style or the `match` method.
 * What parameters to expect an action to receive.
 * How to automatically create paths and URLs using route helpers.
@@ -77,11 +79,13 @@ it asks the router to map it to a controller action. If the first matching route
 resources :photos
 ```
 
-Rails would dispatch that request to the `destroy` method on the `photos` controller with `{ id: '17' }` in `params`.
+Rails would dispatch that request to the `destroy` action on the `photos` controller with `{ id: '17' }` in `params`.
 
 ### CRUD, Verbs, and Actions
 
-In Rails, a resourceful route provides a mapping between HTTP verbs and URLs to controller actions. By convention, each action also maps to particular CRUD operations in a database. A single entry in the routing file, such as:
+In Rails, a resourceful route provides a mapping between HTTP verbs and URLs to
+controller actions. By convention, each action also maps to a specific CRUD
+operation in a database. A single entry in the routing file, such as:
 
 ```ruby
 resources :photos
@@ -138,10 +142,10 @@ Sometimes, you have a resource that clients always look up without referencing a
 get 'profile', to: 'users#show'
 ```
 
-Passing a `String` to `get` will expect a `controller#action` format, while passing a `Symbol` will map directly to an action:
+Passing a `String` to `get` will expect a `controller#action` format, while passing a `Symbol` will map directly to an action but you must also specify the `controller:` to use:
 
 ```ruby
-get 'profile', to: :show
+get 'profile', to: :show, controller: 'users'
 ```
 
 This resourceful route:
@@ -175,6 +179,8 @@ WARNING: A [long-standing bug](https://github.com/rails/rails/issues/1769) preve
 
 ```ruby
 form_for @geocoder, url: geocoder_path do |f|
+
+# snippet for brevity
 ```
 
 ### Controller Namespaces and Routing
@@ -227,7 +233,7 @@ or, for a single case:
 resources :articles, path: '/admin/articles'
 ```
 
-In each of these cases, the named routes remain the same as if you did not use `scope`. In the last case, the following paths map to `PostsController`:
+In each of these cases, the named routes remain the same as if you did not use `scope`. In the last case, the following paths map to `ArticlesController`:
 
 | HTTP Verb | Path                     | Controller#Action    | Named Helper           |
 | --------- | ------------------------ | -------------------- | ---------------------- |
@@ -611,6 +617,8 @@ get 'photos/:id', to: 'photos#show', defaults: { format: 'jpg' }
 
 Rails would match `photos/12` to the `show` action of `PhotosController`, and set `params[:format]` to `"jpg"`.
 
+NOTE: You cannot override defaults via query parameters - this is for security reasons. The only defaults that can be overridden are dynamic segments via substitution in the URL path.
+
 ### Naming Routes
 
 You can specify a name for any route using the `:as` option:
@@ -789,7 +797,11 @@ get '/stories/:name', to: redirect { |path_params, req| "/articles/#{path_params
 get '/stories', to: redirect { |path_params, req| "/articles/#{req.subdomain}" }
 ```
 
-Please note that this redirection is a 301 "Moved Permanently" redirect. Keep in mind that some web browsers or proxy servers will cache this type of redirect, making the old page inaccessible.
+Please note that default redirection is a 301 "Moved Permanently" redirect. Keep in mind that some web browsers or proxy servers will cache this type of redirect, making the old page inaccessible. You can use the `:status` option to change the response status:
+
+```ruby
+get '/stories/:name', to: redirect('/articles/%{name}', status: 302)
+```
 
 In all of these cases, if you don't provide the leading host (`http://www.example.com`), Rails will take those details from the current request.
 
@@ -804,6 +816,21 @@ match '/application.js', to: Sprockets, via: :all
 As long as `Sprockets` responds to `call` and returns a `[status, headers, body]`, the router won't know the difference between the Rack application and an action. This is an appropriate use of `via: :all`, as you will want to allow your Rack application to handle all verbs as it considers appropriate.
 
 NOTE: For the curious, `'articles#index'` actually expands out to `ArticlesController.action(:index)`, which returns a valid Rack application.
+
+If you specify a Rack application as the endpoint for a matcher, remember that
+the route will be unchanged in the receiving application. With the following
+route your Rack application should expect the route to be '/admin':
+
+```ruby
+match '/admin', to: AdminApp, via: :all
+```
+
+If you would prefer to have your Rack application receive requests at the root
+path instead, use mount:
+
+```ruby
+mount AdminApp, at: '/admin'
+```
 
 ### Using `root`
 
@@ -907,7 +934,7 @@ The `:as` option lets you override the normal naming for the named route helpers
 resources :photos, as: 'images'
 ```
 
-will recognize incoming paths beginning with `/photos` and route the requests to `PhotosController`, but use the value of the :as option to name the helpers.
+will recognize incoming paths beginning with `/photos` and route the requests to `PhotosController`, but use the value of the `:as` option to name the helpers.
 
 | HTTP Verb | Path             | Controller#Action | Named Helper         |
 | --------- | ---------------- | ----------------- | -------------------- |
@@ -1004,7 +1031,7 @@ TIP: If your application has many RESTful routes, using `:only` and `:except` to
 
 ### Translated Paths
 
-Using `scope`, we can alter path names generated by resources:
+Using `scope`, we can alter path names generated by `resources`:
 
 ```ruby
 scope(path_names: { new: 'neu', edit: 'bearbeiten' }) do
@@ -1068,6 +1095,20 @@ edit_videos GET  /videos/:identifier/edit(.:format) videos#edit
 Video.find_by(identifier: params[:identifier])
 ```
 
+You can override `ActiveRecord::Base#to_param` of a related model to construct
+a URL:
+
+```ruby
+class Video < ActiveRecord::Base
+  def to_param
+    identifier
+  end
+end
+
+video = Video.find_by(identifier: "Roman-Holiday")
+edit_videos_path(video) # => "/videos/Roman-Holiday"
+```
+
 Inspecting and Testing Routes
 -----------------------------
 
@@ -1077,7 +1118,7 @@ Rails offers facilities for inspecting and testing your routes.
 
 To get a complete list of the available routes in your application, visit `http://localhost:3000/rails/info/routes` in your browser while your server is running in the **development** environment. You can also execute the `rake routes` command in your terminal to produce the same output.
 
-Both methods will list all of your routes, in the same order that they appear in `routes.rb`. For each route, you'll see:
+Both methods will list all of your routes, in the same order that they appear in `config/routes.rb`. For each route, you'll see:
 
 * The route name (if any)
 * The HTTP verb used (if the route doesn't respond to all verbs)

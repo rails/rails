@@ -26,7 +26,7 @@ class Date
       Thread.current[:beginning_of_week] = find_beginning_of_week!(week_start)
     end
 
-    # Returns week start day symbol (e.g. :monday), or raises an ArgumentError for invalid day symbol.
+    # Returns week start day symbol (e.g. :monday), or raises an +ArgumentError+ for invalid day symbol.
     def find_beginning_of_week!(week_start)
       raise ArgumentError, "Invalid beginning of week: #{week_start}" unless ::Date::DAYS_INTO_WEEK.key?(week_start)
       week_start

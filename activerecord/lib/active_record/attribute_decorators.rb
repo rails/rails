@@ -15,7 +15,7 @@ module ActiveRecord
       end
 
       def decorate_matching_attribute_types(matcher, decorator_name, &block)
-        clear_caches_calculated_from_columns
+        reload_schema_from_cache
         decorator_name = decorator_name.to_s
 
         # Create new hashes so we don't modify parent classes
@@ -24,10 +24,11 @@ module ActiveRecord
 
       private
 
-      def add_user_provided_columns(*)
-        super.map do |column|
-          decorated_type = attribute_type_decorations.apply(column.name, column.cast_type)
-          column.with_type(decorated_type)
+      def load_schema!
+        super
+        attribute_types.each do |name, type|
+          decorated_type = attribute_type_decorations.apply(name, type)
+          define_attribute(name, decorated_type)
         end
       end
     end

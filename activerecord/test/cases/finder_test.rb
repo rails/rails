@@ -15,9 +15,11 @@ require 'models/customer'
 require 'models/toy'
 require 'models/matey'
 require 'models/dog'
+require 'models/car'
+require 'models/tyre'
 
 class FinderTest < ActiveRecord::TestCase
-  fixtures :companies, :topics, :entrants, :developers, :developers_projects, :posts, :comments, :accounts, :authors, :customers, :categories, :categorizations
+  fixtures :companies, :topics, :entrants, :developers, :developers_projects, :posts, :comments, :accounts, :authors, :customers, :categories, :categorizations, :cars
 
   def test_find_by_id_with_hash
     assert_raises(ActiveRecord::StatementInvalid) do
@@ -53,7 +55,7 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_symbols_table_ref
-    gc_disabled = GC.disable if RUBY_VERSION >= '2.2.0'
+    gc_disabled = GC.disable
     Post.where("author_id" => nil)  # warm up
     x = Symbol.all_symbols.count
     Post.where("title" => {"xxxqqqq" => "bar"})
@@ -176,8 +178,9 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_exists_does_not_instantiate_records
-    Developer.expects(:instantiate).never
-    Developer.exists?
+    assert_not_called(Developer, :instantiate) do
+      Developer.exists?
+    end
   end
 
   def test_find_by_array_of_one_id
@@ -260,6 +263,12 @@ class FinderTest < ActiveRecord::TestCase
   def test_find_by_sql_with_sti_on_joined_table
     accounts = Account.find_by_sql("SELECT * FROM accounts INNER JOIN companies ON companies.id = accounts.firm_id")
     assert_equal [Account], accounts.collect(&:class).uniq
+  end
+
+  def test_find_by_association_subquery
+    author = authors(:david)
+    assert_equal author.post, Post.find_by(author: Author.where(id: author))
+    assert_equal author.post, Post.find_by(author_id: Author.where(id: author))
   end
 
   def test_take
@@ -425,9 +434,9 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_take_and_first_and_last_with_integer_should_use_sql_limit
-    assert_sql(/LIMIT 3|ROWNUM <= 3/) { Topic.take(3).entries }
-    assert_sql(/LIMIT 2|ROWNUM <= 2/) { Topic.first(2).entries }
-    assert_sql(/LIMIT 5|ROWNUM <= 5/) { Topic.last(5).entries }
+    assert_sql(/LIMIT|ROWNUM <=/) { Topic.take(3).entries }
+    assert_sql(/LIMIT|ROWNUM <=/) { Topic.first(2).entries }
+    assert_sql(/LIMIT|ROWNUM <=/) { Topic.last(5).entries }
   end
 
   def test_last_with_integer_and_order_should_keep_the_order
@@ -697,88 +706,11 @@ class FinderTest < ActiveRecord::TestCase
     assert Company.where(["name = :name", {name: "37signals' go'es agains"}]).first
   end
 
-  def test_bind_arity
-    assert_nothing_raised                                 { bind '' }
-    assert_raise(ActiveRecord::PreparedStatementInvalid) { bind '', 1 }
-
-    assert_raise(ActiveRecord::PreparedStatementInvalid) { bind '?' }
-    assert_nothing_raised                                 { bind '?', 1 }
-    assert_raise(ActiveRecord::PreparedStatementInvalid) { bind '?', 1, 1  }
-  end
-
   def test_named_bind_variables
-    assert_equal '1', bind(':a', :a => 1) # ' ruby-mode
-    assert_equal '1 1', bind(':a :a', :a => 1)  # ' ruby-mode
-
-    assert_nothing_raised { bind("'+00:00'", :foo => "bar") }
-
     assert_kind_of Firm, Company.where(["name = :name", { name: "37signals" }]).first
     assert_nil Company.where(["name = :name", { name: "37signals!" }]).first
     assert_nil Company.where(["name = :name", { name: "37signals!' OR 1=1" }]).first
     assert_kind_of Time, Topic.where(["id = :id", { id: 1 }]).first.written_on
-  end
-
-  class SimpleEnumerable
-    include Enumerable
-
-    def initialize(ary)
-      @ary = ary
-    end
-
-    def each(&b)
-      @ary.each(&b)
-    end
-  end
-
-  def test_bind_enumerable
-    quoted_abc = %(#{ActiveRecord::Base.connection.quote('a')},#{ActiveRecord::Base.connection.quote('b')},#{ActiveRecord::Base.connection.quote('c')})
-
-    assert_equal '1,2,3', bind('?', [1, 2, 3])
-    assert_equal quoted_abc, bind('?', %w(a b c))
-
-    assert_equal '1,2,3', bind(':a', :a => [1, 2, 3])
-    assert_equal quoted_abc, bind(':a', :a => %w(a b c)) # '
-
-    assert_equal '1,2,3', bind('?', SimpleEnumerable.new([1, 2, 3]))
-    assert_equal quoted_abc, bind('?', SimpleEnumerable.new(%w(a b c)))
-
-    assert_equal '1,2,3', bind(':a', :a => SimpleEnumerable.new([1, 2, 3]))
-    assert_equal quoted_abc, bind(':a', :a => SimpleEnumerable.new(%w(a b c))) # '
-  end
-
-  def test_bind_empty_enumerable
-    quoted_nil = ActiveRecord::Base.connection.quote(nil)
-    assert_equal quoted_nil, bind('?', [])
-    assert_equal " in (#{quoted_nil})", bind(' in (?)', [])
-    assert_equal "foo in (#{quoted_nil})", bind('foo in (?)', [])
-  end
-
-  def test_bind_empty_string
-    quoted_empty = ActiveRecord::Base.connection.quote('')
-    assert_equal quoted_empty, bind('?', '')
-  end
-
-  def test_bind_chars
-    quoted_bambi = ActiveRecord::Base.connection.quote("Bambi")
-    quoted_bambi_and_thumper = ActiveRecord::Base.connection.quote("Bambi\nand\nThumper")
-    assert_equal "name=#{quoted_bambi}", bind('name=?', "Bambi")
-    assert_equal "name=#{quoted_bambi_and_thumper}", bind('name=?', "Bambi\nand\nThumper")
-    assert_equal "name=#{quoted_bambi}", bind('name=?', "Bambi".mb_chars)
-    assert_equal "name=#{quoted_bambi_and_thumper}", bind('name=?', "Bambi\nand\nThumper".mb_chars)
-  end
-
-  def test_bind_record
-    o = Struct.new(:quoted_id).new(1)
-    assert_equal '1', bind('?', o)
-
-    os = [o] * 3
-    assert_equal '1,1,1', bind('?', os)
-  end
-
-  def test_named_bind_with_postgresql_type_casts
-    l = Proc.new { bind(":a::integer '2009-01-01'::date", :a => '10') }
-    assert_nothing_raised(&l)
-    assert_equal "#{ActiveRecord::Base.connection.quote('10')}::integer '2009-01-01'::date", l.call
   end
 
   def test_string_sanitation
@@ -945,7 +877,6 @@ class FinderTest < ActiveRecord::TestCase
     end
   end
 
-  # http://dev.rubyonrails.org/ticket/6778
   def test_find_ignores_previously_inserted_record
     Post.create!(:title => 'test', :body => 'it out')
     assert_equal [], Post.where(id: nil)
@@ -1101,15 +1032,27 @@ class FinderTest < ActiveRecord::TestCase
     end
   end
 
-  protected
-    def bind(statement, *vars)
-      if vars.first.is_a?(Hash)
-        ActiveRecord::Base.send(:replace_named_bind_variables, statement, vars.first)
-      else
-        ActiveRecord::Base.send(:replace_bind_variables, statement, vars)
-      end
-    end
+  test "find on a scope does not perform statement caching" do
+    honda = cars(:honda)
+    zyke = cars(:zyke)
+    tyre = honda.tyres.create!
+    tyre2 = zyke.tyres.create!
 
+    assert_equal tyre, honda.tyres.custom_find(tyre.id)
+    assert_equal tyre2, zyke.tyres.custom_find(tyre2.id)
+  end
+
+  test "find_by on a scope does not perform statement caching" do
+    honda = cars(:honda)
+    zyke = cars(:zyke)
+    tyre = honda.tyres.create!
+    tyre2 = zyke.tyres.create!
+
+    assert_equal tyre, honda.tyres.custom_find_by(id: tyre.id)
+    assert_equal tyre2, zyke.tyres.custom_find_by(id: tyre2.id)
+  end
+
+  protected
     def table_with_custom_primary_key
       yield(Class.new(Toy) do
         def self.name

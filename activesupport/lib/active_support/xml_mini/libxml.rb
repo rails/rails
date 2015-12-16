@@ -75,5 +75,5 @@ module LibXML #:nodoc:
   end
 end
 
-LibXML::XML::Document.send(:include, LibXML::Conversions::Document)
-LibXML::XML::Node.send(:include, LibXML::Conversions::Node)
+LibXML::XML::Document.include(LibXML::Conversions::Document)
+LibXML::XML::Node.include(LibXML::Conversions::Node)

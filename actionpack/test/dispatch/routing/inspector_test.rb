@@ -12,26 +12,12 @@ module ActionDispatch
     class RoutesInspectorTest < ActiveSupport::TestCase
       def setup
         @set = ActionDispatch::Routing::RouteSet.new
-        app = ActiveSupport::OrderedOptions.new
-        app.config = ActiveSupport::OrderedOptions.new
-        app.config.assets = ActiveSupport::OrderedOptions.new
-        app.config.assets.prefix = '/sprockets'
-        Rails.stubs(:application).returns(app)
-        Rails.stubs(:env).returns("development")
       end
 
       def draw(options = {}, &block)
         @set.draw(&block)
         inspector = ActionDispatch::Routing::RoutesInspector.new(@set.routes)
         inspector.format(ActionDispatch::Routing::ConsoleFormatter.new, options[:filter]).split("\n")
-      end
-
-      def test_json_regexp_converter
-        @set.draw do
-          get '/cart', :to => 'cart#show'
-        end
-        route = ActionDispatch::Routing::RouteWrapper.new(@set.routes.first)
-        assert_equal "^\\/cart(?:\\.([^\\/.?]+))?$", route.json_regexp
       end
 
       def test_displaying_routes_for_engines
@@ -88,6 +74,17 @@ module ActionDispatch
         assert_equal [
           "Prefix Verb URI Pattern     Controller#Action",
           "  cart GET  /cart(.:format) cart#show"
+        ], output
+      end
+
+      def test_articles_inspect_with_multiple_verbs
+        output = draw do
+          match 'articles/:id', to: 'articles#update', via: [:put, :patch]
+        end
+
+        assert_equal [
+          "Prefix Verb      URI Pattern             Controller#Action",
+          "       PUT|PATCH /articles/:id(.:format) articles#update"
         ], output
       end
 
@@ -320,6 +317,19 @@ module ActionDispatch
 
         assert_equal ["Prefix Verb URI Pattern            Controller#Action",
                       "       GET  /:controller(/:action) (?-mix:api\\/[^\\/]+)#:action"], output
+      end
+
+      def test_inspect_routes_shows_resources_route_when_assets_disabled
+        @set = ActionDispatch::Routing::RouteSet.new
+
+        output = draw do
+          get '/cart', to: 'cart#show'
+        end
+
+        assert_equal [
+          "Prefix Verb URI Pattern     Controller#Action",
+          "  cart GET  /cart(.:format) cart#show"
+        ], output
       end
     end
   end

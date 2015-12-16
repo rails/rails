@@ -1,6 +1,6 @@
 class Categorization < ActiveRecord::Base
   belongs_to :post
-  belongs_to :category
+  belongs_to :category, counter_cache: true
   belongs_to :named_category, :class_name => 'Category', :foreign_key => :named_category_name, :primary_key => :name
   belongs_to :author
 

@@ -1,3 +1,5 @@
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+
 Rails Application Templates
 ===========================
 
@@ -76,7 +78,7 @@ gem_group :development, :test do
 end
 ```
 
-### add_source(source, options = {})
+### add_source(source, options={}, &block)
 
 Adds the given source to the generated application's `Gemfile`.
 
@@ -84,6 +86,14 @@ For example, if you need to source a gem from `"http://code.whytheluckystiff.net
 
 ```ruby
 add_source "http://code.whytheluckystiff.net"
+```
+
+If block is given, gem entries in block are wrapped into the source group.
+
+```ruby
+add_source "http://gems.github.com/" do
+  gem "rspec-rails"
+end
 ```
 
 ### environment/application(data=nil, options={}, &block)
@@ -213,7 +223,7 @@ CODE
 
 ### yes?(question) or no?(question)
 
-These methods let you ask questions from templates and decide the flow based on the user's answer. Let's say you want to freeze rails only if the user wants to:
+These methods let you ask questions from templates and decide the flow based on the user's answer. Let's say you want to Freeze Rails only if the user wants to:
 
 ```ruby
 rake("rails:freeze:gems") if yes?("Freeze rails gems?")

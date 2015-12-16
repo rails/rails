@@ -7,13 +7,15 @@ require 'action_controller/metal/strong_parameters'
 module ActionController
   extend ActiveSupport::Autoload
 
+  autoload :API
   autoload :Base
   autoload :Caching
   autoload :Metal
   autoload :Middleware
+  autoload :Renderer
+  autoload :FormBuilder
 
   autoload_under "metal" do
-    autoload :Compatibility
     autoload :ConditionalGet
     autoload :Cookies
     autoload :DataStreaming
@@ -22,13 +24,12 @@ module ActionController
     autoload :ForceSSL
     autoload :Head
     autoload :Helpers
-    autoload :HideActions
     autoload :HttpAuthentication
+    autoload :BasicImplicitRender
     autoload :ImplicitRender
     autoload :Instrumentation
     autoload :MimeResponds
     autoload :ParamsWrapper
-    autoload :RackDelegation
     autoload :Redirecting
     autoload :Renderers
     autoload :Rendering

@@ -31,26 +31,33 @@ module ActionView
     #   stylesheet_link_tag("application")
     #   # => <link href="http://assets.example.com/assets/application.css" media="screen" rel="stylesheet" />
     #
-    # Browsers typically open at most two simultaneous connections to a single
-    # host, which means your assets often have to wait for other assets to finish
-    # downloading. You can alleviate this by using a <tt>%d</tt> wildcard in the
-    # +asset_host+. For example, "assets%d.example.com". If that wildcard is
-    # present Rails distributes asset requests among the corresponding four hosts
-    # "assets0.example.com", ..., "assets3.example.com". With this trick browsers
-    # will open eight simultaneous connections rather than two.
+    # Browsers open a limited number of simultaneous connections to a single
+    # host. The exact number varies by browser and version. This limit may cause
+    # some asset downloads to wait for previous assets to finish before they can
+    # begin. You can use the <tt>%d</tt> wildcard in the +asset_host+ to
+    # distribute the requests over four hosts. For example,
+    # <tt>assets%d.example.com<tt> will spread the asset requests over
+    # "assets0.example.com", ..., "assets3.example.com".
     #
     #   image_tag("rails.png")
     #   # => <img alt="Rails" src="http://assets0.example.com/assets/rails.png" />
     #   stylesheet_link_tag("application")
     #   # => <link href="http://assets2.example.com/assets/application.css" media="screen" rel="stylesheet" />
     #
-    # To do this, you can either setup four actual hosts, or you can use wildcard
-    # DNS to CNAME the wildcard to a single asset host. You can read more about
-    # setting up your DNS CNAME records from your ISP.
+    # This may improve the asset loading performance of your application.
+    # It is also possible the combination of additional connection overhead
+    # (DNS, SSL) and the overall browser connection limits may result in this
+    # solution being slower. You should be sure to measure your actual
+    # performance across targeted browsers both before and after this change.
+    #
+    # To implement the corresponding hosts you can either setup four actual
+    # hosts or use wildcard DNS to CNAME the wildcard to a single asset host.
+    # You can read more about setting up your DNS CNAME records from your ISP.
     #
     # Note: This is purely a browser performance optimization and is not meant
     # for server load balancing. See http://www.die.net/musings/page_load_time/
-    # for background.
+    # for background and http://www.browserscope.org/?category=network for
+    # connection limit data.
     #
     # Alternatively, you can exert more control over the asset host by setting
     # +asset_host+ to a proc like this:
@@ -121,11 +128,13 @@ module ActionView
       #   asset_path "application", type: :stylesheet     # => /assets/application.css
       #   asset_path "http://www.example.com/js/xmlhr.js" # => http://www.example.com/js/xmlhr.js
       def asset_path(source, options = {})
+        raise ArgumentError, "nil is not a valid asset source" if source.nil?
+
         source = source.to_s
         return "" unless source.present?
         return source if source =~ URI_REGEXP
 
-        tail, source = source[/([\?#].+)$/], source.sub(/([\?#].+)$/, '')
+        tail, source = source[/([\?#].+)$/], source.sub(/([\?#].+)$/, ''.freeze)
 
         if extname = compute_asset_extname(source, options)
           source = "#{source}#{extname}"
@@ -248,6 +257,11 @@ module ActionView
 
       # Computes the full URL to a JavaScript asset in the public javascripts directory.
       # This will use +javascript_path+ internally, so most of their behaviors will be the same.
+      # Since +javascript_url+ is based on +asset_url+ method you can set :host options. If :host
+      # options is set, it overwrites global +config.action_controller.asset_host+ setting.
+      #
+      #   javascript_url "js/xmlhr.js", host: "http://stage.example.com" # => http://stage.example.com/assets/dir/xmlhr.js
+      #
       def javascript_url(source, options = {})
         url_to_asset(source, {type: :javascript}.merge!(options))
       end
@@ -270,6 +284,11 @@ module ActionView
 
       # Computes the full URL to a stylesheet asset in the public stylesheets directory.
       # This will use +stylesheet_path+ internally, so most of their behaviors will be the same.
+      # Since +stylesheet_url+ is based on +asset_url+ method you can set :host options. If :host
+      # options is set, it overwrites global +config.action_controller.asset_host+ setting.
+      #
+      #   stylesheet_url "css/style.css", host: "http://stage.example.com" # => http://stage.example.com/css/style.css
+      #
       def stylesheet_url(source, options = {})
         url_to_asset(source, {type: :stylesheet}.merge!(options))
       end
@@ -295,6 +314,11 @@ module ActionView
 
       # Computes the full URL to an image asset.
       # This will use +image_path+ internally, so most of their behaviors will be the same.
+      # Since +image_url+ is based on +asset_url+ method you can set :host options. If :host
+      # options is set, it overwrites global +config.action_controller.asset_host+ setting.
+      #
+      #   image_url "edit.png", host: "http://stage.example.com" # => http://stage.example.com/edit.png
+      #
       def image_url(source, options = {})
         url_to_asset(source, {type: :image}.merge!(options))
       end
@@ -316,6 +340,11 @@ module ActionView
 
       # Computes the full URL to a video asset in the public videos directory.
       # This will use +video_path+ internally, so most of their behaviors will be the same.
+      # Since +video_url+ is based on +asset_url+ method you can set :host options. If :host
+      # options is set, it overwrites global +config.action_controller.asset_host+ setting.
+      #
+      #   video_url "hd.avi", host: "http://stage.example.com" # => http://stage.example.com/hd.avi
+      #
       def video_url(source, options = {})
         url_to_asset(source, {type: :video}.merge!(options))
       end
@@ -337,6 +366,11 @@ module ActionView
 
       # Computes the full URL to an audio asset in the public audios directory.
       # This will use +audio_path+ internally, so most of their behaviors will be the same.
+      # Since +audio_url+ is based on +asset_url+ method you can set :host options. If :host
+      # options is set, it overwrites global +config.action_controller.asset_host+ setting.
+      #
+      #   audio_url "horse.wav", host: "http://stage.example.com" # => http://stage.example.com/horse.wav
+      #
       def audio_url(source, options = {})
         url_to_asset(source, {type: :audio}.merge!(options))
       end
@@ -357,6 +391,11 @@ module ActionView
 
       # Computes the full URL to a font asset.
       # This will use +font_path+ internally, so most of their behaviors will be the same.
+      # Since +font_url+ is based on +asset_url+ method you can set :host options. If :host
+      # options is set, it overwrites global +config.action_controller.asset_host+ setting.
+      #
+      #   font_url "font.ttf", host: "http://stage.example.com" # => http://stage.example.com/font.ttf
+      #
       def font_url(source, options = {})
         url_to_asset(source, {type: :font}.merge!(options))
       end

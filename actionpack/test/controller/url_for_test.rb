@@ -30,8 +30,8 @@ module AbstractController
         assert_equal '/foo/zot', path
       end
 
-      def add_host!
-        W.default_url_options[:host] = 'www.basecamphq.com'
+      def add_host!(app = W)
+        app.default_url_options[:host] = 'www.basecamphq.com'
       end
 
       def add_port!
@@ -255,6 +255,20 @@ module AbstractController
         )
       end
 
+      def test_relative_url_root_is_respected_with_environment_variable
+        # `config.relative_url_root` is set by ENV['RAILS_RELATIVE_URL_ROOT']
+        w = Class.new {
+          config = ActionDispatch::Routing::RouteSet::Config.new '/subdir'
+          r = ActionDispatch::Routing::RouteSet.new(config)
+          r.draw { get ':controller(/:action(/:id(.:format)))' }
+          include r.url_helpers
+        }
+        add_host!(w)
+        assert_equal('https://www.basecamphq.com/subdir/c/a/i',
+          w.new.url_for(:controller => 'c', :action => 'a', :id => 'i', :protocol => 'https')
+        )
+      end
+
       def test_named_routes
         with_routing do |set|
           set.draw do
@@ -434,6 +448,26 @@ module AbstractController
           assert_equal("http://www.basecamphq.com/admin/posts/new?param=value",
             controller.send(:url_for, [:new, :admin, :post, { param: 'value' }])
           )
+        end
+      end
+
+      def test_url_for_with_array_is_unmodified
+        with_routing do |set|
+          set.draw do
+            namespace :admin do
+              resources :posts
+            end
+          end
+
+          kls = Class.new { include set.url_helpers }
+          kls.default_url_options[:host] = 'www.basecamphq.com'
+
+          original_components = [:new, :admin, :post, { param: 'value' }]
+          components = original_components.dup
+
+          kls.new.url_for(components)
+
+          assert_equal(original_components, components)
         end
       end
 

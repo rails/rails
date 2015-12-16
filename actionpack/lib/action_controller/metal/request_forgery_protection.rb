@@ -13,9 +13,14 @@ module ActionController #:nodoc:
   # by including a token in the rendered HTML for your application. This token is
   # stored as a random string in the session, to which an attacker does not have
   # access. When a request reaches your application, \Rails verifies the received
-  # token with the token in the session. Only HTML and JavaScript requests are checked,
-  # so this will not protect your XML API (presumably you'll have a different
-  # authentication scheme there anyway).
+  # token with the token in the session. All requests are checked except GET requests
+  # as these should be idempotent. Keep in mind that all session-oriented requests
+  # should be CSRF protected, including JavaScript and HTML requests.
+  #
+  # Since HTML and JavaScript requests are typically made from the browser, we
+  # need to ensure to verify request authenticity for the web browser. We can
+  # use session-oriented authentication for these types of requests, by using
+  # the `protect_from_forgery` method in our controllers.
   #
   # GET requests are not protected since they don't have side effects like writing
   # to the database and don't leak sensitive information. JavaScript requests are
@@ -26,22 +31,21 @@ module ActionController #:nodoc:
   # Ajax) requests are allowed to make GET requests for JavaScript responses.
   #
   # It's important to remember that XML or JSON requests are also affected and if
-  # you're building an API you'll need something like:
+  # you're building an API you should change forgery protection method in
+  # <tt>ApplicationController</tt> (by default: <tt>:exception</tt>):
   #
   #   class ApplicationController < ActionController::Base
-  #     protect_from_forgery
-  #     skip_before_action :verify_authenticity_token, if: :json_request?
-  #
-  #     protected
-  #
-  #     def json_request?
-  #       request.format.json?
-  #     end
+  #     protect_from_forgery unless: -> { request.format.json? }
   #   end
   #
-  # CSRF protection is turned on with the <tt>protect_from_forgery</tt> method,
-  # which checks the token and resets the session if it doesn't match what was expected.
-  # A call to this method is generated for new \Rails applications by default.
+  # CSRF protection is turned on with the <tt>protect_from_forgery</tt> method.
+  # By default <tt>protect_from_forgery</tt> protects your session with
+  # <tt>:null_session</tt> method, which provides an empty session
+  # during request.
+  #
+  # We may want to disable CSRF protection for APIs since they are typically
+  # designed to be state-less. That is, the request API client will handle
+  # the session for you instead of Rails.
   #
   # The token parameter is named <tt>authenticity_token</tt> by default. The name and
   # value of this token must be added to every layout that renders forms by including
@@ -73,6 +77,10 @@ module ActionController #:nodoc:
       config_accessor :log_warning_on_csrf_failure
       self.log_warning_on_csrf_failure = true
 
+      # Controls whether the Origin header is checked in addition to the CSRF token.
+      config_accessor :forgery_protection_origin_check
+      self.forgery_protection_origin_check = false
+
       helper_method :form_authenticity_token
       helper_method :protect_against_forgery?
     end
@@ -86,13 +94,21 @@ module ActionController #:nodoc:
       #
       #   class FooController < ApplicationController
       #     protect_from_forgery except: :index
+      #   end
       #
-      # You can disable CSRF protection on controller by skipping the verification before_action:
+      # You can disable forgery protection on controller by skipping the verification before_action:
+      #
       #   skip_before_action :verify_authenticity_token
       #
       # Valid Options:
       #
-      # * <tt>:only/:except</tt> - Passed to the <tt>before_action</tt> call. Set which actions are verified.
+      # * <tt>:only/:except</tt> - Only apply forgery protection to a subset of actions. For example <tt>only: [ :create, :create_all ]</tt>.
+      # * <tt>:if/:unless</tt> - Turn off the forgery protection entirely depending on the passed Proc or method reference.
+      # * <tt>:prepend</tt> - By default, the verification of the authentication token will be added at the position of the
+      #    protect_from_forgery call in your application. This means any callbacks added before are run first. This is useful
+      #    when you want your forgery protection to depend on other callbacks, like authentication methods (Oauth vs Cookie auth).
+      #
+      #    If you need to add verification to the beginning of the callback chain, use <tt>prepend: true</tt>.
       # * <tt>:with</tt> - Set the method to handle unverified request.
       #
       # Valid unverified request handling methods are:
@@ -100,9 +116,11 @@ module ActionController #:nodoc:
       # * <tt>:reset_session</tt> - Resets the session.
       # * <tt>:null_session</tt> - Provides an empty session during request but doesn't reset it completely. Used as default if <tt>:with</tt> option is not specified.
       def protect_from_forgery(options = {})
+        options = options.reverse_merge(prepend: false)
+
         self.forgery_protection_strategy = protection_method_class(options[:with] || :null_session)
         self.request_forgery_protection_token ||= :authenticity_token
-        prepend_before_action :verify_authenticity_token, options
+        before_action :verify_authenticity_token, options
         append_after_action :verify_same_origin_request
       end
 
@@ -124,17 +142,17 @@ module ActionController #:nodoc:
         # This is the method that defines the application behavior when a request is found to be unverified.
         def handle_unverified_request
           request = @controller.request
-          request.session = NullSessionHash.new(request.env)
-          request.env['action_dispatch.request.flash_hash'] = nil
-          request.env['rack.session.options'] = { skip: true }
-          request.env['action_dispatch.cookies'] = NullCookieJar.build(request)
+          request.session = NullSessionHash.new(request)
+          request.flash = nil
+          request.session_options = { skip: true }
+          request.cookie_jar = NullCookieJar.build(request, {})
         end
 
         protected
 
         class NullSessionHash < Rack::Session::Abstract::SessionHash #:nodoc:
-          def initialize(env)
-            super(nil, env)
+          def initialize(req)
+            super(nil, req)
             @data = {}
             @loaded = true
           end
@@ -148,14 +166,6 @@ module ActionController #:nodoc:
         end
 
         class NullCookieJar < ActionDispatch::Cookies::CookieJar #:nodoc:
-          def self.build(request)
-            key_generator = request.env[ActionDispatch::Cookies::GENERATOR_KEY]
-            host          = request.host
-            secure        = request.ssl?
-
-            new(key_generator, host, secure, options_for_env({}))
-          end
-
           def write(*)
             # nothing
           end
@@ -209,6 +219,7 @@ module ActionController #:nodoc:
         forgery_protection_strategy.new(self).handle_unverified_request
       end
 
+      #:nodoc:
       CROSS_ORIGIN_JAVASCRIPT_WARNING = "Security warning: an embedded " \
         "<script> tag on another site requested protected JavaScript. " \
         "If you know what you're doing, go ahead and disable forgery " \
@@ -245,13 +256,24 @@ module ActionController #:nodoc:
 
       # Returns true or false if a request is verified. Checks:
       #
-      # * is it a GET or HEAD request?  Gets should be safe and idempotent
+      # * Is it a GET or HEAD request?  Gets should be safe and idempotent
       # * Does the form_authenticity_token match the given token value from the params?
       # * Does the X-CSRF-Token header match the form_authenticity_token
       def verified_request?
         !protect_against_forgery? || request.get? || request.head? ||
-          valid_authenticity_token?(session, form_authenticity_param) ||
-          valid_authenticity_token?(session, request.headers['X-CSRF-Token'])
+          (valid_request_origin? && any_authenticity_token_valid?)
+      end
+
+      # Checks if any of the authenticity tokens from the request are valid.
+      def any_authenticity_token_valid?
+        request_authenticity_tokens.any? do |token|
+          valid_authenticity_token?(session, token)
+        end
+      end
+
+      # Possible authenticity tokens sent in the request.
+      def request_authenticity_tokens
+        [form_authenticity_param, request.x_csrf_token]
       end
 
       # Sets the token value for the current session.
@@ -273,7 +295,9 @@ module ActionController #:nodoc:
       # session token. Essentially the inverse of
       # +masked_authenticity_token+.
       def valid_authenticity_token?(session, encoded_masked_token)
-        return false if encoded_masked_token.nil? || encoded_masked_token.empty?
+        if encoded_masked_token.nil? || encoded_masked_token.empty? || !encoded_masked_token.is_a?(String)
+          return false
+        end
 
         begin
           masked_token = Base64.strict_decode64(encoded_masked_token)
@@ -326,6 +350,17 @@ module ActionController #:nodoc:
       # Checks if the controller allows forgery protection.
       def protect_against_forgery?
         allow_forgery_protection
+      end
+
+      # Checks if the request originated from the same origin by looking at the
+      # Origin header.
+      def valid_request_origin?
+        if forgery_protection_origin_check
+          # We accept blank origin headers because some user agents don't send it.
+          request.origin.nil? || request.origin == request.base_url
+        else
+          true
+        end
       end
   end
 end

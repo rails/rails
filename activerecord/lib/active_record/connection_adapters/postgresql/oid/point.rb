@@ -3,19 +3,19 @@ module ActiveRecord
     module PostgreSQL
       module OID # :nodoc:
         class Point < Type::Value # :nodoc:
-          include Type::Mutable
+          include Type::Helpers::Mutable
 
           def type
             :point
           end
 
-          def type_cast(value)
+          def cast(value)
             case value
             when ::String
               if value[0] == '(' && value[-1] == ')'
                 value = value[1...-1]
               end
-              type_cast(value.split(','))
+              cast(value.split(','))
             when ::Array
               value.map { |v| Float(v) }
             else
@@ -23,7 +23,7 @@ module ActiveRecord
             end
           end
 
-          def type_cast_for_database(value)
+          def serialize(value)
             if value.is_a?(::Array)
               "(#{number_for_point(value[0])},#{number_for_point(value[1])})"
             else

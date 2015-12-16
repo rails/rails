@@ -1,5 +1,6 @@
 require 'fileutils'
 require 'abstract_unit'
+require 'lib/controller/fake_models'
 
 CACHE_DIR = 'test_cache'
 # Don't change '/../temp/' cavalierly or you might hose something you don't want hosed
@@ -21,8 +22,6 @@ class FragmentCachingMetalTest < ActionController::TestCase
     @controller.perform_caching = true
     @controller.cache_store = @store
     @params = { controller: 'posts', action: 'index' }
-    @request = ActionController::TestRequest.new
-    @response = ActionController::TestResponse.new
     @controller.params = @params
     @controller.request = @request
     @controller.response = @response
@@ -51,8 +50,6 @@ class FragmentCachingTest < ActionController::TestCase
     @controller.perform_caching = true
     @controller.cache_store = @store
     @params = {:controller => 'posts', :action => 'index'}
-    @request = ActionController::TestRequest.new
-    @response = ActionController::TestResponse.new
     @controller.params = @params
     @controller.request = @request
     @controller.response = @response
@@ -165,6 +162,8 @@ class FunctionalCachingController < CachingController
   end
 
   def formatted_fragment_cached_with_variant
+    request.variant = :phone if params[:v] == "phone"
+
     respond_to do |format|
       format.html.phone
       format.html
@@ -182,8 +181,6 @@ class FunctionalFragmentCachingTest < ActionController::TestCase
     @controller = FunctionalCachingController.new
     @controller.perform_caching = true
     @controller.cache_store = @store
-    @request = ActionController::TestRequest.new
-    @response = ActionController::TestResponse.new
   end
 
   def test_fragment_caching
@@ -210,7 +207,7 @@ CACHED
   end
 
   def test_skipping_fragment_cache_digesting
-    get :fragment_cached_without_digest, :format => "html"
+    get :fragment_cached_without_digest, format: "html"
     assert_response :success
     expected_body = "<body>\n<p>ERB</p>\n</body>\n"
 
@@ -244,7 +241,7 @@ CACHED
   end
 
   def test_html_formatted_fragment_caching
-    get :formatted_fragment_cached, :format => "html"
+    get :formatted_fragment_cached, format: "html"
     assert_response :success
     expected_body = "<body>\n<p>ERB</p>\n</body>\n"
 
@@ -255,7 +252,7 @@ CACHED
   end
 
   def test_xml_formatted_fragment_caching
-    get :formatted_fragment_cached, :format => "xml"
+    get :formatted_fragment_cached, format: "xml"
     assert_response :success
     expected_body = "<body>\n  <p>Builder</p>\n</body>\n"
 
@@ -267,9 +264,7 @@ CACHED
 
 
   def test_fragment_caching_with_variant
-    @request.variant = :phone
-
-    get :formatted_fragment_cached_with_variant, :format => "html"
+    get :formatted_fragment_cached_with_variant, format: "html", params: { v: :phone }
     assert_response :success
     expected_body = "<body>\n<p>PHONE</p>\n</body>\n"
 
@@ -304,30 +299,42 @@ class CacheHelperOutputBufferTest < ActionController::TestCase
   def test_output_buffer
     output_buffer = ActionView::OutputBuffer.new
     controller = MockController.new
-    cache_helper = Object.new
+    cache_helper = Class.new do
+      def self.controller; end;
+      def self.output_buffer; end;
+      def self.output_buffer=; end;
+    end
     cache_helper.extend(ActionView::Helpers::CacheHelper)
-    cache_helper.expects(:controller).returns(controller).at_least(0)
-    cache_helper.expects(:output_buffer).returns(output_buffer).at_least(0)
-    # if the output_buffer is changed, the new one should be html_safe and of the same type
-    cache_helper.expects(:output_buffer=).with(responds_with(:html_safe?, true)).with(instance_of(output_buffer.class)).at_least(0)
 
-    assert_nothing_raised do
-      cache_helper.send :fragment_for, 'Test fragment name', 'Test fragment', &Proc.new{ nil }
+    cache_helper.stub :controller, controller do
+      cache_helper.stub :output_buffer, output_buffer do
+        assert_called_with cache_helper, :output_buffer=, [output_buffer.class.new(output_buffer)] do
+          assert_nothing_raised do
+            cache_helper.send :fragment_for, 'Test fragment name', 'Test fragment', &Proc.new{ nil }
+          end
+        end
+      end
     end
   end
 
   def test_safe_buffer
     output_buffer = ActiveSupport::SafeBuffer.new
     controller = MockController.new
-    cache_helper = Object.new
+    cache_helper = Class.new do
+      def self.controller; end;
+      def self.output_buffer; end;
+      def self.output_buffer=; end;
+    end
     cache_helper.extend(ActionView::Helpers::CacheHelper)
-    cache_helper.expects(:controller).returns(controller).at_least(0)
-    cache_helper.expects(:output_buffer).returns(output_buffer).at_least(0)
-    # if the output_buffer is changed, the new one should be html_safe and of the same type
-    cache_helper.expects(:output_buffer=).with(responds_with(:html_safe?, true)).with(instance_of(output_buffer.class)).at_least(0)
 
-    assert_nothing_raised do
-      cache_helper.send :fragment_for, 'Test fragment name', 'Test fragment', &Proc.new{ nil }
+    cache_helper.stub :controller, controller do
+      cache_helper.stub :output_buffer, output_buffer do
+        assert_called_with cache_helper, :output_buffer=, [output_buffer.class.new(output_buffer)] do
+          assert_nothing_raised do
+            cache_helper.send :fragment_for, 'Test fragment name', 'Test fragment', &Proc.new{ nil }
+          end
+        end
+      end
     end
   end
 end
@@ -347,5 +354,93 @@ class ViewCacheDependencyTest < ActionController::TestCase
 
   def test_view_cache_dependencies_are_listed_in_declaration_order
     assert_equal %w(trombone flute), HasDependenciesController.new.view_cache_dependencies
+  end
+end
+
+class CollectionCacheController < ActionController::Base
+  attr_accessor :partial_rendered_times
+
+  def index
+    @customers = [Customer.new('david', params[:id] || 1)]
+  end
+
+  def index_ordered
+    @customers = [Customer.new('david', 1), Customer.new('david', 2), Customer.new('david', 3)]
+    render 'index'
+  end
+
+  def index_explicit_render
+    @customers = [Customer.new('david', 1)]
+    render partial: 'customers/customer', collection: @customers
+  end
+
+  def index_with_comment
+    @customers = [Customer.new('david', 1)]
+    render partial: 'customers/commented_customer', collection: @customers, as: :customer
+  end
+end
+
+class AutomaticCollectionCacheTest < ActionController::TestCase
+  def setup
+    super
+    @controller = CollectionCacheController.new
+    @controller.perform_caching = true
+    @controller.partial_rendered_times = 0
+    @controller.cache_store = ActiveSupport::Cache::MemoryStore.new
+    ActionView::PartialRenderer.collection_cache = @controller.cache_store
+  end
+
+  def test_collection_fetches_cached_views
+    get :index
+    assert_equal 1, @controller.partial_rendered_times
+
+    get :index
+    assert_equal 1, @controller.partial_rendered_times
+  end
+
+  def test_preserves_order_when_reading_from_cache_plus_rendering
+    get :index, params: { id: 2 }
+    get :index_ordered
+
+    assert_select ':root', "david, 1\n  david, 2\n  david, 3"
+  end
+
+  def test_explicit_render_call_with_options
+    get :index_explicit_render
+
+    assert_select ':root', "david, 1"
+  end
+
+  def test_caching_works_with_beginning_comment
+    get :index_with_comment
+    assert_equal 1, @controller.partial_rendered_times
+
+    get :index_with_comment
+    assert_equal 1, @controller.partial_rendered_times
+  end
+end
+
+class FragmentCacheKeyTestController < CachingController
+  attr_accessor :account_id
+
+  fragment_cache_key "v1"
+  fragment_cache_key { account_id }
+end
+
+class FragmentCacheKeyTest < ActionController::TestCase
+  def setup
+    super
+    @store = ActiveSupport::Cache::MemoryStore.new
+    @controller = FragmentCacheKeyTestController.new
+    @controller.perform_caching = true
+    @controller.cache_store = @store
+  end
+
+  def test_fragment_cache_key
+    @controller.account_id = "123"
+    assert_equal 'views/v1/123/what a key', @controller.fragment_cache_key('what a key')
+
+    @controller.account_id = nil
+    assert_equal 'views/v1//what a key', @controller.fragment_cache_key('what a key')
   end
 end

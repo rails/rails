@@ -7,7 +7,7 @@ module ActiveRecord
   #
   # returns the collected queries local to the current thread.
   #
-  # See the documentation of <tt>ActiveSupport::PerThreadRegistry</tt>
+  # See the documentation of ActiveSupport::PerThreadRegistry
   # for further details.
   class ExplainRegistry # :nodoc:
     extend ActiveSupport::PerThreadRegistry

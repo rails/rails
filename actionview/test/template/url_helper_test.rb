@@ -1,6 +1,4 @@
-# encoding: utf-8
 require 'abstract_unit'
-require 'minitest/mock'
 
 class UrlHelperTest < ActiveSupport::TestCase
 
@@ -40,6 +38,10 @@ class UrlHelperTest < ActiveSupport::TestCase
     assert_equal "/?a=b&c=d", url_for(hash_for(a: :b, c: :d))
   end
 
+  def test_url_for_does_not_include_empty_hashes
+    assert_equal "/", url_for(hash_for(a: {}))
+  end
+
   def test_url_for_with_back
     referer = 'http://www.example.com/referer'
     @controller = Struct.new(:request).new(Struct.new(:env).new("HTTP_REFERER" => referer))
@@ -49,6 +51,23 @@ class UrlHelperTest < ActiveSupport::TestCase
 
   def test_url_for_with_back_and_no_referer
     @controller = Struct.new(:request).new(Struct.new(:env).new({}))
+    assert_equal 'javascript:history.back()', url_for(:back)
+  end
+
+  def test_url_for_with_back_and_no_controller
+    @controller = nil
+    assert_equal 'javascript:history.back()', url_for(:back)
+  end
+
+  def test_url_for_with_back_and_javascript_referer
+    referer = 'javascript:alert(document.cookie)'
+    @controller = Struct.new(:request).new(Struct.new(:env).new("HTTP_REFERER" => referer))
+    assert_equal 'javascript:history.back()', url_for(:back)
+  end
+
+  def test_url_for_with_invalid_referer
+    referer = 'THIS IS NOT A URL'
+    @controller = Struct.new(:request).new(Struct.new(:env).new("HTTP_REFERER" => referer))
     assert_equal 'javascript:history.back()', url_for(:back)
   end
 
@@ -380,6 +399,11 @@ class UrlHelperTest < ActiveSupport::TestCase
     assert_dom_equal %{<a href="/">Listing</a>}, link_to_if(true, "Listing", url_hash)
   end
 
+  def test_link_to_if_with_block
+    assert_equal "Fallback", link_to_if(false, "Showing", url_hash) { "Fallback" }
+    assert_dom_equal %{<a href="/">Listing</a>}, link_to_if(true, "Listing", url_hash) { "Fallback" }
+  end
+
   def request_for_url(url, opts = {})
     env = Rack::MockRequest.env_for("http://www.example.com#{url}", opts)
     ActionDispatch::Request.new(env)
@@ -480,6 +504,11 @@ class UrlHelperTest < ActiveSupport::TestCase
       link_to_unless_current("Listing", "http://www.example.com/")
   end
 
+  def test_link_to_unless_with_block
+    assert_dom_equal %{<a href="/">Showing</a>}, link_to_unless(false, "Showing", url_hash) { "Fallback" }
+    assert_equal "Fallback", link_to_unless(true, "Listing", url_hash) { "Fallback" }
+  end
+
   def test_mail_to
     assert_dom_equal %{<a href="mailto:david@loudthinking.com">david@loudthinking.com</a>}, mail_to("david@loudthinking.com")
     assert_dom_equal %{<a href="mailto:david@loudthinking.com">David Heinemeier Hansson</a>}, mail_to("david@loudthinking.com", "David Heinemeier Hansson")
@@ -491,16 +520,42 @@ class UrlHelperTest < ActiveSupport::TestCase
                  mail_to("david@loudthinking.com", "David Heinemeier Hansson", class: "admin")
   end
 
+  def test_mail_to_with_special_characters
+    assert_dom_equal(
+      %{<a href="mailto:%23%21%24%25%26%27%2A%2B-%2F%3D%3F%5E_%60%7B%7D%7C%7E@example.org">#!$%&amp;&#39;*+-/=?^_`{}|~@example.org</a>},
+      mail_to("#!$%&'*+-/=?^_`{}|~@example.org")
+    )
+  end
+
   def test_mail_with_options
     assert_dom_equal(
-      %{<a href="mailto:me@example.com?cc=ccaddress%40example.com&amp;bcc=bccaddress%40example.com&amp;body=This%20is%20the%20body%20of%20the%20message.&amp;subject=This%20is%20an%20example%20email">My email</a>},
-      mail_to("me@example.com", "My email", cc: "ccaddress@example.com", bcc: "bccaddress@example.com", subject: "This is an example email", body: "This is the body of the message.")
+      %{<a href="mailto:me@example.com?cc=ccaddress%40example.com&amp;bcc=bccaddress%40example.com&amp;body=This%20is%20the%20body%20of%20the%20message.&amp;subject=This%20is%20an%20example%20email&amp;reply-to=foo%40bar.com">My email</a>},
+      mail_to("me@example.com", "My email", cc: "ccaddress@example.com", bcc: "bccaddress@example.com", subject: "This is an example email", body: "This is the body of the message.", reply_to: "foo@bar.com")
+    )
+
+    assert_dom_equal(
+      %{<a href="mailto:me@example.com?body=This%20is%20the%20body%20of%20the%20message.&amp;subject=This%20is%20an%20example%20email">My email</a>},
+      mail_to("me@example.com", "My email", cc: '', bcc: '', subject: "This is an example email", body: "This is the body of the message.")
     )
   end
 
   def test_mail_to_with_img
     assert_dom_equal %{<a href="mailto:feedback@example.com"><img src="/feedback.png" /></a>},
       mail_to('feedback@example.com', '<img src="/feedback.png" />'.html_safe)
+  end
+
+  def test_mail_to_with_html_safe_string
+    assert_dom_equal(
+      %{<a href="mailto:david@loudthinking.com">david@loudthinking.com</a>},
+      mail_to("david@loudthinking.com".html_safe)
+    )
+  end
+
+  def test_mail_to_with_nil
+    assert_dom_equal(
+      %{<a href="mailto:"></a>},
+      mail_to(nil)
+    )
   end
 
   def test_mail_to_returns_html_safe_string
@@ -624,13 +679,13 @@ class UrlHelperControllerTest < ActionController::TestCase
   end
 
   def test_named_route_url_shows_host_and_path
-    get :show_named_route, kind: 'url'
+    get :show_named_route, params: { kind: 'url' }
     assert_equal 'http://test.host/url_helper_controller_test/url_helper/show_named_route',
       @response.body
   end
 
   def test_named_route_path_shows_only_path
-    get :show_named_route, kind: 'path'
+    get :show_named_route, params: { kind: 'path' }
     assert_equal '/url_helper_controller_test/url_helper/show_named_route', @response.body
   end
 
@@ -646,7 +701,7 @@ class UrlHelperControllerTest < ActionController::TestCase
       end
     end
 
-    get :show_named_route, kind: 'url'
+    get :show_named_route, params: { kind: 'url' }
     assert_equal 'http://testtwo.host/url_helper_controller_test/url_helper/show_named_route', @response.body
   end
 
@@ -661,11 +716,11 @@ class UrlHelperControllerTest < ActionController::TestCase
   end
 
   def test_recall_params_should_normalize_id
-    get :show, id: '123'
+    get :show, params: { id: '123' }
     assert_equal 302, @response.status
     assert_equal 'http://test.host/url_helper_controller_test/url_helper/profile/123', @response.location
 
-    get :show, name: '123'
+    get :show, params: { name: '123' }
     assert_equal 'ok', @response.body
   end
 
@@ -704,7 +759,7 @@ class LinkToUnlessCurrentWithControllerTest < ActionController::TestCase
   end
 
   def test_link_to_unless_current_shows_link
-    get :show, id: 1
+    get :show, params: { id: 1 }
     assert_equal %{<a href="/tasks">tasks</a>\n} +
       %{<a href="#{@request.protocol}#{@request.host_with_port}/tasks">tasks</a>},
       @response.body
@@ -765,6 +820,13 @@ class SessionsController < ActionController::Base
     @session = Session.new(params[:id])
     render inline: "<%= url_for([@workshop, @session]) %>\n<%= link_to('Session', [@workshop, @session]) %>"
   end
+
+  def edit
+    @workshop = Workshop.new(params[:workshop_id])
+    @session = Session.new(params[:id])
+    @url = [@workshop, @session, format: params[:format]]
+    render inline: "<%= url_for(@url) %>\n<%= link_to('Session', @url) %>"
+  end
 end
 
 class PolymorphicControllerTest < ActionController::TestCase
@@ -778,21 +840,28 @@ class PolymorphicControllerTest < ActionController::TestCase
   def test_existing_resource
     @controller = WorkshopsController.new
 
-    get :show, id: 1
+    get :show, params: { id: 1 }
     assert_equal %{/workshops/1\n<a href="/workshops/1">Workshop</a>}, @response.body
   end
 
   def test_new_nested_resource
     @controller = SessionsController.new
 
-    get :index, workshop_id: 1
+    get :index, params: { workshop_id: 1 }
     assert_equal %{/workshops/1/sessions\n<a href="/workshops/1/sessions">Session</a>}, @response.body
   end
 
   def test_existing_nested_resource
     @controller = SessionsController.new
 
-    get :show, workshop_id: 1, id: 1
+    get :show, params: { workshop_id: 1, id: 1 }
     assert_equal %{/workshops/1/sessions/1\n<a href="/workshops/1/sessions/1">Session</a>}, @response.body
+  end
+
+  def test_existing_nested_resource_with_params
+    @controller = SessionsController.new
+
+    get :edit, params: { workshop_id: 1, id: 1, format: "json"  }
+    assert_equal %{/workshops/1/sessions/1.json\n<a href="/workshops/1/sessions/1.json">Session</a>}, @response.body
   end
 end

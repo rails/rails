@@ -1,8 +1,8 @@
 <% @previews.each do |preview| %>
-<h3><%= link_to preview.preview_name.titleize, "/rails/mailers/#{preview.preview_name}" %></h3>
+<h3><%= link_to preview.preview_name.titleize, url_for(controller: "rails/mailers", action: "preview", path: preview.preview_name) %></h3>
 <ul>
 <% preview.emails.each do |email| %>
-<li><%= link_to email, "/rails/mailers/#{preview.preview_name}/#{email}" %></li>
+<li><%= link_to email, url_for(controller: "rails/mailers", action: "preview", path: "#{preview.preview_name}/#{email}") %></li>
 <% end %>
 </ul>
 <% end %>

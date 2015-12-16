@@ -1,4 +1,3 @@
-# encoding: utf-8
 require 'isolation/abstract_unit'
 require 'rack/test'
 
@@ -36,7 +35,7 @@ module ApplicationTests
             flash[:notice] = "notice"
           end
 
-          render nothing: true
+          head :ok
         end
       end
 
@@ -61,7 +60,7 @@ module ApplicationTests
 
           def write_session
             session[:foo] = 1
-            render nothing: true
+            head :ok
           end
 
           def read_session
@@ -102,7 +101,7 @@ module ApplicationTests
 
           def write_cookie
             cookies[:foo] = '1'
-            render nothing: true
+            head :ok
           end
 
           def read_cookie
@@ -140,7 +139,7 @@ module ApplicationTests
         class FooController < ActionController::Base
           def write_session
             session[:foo] = 1
-            render nothing: true
+            head :ok
           end
 
           def read_session
@@ -185,7 +184,7 @@ module ApplicationTests
         class FooController < ActionController::Base
           def write_session
             session[:foo] = 1
-            render nothing: true
+            head :ok
           end
 
           def read_session
@@ -235,12 +234,12 @@ module ApplicationTests
           def write_raw_session
             # {"session_id"=>"1965d95720fffc123941bdfb7d2e6870", "foo"=>1}
             cookies[:_myapp_session] = "BAh7B0kiD3Nlc3Npb25faWQGOgZFRkkiJTE5NjVkOTU3MjBmZmZjMTIzOTQxYmRmYjdkMmU2ODcwBjsAVEkiCGZvbwY7AEZpBg==--315fb9931921a87ae7421aec96382f0294119749"
-            render nothing: true
+            head :ok
           end
 
           def write_session
             session[:foo] = session[:foo] + 1
-            render nothing: true
+            head :ok
           end
 
           def read_session
@@ -294,12 +293,12 @@ module ApplicationTests
           def write_raw_session
             # {"session_id"=>"1965d95720fffc123941bdfb7d2e6870", "foo"=>1}
             cookies[:_myapp_session] = "BAh7B0kiD3Nlc3Npb25faWQGOgZFRkkiJTE5NjVkOTU3MjBmZmZjMTIzOTQxYmRmYjdkMmU2ODcwBjsAVEkiCGZvbwY7AEZpBg==--315fb9931921a87ae7421aec96382f0294119749"
-            render nothing: true
+            head :ok
           end
 
           def write_session
             session[:foo] = session[:foo] + 1
-            render nothing: true
+            head :ok
           end
 
           def read_session

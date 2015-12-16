@@ -1,7 +1,7 @@
 require 'active_support/core_ext/enumerable'
 require 'active_support/core_ext/string/filters'
 require 'mutex_m'
-require 'thread_safe'
+require 'concurrent/map'
 
 module ActiveRecord
   # = Active Record Attribute Methods
@@ -37,12 +37,12 @@ module ActiveRecord
     class AttributeMethodCache
       def initialize
         @module = Module.new
-        @method_cache = ThreadSafe::Cache.new
+        @method_cache = Concurrent::Map.new
       end
 
       def [](name)
         @method_cache.compute_if_absent(name) do
-          safe_name = name.unpack('h*').first
+          safe_name = name.unpack('h*'.freeze).first
           temp_method = "__temp__#{safe_name}"
           ActiveRecord::AttributeMethods::AttrNames.set_name_cache safe_name, name
           @module.module_eval method_body(temp_method, safe_name), __FILE__, __LINE__
@@ -83,7 +83,7 @@ module ActiveRecord
         generated_attribute_methods.synchronize do
           return false if @attribute_methods_generated
           superclass.define_attribute_methods unless self == base_class
-          super(column_names)
+          super(attribute_names)
           @attribute_methods_generated = true
         end
         true
@@ -96,7 +96,7 @@ module ActiveRecord
         end
       end
 
-      # Raises a <tt>ActiveRecord::DangerousAttributeError</tt> exception when an
+      # Raises an ActiveRecord::DangerousAttributeError exception when an
       # \Active \Record method is defined in the model, otherwise +false+.
       #
       #   class Person < ActiveRecord::Base
@@ -106,7 +106,7 @@ module ActiveRecord
       #   end
       #
       #   Person.instance_method_already_implemented?(:save)
-      #   # => ActiveRecord::DangerousAttributeError: save is defined by ActiveRecord
+      #   # => ActiveRecord::DangerousAttributeError: save is defined by Active Record. Check to make sure that you don't have an attribute or method with the same name.
       #
       #   Person.instance_method_already_implemented?(:name)
       #   # => false
@@ -150,7 +150,7 @@ module ActiveRecord
         BLACKLISTED_CLASS_METHODS.include?(method_name.to_s) || class_method_defined_within?(method_name, Base)
       end
 
-      def class_method_defined_within?(name, klass, superklass = klass.superclass) # :nodoc
+      def class_method_defined_within?(name, klass, superklass = klass.superclass) # :nodoc:
         if klass.respond_to?(name, true)
           if superklass.respond_to?(name, true)
             klass.method(name).owner != superklass.method(name).owner
@@ -185,14 +185,27 @@ module ActiveRecord
       #   # => ["id", "created_at", "updated_at", "name", "age"]
       def attribute_names
         @attribute_names ||= if !abstract_class? && table_exists?
-            column_names
+            attribute_types.keys
           else
             []
           end
       end
 
+      # Returns true if the given attribute exists, otherwise false.
+      #
+      #   class Person < ActiveRecord::Base
+      #   end
+      #
+      #   Person.has_attribute?('name')   # => true
+      #   Person.has_attribute?(:age)     # => true
+      #   Person.has_attribute?(:nothing) # => false
+      def has_attribute?(attr_name)
+        attribute_types.key?(attr_name.to_s)
+      end
+
       # Returns the column object for the named attribute.
-      # Returns nil if the named attribute does not exist.
+      # Returns a +ActiveRecord::ConnectionAdapters::NullColumn+ if the
+      # named attribute does not exist.
       #
       #   class Person < ActiveRecord::Base
       #   end
@@ -202,17 +215,12 @@ module ActiveRecord
       #   # => #<ActiveRecord::ConnectionAdapters::Column:0x007ff4ab083980 @name="name", @sql_type="varchar(255)", @null=true, ...>
       #
       #   person.column_for_attribute(:nothing)
-      #   # => nil
+      #   # => #<ActiveRecord::ConnectionAdapters::NullColumn:0xXXX @name=nil, @sql_type=nil, @cast_type=#<Type::Value>, ...>
       def column_for_attribute(name)
-        column = columns_hash[name.to_s]
-        if column.nil?
-          ActiveSupport::Deprecation.warn(<<-MSG.squish)
-            `#column_for_attribute` will return a null object for non-existent
-            columns in Rails 5. Use `#has_attribute?` if you need to check for
-            an attribute's existence.
-          MSG
+        name = name.to_s
+        columns_hash.fetch(name) do
+          ConnectionAdapters::NullColumn.new(name)
         end
-        column
       end
     end
 
@@ -234,7 +242,15 @@ module ActiveRecord
     #   person.respond_to(:nothing) # => false
     def respond_to?(name, include_private = false)
       return false unless super
-      name = name.to_s
+
+      case name
+      when :to_partial_path
+        name = "to_partial_path".freeze
+      when :to_model
+        name = "to_model".freeze
+      else
+        name = name.to_s
+      end
 
       # If the result is true then check for the select case.
       # For queries selecting a subset of columns, return false for unselected columns.
@@ -342,7 +358,7 @@ module ActiveRecord
     #
     # Note: +:id+ is always present.
     #
-    # Alias for the <tt>read_attribute</tt> method.
+    # Alias for the #read_attribute method.
     #
     #   class Person < ActiveRecord::Base
     #     belongs_to :organization
@@ -360,7 +376,7 @@ module ActiveRecord
     end
 
     # Updates the attribute identified by <tt>attr_name</tt> with the specified +value+.
-    # (Alias for the protected <tt>write_attribute</tt> method).
+    # (Alias for the protected #write_attribute method).
     #
     #   class Person < ActiveRecord::Base
     #   end
@@ -371,6 +387,39 @@ module ActiveRecord
     #   person[:age] # => Fixnum
     def []=(attr_name, value)
       write_attribute(attr_name, value)
+    end
+
+    # Returns the name of all database fields which have been read from this
+    # model. This can be useful in development mode to determine which fields
+    # need to be selected. For performance critical pages, selecting only the
+    # required fields can be an easy performance win (assuming you aren't using
+    # all of the fields on the model).
+    #
+    # For example:
+    #
+    #   class PostsController < ActionController::Base
+    #     after_action :print_accessed_fields, only: :index
+    #
+    #     def index
+    #       @posts = Post.all
+    #     end
+    #
+    #     private
+    #
+    #     def print_accessed_fields
+    #       p @posts.first.accessed_fields
+    #     end
+    #   end
+    #
+    # Which allows you to quickly change your code to:
+    #
+    #   class PostsController < ActionController::Base
+    #     def index
+    #       @posts = Post.select(:id, :title, :author_id, :updated_at)
+    #     end
+    #   end
+    def accessed_fields
+      @attributes.accessed
     end
 
     protected

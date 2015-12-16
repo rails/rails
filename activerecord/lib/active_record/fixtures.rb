@@ -1,6 +1,7 @@
 require 'erb'
 require 'yaml'
 require 'zlib'
+require 'set'
 require 'active_support/dependencies'
 require 'active_support/core_ext/digest/uuid'
 require 'active_record/fixture_set/file'
@@ -88,7 +89,7 @@ module ActiveRecord
   #   end
   #
   # In order to use these methods to access fixtured data within your testcases, you must specify one of the
-  # following in your <tt>ActiveSupport::TestCase</tt>-derived class:
+  # following in your ActiveSupport::TestCase-derived class:
   #
   # - to fully enable instantiated fixtures (enable alternate methods #1 and #2 above)
   #     self.use_instantiated_fixtures = true
@@ -109,7 +110,7 @@ module ActiveRecord
   #   <% 1.upto(1000) do |i| %>
   #   fix_<%= i %>:
   #     id: <%= i %>
-  #     name: guy_<%= 1 %>
+  #     name: guy_<%= i %>
   #   <% end %>
   #
   # This will create 1000 very simple fixtures.
@@ -123,7 +124,7 @@ module ActiveRecord
   #
   # Helper methods defined in a fixture will not be available in other fixtures, to prevent against
   # unwanted inter-test dependencies. Methods used by multiple fixtures should be defined in a module
-  # that is included in <tt>ActiveRecord::FixtureSet.context_class</tt>.
+  # that is included in ActiveRecord::FixtureSet.context_class.
   #
   # - define a helper method in `test_helper.rb`
   #     module FixtureFileHelpers
@@ -131,20 +132,20 @@ module ActiveRecord
   #         Digest::SHA2.hexdigest(File.read(Rails.root.join('test/fixtures', path)))
   #       end
   #     end
-  #     ActiveRecord::FixtureSet.context_class.send :include, FixtureFileHelpers
+  #     ActiveRecord::FixtureSet.context_class.include FixtureFileHelpers
   #
   # - use the helper method in a fixture
   #     photo:
   #       name: kitten.png
   #       sha: <%= file_sha 'files/kitten.png' %>
   #
-  # = Transactional Fixtures
+  # = Transactional Tests
   #
   # Test cases can use begin+rollback to isolate their changes to the database instead of having to
   # delete+insert for every test case.
   #
   #   class FooTest < ActiveSupport::TestCase
-  #     self.use_transactional_fixtures = true
+  #     self.use_transactional_tests = true
   #
   #     test "godzilla" do
   #       assert !Foo.all.empty?
@@ -158,14 +159,14 @@ module ActiveRecord
   #   end
   #
   # If you preload your test database with all fixture data (probably in the rake task) and use
-  # transactional fixtures, then you may omit all fixtures declarations in your test cases since
+  # transactional tests, then you may omit all fixtures declarations in your test cases since
   # all the data's already there and every case rolls back its changes.
   #
   # In order to use instantiated fixtures with preloaded data, set +self.pre_loaded_fixtures+ to
   # true. This will provide access to fixture data for every table that has been loaded through
   # fixtures (depending on the value of +use_instantiated_fixtures+).
   #
-  # When *not* to use transactional fixtures:
+  # When *not* to use transactional tests:
   #
   # 1. You're testing whether a transaction works correctly. Nested transactions don't commit until
   #    all parent transactions commit, particularly, the fixtures transaction which is begun in setup
@@ -394,6 +395,20 @@ module ActiveRecord
   #     <<: *DEFAULTS
   #
   # Any fixture labeled "DEFAULTS" is safely ignored.
+  #
+  # == Configure the fixture model class
+  #
+  # It's possible to set the fixture's model class directly in the YAML file.
+  # This is helpful when fixtures are loaded outside tests and
+  # +set_fixture_class+ is not available (e.g.
+  # when running <tt>rake db:fixtures:load</tt>).
+  #
+  #   _fixture:
+  #     model_class: User
+  #   david:
+  #     name: David
+  #
+  # Any fixtures labeled "_fixture" are safely ignored.
   class FixtureSet
     #--
     # An instance of FixtureSet is normally stored in a single YAML file and
@@ -521,12 +536,16 @@ module ActiveRecord
           update_all_loaded_fixtures fixtures_map
 
           connection.transaction(:requires_new => true) do
+            deleted_tables = Set.new
             fixture_sets.each do |fs|
               conn = fs.model_class.respond_to?(:connection) ? fs.model_class.connection : connection
               table_rows = fs.table_rows
 
               table_rows.each_key do |table|
-                conn.delete "DELETE FROM #{conn.quote_table_name(table)}", 'Fixture Delete'
+                unless deleted_tables.include? table
+                  conn.delete "DELETE FROM #{conn.quote_table_name(table)}", 'Fixture Delete'
+                end
+                deleted_tables << table
               end
 
               table_rows.each do |fixture_set_name, rows|
@@ -534,12 +553,10 @@ module ActiveRecord
                   conn.insert_fixture(row, fixture_set_name)
                 end
               end
-            end
 
-            # Cap primary key sequences to max(pk).
-            if connection.respond_to?(:reset_pk_sequence!)
-              fixture_sets.each do |fs|
-                connection.reset_pk_sequence!(fs.table_name)
+              # Cap primary key sequences to max(pk).
+              if conn.respond_to?(:reset_pk_sequence!)
+                conn.reset_pk_sequence!(fs.table_name)
               end
             end
           end
@@ -575,21 +592,16 @@ module ActiveRecord
       @name     = name
       @path     = path
       @config   = config
-      @model_class = nil
 
-      if class_name.is_a?(Class) # TODO: Should be an AR::Base type class, or any?
-        @model_class = class_name
-      else
-        @model_class = class_name.safe_constantize if class_name
-      end
+      self.model_class = class_name
+
+      @fixtures = read_fixture_files(path)
 
       @connection  = connection
 
       @table_name = ( model_class.respond_to?(:table_name) ?
                       model_class.table_name :
                       self.class.default_fixture_table_name(name, config) )
-
-      @fixtures = read_fixture_files path, @model_class
     end
 
     def [](x)
@@ -612,7 +624,6 @@ module ActiveRecord
     # a list of rows to insert to that table.
     def table_rows
       now = config.default_timezone == :utc ? Time.now.utc : Time.now
-      now = now.to_s(:db)
 
       # allow a standard key to be used for doing defaults in YAML
       fixtures.delete('DEFAULTS')
@@ -633,12 +644,19 @@ module ActiveRecord
 
           # interpolate the fixture label
           row.each do |key, value|
-            row[key] = value.gsub("$LABEL", label) if value.is_a?(String)
+            row[key] = value.gsub("$LABEL", label.to_s) if value.is_a?(String)
           end
 
           # generate a primary key if necessary
           if has_primary_key_column? && !row.include?(primary_key_name)
             row[primary_key_name] = ActiveRecord::FixtureSet.identify(label, primary_key_type)
+          end
+
+          # Resolve enums
+          model_class.defined_enums.each do |name, values|
+            if row.include?(name)
+              row[name] = values.fetch(row[name], row[name])
+            end
           end
 
           # If STI is used, find the correct subclass for association reflection
@@ -661,7 +679,7 @@ module ActiveRecord
                   row[association.foreign_type] = $1
                 end
 
-                fk_type = association.active_record.columns_hash[fk_name].type
+                fk_type = reflection_class.type_for_attribute(fk_name).type
                 row[fk_name] = ActiveRecord::FixtureSet.identify(value, fk_type)
               end
             when :has_many
@@ -691,7 +709,7 @@ module ActiveRecord
       end
 
       def primary_key_type
-        @association.klass.column_types[@association.klass.primary_key].type
+        @association.klass.type_for_attribute(@association.klass.primary_key).type
       end
     end
 
@@ -703,6 +721,10 @@ module ActiveRecord
       def lhs_key
         @association.through_reflection.foreign_key
       end
+
+      def join_table
+        @association.through_reflection.table_name
+      end
     end
 
     private
@@ -711,7 +733,7 @@ module ActiveRecord
       end
 
       def primary_key_type
-        @primary_key_type ||= model_class && model_class.column_types[model_class.primary_key].type
+        @primary_key_type ||= model_class && model_class.type_for_attribute(model_class.primary_key).type
       end
 
       def add_join_records(rows, row, association)
@@ -748,13 +770,25 @@ module ActiveRecord
         @column_names ||= @connection.columns(@table_name).collect(&:name)
       end
 
-      def read_fixture_files(path, model_class)
+      def model_class=(class_name)
+        if class_name.is_a?(Class) # TODO: Should be an AR::Base type class, or any?
+          @model_class = class_name
+        else
+          @model_class = class_name.safe_constantize if class_name
+        end
+      end
+
+      # Loads the fixtures from the YAML file at +path+.
+      # If the file sets the +model_class+ and current instance value is not set,
+      # it uses the file value.
+      def read_fixture_files(path)
         yaml_files = Dir["#{path}/{**,*}/*.yml"].select { |f|
           ::File.file?(f)
         } + [yaml_file_path(path)]
 
         yaml_files.each_with_object({}) do |file, fixtures|
           FixtureSet::File.open(file) do |fh|
+            self.model_class ||= fh.model_class if fh.model_class
             fh.each do |fixture_name, row|
               fixtures[fixture_name] = ActiveRecord::Fixture.new(row, model_class)
             end
@@ -767,12 +801,6 @@ module ActiveRecord
       end
 
   end
-
-  #--
-  # Deprecate 'Fixtures' in favor of 'FixtureSet'.
-  #++
-  # :nodoc:
-  Fixtures = ActiveSupport::Deprecation::DeprecatedConstantProxy.new('ActiveRecord::Fixtures', 'ActiveRecord::FixtureSet')
 
   class Fixture #:nodoc:
     include Enumerable
@@ -820,12 +848,12 @@ module ActiveRecord
   module TestFixtures
     extend ActiveSupport::Concern
 
-    def before_setup
+    def before_setup # :nodoc:
       setup_fixtures
       super
     end
 
-    def after_teardown
+    def after_teardown # :nodoc:
       super
       teardown_fixtures
     end
@@ -834,19 +862,29 @@ module ActiveRecord
       class_attribute :fixture_path, :instance_writer => false
       class_attribute :fixture_table_names
       class_attribute :fixture_class_names
+      class_attribute :use_transactional_tests
       class_attribute :use_transactional_fixtures
       class_attribute :use_instantiated_fixtures # true, false, or :no_instances
       class_attribute :pre_loaded_fixtures
       class_attribute :config
 
+      singleton_class.deprecate 'use_transactional_fixtures=' => 'use use_transactional_tests= instead'
+
       self.fixture_table_names = []
-      self.use_transactional_fixtures = true
       self.use_instantiated_fixtures = false
       self.pre_loaded_fixtures = false
       self.config = ActiveRecord::Base
 
-      self.fixture_class_names = Hash.new do |h, fixture_set_name|
-        h[fixture_set_name] = ActiveRecord::FixtureSet.default_fixture_model_name(fixture_set_name, self.config)
+      self.fixture_class_names = {}
+
+      silence_warnings do
+        define_singleton_method :use_transactional_tests do
+          if use_transactional_fixtures.nil?
+            true
+          else
+            use_transactional_fixtures
+          end
+        end
       end
     end
 
@@ -888,7 +926,7 @@ module ActiveRecord
               @fixture_cache[fs_name] ||= {}
 
               instances = fixture_names.map do |f_name|
-                f_name = f_name.to_s
+                f_name = f_name.to_s if f_name.is_a?(Symbol)
                 @fixture_cache[fs_name].delete(f_name) if force_reload
 
                 if @loaded_fixtures[fs_name][f_name]
@@ -918,13 +956,13 @@ module ActiveRecord
     end
 
     def run_in_transaction?
-      use_transactional_fixtures &&
+      use_transactional_tests &&
         !self.class.uses_transaction?(method_name)
     end
 
     def setup_fixtures(config = ActiveRecord::Base)
-      if pre_loaded_fixtures && !use_transactional_fixtures
-        raise RuntimeError, 'pre_loaded_fixtures requires use_transactional_fixtures'
+      if pre_loaded_fixtures && !use_transactional_tests
+        raise RuntimeError, 'pre_loaded_fixtures requires use_transactional_tests'
       end
 
       @fixture_cache = {}

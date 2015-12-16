@@ -2,7 +2,7 @@ require "cases/helper"
 require 'support/connection_helper'
 require 'support/ddl_helper'
 
-class MysqlConnectionTest < ActiveRecord::TestCase
+class MysqlConnectionTest < ActiveRecord::MysqlTestCase
   include ConnectionHelper
   include DdlHelper
 
@@ -26,7 +26,7 @@ class MysqlConnectionTest < ActiveRecord::TestCase
       run_without_connection do
         ar_config = ARTest.connection_config['arunit']
 
-        url = "mysql://#{ar_config["username"]}@localhost/#{ar_config["database"]}"
+        url = "mysql://#{ar_config["username"]}:#{ar_config["password"]}@localhost/#{ar_config["database"]}"
         Klass.establish_connection(url)
         assert_equal ar_config['database'], Klass.connection.current_database
       end
@@ -94,7 +94,7 @@ class MysqlConnectionTest < ActiveRecord::TestCase
     with_example_table do
       @connection.exec_query('INSERT INTO ex (id, data) VALUES (1, "foo")')
       result = @connection.exec_query(
-        'SELECT id, data FROM ex WHERE id = ?', nil, [[nil, 1]])
+        'SELECT id, data FROM ex WHERE id = ?', nil, [ActiveRecord::Relation::QueryAttribute.new("id", 1, ActiveRecord::Type::Value.new)])
 
       assert_equal 1, result.rows.length
       assert_equal 2, result.columns.length
@@ -106,24 +106,15 @@ class MysqlConnectionTest < ActiveRecord::TestCase
   def test_exec_typecasts_bind_vals
     with_example_table do
       @connection.exec_query('INSERT INTO ex (id, data) VALUES (1, "foo")')
-      column = @connection.columns('ex').find { |col| col.name == 'id' }
+      bind = ActiveRecord::Relation::QueryAttribute.new("id", "1-fuu", ActiveRecord::Type::Integer.new)
 
       result = @connection.exec_query(
-        'SELECT id, data FROM ex WHERE id = ?', nil, [[column, '1-fuu']])
+        'SELECT id, data FROM ex WHERE id = ?', nil, [bind])
 
       assert_equal 1, result.rows.length
       assert_equal 2, result.columns.length
 
       assert_equal [[1, 'foo']], result.rows
-    end
-  end
-
-  # Test that MySQL allows multiple results for stored procedures
-  if defined?(Mysql) && Mysql.const_defined?(:CLIENT_MULTI_RESULTS)
-    def test_multi_results
-      rows = ActiveRecord::Base.connection.select_rows('CALL ten();')
-      assert_equal 10, rows[0][0].to_i, "ten() did not return 10 as expected: #{rows.inspect}"
-      assert @connection.active?, "Bad connection use by 'MysqlAdapter.select_rows'"
     end
   end
 
@@ -142,6 +133,15 @@ class MysqlConnectionTest < ActiveRecord::TestCase
       ActiveRecord::Base.establish_connection(orig_connection.merge({:strict => false}))
       result = ActiveRecord::Base.connection.exec_query "SELECT @@SESSION.sql_mode"
       assert_equal [['']], result.rows
+    end
+  end
+
+  def test_mysql_strict_mode_specified_default
+    run_without_connection do |orig_connection|
+      ActiveRecord::Base.establish_connection(orig_connection.merge({strict: :default}))
+      global_sql_mode = ActiveRecord::Base.connection.exec_query "SELECT @@GLOBAL.sql_mode"
+      session_sql_mode = ActiveRecord::Base.connection.exec_query "SELECT @@SESSION.sql_mode"
+      assert_equal global_sql_mode.rows, session_sql_mode.rows
     end
   end
 
@@ -170,11 +170,39 @@ class MysqlConnectionTest < ActiveRecord::TestCase
     end
   end
 
+  def test_get_and_release_advisory_lock
+    lock_name = "test_lock_name"
+
+    got_lock = @connection.get_advisory_lock(lock_name)
+    assert got_lock, "get_advisory_lock should have returned true but it didn't"
+
+    assert_equal test_lock_free(lock_name), false,
+      "expected the test advisory lock to be held but it wasn't"
+
+    released_lock = @connection.release_advisory_lock(lock_name)
+    assert released_lock, "expected release_advisory_lock to return true but it didn't"
+
+    assert test_lock_free(lock_name), 'expected the test lock to be available after releasing'
+  end
+
+  def test_release_non_existent_advisory_lock
+    lock_name = "fake_lock_name"
+    released_non_existent_lock = @connection.release_advisory_lock(lock_name)
+    assert_equal released_non_existent_lock, false,
+      'expected release_advisory_lock to return false when there was no lock to release'
+  end
+
+  protected
+
+  def test_lock_free(lock_name)
+    @connection.select_value("SELECT IS_FREE_LOCK('#{lock_name}');") == '1'
+  end
+
   private
 
   def with_example_table(&block)
     definition ||= <<-SQL
-      `id` int(11) auto_increment PRIMARY KEY,
+      `id` int auto_increment PRIMARY KEY,
       `data` varchar(255)
     SQL
     super(@connection, 'ex', definition, &block)

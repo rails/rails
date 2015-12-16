@@ -1,4 +1,3 @@
-# encoding: utf-8
 require 'cases/helper'
 
 require 'models/topic'
@@ -171,8 +170,43 @@ class ValidationsTest < ActiveModel::TestCase
       # A common mistake -- we meant to call 'validates'
       Topic.validate :title, presence: true
     end
-    message = 'Unknown key: :presence. Valid keys are: :on, :if, :unless. Perhaps you meant to call `validates` instead of `validate`?'
+    message = 'Unknown key: :presence. Valid keys are: :on, :if, :unless, :prepend. Perhaps you meant to call `validates` instead of `validate`?'
     assert_equal message, error.message
+  end
+
+  def test_callback_options_to_validate
+    klass = Class.new(Topic) do
+      attr_reader :call_sequence
+
+      def initialize(*)
+        super
+        @call_sequence = []
+      end
+
+      private
+        def validator_a
+          @call_sequence << :a
+        end
+
+        def validator_b
+          @call_sequence << :b
+        end
+
+        def validator_c
+          @call_sequence << :c
+        end
+    end
+
+    assert_nothing_raised do
+      klass.validate :validator_a, if: ->{ true }
+      klass.validate :validator_b, prepend: true
+      klass.validate :validator_c, unless: ->{ true }
+    end
+
+    t = klass.new
+
+    assert_predicate t, :valid?
+    assert_equal [:b, :a], t.call_sequence
   end
 
   def test_errors_conversions
@@ -315,6 +349,25 @@ class ValidationsTest < ActiveModel::TestCase
 
     topic.validate
     assert_not_empty topic.errors
+  end
+
+  def test_validate_with_bang
+    Topic.validates :title, presence: true
+
+    assert_raise(ActiveModel::ValidationError) do
+      Topic.new.validate!
+    end
+  end
+
+  def test_validate_with_bang_and_context
+    Topic.validates :title, presence: true, on: :context
+
+    assert_raise(ActiveModel::ValidationError) do
+      Topic.new.validate!(:context)
+    end
+
+    t = Topic.new(title: "Valid title")
+    assert t.validate!(:context)
   end
 
   def test_strict_validation_in_validates

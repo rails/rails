@@ -1,5 +1,7 @@
 require 'active_support/core_ext/hash/except'
 require 'active_support/core_ext/module/introspection'
+require 'active_support/core_ext/module/remove_method'
+require 'active_support/core_ext/module/delegation'
 
 module ActiveModel
   class Name
@@ -129,7 +131,7 @@ module ActiveModel
     #
     # Equivalent to +to_s+.
     delegate :==, :===, :<=>, :=~, :"!~", :eql?, :to_s,
-             :to_str, to: :name
+             :to_str, :as_json, to: :name
 
     # Returns a new ActiveModel::Name instance. By default, the +namespace+
     # and +name+ option will take the namespace and name of the given class
@@ -162,7 +164,7 @@ module ActiveModel
       @route_key << "_index" if @plural == @singular
     end
 
-    # Transform the model name into a more humane format, using I18n. By default,
+    # Transform the model name into a more human format, using I18n. By default,
     # it will underscore then humanize the class name.
     #
     #   class BlogPost
@@ -189,8 +191,8 @@ module ActiveModel
 
     private
 
-    def _singularize(string, replacement='_')
-      ActiveSupport::Inflector.underscore(string).tr('/', replacement)
+    def _singularize(string)
+      ActiveSupport::Inflector.underscore(string).tr('/'.freeze, '_'.freeze)
     end
   end
 
@@ -211,7 +213,7 @@ module ActiveModel
   #   BookModule::BookCover.model_name.i18n_key  # => :"book_module/book_cover"
   #
   # Providing the functionality that ActiveModel::Naming provides in your object
-  # is required to pass the Active Model Lint test. So either extending the
+  # is required to pass the \Active \Model Lint test. So either extending the
   # provided method below, or rolling your own is required.
   module Naming
     def self.extended(base) #:nodoc:
@@ -224,7 +226,7 @@ module ActiveModel
     # (See ActiveModel::Name for more information).
     #
     #   class Person
-    #     include ActiveModel::Model
+    #     extend ActiveModel::Naming
     #   end
     #
     #   Person.model_name.name     # => "Person"

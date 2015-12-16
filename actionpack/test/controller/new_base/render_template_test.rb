@@ -111,7 +111,7 @@ module RenderTemplate
     end
 
     test "rendering a builder template" do
-      get :builder_template, "format" => "xml"
+      get :builder_template, params: { "format" => "xml" }
       assert_response "<html>\n  <p>Hello</p>\n</html>\n"
     end
 
@@ -126,7 +126,7 @@ module RenderTemplate
       assert_body "Hello <strong>this is also raw</strong> in an html template"
       assert_status 200
 
-      get :with_implicit_raw, format: 'text'
+      get :with_implicit_raw, params: { format: 'text' }
 
       assert_body "Hello <strong>this is also raw</strong> in a text template"
       assert_status 200
@@ -186,21 +186,21 @@ module RenderTemplate
       end
     end
 
-    test "rendering with layout => :true" do
+    test "rendering with layout => true" do
       get "/render_template/with_layout/with_layout"
 
       assert_body "Hello from basic.html.erb, I'm here!"
       assert_status 200
     end
 
-    test "rendering with layout => :false" do
+    test "rendering with layout => false" do
       get "/render_template/with_layout/with_layout_false"
 
       assert_body "Hello from basic.html.erb"
       assert_status 200
     end
 
-    test "rendering with layout => :nil" do
+    test "rendering with layout => nil" do
       get "/render_template/with_layout/with_layout_nil"
 
       assert_body "Hello from basic.html.erb"

@@ -46,28 +46,28 @@ module ActiveRecord
 
       def test_quoted_time_utc
         with_timezone_config default: :utc do
-          t = Time.now
+          t = Time.now.change(usec: 0)
           assert_equal t.getutc.to_s(:db), @quoter.quoted_date(t)
         end
       end
 
       def test_quoted_time_local
         with_timezone_config default: :local do
-          t = Time.now
+          t = Time.now.change(usec: 0)
           assert_equal t.getlocal.to_s(:db), @quoter.quoted_date(t)
         end
       end
 
       def test_quoted_time_crazy
         with_timezone_config default: :asdfasdf do
-          t = Time.now
+          t = Time.now.change(usec: 0)
           assert_equal t.getlocal.to_s(:db), @quoter.quoted_date(t)
         end
       end
 
       def test_quoted_datetime_utc
         with_timezone_config default: :utc do
-          t = DateTime.now
+          t = Time.now.change(usec: 0).to_datetime
           assert_equal t.getutc.to_s(:db), @quoter.quoted_date(t)
         end
       end
@@ -76,7 +76,7 @@ module ActiveRecord
       # DateTime doesn't define getlocal, so make sure it does nothing
       def test_quoted_datetime_local
         with_timezone_config default: :local do
-          t = DateTime.now
+          t = Time.now.change(usec: 0).to_datetime
           assert_equal t.to_s(:db), @quoter.quoted_date(t)
         end
       end
@@ -125,14 +125,11 @@ module ActiveRecord
       end
 
       def test_crazy_object
-        crazy = Class.new.new
-        expected = "'#{YAML.dump(crazy)}'"
-        assert_equal expected, @quoter.quote(crazy, nil)
-      end
-
-      def test_crazy_object_calls_quote_string
-        crazy = Class.new { def initialize; @lol = 'lo\l' end }.new
-        assert_match "lo\\\\l", @quoter.quote(crazy, nil)
+        crazy = Object.new
+        e = assert_raises(TypeError) do
+          @quoter.quote(crazy, nil)
+        end
+        assert_equal "can't quote Object", e.message
       end
 
       def test_quote_string_no_column

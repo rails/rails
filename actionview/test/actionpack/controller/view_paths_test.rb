@@ -23,8 +23,8 @@ class ViewLoadPathsTest < ActionController::TestCase
   end
 
   def setup
-    @request  = ActionController::TestRequest.new
-    @response = ActionController::TestResponse.new
+    @request  = ActionController::TestRequest.create
+    @response = ActionDispatch::TestResponse.new
     @controller = TestController.new
     @paths = TestController.view_paths
   end

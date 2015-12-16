@@ -5,7 +5,7 @@ require 'active_support/core_ext/array/extract_options'
 # attributes.
 class Module
   # Defines a class attribute and creates a class and instance reader methods.
-  # The underlying the class variable is set to +nil+, if it is not previously
+  # The underlying class variable is set to +nil+, if it is not previously
   # defined.
   #
   #   module HairColors
@@ -19,9 +19,9 @@ class Module
   # The attribute name must be a valid method name in Ruby.
   #
   #   module Foo
-  #     mattr_reader :"1_Badname "
+  #     mattr_reader :"1_Badname"
   #   end
-  #   # => NameError: invalid attribute name
+  #   # => NameError: invalid attribute name: 1_Badname
   #
   # If you want to opt out the creation on the instance reader method, pass
   # <tt>instance_reader: false</tt> or <tt>instance_accessor: false</tt>.
@@ -53,7 +53,7 @@ class Module
   def mattr_reader(*syms)
     options = syms.extract_options!
     syms.each do |sym|
-      raise NameError.new("invalid attribute name: #{sym}") unless sym =~ /^[_A-Za-z]\w*$/
+      raise NameError.new("invalid attribute name: #{sym}") unless sym =~ /\A[_A-Za-z]\w*\z/
       class_eval(<<-EOS, __FILE__, __LINE__ + 1)
         @@#{sym} = nil unless defined? @@#{sym}
 
@@ -119,7 +119,7 @@ class Module
   def mattr_writer(*syms)
     options = syms.extract_options!
     syms.each do |sym|
-      raise NameError.new("invalid attribute name: #{sym}") unless sym =~ /^[_A-Za-z]\w*$/
+      raise NameError.new("invalid attribute name: #{sym}") unless sym =~ /\A[_A-Za-z]\w*\z/
       class_eval(<<-EOS, __FILE__, __LINE__ + 1)
         @@#{sym} = nil unless defined? @@#{sym}
 
@@ -203,10 +203,10 @@ class Module
   #     include HairColors
   #   end
   #
-  #   Person.class_variable_get("@@hair_colors") #=> [:brown, :black, :blonde, :red]
+  #   Person.class_variable_get("@@hair_colors") # => [:brown, :black, :blonde, :red]
   def mattr_accessor(*syms, &blk)
     mattr_reader(*syms, &blk)
-    mattr_writer(*syms, &blk)
+    mattr_writer(*syms)
   end
   alias :cattr_accessor :mattr_accessor
 end

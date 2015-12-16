@@ -1,4 +1,3 @@
-# encoding: utf-8
 require 'cases/helper'
 
 require 'models/topic'
@@ -320,8 +319,33 @@ class LengthValidationTest < ActiveModel::TestCase
   end
 
   def test_validates_length_of_with_block
-    Topic.validates_length_of :content, minimum: 5, too_short: "Your essay must be at least %{count} words.",
-                                        tokenizer: lambda {|str| str.scan(/\w+/) }
+    assert_deprecated do
+      Topic.validates_length_of(
+        :content,
+        minimum: 5,
+        too_short: "Your essay must be at least %{count} words.",
+        tokenizer: lambda {|str| str.scan(/\w+/) },
+      )
+    end
+    t = Topic.new(content: "this content should be long enough")
+    assert t.valid?
+
+    t.content = "not long enough"
+    assert t.invalid?
+    assert t.errors[:content].any?
+    assert_equal ["Your essay must be at least 5 words."], t.errors[:content]
+  end
+
+
+  def test_validates_length_of_with_symbol
+    assert_deprecated do
+      Topic.validates_length_of(
+        :content,
+        minimum: 5,
+        too_short: "Your essay must be at least %{count} words.",
+        tokenizer: :my_word_tokenizer,
+      )
+    end
     t = Topic.new(content: "this content should be long enough")
     assert t.valid?
 

@@ -77,7 +77,7 @@ module ActiveSupport
       end
     end
 
-    Nokogiri::XML::Document.send(:include, Conversions::Document)
-    Nokogiri::XML::Node.send(:include, Conversions::Node)
+    Nokogiri::XML::Document.include(Conversions::Document)
+    Nokogiri::XML::Node.include(Conversions::Node)
   end
 end

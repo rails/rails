@@ -5,8 +5,10 @@ require 'active_support/core_ext/hash/keys'
 gem 'mysql', '~> 2.9'
 require 'mysql'
 
-class Mysql
+class Mysql # :nodoc: all
   class Time
+    # Used for casting DateTime fields to a MySQL friendly Time.
+    # This was documented in 48498da0dfed5239ea1eafb243ce47d7e3ce9e8e
     def to_date
       Date.new(year, month, day)
     end
@@ -36,7 +38,7 @@ module ActiveRecord
       ConnectionAdapters::MysqlAdapter.new(mysql, logger, options, config)
     rescue Mysql::Error => error
       if error.message.include?("Unknown database")
-        raise ActiveRecord::NoDatabaseError.new(error.message, error)
+        raise ActiveRecord::NoDatabaseError
       else
         raise
       end
@@ -56,9 +58,9 @@ module ActiveRecord
     # * <tt>:password</tt> - Defaults to nothing.
     # * <tt>:database</tt> - The name of the database. No default, must be provided.
     # * <tt>:encoding</tt> - (Optional) Sets the client encoding by executing "SET NAMES <encoding>" after connection.
-    # * <tt>:reconnect</tt> - Defaults to false (See MySQL documentation: http://dev.mysql.com/doc/refman/5.0/en/auto-reconnect.html).
-    # * <tt>:strict</tt> - Defaults to true. Enable STRICT_ALL_TABLES. (See MySQL documentation: http://dev.mysql.com/doc/refman/5.0/en/server-sql-mode.html)
-    # * <tt>:variables</tt> - (Optional) A hash session variables to send as <tt>SET @@SESSION.key = value</tt> on each database connection. Use the value +:default+ to set a variable to its DEFAULT value. (See MySQL documentation: http://dev.mysql.com/doc/refman/5.0/en/set-statement.html).
+    # * <tt>:reconnect</tt> - Defaults to false (See MySQL documentation: http://dev.mysql.com/doc/refman/5.7/en/auto-reconnect.html).
+    # * <tt>:strict</tt> - Defaults to true. Enable STRICT_ALL_TABLES. (See MySQL documentation: http://dev.mysql.com/doc/refman/5.7/en/sql-mode.html)
+    # * <tt>:variables</tt> - (Optional) A hash session variables to send as <tt>SET @@SESSION.key = value</tt> on each database connection. Use the value +:default+ to set a variable to its DEFAULT value. (See MySQL documentation: http://dev.mysql.com/doc/refman/5.7/en/set-statement.html).
     # * <tt>:sslca</tt> - Necessary to use MySQL with an SSL connection.
     # * <tt>:sslkey</tt> - Necessary to use MySQL with an SSL connection.
     # * <tt>:sslcert</tt> - Necessary to use MySQL with an SSL connection.
@@ -69,42 +71,18 @@ module ActiveRecord
       ADAPTER_NAME = 'MySQL'.freeze
 
       class StatementPool < ConnectionAdapters::StatementPool
-        def initialize(connection, max = 1000)
-          super
-          @cache = Hash.new { |h,pid| h[pid] = {} }
-        end
-
-        def each(&block); cache.each(&block); end
-        def key?(key);    cache.key?(key); end
-        def [](key);      cache[key]; end
-        def length;       cache.length; end
-        def delete(key);  cache.delete(key); end
-
-        def []=(sql, key)
-          while @max <= cache.size
-            cache.shift.last[:stmt].close
-          end
-          cache[sql] = key
-        end
-
-        def clear
-          cache.each_value do |hash|
-            hash[:stmt].close
-          end
-          cache.clear
-        end
-
         private
-        def cache
-          @cache[Process.pid]
+
+        def dealloc(stmt)
+          stmt[:stmt].close
         end
       end
 
       def initialize(connection, logger, connection_options, config)
         super
-        @statements = StatementPool.new(@connection,
-                                        self.class.type_cast_config_to_integer(config.fetch(:statement_limit) { 1000 }))
+        @statements = StatementPool.new(self.class.type_cast_config_to_integer(config.fetch(:statement_limit) { 1000 }))
         @client_encoding = nil
+        @connection_options = connection_options
         connect
       end
 
@@ -125,6 +103,11 @@ module ActiveRecord
         else
           to_enum(:each_hash, result)
         end
+      end
+
+      def new_column(field, default, sql_type_metadata = nil, null = true, default_function = nil, collation = nil) # :nodoc:
+        field = set_field_encoding(field)
+        super
       end
 
       def error_number(exception) # :nodoc:
@@ -183,6 +166,14 @@ module ActiveRecord
       #--
       # DATABASE STATEMENTS ======================================
       #++
+
+      def select_all(arel, name = nil, binds = [])
+        if ExplainRegistry.collect? && prepared_statements
+          unprepared_statement { super }
+        else
+          super
+        end
+      end
 
       def select_rows(sql, name = nil, binds = [])
         @connection.query_with_result = true
@@ -245,16 +236,16 @@ module ActiveRecord
         return @client_encoding if @client_encoding
 
         result = exec_query(
-          "SHOW VARIABLES WHERE Variable_name = 'character_set_client'",
+          "select @@character_set_client",
           'SCHEMA')
         @client_encoding = ENCODINGS[result.rows.last.last]
       end
 
-      def exec_query(sql, name = 'SQL', binds = [])
+      def exec_query(sql, name = 'SQL', binds = [], prepare: false)
         if without_prepared_statement?(binds)
           result_set, affected_rows = exec_without_stmt(sql, name)
         else
-          result_set, affected_rows = exec_stmt(sql, name, binds)
+          result_set, affected_rows = exec_stmt(sql, name, binds, cache_stmt: prepare)
         end
 
         yield affected_rows if block_given?
@@ -328,8 +319,8 @@ module ActiveRecord
 
       def initialize_type_map(m) # :nodoc:
         super
-        m.register_type %r(datetime)i, Fields::DateTime.new
-        m.register_type %r(time)i,     Fields::Time.new
+        register_class_with_precision m, %r(datetime)i, Fields::DateTime
+        register_class_with_precision m, %r(time)i,     Fields::Time
       end
 
       def exec_without_stmt(sql, name = 'SQL') # :nodoc:
@@ -393,14 +384,12 @@ module ActiveRecord
 
       private
 
-      def exec_stmt(sql, name, binds)
+      def exec_stmt(sql, name, binds, cache_stmt: false)
         cache = {}
-        type_casted_binds = binds.map { |col, val|
-          [col, type_cast(val, col)]
-        }
+        type_casted_binds = binds.map { |attr| type_cast(attr.value_for_database) }
 
-        log(sql, name, type_casted_binds) do
-          if binds.empty?
+        log(sql, name, binds) do
+          if !cache_stmt
             stmt = @connection.prepare(sql)
           else
             cache = @statements[sql] ||= {
@@ -410,14 +399,17 @@ module ActiveRecord
           end
 
           begin
-            stmt.execute(*type_casted_binds.map { |_, val| val })
+            stmt.execute(*type_casted_binds)
           rescue Mysql::Error => e
             # Older versions of MySQL leave the prepared statement in a bad
             # place when an error occurs. To support older MySQL versions, we
             # need to close the statement and delete the statement from the
             # cache.
-            stmt.close
-            @statements.delete sql
+            if !cache_stmt
+              stmt.close
+            else
+              @statements.delete sql
+            end
             raise e
           end
 
@@ -431,7 +423,7 @@ module ActiveRecord
           affected_rows = stmt.affected_rows
 
           stmt.free_result
-          stmt.close if binds.empty?
+          stmt.close if !cache_stmt
 
           [result_set, affected_rows]
         end
@@ -477,7 +469,7 @@ module ActiveRecord
         @full_version ||= @connection.server_info
       end
 
-      def set_field_encoding field_name
+      def set_field_encoding(field_name)
         field_name.force_encoding(client_encoding)
         if internal_enc = Encoding.default_internal
           field_name = field_name.encode!(internal_enc)

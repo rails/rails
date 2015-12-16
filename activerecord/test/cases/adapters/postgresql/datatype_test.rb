@@ -11,8 +11,8 @@ end
 class PostgresqlLtree < ActiveRecord::Base
 end
 
-class PostgresqlDataTypeTest < ActiveRecord::TestCase
-  self.use_transactional_fixtures = false
+class PostgresqlDataTypeTest < ActiveRecord::PostgreSQLTestCase
+  self.use_transactional_tests = false
 
   def setup
     @connection = ActiveRecord::Base.connection
@@ -69,7 +69,7 @@ class PostgresqlDataTypeTest < ActiveRecord::TestCase
   end
 end
 
-class PostgresqlInternalDataTypeTest < ActiveRecord::TestCase
+class PostgresqlInternalDataTypeTest < ActiveRecord::PostgreSQLTestCase
   include DdlHelper
 
   setup do

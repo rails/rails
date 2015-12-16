@@ -15,5 +15,8 @@
 <% end -%>
 # Ignore all logfiles and tempfiles.
 /log/*
+/tmp/*
+<% if keeps? -%>
 !/log/.keep
-/tmp
+!/tmp/.keep
+<% end -%>

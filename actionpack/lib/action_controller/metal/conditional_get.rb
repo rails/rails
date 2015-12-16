@@ -4,7 +4,6 @@ module ActionController
   module ConditionalGet
     extend ActiveSupport::Concern
 
-    include RackDelegation
     include Head
 
     included do
@@ -15,7 +14,7 @@ module ActionController
     module ClassMethods
       # Allows you to consider additional controller-wide information when generating an ETag.
       # For example, if you serve pages tailored depending on who's logged in at the moment, you
-      # may want to add the current user id to be part of the ETag to prevent authorized displaying
+      # may want to add the current user id to be part of the ETag to prevent unauthorized displaying
       # of cached pages.
       #
       #   class InvoicesController < ApplicationController
@@ -40,7 +39,7 @@ module ActionController
     # * <tt>:etag</tt>.
     # * <tt>:last_modified</tt>.
     # * <tt>:public</tt> By default the Cache-Control header is private, set this to
-    #   +true+ if you want your application to be cachable by other devices (proxy caches).
+    #   +true+ if you want your application to be cacheable by other devices (proxy caches).
     # * <tt>:template</tt> By default, the template digest for the current
     #   controller/action is included in ETags. If the action renders a
     #   different template, you can include its digest instead. If the action
@@ -51,21 +50,31 @@ module ActionController
     #
     #   def show
     #     @article = Article.find(params[:id])
-    #     fresh_when(etag: @article, last_modified: @article.created_at, public: true)
+    #     fresh_when(etag: @article, last_modified: @article.updated_at, public: true)
     #   end
     #
     # This will render the show template if the request isn't sending a matching ETag or
     # If-Modified-Since header and just a <tt>304 Not Modified</tt> response if there's a match.
     #
-    # You can also just pass a record where +last_modified+ will be set by calling
-    # +updated_at+ and the +etag+ by passing the object itself.
+    # You can also just pass a record. In this case +last_modified+ will be set
+    # by calling +updated_at+ and +etag+ by passing the object itself.
     #
     #   def show
     #     @article = Article.find(params[:id])
     #     fresh_when(@article)
     #   end
     #
-    # When passing a record, you can still set whether the public header:
+    # You can also pass an object that responds to +maximum+, such as a
+    # collection of active records. In this case +last_modified+ will be set by
+    # calling <tt>maximum(:updated_at)</tt> on the collection (the timestamp of the
+    # most recently updated record) and the +etag+ by passing the object itself.
+    #
+    #   def index
+    #     @articles = Article.all
+    #     fresh_when(@articles)
+    #   end
+    #
+    # When passing a record or a collection, you can still set the public header:
     #
     #   def show
     #     @article = Article.find(params[:id])
@@ -77,18 +86,16 @@ module ActionController
     #
     #   before_action { fresh_when @article, template: 'widgets/show' }
     #
-    def fresh_when(record_or_options, additional_options = {})
-      if record_or_options.is_a? Hash
-        options = record_or_options
-        options.assert_valid_keys(:etag, :last_modified, :public, :template)
-      else
-        record  = record_or_options
-        options = { etag: record, last_modified: record.try(:updated_at) }.merge!(additional_options)
+    def fresh_when(object = nil, etag: object, last_modified: nil, public: false, template: nil)
+      last_modified ||= object.try(:updated_at) || object.try(:maximum, :updated_at)
+
+      if etag || template
+        response.etag = combine_etags(etag: etag, last_modified: last_modified,
+          public: public, template: template)
       end
 
-      response.etag          = combine_etags(options)   if options[:etag] || options[:template]
-      response.last_modified = options[:last_modified]  if options[:last_modified]
-      response.cache_control[:public] = true            if options[:public]
+      response.last_modified = last_modified if last_modified
+      response.cache_control[:public] = true if public
 
       head :not_modified if request.fresh?(response)
     end
@@ -103,7 +110,7 @@ module ActionController
     # * <tt>:etag</tt>.
     # * <tt>:last_modified</tt>.
     # * <tt>:public</tt> By default the Cache-Control header is private, set this to
-    #   +true+ if you want your application to be cachable by other devices (proxy caches).
+    #   +true+ if you want your application to be cacheable by other devices (proxy caches).
     # * <tt>:template</tt> By default, the template digest for the current
     #   controller/action is included in ETags. If the action renders a
     #   different template, you can include its digest instead. If the action
@@ -115,7 +122,7 @@ module ActionController
     #   def show
     #     @article = Article.find(params[:id])
     #
-    #     if stale?(etag: @article, last_modified: @article.created_at)
+    #     if stale?(etag: @article, last_modified: @article.updated_at)
     #       @statistics = @article.really_expensive_call
     #       respond_to do |format|
     #         # all the supported formats
@@ -123,8 +130,8 @@ module ActionController
     #     end
     #   end
     #
-    # You can also just pass a record where +last_modified+ will be set by calling
-    # +updated_at+ and the +etag+ by passing the object itself.
+    # You can also just pass a record. In this case +last_modified+ will be set
+    # by calling +updated_at+ and +etag+ by passing the object itself.
     #
     #   def show
     #     @article = Article.find(params[:id])
@@ -137,7 +144,23 @@ module ActionController
     #     end
     #   end
     #
-    # When passing a record, you can still set whether the public header:
+    # You can also pass an object that responds to +maximum+, such as a
+    # collection of active records. In this case +last_modified+ will be set by
+    # calling +maximum(:updated_at)+ on the collection (the timestamp of the
+    # most recently updated record) and the +etag+ by passing the object itself.
+    #
+    #   def index
+    #     @articles = Article.all
+    #
+    #     if stale?(@articles)
+    #       @statistics = @articles.really_expensive_call
+    #       respond_to do |format|
+    #         # all the supported formats
+    #       end
+    #     end
+    #   end
+    #
+    # When passing a record or a collection, you can still set the public header:
     #
     #   def show
     #     @article = Article.find(params[:id])
@@ -157,8 +180,8 @@ module ActionController
     #     super if stale? @article, template: 'widgets/show'
     #   end
     #
-    def stale?(record_or_options, additional_options = {})
-      fresh_when(record_or_options, additional_options)
+    def stale?(object = nil, etag: object, last_modified: nil, public: nil, template: nil)
+      fresh_when(object, etag: etag, last_modified: last_modified, public: public, template: template)
       !request.fresh?(response)
     end
 
@@ -189,6 +212,24 @@ module ActionController
     # occur by the browser or intermediate caches (like caching proxy servers).
     def expires_now
       response.cache_control.replace(:no_cache => true)
+    end
+
+    # Cache or yield the block. The cache is supposed to never expire.
+    #
+    # You can use this method when you have a HTTP response that never changes,
+    # and the browser and proxies should cache it indefinitely.
+    #
+    # * +public+: By default, HTTP responses are private, cached only on the
+    #   user's web browser. To allow proxies to cache the response, set +true+ to
+    #   indicate that they can serve the cached response to all users.
+    #
+    # * +version+: the version passed as a key for the cache.
+    def http_cache_forever(public: false, version: 'v1')
+      expires_in 100.years, public: public
+
+      yield if stale?(etag: "#{version}-#{request.fullpath}",
+                      last_modified: Time.parse('2011-01-01').utc,
+                      public: public)
     end
 
     private

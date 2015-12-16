@@ -1,8 +1,7 @@
-# encoding: utf-8
 require "cases/helper"
 require 'support/schema_dumping_helper'
 
-class PostgresqlMoneyTest < ActiveRecord::TestCase
+class PostgresqlMoneyTest < ActiveRecord::PostgreSQLTestCase
   include SchemaDumpingHelper
 
   class PostgresqlMoney < ActiveRecord::Base; end
@@ -10,14 +9,14 @@ class PostgresqlMoneyTest < ActiveRecord::TestCase
   setup do
     @connection = ActiveRecord::Base.connection
     @connection.execute("set lc_monetary = 'C'")
-    @connection.create_table('postgresql_moneys') do |t|
-      t.column "wealth", "money"
-      t.column "depth", "money", default: "150.55"
+    @connection.create_table('postgresql_moneys', force: true) do |t|
+      t.money "wealth"
+      t.money "depth", default: "150.55"
     end
   end
 
   teardown do
-    @connection.execute 'DROP TABLE IF EXISTS postgresql_moneys'
+    @connection.drop_table 'postgresql_moneys', if_exists: true
   end
 
   def test_column
@@ -25,9 +24,10 @@ class PostgresqlMoneyTest < ActiveRecord::TestCase
     assert_equal :money, column.type
     assert_equal "money", column.sql_type
     assert_equal 2, column.scale
-    assert column.number?
-    assert_not column.binary?
-    assert_not column.array
+    assert_not column.array?
+
+    type = PostgresqlMoney.type_for_attribute("wealth")
+    assert_not type.binary?
   end
 
   def test_default
@@ -46,17 +46,17 @@ class PostgresqlMoneyTest < ActiveRecord::TestCase
   end
 
   def test_money_type_cast
-    column = PostgresqlMoney.columns_hash['wealth']
-    assert_equal(12345678.12, column.type_cast_from_user("$12,345,678.12"))
-    assert_equal(12345678.12, column.type_cast_from_user("$12.345.678,12"))
-    assert_equal(-1.15, column.type_cast_from_user("-$1.15"))
-    assert_equal(-2.25, column.type_cast_from_user("($2.25)"))
+    type = PostgresqlMoney.type_for_attribute('wealth')
+    assert_equal(12345678.12, type.cast("$12,345,678.12"))
+    assert_equal(12345678.12, type.cast("$12.345.678,12"))
+    assert_equal(-1.15, type.cast("-$1.15"))
+    assert_equal(-2.25, type.cast("($2.25)"))
   end
 
   def test_schema_dumping
     output = dump_table_schema("postgresql_moneys")
     assert_match %r{t\.money\s+"wealth",\s+scale: 2$}, output
-    assert_match %r{t\.money\s+"depth",\s+scale: 2,\s+default: 150.55$}, output
+    assert_match %r{t\.money\s+"depth",\s+scale: 2,\s+default: "150\.55"$}, output
   end
 
   def test_create_and_update_money

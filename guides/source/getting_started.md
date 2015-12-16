@@ -1,3 +1,5 @@
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+
 Getting Started with Rails
 ==========================
 
@@ -21,9 +23,12 @@ application from scratch. It does not assume that you have any prior experience
 with Rails. However, to get the most out of it, you need to have some
 prerequisites installed:
 
-* The [Ruby](https://www.ruby-lang.org/en/downloads) language version 1.9.3 or newer.
-* The [RubyGems](https://rubygems.org) packaging system, which is installed with Ruby
-  versions 1.9 and later. To learn more about RubyGems, please read the [RubyGems Guides](http://guides.rubygems.org).
+* The [Ruby](https://www.ruby-lang.org/en/downloads) language version 2.2.2 or newer.
+* Right version of [Development Kit](http://rubyinstaller.org/downloads/), if you
+  are using Windows.
+* The [RubyGems](https://rubygems.org) packaging system, which is installed with
+  Ruby by default. To learn more about RubyGems, please read the
+  [RubyGems Guides](http://guides.rubygems.org).
 * A working installation of the [SQLite3 Database](https://www.sqlite.org).
 
 Rails is a web application framework running on the Ruby programming language.
@@ -32,7 +37,6 @@ curve diving straight into Rails. There are several curated lists of online reso
 for learning Ruby:
 
 * [Official Ruby Programming Language website](https://www.ruby-lang.org/en/documentation/)
-* [reSRC's List of Free Programming Books](http://resrc.io/list/10/list-of-free-programming-books/#ruby)
 
 Be aware that some resources, while still excellent, cover versions of Ruby as old as
 1.6, and commonly 1.8, and will not include some syntax that you will see in day-to-day
@@ -48,7 +52,7 @@ code while accomplishing more than many other languages and frameworks.
 Experienced Rails developers also report that it makes web application
 development more fun.
 
-Rails is opinionated software. It makes the assumption that there is the "best"
+Rails is opinionated software. It makes the assumption that there is a "best"
 way to do things, and it's designed to encourage that way - and in some cases to
 discourage alternatives. If you learn "The Rails Way" you'll probably discover a
 tremendous increase in productivity. If you persist in bringing old habits from
@@ -67,10 +71,9 @@ The Rails philosophy includes two major guiding principles:
 
 Creating a New Rails Project
 ----------------------------
-
-The best way to use this guide is to follow each step as it happens, no code or
-step needed to make this example application has been left out, so you can
-literally follow along step by step.
+The best way to read this guide is to follow it step by step. All steps are
+essential to run this example application and no additional code or steps are
+needed.
 
 By following along with this guide, you'll create a Rails project called
 `blog`, a (very) simple weblog. Before you can start building the application,
@@ -87,21 +90,21 @@ Open up a command line prompt. On Mac OS X open Terminal.app, on Windows choose
 dollar sign `$` should be run in the command line. Verify that you have a
 current version of Ruby installed:
 
+```bash
+$ ruby -v
+ruby 2.2.2p95
+```
+
 TIP: A number of tools exist to help you quickly install Ruby and Ruby
 on Rails on your system. Windows users can use [Rails Installer](http://railsinstaller.org),
 while Mac OS X users can use [Tokaido](https://github.com/tokaido/tokaidoapp).
+For more installation methods for most Operating Systems take a look at
+[ruby-lang.org](https://www.ruby-lang.org/en/documentation/installation/).
 
-```bash
-$ ruby -v
-ruby 2.0.0p353
-```
-
-If you don't have Ruby installed have a look at
-[ruby-lang.org](https://www.ruby-lang.org/en/installation/) for possible ways to
-install Ruby on your platform.
-
-Many popular UNIX-like OSes ship with an acceptable version of SQLite3. Windows
-users and others can find installation instructions at the [SQLite3 website](https://www.sqlite.org).
+Many popular UNIX-like OSes ship with an acceptable version of SQLite3.
+On Windows, if you installed Rails through Rails Installer, you
+already have SQLite installed. Others can find installation instructions
+at the [SQLite3 website](https://www.sqlite.org).
 Verify that it is correctly installed and in your PATH:
 
 ```bash
@@ -123,7 +126,7 @@ run the following:
 $ rails --version
 ```
 
-If it says something like "Rails 4.2.0", you are ready to continue.
+If it says something like "Rails 5.0.0", you are ready to continue.
 
 ### Creating the Blog Application
 
@@ -161,7 +164,7 @@ of the files and folders that Rails created by default:
 | File/Folder | Purpose |
 | ----------- | ------- |
 |app/|Contains the controllers, models, views, helpers, mailers and assets for your application. You'll focus on this folder for the remainder of this guide.|
-|bin/|Contains the rails script that starts your app and can contain other scripts you use to setup, deploy or run your application.|
+|bin/|Contains the rails script that starts your app and can contain other scripts you use to setup, update, deploy or run your application.|
 |config/|Configure your application's routes, database, and more. This is covered in more detail in [Configuring Rails Applications](configuring.html).|
 |config.ru|Rack configuration for Rack based servers used to start the application.|
 |db/|Contains your current database schema, as well as the database migrations.|
@@ -172,7 +175,7 @@ of the files and folders that Rails created by default:
 |Rakefile|This file locates and loads tasks that can be run from the command line. The task definitions are defined throughout the components of Rails. Rather than changing Rakefile, you should add your own tasks by adding files to the lib/tasks directory of your application.|
 |README.rdoc|This is a brief instruction manual for your application. You should edit this file to tell others what your application does, how to set it up, and so on.|
 |test/|Unit tests, fixtures, and other test apparatus. These are covered in [Testing Rails Applications](testing.html).|
-|tmp/|Temporary files (like cache, pid, and session files).|
+|tmp/|Temporary files (like cache and pid files).|
 |vendor/|A place for all third-party code. In a typical Rails application this includes vendored gems.|
 
 Hello, Rails!
@@ -191,6 +194,9 @@ following in the `blog` directory:
 $ bin/rails server
 ```
 
+TIP: If you are using Windows, you have to pass the scripts under the `bin`
+folder directly to the Ruby interpreter e.g. `ruby bin\rails server`.
+
 TIP: Compiling CoffeeScript and JavaScript asset compression requires you
 have a JavaScript runtime available on your system, in the absence
 of a runtime you will see an `execjs` error during asset compilation.
@@ -199,7 +205,7 @@ Rails adds the `therubyracer` gem to the generated `Gemfile` in a
 commented line for new apps and you can uncomment if you need it.
 `therubyrhino` is the recommended runtime for JRuby users and is added by
 default to the `Gemfile` in apps generated under JRuby. You can investigate
-all the supported runtimes at [ExecJS](https://github.com/sstephenson/execjs#readme).
+all the supported runtimes at [ExecJS](https://github.com/rails/execjs#readme).
 
 This will fire up WEBrick, a web server distributed with Ruby by default. To see
 your application in action, open a browser window and navigate to
@@ -259,9 +265,9 @@ invoke  helper
 create    app/helpers/welcome_helper.rb
 invoke  assets
 invoke    coffee
-create      app/assets/javascripts/welcome.js.coffee
+create      app/assets/javascripts/welcome.coffee
 invoke    scss
-create      app/assets/stylesheets/welcome.css.scss
+create      app/assets/stylesheets/welcome.scss
 ```
 
 Most important of these are of course the controller, located at
@@ -293,6 +299,7 @@ Rails.application.routes.draw do
 
   # The priority is based upon order of creation:
   # first created -> highest priority.
+  # See how all your routes lay out with "rake routes".
   #
   # You can have the root of your site routed with "root"
   # root 'welcome#index'
@@ -300,8 +307,9 @@ Rails.application.routes.draw do
   # ...
 ```
 
-This is your application's _routing file_ which holds entries in a special DSL
-(domain-specific language) that tells Rails how to connect incoming requests to
+This is your application's _routing file_ which holds entries in a special
+[DSL (domain-specific language)](http://en.wikipedia.org/wiki/Domain-specific_language)
+that tells Rails how to connect incoming requests to
 controllers and actions. This file contains many sample routes on commented
 lines, and one of them actually shows you how to connect the root of your site
 to a specific controller and action. Find the line beginning with `root` and
@@ -315,9 +323,9 @@ root 'welcome#index'
 application to the welcome controller's index action and `get 'welcome/index'`
 tells Rails to map requests to <http://localhost:3000/welcome/index> to the
 welcome controller's index action. This was created earlier when you ran the
-controller generator (`rails generate controller welcome index`).
+controller generator (`bin/rails generate controller welcome index`).
 
-Launch the web server again if you stopped it to generate the controller (`rails
+Launch the web server again if you stopped it to generate the controller (`bin/rails
 server`) and navigate to <http://localhost:3000> in your browser. You'll see the
 "Hello, Rails!" message you put into `app/views/welcome/index.html.erb`,
 indicating that this new route is indeed going to `WelcomeController`'s `index`
@@ -350,7 +358,7 @@ Rails.application.routes.draw do
 end
 ```
 
-If you run `rake routes`, you'll see that it has defined routes for all the
+If you run `bin/rake routes`, you'll see that it has defined routes for all the
 standard RESTful actions.  The meaning of the prefix column (and other columns)
 will be seen later, but for now notice that Rails has inferred the
 singular form `article` and makes meaningful use of the distinction.
@@ -371,7 +379,7 @@ edit_article GET    /articles/:id/edit(.:format) articles#edit
 
 In the next section, you will add the ability to create new articles in your
 application and be able to view them. This is the "C" and the "R" from CRUD:
-creation and reading. The form for doing this will look like this:
+create and read. The form for doing this will look like this:
 
 ![The new article form](images/getting_started/new_article.png)
 
@@ -394,7 +402,7 @@ a controller called `ArticlesController`. You can do this by running this
 command:
 
 ```bash
-$ bin/rails g controller articles
+$ bin/rails generate controller articles
 ```
 
 If you open up the newly generated `app/controllers/articles_controller.rb`
@@ -422,12 +430,12 @@ If you refresh <http://localhost:3000/articles/new> now, you'll get a new error:
 This error indicates that Rails cannot find the `new` action inside the
 `ArticlesController` that you just generated. This is because when controllers
 are generated in Rails they are empty by default, unless you tell it
-your wanted actions during the generation process.
+your desired actions during the generation process.
 
 To manually define an action inside a controller, all you need to do is to
 define a new method inside the controller. Open
 `app/controllers/articles_controller.rb` and inside the `ArticlesController`
-class, define a `new` method so that the controller now looks like this:
+class, define the `new` method so that your controller now looks like this:
 
 ```ruby
 class ArticlesController < ApplicationController
@@ -444,23 +452,23 @@ With the `new` method defined in `ArticlesController`, if you refresh
 
 You're getting this error now because Rails expects plain actions like this one
 to have views associated with them to display their information. With no view
-available, Rails errors out.
+available, Rails will raise an exception.
 
 In the above image, the bottom line has been truncated. Let's see what the full
-thing looks like:
+error message looks like:
 
 >Missing template articles/new, application/new with {locale:[:en], formats:[:html], handlers:[:erb, :builder, :coffee]}. Searched in: * "/path/to/blog/app/views"
 
 That's quite a lot of text! Let's quickly go through and understand what each
-part of it does.
+part of it means.
 
-The first part identifies what template is missing. In this case, it's the
+The first part identifies which template is missing. In this case, it's the
 `articles/new` template. Rails will first look for this template. If not found,
 then it will attempt to load a template called `application/new`. It looks for
 one here because the `ArticlesController` inherits from `ApplicationController`.
 
 The next part of the message contains a hash. The `:locale` key in this hash
-simply indicates what spoken language template should be retrieved. By default,
+simply indicates which spoken language template should be retrieved. By default,
 this is the English - or "en" - template. The next key, `:formats` specifies the
 format of template to be served in response. The default format is `:html`, and
 so Rails is looking for an HTML template. The final key, `:handlers`, is telling
@@ -473,14 +481,16 @@ Templates within a basic Rails application like this are kept in a single
 location, but in more complex applications it could be many different paths.
 
 The simplest template that would work in this case would be one located at
-`app/views/articles/new.html.erb`. The extension of this file name is key: the
-first extension is the _format_ of the template, and the second extension is the
-_handler_ that will be used. Rails is attempting to find a template called
-`articles/new` within `app/views` for the application. The format for this
-template can only be `html` and the handler must be one of `erb`, `builder` or
-`coffee`. Because you want to create a new HTML form, you will be using the `ERB`
-language. Therefore the file should be called `articles/new.html.erb` and needs
-to be located inside the `app/views` directory of the application.
+`app/views/articles/new.html.erb`. The extension of this file name is important:
+the first extension is the _format_ of the template, and the second extension
+is the _handler_ that will be used. Rails is attempting to find a template
+called `articles/new` within `app/views` for the application. The format for
+this template can only be `html` and the handler must be one of `erb`,
+`builder` or `coffee`. Because you want to create a new HTML form, you will be
+using the `ERB` language which is designed to embed Ruby in HTML.
+
+Therefore the file should be called `articles/new.html.erb` and needs to be
+located inside the `app/views` directory of the application.
 
 Go ahead now and create a new file at `app/views/articles/new.html.erb` and
 write this content in it:
@@ -548,7 +558,7 @@ this:
 
 In this example, the `articles_path` helper is passed to the `:url` option.
 To see what Rails will do with this, we look back at the output of
-`rake routes`:
+`bin/rake routes`:
 
 ```bash
 $ bin/rake routes
@@ -611,7 +621,7 @@ def create
 end
 ```
 
-The `render` method here is taking a very simple hash with a key of `plain` and
+The `render` method here is taking a very simple hash with a key of `:plain` and
 value of `params[:article].inspect`. The `params` method is the object which
 represents the parameters (or fields) coming in from the form. The `params`
 method returns an `ActiveSupport::HashWithIndifferentAccess` object, which
@@ -658,24 +668,24 @@ models, as that will be done automatically by Active Record.
 
 ### Running a Migration
 
-As we've just seen, `rails generate model` created a _database migration_ file
+As we've just seen, `bin/rails generate model` created a _database migration_ file
 inside the `db/migrate` directory. Migrations are Ruby classes that are
 designed to make it simple to create and modify database tables. Rails uses
 rake commands to run migrations, and it's possible to undo a migration after
 it's been applied to your database. Migration filenames include a timestamp to
 ensure that they're processed in the order that they were created.
 
-If you look in the `db/migrate/20140120191729_create_articles.rb` file (remember,
-yours will have a slightly different name), here's what you'll find:
+If you look in the `db/migrate/YYYYMMDDHHMMSS_create_articles.rb` file
+(remember, yours will have a slightly different name), here's what you'll find:
 
 ```ruby
-class CreateArticles < ActiveRecord::Migration
+class CreateArticles < ActiveRecord::Migration[5.0]
   def change
     create_table :articles do |t|
       t.string :title
       t.text :text
 
-      t.timestamps
+      t.timestamps null: false
     end
   end
 end
@@ -711,7 +721,7 @@ NOTE. Because you're working in the development environment by default, this
 command will apply to the database defined in the `development` section of your
 `config/database.yml` file. If you would like to execute migrations in another
 environment, for instance in production, you must explicitly pass it when
-invoking the command: `rake db:migrate RAILS_ENV=production`.
+invoking the command: `bin/rake db:migrate RAILS_ENV=production`.
 
 ### Saving data in the controller
 
@@ -736,7 +746,7 @@ database columns. In the first line we do just that (remember that
 `@article.save` is responsible for saving the model in the database. Finally,
 we redirect the user to the `show` action, which we'll define later.
 
-TIP: You might be wondering why the `A` in `Article.new` is capitalized above, whereas most other references to articles in this guide have used lowercase. In this context, we are referring to the class named `Article` that is defined in `\models\article.rb`. Class names in Ruby must begin with a capital letter.
+TIP: You might be wondering why the `A` in `Article.new` is capitalized above, whereas most other references to articles in this guide have used lowercase. In this context, we are referring to the class named `Article` that is defined in `app/models/article.rb`. Class names in Ruby must begin with a capital letter.
 
 TIP: As we'll see later, `@article.save` returns a boolean indicating whether
 the article was saved or not.
@@ -798,7 +808,7 @@ If you submit the form again now, Rails will complain about not finding the
 `show` action. That's not very useful though, so let's add the `show` action
 before proceeding.
 
-As we have seen in the output of `rake routes`, the route for `show` action is
+As we have seen in the output of `bin/rake routes`, the route for `show` action is
 as follows:
 
 ```
@@ -828,7 +838,7 @@ class ArticlesController < ApplicationController
   def new
   end
 
-  # snipped for brevity
+  # snippet for brevity
 ```
 
 A couple of things to note. We use `Article.find` to find the article we're
@@ -860,7 +870,7 @@ Visit <http://localhost:3000/articles/new> and give it a try!
 ### Listing all articles
 
 We still need a way to list all our articles, so let's do that.
-The route for this as per output of `rake routes` is:
+The route for this as per output of `bin/rake routes` is:
 
 ```
 articles GET    /articles(.:format)          articles#index
@@ -884,7 +894,7 @@ class ArticlesController < ApplicationController
   def new
   end
 
-  # snipped for brevity
+  # snippet for brevity
 ```
 
 And then finally, add the view for this action, located at
@@ -903,6 +913,7 @@ And then finally, add the view for this action, located at
     <tr>
       <td><%= article.title %></td>
       <td><%= article.text %></td>
+      <td><%= link_to 'Show', article_path(article) %></td>
     </tr>
   <% end %>
 </table>
@@ -1231,10 +1242,9 @@ article we want to show the form back to the user.
 We reuse the `article_params` method that we defined earlier for the create
 action.
 
-TIP: You don't need to pass all attributes to `update`. For
-example, if you'd call `@article.update(title: 'A new title')`
-Rails would only update the `title` attribute, leaving all other
-attributes untouched.
+TIP: It is not necessary to pass all the attributes to `update`. For example,
+if `@article.update(title: 'A new title')` was called, Rails would only update
+the `title` attribute, leaving all other attributes untouched.
 
 Finally, we want to show a link to the `edit` action in the list of all the
 articles, so let's add that now to `app/views/articles/index.html.erb` to make
@@ -1266,8 +1276,8 @@ bottom of the template:
 ```html+erb
 ...
 
-<%= link_to 'Back', articles_path %> |
-<%= link_to 'Edit', edit_article_path(@article) %>
+<%= link_to 'Edit', edit_article_path(@article) %> |
+<%= link_to 'Back', articles_path %>
 ```
 
 And here's how our app looks so far:
@@ -1354,7 +1364,7 @@ Then do the same for the `app/views/articles/edit.html.erb` view:
 
 We're now ready to cover the "D" part of CRUD, deleting articles from the
 database. Following the REST convention, the route for
-deleting articles as per output of `rake routes` is:
+deleting articles as per output of `bin/rake routes` is:
 
 ```ruby
 DELETE /articles/:id(.:format)      articles#destroy
@@ -1470,15 +1480,19 @@ Finally, add a 'Destroy' link to your `index` action template
 ```
 
 Here we're using `link_to` in a different way. We pass the named route as the
-second argument, and then the options as another argument. The `:method` and
-`:'data-confirm'` options are used as HTML5 attributes so that when the link is
-clicked, Rails will first show a confirm dialog to the user, and then submit the
-link with method `delete`.  This is done via the JavaScript file `jquery_ujs`
-which is automatically included into your application's layout
-(`app/views/layouts/application.html.erb`) when you generated the application.
-Without this file, the confirmation dialog box wouldn't appear.
+second argument, and then the options as another argument. The `method: :delete`
+and `data: { confirm: 'Are you sure?' }` options are used as HTML5 attributes so
+that when the link is clicked, Rails will first show a confirm dialog to the
+user, and then submit the link with method `delete`.  This is done via the
+JavaScript file `jquery_ujs` which is automatically included in your
+application's layout (`app/views/layouts/application.html.erb`) when you
+generated the application. Without this file, the confirmation dialog box won't
+appear.
 
 ![Confirm Dialog](images/getting_started/confirm_dialog.png)
+
+TIP: Learn more about jQuery Unobtrusive Adapter (jQuery UJS) on
+[Working With JavaScript in Rails](working_with_javascript_in_rails.html) guide.
 
 Congratulations, you can now create, show, list, update and destroy
 articles.
@@ -1497,7 +1511,7 @@ comments on articles.
 
 We're going to see the same generator that we used before when creating
 the `Article` model. This time we'll create a `Comment` model to hold
-reference of article comments. Run this command in your terminal:
+reference to an article. Run this command in your terminal:
 
 ```bash
 $ bin/rails generate model Comment commenter:string body:text article:references
@@ -1509,7 +1523,7 @@ This command will generate four files:
 | -------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
 | db/migrate/20140120201010_create_comments.rb | Migration to create the comments table in your database (your name will include a different timestamp) |
 | app/models/comment.rb                        | The Comment model                                                                                      |
-| test/models/comment_test.rb                  | Testing harness for the comments model                                                                 |
+| test/models/comment_test.rb                  | Testing harness for the comment model                                                                 |
 | test/fixtures/comments.yml                   | Sample comments for use in testing                                                                     |
 
 First, take a look at `app/models/comment.rb`:
@@ -1528,24 +1542,22 @@ In addition to the model, Rails has also made a migration to create the
 corresponding database table:
 
 ```ruby
-class CreateComments < ActiveRecord::Migration
+class CreateComments < ActiveRecord::Migration[5.0]
   def change
     create_table :comments do |t|
       t.string :commenter
       t.text :body
+      t.references :article, index: true, foreign_key: true
 
-      # this line adds an integer column called `article_id`.
-      t.references :article, index: true
-
-      t.timestamps
+      t.timestamps null: false
     end
   end
 end
 ```
 
-The `t.references` line sets up a foreign key column for the association between
-the two models. An index for this association is also created on this column.
-Go ahead and run the migration:
+The `t.references` line creates an integer column called `article_id`, an index
+for it, and a foreign key constraint that points to the `id` column of the `articles`
+table. Go ahead and run the migration:
 
 ```bash
 $ bin/rake db:migrate
@@ -1635,8 +1647,8 @@ This creates five files and one empty directory:
 | app/views/comments/                          | Views of the controller are stored here  |
 | test/controllers/comments_controller_test.rb | The test for the controller              |
 | app/helpers/comments_helper.rb               | A view helper file                       |
-| app/assets/javascripts/comment.js.coffee     | CoffeeScript for the controller          |
-| app/assets/stylesheets/comment.css.scss      | Cascading style sheet for the controller |
+| app/assets/javascripts/comment.coffee        | CoffeeScript for the controller          |
+| app/assets/stylesheets/comment.scss          | Cascading style sheet for the controller |
 
 Like with any blog, our readers will create their comments directly after
 reading the article, and once they have added their comment, will be sent back
@@ -1673,8 +1685,8 @@ So first, we'll wire up the Article show template
   </p>
 <% end %>
 
-<%= link_to 'Back', articles_path %> |
-<%= link_to 'Edit', edit_article_path(@article) %>
+<%= link_to 'Edit', edit_article_path(@article) %> |
+<%= link_to 'Back', articles_path %>
 ```
 
 This adds a form on the `Article` show page that creates a new comment by
@@ -1754,8 +1766,8 @@ add that to the `app/views/articles/show.html.erb`.
   </p>
 <% end %>
 
-<%= link_to 'Edit Article', edit_article_path(@article) %> |
-<%= link_to 'Back to Articles', articles_path %>
+<%= link_to 'Edit', edit_article_path(@article) %> |
+<%= link_to 'Back', articles_path %>
 ```
 
 Now you can add articles and comments to your blog and have them show up in the
@@ -1820,8 +1832,8 @@ following:
   </p>
 <% end %>
 
-<%= link_to 'Edit Article', edit_article_path(@article) %> |
-<%= link_to 'Back to Articles', articles_path %>
+<%= link_to 'Edit', edit_article_path(@article) %> |
+<%= link_to 'Back', articles_path %>
 ```
 
 This will now render the partial in `app/views/comments/_comment.html.erb` once
@@ -1870,8 +1882,8 @@ Then you make the `app/views/articles/show.html.erb` look like the following:
 <h2>Add a comment:</h2>
 <%= render 'comments/form' %>
 
-<%= link_to 'Edit Article', edit_article_path(@article) %> |
-<%= link_to 'Back to Articles', articles_path %>
+<%= link_to 'Edit', edit_article_path(@article) %> |
+<%= link_to 'Back', articles_path %>
 ```
 
 The second render just defines the partial template we want to render,
@@ -1987,7 +1999,7 @@ class ArticlesController < ApplicationController
     @articles = Article.all
   end
 
-  # snipped for brevity
+  # snippet for brevity
 ```
 
 We also want to allow only authenticated users to delete comments, so in the
@@ -2003,7 +2015,7 @@ class CommentsController < ApplicationController
     # ...
   end
 
-  # snipped for brevity
+  # snippet for brevity
 ```
 
 Now if you try to create a new article, you will be greeted with a basic HTTP
@@ -2029,28 +2041,17 @@ What's Next?
 ------------
 
 Now that you've seen your first Rails application, you should feel free to
-update it and experiment on your own. But you don't have to do everything
-without help. As you need assistance getting up and running with Rails, feel
-free to consult these support resources:
+update it and experiment on your own.
+
+Remember you don't have to do everything without help. As you need assistance
+getting up and running with Rails, feel free to consult these support
+resources:
 
 * The [Ruby on Rails Guides](index.html)
 * The [Ruby on Rails Tutorial](http://railstutorial.org/book)
 * The [Ruby on Rails mailing list](http://groups.google.com/group/rubyonrails-talk)
 * The [#rubyonrails](irc://irc.freenode.net/#rubyonrails) channel on irc.freenode.net
 
-Rails also comes with built-in help that you can generate using the rake
-command-line utility:
-
-* Running `rake doc:guides` will put a full copy of the Rails Guides in the
-  `doc/guides` folder of your application. Open `doc/guides/index.html` in your
-  web browser to explore the Guides.
-* Running `rake doc:rails` will put a full copy of the API documentation for
-  Rails in the `doc/api` folder of your application. Open `doc/api/index.html`
-  in your web browser to explore the API documentation.
-
-TIP: To be able to generate the Rails Guides locally with the `doc:guides` rake
-task you need to install the RedCloth and Nokogiri gems. Add it to your `Gemfile` and run
-`bundle install` and you're ready to go.
 
 Configuration Gotchas
 ---------------------

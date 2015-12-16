@@ -20,23 +20,20 @@ module ActiveRecord
       @odd = false
     end
 
-    def render_bind(column, value)
-      if column
-        if column.binary?
-          # This specifically deals with the PG adapter that casts bytea columns into a Hash.
-          value = value[:value] if value.is_a?(Hash)
-          value = value ? "<#{value.bytesize} bytes of binary data>" : "<NULL binary data>"
-        end
-
-        [column.name, value]
+    def render_bind(attribute)
+      value = if attribute.type.binary? && attribute.value
+        "<#{attribute.value.bytesize} bytes of binary data>"
       else
-        [nil, value]
+        attribute.value_for_database
       end
+
+      [attribute.name, value]
     end
 
     def sql(event)
-      self.class.runtime += event.duration
       return unless logger.debug?
+
+      self.class.runtime += event.duration
 
       payload = event.payload
 
@@ -47,23 +44,44 @@ module ActiveRecord
       binds = nil
 
       unless (payload[:binds] || []).empty?
-        binds = "  " + payload[:binds].map { |col,v|
-          render_bind(col, v)
-        }.inspect
+        binds = "  " + payload[:binds].map { |attr| render_bind(attr) }.inspect
       end
 
-      if odd?
-        name = color(name, CYAN, true)
-        sql  = color(sql, nil, true)
-      else
-        name = color(name, MAGENTA, true)
-      end
+      name = colorize_payload_name(name, payload[:name])
+      sql  = color(sql, sql_color(sql), true)
 
       debug "  #{name}  #{sql}#{binds}"
     end
 
-    def odd?
-      @odd = !@odd
+    private
+
+    def colorize_payload_name(name, payload_name)
+      if payload_name.blank? || payload_name == "SQL" # SQL vs Model Load/Exists
+        color(name, MAGENTA, true)
+      else
+        color(name, CYAN, true)
+      end
+    end
+
+    def sql_color(sql)
+      case sql
+        when /\A\s*rollback/mi
+          RED
+        when /\s*.*?select .*for update/mi, /\A\s*lock/mi
+          WHITE
+        when /\A\s*select/i
+          BLUE
+        when /\A\s*insert/i
+          GREEN
+        when /\A\s*update/i
+          YELLOW
+        when /\A\s*delete/i
+          RED
+        when /transaction\s*\Z/i
+          CYAN
+        else
+          MAGENTA
+      end
     end
 
     def logger

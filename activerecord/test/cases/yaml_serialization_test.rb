@@ -83,4 +83,39 @@ class YamlSerializationTest < ActiveRecord::TestCase
     assert_equal 5, author.posts_count
     assert_equal 5, dumped.posts_count
   end
+
+  def test_a_yaml_version_is_provided_for_future_backwards_compat
+    coder = {}
+    Topic.first.encode_with(coder)
+
+    assert coder['active_record_yaml_version']
+  end
+
+  def test_deserializing_rails_41_yaml
+    topic = YAML.load(yaml_fixture("rails_4_1"))
+
+    assert topic.new_record?
+    assert_equal nil, topic.id
+    assert_equal "The First Topic", topic.title
+    assert_equal({ omg: :lol }, topic.content)
+  end
+
+  def test_deserializing_rails_4_2_0_yaml
+    topic = YAML.load(yaml_fixture("rails_4_2_0"))
+
+    assert_not topic.new_record?
+    assert_equal 1, topic.id
+    assert_equal "The First Topic", topic.title
+    assert_equal("Have a nice day", topic.content)
+  end
+
+  private
+
+  def yaml_fixture(file_name)
+    path = File.expand_path(
+      "../../support/yaml_compatibility_fixtures/#{file_name}.yml",
+      __FILE__
+    )
+    File.read(path)
+  end
 end

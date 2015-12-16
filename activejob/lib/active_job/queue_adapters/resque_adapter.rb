@@ -26,18 +26,16 @@ module ActiveJob
     #
     #   Rails.application.config.active_job.queue_adapter = :resque
     class ResqueAdapter
-      class << self
-        def enqueue(job) #:nodoc:
-          Resque.enqueue_to job.queue_name, JobWrapper, job.serialize
-        end
+      def enqueue(job) #:nodoc:
+        Resque.enqueue_to job.queue_name, JobWrapper, job.serialize
+      end
 
-        def enqueue_at(job, timestamp) #:nodoc:
-          unless Resque.respond_to?(:enqueue_at_with_queue)
-            raise NotImplementedError, "To be able to schedule jobs with Resque you need the " \
-              "resque-scheduler gem. Please add it to your Gemfile and run bundle install"
-          end
-          Resque.enqueue_at_with_queue job.queue_name, timestamp, JobWrapper, job.serialize
+      def enqueue_at(job, timestamp) #:nodoc:
+        unless Resque.respond_to?(:enqueue_at_with_queue)
+          raise NotImplementedError, "To be able to schedule jobs with Resque you need the " \
+            "resque-scheduler gem. Please add it to your Gemfile and run bundle install"
         end
+        Resque.enqueue_at_with_queue job.queue_name, timestamp, JobWrapper, job.serialize
       end
 
       class JobWrapper #:nodoc:

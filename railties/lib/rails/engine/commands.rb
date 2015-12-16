@@ -2,7 +2,8 @@ ARGV << '--help' if ARGV.empty?
 
 aliases = {
   "g" => "generate",
-  "d" => "destroy"
+  "d" => "destroy",
+  "t" => "test"
 }
 
 command = ARGV.shift
@@ -12,7 +13,7 @@ require ENGINE_PATH
 engine = ::Rails::Engine.find(ENGINE_ROOT)
 
 case command
-when 'generate', 'destroy'
+when 'generate', 'destroy', 'test'
   require 'rails/generators'
   Rails::Generators.namespace = engine.railtie_namespace
   engine.load_generators
@@ -30,6 +31,7 @@ Usage: rails COMMAND [ARGS]
 The common Rails commands available for engines are:
  generate    Generate new code (short-cut alias: "g")
  destroy     Undo code generated with "generate" (short-cut alias: "d")
+ test        Run tests (short-cut alias: "t")
 
 All commands can be run with -h for more information.
 

@@ -1,3 +1,5 @@
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+
 Action Controller Overview
 ==========================
 
@@ -7,7 +9,7 @@ After reading this guide, you will know:
 
 * How to follow the flow of a request through a controller.
 * How to restrict parameters passed to your controller.
-* Why and how to store data in the session or cookies.
+* How and why to store data in the session or cookies.
 * How to work with filters to execute code during request processing.
 * How to use Action Controller's built-in HTTP authentication.
 * How to stream data directly to the user's browser.
@@ -19,11 +21,11 @@ After reading this guide, you will know:
 What Does a Controller Do?
 --------------------------
 
-Action Controller is the C in MVC. After routing has determined which controller to use for a request, your controller is responsible for making sense of the request and producing the appropriate output. Luckily, Action Controller does most of the groundwork for you and uses smart conventions to make this as straightforward as possible.
+Action Controller is the C in MVC. After routing has determined which controller to use for a request, the controller is responsible for making sense of the request and producing the appropriate output. Luckily, Action Controller does most of the groundwork for you and uses smart conventions to make this as straightforward as possible.
 
 For most conventional [RESTful](http://en.wikipedia.org/wiki/Representational_state_transfer) applications, the controller will receive the request (this is invisible to you as the developer), fetch or save data from a model and use a view to create HTML output. If your controller needs to do things a little differently, that's not a problem, this is just the most common way for a controller to work.
 
-A controller can thus be thought of as a middle man between models and views. It makes the model data available to the view so it can display that data to the user, and it saves or updates data from the user to the model.
+A controller can thus be thought of as a middleman between models and views. It makes the model data available to the view so it can display that data to the user, and it saves or updates user data to the model.
 
 NOTE: For more details on the routing process, see [Rails Routing from the Outside In](routing.html).
 
@@ -32,7 +34,7 @@ Controller Naming Convention
 
 The naming convention of controllers in Rails favors pluralization of the last word in the controller's name, although it is not strictly required (e.g. `ApplicationController`). For example, `ClientsController` is preferable to `ClientController`, `SiteAdminsController` is preferable to `SiteAdminController` or `SitesAdminsController`, and so on.
 
-Following this convention will allow you to use the default route generators (e.g. `resources`, etc) without needing to qualify each `:path` or `:controller`, and keeps URL and path helpers' usage consistent throughout your application. See [Layouts & Rendering Guide](layouts_and_rendering.html) for more details.
+Following this convention will allow you to use the default route generators (e.g. `resources`, etc) without needing to qualify each `:path` or `:controller`, and will keep URL and path helpers' usage consistent throughout your application. See [Layouts & Rendering Guide](layouts_and_rendering.html) for more details.
 
 NOTE: The controller naming convention differs from the naming convention of models, which are expected to be named in singular form.
 
@@ -49,7 +51,7 @@ class ClientsController < ApplicationController
 end
 ```
 
-As an example, if a user goes to `/clients/new` in your application to add a new client, Rails will create an instance of `ClientsController` and run the `new` method. Note that the empty method from the example above would work just fine because Rails will by default render the `new.html.erb` view unless the action says otherwise. The `new` method could make available to the view a `@client` instance variable by creating a new `Client`:
+As an example, if a user goes to `/clients/new` in your application to add a new client, Rails will create an instance of `ClientsController` and call its `new` method. Note that the empty method from the example above would work just fine because Rails will by default render the `new.html.erb` view unless the action says otherwise. The `new` method could make available to the view a `@client` instance variable by creating a new `Client`:
 
 ```ruby
 def new
@@ -61,7 +63,7 @@ The [Layouts & Rendering Guide](layouts_and_rendering.html) explains this in mor
 
 `ApplicationController` inherits from `ActionController::Base`, which defines a number of helpful methods. This guide will cover some of these, but if you're curious to see what's in there, you can see all of them in the API documentation or in the source itself.
 
-Only public methods are callable as actions. It is a best practice to lower the visibility of methods which are not intended to be actions, like auxiliary methods or filters.
+Only public methods are callable as actions. It is a best practice to lower the visibility of methods (with `private` or `protected`) which are not intended to be actions, like auxiliary methods or filters.
 
 Parameters
 ----------
@@ -102,21 +104,21 @@ end
 
 ### Hash and Array Parameters
 
-The `params` hash is not limited to one-dimensional keys and values. It can contain arrays and (nested) hashes. To send an array of values, append an empty pair of square brackets "[]" to the key name:
+The `params` hash is not limited to one-dimensional keys and values. It can contain nested arrays and hashes. To send an array of values, append an empty pair of square brackets "[]" to the key name:
 
 ```
 GET /clients?ids[]=1&ids[]=2&ids[]=3
 ```
 
-NOTE: The actual URL in this example will be encoded as "/clients?ids%5b%5d=1&ids%5b%5d=2&ids%5b%5d=3" as "[" and "]" are not allowed in URLs. Most of the time you don't have to worry about this because the browser will take care of it for you, and Rails will decode it back when it receives it, but if you ever find yourself having to send those requests to the server manually you have to keep this in mind.
+NOTE: The actual URL in this example will be encoded as "/clients?ids%5b%5d=1&ids%5b%5d=2&ids%5b%5d=3" as the "[" and "]" characters are not allowed in URLs. Most of the time you don't have to worry about this because the browser will encode it for you, and Rails will decode it automatically, but if you ever find yourself having to send those requests to the server manually you should keep this in mind.
 
 The value of `params[:ids]` will now be `["1", "2", "3"]`. Note that parameter values are always strings; Rails makes no attempt to guess or cast the type.
 
-NOTE: Values such as `[]`, `[nil]` or `[nil, nil, ...]` in `params` are replaced
-with `nil` for security reasons by default. See [Security Guide](security.html#unsafe-query-generation)
+NOTE: Values such as `[nil]` or `[nil, nil, ...]` in `params` are replaced
+with `[]` for security reasons by default. See [Security Guide](security.html#unsafe-query-generation)
 for more information.
 
-To send a hash you include the key name inside the brackets:
+To send a hash, you include the key name inside the brackets:
 
 ```html
 <form accept-charset="UTF-8" action="/clients" method="post">
@@ -129,11 +131,11 @@ To send a hash you include the key name inside the brackets:
 
 When this form is submitted, the value of `params[:client]` will be `{ "name" => "Acme", "phone" => "12345", "address" => { "postcode" => "12345", "city" => "Carrot City" } }`. Note the nested hash in `params[:client][:address]`.
 
-Note that the `params` hash is actually an instance of `ActiveSupport::HashWithIndifferentAccess`, which acts like a hash but lets you use symbols and strings interchangeably as keys.
+The `params` object acts like a Hash, but lets you use symbols and strings interchangeably as keys.
 
 ### JSON parameters
 
-If you're writing a web service application, you might find yourself more comfortable accepting parameters in JSON format. If the "Content-Type" header of your request is set to "application/json", Rails will automatically convert your parameters into the `params` hash, which you can access as you would normally.
+If you're writing a web service application, you might find yourself more comfortable accepting parameters in JSON format. If the "Content-Type" header of your request is set to "application/json", Rails will automatically load your parameters into the `params` hash, which you can access as you would normally.
 
 So for example, if you are sending this JSON content:
 
@@ -141,15 +143,15 @@ So for example, if you are sending this JSON content:
 { "company": { "name": "acme", "address": "123 Carrot Street" } }
 ```
 
-You'll get `params[:company]` as `{ "name" => "acme", "address" => "123 Carrot Street" }`.
+Your controller will receive `params[:company]` as `{ "name" => "acme", "address" => "123 Carrot Street" }`.
 
-Also, if you've turned on `config.wrap_parameters` in your initializer or calling `wrap_parameters` in your controller, you can safely omit the root element in the JSON parameter. The parameters will be cloned and wrapped in the key according to your controller's name by default. So the above parameter can be written as:
+Also, if you've turned on `config.wrap_parameters` in your initializer or called `wrap_parameters` in your controller, you can safely omit the root element in the JSON parameter. In this case, the parameters will be cloned and wrapped with a key chosen based on your controller's name. So the above JSON POST can be written as:
 
 ```json
 { "name": "acme", "address": "123 Carrot Street" }
 ```
 
-And assume that you're sending the data to `CompaniesController`, it would then be wrapped in `:company` key like this:
+And, assuming that you're sending the data to `CompaniesController`, it would then be wrapped within the `:company` key like this:
 
 ```ruby
 { name: "acme", address: "123 Carrot Street", company: { name: "acme", address: "123 Carrot Street" } }
@@ -157,17 +159,17 @@ And assume that you're sending the data to `CompaniesController`, it would then 
 
 You can customize the name of the key or specific parameters you want to wrap by consulting the [API documentation](http://api.rubyonrails.org/classes/ActionController/ParamsWrapper.html)
 
-NOTE: Support for parsing XML parameters has been extracted into a gem named `actionpack-xml_parser`
+NOTE: Support for parsing XML parameters has been extracted into a gem named `actionpack-xml_parser`.
 
 ### Routing Parameters
 
-The `params` hash will always contain the `:controller` and `:action` keys, but you should use the methods `controller_name` and `action_name` instead to access these values. Any other parameters defined by the routing, such as `:id` will also be available. As an example, consider a listing of clients where the list can show either active or inactive clients. We can add a route which captures the `:status` parameter in a "pretty" URL:
+The `params` hash will always contain the `:controller` and `:action` keys, but you should use the methods `controller_name` and `action_name` instead to access these values. Any other parameters defined by the routing, such as `:id`, will also be available. As an example, consider a listing of clients where the list can show either active or inactive clients. We can add a route which captures the `:status` parameter in a "pretty" URL:
 
 ```ruby
 get '/clients/:status' => 'clients#index', foo: 'bar'
 ```
 
-In this case, when a user opens the URL `/clients/active`, `params[:status]` will be set to "active". When this route is used, `params[:foo]` will also be set to "bar" just like it was passed in the query string. In the same way `params[:action]` will contain "index".
+In this case, when a user opens the URL `/clients/active`, `params[:status]` will be set to "active". When this route is used, `params[:foo]` will also be set to "bar", as if it were passed in the query string. Your controller will also receive `params[:action]` as "index" and `params[:controller]` as "clients".
 
 ### `default_url_options`
 
@@ -181,21 +183,23 @@ class ApplicationController < ActionController::Base
 end
 ```
 
-These options will be used as a starting point when generating URLs, so it's possible they'll be overridden by the options passed in `url_for` calls.
+These options will be used as a starting point when generating URLs, so it's possible they'll be overridden by the options passed to `url_for` calls.
 
-If you define `default_url_options` in `ApplicationController`, as in the example above, it would be used for all URL generation. The method can also be defined in one specific controller, in which case it only affects URLs generated there.
+If you define `default_url_options` in `ApplicationController`, as in the example above, these defaults will be used for all URL generation. The method can also be defined in a specific controller, in which case it only affects URLs generated there.
+
+In a given request, the method is not actually called for every single generated URL; for performance reasons, the returned hash is cached, there is at most one invocation per request.
 
 ### Strong Parameters
 
 With strong parameters, Action Controller parameters are forbidden to
 be used in Active Model mass assignments until they have been
-whitelisted. This means you'll have to make a conscious choice about
-which attributes to allow for mass updating and thus prevent
-accidentally exposing that which shouldn't be exposed.
+whitelisted. This means that you'll have to make a conscious decision about
+which attributes to allow for mass update. This is a better security
+practice to help prevent accidentally allowing users to update sensitive
+model attributes.
 
-In addition, parameters can be marked as required and flow through a
-predefined raise/rescue flow to end up as a 400 Bad Request with no
-effort.
+In addition, parameters can be marked as required and will flow through a
+predefined raise/rescue flow to end up as a 400 Bad Request.
 
 ```ruby
 class PeopleController < ActionController::Base
@@ -237,17 +241,17 @@ params.permit(:id)
 ```
 
 the key `:id` will pass the whitelisting if it appears in `params` and
-it has a permitted scalar value associated. Otherwise the key is going
+it has a permitted scalar value associated. Otherwise, the key is going
 to be filtered out, so arrays, hashes, or any other objects cannot be
 injected.
 
 The permitted scalar types are `String`, `Symbol`, `NilClass`,
 `Numeric`, `TrueClass`, `FalseClass`, `Date`, `Time`, `DateTime`,
-`StringIO`, `IO`, `ActionDispatch::Http::UploadedFile` and
+`StringIO`, `IO`, `ActionDispatch::Http::UploadedFile`, and
 `Rack::Test::UploadedFile`.
 
 To declare that the value in `params` must be an array of permitted
-scalar values map the key to an empty array:
+scalar values, map the key to an empty array:
 
 ```ruby
 params.permit(id: [])
@@ -260,14 +264,13 @@ used:
 params.require(:log_entry).permit!
 ```
 
-This will mark the `:log_entry` parameters hash and any sub-hash of it
-permitted. Extreme care should be taken when using `permit!` as it
-will allow all current and future model attributes to be
-mass-assigned.
+This will mark the `:log_entry` parameters hash and any sub-hash of it as
+permitted. Extreme care should be taken when using `permit!`, as it
+will allow all current and future model attributes to be mass-assigned.
 
 #### Nested Parameters
 
-You can also use permit on nested parameters, like:
+You can also use `permit` on nested parameters, like:
 
 ```ruby
 params.permit(:name, { emails: [] },
@@ -275,19 +278,19 @@ params.permit(:name, { emails: [] },
                          { family: [ :name ], hobbies: [] }])
 ```
 
-This declaration whitelists the `name`, `emails` and `friends`
+This declaration whitelists the `name`, `emails`, and `friends`
 attributes. It is expected that `emails` will be an array of permitted
-scalar values and that `friends` will be an array of resources with
-specific attributes : they should have a `name` attribute (any
+scalar values, and that `friends` will be an array of resources with
+specific attributes: they should have a `name` attribute (any
 permitted scalar values allowed), a `hobbies` attribute as an array of
 permitted scalar values, and a `family` attribute which is restricted
-to having a `name` (any permitted scalar values allowed, too).
+to having a `name` (any permitted scalar values allowed here, too).
 
 #### More Examples
 
-You want to also use the permitted attributes in the `new`
+You may want to also use the permitted attributes in your `new`
 action. This raises the problem that you can't use `require` on the
-root key because normally it does not exist when calling `new`:
+root key because, normally, it does not exist when calling `new`:
 
 ```ruby
 # using `fetch` you can supply a default and use
@@ -295,8 +298,8 @@ root key because normally it does not exist when calling `new`:
 params.fetch(:blog, {}).permit(:title, :author)
 ```
 
-`accepts_nested_attributes_for` allows you to update and destroy
-associated records. This is based on the `id` and `_destroy`
+The model class method `accepts_nested_attributes_for` allows you to
+update and destroy associated records. This is based on the `id` and `_destroy`
 parameters:
 
 ```ruby
@@ -304,7 +307,7 @@ parameters:
 params.require(:author).permit(:name, books_attributes: [:title, :id, :_destroy])
 ```
 
-Hashes with integer keys are treated differently and you can declare
+Hashes with integer keys are treated differently, and you can declare
 the attributes as if they were direct children. You get these kinds of
 parameters when you use `accepts_nested_attributes_for` in combination
 with a `has_many` association:
@@ -321,13 +324,13 @@ params.require(:book).permit(:title, chapters_attributes: [:title])
 #### Outside the Scope of Strong Parameters
 
 The strong parameter API was designed with the most common use cases
-in mind. It is not meant as a silver bullet to handle all your
-whitelisting problems. However you can easily mix the API with your
+in mind. It is not meant as a silver bullet to handle all of your
+whitelisting problems. However, you can easily mix the API with your
 own code to adapt to your situation.
 
 Imagine a scenario where you have parameters representing a product
 name and a hash of arbitrary data associated with that product, and
-you want to whitelist the product name attribute but also the whole
+you want to whitelist the product name attribute and also the whole
 data hash. The strong parameters API doesn't let you directly
 whitelist the whole of a nested hash with any keys, but you can use
 the keys of your nested hash to declare what to whitelist:
@@ -666,11 +669,11 @@ You may notice in the above code that we're using `render xml: @users`, not `ren
 Filters
 -------
 
-Filters are methods that are run before, after or "around" a controller action.
+Filters are methods that are run "before", "after" or "around" a controller action.
 
 Filters are inherited, so if you set a filter on `ApplicationController`, it will be run on every controller in your application.
 
-"Before" filters may halt the request cycle. A common "before" filter is one which requires that a user is logged in for an action to be run. You can define the filter method this way:
+"before" filters may halt the request cycle. A common "before" filter is one which requires that a user is logged in for an action to be run. You can define the filter method this way:
 
 ```ruby
 class ApplicationController < ActionController::Base
@@ -703,9 +706,9 @@ Now, the `LoginsController`'s `new` and `create` actions will work as before wit
 
 In addition to "before" filters, you can also run filters after an action has been executed, or both before and after.
 
-"After" filters are similar to "before" filters, but because the action has already been run they have access to the response data that's about to be sent to the client. Obviously, "after" filters cannot stop the action from running.
+"after" filters are similar to "before" filters, but because the action has already been run they have access to the response data that's about to be sent to the client. Obviously, "after" filters cannot stop the action from running.
 
-"Around" filters are responsible for running their associated actions by yielding, similar to how Rack middlewares work.
+"around" filters are responsible for running their associated actions by yielding, similar to how Rack middlewares work.
 
 For example, in a website where changes have an approval workflow an administrator could be able to preview them easily, just apply them within a transaction:
 
@@ -735,7 +738,7 @@ You can choose not to yield and build the response yourself, in which case the a
 
 While the most common way to use filters is by creating private methods and using *_action to add them, there are two other ways to do the same thing.
 
-The first is to use a block directly with the *_action methods. The block receives the controller as an argument, and the `require_login` filter from above could be rewritten to use a block:
+The first is to use a block directly with the *\_action methods. The block receives the controller as an argument. The `require_login` filter from above could be rewritten to use a block:
 
 ```ruby
 class ApplicationController < ActionController::Base
@@ -748,7 +751,7 @@ class ApplicationController < ActionController::Base
 end
 ```
 
-Note that the filter in this case uses `send` because the `logged_in?` method is private and the filter is not run in the scope of the controller. This is not the recommended way to implement this particular filter, but in more simple cases it might be useful.
+Note that the filter in this case uses `send` because the `logged_in?` method is private and the filter does not run in the scope of the controller. This is not the recommended way to implement this particular filter, but in more simple cases it might be useful.
 
 The second way is to use a class (actually, any object that responds to the right methods will do) to handle the filtering. This is useful in cases that are more complex and cannot be implemented in a readable and reusable way using the two other methods. As an example, you could rewrite the login filter again to use a class:
 
@@ -807,7 +810,7 @@ The [Security Guide](security.html) has more about this and a lot of other secur
 The Request and Response Objects
 --------------------------------
 
-In every controller there are two accessor methods pointing to the request and the response objects associated with the request cycle that is currently in execution. The `request` method contains an instance of `AbstractRequest` and the `response` method returns a response object representing what is going to be sent back to the client.
+In every controller there are two accessor methods pointing to the request and the response objects associated with the request cycle that is currently in execution. The `request` method contains an instance of `ActionDispatch::Request` and the `response` method returns a response object representing what is going to be sent back to the client.
 
 ### The `request` Object
 
@@ -992,6 +995,11 @@ you would like in a response object. The `ActionController::Live` module allows
 you to create a persistent connection with a browser. Using this module, you will
 be able to send arbitrary data to the browser at specific points in time.
 
+NOTE: The default Rails server (WEBrick) is a buffering web server and does not
+support streaming. In order to use this feature, you'll need to use a non buffering
+server like [Puma](http://puma.io), [Rainbows](http://rainbows.bogomips.org)
+or [Passenger](https://www.phusionpassenger.com).
+
 #### Incorporating Live Streaming
 
 Including `ActionController::Live` inside of your controller class will provide
@@ -1021,7 +1029,7 @@ There are a couple of things to notice in the above example. We need to make
 sure to close the response stream. Forgetting to close the stream will leave
 the socket open forever. We also have to set the content type to `text/event-stream`
 before we write to the response stream. This is because headers cannot be written
-after the response has been committed (when `response.committed` returns a truthy
+after the response has been committed (when `response.committed?` returns a truthy
 value), which occurs when you `write` or `commit` the response stream.
 
 #### Example Usage
@@ -1106,11 +1114,11 @@ Rescue
 
 Most likely your application is going to contain bugs or otherwise throw an exception that needs to be handled. For example, if the user follows a link to a resource that no longer exists in the database, Active Record will throw the `ActiveRecord::RecordNotFound` exception.
 
-Rails' default exception handling displays a "500 Server Error" message for all exceptions. If the request was made locally, a nice traceback and some added information gets displayed so you can figure out what went wrong and deal with it. If the request was remote Rails will just display a simple "500 Server Error" message to the user, or a "404 Not Found" if there was a routing error or a record could not be found. Sometimes you might want to customize how these errors are caught and how they're displayed to the user. There are several levels of exception handling available in a Rails application:
+Rails default exception handling displays a "500 Server Error" message for all exceptions. If the request was made locally, a nice traceback and some added information gets displayed so you can figure out what went wrong and deal with it. If the request was remote Rails will just display a simple "500 Server Error" message to the user, or a "404 Not Found" if there was a routing error or a record could not be found. Sometimes you might want to customize how these errors are caught and how they're displayed to the user. There are several levels of exception handling available in a Rails application:
 
 ### The Default 500 and 404 Templates
 
-By default a production application will render either a 404 or a 500 error message. These messages are contained in static HTML files in the `public` folder, in `404.html` and `500.html` respectively. You can customize these files to add some extra information and layout, but remember that they are static; i.e. you can't use RHTML or layouts in them, just plain HTML.
+By default a production application will render either a 404 or a 500 error message. These messages are contained in static HTML files in the `public` folder, in `404.html` and `500.html` respectively. You can customize these files to add some extra information and style, but remember that they are static HTML; i.e. you can't use ERB, SCSS, CoffeeScript, or layouts for them.
 
 ### `rescue_from`
 
@@ -1164,66 +1172,9 @@ class ClientsController < ApplicationController
 end
 ```
 
-WARNING: You shouldn't do `rescue_from Exception` or `rescue_from StandardError` unless you have a particular reason as it will cause serious side-effects (e.g. you won't be able to see exception details and tracebacks during development). If you would like to dynamically generate error pages, see [Custom errors page](#custom-errors-page).
+WARNING: You shouldn't do `rescue_from Exception` or `rescue_from StandardError` unless you have a particular reason as it will cause serious side-effects (e.g. you won't be able to see exception details and tracebacks during development).
 
-NOTE: Certain exceptions are only rescuable from the `ApplicationController` class, as they are raised before the controller gets initialized and the action gets executed. See Pratik Naik's [article](http://m.onkey.org/2008/7/20/rescue-from-dispatching) on the subject for more information.
-
-
-### Custom errors page
-
-You can customize the layout of your error handling using controllers and views.
-First define your app own routes to display the errors page.
-
-* `config/application.rb`
-
-  ```ruby
-  config.exceptions_app = self.routes
-  ```
-
-* `config/routes.rb`
-
-  ```ruby
-  match '/404', via: :all, to: 'errors#not_found'
-  match '/422', via: :all, to: 'errors#unprocessable_entity'
-  match '/500', via: :all, to: 'errors#server_error'
-  ```
-
-Create the controller and views.
-
-* `app/controllers/errors_controller.rb`
-
-  ```ruby
-  class ErrorsController < ActionController::Base
-    layout 'error'
-
-    def not_found
-      render status: :not_found
-    end
-
-    def unprocessable_entity
-      render status: :unprocessable_entity
-    end
-
-    def server_error
-      render status: :server_error
-    end
-  end
-  ```
-
-* `app/views`
-
-  ```
-  errors/
-    not_found.html.erb
-    unprocessable_entity.html.erb
-    server_error.html.erb
-  layouts/
-    error.html.erb
-  ```
-
-Do not forget to set the correct status code on the controller as shown before.
-
-WARNING: You should avoid using the database or any complex operations because the user is already on the error page. Generating another error while on an error page could cause issues like presenting an empty page for the users.
+NOTE: Certain exceptions are only rescuable from the `ApplicationController` class, as they are raised before the controller gets initialized and the action gets executed. 
 
 Force HTTPS protocol
 --------------------

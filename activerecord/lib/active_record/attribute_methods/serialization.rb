@@ -1,5 +1,3 @@
-require 'active_support/core_ext/string/filters'
-
 module ActiveRecord
   module AttributeMethods
     module Serialization
@@ -11,7 +9,19 @@ module ActiveRecord
         # attribute using this method and it will be handled automatically. The
         # serialization is done through YAML. If +class_name+ is specified, the
         # serialized object must be of that class on assignment and retrieval.
-        # Otherwise <tt>SerializationTypeMismatch</tt> will be raised.
+        # Otherwise SerializationTypeMismatch will be raised.
+        #
+        # Empty objects as <tt>{}</tt>, in the case of +Hash+, or <tt>[]</tt>, in the case of
+        # +Array+, will always be persisted as null.
+        #
+        # Keep in mind that database adapters handle certain serialization tasks
+        # for you. For instance: +json+ and +jsonb+ types in PostgreSQL will be
+        # converted between JSON object/array syntax and Ruby +Hash+ or +Array+
+        # objects transparently. There is no need to use #serialize in this
+        # case.
+        #
+        # For more complex cases, such as conversion to or from your application
+        # domain objects, consider using the ActiveRecord::Attributes API.
         #
         # ==== Parameters
         #
@@ -50,19 +60,6 @@ module ActiveRecord
           decorate_attribute_type(attr_name, :serialize) do |type|
             Type::Serialized.new(type, coder)
           end
-        end
-
-        def serialized_attributes
-          ActiveSupport::Deprecation.warn(<<-MSG.squish)
-            `serialized_attributes` is deprecated without replacement, and will
-            be removed in Rails 5.0.
-          MSG
-
-          @serialized_attributes ||= Hash[
-            columns.select { |t| t.cast_type.is_a?(Type::Serialized) }.map { |c|
-              [c.name, c.cast_type.coder]
-            }
-          ]
         end
       end
     end

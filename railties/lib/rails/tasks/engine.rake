@@ -40,7 +40,7 @@ namespace :db do
   desc "Rolls the schema back to the previous version (specify steps w/ STEP=n)."
   app_task "rollback"
 
-  desc "Create a db/schema.rb file that can be portably used against any DB supported by AR"
+  desc "Create a db/schema.rb file that can be portably used against any DB supported by Active Record"
   app_task "schema:dump"
 
   desc "Load a schema.rb file into the database"

@@ -7,7 +7,7 @@ Gem::Specification.new do |s|
   s.summary     = 'Web-flow and rendering framework putting the VC in MVC (part of Rails).'
   s.description = 'Web apps on Rails. Simple, battle-tested conventions for building and testing MVC web applications. Works with any Rack-compatible server.'
 
-  s.required_ruby_version = '>= 2.1.0'
+  s.required_ruby_version = '>= 2.2.2'
 
   s.license = 'MIT'
 
@@ -21,9 +21,9 @@ Gem::Specification.new do |s|
 
   s.add_dependency 'activesupport', version
 
-  s.add_dependency 'rack',      '~> 1.6.0.beta2'
-  s.add_dependency 'rack-test', '~> 0.6.2'
-  s.add_dependency 'rails-html-sanitizer', '~> 1.0', '>= 1.0.1'
+  s.add_dependency 'rack',      '~> 2.x'
+  s.add_dependency 'rack-test', '~> 0.6.3'
+  s.add_dependency 'rails-html-sanitizer', '~> 1.0', '>= 1.0.2'
   s.add_dependency 'rails-dom-testing', '~> 1.0', '>= 1.0.5'
   s.add_dependency 'actionview', version
 

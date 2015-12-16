@@ -1,7 +1,6 @@
 require 'generators/generators_test_helper'
 require 'rails/generators/rails/plugin/plugin_generator'
 require 'generators/shared_generator_tests'
-require 'mocha/setup' # FIXME: stop using mocha
 
 DEFAULT_PLUGIN_FILES = %w(
   .gitignore
@@ -28,23 +27,30 @@ class PluginGeneratorTest < Rails::Generators::TestCase
   include SharedGeneratorTests
 
   def test_invalid_plugin_name_raises_an_error
-    content = capture(:stderr){ run_generator [File.join(destination_root, "things-43")] }
-    assert_equal "Invalid plugin name things-43. Please give a name which use only alphabetic or numeric or \"_\" characters.\n", content
+    content = capture(:stderr){ run_generator [File.join(destination_root, "my_plugin-31fr-extension")] }
+    assert_equal "Invalid plugin name my_plugin-31fr-extension. Please give a name which does not contain a namespace starting with numeric characters.\n", content
 
     content = capture(:stderr){ run_generator [File.join(destination_root, "things4.3")] }
-    assert_equal "Invalid plugin name things4.3. Please give a name which use only alphabetic or numeric or \"_\" characters.\n", content
+    assert_equal "Invalid plugin name things4.3. Please give a name which uses only alphabetic, numeric, \"_\" or \"-\" characters.\n", content
 
     content = capture(:stderr){ run_generator [File.join(destination_root, "43things")] }
     assert_equal "Invalid plugin name 43things. Please give a name which does not start with numbers.\n", content
 
     content = capture(:stderr){ run_generator [File.join(destination_root, "plugin")] }
-    assert_equal "Invalid plugin name plugin. Please give a name which does not match one of the reserved rails words.\n", content
+    assert_equal "Invalid plugin name plugin. Please give a name which does not match one of the reserved rails words: application, destroy, plugin, runner, test\n", content
 
     content = capture(:stderr){ run_generator [File.join(destination_root, "Digest")] }
     assert_equal "Invalid plugin name Digest, constant Digest is already in use. Please choose another plugin name.\n", content
   end
 
-  def test_camelcase_plugin_name_underscores_filenames
+  def test_correct_file_in_lib_folder_of_hyphenated_plugin_name
+    run_generator [File.join(destination_root, "hyphenated-name")]
+    assert_no_file "hyphenated-name/lib/hyphenated-name.rb"
+    assert_no_file "hyphenated-name/lib/hyphenated_name.rb"
+    assert_file "hyphenated-name/lib/hyphenated/name.rb", /module Hyphenated\n  module Name\n    # Your code goes here...\n  end\nend/
+  end
+
+  def test_correct_file_in_lib_folder_of_camelcase_plugin_name
     run_generator [File.join(destination_root, "CamelCasedName")]
     assert_no_file "CamelCasedName/lib/CamelCasedName.rb"
     assert_file "CamelCasedName/lib/camel_cased_name.rb", /module CamelCasedName/
@@ -54,12 +60,16 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     run_generator
     assert_file "README.rdoc", /Bukkits/
     assert_no_file "config/routes.rb"
+    assert_no_file "app/assets/config/bukkits_manifest.js"
     assert_file "test/test_helper.rb" do |content|
       assert_match(/require.+test\/dummy\/config\/environment/, content)
       assert_match(/ActiveRecord::Migrator\.migrations_paths.+test\/dummy\/db\/migrate/, content)
       assert_match(/Minitest\.backtrace_filter = Minitest::BacktraceFilter\.new/, content)
+      assert_match(/Rails::TestUnitReporter\.executable = 'bin\/test'/, content)
     end
     assert_file "test/bukkits_test.rb", /assert_kind_of Module, Bukkits/
+    assert_file 'bin/test'
+    assert_no_file 'bin/rails'
   end
 
   def test_generating_test_files_in_full_mode
@@ -71,13 +81,10 @@ class PluginGeneratorTest < Rails::Generators::TestCase
 
   def test_inclusion_of_a_debugger
     run_generator [destination_root, '--full']
-    if defined?(JRUBY_VERSION)
+    if defined?(JRUBY_VERSION) || RUBY_ENGINE == "rbx"
       assert_file "Gemfile" do |content|
         assert_no_match(/byebug/, content)
-        assert_no_match(/debugger/, content)
       end
-    elsif RUBY_VERSION < '2.0.0'
-      assert_file "Gemfile", /# gem 'debugger'/
     else
       assert_file "Gemfile", /# gem 'byebug'/
     end
@@ -115,7 +122,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
 
   def test_ensure_that_test_dummy_can_be_generated_from_a_template
     FileUtils.cd(Rails.root)
-    run_generator([destination_root, "-m", "lib/create_test_dummy_template.rb", "--skip-test-unit"])
+    run_generator([destination_root, "-m", "lib/create_test_dummy_template.rb", "--skip-test"])
     assert_file "spec/dummy"
     assert_no_file "test"
   end
@@ -140,6 +147,20 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_app_generator_without_skips
+    run_generator
+    assert_file "test/dummy/config/application.rb", /\s+require\s+["']rails\/all["']/
+    assert_file "test/dummy/config/environments/development.rb" do |content|
+      assert_match(/config\.action_mailer\.raise_delivery_errors = false/, content)
+    end
+    assert_file "test/dummy/config/environments/test.rb" do |content|
+      assert_match(/config\.action_mailer\.delivery_method = :test/, content)
+    end
+    assert_file "test/dummy/config/environments/production.rb" do |content|
+      assert_match(/# config\.action_mailer\.raise_delivery_errors = false/, content)
+    end
+  end
+
   def test_active_record_is_removed_from_frameworks_if_skip_active_record_is_given
     run_generator [destination_root, "--skip-active-record"]
     assert_file "test/dummy/config/application.rb", /#\s+require\s+["']active_record\/railtie["']/
@@ -153,6 +174,20 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_action_mailer_is_removed_from_frameworks_if_skip_action_mailer_is_given
+    run_generator [destination_root, "--skip-action-mailer"]
+    assert_file "test/dummy/config/application.rb", /#\s+require\s+["']action_mailer\/railtie["']/
+    assert_file "test/dummy/config/environments/development.rb" do |content|
+      assert_no_match(/config\.action_mailer/, content)
+    end
+    assert_file "test/dummy/config/environments/test.rb" do |content|
+      assert_no_match(/config\.action_mailer/, content)
+    end
+    assert_file "test/dummy/config/environments/production.rb" do |content|
+      assert_no_match(/config\.action_mailer/, content)
+    end
+  end
+
   def test_ensure_that_database_option_is_passed_to_app_generator
     run_generator [destination_root, "--database", "postgresql"]
     assert_file "test/dummy/config/database.yml", /postgres/
@@ -160,13 +195,11 @@ class PluginGeneratorTest < Rails::Generators::TestCase
 
   def test_generation_runs_bundle_install_with_full_and_mountable
     result = run_generator [destination_root, "--mountable", "--full", "--dev"]
+    assert_match(/run  bundle install/, result)
+    assert $?.success?, "Command failed: #{result}"
     assert_file "#{destination_root}/Gemfile.lock" do |contents|
       assert_match(/bukkits/, contents)
     end
-    assert_match(/run  bundle install/, result)
-    assert_match(/Using bukkits \(?0\.0\.1\)?/, result)
-    assert_match(/Your bundle is complete/, result)
-    assert_equal 1, result.scan("Your bundle is complete").size
   end
 
   def test_skipping_javascripts_without_mountable_option
@@ -193,7 +226,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     run_generator
     FileUtils.cd destination_root
     quietly { system 'bundle install' }
-    assert_match(/1 runs, 1 assertions, 0 failures, 0 errors/, `bundle exec rake test 2>&1`)
+    assert_match(/1 runs, 1 assertions, 0 failures, 0 errors/, `bin/test 2>&1`)
   end
 
   def test_ensure_that_tests_works_in_full_mode
@@ -227,6 +260,40 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_file "lib/bukkits.rb", /require "bukkits\/engine"/
   end
 
+  def test_creating_engine_with_hyphenated_name_in_full_mode
+    run_generator [File.join(destination_root, "hyphenated-name"), "--full"]
+    assert_file "hyphenated-name/app/assets/javascripts/hyphenated/name"
+    assert_file "hyphenated-name/app/assets/stylesheets/hyphenated/name"
+    assert_file "hyphenated-name/app/assets/images/hyphenated/name"
+    assert_file "hyphenated-name/app/models"
+    assert_file "hyphenated-name/app/controllers"
+    assert_file "hyphenated-name/app/views"
+    assert_file "hyphenated-name/app/helpers"
+    assert_file "hyphenated-name/app/mailers"
+    assert_file "hyphenated-name/bin/rails"
+    assert_file "hyphenated-name/config/routes.rb",              /Rails.application.routes.draw do/
+    assert_file "hyphenated-name/lib/hyphenated/name/engine.rb", /module Hyphenated\n  module Name\n    class Engine < ::Rails::Engine\n    end\n  end\nend/
+    assert_file "hyphenated-name/lib/hyphenated/name.rb",        /require "hyphenated\/name\/engine"/
+    assert_file "hyphenated-name/bin/rails",                     /\.\.\/\.\.\/lib\/hyphenated\/name\/engine/
+  end
+
+  def test_creating_engine_with_hyphenated_and_underscored_name_in_full_mode
+    run_generator [File.join(destination_root, "my_hyphenated-name"), "--full"]
+    assert_file "my_hyphenated-name/app/assets/javascripts/my_hyphenated/name"
+    assert_file "my_hyphenated-name/app/assets/stylesheets/my_hyphenated/name"
+    assert_file "my_hyphenated-name/app/assets/images/my_hyphenated/name"
+    assert_file "my_hyphenated-name/app/models"
+    assert_file "my_hyphenated-name/app/controllers"
+    assert_file "my_hyphenated-name/app/views"
+    assert_file "my_hyphenated-name/app/helpers"
+    assert_file "my_hyphenated-name/app/mailers"
+    assert_file "my_hyphenated-name/bin/rails"
+    assert_file "my_hyphenated-name/config/routes.rb",              /Rails.application.routes.draw do/
+    assert_file "my_hyphenated-name/lib/my_hyphenated/name/engine.rb", /module MyHyphenated\n  module Name\n    class Engine < ::Rails::Engine\n    end\n  end\nend/
+    assert_file "my_hyphenated-name/lib/my_hyphenated/name.rb",        /require "my_hyphenated\/name\/engine"/
+    assert_file "my_hyphenated-name/bin/rails",                     /\.\.\/\.\.\/lib\/my_hyphenated\/name\/engine/
+  end
+
   def test_being_quiet_while_creating_dummy_application
     assert_no_match(/create\s+config\/application.rb/, run_generator)
   end
@@ -240,6 +307,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_file "lib/bukkits/engine.rb", /isolate_namespace Bukkits/
     assert_file "test/dummy/config/routes.rb", /mount Bukkits::Engine => "\/bukkits"/
     assert_file "app/controllers/bukkits/application_controller.rb", /module Bukkits\n  class ApplicationController < ActionController::Base/
+    assert_file "app/jobs/bukkits/application_job.rb", /module Bukkits\n  class ApplicationJob < ActiveJob::Base/
     assert_file "app/helpers/bukkits/application_helper.rb", /module Bukkits\n  module ApplicationHelper/
     assert_file "app/views/layouts/bukkits/application.html.erb" do |contents|
       assert_match "<title>Bukkits</title>", contents
@@ -249,6 +317,69 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_file "test/test_helper.rb" do |content|
       assert_match(/ActiveRecord::Migrator\.migrations_paths.+\.\.\/test\/dummy\/db\/migrate/, content)
       assert_match(/ActiveRecord::Migrator\.migrations_paths.+<<.+\.\.\/db\/migrate/, content)
+      assert_match(/ActionDispatch::IntegrationTest\.fixture_path = ActiveSupport::TestCase\.fixture_pat/, content)
+      assert_no_match(/Rails::TestUnitReporter\.executable = 'bin\/test'/, content)
+    end
+    assert_no_file 'bin/test'
+  end
+
+  def test_create_mountable_application_with_mountable_option_and_hypenated_name
+    run_generator [File.join(destination_root, "hyphenated-name"), "--mountable"]
+    assert_file "hyphenated-name/app/assets/javascripts/hyphenated/name"
+    assert_file "hyphenated-name/app/assets/stylesheets/hyphenated/name"
+    assert_file "hyphenated-name/app/assets/images/hyphenated/name"
+    assert_file "hyphenated-name/config/routes.rb",                                          /Hyphenated::Name::Engine.routes.draw do/
+    assert_file "hyphenated-name/lib/hyphenated/name/version.rb",                            /module Hyphenated\n  module Name\n    VERSION = '0.1.0'\n  end\nend/
+    assert_file "hyphenated-name/lib/hyphenated/name/engine.rb",                             /module Hyphenated\n  module Name\n    class Engine < ::Rails::Engine\n      isolate_namespace Hyphenated::Name\n    end\n  end\nend/
+    assert_file "hyphenated-name/lib/hyphenated/name.rb",                                    /require "hyphenated\/name\/engine"/
+    assert_file "hyphenated-name/test/dummy/config/routes.rb",                               /mount Hyphenated::Name::Engine => "\/hyphenated-name"/
+    assert_file "hyphenated-name/app/controllers/hyphenated/name/application_controller.rb", /module Hyphenated\n  module Name\n    class ApplicationController < ActionController::Base\n    end\n  end\nend/
+    assert_file "hyphenated-name/app/jobs/hyphenated/name/application_job.rb", /module Hyphenated\n  module Name\n    class ApplicationJob < ActiveJob::Base/
+    assert_file "hyphenated-name/app/helpers/hyphenated/name/application_helper.rb",         /module Hyphenated\n  module Name\n    module ApplicationHelper\n    end\n  end\nend/
+    assert_file "hyphenated-name/app/views/layouts/hyphenated/name/application.html.erb" do |contents|
+      assert_match "<title>Hyphenated name</title>", contents
+      assert_match(/stylesheet_link_tag\s+['"]hyphenated\/name\/application['"]/, contents)
+      assert_match(/javascript_include_tag\s+['"]hyphenated\/name\/application['"]/, contents)
+    end
+  end
+
+  def test_create_mountable_application_with_mountable_option_and_hypenated_and_underscored_name
+    run_generator [File.join(destination_root, "my_hyphenated-name"), "--mountable"]
+    assert_file "my_hyphenated-name/app/assets/javascripts/my_hyphenated/name"
+    assert_file "my_hyphenated-name/app/assets/stylesheets/my_hyphenated/name"
+    assert_file "my_hyphenated-name/app/assets/images/my_hyphenated/name"
+    assert_file "my_hyphenated-name/config/routes.rb",                                             /MyHyphenated::Name::Engine.routes.draw do/
+    assert_file "my_hyphenated-name/lib/my_hyphenated/name/version.rb",                            /module MyHyphenated\n  module Name\n    VERSION = '0.1.0'\n  end\nend/
+    assert_file "my_hyphenated-name/lib/my_hyphenated/name/engine.rb",                             /module MyHyphenated\n  module Name\n    class Engine < ::Rails::Engine\n      isolate_namespace MyHyphenated::Name\n    end\n  end\nend/
+    assert_file "my_hyphenated-name/lib/my_hyphenated/name.rb",                                    /require "my_hyphenated\/name\/engine"/
+    assert_file "my_hyphenated-name/test/dummy/config/routes.rb",                                  /mount MyHyphenated::Name::Engine => "\/my_hyphenated-name"/
+    assert_file "my_hyphenated-name/app/controllers/my_hyphenated/name/application_controller.rb", /module MyHyphenated\n  module Name\n    class ApplicationController < ActionController::Base\n    end\n  end\nend/
+    assert_file "my_hyphenated-name/app/jobs/my_hyphenated/name/application_job.rb", /module MyHyphenated\n  module Name\n    class ApplicationJob < ActiveJob::Base/
+    assert_file "my_hyphenated-name/app/helpers/my_hyphenated/name/application_helper.rb",         /module MyHyphenated\n  module Name\n    module ApplicationHelper\n    end\n  end\nend/
+    assert_file "my_hyphenated-name/app/views/layouts/my_hyphenated/name/application.html.erb" do |contents|
+      assert_match "<title>My hyphenated name</title>", contents
+      assert_match(/stylesheet_link_tag\s+['"]my_hyphenated\/name\/application['"]/, contents)
+      assert_match(/javascript_include_tag\s+['"]my_hyphenated\/name\/application['"]/, contents)
+    end
+  end
+
+  def test_create_mountable_application_with_mountable_option_and_multiple_hypenates_in_name
+    run_generator [File.join(destination_root, "deep-hyphenated-name"), "--mountable"]
+    assert_file "deep-hyphenated-name/app/assets/javascripts/deep/hyphenated/name"
+    assert_file "deep-hyphenated-name/app/assets/stylesheets/deep/hyphenated/name"
+    assert_file "deep-hyphenated-name/app/assets/images/deep/hyphenated/name"
+    assert_file "deep-hyphenated-name/config/routes.rb",                                               /Deep::Hyphenated::Name::Engine.routes.draw do/
+    assert_file "deep-hyphenated-name/lib/deep/hyphenated/name/version.rb",                            /module Deep\n  module Hyphenated\n    module Name\n      VERSION = '0.1.0'\n    end\n  end\nend/
+    assert_file "deep-hyphenated-name/lib/deep/hyphenated/name/engine.rb",                             /module Deep\n  module Hyphenated\n    module Name\n      class Engine < ::Rails::Engine\n        isolate_namespace Deep::Hyphenated::Name\n      end\n    end\n  end\nend/
+    assert_file "deep-hyphenated-name/lib/deep/hyphenated/name.rb",                                    /require "deep\/hyphenated\/name\/engine"/
+    assert_file "deep-hyphenated-name/test/dummy/config/routes.rb",                                    /mount Deep::Hyphenated::Name::Engine => "\/deep-hyphenated-name"/
+    assert_file "deep-hyphenated-name/app/controllers/deep/hyphenated/name/application_controller.rb", /module Deep\n  module Hyphenated\n    module Name\n      class ApplicationController < ActionController::Base\n      end\n    end\n  end\nend/
+    assert_file "deep-hyphenated-name/app/jobs/deep/hyphenated/name/application_job.rb", /module Deep\n  module Hyphenated\n    module Name\n      class ApplicationJob < ActiveJob::Base/
+    assert_file "deep-hyphenated-name/app/helpers/deep/hyphenated/name/application_helper.rb",         /module Deep\n  module Hyphenated\n    module Name\n      module ApplicationHelper\n      end\n    end\n  end\nend/
+    assert_file "deep-hyphenated-name/app/views/layouts/deep/hyphenated/name/application.html.erb" do |contents|
+      assert_match "<title>Deep hyphenated name</title>", contents
+      assert_match(/stylesheet_link_tag\s+['"]deep\/hyphenated\/name\/application['"]/, contents)
+      assert_match(/javascript_include_tag\s+['"]deep\/hyphenated\/name\/application['"]/, contents)
     end
   end
 
@@ -256,7 +387,6 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     run_generator
     assert_file "bukkits.gemspec", /s.name\s+= "bukkits"/
     assert_file "bukkits.gemspec", /s.files = Dir\["\{app,config,db,lib\}\/\*\*\/\*", "MIT-LICENSE", "Rakefile", "README\.rdoc"\]/
-    assert_file "bukkits.gemspec", /s.test_files = Dir\["test\/\*\*\/\*"\]/
     assert_file "bukkits.gemspec", /s.version\s+ = Bukkits::VERSION/
   end
 
@@ -296,7 +426,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_creating_dummy_without_tests_but_with_dummy_path
-    run_generator [destination_root, "--dummy_path", "spec/dummy", "--skip-test-unit"]
+    run_generator [destination_root, "--dummy_path", "spec/dummy", "--skip-test"]
     assert_file "spec/dummy"
     assert_file "spec/dummy/config/application.rb"
     assert_no_file "test"
@@ -308,18 +438,28 @@ class PluginGeneratorTest < Rails::Generators::TestCase
 
   def test_ensure_that_gitignore_can_be_generated_from_a_template_for_dummy_path
     FileUtils.cd(Rails.root)
-    run_generator([destination_root, "--dummy_path", "spec/dummy", "--skip-test-unit"])
+    run_generator([destination_root, "--dummy_path", "spec/dummy", "--skip-test"])
     assert_file ".gitignore" do |contents|
       assert_match(/spec\/dummy/, contents)
     end
   end
 
-  def test_skipping_test_unit
-    run_generator [destination_root, "--skip-test-unit"]
+  def test_unnecessary_files_are_not_generated_in_dummy_application
+    run_generator
+    assert_no_file 'test/dummy/.gitignore'
+    assert_no_file 'test/dummy/db/seeds.rb'
+    assert_no_file 'test/dummy/Gemfile'
+    assert_no_file 'test/dummy/public/robots.txt'
+    assert_no_file 'test/dummy/README.md'
+    assert_no_directory 'test/dummy/lib/tasks'
+    assert_no_directory 'test/dummy/doc'
+    assert_no_directory 'test/dummy/test'
+    assert_no_directory 'test/dummy/vendor'
+  end
+
+  def test_skipping_test_files
+    run_generator [destination_root, "--skip-test"]
     assert_no_file "test"
-    assert_file "bukkits.gemspec" do |contents|
-      assert_no_match(/s.test_files = Dir\["test\/\*\*\/\*"\]/, contents)
-    end
     assert_file '.gitignore' do |contents|
       assert_no_match(/test\dummy/, contents)
     end
@@ -421,6 +561,60 @@ class PluginGeneratorTest < Rails::Generators::TestCase
       assert_match name, contents
       assert_match email, contents
     end
+  end
+
+  def test_skipping_useless_folders_generation_for_api_engines
+    ['--full', '--mountable'].each do |option|
+      run_generator [destination_root, option, '--api']
+
+      assert_no_directory "app/assets"
+      assert_no_directory "app/helpers"
+      assert_no_directory "app/views"
+
+      FileUtils.rm_rf destination_root
+    end
+  end
+
+  def test_application_controller_parent_for_mountable_api_plugins
+    run_generator [destination_root, '--mountable', '--api']
+
+    assert_file "app/controllers/bukkits/application_controller.rb" do |content|
+      assert_match "ApplicationController < ActionController::API", content
+    end
+  end
+
+  def test_dummy_api_application_for_api_plugins
+    run_generator [destination_root, '--api']
+
+    assert_file "test/dummy/config/application.rb" do |content|
+      assert_match "config.api_only = true", content
+    end
+  end
+
+
+  def test_api_generators_configuration_for_api_engines
+    run_generator [destination_root, '--full', '--api']
+
+    assert_file "lib/bukkits/engine.rb" do |content|
+      assert_match "config.generators.api_only = true", content
+    end
+  end
+
+  def test_scaffold_generator_for_mountable_api_plugins
+    run_generator [destination_root, '--mountable', '--api']
+
+    capture(:stdout) do
+      `#{destination_root}/bin/rails g scaffold article`
+    end
+
+    assert_file "app/models/bukkits/article.rb"
+    assert_file "app/controllers/bukkits/articles_controller.rb" do |content|
+      assert_match "only: [:show, :update, :destroy]", content
+    end
+
+    assert_no_directory "app/assets"
+    assert_no_directory "app/helpers"
+    assert_no_directory "app/views"
   end
 
 protected

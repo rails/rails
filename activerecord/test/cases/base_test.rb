@@ -1,7 +1,4 @@
-# encoding: utf-8
-
 require "cases/helper"
-require 'active_support/concurrency/latch'
 require 'models/post'
 require 'models/author'
 require 'models/topic'
@@ -29,6 +26,7 @@ require 'models/bird'
 require 'models/car'
 require 'models/bulb'
 require 'rexml/document'
+require 'concurrent/atomic/count_down_latch'
 
 class FirstAbstractClass < ActiveRecord::Base
   self.abstract_class = true
@@ -88,6 +86,7 @@ class BasicsTest < ActiveRecord::TestCase
       'Mysql2Adapter'     => '`',
       'PostgreSQLAdapter' => '"',
       'OracleAdapter'     => '"',
+      'FbAdapter'         => '"'
     }.fetch(classname) {
       raise "need a bad char for #{classname}"
     }
@@ -111,9 +110,11 @@ class BasicsTest < ActiveRecord::TestCase
     assert_nil Edge.primary_key
   end
 
-  unless current_adapter?(:PostgreSQLAdapter, :OracleAdapter, :SQLServerAdapter)
+  unless current_adapter?(:PostgreSQLAdapter, :OracleAdapter, :SQLServerAdapter, :FbAdapter)
     def test_limit_with_comma
-      assert Topic.limit("1,2").to_a
+      assert_deprecated do
+        assert Topic.limit("1,2").to_a
+      end
     end
   end
 
@@ -139,14 +140,10 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_limit_should_sanitize_sql_injection_for_limit_with_commas
-    assert_raises(ArgumentError) do
-      Topic.limit("1, 7 procedure help()").to_a
-    end
-  end
-
-  unless current_adapter?(:MysqlAdapter, :Mysql2Adapter)
-    def test_limit_should_allow_sql_literal
-      assert_equal 1, Topic.limit(Arel.sql('2-1')).to_a.length
+    assert_deprecated do
+      assert_raises(ArgumentError) do
+        Topic.limit("1, 7 procedure help()").to_a
+      end
     end
   end
 
@@ -205,7 +202,7 @@ class BasicsTest < ActiveRecord::TestCase
     )
 
     # For adapters which support microsecond resolution.
-    if current_adapter?(:PostgreSQLAdapter, :SQLite3Adapter) || mysql_56?
+    if subsecond_precision_supported?
       assert_equal 11, Topic.find(1).written_on.sec
       assert_equal 223300, Topic.find(1).written_on.usec
       assert_equal 9900, Topic.find(2).written_on.usec
@@ -812,7 +809,6 @@ class BasicsTest < ActiveRecord::TestCase
   def test_dup_does_not_copy_associations
     author = authors(:david)
     assert_not_equal [], author.posts
-    author.send(:clear_association_cache)
 
     author_dup = author.dup
     assert_equal [], author_dup.posts
@@ -903,8 +899,8 @@ class BasicsTest < ActiveRecord::TestCase
   class NumericData < ActiveRecord::Base
     self.table_name = 'numeric_data'
 
-    attribute :my_house_population, Type::Integer.new
-    attribute :atoms_in_universe, Type::Integer.new
+    attribute :my_house_population, :integer
+    attribute :atoms_in_universe, :integer
   end
 
   def test_big_decimal_conditions
@@ -944,6 +940,34 @@ class BasicsTest < ActiveRecord::TestCase
 
     assert_kind_of BigDecimal, m1.big_bank_balance
     assert_equal BigDecimal("1000234000567.95"), m1.big_bank_balance
+  end
+
+  def test_numeric_fields_with_scale
+    m = NumericData.new(
+      :bank_balance => 1586.43122334,
+      :big_bank_balance => BigDecimal("234000567.952344"),
+      :world_population => 6000000000,
+      :my_house_population => 3
+    )
+    assert m.save
+
+    m1 = NumericData.find(m.id)
+    assert_not_nil m1
+
+    # As with migration_test.rb, we should make world_population >= 2**62
+    # to cover 64-bit platforms and test it is a Bignum, but the main thing
+    # is that it's an Integer.
+    assert_kind_of Integer, m1.world_population
+    assert_equal 6000000000, m1.world_population
+
+    assert_kind_of Fixnum, m1.my_house_population
+    assert_equal 3, m1.my_house_population
+
+    assert_kind_of BigDecimal, m1.bank_balance
+    assert_equal BigDecimal("1586.43"), m1.bank_balance
+
+    assert_kind_of BigDecimal, m1.big_bank_balance
+    assert_equal BigDecimal("234000567.95"), m1.big_bank_balance
   end
 
   def test_auto_id
@@ -1009,54 +1033,61 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_switching_between_table_name
-    assert_difference("GoodJoke.count") do
-      Joke.table_name = "cold_jokes"
-      Joke.create
+    k = Class.new(Joke)
 
-      Joke.table_name = "funny_jokes"
-      Joke.create
+    assert_difference("GoodJoke.count") do
+      k.table_name = "cold_jokes"
+      k.create
+
+      k.table_name = "funny_jokes"
+      k.create
     end
   end
 
   def test_clear_cash_when_setting_table_name
-    Joke.table_name = "cold_jokes"
-    before_columns = Joke.columns
-    before_seq     = Joke.sequence_name
+    original_table_name = Joke.table_name
 
     Joke.table_name = "funny_jokes"
+    before_columns = Joke.columns
+    before_seq = Joke.sequence_name
+
+    Joke.table_name = "cold_jokes"
     after_columns = Joke.columns
-    after_seq     = Joke.sequence_name
+    after_seq = Joke.sequence_name
 
     assert_not_equal before_columns, after_columns
     assert_not_equal before_seq, after_seq unless before_seq.nil? && after_seq.nil?
+  ensure
+    Joke.table_name = original_table_name
   end
 
   def test_dont_clear_sequence_name_when_setting_explicitly
-    Joke.sequence_name = "black_jokes_seq"
-    Joke.table_name    = "cold_jokes"
-    before_seq         = Joke.sequence_name
+    k = Class.new(Joke)
+    k.sequence_name = "black_jokes_seq"
+    k.table_name = "cold_jokes"
+    before_seq = k.sequence_name
 
-    Joke.table_name    = "funny_jokes"
-    after_seq          = Joke.sequence_name
+    k.table_name = "funny_jokes"
+    after_seq = k.sequence_name
 
     assert_equal before_seq, after_seq unless before_seq.nil? && after_seq.nil?
-  ensure
-    Joke.reset_sequence_name
   end
 
   def test_dont_clear_inheritance_column_when_setting_explicitly
-    Joke.inheritance_column = "my_type"
-    before_inherit = Joke.inheritance_column
+    k = Class.new(Joke)
+    k.inheritance_column = "my_type"
+    before_inherit = k.inheritance_column
 
-    Joke.reset_column_information
-    after_inherit = Joke.inheritance_column
+    k.reset_column_information
+    after_inherit = k.inheritance_column
 
     assert_equal before_inherit, after_inherit unless before_inherit.blank? && after_inherit.blank?
   end
 
   def test_set_table_name_symbol_converted_to_string
-    Joke.table_name = :cold_jokes
-    assert_equal 'cold_jokes', Joke.table_name
+    k = Class.new(Joke)
+    k.table_name = :cold_jokes
+    assert_equal 'cold_jokes', k.table_name
   end
 
   def test_quoted_table_name_after_set_table_name
@@ -1171,40 +1202,8 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal last, Developer.all.merge!(:order => :salary).to_a.last
   end
 
-  def test_abstract_class
-    assert !ActiveRecord::Base.abstract_class?
-    assert LoosePerson.abstract_class?
-    assert !LooseDescendant.abstract_class?
-  end
-
   def test_abstract_class_table_name
     assert_nil AbstractCompany.table_name
-  end
-
-  def test_descends_from_active_record
-    assert !ActiveRecord::Base.descends_from_active_record?
-
-    # Abstract subclass of AR::Base.
-    assert LoosePerson.descends_from_active_record?
-
-    # Concrete subclass of an abstract class.
-    assert LooseDescendant.descends_from_active_record?
-
-    # Concrete subclass of AR::Base.
-    assert TightPerson.descends_from_active_record?
-
-    # Concrete subclass of a concrete class but has no type column.
-    assert TightDescendant.descends_from_active_record?
-
-    # Concrete subclass of AR::Base.
-    assert Post.descends_from_active_record?
-
-    # Abstract subclass of a concrete class which has a type column.
-    # This is pathological, as you'll never have Sub < Abstract < Concrete.
-    assert !StiPost.descends_from_active_record?
-
-    # Concrete subclasses an abstract class which has a type column.
-    assert !SubStiPost.descends_from_active_record?
   end
 
   def test_find_on_abstract_base_class_doesnt_use_type_condition
@@ -1249,50 +1248,6 @@ class BasicsTest < ActiveRecord::TestCase
     assert_match(/Quiet/, log.string)
   ensure
     ActiveRecord::Base.logger = original_logger
-  end
-
-  def test_compute_type_success
-    assert_equal Author, ActiveRecord::Base.send(:compute_type, 'Author')
-  end
-
-  def test_compute_type_nonexistent_constant
-    e = assert_raises NameError do
-      ActiveRecord::Base.send :compute_type, 'NonexistentModel'
-    end
-    assert_equal 'uninitialized constant ActiveRecord::Base::NonexistentModel', e.message
-    assert_equal 'ActiveRecord::Base::NonexistentModel', e.name
-  end
-
-  def test_compute_type_no_method_error
-    ActiveSupport::Dependencies.stubs(:safe_constantize).raises(NoMethodError)
-    assert_raises NoMethodError do
-      ActiveRecord::Base.send :compute_type, 'InvalidModel'
-    end
-  end
-
-  def test_compute_type_on_undefined_method
-    error = nil
-    begin
-      Class.new(Author) do
-        alias_method :foo, :bar
-      end
-    rescue => e
-      error = e
-    end
-
-    ActiveSupport::Dependencies.stubs(:safe_constantize).raises(e)
-
-    exception = assert_raises NameError do
-      ActiveRecord::Base.send :compute_type, 'InvalidModel'
-    end
-    assert_equal error.message, exception.message
-  end
-
-  def test_compute_type_argument_error
-    ActiveSupport::Dependencies.stubs(:safe_constantize).raises(ArgumentError)
-    assert_raises ArgumentError do
-      ActiveRecord::Base.send :compute_type, 'InvalidModel'
-    end
   end
 
   def test_clear_cache!
@@ -1388,6 +1343,19 @@ class BasicsTest < ActiveRecord::TestCase
                  Company.attribute_names
   end
 
+  def test_has_attribute
+    assert Company.has_attribute?('id')
+    assert Company.has_attribute?('type')
+    assert Company.has_attribute?('name')
+    assert_not Company.has_attribute?('lastname')
+    assert_not Company.has_attribute?('age')
+  end
+
+  def test_has_attribute_with_symbol
+    assert Company.has_attribute?(:id)
+    assert_not Company.has_attribute?(:age)
+  end
+
   def test_attribute_names_on_table_not_exists
     assert_equal [], NonExistentTable.attribute_names
   end
@@ -1404,15 +1372,13 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_uniq_delegates_to_scoped
-    scope = stub
-    Bird.stubs(:all).returns(mock(:uniq => scope))
-    assert_equal scope, Bird.uniq
+    assert_deprecated do
+      assert_equal Bird.all.distinct, Bird.uniq
+    end
   end
 
   def test_distinct_delegates_to_scoped
-    scope = stub
-    Bird.stubs(:all).returns(mock(:distinct => scope))
-    assert_equal scope, Bird.distinct
+    assert_equal Bird.all.distinct, Bird.distinct
   end
 
   def test_table_name_with_2_abstract_subclasses
@@ -1427,7 +1393,7 @@ class BasicsTest < ActiveRecord::TestCase
     attrs.delete 'id'
 
     typecast = Class.new(ActiveRecord::Type::Value) {
-      def type_cast value
+      def cast value
         "t.lo"
       end
     }
@@ -1501,20 +1467,20 @@ class BasicsTest < ActiveRecord::TestCase
     orig_handler = klass.connection_handler
     new_handler = ActiveRecord::ConnectionAdapters::ConnectionHandler.new
     after_handler = nil
-    latch1 = ActiveSupport::Concurrency::Latch.new
-    latch2 = ActiveSupport::Concurrency::Latch.new
+    latch1 = Concurrent::CountDownLatch.new
+    latch2 = Concurrent::CountDownLatch.new
 
     t = Thread.new do
       klass.connection_handler = new_handler
-      latch1.release
-      latch2.await
+      latch1.count_down
+      latch2.wait
       after_handler = klass.connection_handler
     end
 
-    latch1.await
+    latch1.wait
 
     klass.connection_handler = orig_handler
-    latch2.release
+    latch2.count_down
     t.join
 
     assert_equal after_handler, new_handler
@@ -1536,5 +1502,23 @@ class BasicsTest < ActiveRecord::TestCase
     Topic.reset_column_information
 
     assert_not topic.id_changed?
+  end
+
+  test "ignored columns are not present in columns_hash" do
+    cache_columns = Developer.connection.schema_cache.columns_hash(Developer.table_name)
+    assert_includes cache_columns.keys, 'first_name'
+    refute_includes Developer.columns_hash.keys, 'first_name'
+  end
+
+  test "ignored columns have no attribute methods" do
+    refute Developer.new.respond_to?(:first_name)
+    refute Developer.new.respond_to?(:first_name=)
+    refute Developer.new.respond_to?(:first_name?)
+  end
+
+  test "ignored columns don't prevent explicit declaration of attribute methods" do
+    assert Developer.new.respond_to?(:last_name)
+    assert Developer.new.respond_to?(:last_name=)
+    assert Developer.new.respond_to?(:last_name?)
   end
 end

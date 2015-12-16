@@ -1,28 +1,7 @@
-require 'active_support/core_ext/array/extract_options'
 require 'abstract_controller/collector'
 
 module ActionController #:nodoc:
   module MimeResponds
-    extend ActiveSupport::Concern
-
-    module ClassMethods
-      def respond_to(*)
-        raise NoMethodError, "The controller-level `respond_to' feature has " \
-          "been extracted to the `responders` gem. Add it to your Gemfile to " \
-          "continue using this feature:\n" \
-          "  gem 'responders', '~> 2.0'\n" \
-          "Consult the Rails upgrade guide for details."
-      end
-    end
-
-    def respond_with(*)
-      raise NoMethodError, "The `respond_with' feature has been extracted " \
-        "to the `responders` gem. Add it to your Gemfile to continue using " \
-        "this feature:\n" \
-        "  gem 'responders', '~> 2.0'\n" \
-        "Consult the Rails upgrade guide for details."
-    end
-
     # Without web-service support, an action which collects the data for displaying a list of people
     # might look something like this:
     #
@@ -112,11 +91,11 @@ module ActionController #:nodoc:
     # and accept Rails' defaults, life will be much easier.
     #
     # If you need to use a MIME type which isn't supported by default, you can register your own handlers in
-    # config/initializers/mime_types.rb as follows.
+    # +config/initializers/mime_types.rb+ as follows.
     #
     #   Mime::Type.register "image/jpg", :jpg
     #
-    # Respond to also allows you to specify a common block for different formats by using any:
+    # Respond to also allows you to specify a common block for different formats by using +any+:
     #
     #   def index
     #     @people = Person.all
@@ -172,21 +151,21 @@ module ActionController #:nodoc:
     #     format.html.none  { render "trash" }
     #   end
     #
-    # Variants also support common `any`/`all` block that formats have.
+    # Variants also support common +any+/+all+ block that formats have.
     #
     # It works for both inline:
     #
     #   respond_to do |format|
-    #     format.html.any   { render text: "any"   }
-    #     format.html.phone { render text: "phone" }
+    #     format.html.any   { render html: "any"   }
+    #     format.html.phone { render html: "phone" }
     #   end
     #
     # and block syntax:
     #
     #   respond_to do |format|
     #     format.html do |variant|
-    #       variant.any(:tablet, :phablet){ render text: "any" }
-    #       variant.phone { render text: "phone" }
+    #       variant.any(:tablet, :phablet){ render html: "any" }
+    #       variant.phone { render html: "phone" }
     #     end
     #   end
     #
@@ -195,7 +174,7 @@ module ActionController #:nodoc:
     #   request.variant = [:tablet, :phone]
     #
     # which will work similarly to formats and MIME types negotiation. If there will be no
-    # :tablet variant declared, :phone variant will be picked:
+    # +:tablet+ variant declared, +:phone+ variant will be picked:
     #
     #   respond_to do |format|
     #     format.html.none
@@ -212,6 +191,7 @@ module ActionController #:nodoc:
 
       if format = collector.negotiate_format(request)
         _process_format(format)
+        _set_rendered_content_type format
         response = collector.response
         response ? response.call : render({})
       else
@@ -249,7 +229,7 @@ module ActionController #:nodoc:
         @responses = {}
         @variant = variant
 
-        mimes.each { |mime| @responses["Mime::#{mime.upcase}".constantize] = nil }
+        mimes.each { |mime| @responses[Mime[mime]] = nil }
       end
 
       def any(*args, &block)
@@ -309,16 +289,17 @@ module ActionController #:nodoc:
         end
 
         def variant
-          if @variant.nil?
+          if @variant.empty?
             @variants[:none] || @variants[:any]
-          elsif (@variants.keys & @variant).any?
-            @variant.each do |v|
-              return @variants[v] if @variants.key?(v)
-            end
           else
-            @variants[:any]
+            @variants[variant_key]
           end
         end
+
+        private
+          def variant_key
+            @variant.find { |variant| @variants.key?(variant) } || :any
+          end
       end
     end
   end

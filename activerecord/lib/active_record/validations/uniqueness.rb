@@ -11,14 +11,20 @@ module ActiveRecord
       end
 
       def validate_each(record, attribute, value)
+        return unless should_validate?(record)
         finder_class = find_finder_class_for(record)
         table = finder_class.arel_table
         value = map_enum_attribute(finder_class, attribute, value)
 
         relation = build_relation(finder_class, table, attribute, value)
-        relation = relation.and(table[finder_class.primary_key.to_sym].not_eq(record.id)) if record.persisted?
+        if record.persisted? && finder_class.primary_key.to_s != attribute.to_s
+          if finder_class.primary_key
+            relation = relation.where.not(finder_class.primary_key => record.id)
+          else
+            raise UnknownPrimaryKey.new(finder_class, "Can not validate uniqueness for persisted record without primary key.")
+          end
+        end
         relation = scope_relation(record, table, relation)
-        relation = finder_class.unscoped.where(relation)
         relation = relation.merge(options[:conditions]) if options[:conditions]
 
         if relation.exists?
@@ -60,17 +66,24 @@ module ActiveRecord
         end
 
         column = klass.columns_hash[attribute_name]
-        value  = klass.connection.type_cast(value, column)
+        cast_type = klass.type_for_attribute(attribute_name)
+        value = cast_type.serialize(value)
+        value = klass.connection.type_cast(value)
         if value.is_a?(String) && column.limit
           value = value.to_s[0, column.limit]
         end
 
-        if !options[:case_sensitive] && value.is_a?(String)
+        value = Arel::Nodes::Quoted.new(value)
+
+        comparison = if !options[:case_sensitive] && !value.nil?
           # will use SQL LOWER function before comparison, unless it detects a case insensitive collation
           klass.connection.case_insensitive_comparison(table, attribute, column, value)
         else
           klass.connection.case_sensitive_comparison(table, attribute, column, value)
         end
+        klass.unscoped.where(comparison)
+      rescue RangeError
+        klass.none
       end
 
       def scope_relation(record, table, relation)
@@ -81,7 +94,7 @@ module ActiveRecord
           else
             scope_value = record._read_attribute(scope_item)
           end
-          relation = relation.and(table[scope_item].eq(scope_value))
+          relation = relation.where(scope_item => scope_value)
         end
 
         relation
@@ -159,7 +172,8 @@ module ActiveRecord
       #
       # === Concurrency and integrity
       #
-      # Using this validation method in conjunction with ActiveRecord::Base#save
+      # Using this validation method in conjunction with
+      # {ActiveRecord::Base#save}[rdoc-ref:Persistence#save]
       # does not guarantee the absence of duplicate record insertions, because
       # uniqueness checks on the application level are inherently prone to race
       # conditions. For example, suppose that two users try to post a Comment at
@@ -196,12 +210,12 @@ module ActiveRecord
       # This could even happen if you use transactions with the 'serializable'
       # isolation level. The best way to work around this problem is to add a unique
       # index to the database table using
-      # ActiveRecord::ConnectionAdapters::SchemaStatements#add_index. In the
-      # rare case that a race condition occurs, the database will guarantee
+      # {connection.add_index}[rdoc-ref:ConnectionAdapters::SchemaStatements#add_index].
+      # In the rare case that a race condition occurs, the database will guarantee
       # the field's uniqueness.
       #
       # When the database catches such a duplicate insertion,
-      # ActiveRecord::Base#save will raise an ActiveRecord::StatementInvalid
+      # {ActiveRecord::Base#save}[rdoc-ref:Persistence#save] will raise an ActiveRecord::StatementInvalid
       # exception. You can either choose to let this error propagate (which
       # will result in the default Rails exception page being shown), or you
       # can catch it and restart the transaction (e.g. by telling the user

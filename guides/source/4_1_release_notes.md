@@ -1,3 +1,5 @@
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+
 Ruby on Rails 4.1 Release Notes
 ===============================
 
@@ -315,15 +317,15 @@ for detailed changes.
 
 * Removed deprecated constants from Action Controller:
 
-  | Removed                            | Successor                       |
-  |:-----------------------------------|:--------------------------------|
-  | ActionController::AbstractRequest  | ActionDispatch::Request         |
-  | ActionController::Request          | ActionDispatch::Request         |
-  | ActionController::AbstractResponse | ActionDispatch::Response        |
-  | ActionController::Response         | ActionDispatch::Response        |
-  | ActionController::Routing          | ActionDispatch::Routing         |
-  | ActionController::Integration      | ActionDispatch::Integration     |
-  | ActionController::IntegrationTest  | ActionDispatch::IntegrationTest |
+| Removed                            | Successor                       |
+|:-----------------------------------|:--------------------------------|
+| ActionController::AbstractRequest  | ActionDispatch::Request         |
+| ActionController::Request          | ActionDispatch::Request         |
+| ActionController::AbstractResponse | ActionDispatch::Response        |
+| ActionController::Response         | ActionDispatch::Response        |
+| ActionController::Routing          | ActionDispatch::Routing         |
+| ActionController::Integration      | ActionDispatch::Integration     |
+| ActionController::IntegrationTest  | ActionDispatch::IntegrationTest |
 
 ### Notable changes
 

@@ -1,4 +1,3 @@
-# encoding: utf-8
 require 'cases/helper'
 
 require 'models/topic'
@@ -98,12 +97,14 @@ class ValidatesWithTest < ActiveModel::TestCase
 
   test "passes all configuration options to the validator class" do
     topic = Topic.new
-    validator = mock()
-    validator.expects(:new).with(foo: :bar, if: "1 == 1", class: Topic).returns(validator)
-    validator.expects(:validate).with(topic)
+    validator = Minitest::Mock.new
+    validator.expect(:new, validator, [{foo: :bar, if: "1 == 1", class: Topic}])
+    validator.expect(:validate, nil, [topic])
+    validator.expect(:is_a?, false, [Symbol])
 
     Topic.validates_with(validator, if: "1 == 1", foo: :bar)
     assert topic.valid?
+    validator.verify
   end
 
   test "validates_with with options" do

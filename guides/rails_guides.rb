@@ -1,13 +1,6 @@
 pwd = File.dirname(__FILE__)
 $:.unshift pwd
 
-# This is a predicate useful for the doc:guides task of applications.
-def bundler?
-  # Note that rake sets the cwd to the one that contains the Rakefile
-  # being executed.
-  File.exist?('Gemfile')
-end
-
 begin
   # Guides generation in the Rails repo.
   as_lib = File.join(pwd, "../activesupport/lib")
@@ -20,44 +13,5 @@ rescue LoadError
   gem "actionpack", '>= 3.0'
 end
 
-begin
-  require 'redcarpet'
-rescue LoadError
-  # This can happen if doc:guides is executed in an application.
-  $stderr.puts('Generating guides requires Redcarpet 3.1.2+.')
-  $stderr.puts(<<ERROR) if bundler?
-Please add
-
-  gem 'redcarpet', '~> 3.1.2'
-
-to the Gemfile, run
-
-  bundle install
-
-and try again.
-ERROR
-  exit 1
-end
-
-begin
-  require 'nokogiri'
-rescue LoadError
-  # This can happen if doc:guides is executed in an application.
-  $stderr.puts('Generating guides requires Nokogiri.')
-  $stderr.puts(<<ERROR) if bundler?
-Please add
-
-  gem 'nokogiri'
-
-to the Gemfile, run
-
-  bundle install
-
-and try again.
-ERROR
-  exit 1
-end
-
-require 'rails_guides/markdown'
 require "rails_guides/generator"
 RailsGuides::Generator.new.generate

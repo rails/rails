@@ -16,14 +16,9 @@ module ActionView
     module ClassMethods
       def _prefixes # :nodoc:
         @_prefixes ||= begin
-          deprecated_prefixes = handle_deprecated_parent_prefixes
-          if deprecated_prefixes
-            deprecated_prefixes
-          else
-            return local_prefixes if superclass.abstract?
+          return local_prefixes if superclass.abstract?
 
-            local_prefixes + superclass._prefixes
-          end
+          local_prefixes + superclass._prefixes
         end
       end
 
@@ -34,17 +29,6 @@ module ActionView
       def local_prefixes
         [controller_path]
       end
-
-      def handle_deprecated_parent_prefixes # TODO: remove in 4.3/5.0.
-        return unless respond_to?(:parent_prefixes)
-
-        ActiveSupport::Deprecation.warn(<<-MSG.squish)
-          Overriding `ActionController::Base::parent_prefixes` is deprecated,
-          override `.local_prefixes` instead.
-        MSG
-
-        local_prefixes + parent_prefixes
-      end
     end
 
     # The prefixes used in render "foo" shortcuts.
@@ -52,9 +36,9 @@ module ActionView
       self.class._prefixes
     end
 
-    # LookupContext is the object responsible to hold all information required to lookup
-    # templates, i.e. view paths and details. Check ActionView::LookupContext for more
-    # information.
+    # <tt>LookupContext</tt> is the object responsible for holding all
+    # information required for looking up templates, i.e. view paths and
+    # details. Check <tt>ActionView::LookupContext</tt> for more information.
     def lookup_context
       @_lookup_context ||=
         ActionView::LookupContext.new(self.class._view_paths, details_for_lookup, _prefixes)

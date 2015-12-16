@@ -1,17 +1,20 @@
 require "cases/helper"
-require 'models/author'
-require 'models/price_estimate'
-require 'models/treasure'
-require 'models/post'
-require 'models/comment'
-require 'models/edge'
-require 'models/topic'
-require 'models/binary'
-require 'models/vertex'
+require "models/author"
+require "models/binary"
+require "models/cake_designer"
+require "models/chef"
+require "models/comment"
+require "models/edge"
+require "models/essay"
+require "models/post"
+require "models/price_estimate"
+require "models/topic"
+require "models/treasure"
+require "models/vertex"
 
 module ActiveRecord
   class WhereTest < ActiveRecord::TestCase
-    fixtures :posts, :edges, :authors, :binaries
+    fixtures :posts, :edges, :authors, :binaries, :essays
 
     def test_where_copies_bind_params
       author = authors(:david)
@@ -24,6 +27,24 @@ module ActiveRecord
         assert_equal author, post.author
         assert_not_equal 1, post.id
       }
+    end
+
+    def test_where_copies_bind_params_in_the_right_order
+      author = authors(:david)
+      posts = author.posts.where.not(id: 1)
+      joined = Post.where(id: posts, title: posts.first.title)
+
+      assert_equal joined, [posts.first]
+    end
+
+    def test_where_copies_arel_bind_params
+      chef = Chef.create!
+      CakeDesigner.create!(chef: chef)
+
+      cake_designers = CakeDesigner.joins(:chef).where(chefs: { id: chef.id })
+      chefs = Chef.where(employable: cake_designers)
+
+      assert_equal [chef], chefs.to_a
     end
 
     def test_rewhere_on_root
@@ -219,6 +240,71 @@ module ActiveRecord
     def test_where_with_integer_for_binary_column
       count = Binary.where(:data => 0).count
       assert_equal 0, count
+    end
+
+    def test_where_on_association_with_custom_primary_key
+      author = authors(:david)
+      essay = Essay.where(writer: author).first
+
+      assert_equal essays(:david_modest_proposal), essay
+    end
+
+    def test_where_on_association_with_custom_primary_key_with_relation
+      author = authors(:david)
+      essay = Essay.where(writer: Author.where(id: author.id)).first
+
+      assert_equal essays(:david_modest_proposal), essay
+    end
+
+    def test_where_on_association_with_relation_performs_subselect_not_two_queries
+      author = authors(:david)
+
+      assert_queries(1) do
+        Essay.where(writer: Author.where(id: author.id)).to_a
+      end
+    end
+
+    def test_where_on_association_with_custom_primary_key_with_array_of_base
+      author = authors(:david)
+      essay = Essay.where(writer: [author]).first
+
+      assert_equal essays(:david_modest_proposal), essay
+    end
+
+    def test_where_on_association_with_custom_primary_key_with_array_of_ids
+      essay = Essay.where(writer: ["David"]).first
+
+      assert_equal essays(:david_modest_proposal), essay
+    end
+
+    def test_where_with_strong_parameters
+      protected_params = Class.new do
+        attr_reader :permitted
+        alias :permitted? :permitted
+
+        def initialize(parameters)
+          @parameters = parameters
+          @permitted = false
+        end
+
+        def to_h
+          @parameters
+        end
+
+        def permit!
+          @permitted = true
+          self
+        end
+      end
+
+      author = authors(:david)
+      params = protected_params.new(name: author.name)
+      assert_raises(ActiveModel::ForbiddenAttributesError) { Author.where(params) }
+      assert_equal author, Author.where(params.permit!).first
+    end
+
+    def test_where_with_unsupported_arguments
+      assert_raises(ArgumentError) { Author.where(42) }
     end
   end
 end

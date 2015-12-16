@@ -3,14 +3,7 @@ require 'abstract_unit'
 class JavaScriptHelperTest < ActionView::TestCase
   tests ActionView::Helpers::JavaScriptHelper
 
-  def _evaluate_assigns_and_ivars() end
-
-  attr_accessor :formats, :output_buffer
-
-  def update_details(details)
-    @details = details
-    yield if block_given?
-  end
+  attr_accessor :output_buffer
 
   setup do
     @old_escape_html_entities_in_json = ActiveSupport.escape_html_entities_in_json

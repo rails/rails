@@ -28,7 +28,7 @@ class DispatcherTest < ActiveSupport::TestCase
     assert_equal 4, Foo.a
     assert_equal 4, Foo.b
 
-    dispatch do |env|
+    dispatch do
       raise "error"
     end rescue nil
     assert_equal 6, Foo.a

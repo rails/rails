@@ -1,3 +1,5 @@
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+
 The Rails Initialization Process
 ================================
 
@@ -32,7 +34,7 @@ Launch!
 Let's start to boot and initialize the app. A Rails application is usually
 started by running `rails console` or `rails server`.
 
-### `railties/bin/rails`
+### `railties/exe/rails`
 
 The `rails` in the command `rails server` is a ruby executable in your load
 path. This executable contains the following lines:
@@ -43,7 +45,7 @@ load Gem.bin_path('railties', 'rails', version)
 ```
 
 If you try out this command in a Rails console, you would see that this loads
-`railties/bin/rails`. A part of the file `railties/bin/rails.rb` has the
+`railties/exe/rails`. A part of the file `railties/exe/rails.rb` has the
 following code:
 
 ```ruby
@@ -51,11 +53,11 @@ require "rails/cli"
 ```
 
 The file `railties/lib/rails/cli` in turn calls
-`Rails::AppRailsLoader.exec_app_rails`.
+`Rails::AppLoader.exec_app`.
 
-### `railties/lib/rails/app_rails_loader.rb`
+### `railties/lib/rails/app_loader.rb`
 
-The primary goal of the function `exec_app_rails` is to execute your app's
+The primary goal of the function `exec_app` is to execute your app's
 `bin/rails`. If the current directory does not have a `bin/rails`, it will
 navigate upwards until it finds a `bin/rails` executable. Thus one can invoke a
 `rails` command from anywhere inside a rails application.
@@ -84,10 +86,9 @@ The `APP_PATH` constant will be used later in `rails/commands`. The `config/boot
 `config/boot.rb` contains:
 
 ```ruby
-# Set up gems listed in the Gemfile.
 ENV['BUNDLE_GEMFILE'] ||= File.expand_path('../../Gemfile', __FILE__)
 
-require 'bundler/setup' if File.exist?(ENV['BUNDLE_GEMFILE'])
+require 'bundler/setup' # Set up gems listed in the Gemfile.
 ```
 
 In a standard Rails application, there's a `Gemfile` which declares all
@@ -104,6 +105,7 @@ A standard Rails application depends on several gems, specifically:
 * activemodel
 * activerecord
 * activesupport
+* activejob
 * arel
 * builder
 * bundler
@@ -137,7 +139,8 @@ aliases = {
   "c"  => "console",
   "s"  => "server",
   "db" => "dbconsole",
-  "r"  => "runner"
+  "r"  => "runner",
+  "t"  => "test"
 }
 
 command = ARGV.shift
@@ -156,19 +159,20 @@ defined here to find the matching command.
 
 ### `rails/commands/command_tasks.rb`
 
-When one types an incorrect rails command, the `run_command` is responsible for
-throwing an error message. If the command is valid, a method of the same name
-is called.
+When one types a valid Rails command, `run_command!` a method of the same name
+is called. If Rails doesn't recognize the command, it tries to run a Rake task
+of the same name.
 
 ```ruby
-COMMAND_WHITELIST = %(plugin generate destroy console server dbconsole application runner new version help)
+COMMAND_WHITELIST = %w(plugin generate destroy console server dbconsole application runner new version help)
 
 def run_command!(command)
   command = parse_command(command)
+
   if COMMAND_WHITELIST.include?(command)
     send(command)
   else
-    write_error_message(command)
+    run_rake_task(command)
   end
 end
 ```
@@ -357,7 +361,7 @@ private
   end
 
   def create_tmp_directories
-    %w(cache pids sessions sockets).each do |dir_to_make|
+    %w(cache pids sockets).each do |dir_to_make|
       FileUtils.mkdir_p(File.join(Rails.root, 'tmp', dir_to_make))
     end
   end
@@ -373,13 +377,12 @@ private
   end
 ```
 
-This is where the first output of the Rails initialization happens. This
-method creates a trap for `INT` signals, so if you `CTRL-C` the server,
-it will exit the process. As we can see from the code here, it will
-create the `tmp/cache`, `tmp/pids`, `tmp/sessions` and `tmp/sockets`
-directories. It then calls `wrapped_app` which is responsible for
-creating the Rack app, before creating and assigning an
-instance of `ActiveSupport::Logger`.
+This is where the first output of the Rails initialization happens. This method
+creates a trap for `INT` signals, so if you `CTRL-C` the server, it will exit the
+process. As we can see from the code here, it will create the `tmp/cache`,
+`tmp/pids`, and `tmp/sockets` directories. It then calls `wrapped_app` which is
+responsible for creating the Rack app, before creating and assigning an instance
+of `ActiveSupport::Logger`.
 
 The `super` method will call `Rack::Server.start` which begins its definition like this:
 
@@ -531,6 +534,7 @@ require "rails"
   action_controller
   action_view
   action_mailer
+  active_job
   rails/test_unit
   sprockets
 ).each do |framework|
@@ -554,9 +558,8 @@ I18n and Rails configuration are all being defined here.
 The rest of `config/application.rb` defines the configuration for the
 `Rails::Application` which will be used once the application is fully
 initialized. When `config/application.rb` has finished loading Rails and defined
-the application namespace, we go back to `config/environment.rb`,
-where the application is initialized. For example, if the application was called
-`Blog`, here we would find `Rails.application.initialize!`, which is
+the application namespace, we go back to `config/environment.rb`. Here, the
+application is initialized with `Rails.application.initialize!`, which is
 defined in `rails/application.rb`.
 
 ### `railties/lib/rails/application.rb`

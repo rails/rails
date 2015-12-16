@@ -4,7 +4,7 @@ require 'models/bird'
 require 'models/course'
 
 class MultipleDbTest < ActiveRecord::TestCase
-  self.use_transactional_fixtures = false
+  self.use_transactional_tests = false
 
   def setup
     @courses  = create_fixtures("courses") { Course.retrieve_connection }
@@ -94,6 +94,13 @@ class MultipleDbTest < ActiveRecord::TestCase
   end
 
   unless in_memory_db?
+    def test_count_on_custom_connection
+      ActiveRecord::Base.remove_connection
+      assert_equal 1, College.count
+    ensure
+      ActiveRecord::Base.establish_connection :arunit
+    end
+
     def test_associations_should_work_when_model_has_no_connection
       begin
         ActiveRecord::Base.remove_connection

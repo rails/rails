@@ -59,6 +59,10 @@ module ActiveSupport
       if constructor.respond_to?(:to_hash)
         super()
         update(constructor)
+
+        hash = constructor.to_hash
+        self.default = hash.default if hash.default
+        self.default_proc = hash.default_proc if hash.default_proc
       else
         super(constructor)
       end
@@ -73,11 +77,12 @@ module ActiveSupport
     end
 
     def self.new_from_hash_copying_default(hash)
-      hash = hash.to_hash
-      new(hash).tap do |new_hash|
-        new_hash.default = hash.default
-        new_hash.default_proc = hash.default_proc if hash.default_proc
-      end
+      ActiveSupport::Deprecation.warn(<<-MSG.squish)
+        `ActiveSupport::HashWithIndifferentAccess.new_from_hash_copying_default`
+        has been deprecated, and will be removed in Rails 5.1. The behavior of
+        this method is now identical to the behavior of `.new`.
+      MSG
+      new(hash)
     end
 
     def self.[](*args)
@@ -92,7 +97,7 @@ module ActiveSupport
     #   hash = ActiveSupport::HashWithIndifferentAccess.new
     #   hash[:key] = 'value'
     #
-    # This value can be later fetched using either +:key+ or +'key'+.
+    # This value can be later fetched using either +:key+ or <tt>'key'</tt>.
     def []=(key, value)
       regular_writer(convert_key(key), convert_value(value, for: :assignment))
     end
@@ -188,7 +193,7 @@ module ActiveSupport
     #   dup[:a][:c]  # => "c"
     def dup
       self.class.new(self).tap do |new_hash|
-        new_hash.default = default
+        set_defaults(new_hash)
       end
     end
 
@@ -206,7 +211,7 @@ module ActiveSupport
     #   hash['a'] = nil
     #   hash.reverse_merge(a: 0, b: 1) # => {"a"=>nil, "b"=>1}
     def reverse_merge(other_hash)
-      super(self.class.new_from_hash_copying_default(other_hash))
+      super(self.class.new(other_hash))
     end
 
     # Same semantics as +reverse_merge+ but modifies the receiver in-place.
@@ -219,7 +224,7 @@ module ActiveSupport
     #   h = { "a" => 100, "b" => 200 }
     #   h.replace({ "c" => 300, "d" => 400 }) # => {"c"=>300, "d"=>400}
     def replace(other_hash)
-      super(self.class.new_from_hash_copying_default(other_hash))
+      super(self.class.new(other_hash))
     end
 
     # Removes the specified key from the hash.
@@ -238,16 +243,20 @@ module ActiveSupport
     def to_options!; self end
 
     def select(*args, &block)
+      return to_enum(:select) unless block_given?
       dup.tap { |hash| hash.select!(*args, &block) }
     end
 
     def reject(*args, &block)
+      return to_enum(:reject) unless block_given?
       dup.tap { |hash| hash.reject!(*args, &block) }
     end
 
     # Convert to a regular hash with string keys.
     def to_hash
-      _new_hash = Hash.new(default)
+      _new_hash = Hash.new
+      set_defaults(_new_hash)
+
       each do |key, value|
         _new_hash[key] = convert_value(value, for: :to_hash)
       end
@@ -267,12 +276,20 @@ module ActiveSupport
             value.nested_under_indifferent_access
           end
         elsif value.is_a?(Array)
-          unless options[:for] == :assignment
+          if options[:for] != :assignment || value.frozen?
             value = value.dup
           end
           value.map! { |e| convert_value(e, options) }
         else
           value
+        end
+      end
+
+      def set_defaults(target)
+        if default_proc
+          target.default_proc = default_proc.dup
+        else
+          target.default = default
         end
       end
   end

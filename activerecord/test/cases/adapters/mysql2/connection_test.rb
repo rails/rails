@@ -1,7 +1,7 @@
 require "cases/helper"
 require 'support/connection_helper'
 
-class MysqlConnectionTest < ActiveRecord::TestCase
+class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
   include ConnectionHelper
 
   fixtures :comments
@@ -22,7 +22,7 @@ class MysqlConnectionTest < ActiveRecord::TestCase
     assert_raise ActiveRecord::NoDatabaseError do
       configuration = ActiveRecord::Base.configurations['arunit'].merge(database: 'inexistent_activerecord_unittest')
       connection = ActiveRecord::Base.mysql2_connection(configuration)
-      connection.exec_query('drop table if exists ex')
+      connection.drop_table 'ex', if_exists: true
     end
   end
 
@@ -83,6 +83,22 @@ class MysqlConnectionTest < ActiveRecord::TestCase
       assert_equal [['']], result.rows
     end
   end
+  
+  def test_passing_arbitary_flags_to_adapter
+    run_without_connection do |orig_connection|             
+      ActiveRecord::Base.establish_connection(orig_connection.merge({flags: Mysql2::Client::COMPRESS}))
+      assert_equal (Mysql2::Client::COMPRESS |  Mysql2::Client::FOUND_ROWS), ActiveRecord::Base.connection.raw_connection.query_options[:flags]
+    end
+  end
+
+  def test_mysql_strict_mode_specified_default
+    run_without_connection do |orig_connection|
+      ActiveRecord::Base.establish_connection(orig_connection.merge({strict: :default}))
+      global_sql_mode = ActiveRecord::Base.connection.exec_query "SELECT @@GLOBAL.sql_mode"
+      session_sql_mode = ActiveRecord::Base.connection.exec_query "SELECT @@SESSION.sql_mode"
+      assert_equal global_sql_mode.rows, session_sql_mode.rows
+    end
+  end
 
   def test_mysql_set_session_variable
     run_without_connection do |orig_connection|
@@ -123,10 +139,31 @@ class MysqlConnectionTest < ActiveRecord::TestCase
     @connection.execute "DROP TABLE `bar_baz`"
   end
 
-  if mysql_56?
-    def test_quote_time_usec
-      assert_equal "'1970-01-01 00:00:00.000000'", @connection.quote(Time.at(0))
-      assert_equal "'1970-01-01 00:00:00.000000'", @connection.quote(Time.at(0).to_datetime)
-    end
+  def test_get_and_release_advisory_lock
+    lock_name = "test_lock_name"
+
+    got_lock = @connection.get_advisory_lock(lock_name)
+    assert got_lock, "get_advisory_lock should have returned true but it didn't"
+
+    assert_equal test_lock_free(lock_name), false,
+      "expected the test advisory lock to be held but it wasn't"
+
+    released_lock = @connection.release_advisory_lock(lock_name)
+    assert released_lock, "expected release_advisory_lock to return true but it didn't"
+
+    assert test_lock_free(lock_name), 'expected the test lock to be available after releasing'
+  end
+
+  def test_release_non_existent_advisory_lock
+    lock_name = "fake_lock_name"
+    released_non_existent_lock = @connection.release_advisory_lock(lock_name)
+    assert_equal released_non_existent_lock, false,
+      'expected release_advisory_lock to return false when there was no lock to release'
+  end
+
+  protected
+
+  def test_lock_free(lock_name)
+    @connection.select_value("SELECT IS_FREE_LOCK('#{lock_name}');") == 1
   end
 end

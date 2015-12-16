@@ -10,6 +10,10 @@ module ActiveRecord
       attributes[name] || Attribute.null(name)
     end
 
+    def []=(name, value)
+      attributes[name] = value
+    end
+
     def values_before_type_cast
       attributes.transform_values(&:value_before_type_cast)
     end
@@ -24,11 +28,19 @@ module ActiveRecord
     end
 
     def keys
-      attributes.initialized_keys
+      attributes.each_key.select { |name| self[name].initialized? }
     end
 
-    def fetch_value(name)
-      self[name].value { |n| yield n if block_given? }
+    if defined?(JRUBY_VERSION)
+      # This form is significantly faster on JRuby, and this is one of our biggest hotspots.
+      # https://github.com/jruby/jruby/pull/2562
+      def fetch_value(name, &block)
+        self[name].value(&block)
+      end
+    else
+      def fetch_value(name)
+        self[name].value { |n| yield n if block_given? }
+      end
     end
 
     def write_from_database(name, value)
@@ -39,9 +51,19 @@ module ActiveRecord
       attributes[name] = self[name].with_value_from_user(value)
     end
 
+    def write_cast_value(name, value)
+      attributes[name] = self[name].with_cast_value(value)
+    end
+
     def freeze
       @attributes.freeze
       super
+    end
+
+    def deep_dup
+      dup.tap do |copy|
+        copy.instance_variable_set(:@attributes, attributes.deep_dup)
+      end
     end
 
     def initialize_dup(_)
@@ -58,6 +80,19 @@ module ActiveRecord
       if key?(key)
         write_from_database(key, nil)
       end
+    end
+
+    def accessed
+      attributes.select { |_, attr| attr.has_been_read? }.keys
+    end
+
+    def map(&block)
+      new_attributes = attributes.transform_values(&block)
+      AttributeSet.new(new_attributes)
+    end
+
+    def ==(other)
+      attributes == other.attributes
     end
 
     protected

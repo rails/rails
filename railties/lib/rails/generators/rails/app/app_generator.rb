@@ -38,7 +38,7 @@ module Rails
     end
 
     def readme
-      copy_file "README.rdoc", "README.rdoc"
+      copy_file "README.md", "README.md"
     end
 
     def gemfile
@@ -88,11 +88,21 @@ module Rails
 
     def config_when_updating
       cookie_serializer_config_exist = File.exist?('config/initializers/cookies_serializer.rb')
+      callback_terminator_config_exist = File.exist?('config/initializers/callback_terminator.rb')
+      active_record_belongs_to_required_by_default_config_exist = File.exist?('config/initializers/active_record_belongs_to_required_by_default.rb')
 
       config
 
+      unless callback_terminator_config_exist
+        remove_file 'config/initializers/callback_terminator.rb'
+      end
+
       unless cookie_serializer_config_exist
         gsub_file 'config/initializers/cookies_serializer.rb', /json/, 'marshal'
+      end
+
+      unless active_record_belongs_to_required_by_default_config_exist
+        remove_file 'config/initializers/active_record_belongs_to_required_by_default.rb'
       end
     end
 
@@ -120,6 +130,7 @@ module Rails
 
     def test
       empty_directory_with_keep_file 'test/fixtures'
+      empty_directory_with_keep_file 'test/fixtures/files'
       empty_directory_with_keep_file 'test/controllers'
       empty_directory_with_keep_file 'test/mailers'
       empty_directory_with_keep_file 'test/models'
@@ -130,6 +141,7 @@ module Rails
     end
 
     def tmp
+      empty_directory_with_keep_file "tmp"
       empty_directory "tmp/cache"
       empty_directory "tmp/cache/assets"
     end
@@ -163,6 +175,9 @@ module Rails
       class_option :version, type: :boolean, aliases: "-v", group: :rails,
                              desc: "Show Rails version number and quit"
 
+      class_option :api, type: :boolean,
+                         desc: "Preconfigure smaller stack for API only apps"
+
       def initialize(*args)
         super
 
@@ -173,6 +188,10 @@ module Rails
         if !options[:skip_active_record] && !DATABASES.include?(options[:database])
           raise Error, "Invalid value for --database option. Supported for preconfiguration are: #{DATABASES.join(", ")}."
         end
+
+        # Force sprockets to be skipped when generating API only apps.
+        # Can't modify options hash as it's frozen by default.
+        self.options = options.merge(skip_sprockets: true, skip_javascript: true).freeze if options[:api]
       end
 
       public_task :set_default_accessors!
@@ -229,7 +248,7 @@ module Rails
       end
 
       def create_test_files
-        build(:test) unless options[:skip_test_unit]
+        build(:test) unless options[:skip_test]
       end
 
       def create_tmp_files
@@ -238,6 +257,28 @@ module Rails
 
       def create_vendor_files
         build(:vendor)
+      end
+
+      def delete_app_assets_if_api_option
+        if options[:api]
+          remove_dir 'app/assets'
+          remove_dir 'lib/assets'
+          remove_dir 'tmp/cache/assets'
+          remove_dir 'vendor/assets'
+        end
+      end
+
+      def delete_app_helpers_if_api_option
+        if options[:api]
+          remove_dir 'app/helpers'
+          remove_dir 'test/helpers'
+        end
+      end
+
+      def delete_app_views_if_api_option
+        if options[:api]
+          remove_dir 'app/views'
+        end
       end
 
       def delete_js_folder_skipping_javascript
@@ -249,6 +290,20 @@ module Rails
       def delete_assets_initializer_skipping_sprockets
         if options[:skip_sprockets]
           remove_file 'config/initializers/assets.rb'
+        end
+      end
+
+      def delete_active_record_initializers_skipping_active_record
+        if options[:skip_active_record]
+          remove_file 'config/initializers/active_record_belongs_to_required_by_default.rb'
+        end
+      end
+
+      def delete_non_api_initializers_if_api_option
+        if options[:api]
+          remove_file 'config/initializers/session_store.rb'
+          remove_file 'config/initializers/cookies_serializer.rb'
+          remove_file 'config/initializers/request_forgery_protection.rb'
         end
       end
 
@@ -302,7 +357,9 @@ module Rails
         if app_const =~ /^\d/
           raise Error, "Invalid application name #{app_name}. Please give a name which does not start with numbers."
         elsif RESERVED_NAMES.include?(app_name)
-          raise Error, "Invalid application name #{app_name}. Please give a name which does not match one of the reserved rails words."
+          raise Error, "Invalid application name #{app_name}. Please give a " \
+                       "name which does not match one of the reserved rails " \
+                       "words: #{RESERVED_NAMES.join(", ")}"
         elsif Object.const_defined?(app_const_base)
           raise Error, "Invalid application name #{app_name}, constant #{app_const_base} is already in use. Please choose another application name."
         end
@@ -338,7 +395,7 @@ module Rails
     #
     # This class should be called before the AppGenerator is required and started
     # since it configures and mutates ARGV correctly.
-    class ARGVScrubber # :nodoc
+    class ARGVScrubber # :nodoc:
       def initialize(argv = ARGV)
         @argv = argv
       end

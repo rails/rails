@@ -45,10 +45,6 @@ class DirtyTest < ActiveModel::TestCase
     def reload
       clear_changes_information
     end
-
-    def deprecated_reload
-      reset_changes
-    end
   end
 
   setup do
@@ -141,6 +137,19 @@ class DirtyTest < ActiveModel::TestCase
     assert_equal [nil, "Jericho Cane"], @model.previous_changes['name']
   end
 
+  test "setting new attributes should not affect previous changes" do
+    @model.name = "Jericho Cane"
+    @model.save
+    @model.name = "DudeFella ManGuy"
+    assert_equal [nil, "Jericho Cane"], @model.name_previous_change
+  end
+
+  test "saving should preserve model's previous changed status" do
+    @model.name = "Jericho Cane"
+    @model.save
+    assert @model.name_previously_changed?
+  end
+
   test "previous value is preserved when changed after save" do
     assert_equal({}, @model.changed_attributes)
     @model.name = "Paul"
@@ -176,23 +185,6 @@ class DirtyTest < ActiveModel::TestCase
     assert_equal 'Dmitry', @model.changed_attributes['name']
 
     @model.reload
-
-    assert_equal ActiveSupport::HashWithIndifferentAccess.new, @model.previous_changes
-    assert_equal ActiveSupport::HashWithIndifferentAccess.new, @model.changed_attributes
-  end
-
-  test "reset_changes is deprecated" do
-    @model.name = 'Dmitry'
-    @model.name_changed?
-    @model.save
-    @model.name = 'Bob'
-
-    assert_equal [nil, 'Dmitry'], @model.previous_changes['name']
-    assert_equal 'Dmitry', @model.changed_attributes['name']
-
-    assert_deprecated do
-      @model.deprecated_reload
-    end
 
     assert_equal ActiveSupport::HashWithIndifferentAccess.new, @model.previous_changes
     assert_equal ActiveSupport::HashWithIndifferentAccess.new, @model.changed_attributes

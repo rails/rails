@@ -1,5 +1,3 @@
-require 'rbconfig'
-
 module ActiveSupport
   module Testing
     module Isolation
@@ -12,7 +10,7 @@ module ActiveSupport
       end
 
       def self.forking_env?
-        !ENV["NO_FORK"] && ((RbConfig::CONFIG['host_os'] !~ /mswin|mingw/) && (RUBY_PLATFORM !~ /java/))
+        !ENV["NO_FORK"] && Process.respond_to?(:fork)
       end
 
       @@class_setup_mutex = Mutex.new
@@ -43,7 +41,23 @@ module ActiveSupport
           pid = fork do
             read.close
             yield
-            write.puts [Marshal.dump(self.dup)].pack("m")
+            begin
+              if error?
+                failures.map! { |e|
+                  begin
+                    Marshal.dump e
+                    e
+                  rescue TypeError
+                    ex = Exception.new e.message
+                    ex.set_backtrace e.backtrace
+                    Minitest::UnexpectedError.new ex
+                  end
+                }
+              end
+              result = Marshal.dump(self.dup)
+            end
+
+            write.puts [result].pack("m")
             exit!
           end
 
@@ -71,17 +85,17 @@ module ActiveSupport
           else
             Tempfile.open("isolation") do |tmpfile|
               env = {
-                ISOLATION_TEST: self.class.name,
-                ISOLATION_OUTPUT: tmpfile.path
+                'ISOLATION_TEST' => self.class.name,
+                'ISOLATION_OUTPUT' => tmpfile.path
               }
 
               load_paths = $-I.map {|p| "-I\"#{File.expand_path(p)}\"" }.join(" ")
               orig_args = ORIG_ARGV.join(" ")
               test_opts = "-n#{self.class.name}##{self.name}"
-              command = "#{Gem.ruby} #{load_paths} #{$0} #{orig_args} #{test_opts}"
+              command = "#{Gem.ruby} #{load_paths} #{$0} '#{orig_args}' #{test_opts}"
 
               # IO.popen lets us pass env in a cross-platform way
-              child = IO.popen([env, command])
+              child = IO.popen(env, command)
 
               begin
                 Process.wait(child.pid)

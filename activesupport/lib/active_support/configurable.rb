@@ -122,6 +122,7 @@ module ActiveSupport
           send("#{name}=", yield) if block_given?
         end
       end
+      private :config_accessor
     end
 
     # Reads and writes attributes from a configuration <tt>OrderedHash</tt>.

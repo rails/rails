@@ -10,7 +10,6 @@ class Company < AbstractCompany
   has_one :dummy_account, :foreign_key => "firm_id", :class_name => "Account"
   has_many :contracts
   has_many :developers, :through => :contracts
-  has_many :accounts
 
   scope :of_first_firm, lambda {
     joins(:account => :firm).
@@ -25,6 +24,9 @@ class Company < AbstractCompany
 
   def private_method
     "I am Jack's innermost fears and aspirations"
+  end
+
+  class SpecialCo < Company
   end
 end
 
@@ -72,6 +74,7 @@ class Firm < Company
   # Oracle tests were failing because of that as the second fixture was selected
   has_one :account_using_primary_key, -> { order('id') }, :primary_key => "firm_id", :class_name => "Account"
   has_one :account_using_foreign_and_primary_keys, :foreign_key => "firm_name", :primary_key => "name", :class_name => "Account"
+  has_one :account_with_inexistent_foreign_key, class_name: 'Account', foreign_key: "inexistent"
   has_one :deletable_account, :foreign_key => "firm_id", :class_name => "Account", :dependent => :delete
 
   has_one :account_limit_500_with_hash_conditions, -> { where :credit_limit => 500 }, :foreign_key => "firm_id", :class_name => "Account"
@@ -81,6 +84,9 @@ class Firm < Company
   has_many :unautosaved_accounts, :foreign_key => "firm_id", :class_name => 'Account', :autosave => false
 
   has_many :association_with_references, -> { references(:foo) }, :class_name => 'Client'
+
+  has_one :lead_developer, class_name: "Developer"
+  has_many :projects
 
   def log
     @log ||= []
@@ -213,7 +219,7 @@ class Account < ActiveRecord::Base
   protected
 
   def check_empty_credit_limit
-    errors.add_on_empty "credit_limit"
+    errors.add("credit_limit", :blank) if credit_limit.blank?
   end
 
   private

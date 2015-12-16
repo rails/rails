@@ -1,4 +1,5 @@
 require 'fileutils'
+require 'yaml'
 require 'active_support/core_ext/hash/keys'
 require 'active_support/core_ext/object/blank'
 require 'active_support/key_generator'
@@ -6,8 +7,7 @@ require 'active_support/message_verifier'
 require 'rails/engine'
 
 module Rails
-  # In Rails 3.0, a Rails::Application object was introduced which is nothing more than
-  # an Engine but with the responsibility of coordinating the whole boot process.
+  # An Engine with the responsibility of coordinating the whole boot process.
   #
   # == Initialization
   #
@@ -156,25 +156,20 @@ module Rails
       self
     end
 
-    # Implements call according to the Rack API. It simply
-    # dispatches the request to the underlying middleware stack.
-    def call(env)
-      env["ORIGINAL_FULLPATH"] = build_original_fullpath(env)
-      env["ORIGINAL_SCRIPT_NAME"] = env["SCRIPT_NAME"]
-      super(env)
-    end
-
     # Reload application routes regardless if they changed or not.
     def reload_routes!
       routes_reloader.reload!
     end
 
-    # Return the application's KeyGenerator
+    # Returns the application's KeyGenerator
     def key_generator
       # number of iterations selected based on consultation with the google security
       # team. Details at https://github.com/rails/rails/pull/6952#issuecomment-7661220
       @caching_key_generator ||=
         if secrets.secret_key_base
+          unless secrets.secret_key_base.kind_of?(String)
+            raise ArgumentError, "`secret_key_base` for #{Rails.env} environment must be a type of String, change this value in `config/secrets.yml`"
+          end
           key_generator = ActiveSupport::KeyGenerator.new(secrets.secret_key_base, iterations: 1000)
           ActiveSupport::CachingKeyGenerator.new(key_generator)
         else
@@ -223,13 +218,12 @@ module Rails
     #     Rails.application.configure do
     #       config.middleware.use ExceptionNotifier, config_for(:exception_notification)
     #     end
-    def config_for(name)
+    def config_for(name, env: Rails.env)
       yaml = Pathname.new("#{paths["config"].existent.first}/#{name}.yml")
 
       if yaml.exist?
-        require "yaml"
         require "erb"
-        (YAML.load(ERB.new(yaml.read).result) || {})[Rails.env] || {}
+        (YAML.load(ERB.new(yaml.read).result) || {})[env] || {}
       else
         raise "Could not load configuration. No such file - #{yaml}"
       end
@@ -368,7 +362,21 @@ module Rails
       @config = configuration
     end
 
-    def secrets #:nodoc:
+    # Returns secrets added to config/secrets.yml.
+    #
+    # Example:
+    #
+    #     development:
+    #       secret_key_base: 836fa3665997a860728bcb9e9a1e704d427cfc920e79d847d79c8a9a907b9e965defa4154b2b86bdec6930adbe33f21364523a6f6ce363865724549fdfc08553
+    #     test:
+    #       secret_key_base: 5a37811464e7d378488b0f073e2193b093682e4e21f5d6f3ae0a4e1781e61a351fdc878a843424e81c73fb484a40d23f92c8dafac4870e74ede6e5e174423010
+    #     production:
+    #       secret_key_base: <%= ENV["SECRET_KEY_BASE"] %>
+    #       namespace: my_app_production
+    #
+    # +Rails.application.secrets.namespace+ returns +my_app_production+ in the
+    # production environment.
+    def secrets
       @secrets ||= begin
         secrets = ActiveSupport::OrderedOptions.new
         yaml = config.paths["config/secrets"].first
@@ -406,25 +414,16 @@ module Rails
 
     console do
       unless ::Kernel.private_method_defined?(:y)
-        if RUBY_VERSION >= '2.0'
-          require "psych/y"
-        else
-          module ::Kernel
-            def y(*objects)
-              puts ::Psych.dump_stream(*objects)
-            end
-            private :y
-          end
-        end
+        require "psych/y"
       end
     end
 
     # Return an array of railties respecting the order they're loaded
     # and the order specified by the +railties_order+ config.
     #
-    # While when running initializers we need engines in reverse
-    # order here when copying migrations from railties we need then in the same
-    # order as given by +railties_order+
+    # While running initializers we need engines in reverse order here when
+    # copying migrations from railties ; we need them in the order given by
+    # +railties_order+.
     def migration_railties # :nodoc:
       ordered_railties.flatten - [self]
     end
@@ -499,27 +498,28 @@ module Rails
       default_stack.build_stack
     end
 
-    def build_original_fullpath(env) #:nodoc:
-      path_info    = env["PATH_INFO"]
-      query_string = env["QUERY_STRING"]
-      script_name  = env["SCRIPT_NAME"]
-
-      if query_string.present?
-        "#{script_name}#{path_info}?#{query_string}"
-      else
-        "#{script_name}#{path_info}"
-      end
-    end
-
     def validate_secret_key_config! #:nodoc:
       if secrets.secret_key_base.blank?
         ActiveSupport::Deprecation.warn "You didn't set `secret_key_base`. " +
           "Read the upgrade documentation to learn more about this new config option."
 
         if secrets.secret_token.blank?
-          raise "Missing `secret_token` and `secret_key_base` for '#{Rails.env}' environment, set these values in `config/secrets.yml`"
+          raise "Missing `secret_key_base` for '#{Rails.env}' environment, set this value in `config/secrets.yml`"
         end
       end
+    end
+
+    private
+
+    def build_request(env)
+      req = super
+      env["ORIGINAL_FULLPATH"] = req.fullpath
+      env["ORIGINAL_SCRIPT_NAME"] = req.script_name
+      req
+    end
+
+    def build_middleware
+      config.app_middleware + super
     end
   end
 end

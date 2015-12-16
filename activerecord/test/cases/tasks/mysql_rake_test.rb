@@ -21,28 +21,21 @@ module ActiveRecord
       ActiveRecord::Tasks::DatabaseTasks.create @configuration
     end
 
-    def test_creates_database_with_default_encoding_and_collation
+    def test_creates_database_with_no_default_options
       @connection.expects(:create_database).
-        with('my-app-db', charset: 'utf8', collation: 'utf8_unicode_ci')
+        with('my-app-db', {})
 
       ActiveRecord::Tasks::DatabaseTasks.create @configuration
     end
 
-    def test_creates_database_with_given_encoding_and_default_collation
-      @connection.expects(:create_database).
-        with('my-app-db', charset: 'utf8', collation: 'utf8_unicode_ci')
-
-      ActiveRecord::Tasks::DatabaseTasks.create @configuration.merge('encoding' => 'utf8')
-    end
-
-    def test_creates_database_with_given_encoding_and_no_collation
+    def test_creates_database_with_given_encoding
       @connection.expects(:create_database).
         with('my-app-db', charset: 'latin1')
 
       ActiveRecord::Tasks::DatabaseTasks.create @configuration.merge('encoding' => 'latin1')
     end
 
-    def test_creates_database_with_given_collation_and_no_encoding
+    def test_creates_database_with_given_collation
       @connection.expects(:create_database).
         with('my-app-db', collation: 'latin1_swedish_ci')
 
@@ -111,7 +104,7 @@ module ActiveRecord
       def test_database_created_by_root
         assert_permissions_granted_for "pat"
         @connection.expects(:create_database).
-          with('my-app-db', :charset => 'utf8', :collation => 'utf8_unicode_ci')
+          with('my-app-db', {})
 
         ActiveRecord::Tasks::DatabaseTasks.create @configuration
       end
@@ -203,9 +196,9 @@ module ActiveRecord
       ActiveRecord::Tasks::DatabaseTasks.purge @configuration
     end
 
-    def test_recreates_database_with_the_default_options
+    def test_recreates_database_with_no_default_options
       @connection.expects(:recreate_database).
-        with('test-db', charset: 'utf8', collation: 'utf8_unicode_ci')
+        with('test-db', {})
 
       ActiveRecord::Tasks::DatabaseTasks.purge @configuration
     end
@@ -265,28 +258,38 @@ module ActiveRecord
 
     def test_structure_dump
       filename = "awesome-file.sql"
-      Kernel.expects(:system).with("mysqldump", "--result-file", filename, "--no-data", "test-db").returns(true)
+      Kernel.expects(:system).with("mysqldump", "--result-file", filename, "--no-data", "--routines", "test-db").returns(true)
 
       ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename)
     end
 
-    def test_warn_when_external_structure_dump_fails
+    def test_warn_when_external_structure_dump_command_execution_fails
       filename = "awesome-file.sql"
-      Kernel.expects(:system).with("mysqldump", "--result-file", filename, "--no-data", "test-db").returns(false)
+      Kernel.expects(:system)
+        .with("mysqldump", "--result-file", filename, "--no-data", "--routines", "test-db")
+        .returns(false)
 
-      warnings = capture(:stderr) do
+      e = assert_raise(RuntimeError) {
         ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename)
-      end
-
-      assert_match(/Could not dump the database structure/, warnings)
+      }
+      assert_match(/^failed to execute: `mysqldump`$/, e.message)
     end
 
     def test_structure_dump_with_port_number
       filename = "awesome-file.sql"
-      Kernel.expects(:system).with("mysqldump", "--port", "10000", "--result-file", filename, "--no-data", "test-db").returns(true)
+      Kernel.expects(:system).with("mysqldump", "--port=10000", "--result-file", filename, "--no-data", "--routines", "test-db").returns(true)
 
       ActiveRecord::Tasks::DatabaseTasks.structure_dump(
         @configuration.merge('port' => 10000),
+        filename)
+    end
+
+    def test_structure_dump_with_ssl
+      filename = "awesome-file.sql"
+      Kernel.expects(:system).with("mysqldump", "--ssl-ca=ca.crt", "--result-file", filename, "--no-data", "--routines", "test-db").returns(true)
+
+      ActiveRecord::Tasks::DatabaseTasks.structure_dump(
+        @configuration.merge("sslca" => "ca.crt"),
         filename)
     end
   end
@@ -302,6 +305,7 @@ module ActiveRecord
     def test_structure_load
       filename = "awesome-file.sql"
       Kernel.expects(:system).with('mysql', '--execute', %{SET FOREIGN_KEY_CHECKS = 0; SOURCE #{filename}; SET FOREIGN_KEY_CHECKS = 1}, "--database", "test-db")
+        .returns(true)
 
       ActiveRecord::Tasks::DatabaseTasks.structure_load(@configuration, filename)
     end

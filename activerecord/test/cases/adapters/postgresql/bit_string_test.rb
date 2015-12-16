@@ -1,9 +1,8 @@
-# -*- coding: utf-8 -*-
 require "cases/helper"
 require 'support/connection_helper'
 require 'support/schema_dumping_helper'
 
-class PostgresqlBitStringTest < ActiveRecord::TestCase
+class PostgresqlBitStringTest < ActiveRecord::PostgreSQLTestCase
   include ConnectionHelper
   include SchemaDumpingHelper
 
@@ -14,30 +13,34 @@ class PostgresqlBitStringTest < ActiveRecord::TestCase
     @connection.create_table('postgresql_bit_strings', :force => true) do |t|
       t.bit :a_bit, default: "00000011", limit: 8
       t.bit_varying :a_bit_varying, default: "0011", limit: 4
+      t.bit :another_bit
+      t.bit_varying :another_bit_varying
     end
   end
 
   def teardown
     return unless @connection
-    @connection.execute 'DROP TABLE IF EXISTS postgresql_bit_strings'
+    @connection.drop_table 'postgresql_bit_strings', if_exists: true
   end
 
   def test_bit_string_column
     column = PostgresqlBitString.columns_hash["a_bit"]
     assert_equal :bit, column.type
     assert_equal "bit(8)", column.sql_type
-    assert_not column.number?
-    assert_not column.binary?
-    assert_not column.array
+    assert_not column.array?
+
+    type = PostgresqlBitString.type_for_attribute("a_bit")
+    assert_not type.binary?
   end
 
   def test_bit_string_varying_column
     column = PostgresqlBitString.columns_hash["a_bit_varying"]
     assert_equal :bit_varying, column.type
     assert_equal "bit varying(4)", column.sql_type
-    assert_not column.number?
-    assert_not column.binary?
-    assert_not column.array
+    assert_not column.array?
+
+    type = PostgresqlBitString.type_for_attribute("a_bit_varying")
+    assert_not type.binary?
   end
 
   def test_default

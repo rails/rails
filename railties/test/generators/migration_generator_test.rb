@@ -7,7 +7,7 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
   def test_migration
     migration = "change_title_body_from_posts"
     run_generator [migration]
-    assert_migration "db/migrate/#{migration}.rb", /class ChangeTitleBodyFromPosts < ActiveRecord::Migration/
+    assert_migration "db/migrate/#{migration}.rb", /class ChangeTitleBodyFromPosts < ActiveRecord::Migration\[[0-9.]+\]/
   end
 
   def test_migrations_generated_simultaneously
@@ -26,7 +26,7 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
   def test_migration_with_class_name
     migration = "ChangeTitleBodyFromPosts"
     run_generator [migration]
-    assert_migration "db/migrate/change_title_body_from_posts.rb", /class #{migration} < ActiveRecord::Migration/
+    assert_migration "db/migrate/change_title_body_from_posts.rb", /class #{migration} < ActiveRecord::Migration\[[0-9.]+\]/
   end
 
   def test_migration_with_invalid_file_name
@@ -91,8 +91,9 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
 
     assert_migration "db/migrate/#{migration}.rb" do |content|
       assert_method :change, content do |change|
-        assert_match(/remove_foreign_key :books, :authors/, change)
-        assert_no_match(/remove_foreign_key :books, :distributors/, change)
+        assert_match(/remove_reference :books, :author,.*\sforeign_key: true/, change)
+        assert_match(/remove_reference :books, :distributor/, change) # sanity check
+        assert_no_match(/remove_reference :books, :distributor,.*\sforeign_key: true/, change)
       end
     end
   end
@@ -189,8 +190,9 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
 
     assert_migration "db/migrate/#{migration}.rb" do |content|
       assert_method :change, content do |change|
-        assert_match(/add_foreign_key :books, :authors/, change)
-        assert_no_match(/add_foreign_key :books, :distributors/, change)
+        assert_match(/add_reference :books, :author,.*\sforeign_key: true/, change)
+        assert_match(/add_reference :books, :distributor/, change) # sanity check
+        assert_no_match(/add_reference :books, :distributor,.*\sforeign_key: true/, change)
       end
     end
   end
@@ -215,6 +217,15 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
         assert_match(/create_table :books/, change)
         assert_match(/  t\.string :title/, change)
         assert_match(/  t\.text :content/, change)
+      end
+    end
+  end
+
+  def test_add_uuid_to_create_table_migration
+    run_generator ["create_books", "--primary_key_type=uuid"]
+    assert_migration "db/migrate/create_books.rb" do |content|
+      assert_method :change, content do |change|
+        assert_match(/create_table :books, id: :uuid/, change)
       end
     end
   end
@@ -270,6 +281,30 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
           assert_match(/  t\.string :title/, change)
           assert_match(/  t\.text :content/, change)
         end
+      end
+    end
+  end
+
+  def test_create_table_migration_with_token_option
+    run_generator ["create_users", "token:token", "auth_token:token"]
+    assert_migration "db/migrate/create_users.rb" do |content|
+      assert_method :change, content do |change|
+        assert_match(/create_table :users/, change)
+        assert_match(/  t\.string :token/, change)
+        assert_match(/  t\.string :auth_token/, change)
+        assert_match(/add_index :users, :token, unique: true/, change)
+        assert_match(/add_index :users, :auth_token, unique: true/, change)
+      end
+    end
+  end
+
+  def test_add_migration_with_token_option
+    migration = "add_token_to_users"
+    run_generator [migration, "auth_token:token"]
+    assert_migration "db/migrate/#{migration}.rb" do |content|
+      assert_method :change, content do |change|
+        assert_match(/add_column :users, :auth_token, :string/, change)
+        assert_match(/add_index :users, :auth_token, unique: true/, change)
       end
     end
   end

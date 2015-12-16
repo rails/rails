@@ -5,6 +5,8 @@ module ActiveRecord
     class MigrationGenerator < Base # :nodoc:
       argument :attributes, :type => :array, :default => [], :banner => "field[:type][:index] field[:type][:index]"
 
+      class_option :primary_key_type, type: :string, desc: "The type for primary key"
+
       def create_migration_file
         set_local_assigns!
         validate_file_name!
@@ -14,10 +16,9 @@ module ActiveRecord
       protected
       attr_reader :migration_action, :join_tables
 
-      # sets the default migration template that is being used for the generation of the migration
-      # depending on the arguments which would be sent out in the command line, the migration template 
-      # and the table name instance variables are setup.
-
+      # Sets the default migration template that is being used for the generation of the migration.
+      # Depending on command line arguments, the migration template and the table name instance
+      # variables are set up.
       def set_local_assigns!
         @migration_template = "migration.rb"
         case file_name
@@ -56,6 +57,8 @@ module ActiveRecord
           attributes.select { |a| !a.reference? && a.has_index? }
         end
 
+        # A migration file name can only contain underscores (_), lowercase characters,
+        # and numbers 0-9. Any other file name will raise an IllegalMigrationNameError.
         def validate_file_name!
           unless file_name =~ /^[_a-z0-9]+$/
             raise IllegalMigrationNameError.new(file_name)

@@ -1,6 +1,5 @@
 require 'erb'
 require 'active_support/core_ext/kernel/singleton_class'
-require 'active_support/deprecation'
 
 class ERB
   module Util
@@ -14,7 +13,7 @@ class ERB
     # This method is also aliased as <tt>h</tt>.
     #
     # In your ERB templates, use this method to escape any unsafe content. For example:
-    #   <%=h @person.name %>
+    #   <%= h @person.name %>
     #
     #   puts html_escape('is a > 0 & a < 10?')
     #   # => is a &gt; 0 &amp; a &lt; 10?
@@ -38,7 +37,7 @@ class ERB
       if s.html_safe?
         s
       else
-        s.gsub(HTML_ESCAPE_REGEXP, HTML_ESCAPE)
+        ActiveSupport::Multibyte::Unicode.tidy_bytes(s).gsub(HTML_ESCAPE_REGEXP, HTML_ESCAPE)
       end
     end
     module_function :unwrapped_html_escape
@@ -51,7 +50,7 @@ class ERB
     #   html_escape_once('&lt;&lt; Accept & Checkout')
     #   # => "&lt;&lt; Accept &amp; Checkout"
     def html_escape_once(s)
-      result = s.to_s.gsub(HTML_ESCAPE_ONCE_REGEXP, HTML_ESCAPE)
+      result = ActiveSupport::Multibyte::Unicode.tidy_bytes(s.to_s).gsub(HTML_ESCAPE_ONCE_REGEXP, HTML_ESCAPE)
       s.html_safe? ? result.html_safe : result
     end
 
@@ -85,6 +84,11 @@ class ERB
     # don't get converted to <tt>&quot;</tt> entities. +json_escape+ doesn't
     # automatically flag the result as HTML safe, since the raw value is unsafe to
     # use inside HTML attributes.
+    #
+    # If your JSON is being used downstream for insertion into the DOM, be aware of
+    # whether or not it is being inserted via +html()+. Most jQuery plugins do this.
+    # If that is the case, be sure to +html_escape+ or +sanitize+ any user-generated
+    # content returned by your JSON.
     #
     # If you need to output JSON elsewhere in your HTML, you can just do something
     # like this, as any unsafe characters (including quotation marks) will be
@@ -150,7 +154,11 @@ module ActiveSupport #:nodoc:
       else
         if html_safe?
           new_safe_buffer = super
-          new_safe_buffer.instance_variable_set :@html_safe, true
+
+          if new_safe_buffer
+            new_safe_buffer.instance_variable_set :@html_safe, true
+          end
+
           new_safe_buffer
         else
           to_str[*args]
@@ -186,11 +194,6 @@ module ActiveSupport #:nodoc:
       super(html_escape_interpolated_argument(value))
     end
 
-    def prepend!(value)
-      ActiveSupport::Deprecation.deprecation_warning "ActiveSupport::SafeBuffer#prepend!", :prepend
-      prepend value
-    end
-
     def +(other)
       dup.concat(other)
     end
@@ -219,7 +222,7 @@ module ActiveSupport #:nodoc:
     end
 
     def encode_with(coder)
-      coder.represent_scalar nil, to_str
+      coder.represent_object nil, to_str
     end
 
     UNSAFE_STRING_METHODS.each do |unsafe_method|

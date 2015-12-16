@@ -1,4 +1,3 @@
-# encoding: utf-8
 require 'abstract_unit'
 require 'controller/fake_controllers'
 require 'active_support/core_ext/object/with_options'
@@ -8,8 +7,6 @@ class MilestonesController < ActionController::Base
   def index() head :ok end
   alias_method :show, :index
 end
-
-ROUTING = ActionDispatch::Routing
 
 # See RFC 3986, section 3.3 for allowed path characters.
 class UriReservedCharactersRoutingTest < ActiveSupport::TestCase
@@ -292,12 +289,6 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
     assert_equal({:id=>"1", :filters=>"foo", :format=>"js"}, params)
   end
 
-  def test_draw_with_block_arity_one_raises
-    assert_raise(RuntimeError) do
-      rs.draw { |map| map.match '/:controller(/:action(/:id))' }
-    end
-  end
-
   def test_specific_controller_action_failure
     rs.draw do
       mount lambda {} => "/foo"
@@ -330,17 +321,23 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
     assert_equal '/stuff', controller.url_for({ :controller => '/stuff', :only_path => true })
   end
 
-  def test_ignores_leading_slash
-    rs.clear!
-    rs.draw { get '/:controller(/:action(/:id))'}
-    test_default_setup
-  end
-
   def test_route_with_colon_first
     rs.draw do
-      get '/:controller/:action/:id', :action => 'index', :id => nil
-      get ':url', :controller => 'tiny_url', :action => 'translate'
+      get '/:controller/:action/:id', action: 'index', id: nil
+      get ':url', controller: 'content', action: 'translate'
     end
+
+    assert_equal({controller: 'content', action: 'translate', url: 'example'}, rs.recognize_path('/example'))
+  end
+
+  def test_route_with_regexp_for_action
+    rs.draw { get '/:controller/:action', action: /auth[-|_].+/ }
+
+    assert_equal({ action: 'auth_google', controller: 'content' }, rs.recognize_path('/content/auth_google'))
+    assert_equal({ action: 'auth-facebook', controller: 'content' }, rs.recognize_path('/content/auth-facebook'))
+
+    assert_equal '/content/auth_google', url_for(rs, { controller: "content", action: "auth_google" })
+    assert_equal '/content/auth-facebook', url_for(rs, { controller: "content", action: "auth-facebook" })
   end
 
   def test_route_with_regexp_for_controller
@@ -872,7 +869,7 @@ class RouteSetTest < ActiveSupport::TestCase
 
   def default_route_set
     @default_route_set ||= begin
-      set = ROUTING::RouteSet.new
+      set = ActionDispatch::Routing::RouteSet.new
       set.draw do
         get '/:controller(/:action(/:id))'
       end
@@ -1749,40 +1746,10 @@ class RouteSetTest < ActiveSupport::TestCase
 
   include ActionDispatch::RoutingVerbs
 
-  class TestSet < ROUTING::RouteSet
-    def initialize(block)
-      @block = block
-      super()
-    end
-
-    class Dispatcher < ROUTING::RouteSet::Dispatcher
-      def initialize(defaults, set, block)
-        super(defaults)
-        @block = block
-        @set = set
-      end
-
-      def controller_reference(controller_param)
-        block = @block
-        set = @set
-        Class.new(ActionController::Base) {
-          include set.url_helpers
-          define_method(:process) { |name| block.call(self) }
-          def to_a; [200, {}, []]; end
-        }
-      end
-    end
-
-    def dispatcher defaults
-      TestSet::Dispatcher.new defaults, self, @block
-    end
-  end
-
   alias :routes :set
 
   def test_generate_with_optional_params_recalls_last_request
-    controller = nil
-    @set = TestSet.new ->(c) { controller = c }
+    @set = make_set false
 
     set.draw do
       get "blog/", :controller => "blog", :action => "index"

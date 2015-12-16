@@ -25,7 +25,7 @@ module ActionController
       class_attribute :etag_with_template_digest
       self.etag_with_template_digest = true
 
-      ActiveSupport.on_load :action_view, yield: true do |action_view_base|
+      ActiveSupport.on_load :action_view, yield: true do
         etag do |options|
           determine_template_etag(options) if etag_with_template_digest
         end

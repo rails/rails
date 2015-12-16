@@ -194,6 +194,19 @@ class ParametersPermitTest < ActiveSupport::TestCase
     assert_equal "monkey", @params.fetch(:foo) { "monkey" }
   end
 
+  test "fetch doesnt raise ParameterMissing exception if there is a default that is nil" do
+    assert_equal nil, @params.fetch(:foo, nil)
+    assert_equal nil, @params.fetch(:foo) { nil }
+  end
+
+  test 'KeyError in fetch block should not be covered up' do
+    params = ActionController::Parameters.new
+    e = assert_raises(KeyError) do
+      params.fetch(:missing_key) { {}.fetch(:also_missing) }
+    end
+    assert_match(/:also_missing$/, e.message)
+  end
+
   test "not permitted is sticky beyond merges" do
     assert !@params.merge(a: "b").permitted?
   end
@@ -243,7 +256,7 @@ class ParametersPermitTest < ActiveSupport::TestCase
   end
 
   test "to_h returns empty hash on unpermitted params" do
-    assert @params.to_h.is_a? Hash
+    assert @params.to_h.is_a? ActiveSupport::HashWithIndifferentAccess
     assert_not @params.to_h.is_a? ActionController::Parameters
     assert @params.to_h.empty?
   end
@@ -251,9 +264,8 @@ class ParametersPermitTest < ActiveSupport::TestCase
   test "to_h returns converted hash on permitted params" do
     @params.permit!
 
-    assert @params.to_h.is_a? Hash
+    assert @params.to_h.is_a? ActiveSupport::HashWithIndifferentAccess
     assert_not @params.to_h.is_a? ActionController::Parameters
-    assert_equal @params.to_hash, @params.to_h
   end
 
   test "to_h returns converted hash when .permit_all_parameters is set" do
@@ -261,7 +273,7 @@ class ParametersPermitTest < ActiveSupport::TestCase
       ActionController::Parameters.permit_all_parameters = true
       params = ActionController::Parameters.new(crab: "Senjougahara Hitagi")
 
-      assert params.to_h.is_a? Hash
+      assert params.to_h.is_a? ActiveSupport::HashWithIndifferentAccess
       assert_not @params.to_h.is_a? ActionController::Parameters
       assert_equal({ "crab" => "Senjougahara Hitagi" }, params.to_h)
     ensure
@@ -279,5 +291,10 @@ class ParametersPermitTest < ActiveSupport::TestCase
     )
 
     assert_equal({ "controller" => "users", "action" => "create" }, params.to_h)
+  end
+
+  test "to_unsafe_h returns unfiltered params" do
+    assert @params.to_h.is_a? ActiveSupport::HashWithIndifferentAccess
+    assert_not @params.to_h.is_a? ActionController::Parameters
   end
 end

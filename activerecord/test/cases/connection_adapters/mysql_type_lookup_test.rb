@@ -22,6 +22,10 @@ module ActiveRecord
         assert_lookup_type :string, "SET('one', 'two', 'three')"
       end
 
+      def test_set_type_with_value_matching_other_type
+        assert_lookup_type :string, "SET('unicode', '8bit', 'none', 'time')"
+      end
+
       def test_enum_type_with_value_matching_other_type
         assert_lookup_type :string, "ENUM('unicode', '8bit', 'none')"
       end

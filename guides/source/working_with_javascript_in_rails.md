@@ -1,3 +1,5 @@
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+
 Working with JavaScript in Rails
 ================================
 
@@ -79,7 +81,7 @@ Awkward, right? We could pull the function definition out of the click handler,
 and turn it into CoffeeScript:
 
 ```coffeescript
-paintIt = (element, backgroundColor, textColor) ->
+@paintIt = (element, backgroundColor, textColor) ->
   element.style.backgroundColor = backgroundColor
   if textColor?
     element.style.color = textColor
@@ -105,7 +107,7 @@ attribute to our link, and then bind a handler to the click event of every link
 that has that attribute:
 
 ```coffeescript
-paintIt = (element, backgroundColor, textColor) ->
+@paintIt = (element, backgroundColor, textColor) ->
   element.style.backgroundColor = backgroundColor
   if textColor?
     element.style.color = textColor
@@ -256,7 +258,7 @@ this generates
 
 ```html
 <form action="/articles/1" class="button_to" data-remote="true" method="post">
-  <div><input type="submit" value="An article"></div>
+  <input type="submit" value="An article" />
 </form>
 ```
 
@@ -355,7 +357,7 @@ This gem uses Ajax to speed up page rendering in most applications.
 
 Turbolinks attaches a click handler to all `<a>` on the page. If your browser
 supports
-[PushState](https://developer.mozilla.org/en-US/docs/DOM/Manipulating_the_browser_history#The_pushState(\).C2.A0method),
+[PushState](https://developer.mozilla.org/en-US/docs/Web/Guide/API/DOM/Manipulating_the_browser_history#The_pushState%28%29_method),
 Turbolinks will make an Ajax request for the page, parse the response, and
 replace the entire `<body>` of the page with the `<body>` of the response. It
 will then use PushState to change the URL to the correct one, preserving

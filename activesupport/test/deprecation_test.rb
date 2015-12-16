@@ -1,4 +1,5 @@
 require 'abstract_unit'
+require 'active_support/testing/stream'
 
 class Deprecatee
   def initialize
@@ -36,6 +37,8 @@ end
 
 
 class DeprecationTest < ActiveSupport::TestCase
+  include ActiveSupport::Testing::Stream
+
   def setup
     # Track the last warning.
     @old_behavior = ActiveSupport::Deprecation.behavior
@@ -160,6 +163,14 @@ class DeprecationTest < ActiveSupport::TestCase
     assert_not_deprecated { assert_equal Deprecatee::B::C.class, Deprecatee::A.class }
   end
 
+  def test_assert_deprecated_raises_when_method_not_deprecated
+    assert_raises(Minitest::Assertion) { assert_deprecated { @dtc.not } }
+  end
+
+  def test_assert_not_deprecated
+    assert_raises(Minitest::Assertion) { assert_not_deprecated { @dtc.partially } }
+  end
+
   def test_assert_deprecation_without_match
     assert_deprecated do
       @dtc.partially
@@ -253,17 +264,17 @@ class DeprecationTest < ActiveSupport::TestCase
   end
 
   def test_deprecate_with_custom_deprecator
-    custom_deprecator = mock('Deprecator') do
-      expects(:deprecation_warning)
-    end
+    custom_deprecator = Struct.new(:deprecation_warning).new
 
-    klass = Class.new do
-      def method
+    assert_called_with(custom_deprecator, :deprecation_warning, [:method, nil]) do
+      klass = Class.new do
+        def method
+        end
+        deprecate :method, deprecator: custom_deprecator
       end
-      deprecate :method, deprecator: custom_deprecator
-    end
 
-    klass.new.method
+      klass.new.method
+    end
   end
 
   def test_deprecated_constant_with_deprecator_given
@@ -356,20 +367,4 @@ class DeprecationTest < ActiveSupport::TestCase
       deprecator
     end
 
-    def capture(stream)
-      stream = stream.to_s
-      captured_stream = Tempfile.new(stream)
-      stream_io = eval("$#{stream}")
-      origin_stream = stream_io.dup
-      stream_io.reopen(captured_stream)
-
-      yield
-
-      stream_io.rewind
-      return captured_stream.read
-    ensure
-      captured_stream.close
-      captured_stream.unlink
-      stream_io.reopen(origin_stream)
-    end
 end

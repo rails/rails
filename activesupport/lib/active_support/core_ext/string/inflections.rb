@@ -164,25 +164,43 @@ class String
   #
   #   <%= link_to(@person.name, person_path) %>
   #   # => <a href="/person/1-donald-e-knuth">Donald E. Knuth</a>
-  def parameterize(sep = '-')
-    ActiveSupport::Inflector.parameterize(self, sep)
+  #   
+  # To preserve the case of the characters in a string, use the `preserve_case` argument.
+  #
+  #   class Person
+  #     def to_param
+  #       "#{id}-#{name.parameterize(preserve_case: true)}"
+  #     end
+  #   end
+  #
+  #   @person = Person.find(1)
+  #   # => #<Person id: 1, name: "Donald E. Knuth">
+  #
+  #   <%= link_to(@person.name, person_path) %>
+  #   # => <a href="/person/1-Donald-E-Knuth">Donald E. Knuth</a>
+  def parameterize(sep = :unused, separator: '-', preserve_case: false)
+    unless sep == :unused
+      ActiveSupport::Deprecation.warn("Passing the separator argument as a positional parameter is deprecated and will soon be removed. Use `separator: '#{sep}'` instead.")
+      separator = sep
+    end
+    ActiveSupport::Inflector.parameterize(self, separator: separator, preserve_case: preserve_case)
   end
 
   # Creates the name of a table like Rails does for models to table names. This method
   # uses the +pluralize+ method on the last word in the string.
   #
   #   'RawScaledScorer'.tableize # => "raw_scaled_scorers"
-  #   'egg_and_ham'.tableize     # => "egg_and_hams"
+  #   'ham_and_egg'.tableize     # => "ham_and_eggs"
   #   'fancyCategory'.tableize   # => "fancy_categories"
   def tableize
     ActiveSupport::Inflector.tableize(self)
   end
 
-  # Create a class name from a plural table name like Rails does for table names to models.
+  # Creates a class name from a plural table name like Rails does for table names to models.
   # Note that this returns a string and not a class. (To convert to an actual class
   # follow +classify+ with +constantize+.)
   #
-  #   'egg_and_hams'.classify # => "EggAndHam"
+  #   'ham_and_eggs'.classify # => "HamAndEgg"
   #   'posts'.classify        # => "Post"
   def classify
     ActiveSupport::Inflector.classify(self)

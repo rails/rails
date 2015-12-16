@@ -51,34 +51,6 @@ module ActiveRecord
         assert_equal expected, actual
       end
 
-      def test_resolver_with_database_uri_and_and_current_env_string_key
-        ENV['DATABASE_URL'] = "postgres://localhost/foo"
-        config   = { "default_env" => {  "adapter" => "not_postgres", "database" => "not_foo" } }
-        actual   = assert_deprecated { resolve_spec("default_env", config) }
-        expected = { "adapter"=>"postgresql", "database"=>"foo", "host"=>"localhost" }
-        assert_equal expected, actual
-      end
-
-      def test_resolver_with_database_uri_and_and_current_env_string_key_and_rails_env
-        ENV['DATABASE_URL'] = "postgres://localhost/foo"
-        ENV['RAILS_ENV'] = "foo"
-
-        config   = { "not_production" => {"adapter" => "not_postgres", "database" => "not_foo" } }
-        actual   = assert_deprecated { resolve_spec("foo", config) }
-        expected = { "adapter" => "postgresql", "database" => "foo", "host" => "localhost" }
-        assert_equal expected, actual
-      end
-
-      def test_resolver_with_database_uri_and_and_current_env_string_key_and_rack_env
-        ENV['DATABASE_URL'] = "postgres://localhost/foo"
-        ENV['RACK_ENV'] = "foo"
-
-        config   = { "not_production" => {"adapter" => "not_postgres", "database" => "not_foo" } }
-        actual   = assert_deprecated { resolve_spec("foo", config) }
-        expected = { "adapter" => "postgresql", "database" => "foo", "host" => "localhost" }
-        assert_equal expected, actual
-      end
-
       def test_resolver_with_database_uri_and_known_key
         ENV['DATABASE_URL'] = "postgres://localhost/foo"
         config   = { "production" => { "adapter" => "not_postgres", "database" => "not_foo", "host" => "localhost" } }
@@ -92,16 +64,6 @@ module ActiveRecord
         config   = { "not_production" => {  "adapter" => "not_postgres", "database" => "not_foo" } }
         assert_raises AdapterNotSpecified do
           resolve_spec(:production, config)
-        end
-      end
-
-      def test_resolver_with_database_uri_and_unknown_string_key
-        ENV['DATABASE_URL'] = "postgres://localhost/foo"
-        config   = { "not_production" => {  "adapter" => "not_postgres", "database" => "not_foo" } }
-        assert_deprecated do
-          assert_raises AdapterNotSpecified do
-           resolve_spec("production", config)
-          end
         end
       end
 

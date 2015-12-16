@@ -5,8 +5,12 @@ module ActiveRecord
         FromDatabase.new(name, value, type)
       end
 
-      def from_user(name, value, type)
-        FromUser.new(name, value, type)
+      def from_user(name, value, type, original_attribute = nil)
+        FromUser.new(name, value, type, original_attribute)
+      end
+
+      def with_cast_value(name, value, type)
+        WithCastValue.new(name, value, type)
       end
 
       def null(name)
@@ -22,40 +26,58 @@ module ActiveRecord
 
     # This method should not be called directly.
     # Use #from_database or #from_user
-    def initialize(name, value_before_type_cast, type)
+    def initialize(name, value_before_type_cast, type, original_attribute = nil)
       @name = name
       @value_before_type_cast = value_before_type_cast
       @type = type
+      @original_attribute = original_attribute
     end
 
     def value
       # `defined?` is cheaper than `||=` when we get back falsy values
-      @value = original_value unless defined?(@value)
+      @value = type_cast(value_before_type_cast) unless defined?(@value)
       @value
     end
 
     def original_value
-      type_cast(value_before_type_cast)
+      if assigned?
+        original_attribute.original_value
+      else
+        type_cast(value_before_type_cast)
+      end
     end
 
     def value_for_database
-      type.type_cast_for_database(value)
+      type.serialize(value)
     end
 
-    def changed_from?(old_value)
-      type.changed?(old_value, value, value_before_type_cast)
+    def changed?
+      changed_from_assignment? || changed_in_place?
     end
 
-    def changed_in_place_from?(old_value)
-      type.changed_in_place?(old_value, value)
+    def changed_in_place?
+      has_been_read? && type.changed_in_place?(original_value_for_database, value)
+    end
+
+    def forgetting_assignment
+      with_value_from_database(value_for_database)
     end
 
     def with_value_from_user(value)
-      self.class.from_user(name, value, type)
+      type.assert_valid_value(value)
+      self.class.from_user(name, value, type, self)
     end
 
     def with_value_from_database(value)
       self.class.from_database(name, value, type)
+    end
+
+    def with_cast_value(value)
+      self.class.with_cast_value(name, value, type)
+    end
+
+    def with_type(type)
+      self.class.new(name, value_before_type_cast, type, original_attribute)
     end
 
     def type_cast(*)
@@ -66,14 +88,30 @@ module ActiveRecord
       true
     end
 
+    def came_from_user?
+      false
+    end
+
+    def has_been_read?
+      defined?(@value)
+    end
+
     def ==(other)
       self.class == other.class &&
         name == other.name &&
         value_before_type_cast == other.value_before_type_cast &&
         type == other.type
     end
+    alias eql? ==
+
+    def hash
+      [self.class, name, value_before_type_cast, type].hash
+    end
 
     protected
+
+    attr_reader :original_attribute
+    alias_method :assigned?, :original_attribute
 
     def initialize_dup(other)
       if defined?(@value) && @value.duplicable?
@@ -81,15 +119,49 @@ module ActiveRecord
       end
     end
 
+    def changed_from_assignment?
+      assigned? && type.changed?(original_value, value, value_before_type_cast)
+    end
+
+    def original_value_for_database
+      if assigned?
+        original_attribute.original_value_for_database
+      else
+        _original_value_for_database
+      end
+    end
+
+    def _original_value_for_database
+      value_for_database
+    end
+
     class FromDatabase < Attribute # :nodoc:
       def type_cast(value)
-        type.type_cast_from_database(value)
+        type.deserialize(value)
+      end
+
+      def _original_value_for_database
+        value_before_type_cast
       end
     end
 
     class FromUser < Attribute # :nodoc:
       def type_cast(value)
-        type.type_cast_from_user(value)
+        type.cast(value)
+      end
+
+      def came_from_user?
+        true
+      end
+    end
+
+    class WithCastValue < Attribute # :nodoc:
+      def type_cast(value)
+        value
+      end
+
+      def changed_in_place_from?(old_value)
+        false
       end
     end
 
@@ -100,6 +172,10 @@ module ActiveRecord
 
       def value
         nil
+      end
+
+      def with_type(type)
+        self.class.with_cast_value(name, nil, type)
       end
 
       def with_value_from_database(value)
@@ -126,6 +202,6 @@ module ActiveRecord
         false
       end
     end
-    private_constant :FromDatabase, :FromUser, :Null, :Uninitialized
+    private_constant :FromDatabase, :FromUser, :Null, :Uninitialized, :WithCastValue
   end
 end

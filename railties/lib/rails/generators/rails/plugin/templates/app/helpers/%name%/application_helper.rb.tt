@@ -1,4 +1,0 @@
-module <%= camelized %>
-  module ApplicationHelper
-  end
-end

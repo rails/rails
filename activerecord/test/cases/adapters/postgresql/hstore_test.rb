@@ -1,9 +1,8 @@
-# encoding: utf-8
 require "cases/helper"
 require 'support/schema_dumping_helper'
 
 if ActiveRecord::Base.connection.supports_extensions?
-  class PostgresqlHstoreTest < ActiveRecord::TestCase
+  class PostgresqlHstoreTest < ActiveRecord::PostgreSQLTestCase
     include SchemaDumpingHelper
     class Hstore < ActiveRecord::Base
       self.table_name = 'hstores'
@@ -28,11 +27,13 @@ if ActiveRecord::Base.connection.supports_extensions?
           t.hstore 'settings'
         end
       end
+      Hstore.reset_column_information
       @column = Hstore.columns_hash['tags']
+      @type = Hstore.type_for_attribute("tags")
     end
 
     teardown do
-      @connection.execute 'drop table if exists hstores'
+      @connection.drop_table 'hstores', if_exists: true
     end
 
     def test_hstore_included_in_extensions
@@ -54,9 +55,9 @@ if ActiveRecord::Base.connection.supports_extensions?
     def test_column
       assert_equal :hstore, @column.type
       assert_equal "hstore", @column.sql_type
-      assert_not @column.number?
-      assert_not @column.binary?
-      assert_not @column.array
+      assert_not @column.array?
+
+      assert_not @type.binary?
     end
 
     def test_default
@@ -85,7 +86,7 @@ if ActiveRecord::Base.connection.supports_extensions?
     end
 
     def test_hstore_migration
-      hstore_migration = Class.new(ActiveRecord::Migration) do
+      hstore_migration = Class.new(ActiveRecord::Migration::Current) do
         def change
           change_table("hstores") do |t|
             t.hstore :keys
@@ -110,10 +111,10 @@ if ActiveRecord::Base.connection.supports_extensions?
     end
 
     def test_type_cast_hstore
-      assert_equal({'1' => '2'}, @column.type_cast_from_database("\"1\"=>\"2\""))
-      assert_equal({}, @column.type_cast_from_database(""))
-      assert_equal({'key'=>nil}, @column.type_cast_from_database('key => NULL'))
-      assert_equal({'c'=>'}','"a"'=>'b "a b'}, @column.type_cast_from_database(%q(c=>"}", "\"a\""=>"b \"a b")))
+      assert_equal({'1' => '2'}, @type.deserialize("\"1\"=>\"2\""))
+      assert_equal({}, @type.deserialize(""))
+      assert_equal({'key'=>nil}, @type.deserialize('key => NULL'))
+      assert_equal({'c'=>'}','"a"'=>'b "a b'}, @type.deserialize(%q(c=>"}", "\"a\""=>"b \"a b")))
     end
 
     def test_with_store_accessors
@@ -165,47 +166,47 @@ if ActiveRecord::Base.connection.supports_extensions?
     end
 
     def test_gen1
-      assert_equal(%q(" "=>""), @column.cast_type.type_cast_for_database({' '=>''}))
+      assert_equal(%q(" "=>""), @type.serialize({' '=>''}))
     end
 
     def test_gen2
-      assert_equal(%q(","=>""), @column.cast_type.type_cast_for_database({','=>''}))
+      assert_equal(%q(","=>""), @type.serialize({','=>''}))
     end
 
     def test_gen3
-      assert_equal(%q("="=>""), @column.cast_type.type_cast_for_database({'='=>''}))
+      assert_equal(%q("="=>""), @type.serialize({'='=>''}))
     end
 
     def test_gen4
-      assert_equal(%q(">"=>""), @column.cast_type.type_cast_for_database({'>'=>''}))
+      assert_equal(%q(">"=>""), @type.serialize({'>'=>''}))
     end
 
     def test_parse1
-      assert_equal({'a'=>nil,'b'=>nil,'c'=>'NuLl','null'=>'c'}, @column.type_cast_from_database('a=>null,b=>NuLl,c=>"NuLl",null=>c'))
+      assert_equal({'a'=>nil,'b'=>nil,'c'=>'NuLl','null'=>'c'}, @type.deserialize('a=>null,b=>NuLl,c=>"NuLl",null=>c'))
     end
 
     def test_parse2
-      assert_equal({" " => " "},  @column.type_cast_from_database("\\ =>\\ "))
+      assert_equal({" " => " "},  @type.deserialize("\\ =>\\ "))
     end
 
     def test_parse3
-      assert_equal({"=" => ">"},  @column.type_cast_from_database("==>>"))
+      assert_equal({"=" => ">"},  @type.deserialize("==>>"))
     end
 
     def test_parse4
-      assert_equal({"=a"=>"q=w"},   @column.type_cast_from_database('\=a=>q=w'))
+      assert_equal({"=a"=>"q=w"},   @type.deserialize('\=a=>q=w'))
     end
 
     def test_parse5
-      assert_equal({"=a"=>"q=w"},   @column.type_cast_from_database('"=a"=>q\=w'))
+      assert_equal({"=a"=>"q=w"},   @type.deserialize('"=a"=>q\=w'))
     end
 
     def test_parse6
-      assert_equal({"\"a"=>"q>w"},  @column.type_cast_from_database('"\"a"=>q>w'))
+      assert_equal({"\"a"=>"q>w"},  @type.deserialize('"\"a"=>q>w'))
     end
 
     def test_parse7
-      assert_equal({"\"a"=>"q\"w"}, @column.type_cast_from_database('\"a=>q"w'))
+      assert_equal({"\"a"=>"q\"w"}, @type.deserialize('\"a=>q"w'))
     end
 
     def test_rewrite
@@ -317,7 +318,7 @@ if ActiveRecord::Base.connection.supports_extensions?
 
     def test_schema_dump_with_shorthand
       output = dump_table_schema("hstores")
-      assert_match %r[t.hstore "tags",\s+default: {}], output
+      assert_match %r[t\.hstore "tags",\s+default: {}], output
     end
 
     private

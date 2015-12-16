@@ -1,6 +1,6 @@
 require 'active_record/connection_adapters/abstract_mysql_adapter'
 
-gem 'mysql2', '~> 0.3.13'
+gem 'mysql2', '>= 0.3.18', '< 0.5'
 require 'mysql2'
 
 module ActiveRecord
@@ -10,17 +10,16 @@ module ActiveRecord
       config = config.symbolize_keys
 
       config[:username] = 'root' if config[:username].nil?
-
+      config[:flags] ||= 0
       if Mysql2::Client.const_defined? :FOUND_ROWS
-        config[:flags] = Mysql2::Client::FOUND_ROWS
+        config[:flags] |= Mysql2::Client::FOUND_ROWS
       end
 
       client = Mysql2::Client.new(config)
-      options = [config[:host], config[:username], config[:password], config[:database], config[:port], config[:socket], 0]
-      ConnectionAdapters::Mysql2Adapter.new(client, logger, options, config)
+      ConnectionAdapters::Mysql2Adapter.new(client, logger, nil, config)
     rescue Mysql2::Error => error
       if error.message.include?("Unknown database")
-        raise ActiveRecord::NoDatabaseError.new(error.message, error)
+        raise ActiveRecord::NoDatabaseError
       else
         raise
       end
@@ -37,17 +36,8 @@ module ActiveRecord
         configure_connection
       end
 
-      MAX_INDEX_LENGTH_FOR_UTF8MB4 = 191
-      def initialize_schema_migrations_table
-        if @config[:encoding] == 'utf8mb4'
-          ActiveRecord::SchemaMigration.create_table(MAX_INDEX_LENGTH_FOR_UTF8MB4)
-        else
-          ActiveRecord::SchemaMigration.create_table
-        end
-      end
-
-      def supports_explain?
-        true
+      def supports_json?
+        version >= '5.7.8'
       end
 
       # HELPER METHODS ===========================================
@@ -72,14 +62,6 @@ module ActiveRecord
 
       def quote_string(string)
         @connection.escape(string)
-      end
-
-      def quoted_date(value)
-        if value.acts_like?(:time) && value.respond_to?(:usec)
-          "#{super}.#{sprintf("%06d", value.usec)}"
-        else
-          super
-        end
       end
 
       #--
@@ -112,80 +94,6 @@ module ActiveRecord
       # DATABASE STATEMENTS ======================================
       #++
 
-      def explain(arel, binds = [])
-        sql     = "EXPLAIN #{to_sql(arel, binds.dup)}"
-        start   = Time.now
-        result  = exec_query(sql, 'EXPLAIN', binds)
-        elapsed = Time.now - start
-
-        ExplainPrettyPrinter.new.pp(result, elapsed)
-      end
-
-      class ExplainPrettyPrinter # :nodoc:
-        # Pretty prints the result of a EXPLAIN in a way that resembles the output of the
-        # MySQL shell:
-        #
-        #   +----+-------------+-------+-------+---------------+---------+---------+-------+------+-------------+
-        #   | id | select_type | table | type  | possible_keys | key     | key_len | ref   | rows | Extra       |
-        #   +----+-------------+-------+-------+---------------+---------+---------+-------+------+-------------+
-        #   |  1 | SIMPLE      | users | const | PRIMARY       | PRIMARY | 4       | const |    1 |             |
-        #   |  1 | SIMPLE      | posts | ALL   | NULL          | NULL    | NULL    | NULL  |    1 | Using where |
-        #   +----+-------------+-------+-------+---------------+---------+---------+-------+------+-------------+
-        #   2 rows in set (0.00 sec)
-        #
-        # This is an exercise in Ruby hyperrealism :).
-        def pp(result, elapsed)
-          widths    = compute_column_widths(result)
-          separator = build_separator(widths)
-
-          pp = []
-
-          pp << separator
-          pp << build_cells(result.columns, widths)
-          pp << separator
-
-          result.rows.each do |row|
-            pp << build_cells(row, widths)
-          end
-
-          pp << separator
-          pp << build_footer(result.rows.length, elapsed)
-
-          pp.join("\n") + "\n"
-        end
-
-        private
-
-        def compute_column_widths(result)
-          [].tap do |widths|
-            result.columns.each_with_index do |column, i|
-              cells_in_column = [column] + result.rows.map {|r| r[i].nil? ? 'NULL' : r[i].to_s}
-              widths << cells_in_column.map(&:length).max
-            end
-          end
-        end
-
-        def build_separator(widths)
-          padding = 1
-          '+' + widths.map {|w| '-' * (w + (padding*2))}.join('+') + '+'
-        end
-
-        def build_cells(items, widths)
-          cells = []
-          items.each_with_index do |item, i|
-            item = 'NULL' if item.nil?
-            justifier = item.is_a?(Numeric) ? 'rjust' : 'ljust'
-            cells << item.to_s.send(justifier, widths[i])
-          end
-          '| ' + cells.join(' | ') + ' |'
-        end
-
-        def build_footer(nrows, elapsed)
-          rows_label = nrows == 1 ? 'row' : 'rows'
-          "#{nrows} #{rows_label} in set (%.2f sec)" % elapsed
-        end
-      end
-
       # FIXME: re-enable the following once a "better" query_cache solution is in core
       #
       # The overrides below perform much better than the originals in AbstractAdapter
@@ -217,7 +125,9 @@ module ActiveRecord
       # Returns an array of arrays containing the field values.
       # Order is the same as that returned by +columns+.
       def select_rows(sql, name = nil, binds = [])
-        execute(sql, name).to_a
+        result = execute(sql, name)
+        @connection.next_result while @connection.more_results?
+        result.to_a
       end
 
       # Executes the SQL statement in the context of this connection.
@@ -231,8 +141,9 @@ module ActiveRecord
         super
       end
 
-      def exec_query(sql, name = 'SQL', binds = [])
+      def exec_query(sql, name = 'SQL', binds = [], prepare: false)
         result = execute(sql, name)
+        @connection.next_result while @connection.more_results?
         ActiveRecord::Result.new(result.fields, result.to_a)
       end
 
@@ -271,11 +182,7 @@ module ActiveRecord
       end
 
       def full_version
-        @full_version ||= @connection.info[:version]
-      end
-
-      def set_field_encoding field_name
-        field_name
+        @full_version ||= @connection.server_info[:version]
       end
     end
   end

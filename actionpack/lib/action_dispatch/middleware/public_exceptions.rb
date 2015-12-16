@@ -17,10 +17,10 @@ module ActionDispatch
     end
 
     def call(env)
-      status       = env["PATH_INFO"][1..-1]
       request      = ActionDispatch::Request.new(env)
+      status       = request.path_info[1..-1].to_i
       content_type = request.formats.first
-      body         = { :status => status, :error => Rack::Utils::HTTP_STATUS_CODES.fetch(status.to_i, Rack::Utils::HTTP_STATUS_CODES[500]) }
+      body         = { :status => status, :error => Rack::Utils::HTTP_STATUS_CODES.fetch(status, Rack::Utils::HTTP_STATUS_CODES[500]) }
 
       render(status, content_type, body)
     end

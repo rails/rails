@@ -35,7 +35,7 @@ module ActiveSupport
     # This method must also receive a block that will be called once a path
     # changes. The array of files and list of directories cannot be changed
     # after FileUpdateChecker has been initialized.
-    def initialize(files, dirs={}, &block)
+    def initialize(files, dirs = {}, &block)
       @files = files.freeze
       @glob  = compile_glob(dirs)
       @block = block

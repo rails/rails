@@ -7,9 +7,9 @@ module ActionView #:nodoc:
       autoload :Raw, 'action_view/template/handlers/raw'
 
       def self.extended(base)
-        base.register_default_template_handler :erb, ERB.new
+        base.register_default_template_handler :raw, Raw.new
+        base.register_template_handler :erb, ERB.new
         base.register_template_handler :builder, Builder.new
-        base.register_template_handler :raw, Raw.new
         base.register_template_handler :ruby, :source.to_proc
       end
 

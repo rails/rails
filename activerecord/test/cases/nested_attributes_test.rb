@@ -273,10 +273,11 @@ class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase
   end
 
   def test_should_modify_an_existing_record_if_there_is_a_matching_composite_id
-    @ship.stubs(:id).returns('ABC1X')
-    @pirate.ship_attributes = { :id => @ship.id, :name => 'Davy Jones Gold Dagger' }
+    @ship.stub(:id, 'ABC1X') do
+      @pirate.ship_attributes = { :id => @ship.id, :name => 'Davy Jones Gold Dagger' }
 
-    assert_equal 'Davy Jones Gold Dagger', @pirate.ship.name
+      assert_equal 'Davy Jones Gold Dagger', @pirate.ship.name
+    end
   end
 
   def test_should_destroy_an_existing_record_if_there_is_a_matching_id_and_destroy_is_truthy
@@ -457,10 +458,11 @@ class TestNestedAttributesOnABelongsToAssociation < ActiveRecord::TestCase
   end
 
   def test_should_modify_an_existing_record_if_there_is_a_matching_composite_id
-    @pirate.stubs(:id).returns('ABC1X')
-    @ship.pirate_attributes = { :id => @pirate.id, :catchphrase => 'Arr' }
+    @pirate.stub(:id, 'ABC1X') do
+      @ship.pirate_attributes = { :id => @pirate.id, :catchphrase => 'Arr' }
 
-    assert_equal 'Arr', @ship.pirate.catchphrase
+      assert_equal 'Arr', @ship.pirate.catchphrase
+    end
   end
 
   def test_should_destroy_an_existing_record_if_there_is_a_matching_id_and_destroy_is_truthy
@@ -638,17 +640,19 @@ module NestedAttributesOnACollectionAssociationTests
   end
 
   def test_should_take_a_hash_with_composite_id_keys_and_assign_the_attributes_to_the_associated_models
-    @child_1.stubs(:id).returns('ABC1X')
-    @child_2.stubs(:id).returns('ABC2X')
+    @child_1.stub(:id, 'ABC1X') do
+      @child_2.stub(:id, 'ABC2X') do
 
-    @pirate.attributes = {
-      association_getter => [
-        { :id => @child_1.id, :name => 'Grace OMalley' },
-        { :id => @child_2.id, :name => 'Privateers Greed' }
-      ]
-    }
+        @pirate.attributes = {
+          association_getter => [
+            { :id => @child_1.id, :name => 'Grace OMalley' },
+            { :id => @child_2.id, :name => 'Privateers Greed' }
+          ]
+        }
 
-    assert_equal ['Grace OMalley', 'Privateers Greed'], [@child_1.name, @child_2.name]
+        assert_equal ['Grace OMalley', 'Privateers Greed'], [@child_1.name, @child_2.name]
+      end
+    end
   end
 
   def test_should_raise_RecordNotFound_if_an_id_is_given_but_doesnt_return_a_record
@@ -656,6 +660,16 @@ module NestedAttributesOnACollectionAssociationTests
       @pirate.attributes = { association_getter => [{ :id => 1234567890 }] }
     end
     assert_equal "Couldn't find #{@child_1.class.name} with ID=1234567890 for Pirate with ID=#{@pirate.id}", exception.message
+  end
+
+  def test_should_raise_RecordNotFound_if_an_id_belonging_to_a_different_record_is_given
+    other_pirate = Pirate.create! catchphrase: 'Ahoy!'
+    other_child = other_pirate.send(@association_name).create! name: 'Buccaneers Servant'
+
+    exception = assert_raise ActiveRecord::RecordNotFound do
+      @pirate.attributes = { association_getter => [{ id: other_child.id }] }
+    end
+    assert_equal "Couldn't find #{@child_1.class.name} with ID=#{other_child.id} for Pirate with ID=#{@pirate.id}", exception.message
   end
 
   def test_should_automatically_build_new_associated_models_for_each_entry_in_a_hash_where_the_id_is_missing
@@ -943,7 +957,7 @@ class TestNestedAttributesWithNonStandardPrimaryKeys < ActiveRecord::TestCase
 end
 
 class TestHasOneAutosaveAssociationWhichItselfHasAutosaveAssociations < ActiveRecord::TestCase
-  self.use_transactional_fixtures = false unless supports_savepoints?
+  self.use_transactional_tests = false unless supports_savepoints?
 
   def setup
     @pirate = Pirate.create!(:catchphrase => "My baby takes tha mornin' train!")
@@ -983,7 +997,7 @@ class TestHasOneAutosaveAssociationWhichItselfHasAutosaveAssociations < ActiveRe
 end
 
 class TestHasManyAutosaveAssociationWhichItselfHasAutosaveAssociations < ActiveRecord::TestCase
-  self.use_transactional_fixtures = false unless supports_savepoints?
+  self.use_transactional_tests = false unless supports_savepoints?
 
   def setup
     @ship = Ship.create!(:name => "The good ship Dollypop")
@@ -1036,5 +1050,22 @@ class TestHasManyAutosaveAssociationWhichItselfHasAutosaveAssociations < ActiveR
     Ship.create!(:name => "The Black Rock")
     ShipPart.create!(:ship => @ship, :name => "Stern")
     assert_no_queries { @ship.valid? }
+  end
+
+  test "circular references do not perform unnecessary queries" do
+    ship = Ship.new(name: "The Black Rock")
+    part = ship.parts.build(name: "Stern")
+    ship.treasures.build(looter: part)
+
+    assert_queries 3 do
+      ship.save!
+    end
+  end
+
+  test "nested singular associations are validated" do
+    part = ShipPart.new(name: "Stern", ship_attributes: { name: nil })
+
+    assert_not part.valid?
+    assert_equal ["Ship name can't be blank"], part.errors.full_messages
   end
 end

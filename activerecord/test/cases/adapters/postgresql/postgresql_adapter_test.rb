@@ -1,11 +1,10 @@
-# encoding: utf-8
 require "cases/helper"
 require 'support/ddl_helper'
 require 'support/connection_helper'
 
 module ActiveRecord
   module ConnectionAdapters
-    class PostgreSQLAdapterTest < ActiveRecord::TestCase
+    class PostgreSQLAdapterTest < ActiveRecord::PostgreSQLTestCase
       include DdlHelper
       include ConnectionHelper
 
@@ -54,6 +53,12 @@ module ActiveRecord
         end
       end
 
+      def test_composite_primary_key
+        with_example_table 'id serial, number serial, PRIMARY KEY (id, number)' do
+          assert_nil @connection.primary_key('ex')
+        end
+      end
+
       def test_primary_key_raises_error_if_table_not_found
         assert_raises(ActiveRecord::StatementInvalid) do
           @connection.primary_key('unobtainium')
@@ -63,7 +68,7 @@ module ActiveRecord
       def test_insert_sql_with_proprietary_returning_clause
         with_example_table do
           id = @connection.insert_sql("insert into ex (number) values(5150)", nil, "number")
-          assert_equal "5150", id
+          assert_equal 5150, id
         end
       end
 
@@ -101,21 +106,35 @@ module ActiveRecord
         connection = connection_without_insert_returning
         id = connection.insert_sql("insert into postgresql_partitioned_table_parent (number) VALUES (1)")
         expect = connection.query('select max(id) from postgresql_partitioned_table_parent').first.first
-        assert_equal expect, id
+        assert_equal expect.to_i, id
       end
 
       def test_exec_insert_with_returning_disabled
         connection = connection_without_insert_returning
         result = connection.exec_insert("insert into postgresql_partitioned_table_parent (number) VALUES (1)", nil, [], 'id', 'postgresql_partitioned_table_parent_id_seq')
         expect = connection.query('select max(id) from postgresql_partitioned_table_parent').first.first
-        assert_equal expect, result.rows.first.first
+        assert_equal expect.to_i, result.rows.first.first
       end
 
       def test_exec_insert_with_returning_disabled_and_no_sequence_name_given
         connection = connection_without_insert_returning
         result = connection.exec_insert("insert into postgresql_partitioned_table_parent (number) VALUES (1)", nil, [], 'id')
         expect = connection.query('select max(id) from postgresql_partitioned_table_parent').first.first
-        assert_equal expect, result.rows.first.first
+        assert_equal expect.to_i, result.rows.first.first
+      end
+
+      def test_exec_insert_default_values_with_returning_disabled_and_no_sequence_name_given
+        connection = connection_without_insert_returning
+        result = connection.exec_insert("insert into postgresql_partitioned_table_parent DEFAULT VALUES", nil, [], 'id')
+        expect = connection.query('select max(id) from postgresql_partitioned_table_parent').first.first
+        assert_equal expect.to_i, result.rows.first.first
+      end
+
+      def test_exec_insert_default_values_quoted_schema_with_returning_disabled_and_no_sequence_name_given
+        connection = connection_without_insert_returning
+        result = connection.exec_insert('insert into "public"."postgresql_partitioned_table_parent" DEFAULT VALUES', nil, [], 'id')
+        expect = connection.query('select max(id) from postgresql_partitioned_table_parent').first.first
+        assert_equal expect.to_i, result.rows.first.first
       end
 
       def test_sql_for_insert_with_returning_disabled
@@ -222,8 +241,8 @@ module ActiveRecord
           "DELETE FROM pg_depend WHERE objid = 'ex2_id_seq'::regclass AND refobjid = 'ex'::regclass AND deptype = 'a'"
         )
       ensure
-        @connection.exec_query('DROP TABLE IF EXISTS ex')
-        @connection.exec_query('DROP TABLE IF EXISTS ex2')
+        @connection.drop_table 'ex', if_exists: true
+        @connection.drop_table 'ex2', if_exists: true
       end
 
       def test_exec_insert_number
@@ -233,7 +252,7 @@ module ActiveRecord
           result = @connection.exec_query('SELECT number FROM ex WHERE number = 10')
 
           assert_equal 1, result.rows.length
-          assert_equal "10", result.rows.last.last
+          assert_equal 10, result.rows.last.last
         end
       end
 
@@ -269,7 +288,7 @@ module ActiveRecord
           assert_equal 1, result.rows.length
           assert_equal 2, result.columns.length
 
-          assert_equal [['1', 'foo']], result.rows
+          assert_equal [[1, 'foo']], result.rows
         end
       end
 
@@ -278,12 +297,12 @@ module ActiveRecord
           string = @connection.quote('foo')
           @connection.exec_query("INSERT INTO ex (id, data) VALUES (1, #{string})")
           result = @connection.exec_query(
-                                          'SELECT id, data FROM ex WHERE id = $1', nil, [[nil, 1]])
+                                          'SELECT id, data FROM ex WHERE id = $1', nil, [bind_param(1)])
 
           assert_equal 1, result.rows.length
           assert_equal 2, result.columns.length
 
-          assert_equal [['1', 'foo']], result.rows
+          assert_equal [[1, 'foo']], result.rows
         end
       end
 
@@ -292,14 +311,14 @@ module ActiveRecord
           string = @connection.quote('foo')
           @connection.exec_query("INSERT INTO ex (id, data) VALUES (1, #{string})")
 
-          column = @connection.columns('ex').find { |col| col.name == 'id' }
+          bind = ActiveRecord::Relation::QueryAttribute.new("id", "1-fuu", ActiveRecord::Type::Integer.new)
           result = @connection.exec_query(
-                                          'SELECT id, data FROM ex WHERE id = $1', nil, [[column, '1-fuu']])
+                                          'SELECT id, data FROM ex WHERE id = $1', nil, [bind])
 
           assert_equal 1, result.rows.length
           assert_equal 2, result.columns.length
 
-          assert_equal [['1', 'foo']], result.rows
+          assert_equal [[1, 'foo']], result.rows
         end
       end
 
@@ -431,10 +450,10 @@ module ActiveRecord
 
       private
       def insert(ctx, data)
-        binds   = data.map { |name, value|
-          [ctx.columns('ex').find { |x| x.name == name }, value]
+        binds = data.map { |name, value|
+          bind_param(value, name)
         }
-        columns = binds.map(&:first).map(&:name)
+        columns = binds.map(&:name)
 
         bind_subs = columns.length.times.map { |x| "$#{x + 1}" }
 
@@ -450,6 +469,10 @@ module ActiveRecord
 
       def connection_without_insert_returning
         ActiveRecord::Base.postgresql_connection(ActiveRecord::Base.configurations['arunit'].merge(:insert_returning => false))
+      end
+
+      def bind_param(value, name = nil)
+        ActiveRecord::Relation::QueryAttribute.new(name, value, ActiveRecord::Type::Value.new)
       end
     end
   end

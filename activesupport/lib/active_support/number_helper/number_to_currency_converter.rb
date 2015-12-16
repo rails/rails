@@ -13,7 +13,7 @@ module ActiveSupport
         end
 
         rounded_number = NumberToRoundedConverter.convert(number, options)
-        format.gsub(/%n/, rounded_number).gsub(/%u/, options[:unit])
+        format.gsub('%n'.freeze, rounded_number).gsub('%u'.freeze, options[:unit])
       end
 
       private
@@ -23,20 +23,20 @@ module ActiveSupport
         end
 
         def absolute_value(number)
-          number.respond_to?("abs") ? number.abs : number.sub(/\A-/, '')
+          number.respond_to?(:abs) ? number.abs : number.sub(/\A-/, '')
         end
 
         def options
           @options ||= begin
             defaults = default_format_options.merge(i18n_opts)
-            # Override negative format if format options is given
+            # Override negative format if format options are given
             defaults[:negative_format] = "-#{opts[:format]}" if opts[:format]
             defaults.merge!(opts)
           end
         end
 
         def i18n_opts
-          # Set International negative format if not exists
+          # Set International negative format if it does not exist
           i18n = i18n_format_options
           i18n[:negative_format] ||= "-#{i18n[:format]}" if i18n[:format]
           i18n

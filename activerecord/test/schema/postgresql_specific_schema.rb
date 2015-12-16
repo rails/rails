@@ -1,8 +1,19 @@
 ActiveRecord::Schema.define do
 
+  enable_extension!('uuid-ossp', ActiveRecord::Base.connection)
+
+  create_table :uuid_parents, id: :uuid, force: true do |t|
+    t.string :name
+  end
+
+  create_table :uuid_children, id: :uuid, force: true do |t|
+    t.string :name
+    t.uuid :uuid_parent_id
+  end
+
   %w(postgresql_times postgresql_oids defaults postgresql_timestamp_with_zones
       postgresql_partitioned_table postgresql_partitioned_table_parent).each do |table_name|
-    execute "DROP TABLE IF EXISTS #{quote_table_name table_name}"
+    drop_table table_name, if_exists: true
   end
 
   execute 'DROP SEQUENCE IF EXISTS companies_nonstd_seq CASCADE'
@@ -88,19 +99,14 @@ _SQL
     end
   end
 
-  begin
-    execute <<_SQL
-    CREATE TABLE postgresql_xml_data_type (
-    id SERIAL PRIMARY KEY,
-    data xml
-    );
-_SQL
-  rescue #This version of PostgreSQL either has no XML support or is was not compiled with XML support: skipping table
-  end
-
   # This table is to verify if the :limit option is being ignored for text and binary columns
   create_table :limitless_fields, force: true do |t|
     t.binary :binary, limit: 100_000
     t.text :text, limit: 100_000
+  end
+
+  create_table :bigint_array, force: true do |t|
+    t.integer :big_int_data_points, limit: 8, array: true
+    t.decimal :decimal_array_default, array: true, default: [1.23, 3.45]
   end
 end

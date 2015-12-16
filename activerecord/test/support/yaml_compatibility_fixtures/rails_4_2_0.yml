@@ -1,0 +1,182 @@
+--- !ruby/object:Topic
+raw_attributes:
+  id: 1
+  title: The First Topic
+  author_name: David
+  author_email_address: david@loudthinking.com
+  written_on: '2003-07-16 14:28:11.223300'
+  bonus_time: '2005-01-30 14:28:00.000000'
+  last_read: '2004-04-15'
+  content: |
+    --- Have a nice day
+    ...
+  important:
+  approved: f
+  replies_count: 1
+  unique_replies_count: 0
+  parent_id:
+  parent_title:
+  type:
+  group:
+  created_at: '2015-03-10 17:44:41'
+  updated_at: '2015-03-10 17:44:41'
+attributes: !ruby/object:ActiveRecord::AttributeSet
+  attributes: !ruby/object:ActiveRecord::LazyAttributeHash
+    types:
+      id: &5 !ruby/object:ActiveRecord::Type::Integer
+        precision:
+        scale:
+        limit:
+        range: !ruby/range
+          begin: -2147483648
+          end: 2147483648
+          excl: true
+      title: &6 !ruby/object:ActiveRecord::Type::String
+        precision:
+        scale:
+        limit: 250
+      author_name: &1 !ruby/object:ActiveRecord::Type::String
+        precision:
+        scale:
+        limit:
+      author_email_address: *1
+      written_on: &4 !ruby/object:ActiveRecord::Type::DateTime
+        precision:
+        scale:
+        limit:
+      bonus_time: &7 !ruby/object:ActiveRecord::Type::Time
+        precision:
+        scale:
+        limit:
+      last_read: &8 !ruby/object:ActiveRecord::Type::Date
+        precision:
+        scale:
+        limit:
+      content: !ruby/object:ActiveRecord::Type::Serialized
+        coder: &9 !ruby/object:ActiveRecord::Coders::YAMLColumn
+          object_class: !ruby/class 'Object'
+        subtype: &2 !ruby/object:ActiveRecord::Type::Text
+          precision:
+          scale:
+          limit:
+      important: *2
+      approved: &10 !ruby/object:ActiveRecord::Type::Boolean
+        precision:
+        scale:
+        limit:
+      replies_count: &3 !ruby/object:ActiveRecord::Type::Integer
+        precision:
+        scale:
+        limit:
+        range: !ruby/range
+          begin: -2147483648
+          end: 2147483648
+          excl: true
+      unique_replies_count: *3
+      parent_id: *3
+      parent_title: *1
+      type: *1
+      group: *1
+      created_at: *4
+      updated_at: *4
+    values:
+      id: 1
+      title: The First Topic
+      author_name: David
+      author_email_address: david@loudthinking.com
+      written_on: '2003-07-16 14:28:11.223300'
+      bonus_time: '2005-01-30 14:28:00.000000'
+      last_read: '2004-04-15'
+      content: |
+        --- Have a nice day
+        ...
+      important:
+      approved: f
+      replies_count: 1
+      unique_replies_count: 0
+      parent_id:
+      parent_title:
+      type:
+      group:
+      created_at: '2015-03-10 17:44:41'
+      updated_at: '2015-03-10 17:44:41'
+    additional_types: {}
+    materialized: true
+    delegate_hash:
+      id: !ruby/object:ActiveRecord::Attribute::FromDatabase
+        name: id
+        value_before_type_cast: 1
+        type: *5
+      title: !ruby/object:ActiveRecord::Attribute::FromDatabase
+        name: title
+        value_before_type_cast: The First Topic
+        type: *6
+      author_name: !ruby/object:ActiveRecord::Attribute::FromDatabase
+        name: author_name
+        value_before_type_cast: David
+        type: *1
+      author_email_address: !ruby/object:ActiveRecord::Attribute::FromDatabase
+        name: author_email_address
+        value_before_type_cast: david@loudthinking.com
+        type: *1
+      written_on: !ruby/object:ActiveRecord::Attribute::FromDatabase
+        name: written_on
+        value_before_type_cast: '2003-07-16 14:28:11.223300'
+        type: *4
+      bonus_time: !ruby/object:ActiveRecord::Attribute::FromDatabase
+        name: bonus_time
+        value_before_type_cast: '2005-01-30 14:28:00.000000'
+        type: *7
+      last_read: !ruby/object:ActiveRecord::Attribute::FromDatabase
+        name: last_read
+        value_before_type_cast: '2004-04-15'
+        type: *8
+      content: !ruby/object:ActiveRecord::Attribute::FromDatabase
+        name: content
+        value_before_type_cast: |
+          --- Have a nice day
+          ...
+        type: !ruby/object:ActiveRecord::Type::Serialized
+          coder: *9
+          subtype: *2
+      important: !ruby/object:ActiveRecord::Attribute::FromDatabase
+        name: important
+        value_before_type_cast:
+        type: *2
+      approved: !ruby/object:ActiveRecord::Attribute::FromDatabase
+        name: approved
+        value_before_type_cast: f
+        type: *10
+      replies_count: !ruby/object:ActiveRecord::Attribute::FromDatabase
+        name: replies_count
+        value_before_type_cast: 1
+        type: *3
+      unique_replies_count: !ruby/object:ActiveRecord::Attribute::FromDatabase
+        name: unique_replies_count
+        value_before_type_cast: 0
+        type: *3
+      parent_id: !ruby/object:ActiveRecord::Attribute::FromDatabase
+        name: parent_id
+        value_before_type_cast:
+        type: *3
+      parent_title: !ruby/object:ActiveRecord::Attribute::FromDatabase
+        name: parent_title
+        value_before_type_cast:
+        type: *1
+      type: !ruby/object:ActiveRecord::Attribute::FromDatabase
+        name: type
+        value_before_type_cast:
+        type: *1
+      group: !ruby/object:ActiveRecord::Attribute::FromDatabase
+        name: group
+        value_before_type_cast:
+        type: *1
+      created_at: !ruby/object:ActiveRecord::Attribute::FromDatabase
+        name: created_at
+        value_before_type_cast: '2015-03-10 17:44:41'
+        type: *4
+      updated_at: !ruby/object:ActiveRecord::Attribute::FromDatabase
+        name: updated_at
+        value_before_type_cast: '2015-03-10 17:44:41'
+        type: *4
+new_record: false

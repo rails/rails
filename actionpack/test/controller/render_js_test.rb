@@ -22,13 +22,13 @@ class RenderJSTest < ActionController::TestCase
   tests TestController
 
   def test_render_vanilla_js
-    xhr :get, :render_vanilla_js_hello
+    get :render_vanilla_js_hello, xhr: true
     assert_equal "alert('hello')", @response.body
     assert_equal "text/javascript", @response.content_type
   end
 
   def test_should_render_js_partial
-    xhr :get, :show_partial, :format => 'js'
+    get :show_partial, format: 'js', xhr: true
     assert_equal 'partial js', @response.body
   end
 end

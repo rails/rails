@@ -16,13 +16,14 @@ end
 class Build
   MAP = {
     'railties' => 'railties',
-    'ap'   => 'actionpack',
-    'am'   => 'actionmailer',
-    'amo'  => 'activemodel',
-    'as'   => 'activesupport',
-    'ar'   => 'activerecord',
-    'av'   => 'actionview',
-    'aj'   => 'activejob'
+    'ap'       => 'actionpack',
+    'am'       => 'actionmailer',
+    'amo'      => 'activemodel',
+    'as'       => 'activesupport',
+    'ar'       => 'activerecord',
+    'av'       => 'actionview',
+    'aj'       => 'activejob',
+    'guides'   => 'guides'
   }
 
   attr_reader :component, :options
@@ -36,7 +37,11 @@ class Build
     self.options.update(options)
     Dir.chdir(dir) do
       announce(heading)
-      rake(*tasks)
+      if guides?
+        run_bug_report_templates
+      else
+        rake(*tasks)
+      end
     end
   end
 
@@ -67,8 +72,16 @@ class Build
     key.join(':')
   end
 
+  def activesupport?
+    gem == 'activesupport'
+  end
+
   def activerecord?
     gem == 'activerecord'
+  end
+
+  def guides?
+    gem == 'guides'
   end
 
   def isolated?
@@ -92,9 +105,26 @@ class Build
     tasks.each do |task|
       cmd = "bundle exec rake #{task}"
       puts "Running command: #{cmd}"
-      return false unless system(cmd)
+      return false unless system(env, cmd)
     end
     true
+  end
+
+  def env
+    if activesupport? && !isolated?
+      # There is a known issue with the listen tests that casuses files to be
+      # incorrectly GC'ed even when they are still in-use. The current is to
+      # only run them in isolation to avoid randomly failing our test suite.
+      { 'LISTEN' => '0' }
+    else
+      {}
+    end
+  end
+
+  def run_bug_report_templates
+    Dir.glob('bug_report_templates/*.rb').all? do |file|
+      system(Gem.ruby, '-w', file)
+    end
   end
 end
 
@@ -110,6 +140,7 @@ ENV['GEM'].split(',').each do |gem|
     next if ENV['TRAVIS_PULL_REQUEST'] && ENV['TRAVIS_PULL_REQUEST'] != 'false' && isolated
     next if gem == 'railties' && isolated
     next if gem == 'aj:integration' && isolated
+    next if gem == 'guides' && isolated
 
     build = Build.new(gem, :isolated => isolated)
     results[build.key] = build.run!

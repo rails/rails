@@ -11,6 +11,7 @@ require 'fileutils'
 require 'bundler/setup' unless defined?(Bundler)
 require 'active_support'
 require 'active_support/testing/autorun'
+require 'active_support/testing/stream'
 require 'active_support/test_case'
 
 RAILS_FRAMEWORK_ROOT = File.expand_path("#{File.dirname(__FILE__)}/../../..")
@@ -50,7 +51,12 @@ module TestHelpers
       old_env = ENV["RAILS_ENV"]
       @app ||= begin
         ENV["RAILS_ENV"] = env
-        require "#{app_path}/config/environment"
+
+        # FIXME: shush Sass warning spam, not relevant to testing Railties
+        Kernel.silence_warnings do
+          require "#{app_path}/config/environment"
+        end
+
         Rails.application
       end
     ensure
@@ -69,7 +75,8 @@ module TestHelpers
 
     def assert_welcome(resp)
       assert_equal 200, resp[0]
-      assert resp[1]["Content-Type"] = "text/html"
+      assert_match 'text/html', resp[1]["Content-Type"]
+      assert_match 'charset=utf-8', resp[1]["Content-Type"]
       assert extract_body(resp).match(/Welcome aboard/)
     end
 
@@ -157,19 +164,20 @@ module TestHelpers
       require "rails"
       require "action_controller/railtie"
       require "action_view/railtie"
+      require 'action_dispatch/middleware/flash'
 
-      app = Class.new(Rails::Application)
-      app.config.eager_load = false
-      app.secrets.secret_key_base = "3b7cd727ee24e8444053437c36cc66c4"
-      app.config.session_store :cookie_store, key: "_myapp_session"
-      app.config.active_support.deprecation = :log
-      app.config.active_support.test_order = :random
-      app.config.log_level = :info
+      @app = Class.new(Rails::Application)
+      @app.config.eager_load = false
+      @app.secrets.secret_key_base = "3b7cd727ee24e8444053437c36cc66c4"
+      @app.config.session_store :cookie_store, key: "_myapp_session"
+      @app.config.active_support.deprecation = :log
+      @app.config.active_support.test_order = :random
+      @app.config.log_level = :info
 
-      yield app if block_given?
-      app.initialize!
+      yield @app if block_given?
+      @app.initialize!
 
-      app.routes.draw do
+      @app.routes.draw do
         get "/" => "omg#index"
       end
 
@@ -268,17 +276,11 @@ module TestHelpers
       File.open(file, "w+") { |f| f.puts contents }
     end
 
-    def app_file(path, contents)
+    def app_file(path, contents, mode = 'w')
       FileUtils.mkdir_p File.dirname("#{app_path}/#{path}")
-      File.open("#{app_path}/#{path}", 'w') do |f|
+      File.open("#{app_path}/#{path}", mode) do |f|
         f.puts contents
       end
-    end
-
-    def gsub_app_file(path, regexp, *args, &block)
-      path = "#{app_path}/#{path}"
-      content = File.read(path).gsub(regexp, *args, &block)
-      File.open(path, 'wb') { |f| f.write(content) }
     end
 
     def remove_file(path)
@@ -300,7 +302,10 @@ module TestHelpers
     end
 
     def boot_rails
-      require File.expand_path('../../../../load_paths', __FILE__)
+      # FIXME: shush Sass warning spam, not relevant to testing Railties
+      Kernel.silence_warnings do
+        require File.expand_path('../../../../load_paths', __FILE__)
+      end
     end
   end
 end
@@ -309,35 +314,10 @@ class ActiveSupport::TestCase
   include TestHelpers::Paths
   include TestHelpers::Rack
   include TestHelpers::Generation
+  include ActiveSupport::Testing::Stream
 
   self.test_order = :sorted
 
-  private
-
-  def capture(stream)
-    stream = stream.to_s
-    captured_stream = Tempfile.new(stream)
-    stream_io = eval("$#{stream}")
-    origin_stream = stream_io.dup
-    stream_io.reopen(captured_stream)
-
-    yield
-
-    stream_io.rewind
-    return captured_stream.read
-  ensure
-    captured_stream.close
-    captured_stream.unlink
-    stream_io.reopen(origin_stream)
-  end
-
-  def quietly
-    silence_stream(STDOUT) do
-      silence_stream(STDERR) do
-        yield
-      end
-    end
-  end
 end
 
 # Create a scope and build a fixture rails app
@@ -351,7 +331,7 @@ Module.new do
   environment = File.expand_path('../../../../load_paths', __FILE__)
   require_environment = "-r #{environment}"
 
-  `#{Gem.ruby} #{require_environment} #{RAILS_FRAMEWORK_ROOT}/railties/bin/rails new #{app_template_path} --skip-gemfile --no-rc`
+  `#{Gem.ruby} #{require_environment} #{RAILS_FRAMEWORK_ROOT}/railties/exe/rails new #{app_template_path} --skip-gemfile --no-rc`
   File.open("#{app_template_path}/config/boot.rb", 'w') do |f|
     f.puts "require '#{environment}'"
     f.puts "require 'rails/all'"

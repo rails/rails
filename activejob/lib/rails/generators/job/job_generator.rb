@@ -1,6 +1,6 @@
 require 'rails/generators/named_base'
 
-module Rails
+module Rails # :nodoc:
   module Generators # :nodoc:
     class JobGenerator < Rails::Generators::NamedBase # :nodoc:
       desc 'This generator creates an active job file at app/jobs'
@@ -18,7 +18,6 @@ module Rails
       def create_job_file
         template 'job.rb', File.join('app/jobs', class_path, "#{file_name}_job.rb")
       end
-
     end
   end
 end

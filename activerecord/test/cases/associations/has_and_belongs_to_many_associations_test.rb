@@ -3,6 +3,7 @@ require 'models/developer'
 require 'models/computer'
 require 'models/project'
 require 'models/company'
+require 'models/course'
 require 'models/customer'
 require 'models/order'
 require 'models/categorization'
@@ -14,6 +15,7 @@ require 'models/tagging'
 require 'models/parrot'
 require 'models/person'
 require 'models/pirate'
+require 'models/professor'
 require 'models/treasure'
 require 'models/price_estimate'
 require 'models/club'
@@ -83,6 +85,25 @@ class DeveloperWithSymbolClassName < Developer
   has_and_belongs_to_many :projects, class_name: :ProjectWithSymbolsForKeys
 end
 
+class DeveloperWithExtendOption < Developer
+  module NamedExtension
+    def category
+      'sns'
+    end
+  end
+
+  has_and_belongs_to_many :projects, extend: NamedExtension
+end
+
+class ProjectUnscopingDavidDefaultScope < ActiveRecord::Base
+  self.table_name = 'projects'
+  has_and_belongs_to_many :developers, -> { unscope(where: 'name') },
+    class_name: "LazyBlockDeveloperCalledDavid",
+    join_table: "developers_projects",
+    foreign_key: "project_id",
+    association_foreign_key: "developer_id"
+end
+
 class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :categories, :posts, :categories_posts, :developers, :projects, :developers_projects,
            :parrots, :pirates, :parrots_pirates, :treasures, :price_estimates, :tags, :taggings, :computers
@@ -147,8 +168,8 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     jamis.projects << action_controller
 
     assert_equal 2, jamis.projects.size
-    assert_equal 2, jamis.projects(true).size
-    assert_equal 2, action_controller.developers(true).size
+    assert_equal 2, jamis.projects.reload.size
+    assert_equal 2, action_controller.developers.reload.size
   end
 
   def test_adding_type_mismatch
@@ -166,9 +187,9 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
 
     action_controller.developers << jamis
 
-    assert_equal 2, jamis.projects(true).size
+    assert_equal 2, jamis.projects.reload.size
     assert_equal 2, action_controller.developers.size
-    assert_equal 2, action_controller.developers(true).size
+    assert_equal 2, action_controller.developers.reload.size
   end
 
   def test_adding_from_the_project_fixed_timestamp
@@ -182,9 +203,9 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     action_controller.developers << jamis
 
     assert_equal updated_at, jamis.updated_at
-    assert_equal 2, jamis.projects(true).size
+    assert_equal 2, jamis.projects.reload.size
     assert_equal 2, action_controller.developers.size
-    assert_equal 2, action_controller.developers(true).size
+    assert_equal 2, action_controller.developers.reload.size
   end
 
   def test_adding_multiple
@@ -193,7 +214,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     aredridel.projects.reload
     aredridel.projects.push(Project.find(1), Project.find(2))
     assert_equal 2, aredridel.projects.size
-    assert_equal 2, aredridel.projects(true).size
+    assert_equal 2, aredridel.projects.reload.size
   end
 
   def test_adding_a_collection
@@ -202,7 +223,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     aredridel.projects.reload
     aredridel.projects.concat([Project.find(1), Project.find(2)])
     assert_equal 2, aredridel.projects.size
-    assert_equal 2, aredridel.projects(true).size
+    assert_equal 2, aredridel.projects.reload.size
   end
 
   def test_habtm_adding_before_save
@@ -217,7 +238,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert_equal no_of_devels+1, Developer.count
     assert_equal no_of_projects+1, Project.count
     assert_equal 2, aredridel.projects.size
-    assert_equal 2, aredridel.projects(true).size
+    assert_equal 2, aredridel.projects.reload.size
   end
 
   def test_habtm_saving_multiple_relationships
@@ -234,7 +255,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert_equal developers, new_project.developers
   end
 
-  def test_habtm_unique_order_preserved
+  def test_habtm_distinct_order_preserved
     assert_equal developers(:poor_jamis, :jamis, :david), projects(:active_record).non_unique_developers
     assert_equal developers(:poor_jamis, :jamis, :david), projects(:active_record).developers
   end
@@ -339,7 +360,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert_equal  'Yet Another Testing Title', another_post.title
   end
 
-  def test_uniq_after_the_fact
+  def test_distinct_after_the_fact
     dev = developers(:jamis)
     dev.projects << projects(:active_record)
     dev.projects << projects(:active_record)
@@ -348,13 +369,13 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 1, dev.projects.distinct.size
   end
 
-  def test_uniq_before_the_fact
+  def test_distinct_before_the_fact
     projects(:active_record).developers << developers(:jamis)
     projects(:active_record).developers << developers(:david)
     assert_equal 3, projects(:active_record, :reload).developers.size
   end
 
-  def test_uniq_option_prevents_duplicate_push
+  def test_distinct_option_prevents_duplicate_push
     project = projects(:active_record)
     project.developers << developers(:jamis)
     project.developers << developers(:david)
@@ -365,7 +386,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 3, project.developers.size
   end
 
-  def test_uniq_when_association_already_loaded
+  def test_distinct_when_association_already_loaded
     project = projects(:active_record)
     project.developers << [ developers(:jamis), developers(:david), developers(:jamis), developers(:david) ]
     assert_equal 3, Project.includes(:developers).find(project.id).developers.size
@@ -381,8 +402,8 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     david.projects.delete(active_record)
 
     assert_equal 1, david.projects.size
-    assert_equal 1, david.projects(true).size
-    assert_equal 2, active_record.developers(true).size
+    assert_equal 1, david.projects.reload.size
+    assert_equal 2, active_record.developers.reload.size
   end
 
   def test_deleting_array
@@ -390,7 +411,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     david.projects.reload
     david.projects.delete(Project.all.to_a)
     assert_equal 0, david.projects.size
-    assert_equal 0, david.projects(true).size
+    assert_equal 0, david.projects.reload.size
   end
 
   def test_deleting_all
@@ -398,7 +419,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     david.projects.reload
     david.projects.clear
     assert_equal 0, david.projects.size
-    assert_equal 0, david.projects(true).size
+    assert_equal 0, david.projects.reload.size
   end
 
   def test_removing_associations_on_destroy
@@ -424,7 +445,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert join_records.empty?
 
     assert_equal 1, david.reload.projects.size
-    assert_equal 1, david.projects(true).size
+    assert_equal 1, david.projects.reload.size
   end
 
   def test_destroying_many
@@ -440,7 +461,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert join_records.empty?
 
     assert_equal 0, david.reload.projects.size
-    assert_equal 0, david.projects(true).size
+    assert_equal 0, david.projects.reload.size
   end
 
   def test_destroy_all
@@ -456,7 +477,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert join_records.empty?
 
     assert david.projects.empty?
-    assert david.projects(true).empty?
+    assert david.projects.reload.empty?
   end
 
   def test_destroy_associations_destroys_multiple_associations
@@ -472,11 +493,11 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
 
     join_records = Parrot.connection.select_all("SELECT * FROM parrots_pirates WHERE parrot_id = #{george.id}")
     assert join_records.empty?
-    assert george.pirates(true).empty?
+    assert george.pirates.reload.empty?
 
     join_records = Parrot.connection.select_all("SELECT * FROM parrots_treasures WHERE parrot_id = #{george.id}")
     assert join_records.empty?
-    assert george.treasures(true).empty?
+    assert george.treasures.reload.empty?
   end
 
   def test_associations_with_conditions
@@ -577,6 +598,11 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert_equal developers(:poor_jamis), projects(:active_record).developers.where("salary < 10000").first
   end
 
+  def test_association_with_extend_option
+    eponine = DeveloperWithExtendOption.create(name: 'Eponine')
+    assert_equal 'sns', eponine.projects.category
+  end
+
   def test_replace_with_less
     david = developers(:david)
     david.projects = [projects(:action_controller)]
@@ -639,7 +665,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_habtm_respects_select
-    categories(:technology).select_testing_posts(true).each do |o|
+    categories(:technology).select_testing_posts.reload.each do |o|
       assert_respond_to o, :correctness_marker
     end
     assert_respond_to categories(:technology).select_testing_posts.first, :correctness_marker
@@ -711,7 +737,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
 
   def test_get_ids_for_loaded_associations
     developer = developers(:david)
-    developer.projects(true)
+    developer.projects.reload
     assert_queries(0) do
       developer.project_ids
       developer.project_ids
@@ -779,9 +805,10 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_association_proxy_transaction_method_starts_transaction_in_association_class
-    Post.expects(:transaction)
-    Category.first.posts.transaction do
-      # nothing
+    assert_called(Post, :transaction) do
+      Category.first.posts.transaction do
+        # nothing
+      end
     end
   end
 
@@ -900,6 +927,59 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   def test_with_symbol_class_name
     assert_nothing_raised NoMethodError do
       DeveloperWithSymbolClassName.new
+    end
+  end
+
+  def test_association_force_reload_with_only_true_is_deprecated
+    developer = Developer.find(1)
+
+    assert_deprecated { developer.projects(true) }
+  end
+
+  def test_alternate_database
+    professor = Professor.create(name: "Plum")
+    course = Course.create(name: "Forensics")
+    assert_equal 0, professor.courses.count
+    assert_nothing_raised do
+      professor.courses << course
+    end
+    assert_equal 1, professor.courses.count
+  end
+
+  def test_habtm_scope_can_unscope
+    project = ProjectUnscopingDavidDefaultScope.new
+    project.save!
+
+    developer = LazyBlockDeveloperCalledDavid.new(name: "Not David")
+    developer.save!
+    project.developers << developer
+
+    projects = ProjectUnscopingDavidDefaultScope.includes(:developers).where(id: project.id)
+    assert_equal 1, projects.first.developers.size
+  end
+
+  def test_preloaded_associations_size
+    assert_equal Project.first.salaried_developers.size,
+      Project.preload(:salaried_developers).first.salaried_developers.size
+
+    assert_equal Project.includes(:salaried_developers).references(:salaried_developers).first.salaried_developers.size,
+      Project.preload(:salaried_developers).first.salaried_developers.size
+
+    # Nested HATBM
+    first_project = Developer.first.projects.first
+    preloaded_first_project =
+      Developer.preload(projects: :salaried_developers).
+        first.
+        projects.
+        detect { |p| p.id == first_project.id }
+
+    assert preloaded_first_project.salaried_developers.loaded?, true
+    assert_equal first_project.salaried_developers.size, preloaded_first_project.salaried_developers.size
+  end
+
+  def test_has_and_belongs_to_many_is_useable_with_belongs_to_required_by_default
+    assert_difference "Project.first.developers_required_by_default.size", 1 do
+      Project.first.developers_required_by_default.create!(name: "Sean", salary: 50000)
     end
   end
 end

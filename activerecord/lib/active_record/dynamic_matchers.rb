@@ -1,10 +1,5 @@
 module ActiveRecord
   module DynamicMatchers #:nodoc:
-    # This code in this file seems to have a lot of indirection, but the indirection
-    # is there to provide extension points for the activerecord-deprecated_finders
-    # gem. When we stop supporting activerecord-deprecated_finders (from Rails 5),
-    # then we can remove the indirection.
-
     def respond_to?(name, include_private = false)
       if self == Base
         super
@@ -72,26 +67,14 @@ module ActiveRecord
         CODE
       end
 
-      def body
-        raise NotImplementedError
-      end
-    end
+      private
 
-    module Finder
-      # Extended in activerecord-deprecated_finders
       def body
-        result
-      end
-
-      # Extended in activerecord-deprecated_finders
-      def result
         "#{finder}(#{attributes_hash})"
       end
 
       # The parameters in the signature may have reserved Ruby words, in order
       # to prevent errors, we start each param name with `_`.
-      #
-      # Extended in activerecord-deprecated_finders
       def signature
         attribute_names.map { |name| "_#{name}" }.join(', ')
       end
@@ -109,7 +92,6 @@ module ActiveRecord
 
     class FindBy < Method
       Method.matchers << self
-      include Finder
 
       def self.prefix
         "find_by"
@@ -122,7 +104,6 @@ module ActiveRecord
 
     class FindByBang < Method
       Method.matchers << self
-      include Finder
 
       def self.prefix
         "find_by"

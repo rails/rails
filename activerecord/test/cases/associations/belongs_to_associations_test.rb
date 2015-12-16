@@ -1,6 +1,5 @@
 require 'cases/helper'
 require 'models/developer'
-require 'models/computer'
 require 'models/project'
 require 'models/company'
 require 'models/topic'
@@ -19,6 +18,11 @@ require 'models/invoice'
 require 'models/line_item'
 require 'models/column'
 require 'models/record'
+require 'models/admin'
+require 'models/admin/user'
+require 'models/ship'
+require 'models/treasure'
+require 'models/parrot'
 
 class BelongsToAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :topics,
@@ -29,6 +33,10 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     firm = Client.find(3).firm
     assert_not_nil firm
     assert_equal companies(:first_firm).name, firm.name
+  end
+
+  def test_missing_attribute_error_is_raised_when_no_foreign_key_attribute
+    assert_raises(ActiveModel::MissingAttributeError) { Client.select(:id).first.firm }
   end
 
   def test_belongs_to_does_not_use_order_by
@@ -58,6 +66,56 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_optional_relation
+    original_value = ActiveRecord::Base.belongs_to_required_by_default
+    ActiveRecord::Base.belongs_to_required_by_default = true
+
+    model = Class.new(ActiveRecord::Base) do
+      self.table_name = "accounts"
+      def self.name; "Temp"; end
+      belongs_to :company, optional: true
+    end
+
+    account = model.new
+    assert account.valid?
+  ensure
+    ActiveRecord::Base.belongs_to_required_by_default = original_value
+  end
+
+  def test_not_optional_relation
+    original_value = ActiveRecord::Base.belongs_to_required_by_default
+    ActiveRecord::Base.belongs_to_required_by_default = true
+
+    model = Class.new(ActiveRecord::Base) do
+      self.table_name = "accounts"
+      def self.name; "Temp"; end
+      belongs_to :company, optional: false
+    end
+
+    account = model.new
+    assert_not account.valid?
+    assert_equal [{error: :blank}], account.errors.details[:company]
+  ensure
+    ActiveRecord::Base.belongs_to_required_by_default = original_value
+  end
+
+  def test_required_belongs_to_config
+    original_value = ActiveRecord::Base.belongs_to_required_by_default
+    ActiveRecord::Base.belongs_to_required_by_default = true
+
+    model = Class.new(ActiveRecord::Base) do
+      self.table_name = "accounts"
+      def self.name; "Temp"; end
+      belongs_to :company
+    end
+
+    account = model.new
+    assert_not account.valid?
+    assert_equal [{error: :blank}], account.errors.details[:company]
+  ensure
+    ActiveRecord::Base.belongs_to_required_by_default = original_value
+  end
+
   def test_default_scope_on_relations_is_not_cached
     counter = 0
 
@@ -74,9 +132,9 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
           where("id = :inc", :inc => counter)
         }
 
-        has_many :comments, :class => comments
+        has_many :comments, :anonymous_class => comments
       }
-      belongs_to :post, :class => posts, :inverse_of => false
+      belongs_to :post, :anonymous_class => posts, :inverse_of => false
     }
 
     assert_equal 0, counter
@@ -95,6 +153,30 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   def test_type_mismatch
     assert_raise(ActiveRecord::AssociationTypeMismatch) { Account.find(1).firm = 1 }
     assert_raise(ActiveRecord::AssociationTypeMismatch) { Account.find(1).firm = Project.find(1) }
+  end
+
+  def test_raises_type_mismatch_with_namespaced_class
+    assert_nil defined?(Region), "This test requires that there is no top-level Region class"
+
+    ActiveRecord::Base.connection.instance_eval do
+      create_table(:admin_regions) { |t| t.string :name }
+      add_column :admin_users, :region_id, :integer
+    end
+    Admin.const_set "RegionalUser", Class.new(Admin::User) { belongs_to(:region) }
+    Admin.const_set "Region", Class.new(ActiveRecord::Base)
+
+    e = assert_raise(ActiveRecord::AssociationTypeMismatch) {
+      Admin::RegionalUser.new(region: 'wrong value')
+    }
+    assert_match(/^Region\([^)]+\) expected, got String\([^)]+\)$/, e.message)
+  ensure
+    Admin.send :remove_const, "Region" if Admin.const_defined?("Region")
+    Admin.send :remove_const, "RegionalUser" if Admin.const_defined?("RegionalUser")
+
+    ActiveRecord::Base.connection.instance_eval do
+      remove_column :admin_users, :region_id if column_exists?(:admin_users, :region_id)
+      drop_table :admin_regions, if_exists: true
+    end
   end
 
   def test_natural_assignment
@@ -122,14 +204,14 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     Firm.create("name" => "Apple")
     Client.create("name" => "Citibank", :firm_name => "Apple")
     citibank_result = Client.all.merge!(:where => {:name => "Citibank"}, :includes => :firm_with_primary_key).first
-    assert citibank_result.association_cache.key?(:firm_with_primary_key)
+    assert citibank_result.association(:firm_with_primary_key).loaded?
   end
 
   def test_eager_loading_with_primary_key_as_symbol
     Firm.create("name" => "Apple")
     Client.create("name" => "Citibank", :firm_name => "Apple")
     citibank_result = Client.all.merge!(:where => {:name => "Citibank"}, :includes => :firm_with_primary_key_symbols).first
-    assert citibank_result.association_cache.key?(:firm_with_primary_key_symbols)
+    assert citibank_result.association(:firm_with_primary_key_symbols).loaded?
   end
 
   def test_creating_the_belonging_object
@@ -213,7 +295,8 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     client = Client.find(3)
     client.firm = nil
     client.save
-    assert_nil client.firm(true)
+    client.association(:firm).reload
+    assert_nil client.firm
     assert_nil client.client_of
   end
 
@@ -221,7 +304,8 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     client = Client.create(:name => "Primary key client", :firm_name => companies(:first_firm).name)
     client.firm_with_primary_key = nil
     client.save
-    assert_nil client.firm_with_primary_key(true)
+    client.association(:firm_with_primary_key).reload
+    assert_nil client.firm_with_primary_key
     assert_nil client.client_of
   end
 
@@ -238,9 +322,13 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   def test_polymorphic_association_class
     sponsor = Sponsor.new
     assert_nil sponsor.association(:sponsorable).send(:klass)
+    sponsor.association(:sponsorable).reload
+    assert_nil sponsor.sponsorable
 
     sponsor.sponsorable_type = '' # the column doesn't have to be declared NOT NULL
     assert_nil sponsor.association(:sponsorable).send(:klass)
+    sponsor.association(:sponsorable).reload
+    assert_nil sponsor.sponsorable
 
     sponsor.sponsorable = Member.new :name => "Bert"
     assert_equal Member, sponsor.association(:sponsorable).send(:klass)
@@ -259,6 +347,22 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   def test_with_select
     assert_equal 1, Company.find(2).firm_with_select.attributes.size
     assert_equal 1, Company.all.merge!(:includes => :firm_with_select ).find(2).firm_with_select.attributes.size
+  end
+
+  def test_belongs_to_without_counter_cache_option
+    # Ship has a conventionally named `treasures_count` column, but the counter_cache
+    # option is not given on the association.
+    ship = Ship.create(name: 'Countless')
+
+    assert_no_difference lambda { ship.reload.treasures_count }, "treasures_count should not be changed unless counter_cache is given on the relation" do
+      treasure = Treasure.new(name: 'Gold', ship: ship)
+      treasure.save
+    end
+
+    assert_no_difference lambda { ship.reload.treasures_count }, "treasures_count should not be changed unless counter_cache is given on the relation" do
+      treasure = ship.treasures.first
+      treasure.destroy
+    end
   end
 
   def test_belongs_to_counter
@@ -372,13 +476,33 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_queries(1) { line_item.touch }
   end
 
+  def test_belongs_to_with_touch_on_multiple_records
+    line_item = LineItem.create!(amount: 1)
+    line_item2 = LineItem.create!(amount: 2)
+    Invoice.create!(line_items: [line_item, line_item2])
+
+    assert_queries(1) do
+      LineItem.transaction do
+        line_item.touch
+        line_item2.touch
+      end
+    end
+
+    assert_queries(2) do
+      line_item.touch
+      line_item2.touch
+    end
+  end
+
   def test_belongs_to_with_touch_option_on_touch_without_updated_at_attributes
     assert_not LineItem.column_names.include?("updated_at")
 
     line_item = LineItem.create!
     invoice = Invoice.create!(line_items: [line_item])
     initial = invoice.updated_at
-    line_item.touch
+    travel(1.second) do
+      line_item.touch
+    end
 
     assert_not_equal initial, invoice.reload.updated_at
   end
@@ -457,7 +581,8 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert final_cut.persisted?
     assert firm.persisted?
     assert_equal firm, final_cut.firm
-    assert_equal firm, final_cut.firm(true)
+    final_cut.association(:firm).reload
+    assert_equal firm, final_cut.firm
   end
 
   def test_assignment_before_child_saved_with_primary_key
@@ -469,7 +594,8 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert final_cut.persisted?
     assert firm.persisted?
     assert_equal firm, final_cut.firm_with_primary_key
-    assert_equal firm, final_cut.firm_with_primary_key(true)
+    final_cut.association(:firm_with_primary_key).reload
+    assert_equal firm, final_cut.firm_with_primary_key
   end
 
   def test_new_record_with_foreign_key_but_no_object
@@ -963,6 +1089,12 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     record = Record.create!
     Column.create! record: record
     assert_equal 1, Column.count
+  end
+
+  def test_association_force_reload_with_only_true_is_deprecated
+    client = Client.find(3)
+
+    assert_deprecated { client.firm(true) }
   end
 end
 

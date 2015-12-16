@@ -15,14 +15,15 @@ module ActiveSupport
       # and publish it. Notice that events get sent even if an error occurs
       # in the passed-in block.
       def instrument(name, payload={})
-        start name, payload
+        # some of the listeners might have state
+        listeners_state = start name, payload
         begin
           yield payload
         rescue Exception => e
           payload[:exception] = [e.class.name, e.message]
           raise e
         ensure
-          finish name, payload
+          finish_with_state listeners_state, name, payload
         end
       end
 
@@ -34,6 +35,10 @@ module ActiveSupport
       # Send a finish notification with +name+ and +payload+.
       def finish(name, payload)
         @notifier.finish name, @id, payload
+      end
+
+      def finish_with_state(listeners_state, name, payload)
+        @notifier.finish name, @id, payload, listeners_state
       end
 
       private
@@ -57,6 +62,18 @@ module ActiveSupport
         @duration       = nil
       end
 
+      # Returns the difference in milliseconds between when the execution of the
+      # event started and when it ended.
+      #
+      #   ActiveSupport::Notifications.subscribe('wait') do |*args|
+      #     @event = ActiveSupport::Notifications::Event.new(*args)
+      #   end
+      #
+      #   ActiveSupport::Notifications.instrument('wait') do
+      #     sleep 1
+      #   end
+      #
+      #   @event.duration # => 1000.138
       def duration
         @duration ||= 1000.0 * (self.end - time)
       end

@@ -1,3 +1,5 @@
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+
 Active Record Associations
 ==========================
 
@@ -14,7 +16,7 @@ After reading this guide, you will know:
 Why Associations?
 -----------------
 
-Why do we need associations between models? Because they make common operations simpler and easier in your code. For example, consider a simple Rails application that includes a model for customers and a model for orders. Each customer can have many orders. Without associations, the model declarations would look like this:
+In Rails, an _association_ is a connection between two Active Record models. Why do we need associations between models? Because they make common operations simpler and easier in your code. For example, consider a simple Rails application that includes a model for customers and a model for orders. Each customer can have many orders. Without associations, the model declarations would look like this:
 
 ```ruby
 class Customer < ActiveRecord::Base
@@ -69,7 +71,7 @@ To learn more about the different types of associations, read the next section o
 The Types of Associations
 -------------------------
 
-In Rails, an _association_ is a connection between two Active Record models. Associations are implemented using macro-style calls, so that you can declaratively add features to your models. For example, by declaring that one model `belongs_to` another, you instruct Rails to maintain Primary Key-Foreign Key information between instances of the two models, and you also get a number of utility methods added to your model. Rails supports six types of associations:
+Rails supports six types of associations:
 
 * `belongs_to`
 * `has_one`
@@ -77,6 +79,8 @@ In Rails, an _association_ is a connection between two Active Record models. Ass
 * `has_many :through`
 * `has_one :through`
 * `has_and_belongs_to_many`
+
+Associations are implemented using macro-style calls, so that you can declaratively add features to your models. For example, by declaring that one model `belongs_to` another, you instruct Rails to maintain [Primary Key](https://en.wikipedia.org/wiki/Unique_key)-[Foreign Key](https://en.wikipedia.org/wiki/Foreign_key) information between instances of the two models, and you also get a number of utility methods added to your model.
 
 In the remainder of this guide, you'll learn how to declare and use the various forms of associations. But first, a quick introduction to the situations where each association type is appropriate.
 
@@ -97,17 +101,17 @@ NOTE: `belongs_to` associations _must_ use the singular term. If you used the pl
 The corresponding migration might look like this:
 
 ```ruby
-class CreateOrders < ActiveRecord::Migration
+class CreateOrders < ActiveRecord::Migration[5.0]
   def change
     create_table :customers do |t|
       t.string :name
-      t.timestamps
+      t.timestamps null: false
     end
 
     create_table :orders do |t|
       t.belongs_to :customer, index: true
       t.datetime :order_date
-      t.timestamps
+      t.timestamps null: false
     end
   end
 end
@@ -128,19 +132,30 @@ end
 The corresponding migration might look like this:
 
 ```ruby
-class CreateSuppliers < ActiveRecord::Migration
+class CreateSuppliers < ActiveRecord::Migration[5.0]
   def change
     create_table :suppliers do |t|
       t.string :name
-      t.timestamps
+      t.timestamps null: false
     end
 
     create_table :accounts do |t|
       t.belongs_to :supplier, index: true
       t.string :account_number
-      t.timestamps
+      t.timestamps null: false
     end
   end
+end
+```
+
+Depending on the use case, you might also need to create a unique index and/or
+a foreign key constraint on the supplier column for the accounts table. In this
+case, the column definition might look like this:
+
+```ruby
+create_table :accounts do |t|
+  t.belongs_to :supplier, index: true, unique: true, foreign_key: true
+  # ...
 end
 ```
 
@@ -161,17 +176,17 @@ NOTE: The name of the other model is pluralized when declaring a `has_many` asso
 The corresponding migration might look like this:
 
 ```ruby
-class CreateCustomers < ActiveRecord::Migration
+class CreateCustomers < ActiveRecord::Migration[5.0]
   def change
     create_table :customers do |t|
       t.string :name
-      t.timestamps
+      t.timestamps null: false
     end
 
     create_table :orders do |t|
-      t.belongs_to :customer, index:true
+      t.belongs_to :customer, index: true
       t.datetime :order_date
-      t.timestamps
+      t.timestamps null: false
     end
   end
 end
@@ -203,35 +218,37 @@ end
 The corresponding migration might look like this:
 
 ```ruby
-class CreateAppointments < ActiveRecord::Migration
+class CreateAppointments < ActiveRecord::Migration[5.0]
   def change
     create_table :physicians do |t|
       t.string :name
-      t.timestamps
+      t.timestamps null: false
     end
 
     create_table :patients do |t|
       t.string :name
-      t.timestamps
+      t.timestamps null: false
     end
 
     create_table :appointments do |t|
       t.belongs_to :physician, index: true
       t.belongs_to :patient, index: true
       t.datetime :appointment_date
-      t.timestamps
+      t.timestamps null: false
     end
   end
 end
 ```
 
-The collection of join models can be managed via the API. For example, if you assign
+The collection of join models can be managed via the [`has_many` association methods](#has-many-association-reference).
+For example, if you assign:
 
 ```ruby
 physician.patients = patients
 ```
 
-new join models are created for newly associated objects, and if some are gone their rows are deleted.
+Then new join models are automatically created for the newly associated objects.
+If some that existed previously are now missing, then their join rows are automatically deleted.
 
 WARNING: Automatic deletion of join models is direct, no destroy callbacks are triggered.
 
@@ -287,23 +304,23 @@ end
 The corresponding migration might look like this:
 
 ```ruby
-class CreateAccountHistories < ActiveRecord::Migration
+class CreateAccountHistories < ActiveRecord::Migration[5.0]
   def change
     create_table :suppliers do |t|
       t.string :name
-      t.timestamps
+      t.timestamps null: false
     end
 
     create_table :accounts do |t|
       t.belongs_to :supplier, index: true
       t.string :account_number
-      t.timestamps
+      t.timestamps null: false
     end
 
     create_table :account_histories do |t|
       t.belongs_to :account, index: true
       t.integer :credit_rating
-      t.timestamps
+      t.timestamps null: false
     end
   end
 end
@@ -328,16 +345,16 @@ end
 The corresponding migration might look like this:
 
 ```ruby
-class CreateAssembliesAndParts < ActiveRecord::Migration
+class CreateAssembliesAndParts < ActiveRecord::Migration[5.0]
   def change
     create_table :assemblies do |t|
       t.string :name
-      t.timestamps
+      t.timestamps null: false
     end
 
     create_table :parts do |t|
       t.string :part_number
-      t.timestamps
+      t.timestamps null: false
     end
 
     create_table :assemblies_parts, id: false do |t|
@@ -367,17 +384,17 @@ end
 The corresponding migration might look like this:
 
 ```ruby
-class CreateSuppliers < ActiveRecord::Migration
+class CreateSuppliers < ActiveRecord::Migration[5.0]
   def change
     create_table :suppliers do |t|
       t.string  :name
-      t.timestamps
+      t.timestamps null: false
     end
 
     create_table :accounts do |t|
       t.integer :supplier_id
       t.string  :account_number
-      t.timestamps
+      t.timestamps null: false
     end
 
     add_index :accounts, :supplier_id
@@ -422,7 +439,7 @@ end
 
 The simplest rule of thumb is that you should set up a `has_many :through` relationship if you need to work with the relationship model as an independent entity. If you don't need to do anything with the relationship model, it may be simpler to set up a `has_and_belongs_to_many` relationship (though you'll need to remember to create the joining table in the database).
 
-You should use `has_many :through` if you need validations, callbacks, or extra attributes on the join model.
+You should use `has_many :through` if you need validations, callbacks or extra attributes on the join model.
 
 ### Polymorphic Associations
 
@@ -449,16 +466,16 @@ Similarly, you can retrieve `@product.pictures`.
 If you have an instance of the `Picture` model, you can get to its parent via `@picture.imageable`. To make this work, you need to declare both a foreign key column and a type column in the model that declares the polymorphic interface:
 
 ```ruby
-class CreatePictures < ActiveRecord::Migration
+class CreatePictures < ActiveRecord::Migration[5.0]
   def change
     create_table :pictures do |t|
       t.string  :name
       t.integer :imageable_id
       t.string  :imageable_type
-      t.timestamps
+      t.timestamps null: false
     end
 
-    add_index :pictures, :imageable_id
+    add_index :pictures, [:imageable_type, :imageable_id]
   end
 end
 ```
@@ -466,12 +483,12 @@ end
 This migration can be simplified by using the `t.references` form:
 
 ```ruby
-class CreatePictures < ActiveRecord::Migration
+class CreatePictures < ActiveRecord::Migration[5.0]
   def change
     create_table :pictures do |t|
       t.string :name
       t.references :imageable, polymorphic: true, index: true
-      t.timestamps
+      t.timestamps null: false
     end
   end
 end
@@ -497,11 +514,11 @@ With this setup, you can retrieve `@employee.subordinates` and `@employee.manage
 In your migrations/schema, you will add a references column to the model itself.
 
 ```ruby
-class CreateEmployees < ActiveRecord::Migration
+class CreateEmployees < ActiveRecord::Migration[5.0]
   def change
     create_table :employees do |t|
       t.references :manager, index: true
-      t.timestamps
+      t.timestamps null: false
     end
   end
 end
@@ -558,7 +575,7 @@ end
 This declaration needs to be backed up by the proper foreign key declaration on the orders table:
 
 ```ruby
-class CreateOrders < ActiveRecord::Migration
+class CreateOrders < ActiveRecord::Migration[5.0]
   def change
     create_table :orders do |t|
       t.datetime :order_date
@@ -577,7 +594,7 @@ If you create an association some time after you build the underlying model, you
 
 If you create a `has_and_belongs_to_many` association, you need to explicitly create the joining table. Unless the name of the join table is explicitly specified by using the `:join_table` option, Active Record creates the name by using the lexical order of the class names. So a join between customer and order models will give the default join table name of "customers_orders" because "c" outranks "o" in lexical ordering.
 
-WARNING: The precedence between model names is calculated using the `<` operator for `String`. This means that if the strings are of different lengths, and the strings are equal when compared up to the shortest length, then the longer string is considered of higher lexical precedence than the shorter one. For example, one would expect the tables "paper_boxes" and "papers" to generate a join table name of "papers_paper_boxes" because of the length of the name "paper_boxes", but it in fact generates a join table name of "paper_boxes_papers" (because the underscore '_' is lexicographically _less_ than 's' in common encodings).
+WARNING: The precedence between model names is calculated using the `<=>` operator for `String`. This means that if the strings are of different lengths, and the strings are equal when compared up to the shortest length, then the longer string is considered of higher lexical precedence than the shorter one. For example, one would expect the tables "paper_boxes" and "papers" to generate a join table name of "papers_paper_boxes" because of the length of the name "paper_boxes", but it in fact generates a join table name of "paper_boxes_papers" (because the underscore '\_' is lexicographically _less_ than 's' in common encodings).
 
 Whatever the name, you must manually generate the join table with an appropriate migration. For example, consider these associations:
 
@@ -594,7 +611,7 @@ end
 These need to be backed up by a migration to create the `assemblies_parts` table. This table should be created without a primary key:
 
 ```ruby
-class CreateAssembliesPartsJoinTable < ActiveRecord::Migration
+class CreateAssembliesPartsJoinTable < ActiveRecord::Migration[5.0]
   def change
     create_table :assemblies_parts, id: false do |t|
       t.integer :assembly_id
@@ -607,7 +624,20 @@ class CreateAssembliesPartsJoinTable < ActiveRecord::Migration
 end
 ```
 
-We pass `id: false` to `create_table` because that table does not represent a model. That's required for the association to work properly. If you observe any strange behavior in a `has_and_belongs_to_many` association like mangled models IDs, or exceptions about conflicting IDs, chances are you forgot that bit.
+We pass `id: false` to `create_table` because that table does not represent a model. That's required for the association to work properly. If you observe any strange behavior in a `has_and_belongs_to_many` association like mangled model IDs, or exceptions about conflicting IDs, chances are you forgot that bit.
+
+You can also use the method `create_join_table`
+
+```ruby
+class CreateAssembliesPartsJoinTable < ActiveRecord::Migration[5.0]
+  def change
+    create_join_table :assemblies, :parts do |t|
+      t.index :assembly_id
+      t.index :part_id
+    end
+  end
+end
+```
 
 ### Controlling Association Scope
 
@@ -689,7 +719,7 @@ c.first_name = 'Manny'
 c.first_name == o.customer.first_name # => false
 ```
 
-This happens because c and o.customer are two different in-memory representations of the same data, and neither one is automatically refreshed from changes to the other. Active Record provides the `:inverse_of` option so that you can inform it of these relations:
+This happens because `c` and `o.customer` are two different in-memory representations of the same data, and neither one is automatically refreshed from changes to the other. Active Record provides the `:inverse_of` option so that you can inform it of these relations:
 
 ```ruby
 class Customer < ActiveRecord::Base
@@ -724,10 +754,10 @@ Most associations with standard names will be supported. However, associations
 that contain the following options will not have their inverses set
 automatically:
 
-* :conditions
-* :through
-* :polymorphic
-* :foreign_key
+* `:conditions`
+* `:through`
+* `:polymorphic`
+* `:foreign_key`
 
 Detailed Association Reference
 ------------------------------
@@ -742,7 +772,7 @@ The `belongs_to` association creates a one-to-one match with another model. In d
 
 When you declare a `belongs_to` association, the declaring class automatically gains five methods related to the association:
 
-* `association(force_reload = false)`
+* `association`
 * `association=(associate)`
 * `build_association(attributes = {})`
 * `create_association(attributes = {})`
@@ -768,7 +798,7 @@ create_customer!
 
 NOTE: When initializing a new `has_one` or `belongs_to` association you must use the `build_` prefix to build the association, rather than the `association.build` method that would be used for `has_many` or `has_and_belongs_to_many` associations. To create one, use the `create_` prefix.
 
-##### `association(force_reload = false)`
+##### `association`
 
 The `association` method returns the associated object, if any. If no associated object is found, it returns `nil`.
 
@@ -776,11 +806,15 @@ The `association` method returns the associated object, if any. If no associated
 @customer = @order.customer
 ```
 
-If the associated object has already been retrieved from the database for this object, the cached version will be returned. To override this behavior (and force a database read), pass `true` as the `force_reload` argument.
+If the associated object has already been retrieved from the database for this object, the cached version will be returned. To override this behavior (and force a database read), call `#reload` on the parent object.
+
+```ruby
+@customer = @order.reload.customer
+```
 
 ##### `association=(associate)`
 
-The `association=` method assigns an associated object to this object. Behind the scenes, this means extracting the primary key from the associate object and setting this object's foreign key to the same value.
+The `association=` method assigns an associated object to this object. Behind the scenes, this means extracting the primary key from the associated object and setting this object's foreign key to the same value.
 
 ```ruby
 @order.customer = @customer
@@ -827,10 +861,12 @@ The `belongs_to` association supports these options:
 * `:counter_cache`
 * `:dependent`
 * `:foreign_key`
+* `:primary_key`
 * `:inverse_of`
 * `:polymorphic`
 * `:touch`
 * `:validate`
+* `:optional`
 
 ##### `:autosave`
 
@@ -872,7 +908,14 @@ end
 
 With this declaration, Rails will keep the cache value up to date, and then return that value in response to the `size` method.
 
-Although the `:counter_cache` option is specified on the model that includes the `belongs_to` declaration, the actual column must be added to the _associated_ model. In the case above, you would need to add a column named `orders_count` to the `Customer` model. You can override the default column name if you need to:
+Although the `:counter_cache` option is specified on the model that includes
+the `belongs_to` declaration, the actual column must be added to the
+_associated_ (`has_many`) model. In the case above, you would need to add a
+column named `orders_count` to the `Customer` model.
+
+You can override the default column name by specifying a custom column name in
+the `counter_cache` declaration instead of `true`. For example, to use
+`count_of_orders` instead of `orders_count`:
 
 ```ruby
 class Order < ActiveRecord::Base
@@ -883,6 +926,9 @@ class Customer < ActiveRecord::Base
 end
 ```
 
+NOTE: You only need to specify the :counter_cache option on the `belongs_to`
+side of the association.
+
 Counter cache columns are added to the containing model's list of read-only attributes through `attr_readonly`.
 
 ##### `:dependent`
@@ -890,8 +936,11 @@ If you set the `:dependent` option to:
 
 * `:destroy`, when the object is destroyed, `destroy` will be called on its
 associated objects.
-* `:delete`, when the object is destroyed, all its associated objects will be
+* `:delete_all`, when the object is destroyed, all its associated objects will be
 deleted directly from the database without calling their `destroy` method.
+* `:nullify`, causes the foreign key to be set to `NULL`. Callbacks are not executed.
+* `:restrict_with_exception`, causes an exception to be raised if there is an associated record
+* `:restrict_with_error`, causes an error to be added to the owner if there is an associated object
 
 WARNING: You should not specify this option on a `belongs_to` association that is connected with a `has_many` association on the other class. Doing so can lead to orphaned records in your database.
 
@@ -907,6 +956,26 @@ end
 ```
 
 TIP: In any case, Rails will not create foreign key columns for you. You need to explicitly define them as part of your migrations.
+
+##### `:primary_key`
+
+By convention, Rails assumes that the `id` column is used to hold the primary key
+of its tables. The `:primary_key` option allows you to specify a different column.
+
+For example, given we have a `users` table with `guid` as the primary key. If we want a separate `todos` table to hold the foreign key `user_id` in the `guid` column, then we can use `primary_key` to achieve this like so:
+
+```ruby
+class User < ActiveRecord::Base
+  self.primary_key = 'guid' # primary key is guid and not id
+end
+
+class Todo < ActiveRecord::Base
+  belongs_to :user, primary_key: 'guid'
+end
+```
+
+When we execute `@user.todos.create` then the `@todo` record will have its
+`user_id` value as the `guid` value of `@user`.
 
 ##### `:inverse_of`
 
@@ -928,7 +997,7 @@ Passing `true` to the `:polymorphic` option indicates that this is a polymorphic
 
 ##### `:touch`
 
-If you set the `:touch` option to `:true`, then the `updated_at` or `updated_on` timestamp on the associated object will be set to the current time whenever this object is saved or destroyed:
+If you set the `:touch` option to `true`, then the `updated_at` or `updated_on` timestamp on the associated object will be set to the current time whenever this object is saved or destroyed:
 
 ```ruby
 class Order < ActiveRecord::Base
@@ -951,6 +1020,11 @@ end
 ##### `:validate`
 
 If you set the `:validate` option to `true`, then associated objects will be validated whenever you save this object. By default, this is `false`: associated objects will not be validated when this object is saved.
+
+##### `:optional`
+
+If you set the `:optional` option to `true`, then the presence of the associated
+object won't be validated. By default, this option is set to `false`.
 
 #### Scopes for `belongs_to`
 
@@ -1050,7 +1124,7 @@ The `has_one` association creates a one-to-one match with another model. In data
 
 When you declare a `has_one` association, the declaring class automatically gains five methods related to the association:
 
-* `association(force_reload = false)`
+* `association`
 * `association=(associate)`
 * `build_association(attributes = {})`
 * `create_association(attributes = {})`
@@ -1076,7 +1150,7 @@ create_account!
 
 NOTE: When initializing a new `has_one` or `belongs_to` association you must use the `build_` prefix to build the association, rather than the `association.build` method that would be used for `has_many` or `has_and_belongs_to_many` associations. To create one, use the `create_` prefix.
 
-##### `association(force_reload = false)`
+##### `association`
 
 The `association` method returns the associated object, if any. If no associated object is found, it returns `nil`.
 
@@ -1084,11 +1158,15 @@ The `association` method returns the associated object, if any. If no associated
 @account = @supplier.account
 ```
 
-If the associated object has already been retrieved from the database for this object, the cached version will be returned. To override this behavior (and force a database read), pass `true` as the `force_reload` argument.
+If the associated object has already been retrieved from the database for this object, the cached version will be returned. To override this behavior (and force a database read), call `#reload` on the parent object.
+
+```ruby
+@account = @supplier.reload.account
+```
 
 ##### `association=(associate)`
 
-The `association=` method assigns an associated object to this object. Behind the scenes, this means extracting the primary key from this object and setting the associate object's foreign key to the same value.
+The `association=` method assigns an associated object to this object. Behind the scenes, this means extracting the primary key from this object and setting the associated object's foreign key to the same value.
 
 ```ruby
 @supplier.account = @account
@@ -1169,8 +1247,8 @@ Controls what happens to the associated object when its owner is destroyed:
 It's necessary not to set or leave `:nullify` option for those associations
 that have `NOT NULL` database constraints. If you don't set `dependent` to
 destroy such associations you won't be able to change the associated object
-because initial associated object foreign key will be set to unallowed `NULL`
-value.
+because the initial associated object's foreign key will be set to the
+unallowed `NULL` value.
 
 ##### `:foreign_key`
 
@@ -1317,7 +1395,7 @@ The `has_many` association creates a one-to-many relationship with another model
 
 When you declare a `has_many` association, the declaring class automatically gains 16 methods related to the association:
 
-* `collection(force_reload = false)`
+* `collection`
 * `collection<<(object, ...)`
 * `collection.delete(object, ...)`
 * `collection.destroy(object, ...)`
@@ -1345,7 +1423,7 @@ end
 Each instance of the `Customer` model will have these methods:
 
 ```ruby
-orders(force_reload = false)
+orders
 orders<<(object, ...)
 orders.delete(object, ...)
 orders.destroy(object, ...)
@@ -1363,7 +1441,7 @@ orders.create(attributes = {})
 orders.create!(attributes = {})
 ```
 
-##### `collection(force_reload = false)`
+##### `collection`
 
 The `collection` method returns an array of all of the associated objects. If there are no associated objects, it returns an empty array.
 
@@ -1417,7 +1495,14 @@ The `collection_singular_ids=` method makes the collection contain only the obje
 
 ##### `collection.clear`
 
-The `collection.clear` method removes every object from the collection. This destroys the associated objects if they are associated with `dependent: :destroy`, deletes them directly from the database if `dependent: :delete_all`, and otherwise sets their foreign keys to `NULL`.
+The `collection.clear` method removes all objects from the collection according to the strategy specified by the `dependent` option. If no option is given, it follows the default strategy. The default strategy for `has_many :through` associations is `delete_all`, and for `has_many` associations is to set the foreign keys to `NULL`.
+
+```ruby
+@customer.orders.clear
+```
+
+WARNING: Objects will be deleted if they're associated with `dependent: :destroy`,
+just like `dependent: :delete_all`.
 
 ##### `collection.empty?`
 
@@ -1456,24 +1541,36 @@ The `collection.where` method finds objects within the collection based on the c
 
 ##### `collection.exists?(...)`
 
-The `collection.exists?` method checks whether an object meeting the supplied conditions exists in the collection. It uses the same syntax and options as `ActiveRecord::Base.exists?`.
+The `collection.exists?` method checks whether an object meeting the supplied
+conditions exists in the collection. It uses the same syntax and options as
+[`ActiveRecord::Base.exists?`](http://api.rubyonrails.org/classes/ActiveRecord/FinderMethods.html#method-i-exists-3F).
 
 ##### `collection.build(attributes = {}, ...)`
 
-The `collection.build` method returns one or more new objects of the associated type. These objects will be instantiated from the passed attributes, and the link through their foreign key will be created, but the associated objects will _not_ yet be saved.
+The `collection.build` method returns a single or array of new objects of the associated type. The object(s) will be instantiated from the passed attributes, and the link through their foreign key will be created, but the associated objects will _not_ yet be saved.
 
 ```ruby
 @order = @customer.orders.build(order_date: Time.now,
                                 order_number: "A12345")
+
+@orders = @customer.orders.build([
+  { order_date: Time.now, order_number: "A12346" },
+  { order_date: Time.now, order_number: "A12347" }
+])
 ```
 
 ##### `collection.create(attributes = {})`
 
-The `collection.create` method returns a new object of the associated type. This object will be instantiated from the passed attributes, the link through its foreign key will be created, and, once it passes all of the validations specified on the associated model, the associated object _will_ be saved.
+The `collection.create` method returns a single or array of new objects of the associated type. The object(s) will be instantiated from the passed attributes, the link through its foreign key will be created, and, once it passes all of the validations specified on the associated model, the associated object _will_ be saved.
 
 ```ruby
 @order = @customer.orders.create(order_date: Time.now,
                                  order_number: "A12345")
+
+@orders = @customer.orders.create([
+  { order_date: Time.now, order_number: "A12346" },
+  { order_date: Time.now, order_number: "A12347" }
+])
 ```
 
 ##### `collection.create!(attributes = {})`
@@ -1486,7 +1583,7 @@ While Rails uses intelligent defaults that will work well in most situations, th
 
 ```ruby
 class Customer < ActiveRecord::Base
-  has_many :orders, dependent: :delete_all, validate: :false
+  has_many :orders, dependent: :delete_all, validate: false
 end
 ```
 
@@ -1495,6 +1592,7 @@ The `has_many` association supports these options:
 * `:as`
 * `:autosave`
 * `:class_name`
+* `:counter_cache`
 * `:dependent`
 * `:foreign_key`
 * `:inverse_of`
@@ -1521,6 +1619,10 @@ class Customer < ActiveRecord::Base
   has_many :orders, class_name: "Transaction"
 end
 ```
+
+##### `:counter_cache`
+
+This option can be used to configure a custom named `:counter_cache`. You only need this option when you customized the name of your `:counter_cache` on the [belongs_to association](#options-for-belongs-to).
 
 ##### `:dependent`
 
@@ -1562,9 +1664,10 @@ end
 
 By convention, Rails assumes that the column used to hold the primary key of the association is `id`. You can override this and explicitly specify the primary key with the `:primary_key` option.
 
-Let's say that `users` table has `id` as the primary_key but it also has
-`guid` column. And the requirement is that `todos` table should hold
-`guid` column value and not `id` value. This can be achieved like this
+Let's say the `users` table has `id` as the primary_key but it also
+has a `guid` column. The requirement is that the `todos` table should
+hold the `guid` column value as the foreign key and not `id`
+value. This can be achieved like this:
 
 ```ruby
 class User < ActiveRecord::Base
@@ -1572,8 +1675,8 @@ class User < ActiveRecord::Base
 end
 ```
 
-Now if we execute `@user.todos.create` then `@todo` record will have
-`user_id` value as the `guid` value of `@user`.
+Now if we execute `@todo = @user.todos.create` then the `@todo`
+record's `user_id` value will be the `guid` value of `@user`.
 
 
 ##### `:source`
@@ -1613,7 +1716,7 @@ You can use any of the standard [querying methods](active_record_querying.html) 
 * `order`
 * `readonly`
 * `select`
-* `uniq`
+* `distinct`
 
 ##### `where`
 
@@ -1804,7 +1907,7 @@ The `has_and_belongs_to_many` association creates a many-to-many relationship wi
 
 When you declare a `has_and_belongs_to_many` association, the declaring class automatically gains 16 methods related to the association:
 
-* `collection(force_reload = false)`
+* `collection`
 * `collection<<(object, ...)`
 * `collection.delete(object, ...)`
 * `collection.destroy(object, ...)`
@@ -1832,7 +1935,7 @@ end
 Each instance of the `Part` model will have these methods:
 
 ```ruby
-assemblies(force_reload = false)
+assemblies
 assemblies<<(object, ...)
 assemblies.delete(object, ...)
 assemblies.destroy(object, ...)
@@ -1857,7 +1960,7 @@ If the join table for a `has_and_belongs_to_many` association has additional col
 WARNING: The use of extra attributes on the join table in a `has_and_belongs_to_many` association is deprecated. If you require this sort of complex behavior on the table that joins two models in a many-to-many relationship, you should use a `has_many :through` association instead of `has_and_belongs_to_many`.
 
 
-##### `collection(force_reload = false)`
+##### `collection`
 
 The `collection` method returns an array of all of the associated objects. If there are no associated objects, it returns an empty array.
 
@@ -1949,7 +2052,9 @@ The `collection.where` method finds objects within the collection based on the c
 
 ##### `collection.exists?(...)`
 
-The `collection.exists?` method checks whether an object meeting the supplied conditions exists in the collection. It uses the same syntax and options as `ActiveRecord::Base.exists?`.
+The `collection.exists?` method checks whether an object meeting the supplied
+conditions exists in the collection. It uses the same syntax and options as
+[`ActiveRecord::Base.exists?`](http://api.rubyonrails.org/classes/ActiveRecord/FinderMethods.html#method-i-exists-3F).
 
 ##### `collection.build(attributes = {})`
 
@@ -1977,8 +2082,8 @@ While Rails uses intelligent defaults that will work well in most situations, th
 
 ```ruby
 class Parts < ActiveRecord::Base
-  has_and_belongs_to_many :assemblies, autosave: true,
-                                       readonly: true
+  has_and_belongs_to_many :assemblies, -> { readonly },
+                                       autosave: true
 end
 ```
 
@@ -1990,7 +2095,6 @@ The `has_and_belongs_to_many` association supports these options:
 * `:foreign_key`
 * `:join_table`
 * `:validate`
-* `:readonly`
 
 ##### `:association_foreign_key`
 
@@ -2063,7 +2167,7 @@ You can use any of the standard [querying methods](active_record_querying.html) 
 * `order`
 * `readonly`
 * `select`
-* `uniq`
+* `distinct`
 
 ##### `where`
 
@@ -2139,9 +2243,9 @@ If you use the `readonly` method, then the associated objects will be read-only 
 
 The `select` method lets you override the SQL `SELECT` clause that is used to retrieve data about the associated objects. By default, Rails retrieves all columns.
 
-##### `uniq`
+##### `distinct`
 
-Use the `uniq` method to remove duplicates from the collection.
+Use the `distinct` method to remove duplicates from the collection.
 
 #### When are Objects Saved?
 
@@ -2234,3 +2338,67 @@ Extensions can refer to the internals of the association proxy using these three
 * `proxy_association.owner` returns the object that the association is a part of.
 * `proxy_association.reflection` returns the reflection object that describes the association.
 * `proxy_association.target` returns the associated object for `belongs_to` or `has_one`, or the collection of associated objects for `has_many` or `has_and_belongs_to_many`.
+
+Single Table Inheritance
+------------------------
+
+Sometimes, you may want to share fields and behavior between different models.
+Let's say we have Car, Motorcycle and Bicycle models. We will want to share
+the `color` and `price` fields and some methods for all of them, but having some
+specific behavior for each, and separated controllers too.
+
+Rails makes this quite easy. First, let's generate the base Vehicle model:
+
+```bash
+$ rails generate model vehicle type:string color:string price:decimal{10.2}
+```
+
+Did you note we are adding a "type" field? Since all models will be saved in a
+single database table, Rails will save in this column the name of the model that
+is being saved. In our example, this can be "Car", "Motorcycle" or "Bicycle."
+STI won't work without a "type" field in the table.
+
+Next, we will generate the three models that inherit from Vehicle. For this,
+we can use the `--parent=PARENT` option, which will generate a model that
+inherits from the specified parent and without equivalent migration (since the
+table already exists).
+
+For example, to generate the Car model:
+
+```bash
+$ rails generate model car --parent=Vehicle
+```
+
+The generated model will look like this:
+
+```ruby
+class Car < Vehicle
+end
+```
+
+This means that all behavior added to Vehicle is available for Car too, as
+associations, public methods, etc.
+
+Creating a car will save it in the `vehicles` table with "Car" as the `type` field:
+
+```ruby
+Car.create(color: 'Red', price: 10000)
+```
+
+will generate the following SQL:
+
+```sql
+INSERT INTO "vehicles" ("type", "color", "price") VALUES ('Car', 'Red', 10000)
+```
+
+Querying car records will just search for vehicles that are cars:
+
+```ruby
+Car.all
+```
+
+will run a query like:
+
+```sql
+SELECT "vehicles".* FROM "vehicles" WHERE "vehicles"."type" IN ('Car')
+```

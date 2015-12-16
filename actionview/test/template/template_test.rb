@@ -118,15 +118,17 @@ class TestERBTemplate < ActiveSupport::TestCase
   def test_refresh_with_templates
     @template = new_template("Hello", :virtual_path => "test/foo/bar")
     @template.locals = [:key]
-    @context.lookup_context.expects(:find_template).with("bar", %w(test/foo), false, [:key]).returns("template")
-    assert_equal "template", @template.refresh(@context)
+    assert_called_with(@context.lookup_context, :find_template,["bar", %w(test/foo), false, [:key]], returns: "template") do
+      assert_equal "template", @template.refresh(@context)
+    end
   end
 
   def test_refresh_with_partials
     @template = new_template("Hello", :virtual_path => "test/_foo")
     @template.locals = [:key]
-    @context.lookup_context.expects(:find_template).with("foo", %w(test), true, [:key]).returns("partial")
-    assert_equal "partial", @template.refresh(@context)
+    assert_called_with(@context.lookup_context, :find_template,[ "foo", %w(test), true, [:key]], returns: "partial") do
+      assert_equal "partial", @template.refresh(@context)
+    end
   end
 
   def test_refresh_raises_an_error_without_virtual_path
@@ -183,9 +185,42 @@ class TestERBTemplate < ActiveSupport::TestCase
   end
 
   def test_error_when_template_isnt_valid_utf8
-    assert_raises(ActionView::Template::Error, /\xFC/) do
+    e = assert_raises ActionView::Template::Error do
       @template = new_template("hello \xFCmlat", :virtual_path => nil)
       render
+    end
+    assert_match(/\xFC/, e.message)
+  end
+
+  def test_not_eligible_for_collection_caching_without_cache_call
+    [
+      "<%= 'Hello' %>",
+      "<% cache_customer = 42 %>",
+      "<% cache customer.name do %><% end %>",
+      "<% my_cache customer do %><% end %>"
+    ].each do |body|
+      template = new_template(body, virtual_path: "test/foo/_customer")
+      assert_not template.eligible_for_collection_caching?, "Template #{body.inspect} should not be eligible for collection caching"
+    end
+  end
+
+  def test_eligible_for_collection_caching_with_cache_call_or_explicit
+    [
+      "<% cache customer do %><% end %>",
+      "<% cache(customer) do %><% end %>",
+      "<% cache( customer) do %><% end %>",
+      "<% cache( customer ) do %><% end %>",
+      "<%cache customer do %><% end %>",
+      "<%   cache   customer    do %><% end %>",
+      "  <% cache customer do %>\n<% end %>\n",
+      "<%# comment %><% cache customer do %><% end %>",
+      "<%# comment %>\n<% cache customer do %><% end %>",
+      "<%# comment\n line 2\n line 3 %>\n<% cache customer do %><% end %>",
+      "<%# comment 1 %>\n<%# comment 2 %>\n<% cache customer do %><% end %>",
+      "<%# comment 1 %>\n<%# Template Collection: customer %>\n<% my_cache customer do %><% end %>"
+    ].each do |body|
+      template = new_template(body, virtual_path: "test/foo/_customer")
+      assert template.eligible_for_collection_caching?, "Template #{body.inspect} should be eligible for collection caching"
     end
   end
 

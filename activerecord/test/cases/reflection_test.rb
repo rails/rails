@@ -23,6 +23,7 @@ require 'models/chef'
 require 'models/department'
 require 'models/cake_designer'
 require 'models/drink_designer'
+require 'models/recipe'
 
 class ReflectionTest < ActiveRecord::TestCase
   include ActiveRecord::Reflection
@@ -80,10 +81,21 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_equal :integer, @first.column_for_attribute("id").type
   end
 
-  def test_non_existent_columns_return_nil
-    assert_deprecated do
-      assert_nil @first.column_for_attribute("attribute_that_doesnt_exist")
-    end
+  def test_non_existent_columns_return_null_object
+    column = @first.column_for_attribute("attribute_that_doesnt_exist")
+    assert_instance_of ActiveRecord::ConnectionAdapters::NullColumn, column
+    assert_equal "attribute_that_doesnt_exist", column.name
+    assert_equal nil, column.sql_type
+    assert_equal nil, column.type
+  end
+
+  def test_non_existent_types_are_identity_types
+    type = @first.type_for_attribute("attribute_that_doesnt_exist")
+    object = Object.new
+
+    assert_equal object, type.deserialize(object)
+    assert_equal object, type.cast(object)
+    assert_equal object, type.serialize(object)
   end
 
   def test_reflection_klass_for_nested_class_name
@@ -266,6 +278,22 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_equal 2, @hotel.chefs.size
   end
 
+  def test_scope_chain_of_polymorphic_association_does_not_leak_into_other_hmt_associations
+    hotel = Hotel.create!
+    department = hotel.departments.create!
+    drink = department.chefs.create!(employable: DrinkDesigner.create!)
+    Recipe.create!(chef_id: drink.id, hotel_id: hotel.id)
+
+    expected_sql = capture_sql { hotel.recipes.to_a }
+
+    Hotel.reflect_on_association(:recipes).clear_association_scope_cache
+    hotel.reload
+    hotel.drink_designers.to_a
+    loaded_sql = capture_sql { hotel.recipes.to_a }
+
+    assert_equal expected_sql, loaded_sql
+  end
+
   def test_nested?
     assert !Author.reflect_on_association(:comments).nested?
     assert Author.reflect_on_association(:tags).nested?
@@ -365,12 +393,14 @@ class ReflectionTest < ActiveRecord::TestCase
     product = Struct.new(:table_name, :pluralize_table_names).new('products', true)
 
     reflection = ActiveRecord::Reflection.create(:has_many, :categories, nil, {}, product)
-    reflection.stubs(:klass).returns(category)
-    assert_equal 'categories_products', reflection.join_table
+    reflection.stub(:klass, category) do
+      assert_equal 'categories_products', reflection.join_table
+    end
 
     reflection = ActiveRecord::Reflection.create(:has_many, :products, nil, {}, category)
-    reflection.stubs(:klass).returns(product)
-    assert_equal 'categories_products', reflection.join_table
+    reflection.stub(:klass, product) do
+      assert_equal 'categories_products', reflection.join_table
+    end
   end
 
   def test_join_table_with_common_prefix
@@ -378,12 +408,14 @@ class ReflectionTest < ActiveRecord::TestCase
     product = Struct.new(:table_name, :pluralize_table_names).new('catalog_products', true)
 
     reflection = ActiveRecord::Reflection.create(:has_many, :categories, nil, {}, product)
-    reflection.stubs(:klass).returns(category)
-    assert_equal 'catalog_categories_products', reflection.join_table
+    reflection.stub(:klass, category) do
+      assert_equal 'catalog_categories_products', reflection.join_table
+    end
 
     reflection = ActiveRecord::Reflection.create(:has_many, :products, nil, {}, category)
-    reflection.stubs(:klass).returns(product)
-    assert_equal 'catalog_categories_products', reflection.join_table
+    reflection.stub(:klass, product) do
+      assert_equal 'catalog_categories_products', reflection.join_table
+    end
   end
 
   def test_join_table_with_different_prefix
@@ -391,12 +423,14 @@ class ReflectionTest < ActiveRecord::TestCase
     page = Struct.new(:table_name, :pluralize_table_names).new('content_pages', true)
 
     reflection = ActiveRecord::Reflection.create(:has_many, :categories, nil, {}, page)
-    reflection.stubs(:klass).returns(category)
-    assert_equal 'catalog_categories_content_pages', reflection.join_table
+    reflection.stub(:klass, category) do
+      assert_equal 'catalog_categories_content_pages', reflection.join_table
+    end
 
     reflection = ActiveRecord::Reflection.create(:has_many, :pages, nil, {}, category)
-    reflection.stubs(:klass).returns(page)
-    assert_equal 'catalog_categories_content_pages', reflection.join_table
+    reflection.stub(:klass, page) do
+      assert_equal 'catalog_categories_content_pages', reflection.join_table
+    end
   end
 
   def test_join_table_can_be_overridden
@@ -404,12 +438,14 @@ class ReflectionTest < ActiveRecord::TestCase
     product = Struct.new(:table_name, :pluralize_table_names).new('products', true)
 
     reflection = ActiveRecord::Reflection.create(:has_many, :categories, nil, { :join_table => 'product_categories' }, product)
-    reflection.stubs(:klass).returns(category)
-    assert_equal 'product_categories', reflection.join_table
+    reflection.stub(:klass, category) do
+      assert_equal 'product_categories', reflection.join_table
+    end
 
     reflection = ActiveRecord::Reflection.create(:has_many, :products, nil, { :join_table => 'product_categories' }, category)
-    reflection.stubs(:klass).returns(product)
-    assert_equal 'product_categories', reflection.join_table
+    reflection.stub(:klass, product) do
+      assert_equal 'product_categories', reflection.join_table
+    end
   end
 
   def test_includes_accepts_symbols

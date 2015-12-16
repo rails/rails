@@ -1,3 +1,5 @@
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+
 The Basics of Creating Rails Plugins
 ====================================
 
@@ -263,7 +265,7 @@ module Yaffle
   end
 end
 
-ActiveRecord::Base.send :include, Yaffle::ActsAsYaffle
+ActiveRecord::Base.include(Yaffle::ActsAsYaffle)
 ```
 
 You can then return to the root directory (`cd ../..`) of your plugin and rerun the tests using `rake`.
@@ -292,7 +294,7 @@ Getting closer... Now we will implement the code of the `acts_as_yaffle` method 
 
 module Yaffle
   module ActsAsYaffle
-   extend ActiveSupport::Concern
+    extend ActiveSupport::Concern
 
     included do
     end
@@ -306,7 +308,7 @@ module Yaffle
   end
 end
 
-ActiveRecord::Base.send :include, Yaffle::ActsAsYaffle
+ActiveRecord::Base.include(Yaffle::ActsAsYaffle)
 ```
 
 When you run `rake`, you should see the tests all pass:
@@ -380,7 +382,7 @@ module Yaffle
   end
 end
 
-ActiveRecord::Base.send :include, Yaffle::ActsAsYaffle
+ActiveRecord::Base.include(Yaffle::ActsAsYaffle)
 ```
 
 Run `rake` one final time and you should see:
@@ -433,7 +435,7 @@ Once your README is solid, go through and add rdoc comments to all of the method
 Once your comments are good to go, navigate to your plugin directory and run:
 
 ```bash
-$ bin/rake rdoc
+$ bundle exec rake rdoc
 ```
 
 ### References
@@ -441,4 +443,3 @@ $ bin/rake rdoc
 * [Developing a RubyGem using Bundler](https://github.com/radar/guides/blob/master/gem-development.md)
 * [Using .gemspecs as Intended](http://yehudakatz.com/2010/04/02/using-gemspecs-as-intended/)
 * [Gemspec Reference](http://guides.rubygems.org/specification-reference/)
-* [GemPlugins: A Brief Introduction to the Future of Rails Plugins](http://www.intridea.com/blog/2008/6/11/gemplugins-a-brief-introduction-to-the-future-of-rails-plugins)

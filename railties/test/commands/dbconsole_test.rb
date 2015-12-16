@@ -99,19 +99,15 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
   end
 
   def test_rails_env_is_development_when_argument_is_dev
-    dbconsole = Rails::DBConsole.new
-
-    dbconsole.stub(:available_environments, ['development', 'test']) do
-      options = dbconsole.send(:parse_arguments, ['dev'])
+    Rails::DBConsole.stub(:available_environments, ['development', 'test']) do
+      options = Rails::DBConsole.send(:parse_arguments, ['dev'])
       assert_match('development', options[:environment])
     end
   end
 
   def test_rails_env_is_dev_when_argument_is_dev_and_dev_env_is_present
-    dbconsole = Rails::DBConsole.new
-
-    dbconsole.stub(:available_environments, ['dev']) do
-      options = dbconsole.send(:parse_arguments, ['dev'])
+    Rails::DBConsole.stub(:available_environments, ['dev']) do
+      options = Rails::DBConsole.send(:parse_arguments, ['dev'])
       assert_match('dev', options[:environment])
     end
   end
@@ -156,12 +152,6 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
     assert_equal ['psql', 'db'], dbconsole.find_cmd_and_exec_args
     assert_equal 'user', ENV['PGUSER']
     assert_equal 'q1w2e3', ENV['PGPASSWORD']
-  end
-
-  def test_sqlite
-    start(adapter: 'sqlite', database: 'db')
-    assert !aborted
-    assert_equal ['sqlite', 'db'], dbconsole.find_cmd_and_exec_args
   end
 
   def test_sqlite3

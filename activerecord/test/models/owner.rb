@@ -17,6 +17,8 @@ class Owner < ActiveRecord::Base
 
   after_commit :execute_blocks
 
+  accepts_nested_attributes_for :pets, allow_destroy: true
+
   def blocks
     @blocks ||= []
   end

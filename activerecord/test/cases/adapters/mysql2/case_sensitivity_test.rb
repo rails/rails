@@ -1,7 +1,6 @@
 require "cases/helper"
-require 'models/person'
 
-class Mysql2CaseSensitivityTest < ActiveRecord::TestCase
+class Mysql2CaseSensitivityTest < ActiveRecord::Mysql2TestCase
   class CollationTest < ActiveRecord::Base
   end
 

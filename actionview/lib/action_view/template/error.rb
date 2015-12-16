@@ -59,13 +59,20 @@ module ActionView
     class Error < ActionViewError #:nodoc:
       SOURCE_CODE_RADIUS = 3
 
-      attr_reader :original_exception
+      def initialize(template, original_exception = nil)
+        if original_exception
+          ActiveSupport::Deprecation.warn("Passing #original_exception is deprecated and has no effect. " \
+                                          "Exceptions will automatically capture the original exception.", caller)
+        end
 
-      def initialize(template, original_exception)
-        super(original_exception.message)
-        @template, @original_exception = template, original_exception
-        @sub_templates = nil
-        set_backtrace(original_exception.backtrace)
+        super($!.message)
+        set_backtrace($!.backtrace)
+        @template, @sub_templates = template, nil
+      end
+
+      def original_exception
+        ActiveSupport::Deprecation.warn("#original_exception is deprecated. Use #cause instead.", caller)
+        cause
       end
 
       def file_name

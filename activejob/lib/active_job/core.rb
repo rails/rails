@@ -1,4 +1,6 @@
 module ActiveJob
+  # Provides general behavior that will be included into every Active Job
+  # object that inherits from ActiveJob::Base.
   module Core
     extend ActiveSupport::Concern
 
@@ -15,6 +17,15 @@ module ActiveJob
 
       # Queue in which the job will reside.
       attr_writer :queue_name
+
+      # Priority that the job will have (lower is more priority).
+      attr_writer :priority
+
+      # ID optionally provided by adapter
+      attr_accessor :provider_job_id
+
+      # I18n.locale to be used during the job.
+      attr_accessor :locale
     end
 
     # These methods will be included into any Active Job object, adding
@@ -22,10 +33,8 @@ module ActiveJob
     module ClassMethods
       # Creates a new job instance from a hash created with +serialize+
       def deserialize(job_data)
-        job                      = job_data['job_class'].constantize.new
-        job.job_id               = job_data['job_id']
-        job.queue_name           = job_data['queue_name']
-        job.serialized_arguments = job_data['arguments']
+        job = job_data['job_class'].constantize.new
+        job.deserialize(job_data)
         job
       end
 
@@ -37,6 +46,7 @@ module ActiveJob
       # * <tt>:wait</tt> - Enqueues the job with the specified delay
       # * <tt>:wait_until</tt> - Enqueues the job at the time specified
       # * <tt>:queue</tt> - Enqueues the job on the specified queue
+      # * <tt>:priority</tt> - Enqueues the job with the specified priority
       #
       # ==== Examples
       #
@@ -45,6 +55,7 @@ module ActiveJob
       #    VideoJob.set(wait_until: Time.now.tomorrow).perform_later(Video.last)
       #    VideoJob.set(queue: :some_queue, wait: 5.minutes).perform_later(Video.last)
       #    VideoJob.set(queue: :some_queue, wait_until: Time.now.tomorrow).perform_later(Video.last)
+      #    VideoJob.set(queue: :some_queue, wait: 5.minutes, priority: 10).perform_later(Video.last)
       def set(options={})
         ConfiguredJob.new(self, options)
       end
@@ -56,6 +67,7 @@ module ActiveJob
       @arguments  = arguments
       @job_id     = SecureRandom.uuid
       @queue_name = self.class.queue_name
+      @priority   = self.class.priority
     end
 
     # Returns a hash with the job data that can safely be passed to the
@@ -65,8 +77,38 @@ module ActiveJob
         'job_class'  => self.class.name,
         'job_id'     => job_id,
         'queue_name' => queue_name,
-        'arguments'  => serialize_arguments(arguments)
+        'priority'   => priority,
+        'arguments'  => serialize_arguments(arguments),
+        'locale'     => I18n.locale
       }
+    end
+
+    # Attaches the stored job data to the current instance. Receives a hash
+    # returned from +serialize+
+    #
+    # ==== Examples
+    #
+    #    class DeliverWebhookJob < ActiveJob::Base
+    #      def serialize
+    #        super.merge('attempt_number' => (@attempt_number || 0) + 1)
+    #      end
+    #
+    #      def deserialize(job_data)
+    #        super
+    #        @attempt_number = job_data['attempt_number']
+    #      end
+    #
+    #      rescue_from(TimeoutError) do |exception|
+    #        raise exception if @attempt_number > 5
+    #        retry_job(wait: 10)
+    #      end
+    #    end
+    def deserialize(job_data)
+      self.job_id               = job_data['job_id']
+      self.queue_name           = job_data['queue_name']
+      self.priority             = job_data['priority']
+      self.serialized_arguments = job_data['arguments']
+      self.locale               = job_data['locale'] || I18n.locale
     end
 
     private

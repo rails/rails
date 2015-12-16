@@ -49,7 +49,7 @@ behavior out of the box:
         send("#{attr}=", nil)
       end
     end
-  
+
     person = Person.new
     person.clear_name
     person.clear_age
@@ -132,7 +132,7 @@ behavior out of the box:
         "Name"
       end
     end
-  
+
     person = Person.new
     person.name = nil
     person.validate!
@@ -154,8 +154,8 @@ behavior out of the box:
 
 * Making objects serializable
 
-  ActiveModel::Serialization provides a standard interface for your object
-  to provide +to_json+ or +to_xml+ serialization.
+  <tt>ActiveModel::Serialization</tt> provides a standard interface for your object
+  to provide +to_json+ serialization.
 
     class SerialPerson
       include ActiveModel::Serialization
@@ -176,13 +176,6 @@ behavior out of the box:
 
     s = SerialPerson.new
     s.to_json             # => "{\"name\":null}"
-
-    class SerialPerson
-      include ActiveModel::Serializers::Xml
-    end
-
-    s = SerialPerson.new
-    s.to_xml              # => "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<serial-person...
 
   {Learn more}[link:classes/ActiveModel/Serialization.html]
 
@@ -216,10 +209,10 @@ behavior out of the box:
   {Learn more}[link:classes/ActiveModel/Validations.html]
 
 * Custom validators
-  
+
     class HasNameValidator < ActiveModel::Validator
       def validate(record)
-        record.errors[:name] = "must exist" if record.name.blank?
+        record.errors.add(:name, "must exist") if record.name.blank?
       end
     end
 
@@ -242,7 +235,7 @@ behavior out of the box:
 
 The latest version of Active Model can be installed with RubyGems:
 
-  % [sudo] gem install activemodel
+  $ gem install activemodel
 
 Source code can be downloaded as part of the Rails project on GitHub
 
@@ -269,4 +262,3 @@ Bug reports can be filed for the Ruby on Rails project here:
 Feature requests should be discussed on the rails-core mailing list here:
 
 * https://groups.google.com/forum/?fromgroups#!forum/rubyonrails-core
-

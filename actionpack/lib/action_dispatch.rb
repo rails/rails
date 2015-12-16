@@ -1,5 +1,5 @@
 #--
-# Copyright (c) 2004-2014 David Heinemeier Hansson
+# Copyright (c) 2004-2015 David Heinemeier Hansson
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -52,6 +52,7 @@ module ActionDispatch
     autoload :DebugExceptions
     autoload :ExceptionWrapper
     autoload :Flash
+    autoload :LoadInterlock
     autoload :ParamsParser
     autoload :PublicExceptions
     autoload :Reloader

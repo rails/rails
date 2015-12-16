@@ -3,6 +3,7 @@ require 'models/post'
 require 'models/comment'
 require 'models/developer'
 require 'models/computer'
+require 'models/vehicle'
 
 class DefaultScopingTest < ActiveRecord::TestCase
   fixtures :developers, :posts, :comments
@@ -153,6 +154,18 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_equal expected_7, received_7
   end
 
+  def test_unscope_comparison_where_clauses
+    # unscoped for WHERE (`developers`.`id` <= 2)
+    expected = Developer.order('salary DESC').collect(&:name)
+    received = DeveloperOrderedBySalary.where(id: -Float::INFINITY..2).unscope(where: :id).collect { |dev| dev.name }
+    assert_equal expected, received
+
+    # unscoped for WHERE (`developers`.`id` < 2)
+    expected = Developer.order('salary DESC').collect(&:name)
+    received = DeveloperOrderedBySalary.where(id: -Float::INFINITY...2).unscope(where: :id).collect { |dev| dev.name }
+    assert_equal expected, received
+  end
+
   def test_unscope_multiple_where_clauses
     expected = Developer.order('salary DESC').collect(&:name)
     received = DeveloperOrderedBySalary.where(name: 'Jamis').where(id: 1).unscope(where: [:name, :id]).collect(&:name)
@@ -284,8 +297,8 @@ class DefaultScopingTest < ActiveRecord::TestCase
 
   def test_unscope_merging
     merged = Developer.where(name: "Jamis").merge(Developer.unscope(:where))
-    assert merged.where_values.empty?
-    assert !merged.where(name: "Jon").where_values.empty?
+    assert merged.where_clause.empty?
+    assert !merged.where(name: "Jon").where_clause.empty?
   end
 
   def test_order_in_default_scope_should_not_prevail
@@ -426,19 +439,24 @@ class DefaultScopingTest < ActiveRecord::TestCase
 
   test "additional conditions are ANDed with the default scope" do
     scope = DeveloperCalledJamis.where(name: "David")
-    assert_equal 2, scope.where_values.length
+    assert_equal 2, scope.where_clause.ast.children.length
     assert_equal [], scope.to_a
   end
 
   test "additional conditions in a scope are ANDed with the default scope" do
     scope = DeveloperCalledJamis.david
-    assert_equal 2, scope.where_values.length
+    assert_equal 2, scope.where_clause.ast.children.length
     assert_equal [], scope.to_a
   end
 
   test "a scope can remove the condition from the default scope" do
     scope = DeveloperCalledJamis.david2
-    assert_equal 1, scope.where_values.length
-    assert_equal Developer.where(name: "David").map(&:id), scope.map(&:id)
+    assert_equal 1, scope.where_clause.ast.children.length
+    assert_equal Developer.where(name: "David"), scope
+  end
+
+  def test_with_abstract_class_where_clause_should_not_be_duplicated
+    scope = Bus.all
+    assert_equal scope.where_clause.ast.children.length, 1
   end
 end

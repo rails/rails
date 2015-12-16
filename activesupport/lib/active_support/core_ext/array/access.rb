@@ -21,10 +21,22 @@ class Array
   #   %w( a b c ).to(-10)  # => []
   def to(position)
     if position >= 0
-      first position + 1
+      take position + 1
     else
       self[0..position]
     end
+  end
+
+  # Returns a copy of the Array without the specified elements.
+  #
+  #   people = ["David", "Rafael", "Aaron", "Todd"]
+  #   people.without "Aaron", "Todd"
+  #     => ["David", "Rafael"]
+  #
+  # Note: This is an optimization of `Enumerable#without` that uses `Array#-`
+  # instead of `Array#reject` for performance reasons.
+  def without(*elements)
+    self - elements
   end
 
   # Equal to <tt>self[1]</tt>.

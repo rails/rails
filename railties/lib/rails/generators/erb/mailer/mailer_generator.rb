@@ -6,7 +6,7 @@ module Erb # :nodoc:
       argument :actions, type: :array, default: [], banner: "method method"
 
       def copy_view_files
-        view_base_path = File.join("app/views", class_path, file_name)
+        view_base_path = File.join("app/views", class_path, file_name + '_mailer')
         empty_directory view_base_path
 
         if self.behavior == :invoke
@@ -30,6 +30,10 @@ module Erb # :nodoc:
 
       def formats
         [:text, :html]
+      end
+
+      def file_name
+        @_file_name ||= super.gsub(/\_mailer/i, '')
       end
     end
   end

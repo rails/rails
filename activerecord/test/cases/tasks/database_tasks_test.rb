@@ -277,12 +277,14 @@ module ActiveRecord
     def test_migrate_receives_correct_env_vars
       verbose, version = ENV['VERBOSE'], ENV['VERSION']
 
+      ActiveRecord::Tasks::DatabaseTasks.migrations_paths = 'custom/path'
       ENV['VERBOSE'] = 'false'
       ENV['VERSION'] = '4'
 
-      ActiveRecord::Migrator.expects(:migrate).with(ActiveRecord::Migrator.migrations_paths, 4)
+      ActiveRecord::Migrator.expects(:migrate).with('custom/path', 4)
       ActiveRecord::Tasks::DatabaseTasks.migrate
     ensure
+      ActiveRecord::Tasks::DatabaseTasks.migrations_paths = nil
       ENV['VERBOSE'], ENV['VERSION'] = verbose, version
     end
   end
@@ -375,6 +377,22 @@ module ActiveRecord
     def test_check_schema_file
       Kernel.expects(:abort).with(regexp_matches(/awesome-file.sql/))
       ActiveRecord::Tasks::DatabaseTasks.check_schema_file("awesome-file.sql")
+    end
+  end
+
+  class DatabaseTasksCheckSchemaFileDefaultsTest < ActiveRecord::TestCase
+    def test_check_schema_file_defaults
+      ActiveRecord::Tasks::DatabaseTasks.stubs(:db_dir).returns('/tmp')
+      assert_equal '/tmp/schema.rb', ActiveRecord::Tasks::DatabaseTasks.schema_file
+    end
+  end
+
+  class DatabaseTasksCheckSchemaFileSpecifiedFormatsTest < ActiveRecord::TestCase
+    {ruby: 'schema.rb', sql: 'structure.sql'}.each_pair do |fmt, filename|
+      define_method("test_check_schema_file_for_#{fmt}_format") do
+        ActiveRecord::Tasks::DatabaseTasks.stubs(:db_dir).returns('/tmp')
+        assert_equal "/tmp/#{filename}", ActiveRecord::Tasks::DatabaseTasks.schema_file(fmt)
+      end
     end
   end
 end
