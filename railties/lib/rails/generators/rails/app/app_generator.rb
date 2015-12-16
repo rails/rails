@@ -83,6 +83,7 @@ module Rails
         directory "environments"
         directory "initializers"
         directory "locales"
+        directory "redis"
       end
     end
 
