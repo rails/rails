@@ -327,7 +327,7 @@ DEPENDENCIES
   mocha (~> 0.14)
   mysql (>= 2.9.0)
   mysql2 (>= 0.4.0)
-  nokogiri (>= 1.6.7)
+  nokogiri (>= 1.6.7.1)
   pg (>= 0.18.0)
   psych (~> 2.0)
   puma
