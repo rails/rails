@@ -13,7 +13,7 @@ source 'https://rubygems.org'
 <% end -%>
 
 # Use Puma as the app server
-gem 'puma', github: 'puma/puma' # FIXME: Release Rack 2 compatible Puma
+gem 'puma'
 
 # Use ActiveModel has_secure_password
 # gem 'bcrypt', '~> 3.1.7'
