@@ -22,7 +22,7 @@ module ActionCable
         websocket.send data
       end
 
-      private
+      protected
         attr_reader :websocket
     end
   end

@@ -62,6 +62,7 @@ module ActionCable
         @subscriptions  = ActionCable::Connection::Subscriptions.new(self)
         @message_buffer = ActionCable::Connection::MessageBuffer.new(self)
 
+        @_internal_redis_subscriptions = nil
         @started_at = Time.now
       end
 
@@ -138,10 +139,11 @@ module ActionCable
         end
 
 
-      private
+     protected
         attr_reader :websocket
         attr_reader :message_buffer
 
+      private
         def on_open
           connect if respond_to?(:connect)
           subscribe_to_internal_channel

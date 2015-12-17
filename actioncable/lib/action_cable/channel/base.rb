@@ -137,6 +137,9 @@ module ActionCable
         # transmission until redis pubsub subscription is confirmed.
         @defer_subscription_confirmation = false
 
+        @reject_subscription = nil
+        @subscription_confirmation_sent = nil
+
         delegate_connection_identifiers
         subscribe_to_channel
       end

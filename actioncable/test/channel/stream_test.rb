@@ -45,7 +45,7 @@ class ActionCable::Channel::StreamTest < ActionCable::TestCase
       connection = TestConnection.new
       connection.expects(:pubsub).returns EM::Hiredis.connect.pubsub
 
-      channel = ChatChannel.new connection, "{id: 1}", { id: 1 }
+      ChatChannel.new connection, "{id: 1}", { id: 1 }
       assert_nil connection.last_transmission
 
       EM::Timer.new(0.1) do

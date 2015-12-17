@@ -58,9 +58,10 @@ module ActionCable
         subscriptions.each { |id, channel| channel.unsubscribe_from_channel }
       end
 
+      protected
+        attr_reader :connection, :subscriptions
 
       private
-        attr_reader :connection, :subscriptions
         delegate :logger, to: :connection
 
         def find(data)
