@@ -1181,7 +1181,8 @@ module ActiveRecord
       # [collection=objects]
       #   Replaces the collections content by deleting and adding objects as appropriate. If the <tt>:through</tt>
       #   option is true callbacks in the join models are triggered except destroy callbacks, since deletion is
-      #   direct.
+      #   direct by default. You can specify <tt>dependent: :destroy</tt> or
+      #   <tt>dependent: :nullify</tt> to override this.
       # [collection_singular_ids]
       #   Returns an array of the associated objects' ids
       # [collection_singular_ids=ids]
