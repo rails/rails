@@ -23,7 +23,7 @@ module Arel
       it 'generates select options offset then limit' do
         stmt = Nodes::SelectStatement.new
         stmt.offset = Nodes::Offset.new(1)
-        stmt.limit = Nodes::Limit.new(Nodes.build_quoted(10))
+        stmt.limit = Nodes::Limit.new(10)
         sql = compile(stmt)
         sql.must_be_like "SELECT OFFSET 1 ROWS FETCH FIRST 10 ROWS ONLY"
       end
@@ -31,7 +31,7 @@ module Arel
       describe 'locking' do
         it 'removes limit when locking' do
           stmt = Nodes::SelectStatement.new
-          stmt.limit = Nodes::Limit.new(Nodes.build_quoted(10))
+          stmt.limit = Nodes::Limit.new(10)
           stmt.lock = Nodes::Lock.new(Arel.sql('FOR UPDATE'))
           sql = compile(stmt)
           sql.must_be_like "SELECT FOR UPDATE"
