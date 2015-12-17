@@ -432,7 +432,7 @@ module ActiveRecord
       # In the simple case, MySQL allows us to place JOINs directly into the UPDATE
       # query. However, this does not allow for LIMIT, OFFSET and ORDER. To support
       # these, we must use a subquery.
-      def join_to_update(update, select, key) # :nodoc:
+      def join_to_update(update, select) #:nodoc:
         if select.limit || select.offset || select.orders.any?
           super
         else
