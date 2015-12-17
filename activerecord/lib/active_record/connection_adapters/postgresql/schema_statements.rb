@@ -169,15 +169,18 @@ module ActiveRecord
 
         # Returns an array of indexes for the given table.
         def indexes(table_name, name = nil)
-           result = query(<<-SQL, 'SCHEMA')
-             SELECT distinct i.relname, d.indisunique, d.indkey, pg_get_indexdef(d.indexrelid), t.oid
-             FROM pg_class t
-             INNER JOIN pg_index d ON t.oid = d.indrelid
-             INNER JOIN pg_class i ON d.indexrelid = i.oid
-             WHERE i.relkind = 'i'
-               AND d.indisprimary = 'f'
-               AND t.relname = '#{table_name}'
-               AND i.relnamespace IN (SELECT oid FROM pg_namespace WHERE nspname = ANY (current_schemas(false)) )
+          table = Utils.extract_schema_qualified_name(table_name.to_s)
+
+          result = query(<<-SQL, 'SCHEMA')
+            SELECT distinct i.relname, d.indisunique, d.indkey, pg_get_indexdef(d.indexrelid), t.oid
+            FROM pg_class t
+            INNER JOIN pg_index d ON t.oid = d.indrelid
+            INNER JOIN pg_class i ON d.indexrelid = i.oid
+            LEFT JOIN pg_namespace n ON n.oid = i.relnamespace
+            WHERE i.relkind = 'i'
+              AND d.indisprimary = 'f'
+              AND t.relname = '#{table.identifier}'
+              AND n.nspname = #{table.schema ? "'#{table.schema}'" : 'ANY (current_schemas(false))'}
             ORDER BY i.relname
           SQL
 

@@ -1,3 +1,10 @@
+*   Support passing the schema name as a prefix to table name in
+    `ConnectionAdapters::SchemaStatements#indexes`. Previously the prefix would
+    be considered a full part of the index name, and only the schema in the
+    current search path would be considered.
+
+    *Grey Baker*
+
 *   Introduce ApplicationRecord, an Active Record layer super type.
 
     An `ApplicationRecord` let's engines have models, isolated from the main
