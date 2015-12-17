@@ -55,12 +55,12 @@ Upgrading from Rails 4.2 to Rails 5.0
 
 ### Active Record models now inherit from ApplicationRecord by default
 
-In Rails 4.2 an Active Job inherits from `ActiveRecord::Base`. In Rails 5.0 models
-inherit from `ApplicationRecord`.
+In Rails 4.2 an Active Record model inherits from `ActiveRecord::Base`. In Rails 5.0,
+all models inherit from `ApplicationRecord`.
 
 `ApplicationRecord` is a new superclass for all app models, analogous to app
-controllers subclassing ApplicationController instead of
-ActionController::Base. This gives apps a single spot to configure app-wide
+controllers subclassing `ApplicationController` instead of
+`ActionController::Base`. This gives apps a single spot to configure app-wide
 model behavior
 
 When upgrading from Rails 4.2 to Rails 5.0 you need to create an
