@@ -20,14 +20,6 @@ GIT
       redis-namespace
 
 GIT
-  remote: git://github.com/mikel/mail.git
-  revision: f0efbd4850d1bc06cdcba6178c282eeaba9c8c43
-  branch: master
-  specs:
-    mail (2.6.3.edge)
-      mime-types (>= 1.16, < 3)
-
-GIT
   remote: git://github.com/rack/rack.git
   revision: 96ae9b9fed8d6809383b6f48a5884437e76f8ca4
   branch: master
@@ -217,6 +209,8 @@ GEM
       rb-inotify (>= 0.9)
     loofah (2.0.3)
       nokogiri (>= 1.5.9)
+    mail (2.6.3)
+      mime-types (>= 1.16, < 3)
     metaclass (0.0.4)
     method_source (0.8.2)
     mime-types (2.99)
@@ -353,7 +347,6 @@ DEPENDENCIES
   json
   kindlerb (= 0.1.1)
   listen (~> 3.0.5)
-  mail!
   minitest (< 5.3.4)
   mocha (~> 0.14)
   mysql (>= 2.9.0)
