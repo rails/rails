@@ -16,7 +16,7 @@ gem 'mocha', '~> 0.14', require: false
 gem 'rack-cache', '~> 1.2'
 gem 'jquery-rails', github: 'rails/jquery-rails', branch: 'master'
 gem 'coffee-rails', '~> 4.1.0'
-gem 'turbolinks', github: 'rails/turbolinks', branch: 'master'
+gem 'turbolinks'
 gem 'arel', github: 'rails/arel', branch: 'master'
 gem 'mail', github: 'mikel/mail', branch: 'master'
 
