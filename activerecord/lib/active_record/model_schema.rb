@@ -385,7 +385,7 @@ module ActiveRecord
 
             If you'd like the new behavior today, you can add this line:
 
-              attribute :#{column.name}, :rails_5_1_point#{array_arguments}
+              attribute :#{column.name}, :point#{array_arguments}
           WARNING
         end
       end

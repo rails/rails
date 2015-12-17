@@ -7,10 +7,10 @@ class PostgresqlPointTest < ActiveRecord::PostgreSQLTestCase
   include SchemaDumpingHelper
 
   class PostgresqlPoint < ActiveRecord::Base
-    attribute :x, :rails_5_1_point
-    attribute :y, :rails_5_1_point
-    attribute :z, :rails_5_1_point
-    attribute :array_of_points, :rails_5_1_point, array: true
+    attribute :x, :point
+    attribute :y, :point
+    attribute :z, :point
+    attribute :array_of_points, :point, array: true
     attribute :legacy_x, :legacy_point
     attribute :legacy_y, :legacy_point
     attribute :legacy_z, :legacy_point
