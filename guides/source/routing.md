@@ -252,11 +252,11 @@ TIP: _If you need to use a different controller namespace inside a `namespace` b
 It's common to have resources that are logically children of other resources. For example, suppose your application includes these models:
 
 ```ruby
-class Magazine < ActiveRecord::Base
+class Magazine < ApplicationRecord
   has_many :ads
 end
 
-class Ad < ActiveRecord::Base
+class Ad < ApplicationRecord
   belongs_to :magazine
 end
 ```
@@ -1099,7 +1099,7 @@ You can override `ActiveRecord::Base#to_param` of a related model to construct
 a URL:
 
 ```ruby
-class Video < ActiveRecord::Base
+class Video < ApplicationRecord
   def to_param
     identifier
   end

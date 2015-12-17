@@ -177,7 +177,7 @@ Saved the article without a title
 Now to get this test to pass we can add a model level validation for the _title_ field.
 
 ```ruby
-class Article < ActiveRecord::Base
+class Article < ApplicationRecord
   validates :title, presence: true
 end
 ```

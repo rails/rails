@@ -53,6 +53,25 @@ Don't forget to review the difference, to see if there were any unexpected chang
 Upgrading from Rails 4.2 to Rails 5.0
 -------------------------------------
 
+### Active Record models now inherit from ApplicationRecord by default
+
+In Rails 4.2 an Active Job inherits from `ActiveRecord::Base`. In Rails 5.0 models
+inherit from `ApplicationRecord`.
+
+`ApplicationRecord` is a new superclass for all app models, analogous to app
+controllers subclassing ApplicationController instead of
+ActionController::Base. This gives apps a single spot to configure app-wide
+model behavior
+
+When upgrading from Rails 4.2 to Rails 5.0 you need to create an
+`application_record.rb` file in `app/models/` and add the following content:
+
+```
+class ApplicationRecord < ActiveRecord::Base
+  self.abstract_class = true
+end
+```
+
 ### Halting callback chains via `throw(:abort)`
 
 In Rails 4.2, when a 'before' callback returns `false` in Active Record
