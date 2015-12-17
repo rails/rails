@@ -535,7 +535,7 @@ ActiveSupport::JSON::Encoding.time_precision = 0
 Previously, Rails allowed inline callback blocks to use `return` this way:
 
 ```ruby
-class ReadOnlyModel < ActiveRecord::Base
+class ReadOnlyModel < ApplicationRecord
   before_save { return false } # BAD
 end
 ```
@@ -549,7 +549,7 @@ Inline callback blocks using `return` can be refactored to evaluate to the
 returned value:
 
 ```ruby
-class ReadOnlyModel < ActiveRecord::Base
+class ReadOnlyModel < ApplicationRecord
   before_save { false } # GOOD
 end
 ```
@@ -558,7 +558,7 @@ Alternatively, if `return` is preferred it is recommended to explicitly define
 a method:
 
 ```ruby
-class ReadOnlyModel < ActiveRecord::Base
+class ReadOnlyModel < ApplicationRecord
   before_save :before_save_callback # GOOD
 
   private
@@ -639,7 +639,7 @@ is merged like any other scope.
 Before:
 
 ```ruby
-class User < ActiveRecord::Base
+class User < ApplicationRecord
   default_scope { where state: 'pending' }
   scope :active, -> { where state: 'active' }
   scope :inactive, -> { where state: 'inactive' }
@@ -658,7 +658,7 @@ User.where(state: 'inactive')
 After:
 
 ```ruby
-class User < ActiveRecord::Base
+class User < ApplicationRecord
   default_scope { where state: 'pending' }
   scope :active, -> { where state: 'active' }
   scope :inactive, -> { where state: 'inactive' }
@@ -679,7 +679,7 @@ To get the previous behavior it is needed to explicitly remove the
 `except`.
 
 ```ruby
-class User < ActiveRecord::Base
+class User < ApplicationRecord
   default_scope { where state: 'pending' }
   scope :active, -> { unscope(where: :state).where(state: 'active') }
   scope :inactive, -> { rewhere state: 'inactive' }
@@ -909,11 +909,11 @@ this gem such as `whitelist_attributes` or `mass_assignment_sanitizer` options.
 * Rails 4.0 has changed to default join table for `has_and_belongs_to_many` relations to strip the common prefix off the second table name. Any existing `has_and_belongs_to_many` relationship between models with a common prefix must be specified with the `join_table` option. For example:
 
 ```ruby
-CatalogCategory < ActiveRecord::Base
+CatalogCategory < ApplicationRecord
   has_and_belongs_to_many :catalog_products, join_table: 'catalog_categories_catalog_products'
 end
 
-CatalogProduct < ActiveRecord::Base
+CatalogProduct < ApplicationRecord
   has_and_belongs_to_many :catalog_categories, join_table: 'catalog_categories_catalog_products'
 end
 ```
