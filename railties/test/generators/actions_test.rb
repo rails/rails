@@ -265,7 +265,6 @@ class ActionsTest < Rails::Generators::TestCase
     routes = <<-F
 Rails.application.routes.draw do
   root 'welcome#index'
-  mount ActionCable.server => '/cable'
 end
 F
 
@@ -277,7 +276,6 @@ F
 Rails.application.routes.draw do
   resources :product_lines
   root 'welcome#index'
-  mount ActionCable.server => '/cable'
 end
 F
     assert_file "config/routes.rb", routes
