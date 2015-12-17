@@ -1,4 +1,3 @@
-
 <% unless options.api? -%>
 //= link_tree ../images
 <% end -%>
