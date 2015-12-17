@@ -1,3 +1,52 @@
+*   Add thread_m/cattr_accessor/reader/writer suite of methods for declaring class and module variables that live per-thread.
+    This makes it easy to declare per-thread globals that are encapsulated. Note: This is a sharp edge. A wild proliferation
+    of globals is A Bad Thing. But like other sharp tools, when it's right, it's right.
+
+    Here's an example of a simple event tracking system where the object being tracked needs not pass a creator that it
+    doesn't need itself along:
+
+    module Current
+      thread_mattr_accessor :account
+      thread_mattr_accessor :user
+      
+      def self.reset() self.account = self.user = nil end
+    end
+
+    class ApplicationController < ActiveController::Base
+      before_action :set_current
+      after_action { Current.reset }
+    
+      private
+        def set_current
+          Current.account = Account.find(params[:account_id])
+          Current.user    = Current.account.users.find(params[:user_id])
+        end
+    end
+
+    class MessagesController < ApplicationController
+      def create
+        @message = Message.create!(message_params)
+      end
+    end
+
+    class Message < ApplicationRecord
+      has_many :events
+      after_create :track_created
+    
+      private
+        def track_created
+          events.create! origin: self, action: :create
+        end
+    end
+
+    class Event < ApplicationRecord
+      belongs_to :creator, class_name: 'User'
+      before_validation { self.creator ||= Current.user }
+    end
+
+    *DHH*
+
+
 *   Deprecated `Module#qualified_const_` in favour of the builtin Module#const_
     methods.
 
