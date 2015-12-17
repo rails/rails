@@ -1095,7 +1095,7 @@ edit_videos GET  /videos/:identifier/edit(.:format) videos#edit
 Video.find_by(identifier: params[:identifier])
 ```
 
-You can override `ActiveRecord::Base#to_param` of a related model to construct
+You can override `ApplicationRecord#to_param` of a related model to construct
 a URL:
 
 ```ruby

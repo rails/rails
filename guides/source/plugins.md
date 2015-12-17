@@ -265,7 +265,7 @@ end
 
 # test/dummy/app/models/application_record.rb
 
-class ApplicationRecord < ActiveRecord::Base
+class ApplicationRecord < ApplicationRecord
   include Yaffle::ActsAsYaffle
 
   self.abstract_class = true
@@ -314,7 +314,7 @@ end
 
 # test/dummy/app/models/application_record.rb
 
-class ApplicationRecord < ActiveRecord::Base
+class ApplicationRecord < ApplicationRecord
   include Yaffle::ActsAsYaffle
 
   self.abstract_class = true
@@ -393,7 +393,7 @@ end
 
 # test/dummy/app/models/application_record.rb
 
-class ApplicationRecord < ActiveRecord::Base
+class ApplicationRecord < ApplicationRecord
   include Yaffle::ActsAsYaffle
 
   self.abstract_class = true

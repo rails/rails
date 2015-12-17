@@ -169,7 +169,7 @@ Rails application with a legacy database? No problem, you can easily override
 the default conventions.
 
 `ApplicationRecord` inherits from `ActiveRecord::Base`, which defines a
-number of helpful methods. You can use the `ActiveRecord::Base.table_name=`
+number of helpful methods. You can use the `ApplicationRecord.table_name=`
 method to specify the table name that should be used:
 
 ```ruby
@@ -191,7 +191,7 @@ end
 ```
 
 It's also possible to override the column that should be used as the table's
-primary key using the `ActiveRecord::Base.primary_key=` method:
+primary key using the `ApplicationRecord.primary_key=` method:
 
 ```ruby
 class Product < ApplicationRecord

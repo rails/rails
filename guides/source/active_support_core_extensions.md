@@ -321,7 +321,7 @@ For example `nil`, `true`, and `false` return themselves. `Array#to_param` calls
 [0, true, String].to_param # => "0/true/String"
 ```
 
-Notably, the Rails routing system calls `to_param` on models to get a value for the `:id` placeholder. `ActiveRecord::Base#to_param` returns the `id` of a model, but you can redefine that method in your models. For example, given
+Notably, the Rails routing system calls `to_param` on models to get a value for the `:id` placeholder. `ApplicationRecord#to_param` returns the `id` of a model, but you can redefine that method in your models. For example, given
 
 ```ruby
 class User
@@ -3793,7 +3793,7 @@ Active Support adds `missing_name?` to `NameError`, which tests whether the exce
 
 The name may be given as a symbol or string. A symbol is tested against the bare constant name, a string is against the fully-qualified constant name.
 
-TIP: A symbol can represent a fully-qualified constant name as in `:"ActiveRecord::Base"`, so the behavior for symbols is defined for convenience, not because it has to be that way technically.
+TIP: A symbol can represent a fully-qualified constant name as in `:"ApplicationRecord"`, so the behavior for symbols is defined for convenience, not because it has to be that way technically.
 
 For example, when an action of `ArticlesController` is called Rails tries optimistically to use `ArticlesHelper`. It is OK that the helper module does not exist, so if an exception for that constant name is raised it should be silenced. But it could be the case that `articles_helper.rb` raises a `NameError` due to an actual unknown constant. That should be reraised. The method `missing_name?` provides a way to distinguish both cases:
 
