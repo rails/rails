@@ -1,3 +1,11 @@
+=== 7.0.0 / 2015-12-17
+
+* Enhancements
+
+  * Remove deprecated method `Table#primary_key`
+  * Remove engine from the constructor arguments `Arel::Table`
+  * Deprecate automatic type casting within Arel
+
 === 6.0.0 / 2014-11-25
 
 * Enhancements
