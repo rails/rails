@@ -27,6 +27,8 @@ class AssetTagHelperTest < ActionView::TestCase
   end
 
   AssetPathToTag = {
+    %(asset_path(""))             => %(),
+    %(asset_path("   "))          => %(),
     %(asset_path("foo"))          => %(/foo),
     %(asset_path("style.css"))    => %(/style.css),
     %(asset_path("xmlhr.js"))     => %(/xmlhr.js),
