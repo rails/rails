@@ -96,23 +96,24 @@ class Module
 
   # Defines both class and instance accessors for class attributes.
   #
-  #   class Current
+  #   class Account
   #     thread_mattr_accessor :user
   #   end
   #
-  #   Current.user = "DHH"
-  #   Current.user     # => "DHH"
-  #   Current.new.user # => "DHH"
+  #   Account.user = "DHH"
+  #   Account.user     # => "DHH"
+  #   Account.new.user # => "DHH"
   #
-  # If a subclass changes the value then that will not change the value for
-  # parent class. Similarly if parent class changes the value then that will not
-  # change the value of subclasses either.
+  # If a subclass changes the value, the parent class' value is not changed.
+  # Similarly, if the parent class changes the value, the value of subclasses
+  # is not changed.
   #
   #   class Customer < Account
   #   end
   #
   #   Customer.user = "Rafael"
-  #   Account.user # => "DHH"
+  #   Customer.user # => "Rafael"
+  #   Account.user  # => "DHH"
   #
   # To opt out of the instance writer method, pass <tt>instance_writer: false</tt>.
   # To opt out of the instance reader method, pass <tt>instance_reader: false</tt>.
