@@ -255,6 +255,10 @@ class ParametersPermitTest < ActiveSupport::TestCase
     assert_equal "32", @params[:person].permit([ :age ])[:age]
   end
 
+  test "permitting parameters as a set" do
+    assert_equal "32", @params[:person].permit(Set.new([:age]))[:age]
+  end
+
   test "to_h returns empty hash on unpermitted params" do
     assert @params.to_h.is_a? ActiveSupport::HashWithIndifferentAccess
     assert_not @params.to_h.is_a? ActionController::Parameters

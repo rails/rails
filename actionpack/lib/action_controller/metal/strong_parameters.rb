@@ -377,7 +377,7 @@ module ActionController
     def permit(*filters)
       params = self.class.new
 
-      filters.flatten.each do |filter|
+      filters.map { |f| f.is_a?(Set) ? f.to_a : f }.flatten.each do |filter|
         case filter
         when Symbol, String
           permitted_scalar_filter(params, filter)
