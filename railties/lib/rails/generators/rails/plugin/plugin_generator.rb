@@ -37,7 +37,7 @@ module Rails
     end
 
     def readme
-      template "README.rdoc"
+      template readme_filename
     end
 
     def gemfile
@@ -191,6 +191,9 @@ task default: :test
       class_option :api,          type: :boolean, default: false,
                                   desc: "Generate a smaller stack for API application plugins"
 
+      class_option :markdown_readme, type: :boolean, default: false,
+                                     desc: "Create a README.md file instead of README.rdoc"
+
       def initialize(*args)
         @dummy_path = nil
         super
@@ -310,6 +313,10 @@ task default: :test
 
       def mountable?
         options[:mountable]
+      end
+
+      def readme_filename
+        options[:markdown_readme] ? 'README.md' : 'README.rdoc'
       end
 
       def skip_git?

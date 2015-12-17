@@ -403,6 +403,22 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_file "bin/rails", /#!\/usr\/bin\/env ruby/
   end
 
+  def test_generates_rdoc_readme_by_default
+    run_generator
+    assert_file "README.rdoc"
+    assert_no_file "README.md"
+
+    assert_file "bukkits.gemspec", /s.files = Dir\["\{app,config,db,lib\}\/\*\*\/\*", "MIT-LICENSE", "Rakefile", "README\.rdoc"\]/
+  end
+
+  def test_passing_markdown_as_readme_format
+    run_generator [destination_root, "--markdown-readme"]
+    assert_file "README.md"
+    assert_no_file "README.rdoc"
+
+    assert_file "bukkits.gemspec", /s.files = Dir\["\{app,config,db,lib\}\/\*\*\/\*", "MIT-LICENSE", "Rakefile", "README\.md"\]/
+  end
+
   def test_passing_dummy_path_as_a_parameter
     run_generator [destination_root, "--dummy_path", "spec/dummy"]
     assert_file "spec/dummy"
