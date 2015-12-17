@@ -144,7 +144,6 @@ module SharedGeneratorTests
   def test_skip_git
     run_generator [destination_root, '--skip-git', '--full']
     assert_no_file('.gitignore')
-    assert_file('app/mailers/.keep')
   end
 
   def test_skip_keeps
@@ -154,6 +153,6 @@ module SharedGeneratorTests
       assert_no_match(/\.keep/, content)
     end
 
-    assert_no_file('app/mailers/.keep')
+    assert_no_file('app/models/concerns/.keep')
   end
 end
