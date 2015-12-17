@@ -36,16 +36,6 @@ GIT
       activesupport (>= 4.1.0)
 
 GIT
-  remote: git://github.com/rails/jquery-rails.git
-  revision: 04fcfa29b859eef9479f89b6a799d00212902385
-  branch: master
-  specs:
-    jquery-rails (4.0.5)
-      rails-dom-testing (~> 1.0)
-      railties (>= 4.2.0)
-      thor (>= 0.14, < 2.0)
-
-GIT
   remote: git://github.com/rails/sprockets-rails.git
   revision: 06d84e952490d7d391592124f6e3b79f9c596674
   branch: master
@@ -336,7 +326,6 @@ DEPENDENCIES
   delayed_job
   delayed_job_active_record
   globalid!
-  jquery-rails!
   json
   kindlerb (= 0.1.1)
   listen (~> 3.0.5)

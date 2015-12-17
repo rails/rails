@@ -14,7 +14,6 @@ gem 'rack', github: 'rack/rack', branch: 'master'
 gem 'mocha', '~> 0.14', require: false
 
 gem 'rack-cache', '~> 1.2'
-gem 'jquery-rails', github: 'rails/jquery-rails', branch: 'master'
 gem 'coffee-rails', '~> 4.1.0'
 gem 'turbolinks'
 
