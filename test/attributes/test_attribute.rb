@@ -330,7 +330,7 @@ module Arel
           relation[:id].maximum.must_be_kind_of Nodes::Max
         end
 
-        it 'should generate the proper SQL' do
+        it 'should generate proper SQL' do
           relation = Table.new(:users)
           mgr = relation.project relation[:id].maximum
           mgr.to_sql.must_be_like %{
@@ -344,6 +344,15 @@ module Arel
         it 'should create a Min node' do
           relation = Table.new(:users)
           relation[:id].minimum.must_be_kind_of Nodes::Min
+        end
+
+        it 'should generate proper SQL' do
+          relation = Table.new(:users)
+          mgr = relation.project relation[:id].minimum
+          mgr.to_sql.must_be_like %{
+            SELECT MIN("users"."id")
+            FROM "users"
+          }
         end
       end
 
