@@ -297,4 +297,32 @@ class ParametersPermitTest < ActiveSupport::TestCase
     assert @params.to_h.is_a? ActiveSupport::HashWithIndifferentAccess
     assert_not @params.to_h.is_a? ActionController::Parameters
   end
+
+  test "to_h only deep dups Ruby collections" do
+    company = Class.new do
+      attr_reader :dupped
+      def dup; @dupped = true; end
+    end.new
+
+    params = ActionController::Parameters.new(prem: { likes: %i( dancing ) })
+    assert_equal({ 'prem' => { 'likes' => %i( dancing ) } }, params.permit!.to_h)
+
+    params = ActionController::Parameters.new(companies: [ company, :acme ])
+    assert_equal({ 'companies' => [ company, :acme ] }, params.permit!.to_h)
+    assert_not company.dupped
+  end
+
+  test "to_unsafe_h only deep dups Ruby collections" do
+    company = Class.new do
+      attr_reader :dupped
+      def dup; @dupped = true; end
+    end.new
+
+    params = ActionController::Parameters.new(prem: { likes: %i( dancing ) })
+    assert_equal({ 'prem' => { 'likes' => %i( dancing ) } }, params.to_unsafe_h)
+
+    params = ActionController::Parameters.new(companies: [ company, :acme ])
+    assert_equal({ 'companies' => [ company, :acme ] }, params.to_unsafe_h)
+    assert_not company.dupped
+  end
 end
