@@ -179,7 +179,7 @@ module Arel
     def where_sql engine = Table.engine
       return if @ctx.wheres.empty?
 
-      viz = Visitors::WhereSql.new engine.connection
+      viz = Visitors::WhereSql.new(engine.connection.visitor, engine.connection)
       Nodes::SqlLiteral.new viz.accept(@ctx, Collectors::SQLString.new).value
     end
 
