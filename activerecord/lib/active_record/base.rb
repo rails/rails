@@ -261,7 +261,7 @@ module ActiveRecord #:nodoc:
   #   The +errors+ property of this exception contains an array of
   #   AttributeAssignmentError
   #   objects that should be inspected to determine which attributes triggered the errors.
-  # * RecordInvalid - raised by {ActiveRecord::Base#save}[rdoc-ref:Persistence#save] and
+  # * RecordInvalid - raised by {ActiveRecord::Base#save!}[rdoc-ref:Persistence#save!] and
   #   {ActiveRecord::Base.create!}[rdoc-ref:Persistence::ClassMethods#create!]
   #   when the record is invalid.
   # * RecordNotFound - No record responded to the {ActiveRecord::Base.find}[rdoc-ref:FinderMethods#find] method.
