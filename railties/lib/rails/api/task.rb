@@ -57,6 +57,13 @@ module Rails
           )
         },
 
+        'actioncable' => {
+          :include => %w(
+            README.md
+            lib/action_cable/**/*.rb
+          )
+        },
+
         'railties' => {
           :include => %w(
             README.rdoc
