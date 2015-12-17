@@ -216,7 +216,7 @@ is returned.
 
 This method is only useful _after_ validations have been run, because it only
 inspects the errors collection and does not trigger validations itself. It's
-different from the `ActiveRecord::Base#invalid?` method explained above because
+different from the `ApplicationRecord#invalid?` method explained above because
 it doesn't verify the validity of the object as a whole. It only checks to see
 whether there are errors found on an individual attribute of the object.
 

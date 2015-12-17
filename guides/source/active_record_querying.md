@@ -884,9 +884,9 @@ c2.save # Raises an ActiveRecord::StaleObjectError
 
 You're then responsible for dealing with the conflict by rescuing the exception and either rolling back, merging, or otherwise apply the business logic needed to resolve the conflict.
 
-This behavior can be turned off by setting `ActiveRecord::Base.lock_optimistically = false`.
+This behavior can be turned off by setting `ApplicationRecord.lock_optimistically = false`.
 
-To override the name of the `lock_version` column, `ActiveRecord::Base` provides a class attribute called `locking_column`:
+To override the name of the `lock_version` column, `ApplicationRecord` provides a class attribute called `locking_column`:
 
 ```ruby
 class Client < ApplicationRecord

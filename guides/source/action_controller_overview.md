@@ -719,7 +719,7 @@ class ChangesController < ApplicationController
   private
 
   def wrap_in_transaction
-    ActiveRecord::Base.transaction do
+    ApplicationRecord.transaction do
       begin
         yield
       ensure
