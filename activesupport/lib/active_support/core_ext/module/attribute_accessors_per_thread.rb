@@ -111,7 +111,7 @@ class Module
   #   class Customer < Account
   #   end
   #
-  #   Customer.user = "CHH"
+  #   Customer.user = "DHH"
   #   Account.user # => "DHH"
   #
   # To opt out of the instance writer method, pass <tt>instance_writer: false</tt>.
