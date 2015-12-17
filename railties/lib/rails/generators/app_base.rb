@@ -51,6 +51,9 @@ module Rails
         class_option :skip_spring,        type: :boolean, default: false,
                                           desc: "Don't install Spring application preloader"
 
+        class_option :skip_action_cable,  type: :boolean, aliases: '-C', default: false,
+                                          desc: 'Skip Action Cable files'
+
         class_option :database,           type: :string, aliases: '-d', default: 'sqlite3',
                                           desc: "Preconfigure for selected database (options: #{DATABASES.join('/')})"
 
@@ -168,7 +171,7 @@ module Rails
       end
 
       def include_all_railties?
-        options.values_at(:skip_active_record, :skip_action_mailer, :skip_test, :skip_sprockets).none?
+        options.values_at(:skip_active_record, :skip_action_mailer, :skip_test, :skip_sprockets, :skip_action_cable).none?
       end
 
       def comment_if(value)

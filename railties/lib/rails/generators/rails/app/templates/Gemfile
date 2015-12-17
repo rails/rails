@@ -12,11 +12,11 @@ source 'https://rubygems.org'
 <% end -%>
 <% end -%>
 
+# Use Puma as the app server
+gem 'puma', github: 'puma/puma' # FIXME: Release Rack 2 compatible Puma
+
 # Use ActiveModel has_secure_password
 # gem 'bcrypt', '~> 3.1.7'
-
-# Use Unicorn as the app server
-# gem 'unicorn'
 
 # Use Capistrano for deployment
 # gem 'capistrano-rails', group: :development

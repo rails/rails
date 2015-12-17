@@ -1307,6 +1307,21 @@ module ApplicationTests
       assert_equal 'custom key', Rails.application.config.my_custom_config['key']
     end
 
+    test "config_for use the Pathname object if it is provided" do
+      app_file 'config/custom.yml', <<-RUBY
+      development:
+        key: 'custom key'
+      RUBY
+
+      add_to_config <<-RUBY
+        config.my_custom_config = config_for(Pathname.new(Rails.root.join("config/custom.yml")))
+      RUBY
+
+      app 'development'
+
+      assert_equal 'custom key', Rails.application.config.my_custom_config['key']
+    end
+
     test "config_for raises an exception if the file does not exist" do
       add_to_config <<-RUBY
         config.my_custom_config = config_for('custom')

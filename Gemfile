@@ -68,6 +68,11 @@ group :job do
   gem 'sequel', require: false
 end
 
+# Action Cable
+group :cable do
+  gem 'puma', require: false
+end
+
 # Add your own local bundler stuff.
 local_gemfile = File.dirname(__FILE__) + "/.Gemfile"
 instance_eval File.read local_gemfile if File.exist? local_gemfile

@@ -40,6 +40,11 @@ Rails.application.configure do
   # config.action_dispatch.x_sendfile_header = 'X-Sendfile' # for Apache
   # config.action_dispatch.x_sendfile_header = 'X-Accel-Redirect' # for NGINX
 
+  <%- unless options[:skip_action_cable] -%>
+  # Action Cable should be mounted in a separate process for most production setups
+  # config.action_cable.url = 'wss://example.com/cable'
+  <%- end -%>
+
   # Force all access to the app over SSL, use Strict-Transport-Security, and use secure cookies.
   # config.force_ssl = true
 

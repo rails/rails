@@ -16,6 +16,7 @@ env:
   matrix:
     - "GEM=railties"
     - "GEM=ap"
+    - "GEM=ac"
     - "GEM=am,amo,as,av,aj"
     - "GEM=ar:mysql"
     - "GEM=ar:mysql2"

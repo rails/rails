@@ -376,6 +376,11 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_generator_if_skip_action_cable_is_given
+    run_generator [destination_root, "--skip-action-cable"]
+    assert_file "config/application.rb", /#\s+require\s+["']action_cable\/engine["']/
+  end
+
   def test_inclusion_of_javascript_runtime
     run_generator
     if defined?(JRUBY_VERSION)
@@ -613,7 +618,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     folders_with_keep = %w(
       app/assets/images
       app/mailers
-      app/models
       app/controllers/concerns
       app/models/concerns
       lib/tasks
