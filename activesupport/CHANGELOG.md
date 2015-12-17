@@ -19,7 +19,7 @@
       private
         def set_current
           Current.account = Account.find(params[:account_id])
-          Current.person  = Current.account.people.find(params[:person_id])
+          Current.user    = Current.account.users.find(params[:user_id])
         end
     end
 
@@ -40,8 +40,8 @@
     end
 
     class Event < ApplicationRecord
-      belongs_to :creator, class_name: 'Person'
-      before_validation { self.creator ||= Current.person }
+      belongs_to :creator, class_name: 'User'
+      before_validation { self.creator ||= Current.user }
     end
 
     *DHH*
