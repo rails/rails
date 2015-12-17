@@ -4,6 +4,12 @@ require 'arel/visitors/reduce'
 
 module Arel
   module Visitors
+    class UnsupportedVisitError < StandardError
+      def initialize(object)
+        super "Unsupported argument type: #{object.class.name}. Construct an Arel node instead."
+      end
+    end
+
     class ToSql < Arel::Visitors::Reduce
       ##
       # This is some roflscale crazy stuff.  I'm roflscaling this because
@@ -737,7 +743,7 @@ module Arel
       end
 
       def unsupported o, collector
-        raise "unsupported: #{o.class.name}"
+        raise UnsupportedVisitError.new(o)
       end
 
       alias :visit_ActiveSupport_Multibyte_Chars :unsupported
