@@ -24,7 +24,7 @@ env:
     - "GEM=aj:integration"
     - "GEM=guides"
 rvm:
-  - 2.2.3
+  - 2.2.4
   - ruby-head
 matrix:
   allow_failures:
