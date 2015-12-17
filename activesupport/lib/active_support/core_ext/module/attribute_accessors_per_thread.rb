@@ -15,7 +15,7 @@ class Module
   #   end
   #
   #   Current.user # => nil
-  #   Thread.current[:attr_Current_user] = "DHH"
+  #   Thread.thread_variable_set("attr_Current_user", "DHH")
   #   Current.user # => "DHH"
   #
   # The attribute name must be a valid method name in Ruby.
@@ -63,7 +63,7 @@ class Module
   #   end
   #
   #   Current.user = "DHH"
-  #   Thread.current[:attr_Current_user] # => "DHH"
+  #   Thread.thread_variable_get("attr_Current_user") # => "DHH"
   #
   # If you want to opt out the instance writer method, pass
   # <tt>instance_writer: false</tt> or <tt>instance_accessor: false</tt>.
@@ -111,7 +111,7 @@ class Module
   #   class Customer < Account
   #   end
   #
-  #   Customer.user = "DHH"
+  #   Customer.user = "Rafael"
   #   Account.user # => "DHH"
   #
   # To opt out of the instance writer method, pass <tt>instance_writer: false</tt>.
