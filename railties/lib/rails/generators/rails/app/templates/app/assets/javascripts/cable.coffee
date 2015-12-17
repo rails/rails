@@ -2,6 +2,6 @@
 #= require_self
 #= require_tree ./channels
 
-# Turn on the cable connection by removing the comments from the statements below:
+# Turn on the cable connection (ensure it's also on in config/routes.rb):
 # @App ||= {}
 # App.cable = ActionCable.createConsumer()
