@@ -221,7 +221,6 @@ module Rails
       def rails_gemfile_entry
         dev_edge_common = [
             GemfileEntry.github('sprockets-rails', 'rails/sprockets-rails'),
-            GemfileEntry.github('arel', 'rails/arel'),
             GemfileEntry.github('rack', 'rack/rack')
           ]
         if options.dev?
