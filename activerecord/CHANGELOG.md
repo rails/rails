@@ -1,15 +1,10 @@
-*   Introduce ApplicationRecord, an Active Record layer super type.
-
-    An `ApplicationRecord` let's engines have models, isolated from the main
-    application. Plugin authors can use it to distribute extensions as modules
-    to be included into `ApplicationRecord`, instead of monkey patches. It can
-    also serve as a place for applications to customize the default
-    `ActiveRecord::Base` model behaviour.
+*   ApplicationRecord is a new superclass for all app models, analogous to app
+    controllers subclassing ApplicationController instead of
+    ActionController::Base. This gives apps a single spot to configure app-wide
+    model behavior.
 
     Newly generated applications have `app/models/application_record.rb`
-    present by default. Generators are smart enough to recognize that
-    newly generated models have to inherit from `ApplicationRecord` only if
-    it's present.
+    present by default.
 
     *Genadi Samokovarov*
 
