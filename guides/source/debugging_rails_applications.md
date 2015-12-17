@@ -608,7 +608,7 @@ Started GET "/" for 127.0.0.1 at 2014-04-11 13:39:23 +0200
 Processing by ArticlesController#index as HTML
 
 [1, 8] in /home/davidr/Proyectos/test_app/app/models/article.rb
-   1: class Article < ActiveRecord::Base
+   1: class Article < ApplicationRecord
    2:
    3:   def self.find_recent(limit = 10)
    4:     byebug

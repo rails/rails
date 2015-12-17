@@ -990,21 +990,22 @@ and restart the web server when a change is made.
 The model file, `app/models/article.rb` is about as simple as it can get:
 
 ```ruby
-class Article < ActiveRecord::Base
+class Article < ApplicationRecord
 end
 ```
 
 There isn't much to this file - but note that the `Article` class inherits from
-`ActiveRecord::Base`. Active Record supplies a great deal of functionality to
-your Rails models for free, including basic database CRUD (Create, Read, Update,
-Destroy) operations, data validation, as well as sophisticated search support
-and the ability to relate multiple models to one another.
+`ApplicationRecord`. `ApplicationRecord` inherits from `ActiveRecord::Base`
+which supplies a great deal of functionality to your Rails models for free,
+including basic database CRUD (Create, Read, Update, Destroy) operations, data
+validation, as well as sophisticated search support and the ability to relate
+multiple models to one another.
 
 Rails includes methods to help you validate the data that you send to models.
 Open the `app/models/article.rb` file and edit it:
 
 ```ruby
-class Article < ActiveRecord::Base
+class Article < ApplicationRecord
   validates :title, presence: true,
                     length: { minimum: 5 }
 end
@@ -1529,7 +1530,7 @@ This command will generate four files:
 First, take a look at `app/models/comment.rb`:
 
 ```ruby
-class Comment < ActiveRecord::Base
+class Comment < ApplicationRecord
   belongs_to :article
 end
 ```
@@ -1587,7 +1588,7 @@ association. You've already seen the line of code inside the `Comment` model
 (app/models/comment.rb) that makes each comment belong to an Article:
 
 ```ruby
-class Comment < ActiveRecord::Base
+class Comment < ApplicationRecord
   belongs_to :article
 end
 ```
@@ -1596,7 +1597,7 @@ You'll need to edit `app/models/article.rb` to add the other side of the
 association:
 
 ```ruby
-class Article < ActiveRecord::Base
+class Article < ApplicationRecord
   has_many :comments
   validates :title, presence: true,
                     length: { minimum: 5 }
@@ -1962,7 +1963,7 @@ you to use the `dependent` option of an association to achieve this. Modify the
 Article model, `app/models/article.rb`, as follows:
 
 ```ruby
-class Article < ActiveRecord::Base
+class Article < ApplicationRecord
   has_many :comments, dependent: :destroy
   validates :title, presence: true,
                     length: { minimum: 5 }
