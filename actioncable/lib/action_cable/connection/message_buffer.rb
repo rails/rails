@@ -29,10 +29,11 @@ module ActionCable
         receive_buffered_messages
       end
 
-      private
+      protected
         attr_reader :connection
         attr_accessor :buffered_messages
 
+      private
         def valid?(message)
           message.is_a?(String)
         end

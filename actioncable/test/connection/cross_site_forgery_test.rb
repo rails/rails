@@ -57,7 +57,7 @@ class ActionCable::Connection::CrossSiteForgeryTest < ActionCable::TestCase
   private
     def assert_origin_allowed(origin)
       response = connect_with_origin origin
-      assert_equal -1, response[0]
+      assert_equal(-1, response[0])
     end
 
     def assert_origin_not_allowed(origin)
