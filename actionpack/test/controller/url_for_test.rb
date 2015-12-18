@@ -375,6 +375,13 @@ module AbstractController
         assert_equal({'query[person][position][]' => 'prof'        }.to_query, params[3])
       end
 
+      def test_url_action_controller_parameters
+        add_host!
+        assert_raise(ArgumentError) do
+          W.new.url_for(ActionController::Parameters.new(:controller => 'c', :action => 'a', protocol: 'javascript', f: '%0Aeval(name)'))
+        end
+      end
+
       def test_path_generation_for_symbol_parameter_keys
         assert_generates("/image", :controller=> :image)
       end

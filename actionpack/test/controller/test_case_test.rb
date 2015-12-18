@@ -172,7 +172,7 @@ XML
     before_action { @dynamic_opt = 'opt' }
 
     def test_url_options_reset
-      render plain: url_for(params)
+      render plain: url_for
     end
 
     def default_url_options
