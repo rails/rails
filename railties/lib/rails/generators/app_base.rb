@@ -231,8 +231,22 @@ module Rails
           ] + dev_edge_common
         else
           [GemfileEntry.version('rails',
-                            Rails::VERSION::STRING,
+                            rails_version_specifier,
                             "Bundle edge Rails instead: gem 'rails', github: 'rails/rails'")]
+        end
+      end
+
+      def rails_version_specifier(gem_version = Rails.gem_version)
+        if gem_version.prerelease?
+          next_series = gem_version
+          next_series = next_series.bump while next_series.segments.size > 2
+
+          [">= #{gem_version}", "< #{next_series}"]
+        elsif gem_version.segments.size == 3
+          "~> #{gem_version}"
+        else
+          patch = gem_version.segments[0, 3].join(".")
+          ["~> #{patch}", ">= #{gem_version}"]
         end
       end
 
