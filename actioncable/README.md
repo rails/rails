@@ -305,16 +305,9 @@ By default, `ActionCable::Server::Base` will look for a configuration file in `R
 
 ```yaml
 production: &production
-  :url: redis://10.10.3.153:6381
-  :host: 10.10.3.153
-  :port: 6381
-  :timeout: 1
+  url: redis://10.10.3.153:6381
 development: &development
-  :url: redis://localhost:6379
-  :host: localhost
-  :port: 6379
-  :timeout: 1
-  :inline: true
+  url: redis://localhost:6379
 test: *development
 ```
 
