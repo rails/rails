@@ -2,6 +2,11 @@ require 'abstract_unit'
 require 'active_job'
 require 'mailers/delayed_mailer'
 
+class RescueJob < ActionMailer::DeliveryJob
+  rescue_from(StandardError) do
+  end
+end
+
 class MessageDeliveryTest < ActiveSupport::TestCase
   include ActiveJob::TestHelper
 
@@ -91,6 +96,18 @@ class MessageDeliveryTest < ActiveSupport::TestCase
   test 'can override the queue when enqueuing mail' do
     assert_performed_with(job: ActionMailer::DeliveryJob, args: ['DelayedMailer', 'test_message', 'deliver_now', 1, 2, 3], queue: "another_queue") do
       @mail.deliver_later(queue: :another_queue)
+    end
+  end
+
+  test "can override base job class" do
+    begin
+      original_job_class = ActionMailer::Base.delivery_job_class
+      assert_performed_with(job: RescueJob, args: ['DelayedMailer', 'test_message', 'deliver_now', 1, 2, 3], queue: "another_queue") do
+        ActionMailer::Base.delivery_job_class = RescueJob
+        @mail.deliver_later(queue: :another_queue)
+      end
+    ensure
+      ActionMailer::Base.delivery_job_class = original_job_class
     end
   end
 end

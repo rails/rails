@@ -417,6 +417,11 @@ module ActionMailer
   #   <tt>delivery_method :test</tt>. Most useful for unit and functional testing.
   #
   # * <tt>deliver_later_queue_name</tt> - The name of the queue used with <tt>deliver_later</tt>.
+  #
+  # * <tt>delivery_job_class</tt> - Customize the base class used for
+  #   ActiveJob-powered ActionMailer deliveries. This allows you to setup a job
+  #   superclass that rescues ActiveJob errors that you would otherwise not be
+  #   able to rescue.
   class Base < AbstractController::Base
     include DeliveryMethods
     include Previews

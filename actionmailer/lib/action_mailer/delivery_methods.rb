@@ -7,6 +7,9 @@ module ActionMailer
     extend ActiveSupport::Concern
 
     included do
+      cattr_accessor :delivery_job_class
+      self.delivery_job_class = ActionMailer::DeliveryJob
+
       class_attribute :delivery_methods, :delivery_method
 
       # Do not make this inheritable, because we always want it to propagate
