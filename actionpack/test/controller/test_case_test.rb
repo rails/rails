@@ -150,6 +150,14 @@ XML
       render html: '<body class="foo"></body>'.html_safe
     end
 
+    def path_one
+      render plain: request.fullpath
+    end
+
+    def path_two
+      render plain: request.fullpath
+    end
+
     private
 
       def generate_url(opts)
@@ -965,6 +973,24 @@ XML
     assert_raise(ActiveSupport::TestCase::Assertion) do
       assert_redirected_to 'created resource'
     end
+  end
+
+  def test_request_path_correct
+    get :path_one
+    assert_equal "/test_case_test/test/path_one", @response.body
+
+    @request.recycle
+
+    get :path_two
+    assert_equal "/test_case_test/test/path_two", @response.body
+  end
+
+  def test_request_path_not_cleared
+    get :path_one
+    assert_equal "/test_case_test/test/path_one", @response.body
+
+    get :path_two
+    refute_equal "/test_case_test/test/path_two", @response.body
   end
 end
 
