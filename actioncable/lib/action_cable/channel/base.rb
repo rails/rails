@@ -32,7 +32,7 @@ module ActionCable
     #
     # == Action processing
     #
-    # Unlike Action Controllers, channels do not follow a REST constraint form for its actions. It's an remote-procedure call model. You can
+    # Unlike Action Controllers, channels do not follow a REST constraint form for its actions. It's a remote-procedure call model. You can
     # declare any public method on the channel (optionally taking a data argument), and this method is automatically exposed as callable to the client.
     #
     # Example:
