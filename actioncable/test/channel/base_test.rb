@@ -61,6 +61,10 @@ class ActionCable::Channel::BaseTest < ActiveSupport::TestCase
       transmit data: 'latest'
     end
 
+    def receive
+      @last_action = [ :recieve ]
+    end
+
     private
       def rm_rf
         @last_action = [ :rm_rf ]
@@ -133,6 +137,12 @@ class ActionCable::Channel::BaseTest < ActiveSupport::TestCase
     assert_equal [ :chatters ], @channel.last_action
   end
 
+  test "should dispatch recieve action when perform_action is called with empty action" do
+    data = {'content' => 'hello'}
+    @channel.perform_action data
+    assert_equal [ :recieve ], @channel.last_action
+  end
+
   test "transmitting data" do
     @channel.perform_action 'action' => :get_latest
 
@@ -146,7 +156,7 @@ class ActionCable::Channel::BaseTest < ActiveSupport::TestCase
   end
 
   test "actions available on Channel" do
-    available_actions = ["room", "last_action", "subscribed", "unsubscribed", "toggle_subscribed", "leave", "speak", "subscribed?", "get_latest", "chatters", "topic"].to_set
+    available_actions = %w(room last_action subscribed unsubscribed toggle_subscribed leave speak subscribed? get_latest receive chatters topic).to_set
     assert_equal available_actions, ChatChannel.action_methods
   end
 end
