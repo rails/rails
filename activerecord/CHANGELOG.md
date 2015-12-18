@@ -1,3 +1,8 @@
+*   Omit default limit values in dumped schema. It's tidier, and if the defaults
+    change in the future, we can address that via Migration API Versioning.
+
+    *Jean Boussier*
+
 *   Support passing the schema name as a prefix to table name in
     `ConnectionAdapters::SchemaStatements#indexes`. Previously the prefix would
     be considered a full part of the index name, and only the schema in the

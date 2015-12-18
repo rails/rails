@@ -118,7 +118,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
       assert_match %r{c_int_4.*}, output
       assert_no_match %r{c_int_4.*limit:}, output
     elsif current_adapter?(:Mysql2Adapter)
-      assert_match %r{c_int_without_limit.*limit: 4}, output
+      assert_match %r{c_int_without_limit"$}, output
 
       assert_match %r{c_int_1.*limit: 1}, output
       assert_match %r{c_int_2.*limit: 2}, output
