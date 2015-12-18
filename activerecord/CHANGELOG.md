@@ -1,3 +1,10 @@
+*   Order the result of `find(ids)` to match the passed array, if the relation
+    has no explicit order defined.
+
+    Fixes #20338.
+
+    *Miguel Grazziotin*, *Matthew Draper*
+
 *   Omit default limit values in dumped schema. It's tidier, and if the defaults
     change in the future, we can address that via Migration API Versioning.
 
