@@ -99,7 +99,7 @@ module ActiveRecord
         assert_equal 1, foreign_keys.size
 
         fk = foreign_keys.first
-        if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
+        if current_adapter?(:Mysql2Adapter)
           # ON DELETE RESTRICT is the default on MySQL
           assert_equal nil, fk.on_delete
         else

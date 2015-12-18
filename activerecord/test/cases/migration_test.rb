@@ -500,7 +500,7 @@ class MigrationTest < ActiveRecord::TestCase
     end
   end
 
-  if current_adapter?(:MysqlAdapter, :Mysql2Adapter, :PostgreSQLAdapter)
+  if current_adapter?(:Mysql2Adapter, :PostgreSQLAdapter)
     def test_out_of_range_limit_should_raise
       Person.connection.drop_table :test_limits rescue nil
       e = assert_raise(ActiveRecord::ActiveRecordError, "integer limit didn't raise") do

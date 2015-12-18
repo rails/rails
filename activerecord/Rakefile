@@ -17,14 +17,14 @@ def run_without_aborting(*tasks)
   abort "Errors running #{errors.join(', ')}" if errors.any?
 end
 
-desc 'Run mysql, mysql2, sqlite, and postgresql tests by default'
+desc 'Run mysql2, sqlite, and postgresql tests by default'
 task :default => :test
 
-desc 'Run mysql, mysql2, sqlite, and postgresql tests'
+desc 'Run mysql2, sqlite, and postgresql tests'
 task :test do
   tasks = defined?(JRUBY_VERSION) ?
     %w(test_jdbcmysql test_jdbcsqlite3 test_jdbcpostgresql) :
-    %w(test_mysql test_mysql2 test_sqlite3 test_postgresql)
+    %w(test_mysql2 test_sqlite3 test_postgresql)
   run_without_aborting(*tasks)
 end
 
@@ -32,7 +32,7 @@ namespace :test do
   task :isolated do
     tasks = defined?(JRUBY_VERSION) ?
       %w(isolated_test_jdbcmysql isolated_test_jdbcsqlite3 isolated_test_jdbcpostgresql) :
-      %w(isolated_test_mysql isolated_test_mysql2 isolated_test_sqlite3 isolated_test_postgresql)
+      %w(isolated_test_mysql2 isolated_test_sqlite3 isolated_test_postgresql)
     run_without_aborting(*tasks)
   end
 end
@@ -43,7 +43,7 @@ namespace :db do
   task :drop => ['db:mysql:drop', 'db:postgresql:drop']
 end
 
-%w( mysql mysql2 postgresql sqlite3 sqlite3_mem db2 oracle jdbcmysql jdbcpostgresql jdbcsqlite3 jdbcderby jdbch2 jdbchsqldb ).each do |adapter|
+%w( mysql2 postgresql sqlite3 sqlite3_mem db2 oracle jdbcmysql jdbcpostgresql jdbcsqlite3 jdbcderby jdbch2 jdbchsqldb ).each do |adapter|
   namespace :test do
     Rake::TestTask.new(adapter => "#{adapter}:env") { |t|
       adapter_short = adapter == 'db2' ? adapter : adapter[/^[a-z0-9]+/]
@@ -87,14 +87,14 @@ namespace :db do
   namespace :mysql do
     desc 'Build the MySQL test databases'
     task :build do
-      config = ARTest.config['connections']['mysql']
+      config = ARTest.config['connections']['mysql2']
       %x( mysql --user=#{config['arunit']['username']} --password=#{config['arunit']['password']} -e "create DATABASE #{config['arunit']['database']} DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_unicode_ci ")
       %x( mysql --user=#{config['arunit2']['username']} --password=#{config['arunit2']['password']} -e "create DATABASE #{config['arunit2']['database']} DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_unicode_ci ")
     end
 
     desc 'Drop the MySQL test databases'
     task :drop do
-      config = ARTest.config['connections']['mysql']
+      config = ARTest.config['connections']['mysql2']
       %x( mysqladmin --user=#{config['arunit']['username']} --password=#{config['arunit']['password']} -f drop #{config['arunit']['database']} )
       %x( mysqladmin --user=#{config['arunit2']['username']} --password=#{config['arunit2']['password']} -f drop #{config['arunit2']['database']} )
     end

@@ -4,17 +4,10 @@ require 'models/entrant'
 
 class DefaultTest < ActiveRecord::TestCase
   def test_nil_defaults_for_not_null_columns
-    column_defaults =
-      if current_adapter?(:MysqlAdapter) && (Mysql.client_version < 50051 || (50100..50122).include?(Mysql.client_version))
-        { 'id' => nil, 'name' => '',  'course_id' => nil }
-      else
-        { 'id' => nil, 'name' => nil, 'course_id' => nil }
-      end
-
-    column_defaults.each do |name, default|
+    %w(id name course_id).each do |name|
       column = Entrant.columns_hash[name]
       assert !column.null, "#{name} column should be NOT NULL"
-      assert_equal default, column.default, "#{name} column should be DEFAULT #{default.inspect}"
+      assert_not column.default, "#{name} column should be DEFAULT 'nil'"
     end
   end
 
@@ -87,7 +80,7 @@ class DefaultStringsTest < ActiveRecord::TestCase
   end
 end
 
-if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
+if current_adapter?(:Mysql2Adapter)
   class DefaultsTestWithoutTransactionalFixtures < ActiveRecord::TestCase
     # ActiveRecord::Base#create! (and #save and other related methods) will
     # open a new transaction. When in transactional tests mode, this will

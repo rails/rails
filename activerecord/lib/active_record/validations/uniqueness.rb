@@ -231,7 +231,6 @@ module ActiveRecord
       #
       # The following bundled adapters throw the ActiveRecord::RecordNotUnique exception:
       #
-      # * ActiveRecord::ConnectionAdapters::MysqlAdapter.
       # * ActiveRecord::ConnectionAdapters::Mysql2Adapter.
       # * ActiveRecord::ConnectionAdapters::SQLite3Adapter.
       # * ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.

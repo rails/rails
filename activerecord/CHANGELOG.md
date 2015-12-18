@@ -1,3 +1,8 @@
+*   Extract support for the legacy `mysql` database adapter from core. It will
+    live on in a separate gem for now, but most users should just use `mysql2`.
+
+    *Abdelkader Boudih*
+
 *   ApplicationRecord is a new superclass for all app models, analogous to app
     controllers subclassing ApplicationController instead of
     ActionController::Base. This gives apps a single spot to configure app-wide
