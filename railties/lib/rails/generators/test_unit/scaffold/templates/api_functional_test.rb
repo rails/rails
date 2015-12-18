@@ -2,10 +2,10 @@ require 'test_helper'
 
 <% module_namespacing do -%>
 class <%= controller_class_name %>ControllerTest < ActionDispatch::IntegrationTest
-  <% if mountable_engine? -%>
+  <%- if mountable_engine? -%>
   include Engine.routes.url_helpers
 
-  <% end -%>
+  <%- end -%>
   setup do
     @<%= singular_table_name %> = <%= fixture_name %>(:one)
   end
