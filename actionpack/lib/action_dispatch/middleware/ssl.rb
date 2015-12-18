@@ -36,7 +36,7 @@ module ActionDispatch
     HSTS_EXPIRES_IN = 15552000
 
     def self.default_hsts_options
-      { expires: HSTS_EXPIRES_IN, subdomains: false, preload: false }
+      { expires: HSTS_EXPIRES_IN, subdomains: true, preload: false }
     end
 
     def initialize(app, redirect: {}, hsts: {}, **options)
