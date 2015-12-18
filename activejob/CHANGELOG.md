@@ -1,3 +1,8 @@
+## Rails 5.0.0.beta1 (December 18, 2015) ##
+
+*   No changes.
+
+
 *   Fixed serializing `:at` option for `assert_enqueued_with`
     and `assert_performed_with`.
 

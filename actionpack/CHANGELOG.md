@@ -1,3 +1,8 @@
+## Rails 5.0.0.beta1 (December 18, 2015) ##
+
+*   No changes.
+
+
 *   Deprecate `redirect_to :back` in favor of `redirect_back`, which accepts a
     required `fallback_location` argument, thus eliminating the possibility of a
     `RedirectBackError`.
