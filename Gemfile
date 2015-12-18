@@ -5,8 +5,7 @@ gemspec
 # We need a newish Rake since Active Job sets its test tasks' descriptions.
 gem 'rake', '>= 10.3'
 
-# Active Job depends on URI::GID::MissingModelIDError, which isn't released yet.
-gem 'globalid', github: 'rails/globalid', branch: 'master'
+# We need unreleased Rack 2.0.0.alpha
 gem 'rack', github: 'rack/rack', branch: 'master'
 
 # This needs to be with require false to ensure correct loading order, as has to

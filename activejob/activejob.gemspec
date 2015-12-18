@@ -19,5 +19,5 @@ Gem::Specification.new do |s|
   s.require_path = 'lib'
 
   s.add_dependency 'activesupport', version
-  s.add_dependency 'globalid', '>= 0.3.0'
+  s.add_dependency 'globalid', '>= 0.3.6'
 end

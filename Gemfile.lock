@@ -28,14 +28,6 @@ GIT
       json
 
 GIT
-  remote: git://github.com/rails/globalid.git
-  revision: 4e74ec6bb60d735ef3c56080f9c9f1dee9cadaaf
-  branch: master
-  specs:
-    globalid (0.3.6)
-      activesupport (>= 4.1.0)
-
-GIT
   remote: git://github.com/sass/sass.git
   revision: bce9509f396225d721501ea1070a6871b708abb1
   branch: stable
@@ -74,7 +66,7 @@ PATH
       rails-html-sanitizer (~> 1.0, >= 1.0.2)
     activejob (5.0.0.alpha)
       activesupport (= 5.0.0.alpha)
-      globalid (>= 0.3.0)
+      globalid (>= 0.3.6)
     activemodel (5.0.0.alpha)
       activesupport (= 5.0.0.alpha)
       builder (~> 3.1)
@@ -170,6 +162,8 @@ GEM
     ffi (1.9.10)
     ffi (1.9.10-x64-mingw32)
     ffi (1.9.10-x86-mingw32)
+    globalid (0.3.6)
+      activesupport (>= 4.1.0)
     hiredis (0.5.2)
     hitimes (1.2.3)
     hitimes (1.2.3-x86-mingw32)
@@ -319,7 +313,6 @@ DEPENDENCIES
   dalli (>= 2.2.1)
   delayed_job
   delayed_job_active_record
-  globalid!
   json
   kindlerb (= 0.1.1)
   listen (~> 3.0.5)
