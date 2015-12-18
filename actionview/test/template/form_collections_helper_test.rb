@@ -202,7 +202,7 @@ class FormCollectionsHelperTest < ActionView::TestCase
     collection = [Category.new(1, 'Category 1'), Category.new(2, 'Category 2')]
     with_collection_radio_buttons :user, :category_ids, collection, :id, :name
 
-    assert_select "input[type=hidden][name='user[category_ids][]'][value='']", count: 1
+    assert_select "input[type=hidden][name='user[category_ids]'][value='']", count: 1
   end
 
   test 'collection radio buttons generates a hidden field using the given :name in :html_options' do
@@ -216,7 +216,7 @@ class FormCollectionsHelperTest < ActionView::TestCase
     collection = [Category.new(1, 'Category 1'), Category.new(2, 'Category 2')]
     with_collection_radio_buttons :user, :category_ids, collection, :id, :name, { index: 322 }
 
-    assert_select "input[type=hidden][name='user[322][category_ids][]'][value='']", count: 1
+    assert_select "input[type=hidden][name='user[322][category_ids]'][value='']", count: 1
   end
 
   test 'collection radio buttons does not generate a hidden field if include_hidden option is false' do
