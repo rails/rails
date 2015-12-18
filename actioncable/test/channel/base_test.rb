@@ -137,7 +137,7 @@ class ActionCable::Channel::BaseTest < ActiveSupport::TestCase
     assert_equal [ :chatters ], @channel.last_action
   end
 
-  test "should dispatch recieve action when perform_action is called with empty action" do
+  test "should dispatch receive action when perform_action is called with empty action" do
     data = { 'content' => 'hello' }
     @channel.perform_action data
     assert_equal [ :receive ], @channel.last_action
