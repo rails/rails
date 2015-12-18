@@ -348,7 +348,7 @@
 
     *Sean Griffin*
 
-*   Give `AcriveRecord::Relation#update` its own deprecation warning when
+*   Give `ActiveRecord::Relation#update` its own deprecation warning when
     passed an `ActiveRecord::Base` instance.
 
     Fixes #21945.
