@@ -1,3 +1,7 @@
+*   Generate README.md when using `rails plugin` instead of README.rdoc.
+
+    *Netto Farah*
+
 *   The generated config file for the development environment includes a new
     config line, commented out, showing how to enable the evented file watcher.
 
