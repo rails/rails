@@ -62,7 +62,7 @@ class ActionCable::Channel::BaseTest < ActiveSupport::TestCase
     end
 
     def receive
-      @last_action = [ :recieve ]
+      @last_action = [ :receive ]
     end
 
     private
@@ -138,9 +138,9 @@ class ActionCable::Channel::BaseTest < ActiveSupport::TestCase
   end
 
   test "should dispatch recieve action when perform_action is called with empty action" do
-    data = {'content' => 'hello'}
+    data = { 'content' => 'hello' }
     @channel.perform_action data
-    assert_equal [ :recieve ], @channel.last_action
+    assert_equal [ :receive ], @channel.last_action
   end
 
   test "transmitting data" do
