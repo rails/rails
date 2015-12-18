@@ -499,4 +499,10 @@ class TimeZoneTest < ActiveSupport::TestCase
   def test_yaml_load
     assert_equal(ActiveSupport::TimeZone["Pacific/Honolulu"], YAML.load("--- !ruby/object:ActiveSupport::TimeZone\nname: Pacific/Honolulu\n"))
   end
+
+  def test_all_cache_busts
+    ActiveSupport::TimeZone.all
+    chicago = ActiveSupport::TimeZone['America/Chicago']
+    assert(ActiveSupport::TimeZone.all.include?(chicago))
+  end
 end

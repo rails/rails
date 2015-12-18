@@ -216,7 +216,7 @@ module ActiveSupport
       # TimeZone objects per time zone, in many cases, to make it easier
       # for users to find their own time zone.
       def all
-        @zones ||= zones_map.values.sort
+        @zones = zones_map.values.sort
       end
 
       # Locate a specific time zone object. If the argument is a string, it
