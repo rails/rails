@@ -45,14 +45,14 @@ module Rails
         class_option :skip_active_record, type: :boolean, aliases: '-O', default: false,
                                           desc: 'Skip Active Record files'
 
+        class_option :skip_action_cable,  type: :boolean, aliases: '-C', default: false,
+                                          desc: 'Skip Action Cable files'
+
         class_option :skip_sprockets,     type: :boolean, aliases: '-S', default: false,
                                           desc: 'Skip Sprockets files'
 
         class_option :skip_spring,        type: :boolean, default: false,
                                           desc: "Don't install Spring application preloader"
-
-        class_option :skip_action_cable,  type: :boolean, aliases: '-C', default: false,
-                                          desc: 'Skip Action Cable files'
 
         class_option :database,           type: :string, aliases: '-d', default: 'sqlite3',
                                           desc: "Preconfigure for selected database (options: #{DATABASES.join('/')})"
