@@ -26,6 +26,12 @@ module Rails
         class_option :template,           type: :string, aliases: '-m',
                                           desc: "Path to some #{name} template (can be a filesystem path or URL)"
 
+        class_option :database,           type: :string, aliases: '-d', default: 'sqlite3',
+                                          desc: "Preconfigure for selected database (options: #{DATABASES.join('/')})"
+
+        class_option :javascript,         type: :string, aliases: '-j', default: 'jquery',
+                                          desc: 'Preconfigure for selected JavaScript library'
+
         class_option :skip_gemfile,       type: :boolean, default: false,
                                           desc: "Don't create a Gemfile"
 
@@ -54,26 +60,20 @@ module Rails
         class_option :skip_spring,        type: :boolean, default: false,
                                           desc: "Don't install Spring application preloader"
 
-        class_option :database,           type: :string, aliases: '-d', default: 'sqlite3',
-                                          desc: "Preconfigure for selected database (options: #{DATABASES.join('/')})"
-
-        class_option :javascript,         type: :string, aliases: '-j', default: 'jquery',
-                                          desc: 'Preconfigure for selected JavaScript library'
-
         class_option :skip_javascript,    type: :boolean, aliases: '-J', default: false,
                                           desc: 'Skip JavaScript files'
-
-        class_option :dev,                type: :boolean, default: false,
-                                          desc: "Setup the #{name} with Gemfile pointing to your Rails checkout"
-
-        class_option :edge,               type: :boolean, default: false,
-                                          desc: "Setup the #{name} with Gemfile pointing to Rails repository"
 
         class_option :skip_turbolinks,    type: :boolean, default: false,
                                           desc: 'Skip turbolinks gem'
 
         class_option :skip_test,          type: :boolean, aliases: '-T', default: false,
                                           desc: 'Skip test files'
+
+        class_option :dev,                type: :boolean, default: false,
+                                          desc: "Setup the #{name} with Gemfile pointing to your Rails checkout"
+
+        class_option :edge,               type: :boolean, default: false,
+                                          desc: "Setup the #{name} with Gemfile pointing to Rails repository"
 
         class_option :rc,                 type: :string, default: false,
                                           desc: "Path to file containing extra configuration options for rails command"
