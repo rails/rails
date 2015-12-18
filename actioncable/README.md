@@ -86,8 +86,8 @@ potentially disconnect them all if the user is deleted or deauthorized).
 The client-side needs to setup a consumer instance of this connection. That's done like so:
 
 ```coffeescript
-# app/assets/javascripts/application_cable.coffee
-#= require cable
+# app/assets/javascripts/cable.coffee
+#= require action_cable
 
 @App = {}
 App.cable = Cable.createConsumer("ws://cable.example.com")
