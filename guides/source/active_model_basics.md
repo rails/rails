@@ -435,7 +435,7 @@ the Active Model API.
     ```
 
 ```bash
-$ rake test
+$ rails test
 
 Run options: --seed 14596
 

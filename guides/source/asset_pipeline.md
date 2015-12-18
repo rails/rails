@@ -676,7 +676,7 @@ content changes.
 
 ### Precompiling Assets
 
-Rails comes bundled with a rake task to compile the asset manifests and other
+Rails comes bundled with a task to compile the asset manifests and other
 files in the pipeline.
 
 Compiled assets are written to the location specified in `config.assets.prefix`.
@@ -686,10 +686,10 @@ You can call this task on the server during deployment to create compiled
 versions of your assets directly on the server. See the next section for
 information on compiling locally.
 
-The rake task is:
+The task is:
 
 ```bash
-$ RAILS_ENV=production bin/rake assets:precompile
+$ RAILS_ENV=production bin/rails assets:precompile
 ```
 
 Capistrano (v2.15.1 and above) includes a recipe to handle this in deployment.
@@ -731,7 +731,7 @@ Rails.application.config.assets.precompile += ['admin.js', 'admin.css', 'swfObje
 NOTE. Always specify an expected compiled filename that ends with .js or .css,
 even if you want to add Sass or CoffeeScript files to the precompile array.
 
-The rake task also generates a `manifest-md5hash.json` that contains a list with
+The task also generates a `manifest-md5hash.json` that contains a list with
 all your assets and their respective fingerprints. This is used by the Rails
 helper methods to avoid handing the mapping requests back to Sprockets. A
 typical manifest file looks like:

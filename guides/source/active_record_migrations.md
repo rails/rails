@@ -720,7 +720,7 @@ Running Migrations
 Rails provides a set of Rake tasks to run certain sets of migrations.
 
 The very first migration related Rake task you will use will probably be
-`rake db:migrate`. In its most basic form it just runs the `change` or `up`
+`rails db:migrate`. In its most basic form it just runs the `change` or `up`
 method for all the migrations that have not yet been run. If there are
 no such migrations, it exits. It will run these migrations in order based
 on the date of the migration.
@@ -734,7 +734,7 @@ is the numerical prefix on the migration's filename. For example, to migrate
 to version 20080906120000 run:
 
 ```bash
-$ bin/rake db:migrate VERSION=20080906120000
+$ bin/rails db:migrate VERSION=20080906120000
 ```
 
 If version 20080906120000 is greater than the current version (i.e., it is
@@ -751,7 +751,7 @@ mistake in it and wish to correct it. Rather than tracking down the version
 number associated with the previous migration you can run:
 
 ```bash
-$ bin/rake db:rollback
+$ bin/rails db:rollback
 ```
 
 This will rollback the latest migration, either by reverting the `change`
@@ -759,7 +759,7 @@ method or by running the `down` method. If you need to undo
 several migrations you can provide a `STEP` parameter:
 
 ```bash
-$ bin/rake db:rollback STEP=3
+$ bin/rails db:rollback STEP=3
 ```
 
 will revert the last 3 migrations.
@@ -769,7 +769,7 @@ back up again. As with the `db:rollback` task, you can use the `STEP` parameter
 if you need to go more than one version back, for example:
 
 ```bash
-$ bin/rake db:migrate:redo STEP=3
+$ bin/rails db:migrate:redo STEP=3
 ```
 
 Neither of these Rake tasks do anything you could not do with `db:migrate`. They
@@ -778,17 +778,17 @@ version to migrate to.
 
 ### Setup the Database
 
-The `rake db:setup` task will create the database, load the schema and initialize
+The `rails db:setup` task will create the database, load the schema and initialize
 it with the seed data.
 
 ### Resetting the Database
 
-The `rake db:reset` task will drop the database and set it up again. This is
+The `rails db:reset` task will drop the database and set it up again. This is
 functionally equivalent to `rake db:drop db:setup`.
 
 NOTE: This is not the same as running all the migrations. It will only use the
 contents of the current `db/schema.rb` or `db/structure.sql` file. If a migration can't be rolled back,
-`rake db:reset` may not help you. To find out more about dumping the schema see
+`rails db:reset` may not help you. To find out more about dumping the schema see
 [Schema Dumping and You](#schema-dumping-and-you) section.
 
 ### Running Specific Migrations
@@ -799,7 +799,7 @@ the corresponding migration will have its `change`, `up` or `down` method
 invoked, for example:
 
 ```bash
-$ bin/rake db:migrate:up VERSION=20080906120000
+$ bin/rails db:migrate:up VERSION=20080906120000
 ```
 
 will run the 20080906120000 migration by running the `change` method (or the
@@ -815,7 +815,7 @@ To run migrations against another environment you can specify it using the
 migrations against the `test` environment you could run:
 
 ```bash
-$ bin/rake db:migrate RAILS_ENV=test
+$ bin/rails db:migrate RAILS_ENV=test
 ```
 
 ### Changing the Output of Running Migrations
@@ -876,7 +876,7 @@ generates the following output
 ==  CreateProducts: migrated (10.0054s) =======================================
 ```
 
-If you want Active Record to not output anything, then running `rake db:migrate
+If you want Active Record to not output anything, then running `rails db:migrate
 VERBOSE=false` will suppress all output.
 
 Changing Existing Migrations
@@ -885,9 +885,9 @@ Changing Existing Migrations
 Occasionally you will make a mistake when writing a migration. If you have
 already run the migration then you cannot just edit the migration and run the
 migration again: Rails thinks it has already run the migration and so will do
-nothing when you run `rake db:migrate`. You must rollback the migration (for
+nothing when you run `rails db:migrate`. You must rollback the migration (for
 example with `rake db:rollback`), edit your migration and then run
-`rake db:migrate` to run the corrected version.
+`rails db:migrate` to run the corrected version.
 
 In general, editing existing migrations is not a good idea. You will be
 creating extra work for yourself and your co-workers and cause major headaches
@@ -969,7 +969,7 @@ this, then you should set the schema format to `:sql`.
 
 Instead of using Active Record's schema dumper, the database's structure will
 be dumped using a tool specific to the database (via the `db:structure:dump`
-Rake task) into `db/structure.sql`. For example, for PostgreSQL, the `pg_dump`
+rails task) into `db/structure.sql`. For example, for PostgreSQL, the `pg_dump`
 utility is used. For MySQL, this file will contain the output of
 `SHOW CREATE TABLE` for the various tables.
 
@@ -1032,7 +1032,7 @@ To add initial data after a database is created, Rails has a built-in
 'seeds' feature that makes the process quick and easy. This is especially 
 useful when reloading the database frequently in development and test environments. 
 It's easy to get started with this feature: just fill up `db/seeds.rb` with some 
-Ruby code, and run `rake db:seed`:
+Ruby code, and run `rails db:seed`:
 
 ```ruby
 5.times do |i|
