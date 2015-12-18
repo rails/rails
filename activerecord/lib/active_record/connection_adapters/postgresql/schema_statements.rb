@@ -507,14 +507,27 @@ module ActiveRecord
         end
 
         def remove_index(table_name, options = {}) #:nodoc:
-          index_name = index_name_for_remove(table_name, options)
+          table = Utils.extract_schema_qualified_name(table_name.to_s)
+
+          if options.is_a?(Hash) && options.key?(:name)
+            provided_index = Utils.extract_schema_qualified_name(options[:name].to_s)
+
+            options[:name] = provided_index.identifier
+            table = PostgreSQL::Name.new(provided_index.schema, table.identifier) unless table.schema.present?
+
+            if provided_index.schema.present? && table.schema != provided_index.schema
+              raise ArgumentError.new("Index schema '#{provided_index.schema}' does not match table schema '#{table.schema}'")
+            end
+          end
+
+          index_to_remove = PostgreSQL::Name.new(table.schema, index_name_for_remove(table.to_s, options))
           algorithm =
-            if Hash === options && options.key?(:algorithm)
+            if options.is_a?(Hash) && options.key?(:algorithm)
               index_algorithms.fetch(options[:algorithm]) do
                 raise ArgumentError.new("Algorithm must be one of the following: #{index_algorithms.keys.map(&:inspect).join(', ')}")
               end
             end
-          execute "DROP INDEX #{algorithm} #{quote_table_name(index_name)}"
+          execute "DROP INDEX #{algorithm} #{quote_table_name(index_to_remove)}"
         end
 
         # Renames an index of a table. Raises error if length of new

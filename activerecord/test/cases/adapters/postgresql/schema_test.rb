@@ -334,6 +334,20 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
     end
   end
 
+  def test_remove_index_when_schema_specified
+    @connection.execute "CREATE INDEX \"things_Index\" ON #{SCHEMA_NAME}.things (name)"
+    assert_nothing_raised { @connection.remove_index "things", name: "#{SCHEMA_NAME}.things_Index" }
+
+    @connection.execute "CREATE INDEX \"things_Index\" ON #{SCHEMA_NAME}.things (name)"
+    assert_nothing_raised { @connection.remove_index "#{SCHEMA_NAME}.things", name: "things_Index" }
+
+    @connection.execute "CREATE INDEX \"things_Index\" ON #{SCHEMA_NAME}.things (name)"
+    assert_nothing_raised { @connection.remove_index "#{SCHEMA_NAME}.things", name: "#{SCHEMA_NAME}.things_Index" }
+
+    @connection.execute "CREATE INDEX \"things_Index\" ON #{SCHEMA_NAME}.things (name)"
+    assert_raises(ArgumentError) { @connection.remove_index "#{SCHEMA2_NAME}.things", name: "#{SCHEMA_NAME}.things_Index" }
+  end
+
   def test_primary_key_with_schema_specified
     [
       %("#{SCHEMA_NAME}"."#{PK_TABLE_NAME}"),
