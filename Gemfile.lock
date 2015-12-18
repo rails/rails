@@ -20,22 +20,6 @@ GIT
       redis-namespace
 
 GIT
-  remote: git://github.com/rack/rack.git
-  revision: 96ae9b9fed8d6809383b6f48a5884437e76f8ca4
-  branch: master
-  specs:
-    rack (2.0.0.alpha)
-      json
-
-GIT
-  remote: git://github.com/rails/globalid.git
-  revision: 4e74ec6bb60d735ef3c56080f9c9f1dee9cadaaf
-  branch: master
-  specs:
-    globalid (0.3.6)
-      activesupport (>= 4.1.0)
-
-GIT
   remote: git://github.com/sass/sass.git
   revision: bce9509f396225d721501ea1070a6871b708abb1
   branch: stable
@@ -45,65 +29,65 @@ GIT
 PATH
   remote: .
   specs:
-    actioncable (5.0.0.alpha)
-      actionpack (= 5.0.0.alpha)
+    actioncable (5.0.0.beta1)
+      actionpack (= 5.0.0.beta1)
       celluloid (~> 0.17.2)
       coffee-rails (~> 4.1.0)
       em-hiredis (~> 0.3.0)
       faye-websocket (~> 0.10.0)
       redis (~> 3.0)
       websocket-driver (~> 0.6.1)
-    actionmailer (5.0.0.alpha)
-      actionpack (= 5.0.0.alpha)
-      actionview (= 5.0.0.alpha)
-      activejob (= 5.0.0.alpha)
+    actionmailer (5.0.0.beta1)
+      actionpack (= 5.0.0.beta1)
+      actionview (= 5.0.0.beta1)
+      activejob (= 5.0.0.beta1)
       mail (~> 2.5, >= 2.5.4)
       rails-dom-testing (~> 1.0, >= 1.0.5)
-    actionpack (5.0.0.alpha)
-      actionview (= 5.0.0.alpha)
-      activesupport (= 5.0.0.alpha)
+    actionpack (5.0.0.beta1)
+      actionview (= 5.0.0.beta1)
+      activesupport (= 5.0.0.beta1)
       rack (~> 2.x)
       rack-test (~> 0.6.3)
       rails-dom-testing (~> 1.0, >= 1.0.5)
       rails-html-sanitizer (~> 1.0, >= 1.0.2)
-    actionview (5.0.0.alpha)
-      activesupport (= 5.0.0.alpha)
+    actionview (5.0.0.beta1)
+      activesupport (= 5.0.0.beta1)
       builder (~> 3.1)
       erubis (~> 2.7.0)
       rails-dom-testing (~> 1.0, >= 1.0.5)
       rails-html-sanitizer (~> 1.0, >= 1.0.2)
-    activejob (5.0.0.alpha)
-      activesupport (= 5.0.0.alpha)
-      globalid (>= 0.3.0)
-    activemodel (5.0.0.alpha)
-      activesupport (= 5.0.0.alpha)
+    activejob (5.0.0.beta1)
+      activesupport (= 5.0.0.beta1)
+      globalid (>= 0.3.6)
+    activemodel (5.0.0.beta1)
+      activesupport (= 5.0.0.beta1)
       builder (~> 3.1)
-    activerecord (5.0.0.alpha)
-      activemodel (= 5.0.0.alpha)
-      activesupport (= 5.0.0.alpha)
+    activerecord (5.0.0.beta1)
+      activemodel (= 5.0.0.beta1)
+      activesupport (= 5.0.0.beta1)
       arel (~> 7.0)
-    activesupport (5.0.0.alpha)
+    activesupport (5.0.0.beta1)
       concurrent-ruby (~> 1.0)
       i18n (~> 0.7)
       json (~> 1.7, >= 1.7.7)
       method_source
       minitest (~> 5.1)
       tzinfo (~> 1.1)
-    rails (5.0.0.alpha)
-      actioncable (= 5.0.0.alpha)
-      actionmailer (= 5.0.0.alpha)
-      actionpack (= 5.0.0.alpha)
-      actionview (= 5.0.0.alpha)
-      activejob (= 5.0.0.alpha)
-      activemodel (= 5.0.0.alpha)
-      activerecord (= 5.0.0.alpha)
-      activesupport (= 5.0.0.alpha)
+    rails (5.0.0.beta1)
+      actioncable (= 5.0.0.beta1)
+      actionmailer (= 5.0.0.beta1)
+      actionpack (= 5.0.0.beta1)
+      actionview (= 5.0.0.beta1)
+      activejob (= 5.0.0.beta1)
+      activemodel (= 5.0.0.beta1)
+      activerecord (= 5.0.0.beta1)
+      activesupport (= 5.0.0.beta1)
       bundler (>= 1.3.0, < 2.0)
-      railties (= 5.0.0.alpha)
+      railties (= 5.0.0.beta1)
       sprockets-rails (>= 2.0.0)
-    railties (5.0.0.alpha)
-      actionpack (= 5.0.0.alpha)
-      activesupport (= 5.0.0.alpha)
+    railties (5.0.0.beta1)
+      actionpack (= 5.0.0.beta1)
+      activesupport (= 5.0.0.beta1)
       method_source
       rake (>= 0.8.7)
       thor (>= 0.18.1, < 2.0)
@@ -170,10 +154,16 @@ GEM
     ffi (1.9.10)
     ffi (1.9.10-x64-mingw32)
     ffi (1.9.10-x86-mingw32)
+    globalid (0.3.6)
+      activesupport (>= 4.1.0)
     hiredis (0.5.2)
     hitimes (1.2.3)
     hitimes (1.2.3-x86-mingw32)
     i18n (0.7.0)
+    jquery-rails (4.0.5)
+      rails-dom-testing (~> 1.0)
+      railties (>= 4.2.0)
+      thor (>= 0.14, < 2.0)
     json (1.8.3)
     kindlerb (0.1.1)
       mustache
@@ -195,8 +185,6 @@ GEM
     mono_logger (1.1.0)
     multi_json (1.11.2)
     mustache (1.0.2)
-    mysql (2.9.1)
-    mysql (2.9.1-x86-mingw32)
     mysql2 (0.4.2)
     mysql2 (0.4.2-x64-mingw32)
     mysql2 (0.4.2-x86-mingw32)
@@ -213,6 +201,8 @@ GEM
     puma (2.15.3)
     que (0.11.2)
     racc (1.4.14)
+    rack (2.0.0.alpha)
+      json
     rack-cache (1.5.1)
       rack (>= 0.4)
     rack-test (0.6.3)
@@ -319,13 +309,12 @@ DEPENDENCIES
   dalli (>= 2.2.1)
   delayed_job
   delayed_job_active_record
-  globalid!
+  jquery-rails
   json
   kindlerb (= 0.1.1)
   listen (~> 3.0.5)
   minitest (< 5.3.4)
   mocha (~> 0.14)
-  mysql (>= 2.9.0)
   mysql2 (>= 0.4.0)
   nokogiri (>= 1.6.7.1)
   pg (>= 0.18.0)
@@ -336,7 +325,6 @@ DEPENDENCIES
   que
   queue_classic!
   racc (>= 1.4.6)
-  rack!
   rack-cache (~> 1.2)
   rails!
   rake (>= 10.3)

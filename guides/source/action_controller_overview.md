@@ -394,7 +394,7 @@ Rails sets up (for the CookieStore) a secret key used for signing the session da
 
 # Make sure the secret is at least 30 characters and all random,
 # no regular words or you'll be exposed to dictionary attacks.
-# You can use `rake secret` to generate a secure secret key.
+# You can use `rails secret` to generate a secure secret key.
 
 # Make sure the secrets in this file are kept private
 # if you're sharing your code publicly.

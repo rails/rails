@@ -1101,11 +1101,8 @@ module ActiveRecord
         end
       end
 
-      ActiveRecord::Type.register(:json, MysqlJson, adapter: :mysql)
       ActiveRecord::Type.register(:json, MysqlJson, adapter: :mysql2)
-      ActiveRecord::Type.register(:string, MysqlString, adapter: :mysql)
       ActiveRecord::Type.register(:string, MysqlString, adapter: :mysql2)
-      ActiveRecord::Type.register(:unsigned_integer, Type::UnsignedInteger, adapter: :mysql)
       ActiveRecord::Type.register(:unsigned_integer, Type::UnsignedInteger, adapter: :mysql2)
     end
   end

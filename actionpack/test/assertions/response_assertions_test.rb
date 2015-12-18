@@ -19,6 +19,11 @@ module ActionDispatch
         end
       end
 
+      def setup
+        @controller = nil
+        @request = nil
+      end
+
       def test_assert_response_predicate_methods
         [:success, :missing, :redirect, :error].each do |sym|
           @response = FakeResponse.new RESPONSE_PREDICATES[sym].to_s.sub(/\?/, '').to_sym

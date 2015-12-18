@@ -23,11 +23,11 @@ chdir APP_ROOT do
   # end
 
   puts "\n== Preparing database =="
-  system! 'ruby bin/rake db:setup'
+  system! 'bin/rails db:setup'
 
   puts "\n== Removing old logs and tempfiles =="
-  system! 'ruby bin/rake log:clear tmp:clear'
+  system! 'bin/rails log:clear tmp:clear'
 
   puts "\n== Restarting application server =="
-  system! 'ruby bin/rake restart'
+  system! 'bin/rails restart'
 end

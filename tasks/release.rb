@@ -57,8 +57,6 @@ directory "pkg"
       sh "gem install #{gem}"
     end
 
-    task :prep_release => [:ensure_clean_state, :build]
-
     task :push => :build do
       sh "gem push #{gem}"
     end
@@ -138,6 +136,8 @@ namespace :all do
     sh "git tag -m '#{tag} release' #{tag}"
     sh "git push --tags"
   end
+
+  task :prep_release => %w(ensure_clean_state build)
 
   task :release => %w(ensure_clean_state build bundle commit tag push)
 end

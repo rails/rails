@@ -237,7 +237,7 @@ module ActionDispatch
   #
   # == View a list of all your routes
   #
-  #   rake routes
+  #   rails routes
   #
   # Target specific controllers by prefixing the command with <tt>CONTROLLER=x</tt>.
   #

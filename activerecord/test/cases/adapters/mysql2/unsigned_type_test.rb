@@ -57,7 +57,7 @@ class Mysql2UnsignedTypeTest < ActiveRecord::Mysql2TestCase
 
   test "schema dump includes unsigned option" do
     schema = dump_table_schema "unsigned_types"
-    assert_match %r{t.integer\s+"unsigned_integer",\s+limit: 4,\s+unsigned: true$}, schema
+    assert_match %r{t.integer\s+"unsigned_integer",\s+unsigned: true$}, schema
     assert_match %r{t.integer\s+"unsigned_bigint",\s+limit: 8,\s+unsigned: true$}, schema
     assert_match %r{t.float\s+"unsigned_float",\s+limit: 24,\s+unsigned: true$}, schema
     assert_match %r{t.decimal\s+"unsigned_decimal",\s+precision: 10,\s+scale: 2,\s+unsigned: true$}, schema

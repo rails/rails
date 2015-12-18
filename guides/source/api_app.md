@@ -216,7 +216,7 @@ building, and make sense in an API-only Rails application.
 You can get a list of all middlewares in your application via:
 
 ```bash
-$ rake middleware
+$ rails middleware
 ```
 
 ### Using the Cache Middleware

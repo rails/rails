@@ -444,7 +444,7 @@ class BasicsTest < ActiveRecord::TestCase
     Post.reset_table_name
   end
 
-  if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
+  if current_adapter?(:Mysql2Adapter)
     def test_update_all_with_order_and_limit
       assert_equal 1, Topic.limit(1).order('id DESC').update_all(:content => 'bulk updated!')
     end
@@ -525,7 +525,8 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_find_by_slug_with_array
-    assert_equal Topic.find(['1-meowmeow', '2-hello']), Topic.find([1, 2])
+    assert_equal Topic.find([1, 2]), Topic.find(['1-meowmeow', '2-hello'])
+    assert_equal 'The Second Topic of the day', Topic.find(['2-hello', '1-meowmeow']).first.title
   end
 
   def test_find_by_slug_with_range

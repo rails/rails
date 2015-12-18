@@ -18,11 +18,11 @@ chdir APP_ROOT do
   system 'bundle check' or system! 'bundle install'
 
   puts "\n== Updating database =="
-  system! 'bin/rake db:migrate'
+  system! 'bin/rails db:migrate'
 
   puts "\n== Removing old logs and tempfiles =="
-  system! 'bin/rake log:clear tmp:clear'
+  system! 'bin/rails log:clear tmp:clear'
 
   puts "\n== Restarting application server =="
-  system! 'bin/rake restart'
+  system! 'bin/rails restart'
 end

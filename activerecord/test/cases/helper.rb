@@ -51,7 +51,7 @@ def subsecond_precision_supported?
 end
 
 def mysql_enforcing_gtid_consistency?
-  current_adapter?(:MysqlAdapter, :Mysql2Adapter) && 'ON' == ActiveRecord::Base.connection.show_variable('enforce_gtid_consistency')
+  current_adapter?(:Mysql2Adapter) && 'ON' == ActiveRecord::Base.connection.show_variable('enforce_gtid_consistency')
 end
 
 def supports_savepoints?

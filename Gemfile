@@ -5,15 +5,12 @@ gemspec
 # We need a newish Rake since Active Job sets its test tasks' descriptions.
 gem 'rake', '>= 10.3'
 
-# Active Job depends on URI::GID::MissingModelIDError, which isn't released yet.
-gem 'globalid', github: 'rails/globalid', branch: 'master'
-gem 'rack', github: 'rack/rack', branch: 'master'
-
 # This needs to be with require false to ensure correct loading order, as has to
 # be loaded after loading the test library.
 gem 'mocha', '~> 0.14', require: false
 
 gem 'rack-cache', '~> 1.2'
+gem 'jquery-rails'
 gem 'coffee-rails', '~> 4.1.0'
 gem 'turbolinks'
 
@@ -95,7 +92,6 @@ platforms :ruby, :mswin, :mswin64, :mingw, :x64_mingw do
 
   group :db do
     gem 'pg', '>= 0.18.0'
-    gem 'mysql', '>= 2.9.0'
     gem 'mysql2', '>= 0.4.0'
   end
 end

@@ -7,6 +7,9 @@ require 'railties/lib/rails/api/task'
 desc "Build gem files for all projects"
 task :build => "all:build"
 
+desc "Prepare the release"
+task :prep_release => "all:prep_release"
+
 desc "Release all gems to rubygems and create a tag"
 task :release => "all:release"
 

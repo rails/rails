@@ -36,7 +36,7 @@ module ActionDispatch
     #   development:
     #     secret_key_base: 'secret key'
     #
-    # To generate a secret key for an existing application, run `rake secret`.
+    # To generate a secret key for an existing application, run `rails secret`.
     #
     # If you are upgrading an existing Rails 3 app, you should leave your
     # existing secret_token in place and simply add the new secret_key_base.

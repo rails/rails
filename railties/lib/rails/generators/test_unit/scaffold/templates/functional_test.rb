@@ -5,7 +5,7 @@ class <%= controller_class_name %>ControllerTest < ActionDispatch::IntegrationTe
   <%- if mountable_engine? -%>
   include Engine.routes.url_helpers
 
-  <% end -%>
+  <%- end -%>
   setup do
     @<%= singular_table_name %> = <%= fixture_name %>(:one)
   end

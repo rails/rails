@@ -20,7 +20,6 @@ example:
 
 Simply executing <tt>bundle exec rake test</tt> is equivalent to the following:
 
-  $ bundle exec rake test:mysql
   $ bundle exec rake test:mysql2
   $ bundle exec rake test:postgresql
   $ bundle exec rake test:sqlite3

@@ -26,6 +26,12 @@ module Rails
         class_option :template,           type: :string, aliases: '-m',
                                           desc: "Path to some #{name} template (can be a filesystem path or URL)"
 
+        class_option :database,           type: :string, aliases: '-d', default: 'sqlite3',
+                                          desc: "Preconfigure for selected database (options: #{DATABASES.join('/')})"
+
+        class_option :javascript,         type: :string, aliases: '-j', default: 'jquery',
+                                          desc: 'Preconfigure for selected JavaScript library'
+
         class_option :skip_gemfile,       type: :boolean, default: false,
                                           desc: "Don't create a Gemfile"
 
@@ -45,35 +51,29 @@ module Rails
         class_option :skip_active_record, type: :boolean, aliases: '-O', default: false,
                                           desc: 'Skip Active Record files'
 
+        class_option :skip_action_cable,  type: :boolean, aliases: '-C', default: false,
+                                          desc: 'Skip Action Cable files'
+
         class_option :skip_sprockets,     type: :boolean, aliases: '-S', default: false,
                                           desc: 'Skip Sprockets files'
 
         class_option :skip_spring,        type: :boolean, default: false,
                                           desc: "Don't install Spring application preloader"
 
-        class_option :skip_action_cable,  type: :boolean, aliases: '-C', default: false,
-                                          desc: 'Skip Action Cable files'
-
-        class_option :database,           type: :string, aliases: '-d', default: 'sqlite3',
-                                          desc: "Preconfigure for selected database (options: #{DATABASES.join('/')})"
-
-        class_option :javascript,         type: :string, aliases: '-j', default: 'jquery',
-                                          desc: 'Preconfigure for selected JavaScript library'
-
         class_option :skip_javascript,    type: :boolean, aliases: '-J', default: false,
                                           desc: 'Skip JavaScript files'
-
-        class_option :dev,                type: :boolean, default: false,
-                                          desc: "Setup the #{name} with Gemfile pointing to your Rails checkout"
-
-        class_option :edge,               type: :boolean, default: false,
-                                          desc: "Setup the #{name} with Gemfile pointing to Rails repository"
 
         class_option :skip_turbolinks,    type: :boolean, default: false,
                                           desc: 'Skip turbolinks gem'
 
         class_option :skip_test,          type: :boolean, aliases: '-T', default: false,
                                           desc: 'Skip test files'
+
+        class_option :dev,                type: :boolean, default: false,
+                                          desc: "Setup the #{name} with Gemfile pointing to your Rails checkout"
+
+        class_option :edge,               type: :boolean, default: false,
+                                          desc: "Setup the #{name} with Gemfile pointing to Rails repository"
 
         class_option :rc,                 type: :string, default: false,
                                           desc: "Path to file containing extra configuration options for rails command"
@@ -220,8 +220,7 @@ module Rails
 
       def rails_gemfile_entry
         dev_edge_common = [
-            GemfileEntry.github('rack', 'rack/rack')
-          ]
+        ]
         if options.dev?
           [
             GemfileEntry.path('rails', Rails::Generators::RAILS_DEV_PATH)
@@ -232,8 +231,22 @@ module Rails
           ] + dev_edge_common
         else
           [GemfileEntry.version('rails',
-                            Rails::VERSION::STRING,
+                            rails_version_specifier,
                             "Bundle edge Rails instead: gem 'rails', github: 'rails/rails'")]
+        end
+      end
+
+      def rails_version_specifier(gem_version = Rails.gem_version)
+        if gem_version.prerelease?
+          next_series = gem_version
+          next_series = next_series.bump while next_series.segments.size > 2
+
+          [">= #{gem_version}", "< #{next_series}"]
+        elsif gem_version.segments.size == 3
+          "~> #{gem_version}"
+        else
+          patch = gem_version.segments[0, 3].join(".")
+          ["~> #{patch}", ">= #{gem_version}"]
         end
       end
 

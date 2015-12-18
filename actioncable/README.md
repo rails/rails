@@ -16,7 +16,8 @@ WebSockets open to your application if they use multiple browser tabs or devices
 The client of a WebSocket connection is called the consumer.
 
 Each consumer can in turn subscribe to multiple cable channels. Each channel encapsulates
-a logical unit of work, similar to what a controller does in a regular MVC setup. For example, you could have a `ChatChannel` and a `AppearancesChannel`, and a consumer could be subscribed to either
+a logical unit of work, similar to what a controller does in a regular MVC setup. For example, 
+you could have a `ChatChannel` and a `AppearancesChannel`, and a consumer could be subscribed to either
 or to both of these channels. At the very least, a consumer should be subscribed to one channel.
 
 When the consumer is subscribed to a channel, they act as a subscriber. The connection between
@@ -86,8 +87,8 @@ potentially disconnect them all if the user is deleted or deauthorized).
 The client-side needs to setup a consumer instance of this connection. That's done like so:
 
 ```coffeescript
-# app/assets/javascripts/application_cable.coffee
-#= require cable
+# app/assets/javascripts/cable.coffee
+#= require action_cable
 
 @App = {}
 App.cable = Cable.createConsumer("ws://cable.example.com")
@@ -202,7 +203,7 @@ end
 ```
 
 ```coffeescript
-# Client-side which assumes you've already requested the right to send web notifications
+# Client-side, which assumes you've already requested the right to send web notifications
 App.cable.subscriptions.create "WebNotificationsChannel",
   received: (data) ->
     new Notification data["title"], body: data["body"]
@@ -236,7 +237,7 @@ end
 Pass an object as the first argument to `subscriptions.create`, and that object will become your params hash in your cable channel. The keyword `channel` is required.
 
 ```coffeescript
-# Client-side which assumes you've already requested the right to send web notifications
+# Client-side, which assumes you've already requested the right to send web notifications
 App.cable.subscriptions.create { channel: "ChatChannel", room: "Best Room" },
   received: (data) ->
     @appendLine(data)
@@ -279,7 +280,7 @@ end
 ```
 
 ```coffeescript
-# Client-side which assumes you've already requested the right to send web notifications
+# Client-side, which assumes you've already requested the right to send web notifications
 App.chatChannel = App.cable.subscriptions.create { channel: "ChatChannel", room: "Best Room" },
   received: (data) ->
     # data => { sent_by: "Paul", body: "This is a cool chat app." }
@@ -305,16 +306,9 @@ By default, `ActionCable::Server::Base` will look for a configuration file in `R
 
 ```yaml
 production: &production
-  :url: redis://10.10.3.153:6381
-  :host: 10.10.3.153
-  :port: 6381
-  :timeout: 1
+  url: redis://10.10.3.153:6381
 development: &development
-  :url: redis://localhost:6379
-  :host: localhost
-  :port: 6379
-  :timeout: 1
-  :inline: true
+  url: redis://localhost:6379
 test: *development
 ```
 

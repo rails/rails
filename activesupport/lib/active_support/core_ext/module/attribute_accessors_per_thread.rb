@@ -15,7 +15,7 @@ class Module
   #   end
   #
   #   Current.user # => nil
-  #   Thread.current.thread_variable_set("attr_Current_user", "DHH")
+  #   Thread.current[:attr_Current_user] = "DHH"
   #   Current.user # => "DHH"
   #
   # The attribute name must be a valid method name in Ruby.
@@ -40,14 +40,14 @@ class Module
       raise NameError.new("invalid attribute name: #{sym}") unless sym =~ /^[_A-Za-z]\w*$/
       class_eval(<<-EOS, __FILE__, __LINE__ + 1)
         def self.#{sym}
-          Thread.current.thread_variable_get "attr_#{name}_#{sym}"
+          Thread.current[:"attr_#{name}_#{sym}"]
         end
       EOS
 
       unless options[:instance_reader] == false || options[:instance_accessor] == false
         class_eval(<<-EOS, __FILE__, __LINE__ + 1)
           def #{sym}
-            Thread.current.thread_variable_get "attr_#{self.class.name}_#{sym}"
+            Thread.current[:"attr_#{self.class.name}_#{sym}"]
           end
         EOS
       end
@@ -63,7 +63,7 @@ class Module
   #   end
   #
   #   Current.user = "DHH"
-  #   Thread.current.thread_variable_get("attr_Current_user") # => "DHH"
+  #   Thread.current[:attr_Current_user] # => "DHH"
   #
   # If you want to opt out the instance writer method, pass
   # <tt>instance_writer: false</tt> or <tt>instance_accessor: false</tt>.
@@ -79,14 +79,14 @@ class Module
       raise NameError.new("invalid attribute name: #{sym}") unless sym =~ /^[_A-Za-z]\w*$/
       class_eval(<<-EOS, __FILE__, __LINE__ + 1)
         def self.#{sym}=(obj)
-          Thread.current.thread_variable_set "attr_#{name}_#{sym}", obj
+          Thread.current[:"attr_#{name}_#{sym}"] = obj
         end
       EOS
 
       unless options[:instance_writer] == false || options[:instance_accessor] == false
         class_eval(<<-EOS, __FILE__, __LINE__ + 1)
           def #{sym}=(obj)
-            Thread.current.thread_variable_set "attr_#{self.class.name}_#{sym}", obj
+            Thread.current[:"attr_#{self.class.name}_#{sym}"] = obj
           end
         EOS
       end

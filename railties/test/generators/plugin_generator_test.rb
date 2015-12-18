@@ -470,7 +470,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_no_file "bukkits.gemspec"
     assert_file "Gemfile" do |contents|
       assert_no_match('gemspec', contents)
-      assert_match(/gem 'rails', '~> #{Rails.version}'/, contents)
+      assert_match(/gem 'rails'/, contents)
       assert_match_sqlite3(contents)
       assert_no_match(/# gem "jquery-rails"/, contents)
     end
@@ -481,7 +481,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_no_file "bukkits.gemspec"
     assert_file "Gemfile" do |contents|
       assert_no_match('gemspec', contents)
-      assert_match(/gem 'rails', '~> #{Rails.version}'/, contents)
+      assert_match(/gem 'rails'/, contents)
       assert_match_sqlite3(contents)
     end
   end

@@ -61,6 +61,10 @@ class ActionCable::Channel::BaseTest < ActiveSupport::TestCase
       transmit data: 'latest'
     end
 
+    def receive
+      @last_action = [ :receive ]
+    end
+
     private
       def rm_rf
         @last_action = [ :rm_rf ]
@@ -133,6 +137,12 @@ class ActionCable::Channel::BaseTest < ActiveSupport::TestCase
     assert_equal [ :chatters ], @channel.last_action
   end
 
+  test "should dispatch receive action when perform_action is called with empty action" do
+    data = { 'content' => 'hello' }
+    @channel.perform_action data
+    assert_equal [ :receive ], @channel.last_action
+  end
+
   test "transmitting data" do
     @channel.perform_action 'action' => :get_latest
 
@@ -143,6 +153,32 @@ class ActionCable::Channel::BaseTest < ActiveSupport::TestCase
   test "subscription confirmation" do
     expected = ActiveSupport::JSON.encode "identifier" => "{id: 1}", "type" => "confirm_subscription"
     assert_equal expected, @connection.last_transmission
+  end
+
+  test "actions available on Channel" do
+    available_actions = %w(room last_action subscribed unsubscribed toggle_subscribed leave speak subscribed? get_latest receive chatters topic).to_set
+    assert_equal available_actions, ChatChannel.action_methods
+  end
+
+  test "invalid action on Channel" do
+    assert_logged("Unable to process ActionCable::Channel::BaseTest::ChatChannel#invalid_action") do
+      @channel.perform_action 'action' => :invalid_action
+    end
+  end
+
+  def assert_logged(message)
+    old_logger = @connection.logger
+    log = StringIO.new
+    @connection.instance_variable_set(:@logger, Logger.new(log))
+
+    begin
+      yield
+
+      log.rewind
+      assert_match message, log.read
+    ensure
+      @connection.instance_variable_set(:@logger, old_logger)
+    end
   end
 
 end

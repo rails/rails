@@ -1,3 +1,32 @@
+*   Order the result of `find(ids)` to match the passed array, if the relation
+    has no explicit order defined.
+
+    Fixes #20338.
+
+    *Miguel Grazziotin*, *Matthew Draper*
+
+*   Omit default limit values in dumped schema. It's tidier, and if the defaults
+    change in the future, we can address that via Migration API Versioning.
+
+    *Jean Boussier*
+
+*   Support passing the schema name as a prefix to table name in
+    `ConnectionAdapters::SchemaStatements#indexes`. Previously the prefix would
+    be considered a full part of the index name, and only the schema in the
+    current search path would be considered.
+
+    *Grey Baker*
+
+*   Ignore index name in `index_exists?` and `remove_index` when not passed a
+    name to check for.
+
+    *Grey Baker*
+
+*   Extract support for the legacy `mysql` database adapter from core. It will
+    live on in a separate gem for now, but most users should just use `mysql2`.
+
+    *Abdelkader Boudih*
+
 *   ApplicationRecord is a new superclass for all app models, analogous to app
     controllers subclassing ApplicationController instead of
     ActionController::Base. This gives apps a single spot to configure app-wide

@@ -38,7 +38,7 @@ module ActiveRecord
           assert_equal %Q{title varchar(20) DEFAULT 'Hello' NOT NULL}, @viz.accept(column_def)
       end
 
-      if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
+      if current_adapter?(:Mysql2Adapter)
         def test_should_set_default_for_mysql_binary_data_types
           type = SqlTypeMetadata.new(type: :binary, sql_type: "binary(1)")
           binary_column = AbstractMysqlAdapter::Column.new("title", "a", type)

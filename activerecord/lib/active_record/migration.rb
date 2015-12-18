@@ -126,9 +126,9 @@ module ActiveRecord
   class PendingMigrationError < MigrationError#:nodoc:
     def initialize(message = nil)
       if !message && defined?(Rails.env)
-        super("Migrations are pending. To resolve this issue, run:\n\n\tbin/rake db:migrate RAILS_ENV=#{::Rails.env}.")
+        super("Migrations are pending. To resolve this issue, run:\n\n\tbin/rails db:migrate RAILS_ENV=#{::Rails.env}.")
       elsif !message
-        super("Migrations are pending. To resolve this issue, run:\n\n\tbin/rake db:migrate.")
+        super("Migrations are pending. To resolve this issue, run:\n\n\tbin/rails db:migrate.")
       else
         super
       end
@@ -308,16 +308,16 @@ module ActiveRecord
   #   end
   #
   # To run migrations against the currently configured database, use
-  # <tt>rake db:migrate</tt>. This will update the database by running all of the
+  # <tt>rails db:migrate</tt>. This will update the database by running all of the
   # pending migrations, creating the <tt>schema_migrations</tt> table
   # (see "About the schema_migrations table" section below) if missing. It will also
   # invoke the db:schema:dump task, which will update your db/schema.rb file
   # to match the structure of your database.
   #
   # To roll the database back to a previous migration version, use
-  # <tt>rake db:migrate VERSION=X</tt> where <tt>X</tt> is the version to which
+  # <tt>rails db:migrate VERSION=X</tt> where <tt>X</tt> is the version to which
   # you wish to downgrade. Alternatively, you can also use the STEP option if you
-  # wish to rollback last few migrations. <tt>rake db:migrate STEP=2</tt> will rollback
+  # wish to rollback last few migrations. <tt>rails db:migrate STEP=2</tt> will rollback
   # the latest two migrations.
   #
   # If any of the migrations throw an <tt>ActiveRecord::IrreversibleMigration</tt> exception,
@@ -550,7 +550,7 @@ module ActiveRecord
           FileUtils.cd Rails.root do
             current_config = Base.connection_config
             Base.clear_all_connections!
-            system("bin/rake db:test:prepare")
+            system("bin/rails db:test:prepare")
             # Establish a new connection, the old database may be gone (db:test:prepare uses purge)
             Base.establish_connection(current_config)
           end

@@ -48,6 +48,75 @@ class FinderTest < ActiveRecord::TestCase
     end
   end
 
+  def test_find_with_ids_returning_ordered
+    records = Topic.find([4,2,5])
+    assert_equal 'The Fourth Topic of the day', records[0].title
+    assert_equal 'The Second Topic of the day', records[1].title
+    assert_equal 'The Fifth Topic of the day', records[2].title
+
+    records = Topic.find(4,2,5)
+    assert_equal 'The Fourth Topic of the day', records[0].title
+    assert_equal 'The Second Topic of the day', records[1].title
+    assert_equal 'The Fifth Topic of the day', records[2].title
+
+    records = Topic.find(['4','2','5'])
+    assert_equal 'The Fourth Topic of the day', records[0].title
+    assert_equal 'The Second Topic of the day', records[1].title
+    assert_equal 'The Fifth Topic of the day', records[2].title
+
+    records = Topic.find('4','2','5')
+    assert_equal 'The Fourth Topic of the day', records[0].title
+    assert_equal 'The Second Topic of the day', records[1].title
+    assert_equal 'The Fifth Topic of the day', records[2].title
+  end
+
+  def test_find_with_ids_and_order_clause
+    # The order clause takes precedence over the informed ids
+    records = Topic.order(:author_name).find([5,3,1])
+    assert_equal 'The Third Topic of the day', records[0].title
+    assert_equal 'The First Topic',            records[1].title
+    assert_equal 'The Fifth Topic of the day', records[2].title
+
+    records = Topic.order(:id).find([5,3,1])
+    assert_equal 'The First Topic',            records[0].title
+    assert_equal 'The Third Topic of the day', records[1].title
+    assert_equal 'The Fifth Topic of the day', records[2].title
+  end
+
+  def test_find_with_ids_with_limit_and_order_clause
+    # The order clause takes precedence over the informed ids
+    records = Topic.limit(2).order(:id).find([5,3,1])
+    assert_equal 2, records.size
+    assert_equal 'The First Topic',            records[0].title
+    assert_equal 'The Third Topic of the day', records[1].title
+  end
+
+  def test_find_with_ids_and_limit
+    records = Topic.limit(3).find([3,2,5,1,4])
+    assert_equal 3, records.size
+    assert_equal 'The Third Topic of the day',  records[0].title
+    assert_equal 'The Second Topic of the day', records[1].title
+    assert_equal 'The Fifth Topic of the day',  records[2].title
+  end
+
+  def test_find_with_ids_where_and_limit
+    # Please note that Topic 1 is the only not approved so
+    # if it were among the first 3 it would raise a ActiveRecord::RecordNotFound
+    records = Topic.where(approved: true).limit(3).find([3,2,5,1,4])
+    assert_equal 3, records.size
+    assert_equal 'The Third Topic of the day',  records[0].title
+    assert_equal 'The Second Topic of the day', records[1].title
+    assert_equal 'The Fifth Topic of the day',  records[2].title
+  end
+
+  def test_find_with_ids_and_offset
+    records = Topic.offset(2).find([3,2,5,1,4])
+    assert_equal 3, records.size
+    assert_equal 'The Fifth Topic of the day',  records[0].title
+    assert_equal 'The First Topic',             records[1].title
+    assert_equal 'The Fourth Topic of the day', records[2].title
+  end
+
   def test_find_passing_active_record_object_is_deprecated
     assert_deprecated do
       Topic.find(Topic.last)
@@ -195,7 +264,9 @@ class FinderTest < ActiveRecord::TestCase
 
   def test_find_by_ids_with_limit_and_offset
     assert_equal 2, Entrant.limit(2).find([1,3,2]).size
-    assert_equal 1, Entrant.limit(3).offset(2).find([1,3,2]).size
+    entrants = Entrant.limit(3).offset(2).find([1,3,2])
+    assert_equal 1, entrants.size
+    assert_equal 'Ruby Guru', entrants.first.name
 
     # Also test an edge case: If you have 11 results, and you set a
     #   limit of 3 and offset of 9, then you should find that there
@@ -203,6 +274,8 @@ class FinderTest < ActiveRecord::TestCase
     devs = Developer.all
     last_devs = Developer.limit(3).offset(9).find devs.map(&:id)
     assert_equal 2, last_devs.size
+    assert_equal 'fixture_10', last_devs[0].name
+    assert_equal 'Jamis', last_devs[1].name
   end
 
   def test_find_with_large_number
