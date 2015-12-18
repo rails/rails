@@ -202,7 +202,7 @@ end
 ```
 
 ```coffeescript
-# Client-side which assumes you've already requested the right to send web notifications
+# Client-side, which assumes you've already requested the right to send web notifications
 App.cable.subscriptions.create "WebNotificationsChannel",
   received: (data) ->
     new Notification data["title"], body: data["body"]
@@ -236,7 +236,7 @@ end
 Pass an object as the first argument to `subscriptions.create`, and that object will become your params hash in your cable channel. The keyword `channel` is required.
 
 ```coffeescript
-# Client-side which assumes you've already requested the right to send web notifications
+# Client-side, which assumes you've already requested the right to send web notifications
 App.cable.subscriptions.create { channel: "ChatChannel", room: "Best Room" },
   received: (data) ->
     @appendLine(data)
@@ -279,7 +279,7 @@ end
 ```
 
 ```coffeescript
-# Client-side which assumes you've already requested the right to send web notifications
+# Client-side, which assumes you've already requested the right to send web notifications
 App.chatChannel = App.cable.subscriptions.create { channel: "ChatChannel", room: "Best Room" },
   received: (data) ->
     # data => { sent_by: "Paul", body: "This is a cool chat app." }

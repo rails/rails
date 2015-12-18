@@ -42,7 +42,7 @@ module ActionCable
         @worker_pool ||= ActionCable::Server::Worker.pool(size: config.worker_pool_size)
       end
 
-      # Requires and returns an hash of all the channel class constants keyed by name.
+      # Requires and returns a hash of all the channel class constants keyed by name.
       def channel_classes
         @channel_classes ||= begin
           config.channel_paths.each { |channel_path| require channel_path }
