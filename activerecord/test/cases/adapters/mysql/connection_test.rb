@@ -123,6 +123,14 @@ class MysqlConnectionTest < ActiveRecord::MysqlTestCase
     assert_equal 'utf8_general_ci', ARUnit2Model.connection.show_variable('collation_connection')
   end
 
+  def test_mysql_collation_connection_defaults_to_collation_database
+    run_without_connection do |orig_connection|
+      ActiveRecord::Base.establish_connection(orig_connection.except(:collation))
+      rows = ActiveRecord::Base.connection.select_rows "SELECT @@SESSION.collation_connection = @@SESSION.collation_database"
+      assert_equal [["1"]], rows, "'collation_connection' is different from 'collation_database'"
+    end
+  end
+
   def test_mysql_default_in_strict_mode
     result = @connection.exec_query "SELECT @@SESSION.sql_mode"
     assert_equal [["STRICT_ALL_TABLES"]], result.rows

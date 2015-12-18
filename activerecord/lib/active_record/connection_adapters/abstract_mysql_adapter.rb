@@ -1009,6 +1009,10 @@ module ActiveRecord
           encoding << ", "
         end
 
+        unless @config[:collation]
+          collation = "collation_connection = @@SESSION.collation_database, "
+        end
+
         # Gather up all of the SET variables...
         variable_assignments = variables.map do |k, v|
           if defaults.include?(v)
@@ -1020,7 +1024,7 @@ module ActiveRecord
         end.compact.join(', ')
 
         # ...and send them all in one query
-        @connection.query  "SET #{encoding} #{variable_assignments}"
+        @connection.query  "SET #{encoding} #{collation} #{variable_assignments}"
       end
 
       def extract_foreign_key_action(structure, name, action) # :nodoc:
