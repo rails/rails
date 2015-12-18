@@ -20,14 +20,6 @@ GIT
       redis-namespace
 
 GIT
-  remote: git://github.com/rack/rack.git
-  revision: 96ae9b9fed8d6809383b6f48a5884437e76f8ca4
-  branch: master
-  specs:
-    rack (2.0.0.alpha)
-      json
-
-GIT
   remote: git://github.com/sass/sass.git
   revision: bce9509f396225d721501ea1070a6871b708abb1
   branch: stable
@@ -209,6 +201,8 @@ GEM
     puma (2.15.3)
     que (0.11.2)
     racc (1.4.14)
+    rack (2.0.0.alpha)
+      json
     rack-cache (1.5.1)
       rack (>= 0.4)
     rack-test (0.6.3)
@@ -331,7 +325,6 @@ DEPENDENCIES
   que
   queue_classic!
   racc (>= 1.4.6)
-  rack!
   rack-cache (~> 1.2)
   rails!
   rake (>= 10.3)

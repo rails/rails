@@ -220,8 +220,7 @@ module Rails
 
       def rails_gemfile_entry
         dev_edge_common = [
-            GemfileEntry.github('rack', 'rack/rack')
-          ]
+        ]
         if options.dev?
           [
             GemfileEntry.path('rails', Rails::Generators::RAILS_DEV_PATH)
