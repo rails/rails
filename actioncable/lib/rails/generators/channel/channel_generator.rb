@@ -9,7 +9,9 @@ module Rails
 
       def create_channel_file
         template "channel.rb", File.join('app/channels', class_path, "#{file_name}_channel.rb")
-        template "assets/channel.coffee", File.join('app/assets/javascripts/channels', class_path, "#{file_name}.coffee")
+        if Rails::Generators.options[:rails][:assets]
+          template "assets/channel.coffee", File.join('app/assets/javascripts/channels', class_path, "#{file_name}.coffee")
+        end
       end
 
       protected
