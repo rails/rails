@@ -145,4 +145,8 @@ class ActionCable::Channel::BaseTest < ActiveSupport::TestCase
     assert_equal expected, @connection.last_transmission
   end
 
+  test "actions available on Channel" do
+    available_actions = ["room", "last_action", "subscribed", "unsubscribed", "toggle_subscribed", "leave", "speak", "subscribed?", "get_latest", "chatters", "topic"].to_set
+    assert_equal available_actions, ChatChannel.action_methods
+  end
 end
