@@ -323,8 +323,6 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
 
   def test_with_uppercase_index_name
     @connection.execute "CREATE INDEX \"things_Index\" ON #{SCHEMA_NAME}.things (name)"
-    assert_nothing_raised { @connection.remove_index "things", name: "#{SCHEMA_NAME}.things_Index"}
-    @connection.execute "CREATE INDEX \"things_Index\" ON #{SCHEMA_NAME}.things (name)"
 
     with_schema_search_path SCHEMA_NAME do
       assert_nothing_raised { @connection.remove_index "things", name: "things_Index"}

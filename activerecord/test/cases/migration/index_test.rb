@@ -130,7 +130,17 @@ module ActiveRecord
       def test_named_index_exists
         connection.add_index :testings, :foo, :name => "custom_index_name"
 
+        assert connection.index_exists?(:testings, :foo)
         assert connection.index_exists?(:testings, :foo, :name => "custom_index_name")
+        assert !connection.index_exists?(:testings, :foo, :name => "other_index_name")
+      end
+
+      def test_remove_named_index
+        connection.add_index :testings, :foo, :name => "custom_index_name"
+
+        assert connection.index_exists?(:testings, :foo)
+        connection.remove_index :testings, :foo
+        assert !connection.index_exists?(:testings, :foo)
       end
 
       def test_add_index_attribute_length_limit

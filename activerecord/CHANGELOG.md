@@ -1,3 +1,8 @@
+*   Ignore index name in `index_exists?` and `remove_index` when not passed a
+    name to check for.
+
+    *Grey Baker*
+
 *   Extract support for the legacy `mysql` database adapter from core. It will
     live on in a separate gem for now, but most users should just use `mysql2`.
 
