@@ -321,6 +321,11 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
     do_dump_index_tests_for_schema("public, #{SCHEMA_NAME}", INDEX_A_COLUMN, INDEX_B_COLUMN_S1, INDEX_D_COLUMN, INDEX_E_COLUMN)
   end
 
+  def test_dump_indexes_for_table_with_scheme_specified_in_name
+    indexes = @connection.indexes("#{SCHEMA_NAME}.#{TABLE_NAME}")
+    assert_equal 4, indexes.size
+  end
+
   def test_with_uppercase_index_name
     @connection.execute "CREATE INDEX \"things_Index\" ON #{SCHEMA_NAME}.things (name)"
 

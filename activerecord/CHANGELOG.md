@@ -1,3 +1,10 @@
+*   Support passing the schema name as a prefix to table name in
+    `ConnectionAdapters::SchemaStatements#indexes`. Previously the prefix would
+    be considered a full part of the index name, and only the schema in the
+    current search path would be considered.
+
+    *Grey Baker*
+
 *   Ignore index name in `index_exists?` and `remove_index` when not passed a
     name to check for.
 
