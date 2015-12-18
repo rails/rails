@@ -168,6 +168,10 @@ GEM
     hitimes (1.2.3)
     hitimes (1.2.3-x86-mingw32)
     i18n (0.7.0)
+    jquery-rails (4.0.5)
+      rails-dom-testing (~> 1.0)
+      railties (>= 4.2.0)
+      thor (>= 0.14, < 2.0)
     json (1.8.3)
     kindlerb (0.1.1)
       mustache
@@ -311,6 +315,7 @@ DEPENDENCIES
   dalli (>= 2.2.1)
   delayed_job
   delayed_job_active_record
+  jquery-rails
   json
   kindlerb (= 0.1.1)
   listen (~> 3.0.5)
