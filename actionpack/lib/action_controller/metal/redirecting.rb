@@ -68,8 +68,14 @@ module ActionController
       self.response_body = "<html><body>You are being <a href=\"#{ERB::Util.unwrapped_html_escape(location)}\">redirected</a>.</body></html>"
     end
 
-    # Redirects the browser to the page that issued the request if possible,
-    # otherwise redirects to provided default fallback location.
+    # Redirects the browser to the page that issued the request (the referrer)
+    # if possible, otherwise redirects to the provided default fallback
+    # location.
+    #
+    # The referrer information is pulled from the HTTP `Referer` (sic) header on
+    # the request. This is an optional header and its presence on the request is
+    # subject to browser security settings and user preferences. If the request
+    # is missing this header, the <tt>fallback_location</tt> will be used.
     #
     #   redirect_back fallback_location: { action: "show", id: 5 }
     #   redirect_back fallback_location: post
