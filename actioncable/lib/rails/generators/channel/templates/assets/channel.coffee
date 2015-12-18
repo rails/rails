@@ -7,8 +7,8 @@ App.<%= class_name.underscore %> = App.cable.subscriptions.create "<%= class_nam
 
   received: (data) ->
     # Called when there's incoming data on the websocket for this channel
-
 <% actions.each do |action| -%>
+
   <%= action %>: ->
     @perform '<%= action %>'
 <% end -%>
