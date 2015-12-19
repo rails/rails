@@ -68,7 +68,7 @@ module ActionController
     #   ActionController::Renderers.add :csv do |obj, options|
     #     filename = options[:filename] || 'data'
     #     str = obj.respond_to?(:to_csv) ? obj.to_csv : obj.to_s
-    #     send_data str, type: Mime[:csv],
+    #     send_data str, type: ActiveSupport::Mime[:csv],
     #       disposition: "attachment; filename=#{filename}.csv"
     #   end
     #
@@ -116,24 +116,24 @@ module ActionController
       json = json.to_json(options) unless json.kind_of?(String)
 
       if options[:callback].present?
-        if content_type.nil? || content_type == Mime[:json]
-          self.content_type = Mime[:js]
+        if content_type.nil? || content_type == ActiveSupport::Mime[:json]
+          self.content_type = ActiveSupport::Mime[:js]
         end
 
         "/**/#{options[:callback]}(#{json})"
       else
-        self.content_type ||= Mime[:json]
+        self.content_type ||= ActiveSupport::Mime[:json]
         json
       end
     end
 
     add :js do |js, options|
-      self.content_type ||= Mime[:js]
+      self.content_type ||= ActiveSupport::Mime[:js]
       js.respond_to?(:to_js) ? js.to_js(options) : js
     end
 
     add :xml do |xml, options|
-      self.content_type ||= Mime[:xml]
+      self.content_type ||= ActiveSupport::Mime[:xml]
       xml.respond_to?(:to_xml) ? xml.to_xml(options) : xml
     end
   end

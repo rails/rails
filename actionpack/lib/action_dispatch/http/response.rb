@@ -12,7 +12,7 @@ module ActionDispatch # :nodoc:
   # \Response is mostly a Ruby on \Rails framework implementation detail, and
   # should never be used directly in controllers. Controllers should use the
   # methods defined in ActionController::Base instead. For example, if you want
-  # to set the HTTP response's content MIME type, then use
+  # to set the HTTP response's content ActiveSupport::Mime type, then use
   # ActionControllerBase#headers instead of Response#headers.
   #
   # Nevertheless, integration tests may want to inspect controller responses in
@@ -212,7 +212,7 @@ module ActionDispatch # :nodoc:
       set_content_type content_type.to_s, header_info.charset || self.class.default_charset
     end
 
-    # Sets the HTTP response's content MIME type. For example, in the controller
+    # Sets the HTTP response's content ActiveSupport::Mime type. For example, in the controller
     # you could write this:
     #
     #  response.content_type = "text/plain"
@@ -428,7 +428,7 @@ module ActionDispatch # :nodoc:
       return if content_type
 
       ct = parse_content_type
-      set_content_type(ct.mime_type || Mime[:html].to_s,
+      set_content_type(ct.mime_type || ActiveSupport::Mime[:html].to_s,
                        ct.charset || self.class.default_charset)
     end
 

@@ -57,12 +57,12 @@ class MimeControllerLayoutsTest < ActionController::TestCase
   def setup
     super
     @request.host = "www.example.com"
-    Mime::Type.register_alias("text/html", :iphone)
+    ActiveSupport::Mime::Type.register_alias("text/html", :iphone)
   end
 
   def teardown
     super
-    Mime::Type.unregister(:iphone)
+    ActiveSupport::Mime::Type.unregister(:iphone)
   end
 
   def test_missing_layout_renders_properly

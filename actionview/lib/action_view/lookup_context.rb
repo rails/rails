@@ -67,7 +67,7 @@ module ActionView
       def self.get(details)
         if details[:formats]
           details = details.dup
-          details[:formats] &= Mime::SET.symbols
+          details[:formats] &= ActiveSupport::Mime::SET.symbols
         end
         @details_keys[details] ||= new
       end

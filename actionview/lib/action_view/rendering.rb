@@ -1,4 +1,5 @@
 require "action_view/view_paths"
+require 'active_support/mime'
 
 module ActionView
   # This is a class to fix I18n global state. Whenever you provide I18n.locale during a request,
@@ -84,7 +85,7 @@ module ActionView
     end
 
     def rendered_format
-      Mime[lookup_context.rendered_format]
+      ActiveSupport::Mime[lookup_context.rendered_format]
     end
 
     private
