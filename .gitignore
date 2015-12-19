@@ -3,6 +3,7 @@
 
 .Gemfile
 .ruby-version
+.DS_Store
 debug.log
 pkg
 /.bundle
