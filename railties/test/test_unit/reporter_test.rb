@@ -61,14 +61,16 @@ class TestUnitReporterTest < ActiveSupport::TestCase
     @reporter.record(failed_test)
     @reporter.report
 
-    assert_match %r{\A\n\nboo\n\nbin/rails test .*test/test_unit/reporter_test.rb:\d+\n\n\z}, @output.string
+    expect = %r{\A\n\nFailure:\nTestUnitReporterTest::ExampleTest#woot:\nboo\n\nbin/rails test test/test_unit/reporter_test.rb:\d+\n\n\z}
+    assert_match expect, @output.string
   end
 
   test "outputs errors inline" do
     @reporter.record(errored_test)
     @reporter.report
 
-    assert_match %r{\A\n\nArgumentError: wups\n    No backtrace\n\nbin/rails test .*test/test_unit/reporter_test.rb:6\n\n\z}, @output.string
+    expect = %r{\A\n\nError:\nTestUnitReporterTest::ExampleTest#woot:\nArgumentError: wups\n    No backtrace\n\nbin/rails test .*test/test_unit/reporter_test.rb:6\n\n\z}
+    assert_match expect, @output.string
   end
 
   test "outputs skipped tests inline if verbose" do
@@ -76,7 +78,8 @@ class TestUnitReporterTest < ActiveSupport::TestCase
     verbose.record(skipped_test)
     verbose.report
 
-    assert_match %r{\A\n\nskipchurches, misstemples\n\nbin/rails test .*test/test_unit/reporter_test.rb:\d+\n\n\z}, @output.string
+    expect = %r{\A\n\nSkipped:\nTestUnitReporterTest::ExampleTest#woot:\nskipchurches, misstemples\n\nbin/rails test test/test_unit/reporter_test.rb:\d+\n\n\z}
+    assert_match expect, @output.string
   end
 
   test "does not output rerun snippets after run" do
