@@ -120,7 +120,11 @@ module ActiveSupport::NumericWithFormat
     when :human_size
       return ActiveSupport::NumberHelper.number_to_human_size(self, options)
     else
-      super
+      if is_a?(Float) || format.is_a?(Symbol)
+        super()
+      else
+        super
+      end
     end
   end
 
