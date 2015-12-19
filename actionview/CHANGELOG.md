@@ -8,7 +8,7 @@
      be true. Default value is `true`. For example in `application.rb`:
 
        # in order to turn off missing key wrapping
-       config.action_view.debug_missing_tranlation = false
+       config.action_view.debug_missing_translation = false
 
      *Sameer Rahmani*
 
