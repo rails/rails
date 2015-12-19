@@ -313,6 +313,14 @@ module Rails
         end
       end
 
+      def delete_action_cable_files_skipping_action_cable
+        if options[:skip_action_cable]
+          remove_file 'config/redis/cable.yml'
+          remove_file 'app/assets/javascripts/cable.coffee'
+          remove_dir 'app/channels'
+        end
+      end
+
       def delete_non_api_initializers_if_api_option
         if options[:api]
           remove_file 'config/initializers/session_store.rb'
