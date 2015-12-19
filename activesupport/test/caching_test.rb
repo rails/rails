@@ -493,28 +493,32 @@ module CacheStoreBehavior
 
   def test_cache_hit_instrumentation
     key = "test_key"
-    subscribe_executed = false
-    ActiveSupport::Notifications.subscribe "cache_read.active_support" do |name, start, finish, id, payload|
-      subscribe_executed = true
-      assert_equal :fetch, payload[:super_operation]
-      assert payload[:hit]
+    @events = []
+    ActiveSupport::Notifications.subscribe "cache_read.active_support" do |*args|
+      @events << ActiveSupport::Notifications::Event.new(*args)
     end
     assert @cache.write(key, "1", :raw => true)
     assert @cache.fetch(key) {}
-    assert subscribe_executed
+    assert_equal 1, @events.length
+    assert_equal 'cache_read.active_support', @events[0].name
+    assert_equal :fetch, @events[0].payload[:super_operation]
+    assert @events[0].payload[:hit]
   ensure
     ActiveSupport::Notifications.unsubscribe "cache_read.active_support"
   end
 
   def test_cache_miss_instrumentation
-    subscribe_executed = false
-    ActiveSupport::Notifications.subscribe "cache_read.active_support" do |name, start, finish, id, payload|
-      subscribe_executed = true
-      assert_equal :fetch, payload[:super_operation]
-      assert_not payload[:hit]
+    @events = []
+    ActiveSupport::Notifications.subscribe /^cache_(.*)\.active_support$/ do |*args|
+      @events << ActiveSupport::Notifications::Event.new(*args)
     end
     assert_not @cache.fetch("bad_key") {}
-    assert subscribe_executed
+    assert_equal 3, @events.length
+    assert_equal 'cache_read.active_support', @events[0].name
+    assert_equal 'cache_generate.active_support', @events[1].name
+    assert_equal 'cache_write.active_support', @events[2].name
+    assert_equal :fetch, @events[0].payload[:super_operation]
+    assert_not @events[0].payload[:hit]
   ensure
     ActiveSupport::Notifications.unsubscribe "cache_read.active_support"
   end
