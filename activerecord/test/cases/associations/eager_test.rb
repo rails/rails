@@ -1402,4 +1402,10 @@ class EagerAssociationTest < ActiveRecord::TestCase
     post = Post.eager_load(:tags).where('tags.name = ?', 'General').first
     assert_equal posts(:welcome), post
   end
+
+  # CollectionProxy#reader is expensive, so the preloader avoids calling it.
+  test "preloading has_many_through association avoids calling association.reader" do
+    ActiveRecord::Associations::HasManyAssociation.any_instance.expects(:reader).never
+    Author.preload(:readonly_comments).first!
+  end
 end
