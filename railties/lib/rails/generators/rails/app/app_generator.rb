@@ -321,6 +321,12 @@ module Rails
         end
       end
 
+      def delete_app_channels_skipping_action_cable
+        if options[:skip_action_cable]
+          remove_dir 'app/channels'
+        end
+      end
+
       def finish_template
         build(:leftovers)
       end
