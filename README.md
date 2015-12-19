@@ -1,89 +1,64 @@
-## Welcome to Rails
+## Καλώς ήρθες στήν Rails
 
-Rails is a web-application framework that includes everything needed to
-create database-backed web applications according to the
-[Model-View-Controller (MVC)](http://en.wikipedia.org/wiki/Model-view-controller)
-pattern.
+Η Rails είναι ενα framework για να φτιάχνεις web εφαρμογές σύμφωνα με το [Model-View-Controller (MVC)](http://en.wikipedia.org/wiki/Model-view-controller) πρότυπο.
 
-Understanding the MVC pattern is key to understanding Rails. MVC divides your
-application into three layers, each with a specific responsibility.
+Καταλαβαίνωντας το MVC πρότυπο είναι το κλειδί για να καταλάβεις την Rails.Το MVC πρότυπο χωρίζει την εφαρμογή σου σε τρεία επίπεδα, το κάθε ενα έχει συγκεκριμένες αρμοδιότητες.
 
-The _Model layer_ represents your domain model (such as Account, Product,
-Person, Post, etc.) and encapsulates the business logic that is specific to
-your application. In Rails, database-backed model classes are derived from
-`ActiveRecord::Base`. Active Record allows you to present the data from
-database rows as objects and embellish these data objects with business logic
-methods. You can read more about Active Record in its [README](activerecord/README.rdoc).
-Although most Rails models are backed by a database, models can also be ordinary
-Ruby classes, or Ruby classes that implement a set of interfaces as provided by
-the Active Model module. You can read more about Active Model in its [README](activemodel/README.rdoc).
+Το Model layer αντιπροσωπεύει το μοντέλο σας (όπως ο λογαριασμός σας, το προϊόν,
+Πρόσωπο, Δημοσίευση, κλπ) και ενσωματώνει την επιχειρηματική λογική που είναι ειδικά για την 
+εφαρμογή σας. Η Rails, είναι βάση δεδομένων που υποστηρίζεται από τις κατηγορίες μοντέλων που προέρχονται από την ActiveRecord :: Base. Η Active Record σάς επιτρέπει να παρουσιάσετε τα δεδομένα από
+σειρές δεδομένων ως αντικείμενα και ενσωματώνουν τα δεδομένα αυτά με επιχειρηματικής λογικής μεθόδους. Μπορείτε να διαβάσετε περισσότερα για Active Record στο [README] του (ActiveRecord / README.rdoc).
+Αν και τα περισσότερα μοντέλα στήν Rails υποστηρίζωνται από μια βάση δεδομένων, μοντέλα μπορούν επίσης να είναι απλές κλάσεις Ruby ή κλάσεις που εφαρμόζουν ένα σύνολο διεπαφών, όπως προβλέπεται από
+ Active Model module. Μπορείτε να διαβάσετε περισσότερα σχετικά με το  Active Model [README](activemodel / README.rdoc).
 
-The _Controller layer_ is responsible for handling incoming HTTP requests and
-providing a suitable response. Usually this means returning HTML, but Rails controllers
-can also generate XML, JSON, PDFs, mobile-specific views, and more. Controllers load and
-manipulate models, and render view templates in order to generate the appropriate HTTP response.
-In Rails, incoming requests are routed by Action Dispatch to an appropriate controller, and
-controller classes are derived from `ActionController::Base`. Action Dispatch and Action Controller
-are bundled together in Action Pack. You can read more about Action Pack in its
-[README](actionpack/README.rdoc).
+Το Controller layer  είναι υπεύθυνο για το χειρισμό των εισερχόμενων αιτήσεων HTTP και
+παρέχοντας μια κατάλληλη απάντηση. Συνήθως αυτό σημαίνει επιστροφή HTML, αλλά το controller
+μπορεί επίσης να δημιουργήσει XML, JSON, αρχεία PDF, ειδικά για κινητά, και πολλά άλλα. Οι Controllers φορτόνουν και χειρίζονται τα Models.
+Στήν Rails, οι εισερχόμενες αιτήσεις δρομολογούνται από την Action Dispatch σε έναν κατάλληλο ελεγκτή, και
+οι κατηγορίες  προέρχονται από τον ελεγκτή ActionController :: Base. Action Dispatch and Action Controller ομαδοποιούνται στο Action Pack. Μπορείτε να διαβάσετε περισσότερα για το Action Pack [README](actionpack / README.rdoc).
 
-The _View layer_ is composed of "templates" that are responsible for providing
-appropriate representations of your application's resources. Templates can
-come in a variety of formats, but most view templates are HTML with embedded
-Ruby code (ERB files). Views are typically rendered to generate a controller response,
-or to generate the body of an email. In Rails, View generation is handled by Action View.
-You can read more about Action View in its [README](actionview/README.rdoc).
+Το View layer αποτελείται από «πρότυπα» που είναι υπεύθυνα για την παροχή
+στα κατάλληλα διαβήματα των πόρων της εφαρμογής σας. τα πρότυπα μπορούν να
+έρχονται σε μια ποικιλία μορφών, αλλά τα περισσότερα πρότυπα είναι HTML με ενσωματωμένο
+κώδικα Ruby (αρχεία ERB). Τα Views εμφανίζουν την αντίδραση απο τα Controllers.
+Επίσης μπορεί να δημιουργήσει το σώμα ενός μηνύματος ηλεκτρονικού ταχυδρομείου. 
+Στήν Rails, τα Views εξαρτόνται από το Action View.
+Μπορείτε να διαβάσετε περισσότερα για το View [README](actionview / README.rdoc).
 
-Active Record, Active Model, Action Pack, and Action View can each be used independently outside Rails.
-In addition to them, Rails also comes with Action Mailer ([README](actionmailer/README.rdoc)), a library
-to generate and send emails; Active Job ([README](activejob/README.md)), a
-framework for declaring jobs and making them run on a variety of queueing
-backends; Action Cable ([README](actioncable/README.md)), a framework to
-integrate WebSockets with a Rails application;
-and Active Support ([README](activesupport/README.rdoc)), a collection
-of utility classes and standard library extensions that are useful for Rails,
-and may also be used independently outside Rails.
+## Ξεκινώντας
 
-## Getting Started
-
-1. Install Rails at the command prompt if you haven't yet:
+1. Εγκατάστηστε την  Rails στη γραμμή εντολών αν δεν το έχετε κάνει ακόμη:
 
         $ gem install rails
 
-2. At the command prompt, create a new Rails application:
+2. Στήν γραμμή εντολών, διμιουργίστε μία νέα  Rails εφαρμογή:
 
         $ rails new myapp
 
-   where "myapp" is the application name.
+   όπου "myapp" είναι το όνομα τής εφαρμογής.
 
-3. Change directory to `myapp` and start the web server:
+   Τρέξτε  `--help` ή `-h` για επιλογές.
 
-        $ cd myapp
-        $ rails server
-
-   Run with `--help` or `-h` for options.
-
-4. Using a browser, go to `http://localhost:3000` and you'll see:
+4. Πηγαίντε στήν διεύθηνση `http://localhost:3000` και θα δείτε:
 "Welcome aboard: You're riding Ruby on Rails!"
 
-5. Follow the guidelines to start developing your application. You may find
-   the following resources handy:
+5. Ακολουθήστε τις οδηγίες για να αρχίσετε να αναπτύσετε την εφαρμογή σας.
+
     * [Getting Started with Rails](http://guides.rubyonrails.org/getting_started.html)
     * [Ruby on Rails Guides](http://guides.rubyonrails.org)
     * [The API Documentation](http://api.rubyonrails.org)
     * [Ruby on Rails Tutorial](http://www.railstutorial.org/book)
 
-## Contributing
+## Συμβολή
 
-We encourage you to contribute to Ruby on Rails! Please check out the
-[Contributing to Ruby on Rails guide](http://edgeguides.rubyonrails.org/contributing_to_ruby_on_rails.html) for guidelines about how to proceed. [Join us!](http://contributors.rubyonrails.org)
+Σας ενθαρρύνουμε να συμβάλετε στην Ruby on Rails! Παρακαλώ ελέγξτε το
+[Contributing to Ruby on Rails guide](http://edgeguides.rubyonrails.org/contributing_to_ruby_on_rails.html).
 
-Everyone interacting in Rails and its sub-projects' codebases, issue trackers, chat rooms, and mailing lists is expected to follow the Rails [code of conduct](http://rubyonrails.org/conduct/).
 
 ## Code Status
 
 [![Build Status](https://travis-ci.org/rails/rails.svg?branch=master)](https://travis-ci.org/rails/rails)
 
-## License
+## Άδεια
 
-Ruby on Rails is released under the [MIT License](http://www.opensource.org/licenses/MIT).
+Η Ruby on Rails  διατίθεται άδεια βάσει της [MIT License](http://www.opensource.org/licenses/MIT).
