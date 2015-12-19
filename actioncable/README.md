@@ -91,7 +91,7 @@ The client-side needs to setup a consumer instance of this connection. That's do
 #= require action_cable
 
 @App = {}
-App.cable = Cable.createConsumer("ws://cable.example.com")
+App.cable = ActionCable.createConsumer("ws://cable.example.com")
 ```
 
 The ws://cable.example.com address must point to your set of Action Cable servers, and it
