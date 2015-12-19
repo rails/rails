@@ -16,7 +16,7 @@ WebSockets open to your application if they use multiple browser tabs or devices
 The client of a WebSocket connection is called the consumer.
 
 Each consumer can in turn subscribe to multiple cable channels. Each channel encapsulates
-a logical unit of work, similar to what a controller does in a regular MVC setup. For example, 
+a logical unit of work, similar to what a controller does in a regular MVC setup. For example,
 you could have a `ChatChannel` and a `AppearancesChannel`, and a consumer could be subscribed to either
 or to both of these channels. At the very least, a consumer should be subscribed to one channel.
 
@@ -395,7 +395,7 @@ bundle exec puma -p 28080 cable/config.ru
 ```
 
 The above will start a cable server on port 28080. Remember to point your client-side setup against that using something like:
-`App.cable = Cable.createConsumer("ws://basecamp.dev:28080")`.
+`App.cable = ActionCable.createConsumer("ws://basecamp.dev:28080")`.
 
 ### In app
 
