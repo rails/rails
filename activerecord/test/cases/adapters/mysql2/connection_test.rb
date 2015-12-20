@@ -68,9 +68,6 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
     assert_equal 'utf8_general_ci', ARUnit2Model.connection.show_variable('collation_connection')
   end
 
-  # TODO: Below is a straight up copy/paste from mysql/connection_test.rb
-  # I'm not sure what the correct way is to share these tests between
-  # adapters in minitest.
   def test_mysql_default_in_strict_mode
     result = @connection.exec_query "SELECT @@SESSION.sql_mode"
     assert_equal [["STRICT_ALL_TABLES"]], result.rows
@@ -83,7 +80,7 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
       assert_equal [['']], result.rows
     end
   end
-  
+
   def test_passing_arbitary_flags_to_adapter
     run_without_connection do |orig_connection|             
       ActiveRecord::Base.establish_connection(orig_connection.merge({flags: Mysql2::Client::COMPRESS}))

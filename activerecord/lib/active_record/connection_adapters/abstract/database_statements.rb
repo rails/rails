@@ -208,7 +208,7 @@ module ActiveRecord
       # * You are joining an existing open transaction
       # * You are creating a nested (savepoint) transaction
       #
-      # The mysql, mysql2 and postgresql adapters support setting the transaction
+      # The mysql2 and postgresql adapters support setting the transaction
       # isolation level. However, support is disabled for MySQL versions below 5,
       # because they are affected by a bug[http://bugs.mysql.com/bug.php?id=39170]
       # which means the isolation level gets persisted outside the transaction.

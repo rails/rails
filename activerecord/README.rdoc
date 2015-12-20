@@ -125,7 +125,7 @@ This would also define the following accessors: <tt>Product#name</tt> and
     )
 
   {Learn more}[link:classes/ActiveRecord/Base.html] and read about the built-in support for
-  MySQL[link:classes/ActiveRecord/ConnectionAdapters/MysqlAdapter.html],
+  MySQL[link:classes/ActiveRecord/ConnectionAdapters/Mysql2Adapter.html],
   PostgreSQL[link:classes/ActiveRecord/ConnectionAdapters/PostgreSQLAdapter.html], and
   SQLite3[link:classes/ActiveRecord/ConnectionAdapters/SQLite3Adapter.html].
 

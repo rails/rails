@@ -63,8 +63,6 @@ module ActiveRecord
           # Do a manual insertion
           if current_adapter?(:OracleAdapter)
             connection.execute "insert into test_models (id, wealth) values (people_seq.nextval, 12345678901234567890.0123456789)"
-          elsif current_adapter?(:MysqlAdapter) && Mysql.client_version < 50003 #before MySQL 5.0.3 decimals stored as strings
-            connection.execute "insert into test_models (wealth) values ('12345678901234567890.0123456789')"
           elsif current_adapter?(:PostgreSQLAdapter)
             connection.execute "insert into test_models (wealth) values (12345678901234567890.0123456789)"
           else
