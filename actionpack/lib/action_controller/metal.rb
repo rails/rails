@@ -166,7 +166,7 @@ module ActionController
 
     alias :response_code :status # :nodoc:
 
-    # Basic url_for that can be overridden for more robust functionality
+    # Basic url_for that can be overridden for more robust functionality.
     def url_for(string)
       string
     end
