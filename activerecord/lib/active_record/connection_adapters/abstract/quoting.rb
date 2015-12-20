@@ -93,7 +93,7 @@ module ActiveRecord
       # Override to return the quoted table name for assignment. Defaults to
       # table quoting.
       #
-      # This works for mysql and mysql2 where table.column can be used to
+      # This works for mysql2 where table.column can be used to
       # resolve ambiguity.
       #
       # We override this in the sqlite3 and postgresql adapters to use only

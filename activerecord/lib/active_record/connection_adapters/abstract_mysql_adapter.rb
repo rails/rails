@@ -106,7 +106,7 @@ module ActiveRecord
 
       ##
       # :singleton-method:
-      # By default, the MysqlAdapter will consider all columns of type <tt>tinyint(1)</tt>
+      # By default, the Mysql2Adapter will consider all columns of type <tt>tinyint(1)</tt>
       # as boolean. If you wish to disable this emulation (which was the default
       # behavior in versions 0.13.1 and earlier) you can add the following line
       # to your application.rb file:
@@ -400,7 +400,7 @@ module ActiveRecord
         log(sql, name) { @connection.query(sql) }
       end
 
-      # MysqlAdapter has to free a result after using it, so we use this method to write
+      # Mysql2Adapter has to free a result after using it, so we use this method to write
       # stuff in an abstract way without concerning ourselves about whether it needs to be
       # explicitly freed or not.
       def execute_and_free(sql, name = nil) #:nodoc:

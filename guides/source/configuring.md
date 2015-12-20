@@ -319,7 +319,7 @@ All these configuration options are delegated to the `I18n` library.
 
 The MySQL adapter adds one additional configuration option:
 
-* `ActiveRecord::ConnectionAdapters::MysqlAdapter.emulate_booleans` controls whether Active Record will consider all `tinyint(1)` columns in a MySQL database to be booleans and is true by default.
+* `ActiveRecord::ConnectionAdapters::Mysql[2]Adapter.emulate_booleans` controls whether Active Record will consider all `tinyint(1)` columns in a MySQL database to be booleans and is true by default.
 
 The schema dumper adds one additional configuration option:
 
