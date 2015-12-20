@@ -509,7 +509,7 @@ module CacheStoreBehavior
 
   def test_cache_miss_instrumentation
     @events = []
-    ActiveSupport::Notifications.subscribe /^cache_(.*)\.active_support$/ do |*args|
+    ActiveSupport::Notifications.subscribe(/^cache_(.*)\.active_support$/) do |*args|
       @events << ActiveSupport::Notifications::Event.new(*args)
     end
     assert_not @cache.fetch("bad_key") {}
