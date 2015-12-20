@@ -117,6 +117,7 @@ module Rails
          javascript_gemfile_entry,
          jbuilder_gemfile_entry,
          psych_gemfile_entry,
+         actioncable_gemfile_entry,
          @extra_entries].flatten.find_all(&@gem_filter)
       end
 
@@ -335,6 +336,13 @@ module Rails
         comment = 'Use Psych as the YAML engine, instead of Syck, so serialized ' \
                   'data can be read safely from different rubies (see http://git.io/uuLVag)'
         GemfileEntry.new('psych', '~> 2.0', comment, platforms: :rbx)
+      end
+
+      def actioncable_gemfile_entry
+        return [] if options[:skip_action_cable]
+
+        comment = 'WebSocket framework for Rails.'
+        GemfileEntry.new('actioncable', nil, comment)
       end
 
       def bundle_command(command)

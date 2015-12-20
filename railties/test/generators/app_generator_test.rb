@@ -378,7 +378,17 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_generator_if_skip_action_cable_is_given
     run_generator [destination_root, "--skip-action-cable"]
+
+    assert_file "Gemfile" do |content|
+      assert_no_match(/actioncable/, content)
+    end
+
     assert_file "config/application.rb", /#\s+require\s+["']action_cable\/engine["']/
+  end
+
+  def test_action_cable
+    run_generator
+    assert_gem 'actioncable'
   end
 
   def test_inclusion_of_javascript_runtime

@@ -62,6 +62,8 @@ end
 
 # Action Cable
 group :cable do
+  version = File.read(File.expand_path('../RAILS_VERSION', __FILE__)).strip
+  gem 'actioncable', version
   gem 'puma', require: false
 end
 
