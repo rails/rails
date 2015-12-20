@@ -49,7 +49,7 @@ class Module
   #     include HairColors
   #   end
   #
-  #   Person.hair_colors # => [:brown, :black, :blonde, :red]
+  #   Person.new.hair_colors # => [:brown, :black, :blonde, :red]
   def mattr_reader(*syms)
     options = syms.extract_options!
     syms.each do |sym|
@@ -105,7 +105,7 @@ class Module
   #
   # Also, you can pass a block to set up the attribute with a default value.
   #
-  #   class HairColors
+  #   module HairColors
   #     mattr_writer :hair_colors do
   #       [:brown, :black, :blonde, :red]
   #     end
@@ -150,8 +150,8 @@ class Module
   #     include HairColors
   #   end
   #
-  #   Person.hair_colors = [:brown, :black, :blonde, :red]
-  #   Person.hair_colors     # => [:brown, :black, :blonde, :red]
+  #   HairColors.hair_colors = [:brown, :black, :blonde, :red]
+  #   HairColors.hair_colors # => [:brown, :black, :blonde, :red]
   #   Person.new.hair_colors # => [:brown, :black, :blonde, :red]
   #
   # If a subclass changes the value then that would also change the value for
@@ -161,8 +161,8 @@ class Module
   #   class Male < Person
   #   end
   #
-  #   Male.hair_colors << :blue
-  #   Person.hair_colors # => [:brown, :black, :blonde, :red, :blue]
+  #   Male.new.hair_colors << :blue
+  #   Person.new.hair_colors # => [:brown, :black, :blonde, :red, :blue]
   #
   # To opt out of the instance writer method, pass <tt>instance_writer: false</tt>.
   # To opt out of the instance reader method, pass <tt>instance_reader: false</tt>.
