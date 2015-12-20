@@ -170,7 +170,7 @@ TIP: The retrieved record may vary depending on the database engine.
 
 #### `first`
 
-The `first` method finds the first record ordered by the primary key. For example:
+The `first` method finds the first record ordered by primary key (default). For example:
 
 ```ruby
 client = Client.first
@@ -204,11 +204,24 @@ The SQL equivalent of the above is:
 SELECT * FROM clients ORDER BY clients.id ASC LIMIT 3
 ```
 
+On a collection that is ordered using `order`, `first` will return the first record ordered by the specified attribute for `order`. 
+
+```ruby
+client = Client.order(:first_name).first
+# => #<Client id: 2, first_name: "Fifo">
+```
+
+The SQL equivalent of the above is:
+
+```sql
+SELECT * FROM clients ORDER BY clients.first_name ASC LIMIT 1
+```
+
 The `first!` method behaves exactly like `first`, except that it will raise `ActiveRecord::RecordNotFound` if no matching record is found.
 
 #### `last`
 
-The `last` method finds the last record ordered by the primary key. For example:
+The `last` method finds the last record ordered by primary key (default). For example:
 
 ```ruby
 client = Client.last
@@ -240,6 +253,19 @@ The SQL equivalent of the above is:
 
 ```sql
 SELECT * FROM clients ORDER BY clients.id DESC LIMIT 3
+```
+
+On a collection that is ordered using `order`, `last` will return the last record ordered by the specified attribute for `order`. 
+
+```ruby
+client = Client.order(:first_name).last
+# => #<Client id: 220, first_name: "Sara">
+```
+
+The SQL equivalent of the above is:
+
+```sql
+SELECT * FROM clients ORDER BY clients.first_name DESC LIMIT 1
 ```
 
 The `last!` method behaves exactly like `last`, except that it will raise `ActiveRecord::RecordNotFound` if no matching record is found.
