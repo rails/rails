@@ -61,7 +61,7 @@ all models inherit from `ApplicationRecord`.
 `ApplicationRecord` is a new superclass for all app models, analogous to app
 controllers subclassing `ApplicationController` instead of
 `ActionController::Base`. This gives apps a single spot to configure app-wide
-model behavior
+model behavior.
 
 When upgrading from Rails 4.2 to Rails 5.0 you need to create an
 `application_record.rb` file in `app/models/` and add the following content:
@@ -963,7 +963,7 @@ Please read [Pull Request #9978](https://github.com/rails/rails/pull/9978) for d
 
 * Rails 4.0 has removed the XML parameters parser. You will need to add the `actionpack-xml_parser` gem if you require this feature.
 
-* Rails 4.0 changes the default `layout` lookup set using symbols or procs that return nil. To get the "no layout" behavior, return false instead of nil. 
+* Rails 4.0 changes the default `layout` lookup set using symbols or procs that return nil. To get the "no layout" behavior, return false instead of nil.
 
 * Rails 4.0 changes the default memcached client from `memcache-client` to `dalli`. To upgrade, simply add `gem 'dalli'` to your `Gemfile`.
 
