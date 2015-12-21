@@ -255,10 +255,11 @@ module ActiveSupport
       #     end
       #   end
       #
-      #   # val_1 => "new value 1"
-      #   # val_2 => "original value"
-      #   # sleep 10 # First thread extend the life of cache by another 10 seconds
-      #   # cache.fetch('foo') => "new value 1"
+      #   cache.fetch('foo') # => "original value"
+      #   sleep 10 # First thread extended the life of cache by another 10 seconds
+      #   cache.fetch('foo') # => "new value 1"
+      #   val_1 # => "new value 1"
+      #   val_2 # => "original value"
       #
       # Other options will be handled by the specific cache store implementation.
       # Internally, #fetch calls #read_entry, and calls #write_entry on a cache
