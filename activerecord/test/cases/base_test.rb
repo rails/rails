@@ -82,7 +82,6 @@ class BasicsTest < ActiveRecord::TestCase
     classname = conn.class.name[/[^:]*$/]
     badchar   = {
       'SQLite3Adapter'    => '"',
-      'MysqlAdapter'      => '`',
       'Mysql2Adapter'     => '`',
       'PostgreSQLAdapter' => '"',
       'OracleAdapter'     => '"',
