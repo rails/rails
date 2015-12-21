@@ -5,11 +5,14 @@ module Rails
 
       argument :actions, type: :array, default: [], banner: "method method"
 
+      class_option :assets, type: :boolean
+
       check_class_collision suffix: "Channel"
 
       def create_channel_file
         template "channel.rb", File.join('app/channels', class_path, "#{file_name}_channel.rb")
-        if Rails::Generators.options[:rails][:assets]
+
+        if options[:assets]
           template "assets/channel.coffee", File.join('app/assets/javascripts/channels', class_path, "#{file_name}.coffee")
         end
       end

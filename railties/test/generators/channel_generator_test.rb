@@ -17,17 +17,13 @@ class ChannelGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_channel_asset_is_not_created
-    enable_assets = Rails::Generators.options[:rails][:assets]
-    Rails::Generators.options[:rails][:assets] = false
-    run_generator ['chat']
+  def test_channel_asset_is_not_created_when_skip_assets_is_passed
+    run_generator ['chat', '--skip-assets']
 
     assert_file "app/channels/chat_channel.rb" do |channel|
       assert_match(/class ChatChannel < ApplicationCable::Channel/, channel)
     end
 
     assert_no_file "app/assets/javascripts/channels/chat.coffee"
-  ensure
-    Rails::Generators.options[:rails][:assets] = enable_assets
   end
 end
