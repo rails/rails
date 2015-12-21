@@ -12,7 +12,7 @@ module Rails
       if output_inline? && result.failure && (!result.skipped? || options[:verbose])
         io.puts
         io.puts
-        io.puts result.failures.map(&:message)
+        io.puts format_failures(result)
         io.puts
         io.puts format_rerun_snippet(result)
         io.puts
@@ -54,6 +54,12 @@ module Rails
 
       def fail_fast?
         options[:fail_fast]
+      end
+
+      def format_failures(result)
+        result.failures.map do |failure|
+          "#{failure.result_label}:\n#{result.class}##{result.name}:\n#{failure.message}\n"
+        end
       end
 
       def format_rerun_snippet(result)
