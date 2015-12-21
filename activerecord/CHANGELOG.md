@@ -1,3 +1,7 @@
+*   Use group by values when preloading scoped associations.
+
+    *Lucjan Suski*
+
 ## Rails 5.0.0.beta1 (December 18, 2015) ##
 
 *   No changes.
