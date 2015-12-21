@@ -1973,11 +1973,12 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_form_for_enforce_utf8_true
-    form_for(:post, enforce_utf8: true) do |f|
+    form_for(@post, enforce_utf8: true) do |f|
       concat f.text_field(:title)
     end
 
-    expected = whole_form("/", nil, nil, enforce_utf8: true) do
+    expected = whole_form("/posts/123", "edit_post_123", "edit_post", method: "post", enforce_utf8: true) do
+      "<input type='hidden' name='_method' value='patch' />" +
       "<input name='post[title]' type='text' id='post_title' value='Hello World' />"
     end
 
@@ -1985,11 +1986,12 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_form_for_enforce_utf8_false
-    form_for(:post, enforce_utf8: false) do |f|
+    form_for(@post, enforce_utf8: false) do |f|
       concat f.text_field(:title)
     end
 
-    expected = whole_form("/", nil, nil, enforce_utf8: false) do
+    expected = whole_form("/posts/123", "edit_post_123", "edit_post", method: "post", enforce_utf8: false) do
+      "<input type='hidden' name='_method' value='patch' />" +
       "<input name='post[title]' type='text' id='post_title' value='Hello World' />"
     end
 
@@ -2033,11 +2035,13 @@ class FormHelperTest < ActionView::TestCase
     end
   end
 
-  def test_form_for_without_object
-    form_for(:post, html: { id: 'create-post' }) do |f|
-      concat f.text_field(:title)
-      concat f.text_area(:body)
-      concat f.check_box(:secret)
+  def test_form_for_without_object_deprecation
+    assert_deprecated do
+      form_for(:post, html: { id: 'create-post' }) do |f|
+        concat f.text_field(:title)
+        concat f.text_area(:body)
+        concat f.check_box(:secret)
+      end
     end
 
     expected = whole_form("/", "create-post") do
@@ -2261,10 +2265,12 @@ class FormHelperTest < ActionView::TestCase
     end
   end
 
-  def test_submit_without_object_and_locale_strings
+  def test_submit_without_object_and_locale_strings_deprecation
     with_locale :submit do
-      form_for(:post) do |f|
-        concat f.submit class: "extra"
+      assert_deprecated do
+        form_for(:post) do |f|
+          concat f.submit class: "extra"
+        end
       end
 
       expected = whole_form do
@@ -2306,7 +2312,7 @@ class FormHelperTest < ActionView::TestCase
 
   def test_deep_nested_fields_for
     @comment.save
-    form_for(:posts) do |f|
+    form_for([@post], as: :posts) do |f|
       f.fields_for('post[]', @post) do |f2|
         f2.text_field(:id)
         @post.comments.each do |comment|
@@ -2317,7 +2323,8 @@ class FormHelperTest < ActionView::TestCase
       end
     end
 
-    expected = whole_form do
+    expected = whole_form("/posts/123", "edit_posts", "edit_posts", method: "post") do
+      "<input type='hidden' name='_method' value='patch' />" +
       "<input name='posts[post][0][comment][1][name]' type='text' id='posts_post_0_comment_1_name' value='comment #1' />"
     end
 

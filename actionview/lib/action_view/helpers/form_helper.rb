@@ -121,11 +121,9 @@ module ActionView
       #
       # The method can be used in several slightly different ways, depending on
       # how much you wish to rely on Rails to infer automatically from the model
-      # how the form should be constructed. For a generic model object, a form
-      # can be created by passing +form_for+ a string or symbol representing
-      # the object we are concerned with:
+      # how the form should be constructed.
       #
-      #   <%= form_for :person do |f| %>
+      #   <%= form_for @person do |f| %>
       #     First name: <%= f.text_field :first_name %><br />
       #     Last name : <%= f.text_field :last_name %><br />
       #     Biography : <%= f.text_area :biography %><br />
@@ -149,13 +147,6 @@ module ActionView
       # the value entered by the user will be available in the controller as
       # <tt>params[:person][:first_name]</tt>.
       #
-      # For fields generated in this way using the FormBuilder,
-      # if <tt>:person</tt> also happens to be the name of an instance variable
-      # <tt>@person</tt>, the default value of the field shown when the form is
-      # initially displayed (e.g. in the situation where you are editing an
-      # existing record) will be the value of the corresponding attribute of
-      # <tt>@person</tt>.
-      #
       # The rightmost argument to +form_for+ is an
       # optional hash of options -
       #
@@ -174,6 +165,10 @@ module ActionView
       #   either "get" or "post". If "patch", "put", "delete", or another verb
       #   is used, a hidden input with name <tt>_method</tt> is added to
       #   simulate the verb over post.
+      # * <tt>:as</tt> - Specifies the prefix used to name the input elements
+      #   within the form (hence the key that denotes them in the +params+ hash).
+      #   By default it is derived from the object's _class_, e.g.
+      #   <tt>params[:post]</tt>, if the object's class is +Post+.
       # * <tt>:authenticity_token</tt> - Authenticity token to use in the form.
       #   Use only if you need to pass custom authenticity token string, or to
       #   not add authenticity_token field at all (by passing <tt>false</tt>).
@@ -193,7 +188,7 @@ module ActionView
       # possible to use both the stand-alone FormHelper methods and methods
       # from FormTagHelper. For example:
       #
-      #   <%= form_for :person do |f| %>
+      #   <%= form_for @person do |f| %>
       #     First name: <%= f.text_field :first_name %>
       #     Last name : <%= f.text_field :last_name %>
       #     Biography : <%= text_area :person, :biography %>
@@ -205,32 +200,7 @@ module ActionView
       # are designed to work with an object as base, like
       # FormOptionHelper#collection_select and DateHelper#datetime_select.
       #
-      # === #form_for with a model object
-      #
-      # In the examples above, the object to be created or edited was
-      # represented by a symbol passed to +form_for+, and we noted that
-      # a string can also be used equivalently. It is also possible, however,
-      # to pass a model object itself to +form_for+. For example, if <tt>@post</tt>
-      # is an existing record you wish to edit, you can create the form using
-      #
-      #   <%= form_for @post do |f| %>
-      #     ...
-      #   <% end %>
-      #
-      # This behaves in almost the same way as outlined previously, with a
-      # couple of small exceptions. First, the prefix used to name the input
-      # elements within the form (hence the key that denotes them in the +params+
-      # hash) is actually derived from the object's _class_, e.g. <tt>params[:post]</tt>
-      # if the object's class is +Post+. However, this can be overwritten using
-      # the <tt>:as</tt> option, e.g. -
-      #
-      #   <%= form_for(@person, as: :client) do |f| %>
-      #     ...
-      #   <% end %>
-      #
-      # would result in <tt>params[:client]</tt>.
-      #
-      # Secondly, the field values shown when the form is initially displayed
+      # The field values shown when the form is initially displayed
       # are taken from the attributes of the object passed to +form_for+,
       # regardless of whether the object is an instance
       # variable. So, for example, if we had a _local_ variable +post+
@@ -431,6 +401,10 @@ module ActionView
 
         case record
         when String, Symbol
+          ActiveSupport::Deprecation.warn(<<-MESSAGE.squish)
+            Passing a string or a symbol is deprecated and will be removed in
+            Rails 5.1. To avoid this warning, pass a model instead.
+          MESSAGE
           object_name = record
           object      = nil
         else
