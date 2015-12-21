@@ -7,7 +7,7 @@ class ChannelGeneratorTest < Rails::Generators::TestCase
 
   def test_channel_is_created
     run_generator ['chat']
-    
+
     assert_file "app/channels/chat_channel.rb" do |channel|
       assert_match(/class ChatChannel < ApplicationCable::Channel/, channel)
     end
@@ -18,6 +18,7 @@ class ChannelGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_channel_asset_is_not_created
+    enable_assets = Rails::Generators.options[:rails][:assets]
     Rails::Generators.options[:rails][:assets] = false
     run_generator ['chat']
 
@@ -26,5 +27,7 @@ class ChannelGeneratorTest < Rails::Generators::TestCase
     end
 
     assert_no_file "app/assets/javascripts/channels/chat.coffee"
+  ensure
+    Rails::Generators.options[:rails][:assets] = enable_assets
   end
 end
