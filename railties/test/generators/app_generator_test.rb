@@ -379,6 +379,9 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_generator_if_skip_action_cable_is_given
     run_generator [destination_root, "--skip-action-cable"]
     assert_file "config/application.rb", /#\s+require\s+["']action_cable\/engine["']/
+    assert_no_file "config/redis/cable.yml"
+    assert_no_file "app/assets/javascripts/cable.coffee"
+    assert_no_file "app/channels"
   end
 
   def test_inclusion_of_javascript_runtime
