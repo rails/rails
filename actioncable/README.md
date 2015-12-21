@@ -452,6 +452,14 @@ Action Cable is released under the MIT license:
 
 ## Support
 
-Bug reports can be filed for the alpha development project here:
+API documentation is at:
 
-* https://github.com/rails/actioncable/issues
+* http://api.rubyonrails.org
+
+Bug reports can be filed for the Ruby on Rails project here:
+
+* https://github.com/rails/rails/issues
+
+Feature requests should be discussed on the rails-core mailing list here:
+
+* https://groups.google.com/forum/?fromgroups#!forum/rubyonrails-core
