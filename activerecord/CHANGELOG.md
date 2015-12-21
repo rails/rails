@@ -4,9 +4,6 @@
 
 ## Rails 5.0.0.beta1 (December 18, 2015) ##
 
-*   No changes.
-
-
 *   Order the result of `find(ids)` to match the passed array, if the relation
     has no explicit order defined.
 

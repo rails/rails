@@ -1,8 +1,5 @@
 ## Rails 5.0.0.beta1 (December 18, 2015) ##
 
-*   No changes.
-
-
 *   `config.force_ssl = true` will set
     `config.action_mailer.default_url_options = { protocol: 'https' }`
 

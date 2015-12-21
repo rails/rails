@@ -1,8 +1,5 @@
 ## Rails 5.0.0.beta1 (December 18, 2015) ##
 
-*   No changes.
-
-
 *   `I18n.translate` helper will wrap the missing translation keys
      in a <span> tag only if `debug_missing_translation` configuration
      be true. Default value is `true`. For example in `application.rb`:
