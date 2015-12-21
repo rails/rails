@@ -364,7 +364,7 @@ Then add the following line to your layout before your JavaScript tag:
 And finally, create your consumer like so:
 
 ```coffeescript
-App.cable = Cable.createConsumer()
+App.cable = ActionCable.createConsumer()
 ```
 
 For a full list of all configuration options, see the `ActionCable::Server::Configuration` class.
@@ -408,7 +408,7 @@ Example::Application.routes.draw do
 end
 ```
 
-You can use `App.cable = Cable.createConsumer("/websocket")` to connect to the cable server.
+You can use `App.cable = ActionCable.createConsumer("/websocket")` to connect to the cable server.
 
 For every instance of your server you create and for every worker your server spawns, you will also have a new instance of ActionCable, but the use of Redis keeps messages synced across connections.
 
