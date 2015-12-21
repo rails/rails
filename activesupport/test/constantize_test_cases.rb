@@ -24,6 +24,13 @@ class Object
   include AddtlGlobalConstants
 end
 
+module Concerns
+  module Likable
+    def do_fancy_likeable_stuff_in_model
+    end
+  end
+end
+
 module ConstantizeTestCases
   include DependenciesTestHelpers
 
@@ -104,6 +111,7 @@ module ConstantizeTestCases
     assert_nil yield('Object::Object::Object::ABC')
     assert_nil yield('A::Object::B')
     assert_nil yield('A::Object::Object::Object::B')
+    assert_nil yield('Likable')
 
     assert_raises(NameError) do
       with_autoloading_fixtures do
