@@ -1242,23 +1242,6 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_equal projects.last.mentor.developers.first.contracts, projects.last.developers.last.contracts
   end
 
-  def test_eager_load_with_group_clause
-    assert_nothing_raised(ActiveRecord::StatementInvalid) do
-      subclass = Class.new(ActiveRecord::Base) do
-        def self.name; "Author"; end
-        self.table_name = "authors"
-        has_many :posts_ordered_by_comments_tags_count, -> {
-          joins('LEFT JOIN comments ON comments.post_id = posts.id').
-          order("SUM(comments.tags_count)").
-          group('posts.id') }, class_name: "Post"
-      end
-
-      preloaded = subclass.includes(:posts_ordered_by_comments_tags_count).map(&:posts_ordered_by_comments_tags_count)
-      loaded = subclass.all.map(&:posts_ordered_by_comments_tags_count)
-      assert preloaded == loaded, 'Preloaded records differ from expected result.'
-    end
-  end
-
   test "scoping with a circular preload" do
     assert_equal Comment.find(1), Comment.preload(:post => :comments).scoping { Comment.find(1) }
   end
