@@ -75,7 +75,7 @@ module Rails
 
         in_root do
           if block
-            append_file "Gemfile", "source #{quote(source)} do", force: true
+            append_file "Gemfile", "\nsource #{quote(source)} do", force: true
             @in_group = true
             instance_eval(&block)
             @in_group = false

@@ -1,3 +1,7 @@
+*   Fix using `add_source` with a block after using `gem` in a custom generator.
+
+    *Will Fisher*
+
 ## Rails 5.0.0.beta1 (December 18, 2015) ##
 
 *   No changes.
