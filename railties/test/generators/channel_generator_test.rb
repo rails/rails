@@ -6,8 +6,9 @@ class ChannelGeneratorTest < Rails::Generators::TestCase
   tests Rails::Generators::ChannelGenerator
 
   def test_channel_is_created
+    Rails::Generators.options[:rails][:assets] = true
     run_generator ['chat']
-    
+
     assert_file "app/channels/chat_channel.rb" do |channel|
       assert_match(/class ChatChannel < ApplicationCable::Channel/, channel)
     end
