@@ -51,6 +51,11 @@ module ActionController
         extend ::AbstractController::Railties::RoutesHelpers.with(app.routes)
         extend ::ActionController::Railties::Helpers
 
+        o = Class.new
+        o.extend ::AbstractController::Railties::RoutesHelpers.with(app.routes)
+        o.extend ::ActionController::Railties::Helpers
+        descendants.each {|d| o.inherited(d) }
+
         options.each do |k,v|
           k = "#{k}="
           if respond_to?(k)
