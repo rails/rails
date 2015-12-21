@@ -399,16 +399,16 @@ The above will start a cable server on port 28080. Remember to point your client
 
 ### In app
 
-If you are using a threaded server like Puma or Thin, the current implementation of ActionCable can run side-along with your Rails application. For example, to listen for WebSocket requests on `/websocket`, match requests on that path:
+If you are using a threaded server like Puma or Thin, the current implementation of ActionCable can run side-along with your Rails application. For example, to listen for WebSocket requests on `/cable`, match requests on that path:
 
 ```ruby
 # config/routes.rb
 Example::Application.routes.draw do
-  match "/websocket", :to => ActionCable.server, via: [:get, :post]
+  match "/cable", :to => ActionCable.server, via: [:get, :post]
 end
 ```
 
-You can use `App.cable = ActionCable.createConsumer("/websocket")` to connect to the cable server.
+You can use `App.cable = ActionCable.createConsumer()` to connect to the cable server if `action_cable_meta_tag` is included in the layout. A custom path is specified as first argument to `createConsumer` (e.g. `App.cable = ActionCable.createConsumer("/websocket")`).
 
 For every instance of your server you create and for every worker your server spawns, you will also have a new instance of ActionCable, but the use of Redis keeps messages synced across connections.
 
