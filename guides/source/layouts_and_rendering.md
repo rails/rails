@@ -1157,14 +1157,12 @@ To pass a local variable to a partial in only specific cases use the `local_assi
 * `_articles.html.erb`
 
   ```erb
-  <%= content_tag_for :article, article do |article| %>
-    <h2><%= article.title %></h2>
+  <h2><%= article.title %></h2>
 
-    <% if local_assigns[:full] %>
-      <%= simple_format article.body %>
-    <% else %>
-      <%= truncate article.body %>
-    <% end %>
+  <% if local_assigns[:full] %>
+    <%= simple_format article.body %>
+  <% else %>
+    <%= truncate article.body %>
   <% end %>
   ```
 
