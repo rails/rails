@@ -385,7 +385,7 @@ Please refer to the [Changelog][active-model] for detailed changes.
 ### Deprecations
 
 *   Deprecated returning `false` as a way to halt Active Model and
-    `ActiveModel::Valdiations` callback chains. The recommended way is to
+    `ActiveModel::Validations` callback chains. The recommended way is to
     `throw(:abort)`. ([Pull Request](https://github.com/rails/rails/pull/17227))
 
 ### Notable changes
