@@ -49,6 +49,12 @@ module Minitest
       options[:fail_fast] = true
     end
 
+    opts.on("-c", "--[no-]color",
+            "Enable color in the output") do |value|
+      options[:color] = value
+    end
+
+    options[:color] = true
     options[:output_inline] = true
     options[:patterns] = opts.order!
   end
@@ -80,6 +86,8 @@ module Minitest
     # Disable the extra failure output after a run, unless output is deferred.
     self.hide_aggregated_results = options[:output_inline]
 
+    self.reporter.reporters.clear
+    self.reporter << SummaryReporter.new(options[:io], options)
     self.reporter << ::Rails::TestUnitReporter.new(options[:io], options)
   end
 

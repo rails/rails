@@ -6,13 +6,34 @@ module Rails
     class_attribute :executable
     self.executable = "bin/rails test"
 
+    COLOR_CODES_FOR_RESULTS = {
+      "." => :green,
+      "E" => :red,
+      "F" => :red,
+      "S" => :yellow
+    }
+
+    COLOR_CODES = {
+      red: 31,
+      green: 32,
+      yellow: 33,
+      blue: 34
+    }
+
     def record(result)
       super
+      color = COLOR_CODES_FOR_RESULTS[result.result_code]
+
+      if options[:verbose]
+        io.puts color(format_line(result), color)
+      else
+        io.print color(result.result_code, color)
+      end
 
       if output_inline? && result.failure && (!result.skipped? || options[:verbose])
         io.puts
         io.puts
-        io.puts format_failures(result)
+        io.puts format_failures(result).map { |line| color(line, :red) }
         io.puts
         io.puts format_rerun_snippet(result)
         io.puts
@@ -56,6 +77,10 @@ module Rails
         options[:fail_fast]
       end
 
+      def format_line(result)
+        "%s#%s = %.2f s = %s" % [result.class, result.name, result.time, result.result_code]
+      end
+
       def format_failures(result)
         result.failures.map do |failure|
           "#{failure.result_label}:\n#{result.class}##{result.name}:\n#{failure.message}\n"
@@ -75,6 +100,19 @@ module Rails
 
       def app_root
         @app_root ||= defined?(ENGINE_ROOT) ? ENGINE_ROOT : Rails.root
+      end
+
+      def colored_output?
+        options[:color] && io.respond_to?(:tty?) && io.tty?
+      end
+
+      def color(string, color)
+        if colored_output?
+          color = COLOR_CODES[color]
+          "\e[#{color}m#{string}\e[0m"
+        else
+          string
+        end
       end
   end
 end
