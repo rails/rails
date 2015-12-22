@@ -57,7 +57,7 @@ module Rails
       directory 'app'
 
       keep_file  'app/assets/images'
-      keep_file  'app/assets/javascripts/channels' unless options[:skip_action_cable]
+      empty_directory_with_keep_file 'app/assets/javascripts/channels' unless options[:skip_action_cable]
 
       keep_file  'app/controllers/concerns'
       keep_file  'app/models/concerns'
