@@ -39,7 +39,7 @@ module ActiveModel
           return
         end
 
-        if raw_value.is_a?(String)
+        unless raw_value.is_a?(Numeric)
           value = parse_raw_value_as_a_number(raw_value)
         end
 
