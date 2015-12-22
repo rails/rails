@@ -299,9 +299,27 @@ Please refer to the [Changelog][action-mailer] for detailed changes.
 
 ### Removals
 
-### Deprecations
+*   Removed deprecated `*_path` helpers in email views.
+    ([commit](https://github.com/rails/rails/commit/d282125a18c1697a9b5bb775628a2db239142ac7))
+
+*   Removed deprecated `deliver` and `deliver!` methods.
+    ([commit](https://github.com/rails/rails/commit/755dcd0691f74079c24196135f89b917062b0715))
 
 ### Notable changes
+
+*   Template lookup now respects default locale and I18n fallbacks.
+    ([commit](https://github.com/rails/rails/commit/ecb1981b))
+
+*   Added `_mailer` suffix to mailers created via generator, following the same
+    naming convention used in controllers and jobs.
+    ([Pull Request](https://github.com/rails/rails/pull/18074))
+
+*   Added `assert_enqueued_emails` and `assert_no_enqueued_emails`.
+    ([Pull Request](https://github.com/rails/rails/pull/18403))
+
+*   Added `config.action_mailer.deliver_later_queue_name` configuration to set
+    the mailer queue name.
+    ([Pull Request](https://github.com/rails/rails/pull/18587))
 
 
 Active Record

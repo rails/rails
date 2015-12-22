@@ -1,7 +1,7 @@
 ## Rails 5.0.0.beta1 (December 18, 2015) ##
 
 *   `config.force_ssl = true` will set
-    `config.action_mailer.default_url_options = { protocol: 'https' }`
+    `config.action_mailer.default_url_options = { protocol: 'https' }`.
 
     *Andrew Kampjes*
 
@@ -60,7 +60,7 @@
 
     *Carlos Souza*
 
-*   Remove deprecate `*_path` helpers in email views.
+*   Remove deprecated `*_path` helpers in email views.
 
     *Rafael Mendonça França*
 
