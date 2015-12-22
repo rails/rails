@@ -399,12 +399,12 @@ The above will start a cable server on port 28080. Remember to point your client
 
 ### In app
 
-If you are using a threaded server like Puma or Thin, the current implementation of ActionCable can run side-along with your Rails application. For example, to listen for WebSocket requests on `/cable`, match requests on that path:
+If you are using a threaded server like Puma or Thin, the current implementation of ActionCable can run side-along with your Rails application. For example, to listen for WebSocket requests on `/cable`, mount the server at that path:
 
 ```ruby
 # config/routes.rb
 Example::Application.routes.draw do
-  match "/cable", :to => ActionCable.server, via: [:get, :post]
+  mount ActionCable.server => '/cable'
 end
 ```
 
