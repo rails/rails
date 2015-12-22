@@ -97,7 +97,7 @@
     Which could happen if the rendering was done directly in the controller
     and not in a template.
 
-    Fixes #20535
+    Fixes #20535.
 
     *Roque Pinel*
 
@@ -106,7 +106,7 @@
 
     *Dov Murik*
 
-*   Raise an ArgumentError when a false value for `include_blank` is passed to a
+*   Raise an `ArgumentError` when a false value for `include_blank` is passed to a
     required select field (to comply with the HTML5 spec).
 
     *Grey Baker*
@@ -124,7 +124,7 @@
 *   `translate` should handle `raise` flag correctly in case of both main and default
     translation is missing.
 
-    Fixes #19967
+    Fixes #19967.
 
     *Bernard Potocki*
 
@@ -146,7 +146,7 @@
 *   `translate` should accept nils as members of the `:default`
     parameter without raising a translation missing error.
 
-    Fixes #19419
+    Fixes #19419.
 
     *Justin Coyne*
 

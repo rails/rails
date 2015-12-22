@@ -260,14 +260,35 @@ Please refer to the [Changelog][action-view] for detailed changes.
 
 ### Removals
 
-### Deprecations
+*   Removed deprecated `AbstractController::Base::parent_prefixes`.
+    ([commit](https://github.com/rails/rails/commit/34bcbcf35701ca44be559ff391535c0dd865c333))
+
+*   Removed `ActionView::Helpers::RecordTagHelper`, this functionality
+    has been extracted to the
+    [record_tag_helper](https://github.com/rails/record_tag_helper) gem.
+    ([Pull Request](https://github.com/rails/rails/pull/18411))
+
+*   Removed `:rescue_format` option for `translate` helper since it's no longer
+    supported by I18n.
+    ([Pull Request](https://github.com/rails/rails/pull/20019))
 
 ### Notable Changes
 
-*   Support explicit definition of resouce name for collection caching.
+*   Changed the default template handler from `ERB` to `Raw`.
+    ([commit](https://github.com/rails/rails/commit/4be859f0fdf7b3059a28d03c279f03f5938efc80))
+
+*   Collection rendering automatically caches and fetches multiple partials.
+    ([Pull Request](https://github.com/rails/rails/pull/18948))
+
+*   Allow defining explicit collection caching using a `# Template Collection: ...`
+    directive inside templates.
     ([Pull Request](https://github.com/rails/rails/pull/20781))
 
-*   Make `disable_with` default in `submit_tag`.
+*   Add wildcard matching to explicit dependencies.
+    ([Pull Request](https://github.com/rails/rails/pull/20904))
+
+*   Make `disable_with` the default behavior for submit tags. Disables the
+    button on submit to prevent double submits.
     ([Pull Request](https://github.com/rails/rails/pull/21135))
 
 
