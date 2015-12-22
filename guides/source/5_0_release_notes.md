@@ -67,28 +67,28 @@ Please refer to the [Changelog][railties] for detailed changes.
     Ruby
     2.2. ([commit](https://github.com/rails/rails/commit/93559da4826546d07014f8cfa399b64b4a143127))
 
-*   Remove deprecated `test:all` and `test:all:db` tasks.
+*   Removed deprecated `test:all` and `test:all:db` tasks.
     ([commit](https://github.com/rails/rails/commit/f663132eef0e5d96bf2a58cec9f7c856db20be7c))
 
-*   Remove deprecated `Rails::Rack::LogTailer`.
+*   Removed deprecated `Rails::Rack::LogTailer`.
     ([commit](https://github.com/rails/rails/commit/c564dcb75c191ab3d21cc6f920998b0d6fbca623))
 
-*   Remove deprecated `RAILS_CACHE` constant.
+*   Removed deprecated `RAILS_CACHE` constant.
     ([commit](https://github.com/rails/rails/commit/b7f856ce488ef8f6bf4c12bb549f462cb7671c08))
 
-*   Remove deprecated `serve_static_assets` configuration.
+*   Removed deprecated `serve_static_assets` configuration.
     ([commit](https://github.com/rails/rails/commit/463b5d7581ee16bfaddf34ca349b7d1b5878097c))
 
-*   Remove the documentation tasks `doc:app`, `doc:rails`, and `doc:guides`.
+*   Removed the documentation tasks `doc:app`, `doc:rails`, and `doc:guides`.
     ([commit](https://github.com/rails/rails/commit/cd7cc5254b090ccbb84dcee4408a5acede25ef2a))
 
 ### Deprecations
 
-*   Deprecate `config.static_cache_control` in favor of
+*   Deprecated `config.static_cache_control` in favor of
     `config.public_file_server.headers`.
     ([Pull Request](https://github.com/rails/rails/pull/22173))
 
-*   Deprecate `config.serve_static_files` in favor of `config.public_file_server.enabled`.
+*   Deprecated `config.serve_static_files` in favor of `config.public_file_server.enabled`.
     ([Pull Request](https://github.com/rails/rails/pull/22173))
 
 ### Notable changes
@@ -142,7 +142,7 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 *   Removed deprecated assertion files.
     ([commit](https://github.com/rails/rails/commit/92e27d30d8112962ee068f7b14aa7b10daf0c976))
 
-*   Remove deprecated usage of string keys in URL helpers.
+*   Removed deprecated usage of string keys in URL helpers.
     ([commit](https://github.com/rails/rails/commit/34e380764edede47f7ebe0c7671d6f9c9dc7e809))
 
 *   Removed deprecated `only_path` option on `*_path` helpers.
@@ -299,32 +299,32 @@ Please refer to the [Changelog][active-record] for detailed changes.
 *   Synchronize behavior of `#tables`.
     ([Pull Request](https://github.com/rails/rails/pull/21601))
 
-*   Deprecate `connection.tables` on the SQLite3 and MySQL adapters.
+*   Deprecated `connection.tables` on the SQLite3 and MySQL adapters.
 
-*   Deprecate passing arguments to `#tables` - the `#tables` method of some
+*   Deprecated passing arguments to `#tables` - the `#tables` method of some
     adapters (mysql2, sqlite3) would return both tables and views while others
     (postgresql) just return tables. To make their behavior consistent,
     `#tables` will return only tables in the future.
 
-*   Deprecate `table_exists?` - The `#table_exists?` method would check both
+*   Deprecated `table_exists?` - The `#table_exists?` method would check both
     tables and views. To make their behavior consistent with `#tables`,
     `#table_exists?` will check only tables in the future.
 
 ### Notable changes
 
-*   Add a `foreign_key` option to `references` while creating the table.
+*   Added a `foreign_key` option to `references` while creating the table.
     ([commit](https://github.com/rails/rails/commit/99a6f9e60ea55924b44f894a16f8de0162cf2702))
 
 *   New attributes
     API. ([commit](https://github.com/rails/rails/commit/8c752c7ac739d5a86d4136ab1e9d0142c4041e58))
 
-*   Add `:enum_prefix`/`:enum_suffix` option to `enum`
+*   Added `:enum_prefix`/`:enum_suffix` option to `enum`
     definition. ([Pull Request](https://github.com/rails/rails/pull/19813))
 
-*   Add `#cache_key` to `ActiveRecord::Relation`.
+*   Added `#cache_key` to `ActiveRecord::Relation`.
     ([Pull Request](https://github.com/rails/rails/pull/20884))
 
-*   Add `ActiveRecord::Relation#outer_joins`.
+*   Added `ActiveRecord::Relation#outer_joins`.
     ([Pull Request](https://github.com/rails/rails/pull/12071))
 
 *   Require `belongs_to` by default.
