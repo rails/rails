@@ -151,6 +151,12 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file("config/initializers/cookies_serializer.rb", /Rails\.application\.config\.action_dispatch\.cookies_serializer = :json/)
   end
 
+  def test_new_application_not_include_api_initializers
+    run_generator
+
+    assert_no_file 'config/initializers/cors.rb'
+  end
+
   def test_rails_update_keep_the_cookie_serializer_if_it_is_already_configured
     app_root = File.join(destination_root, 'myapp')
     run_generator [app_root]

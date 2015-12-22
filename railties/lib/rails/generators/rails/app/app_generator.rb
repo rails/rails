@@ -329,6 +329,12 @@ module Rails
         end
       end
 
+      def delete_api_initializers
+        unless options[:api]
+          remove_file 'config/initializers/cors.rb'
+        end
+      end
+
       def finish_template
         build(:leftovers)
       end
