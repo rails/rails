@@ -1012,7 +1012,7 @@ module ActiveRecord
             end
 
           elsif [:datetime, :time].include?(type) && precision ||= native[:precision]
-            if (0..6) === precision
+            if (0..6).cover? precision
               column_type_sql << "(#{precision})"
             else
               raise(ActiveRecordError, "No #{native[:name]} type has precision of #{precision}. The allowed range of precision is from 0 to 6")
