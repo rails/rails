@@ -63,18 +63,62 @@ Please refer to the [Changelog][railties] for detailed changes.
 
 ### Removals
 
-* Removed debugger supprt use byebug instead. `debugger` is not supported by
-  Ruby
-  2.2. ([commit](https://github.com/rails/rails/commit/93559da4826546d07014f8cfa399b64b4a143127))
+*   Removed debugger supprt use byebug instead. `debugger` is not supported by
+    Ruby
+    2.2. ([commit](https://github.com/rails/rails/commit/93559da4826546d07014f8cfa399b64b4a143127))
+
+*   Remove deprecated `test:all` and `test:all:db` tasks.
+    ([commit](https://github.com/rails/rails/commit/f663132eef0e5d96bf2a58cec9f7c856db20be7c))
+
+*   Remove deprecated `Rails::Rack::LogTailer`.
+    ([commit](https://github.com/rails/rails/commit/c564dcb75c191ab3d21cc6f920998b0d6fbca623))
+
+*   Remove deprecated `RAILS_CACHE` constant.
+    ([commit](https://github.com/rails/rails/commit/b7f856ce488ef8f6bf4c12bb549f462cb7671c08))
+
+*   Remove deprecated `serve_static_assets` configuration.
+    ([commit](https://github.com/rails/rails/commit/463b5d7581ee16bfaddf34ca349b7d1b5878097c))
+
+*   Remove the documentation tasks `doc:app`, `doc:rails`, and `doc:guides`.
+    ([commit](https://github.com/rails/rails/commit/cd7cc5254b090ccbb84dcee4408a5acede25ef2a))
 
 ### Deprecations
 
+*   Deprecate `config.static_cache_control` in favor of
+    `config.public_file_server.headers`.
+    ([Pull Request](https://github.com/rails/rails/pull/22173))
+
+*   Deprecate `config.serve_static_files` in favor of `config.public_file_server.enabled`.
+    ([Pull Request](https://github.com/rails/rails/pull/22173))
+
 ### Notable changes
 
-*   Remove `Rack::ContentLength` middleware from the default
+*   Added Rails test runner `bin/rails test`.
+    ([Pull Request](https://github.com/rails/rails/pull/19216))
+
+*   Newly generated applications and plugins get a `README.md` in Markdown.
+    ([commit](https://github.com/rails/rails/commit/89a12c931b1f00b90e74afffcdc2fc21f14ca663),
+     [Pull Request](https://github.com/rails/rails/pull/22068))
+
+*   Added `bin/rails restart` task to restart your Rails app by touching `tmp/restart.txt`.
+    ([Pull Request](https://github.com/rails/rails/pull/18965))
+
+*   Added `bin/rails initializers` task to print out all defined initializers in
+    the order they are invoked by Rails.
+    ([Pull Request](https://github.com/rails/rails/pull/19323))
+
+*   Removed `Rack::ContentLength` middleware from the default
     stack. ([Commit](https://github.com/rails/rails/commit/56903585a099ab67a7acfaaef0a02db8fe80c450))
 
-*   Improved test runner. ([Pull Request](https://github.com/rails/rails/pull/19216))
+*   Added `bin/rails dev:cache` to enable or disable caching in development mode.
+    ([Pull Request](https://github.com/rails/rails/pull/20961))
+
+*   Added `bin/update` script to update the development environment automatically.
+    ([Pull Request](https://github.com/rails/rails/pull/20972))
+
+*   Proxy Rake tasks through `bin/rails`.
+    ([Pull Request](https://github.com/rails/rails/pull/22457),
+     [Pull Request](https://github.com/rails/rails/pull/22288))
 
 
 Action Pack
