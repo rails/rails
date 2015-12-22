@@ -34,7 +34,7 @@
 
     *Jorge Bejar*
 
-*   Change the `protect_from_forgery` prepend default to `false`
+*   Change the `protect_from_forgery` prepend default to `false`.
 
     Per this comment
     https://github.com/rails/rails/pull/18334#issuecomment-69234050 we want
@@ -82,26 +82,29 @@
 
     *Agis Anastasopoulos*
 
-*   Add the ability of returning arbitrary headers to ActionDispatch::Static
+*   Add the ability of returning arbitrary headers to `ActionDispatch::Static`.
 
     Now ActionDispatch::Static can accept HTTP headers so that developers
     will have control of returning arbitrary headers like
     'Access-Control-Allow-Origin' when a response is delivered. They can be
     configured with `#config`:
 
-      config.public_file_server.headers = {
-        "Cache-Control"               => "public, max-age=60",
-        "Access-Control-Allow-Origin" => "http://rubyonrails.org"
-      }
+    Example:
+
+        config.public_file_server.headers = {
+          "Cache-Control"               => "public, max-age=60",
+          "Access-Control-Allow-Origin" => "http://rubyonrails.org"
+        }
 
     *Yuki Nishijima*
 
 *   Allow multiple `root` routes in same scope level. Example:
 
-    ```ruby
-    root 'blog#show', constraints: ->(req) { Hostname.blog_site?(req.host) }
-    root 'landing#show'
-    ```
+    Example:
+
+        root 'blog#show', constraints: ->(req) { Hostname.blog_site?(req.host) }
+        root 'landing#show'
+
     *Rafael Sales*
 
 *   Fix regression in mounted engine named routes generation for app deployed to
@@ -112,12 +115,12 @@
 
     *Matthew Erhard*
 
-*   ActionDispatch::Response#new no longer applies default headers.  If you want
+*   `ActionDispatch::Response#new` no longer applies default headers. If you want
     default headers applied to the response object, then call
-    `ActionDispatch::Response.create`.  This change only impacts people who are
+    `ActionDispatch::Response.create`. This change only impacts people who are
     directly constructing an `ActionDispatch::Response` object.
 
-*   Accessing mime types via constants like `Mime::HTML` is deprecated.  Please
+*   Accessing mime types via constants like `Mime::HTML` is deprecated. Please
     change code like this:
 
       Mime::HTML
@@ -170,7 +173,7 @@
 
     *Jeremy Friesen*
 
-*   Using strings or symbols for middleware class names is deprecated.  Convert
+*   Using strings or symbols for middleware class names is deprecated. Convert
     things like this:
 
       middleware.use "Foo::Bar"
@@ -179,10 +182,10 @@
 
       middleware.use Foo::Bar
 
-*   ActionController::TestSession now accepts a default value as well as
+*   `ActionController::TestSession` now accepts a default value as well as
     a block for generating a default value based off the key provided.
 
-    This fixes calls to session#fetch in ApplicationController instances that
+    This fixes calls to `session#fetch` in `ApplicationController` instances that
     take more two arguments or a block from raising `ArgumentError: wrong
     number of arguments (2 for 1)` when performing controller tests.
 
@@ -233,10 +236,10 @@
     *Grey Baker*
 
 *   Add support for API only apps.
-    ActionController::API is added as a replacement of
-    ActionController::Base for this kind of applications.
+    `ActionController::API` is added as a replacement of
+    `ActionController::Base` for this kind of applications.
 
-    *Santiago Pastorino & Jorge Bejar*
+    *Santiago Pastorino*, *Jorge Bejar*
 
 *   Remove `assigns` and `assert_template`. Both methods have been extracted
     into a gem at https://github.com/rails/rails-controller-testing.
@@ -319,7 +322,7 @@
 
     *Peter Schröder*
 
-*   Drop request class from RouteSet constructor.
+*   Drop request class from `RouteSet` constructor.
 
     If you would like to use a custom request class, please subclass and implement
     the `request_class` method.
@@ -348,7 +351,7 @@
 
     *Jeremy Kemper*, *Yves Senn*
 
-*   Deprecate AbstractController#skip_action_callback in favor of individual skip_callback methods
+*   Deprecate `AbstractController#skip_action_callback` in favor of individual skip_callback methods
     (which can be made to raise an error if no callback was removed).
 
     *Iain Beeston*
@@ -554,9 +557,7 @@
     Fixes an issue where when an exception is raised in the request the additional
     payload data is not available.
 
-    See:
-    * #14903
-    * https://github.com/roidrage/lograge/issues/37
+    See #14903.
 
     *Dieter Komendera*, *Margus Pärt*
 

@@ -131,13 +131,127 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 *   Removed `ActionDispatch::Request::Utils.deep_munge`.
     ([commit](https://github.com/rails/rails/commit/52cf1a71b393486435fab4386a8663b146608996))
 
+*   Removed `ActionController::HideActions`.
+    ([Pull Request](https://github.com/rails/rails/pull/18371))
+
+*   Removed `respond_to` and `respond_with` placeholder methods, this functionality
+    has been extracted to the
+    [responders](https://github.com/plataformatec/responders) gem.
+    ([commit](https://github.com/rails/rails/commit/afd5e9a7ff0072e482b0b0e8e238d21b070b6280))
+
+*   Removed deprecated assertion files.
+    ([commit](https://github.com/rails/rails/commit/92e27d30d8112962ee068f7b14aa7b10daf0c976))
+
+*   Remove deprecated usage of string keys in URL helpers.
+    ([commit](https://github.com/rails/rails/commit/34e380764edede47f7ebe0c7671d6f9c9dc7e809))
+
+*   Removed deprecated `only_path` option on `*_path` helpers.
+    ([commit](https://github.com/rails/rails/commit/e4e1fd7ade47771067177254cb133564a3422b8a))
+
+*   Removed deprecated `NamedRouteCollection#helpers`.
+    ([commit](https://github.com/rails/rails/commit/2cc91c37bc2e32b7a04b2d782fb8f4a69a14503f))
+
+*   Removed deprecated support to define routes with `:to` option that doesn't contain `#`.
+    ([commit](https://github.com/rails/rails/commit/1f3b0a8609c00278b9a10076040ac9c90a9cc4a6))
+
+*   Removed deprecated `ActionDispatch::Response#to_ary`.
+    ([commit](https://github.com/rails/rails/commit/4b19d5b7bcdf4f11bd1e2e9ed2149a958e338c01))
+
+*   Removed deprecated `ActionDispatch::Request#deep_munge`.
+    ([commit](https://github.com/rails/rails/commit/7676659633057dacd97b8da66e0d9119809b343e))
+
+*   Removed deprecated
+    `ActionDispatch::Http::Parameters#symbolized_path_parameters`.
+    ([commit](https://github.com/rails/rails/commit/7fe7973cd8bd119b724d72c5f617cf94c18edf9e))
+
+*   Removed deprecated option `use_route` in controller tests.
+    ([commit](https://github.com/rails/rails/commit/e4cfd353a47369dd32198b0e67b8cbb2f9a1c548))
+
+*   Removed `assigns` and `assert_template`. Both methods have been extracted
+    into the
+    [rails-controller-testing](https://github.com/rails/rails-controller-testing)
+    gem.
+    ([Pull Request](https://github.com/rails/rails/pull/20138))
+
 ### Deprecations
 
+*   Deprecated all `*_filter` callbacks in favor of `*_action` callbacks.
+    ([Pull Request](https://github.com/rails/rails/pull/18410))
+
+*   Deprecated `*_via_redirect` integration test methods. Use `follow_redirect!`
+    manually after the request call for the same behavior.
+    ([Pull Request](https://github.com/rails/rails/pull/18693))
+
+*   Deprecated `AbstractController#skip_action_callback` in favor of individual
+    skip_callback methods.
+    ([Pull Request](https://github.com/rails/rails/pull/19060))
+
+*   Deprecated `:nothing` option for `render` method.
+    ([Pull Request](https://github.com/rails/rails/pull/20336))
+
+*   Deprecated passing first parameter as `Hash` and default status code for
+    `head` method.
+    ([Pull Request](https://github.com/rails/rails/pull/20407))
+
+*   Deprecated using strings or symbols for middleware class names. Use class
+    names instead.
+    ([commit](https://github.com/rails/rails/commit/83b767ce))
+
+*   Deprecated accessing mime types via constants (eg. `Mime::HTML`). Use the
+    subscript operator with a symbol instead (eg. `Mime[:html]`).
+    ([Pull Request](https://github.com/rails/rails/pull/21869))
+
+*   Deprecated `redirect_to :back` in favor of `redirect_back`, which accepts a
+    required `fallback_location` argument, thus eliminating the possibility of a
+    `RedirectBackError`.
+    ([Pull Request](https://github.com/rails/rails/pull/22506))
+
 ### Notable changes
+
+*   Added `ActionController::Renderer` to render arbitrary templates
+    outside controller actions.
+    ([Pull Request](https://github.com/rails/rails/pull/18546))
+
+*   Migrating to keyword arguments syntax in `ActionController::TestCase` and
+    `ActionDispatch::Integration` HTTP request methods.
+    ([Pull Request](https://github.com/rails/rails/pull/18323))
+
+*   Added `http_cache_forever` to Action Controller, so we can cache a response
+    that never gets expired.
+    ([Pull Request](https://github.com/rails/rails/pull/18394))
+
+*   Provide friendlier access to request variants.
+    ([Pull Request](https://github.com/rails/rails/pull/18939))
+
+*   For actions with no corresponding templates, render `head :no_content`
+    instead of raising an error.
+    ([Pull Request](https://github.com/rails/rails/pull/19377))
+
+*   Added the ability to override default form builder for a controller.
+    ([Pull Request](https://github.com/rails/rails/pull/19736))
+
+*   Added support for API only apps.
+    `ActionController::API` is added as a replacement of
+    `ActionController::Base` for this kind of applications.
+    ([Pull Request](https://github.com/rails/rails/pull/19832))
 
 *   Make `ActionController::Parameters` no longer inherits from
     `HashWithIndifferentAccess`.
     ([Pull Request](https://github.com/rails/rails/pull/20868))
+
+*   Make it easier to opt in to `config.force_ssl` and `config.ssl_options` by
+    making them less dangerous to try and easier to disable.
+    ([Pull Request](https://github.com/rails/rails/pull/21520))
+
+*   Added the ability of returning arbitrary headers to `ActionDispatch::Static`.
+    ([Pull Request](https://github.com/rails/rails/pull/19135))
+
+*   Changed the `protect_from_forgery` prepend default to `false`.
+    ([commit](https://github.com/rails/rails/commit/39794037817703575c35a75f1961b01b83791191))
+
+*   `ActionController::TestCase` will be moved to it's own gem in Rails 5.1. Use
+    `ActionDispatch::IntegrationTest` instead.
+    ([commit](https://github.com/rails/rails/commit/4414c5d1795e815b102571425974a8b1d46d932d))
 
 Action View
 -------------
