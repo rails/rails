@@ -131,4 +131,16 @@ class MiddlewareStackTest < ActiveSupport::TestCase
       assert_equal BazMiddleware, @stack.last.klass
     end
   end
+
+  test "can check if Middleware are equal - Class" do
+    assert_equal BazMiddleware, BazMiddleware
+  end
+
+  test "can check if Middleware are equal - Middleware" do
+    assert_equal @stack.middlewares.first, @stack.middlewares.first
+  end
+
+  test "klass is correct" do
+    assert_equal @stack.middlewares.first.klass, FooMiddleware
+  end
 end
