@@ -37,7 +37,7 @@ different rails applications using RubyGems and Bundler if desired.
 
 Rails ships with a `rails plugin new` command which creates a
 skeleton for developing any kind of Rails extension with the ability
-to run integration tests using a dummy Rails application. Create your 
+to run integration tests using a dummy Rails application. Create your
 plugin with the command:
 
 ```bash
@@ -54,7 +54,7 @@ Testing Your Newly Generated Plugin
 -----------------------------------
 
 You can navigate to the directory that contains the plugin, run the `bundle install` command
- and run the one generated test using the `rake` command.
+ and run the one generated test using the `bin/test` command.
 
 You should see:
 
@@ -83,13 +83,23 @@ class CoreExtTest < ActiveSupport::TestCase
 end
 ```
 
-Run `rake` to run the test. This test should fail because we haven't implemented the `to_squawk` method:
+Run `bin/test` to run the test. This test should fail because we haven't implemented the `to_squawk` method:
 
 ```bash
-    1) Error:
-  CoreExtTest#test_to_squawk_prepends_the_word_squawk:
-  NoMethodError: undefined method `to_squawk' for "Hello World":String
-    /path/to/yaffle/test/core_ext_test.rb:5:in `test_to_squawk_prepends_the_word_squawk'
+E
+
+Error:
+CoreExtTest#test_to_squawk_prepends_the_word_squawk:
+NoMethodError: undefined method `to_squawk' for "Hello World":String
+
+
+bin/test /path/to/yaffle/test/core_ext_test.rb:4
+
+.
+
+Finished in 0.003358s, 595.6483 runs/s, 297.8242 assertions/s.
+
+2 runs, 1 assertions, 0 failures, 1 errors, 0 skips
 ```
 
 Great - now you are ready to start development.
@@ -117,7 +127,7 @@ String.class_eval do
 end
 ```
 
-To test that your method does what it says it does, run the unit tests with `rake` from your plugin directory.
+To test that your method does what it says it does, run the unit tests with `bin/test` from your plugin directory.
 
 ```bash
   2 runs, 2 assertions, 0 failures, 0 errors, 0 skips
@@ -192,20 +202,34 @@ class ActsAsYaffleTest < ActiveSupport::TestCase
 end
 ```
 
-When you run `rake`, you should see the following:
+When you run `bin/test`, you should see the following:
 
 ```
-    1) Error:
-  ActsAsYaffleTest#test_a_hickwalls_yaffle_text_field_should_be_last_squawk:
-  NameError: uninitialized constant ActsAsYaffleTest::Hickwall
-    /path/to/yaffle/test/acts_as_yaffle_test.rb:6:in `test_a_hickwalls_yaffle_text_field_should_be_last_squawk'
+# Running:
 
-    2) Error:
-  ActsAsYaffleTest#test_a_wickwalls_yaffle_text_field_should_be_last_tweet:
-  NameError: uninitialized constant ActsAsYaffleTest::Wickwall
-    /path/to/yaffle/test/acts_as_yaffle_test.rb:10:in `test_a_wickwalls_yaffle_text_field_should_be_last_tweet'
+..E
 
-  4 runs, 2 assertions, 0 failures, 2 errors, 0 skips
+Error:
+ActsAsYaffleTest#test_a_wickwalls_yaffle_text_field_should_be_last_tweet:
+NameError: uninitialized constant ActsAsYaffleTest::Wickwall
+
+
+bin/test /path/to/yaffle/test/acts_as_yaffle_test.rb:8
+
+E
+
+Error:
+ActsAsYaffleTest#test_a_hickwalls_yaffle_text_field_should_be_last_squawk:
+NameError: uninitialized constant ActsAsYaffleTest::Hickwall
+
+
+bin/test /path/to/yaffle/test/acts_as_yaffle_test.rb:4
+
+
+
+Finished in 0.004812s, 831.2949 runs/s, 415.6475 assertions/s.
+
+4 runs, 2 assertions, 0 failures, 2 errors, 0 skips
 ```
 
 This tells us that we don't have the necessary models (Hickwall and Wickwall) that we are trying to test.
@@ -272,23 +296,34 @@ class ApplicationRecord < ActiveRecord::Base
 end
 ```
 
-You can then return to the root directory (`cd ../..`) of your plugin and rerun the tests using `rake`.
+You can then return to the root directory (`cd ../..`) of your plugin and rerun the tests using `bin/test`.
 
 ```
-    1) Error:
-  ActsAsYaffleTest#test_a_hickwalls_yaffle_text_field_should_be_last_squawk:
-  NoMethodError: undefined method `yaffle_text_field' for #<Class:0x007fd105e3b218>
-    activerecord (4.1.5) lib/active_record/dynamic_matchers.rb:26:in `method_missing'
-    /path/to/yaffle/test/acts_as_yaffle_test.rb:6:in `test_a_hickwalls_yaffle_text_field_should_be_last_squawk'
+# Running:
 
-    2) Error:
-  ActsAsYaffleTest#test_a_wickwalls_yaffle_text_field_should_be_last_tweet:
-  NoMethodError: undefined method `yaffle_text_field' for #<Class:0x007fd105e409c0>
-    activerecord (4.1.5) lib/active_record/dynamic_matchers.rb:26:in `method_missing'
-    /path/to/yaffle/test/acts_as_yaffle_test.rb:10:in `test_a_wickwalls_yaffle_text_field_should_be_last_tweet'  
+.E
 
-  4 runs, 2 assertions, 0 failures, 2 errors, 0 skips
+Error:
+ActsAsYaffleTest#test_a_hickwalls_yaffle_text_field_should_be_last_squawk:
+NoMethodError: undefined method `yaffle_text_field' for #<Class:0x0055974ebbe9d8>
 
+
+bin/test /path/to/yaffle/test/acts_as_yaffle_test.rb:4
+
+E
+
+Error:
+ActsAsYaffleTest#test_a_wickwalls_yaffle_text_field_should_be_last_tweet:
+NoMethodError: undefined method `yaffle_text_field' for #<Class:0x0055974eb8cfc8>
+
+
+bin/test /path/to/yaffle/test/acts_as_yaffle_test.rb:8
+
+.
+
+Finished in 0.008263s, 484.0999 runs/s, 242.0500 assertions/s.
+
+4 runs, 2 assertions, 0 failures, 2 errors, 0 skips
 ```
 
 Getting closer... Now we will implement the code of the `acts_as_yaffle` method to make the tests pass.
@@ -321,7 +356,7 @@ class ApplicationRecord < ActiveRecord::Base
 end
 ```
 
-When you run `rake`, you should see the tests all pass:
+When you run `bin/test`, you should see the tests all pass:
 
 ```bash
   4 runs, 4 assertions, 0 failures, 0 errors, 0 skips
@@ -400,7 +435,7 @@ class ApplicationRecord < ActiveRecord::Base
 end
 ```
 
-Run `rake` one final time and you should see:
+Run `bin/test` one final time and you should see:
 
 ```
   6 runs, 6 assertions, 0 failures, 0 errors, 0 skips
