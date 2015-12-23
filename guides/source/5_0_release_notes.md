@@ -399,11 +399,24 @@ Active Job
 
 Please refer to the [Changelog][active-job] for detailed changes.
 
-### Removals
-
-### Deprecations
-
 ### Notable changes
+
+*   `ActiveJob::Base.deserialize` delegates to the job class. this allows jobs
+    to attach arbitrary metadata when they get serialized and read it back when
+    they get performed.
+    ([Pull Request](https://github.com/rails/rails/pull/18260))
+
+*   A generated job now inherits from `app/jobs/application_job.rb` by default.
+    ([Pull Request](https://github.com/rails/rails/pull/19034))
+
+*   Allow `DelayedJob`, `Sidekiq`, `qu`, and `que` to report the job id back to
+    `ActiveJob::Base` as `provider_job_id`.
+    ([Pull Request](https://github.com/rails/rails/pull/20064),
+     [Pull Request](https://github.com/rails/rails/pull/20056))
+
+*   Implement a simple `AsyncJob` processor and associated `AsyncAdapter` that
+    queue jobs to a `concurrent-ruby` thread pool.
+    ([Pull Request](https://github.com/rails/rails/pull/21257))
 
 
 Active Support

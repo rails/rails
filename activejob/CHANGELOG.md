@@ -28,7 +28,7 @@
 
     *Jean Boussier*
 
-*   Include I18n.locale into job serialization/deserialization and use it around
+*   Include `I18n.locale` into job serialization/deserialization and use it around
     `perform`.
 
     Fixes #20799.
