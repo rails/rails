@@ -19,6 +19,10 @@ class BaseMailer < ActionMailer::Base
     mail(template_name: "welcome", template_path: path)
   end
 
+  def welcome_with_name
+    @name = (0...8).map { (65 + rand(26)).chr }.join
+  end
+
   def html_only(hash = {})
     mail(hash)
   end
