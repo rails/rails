@@ -284,7 +284,7 @@ Please refer to the [Changelog][action-view] for detailed changes.
     directive inside templates.
     ([Pull Request](https://github.com/rails/rails/pull/20781))
 
-*   Add wildcard matching to explicit dependencies.
+*   Added wildcard matching to explicit dependencies.
     ([Pull Request](https://github.com/rails/rails/pull/20904))
 
 *   Make `disable_with` the default behavior for submit tags. Disables the
@@ -375,7 +375,7 @@ Please refer to the [Changelog][active-record] for detailed changes.
 *   Removed support for the legacy `mysql` database adapter from core. It will
     live on in a separate gem for now, but most users should just use `mysql2`.
 
-*   Remove support for the `protected_attributes` gem.
+*   Removed support for the `protected_attributes` gem.
     ([commit](https://github.com/rails/rails/commit/f4fbc0301021f13ae05c8e941c8efc4ae351fdf9))
 
 ### Deprecations
