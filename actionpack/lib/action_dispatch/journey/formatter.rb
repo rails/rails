@@ -58,8 +58,8 @@ module ActionDispatch
             !options.key?(part) || (options[part] || recall[part]).nil?
           } | route.required_parts
 
-          parameterized_parts.delete_if do |bad_key, _|
-            !keys_to_keep.include?(bad_key)
+          (parameterized_parts.symbolize_keys.keys - keys_to_keep.map(&:to_sym)).each do |bad_key|
+            parameterized_parts.delete(bad_key)
           end
 
           if parameterize
