@@ -7,7 +7,7 @@ Highlights in Rails 5.0:
 
 * Action Cable
 * Rails API
-* Active Rcord Attributes API
+* Active Record Attributes API
 * Test Runner
 * Exclusive use of `rails` CLI over Rake
 * Sprockets 3
@@ -63,7 +63,7 @@ Please refer to the [Changelog][railties] for detailed changes.
 
 ### Removals
 
-*   Removed debugger supprt use byebug instead. `debugger` is not supported by
+*   Removed debugger support, use byebug instead. `debugger` is not supported by
     Ruby
     2.2. ([commit](https://github.com/rails/rails/commit/93559da4826546d07014f8cfa399b64b4a143127))
 
