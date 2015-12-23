@@ -378,6 +378,10 @@ Please refer to the [Changelog][active-model] for detailed changes.
 
 ### Removals
 
+*   Removed deprecated `ActiveModel::Dirty#reset_#{attribute}` and
+    `ActiveModel::Dirty#reset_changes`.
+    ([Pull Request](https://github.com/rails/rails/commit/37175a24bd508e2983247ec5d011d57df836c743))
+
 *   Removed XML serialization. This feature has been extracted into the
     [activemodel-serializers-xml](https://github.com/rails/activemodel-serializers-xml) gem.
     ([Pull Request](https://github.com/rails/rails/pull/21161))
@@ -388,7 +392,31 @@ Please refer to the [Changelog][active-model] for detailed changes.
     `ActiveModel::Validations` callback chains. The recommended way is to
     `throw(:abort)`. ([Pull Request](https://github.com/rails/rails/pull/17227))
 
+*   Deprecated `ActiveModel::Errors#get`, `ActiveModel::Errors#set` and
+    `ActiveModel::Errors#[]=` methods that have inconsistent behavior.
+    ([Pull Request](https://github.com/rails/rails/pull/18634))
+
+*   Deprecated the `:tokenizer` option for `validates_length_of`, in favor of
+    plain Ruby.
+    ([Pull Request](https://github.com/rails/rails/pull/19585))
+
+*   Deprecated `ActiveModel::Errors#add_on_empty` and `ActiveModel::Errors#add_on_blank`
+    with no replacement.
+    ([Pull Request](https://github.com/rails/rails/pull/18996))
+
 ### Notable changes
+
+*   Added `ActiveModel::Errors#details` to determine what validator has failed.
+    ([Pull Request](https://github.com/rails/rails/pull/18322))
+
+*   Extracted `ActiveRecord::AttributeAssignment` to `ActiveModel::AttributeAssignment`
+    allowing to use it for any object as an includable module.
+    ([Pull Request](https://github.com/rails/rails/pull/10776))
+
+*   Added `ActiveModel::Dirty#[attr_name]_previously_changed?` and
+    `ActiveModel::Dirty#[attr_name]_previous_change` to improve access
+    to recorded changes after the model has been saved.
+    ([Pull Request](https://github.com/rails/rails/pull/19847))
 
 *   Validate multiple contexts on `valid?` and `invalid?` at once.
     ([Pull Request](https://github.com/rails/rails/pull/21069))
