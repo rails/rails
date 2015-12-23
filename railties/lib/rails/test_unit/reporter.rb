@@ -6,19 +6,6 @@ module Rails
     class_attribute :executable
     self.executable = "bin/rails test"
 
-    COLOR_CODES_FOR_RESULTS = {
-      "." => :green,
-      "E" => :red,
-      "F" => :red,
-      "S" => :yellow
-    }
-
-    COLOR_CODES = {
-      red: 31,
-      green: 32,
-      yellow: 33
-    }
-
     def record(result)
       super
 
@@ -104,10 +91,17 @@ module Rails
         options[:color] && io.respond_to?(:tty?) && io.tty?
       end
 
+      codes = { red: 31, green: 32, yellow: 33 }
+      COLOR_BY_RESULT_CODE = {
+        "." => codes[:green],
+        "E" => codes[:red],
+        "F" => codes[:red],
+        "S" => codes[:yellow]
+      }
+
       def color_output(string, by:)
         if colored_output?
-          color = COLOR_CODES_FOR_RESULTS[by.result_code]
-          "\e[#{COLOR_CODES[color]}m#{string}\e[0m"
+          "\e[#{COLOR_BY_RESULT_CODE[by.result_code]}m#{string}\e[0m"
         else
           string
         end
