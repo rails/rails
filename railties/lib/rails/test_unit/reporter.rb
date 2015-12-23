@@ -33,7 +33,7 @@ module Rails
       if output_inline? && result.failure && (!result.skipped? || options[:verbose])
         io.puts
         io.puts
-        io.puts format_failures(result).map { |line| color(line, :red) }
+        io.puts format_failures(result).map { |line| color(line, color) }
         io.puts
         io.puts format_rerun_snippet(result)
         io.puts
