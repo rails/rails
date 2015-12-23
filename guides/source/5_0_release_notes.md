@@ -375,6 +375,9 @@ Please refer to the [Changelog][active-record] for detailed changes.
 *   Removed support for the legacy `mysql` database adapter from core. It will
     live on in a separate gem for now, but most users should just use `mysql2`.
 
+*   Remove support for the `protected_attributes` gem.
+    ([commit](https://github.com/rails/rails/commit/f4fbc0301021f13ae05c8e941c8efc4ae351fdf9))
+
 ### Deprecations
 
 *   Deprecated passing a class as a value in a query. Users should pass strings
