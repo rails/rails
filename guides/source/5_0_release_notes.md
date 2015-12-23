@@ -329,25 +329,104 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 ### Removals
 
+*   Removed deprecated behavior allowing nested arrays to be passed as query
+    values. ([Pull Request](https://github.com/rails/rails/pull/17919))
+
+*   Removed deprecated `ActiveRecord::Tasks::DatabaseTasks#load_schema`. This
+    method was replaced by `ActiveRecord::Tasks::DatabaseTasks#load_schema_for`.
+    ([commit](https://github.com/rails/rails/commit/ad783136d747f73329350b9bb5a5e17c8f8800da))
+
+*   Removed deprecated `serialized_attributes`.
+    ([commit](https://github.com/rails/rails/commit/82043ab53cb186d59b1b3be06122861758f814b2))
+
+*   Removed deprecated automatic counter caches on `has_many :through`.
+    ([commit](https://github.com/rails/rails/commit/87c8ce340c6c83342df988df247e9035393ed7a0))
+
+*   Removed deprecated `sanitize_sql_hash_for_conditions`.
+    ([commit](https://github.com/rails/rails/commit/3a59dd212315ebb9bae8338b98af259ac00bbef3))
+
+*   Removed deprecated `Reflection#source_macro`.
+    ([commit](https://github.com/rails/rails/commit/ede8c199a85cfbb6457d5630ec1e285e5ec49313))
+
+*   Removed deprecated `symbolized_base_class` and `symbolized_sti_name`.
+    ([commit](https://github.com/rails/rails/commit/9013e28e52eba3a6ffcede26f85df48d264b8951))
+
+*   Removed deprecated `ActiveRecord::Base.disable_implicit_join_references=`.
+    ([commit](https://github.com/rails/rails/commit/0fbd1fc888ffb8cbe1191193bf86933110693dfc))
+
+*   Removed deprecated access to connection specification using a string accessor.
+    ([commit](https://github.com/rails/rails/commit/efdc20f36ccc37afbb2705eb9acca76dd8aabd4f))
+
+*   Removed deprecated support to preload instance-dependent associations.
+    ([commit](https://github.com/rails/rails/commit/4ed97979d14c5e92eb212b1a629da0a214084078))
+
+*   Removed deprecated support for PostgreSQL ranges with exclusive lower bounds.
+    ([commit](https://github.com/rails/rails/commit/a076256d63f64d194b8f634890527a5ed2651115))
+
+*   Removed deprecation when modifying a relation with cached Arel.
+    This raises an `ImmutableRelation` error instead.
+    ([commit](https://github.com/rails/rails/commit/3ae98181433dda1b5e19910e107494762512a86c))
+
+*   Removed `ActiveRecord::Serialization::XmlSerializer` from core. This feature
+    has been extracted into the
+    [activemodel-serializers-xml](https://github.com/rails/activemodel-serializers-xml)
+    gem. ([Pull Request](https://github.com/rails/rails/pull/21161))
+
+*   Removed support for the legacy `mysql` database adapter from core. It will
+    live on in a separate gem for now, but most users should just use `mysql2`.
+
 ### Deprecations
+
+*   Deprecated passing a class as a value in a query. Users should pass strings
+    instead. ([Pull Request](https://github.com/rails/rails/pull/17916))
 
 *   Deprecated returning `false` as a way to halt Active Record callback
     chains. The recommended way is to
     `throw(:abort)`. ([Pull Request](https://github.com/rails/rails/pull/17227))
 
+*   Deprecated `ActiveRecord::Base.errors_in_transactional_callbacks=`.
+    ([commit](https://github.com/rails/rails/commit/07d3d402341e81ada0214f2cb2be1da69eadfe72))
+
+*   Deprecated passing of `start` value to `find_in_batches` and `find_each`
+    in favour of `begin_at` value.
+    ([Pull Request](https://github.com/rails/rails/pull/18961))
+
+*   Deprecated `Relation#uniq` use `Relation#distinct` instead.
+    ([commit](https://github.com/rails/rails/commit/adfab2dcf4003ca564d78d4425566dd2d9cd8b4f))
+
+*   Deprecated the PostgreSQL `:point` type in favor of a new one which will return
+    `Point` objects instead of an `Array`
+    ([Pull Request](https://github.com/rails/rails/pull/20448))
+
+*   Deprecated force association reload by passing a truthy argument to
+    association method.
+    ([Pull Request](https://github.com/rails/rails/pull/20888))
+
+*   Deprecated the keys for association `restrict_dependent_destroy` errors in favor
+    of new key names.
+    ([Pull Request](https://github.com/rails/rails/pull/20668))
+
 *   Synchronize behavior of `#tables`.
     ([Pull Request](https://github.com/rails/rails/pull/21601))
 
+*   Deprecated `SchemaCache#tables`, `SchemaCache#table_exists?` and
+    `SchemaCache#clear_table_cache!` in favor of their new data source
+    counterparts.
+    ([Pull Request](https://github.com/rails/rails/pull/21715))
+
 *   Deprecated `connection.tables` on the SQLite3 and MySQL adapters.
+    ([Pull Request](https://github.com/rails/rails/pull/21601))
 
 *   Deprecated passing arguments to `#tables` - the `#tables` method of some
     adapters (mysql2, sqlite3) would return both tables and views while others
     (postgresql) just return tables. To make their behavior consistent,
     `#tables` will return only tables in the future.
+    ([Pull Request](https://github.com/rails/rails/pull/21601))
 
 *   Deprecated `table_exists?` - The `#table_exists?` method would check both
     tables and views. To make their behavior consistent with `#tables`,
     `#table_exists?` will check only tables in the future.
+    ([Pull Request](https://github.com/rails/rails/pull/21601))
 
 ### Notable changes
 
@@ -369,6 +448,89 @@ Please refer to the [Changelog][active-record] for detailed changes.
 *   Require `belongs_to` by default.
     ([Pull Request](https://github.com/rails/rails/pull/18937)) - Deprecate
     `required` option in favor of `optional` for `belongs_to`
+
+*   Changed the default `null` value for `timestamps` to `false`.
+    ([commit](https://github.com/rails/rails/commit/a939506f297b667291480f26fa32a373a18ae06a))
+
+*   Added `ActiveRecord::SecureToken` in order to encapsulate generation of
+    unique tokens for attributes in a model using `SecureRandom`.
+    ([Pull Request](https://github.com/rails/rails/pull/18217))
+
+*   Added `:if_exists` option for `drop_table`.
+    ([Pull Request](https://github.com/rails/rails/pull/18597))
+
+*   Added `ActiveRecord::Base#accessed_fields`, which can be used to quickly
+    discover which fields were read from a model when you are looking to only
+    select the data you need from the database.
+    ([commit](https://github.com/rails/rails/commit/be9b68038e83a617eb38c26147659162e4ac3d2c))
+
+*   Added the `#or` method on `ActiveRecord::Relation`, allowing use of the OR
+    operator to combine WHERE or HAVING clauses.
+    ([commit](https://github.com/rails/rails/commit/b0b37942d729b6bdcd2e3178eda7fa1de203b3d0))
+
+*   Added `:time` option added for `#touch`.
+    ([Pull Request](https://github.com/rails/rails/pull/18956))
+
+*   Added `ActiveRecord::Base.suppress` to prevent the receiver from being saved
+    during the given block.
+    ([Pull Request](https://github.com/rails/rails/pull/18910))
+
+*   `belongs_to` will now trigger a validation error by default if the
+    association is not present. You can turn this off on a per-association basis
+    with `optional: true`.
+    ([Pull Request](https://github.com/rails/rails/pull/18937))
+
+*   Added `config.active_record.dump_schemas` to configure the behavior of
+    `db:structure:dump`.
+    ([Pull Request](https://github.com/rails/rails/pull/19347))
+
+*   Added `config.active_record.warn_on_records_fetched_greater_than` option.
+    ([Pull Request](https://github.com/rails/rails/pull/18846))
+
+*   Added `cache_key` to `ActiveRecord::Relation`.
+    ([Pull Request](https://github.com/rails/rails/pull/20884))
+
+*   Added a native JSON data type support in MySQL.
+    ([Pull Request](https://github.com/rails/rails/pull/21110))
+
+*   Added support for dropping indexes concurrently in PostgreSQL.
+    ([Pull Request](https://github.com/rails/rails/pull/21317))
+
+*   Added `#views` and `#view_exists?` methods on connection adapters.
+    ([Pull Request](https://github.com/rails/rails/pull/21609))
+
+*   Added `ActiveRecord::Base.ignored_columns` to make some columns
+    invisible from Active Record.
+    ([Pull Request](https://github.com/rails/rails/pull/21720))
+
+*   Added `connection.data_sources` and `connection.data_source_exists?`.
+    These methods determine what relations can be used to back Active Record
+    models (usually tables and views).
+    ([Pull Request](https://github.com/rails/rails/pull/21715))
+
+*   Allow fixtures files to set the model class in the YAML file itself.
+    ([Pull Request](https://github.com/rails/rails/pull/20574))
+
+*   Added ability to default to `uuid` as primary key when generating database
+    migrations. ([Pull Request](https://github.com/rails/rails/pull/21762))
+
+*   Added `ActiveRecord::Relation#left_joins` and
+    `ActiveRecord::Relation#left_outer_joins`.
+    ([Pull Request](https://github.com/rails/rails/pull/12071))
+
+*   Added `after_{create,update,delete}_commit` callbacks.
+    ([Pull Request](https://github.com/rails/rails/pull/22516))
+
+*   Version the API presented to migration classes, so we can change parameter
+    defaults without breaking existing migrations, or forcing them to be
+    rewritten through a deprecation cycle.
+    ([Pull Request](https://github.com/rails/rails/pull/21538))
+
+*   `ApplicationRecord` is a new superclass for all app models, analogous to app
+    controllers subclassing `ApplicationController` instead of
+    `ActionController::Base`. This gives apps a single spot to configure app-wide
+    model behavior.
+    ([Pull Request](https://github.com/rails/rails/pull/22567))
 
 
 Active Model
@@ -579,7 +741,7 @@ Please refer to the [Changelog][active-support] for detailed changes.
     application source code, routes, locales, etc.
     ([Pull Request](https://github.com/rails/rails/pull/22254))
 
-*   Add thread_m/cattr_accessor/reader/writer suite of methods for declaring
+*   Added thread_m/cattr_accessor/reader/writer suite of methods for declaring
     class and module variables that live per-thread.
     ([Pull Request](https://github.com/rails/rails/pull/22630))
 

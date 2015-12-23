@@ -50,7 +50,7 @@
     change, passing a string containing a comma to `limit` has been deprecated,
     and passing an Arel node to `limit` is no longer supported.
 
-    Fixes #22250
+    Fixes #22250.
 
     *Sean Griffin*
 
@@ -312,7 +312,7 @@
 
 *   Don't cache arguments in `#find_by` if they are an `ActiveRecord::Relation`.
 
-    Fixes #20817
+    Fixes #20817.
 
     *Hiroaki Izu*
 
@@ -441,9 +441,9 @@
 
 *   Ensure `select` quotes aliased attributes, even when using `from`.
 
-    Fixes #21488
+    Fixes #21488.
 
-    *Sean Griffin & @johanlunds*
+    *Sean Griffin*, *@johanlunds*
 
 *   MySQL: support `unsigned` numeric data types.
 
@@ -769,7 +769,7 @@
 
 *   Include the `Enumerable` module in `ActiveRecord::Relation`
 
-    *Sean Griffin & bogdan*
+    *Sean Griffin*, *bogdan*
 
 *   Use `Enumerable#sum` in `ActiveRecord::Relation` if a block is given.
 
@@ -805,7 +805,7 @@
 
     Fixes #20515.
 
-    *Sean Griffin & jmondo*
+    *Sean Griffin*, *jmondo*
 
 *   Deprecate the PostgreSQL `:point` type in favor of a new one which will return
     `Point` objects instead of an `Array`
@@ -1195,13 +1195,16 @@
     *Sean Griffin*
 
 *   `scoping` no longer pollutes the current scope of sibling classes when using
-    STI. e.x.
+    STI.
+
+    Fixes #18806.
+
+    Example:
 
         StiOne.none.scoping do
           StiTwo.all
         end
 
-    Fixes #18806.
 
     *Sean Griffin*
 
@@ -1242,7 +1245,7 @@
 
 *   Use `SCHEMA` instead of `DB_STRUCTURE` for specifying a structure file.
 
-    This makes the db:structure tasks consistent with test:load_structure.
+    This makes the `db:structure` tasks consistent with `test:load_structure`.
 
     *Dieter Komendera*
 
@@ -1278,7 +1281,7 @@
 
     Fixes #17621.
 
-    *Eileen M. Uchitelle, Aaron Patterson*
+    *Eileen M. Uchitelle*, *Aaron Patterson*
 
 *   Fix n+1 query problem when eager loading nil associations (fixes #18312)
 
