@@ -13,8 +13,8 @@ require "byebug"
 class CachingTest < ActiveSupport::TestCase
   include Rails::Dom::Testing::Assertions::DomAssertions
 
-  def random_name
-    (0...8).map { (65 + rand(26)).chr }.join
+  setup do
+    ActionMailer::Base.perform_caching = true
   end
 
   test "mail template cache nothing by default" do

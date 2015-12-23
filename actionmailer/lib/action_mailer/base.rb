@@ -420,6 +420,7 @@ module ActionMailer
   class Base < AbstractController::Base
     include DeliveryMethods
     include Previews
+    include Caching
 
     abstract!
 

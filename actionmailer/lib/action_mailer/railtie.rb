@@ -25,6 +25,7 @@ module ActionMailer
       options.javascripts_dir ||= paths["public/javascripts"].first
       options.stylesheets_dir ||= paths["public/stylesheets"].first
       options.show_previews = Rails.env.development? if options.show_previews.nil?
+      options.perform_caching ||= true
 
       if options.show_previews
         options.preview_path  ||= defined?(Rails.root) ? "#{Rails.root}/test/mailers/previews" : nil
