@@ -47,6 +47,14 @@ module ActiveSupport
     # Formats a +number+ into a currency string (e.g., $13.65). You
     # can customize the format in the +options+ hash.
     #
+    # The currency unit and number formatting of the current locale will be used
+    # unless otherwise specified in the provided options. No currency conversion
+    # is performed. If the user is given a way to change their locale, they will
+    # also be able to change the relative value of the currency displayed with
+    # this helper. If your application will ever support multiple locales, you
+    # may want to specify a constant <tt>:locale</tt> option or consider
+    # using a library capable of currency conversion.
+    #
     # ==== Options
     #
     # * <tt>:locale</tt> - Sets the locale to be used for formatting
