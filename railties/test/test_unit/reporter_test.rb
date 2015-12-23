@@ -1,5 +1,6 @@
 require 'abstract_unit'
 require 'rails/test_unit/reporter'
+require 'minitest/mock'
 
 class TestUnitReporterTest < ActiveSupport::TestCase
   class ExampleTest < Minitest::Test
@@ -61,7 +62,7 @@ class TestUnitReporterTest < ActiveSupport::TestCase
     @reporter.record(failed_test)
     @reporter.report
 
-    expect = %r{\A\n\nFailure:\nTestUnitReporterTest::ExampleTest#woot:\nboo\n\nbin/rails test test/test_unit/reporter_test.rb:\d+\n\n\z}
+    expect = %r{\AF\n\nFailure:\nTestUnitReporterTest::ExampleTest#woot:\nboo\n\nbin/rails test test/test_unit/reporter_test.rb:\d+\n\n\z}
     assert_match expect, @output.string
   end
 
@@ -69,7 +70,7 @@ class TestUnitReporterTest < ActiveSupport::TestCase
     @reporter.record(errored_test)
     @reporter.report
 
-    expect = %r{\A\n\nError:\nTestUnitReporterTest::ExampleTest#woot:\nArgumentError: wups\n    No backtrace\n\nbin/rails test .*test/test_unit/reporter_test.rb:6\n\n\z}
+    expect = %r{\AE\n\nError:\nTestUnitReporterTest::ExampleTest#woot:\nArgumentError: wups\n    No backtrace\n\nbin/rails test .*test/test_unit/reporter_test.rb:\d+\n\n\z}
     assert_match expect, @output.string
   end
 
@@ -78,7 +79,7 @@ class TestUnitReporterTest < ActiveSupport::TestCase
     verbose.record(skipped_test)
     verbose.report
 
-    expect = %r{\A\n\nSkipped:\nTestUnitReporterTest::ExampleTest#woot:\nskipchurches, misstemples\n\nbin/rails test test/test_unit/reporter_test.rb:\d+\n\n\z}
+    expect = %r{\ATestUnitReporterTest::ExampleTest#woot = 10\.00 s = S\n\n\nSkipped:\nTestUnitReporterTest::ExampleTest#woot:\nskipchurches, misstemples\n\nbin/rails test test/test_unit/reporter_test.rb:\d+\n\n\z}
     assert_match expect, @output.string
   end
 
@@ -113,6 +114,36 @@ class TestUnitReporterTest < ActiveSupport::TestCase
     assert_no_match 'Failed tests:', @output.string
   end
 
+  test "outputs colored passing results" do
+    @output.stub(:tty?, true) do
+      colored = Rails::TestUnitReporter.new @output, color: true, output_inline: true
+      colored.record(passing_test)
+
+      expect = %r{\e\[32m\.\e\[0m}
+      assert_match expect, @output.string
+    end
+  end
+
+  test "outputs colored skipped results" do
+    @output.stub(:tty?, true) do
+      colored = Rails::TestUnitReporter.new @output, color: true, output_inline: true
+      colored.record(skipped_test)
+
+      expect = %r{\e\[33mS\e\[0m}
+      assert_match expect, @output.string
+    end
+  end
+
+  test "outputs colored failed results" do
+    @output.stub(:tty?, true) do
+      colored = Rails::TestUnitReporter.new @output, color: true, output_inline: true
+      colored.record(errored_test)
+
+      expected = %r{\e\[31mE\e\[0m\n\n\e\[31mError:\nTestUnitReporterTest::ExampleTest#woot:\nArgumentError: wups\n    No backtrace\n\e\[0m}
+      assert_match expected, @output.string
+    end
+  end
+
   private
   def assert_rerun_snippet_count(snippet_count)
     assert_equal snippet_count, @output.string.scan(%r{^bin/rails test }).size
@@ -145,6 +176,7 @@ class TestUnitReporterTest < ActiveSupport::TestCase
                    rescue Minitest::Assertion => e
                      e
                    end
+    st.time = 10
     st
   end
 end
