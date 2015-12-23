@@ -75,6 +75,14 @@ module ActiveRecord
             "encoding" => "utf8" }, spec)
         end
 
+        def test_hash_url
+          spec = resolve({ url:'abstract://foo?encoding=utf8' })
+          assert_equal({
+            "adapter"  => "abstract",
+            "host"     => "foo",
+            "encoding" => "utf8" }, spec)
+        end
+
         def test_encoded_password
           password = 'am@z1ng_p@ssw0rd#!'
           encoded_password = URI.encode_www_form_component(password)
