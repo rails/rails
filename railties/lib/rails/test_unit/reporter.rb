@@ -21,18 +21,17 @@ module Rails
 
     def record(result)
       super
-      color = COLOR_CODES_FOR_RESULTS[result.result_code]
 
       if options[:verbose]
-        io.puts color_output(format_line(result), color)
+        io.puts color_output(format_line(result), by: result)
       else
-        io.print color_output(result.result_code, color)
+        io.print color_output(result.result_code, by: result)
       end
 
       if output_inline? && result.failure && (!result.skipped? || options[:verbose])
         io.puts
         io.puts
-        io.puts format_failures(result).map { |line| color_output(line, color) }
+        io.puts format_failures(result).map { |line| color_output(line, by: result) }
         io.puts
         io.puts format_rerun_snippet(result)
         io.puts
@@ -105,8 +104,9 @@ module Rails
         options[:color] && io.respond_to?(:tty?) && io.tty?
       end
 
-      def color_output(string, color)
+      def color_output(string, by:)
         if colored_output?
+          color = COLOR_CODES_FOR_RESULTS[by.result_code]
           "\e[#{COLOR_CODES[color]}m#{string}\e[0m"
         else
           string
