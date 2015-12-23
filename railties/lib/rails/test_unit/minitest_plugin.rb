@@ -86,7 +86,7 @@ module Minitest
     # Disable the extra failure output after a run, unless output is deferred.
     self.hide_aggregated_results = options[:output_inline]
 
-    self.reporter.reporters.clear
+    self.reporter.reporters.clear # Replace progress reporter for colors.
     self.reporter << SummaryReporter.new(options[:io], options)
     self.reporter << ::Rails::TestUnitReporter.new(options[:io], options)
   end
