@@ -413,19 +413,134 @@ Please refer to the [Changelog][active-support] for detailed changes.
 
 ### Removals
 
+*   Removed deprecated `ActiveSupport::JSON::Encoding::CircularReferenceError`.
+    ([commit](https://github.com/rails/rails/commit/d6e06ea8275cdc3f126f926ed9b5349fde374b10))
+
+*   Removed deprecated methods `ActiveSupport::JSON::Encoding.encode_big_decimal_as_string=`
+    and `ActiveSupport::JSON::Encoding.encode_big_decimal_as_string`.
+    ([commit](https://github.com/rails/rails/commit/c8019c0611791b2716c6bed48ef8dcb177b7869c))
+
+*   Removed deprecated `ActiveSupport::SafeBuffer#prepend`.
+    ([commit](https://github.com/rails/rails/commit/e1c8b9f688c56aaedac9466a4343df955b4a67ec))
+
+*   Removed deprecated methods from `Kernel`. `silence_stderr`, `silence_stream`,
+    `capture` and `quietly`.
+    ([commit](https://github.com/rails/rails/commit/481e49c64f790e46f4aff3ed539ed227d2eb46cb))
+
+*   Removed deprecated `active_support/core_ext/big_decimal/yaml_conversions`
+    file.
+    ([commit](https://github.com/rails/rails/commit/98ea19925d6db642731741c3b91bd085fac92241))
+
+*   Removed deprecated methods `ActiveSupport::Cache::Store.instrument` and
+    `ActiveSupport::Cache::Store.instrument=`.
+    ([commit](https://github.com/rails/rails/commit/a3ce6ca30ed0e77496c63781af596b149687b6d7))
+
+*   Removed deprecated `Class#superclass_delegating_accessor`.
+    Use `Class#class_attribute` instead.
+    ([Pull Request](https://github.com/rails/rails/pull/16938))
+
+*   Removed deprecated `ThreadSafe::Cache`. Use `Concurrent::Map` instead.
+    ([Pull Request](https://github.com/rails/rails/pull/16938))
+
 ### Deprecations
 
-*   Replace `ActiveSupport::Concurrency::Latch` with
+*   Deprecated `MissingSourceFile` in favor of `LoadError`.
+    ([commit](https://github.com/rails/rails/commit/734d97d2))
+
+*   Deprecated `alias_method_chain` in favour of `Module#prepend` introduced in
+    Ruby 2.0.
+    ([Pull Request](https://github.com/rails/rails/pull/19434))
+
+*   Deprecated `ActiveSupport::Concurrency::Latch` in favor of
     `Concurrent::CountDownLatch` from concurrent-ruby.
     ([Pull Request](https://github.com/rails/rails/pull/20866))
 
+*   Deprecated `:prefix` option of `number_to_human_size` with no replacement.
+    ([Pull Request](https://github.com/rails/rails/pull/21191))
+
+*   Deprecated `Module#qualified_const_` in favour of the builtin
+    `Module#const_` methods.
+    ([Pull Request](https://github.com/rails/rails/pull/17845))
+
+*   Deprecated passing string to define callback.
+    ([Pull Request](https://github.com/rails/rails/pull/22598))
+
+*   Deprecated `ActiveSupport::Cache::Store#namespaced_key`,
+    `ActiveSupport::Cache::MemCachedStore#escape_key`, and
+    `ActiveSupport::Cache::FileStore#key_file_path`.
+    Use `normalize_key` instead.
+
+    Deprecated `ActiveSupport::Cache::LocaleCache#set_cache_value` in favor of `write_cache_value`.
+    ([Pull Request](https://github.com/rails/rails/pull/22215))
+
 ### Notable changes
+
+*   Added `#verified` and `#valid_message?` methods to
+    `ActiveSupport::MessageVerifier`.
+    ([Pull Request](https://github.com/rails/rails/pull/17727))
+
+*   Changed the way in which callback chains can be halted. The preferred method
+    to halt a callback chain from now on is to explicitly `throw(:abort)`.
+    ([Pull Request](https://github.com/rails/rails/pull/17227))
 
 *   New config option
     `config.active_support.halt_callback_chains_on_return_false` to specify
     whether ActiveRecord, ActiveModel and ActiveModel::Validations callback
     chains can be halted by returning `false` in a 'before' callback.
     ([Pull Request](https://github.com/rails/rails/pull/17227))
+
+*   Changed the default test order from `:sorted` to `:random`.
+    ([commit](https://github.com/rails/rails/commit/5f777e4b5ee2e3e8e6fd0e2a208ec2a4d25a960d))
+
+*   Added `#on_weekend?`, `#next_weekday`, `#prev_weekday` methods to `Date`,
+    `Time`, and `DateTime`.
+    ([Pull Request](https://github.com/rails/rails/pull/18335))
+
+*   Added `same_time` option to `#next_week` and `#prev_week` for `Date`, `Time`,
+    and `DateTime`.
+    ([Pull Request](https://github.com/rails/rails/pull/18335))
+
+*   Added `#prev_day` and `#next_day` counterparts to `#yesterday` and
+    `#tomorrow` for `Date`, `Time`, and `DateTime`.
+    ([Pull Request](httpshttps://github.com/rails/rails/pull/18335))
+
+*   Added `SecureRandom.base58` for generation of random base58 strings.
+    ([commit](https://github.com/rails/rails/commit/b1093977110f18ae0cafe56c3d99fc22a7d54d1b))
+
+*   Added `file_fixture` to `ActiveSupport::TestCase`.
+    It provides a simple mechanism to access sample files in your test cases.
+    ([Pull Request](https://github.com/rails/rails/pull/18658))
+
+*   Added `#without` on `Enumerable` and `Array` to return a copy of an
+    enumerable without the specified elements.
+    ([Pull Request](https://github.com/rails/rails/pull/19157))
+
+*   Added `ActiveSupport::ArrayInquirer` and `Array#inquiry`.
+    ([Pull Request](https://github.com/rails/rails/pull/18939))
+
+*   Added `ActiveSupport::TimeZone#strptime` to allow parsing times as if
+    from a given timezone.
+    ([commit](https://github.com/rails/rails/commit/a5e507fa0b8180c3d97458a9b86c195e9857d8f6))
+
+*   Added `Integer#positive?` and `Integer#negative?` query methods
+    in the vein of `Fixnum#zero?`.
+    ([commit](https://github.com/rails/rails/commit/e54277a45da3c86fecdfa930663d7692fd083daa))
+
+*   Added a bang version to `ActiveSupport::OrderedOptions` get methods which will raise
+    an `KeyError` if the value is `.blank?`.
+    ([Pull Request](https://github.com/rails/rails/pull/20208))
+
+*   Added `Time.days_in_year` to return the number of days in the given year, or the
+    current year if no argument is provided.
+    ([commit](https://github.com/rails/rails/commit/2f4f4d2cf1e4c5a442459fc250daf66186d110fa))
+
+*   Added an evented file watcher to asynchronously detect changes in the
+    application source code, routes, locales, etc.
+    ([Pull Request](https://github.com/rails/rails/pull/22254))
+
+*   Add thread_m/cattr_accessor/reader/writer suite of methods for declaring
+    class and module variables that live per-thread.
+    ([Pull Request](https://github.com/rails/rails/pull/22630))
 
 
 Credits
