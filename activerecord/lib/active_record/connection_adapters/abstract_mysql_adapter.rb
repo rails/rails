@@ -965,11 +965,13 @@ module ActiveRecord
         subsubselect = select.clone
         subsubselect.projections = [key]
 
+        # Materialize subquery by adding distinct
+        # to work with MySQL 5.7.6 which sets optimizer_switch='derived_merge=on'
+        subsubselect.distinct unless select.limit || select.offset || select.orders.any?
+
         subselect = Arel::SelectManager.new(select.engine)
         subselect.project Arel.sql(key.name)
-        # Materialized subquery by adding distinct
-        # to work with MySQL 5.7.6 which sets optimizer_switch='derived_merge=on'
-        subselect.from subsubselect.distinct.as('__active_record_temp')
+        subselect.from subsubselect.as('__active_record_temp')
       end
 
       def mariadb?
