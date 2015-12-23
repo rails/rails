@@ -3,7 +3,7 @@ require "active_support/core_ext/class"
 require "active_support/core_ext/module/attribute_accessors"
 require "action_view/template"
 require "thread"
-require "concurrent"
+require "concurrent/map"
 
 module ActionView
   # = Action View Resolver
