@@ -3,15 +3,12 @@ require "rails/test_unit/reporter"
 require "rails/test_unit/test_requirer"
 
 module Minitest
-  mattr_accessor(:hide_aggregated_results) { false }
-
-  module AggregatedResultSuppresion
+  class SuppressedSummaryReporter < SummaryReporter
+    # Disable extra failure output after a run if output is inline.
     def aggregated_results
-      super unless Minitest.hide_aggregated_results
+      super unless options[:output_inline]
     end
   end
-
-  SummaryReporter.prepend AggregatedResultSuppresion
 
   def self.plugin_rails_options(opts, options)
     executable = ::Rails::TestUnitReporter.executable
@@ -83,11 +80,8 @@ module Minitest
       Minitest.backtrace_filter = ::Rails.backtrace_cleaner if ::Rails.respond_to?(:backtrace_cleaner)
     end
 
-    # Disable the extra failure output after a run, unless output is deferred.
-    self.hide_aggregated_results = options[:output_inline]
-
     self.reporter.reporters.clear # Replace progress reporter for colors.
-    self.reporter << SummaryReporter.new(options[:io], options)
+    self.reporter << SuppressedSummaryReporter.new(options[:io], options)
     self.reporter << ::Rails::TestUnitReporter.new(options[:io], options)
   end
 
