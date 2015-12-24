@@ -1,3 +1,8 @@
+*   Fix regression in `submit_tag` when a symbol is used as label argument.
+
+    *Yuuji Yaginuma*
+
+
 ## Rails 5.0.0.beta1 (December 18, 2015) ##
 
 *   `I18n.translate` helper will wrap the missing translation keys

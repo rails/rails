@@ -510,6 +510,13 @@ class FormTagHelperTest < ActionView::TestCase
     )
   end
 
+  def test_submit_tag_with_symbol_value
+    assert_dom_equal(
+      %(<input data-disable-with="Save" name='commit' type="submit" value="Save" />),
+      submit_tag(:Save)
+    )
+  end
+
 
   def test_button_tag
     assert_dom_equal(
