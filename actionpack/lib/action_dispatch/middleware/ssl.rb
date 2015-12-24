@@ -4,16 +4,18 @@ module ActionDispatch
   # requests:
   #
   #   1. TLS redirect: Permanently redirects http:// requests to https://
-  #      with the same URL host, path, etc. This is always enabled. Set
-  #      `config.ssl_options` to modify the destination URL
-  #      (e.g. `redirect: { host: "secure.widgets.com", port: 8080 }`)
+  #      with the same URL host, path, etc. Enabled by default. Set `config.ssl_options`
+  #      to modify the destination URL
+  #      (e.g. `redirect: { host: "secure.widgets.com", port: 8080 }`), or set
+  #      `redirect: false` to disable this feature.
   #
   #   2. Secure cookies: Sets the `secure` flag on cookies to tell browsers they
-  #      mustn't be sent along with http:// requests. This is always enabled.
+  #      mustn't be sent along with http:// requests. Enabled by default. Set
+  #      `config.ssl_options` with `secure_cookies: false` to disable this feature.
   #
   #   3. HTTP Strict Transport Security (HSTS): Tells the browser to remember
   #      this site as TLS-only and automatically redirect non-TLS requests.
-  #      Enabled by default. Pass `hsts: false` to disable.
+  #      Enabled by default. Configure `config.ssl_options` with `hsts: false` to disable.
   #
   # Set `config.ssl_options` with `hsts: { … }` to configure HSTS:
   #   * `expires`: How long, in seconds, these settings will stick. Defaults to
@@ -41,7 +43,7 @@ module ActionDispatch
       { expires: HSTS_EXPIRES_IN, subdomains: false, preload: false }
     end
 
-    def initialize(app, redirect: {}, hsts: {}, **options)
+    def initialize(app, redirect: {}, hsts: {}, secure_cookies: true, **options)
       @app = app
 
       if options[:host] || options[:port]
@@ -54,6 +56,7 @@ module ActionDispatch
         @redirect = redirect
       end
 
+      @secure_cookies = secure_cookies
       @hsts_header = build_hsts_header(normalize_hsts_options(hsts))
     end
 
@@ -63,10 +66,11 @@ module ActionDispatch
       if request.ssl?
         @app.call(env).tap do |status, headers, body|
           set_hsts_header! headers
-          flag_cookies_as_secure! headers
+          flag_cookies_as_secure! headers if @secure_cookies
         end
       else
-        redirect_to_https request
+        return redirect_to_https request if @redirect
+        @app.call(env)
       end
     end
 
