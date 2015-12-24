@@ -1,5 +1,5 @@
-# A new subscription is created through the ActionCable.Subscriptions instance available on the consumer. 
-# It provides a number of callbacks and a method for calling remote procedure calls on the corresponding 
+# A new subscription is created through the ActionCable.Subscriptions instance available on the consumer.
+# It provides a number of callbacks and a method for calling remote procedure calls on the corresponding
 # Channel instance on the server side.
 #
 # An example demonstrates the basic functionality:
@@ -7,13 +7,13 @@
 #   App.appearance = App.cable.subscriptions.create "AppearanceChannel",
 #     connected: ->
 #       # Called once the subscription has been successfully completed
-#   
+#
 #     appear: ->
 #       @perform 'appear', appearing_on: @appearingOn()
-#   
+#
 #     away: ->
 #       @perform 'away'
-#   
+#
 #     appearingOn: ->
 #       $('main').data 'appearing-on'
 #
@@ -27,15 +27,15 @@
 #     def subscribed
 #       current_user.appear
 #     end
-#   
+#
 #     def unsubscribed
 #       current_user.disappear
 #     end
-#   
+#
 #     def appear(data)
 #       current_user.appear on: data['appearing_on']
 #     end
-#   
+#
 #     def away
 #       current_user.away
 #     end
