@@ -31,8 +31,6 @@ module ActiveRecord
         def extract_default
           if blob_or_text_column?
             @default = null || strict ? nil : ''
-          elsif missing_default_forged_as_empty_string?(default)
-            @default = nil
           end
         end
 
@@ -58,17 +56,6 @@ module ActiveRecord
         end
 
         private
-
-        # MySQL misreports NOT NULL column default when none is given.
-        # We can't detect this for columns which may have a legitimate ''
-        # default (string) but we can for others (integer, datetime, boolean,
-        # and the rest).
-        #
-        # Test whether the column has default '', is not null, and is not
-        # a type allowing default ''.
-        def missing_default_forged_as_empty_string?(default)
-          type != :string && !null && default == ''
-        end
 
         def assert_valid_default(default)
           if blob_or_text_column? && default.present?

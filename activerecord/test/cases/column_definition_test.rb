@@ -49,6 +49,16 @@ module ActiveRecord
           assert_equal "a", varbinary_column.default
         end
 
+        def test_should_be_empty_string_default_for_mysql_binary_data_types
+          type = SqlTypeMetadata.new(type: :binary, sql_type: "binary(1)")
+          binary_column = AbstractMysqlAdapter::Column.new("title", "", type, false)
+          assert_equal "", binary_column.default
+
+          type = SqlTypeMetadata.new(type: :binary, sql_type: "varbinary")
+          varbinary_column = AbstractMysqlAdapter::Column.new("title", "", type, false)
+          assert_equal "", varbinary_column.default
+        end
+
         def test_should_not_set_default_for_blob_and_text_data_types
           assert_raise ArgumentError do
             AbstractMysqlAdapter::Column.new("title", "a", SqlTypeMetadata.new(sql_type: "blob"))
