@@ -182,8 +182,10 @@ module ActiveSupport
     # Replaces underscores with dashes in the string.
     #
     #   dasherize('puni_puni') # => "puni-puni"
-    def dasherize(underscored_word)
-      underscored_word.tr('_'.freeze, '-'.freeze)
+    #   dasherize('StringString') # => "string-string"
+    #   dasherize('stringString') # => "string-string"
+    def dasherize(word)
+      underscore(word).tr('_'.freeze, '-'.freeze)
     end
 
     # Removes the module part from the expression in the string.

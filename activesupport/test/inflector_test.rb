@@ -374,6 +374,12 @@ class InflectorTest < ActiveSupport::TestCase
     end
   end
 
+  def test_class_to_dasherize
+    CamelCaseToDashes.each do |class_name, dasherized|
+      assert_equal(dasherized, ActiveSupport::Inflector.dasherize(class_name))
+    end
+  end
+
   def test_underscore_as_reverse_of_dasherize
     UnderscoresToDashes.each_key do |underscored|
       assert_equal(underscored, ActiveSupport::Inflector.underscore(ActiveSupport::Inflector.dasherize(underscored)))

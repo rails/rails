@@ -343,6 +343,12 @@ module InflectorTestCases
     "person_street_address" => "person-street-address"
   }
 
+  CamelCaseToDashes = {
+    "Street"              => "street",
+    "streetAddress"       => "street-address",
+    "PersonStreetAddress" => "person-street-address"
+  }
+
   Irregularities = {
     'person' => 'people',
     'man'    => 'men',

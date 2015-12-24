@@ -506,4 +506,13 @@
 
     *Logan Leger*
 
+*   `#dasherize` should also support class names and camel cased strings
+
+    ```
+    "ClassName".dasherize # => "class-name"
+    "camelCase".dasherize # => "camel-case"
+    ```
+
+    *Paulo Ancheta*
+
 Please check [4-2-stable](https://github.com/rails/rails/blob/4-2-stable/activesupport/CHANGELOG.md) for previous changes.
