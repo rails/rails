@@ -75,7 +75,7 @@ module Rails
         class_option :edge,               type: :boolean, default: false,
                                           desc: "Setup the #{name} with Gemfile pointing to Rails repository"
 
-        class_option :rc,                 type: :string, default: false,
+        class_option :rc,                 type: :string, default: nil,
                                           desc: "Path to file containing extra configuration options for rails command"
 
         class_option :no_rc,              type: :boolean, default: false,
