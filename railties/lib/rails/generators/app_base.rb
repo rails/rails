@@ -68,7 +68,7 @@ module Rails
         class_option :skip_test_unit,     type: :boolean, aliases: '-T', default: false,
                                           desc: 'Skip Test::Unit files'
 
-        class_option :rc,                 type: :string, default: false,
+        class_option :rc,                 type: :string, default: nil,
                                           desc: "Path to file containing extra configuration options for rails command"
 
         class_option :no_rc,              type: :boolean, default: false,
