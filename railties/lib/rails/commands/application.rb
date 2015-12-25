@@ -14,4 +14,4 @@ module Rails
 end
 
 args = Rails::Generators::ARGVScrubber.new(ARGV).prepare!
-Rails::Generators::AppGenerator.start args
+Rails::Generators::AppGenerator.start args, raw_options: args[1..-1]

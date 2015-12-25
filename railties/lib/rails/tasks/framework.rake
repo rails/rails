@@ -2,7 +2,7 @@ require 'active_support/deprecation'
 
 namespace :app do
   desc "Update configs and some other initially generated files (or use just update:configs or update:bin)"
-  task update: [ "update:configs", "update:bin" ]
+  task update: [ "update:banner", "update:configs", "update:bin" ]
 
   desc "Applies the template supplied by LOCATION=(/path/to/template) or URL"
   task template: :environment do
@@ -47,13 +47,30 @@ namespace :app do
         @app_generator ||= begin
           require 'rails/generators'
           require 'rails/generators/rails/app/app_generator'
-          gen = Rails::Generators::AppGenerator.new ["rails"], { with_dispatchers: true, api: !!Rails.application.config.api_only },
-            destination_root: Rails.root
+          gen = Rails::Generators::AppGenerator.new ["rails"],
+                                                    generator_options,
+                                                    destination_root: Rails.root
+
           File.exist?(Rails.root.join("config", "application.rb")) ?
             gen.send(:app_const) : gen.send(:valid_const?)
           gen
         end
       end
+
+      private
+        def self.generator_options
+          dotrails_path = File.join(Rails.root, '.rails')
+
+          opts = if File.exist?(dotrails_path)
+                   File.readlines(dotrails_path).flat_map(&:split)
+                 else
+                   []
+                 end
+
+          opts << "--force" if ENV['FORCE_RAILS_UPDATE']
+
+          opts
+        end
     end
 
     # desc "Update config/boot.rb from your current rails install"
@@ -65,6 +82,10 @@ namespace :app do
     # desc "Adds new executables to the application bin/ directory"
     task :bin do
       RailsUpdate.invoke_from_app_generator :create_bin_files
+    end
+
+    task :banner do
+      RailsUpdate.invoke_from_app_generator :display_update_banner
     end
   end
 end

@@ -1,6 +1,7 @@
 require 'generators/generators_test_helper'
 require 'rails/generators/rails/app/app_generator'
 require 'generators/shared_generator_tests'
+require 'rails/tasks'
 
 DEFAULT_APP_FILES = %w(
   .gitignore
@@ -798,6 +799,35 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
 
     assert_equal 3, @sequence_step
+  end
+
+  def test_dotrails_correctly_stores_generator_options
+    run_generator [destination_root, "--skip-active-record", "--skip-action-cable"],
+                  raw_options: ["--skip-active-record --skip-action-cable"]
+
+    generator_options = File.read(".rails")
+
+    assert_match(/--skip-active-record/, generator_options)
+    assert_match(/--skip-action-cable/, generator_options)
+  end
+
+  def test_updating_rails_uses_same_options_that_were_used_to_create_new_app_from_dotrails
+    run_generator [destination_root, "--skip-active-record"],
+                  raw_options: ["--skip-active-record"]
+
+    rails_root = Rails.root
+    Rails.root = destination_root
+    ENV['FORCE_RAILS_UPDATE'] = 'true'
+
+    capture(:stdout) do
+      Rake.application.invoke_task('app:update')
+    end
+
+    assert_file "config/application.rb", /#\s+require\s+["']active_record\/railtie["']/
+    assert_no_file "config/database.yml"
+  ensure
+    Rails.root = rails_root
+    ENV['FORCE_RAILS_UPDATE'] = nil
   end
 
   protected

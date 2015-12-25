@@ -1,3 +1,10 @@
+*   Reuse generator options used while creating app for updating Rails version.
+
+    Saves all the options passed while creating new app into `.rails`
+    file and reuses these options when `bin/rails app:update` is run.
+
+   *Cristian Bica*, *Prathamesh Sonpatki*, *Siva Gollapalli*
+
 *   The application generator writes a new file `config/spring.rb`, which tells
     Spring to watch additional common files.
 

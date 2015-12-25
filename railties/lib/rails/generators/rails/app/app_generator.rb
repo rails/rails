@@ -177,6 +177,29 @@ module Rails
     def vendor_stylesheets
       empty_directory_with_keep_file 'vendor/assets/stylesheets'
     end
+
+    def dotrails
+      if raw_options && raw_options.size > 0
+        create_file ".rails", raw_options.join(" ")
+      end
+    end
+
+    def update_banner
+      dotrails_path = File.join(destination_root, '.rails')
+
+      if File.exist?(dotrails_path)
+        opts = File.readlines(dotrails_path).flat_map(&:split)
+
+        say "Using options from .rails"
+        say "Running with: #{opts.join(' ')}"
+
+        unless ENV['FORCE_RAILS_UPDATE']
+          unless yes?("Proceed?(y/n)")
+            exit(0)
+          end
+        end
+      end
+    end
   end
 
   module Generators
@@ -195,6 +218,8 @@ module Rails
       class_option :api, type: :boolean,
                          desc: "Preconfigure smaller stack for API only apps"
 
+      attr_reader :raw_options
+
       def initialize(*args)
         super
 
@@ -209,6 +234,8 @@ module Rails
         # Force sprockets to be skipped when generating API only apps.
         # Can't modify options hash as it's frozen by default.
         self.options = options.merge(skip_sprockets: true, skip_javascript: true).freeze if options[:api]
+
+        @raw_options = args.last[:raw_options]
       end
 
       public_task :set_default_accessors!
@@ -363,6 +390,15 @@ module Rails
       def run_after_bundle_callbacks
         @after_bundle_callbacks.each(&:call)
       end
+
+      def create_dotrails
+        build(:dotrails)
+      end
+
+      def display_update_banner
+        build(:update_banner)
+      end
+      remove_task :display_update_banner
 
     protected
 

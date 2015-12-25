@@ -11,6 +11,10 @@ module Rails
     def root
       @root ||= Pathname.new(File.expand_path('../../fixtures', __FILE__))
     end
+
+    def root=(root)
+      @root = Pathname.new(root)
+    end
   end
 end
 Rails.application.config.root = Rails.root
