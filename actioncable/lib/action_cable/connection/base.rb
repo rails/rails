@@ -48,10 +48,8 @@ module ActionCable
       include InternalChannel
       include Authorization
 
-      attr_reader :server, :env, :subscriptions
+      attr_reader :server, :env, :subscriptions, :logger
       delegate :worker_pool, :pubsub, to: :server
-
-      attr_reader :logger
 
       def initialize(server, env)
         @server, @env = server, env
@@ -123,7 +121,6 @@ module ActionCable
         transmit ActiveSupport::JSON.encode(identifier: ActionCable::INTERNAL[:identifiers][:ping], message: Time.now.to_i)
       end
 
-
       protected
         # The request that initiated the WebSocket connection is available here. This gives access to the environment, cookies, etc.
         def request
@@ -138,8 +135,6 @@ module ActionCable
           request.cookie_jar
         end
 
-
-     protected
         attr_reader :websocket
         attr_reader :message_buffer
 
@@ -170,7 +165,6 @@ module ActionCable
           disconnect if respond_to?(:disconnect)
         end
 
-
         def allow_request_origin?
           return true if server.config.disable_request_forgery_protection
 
@@ -192,7 +186,6 @@ module ActionCable
           logger.info finished_request_message
           [ 404, { 'Content-Type' => 'text/plain' }, [ 'Page not found' ] ]
         end
-
 
         # Tags are declared in the server but computed in the connection. This allows us per-connection tailored tags.
         def new_tagged_logger

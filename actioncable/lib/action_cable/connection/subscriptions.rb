@@ -49,7 +49,6 @@ module ActionCable
         find(data).perform_action ActiveSupport::JSON.decode(data['data'])
       end
 
-
       def identifiers
         subscriptions.keys
       end
