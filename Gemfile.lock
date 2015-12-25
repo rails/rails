@@ -56,8 +56,8 @@ GEM
     coffee-script (2.4.1)
       coffee-script-source
       execjs
-    coffee-script-source (1.9.1.1)
-    dalli (2.7.4)
+    coffee-script-source (1.10.0)
+    dalli (2.7.5)
     erubis (2.7.0)
     execjs (2.6.0)
     i18n (0.7.0)
@@ -71,25 +71,26 @@ GEM
     mail (2.6.3)
       mime-types (>= 1.16, < 3)
     metaclass (0.0.4)
-    mime-types (2.6.2)
-    mini_portile (0.6.2)
+    mime-types (2.99)
+    mini_portile2 (2.0.0)
     minitest (5.3.3)
     mocha (0.14.0)
       metaclass (~> 0.0.1)
     mustache (0.99.8)
     mysql (2.9.1)
-    mysql2 (0.3.18)
-    nokogiri (1.6.6.2)
-      mini_portile (~> 0.6.0)
-    pg (0.18.3)
-    racc (1.4.13)
+    mysql2 (0.3.20)
+    nokogiri (1.6.7.1)
+      mini_portile2 (~> 2.0.0.rc2)
+    pg (0.18.4)
+    racc (1.4.14)
     rack (1.5.5)
     rack-cache (1.5.1)
       rack (>= 0.4)
     rack-test (0.6.3)
       rack (>= 1.0)
     rake (10.4.2)
-    rdoc (4.2.0)
+    rdoc (4.2.1)
+      json (~> 1.4)
     redcarpet (2.2.2)
     ruby-prof (0.11.3)
     sdoc (0.4.1)
@@ -151,4 +152,4 @@ DEPENDENCIES
   w3c_validators
 
 BUNDLED WITH
-   1.10.6
+   1.11.2
