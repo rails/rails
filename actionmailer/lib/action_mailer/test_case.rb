@@ -21,9 +21,12 @@ module ActionMailer
 
       included do
         class_attribute :_mailer_class
+        class_attribute :fixture_path, instance_writer: false
         setup :initialize_test_deliveries
         setup :set_expected_mail
         teardown :restore_test_deliveries
+
+        self.fixture_path = File.join(Rails.root, 'test', 'fixtures')
       end
 
       module ClassMethods
@@ -95,7 +98,7 @@ module ActionMailer
         end
 
         def read_fixture(action)
-          IO.readlines(File.join(Rails.root, 'test', 'fixtures', self.class.mailer_class.name.underscore, action))
+          IO.readlines(File.join(fixture_path, self.class.mailer_class.name.underscore, action))
         end
     end
 

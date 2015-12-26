@@ -26,3 +26,20 @@ class CrazyStringNameMailerTest < ActionMailer::TestCase
     assert_equal TestTestMailer, self.class.mailer_class
   end
 end
+
+class MailerFixturePathTest < ActionMailer::TestCase
+  tests BaseMailer
+
+  def test_default_fixture_path
+    assert_equal ["Welcome"], read_fixture('welcome')
+  end
+end
+
+class MailerCustomFixturePathTest < ActionMailer::TestCase
+  tests BaseMailer
+  self.fixture_path = FIXTURE_LOAD_PATH + "/another.path"
+
+  def test_custom_fixture_path
+    assert_equal ["Welcome from another path"], read_fixture('welcome')
+  end
+end

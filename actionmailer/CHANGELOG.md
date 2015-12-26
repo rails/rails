@@ -1,3 +1,7 @@
+*   Make `ActionMailer::TestCase.fixture_path` to be configurable.
+
+    *Yuichiro Kaneko*
+
 ## Rails 5.0.0.beta1 (December 18, 2015) ##
 
 *   `config.force_ssl = true` will set
