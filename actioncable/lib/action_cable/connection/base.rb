@@ -135,8 +135,7 @@ module ActionCable
           request.cookie_jar
         end
 
-        attr_reader :websocket
-        attr_reader :message_buffer
+        attr_reader :websocket, :message_buffer
 
       private
         def on_open
