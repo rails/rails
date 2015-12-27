@@ -99,34 +99,6 @@ module ActiveRecord
       # DATABASE STATEMENTS ======================================
       #++
 
-      # FIXME: re-enable the following once a "better" query_cache solution is in core
-      #
-      # The overrides below perform much better than the originals in AbstractAdapter
-      # because we're able to take advantage of mysql2's lazy-loading capabilities
-      #
-      # # Returns a record hash with the column names as keys and column values
-      # # as values.
-      # def select_one(sql, name = nil)
-      #   result = execute(sql, name)
-      #   result.each(as: :hash) do |r|
-      #     return r
-      #   end
-      # end
-      #
-      # # Returns a single value from a record
-      # def select_value(sql, name = nil)
-      #   result = execute(sql, name)
-      #   if first = result.first
-      #     first.first
-      #   end
-      # end
-      #
-      # # Returns an array of the values of the first column in a select:
-      # #   select_values("SELECT id FROM companies LIMIT 3") => [1,2,3]
-      # def select_values(sql, name = nil)
-      #   execute(sql, name).map { |row| row.first }
-      # end
-
       # Returns a record hash with the column names as keys and column values
       # as values.
       def select_one(arel, name = nil, binds = [])
