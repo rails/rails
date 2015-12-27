@@ -66,8 +66,9 @@ class DurationTest < ActiveSupport::TestCase
     assert_equal '10 years, 2 months, and 1 day',   (10.years + 2.months + 1.day).inspect
     assert_equal '10 years, 2 months, and 1 day',   (10.years + 1.month  + 1.day + 1.month).inspect
     assert_equal '10 years, 2 months, and 1 day',   (1.day + 10.years + 2.months).inspect
-    assert_equal '7 days',                          1.week.inspect
-    assert_equal '14 days',                         1.fortnight.inspect
+    assert_equal '7 days',                          7.days.inspect
+    assert_equal '1 week',                          1.week.inspect
+    assert_equal '2 weeks',                         1.fortnight.inspect
   end
 
   def test_inspect_locale
@@ -85,6 +86,15 @@ class DurationTest < ActiveSupport::TestCase
 
   def test_plus_with_time
     assert_equal 1 + 1.second, 1.second + 1, "Duration + Numeric should == Numeric + Duration"
+  end
+
+  def test_time_plus_duration_returns_same_time_datatype
+    twz = ActiveSupport::TimeWithZone.new(nil, ActiveSupport::TimeZone['Moscow'] , Time.utc(2016,4,28,00,45))
+    now = Time.now.utc
+    %w( second minute hour day week month year ).each do |unit|
+      assert_equal((now + 1.send(unit)).class, Time, "Time + 1.#{unit} must be Time")
+      assert_equal((twz + 1.send(unit)).class, ActiveSupport::TimeWithZone, "TimeWithZone + 1.#{unit} must be TimeWithZone")
+    end
   end
 
   def test_argument_error
