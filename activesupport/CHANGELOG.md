@@ -1,6 +1,6 @@
 ## Rails 5.0.0.beta1 (December 18, 2015) ##
 
-*   Add petabyte and exabyte numberic conversion.
+*   Add petabyte and exabyte numeric conversion.
 
     *Akshay Vishnoi*
 
@@ -18,7 +18,7 @@
       def self.reset() self.account = self.user = nil end
     end
 
-    class ApplicationController < ActiveController::Base
+    class ApplicationController < ActionController::Base
       before_action :set_current
       after_action { Current.reset }
 
