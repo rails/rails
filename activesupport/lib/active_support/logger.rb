@@ -5,7 +5,15 @@ module ActiveSupport
   class Logger < ::Logger
     include LoggerSilence
 
-    attr_accessor :broadcast_messages
+    # If +true+, will broadcast all messages sent to this logger to the any
+    # logger linked to this one via +broadcast+.
+    #
+    # If +false+, the logger will still forward calls to +close+, +progname=+,
+    # +formatter=+ and +level+ to any linked loggers, but no calls to +add+ or
+    # +<<+.
+    #
+    # Defaults to +true+.
+    attr_accessor :broadcast_messages # :nodoc:
 
     # Broadcasts logs to multiple loggers.
     def self.broadcast(logger) # :nodoc:
