@@ -20,7 +20,7 @@ module ActiveJob
         qu_job = Qu::Payload.new(klass: JobWrapper, args: [job.serialize]).tap do |payload|
           payload.instance_variable_set(:@queue, job.queue_name)
         end.push
-        
+
         # qu_job can be nil depending on the configured backend
         job.provider_job_id = qu_job.id unless qu_job.nil?
         qu_job

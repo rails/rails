@@ -16,7 +16,7 @@ module ActiveRecord
         if config[:flags].kind_of? Array
           config[:flags].push "FOUND_ROWS".freeze
         else
-          config[:flags] |= Mysql2::Client::FOUND_ROWS          
+          config[:flags] |= Mysql2::Client::FOUND_ROWS
         end
       end
 

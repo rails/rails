@@ -3,7 +3,7 @@ require 'active_support/core_ext/array/extract_options'
 # Extends the module object with class/module and instance accessors for
 # class/module attributes, just like the native attr* accessors for instance
 # attributes, but does so on a per-thread basis.
-# 
+#
 # So the values are scoped within the Thread.current space under the class name
 # of the module.
 class Module
