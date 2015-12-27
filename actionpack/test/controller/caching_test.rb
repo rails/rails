@@ -172,6 +172,9 @@ class FunctionalCachingController < CachingController
 
   def fragment_cached_without_digest
   end
+
+  def fragment_cached_with_options
+  end
 end
 
 class FunctionalFragmentCachingTest < ActionController::TestCase
@@ -213,6 +216,15 @@ CACHED
 
     assert_equal expected_body, @response.body
     assert_equal "<p>ERB</p>", @store.read("views/nodigest")
+  end
+
+  def test_fragment_caching_with_options
+    get :fragment_cached_with_options
+    assert_response :success
+    expected_body = "<body>\n<p>ERB</p>\n</body>\n"
+
+    assert_equal expected_body, @response.body
+    assert_equal "<p>ERB</p>", @store.read("views/with_options")
   end
 
   def test_render_inline_before_fragment_caching
