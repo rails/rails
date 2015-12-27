@@ -646,7 +646,7 @@ Please refer to the [Changelog][active-support] for detailed changes.
     ([Pull Request](https://github.com/rails/rails/pull/16938))
 
 *   Removed deprecated `ThreadSafe::Cache`. Use `Concurrent::Map` instead.
-    ([Pull Request](https://github.com/rails/rails/pull/16938))
+    ([Pull Request](https://github.com/rails/rails/pull/21679))
 
 ### Deprecations
 
