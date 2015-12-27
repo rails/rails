@@ -94,7 +94,7 @@ class NumericalityValidationTest < ActiveModel::TestCase
   end
 
   def test_validates_numericality_with_greater_than_or_equal_using_differing_numeric_types
-    Topic.validates_numericality_of :approved, greater_than_or_equal_to: BigDecimal.new('97.18') 
+    Topic.validates_numericality_of :approved, greater_than_or_equal_to: BigDecimal.new('97.18')
 
     invalid!([-97.18, 97.17, 97, BigDecimal.new('97.17'), BigDecimal.new('-97.18')], 'must be greater than or equal to 97.18')
     valid!([97.18, 98, BigDecimal.new('97.19')])

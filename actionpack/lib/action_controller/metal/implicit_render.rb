@@ -5,7 +5,7 @@ module ActionController
 
     # Renders the template corresponding to the controller action, if it exists.
     # The action name, format, and variant are all taken into account.
-    # For example, the "new" action with an HTML format and variant "phone" 
+    # For example, the "new" action with an HTML format and variant "phone"
     # would try to render the <tt>new.html+phone.erb</tt> template.
     #
     # If no template is found <tt>ActionController::BasicImplicitRender</tt>'s implementation is called, unless

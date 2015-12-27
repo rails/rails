@@ -176,12 +176,12 @@ module InflectorTestCases
 
   StringToParameterizedPreserveCase = {
     "Donald E. Knuth"                     => "Donald-E-Knuth",
-    "Random text with *(bad)* characters" => "Random-text-with-bad-characters", 
-    "Allow_Under_Scores"                  => "Allow_Under_Scores", 
-    "Trailing bad characters!@#"          => "Trailing-bad-characters", 
-    "!@#Leading bad characters"           => "Leading-bad-characters", 
-    "Squeeze   separators"                => "Squeeze-separators", 
-    "Test with + sign"                    => "Test-with-sign", 
+    "Random text with *(bad)* characters" => "Random-text-with-bad-characters",
+    "Allow_Under_Scores"                  => "Allow_Under_Scores",
+    "Trailing bad characters!@#"          => "Trailing-bad-characters",
+    "!@#Leading bad characters"           => "Leading-bad-characters",
+    "Squeeze   separators"                => "Squeeze-separators",
+    "Test with + sign"                    => "Test-with-sign",
     "Test with malformed utf8 \xA9"       => "Test-with-malformed-utf8"
   }
 
@@ -199,11 +199,11 @@ module InflectorTestCases
   StringToParameterizePreserveCaseWithNoSeparator = {
     "Donald E. Knuth"                     => "DonaldEKnuth",
     "With-some-dashes"                    => "With-some-dashes",
-    "Random text with *(bad)* characters" => "Randomtextwithbadcharacters", 
-    "Trailing bad characters!@#"          => "Trailingbadcharacters", 
-    "!@#Leading bad characters"           => "Leadingbadcharacters", 
-    "Squeeze   separators"                => "Squeezeseparators", 
-    "Test with + sign"                    => "Testwithsign", 
+    "Random text with *(bad)* characters" => "Randomtextwithbadcharacters",
+    "Trailing bad characters!@#"          => "Trailingbadcharacters",
+    "!@#Leading bad characters"           => "Leadingbadcharacters",
+    "Squeeze   separators"                => "Squeezeseparators",
+    "Test with + sign"                    => "Testwithsign",
     "Test with malformed utf8 \xA9"       => "Testwithmalformedutf8"
   }
 
@@ -220,14 +220,14 @@ module InflectorTestCases
   }
 
   StringToParameterizePreserceCaseWithUnderscore = {
-    "Donald E. Knuth"                     => "Donald_E_Knuth", 
+    "Donald E. Knuth"                     => "Donald_E_Knuth",
     "Random text with *(bad)* characters" => "Random_text_with_bad_characters",
-    "With-some-dashes"                    => "With-some-dashes", 
-    "Allow_Under_Scores"                  => "Allow_Under_Scores", 
-    "Trailing bad characters!@#"          => "Trailing_bad_characters", 
-    "!@#Leading bad characters"           => "Leading_bad_characters", 
-    "Squeeze   separators"                => "Squeeze_separators", 
-    "Test with + sign"                    => "Test_with_sign", 
+    "With-some-dashes"                    => "With-some-dashes",
+    "Allow_Under_Scores"                  => "Allow_Under_Scores",
+    "Trailing bad characters!@#"          => "Trailing_bad_characters",
+    "!@#Leading bad characters"           => "Leading_bad_characters",
+    "Squeeze   separators"                => "Squeeze_separators",
+    "Test with + sign"                    => "Test_with_sign",
     "Test with malformed utf8 \xA9"       => "Test_with_malformed_utf8"
   }
 
