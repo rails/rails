@@ -243,6 +243,8 @@ module ActiveSupport
     #   number_to_human_size(1234567)                                # => 1.18 MB
     #   number_to_human_size(1234567890)                             # => 1.15 GB
     #   number_to_human_size(1234567890123)                          # => 1.12 TB
+    #   number_to_human_size(1234567890123456)                       # => 1.1 PB
+    #   number_to_human_size(1234567890123456789)                    # => 1.07 EB
     #   number_to_human_size(1234567, precision: 2)                  # => 1.2 MB
     #   number_to_human_size(483989, precision: 2)                   # => 470 KB
     #   number_to_human_size(1234567, precision: 2, separator: ',')  # => 1,2 MB

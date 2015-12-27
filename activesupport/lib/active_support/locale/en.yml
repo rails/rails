@@ -106,6 +106,8 @@ en:
           mb: "MB"
           gb: "GB"
           tb: "TB"
+          pb: "PB"
+          eb: "EB"
       # Used in NumberHelper.number_to_human()
       decimal_units:
         format: "%n %u"
