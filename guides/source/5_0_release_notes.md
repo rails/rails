@@ -431,6 +431,10 @@ Please refer to the [Changelog][active-record] for detailed changes.
     `#table_exists?` will check only tables in the future.
     ([Pull Request](https://github.com/rails/rails/pull/21601))
 
+*   Deprecate sending the `offset` argument to `find_nth`. Please use the
+    `offset` method on relation instead.
+    ([Pull Request](https://github.com/rails/rails/pull/22053))
+
 ### Notable changes
 
 *   Added a `foreign_key` option to `references` while creating the table.
