@@ -5,7 +5,7 @@ module ActiveSupport
   class Logger < ::Logger
     include LoggerSilence
 
-    # If +true+, will broadcast all messages sent to this logger to the any
+    # If +true+, will broadcast all messages sent to this logger to any
     # logger linked to this one via +broadcast+.
     #
     # If +false+, the logger will still forward calls to +close+, +progname=+,
