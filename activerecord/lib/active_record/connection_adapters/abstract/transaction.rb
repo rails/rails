@@ -33,6 +33,7 @@ module ActiveRecord
 
     class NullTransaction #:nodoc:
       def initialize; end
+      def state; end
       def closed?; true; end
       def open?; false; end
       def joinable?; false; end
