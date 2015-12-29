@@ -109,7 +109,7 @@ module ActionController
     cattr_accessor :permit_all_parameters, instance_accessor: false
     cattr_accessor :action_on_unpermitted_parameters, instance_accessor: false
 
-    delegate :keys, :key?, :has_key?, :empty?, :inspect, to: :@parameters
+    delegate :keys, :key?, :has_key?, :empty?, :include?, :inspect, to: :@parameters
 
     # By default, never raise an UnpermittedParameters exception if these
     # params are present. The default includes both 'controller' and 'action'

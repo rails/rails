@@ -1,3 +1,7 @@
+*   Add `ActionController::Parameters#include?`
+
+    *Justin Coyne*
+
 ## Rails 5.0.0.beta1 (December 18, 2015) ##
 
 *   Deprecate `redirect_to :back` in favor of `redirect_back`, which accepts a
