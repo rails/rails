@@ -82,8 +82,12 @@ module ActiveRecord
         loaded!
       end
 
+      def proxy_scope
+        association_relation.merge!(klass.default_scoped).merge!(association_scope)
+      end
+
       def scope
-        target_scope.merge(association_scope)
+        target_scope.merge!(association_scope)
       end
 
       # The scope for this association.
@@ -121,7 +125,7 @@ module ActiveRecord
       # Can be overridden (i.e. in ThroughAssociation) to merge in other scopes (i.e. the
       # through association's scope)
       def target_scope
-        AssociationRelation.create(klass, klass.arel_table, klass.predicate_builder, self).merge!(klass.all)
+        association_relation.merge!(klass.all)
       end
 
       # Loads the \target if needed and returns it.
@@ -174,6 +178,10 @@ module ActiveRecord
       end
 
       private
+
+        def association_relation
+          AssociationRelation.create(klass, klass.arel_table, klass.predicate_builder, self)
+        end
 
         def find_target?
           !loaded? && (!owner.new_record? || foreign_key_present?) && klass

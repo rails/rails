@@ -1,3 +1,9 @@
+*   `CollectionProxy` no longer takes on `klass.current_scope`, so it
+    will not cache `scoping` context across `scoping` calls. It
+    instead applies `default_scoped`.
+
+    *Ben Woosley*
+
 *   When calling `first` with a `limit` argument, return directly from the
     `loaded?` records if available.
 
