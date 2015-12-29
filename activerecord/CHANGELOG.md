@@ -1,3 +1,8 @@
+*   Fix that WhereClause#merge could remove non-conflicting bind
+    variables.
+
+    *Ben Woosley*
+
 *   When calling `first` with a `limit` argument, return directly from the
     `loaded?` records if available.
 

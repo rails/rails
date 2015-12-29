@@ -18,9 +18,12 @@ module ActiveRecord
       end
 
       def merge(other)
+        predicates_referenced_by_other, predicates_unreferenced_by_other =
+          predicates.partition { |n| referenced_by?(n, other) }
+
         WhereClause.new(
-          predicates_unreferenced_by(other) + other.predicates,
-          non_conflicting_binds(other) + other.binds,
+          predicates_unreferenced_by_other + other.predicates,
+          binds_not_predicated_on(predicates_referenced_by_other) + other.binds,
         )
       end
 
@@ -89,17 +92,23 @@ module ActiveRecord
       attr_reader :predicates
 
       def referenced_columns
-        @referenced_columns ||= begin
-          equality_nodes = predicates.select { |n| equality_node?(n) }
-          Set.new(equality_nodes, &:left)
-        end
+        @referenced_columns ||= Set.new(equality_nodes, &:left)
       end
 
       private
 
-      def predicates_unreferenced_by(other)
-        predicates.reject do |n|
-          equality_node?(n) && other.referenced_columns.include?(n.left)
+      def equality_nodes
+        predicates.select { |n| equality_node?(n) }
+      end
+
+      def referenced_by?(node, other)
+        equality_node?(node) &&
+          other.referenced_columns.include?(node.left)
+      end
+
+      def bound_predicates
+        equality_nodes.select do |n|
+          Arel::Nodes::BindParam === n.right
         end
       end
 
@@ -107,10 +116,21 @@ module ActiveRecord
         node.respond_to?(:operator) && node.operator == :==
       end
 
-      def non_conflicting_binds(other)
-        conflicts = referenced_columns & other.referenced_columns
-        conflicts.map! { |node| node.name.to_s }
-        binds.reject { |attr| conflicts.include?(attr.name) }
+      # Returns binds not associated with the predicates referenced
+      # by `other` - predicates and associated binds referenced by
+      # other are removed to prevent conflicts in the merged clause
+      def binds_not_predicated_on(referenced_predicates)
+        # binds are removed by index of the bound predicates
+        # because that is how they are ultimately referenced in the
+        # query
+        conflict_indices =
+          bound_predicates.map.with_index do |predicate, index|
+            index if referenced_predicates.include?(predicate)
+          end.compact
+
+        binds.reject.with_index { |_attr, index|
+          conflict_indices.include?(index)
+        }
       end
 
       def inverted_predicates

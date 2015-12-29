@@ -8,6 +8,8 @@ class Club < ActiveRecord::Base
 
   has_many :favourites, -> { where(memberships: { favourite: true }) }, through: :memberships, source: :member
 
+  default_scope { where(active: true) }
+
   private
 
   def private_method

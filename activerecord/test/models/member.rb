@@ -12,6 +12,9 @@ class Member < ActiveRecord::Base
   has_one :organization, :through => :member_detail
   belongs_to :member_type
 
+  has_one :favourite_active_membership, -> { merge(Membership.favourite) }, class_name: 'Membership'
+  has_one :favourite_active_club, through: :favourite_active_membership, source: :club
+
   has_many :nested_member_types, :through => :member_detail, :source => :member_type
   has_one :nested_member_type, :through => :member_detail, :source => :member_type
 

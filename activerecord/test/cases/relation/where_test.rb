@@ -37,6 +37,13 @@ module ActiveRecord
       assert_equal joined, [posts.first]
     end
 
+    def test_where_merges_bind_params_properly
+      scope = Post.where(foo: :bar).where(bar: :baz).merge(
+        Post.where(bar: :baz).where(foo: :bar)
+      )
+      assert_equal({"bar"=>:baz, "foo"=>:bar}, scope.where_values_hash)
+    end
+
     def test_where_copies_arel_bind_params
       chef = Chef.create!
       CakeDesigner.create!(chef: chef)
