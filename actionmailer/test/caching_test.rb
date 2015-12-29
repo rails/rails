@@ -14,7 +14,7 @@ class FragmentCachingMailer < ActionMailer::Base
   def some_action; end
 end
 
-class FragmentCachingTest < ActiveSupport::TestCase
+class BaseCachingTest < ActiveSupport::TestCase
   def setup
     super
     @store = ActiveSupport::Cache::MemoryStore.new
@@ -38,25 +38,7 @@ class FragmentCachingTestMailer < CachingMailer
   def some_action; end
 end
 
-class FragmentCachingTest < ActiveSupport::TestCase
-  def setup
-    super
-    @store = ActiveSupport::Cache::MemoryStore.new
-    @mailer = FragmentCachingMailer.new
-    @mailer.perform_caching = true
-    @mailer.cache_store = @store
-  end
-
-  def test_fragment_cache_key
-    assert_equal 'views/what a key', @mailer.fragment_cache_key('what a key')
-  end
-
-  def test_fragment_cache_key
-    assert_equal 'views/what a key', @mailer.fragment_cache_key('what a key')
-    assert_equal "views/test.host/fragment_caching_test/some_action",
-              @mailer.fragment_cache_key(:controller => 'fragment_caching_test',:action => 'some_action')
-  end
-
+class FragmentCachingTest < BaseCachingTest
   def test_read_fragment_with_caching_enabled
     @store.write('views/name', 'value')
     assert_equal 'value', @mailer.read_fragment('name')
@@ -139,36 +121,6 @@ class FragmentCachingTest < ActiveSupport::TestCase
     assert html_safe.html_safe?
   end
 end
-
-# class FunctionalCachingController < CachingController
-#   def fragment_cached
-#   end
-
-#   def html_fragment_cached_with_partial
-#     respond_to do |format|
-#       format.html
-#     end
-#   end
-
-#   def formatted_fragment_cached
-#     respond_to do |format|
-#       format.html
-#       format.xml
-#     end
-#   end
-
-#   def formatted_fragment_cached_with_variant
-#     request.variant = :phone if params[:v] == "phone"
-
-#     respond_to do |format|
-#       format.html.phone
-#       format.html
-#     end
-#   end
-
-#   def fragment_cached_without_digest
-#   end
-# end
 
 # class FunctionalFragmentCachingTest < ActionController::TestCase
 #   def setup
@@ -276,145 +228,142 @@ end
 #     end
 # end
 
-# class CacheHelperOutputBufferTest < ActionController::TestCase
+class CacheHelperOutputBufferTest < BaseCachingTest
 
-#   class MockController
-#     def read_fragment(name, options)
-#       return false
-#     end
+  class MockController
+    def read_fragment(name, options)
+      return false
+    end
 
-#     def write_fragment(name, fragment, options)
-#       fragment
-#     end
-#   end
+    def write_fragment(name, fragment, options)
+      fragment
+    end
+  end
 
-#   def setup
-#     super
-#   end
+  def setup
+    super
+  end
 
-#   def test_output_buffer
-#     output_buffer = ActionView::OutputBuffer.new
-#     controller = MockController.new
-#     cache_helper = Class.new do
-#       def self.controller; end;
-#       def self.output_buffer; end;
-#       def self.output_buffer=; end;
-#     end
-#     cache_helper.extend(ActionView::Helpers::CacheHelper)
+  def test_output_buffer
+    output_buffer = ActionView::OutputBuffer.new
+    controller = MockController.new
+    cache_helper = Class.new do
+      def self.controller; end;
+      def self.output_buffer; end;
+      def self.output_buffer=; end;
+    end
+    cache_helper.extend(ActionView::Helpers::CacheHelper)
 
-#     cache_helper.stub :controller, controller do
-#       cache_helper.stub :output_buffer, output_buffer do
-#         assert_called_with cache_helper, :output_buffer=, [output_buffer.class.new(output_buffer)] do
-#           assert_nothing_raised do
-#             cache_helper.send :fragment_for, 'Test fragment name', 'Test fragment', &Proc.new{ nil }
-#           end
-#         end
-#       end
-#     end
-#   end
+    cache_helper.stub :controller, controller do
+      cache_helper.stub :output_buffer, output_buffer do
+        assert_called_with cache_helper, :output_buffer=, [output_buffer.class.new(output_buffer)] do
+          assert_nothing_raised do
+            cache_helper.send :fragment_for, 'Test fragment name', 'Test fragment', &Proc.new{ nil }
+          end
+        end
+      end
+    end
+  end
 
-#   def test_safe_buffer
-#     output_buffer = ActiveSupport::SafeBuffer.new
-#     controller = MockController.new
-#     cache_helper = Class.new do
-#       def self.controller; end;
-#       def self.output_buffer; end;
-#       def self.output_buffer=; end;
-#     end
-#     cache_helper.extend(ActionView::Helpers::CacheHelper)
+  def test_safe_buffer
+    output_buffer = ActiveSupport::SafeBuffer.new
+    controller = MockController.new
+    cache_helper = Class.new do
+      def self.controller; end;
+      def self.output_buffer; end;
+      def self.output_buffer=; end;
+    end
+    cache_helper.extend(ActionView::Helpers::CacheHelper)
 
-#     cache_helper.stub :controller, controller do
-#       cache_helper.stub :output_buffer, output_buffer do
-#         assert_called_with cache_helper, :output_buffer=, [output_buffer.class.new(output_buffer)] do
-#           assert_nothing_raised do
-#             cache_helper.send :fragment_for, 'Test fragment name', 'Test fragment', &Proc.new{ nil }
-#           end
-#         end
-#       end
-#     end
-#   end
-# end
+    cache_helper.stub :controller, controller do
+      cache_helper.stub :output_buffer, output_buffer do
+        assert_called_with cache_helper, :output_buffer=, [output_buffer.class.new(output_buffer)] do
+          assert_nothing_raised do
+            cache_helper.send :fragment_for, 'Test fragment name', 'Test fragment', &Proc.new{ nil }
+          end
+        end
+      end
+    end
+  end
+end
 
-# class ViewCacheDependencyTest < ActionController::TestCase
-#   class NoDependenciesController < ActionController::Base
-#   end
+class ViewCacheDependencyTest < BaseCachingTest
+  class HasDependenciesMailer < ActionMailer::Base
+    view_cache_dependency { "trombone" }
+    view_cache_dependency { "flute" }
+  end
 
-#   class HasDependenciesController < ActionController::Base
-#     view_cache_dependency { "trombone" }
-#     view_cache_dependency { "flute" }
-#   end
+  def test_view_cache_dependencies_are_empty_by_default
+    assert NoDependenciesMailer.new.view_cache_dependencies.empty?
+  end
 
-#   def test_view_cache_dependencies_are_empty_by_default
-#     assert NoDependenciesController.new.view_cache_dependencies.empty?
-#   end
+  def test_view_cache_dependencies_are_listed_in_declaration_order
+    assert_equal %w(trombone flute), HasDependenciesMailer.new.view_cache_dependencies
+  end
+end
 
-#   def test_view_cache_dependencies_are_listed_in_declaration_order
-#     assert_equal %w(trombone flute), HasDependenciesController.new.view_cache_dependencies
-#   end
-# end
+class CollectionCacheMailer < ActionMailer::Base
+  attr_accessor :partial_rendered_times
 
-# class CollectionCacheController < ActionController::Base
-#   attr_accessor :partial_rendered_times
+  def index
+    @customers = [Customer.new('david', params[:id] || 1)]
+  end
 
-#   def index
-#     @customers = [Customer.new('david', params[:id] || 1)]
-#   end
+  def index_ordered
+    @customers = [Customer.new('david', 1), Customer.new('david', 2), Customer.new('david', 3)]
+    render 'index'
+  end
 
-#   def index_ordered
-#     @customers = [Customer.new('david', 1), Customer.new('david', 2), Customer.new('david', 3)]
-#     render 'index'
-#   end
+  def index_explicit_render
+    @customers = [Customer.new('david', 1)]
+    render partial: 'customers/customer', collection: @customers
+  end
 
-#   def index_explicit_render
-#     @customers = [Customer.new('david', 1)]
-#     render partial: 'customers/customer', collection: @customers
-#   end
+  def index_with_comment
+    @customers = [Customer.new('david', 1)]
+    render partial: 'customers/commented_customer', collection: @customers, as: :customer
+  end
+end
 
-#   def index_with_comment
-#     @customers = [Customer.new('david', 1)]
-#     render partial: 'customers/commented_customer', collection: @customers, as: :customer
-#   end
-# end
+class AutomaticCollectionCacheTest < ActionSupport::TestCase
+  def setup
+    super
+    @mailer = CollectionCacheMailer.new
+    @mailer.perform_caching = true
+    @mailer.partial_rendered_times = 0
+    @mailer.cache_store = ActiveSupport::Cache::MemoryStore.new
+    ActionView::PartialRenderer.collection_cache = @mailer.cache_store
+  end
 
-# class AutomaticCollectionCacheTest < ActionController::TestCase
-#   def setup
-#     super
-#     @controller = CollectionCacheController.new
-#     @controller.perform_caching = true
-#     @controller.partial_rendered_times = 0
-#     @controller.cache_store = ActiveSupport::Cache::MemoryStore.new
-#     ActionView::PartialRenderer.collection_cache = @controller.cache_store
-#   end
+  def test_collection_fetches_cached_views
+    get :index
+    assert_equal 1, @mailer.partial_rendered_times
 
-#   def test_collection_fetches_cached_views
-#     get :index
-#     assert_equal 1, @controller.partial_rendered_times
+    get :index
+    assert_equal 1, @mailer.partial_rendered_times
+  end
 
-#     get :index
-#     assert_equal 1, @controller.partial_rendered_times
-#   end
+  def test_preserves_order_when_reading_from_cache_plus_rendering
+    get :index, params: { id: 2 }
+    get :index_ordered
 
-#   def test_preserves_order_when_reading_from_cache_plus_rendering
-#     get :index, params: { id: 2 }
-#     get :index_ordered
+    assert_select ':root', "david, 1\n  david, 2\n  david, 3"
+  end
 
-#     assert_select ':root', "david, 1\n  david, 2\n  david, 3"
-#   end
+  def test_explicit_render_call_with_options
+    get :index_explicit_render
 
-#   def test_explicit_render_call_with_options
-#     get :index_explicit_render
+    assert_select ':root', "david, 1"
+  end
 
-#     assert_select ':root', "david, 1"
-#   end
+  def test_caching_works_with_beginning_comment
+    get :index_with_comment
+    assert_equal 1, @mailer.partial_rendered_times
 
-#   def test_caching_works_with_beginning_comment
-#     get :index_with_comment
-#     assert_equal 1, @controller.partial_rendered_times
-
-#     get :index_with_comment
-#     assert_equal 1, @controller.partial_rendered_times
-#   end
-# end
+    get :index_with_comment
+    assert_equal 1, @mailer.partial_rendered_times
+  end
+end
 
 # class FragmentCacheKeyTestController < CachingController
 #   attr_accessor :account_id
