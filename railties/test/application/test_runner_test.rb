@@ -294,6 +294,84 @@ module ApplicationTests
       end
     end
 
+    def test_more_than_one_line_filter
+      app_file 'test/models/post_test.rb', <<-RUBY
+        require 'test_helper'
+
+        class PostTest < ActiveSupport::TestCase
+          test "first filter" do
+            puts 'PostTest:FirstFilter'
+            assert true
+          end
+
+          test "second filter" do
+            puts 'PostTest:SecondFilter'
+            assert true
+          end
+
+          test "test line filter does not run this" do
+            assert true
+          end
+        end
+      RUBY
+
+      run_test_command('test/models/post_test.rb:4:9').tap do |output|
+        assert_match 'PostTest:FirstFilter', output
+        assert_match 'PostTest:SecondFilter', output
+        assert_match '2 runs, 2 assertions', output
+      end
+    end
+
+    def test_more_than_one_line_filter_with_multiple_files
+      app_file 'test/models/account_test.rb', <<-RUBY
+        require 'test_helper'
+
+        class AccountTest < ActiveSupport::TestCase
+          test "first filter" do
+            puts 'AccountTest:FirstFilter'
+            assert true
+          end
+
+          test "second filter" do
+            puts 'AccountTest:SecondFilter'
+            assert true
+          end
+
+          test "line filter does not run this" do
+            assert true
+          end
+        end
+      RUBY
+
+      app_file 'test/models/post_test.rb', <<-RUBY
+        require 'test_helper'
+
+        class PostTest < ActiveSupport::TestCase
+          test "first filter" do
+            puts 'PostTest:FirstFilter'
+            assert true
+          end
+
+          test "second filter" do
+            puts 'PostTest:SecondFilter'
+            assert true
+          end
+
+          test "line filter does not run this" do
+            assert true
+          end
+        end
+      RUBY
+
+      run_test_command('test/models/account_test.rb:4:9  test/models/post_test:4:9').tap do |output|
+        assert_match 'AccountTest:FirstFilter', output
+        assert_match 'AccountTest:SecondFilter', output
+        assert_match 'PostTest:FirstFilter', output
+        assert_match 'PostTest:SecondFilter', output
+        assert_match '4 runs, 4 assertions', output
+      end
+    end
+
     def test_multiple_line_filters
       create_test_file :models, 'account'
       create_test_file :models, 'post'

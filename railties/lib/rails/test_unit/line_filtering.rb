@@ -30,9 +30,14 @@ module Rails
       end
 
       def derive_line_filters(patterns)
-        patterns.map do |file_and_line|
-          file, line = file_and_line.split(':')
-          Filter.new(@runnable, file, line) if file
+        patterns.flat_map do |file_and_line|
+          file, *lines = file_and_line.split(':')
+
+          if lines.empty?
+            Filter.new(@runnable, file, nil) if file
+          else
+            lines.map { |line| Filter.new(@runnable, file, line) }
+          end
         end
       end
   end
