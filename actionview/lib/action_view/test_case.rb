@@ -28,7 +28,7 @@ module ActionView
         @response = ActionDispatch::TestResponse.new
 
         @request.env.delete('PATH_INFO')
-        @params = {}
+        @params = ActionController::Parameters.new
       end
     end
 
