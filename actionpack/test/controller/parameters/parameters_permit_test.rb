@@ -325,4 +325,10 @@ class ParametersPermitTest < ActiveSupport::TestCase
     assert_equal({ 'companies' => [ company, :acme ] }, params.to_unsafe_h)
     assert_not company.dupped
   end
+
+  test "included? returns true when the key is present" do
+    assert @params.include? :person
+    assert @params.include? 'person'
+    assert_not @params.include? :gorilla
+  end
 end
