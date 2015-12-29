@@ -288,6 +288,8 @@ class CacheHelperOutputBufferTest < BaseCachingTest
 end
 
 class ViewCacheDependencyTest < BaseCachingTest
+  class NoDependenciesMailer < ActionMailer::Base
+  end
   class HasDependenciesMailer < ActionMailer::Base
     view_cache_dependency { "trombone" }
     view_cache_dependency { "flute" }
@@ -324,68 +326,3 @@ class CollectionCacheMailer < ActionMailer::Base
     render partial: 'customers/commented_customer', collection: @customers, as: :customer
   end
 end
-
-class AutomaticCollectionCacheTest < ActionSupport::TestCase
-  def setup
-    super
-    @mailer = CollectionCacheMailer.new
-    @mailer.perform_caching = true
-    @mailer.partial_rendered_times = 0
-    @mailer.cache_store = ActiveSupport::Cache::MemoryStore.new
-    ActionView::PartialRenderer.collection_cache = @mailer.cache_store
-  end
-
-  def test_collection_fetches_cached_views
-    get :index
-    assert_equal 1, @mailer.partial_rendered_times
-
-    get :index
-    assert_equal 1, @mailer.partial_rendered_times
-  end
-
-  def test_preserves_order_when_reading_from_cache_plus_rendering
-    get :index, params: { id: 2 }
-    get :index_ordered
-
-    assert_select ':root', "david, 1\n  david, 2\n  david, 3"
-  end
-
-  def test_explicit_render_call_with_options
-    get :index_explicit_render
-
-    assert_select ':root', "david, 1"
-  end
-
-  def test_caching_works_with_beginning_comment
-    get :index_with_comment
-    assert_equal 1, @mailer.partial_rendered_times
-
-    get :index_with_comment
-    assert_equal 1, @mailer.partial_rendered_times
-  end
-end
-
-# class FragmentCacheKeyTestController < CachingController
-#   attr_accessor :account_id
-
-#   fragment_cache_key "v1"
-#   fragment_cache_key { account_id }
-# end
-
-# class FragmentCacheKeyTest < ActionController::TestCase
-#   def setup
-#     super
-#     @store = ActiveSupport::Cache::MemoryStore.new
-#     @controller = FragmentCacheKeyTestController.new
-#     @controller.perform_caching = true
-#     @controller.cache_store = @store
-#   end
-
-#   def test_fragment_cache_key
-#     @controller.account_id = "123"
-#     assert_equal 'views/v1/123/what a key', @controller.fragment_cache_key('what a key')
-
-#     @controller.account_id = nil
-#     assert_equal 'views/v1//what a key', @controller.fragment_cache_key('what a key')
-#   end
-# end
