@@ -186,13 +186,13 @@ class ResponseTest < ActiveSupport::TestCase
   test "read charset and content type" do
     resp = ActionDispatch::Response.new.tap { |response|
       response.charset = 'utf-16'
-      response.content_type = Mime[:xml]
+      response.content_type = ActiveSupport::Mime[:xml]
       response.body = 'Hello'
     }
     resp.to_a
 
     assert_equal('utf-16', resp.charset)
-    assert_equal(Mime[:xml], resp.content_type)
+    assert_equal(ActiveSupport::Mime[:xml], resp.content_type)
 
     assert_equal('application/xml; charset=utf-16', resp.headers['Content-Type'])
   end
@@ -394,7 +394,7 @@ class ResponseIntegrationTest < ActionDispatch::IntegrationTest
     @app = lambda { |env|
       ActionDispatch::Response.new.tap { |resp|
         resp.charset = 'utf-16'
-        resp.content_type = Mime[:xml]
+        resp.content_type = ActiveSupport::Mime[:xml]
         resp.body = 'Hello'
         resp.request = ActionDispatch::Request.empty
       }.to_a
@@ -404,7 +404,7 @@ class ResponseIntegrationTest < ActionDispatch::IntegrationTest
     assert_response :success
 
     assert_equal('utf-16', @response.charset)
-    assert_equal(Mime[:xml], @response.content_type)
+    assert_equal(ActiveSupport::Mime[:xml], @response.content_type)
 
     assert_equal('application/xml; charset=utf-16', @response.headers['Content-Type'])
   end
@@ -420,7 +420,7 @@ class ResponseIntegrationTest < ActionDispatch::IntegrationTest
     assert_response :success
 
     assert_equal('utf-16', @response.charset)
-    assert_equal(Mime[:xml], @response.content_type)
+    assert_equal(ActiveSupport::Mime[:xml], @response.content_type)
 
     assert_equal('application/xml; charset=utf-16', @response.headers['Content-Type'])
   end

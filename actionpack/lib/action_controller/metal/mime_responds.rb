@@ -229,20 +229,20 @@ module ActionController #:nodoc:
         @responses = {}
         @variant = variant
 
-        mimes.each { |mime| @responses[Mime[mime]] = nil }
+        mimes.each { |mime| @responses[ActiveSupport::Mime[mime]] = nil }
       end
 
       def any(*args, &block)
         if args.any?
           args.each { |type| send(type, &block) }
         else
-          custom(Mime::ALL, &block)
+          custom(ActiveSupport::Mime::ALL, &block)
         end
       end
       alias :all :any
 
       def custom(mime_type, &block)
-        mime_type = Mime::Type.lookup(mime_type.to_s) unless mime_type.is_a?(Mime::Type)
+        mime_type = ActiveSupport::Mime::Type.lookup(mime_type.to_s) unless mime_type.is_a?(ActiveSupport::Mime::Type)
         @responses[mime_type] ||= if block_given?
           block
         else
@@ -251,7 +251,7 @@ module ActionController #:nodoc:
       end
 
       def response
-        response = @responses.fetch(format, @responses[Mime::ALL])
+        response = @responses.fetch(format, @responses[ActiveSupport::Mime::ALL])
         if response.is_a?(VariantCollector) # `format.html.phone` - variant inline syntax
           response.variant
         elsif response.nil? || response.arity == 0 # `format.html` - just a format, call its block

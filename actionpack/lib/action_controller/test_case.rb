@@ -37,7 +37,7 @@ module ActionController
       self.session = session
       self.session_options = TestSession::DEFAULT_OPTIONS
       @custom_param_parsers = {
-        Mime[:xml] => lambda { |raw_post| Hash.from_xml(raw_post)['hash'] }
+        ActiveSupport::Mime[:xml] => lambda { |raw_post| Hash.from_xml(raw_post)['hash'] }
       }
     end
 
@@ -405,7 +405,7 @@ module ActionController
         MSG
 
         @request.env['HTTP_X_REQUESTED_WITH'] = 'XMLHttpRequest'
-        @request.env['HTTP_ACCEPT'] ||= [Mime[:js], Mime[:html], Mime[:xml], 'text/xml', '*/*'].join(', ')
+        @request.env['HTTP_ACCEPT'] ||= [ActiveSupport::Mime[:js], ActiveSupport::Mime[:html], ActiveSupport::Mime[:xml], 'text/xml', '*/*'].join(', ')
         __send__(*args).tap do
           @request.env.delete 'HTTP_X_REQUESTED_WITH'
           @request.env.delete 'HTTP_ACCEPT'
@@ -508,7 +508,7 @@ module ActionController
         if xhr
           @request.set_header 'HTTP_X_REQUESTED_WITH', 'XMLHttpRequest'
           @request.fetch_header('HTTP_ACCEPT') do |k|
-            @request.set_header k, [Mime[:js], Mime[:html], Mime[:xml], 'text/xml', '*/*'].join(', ')
+            @request.set_header k, [ActiveSupport::Mime[:js], ActiveSupport::Mime[:html], ActiveSupport::Mime[:xml], 'text/xml', '*/*'].join(', ')
           end
         end
 

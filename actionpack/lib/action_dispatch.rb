@@ -98,9 +98,9 @@ module ActionDispatch
   end
 end
 
-autoload :Mime, 'action_dispatch/http/mime_type'
+require 'active_support/mime'
 
 ActiveSupport.on_load(:action_view) do
-  ActionView::Base.default_formats ||= Mime::SET.symbols
-  ActionView::Template::Types.delegate_to Mime
+  ActionView::Base.default_formats ||= ActiveSupport::Mime::SET.symbols
+  ActionView::Template::Types.delegate_to ActiveSupport::Mime
 end

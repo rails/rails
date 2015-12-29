@@ -275,14 +275,14 @@ class RespondToControllerTest < ActionController::TestCase
   def setup
     super
     @request.host = "www.example.com"
-    Mime::Type.register_alias("text/html", :iphone)
-    Mime::Type.register("text/x-mobile", :mobile)
+    ActiveSupport::Mime::Type.register_alias("text/html", :iphone)
+    ActiveSupport::Mime::Type.register("text/x-mobile", :mobile)
   end
 
   def teardown
     super
-    Mime::Type.unregister(:iphone)
-    Mime::Type.unregister(:mobile)
+    ActiveSupport::Mime::Type.unregister(:iphone)
+    ActiveSupport::Mime::Type.unregister(:mobile)
   end
 
   def test_html

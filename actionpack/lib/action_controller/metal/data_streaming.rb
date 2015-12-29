@@ -26,7 +26,7 @@ module ActionController #:nodoc:
       #   Defaults to <tt>File.basename(path)</tt>.
       # * <tt>:type</tt> - specifies an HTTP content type.
       #   You can specify either a string or a symbol for a registered type register with
-      #   <tt>Mime::Type.register</tt>, for example :json
+      #   <tt>ActiveSupport::Mime::Type.register</tt>, for example :json
       #   If omitted, type will be guessed from the file extension specified in <tt>:filename</tt>.
       #   If no content type is registered for the extension, default type 'application/octet-stream' will be used.
       # * <tt>:disposition</tt> - specifies whether the file will be shown inline or downloaded.
@@ -84,7 +84,7 @@ module ActionController #:nodoc:
       # Options:
       # * <tt>:filename</tt> - suggests a filename for the browser to use.
       # * <tt>:type</tt> - specifies an HTTP content type. Defaults to 'application/octet-stream'. You can specify
-      #   either a string or a symbol for a registered type register with <tt>Mime::Type.register</tt>, for example :json
+      #   either a string or a symbol for a registered type register with <tt>ActiveSupport::Mime::Type.register</tt>, for example :json
       #   If omitted, type will be guessed from the file extension specified in <tt>:filename</tt>.
       #   If no content type is registered for the extension, default type 'application/octet-stream' will be used.
       # * <tt>:disposition</tt> - specifies whether the file will be shown inline or downloaded.
@@ -117,13 +117,13 @@ module ActionController #:nodoc:
         raise ArgumentError, ":type option required" if content_type.nil?
 
         if content_type.is_a?(Symbol)
-          extension = Mime[content_type]
+          extension = ActiveSupport::Mime[content_type]
           raise ArgumentError, "Unknown MIME type #{options[:type]}" unless extension
           self.content_type = extension
         else
           if !type_provided && options[:filename]
             # If type wasn't provided, try guessing from file extension.
-            content_type = Mime::Type.lookup_by_extension(File.extname(options[:filename]).downcase.delete('.')) || content_type
+            content_type = ActiveSupport::Mime::Type.lookup_by_extension(File.extname(options[:filename]).downcase.delete('.')) || content_type
           end
           self.content_type = content_type
         end

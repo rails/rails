@@ -6,7 +6,7 @@ class TextTest < ActiveSupport::TestCase
   end
 
   test 'formats returns string for recognized MIME type when MIME does not have symbol' do
-    foo = Mime::Type.lookup("foo")
+    foo = ActiveSupport::Mime::Type.lookup("foo")
     assert_nil foo.to_sym
     assert_equal ['foo'], ActionView::Template::Text.new('', foo).formats
   end

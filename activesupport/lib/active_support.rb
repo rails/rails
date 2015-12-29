@@ -52,6 +52,7 @@ module ActiveSupport
     autoload :KeyGenerator
     autoload :MessageEncryptor
     autoload :MessageVerifier
+    autoload :Mime
     autoload :Multibyte
     autoload :NumberHelper
     autoload :OptionMerger

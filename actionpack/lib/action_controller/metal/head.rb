@@ -42,7 +42,7 @@ module ActionController
       self.response_body = ""
 
       if include_content?(self.response_code)
-        self.content_type = content_type || (Mime[formats.first] if formats)
+        self.content_type = content_type || (ActiveSupport::Mime[formats.first] if formats)
         self.response.charset = false
       end
 

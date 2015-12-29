@@ -17,7 +17,7 @@ module ActionDispatch
       def content_mime_type
         fetch_header("action_dispatch.request.content_type") do |k|
           v = if get_header('CONTENT_TYPE') =~ /^([^,\;]*)/
-            Mime::Type.lookup($1.strip.downcase)
+            ActiveSupport::Mime::Type.lookup($1.strip.downcase)
           else
             nil
           end
@@ -41,7 +41,7 @@ module ActionDispatch
           v = if header.empty?
             [content_mime_type]
           else
-            Mime::Type.parse(header)
+            ActiveSupport::Mime::Type.parse(header)
           end
           set_header k, v
         end
@@ -54,7 +54,7 @@ module ActionDispatch
       #   GET /posts/5       | request.format => Mime[:html] or Mime[:js], or request.accepts.first
       #
       def format(view_path = [])
-        formats.first || Mime::NullType.instance
+        formats.first || ActiveSupport::Mime::NullType.instance
       end
 
       def formats
@@ -66,15 +66,15 @@ module ActionDispatch
                             end
 
           v = if params_readable
-            Array(Mime[parameters[:format]])
+            Array(ActiveSupport::Mime[parameters[:format]])
           elsif format = format_from_path_extension
-            Array(Mime[format])
+            Array(ActiveSupport::Mime[format])
           elsif use_accept_header && valid_accept_header
             accepts
           elsif xhr?
-            [Mime[:js]]
+            [ActiveSupport::Mime[:js]]
           else
-            [Mime[:html]]
+            [ActiveSupport::Mime[:html]]
           end
           set_header k, v
         end
@@ -111,7 +111,7 @@ module ActionDispatch
       #   end
       def format=(extension)
         parameters[:format] = extension.to_s
-        set_header "action_dispatch.request.formats", [Mime::Type.lookup_by_extension(parameters[:format])]
+        set_header "action_dispatch.request.formats", [ActiveSupport::Mime::Type.lookup_by_extension(parameters[:format])]
       end
 
       # Sets the \formats by string extensions. This differs from #format= by allowing you
@@ -131,7 +131,7 @@ module ActionDispatch
       def formats=(extensions)
         parameters[:format] = extensions.first.to_s
         set_header "action_dispatch.request.formats", extensions.collect { |extension|
-          Mime::Type.lookup_by_extension(extension)
+          ActiveSupport::Mime::Type.lookup_by_extension(extension)
         }
       end
 
@@ -140,14 +140,14 @@ module ActionDispatch
       #
       def negotiate_mime(order)
         formats.each do |priority|
-          if priority == Mime::ALL
+          if priority == ActiveSupport::Mime::ALL
             return order.first
           elsif order.include?(priority)
             return priority
           end
         end
 
-        order.include?(Mime::ALL) ? format : nil
+        order.include?(ActiveSupport::Mime::ALL) ? format : nil
       end
 
       protected
