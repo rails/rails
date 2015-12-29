@@ -406,6 +406,26 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
     end
   end
 
+  def test_to_s_with_invalid_formatter
+    assert_equal '123', 123.to_s(:invalid)
+    assert_equal '2.5', 2.5.to_s(:invalid)
+    assert_equal '100000000000000000000', (100**10).to_s(:invalid)
+    assert_equal '1000010.0', BigDecimal("1000010").to_s(:invalid)
+  end
+
+  def test_default_to_s
+    assert_equal '123', 123.to_s
+    assert_equal '1111011', 123.to_s(2)
+
+    assert_equal '2.5', 2.5.to_s
+
+    assert_equal '100000000000000000000', (100**10).to_s
+    assert_equal '1010110101111000111010111100010110101100011000100000000000000000000', (100**10).to_s(2)
+
+    assert_equal '1000010.0', BigDecimal("1000010").to_s
+    assert_equal '10000 10.0', BigDecimal("1000010").to_s('5F')
+  end
+
   def test_in_milliseconds
     assert_equal 10_000, 10.seconds.in_milliseconds
   end
