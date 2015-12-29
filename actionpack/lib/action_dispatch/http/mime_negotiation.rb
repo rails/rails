@@ -67,10 +67,10 @@ module ActionDispatch
 
           v = if params_readable
             Array(Mime[parameters[:format]])
-          elsif extension_format = format_from_path_extension
-            [extension_format]
           elsif use_accept_header && valid_accept_header
             accepts
+          elsif extension_format = format_from_path_extension
+            [extension_format]
           elsif xhr?
             [Mime[:js]]
           else
