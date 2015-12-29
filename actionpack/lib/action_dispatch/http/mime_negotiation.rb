@@ -67,10 +67,10 @@ module ActionDispatch
 
           v = if params_readable
             Array(Mime[parameters[:format]])
-          elsif format = format_from_path_extension
-            Array(Mime[format])
           elsif use_accept_header && valid_accept_header
             accepts
+          elsif extension_format = format_from_path_extension
+            [extension_format]
           elsif xhr?
             [Mime[:js]]
           else
@@ -166,7 +166,7 @@ module ActionDispatch
       def format_from_path_extension
         path = @env['action_dispatch.original_path'] || @env['PATH_INFO']
         if match = path && path.match(/\.(\w+)\z/)
-          match.captures.first
+          Mime[match.captures.first]
         end
       end
     end

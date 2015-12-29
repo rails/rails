@@ -897,6 +897,27 @@ class RequestFormat < BaseRequestTest
       ActionDispatch::Request.ignore_accept_header = old_ignore_accept_header
     end
   end
+
+  test "format taken from the path extension" do
+    request = stub_request 'PATH_INFO' => '/foo.xml'
+    assert_called(request, :parameters, times: 1, returns: {}) do
+      assert_equal [Mime[:xml]], request.formats
+    end
+
+    request = stub_request 'PATH_INFO' => '/foo.123'
+    assert_called(request, :parameters, times: 1, returns: {}) do
+      assert_equal [Mime[:html]], request.formats
+    end
+  end
+
+  test "formats from accept headers have higher precedence than path extension" do
+    request = stub_request 'HTTP_ACCEPT' => 'application/json',
+                           'PATH_INFO' => '/foo.xml'
+
+    assert_called(request, :parameters, times: 1, returns: {}) do
+      assert_equal [Mime[:json]], request.formats
+    end
+  end
 end
 
 class RequestMimeType < BaseRequestTest
