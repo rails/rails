@@ -1,3 +1,8 @@
+*   `ActionView::TestCase::Controller#params` returns an instance of
+    `ActionController::Parameters`.
+
+    *Justin Coyne*
+
 *   Fix regression in `submit_tag` when a symbol is used as label argument.
 
     *Yuuji Yaginuma*
