@@ -1,3 +1,10 @@
+*   When a `respond_to` collector with a block doesn't have a response, then
+    a `:no_content` response should be rendered.  This brings the default
+    rendering behavior introduced by https://github.com/rails/rails/issues/19036
+    to controller methods employing `respond_to`
+
+    *Justin Coyne*
+
 *   Update default rendering policies when the controller action did
     not explicitly indicate a response.
 

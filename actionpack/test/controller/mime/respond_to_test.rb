@@ -74,6 +74,14 @@ class RespondToController < ActionController::Base
     end
   end
 
+  def missing_templates
+    respond_to do |type|
+      # This test requires a block that is empty
+      type.json { }
+      type.xml
+    end
+  end
+
   def using_defaults_with_type_list
     respond_to(:html, :xml)
   end
@@ -622,6 +630,13 @@ class RespondToControllerTest < ActionController::TestCase
     assert_raises(ActionController::UnknownFormat) do
       get :using_defaults, format: "invalidformat"
     end
+  end
+
+  def test_missing_templates
+    get :missing_templates, format: :json
+    assert_response :no_content
+    get :missing_templates, format: :xml
+    assert_response :no_content
   end
 
   def test_invalid_variant
