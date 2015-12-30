@@ -1,6 +1,7 @@
 require 'fileutils'
 require 'abstract_unit'
 require 'mailers/base_mailer'
+require 'mailers/caching_mailer'
 require 'byebug'
 
 CACHE_DIR = 'test_cache'
@@ -27,16 +28,6 @@ class BaseCachingTest < ActiveSupport::TestCase
   def test_fragment_cache_key
     assert_equal 'views/what a key', @mailer.fragment_cache_key('what a key')
   end
-end
-
-class CachingMailer < ActionMailer::Base
-  abstract!
-
-  self.cache_store = :file_store, FILE_STORE_PATH
-end
-
-class FragmentCachingTestMailer < CachingMailer
-  def some_action; end
 end
 
 class FragmentCachingTest < BaseCachingTest
@@ -127,18 +118,18 @@ class FunctionalFragmentCachingTest < BaseCachingTest
   def setup
     super
     @store = ActiveSupport::Cache::MemoryStore.new
-    @mailer = BaseMailer.new
+    @mailer = CachingMailer.new
     @mailer.perform_caching = true
     @mailer.cache_store = @store
   end
 
   def test_fragment_caching
-    email = @mailer.welcome_with_cache
+    email = @mailer.fragment_cache
     expected_body = "\"Welcome\""
 
     assert_equal expected_body, email.body.encoded.strip
     assert_equal "\"Welcome\"",
-      @store.read("views/welcome/#{template_digest("caching/welcome_with_cache")}").strip
+      @store.read("views/welcome/#{template_digest("caching_mailer/fragment_cache")}").strip
   end
 
   # def test_fragment_caching_in_partials
@@ -151,9 +142,6 @@ class FunctionalFragmentCachingTest < BaseCachingTest
   # end
 
   # def test_skipping_fragment_cache_digesting
-  #   get :fragment_cached_without_digest, format: "html"
-  #   assert_response :success
-  #   expected_body = "<body>\n<p>ERB</p>\n</body>\n"
 
   #   assert_equal expected_body, @response.body
   #   assert_equal "<p>ERB</p>", @store.read("views/nodigest")
