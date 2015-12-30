@@ -54,7 +54,7 @@ class TranslationHelperTest < ActiveSupport::TestCase
     end
   end
 
-  def test_returns_missing_tranlation_message_without_span_wrap
+  def test_returns_missing_translation_message_without_span_wrap
     old_value = ActionView::Base.debug_missing_translation
     ActionView::Base.debug_missing_translation = false
 
