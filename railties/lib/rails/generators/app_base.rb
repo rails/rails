@@ -281,6 +281,8 @@ module Rails
         return [] if options[:skip_sprockets]
 
         gems = []
+        gems << GemfileEntry.version('sass-rails', '~> 5.0',
+                                     'Use SCSS for stylesheets')
 
         gems << GemfileEntry.version('uglifier',
                                    '>= 1.3.0',

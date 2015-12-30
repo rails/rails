@@ -361,6 +361,13 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_generator_has_assets_gems
+    run_generator
+
+    assert_gem 'sass-rails'
+    assert_gem 'uglifier'
+  end
+
   def test_generator_if_skip_sprockets_is_given
     run_generator [destination_root, "--skip-sprockets"]
     assert_no_file "config/initializers/assets.rb"
