@@ -140,11 +140,13 @@ class FunctionalFragmentCachingTest < BaseCachingTest
       @store.read("views/caching/#{template_digest("caching_mailer/_partial")}"))
   end
 
-  # def test_skipping_fragment_cache_digesting
+  def test_skip_fragment_cache_digesting
+    email = @mailer.skip_fragment_cache_digesting
+    expected_body = "No Digest"
 
-  #   assert_equal expected_body, @response.body
-  #   assert_equal "<p>ERB</p>", @store.read("views/nodigest")
-  # end
+    assert_match expected_body, email.body.encoded
+    assert_match expected_body, @store.read("views/no_digest")
+  end
 
   # def test_render_inline_before_fragment_caching
   #   get :inline_fragment_cached
