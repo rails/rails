@@ -228,7 +228,7 @@ module ActionController
       expires_in 100.years, public: public
 
       yield if stale?(etag: "#{version}-#{request.fullpath}",
-                      last_modified: Time.parse('2011-01-01').utc,
+                      last_modified: Time.new(2011, 1, 1).utc,
                       public: public)
     end
 
