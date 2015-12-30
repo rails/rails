@@ -399,7 +399,7 @@ module ActionController
     #   params[:person] # => {"name"=>"Francesco"}
     #   params[:none]   # => nil
     def [](key)
-      convert_hashes_to_parameters(key, @parameters[key])
+      convert_value_to_parameters(@parameters[key])
     end
 
     # Assigns a value to a given +key+. The given key may still get filtered out
