@@ -183,9 +183,7 @@ module ActiveRecord
             before_save :before_save_collection_association
 
             define_non_cyclic_method(save_method) { save_collection_association(reflection) }
-            # Doesn't use after_save as that would save associations added in after_create/after_update twice
-            after_create save_method
-            after_update save_method
+            after_save save_method
           elsif reflection.has_one?
             define_method(save_method) { save_has_one_association(reflection) } unless method_defined?(save_method)
             # Configures two callbacks instead of a single after_save so that
@@ -390,6 +388,7 @@ module ActiveRecord
 
               raise ActiveRecord::Rollback unless saved
             end
+            @new_record_before_save = false
           end
 
           # reconstruct the scope now that we know the owner's id
