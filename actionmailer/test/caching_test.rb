@@ -148,66 +148,8 @@ class FunctionalFragmentCachingTest < BaseCachingTest
     assert_match expected_body, @store.read("views/no_digest")
   end
 
-  # def test_render_inline_before_fragment_caching
-  #   get :inline_fragment_cached
-  #   assert_response :success
-  #   assert_match(/Some inline content/, @response.body)
-  #   assert_match(/Some cached content/, @response.body)
-  #   assert_match("Some cached content",
-  #     @store.read("views/test.host/functional_caching/inline_fragment_cached/#{template_digest("functional_caching/inline_fragment_cached")}"))
-  # end
-
-  # def test_fragment_cache_instrumentation
-  #   payload = nil
-
-  #   subscriber = proc do |*args|
-  #     event = ActiveSupport::Notifications::Event.new(*args)
-  #     payload = event.payload
-  #   end
-
-  #   ActiveSupport::Notifications.subscribed(subscriber, "read_fragment.action_controller") do
-  #     get :inline_fragment_cached
-  #   end
-
-  #   assert_equal "functional_caching", payload[:controller]
-  #   assert_equal "inline_fragment_cached", payload[:action]
-  # end
-
-  # def test_html_formatted_fragment_caching
-  #   get :formatted_fragment_cached, format: "html"
-  #   assert_response :success
-  #   expected_body = "<body>\n<p>ERB</p>\n</body>\n"
-
-  #   assert_equal expected_body, @response.body
-
-  #   assert_equal "<p>ERB</p>",
-  #     @store.read("views/test.host/functional_caching/formatted_fragment_cached/#{template_digest("functional_caching/formatted_fragment_cached")}")
-  # end
-
-  # def test_xml_formatted_fragment_caching
-  #   get :formatted_fragment_cached, format: "xml"
-  #   assert_response :success
-  #   expected_body = "<body>\n  <p>Builder</p>\n</body>\n"
-
-  #   assert_equal expected_body, @response.body
-
-  #   assert_equal "  <p>Builder</p>\n",
-  #     @store.read("views/test.host/functional_caching/formatted_fragment_cached/#{template_digest("functional_caching/formatted_fragment_cached")}")
-  # end
-
-
-  # def test_fragment_caching_with_variant
-  #   get :formatted_fragment_cached_with_variant, format: "html", params: { v: :phone }
-  #   assert_response :success
-  #   expected_body = "<body>\n<p>PHONE</p>\n</body>\n"
-
-  #   assert_equal expected_body, @response.body
-
-  #   assert_equal "<p>PHONE</p>",
-  #     @store.read("views/test.host/functional_caching/formatted_fragment_cached_with_variant/#{template_digest("functional_caching/formatted_fragment_cached_with_variant")}")
-  # end
-
   private
+
     def template_digest(name)
       ActionView::Digestor.digest(name: name, finder: @mailer.lookup_context)
     end
@@ -286,28 +228,5 @@ class ViewCacheDependencyTest < BaseCachingTest
 
   def test_view_cache_dependencies_are_listed_in_declaration_order
     assert_equal %w(trombone flute), HasDependenciesMailer.new.view_cache_dependencies
-  end
-end
-
-class CollectionCacheMailer < ActionMailer::Base
-  attr_accessor :partial_rendered_times
-
-  def index
-    @customers = [Customer.new('david', params[:id] || 1)]
-  end
-
-  def index_ordered
-    @customers = [Customer.new('david', 1), Customer.new('david', 2), Customer.new('david', 3)]
-    render 'index'
-  end
-
-  def index_explicit_render
-    @customers = [Customer.new('david', 1)]
-    render partial: 'customers/customer', collection: @customers
-  end
-
-  def index_with_comment
-    @customers = [Customer.new('david', 1)]
-    render partial: 'customers/commented_customer', collection: @customers, as: :customer
   end
 end
