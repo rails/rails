@@ -20,7 +20,7 @@ class BaseMailer < ActionMailer::Base
   end
 
   def welcome_with_cache
-    mail(template_name: "welcome_with_cache", template_path: "caching")
+    mail(subject: "welcome", template_name: "welcome_with_cache", template_path: "caching")
   end
 
   def html_only(hash = {})

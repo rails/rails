@@ -53,7 +53,6 @@ class FragmentCachingTest < BaseCachingTest
 
   def test_fragment_exist_with_caching_enabled
     @store.write('views/name', 'value')
-    byebug
     assert @mailer.fragment_exist?('name')
     assert !@mailer.fragment_exist?('other_name')
   end
@@ -125,14 +124,21 @@ class FragmentCachingTest < BaseCachingTest
 end
 
 class FunctionalFragmentCachingTest < BaseCachingTest
-  def test_fragment_caching
-    email = BaseMailer.welcome
-    expected_body = "Welcome"
-    assert_equal expected_body, email.body.encoded
+  def setup
+    super
+    @store = ActiveSupport::Cache::MemoryStore.new
+    @mailer = BaseMailer.new
+    @mailer.perform_caching = true
+    @mailer.cache_store = @store
+  end
 
-    byebug
-    assert_equal "Welcome",
-      @store.read("views/test.host/functional_caching/fragment_cached/#{template_digest("functional_caching/fragment_cached")}")
+  def test_fragment_caching
+    email = @mailer.welcome_with_cache
+    expected_body = "\"Welcome\""
+
+    assert_equal expected_body, email.body.encoded.strip
+    assert_equal "\"Welcome\"",
+      @store.read("views/welcome/#{template_digest("caching/welcome_with_cache")}").strip
   end
 
   # def test_fragment_caching_in_partials
