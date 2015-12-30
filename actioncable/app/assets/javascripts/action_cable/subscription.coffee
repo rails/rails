@@ -49,7 +49,6 @@ class ActionCable.Subscription
     extend(this, mixin)
     @subscriptions.add(this)
     @consumer = @subscriptions.consumer
-    @listeners = []
 
   # Perform a channel action with the optional data passed as an attribute
   perform: (action, data = {}) ->
@@ -67,21 +66,3 @@ class ActionCable.Subscription
       for key, value of properties
         object[key] = value
     object
-
-  # Add a function to be called when data is received
-  addListener: (fn) ->
-    @listeners.push(fn)
-    return fn;
-
-  notifyListeners: (data) ->
-    @listeners.forEach (fn) ->
-      fn(data)
-
-  removeListener: (fn) ->
-    index = @listeners.indexOf(fn)
-    if index == -1
-      console.error(JSON.parse(this.identifier)['channel'] + ':' +  ' removeListener failed because the function' +
-          ' passed in was not found among the listeners. This might be because an anonymous function was' +
-          ' given. Try passing in the exact function given to addListener (it will return the function).')
-    else
-      @listeners.splice(index, 1)
