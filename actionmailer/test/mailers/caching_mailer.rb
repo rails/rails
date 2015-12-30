@@ -4,4 +4,8 @@ class CachingMailer < ActionMailer::Base
   def fragment_cache
     mail(subject: "welcome", template_name: "fragment_cache")
   end
+
+  def fragment_cache_in_partials
+    mail(subject: "welcome", template_name: "fragment_cache_in_partials")
+  end
 end

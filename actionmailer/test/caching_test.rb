@@ -127,19 +127,18 @@ class FunctionalFragmentCachingTest < BaseCachingTest
     email = @mailer.fragment_cache
     expected_body = "\"Welcome\""
 
-    assert_equal expected_body, email.body.encoded.strip
-    assert_equal "\"Welcome\"",
-      @store.read("views/welcome/#{template_digest("caching_mailer/fragment_cache")}").strip
+    assert_match expected_body, email.body.encoded
+    assert_match "\"Welcome\"",
+      @store.read("views/caching/#{template_digest("caching_mailer/fragment_cache")}")
   end
 
-  # def test_fragment_caching_in_partials
-  #   get :html_fragment_cached_with_partial
-  #   assert_response :success
-  #   assert_match(/Old fragment caching in a partial/, @response.body)
+  def test_fragment_caching_in_partials
+    email = @mailer.fragment_cache_in_partials
+    assert_match(/Old fragment caching in a partial/, email.body.encoded)
 
-  #   assert_match("Old fragment caching in a partial",
-  #     @store.read("views/test.host/functional_caching/html_fragment_cached_with_partial/#{template_digest("functional_caching/_partial")}"))
-  # end
+    assert_match("Old fragment caching in a partial",
+      @store.read("views/caching/#{template_digest("caching_mailer/_partial")}"))
+  end
 
   # def test_skipping_fragment_cache_digesting
 
