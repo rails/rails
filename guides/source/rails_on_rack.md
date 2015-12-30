@@ -104,7 +104,7 @@ For a freshly generated Rails application, this might produce something like:
 ```ruby
 use Rack::Sendfile
 use ActionDispatch::Static
-use Rack::Lock
+use ActionDispatch::LoadInterlock
 use #<ActiveSupport::Cache::Strategy::LocalCache::Middleware:0x000000029a0838>
 use Rack::Runtime
 use Rack::MethodOverride
@@ -171,10 +171,10 @@ Add the following lines to your application configuration:
 
 ```ruby
 # config/application.rb
-config.middleware.delete Rack::Lock
+config.middleware.delete Rack::Runtime
 ```
 
-And now if you inspect the middleware stack, you'll find that `Rack::Lock` is
+And now if you inspect the middleware stack, you'll find that `Rack::Runtime` is
 not a part of it.
 
 ```bash
@@ -218,6 +218,10 @@ Much of Action Controller's functionality is implemented as Middlewares. The fol
 **`Rack::Lock`**
 
 * Sets `env["rack.multithread"]` flag to `false` and wraps the application within a Mutex.
+
+**`ActionDispatch::LoadInterlock`**
+
+* Used for thread safe code reloading during development.
 
 **`ActiveSupport::Cache::Strategy::LocalCache::Middleware`**
 

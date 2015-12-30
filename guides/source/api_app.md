@@ -192,7 +192,7 @@ An API application comes with the following middlewares by default:
 
 - `Rack::Sendfile`
 - `ActionDispatch::Static`
-- `Rack::Lock`
+- `ActionDispatch::LoadInterlock`
 - `ActiveSupport::Cache::Strategy::LocalCache::Middleware`
 - `ActionDispatch::RequestId`
 - `Rails::Rack::Logger`
@@ -261,9 +261,6 @@ for a URL in the Rails cache, and add an `If-Modified-Since` header to any
 subsequent inbound requests for the same URL.
 
 Think of it as page caching using HTTP semantics.
-
-NOTE: This middleware is always outside of the `Rack::Lock` mutex, even in
-single-threaded applications.
 
 ### Using Rack::Sendfile
 
