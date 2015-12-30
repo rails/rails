@@ -2,7 +2,6 @@ require 'fileutils'
 require 'abstract_unit'
 require 'mailers/base_mailer'
 require 'mailers/caching_mailer'
-require 'byebug'
 
 CACHE_DIR = 'test_cache'
 # Don't change '/../temp/' cavalierly or you might hose something you don't want hosed

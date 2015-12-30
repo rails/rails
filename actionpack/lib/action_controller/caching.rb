@@ -1,6 +1,4 @@
-require 'action_dispatch/caching/fragments'
-require 'fileutils'
-require 'uri'
+require 'action_dispatch/caching'
 
 module ActionController
   # \Caching is a cheap way of speeding up slow applications by keeping the result of
@@ -24,61 +22,12 @@ module ActionController
   #   config.action_controller.cache_store = :mem_cache_store, Memcached::Rails.new('localhost:11211')
   #   config.action_controller.cache_store = MyOwnStore.new('parameter')
   module Caching
-    extend ActiveSupport::Concern
     extend ActiveSupport::Autoload
-
-    module ConfigMethods
-      def cache_store
-        config.cache_store
-      end
-
-      def cache_store=(store)
-        config.cache_store = ActiveSupport::Cache.lookup_store(store)
-      end
-
-      private
-        def cache_configured?
-          perform_caching && cache_store
-        end
-    end
-
+    extend ActiveSupport::Concern
     include AbstractController::Callbacks
 
-    include ConfigMethods
-    include ActionDispatch::Caching::Fragments
-
     included do
-      extend ConfigMethods
-
-      config_accessor :default_static_extension
-      self.default_static_extension ||= '.html'
-
-      config_accessor :perform_caching
-      self.perform_caching = true if perform_caching.nil?
-
-      class_attribute :_view_cache_dependencies
-      self._view_cache_dependencies = []
-      helper_method :view_cache_dependencies if respond_to?(:helper_method)
+      include ActionDispatch::Caching
     end
-
-    module ClassMethods
-      def view_cache_dependency(&dependency)
-        self._view_cache_dependencies += [dependency]
-      end
-    end
-
-    def view_cache_dependencies
-      self.class._view_cache_dependencies.map { |dep| instance_exec(&dep) }.compact
-    end
-
-    protected
-      # Convenience accessor.
-      def cache(key, options = {}, &block)
-        if cache_configured?
-          cache_store.fetch(ActiveSupport::Cache.expand_cache_key(key, :controller), options, &block)
-        else
-          yield
-        end
-      end
   end
 end
