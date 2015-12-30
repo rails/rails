@@ -176,7 +176,7 @@ module ActionController
     #   safe_params.to_h # => {"name"=>"Senjougahara Hitagi"}
     def to_h
       if permitted?
-        convert_parameters_to_hashes(@parameters)
+        convert_parameters_to_hashes(@parameters, :to_h)
       else
         slice(*self.class.always_permitted_parameters).permit!.to_h
       end
@@ -186,7 +186,7 @@ module ActionController
     # <tt>ActiveSupport::HashWithIndifferentAccess</tt> representation of this
     # parameter.
     def to_unsafe_h
-      convert_parameters_to_hashes(@parameters)
+      convert_parameters_to_hashes(@parameters, :to_unsafe_h)
     end
     alias_method :to_unsafe_hash, :to_unsafe_h
 
@@ -595,16 +595,16 @@ module ActionController
         end
       end
 
-      def convert_parameters_to_hashes(value)
+      def convert_parameters_to_hashes(value, using)
         case value
         when Array
-          value.map { |v| convert_parameters_to_hashes(v) }
+          value.map { |v| convert_parameters_to_hashes(v, using) }
         when Hash
           value.transform_values do |v|
-            convert_parameters_to_hashes(v)
+            convert_parameters_to_hashes(v, using)
           end.with_indifferent_access
         when Parameters
-          value.to_h
+          value.send(using)
         else
           value
         end
