@@ -8,14 +8,14 @@ Description:
 
     As a special case, specifying 'password:digest' will generate a
     password_digest field of string type, and configure your generated model and
-    tests for use with ActiveModel has_secure_password (assuming the default ORM
+    tests for use with Active Model has_secure_password (assuming the default ORM
     and test framework are being used).
 
     You don't have to think up every attribute up front, but it helps to
     sketch out a few so you can start working with the model immediately.
 
     This generator invokes your configured ORM and test framework, which
-    defaults to ActiveRecord and TestUnit.
+    defaults to Active Record and TestUnit.
 
     Finally, if --parent option is given, it's used as superclass of the
     created model. This allows you create Single Table Inheritance models.
@@ -91,7 +91,7 @@ Available field types:
 Examples:
     `rails generate model account`
 
-        For ActiveRecord and TestUnit it creates:
+        For Active Record and TestUnit it creates:
 
             Model:      app/models/account.rb
             Test:       test/models/account_test.rb
@@ -104,7 +104,7 @@ Examples:
 
     `rails generate model admin/account`
 
-        For ActiveRecord and TestUnit it creates:
+        For Active Record and TestUnit it creates:
 
             Module:     app/models/admin.rb
             Model:      app/models/admin/account.rb

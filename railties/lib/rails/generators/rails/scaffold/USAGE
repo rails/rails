@@ -16,7 +16,7 @@ Description:
 
     As a special case, specifying 'password:digest' will generate a
     password_digest field of string type, and configure your generated model,
-    controller, views, and test suite for use with ActiveModel
+    controller, views, and test suite for use with Active Model
     has_secure_password (assuming they are using Rails defaults).
 
     Timestamps are added by default, so you don't have to specify them by hand
