@@ -272,7 +272,7 @@ module ActiveRecord
 
     # Returns size of the records.
     def size
-      loaded? ? @records.length : count(:all)
+      loaded? ? @records.length : except(:order).count(:all)
     end
 
     # Returns true if there are no records.

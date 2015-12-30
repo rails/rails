@@ -1166,6 +1166,15 @@ class RelationTest < ActiveRecord::TestCase
     assert_no_queries { assert_equal 0, posts.size }
   end
 
+  def test_size_with_group_and_order
+    posts = Post.select("author_id")
+              .group("author_id")
+              .order("author_count DESC")
+
+    expected = { 0 => 1, 1 => 5, 2 => 3, 3 => 2 }
+    assert_queries(1) { assert_equal expected, posts.size }
+  end
+
   def test_empty_with_zero_limit
     posts = Post.limit(0)
 
