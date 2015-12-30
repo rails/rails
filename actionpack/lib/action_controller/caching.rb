@@ -1,3 +1,4 @@
+require 'action_dispatch/caching/fragments'
 require 'fileutils'
 require 'uri'
 
@@ -26,10 +27,6 @@ module ActionController
     extend ActiveSupport::Concern
     extend ActiveSupport::Autoload
 
-    eager_autoload do
-      autoload :Fragments
-    end
-
     module ConfigMethods
       def cache_store
         config.cache_store
@@ -48,7 +45,7 @@ module ActionController
     include AbstractController::Callbacks
 
     include ConfigMethods
-    include Fragments
+    include ActionDispatch::Caching::Fragments
 
     included do
       extend ConfigMethods
