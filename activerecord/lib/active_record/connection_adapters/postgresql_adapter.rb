@@ -390,12 +390,12 @@ module ActiveRecord
         "average" => "avg",
       }
 
-      protected
+      # Returns the version of the connected PostgreSQL server.
+      def postgresql_version
+        @connection.server_version
+      end
 
-        # Returns the version of the connected PostgreSQL server.
-        def postgresql_version
-          @connection.server_version
-        end
+      protected
 
         # See http://www.postgresql.org/docs/current/static/errcodes-appendix.html
         FOREIGN_KEY_VIOLATION = "23503"
