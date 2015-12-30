@@ -1,6 +1,7 @@
 require 'fileutils'
 require 'abstract_unit'
-# require 'lib/controller/fake_models'
+require 'mailers/base_mailer'
+require 'byebug'
 
 CACHE_DIR = 'test_cache'
 # Don't change '/../temp/' cavalierly or you might hose something you don't want hosed
@@ -52,6 +53,7 @@ class FragmentCachingTest < BaseCachingTest
 
   def test_fragment_exist_with_caching_enabled
     @store.write('views/name', 'value')
+    byebug
     assert @mailer.fragment_exist?('name')
     assert !@mailer.fragment_exist?('other_name')
   end
@@ -122,111 +124,99 @@ class FragmentCachingTest < BaseCachingTest
   end
 end
 
-# class FunctionalFragmentCachingTest < ActionController::TestCase
-#   def setup
-#     super
-#     @store = ActiveSupport::Cache::MemoryStore.new
-#     @controller = FunctionalCachingController.new
-#     @controller.perform_caching = true
-#     @controller.cache_store = @store
-#   end
+class FunctionalFragmentCachingTest < BaseCachingTest
+  def test_fragment_caching
+    email = BaseMailer.welcome
+    expected_body = "Welcome"
+    assert_equal expected_body, email.body.encoded
 
-#   def test_fragment_caching
-#     get :fragment_cached
-#     assert_response :success
-#     expected_body = <<-CACHED
-# Hello
-# This bit's fragment cached
-# Ciao
-# CACHED
-#     assert_equal expected_body, @response.body
+    byebug
+    assert_equal "Welcome",
+      @store.read("views/test.host/functional_caching/fragment_cached/#{template_digest("functional_caching/fragment_cached")}")
+  end
 
-#     assert_equal "This bit's fragment cached",
-#       @store.read("views/test.host/functional_caching/fragment_cached/#{template_digest("functional_caching/fragment_cached")}")
-#   end
+  # def test_fragment_caching_in_partials
+  #   get :html_fragment_cached_with_partial
+  #   assert_response :success
+  #   assert_match(/Old fragment caching in a partial/, @response.body)
 
-#   def test_fragment_caching_in_partials
-#     get :html_fragment_cached_with_partial
-#     assert_response :success
-#     assert_match(/Old fragment caching in a partial/, @response.body)
+  #   assert_match("Old fragment caching in a partial",
+  #     @store.read("views/test.host/functional_caching/html_fragment_cached_with_partial/#{template_digest("functional_caching/_partial")}"))
+  # end
 
-#     assert_match("Old fragment caching in a partial",
-#       @store.read("views/test.host/functional_caching/html_fragment_cached_with_partial/#{template_digest("functional_caching/_partial")}"))
-#   end
+  # def test_skipping_fragment_cache_digesting
+  #   get :fragment_cached_without_digest, format: "html"
+  #   assert_response :success
+  #   expected_body = "<body>\n<p>ERB</p>\n</body>\n"
 
-#   def test_skipping_fragment_cache_digesting
-#     get :fragment_cached_without_digest, format: "html"
-#     assert_response :success
-#     expected_body = "<body>\n<p>ERB</p>\n</body>\n"
+  #   assert_equal expected_body, @response.body
+  #   assert_equal "<p>ERB</p>", @store.read("views/nodigest")
+  # end
 
-#     assert_equal expected_body, @response.body
-#     assert_equal "<p>ERB</p>", @store.read("views/nodigest")
-#   end
+  # def test_render_inline_before_fragment_caching
+  #   get :inline_fragment_cached
+  #   assert_response :success
+  #   assert_match(/Some inline content/, @response.body)
+  #   assert_match(/Some cached content/, @response.body)
+  #   assert_match("Some cached content",
+  #     @store.read("views/test.host/functional_caching/inline_fragment_cached/#{template_digest("functional_caching/inline_fragment_cached")}"))
+  # end
 
-#   def test_render_inline_before_fragment_caching
-#     get :inline_fragment_cached
-#     assert_response :success
-#     assert_match(/Some inline content/, @response.body)
-#     assert_match(/Some cached content/, @response.body)
-#     assert_match("Some cached content",
-#       @store.read("views/test.host/functional_caching/inline_fragment_cached/#{template_digest("functional_caching/inline_fragment_cached")}"))
-#   end
+  # def test_fragment_cache_instrumentation
+  #   payload = nil
 
-#   def test_fragment_cache_instrumentation
-#     payload = nil
+  #   subscriber = proc do |*args|
+  #     event = ActiveSupport::Notifications::Event.new(*args)
+  #     payload = event.payload
+  #   end
 
-#     subscriber = proc do |*args|
-#       event = ActiveSupport::Notifications::Event.new(*args)
-#       payload = event.payload
-#     end
+  #   ActiveSupport::Notifications.subscribed(subscriber, "read_fragment.action_controller") do
+  #     get :inline_fragment_cached
+  #   end
 
-#     ActiveSupport::Notifications.subscribed(subscriber, "read_fragment.action_controller") do
-#       get :inline_fragment_cached
-#     end
+  #   assert_equal "functional_caching", payload[:controller]
+  #   assert_equal "inline_fragment_cached", payload[:action]
+  # end
 
-#     assert_equal "functional_caching", payload[:controller]
-#     assert_equal "inline_fragment_cached", payload[:action]
-#   end
+  # def test_html_formatted_fragment_caching
+  #   get :formatted_fragment_cached, format: "html"
+  #   assert_response :success
+  #   expected_body = "<body>\n<p>ERB</p>\n</body>\n"
 
-#   def test_html_formatted_fragment_caching
-#     get :formatted_fragment_cached, format: "html"
-#     assert_response :success
-#     expected_body = "<body>\n<p>ERB</p>\n</body>\n"
+  #   assert_equal expected_body, @response.body
 
-#     assert_equal expected_body, @response.body
+  #   assert_equal "<p>ERB</p>",
+  #     @store.read("views/test.host/functional_caching/formatted_fragment_cached/#{template_digest("functional_caching/formatted_fragment_cached")}")
+  # end
 
-#     assert_equal "<p>ERB</p>",
-#       @store.read("views/test.host/functional_caching/formatted_fragment_cached/#{template_digest("functional_caching/formatted_fragment_cached")}")
-#   end
+  # def test_xml_formatted_fragment_caching
+  #   get :formatted_fragment_cached, format: "xml"
+  #   assert_response :success
+  #   expected_body = "<body>\n  <p>Builder</p>\n</body>\n"
 
-#   def test_xml_formatted_fragment_caching
-#     get :formatted_fragment_cached, format: "xml"
-#     assert_response :success
-#     expected_body = "<body>\n  <p>Builder</p>\n</body>\n"
+  #   assert_equal expected_body, @response.body
 
-#     assert_equal expected_body, @response.body
-
-#     assert_equal "  <p>Builder</p>\n",
-#       @store.read("views/test.host/functional_caching/formatted_fragment_cached/#{template_digest("functional_caching/formatted_fragment_cached")}")
-#   end
+  #   assert_equal "  <p>Builder</p>\n",
+  #     @store.read("views/test.host/functional_caching/formatted_fragment_cached/#{template_digest("functional_caching/formatted_fragment_cached")}")
+  # end
 
 
-#   def test_fragment_caching_with_variant
-#     get :formatted_fragment_cached_with_variant, format: "html", params: { v: :phone }
-#     assert_response :success
-#     expected_body = "<body>\n<p>PHONE</p>\n</body>\n"
+  # def test_fragment_caching_with_variant
+  #   get :formatted_fragment_cached_with_variant, format: "html", params: { v: :phone }
+  #   assert_response :success
+  #   expected_body = "<body>\n<p>PHONE</p>\n</body>\n"
 
-#     assert_equal expected_body, @response.body
+  #   assert_equal expected_body, @response.body
 
-#     assert_equal "<p>PHONE</p>",
-#       @store.read("views/test.host/functional_caching/formatted_fragment_cached_with_variant/#{template_digest("functional_caching/formatted_fragment_cached_with_variant")}")
-#   end
+  #   assert_equal "<p>PHONE</p>",
+  #     @store.read("views/test.host/functional_caching/formatted_fragment_cached_with_variant/#{template_digest("functional_caching/formatted_fragment_cached_with_variant")}")
+  # end
 
-#   private
-#     def template_digest(name)
-#       ActionView::Digestor.digest(name: name, finder: @controller.lookup_context)
-#     end
-# end
+  private
+    def template_digest(name)
+      ActionView::Digestor.digest(name: name, finder: @mailer.lookup_context)
+    end
+end
 
 class CacheHelperOutputBufferTest < BaseCachingTest
 

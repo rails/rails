@@ -19,8 +19,8 @@ class BaseMailer < ActionMailer::Base
     mail(template_name: "welcome", template_path: path)
   end
 
-  def welcome_with_random_string(state)
-    mail(template_name: "welcome_with_#{state}_string", template_path: "caching")
+  def welcome_with_cache
+    mail(template_name: "welcome_with_cache", template_path: "caching")
   end
 
   def html_only(hash = {})
