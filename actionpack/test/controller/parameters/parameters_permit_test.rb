@@ -294,8 +294,8 @@ class ParametersPermitTest < ActiveSupport::TestCase
   end
 
   test "to_unsafe_h returns unfiltered params" do
-    assert @params.to_h.is_a? ActiveSupport::HashWithIndifferentAccess
-    assert_not @params.to_h.is_a? ActionController::Parameters
+    assert @params.to_unsafe_h.is_a? ActiveSupport::HashWithIndifferentAccess
+    assert_not @params.to_unsafe_h.is_a? ActionController::Parameters
   end
 
   test "to_h only deep dups Ruby collections" do
