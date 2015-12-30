@@ -68,13 +68,13 @@ module Rails
       #
       # For example, if the user invoke the controller generator as:
       #
-      #   rails generate controller Account --test-framework=test_unit
+      #   rails generate controller Account --test-framework=minitest
       #
       # The controller generator will then try to invoke the following generators:
       #
-      #   "rails:test_unit", "test_unit:controller", "test_unit"
+      #   "rails:minitest", "minitest:controller", "minitest"
       #
-      # Notice that "rails:generators:test_unit" could be loaded as well, what
+      # Notice that "rails:generators:minitest" could be loaded as well, what
       # Rails looks for is the first and last parts of the namespace. This is what
       # allows any test framework to hook into Rails as long as it provides any
       # of the hooks above.
@@ -92,9 +92,9 @@ module Rails
       #     hook_for :test_framework
       #   end
       #
-      # The lookup in this case for test_unit as input is:
+      # The lookup in this case for minitest as input is:
       #
-      #   "test_unit:awesome", "test_unit"
+      #   "minitest:awesome", "minitest"
       #
       # Which is not the desired lookup. You can change it by providing the
       # :as option:
@@ -105,7 +105,7 @@ module Rails
       #
       # And now it will look up at:
       #
-      #   "test_unit:controller", "test_unit"
+      #   "minitest:controller", "minitest"
       #
       # Similarly, if you want it to also look up in the rails namespace, you
       # just need to provide the :in value:
@@ -116,7 +116,7 @@ module Rails
       #
       # And the lookup is exactly the same as previously:
       #
-      #   "rails:test_unit", "test_unit:controller", "test_unit"
+      #   "rails:minitest", "minitest:controller", "minitest"
       #
       # ==== Switches
       #

@@ -485,12 +485,12 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_tests_are_removed_from_frameworks_if_skip_test_is_given
     run_generator [destination_root, "--skip-test"]
-    assert_file "config/application.rb", /#\s+require\s+["']rails\/test_unit\/railtie["']/
+    assert_file "config/application.rb", /#\s+require\s+["']rails\/minitest\/railtie["']/
   end
 
   def test_no_active_record_or_tests_if_skips_given
     run_generator [destination_root, "--skip-test", "--skip-active-record"]
-    assert_file "config/application.rb", /#\s+require\s+["']rails\/test_unit\/railtie["']/
+    assert_file "config/application.rb", /#\s+require\s+["']rails\/minitest\/railtie["']/
     assert_file "config/application.rb", /#\s+require\s+["']active_record\/railtie["']/
     assert_file "config/application.rb", /\s+require\s+["']active_job\/railtie["']/
   end

@@ -1,6 +1,6 @@
-require 'rails/generators/test_unit'
+require 'rails/generators/minitest'
 
-module TestUnit # :nodoc:
+module Minitest # :nodoc:
   module Generators # :nodoc:
     class GeneratorGenerator < Base # :nodoc:
       check_class_collision suffix: "GeneratorTest"

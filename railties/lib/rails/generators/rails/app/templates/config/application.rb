@@ -13,7 +13,7 @@ require "action_controller/railtie"
 require "action_view/railtie"
 <%= comment_if :skip_action_cable %>require "action_cable/engine"
 <%= comment_if :skip_sprockets %>require "sprockets/railtie"
-<%= comment_if :skip_test %>require "rails/test_unit/railtie"
+<%= comment_if :skip_test %>require "rails/minitest/railtie"
 <% end -%>
 
 # Require the gems listed in Gemfile, including any gems

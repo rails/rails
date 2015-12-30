@@ -65,7 +65,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
       assert_match(/require.+test\/dummy\/config\/environment/, content)
       assert_match(/ActiveRecord::Migrator\.migrations_paths.+test\/dummy\/db\/migrate/, content)
       assert_match(/Minitest\.backtrace_filter = Minitest::BacktraceFilter\.new/, content)
-      assert_match(/Rails::TestUnitReporter\.executable = 'bin\/test'/, content)
+      assert_match(/Rails::MinitestReporter\.executable = 'bin\/test'/, content)
     end
     assert_file "test/bukkits_test.rb", /assert_kind_of Module, Bukkits/
     assert_file 'bin/test'
@@ -318,7 +318,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
       assert_match(/ActiveRecord::Migrator\.migrations_paths.+\.\.\/test\/dummy\/db\/migrate/, content)
       assert_match(/ActiveRecord::Migrator\.migrations_paths.+<<.+\.\.\/db\/migrate/, content)
       assert_match(/ActionDispatch::IntegrationTest\.fixture_path = ActiveSupport::TestCase\.fixture_pat/, content)
-      assert_no_match(/Rails::TestUnitReporter\.executable = 'bin\/test'/, content)
+      assert_no_match(/Rails::MinitestReporter\.executable = 'bin\/test'/, content)
     end
     assert_no_file 'bin/test'
   end

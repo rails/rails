@@ -147,7 +147,7 @@ $ bin/rails generate controller Greetings hello
      invoke  erb
      create    app/views/greetings
      create    app/views/greetings/hello.html.erb
-     invoke  test_unit
+     invoke  minitest
      create    test/controllers/greetings_controller_test.rb
      invoke  helper
      create    app/helpers/greetings_helper.rb
@@ -218,7 +218,7 @@ $ bin/rails generate scaffold HighScore game:string score:integer
     invoke  active_record
     create    db/migrate/20130717151933_create_high_scores.rb
     create    app/models/high_score.rb
-    invoke    test_unit
+    invoke    minitest
     create      test/models/high_score_test.rb
     create      test/fixtures/high_scores.yml
     invoke  resource_route
@@ -232,7 +232,7 @@ $ bin/rails generate scaffold HighScore game:string score:integer
     create      app/views/high_scores/show.html.erb
     create      app/views/high_scores/new.html.erb
     create      app/views/high_scores/_form.html.erb
-    invoke    test_unit
+    invoke    minitest
     create      test/controllers/high_scores_controller_test.rb
     invoke    helper
     create      app/helpers/high_scores_helper.rb
@@ -361,7 +361,7 @@ $ bin/rails generate model Oops
       invoke  active_record
       create    db/migrate/20120528062523_create_oops.rb
       create    app/models/oops.rb
-      invoke    test_unit
+      invoke    minitest
       create      test/models/oops_test.rb
       create      test/fixtures/oops.yml
 ```
@@ -370,7 +370,7 @@ $ bin/rails destroy model Oops
       invoke  active_record
       remove    db/migrate/20120528062523_create_oops.rb
       remove    app/models/oops.rb
-      invoke    test_unit
+      invoke    minitest
       remove      test/models/oops_test.rb
       remove      test/fixtures/oops.yml
 ```

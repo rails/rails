@@ -960,7 +960,7 @@ YAML
 
       add_to_config <<-RUBY
         config.generators do |g|
-          g.test_framework  :test_unit
+          g.test_framework  :minitest
         end
       RUBY
 
@@ -969,7 +969,7 @@ YAML
       app_generators = Rails.application.config.generators.options[:rails]
       assert_equal :mongoid  , app_generators[:orm]
       assert_equal :liquid   , app_generators[:template_engine]
-      assert_equal :test_unit, app_generators[:test_framework]
+      assert_equal :minitest, app_generators[:test_framework]
 
       generators = Bukkits::Engine.config.generators.options[:rails]
       assert_equal :data_mapper, generators[:orm]
@@ -993,7 +993,7 @@ YAML
       assert_equal :rspec        , generators[:test_framework]
 
       app_generators = Rails.application.config.generators.options[:rails]
-      assert_equal :test_unit    , app_generators[:test_framework]
+      assert_equal :minitest    , app_generators[:test_framework]
     end
 
     test "do not create table_name_prefix method if it already exists" do

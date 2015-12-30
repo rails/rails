@@ -1,6 +1,6 @@
 gem 'minitest'
 require 'minitest'
-require 'rails/test_unit/minitest_plugin'
+require 'rails/minitest/minitest_plugin'
 
 task default: :test
 

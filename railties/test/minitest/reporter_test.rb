@@ -1,22 +1,22 @@
 require 'abstract_unit'
-require 'rails/test_unit/reporter'
+require 'rails/minitest/reporter'
 require 'minitest/mock'
 
-class TestUnitReporterTest < ActiveSupport::TestCase
+class MinitestReporterTest < ActiveSupport::TestCase
   class ExampleTest < Minitest::Test
     def woot; end
   end
 
   setup do
     @output = StringIO.new
-    @reporter = Rails::TestUnitReporter.new @output, output_inline: true
+    @reporter = Rails::MinitestReporter.new @output, output_inline: true
   end
 
   test "prints rerun snippet to run a single failed test" do
     @reporter.record(failed_test)
     @reporter.report
 
-    assert_match %r{^bin/rails test .*test/test_unit/reporter_test.rb:\d+$}, @output.string
+    assert_match %r{^bin/rails test .*test/minitest/reporter_test.rb:\d+$}, @output.string
     assert_rerun_snippet_count 1
   end
 
@@ -38,7 +38,7 @@ class TestUnitReporterTest < ActiveSupport::TestCase
   end
 
   test "prints rerun snippet for skipped tests if run in verbose mode" do
-    verbose = Rails::TestUnitReporter.new @output, verbose: true
+    verbose = Rails::MinitestReporter.new @output, verbose: true
     verbose.record(skipped_test)
     verbose.report
 
@@ -46,15 +46,15 @@ class TestUnitReporterTest < ActiveSupport::TestCase
   end
 
   test "allows to customize the executable in the rerun snippet" do
-    original_executable = Rails::TestUnitReporter.executable
+    original_executable = Rails::MinitestReporter.executable
     begin
-      Rails::TestUnitReporter.executable = "bin/test"
+      Rails::MinitestReporter.executable = "bin/test"
       @reporter.record(failed_test)
       @reporter.report
 
-      assert_match %r{^bin/test .*test/test_unit/reporter_test.rb:\d+$}, @output.string
+      assert_match %r{^bin/test .*test/minitest/reporter_test.rb:\d+$}, @output.string
     ensure
-      Rails::TestUnitReporter.executable = original_executable
+      Rails::MinitestReporter.executable = original_executable
     end
   end
 
@@ -62,7 +62,7 @@ class TestUnitReporterTest < ActiveSupport::TestCase
     @reporter.record(failed_test)
     @reporter.report
 
-    expect = %r{\AF\n\nFailure:\nTestUnitReporterTest::ExampleTest#woot:\nboo\n\nbin/rails test test/test_unit/reporter_test.rb:\d+\n\n\z}
+    expect = %r{\AF\n\nFailure:\nMinitestReporterTest::ExampleTest#woot:\nboo\n\nbin/rails test test/minitest/reporter_test.rb:\d+\n\n\z}
     assert_match expect, @output.string
   end
 
@@ -70,16 +70,16 @@ class TestUnitReporterTest < ActiveSupport::TestCase
     @reporter.record(errored_test)
     @reporter.report
 
-    expect = %r{\AE\n\nError:\nTestUnitReporterTest::ExampleTest#woot:\nArgumentError: wups\n    No backtrace\n\nbin/rails test .*test/test_unit/reporter_test.rb:\d+\n\n\z}
+    expect = %r{\AE\n\nError:\nMinitestReporterTest::ExampleTest#woot:\nArgumentError: wups\n    No backtrace\n\nbin/rails test .*test/minitest/reporter_test.rb:\d+\n\n\z}
     assert_match expect, @output.string
   end
 
   test "outputs skipped tests inline if verbose" do
-    verbose = Rails::TestUnitReporter.new @output, verbose: true, output_inline: true
+    verbose = Rails::MinitestReporter.new @output, verbose: true, output_inline: true
     verbose.record(skipped_test)
     verbose.report
 
-    expect = %r{\ATestUnitReporterTest::ExampleTest#woot = 10\.00 s = S\n\n\nSkipped:\nTestUnitReporterTest::ExampleTest#woot:\nskipchurches, misstemples\n\nbin/rails test test/test_unit/reporter_test.rb:\d+\n\n\z}
+    expect = %r{\AMinitestReporterTest::ExampleTest#woot = 10\.00 s = S\n\n\nSkipped:\nMinitestReporterTest::ExampleTest#woot:\nskipchurches, misstemples\n\nbin/rails test test/minitest/reporter_test.rb:\d+\n\n\z}
     assert_match expect, @output.string
   end
 
@@ -91,7 +91,7 @@ class TestUnitReporterTest < ActiveSupport::TestCase
   end
 
   test "fail fast interrupts run on failure" do
-    fail_fast = Rails::TestUnitReporter.new @output, fail_fast: true
+    fail_fast = Rails::MinitestReporter.new @output, fail_fast: true
     interrupt_raised = false
 
     # Minitest passes through Interrupt, catch it manually.
@@ -105,7 +105,7 @@ class TestUnitReporterTest < ActiveSupport::TestCase
   end
 
   test "fail fast does not interrupt run errors or skips" do
-    fail_fast = Rails::TestUnitReporter.new @output, fail_fast: true
+    fail_fast = Rails::MinitestReporter.new @output, fail_fast: true
 
     fail_fast.record(errored_test)
     assert_no_match 'Failed tests:', @output.string
@@ -116,7 +116,7 @@ class TestUnitReporterTest < ActiveSupport::TestCase
 
   test "outputs colored passing results" do
     @output.stub(:tty?, true) do
-      colored = Rails::TestUnitReporter.new @output, color: true, output_inline: true
+      colored = Rails::MinitestReporter.new @output, color: true, output_inline: true
       colored.record(passing_test)
 
       expect = %r{\e\[32m\.\e\[0m}
@@ -126,7 +126,7 @@ class TestUnitReporterTest < ActiveSupport::TestCase
 
   test "outputs colored skipped results" do
     @output.stub(:tty?, true) do
-      colored = Rails::TestUnitReporter.new @output, color: true, output_inline: true
+      colored = Rails::MinitestReporter.new @output, color: true, output_inline: true
       colored.record(skipped_test)
 
       expect = %r{\e\[33mS\e\[0m}
@@ -136,10 +136,10 @@ class TestUnitReporterTest < ActiveSupport::TestCase
 
   test "outputs colored failed results" do
     @output.stub(:tty?, true) do
-      colored = Rails::TestUnitReporter.new @output, color: true, output_inline: true
+      colored = Rails::MinitestReporter.new @output, color: true, output_inline: true
       colored.record(errored_test)
 
-      expected = %r{\e\[31mE\e\[0m\n\n\e\[31mError:\nTestUnitReporterTest::ExampleTest#woot:\nArgumentError: wups\n    No backtrace\n\e\[0m}
+      expected = %r{\e\[31mE\e\[0m\n\n\e\[31mError:\nMinitestReporterTest::ExampleTest#woot:\nArgumentError: wups\n    No backtrace\n\e\[0m}
       assert_match expected, @output.string
     end
   end

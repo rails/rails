@@ -91,7 +91,7 @@ Available field types:
 Examples:
     `rails generate model account`
 
-        For Active Record and TestUnit it creates:
+        For Active Record and Minitest it creates:
 
             Model:      app/models/account.rb
             Test:       test/models/account_test.rb
@@ -104,7 +104,7 @@ Examples:
 
     `rails generate model admin/account`
 
-        For Active Record and TestUnit it creates:
+        For Active Record and Minitest it creates:
 
             Module:     app/models/admin.rb
             Model:      app/models/admin/account.rb

@@ -1,6 +1,6 @@
-require 'rails/generators/test_unit'
+require 'rails/generators/minitest'
 
-module TestUnit # :nodoc:
+module Minitest # :nodoc:
   module Generators # :nodoc:
     class HelperGenerator < Base # :nodoc:
       # Rails does not generate anything here.

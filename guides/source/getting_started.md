@@ -259,7 +259,7 @@ create  app/controllers/welcome_controller.rb
 invoke  erb
 create    app/views/welcome
 create    app/views/welcome/index.html.erb
-invoke  test_unit
+invoke  minitest
 create    test/controllers/welcome_controller_test.rb
 invoke  helper
 create    app/helpers/welcome_helper.rb

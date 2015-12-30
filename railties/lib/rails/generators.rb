@@ -38,7 +38,7 @@ module Rails
         test_framework: '-t'
       },
 
-      test_unit: {
+      minitest: {
         fixture_replacement: '-r',
       }
     }
@@ -92,13 +92,13 @@ module Rails
     # they can add a fallback.
     #
     # For example, shoulda is considered a test_framework and is an extension
-    # of test_unit. However, most part of shoulda generators are similar to
-    # test_unit ones.
+    # of minitest. However, most part of shoulda generators are similar to
+    # minitest ones.
     #
-    # Shoulda then can tell generators to search for test_unit generators when
+    # Shoulda then can tell generators to search for minitest generators when
     # some of them are not available by adding a fallback:
     #
-    #   Rails::Generators.fallbacks[:shoulda] = :test_unit
+    #   Rails::Generators.fallbacks[:shoulda] = :minitest
     def self.fallbacks
       @fallbacks ||= {}
     end

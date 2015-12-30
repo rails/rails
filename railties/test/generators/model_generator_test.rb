@@ -9,7 +9,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
   def test_help_shows_invoked_generators_options
     content = run_generator ["--help"]
     assert_match(/ActiveRecord options:/, content)
-    assert_match(/TestUnit options:/, content)
+    assert_match(/Minitest options:/, content)
   end
 
   def test_model_with_missing_attribute_type

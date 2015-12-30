@@ -1,7 +1,7 @@
-require 'rails/generators/test_unit'
+require 'rails/generators/minitest'
 require 'rails/generators/resource_helpers'
 
-module TestUnit # :nodoc:
+module Minitest # :nodoc:
   module Generators # :nodoc:
     class ScaffoldGenerator < Base # :nodoc:
       include Rails::Generators::ResourceHelpers

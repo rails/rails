@@ -2,7 +2,7 @@ require "active_support/core_ext/class/attribute"
 require "minitest"
 
 module Rails
-  class TestUnitReporter < Minitest::StatisticsReporter
+  class MinitestReporter < Minitest::StatisticsReporter
     class_attribute :executable
     self.executable = "bin/rails test"
 
