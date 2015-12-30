@@ -19,7 +19,7 @@ require 'models/car'
 require 'models/tyre'
 
 class FinderTest < ActiveRecord::TestCase
-  fixtures :companies, :topics, :entrants, :developers, :developers_projects, :posts, :comments, :accounts, :authors, :customers, :categories, :categorizations, :cars
+  fixtures :companies, :topics, :entrants, :developers, :developers_projects, :posts, :comments, :accounts, :authors, :author_addresses, :customers, :categories, :categorizations, :cars
 
   def test_find_by_id_with_hash
     assert_raises(ActiveRecord::StatementInvalid) do
@@ -1009,10 +1009,13 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_find_with_order_on_included_associations_with_construct_finder_sql_for_association_limiting_and_is_distinct
-    assert_equal 2, Post.includes(authors: :author_address).order('author_addresses.id DESC ').limit(2).to_a.size
+    assert_equal 2, Post.includes(authors: :author_address).
+      where.not(author_addresses: { id: nil }).
+      order('author_addresses.id DESC').limit(2).to_a.size
 
     assert_equal 3, Post.includes(author: :author_address, authors: :author_address).
-                              order('author_addresses_authors.id DESC ').limit(3).to_a.size
+      where.not(author_addresses_authors: { id: nil }).
+      order('author_addresses_authors.id DESC').limit(3).to_a.size
   end
 
   def test_find_with_nil_inside_set_passed_for_one_attribute
