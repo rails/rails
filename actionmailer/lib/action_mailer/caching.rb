@@ -2,6 +2,7 @@ require 'action_dispatch/caching'
 
 module ActionMailer
   module Caching
+    extend ActiveSupport::Autoload
     extend ActiveSupport::Concern
     included do
       include ActionDispatch::Caching
