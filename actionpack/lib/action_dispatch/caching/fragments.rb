@@ -1,4 +1,4 @@
-module ActionMailer
+module ActionDispatch
   module Caching
     # Fragment caching is used for caching various blocks within
     # views without caching the entire action as a whole. This is

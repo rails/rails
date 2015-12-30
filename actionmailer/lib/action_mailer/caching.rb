@@ -1,13 +1,10 @@
 require 'active_support/descendants_tracker'
+require 'action_dispatch/caching/fragments'
 
 module ActionMailer
   module Caching
     extend ActiveSupport::Concern
     extend ActiveSupport::Autoload
-
-    eager_autoload do
-      autoload :Fragments
-    end
 
     module ConfigMethods
       def cache_store
@@ -26,7 +23,7 @@ module ActionMailer
 
     include AbstractController::Helpers
     include ConfigMethods
-    include Fragments
+    include ActionDispatch::Caching::Fragments
 
     included do
       extend ConfigMethods
