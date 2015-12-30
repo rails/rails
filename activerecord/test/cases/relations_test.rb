@@ -1206,6 +1206,17 @@ class RelationTest < ActiveRecord::TestCase
     assert ! no_posts.loaded?
   end
 
+  def test_empty_complex_chained_relations_with_group_order_and_count
+    posts = Post.select("author_id, count(author_id) AS author_count")
+      .order("author_count DESC")
+      .group("author_id")
+
+    assert_queries(1) { assert_equal false, posts.empty? }
+
+    no_posts = posts.where(title: "")
+    assert_queries(1) { assert_equal true, no_posts.empty? }
+  end
+
   def test_any
     posts = Post.all
 

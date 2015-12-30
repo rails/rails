@@ -282,7 +282,7 @@ module ActiveRecord
       if limit_value == 0
         true
       else
-        c = count(:all)
+        c = except(:order).count(:all)
         c.respond_to?(:zero?) ? c.zero? : c.empty?
       end
     end
