@@ -82,6 +82,9 @@ Please refer to the [Changelog][railties] for detailed changes.
 *   Removed the documentation tasks `doc:app`, `doc:rails`, and `doc:guides`.
     ([commit](https://github.com/rails/rails/commit/cd7cc5254b090ccbb84dcee4408a5acede25ef2a))
 
+*   Removed `Rack::ContentLength` middleware from the default
+    stack. ([Commit](https://github.com/rails/rails/commit/56903585a099ab67a7acfaaef0a02db8fe80c450))
+
 ### Deprecations
 
 *   Deprecated `config.static_cache_control` in favor of
@@ -106,9 +109,6 @@ Please refer to the [Changelog][railties] for detailed changes.
 *   Added `bin/rails initializers` task to print out all defined initializers in
     the order they are invoked by Rails.
     ([Pull Request](https://github.com/rails/rails/pull/19323))
-
-*   Removed `Rack::ContentLength` middleware from the default
-    stack. ([Commit](https://github.com/rails/rails/commit/56903585a099ab67a7acfaaef0a02db8fe80c450))
 
 *   Added `bin/rails dev:cache` to enable or disable caching in development mode.
     ([Pull Request](https://github.com/rails/rails/pull/20961))
