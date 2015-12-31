@@ -654,7 +654,7 @@ The easiest way to see functional tests in action is to generate a controller
 scaffold:
 
 ```bash
-$ bin/rails generate scaffold_controller article title:string body:test
+$ bin/rails generate scaffold_controller article title:string body:text
 ...
 create  app/controllers/articles_controller.rb
 ...
