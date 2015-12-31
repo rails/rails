@@ -371,6 +371,12 @@ module RoutingTestHelpers
   end
 end
 
+class MetalRenderingController < ActionController::Metal
+  include AbstractController::Rendering
+  include ActionController::Rendering
+  include ActionController::Renderers
+end
+
 class ResourcesController < ActionController::Base
   def index() head :ok end
   alias_method :show, :index
