@@ -8,12 +8,15 @@ module ActionMailer
       include ActionDispatch::Caching
     end
 
-    def perform_caching
-      Base.perform_caching
+    def instrument_payload(key)
+      {
+        mailer: mailer_name,
+        key: key
+      }
     end
 
-    def controller_name
-      "ActionMailer"
+    def instrument_name
+      "action_mailer"
     end
   end
 end
