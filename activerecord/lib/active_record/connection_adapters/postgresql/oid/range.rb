@@ -6,6 +6,7 @@ module ActiveRecord
       module OID # :nodoc:
         class Range < Type::Value # :nodoc:
           attr_reader :subtype, :type
+          attr_writer :subtype
 
           def initialize(subtype, type = :range)
             @subtype = subtype
@@ -16,18 +17,27 @@ module ActiveRecord
             value.inspect.gsub('Infinity', '::Float::INFINITY')
           end
 
-          def cast_value(value)
-            return if value == 'empty'
+          def deserialize(value)
+            return if value.nil? || value == 'empty'
             return value if value.is_a?(::Range)
 
             extracted = extract_bounds(value)
-            from = type_cast_single extracted[:from]
-            to = type_cast_single extracted[:to]
+            from = type_cast_single(extracted[:from], :deserialize)
+            to = type_cast_single(extracted[:to], :deserialize)
 
             if !infinity?(from) && extracted[:exclude_start]
               raise ArgumentError, "The Ruby Range object does not support excluding the beginning of a Range. (unsupported value: '#{value}')"
             end
             ::Range.new(from, to, extracted[:exclude_end])
+          end
+
+          def cast(value)
+            return deserialize(value) unless value.is_a?(::Range)
+
+            from = type_cast_single(value.begin, :cast)
+            to = type_cast_single(value.end, :cast)
+
+            ::Range.new(from, to, value.exclude_end?)
           end
 
           def serialize(value)
@@ -48,8 +58,8 @@ module ActiveRecord
 
           private
 
-          def type_cast_single(value)
-            infinity?(value) ? value : @subtype.deserialize(value)
+          def type_cast_single(value, method)
+            infinity?(value) ? value : @subtype.send(method, value)
           end
 
           def type_cast_single_for_database(value)
