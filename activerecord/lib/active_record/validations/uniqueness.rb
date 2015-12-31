@@ -73,15 +73,18 @@ module ActiveRecord
           value = value.to_s[0, column.limit]
         end
 
-        value = Arel::Nodes::Quoted.new(value)
-
         comparison = if !options[:case_sensitive] && !value.nil?
           # will use SQL LOWER function before comparison, unless it detects a case insensitive collation
           klass.connection.case_insensitive_comparison(table, attribute, column, value)
         else
           klass.connection.case_sensitive_comparison(table, attribute, column, value)
         end
-        klass.unscoped.where(comparison)
+        if value.nil?
+          klass.unscoped.where(comparison)
+        else
+          bind = Relation::QueryAttribute.new(attribute.to_s, value, Type::Value.new)
+          klass.unscoped.where(comparison, bind)
+        end
       rescue RangeError
         klass.none
       end
