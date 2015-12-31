@@ -1,3 +1,11 @@
+*   Fix `collection_radio_buttons` hidden_field name and make it appear
+    before the actual input radio tags to make the real value override
+    the hidden when passed.
+
+    Fixes #22773
+
+    *Santiago Pastorino*
+
 *   `ActionView::TestCase::Controller#params` returns an instance of
     `ActionController::Parameters`.
 

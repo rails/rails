@@ -1600,11 +1600,11 @@ class FormHelperTest < ActionView::TestCase
     end
 
     expected = whole_form("/posts", "new_post", "new_post") do
+      "<input type='hidden' name='post[active]' value='' />" +
       "<input id='post_active_true' name='post[active]' type='radio' value='true' />" +
       "<label for='post_active_true'>true</label>" +
       "<input checked='checked' id='post_active_false' name='post[active]' type='radio' value='false' />" +
-      "<label for='post_active_false'>false</label>" +
-      "<input type='hidden' name='post[active][]' value='' />"
+      "<label for='post_active_false'>false</label>"
     end
 
     assert_dom_equal expected, output_buffer
@@ -1622,13 +1622,13 @@ class FormHelperTest < ActionView::TestCase
     end
 
     expected = whole_form("/posts", "new_post", "new_post") do
+      "<input type='hidden' name='post[active]' value='' />" +
       "<label for='post_active_true'>"+
       "<input id='post_active_true' name='post[active]' type='radio' value='true' />" +
       "true</label>" +
       "<label for='post_active_false'>"+
       "<input checked='checked' id='post_active_false' name='post[active]' type='radio' value='false' />" +
-      "false</label>" +
-      "<input type='hidden' name='post[active][]' value='' />"
+      "false</label>"
     end
 
     assert_dom_equal expected, output_buffer
@@ -1648,13 +1648,13 @@ class FormHelperTest < ActionView::TestCase
     end
 
     expected = whole_form("/posts", "new_post_1", "new_post") do
+      "<input type='hidden' name='post[active]' value='' />" +
       "<label for='post_active_true'>"+
       "<input id='post_active_true' name='post[active]' type='radio' value='true' />" +
       "true</label>" +
       "<label for='post_active_false'>"+
       "<input checked='checked' id='post_active_false' name='post[active]' type='radio' value='false' />" +
       "false</label>"+
-      "<input type='hidden' name='post[active][]' value='' />" +
       "<input id='post_id' name='post[id]' type='hidden' value='1' />"
     end
 
@@ -1670,11 +1670,11 @@ class FormHelperTest < ActionView::TestCase
     end
 
     expected = whole_form("/posts", "foo_new_post", "new_post") do
+      "<input type='hidden' name='post[active]' value='' />" +
       "<input id='foo_post_active_true' name='post[active]' type='radio' value='true' />" +
       "<label for='foo_post_active_true'>true</label>" +
       "<input checked='checked' id='foo_post_active_false' name='post[active]' type='radio' value='false' />" +
-      "<label for='foo_post_active_false'>false</label>" +
-      "<input type='hidden' name='post[active][]' value='' />"
+      "<label for='foo_post_active_false'>false</label>"
     end
 
     assert_dom_equal expected, output_buffer
@@ -1689,11 +1689,11 @@ class FormHelperTest < ActionView::TestCase
     end
 
     expected = whole_form("/posts", "new_post", "new_post") do
+      "<input type='hidden' name='post[1][active]' value='' />" +
       "<input id='post_1_active_true' name='post[1][active]' type='radio' value='true' />" +
       "<label for='post_1_active_true'>true</label>" +
       "<input checked='checked' id='post_1_active_false' name='post[1][active]' type='radio' value='false' />" +
-      "<label for='post_1_active_false'>false</label>" +
-      "<input type='hidden' name='post[1][active][]' value='' />"
+      "<label for='post_1_active_false'>false</label>"
     end
 
     assert_dom_equal expected, output_buffer
@@ -1708,13 +1708,13 @@ class FormHelperTest < ActionView::TestCase
     end
 
     expected = whole_form("/posts", "new_post", "new_post") do
+      "<input name='post[tag_ids][]' type='hidden' value='' />" +
       "<input checked='checked' id='post_tag_ids_1' name='post[tag_ids][]' type='checkbox' value='1' />" +
       "<label for='post_tag_ids_1'>Tag 1</label>" +
       "<input id='post_tag_ids_2' name='post[tag_ids][]' type='checkbox' value='2' />" +
       "<label for='post_tag_ids_2'>Tag 2</label>" +
       "<input checked='checked' id='post_tag_ids_3' name='post[tag_ids][]' type='checkbox' value='3' />" +
-      "<label for='post_tag_ids_3'>Tag 3</label>" +
-      "<input name='post[tag_ids][]' type='hidden' value='' />"
+      "<label for='post_tag_ids_3'>Tag 3</label>"
     end
 
     assert_dom_equal expected, output_buffer
@@ -1732,6 +1732,7 @@ class FormHelperTest < ActionView::TestCase
     end
 
     expected = whole_form("/posts", "new_post", "new_post") do
+      "<input name='post[tag_ids][]' type='hidden' value='' />" +
       "<label for='post_tag_ids_1'>" +
       "<input checked='checked' id='post_tag_ids_1' name='post[tag_ids][]' type='checkbox' value='1' />" +
       "Tag 1</label>" +
@@ -1740,8 +1741,7 @@ class FormHelperTest < ActionView::TestCase
       "Tag 2</label>" +
       "<label for='post_tag_ids_3'>" +
       "<input checked='checked' id='post_tag_ids_3' name='post[tag_ids][]' type='checkbox' value='3' />" +
-      "Tag 3</label>" +
-      "<input name='post[tag_ids][]' type='hidden' value='' />"
+      "Tag 3</label>"
     end
 
     assert_dom_equal expected, output_buffer
@@ -1762,6 +1762,7 @@ class FormHelperTest < ActionView::TestCase
     end
 
     expected = whole_form("/posts", "new_post_1", "new_post") do
+      "<input name='post[tag_ids][]' type='hidden' value='' />"+
       "<label for='post_tag_ids_1'>" +
       "<input checked='checked' id='post_tag_ids_1' name='post[tag_ids][]' type='checkbox' value='1' />" +
       "Tag 1</label>" +
@@ -1771,7 +1772,6 @@ class FormHelperTest < ActionView::TestCase
       "<label for='post_tag_ids_3'>" +
       "<input checked='checked' id='post_tag_ids_3' name='post[tag_ids][]' type='checkbox' value='3' />" +
       "Tag 3</label>" +
-      "<input name='post[tag_ids][]' type='hidden' value='' />"+
       "<input id='post_id' name='post[id]' type='hidden' value='1' />"
     end
 
@@ -1788,9 +1788,9 @@ class FormHelperTest < ActionView::TestCase
     end
 
     expected = whole_form("/posts", "foo_new_post", "new_post") do
+      "<input name='post[tag_ids][]' type='hidden' value='' />" +
       "<input checked='checked' id='foo_post_tag_ids_1' name='post[tag_ids][]' type='checkbox' value='1' />" +
-      "<label for='foo_post_tag_ids_1'>Tag 1</label>" +
-      "<input name='post[tag_ids][]' type='hidden' value='' />"
+      "<label for='foo_post_tag_ids_1'>Tag 1</label>"
     end
 
     assert_dom_equal expected, output_buffer
@@ -1806,9 +1806,9 @@ class FormHelperTest < ActionView::TestCase
     end
 
     expected = whole_form("/posts", "new_post", "new_post") do
+      "<input name='post[1][tag_ids][]' type='hidden' value='' />" +
       "<input checked='checked' id='post_1_tag_ids_1' name='post[1][tag_ids][]' type='checkbox' value='1' />" +
-      "<label for='post_1_tag_ids_1'>Tag 1</label>" +
-      "<input name='post[1][tag_ids][]' type='hidden' value='' />"
+      "<label for='post_1_tag_ids_1'>Tag 1</label>"
     end
 
     assert_dom_equal expected, output_buffer
