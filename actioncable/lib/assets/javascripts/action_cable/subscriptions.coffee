@@ -9,7 +9,6 @@
 class ActionCable.Subscriptions
   constructor: (@consumer) ->
     @subscriptions = []
-    @history = []
 
   create: (channelName, mixin) ->
     channel = channelName
@@ -57,22 +56,9 @@ class ActionCable.Subscriptions
     for subscription in subscriptions
       subscription[callbackName]?(args...)
 
-      if callbackName in ["initialized", "connected", "disconnected", "rejected"]
-        {identifier} = subscription
-        @record(notification: {identifier, callbackName, args})
-
   sendCommand: (subscription, command) ->
     {identifier} = subscription
     if identifier is ActionCable.INTERNAL.identifiers.ping
       @consumer.connection.isOpen()
     else
       @consumer.send({command, identifier})
-
-  record: (data) ->
-    data.time = new Date()
-    @history = @history.slice(-19)
-    @history.push(data)
-
-  toJSON: ->
-    history: @history
-    identifiers: (subscription.identifier for subscription in @subscriptions)

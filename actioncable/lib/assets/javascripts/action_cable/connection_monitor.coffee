@@ -69,11 +69,6 @@ class ActionCable.ConnectionMonitor
           @consumer.connection.reopen()
       , 200
 
-  toJSON: ->
-    interval = @getInterval()
-    connectionIsStale = @connectionIsStale()
-    {@startedAt, @stoppedAt, @pingedAt, @reconnectAttempts, connectionIsStale, interval}
-
   now = ->
     new Date().getTime()
 
