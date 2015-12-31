@@ -79,6 +79,3 @@ class ActionCable.Connection
     return if @disconnected
     @disconnected = true
     @consumer.subscriptions.notifyAll("disconnected")
-
-  toJSON: ->
-    state: @getState()
