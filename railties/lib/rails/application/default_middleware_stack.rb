@@ -68,7 +68,7 @@ module Rails
           middleware.use ::ActionDispatch::Cookies unless config.api_only
 
           if !config.api_only && config.session_store
-            if config.force_ssl && !config.session_options.key?(:secure)
+            if config.force_ssl && config.ssl_options.fetch(:secure_cookies, true) && !config.session_options.key?(:secure)
               config.session_options[:secure] = true
             end
             middleware.use config.session_store, config.session_options
