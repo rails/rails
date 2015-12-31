@@ -132,7 +132,7 @@ module ActiveRecord
     # ==== Examples
     #
     #   users = User.where(name: 'Oscar')
-    #   users.create # => #<User id: 3, name: "oscar", ...>
+    #   users.create # => #<User id: 3, name: "Oscar", ...>
     #
     #   users.create(name: 'fxn')
     #   users.create # => #<User id: 4, name: "fxn", ...>
