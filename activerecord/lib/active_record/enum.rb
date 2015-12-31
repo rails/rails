@@ -124,7 +124,7 @@ module ActiveRecord
 
       def deserialize(value)
         return if value.nil?
-        mapping.key(value.to_i)
+        mapping.key(value)
       end
 
       def serialize(value)
