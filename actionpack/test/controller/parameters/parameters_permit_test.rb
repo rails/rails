@@ -298,6 +298,14 @@ class ParametersPermitTest < ActiveSupport::TestCase
     assert_not @params.to_unsafe_h.is_a? ActionController::Parameters
   end
 
+  test "to_unsafe_h returns unfiltered params even after accessing few keys" do
+    params = ActionController::Parameters.new("f"=>{"language_facet"=>["Tibetan"]})
+    expected = {"f"=>{"language_facet"=>["Tibetan"]}}
+
+    assert params['f'].is_a? ActionController::Parameters
+    assert_equal expected, params.to_unsafe_h
+  end
+
   test "to_h only deep dups Ruby collections" do
     company = Class.new do
       attr_reader :dupped
