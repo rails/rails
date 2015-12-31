@@ -1,3 +1,8 @@
+*   Support extended grapheme clusters and UAX 29.
+
+    *Adam Roben*
+
+
 ## Rails 5.0.0.beta1 (December 18, 2015) ##
 
 *   Add petabyte and exabyte numeric conversion.
