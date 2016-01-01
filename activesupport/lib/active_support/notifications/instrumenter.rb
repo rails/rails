@@ -20,7 +20,7 @@ module ActiveSupport
         begin
           yield payload
         rescue Exception => e
-          payload[:exception] = [e.class.name, e.message]
+          payload[:exception] = [e.class.name, e.message, e.backtrace]
           raise e
         ensure
           finish_with_state listeners_state, name, payload
