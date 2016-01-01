@@ -213,7 +213,7 @@ module ActiveRecord
     end
 
     # TODO: Deprecate this
-    def quoted_id
+    def quoted_id # :nodoc:
       self.class.quote_value(@attributes[self.class.primary_key].value_for_database)
     end
   end
