@@ -23,3 +23,6 @@
 
 # Ignore Byebug command history file.
 .byebug_history
+
+# Ignore Spring temporary directory.
+/spring-*
