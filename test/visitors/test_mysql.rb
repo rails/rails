@@ -55,6 +55,24 @@ module Arel
           compile(node).must_be_like "LOCK IN SHARE MODE"
         end
       end
+
+      describe "concat" do
+        it "concats columns" do
+          @table = Table.new(:users)
+          query = @table[:name].concat(@table[:name])
+          compile(query).must_be_like %{
+            CONCAT("users"."name", "users"."name")
+          }
+        end
+
+        it "concats a string" do
+          @table = Table.new(:users)
+          query = @table[:name].concat(Nodes.build_quoted('abc'))
+          compile(query).must_be_like %{
+            CONCAT("users"."name", 'abc')
+          }
+        end
+      end
     end
   end
 end

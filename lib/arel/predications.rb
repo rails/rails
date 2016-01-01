@@ -202,6 +202,10 @@ Passing a range to `#not_in` is deprecated. Call `#not_between`, instead.
       Nodes::Case.new(self).when quoted_node(right)
     end
 
+    def concat other
+      Nodes::Concat.new self, other
+    end
+
     private
 
     def grouping_any method_id, others, *extras
