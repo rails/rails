@@ -146,8 +146,6 @@ class PostgresqlUUIDGenerationTest < ActiveRecord::PostgreSQLTestCase
   end
 
   setup do
-    enable_extension!('uuid-ossp', connection)
-
     connection.create_table('pg_uuids', id: :uuid, default: 'uuid_generate_v1()') do |t|
       t.string 'name'
       t.uuid 'other_uuid', default: 'uuid_generate_v4()'
@@ -172,7 +170,6 @@ class PostgresqlUUIDGenerationTest < ActiveRecord::PostgreSQLTestCase
     drop_table "pg_uuids"
     drop_table 'pg_uuids_2'
     connection.execute 'DROP FUNCTION IF EXISTS my_uuid_generator();'
-    disable_extension!('uuid-ossp', connection)
   end
 
   if ActiveRecord::Base.connection.supports_extensions?
@@ -217,8 +214,6 @@ class PostgresqlUUIDTestNilDefault < ActiveRecord::PostgreSQLTestCase
   include SchemaDumpingHelper
 
   setup do
-    enable_extension!('uuid-ossp', connection)
-
     connection.create_table('pg_uuids', id: false) do |t|
       t.primary_key :id, :uuid, default: nil
       t.string 'name'
@@ -227,7 +222,6 @@ class PostgresqlUUIDTestNilDefault < ActiveRecord::PostgreSQLTestCase
 
   teardown do
     drop_table "pg_uuids"
-    disable_extension!('uuid-ossp', connection)
   end
 
   if ActiveRecord::Base.connection.supports_extensions?
@@ -260,8 +254,6 @@ class PostgresqlUUIDTestInverseOf < ActiveRecord::PostgreSQLTestCase
   end
 
   setup do
-    enable_extension!('uuid-ossp', connection)
-
     connection.transaction do
       connection.create_table('pg_uuid_posts', id: :uuid) do |t|
         t.string 'title'
@@ -276,7 +268,6 @@ class PostgresqlUUIDTestInverseOf < ActiveRecord::PostgreSQLTestCase
   teardown do
       drop_table "pg_uuid_comments"
       drop_table "pg_uuid_posts"
-      disable_extension!('uuid-ossp', connection)
   end
 
   if ActiveRecord::Base.connection.supports_extensions?
