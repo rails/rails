@@ -515,4 +515,10 @@
 
     *Logan Leger*
 
+*   Adds `:exception_object` key to ActiveSupport::Notifications::Instrumenter payload when an exception is raised
+
+    Adds new key/value pair to payload when an exception is raised: e.g. `:exception_object => #<RuntimeError: FAIL>`
+
+    *Ryan T. Hosford*
+
 Please check [4-2-stable](https://github.com/rails/rails/blob/4-2-stable/activesupport/CHANGELOG.md) for previous changes.
