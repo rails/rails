@@ -752,16 +752,11 @@ module ActiveRecord
         SQL
       end
 
-      def case_sensitive_modifier(node, table_attribute)
-        node = Arel::Nodes.build_quoted node, table_attribute
-        Arel::Nodes::Bin.new(node)
-      end
-
       def case_sensitive_comparison(table, attribute, column, value)
-        if column.case_sensitive?
-          table[attribute].eq(value)
-        else
+        if value.nil? || column.case_sensitive?
           super
+        else
+          table[attribute].eq(Arel::Nodes::Bin.new(Arel::Nodes::BindParam.new))
         end
       end
 
@@ -769,7 +764,7 @@ module ActiveRecord
         if column.case_sensitive?
           super
         else
-          table[attribute].eq(value)
+          table[attribute].eq(Arel::Nodes::BindParam.new)
         end
       end
 
