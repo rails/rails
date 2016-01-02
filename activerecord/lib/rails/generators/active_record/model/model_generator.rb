@@ -45,7 +45,13 @@ module ActiveRecord
         def determine_default_parent_class
           application_record = nil
 
-          in_root { application_record = File.exist?('app/models/application_record.rb') }
+          in_root do
+            application_record = if mountable_engine?
+              File.exist?("app/models/#{namespaced_path}/application_record.rb")
+            else
+              File.exist?('app/models/application_record.rb')
+            end
+          end
 
           if application_record
             "ApplicationRecord"

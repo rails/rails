@@ -621,6 +621,15 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_no_directory "app/views"
   end
 
+  def test_model_with_existent_application_record_in_mountable_engine
+    run_generator [destination_root, '--mountable']
+    capture(:stdout) do
+      `#{destination_root}/bin/rails g model article`
+    end
+
+    assert_file "app/models/bukkits/article.rb", /class Article < ApplicationRecord/
+  end
+
 protected
   def action(*args, &block)
     silence(:stdout){ generator.send(*args, &block) }
