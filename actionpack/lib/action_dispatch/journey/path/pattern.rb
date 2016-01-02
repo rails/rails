@@ -124,7 +124,7 @@ module ActionDispatch
           end
 
           def captures
-            (length - 1).times.map { |i| self[i + 1] }
+            Array.new(length - 1) { |i| self[i + 1] }
           end
 
           def [](x)
