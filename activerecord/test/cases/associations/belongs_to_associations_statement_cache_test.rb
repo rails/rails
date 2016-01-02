@@ -18,8 +18,6 @@
 
 require 'cases/helper'
 
-require 'webdack/uuid_migration/helpers'
-
 class Dity < ActiveRecord::Base
   has_many :dtudents
 end
@@ -52,10 +50,13 @@ class MigrateAllOneGo < ActiveRecord::Migration
       dir.up do
         enable_extension 'uuid-ossp'
 
-        primary_key_to_uuid :dities
+        execute "ALTER TABLE dities
+                   ALTER COLUMN id DROP DEFAULT,
+                   ALTER COLUMN id SET DATA TYPE UUID USING (uuid(lpad(replace(text(id),'-',''), 32, '0'))),
+                   ALTER COLUMN id SET DEFAULT uuid_generate_v4()"
 
-        primary_key_to_uuid :dtudents
-        columns_to_uuid :dtudents, :dity_id
+        execute "ALTER TABLE dtudents
+                   ALTER COLUMN dity_id SET DATA TYPE UUID USING (uuid(lpad(replace(text(dity_id),'-',''), 32, '0')))"
       end
 
       dir.down do
@@ -90,7 +91,6 @@ class BelongsToAssociationsStatementCacheTest < ActiveRecord::TestCase
     [Dity, Dtudent].each { |klass| klass.reset_column_information }
 
     dtudent_post= Dtudent.first
-    dtudent_post.dity
     dity_name_post= dtudent_post.dity.name
 
     assert (dity_name_pre == dity_name_post)
