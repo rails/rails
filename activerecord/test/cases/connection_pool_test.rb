@@ -96,7 +96,7 @@ module ActiveRecord
       end
 
       def test_full_pool_blocks
-        cs = @pool.size.times.map { @pool.checkout }
+        cs = Array.new(@pool.size) { @pool.checkout }
         t = Thread.new { @pool.checkout }
 
         # make sure our thread is in the timeout section
@@ -108,7 +108,7 @@ module ActiveRecord
       end
 
       def test_removing_releases_latch
-        cs = @pool.size.times.map { @pool.checkout }
+        cs = Array.new(@pool.size) { @pool.checkout }
         t = Thread.new { @pool.checkout }
 
         # make sure our thread is in the timeout section
@@ -186,9 +186,8 @@ module ActiveRecord
         pool = ConnectionPool.new ActiveRecord::Base.connection_pool.spec
         connection = pool.connection
         assert_not_nil connection
-        threads = []
-        4.times do |i|
-          threads << Thread.new(i) do
+        threads = Array.new(4) do |i|
+          Thread.new(i) do
             connection = pool.connection
             assert_not_nil connection
             connection.close
@@ -371,9 +370,8 @@ module ActiveRecord
           end
         end
 
-        connecting_threads = []
-        @pool.size.times do
-          connecting_threads << Thread.new { @pool.checkout }
+        connecting_threads = Array.new(@pool.size) do
+          Thread.new { @pool.checkout }
         end
 
         begin
