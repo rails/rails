@@ -21,7 +21,7 @@ module ApplicationTests
         app_file "app/views/home/index.html.erb", "<% # TODO: note in erb %>"
         app_file "app/assets/javascripts/application.js", "// TODO: note in js"
         app_file "app/assets/stylesheets/application.css", "// TODO: note in css"
-        app_file "app/controllers/application_controller.rb", 1000.times.map { "" }.join("\n") << "# TODO: note in ruby"
+        app_file "app/controllers/application_controller.rb", "\n" * 999 << "# TODO: note in ruby"
         app_file "lib/tasks/task.rake", "# TODO: note in rake"
         app_file 'app/views/home/index.html.builder', '# TODO: note in builder'
         app_file 'config/locales/en.yml', '# TODO: note in yml'
@@ -48,7 +48,7 @@ module ApplicationTests
         app_file "config/initializers/some_initializer.rb", "# TODO: note in config directory"
         app_file "db/some_seeds.rb", "# TODO: note in db directory"
         app_file "lib/some_file.rb", "# TODO: note in lib directory"
-        app_file "test/some_test.rb", 1000.times.map { "" }.join("\n") << "# TODO: note in test directory"
+        app_file "test/some_test.rb", "\n" * 999 << "# TODO: note in test directory"
 
         app_file "some_other_dir/blah.rb", "# TODO: note in some_other directory"
 
@@ -70,7 +70,7 @@ module ApplicationTests
         app_file "config/initializers/some_initializer.rb", "# TODO: note in config directory"
         app_file "db/some_seeds.rb", "# TODO: note in db directory"
         app_file "lib/some_file.rb", "# TODO: note in lib directory"
-        app_file "test/some_test.rb", 1000.times.map { "" }.join("\n") << "# TODO: note in test directory"
+        app_file "test/some_test.rb", "\n" * 999 << "# TODO: note in test directory"
 
         app_file "some_other_dir/blah.rb", "# TODO: note in some_other directory"
 
@@ -91,7 +91,7 @@ module ApplicationTests
       test 'custom rake task finds specific notes in specific directories' do
         app_file "app/controllers/some_controller.rb", "# TODO: note in app directory"
         app_file "lib/some_file.rb", "# OPTIMIZE: note in lib directory\n" << "# FIXME: note in lib directory"
-        app_file "test/some_test.rb", 1000.times.map { "" }.join("\n") << "# TODO: note in test directory"
+        app_file "test/some_test.rb", "\n" * 999 << "# TODO: note in test directory"
 
         app_file "lib/tasks/notes_custom.rake", <<-EOS
           require 'rails/source_annotation_extractor'
