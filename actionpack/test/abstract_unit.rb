@@ -444,7 +444,7 @@ class ForkingExecutor
   def << work; @queue << work; end
 
   def shutdown
-    pool = @size.times.map {
+    pool = Array.new(@size) {
       fork {
         DRb.stop_service
         queue = DRbObject.new_with_uri @url
