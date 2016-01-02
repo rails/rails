@@ -494,9 +494,6 @@ Please refer to the [Changelog][active-record] for detailed changes.
 *   Added `config.active_record.warn_on_records_fetched_greater_than` option.
     ([Pull Request](https://github.com/rails/rails/pull/18846))
 
-*   Added `cache_key` to `ActiveRecord::Relation`.
-    ([Pull Request](https://github.com/rails/rails/pull/20884))
-
 *   Added a native JSON data type support in MySQL.
     ([Pull Request](https://github.com/rails/rails/pull/21110))
 
