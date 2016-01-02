@@ -299,6 +299,8 @@ module ActiveRecord
         undefine_attribute_methods
         connection.schema_cache.clear_data_source_cache!(table_name)
 
+        reflections.each {|_, reflection| reflection.clear_association_scope_cache}
+
         reload_schema_from_cache
       end
 
