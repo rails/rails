@@ -77,7 +77,6 @@ module ActiveRecord
 
     def test_tree_is_not_traversed
       relation = Relation.new(Post, Post.arel_table, Post.predicate_builder)
-      # FIXME: Remove the Arel::Nodes::Quoted in Rails 5.1
       left     = relation.table[:id].eq(10)
       right    = relation.table[:id].eq(10)
       combine  = left.and right
@@ -104,7 +103,6 @@ module ActiveRecord
 
     def test_create_with_value_with_wheres
       relation = Relation.new(Post, Post.arel_table, Post.predicate_builder)
-      # FIXME: Remove the Arel::Nodes::Quoted in Rails 5.1
       relation.where! relation.table[:id].eq(10)
       relation.create_with_value = {:hello => 'world'}
       assert_equal({:hello => 'world', :id => 10}, relation.scope_for_create)
@@ -115,7 +113,6 @@ module ActiveRecord
       relation = Relation.new(Post, Post.arel_table, Post.predicate_builder)
       assert_equal({}, relation.scope_for_create)
 
-      # FIXME: Remove the Arel::Nodes::Quoted in Rails 5.1
       relation.where! relation.table[:id].eq(10)
       assert_equal({}, relation.scope_for_create)
 
