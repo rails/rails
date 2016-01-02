@@ -758,7 +758,7 @@ if current_adapter?(:PostgreSQLAdapter)
     # separate database connections.
     unless in_memory_db?
       def test_transaction_per_thread
-        threads = 3.times.map do
+        threads = Array.new(3) do
           Thread.new do
             Topic.transaction do
               topic = Topic.find(1)

@@ -455,7 +455,7 @@ module ActiveRecord
         }
         columns = binds.map(&:name)
 
-        bind_subs = columns.length.times.map { |x| "$#{x + 1}" }
+        bind_subs = Array.new(columns.length) { |x| "$#{x + 1}" }
 
         sql = "INSERT INTO ex (#{columns.join(", ")})
                VALUES (#{bind_subs.join(', ')})"
