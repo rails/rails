@@ -2842,7 +2842,7 @@ class FormHelperTest < ActionView::TestCase
   def test_nested_fields_label_translation_with_more_than_10_records
     @post.comments = Array.new(11) { |id| Comment.new(id + 1) }
 
-    params = 11.times.map { ['post.comments.body', default: [:"comment.body", ''], scope: "helpers.label"] }
+    params = Array.new(11) { ['post.comments.body', default: [:"comment.body", ''], scope: "helpers.label"] }
     assert_called_with(I18n, :t, params, returns: "Write body here") do
       form_for(@post) do |f|
         f.fields_for(:comments) do |cf|
