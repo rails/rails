@@ -367,7 +367,7 @@ class MigratorTest < ActiveRecord::TestCase
 
   def sensors(count)
     calls = []
-    migrations = count.times.map { |i|
+    migrations = Array.new(count) { |i|
       m(nil, i + 1) { |c,migration|
         calls << [c, migration.version]
       }
