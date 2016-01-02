@@ -287,8 +287,6 @@ GEM
     w3c_validators (1.2)
       json
       nokogiri
-    webdack-uuid_migration (1.0.1)
-      activerecord (>= 4.0)
     websocket-driver (0.6.3)
       websocket-extensions (>= 0.1.0)
     websocket-extensions (0.1.2)
@@ -345,7 +343,6 @@ DEPENDENCIES
   tzinfo-data
   uglifier (>= 1.3.0)
   w3c_validators
-  webdack-uuid_migration (>= 1.0.1)
 
 BUNDLED WITH
    1.11.2
