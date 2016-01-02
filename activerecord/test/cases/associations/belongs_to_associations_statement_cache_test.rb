@@ -1,21 +1,3 @@
-# The reset_column_information does not clear some cached database statements. This affects
-# cases where the underlying column types changes. In this case ActiveRecord throws an
-# exception complaining StatementInvalid.
-#
-# This testcase uses its own models and migrations as it updates the underlying column types
-# from integer to uuid.
-#
-# Names of models and tables are quirky student -> dtudent and city -> dity
-# to avoid conflict with any other test cases or models
-#
-# The bug was discovered during testing of gem webdack-uuid_migration
-# That gem allows in place upgrading of Postgres databses to use UUIDs
-# This bug most likely had appeared in some version of 4.x.x
-#
-# For any information on this test case, please contact at deepak@kreatio.com
-#
-
-
 require 'cases/helper'
 
 class Dity < ActiveRecord::Base
