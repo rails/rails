@@ -52,7 +52,7 @@ module AbstractControllerTests
       end
 
       def overwrite_skip
-        render :text => "Hello text!"
+        render plain: "Hello text!"
       end
     end
 
@@ -214,19 +214,19 @@ module AbstractControllerTests
         assert_equal "With String Hello string!", controller.response_body
       end
 
-      test "when layout is overwriten by :default in render, render default layout" do
+      test "when layout is overwritten by :default in render, render default layout" do
         controller = WithString.new
         controller.process(:overwrite_default)
         assert_equal "With String Hello string!", controller.response_body
       end
 
-      test "when layout is overwriten by string in render, render new layout" do
+      test "when layout is overwritten by string in render, render new layout" do
         controller = WithString.new
         controller.process(:overwrite_string)
         assert_equal "Overwrite Hello string!", controller.response_body
       end
 
-      test "when layout is overwriten by false in render, render no layout" do
+      test "when layout is overwritten by false in render, render no layout" do
         controller = WithString.new
         controller.process(:overwrite_false)
         assert_equal "Hello string!", controller.response_body
@@ -264,7 +264,7 @@ module AbstractControllerTests
         assert_equal "Overwrite Hello proc!", controller.response_body
       end
 
-      test "when layout is specified as a proc and the proc retuns nil, don't use a layout" do
+      test "when layout is specified as a proc and the proc returns nil, don't use a layout" do
         controller = WithProcReturningNil.new
         controller.process(:index)
         assert_equal "Hello nil!", controller.response_body
@@ -371,7 +371,7 @@ module AbstractControllerTests
       test "layout for anonymous controller" do
         klass = Class.new(WithString) do
           def index
-            render :text => 'index', :layout => true
+            render plain: 'index', layout: true
           end
         end
 

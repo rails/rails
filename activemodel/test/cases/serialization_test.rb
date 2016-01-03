@@ -16,6 +16,14 @@ class SerializationTest < ActiveModel::TestCase
       instance_values.except("address", "friends")
     end
 
+    def method_missing(method_name, *args)
+      if method_name == :bar
+        'i_am_bar'
+      else
+        super
+      end
+    end
+
     def foo
       'i_am_foo'
     end
@@ -58,23 +66,22 @@ class SerializationTest < ActiveModel::TestCase
   end
 
   def test_method_serializable_hash_should_work_with_methods_option
-    expected = {"name"=>"David", "gender"=>"male", "foo"=>"i_am_foo", "email"=>"david@example.com"}
-    assert_equal expected, @user.serializable_hash(methods: [:foo])
+    expected = {"name"=>"David", "gender"=>"male", "foo"=>"i_am_foo", "bar"=>"i_am_bar", "email"=>"david@example.com"}
+    assert_equal expected, @user.serializable_hash(methods: [:foo, :bar])
   end
 
   def test_method_serializable_hash_should_work_with_only_and_methods
-    expected = {"foo"=>"i_am_foo"}
-    assert_equal expected, @user.serializable_hash(only: [], methods: [:foo])
+    expected = {"foo"=>"i_am_foo", "bar"=>"i_am_bar"}
+    assert_equal expected, @user.serializable_hash(only: [], methods: [:foo, :bar])
   end
 
   def test_method_serializable_hash_should_work_with_except_and_methods
-    expected = {"gender"=>"male", "foo"=>"i_am_foo"}
-    assert_equal expected, @user.serializable_hash(except: [:name, :email], methods: [:foo])
+    expected = {"gender"=>"male", "foo"=>"i_am_foo", "bar"=>"i_am_bar"}
+    assert_equal expected, @user.serializable_hash(except: [:name, :email], methods: [:foo, :bar])
   end
 
-  def test_should_not_call_methods_that_dont_respond
-    expected = {"name"=>"David", "gender"=>"male", "email"=>"david@example.com"}
-    assert_equal expected, @user.serializable_hash(methods: [:bar])
+  def test_should_raise_NoMethodError_for_non_existing_method
+    assert_raise(NoMethodError) { @user.serializable_hash(methods: [:nada]) }
   end
 
   def test_should_use_read_attribute_for_serialization

@@ -1,6 +1,7 @@
 require 'cases/helper'
 require 'models/topic'
 require 'models/car'
+require 'models/aircraft'
 require 'models/wheel'
 require 'models/engine'
 require 'models/reply'
@@ -19,6 +20,7 @@ class CounterCacheTest < ActiveRecord::TestCase
 
   class ::SpecialTopic < ::Topic
     has_many :special_replies, :foreign_key => 'parent_id'
+    has_many :lightweight_special_replies, -> { select('topics.id, topics.title') }, :foreign_key => 'parent_id', :class_name => 'SpecialReply'
   end
 
   class ::SpecialReply < ::Reply
@@ -48,6 +50,16 @@ class CounterCacheTest < ActiveRecord::TestCase
     # check that it gets reset
     assert_difference '@topic.reload.replies_count', -1 do
       Topic.reset_counters(@topic.id, :replies)
+    end
+  end
+
+  test "reset counters by counter name" do
+    # throw the count off by 1
+    Topic.increment_counter(:replies_count, @topic.id)
+
+    # check that it gets reset
+    assert_difference '@topic.reload.replies_count', -1 do
+      Topic.reset_counters(@topic.id, :replies_count)
     end
   end
 
@@ -154,10 +166,49 @@ class CounterCacheTest < ActiveRecord::TestCase
     end
   end
 
-  test "the passed symbol needs to be an association name" do
+  test "the passed symbol needs to be an association name or counter name" do
     e = assert_raises(ArgumentError) do
-      Topic.reset_counters(@topic.id, :replies_count)
+      Topic.reset_counters(@topic.id, :undefined_count)
     end
-    assert_equal "'Topic' has no association called 'replies_count'", e.message
+    assert_equal "'Topic' has no association called 'undefined_count'", e.message
+  end
+
+  test "reset counter works with select declared on association" do
+    special = SpecialTopic.create!(:title => 'Special')
+    SpecialTopic.increment_counter(:replies_count, special.id)
+
+    assert_difference 'special.reload.replies_count', -1 do
+      SpecialTopic.reset_counters(special.id, :lightweight_special_replies)
+    end
+  end
+
+  test "counters are updated both in memory and in the database on create" do
+    car = Car.new(engines_count: 0)
+    car.engines = [Engine.new, Engine.new]
+    car.save!
+
+    assert_equal 2, car.engines_count
+    assert_equal 2, car.reload.engines_count
+  end
+
+  test "counter caches are updated in memory when the default value is nil" do
+    car = Car.new(engines_count: nil)
+    car.engines = [Engine.new, Engine.new]
+    car.save!
+
+    assert_equal 2, car.engines_count
+    assert_equal 2, car.reload.engines_count
+  end
+
+  test "update counters in a polymorphic relationship" do
+    aircraft = Aircraft.create!
+
+    assert_difference 'aircraft.reload.wheels_count' do
+      aircraft.wheels << Wheel.create!
+    end
+
+    assert_difference 'aircraft.reload.wheels_count', -1 do
+      aircraft.wheels.first.destroy
+    end
   end
 end

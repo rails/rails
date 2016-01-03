@@ -1,3 +1,5 @@
+require 'action_dispatch/routing/polymorphic_routes'
+
 module ActionView
   module RoutingUrlFor
 
@@ -30,7 +32,7 @@ module ActionView
     #
     # ==== Examples
     #   <%= url_for(action: 'index') %>
-    #   # => /blog/
+    #   # => /blogs/
     #
     #   <%= url_for(action: 'find', controller: 'books') %>
     #   # => /books/find
@@ -77,14 +79,42 @@ module ActionView
       case options
       when String
         options
-      when nil, Hash
-        options ||= {}
-        options = { :only_path => options[:host].nil? }.merge!(options.symbolize_keys)
-        super
+      when nil
+        super(only_path: _generate_paths_by_default)
+      when Hash
+        options = options.symbolize_keys
+        unless options.key?(:only_path)
+          options[:only_path] = only_path?(options[:host])
+        end
+
+        super(options)
+      when ActionController::Parameters
+        unless options.key?(:only_path)
+          options[:only_path] = only_path?(options[:host])
+        end
+
+        super(options)
       when :back
         _back_url
+      when Array
+        components = options.dup
+        if _generate_paths_by_default
+          polymorphic_path(components, components.extract_options!)
+        else
+          polymorphic_url(components, components.extract_options!)
+        end
       else
-        polymorphic_path(options)
+        method = _generate_paths_by_default ? :path : :url
+        builder = ActionDispatch::Routing::PolymorphicRoutes::HelperMethodBuilder.send(method)
+
+        case options
+        when Symbol
+          builder.handle_string_call(self, options)
+        when Class
+          builder.handle_class_call(self, options)
+        else
+          builder.handle_model_call(self, options)
+        end
       end
     end
 
@@ -103,5 +133,15 @@ module ActionView
         controller.optimize_routes_generation? : super
     end
     protected :optimize_routes_generation?
+
+    private
+
+      def _generate_paths_by_default
+        true
+      end
+
+      def only_path?(host)
+        _generate_paths_by_default unless host
+      end
   end
 end

@@ -46,6 +46,24 @@ module MyApplication
         end
       end
     end
+
+    module Suffixed
+      def self.table_name_suffix
+        '_suffixed'
+      end
+
+      class Company < ActiveRecord::Base
+      end
+
+      class Firm < Company
+        self.table_name = 'companies'
+      end
+
+      module Nested
+        class Company < ActiveRecord::Base
+        end
+      end
+    end
   end
 
   module Billing
@@ -73,7 +91,7 @@ module MyApplication
       protected
 
       def check_empty_credit_limit
-        errors.add_on_empty "credit_limit"
+        errors.add("credit_card", :blank) if credit_card.blank?
       end
     end
   end

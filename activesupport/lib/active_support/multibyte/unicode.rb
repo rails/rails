@@ -1,4 +1,3 @@
-# encoding: utf-8
 module ActiveSupport
   module Multibyte
     module Unicode
@@ -11,7 +10,7 @@ module ActiveSupport
       NORMALIZATION_FORMS = [:c, :kc, :d, :kd]
 
       # The Unicode version that is supported by the implementation
-      UNICODE_VERSION = '6.2.0'
+      UNICODE_VERSION = '8.0.0'
 
       # The default normalization used for operations that require
       # normalization. It can be set to any of the normalizations
@@ -42,7 +41,6 @@ module ActiveSupport
         0x0085,                # White_Space # Cc       <control-0085>
         0x00A0,                # White_Space # Zs       NO-BREAK SPACE
         0x1680,                # White_Space # Zs       OGHAM SPACE MARK
-        0x180E,                # White_Space # Zs       MONGOLIAN VOWEL SEPARATOR
         (0x2000..0x200A).to_a, # White_Space # Zs  [11] EN QUAD..HAIR SPACE
         0x2028,                # White_Space # Zl       LINE SEPARATOR
         0x2029,                # White_Space # Zp       PARAGRAPH SEPARATOR
@@ -59,7 +57,7 @@ module ActiveSupport
       # Returns a regular expression pattern that matches the passed Unicode
       # codepoints.
       def self.codepoints_to_pattern(array_of_codepoints) #:nodoc:
-        array_of_codepoints.collect{ |e| [e].pack 'U*' }.join('|')
+        array_of_codepoints.collect{ |e| [e].pack 'U*'.freeze }.join('|'.freeze)
       end
       TRAILERS_PAT = /(#{codepoints_to_pattern(LEADERS_AND_TRAILERS)})+\Z/u
       LEADERS_PAT = /\A(#{codepoints_to_pattern(LEADERS_AND_TRAILERS)})+/u
@@ -89,19 +87,44 @@ module ActiveSupport
           pos += 1
           previous = codepoints[pos-1]
           current = codepoints[pos]
-          if (
-              # CR X LF
-              ( previous == database.boundary[:cr] and current == database.boundary[:lf] ) or
-              # L X (L|V|LV|LVT)
-              ( database.boundary[:l] === previous and in_char_class?(current, [:l,:v,:lv,:lvt]) ) or
-              # (LV|V) X (V|T)
-              ( in_char_class?(previous, [:lv,:v]) and in_char_class?(current, [:v,:t]) ) or
-              # (LVT|T) X (T)
-              ( in_char_class?(previous, [:lvt,:t]) and database.boundary[:t] === current ) or
-              # X Extend
-              (database.boundary[:extend] === current)
-            )
-          else
+
+          should_break =
+            # GB3. CR X LF
+            if previous == database.boundary[:cr] and current == database.boundary[:lf]
+              false
+            # GB4. (Control|CR|LF) ÷
+            elsif previous and in_char_class?(previous, [:control,:cr,:lf])
+              true
+            # GB5. ÷ (Control|CR|LF)
+            elsif in_char_class?(current, [:control,:cr,:lf])
+              true
+            # GB6. L X (L|V|LV|LVT)
+            elsif database.boundary[:l] === previous and in_char_class?(current, [:l,:v,:lv,:lvt])
+              false
+            # GB7. (LV|V) X (V|T)
+            elsif in_char_class?(previous, [:lv,:v]) and in_char_class?(current, [:v,:t])
+              false
+            # GB8. (LVT|T) X (T)
+            elsif in_char_class?(previous, [:lvt,:t]) and database.boundary[:t] === current
+              false
+            # GB8a. Regional_Indicator X Regional_Indicator
+            elsif database.boundary[:regional_indicator] === previous and database.boundary[:regional_indicator] === current
+              false
+            # GB9. X Extend
+            elsif database.boundary[:extend] === current
+              false
+            # GB9a. X SpacingMark
+            elsif database.boundary[:spacingmark] === current
+              false
+            # GB9b. Prepend X
+            elsif database.boundary[:prepend] === previous
+              false
+            # GB10. Any ÷ Any
+            else
+              true
+            end
+
+          if should_break
             unpacked << codepoints[marker..pos-1]
             marker = pos
           end
@@ -212,37 +235,43 @@ module ActiveSupport
         codepoints
       end
 
-      # Replaces all ISO-8859-1 or CP1252 characters by their UTF-8 equivalent
-      # resulting in a valid UTF-8 string.
-      #
-      # Passing +true+ will forcibly tidy all bytes, assuming that the string's
-      # encoding is entirely CP1252 or ISO-8859-1.
-      def tidy_bytes(string, force = false)
-        return string if string.empty?
-
-        if force
-          return string.encode(Encoding::UTF_8, Encoding::Windows_1252, invalid: :replace, undef: :replace)
+      # Rubinius' String#scrub, however, doesn't support ASCII-incompatible chars.
+      if !defined?(Rubinius)
+        # Replaces all ISO-8859-1 or CP1252 characters by their UTF-8 equivalent
+        # resulting in a valid UTF-8 string.
+        #
+        # Passing +true+ will forcibly tidy all bytes, assuming that the string's
+        # encoding is entirely CP1252 or ISO-8859-1.
+        def tidy_bytes(string, force = false)
+          return string if string.empty?
+          return recode_windows1252_chars(string) if force
+          string.scrub { |bad| recode_windows1252_chars(bad) }
         end
+      else
+        def tidy_bytes(string, force = false)
+          return string if string.empty?
+          return recode_windows1252_chars(string) if force
 
-        # We can't transcode to the same format, so we choose a nearly-identical encoding.
-        # We're going to 'transcode' bytes from UTF-8 when possible, then fall back to
-        # CP1252 when we get errors. The final string will be 'converted' back to UTF-8
-        # before returning.
-        reader = Encoding::Converter.new(Encoding::UTF_8, Encoding::UTF_8_MAC)
+          # We can't transcode to the same format, so we choose a nearly-identical encoding.
+          # We're going to 'transcode' bytes from UTF-8 when possible, then fall back to
+          # CP1252 when we get errors. The final string will be 'converted' back to UTF-8
+          # before returning.
+          reader = Encoding::Converter.new(Encoding::UTF_8, Encoding::UTF_16LE)
 
-        source = string.dup
-        out = ''.force_encoding(Encoding::UTF_8_MAC)
+          source = string.dup
+          out = ''.force_encoding(Encoding::UTF_16LE)
 
-        loop do
-          reader.primitive_convert(source, out)
-          _, _, _, error_bytes, _ = reader.primitive_errinfo
-          break if error_bytes.nil?
-          out << error_bytes.encode(Encoding::UTF_8_MAC, Encoding::Windows_1252, invalid: :replace, undef: :replace)
+          loop do
+            reader.primitive_convert(source, out)
+            _, _, _, error_bytes, _ = reader.primitive_errinfo
+            break if error_bytes.nil?
+            out << error_bytes.encode(Encoding::UTF_16LE, Encoding::Windows_1252, invalid: :replace, undef: :replace)
+          end
+
+          reader.finish
+
+          out.encode!(Encoding::UTF_8)
         end
-
-        reader.finish
-
-        out.encode!(Encoding::UTF_8)
       end
 
       # Returns the KC normalization of the string by default. NFKC is
@@ -252,7 +281,7 @@ module ActiveSupport
       # * <tt>string</tt> - The string to perform normalization on.
       # * <tt>form</tt> - The form you want to normalize in. Should be one of
       #   the following: <tt>:c</tt>, <tt>:kc</tt>, <tt>:d</tt>, or <tt>:kd</tt>.
-      #   Default is ActiveSupport::Multibyte.default_normalization_form.
+      #   Default is ActiveSupport::Multibyte::Unicode.default_normalization_form.
       def normalize(string, form=nil)
         form ||= @default_normalization_form
         # See http://www.unicode.org/reports/tr15, Table 1
@@ -268,7 +297,7 @@ module ActiveSupport
             compose(reorder_characters(decompose(:compatibility, codepoints)))
           else
             raise ArgumentError, "#{form} is not a valid normalization variant", caller
-        end.pack('U*')
+        end.pack('U*'.freeze)
       end
 
       def downcase(string)
@@ -286,6 +315,13 @@ module ActiveSupport
       # Holds data about a codepoint in the Unicode database.
       class Codepoint
         attr_accessor :code, :combining_class, :decomp_type, :decomp_mapping, :uppercase_mapping, :lowercase_mapping
+
+        # Initializing Codepoint object with default values
+        def initialize
+          @combining_class = 0
+          @uppercase_mapping = 0
+          @lowercase_mapping = 0
+        end
 
         def swapcase_mapping
           uppercase_mapping > 0 ? uppercase_mapping : lowercase_mapping
@@ -322,11 +358,11 @@ module ActiveSupport
           begin
             @codepoints, @composition_exclusion, @composition_map, @boundary, @cp1252 = File.open(self.class.filename, 'rb') { |f| Marshal.load f.read }
           rescue => e
-              raise IOError.new("Couldn't load the Unicode tables for UTF8Handler (#{e.message}), ActiveSupport::Multibyte is unusable")
+            raise IOError.new("Couldn't load the Unicode tables for UTF8Handler (#{e.message}), ActiveSupport::Multibyte is unusable")
           end
 
           # Redefine the === method so we can write shorter rules for grapheme cluster breaks
-          @boundary.each do |k,_|
+          @boundary.each_key do |k|
             @boundary[k].instance_eval do
               def ===(other)
                 detect { |i| i === other } ? true : false
@@ -354,6 +390,7 @@ module ActiveSupport
       private
 
       def apply_mapping(string, mapping) #:nodoc:
+        database.codepoints
         string.each_codepoint.map do |codepoint|
           cp = database.codepoints[codepoint]
           if cp and (ncp = cp.send(mapping)) and ncp > 0
@@ -364,20 +401,13 @@ module ActiveSupport
         end.pack('U*')
       end
 
-      def tidy_byte(byte)
-        if byte < 160
-          [database.cp1252[byte] || byte].pack("U").unpack("C*")
-        elsif byte < 192
-          [194, byte]
-        else
-          [195, byte - 64]
-        end
+      def recode_windows1252_chars(string)
+        string.encode(Encoding::UTF_8, Encoding::Windows_1252, invalid: :replace, undef: :replace)
       end
 
       def database
         @database ||= UnicodeDatabase.new
       end
-
     end
   end
 end

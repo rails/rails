@@ -6,6 +6,7 @@ en:
     # The values :model, :attribute and :value are always available for interpolation
     # The value :count is available when applicable. Can be used for pluralization.
     messages:
+      model_invalid: "Validation failed: %{errors}"
       inclusion: "is not included in the list"
       exclusion: "is reserved"
       invalid: "is invalid"
@@ -14,9 +15,15 @@ en:
       empty: "can't be empty"
       blank: "can't be blank"
       present: "must be blank"
-      too_long: "is too long (maximum is %{count} characters)"
-      too_short: "is too short (minimum is %{count} characters)"
-      wrong_length: "is the wrong length (should be %{count} characters)"
+      too_long:
+        one: "is too long (maximum is 1 character)"
+        other: "is too long (maximum is %{count} characters)"
+      too_short:
+        one: "is too short (minimum is 1 character)"
+        other: "is too short (minimum is %{count} characters)"
+      wrong_length:
+        one: "is the wrong length (should be 1 character)"
+        other: "is the wrong length (should be %{count} characters)"
       not_a_number: "is not a number"
       not_an_integer: "must be an integer"
       greater_than: "must be greater than %{count}"

@@ -22,23 +22,6 @@ class NumericExtTimeAndDateTimeTest < ActiveSupport::TestCase
     end
   end
 
-  def test_intervals
-    @seconds.values.each do |seconds|
-      assert_equal seconds.since(@now), @now + seconds
-      assert_equal seconds.until(@now), @now - seconds
-    end
-  end
-
-  # Test intervals based from Time.now
-  def test_now
-    @seconds.values.each do |seconds|
-      now = Time.now
-      assert seconds.ago >= now - seconds
-      now = Time.now
-      assert seconds.from_now >= now + seconds
-    end
-  end
-
   def test_irregular_durations
     assert_equal @now.advance(:days => 3000), 3000.days.since(@now)
     assert_equal @now.advance(:months => 1), 1.month.since(@now)
@@ -78,54 +61,16 @@ class NumericExtTimeAndDateTimeTest < ActiveSupport::TestCase
   end
 
   def test_duration_after_conversion_is_no_longer_accurate
-    assert_equal 30.days.to_i.since(@now), 1.month.to_i.since(@now)
-    assert_equal 365.25.days.to_f.since(@now), 1.year.to_f.since(@now)
-    assert_equal 30.days.to_i.since(@dtnow), 1.month.to_i.since(@dtnow)
-    assert_equal 365.25.days.to_f.since(@dtnow), 1.year.to_f.since(@dtnow)
+    assert_equal 30.days.to_i.seconds.since(@now), 1.month.to_i.seconds.since(@now)
+    assert_equal 365.25.days.to_f.seconds.since(@now), 1.year.to_f.seconds.since(@now)
+    assert_equal 30.days.to_i.seconds.since(@dtnow), 1.month.to_i.seconds.since(@dtnow)
+    assert_equal 365.25.days.to_f.seconds.since(@dtnow), 1.year.to_f.seconds.since(@dtnow)
   end
 
   def test_add_one_year_to_leap_day
     assert_equal Time.utc(2005,2,28,15,15,10), Time.utc(2004,2,29,15,15,10) + 1.year
     assert_equal DateTime.civil(2005,2,28,15,15,10), DateTime.civil(2004,2,29,15,15,10) + 1.year
   end
-
-  def test_since_and_ago_anchored_to_time_now_when_time_zone_is_not_set
-    Time.zone = nil
-    with_env_tz 'US/Eastern' do
-      Time.stubs(:now).returns Time.local(2000)
-      # since
-      assert_equal false, 5.since.is_a?(ActiveSupport::TimeWithZone)
-      assert_equal Time.local(2000,1,1,0,0,5), 5.since
-      # ago
-      assert_equal false, 5.ago.is_a?(ActiveSupport::TimeWithZone)
-      assert_equal Time.local(1999,12,31,23,59,55), 5.ago
-    end
-  end
-
-  def test_since_and_ago_anchored_to_time_zone_now_when_time_zone_is_set
-    Time.zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
-    with_env_tz 'US/Eastern' do
-      Time.stubs(:now).returns Time.local(2000)
-      # since
-      assert_equal true, 5.since.is_a?(ActiveSupport::TimeWithZone)
-      assert_equal Time.utc(2000,1,1,0,0,5), 5.since.time
-      assert_equal 'Eastern Time (US & Canada)', 5.since.time_zone.name
-      # ago
-      assert_equal true, 5.ago.is_a?(ActiveSupport::TimeWithZone)
-      assert_equal Time.utc(1999,12,31,23,59,55), 5.ago.time
-      assert_equal 'Eastern Time (US & Canada)', 5.ago.time_zone.name
-    end
-  ensure
-    Time.zone = nil
-  end
-
-  protected
-    def with_env_tz(new_tz = 'US/Eastern')
-      old_tz, ENV['TZ'] = ENV['TZ'], new_tz
-      yield
-    ensure
-      old_tz ? ENV['TZ'] = old_tz : ENV.delete('TZ')
-    end
 end
 
 class NumericExtDateTest < ActiveSupport::TestCase
@@ -196,6 +141,14 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
 
   def terabytes(number)
     gigabytes(number) * 1024
+  end
+
+  def petabytes(number)
+    terabytes(number) * 1024
+  end
+
+  def exabytes(number)
+    petabytes(number) * 1024
   end
 
   def test_to_s__phone
@@ -321,7 +274,9 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
     assert_equal '1.18 MB',   1234567.to_s(:human_size)
     assert_equal '1.15 GB',   1234567890.to_s(:human_size)
     assert_equal '1.12 TB',   1234567890123.to_s(:human_size)
-    assert_equal '1030 TB',   terabytes(1026).to_s(:human_size)
+    assert_equal '1.1 PB',    1234567890123456.to_s(:human_size)
+    assert_equal '1.07 EB',   1234567890123456789.to_s(:human_size)
+    assert_equal '1030 EB',   exabytes(1026).to_s(:human_size)
     assert_equal '444 KB',    kilobytes(444).to_s(:human_size)
     assert_equal '1020 MB',   megabytes(1023).to_s(:human_size)
     assert_equal '3 TB',      terabytes(3).to_s(:human_size)
@@ -335,14 +290,18 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
   end
 
   def test_to_s__human_size_with_si_prefix
-    assert_equal '3 Bytes',    3.14159265.to_s(:human_size, :prefix => :si)
-    assert_equal '123 Bytes',  123.0.to_s(:human_size, :prefix => :si)
-    assert_equal '123 Bytes',  123.to_s(:human_size, :prefix => :si)
-    assert_equal '1.23 KB',    1234.to_s(:human_size, :prefix => :si)
-    assert_equal '12.3 KB',    12345.to_s(:human_size, :prefix => :si)
-    assert_equal '1.23 MB',    1234567.to_s(:human_size, :prefix => :si)
-    assert_equal '1.23 GB',    1234567890.to_s(:human_size, :prefix => :si)
-    assert_equal '1.23 TB',    1234567890123.to_s(:human_size, :prefix => :si)
+    assert_deprecated do
+      assert_equal '3 Bytes',    3.14159265.to_s(:human_size, :prefix => :si)
+      assert_equal '123 Bytes',  123.0.to_s(:human_size, :prefix => :si)
+      assert_equal '123 Bytes',  123.to_s(:human_size, :prefix => :si)
+      assert_equal '1.23 KB',    1234.to_s(:human_size, :prefix => :si)
+      assert_equal '12.3 KB',    12345.to_s(:human_size, :prefix => :si)
+      assert_equal '1.23 MB',    1234567.to_s(:human_size, :prefix => :si)
+      assert_equal '1.23 GB',    1234567890.to_s(:human_size, :prefix => :si)
+      assert_equal '1.23 TB',    1234567890123.to_s(:human_size, :prefix => :si)
+      assert_equal '1.23 PB',    1234567890123456.to_s(:human_size, :prefix => :si)
+      assert_equal '1.23 EB',    1234567890123456789.to_s(:human_size, :prefix => :si)
+    end
   end
 
   def test_to_s__human_size_with_options_hash
@@ -439,5 +398,119 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
 
     assert_equal BigDecimal, BigDecimal("1000010").class
     assert_equal '1 Million', BigDecimal("1000010").to_s(:human)
+  end
+
+  def test_to_formatted_s_is_deprecated
+    assert_deprecated do
+      5551234.to_formatted_s(:phone)
+    end
+  end
+
+  def test_to_s_with_invalid_formatter
+    assert_equal '123', 123.to_s(:invalid)
+    assert_equal '2.5', 2.5.to_s(:invalid)
+    assert_equal '100000000000000000000', (100**10).to_s(:invalid)
+    assert_equal '1000010.0', BigDecimal("1000010").to_s(:invalid)
+  end
+
+  def test_default_to_s
+    assert_equal '123', 123.to_s
+    assert_equal '1111011', 123.to_s(2)
+
+    assert_equal '2.5', 2.5.to_s
+
+    assert_equal '100000000000000000000', (100**10).to_s
+    assert_equal '1010110101111000111010111100010110101100011000100000000000000000000', (100**10).to_s(2)
+
+    assert_equal '1000010.0', BigDecimal("1000010").to_s
+    assert_equal '10000 10.0', BigDecimal("1000010").to_s('5F')
+  end
+
+  def test_in_milliseconds
+    assert_equal 10_000, 10.seconds.in_milliseconds
+  end
+
+  # TODO: Remove positive and negative tests when we drop support to ruby < 2.3
+  b = 2**64
+  b *= b until Bignum === b
+
+  T_ZERO = b.coerce(0).first
+  T_ONE  = b.coerce(1).first
+  T_MONE = b.coerce(-1).first
+
+  def test_positive
+    assert_predicate(1, :positive?)
+    assert_not_predicate(0, :positive?)
+    assert_not_predicate(-1, :positive?)
+    assert_predicate(+1.0, :positive?)
+    assert_not_predicate(+0.0, :positive?)
+    assert_not_predicate(-0.0, :positive?)
+    assert_not_predicate(-1.0, :positive?)
+    assert_predicate(+(0.0.next_float), :positive?)
+    assert_not_predicate(-(0.0.next_float), :positive?)
+    assert_predicate(Float::INFINITY, :positive?)
+    assert_not_predicate(-Float::INFINITY, :positive?)
+    assert_not_predicate(Float::NAN, :positive?)
+
+    a = Class.new(Numeric) do
+      def >(x); true; end
+    end.new
+    assert_predicate(a, :positive?)
+
+    a = Class.new(Numeric) do
+      def >(x); false; end
+    end.new
+    assert_not_predicate(a, :positive?)
+
+    assert_predicate(1/2r, :positive?)
+    assert_not_predicate(-1/2r, :positive?)
+
+    assert_predicate(T_ONE, :positive?)
+    assert_not_predicate(T_MONE, :positive?)
+    assert_not_predicate(T_ZERO, :positive?)
+
+    e = assert_raises(NoMethodError) do
+      Complex(1).positive?
+    end
+
+    assert_match(/positive\?/, e.message)
+  end
+
+  def test_negative
+    assert_predicate(-1, :negative?)
+    assert_not_predicate(0, :negative?)
+    assert_not_predicate(1, :negative?)
+    assert_predicate(-1.0, :negative?)
+    assert_not_predicate(-0.0, :negative?)
+    assert_not_predicate(+0.0, :negative?)
+    assert_not_predicate(+1.0, :negative?)
+    assert_predicate(-(0.0.next_float), :negative?)
+    assert_not_predicate(+(0.0.next_float), :negative?)
+    assert_predicate(-Float::INFINITY, :negative?)
+    assert_not_predicate(Float::INFINITY, :negative?)
+    assert_not_predicate(Float::NAN, :negative?)
+
+    a = Class.new(Numeric) do
+      def <(x); true; end
+    end.new
+    assert_predicate(a, :negative?)
+
+    a = Class.new(Numeric) do
+      def <(x); false; end
+    end.new
+    assert_not_predicate(a, :negative?)
+
+    assert_predicate(-1/2r, :negative?)
+    assert_not_predicate(1/2r, :negative?)
+
+    assert_not_predicate(T_ONE, :negative?)
+    assert_predicate(T_MONE, :negative?)
+    assert_not_predicate(T_ZERO, :negative?)
+
+    e = assert_raises(NoMethodError) do
+      Complex(1).negative?
+    end
+
+    assert_match(/negative\?/, e.message)
   end
 end

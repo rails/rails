@@ -7,6 +7,10 @@ class ActiveModelI18nTests < ActiveModel::TestCase
     I18n.backend = I18n::Backend::Simple.new
   end
 
+  def teardown
+    I18n.backend.reload!
+  end
+
   def test_translated_model_attributes
     I18n.backend.store_translations 'en', activemodel: { attributes: { person: { name: 'person name attribute' } } }
     assert_equal 'person name attribute', Person.human_attribute_name('name')
@@ -82,6 +86,11 @@ class ActiveModelI18nTests < ActiveModel::TestCase
   def test_translated_model_names_with_sti
     I18n.backend.store_translations 'en', activemodel: { models: { child: 'child model' } }
     assert_equal 'child model', Child.model_name.human
+  end
+
+  def test_translated_model_with_namespace
+    I18n.backend.store_translations 'en', activemodel: { models: { 'person/gender': 'gender model' } }
+    assert_equal 'gender model', Person::Gender.model_name.human
   end
 
   def test_translated_model_names_with_ancestors_fallback

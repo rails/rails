@@ -221,14 +221,14 @@ module ActionView
       # This module is mixed in if layout conditions are provided. This means
       # that if no layout conditions are used, this method is not used
       module LayoutConditions # :nodoc:
-      private
+        private
 
         # Determines whether the current action has a layout definition by
         # checking the action name against the :only and :except conditions
         # set by the <tt>layout</tt> method.
         #
         # ==== Returns
-        # * <tt> Boolean</tt> - True if the action has a layout definition, false otherwise.
+        # * <tt>Boolean</tt> - True if the action has a layout definition, false otherwise.
         def _conditional_layout?
           return unless super
 
@@ -262,20 +262,11 @@ module ActionView
       def layout(layout, conditions = {})
         include LayoutConditions unless conditions.empty?
 
-        conditions.each {|k, v| conditions[k] = Array(v).map {|a| a.to_s} }
+        conditions.each {|k, v| conditions[k] = Array(v).map(&:to_s) }
         self._layout_conditions = conditions
 
         self._layout = layout
         _write_layout_method
-      end
-
-      # If no layout is supplied, look for a template named the return
-      # value of this method.
-      #
-      # ==== Returns
-      # * <tt>String</tt> - A template name
-      def _implied_layout_name # :nodoc:
-        controller_path
       end
 
       # Creates a _layout method to be called by _default_layout .
@@ -286,7 +277,7 @@ module ActionView
         remove_possible_method(:_layout)
 
         prefixes    = _implied_layout_name =~ /\blayouts/ ? [] : ["layouts"]
-        default_behavior = "lookup_context.find_all('#{_implied_layout_name}', #{prefixes.inspect}).first || super"
+        default_behavior = "lookup_context.find_all('#{_implied_layout_name}', #{prefixes.inspect}, false, [], { formats: formats }).first || super"
         name_clause = if name
           default_behavior
         else
@@ -325,7 +316,7 @@ module ActionView
         end
 
         self.class_eval <<-RUBY, __FILE__, __LINE__ + 1
-          def _layout
+          def _layout(formats)
             if _conditional_layout?
               #{layout_definition}
             else
@@ -334,6 +325,17 @@ module ActionView
           end
           private :_layout
         RUBY
+      end
+
+      private
+
+      # If no layout is supplied, look for a template named the return
+      # value of this method.
+      #
+      # ==== Returns
+      # * <tt>String</tt> - A template name
+      def _implied_layout_name # :nodoc:
+        controller_path
       end
     end
 
@@ -370,7 +372,7 @@ module ActionView
     end
 
     # This will be overwritten by _write_layout_method
-    def _layout; end
+    def _layout(*); end
 
     # Determine the layout for a given name, taking into account the name type.
     #
@@ -380,8 +382,8 @@ module ActionView
       case name
       when String     then _normalize_layout(name)
       when Proc       then name
-      when true       then Proc.new { _default_layout(true)  }
-      when :default   then Proc.new { _default_layout(false) }
+      when true       then Proc.new { |formats| _default_layout(formats, true)  }
+      when :default   then Proc.new { |formats| _default_layout(formats, false) }
       when false, nil then nil
       else
         raise ArgumentError,
@@ -397,14 +399,15 @@ module ActionView
     # Optionally raises an exception if the layout could not be found.
     #
     # ==== Parameters
+    # * <tt>formats</tt> - The formats accepted to this layout
     # * <tt>require_layout</tt> - If set to true and layout is not found,
-    #   an ArgumentError exception is raised (defaults to false)
+    #   an +ArgumentError+ exception is raised (defaults to false)
     #
     # ==== Returns
     # * <tt>template</tt> - The template object for the default layout (or nil)
-    def _default_layout(require_layout = false)
+    def _default_layout(formats, require_layout = false)
       begin
-        value = _layout if action_has_layout?
+        value = _layout(formats) if action_has_layout?
       rescue NameError => e
         raise e, "Could not render layout: #{e.message}"
       end
@@ -418,7 +421,7 @@ module ActionView
     end
 
     def _include_layout?(options)
-      (options.keys & [:text, :inline, :partial]).empty? || options.key?(:layout)
+      (options.keys & [:body, :text, :plain, :html, :inline, :partial]).empty? || options.key?(:layout)
     end
   end
 end

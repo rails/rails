@@ -107,7 +107,7 @@ module ActiveSupport
         options = names.extract_options!
 
         names.each do |name|
-          raise NameError.new('invalid config attribute name') unless name =~ /^[_A-Za-z]\w*$/
+          raise NameError.new('invalid config attribute name') unless name =~ /\A[_A-Za-z]\w*\z/
 
           reader, reader_line = "def #{name}; config.#{name}; end", __LINE__
           writer, writer_line = "def #{name}=(value); config.#{name} = value; end", __LINE__
@@ -122,6 +122,7 @@ module ActiveSupport
           send("#{name}=", yield) if block_given?
         end
       end
+      private :config_accessor
     end
 
     # Reads and writes attributes from a configuration <tt>OrderedHash</tt>.

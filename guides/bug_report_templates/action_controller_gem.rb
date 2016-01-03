@@ -1,14 +1,24 @@
-# Activate the gem you are reporting the issue against.
-gem 'rails', '4.0.0'
+begin
+  require 'bundler/inline'
+rescue LoadError => e
+  $stderr.puts 'Bundler version 1.10 or later is required. Please update your Bundler'
+  raise e
+end
 
-require 'rails'
+gemfile(true) do
+  source 'https://rubygems.org'
+  # Activate the gem you are reporting the issue against.
+  gem 'rails', '4.2.0'
+end
+
+require 'rack/test'
 require 'action_controller/railtie'
 
 class TestApp < Rails::Application
   config.root = File.dirname(__FILE__)
   config.session_store :cookie_store, key: 'cookie_store_key'
-  config.secret_token    = 'secret_token'
-  config.secret_key_base = 'secret_key_base'
+  secrets.secret_token    = 'secret_token'
+  secrets.secret_key_base = 'secret_key_base'
 
   config.logger = Logger.new($stdout)
   Rails.logger  = config.logger
@@ -19,15 +29,19 @@ class TestApp < Rails::Application
 end
 
 class TestController < ActionController::Base
+  include Rails.application.routes.url_helpers
+
   def index
-    render text: 'Home'
+    render plain: 'Home'
   end
 end
 
 require 'minitest/autorun'
-require 'rack/test'
 
-class BugTest < MiniTest::Unit::TestCase
+# Ensure backward compatibility with Minitest 4
+Minitest::Test = MiniTest::Unit::TestCase unless defined?(Minitest::Test)
+
+class BugTest < Minitest::Test
   include Rack::Test::Methods
 
   def test_returns_success

@@ -1,4 +1,3 @@
-# encoding: utf-8
 require 'cases/helper'
 
 require 'models/topic'
@@ -6,7 +5,7 @@ require 'models/topic'
 class ConditionalValidationTest < ActiveModel::TestCase
 
   def teardown
-    Topic.reset_callbacks(:validate)
+    Topic.clear_validators!
   end
 
   def test_if_validation_using_method_true
@@ -23,7 +22,7 @@ class ConditionalValidationTest < ActiveModel::TestCase
     Topic.validates_length_of(:title, maximum: 5, too_long: "hoo %{count}", unless: :condition_is_true)
     t = Topic.new("title" => "uhohuhoh", "content" => "whatever")
     assert t.valid?
-    assert t.errors[:title].empty?
+    assert_empty t.errors[:title]
   end
 
   def test_if_validation_using_method_false
@@ -31,7 +30,7 @@ class ConditionalValidationTest < ActiveModel::TestCase
     Topic.validates_length_of(:title, maximum: 5, too_long: "hoo %{count}", if: :condition_is_true_but_its_not)
     t = Topic.new("title" => "uhohuhoh", "content" => "whatever")
     assert t.valid?
-    assert t.errors[:title].empty?
+    assert_empty t.errors[:title]
   end
 
   def test_unless_validation_using_method_false
@@ -57,7 +56,7 @@ class ConditionalValidationTest < ActiveModel::TestCase
     Topic.validates_length_of(:title, maximum: 5, too_long: "hoo %{count}", unless: "a = 1; a == 1")
     t = Topic.new("title" => "uhohuhoh", "content" => "whatever")
     assert t.valid?
-    assert t.errors[:title].empty?
+    assert_empty t.errors[:title]
   end
 
   def test_if_validation_using_string_false
@@ -65,7 +64,7 @@ class ConditionalValidationTest < ActiveModel::TestCase
     Topic.validates_length_of(:title, maximum: 5, too_long: "hoo %{count}", if: "false")
     t = Topic.new("title" => "uhohuhoh", "content" => "whatever")
     assert t.valid?
-    assert t.errors[:title].empty?
+    assert_empty t.errors[:title]
   end
 
   def test_unless_validation_using_string_false
@@ -93,7 +92,7 @@ class ConditionalValidationTest < ActiveModel::TestCase
       unless: Proc.new { |r| r.content.size > 4 })
     t = Topic.new("title" => "uhohuhoh", "content" => "whatever")
     assert t.valid?
-    assert t.errors[:title].empty?
+    assert_empty t.errors[:title]
   end
 
   def test_if_validation_using_block_false
@@ -102,7 +101,7 @@ class ConditionalValidationTest < ActiveModel::TestCase
       if: Proc.new { |r| r.title != "uhohuhoh"})
     t = Topic.new("title" => "uhohuhoh", "content" => "whatever")
     assert t.valid?
-    assert t.errors[:title].empty?
+    assert_empty t.errors[:title]
   end
 
   def test_unless_validation_using_block_false
@@ -124,7 +123,7 @@ class ConditionalValidationTest < ActiveModel::TestCase
 
     t = Topic.new
     assert t.invalid?, "A topic without a title should not be valid"
-    assert t.errors[:author_name].empty?, "A topic without an 'important' title should not require an author"
+    assert_empty t.errors[:author_name], "A topic without an 'important' title should not require an author"
 
     t.title = "Just a title"
     assert t.valid?, "A topic with a basic title should be valid"

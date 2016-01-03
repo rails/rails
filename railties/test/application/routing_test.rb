@@ -21,6 +21,12 @@ module ApplicationTests
       assert_equal 200, last_response.status
     end
 
+    test "rails/info in development" do
+      app("development")
+      get "/rails/info"
+      assert_equal 302, last_response.status
+    end
+
     test "rails/info/routes in development" do
       app("development")
       get "/rails/info/routes"
@@ -60,6 +66,12 @@ module ApplicationTests
     test "rails/welcome in production" do
       app("production")
       get "/"
+      assert_equal 404, last_response.status
+    end
+
+    test "rails/info in production" do
+      app("production")
+      get "/rails/info"
       assert_equal 404, last_response.status
     end
 
@@ -121,6 +133,26 @@ module ApplicationTests
 
       get '/blog/archives'
       assert_equal '/archives', last_response.body
+    end
+
+    test "mount named rack app" do
+      controller :foo, <<-RUBY
+        class FooController < ApplicationController
+          def index
+            render text: my_blog_path
+          end
+        end
+      RUBY
+
+      app_file 'config/routes.rb', <<-RUBY
+        Rails.application.routes.draw do
+          mount lambda { |env| [200, {}, [env["PATH_INFO"]]] }, at: "/blog", as: "my_blog"
+          get '/foo' => 'foo#index'
+        end
+      RUBY
+
+      get '/foo'
+      assert_equal '/blog', last_response.body
     end
 
     test "multiple controllers" do

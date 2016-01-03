@@ -16,6 +16,9 @@ module ActionMailer
       cattr_accessor :perform_deliveries
       self.perform_deliveries = true
 
+      cattr_accessor :deliver_later_queue_name
+      self.deliver_later_queue_name = :mailers
+
       self.delivery_methods = {}.freeze
       self.delivery_method  = :smtp
 
@@ -64,7 +67,7 @@ module ActionMailer
           raise "Delivery method cannot be nil"
         when Symbol
           if klass = delivery_methods[method]
-            mail.delivery_method(klass,(send(:"#{method}_settings") || {}).merge!(options || {}))
+            mail.delivery_method(klass, (send(:"#{method}_settings") || {}).merge(options || {}))
           else
             raise "Invalid delivery method #{method.inspect}"
           end

@@ -52,7 +52,7 @@ module AbstractController
     class AbstractInvalidHelpers < AbstractHelpers
       include ActionController::Helpers
 
-      path = File.join(File.expand_path('../../../fixtures', __FILE__), "helpers_missing")
+      path = File.expand_path('../../../fixtures/helpers_missing', __FILE__)
       $:.unshift(path)
       self.helpers_path = path
     end
@@ -78,9 +78,9 @@ module AbstractController
       end
 
       def test_declare_missing_helper
-        AbstractHelpers.helper :missing
-        flunk "should have raised an exception"
-      rescue LoadError => e
+        e = assert_raise AbstractController::Helpers::MissingHelperError do
+          AbstractHelpers.helper :missing
+        end
         assert_equal "helpers/missing_helper.rb", e.path
       end
 

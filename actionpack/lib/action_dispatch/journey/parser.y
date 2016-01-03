@@ -1,11 +1,11 @@
 class ActionDispatch::Journey::Parser
-
+  options no_result_var
 token SLASH LITERAL SYMBOL LPAREN RPAREN DOT STAR OR
 
 rule
   expressions
-    : expressions expression  { result = Cat.new(val.first, val.last) }
-    | expression              { result = val.first }
+    : expression expressions  { Cat.new(val.first, val.last) }
+    | expression              { val.first }
     | or
     ;
   expression
@@ -14,13 +14,14 @@ rule
     | star
     ;
   group
-    : LPAREN expressions RPAREN { result = Group.new(val[1]) }
+    : LPAREN expressions RPAREN { Group.new(val[1]) }
     ;
   or
-    : expressions OR expression { result = Or.new([val.first, val.last]) }
+    : expression OR expression { Or.new([val.first, val.last]) }
+    | expression OR or { Or.new([val.first, val.last]) }
     ;
   star
-    : STAR       { result = Star.new(Symbol.new(val.last)) }
+    : STAR       { Star.new(Symbol.new(val.last)) }
     ;
   terminal
     : symbol
@@ -29,16 +30,16 @@ rule
     | dot
     ;
   slash
-    : SLASH              { result = Slash.new('/') }
+    : SLASH              { Slash.new('/') }
     ;
   symbol
-    : SYMBOL             { result = Symbol.new(val.first) }
+    : SYMBOL             { Symbol.new(val.first) }
     ;
   literal
-    : LITERAL            { result = Literal.new(val.first) }
+    : LITERAL            { Literal.new(val.first) }
     ;
   dot
-    : DOT                { result = Dot.new(val.first) }
+    : DOT                { Dot.new(val.first) }
     ;
 
 end

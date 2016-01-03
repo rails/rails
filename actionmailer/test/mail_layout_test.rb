@@ -44,16 +44,6 @@ class ExplicitLayoutMailer < ActionMailer::Base
 end
 
 class LayoutMailerTest < ActiveSupport::TestCase
-  def setup
-    set_delivery_method :test
-    ActionMailer::Base.perform_deliveries = true
-    ActionMailer::Base.deliveries.clear
-  end
-
-  def teardown
-    restore_delivery_method
-  end
-
   def test_should_pickup_default_layout
     mail = AutoLayoutMailer.hello
     assert_equal "Hello from layout Inside", mail.body.to_s.strip

@@ -17,7 +17,7 @@ require 'models/engine'
 require 'models/car'
 
 class AssociationsJoinModelTest < ActiveRecord::TestCase
-  self.use_transactional_fixtures = false unless supports_savepoints?
+  self.use_transactional_tests = false unless supports_savepoints?
 
   fixtures :posts, :authors, :categories, :categorizations, :comments, :tags, :taggings, :author_favorites, :vertices, :items, :books,
     # Reload edges table from fixtures as otherwise repeated test was failing
@@ -35,12 +35,12 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     assert categories(:sti_test).authors.include?(authors(:mary))
   end
 
-  def test_has_many_uniq_through_join_model
+  def test_has_many_distinct_through_join_model
     assert_equal 2, authors(:mary).categorized_posts.size
     assert_equal 1, authors(:mary).unique_categorized_posts.size
   end
 
-  def test_has_many_uniq_through_count
+  def test_has_many_distinct_through_count
     author = authors(:mary)
     assert !authors(:mary).unique_categorized_posts.loaded?
     assert_queries(1) { assert_equal 1, author.unique_categorized_posts.count }
@@ -49,7 +49,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     assert !authors(:mary).unique_categorized_posts.loaded?
   end
 
-  def test_has_many_uniq_through_find
+  def test_has_many_distinct_through_find
     assert_equal 1, authors(:mary).unique_categorized_posts.to_a.size
   end
 
@@ -213,7 +213,8 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     old_count = Tagging.count
     post.destroy
     assert_equal old_count-1, Tagging.count
-    assert_nil posts(:welcome).tagging(true)
+    posts(:welcome).association(:tagging).reload
+    assert_nil posts(:welcome).tagging
   end
 
   def test_delete_polymorphic_has_one_with_nullify
@@ -224,7 +225,8 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     old_count = Tagging.count
     post.destroy
     assert_equal old_count, Tagging.count
-    assert_nil posts(:welcome).tagging(true)
+    posts(:welcome).association(:tagging).reload
+    assert_nil posts(:welcome).tagging
   end
 
   def test_has_many_with_piggyback
@@ -326,11 +328,11 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_belongs_to_polymorphic_with_counter_cache
-    assert_equal 1, posts(:welcome)[:taggings_count]
+    assert_equal 1, posts(:welcome)[:tags_count]
     tagging = posts(:welcome).taggings.create(:tag => tags(:general))
-    assert_equal 2, posts(:welcome, :reload)[:taggings_count]
+    assert_equal 2, posts(:welcome, :reload)[:tags_count]
     tagging.destroy
-    assert_equal 1, posts(:welcome, :reload)[:taggings_count]
+    assert_equal 1, posts(:welcome, :reload)[:tags_count]
   end
 
   def test_unavailable_through_reflection
@@ -393,18 +395,18 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_has_many_through_polymorphic_has_one
-    assert_equal Tagging.find(1,2).sort_by { |t| t.id }, authors(:david).taggings_2
+    assert_equal Tagging.find(1,2).sort_by(&:id), authors(:david).taggings_2
   end
 
   def test_has_many_through_polymorphic_has_many
-    assert_equal taggings(:welcome_general, :thinking_general), authors(:david).taggings.distinct.sort_by { |t| t.id }
+    assert_equal taggings(:welcome_general, :thinking_general), authors(:david).taggings.distinct.sort_by(&:id)
   end
 
   def test_include_has_many_through_polymorphic_has_many
     author            = Author.includes(:taggings).find authors(:david).id
     expected_taggings = taggings(:welcome_general, :thinking_general)
     assert_no_queries do
-      assert_equal expected_taggings, author.taggings.distinct.sort_by { |t| t.id }
+      assert_equal expected_taggings, author.taggings.distinct.sort_by(&:id)
     end
   end
 
@@ -444,7 +446,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   def test_has_many_through_uses_conditions_specified_on_the_has_many_association
     author = Author.first
     assert author.comments.present?
-    assert author.nonexistant_comments.blank?
+    assert author.nonexistent_comments.blank?
   end
 
   def test_has_many_through_uses_correct_attributes
@@ -461,7 +463,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     assert saved_post.tags.include?(new_tag)
 
     assert new_tag.persisted?
-    assert saved_post.reload.tags(true).include?(new_tag)
+    assert saved_post.reload.tags.reload.include?(new_tag)
 
 
     new_post = Post.new(:title => "Association replacement works!", :body => "You best believe it.")
@@ -474,7 +476,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
 
     new_post.save!
     assert new_post.persisted?
-    assert new_post.reload.tags(true).include?(saved_tag)
+    assert new_post.reload.tags.reload.include?(saved_tag)
 
     assert !posts(:thinking).tags.build.persisted?
     assert !posts(:thinking).tags.new.persisted?
@@ -489,24 +491,24 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
                 message = "Expected a Tag in tags collection, got #{wrong.class}.")
     assert_nil( wrong = post_thinking.taggings.detect { |t| t.class != Tagging },
                 message = "Expected a Tagging in taggings collection, got #{wrong.class}.")
-    assert_equal(count + 1, post_thinking.tags.size)
-    assert_equal(count + 1, post_thinking.tags(true).size)
+    assert_equal(count + 1, post_thinking.reload.tags.size)
+    assert_equal(count + 1, post_thinking.tags.reload.size)
 
     assert_kind_of Tag, post_thinking.tags.create!(:name => 'foo')
     assert_nil( wrong = post_thinking.tags.detect { |t| t.class != Tag },
                 message = "Expected a Tag in tags collection, got #{wrong.class}.")
     assert_nil( wrong = post_thinking.taggings.detect { |t| t.class != Tagging },
                 message = "Expected a Tagging in taggings collection, got #{wrong.class}.")
-    assert_equal(count + 2, post_thinking.tags.size)
-    assert_equal(count + 2, post_thinking.tags(true).size)
+    assert_equal(count + 2, post_thinking.reload.tags.size)
+    assert_equal(count + 2, post_thinking.tags.reload.size)
 
     assert_nothing_raised { post_thinking.tags.concat(Tag.create!(:name => 'abc'), Tag.create!(:name => 'def')) }
     assert_nil( wrong = post_thinking.tags.detect { |t| t.class != Tag },
                 message = "Expected a Tag in tags collection, got #{wrong.class}.")
     assert_nil( wrong = post_thinking.taggings.detect { |t| t.class != Tagging },
                 message = "Expected a Tagging in taggings collection, got #{wrong.class}.")
-    assert_equal(count + 4, post_thinking.tags.size)
-    assert_equal(count + 4, post_thinking.tags(true).size)
+    assert_equal(count + 4, post_thinking.reload.tags.size)
+    assert_equal(count + 4, post_thinking.tags.reload.size)
 
     # Raises if the wrong reflection name is used to set the Edge belongs_to
     assert_nothing_raised { vertices(:vertex_1).sinks << vertices(:vertex_5) }
@@ -544,44 +546,45 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     book = Book.create!(:name => 'Getting Real')
     book_awdr = books(:awdr)
     book_awdr.references << book
-    assert_equal(count + 1, book_awdr.references(true).size)
+    assert_equal(count + 1, book_awdr.references.reload.size)
 
     assert_nothing_raised { book_awdr.references.delete(book) }
     assert_equal(count, book_awdr.references.size)
-    assert_equal(count, book_awdr.references(true).size)
+    assert_equal(count, book_awdr.references.reload.size)
     assert_equal(references_before.sort, book_awdr.references.sort)
   end
 
   def test_delete_associate_when_deleting_from_has_many_through
     count = posts(:thinking).tags.count
-    tags_before = posts(:thinking).tags
+    tags_before = posts(:thinking).tags.sort
     tag = Tag.create!(:name => 'doomed')
     post_thinking = posts(:thinking)
     post_thinking.tags << tag
-    assert_equal(count + 1, post_thinking.taggings(true).size)
-    assert_equal(count + 1, post_thinking.tags(true).size)
+    assert_equal(count + 1, post_thinking.taggings.reload.size)
+    assert_equal(count + 1, post_thinking.reload.tags.reload.size)
+    assert_not_equal(tags_before, post_thinking.tags.sort)
 
     assert_nothing_raised { post_thinking.tags.delete(tag) }
     assert_equal(count, post_thinking.tags.size)
-    assert_equal(count, post_thinking.tags(true).size)
-    assert_equal(count, post_thinking.taggings(true).size)
-    assert_equal(tags_before.sort, post_thinking.tags.sort)
+    assert_equal(count, post_thinking.tags.reload.size)
+    assert_equal(count, post_thinking.taggings.reload.size)
+    assert_equal(tags_before, post_thinking.tags.sort)
   end
 
   def test_delete_associate_when_deleting_from_has_many_through_with_multiple_tags
     count = posts(:thinking).tags.count
-    tags_before = posts(:thinking).tags
+    tags_before = posts(:thinking).tags.sort
     doomed = Tag.create!(:name => 'doomed')
     doomed2 = Tag.create!(:name => 'doomed2')
     quaked = Tag.create!(:name => 'quaked')
     post_thinking = posts(:thinking)
     post_thinking.tags << doomed << doomed2
-    assert_equal(count + 2, post_thinking.tags(true).size)
+    assert_equal(count + 2, post_thinking.reload.tags.reload.size)
 
     assert_nothing_raised { post_thinking.tags.delete(doomed, doomed2, quaked) }
     assert_equal(count, post_thinking.tags.size)
-    assert_equal(count, post_thinking.tags(true).size)
-    assert_equal(tags_before.sort, post_thinking.tags.sort)
+    assert_equal(count, post_thinking.tags.reload.size)
+    assert_equal(tags_before, post_thinking.tags.sort)
   end
 
   def test_deleting_junk_from_has_many_through_should_raise_type_mismatch
@@ -624,7 +627,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     assert_equal [comments(:does_it_hurt)], authors(:david).special_post_comments
   end
 
-  def test_uniq_has_many_through_should_retain_order
+  def test_distinct_has_many_through_should_retain_order
     comment_ids = authors(:david).comments.map(&:id)
     assert_equal comment_ids.sort, authors(:david).ordered_uniq_comments.map(&:id)
     assert_equal comment_ids.sort.reverse, authors(:david).ordered_uniq_comments_desc.map(&:id)

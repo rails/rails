@@ -1,49 +1,88 @@
 module ActionDispatch
   module Journey # :nodoc:
     class Route # :nodoc:
-      attr_reader :app, :path, :defaults, :name
+      attr_reader :app, :path, :defaults, :name, :precedence
 
       attr_reader :constraints
       alias :conditions :constraints
 
-      attr_accessor :precedence
+      module VerbMatchers
+        VERBS = %w{ DELETE GET HEAD OPTIONS LINK PATCH POST PUT TRACE UNLINK }
+        VERBS.each do |v|
+          class_eval <<-eoc
+          class #{v}
+            def self.verb; name.split("::").last; end
+            def self.call(req); req.#{v.downcase}?; end
+          end
+          eoc
+        end
+
+        class Unknown
+          attr_reader :verb
+
+          def initialize(verb)
+            @verb = verb
+          end
+
+          def call(request); @verb === request.request_method; end
+        end
+
+        class All
+          def self.call(_); true; end
+          def self.verb; ''; end
+        end
+
+        VERB_TO_CLASS = VERBS.each_with_object({ :all => All }) do |verb, hash|
+          klass = const_get verb
+          hash[verb]                 = klass
+          hash[verb.downcase]        = klass
+          hash[verb.downcase.to_sym] = klass
+        end
+
+      end
+
+      def self.verb_matcher(verb)
+        VerbMatchers::VERB_TO_CLASS.fetch(verb) do
+          VerbMatchers::Unknown.new verb.to_s.dasherize.upcase
+        end
+      end
+
+      def self.build(name, app, path, constraints, required_defaults, defaults)
+        request_method_match = verb_matcher(constraints.delete(:request_method))
+        new name, app, path, constraints, required_defaults, defaults, request_method_match, 0
+      end
 
       ##
       # +path+ is a path constraint.
       # +constraints+ is a hash of constraints to be applied to this route.
-      def initialize(name, app, path, constraints, defaults = {})
+      def initialize(name, app, path, constraints, required_defaults, defaults, request_method_match, precedence)
         @name        = name
         @app         = app
         @path        = path
 
-        # Unwrap any constraints so we can see what's inside for route generation.
-        # This allows the formatter to skip over any mounted applications or redirects
-        # that shouldn't be matched when using a url_for without a route name.
-        while app.is_a?(Routing::Mapper::Constraints) do
-          app = app.app
-        end
-        @dispatcher  = app.is_a?(Routing::RouteSet::Dispatcher)
-
+        @request_method_match = request_method_match
         @constraints = constraints
         @defaults    = defaults
         @required_defaults = nil
+        @_required_defaults = required_defaults
         @required_parts    = nil
         @parts             = nil
         @decorated_ast     = nil
-        @precedence        = 0
+        @precedence        = precedence
+        @path_formatter    = @path.build_formatter
       end
 
       def ast
         @decorated_ast ||= begin
           decorated_ast = path.ast
-          decorated_ast.grep(Nodes::Terminal).each { |n| n.memo = self }
+          decorated_ast.find_all(&:terminal?).each { |n| n.memo = self }
           decorated_ast
         end
       end
 
       def requirements # :nodoc:
         # needed for rails `rake routes`
-        path.requirements.merge(@defaults).delete_if { |_,v|
+        @defaults.merge(path.requirements).delete_if { |_,v|
           /.+?/ == v
         }
       end
@@ -67,32 +106,20 @@ module ActionDispatch
       end
 
       def parts
-        @parts ||= segments.map { |n| n.to_sym }
+        @parts ||= segments.map(&:to_sym)
       end
       alias :segment_keys :parts
 
       def format(path_options)
-        path_options.delete_if do |key, value|
-          value.to_s == defaults[key].to_s && !required_parts.include?(key)
-        end
-
-        Visitors::Formatter.new(path_options).accept(path.spec)
-      end
-
-      def optimized_path
-        Visitors::OptimizedPath.new.accept(path.spec)
-      end
-
-      def optional_parts
-        path.optional_names.map { |n| n.to_sym }
+        @path_formatter.evaluate path_options
       end
 
       def required_parts
-        @required_parts ||= path.required_names.map { |n| n.to_sym }
+        @required_parts ||= path.required_names.map(&:to_sym)
       end
 
       def required_default?(key)
-        (constraints[:required_defaults] || []).include?(key)
+        @_required_defaults.include?(key)
       end
 
       def required_defaults
@@ -101,14 +128,17 @@ module ActionDispatch
         end
       end
 
+      def glob?
+        !path.spec.grep(Nodes::Star).empty?
+      end
+
       def dispatcher?
-        @dispatcher
+        @app.dispatcher?
       end
 
       def matches?(request)
-        constraints.all? do |method, value|
-          next true unless request.respond_to?(method)
-
+        match_verb(request) &&
+        constraints.all? { |method, value|
           case value
           when Regexp, String
             value === request.send(method).to_s
@@ -121,15 +151,28 @@ module ActionDispatch
           else
             value === request.send(method)
           end
-        end
+        }
       end
 
       def ip
         constraints[:ip] || //
       end
 
+      def requires_matching_verb?
+        !@request_method_match.all? { |x| x == VerbMatchers::All }
+      end
+
       def verb
-        constraints[:request_method] || //
+        verbs.join('|')
+      end
+
+      private
+      def verbs
+        @request_method_match.map(&:verb)
+      end
+
+      def match_verb(request)
+        @request_method_match.any? { |m| m.call request }
       end
     end
   end

@@ -3,16 +3,16 @@ module ActiveRecord
     module QueryCache
       class << self
         def included(base) #:nodoc:
-          dirties_query_cache base, :insert, :update, :delete
+          dirties_query_cache base, :insert, :update, :delete, :rollback_to_savepoint, :rollback_db_transaction
         end
 
         def dirties_query_cache(base, *method_names)
           method_names.each do |method_name|
             base.class_eval <<-end_code, __FILE__, __LINE__ + 1
-              def #{method_name}(*)                         # def update_with_query_dirty(*)
-                clear_query_cache if @query_cache_enabled   #   clear_query_cache if @query_cache_enabled
-                super                                       #   super
-              end                                           # end
+              def #{method_name}(*)
+                clear_query_cache if @query_cache_enabled
+                super
+              end
             end_code
           end
         end
@@ -31,8 +31,8 @@ module ActiveRecord
         old, @query_cache_enabled = @query_cache_enabled, true
         yield
       ensure
-        clear_query_cache
         @query_cache_enabled = old
+        clear_query_cache unless @query_cache_enabled
       end
 
       def enable_query_cache!
@@ -63,6 +63,7 @@ module ActiveRecord
 
       def select_all(arel, name = nil, binds = [])
         if @query_cache_enabled && !locked?(arel)
+          arel, binds = binds_from_relation arel, binds
           sql = to_sql(arel, binds)
           cache_sql(sql, binds) { super(sql, name, binds) }
         else

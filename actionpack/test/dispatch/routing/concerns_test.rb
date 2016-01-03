@@ -36,7 +36,8 @@ class RoutingConcernsTest < ActionDispatch::IntegrationTest
   end
 
   include Routes.url_helpers
-  def app; Routes end
+  APP = RoutedRackApp.new Routes
+  def app; APP end
 
   def test_accessing_concern_from_resources
     get "/posts/1/comments"

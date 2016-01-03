@@ -25,17 +25,19 @@ class Series < ActiveRecord::Base
   self.table_name = 'projects'
 end
 
-class ModelDelegator < ActiveRecord::Base
-  self.table_name = 'projects'
-
+class ModelDelegator
   def to_model
     ModelDelegate.new
   end
 end
 
 class ModelDelegate
-  def self.model_name
-    ActiveModel::Name.new(self)
+  def persisted?
+    true
+  end
+
+  def model_name
+    ActiveModel::Name.new(self.class)
   end
 
   def to_param
@@ -74,25 +76,77 @@ class PolymorphicRoutesTest < ActionController::TestCase
     @blog_blog = Blog::Blog.new
   end
 
+  def assert_url(url, args)
+    host = self.class.default_url_options[:host]
+
+    assert_equal url.sub(/http:\/\/#{host}/, ''), polymorphic_path(args)
+    assert_equal url, polymorphic_url(args)
+    assert_equal url, url_for(args)
+  end
+
+  def test_string
+    with_test_routes do
+      # FIXME: why are these different? Symbol case passes through to
+      # `polymorphic_url`, but the String case doesn't.
+      assert_equal "http://example.com/projects", polymorphic_url("projects")
+      assert_equal "projects", url_for("projects")
+    end
+  end
+
+  def test_string_with_options
+    with_test_routes do
+      assert_equal "http://example.com/projects?id=10", polymorphic_url("projects", :id => 10)
+    end
+  end
+
+  def test_symbol
+    with_test_routes do
+      assert_url "http://example.com/projects", :projects
+    end
+  end
+
+  def test_symbol_with_options
+    with_test_routes do
+      assert_equal "http://example.com/projects?id=10", polymorphic_url(:projects, :id => 10)
+    end
+  end
+
   def test_passing_routes_proxy
     with_namespaced_routes(:blog) do
-      proxy = ActionDispatch::Routing::RoutesProxy.new(_routes, self)
+      proxy = ActionDispatch::Routing::RoutesProxy.new(_routes, self, _routes.url_helpers)
       @blog_post.save
-      assert_equal "http://example.com/posts/#{@blog_post.id}", polymorphic_url([proxy, @blog_post])
+      assert_url "http://example.com/posts/#{@blog_post.id}", [proxy, @blog_post]
     end
   end
 
   def test_namespaced_model
     with_namespaced_routes(:blog) do
       @blog_post.save
-      assert_equal "http://example.com/posts/#{@blog_post.id}", polymorphic_url(@blog_post)
+      assert_url "http://example.com/posts/#{@blog_post.id}", @blog_post
     end
   end
 
   def test_namespaced_model_with_name_the_same_as_namespace
     with_namespaced_routes(:blog) do
       @blog_blog.save
-      assert_equal "http://example.com/blogs/#{@blog_blog.id}", polymorphic_url(@blog_blog)
+      assert_url "http://example.com/blogs/#{@blog_blog.id}", @blog_blog
+    end
+  end
+
+  def test_polymorphic_url_with_2_objects
+    with_namespaced_routes(:blog) do
+      @blog_blog.save
+      @blog_post.save
+      assert_equal "http://example.com/blogs/#{@blog_blog.id}/posts/#{@blog_post.id}", polymorphic_url([@blog_blog, @blog_post])
+    end
+  end
+
+  def test_polymorphic_url_with_3_objects
+    with_namespaced_routes(:blog) do
+      @blog_blog.save
+      @blog_post.save
+      @fax.save
+      assert_equal "http://example.com/blogs/#{@blog_blog.id}/posts/#{@blog_post.id}/faxes/#{@fax.id}", polymorphic_url([@blog_blog, @blog_post, @fax])
     end
   end
 
@@ -100,41 +154,121 @@ class PolymorphicRoutesTest < ActionController::TestCase
     with_namespaced_routes(:blog) do
       @blog_post.save
       @blog_blog.save
-      assert_equal "http://example.com/blogs/#{@blog_blog.id}/posts/#{@blog_post.id}", polymorphic_url([@blog_blog, @blog_post])
+      assert_url "http://example.com/blogs/#{@blog_blog.id}/posts/#{@blog_post.id}", [@blog_blog, @blog_post]
     end
   end
 
   def test_with_nil
     with_test_routes do
-      assert_raise ArgumentError, "Nil location provided. Can't build URI." do
+      exception = assert_raise ArgumentError do
         polymorphic_url(nil)
       end
+      assert_equal "Nil location provided. Can't build URI.", exception.message
+    end
+  end
+
+  def test_with_empty_list
+    with_test_routes do
+      exception = assert_raise ArgumentError do
+        polymorphic_url([])
+      end
+      assert_equal "Nil location provided. Can't build URI.", exception.message
+    end
+  end
+
+  def test_with_nil_id
+    with_test_routes do
+      exception = assert_raise ArgumentError do
+        polymorphic_url({ :id => nil })
+      end
+      assert_equal "Nil location provided. Can't build URI.", exception.message
+    end
+  end
+
+  def test_with_entirely_nil_list
+    with_test_routes do
+      exception = assert_raise ArgumentError do
+        @series.save
+        polymorphic_url([nil, nil])
+      end
+      assert_equal "Nil location provided. Can't build URI.", exception.message
+    end
+  end
+
+  def test_with_nil_in_list_for_resource_that_could_be_top_level_or_nested
+    with_top_level_and_nested_routes do
+      @blog_post.save
+      assert_equal "http://example.com/posts/#{@blog_post.id}", polymorphic_url([nil, @blog_post])
+    end
+  end
+
+  def test_with_nil_in_list_does_not_generate_invalid_link
+    with_top_level_and_nested_routes do
+      exception = assert_raise NoMethodError do
+        @series.save
+        polymorphic_url([nil, @series])
+      end
+      assert_match(/undefined method `series_url'/, exception.message)
     end
   end
 
   def test_with_record
     with_test_routes do
       @project.save
-      assert_equal "http://example.com/projects/#{@project.id}", polymorphic_url(@project)
+      assert_url "http://example.com/projects/#{@project.id}", @project
     end
   end
 
   def test_with_class
     with_test_routes do
-      assert_equal "http://example.com/projects", polymorphic_url(@project.class)
+      assert_url "http://example.com/projects", @project.class
+    end
+  end
+
+  def test_with_class_list_of_one
+    with_test_routes do
+      assert_url "http://example.com/projects", [@project.class]
+    end
+  end
+
+  def test_class_with_options
+    with_test_routes do
+      assert_equal "http://example.com/projects?foo=bar", polymorphic_url(@project.class, { :foo => :bar })
+      assert_equal "/projects?foo=bar", polymorphic_path(@project.class, { :foo => :bar })
     end
   end
 
   def test_with_new_record
     with_test_routes do
-      assert_equal "http://example.com/projects", polymorphic_url(@project)
+      assert_url "http://example.com/projects", @project
+    end
+  end
+
+  def test_new_record_arguments
+    params = nil
+
+    with_test_routes do
+      extend Module.new {
+        define_method("projects_url") { |*args|
+          params = args
+          super(*args)
+        }
+
+        define_method("projects_path") { |*args|
+          params = args
+          super(*args)
+        }
+      }
+
+      assert_url "http://example.com/projects", @project
+      assert_equal [], params
     end
   end
 
   def test_with_destroyed_record
     with_test_routes do
       @project.destroy
-      assert_equal "http://example.com/projects", polymorphic_url(@project)
+      assert_url "http://example.com/projects", @project
     end
   end
 
@@ -147,6 +281,15 @@ class PolymorphicRoutesTest < ActionController::TestCase
   def test_url_helper_prefixed_with_new
     with_test_routes do
       assert_equal "http://example.com/projects/new", new_polymorphic_url(@project)
+    end
+  end
+
+  def test_regression_path_helper_prefixed_with_new_and_edit
+    with_test_routes do
+      assert_equal "/projects/new", new_polymorphic_path(@project)
+
+      @project.save
+      assert_equal "/projects/#{@project.id}/edit", edit_polymorphic_path(@project)
     end
   end
 
@@ -196,14 +339,14 @@ class PolymorphicRoutesTest < ActionController::TestCase
     with_test_routes do
       @project.save
       @task.save
-      assert_equal "http://example.com/projects/#{@project.id}/tasks/#{@task.id}", polymorphic_url([@project, @task])
+      assert_url "http://example.com/projects/#{@project.id}/tasks/#{@task.id}", [@project, @task]
     end
   end
 
   def test_with_nested_unsaved
     with_test_routes do
       @project.save
-      assert_equal "http://example.com/projects/#{@project.id}/tasks", polymorphic_url([@project, @task])
+      assert_url "http://example.com/projects/#{@project.id}/tasks", [@project, @task]
     end
   end
 
@@ -211,20 +354,20 @@ class PolymorphicRoutesTest < ActionController::TestCase
     with_test_routes do
       @project.save
       @task.destroy
-      assert_equal "http://example.com/projects/#{@project.id}/tasks", polymorphic_url([@project, @task])
+      assert_url "http://example.com/projects/#{@project.id}/tasks", [@project, @task]
     end
   end
 
   def test_with_nested_class
     with_test_routes do
       @project.save
-      assert_equal "http://example.com/projects/#{@project.id}/tasks", polymorphic_url([@project, @task.class])
+      assert_url "http://example.com/projects/#{@project.id}/tasks", [@project, @task.class]
     end
   end
 
   def test_class_with_array_and_namespace
     with_admin_test_routes do
-      assert_equal "http://example.com/admin/projects", polymorphic_url([:admin, @project.class])
+      assert_url "http://example.com/admin/projects", [:admin, @project.class]
     end
   end
 
@@ -236,14 +379,14 @@ class PolymorphicRoutesTest < ActionController::TestCase
 
   def test_unsaved_with_array_and_namespace
     with_admin_test_routes do
-      assert_equal "http://example.com/admin/projects", polymorphic_url([:admin, @project])
+      assert_url "http://example.com/admin/projects", [:admin, @project]
     end
   end
 
   def test_nested_unsaved_with_array_and_namespace
     with_admin_test_routes do
       @project.save
-      assert_equal "http://example.com/admin/projects/#{@project.id}/tasks", polymorphic_url([:admin, @project, @task])
+      assert_url "http://example.com/admin/projects/#{@project.id}/tasks", [:admin, @project, @task]
     end
   end
 
@@ -251,7 +394,7 @@ class PolymorphicRoutesTest < ActionController::TestCase
     with_admin_test_routes do
       @project.save
       @task.save
-      assert_equal "http://example.com/admin/projects/#{@project.id}/tasks/#{@task.id}", polymorphic_url([:admin, @project, @task])
+      assert_url "http://example.com/admin/projects/#{@project.id}/tasks/#{@task.id}", [:admin, @project, @task]
     end
   end
 
@@ -260,14 +403,14 @@ class PolymorphicRoutesTest < ActionController::TestCase
       @project.save
       @task.save
       @step.save
-      assert_equal "http://example.com/admin/projects/#{@project.id}/site/tasks/#{@task.id}/steps/#{@step.id}", polymorphic_url([:admin, @project, :site, @task, @step])
+      assert_url "http://example.com/admin/projects/#{@project.id}/site/tasks/#{@task.id}/steps/#{@step.id}", [:admin, @project, :site, @task, @step]
     end
   end
 
   def test_nesting_with_array_ending_in_singleton_resource
     with_test_routes do
       @project.save
-      assert_equal "http://example.com/projects/#{@project.id}/bid", polymorphic_url([@project, :bid])
+      assert_url "http://example.com/projects/#{@project.id}/bid", [@project, :bid]
     end
   end
 
@@ -275,7 +418,7 @@ class PolymorphicRoutesTest < ActionController::TestCase
     with_test_routes do
       @project.save
       @task.save
-      assert_equal "http://example.com/projects/#{@project.id}/bid/tasks/#{@task.id}", polymorphic_url([@project, :bid, @task])
+      assert_url "http://example.com/projects/#{@project.id}/bid/tasks/#{@task.id}", [@project, :bid, @task]
     end
   end
 
@@ -291,34 +434,40 @@ class PolymorphicRoutesTest < ActionController::TestCase
     with_admin_test_routes do
       @project.save
       @task.save
-      assert_equal "http://example.com/admin/projects/#{@project.id}/bid/tasks/#{@task.id}", polymorphic_url([:admin, @project, :bid, @task])
+      assert_url "http://example.com/admin/projects/#{@project.id}/bid/tasks/#{@task.id}", [:admin, @project, :bid, @task]
     end
   end
 
-  def test_nesting_with_array_containing_nil
+  def test_nesting_with_array
     with_test_routes do
       @project.save
-      assert_equal "http://example.com/projects/#{@project.id}/bid", polymorphic_url([@project, nil, :bid])
+      assert_url "http://example.com/projects/#{@project.id}/bid", [@project, :bid]
     end
   end
 
   def test_with_array_containing_single_object
     with_test_routes do
       @project.save
-      assert_equal "http://example.com/projects/#{@project.id}", polymorphic_url([nil, @project])
+      assert_url "http://example.com/projects/#{@project.id}", [@project]
     end
   end
 
   def test_with_array_containing_single_name
     with_test_routes do
       @project.save
-      assert_equal "http://example.com/projects", polymorphic_url([:projects])
+      assert_url "http://example.com/projects", [:projects]
+    end
+  end
+
+  def test_with_array_containing_single_string_name
+    with_test_routes do
+      assert_url "http://example.com/projects", ["projects"]
     end
   end
 
   def test_with_array_containing_symbols
     with_test_routes do
-      assert_equal "http://example.com/series/new", polymorphic_url([:new, :series])
+      assert_url "http://example.com/series/new", [:new, :series]
     end
   end
 
@@ -353,26 +502,26 @@ class PolymorphicRoutesTest < ActionController::TestCase
   def test_with_irregular_plural_record
     with_test_routes do
       @tax.save
-      assert_equal "http://example.com/taxes/#{@tax.id}", polymorphic_url(@tax)
+      assert_url "http://example.com/taxes/#{@tax.id}", @tax
     end
   end
 
   def test_with_irregular_plural_class
     with_test_routes do
-      assert_equal "http://example.com/taxes", polymorphic_url(@tax.class)
+      assert_url "http://example.com/taxes", @tax.class
     end
   end
 
   def test_with_irregular_plural_new_record
     with_test_routes do
-      assert_equal "http://example.com/taxes", polymorphic_url(@tax)
+      assert_url "http://example.com/taxes", @tax
     end
   end
 
   def test_with_irregular_plural_destroyed_record
     with_test_routes do
       @tax.destroy
-      assert_equal "http://example.com/taxes", polymorphic_url(@tax)
+      assert_url "http://example.com/taxes", @tax
     end
   end
 
@@ -406,7 +555,7 @@ class PolymorphicRoutesTest < ActionController::TestCase
   def test_with_nested_unsaved_irregular_plurals
     with_test_routes do
       @tax.save
-      assert_equal "http://example.com/taxes/#{@tax.id}/faxes", polymorphic_url([@tax, @fax])
+      assert_url "http://example.com/taxes/#{@tax.id}/faxes", [@tax, @fax]
     end
   end
 
@@ -418,34 +567,34 @@ class PolymorphicRoutesTest < ActionController::TestCase
 
   def test_class_with_irregular_plural_array_and_namespace
     with_admin_test_routes do
-      assert_equal "http://example.com/admin/taxes", polymorphic_url([:admin, @tax.class])
+      assert_url "http://example.com/admin/taxes", [:admin, @tax.class]
     end
   end
 
   def test_unsaved_with_irregular_plural_array_and_namespace
     with_admin_test_routes do
-      assert_equal "http://example.com/admin/taxes", polymorphic_url([:admin, @tax])
+      assert_url "http://example.com/admin/taxes", [:admin, @tax]
     end
   end
 
   def test_nesting_with_irregular_plurals_and_array_ending_in_singleton_resource
     with_test_routes do
       @tax.save
-      assert_equal "http://example.com/taxes/#{@tax.id}/bid", polymorphic_url([@tax, :bid])
+      assert_url "http://example.com/taxes/#{@tax.id}/bid", [@tax, :bid]
     end
   end
 
   def test_with_array_containing_single_irregular_plural_object
     with_test_routes do
       @tax.save
-      assert_equal "http://example.com/taxes/#{@tax.id}", polymorphic_url([nil, @tax])
+      assert_url "http://example.com/taxes/#{@tax.id}", [@tax]
     end
   end
 
   def test_with_array_containing_single_name_irregular_plural
     with_test_routes do
       @tax.save
-      assert_equal "http://example.com/taxes", polymorphic_url([:taxes])
+      assert_url "http://example.com/taxes", [:taxes]
     end
   end
 
@@ -453,15 +602,20 @@ class PolymorphicRoutesTest < ActionController::TestCase
   def test_uncountable_resource
     with_test_routes do
       @series.save
-      assert_equal "http://example.com/series/#{@series.id}", polymorphic_url(@series)
-      assert_equal "http://example.com/series", polymorphic_url(Series.new)
+      assert_url "http://example.com/series/#{@series.id}", @series
+      assert_url "http://example.com/series", Series.new
     end
   end
 
-  def test_routing_a_to_model_delegate
+  def test_routing_to_a_model_delegate
     with_test_routes do
-      @delegator.save
-      assert_equal "http://example.com/model_delegates/overridden", polymorphic_url(@delegator)
+      assert_url "http://example.com/model_delegates/overridden", @delegator
+    end
+  end
+
+  def test_nested_routing_to_a_model_delegate
+    with_test_routes do
+      assert_url "http://example.com/foo/model_delegates/overridden", [:foo, @delegator]
     end
   end
 
@@ -470,13 +624,15 @@ class PolymorphicRoutesTest < ActionController::TestCase
       set.draw do
         scope(:module => name) do
           resources :blogs do
-            resources :posts
+            resources :posts do
+              resources :faxes
+            end
           end
           resources :posts
         end
       end
 
-      self.class.send(:include, @routes.url_helpers)
+      extend @routes.url_helpers
       yield
     end
   end
@@ -496,9 +652,27 @@ class PolymorphicRoutesTest < ActionController::TestCase
         end
         resources :series
         resources :model_delegates
+        namespace :foo do
+          resources :model_delegates
+        end
       end
 
-      self.class.send(:include, @routes.url_helpers)
+      extend @routes.url_helpers
+      yield
+    end
+  end
+
+  def with_top_level_and_nested_routes(options = {})
+    with_routing do |set|
+      set.draw do
+        resources :blogs do
+          resources :posts
+          resources :series
+        end
+        resources :posts
+      end
+
+      extend @routes.url_helpers
       yield
     end
   end
@@ -520,7 +694,7 @@ class PolymorphicRoutesTest < ActionController::TestCase
         end
       end
 
-      self.class.send(:include, @routes.url_helpers)
+      extend @routes.url_helpers
       yield
     end
   end
@@ -539,8 +713,21 @@ class PolymorphicRoutesTest < ActionController::TestCase
         end
       end
 
-      self.class.send(:include, @routes.url_helpers)
+      extend @routes.url_helpers
       yield
     end
+  end
+end
+
+class PolymorphicPathRoutesTest < PolymorphicRoutesTest
+  include ActionView::RoutingUrlFor
+  include ActionView::Context
+
+  attr_accessor :controller
+
+  def assert_url(url, args)
+    host = self.class.default_url_options[:host]
+
+    assert_equal url.sub(/http:\/\/#{host}/, ''), url_for(args)
   end
 end

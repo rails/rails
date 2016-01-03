@@ -1,15 +1,12 @@
 require 'abstract_unit'
 
 class CompiledTemplatesTest < ActiveSupport::TestCase
-  def setup
-    # Clean up any details key cached to expose failures
-    # that otherwise would appear just on isolated tests
+  teardown do
     ActionView::LookupContext::DetailsKey.clear
+  end
 
-    @compiled_templates = ActionView::CompiledTemplates
-    @compiled_templates.instance_methods.each do |m|
-      @compiled_templates.send(:remove_method, m) if m =~ /^_render_template_/
-    end
+  def test_template_with_nil_erb_return
+    assert_equal "This is nil: \n", render(:template => "test/nil_return")
   end
 
   def test_template_gets_recompiled_when_using_different_keys_in_local_assigns

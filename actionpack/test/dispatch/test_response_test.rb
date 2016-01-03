@@ -11,10 +11,9 @@ class TestResponseTest < ActiveSupport::TestCase
   end
 
   test "helpers" do
-    assert_response_code_range 200..299, :success?
-    assert_response_code_range [404],    :missing?
-    assert_response_code_range 300..399, :redirect?
-    assert_response_code_range 500..599, :error?
+    assert_response_code_range 200..299, :successful?
+    assert_response_code_range [404],    :not_found?
+    assert_response_code_range 300..399, :redirection?
     assert_response_code_range 500..599, :server_error?
     assert_response_code_range 400..499, :client_error?
   end

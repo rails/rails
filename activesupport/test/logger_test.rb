@@ -3,6 +3,7 @@ require 'multibyte_test_helpers'
 require 'stringio'
 require 'fileutils'
 require 'tempfile'
+require 'concurrent/atomics'
 
 class LoggerTest < ActiveSupport::TestCase
   include MultibyteTestHelpers
@@ -113,6 +114,7 @@ class LoggerTest < ActiveSupport::TestCase
   end
 
   def test_buffer_multibyte
+    @logger.level = Logger::INFO
     @logger.info(UNICODE_STRING)
     @logger.info(BYTE_STRING)
     assert @output.string.include?(UNICODE_STRING)
@@ -120,14 +122,93 @@ class LoggerTest < ActiveSupport::TestCase
     byte_string.force_encoding("ASCII-8BIT")
     assert byte_string.include?(BYTE_STRING)
   end
-  
+
   def test_silencing_everything_but_errors
     @logger.silence do
       @logger.debug "NOT THERE"
       @logger.error "THIS IS HERE"
     end
-    
+
     assert !@output.string.include?("NOT THERE")
     assert @output.string.include?("THIS IS HERE")
   end
+
+  def test_logger_level_per_object_thread_safety
+    logger1 = Logger.new(StringIO.new)
+    logger2 = Logger.new(StringIO.new)
+
+    level = Logger::DEBUG
+    assert_equal level, logger1.level, "Expected level #{level_name(level)}, got #{level_name(logger1.level)}"
+    assert_equal level, logger2.level, "Expected level #{level_name(level)}, got #{level_name(logger2.level)}"
+
+    logger1.level = Logger::ERROR
+    assert_equal level, logger2.level, "Expected level #{level_name(level)}, got #{level_name(logger2.level)}"
+  end
+
+  def test_logger_level_main_thread_safety
+    @logger.level = Logger::INFO
+    assert_level(Logger::INFO)
+
+    latch  = Concurrent::CountDownLatch.new
+    latch2 = Concurrent::CountDownLatch.new
+
+    t = Thread.new do
+      latch.wait
+      assert_level(Logger::INFO)
+      latch2.count_down
+    end
+
+    @logger.silence(Logger::ERROR) do
+      assert_level(Logger::ERROR)
+      latch.count_down
+      latch2.wait
+    end
+
+    t.join
+  end
+
+  def test_logger_level_local_thread_safety
+    @logger.level = Logger::INFO
+    assert_level(Logger::INFO)
+
+    thread_1_latch = Concurrent::CountDownLatch.new
+    thread_2_latch = Concurrent::CountDownLatch.new
+
+    threads = (1..2).collect do |thread_number|
+      Thread.new do
+        # force thread 2 to wait until thread 1 is already in @logger.silence
+        thread_2_latch.wait if thread_number == 2
+
+        @logger.silence(Logger::ERROR) do
+          assert_level(Logger::ERROR)
+          @logger.silence(Logger::DEBUG) do
+            # allow thread 2 to finish but hold thread 1
+            if thread_number == 1
+              thread_2_latch.count_down
+              thread_1_latch.wait
+            end
+            assert_level(Logger::DEBUG)
+          end
+        end
+
+        # allow thread 1 to finish
+        assert_level(Logger::INFO)
+        thread_1_latch.count_down if thread_number == 2
+      end
+    end
+
+    threads.each(&:join)
+    assert_level(Logger::INFO)
+  end
+
+  private
+    def level_name(level)
+      ::Logger::Severity.constants.find do |severity|
+        Logger.const_get(severity) == level
+      end.to_s
+    end
+
+    def assert_level(level)
+      assert_equal level, @logger.level, "Expected level #{level_name(level)}, got #{level_name(@logger.level)}"
+    end
 end

@@ -1,6 +1,6 @@
 require 'abstract_unit'
 require 'active_support/json'
-require 'active_support/core_ext/object/to_json'
+require 'active_support/core_ext/object/json'
 require 'active_support/core_ext/hash/indifferent_access'
 require 'active_support/core_ext/array/extract_options'
 
@@ -120,7 +120,9 @@ class OrderedHashTest < ActiveSupport::TestCase
   end
 
   def test_select
-    assert_equal @keys, @ordered_hash.select { true }.map(&:first)
+    new_ordered_hash = @ordered_hash.select { true }
+    assert_equal @keys, new_ordered_hash.map(&:first)
+    assert_instance_of ActiveSupport::OrderedHash, new_ordered_hash
   end
 
   def test_delete_if
@@ -143,6 +145,7 @@ class OrderedHashTest < ActiveSupport::TestCase
     assert_equal copy, @ordered_hash
     assert !new_ordered_hash.keys.include?('pink')
     assert @ordered_hash.keys.include?('pink')
+    assert_instance_of ActiveSupport::OrderedHash, new_ordered_hash
   end
 
   def test_clear

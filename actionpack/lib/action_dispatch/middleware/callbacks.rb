@@ -1,6 +1,6 @@
 
 module ActionDispatch
-  # Provide callbacks to be executed before and after the request dispatch.
+  # Provides callbacks to be executed before and after dispatching the request.
   class Callbacks
     include ActiveSupport::Callbacks
 
@@ -8,14 +8,14 @@ module ActionDispatch
 
     class << self
       delegate :to_prepare, :to_cleanup, :to => "ActionDispatch::Reloader"
-    end
 
-    def self.before(*args, &block)
-      set_callback(:call, :before, *args, &block)
-    end
+      def before(*args, &block)
+        set_callback(:call, :before, *args, &block)
+      end
 
-    def self.after(*args, &block)
-      set_callback(:call, :after, *args, &block)
+      def after(*args, &block)
+        set_callback(:call, :after, *args, &block)
+      end
     end
 
     def initialize(app)

@@ -1,14 +1,16 @@
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+
 Ruby on Rails 2.3 Release Notes
 ===============================
 
-Rails 2.3 delivers a variety of new and improved features, including pervasive Rack integration, refreshed support for Rails Engines, nested transactions for Active Record, dynamic and default scopes, unified rendering, more efficient routing, application templates, and quiet backtraces. This list covers the major upgrades, but doesn't include every little bug fix and change. If you want to see everything, check out the [list of commits](http://github.com/rails/rails/commits/master) in the main Rails repository on GitHub or review the `CHANGELOG` files for the individual Rails components.
+Rails 2.3 delivers a variety of new and improved features, including pervasive Rack integration, refreshed support for Rails Engines, nested transactions for Active Record, dynamic and default scopes, unified rendering, more efficient routing, application templates, and quiet backtraces. This list covers the major upgrades, but doesn't include every little bug fix and change. If you want to see everything, check out the [list of commits](http://github.com/rails/rails/commits/2-3-stable) in the main Rails repository on GitHub or review the `CHANGELOG` files for the individual Rails components.
 
 --------------------------------------------------------------------------------
 
 Application Architecture
 ------------------------
 
-There are two major changes in the architecture of Rails applications: complete integration of the [Rack](http://rack.rubyforge.org/) modular web server interface, and renewed support for Rails Engines.
+There are two major changes in the architecture of Rails applications: complete integration of the [Rack](http://rack.github.io/) modular web server interface, and renewed support for Rails Engines.
 
 ### Rack Integration
 
@@ -185,7 +187,7 @@ MySQL supports a reconnect flag in its connections - if set to true, then the cl
 
 * Lead Contributor: [Dov Murik](http://twitter.com/dubek)
 * More information:
-    * [Controlling Automatic Reconnection Behavior](http://dev.mysql.com/doc/refman/5.0/en/auto-reconnect.html)
+    * [Controlling Automatic Reconnection Behavior](http://dev.mysql.com/doc/refman/5.6/en/auto-reconnect.html)
     * [MySQL auto-reconnect revisited](http://groups.google.com/group/rubyonrails-core/browse_thread/thread/49d2a7e9c96cb9f4)
 
 ### Other Active Record Changes
@@ -594,7 +596,7 @@ The internals of the various <code>rake gem</code> tasks have been substantially
 * Various files in /public that deal with CGI and FCGI dispatching are no longer generated in every Rails application by default (you can still get them if you need them by adding `--with-dispatchers` when you run the `rails` command, or add them later with `rake rails:update:generate_dispatchers`).
 * Rails Guides have been converted from AsciiDoc to Textile markup.
 * Scaffolded views and controllers have been cleaned up a bit.
-* `script/server` now accepts a <tt>--path</tt> argument to mount a Rails application from a specific path.
+* `script/server` now accepts a `--path` argument to mount a Rails application from a specific path.
 * If any configured gems are missing, the gem rake tasks will skip loading much of the environment. This should solve many of the "chicken-and-egg" problems where rake gems:install couldn't run because gems were missing.
 * Gems are now unpacked exactly once. This fixes issues with gems (hoe, for instance) which are packed with read-only permissions on the files.
 
@@ -604,7 +606,7 @@ Deprecated
 A few pieces of older code are deprecated in this release:
 
 * If you're one of the (fairly rare) Rails developers who deploys in a fashion that depends on the inspector, reaper, and spawner scripts, you'll need to know that those scripts are no longer included in core Rails. If you need them, you'll be able to pick up copies via the [irs_process_scripts](http://github.com/rails/irs_process_scripts/tree) plugin.
-* `render_component` goes from "deprecated" to "nonexistent" in Rails 2.3. If you still need it, you can install the [render_component plugin](http://github.com/rails/render_component/tree/master.)
+* `render_component` goes from "deprecated" to "nonexistent" in Rails 2.3. If you still need it, you can install the [render_component plugin](http://github.com/rails/render_component/tree/master).
 * Support for Rails components has been removed.
 * If you were one of the people who got used to running `script/performance/request` to look at performance based on integration tests, you need to learn a new trick: that script has been removed from core Rails now. There's a new request_profiler plugin that you can install to get the exact same functionality back.
 * `ActionController::Base#session_enabled?` is deprecated because sessions are lazy-loaded now.
@@ -618,4 +620,4 @@ A few pieces of older code are deprecated in this release:
 Credits
 -------
 
-Release notes compiled by [Mike Gunderloy](http://afreshcup.com.) This version of the Rails 2.3 release notes was compiled based on RC2 of Rails 2.3.
+Release notes compiled by [Mike Gunderloy](http://afreshcup.com). This version of the Rails 2.3 release notes was compiled based on RC2 of Rails 2.3.

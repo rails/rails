@@ -7,11 +7,14 @@ require 'rack/body_proxy'
 module Rails
   module Rack
     # Sets log tags, logs the request, calls the app, and flushes the logs.
+    #
+    # Log tags (+taggers+) can be an Array containing: methods that the +request+
+    # object responds to, objects that respond to +to_s+ or Proc objects that accept
+    # an instance of the +request+ object.
     class Logger < ActiveSupport::LogSubscriber
       def initialize(app, taggers = nil)
         @app          = app
         @taggers      = taggers || []
-        @instrumenter = ActiveSupport::Notifications.instrumenter
       end
 
       def call(env)
@@ -33,8 +36,9 @@ module Rails
           logger.debug ''
         end
 
-        @instrumenter.start 'request.action_dispatch', request: request
-        logger.info started_request_message(request)
+        instrumenter = ActiveSupport::Notifications.instrumenter
+        instrumenter.start 'request.action_dispatch', request: request
+        logger.info { started_request_message(request) }
         resp = @app.call(env)
         resp[2] = ::Rack::BodyProxy.new(resp[2]) { finish(request) }
         resp
@@ -70,7 +74,8 @@ module Rails
       private
 
       def finish(request)
-        @instrumenter.finish 'request.action_dispatch', request: request
+        instrumenter = ActiveSupport::Notifications.instrumenter
+        instrumenter.finish 'request.action_dispatch', request: request
       end
 
       def development?

@@ -1,165 +1,263 @@
-*   Only cache template digests if `config.cache_template_loading` id true.
+*   Fix `collection_radio_buttons` hidden_field name and make it appear
+    before the actual input radio tags to make the real value override
+    the hidden when passed.
 
-    *Josh Lauer*, *Justin Ridgewell*
+    Fixes #22773
 
-*   Added an `extname` hash option for `javascript_include_tag` method.
+    *Santiago Pastorino*
 
-    Before:
+*   `ActionView::TestCase::Controller#params` returns an instance of
+    `ActionController::Parameters`.
 
-        javascript_include_tag('templates.jst')
-        # => <script src="/javascripts/templates.jst.js"></script>
+    *Justin Coyne*
 
-    After:
+*   Fix regression in `submit_tag` when a symbol is used as label argument.
 
-        javascript_include_tag('templates.jst', extname: false )
-        # => <script src="/javascripts/templates.jst"></script>
+    *Yuuji Yaginuma*
 
-    *Nathan Stitt*
 
-*   Fix `current_page?` when the URL contains escaped characters and the
-    original URL is using the hexadecimal lowercased.
+## Rails 5.0.0.beta1 (December 18, 2015) ##
 
-    *Rafael Mendonça França*
+*   `I18n.translate` helper will wrap the missing translation keys
+     in a <span> tag only if `debug_missing_translation` configuration
+     be true. Default value is `true`. For example in `application.rb`:
 
-*   Fix `text_area` to behave like `text_field` when `nil` is given as
-    value.
+       # in order to turn off missing key wrapping
+       config.action_view.debug_missing_translation = false
 
-    Before:
+     *Sameer Rahmani*
 
-        f.text_field :field, value: nil #=> <input value="">
-        f.text_area :field, value: nil  #=> <textarea>value of field</textarea>
+*   Respect value of `:object` if `:object` is false when rendering.
 
-    After:
+    Fixes #22260.
 
-        f.text_area :field, value: nil  #=> <textarea></textarea>
+    *Yuichiro Kaneko*
 
-    *Joel Cogen*
+*   Generate `week_field` input values using a 1-based index and not a 0-based index
+    as per the W3 spec: http://www.w3.org/TR/html-markup/datatypes.html#form.data.week
 
-*   Element of the `grouped_options_for_select` can
-    optionally contain html attributes as the last element of the array.
+    *Christoph Geschwind*
 
-        grouped_options_for_select(
-          [["North America", [['United States','US'],"Canada"], data: { foo: 'bar' }]]
-        )
+*   Allow `host` option in `javascript_include_tag` and `stylesheet_link_tag` helpers
+
+    *Grzegorz Witek*
+
+*   Restrict `url_for :back` to valid, non-JavaScript URLs. GH#14444
+
+    *Damien Burke*
+
+*   Allow `date_select` helper selected option to accept hash like the default options.
+
+    *Lecky Lao*
+
+*   Collection input propagates input's `id` to the label's `for` attribute when
+    using html options as the last element of collection.
 
     *Vasiliy Ermolovich*
 
-*   Fix default rendered format problem when calling `render` without :content_type option.
-    It should return :html. Fix #11393.
+*   Add a `hidden_field` on the `collection_radio_buttons` to avoid raising a error
+    when the only input on the form is the `collection_radio_buttons`.
 
-    *Gleb Mazovetskiy* *Oleg* *kennyj*
+    *Mauro George*
 
-*   Fix `link_to` with block and url hashes.
+*   `url_for` does not modify its arguments when generating polymorphic URLs.
 
-    Before:
+    *Bernerd Schaefer*
 
-        link_to(action: 'bar', controller: 'foo') { content_tag(:span, 'Example site') }
-        # => "<a action=\"bar\" controller=\"foo\"><span>Example site</span></a>"
+*   `number_to_currency` and `number_with_delimiter` now accept a custom `delimiter_pattern` option
+    to handle placement of delimiter, to support currency formats like INR.
 
-    After:
+    Example:
 
-        link_to(action: 'bar', controller: 'foo') { content_tag(:span, 'Example site') }
-        # => "<a href=\"/foo/bar\"><span>Example site</span></a>"
-
-    *Murahashi Sanemat Kenichi*
-
-*   Fix "Stack Level Too Deep" error when redering recursive partials.
-
-    Fixes #11340.
-
-    *Rafael Mendonça França*
-
-*   Added an `enforce_utf8` hash option for `form_tag` method.
-
-    Control to output a hidden input tag with name `utf8` without monkey
-    patching.
-
-    Before:
-
-        form_tag
-        # => '<form>..<input name="utf8" type="hidden" value="&#x2713;" />..</form>'
-
-    After:
-
-        form_tag
-        # => '<form>..<input name="utf8" type="hidden" value="&#x2713;" />..</form>'
-
-        form_tag({}, { :enforce_utf8 => false })
-        # => '<form>....</form>'
-
-    *ma2gedev*
-
-*   Remove the deprecated `include_seconds` argument from `distance_of_time_in_words`,
-    pass in an `:include_seconds` hash option to use this feature.
-
-    *Carlos Antonio da Silva*
-
-*   Remove deprecated block passing to `FormBuilder#new`.
+        number_to_currency(1230000, delimiter_pattern: /(\d+?)(?=(\d\d)+(\d)(?!\d))/, unit: '₹', format: "%u %n")
+        # => '₹ 12,30,000.00'
 
     *Vipul A M*
 
-*   Pick `DateField` `DateTimeField` and `ColorField` values from stringified options allowing use of symbol keys with helpers.
+*   Make `disable_with` the default behavior for submit tags. Disables the
+    button on submit to prevent double submits.
 
-    *Jon Rowe*
+    *Justin Schiff*
 
-*   Remove the deprecated `prompt` argument from `grouped_options_for_select`,
-    pass in a `:prompt` hash option to use this feature.
+*   Add a break_sequence option to word_wrap so you can specify a custom break.
 
-    *kennyj*
+    *Mauricio Gomez*
 
-*   Always escape the result of `link_to_unless` method.
+*   Add wildcard matching to explicit dependencies.
 
-    Before:
+    Turns:
 
-        link_to_unless(true, '<b>Showing</b>', 'github.com')
-        # => "<b>Showing</b>"
+    ```erb
+    <% # Template Dependency: recordings/threads/events/subscribers_changed %>
+    <% # Template Dependency: recordings/threads/events/completed %>
+    <% # Template Dependency: recordings/threads/events/uncompleted %>
+    ```
 
-    After:
+    Into:
 
-        link_to_unless(true, '<b>Showing</b>', 'github.com')
-        # => "&lt;b&gt;Showing&lt;/b&gt;"
+    ```erb
+    <% # Template Dependency: recordings/threads/events/* %>
+    ```
 
-    *dtaniwaki*
+    *Kasper Timm Hansen*
 
-*   Use a case insensitive URI Regexp for #asset_path.
+*   Allow defining explicit collection caching using a `# Template Collection: ...`
+    directive inside templates.
 
-    This fix a problem where the same asset path using different case are generating
-    different URIs.
+    *Dov Murik*
 
-    Before:
+*   Asset helpers raise `ArgumentError` when `nil` is passed as a source.
 
-        image_tag("HTTP://google.com")
-        # => "<img alt=\"Google\" src=\"/assets/HTTP://google.com\" />"
-        image_tag("http://google.com")
-        # => "<img alt=\"Google\" src=\"http://google.com\" />"
+    *Anton Kolomiychuk*
 
-    After:
+*   Always attach the template digest to the cache key for collection caching
+    even when `virtual_path` is not available from the view context.
+    Which could happen if the rendering was done directly in the controller
+    and not in a template.
 
-        image_tag("HTTP://google.com")
-        # => "<img alt=\"Google\" src=\"HTTP://google.com\" />"
-        image_tag("http://google.com")
-        # => "<img alt=\"Google\" src=\"http://google.com\" />"
+    Fixes #20535.
 
-    *David Celis*
+    *Roque Pinel*
 
-*   Element of the `collection_check_boxes` and `collection_radio_buttons` can
-    optionally contain html attributes as the last element of the array.
+*   Improve detection of partial templates eligible for collection caching,
+    now allowing multi-line comments at the beginning of the template file.
 
-    *Vasiliy Ermolovich*
+    *Dov Murik*
 
-*   Update the HTML `BOOLEAN_ATTRIBUTES` in `ActionView::Helpers::TagHelper`
-    to conform to the latest HTML 5.1 spec. Add attributes `allowfullscreen`,
-    `default`, `inert`, `sortable`, `truespeed`, `typemustmatch`. Fix attribute
-    `seamless` (previously misspelled `seemless`).
+*   Raise an `ArgumentError` when a false value for `include_blank` is passed to a
+    required select field (to comply with the HTML5 spec).
 
-    *Alex Peattie*
+    *Grey Baker*
 
-*   Fix an issue where partials with a number in the filename weren't being digested for cache dependencies.
+*   Do not put partial name to `local_assigns` when rendering without
+    an object or a collection.
 
-    *Bryan Ricker*
+    *Henrik Nygren*
 
-*   First release, ActionView extracted from ActionPack
+*   Remove `:rescue_format` option for `translate` helper since it's no longer
+    supported by I18n.
 
-    *Piotr Sarnacki*, *Łukasz Strzałkowski*
+    *Bernard Potocki*
 
-Please check [4-0-stable (ActionPack's CHANGELOG)](https://github.com/rails/rails/blob/4-0-stable/actionpack/CHANGELOG.md) for previous changes.
+*   `translate` should handle `raise` flag correctly in case of both main and default
+    translation is missing.
+
+    Fixes #19967.
+
+    *Bernard Potocki*
+
+*   Load the `default_form_builder` from the controller on initialization, which overrides
+    the global config if it is present.
+
+    *Kevin McPhillips*
+
+*   Accept lambda as `child_index` option in `fields_for` method.
+
+    *Karol Galanciak*
+
+*   `translate` allows `default: [[]]` again for a default value of `[]`.
+
+    Fixes #19640.
+
+    *Adam Prescott*
+
+*   `translate` should accept nils as members of the `:default`
+    parameter without raising a translation missing error.
+
+    Fixes #19419.
+
+    *Justin Coyne*
+
+*   `number_to_percentage` does not crash with `Float::NAN` or `Float::INFINITY`
+    as input when `precision: 0` is used.
+
+    Fixes #19227.
+
+    *Yves Senn*
+
+*   Fixed the translation helper method to accept different default values types
+    besides String.
+
+    *Ulisses Almeida*
+
+*   Collection rendering automatically caches and fetches multiple partials.
+
+    Collections rendered as:
+
+    ```ruby
+    <%= render @notifications %>
+    <%= render partial: 'notifications/notification', collection: @notifications, as: :notification %>
+    ```
+
+    will now read several partials from cache at once, if the template starts with a cache call:
+
+    ```ruby
+    # notifications/_notification.html.erb
+    <% cache notification do %>
+      <%# ... %>
+    <% end %>
+    ```
+
+    *Kasper Timm Hansen*
+
+*   Fixed a dependency tracker bug that caused template dependencies not
+    count layouts as dependencies for partials.
+
+    *Juho Leinonen*
+
+*   Extracted `ActionView::Helpers::RecordTagHelper` to external gem
+    (`record_tag_helper`) and added removal notices.
+
+    *Todd Bealmear*
+
+*   Allow to pass a string value to `size` option in `image_tag` and `video_tag`.
+
+    This makes the behavior more consistent with `width` or `height` options.
+
+    *Mehdi Lahmam*
+
+*   Partial template name does no more have to be a valid Ruby identifier.
+
+    There used to be a naming rule that the partial name should start with
+    underscore, and should be followed by any combination of letters, numbers
+    and underscores.
+    But now we can give our partials any name starting with underscore, such as
+    _🍔.html.erb.
+
+    *Akira Matsuda*
+
+*   Change the default template handler from `ERB` to `Raw`.
+
+    Files without a template handler in their extension will be rendered using the raw
+    handler instead of ERB.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `AbstractController::Base::parent_prefixes`.
+
+    *Rafael Mendonça França*
+
+*   Default translations that have a lower precedence than a html safe default,
+    but are not themselves safe, should not be marked as html_safe.
+
+    *Justin Coyne*
+
+*   Make possible to use blocks with short version of `render "partial"` helper.
+
+    *Nikolay Shebanov*
+
+*   Add a `hidden_field` on the `file_field` to avoid raising an error when the only
+    input on the form is the `file_field`.
+
+    *Mauro George*
+
+*   Add an explicit error message, in `ActionView::PartialRenderer` for partial
+    `rendering`, when the value of option `as` has invalid characters.
+
+    *Angelo Capilleri*
+
+*   Allow entries without a link tag in `AtomFeedHelper`.
+
+    *Daniel Gomez de Souza*
+
+Please check [4-2-stable](https://github.com/rails/rails/blob/4-2-stable/actionview/CHANGELOG.md) for previous changes.

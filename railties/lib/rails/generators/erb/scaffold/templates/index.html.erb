@@ -1,4 +1,6 @@
-<h1>Listing <%= plural_table_name %></h1>
+<p id="notice"><%%= notice %></p>
+
+<h1><%= plural_table_name.titleize %></h1>
 
 <table>
   <thead>
@@ -26,4 +28,4 @@
 
 <br>
 
-<%%= link_to 'New <%= human_name %>', new_<%= singular_table_name %>_path %>
+<%%= link_to 'New <%= singular_table_name.titleize %>', new_<%= singular_table_name %>_path %>

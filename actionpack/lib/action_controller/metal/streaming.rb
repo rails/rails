@@ -110,9 +110,9 @@ module ActionController #:nodoc:
   # This means that, if you have <code>yield :title</code> in your layout
   # and you want to use streaming, you would have to render the whole template
   # (and eventually trigger all queries) before streaming the title and all
-  # assets, which kills the purpose of streaming. For this reason Rails 3.1
-  # introduces a new helper called +provide+ that does the same as +content_for+
-  # but tells the layout to stop searching for other entries and continue rendering.
+  # assets, which kills the purpose of streaming. For this purpose, you can use
+  # a helper called +provide+ that does the same as +content_for+ but tells the
+  # layout to stop searching for other entries and continue rendering.
   #
   # For instance, the template above using +provide+ would be:
   #
@@ -183,7 +183,7 @@ module ActionController #:nodoc:
   # You may also want to configure other parameters like <tt>:tcp_nodelay</tt>.
   # Please check its documentation for more information: http://unicorn.bogomips.org/Unicorn/Configurator.html#method-i-listen
   #
-  # If you are using Unicorn with Nginx, you may need to tweak Nginx.
+  # If you are using Unicorn with NGINX, you may need to tweak NGINX.
   # Streaming should work out of the box on Rainbows.
   #
   # ==== Passenger
@@ -199,7 +199,7 @@ module ActionController #:nodoc:
       def _process_options(options) #:nodoc:
         super
         if options[:stream]
-          if env["HTTP_VERSION"] == "HTTP/1.0"
+          if request.version == "HTTP/1.0"
             options.delete(:stream)
           else
             headers["Cache-Control"] ||= "no-cache"

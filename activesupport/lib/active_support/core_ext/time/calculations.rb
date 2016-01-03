@@ -3,6 +3,7 @@ require 'active_support/core_ext/time/conversions'
 require 'active_support/time_with_zone'
 require 'active_support/core_ext/time/zones'
 require 'active_support/core_ext/date_and_time/calculations'
+require 'active_support/core_ext/date/calculations'
 
 class Time
   include DateAndTime::Calculations
@@ -15,14 +16,20 @@ class Time
       super || (self == Time && other.is_a?(ActiveSupport::TimeWithZone))
     end
 
-    # Return the number of days in the given month.
+    # Returns the number of days in the given month.
     # If no year is specified, it will use the current year.
-    def days_in_month(month, year = now.year)
+    def days_in_month(month, year = current.year)
       if month == 2 && ::Date.gregorian_leap?(year)
         29
       else
         COMMON_YEAR_DAYS_IN_MONTH[month]
       end
+    end
+
+    # Returns the number of days in the given year.
+    # If no year is specified, it will use the current year.
+    def days_in_year(year = current.year)
+      days_in_month(2, year) + 337
     end
 
     # Returns <tt>Time.zone.now</tt> when <tt>Time.zone</tt> or <tt>config.time_zone</tt> are set, otherwise just returns <tt>Time.now</tt>.
@@ -48,7 +55,11 @@ class Time
     alias_method :at, :at_with_coercion
   end
 
-  # Seconds since midnight: Time.now.seconds_since_midnight
+  # Returns the number of seconds since 00:00:00.
+  #
+  #   Time.new(2012, 8, 29,  0,  0,  0).seconds_since_midnight # => 0.0
+  #   Time.new(2012, 8, 29, 12, 34, 56).seconds_since_midnight # => 45296.0
+  #   Time.new(2012, 8, 29, 23, 59, 59).seconds_since_midnight # => 86399.0
   def seconds_since_midnight
     to_i - change(:hour => 0).to_i + (usec / 1.0e+6)
   end
@@ -64,11 +75,12 @@ class Time
 
   # Returns a new Time where one or more of the elements have been changed according
   # to the +options+ parameter. The time options (<tt>:hour</tt>, <tt>:min</tt>,
-  # <tt>:sec</tt>, <tt>:usec</tt>) reset cascadingly, so if only the hour is passed,
-  # then minute, sec, and usec is set to 0. If the hour and minute is passed, then
-  # sec and usec is set to 0.  The +options+ parameter takes a hash with any of these
-  # keys: <tt>:year</tt>, <tt>:month</tt>, <tt>:day</tt>, <tt>:hour</tt>, <tt>:min</tt>,
-  # <tt>:sec</tt>, <tt>:usec</tt>.
+  # <tt>:sec</tt>, <tt>:usec</tt>, <tt>:nsec</tt>) reset cascadingly, so if only
+  # the hour is passed, then minute, sec, usec and nsec is set to 0. If the hour
+  # and minute is passed, then sec, usec and nsec is set to 0. The +options+
+  # parameter takes a hash with any of these keys: <tt>:year</tt>, <tt>:month</tt>,
+  # <tt>:day</tt>, <tt>:hour</tt>, <tt>:min</tt>, <tt>:sec</tt>, <tt>:usec</tt>
+  # <tt>:nsec</tt>. Pass either <tt>:usec</tt> or <tt>:nsec</tt>, not both.
   #
   #   Time.new(2012, 8, 29, 22, 35, 0).change(day: 1)              # => Time.new(2012, 8, 1, 22, 35, 0)
   #   Time.new(2012, 8, 29, 22, 35, 0).change(year: 1981, day: 1)  # => Time.new(1981, 8, 1, 22, 35, 0)
@@ -80,21 +92,35 @@ class Time
     new_hour  = options.fetch(:hour, hour)
     new_min   = options.fetch(:min, options[:hour] ? 0 : min)
     new_sec   = options.fetch(:sec, (options[:hour] || options[:min]) ? 0 : sec)
-    new_usec  = options.fetch(:usec, (options[:hour] || options[:min] || options[:sec]) ? 0 : Rational(nsec, 1000))
+
+    if new_nsec = options[:nsec]
+      raise ArgumentError, "Can't change both :nsec and :usec at the same time: #{options.inspect}" if options[:usec]
+      new_usec = Rational(new_nsec, 1000)
+    else
+      new_usec  = options.fetch(:usec, (options[:hour] || options[:min] || options[:sec]) ? 0 : Rational(nsec, 1000))
+    end
 
     if utc?
       ::Time.utc(new_year, new_month, new_day, new_hour, new_min, new_sec, new_usec)
     elsif zone
       ::Time.local(new_year, new_month, new_day, new_hour, new_min, new_sec, new_usec)
     else
+      raise ArgumentError, 'argument out of range' if new_usec >= 1000000
       ::Time.new(new_year, new_month, new_day, new_hour, new_min, new_sec + (new_usec.to_r / 1000000), utc_offset)
     end
   end
 
-  # Uses Date to provide precise Time calculations for years, months, and days.
-  # The +options+ parameter takes a hash with any of these keys: <tt>:years</tt>,
-  # <tt>:months</tt>, <tt>:weeks</tt>, <tt>:days</tt>, <tt>:hours</tt>,
-  # <tt>:minutes</tt>, <tt>:seconds</tt>.
+  # Uses Date to provide precise Time calculations for years, months, and days
+  # according to the proleptic Gregorian calendar. The +options+ parameter
+  # takes a hash with any of these keys: <tt>:years</tt>, <tt>:months</tt>,
+  # <tt>:weeks</tt>, <tt>:days</tt>, <tt>:hours</tt>, <tt>:minutes</tt>,
+  # <tt>:seconds</tt>.
+  #
+  #   Time.new(2015, 8, 1, 14, 35, 0).advance(seconds: 1) # => 2015-08-01 14:35:01 -0700
+  #   Time.new(2015, 8, 1, 14, 35, 0).advance(minutes: 1) # => 2015-08-01 14:36:00 -0700
+  #   Time.new(2015, 8, 1, 14, 35, 0).advance(hours: 1)   # => 2015-08-01 15:35:00 -0700
+  #   Time.new(2015, 8, 1, 14, 35, 0).advance(days: 1)    # => 2015-08-02 14:35:00 -0700
+  #   Time.new(2015, 8, 1, 14, 35, 0).advance(weeks: 1)   # => 2015-08-08 14:35:00 -0700
   def advance(options)
     unless options[:weeks].nil?
       options[:weeks], partial_weeks = options[:weeks].divmod(1)
@@ -107,6 +133,7 @@ class Time
     end
 
     d = to_date.advance(options)
+    d = d.gregorian if d.julian?
     time_advanced_by_date = change(:year => d.year, :month => d.month, :day => d.day)
     seconds_to_advance = \
       options.fetch(:seconds, 0) +
@@ -135,7 +162,6 @@ class Time
 
   # Returns a new Time representing the start of the day (0:00)
   def beginning_of_day
-    #(self - seconds_since_midnight).change(usec: 0)
     change(:hour => 0)
   end
   alias :midnight :beginning_of_day
@@ -152,7 +178,7 @@ class Time
   alias :at_noon :middle_of_day
   alias :at_middle_of_day :middle_of_day
 
-  # Returns a new Time representing the end of the day, 23:59:59.999999 (.999999999 in ruby1.9)
+  # Returns a new Time representing the end of the day, 23:59:59.999999
   def end_of_day
     change(
       :hour => 23,
@@ -169,7 +195,7 @@ class Time
   end
   alias :at_beginning_of_hour :beginning_of_hour
 
-  # Returns a new Time representing the end of the hour, x:59:59.999999 (.999999999 in ruby1.9)
+  # Returns a new Time representing the end of the hour, x:59:59.999999
   def end_of_hour
     change(
       :min => 59,
@@ -185,7 +211,7 @@ class Time
   end
   alias :at_beginning_of_minute :beginning_of_minute
 
-  # Returns a new Time representing the end of the minute, x:xx:59.999999 (.999999999 in ruby1.9)
+  # Returns a new Time representing the end of the minute, x:xx:59.999999
   def end_of_minute
     change(
       :sec => 59,
@@ -197,27 +223,6 @@ class Time
   # Returns a Range representing the whole day of the current time.
   def all_day
     beginning_of_day..end_of_day
-  end
-
-  # Returns a Range representing the whole week of the current time.
-  # Week starts on start_day, default is <tt>Date.week_start</tt> or <tt>config.week_start</tt> when set.
-  def all_week(start_day = Date.beginning_of_week)
-    beginning_of_week(start_day)..end_of_week(start_day)
-  end
-
-  # Returns a Range representing the whole month of the current time.
-  def all_month
-    beginning_of_month..end_of_month
-  end
-
-  # Returns a Range representing the whole quarter of the current time.
-  def all_quarter
-    beginning_of_quarter..end_of_quarter
-  end
-
-  # Returns a Range representing the whole year of the current time.
-  def all_year
-    beginning_of_year..end_of_year
   end
 
   def plus_with_duration(other) #:nodoc:
@@ -253,8 +258,10 @@ class Time
   # Layers additional behavior on Time#<=> so that DateTime and ActiveSupport::TimeWithZone instances
   # can be chronologically compared with a Time
   def compare_with_coercion(other)
-    # we're avoiding Time#to_datetime cause it's expensive
-    if other.is_a?(Time)
+    # we're avoiding Time#to_datetime and Time#to_time because they're expensive
+    if other.class == Time
+      compare_without_coercion(other)
+    elsif other.is_a?(Time)
       compare_without_coercion(other.to_time)
     else
       to_datetime <=> other

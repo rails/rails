@@ -41,9 +41,7 @@ module Rails
       end
 
       def finalize!
-        route_sets.each do |routes|
-          routes.finalize!
-        end
+        route_sets.each(&:finalize!)
       end
 
       def revert

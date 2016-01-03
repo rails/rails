@@ -6,23 +6,28 @@ module ActionView
       @view    = context
       @details = extract_details(options)
       template = determine_template(options)
-      context  = @lookup_context
 
       prepend_formats(template.formats)
 
-      unless context.rendered_format
-        context.rendered_format = template.formats.first || formats.first
-      end
+      @lookup_context.rendered_format ||= (template.formats.first || formats.first)
 
       render_template(template, options[:layout], options[:locals])
     end
 
-    # Determine the template to be rendered using the given options.
-    def determine_template(options) #:nodoc:
-      keys = options.fetch(:locals, {}).keys
+    private
 
-      if options.key?(:text)
+    # Determine the template to be rendered using the given options.
+    def determine_template(options)
+      keys = options.has_key?(:locals) ? options[:locals].keys : []
+
+      if options.key?(:body)
+        Template::Text.new(options[:body])
+      elsif options.key?(:text)
         Template::Text.new(options[:text], formats.first)
+      elsif options.key?(:plain)
+        Template::Text.new(options[:plain])
+      elsif options.key?(:html)
+        Template::HTML.new(options[:html], formats.first)
       elsif options.key?(:file)
         with_fallbacks { find_template(options[:file], nil, false, keys, @details) }
       elsif options.key?(:inline)
@@ -35,7 +40,7 @@ module ActionView
           find_template(options[:template], options[:prefixes], false, keys, @details)
         end
       else
-        raise ArgumentError, "You invoked render but did not give any of :partial, :template, :inline, :file or :text option."
+        raise ArgumentError, "You invoked render but did not give any of :partial, :template, :inline, :file, :plain, :html, :text or :body option."
       end
     end
 
@@ -52,7 +57,7 @@ module ActionView
     end
 
     def render_with_layout(path, locals) #:nodoc:
-      layout  = path && find_layout(path, locals.keys)
+      layout  = path && find_layout(path, locals.keys, [formats.first])
       content = yield(layout)
 
       if layout
@@ -67,27 +72,28 @@ module ActionView
     # This is the method which actually finds the layout using details in the lookup
     # context object. If no layout is found, it checks if at least a layout with
     # the given name exists across all details before raising the error.
-    def find_layout(layout, keys)
-      with_layout_format { resolve_layout(layout, keys) }
+    def find_layout(layout, keys, formats)
+      resolve_layout(layout, keys, formats)
     end
 
-    def resolve_layout(layout, keys)
+    def resolve_layout(layout, keys, formats)
+      details = @details.dup
+      details[:formats] = formats
+
       case layout
       when String
         begin
           if layout =~ /^\//
-            with_fallbacks { find_template(layout, nil, false, keys, @details) }
+            with_fallbacks { find_template(layout, nil, false, keys, details) }
           else
-            find_template(layout, nil, false, keys, @details)
+            find_template(layout, nil, false, keys, details)
           end
         rescue ActionView::MissingTemplate
           all_details = @details.merge(:formats => @lookup_context.default_formats)
           raise unless template_exists?(layout, nil, false, keys, all_details)
         end
       when Proc
-        resolve_layout(layout.call, keys)
-      when FalseClass
-        nil
+        resolve_layout(layout.call(formats), keys, formats)
       else
         layout
       end

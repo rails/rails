@@ -5,6 +5,11 @@ class FinderRespondToTest < ActiveRecord::TestCase
 
   fixtures :topics
 
+  def test_should_preserve_normal_respond_to_behaviour_on_base
+    assert_respond_to ActiveRecord::Base, :new
+    assert !ActiveRecord::Base.respond_to?(:find_by_something)
+  end
+
   def test_should_preserve_normal_respond_to_behaviour_and_respond_to_newly_added_method
     class << Topic; self; end.send(:define_method, :method_added_for_finder_respond_to_test) { }
     assert_respond_to Topic, :method_added_for_finder_respond_to_test

@@ -27,13 +27,18 @@ class LookupContextTest < ActiveSupport::TestCase
   end
 
   test "normalizes details on initialization" do
-    assert_equal Mime::SET, @lookup_context.formats
+    assert_equal Mime::SET.to_a, @lookup_context.formats
     assert_equal :en, @lookup_context.locale
   end
 
   test "allows me to freeze and retrieve frozen formats" do
     @lookup_context.formats.freeze
     assert @lookup_context.formats.frozen?
+  end
+
+  test "provides getters and setters for variants" do
+    @lookup_context.variants = [:mobile]
+    assert_equal [:mobile], @lookup_context.variants
   end
 
   test "provides getters and setters for formats" do
@@ -43,7 +48,7 @@ class LookupContextTest < ActiveSupport::TestCase
 
   test "handles */* formats" do
     @lookup_context.formats = ["*/*"]
-    assert_equal Mime::SET, @lookup_context.formats
+    assert_equal Mime::SET.to_a, @lookup_context.formats
   end
 
   test "handles explicitly defined */* formats fallback to :js" do
@@ -88,11 +93,26 @@ class LookupContextTest < ActiveSupport::TestCase
     assert_equal "Hey verden", template.source
   end
 
+  test "find templates with given variants" do
+    @lookup_context.formats  = [:html]
+    @lookup_context.variants = [:phone]
+
+    template = @lookup_context.find("hello_world", %w(test))
+    assert_equal "Hello phone!", template.source
+
+    @lookup_context.variants = [:phone]
+    @lookup_context.formats  = [:text]
+
+    template = @lookup_context.find("hello_world", %w(test))
+    assert_equal "Hello texty phone!", template.source
+  end
+
   test "found templates respects given formats if one cannot be found from template or handler" do
-    ActionView::Template::Handlers::Builder.expects(:default_format).returns(nil)
-    @lookup_context.formats = [:text]
-    template = @lookup_context.find("hello", %w(test))
-    assert_equal [:text], template.formats
+    assert_called(ActionView::Template::Handlers::Builder, :default_format, returns: nil) do
+      @lookup_context.formats = [:text]
+      template = @lookup_context.find("hello", %w(test))
+      assert_equal [:text], template.formats
+    end
   end
 
   test "adds fallbacks to view paths when required" do
@@ -191,45 +211,50 @@ end
 class LookupContextWithFalseCaching < ActiveSupport::TestCase
   def setup
     @resolver = ActionView::FixtureResolver.new("test/_foo.erb" => ["Foo", Time.utc(2000)])
-    ActionView::Resolver.stubs(:caching?).returns(false)
     @lookup_context = ActionView::LookupContext.new(@resolver, {})
   end
 
   test "templates are always found in the resolver but timestamp is checked before being compiled" do
-    template = @lookup_context.find("foo", %w(test), true)
-    assert_equal "Foo", template.source
+    ActionView::Resolver.stub(:caching?, false) do
+      template = @lookup_context.find("foo", %w(test), true)
+      assert_equal "Foo", template.source
 
-    # Now we are going to change the template, but it won't change the returned template
-    # since the timestamp is the same.
-    @resolver.hash["test/_foo.erb"][0] = "Bar"
-    template = @lookup_context.find("foo", %w(test), true)
-    assert_equal "Foo", template.source
+      # Now we are going to change the template, but it won't change the returned template
+      # since the timestamp is the same.
+      @resolver.hash["test/_foo.erb"][0] = "Bar"
+      template = @lookup_context.find("foo", %w(test), true)
+      assert_equal "Foo", template.source
 
-    # Now update the timestamp.
-    @resolver.hash["test/_foo.erb"][1] = Time.now.utc
-    template = @lookup_context.find("foo", %w(test), true)
-    assert_equal "Bar", template.source
+      # Now update the timestamp.
+      @resolver.hash["test/_foo.erb"][1] = Time.now.utc
+      template = @lookup_context.find("foo", %w(test), true)
+      assert_equal "Bar", template.source
+    end
   end
 
   test "if no template was found in the second lookup, with no cache, raise error" do
-    template = @lookup_context.find("foo", %w(test), true)
-    assert_equal "Foo", template.source
+    ActionView::Resolver.stub(:caching?, false) do
+      template = @lookup_context.find("foo", %w(test), true)
+      assert_equal "Foo", template.source
 
-    @resolver.hash.clear
-    assert_raise ActionView::MissingTemplate do
-      @lookup_context.find("foo", %w(test), true)
+      @resolver.hash.clear
+      assert_raise ActionView::MissingTemplate do
+        @lookup_context.find("foo", %w(test), true)
+      end
     end
   end
 
   test "if no template was cached in the first lookup, retrieval should work in the second call" do
-    @resolver.hash.clear
-    assert_raise ActionView::MissingTemplate do
-      @lookup_context.find("foo", %w(test), true)
-    end
+    ActionView::Resolver.stub(:caching?, false) do
+      @resolver.hash.clear
+      assert_raise ActionView::MissingTemplate do
+        @lookup_context.find("foo", %w(test), true)
+      end
 
-    @resolver.hash["test/_foo.erb"] = ["Foo", Time.utc(2000)]
-    template = @lookup_context.find("foo", %w(test), true)
-    assert_equal "Foo", template.source
+      @resolver.hash["test/_foo.erb"] = ["Foo", Time.utc(2000)]
+      template = @lookup_context.find("foo", %w(test), true)
+      assert_equal "Foo", template.source
+    end
   end
 end
 
@@ -249,15 +274,15 @@ class TestMissingTemplate < ActiveSupport::TestCase
     e = assert_raise ActionView::MissingTemplate do
       @lookup_context.find("foo", %w(parent child), true)
     end
-    assert_match %r{Missing partial parent/foo, child/foo with .* Searched in:\n  \* "/Path/to/views"\n}, e.message
+    assert_match %r{Missing partial parent/_foo, child/_foo with .* Searched in:\n  \* "/Path/to/views"\n}, e.message
   end
 
   test "if a single prefix is passed as a string and the lookup fails, MissingTemplate accepts it" do
     e = assert_raise ActionView::MissingTemplate do
-      details = {:handlers=>[], :formats=>[], :locale=>[]}
+      details = {:handlers=>[], :formats=>[], :variants=>[], :locale=>[]}
       @lookup_context.view_paths.find("foo", "parent", true, details)
     end
-    assert_match %r{Missing partial parent/foo with .* Searched in:\n  \* "/Path/to/views"\n}, e.message
+    assert_match %r{Missing partial parent/_foo with .* Searched in:\n  \* "/Path/to/views"\n}, e.message
   end
 
 end

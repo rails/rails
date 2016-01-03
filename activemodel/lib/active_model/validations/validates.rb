@@ -13,7 +13,7 @@ module ActiveModel
       #   validates :terms, acceptance: true
       #   validates :password, confirmation: true
       #   validates :username, exclusion: { in: %w(admin superuser) }
-      #   validates :email, format: { with: /\A([^@\s]+)@((?:[-a-z0-9]+\.)+[a-z]{2,})\Z/i, on: :create }
+      #   validates :email, format: { with: /\A([^@\s]+)@((?:[-a-z0-9]+\.)+[a-z]{2,})\z/i, on: :create }
       #   validates :age, inclusion: { in: 0..9 }
       #   validates :first_name, length: { maximum: 30 }
       #   validates :age, numericality: true
@@ -71,9 +71,11 @@ module ActiveModel
       #
       # There is also a list of options that could be used along with validators:
       #
-      # * <tt>:on</tt> - Specifies when this validation is active. Runs in all
-      #   validation contexts by default (+nil+), other options are <tt>:create</tt>
-      #   and <tt>:update</tt>.
+      # * <tt>:on</tt> - Specifies the contexts where this validation is active.
+      #   Runs in all validation contexts by default (nil). You can pass a symbol
+      #   or an array of symbols. (e.g. <tt>on: :create</tt> or
+      #   <tt>on: :custom_validation_context</tt> or
+      #   <tt>on: [:create, :custom_validation_context]</tt>)
       # * <tt>:if</tt> - Specifies a method, proc or string to call to determine
       #   if the validation should occur (e.g. <tt>if: :allow_validation</tt>,
       #   or <tt>if: Proc.new { |user| user.signup_step > 2 }</tt>). The method,
@@ -83,7 +85,9 @@ module ActiveModel
       #   or <tt>unless: Proc.new { |user| user.signup_step <= 2 }</tt>). The
       #   method, proc or string should return or evaluate to a +true+ or
       #   +false+ value.
-      # * <tt>:strict</tt> - if the <tt>:strict</tt> option is set to true
+      # * <tt>:allow_nil</tt> - Skip validation if the attribute is +nil+.
+      # * <tt>:allow_blank</tt> - Skip validation if the attribute is blank.
+      # * <tt>:strict</tt> - If the <tt>:strict</tt> option is set to true
       #   will raise ActiveModel::StrictValidationFailed instead of adding the error.
       #   <tt>:strict</tt> option can also be set to any other exception.
       #
@@ -111,7 +115,7 @@ module ActiveModel
           key = "#{key.to_s.camelize}Validator"
 
           begin
-            validator = key.include?('::') ? key.constantize : const_get(key)
+            validator = key.include?('::'.freeze) ? key.constantize : const_get(key)
           rescue NameError
             raise ArgumentError, "Unknown validator: '#{key}'"
           end

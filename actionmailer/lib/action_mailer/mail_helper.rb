@@ -4,15 +4,25 @@ module ActionMailer
   # attachments list.
   module MailHelper
     # Take the text and format it, indented two spaces for each line, and
-    # wrapped at 72 columns.
+    # wrapped at 72 columns:
+    #
+    #   text = <<-TEXT
+    #     This is
+    #     the      paragraph.
+    #
+    #     * item1 * item2
+    #   TEXT
+    #
+    #   block_format text
+    #   # => "  This is the paragraph.\n\n  * item1\n  * item2\n"
     def block_format(text)
       formatted = text.split(/\n\r?\n/).collect { |paragraph|
         format_paragraph(paragraph)
       }.join("\n\n")
 
       # Make list points stand on their own line
-      formatted.gsub!(/[ ]*([*]+) ([^*]*)/) { |s| "  #{$1} #{$2.strip}\n" }
-      formatted.gsub!(/[ ]*([#]+) ([^#]*)/) { |s| "  #{$1} #{$2.strip}\n" }
+      formatted.gsub!(/[ ]*([*]+) ([^*]*)/) { "  #{$1} #{$2.strip}\n" }
+      formatted.gsub!(/[ ]*([#]+) ([^#]*)/) { "  #{$1} #{$2.strip}\n" }
 
       formatted
     end
@@ -29,10 +39,12 @@ module ActionMailer
 
     # Access the message attachments list.
     def attachments
-      @_message.attachments
+      mailer.attachments
     end
 
     # Returns +text+ wrapped at +len+ columns and indented +indent+ spaces.
+    # By default column length +len+ equals 72 characters and indent
+    # +indent+ equal two spaces.
     #
     #   my_text = 'Here is a sample text with more than 40 characters'
     #

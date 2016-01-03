@@ -26,27 +26,6 @@ module ActiveRecord
         assert ActiveRecord::Base.connection_handler.active_connections?
       end
 
-      def test_connection_pool_per_pid
-        return skip('must support fork') unless Process.respond_to?(:fork)
-
-        object_id = ActiveRecord::Base.connection.object_id
-
-        rd, wr = IO.pipe
-
-        pid = fork {
-          rd.close
-          wr.write Marshal.dump ActiveRecord::Base.connection.object_id
-          wr.close
-          exit!
-        }
-
-        wr.close
-
-        Process.waitpid pid
-        assert_not_equal object_id, Marshal.load(rd.read)
-        rd.close
-      end
-
       def test_app_delegation
         manager = ConnectionManagement.new(@app)
 
@@ -94,18 +73,33 @@ module ActiveRecord
         assert ActiveRecord::Base.connection_handler.active_connections?
       end
 
+      def test_connections_closed_if_exception_and_explicitly_not_test
+        @env['rack.test'] = false
+        app       = Class.new(App) { def call(env); raise NotImplementedError; end }.new
+        explosive = ConnectionManagement.new(app)
+        assert_raises(NotImplementedError) { explosive.call(@env) }
+        assert !ActiveRecord::Base.connection_handler.active_connections?
+      end
+
       test "doesn't clear active connections when running in a test case" do
         @env['rack.test'] = true
         @management.call(@env)
         assert ActiveRecord::Base.connection_handler.active_connections?
       end
 
-      test "proxy is polite to it's body and responds to it" do
+      test "proxy is polite to its body and responds to it" do
         body = Class.new(String) { def to_path; "/path"; end }.new
         app = lambda { |_| [200, {}, body] }
         response_body = ConnectionManagement.new(app).call(@env)[2]
         assert response_body.respond_to?(:to_path)
-        assert_equal response_body.to_path, "/path"
+        assert_equal "/path", response_body.to_path
+      end
+
+      test "doesn't mutate the original response" do
+        original_response = [200, {}, 'hi']
+        app = lambda { |_| original_response }
+        ConnectionManagement.new(app).call(@env)[2]
+        assert_equal 'hi', original_response.last
       end
     end
   end

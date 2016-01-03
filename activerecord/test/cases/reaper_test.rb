@@ -10,8 +10,7 @@ module ActiveRecord
         @pool = ConnectionPool.new ActiveRecord::Base.connection_pool.spec
       end
 
-      def teardown
-        super
+      teardown do
         @pool.connections.each(&:close)
       end
 
@@ -61,20 +60,25 @@ module ActiveRecord
 
       def test_connection_pool_starts_reaper
         spec = ActiveRecord::Base.connection_pool.spec.dup
-        spec.config[:reaping_frequency] = 0.0001
+        spec.config[:reaping_frequency] = '0.0001'
 
         pool = ConnectionPool.new spec
-        pool.dead_connection_timeout = 0
 
-        conn = pool.checkout
-        count = pool.connections.length
+        conn = nil
+        child = Thread.new do
+          conn = pool.checkout
+          Thread.stop
+        end
+        Thread.pass while conn.nil?
 
-        conn.extend(Module.new { def active?; false; end; })
+        assert conn.in_use?
 
-        while count == pool.connections.length
+        child.terminate
+
+        while conn.in_use?
           Thread.pass
         end
-        assert_equal(count - 1, pool.connections.length)
+        assert !conn.in_use?
       end
     end
   end

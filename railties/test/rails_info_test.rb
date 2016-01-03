@@ -38,19 +38,8 @@ class InfoTest < ActiveSupport::TestCase
   end
 
   def test_rails_version
-    assert_property 'Rails version', 
+    assert_property 'Rails version',
       File.read(File.realpath('../../../RAILS_VERSION', __FILE__)).chomp
-  end
-
-  def test_framework_version
-    assert_property 'Active Support version', ActiveSupport.version.to_s
-  end
-
-  def test_frameworks_exist
-    Rails::Info.frameworks.each do |framework|
-      dir = File.dirname(__FILE__) + "/../../" + framework.delete('_')
-      assert File.directory?(dir), "#{framework.classify} does not exist"
-    end
   end
 
   def test_html_includes_middleware
@@ -66,16 +55,6 @@ class InfoTest < ActiveSupport::TestCase
   end
 
   protected
-    def svn_info=(info)
-      Rails::Info.module_eval do
-        class << self
-          def svn_info
-            info
-          end
-        end
-      end
-    end
-
     def properties
       Rails::Info.properties
     end

@@ -1,5 +1,6 @@
 require 'active_support/core_ext/object/duplicable'
 require 'active_support/core_ext/string/inflections'
+require 'active_support/per_thread_registry'
 
 module ActiveSupport
   module Cache
@@ -8,6 +9,8 @@ module ActiveSupport
       # duration of a block. Repeated calls to the cache for the same key will hit the
       # in-memory cache for faster access.
       module LocalCache
+        autoload :Middleware, 'active_support/cache/strategy/local_cache_middleware'
+
         # Class for storing and registering the local caches.
         class LocalCacheRegistry # :nodoc:
           extend ActiveSupport::PerThreadRegistry
@@ -23,6 +26,9 @@ module ActiveSupport
           def set_cache_for(local_cache_key, value)
             @registry[local_cache_key] = value
           end
+
+          def self.set_cache_for(l, v); instance.set_cache_for l, v; end
+          def self.cache_for(l); instance.cache_for l; end
         end
 
         # Simple memory backed cache. This cache is not thread safe and is intended only
@@ -33,7 +39,7 @@ module ActiveSupport
             @data = {}
           end
 
-          # Don't allow synchronizing since it isn't thread safe,
+          # Don't allow synchronizing since it isn't thread safe.
           def synchronize # :nodoc:
             yield
           end
@@ -54,38 +60,16 @@ module ActiveSupport
           def delete_entry(key, options)
             !!@data.delete(key)
           end
+
+          def fetch_entry(key, options = nil) # :nodoc:
+            @data.fetch(key) { @data[key] = yield }
+          end
         end
 
         # Use a local cache for the duration of block.
         def with_local_cache
           use_temporary_local_cache(LocalStore.new) { yield }
         end
-
-        #--
-        # This class wraps up local storage for middlewares. Only the middleware method should
-        # construct them.
-        class Middleware # :nodoc:
-          attr_reader :name, :local_cache_key
-
-          def initialize(name, local_cache_key)
-            @name             = name
-            @local_cache_key = local_cache_key
-            @app              = nil
-          end
-
-          def new(app)
-            @app = app
-            self
-          end
-
-          def call(env)
-            LocalCacheRegistry.set_cache_for(local_cache_key, LocalStore.new)
-            @app.call(env)
-          ensure
-            LocalCacheRegistry.set_cache_for(local_cache_key, nil)
-          end
-        end
-
         # Middleware class can be inserted as a Rack handler to be local cache for the
         # duration of request.
         def middleware
@@ -95,36 +79,35 @@ module ActiveSupport
         end
 
         def clear(options = nil) # :nodoc:
-          local_cache.clear(options) if local_cache
+          return super unless cache = local_cache
+          cache.clear(options)
           super
         end
 
         def cleanup(options = nil) # :nodoc:
-          local_cache.clear(options) if local_cache
+          return super unless cache = local_cache
+          cache.clear(options)
           super
         end
 
         def increment(name, amount = 1, options = nil) # :nodoc:
+          return super unless local_cache
           value = bypass_local_cache{super}
-          increment_or_decrement(value, name, amount, options)
+          write_cache_value(name, value, options)
           value
         end
 
         def decrement(name, amount = 1, options = nil) # :nodoc:
+          return super unless local_cache
           value = bypass_local_cache{super}
-          increment_or_decrement(value, name, amount, options)
+          write_cache_value(name, value, options)
           value
         end
 
         protected
           def read_entry(key, options) # :nodoc:
-            if local_cache
-              entry = local_cache.read_entry(key, options)
-              unless entry
-                entry = super
-                local_cache.write_entry(key, entry, options)
-              end
-              entry
+            if cache = local_cache
+              cache.fetch_entry(key) { super }
             else
               super
             end
@@ -140,18 +123,27 @@ module ActiveSupport
             super
           end
 
-        private
-          def increment_or_decrement(value, name, amount, options)
-            if local_cache
-              local_cache.mute do
-                if value
-                  local_cache.write(name, value, options)
-                else
-                  local_cache.delete(name, options)
-                end
+          def set_cache_value(value, name, amount, options) # :nodoc:
+            ActiveSupport::Deprecation.warn(<<-MESSAGE.strip_heredoc)
+              `set_cache_value` is deprecated and will be removed from Rails 5.1.
+              Please use `write_cache_value`
+            MESSAGE
+            write_cache_value name, value, options
+          end
+
+          def write_cache_value(name, value, options) # :nodoc:
+            name = normalize_key(name, options)
+            cache = local_cache
+            cache.mute do
+              if value
+                cache.write(name, value, options)
+              else
+                cache.delete(name, options)
               end
             end
           end
+
+        private
 
           def local_cache_key
             @local_cache_key ||= "#{self.class.name.underscore}_local_cache_#{object_id}".gsub(/[\/-]/, '_').to_sym

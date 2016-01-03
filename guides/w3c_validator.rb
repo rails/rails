@@ -60,6 +60,8 @@ module RailsGuides
     def guides_to_validate
       guides = Dir["./output/*.html"]
       guides.delete("./output/layout.html")
+      guides.delete("./output/_license.html")
+      guides.delete("./output/_welcome.html")
       ENV.key?('ONLY') ? select_only(guides) : guides
     end
 

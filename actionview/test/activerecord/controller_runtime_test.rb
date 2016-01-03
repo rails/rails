@@ -4,12 +4,10 @@ require 'fixtures/project'
 require 'active_support/log_subscriber/test_helper'
 require 'action_controller/log_subscriber'
 
-ActionController::Base.send :include, ActiveRecord::Railties::ControllerRuntime
+ActionController::Base.include(ActiveRecord::Railties::ControllerRuntime)
 
 class ControllerRuntimeLogSubscriberTest < ActionController::TestCase
   class LogSubscriberController < ActionController::Base
-    respond_to :html
-
     def show
       render :inline => "<%= Project.all %>"
     end
@@ -20,8 +18,8 @@ class ControllerRuntimeLogSubscriberTest < ActionController::TestCase
 
     def create
       ActiveRecord::LogSubscriber.runtime += 100
-      project = Project.last
-      respond_with(project, location: url_for(action: :show))
+      Project.last
+      redirect_to "/"
     end
 
     def redirect

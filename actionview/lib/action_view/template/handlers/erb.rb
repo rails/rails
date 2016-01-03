@@ -18,7 +18,7 @@ module ActionView
             src << "@output_buffer.safe_append='"
             src << "\n" * @newline_pending if @newline_pending > 0
             src << escape_text(text)
-            src << "';"
+            src << "'.freeze;"
 
             @newline_pending = 0
           end
@@ -35,7 +35,7 @@ module ActionView
           end
         end
 
-        BLOCK_EXPR = /\s+(do|\{)(\s*\|[^|]*\|)?\s*\Z/
+        BLOCK_EXPR = /\s*((\s+|\))do|\{)(\s*\|[^|]*\|)?\s*\Z/
 
         def add_expr_literal(src, code)
           flush_newline_if_pending(src)
@@ -49,9 +49,9 @@ module ActionView
         def add_expr_escaped(src, code)
           flush_newline_if_pending(src)
           if code =~ BLOCK_EXPR
-            src << "@output_buffer.safe_append= " << code
+            src << "@output_buffer.safe_expr_append= " << code
           else
-            src << "@output_buffer.safe_append=(" << code << ");"
+            src << "@output_buffer.safe_expr_append=(" << code << ");"
           end
         end
 
@@ -67,7 +67,7 @@ module ActionView
 
         def flush_newline_if_pending(src)
           if @newline_pending > 0
-            src << "@output_buffer.safe_append='#{"\n" * @newline_pending}';"
+            src << "@output_buffer.safe_append='#{"\n" * @newline_pending}'.freeze;"
             @newline_pending = 0
           end
         end
@@ -121,6 +121,31 @@ module ActionView
             :escape => (self.class.escape_whitelist.include? template.type),
             :trim => (self.class.erb_trim_mode == "-")
           ).src
+        end
+
+        # Returns Regexp to extract a cached resource's name from a cache call at the
+        # first line of a template.
+        # The extracted cache name is captured as :resource_name.
+        #
+        #   <% cache notification do %> # => notification
+        #
+        # The pattern should support templates with a beginning comment:
+        #
+        #   <%# Still extractable even though there's a comment %>
+        #   <% cache notification do %> # => notification
+        #
+        # But fail to extract a name if a resource association is cached.
+        #
+        #   <% cache notification.event do %> # => nil
+        def resource_cache_call_pattern
+          /\A
+            (?:<%\#.*%>)*                 # optional initial comment
+            \s*                           # followed by optional spaces or newlines
+            <%\s*cache[\(\s]              # followed by an ERB call to cache
+            \s*                           # followed by optional spaces or newlines
+            (?<resource_name>\w+)         # capture the cache call argument as :resource_name
+            [\s\)]                        # followed by a space or close paren
+          /xm
         end
 
       private

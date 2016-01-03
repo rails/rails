@@ -30,7 +30,7 @@ module RailtiesTests
       if File.exist?("#{environment}.rb")
         require_environment = "-r #{environment}"
       end
-      `#{Gem.ruby} #{require_environment} #{RAILS_FRAMEWORK_ROOT}/railties/bin/rails #{cmd}`
+      `#{Gem.ruby} #{require_environment} #{RAILS_FRAMEWORK_ROOT}/railties/exe/rails #{cmd}`
     end
 
     def build_engine(is_mountable=false)
@@ -121,6 +121,14 @@ module RailtiesTests
         assert_file "app/helpers/topics_helper.rb", /module TopicsHelper/
         assert_no_file "app/helpers/foo_bar/topics_helper.rb"
       end
+    end
+
+    def test_assert_file_with_special_characters
+      path = "#{app_path}/tmp"
+      file_name = "#{path}/v0.1.4~alpha+nightly"
+      FileUtils.mkdir_p path
+      FileUtils.touch file_name
+      assert_file file_name
     end
   end
 end

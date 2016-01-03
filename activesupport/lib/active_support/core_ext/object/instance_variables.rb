@@ -23,6 +23,6 @@ class Object
   #
   #   C.new(0, 1).instance_variable_names # => ["@y", "@x"]
   def instance_variable_names
-    instance_variables.map { |var| var.to_s }
+    instance_variables.map(&:to_s)
   end
 end

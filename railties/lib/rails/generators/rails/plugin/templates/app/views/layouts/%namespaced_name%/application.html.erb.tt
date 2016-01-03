@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title><%= humanized %></title>
+  <%%= stylesheet_link_tag    "<%= namespaced_name %>/application", media: "all" %>
+  <%%= javascript_include_tag "<%= namespaced_name %>/application" %>
+  <%%= csrf_meta_tags %>
+</head>
+<body>
+
+<%%= yield %>
+
+</body>
+</html>

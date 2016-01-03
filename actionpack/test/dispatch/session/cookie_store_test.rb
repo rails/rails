@@ -16,25 +16,25 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
     end
 
     def persistent_session_id
-      render :text => session[:session_id]
+      render plain: session[:session_id]
     end
 
     def set_session_value
       session[:foo] = "bar"
-      render :text => Rack::Utils.escape(Verifier.generate(session.to_hash))
+      render plain: Rack::Utils.escape(Verifier.generate(session.to_hash))
     end
 
     def get_session_value
-      render :text => "foo: #{session[:foo].inspect}"
+      render plain: "foo: #{session[:foo].inspect}"
     end
 
     def get_session_id
-      render :text => "id: #{request.session_options[:id]}"
+      render plain: "id: #{request.session.id}"
     end
 
     def get_class_after_reset_session
       reset_session
-      render :text => "class: #{session.class}"
+      render plain: "class: #{session.class}"
     end
 
     def call_session_clear
@@ -53,7 +53,7 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
     end
 
     def change_session_id
-      request.session_options[:id] = nil
+      request.session.options[:id] = nil
       get_session_id
     end
 
@@ -86,7 +86,7 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
       cookies[SessionKey] = SignedBar
       get '/persistent_session_id'
       assert_response :success
-      assert_equal response.body.size, 32
+      assert_equal 32, response.body.size
       session_id = response.body
 
       get '/get_session_id'
@@ -125,7 +125,7 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
 
   def test_does_set_secure_cookies_over_https
     with_test_route_set(:secure => true) do
-      get '/set_session_value', nil, 'HTTPS' => 'on'
+      get '/set_session_value', headers: { 'HTTPS' => 'on' }
       assert_response :success
       assert_equal "_myapp_session=#{response.body}; path=/; secure; HttpOnly",
         headers['Set-Cookie']
@@ -247,7 +247,7 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
       cookies[SessionKey] = SignedBar
       get '/persistent_session_id'
       assert_response :success
-      assert_equal response.body.size, 32
+      assert_equal 32, response.body.size
       session_id = response.body
       get '/persistent_session_id'
       assert_equal session_id, response.body
@@ -263,7 +263,7 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
 
       get "/get_session_id"
       sid = response.body
-      assert_equal sid.size, 36
+      assert_equal 36, sid.size
 
       get "/change_session_id"
       assert_not_equal sid, response.body
@@ -274,28 +274,32 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
     with_test_route_set(:expire_after => 5.hours) do
       # First request accesses the session
       time = Time.local(2008, 4, 24)
-      Time.stubs(:now).returns(time)
-      expected_expiry = (time + 5.hours).gmtime.strftime("%a, %d %b %Y %H:%M:%S -0000")
+      cookie_body = nil
 
-      cookies[SessionKey] = SignedBar
+      Time.stub :now, time do
+        expected_expiry = (time + 5.hours).gmtime.strftime("%a, %d %b %Y %H:%M:%S -0000")
 
-      get '/set_session_value'
-      assert_response :success
+        cookies[SessionKey] = SignedBar
 
-      cookie_body = response.body
-      assert_equal "_myapp_session=#{cookie_body}; path=/; expires=#{expected_expiry}; HttpOnly",
-        headers['Set-Cookie']
+        get '/set_session_value'
+        assert_response :success
+
+        cookie_body = response.body
+        assert_equal "_myapp_session=#{cookie_body}; path=/; expires=#{expected_expiry}; HttpOnly",
+          headers['Set-Cookie']
+      end
 
       # Second request does not access the session
       time = Time.local(2008, 4, 25)
-      Time.stubs(:now).returns(time)
-      expected_expiry = (time + 5.hours).gmtime.strftime("%a, %d %b %Y %H:%M:%S -0000")
+      Time.stub :now, time do
+        expected_expiry = (time + 5.hours).gmtime.strftime("%a, %d %b %Y %H:%M:%S -0000")
 
-      get '/no_session_access'
-      assert_response :success
+        get '/no_session_access'
+        assert_response :success
 
-      assert_equal "_myapp_session=#{cookie_body}; path=/; expires=#{expected_expiry}; HttpOnly",
-        headers['Set-Cookie']
+        assert_equal "_myapp_session=#{cookie_body}; path=/; expires=#{expected_expiry}; HttpOnly",
+          headers['Set-Cookie']
+      end
     end
   end
 
@@ -331,9 +335,11 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
   private
 
     # Overwrite get to send SessionSecret in env hash
-    def get(path, parameters = nil, env = {})
-      env["action_dispatch.key_generator"] ||= Generator
-      super
+    def get(path, *args)
+      args[0] ||= {}
+      args[0][:headers] ||= {}
+      args[0][:headers]["action_dispatch.key_generator"] ||= Generator
+      super(path, *args)
     end
 
     def with_test_route_set(options = {})
@@ -346,7 +352,7 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
 
         @app = self.class.build_app(set) do |middleware|
           middleware.use ActionDispatch::Session::CookieStore, options
-          middleware.delete "ActionDispatch::ShowExceptions"
+          middleware.delete ActionDispatch::ShowExceptions
         end
 
         yield

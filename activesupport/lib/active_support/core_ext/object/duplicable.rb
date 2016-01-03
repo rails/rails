@@ -19,7 +19,7 @@
 class Object
   # Can you safely dup this object?
   #
-  # False for +nil+, +false+, +true+, symbol, and number objects;
+  # False for +nil+, +false+, +true+, symbol, number, method objects;
   # true otherwise.
   def duplicable?
     true
@@ -78,13 +78,21 @@ end
 
 require 'bigdecimal'
 class BigDecimal
-  begin
-    BigDecimal.new('4.56').dup
+  # BigDecimals are duplicable:
+  #
+  # BigDecimal.new("1.2").duplicable? # => true
+  # BigDecimal.new("1.2").dup         # => #<BigDecimal:...,'0.12E1',18(18)>
+  def duplicable?
+    true
+  end
+end
 
-    def duplicable?
-      true
-    end
-  rescue TypeError
-    # can't dup, so use superclass implementation
+class Method
+  # Methods are not duplicable:
+  #
+  #  method(:puts).duplicable? # => false
+  #  method(:puts).dup         # => TypeError: allocator undefined for Method
+  def duplicable?
+    false
   end
 end

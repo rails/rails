@@ -1,4 +1,5 @@
 require 'active_support/test_case'
+require 'rails-dom-testing'
 
 module ActionMailer
   class NonInferrableMailerError < ::StandardError
@@ -15,11 +16,14 @@ module ActionMailer
 
       include ActiveSupport::Testing::ConstantLookup
       include TestHelper
+      include Rails::Dom::Testing::Assertions::SelectorAssertions
+      include Rails::Dom::Testing::Assertions::DomAssertions
 
       included do
         class_attribute :_mailer_class
         setup :initialize_test_deliveries
         setup :set_expected_mail
+        teardown :restore_test_deliveries
       end
 
       module ClassMethods
@@ -53,13 +57,28 @@ module ActionMailer
 
       protected
 
-        def initialize_test_deliveries
-          ActionMailer::Base.delivery_method = :test
+        def initialize_test_deliveries # :nodoc:
+          set_delivery_method :test
+          @old_perform_deliveries = ActionMailer::Base.perform_deliveries
           ActionMailer::Base.perform_deliveries = true
+        end
+
+        def restore_test_deliveries # :nodoc:
+          restore_delivery_method
+          ActionMailer::Base.perform_deliveries = @old_perform_deliveries
           ActionMailer::Base.deliveries.clear
         end
 
-        def set_expected_mail
+        def set_delivery_method(method) # :nodoc:
+          @old_delivery_method = ActionMailer::Base.delivery_method
+          ActionMailer::Base.delivery_method = method
+        end
+
+        def restore_delivery_method # :nodoc:
+          ActionMailer::Base.delivery_method = @old_delivery_method
+        end
+
+        def set_expected_mail # :nodoc:
           @expected = Mail.new
           @expected.content_type ["text", "plain", { "charset" => charset }]
           @expected.mime_version = '1.0'

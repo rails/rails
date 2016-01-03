@@ -1,3 +1,5 @@
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+
 Creating and Customizing Rails Generators & Templates
 =====================================================
 
@@ -8,6 +10,7 @@ After reading this guide, you will know:
 * How to see which generators are available in your application.
 * How to create a generator using templates.
 * How Rails searches for generators before invoking them.
+* How Rails internally generates Rails code from the templates.
 * How to customize your scaffold by creating new generators.
 * How to customize your scaffold by changing generator templates.
 * How to use fallbacks to avoid overwriting a huge set of generators.
@@ -23,19 +26,19 @@ When you create an application using the `rails` command, you are in fact using 
 ```bash
 $ rails new myapp
 $ cd myapp
-$ rails generate
+$ bin/rails generate
 ```
 
 You will get a list of all generators that comes with Rails. If you need a detailed description of the helper generator, for example, you can simply do:
 
 ```bash
-$ rails generate helper --help
+$ bin/rails generate helper --help
 ```
 
 Creating Your First Generator
 -----------------------------
 
-Since Rails 3.0, generators are built on top of [Thor](https://github.com/wycats/thor). Thor provides powerful options parsing and a great API for manipulating files. For instance, let's build a generator that creates an initializer file named `initializer.rb` inside `config/initializers`.
+Since Rails 3.0, generators are built on top of [Thor](https://github.com/erikhuda/thor). Thor provides powerful options for parsing and a great API for manipulating files. For instance, let's build a generator that creates an initializer file named `initializer.rb` inside `config/initializers`.
 
 The first step is to create a file at `lib/generators/initializer_generator.rb` with the following content:
 
@@ -47,20 +50,20 @@ class InitializerGenerator < Rails::Generators::Base
 end
 ```
 
-NOTE: `create_file` is a method provided by `Thor::Actions`. Documentation for `create_file` and other Thor methods can be found in [Thor's documentation](http://rdoc.info/github/wycats/thor/master/Thor/Actions.html)
+NOTE: `create_file` is a method provided by `Thor::Actions`. Documentation for `create_file` and other Thor methods can be found in [Thor's documentation](http://rdoc.info/github/erikhuda/thor/master/Thor/Actions.html)
 
 Our new generator is quite simple: it inherits from `Rails::Generators::Base` and has one method definition. When a generator is invoked, each public method in the generator is executed sequentially in the order that it is defined. Finally, we invoke the `create_file` method that will create a file at the given destination with the given content. If you are familiar with the Rails Application Templates API, you'll feel right at home with the new generators API.
 
 To invoke our new generator, we just need to do:
 
 ```bash
-$ rails generate initializer
+$ bin/rails generate initializer
 ```
 
 Before we go on, let's see our brand new generator description:
 
 ```bash
-$ rails generate initializer --help
+$ bin/rails generate initializer --help
 ```
 
 Rails is usually able to generate good descriptions if a generator is namespaced, as `ActiveRecord::Generators::ModelGenerator`, but not in this particular case. We can solve this problem in two ways. The first one is calling `desc` inside our generator:
@@ -82,7 +85,7 @@ Creating Generators with Generators
 Generators themselves have a generator:
 
 ```bash
-$ rails generate generator initializer
+$ bin/rails generate generator initializer
       create  lib/generators/initializer
       create  lib/generators/initializer/initializer_generator.rb
       create  lib/generators/initializer/USAGE
@@ -102,7 +105,7 @@ First, notice that we are inheriting from `Rails::Generators::NamedBase` instead
 We can see that by invoking the description of this new generator (don't forget to delete the old generator file):
 
 ```bash
-$ rails generate initializer --help
+$ bin/rails generate initializer --help
 Usage:
   rails generate initializer NAME [options]
 ```
@@ -130,7 +133,7 @@ end
 And let's execute our generator:
 
 ```bash
-$ rails generate initializer core_extensions
+$ bin/rails generate initializer core_extensions
 ```
 
 We can see that now an initializer named core_extensions was created at `config/initializers/core_extensions.rb` with the contents of our template. That means that `copy_file` copied a file in our source root to the destination path we gave. The method `file_name` is automatically created when we inherit from `Rails::Generators::NamedBase`.
@@ -169,9 +172,9 @@ end
 Before we customize our workflow, let's first see what our scaffold looks like:
 
 ```bash
-$ rails generate scaffold User name:string
+$ bin/rails generate scaffold User name:string
       invoke  active_record
-      create    db/migrate/20091120125558_create_users.rb
+      create    db/migrate/20130924151154_create_users.rb
       create    app/models/user.rb
       invoke    test_unit
       create      test/models/user_test.rb
@@ -191,20 +194,21 @@ $ rails generate scaffold User name:string
       create      test/controllers/users_controller_test.rb
       invoke    helper
       create      app/helpers/users_helper.rb
-      invoke      test_unit
-      create        test/helpers/users_helper_test.rb
+      invoke    jbuilder
+      create      app/views/users/index.json.jbuilder
+      create      app/views/users/show.json.jbuilder
       invoke  assets
       invoke    coffee
-      create      app/assets/javascripts/users.js.coffee
+      create      app/assets/javascripts/users.coffee
       invoke    scss
-      create      app/assets/stylesheets/users.css.scss
+      create      app/assets/stylesheets/users.scss
       invoke  scss
-      create    app/assets/stylesheets/scaffolds.css.scss
+      create    app/assets/stylesheets/scaffolds.scss
 ```
 
 Looking at this output, it's easy to understand how generators work in Rails 3.0 and above. The scaffold generator doesn't actually generate anything, it just invokes others to do the work. This allows us to add/replace/remove any of those invocations. For instance, the scaffold generator invokes the scaffold_controller generator, which invokes erb, test_unit and helper generators. Since each generator has a single responsibility, they are easy to reuse, avoiding code duplication.
 
-Our first customization on the workflow will be to stop generating stylesheets and test fixtures for scaffolds. We can achieve that by changing our configuration to the following:
+Our first customization on the workflow will be to stop generating stylesheet, JavaScript and test fixture files for scaffolds. We can achieve that by changing our configuration to the following:
 
 ```ruby
 config.generators do |g|
@@ -212,20 +216,28 @@ config.generators do |g|
   g.template_engine :erb
   g.test_framework  :test_unit, fixture: false
   g.stylesheets     false
+  g.javascripts     false
 end
 ```
 
-If we generate another resource with the scaffold generator, we can see that neither stylesheets nor fixtures are created anymore. If you want to customize it further, for example to use DataMapper and RSpec instead of Active Record and TestUnit, it's just a matter of adding their gems to your application and configuring your generators.
+If we generate another resource with the scaffold generator, we can see that stylesheet, JavaScript and fixture files are not created anymore. If you want to customize it further, for example to use DataMapper and RSpec instead of Active Record and TestUnit, it's just a matter of adding their gems to your application and configuring your generators.
 
 To demonstrate this, we are going to create a new helper generator that simply adds some instance variable readers. First, we create a generator within the rails namespace, as this is where rails searches for generators used as hooks:
 
 ```bash
-$ rails generate generator rails/my_helper
+$ bin/rails generate generator rails/my_helper
+      create  lib/generators/rails/my_helper
+      create  lib/generators/rails/my_helper/my_helper_generator.rb
+      create  lib/generators/rails/my_helper/USAGE
+      create  lib/generators/rails/my_helper/templates
 ```
 
-After that, we can delete both the `templates` directory and the `source_root` class method from our new generators, because we are not going to need them. So our new generator looks like the following:
+After that, we can delete both the `templates` directory and the `source_root`
+class method call from our new generator, because we are not going to need them.
+Add the method below, so our generator looks like the following:
 
 ```ruby
+# lib/generators/rails/my_helper/my_helper_generator.rb
 class Rails::MyHelperGenerator < Rails::Generators::NamedBase
   def create_helper_file
     create_file "app/helpers/#{file_name}_helper.rb", <<-FILE
@@ -237,10 +249,11 @@ end
 end
 ```
 
-We can try out our new generator by creating a helper for users:
+We can try out our new generator by creating a helper for products:
 
 ```bash
-$ rails generate my_helper products
+$ bin/rails generate my_helper products
+      create  app/helpers/products_helper.rb
 ```
 
 And it will generate the following helper file in `app/helpers`:
@@ -259,6 +272,7 @@ config.generators do |g|
   g.template_engine :erb
   g.test_framework  :test_unit, fixture: false
   g.stylesheets     false
+  g.javascripts     false
   g.helper          :my_helper
 end
 ```
@@ -266,10 +280,10 @@ end
 and see it in action when invoking the generator:
 
 ```bash
-$ rails generate scaffold Post body:text
+$ bin/rails generate scaffold Article body:text
       [...]
       invoke    my_helper
-      create      app/helpers/posts_helper.rb
+      create      app/helpers/articles_helper.rb
 ```
 
 We can notice on the output that our new helper was invoked instead of the Rails default. However one thing is missing, which is tests for our new generator and to do that, we are going to reuse old helpers test generators.
@@ -279,6 +293,7 @@ Since Rails 3.0, this is easy to do due to the hooks concept. Our new helper doe
 To do that, we can change the generator this way:
 
 ```ruby
+# lib/generators/rails/my_helper/my_helper_generator.rb
 class Rails::MyHelperGenerator < Rails::Generators::NamedBase
   def create_helper_file
     create_file "app/helpers/#{file_name}_helper.rb", <<-FILE
@@ -322,10 +337,27 @@ config.generators do |g|
   g.template_engine :erb
   g.test_framework  :test_unit, fixture: false
   g.stylesheets     false
+  g.javascripts     false
 end
 ```
 
 If you generate another resource, you can see that we get exactly the same result! This is useful if you want to customize your scaffold templates and/or layout by just creating `edit.html.erb`, `index.html.erb` and so on inside `lib/templates/erb/scaffold`.
+
+Scaffold templates in Rails frequently use ERB tags; these tags need to be
+escaped so that the generated output is valid ERB code.
+
+For example, the following escaped ERB tag would be needed in the template
+(note the extra `%`)...
+
+```ruby
+<%%= stylesheet_include_tag :application %>
+```
+
+...to generate the following output:
+
+```ruby
+<%= stylesheet_include_tag :application %>
+```
 
 Adding Generators Fallbacks
 ---------------------------
@@ -340,6 +372,7 @@ config.generators do |g|
   g.template_engine :erb
   g.test_framework  :shoulda, fixture: false
   g.stylesheets     false
+  g.javascripts     false
 
   # Add a fallback!
   g.fallbacks[:shoulda] = :test_unit
@@ -349,9 +382,9 @@ end
 Now, if you create a Comment scaffold, you will see that the shoulda generators are being invoked, and at the end, they are just falling back to TestUnit generators:
 
 ```bash
-$ rails generate scaffold Comment body:text
+$ bin/rails generate scaffold Comment body:text
       invoke  active_record
-      create    db/migrate/20091120151323_create_comments.rb
+      create    db/migrate/20130924143118_create_comments.rb
       create    app/models/comment.rb
       invoke    shoulda
       create      test/models/comment_test.rb
@@ -371,11 +404,12 @@ $ rails generate scaffold Comment body:text
       create      test/controllers/comments_controller_test.rb
       invoke    my_helper
       create      app/helpers/comments_helper.rb
-      invoke      shoulda
-      create        test/helpers/comments_helper_test.rb
+      invoke    jbuilder
+      create      app/views/comments/index.json.jbuilder
+      create      app/views/comments/show.json.jbuilder
       invoke  assets
       invoke    coffee
-      create      app/assets/javascripts/comments.js.coffee
+      create      app/assets/javascripts/comments.coffee
       invoke    scss
 ```
 
@@ -422,7 +456,7 @@ Generator methods
 
 The following are methods available for both generators and templates for Rails.
 
-NOTE: Methods provided by Thor are not covered this guide and can be found in [Thor's documentation](http://rdoc.info/github/wycats/thor/master/Thor/Actions.html)
+NOTE: Methods provided by Thor are not covered this guide and can be found in [Thor's documentation](http://rdoc.info/github/erikhuda/thor/master/Thor/Actions.html)
 
 ### `gem`
 
@@ -469,6 +503,14 @@ Adds a specified source to `Gemfile`:
 add_source "http://gems.github.com"
 ```
 
+This method also takes a block:
+
+```ruby
+add_source "http://gems.github.com" do
+  gem "rspec-rails"
+end
+```
+
 ### `inject_into_file`
 
 Injects a block of code into a defined position in your file.
@@ -488,7 +530,7 @@ Replaces text inside a file.
 gsub_file 'name_of_file.rb', 'method.to_be_replaced', 'method.the_replacing_code'
 ```
 
-Regular Expressions can be used to make this method more precise. You can also use append_file and prepend_file in the same way to place code at the beginning and end of a file respectively.
+Regular Expressions can be used to make this method more precise. You can also use `append_file` and `prepend_file` in the same way to place code at the beginning and end of a file respectively.
 
 ### `application`
 
@@ -541,7 +583,7 @@ This method also takes a block:
 
 ```ruby
 vendor "seeds.rb" do
-  "puts 'in ur app, seeding ur database'"
+  "puts 'in your app, seeding your database'"
 end
 ```
 

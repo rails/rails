@@ -11,10 +11,12 @@ module ApplicationTests
 
       def setup
         build_app
+        add_to_config <<-RUBY
+          config.logger = ActiveSupport::LogSubscriber::TestHelper::MockLogger.new
+        RUBY
+
         require "#{app_path}/config/environment"
         super
-        @logger = MockLogger.new
-        Rails.stubs(:logger).returns(@logger)
       end
 
       def teardown
@@ -23,7 +25,7 @@ module ApplicationTests
       end
 
       def logs
-        @logs ||= @logger.logged(:info).join("\n")
+        @logs ||= Rails.logger.logged(:info).join("\n")
       end
 
       test "logger logs proper HTTP GET verb and path" do

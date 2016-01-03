@@ -1,4 +1,3 @@
-
 module ActionController
   class LogSubscriber < ActiveSupport::LogSubscriber
     INTERNAL_PARAMS = %w(controller action format _method only_path)
@@ -16,41 +15,42 @@ module ActionController
     end
 
     def process_action(event)
-      return unless logger.info?
+      info do
+        payload   = event.payload
+        additions = ActionController::Base.log_process_action(payload)
 
-      payload   = event.payload
-      additions = ActionController::Base.log_process_action(payload)
-
-      status = payload[:status]
-      if status.nil? && payload[:exception].present?
-        exception_class_name = payload[:exception].first
-        status = ActionDispatch::ExceptionWrapper.status_code_for_exception(exception_class_name)
+        status = payload[:status]
+        if status.nil? && payload[:exception].present?
+          exception_class_name = payload[:exception].first
+          status = ActionDispatch::ExceptionWrapper.status_code_for_exception(exception_class_name)
+        end
+        message = "Completed #{status} #{Rack::Utils::HTTP_STATUS_CODES[status]} in #{event.duration.round}ms"
+        message << " (#{additions.join(" | ".freeze)})" unless additions.blank?
+        message
       end
-      message = "Completed #{status} #{Rack::Utils::HTTP_STATUS_CODES[status]} in #{event.duration.round}ms"
-      message << " (#{additions.join(" | ")})" unless additions.blank?
-
-      info(message)
     end
 
     def halted_callback(event)
-      info("Filter chain halted as #{event.payload[:filter].inspect} rendered or redirected")
+      info { "Filter chain halted as #{event.payload[:filter].inspect} rendered or redirected" }
     end
 
     def send_file(event)
-      info("Sent file #{event.payload[:path]} (#{event.duration.round(1)}ms)")
+      info { "Sent file #{event.payload[:path]} (#{event.duration.round(1)}ms)" }
     end
 
     def redirect_to(event)
-      info("Redirected to #{event.payload[:location]}")
+      info { "Redirected to #{event.payload[:location]}" }
     end
 
     def send_data(event)
-      info("Sent data #{event.payload[:filename]} (#{event.duration.round(1)}ms)")
+      info { "Sent data #{event.payload[:filename]} (#{event.duration.round(1)}ms)" }
     end
 
     def unpermitted_parameters(event)
-      unpermitted_keys = event.payload[:keys]
-      debug("Unpermitted parameters: #{unpermitted_keys.join(", ")}")
+      debug do
+        unpermitted_keys = event.payload[:keys]
+        "Unpermitted parameter#{'s' if unpermitted_keys.size > 1}: #{unpermitted_keys.join(", ")}"
+      end
     end
 
     %w(write_fragment read_fragment exist_fragment?

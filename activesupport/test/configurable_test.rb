@@ -95,6 +95,28 @@ class ConfigurableActiveSupport < ActiveSupport::TestCase
         config_accessor "invalid attribute name"
       end
     end
+
+    assert_raises NameError do
+      Class.new do
+        include ActiveSupport::Configurable
+        config_accessor "invalid\nattribute"
+      end
+    end
+
+    assert_raises NameError do
+      Class.new do
+        include ActiveSupport::Configurable
+        config_accessor "invalid\n"
+      end
+    end
+  end
+
+  test 'the config_accessor method should not be publicly callable' do
+    assert_raises NoMethodError do
+      Class.new {
+        include ActiveSupport::Configurable
+      }.config_accessor :foo
+    end
   end
 
   def assert_method_defined(object, method)

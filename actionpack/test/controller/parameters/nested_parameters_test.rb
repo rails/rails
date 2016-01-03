@@ -136,7 +136,7 @@ class NestedParametersTest < ActiveSupport::TestCase
         authors_attributes: {
           :'0' => { name: 'William Shakespeare', age_of_death: '52' },
           :'1' => { name: 'Unattributed Assistant' },
-          :'2' => { name: %w(injected names)}
+          :'2' => { name: %w(injected names) }
         }
       }
     })
@@ -168,5 +168,20 @@ class NestedParametersTest < ActiveSupport::TestCase
     assert_equal 'Unattributed Assistant', permitted[:book][:authors_attributes]['-2'][:name]
 
     assert_filtered_out permitted[:book][:authors_attributes]['-1'], :age_of_death
+  end
+
+  test "nested number as key" do
+    params = ActionController::Parameters.new({
+      product: {
+        properties: {
+          '0' => "prop0",
+          '1' => "prop1"
+        }
+      }
+    })
+    params = params.require(:product).permit(:properties => ["0"])
+    assert_not_nil        params[:properties]["0"]
+    assert_nil            params[:properties]["1"]
+    assert_equal "prop0", params[:properties]["0"]
   end
 end

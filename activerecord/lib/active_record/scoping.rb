@@ -11,20 +11,36 @@ module ActiveRecord
 
     module ClassMethods
       def current_scope #:nodoc:
-        ScopeRegistry.value_for(:current_scope, base_class.to_s)
+        ScopeRegistry.value_for(:current_scope, self.to_s)
       end
 
       def current_scope=(scope) #:nodoc:
-        ScopeRegistry.set_value_for(:current_scope, base_class.to_s, scope)
+        ScopeRegistry.set_value_for(:current_scope, self.to_s, scope)
+      end
+
+      # Collects attributes from scopes that should be applied when creating
+      # an AR instance for the particular class this is called on.
+      def scope_attributes # :nodoc:
+        all.scope_for_create
+      end
+
+      # Are there attributes associated with this scope?
+      def scope_attributes? # :nodoc:
+        current_scope
       end
     end
 
-    def populate_with_current_scope_attributes
+    def populate_with_current_scope_attributes # :nodoc:
       return unless self.class.scope_attributes?
 
       self.class.scope_attributes.each do |att,value|
         send("#{att}=", value) if respond_to?("#{att}=")
       end
+    end
+
+    def initialize_internals_callback # :nodoc:
+      super
+      populate_with_current_scope_attributes
     end
 
     # This class stores the +:current_scope+ and +:ignore_default_scope+ values
@@ -43,8 +59,8 @@ module ActiveRecord
     #
     #   registry.value_for(:current_scope, "Board")
     #
-    # You will obtain whatever was defined in +some_new_scope+. The +value_for+
-    # and +set_value_for+ methods are delegated to the current +ScopeRegistry+
+    # You will obtain whatever was defined in +some_new_scope+. The #value_for
+    # and #set_value_for methods are delegated to the current ScopeRegistry
     # object, so the above example code can also be called as:
     #
     #   ActiveRecord::Scoping::ScopeRegistry.set_value_for(:current_scope,

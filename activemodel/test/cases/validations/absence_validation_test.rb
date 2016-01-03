@@ -1,4 +1,3 @@
-# encoding: utf-8
 require 'cases/helper'
 require 'models/topic'
 require 'models/person'
@@ -6,12 +5,12 @@ require 'models/custom_reader'
 
 class AbsenceValidationTest < ActiveModel::TestCase
   teardown do
-    Topic.reset_callbacks(:validate)
-    Person.reset_callbacks(:validate)
-    CustomReader.reset_callbacks(:validate)
+    Topic.clear_validators!
+    Person.clear_validators!
+    CustomReader.clear_validators!
   end
 
-  def test_validate_absences
+  def test_validates_absence_of
     Topic.validates_absence_of(:title, :content)
     t = Topic.new
     t.title = "foo"
@@ -23,11 +22,12 @@ class AbsenceValidationTest < ActiveModel::TestCase
     t.content  = "something"
     assert t.invalid?
     assert_equal ["must be blank"], t.errors[:content]
+    assert_equal [], t.errors[:title]
     t.content = ""
     assert t.valid?
   end
 
-  def test_accepts_array_arguments
+  def test_validates_absence_of_with_array_arguments
     Topic.validates_absence_of %w(title content)
     t = Topic.new
     t.title = "foo"
@@ -37,7 +37,7 @@ class AbsenceValidationTest < ActiveModel::TestCase
     assert_equal ["must be blank"], t.errors[:content]
   end
 
-  def test_validates_acceptance_of_with_custom_error_using_quotes
+  def test_validates_absence_of_with_custom_error_using_quotes
     Person.validates_absence_of :karma, message: "This string contains 'single' and \"double\" quotes"
     p = Person.new
     p.karma = "good"

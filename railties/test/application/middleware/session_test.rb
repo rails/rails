@@ -1,4 +1,3 @@
-# encoding: utf-8
 require 'isolation/abstract_unit'
 require 'rack/test'
 
@@ -21,10 +20,17 @@ module ApplicationTests
       @app ||= Rails.application
     end
 
-    test "config.force_ssl sets cookie to secure only" do
+    test "config.force_ssl sets cookie to secure only by default" do
       add_to_config "config.force_ssl = true"
       require "#{app_path}/config/environment"
       assert app.config.session_options[:secure], "Expected session to be marked as secure"
+    end
+
+    test "config.force_ssl doesn't set cookie to secure only when changed from default" do
+      add_to_config "config.force_ssl = true"
+      add_to_config "config.ssl_options = { secure_cookies: false }"
+      require "#{app_path}/config/environment"
+      assert !app.config.session_options[:secure]
     end
 
     test "session is not loaded if it's not used" do
@@ -36,7 +42,7 @@ module ApplicationTests
             flash[:notice] = "notice"
           end
 
-          render nothing: true
+          head :ok
         end
       end
 
@@ -61,7 +67,7 @@ module ApplicationTests
 
           def write_session
             session[:foo] = 1
-            render nothing: true
+            head :ok
           end
 
           def read_session
@@ -102,7 +108,7 @@ module ApplicationTests
 
           def write_cookie
             cookies[:foo] = '1'
-            render nothing: true
+            head :ok
           end
 
           def read_cookie
@@ -140,7 +146,7 @@ module ApplicationTests
         class FooController < ActionController::Base
           def write_session
             session[:foo] = 1
-            render nothing: true
+            head :ok
           end
 
           def read_session
@@ -185,7 +191,7 @@ module ApplicationTests
         class FooController < ActionController::Base
           def write_session
             session[:foo] = 1
-            render nothing: true
+            head :ok
           end
 
           def read_session
@@ -203,7 +209,7 @@ module ApplicationTests
       RUBY
 
       add_to_config <<-RUBY
-        config.secret_token = "3b7cd727ee24e8444053437c36cc66c4"
+        secrets.secret_token = "3b7cd727ee24e8444053437c36cc66c4"
       RUBY
 
       require "#{app_path}/config/environment"
@@ -235,12 +241,12 @@ module ApplicationTests
           def write_raw_session
             # {"session_id"=>"1965d95720fffc123941bdfb7d2e6870", "foo"=>1}
             cookies[:_myapp_session] = "BAh7B0kiD3Nlc3Npb25faWQGOgZFRkkiJTE5NjVkOTU3MjBmZmZjMTIzOTQxYmRmYjdkMmU2ODcwBjsAVEkiCGZvbwY7AEZpBg==--315fb9931921a87ae7421aec96382f0294119749"
-            render nothing: true
+            head :ok
           end
 
           def write_session
             session[:foo] = session[:foo] + 1
-            render nothing: true
+            head :ok
           end
 
           def read_session
@@ -258,7 +264,7 @@ module ApplicationTests
       RUBY
 
       add_to_config <<-RUBY
-        config.secret_token = "3b7cd727ee24e8444053437c36cc66c4"
+        secrets.secret_token = "3b7cd727ee24e8444053437c36cc66c4"
       RUBY
 
       require "#{app_path}/config/environment"
@@ -294,12 +300,12 @@ module ApplicationTests
           def write_raw_session
             # {"session_id"=>"1965d95720fffc123941bdfb7d2e6870", "foo"=>1}
             cookies[:_myapp_session] = "BAh7B0kiD3Nlc3Npb25faWQGOgZFRkkiJTE5NjVkOTU3MjBmZmZjMTIzOTQxYmRmYjdkMmU2ODcwBjsAVEkiCGZvbwY7AEZpBg==--315fb9931921a87ae7421aec96382f0294119749"
-            render nothing: true
+            head :ok
           end
 
           def write_session
             session[:foo] = session[:foo] + 1
-            render nothing: true
+            head :ok
           end
 
           def read_session
@@ -317,8 +323,8 @@ module ApplicationTests
       RUBY
 
       add_to_config <<-RUBY
-        config.secret_token = "3b7cd727ee24e8444053437c36cc66c4"
-        config.secret_key_base = nil
+        secrets.secret_token = "3b7cd727ee24e8444053437c36cc66c4"
+        secrets.secret_key_base = nil
       RUBY
 
       require "#{app_path}/config/environment"
@@ -334,7 +340,7 @@ module ApplicationTests
       get '/foo/read_signed_cookie'
       assert_equal '2', last_response.body
 
-      verifier = ActiveSupport::MessageVerifier.new(app.config.secret_token)
+      verifier = ActiveSupport::MessageVerifier.new(app.secrets.secret_token)
 
       get '/foo/read_raw_cookie'
       assert_equal 2, verifier.verify(last_response.body)['foo']

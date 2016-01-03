@@ -88,18 +88,14 @@ module ApplicationTests
       @plugin.write "app/models/blog/post.rb", <<-RUBY
         module Blog
           class Post
-            extend ActiveModel::Naming
+            include ActiveModel::Model
 
             def id
               44
             end
 
-            def to_param
-              id.to_s
-            end
-
-            def new_record?
-              false
+            def persisted?
+              true
             end
           end
         end

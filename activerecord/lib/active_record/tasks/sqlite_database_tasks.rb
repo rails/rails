@@ -3,7 +3,7 @@ module ActiveRecord
     class SQLiteDatabaseTasks # :nodoc:
       delegate :connection, :establish_connection, to: ActiveRecord::Base
 
-      def initialize(configuration, root = Rails.root)
+      def initialize(configuration, root = ActiveRecord::Tasks::DatabaseTasks.root)
         @configuration, @root = configuration, root
       end
 
@@ -19,9 +19,17 @@ module ActiveRecord
         path = Pathname.new configuration['database']
         file = path.absolute? ? path.to_s : File.join(root, path)
 
-        FileUtils.rm(file) if File.exist?(file)
+        FileUtils.rm(file)
+      rescue Errno::ENOENT => error
+        raise NoDatabaseError.new(error.message, error)
       end
-      alias :purge :drop
+
+      def purge
+        drop
+      rescue NoDatabaseError
+      ensure
+        create
+      end
 
       def charset
         connection.encoding

@@ -1,6 +1,5 @@
-
 module ActiveRecord
-  # = Active Record Timestamp
+  # = Active Record \Timestamp
   #
   # Active Record automatically timestamps create and update operations if the
   # table has fields named <tt>created_at/created_on</tt> or
@@ -16,14 +15,21 @@ module ActiveRecord
   #
   # == Time Zone aware attributes
   #
-  # By default, ActiveRecord::Base keeps all the datetime columns time zone aware by executing following code.
+  # Active Record keeps all the <tt>datetime</tt> and <tt>time</tt> columns
+  # time-zone aware. By default, these values are stored in the database as UTC
+  # and converted back to the current <tt>Time.zone</tt> when pulled from the database.
   #
-  #   config.active_record.time_zone_aware_attributes = true
+  # This feature can be turned off completely by setting:
   #
-  # This feature can easily be turned off by assigning value <tt>false</tt> .
+  #   config.active_record.time_zone_aware_attributes = false
   #
-  # If your attributes are time zone aware and you desire to skip time zone conversion to the current Time.zone
-  # when reading certain attributes then you can do following:
+  # You can also specify that only <tt>datetime</tt> columns should be time-zone
+  # aware (while <tt>time</tt> should not) by setting:
+  #
+  #   ActiveRecord::Base.time_zone_aware_types = [:datetime]
+  #
+  # Finally, you can indicate specific attributes of a model for which time zone
+  # conversion should not applied, for instance by setting:
   #
   #   class Topic < ActiveRecord::Base
   #     self.skip_time_zone_conversion_for_attributes = [:written_on]
@@ -37,19 +43,20 @@ module ActiveRecord
     end
 
     def initialize_dup(other) # :nodoc:
-      clear_timestamp_attributes
       super
+      clear_timestamp_attributes
     end
 
   private
 
-    def create_record
+    def _create_record
       if self.record_timestamps
         current_time = current_time_from_proper_timezone
 
         all_timestamp_attributes.each do |column|
-          if respond_to?(column) && respond_to?("#{column}=") && self.send(column).nil?
-            write_attribute(column.to_s, current_time)
+          column = column.to_s
+          if has_attribute?(column) && !attribute_present?(column)
+            write_attribute(column, current_time)
           end
         end
       end
@@ -57,8 +64,8 @@ module ActiveRecord
       super
     end
 
-    def update_record(*args)
-      if should_record_timestamps?
+    def _update_record(*args, touch: true, **options)
+      if touch && should_record_timestamps?
         current_time = current_time_from_proper_timezone
 
         timestamp_attributes_for_update_in_model.each do |column|
@@ -67,11 +74,11 @@ module ActiveRecord
           write_attribute(column, current_time)
         end
       end
-      super
+      super(*args)
     end
 
     def should_record_timestamps?
-      self.record_timestamps && (!partial_writes? || changed? || (attributes.keys & self.class.serialized_attributes.keys).present?)
+      self.record_timestamps && (!partial_writes? || changed?)
     end
 
     def timestamp_attributes_for_create_in_model
@@ -98,10 +105,12 @@ module ActiveRecord
       timestamp_attributes_for_create + timestamp_attributes_for_update
     end
 
-    def max_updated_column_timestamp
-      if (timestamps = timestamp_attributes_for_update.map { |attr| self[attr] }.compact).present?
-        timestamps.map { |ts| ts.to_time }.max
-      end
+    def max_updated_column_timestamp(timestamp_names = timestamp_attributes_for_update)
+      timestamp_names
+        .map { |attr| self[attr] }
+        .compact
+        .map(&:to_time)
+        .max
     end
 
     def current_time_from_proper_timezone
@@ -112,7 +121,7 @@ module ActiveRecord
     def clear_timestamp_attributes
       all_timestamp_attributes_in_model.each do |attribute_name|
         self[attribute_name] = nil
-        changed_attributes.delete(attribute_name)
+        clear_attribute_changes([attribute_name])
       end
     end
   end

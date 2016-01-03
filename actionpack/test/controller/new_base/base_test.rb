@@ -6,7 +6,7 @@ module Dispatching
     before_action :authenticate
 
     def index
-      render :text => "success"
+      render body: "success"
     end
 
     def modify_response_body
@@ -22,7 +22,7 @@ module Dispatching
     end
 
     def show_actions
-      render :text => "actions: #{action_methods.to_a.sort.join(', ')}"
+      render body: "actions: #{action_methods.to_a.sort.join(', ')}"
     end
 
     protected
@@ -51,7 +51,7 @@ module Dispatching
 
       assert_body "success"
       assert_status 200
-      assert_content_type "text/html; charset=utf-8"
+      assert_content_type "text/plain; charset=utf-8"
     end
 
     # :api: plugin

@@ -41,6 +41,9 @@ module ActionView
         'template'
       end
 
+      if partial && path.present?
+        path = path.sub(%r{([^/]+)$}, "_\\1")
+      end
       searched_paths = prefixes.map { |prefix| [prefix, path].join("/") }
 
       out  = "Missing #{template_type} #{searched_paths.join(", ")} with #{details.inspect}. Searched in:\n"
@@ -56,13 +59,20 @@ module ActionView
     class Error < ActionViewError #:nodoc:
       SOURCE_CODE_RADIUS = 3
 
-      attr_reader :original_exception, :backtrace
+      def initialize(template, original_exception = nil)
+        if original_exception
+          ActiveSupport::Deprecation.warn("Passing #original_exception is deprecated and has no effect. " \
+                                          "Exceptions will automatically capture the original exception.", caller)
+        end
 
-      def initialize(template, original_exception)
-        super(original_exception.message)
-        @template, @original_exception = template, original_exception
-        @sub_templates = nil
-        @backtrace = original_exception.backtrace
+        super($!.message)
+        set_backtrace($!.backtrace)
+        @template, @sub_templates = template, nil
+      end
+
+      def original_exception
+        ActiveSupport::Deprecation.warn("#original_exception is deprecated. Use #cause instead.", caller)
+        cause
       end
 
       def file_name
@@ -72,7 +82,7 @@ module ActionView
       def sub_template_message
         if @sub_templates
           "Trace of template inclusion: " +
-          @sub_templates.collect { |template| template.inspect }.join(", ")
+          @sub_templates.collect(&:inspect).join(", ")
         else
           ""
         end

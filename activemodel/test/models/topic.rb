@@ -6,7 +6,7 @@ class Topic
     super | [ :message ]
   end
 
-  attr_accessor :title, :author_name, :content, :approved
+  attr_accessor :title, :author_name, :content, :approved, :created_at
   attr_accessor :after_validation_performed
 
   after_validation :perform_after_validation
@@ -35,6 +35,10 @@ class Topic
 
   def my_validation_with_arg(attr)
     errors.add attr, "is missing" unless send(attr)
+  end
+
+  def my_word_tokenizer(str)
+   str.scan(/\w+/)
   end
 
 end

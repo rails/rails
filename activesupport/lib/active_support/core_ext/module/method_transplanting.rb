@@ -1,11 +1,3 @@
-class Module
-  ###
-  # TODO: remove this after 1.9 support is dropped
-  def methods_transplantable? # :nodoc:
-    x = Module.new { def foo; end }
-    Module.new { define_method :bar, x.instance_method(:foo) }
-    true
-  rescue TypeError
-    false
-  end
-end
+require 'active_support/deprecation'
+
+ActiveSupport::Deprecation.warn("This file is deprecated and will be removed in Rails 5.1 with no replacement.")

@@ -6,7 +6,6 @@ class Bar < Foo
   def index; end
   def self.index; end
 end
-class Baz < Bar; end
 module FooBar; end
 
 class ConstantLookupTest < ActiveSupport::TestCase
@@ -65,5 +64,13 @@ class ConstantLookupTest < ActiveSupport::TestCase
         self.class.determine_constant_from_test_name("RaisesNoMethodError")
       }
     }
+  end
+
+  def test_does_not_swallow_exception_on_no_name_error_within_constant
+    assert_raises(NameError) do
+      with_autoloading_fixtures do
+        self.class.determine_constant_from_test_name('RaisesNameError')
+      end
+    end
   end
 end

@@ -1,0 +1,34 @@
+module ActionView #:nodoc:
+  # = Action View HTML Template
+  class Template
+    class HTML #:nodoc:
+      attr_accessor :type
+
+      def initialize(string, type = nil)
+        @string = string.to_s
+        @type   = Types[type] || type if type
+        @type ||= Types[:html]
+      end
+
+      def identifier
+        'html template'
+      end
+
+      def inspect
+        'html template'
+      end
+
+      def to_str
+        ERB::Util.h(@string)
+      end
+
+      def render(*args)
+        to_str
+      end
+
+      def formats
+        [@type.respond_to?(:ref) ? @type.ref : @type.to_s]
+      end
+    end
+  end
+end

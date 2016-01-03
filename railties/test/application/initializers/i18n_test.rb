@@ -132,6 +132,79 @@ en:
       assert_equal "2", last_response.body
     end
 
+    test "new locale files are loaded" do
+      add_to_config <<-RUBY
+        config.cache_classes = false
+      RUBY
+
+      app_file "config/locales/en.yml", <<-YAML
+en:
+  foo: "1"
+      YAML
+
+      app_file 'config/routes.rb', <<-RUBY
+        Rails.application.routes.draw do
+          get '/i18n',   :to => lambda { |env| [200, {}, [I18n.t(:foo)]] }
+        end
+      RUBY
+
+      require 'rack/test'
+      extend Rack::Test::Methods
+      load_app
+
+      get "/i18n"
+      assert_equal "1", last_response.body
+
+      # Wait a full second so we have time for changes to propagate
+      sleep(1)
+
+      remove_file "config/locales/en.yml"
+      app_file "config/locales/custom.en.yml", <<-YAML
+en:
+  foo: "2"
+      YAML
+
+      get "/i18n"
+      assert_equal "2", last_response.body
+    end
+
+    test "I18n.load_path is reloaded" do
+      add_to_config <<-RUBY
+        config.cache_classes = false
+      RUBY
+
+      app_file "config/locales/en.yml", <<-YAML
+en:
+  foo: "1"
+      YAML
+
+      app_file 'config/routes.rb', <<-RUBY
+        Rails.application.routes.draw do
+          get '/i18n',   :to => lambda { |env| [200, {}, [I18n.load_path.inspect]] }
+        end
+      RUBY
+
+      require 'rack/test'
+      extend Rack::Test::Methods
+      load_app
+
+      get "/i18n"
+
+      assert_match "en.yml", last_response.body
+
+      # Wait a full second so we have time for changes to propagate
+      sleep(1)
+
+      app_file "config/locales/fr.yml", <<-YAML
+fr:
+  foo: "2"
+      YAML
+
+      get "/i18n"
+      assert_match "fr.yml", last_response.body
+      assert_match "en.yml", last_response.body
+    end
+
     # Fallbacks
     test "not using config.i18n.fallbacks does not initialize I18n.fallbacks" do
       I18n.backend = Class.new(I18n::Backend::Simple).new
@@ -182,6 +255,35 @@ en:
       I18n::Railtie.config.i18n.fallbacks = [:'en-US', { :ca => :'es-ES' }]
       load_app
       assert_fallbacks ca: [:ca, :"es-ES", :es, :'en-US', :en]
+    end
+
+    test "disable config.i18n.enforce_available_locales" do
+      add_to_config <<-RUBY
+        config.i18n.enforce_available_locales = false
+        config.i18n.default_locale = :fr
+      RUBY
+
+      load_app
+      assert_equal false, I18n.enforce_available_locales
+
+      assert_nothing_raised do
+        I18n.locale = :es
+      end
+    end
+
+    test "default config.i18n.enforce_available_locales does not override I18n.enforce_available_locales" do
+      I18n.enforce_available_locales = false
+
+      add_to_config <<-RUBY
+        config.i18n.default_locale = :fr
+      RUBY
+
+      load_app
+      assert_equal false, I18n.enforce_available_locales
+
+      assert_nothing_raised do
+        I18n.locale = :es
+      end
     end
   end
 end

@@ -1,3 +1,5 @@
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+
 Active Support Core Extensions
 ==============================
 
@@ -37,9 +39,10 @@ For every single method defined as a core extension this guide has a note that s
 
 NOTE: Defined in `active_support/core_ext/object/blank.rb`.
 
-That means that this single call is enough:
+That means that you can require it like this:
 
 ```ruby
+require 'active_support'
 require 'active_support/core_ext/object/blank'
 ```
 
@@ -52,6 +55,7 @@ The next level is to simply load all extensions to `Object`. As a rule of thumb,
 Thus, to load all extensions to `Object` (including `blank?`):
 
 ```ruby
+require 'active_support'
 require 'active_support/core_ext/object'
 ```
 
@@ -60,6 +64,7 @@ require 'active_support/core_ext/object'
 You may prefer just to load all core extensions, there is a file for that:
 
 ```ruby
+require 'active_support'
 require 'active_support/core_ext'
 ```
 
@@ -96,12 +101,13 @@ INFO: The predicate for strings uses the Unicode-aware character class `[:space:
 
 WARNING: Note that numbers are not mentioned. In particular, 0 and 0.0 are **not** blank.
 
-For example, this method from `ActionDispatch::Session::AbstractStore` uses `blank?` for checking whether a session key is present:
+For example, this method from `ActionController::HttpAuthentication::Token::ControllerMethods` uses `blank?` for checking whether a token is present:
 
 ```ruby
-def ensure_session_key!
-  if @key.blank?
-    raise ArgumentError, 'A key is required...'
+def authenticate(controller, &login_procedure)
+  token, options = token_and_options(controller.request)
+  unless token.blank?
+    login_procedure.call(token, options)
   end
 end
 ```
@@ -153,12 +159,12 @@ Active Support provides `duplicable?` to programmatically query an object about 
 
 ```ruby
 "foo".duplicable? # => true
-"".duplicable?     # => true
+"".duplicable?    # => true
 0.0.duplicable?   # => false
-false.duplicable?  # => false
+false.duplicable? # => false
 ```
 
-By definition all objects are `duplicable?` except `nil`, `false`, `true`, symbols, numbers, class, and module objects.
+By definition all objects are `duplicable?` except `nil`, `false`, `true`, symbols, numbers, class, module, and method objects.
 
 WARNING: Any class can disallow duplication by removing `dup` and `clone` or raising exceptions from them. Thus only `rescue` can tell whether a given arbitrary object is duplicable. `duplicable?` depends on the hard-coded list above, but it is much faster than `rescue`. Use it only if you know the hard-coded list is enough in your use case.
 
@@ -166,7 +172,7 @@ NOTE: Defined in `active_support/core_ext/object/duplicable.rb`.
 
 ### `deep_dup`
 
-The `deep_dup` method returns deep copy of a given object. Normally, when you `dup` an object that contains other objects, Ruby does not `dup` them, so it creates a shallow copy of the object. If you have an array with a string, for example, it will look like this:
+The `deep_dup` method returns a deep copy of a given object. Normally, when you `dup` an object that contains other objects, Ruby does not `dup` them, so it creates a shallow copy of the object. If you have an array with a string, for example, it will look like this:
 
 ```ruby
 array     = ['string']
@@ -175,14 +181,14 @@ duplicate = array.dup
 duplicate.push 'another-string'
 
 # the object was duplicated, so the element was added only to the duplicate
-array     #=> ['string']
-duplicate #=> ['string', 'another-string']
+array     # => ['string']
+duplicate # => ['string', 'another-string']
 
 duplicate.first.gsub!('string', 'foo')
 
 # first element was not duplicated, it will be changed in both arrays
-array     #=> ['foo']
-duplicate #=> ['foo', 'another-string']
+array     # => ['foo']
+duplicate # => ['foo', 'another-string']
 ```
 
 As you can see, after duplicating the `Array` instance, we got another object, therefore we can modify it and the original object will stay unchanged. This is not true for array's elements, however. Since `dup` does not make deep copy, the string inside the array is still the same object.
@@ -195,8 +201,8 @@ duplicate = array.deep_dup
 
 duplicate.first.gsub!('string', 'foo')
 
-array     #=> ['string']
-duplicate #=> ['foo']
+array     # => ['string']
+duplicate # => ['foo']
 ```
 
 If the object is not duplicable, `deep_dup` will just return it:
@@ -240,6 +246,13 @@ end
 
 ```ruby
 @person.try { |p| "#{p.first_name} #{p.last_name}" }
+```
+
+Note that `try` will swallow no-method errors, returning nil instead. If you want to protect against typos, use `try!` instead:
+
+```ruby
+@number.try(:nest)  # => nil
+@number.try!(:nest) # NoMethodError: undefined method `nest' for 1:Fixnum
 ```
 
 NOTE: Defined in `active_support/core_ext/object/try.rb`.
@@ -343,7 +356,7 @@ end
 we get:
 
 ```ruby
-current_user.to_query('user') # => user=357-john-smith
+current_user.to_query('user') # => "user=357-john-smith"
 ```
 
 This method escapes whatever is needed, both for the key and the value:
@@ -384,7 +397,7 @@ The method `with_options` provides a way to factor out common options in a serie
 Given a default options hash, `with_options` yields a proxy object to a block. Within the block, methods called on the proxy are forwarded to the receiver with their options merged. For example, you get rid of the duplication in:
 
 ```ruby
-class Account < ActiveRecord::Base
+class Account < ApplicationRecord
   has_many :customers, dependent: :destroy
   has_many :products,  dependent: :destroy
   has_many :invoices,  dependent: :destroy
@@ -395,7 +408,7 @@ end
 this way:
 
 ```ruby
-class Account < ActiveRecord::Base
+class Account < ApplicationRecord
   with_options dependent: :destroy do |assoc|
     assoc.has_many :customers
     assoc.has_many :products
@@ -420,11 +433,9 @@ NOTE: Defined in `active_support/core_ext/object/with_options.rb`.
 
 ### JSON support
 
-Active Support provides a better implemention of `to_json` than the +json+ gem ordinarily provides for Ruby objects. This is because some classes, like +Hash+ and +OrderedHash+ needs special handling in order to provide a proper JSON representation.
+Active Support provides a better implementation of `to_json` than the `json` gem ordinarily provides for Ruby objects. This is because some classes, like `Hash`, `OrderedHash` and `Process::Status` need special handling in order to provide a proper JSON representation.
 
-Active Support also provides an implementation of `as_json` for the <tt>Process::Status</tt> class.
-
-NOTE: Defined in `active_support/core_ext/object/to_json.rb`.
+NOTE: Defined in `active_support/core_ext/object/json.rb`.
 
 ### Instance Variables
 
@@ -449,7 +460,7 @@ NOTE: Defined in `active_support/core_ext/object/instance_variables.rb`.
 
 #### `instance_variable_names`
 
-The method `instance_variable_names` returns an array.  Each name includes the "@" sign.
+The method `instance_variable_names` returns an array. Each name includes the "@" sign.
 
 ```ruby
 class C
@@ -463,7 +474,7 @@ C.new(0, 1).instance_variable_names # => ["@x", "@y"]
 
 NOTE: Defined in `active_support/core_ext/object/instance_variables.rb`.
 
-### Silencing Warnings, Streams, and Exceptions
+### Silencing Warnings and Exceptions
 
 The methods `silence_warnings` and `enable_warnings` change the value of `$VERBOSE` accordingly for the duration of their block, and reset it afterwards:
 
@@ -471,26 +482,10 @@ The methods `silence_warnings` and `enable_warnings` change the value of `$VERBO
 silence_warnings { Object.const_set "RAILS_DEFAULT_LOGGER", logger }
 ```
 
-You can silence any stream while a block runs with `silence_stream`:
+Silencing exceptions is also possible with `suppress`. This method receives an arbitrary number of exception classes. If an exception is raised during the execution of the block and is `kind_of?` any of the arguments, `suppress` captures it and returns silently. Otherwise the exception is not captured:
 
 ```ruby
-silence_stream(STDOUT) do
-  # STDOUT is silent here
-end
-```
-
-The `quietly` method addresses the common use case where you want to silence STDOUT and STDERR, even in subprocesses:
-
-```ruby
-quietly { system 'bundle install' }
-```
-
-For example, the railties test suite uses that one in a few places to prevent command messages from being echoed intermixed with the progress status.
-
-Silencing exceptions is also possible with `suppress`. This method receives an arbitrary number of exception classes. If an exception is raised during the execution of the block and is `kind_of?` any of the arguments, `suppress` captures it and returns silently. Otherwise the exception is reraised:
-
-```ruby
-# If the user is locked the increment is lost, no big deal.
+# If the user is locked, the increment is lost, no big deal.
 suppress(ActiveRecord::StaleObjectError) do
   current_user.increment! :visits
 end
@@ -518,19 +513,21 @@ Extensions to `Module`
 
 ### `alias_method_chain`
 
+**This method is deprecated in favour of using Module#prepend.**
+
 Using plain Ruby you can wrap methods with other methods, that's called _alias chaining_.
 
-For example, let's say you'd like params to be strings in functional tests, as they are in real requests, but still want the convenience of assigning integers and other kind of values. To accomplish that you could wrap `ActionController::TestCase#process` this way in `test/test_helper.rb`:
+For example, let's say you'd like params to be strings in functional tests, as they are in real requests, but still want the convenience of assigning integers and other kind of values. To accomplish that you could wrap `ActionDispatch::IntegrationTest#process` this way in `test/test_helper.rb`:
 
 ```ruby
-ActionController::TestCase.class_eval do
+ActionDispatch::IntegrationTest.class_eval do
   # save a reference to the original process method
   alias_method :original_process, :process
 
   # now redefine process and delegate to original_process
-  def process(action, params=nil, session=nil, flash=nil, http_method='GET')
+  def process('GET', path, params: nil, headers: nil, env: nil, xhr: false)
     params = Hash[*params.map {|k, v| [k, v.to_s]}.flatten]
-    original_process(action, params, session, flash, http_method)
+    original_process('GET', path, params: params)
   end
 end
 ```
@@ -540,10 +537,10 @@ That's the method `get`, `post`, etc., delegate the work to.
 That technique has a risk, it could be the case that `:original_process` was taken. To try to avoid collisions people choose some label that characterizes what the chaining is about:
 
 ```ruby
-ActionController::TestCase.class_eval do
+ActionDispatch::IntegrationTest.class_eval do
   def process_with_stringified_params(...)
     params = Hash[*params.map {|k, v| [k, v.to_s]}.flatten]
-    process_without_stringified_params(action, params, session, flash, http_method)
+    process_without_stringified_params(method, path, params: params)
   end
   alias_method :process_without_stringified_params, :process
   alias_method :process, :process_with_stringified_params
@@ -553,16 +550,14 @@ end
 The method `alias_method_chain` provides a shortcut for that pattern:
 
 ```ruby
-ActionController::TestCase.class_eval do
+ActionDispatch::IntegrationTest.class_eval do
   def process_with_stringified_params(...)
     params = Hash[*params.map {|k, v| [k, v.to_s]}.flatten]
-    process_without_stringified_params(action, params, session, flash, http_method)
+    process_without_stringified_params(method, path, params: params)
   end
   alias_method_chain :process, :stringified_params
 end
 ```
-
-Rails uses `alias_method_chain` all over the code base. For example validations are added to `ActiveRecord::Base#save` by wrapping the method that way in a separate module specialized in validations.
 
 NOTE: Defined in `active_support/core_ext/module/aliasing.rb`.
 
@@ -570,12 +565,12 @@ NOTE: Defined in `active_support/core_ext/module/aliasing.rb`.
 
 #### `alias_attribute`
 
-Model attributes have a reader, a writer, and a predicate. You can alias a model attribute having the corresponding three methods defined for you in one shot. As in other aliasing methods, the new name is the first argument, and the old name is the second (my mnemonic is they go in the same order as if you did an assignment):
+Model attributes have a reader, a writer, and a predicate. You can alias a model attribute having the corresponding three methods defined for you in one shot. As in other aliasing methods, the new name is the first argument, and the old name is the second (one mnemonic is that they go in the same order as if you did an assignment):
 
 ```ruby
-class User < ActiveRecord::Base
-  # let me refer to the email column as "login",
-  # possibly meaningful for authentication code
+class User < ApplicationRecord
+  # You can refer to the email column as "login".
+  # This can be meaningful for authentication code.
   alias_attribute :login, :email
 end
 ```
@@ -622,7 +617,7 @@ NOTE: Defined in `active_support/core_ext/module/attr_internal.rb`.
 
 #### Module Attributes
 
-The macros `mattr_reader`, `mattr_writer`, and `mattr_accessor` are analogous to the `cattr_*` macros defined for class. Check [Class Attributes](#class-attributes).
+The macros `mattr_reader`, `mattr_writer`, and `mattr_accessor` are the same as the `cattr_*` macros defined for class. In fact, the `cattr_*` macros are just aliases for the `mattr_*` macros. Check [Class Attributes](#class-attributes).
 
 For example, the dependencies mechanism uses them:
 
@@ -733,13 +728,13 @@ X.local_constants    # => [:X1, :X2, :Y]
 X::Y.local_constants # => [:Y1, :X1]
 ```
 
-The names are returned as symbols. (The deprecated method `local_constant_names` returns strings.)
+The names are returned as symbols.
 
 NOTE: Defined in `active_support/core_ext/module/introspection.rb`.
 
 #### Qualified Constant Names
 
-The standard methods `const_defined?`, `const_get` , and `const_set` accept
+The standard methods `const_defined?`, `const_get`, and `const_set` accept
 bare constant names. Active Support extends this API to be able to pass
 relative qualified constant names.
 
@@ -759,7 +754,7 @@ Arguments may be bare constant names:
 Math.qualified_const_get("E") # => 2.718281828459045
 ```
 
-These methods are analogous to their builtin counterparts. In particular,
+These methods are analogous to their built-in counterparts. In particular,
 `qualified_constant_defined?` accepts an optional second argument to be
 able to say whether you want the predicate to look in the ancestors.
 This flag is taken into account for each constant in the expression while
@@ -790,7 +785,7 @@ N.qualified_const_defined?("C::X")        # => true
 As the last example implies, the second argument defaults to true,
 as in `const_defined?`.
 
-For coherence with the builtin methods only relative paths are accepted.
+For coherence with the built-in methods only relative paths are accepted.
 Absolute qualified constant names like `::Math::PI` raise `NameError`.
 
 NOTE: Defined in `active_support/core_ext/module/qualified_const.rb`.
@@ -881,15 +876,15 @@ The macro `delegate` offers an easy way to forward methods.
 Let's imagine that users in some application have login information in the `User` model but name and other data in a separate `Profile` model:
 
 ```ruby
-class User < ActiveRecord::Base
+class User < ApplicationRecord
   has_one :profile
 end
 ```
 
-With that configuration you get a user's name via his profile, `user.profile.name`, but it could be handy to still be able to access such attribute directly:
+With that configuration you get a user's name via their profile, `user.profile.name`, but it could be handy to still be able to access such attribute directly:
 
 ```ruby
-class User < ActiveRecord::Base
+class User < ApplicationRecord
   has_one :profile
 
   def name
@@ -901,7 +896,7 @@ end
 That is what `delegate` does for you:
 
 ```ruby
-class User < ActiveRecord::Base
+class User < ApplicationRecord
   has_one :profile
 
   delegate :name, to: :profile
@@ -962,20 +957,7 @@ NOTE: Defined in `active_support/core_ext/module/delegation.rb`
 
 There are cases where you need to define a method with `define_method`, but don't know whether a method with that name already exists. If it does, a warning is issued if they are enabled. No big deal, but not clean either.
 
-The method `redefine_method` prevents such a potential warning, removing the existing method before if needed. Rails uses it in a few places, for instance when it generates an association's API:
-
-```ruby
-redefine_method("#{reflection.name}=") do |new_value|
-  association = association_instance_get(reflection.name)
-
-  if association.nil? || association.target != new_value
-    association = association_proxy_class.new(self, reflection)
-  end
-
-  association.replace(new_value)
-  association_instance_set(reflection.name, new_value.nil? ? nil : association)
-end
-```
+The method `redefine_method` prevents such a potential warning, removing the existing method before if needed.
 
 NOTE: Defined in `active_support/core_ext/module/remove_method.rb`
 
@@ -1022,7 +1004,7 @@ self.default_params = {
 }.freeze
 ```
 
-They can be also accessed and overridden at the instance level.
+They can also be accessed and overridden at the instance level.
 
 ```ruby
 A.x = 1
@@ -1091,6 +1073,15 @@ end
 
 we can access `field_error_proc` in views.
 
+Also, you can pass a block to `cattr_*` to set up the attribute with a default value:
+
+```ruby
+class MysqlAdapter < AbstractAdapter
+  # Generates class methods to access @@emulate_booleans with default value of true.
+  cattr_accessor(:emulate_booleans) { true }
+end
+```
+
 The generation of the reader instance method can be prevented by setting `:instance_reader` to `false` and the generation of the writer instance method can be prevented by setting `:instance_writer` to `false`. Generation of both methods can be prevented by setting `:instance_accessor` to `false`. In all cases, the value must be exactly `false` and not any false value.
 
 ```ruby
@@ -1108,7 +1099,7 @@ end
 
 A model may find it useful to set `:instance_accessor` to `false` as a way to prevent mass-assignment from setting the attribute.
 
-NOTE: Defined in `active_support/core_ext/class/attribute_accessors.rb`.
+NOTE: Defined in `active_support/core_ext/module/attribute_accessors.rb`.
 
 ### Subclasses & Descendants
 
@@ -1167,9 +1158,9 @@ Inserting data into HTML templates needs extra care. For example, you can't just
 
 #### Safe Strings
 
-Active Support has the concept of <i>(html) safe</i> strings. A safe string is one that is marked as being insertable into HTML as is. It is trusted, no matter whether it has been escaped or not.
+Active Support has the concept of _(html) safe_ strings. A safe string is one that is marked as being insertable into HTML as is. It is trusted, no matter whether it has been escaped or not.
 
-Strings are considered to be <i>unsafe</i> by default:
+Strings are considered to be _unsafe_ by default:
 
 ```ruby
 "".html_safe? # => false
@@ -1253,7 +1244,7 @@ Calling `dup` or `clone` on safe strings yields safe strings.
 The method `remove` will remove all occurrences of the pattern:
 
 ```ruby
-"Hello World".remove(/Hello /) => "World"
+"Hello World".remove(/Hello /) # => "World"
 ```
 
 There's also the destructive version `String#remove!`.
@@ -1270,7 +1261,7 @@ The method `squish` strips leading and trailing whitespace, and substitutes runs
 
 There's also the destructive version `String#squish!`.
 
-Note that it handles both ASCII and Unicode whitespace like mongolian vowel separator (U+180E).
+Note that it handles both ASCII and Unicode whitespace.
 
 NOTE: Defined in `active_support/core_ext/string/filters.rb`.
 
@@ -1309,6 +1300,38 @@ The option `:separator` can be a regexp:
 ```
 
 In above examples "dear" gets cut first, but then `:separator` prevents it.
+
+NOTE: Defined in `active_support/core_ext/string/filters.rb`.
+
+### `truncate_words`
+
+The method `truncate_words` returns a copy of its receiver truncated after a given number of words:
+
+```ruby
+"Oh dear! Oh dear! I shall be late!".truncate_words(4)
+# => "Oh dear! Oh dear!..."
+```
+
+Ellipsis can be customized with the `:omission` option:
+
+```ruby
+"Oh dear! Oh dear! I shall be late!".truncate_words(4, omission: '&hellip;')
+# => "Oh dear! Oh dear!&hellip;"
+```
+
+Pass a `:separator` to truncate the string at a natural break:
+
+```ruby
+"Oh dear! Oh dear! I shall be late!".truncate_words(3, separator: '!')
+# => "Oh dear! Oh dear! I shall be late..."
+```
+
+The option `:separator` can be a regexp:
+
+```ruby
+"Oh dear! Oh dear! I shall be late!".truncate_words(4, separator: /\s/)
+# => "Oh dear! Oh dear!..."
+```
 
 NOTE: Defined in `active_support/core_ext/string/filters.rb`.
 
@@ -1392,6 +1415,8 @@ The third argument, `indent_empty_lines`, is a flag that says whether empty line
 
 The `indent!` method performs indentation in-place.
 
+NOTE: Defined in `active_support/core_ext/string/indent.rb`.
+
 ### Access
 
 #### `at(position)`
@@ -1415,7 +1440,7 @@ Returns the substring of the string starting at position `position`:
 "hello".from(0)  # => "hello"
 "hello".from(2)  # => "llo"
 "hello".from(-2) # => "lo"
-"hello".from(10) # => "" if < 1.9, nil in 1.9
+"hello".from(10) # => nil
 ```
 
 NOTE: Defined in `active_support/core_ext/string/access.rb`.
@@ -1543,7 +1568,7 @@ ActiveSupport::Inflector.inflections do |inflect|
   inflect.acronym 'SSL'
 end
 
-"SSLError".underscore.camelize #=> "SSLError"
+"SSLError".underscore.camelize # => "SSLError"
 ```
 
 `camelize` is aliased to `camelcase`.
@@ -1631,6 +1656,9 @@ Given a string with a qualified constant name, `demodulize` returns the very con
 "Product".demodulize                        # => "Product"
 "Backoffice::UsersController".demodulize    # => "UsersController"
 "Admin::Hotel::ReservationUtils".demodulize # => "ReservationUtils"
+"::Inflections".demodulize                  # => "Inflections"
+"".demodulize                               # => ""
+
 ```
 
 Active Record for example uses this method to compute the name of a counter cache column:
@@ -1680,6 +1708,20 @@ The method `parameterize` normalizes its receiver in a way that can be used in p
 ```ruby
 "John Smith".parameterize # => "john-smith"
 "Kurt Gödel".parameterize # => "kurt-godel"
+```
+
+To preserve the case of the string, set the `preserve_case` argument to true. By default, `preserve_case` is set to false.
+
+```ruby
+"John Smith".parameterize(preserve_case: true) # => "John-Smith"
+"Kurt Gödel".parameterize(preserve_case: true) # => "Kurt-Godel"
+```
+
+To use a custom separator, override the `separator` argument.
+
+```ruby
+"John Smith".parameterize(separator: "_") # => "john\_smith"
+"Kurt Gödel".parameterize(separator: "_") # => "kurt\_godel"
 ```
 
 In fact, the result string is wrapped in an instance of `ActiveSupport::Multibyte::Chars`.
@@ -1765,28 +1807,47 @@ NOTE: Defined in `active_support/core_ext/string/inflections.rb`.
 
 #### `humanize`
 
-The method `humanize` gives you a sensible name for display out of an attribute name. To do so it replaces underscores with spaces, removes any "_id" suffix, and capitalizes the first word:
+The method `humanize` tweaks an attribute name for display to end users.
+
+Specifically performs these transformations:
+
+  * Applies human inflection rules to the argument.
+  * Deletes leading underscores, if any.
+  * Removes a "_id" suffix if present.
+  * Replaces underscores with spaces, if any.
+  * Downcases all words except acronyms.
+  * Capitalizes the first word.
+
+The capitalization of the first word can be turned off by setting the
++:capitalize+ option to false (default is true).
 
 ```ruby
-"name".humanize           # => "Name"
-"author_id".humanize      # => "Author"
-"comments_count".humanize # => "Comments count"
+"name".humanize                         # => "Name"
+"author_id".humanize                    # => "Author"
+"author_id".humanize(capitalize: false) # => "author"
+"comments_count".humanize               # => "Comments count"
+"_id".humanize                          # => "Id"
 ```
 
-The helper method `full_messages` uses `humanize` as a fallback to include attribute names:
+If "SSL" was defined to be an acronym:
+
+```ruby
+'ssl_error'.humanize # => "SSL error"
+```
+
+The helper method `full_messages` uses `humanize` as a fallback to include
+attribute names:
 
 ```ruby
 def full_messages
-  full_messages = []
+  map { |attribute, message| full_message(attribute, message) }
+end
 
-  each do |attribute, messages|
-    ...
-    attr_name = attribute.to_s.gsub('.', '_').humanize
-    attr_name = @base.class.human_attribute_name(attribute, default: attr_name)
-    ...
-  end
-
-  full_messages
+def full_message
+  ...
+  attr_name = attribute.to_s.tr('.', '_').humanize
+  attr_name = @base.class.human_attribute_name(attribute, default: attr_name)
+  ...
 end
 ```
 
@@ -1825,15 +1886,15 @@ The methods `to_date`, `to_time`, and `to_datetime` are basically convenience wr
 
 ```ruby
 "2010-07-27".to_date              # => Tue, 27 Jul 2010
-"2010-07-27 23:37:00".to_time     # => Tue Jul 27 23:37:00 UTC 2010
+"2010-07-27 23:37:00".to_time     # => 2010-07-27 23:37:00 +0200
 "2010-07-27 23:37:00".to_datetime # => Tue, 27 Jul 2010 23:37:00 +0000
 ```
 
 `to_time` receives an optional argument `:utc` or `:local`, to indicate which time zone you want the time in:
 
 ```ruby
-"2010-07-27 23:42:00".to_time(:utc)   # => Tue Jul 27 23:42:00 UTC 2010
-"2010-07-27 23:42:00".to_time(:local) # => Tue Jul 27 23:42:00 +0200 2010
+"2010-07-27 23:42:00".to_time(:utc)   # => 2010-07-27 23:42:00 UTC
+"2010-07-27 23:42:00".to_time(:local) # => 2010-07-27 23:42:00 +0200
 ```
 
 Default is `:utc`.
@@ -1896,23 +1957,7 @@ as well as adding or subtracting their results from a Time object. For example:
 (4.months + 5.years).from_now
 ```
 
-While these methods provide precise calculation when used as in the examples above, care
-should be taken to note that this is not true if the result of `months', `years', etc is
-converted before use:
-
-```ruby
-# equivalent to 30.days.to_i.from_now
-1.month.to_i.from_now
-
-# equivalent to 365.25.days.to_f.from_now
-1.year.to_f.from_now
-```
-
-In such cases, Ruby's core [Date](http://ruby-doc.org/stdlib/libdoc/date/rdoc/Date.html) and
-[Time](http://ruby-doc.org/stdlib/libdoc/time/rdoc/Time.html) should be used for precision
-date and time arithmetic.
-
-NOTE: Defined in `active_support/core_ext/numeric/time.rb`.
+NOTE: Defined in `active_support/core_ext/numeric/time.rb`
 
 ### Formatting
 
@@ -1979,12 +2024,14 @@ Produce a string representation of a number rounded to a precision:
 Produce a string representation of a number as a human-readable number of bytes:
 
 ```ruby
-123.to_s(:human_size)            # => 123 Bytes
-1234.to_s(:human_size)           # => 1.21 KB
-12345.to_s(:human_size)          # => 12.1 KB
-1234567.to_s(:human_size)        # => 1.18 MB
-1234567890.to_s(:human_size)     # => 1.15 GB
-1234567890123.to_s(:human_size)  # => 1.12 TB
+123.to_s(:human_size)                  # => 123 Bytes
+1234.to_s(:human_size)                 # => 1.21 KB
+12345.to_s(:human_size)                # => 12.1 KB
+1234567.to_s(:human_size)              # => 1.18 MB
+1234567890.to_s(:human_size)           # => 1.15 GB
+1234567890123.to_s(:human_size)        # => 1.12 TB
+1234567890123456.to_s(:human_size)     # => 1.1 PB
+1234567890123456789.to_s(:human_size)  # => 1.07 EB
 ```
 
 Produce a string representation of a number in human-readable words:
@@ -1999,7 +2046,7 @@ Produce a string representation of a number in human-readable words:
 1234567890123456.to_s(:human)  # => "1.23 Quadrillion"
 ```
 
-NOTE: Defined in `active_support/core_ext/numeric/formatting.rb`.
+NOTE: Defined in `active_support/core_ext/numeric/conversions.rb`.
 
 Extensions to `Integer`
 -----------------------
@@ -2049,30 +2096,22 @@ Extensions to `BigDecimal`
 --------------------------
 ### `to_s`
 
-The method `to_s` is aliased to `to_formatted_s`. This provides a convenient way to display a BigDecimal value in floating-point notation:
+The method `to_s` provides a default specifier of "F". This means that a simple call to `to_s` will result in floating point representation instead of engineering notation:
 
 ```ruby
 BigDecimal.new(5.00, 6).to_s  # => "5.0"
 ```
 
-### `to_formatted_s`
-
-Te method `to_formatted_s` provides a default specifier of "F".  This means that a simple call to `to_formatted_s` or `to_s` will result in floating point representation instead of engineering notation:
-
-```ruby
-BigDecimal.new(5.00, 6).to_formatted_s  # => "5.0"
-```
-
 and that symbol specifiers are also supported:
 
 ```ruby
-BigDecimal.new(5.00, 6).to_formatted_s(:db)  # => "5.0"
+BigDecimal.new(5.00, 6).to_s(:db)  # => "5.0"
 ```
 
 Engineering notation is still supported:
 
 ```ruby
-BigDecimal.new(5.00, 6).to_formatted_s("e")  # => "0.5E1"
+BigDecimal.new(5.00, 6).to_s("e")  # => "0.5E1"
 ```
 
 Extensions to `Enumerable`
@@ -2160,6 +2199,27 @@ to_visit << node if visited.exclude?(node)
 
 NOTE: Defined in `active_support/core_ext/enumerable.rb`.
 
+### `without`
+
+The method `without` returns a copy of an enumerable with the specified elements
+removed:
+
+```ruby
+["David", "Rafael", "Aaron", "Todd"].without("Aaron", "Todd") # => ["David", "Rafael"]
+```
+
+NOTE: Defined in `active_support/core_ext/enumerable.rb`.
+
+### `pluck`
+
+The method `pluck` returns an array based on the given key:
+
+```ruby
+[{ name: "David" }, { name: "Rafael" }, { name: "Aaron" }].pluck(:name) # => ["David", "Rafael", "Aaron"]
+```
+
+NOTE: Defined in `active_support/core_ext/enumerable.rb`.
+
 Extensions to `Array`
 ---------------------
 
@@ -2168,14 +2228,14 @@ Extensions to `Array`
 Active Support augments the API of arrays to ease certain ways of accessing them. For example, `to` returns the subarray of elements up to the one at the passed index:
 
 ```ruby
-%w(a b c d).to(2) # => %w(a b c)
+%w(a b c d).to(2) # => ["a", "b", "c"]
 [].to(7)          # => []
 ```
 
 Similarly, `from` returns the tail from the element at the passed index to the end. If the index is greater than the length of the array, it returns an empty array.
 
 ```ruby
-%w(a b c d).from(2)  # => %w(c d)
+%w(a b c d).from(2)  # => ["c", "d"]
 %w(a b c d).from(10) # => []
 [].from(0)           # => []
 ```
@@ -2183,7 +2243,7 @@ Similarly, `from` returns the tail from the element at the passed index to the e
 The methods `second`, `third`, `fourth`, and `fifth` return the corresponding element (`first` is built-in). Thanks to social wisdom and positive constructiveness all around, `forty_two` is also available.
 
 ```ruby
-%w(a b c d).third # => c
+%w(a b c d).third # => "c"
 %w(a b c d).fifth # => nil
 ```
 
@@ -2196,7 +2256,7 @@ NOTE: Defined in `active_support/core_ext/array/access.rb`.
 This method is an alias of `Array#unshift`.
 
 ```ruby
-%w(a b c d).prepend('e')  # => %w(e a b c d)
+%w(a b c d).prepend('e')  # => ["e", "a", "b", "c", "d"]
 [].prepend(10)            # => [10]
 ```
 
@@ -2207,8 +2267,8 @@ NOTE: Defined in `active_support/core_ext/array/prepend_and_append.rb`.
 This method is an alias of `Array#<<`.
 
 ```ruby
-%w(a b c d).append('e')  # => %w(a b c d e)
-[].append([1,2])         # => [[1,2]]
+%w(a b c d).append('e')  # => ["a", "b", "c", "d", "e"]
+[].append([1,2])         # => [[1, 2]]
 ```
 
 NOTE: Defined in `active_support/core_ext/array/prepend_and_append.rb`.
@@ -2267,8 +2327,6 @@ The defaults for these options can be localized, their keys are:
 | `:two_words_connector` | `support.array.two_words_connector` |
 | `:words_connector`     | `support.array.words_connector`     |
 | `:last_word_connector` | `support.array.last_word_connector` |
-
-Options `:connector` and `:skip_last_comma` are deprecated.
 
 NOTE: Defined in `active_support/core_ext/array/conversions.rb`.
 
@@ -2397,7 +2455,7 @@ The method `Array.wrap` wraps its argument in an array unless it is already an a
 
 Specifically:
 
-* If the argument is `nil` an empty list is returned.
+* If the argument is `nil` an empty array is returned.
 * Otherwise, if the argument responds to `to_ary` it is invoked, and if the value of `to_ary` is not `nil`, it is returned.
 * Otherwise, an array with the argument as its single element is returned.
 
@@ -2409,9 +2467,9 @@ Array.wrap(0)         # => [0]
 
 This method is similar in purpose to `Kernel#Array`, but there are some differences:
 
-* If the argument responds to `to_ary` the method is invoked. `Kernel#Array` moves on to try `to_a` if the returned value is `nil`, but `Array.wrap` returns `nil` right away.
+* If the argument responds to `to_ary` the method is invoked. `Kernel#Array` moves on to try `to_a` if the returned value is `nil`, but `Array.wrap` returns an array with the argument as its single element right away.
 * If the returned value from `to_ary` is neither `nil` nor an `Array` object, `Kernel#Array` raises an exception, while `Array.wrap` does not, it just returns the value.
-* It does not call `to_a` on the argument, though special-cases `nil` to return an empty array.
+* It does not call `to_a` on the argument, if the argument does not respond to +to_ary+ it returns an array with the argument as its single element.
 
 The last point is particularly worth comparing for some enumerables:
 
@@ -2434,7 +2492,7 @@ NOTE: Defined in `active_support/core_ext/array/wrap.rb`.
 
 ### Duplicating
 
-The method `Array.deep_dup` duplicates itself and all objects inside
+The method `Array#deep_dup` duplicates itself and all objects inside
 recursively with Active Support method `Object#deep_dup`. It works like `Array#map` with sending `deep_dup` method to each object inside.
 
 ```ruby
@@ -2444,7 +2502,7 @@ dup[1][2] = 4
 array[1][2] == nil   # => true
 ```
 
-NOTE: Defined in `active_support/core_ext/array/deep_dup.rb`.
+NOTE: Defined in `active_support/core_ext/object/deep_dup.rb`.
 
 ### Grouping
 
@@ -2656,7 +2714,7 @@ NOTE: Defined in `active_support/core_ext/hash/deep_merge.rb`.
 
 ### Deep duplicating
 
-The method `Hash.deep_dup` duplicates itself and all keys and values
+The method `Hash#deep_dup` duplicates itself and all keys and values
 inside recursively with Active Support method `Object#deep_dup`. It works like `Enumerator#each_with_object` with sending `deep_dup` method to each pair inside.
 
 ```ruby
@@ -2670,45 +2728,7 @@ hash[:b][:e] == nil      # => true
 hash[:b][:d] == [3, 4]   # => true
 ```
 
-NOTE: Defined in `active_support/core_ext/hash/deep_dup.rb`.
-
-### Diffing
-
-The method `diff` returns a hash that represents a diff of the receiver and the argument with the following logic:
-
-* Pairs `key`, `value` that exist in both hashes do not belong to the diff hash.
-
-* If both hashes have `key`, but with different values, the pair in the receiver wins.
-
-* The rest is just merged.
-
-```ruby
-{a: 1}.diff(a: 1)
-# => {}, first rule
-
-{a: 1}.diff(a: 2)
-# => {:a=>1}, second rule
-
-{a: 1}.diff(b: 2)
-# => {:a=>1, :b=>2}, third rule
-
-{a: 1, b: 2, c: 3}.diff(b: 1, c: 3, d: 4)
-# => {:a=>1, :b=>2, :d=>4}, all rules
-
-{}.diff({})        # => {}
-{a: 1}.diff({})    # => {:a=>1}
-{}.diff(a: 1)      # => {:a=>1}
-```
-
-An important property of this diff hash is that you can retrieve the original hash by applying `diff` twice:
-
-```ruby
-hash.diff(hash2).diff(hash2) == hash
-```
-
-Diffing hashes may be useful for error messages related to expected option hashes for example.
-
-NOTE: Defined in `active_support/core_ext/hash/diff.rb`.
+NOTE: Defined in `active_support/core_ext/object/deep_dup.rb`.
 
 ### Working with Keys
 
@@ -2740,11 +2760,14 @@ The method `transform_keys` accepts a block and returns a hash that has applied 
 # => {"" => nil, "A" => :a, "1" => 1}
 ```
 
-The result in case of collision is undefined:
+In case of key collision, one of the values will be chosen. The chosen value may not always be the same given the same hash:
 
 ```ruby
 {"a" => 1, a: 2}.transform_keys { |key| key.to_s.upcase }
-# => {"A" => 2}, in my test, can't rely on this result though
+# The result could either be
+# => {"A"=>2}
+# or
+# => {"A"=>1}
 ```
 
 This method may be useful for example to build specialized conversions. For instance `stringify_keys` and `symbolize_keys` use `transform_keys` to perform their key conversions:
@@ -2779,11 +2802,14 @@ The method `stringify_keys` returns a hash that has a stringified version of the
 # => {"" => nil, "a" => :a, "1" => 1}
 ```
 
-The result in case of collision is undefined:
+In case of key collision, one of the values will be chosen. The chosen value may not always be the same given the same hash:
 
 ```ruby
 {"a" => 1, a: 2}.stringify_keys
-# => {"a" => 2}, in my test, can't rely on this result though
+# The result could either be
+# => {"a"=>2}
+# or
+# => {"a"=>1}
 ```
 
 This method may be useful for example to easily accept both symbols and strings as options. For instance `ActionView::Helpers::FormHelper` defines:
@@ -2820,11 +2846,14 @@ The method `symbolize_keys` returns a hash that has a symbolized version of the 
 
 WARNING. Note in the previous example only one key was symbolized.
 
-The result in case of collision is undefined:
+In case of key collision, one of the values will be chosen. The chosen value may not always be the same given the same hash:
 
 ```ruby
 {"a" => 1, a: 2}.symbolize_keys
-# => {:a=>2}, in my test, can't rely on this result though
+# The result could either be
+# => {:a=>2}
+# or
+# => {:a=>1}
 ```
 
 This method may be useful for example to easily accept both symbols and strings as options. For instance `ActionController::UrlRewriter` defines
@@ -2868,6 +2897,20 @@ The method `assert_valid_keys` receives an arbitrary number of arguments, and ch
 Active Record does not accept unknown options when building associations, for example. It implements that control via `assert_valid_keys`.
 
 NOTE: Defined in `active_support/core_ext/hash/keys.rb`.
+
+### Working with Values
+
+#### `transform_values` && `transform_values!`
+
+The method `transform_values` accepts a block and returns a hash that has applied the block operations to each of the values in the receiver.
+
+```ruby
+{ nil => nil, 1 => 1, :x => :a }.transform_values { |value| value.to_s.upcase }
+# => {nil=>"", 1=>"1", :x=>"A"}
+```
+There's also the bang variant `transform_values!` that applies the block operations to values in the very receiver.
+
+NOTE: Defined in `active_support/core_ext/hash/transform_values.rb`.
 
 ### Slicing
 
@@ -2929,6 +2972,16 @@ The method `with_indifferent_access` returns an `ActiveSupport::HashWithIndiffer
 ```
 
 NOTE: Defined in `active_support/core_ext/hash/indifferent_access.rb`.
+
+### Compacting
+
+The methods `compact` and `compact!` return a Hash without items with `nil` value.
+
+```ruby
+{a: 1, b: 2, c: nil}.compact # => {a: 1, b: 2}
+```
+
+NOTE: Defined in `active_support/core_ext/hash/compact.rb`.
 
 Extensions to `Regexp`
 ----------------------
@@ -3013,53 +3066,6 @@ The method `Range#overlaps?` says whether any two given ranges have non-void int
 ```
 
 NOTE: Defined in `active_support/core_ext/range/overlaps.rb`.
-
-Extensions to `Proc`
---------------------
-
-### `bind`
-
-As you surely know Ruby has an `UnboundMethod` class whose instances are methods that belong to the limbo of methods without a self. The method `Module#instance_method` returns an unbound method for example:
-
-```ruby
-Hash.instance_method(:delete) # => #<UnboundMethod: Hash#delete>
-```
-
-An unbound method is not callable as is, you need to bind it first to an object with `bind`:
-
-```ruby
-clear = Hash.instance_method(:clear)
-clear.bind({a: 1}).call # => {}
-```
-
-Active Support defines `Proc#bind` with an analogous purpose:
-
-```ruby
-Proc.new { size }.bind([]).call # => 0
-```
-
-As you see that's callable and bound to the argument, the return value is indeed a `Method`.
-
-NOTE: To do so `Proc#bind` actually creates a method under the hood. If you ever see a method with a weird name like `__bind_1256598120_237302` in a stack trace you know now where it comes from.
-
-Action Pack uses this trick in `rescue_from` for example, which accepts the name of a method and also a proc as callbacks for a given rescued exception. It has to call them in either case, so a bound method is returned by `handler_for_rescue`, thus simplifying the code in the caller:
-
-```ruby
-def handler_for_rescue(exception)
-  _, rescuer = Array(rescue_handlers).reverse.detect do |klass_name, handler|
-    ...
-  end
-
-  case rescuer
-  when Symbol
-    method(rescuer)
-  when Proc
-    rescuer.bind(self)
-  end
-end
-```
-
-NOTE: Defined in `active_support/core_ext/proc.rb`.
 
 Extensions to `Date`
 --------------------
@@ -3669,9 +3675,9 @@ t.advance(seconds: 1)
 
 #### `Time.current`
 
-Active Support defines `Time.current` to be today in the current time zone. That's like `Time.now`, except that it honors the user time zone, if defined. It also defines `Time.yesterday` and `Time.tomorrow`, and the instance predicates `past?`, `today?`, and `future?`, all of them relative to `Time.current`.
+Active Support defines `Time.current` to be today in the current time zone. That's like `Time.now`, except that it honors the user time zone, if defined. It also defines the instance predicates `past?`, `today?`, and `future?`, all of them relative to `Time.current`.
 
-When making Time comparisons using methods which honor the user time zone, make sure to use `Time.current` and not `Time.now`. There are cases where the user time zone might be in the future compared to the system time zone, which `Time.today` uses by default. This means `Time.now` may equal `Time.yesterday`.
+When making Time comparisons using methods which honor the user time zone, make sure to use `Time.current` instead of `Time.now`. There are cases where the user time zone might be in the future compared to the system time zone, which `Time.now` uses by default. This means `Time.now.to_date` may equal `Date.yesterday`.
 
 #### `all_day`, `all_week`, `all_month`, `all_quarter` and `all_year`
 
@@ -3782,50 +3788,6 @@ WARNING. If the argument is an `IO` it needs to respond to `rewind` to be able t
 
 NOTE: Defined in `active_support/core_ext/marshal.rb`.
 
-Extensions to `Logger`
-----------------------
-
-### `around_[level]`
-
-Takes two arguments, a `before_message` and `after_message` and calls the current level method on the `Logger` instance, passing in the `before_message`, then the specified message, then the `after_message`:
-
-```ruby
-logger = Logger.new("log/development.log")
-logger.around_info("before", "after") { |logger| logger.info("during") }
-```
-
-### `silence`
-
-Silences every log level lesser to the specified one for the duration of the given block. Log level orders are: debug, info, error and fatal.
-
-```ruby
-logger = Logger.new("log/development.log")
-logger.silence(Logger::INFO) do
-  logger.debug("In space, no one can hear you scream.")
-  logger.info("Scream all you want, small mailman!")
-end
-```
-
-### `datetime_format=`
-
-Modifies the datetime format output by the formatter class associated with this logger. If the formatter class does not have a `datetime_format` method then this is ignored.
-
-```ruby
-class Logger::FormatWithTime < Logger::Formatter
-  cattr_accessor(:datetime_format) { "%Y%m%d%H%m%S" }
-
-  def self.call(severity, timestamp, progname, msg)
-    "#{timestamp.strftime(datetime_format)} -- #{String === msg ? msg : msg.inspect}\n"
-  end
-end
-
-logger = Logger.new("log/development.log")
-logger.formatter = Logger::FormatWithTime
-logger.info("<- is the current time")
-```
-
-NOTE: Defined in `active_support/core_ext/logger.rb`.
-
 Extensions to `NameError`
 -------------------------
 
@@ -3835,15 +3797,15 @@ The name may be given as a symbol or string. A symbol is tested against the bare
 
 TIP: A symbol can represent a fully-qualified constant name as in `:"ActiveRecord::Base"`, so the behavior for symbols is defined for convenience, not because it has to be that way technically.
 
-For example, when an action of `PostsController` is called Rails tries optimistically to use `PostsHelper`. It is OK that the helper module does not exist, so if an exception for that constant name is raised it should be silenced. But it could be the case that `posts_helper.rb` raises a `NameError` due to an actual unknown constant. That should be reraised. The method `missing_name?` provides a way to distinguish both cases:
+For example, when an action of `ArticlesController` is called Rails tries optimistically to use `ArticlesHelper`. It is OK that the helper module does not exist, so if an exception for that constant name is raised it should be silenced. But it could be the case that `articles_helper.rb` raises a `NameError` due to an actual unknown constant. That should be reraised. The method `missing_name?` provides a way to distinguish both cases:
 
 ```ruby
 def default_helper_module!
   module_name = name.sub(/Controller$/, '')
   module_path = module_name.underscore
   helper module_path
-rescue MissingSourceFile => e
-  raise e unless e.is_missing? "#{module_path}_helper"
+rescue LoadError => e
+  raise e unless e.is_missing? "helpers/#{module_path}_helper"
 rescue NameError => e
   raise e unless e.missing_name? "#{module_name}Helper"
 end
@@ -3854,18 +3816,18 @@ NOTE: Defined in `active_support/core_ext/name_error.rb`.
 Extensions to `LoadError`
 -------------------------
 
-Active Support adds `is_missing?` to `LoadError`, and also assigns that class to the constant `MissingSourceFile` for backwards compatibility.
+Active Support adds `is_missing?` to `LoadError`.
 
 Given a path name `is_missing?` tests whether the exception was raised due to that particular file (except perhaps for the ".rb" extension).
 
-For example, when an action of `PostsController` is called Rails tries to load `posts_helper.rb`, but that file may not exist. That's fine, the helper module is not mandatory so Rails silences a load error. But it could be the case that the helper module does exist and in turn requires another library that is missing. In that case Rails must reraise the exception. The method `is_missing?` provides a way to distinguish both cases:
+For example, when an action of `ArticlesController` is called Rails tries to load `articles_helper.rb`, but that file may not exist. That's fine, the helper module is not mandatory so Rails silences a load error. But it could be the case that the helper module does exist and in turn requires another library that is missing. In that case Rails must reraise the exception. The method `is_missing?` provides a way to distinguish both cases:
 
 ```ruby
 def default_helper_module!
   module_name = name.sub(/Controller$/, '')
   module_path = module_name.underscore
   helper module_path
-rescue MissingSourceFile => e
+rescue LoadError => e
   raise e unless e.is_missing? "helpers/#{module_path}_helper"
 rescue NameError => e
   raise e unless e.missing_name? "#{module_name}Helper"

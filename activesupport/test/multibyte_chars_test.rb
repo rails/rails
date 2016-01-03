@@ -1,21 +1,13 @@
-# encoding: utf-8
 require 'abstract_unit'
 require 'multibyte_test_helpers'
 require 'active_support/core_ext/string/multibyte'
-
-class String
-  def __method_for_multibyte_testing_with_integer_result; 1; end
-  def __method_for_multibyte_testing; 'result'; end
-  def __method_for_multibyte_testing!; 'result'; end
-  def __method_for_multibyte_testing_that_returns_nil!; end
-end
 
 class MultibyteCharsTest < ActiveSupport::TestCase
   include MultibyteTestHelpers
 
   def setup
     @proxy_class = ActiveSupport::Multibyte::Chars
-    @chars = @proxy_class.new UNICODE_STRING
+    @chars = @proxy_class.new UNICODE_STRING.dup
   end
 
   def test_wraps_the_original_string
@@ -24,6 +16,8 @@ class MultibyteCharsTest < ActiveSupport::TestCase
   end
 
   def test_should_allow_method_calls_to_string
+    @chars.wrapped_string.singleton_class.class_eval { def __method_for_multibyte_testing; 'result'; end }
+
     assert_nothing_raised do
       @chars.__method_for_multibyte_testing
     end
@@ -33,28 +27,35 @@ class MultibyteCharsTest < ActiveSupport::TestCase
   end
 
   def test_forwarded_method_calls_should_return_new_chars_instance
+    @chars.wrapped_string.singleton_class.class_eval { def __method_for_multibyte_testing; 'result'; end }
+
     assert_kind_of @proxy_class, @chars.__method_for_multibyte_testing
     assert_not_equal @chars.object_id, @chars.__method_for_multibyte_testing.object_id
   end
 
   def test_forwarded_bang_method_calls_should_return_the_original_chars_instance_when_result_is_not_nil
+    @chars.wrapped_string.singleton_class.class_eval { def __method_for_multibyte_testing!; 'result'; end }
+
     assert_kind_of @proxy_class, @chars.__method_for_multibyte_testing!
     assert_equal @chars.object_id, @chars.__method_for_multibyte_testing!.object_id
   end
 
   def test_forwarded_bang_method_calls_should_return_nil_when_result_is_nil
+    @chars.wrapped_string.singleton_class.class_eval { def __method_for_multibyte_testing_that_returns_nil!; end }
+
     assert_nil @chars.__method_for_multibyte_testing_that_returns_nil!
   end
 
   def test_methods_are_forwarded_to_wrapped_string_for_byte_strings
-    original_encoding = BYTE_STRING.encoding
     assert_equal BYTE_STRING.length, BYTE_STRING.mb_chars.length
-  ensure
-    BYTE_STRING.force_encoding(original_encoding)
   end
 
   def test_forwarded_method_with_non_string_result_should_be_returned_vertabim
-    assert_equal ''.__method_for_multibyte_testing_with_integer_result, @chars.__method_for_multibyte_testing_with_integer_result
+    str = ''
+    str.singleton_class.class_eval { def __method_for_multibyte_testing_with_integer_result; 1; end }
+    @chars.wrapped_string.singleton_class.class_eval { def __method_for_multibyte_testing_with_integer_result; 1; end }
+
+    assert_equal str.__method_for_multibyte_testing_with_integer_result, @chars.__method_for_multibyte_testing_with_integer_result
   end
 
   def test_should_concatenate
@@ -103,7 +104,6 @@ class MultibyteCharsUTF8BehaviourTest < ActiveSupport::TestCase
     @chars = UNICODE_STRING.dup.mb_chars
     # Ruby 1.9 only supports basic whitespace
     @whitespace = "\n\t "
-    @byte_order_mark = [65279].pack('U')
   end
 
   def test_split_should_return_an_array_of_chars_instances
@@ -181,7 +181,7 @@ class MultibyteCharsUTF8BehaviourTest < ActiveSupport::TestCase
   end
 
   def test_sortability
-    words = %w(builder armor zebra).sort_by { |s| s.mb_chars }
+    words = %w(builder armor zebra).sort_by(&:mb_chars)
     assert_equal %w(armor builder zebra), words
   end
 
@@ -221,9 +221,9 @@ class MultibyteCharsUTF8BehaviourTest < ActiveSupport::TestCase
   end
 
   def test_include_raises_when_nil_is_passed
-    @chars.include?(nil)
-    flunk "Expected chars.include?(nil) to raise TypeError or NoMethodError"
-  rescue Exception
+    assert_raises TypeError, NoMethodError, "Expected chars.include?(nil) to raise TypeError or NoMethodError" do
+      @chars.include?(nil)
+    end
   end
 
   def test_index_should_return_character_offset
@@ -413,10 +413,22 @@ class MultibyteCharsUTF8BehaviourTest < ActiveSupport::TestCase
     assert_equal 'にち', @chars.slice!(1..2)
   end
 
+  def test_slice_bang_returns_nil_on_out_of_bound_arguments
+    assert_equal nil, @chars.mb_chars.slice!(9..10)
+  end
+
   def test_slice_bang_removes_the_slice_from_the_receiver
     chars = 'úüù'.mb_chars
     chars.slice!(0,2)
     assert_equal 'ù', chars
+  end
+
+  def test_slice_bang_returns_nil_and_does_not_modify_receiver_if_out_of_bounds
+    string = 'úüù'
+    chars = string.mb_chars
+    assert_nil chars.slice!(4, 5)
+    assert_equal 'úüù', chars
+    assert_equal 'úüù', string
   end
 
   def test_slice_should_throw_exceptions_on_invalid_arguments
@@ -600,28 +612,54 @@ class MultibyteCharsExtrasTest < ActiveSupport::TestCase
       ['abc', 3],
       ['こにちわ', 4],
       [[0x0924, 0x094D, 0x0930].pack('U*'), 2],
+      # GB3
       [%w(cr lf), 1],
+      # GB4
+      [%w(cr n), 2],
+      [%w(lf n), 2],
+      [%w(control n), 2],
+      [%w(cr extend), 2],
+      [%w(lf extend), 2],
+      [%w(control extend), 2],
+      # GB 5
+      [%w(n cr), 2],
+      [%w(n lf), 2],
+      [%w(n control), 2],
+      [%w(extend cr), 2],
+      [%w(extend lf), 2],
+      [%w(extend control), 2],
+      # GB 6
       [%w(l l), 1],
       [%w(l v), 1],
       [%w(l lv), 1],
       [%w(l lvt), 1],
+      # GB7
       [%w(lv v), 1],
       [%w(lv t), 1],
       [%w(v v), 1],
       [%w(v t), 1],
+      # GB8
       [%w(lvt t), 1],
       [%w(t t), 1],
+      # GB8a
+      [%w(r r), 1],
+      # GB9
       [%w(n extend), 1],
+      # GB9a
+      [%w(n spacingmark), 1],
+      # GB10
       [%w(n n), 2],
+      # Other
       [%w(n cr lf n), 3],
-      [%w(n l v t), 2]
+      [%w(n l v t), 2],
+      [%w(cr extend n), 3],
     ].each do |input, expected_length|
       if input.kind_of?(Array)
         str = string_from_classes(input)
       else
         str = input
       end
-      assert_equal expected_length, chars(str).grapheme_length
+      assert_equal expected_length, chars(str).grapheme_length, input.inspect
     end
   end
 
@@ -686,7 +724,7 @@ class MultibyteCharsExtrasTest < ActiveSupport::TestCase
     # Characters from the character classes as described in UAX #29
     character_from_class = {
       :l => 0x1100, :v => 0x1160, :t => 0x11A8, :lv => 0xAC00, :lvt => 0xAC01, :cr => 0x000D, :lf => 0x000A,
-      :extend => 0x094D, :n => 0x64
+      :extend => 0x094D, :n => 0x64, :spacingmark => 0x0903, :r => 0x1F1E6, :control => 0x0001
     }
     classes.collect do |k|
       character_from_class[k.intern]

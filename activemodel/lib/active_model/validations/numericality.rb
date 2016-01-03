@@ -11,29 +11,36 @@ module ActiveModel
       def check_validity!
         keys = CHECKS.keys - [:odd, :even]
         options.slice(*keys).each do |option, value|
-          next if value.is_a?(Numeric) || value.is_a?(Proc) || value.is_a?(Symbol)
-          raise ArgumentError, ":#{option} must be a number, a symbol or a proc"
+          unless value.is_a?(Numeric) || value.is_a?(Proc) || value.is_a?(Symbol)
+            raise ArgumentError, ":#{option} must be a number, a symbol or a proc"
+          end
         end
       end
 
       def validate_each(record, attr_name, value)
         before_type_cast = :"#{attr_name}_before_type_cast"
 
-        raw_value = record.send(before_type_cast) if record.respond_to?(before_type_cast)
+        raw_value = record.send(before_type_cast) if record.respond_to?(before_type_cast) && record.send(before_type_cast) != value
         raw_value ||= value
+
+        if record_attribute_changed_in_place?(record, attr_name)
+          raw_value = value
+        end
 
         return if options[:allow_nil] && raw_value.nil?
 
-        unless value = parse_raw_value_as_a_number(raw_value)
+        unless is_number?(raw_value)
           record.errors.add(attr_name, :not_a_number, filtered_options(raw_value))
           return
         end
 
-        if options[:only_integer]
-          unless value = parse_raw_value_as_an_integer(raw_value)
-            record.errors.add(attr_name, :not_an_integer, filtered_options(raw_value))
-            return
-          end
+        if allow_only_integer?(record) && !is_integer?(raw_value)
+          record.errors.add(attr_name, :not_an_integer, filtered_options(raw_value))
+          return
+        end
+
+        unless raw_value.is_a?(Numeric)
+          value = parse_raw_value_as_a_number(raw_value)
         end
 
         options.slice(*CHECKS.keys).each do |option, option_value|
@@ -43,11 +50,15 @@ module ActiveModel
               record.errors.add(attr_name, option, filtered_options(value))
             end
           else
-            option_value = option_value.call(record) if option_value.is_a?(Proc)
-            option_value = record.send(option_value) if option_value.is_a?(Symbol)
+            case option_value
+            when Proc
+              option_value = option_value.call(record)
+            when Symbol
+              option_value = record.send(option_value)
+            end
 
             unless value.send(CHECKS[option], option_value)
-              record.errors.add(attr_name, option, filtered_options(value).merge(count: option_value))
+              record.errors.add(attr_name, option, filtered_options(value).merge!(count: option_value))
             end
           end
         end
@@ -55,25 +66,42 @@ module ActiveModel
 
     protected
 
-      def parse_raw_value_as_a_number(raw_value)
-        case raw_value
-        when /\A0[xX]/
-          nil
-        else
-          begin
-            Kernel.Float(raw_value)
-          rescue ArgumentError, TypeError
-            nil
-          end
-        end
+      def is_number?(raw_value)
+        !parse_raw_value_as_a_number(raw_value).nil?
+      rescue ArgumentError, TypeError
+        false
       end
 
-      def parse_raw_value_as_an_integer(raw_value)
-        raw_value.to_i if raw_value.to_s =~ /\A[+-]?\d+\Z/
+      def parse_raw_value_as_a_number(raw_value)
+        Kernel.Float(raw_value) if raw_value !~ /\A0[xX]/
+      end
+
+      def is_integer?(raw_value)
+        /\A[+-]?\d+\z/ === raw_value.to_s
       end
 
       def filtered_options(value)
-        options.except(*RESERVED_OPTIONS).merge!(value: value)
+        filtered = options.except(*RESERVED_OPTIONS)
+        filtered[:value] = value
+        filtered
+      end
+
+      def allow_only_integer?(record)
+        case options[:only_integer]
+        when Symbol
+          record.send(options[:only_integer])
+        when Proc
+          options[:only_integer].call(record)
+        else
+          options[:only_integer]
+        end
+      end
+
+      private
+
+      def record_attribute_changed_in_place?(record, attr_name)
+        record.respond_to?(:attribute_changed_in_place?) &&
+          record.attribute_changed_in_place?(attr_name.to_s)
       end
     end
 
@@ -110,7 +138,7 @@ module ActiveModel
       # * <tt>:even</tt> - Specifies the value must be an even number.
       #
       # There is also a list of default options supported by every validator:
-      # +:if+, +:unless+, +:on+ and +:strict+ .
+      # +:if+, +:unless+, +:on+, +:allow_nil+, +:allow_blank+, and +:strict+ .
       # See <tt>ActiveModel::Validation#validates</tt> for more information
       #
       # The following checks can also be supplied with a proc or a symbol which
@@ -121,6 +149,7 @@ module ActiveModel
       # * <tt>:equal_to</tt>
       # * <tt>:less_than</tt>
       # * <tt>:less_than_or_equal_to</tt>
+      # * <tt>:only_integer</tt>
       #
       # For example:
       #

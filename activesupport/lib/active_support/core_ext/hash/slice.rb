@@ -1,6 +1,12 @@
 class Hash
-  # Slice a hash to include only the given keys. This is useful for
-  # limiting an options hash to valid keys before passing to a method:
+  # Slices a hash to include only the given keys. Returns a hash containing 
+  # the given keys.
+  # 
+  #   { a: 1, b: 2, c: 3, d: 4 }.slice(:a, :b)
+  #   # => {:a=>1, :b=>2}
+  # 
+  # This is useful for limiting an options hash to valid keys before 
+  # passing to a method:
   #
   #   def search(criteria = {})
   #     criteria.assert_valid_keys(:mass, :velocity, :time)
@@ -26,6 +32,8 @@ class Hash
     keys.map! { |key| convert_key(key) } if respond_to?(:convert_key, true)
     omit = slice(*self.keys - keys)
     hash = slice(*keys)
+    hash.default      = default
+    hash.default_proc = default_proc if default_proc
     replace(hash)
     omit
   end

@@ -10,7 +10,7 @@ require 'active_support/core_ext/string/inflections'
 class Hash
   # Returns a string containing an XML representation of its receiver:
   #
-  #   {'foo' => 1, 'bar' => 2}.to_xml
+  #   { foo: 1, bar: 2 }.to_xml
   #   # =>
   #   # <?xml version="1.0" encoding="UTF-8"?>
   #   # <hash>
@@ -43,7 +43,10 @@ class Hash
   #     end
   #
   #     { foo: Foo.new }.to_xml(skip_instruct: true)
-  #     # => "<hash><bar>fooing!</bar></hash>"
+  #     # =>
+  #     # <hash>
+  #     #   <bar>fooing!</bar>
+  #     # </hash>
   #
   # * Otherwise, a node with +key+ as tag is created with a string representation of
   #   +value+ as text node. If +value+ is +nil+ an attribute "nil" set to "true" is added.
@@ -102,8 +105,26 @@ class Hash
     #   hash = Hash.from_xml(xml)
     #   # => {"hash"=>{"foo"=>1, "bar"=>2}}
     #
-    # DisallowedType is raise if the XML contains attributes with <tt>type="yaml"</tt> or
-    # <tt>type="symbol"</tt>. Use <tt>Hash.from_trusted_xml</tt> to parse this XML.
+    # +DisallowedType+ is raised if the XML contains attributes with <tt>type="yaml"</tt> or
+    # <tt>type="symbol"</tt>. Use <tt>Hash.from_trusted_xml</tt> to
+    # parse this XML.
+    #
+    # Custom +disallowed_types+ can also be passed in the form of an
+    # array.
+    #
+    #   xml = <<-XML
+    #     <?xml version="1.0" encoding="UTF-8"?>
+    #       <hash>
+    #         <foo type="integer">1</foo>
+    #         <bar type="string">"David"</bar>
+    #       </hash>
+    #   XML
+    #
+    #   hash = Hash.from_xml(xml, ['integer'])
+    #   # => ActiveSupport::XMLConverter::DisallowedType: Disallowed type attribute: "integer"
+    #
+    # Note that passing custom disallowed types will override the default types,
+    # which are Symbol and YAML.
     def from_xml(xml, disallowed_types = nil)
       ActiveSupport::XMLConverter.new(xml, disallowed_types).to_h
     end
@@ -201,7 +222,7 @@ module ActiveSupport
       end
 
       def become_empty_string?(value)
-        # {"string" => true}
+        # { "string" => true }
         # No tests fail when the second term is removed.
         value['type'] == 'string' && value['nil'] != 'true'
       end
@@ -218,7 +239,7 @@ module ActiveSupport
       def garbage?(value)
         # If the type is the only element which makes it then
         # this still makes the value nil, except if type is
-        # a XML node(where type['value'] is a Hash)
+        # an XML node(where type['value'] is a Hash)
         value['type'] && !value['type'].is_a?(::Hash) && value.size == 1
       end
 
@@ -238,4 +259,3 @@ module ActiveSupport
 
   end
 end
-

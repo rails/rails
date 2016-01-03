@@ -7,6 +7,10 @@ class Comment < ActiveRecord::Base
   scope :created, -> { all }
 
   belongs_to :post, :counter_cache => true
+  belongs_to :author,   polymorphic: true
+  belongs_to :resource, polymorphic: true
+  belongs_to :developer
+
   has_many :ratings
 
   belongs_to :first_post, :foreign_key => :post_id
@@ -26,6 +30,10 @@ class Comment < ActiveRecord::Base
     all
   end
   scope :all_as_scope, -> { all }
+
+  def to_s
+    body
+  end
 end
 
 class SpecialComment < Comment
@@ -35,4 +43,17 @@ class SubSpecialComment < SpecialComment
 end
 
 class VerySpecialComment < Comment
+end
+
+class CommentThatAutomaticallyAltersPostBody < Comment
+  belongs_to :post, class_name: "PostThatLoadsCommentsInAnAfterSaveHook", foreign_key: :post_id
+
+  after_save do |comment|
+    comment.post.update_attributes(body: "Automatically altered")
+  end
+end
+
+class CommentWithDefaultScopeReferencesAssociation < Comment
+  default_scope ->{ includes(:developer).order('developers.name').references(:developer) }
+  belongs_to :developer
 end

@@ -8,6 +8,10 @@ end
 
 module ActionDispatch
   module Session
+    # A session store that uses MemCache to implement storage.
+    #
+    # ==== Options
+    # * <tt>expire_after</tt>  - The length of time a session will be stored before automatically expiring.
     class MemCacheStore < Rack::Session::Dalli
       include Compatibility
       include StaleSessionCheck

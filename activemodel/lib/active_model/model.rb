@@ -1,6 +1,6 @@
 module ActiveModel
 
-  # == Active \Model Basic \Model
+  # == Active \Model \Basic \Model
   #
   # Includes the required interface for an object to interact with
   # <tt>ActionPack</tt>, using different <tt>ActiveModel</tt> modules.
@@ -16,8 +16,8 @@ module ActiveModel
   #   end
   #
   #   person = Person.new(name: 'bob', age: '18')
-  #   person.name # => 'bob'
-  #   person.age  # => 18
+  #   person.name # => "bob"
+  #   person.age  # => "18"
   #
   # Note that, by default, <tt>ActiveModel::Model</tt> implements <tt>persisted?</tt>
   # to return +false+, which is the most common case. You may want to override
@@ -56,13 +56,14 @@ module ActiveModel
   # refer to the specific modules included in <tt>ActiveModel::Model</tt>
   # (see below).
   module Model
-    def self.included(base) #:nodoc:
-      base.class_eval do
-        extend  ActiveModel::Naming
-        extend  ActiveModel::Translation
-        include ActiveModel::Validations
-        include ActiveModel::Conversion
-      end
+    extend ActiveSupport::Concern
+    include ActiveModel::AttributeAssignment
+    include ActiveModel::Validations
+    include ActiveModel::Conversion
+
+    included do
+      extend ActiveModel::Naming
+      extend ActiveModel::Translation
     end
 
     # Initializes a new model with the given +params+.
@@ -74,11 +75,9 @@ module ActiveModel
     #
     #   person = Person.new(name: 'bob', age: '18')
     #   person.name # => "bob"
-    #   person.age  # => 18
-    def initialize(params={})
-      params.each do |attr, value|
-        self.public_send("#{attr}=", value)
-      end if params
+    #   person.age  # => "18"
+    def initialize(attributes={})
+      assign_attributes(attributes) if attributes
 
       super()
     end

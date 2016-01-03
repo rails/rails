@@ -3,8 +3,8 @@ require "cases/helper"
 module ActiveRecord
   class Migration
     class LoggerTest < ActiveRecord::TestCase
-      # mysql can't roll back ddl changes
-      self.use_transactional_fixtures = false
+      # MySQL can't roll back ddl changes
+      self.use_transactional_tests = false
 
       Migration = Struct.new(:name, :version) do
         def disable_ddl_transaction; false end
@@ -19,8 +19,7 @@ module ActiveRecord
         ActiveRecord::SchemaMigration.delete_all
       end
 
-      def teardown
-        super
+      teardown do
         ActiveRecord::SchemaMigration.drop_table
       end
 

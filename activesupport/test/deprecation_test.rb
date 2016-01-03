@@ -1,4 +1,5 @@
 require 'abstract_unit'
+require 'active_support/testing/stream'
 
 class Deprecatee
   def initialize
@@ -36,6 +37,8 @@ end
 
 
 class DeprecationTest < ActiveSupport::TestCase
+  include ActiveSupport::Testing::Stream
+
   def setup
     # Track the last warning.
     @old_behavior = ActiveSupport::Deprecation.behavior
@@ -104,14 +107,11 @@ class DeprecationTest < ActiveSupport::TestCase
     message   = 'Revise this deprecated stuff now!'
     callstack = %w(foo bar baz)
 
-    begin
+    e = assert_raise ActiveSupport::DeprecationException do
       ActiveSupport::Deprecation.behavior.first.call(message, callstack)
-    rescue ActiveSupport::DeprecationException => e
-      assert_equal message, e.message
-      assert_equal callstack, e.backtrace
-    else
-      flunk 'the :raise deprecation behaviour should raise the expected exception'
     end
+    assert_equal message, e.message
+    assert_equal callstack, e.backtrace
   end
 
   def test_default_stderr_behavior
@@ -163,6 +163,14 @@ class DeprecationTest < ActiveSupport::TestCase
     assert_not_deprecated { assert_equal Deprecatee::B::C.class, Deprecatee::A.class }
   end
 
+  def test_assert_deprecated_raises_when_method_not_deprecated
+    assert_raises(Minitest::Assertion) { assert_deprecated { @dtc.not } }
+  end
+
+  def test_assert_not_deprecated
+    assert_raises(Minitest::Assertion) { assert_not_deprecated { @dtc.partially } }
+  end
+
   def test_assert_deprecation_without_match
     assert_deprecated do
       @dtc.partially
@@ -174,7 +182,7 @@ class DeprecationTest < ActiveSupport::TestCase
       ActiveSupport::Deprecation.warn 'abc'
       ActiveSupport::Deprecation.warn 'def'
     end
-  rescue MiniTest::Assertion
+  rescue Minitest::Assertion
     flunk 'assert_deprecated should match any warning in block, not just the last one'
   end
 
@@ -191,7 +199,7 @@ class DeprecationTest < ActiveSupport::TestCase
   end
 
   def test_assert_deprecated_warn_work_with_default_behavior
-    ActiveSupport::Deprecation.instance_variable_set('@behavior' , nil)
+    ActiveSupport::Deprecation.instance_variable_set('@behavior', nil)
     assert_deprecated('abc') do
       ActiveSupport::Deprecation.warn 'abc'
     end
@@ -256,17 +264,17 @@ class DeprecationTest < ActiveSupport::TestCase
   end
 
   def test_deprecate_with_custom_deprecator
-    custom_deprecator = mock('Deprecator') do
-      expects(:deprecation_warning)
-    end
+    custom_deprecator = Struct.new(:deprecation_warning).new
 
-    klass = Class.new do
-      def method
+    assert_called_with(custom_deprecator, :deprecation_warning, [:method, nil]) do
+      klass = Class.new do
+        def method
+        end
+        deprecate :method, deprecator: custom_deprecator
       end
-      deprecate :method, deprecator: custom_deprecator
-    end
 
-    klass.new.method
+      klass.new.method
+    end
   end
 
   def test_deprecated_constant_with_deprecator_given
@@ -332,6 +340,10 @@ class DeprecationTest < ActiveSupport::TestCase
     assert_match(/You are calling deprecated method/, object.last_message)
   end
 
+  def test_default_deprecation_horizon_should_always_bigger_than_current_rails_version
+    assert ActiveSupport::Deprecation.new.deprecation_horizon > ActiveSupport::VERSION::STRING
+  end
+
   def test_default_gem_name
     deprecator = ActiveSupport::Deprecation.new
 
@@ -358,4 +370,5 @@ class DeprecationTest < ActiveSupport::TestCase
       end
       deprecator
     end
+
 end

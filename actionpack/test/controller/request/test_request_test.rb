@@ -1,11 +1,7 @@
 require 'abstract_unit'
 require 'stringio'
 
-class ActionController::TestRequestTest < ActiveSupport::TestCase
-
-  def setup
-    @request = ActionController::TestRequest.new
-  end
+class ActionController::TestRequestTest < ActionController::TestCase
 
   def test_test_request_has_session_options_initialized
     assert @request.session_options
@@ -22,14 +18,6 @@ class ActionController::TestRequestTest < ActiveSupport::TestCase
       assert(@request.session_options.has_key?(option),
                    "Missing rack session option #{option} in request.session_options")
     end
-  end
-
-  def test_session_id_exists_by_default
-    assert_not_nil(@request.session_options[:id])
-  end
-
-  def test_session_id_different_on_each_call
-    assert_not_equal(@request.session_options[:id], ActionController::TestRequest.new.session_options[:id])
   end
 
 end

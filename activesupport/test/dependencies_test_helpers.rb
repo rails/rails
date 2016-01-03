@@ -13,6 +13,7 @@ module DependenciesTestHelpers
     ActiveSupport::Dependencies.autoload_paths = prior_autoload_paths
     ActiveSupport::Dependencies.mechanism = old_mechanism
     ActiveSupport::Dependencies.explicitly_unloadable_constants = []
+    ActiveSupport::Dependencies.clear
   end
 
   def with_autoloading_fixtures(&block)

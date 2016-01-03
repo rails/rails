@@ -99,7 +99,6 @@ class I18nTest < ActiveSupport::TestCase
   end
 
   def test_to_sentence_with_empty_i18n_store
-    I18n.backend.store_translations 'empty', {}
     assert_equal 'a, b, and c', %w[a b c].to_sentence(locale: 'empty')
   end
 end

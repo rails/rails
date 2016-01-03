@@ -1,8 +1,8 @@
-require 'thread_safe'
+require 'concurrent/map'
 require 'openssl'
 
 module ActiveSupport
-  # KeyGenerator is a simple wrapper around OpenSSL's implementation of PBKDF2
+  # KeyGenerator is a simple wrapper around OpenSSL's implementation of PBKDF2.
   # It can be used to derive a number of keys for various purposes from a given secret.
   # This lets Rails applications have a single secure secret, but avoid reusing that
   # key in multiple incompatible contexts.
@@ -24,11 +24,11 @@ module ActiveSupport
 
   # CachingKeyGenerator is a wrapper around KeyGenerator which allows users to avoid
   # re-executing the key generation process when it's called using the same salt and
-  # key_size
+  # key_size.
   class CachingKeyGenerator
     def initialize(key_generator)
       @key_generator = key_generator
-      @cache_keys = ThreadSafe::Cache.new
+      @cache_keys = Concurrent::Map.new
     end
 
     # Returns a derived key suitable for use.  The default key_size is chosen
@@ -57,18 +57,16 @@ module ActiveSupport
     # secret they've provided is at least 30 characters in length.
     def ensure_secret_secure(secret)
       if secret.blank?
-        raise ArgumentError, "A secret is required to generate an " +
-          "integrity hash for cookie session data. Use " +
-          "config.secret_key_base = \"some secret phrase of at " +
-          "least #{SECRET_MIN_LENGTH} characters\"" +
-          "in config/initializers/secret_token.rb"
+        raise ArgumentError, "A secret is required to generate an integrity hash " \
+          "for cookie session data. Set a secret_key_base of at least " \
+          "#{SECRET_MIN_LENGTH} characters in config/secrets.yml."
       end
 
       if secret.length < SECRET_MIN_LENGTH
-        raise ArgumentError, "Secret should be something secure, " +
-          "like \"#{SecureRandom.hex(16)}\". The value you " +
-          "provided, \"#{secret}\", is shorter than the minimum length " +
-          "of #{SECRET_MIN_LENGTH} characters"
+        raise ArgumentError, "Secret should be something secure, " \
+          "like \"#{SecureRandom.hex(16)}\". The value you " \
+          "provided, \"#{secret}\", is shorter than the minimum length " \
+          "of #{SECRET_MIN_LENGTH} characters."
       end
     end
   end

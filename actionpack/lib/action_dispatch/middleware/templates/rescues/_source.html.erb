@@ -1,0 +1,27 @@
+<% @source_extracts.each_with_index do |source_extract, index| %>
+  <% if source_extract[:code] %>
+    <div class="source <%="hidden" if @show_source_idx != index%>" id="frame-source-<%=index%>">
+      <div class="info">
+        Extracted source (around line <strong>#<%= source_extract[:line_number] %></strong>):
+      </div>
+      <div class="data">
+        <table cellpadding="0" cellspacing="0" class="lines">
+          <tr>
+            <td>
+              <pre class="line_numbers">
+                <% source_extract[:code].each_key do |line_number| %>
+<span><%= line_number -%></span>
+                <% end %>
+              </pre>
+            </td>
+<td width="100%">
+<pre>
+<% source_extract[:code].each do |line, source| -%><div class="line<%= " active" if line == source_extract[:line_number] -%>"><%= source -%></div><% end -%>
+</pre>
+</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+  <% end %>
+<% end %>

@@ -16,8 +16,7 @@ module Rails
           :include => %w(
             README.rdoc
             lib/active_record/**/*.rb
-          ),
-          :exclude => 'lib/active_record/vendor/*'
+          )
         },
 
         'activemodel' => {
@@ -33,23 +32,36 @@ module Rails
             lib/abstract_controller/**/*.rb
             lib/action_controller/**/*.rb
             lib/action_dispatch/**/*.rb
-          ),
-          :exclude => 'lib/action_controller/vendor/*'
+          )
         },
 
         'actionview' => {
           :include => %w(
             README.rdoc
             lib/action_view/**/*.rb
-          )
+          ),
+          :exclude => 'lib/action_view/vendor/*'
         },
 
         'actionmailer' => {
           :include => %w(
             README.rdoc
             lib/action_mailer/**/*.rb
-          ),
-          :exclude => 'lib/action_mailer/vendor/*'
+          )
+        },
+
+        'activejob' => {
+          :include => %w(
+            README.md
+            lib/active_job/**/*.rb
+          )
+        },
+
+        'actioncable' => {
+          :include => %w(
+            README.md
+            lib/action_cable/**/*.rb
+          )
         },
 
         'railties' => {
@@ -145,20 +157,6 @@ module Rails
     class StableTask < RepoTask
       def rails_version
         File.read('RAILS_VERSION').strip
-      end
-    end
-
-    class AppTask < Task
-      def component_root_dir(gem_name)
-        $:.grep(%r{#{gem_name}[\w.-]*/lib\z}).first[0..-5]
-      end
-
-      def api_dir
-        'doc/api'
-      end
-
-      def rails_version
-        Rails::VERSION::STRING
       end
     end
   end

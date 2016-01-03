@@ -27,7 +27,7 @@ module ActionDispatch
             marked[s] = true # mark s
 
             s.group_by { |state| symbol(state) }.each do |sym, ps|
-              u = ps.map { |l| followpos(l) }.flatten
+              u = ps.flat_map { |l| followpos(l) }
               next if u.empty?
 
               if u.uniq == [DUMMY]
@@ -90,7 +90,7 @@ module ActionDispatch
               firstpos(node.left)
             end
           when Nodes::Or
-            node.children.map { |c| firstpos(c) }.flatten.uniq
+            node.children.flat_map { |c| firstpos(c) }.uniq
           when Nodes::Unary
             firstpos(node.left)
           when Nodes::Terminal
@@ -105,7 +105,7 @@ module ActionDispatch
           when Nodes::Star
             firstpos(node.left)
           when Nodes::Or
-            node.children.map { |c| lastpos(c) }.flatten.uniq
+            node.children.flat_map { |c| lastpos(c) }.uniq
           when Nodes::Cat
             if nullable?(node.right)
               lastpos(node.left) | lastpos(node.right)

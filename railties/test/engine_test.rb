@@ -11,4 +11,15 @@ class EngineTest < ActiveSupport::TestCase
 
     assert !engine.routes?
   end
+
+  def test_application_can_be_subclassed
+    klass = Class.new(Rails::Application) do
+      attr_reader :hello
+      def initialize
+        @hello = "world"
+        super
+      end
+    end
+    assert_equal "world", klass.instance.hello
+  end
 end

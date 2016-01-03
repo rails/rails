@@ -46,8 +46,9 @@ class DateHelperDistanceOfTimeInWordsI18nTests < ActiveSupport::TestCase
   end
 
   def test_time_ago_in_words_passes_locale
-    I18n.expects(:t).with(:less_than_x_minutes, :scope => :'datetime.distance_in_words', :count => 1, :locale => 'ru')
-    time_ago_in_words(15.seconds.ago, :locale => 'ru')
+    assert_called_with(I18n, :t, [:less_than_x_minutes, :scope => :'datetime.distance_in_words', :count => 1, :locale => 'ru']) do
+      time_ago_in_words(15.seconds.ago, :locale => 'ru')
+    end
   end
 
   def test_distance_of_time_pluralizations
@@ -80,8 +81,9 @@ class DateHelperDistanceOfTimeInWordsI18nTests < ActiveSupport::TestCase
     options = { locale: 'en', scope: :'datetime.distance_in_words' }.merge!(expected_options)
     options[:count] = count if count
 
-    I18n.expects(:t).with(key, options)
-    distance_of_time_in_words(@from, to, passed_options.merge(locale: 'en'))
+    assert_called_with(I18n, :t, [key, options]) do
+      distance_of_time_in_words(@from, to, passed_options.merge(locale: 'en'))
+    end
   end
 end
 
@@ -89,60 +91,74 @@ class DateHelperSelectTagsI18nTests < ActiveSupport::TestCase
   include ActionView::Helpers::DateHelper
   attr_reader :request
 
-  def setup
-    @prompt_defaults = {:year => 'Year', :month => 'Month', :day => 'Day', :hour => 'Hour', :minute => 'Minute', :second => 'Seconds'}
-
-    I18n.stubs(:translate).with(:'date.month_names', :locale => 'en').returns Date::MONTHNAMES
-  end
-
   # select_month
 
   def test_select_month_given_use_month_names_option_does_not_translate_monthnames
-    I18n.expects(:translate).never
-    select_month(8, :locale => 'en', :use_month_names => Date::MONTHNAMES)
+    assert_not_called(I18n, :translate) do
+      select_month(8, :locale => 'en', :use_month_names => Date::MONTHNAMES)
+    end
   end
 
   def test_select_month_translates_monthnames
-    I18n.expects(:translate).with(:'date.month_names', :locale => 'en').returns Date::MONTHNAMES
-    select_month(8, :locale => 'en')
+    assert_called_with(I18n, :translate, [:'date.month_names', :locale => 'en'], returns: Date::MONTHNAMES) do
+      select_month(8, :locale => 'en')
+    end
   end
 
   def test_select_month_given_use_short_month_option_translates_abbr_monthnames
-    I18n.expects(:translate).with(:'date.abbr_month_names', :locale => 'en').returns Date::ABBR_MONTHNAMES
-    select_month(8, :locale => 'en', :use_short_month => true)
+    assert_called_with(I18n, :translate, [:'date.abbr_month_names', :locale => 'en'], returns: Date::ABBR_MONTHNAMES) do
+      select_month(8, :locale => 'en', :use_short_month => true)
+    end
   end
 
   def test_date_or_time_select_translates_prompts
-    @prompt_defaults.each do |key, prompt|
-      I18n.expects(:translate).with(('datetime.prompts.' + key.to_s).to_sym, :locale => 'en').returns prompt
+    prompt_defaults = {:year => 'Year', :month => 'Month', :day => 'Day', :hour => 'Hour', :minute => 'Minute', :second => 'Seconds'}
+    defaults = {[:'date.order', :locale => 'en', :default => []] => %w(year month day)}
+
+    prompt_defaults.each do |key, prompt|
+      defaults[[('datetime.prompts.' + key.to_s).to_sym, :locale => 'en']] = prompt
     end
 
-    I18n.expects(:translate).with(:'date.order', :locale => 'en', :default => []).returns %w(year month day)
-    datetime_select('post', 'updated_at', :locale => 'en', :include_seconds => true, :prompt => true)
+    prompts_check = -> (prompt, x) do
+      @prompt_called ||= 0
+
+      return_value = defaults[[prompt, x]]
+      @prompt_called += 1 if return_value.present?
+
+      return_value
+    end
+
+    I18n.stub(:translate, prompts_check) do
+      datetime_select('post', 'updated_at', :locale => 'en', :include_seconds => true, :prompt => true, :use_month_names => Date::MONTHNAMES)
+    end
+    assert_equal defaults.count, @prompt_called
   end
 
   # date_or_time_select
 
   def test_date_or_time_select_given_an_order_options_does_not_translate_order
-    I18n.expects(:translate).never
-    datetime_select('post', 'updated_at', :order => [:year, :month, :day], :locale => 'en')
+    assert_not_called(I18n, :translate) do
+      datetime_select('post', 'updated_at', :order => [:year, :month, :day], :locale => 'en', :use_month_names => Date::MONTHNAMES)
+    end
   end
 
   def test_date_or_time_select_given_no_order_options_translates_order
-    I18n.expects(:translate).with(:'date.order', :locale => 'en', :default => []).returns %w(year month day)
-    datetime_select('post', 'updated_at', :locale => 'en')
-  end
-
-  def test_date_or_time_select_given_invalid_order
-    I18n.expects(:translate).with(:'date.order', :locale => 'en', :default => []).returns %w(invalid month day)
-
-    assert_raise StandardError do
+    assert_called_with(I18n, :translate, [ [:'date.order', :locale => 'en', :default => []], [:"date.month_names", {:locale=>"en"}] ], returns: %w(year month day)) do
       datetime_select('post', 'updated_at', :locale => 'en')
     end
   end
 
+  def test_date_or_time_select_given_invalid_order
+    assert_called_with(I18n, :translate, [:'date.order', :locale => 'en', :default => []], returns: %w(invalid month day)) do
+      assert_raise StandardError do
+        datetime_select('post', 'updated_at', :locale => 'en')
+      end
+    end
+  end
+
   def test_date_or_time_select_given_symbol_keys
-    I18n.expects(:translate).with(:'date.order', :locale => 'en', :default => []).returns [:year, :month, :day]
-    datetime_select('post', 'updated_at', :locale => 'en')
+    assert_called_with(I18n, :translate, [ [:'date.order', :locale => 'en', :default => []], [:"date.month_names", {:locale=>"en"}] ], returns: [:year, :month, :day]) do
+      datetime_select('post', 'updated_at', :locale => 'en')
+    end
   end
 end

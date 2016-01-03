@@ -15,7 +15,6 @@ class KernelTest < ActiveSupport::TestCase
     assert_equal old_verbose, $VERBOSE
   end
 
-
   def test_enable_warnings
     enable_warnings { assert_equal true, $VERBOSE }
     assert_equal 1234, enable_warnings { 1234 }
@@ -29,42 +28,10 @@ class KernelTest < ActiveSupport::TestCase
     assert_equal old_verbose, $VERBOSE
   end
 
-
-  def test_silence_stderr
-    old_stderr_position = STDERR.tell
-    silence_stderr { STDERR.puts 'hello world' }
-    assert_equal old_stderr_position, STDERR.tell
-  rescue Errno::ESPIPE
-    # Skip if we can't STDERR.tell
-  end
-
-  def test_quietly
-    old_stdout_position, old_stderr_position = STDOUT.tell, STDERR.tell
-    quietly do
-      puts 'see me, feel me'
-      STDERR.puts 'touch me, heal me'
-    end
-    assert_equal old_stdout_position, STDOUT.tell
-    assert_equal old_stderr_position, STDERR.tell
-  rescue Errno::ESPIPE
-    # Skip if we can't STDERR.tell
-  end
-
-  def test_silence_stderr_with_return_value
-    assert_equal 1, silence_stderr { 1 }
-  end
-
   def test_class_eval
     o = Object.new
     class << o; @x = 1; end
     assert_equal 1, o.class_eval { @x }
-  end
-
-  def test_capture
-    assert_equal 'STDERR', capture(:stderr) { $stderr.print 'STDERR' }
-    assert_equal 'STDOUT', capture(:stdout) { print 'STDOUT' }
-    assert_equal "STDERR\n", capture(:stderr) { system('echo STDERR 1>&2') }
-    assert_equal "STDOUT\n", capture(:stdout) { system('echo STDOUT') }
   end
 end
 
@@ -96,29 +63,5 @@ class MockStdErr
 
   def write(message)
     puts(message)
-  end
-end
-
-class KernelDebuggerTest < ActiveSupport::TestCase
-  def test_debugger_not_available_message_to_stderr
-    old_stderr = $stderr
-    $stderr = MockStdErr.new
-    debugger
-    assert_match(/Debugger requested/, $stderr.output.first)
-  ensure
-    $stderr = old_stderr
-  end
-
-  def test_debugger_not_available_message_to_rails_logger
-    rails = Class.new do
-      def self.logger
-        @logger ||= MockStdErr.new
-      end
-    end
-    Object.const_set(:Rails, rails)
-    debugger
-    assert_match(/Debugger requested/, rails.logger.output.first)
-  ensure
-    Object.send(:remove_const, :Rails)
   end
 end

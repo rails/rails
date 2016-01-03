@@ -1,77 +1,82 @@
 module ActiveRecord
-  # = Active Record RecordInvalid
+  # = Active Record \RecordInvalid
   #
-  # Raised by <tt>save!</tt> and <tt>create!</tt> when the record is invalid. Use the
-  # +record+ method to retrieve the record which did not validate.
+  # Raised by {ActiveRecord::Base#save!}[rdoc-ref:Persistence#save!] and
+  # {ActiveRecord::Base#create!}[rdoc-ref:Persistence::ClassMethods#create!] when the record is invalid.
+  # Use the #record method to retrieve the record which did not validate.
   #
   #   begin
-  #     complex_operation_that_calls_save!_internally
+  #     complex_operation_that_internally_calls_save!
   #   rescue ActiveRecord::RecordInvalid => invalid
   #     puts invalid.record.errors
   #   end
   class RecordInvalid < ActiveRecordError
-    attr_reader :record # :nodoc:
-    def initialize(record) # :nodoc:
-      @record = record
-      errors = @record.errors.full_messages.join(", ")
-      super(I18n.t(:"#{@record.class.i18n_scope}.errors.messages.record_invalid", :errors => errors, :default => :"errors.messages.record_invalid"))
+    attr_reader :record
+
+    def initialize(record = nil)
+      if record
+        @record = record
+        errors = @record.errors.full_messages.join(", ")
+        message = I18n.t(:"#{@record.class.i18n_scope}.errors.messages.record_invalid", errors: errors, default: :"errors.messages.record_invalid")
+      else
+        message = "Record invalid"
+      end
+
+      super(message)
     end
   end
 
-  # = Active Record Validations
+  # = Active Record \Validations
   #
-  # Active Record includes the majority of its validations from <tt>ActiveModel::Validations</tt>
+  # Active Record includes the majority of its validations from ActiveModel::Validations
   # all of which accept the <tt>:on</tt> argument to define the context where the
   # validations are active. Active Record will always supply either the context of
   # <tt>:create</tt> or <tt>:update</tt> dependent on whether the model is a
-  # <tt>new_record?</tt>.
+  # {new_record?}[rdoc-ref:Persistence#new_record?].
   module Validations
     extend ActiveSupport::Concern
     include ActiveModel::Validations
 
-    module ClassMethods
-      # Creates an object just like Base.create but calls <tt>save!</tt> instead of +save+
-      # so an exception is raised if the record is invalid.
-      def create!(attributes = nil, &block)
-        if attributes.is_a?(Array)
-          attributes.collect { |attr| create!(attr, &block) }
-        else
-          object = new(attributes)
-          yield(object) if block_given?
-          object.save!
-          object
-        end
-      end
-    end
-
     # The validation process on save can be skipped by passing <tt>validate: false</tt>.
-    # The regular Base#save method is replaced with this when the validations
-    # module is mixed in, which it is by default.
+    # The regular {ActiveRecord::Base#save}[rdoc-ref:Persistence#save] method is replaced
+    # with this when the validations module is mixed in, which it is by default.
     def save(options={})
       perform_validations(options) ? super : false
     end
 
-    # Attempts to save the record just like Base#save but will raise a +RecordInvalid+
-    # exception instead of returning +false+ if the record is not valid.
+    # Attempts to save the record just like {ActiveRecord::Base#save}[rdoc-ref:Base#save] but
+    # will raise a ActiveRecord::RecordInvalid exception instead of returning +false+ if the record is not valid.
     def save!(options={})
-      perform_validations(options) ? super : raise(RecordInvalid.new(self))
+      perform_validations(options) ? super : raise_validation_error
     end
 
     # Runs all the validations within the specified context. Returns +true+ if
     # no errors are found, +false+ otherwise.
     #
-    # If the argument is +false+ (default is +nil+), the context is set to <tt>:create</tt> if
-    # <tt>new_record?</tt> is +true+, and to <tt>:update</tt> if it is not.
+    # Aliased as #validate.
     #
-    # Validations with no <tt>:on</tt> option will run no matter the context. Validations with
+    # If the argument is +false+ (default is +nil+), the context is set to <tt>:create</tt> if
+    # {new_record?}[rdoc-ref:Persistence#new_record?] is +true+, and to <tt>:update</tt> if it is not.
+    #
+    # \Validations with no <tt>:on</tt> option will run no matter the context. \Validations with
     # some <tt>:on</tt> option will only run in the specified context.
     def valid?(context = nil)
-      context ||= (new_record? ? :create : :update)
+      context ||= default_validation_context
       output = super(context)
       errors.empty? && output
     end
 
+    alias_method :validate, :valid?
+
   protected
+
+    def default_validation_context
+      new_record? ? :create : :update
+    end
+
+    def raise_validation_error
+      raise(RecordInvalid.new(self))
+    end
 
     def perform_validations(options={}) # :nodoc:
       options[:validate] == false || valid?(options[:context])
@@ -82,3 +87,5 @@ end
 require "active_record/validations/associated"
 require "active_record/validations/uniqueness"
 require "active_record/validations/presence"
+require "active_record/validations/absence"
+require "active_record/validations/length"

@@ -2,7 +2,6 @@ class Member < ActiveRecord::Base
   has_one :current_membership
   has_one :selected_membership
   has_one :membership
-  has_many :fellow_members, :through => :club, :source => :members
   has_one :club, :through => :current_membership
   has_one :selected_club, :through => :selected_membership, :source => :club
   has_one :favourite_club, -> { where "memberships.favourite = ?", true }, :through => :membership, :source => :club
@@ -27,7 +26,13 @@ class Member < ActiveRecord::Base
   has_many :current_memberships, -> { where :favourite => true }
   has_many :clubs, :through => :current_memberships
 
+  has_many :tenant_memberships
+  has_many :tenant_clubs, through: :tenant_memberships, class_name: 'Club', source: :club
+
   has_one :club_through_many, :through => :current_memberships, :source => :club
+
+  belongs_to :admittable, polymorphic: true
+  has_one :premium_club, through: :admittable
 end
 
 class SelfMember < ActiveRecord::Base

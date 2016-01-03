@@ -2,6 +2,7 @@ require "cases/helper"
 require 'models/post'
 require 'models/author'
 require 'models/developer'
+require 'models/computer'
 require 'models/project'
 require 'models/comment'
 require 'models/category'
@@ -10,6 +11,30 @@ require 'models/reference'
 
 class RelationScopingTest < ActiveRecord::TestCase
   fixtures :authors, :developers, :projects, :comments, :posts, :developers_projects
+
+  setup do
+    developers(:david)
+  end
+
+  def test_unscoped_breaks_caching
+    author = authors :mary
+    assert_nil author.first_post
+    post = FirstPost.unscoped do
+      author.reload.first_post
+    end
+    assert post
+  end
+
+  def test_scope_breaks_caching_on_collections
+    author = authors :david
+    ids = author.reload.special_posts_with_default_scope.map(&:id)
+    assert_equal [1,5,6], ids.sort
+    scoped_posts = SpecialPostWithDefaultScope.unscoped do
+      author = authors :david
+      author.reload.special_posts_with_default_scope.to_a
+    end
+    assert_equal author.posts.map(&:id).sort, scoped_posts.map(&:id).sort
+  end
 
   def test_reverse_order
     assert_equal Developer.order("id DESC").to_a.reverse, Developer.order("id DESC").reverse_order
@@ -159,7 +184,7 @@ class RelationScopingTest < ActiveRecord::TestCase
     rescue
     end
 
-    assert !Developer.all.where_values.include?("name = 'Jamis'")
+    assert_not Developer.all.to_sql.include?("name = 'Jamis'"), "scope was not restored"
   end
 
   def test_default_scope_filters_on_joins
@@ -183,6 +208,12 @@ class RelationScopingTest < ActiveRecord::TestCase
     assert_equal [], DeveloperFilteredOnJoins.all
     assert_not_equal [], Developer.all
   end
+
+  def test_current_scope_does_not_pollute_other_subclasses
+    Post.none.scoping do
+      assert StiPost.all.any?
+    end
+  end
 end
 
 class NestedRelationScopingTest < ActiveRecord::TestCase
@@ -192,8 +223,9 @@ class NestedRelationScopingTest < ActiveRecord::TestCase
     Developer.where('salary = 80000').scoping do
       Developer.limit(10).scoping do
         devs = Developer.all
-        assert_match '(salary = 80000)', devs.to_sql
-        assert_equal 10, devs.taken
+        sql = devs.to_sql
+        assert_match '(salary = 80000)', sql
+        assert_match 'LIMIT 10', sql
       end
     end
   end
@@ -259,7 +291,7 @@ class NestedRelationScopingTest < ActiveRecord::TestCase
   end
 end
 
-class HasManyScopingTest< ActiveRecord::TestCase
+class HasManyScopingTest < ActiveRecord::TestCase
   fixtures :comments, :posts, :people, :references
 
   def setup
@@ -305,7 +337,7 @@ class HasManyScopingTest< ActiveRecord::TestCase
   end
 end
 
-class HasAndBelongsToManyScopingTest< ActiveRecord::TestCase
+class HasAndBelongsToManyScopingTest < ActiveRecord::TestCase
   fixtures :posts, :categories, :categories_posts
 
   def setup

@@ -1,3 +1,5 @@
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+
 Active Record Basics
 ====================
 
@@ -18,7 +20,7 @@ After reading this guide, you will know:
 What is Active Record?
 ----------------------
 
-Active Record is the M in [MVC](getting_started.html#the-mvc-architecture) - the
+Active Record is the M in [MVC](http://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93controller) - the
 model - which is the layer of the system responsible for representing business
 data and logic. Active Record facilitates the creation and use of business
 objects whose data requires persistent storage to a database. It is an
@@ -31,12 +33,12 @@ Object Relational Mapping system.
 in his book _Patterns of Enterprise Application Architecture_. In
 Active Record, objects carry both persistent data and behavior which
 operates on that data. Active Record takes the opinion that ensuring
-data access logic is part of the object will educate users of that
+data access logic as part of the object will educate users of that
 object on how to write to and read from the database.
 
 ### Object Relational Mapping
 
-Object-Relational Mapping, commonly referred to as its abbreviation ORM, is
+Object Relational Mapping, commonly referred to as its abbreviation ORM, is
 a technique that connects the rich objects of an application to tables in
 a relational database management system. Using ORM, the properties and
 relationships of the objects in an application can be easily stored and
@@ -48,10 +50,10 @@ overall database access code.
 Active Record gives us several mechanisms, the most important being the ability
 to:
 
-* Represent models and their data
-* Represent associations between these models
-* Represent inheritance hierarchies through related models
-* Validate models before they get persisted to the database
+* Represent models and their data.
+* Represent associations between these models.
+* Represent inheritance hierarchies through related models.
+* Validate models before they get persisted to the database.
 * Perform database operations in an object-oriented fashion.
 
 Convention over Configuration in Active Record
@@ -60,7 +62,7 @@ Convention over Configuration in Active Record
 When writing applications using other programming languages or frameworks, it
 may be necessary to write a lot of configuration code. This is particularly true
 for ORM frameworks in general. However, if you follow the conventions adopted by
-Rails, you'll need to write very little configuration (in some case no
+Rails, you'll need to write very little configuration (in some cases no
 configuration at all) when creating Active Record models. The idea is that if
 you configure your applications in the very same way most of the time then this
 should be the default way. Thus, explicit configuration would be needed
@@ -72,23 +74,23 @@ By default, Active Record uses some naming conventions to find out how the
 mapping between models and database tables should be created. Rails will
 pluralize your class names to find the respective database table. So, for
 a class `Book`, you should have a database table called **books**. The Rails
-pluralization mechanisms are very powerful, being capable to pluralize (and
-singularize) both regular and irregular words. When using class names composed
+pluralization mechanisms are very powerful, being capable of pluralizing (and
+singularizing) both regular and irregular words. When using class names composed
 of two or more words, the model class name should follow the Ruby conventions,
 using the CamelCase form, while the table name must contain the words separated
 by underscores. Examples:
 
-* Database Table - Plural with underscores separating words (e.g., `book_clubs`)
+* Database Table - Plural with underscores separating words (e.g., `book_clubs`).
 * Model Class - Singular with the first letter of each word capitalized (e.g.,
-`BookClub`)
+`BookClub`).
 
-| Model / Class | Table / Schema |
-| ------------- | -------------- |
-| `Post`        | `posts`        |
-| `LineItem`    | `line_items`   |
-| `Deer`        | `deer`         |
-| `Mouse`       | `mice`         |
-| `Person`      | `people`       |
+| Model / Class    | Table / Schema |
+| ---------------- | -------------- |
+| `Article`        | `articles`     |
+| `LineItem`       | `line_items`   |
+| `Deer`           | `deers`        |
+| `Mouse`          | `mice`         |
+| `Person`         | `people`       |
 
 
 ### Schema Conventions
@@ -101,7 +103,7 @@ depending on the purpose of these columns.
   fields that Active Record will look for when you create associations between
   your models.
 * **Primary keys** - By default, Active Record will use an integer column named
-  `id` as the table's primary key. When using [Rails
+  `id` as the table's primary key. When using [Active Record
   Migrations](migrations.html) to create your tables, this column will be
   automatically created.
 
@@ -116,13 +118,13 @@ to Active Record instances:
   locking](http://api.rubyonrails.org/classes/ActiveRecord/Locking.html) to
   a model.
 * `type` - Specifies that the model uses [Single Table
-  Inheritance](http://api.rubyonrails.org/classes/ActiveRecord/Base.html)
+  Inheritance](http://api.rubyonrails.org/classes/ActiveRecord/Base.html#class-ActiveRecord::Base-label-Single+table+inheritance).
 * `(association_name)_type` - Stores the type for
   [polymorphic associations](association_basics.html#polymorphic-associations).
 * `(table_name)_count` - Used to cache the number of belonging objects on
-  associations. For example, a `comments_count` column in a `Post` class that
+  associations. For example, a `comments_count` column in an `Article` class that
   has many instances of `Comment` will cache the number of existent comments
-  for each post.
+  for each article.
 
 NOTE: While these column names are optional, they are in fact reserved by Active Record. Steer clear of reserved keywords unless you want the extra functionality. For example, `type` is a reserved keyword used to designate a table using Single Table Inheritance (STI). If you are not using STI, try an analogous keyword like "context", that may still accurately describe the data you are modeling.
 
@@ -130,17 +132,17 @@ Creating Active Record Models
 -----------------------------
 
 It is very easy to create Active Record models. All you have to do is to
-subclass the `ActiveRecord::Base` class and you're good to go:
+subclass the `ApplicationRecord` class and you're good to go:
 
 ```ruby
-class Product < ActiveRecord::Base
+class Product < ApplicationRecord
 end
 ```
 
 This will create a `Product` model, mapped to a `products` table at the
 database. By doing this you'll also have the ability to map the columns of each
 row in that table with the attributes of the instances of your model. Suppose
-that the `products` table was created using an SQL sentence like:
+that the `products` table was created using an SQL statement like:
 
 ```sql
 CREATE TABLE products (
@@ -166,23 +168,24 @@ What if you need to follow a different naming convention or need to use your
 Rails application with a legacy database? No problem, you can easily override
 the default conventions.
 
-You can use the `ActiveRecord::Base.table_name=` method to specify the table
-name that should be used:
+`ApplicationRecord` inherits from `ActiveRecord::Base`, which defines a
+number of helpful methods. You can use the `ActiveRecord::Base.table_name=`
+method to specify the table name that should be used:
 
 ```ruby
-class Product < ActiveRecord::Base
-  self.table_name = "PRODUCT"
+class Product < ApplicationRecord
+  self.table_name = "my_products"
 end
 ```
 
 If you do so, you will have to define manually the class name that is hosting
-the fixtures (class_name.yml) using the `set_fixture_class` method in your test
+the fixtures (my_products.yml) using the `set_fixture_class` method in your test
 definition:
 
 ```ruby
-class FunnyJoke < ActiveSupport::TestCase
-  set_fixture_class funny_jokes: Joke
-  fixtures :funny_jokes
+class ProductTest < ActiveSupport::TestCase
+  set_fixture_class my_products: Product
+  fixtures :my_products
   ...
 end
 ```
@@ -191,7 +194,7 @@ It's also possible to override the column that should be used as the table's
 primary key using the `ActiveRecord::Base.primary_key=` method:
 
 ```ruby
-class Product < ActiveRecord::Base
+class Product < ApplicationRecord
   self.primary_key = "product_id"
 end
 ```
@@ -258,7 +261,7 @@ david = User.find_by(name: 'David')
 
 ```ruby
 # find all users named David who are Code Artists and sort by created_at in reverse chronological order
-users = User.where(name: 'David', occupation: 'Code Artist').order('created_at DESC')
+users = User.where(name: 'David', occupation: 'Code Artist').order(created_at: :desc)
 ```
 
 You can learn more about querying an Active Record model in the [Active Record
@@ -309,21 +312,22 @@ into the database. There are several methods that you can use to check your
 models and validate that an attribute value is not empty, is unique and not
 already in the database, follows a specific format and many more.
 
-Validation is a very important issue to consider when persisting to database, so
-the methods `create`, `save` and `update` take it into account when
+Validation is a very important issue to consider when persisting to the database, so
+the methods `save` and `update` take it into account when
 running: they return `false` when validation fails and they didn't actually
-perform any operation on database. All of these have a bang counterpart (that
-is, `create!`, `save!` and `update!`), which are stricter in that
+perform any operation on the database. All of these have a bang counterpart (that
+is, `save!` and `update!`), which are stricter in that
 they raise the exception `ActiveRecord::RecordInvalid` if validation fails.
 A quick example to illustrate:
 
 ```ruby
-class User < ActiveRecord::Base
+class User < ApplicationRecord
   validates :name, presence: true
 end
 
-User.create  # => false
-User.create! # => ActiveRecord::RecordInvalid: Validation failed: Name can't be blank
+user = User.new
+user.save  # => false
+user.save! # => ActiveRecord::RecordInvalid: Validation failed: Name can't be blank
 ```
 
 You can learn more about validations in the [Active Record Validations
@@ -347,7 +351,7 @@ database that Active Record supports using `rake`. Here's a migration that
 creates a table:
 
 ```ruby
-class CreatePublications < ActiveRecord::Migration
+class CreatePublications < ActiveRecord::Migration[5.0]
   def change
     create_table :publications do |t|
       t.string :title
@@ -357,7 +361,7 @@ class CreatePublications < ActiveRecord::Migration
       t.string :publisher_type
       t.boolean :single_issue
 
-      t.timestamps
+      t.timestamps null: false
     end
     add_index :publications, :publication_type_id
   end
@@ -365,9 +369,9 @@ end
 ```
 
 Rails keeps track of which files have been committed to the database and
-provides rollback features. To actually create the table, you'd run `rake db:migrate`
-and to roll it back, `rake db:rollback`.
+provides rollback features. To actually create the table, you'd run `rails db:migrate`
+and to roll it back, `rails db:rollback`.
 
-Note that the above code is database-agnostic: it will run in MySQL, postgresql,
-Oracle and others. You can learn more about migrations in the [Active Record
-Migrations guide](migrations.html)
+Note that the above code is database-agnostic: it will run in MySQL,
+PostgreSQL, Oracle and others. You can learn more about migrations in the
+[Active Record Migrations guide](migrations.html).

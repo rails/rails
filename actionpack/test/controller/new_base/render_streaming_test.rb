@@ -4,7 +4,7 @@ module RenderStreaming
   class BasicController < ActionController::Base
     self.view_paths = [ActionView::FixtureResolver.new(
       "render_streaming/basic/hello_world.html.erb" => "Hello world",
-      "render_streaming/basic/boom.html.erb" => "<%= nil.invalid! %>",
+      "render_streaming/basic/boom.html.erb" => "<%= raise 'Ruby was here!' %>",
       "layouts/application.html.erb" => "<%= yield %>, I'm here!",
       "layouts/boom.html.erb" => "<body class=\"<%= nil.invalid! %>\"<%= yield %></body>"
     )]
@@ -90,14 +90,14 @@ module RenderStreaming
       begin
         get "/render_streaming/basic/template_exception"
         io.rewind
-        assert_match "(undefined method `invalid!' for nil:NilClass)", io.read
+        assert_match "Ruby was here!", io.read
       ensure
-        ActionController::Base.logger = _old
+        ActionView::Base.logger = _old
       end
     end
 
     test "do not stream on HTTP/1.0" do
-      get "/render_streaming/basic/hello_world", nil, "HTTP_VERSION" => "HTTP/1.0"
+      get "/render_streaming/basic/hello_world", headers: { "HTTP_VERSION" => "HTTP/1.0" }
       assert_body "Hello world, I'm here!"
       assert_status 200
       assert_equal "22", headers["Content-Length"]

@@ -1,4 +1,3 @@
-require 'active_support/core_ext/class/attribute_accessors'
 require 'active_support/logger_silence'
 require 'logger'
 
@@ -6,16 +5,26 @@ module ActiveSupport
   class Logger < ::Logger
     include LoggerSilence
 
+    # If +true+, will broadcast all messages sent to this logger to any
+    # logger linked to this one via +broadcast+.
+    #
+    # If +false+, the logger will still forward calls to +close+, +progname=+,
+    # +formatter=+ and +level+ to any linked loggers, but no calls to +add+ or
+    # +<<+.
+    #
+    # Defaults to +true+.
+    attr_accessor :broadcast_messages # :nodoc:
+
     # Broadcasts logs to multiple loggers.
     def self.broadcast(logger) # :nodoc:
       Module.new do
         define_method(:add) do |*args, &block|
-          logger.add(*args, &block)
+          logger.add(*args, &block) if broadcast_messages
           super(*args, &block)
         end
 
         define_method(:<<) do |x|
-          logger << x
+          logger << x if broadcast_messages
           super(x)
         end
 
@@ -44,6 +53,21 @@ module ActiveSupport
     def initialize(*args)
       super
       @formatter = SimpleFormatter.new
+      @broadcast_messages = true
+      after_initialize if respond_to? :after_initialize
+    end
+
+    def add(severity, message = nil, progname = nil, &block)
+      return true if @logdev.nil? || (severity || UNKNOWN) < level
+      super
+    end
+
+    Logger::Severity.constants.each do |severity|
+      class_eval(<<-EOT, __FILE__, __LINE__ + 1)
+        def #{severity.downcase}?                # def debug?
+          Logger::#{severity} >= level           #   DEBUG >= level
+        end                                      # end
+      EOT
     end
 
     # Simple formatter which only displays the message.

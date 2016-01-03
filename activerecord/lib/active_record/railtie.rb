@@ -16,11 +16,11 @@ module ActiveRecord
     config.app_generators.orm :active_record, :migration => true,
                                               :timestamps => true
 
-    config.app_middleware.insert_after "::ActionDispatch::Callbacks",
-      "ActiveRecord::QueryCache"
+    config.app_middleware.insert_after ::ActionDispatch::Callbacks,
+      ActiveRecord::QueryCache
 
-    config.app_middleware.insert_after "::ActionDispatch::Callbacks",
-      "ActiveRecord::ConnectionAdapters::ConnectionManagement"
+    config.app_middleware.insert_after ::ActionDispatch::Callbacks,
+      ActiveRecord::ConnectionAdapters::ConnectionManagement
 
     config.action_dispatch.rescue_responses.merge!(
       'ActiveRecord::RecordNotFound'   => :not_found,
@@ -31,21 +31,14 @@ module ActiveRecord
 
 
     config.active_record.use_schema_cache_dump = true
+    config.active_record.maintain_test_schema = true
 
     config.eager_load_namespaces << ActiveRecord
 
     rake_tasks do
-      require "active_record/base"
-
-      ActiveRecord::Tasks::DatabaseTasks.seed_loader = Rails.application
-      ActiveRecord::Tasks::DatabaseTasks.env = Rails.env
-
       namespace :db do
         task :load_config do
-          ActiveRecord::Tasks::DatabaseTasks.db_dir = Rails.application.config.paths["db"].first
           ActiveRecord::Tasks::DatabaseTasks.database_configuration = Rails.application.config.database_configuration
-          ActiveRecord::Tasks::DatabaseTasks.migrations_paths = Rails.application.paths['db/migrate'].to_a
-          ActiveRecord::Tasks::DatabaseTasks.fixtures_path = File.join Rails.root, 'test', 'fixtures'
 
           if defined?(ENGINE_PATH) && engine = Rails::Engine.find(ENGINE_PATH)
             if engine.paths['db/migrate'].existent
@@ -85,8 +78,8 @@ module ActiveRecord
 
     initializer "active_record.migration_error" do
       if config.active_record.delete(:migration_error) == :page_load
-        config.app_middleware.insert_after "::ActionDispatch::Callbacks",
-          "ActiveRecord::Migration::CheckPending"
+        config.app_middleware.insert_after ::ActionDispatch::Callbacks,
+          ActiveRecord::Migration::CheckPending
       end
     end
 
@@ -100,11 +93,20 @@ module ActiveRecord
               cache = Marshal.load File.binread filename
               if cache.version == ActiveRecord::Migrator.current_version
                 self.connection.schema_cache = cache
+                self.connection_pool.schema_cache = cache.dup
               else
                 warn "Ignoring db/schema_cache.dump because it has expired. The current schema version is #{ActiveRecord::Migrator.current_version}, but the one in the cache is #{cache.version}."
               end
             end
           end
+        end
+      end
+    end
+
+    initializer "active_record.warn_on_records_fetched_greater_than" do
+      if config.active_record.warn_on_records_fetched_greater_than
+        ActiveSupport.on_load(:active_record) do
+          require 'active_record/relation/record_fetch_warning'
         end
       end
     end
@@ -119,10 +121,24 @@ module ActiveRecord
 
     # This sets the database configuration from Configuration#database_configuration
     # and then establishes the connection.
-    initializer "active_record.initialize_database" do |app|
+    initializer "active_record.initialize_database" do
       ActiveSupport.on_load(:active_record) do
-        self.configurations = app.config.database_configuration || {}
-        establish_connection
+        self.configurations = Rails.application.config.database_configuration
+
+        begin
+          establish_connection
+        rescue ActiveRecord::NoDatabaseError
+          warn <<-end_warning
+Oops - You have a database configured, but it doesn't exist yet!
+
+Here's how to get started:
+
+  1. Configure your database in config/database.yml.
+  2. Run `bin/rails db:create` to create the database.
+  3. Run `bin/rails db:setup` to load your database schema.
+end_warning
+          raise
+        end
       end
     end
 
@@ -140,8 +156,8 @@ module ActiveRecord
       ActiveSupport.on_load(:active_record) do
         ActionDispatch::Reloader.send(hook) do
           if ActiveRecord::Base.connected?
-            ActiveRecord::Base.clear_reloadable_connections!
             ActiveRecord::Base.clear_cache!
+            ActiveRecord::Base.clear_reloadable_connections!
           end
         end
       end

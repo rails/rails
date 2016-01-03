@@ -16,6 +16,8 @@ class LazyReader < ActiveRecord::Base
   self.table_name = "readers"
   default_scope -> { where(skimmer: true) }
 
+  scope :skimmers_or_not, -> { unscope(:where => :skimmer) }
+
   belongs_to :post
   belongs_to :person
 end

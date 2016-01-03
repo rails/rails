@@ -3,7 +3,7 @@ require 'models/topic'
 
 class I18nGenerateMessageValidationTest < ActiveRecord::TestCase
   def setup
-    Topic.reset_callbacks(:validate)
+    Topic.clear_validators!
     @topic = Topic.new
     I18n.backend = I18n::Backend::Simple.new
   end
@@ -55,22 +55,30 @@ class I18nGenerateMessageValidationTest < ActiveRecord::TestCase
   end
 
   test "translation for 'taken' can be overridden" do
-    I18n.backend.store_translations "en", {errors: {attributes: {title: {taken: "Custom taken message" }}}}
-    assert_equal "Custom taken message", @topic.errors.generate_message(:title, :taken, :value => 'title')
+    reset_i18n_load_path do
+      I18n.backend.store_translations "en", {errors: {attributes: {title: {taken: "Custom taken message" }}}}
+      assert_equal "Custom taken message", @topic.errors.generate_message(:title, :taken, :value => 'title')
+    end
   end
 
   test "translation for 'taken' can be overridden in activerecord scope" do
-    I18n.backend.store_translations "en", {activerecord: {errors: {messages: {taken: "Custom taken message" }}}}
-    assert_equal "Custom taken message", @topic.errors.generate_message(:title, :taken, :value => 'title')
+    reset_i18n_load_path do
+      I18n.backend.store_translations "en", {activerecord: {errors: {messages: {taken: "Custom taken message" }}}}
+      assert_equal "Custom taken message", @topic.errors.generate_message(:title, :taken, :value => 'title')
+    end
   end
 
   test "translation for 'taken' can be overridden in activerecord model scope" do
-    I18n.backend.store_translations "en", {activerecord: {errors: {models: {topic: {taken: "Custom taken message" }}}}}
-    assert_equal "Custom taken message", @topic.errors.generate_message(:title, :taken, :value => 'title')
+    reset_i18n_load_path do
+      I18n.backend.store_translations "en", {activerecord: {errors: {models: {topic: {taken: "Custom taken message" }}}}}
+      assert_equal "Custom taken message", @topic.errors.generate_message(:title, :taken, :value => 'title')
+    end
   end
 
   test "translation for 'taken' can be overridden in activerecord attributes scope" do
-    I18n.backend.store_translations "en", {activerecord: {errors: {models: {topic: {attributes: {title: {taken: "Custom taken message" }}}}}}}
-    assert_equal "Custom taken message", @topic.errors.generate_message(:title, :taken, :value => 'title')
+    reset_i18n_load_path do
+      I18n.backend.store_translations "en", {activerecord: {errors: {models: {topic: {attributes: {title: {taken: "Custom taken message" }}}}}}}
+      assert_equal "Custom taken message", @topic.errors.generate_message(:title, :taken, :value => 'title')
+    end
   end
 end

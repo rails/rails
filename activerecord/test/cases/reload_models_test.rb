@@ -3,7 +3,7 @@ require 'models/owner'
 require 'models/pet'
 
 class ReloadModelsTest < ActiveRecord::TestCase
-  fixtures :pets
+  fixtures :pets, :owners
 
   def test_has_one_with_reload
     pet = Pet.find_by_name('parrot')

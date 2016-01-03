@@ -1,6 +1,8 @@
 require "cases/helper"
 require 'models/company_in_module'
 require 'models/shop'
+require 'models/developer'
+require 'models/computer'
 
 class ModulesTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :projects, :developers, :collections, :products, :variants
@@ -17,7 +19,7 @@ class ModulesTest < ActiveRecord::TestCase
     ActiveRecord::Base.store_full_sti_class = false
   end
 
-  def teardown
+  teardown do
     # reinstate the constants that we undefined in the setup
     @undefined_consts.each do |constant, value|
       Object.send :const_set, constant, value unless value.nil?
@@ -66,8 +68,7 @@ class ModulesTest < ActiveRecord::TestCase
     end
   end
 
-  # need to add an eager loading condition to force the eager loading model into
-  # the old join model, to test that. See http://dev.rubyonrails.org/ticket/9640
+  # An eager loading condition to force the eager loading model into the old join model.
   def test_eager_loading_in_modules
     clients = []
 
@@ -108,6 +109,34 @@ class ModulesTest < ActiveRecord::TestCase
     assert_equal 'companies', MyApplication::Business::Prefixed::Firm.table_name, 'explicit table_name for ActiveRecord model in module with table_name_prefix should not be prefixed'
   ensure
     ActiveRecord::Base.table_name_prefix = ''
+    classes.each(&:reset_table_name)
+  end
+
+  def test_module_table_name_suffix
+    assert_equal 'companies_suffixed', MyApplication::Business::Suffixed::Company.table_name, 'inferred table_name for ActiveRecord model in module with table_name_suffix'
+    assert_equal 'companies_suffixed', MyApplication::Business::Suffixed::Nested::Company.table_name, 'table_name for ActiveRecord model in nested module with a parent table_name_suffix'
+    assert_equal 'companies', MyApplication::Business::Suffixed::Firm.table_name, 'explicit table_name for ActiveRecord model in module with table_name_suffix should not be suffixed'
+  end
+
+  def test_module_table_name_suffix_with_global_suffix
+    classes = [ MyApplication::Business::Company,
+                MyApplication::Business::Firm,
+                MyApplication::Business::Client,
+                MyApplication::Business::Client::Contact,
+                MyApplication::Business::Developer,
+                MyApplication::Business::Project,
+                MyApplication::Business::Suffixed::Company,
+                MyApplication::Business::Suffixed::Nested::Company,
+                MyApplication::Billing::Account ]
+
+    ActiveRecord::Base.table_name_suffix = '_global'
+    classes.each(&:reset_table_name)
+    assert_equal 'companies_global', MyApplication::Business::Company.table_name, 'inferred table_name for ActiveRecord model in module without table_name_suffix'
+    assert_equal 'companies_suffixed', MyApplication::Business::Suffixed::Company.table_name, 'inferred table_name for ActiveRecord model in module with table_name_suffix'
+    assert_equal 'companies_suffixed', MyApplication::Business::Suffixed::Nested::Company.table_name, 'table_name for ActiveRecord model in nested module with a parent table_name_suffix'
+    assert_equal 'companies', MyApplication::Business::Suffixed::Firm.table_name, 'explicit table_name for ActiveRecord model in module with table_name_suffix should not be suffixed'
+  ensure
+    ActiveRecord::Base.table_name_suffix = ''
     classes.each(&:reset_table_name)
   end
 

@@ -1,5 +1,23 @@
-*   Removed repetitive th tags. Instead of them added one th tag with a colspan attribute.
+## Rails 5.0.0.beta1 (December 18, 2015) ##
 
-    *Sıtkı Bağdat*
+*   Add code of conduct to contributing guide
 
-Please check [4-0-stable](https://github.com/rails/rails/blob/4-0-stable/guides/CHANGELOG.md) for previous changes.
+    *Jon Moss*
+
+*   New section in Configuring: Configuring Active Job
+
+    *Eliot Sykes*
+
+*   New section in Active Record Association Basics: Single Table Inheritance
+
+    *Andrey Nering*
+
+*   New section in Active Record Querying: Understanding The Method Chaining
+
+    *Andrey Nering*
+
+*   New section in Configuring: Search Engines Indexing
+
+    *Andrey Nering*
+
+Please check [4-2-stable](https://github.com/rails/rails/blob/4-2-stable/guides/CHANGELOG.md) for previous changes.

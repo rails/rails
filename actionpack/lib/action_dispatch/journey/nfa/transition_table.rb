@@ -42,58 +42,13 @@ module ActionDispatch
         end
 
         def states
-          (@table.keys + @table.values.map(&:keys).flatten).uniq
-        end
-
-        # Returns a generalized transition graph with reduced states. The states
-        # are reduced like a DFA, but the table must be simulated like an NFA.
-        #
-        # Edges of the GTG are regular expressions.
-        def generalized_table
-          gt       = GTG::TransitionTable.new
-          marked   = {}
-          state_id = Hash.new { |h,k| h[k] = h.length }
-          alphabet = self.alphabet
-
-          stack = [eclosure(0)]
-
-          until stack.empty?
-            state = stack.pop
-            next if marked[state] || state.empty?
-
-            marked[state] = true
-
-            alphabet.each do |alpha|
-              next_state = eclosure(following_states(state, alpha))
-              next if next_state.empty?
-
-              gt[state_id[state], state_id[next_state]] = alpha
-              stack << next_state
-            end
-          end
-
-          final_groups = state_id.keys.find_all { |s|
-            s.sort.last == accepting
-          }
-
-          final_groups.each do |states|
-            id = state_id[states]
-
-            gt.add_accepting(id)
-            save = states.find { |s|
-              @memos.key?(s) && eclosure(s).sort.last == accepting
-            }
-
-            gt.add_memo(id, memo(save))
-          end
-
-          gt
+          (@table.keys + @table.values.flat_map(&:keys)).uniq
         end
 
         # Returns set of NFA states to which there is a transition on ast symbol
         # +a+ from some state +s+ in +t+.
         def following_states(t, a)
-          Array(t).map { |s| inverted[s][a] }.flatten.uniq
+          Array(t).flat_map { |s| inverted[s][a] }.uniq
         end
 
         # Returns set of NFA states to which there is a transition on ast symbol
@@ -107,7 +62,7 @@ module ActionDispatch
         end
 
         def alphabet
-          inverted.values.map(&:keys).flatten.compact.uniq.sort_by { |x| x.to_s }
+          inverted.values.flat_map(&:keys).compact.uniq.sort_by(&:to_s)
         end
 
         # Returns a set of NFA states reachable from some NFA state +s+ in set
@@ -131,9 +86,9 @@ module ActionDispatch
         end
 
         def transitions
-          @table.map { |to, hash|
+          @table.flat_map { |to, hash|
             hash.map { |from, sym| [from, sym, to] }
-          }.flatten(1)
+          }
         end
 
         private

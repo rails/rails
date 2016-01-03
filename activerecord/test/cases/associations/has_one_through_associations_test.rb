@@ -15,6 +15,11 @@ require 'models/essay'
 require 'models/owner'
 require 'models/post'
 require 'models/comment'
+require 'models/categorization'
+require 'models/customer'
+require 'models/carrier'
+require 'models/shop_account'
+require 'models/customer_carrier'
 
 class HasOneThroughAssociationsTest < ActiveRecord::TestCase
   fixtures :member_types, :members, :clubs, :memberships, :sponsors, :organizations, :minivans,
@@ -43,6 +48,20 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal clubs(:moustache_club), new_member.club
     assert new_member.save
     assert_equal clubs(:moustache_club), new_member.club
+  end
+
+  def test_creating_association_sets_both_parent_ids_for_new
+    member = Member.new(name: 'Sean Griffin')
+    club = Club.new(name: 'Da Club')
+
+    member.club = club
+
+    member.save!
+
+    assert member.id
+    assert club.id
+    assert_equal member.id, member.current_membership.member_id
+    assert_equal club.id, member.current_membership.club_id
   end
 
   def test_replace_target_record
@@ -230,12 +249,14 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
     assert_not_nil @member_detail.member_type
     @member_detail.destroy
     assert_queries(1) do
-      assert_not_nil @member_detail.member_type(true)
+      @member_detail.association(:member_type).reload
+      assert_not_nil @member_detail.member_type
     end
 
     @member_detail.member.destroy
     assert_queries(1) do
-      assert_nil @member_detail.member_type(true)
+      @member_detail.association(:member_type).reload
+      assert_nil @member_detail.member_type
     end
   end
 
@@ -272,6 +293,12 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
   def test_has_one_through_many_raises_exception
     assert_raise(ActiveRecord::HasOneThroughCantAssociateThroughCollection) do
       members(:groucho).club_through_many
+    end
+  end
+
+  def test_has_one_through_polymorphic_association
+    assert_raise(ActiveRecord::HasOneAssociationPolymorphicThroughError) do
+      @member.premium_club
     end
   end
 
@@ -314,5 +341,43 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_has_one_through_with_custom_select_on_join_model_default_scope
     assert_equal clubs(:boring_club), members(:groucho).selected_club
+  end
+
+  def test_has_one_through_relationship_cannot_have_a_counter_cache
+    assert_raise(ArgumentError) do
+      Class.new(ActiveRecord::Base) do
+        has_one :thing, through: :other_thing, counter_cache: true
+      end
+    end
+  end
+
+  def test_has_one_through_do_not_cache_association_reader_if_the_though_method_has_default_scopes
+    customer = Customer.create!
+    carrier = Carrier.create!
+    customer_carrier = CustomerCarrier.create!(
+      customer: customer,
+      carrier: carrier,
+    )
+    account = ShopAccount.create!(customer_carrier: customer_carrier)
+
+    CustomerCarrier.current_customer = customer
+
+    account_carrier = account.carrier
+    assert_equal carrier, account_carrier
+
+    CustomerCarrier.current_customer = nil
+
+    other_carrier = Carrier.create!
+    other_customer = Customer.create!
+    other_customer_carrier = CustomerCarrier.create!(
+      customer: other_customer,
+      carrier: other_carrier,
+    )
+    other_account = ShopAccount.create!(customer_carrier: other_customer_carrier)
+
+    account_carrier = other_account.carrier
+    assert_equal other_carrier, account_carrier
+  ensure
+    CustomerCarrier.current_customer = nil
   end
 end

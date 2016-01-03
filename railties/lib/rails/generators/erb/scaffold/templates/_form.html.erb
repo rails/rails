@@ -1,11 +1,11 @@
-<%%= form_for(@<%= singular_table_name %>) do |f| %>
-  <%% if @<%= singular_table_name %>.errors.any? %>
+<%%= form_for(<%= singular_table_name %>) do |f| %>
+  <%% if <%= singular_table_name %>.errors.any? %>
     <div id="error_explanation">
-      <h2><%%= pluralize(@<%= singular_table_name %>.errors.count, "error") %> prohibited this <%= singular_table_name %> from being saved:</h2>
+      <h2><%%= pluralize(<%= singular_table_name %>.errors.count, "error") %> prohibited this <%= singular_table_name %> from being saved:</h2>
 
       <ul>
-      <%% @<%= singular_table_name %>.errors.full_messages.each do |msg| %>
-        <li><%%= msg %></li>
+      <%% <%= singular_table_name %>.errors.full_messages.each do |message| %>
+        <li><%%= message %></li>
       <%% end %>
       </ul>
     </div>
@@ -14,22 +14,19 @@
 <% attributes.each do |attribute| -%>
   <div class="field">
 <% if attribute.password_digest? -%>
-    <%%= f.label :password %><br>
+    <%%= f.label :password %>
     <%%= f.password_field :password %>
   </div>
-  <div>
-    <%%= f.label :password_confirmation %><br>
+
+  <div class="field">
+    <%%= f.label :password_confirmation %>
     <%%= f.password_field :password_confirmation %>
 <% else -%>
-  <%- if attribute.reference? -%>
-    <%%= f.label :<%= attribute.column_name %> %><br>
+    <%%= f.label :<%= attribute.column_name %> %>
     <%%= f.<%= attribute.field_type %> :<%= attribute.column_name %> %>
-  <%- else -%>
-    <%%= f.label :<%= attribute.name %> %><br>
-    <%%= f.<%= attribute.field_type %> :<%= attribute.name %> %>
-  <%- end -%>
 <% end -%>
   </div>
+
 <% end -%>
   <div class="actions">
     <%%= f.submit %>
