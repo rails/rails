@@ -3578,6 +3578,27 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal 'HEAD', @response.body
   end
 
+  def test_passing_action_parameters_to_url_helpers_raises_error_if_parameters_are_not_permitted
+    draw do
+      root :to => 'projects#index'
+    end
+    params = ActionController::Parameters.new(id: '1')
+
+    assert_raises ArgumentError do
+      root_path(params)
+    end
+  end
+
+  def test_passing_action_parameters_to_url_helpers_is_allowed_if_parameters_are_permitted
+    draw do
+      root :to => 'projects#index'
+    end
+    params = ActionController::Parameters.new(id: '1')
+    params.permit!
+
+    assert_equal '/?id=1', root_path(params)
+  end
+
 private
 
   def draw(&block)

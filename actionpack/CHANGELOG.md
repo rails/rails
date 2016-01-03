@@ -1,3 +1,11 @@
+*   Allow `ActionController::Parameters` instances as an argument to URL
+    helper methods. An `ArguemntError` will be raised if the passed parameters
+    are not secure.
+
+    Fixes #22832
+
+    *Prathamesh Sonpatki*
+
 *   Add option for per-form CSRF tokens.
 
     *Ben Toews*
