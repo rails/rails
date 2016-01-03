@@ -355,6 +355,13 @@ end
 will append `ENGINE=BLACKHOLE` to the SQL statement used to create the table
 (when using MySQL or MariaDB, the default is `ENGINE=InnoDB`).
 
+Also you can pass the `:comment` option with any description for the table
+that will be stored in database itself and can be viewed with database administration
+tools, such as MySQL Workbench or PgAdmin III. It's highly recommended to specify
+comments in migrations for applications with large databases as it helps people
+to understand data model and generate documentation.
+Currently only MySQL and PostgreSQL supports comments.
+
 ### Creating a Join Table
 
 The migration method `create_join_table` creates an HABTM (has and belongs to
@@ -454,6 +461,7 @@ number of digits after the decimal point.
 are using a dynamic value (such as a date), the default will only be calculated
 the first time (i.e. on the date the migration is applied).
 * `index`        Adds an index for the column.
+* `comment`      Adds a comment for the column.
 
 Some adapters may support additional options; see the adapter specific API docs
 for further information.

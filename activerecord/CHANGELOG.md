@@ -1,3 +1,20 @@
+*   Add support for database schema comments for tables, columns and indexes
+    for PostgreSQL and MySQL.
+
+    It allows to specify commentaries for database objects in migrations and
+    store them in database itself, allowing to see them with DBA tools and
+    in `db/schema.rb` file and thus automatically documents database schema:
+
+        create_table "pages", force: :cascade, comment: 'Arbitrary content pages' do |t|
+          # ...
+          t.string "path",   comment: "Path fragment of page URL used for routing"
+          t.string "locale", comment: "RFC 3066 locale code of website language section"
+          t.index ["locale", "path"], name: 'page_uri_index' comment: "Main index used to lookup page by it's URI."
+          # ...
+        end
+
+    *Andrey Novikov*
+
 *   Add `quoted_time` for truncating the date part of a TIME column value.
     This fixes queries on TIME column on MariaDB, as it doesn't ignore the 
     date part of the string when it coerces to time.
