@@ -8,12 +8,11 @@
 
     *Adam Roben*
 
-
-## Rails 5.0.0.beta1 (December 18, 2015) ##
-
 *   Add petabyte and exabyte numeric conversion.
 
     *Akshay Vishnoi*
+
+## Rails 5.0.0.beta1 (December 18, 2015) ##
 
 *   Add thread_m/cattr_accessor/reader/writer suite of methods for declaring class and module variables that live per-thread.
     This makes it easy to declare per-thread globals that are encapsulated. Note: This is a sharp edge. A wild proliferation
