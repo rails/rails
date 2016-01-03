@@ -338,7 +338,7 @@ DEPENDENCIES
   sneakers
   sqlite3 (~> 1.3.6)
   stackprof
-  sucker_punch
+  sucker_punch (< 2.0)
   turbolinks
   tzinfo-data
   uglifier (>= 1.3.0)
