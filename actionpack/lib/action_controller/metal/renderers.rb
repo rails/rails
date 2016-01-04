@@ -11,6 +11,7 @@ module ActionController
     Renderers.remove(key)
   end
 
+  # See <tt>Responder#api_behavior</tt>
   class MissingRenderer < LoadError
     def initialize(format)
       super "No renderer defined for format: #{format}"
@@ -67,6 +68,11 @@ module ActionController
       alias use_renderer use_renderers
     end
 
+    # Called by +render+ in <tt>AbstractController::Renderering</tt>
+    # which sets the return value as the +response_body+.
+    #
+    # If no renderer is found, +super+ returns control to
+    # <tt>ActionView::Rendering.render_to_body</tt>, if present.
     def render_to_body(options)
       _render_to_body_with_renderer(options) || super
     end
@@ -137,6 +143,9 @@ module ActionController
       remove_method(method_name) if method_defined?(method_name)
     end
 
+    # Used in <tt>ActionController::Base</tt>
+    # and <tt>ActionController::API</tt> to include all
+    # renderers by default.
     module All
       extend ActiveSupport::Concern
       include Renderers
