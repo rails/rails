@@ -582,7 +582,7 @@ class UrlHelperTest < ActiveSupport::TestCase
     self.request_forgery
   end
 
-  def form_authenticity_token
+  def form_authenticity_token(*args)
     "secret"
   end
 

@@ -870,10 +870,16 @@ module ActionView
               ''
             when /^post$/i, "", nil
               html_options["method"] = "post"
-              token_tag(authenticity_token)
+              token_tag(authenticity_token, form_options: {
+                action: html_options["action"],
+                method: "post"
+              })
             else
               html_options["method"] = "post"
-              method_tag(method) + token_tag(authenticity_token)
+              method_tag(method) + token_tag(authenticity_token, form_options: {
+                action: html_options["action"],
+                method: method
+              })
           end
 
           if html_options.delete("enforce_utf8") { true }

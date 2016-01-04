@@ -311,7 +311,11 @@ module ActionView
         form_options[:action] = url
         form_options[:'data-remote'] = true if remote
 
-        request_token_tag = form_method == 'post' ? token_tag : ''
+        request_token_tag = if form_method == 'post'
+          token_tag(nil, form_options: form_options)
+        else
+          ''
+        end
 
         html_options = convert_options_to_data_attributes(options, html_options)
         html_options['type'] = 'submit'
@@ -579,9 +583,9 @@ module ActionView
           html_options["data-method"] = method
         end
 
-        def token_tag(token=nil)
+        def token_tag(token=nil, form_options: {})
           if token != false && protect_against_forgery?
-            token ||= form_authenticity_token
+            token ||= form_authenticity_token(form_options: form_options)
             tag(:input, type: "hidden", name: request_forgery_protection_token.to_s, value: token)
           else
             ''

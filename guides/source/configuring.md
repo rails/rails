@@ -345,6 +345,8 @@ The schema dumper adds one additional configuration option:
 
 * `config.action_controller.forgery_protection_origin_check` configures whether the HTTP `Origin` header should be checked against the site's origin as an additional CSRF defense.
 
+* `config.action_controller.per_form_csrf_tokens` configures whether CSRF tokens are only valid for the method/action they were generated for.
+
 * `config.action_controller.relative_url_root` can be used to tell Rails that you are [deploying to a subdirectory](configuring.html#deploy-to-a-subdirectory-relative-url-root). The default is `ENV['RAILS_RELATIVE_URL_ROOT']`.
 
 * `config.action_controller.permit_all_parameters` sets all the parameters for mass assignment to be permitted by default. The default value is `false`.

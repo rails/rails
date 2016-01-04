@@ -657,7 +657,7 @@ module ApplicationTests
 
         private
 
-        def form_authenticity_token; token; end # stub the authenticy token
+        def form_authenticity_token(*args); token; end # stub the authenticy token
       end
       RUBY
 

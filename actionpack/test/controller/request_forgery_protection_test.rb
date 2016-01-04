@@ -128,6 +128,23 @@ class CustomAuthenticityParamController < RequestForgeryProtectionControllerUsin
   end
 end
 
+class PerFormTokensController < ActionController::Base
+  protect_from_forgery :with => :exception
+  self.per_form_csrf_tokens = true
+
+  def index
+    render inline: "<%= form_tag (params[:form_path] || '/per_form_tokens/post_one'), method: (params[:form_method] || :post) %>"
+  end
+
+  def post_one
+    render plain: ''
+  end
+
+  def post_two
+    render plain: ''
+  end
+end
+
 # common test methods
 module RequestForgeryProtectionTests
   def setup
@@ -621,5 +638,160 @@ class CustomAuthenticityParamControllerTest < ActionController::TestCase
     ensure
       ActionController::Base.logger = @old_logger
     end
+  end
+end
+
+class PerFormTokensControllerTest < ActionController::TestCase
+  def test_per_form_token_is_same_size_as_global_token
+    get :index
+    expected = ActionController::RequestForgeryProtection::AUTHENTICITY_TOKEN_LENGTH
+    actual = @controller.send(:per_form_csrf_token, session, '/path', 'post').size
+    assert_equal expected, actual
+  end
+
+  def test_accepts_token_for_correct_path_and_method
+    get :index
+
+    form_token = nil
+    assert_select 'input[name=custom_authenticity_token]' do |elts|
+      form_token = elts.first['value']
+      assert_not_nil form_token
+    end
+
+    actual = @controller.send(:unmask_token, Base64.strict_decode64(form_token))
+    expected = @controller.send(:per_form_csrf_token, session, '/per_form_tokens/post_one', 'post')
+    assert_equal expected, actual
+
+    # This is required because PATH_INFO isn't reset between requests.
+    @request.env['PATH_INFO'] = '/per_form_tokens/post_one'
+    assert_nothing_raised do
+      post :post_one, params: {custom_authenticity_token: form_token}
+    end
+    assert_response :success
+  end
+
+  def test_rejects_token_for_incorrect_path
+    get :index
+
+    form_token = nil
+    assert_select 'input[name=custom_authenticity_token]' do |elts|
+      form_token = elts.first['value']
+      assert_not_nil form_token
+    end
+
+    actual = @controller.send(:unmask_token, Base64.strict_decode64(form_token))
+    expected = @controller.send(:per_form_csrf_token, session, '/per_form_tokens/post_one', 'post')
+    assert_equal expected, actual
+
+    # This is required because PATH_INFO isn't reset between requests.
+    @request.env['PATH_INFO'] = '/per_form_tokens/post_two'
+    assert_raises(ActionController::InvalidAuthenticityToken) do
+      post :post_two, params: {custom_authenticity_token: form_token}
+    end
+  end
+
+  def test_rejects_token_for_incorrect_method
+    get :index
+
+    form_token = nil
+    assert_select 'input[name=custom_authenticity_token]' do |elts|
+      form_token = elts.first['value']
+      assert_not_nil form_token
+    end
+
+    actual = @controller.send(:unmask_token, Base64.strict_decode64(form_token))
+    expected = @controller.send(:per_form_csrf_token, session, '/per_form_tokens/post_one', 'post')
+    assert_equal expected, actual
+
+    # This is required because PATH_INFO isn't reset between requests.
+    @request.env['PATH_INFO'] = '/per_form_tokens/post_one'
+    assert_raises(ActionController::InvalidAuthenticityToken) do
+      patch :post_one, params: {custom_authenticity_token: form_token}
+    end
+  end
+
+  def test_accepts_global_csrf_token
+    get :index
+
+    token = @controller.send(:form_authenticity_token)
+
+    # This is required because PATH_INFO isn't reset between requests.
+    @request.env['PATH_INFO'] = '/per_form_tokens/post_one'
+    assert_nothing_raised do
+      post :post_one, params: {custom_authenticity_token: token}
+    end
+    assert_response :success
+  end
+
+  def test_ignores_params
+    get :index, params: {form_path: '/per_form_tokens/post_one?foo=bar'}
+
+    form_token = nil
+    assert_select 'input[name=custom_authenticity_token]' do |elts|
+      form_token = elts.first['value']
+      assert_not_nil form_token
+    end
+
+    actual = @controller.send(:unmask_token, Base64.strict_decode64(form_token))
+    expected = @controller.send(:per_form_csrf_token, session, '/per_form_tokens/post_one', 'post')
+    assert_equal expected, actual
+
+    # This is required because PATH_INFO isn't reset between requests.
+    @request.env['PATH_INFO'] = '/per_form_tokens/post_one?foo=baz'
+    assert_nothing_raised do
+      post :post_one, params: {custom_authenticity_token: form_token, baz: 'foo'}
+    end
+    assert_response :success
+  end
+
+  def test_ignores_trailing_slash_during_generation
+    get :index, params: {form_path: '/per_form_tokens/post_one/'}
+
+    form_token = nil
+    assert_select 'input[name=custom_authenticity_token]' do |elts|
+      form_token = elts.first['value']
+      assert_not_nil form_token
+    end
+
+    # This is required because PATH_INFO isn't reset between requests.
+    @request.env['PATH_INFO'] = '/per_form_tokens/post_one'
+    assert_nothing_raised do
+      post :post_one, params: {custom_authenticity_token: form_token}
+    end
+    assert_response :success
+  end
+
+  def test_ignores_trailing_slash_during_validation
+    get :index
+
+    form_token = nil
+    assert_select 'input[name=custom_authenticity_token]' do |elts|
+      form_token = elts.first['value']
+      assert_not_nil form_token
+    end
+
+    # This is required because PATH_INFO isn't reset between requests.
+    @request.env['PATH_INFO'] = '/per_form_tokens/post_one/'
+    assert_nothing_raised do
+      post :post_one, params: {custom_authenticity_token: form_token}
+    end
+    assert_response :success
+  end
+
+  def test_method_is_case_insensitive
+    get :index, params: {form_method: "POST"}
+
+    form_token = nil
+    assert_select 'input[name=custom_authenticity_token]' do |elts|
+      form_token = elts.first['value']
+      assert_not_nil form_token
+    end
+
+    # This is required because PATH_INFO isn't reset between requests.
+    @request.env['PATH_INFO'] = '/per_form_tokens/post_one/'
+    assert_nothing_raised do
+      post :post_one, params: {custom_authenticity_token: form_token}
+    end
+    assert_response :success
   end
 end
