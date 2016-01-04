@@ -47,15 +47,10 @@ module Mime
     def const_missing(sym)
       ext = sym.downcase
       if Mime[ext]
-        ActiveSupport::Deprecation.warn <<-eow
-Accessing mime types via constants is deprecated.  Please change:
-
-  `Mime::#{sym}`
-
-to:
-
-  `Mime[:#{ext}]`
-        eow
+        ActiveSupport::Deprecation.warn(<<-MSG.squish)
+          Accessing mime types via constants is deprecated.
+          Please change `Mime::#{sym}` to `Mime[:#{ext}]`.
+        MSG
         Mime[ext]
       else
         super
@@ -65,15 +60,10 @@ to:
     def const_defined?(sym, inherit = true)
       ext = sym.downcase
       if Mime[ext]
-        ActiveSupport::Deprecation.warn <<-eow
-Accessing mime types via constants is deprecated.  Please change:
-
-  `Mime.const_defined?(#{sym})`
-
-to:
-
-  `Mime[:#{ext}]`
-        eow
+        ActiveSupport::Deprecation.warn(<<-MSG.squish)
+          Accessing mime types via constants is deprecated.
+          Please change `Mime.const_defined?(#{sym})` to `Mime[:#{ext}]`.
+        MSG
         true
       else
         super

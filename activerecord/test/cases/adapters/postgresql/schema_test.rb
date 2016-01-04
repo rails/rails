@@ -321,14 +321,31 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
     do_dump_index_tests_for_schema("public, #{SCHEMA_NAME}", INDEX_A_COLUMN, INDEX_B_COLUMN_S1, INDEX_D_COLUMN, INDEX_E_COLUMN)
   end
 
+  def test_dump_indexes_for_table_with_scheme_specified_in_name
+    indexes = @connection.indexes("#{SCHEMA_NAME}.#{TABLE_NAME}")
+    assert_equal 4, indexes.size
+  end
+
   def test_with_uppercase_index_name
-    @connection.execute "CREATE INDEX \"things_Index\" ON #{SCHEMA_NAME}.things (name)"
-    assert_nothing_raised { @connection.remove_index "things", name: "#{SCHEMA_NAME}.things_Index"}
     @connection.execute "CREATE INDEX \"things_Index\" ON #{SCHEMA_NAME}.things (name)"
 
     with_schema_search_path SCHEMA_NAME do
       assert_nothing_raised { @connection.remove_index "things", name: "things_Index"}
     end
+  end
+
+  def test_remove_index_when_schema_specified
+    @connection.execute "CREATE INDEX \"things_Index\" ON #{SCHEMA_NAME}.things (name)"
+    assert_nothing_raised { @connection.remove_index "things", name: "#{SCHEMA_NAME}.things_Index" }
+
+    @connection.execute "CREATE INDEX \"things_Index\" ON #{SCHEMA_NAME}.things (name)"
+    assert_nothing_raised { @connection.remove_index "#{SCHEMA_NAME}.things", name: "things_Index" }
+
+    @connection.execute "CREATE INDEX \"things_Index\" ON #{SCHEMA_NAME}.things (name)"
+    assert_nothing_raised { @connection.remove_index "#{SCHEMA_NAME}.things", name: "#{SCHEMA_NAME}.things_Index" }
+
+    @connection.execute "CREATE INDEX \"things_Index\" ON #{SCHEMA_NAME}.things (name)"
+    assert_raises(ArgumentError) { @connection.remove_index "#{SCHEMA2_NAME}.things", name: "#{SCHEMA_NAME}.things_Index" }
   end
 
   def test_primary_key_with_schema_specified

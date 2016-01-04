@@ -31,8 +31,6 @@ module ActiveRecord
         def extract_default
           if blob_or_text_column?
             @default = null || strict ? nil : ''
-          elsif missing_default_forged_as_empty_string?(default)
-            @default = nil
           end
         end
 
@@ -58,17 +56,6 @@ module ActiveRecord
         end
 
         private
-
-        # MySQL misreports NOT NULL column default when none is given.
-        # We can't detect this for columns which may have a legitimate ''
-        # default (string) but we can for others (integer, datetime, boolean,
-        # and the rest).
-        #
-        # Test whether the column has default '', is not null, and is not
-        # a type allowing default ''.
-        def missing_default_forged_as_empty_string?(default)
-          type != :string && !null && default == ''
-        end
 
         def assert_valid_default(default)
           if blob_or_text_column? && default.present?
@@ -106,12 +93,11 @@ module ActiveRecord
 
       ##
       # :singleton-method:
-      # By default, the MysqlAdapter will consider all columns of type <tt>tinyint(1)</tt>
-      # as boolean. If you wish to disable this emulation (which was the default
-      # behavior in versions 0.13.1 and earlier) you can add the following line
+      # By default, the Mysql2Adapter will consider all columns of type <tt>tinyint(1)</tt>
+      # as boolean. If you wish to disable this emulation you can add the following line
       # to your application.rb file:
       #
-      #   ActiveRecord::ConnectionAdapters::Mysql[2]Adapter.emulate_booleans = false
+      #   ActiveRecord::ConnectionAdapters::Mysql2Adapter.emulate_booleans = false
       class_attribute :emulate_booleans
       self.emulate_booleans = true
 
@@ -134,9 +120,7 @@ module ActiveRecord
         time:        { name: "time" },
         date:        { name: "date" },
         binary:      { name: "blob" },
-        blob:        { name: "blob" },
         boolean:     { name: "tinyint", limit: 1 },
-        bigint:      { name: "bigint" },
         json:        { name: "json" },
       }
 
@@ -145,8 +129,7 @@ module ActiveRecord
 
       # FIXME: Make the first parameter more similar for the two adapters
       def initialize(connection, logger, connection_options, config)
-        super(connection, logger)
-        @connection_options, @config = connection_options, config
+        super(connection, logger, config)
         @quoted_column_names, @quoted_table_names = {}, {}
 
         @visitor = Arel::Visitors::MySQL.new self
@@ -226,12 +209,12 @@ module ActiveRecord
         version >= '5.0.0'
       end
 
-      def get_advisory_lock(key, timeout = 0) # :nodoc:
-        select_value("SELECT GET_LOCK('#{key}', #{timeout});").to_s == '1'
+      def get_advisory_lock(lock_name, timeout = 0) # :nodoc:
+        select_value("SELECT GET_LOCK('#{lock_name}', #{timeout});").to_s == '1'
       end
 
-      def release_advisory_lock(key) # :nodoc:
-        select_value("SELECT RELEASE_LOCK('#{key}')").to_s == '1'
+      def release_advisory_lock(lock_name) # :nodoc:
+        select_value("SELECT RELEASE_LOCK('#{lock_name}')").to_s == '1'
       end
 
       def native_database_types
@@ -403,10 +386,10 @@ module ActiveRecord
         log(sql, name) { @connection.query(sql) }
       end
 
-      # MysqlAdapter has to free a result after using it, so we use this method to write
-      # stuff in an abstract way without concerning ourselves about whether it needs to be
-      # explicitly freed or not.
-      def execute_and_free(sql, name = nil) #:nodoc:
+      # Mysql2Adapter doesn't have to free a result after using it, but we use this method
+      # to write stuff in an abstract way without concerning ourselves about whether it
+      # needs to be explicitly freed or not.
+      def execute_and_free(sql, name = nil) # :nodoc:
         yield execute(sql, name)
       end
 
@@ -435,7 +418,7 @@ module ActiveRecord
       # In the simple case, MySQL allows us to place JOINs directly into the UPDATE
       # query. However, this does not allow for LIMIT, OFFSET and ORDER. To support
       # these, we must use a subquery.
-      def join_to_update(update, select) #:nodoc:
+      def join_to_update(update, select, key) # :nodoc:
         if select.limit || select.offset || select.orders.any?
           super
         else
@@ -590,10 +573,8 @@ module ActiveRecord
         sql = "SHOW FULL FIELDS FROM #{quote_table_name(table_name)}"
         execute_and_free(sql, 'SCHEMA') do |result|
           each_hash(result).map do |field|
-            field_name = set_field_encoding(field[:Field])
-            sql_type = field[:Type]
-            type_metadata = fetch_type_metadata(sql_type, field[:Extra])
-            new_column(field_name, field[:Default], type_metadata, field[:Null] == "YES", nil, field[:Collation])
+            type_metadata = fetch_type_metadata(field[:Type], field[:Extra])
+            new_column(field[:Field], field[:Default], type_metadata, field[:Null] == "YES", nil, field[:Collation])
           end
         end
       end
@@ -642,6 +623,7 @@ module ActiveRecord
       # it can be helpful to provide these in a migration's +change+ method so it can be reverted.
       # In that case, +options+ and the block will be used by create_table.
       def drop_table(table_name, options = {})
+        create_table_info_cache.delete(table_name) if create_table_info_cache.key?(table_name)
         execute "DROP#{' TEMPORARY' if options[:temporary]} TABLE#{' IF EXISTS' if options[:if_exists]} #{quote_table_name(table_name)}#{' CASCADE' if options[:force] == :cascade}"
       end
 
@@ -770,16 +752,11 @@ module ActiveRecord
         SQL
       end
 
-      def case_sensitive_modifier(node, table_attribute)
-        node = Arel::Nodes.build_quoted node, table_attribute
-        Arel::Nodes::Bin.new(node)
-      end
-
       def case_sensitive_comparison(table, attribute, column, value)
-        if column.case_sensitive?
-          table[attribute].eq(value)
-        else
+        if value.nil? || column.case_sensitive?
           super
+        else
+          table[attribute].eq(Arel::Nodes::Bin.new(Arel::Nodes::BindParam.new))
         end
       end
 
@@ -787,8 +764,23 @@ module ActiveRecord
         if column.case_sensitive?
           super
         else
-          table[attribute].eq(value)
+          table[attribute].eq(Arel::Nodes::BindParam.new)
         end
+      end
+
+      # In MySQL 5.7.5 and up, ONLY_FULL_GROUP_BY affects handling of queries that use
+      # DISTINCT and ORDER BY. It requires the ORDER BY columns in the select list for
+      # distinct queries, and requires that the ORDER BY include the distinct column.
+      # See https://dev.mysql.com/doc/refman/5.7/en/group-by-handling.html
+      def columns_for_distinct(columns, orders) # :nodoc:
+        order_columns = orders.reject(&:blank?).map { |s|
+          # Convert Arel node to string
+          s = s.to_sql unless s.is_a?(String)
+          # Remove any ASC/DESC modifiers
+          s.gsub(/\s+(?:ASC|DESC)\b/i, '')
+        }.reject(&:blank?).map.with_index { |column, i| "#{column} AS alias_#{i}" }
+
+        [super, *order_columns].join(', ')
       end
 
       def strict_mode?
@@ -970,11 +962,13 @@ module ActiveRecord
         subsubselect = select.clone
         subsubselect.projections = [key]
 
+        # Materialize subquery by adding distinct
+        # to work with MySQL 5.7.6 which sets optimizer_switch='derived_merge=on'
+        subsubselect.distinct unless select.limit || select.offset || select.orders.any?
+
         subselect = Arel::SelectManager.new(select.engine)
         subselect.project Arel.sql(key.name)
-        # Materialized subquery by adding distinct
-        # to work with MySQL 5.7.6 which sets optimizer_switch='derived_merge=on'
-        subselect.from subsubselect.distinct.as('__active_record_temp')
+        subselect.from subsubselect.as('__active_record_temp')
       end
 
       def mariadb?
@@ -1037,13 +1031,16 @@ module ActiveRecord
         end
       end
 
+      def create_table_info_cache # :nodoc:
+        @create_table_info_cache ||= {}
+      end
+
       def create_table_info(table_name) # :nodoc:
-        @create_table_info_cache = {}
-        @create_table_info_cache[table_name] ||= select_one("SHOW CREATE TABLE #{quote_table_name(table_name)}")["Create Table"]
+        create_table_info_cache[table_name] ||= select_one("SHOW CREATE TABLE #{quote_table_name(table_name)}")["Create Table"]
       end
 
       def create_table_definition(name, temporary = false, options = nil, as = nil) # :nodoc:
-        MySQL::TableDefinition.new(native_database_types, name, temporary, options, as)
+        MySQL::TableDefinition.new(name, temporary, options, as)
       end
 
       def integer_to_sql(limit) # :nodoc:
@@ -1106,11 +1103,8 @@ module ActiveRecord
         end
       end
 
-      ActiveRecord::Type.register(:json, MysqlJson, adapter: :mysql)
       ActiveRecord::Type.register(:json, MysqlJson, adapter: :mysql2)
-      ActiveRecord::Type.register(:string, MysqlString, adapter: :mysql)
       ActiveRecord::Type.register(:string, MysqlString, adapter: :mysql2)
-      ActiveRecord::Type.register(:unsigned_integer, Type::UnsignedInteger, adapter: :mysql)
       ActiveRecord::Type.register(:unsigned_integer, Type::UnsignedInteger, adapter: :mysql2)
     end
   end

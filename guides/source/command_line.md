@@ -39,7 +39,7 @@ INFO: You can install the rails gem by typing `gem install rails`, if you don't 
 ```bash
 $ rails new commandsapp
      create
-     create  README.rdoc
+     create  README.md
      create  Rakefile
      create  config.ru
      create  .gitignore
@@ -584,8 +584,8 @@ $ rails new . --git --database=postgresql
       create  tmp/pids
       create  Rakefile
 add 'Rakefile'
-      create  README.rdoc
-add 'README.rdoc'
+      create  README.md
+add 'README.md'
       create  app/controllers/application_controller.rb
 add 'app/controllers/application_controller.rb'
       create  app/helpers/application_helper.rb

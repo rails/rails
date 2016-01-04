@@ -49,7 +49,7 @@ module AbstractController
       # instance methods on that abstract class. Public instance methods of
       # a controller would normally be considered action methods, so methods
       # declared on abstract classes are being removed.
-      # (ActionController::Metal and ActionController::Base are defined as abstract)
+      # (<tt>ActionController::Metal</tt> and ActionController::Base are defined as abstract)
       def internal_methods
         controller = self
 
@@ -80,7 +80,7 @@ module AbstractController
 
       # action_methods are cached and there is sometimes need to refresh
       # them. ::clear_action_methods! allows you to do that, so next time
-      # you run action_methods, they will be recalculated
+      # you run action_methods, they will be recalculated.
       def clear_action_methods!
         @action_methods = nil
       end

@@ -1,3 +1,5 @@
+## Rails 5.0.0.beta1 (December 18, 2015) ##
+
 *   Fixed serializing `:at` option for `assert_enqueued_with`
     and `assert_performed_with`.
 
@@ -26,7 +28,7 @@
 
     *Jean Boussier*
 
-*   Include I18n.locale into job serialization/deserialization and use it around
+*   Include `I18n.locale` into job serialization/deserialization and use it around
     `perform`.
 
     Fixes #20799.

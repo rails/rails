@@ -7,12 +7,13 @@ aliases = {
   "s"  => "server",
   "db" => "dbconsole",
   "r"  => "runner",
-  "t"  => "test",
+  "t"  => "test"
 }
 
 command = ARGV.shift
 command = aliases[command] || command
 
-require 'rails/commands/commands_tasks'
+require 'rails/command'
+require 'rails/commands/dev_cache'
 
-Rails::CommandsTasks.new(ARGV).run_command!(command)
+Rails::Command.run(command, ARGV)

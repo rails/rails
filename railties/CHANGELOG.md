@@ -1,7 +1,57 @@
-*   Generated `Gemfile`s for new applications include a new dependency on
-    [listen](https://github.com/guard/listen) commented out.
+*   Fix using `add_source` with a block after using `gem` in a custom generator.
 
-    *Puneet Agarwal* and *Xavier Noria*
+    *Will Fisher*
+
+## Rails 5.0.0.beta1 (December 18, 2015) ##
+
+*   Newly generated plugins get a `README.md` in Markdown.
+
+    *Yuji Yaginuma*
+
+*   The generated config file for the development environment includes a new
+    config line, commented out, showing how to enable the evented file watcher.
+
+    *Xavier Noria*
+
+*   `config.debug_exception_response_format` configures the format used
+    in responses when errors occur in development mode.
+
+    Set `config.debug_exception_response_format` to render an HTML page with
+    debug info (using the value `:default`) or render debug info preserving
+    the response format (using the value `:api`).
+
+    *Jorge Bejar*
+
+*   Fix setting exit status code for rake test tasks. The exit status code
+    was not set when tests were fired with `rake`. Now, it is being set and it matches
+    behavior of running tests via `rails` command (`rails test`), so no matter if
+    `rake test` or `rails test` command is used the exit code will be set.
+
+    *Arkadiusz Fal*
+
+*   Add Command infrastructure to replace rake.
+
+    Also move `rake dev:cache` to new infrastructure. You'll need to use
+    `rails dev:cache` to toggle development caching from now on.
+
+    *Chuck Callebs*
+
+*   Allow use of minitest-rails gem with Rails test runner.
+
+    Fixes #22455.
+
+    *Chris Kottom*
+
+*   Add `bin/test` script to rails plugin.
+
+    `bin/test` can use the same API as `bin/rails test`.
+
+    *Yuji Yaginuma*
+
+*   Make `static_index` part of the `config.public_file_server` config and
+    call it `public_file_server.index_name`.
+
+    *Yuki Nishijima*
 
 *   Deprecate `serve_static_files` in favor of `public_file_server.enabled`.
 
@@ -151,7 +201,7 @@
 *   Fix STATS_DIRECTORIES already defined warning when running rake from within
     the top level directory of an engine that has a test app.
 
-    Fixes #20510
+    Fixes #20510.
 
     *Ersin Akinci*
 
@@ -199,13 +249,13 @@
     middleware for API apps & generators generates the right files,
     folders and configurations.
 
-    *Santiago Pastorino & Jorge Bejar*
+    *Santiago Pastorino*, *Jorge Bejar*
 
 *   Make generated scaffold functional tests work inside engines.
 
     *Yuji Yaginuma*
 
-*   Generator a `.keep` file in the `tmp` folder by default as many scripts
+*   Generate a `.keep` file in the `tmp` folder by default as many scripts
     assume the existence of this folder and most would fail if it is absent.
 
     See #20299.
@@ -271,7 +321,7 @@
 *   Created rake restart task. Restarts your Rails app by touching the
     `tmp/restart.txt`.
 
-    Fixes #18876.
+    See #18876.
 
     *Hyonjee Joo*
 

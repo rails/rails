@@ -77,6 +77,10 @@ module ActionController #:nodoc:
       config_accessor :log_warning_on_csrf_failure
       self.log_warning_on_csrf_failure = true
 
+      # Controls whether the Origin header is checked in addition to the CSRF token.
+      config_accessor :forgery_protection_origin_check
+      self.forgery_protection_origin_check = false
+
       helper_method :form_authenticity_token
       helper_method :protect_against_forgery?
     end
@@ -98,13 +102,13 @@ module ActionController #:nodoc:
       #
       # Valid Options:
       #
-      # * <tt>:only/:except</tt> - Only apply forgery protection to a subset of actions. Like <tt>only: [ :create, :create_all ]</tt>.
+      # * <tt>:only/:except</tt> - Only apply forgery protection to a subset of actions. For example <tt>only: [ :create, :create_all ]</tt>.
       # * <tt>:if/:unless</tt> - Turn off the forgery protection entirely depending on the passed Proc or method reference.
-      # * <tt>:prepend</tt> - By default, the verification of the authentication token is added to the front of the
-      #   callback chain. If you need to make the verification depend on other callbacks, like authentication methods
-      #   (say cookies vs OAuth), this might not work for you. Pass <tt>prepend: false</tt> to just add the
-      #   verification callback in the position of the protect_from_forgery call. This means any callbacks added
-      #   before are run first.
+      # * <tt>:prepend</tt> - By default, the verification of the authentication token will be added at the position of the
+      #    protect_from_forgery call in your application. This means any callbacks added before are run first. This is useful
+      #    when you want your forgery protection to depend on other callbacks, like authentication methods (Oauth vs Cookie auth).
+      #
+      #    If you need to add verification to the beginning of the callback chain, use <tt>prepend: true</tt>.
       # * <tt>:with</tt> - Set the method to handle unverified request.
       #
       # Valid unverified request handling methods are:
@@ -112,7 +116,7 @@ module ActionController #:nodoc:
       # * <tt>:reset_session</tt> - Resets the session.
       # * <tt>:null_session</tt> - Provides an empty session during request but doesn't reset it completely. Used as default if <tt>:with</tt> option is not specified.
       def protect_from_forgery(options = {})
-        options = options.reverse_merge(prepend: true)
+        options = options.reverse_merge(prepend: false)
 
         self.forgery_protection_strategy = protection_method_class(options[:with] || :null_session)
         self.request_forgery_protection_token ||= :authenticity_token
@@ -257,8 +261,19 @@ module ActionController #:nodoc:
       # * Does the X-CSRF-Token header match the form_authenticity_token
       def verified_request?
         !protect_against_forgery? || request.get? || request.head? ||
-          valid_authenticity_token?(session, form_authenticity_param) ||
-          valid_authenticity_token?(session, request.headers['X-CSRF-Token'])
+          (valid_request_origin? && any_authenticity_token_valid?)
+      end
+
+      # Checks if any of the authenticity tokens from the request are valid.
+      def any_authenticity_token_valid?
+        request_authenticity_tokens.any? do |token|
+          valid_authenticity_token?(session, token)
+        end
+      end
+
+      # Possible authenticity tokens sent in the request.
+      def request_authenticity_tokens
+        [form_authenticity_param, request.x_csrf_token]
       end
 
       # Sets the token value for the current session.
@@ -335,6 +350,17 @@ module ActionController #:nodoc:
       # Checks if the controller allows forgery protection.
       def protect_against_forgery?
         allow_forgery_protection
+      end
+
+      # Checks if the request originated from the same origin by looking at the
+      # Origin header.
+      def valid_request_origin?
+        if forgery_protection_origin_check
+          # We accept blank origin headers because some user agents don't send it.
+          request.origin.nil? || request.origin == request.base_url
+        else
+          true
+        end
       end
   end
 end

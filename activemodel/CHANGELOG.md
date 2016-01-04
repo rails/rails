@@ -1,3 +1,5 @@
+## Rails 5.0.0.beta1 (December 18, 2015) ##
+
 *   Validate multiple contexts on `valid?` and `invalid?` at once.
 
     Example:
@@ -125,5 +127,6 @@
     `ActiveSupport.halt_callback_chains_on_return_false` option, will
     either not work at all or display a deprecation warning.
 
+    *claudiob*
 
 Please check [4-2-stable](https://github.com/rails/rails/blob/4-2-stable/activemodel/CHANGELOG.md) for previous changes.

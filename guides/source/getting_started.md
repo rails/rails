@@ -173,7 +173,7 @@ of the files and folders that Rails created by default:
 |log/|Application log files.|
 |public/|The only folder seen by the world as-is. Contains static files and compiled assets.|
 |Rakefile|This file locates and loads tasks that can be run from the command line. The task definitions are defined throughout the components of Rails. Rather than changing Rakefile, you should add your own tasks by adding files to the lib/tasks directory of your application.|
-|README.rdoc|This is a brief instruction manual for your application. You should edit this file to tell others what your application does, how to set it up, and so on.|
+|README.md|This is a brief instruction manual for your application. You should edit this file to tell others what your application does, how to set it up, and so on.|
 |test/|Unit tests, fixtures, and other test apparatus. These are covered in [Testing Rails Applications](testing.html).|
 |tmp/|Temporary files (like cache and pid files).|
 |vendor/|A place for all third-party code. In a typical Rails application this includes vendored gems.|
@@ -679,7 +679,7 @@ If you look in the `db/migrate/YYYYMMDDHHMMSS_create_articles.rb` file
 (remember, yours will have a slightly different name), here's what you'll find:
 
 ```ruby
-class CreateArticles < ActiveRecord::Migration
+class CreateArticles < ActiveRecord::Migration[5.0]
   def change
     create_table :articles do |t|
       t.string :title
@@ -990,21 +990,22 @@ and restart the web server when a change is made.
 The model file, `app/models/article.rb` is about as simple as it can get:
 
 ```ruby
-class Article < ActiveRecord::Base
+class Article < ApplicationRecord
 end
 ```
 
 There isn't much to this file - but note that the `Article` class inherits from
-`ActiveRecord::Base`. Active Record supplies a great deal of functionality to
-your Rails models for free, including basic database CRUD (Create, Read, Update,
-Destroy) operations, data validation, as well as sophisticated search support
-and the ability to relate multiple models to one another.
+`ApplicationRecord`. `ApplicationRecord` inherits from `ActiveRecord::Base`
+which supplies a great deal of functionality to your Rails models for free,
+including basic database CRUD (Create, Read, Update, Destroy) operations, data
+validation, as well as sophisticated search support and the ability to relate
+multiple models to one another.
 
 Rails includes methods to help you validate the data that you send to models.
 Open the `app/models/article.rb` file and edit it:
 
 ```ruby
-class Article < ActiveRecord::Base
+class Article < ApplicationRecord
   validates :title, presence: true,
                     length: { minimum: 5 }
 end
@@ -1529,7 +1530,7 @@ This command will generate four files:
 First, take a look at `app/models/comment.rb`:
 
 ```ruby
-class Comment < ActiveRecord::Base
+class Comment < ApplicationRecord
   belongs_to :article
 end
 ```
@@ -1542,7 +1543,7 @@ In addition to the model, Rails has also made a migration to create the
 corresponding database table:
 
 ```ruby
-class CreateComments < ActiveRecord::Migration
+class CreateComments < ActiveRecord::Migration[5.0]
   def change
     create_table :comments do |t|
       t.string :commenter
@@ -1587,7 +1588,7 @@ association. You've already seen the line of code inside the `Comment` model
 (app/models/comment.rb) that makes each comment belong to an Article:
 
 ```ruby
-class Comment < ActiveRecord::Base
+class Comment < ApplicationRecord
   belongs_to :article
 end
 ```
@@ -1596,7 +1597,7 @@ You'll need to edit `app/models/article.rb` to add the other side of the
 association:
 
 ```ruby
-class Article < ActiveRecord::Base
+class Article < ApplicationRecord
   has_many :comments
   validates :title, presence: true,
                     length: { minimum: 5 }
@@ -1962,7 +1963,7 @@ you to use the `dependent` option of an association to achieve this. Modify the
 Article model, `app/models/article.rb`, as follows:
 
 ```ruby
-class Article < ActiveRecord::Base
+class Article < ApplicationRecord
   has_many :comments, dependent: :destroy
   validates :title, presence: true,
                     length: { minimum: 5 }

@@ -7,7 +7,7 @@ module ActionDispatch
       attr_reader :req
 
       def setup
-        @req = ActionDispatch::Request.new({})
+        @req = ActionDispatch::Request.empty
       end
 
       def test_create_adds_itself_to_env

@@ -12,4 +12,3 @@ Example:
     rails new ~/Code/Ruby/weblog
 
     This generates a skeletal Rails installation in ~/Code/Ruby/weblog.
-    See the README in the newly created application to get going.

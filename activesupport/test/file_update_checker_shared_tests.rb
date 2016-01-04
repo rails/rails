@@ -21,6 +21,7 @@ module FileUpdateCheckerSharedTests
   end
 
   test 'should not execute the block if no paths are given' do
+    silence_warnings { require 'listen' }
     i = 0
 
     checker = new_checker { i += 1 }

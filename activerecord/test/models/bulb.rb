@@ -1,6 +1,7 @@
 class Bulb < ActiveRecord::Base
   default_scope { where(:name => 'defaulty') }
   belongs_to :car, :touch => true
+  scope :awesome, -> { where(frickinawesome: true) }
 
   attr_reader :scope_after_initialize, :attributes_after_initialize
 
@@ -47,5 +48,11 @@ end
 class FailedBulb < Bulb
   before_destroy do
     throw(:abort)
+  end
+end
+
+class TrickyBulb < Bulb
+  after_create do |record|
+    record.car.bulbs.to_a
   end
 end

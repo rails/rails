@@ -143,6 +143,14 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
     gigabytes(number) * 1024
   end
 
+  def petabytes(number)
+    terabytes(number) * 1024
+  end
+
+  def exabytes(number)
+    petabytes(number) * 1024
+  end
+
   def test_to_s__phone
     assert_equal("555-1234", 5551234.to_s(:phone))
     assert_equal("800-555-1212", 8005551212.to_s(:phone))
@@ -266,7 +274,9 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
     assert_equal '1.18 MB',   1234567.to_s(:human_size)
     assert_equal '1.15 GB',   1234567890.to_s(:human_size)
     assert_equal '1.12 TB',   1234567890123.to_s(:human_size)
-    assert_equal '1030 TB',   terabytes(1026).to_s(:human_size)
+    assert_equal '1.1 PB',    1234567890123456.to_s(:human_size)
+    assert_equal '1.07 EB',   1234567890123456789.to_s(:human_size)
+    assert_equal '1030 EB',   exabytes(1026).to_s(:human_size)
     assert_equal '444 KB',    kilobytes(444).to_s(:human_size)
     assert_equal '1020 MB',   megabytes(1023).to_s(:human_size)
     assert_equal '3 TB',      terabytes(3).to_s(:human_size)
@@ -289,6 +299,8 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
       assert_equal '1.23 MB',    1234567.to_s(:human_size, :prefix => :si)
       assert_equal '1.23 GB',    1234567890.to_s(:human_size, :prefix => :si)
       assert_equal '1.23 TB',    1234567890123.to_s(:human_size, :prefix => :si)
+      assert_equal '1.23 PB',    1234567890123456.to_s(:human_size, :prefix => :si)
+      assert_equal '1.23 EB',    1234567890123456789.to_s(:human_size, :prefix => :si)
     end
   end
 
@@ -386,6 +398,32 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
 
     assert_equal BigDecimal, BigDecimal("1000010").class
     assert_equal '1 Million', BigDecimal("1000010").to_s(:human)
+  end
+
+  def test_to_formatted_s_is_deprecated
+    assert_deprecated do
+      5551234.to_formatted_s(:phone)
+    end
+  end
+
+  def test_to_s_with_invalid_formatter
+    assert_equal '123', 123.to_s(:invalid)
+    assert_equal '2.5', 2.5.to_s(:invalid)
+    assert_equal '100000000000000000000', (100**10).to_s(:invalid)
+    assert_equal '1000010.0', BigDecimal("1000010").to_s(:invalid)
+  end
+
+  def test_default_to_s
+    assert_equal '123', 123.to_s
+    assert_equal '1111011', 123.to_s(2)
+
+    assert_equal '2.5', 2.5.to_s
+
+    assert_equal '100000000000000000000', (100**10).to_s
+    assert_equal '1010110101111000111010111100010110101100011000100000000000000000000', (100**10).to_s(2)
+
+    assert_equal '1000010.0', BigDecimal("1000010").to_s
+    assert_equal '10000 10.0', BigDecimal("1000010").to_s('5F')
   end
 
   def test_in_milliseconds

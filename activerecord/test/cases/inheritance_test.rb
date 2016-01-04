@@ -478,4 +478,49 @@ class InheritanceComputeTypeTest < ActiveRecord::TestCase
     product = Shop::Product.new(:type => phone)
     assert product.save
   end
+
+  def test_inheritance_new_with_subclass_as_default
+    original_type = Company.columns_hash["type"].default
+    ActiveRecord::Base.connection.change_column_default :companies, :type, 'Firm'
+    Company.reset_column_information
+
+    firm = Company.new # without arguments
+    assert_equal 'Firm', firm.type
+    assert_instance_of Firm, firm
+
+    firm = Company.new(firm_name: 'Shri Hans Plastic') # with arguments
+    assert_equal 'Firm', firm.type
+    assert_instance_of Firm, firm
+
+    firm = Company.new(type: 'Client') # overwrite the default type
+    assert_equal 'Client', firm.type
+    assert_instance_of Client, firm
+  ensure
+    ActiveRecord::Base.connection.change_column_default :companies, :type, original_type
+    Company.reset_column_information
+  end
+end
+
+class InheritanceAttributeTest < ActiveRecord::TestCase
+
+  class Company < ActiveRecord::Base
+    self.table_name = 'companies'
+    attribute :type, :string, default: "InheritanceAttributeTest::Startup"
+  end
+
+  class Startup < Company
+  end
+
+  class Empire < Company
+  end
+
+  def test_inheritance_new_with_subclass_as_default
+    startup = Company.new # without arguments
+    assert_equal 'InheritanceAttributeTest::Startup', startup.type
+    assert_instance_of Startup, startup
+
+    empire = Company.new(type: 'InheritanceAttributeTest::Empire') # without arguments
+    assert_equal 'InheritanceAttributeTest::Empire', empire.type
+    assert_instance_of Empire, empire
+  end
 end

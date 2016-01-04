@@ -36,8 +36,8 @@ module ActionDispatch
         HTTP_ACCEPT HTTP_ACCEPT_CHARSET HTTP_ACCEPT_ENCODING
         HTTP_ACCEPT_LANGUAGE HTTP_CACHE_CONTROL HTTP_FROM
         HTTP_NEGOTIATE HTTP_PRAGMA HTTP_CLIENT_IP
-        HTTP_X_FORWARDED_FOR HTTP_VERSION
-        HTTP_X_REQUEST_ID HTTP_X_FORWARDED_HOST
+        HTTP_X_FORWARDED_FOR HTTP_ORIGIN HTTP_VERSION
+        HTTP_X_CSRF_TOKEN HTTP_X_REQUEST_ID HTTP_X_FORWARDED_HOST
         SERVER_ADDR
         ].freeze
 
@@ -49,6 +49,10 @@ module ActionDispatch
       METHOD
     end
 
+    def self.empty
+      new({})
+    end
+
     def initialize(env)
       super
       @method            = nil
@@ -57,6 +61,9 @@ module ActionDispatch
       @original_fullpath = nil
       @fullpath          = nil
       @ip                = nil
+    end
+
+    def commit_cookie_jar! # :nodoc:
     end
 
     def check_path_parameters!
@@ -306,10 +313,16 @@ module ActionDispatch
       end
     end
 
-    # Returns true if the request's content MIME type is
-    # +application/x-www-form-urlencoded+ or +multipart/form-data+.
+    # Determine whether the request body contains form-data by checking
+    # the request Content-Type for one of the media-types:
+    # "application/x-www-form-urlencoded" or "multipart/form-data". The
+    # list of form-data media types can be modified through the
+    # +FORM_DATA_MEDIA_TYPES+ array.
+    #
+    # A request body is not assumed to contain form-data when no
+    # Content-Type header is provided and the request_method is POST.
     def form_data?
-      FORM_DATA_MEDIA_TYPES.include?(content_mime_type.to_s)
+      FORM_DATA_MEDIA_TYPES.include?(media_type)
     end
 
     def body_stream #:nodoc:

@@ -27,9 +27,11 @@ module ActionDispatch
       #   # Asserts that the response code was status code 401 (unauthorized)
       #   assert_response 401
       def assert_response(type, message = nil)
+        message ||= generate_response_message(type)
+
         if Symbol === type
           if [:success, :missing, :redirect, :error].include?(type)
-            assert_predicate @response, RESPONSE_PREDICATES[type], message
+            assert @response.send(RESPONSE_PREDICATES[type]), message
           else
             code = Rack::Utils::SYMBOL_TO_STATUS_CODE[type]
             if code.nil?
@@ -81,6 +83,17 @@ module ActionDispatch
             handle = @controller || ActionController::Redirecting
             handle._compute_redirect_to_location(@request, fragment)
           end
+        end
+
+        def generate_response_message(type, code = @response.response_code)
+          "Expected response to be a <#{type}>, but was a <#{code}>"
+          .concat location_if_redirected
+        end
+
+        def location_if_redirected
+          return '' unless @response.redirection? && @response.location.present?
+          location = normalize_argument_to_redirection(@response.location)
+          " redirect to <#{location}>"
         end
     end
   end

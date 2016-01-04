@@ -23,6 +23,7 @@ class Build
     'ar'       => 'activerecord',
     'av'       => 'actionview',
     'aj'       => 'activejob',
+    'ac'       => 'actioncable',
     'guides'   => 'guides'
   }
 
@@ -59,7 +60,14 @@ class Build
 
   def tasks
     if activerecord?
-      ['db:mysql:rebuild', "#{adapter}:#{'isolated_' if isolated?}test"]
+      tasks = ["#{adapter}:#{'isolated_' if isolated?}test"]
+      case adapter
+      when 'mysql2'
+        tasks.unshift 'db:mysql:rebuild'
+      when 'postgresql'
+        tasks.unshift 'db:postgresql:rebuild'
+      end
+      tasks
     else
       ["test", ('isolated' if isolated?), ('integration' if integration?)].compact.join(":")
     end
@@ -70,6 +78,10 @@ class Build
     key << adapter if activerecord?
     key << 'isolated' if isolated?
     key.join(':')
+  end
+
+  def activesupport?
+    gem == 'activesupport'
   end
 
   def activerecord?
@@ -101,9 +113,20 @@ class Build
     tasks.each do |task|
       cmd = "bundle exec rake #{task}"
       puts "Running command: #{cmd}"
-      return false unless system(cmd)
+      return false unless system(env, cmd)
     end
     true
+  end
+
+  def env
+    if activesupport? && !isolated?
+      # There is a known issue with the listen tests that casuses files to be
+      # incorrectly GC'ed even when they are still in-use. The current is to
+      # only run them in isolation to avoid randomly failing our test suite.
+      { 'LISTEN' => '0' }
+    else
+      {}
+    end
   end
 
   def run_bug_report_templates
@@ -124,6 +147,7 @@ ENV['GEM'].split(',').each do |gem|
   [false, true].each do |isolated|
     next if ENV['TRAVIS_PULL_REQUEST'] && ENV['TRAVIS_PULL_REQUEST'] != 'false' && isolated
     next if gem == 'railties' && isolated
+    next if gem == 'ac' && isolated
     next if gem == 'aj:integration' && isolated
     next if gem == 'guides' && isolated
 

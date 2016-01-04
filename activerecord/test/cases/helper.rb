@@ -47,11 +47,11 @@ def in_memory_db?
 end
 
 def subsecond_precision_supported?
-  !current_adapter?(:MysqlAdapter, :Mysql2Adapter) || ActiveRecord::Base.connection.version >= '5.6.4'
+  ActiveRecord::Base.connection.supports_datetime_with_precision?
 end
 
 def mysql_enforcing_gtid_consistency?
-  current_adapter?(:MysqlAdapter, :Mysql2Adapter) && 'ON' == ActiveRecord::Base.connection.show_variable('enforce_gtid_consistency')
+  current_adapter?(:Mysql2Adapter) && 'ON' == ActiveRecord::Base.connection.show_variable('enforce_gtid_consistency')
 end
 
 def supports_savepoints?

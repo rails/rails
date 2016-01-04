@@ -1,5 +1,6 @@
 require 'abstract_unit'
 require 'active_support/time'
+require 'active_support/core_ext/numeric'
 require 'active_support/core_ext/range'
 
 class RangeTest < ActiveSupport::TestCase
@@ -11,6 +12,11 @@ class RangeTest < ActiveSupport::TestCase
   def test_to_s_from_times
     date_range = Time.utc(2005, 12, 10, 15, 30)..Time.utc(2005, 12, 10, 17, 30)
     assert_equal "BETWEEN '2005-12-10 15:30:00' AND '2005-12-10 17:30:00'", date_range.to_s(:db)
+  end
+
+  def test_to_s_with_numeric
+    number_range = (1..100)
+    assert_equal "BETWEEN '1' AND '100'", number_range.to_s(:db)
   end
 
   def test_date_range

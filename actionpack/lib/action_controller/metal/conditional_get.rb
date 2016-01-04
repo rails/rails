@@ -66,7 +66,7 @@ module ActionController
     #
     # You can also pass an object that responds to +maximum+, such as a
     # collection of active records. In this case +last_modified+ will be set by
-    # calling +maximum(:updated_at)+ on the collection (the timestamp of the
+    # calling <tt>maximum(:updated_at)</tt> on the collection (the timestamp of the
     # most recently updated record) and the +etag+ by passing the object itself.
     #
     #   def index
@@ -228,7 +228,7 @@ module ActionController
       expires_in 100.years, public: public
 
       yield if stale?(etag: "#{version}-#{request.fullpath}",
-                      last_modified: Time.parse('2011-01-01').utc,
+                      last_modified: Time.new(2011, 1, 1).utc,
                       public: public)
     end
 

@@ -24,5 +24,5 @@ Gem::Specification.new do |s|
   s.add_dependency 'activesupport', version
   s.add_dependency 'activemodel',   version
 
-  s.add_dependency 'arel', '7.0.0.alpha'
+  s.add_dependency 'arel', '~> 7.0'
 end

@@ -39,6 +39,10 @@ module ActiveModel
           return
         end
 
+        unless raw_value.is_a?(Numeric)
+          value = parse_raw_value_as_a_number(raw_value)
+        end
+
         options.slice(*CHECKS.keys).each do |option, option_value|
           case option
           when :odd, :even
@@ -63,10 +67,13 @@ module ActiveModel
     protected
 
       def is_number?(raw_value)
-        parsed_value = Kernel.Float(raw_value) if raw_value !~ /\A0[xX]/
-        !parsed_value.nil?
+        !parse_raw_value_as_a_number(raw_value).nil?
       rescue ArgumentError, TypeError
         false
+      end
+
+      def parse_raw_value_as_a_number(raw_value)
+        Kernel.Float(raw_value) if raw_value !~ /\A0[xX]/
       end
 
       def is_integer?(raw_value)

@@ -104,12 +104,12 @@ class NamespacedModelGeneratorTest < NamespacedGeneratorTestCase
 
   def test_migration
     run_generator
-    assert_migration "db/migrate/create_test_app_accounts.rb", /create_table :test_app_accounts/, /class CreateTestAppAccounts < ActiveRecord::Migration/
+    assert_migration "db/migrate/create_test_app_accounts.rb", /create_table :test_app_accounts/, /class CreateTestAppAccounts < ActiveRecord::Migration\[[0-9.]+\]/
   end
 
   def test_migration_with_namespace
     run_generator ["Gallery::Image"]
-    assert_migration "db/migrate/create_test_app_gallery_images", /class CreateTestAppGalleryImages < ActiveRecord::Migration/
+    assert_migration "db/migrate/create_test_app_gallery_images", /class CreateTestAppGalleryImages < ActiveRecord::Migration\[[0-9.]+\]/
     assert_no_migration "db/migrate/create_test_app_images"
   end
 
@@ -117,7 +117,7 @@ class NamespacedModelGeneratorTest < NamespacedGeneratorTestCase
     run_generator ["Admin::Gallery::Image"]
     assert_no_migration "db/migrate/create_images"
     assert_no_migration "db/migrate/create_gallery_images"
-    assert_migration "db/migrate/create_test_app_admin_gallery_images", /class CreateTestAppAdminGalleryImages < ActiveRecord::Migration/
+    assert_migration "db/migrate/create_test_app_admin_gallery_images", /class CreateTestAppAdminGalleryImages < ActiveRecord::Migration\[[0-9.]+\]/
     assert_migration "db/migrate/create_test_app_admin_gallery_images", /create_table :test_app_admin_gallery_images/
   end
 
@@ -127,7 +127,7 @@ class NamespacedModelGeneratorTest < NamespacedGeneratorTestCase
     assert_no_migration "db/migrate/create_images"
     assert_no_migration "db/migrate/create_gallery_images"
     assert_no_migration "db/migrate/create_test_app_admin_gallery_images"
-    assert_migration "db/migrate/create_test_app_admin_gallery_image", /class CreateTestAppAdminGalleryImage < ActiveRecord::Migration/
+    assert_migration "db/migrate/create_test_app_admin_gallery_image", /class CreateTestAppAdminGalleryImage < ActiveRecord::Migration\[[0-9.]+\]/
     assert_migration "db/migrate/create_test_app_admin_gallery_image", /create_table :test_app_admin_gallery_image/
   ensure
     ActiveRecord::Base.pluralize_table_names = true
@@ -218,7 +218,7 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
                 /class ProductLinesController < ApplicationController/
 
     assert_file "test/controllers/test_app/product_lines_controller_test.rb",
-                /module TestApp\n  class ProductLinesControllerTest < ActionController::TestCase/
+                /module TestApp\n  class ProductLinesControllerTest < ActionDispatch::IntegrationTest/
 
     # Views
     %w(index edit new show _form).each do |view|
@@ -285,7 +285,7 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
     end
 
     assert_file "test/controllers/test_app/admin/roles_controller_test.rb",
-                /module TestApp\n  class Admin::RolesControllerTest < ActionController::TestCase/
+                /module TestApp\n  class Admin::RolesControllerTest < ActionDispatch::IntegrationTest/
 
     # Views
     %w(index edit new show _form).each do |view|
@@ -352,7 +352,7 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
     end
 
     assert_file "test/controllers/test_app/admin/user/special/roles_controller_test.rb",
-                /module TestApp\n  class Admin::User::Special::RolesControllerTest < ActionController::TestCase/
+                /module TestApp\n  class Admin::User::Special::RolesControllerTest < ActionDispatch::IntegrationTest/
 
     # Views
     %w(index edit new show _form).each do |view|
@@ -418,6 +418,6 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
       assert_match(%r(require_dependency "test_app/application_controller"), content)
     end
     assert_file "test/controllers/test_app/admin/roles_controller_test.rb",
-                /module TestApp\n  class Admin::RolesControllerTest < ActionController::TestCase/
+                /module TestApp\n  class Admin::RolesControllerTest < ActionDispatch::IntegrationTest/
   end
 end

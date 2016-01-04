@@ -10,7 +10,7 @@ outside of Rails.
 
 The latest version of Active Support can be installed with RubyGems:
 
-  % gem install activesupport
+  $ gem install activesupport
 
 Source code can be downloaded as part of the Rails project on GitHub:
 
@@ -37,4 +37,3 @@ Bug reports can be filed for the Ruby on Rails project here:
 Feature requests should be discussed on the rails-core mailing list here:
 
 * https://groups.google.com/forum/?fromgroups#!forum/rubyonrails-core
-

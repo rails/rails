@@ -3,6 +3,7 @@ require "active_record/relation/query_attribute"
 require "active_record/relation/where_clause"
 require "active_record/relation/where_clause_factory"
 require 'active_model/forbidden_attributes_protection'
+require 'active_support/core_ext/string/filters'
 
 module ActiveRecord
   module QueryMethods
@@ -13,6 +14,8 @@ module ActiveRecord
     # WhereChain objects act as placeholder for queries in which #where does not have any parameter.
     # In this case, #where must be chained with #not to return a new relation.
     class WhereChain
+      include ActiveModel::ForbiddenAttributesProtection
+
       def initialize(scope)
         @scope = scope
       end
@@ -41,6 +44,8 @@ module ActiveRecord
       #    User.where.not(name: "Jon", role: "admin")
       #    # SELECT * FROM users WHERE name != 'Jon' AND role != 'admin'
       def not(opts, *rest)
+        opts = sanitize_forbidden_attributes(opts)
+
         where_clause = @scope.send(:where_clause_factory).build(opts, rest)
 
         @scope.references!(PredicateBuilder.references(opts)) if Hash === opts
@@ -93,7 +98,22 @@ module ActiveRecord
     end
 
     def bound_attributes
-      from_clause.binds + arel.bind_values + where_clause.binds + having_clause.binds
+      result = from_clause.binds + arel.bind_values + where_clause.binds + having_clause.binds
+      if limit_value && !string_containing_comma?(limit_value)
+        result << Attribute.with_cast_value(
+          "LIMIT".freeze,
+          connection.sanitize_limit(limit_value),
+          Type::Value.new,
+        )
+      end
+      if offset_value
+        result << Attribute.with_cast_value(
+          "OFFSET".freeze,
+          offset_value.to_i,
+          Type::Value.new,
+        )
+      end
+      result
     end
 
     def create_with_value # :nodoc:
@@ -407,10 +427,30 @@ module ActiveRecord
       self
     end
 
-    # Performs a joins on +args+:
+    # Performs a joins on +args+. The given symbol(s) should match the name of
+    # the association(s).
     #
     #   User.joins(:posts)
-    #   # SELECT "users".* FROM "users" INNER JOIN "posts" ON "posts"."user_id" = "users"."id"
+    #   # SELECT "users".*
+    #   # FROM "users"
+    #   # INNER JOIN "posts" ON "posts"."user_id" = "users"."id"
+    #
+    # Multiple joins:
+    #
+    #   User.joins(:posts, :account)
+    #   # SELECT "users".*
+    #   # FROM "users"
+    #   # INNER JOIN "posts" ON "posts"."user_id" = "users"."id"
+    #   # INNER JOIN "accounts" ON "accounts"."id" = "users"."account_id"
+    #
+    # Nested joins:
+    #
+    #   User.joins(posts: [:comments])
+    #   # SELECT "users".*
+    #   # FROM "users"
+    #   # INNER JOIN "posts" ON "posts"."user_id" = "users"."id"
+    #   # INNER JOIN "comments" "comments_posts"
+    #   #   ON "comments_posts"."post_id" = "posts"."id"
     #
     # You can use strings in order to customize your joins:
     #
@@ -609,8 +649,8 @@ module ActiveRecord
     # they must differ only by #where (if no #group has been defined) or #having (if a #group is
     # present). Neither relation may have a #limit, #offset, or #distinct set.
     #
-    #    Post.where("id = 1").or(Post.where("id = 2"))
-    #    # SELECT `posts`.* FROM `posts`  WHERE (('id = 1' OR 'id = 2'))
+    #    Post.where("id = 1").or(Post.where("author_id = 3"))
+    #    # SELECT `posts`.* FROM `posts`  WHERE (('id = 1' OR 'author_id = 3'))
     #
     def or(other)
       spawn.or!(other)
@@ -653,6 +693,13 @@ module ActiveRecord
     end
 
     def limit!(value) # :nodoc:
+      if string_containing_comma?(value)
+        # Remove `string_containing_comma?` when removing this deprecation
+        ActiveSupport::Deprecation.warn(<<-WARNING.squish)
+          Passing a string to limit in the form "1,2" is deprecated and will be
+          removed in Rails 5.1. Please call `offset` explicitly instead.
+        WARNING
+      end
       self.limit_value = value
       self
     end
@@ -903,8 +950,14 @@ module ActiveRecord
 
       arel.where(where_clause.ast) unless where_clause.empty?
       arel.having(having_clause.ast) unless having_clause.empty?
-      arel.take(connection.sanitize_limit(limit_value)) if limit_value
-      arel.skip(offset_value.to_i) if offset_value
+      if limit_value
+        if string_containing_comma?(limit_value)
+          arel.take(connection.sanitize_limit(limit_value))
+        else
+          arel.take(Arel::Nodes::BindParam.new)
+        end
+      end
+      arel.skip(Arel::Nodes::BindParam.new) if offset_value
       arel.group(*arel_columns(group_values.uniq.reject(&:blank?))) unless group_values.empty?
 
       build_order(arel)
@@ -1152,6 +1205,10 @@ module ActiveRecord
 
     def new_from_clause
       Relation::FromClause.empty
+    end
+
+    def string_containing_comma?(value)
+      ::String === value && value.include?(",")
     end
   end
 end

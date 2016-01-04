@@ -5,29 +5,25 @@ gemspec
 # We need a newish Rake since Active Job sets its test tasks' descriptions.
 gem 'rake', '>= 10.3'
 
-# Active Job depends on URI::GID::MissingModelIDError, which isn't released yet.
-gem 'globalid', github: 'rails/globalid', branch: 'master'
-gem 'rack', github: 'rack/rack', branch: 'master'
-
 # This needs to be with require false to ensure correct loading order, as has to
 # be loaded after loading the test library.
 gem 'mocha', '~> 0.14', require: false
 
 gem 'rack-cache', '~> 1.2'
-gem 'jquery-rails', github: 'rails/jquery-rails', branch: 'master'
+gem 'jquery-rails'
 gem 'coffee-rails', '~> 4.1.0'
-gem 'turbolinks', github: 'rails/turbolinks', branch: 'master'
-gem 'arel', github: 'rails/arel', branch: 'master'
-gem 'mail', github: 'mikel/mail', branch: 'master'
-
-gem 'sprockets', '~> 4.0', github: 'rails/sprockets', branch: 'master'
-gem 'sprockets-rails', '~> 3.0.0.beta3', github: 'rails/sprockets-rails', branch: 'master'
-gem 'sass-rails', github: 'rails/sass-rails', branch: 'master'
+gem 'turbolinks'
 
 # require: false so bcrypt is loaded only when has_secure_password is used.
 # This is to avoid Active Model (and by extension the entire framework)
 # being dependent on a binary library.
-gem 'bcrypt', '~> 3.1.10', require: false
+platforms :mingw, :x64_mingw, :mswin, :mswin64 do
+  gem 'bcrypt-ruby', '~> 3.0.0', require: false
+end
+
+platforms :ruby, :jruby, :rbx do
+  gem 'bcrypt', '~> 3.1.10', require: false
+end
 
 # This needs to be with require false to avoid it being automatically loaded by
 # sprockets.
@@ -45,14 +41,14 @@ end
 
 # Active Support.
 gem 'dalli', '>= 2.2.1'
-gem 'listen', '~> 3.0.4'
+gem 'listen', '~> 3.0.5', require: false
 
 # Active Job.
 group :job do
   gem 'resque', require: false
   gem 'resque-scheduler', require: false
   gem 'sidekiq', require: false
-  gem 'sucker_punch', require: false
+  gem 'sucker_punch', '< 2.0', require: false
   gem 'delayed_job', require: false
   gem 'queue_classic', github: "QueueClassic/queue_classic", branch: 'master', require: false, platforms: :ruby
   gem 'sneakers', require: false
@@ -62,6 +58,11 @@ group :job do
   gem 'qu-redis', require: false
   gem 'delayed_job_active_record', require: false
   gem 'sequel', require: false
+end
+
+# Action Cable
+group :cable do
+  gem 'puma', require: false
 end
 
 # Add your own local bundler stuff.
@@ -80,8 +81,8 @@ group :test do
   gem 'benchmark-ips'
 end
 
-platforms :ruby do
-  gem 'nokogiri', '>= 1.6.7.rc3'
+platforms :ruby, :mswin, :mswin64, :mingw, :x64_mingw do
+  gem 'nokogiri', '>= 1.6.7.1'
 
   # Needed for compiling the ActionDispatch::Journey parser.
   gem 'racc', '>=1.4.6', require: false
@@ -91,7 +92,6 @@ platforms :ruby do
 
   group :db do
     gem 'pg', '>= 0.18.0'
-    gem 'mysql', '>= 2.9.0'
     gem 'mysql2', '>= 0.4.0'
   end
 end

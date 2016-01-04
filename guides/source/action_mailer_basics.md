@@ -170,7 +170,7 @@ First, let's create a simple `User` scaffold:
 
 ```bash
 $ bin/rails generate scaffold user name email login
-$ bin/rake db:migrate
+$ bin/rails db:migrate
 ```
 
 Now that we have a user model to play with, we will just edit the

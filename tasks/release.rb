@@ -1,4 +1,4 @@
-FRAMEWORKS = %w( activesupport activemodel activerecord actionview actionpack activejob actionmailer railties )
+FRAMEWORKS = %w( activesupport activemodel activerecord actionview actionpack activejob actionmailer actioncable railties )
 
 root    = File.expand_path('../../', __FILE__)
 version = File.read("#{root}/RAILS_VERSION").strip
@@ -56,8 +56,6 @@ directory "pkg"
     task :install => :build do
       sh "gem install #{gem}"
     end
-
-    task :prep_release => [:ensure_clean_state, :build]
 
     task :push => :build do
       sh "gem push #{gem}"
@@ -138,6 +136,8 @@ namespace :all do
     sh "git tag -m '#{tag} release' #{tag}"
     sh "git push --tags"
   end
+
+  task :prep_release => %w(ensure_clean_state build)
 
   task :release => %w(ensure_clean_state build bundle commit tag push)
 end

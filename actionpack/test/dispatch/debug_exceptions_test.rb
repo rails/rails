@@ -75,6 +75,13 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     end
   end
 
+  class BoomerAPI < Boomer
+    def call(env)
+      env['action_dispatch.show_detailed_exceptions'] = @detailed
+      raise "puke!"
+    end
+  end
+
   RoutesApp = Struct.new(:routes).new(SharedTestRoutes)
   ProductionApp  = ActionDispatch::DebugExceptions.new(Boomer.new(false), RoutesApp)
   DevelopmentApp = ActionDispatch::DebugExceptions.new(Boomer.new(true), RoutesApp)
@@ -166,6 +173,14 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     assert_equal "text/plain", response.content_type
     assert_match(/RuntimeError\npuke/, body)
 
+    Rails.stub :root, Pathname.new('.') do
+      get "/", headers: xhr_request_env
+
+      assert_response 500
+      assert_match 'Extracted source (around line #', body
+      assert_select 'pre', { count: 0 }, body
+    end
+
     get "/not_found", headers: xhr_request_env
     assert_response 404
     assert_no_match(/<body>/, body)
@@ -195,6 +210,68 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     assert_no_match(/<body>/, body)
     assert_equal "text/plain", response.content_type
     assert_match(/ActionController::ParameterMissing/, body)
+  end
+
+  test "rescue with json error for API request" do
+    @app = ActionDispatch::DebugExceptions.new(Boomer.new(true), RoutesApp, :api)
+
+    get "/", headers: { 'action_dispatch.show_exceptions' => true }
+    assert_response 500
+    assert_no_match(/<header>/, body)
+    assert_no_match(/<body>/, body)
+    assert_equal "application/json", response.content_type
+    assert_match(/RuntimeError: puke/, body)
+
+    get "/not_found", headers: { 'action_dispatch.show_exceptions' => true }
+    assert_response 404
+    assert_no_match(/<body>/, body)
+    assert_equal "application/json", response.content_type
+    assert_match(/#{AbstractController::ActionNotFound.name}/, body)
+
+    get "/method_not_allowed", headers: { 'action_dispatch.show_exceptions' => true }
+    assert_response 405
+    assert_no_match(/<body>/, body)
+    assert_equal "application/json", response.content_type
+    assert_match(/ActionController::MethodNotAllowed/, body)
+
+    get "/unknown_http_method", headers: { 'action_dispatch.show_exceptions' => true }
+    assert_response 405
+    assert_no_match(/<body>/, body)
+    assert_equal "application/json", response.content_type
+    assert_match(/ActionController::UnknownHttpMethod/, body)
+
+    get "/bad_request", headers: { 'action_dispatch.show_exceptions' => true }
+    assert_response 400
+    assert_no_match(/<body>/, body)
+    assert_equal "application/json", response.content_type
+    assert_match(/ActionController::BadRequest/, body)
+
+    get "/parameter_missing", headers: { 'action_dispatch.show_exceptions' => true }
+    assert_response 400
+    assert_no_match(/<body>/, body)
+    assert_equal "application/json", response.content_type
+    assert_match(/ActionController::ParameterMissing/, body)
+  end
+
+  test "rescue with json on API request returns only allowed formats or json as a fallback" do
+    @app = ActionDispatch::DebugExceptions.new(Boomer.new(true), RoutesApp, :api)
+
+    get "/index.json", headers: { 'action_dispatch.show_exceptions' => true }
+    assert_response 500
+    assert_equal "application/json", response.content_type
+    assert_match(/RuntimeError: puke/, body)
+
+    get "/index.html", headers: { 'action_dispatch.show_exceptions' => true }
+    assert_response 500
+    assert_no_match(/<header>/, body)
+    assert_no_match(/<body>/, body)
+    assert_equal "application/json", response.content_type
+    assert_match(/RuntimeError: puke/, body)
+
+    get "/index.xml", headers: { 'action_dispatch.show_exceptions' => true }
+    assert_response 500
+    assert_equal "application/xml", response.content_type
+    assert_match(/RuntimeError: puke/, body)
   end
 
   test "does not show filtered parameters" do

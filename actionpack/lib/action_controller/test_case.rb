@@ -7,6 +7,9 @@ require 'action_controller/template_assertions'
 require 'rails-dom-testing'
 
 module ActionController
+  # :stopdoc:
+  # ActionController::TestCase will be deprecated and moved to a gem in Rails 5.1.
+  # Please use ActionDispatch::IntegrationTest going forward.
   class TestRequest < ActionDispatch::TestRequest #:nodoc:
     DEFAULT_ENV = ActionDispatch::TestRequest::DEFAULT_ENV.dup
     DEFAULT_ENV.delete 'PATH_INFO'
@@ -658,4 +661,5 @@ module ActionController
 
     include Behavior
   end
+  # :startdoc:
 end

@@ -54,8 +54,10 @@ class PostgresqlActiveSchemaTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_remove_index
-    # remove_index calls index_name_exists? which can't work since execute is stubbed
-    ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.send(:define_method, :index_name_exists?) { |*| true }
+    # remove_index calls index_name_for_remove which can't work since execute is stubbed
+    ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.send(:define_method, :index_name_for_remove) do |*|
+      'index_people_on_last_name'
+    end
 
     expected = %(DROP INDEX CONCURRENTLY "index_people_on_last_name")
     assert_equal expected, remove_index(:people, name: "index_people_on_last_name", algorithm: :concurrently)
@@ -64,7 +66,7 @@ class PostgresqlActiveSchemaTest < ActiveRecord::PostgreSQLTestCase
       add_index(:people, :last_name, algorithm: :copy)
     end
 
-    ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.send :remove_method, :index_name_exists?
+    ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.send :remove_method, :index_name_for_remove
   end
 
   private

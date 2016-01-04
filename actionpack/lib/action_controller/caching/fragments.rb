@@ -14,12 +14,57 @@ module ActionController
     #
     #   expire_fragment('name_of_cache')
     module Fragments
+      extend ActiveSupport::Concern
+
+      included do
+        if respond_to?(:class_attribute)
+          class_attribute :fragment_cache_keys
+        else
+          mattr_writer :fragment_cache_keys
+        end
+
+        self.fragment_cache_keys = []
+
+        helper_method :fragment_cache_key if respond_to?(:helper_method)
+      end
+
+      module ClassMethods
+        # Allows you to specify controller-wide key prefixes for
+        # cache fragments. Pass either a constant +value+, or a block
+        # which computes a value each time a cache key is generated.
+        #
+        # For example, you may want to prefix all fragment cache keys
+        # with a global version identifier, so you can easily
+        # invalidate all caches.
+        #
+        #   class ApplicationController
+        #     fragment_cache_key "v1"
+        #   end
+        #
+        # When it's time to invalidate all fragments, simply change
+        # the string constant. Or, progressively roll out the cache
+        # invalidation using a computed value:
+        #
+        #   class ApplicationController
+        #     fragment_cache_key do
+        #       @account.id.odd? ? "v1" : "v2"
+        #     end
+        #   end
+        def fragment_cache_key(value = nil, &key)
+          self.fragment_cache_keys += [key || ->{ value }]
+        end
+      end
+
       # Given a key (as described in +expire_fragment+), returns
       # a key suitable for use in reading, writing, or expiring a
-      # cached fragment. All keys are prefixed with <tt>views/</tt> and uses
-      # ActiveSupport::Cache.expand_cache_key for the expansion.
+      # cached fragment. All keys begin with <tt>views/</tt>,
+      # followed by any controller-wide key prefix values, ending
+      # with the specified +key+ value. The key is expanded using
+      # ActiveSupport::Cache.expand_cache_key.
       def fragment_cache_key(key)
-        ActiveSupport::Cache.expand_cache_key(key.is_a?(Hash) ? url_for(key).split("://").last : key, :views)
+        head = self.class.fragment_cache_keys.map { |k| instance_exec(&k) }
+        tail = key.is_a?(Hash) ? url_for(key).split("://").last : key
+        ActiveSupport::Cache.expand_cache_key([*head, *tail], :views)
       end
 
       # Writes +content+ to the location signified by

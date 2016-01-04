@@ -52,6 +52,15 @@ class ActionsTest < Rails::Generators::TestCase
     assert_file 'Gemfile', /source 'http:\/\/gems\.github\.com' do\n  gem 'rspec-rails'\nend/
   end
 
+  def test_add_source_with_block_adds_source_to_gemfile_after_gem
+    run_generator
+    action :gem, 'will-paginate'
+    action :add_source, 'http://gems.github.com' do
+      gem 'rspec-rails'
+    end
+    assert_file 'Gemfile', /gem 'will-paginate'\nsource 'http:\/\/gems\.github\.com' do\n  gem 'rspec-rails'\nend/
+  end
+
   def test_gem_should_put_gem_dependency_in_gemfile
     run_generator
     action :gem, 'will-paginate'
@@ -261,7 +270,14 @@ class ActionsTest < Rails::Generators::TestCase
     content.gsub!(/^\n/, '')
 
     File.open(route_path, "wb") { |file| file.write(content) }
-    assert_file "config/routes.rb", /\.routes\.draw do\n  root 'welcome#index'\nend\n\z/
+
+    routes = <<-F
+Rails.application.routes.draw do
+  root 'welcome#index'
+end
+F
+
+    assert_file "config/routes.rb", routes
 
     action :route, "resources :product_lines"
 

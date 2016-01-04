@@ -131,4 +131,20 @@ class MiddlewareStackTest < ActiveSupport::TestCase
       assert_equal BazMiddleware, @stack.last.klass
     end
   end
+
+  test "can check if Middleware are equal - Class" do
+    assert_equal @stack.last, BarMiddleware
+  end
+
+  test "includes a class" do
+    assert_equal true, @stack.include?(BarMiddleware)
+  end
+
+  test "can check if Middleware are equal - Middleware" do
+    assert_equal @stack.last, @stack.last
+  end
+
+  test "includes a middleware" do
+    assert_equal true, @stack.include?(ActionDispatch::MiddlewareStack::Middleware.new(BarMiddleware, nil, nil))
+  end
 end

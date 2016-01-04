@@ -20,8 +20,6 @@ module ActionController
     # * <tt>String</tt> starting with <tt>protocol://</tt> (like <tt>http://</tt>) or a protocol relative reference (like <tt>//</tt>) - Is passed straight through as the target for redirection.
     # * <tt>String</tt> not containing a protocol - The current protocol and host is prepended to the string.
     # * <tt>Proc</tt> - A block that will be executed in the controller's context. Should return any option accepted by +redirect_to+.
-    # * <tt>:back</tt> - Back to the page that issued the request. Useful for forms that are triggered from multiple places.
-    #   Short-hand for <tt>redirect_to(request.env["HTTP_REFERER"])</tt>
     #
     # === Examples:
     #
@@ -30,7 +28,6 @@ module ActionController
     #   redirect_to "http://www.rubyonrails.org"
     #   redirect_to "/images/screenshot.jpg"
     #   redirect_to articles_url
-    #   redirect_to :back
     #   redirect_to proc { edit_post_url(@post) }
     #
     # The redirection happens as a "302 Found" header unless otherwise specified using the <tt>:status</tt> option:
@@ -61,18 +58,39 @@ module ActionController
     #   redirect_to post_url(@post), status: 301, flash: { updated_post_id: @post.id }
     #   redirect_to({ action: 'atom' }, alert: "Something serious happened")
     #
-    # When using <tt>redirect_to :back</tt>, if there is no referrer,
-    # <tt>ActionController::RedirectBackError</tt> will be raised. You
-    # may specify some fallback behavior for this case by rescuing
-    # <tt>ActionController::RedirectBackError</tt>.
     def redirect_to(options = {}, response_status = {}) #:doc:
       raise ActionControllerError.new("Cannot redirect to nil!") unless options
-      raise ActionControllerError.new("Cannot redirect to a parameter hash!") if options.is_a?(ActionController::Parameters)
       raise AbstractController::DoubleRenderError if response_body
 
       self.status        = _extract_redirect_to_status(options, response_status)
       self.location      = _compute_redirect_to_location(request, options)
       self.response_body = "<html><body>You are being <a href=\"#{ERB::Util.unwrapped_html_escape(location)}\">redirected</a>.</body></html>"
+    end
+
+    # Redirects the browser to the page that issued the request (the referrer)
+    # if possible, otherwise redirects to the provided default fallback
+    # location.
+    #
+    # The referrer information is pulled from the HTTP `Referer` (sic) header on
+    # the request. This is an optional header and its presence on the request is
+    # subject to browser security settings and user preferences. If the request
+    # is missing this header, the <tt>fallback_location</tt> will be used.
+    #
+    #   redirect_back fallback_location: { action: "show", id: 5 }
+    #   redirect_back fallback_location: post
+    #   redirect_back fallback_location: "http://www.rubyonrails.org"
+    #   redirect_back fallback_location:  "/images/screenshot.jpg"
+    #   redirect_back fallback_location:  articles_url
+    #   redirect_back fallback_location:  proc { edit_post_url(@post) }
+    #
+    # All options that can be passed to <tt>redirect_to</tt> are accepted as
+    # options and the behavior is indetical.
+    def redirect_back(fallback_location:, **args)
+      if referer = request.headers["Referer"]
+        redirect_to referer, **args
+      else
+        redirect_to fallback_location, **args
+      end
     end
 
     def _compute_redirect_to_location(request, options) #:nodoc:
@@ -87,6 +105,12 @@ module ActionController
       when String
         request.protocol + request.host_with_port + options
       when :back
+        ActiveSupport::Deprecation.warn(<<-MESSAGE.squish)
+          `redirect_to :back` is deprecated and will be removed from Rails 5.1.
+          Please use `redirect_back(fallback_location: fallback_location)` where
+          `fallback_location` represents the location to use if the request has
+          no HTTP referer information.
+        MESSAGE
         request.headers["Referer"] or raise RedirectBackError
       when Proc
         _compute_redirect_to_location request, options.call

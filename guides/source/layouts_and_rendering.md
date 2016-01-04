@@ -622,10 +622,13 @@ Another way to handle returning responses to an HTTP request is with `redirect_t
 redirect_to photos_url
 ```
 
-You can use `redirect_to` with any arguments that you could use with `link_to` or `url_for`. There's also a special redirect that sends the user back to the page they just came from:
+You can use `redirect_back` to return the user to the page they just came from.
+This location is pulled from the `HTTP_REFERER` header which is not guaranteed
+to be set by the browser, so you must provide the `fallback_location`
+to use in this case.
 
 ```ruby
-redirect_to :back
+redirect_back(fallback_location: root_path)
 ```
 
 #### Getting a Different Redirect Status Code
@@ -1154,14 +1157,12 @@ To pass a local variable to a partial in only specific cases use the `local_assi
 * `_articles.html.erb`
 
   ```erb
-  <%= content_tag_for :article, article do |article| %>
-    <h2><%= article.title %></h2>
+  <h2><%= article.title %></h2>
 
-    <% if local_assigns[:full] %>
-      <%= simple_format article.body %>
-    <% else %>
-      <%= truncate article.body %>
-    <% end %>
+  <% if local_assigns[:full] %>
+    <%= simple_format article.body %>
+  <% else %>
+    <%= truncate article.body %>
   <% end %>
   ```
 

@@ -1,3 +1,116 @@
+*   When calling `first` with a `limit` argument, return directly from the
+    `loaded?` records if available.
+
+    *Ben Woosley*
+
+*   Deprecate sending the `offset` argument to `find_nth`. Please use the
+    `offset` method on relation instead.
+
+    *Ben Woosley*
+
+## Rails 5.0.0.beta1 (December 18, 2015) ##
+
+*   Order the result of `find(ids)` to match the passed array, if the relation
+    has no explicit order defined.
+
+    Fixes #20338.
+
+    *Miguel Grazziotin*, *Matthew Draper*
+
+*   Omit default limit values in dumped schema. It's tidier, and if the defaults
+    change in the future, we can address that via Migration API Versioning.
+
+    *Jean Boussier*
+
+*   Support passing the schema name as a prefix to table name in
+    `ConnectionAdapters::SchemaStatements#indexes`. Previously the prefix would
+    be considered a full part of the index name, and only the schema in the
+    current search path would be considered.
+
+    *Grey Baker*
+
+*   Ignore index name in `index_exists?` and `remove_index` when not passed a
+    name to check for.
+
+    *Grey Baker*
+
+*   Extract support for the legacy `mysql` database adapter from core. It will
+    live on in a separate gem for now, but most users should just use `mysql2`.
+
+    *Abdelkader Boudih*
+
+*   ApplicationRecord is a new superclass for all app models, analogous to app
+    controllers subclassing ApplicationController instead of
+    ActionController::Base. This gives apps a single spot to configure app-wide
+    model behavior.
+
+    Newly generated applications have `app/models/application_record.rb`
+    present by default.
+
+    *Genadi Samokovarov*
+
+*   Version the API presented to migration classes, so we can change parameter
+    defaults without breaking existing migrations, or forcing them to be
+    rewritten through a deprecation cycle.
+
+    *Matthew Draper*, *Ravil Bayramgalin*
+
+*   Use bind params for `limit` and `offset`. This will generate significantly
+    fewer prepared statements for common tasks like pagination. To support this
+    change, passing a string containing a comma to `limit` has been deprecated,
+    and passing an Arel node to `limit` is no longer supported.
+
+    Fixes #22250.
+
+    *Sean Griffin*
+
+*   Introduce after_{create,update,delete}_commit callbacks.
+
+    Before:
+
+        after_commit :add_to_index_later, on: :create
+        after_commit :update_in_index_later, on: :update
+        after_commit :remove_from_index_later, on: :destroy
+
+    After:
+
+        after_create_commit  :add_to_index_later
+        after_update_commit  :update_in_index_later
+        after_destroy_commit :remove_from_index_later
+
+    Fixes #22515.
+
+    *Genadi Samokovarov*
+
+*   Respect the column default values for `inheritance_column` when
+    instantiating records through the base class.
+
+    Fixes #17121.
+
+    Example:
+
+        # The schema of BaseModel has `t.string :type, default: 'SubType'`
+        subtype = BaseModel.new
+        assert_equals SubType, subtype.class
+
+    *Kuldeep Aggarwal*
+
+*   Fix `rake db:structure:dump` on Postgres when multiple schemas are used.
+
+    Fixes #22346.
+
+    *Nick Muerdter*, *ckoenig*
+
+*   Add schema dumping support for PostgreSQL geometric data types.
+
+    *Ryuta Kamizono*
+
+*   Except keys of `build_record`'s argument from `create_scope` in `initialize_attributes`.
+
+    Fixes #21893.
+
+    *Yuichiro Kaneko*
+
 *   Deprecate `connection.tables` on the SQLite3 and MySQL adapters.
     Also deprecate passing arguments to `#tables`.
     And deprecate `table_exists?`.
@@ -201,15 +314,15 @@
 
     Example:
 
-      config.generators do |g|
-        g.orm :active_record, primary_key_type: :uuid
-      end
+        config.generators do |g|
+          g.orm :active_record, primary_key_type: :uuid
+        end
 
     *Jon McCartie*
 
 *   Don't cache arguments in `#find_by` if they are an `ActiveRecord::Relation`.
 
-    Fixes #20817
+    Fixes #20817.
 
     *Hiroaki Izu*
 
@@ -242,7 +355,7 @@
 
     *Sean Griffin*
 
-*   Give `AcriveRecord::Relation#update` its own deprecation warning when
+*   Give `ActiveRecord::Relation#update` its own deprecation warning when
     passed an `ActiveRecord::Base` instance.
 
     Fixes #21945.
@@ -279,10 +392,10 @@
 
     To load the fixtures file `accounts.yml` as the `User` model, use:
 
-          _fixture:
-            model_class: User
-          david:
-            name: David
+        _fixture:
+          model_class: User
+        david:
+          name: David
 
     Fixes #9516.
 
@@ -338,9 +451,9 @@
 
 *   Ensure `select` quotes aliased attributes, even when using `from`.
 
-    Fixes #21488
+    Fixes #21488.
 
-    *Sean Griffin & @johanlunds*
+    *Sean Griffin*, *@johanlunds*
 
 *   MySQL: support `unsigned` numeric data types.
 
@@ -402,6 +515,13 @@
     and `ActiveRecord::Relation#destroy_all`.
 
     *Wojciech Wnętrzak*
+
+*   Instantiating an AR model with `ActionController::Parameters` now raises
+    an `ActiveModel::ForbiddenAttributesError` if the parameters include a
+    `type` field that has not been explicitly permitted. Previously, the
+    `type` field was simply ignored in the same situation.
+
+    *Prem Sichanugrist*
 
 *   PostgreSQL, `create_schema`, `drop_schema` and `rename_table` now quote
     schema names.
@@ -659,7 +779,7 @@
 
 *   Include the `Enumerable` module in `ActiveRecord::Relation`
 
-    *Sean Griffin & bogdan*
+    *Sean Griffin*, *bogdan*
 
 *   Use `Enumerable#sum` in `ActiveRecord::Relation` if a block is given.
 
@@ -695,7 +815,7 @@
 
     Fixes #20515.
 
-    *Sean Griffin & jmondo*
+    *Sean Griffin*, *jmondo*
 
 *   Deprecate the PostgreSQL `:point` type in favor of a new one which will return
     `Point` objects instead of an `Array`
@@ -1085,13 +1205,16 @@
     *Sean Griffin*
 
 *   `scoping` no longer pollutes the current scope of sibling classes when using
-    STI. e.x.
+    STI.
+
+    Fixes #18806.
+
+    Example:
 
         StiOne.none.scoping do
           StiTwo.all
         end
 
-    Fixes #18806.
 
     *Sean Griffin*
 
@@ -1132,7 +1255,7 @@
 
 *   Use `SCHEMA` instead of `DB_STRUCTURE` for specifying a structure file.
 
-    This makes the db:structure tasks consistent with test:load_structure.
+    This makes the `db:structure` tasks consistent with `test:load_structure`.
 
     *Dieter Komendera*
 
@@ -1168,7 +1291,7 @@
 
     Fixes #17621.
 
-    *Eileen M. Uchitelle, Aaron Patterson*
+    *Eileen M. Uchitelle*, *Aaron Patterson*
 
 *   Fix n+1 query problem when eager loading nil associations (fixes #18312)
 

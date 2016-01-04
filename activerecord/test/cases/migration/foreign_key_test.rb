@@ -99,7 +99,7 @@ module ActiveRecord
         assert_equal 1, foreign_keys.size
 
         fk = foreign_keys.first
-        if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
+        if current_adapter?(:Mysql2Adapter)
           # ON DELETE RESTRICT is the default on MySQL
           assert_equal nil, fk.on_delete
         else
@@ -224,7 +224,7 @@ module ActiveRecord
         assert_match %r{\s+add_foreign_key "astronauts",.+on_update: :cascade,.+on_delete: :nullify$}, output
       end
 
-      class CreateCitiesAndHousesMigration < ActiveRecord::Migration
+      class CreateCitiesAndHousesMigration < ActiveRecord::Migration::Current
         def change
           create_table("cities") { |t| }
 
@@ -243,7 +243,7 @@ module ActiveRecord
         silence_stream($stdout) { migration.migrate(:down) }
       end
 
-      class CreateSchoolsAndClassesMigration < ActiveRecord::Migration
+      class CreateSchoolsAndClassesMigration < ActiveRecord::Migration::Current
         def change
           create_table(:schools)
 

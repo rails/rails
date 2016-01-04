@@ -608,7 +608,7 @@ Started GET "/" for 127.0.0.1 at 2014-04-11 13:39:23 +0200
 Processing by ArticlesController#index as HTML
 
 [1, 8] in /home/davidr/Proyectos/test_app/app/models/article.rb
-   1: class Article < ActiveRecord::Base
+   1: class Article < ApplicationRecord
    2:
    3:   def self.find_recent(limit = 10)
    4:     byebug
@@ -862,8 +862,8 @@ such as Valgrind.
 
 ### Valgrind
 
-[Valgrind](http://valgrind.org/) is a Linux-only application for detecting
-C-based memory leaks and race conditions.
+[Valgrind](http://valgrind.org/) is an application for detecting C-based memory
+leaks and race conditions.
 
 There are Valgrind tools that can automatically detect many memory management
 and threading bugs, and profile your programs in detail. For example, if a C

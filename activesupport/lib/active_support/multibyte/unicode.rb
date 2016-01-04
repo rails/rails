@@ -87,19 +87,44 @@ module ActiveSupport
           pos += 1
           previous = codepoints[pos-1]
           current = codepoints[pos]
-          if (
-              # CR X LF
-              ( previous == database.boundary[:cr] and current == database.boundary[:lf] ) or
-              # L X (L|V|LV|LVT)
-              ( database.boundary[:l] === previous and in_char_class?(current, [:l,:v,:lv,:lvt]) ) or
-              # (LV|V) X (V|T)
-              ( in_char_class?(previous, [:lv,:v]) and in_char_class?(current, [:v,:t]) ) or
-              # (LVT|T) X (T)
-              ( in_char_class?(previous, [:lvt,:t]) and database.boundary[:t] === current ) or
-              # X Extend
-              (database.boundary[:extend] === current)
-            )
-          else
+
+          should_break =
+            # GB3. CR X LF
+            if previous == database.boundary[:cr] and current == database.boundary[:lf]
+              false
+            # GB4. (Control|CR|LF) ÷
+            elsif previous and in_char_class?(previous, [:control,:cr,:lf])
+              true
+            # GB5. ÷ (Control|CR|LF)
+            elsif in_char_class?(current, [:control,:cr,:lf])
+              true
+            # GB6. L X (L|V|LV|LVT)
+            elsif database.boundary[:l] === previous and in_char_class?(current, [:l,:v,:lv,:lvt])
+              false
+            # GB7. (LV|V) X (V|T)
+            elsif in_char_class?(previous, [:lv,:v]) and in_char_class?(current, [:v,:t])
+              false
+            # GB8. (LVT|T) X (T)
+            elsif in_char_class?(previous, [:lvt,:t]) and database.boundary[:t] === current
+              false
+            # GB8a. Regional_Indicator X Regional_Indicator
+            elsif database.boundary[:regional_indicator] === previous and database.boundary[:regional_indicator] === current
+              false
+            # GB9. X Extend
+            elsif database.boundary[:extend] === current
+              false
+            # GB9a. X SpacingMark
+            elsif database.boundary[:spacingmark] === current
+              false
+            # GB9b. Prepend X
+            elsif database.boundary[:prepend] === previous
+              false
+            # GB10. Any ÷ Any
+            else
+              true
+            end
+
+          if should_break
             unpacked << codepoints[marker..pos-1]
             marker = pos
           end

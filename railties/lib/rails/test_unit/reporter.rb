@@ -9,10 +9,16 @@ module Rails
     def record(result)
       super
 
+      if options[:verbose]
+        io.puts color_output(format_line(result), by: result)
+      else
+        io.print color_output(result.result_code, by: result)
+      end
+
       if output_inline? && result.failure && (!result.skipped? || options[:verbose])
         io.puts
         io.puts
-        io.puts result.failures.map(&:message)
+        io.puts format_failures(result).map { |line| color_output(line, by: result) }
         io.puts
         io.puts format_rerun_snippet(result)
         io.puts
@@ -44,7 +50,7 @@ module Rails
     end
 
     def relative_path_for(file)
-      file.sub(/^#{Rails.root}\/?/, '')
+      file.sub(/^#{app_root}\/?/, '')
     end
 
     private
@@ -56,6 +62,16 @@ module Rails
         options[:fail_fast]
       end
 
+      def format_line(result)
+        "%s#%s = %.2f s = %s" % [result.class, result.name, result.time, result.result_code]
+      end
+
+      def format_failures(result)
+        result.failures.map do |failure|
+          "#{failure.result_label}:\n#{result.class}##{result.name}:\n#{failure.message}\n"
+        end
+      end
+
       def format_rerun_snippet(result)
         # Try to extract path to assertion from backtrace.
         if result.location =~ /\[(.*)\]\z/
@@ -65,6 +81,30 @@ module Rails
         end
 
         "#{self.executable} #{relative_path_for(assertion_path)}"
+      end
+
+      def app_root
+        @app_root ||= defined?(ENGINE_ROOT) ? ENGINE_ROOT : Rails.root
+      end
+
+      def colored_output?
+        options[:color] && io.respond_to?(:tty?) && io.tty?
+      end
+
+      codes = { red: 31, green: 32, yellow: 33 }
+      COLOR_BY_RESULT_CODE = {
+        "." => codes[:green],
+        "E" => codes[:red],
+        "F" => codes[:red],
+        "S" => codes[:yellow]
+      }
+
+      def color_output(string, by:)
+        if colored_output?
+          "\e[#{COLOR_BY_RESULT_CODE[by.result_code]}m#{string}\e[0m"
+        else
+          string
+        end
       end
   end
 end

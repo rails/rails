@@ -412,6 +412,8 @@ module ActionDispatch # :nodoc:
     end
 
     def before_sending
+      headers.freeze
+      request.commit_cookie_jar! unless committed?
     end
 
     def build_buffer(response, body)

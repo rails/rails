@@ -103,7 +103,7 @@ module ApplicationTests
       RUBY
 
       app_file 'db/migrate/20140708012246_create_user.rb', <<-RUBY
-        class CreateUser < ActiveRecord::Migration
+        class CreateUser < ActiveRecord::Migration::Current
           def change
             create_table :users
           end
@@ -228,6 +228,8 @@ module ApplicationTests
     end
 
     test "the application can be eager loaded even when there are no frameworks" do
+      FileUtils.rm_rf("#{app_path}/app/models/application_record.rb")
+      FileUtils.rm_rf("#{app_path}/app/mailers/application_mailer.rb")
       FileUtils.rm_rf("#{app_path}/config/environments")
       add_to_config <<-RUBY
         config.eager_load = true
@@ -1306,6 +1308,21 @@ module ApplicationTests
       assert_equal 'custom key', Rails.application.config.my_custom_config['key']
     end
 
+    test "config_for use the Pathname object if it is provided" do
+      app_file 'config/custom.yml', <<-RUBY
+      development:
+        key: 'custom key'
+      RUBY
+
+      add_to_config <<-RUBY
+        config.my_custom_config = config_for(Pathname.new(Rails.root.join("config/custom.yml")))
+      RUBY
+
+      app 'development'
+
+      assert_equal 'custom key', Rails.application.config.my_custom_config['key']
+    end
+
     test "config_for raises an exception if the file does not exist" do
       add_to_config <<-RUBY
         config.my_custom_config = config_for('custom')
@@ -1392,6 +1409,46 @@ module ApplicationTests
       require "#{app_path}/config/environment"
 
       assert_equal 'unicorn', Rails.application.config.my_custom_config['key']
+    end
+
+    test "api_only is false by default" do
+      app 'development'
+      refute Rails.application.config.api_only
+    end
+
+    test "api_only generator config is set when api_only is set" do
+      add_to_config <<-RUBY
+        config.api_only = true
+      RUBY
+      app 'development'
+
+      Rails.application.load_generators
+      assert Rails.configuration.api_only
+    end
+
+    test "debug_exception_response_format is :api by default if only_api is enabled" do
+      add_to_config <<-RUBY
+        config.api_only = true
+      RUBY
+      app 'development'
+
+      assert_equal :api, Rails.configuration.debug_exception_response_format
+    end
+
+    test "debug_exception_response_format can be override" do
+      add_to_config <<-RUBY
+        config.api_only = true
+      RUBY
+
+      app_file 'config/environments/development.rb', <<-RUBY
+      Rails.application.configure do
+        config.debug_exception_response_format = :default
+      end
+      RUBY
+
+      app 'development'
+
+      assert_equal :default, Rails.configuration.debug_exception_response_format
     end
   end
 end

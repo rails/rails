@@ -4,9 +4,13 @@ class BaseRequestTest < ActiveSupport::TestCase
   def setup
     @env = {
       :ip_spoofing_check => true,
-      :tld_length => 1,
       "rack.input" => "foo"
     }
+    @original_tld_length = ActionDispatch::Http::URL.tld_length
+  end
+
+  def teardown
+    ActionDispatch::Http::URL.tld_length = @original_tld_length
   end
 
   def url_for(options = {})
@@ -19,9 +23,9 @@ class BaseRequestTest < ActiveSupport::TestCase
       ip_spoofing_check = env.key?(:ip_spoofing_check) ? env.delete(:ip_spoofing_check) : true
       @trusted_proxies ||= nil
       ip_app = ActionDispatch::RemoteIp.new(Proc.new { }, ip_spoofing_check, @trusted_proxies)
-      tld_length = env.key?(:tld_length) ? env.delete(:tld_length) : 1
+      ActionDispatch::Http::URL.tld_length = env.delete(:tld_length) if env.key?(:tld_length)
+
       ip_app.call(env)
-      ActionDispatch::Http::URL.tld_length = tld_length
 
       env = @env.merge(env)
       ActionDispatch::Request.new(env)
@@ -254,15 +258,6 @@ end
 
 class RequestDomain < BaseRequestTest
   test "domains" do
-    request = stub_request 'HTTP_HOST' => 'www.rubyonrails.org'
-    assert_equal "rubyonrails.org", request.domain
-
-    request = stub_request 'HTTP_HOST' => "www.rubyonrails.co.uk"
-    assert_equal "rubyonrails.co.uk", request.domain(2)
-
-    request = stub_request 'HTTP_HOST' => "www.rubyonrails.co.uk", :tld_length => 2
-    assert_equal "rubyonrails.co.uk", request.domain
-
     request = stub_request 'HTTP_HOST' => "192.168.1.200"
     assert_nil request.domain
 
@@ -271,25 +266,18 @@ class RequestDomain < BaseRequestTest
 
     request = stub_request 'HTTP_HOST' => "192.168.1.200.com"
     assert_equal "200.com", request.domain
+
+    request = stub_request 'HTTP_HOST' => 'www.rubyonrails.org'
+    assert_equal "rubyonrails.org", request.domain
+
+    request = stub_request 'HTTP_HOST' => "www.rubyonrails.co.uk"
+    assert_equal "rubyonrails.co.uk", request.domain(2)
+
+    request = stub_request 'HTTP_HOST' => "www.rubyonrails.co.uk", :tld_length => 2
+    assert_equal "rubyonrails.co.uk", request.domain
   end
 
   test "subdomains" do
-    request = stub_request 'HTTP_HOST' => "www.rubyonrails.org"
-    assert_equal %w( www ), request.subdomains
-    assert_equal "www", request.subdomain
-
-    request = stub_request 'HTTP_HOST' => "www.rubyonrails.co.uk"
-    assert_equal %w( www ), request.subdomains(2)
-    assert_equal "www", request.subdomain(2)
-
-    request = stub_request 'HTTP_HOST' => "dev.www.rubyonrails.co.uk"
-    assert_equal %w( dev www ), request.subdomains(2)
-    assert_equal "dev.www", request.subdomain(2)
-
-    request = stub_request 'HTTP_HOST' => "dev.www.rubyonrails.co.uk", :tld_length => 2
-    assert_equal %w( dev www ), request.subdomains
-    assert_equal "dev.www", request.subdomain
-
     request = stub_request 'HTTP_HOST' => "foobar.foobar.com"
     assert_equal %w( foobar ), request.subdomains
     assert_equal "foobar", request.subdomain
@@ -309,6 +297,22 @@ class RequestDomain < BaseRequestTest
     request = stub_request 'HTTP_HOST' => nil
     assert_equal [], request.subdomains
     assert_equal "", request.subdomain
+
+    request = stub_request 'HTTP_HOST' => "www.rubyonrails.org"
+    assert_equal %w( www ), request.subdomains
+    assert_equal "www", request.subdomain
+
+    request = stub_request 'HTTP_HOST' => "www.rubyonrails.co.uk"
+    assert_equal %w( www ), request.subdomains(2)
+    assert_equal "www", request.subdomain(2)
+
+    request = stub_request 'HTTP_HOST' => "dev.www.rubyonrails.co.uk"
+    assert_equal %w( dev www ), request.subdomains(2)
+    assert_equal "dev.www", request.subdomain(2)
+
+    request = stub_request 'HTTP_HOST' => "dev.www.rubyonrails.co.uk", :tld_length => 2
+    assert_equal %w( dev www ), request.subdomains
+    assert_equal "dev.www", request.subdomain
   end
 end
 
@@ -893,6 +897,27 @@ class RequestFormat < BaseRequestTest
       ActionDispatch::Request.ignore_accept_header = old_ignore_accept_header
     end
   end
+
+  test "format taken from the path extension" do
+    request = stub_request 'PATH_INFO' => '/foo.xml'
+    assert_called(request, :parameters, times: 1, returns: {}) do
+      assert_equal [Mime[:xml]], request.formats
+    end
+
+    request = stub_request 'PATH_INFO' => '/foo.123'
+    assert_called(request, :parameters, times: 1, returns: {}) do
+      assert_equal [Mime[:html]], request.formats
+    end
+  end
+
+  test "formats from accept headers have higher precedence than path extension" do
+    request = stub_request 'HTTP_ACCEPT' => 'application/json',
+                           'PATH_INFO' => '/foo.xml'
+
+    assert_called(request, :parameters, times: 1, returns: {}) do
+      assert_equal [Mime[:json]], request.formats
+    end
+  end
 end
 
 class RequestMimeType < BaseRequestTest
@@ -1210,5 +1235,25 @@ class RequestVariant < BaseRequestTest
     assert_raise ArgumentError do
       @request.variant = [:phone, 'tablet']
     end
+  end
+end
+
+class RequestFormData < BaseRequestTest
+  test 'media_type is from the FORM_DATA_MEDIA_TYPES array' do
+    assert stub_request('CONTENT_TYPE' => 'application/x-www-form-urlencoded').form_data?
+    assert stub_request('CONTENT_TYPE' => 'multipart/form-data').form_data?
+  end
+
+  test 'media_type is not from the FORM_DATA_MEDIA_TYPES array' do
+    assert !stub_request('CONTENT_TYPE' => 'application/xml').form_data?
+    assert !stub_request('CONTENT_TYPE' => 'multipart/related').form_data?
+  end
+
+  test 'no Content-Type header is provided and the request_method is POST' do
+    request = stub_request('REQUEST_METHOD' => 'POST')
+
+    assert_equal '', request.media_type
+    assert_equal 'POST', request.request_method
+    assert !request.form_data?
   end
 end

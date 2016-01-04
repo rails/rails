@@ -239,6 +239,27 @@ NOTE: The `ApplicationController` class inside an engine is named just like a
 Rails application in order to make it easier for you to convert your
 applications into engines.
 
+NOTE: Because of the way that Ruby does constant lookup you may run into a situation
+where your engine controller is inheriting from the main application controller and
+not your engine's application controller. Ruby is able to resolve the `ApplicationController` constant, and therefore the autoloading mechanism is not triggered. See the section [When Constants Aren't Missed](autoloading_and_reloading_constants.html#when-constants-aren-t-missed) of the [Autoloading and Reloading Constants](autoloading_and_reloading_constants.html) guide for further details. The best way to prevent this from
+happening is to use `require_dependency` to ensure that the engine's application
+controller is loaded. For example:
+
+``` ruby
+# app/controllers/blorgh/articles_controller.rb:
+require_dependency "blorgh/application_controller"
+
+module Blorgh
+  class ArticlesController < ApplicationController
+    ...
+  end
+end
+```
+
+WARNING: Don't use `require` because it will break the automatic reloading of classes
+in the development environment - using `require_dependency` ensures that classes are
+loaded and unloaded in the correct manner.
+
 Lastly, the `app/views` directory contains a `layouts` folder, which contains a
 file at `blorgh/application.html.erb`. This file allows you to specify a layout
 for the engine. If this engine is to be used as a stand-alone engine, then you
@@ -487,7 +508,7 @@ Turning the model into this:
 
 ```ruby
 module Blorgh
-  class Article < ActiveRecord::Base
+  class Article < ApplicationRecord
     has_many :comments
   end
 end
@@ -1012,9 +1033,9 @@ typical `GET` to a controller in a controller's functional test like this:
 
 ```ruby
 module Blorgh
-  class FooControllerTest < ActionController::TestCase
+  class FooControllerTest < ActionDispatch::IntegrationTest
     def test_index
-      get :index
+      get foos_url
       ...
     end
   end
@@ -1028,13 +1049,13 @@ in your setup code:
 
 ```ruby
 module Blorgh
-  class FooControllerTest < ActionController::TestCase
+  class FooControllerTest < ActionDispatch::IntegrationTest
     setup do
       @routes = Engine.routes
     end
 
     def test_index
-      get :index
+      get foos_url
       ...
     end
   end
@@ -1108,7 +1129,7 @@ end
 ```ruby
 # Blorgh/app/models/article.rb
 
-class Article < ActiveRecord::Base
+class Article < ApplicationRecord
   has_many :comments
 end
 ```
@@ -1129,7 +1150,7 @@ end
 ```ruby
 # Blorgh/app/models/article.rb
 
-class Article < ActiveRecord::Base
+class Article < ApplicationRecord
   has_many :comments
   def summary
     "#{title}"
@@ -1150,7 +1171,7 @@ classes at run time allowing you to significantly modularize your code.
 ```ruby
 # MyApp/app/models/blorgh/article.rb
 
-class Blorgh::Article < ActiveRecord::Base
+class Blorgh::Article < ApplicationRecord
   include Blorgh::Concerns::Models::Article
 
   def time_since_created
@@ -1166,7 +1187,7 @@ end
 ```ruby
 # Blorgh/app/models/article.rb
 
-class Article < ActiveRecord::Base
+class Article < ApplicationRecord
   include Blorgh::Concerns::Models::Article
 end
 ```

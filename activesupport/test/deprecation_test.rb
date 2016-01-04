@@ -199,7 +199,7 @@ class DeprecationTest < ActiveSupport::TestCase
   end
 
   def test_assert_deprecated_warn_work_with_default_behavior
-    ActiveSupport::Deprecation.instance_variable_set('@behavior' , nil)
+    ActiveSupport::Deprecation.instance_variable_set('@behavior', nil)
     assert_deprecated('abc') do
       ActiveSupport::Deprecation.warn 'abc'
     end
@@ -338,6 +338,10 @@ class DeprecationTest < ActiveSupport::TestCase
     object = klass.new
     object.deprecated_method
     assert_match(/You are calling deprecated method/, object.last_message)
+  end
+
+  def test_default_deprecation_horizon_should_always_bigger_than_current_rails_version
+    assert ActiveSupport::Deprecation.new.deprecation_horizon > ActiveSupport::VERSION::STRING
   end
 
   def test_default_gem_name

@@ -7,10 +7,11 @@ require 'railties/lib/rails/api/task'
 desc "Build gem files for all projects"
 task :build => "all:build"
 
+desc "Prepare the release"
+task :prep_release => "all:prep_release"
+
 desc "Release all gems to rubygems and create a tag"
 task :release => "all:release"
-
-PROJECTS = %w(activesupport activemodel actionpack actionview actionmailer activerecord railties activejob)
 
 desc 'Run all tests by default'
 task :default => %w(test test:isolated)
@@ -19,7 +20,7 @@ task :default => %w(test test:isolated)
   desc "Run #{task_name} task for all projects"
   task task_name do
     errors = []
-    PROJECTS.each do |project|
+    FRAMEWORKS.each do |project|
       system(%(cd #{project} && #{$0} #{task_name})) || errors << project
     end
     fail("Errors in #{errors.join(', ')}") unless errors.empty?
@@ -28,7 +29,7 @@ end
 
 desc "Smoke-test all projects"
 task :smoke do
-  (PROJECTS - %w(activerecord)).each do |project|
+  (FRAMEWORKS - %w(activerecord)).each do |project|
     system %(cd #{project} && #{$0} test:isolated)
   end
   system %(cd activerecord && #{$0} sqlite3:isolated_test)

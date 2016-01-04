@@ -38,6 +38,10 @@ class UrlHelperTest < ActiveSupport::TestCase
     assert_equal "/?a=b&c=d", url_for(hash_for(a: :b, c: :d))
   end
 
+  def test_url_for_does_not_include_empty_hashes
+    assert_equal "/", url_for(hash_for(a: {}))
+  end
+
   def test_url_for_with_back
     referer = 'http://www.example.com/referer'
     @controller = Struct.new(:request).new(Struct.new(:env).new("HTTP_REFERER" => referer))
@@ -632,10 +636,6 @@ class UrlHelperControllerTest < ActionController::TestCase
       render inline: "<%= url_for controller: 'url_helper_controller_test/url_helper', action: 'show_url_for' %>"
     end
 
-    def show_overridden_url_for
-      render inline: "<%= url_for params.merge(controller: 'url_helper_controller_test/url_helper', action: 'show_url_for') %>"
-    end
-
     def show_named_route
       render inline: "<%= show_named_route_#{params[:kind]} %>"
     end
@@ -666,11 +666,6 @@ class UrlHelperControllerTest < ActionController::TestCase
 
   def test_url_for_shows_only_path
     get :show_url_for
-    assert_equal '/url_helper_controller_test/url_helper/show_url_for', @response.body
-  end
-
-  def test_overridden_url_for_shows_only_path
-    get :show_overridden_url_for
     assert_equal '/url_helper_controller_test/url_helper/show_url_for', @response.body
   end
 

@@ -68,9 +68,6 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
     assert_equal 'utf8_general_ci', ARUnit2Model.connection.show_variable('collation_connection')
   end
 
-  # TODO: Below is a straight up copy/paste from mysql/connection_test.rb
-  # I'm not sure what the correct way is to share these tests between
-  # adapters in minitest.
   def test_mysql_default_in_strict_mode
     result = @connection.exec_query "SELECT @@SESSION.sql_mode"
     assert_equal [["STRICT_ALL_TABLES"]], result.rows
@@ -84,6 +81,20 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
     end
   end
 
+  def test_passing_arbitary_flags_to_adapter
+    run_without_connection do |orig_connection|             
+      ActiveRecord::Base.establish_connection(orig_connection.merge({flags: Mysql2::Client::COMPRESS}))
+      assert_equal (Mysql2::Client::COMPRESS |  Mysql2::Client::FOUND_ROWS), ActiveRecord::Base.connection.raw_connection.query_options[:flags]
+    end
+  end
+  
+  def test_passing_flags_by_array_to_adapter
+    run_without_connection do |orig_connection|             
+      ActiveRecord::Base.establish_connection(orig_connection.merge({flags: ['COMPRESS'] }))
+      assert_equal ["COMPRESS", "FOUND_ROWS"], ActiveRecord::Base.connection.raw_connection.query_options[:flags]
+    end
+  end
+  
   def test_mysql_strict_mode_specified_default
     run_without_connection do |orig_connection|
       ActiveRecord::Base.establish_connection(orig_connection.merge({strict: :default}))
@@ -133,30 +144,30 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
   end
 
   def test_get_and_release_advisory_lock
-    key = "test_key"
+    lock_name = "test_lock_name"
 
-    got_lock = @connection.get_advisory_lock(key)
+    got_lock = @connection.get_advisory_lock(lock_name)
     assert got_lock, "get_advisory_lock should have returned true but it didn't"
 
-    assert_equal test_lock_free(key), false,
+    assert_equal test_lock_free(lock_name), false,
       "expected the test advisory lock to be held but it wasn't"
 
-    released_lock = @connection.release_advisory_lock(key)
+    released_lock = @connection.release_advisory_lock(lock_name)
     assert released_lock, "expected release_advisory_lock to return true but it didn't"
 
-    assert test_lock_free(key), 'expected the test key to be available after releasing'
+    assert test_lock_free(lock_name), 'expected the test lock to be available after releasing'
   end
 
   def test_release_non_existent_advisory_lock
-    fake_key = "fake_key"
-    released_non_existent_lock = @connection.release_advisory_lock(fake_key)
+    lock_name = "fake_lock_name"
+    released_non_existent_lock = @connection.release_advisory_lock(lock_name)
     assert_equal released_non_existent_lock, false,
       'expected release_advisory_lock to return false when there was no lock to release'
   end
 
   protected
 
-  def test_lock_free(key)
-    @connection.select_value("SELECT IS_FREE_LOCK('#{key}');") == 1
+  def test_lock_free(lock_name)
+    @connection.select_value("SELECT IS_FREE_LOCK('#{lock_name}');") == 1
   end
 end

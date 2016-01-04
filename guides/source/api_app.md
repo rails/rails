@@ -163,6 +163,14 @@ class definition:
 config.api_only = true
 ```
 
+Optionally, in `config/environments/development.rb` add the following line
+to render error responses using the API format (JSON by default) when it
+is a local request:
+
+```ruby
+config.debug_exception_response_format = :api
+```
+
 Finally, inside `app/controllers/application_controller.rb`, instead of:
 
 ```ruby
@@ -208,7 +216,7 @@ building, and make sense in an API-only Rails application.
 You can get a list of all middlewares in your application via:
 
 ```bash
-$ rake middleware
+$ rails middleware
 ```
 
 ### Using the Cache Middleware
@@ -221,7 +229,7 @@ For instance, using the `stale?` method:
 
 ```ruby
 def show
- @post = Post.find(params[:id])
+  @post = Post.find(params[:id])
 
   if stale?(last_modified: @post.updated_at)
     render json: @post
@@ -240,7 +248,7 @@ cross-client caching in the call to `stale?`:
 
 ```ruby
 def show
- @post = Post.find(params[:id])
+  @post = Post.find(params[:id])
 
   if stale?(last_modified: @post.updated_at, public: true)
     render json: @post

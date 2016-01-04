@@ -57,8 +57,7 @@ module Rails
       directory 'app'
 
       keep_file  'app/assets/images'
-      keep_file  'app/mailers'
-      keep_file  'app/models'
+      empty_directory_with_keep_file 'app/assets/javascripts/channels' unless options[:skip_action_cable]
 
       keep_file  'app/controllers/concerns'
       keep_file  'app/models/concerns'
@@ -83,6 +82,7 @@ module Rails
         directory "environments"
         directory "initializers"
         directory "locales"
+        directory "redis" unless options[:skip_action_cable]
       end
     end
 
@@ -293,9 +293,31 @@ module Rails
         end
       end
 
+      def delete_application_record_skipping_active_record
+        if options[:skip_active_record]
+          remove_file 'app/models/application_record.rb'
+        end
+      end
+
+      def delete_action_mailer_files_skipping_action_mailer
+        if options[:skip_action_mailer]
+          remove_file 'app/mailers/application_mailer.rb'
+          remove_file 'app/views/layouts/mailer.html.erb'
+          remove_file 'app/views/layouts/mailer.text.erb'
+        end
+      end
+
       def delete_active_record_initializers_skipping_active_record
         if options[:skip_active_record]
           remove_file 'config/initializers/active_record_belongs_to_required_by_default.rb'
+        end
+      end
+
+      def delete_action_cable_files_skipping_action_cable
+        if options[:skip_action_cable]
+          remove_file 'config/redis/cable.yml'
+          remove_file 'app/assets/javascripts/cable.coffee'
+          remove_dir 'app/channels'
         end
       end
 
@@ -303,6 +325,13 @@ module Rails
         if options[:api]
           remove_file 'config/initializers/session_store.rb'
           remove_file 'config/initializers/cookies_serializer.rb'
+          remove_file 'config/initializers/request_forgery_protection.rb'
+        end
+      end
+
+      def delete_api_initializers
+        unless options[:api]
+          remove_file 'config/initializers/cors.rb'
         end
       end
 

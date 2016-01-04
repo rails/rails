@@ -175,11 +175,11 @@ your app will serve stale data. To fix this, we tie the models together with
 the `touch` method:
 
 ```ruby
-class Product < ActiveRecord::Base
+class Product < ApplicationRecord
   has_many :games
 end
 
-class Game < ActiveRecord::Base
+class Game < ApplicationRecord
   belongs_to :product, touch: true
 end
 ```
@@ -284,7 +284,7 @@ The most efficient way to implement low-level caching is using the `Rails.cache.
 Consider the following example. An application has a `Product` model with an instance method that looks up the product’s price on a competing website. The data returned by this method would be perfect for low-level caching:
 
 ```ruby
-class Product < ActiveRecord::Base
+class Product < ApplicationRecord
   def competing_price
     Rails.cache.fetch("#{cache_key}/competing_price", expires_in: 12.hours) do
       Competitor::API.find_price(id)

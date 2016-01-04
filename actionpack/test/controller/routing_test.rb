@@ -289,12 +289,6 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
     assert_equal({:id=>"1", :filters=>"foo", :format=>"js"}, params)
   end
 
-  def test_draw_with_block_arity_one_raises
-    assert_raise(RuntimeError) do
-      rs.draw { |map| map.match '/:controller(/:action(/:id))' }
-    end
-  end
-
   def test_specific_controller_action_failure
     rs.draw do
       mount lambda {} => "/foo"

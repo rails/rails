@@ -2,6 +2,11 @@
 <html>
   <head>
     <title><%= camelized %></title>
+    <%%= csrf_meta_tags %>
+    <%- unless options[:skip_action_cable] -%>
+    <%%= action_cable_meta_tag %>
+    <%- end -%>
+
     <%- if options[:skip_javascript] -%>
     <%%= stylesheet_link_tag    'application', media: 'all' %>
     <%- else -%>
@@ -13,12 +18,9 @@
     <%%= javascript_include_tag 'application' %>
       <%- end -%>
     <%- end -%>
-    <%%= csrf_meta_tags %>
   </head>
 
   <body>
-
     <%%= yield %>
-
   </body>
 </html>

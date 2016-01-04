@@ -1,19 +1,23 @@
 module ActionDispatch
-  # This middleware is added to the stack when `config.force_ssl = true`.
-  # It does three jobs to enforce secure HTTP requests:
+  # This middleware is added to the stack when `config.force_ssl = true`, and is passed
+  # the options set in `config.ssl_options`. It does three jobs to enforce secure HTTP
+  # requests:
   #
-  #   1. TLS redirect. http:// requests are permanently redirected to https://
-  #      with the same URL host, path, etc. Pass `:host` and/or `:port` to
-  #      modify the destination URL. This is always enabled.
+  #   1. TLS redirect: Permanently redirects http:// requests to https://
+  #      with the same URL host, path, etc. Enabled by default. Set `config.ssl_options`
+  #      to modify the destination URL
+  #      (e.g. `redirect: { host: "secure.widgets.com", port: 8080 }`), or set
+  #      `redirect: false` to disable this feature.
   #
-  #   2. Secure cookies. Sets the `secure` flag on cookies to tell browsers they
-  #      mustn't be sent along with http:// requests. This is always enabled.
+  #   2. Secure cookies: Sets the `secure` flag on cookies to tell browsers they
+  #      mustn't be sent along with http:// requests. Enabled by default. Set
+  #      `config.ssl_options` with `secure_cookies: false` to disable this feature.
   #
-  #   3. HTTP Strict Transport Security (HSTS). Tells the browser to remember
+  #   3. HTTP Strict Transport Security (HSTS): Tells the browser to remember
   #      this site as TLS-only and automatically redirect non-TLS requests.
-  #      Enabled by default. Pass `hsts: false` to disable.
+  #      Enabled by default. Configure `config.ssl_options` with `hsts: false` to disable.
   #
-  # Configure HSTS with `hsts: { … }`:
+  # Set `config.ssl_options` with `hsts: { … }` to configure HSTS:
   #   * `expires`: How long, in seconds, these settings will stick. Defaults to
   #     `180.days` (recommended). The minimum required to qualify for browser
   #     preload lists is `18.weeks`.
@@ -26,10 +30,10 @@ module ActionDispatch
   #     gap, browser vendors include a baked-in list of HSTS-enabled sites.
   #     Go to https://hstspreload.appspot.com to submit your site for inclusion.
   #
-  # Disabling HSTS: To turn off HSTS, omitting the header is not enough.
-  # Browsers will remember the original HSTS directive until it expires.
-  # Instead, use the header to tell browsers to expire HSTS immediately.
-  # Setting `hsts: false` is a shortcut for `hsts: { expires: 0 }`.
+  # To turn off HSTS, omitting the header is not enough. Browsers will remember the
+  # original HSTS directive until it expires. Instead, use the header to tell browsers to
+  # expire HSTS immediately. Setting `hsts: false` is a shortcut for
+  # `hsts: { expires: 0 }`.
   class SSL
     # Default to 180 days, the low end for https://www.ssllabs.com/ssltest/
     # and greater than the 18-week requirement for browser preload lists.
@@ -39,7 +43,7 @@ module ActionDispatch
       { expires: HSTS_EXPIRES_IN, subdomains: false, preload: false }
     end
 
-    def initialize(app, redirect: {}, hsts: {}, **options)
+    def initialize(app, redirect: {}, hsts: {}, secure_cookies: true, **options)
       @app = app
 
       if options[:host] || options[:port]
@@ -52,6 +56,7 @@ module ActionDispatch
         @redirect = redirect
       end
 
+      @secure_cookies = secure_cookies
       @hsts_header = build_hsts_header(normalize_hsts_options(hsts))
     end
 
@@ -61,10 +66,11 @@ module ActionDispatch
       if request.ssl?
         @app.call(env).tap do |status, headers, body|
           set_hsts_header! headers
-          flag_cookies_as_secure! headers
+          flag_cookies_as_secure! headers if @secure_cookies
         end
       else
-        redirect_to_https request
+        return redirect_to_https request if @redirect
+        @app.call(env)
       end
     end
 

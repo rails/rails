@@ -22,6 +22,7 @@ module ActiveRecord
           parts = predicate_builder.build_from_hash(attributes)
         when Arel::Nodes::Node
           parts = [opts]
+          binds = other
         else
           raise ArgumentError, "Unsupported argument type: #{opts} (#{opts.class})"
         end

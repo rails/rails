@@ -599,7 +599,7 @@ This would add something like "Process data files (0.34523)" to the log, which y
 
 #### cache
 
-A method for caching fragments of a view rather than an entire action or page. This technique is useful caching pieces like menus, lists of news topics, static HTML fragments, and so on. This method takes a block that contains the content you wish to cache. See `ActionController::Caching::Fragments` for more information.
+A method for caching fragments of a view rather than an entire action or page. This technique is useful for caching pieces like menus, lists of news topics, static HTML fragments, and so on. This method takes a block that contains the content you wish to cache. See `ActionController::Caching::Fragments` for more information.
 
 ```erb
 <% cache do %>
@@ -990,11 +990,11 @@ Returns `select` and `option` tags for the collection of existing return values 
 Example object structure for use with this method:
 
 ```ruby
-class Article < ActiveRecord::Base
+class Article < ApplicationRecord
   belongs_to :author
 end
 
-class Author < ActiveRecord::Base
+class Author < ApplicationRecord
   has_many :articles
   def name_with_initial
     "#{first_name.first}. #{last_name}"
@@ -1026,11 +1026,11 @@ Returns `radio_button` tags for the collection of existing return values of `met
 Example object structure for use with this method:
 
 ```ruby
-class Article < ActiveRecord::Base
+class Article < ApplicationRecord
   belongs_to :author
 end
 
-class Author < ActiveRecord::Base
+class Author < ApplicationRecord
   has_many :articles
   def name_with_initial
     "#{first_name.first}. #{last_name}"
@@ -1062,11 +1062,11 @@ Returns `check_box` tags for the collection of existing return values of `method
 Example object structure for use with this method:
 
 ```ruby
-class Article < ActiveRecord::Base
+class Article < ApplicationRecord
   has_and_belongs_to_many :authors
 end
 
-class Author < ActiveRecord::Base
+class Author < ApplicationRecord
   has_and_belongs_to_many :articles
   def name_with_initial
     "#{first_name.first}. #{last_name}"
@@ -1099,12 +1099,12 @@ Returns a string of `option` tags, like `options_from_collection_for_select`, bu
 Example object structure for use with this method:
 
 ```ruby
-class Continent < ActiveRecord::Base
+class Continent < ApplicationRecord
   has_many :countries
   # attribs: id, name
 end
 
-class Country < ActiveRecord::Base
+class Country < ApplicationRecord
   belongs_to :continent
   # attribs: id, name, continent_id
 end

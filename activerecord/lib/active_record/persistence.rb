@@ -215,7 +215,7 @@ module ActiveRecord
       became.instance_variable_set("@changed_attributes", attributes_changed_by_setter)
       became.instance_variable_set("@new_record", new_record?)
       became.instance_variable_set("@destroyed", destroyed?)
-      became.instance_variable_set("@errors", errors)
+      became.errors.copy!(errors)
       became
     end
 
@@ -298,6 +298,7 @@ module ActiveRecord
     # * \Validations are skipped.
     # * \Callbacks are skipped.
     # * +updated_at+/+updated_on+ are not updated.
+    # * However, attributes are serialized with the same rules as ActiveRecord::Relation#update_all
     #
     # This method raises an ActiveRecord::ActiveRecordError when called on new
     # objects, or when at least one of the attributes is marked as readonly.
@@ -358,6 +359,14 @@ module ActiveRecord
     # if the predicate returns +true+ the attribute will become +false+. This
     # method toggles directly the underlying value without calling any setter.
     # Returns +self+.
+    #
+    # Example:
+    #
+    #   user = User.first
+    #   user.banned? # => false
+    #   user.toggle(:banned)
+    #   user.banned? # => true
+    #
     def toggle(attribute)
       self[attribute] = !public_send("#{attribute}?")
       self
@@ -557,6 +566,10 @@ module ActiveRecord
       raise @_association_destroy_exception || RecordNotDestroyed.new("Failed to destroy the record", self)
     ensure
       @_association_destroy_exception = nil
+    end
+
+    def belongs_to_touch_method
+      :touch
     end
   end
 end

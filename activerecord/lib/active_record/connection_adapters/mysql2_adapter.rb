@@ -10,14 +10,18 @@ module ActiveRecord
       config = config.symbolize_keys
 
       config[:username] = 'root' if config[:username].nil?
+      config[:flags] ||= 0
 
       if Mysql2::Client.const_defined? :FOUND_ROWS
-        config[:flags] = Mysql2::Client::FOUND_ROWS
+        if config[:flags].kind_of? Array
+          config[:flags].push "FOUND_ROWS".freeze
+        else
+          config[:flags] |= Mysql2::Client::FOUND_ROWS          
+        end
       end
 
       client = Mysql2::Client.new(config)
-      options = [config[:host], config[:username], config[:password], config[:database], config[:port], config[:socket], 0]
-      ConnectionAdapters::Mysql2Adapter.new(client, logger, options, config)
+      ConnectionAdapters::Mysql2Adapter.new(client, logger, nil, config)
     rescue Mysql2::Error => error
       if error.message.include?("Unknown database")
         raise ActiveRecord::NoDatabaseError
@@ -95,33 +99,15 @@ module ActiveRecord
       # DATABASE STATEMENTS ======================================
       #++
 
-      # FIXME: re-enable the following once a "better" query_cache solution is in core
-      #
-      # The overrides below perform much better than the originals in AbstractAdapter
-      # because we're able to take advantage of mysql2's lazy-loading capabilities
-      #
-      # # Returns a record hash with the column names as keys and column values
-      # # as values.
-      # def select_one(sql, name = nil)
-      #   result = execute(sql, name)
-      #   result.each(as: :hash) do |r|
-      #     return r
-      #   end
-      # end
-      #
-      # # Returns a single value from a record
-      # def select_value(sql, name = nil)
-      #   result = execute(sql, name)
-      #   if first = result.first
-      #     first.first
-      #   end
-      # end
-      #
-      # # Returns an array of the values of the first column in a select:
-      # #   select_values("SELECT id FROM companies LIMIT 3") => [1,2,3]
-      # def select_values(sql, name = nil)
-      #   execute(sql, name).map { |row| row.first }
-      # end
+      # Returns a record hash with the column names as keys and column values
+      # as values.
+      def select_one(arel, name = nil, binds = [])
+        arel, binds = binds_from_relation(arel, binds)
+        execute(to_sql(arel, binds), name).each(as: :hash) do |row|
+          @connection.next_result while @connection.more_results?
+          return row
+        end
+      end
 
       # Returns an array of arrays containing the field values.
       # Order is the same as that returned by +columns+.
@@ -184,10 +170,6 @@ module ActiveRecord
 
       def full_version
         @full_version ||= @connection.server_info[:version]
-      end
-
-      def set_field_encoding field_name
-        field_name
       end
     end
   end

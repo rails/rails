@@ -17,13 +17,37 @@ class FormOptionsHelperTest < ActionView::TestCase
     Album       = Struct.new('Album', :id, :title, :genre)
   end
 
-  def setup
-    @fake_timezones = %w(A B C D E).map do |id|
-      tz = stub(:name => id, :to_s => id)
-      ActiveSupport::TimeZone.stubs(:[]).with(id).returns(tz)
-      tz
+  module FakeZones
+    FakeZone = Struct.new(:name) do
+      def to_s; name; end
     end
-    ActiveSupport::TimeZone.stubs(:all).returns(@fake_timezones)
+
+    module ClassMethods
+      def [](id); fake_zones ? fake_zones[id] : super; end
+      def all; fake_zones ? fake_zones.values : super; end
+      def dummy; :test; end
+    end
+
+    def self.prepended(base)
+      class << base
+        mattr_accessor(:fake_zones)
+        prepend ClassMethods
+      end
+    end
+  end
+
+  ActiveSupport::TimeZone.prepend FakeZones
+
+  setup do
+    ActiveSupport::TimeZone.fake_zones = %w(A B C D E).map do |id|
+      [ id, FakeZones::FakeZone.new(id) ]
+    end.to_h
+
+    @fake_timezones = ActiveSupport::TimeZone.all
+  end
+
+  teardown do
+    ActiveSupport::TimeZone.fake_zones = nil
   end
 
   def test_collection_options
@@ -1163,8 +1187,8 @@ class FormOptionsHelperTest < ActionView::TestCase
   def test_time_zone_select_with_priority_zones_as_regexp
     @firm = Firm.new("D")
 
-    @fake_timezones.each_with_index do |tz, i|
-      tz.stubs(:=~).returns(i.zero? || i == 3)
+    @fake_timezones.each do |tz|
+      def tz.=~(re); %(A D).include?(name) end
     end
 
     html = time_zone_select("firm", "time_zone", /A|D/)
@@ -1179,15 +1203,16 @@ class FormOptionsHelperTest < ActionView::TestCase
                  html
   end
 
-  def test_time_zone_select_with_priority_zones_as_regexp_using_grep_finds_no_zones
+  def test_time_zone_select_with_priority_zones_is_not_implemented_with_grep
     @firm = Firm.new("D")
 
-    priority_zones = /A|D/
+    # `time_zone_select` can't be written with `grep` because Active Support
+    # time zones don't support implicit string coercion with `to_str`.
     @fake_timezones.each do |tz|
-      priority_zones.stubs(:===).with(tz).raises(Exception)
+      def tz.===(zone); raise Exception; end
     end
 
-    html = time_zone_select("firm", "time_zone", priority_zones)
+    html = time_zone_select("firm", "time_zone", /A|D/)
     assert_dom_equal "<select id=\"firm_time_zone\" name=\"firm[time_zone]\">" +
                  "<option value=\"\" disabled=\"disabled\">-------------</option>\n" +
                  "<option value=\"A\">A</option>\n" +

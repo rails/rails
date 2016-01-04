@@ -54,6 +54,16 @@ class TranslationHelperTest < ActiveSupport::TestCase
     end
   end
 
+  def test_returns_missing_translation_message_without_span_wrap
+    old_value = ActionView::Base.debug_missing_translation
+    ActionView::Base.debug_missing_translation = false
+
+    expected = 'translation missing: en.translations.missing'
+    assert_equal expected, translate(:"translations.missing")
+  ensure
+    ActionView::Base.debug_missing_translation = old_value
+  end
+
   def test_returns_missing_translation_message_wrapped_into_span
     expected = '<span class="translation_missing" title="translation missing: en.translations.missing">Missing</span>'
     assert_equal expected, translate(:"translations.missing")

@@ -1,7 +1,7 @@
 module ActiveSupport
   module NumberHelper
     class NumberToHumanSizeConverter < NumberConverter #:nodoc:
-      STORAGE_UNITS = [:byte, :kb, :mb, :gb, :tb]
+      STORAGE_UNITS = [:byte, :kb, :mb, :gb, :tb, :pb, :eb]
 
       self.namespace      = :human
       self.validate_float = true

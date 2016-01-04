@@ -77,12 +77,6 @@ module ActiveRecord
     end
   end
 
-  class MysqlTestCase < TestCase
-    def self.run(*args)
-      super if current_adapter?(:MysqlAdapter)
-    end
-  end
-
   class SQLite3TestCase < TestCase
     def self.run(*args)
       super if current_adapter?(:SQLite3Adapter)

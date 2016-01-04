@@ -43,7 +43,7 @@ module ActionDispatch
       #
       #   {'action' => 'my_action', 'controller' => 'my_controller'}
       def path_parameters
-        get_header(PARAMETERS_KEY) || {}
+        get_header(PARAMETERS_KEY) || set_header(PARAMETERS_KEY, {})
       end
 
       private

@@ -63,6 +63,14 @@ module ActionView
       # Formats a +number+ into a currency string (e.g., $13.65). You
       # can customize the format in the +options+ hash.
       #
+      # The currency unit and number formatting of the current locale will be used
+      # unless otherwise specified in the provided options. No currency conversion
+      # is performed. If the user is given a way to change their locale, they will
+      # also be able to change the relative value of the currency displayed with
+      # this helper. If your application will ever support multiple locales, you
+      # may want to specify a constant <tt>:locale</tt> option or consider
+      # using a library capable of currency conversion.
+      #
       # ==== Options
       #
       # * <tt>:locale</tt> - Sets the locale to be used for formatting
@@ -261,6 +269,8 @@ module ActionView
       #   number_to_human_size(1234567)                                      # => 1.18 MB
       #   number_to_human_size(1234567890)                                   # => 1.15 GB
       #   number_to_human_size(1234567890123)                                # => 1.12 TB
+      #   number_to_human_size(1234567890123456)                             # => 1.1 PB
+      #   number_to_human_size(1234567890123456789)                          # => 1.07 EB
       #   number_to_human_size(1234567, precision: 2)                        # => 1.2 MB
       #   number_to_human_size(483989, precision: 2)                         # => 470 KB
       #   number_to_human_size(1234567, precision: 2, separator: ',')        # => 1,2 MB

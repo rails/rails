@@ -203,9 +203,22 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     bulb = car.bulbs.create
     assert_equal 'defaulty', bulb.name
+  end
 
-    bulb = car.bulbs.create(:name => 'exotic')
+  def test_build_and_create_from_association_should_respect_passed_attributes_over_default_scope
+    car = Car.create(name: 'honda')
+
+    bulb = car.bulbs.build(name: 'exotic')
     assert_equal 'exotic', bulb.name
+
+    bulb = car.bulbs.create(name: 'exotic')
+    assert_equal 'exotic', bulb.name
+
+    bulb = car.awesome_bulbs.build(frickinawesome: false)
+    assert_equal false, bulb.frickinawesome
+
+    bulb = car.awesome_bulbs.create(frickinawesome: false)
+    assert_equal false, bulb.frickinawesome
   end
 
   def test_build_from_association_should_respect_scope
@@ -2333,6 +2346,12 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     car.bulbs = [second_bulb, same_bulb]
 
     assert_equal [first_bulb, second_bulb], car.bulbs
+  end
+
+  test 'double insertion of new object to association when same association used in the after create callback of a new object' do
+    car = Car.create!
+    car.bulbs << TrickyBulb.new
+    assert_equal 1, car.bulbs.size
   end
 
   def test_association_force_reload_with_only_true_is_deprecated

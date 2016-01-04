@@ -1,8 +1,10 @@
 require 'active_support/core_ext/hash/indifferent_access'
+require 'active_support/core_ext/hash/transform_values'
 require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/string/filters'
 require 'active_support/rescuable'
 require 'action_dispatch/http/upload'
+require 'rack/test'
 require 'stringio'
 require 'set'
 
@@ -107,7 +109,7 @@ module ActionController
     cattr_accessor :permit_all_parameters, instance_accessor: false
     cattr_accessor :action_on_unpermitted_parameters, instance_accessor: false
 
-    delegate :keys, :key?, :has_key?, :empty?, :inspect, to: :@parameters
+    delegate :keys, :key?, :has_key?, :empty?, :include?, :inspect, to: :@parameters
 
     # By default, never raise an UnpermittedParameters exception if these
     # params are present. The default includes both 'controller' and 'action'
@@ -161,8 +163,8 @@ module ActionController
       end
     end
 
-    # Returns a safe +Hash+ representation of this parameter with all
-    # unpermitted keys removed.
+    # Returns a safe <tt>ActiveSupport::HashWithIndifferentAccess</tt>
+    # representation of this parameter with all unpermitted keys removed.
     #
     #   params = ActionController::Parameters.new({
     #     name: 'Senjougahara Hitagi',
@@ -174,15 +176,17 @@ module ActionController
     #   safe_params.to_h # => {"name"=>"Senjougahara Hitagi"}
     def to_h
       if permitted?
-        @parameters.to_h
+        convert_parameters_to_hashes(@parameters, :to_h)
       else
         slice(*self.class.always_permitted_parameters).permit!.to_h
       end
     end
 
-    # Returns an unsafe, unfiltered +Hash+ representation of this parameter.
+    # Returns an unsafe, unfiltered
+    # <tt>ActiveSupport::HashWithIndifferentAccess</tt> representation of this
+    # parameter.
     def to_unsafe_h
-      @parameters.to_h
+      convert_parameters_to_hashes(@parameters, :to_unsafe_h)
     end
     alias_method :to_unsafe_hash, :to_unsafe_h
 
@@ -588,6 +592,21 @@ module ActionController
       def new_instance_with_inherited_permitted_status(hash)
         self.class.new(hash).tap do |new_instance|
           new_instance.permitted = @permitted
+        end
+      end
+
+      def convert_parameters_to_hashes(value, using)
+        case value
+        when Array
+          value.map { |v| convert_parameters_to_hashes(v, using) }
+        when Hash
+          value.transform_values do |v|
+            convert_parameters_to_hashes(v, using)
+          end.with_indifferent_access
+        when Parameters
+          value.send(using)
+        else
+          value
         end
       end
 

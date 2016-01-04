@@ -125,7 +125,7 @@ This would also define the following accessors: <tt>Product#name</tt> and
     )
 
   {Learn more}[link:classes/ActiveRecord/Base.html] and read about the built-in support for
-  MySQL[link:classes/ActiveRecord/ConnectionAdapters/MysqlAdapter.html],
+  MySQL[link:classes/ActiveRecord/ConnectionAdapters/Mysql2Adapter.html],
   PostgreSQL[link:classes/ActiveRecord/ConnectionAdapters/PostgreSQLAdapter.html], and
   SQLite3[link:classes/ActiveRecord/ConnectionAdapters/SQLite3Adapter.html].
 
@@ -138,7 +138,7 @@ This would also define the following accessors: <tt>Product#name</tt> and
 
 * Database agnostic schema management with Migrations.
 
-    class AddSystemSettings < ActiveRecord::Migration
+    class AddSystemSettings < ActiveRecord::Migration[5.0]
       def up
         create_table :system_settings do |t|
           t.string  :name
@@ -188,7 +188,7 @@ Admit the Database:
 
 The latest version of Active Record can be installed with RubyGems:
 
-  % gem install activerecord
+  $ gem install activerecord
 
 Source code can be downloaded as part of the Rails project on GitHub:
 
@@ -215,4 +215,3 @@ Bug reports can be filed for the Ruby on Rails project here:
 Feature requests should be discussed on the rails-core mailing list here:
 
 * https://groups.google.com/forum/?fromgroups#!forum/rubyonrails-core
-

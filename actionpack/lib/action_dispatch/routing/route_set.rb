@@ -30,9 +30,9 @@ module ActionDispatch
           controller = controller req
           res        = controller.make_response! req
           dispatch(controller, params[:action], req, res)
-        rescue NameError => e
+        rescue ActionController::RoutingError
           if @raise_on_name_error
-            raise ActionController::RoutingError, e.message, e.backtrace
+            raise
           else
             return [404, {'X-Cascade' => 'pass'}, []]
           end
@@ -42,6 +42,8 @@ module ActionDispatch
 
         def controller(req)
           req.controller_class
+        rescue NameError => e
+          raise ActionController::RoutingError, e.message, e.backtrace
         end
 
         def dispatch(controller, action, req, res)
@@ -371,10 +373,6 @@ module ActionDispatch
       end
 
       def eval_block(block)
-        if block.arity == 1
-          raise "You are using the old router DSL which has been removed in Rails 3.1. " <<
-            "Please check how to update your routes file at: http://www.engineyard.com/blog/2010/the-lowdown-on-routes-in-rails-3/"
-        end
         mapper = Mapper.new(self)
         if default_scope
           mapper.with_default_scope(default_scope, &block)

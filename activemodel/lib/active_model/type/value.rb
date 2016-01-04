@@ -90,6 +90,11 @@ module ActiveModel
           scale == other.scale &&
           limit == other.limit
       end
+      alias eql? ==
+
+      def hash
+        [self.class, precision, scale, limit].hash
+      end
 
       def assert_valid_value(*)
       end

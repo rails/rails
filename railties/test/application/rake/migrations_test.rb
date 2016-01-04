@@ -18,7 +18,7 @@ module ApplicationTests
           `bin/rails generate model user username:string password:string`
 
           app_file "db/migrate/01_a_migration.bukkits.rb", <<-MIGRATION
-            class AMigration < ActiveRecord::Migration
+            class AMigration < ActiveRecord::Migration::Current
             end
           MIGRATION
 
@@ -158,12 +158,12 @@ module ApplicationTests
         Dir.chdir(app_path) do
 
           app_file "db/migrate/1_one_migration.rb", <<-MIGRATION
-            class OneMigration < ActiveRecord::Migration
+            class OneMigration < ActiveRecord::Migration::Current
             end
           MIGRATION
 
           app_file "db/migrate/02_two_migration.rb", <<-MIGRATION
-            class TwoMigration < ActiveRecord::Migration
+            class TwoMigration < ActiveRecord::Migration::Current
             end
           MIGRATION
 

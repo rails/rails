@@ -21,7 +21,7 @@ module Rails
             headers = config.public_file_server.headers || {}
             headers['Cache-Control'.freeze] = config.static_cache_control if config.static_cache_control
 
-            middleware.use ::ActionDispatch::Static, paths["public"].first, index: config.static_index, headers: headers
+            middleware.use ::ActionDispatch::Static, paths["public"].first, index: config.public_file_server.index_name, headers: headers
           end
 
           if rack_cache = load_rack_cache
@@ -57,7 +57,7 @@ module Rails
           # Must come after Rack::MethodOverride to properly log overridden methods
           middleware.use ::Rails::Rack::Logger, config.log_tags
           middleware.use ::ActionDispatch::ShowExceptions, show_exceptions_app
-          middleware.use ::ActionDispatch::DebugExceptions, app
+          middleware.use ::ActionDispatch::DebugExceptions, app, config.debug_exception_response_format
           middleware.use ::ActionDispatch::RemoteIp, config.action_dispatch.ip_spoofing_check, config.action_dispatch.trusted_proxies
 
           unless config.cache_classes
@@ -68,7 +68,7 @@ module Rails
           middleware.use ::ActionDispatch::Cookies unless config.api_only
 
           if !config.api_only && config.session_store
-            if config.force_ssl && !config.session_options.key?(:secure)
+            if config.force_ssl && config.ssl_options.fetch(:secure_cookies, true) && !config.session_options.key?(:secure)
               config.session_options[:secure] = true
             end
             middleware.use config.session_store, config.session_options

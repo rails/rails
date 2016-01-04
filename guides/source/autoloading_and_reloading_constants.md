@@ -181,14 +181,14 @@ constant.
 That is,
 
 ```ruby
-class Project < ActiveRecord::Base
+class Project < ApplicationRecord
 end
 ```
 
 performs a constant assignment equivalent to
 
 ```ruby
-Project = Class.new(ActiveRecord::Base)
+Project = Class.new(ApplicationRecord)
 ```
 
 including setting the name of the class as a side-effect:
@@ -685,7 +685,7 @@ to trigger the heuristic is defined in the conflicting place.
 ### Automatic Modules
 
 When a module acts as a namespace, Rails does not require the application to
-defines a file for it, a directory matching the namespace is enough.
+define a file for it, a directory matching the namespace is enough.
 
 Suppose an application has a back office whose controllers are stored in
 `app/controllers/admin`. If the `Admin` module is not yet loaded when
@@ -912,7 +912,7 @@ these classes:
 
 ```ruby
 # app/models/polygon.rb
-class Polygon < ActiveRecord::Base
+class Polygon < ApplicationRecord
 end
 
 # app/models/triangle.rb
@@ -987,7 +987,7 @@ root class:
 
 ```ruby
 # app/models/polygon.rb
-class Polygon < ActiveRecord::Base
+class Polygon < ApplicationRecord
 end
 require_dependency ‘square’
 ```

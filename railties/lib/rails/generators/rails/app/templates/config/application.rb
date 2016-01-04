@@ -11,6 +11,7 @@ require "active_job/railtie"
 require "action_controller/railtie"
 <%= comment_if :skip_action_mailer %>require "action_mailer/railtie"
 require "action_view/railtie"
+<%= comment_if :skip_action_cable %>require "action_cable/engine"
 <%= comment_if :skip_sprockets %>require "sprockets/railtie"
 <%= comment_if :skip_test %>require "rails/test_unit/railtie"
 <% end -%>
@@ -24,14 +25,6 @@ module <%= app_const_base %>
     # Settings in config/environments/* take precedence over those specified here.
     # Application configuration should go into files in config/initializers
     # -- all .rb files in that directory are automatically loaded.
-
-    # Set Time.zone default to the specified zone and make Active Record auto-convert to this zone.
-    # Run "rake time:zones:all" for a time zone names list. Default is UTC.
-    # config.time_zone = 'Central Time (US & Canada)'
-
-    # The default locale is :en and all translations from config/locales/*.rb,yml are auto loaded.
-    # config.i18n.load_path += Dir[Rails.root.join('my', 'locales', '*.{rb,yml}').to_s]
-    # config.i18n.default_locale = :de
 <%- if options[:api] -%>
 
     # Only loads a smaller set of middleware suitable for API only apps.

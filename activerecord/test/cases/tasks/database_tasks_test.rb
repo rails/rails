@@ -12,7 +12,6 @@ module ActiveRecord
   end
 
   ADAPTERS_TASKS = {
-    mysql:      :mysql_tasks,
     mysql2:     :mysql_tasks,
     postgresql: :postgresql_tasks,
     sqlite3:    :sqlite_tasks

@@ -82,11 +82,10 @@ module ActiveRecord
       #
       def index_exists?(table_name, column_name, options = {})
         column_names = Array(column_name).map(&:to_s)
-        index_name = options.key?(:name) ? options[:name].to_s : index_name(table_name, column: column_names)
         checks = []
-        checks << lambda { |i| i.name == index_name }
         checks << lambda { |i| i.columns == column_names }
         checks << lambda { |i| i.unique } if options[:unique]
+        checks << lambda { |i| i.name == options[:name].to_s } if options[:name]
 
         indexes(table_name).any? { |i| checks.all? { |check| check[i] } }
       end
@@ -700,15 +699,15 @@ module ActiveRecord
 
       # Removes the given index from the table.
       #
-      # Removes the +index_accounts_on_column+ in the +accounts+ table.
+      # Removes the index on +branch_id+ in the +accounts+ table if exactly one such index exists.
       #
       #   remove_index :accounts, :branch_id
       #
-      # Removes the index named +index_accounts_on_branch_id+ in the +accounts+ table.
+      # Removes the index on +branch_id+ in the +accounts+ table if exactly one such index exists.
       #
       #   remove_index :accounts, column: :branch_id
       #
-      # Removes the index named +index_accounts_on_branch_id_and_party_id+ in the +accounts+ table.
+      # Removes the index on +branch_id+ and +party_id+ in the +accounts+ table if exactly one such index exists.
       #
       #   remove_index :accounts, column: [:branch_id, :party_id]
       #
@@ -1029,11 +1028,12 @@ module ActiveRecord
       end
 
       # Given a set of columns and an ORDER BY clause, returns the columns for a SELECT DISTINCT.
-      # Both PostgreSQL and Oracle overrides this for custom DISTINCT syntax - they
+      # PostgreSQL, MySQL, and Oracle overrides this for custom DISTINCT syntax - they
       # require the order columns appear in the SELECT.
       #
       #   columns_for_distinct("posts.id", ["posts.created_at desc"])
-      def columns_for_distinct(columns, orders) #:nodoc:
+      #
+      def columns_for_distinct(columns, orders) # :nodoc:
         columns
       end
 
@@ -1127,21 +1127,35 @@ module ActiveRecord
         end
 
         def index_name_for_remove(table_name, options = {})
-          index_name = index_name(table_name, options)
+          # if the adapter doesn't support the indexes call the best we can do
+          # is return the default index name for the options provided
+          return index_name(table_name, options) unless respond_to?(:indexes)
 
-          unless index_name_exists?(table_name, index_name, true)
-            if options.is_a?(Hash) && options.has_key?(:name)
-              options_without_column = options.dup
-              options_without_column.delete :column
-              index_name_without_column = index_name(table_name, options_without_column)
+          checks = []
 
-              return index_name_without_column if index_name_exists?(table_name, index_name_without_column, false)
-            end
-
-            raise ArgumentError, "Index name '#{index_name}' on table '#{table_name}' does not exist"
+          if options.is_a?(Hash)
+            checks << lambda { |i| i.name == options[:name].to_s } if options.has_key?(:name)
+            column_names = Array(options[:column]).map(&:to_s)
+          else
+            column_names = Array(options).map(&:to_s)
           end
 
-          index_name
+          if column_names.any?
+            checks << lambda { |i| i.columns.join('_and_') == column_names.join('_and_') }
+          end
+
+          raise ArgumentError "No name or columns specified" if checks.none?
+
+          matching_indexes = indexes(table_name).select { |i| checks.all? { |check| check[i] } }
+
+          if matching_indexes.count > 1
+            raise ArgumentError, "Multiple indexes found on #{table_name} columns #{column_names}. " \
+                                 "Specify an index name from #{matching_indexes.map(&:name).join(', ')}"
+          elsif matching_indexes.none?
+            raise ArgumentError, "No indexes found on #{table_name} with the options provided."
+          else
+            matching_indexes.first.name
+          end
         end
 
         def rename_table_indexes(table_name, new_name)
@@ -1168,7 +1182,7 @@ module ActiveRecord
 
       private
       def create_table_definition(name, temporary = false, options = nil, as = nil)
-        TableDefinition.new native_database_types, name, temporary, options, as
+        TableDefinition.new(name, temporary, options, as)
       end
 
       def create_alter_table(name)
