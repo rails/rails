@@ -40,11 +40,11 @@ module ActiveRecord
         end
 
         def blob_or_text_column?
-          sql_type =~ /blob/i || type == :text
+          /\A(?:tiny|medium|long)?blob\b/ === sql_type || type == :text
         end
 
         def unsigned?
-          /unsigned/ === sql_type
+          /\bunsigned\z/ === sql_type
         end
 
         def case_sensitive?
@@ -835,7 +835,7 @@ module ActiveRecord
 
       def register_integer_type(mapping, key, options) # :nodoc:
         mapping.register_type(key) do |sql_type|
-          if /unsigned/i =~ sql_type
+          if /\bunsigned\z/ === sql_type
             Type::UnsignedInteger.new(options)
           else
             Type::Integer.new(options)
