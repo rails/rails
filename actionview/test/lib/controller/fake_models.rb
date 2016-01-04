@@ -31,6 +31,26 @@ end
 class GoodCustomer < Customer
 end
 
+class TicketType < Struct.new(:name)
+  extend ActiveModel::Naming
+  include ActiveModel::Conversion
+  extend ActiveModel::Translation
+
+  def initialize(*args)
+    super
+  end
+
+  def persisted=(boolean)
+    @persisted = boolean
+  end
+
+  def persisted?
+    @persisted
+  end
+
+  attr_accessor :name
+end
+
 class Post < Struct.new(:title, :author_name, :body, :secret, :persisted, :written_on, :cost)
   extend ActiveModel::Naming
   include ActiveModel::Conversion
