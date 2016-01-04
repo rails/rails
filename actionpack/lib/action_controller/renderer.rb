@@ -20,7 +20,7 @@ module ActionController
   # #render method allows you to use any options as when rendering in controller.
   # For example,
   #
-  #   FooController.render :action, locals: { ... }, assigns: { ... }
+  #   FooController.render :index, locals: { ... }, assigns: { ... }
   #
   # The template will be rendered in a Rack environment which is accessible through
   # ActionController::Renderer#env. You can set it up in two ways:
