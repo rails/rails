@@ -58,6 +58,11 @@ class TransactionTest < ActiveRecord::TestCase
     end
   end
 
+  def test_add_to_null_transaction
+    topic = Topic.new
+    topic.add_to_transaction
+  end
+
   def test_successful_with_return
     committed = false
 
