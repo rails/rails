@@ -90,10 +90,6 @@ module ActiveRecord
           end
         end
 
-        def create
-          super.insert
-        end
-
         # The internal PostgreSQL identifier of the money data type.
         MONEY_COLUMN_TYPE_OID = 790 #:nodoc:
         # The internal PostgreSQL identifier of the BYTEA data type.

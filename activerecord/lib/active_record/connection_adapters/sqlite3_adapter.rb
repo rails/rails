@@ -294,7 +294,6 @@ module ActiveRecord
         super
         id_value || @connection.last_insert_row_id
       end
-      alias :create :insert_sql
 
       def select_rows(sql, name = nil, binds = [])
         exec_query(sql, name, binds).rows
