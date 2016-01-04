@@ -54,16 +54,17 @@ module ActiveRecord
       end
     end
 
+    FROZEN_EMPTY_ARRAY = [].freeze
     Relation::MULTI_VALUE_METHODS.each do |name|
       class_eval <<-CODE, __FILE__, __LINE__ + 1
-        def #{name}_values                    # def select_values
-          @values[:#{name}] || []             #   @values[:select] || []
-        end                                   # end
-                                              #
-        def #{name}_values=(values)           # def select_values=(values)
-          assert_mutability!                  #   assert_mutability!
-          @values[:#{name}] = values          #   @values[:select] = values
-        end                                   # end
+        def #{name}_values
+          @values[:#{name}] || FROZEN_EMPTY_ARRAY
+        end
+
+        def #{name}_values=(values)
+          assert_mutability!
+          @values[:#{name}] = values
+        end
       CODE
     end
 
@@ -116,8 +117,9 @@ module ActiveRecord
       result
     end
 
+    FROZEN_EMPTY_HASH = {}.freeze
     def create_with_value # :nodoc:
-      @values[:create_with] || {}
+      @values[:create_with] || FROZEN_EMPTY_HASH
     end
 
     alias extensions extending_values
@@ -1190,7 +1192,7 @@ module ActiveRecord
     def structurally_compatible_for_or?(other)
       Relation::SINGLE_VALUE_METHODS.all? { |m| send("#{m}_value") == other.send("#{m}_value") } &&
         (Relation::MULTI_VALUE_METHODS - [:extending]).all? { |m| send("#{m}_values") == other.send("#{m}_values") } &&
-        (Relation::CLAUSE_METHODS - [:having, :where]).all? { |m| send("#{m}_clause") != other.send("#{m}_clause") }
+        (Relation::CLAUSE_METHODS - [:having, :where]).all? { |m| send("#{m}_clause") == other.send("#{m}_clause") }
     end
 
     def new_where_clause
