@@ -1,3 +1,8 @@
+*   `ActionView::TestCase::Controller#params` returns an instance of
+    `ActionController::Parameters`.
+
+    *Justin Coyne*
+
 *   Respect value of `:object` if `:object` is false when rendering.
 
     Fixes #22260.
