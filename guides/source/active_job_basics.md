@@ -50,7 +50,7 @@ job in `app/jobs` (with an attached test case under `test/jobs`):
 
 ```bash
 $ bin/rails generate job guests_cleanup
-invoke  test_unit
+invoke  minitest
 create    test/jobs/guests_cleanup_job_test.rb
 create  app/jobs/guests_cleanup_job.rb
 ```

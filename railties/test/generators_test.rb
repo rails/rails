@@ -1,6 +1,6 @@
 require 'generators/generators_test_helper'
 require 'rails/generators/rails/model/model_generator'
-require 'rails/generators/test_unit/model/model_generator'
+require 'rails/generators/minitest/model/model_generator'
 
 class GeneratorsTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
@@ -16,8 +16,8 @@ class GeneratorsTest < Rails::Generators::TestCase
 
   def test_simple_invoke
     assert File.exist?(File.join(@path, 'generators', 'model_generator.rb'))
-    assert_called_with(TestUnit::Generators::ModelGenerator, :start, [["Account"], {}]) do
-      Rails::Generators.invoke("test_unit:model", ["Account"])
+    assert_called_with(Minitest::Generators::ModelGenerator, :start, [["Account"], {}]) do
+      Rails::Generators.invoke("minitest:model", ["Account"])
     end
   end
 
@@ -78,9 +78,9 @@ class GeneratorsTest < Rails::Generators::TestCase
   end
 
   def test_find_by_namespace_with_context
-    klass = Rails::Generators.find_by_namespace(:test_unit, nil, :model)
+    klass = Rails::Generators.find_by_namespace(:minitest, nil, :model)
     assert klass
-    assert_equal "test_unit:model", klass.namespace
+    assert_equal "minitest:model", klass.namespace
   end
 
   def test_find_by_namespace_with_generator_on_root
@@ -158,26 +158,26 @@ class GeneratorsTest < Rails::Generators::TestCase
   end
 
   def test_fallbacks_for_generators_on_find_by_namespace
-    Rails::Generators.fallbacks[:remarkable] = :test_unit
+    Rails::Generators.fallbacks[:remarkable] = :minitest
     klass = Rails::Generators.find_by_namespace(:plugin, :remarkable)
     assert klass
-    assert_equal "test_unit:plugin", klass.namespace
+    assert_equal "minitest:plugin", klass.namespace
   ensure
     Rails::Generators.fallbacks.delete(:remarkable)
   end
 
   def test_fallbacks_for_generators_on_find_by_namespace_with_context
-    Rails::Generators.fallbacks[:remarkable] = :test_unit
+    Rails::Generators.fallbacks[:remarkable] = :minitest
     klass = Rails::Generators.find_by_namespace(:remarkable, :rails, :plugin)
     assert klass
-    assert_equal "test_unit:plugin", klass.namespace
+    assert_equal "minitest:plugin", klass.namespace
   ensure
     Rails::Generators.fallbacks.delete(:remarkable)
   end
 
   def test_fallbacks_for_generators_on_invoke
-    Rails::Generators.fallbacks[:shoulda] = :test_unit
-    assert_called_with(TestUnit::Generators::ModelGenerator, :start, [["Account"], {}]) do
+    Rails::Generators.fallbacks[:shoulda] = :minitest
+    assert_called_with(Minitest::Generators::ModelGenerator, :start, [["Account"], {}]) do
       Rails::Generators.invoke "shoulda:model", ["Account"]
     end
   ensure
@@ -185,9 +185,9 @@ class GeneratorsTest < Rails::Generators::TestCase
   end
 
   def test_nested_fallbacks_for_generators
-    Rails::Generators.fallbacks[:shoulda] = :test_unit
+    Rails::Generators.fallbacks[:shoulda] = :minitest
     Rails::Generators.fallbacks[:super_shoulda] = :shoulda
-    assert_called_with(TestUnit::Generators::ModelGenerator, :start, [["Account"], {}]) do
+    assert_called_with(Minitest::Generators::ModelGenerator, :start, [["Account"], {}]) do
       Rails::Generators.invoke "super_shoulda:model", ["Account"]
     end
   ensure

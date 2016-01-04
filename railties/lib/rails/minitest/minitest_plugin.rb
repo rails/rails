@@ -1,6 +1,6 @@
 require "active_support/core_ext/module/attribute_accessors"
-require "rails/test_unit/reporter"
-require "rails/test_unit/test_requirer"
+require "rails/minitest/reporter"
+require "rails/minitest/test_requirer"
 
 module Minitest
   class SuppressedSummaryReporter < SummaryReporter
@@ -11,7 +11,7 @@ module Minitest
   end
 
   def self.plugin_rails_options(opts, options)
-    executable = ::Rails::TestUnitReporter.executable
+    executable = ::Rails::MinitestReporter.executable
     opts.separator ""
     opts.separator "Usage: #{executable} [options] [files or directories]"
     opts.separator "You can run a single test by appending a line number to a filename:"
@@ -82,7 +82,7 @@ module Minitest
 
     self.reporter.reporters.clear # Replace progress reporter for colors.
     self.reporter << SuppressedSummaryReporter.new(options[:io], options)
-    self.reporter << ::Rails::TestUnitReporter.new(options[:io], options)
+    self.reporter << ::Rails::MinitestReporter.new(options[:io], options)
   end
 
   mattr_accessor(:run_with_autorun)         { false }

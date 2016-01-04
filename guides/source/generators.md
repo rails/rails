@@ -165,7 +165,7 @@ Rails own generators are flexible enough to let you customize scaffolding. They 
 config.generators do |g|
   g.orm             :active_record
   g.template_engine :erb
-  g.test_framework  :test_unit, fixture: true
+  g.test_framework  :minitest, fixture: true
 end
 ```
 
@@ -176,7 +176,7 @@ $ bin/rails generate scaffold User name:string
       invoke  active_record
       create    db/migrate/20130924151154_create_users.rb
       create    app/models/user.rb
-      invoke    test_unit
+      invoke    minitest
       create      test/models/user_test.rb
       create      test/fixtures/users.yml
       invoke  resource_route
@@ -190,7 +190,7 @@ $ bin/rails generate scaffold User name:string
       create      app/views/users/show.html.erb
       create      app/views/users/new.html.erb
       create      app/views/users/_form.html.erb
-      invoke    test_unit
+      invoke    minitest
       create      test/controllers/users_controller_test.rb
       invoke    helper
       create      app/helpers/users_helper.rb
@@ -206,7 +206,7 @@ $ bin/rails generate scaffold User name:string
       create    app/assets/stylesheets/scaffolds.scss
 ```
 
-Looking at this output, it's easy to understand how generators work in Rails 3.0 and above. The scaffold generator doesn't actually generate anything, it just invokes others to do the work. This allows us to add/replace/remove any of those invocations. For instance, the scaffold generator invokes the scaffold_controller generator, which invokes erb, test_unit and helper generators. Since each generator has a single responsibility, they are easy to reuse, avoiding code duplication.
+Looking at this output, it's easy to understand how generators work in Rails 3.0 and above. The scaffold generator doesn't actually generate anything, it just invokes others to do the work. This allows us to add/replace/remove any of those invocations. For instance, the scaffold generator invokes the scaffold_controller generator, which invokes erb, minitest and helper generators. Since each generator has a single responsibility, they are easy to reuse, avoiding code duplication.
 
 Our first customization on the workflow will be to stop generating stylesheet, JavaScript and test fixture files for scaffolds. We can achieve that by changing our configuration to the following:
 
@@ -214,7 +214,7 @@ Our first customization on the workflow will be to stop generating stylesheet, J
 config.generators do |g|
   g.orm             :active_record
   g.template_engine :erb
-  g.test_framework  :test_unit, fixture: false
+  g.test_framework  :minitest, fixture: false
   g.stylesheets     false
   g.javascripts     false
 end
@@ -270,7 +270,7 @@ Which is what we expected. We can now tell scaffold to use our new helper genera
 config.generators do |g|
   g.orm             :active_record
   g.template_engine :erb
-  g.test_framework  :test_unit, fixture: false
+  g.test_framework  :minitest, fixture: false
   g.stylesheets     false
   g.javascripts     false
   g.helper          :my_helper
@@ -335,7 +335,7 @@ and revert the last change in `config/application.rb`:
 config.generators do |g|
   g.orm             :active_record
   g.template_engine :erb
-  g.test_framework  :test_unit, fixture: false
+  g.test_framework  :minitest, fixture: false
   g.stylesheets     false
   g.javascripts     false
 end
@@ -375,7 +375,7 @@ config.generators do |g|
   g.javascripts     false
 
   # Add a fallback!
-  g.fallbacks[:shoulda] = :test_unit
+  g.fallbacks[:shoulda] = :minitest
 end
 ```
 

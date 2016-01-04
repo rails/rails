@@ -66,7 +66,7 @@ module ApplicationTests
         config.generators.rails aliases: { test_framework: "-w" }
         config.generators.orm :data_mapper
         config.generators.test_framework :rspec
-        config.generators.fallbacks[:shoulda] = :test_unit
+        config.generators.fallbacks[:shoulda] = :minitest
         config.generators.templates << "some/where"
       RUBY
 
@@ -76,7 +76,7 @@ module ApplicationTests
 
       assert_equal :rspec, Rails::Generators.options[:rails][:test_framework]
       assert_equal "-w", Rails::Generators.aliases[:rails][:test_framework]
-      assert_equal Hash[shoulda: :test_unit], Rails::Generators.fallbacks
+      assert_equal Hash[shoulda: :minitest], Rails::Generators.fallbacks
       assert_equal ["some/where"], Rails::Generators.templates_path
     end
 

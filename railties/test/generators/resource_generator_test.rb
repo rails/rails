@@ -10,7 +10,7 @@ class ResourceGeneratorTest < Rails::Generators::TestCase
   def test_help_with_inherited_options
     content = run_generator ["--help"]
     assert_match(/ActiveRecord options:/, content)
-    assert_match(/TestUnit options:/, content)
+    assert_match(/Minitest options:/, content)
   end
 
   def test_files_from_inherited_invocation

@@ -327,7 +327,7 @@ This command will output this information:
 invoke  active_record
 create    db/migrate/[timestamp]_create_blorgh_articles.rb
 create    app/models/blorgh/article.rb
-invoke    test_unit
+invoke    minitest
 create      test/models/blorgh/article_test.rb
 create      test/fixtures/blorgh/articles.yml
 invoke  resource_route
@@ -341,7 +341,7 @@ create      app/views/blorgh/articles/edit.html.erb
 create      app/views/blorgh/articles/show.html.erb
 create      app/views/blorgh/articles/new.html.erb
 create      app/views/blorgh/articles/_form.html.erb
-invoke    test_unit
+invoke    minitest
 create      test/controllers/blorgh/articles_controller_test.rb
 invoke    helper
 create      app/helpers/blorgh/articles_helper.rb
@@ -362,7 +362,7 @@ the `Blorgh::Engine` class's definition. The model here is also namespaced,
 being placed at `app/models/blorgh/article.rb` rather than `app/models/article.rb` due
 to the `isolate_namespace` call within the `Engine` class.
 
-Next, the `test_unit` generator is invoked for this model, generating a model
+Next, the `minitest` generator is invoked for this model, generating a model
 test at `test/models/blorgh/article_test.rb` (rather than
 `test/models/article_test.rb`) and a fixture at `test/fixtures/blorgh/articles.yml`
 (rather than `test/fixtures/articles.yml`).
@@ -474,7 +474,7 @@ This will output the following:
 invoke  active_record
 create    db/migrate/[timestamp]_create_blorgh_comments.rb
 create    app/models/blorgh/comment.rb
-invoke    test_unit
+invoke    minitest
 create      test/models/blorgh/comment_test.rb
 create      test/fixtures/blorgh/comments.yml
 ```
@@ -568,7 +568,7 @@ This will generate the following things:
 create  app/controllers/blorgh/comments_controller.rb
 invoke  erb
  exist    app/views/blorgh/comments
-invoke  test_unit
+invoke  minitest
 create    test/controllers/blorgh/comments_controller_test.rb
 invoke  helper
 create    app/helpers/blorgh/comments_helper.rb

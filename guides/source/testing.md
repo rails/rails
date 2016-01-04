@@ -513,7 +513,7 @@ Rails model tests are stored under the `test/models` directory. Rails provides
 a generator to create a model test skeleton for you.
 
 ```bash
-$ bin/rails generate test_unit:model article title:string body:text
+$ bin/rails generate minitest:model article title:string body:text
 create  test/models/article_test.rb
 create  test/fixtures/articles.yml
 ```
@@ -572,7 +572,7 @@ It should have created a test file placeholder for us. With the output of the
 previous command you should see:
 
 ```bash
-      invoke  test_unit
+      invoke  minitest
       create    test/integration/blog_flow_test.rb
 ```
 
@@ -658,7 +658,7 @@ $ bin/rails generate scaffold_controller article title:string body:text
 ...
 create  app/controllers/articles_controller.rb
 ...
-invoke  test_unit
+invoke  minitest
 create    test/controllers/articles_controller_test.rb
 ...
 ```
@@ -670,9 +670,9 @@ If you already have a controller and just want to generate the test scaffold cod
 each of the seven default actions, you can use the following command:
 
 ```bash
-$ bin/rails generate test_unit:scaffold article
+$ bin/rails generate minitest:scaffold article
 ...
-invoke  test_unit
+invoke  minitest
 create test/controllers/articles_controller_test.rb
 ...
 ```

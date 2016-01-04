@@ -15,7 +15,7 @@ require "rails/test_help"
 Minitest.backtrace_filter = Minitest::BacktraceFilter.new
 
 <% unless engine? -%>
-Rails::TestUnitReporter.executable = 'bin/test'
+Rails::MinitestReporter.executable = 'bin/test'
 <% end -%>
 
 # Load fixtures from the engine

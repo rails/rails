@@ -42,7 +42,7 @@ invoke  erb
 create    app/views/user_mailer
 create    app/views/layouts/mailer.text.erb
 create    app/views/layouts/mailer.html.erb
-invoke  test_unit
+invoke  minitest
 create    test/mailers/user_mailer_test.rb
 create    test/mailers/previews/user_mailer_preview.rb
 ```
