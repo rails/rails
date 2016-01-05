@@ -13,6 +13,7 @@ gem 'rack-cache', '~> 1.2'
 gem 'jquery-rails'
 gem 'coffee-rails', '~> 4.1.0'
 gem 'turbolinks'
+gem 'actioncable'
 
 # require: false so bcrypt is loaded only when has_secure_password is used.
 # This is to avoid Active Model (and by extension the entire framework)

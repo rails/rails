@@ -57,7 +57,7 @@ module Rails
       directory 'app'
 
       keep_file  'app/assets/images'
-      empty_directory_with_keep_file 'app/assets/javascripts/channels' unless options[:skip_action_cable]
+      empty_directory_with_keep_file 'app/assets/javascripts/channels' if options[:with_action_cable]
 
       keep_file  'app/controllers/concerns'
       keep_file  'app/models/concerns'
@@ -82,7 +82,7 @@ module Rails
         directory "environments"
         directory "initializers"
         directory "locales"
-        directory "redis" unless options[:skip_action_cable]
+        directory "redis" if options[:with_action_cable]
       end
     end
 
@@ -313,12 +313,11 @@ module Rails
         end
       end
 
-      def delete_action_cable_files_skipping_action_cable
-        if options[:skip_action_cable]
-          remove_file 'config/redis/cable.yml'
-          remove_file 'app/assets/javascripts/cable.coffee'
-          remove_dir 'app/channels'
-        end
+      def delete_action_cable_files_unless_required_action_cable
+        return if options[:with_action_cable]
+        remove_file 'config/redis/cable.yml'
+        remove_file 'app/assets/javascripts/cable.coffee'
+        remove_dir 'app/channels'
       end
 
       def delete_non_api_initializers_if_api_option
