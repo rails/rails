@@ -1,4 +1,5 @@
 require 'active_support/callbacks'
+require 'active_support/core_ext/module/attribute_accessors_per_thread'
 require 'concurrent'
 
 module ActionCable
@@ -7,6 +8,7 @@ module ActionCable
     class Worker
       include ActiveSupport::Callbacks
 
+      thread_mattr_accessor :connection
       define_callbacks :work
       include ActiveRecordConnectionManagement
 
@@ -18,10 +20,6 @@ module ActionCable
         )
       end
 
-      def connection
-        Thread.current[:connection] || raise("No connection set")
-      end
-
       def async_invoke(receiver, method, *args)
         @pool.post do
           invoke(receiver, method, *args)
@@ -30,7 +28,7 @@ module ActionCable
 
       def invoke(receiver, method, *args)
         begin
-          Thread.current[:connection] = receiver
+          self.connection = receiver
 
           run_callbacks :work do
             receiver.send method, *args
@@ -41,7 +39,7 @@ module ActionCable
 
           receiver.handle_exception if receiver.respond_to?(:handle_exception)
         ensure
-          Thread.current[:connection] = nil
+          self.connection = nil
         end
       end
 
@@ -53,13 +51,13 @@ module ActionCable
 
       def run_periodic_timer(channel, callback)
         begin
-          Thread.current[:connection] = channel.connection
+          self.connection = channel.connection
 
           run_callbacks :work do
             callback.respond_to?(:call) ? channel.instance_exec(&callback) : channel.send(callback)
           end
         ensure
-          Thread.current[:connection] = nil
+          self.connection = nil
         end
       end
 
