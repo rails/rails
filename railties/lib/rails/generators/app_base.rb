@@ -51,8 +51,8 @@ module Rails
         class_option :skip_active_record, type: :boolean, aliases: '-O', default: false,
                                           desc: 'Skip Active Record files'
 
-        class_option :skip_action_cable,  type: :boolean, aliases: '-C', default: false,
-                                          desc: 'Skip Action Cable files'
+        class_option :with_action_cable,  type: :boolean, aliases: '-C', default: false,
+                                          desc: 'Generate Action Cable files'
 
         class_option :skip_sprockets,     type: :boolean, aliases: '-S', default: false,
                                           desc: 'Skip Sprockets files'
@@ -113,6 +113,7 @@ module Rails
       def gemfile_entries
         [rails_gemfile_entry,
          database_gemfile_entry,
+         action_cable_gemfile_entry,
          assets_gemfile_entry,
          javascript_gemfile_entry,
          jbuilder_gemfile_entry,
@@ -171,11 +172,15 @@ module Rails
       end
 
       def include_all_railties?
-        options.values_at(:skip_active_record, :skip_action_mailer, :skip_test, :skip_sprockets, :skip_action_cable).none?
+        options.values_at(:skip_active_record, :skip_action_mailer, :skip_test, :skip_sprockets).none?
       end
 
       def comment_if(value)
         options[value] ? '# ' : ''
+      end
+
+      def comment_unless(value)
+        options[value] ? '' : '# '
       end
 
       def keeps?
@@ -275,6 +280,13 @@ module Rails
           when "sqlite3"    then options[:database].replace "jdbcsqlite3"
           end
         end
+      end
+
+      def action_cable_gemfile_entry
+        return [] unless options[:with_action_cable]
+
+        [GemfileEntry.version('actioncable', '~> 5.0',
+                              'Use ActionCable for websockets')]
       end
 
       def assets_gemfile_entry
