@@ -174,7 +174,7 @@ module YourApp
   end
 end
 
-# app/jobs/guests_cleanup.rb
+# app/jobs/guests_cleanup_job.rb
 class GuestsCleanupJob < ActiveJob::Base
   queue_as :low_priority
   #....
@@ -197,7 +197,7 @@ module YourApp
   end
 end
 
-# app/jobs/guests_cleanup.rb
+# app/jobs/guests_cleanup_job.rb
 class GuestsCleanupJob < ActiveJob::Base
   queue_as :low_priority
   #....
