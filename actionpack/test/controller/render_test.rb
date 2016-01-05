@@ -668,3 +668,11 @@ class HttpCacheForeverTest < ActionController::TestCase
     assert_response :not_modified
   end
 end
+
+class RenderToStringTest < ActiveSupport::TestCase
+  def test_render_to_string
+    controller = ActionController::Base.new
+    result = controller.render_to_string(plain: "Test String")
+    assert_equal(result, "Test String")
+  end
+end
