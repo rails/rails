@@ -343,6 +343,10 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal clubs(:boring_club), members(:groucho).selected_club
   end
 
+  def test_has_one_through_with_merge_on_duplicate_where_default_scopes
+    assert_equal clubs(:moustache_club), members(:groucho).favourite_active_club
+  end
+
   def test_has_one_through_relationship_cannot_have_a_counter_cache
     assert_raise(ArgumentError) do
       Class.new(ActiveRecord::Base) do

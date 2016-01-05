@@ -158,6 +158,7 @@ ActiveRecord::Schema.define do
 
   create_table :clubs, force: true do |t|
     t.string :name
+    t.boolean :active, default: true
     t.integer :category_id
   end
 
@@ -458,6 +459,7 @@ ActiveRecord::Schema.define do
     t.datetime :joined_on
     t.integer :club_id, :member_id
     t.boolean :favourite, default: false
+    t.boolean :active, default: true
     t.string :type
   end
 

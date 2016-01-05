@@ -1,6 +1,10 @@
 class Membership < ActiveRecord::Base
   belongs_to :member
   belongs_to :club
+
+  scope :favourite, -> { where(favourite: true) }
+
+  default_scope { where(active: true) }
 end
 
 class CurrentMembership < Membership
