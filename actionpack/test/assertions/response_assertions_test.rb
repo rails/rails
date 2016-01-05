@@ -74,7 +74,18 @@ module ActionDispatch
         @response.status = 404
 
         error = assert_raises(Minitest::Assertion) { assert_response :success }
-        expected = "Expected response to be a <success>, but was a <404>"
+        expected = "Expected response to be a <2XX: success>,"\
+                   " but was a <404: Not Found>"
+        assert_match expected, error.message
+      end
+
+      def test_error_message_shows_404_when_asserted_for_200
+        @response = ActionDispatch::Response.new
+        @response.status = 404
+
+        error = assert_raises(Minitest::Assertion) { assert_response 200 }
+        expected = "Expected response to be a <200: OK>,"\
+                   " but was a <404: Not Found>"
         assert_match expected, error.message
       end
 
@@ -84,7 +95,8 @@ module ActionDispatch
         @response.location = 'http://test.host/posts/redirect/1'
 
         error = assert_raises(Minitest::Assertion) { assert_response :success }
-        expected = "Expected response to be a <success>, but was a <302>" \
+        expected = "Expected response to be a <2XX: success>,"\
+                   " but was a <302: Found>" \
                    " redirect to <http://test.host/posts/redirect/1>"
         assert_match expected, error.message
       end
@@ -95,7 +107,8 @@ module ActionDispatch
         @response.location = 'http://test.host/posts/redirect/2'
 
         error = assert_raises(Minitest::Assertion) { assert_response 301 }
-        expected = "Expected response to be a <301>, but was a <302>" \
+        expected = "Expected response to be a <301: Moved Permanently>,"\
+                   " but was a <302: Found>" \
                    " redirect to <http://test.host/posts/redirect/2>"
         assert_match expected, error.message
       end

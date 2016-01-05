@@ -95,6 +95,7 @@ module ActionDispatch
     autoload :TestProcess
     autoload :TestRequest
     autoload :TestResponse
+    autoload :AssertionResponse
   end
 end
 
