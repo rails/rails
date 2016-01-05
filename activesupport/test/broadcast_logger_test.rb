@@ -15,13 +15,6 @@ module ActiveSupport
       assert_equal 'foo', receiving_logger.adds.first[2]
     end
 
-    def test_debug_without_message_broadcasts
-      logger.broadcast_messages = false
-      logger.debug "foo"
-      assert_equal 'foo', logger.adds.first[2]
-      assert_equal [], receiving_logger.adds
-    end
-
     def test_close
       logger.close
       assert logger.closed, 'should be closed'
@@ -32,13 +25,6 @@ module ActiveSupport
       logger << "foo"
       assert_equal %w{ foo }, logger.chevrons
       assert_equal %w{ foo }, receiving_logger.chevrons
-    end
-
-    def test_chevrons_without_message_broadcasts
-      logger.broadcast_messages = false
-      logger << "foo"
-      assert_equal %w{ foo }, logger.chevrons
-      assert_equal [], receiving_logger.chevrons
     end
 
     def test_level
@@ -64,7 +50,7 @@ module ActiveSupport
 
     class FakeLogger
       attr_reader :adds, :closed, :chevrons
-      attr_accessor :level, :progname, :formatter, :broadcast_messages
+      attr_accessor :level, :progname, :formatter
 
       def initialize
         @adds      = []
@@ -73,7 +59,6 @@ module ActiveSupport
         @level     = nil
         @progname  = nil
         @formatter = nil
-        @broadcast_messages = true
       end
 
       def debug msg, &block
