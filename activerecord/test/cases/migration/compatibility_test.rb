@@ -21,6 +21,7 @@ module ActiveRecord
       teardown do
         connection.drop_table :testings rescue nil
         ActiveRecord::Migration.verbose = @verbose_was
+        ActiveRecord::SchemaMigration.delete_all
       end
 
       def test_migration_doesnt_remove_named_index
@@ -36,6 +37,21 @@ module ActiveRecord
         assert connection.index_exists?(:testings, :foo, name: "custom_index_name")
         assert_raise(StandardError) { ActiveRecord::Migrator.new(:up, [migration]).migrate }
         assert connection.index_exists?(:testings, :foo, name: "custom_index_name")
+      end
+
+      def test_migration_does_remove_unnamed_index
+        connection.add_index :testings, :bar
+
+        migration = Class.new(ActiveRecord::Migration[4.2]) {
+          def version; 101 end
+          def migrate(x)
+            remove_index :testings, :bar
+          end
+        }.new
+
+        assert connection.index_exists?(:testings, :bar)
+        ActiveRecord::Migrator.new(:up, [migration]).migrate
+        assert_not connection.index_exists?(:testings, :bar)
       end
     end
   end
