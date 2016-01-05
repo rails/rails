@@ -1,3 +1,4 @@
+require 'active_support/core_ext/module/attribute_accessors'
 require 'active_support/logger_silence'
 require 'logger'
 
@@ -5,26 +6,16 @@ module ActiveSupport
   class Logger < ::Logger
     include LoggerSilence
 
-    # If +true+, will broadcast all messages sent to this logger to any
-    # logger linked to this one via +broadcast+.
-    #
-    # If +false+, the logger will still forward calls to +close+, +progname=+,
-    # +formatter=+ and +level+ to any linked loggers, but no calls to +add+ or
-    # +<<+.
-    #
-    # Defaults to +true+.
-    attr_accessor :broadcast_messages # :nodoc:
-
     # Broadcasts logs to multiple loggers.
     def self.broadcast(logger) # :nodoc:
       Module.new do
         define_method(:add) do |*args, &block|
-          logger.add(*args, &block) if broadcast_messages
+          logger.add(*args, &block)
           super(*args, &block)
         end
 
         define_method(:<<) do |x|
-          logger << x if broadcast_messages
+          logger << x
           super(x)
         end
 
