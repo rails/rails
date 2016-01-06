@@ -1,8 +1,3 @@
-*   Take into account UTC offset when assigning string representation of
-    timestamp with offset specified to attribute of time type.
-
-    *Andrey Novikov*
-
 ## Rails 5.0.0.beta1 (December 18, 2015) ##
 
 *   Validate multiple contexts on `valid?` and `invalid?` at once.

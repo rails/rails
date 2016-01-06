@@ -1,3 +1,8 @@
+*   Take into account UTC offset when assigning string representation of
+    timestamp with offset specified to attribute of time type.
+
+    *Andrey Novikov*
+
 *   When calling `first` with a `limit` argument, return directly from the
     `loaded?` records if available.
 
