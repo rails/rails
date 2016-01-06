@@ -73,21 +73,13 @@ module ActiveRecord
         end
 
         # Executes an INSERT query and returns the new record's ID
-        def insert_sql(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil)
+        def insert_sql(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil, binds = []) # :nodoc:
           unless pk
             # Extract the table from the insert sql. Yuck.
             table_ref = extract_table_ref_from_insert_sql(sql)
             pk = primary_key(table_ref) if table_ref
           end
-
-          if pk && use_insert_returning?
-            select_value("#{sql} RETURNING #{quote_column_name(pk)}")
-          elsif pk
-            super
-            last_insert_id_value(sequence_name || default_sequence_name(table_ref, pk))
-          else
-            super
-          end
+          super
         end
 
         # The internal PostgreSQL identifier of the money data type.
@@ -171,12 +163,6 @@ module ActiveRecord
         alias :exec_update :exec_delete
 
         def sql_for_insert(sql, pk, id_value, sequence_name, binds)
-          unless pk
-            # Extract the table from the insert sql. Yuck.
-            table_ref = extract_table_ref_from_insert_sql(sql)
-            pk = primary_key(table_ref) if table_ref
-          end
-
           if pk && use_insert_returning?
             sql = "#{sql} RETURNING #{quote_column_name(pk)}"
           end
