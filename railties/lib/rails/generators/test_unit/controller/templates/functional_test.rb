@@ -13,7 +13,7 @@ class <%= class_name %>ControllerTest < ActionDispatch::IntegrationTest
 <% else -%>
 <% actions.each do |action| -%>
   test "should get <%= action %>" do
-    get <%= file_name %>_<%= action %>_url
+    get <%= url_helper_prefix %>_<%= action %>_url
     assert_response :success
   end
 
