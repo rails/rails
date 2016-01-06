@@ -14,35 +14,19 @@ your application. In Rails, database-backed model classes are derived from
 `ActiveRecord::Base`. Active Record allows you to present the data from
 database rows as objects and embellish these data objects with business logic
 methods. You can read more about Active Record in its [README](activerecord/README.rdoc).
-Although most Rails models are backed by a database, models can also be ordinary
-Ruby classes, or Ruby classes that implement a set of interfaces as provided by
-the Active Model module. You can read more about Active Model in its [README](activemodel/README.rdoc).
+Although most Rails models are backed by a database, models can also be ordinary Ruby classes, or Ruby classes that implement a set of interfaces as provided by the Active Model module. You can read more about Active Model in its [README](activemodel/README.rdoc).
 
 The _Controller layer_ is responsible for handling incoming HTTP requests and
-providing a suitable response. Usually this means returning HTML, but Rails controllers
-can also generate XML, JSON, PDFs, mobile-specific views, and more. Controllers load and
-manipulate models, and render view templates in order to generate the appropriate HTTP response.
-In Rails, incoming requests are routed by Action Dispatch to an appropriate controller, and
-controller classes are derived from `ActionController::Base`. Action Dispatch and Action Controller
-are bundled together in Action Pack. You can read more about Action Pack in its
-[README](actionpack/README.rdoc).
+providing a suitable response. Usually this means returning HTML, but Rails controllers can also generate XML, JSON, PDFs, mobile-specific views, and more.Controllers load and manipulate models, and render view templates in order to generate the appropriate HTTP response.
+In Rails, incoming requests are routed by Action Dispatch to an appropriate controller, and controller classes are derived from `ActionController::Base`. Action Dispatch and Action Controller are bundled together in Action Pack. You can read more about Action Pack in its [README](actionpack/README.rdoc).
 
 The _View layer_ is composed of "templates" that are responsible for providing
 appropriate representations of your application's resources. Templates can
 come in a variety of formats, but most view templates are HTML with embedded
-Ruby code (ERB files). Views are typically rendered to generate a controller response,
-or to generate the body of an email. In Rails, View generation is handled by Action View.
-You can read more about Action View in its [README](actionview/README.rdoc).
+Ruby code (ERB files). Views are typically rendered to generate a controller response, or to generate the body of an email. In Rails, View generation is handled by Action View. You can read more about Action View in its [README](actionview/README.rdoc).
 
 Active Record, Active Model, Action Pack, and Action View can each be used independently outside Rails.
-In addition to them, Rails also comes with Action Mailer ([README](actionmailer/README.rdoc)), a library
-to generate and send emails; Active Job ([README](activejob/README.md)), a
-framework for declaring jobs and making them run on a variety of queueing
-backends; Action Cable ([README](actioncable/README.md)), a framework to
-integrate WebSockets with a Rails application;
-and Active Support ([README](activesupport/README.rdoc)), a collection
-of utility classes and standard library extensions that are useful for Rails,
-and may also be used independently outside Rails.
+In addition to them, Rails also comes with Action Mailer ([README](actionmailer/README.rdoc)), a library to generate and send emails; Active Job ([README](activejob/README.md)), a framework for declaring jobs and making them run on a variety of queueing backends; Action Cable ([README](actioncable/README.md)), a framework to integrate WebSockets with a Rails application; and Active Support ([README](activesupport/README.rdoc)), a collection of utility classes and standard library extensions that are useful for Rails, and may also be used independently outside Rails.
 
 ## Getting Started
 
