@@ -65,6 +65,17 @@ users.where(users[:age].gteq(10)).project(Arel.sql('*')) # => SELECT * FROM "use
 users.where(users[:age].in([20, 16, 17])).project(Arel.sql('*')) # => SELECT * FROM "users"  WHERE "users"."age" IN (20, 16, 17)
 ```
 
+Bitwise operators `&`, `|`, `^`, `<<`, `>>`:
+
+```ruby
+users.where((users[:bitmap] & 16).gt(0)).project(Arel.sql('*')) # => SELECT * FROM "users"  WHERE ("users"."bitmap" & 16) > 0
+users.where((users[:bitmap] | 16).gt(0)).project(Arel.sql('*')) # => SELECT * FROM "users"  WHERE ("users"."bitmap" | 16) > 0
+users.where((users[:bitmap] ^ 16).gt(0)).project(Arel.sql('*')) # => SELECT * FROM "users"  WHERE ("users"."bitmap" ^ 16) > 0
+users.where((users[:bitmap] << 1).gt(0)).project(Arel.sql('*')) # => SELECT * FROM "users"  WHERE ("users"."bitmap" << 1) > 0
+users.where((users[:bitmap] >> 1).gt(0)).project(Arel.sql('*')) # => SELECT * FROM "users"  WHERE ("users"."bitmap" >> 1) > 0
+users.where((~ users[:bitmap]).gt(0)).project(Arel.sql('*')) # => SELECT FROM "users" WHERE  ~ "users"."bitmap" > 0
+```
+
 Joins resemble SQL strongly:
 
 ```ruby
