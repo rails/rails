@@ -5,26 +5,27 @@ module ActiveSupport
   class Logger < ::Logger
     include LoggerSilence
 
-    # If +true+, will broadcast all messages sent to this logger to any
-    # logger linked to this one via +broadcast+.
+    # Returns true if the logger destination matches one of the sources
     #
-    # If +false+, the logger will still forward calls to +close+, +progname=+,
-    # +formatter=+ and +level+ to any linked loggers, but no calls to +add+ or
-    # +<<+.
-    #
-    # Defaults to +true+.
-    attr_accessor :broadcast_messages # :nodoc:
+    #   logger = Logger.new(STDOUT)
+    #   ActiveSupport::Logger.logger_outputs_to?(logger, STDOUT)
+    #   # => true
+    def self.logger_outputs_to?(logger, *sources)
+      logdev = logger.instance_variable_get("@logdev")
+      logger_source = logdev.dev if logdev.respond_to?(:dev)
+      sources.any? { |source| source == logger_source }
+    end
 
     # Broadcasts logs to multiple loggers.
     def self.broadcast(logger) # :nodoc:
       Module.new do
         define_method(:add) do |*args, &block|
-          logger.add(*args, &block) if broadcast_messages
+          logger.add(*args, &block)
           super(*args, &block)
         end
 
         define_method(:<<) do |x|
-          logger << x if broadcast_messages
+          logger << x
           super(x)
         end
 
@@ -53,7 +54,6 @@ module ActiveSupport
     def initialize(*args)
       super
       @formatter = SimpleFormatter.new
-      @broadcast_messages = true
       after_initialize if respond_to? :after_initialize
     end
 

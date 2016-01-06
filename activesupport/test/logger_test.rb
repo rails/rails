@@ -17,6 +17,14 @@ class LoggerTest < ActiveSupport::TestCase
     @logger  = Logger.new(@output)
   end
 
+  def test_log_outputs_to
+    assert Logger.logger_outputs_to?(@logger, @output),            "Expected logger_outputs_to? @output to return true but was false"
+    assert Logger.logger_outputs_to?(@logger, @output, STDOUT),    "Expected logger_outputs_to? @output or STDOUT to return true but was false"
+
+    assert_not Logger.logger_outputs_to?(@logger, STDOUT),         "Expected logger_outputs_to? to STDOUT to return false, but was true"
+    assert_not Logger.logger_outputs_to?(@logger, STDOUT, STDERR), "Expected logger_outputs_to? to STDOUT or STDERR to return false, but was true"
+  end
+
   def test_write_binary_data_to_existing_file
     t = Tempfile.new ['development', 'log']
     t.binmode
@@ -65,7 +73,7 @@ class LoggerTest < ActiveSupport::TestCase
   def test_should_not_log_debug_messages_when_log_level_is_info
     @logger.level = Logger::INFO
     @logger.add(Logger::DEBUG, @message)
-    assert ! @output.string.include?(@message)
+    assert_not @output.string.include?(@message)
   end
 
   def test_should_add_message_passed_as_block_when_using_add
@@ -129,7 +137,7 @@ class LoggerTest < ActiveSupport::TestCase
       @logger.error "THIS IS HERE"
     end
 
-    assert !@output.string.include?("NOT THERE")
+    assert_not @output.string.include?("NOT THERE")
     assert @output.string.include?("THIS IS HERE")
   end
 
