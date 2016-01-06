@@ -136,11 +136,6 @@ module ActiveRecord
 
       alias exec_without_stmt exec_query
 
-      def insert_sql(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil)
-        super
-        id_value || @connection.last_id
-      end
-
       def exec_insert(sql, name, binds, pk = nil, sequence_name = nil)
         execute to_sql(sql, binds), name
       end

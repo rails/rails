@@ -290,11 +290,6 @@ module ActiveRecord
         super sql, name
       end
 
-      def insert_sql(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil) #:nodoc:
-        super
-        id_value || @connection.last_insert_row_id
-      end
-
       def select_rows(sql, name = nil, binds = [])
         exec_query(sql, name, binds).rows
       end

@@ -115,9 +115,7 @@ module ActiveRecord
       # If the next id was calculated in advance (as in Oracle), it should be
       # passed in as +id_value+.
       def insert(arel, name = nil, pk = nil, id_value = nil, sequence_name = nil, binds = [])
-        sql, binds = sql_for_insert(to_sql(arel, binds), pk, id_value, sequence_name, binds)
-        value      = exec_insert(sql, name, binds, pk, sequence_name)
-        id_value || last_inserted_id(value)
+        insert_sql(to_sql(arel, binds), name, pk, id_value, sequence_name, binds)
       end
       alias create insert
 
@@ -352,6 +350,13 @@ module ActiveRecord
       end
       alias join_to_delete join_to_update
 
+      # Executes an INSERT query and returns the new record's ID
+      def insert_sql(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil, binds = [])
+        sql, binds = sql_for_insert(sql, pk, id_value, sequence_name, binds)
+        value = exec_insert(sql, name, binds, pk, sequence_name)
+        id_value || last_inserted_id(value)
+      end
+
       protected
 
         # Returns a subquery for the given key using the join information.
@@ -368,12 +373,6 @@ module ActiveRecord
 
         def select_prepared(sql, name = nil, binds = [])
           exec_query(sql, name, binds, prepare: true)
-        end
-
-        # Returns the last auto-generated ID from the affected table.
-        def insert_sql(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil)
-          execute(sql, name)
-          id_value
         end
 
         # Executes the update statement and returns the number of rows affected.
