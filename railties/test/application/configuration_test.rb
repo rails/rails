@@ -79,6 +79,24 @@ module ApplicationTests
       end
     end
 
+    test "By default logs tags are not set in development" do
+      restore_default_config
+
+      with_rails_env "development" do
+        app 'development'
+        assert Rails.application.config.log_tags.blank?
+      end
+    end
+
+    test "By default logs are tagged with :request_id in production" do
+      restore_default_config
+
+      with_rails_env "production" do
+        app 'production'
+        assert_equal [:request_id], Rails.application.config.log_tags
+      end
+    end
+
     test "lib dir is on LOAD_PATH during config" do
       app_file 'lib/my_logger.rb', <<-RUBY
         require "logger"
