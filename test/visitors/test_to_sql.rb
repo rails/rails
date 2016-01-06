@@ -469,13 +469,19 @@ module Arel
           compile(node).must_equal %(("products"."price" - 7))
         end
 
+        it "should handle Concatination" do
+          table = Table.new(:users)
+          node = table[:name].concat(table[:name])
+          compile(node).must_equal %("users"."name" || "users"."name")
+        end
+
         it "should handle arbitrary operators" do
           node = Arel::Nodes::InfixOperation.new(
-            '||',
+            '&&',
             Arel::Attributes::String.new(Table.new(:products), :name),
             Arel::Attributes::String.new(Table.new(:products), :name)
           )
-          compile(node).must_equal %("products"."name" || "products"."name")
+          compile(node).must_equal %("products"."name" && "products"."name")
         end
       end
 

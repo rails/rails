@@ -72,6 +72,14 @@ module Arel
         maybe_visit o.limit, collector
       end
 
+      def visit_Arel_Nodes_Concat o, collector
+        collector << " CONCAT("
+        visit o.left, collector
+        collector << ", "
+        visit o.right, collector
+        collector << ") "
+        collector
+      end
     end
   end
 end

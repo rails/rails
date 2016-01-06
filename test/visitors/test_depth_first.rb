@@ -103,6 +103,7 @@ module Arel
       [
         Arel::Nodes::Assignment,
         Arel::Nodes::Between,
+        Arel::Nodes::Concat,
         Arel::Nodes::DoesNotMatch,
         Arel::Nodes::Equality,
         Arel::Nodes::GreaterThan,

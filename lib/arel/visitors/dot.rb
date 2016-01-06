@@ -176,6 +176,7 @@ module Arel
       alias :visit_Arel_Nodes_As                 :binary
       alias :visit_Arel_Nodes_Assignment         :binary
       alias :visit_Arel_Nodes_Between            :binary
+      alias :visit_Arel_Nodes_Concat             :binary
       alias :visit_Arel_Nodes_DoesNotMatch       :binary
       alias :visit_Arel_Nodes_Equality           :binary
       alias :visit_Arel_Nodes_GreaterThan        :binary
