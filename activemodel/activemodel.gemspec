@@ -19,6 +19,4 @@ Gem::Specification.new do |s|
   s.require_path = 'lib'
 
   s.add_dependency 'activesupport', version
-
-  s.add_dependency 'builder', '~> 3.1'
 end
