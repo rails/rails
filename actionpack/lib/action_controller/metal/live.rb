@@ -267,6 +267,7 @@ module ActionController
       }
 
       @_response.await_commit
+      throw error.tag, error.value if error.is_a?(UncaughtThrowError)
       raise error if error
     end
 

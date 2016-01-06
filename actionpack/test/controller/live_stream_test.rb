@@ -190,6 +190,10 @@ module ActionController
         raise Exception, 'Exception in controller'
       end
 
+      def throw_in_controller
+        throw :stop, { details: :scope }
+      end
+
       def bad_request_error
         raise ActionController::BadRequest
       end
@@ -405,6 +409,12 @@ module ActionController
     def test_exception_in_controller_before_streaming
       assert_raises(ActionController::LiveStreamTest::Exception) do
         get :exception_in_controller, format: 'text/event-stream'
+      end
+    end
+
+    def test_throw_in_controller_before_streaming
+      assert_throws(:stop, { details: :scope }) do
+        get :throw_in_controller, format: 'text/event-stream'
       end
     end
 

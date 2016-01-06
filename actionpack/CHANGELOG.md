@@ -1,3 +1,8 @@
+*   Process throws in `ActionController::Live#process` with a new throw
+    rather than raising an `UncaughtThrowError`.
+
+    *Jean-Philippe Doyle*
+
 *   Add option for per-form CSRF tokens.
 
     *Ben Toews*
