@@ -285,11 +285,6 @@ module ActiveRecord
         @connection.changes
       end
 
-      def delete_sql(sql, name = nil) #:nodoc:
-        sql += " WHERE 1=1" unless sql =~ /WHERE/i
-        super sql, name
-      end
-
       def select_rows(sql, name = nil, binds = [])
         exec_query(sql, name, binds).rows
       end
