@@ -11,6 +11,30 @@ module ActiveRecord
           args.each { |name| column(name, :blob, options) }
         end
 
+        def tinyblob(*args, **options)
+          args.each { |name| column(name, :tinyblob, options) }
+        end
+
+        def mediumblob(*args, **options)
+          args.each { |name| column(name, :mediumblob, options) }
+        end
+
+        def longblob(*args, **options)
+          args.each { |name| column(name, :longblob, options) }
+        end
+
+        def tinytext(*args, **options)
+          args.each { |name| column(name, :tinytext, options) }
+        end
+
+        def mediumtext(*args, **options)
+          args.each { |name| column(name, :mediumtext, options) }
+        end
+
+        def longtext(*args, **options)
+          args.each { |name| column(name, :longtext, options) }
+        end
+
         def json(*args, **options)
           args.each { |name| column(name, :json, options) }
         end

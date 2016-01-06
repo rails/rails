@@ -1,3 +1,22 @@
+*   Add short-hand methods for text and blob types in MySQL.
+
+    In Pg and Sqlite3, `:text` and `:binary` have variable unlimited length.
+    But in MySQL, these have limited length for each types (ref #21591, #21619).
+    This change adds short-hand methods for each text and blob types.
+
+    Example:
+
+        create_table :foos do |t|
+          t.tinyblob   :tiny_blob
+          t.mediumblob :medium_blob
+          t.longblob   :long_blob
+          t.tinytext   :tiny_text
+          t.mediumtext :medium_text
+          t.longtext   :long_text
+        end
+
+    *Ryuta Kamizono*
+
 *   Take into account UTC offset when assigning string representation of
     timestamp with offset specified to attribute of time type.
 
