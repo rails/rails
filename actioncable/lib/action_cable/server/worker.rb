@@ -12,7 +12,7 @@ module ActionCable
       define_callbacks :work
       include ActiveRecordConnectionManagement
 
-      def initialize(max_size=5)
+      def initialize(max_size: 5)
         @pool = Concurrent::ThreadPoolExecutor.new(
           min_threads: 1,
           max_threads: max_size,
