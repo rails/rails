@@ -412,6 +412,13 @@ module ActionDispatch # :nodoc:
     end
 
     def before_sending
+      # Normally we've already committed by now, but it's possible
+      # (e.g., if the controller action tries to read back its own
+      # response) to get here before that. In that case, we must force
+      # an "early" commit: we're about to freeze the headers, so this is
+      # our last chance.
+      commit! unless committed?
+
       headers.freeze
       request.commit_cookie_jar! unless committed?
     end
