@@ -34,6 +34,7 @@ module Arel
         Arel::Nodes::UnqualifiedColumn,
         Arel::Nodes::Top,
         Arel::Nodes::Limit,
+        Arel::Nodes::Else,
       ].each do |klass|
         define_method("test_#{klass.name.gsub('::', '_')}") do
           op = klass.new(:a)
@@ -118,6 +119,7 @@ module Arel
         Arel::Nodes::As,
         Arel::Nodes::DeleteStatement,
         Arel::Nodes::JoinSource,
+        Arel::Nodes::When,
       ].each do |klass|
         define_method("test_#{klass.name.gsub('::', '_')}") do
           binary = klass.new(:a, :b)
@@ -245,6 +247,16 @@ module Arel
 
         @visitor.accept stmt
         assert_equal [:a, :b, stmt.columns, :c, stmt], @collector.calls
+      end
+
+      def test_case
+        node = Arel::Nodes::Case.new
+        node.case = :a
+        node.conditions << :b
+        node.default = :c
+
+        @visitor.accept node
+        assert_equal [:a, :b, node.conditions, :c, node], @collector.calls
       end
 
       def test_node

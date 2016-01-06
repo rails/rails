@@ -607,6 +607,66 @@ module Arel
           end
         end
       end
+
+      describe 'Nodes::Case' do
+        it 'supports simple case expressions' do
+          node = Arel::Nodes::Case.new(@table[:name])
+            .when('foo').then(1)
+            .else(0)
+
+          compile(node).must_be_like %{
+            CASE "users"."name" WHEN 'foo' THEN 1 ELSE 0 END
+          }
+        end
+
+        it 'supports extended case expressions' do
+          node = Arel::Nodes::Case.new
+            .when(@table[:name].in(%w(foo bar))).then(1)
+            .else(0)
+
+          compile(node).must_be_like %{
+            CASE WHEN "users"."name" IN ('foo', 'bar') THEN 1 ELSE 0 END
+          }
+        end
+
+        it 'works without default branch' do
+          node = Arel::Nodes::Case.new(@table[:name])
+            .when('foo').then(1)
+
+          compile(node).must_be_like %{
+            CASE "users"."name" WHEN 'foo' THEN 1 END
+          }
+        end
+
+        it 'allows chaining multiple conditions' do
+          node = Arel::Nodes::Case.new(@table[:name])
+            .when('foo').then(1)
+            .when('bar').then(2)
+            .else(0)
+
+          compile(node).must_be_like %{
+            CASE "users"."name" WHEN 'foo' THEN 1 WHEN 'bar' THEN 2 ELSE 0 END
+          }
+        end
+
+        it 'supports #when with two arguments and no #then' do
+          node = Arel::Nodes::Case.new @table[:name]
+
+          { foo: 1, bar: 0 }.reduce(node) { |node, pair| node.when *pair }
+
+          compile(node).must_be_like %{
+            CASE "users"."name" WHEN 'foo' THEN 1 WHEN 'bar' THEN 0 END
+          }
+        end
+
+        it 'can be chained as a predicate' do
+          node = @table[:name].when('foo').then('bar').else('baz')
+
+          compile(node).must_be_like %{
+            CASE "users"."name" WHEN 'foo' THEN 'bar' ELSE 'baz' END
+          }
+        end
+      end
     end
   end
 end

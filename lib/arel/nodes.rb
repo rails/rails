@@ -47,6 +47,9 @@ require 'arel/nodes/named_function'
 # windows
 require 'arel/nodes/window'
 
+# conditional expressions
+require 'arel/nodes/case'
+
 # joins
 require 'arel/nodes/full_outer_join'
 require 'arel/nodes/inner_join'

@@ -708,6 +708,35 @@ module Arel
         visit o.right, collector
       end
 
+      def visit_Arel_Nodes_Case o, collector
+        collector << "CASE "
+        if o.case
+          visit o.case, collector
+          collector << " "
+        end
+        o.conditions.each do |condition|
+          visit condition, collector
+          collector << " "
+        end
+        if o.default
+          visit o.default, collector
+          collector << " "
+        end
+        collector << "END"
+      end
+
+      def visit_Arel_Nodes_When o, collector
+        collector << "WHEN "
+        visit o.left, collector
+        collector << " THEN "
+        visit o.right, collector
+      end
+
+      def visit_Arel_Nodes_Else o, collector
+        collector << "ELSE "
+        visit o.expr, collector
+      end
+
       def visit_Arel_Nodes_UnqualifiedColumn o, collector
         collector << "#{quote_column_name o.name}"
         collector

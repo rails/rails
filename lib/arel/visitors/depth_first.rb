@@ -16,6 +16,7 @@ module Arel
       def unary o
         visit o.expr
       end
+      alias :visit_Arel_Nodes_Else              :unary
       alias :visit_Arel_Nodes_Group             :unary
       alias :visit_Arel_Nodes_Grouping          :unary
       alias :visit_Arel_Nodes_Having            :unary
@@ -53,6 +54,12 @@ module Arel
         visit o.distinct
       end
 
+      def visit_Arel_Nodes_Case o
+        visit o.case
+        visit o.conditions
+        visit o.default
+      end
+
       def nary o
         o.children.each { |child| visit child}
       end
@@ -86,8 +93,9 @@ module Arel
       alias :visit_Arel_Nodes_Regexp             :binary
       alias :visit_Arel_Nodes_RightOuterJoin     :binary
       alias :visit_Arel_Nodes_TableAlias         :binary
-      alias :visit_Arel_Nodes_Values             :binary
       alias :visit_Arel_Nodes_Union              :binary
+      alias :visit_Arel_Nodes_Values             :binary
+      alias :visit_Arel_Nodes_When               :binary
 
       def visit_Arel_Nodes_StringJoin o
         visit o.left

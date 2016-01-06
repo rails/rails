@@ -198,6 +198,10 @@ Passing a range to `#not_in` is deprecated. Call `#not_between`, instead.
       grouping_all :lteq, others
     end
 
+    def when right
+      Nodes::Case.new(self).when quoted_node(right)
+    end
+
     private
 
     def grouping_any method_id, others, *extras
