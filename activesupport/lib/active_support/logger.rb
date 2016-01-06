@@ -54,7 +54,6 @@ module ActiveSupport
     def initialize(*args)
       super
       @formatter = SimpleFormatter.new
-      @broadcast_messages = true
       after_initialize if respond_to? :after_initialize
     end
 
