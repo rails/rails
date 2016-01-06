@@ -7,6 +7,9 @@ class MountedRackApp
   end
 end
 
+class Rails::DummyController
+end
+
 module ActionDispatch
   module Routing
     class RoutesInspectorTest < ActiveSupport::TestCase
@@ -331,6 +334,41 @@ module ActionDispatch
           "  cart GET  /cart(.:format) cart#show"
         ], output
       end
+
+      def test_routes_with_undefined_filter
+        output = draw(:filter => 'Rails::MissingController') do
+          get 'photos/:id' => 'photos#show', :id => /[A-Z]\d{5}/
+        end
+
+        assert_equal [
+          "The controller Rails::MissingController does not exist!",
+          "For more information about routes, see the Rails guide: http://guides.rubyonrails.org/routing.html."
+        ], output
+      end
+
+      def test_no_routes_matched_filter
+        output = draw(:filter => 'rails/dummy') do
+          get 'photos/:id' => 'photos#show', :id => /[A-Z]\d{5}/
+        end
+
+        assert_equal [
+          "No routes were found for this controller",
+          "For more information about routes, see the Rails guide: http://guides.rubyonrails.org/routing.html."
+        ], output
+      end
+
+      def test_no_routes_were_defined
+        output = draw(:filter => 'Rails::DummyController') { }
+
+        assert_equal [
+          "You don't have any routes defined!",
+          "",
+          "Please add some routes in config/routes.rb.",
+          "",
+          "For more information about routes, see the Rails guide: http://guides.rubyonrails.org/routing.html."
+        ], output
+      end
+
     end
   end
 end
