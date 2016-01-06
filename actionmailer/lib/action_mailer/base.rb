@@ -6,6 +6,8 @@ require 'active_support/core_ext/module/anonymous'
 
 require 'action_mailer/log_subscriber'
 
+require 'action_dispatch/caching'
+
 module ActionMailer
   # Action Mailer allows you to send email from your application using a mailer model and views.
   #
@@ -420,7 +422,6 @@ module ActionMailer
   class Base < AbstractController::Base
     include DeliveryMethods
     include Previews
-    include Caching
 
     abstract!
 
@@ -431,6 +432,7 @@ module ActionMailer
     include AbstractController::Translation
     include AbstractController::AssetPaths
     include AbstractController::Callbacks
+    include ActionDispatch::Caching
 
     include ActionView::Layouts
 
@@ -826,6 +828,18 @@ module ActionMailer
       end
 
       message
+    end
+
+    # This and #instrument_name is for caching instrument
+    def instrument_payload(key)
+      {
+        mailer: mailer_name,
+        key: key
+      }
+    end
+
+    def instrument_name
+      "action_mailer"
     end
 
     protected

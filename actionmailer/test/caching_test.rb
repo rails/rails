@@ -10,8 +10,6 @@ FILE_STORE_PATH = File.join(File.dirname(__FILE__), '/../temp/', CACHE_DIR)
 class FragmentCachingMailer < ActionMailer::Base
   abstract!
 
-  include ActionMailer::Caching
-
   def some_action; end
 end
 
