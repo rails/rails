@@ -12,10 +12,13 @@ rvm:
   - jruby-head
   - 2.0.0
   - 2.1
-  - 2.2
+  - 2.2.4
+  - 2.3.0
   - ruby-head
 matrix:
   fast_finish: true
+  allow_failures:
+    - rvm: ruby-head
 bundler_args: --jobs 3 --retry 3
 notifications:
   email: false
