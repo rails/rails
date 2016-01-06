@@ -234,6 +234,11 @@ module ApplicationTests
       assert_match "0 failures, 0 errors, 0 skips", run_test_command('')
     end
 
+    def test_generated_controller_works_with_rails_test
+      create_controller
+      assert_match "0 failures, 0 errors, 0 skips", run_test_command('')
+    end
+
     def test_run_multiple_folders
       create_test_file :models, 'account'
       create_test_file :controllers, 'accounts_controller'
@@ -447,6 +452,10 @@ module ApplicationTests
         script 'generate scaffold user name:string'
         Dir.chdir(app_path) { File.exist?('app/models/user.rb') }
         run_migration
+      end
+
+      def create_controller
+        script 'generate controller admin/dashboard index'
       end
 
       def run_migration

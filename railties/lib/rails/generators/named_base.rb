@@ -161,6 +161,10 @@ module Rails
           @route_url ||= class_path.collect {|dname| "/" + dname }.join + "/" + plural_file_name
         end
 
+        def url_helper_prefix
+          @url_helper_prefix ||= (class_path + [file_name]).join('_')
+        end
+
         # Tries to retrieve the application name or simply return application.
         def application_name
           if defined?(Rails) && Rails.application
