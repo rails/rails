@@ -78,11 +78,11 @@ module Rails
         template "application.rb"
         template "environment.rb"
         template "secrets.yml"
+        template "cable.yml" unless options[:skip_action_cable]
 
         directory "environments"
         directory "initializers"
         directory "locales"
-        directory "redis" unless options[:skip_action_cable]
       end
     end
 
@@ -315,7 +315,7 @@ module Rails
 
       def delete_action_cable_files_skipping_action_cable
         if options[:skip_action_cable]
-          remove_file 'config/redis/cable.yml'
+          remove_file 'config/cable.yml'
           remove_file 'app/assets/javascripts/cable.coffee'
           remove_dir 'app/channels'
         end

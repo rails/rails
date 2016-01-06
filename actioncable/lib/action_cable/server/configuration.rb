@@ -5,9 +5,9 @@ module ActionCable
     class Configuration
       attr_accessor :logger, :log_tags
       attr_accessor :connection_class, :worker_pool_size
-      attr_accessor :redis, :channels_path
+      attr_accessor :channels_path
       attr_accessor :disable_request_forgery_protection, :allowed_request_origins
-      attr_accessor :url
+      attr_accessor :config_opts, :url
 
       def initialize
         @log_tags = []
@@ -27,6 +27,22 @@ module ActionCable
       def channel_class_names
         @channel_class_names ||= channel_paths.collect do |channel_path|
           Pathname.new(channel_path).basename.to_s.split('.').first.camelize
+        end
+      end
+
+      ADAPTER = ActionCable::StorageAdapter
+
+      # Returns constant of storage adapter specified in config/cable.yml
+      # If the adapter cannot be found, this will default to the Redis adapter
+      def storage_adapter
+        # "ActionCable::StorageAdapter::#{adapter.capitalize}"
+        adapter = config_opts['adapter']
+        adapter_const = "ActionCable::StorageAdapter::#{adapter.capitalize}"
+
+        if Object.const_defined?(adapter_const)
+          adapter_const.constantize
+        else
+          ADAPTER_BASE::Redis
         end
       end
     end
