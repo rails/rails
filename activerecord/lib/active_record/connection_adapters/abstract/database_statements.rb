@@ -119,6 +119,7 @@ module ActiveRecord
         value      = exec_insert(sql, name, binds, pk, sequence_name)
         id_value || last_inserted_id(value)
       end
+      alias create insert
 
       # Executes the update statement and returns the number of rows affected.
       def update(arel, name = nil, binds = [])

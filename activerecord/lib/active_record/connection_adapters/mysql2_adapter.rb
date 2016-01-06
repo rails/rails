@@ -140,7 +140,6 @@ module ActiveRecord
         super
         id_value || @connection.last_id
       end
-      alias :create :insert_sql
 
       def exec_insert(sql, name, binds, pk = nil, sequence_name = nil)
         execute to_sql(sql, binds), name
