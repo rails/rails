@@ -35,7 +35,7 @@ module ActiveRecord
       # Creates a internal metadata table with columns +key+ and +value+
       def create_table
         unless table_exists?
-          connection.create_table(table_name, id: false) do |t|
+          connection.create_table(table_name, primary_key: :key, id: false ) do |t|
             t.column :key,   :string
             t.column :value, :string
             t.timestamps
