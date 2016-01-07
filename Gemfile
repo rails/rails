@@ -9,7 +9,7 @@ gem 'rake', '>= 10.3'
 # be loaded after loading the test library.
 gem 'mocha', '~> 0.14', require: false
 
-gem 'rack-cache', '~> 1.2'
+gem 'rack-cache', '~> 1.5'
 gem 'jquery-rails'
 gem 'coffee-rails', '~> 4.1.0'
 gem 'turbolinks'

@@ -21,7 +21,7 @@ GIT
 
 GIT
   remote: git://github.com/sass/sass.git
-  revision: bce9509f396225d721501ea1070a6871b708abb1
+  revision: 6d2578cc76dd305e3dff3118cb436a25013df8f7
   branch: stable
   specs:
     sass (3.4.20)
@@ -94,7 +94,7 @@ PATH
 GEM
   remote: https://rubygems.org/
   specs:
-    amq-protocol (2.0.0)
+    amq-protocol (2.0.1)
     arel (7.0.0)
     backburner (1.2.0)
       beaneater (~> 1.0)
@@ -105,8 +105,8 @@ GEM
     beaneater (1.0.0)
     benchmark-ips (2.3.0)
     builder (3.2.2)
-    bunny (2.2.1)
-      amq-protocol (>= 2.0.0)
+    bunny (2.2.2)
+      amq-protocol (>= 2.0.1)
     byebug (8.2.1)
     celluloid (0.17.2)
       celluloid-essentials
@@ -125,9 +125,9 @@ GEM
       timers (>= 4.1.1)
     celluloid-supervision (0.20.5)
       timers (>= 4.1.1)
-    coffee-rails (4.1.0)
+    coffee-rails (4.1.1)
       coffee-script (>= 2.2.0)
-      railties (>= 4.0.0, < 5.0)
+      railties (>= 4.0.0, < 5.1.x)
     coffee-script (2.4.1)
       coffee-script-source
       execjs
@@ -196,7 +196,7 @@ GEM
     pg (0.18.4)
     pg (0.18.4-x64-mingw32)
     pg (0.18.4-x86-mingw32)
-    psych (2.0.16)
+    psych (2.0.17)
     puma (2.15.3)
     que (0.11.2)
     racc (1.4.14)
@@ -215,10 +215,11 @@ GEM
     rails-html-sanitizer (1.0.2)
       loofah (~> 2.0)
     rake (10.4.2)
-    rb-fsevent (0.9.6)
+    rb-fsevent (0.9.7)
     rb-inotify (0.9.5)
       ffi (>= 0.5.0)
-    rdoc (4.2.0)
+    rdoc (4.2.1)
+      json (~> 1.4)
     redcarpet (3.2.3)
     redis (3.2.2)
     redis-namespace (1.5.2)
@@ -234,17 +235,16 @@ GEM
       redis (~> 3.0)
       resque (~> 1.25)
       rufus-scheduler (~> 3.0)
-    rufus-scheduler (3.1.10)
+    rufus-scheduler (3.2.0)
     sdoc (0.4.1)
       json (~> 1.7, >= 1.7.7)
       rdoc (~> 4.0)
-    sequel (4.29.0)
+    sequel (4.30.0)
     serverengine (1.5.11)
       sigdump (~> 0.2.2)
-    sidekiq (4.0.1)
+    sidekiq (4.0.2)
       concurrent-ruby (~> 1.0)
       connection_pool (~> 2.2, >= 2.2.0)
-      json (~> 1.0)
       redis (~> 3.2, >= 3.2.1)
     sigdump (0.2.3)
     sinatra (1.0)
@@ -324,7 +324,7 @@ DEPENDENCIES
   que
   queue_classic!
   racc (>= 1.4.6)
-  rack-cache (~> 1.2)
+  rack-cache (~> 1.5)
   rails!
   rake (>= 10.3)
   redcarpet (~> 3.2.3)
