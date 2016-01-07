@@ -28,4 +28,5 @@ Gem::Specification.new do |s|
 
   s.add_development_dependency 'puma'
   s.add_development_dependency 'mocha'
+  s.add_development_dependency 'pg'
 end
