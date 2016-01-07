@@ -9,7 +9,7 @@ module ActiveRecord
   class SchemaMigration < ActiveRecord::Base # :nodoc:
     class << self
       def primary_key
-        nil
+        "version"
       end
 
       def table_name
