@@ -30,20 +30,12 @@ module ActionCable
         end
       end
 
-      ADAPTER = ActionCable::StorageAdapter
-
       # Returns constant of storage adapter specified in config/cable.yml
       # If the adapter cannot be found, this will default to the Redis adapter
       def storage_adapter
-        # "ActionCable::StorageAdapter::#{adapter.capitalize}"
-        adapter = config_opts['adapter']
-        adapter_const = "ActionCable::StorageAdapter::#{adapter.capitalize}"
-
-        if Object.const_defined?(adapter_const)
-          adapter_const.constantize
-        else
-          ADAPTER_BASE::Redis
-        end
+        # Defaults to redis if no adapter is set
+        adapter = config_opts.fetch('adapter') { 'redis' }
+        "ActionCable::StorageAdapter::#{adapter.camelize}".constantize
       end
     end
   end
