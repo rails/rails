@@ -43,8 +43,17 @@ module ActiveRecord
       LOCAL_HOSTS    = ['127.0.0.1', 'localhost']
 
       def check_protected_environments!
-        if !ENV['DISABLE_DATABASE_internal_metadata'] && ActiveRecord::Migrator.protected_environment?
-          raise ActiveRecord::ProtectedEnvironmentError.new(ActiveRecord::Migrator.last_stored_environment)
+        unless ENV['DISABLE_DATABASE_internal_metadata']
+          current = ActiveRecord::Migrator.current_environment
+          stored  = ActiveRecord::Migrator.last_stored_environment
+
+          if ActiveRecord::Migrator.protected_environment?
+            raise ActiveRecord::ProtectedEnvironmentError.new(stored)
+          end
+
+          if current != stored
+            raise EnvironmentMismatchError.new(current: current, stored: stored)
+          end
         end
       rescue ActiveRecord::NoDatabaseError
       end

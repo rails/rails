@@ -163,6 +163,15 @@ module ActiveRecord
     end
   end
 
+  class EnvironmentMismatchError < ActiveRecordError
+    def initialize(current: current, stored: stored)
+      msg =  "You are attempting to modify a database that was last run in #{ stored } environment.\n"
+      msg << "You are running in #{ current } environment."
+      msg << "if you are sure you want to continue, run the same command with the environment variable\n"
+      msg << "DISABLE_DATABASE_ENVIRONMENT_CHECK=1"
+    end
+  end
+
   # = Active Record Migrations
   #
   # Migrations can manage the evolution of a schema used by several physical
@@ -1224,13 +1233,16 @@ module ActiveRecord
       else
         migrated << version
         ActiveRecord::SchemaMigration.create!(version: version.to_s)
-        environment = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
-        ActiveRecord::InternalMetadata.store(environment: environment)
+        ActiveRecord::InternalMetadata.store(environment: current_environment)
       end
     end
 
     def self.last_stored_environment
       ActiveRecord::InternalMetadata.value_for(:environment)
+    end
+
+    def current_environment
+      ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
     end
 
     def self.protected_environment?
