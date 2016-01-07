@@ -71,6 +71,7 @@ module ActiveRecord
       ActiveSupport.on_load(:active_record) do
         self.time_zone_aware_attributes = true
         self.default_timezone = :utc
+        self.time_zone_aware_types = ActiveRecord::Base.time_zone_aware_types
       end
     end
 
