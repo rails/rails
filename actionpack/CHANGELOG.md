@@ -1,3 +1,11 @@
+*   More explicit error message when running `rake routes`. `CONTROLLER` argument
+    can now be supplied in different ways:
+    `Rails::WelcomeController`, `Rails::Welcome`, `rails/welcome`
+
+    Fixes #22918
+
+    *Edouard Chin*
+
 *   Allow `ActionController::Parameters` instances as an argument to URL
     helper methods. An `ArguemntError` will be raised if the passed parameters
     are not secure.
