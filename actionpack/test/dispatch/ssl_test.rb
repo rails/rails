@@ -199,7 +199,7 @@ class SecureCookiesTest < SSLTest
 
   def test_cookies_as_not_secure_with_secure_cookies_disabled
     get headers: { 'Set-Cookie' => DEFAULT }, ssl_options: { secure_cookies: false }
-    assert_cookies *DEFAULT.split("\n")
+    assert_cookies(*DEFAULT.split("\n"))
   end
 
   def test_no_cookies
