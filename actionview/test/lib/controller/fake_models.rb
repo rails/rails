@@ -38,6 +38,7 @@ class TicketType < Struct.new(:name)
 
   def initialize(*args)
     super
+    @persisted = false
   end
 
   def persisted=(boolean)
