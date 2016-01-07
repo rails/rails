@@ -281,8 +281,17 @@ module ActionDispatch
           helper = UrlHelper.create(route, opts, route_key, url_strategy)
           mod.module_eval do
             define_method(name) do |*args|
-              options = nil
-              options = args.pop if args.last.is_a? Hash
+              last = args.last
+              options = case last
+                        when Hash
+                          args.pop
+                        when ActionController::Parameters
+                          if last.permitted?
+                            args.pop.to_h
+                          else
+                            raise ArgumentError, "Generating an URL from non sanitized request parameters is insecure!"
+                          end
+                        end
               helper.call self, args, options
             end
           end
