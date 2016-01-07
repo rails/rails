@@ -387,24 +387,6 @@ module ActionDispatch
       end
 
       module Base
-        # You can specify what Rails should route "/" to with the root method:
-        #
-        #   root to: 'pages#main'
-        #
-        # For options, see +match+, as +root+ uses it internally.
-        #
-        # You can also pass a string which will expand
-        #
-        #   root 'pages#main'
-        #
-        # You should put the root route at the top of <tt>config/routes.rb</tt>,
-        # because this means it will be matched first. As this is the most popular route
-        # of most Rails applications, this is beneficial.
-        def root(options = {})
-          name = has_named_route?(:root) ? nil : :root
-          match '/', { as: name, via:  :get }.merge!(options)
-        end
-
         # Matches a url pattern to one or more routes.
         #
         # You should not use the +match+ method in your router
@@ -1689,7 +1671,20 @@ to this:
           @set.add_route(mapping, ast, as, anchor)
         end
 
-        def root(path, options={})
+        # You can specify what Rails should route "/" to with the root method:
+        #
+        #   root to: 'pages#main'
+        #
+        # For options, see +match+, as +root+ uses it internally.
+        #
+        # You can also pass a string which will expand
+        #
+        #   root 'pages#main'
+        #
+        # You should put the root route at the top of <tt>config/routes.rb</tt>,
+        # because this means it will be matched first. As this is the most popular route
+        # of most Rails applications, this is beneficial.
+        def root(path, options = {})
           if path.is_a?(String)
             options[:to] = path
           elsif path.is_a?(Hash) and options.empty?
@@ -1701,11 +1696,11 @@ to this:
           if @scope.resources?
             with_scope_level(:root) do
               path_scope(parent_resource.path) do
-                super(options)
+                match_root_route(options)
               end
             end
           else
-            super(options)
+            match_root_route(options)
           end
         end
 
@@ -1899,6 +1894,11 @@ to this:
           yield
         ensure
           @scope = @scope.parent
+        end
+
+        def match_root_route(options)
+          name = has_named_route?(:root) ? nil : :root
+          match '/', { :as => name, :via => :get }.merge!(options)
         end
       end
 
