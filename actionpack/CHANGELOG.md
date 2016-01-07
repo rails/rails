@@ -16,7 +16,7 @@
 
 *   Add option for per-form CSRF tokens.
 
-    *Ben Toews*
+    *Greg Ose & Ben Toews*
 
 *   Add tests and documentation for `ActionController::Renderers::use_renderers`.
 
