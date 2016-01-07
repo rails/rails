@@ -24,7 +24,6 @@ module ActionController
   module Caching
     extend ActiveSupport::Autoload
     extend ActiveSupport::Concern
-    include AbstractController::Callbacks
 
     included do
       include ActionDispatch::Caching
