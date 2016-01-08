@@ -380,7 +380,7 @@ class MigrationTest < ActiveRecord::TestCase
     old_path        = ActiveRecord::Migrator.migrations_paths
     ActiveRecord::Migrator.migrations_paths = migrations_path
 
-    assert_equal current_env, ActiveRecord::InternalMetadata.value_for("environment")
+    assert_equal current_env, ActiveRecord::InternalMetadata[:environment]
 
     original_rails_env  = ENV["RAILS_ENV"]
     original_rack_env   = ENV["RACK_ENV"]
@@ -391,7 +391,7 @@ class MigrationTest < ActiveRecord::TestCase
 
     sleep 1 # mysql by default does not store fractional seconds in the database
     ActiveRecord::Migrator.up(migrations_path)
-    assert_equal new_env, ActiveRecord::InternalMetadata.value_for("environment")
+    assert_equal new_env, ActiveRecord::InternalMetadata[:environment]
   ensure
     ActiveRecord::Migrator.migrations_paths = old_path
     ENV["RAILS_ENV"] = original_rails_env

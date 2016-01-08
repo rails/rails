@@ -4,7 +4,7 @@ require 'active_record/scoping/named'
 module ActiveRecord
   # This class is used to create a table that keeps track of values and keys such
   # as which environment migrations were run in.
-  class InternalMetadata < ActiveRecord::Base
+  class InternalMetadata < ActiveRecord::Base # :nodoc:
     class << self
       def primary_key
         "key"
@@ -18,13 +18,11 @@ module ActiveRecord
         "#{table_name_prefix}unique_#{ActiveRecord::Base.internal_metadata_table_name}#{table_name_suffix}"
       end
 
-      def store(hash)
-        hash.each do |key, value|
-          first_or_initialize(key: key).update_attributes!(value: value)
-        end
+      def []=(key, value)
+        first_or_initialize(key: key).update_attributes!(value: value)
       end
 
-      def value_for(key)
+      def [](key)
         where(key: key).pluck(:value).first
       end
 

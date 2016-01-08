@@ -1233,15 +1233,15 @@ module ActiveRecord
       else
         migrated << version
         ActiveRecord::SchemaMigration.create!(version: version.to_s)
-        ActiveRecord::InternalMetadata.store(environment: current_environment)
+        ActiveRecord::InternalMetadata[:environment] = ActiveRecord::Migrator.current_environment
       end
     end
 
     def self.last_stored_environment
-      ActiveRecord::InternalMetadata.value_for(:environment)
+      ActiveRecord::InternalMetadata[:environment]
     end
 
-    def current_environment
+    def self.current_environment
       ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
     end
 

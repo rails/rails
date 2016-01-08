@@ -221,7 +221,7 @@ module ActiveRecord
           raise ArgumentError, "unknown format #{format.inspect}"
         end
         ActiveRecord::InternalMetadata.create_table
-        ActiveRecord::InternalMetata.store("environment" => ActiveRecord::ConnectionHandling::DEFAULT_ENV.call)
+        ActiveRecord::InternalMetadata[:environment] = ActiveRecord::Migrator.current_environment
       end
 
       def load_schema_for(*args)

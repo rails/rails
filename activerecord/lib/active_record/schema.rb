@@ -53,7 +53,7 @@ module ActiveRecord
       end
 
       ActiveRecord::InternalMetadata.create_table
-      ActiveRecord::InternalMetadata.store("environment" => ActiveRecord::ConnectionHandling::DEFAULT_ENV.call)
+      ActiveRecord::InternalMetadata[:environment] = ActiveRecord::Migrator.current_environment
     end
 
     private

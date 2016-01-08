@@ -23,7 +23,7 @@ module ActiveRecord
       ActiveRecord::Migrator.stubs(:current_version).returns(1)
 
       protected_environments = ActiveRecord::Base.protected_environments.dup
-      current_env            = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
+      current_env            = ActiveRecord::Migrator.current_environment
       assert !protected_environments.include?(current_env)
       # Assert no error
       ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!
