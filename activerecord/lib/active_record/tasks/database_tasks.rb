@@ -51,8 +51,8 @@ module ActiveRecord
             raise ActiveRecord::ProtectedEnvironmentError.new(stored)
           end
 
-          if current != stored
-            raise EnvironmentMismatchError.new(current: current, stored: stored)
+          if stored && stored != current
+            raise ActiveRecord::EnvironmentMismatchError.new(current: current, stored: stored)
           end
         end
       rescue ActiveRecord::NoDatabaseError

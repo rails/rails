@@ -222,14 +222,14 @@ module ApplicationTests
 
           assert_equal '["posts"]', list_tables[]
           `bin/rake db:schema:load`
-          assert_equal '["posts", "comments", "schema_migrations", "internal_metadatas"]', list_tables[]
+          assert_equal '["posts", "comments", "schema_migrations", "active_record_internal_metadatas"]', list_tables[]
 
           app_file 'db/structure.sql', <<-SQL
             CREATE TABLE "users" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "name" varchar(255));
           SQL
 
           `bin/rake db:structure:load`
-          assert_equal '["posts", "comments", "schema_migrations", "internal_metadatas", "users"]', list_tables[]
+          assert_equal '["posts", "comments", "schema_migrations", "active_record_internal_metadatas", "users"]', list_tables[]
         end
       end
 

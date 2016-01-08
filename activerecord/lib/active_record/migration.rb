@@ -164,7 +164,7 @@ module ActiveRecord
   end
 
   class EnvironmentMismatchError < ActiveRecordError
-    def initialize(current: , stored: )
+    def initialize(current: nil, stored: nil)
       msg =  "You are attempting to modify a database that was last run in #{ stored } environment.\n"
       msg << "You are running in #{ current } environment."
       msg << "if you are sure you want to continue, run the same command with the environment variable\n"
@@ -1238,7 +1238,12 @@ module ActiveRecord
     end
 
     def self.last_stored_environment
-      ActiveRecord::InternalMetadata[:environment]
+      return nil if current_version == 0
+      raise NoEnvironmentInSchemaError unless ActiveRecord::InternalMetadata.table_exists?
+
+      environment = ActiveRecord::InternalMetadata[:environment]
+      raise NoEnvironmentInSchemaError unless environment
+      environment
     end
 
     def self.current_environment
@@ -1246,11 +1251,7 @@ module ActiveRecord
     end
 
     def self.protected_environment?
-      return false if current_version == 0
-      raise NoEnvironmentInSchemaError unless ActiveRecord::InternalMetadata.table_exists?
-
-      raise NoEnvironmentInSchemaError unless last_stored_environment
-      ActiveRecord::Base.protected_environments.include?(last_stored_environment)
+      ActiveRecord::Base.protected_environments.include?(last_stored_environment) if last_stored_environment
     end
 
     def up?
