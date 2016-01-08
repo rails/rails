@@ -7,7 +7,7 @@
     *Edouard Chin*
 
 *   Allow `ActionController::Parameters` instances as an argument to URL
-    helper methods. An `ArguemntError` will be raised if the passed parameters
+    helper methods. An `ArgumentError` will be raised if the passed parameters
     are not secure.
 
     Fixes #22832
