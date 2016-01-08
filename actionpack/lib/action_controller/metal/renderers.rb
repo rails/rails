@@ -135,7 +135,7 @@ module ActionController
       alias use_renderer use_renderers
     end
 
-    # Called by +render+ in <tt>AbstractController::Renderering</tt>
+    # Called by +render+ in <tt>AbstractController::Rendering</tt>
     # which sets the return value as the +response_body+.
     #
     # If no renderer is found, +super+ returns control to
