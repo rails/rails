@@ -194,6 +194,36 @@ module DateAndTime
       beginning_of_week(:monday)
     end
 
+    # Returns Tuesday of this week assuming that week starts on Monday.
+    # +DateTime+ objects have their time set to 0:00.
+    def tuesday
+      monday+1.day
+    end
+    
+    # Returns Wednesday of this week assuming that week starts on Monday.
+    # +DateTime+ objects have their time set to 0:00.
+    def wednesday
+      monday+2.day
+    end
+    
+    # Returns Thursday of this week assuming that week starts on Monday.
+    # +DateTime+ objects have their time set to 0:00.
+    def thursday
+      monday+3.day
+    end
+    
+    # Returns Friday of this week assuming that week starts on Monday.
+    # +DateTime+ objects have their time set to 0:00.
+    def friday
+      monday+4.day
+    end
+    
+    # Returns Saturday of this week assuming that week starts on Monday.
+    # +DateTime+ objects have their time set to 0:00.
+    def saturday
+      monday+5.day
+    end
+    
     # Returns a new date/time representing the end of this week on the given day.
     # Week is assumed to start on +start_day+, default is
     # +Date.beginning_of_week+ or +config.beginning_of_week+ when set.
