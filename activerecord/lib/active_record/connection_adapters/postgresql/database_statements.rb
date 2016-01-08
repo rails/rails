@@ -52,8 +52,8 @@ module ActiveRecord
           end
         end
 
-        def select_values(arel, name = nil)
-          arel, binds = binds_from_relation arel, []
+        def select_values(arel, name = nil, binds = [])
+          arel, binds = binds_from_relation arel, binds
           sql = to_sql(arel, binds)
           execute_and_clear(sql, name, binds) do |result|
             if result.nfields > 0
