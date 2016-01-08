@@ -40,6 +40,7 @@ module ActiveRecord
   autoload :CounterCache
   autoload :DynamicMatchers
   autoload :Enum
+  autoload :EnvironmentCheck
   autoload :Explain
   autoload :Inheritance
   autoload :Integration

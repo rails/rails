@@ -143,6 +143,26 @@ module ActiveRecord
     end
   end
 
+  class NoEnvironmentInSchemaError < MigrationError #:nodoc:
+    def initialize
+      msg = "Environment data not found in the schema. To resolve this issue, run: \n\n\tbin/rake db:migrate"
+      if defined?(Rails.env)
+        super("#{msg} RAILS_ENV=#{::Rails.env}")
+      else
+        super(msg)
+      end
+    end
+  end
+
+  class ProtectedEnvironmentError < ActiveRecordError #:nodoc:
+    def initialize(env = "production")
+      msg = "You are attempting to run a destructive action against your '#{env}' database\n"
+      msg << "if you are sure you want to continue, run the same command with the environment variable\n"
+      msg << "DISABLE_DATABASE_ENVIRONMENT_CHECK=1"
+      super(msg)
+    end
+  end
+
   # = Active Record Migrations
   #
   # Migrations can manage the evolution of a schema used by several physical
@@ -1078,6 +1098,7 @@ module ActiveRecord
       validate(@migrations)
 
       Base.connection.initialize_schema_migrations_table
+      Base.connection.initialize_environment_check_table
     end
 
     def current_version
@@ -1200,10 +1221,25 @@ module ActiveRecord
       if down?
         migrated.delete(version)
         ActiveRecord::SchemaMigration.where(:version => version.to_s).delete_all
-      else
+        ActiveRecord::EnvironmentCheck.order(created_at: :desc).first.try(:delete_all)
+       else
         migrated << version
-        ActiveRecord::SchemaMigration.create!(:version => version.to_s)
+        ActiveRecord::SchemaMigration.create!(version: version.to_s)
+        ActiveRecord::EnvironmentCheck.create!(environment: ActiveRecord::ConnectionHandling::DEFAULT_ENV.call)
       end
+    end
+
+    def self.last_protected_environment
+      ActiveRecord::EnvironmentCheck.order(created_at: :desc).first.environment
+    end
+
+    def self.protected_environment?
+      return false if current_version == 0
+      raise NoEnvironmentInSchemaError unless ActiveRecord::EnvironmentCheck.table_exists?
+      environment_check = ActiveRecord::EnvironmentCheck.order(:created_at).last
+
+      raise NoEnvironmentInSchemaError unless environment_check
+      ActiveRecord::Base.protected_environments.include?(environment_check.environment)
     end
 
     def up?

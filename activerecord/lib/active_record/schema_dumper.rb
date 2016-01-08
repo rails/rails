@@ -254,7 +254,7 @@ HEADER
       end
 
       def ignored?(table_name)
-        [ActiveRecord::Base.schema_migrations_table_name, ignore_tables].flatten.any? do |ignored|
+        [ActiveRecord::Base.schema_migrations_table_name, ActiveRecord::Base.environment_check_table_name, ignore_tables].flatten.any? do |ignored|
           ignored === remove_prefix_and_suffix(table_name)
         end
       end

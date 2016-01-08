@@ -968,6 +968,10 @@ module ActiveRecord
         ActiveRecord::SchemaMigration.create_table
       end
 
+      def initialize_environment_check_table
+        ActiveRecord::EnvironmentCheck.create_table
+      end
+
       def assume_migrated_upto_version(version, migrations_paths)
         migrations_paths = Array(migrations_paths)
         version = version.to_i
