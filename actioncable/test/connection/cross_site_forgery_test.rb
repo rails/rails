@@ -6,6 +6,7 @@ class ActionCable::Connection::CrossSiteForgeryTest < ActionCable::TestCase
 
   class Connection < ActionCable::Connection::Base
     def send_async(method, *args)
+      # Bypass Celluloid
       send method, *args
     end
   end

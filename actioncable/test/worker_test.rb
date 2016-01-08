@@ -17,6 +17,8 @@ class WorkerTest < ActiveSupport::TestCase
   end
 
   setup do
+    Celluloid.boot
+
     @worker = ActionCable::Server::Worker.new
     @receiver = Receiver.new
   end

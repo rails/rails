@@ -31,8 +31,8 @@ PATH
   specs:
     actioncable (5.0.0.beta1)
       actionpack (= 5.0.0.beta1)
+      celluloid (~> 0.17.2)
       coffee-rails (~> 4.1.0)
-      concurrent-ruby (~> 1.0.0)
       em-hiredis (~> 0.3.0)
       faye-websocket (~> 0.10.0)
       redis (~> 3.0)
