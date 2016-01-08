@@ -9,9 +9,7 @@ module ActiveRecord
         end
 
         def cast(value)
-          if value.is_a?(Array)
-            value.map { |v| cast(v) }
-          elsif value.is_a?(Hash)
+          if value.is_a?(Hash)
             set_time_zone_without_conversion(super)
           elsif value.respond_to?(:in_time_zone)
             begin
@@ -25,9 +23,7 @@ module ActiveRecord
         private
 
         def convert_time_to_time_zone(value)
-          if value.is_a?(Array)
-            value.map { |v| convert_time_to_time_zone(v) }
-          elsif value.acts_like?(:time)
+          if value.acts_like?(:time)
             value.in_time_zone
           else
             value
@@ -63,7 +59,13 @@ module ActiveRecord
           subclass.class_eval do
             matcher = ->(name, type) { create_time_zone_conversion_attribute?(name, type) }
             decorate_matching_attribute_types(matcher, :_time_zone_conversion) do |type|
-              TimeZoneConverter.new(type)
+              if type.respond_to?(:subtype)
+                type.dup.tap do |wrapper_type|
+                  wrapper_type.subtype = TimeZoneConverter.new(wrapper_type.subtype)
+                end
+              else
+                TimeZoneConverter.new(type)
+              end
             end
           end
           super
@@ -92,6 +94,10 @@ module ActiveRecord
 
                   config.active_record.time_zone_aware_types << :time
             MESSAGE
+          end
+
+          if cast_type.respond_to?(:subtype)
+            result ||= create_time_zone_conversion_attribute?(name, cast_type.subtype)
           end
 
           result
