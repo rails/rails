@@ -123,11 +123,13 @@ module ActiveRecord
       def update(arel, name = nil, binds = [])
         exec_update(to_sql(arel, binds), name, binds)
       end
+      alias update_sql update
 
       # Executes the delete statement and returns the number of rows affected.
       def delete(arel, name = nil, binds = [])
         exec_delete(to_sql(arel, binds), name, binds)
       end
+      alias delete_sql delete
 
       # Returns +true+ when the connection adapter supports prepared statement
       # caching, otherwise returns +false+
@@ -373,16 +375,6 @@ module ActiveRecord
 
         def select_prepared(sql, name = nil, binds = [])
           exec_query(sql, name, binds, prepare: true)
-        end
-
-        # Executes the update statement and returns the number of rows affected.
-        def update_sql(sql, name = nil)
-          execute(sql, name)
-        end
-
-        # Executes the delete statement and returns the number of rows affected.
-        def delete_sql(sql, name = nil)
-          update_sql(sql, name)
         end
 
         def sql_for_insert(sql, pk, id_value, sequence_name, binds)
