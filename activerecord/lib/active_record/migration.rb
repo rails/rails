@@ -164,7 +164,7 @@ module ActiveRecord
   end
 
   class EnvironmentMismatchError < ActiveRecordError
-    def initialize(current: current, stored: stored)
+    def initialize(current: , stored: )
       msg =  "You are attempting to modify a database that was last run in #{ stored } environment.\n"
       msg << "You are running in #{ current } environment."
       msg << "if you are sure you want to continue, run the same command with the environment variable\n"
