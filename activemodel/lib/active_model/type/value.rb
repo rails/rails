@@ -84,6 +84,10 @@ module ActiveModel
         false
       end
 
+      def map(value) # :nodoc:
+        yield value
+      end
+
       def ==(other)
         self.class == other.class &&
           precision == other.precision &&
