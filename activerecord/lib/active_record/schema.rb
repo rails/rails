@@ -51,6 +51,9 @@ module ActiveRecord
         initialize_schema_migrations_table
         connection.assume_migrated_upto_version(info[:version], migrations_paths)
       end
+
+      ActiveRecord::InternalMetadata.create_table
+      ActiveRecord::InternalMetadata[:environment] = ActiveRecord::Migrator.current_environment
     end
 
     private

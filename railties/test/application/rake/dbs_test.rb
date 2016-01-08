@@ -85,7 +85,7 @@ module ApplicationTests
 
       test 'db:drop failure because database does not exist' do
         Dir.chdir(app_path) do
-          output = `bin/rake db:drop 2>&1`
+          output = `bin/rake db:drop:_unsafe --trace 2>&1`
           assert_match(/does not exist/, output)
           assert_equal 0, $?.exitstatus
         end
@@ -222,14 +222,14 @@ module ApplicationTests
 
           assert_equal '["posts"]', list_tables[]
           `bin/rake db:schema:load`
-          assert_equal '["posts", "comments", "schema_migrations"]', list_tables[]
+          assert_equal '["posts", "comments", "schema_migrations", "active_record_internal_metadatas"]', list_tables[]
 
           app_file 'db/structure.sql', <<-SQL
             CREATE TABLE "users" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "name" varchar(255));
           SQL
 
           `bin/rake db:structure:load`
-          assert_equal '["posts", "comments", "schema_migrations", "users"]', list_tables[]
+          assert_equal '["posts", "comments", "schema_migrations", "active_record_internal_metadatas", "users"]', list_tables[]
         end
       end
 

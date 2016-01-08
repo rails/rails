@@ -38,6 +38,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
     assert_match %r{create_table "accounts"}, output
     assert_match %r{create_table "authors"}, output
     assert_no_match %r{create_table "schema_migrations"}, output
+    assert_no_match %r{create_table "active_record_internal_metadatas"}, output
   end
 
   def test_schema_dump_uses_force_cascade_on_create_table
@@ -158,6 +159,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
     assert_no_match %r{create_table "accounts"}, output
     assert_match %r{create_table "authors"}, output
     assert_no_match %r{create_table "schema_migrations"}, output
+    assert_no_match %r{create_table "active_record_internal_metadatas"}, output
   end
 
   def test_schema_dump_with_regexp_ignored_table
@@ -165,6 +167,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
     assert_no_match %r{create_table "accounts"}, output
     assert_match %r{create_table "authors"}, output
     assert_no_match %r{create_table "schema_migrations"}, output
+    assert_no_match %r{create_table "active_record_internal_metadatas"}, output
   end
 
   def test_schema_dumps_index_columns_in_right_order
@@ -342,6 +345,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
     assert_no_match %r{create_table "foo_.+_bar"}, output
     assert_no_match %r{add_index "foo_.+_bar"}, output
     assert_no_match %r{create_table "schema_migrations"}, output
+    assert_no_match %r{create_table "active_record_internal_metadatas"}, output
 
     if ActiveRecord::Base.connection.supports_foreign_keys?
       assert_no_match %r{add_foreign_key "foo_.+_bar"}, output

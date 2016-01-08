@@ -28,7 +28,7 @@ module ApplicationTests
         assert_not File.exist?("tmp/restart.txt")
         `bin/setup 2>&1`
         assert_equal 0, File.size("log/my.log")
-        assert_equal '["articles", "schema_migrations"]', list_tables.call
+        assert_equal '["articles", "schema_migrations", "active_record_internal_metadatas"]', list_tables.call
         assert File.exist?("tmp/restart.txt")
       end
     end

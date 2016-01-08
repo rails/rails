@@ -502,6 +502,7 @@ module ActiveRecord
       end
 
       def table_exists?(table_name)
+        # Update lib/active_record/internal_metadata.rb when this gets removed
         ActiveSupport::Deprecation.warn(<<-MSG.squish)
           #table_exists? currently checks both tables and views.
           This behavior is deprecated and will be changed with Rails 5.1 to only check tables.

@@ -17,6 +17,34 @@ module ActiveRecord
     sqlite3:    :sqlite_tasks
   }
 
+  class DatabaseTasksUtilsTask< ActiveRecord::TestCase
+    def test_raises_an_error_when_called_with_protected_environment
+      ActiveRecord::Migrator.stubs(:current_version).returns(1)
+
+      protected_environments = ActiveRecord::Base.protected_environments.dup
+      current_env            = ActiveRecord::Migrator.current_environment
+      assert !protected_environments.include?(current_env)
+      # Assert no error
+      ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!
+
+      ActiveRecord::Base.protected_environments << current_env
+      assert_raise(ActiveRecord::ProtectedEnvironmentError) do
+        ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!
+      end
+    ensure
+      ActiveRecord::Base.protected_environments = protected_environments
+    end
+
+    def test_raises_an_error_if_no_migrations_have_been_made
+      ActiveRecord::InternalMetadata.stubs(:table_exists?).returns(false)
+      ActiveRecord::Migrator.stubs(:current_version).returns(1)
+
+      assert_raise(ActiveRecord::NoEnvironmentInSchemaError) do
+        ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!
+      end
+    end
+  end
+
   class DatabaseTasksRegisterTask < ActiveRecord::TestCase
     def test_register_task
       klazz = Class.new do
