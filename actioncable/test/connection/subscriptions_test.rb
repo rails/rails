@@ -5,6 +5,7 @@ class ActionCable::Connection::SubscriptionsTest < ActionCable::TestCase
     attr_reader :websocket
 
     def send_async(method, *args)
+      # Bypass Celluloid
       send method, *args
     end
   end
