@@ -393,11 +393,6 @@ module ActiveRecord
         yield execute(sql, name)
       end
 
-      def update_sql(sql, name = nil) #:nodoc:
-        super
-        @connection.affected_rows
-      end
-
       def begin_db_transaction
         execute "BEGIN"
       end

@@ -184,11 +184,6 @@ module ActiveRecord
           end
         end
 
-        # Executes an UPDATE query and returns the number of affected tuples.
-        def update_sql(sql, name = nil)
-          super.cmd_tuples
-        end
-
         # Begins a transaction.
         def begin_db_transaction
           execute "BEGIN"

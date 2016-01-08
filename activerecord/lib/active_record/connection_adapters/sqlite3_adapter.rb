@@ -280,11 +280,6 @@ module ActiveRecord
         log(sql, name) { @connection.execute(sql) }
       end
 
-      def update_sql(sql, name = nil) #:nodoc:
-        super
-        @connection.changes
-      end
-
       def select_rows(sql, name = nil, binds = [])
         exec_query(sql, name, binds).rows
       end
