@@ -41,14 +41,13 @@ module ActiveRecord
       # Note that it's still possible to generate a race condition in the database in the same way that
       # {validates_uniqueness_of}[rdoc-ref:Validations::ClassMethods#validates_uniqueness_of] can.
       # You're encouraged to add a unique index in the database to deal with this even more unlikely scenario.
-      def has_secure_token(attribute = :token, **before_save_options)
+      def has_secure_token(attribute = :token, **before_create_options)
         # Load securerandom only when has_secure_token is used.
         require 'active_support/core_ext/securerandom'
 
         define_method("regenerate_#{attribute}") { update! attribute => self.class.generate_unique_secure_token }
-
-        before_save(before_save_options) do
-          send("#{attribute}=", self.class.generate_unique_secure_token) unless send("#{attribute}?")
+        before_create(before_create_options) do
+          self.send("#{attribute}=", self.class.generate_unique_secure_token) unless self.send("#{attribute}?")
         end
       end
 
