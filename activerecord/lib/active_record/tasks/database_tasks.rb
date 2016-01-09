@@ -56,7 +56,23 @@ module ActiveRecord
       end
 
       def migrations_paths
-        @migrations_paths ||= Rails.application.paths['db/migrate'].to_a
+        paths = Rails.application.paths['db/migrate'].to_a
+        root_path = paths.first
+
+        if ENV['RAILS_NAMESPACE']
+          namespaces = [ENV['RAILS_NAMESPACE']]
+        elsif
+          namespaces = ENV['RAILS_NAMESPACES'] ? ENV['RAILS_NAMESPACES']
+            .split(",") : []
+        end
+
+        if namespaces.any?
+          namespaces.each do |namespace|
+            paths << "#{root_path}/#{namespace}"
+          end
+        end
+
+        @migrations_paths ||= paths
       end
 
       def fixtures_path
@@ -137,12 +153,22 @@ module ActiveRecord
         verbose = ENV["VERBOSE"] ? ENV["VERBOSE"] == "true" : true
         version = ENV["VERSION"] ? ENV["VERSION"].to_i : nil
         scope   = ENV['SCOPE']
-        verbose_was, Migration.verbose = Migration.verbose, verbose
-        Migrator.migrate(migrations_paths, version) do |migration|
-          scope.blank? || scope == migration.scope
+
+        migrations_paths.each do |migration_path|
+          verbose_was, Migration.verbose = Migration.verbose, verbose
+          namespace = File.basename migration_path
+          db_configs = Base.configurations
+          Base.establish_connection db_configs[namespace][Rails.env] unless namespace === "migrate"
+
+          begin
+            Migrator.migrate(migration_path, version) do |migration|
+              scope.blank? || scope == migration.scope
+            end
+          ensure
+            Migration.verbose = verbose_was
+          end
+
         end
-      ensure
-        Migration.verbose = verbose_was
       end
 
       def charset_current(environment = env)
@@ -272,14 +298,16 @@ module ActiveRecord
       def each_current_configuration(environment)
         environments = [environment]
         # add test environment only if no RAILS_ENV was specified.
-        environments << 'test' if environment == 'development' && ENV['RAILS_ENV'].nil?
-        db_configs = ActiveRecord::Base.configurations
+        environments << 'test' if environment == 'development' &&
+          ENV['RAILS_ENV'].nil?
+        db_configs = Base.configurations
         configurations = []
 
-        if ENV['NAMESPACE']
-          namespaces = [ENV['NAMESPACE']]
+        if ENV['RAILS_NAMESPACE']
+          namespaces = [ENV['RAILS_NAMESPACE']]
         else
-          namespaces = ENV['NAMESPACES'] ? ENV['NAMESPACES'].split(",") : []
+          namespaces = ENV['RAILS_NAMESPACES'] ? ENV['RAILS_NAMESPACES']
+            .split(",") : []
         end
         namespaces_configs = db_configs.values_at(*namespaces)
         if namespaces_configs.any?

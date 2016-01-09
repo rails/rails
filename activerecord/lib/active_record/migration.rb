@@ -795,16 +795,16 @@ module ActiveRecord
       attr_writer :migrations_paths
       alias :migrations_path= :migrations_paths=
 
-      def migrate(migrations_paths, target_version = nil, &block)
+      def migrate(migrations_path, target_version = nil, &block)
         case
         when target_version.nil?
-          up(migrations_paths, target_version, &block)
+          up(migrations_path, target_version, &block)
         when current_version == 0 && target_version == 0
           []
         when current_version > target_version
-          down(migrations_paths, target_version, &block)
+          down(migrations_path, target_version, &block)
         else
-          up(migrations_paths, target_version, &block)
+          up(migrations_path, target_version, &block)
         end
       end
 
@@ -883,10 +883,11 @@ module ActiveRecord
       def migrations(paths)
         paths = Array(paths)
 
-        files = Dir[*paths.map { |p| "#{p}/**/[0-9]*_*.rb" }]
+        files = Dir[*paths.map { |p| "#{p}/[0-9]*_*.rb" }]
 
         migrations = files.map do |file|
-          version, name, scope = file.scan(/([0-9]+)_([_a-z0-9]*)\.?([_a-z0-9]*)?\.rb\z/).first
+          version, name, scope = file
+            .scan(/([0-9]+)_([_a-z0-9]*)\.?([_a-z0-9]*)?\.rb\z/).first
 
           raise IllegalMigrationNameError.new(file) unless version
           version = version.to_i
