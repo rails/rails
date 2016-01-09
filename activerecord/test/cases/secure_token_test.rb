@@ -29,4 +29,14 @@ class SecureTokenTest < ActiveRecord::TestCase
 
     assert_equal @user.token, "custom-secure-token"
   end
+
+  def test_token_with_if_condition_checks_condition_on_save
+    @user.token_condition = false
+    @user.save
+    assert_nil @user.conditional_token
+
+    @user.token_condition = true
+    @user.save
+    assert_not_nil @user.conditional_token
+  end
 end
