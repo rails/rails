@@ -18,12 +18,14 @@ module Rails
       @filters = [ derive_regexp(filter), *derive_line_filters(patterns) ].compact
     end
 
+    # Minitest uses === to find matching filters.
     def ===(method)
       @filters.any? { |filter| filter === method }
     end
 
     private
       def derive_regexp(filter)
+        # Regexp filtering copied from Minitest.
         filter =~ %r%/(.*)/% ? Regexp.new($1) : filter
       end
 
