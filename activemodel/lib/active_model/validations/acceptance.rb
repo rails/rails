@@ -4,7 +4,7 @@ module ActiveModel
     class AcceptanceValidator < EachValidator # :nodoc:
       def initialize(options)
         super({ allow_nil: true, accept: ["1", true] }.merge!(options))
-        setup!(options[:class])
+        setup!(options[:class]) unless options[:already_accessible]
       end
 
       def validate_each(record, attribute, value)
@@ -95,6 +95,8 @@ module ActiveModel
       #   checkbox. This should be set to, or include, +true+ if you are validating
       #   a database column, since the attribute is typecast from "1" to +true+
       #   before validation.
+      # * <tt>:already_accessible</tt> - Specifies should validator use already
+      #   defined accessors for attribute (default is: false).
       #
       # There is also a list of default options supported by every validator:
       # +:if+, +:unless+, +:on+, +:allow_nil+, +:allow_blank+, and +:strict+.
