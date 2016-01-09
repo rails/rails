@@ -43,7 +43,7 @@ module ActiveRecord
       LOCAL_HOSTS    = ['127.0.0.1', 'localhost']
 
       def check_protected_environments!
-        unless ENV['DISABLE_DATABASE_internal_metadata']
+        unless ENV['DISABLE_DATABASE_ENVIRONMENT_CHECK']
           current = ActiveRecord::Migrator.current_environment
           stored  = ActiveRecord::Migrator.last_stored_environment
 
