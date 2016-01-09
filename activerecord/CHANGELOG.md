@@ -1,3 +1,11 @@
+*   Use `version` column as primary key for schema_migrations table because
+    schema_migrations versions are guaranteed to be unique.
+
+    This makes it possible to use `update_attributes` on models that do
+    not have a primary key.
+
+    *Richard Schneeman*
+
 *   Add short-hand methods for text and blob types in MySQL.
 
     In Pg and Sqlite3, `:text` and `:binary` have variable unlimited length.
