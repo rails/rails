@@ -49,4 +49,4 @@ services:
   - redis
   - rabbitmq
 addons:
-  postgresql: "9.3"
+  postgresql: "9.4"
