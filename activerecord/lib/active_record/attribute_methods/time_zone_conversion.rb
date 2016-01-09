@@ -31,6 +31,8 @@ module ActiveRecord
 
           if value.acts_like?(:time)
             value.in_time_zone
+          elsif value.is_a?(::Float)
+            value
           else
             map(value) { |v| convert_time_to_time_zone(v) }
           end
