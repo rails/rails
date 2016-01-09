@@ -545,7 +545,7 @@ module ActiveRecord
           end
         end
 
-        # returns either nil or the inverse association name that it finds.
+        # returns either false or the inverse association name that it finds.
         def automatic_inverse_of
           if can_find_inverse_of_automatically?(self)
             inverse_name = ActiveSupport::Inflector.underscore(options[:as] || active_record.name.demodulize).to_sym
