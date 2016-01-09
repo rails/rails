@@ -33,7 +33,7 @@ class CallbacksTest < ActiveModel::TestCase
     def initialize(options = {})
       @callbacks = []
       @valid = options[:valid]
-      @before_create_returns = options.fetch(:before_create_returns, true)
+      @before_create_returns = options.fetch(:before_create_returns) { true }
       @before_create_throws = options[:before_create_throws]
     end
 

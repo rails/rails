@@ -12,7 +12,7 @@ class FormTagHelperTest < ActionView::TestCase
 
   def hidden_fields(options = {})
     method = options[:method]
-    enforce_utf8 = options.fetch(:enforce_utf8, true)
+    enforce_utf8 = options.fetch(:enforce_utf8) { true }
 
     ''.tap do |txt|
       if enforce_utf8

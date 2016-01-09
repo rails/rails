@@ -49,7 +49,7 @@ module ActiveRecord
         @connection = connection
         @state = TransactionState.new
         @records = []
-        @joinable = options.fetch(:joinable, true)
+        @joinable = options.fetch(:joinable) { true }
         @run_commit_callbacks = run_commit_callbacks
       end
 

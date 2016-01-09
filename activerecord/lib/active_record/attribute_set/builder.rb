@@ -94,7 +94,7 @@ module ActiveRecord
     private
 
     def assign_default_value(name)
-      type = additional_types.fetch(name, types[name])
+      type = additional_types.fetch(name) { types[name] }
       value_present = true
       value = values.fetch(name) { value_present = false }
 

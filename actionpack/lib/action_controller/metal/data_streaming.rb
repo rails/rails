@@ -113,7 +113,7 @@ module ActionController #:nodoc:
       def send_file_headers!(options)
         type_provided = options.has_key?(:type)
 
-        content_type = options.fetch(:type, DEFAULT_SEND_FILE_TYPE)
+        content_type = options.fetch(:type) { DEFAULT_SEND_FILE_TYPE }
         raise ArgumentError, ":type option required" if content_type.nil?
 
         if content_type.is_a?(Symbol)
@@ -128,7 +128,7 @@ module ActionController #:nodoc:
           self.content_type = content_type
         end
 
-        disposition = options.fetch(:disposition, DEFAULT_SEND_FILE_DISPOSITION)
+        disposition = options.fetch(:disposition) { DEFAULT_SEND_FILE_DISPOSITION }
         unless disposition.nil?
           disposition  = disposition.to_s
           disposition += %(; filename="#{options[:filename]}") if options[:filename]

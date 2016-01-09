@@ -434,7 +434,7 @@ module ActiveRecord
 
       def scope(opts = {})
         scope = super()
-        scope.none! if opts.fetch(:nullify, true) && null_scope?
+        scope.none! if opts.fetch(:nullify) { true } && null_scope?
         scope
       end
 

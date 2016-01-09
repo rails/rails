@@ -655,7 +655,7 @@ module ActiveRecord
           # Resolve enums
           model_class.defined_enums.each do |name, values|
             if row.include?(name)
-              row[name] = values.fetch(row[name], row[name])
+              row[name] = values.fetch(row[name]) { row[name] }
             end
           end
 

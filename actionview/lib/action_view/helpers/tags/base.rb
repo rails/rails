@@ -129,7 +129,7 @@ module ActionView
           value = options.fetch(:selected) { value(object) }
           select = content_tag("select", add_options(option_tags, options, value), html_options)
 
-          if html_options["multiple"] && options.fetch(:include_hidden, true)
+          if html_options["multiple"] && options.fetch(:include_hidden) { true }
             tag("input", :disabled => html_options["disabled"], :name => html_options["name"], :type => "hidden", :value => "") + select
           else
             select
@@ -138,7 +138,7 @@ module ActionView
 
         def placeholder_required?(html_options)
           # See https://html.spec.whatwg.org/multipage/forms.html#attr-select-required
-          html_options["required"] && !html_options["multiple"] && html_options.fetch("size", 1).to_i == 1
+          html_options["required"] && !html_options["multiple"] && html_options.fetch("size") { 1 }.to_i == 1
         end
 
         def add_options(option_tags, options, value = nil)

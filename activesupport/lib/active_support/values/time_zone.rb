@@ -441,13 +441,13 @@ module ActiveSupport
         return if parts.empty?
 
         time = Time.new(
-          parts.fetch(:year, now.year),
-          parts.fetch(:mon, now.month),
-          parts.fetch(:mday, parts[:year] || parts[:mon] ? 1 : now.day),
-          parts.fetch(:hour, 0),
-          parts.fetch(:min, 0),
-          parts.fetch(:sec, 0) + parts.fetch(:sec_fraction, 0),
-          parts.fetch(:offset, 0)
+          parts.fetch(:year) { now.year },
+          parts.fetch(:mon) { now.month },
+          parts.fetch(:mday) { parts[:year] || parts[:mon] ? 1 : now.day },
+          parts.fetch(:hour) { 0 },
+          parts.fetch(:min) { 0 },
+          parts.fetch(:sec) { 0 } + parts.fetch(:sec_fraction) { 0 },
+          parts.fetch(:offset) { 0 }
         )
 
         if parts[:offset]

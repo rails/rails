@@ -20,7 +20,7 @@ module ActiveSupport
         end
 
         def delimiter_pattern
-          options.fetch(:delimiter_pattern, DEFAULT_DELIMITER_REGEX)
+          options.fetch(:delimiter_pattern) { DEFAULT_DELIMITER_REGEX }
         end
 
     end

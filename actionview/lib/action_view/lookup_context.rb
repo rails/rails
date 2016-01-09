@@ -27,7 +27,7 @@ module ActionView
       Accessors.send :define_method, :"default_#{name}", &block
       Accessors.module_eval <<-METHOD, __FILE__, __LINE__ + 1
         def #{name}
-          @details.fetch(:#{name}, [])
+          @details.fetch(:#{name}) { [] }
         end
 
         def #{name}=(value)

@@ -41,14 +41,14 @@ class DateTime
   #   DateTime.new(2012, 8, 29, 22, 35, 0).change(year: 1981, hour: 0) # => DateTime.new(1981, 8, 29, 0, 0, 0)
   def change(options)
     ::DateTime.civil(
-      options.fetch(:year, year),
-      options.fetch(:month, month),
-      options.fetch(:day, day),
-      options.fetch(:hour, hour),
-      options.fetch(:min, options[:hour] ? 0 : min),
-      options.fetch(:sec, (options[:hour] || options[:min]) ? 0 : sec + sec_fraction),
-      options.fetch(:offset, offset),
-      options.fetch(:start, start)
+      options.fetch(:year) { year },
+      options.fetch(:month) { month },
+      options.fetch(:day) { day },
+      options.fetch(:hour) { hour },
+      options.fetch(:min) { options[:hour] ? 0 : min },
+      options.fetch(:sec) { (options[:hour] || options[:min]) ? 0 : sec + sec_fraction },
+      options.fetch(:offset) { offset },
+      options.fetch(:start) { start }
     )
   end
 
@@ -59,20 +59,20 @@ class DateTime
   def advance(options)
     unless options[:weeks].nil?
       options[:weeks], partial_weeks = options[:weeks].divmod(1)
-      options[:days] = options.fetch(:days, 0) + 7 * partial_weeks
+      options[:days] = options.fetch(:days) { 0 } + 7 * partial_weeks
     end
 
     unless options[:days].nil?
       options[:days], partial_days = options[:days].divmod(1)
-      options[:hours] = options.fetch(:hours, 0) + 24 * partial_days
+      options[:hours] = options.fetch(:hours) { 0 } + 24 * partial_days
     end
 
     d = to_date.advance(options)
     datetime_advanced_by_date = change(:year => d.year, :month => d.month, :day => d.day)
     seconds_to_advance = \
-      options.fetch(:seconds, 0) +
-      options.fetch(:minutes, 0) * 60 +
-      options.fetch(:hours, 0) * 3600
+      options.fetch(:seconds) { 0 } +
+      options.fetch(:minutes) { 0 } * 60 +
+      options.fetch(:hours) { 0 } * 3600
 
     if seconds_to_advance.zero?
       datetime_advanced_by_date
