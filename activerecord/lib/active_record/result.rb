@@ -99,7 +99,7 @@ module ActiveRecord
 
     def column_type(name, type_overrides = {})
       type_overrides.fetch(name) do
-        column_types.fetch(name, IDENTITY_TYPE)
+        column_types.fetch(name) { IDENTITY_TYPE }
       end
     end
 

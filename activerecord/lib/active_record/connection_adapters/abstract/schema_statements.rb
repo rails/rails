@@ -256,7 +256,7 @@ module ActiveRecord
           if pk.is_a?(Array)
             td.primary_keys pk
           else
-            td.primary_key pk, options.fetch(:id, :primary_key), options
+            td.primary_key pk, options.fetch(:id) { :primary_key }, options
           end
         end
 
@@ -1075,7 +1075,7 @@ module ActiveRecord
         index_type ||= options[:unique] ? "UNIQUE" : ""
         index_name = options[:name].to_s if options.key?(:name)
         index_name ||= index_name(table_name, column: column_names)
-        max_index_length = options.fetch(:internal, false) ? index_name_length : allowed_index_name_length
+        max_index_length = options.fetch(:internal) { false } ? index_name_length : allowed_index_name_length
 
         if options.key?(:algorithm)
           algorithm = index_algorithms.fetch(options[:algorithm]) {

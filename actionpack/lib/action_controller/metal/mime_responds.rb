@@ -251,7 +251,7 @@ module ActionController #:nodoc:
       end
 
       def response
-        response = @responses.fetch(format, @responses[Mime::ALL])
+        response = @responses.fetch(format) { @responses[Mime::ALL] }
         if response.is_a?(VariantCollector) # `format.html.phone` - variant inline syntax
           response.variant
         elsif response.nil? || response.arity == 0 # `format.html` - just a format, call its block

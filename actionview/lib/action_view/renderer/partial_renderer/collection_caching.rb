@@ -26,7 +26,7 @@ module ActionView
       end
 
       def cache_collection?
-        @options.fetch(:cache, automatic_cache_eligible?)
+        @options.fetch(:cache) { automatic_cache_eligible? }
       end
 
       def automatic_cache_eligible?

@@ -908,9 +908,9 @@ module ActionDispatch
 
           defaults = {
             module:         path,
-            as:             options.fetch(:as, path),
-            shallow_path:   options.fetch(:path, path),
-            shallow_prefix: options.fetch(:as, path)
+            as:             options.fetch(:as) { path },
+            shallow_path:   options.fetch(:path) { path },
+            shallow_prefix: options.fetch(:as) { path }
           }
 
           path_scope(options.delete(:path) { path }) do
@@ -1586,7 +1586,7 @@ module ActionDispatch
           options_constraints = options.delete(:constraints) || {}
 
           path_types = paths.group_by(&:class)
-          path_types.fetch(String, []).each do |_path|
+          path_types.fetch(String) { [] }.each do |_path|
             route_options = options.dup
             if _path && option_path
               ActiveSupport::Deprecation.warn <<-eowarn
@@ -1606,7 +1606,7 @@ to this:
             decomposed_match(_path, controller, route_options, _path, to, via, formatted, anchor, options_constraints)
           end
 
-          path_types.fetch(Symbol, []).each do |action|
+          path_types.fetch(Symbol) { [] }.each do |action|
             route_options = options.dup
             decomposed_match(action, controller, route_options, option_path, to, via, formatted, anchor, options_constraints)
           end
@@ -1658,7 +1658,7 @@ to this:
             action = nil
           end
 
-          as = if !options.fetch(:as, true) # if it's set to nil or false
+          as = if !options.fetch(:as) { true } # if it's set to nil or false
                  options.delete(:as)
                else
                  name_for_action(options.delete(:as), action)

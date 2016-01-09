@@ -780,7 +780,7 @@ module ActiveRecord
       end
 
       def strict_mode?
-        self.class.type_cast_config_to_boolean(@config.fetch(:strict, true))
+        self.class.type_cast_config_to_boolean(@config.fetch(:strict) { true })
       end
 
       def valid_type?(type)
@@ -976,7 +976,7 @@ module ActiveRecord
       end
 
       def configure_connection
-        variables = @config.fetch(:variables, {}).stringify_keys
+        variables = @config.fetch(:variables) { {} }.stringify_keys
 
         # By default, MySQL 'where id is null' selects the last inserted id; Turn this off.
         variables['sql_auto_is_null'] = 0

@@ -124,12 +124,12 @@ class Date
   #   Date.new(2007, 5, 12).change(year: 2005, month: 1) # => Date.new(2005, 1, 12)
   def change(options)
     ::Date.new(
-      options.fetch(:year, year),
-      options.fetch(:month, month),
-      options.fetch(:day, day)
+      options.fetch(:year) { year },
+      options.fetch(:month) { month },
+      options.fetch(:day) { day }
     )
   end
-  
+
   # Allow Date to be compared with Time by converting to DateTime and relying on the <=> from there.
   def compare_with_coercion(other)
     if other.is_a?(Time)

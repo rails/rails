@@ -63,7 +63,7 @@ module ActiveModel
 
         include InstanceMethodsOnActivation
 
-        if options.fetch(:validations, true)
+        if options.fetch(:validations) { true }
           include ActiveModel::Validations
 
           # This ensures the model has a password by checking whether the password_digest

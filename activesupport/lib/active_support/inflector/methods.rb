@@ -133,7 +133,7 @@ module ActiveSupport
         "#{inflections.acronyms[match] || match.downcase}"
       end
 
-      if options.fetch(:capitalize, true)
+      if options.fetch(:capitalize) { true }
         result.sub!(/\A\w/) { |match| match.upcase }
       end
 

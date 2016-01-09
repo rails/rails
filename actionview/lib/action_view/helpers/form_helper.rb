@@ -1966,7 +1966,7 @@ module ActionView
         def fields_for_nested_model(name, object, fields_options, block)
           object = convert_to_model(object)
           emit_hidden_id = object.persisted? && fields_options.fetch(:include_id) {
-            options.fetch(:include_id, true)
+            options.fetch(:include_id) { true }
           }
 
           @template.fields_for(name, object, fields_options) do |f|

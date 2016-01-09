@@ -3531,7 +3531,7 @@ class FormHelperTest < ActionView::TestCase
   def hidden_fields(options = {})
     method = options[:method]
 
-    if options.fetch(:enforce_utf8, true)
+    if options.fetch(:enforce_utf8) { true }
       txt = %{<input name="utf8" type="hidden" value="&#x2713;" />}
     else
       txt = ''
