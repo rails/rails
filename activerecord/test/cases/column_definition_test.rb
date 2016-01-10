@@ -64,7 +64,7 @@ module ActiveRecord
             MySQL::Column.new("title", "a", SqlTypeMetadata.new(sql_type: "blob"))
           end
 
-          text_type = AbstractMysqlAdapter::MysqlTypeMetadata.new(
+          text_type = MySQL::TypeMetadata.new(
             SqlTypeMetadata.new(type: :text))
           assert_raise ArgumentError do
             MySQL::Column.new("title", "Hello", text_type)

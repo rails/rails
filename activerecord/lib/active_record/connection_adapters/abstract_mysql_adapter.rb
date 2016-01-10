@@ -3,6 +3,7 @@ require 'active_record/connection_adapters/mysql/column'
 require 'active_record/connection_adapters/mysql/schema_creation'
 require 'active_record/connection_adapters/mysql/schema_definitions'
 require 'active_record/connection_adapters/mysql/schema_dumper'
+require 'active_record/connection_adapters/mysql/type_metadata'
 
 require 'active_support/core_ext/string/strip'
 
@@ -18,33 +19,6 @@ module ActiveRecord
 
       def schema_creation
         MySQL::SchemaCreation.new(self)
-      end
-
-      class MysqlTypeMetadata < DelegateClass(SqlTypeMetadata) # :nodoc:
-        attr_reader :extra, :strict
-
-        def initialize(type_metadata, extra: "", strict: false)
-          super(type_metadata)
-          @type_metadata = type_metadata
-          @extra = extra
-          @strict = strict
-        end
-
-        def ==(other)
-          other.is_a?(MysqlTypeMetadata) &&
-            attributes_for_hash == other.attributes_for_hash
-        end
-        alias eql? ==
-
-        def hash
-          attributes_for_hash.hash
-        end
-
-        protected
-
-        def attributes_for_hash
-          [self.class, @type_metadata, extra, strict]
-        end
       end
 
       ##
@@ -804,7 +778,7 @@ module ActiveRecord
       end
 
       def fetch_type_metadata(sql_type, extra = "")
-        MysqlTypeMetadata.new(super(sql_type), extra: extra, strict: strict_mode?)
+        MySQL::TypeMetadata.new(super(sql_type), extra: extra, strict: strict_mode?)
       end
 
       def add_index_length(option_strings, column_names, options = {})
