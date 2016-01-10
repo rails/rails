@@ -207,6 +207,8 @@ module ActionView
       # it will use the Inflector to determine the plural form for the given locale,
       # which defaults to I18n.locale
       #
+      # A block can be provided to customize the output of the method
+      #
       # The word will be pluralized using rules defined for the locale
       # (you must define your own inflection rules for languages other than English).
       # See ActiveSupport::Inflector.pluralize
@@ -225,6 +227,9 @@ module ActionView
       #
       #   pluralize(2, 'Person', locale: :de)
       #   # => 2 Personen
+      #
+      #   pluralize(2, 'person') { |count, unit| "<em>#{count}</em> #{unit}" }
+      #   # => <em>2</em> people
       def pluralize(count, singular, deprecated_plural = nil, plural: nil, locale: I18n.locale)
         if deprecated_plural
           ActiveSupport::Deprecation.warn("Passing plural as a positional argument " \
@@ -239,7 +244,11 @@ module ActionView
           plural || singular.pluralize(locale)
         end
 
-        "#{count || 0} #{word}"
+        if block_given?
+          yield(count || 0, word)
+        else
+          "#{count || 0} #{word}"
+        end
       end
 
       # Wraps the +text+ into lines no longer than +line_width+ width. This method
