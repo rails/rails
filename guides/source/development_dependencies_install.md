@@ -165,7 +165,7 @@ $ bundle exec ruby -Itest path/to/test.rb -n test_name
 
 ### Active Record Setup
 
-The test suite of Active Record attempts to run four times: once for SQLite3, once for each of the two MySQL gems (`mysql` and `mysql2`), and once for PostgreSQL. We are going to see now how to set up the environment for them.
+Active Record's test suite runs three times: once for SQLite3, once for MySQL, and once for PostgreSQL. We are going to see now how to set up the environment for them.
 
 WARNING: If you're working with Active Record code, you _must_ ensure that the tests pass for at least MySQL, PostgreSQL, and SQLite3. Subtle differences between the various adapters have been behind the rejection of many patches that looked OK when tested only against MySQL.
 
