@@ -72,16 +72,6 @@ module ActiveRecord
           end
         end
 
-        # Executes an INSERT query and returns the new record's ID
-        def insert_sql(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil, binds = []) # :nodoc:
-          unless pk
-            # Extract the table from the insert sql. Yuck.
-            table_ref = extract_table_ref_from_insert_sql(sql)
-            pk = primary_key(table_ref) if table_ref
-          end
-          super
-        end
-
         # The internal PostgreSQL identifier of the money data type.
         MONEY_COLUMN_TYPE_OID = 790 #:nodoc:
         # The internal PostgreSQL identifier of the BYTEA data type.
@@ -170,18 +160,23 @@ module ActiveRecord
           [sql, binds]
         end
 
-        def exec_insert(sql, name, binds, pk = nil, sequence_name = nil)
-          val = exec_query(sql, name, binds)
-          if !use_insert_returning? && pk
-            unless sequence_name
-              table_ref = extract_table_ref_from_insert_sql(sql)
-              sequence_name = default_sequence_name(table_ref, pk)
-              return val unless sequence_name
-            end
-            last_insert_id_result(sequence_name)
-          else
-            val
+        def exec_insert(sql, name, binds, pk = nil, id_value = nil, sequence_name = nil) # :nodoc:
+          unless pk
+            # Extract the table from the insert sql. Yuck.
+            table_ref = extract_table_ref_from_insert_sql(sql)
+            pk = primary_key(table_ref) if table_ref
           end
+
+          if use_insert_returning? || id_value
+            return super
+          else !sequence_name
+            table_ref ||= extract_table_ref_from_insert_sql(sql)
+            sequence_name = default_sequence_name(table_ref, pk)
+            return super unless sequence_name
+          end
+
+          exec_query(sql, name, binds)
+          last_insert_id_result(sequence_name)
         end
 
         # Begins a transaction.
