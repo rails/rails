@@ -8,14 +8,14 @@ module ActiveRecord
       def create_migration_file
         set_local_assigns!
         validate_file_name!
-        migration_template @migration_template, "db/migrate/#{file_name}.rb"
+        migration_template @migration_template, resolve_path
       end
 
       protected
       attr_reader :migration_action, :join_tables
 
       # sets the default migration template that is being used for the generation of the migration
-      # depending on the arguments which would be sent out in the command line, the migration template 
+      # depending on the arguments which would be sent out in the command line, the migration template
       # and the table name instance variables are setup.
 
       def set_local_assigns!
@@ -65,6 +65,18 @@ module ActiveRecord
         def normalize_table_name(_table_name)
           pluralize_table_names? ? _table_name.pluralize : _table_name.singularize
         end
+
+        def resolve_path
+          path = "db/migrate"
+          new_file_name = file_name
+          if ENV['RAILS_NAMESPACE']
+            namespace = ENV['RAILS_NAMESPACE']
+            new_file_name = "#{namespace}_#{file_name}"
+            path += "/#{namespace}"
+          end
+          "#{path}/#{new_file_name}.rb"
+        end
+
     end
   end
 end
