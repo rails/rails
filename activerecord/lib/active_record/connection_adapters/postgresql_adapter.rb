@@ -690,15 +690,7 @@ module ActiveRecord
         end
 
         # Returns the current ID of a table's sequence.
-        def last_insert_id(sequence_name) #:nodoc:
-          Integer(last_insert_id_value(sequence_name))
-        end
-
-        def last_insert_id_value(sequence_name)
-          last_insert_id_result(sequence_name).rows.first.first
-        end
-
-        def last_insert_id_result(sequence_name) #:nodoc:
+        def last_insert_id_result(sequence_name) # :nodoc:
           exec_query("SELECT currval('#{sequence_name}')", 'SQL')
         end
 
