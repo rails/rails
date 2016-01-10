@@ -251,7 +251,7 @@ module ActiveSupport
     undef :symbolize_keys!
     undef :deep_symbolize_keys!
     def symbolize_keys; to_hash.symbolize_keys! end
-    def deep_symbolize_keys; to_hash.deep_symbolize_keys! end
+    def deep_symbolize_keys; deep_to_hash.deep_symbolize_keys! end
     def to_options!; self end
 
     def select(*args, &block)
@@ -268,9 +268,17 @@ module ActiveSupport
     def to_hash
       _new_hash = Hash.new
       set_defaults(_new_hash)
+      _new_hash.merge!(self)
+    end
 
+    # Convert to a regular hash with string keys.
+    # Also recursively converts all `HashWithIndifferentAccess` values
+    # to a regular `Hash`
+    def deep_to_hash
+      _new_hash = Hash.new
+      set_defaults(_new_hash)
       each do |key, value|
-        _new_hash[key] = convert_value(value, for: :to_hash)
+        _new_hash[key] = convert_value(value, for: :deep_to_hash)
       end
       _new_hash
     end
@@ -282,8 +290,8 @@ module ActiveSupport
 
       def convert_value(value, options = {})
         if value.is_a? Hash
-          if options[:for] == :to_hash
-            value.to_hash
+          if options[:for] == :deep_to_hash
+            value.deep_to_hash
           else
             value.nested_under_indifferent_access
           end

@@ -1,3 +1,24 @@
+*   `HashWithIndifferentAccess#symbolize_keys` respects any nested
+    `HashWithIndifferentAccess` instances.
+
+    Before:
+
+    {a: { b: 'b'} }.with_indifferent_access.symbolize_keys[:a][:b] # => nil
+
+    After:
+
+    {a: { b: 'b'} }.with_indifferent_access.symbolize_keys[:a][:b] # => 'b'
+
+    Originally `#symbolize_keys` had a side-effect of recursively transforming nested
+    `HashWithIndifferentAccess` instances to an instance of `Hash` (via the `#to_hash`
+    method). `#to_hash` now performs a shallow copy of values to preserve any nested
+    `HashWithIndifferentAccess` instances.
+
+    The new method `#deep_to_hash` replaces the behaviour of `#to_hash`. `#deep_to_hash`
+    is used in `#deep_symbolize_keys`.
+
+    *Gordon Chan*
+
 *   Match `HashWithIndifferentAccess#default`'s behaviour with `Hash#default`
 
     *David Cornu*
