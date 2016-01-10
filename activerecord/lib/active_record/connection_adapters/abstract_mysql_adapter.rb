@@ -1,4 +1,5 @@
 require 'active_record/connection_adapters/abstract_adapter'
+require 'active_record/connection_adapters/mysql/column'
 require 'active_record/connection_adapters/mysql/schema_creation'
 require 'active_record/connection_adapters/mysql/schema_definitions'
 require 'active_record/connection_adapters/mysql/schema_dumper'
@@ -17,51 +18,6 @@ module ActiveRecord
 
       def schema_creation
         MySQL::SchemaCreation.new(self)
-      end
-
-      class Column < ConnectionAdapters::Column # :nodoc:
-        delegate :strict, :extra, to: :sql_type_metadata, allow_nil: true
-
-        def initialize(*)
-          super
-          assert_valid_default(default)
-          extract_default
-        end
-
-        def extract_default
-          if blob_or_text_column?
-            @default = null || strict ? nil : ''
-          end
-        end
-
-        def has_default?
-          return false if blob_or_text_column? # MySQL forbids defaults on blob and text columns
-          super
-        end
-
-        def blob_or_text_column?
-          /\A(?:tiny|medium|long)?blob\b/ === sql_type || type == :text
-        end
-
-        def unsigned?
-          /\bunsigned\z/ === sql_type
-        end
-
-        def case_sensitive?
-          collation && !collation.match(/_ci$/)
-        end
-
-        def auto_increment?
-          extra == 'auto_increment'
-        end
-
-        private
-
-        def assert_valid_default(default)
-          if blob_or_text_column? && default.present?
-            raise ArgumentError, "#{type} columns cannot have a default value: #{default.inspect}"
-          end
-        end
       end
 
       class MysqlTypeMetadata < DelegateClass(SqlTypeMetadata) # :nodoc:
@@ -234,7 +190,7 @@ module ActiveRecord
       end
 
       def new_column(field, default, sql_type_metadata = nil, null = true, default_function = nil, collation = nil) # :nodoc:
-        Column.new(field, default, sql_type_metadata, null, default_function, collation)
+        MySQL::Column.new(field, default, sql_type_metadata, null, default_function, collation)
       end
 
       # Must return the MySQL error number from the exception, if the exception has an
