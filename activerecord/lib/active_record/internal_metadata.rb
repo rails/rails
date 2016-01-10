@@ -30,7 +30,7 @@ module ActiveRecord
         ActiveSupport::Deprecation.silence { connection.table_exists?(table_name) }
       end
 
-      # Creates a internal metadata table with columns +key+ and +value+
+      # Creates an internal metadata table with columns +key+ and +value+
       def create_table
         unless table_exists?
           connection.create_table(table_name, primary_key: :key, id: false ) do |t|
