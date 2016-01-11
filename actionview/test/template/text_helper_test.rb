@@ -405,6 +405,13 @@ class TextHelperTest < ActionView::TestCase
     end
   end
 
+  def test_pluralization_with_block
+    block = Proc.new { |count, unit| "<em>#{count}</em> #{unit}" }
+
+    assert_equal("<em>1</em> count", pluralize(1, "count", &block))
+    assert_equal("<em>2</em> counts", pluralize(2, "count", &block))
+  end
+
   def test_deprecated_plural_as_positional_argument
     assert_deprecated do
       pluralize(2, 'count', 'counters')

@@ -1,3 +1,11 @@
+*   Allow `pluralize` to receive a block for customizing the 
+    output of the method
+
+        pluralize(2, 'person') { |count, unit| "<em>#{count}</em> #{unit}" }
+        # => <em>2</em> people
+
+    *Carlos Ramirez III*
+
 *   Fix `collection_radio_buttons` hidden_field name and make it appear
     before the actual input radio tags to make the real value override
     the hidden when passed.
