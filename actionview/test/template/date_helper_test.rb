@@ -803,13 +803,7 @@ class DateHelperTest < ActionView::TestCase
 
   def test_select_date_with_no_end_year
     expected =  %(<select id="date_first_year" name="date[first][year]">\n)
-    2003.upto(2008) do |y|
-      if y == 2003
-        expected << %(<option value="#{y}" selected="selected">#{y}</option>\n)
-      else
-        expected << %(<option value="#{y}">#{y}</option>\n)
-      end
-    end
+    expected << build_options(2003, start: 2003)
     expected << "</select>\n"
 
     expected << %(<select id="date_first_month" name="date[first][month]">\n)
@@ -1502,7 +1496,7 @@ class DateHelperTest < ActionView::TestCase
     @post.written_on = Date.new(2004, 6, 15)
 
     expected = %{<select id="post_written_on_1i" name="post[written_on(1i)]">\n}
-    expected << %{<option value="1999">1999</option>\n<option value="2000">2000</option>\n<option value="2001">2001</option>\n<option value="2002">2002</option>\n<option value="2003">2003</option>\n<option value="2004" selected="selected">2004</option>\n<option value="2005">2005</option>\n<option value="2006">2006</option>\n<option value="2007">2007</option>\n<option value="2008">2008</option>\n<option value="2009">2009</option>\n}
+    expected << build_options(2004, start: 1999)
     expected << "</select>\n"
 
     expected << %{<select id="post_written_on_2i" name="post[written_on(2i)]">\n}
@@ -1522,7 +1516,7 @@ class DateHelperTest < ActionView::TestCase
     @post.written_on = Date.new(2004, 6, 15)
 
     expected = %{<select id="post_written_on_1i" name="post[written_on(1i)]">\n}
-    expected << %{<option value="1999">1999</option>\n<option value="2000">2000</option>\n<option value="2001">2001</option>\n<option value="2002">2002</option>\n<option value="2003">2003</option>\n<option selected="selected" value="2004">2004</option>\n<option value="2005">2005</option>\n<option value="2006">2006</option>\n<option value="2007">2007</option>\n<option value="2008">2008</option>\n<option value="2009">2009</option>\n}
+    expected << build_options(2004, start: 1999)
     expected << "</select>\n"
 
     expected << %{<select id="post_written_on_2i" name="post[written_on(2i)]">\n}
@@ -1542,7 +1536,7 @@ class DateHelperTest < ActionView::TestCase
     @post.written_on = Date.new(2004, 6, 15)
 
     expected = %{<select id="post_written_on_1i" name="post[written_on(1i)]">\n}
-    expected << %{<option value="1999">1999</option>\n<option value="2000">2000</option>\n<option value="2001">2001</option>\n<option value="2002">2002</option>\n<option value="2003">2003</option>\n<option selected="selected" value="2004">2004</option>\n<option value="2005">2005</option>\n<option value="2006">2006</option>\n<option value="2007">2007</option>\n<option value="2008">2008</option>\n<option value="2009">2009</option>\n}
+    expected << build_options(2004, start: 1999)
     expected << "</select>\n"
 
     expected << %{<select id="post_written_on_2i" name="post[written_on(2i)]">\n}
@@ -1586,7 +1580,7 @@ class DateHelperTest < ActionView::TestCase
     expected << "</select>\n"
 
     expected << %{<select id="post_written_on_1i" name="post[written_on(1i)]">\n}
-    expected << %{<option value="1999">1999</option>\n<option value="2000">2000</option>\n<option value="2001">2001</option>\n<option value="2002">2002</option>\n<option value="2003">2003</option>\n<option value="2004" selected="selected">2004</option>\n<option value="2005">2005</option>\n<option value="2006">2006</option>\n<option value="2007">2007</option>\n<option value="2008">2008</option>\n<option value="2009">2009</option>\n}
+    expected << build_options(2004, start: 1999)
     expected << "</select>\n"
 
     assert_dom_equal expected, date_select("post", "written_on", :order => [ :month, :year ])
@@ -1600,7 +1594,7 @@ class DateHelperTest < ActionView::TestCase
     expected << "<input type=\"hidden\" id=\"post_written_on_3i\" name=\"post[written_on(3i)]\" value=\"1\" />\n"
 
     expected << %{<select id="post_written_on_1i" name="post[written_on(1i)]">\n}
-    expected << %{<option value="1999">1999</option>\n<option value="2000">2000</option>\n<option value="2001">2001</option>\n<option value="2002">2002</option>\n<option value="2003">2003</option>\n<option value="2004" selected="selected">2004</option>\n<option value="2005">2005</option>\n<option value="2006">2006</option>\n<option value="2007">2007</option>\n<option value="2008">2008</option>\n<option value="2009">2009</option>\n}
+    expected << build_options(2004, start: 1999)
     expected << "</select>\n"
 
     assert_dom_equal expected, date_select("post", "written_on", :order => [ :year ])
@@ -1619,7 +1613,7 @@ class DateHelperTest < ActionView::TestCase
     expected << "/"
 
     expected << %{<select id="post_written_on_1i" name="post[written_on(1i)]">\n}
-    expected << %{<option value="1999">1999</option>\n<option value="2000">2000</option>\n<option value="2001">2001</option>\n<option value="2002">2002</option>\n<option value="2003">2003</option>\n<option value="2004" selected="selected">2004</option>\n<option value="2005">2005</option>\n<option value="2006">2006</option>\n<option value="2007">2007</option>\n<option value="2008">2008</option>\n<option value="2009">2009</option>\n}
+    expected << build_options(2004, start: 1999)
     expected << "</select>\n"
 
     assert_dom_equal expected, date_select("post", "written_on", :date_separator => '/', :order => [ :month, :year ])
@@ -1636,7 +1630,7 @@ class DateHelperTest < ActionView::TestCase
     expected << "</select>\n"
 
     expected << %{<select id="post_written_on_1i" disabled="disabled" name="post[written_on(1i)]">\n}
-    expected << %{<option value="1999">1999</option>\n<option value="2000">2000</option>\n<option value="2001">2001</option>\n<option value="2002">2002</option>\n<option value="2003">2003</option>\n<option value="2004" selected="selected">2004</option>\n<option value="2005">2005</option>\n<option value="2006">2006</option>\n<option value="2007">2007</option>\n<option value="2008">2008</option>\n<option value="2009">2009</option>\n}
+    expected << build_options(2004, start: 1999)
     expected << "</select>\n"
 
     assert_dom_equal expected, date_select("post", "written_on", { :order => [ :month, :year ] }, :disabled => true)
@@ -1650,7 +1644,9 @@ class DateHelperTest < ActionView::TestCase
       concat f.date_select(:written_on)
     end
 
-    expected = %{<select id="post_written_on_1i" name="post[written_on(1i)]">\n<option value="1999">1999</option>\n<option value="2000">2000</option>\n<option value="2001">2001</option>\n<option value="2002">2002</option>\n<option value="2003">2003</option>\n<option selected="selected" value="2004">2004</option>\n<option value="2005">2005</option>\n<option value="2006">2006</option>\n<option value="2007">2007</option>\n<option value="2008">2008</option>\n<option value="2009">2009</option>\n</select>\n}
+    expected = %{<select id="post_written_on_1i" name="post[written_on(1i)]">\n}
+    expected << build_options(2004, start: 1999)
+    expected << %{</select>\n}
     expected << %{<select id="post_written_on_2i" name="post[written_on(2i)]">\n<option value="1">January</option>\n<option value="2">February</option>\n<option value="3">March</option>\n<option value="4">April</option>\n<option value="5">May</option>\n<option selected="selected" value="6">June</option>\n<option value="7">July</option>\n<option value="8">August</option>\n<option value="9">September</option>\n<option value="10">October</option>\n<option value="11">November</option>\n<option value="12">December</option>\n</select>\n}
     expected << %{<select id="post_written_on_3i" name="post[written_on(3i)]">\n<option value="1">1</option>\n<option value="2">2</option>\n<option value="3">3</option>\n<option value="4">4</option>\n<option value="5">5</option>\n<option value="6">6</option>\n<option value="7">7</option>\n<option value="8">8</option>\n<option value="9">9</option>\n<option value="10">10</option>\n<option value="11">11</option>\n<option value="12">12</option>\n<option value="13">13</option>\n<option value="14">14</option>\n<option selected="selected" value="15">15</option>\n<option value="16">16</option>\n<option value="17">17</option>\n<option value="18">18</option>\n<option value="19">19</option>\n<option value="20">20</option>\n<option value="21">21</option>\n<option value="22">22</option>\n<option value="23">23</option>\n<option value="24">24</option>\n<option value="25">25</option>\n<option value="26">26</option>\n<option value="27">27</option>\n<option value="28">28</option>\n<option value="29">29</option>\n<option value="30">30</option>\n<option value="31">31</option>\n</select>\n}
 
@@ -1666,7 +1662,9 @@ class DateHelperTest < ActionView::TestCase
       concat f.date_select(:written_on)
     end
 
-    expected = %{<select id="post_#{id}_written_on_1i" name="post[#{id}][written_on(1i)]">\n<option value="1999">1999</option>\n<option value="2000">2000</option>\n<option value="2001">2001</option>\n<option value="2002">2002</option>\n<option value="2003">2003</option>\n<option selected="selected" value="2004">2004</option>\n<option value="2005">2005</option>\n<option value="2006">2006</option>\n<option value="2007">2007</option>\n<option value="2008">2008</option>\n<option value="2009">2009</option>\n</select>\n}
+    expected = %{<select id="post_#{id}_written_on_1i" name="post[#{id}][written_on(1i)]">\n}
+    expected << build_options(2004, start: 1999)
+    expected << %{</select>\n}
     expected << %{<select id="post_#{id}_written_on_2i" name="post[#{id}][written_on(2i)]">\n<option value="1">January</option>\n<option value="2">February</option>\n<option value="3">March</option>\n<option value="4">April</option>\n<option value="5">May</option>\n<option selected="selected" value="6">June</option>\n<option value="7">July</option>\n<option value="8">August</option>\n<option value="9">September</option>\n<option value="10">October</option>\n<option value="11">November</option>\n<option value="12">December</option>\n</select>\n}
     expected << %{<select id="post_#{id}_written_on_3i" name="post[#{id}][written_on(3i)]">\n<option value="1">1</option>\n<option value="2">2</option>\n<option value="3">3</option>\n<option value="4">4</option>\n<option value="5">5</option>\n<option value="6">6</option>\n<option value="7">7</option>\n<option value="8">8</option>\n<option value="9">9</option>\n<option value="10">10</option>\n<option value="11">11</option>\n<option value="12">12</option>\n<option value="13">13</option>\n<option value="14">14</option>\n<option selected="selected" value="15">15</option>\n<option value="16">16</option>\n<option value="17">17</option>\n<option value="18">18</option>\n<option value="19">19</option>\n<option value="20">20</option>\n<option value="21">21</option>\n<option value="22">22</option>\n<option value="23">23</option>\n<option value="24">24</option>\n<option value="25">25</option>\n<option value="26">26</option>\n<option value="27">27</option>\n<option value="28">28</option>\n<option value="29">29</option>\n<option value="30">30</option>\n<option value="31">31</option>\n</select>\n}
 
@@ -1683,7 +1681,9 @@ class DateHelperTest < ActionView::TestCase
     end
 
 
-    expected = %{<select id="post_#{id}_written_on_1i" name="post[#{id}][written_on(1i)]">\n<option value="1999">1999</option>\n<option value="2000">2000</option>\n<option value="2001">2001</option>\n<option value="2002">2002</option>\n<option value="2003">2003</option>\n<option selected="selected" value="2004">2004</option>\n<option value="2005">2005</option>\n<option value="2006">2006</option>\n<option value="2007">2007</option>\n<option value="2008">2008</option>\n<option value="2009">2009</option>\n</select>\n}
+    expected = %{<select id="post_#{id}_written_on_1i" name="post[#{id}][written_on(1i)]">\n}
+    expected << build_options(2004, start: 1999)
+    expected << %{</select>\n}
     expected << %{<select id="post_#{id}_written_on_2i" name="post[#{id}][written_on(2i)]">\n<option value="1">January</option>\n<option value="2">February</option>\n<option value="3">March</option>\n<option value="4">April</option>\n<option value="5">May</option>\n<option selected="selected" value="6">June</option>\n<option value="7">July</option>\n<option value="8">August</option>\n<option value="9">September</option>\n<option value="10">October</option>\n<option value="11">November</option>\n<option value="12">December</option>\n</select>\n}
     expected << %{<select id="post_#{id}_written_on_3i" name="post[#{id}][written_on(3i)]">\n<option value="1">1</option>\n<option value="2">2</option>\n<option value="3">3</option>\n<option value="4">4</option>\n<option value="5">5</option>\n<option value="6">6</option>\n<option value="7">7</option>\n<option value="8">8</option>\n<option value="9">9</option>\n<option value="10">10</option>\n<option value="11">11</option>\n<option value="12">12</option>\n<option value="13">13</option>\n<option value="14">14</option>\n<option selected="selected" value="15">15</option>\n<option value="16">16</option>\n<option value="17">17</option>\n<option value="18">18</option>\n<option value="19">19</option>\n<option value="20">20</option>\n<option value="21">21</option>\n<option value="22">22</option>\n<option value="23">23</option>\n<option value="24">24</option>\n<option value="25">25</option>\n<option value="26">26</option>\n<option value="27">27</option>\n<option value="28">28</option>\n<option value="29">29</option>\n<option value="30">30</option>\n<option value="31">31</option>\n</select>\n}
 
@@ -1696,7 +1696,7 @@ class DateHelperTest < ActionView::TestCase
     id = 456
 
     expected = %{<select id="post_456_written_on_1i" name="post[#{id}][written_on(1i)]">\n}
-    expected << %{<option value="1999">1999</option>\n<option value="2000">2000</option>\n<option value="2001">2001</option>\n<option value="2002">2002</option>\n<option value="2003">2003</option>\n<option value="2004" selected="selected">2004</option>\n<option value="2005">2005</option>\n<option value="2006">2006</option>\n<option value="2007">2007</option>\n<option value="2008">2008</option>\n<option value="2009">2009</option>\n}
+    expected << build_options(2004, start: 1999)
     expected << "</select>\n"
 
     expected << %{<select id="post_456_written_on_2i" name="post[#{id}][written_on(2i)]">\n}
@@ -1716,7 +1716,7 @@ class DateHelperTest < ActionView::TestCase
     id = 123
 
     expected = %{<select id="post_123_written_on_1i" name="post[#{id}][written_on(1i)]">\n}
-    expected << %{<option value="1999">1999</option>\n<option value="2000">2000</option>\n<option value="2001">2001</option>\n<option value="2002">2002</option>\n<option value="2003">2003</option>\n<option value="2004" selected="selected">2004</option>\n<option value="2005">2005</option>\n<option value="2006">2006</option>\n<option value="2007">2007</option>\n<option value="2008">2008</option>\n<option value="2009">2009</option>\n}
+    expected << build_options(2004, start: 1999)
     expected << "</select>\n"
 
     expected << %{<select id="post_123_written_on_2i" name="post[#{id}][written_on(2i)]">\n}
@@ -1743,7 +1743,7 @@ class DateHelperTest < ActionView::TestCase
     expected << "</select>\n"
 
     expected <<  %{<select id="post_written_on_1i" name="post[written_on(1i)]">\n}
-    1999.upto(2009) { |i| expected << %(<option value="#{i}"#{' selected="selected"' if i == 2004}>#{i}</option>\n) }
+    expected << build_options(2004, start: 1999)
     expected << "</select>\n"
 
     assert_dom_equal expected, date_select("post", "written_on", :order => [:day, :month, :year])
@@ -1851,7 +1851,7 @@ class DateHelperTest < ActionView::TestCase
     @post.written_on = Date.new(2004, 6, 15)
 
     expected = %{<select id="post_written_on_1i" name="post[written_on(1i)]">\n}
-    expected << %{<option value="1999">1999</option>\n<option value="2000">2000</option>\n<option value="2001">2001</option>\n<option value="2002">2002</option>\n<option value="2003">2003</option>\n<option value="2004" selected="selected">2004</option>\n<option value="2005">2005</option>\n<option value="2006">2006</option>\n<option value="2007">2007</option>\n<option value="2008">2008</option>\n<option value="2009">2009</option>\n}
+    expected << build_options(2004, start: 1999)
     expected << "</select>\n"
 
     expected << %{<select id="post_written_on_2i" name="post[written_on(2i)]">\n}
@@ -1870,7 +1870,7 @@ class DateHelperTest < ActionView::TestCase
     @post.written_on = Date.new(2004, 6, 15)
 
     expected = %{<select id="post_written_on_1i" name="post[written_on(1i)]" class="selector">\n}
-    expected << %{<option value="1999">1999</option>\n<option value="2000">2000</option>\n<option value="2001">2001</option>\n<option value="2002">2002</option>\n<option value="2003">2003</option>\n<option value="2004" selected="selected">2004</option>\n<option value="2005">2005</option>\n<option value="2006">2006</option>\n<option value="2007">2007</option>\n<option value="2008">2008</option>\n<option value="2009">2009</option>\n}
+    expected << build_options(2004, start: 1999)
     expected << "</select>\n"
 
     expected << %{<select id="post_written_on_2i" name="post[written_on(2i)]" class="selector">\n}
@@ -1894,7 +1894,7 @@ class DateHelperTest < ActionView::TestCase
     end
 
     expected = %{<select id="post_written_on_1i" name="post[written_on(1i)]" class="selector">\n}
-    expected << %{<option value="1999">1999</option>\n<option value="2000">2000</option>\n<option value="2001">2001</option>\n<option value="2002">2002</option>\n<option value="2003">2003</option>\n<option value="2004" selected="selected">2004</option>\n<option value="2005">2005</option>\n<option value="2006">2006</option>\n<option value="2007">2007</option>\n<option value="2008">2008</option>\n<option value="2009">2009</option>\n}
+    expected << build_options(2004, start: 1999)
     expected << "</select>\n"
 
     expected << %{<select id="post_written_on_2i" name="post[written_on(2i)]" class="selector">\n}
@@ -1914,7 +1914,7 @@ class DateHelperTest < ActionView::TestCase
     @post.written_on = Date.new(2004, 6, 15)
 
     expected = %{<select id="post_written_on_1i" name="post[written_on(1i)]">\n}
-    expected << %{<option value="1999">1999</option>\n<option value="2000">2000</option>\n<option value="2001">2001</option>\n<option value="2002">2002</option>\n<option value="2003">2003</option>\n<option value="2004" selected="selected">2004</option>\n<option value="2005">2005</option>\n<option value="2006">2006</option>\n<option value="2007">2007</option>\n<option value="2008">2008</option>\n<option value="2009">2009</option>\n}
+    expected << build_options(2004, start: 1999)
     expected << "</select>\n"
 
     expected << " / "
@@ -1950,7 +1950,7 @@ class DateHelperTest < ActionView::TestCase
     expected << " / "
 
     expected << %{<select id="post_written_on_1i" name="post[written_on(1i)]">\n}
-    expected << %{<option value="1999">1999</option>\n<option value="2000">2000</option>\n<option value="2001">2001</option>\n<option value="2002">2002</option>\n<option value="2003">2003</option>\n<option value="2004" selected="selected">2004</option>\n<option value="2005">2005</option>\n<option value="2006">2006</option>\n<option value="2007">2007</option>\n<option value="2008">2008</option>\n<option value="2009">2009</option>\n}
+    expected << build_options(2004, start: 1999)
     expected << "</select>\n"
 
     assert_dom_equal expected, date_select("post", "written_on", { :order => [:day, :month, :year], :date_separator => " / " })
@@ -1979,7 +1979,8 @@ class DateHelperTest < ActionView::TestCase
     @post.written_on = Date.new(2004, 6, 15)
 
     expected = %{<select id="post_written_on_1i" name="post[written_on(1i)]">\n}
-    expected << %{<option value="">Year</option>\n<option value="1999">1999</option>\n<option value="2000">2000</option>\n<option value="2001">2001</option>\n<option value="2002">2002</option>\n<option value="2003">2003</option>\n<option value="2004" selected="selected">2004</option>\n<option value="2005">2005</option>\n<option value="2006">2006</option>\n<option value="2007">2007</option>\n<option value="2008">2008</option>\n<option value="2009">2009</option>\n}
+    expected << %{<option value="">Year</option>\n}
+    expected << build_options(2004, start: 1999)
     expected << "</select>\n"
 
     expected << %{<select id="post_written_on_2i" name="post[written_on(2i)]">\n}
@@ -1999,7 +2000,8 @@ class DateHelperTest < ActionView::TestCase
     @post.written_on = Date.new(2004, 6, 15)
 
     expected = %{<select id="post_written_on_1i" name="post[written_on(1i)]">\n}
-    expected << %{<option value="">Choose year</option>\n<option value="1999">1999</option>\n<option value="2000">2000</option>\n<option value="2001">2001</option>\n<option value="2002">2002</option>\n<option value="2003">2003</option>\n<option value="2004" selected="selected">2004</option>\n<option value="2005">2005</option>\n<option value="2006">2006</option>\n<option value="2007">2007</option>\n<option value="2008">2008</option>\n<option value="2009">2009</option>\n}
+    expected << %{<option value="">Choose year</option>\n}
+    expected << build_options(2004, start: 1999)
     expected << "</select>\n"
 
     expected << %{<select id="post_written_on_2i" name="post[written_on(2i)]">\n}
@@ -2244,7 +2246,7 @@ class DateHelperTest < ActionView::TestCase
     @post.updated_at = Time.local(2004, 6, 15, 16, 35)
 
     expected = %{<select id="post_updated_at_1i" name="post[updated_at(1i)]">\n}
-    expected << %{<option value="1999">1999</option>\n<option value="2000">2000</option>\n<option value="2001">2001</option>\n<option value="2002">2002</option>\n<option value="2003">2003</option>\n<option value="2004" selected="selected">2004</option>\n<option value="2005">2005</option>\n<option value="2006">2006</option>\n<option value="2007">2007</option>\n<option value="2008">2008</option>\n<option value="2009">2009</option>\n}
+    expected << build_options(2004, start: 1999)
     expected << "</select>\n"
 
     expected << %{<select id="post_updated_at_2i" name="post[updated_at(2i)]">\n}
@@ -2273,7 +2275,7 @@ class DateHelperTest < ActionView::TestCase
     @post.updated_at = Time.local(2004, 6, 15, 16, 35)
 
     expected = %{<select id="post_updated_at_1i" name="post[updated_at(1i)]">\n}
-    expected << %{<option value="1999">1999</option>\n<option value="2000">2000</option>\n<option value="2001">2001</option>\n<option value="2002">2002</option>\n<option value="2003">2003</option>\n<option value="2004" selected="selected">2004</option>\n<option value="2005">2005</option>\n<option value="2006">2006</option>\n<option value="2007">2007</option>\n<option value="2008">2008</option>\n<option value="2009">2009</option>\n}
+    expected << build_options(2004, start: 1999)
     expected << "</select>\n"
 
     expected << %{<select id="post_updated_at_2i" name="post[updated_at(2i)]">\n}
@@ -2339,7 +2341,7 @@ class DateHelperTest < ActionView::TestCase
     @post = Post.new
 
     expected = %{<select id="post_updated_at_1i" name="post[updated_at(1i)]">\n}
-    expected << %{<option value="1999">1999</option>\n<option value="2000">2000</option>\n<option value="2001">2001</option>\n<option value="2002">2002</option>\n<option value="2003">2003</option>\n<option value="2004" selected="selected">2004</option>\n<option value="2005">2005</option>\n<option value="2006">2006</option>\n<option value="2007">2007</option>\n<option value="2008">2008</option>\n<option value="2009">2009</option>\n}
+    expected << build_options(2004, start: 1999)
     expected << "</select>\n"
 
     expected << %{<select id="post_updated_at_2i" name="post[updated_at(2i)]">\n}
@@ -2373,7 +2375,9 @@ class DateHelperTest < ActionView::TestCase
       concat f.datetime_select(:updated_at, {}, :class => 'selector')
     end
 
-    expected = %{<select id="post_updated_at_1i" name="post[updated_at(1i)]" class="selector">\n<option value="1999">1999</option>\n<option value="2000">2000</option>\n<option value="2001">2001</option>\n<option value="2002">2002</option>\n<option value="2003">2003</option>\n<option selected="selected" value="2004">2004</option>\n<option value="2005">2005</option>\n<option value="2006">2006</option>\n<option value="2007">2007</option>\n<option value="2008">2008</option>\n<option value="2009">2009</option>\n</select>\n}
+    expected = "<select id='post_updated_at_1i' name='post[updated_at(1i)]' class='selector'>\n"
+    expected << build_options(2004, start: 1999)
+    expected << "</select>\n"
     expected << %{<select id="post_updated_at_2i" name="post[updated_at(2i)]" class="selector">\n<option value="1">January</option>\n<option value="2">February</option>\n<option value="3">March</option>\n<option value="4">April</option>\n<option value="5">May</option>\n<option selected="selected" value="6">June</option>\n<option value="7">July</option>\n<option value="8">August</option>\n<option value="9">September</option>\n<option value="10">October</option>\n<option value="11">November</option>\n<option value="12">December</option>\n</select>\n}
     expected << %{<select id="post_updated_at_3i" name="post[updated_at(3i)]" class="selector">\n<option value="1">1</option>\n<option value="2">2</option>\n<option value="3">3</option>\n<option value="4">4</option>\n<option value="5">5</option>\n<option value="6">6</option>\n<option value="7">7</option>\n<option value="8">8</option>\n<option value="9">9</option>\n<option value="10">10</option>\n<option value="11">11</option>\n<option value="12">12</option>\n<option value="13">13</option>\n<option value="14">14</option>\n<option selected="selected" value="15">15</option>\n<option value="16">16</option>\n<option value="17">17</option>\n<option value="18">18</option>\n<option value="19">19</option>\n<option value="20">20</option>\n<option value="21">21</option>\n<option value="22">22</option>\n<option value="23">23</option>\n<option value="24">24</option>\n<option value="25">25</option>\n<option value="26">26</option>\n<option value="27">27</option>\n<option value="28">28</option>\n<option value="29">29</option>\n<option value="30">30</option>\n<option value="31">31</option>\n</select>\n}
     expected << %{ &mdash; <select id="post_updated_at_4i" name="post[updated_at(4i)]" class="selector">\n<option value="00">00</option>\n<option value="01">01</option>\n<option value="02">02</option>\n<option value="03">03</option>\n<option value="04">04</option>\n<option value="05">05</option>\n<option value="06">06</option>\n<option value="07">07</option>\n<option value="08">08</option>\n<option value="09">09</option>\n<option value="10">10</option>\n<option value="11">11</option>\n<option value="12">12</option>\n<option value="13">13</option>\n<option value="14">14</option>\n<option value="15">15</option>\n<option selected="selected" value="16">16</option>\n<option value="17">17</option>\n<option value="18">18</option>\n<option value="19">19</option>\n<option value="20">20</option>\n<option value="21">21</option>\n<option value="22">22</option>\n<option value="23">23</option>\n</select>\n}
@@ -2387,7 +2391,7 @@ class DateHelperTest < ActionView::TestCase
     @post.updated_at = Time.local(2004, 6, 15, 15, 16, 35)
 
     expected = %{<select id="post_updated_at_1i" name="post[updated_at(1i)]">\n}
-    expected << %{<option value="1999">1999</option>\n<option value="2000">2000</option>\n<option value="2001">2001</option>\n<option value="2002">2002</option>\n<option value="2003">2003</option>\n<option value="2004" selected="selected">2004</option>\n<option value="2005">2005</option>\n<option value="2006">2006</option>\n<option value="2007">2007</option>\n<option value="2008">2008</option>\n<option value="2009">2009</option>\n}
+    expected << build_options(2004, start: 1999)
     expected << "</select>\n"
 
     expected << " / "
@@ -2426,7 +2430,7 @@ class DateHelperTest < ActionView::TestCase
   def test_datetime_select_with_integer
     @post = Post.new
     @post.updated_at = 3
-    datetime_select("post", "updated_at")
+    datetime_select("post", "updated_at", max_years_allowed: 10000)
   end
 
   def test_datetime_select_with_infinity # Float
@@ -2592,7 +2596,7 @@ class DateHelperTest < ActionView::TestCase
     id = 456
 
     expected = %{<select id="post_456_updated_at_1i" name="post[#{id}][updated_at(1i)]">\n}
-    expected << %{<option value="1999">1999</option>\n<option value="2000">2000</option>\n<option value="2001">2001</option>\n<option value="2002">2002</option>\n<option value="2003">2003</option>\n<option value="2004" selected="selected">2004</option>\n<option value="2005">2005</option>\n<option value="2006">2006</option>\n<option value="2007">2007</option>\n<option value="2008">2008</option>\n<option value="2009">2009</option>\n}
+    expected << build_options(2004, start: 1999)
     expected << "</select>\n"
 
     expected << %{<select id="post_456_updated_at_2i" name="post[#{id}][updated_at(2i)]">\n}
@@ -2626,7 +2630,7 @@ class DateHelperTest < ActionView::TestCase
     end
 
     expected = %{<select id="post_456_updated_at_1i" name="post[#{id}][updated_at(1i)]">\n}
-    expected << %{<option value="1999">1999</option>\n<option value="2000">2000</option>\n<option value="2001">2001</option>\n<option value="2002">2002</option>\n<option value="2003">2003</option>\n<option value="2004" selected="selected">2004</option>\n<option value="2005">2005</option>\n<option value="2006">2006</option>\n<option value="2007">2007</option>\n<option value="2008">2008</option>\n<option value="2009">2009</option>\n}
+    expected << build_options(2004, start: 1999)
     expected << "</select>\n"
 
     expected << %{<select id="post_456_updated_at_2i" name="post[#{id}][updated_at(2i)]">\n}
@@ -2656,7 +2660,7 @@ class DateHelperTest < ActionView::TestCase
     id = @post.id
 
     expected = %{<select id="post_123_updated_at_1i" name="post[#{id}][updated_at(1i)]">\n}
-    expected << %{<option value="1999">1999</option>\n<option value="2000">2000</option>\n<option value="2001">2001</option>\n<option value="2002">2002</option>\n<option value="2003">2003</option>\n<option value="2004" selected="selected">2004</option>\n<option value="2005">2005</option>\n<option value="2006">2006</option>\n<option value="2007">2007</option>\n<option value="2008">2008</option>\n<option value="2009">2009</option>\n}
+    expected << build_options(2004, start: 1999)
     expected << "</select>\n"
 
     expected << %{<select id="post_123_updated_at_2i" name="post[#{id}][updated_at(2i)]">\n}
@@ -2685,7 +2689,7 @@ class DateHelperTest < ActionView::TestCase
     @post.updated_at = Time.local(2004, 6, 15, 15, 16, 35)
 
     expected = %{<select id="post_updated_at_1i" name="post[updated_at(1i)]">\n}
-    1999.upto(2009) { |i| expected << %(<option value="#{i}"#{' selected="selected"' if i == 2004}>#{i}</option>\n) }
+    expected << build_options(2004, start: 1999)
     expected << "</select>\n"
     expected << %{<select id="post_updated_at_2i" name="post[updated_at(2i)]">\n}
     1.upto(12) { |i| expected << %(<option value="#{i}"#{' selected="selected"' if i == 6}>#{Date::MONTHNAMES[i]}</option>\n) }
@@ -2741,7 +2745,7 @@ class DateHelperTest < ActionView::TestCase
     @post.updated_at = Time.local(2004, 6, 15, 15, 16, 35)
 
     expected = %{<select id="post_updated_at_1i" name="post[updated_at(1i)]">\n}
-    1999.upto(2009) { |i| expected << %(<option value="#{i}"#{' selected="selected"' if i == 2004}>#{i}</option>\n) }
+    expected << build_options(2004, start: 1999)
     expected << "</select>\n"
     expected << %{<input type="hidden" id="post_updated_at_2i" name="post[updated_at(2i)]" value="6" />\n}
     expected << %{<input type="hidden" id="post_updated_at_3i" name="post[updated_at(3i)]" value="1" />\n}
@@ -2802,7 +2806,7 @@ class DateHelperTest < ActionView::TestCase
     @post.updated_at = Time.local(2004, 6, 15, 15, 16, 35)
 
     expected = %{<select id="post_updated_at_1i" name="post[updated_at(1i)]">\n}
-    1999.upto(2009) { |i| expected << %(<option value="#{i}"#{' selected="selected"' if i == 2004}>#{i}</option>\n) }
+    expected << build_options(2004, start: 1999)
     expected << "</select>\n"
     expected << %{<select id="post_updated_at_2i" name="post[updated_at(2i)]">\n}
     1.upto(12) { |i| expected << %(<option value="#{i}"#{' selected="selected"' if i == 6}>#{Date::MONTHNAMES[i]}</option>\n) }
@@ -2819,7 +2823,7 @@ class DateHelperTest < ActionView::TestCase
     @post.updated_at = Time.local(2004, 6, 15, 15, 16, 35)
 
     expected = %{<select id="post_updated_at_1i" name="post[updated_at(1i)]">\n}
-    1999.upto(2009) { |i| expected << %(<option value="#{i}"#{' selected="selected"' if i == 2004}>#{i}</option>\n) }
+    expected << build_options(2004, start: 1999)
     expected << "</select>\n"
     expected << %{<select id="post_updated_at_2i" name="post[updated_at(2i)]">\n}
     1.upto(12) { |i| expected << %(<option value="#{i}"#{' selected="selected"' if i == 6}>#{Date::MONTHNAMES[i]}</option>\n) }
@@ -2843,7 +2847,7 @@ class DateHelperTest < ActionView::TestCase
     @post.updated_at = Time.local(2004, 6, 15, 15, 16, 35)
 
     expected = %{<select id="post_updated_at_1i" disabled="disabled" name="post[updated_at(1i)]">\n}
-    1999.upto(2009) { |i| expected << %(<option value="#{i}"#{' selected="selected"' if i == 2004}>#{i}</option>\n) }
+    expected << build_options(2004, start: 1999)
     expected << "</select>\n"
     expected << %{<select id="post_updated_at_2i" disabled="disabled" name="post[updated_at(2i)]">\n}
     1.upto(12) { |i| expected << %(<option value="#{i}"#{' selected="selected"' if i == 6}>#{Date::MONTHNAMES[i]}</option>\n) }
@@ -2873,7 +2877,7 @@ class DateHelperTest < ActionView::TestCase
     1.upto(12) { |i| expected << %(<option value="#{i}"#{' selected="selected"' if i == 6}>#{Date::MONTHNAMES[i]}</option>\n) }
     expected << "</select>\n"
     expected << %{<select id="post_updated_at_1i" name="post[updated_at(1i)]">\n}
-    1999.upto(2009) { |i| expected << %(<option value="#{i}"#{' selected="selected"' if i == 2004}>#{i}</option>\n) }
+    expected << build_options(2004, start: 1999)
     expected << "</select>\n"
 
     expected << " &mdash; "
@@ -2919,7 +2923,7 @@ class DateHelperTest < ActionView::TestCase
     @post.updated_at = nil
 
     expected = %{<select id="post_updated_at_1i" name="post[updated_at(1i)]">\n}
-    2001.upto(2011) { |i| expected << %(<option value="#{i}"#{' selected="selected"' if i == 2006}>#{i}</option>\n) }
+    expected << build_options(2006, start: 2001)
     expected << "</select>\n"
     expected << %{<select id="post_updated_at_2i" name="post[updated_at(2i)]">\n}
     1.upto(12) { |i| expected << %(<option value="#{i}"#{' selected="selected"' if i == 9}>#{Date::MONTHNAMES[i]}</option>\n) }
@@ -2993,7 +2997,7 @@ class DateHelperTest < ActionView::TestCase
     @post.updated_at = Time.local(2004, 6, 15, 16, 35)
 
     expected = %{<select id="post_updated_at_1i" name="post[updated_at(1i)]" class="selector">\n}
-    expected << %{<option value="1999">1999</option>\n<option value="2000">2000</option>\n<option value="2001">2001</option>\n<option value="2002">2002</option>\n<option value="2003">2003</option>\n<option value="2004" selected="selected">2004</option>\n<option value="2005">2005</option>\n<option value="2006">2006</option>\n<option value="2007">2007</option>\n<option value="2008">2008</option>\n<option value="2009">2009</option>\n}
+    expected << build_options(2004, start: 1999)
     expected << "</select>\n"
 
     expected << %{<select id="post_updated_at_2i" name="post[updated_at(2i)]" class="selector">\n}
@@ -3215,4 +3219,20 @@ class DateHelperTest < ActionView::TestCase
     expected = '<time datetime="2013-02-20T00:00:00+00:00">20 Feb 00:00</time>'
     assert_equal expected, time_tag(time, :format => :short)
   end
+
+  private
+    def build_options(selected, options = {})
+      start = options.delete(:start) || Date.today.year - 5
+      stop = options.delete(:end) || Date.today.year + 5
+      html_options = []
+      start.upto(stop) do |val|
+        html_options << \
+          if val != selected
+            "<option value='#{ val }'>#{ val }</option>\n"
+          else
+            "<option value='#{ val }' selected='selected'>#{ val }</option>\n"
+          end
+      end
+      html_options.join
+    end
 end

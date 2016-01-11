@@ -817,19 +817,25 @@ module ActionView
       end
 
       def select_year
+        middle_years = [Date.today.year]
+
         if !@datetime || @datetime == 0
           val = '1'
-          middle_year = Date.today.year
         else
-          val = middle_year = year
+          val = year
+          if year.abs === Float::INFINITY
+            middle_years = [year]
+          else
+            middle_years.push(year)
+          end
         end
 
         if @options[:use_hidden] || @options[:discard_year]
           build_hidden(:year, val)
         else
           options                     = {}
-          options[:start]             = @options[:start_year] || middle_year - 5
-          options[:end]               = @options[:end_year] || middle_year + 5
+          options[:start]             = @options[:start_year] || middle_years.min - 5
+          options[:end]               = @options[:end_year] || middle_years.max + 5
           options[:step]              = options[:start] < options[:end] ? 1 : -1
           options[:leading_zeros]     = false
           options[:max_years_allowed] = @options[:max_years_allowed] || 1000
