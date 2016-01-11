@@ -419,7 +419,7 @@ module ActionController
     #   params.fetch(:none)                 # => ActionController::ParameterMissing: param is missing or the value is empty: none
     #   params.fetch(:none, 'Francesco')    # => "Francesco"
     #   params.fetch(:none) { 'Francesco' } # => "Francesco"
-    def fetch(key, *args, &block)
+    def fetch(key, *args)
       convert_value_to_parameters(
         @parameters.fetch(key) {
           if block_given?
@@ -514,7 +514,7 @@ module ActionController
     # to key. If the key is not found, returns the default value. If the
     # optional code block is given and the key is not found, pass in the key
     # and return the result of block.
-    def delete(key, &block)
+    def delete(key)
       convert_value_to_parameters(@parameters.delete(key))
     end
 
