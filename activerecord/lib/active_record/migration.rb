@@ -145,7 +145,7 @@ module ActiveRecord
 
   class NoEnvironmentInSchemaError < MigrationError #:nodoc:
     def initialize
-      msg = "Environment data not found in the schema. To resolve this issue, run: \n\n\tbin/rake db:migrate"
+      msg = "Environment data not found in the schema. To resolve this issue, run: \n\n\tbin/rake db:environment:set"
       if defined?(Rails.env)
         super("#{msg} RAILS_ENV=#{::Rails.env}")
       else
@@ -157,7 +157,7 @@ module ActiveRecord
   class ProtectedEnvironmentError < ActiveRecordError #:nodoc:
     def initialize(env = "production")
       msg = "You are attempting to run a destructive action against your '#{env}' database\n"
-      msg << "if you are sure you want to continue, run the same command with the environment variable\n"
+      msg << "If you are sure you want to continue, run the same command with the environment variable\n"
       msg << "DISABLE_DATABASE_ENVIRONMENT_CHECK=1"
       super(msg)
     end
@@ -165,10 +165,15 @@ module ActiveRecord
 
   class EnvironmentMismatchError < ActiveRecordError
     def initialize(current: nil, stored: nil)
-      msg =  "You are attempting to modify a database that was last run in #{ stored } environment.\n"
-      msg << "You are running in #{ current } environment."
-      msg << "if you are sure you want to continue, run the same command with the environment variable\n"
-      msg << "DISABLE_DATABASE_ENVIRONMENT_CHECK=1"
+      msg =  "You are attempting to modify a database that was last run in `#{ stored }` environment.\n"
+      msg << "You are running in `#{ current }` environment."
+      msg << "If you are sure you want to continue, first set the environment using:\n\n"
+      msg << "\tbin/rake db:environment:set"
+      if defined?(Rails.env)
+        super("#{msg} RAILS_ENV=#{::Rails.env}")
+      else
+        super(msg)
+      end
     end
   end
 
