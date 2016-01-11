@@ -260,6 +260,7 @@ module ActiveRecord
     #   member.avatar.width # => 200
     module ClassMethods
       REJECT_ALL_BLANK_PROC = proc { |attributes| attributes.all? { |key, value| key == '_destroy' || value.blank? } }
+      REJECT_NESTED_ALL_BLANK_PROC = proc { |attributes| deep_blank?(attributes) }
 
       # Defines an attributes writer for the specified association(s).
       #
@@ -277,7 +278,8 @@ module ActiveRecord
       #   do not have a <tt>_destroy</tt> value that evaluates to true.
       #   Passing <tt>:all_blank</tt> instead of a Proc will create a proc
       #   that will reject a record where all the attributes are blank excluding
-      #   any value for +_destroy+.
+      #   any value for +_destroy+. Passing <tt>:nested_all_blank</tt> will
+      #   reject blank deeply nested attributes.
       # [:limit]
       #   Allows you to specify the maximum number of associated records that
       #   can be processed with the nested attributes. Limit also can be specified
@@ -313,6 +315,7 @@ module ActiveRecord
         options.update(attr_names.extract_options!)
         options.assert_valid_keys(:allow_destroy, :reject_if, :limit, :update_only)
         options[:reject_if] = REJECT_ALL_BLANK_PROC if options[:reject_if] == :all_blank
+        options[:reject_if] = REJECT_NESTED_ALL_BLANK_PROC if options[:reject_if] == :nested_all_blank
 
         attr_names.each do |association_name|
           if reflection = _reflect_on_association(association_name)
@@ -353,6 +356,17 @@ module ActiveRecord
             assign_nested_attributes_for_#{type}_association(:#{association_name}, attributes)
           end
         eoruby
+      end
+
+      # Recursively traverse nested attributes to define is all values blank.
+      # Additionaly considers that value with _destroy key is always blank.
+      def self.deep_blank?(hash)
+        hash.each do |key, value|
+          next if key == '_destroy'
+          any_blank = value.is_a?(Hash) ? deep_blank?(value) : value.blank?
+          return false unless any_blank
+        end
+        true
       end
     end
 
