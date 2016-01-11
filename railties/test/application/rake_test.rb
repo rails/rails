@@ -30,7 +30,7 @@ module ApplicationTests
          env RAILS_ENV=production bin/rake db:create db:migrate;
          env RAILS_ENV=production bin/rake db:test:prepare test 2>&1`
 
-        assert_match /ActiveRecord::ProtectedEnvironmentError/, output
+        assert_match(/ActiveRecord::ProtectedEnvironmentError/, output)
       end
     end
 
@@ -40,7 +40,7 @@ module ApplicationTests
          env RAILS_ENV=test bin/rake db:create db:migrate;
          env RAILS_ENV=test bin/rake db:test:prepare test 2>&1`
 
-        refute_match /ActiveRecord::ProtectedEnvironmentError/, output
+        refute_match(/ActiveRecord::ProtectedEnvironmentError/, output)
       end
     end
 
