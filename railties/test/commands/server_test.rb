@@ -108,4 +108,13 @@ class Rails::ServerTest < ActiveSupport::TestCase
       end
     end
   end
+
+  def test_default_options
+    server = Rails::Server.new
+    old_default_options = server.default_options
+
+    Dir.chdir("..") do
+      assert_equal old_default_options, server.default_options
+    end
+  end
 end

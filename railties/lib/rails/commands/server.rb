@@ -6,6 +6,8 @@ require 'rails'
 module Rails
   class Server < ::Rack::Server
     class Options
+      DEFAULT_PID_PATH = File.expand_path("tmp/pids/server.pid").freeze
+
       def parse!(args)
         args, options = args.dup, {}
 
@@ -91,7 +93,7 @@ module Rails
         environment:        (ENV['RAILS_ENV'] || ENV['RACK_ENV'] || "development").dup,
         daemonize:          false,
         caching:            false,
-        pid:                File.expand_path("tmp/pids/server.pid")
+        pid:                Options::DEFAULT_PID_PATH
       })
     end
 
