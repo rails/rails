@@ -267,7 +267,7 @@ module ActiveRecord
     # Returns whether or not this record has been changed in any way (including whether
     # any of its nested autosave associations are likewise changed)
     def changed_for_autosave?
-      new_record? || changed? || marked_for_destruction? || nested_records_changed_for_autosave?
+      changed? || marked_for_destruction? || nested_records_changed_for_autosave?
     end
 
     private
@@ -279,7 +279,7 @@ module ActiveRecord
         if new_record
           association && association.target
         elsif autosave
-          association.target.find_all(&:changed_for_autosave?)
+          association.target.find_all {|record| record.new_record? || record.changed_for_autosave? }
         else
           association.target.find_all(&:new_record?)
         end
@@ -432,7 +432,7 @@ module ActiveRecord
           elsif autosave != false
             key = reflection.options[:primary_key] ? send(reflection.options[:primary_key]) : id
 
-            if (autosave && record.changed_for_autosave?) || (!reflection.through_reflection && record_changed?(reflection, record, key))
+            if (autosave && record.changed_for_autosave?) || new_record? || (!reflection.through_reflection && record_changed?(reflection, record, key))
               record[reflection.foreign_key] = key
               saved = record.save(:validate => !autosave)
               raise ActiveRecord::Rollback if !saved && autosave
@@ -442,10 +442,9 @@ module ActiveRecord
         end
       end
 
-      # If the record is new or it has changed, returns true.
+      # If the record has changed, returns true.
       def record_changed?(reflection, record, key)
-        record.new_record? ||
-          (record.has_attribute?(reflection.foreign_key) && record[reflection.foreign_key] != key) ||
+        (record.has_attribute?(reflection.foreign_key) && record[reflection.foreign_key] != key) ||
           record.attribute_changed?(reflection.foreign_key)
       end
 
