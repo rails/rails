@@ -22,6 +22,17 @@ class SchemaMigrationsTest < ActiveRecord::Mysql2TestCase
     end
   end
 
+  def test_initializes_internal_metadata_for_encoding_utf8mb4
+    with_encoding_utf8mb4 do
+      table_name = ActiveRecord::InternalMetadata.table_name
+      connection.drop_table table_name, if_exists: true
+
+      connection.initialize_internal_metadata_table
+
+      assert connection.column_exists?(table_name, :key, :string, collation: 'utf8_general_ci')
+    end
+  end
+
   private
 
   def with_encoding_utf8mb4
