@@ -193,6 +193,14 @@ class PostgresqlJSONTest < ActiveRecord::PostgreSQLTestCase
   def column_type
     :json
   end
+
+  def test_keys_unsorted_when_fetched_from_DB
+    jsonb = {"name" => "nakshay", "age" => '24'}
+    x = JsonDataType.new payload: jsonb
+    x.save
+    x.reload
+    assert_equal(['name', 'age'], x.payload.keys)
+  end
 end
 
 class PostgresqlJSONBTest < ActiveRecord::PostgreSQLTestCase
@@ -200,5 +208,13 @@ class PostgresqlJSONBTest < ActiveRecord::PostgreSQLTestCase
 
   def column_type
     :jsonb
+  end
+
+  def test_keys_of_same_length_sorted_when_fetched_from_DB
+    jsonb = {"name" => "nakshay", "age" => '24'}
+    x = JsonDataType.new payload: jsonb
+    x.save
+    x.reload
+    assert_equal(['age', 'name'], x.payload.keys)
   end
 end
