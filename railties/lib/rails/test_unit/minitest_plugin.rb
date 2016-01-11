@@ -80,7 +80,8 @@ module Minitest
       Minitest.backtrace_filter = ::Rails.backtrace_cleaner if ::Rails.respond_to?(:backtrace_cleaner)
     end
 
-    self.reporter.reporters.clear # Replace progress reporter for colors.
+    # Replace progress reporter for colors.
+    self.reporter.reporters.delete_if { |reporter| reporter.kind_of?(SummaryReporter) || reporter.kind_of?(ProgressReporter) }
     self.reporter << SuppressedSummaryReporter.new(options[:io], options)
     self.reporter << ::Rails::TestUnitReporter.new(options[:io], options)
   end
