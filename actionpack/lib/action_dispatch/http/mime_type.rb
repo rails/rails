@@ -22,7 +22,7 @@ module Mime
 
   SET              = Mimes.new
   EXTENSION_LOOKUP = {}
-  LOOKUP           = Hash.new { |h, k| h[k] = Type.new(k) unless k.blank? }
+  LOOKUP           = {}
 
   def self.[](type)
     return type if type.is_a?(Type)
@@ -85,7 +85,7 @@ module Mime
       Q_SEPARATOR_REGEXP = /;\s*q=/
 
       def lookup(string)
-        LOOKUP[string]
+        LOOKUP[string] || Type.new(string)
       end
 
       def lookup_by_extension(extension)
@@ -204,9 +204,12 @@ module Mime
       end
     end
 
+    attr_reader :hash
+
     def initialize(string, symbol = nil, synonyms = [])
       @symbol, @synonyms = symbol, synonyms
       @string = string
+      @hash = [@string, @synonyms, @symbol].hash
     end
 
     def to_s
@@ -240,6 +243,13 @@ module Mime
       end
     end
 
+    def eql?(other)
+      super || (self.class == other.class &&
+                @string    == other.string &&
+                @synonyms  == other.synonyms &&
+                @symbol    == other.symbol)
+    end
+
     def =~(mime_type)
       return false if mime_type.blank?
       regexp = Regexp.new(Regexp.quote(mime_type.to_s))
@@ -261,6 +271,10 @@ module Mime
     def respond_to?(method, include_private = false) #:nodoc:
       super || method.to_s =~ /(\w+)\?$/
     end
+
+    protected
+
+    attr_reader :string, :synonyms
 
     private
       def method_missing(method, *args)
