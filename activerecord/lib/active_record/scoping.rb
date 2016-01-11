@@ -11,11 +11,11 @@ module ActiveRecord
 
     module ClassMethods
       def current_scope #:nodoc:
-        ScopeRegistry.value_for(:current_scope, self.to_s)
+        ScopeRegistry.value_for(:current_scope, self)
       end
 
       def current_scope=(scope) #:nodoc:
-        ScopeRegistry.set_value_for(:current_scope, self.to_s, scope)
+        ScopeRegistry.set_value_for(:current_scope, self, scope)
       end
 
       # Collects attributes from scopes that should be applied when creating
@@ -53,18 +53,18 @@ module ActiveRecord
     # following code:
     #
     #   registry = ActiveRecord::Scoping::ScopeRegistry
-    #   registry.set_value_for(:current_scope, "Board", some_new_scope)
+    #   registry.set_value_for(:current_scope, Board, some_new_scope)
     #
     # Now when you run:
     #
-    #   registry.value_for(:current_scope, "Board")
+    #   registry.value_for(:current_scope, Board)
     #
     # You will obtain whatever was defined in +some_new_scope+. The #value_for
     # and #set_value_for methods are delegated to the current ScopeRegistry
     # object, so the above example code can also be called as:
     #
     #   ActiveRecord::Scoping::ScopeRegistry.set_value_for(:current_scope,
-    #       "Board", some_new_scope)
+    #       Board, some_new_scope)
     class ScopeRegistry # :nodoc:
       extend ActiveSupport::PerThreadRegistry
 
@@ -74,16 +74,22 @@ module ActiveRecord
         @registry = Hash.new { |hash, key| hash[key] = {} }
       end
 
-      # Obtains the value for a given +scope_name+ and +variable_name+.
-      def value_for(scope_type, variable_name)
+      # Obtains the value for a given +scope_type+ and +model+.
+      def value_for(scope_type, model)
         raise_invalid_scope_type!(scope_type)
-        @registry[scope_type][variable_name]
+        klass = model
+        base = model.base_class
+        while klass <= base
+          value = @registry[scope_type][klass.name]
+          return value if value
+          klass = klass.superclass
+        end
       end
 
-      # Sets the +value+ for a given +scope_type+ and +variable_name+.
-      def set_value_for(scope_type, variable_name, value)
+      # Sets the +value+ for a given +scope_type+ and +model+.
+      def set_value_for(scope_type, model, value)
         raise_invalid_scope_type!(scope_type)
-        @registry[scope_type][variable_name] = value
+        @registry[scope_type][model.name] = value
       end
 
       private
