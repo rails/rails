@@ -1170,6 +1170,8 @@ module ActiveRecord
       migration = migrations.detect { |m| m.version == @target_version }
       raise UnknownMigrationVersionError.new(@target_version) if migration.nil?
       execute_migration_in_transaction(migration, @direction)
+
+      record_environment
     end
 
     # Used for running multiple migrations up to or down to a certain value.
@@ -1181,6 +1183,14 @@ module ActiveRecord
       runnable.each do |migration|
         execute_migration_in_transaction(migration, @direction)
       end
+
+      record_environment
+    end
+
+    # Stores the current environment in the database.
+    def record_environment
+      return if down?
+      ActiveRecord::InternalMetadata[:environment] = ActiveRecord::Migrator.current_environment
     end
 
     def ran?(migration)
@@ -1236,7 +1246,6 @@ module ActiveRecord
       else
         migrated << version
         ActiveRecord::SchemaMigration.create!(version: version.to_s)
-        ActiveRecord::InternalMetadata[:environment] = ActiveRecord::Migrator.current_environment
       end
     end
 

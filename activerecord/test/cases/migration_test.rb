@@ -398,6 +398,33 @@ class MigrationTest < ActiveRecord::TestCase
     ENV["RACK_ENV"]  = original_rack_env
   end
 
+
+  def test_migration_sets_internal_metadata_even_when_fully_migrated
+    current_env     = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
+    migrations_path = MIGRATIONS_ROOT + "/valid"
+    old_path        = ActiveRecord::Migrator.migrations_paths
+    ActiveRecord::Migrator.migrations_paths = migrations_path
+
+    ActiveRecord::Migrator.up(migrations_path)
+    assert_equal current_env, ActiveRecord::InternalMetadata[:environment]
+
+    original_rails_env  = ENV["RAILS_ENV"]
+    original_rack_env   = ENV["RACK_ENV"]
+    ENV["RAILS_ENV"]    = ENV["RACK_ENV"] = "foofoo"
+    new_env     = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
+
+    refute_equal current_env, new_env
+
+    sleep 1 # mysql by default does not store fractional seconds in the database
+
+    ActiveRecord::Migrator.up(migrations_path)
+    assert_equal new_env, ActiveRecord::InternalMetadata[:environment]
+  ensure
+    ActiveRecord::Migrator.migrations_paths = old_path
+    ENV["RAILS_ENV"] = original_rails_env
+    ENV["RACK_ENV"]  = original_rack_env
+  end
+
   def test_proper_table_name_on_migration
     reminder_class = new_isolated_reminder_class
     migration = ActiveRecord::Migration.new
