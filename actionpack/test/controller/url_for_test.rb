@@ -494,7 +494,7 @@ module AbstractController
           kls.default_url_options[:host] = host
 
           assert_equal(
-            "http://#{host}/admin/#{record_name}",
+            "http://#{host}/#{namespace}/#{record_name}",
              kls.new.url_for([namespace, record_name])
           )
         end
