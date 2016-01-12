@@ -20,7 +20,11 @@ rescue LoadError
   puts "'drb/unix' is not available"
 end
 
-PROCESS_COUNT = (ENV['N'] || 4).to_i
+if ENV['TRAVIS']
+  PROCESS_COUNT = 0
+else
+  PROCESS_COUNT = (ENV['N'] || 4).to_i
+end
 
 require 'active_support/testing/autorun'
 require 'abstract_controller'
