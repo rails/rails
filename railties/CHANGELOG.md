@@ -1,3 +1,7 @@
+*   Bring back `TEST=` env for `rake test` task.
+
+    *Yves Senn*
+
 *   Specify log file names or all logs to clear `rake log:clear`
 
     Specify which logs to clear when using the `rake log:clear` task, e.g. `rake log:clear LOGS=test,staging`

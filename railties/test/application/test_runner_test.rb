@@ -450,6 +450,17 @@ module ApplicationTests
       assert_match(%r{cannot load such file.+test/not_exists\.rb}, error)
     end
 
+    def test_pass_TEST_env_on_rake_test
+      create_test_file :models, 'account'
+      create_test_file :models, 'post', pass: false
+
+      output =  Dir.chdir(app_path) { `bin/rake test TEST=test/models/post_test.rb` }
+
+      assert_match "PostTest", output, "passing TEST= should run selected test"
+      assert_no_match "AccountTest", output, "passing TEST= should only run selected test"
+      assert_match '1 runs, 1 assertions', output
+    end
+
     private
       def run_test_command(arguments = 'test/unit/test_test.rb')
         Dir.chdir(app_path) { `bin/rails t #{arguments}` }
