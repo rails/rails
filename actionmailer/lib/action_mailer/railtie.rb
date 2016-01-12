@@ -29,6 +29,9 @@ module ActionMailer
       options.asset_host          ||= app.config.asset_host
       options.relative_url_root   ||= app.config.relative_url_root
 
+      options.default_url_options ||= {}
+      options.default_url_options[:script_name] ||= ''
+
       ActiveSupport.on_load(:action_mailer) do
         include AbstractController::UrlFor
         extend ::AbstractController::Railties::RoutesHelpers.with(app.routes, false)

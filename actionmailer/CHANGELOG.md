@@ -1,3 +1,8 @@
+*   Prevent `url_for` from duplicating the relative URL root when
+    `RAILS_RELATIVE_URL_ROOT` is set.
+
+    *Greg Barendt*
+
 ## Rails 4.2.5 (November 12, 2015) ##
 
 *   No changes.

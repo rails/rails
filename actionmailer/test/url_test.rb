@@ -104,6 +104,22 @@ class ActionMailerUrlTest < ActionMailer::TestCase
     assert_url_for '/dummy_model' , [DummyModel]
   end
 
+  def test_url_for_with_relative_url_root
+    UrlTestMailer.delivery_method = :test
+
+    ENV['RAILS_RELATIVE_URL_ROOT'] = '/foo/bar'
+    ActionDispatch::Routing::RouteSet.relative_url_root = ENV['RAILS_RELATIVE_URL_ROOT']
+    AppRoutes.draw do
+      scope ENV['RAILS_RELATIVE_URL_ROOT'] do
+        get '/welcome' => 'foo#bar', as: 'welcome'
+      end
+    end
+
+    assert_url_for '/foo/bar/welcome', :welcome
+
+    ENV.delete 'RAILS_RELATIVE_URL_ROOT'
+  end
+
   def test_signed_up_with_url
     UrlTestMailer.delivery_method = :test
 
