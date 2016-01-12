@@ -284,7 +284,12 @@ module ActionDispatch
           route <<
           case record
           when Symbol, String
-            record.to_s
+            record_name = record.to_s
+            if uncountable?(record_name)
+              "#{record_name}_index"
+            else
+              record_name
+            end
           when Class
             @key_strategy.call record.model_name
           else
@@ -312,6 +317,10 @@ module ActionDispatch
 
         def get_method_for_string(str)
           "#{prefix}#{str}_#{suffix}"
+        end
+
+        def uncountable?(str)
+          ActiveSupport::Inflector.inflections.uncountable.include?(str)
         end
 
         [nil, 'new', 'edit'].each do |action|
