@@ -459,16 +459,16 @@ module ActionController
             parameters = nil
           end
 
-          if parameters.present? || session.present? || flash.present?
+          if parameters || session || flash
             non_kwarg_request_warning
           end
         end
 
-        if body.present?
+        if body
           @request.set_header 'RAW_POST_DATA', body
         end
 
-        if http_method.present?
+        if http_method
           http_method = http_method.to_s.upcase
         else
           http_method = "GET"
@@ -476,7 +476,7 @@ module ActionController
 
         parameters ||= {}
 
-        if format.present?
+        if format
           parameters[:format] = format
         end
 
