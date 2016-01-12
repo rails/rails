@@ -18,7 +18,7 @@ module ActiveJob
     private
 
     def formatted_arguments
-      @arguments.map { |arg| format(arg) }.flatten
+      @arguments.flat_map { |arg| format(arg) }
     end
 
     def format(arg)
