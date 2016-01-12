@@ -112,7 +112,7 @@ Action Controller
 | `:controller` | The controller name                                       |
 | `:action`     | The action                                                |
 | `:params`     | Hash of request parameters without any filtered parameter |
-| `:format`     | html/js/json/xml etc                                      |
+| `:format`     | html/js/json/xml etc.                                     |
 | `:method`     | HTTP request verb                                         |
 | `:path`       | Request path                                              |
 
@@ -134,7 +134,7 @@ Action Controller
 | `:controller`   | The controller name                                       |
 | `:action`       | The action                                                |
 | `:params`       | Hash of request parameters without any filtered parameter |
-| `:format`       | html/js/json/xml etc                                      |
+| `:format`       | html/js/json/xml etc.                                     |
 | `:method`       | HTTP request verb                                         |
 | `:path`         | Request path                                              |
 | `:status`       | HTTP status code                                          |

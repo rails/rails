@@ -396,7 +396,7 @@ module ActionDispatch
 
       # Whether the given cookie is to be deleted by this CookieJar.
       # Like <tt>[]=</tt>, you can pass in an options hash to test if a
-      # deletion applies to a specific <tt>:path</tt>, <tt>:domain</tt> etc.
+      # deletion applies to a specific <tt>:path</tt>, <tt>:domain</tt>, etc.
       def deleted?(name, options = {})
         options.symbolize_keys!
         handle_options(options)

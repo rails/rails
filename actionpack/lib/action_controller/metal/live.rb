@@ -31,7 +31,7 @@ module ActionController
   #
   # The final caveat is that your actions are executed in a separate thread than
   # the main thread. Make sure your actions are thread safe, and this shouldn't
-  # be a problem (don't share state across threads, etc).
+  # be a problem (don't share state across threads, etc.).
   module Live
     extend ActiveSupport::Concern
 

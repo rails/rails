@@ -207,7 +207,7 @@ end
 NOTE: Active Job's default behavior is to execute jobs ':inline'. So, you can use
 `deliver_later` now to send emails, and when you later decide to start sending
 them from a background job, you'll only need to set up Active Job to use a queueing
-backend (Sidekiq, Resque, etc).
+backend (Sidekiq, Resque, etc.).
 
 If you want to send emails right away (from a cronjob for example) just call
 `deliver_now`:

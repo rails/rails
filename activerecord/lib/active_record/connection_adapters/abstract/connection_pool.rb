@@ -313,7 +313,7 @@ module ActiveRecord
 
       # Creates a new ConnectionPool object. +spec+ is a ConnectionSpecification
       # object which describes database connection information (e.g. adapter,
-      # host name, username, password, etc), as well as the maximum size for
+      # host name, username, password, etc.), as well as the maximum size for
       # this ConnectionPool.
       #
       # The default ConnectionPool maximum size is 5.

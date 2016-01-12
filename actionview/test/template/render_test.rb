@@ -34,7 +34,7 @@ module RenderTestCases
     assert_equal "Hello world!", @view.render(:file => "test/hello_world")
   end
 
-  # Test if :formats, :locale etc. options are passed correctly to the resolvers.
+  # Test if :formats, :locale, etc. options are passed correctly to the resolvers.
   def test_render_file_with_format
     assert_match "<h1>No Comment</h1>", @view.render(:file => "comments/empty", :formats => [:html])
     assert_match "<error>No Comment</error>", @view.render(:file => "comments/empty", :formats => [:xml])

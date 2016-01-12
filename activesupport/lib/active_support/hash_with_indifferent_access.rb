@@ -16,7 +16,7 @@ module ActiveSupport
   #   rgb['white'] # => '#FFFFFF'
   #
   # Internally symbols are mapped to strings when used as keys in the entire
-  # writing interface (calling <tt>[]=</tt>, <tt>merge</tt>, etc). This
+  # writing interface (calling <tt>[]=</tt>, <tt>merge</tt>, etc.). This
   # mapping belongs to the public interface. For example, given:
   #
   #   hash = ActiveSupport::HashWithIndifferentAccess.new(a: 1)

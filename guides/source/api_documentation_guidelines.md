@@ -82,7 +82,7 @@ used. Instead of:
 English
 -------
 
-Please use American English (*color*, *center*, *modularize*, etc). See [a list of American and British English spelling differences here](http://en.wikipedia.org/wiki/American_and_British_English_spelling_differences).
+Please use American English (*color*, *center*, *modularize*, etc.). See [a list of American and British English spelling differences here](http://en.wikipedia.org/wiki/American_and_British_English_spelling_differences).
 
 Oxford Comma
 ------------
