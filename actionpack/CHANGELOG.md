@@ -1,3 +1,7 @@
+*   Provide the name of HTTP Status code in assertions.
+
+    *Sean Collins*
+
 *   More explicit error message when running `rake routes`. `CONTROLLER` argument
     can now be supplied in different ways:
     `Rails::WelcomeController`, `Rails::Welcome`, `rails/welcome`
