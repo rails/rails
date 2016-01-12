@@ -478,6 +478,28 @@ module AbstractController
         end
       end
 
+      def test_url_for_with_array_include_uncountable_nonu_record_name
+        host = 'example.com'
+        namespace = :admin
+        record_name = ActiveSupport::Inflector.inflections.uncountable.first
+
+        with_routing do |set|
+          set.draw do
+            namespace namespace do
+              resources record_name
+            end
+          end
+
+          kls = Class.new { include set.url_helpers }
+          kls.default_url_options[:host] = host
+
+          assert_equal(
+            "http://#{host}/admin/#{record_name}",
+             kls.new.url_for([namespace, record_name])
+          )
+        end
+      end
+
       private
         def extract_params(url)
           url.split('?', 2).last.split('&').sort
