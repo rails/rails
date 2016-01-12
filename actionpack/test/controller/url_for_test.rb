@@ -495,7 +495,7 @@ module AbstractController
 
           assert_equal(
             "http://#{host}/#{namespace}/#{record_name}",
-             kls.new.url_for([namespace, record_name])
+            kls.new.url_for([namespace, record_name])
           )
         end
       end
