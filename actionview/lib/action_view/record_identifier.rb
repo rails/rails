@@ -53,9 +53,6 @@ module ActionView
   #   end
   module RecordIdentifier
     extend self
-    extend ModelNaming
-
-    include ModelNaming
 
     JOIN = '_'.freeze
     NEW = 'new'.freeze
@@ -70,7 +67,7 @@ module ActionView
     #   dom_class(post, :edit)   # => "edit_post"
     #   dom_class(Person, :edit) # => "edit_person"
     def dom_class(record_or_class, prefix = nil)
-      singular = model_name_from_record_or_class(record_or_class).param_key
+      singular = ActiveModel::Naming.param_key(record_or_class)
       prefix ? "#{prefix}#{JOIN}#{singular}" : singular
     end
 
@@ -103,7 +100,8 @@ module ActionView
     # method that replaces all characters that are invalid inside DOM ids, with valid ones. You need to
     # make sure yourself that your dom ids are valid, in case you overwrite this method.
     def record_key_for_dom_id(record)
-      key = convert_to_model(record).to_key
+      model = record.respond_to?(:to_model) ? record.to_model : record
+      key = model.to_key
       key ? key.join(JOIN) : key
     end
   end

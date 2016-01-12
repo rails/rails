@@ -111,7 +111,6 @@ module ActionView
 
       include FormTagHelper
       include UrlHelper
-      include ModelNaming
       include RecordIdentifier
 
       attr_internal :default_form_builder
@@ -436,7 +435,7 @@ module ActionView
         else
           object      = record.is_a?(Array) ? record.last : record
           raise ArgumentError, "First argument in form cannot contain nil or be empty" unless object
-          object_name = options[:as] || model_name_from_record_or_class(object).param_key
+          object_name = options[:as] || ActiveModel::Naming.param_key(object)
           apply_form_for_options!(record, object, options)
         end
 
@@ -455,7 +454,7 @@ module ActionView
       end
 
       def apply_form_for_options!(record, object, options) #:nodoc:
-        object = convert_to_model(object)
+        object = object.to_model if object.respond_to?(:to_model)
 
         as = options[:as]
         namespace = options[:namespace]
@@ -1227,7 +1226,7 @@ module ActionView
             object_name = record_name
           else
             object = record_name
-            object_name = model_name_from_record_or_class(object).param_key
+            object_name = ActiveModel::Naming.param_key(object)
           end
 
           builder = options[:builder] || default_form_builder_class
@@ -1289,8 +1288,6 @@ module ActionView
     # The standard set of helper methods for form building are located in the
     # +field_helpers+ class attribute.
     class FormBuilder
-      include ModelNaming
-
       # The methods which wrap a form helper call.
       class_attribute :field_helpers
       self.field_helpers = [:fields_for, :label, :text_field, :password_field,
@@ -1607,7 +1604,7 @@ module ActionView
           end
         else
           record_object = record_name.is_a?(Array) ? record_name.last : record_name
-          record_name   = model_name_from_record_or_class(record_object).param_key
+          record_name   = ActiveModel::Naming.param_key(record_object)
         end
 
         index = if options.has_key?(:index)
@@ -1913,7 +1910,7 @@ module ActionView
         end
 
         def submit_default_value
-          object = convert_to_model(@object)
+          object = @object.respond_to?(:to_model) ? @object.to_model : @object
           key    = object ? (object.persisted? ? :update : :create) : :submit
 
           model = if object.respond_to?(:model_name)
@@ -1938,7 +1935,7 @@ module ActionView
 
         def fields_for_with_nested_attributes(association_name, association, options, block)
           name = "#{object_name}[#{association_name}_attributes]"
-          association = convert_to_model(association)
+          association = association.to_model if association.respond_to?(:to_model)
 
           if association.respond_to?(:persisted?)
             association = [association] if @object.send(association_name).respond_to?(:to_ary)
@@ -1964,7 +1961,7 @@ module ActionView
         end
 
         def fields_for_nested_model(name, object, fields_options, block)
-          object = convert_to_model(object)
+          object = object.to_model if object.respond_to?(:to_model)
           emit_hidden_id = object.persisted? && fields_options.fetch(:include_id) {
             options.fetch(:include_id, true)
           }
