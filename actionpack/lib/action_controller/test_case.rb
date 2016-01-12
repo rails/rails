@@ -8,6 +8,10 @@ require 'rails-dom-testing'
 
 module ActionController
   # :stopdoc:
+  class Metal
+    include Testing::Functional
+  end
+
   # ActionController::TestCase will be deprecated and moved to a gem in Rails 5.1.
   # Please use ActionDispatch::IntegrationTest going forward.
   class TestRequest < ActionDispatch::TestRequest #:nodoc:
@@ -477,10 +481,6 @@ module ActionController
         end
 
         @html_document = nil
-
-        unless @controller.respond_to?(:recycle!)
-          @controller.extend(Testing::Functional)
-        end
 
         self.cookies.update @request.cookies
         self.cookies.update_cookies_from_jar
