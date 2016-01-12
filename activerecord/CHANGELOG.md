@@ -89,6 +89,14 @@
     defaults without breaking existing migrations, or forcing them to be
     rewritten through a deprecation cycle.
 
+    New migrations specify the Rails version they were written for:
+
+        class AddStatusToOrders < ActiveRecord::Migration[5.0]
+          def change
+            # ...
+          end
+        end
+
     *Matthew Draper*, *Ravil Bayramgalin*
 
 *   Use bind params for `limit` and `offset`. This will generate significantly
