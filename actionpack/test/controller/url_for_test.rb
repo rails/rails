@@ -478,7 +478,7 @@ module AbstractController
         end
       end
 
-      def test_url_for_with_array_include_uncountable_nonu_record_name
+      def test_url_for_with_array_include_uncountable_noun_record_name
         host = 'example.com'
         namespace = :admin
         record_name = ActiveSupport::Inflector.inflections.uncountable.first
