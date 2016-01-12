@@ -44,9 +44,9 @@ module ActiveRecord
 
       ##
       # :singleton-method:
-      # Accessor for the name of the internal metadata table. By default, the value is "active_record_internal_metadatas"
+      # Accessor for the name of the internal metadata table. By default, the value is "ar_internal_metadata"
       class_attribute :internal_metadata_table_name, instance_accessor: false
-      self.internal_metadata_table_name = "active_record_internal_metadatas"
+      self.internal_metadata_table_name = "ar_internal_metadata"
 
       ##
       # :singleton-method:
