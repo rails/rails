@@ -459,4 +459,18 @@ class DefaultScopingTest < ActiveRecord::TestCase
     scope = Bus.all
     assert_equal scope.where_clause.ast.children.length, 1
   end
+
+  def test_sti_conditions_are_not_carried_in_default_scope
+    ConditionalStiPost.create! body: ''
+    SubConditionalStiPost.create! body: ''
+    SubConditionalStiPost.create! title: 'Hello world', body: ''
+
+    assert_equal 2, ConditionalStiPost.count
+    assert_equal 2, ConditionalStiPost.all.to_a.size
+    assert_equal 3, ConditionalStiPost.unscope(where: :title).to_a.size
+
+    assert_equal 1, SubConditionalStiPost.count
+    assert_equal 1, SubConditionalStiPost.all.to_a.size
+    assert_equal 2, SubConditionalStiPost.unscope(where: :title).to_a.size
+  end
 end

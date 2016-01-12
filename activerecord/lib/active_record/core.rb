@@ -275,7 +275,7 @@ module ActiveRecord
       def relation # :nodoc:
         relation = Relation.create(self, arel_table, predicate_builder)
 
-        if finder_needs_type_condition?
+        if finder_needs_type_condition? && !ignore_default_scope?
           relation.where(type_condition).create_with(inheritance_column.to_sym => sti_name)
         else
           relation
