@@ -27,7 +27,7 @@ module ActionDispatch
     # in the server's `public/` directory (see Static#call).
     def match?(path)
       path = ::Rack::Utils.unescape_path path
-      return false unless path.valid_encoding?
+      return false unless valid_path?(path)
       path = Rack::Utils.clean_path_info path
 
       paths = [path, "#{path}#{ext}", "#{path}/#{@index}#{ext}"]
@@ -93,6 +93,10 @@ module ActionDispatch
         else
           false
         end
+      end
+
+      def valid_path?(path)
+        path.valid_encoding? && !path.include?("\0")
       end
   end
 
