@@ -3,6 +3,7 @@ require "active_support/log_subscriber/test_helper"
 require 'active_support/core_ext/numeric/time'
 require 'jobs/hello_job'
 require 'jobs/logging_job'
+require 'jobs/mailer_job'
 require 'jobs/nested_job'
 require 'models/person'
 
@@ -35,6 +36,7 @@ class LoggingTest < ActiveSupport::TestCase
     super
     ActiveJob::Logging::LogSubscriber.log_subscribers.pop
     set_logger @old_logger
+    ActiveJob::Base.log_all_arguments = true
   end
 
   def set_logger(logger)
@@ -118,5 +120,67 @@ class LoggingTest < ActiveSupport::TestCase
     assert_match(/Enqueued HelloJob \(Job ID: .*\) to .*? at.*Cristian/, @logger.messages)
   rescue NotImplementedError
     skip
+  end
+
+  def test_default_setting_for_log_all_arguments
+    assert_equal ActiveJob::Base.log_all_arguments, true
+  end
+
+  def test_arguments_filter_when_job_has_string_parameter
+    ActiveJob::Base.log_all_arguments = false
+    LoggingJob.perform_later 'Dummy'
+    refute_match(/Performing.*with arguments:.*Dummy/, @logger.messages)
+  end
+
+  def test_arguments_filter_when_job_has_globalid_parameter
+    ActiveJob::Base.log_all_arguments = false
+    person = Person.new(3)
+    LoggingJob.perform_later(person)
+    assert_match(%r{Performing.*with arguments:.*gid://aj/Person/3}, @logger.messages)
+  end
+
+  def test_arguments_filter_when_job_has_globalid_and_string_parameters
+    ActiveJob::Base.log_all_arguments = false
+    person = Person.new(3)
+    LoggingJob.perform_later(['dummy', person])
+    assert_match(%r{Performing.*with arguments:.*gid://aj/Person/3}, @logger.messages)
+    refute_match(%r{Performing.*with arguments:.*dummy}, @logger.messages)
+  end
+
+  def test_arguments_filter_when_action_mailer_has_string_parameter
+    ActiveJob::Base.log_all_arguments = false
+    MailerJob.welcome('email@example.com').deliver_later
+    refute_match(
+      /Performing.*with arguments:.*email@example\.com/,
+      @logger.messages
+    )
+    assert_match(
+      /Performing.*with arguments: \"MailerJob\", \"welcome\", \"deliver_now\"/,
+      @logger.messages
+    )
+  end
+
+  def test_arguments_filter_when_action_mailer_has_globalid_parameter
+    ActiveJob::Base.log_all_arguments = false
+    person = Person.new(3)
+    MailerJob.welcome_person(person).deliver_later
+    assert_match(
+      %r{Performing.*with arguments: \"MailerJob\", \"welcome_person\", \"deliver_now\", gid://aj/Person/3},
+      @logger.messages
+    )
+  end
+
+  def test_arguments_filter_when_action_mailer_has_globalid_and_string_parameters
+    ActiveJob::Base.log_all_arguments = false
+    person = Person.new(3)
+    MailerJob.welcome_both(person, 'email@example.com').deliver_later
+    assert_match(
+      %r{Performing.*with arguments: \"MailerJob\", \"welcome_both\", \"deliver_now\", gid://aj/Person/3},
+      @logger.messages
+    )
+    refute_match(
+      /Performing.*with arguments:.*email@example\.com/,
+      @logger.messages
+    )
   end
 end

@@ -35,4 +35,5 @@ module ActiveJob
   autoload :AsyncJob
   autoload :TestCase
   autoload :TestHelper
+  autoload :ArgumentsFilter
 end

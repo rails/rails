@@ -9,6 +9,7 @@ module ActiveJob
 
     included do
       cattr_accessor(:logger) { ActiveSupport::TaggedLogging.new(ActiveSupport::Logger.new(STDOUT)) }
+      cattr_accessor(:log_all_arguments) { true }
 
       around_enqueue do |_, block, _|
         tag_logger do
@@ -86,25 +87,9 @@ module ActiveJob
         end
 
         def args_info(job)
-          if job.arguments.any?
-            ' with arguments: ' +
-              job.arguments.map { |arg| format(arg).inspect }.join(', ')
-          else
-            ''
-          end
-        end
+          return '' unless job.arguments.any?
 
-        def format(arg)
-          case arg
-          when Hash
-            arg.transform_values { |value| format(value) }
-          when Array
-            arg.map { |value| format(value) }
-          when GlobalID::Identification
-            arg.to_global_id rescue arg
-          else
-            arg
-          end
+          ' with arguments: ' + ActiveJob::ArgumentsFilter.new(job).filtered_arguments
         end
 
         def scheduled_at(event)
