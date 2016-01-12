@@ -27,6 +27,12 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
     assert_not @params[:person][:name].permitted?
   end
 
+  test "as_json returns the JSON representation of the parameters hash" do
+    assert_not @params.as_json.key? "parameters"
+    assert_not @params.as_json.key? "permitted"
+    assert @params.as_json.key? "person"
+  end
+
   test "each carries permitted status" do
     @params.permit!
     @params.each { |key, value| assert(value.permitted?) if key == "person" }
