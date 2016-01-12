@@ -70,6 +70,7 @@ module ActiveSupport
       "London"                       => "Europe/London",
       "Casablanca"                   => "Africa/Casablanca",
       "Monrovia"                     => "Africa/Monrovia",
+      "Namibia"                      => "Africa/Windhoek",
       "UTC"                          => "Etc/UTC",
       "Belgrade"                     => "Europe/Belgrade",
       "Bratislava"                   => "Europe/Bratislava",
