@@ -1108,7 +1108,7 @@ Your mailer classes - like every other part of your Rails application - should b
 The goals of testing your mailer classes are to ensure that:
 
 * emails are being processed (created and sent)
-* the email content is correct (subject, sender, body, etc)
+* the email content is correct (subject, sender, body, etc.)
 * the right emails are being sent at the right times
 
 #### From All Sides

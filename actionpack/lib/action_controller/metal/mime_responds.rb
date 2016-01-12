@@ -215,7 +215,7 @@ module ActionController #:nodoc:
     # instance of the ActionController::MimeResponds::Collector class. This
     # object serves as a container in which available responses can be stored by
     # calling any of the dynamically generated, mime-type-specific methods such
-    # as +html+, +xml+ etc on the Collector. Each response is represented by a
+    # as +html+, +xml+, etc. on the Collector. Each response is represented by a
     # corresponding block if present.
     #
     # A subsequent call to #negotiate_format(request) will enable the Collector

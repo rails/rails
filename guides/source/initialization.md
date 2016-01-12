@@ -411,7 +411,7 @@ def start &blk
   check_pid! if options[:pid]
 
   # Touch the wrapped app, so that the config.ru is loaded before
-  # daemonization (i.e. before chdir, etc).
+  # daemonization (i.e. before chdir, etc.).
   wrapped_app
 
   daemonize_app if options[:daemonize]
