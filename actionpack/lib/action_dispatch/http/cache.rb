@@ -91,7 +91,7 @@ module ActionDispatch
 
         DATE          = 'Date'.freeze
         LAST_MODIFIED = "Last-Modified".freeze
-        SPECIAL_KEYS  = Set.new(%w[extras no-cache max-age public must-revalidate])
+        SPECIAL_KEYS  = Set.new(%w[extras no-cache max-age public private must-revalidate])
 
         def cache_control_segments
           if cache_control = _cache_control
