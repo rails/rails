@@ -285,7 +285,7 @@ module ActionDispatch
           case record
           when Symbol, String
             record_name = record.to_s
-            if uncountable?(record_name)
+            if index_route?(route) && uncountable?(record_name)
               "#{record_name}_index"
             else
               record_name
@@ -317,6 +317,10 @@ module ActionDispatch
 
         def get_method_for_string(str)
           "#{prefix}#{str}_#{suffix}"
+        end
+
+        def index_route?(route)
+          !%w(new edit destroy).include?(route.first)
         end
 
         def uncountable?(str)
