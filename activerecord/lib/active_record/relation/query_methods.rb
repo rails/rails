@@ -659,8 +659,10 @@ module ActiveRecord
     end
 
     def or!(other) # :nodoc:
-      unless structurally_compatible_for_or?(other)
-        raise ArgumentError, 'Relation passed to #or must be structurally compatible'
+      incompatible_values = structurally_incompatible_values_for_or(other)
+
+      unless incompatible_values.empty?
+        raise ArgumentError, "Relation passed to #or must be structurally compatible. Incompatible values: #{incompatible_values}"
       end
 
       self.where_clause = self.where_clause.or(other.where_clause)
@@ -1189,10 +1191,10 @@ module ActiveRecord
       end
     end
 
-    def structurally_compatible_for_or?(other)
-      Relation::SINGLE_VALUE_METHODS.all? { |m| send("#{m}_value") == other.send("#{m}_value") } &&
-        (Relation::MULTI_VALUE_METHODS - [:extending]).all? { |m| send("#{m}_values") == other.send("#{m}_values") } &&
-        (Relation::CLAUSE_METHODS - [:having, :where]).all? { |m| send("#{m}_clause") == other.send("#{m}_clause") }
+    def structurally_incompatible_values_for_or(other)
+      Relation::SINGLE_VALUE_METHODS.reject { |m| send("#{m}_value") == other.send("#{m}_value") } +
+        (Relation::MULTI_VALUE_METHODS - [:extending]).reject { |m| send("#{m}_values") == other.send("#{m}_values") } +
+        (Relation::CLAUSE_METHODS - [:having, :where]).reject { |m| send("#{m}_clause") == other.send("#{m}_clause") }
     end
 
     def new_where_clause
