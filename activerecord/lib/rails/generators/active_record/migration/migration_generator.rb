@@ -68,13 +68,10 @@ module ActiveRecord
 
         def resolve_path
           path = "db/migrate"
-          new_file_name = file_name
           if ENV['RAILS_NAMESPACE']
-            namespace = ENV['RAILS_NAMESPACE']
-            new_file_name = "#{namespace}_#{file_name}"
-            path += "/#{namespace}"
+            path += "/#{ENV['RAILS_NAMESPACE']}"
           end
-          "#{path}/#{new_file_name}.rb"
+          "#{path}/#{file_name}.rb"
         end
 
     end

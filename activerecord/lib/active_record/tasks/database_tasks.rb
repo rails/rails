@@ -59,13 +59,7 @@ module ActiveRecord
         paths = Rails.application.paths['db/migrate'].to_a
         root_path = paths.first
 
-        if ENV['RAILS_NAMESPACE']
-          namespaces = [ENV['RAILS_NAMESPACE']]
-        elsif
-          namespaces = ENV['RAILS_NAMESPACES'] ? ENV['RAILS_NAMESPACES']
-            .split(",") : []
-        end
-
+        namespaces = [ENV['RAILS_NAMESPACE'] || ENV['RAILS_NAMESPACES'].split(",")].flatten
         if namespaces.any?
           namespaces.each do |namespace|
             paths << "#{root_path}/#{namespace}"
@@ -303,12 +297,7 @@ module ActiveRecord
         db_configs = Base.configurations
         configurations = []
 
-        if ENV['RAILS_NAMESPACE']
-          namespaces = [ENV['RAILS_NAMESPACE']]
-        else
-          namespaces = ENV['RAILS_NAMESPACES'] ? ENV['RAILS_NAMESPACES']
-            .split(",") : []
-        end
+        namespaces = [ENV['RAILS_NAMESPACE'] || ENV['RAILS_NAMESPACES'].split(",")].flatten
         namespaces_configs = db_configs.values_at(*namespaces)
         if namespaces_configs.any?
           namespaces_configs.each do |namespace|

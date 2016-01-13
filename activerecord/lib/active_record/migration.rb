@@ -667,6 +667,7 @@ module ActiveRecord
     end
 
     def copy(destination, sources, options = {})
+      destination = "#{destination}/#{ENV['FROM']}" if ENV['FROM']
       copied = []
 
       FileUtils.mkdir_p(destination) unless File.exist?(destination)
@@ -697,7 +698,7 @@ module ActiveRecord
           end
 
           migration.version = next_migration_number(last ? last.version + 1 : 0).to_i
-          new_path = File.join(destination, "#{migration.version}_#{migration.name.underscore}.#{scope}.rb")
+          new_path = File.join(destination, "#{migration.version}_#{migration.name.underscore}.rb")
           old_path, migration.filename = migration.filename, new_path
           last = migration
 
