@@ -297,14 +297,15 @@ module ActiveRecord
       # Inserts the given fixture into the table. Overridden in adapters that require
       # something beyond a simple insert (eg. Oracle).
       def insert_fixture(fixture, table_name)
-        columns = schema_cache.columns_hash(table_name)
+        fixture = fixture.stringify_keys
 
+        columns = schema_cache.columns_hash(table_name)
         binds = fixture.map do |name, value|
           if column = columns[name]
             type = lookup_cast_type_from_column(column)
             Relation::QueryAttribute.new(name, value, type)
           else
-            raise Fixture::FixtureError, %(table "#{table_name}" has no column named "#{name}".)
+            raise Fixture::FixtureError, %(table "#{table_name}" has no column named #{name.inspect}.)
           end
         end
         key_list = fixture.keys.map { |name| quote_column_name(name) }

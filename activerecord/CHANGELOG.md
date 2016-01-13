@@ -1,3 +1,9 @@
+*   Fix regression when loading fixture files with symbol keys.
+
+    Closes #22584.
+
+    *Yves Senn*
+
 *   Support `:if` and `:unless` options in `has_secure_token`
 
     *Griffin Smith*
