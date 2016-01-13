@@ -36,7 +36,6 @@ DEFAULT_APP_FILES = %w(
   test/fixtures/files
   test/controllers
   test/models
-  test/helpers
   test/mailers
   test/integration
   vendor
@@ -643,7 +642,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
       test/controllers
       test/mailers
       test/models
-      test/helpers
       test/integration
       tmp
       vendor/assets/stylesheets

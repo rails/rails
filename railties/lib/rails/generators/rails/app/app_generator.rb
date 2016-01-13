@@ -134,7 +134,6 @@ module Rails
       empty_directory_with_keep_file 'test/controllers'
       empty_directory_with_keep_file 'test/mailers'
       empty_directory_with_keep_file 'test/models'
-      empty_directory_with_keep_file 'test/helpers'
       empty_directory_with_keep_file 'test/integration'
 
       template 'test/test_helper.rb'
@@ -271,7 +270,6 @@ module Rails
       def delete_app_helpers_if_api_option
         if options[:api]
           remove_dir 'app/helpers'
-          remove_dir 'test/helpers'
         end
       end
 

@@ -91,7 +91,6 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
        config/initializers/request_forgery_protection.rb
        lib/assets
        vendor/assets
-       test/helpers
        tmp/cache/assets)
   end
 end
