@@ -1,5 +1,12 @@
 ## Rails 5.0.0.beta1 (December 18, 2015) ##
 
+*   Update email validation regular expression to more accurately catch invalid
+    email addresses.
+
+    Add tests for EmailValidator.
+
+    *Stafford Brunk*
+
 *   Validate multiple contexts on `valid?` and `invalid?` at once.
 
     Example:
