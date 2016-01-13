@@ -1,15 +1,15 @@
 *   Fix regression when loading fixture files with symbol keys.
 
-    Closes #22584.
+    Fixes #22584.
 
     *Yves Senn*
 
-*   Support `:if` and `:unless` options in `has_secure_token`
+*   Support `:if` and `:unless` options in `has_secure_token`.
 
     *Griffin Smith*
 
 *   Use `version` column as primary key for schema_migrations table because
-    schema_migrations versions are guaranteed to be unique.
+    `schema_migrations` versions are guaranteed to be unique.
 
     This makes it possible to use `update_attributes` on models that do
     not have a primary key.

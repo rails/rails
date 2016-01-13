@@ -4,9 +4,9 @@
 
 *   More explicit error message when running `rake routes`. `CONTROLLER` argument
     can now be supplied in different ways:
-    `Rails::WelcomeController`, `Rails::Welcome`, `rails/welcome`
+    `Rails::WelcomeController`, `Rails::Welcome`, `rails/welcome`.
 
-    Fixes #22918
+    Fixes #22918.
 
     *Edouard Chin*
 
@@ -14,7 +14,7 @@
     helper methods. An `ArgumentError` will be raised if the passed parameters
     are not secure.
 
-    Fixes #22832
+    Fixes #22832.
 
     *Prathamesh Sonpatki*
 
@@ -30,7 +30,7 @@
     or unfiltered values based on from where it is called, `to_h` or `to_unsafe_h`
     respectively.
 
-    Fixes #22841
+    Fixes #22841.
 
     *Prathamesh Sonpatki*
 

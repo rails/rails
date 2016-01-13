@@ -2,7 +2,7 @@
     before the actual input radio tags to make the real value override
     the hidden when passed.
 
-    Fixes #22773
+    Fixes #22773.
 
     *Santiago Pastorino*
 

@@ -1,10 +1,12 @@
-*   Match `HashWithIndifferentAccess#default`'s behaviour with `Hash#default`
+*   Match `HashWithIndifferentAccess#default`'s behaviour with `Hash#default`.
 
     *David Cornu*
 
-*   Adds `:exception_object` key to `ActiveSupport::Notifications::Instrumenter` payload when an exception is raised.
+*   Adds `:exception_object` key to `ActiveSupport::Notifications::Instrumenter`
+    payload when an exception is raised.
 
-    Adds new key/value pair to payload when an exception is raised: e.g. `:exception_object => #<RuntimeError: FAIL>`.
+    Adds new key/value pair to payload when an exception is raised:
+    e.g. `:exception_object => #<RuntimeError: FAIL>`.
 
     *Ryan T. Hosford*
 
