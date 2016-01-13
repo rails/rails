@@ -1,3 +1,12 @@
+*   Match `String#to_time`'s behaviour to that of ruby's implementation for edge cases.
+
+    `nil` is now returned instead of the current date if the string provided does
+    contain time information, but none that is used to build the `Time` object.
+
+    GH#22958
+
+    *Siim Liiser*
+
 *   Match `HashWithIndifferentAccess#default`'s behaviour with `Hash#default`.
 
     *David Cornu*
