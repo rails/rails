@@ -1,3 +1,12 @@
+*   Match `String#to_time`'s behaviour to that of ruby's implementation for edge cases.
+
+    `nil` is now returned instead of the current date if the string provided does
+    contain time information, but none that is used to build the `Time` object.
+
+    Fixes #22958.
+
+    *Siim Liiser*
+
 *   Rely on the native DateTime#<=> implementation to handle non-datetime like
     objects instead of returning `nil` ourselves. This restores the ability
     of `DateTime` instances to be compared with a `Numeric` that represents an
@@ -57,6 +66,7 @@
 
     *Jon Moss*
 
+
 ## Rails 5.0.0.beta2 (February 01, 2016) ##
 
 *   Change `number_to_currency` behavior for checking negativity.
@@ -93,6 +103,7 @@
 *   Add petabyte and exabyte numeric conversion.
 
     *Akshay Vishnoi*
+
 
 ## Rails 5.0.0.beta1 (December 18, 2015) ##
 

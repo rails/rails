@@ -456,6 +456,7 @@ class StringConversionsTest < ActiveSupport::TestCase
       assert_equal Time.local(2011, 2, 27, 17, 50), "2011-02-27 13:50 -0100".to_time
       assert_equal Time.utc(2011, 2, 27, 23, 50), "2011-02-27 22:50 -0100".to_time(:utc)
       assert_equal Time.local(2005, 2, 27, 22, 50), "2005-02-27 14:50 -0500".to_time
+      assert_nil "010".to_time
       assert_nil "".to_time
     end
   end
