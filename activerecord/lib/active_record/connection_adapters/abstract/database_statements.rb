@@ -287,6 +287,7 @@ module ActiveRecord
       # Inserts the given fixture into the table. Overridden in adapters that require
       # something beyond a simple insert (eg. Oracle).
       def insert_fixture(fixture, table_name)
+        fixture = fixture.stringify_keys
         columns = schema_cache.columns_hash(table_name)
 
         key_list   = []
@@ -295,7 +296,7 @@ module ActiveRecord
             key_list << quote_column_name(name)
             quote(value, column)
           else
-            raise Fixture::FixtureError, %(table "#{table_name}" has no column named "#{name}".)
+            raise Fixture::FixtureError, %(table "#{table_name}" has no column named #{name.inspect}.)
           end
         end
 

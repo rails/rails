@@ -1,3 +1,9 @@
+*   Fix regression when loading fixture files with symbol keys.
+
+    Closes #22584.
+
+    *Yves Senn*
+
 *   Fix `rake db:structure:dump` on Postgres when multiple schemas are used.
 
     Fixes #22346.
