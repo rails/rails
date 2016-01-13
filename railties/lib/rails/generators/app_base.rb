@@ -193,9 +193,9 @@ module Rails
 
         def self.github(name, github, branch = nil, comment = nil)
           if branch
-            new(name, nil, comment, github: github, branch: branch)
+            new(name, nil, comment, git: "https://github.com/#{github}", branch: branch)
           else
-            new(name, nil, comment, github: github)
+            new(name, nil, comment, git: "https://github.com/#{github}")
           end
         end
 
