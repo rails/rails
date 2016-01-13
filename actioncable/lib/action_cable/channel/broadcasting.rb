@@ -32,10 +32,17 @@ module ActionCable
           @channel, @model = channel, model
         end
 
-        def method_missing(meth, *args)
-          message = {event_name: meth}
+        # Allow triggering of any named event, useful to be explicit or to trigger events having
+        # a name not valid as ruby method name
+        def trigger(event_name, *args)
+          message = {event_name: event_name}
           message[:args] = args if args.any?
           @channel.broadcast_to(@model, message)
+        end
+
+        # Broadcast any method called as event named like the invoked method
+        def method_missing(meth, *args)
+          trigger meth, *args
         end
       end
     end

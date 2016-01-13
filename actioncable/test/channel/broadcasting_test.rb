@@ -31,6 +31,12 @@ class ActionCable::Channel::BroadcastingTest < ActiveSupport::TestCase
     ChatChannel.broadcast_to(Room.new(1)).some_other_event
   end
 
+  test "events with invalid method names using trigger" do
+    ActionCable.stubs(:server).returns (server = mock)
+    server.expects(:broadcast).with('action_cable:channel:broadcasting_test:chat:Room#1-Campfire', event_name: 'user:connected')
+    ChatChannel.broadcast_to(Room.new(1)).trigger 'user:connected'
+  end
+
   test "broadcasting_for with an object" do
     assert_equal "Room#1-Campfire", ChatChannel.broadcasting_for(Room.new(1))
   end
