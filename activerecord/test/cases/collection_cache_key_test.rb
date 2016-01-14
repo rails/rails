@@ -79,5 +79,11 @@ module ActiveRecord
       developers = Developer.offset(20)
       assert_match(/\Adevelopers\/query-(\h+)-0\Z/, developers.cache_key)
     end
+
+    test "cache_key with a relation having selected columns" do
+      developers = Developer.select(:salary)
+
+      assert_match(/\Adevelopers\/query-(\h+)-(\d+)-(\d+)\Z/, developers.cache_key)
+    end
   end
 end
