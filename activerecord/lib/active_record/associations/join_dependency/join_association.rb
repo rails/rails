@@ -74,9 +74,8 @@ module ActiveRecord
               value = foreign_klass.base_class.name
               column = klass.columns_hash[reflection.type.to_s]
 
-              substitute = klass.connection.substitute_at(column)
               binds << Relation::QueryAttribute.new(column.name, value, klass.type_for_attribute(column.name))
-              constraint = constraint.and table[reflection.type].eq substitute
+              constraint = constraint.and table[reflection.type].eq(Arel::Nodes::BindParam.new)
             end
 
             joins << table.create_join(table, table.create_on(constraint), join_type)

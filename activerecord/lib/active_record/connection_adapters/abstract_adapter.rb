@@ -311,12 +311,6 @@ module ActiveRecord
         {}
       end
 
-      # Returns a bind substitution value given a bind +column+
-      # NOTE: The column param is currently being used by the sqlserver-adapter
-      def substitute_at(column, _unused = 0)
-        Arel::Nodes::BindParam.new
-      end
-
       # REFERENTIAL INTEGRITY ====================================
 
       # Override to turn off referential integrity while executing <tt>&block</tt>.
