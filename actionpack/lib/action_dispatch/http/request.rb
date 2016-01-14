@@ -259,7 +259,7 @@ module ActionDispatch
     end
 
     # Returns the IP address of client as a +String+,
-    # usually set by the RemoteIp middleware.
+    # usually set by the RemoteIp middleware.
     def remote_ip
       @remote_ip ||= (get_header("action_dispatch.remote_ip") || ip).to_s
     end

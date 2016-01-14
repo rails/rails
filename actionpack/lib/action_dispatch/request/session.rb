@@ -109,7 +109,7 @@ module ActionDispatch
         @delegate.values
       end
 
-      # Writes given value to given key of the session.
+      # Writes given value to given key of the session.
       def []=(key, value)
         load_for_write!
         @delegate[key.to_s] = value
@@ -149,7 +149,7 @@ module ActionDispatch
       end
 
       # Returns value of given key from the session, or raises +KeyError+
-      # if can't find given key in case of not setted dafault value.
+      # if can't find given key in case of not setted dafault value.
       # Returns default value if specified.
       #
       #   session.fetch(:foo)
