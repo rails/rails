@@ -148,8 +148,8 @@ module ActionDispatch
         @delegate.delete key.to_s
       end
 
-      # Returns value of given key from the session, or raises +KeyError+
-      # if can't find given key in case of not setted dafault value.
+      # Returns value of the given key from the session, or raises +KeyError+
+      # if can't find the given key and no default value is set.
       # Returns default value if specified.
       #
       #   session.fetch(:foo)
