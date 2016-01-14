@@ -267,7 +267,7 @@ module ActiveRecord
     # Returns whether or not this record has been changed in any way (including whether
     # any of its nested autosave associations are likewise changed)
     def changed_for_autosave?
-      changed? || marked_for_destruction? || nested_records_changed_for_autosave?
+      new_record? || changed? || marked_for_destruction? || nested_records_changed_for_autosave?
     end
 
     private
@@ -279,7 +279,7 @@ module ActiveRecord
         if new_record
           association && association.target
         elsif autosave
-          association.target.find_all {|record| record.new_record? || record.changed_for_autosave? }
+          association.target.find_all(&:changed_for_autosave?)
         else
           association.target.find_all(&:new_record?)
         end
