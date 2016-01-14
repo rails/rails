@@ -138,6 +138,13 @@ module ActionView
       end
       alias :template_exists? :exists?
 
+      ANY_KEY = Object.new
+
+      def any?(name, prefixes = [], partial = false)
+        @view_paths.exists?(name, prefixes, partial || false, {}, ANY_KEY, [])
+      end
+      alias :any_templates? :any?
+
       # Adds fallbacks to the view paths. Useful in cases when you are rendering
       # a :file.
       def with_fallbacks

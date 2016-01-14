@@ -183,7 +183,8 @@ module ActionView
 
   # An abstract class that implements a Resolver with path semantics.
   class PathResolver < Resolver #:nodoc:
-    EXTENSIONS = { :locale => ".", :formats => ".", :variants => "+", :handlers => "." }
+    EXTENSIONS = { locale: ".", formats: ".", variants: "+", handlers: "." }
+    SUBSTITUTIONS = { locale: /:locale/, formats: /:formats/, variants: /:variants/, handlers: /:handlers/ }
     DEFAULT_PATTERN = ":prefix/:action{.:locale,}{.:formats,}{+:variants,}{.:handlers,}"
 
     def initialize(pattern=nil)
@@ -222,7 +223,7 @@ module ActionView
     end
 
     def find_template_paths(query)
-      Dir[query].reject do |filename|
+      Dir[query].uniq.reject do |filename|
         File.directory?(filename) ||
           # deals with case-insensitive file systems.
           !File.fnmatch(query, filename, File::FNM_EXTGLOB)
@@ -245,8 +246,10 @@ module ActionView
       partial = escape_entry(path.partial? ? "_#{path.name}" : path.name)
       query.gsub!(/:action/, partial)
 
-      details.each do |ext, variants|
-        query.gsub!(/:#{ext}/, "{#{variants.compact.uniq.join(',')}}")
+      SUBSTITUTIONS.each do |ext, sub|
+        variants = details[ext]
+        replacement = variants ? "{#{variants.compact.uniq.join(',')}}" : "{*}".freeze
+        query.gsub!(sub, replacement)
       end
 
       File.expand_path(query, @path)
@@ -336,14 +339,20 @@ module ActionView
 
   # An Optimized resolver for Rails' most common case.
   class OptimizedFileSystemResolver < FileSystemResolver #:nodoc:
+    WILDCARD_CONSTRAINTS = { locale: "{.*,}", formats: "{.*,}", variants: "{+*,}", handlers: "{.*,}" }
+
     def build_query(path, details)
       query = escape_entry(File.join(@path, path))
+      if details.empty?
+        query += '*'
+      else
+        exts = EXTENSIONS.map do |ext, prefix|
+          constraints = details[ext]
+          constraints ? "{#{details[ext].compact.uniq.map { |e| "#{prefix}#{e}," }.join}}" : WILDCARD_CONSTRAINTS[ext]
+        end.join
 
-      exts = EXTENSIONS.map do |ext, prefix|
-        "{#{details[ext].compact.uniq.map { |e| "#{prefix}#{e}," }.join}}"
-      end.join
-
-      query + exts
+        query + exts
+      end
     end
   end
 

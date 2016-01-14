@@ -26,6 +26,29 @@ end
 class ImplicitRenderTestController < ActionController::Base
   def empty_action
   end
+
+  def json_action
+    respond_to do |format|
+      format.json {}
+    end
+  end
+
+  def some_action_1
+    request.variant = :zomg if params['zomg'] == 'zomg'
+
+    respond_to do |format|
+      format.html do |http|
+        http.zomg {}
+      end
+    end
+  end
+
+  def some_action_2
+    request.variant = :zomg if params['zomg'] == 'zomg'
+  end
+
+  def xml_action
+  end
 end
 
 class TestController < ActionController::Base
@@ -540,6 +563,48 @@ class ImplicitRenderTest < ActionController::TestCase
   def test_implicit_no_content_response
     get :empty_action
     assert_response :no_content
+  end
+
+  def test_implicit_render_template_no_respond_to
+    get :xml_action, format: 'atom'
+    assert_equal "<atom>\n</atom>\n", @response.body
+    assert_response :success
+  end
+
+  def test_implicit_render_template_unknown_format_response
+    assert_raises ActionController::UnknownFormat do
+      get :xml_action, format: 'json'
+    end
+  end
+
+  def test_implicit_unknown_format_response
+    assert_raises ActionController::UnknownFormat do
+      get :json_action, format: 'xml'
+    end
+  end
+
+  def test_implicit_known_variant_template_exists_response
+    get :some_action_1, params: { zomg: 'zomg' }
+    assert_equal "zomg\n", @response.body
+    assert_response :success
+  end
+
+  def test_implicit_unknown_variant_no_template_response
+    assert_raises ActionView::MissingTemplate do
+      get :some_action_1, params: { zomg: '123' }
+    end
+  end
+
+  def test_implicit_known_variant_template_exists_no_respond_to_response
+    get :some_action_2, params: { zomg: 'zomg' }
+    assert_equal "zomg\n", @response.body
+    assert_response :success
+  end
+
+  def test_implicit_known_variant_no_template_no_respond_to_response
+    assert_raises ActionController::UnknownFormat do
+      get :some_action_2, params: { zomg: '123' }
+    end
   end
 end
 

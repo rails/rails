@@ -206,6 +206,14 @@ class LookupContextTest < ActiveSupport::TestCase
     @lookup_context.prefixes = ["foo"]
     assert_equal ["foo"], @lookup_context.prefixes
   end
+
+  test "checks for any template with name" do
+    result = @lookup_context.any?('foo', ['foo'])
+    assert_not(result)
+
+    result = @lookup_context.any?('hello_world', ['test'])
+    assert(result)
+  end
 end
 
 class LookupContextWithFalseCaching < ActiveSupport::TestCase
