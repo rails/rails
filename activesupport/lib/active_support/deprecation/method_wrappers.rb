@@ -21,15 +21,15 @@ module ActiveSupport
       #   # => [:aaa, :bbb, :ccc]
       #
       #   Fred.aaa
-      #   # DEPRECATION WARNING: aaa is deprecated and will be removed from Rails 5.0. (called from irb_binding at (irb):10)
+      #   # DEPRECATION WARNING: aaa is deprecated and will be removed from Rails 5.1. (called from irb_binding at (irb):10)
       #   # => nil
       #
       #   Fred.bbb
-      #   # DEPRECATION WARNING: bbb is deprecated and will be removed from Rails 5.0 (use zzz instead). (called from irb_binding at (irb):11)
+      #   # DEPRECATION WARNING: bbb is deprecated and will be removed from Rails 5.1 (use zzz instead). (called from irb_binding at (irb):11)
       #   # => nil
       #
       #   Fred.ccc
-      #   # DEPRECATION WARNING: ccc is deprecated and will be removed from Rails 5.0 (use Bar#ccc instead). (called from irb_binding at (irb):12)
+      #   # DEPRECATION WARNING: ccc is deprecated and will be removed from Rails 5.1 (use Bar#ccc instead). (called from irb_binding at (irb):12)
       #   # => nil
       #
       # Passing in a custom deprecator:
