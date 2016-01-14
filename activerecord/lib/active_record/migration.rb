@@ -1170,58 +1170,45 @@ module ActiveRecord
 
     private
 
-    # Used for running a specific migration.
     def run_without_lock
       migration = migrations.detect { |m| m.version == @target_version }
       raise UnknownMigrationVersionError.new(@target_version) if migration.nil?
-      execute_migration_in_transaction(migration, @direction)
-
-      record_environment
+      unless (up? && migrated.include?(migration.version.to_i)) || (down? && !migrated.include?(migration.version.to_i))
+        begin
+          execute_migration_in_transaction(migration, @direction)
+        rescue => e
+          canceled_msg = use_transaction?(migration) ? ", this migration was canceled" : ""
+          raise StandardError, "An error has occurred#{canceled_msg}:\n\n#{e}", e.backtrace
+        end
+      end
     end
 
-    # Used for running multiple migrations up to or down to a certain value.
     def migrate_without_lock
-      if invalid_target?
+      if !target && @target_version && @target_version > 0
         raise UnknownMigrationVersionError.new(@target_version)
       end
 
       runnable.each do |migration|
-        execute_migration_in_transaction(migration, @direction)
+        Base.logger.info "Migrating to #{migration.name} (#{migration.version})" if Base.logger
+
+        begin
+          execute_migration_in_transaction(migration, @direction)
+        rescue => e
+          canceled_msg = use_transaction?(migration) ? "this and " : ""
+          raise StandardError, "An error has occurred, #{canceled_msg}all later migrations canceled:\n\n#{e}", e.backtrace
+        end
       end
-
-      record_environment
-    end
-
-    # Stores the current environment in the database.
-    def record_environment
-      return if down?
-      ActiveRecord::InternalMetadata[:environment] = ActiveRecord::Migrator.current_environment
     end
 
     def ran?(migration)
       migrated.include?(migration.version.to_i)
     end
 
-    # Return true if a valid version is not provided.
-    def invalid_target?
-      !target && @target_version && @target_version > 0
-    end
-
     def execute_migration_in_transaction(migration, direction)
-      return if down? && !migrated.include?(migration.version.to_i)
-      return if up?   &&  migrated.include?(migration.version.to_i)
-
-      Base.logger.info "Migrating to #{migration.name} (#{migration.version})" if Base.logger
-
       ddl_transaction(migration) do
         migration.migrate(direction)
         record_version_state_after_migrating(migration.version)
       end
-    rescue => e
-      msg = "An error has occurred, "
-      msg << "this and " if use_transaction?(migration)
-      msg << "all later migrations canceled:\n\n#{e}"
-      raise StandardError, msg, e.backtrace
     end
 
     def target
@@ -1251,6 +1238,7 @@ module ActiveRecord
       else
         migrated << version
         ActiveRecord::SchemaMigration.create!(version: version.to_s)
+        ActiveRecord::InternalMetadata[:environment] = ActiveRecord::Migrator.current_environment
       end
     end
 
