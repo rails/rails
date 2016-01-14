@@ -74,13 +74,9 @@ module ActionCable
           end
         end
 
-        def unsubscribe_to(channel, callback = nil)
+        def unsubscribe_to(channel, callback)
           @sync.synchronize do
-            if callback
-              @subscribers[channel].delete(callback)
-            else
-              @subscribers.delete(channel)
-            end
+            @subscribers[channel].delete(callback)
 
             if @subscribers[channel].empty?
               @queue.push([:unlisten, channel])
