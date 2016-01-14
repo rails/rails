@@ -57,7 +57,7 @@ module ActionCable
 
               pg_conn.wait_for_notify(1) do |chan, pid, message|
                 @subscribers[chan].each do |callback|
-                  callback.call(message)
+                  ::EM.next_tick { callback.call(message) }
                 end
               end
             end
