@@ -187,7 +187,7 @@ module ActiveRecord
 
             # scope :active, -> { where status: 0 }
             klass.send(:detect_enum_conflict!, name, value_method_name, true)
-            klass.scope value_method_name, -> { klass.where name => value }
+            klass.scope value_method_name, -> { where(name => value) }
           end
         end
         defined_enums[name.to_s] = enum_values
