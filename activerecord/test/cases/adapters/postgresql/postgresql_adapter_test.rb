@@ -322,11 +322,6 @@ module ActiveRecord
         end
       end
 
-      def test_substitute_at
-        bind = @connection.substitute_at(nil)
-        assert_equal Arel.sql('$1'), bind.to_sql
-      end
-
       def test_partial_index
         with_example_table do
           @connection.add_index 'ex', %w{ id number }, :name => 'partial', :where => "number > 100"
