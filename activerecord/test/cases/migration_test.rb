@@ -380,6 +380,7 @@ class MigrationTest < ActiveRecord::TestCase
     old_path        = ActiveRecord::Migrator.migrations_paths
     ActiveRecord::Migrator.migrations_paths = migrations_path
 
+    ActiveRecord::Migrator.up(migrations_path)
     assert_equal current_env, ActiveRecord::InternalMetadata[:environment]
 
     original_rails_env  = ENV["RAILS_ENV"]
