@@ -1164,6 +1164,7 @@ module ActiveRecord
       #   Adds one or more objects to the collection by setting their foreign keys to the collection's primary key.
       #   Note that this operation instantly fires update SQL without waiting for the save or update call on the
       #   parent object, unless the parent object is a new record.
+      #   This will also run validations and callbacks of associated object(s).
       # [collection.delete(object, ...)]
       #   Removes one or more objects from the collection by setting their foreign keys to +NULL+.
       #   Objects will be in addition destroyed if they're associated with <tt>dependent: :destroy</tt>,
