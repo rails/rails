@@ -4,10 +4,6 @@
 
     *Yves Senn*
 
-*   Support `:if` and `:unless` options in `has_secure_token`.
-
-    *Griffin Smith*
-
 *   Use `version` column as primary key for schema_migrations table because
     `schema_migrations` versions are guaranteed to be unique.
 

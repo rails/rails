@@ -29,18 +29,4 @@ class SecureTokenTest < ActiveRecord::TestCase
 
     assert_equal @user.token, "custom-secure-token"
   end
-
-  def test_failing_if_condition_does_not_set_token
-    @user.token_condition = false
-    @user.save
-
-    assert_nil @user.conditional_token
-  end
-
-  def test_passing_if_condition_sets_token
-    @user.token_condition = true
-    @user.save
-
-    assert_not_nil @user.conditional_token
-  end
 end
