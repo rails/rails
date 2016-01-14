@@ -49,7 +49,7 @@ module ActionCable
       include Authorization
 
       attr_reader :server, :env, :subscriptions, :logger
-      delegate :worker_pool, :pubsub, to: :server
+      delegate :worker_pool, :adapter, to: :server
 
       def initialize(server, env)
         @server, @env = server, env

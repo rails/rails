@@ -8,13 +8,15 @@ module ActionCable
         @logger = @server.logger
       end
 
-      # Storage connection instance used for broadcasting. Not intended for direct user use.
-      def broadcast
+      def broadcast(channel, payload)
         raise NotImplementedError
       end
 
-      # Storage connection instance used for pubsub.
-      def pubsub
+      def subscribe(channel, message_callback, success_callback = nil)
+        raise NotImplementedError
+      end
+
+      def unsubscribe(channel, message_callback)
         raise NotImplementedError
       end
     end
