@@ -51,6 +51,9 @@ module Rails
         class_option :skip_active_record, type: :boolean, aliases: '-O', default: false,
                                           desc: 'Skip Active Record files'
 
+        class_option :skip_puma,          type: :boolean, aliases: '-P', default: false,
+                                          desc: 'Skip Puma related files'
+
         class_option :skip_action_cable,  type: :boolean, aliases: '-C', default: false,
                                           desc: 'Skip Action Cable files'
 
@@ -113,6 +116,7 @@ module Rails
       def gemfile_entries
         [rails_gemfile_entry,
          database_gemfile_entry,
+         webserver_gemfile_entry,
          assets_gemfile_entry,
          javascript_gemfile_entry,
          jbuilder_gemfile_entry,
@@ -169,6 +173,12 @@ module Rails
         gem_name, gem_version = gem_for_database
         GemfileEntry.version gem_name, gem_version,
                             "Use #{options[:database]} as the database for Active Record"
+      end
+
+      def webserver_gemfile_entry
+        return [] if options[:skip_puma]
+        comment = 'Use Puma as the app server'
+        GemfileEntry.new('puma', nil, comment)
       end
 
       def include_all_railties?
