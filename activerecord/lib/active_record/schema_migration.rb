@@ -31,8 +31,8 @@ module ActiveRecord
 
           connection.create_table(table_name, id: false) do |t|
             t.column :version, :string, version_options
+            t.index  :version, unique: true, name: index_name
           end
-          connection.add_index table_name, :version, unique: true, name: index_name
         end
       end
 
