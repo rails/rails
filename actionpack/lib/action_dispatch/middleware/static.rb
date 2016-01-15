@@ -22,7 +22,7 @@ module ActionDispatch
 
     def match?(path)
       path = URI.parser.unescape(path)
-      return false unless path.valid_encoding?
+      return false unless valid_path?(path)
 
       paths = [path, "#{path}#{ext}", "#{path}/index#{ext}"].map { |v|
         Rack::Utils.clean_path_info v
@@ -85,6 +85,10 @@ module ActionDispatch
         else
           false
         end
+      end
+
+      def valid_path?(path)
+        path.valid_encoding? && !path.include?("\0")
       end
   end
 
