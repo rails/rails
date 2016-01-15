@@ -20,6 +20,10 @@ end
 gem 'i18n', '~> 0.6.11'
 gem 'test-unit', '~> 3.0'
 
+if RUBY_VERSION < '1.9.3'
+  gem 'rack-cache', '~> 1.2.0'
+end
+
 # This needs to be with require false to avoid
 # it being automatically loaded by sprockets
 gem 'uglifier', '>= 1.0.3', :require => false
