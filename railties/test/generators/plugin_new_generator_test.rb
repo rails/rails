@@ -121,7 +121,7 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
 
   def test_generation_runs_bundle_install_with_full_and_mountable
     result = run_generator [destination_root, "--mountable", "--full"]
-    assert_equal 1, result.scan("Your bundle is complete").size
+    assert_equal 1, result.scan("Bundle complete!").size
   end
 
   def test_skipping_javascripts_without_mountable_option
@@ -263,7 +263,7 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
     assert_file "spec/dummy/config/application.rb"
     assert_no_file "test"
   end
-  
+
   def test_ensure_that_gitignore_can_be_generated_from_a_template_for_dummy_path
     FileUtils.cd(Rails.root)
     run_generator([destination_root, "--dummy_path", "spec/dummy" "--skip-test-unit"])
@@ -329,4 +329,3 @@ protected
     silence(:stdout){ generator.send(*args, &block) }
   end
 end
-
