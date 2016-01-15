@@ -780,10 +780,12 @@ class FileStoreTest < ActiveSupport::TestCase
   include AutoloadingCacheBehavior
 
   def test_clear
-    filepath = File.join(cache_dir, ".gitkeep")
-    FileUtils.touch(filepath)
+    gitkeep = File.join(cache_dir, ".gitkeep")
+    keep = File.join(cache_dir, ".keep")
+    FileUtils.touch([gitkeep, keep])
     @cache.clear
-    assert File.exist?(filepath)
+    assert File.exist?(gitkeep)
+    assert File.exist?(keep)
   end
 
   def test_clear_without_cache_dir
