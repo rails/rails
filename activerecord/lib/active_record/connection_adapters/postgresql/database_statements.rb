@@ -72,16 +72,6 @@ module ActiveRecord
           end
         end
 
-        # Executes an INSERT query and returns the new record's ID
-        def insert_sql(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil, binds = []) # :nodoc:
-          unless pk
-            # Extract the table from the insert sql. Yuck.
-            table_ref = extract_table_ref_from_insert_sql(sql)
-            pk = primary_key(table_ref) if table_ref
-          end
-          super
-        end
-
         # The internal PostgreSQL identifier of the money data type.
         MONEY_COLUMN_TYPE_OID = 790 #:nodoc:
         # The internal PostgreSQL identifier of the BYTEA data type.
@@ -162,12 +152,18 @@ module ActiveRecord
         end
         alias :exec_update :exec_delete
 
-        def sql_for_insert(sql, pk, id_value, sequence_name, binds)
+        def sql_for_insert(sql, pk, id_value, sequence_name, binds) # :nodoc:
+          unless pk
+            # Extract the table from the insert sql. Yuck.
+            table_ref = extract_table_ref_from_insert_sql(sql)
+            pk = primary_key(table_ref) if table_ref
+          end
+
           if pk && use_insert_returning?
             sql = "#{sql} RETURNING #{quote_column_name(pk)}"
           end
 
-          [sql, binds]
+          super
         end
 
         def exec_insert(sql, name, binds, pk = nil, sequence_name = nil)
