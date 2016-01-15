@@ -27,13 +27,14 @@ module ActionCable
 
       # The EventMachine Redis instance used by the pubsub adapter.
       def hi_redis_conn
-        @redis ||= EM::Hiredis.connect(@server.config.config_opts[:url]).tap do |redis|
+        @hi_redis_conn ||= EM::Hiredis.connect(@server.config.cable[:url]).tap do |redis|
           redis.on(:reconnect_failed) do
             @logger.info "[ActionCable] Redis reconnect failed."
-            # logger.info "[ActionCable] Redis reconnected. Closing all the open connections."
-            # @connections.map &:close
           end
         end
+      end
+      def redis_conn
+        @redis_conn ||= ::Redis.new(@server.config.cable)
       end
     end
   end

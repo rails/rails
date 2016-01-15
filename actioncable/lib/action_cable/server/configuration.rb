@@ -7,7 +7,7 @@ module ActionCable
       attr_accessor :connection_class, :worker_pool_size
       attr_accessor :channels_path
       attr_accessor :disable_request_forgery_protection, :allowed_request_origins
-      attr_accessor :config_opts, :url
+      attr_accessor :cable, :url
 
       def initialize
         @log_tags = []
@@ -34,7 +34,7 @@ module ActionCable
       # If the adapter cannot be found, this will default to the Redis adapter
       def storage_adapter
         # Defaults to redis if no adapter is set
-        adapter = config_opts.fetch('adapter') { 'redis' }
+        adapter = cable.fetch('adapter') { 'redis' }
         "ActionCable::StorageAdapter::#{adapter.camelize}".constantize
       end
     end
