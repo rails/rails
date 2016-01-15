@@ -73,18 +73,17 @@ class ActionCable.Connection
   events:
     message: (event) ->
       {identifier, message, type} = JSON.parse(event.data)
+      ping = identifier == ActionCable.INTERNAL.identifiers.ping
 
       switch type
         when message_types.confirmation
-          notification_type = "connected"
-          @consumer.subscriptions.notify(identifier, notification_type)
-          @events.dispatchEvent(identifier, notification_type)
+          @consumer.subscriptions.notify(identifier, "connected")
+          @dispatchEvent("connected", message, JSON.parse(identifier).channel)
         when message_types.rejection
           @consumer.subscriptions.reject(identifier)
         else
-          notification_type = "received"
-          @consumer.subscriptions.notify(identifier, notification_type, message)
-          @events.dispatchEvent(identifier, notification_type, message)
+          @consumer.subscriptions.notify(identifier, "received", message)
+          @dispatchEvent("received", message, JSON.parse(identifier).channel) unless ping
 
     open: ->
       ActionCable.log("WebSocket onopen event")
@@ -99,17 +98,14 @@ class ActionCable.Connection
       ActionCable.log("WebSocket onerror event")
       @disconnect()
 
-    dispatchEvent: (identifier, type, message) ->
-      unless identifier == "_ping"
-        event = document.createEvent('Event')
-        event.initEvent("cable:#{type}", true, false)
-        channel = JSON.parse(identifier).channel
-        event.cable = {data: message, identifier: channel}
-        document.dispatchEvent(event)
+  dispatchEvent: (eventType, message = null, channel = null) ->
+      event = document.createEvent('Event')
+      event.initEvent("actioncable:#{eventType}", true, false)
+      event.data = {message, channel}
+      document.dispatchEvent(event)
 
   disconnect: ->
     return if @disconnected
     @disconnected = true
-    notification_type = "disconnected"
-    @consumer.subscriptions.notifyAll(notification_type)
-    @events.dispatchEvent("{\"channel\": \"All\"}", notification_type)
+    @consumer.subscriptions.notifyAll("disconnected")
+    @dispatchEvent("disconnected")
