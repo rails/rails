@@ -83,7 +83,8 @@ module ActiveRecord
       # Executes insert +sql+ statement in the context of this connection using
       # +binds+ as the bind substitutes. +name+ is logged along with
       # the executed +sql+ statement.
-      def exec_insert(sql, name, binds, pk = nil, sequence_name = nil)
+      def exec_insert(sql, name, binds, pk = nil, id_value = nil, sequence_name = nil)
+        sql, binds = sql_for_insert(sql, pk, id_value, sequence_name, binds)
         exec_query(sql, name, binds)
       end
 
@@ -106,7 +107,7 @@ module ActiveRecord
         exec_query(sql, name, binds)
       end
 
-      # Returns the last auto-generated ID from the affected table.
+      # Executes an INSERT query and returns the new record's ID
       #
       # +id_value+ will be returned unless the value is nil, in
       # which case the database will attempt to calculate the last inserted
@@ -115,9 +116,11 @@ module ActiveRecord
       # If the next id was calculated in advance (as in Oracle), it should be
       # passed in as +id_value+.
       def insert(arel, name = nil, pk = nil, id_value = nil, sequence_name = nil, binds = [])
-        insert_sql(to_sql(arel, binds), name, pk, id_value, sequence_name, binds)
+        value = exec_insert(to_sql(arel, binds), name, binds, pk, id_value, sequence_name)
+        id_value || last_inserted_id(value)
       end
       alias create insert
+      alias insert_sql insert
 
       # Executes the update statement and returns the number of rows affected.
       def update(arel, name = nil, binds = [])
@@ -352,13 +355,6 @@ module ActiveRecord
         update.where key.in(subselect)
       end
       alias join_to_delete join_to_update
-
-      # Executes an INSERT query and returns the new record's ID
-      def insert_sql(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil, binds = [])
-        sql, binds = sql_for_insert(sql, pk, id_value, sequence_name, binds)
-        value = exec_insert(sql, name, binds, pk, sequence_name)
-        id_value || last_inserted_id(value)
-      end
 
       protected
 
