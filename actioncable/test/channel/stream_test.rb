@@ -20,10 +20,10 @@ class ActionCable::Channel::StreamTest < ActionCable::TestCase
   test "streaming start and stop" do
     run_in_eventmachine do
       connection = TestConnection.new
-      connection.expects(:pubsub).returns mock().tap { |m| m.expects(:subscribe).with("test_room_1").returns stub_everything(:pubsub) }
+      connection.expects(:adapter).returns mock().tap { |m| m.expects(:subscribe).with("test_room_1", kind_of(Proc), kind_of(Proc)).returns stub_everything(:adapter) }
       channel = ChatChannel.new connection, "{id: 1}", { id: 1 }
 
-      connection.expects(:pubsub).returns mock().tap { |m| m.expects(:unsubscribe_proc) }
+      connection.expects(:adapter).returns mock().tap { |m| m.expects(:unsubscribe) }
       channel.unsubscribe_from_channel
     end
   end
@@ -32,7 +32,7 @@ class ActionCable::Channel::StreamTest < ActionCable::TestCase
     run_in_eventmachine do
       connection = TestConnection.new
       EM.next_tick do
-        connection.expects(:pubsub).returns mock().tap { |m| m.expects(:subscribe).with("action_cable:channel:stream_test:chat:Room#1-Campfire").returns stub_everything(:pubsub) }
+        connection.expects(:adapter).returns mock().tap { |m| m.expects(:subscribe).with("action_cable:channel:stream_test:chat:Room#1-Campfire", kind_of(Proc), kind_of(Proc)).returns stub_everything(:adapter) }
       end
 
       channel = ChatChannel.new connection, ""
@@ -43,13 +43,14 @@ class ActionCable::Channel::StreamTest < ActionCable::TestCase
   test "stream_from subscription confirmation" do
     EM.run do
       connection = TestConnection.new
-      connection.expects(:pubsub).returns EM::Hiredis.connect.pubsub
 
       ChatChannel.new connection, "{id: 1}", { id: 1 }
       assert_nil connection.last_transmission
 
       EM::Timer.new(0.1) do
         expected = ActiveSupport::JSON.encode "identifier" => "{id: 1}", "type" => "confirm_subscription"
+        connection.transmit(expected)
+
         assert_equal expected, connection.last_transmission, "Did not receive subscription confirmation within 0.1s"
 
         EM.run_deferred_callbacks

@@ -9,56 +9,65 @@ class ActionCable::StorageAdapter::BaseTest < ActionCable::TestCase
 
   setup do
     @server = TestServer.new
+    @server.config.storage_adapter = BrokenAdapter
     @server.config.allowed_request_origins = %w( http://rubyonrails.com )
   end
 
   test "#broadcast returns NotImplementedError by default" do
     assert_raises NotImplementedError do
-      BrokenAdapter.new(@server).broadcast
+      BrokenAdapter.new(@server).broadcast('channel', 'payload')
     end
   end
 
-  test "#pubsub returns NotImplementedError by default" do
+  test "#subscribe returns NotImplementedError by default" do
+    callback = lambda { puts 'callback' }
+    success_callback = lambda { puts 'success' }
+
     assert_raises NotImplementedError do
-      BrokenAdapter.new(@server).pubsub
+      BrokenAdapter.new(@server).subscribe('channel', callback, success_callback)
+    end
+  end
+
+  test "#unsubscribe returns NotImplementedError by default" do
+    callback = lambda { puts 'callback' }
+
+    assert_raises NotImplementedError do
+      BrokenAdapter.new(@server).unsubscribe('channel', callback)
     end
   end
 
   # TEST METHODS THAT ARE REQUIRED OF THE ADAPTER'S BACKEND STORAGE OBJECT
 
-  class SuccessAdapterBackend
-    def publish(channel, message)
-    end
+  test "#broadcast is implemented" do
+    broadcast = SuccessAdapter.new(@server).broadcast('channel', 'payload')
 
-    def subscribe(*channels, &block)
-    end
+    assert_respond_to(SuccessAdapter.new(@server), :broadcast)
 
-    def unsubscribe(*channels, &block)
-    end
-  end
-
-  class SuccessAdapter < ActionCable::StorageAdapter::Base
-    def broadcast
-      SuccessAdapterBackend.new
-    end
-
-    def pubsub
-      SuccessAdapterBackend.new
+    assert_nothing_raised NotImplementedError do
+      broadcast
     end
   end
 
-  test "#broadcast responds to #publish" do
-    broadcast = SuccessAdapter.new(@server).broadcast
-    assert_respond_to(broadcast, :publish)
+  test "#subscribe is implemented" do
+    callback = lambda { puts 'callback' }
+    success_callback = lambda { puts 'success' }
+    subscribe = SuccessAdapter.new(@server).subscribe('channel', callback, success_callback)
+
+    assert_respond_to(SuccessAdapter.new(@server), :subscribe)
+
+    assert_nothing_raised NotImplementedError do
+      subscribe
+    end
   end
 
-  test "#pubsub responds to #subscribe" do
-    pubsub = SuccessAdapter.new(@server).pubsub
-    assert_respond_to(pubsub, :subscribe)
-  end
+  test "#unsubscribe is implemented" do
+    callback = lambda { puts 'callback' }
+    unsubscribe = SuccessAdapter.new(@server).unsubscribe('channel', callback)
 
-  test "#pubsub responds to #unsubscribe" do
-    pubsub = SuccessAdapter.new(@server).pubsub
-    assert_respond_to(pubsub, :unsubscribe)
+    assert_respond_to(SuccessAdapter.new(@server), :unsubscribe)
+
+    assert_nothing_raised NotImplementedError do
+      unsubscribe
+    end
   end
 end

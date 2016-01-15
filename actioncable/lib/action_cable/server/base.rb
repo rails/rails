@@ -45,7 +45,7 @@ module ActionCable
         end
       end
 
-      # The pubsub adapter used for all streams/broadcasting.
+      # Adapter used for all streams/broadcasting.
       def adapter
         @adapter ||= config.storage_adapter.new(self)
       end
