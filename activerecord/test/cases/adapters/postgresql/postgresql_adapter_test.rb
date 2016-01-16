@@ -139,8 +139,8 @@ module ActiveRecord
 
       def test_sql_for_insert_with_returning_disabled
         connection = connection_without_insert_returning
-        result = connection.sql_for_insert('sql', nil, nil, nil, 'binds')
-        assert_equal ['sql', 'binds'], result
+        sql, binds = connection.sql_for_insert('sql', nil, nil, nil, 'binds')
+        assert_equal ['sql', 'binds'], [sql, binds]
       end
 
       def test_serial_sequence
