@@ -42,4 +42,3 @@ module ActionCable
     end
   end
 end
-
