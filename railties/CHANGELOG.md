@@ -6,7 +6,7 @@
 
     Specify which logs to clear when using the `rake log:clear` task, e.g. `rake log:clear LOGS=test,staging`
 
-    Clear all logs from log/*.log e.g. `rake log:clear ENV['LOGS']=all`
+    Clear all logs from log/*.log e.g. `rake log:clear LOGS=all`
 
     By default `rake log:clear` clears standard environment log files i.e. 'development,test,production'
 
