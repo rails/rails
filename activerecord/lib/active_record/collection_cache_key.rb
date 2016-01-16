@@ -7,7 +7,9 @@ module ActiveRecord
 
       if collection.loaded?
         size = collection.size
-        timestamp = collection.max_by(&timestamp_column).public_send(timestamp_column)
+        if size > 0
+          timestamp = collection.max_by(&timestamp_column).public_send(timestamp_column)
+        end
       else
         column_type = type_for_attribute(timestamp_column.to_s)
         column = "#{connection.quote_table_name(collection.table_name)}.#{connection.quote_column_name(timestamp_column)}"

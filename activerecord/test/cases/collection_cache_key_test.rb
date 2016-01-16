@@ -66,5 +66,13 @@ module ActiveRecord
       developers = projects(:active_record).developers
       assert_match(/\Adevelopers\/query-(\h+)-(\d+)-(\d+)\Z/, developers.cache_key)
     end
+
+    test "cache_key for loaded collection with zero size" do
+      Comment.delete_all
+      posts = Post.includes(:comments)
+      empty_loaded_collection = posts.first.comments
+
+      assert_match(/\Acomments\/query-(\h+)-0\Z/, empty_loaded_collection.cache_key)
+    end
   end
 end
