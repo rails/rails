@@ -103,7 +103,7 @@ module ActionCable
 
       # Invoke a method on the connection asynchronously through the pool of thread workers.
       def send_async(method, *arguments)
-        worker_pool.async.invoke(self, method, *arguments)
+        worker_pool.async_invoke(self, method, *arguments)
       end
 
       # Return a basic hash of statistics for the connection keyed with `identifier`, `started_at`, and `subscriptions`.

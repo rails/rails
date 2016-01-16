@@ -14,7 +14,6 @@ class ActionCable::Connection::BaseTest < ActionCable::TestCase
     end
 
     def send_async(method, *args)
-      # Bypass Celluloid
       send method, *args
     end
   end
