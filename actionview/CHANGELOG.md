@@ -1,3 +1,9 @@
+*   Create a new `ActiveSupport::SafeBuffer` instance when `content_for` is flushed.
+
+    Fixes #19890
+
+    *Yoong Kang Lim*
+
 *   Fix `collection_radio_buttons` hidden_field name and make it appear
     before the actual input radio tags to make the real value override
     the hidden when passed.

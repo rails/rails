@@ -15,7 +15,7 @@ module ActionView
 
     # Called by each renderer object to set the layout contents.
     def set(key, value)
-      @content[key] = value
+      @content[key] = ActiveSupport::SafeBuffer.new(value)
     end
 
     # Called by content_for

@@ -148,6 +148,19 @@ class CaptureHelperTest < ActionView::TestCase
     assert ! content_for?(:something_else)
   end
 
+  def test_content_for_should_be_html_safe_after_flush_empty
+    assert ! content_for?(:title)
+    content_for :title do
+      content_tag(:p, 'title')
+    end
+    assert content_for(:title).html_safe?
+    content_for :title, "", flush: true
+    content_for(:title) do
+      content_tag(:p, 'title')
+    end
+    assert content_for(:title).html_safe?
+  end
+
   def test_provide
     assert !content_for?(:title)
     provide :title, "hi"
