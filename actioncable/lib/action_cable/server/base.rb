@@ -47,7 +47,7 @@ module ActionCable
 
       # Adapter used for all streams/broadcasting.
       def adapter
-        @adapter ||= config.storage_adapter.new(self)
+        @adapter ||= config.subscription_adapter.new(self)
       end
 
       # All the identifiers applied to the connection class associated with this server.

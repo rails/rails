@@ -1,4 +1,4 @@
-class SuccessAdapter < ActionCable::StorageAdapter::Base
+class SuccessAdapter < ActionCable::SubscriptionAdapter::Base
   def broadcast(channel, payload)
   end
 

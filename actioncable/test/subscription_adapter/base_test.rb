@@ -1,15 +1,15 @@
 require 'test_helper'
 require 'stubs/test_server'
 
-class ActionCable::StorageAdapter::BaseTest < ActionCable::TestCase
+class ActionCable::SubscriptionAdapter::BaseTest < ActionCable::TestCase
   ## TEST THAT ERRORS ARE RETURNED FOR INHERITORS THAT DON'T OVERRIDE METHODS
 
-  class BrokenAdapter < ActionCable::StorageAdapter::Base
+  class BrokenAdapter < ActionCable::SubscriptionAdapter::Base
   end
 
   setup do
     @server = TestServer.new
-    @server.config.storage_adapter = BrokenAdapter
+    @server.config.subscription_adapter = BrokenAdapter
     @server.config.allowed_request_origins = %w( http://rubyonrails.com )
   end
 

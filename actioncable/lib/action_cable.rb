@@ -47,5 +47,5 @@ module ActionCable
   autoload :Connection
   autoload :Channel
   autoload :RemoteConnections
-  autoload :StorageAdapter
+  autoload :SubscriptionAdapter
 end

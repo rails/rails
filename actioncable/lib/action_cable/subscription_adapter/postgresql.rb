@@ -7,7 +7,7 @@ rescue Gem::LoadError => e
 end
 
 module ActionCable
-  module StorageAdapter
+  module SubscriptionAdapter
     class PostgreSQL < Base
       # The storage instance used for broadcasting. Not intended for direct user use.
       def broadcast(channel, payload)

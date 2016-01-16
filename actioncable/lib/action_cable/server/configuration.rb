@@ -30,12 +30,14 @@ module ActionCable
         end
       end
 
-      # Returns constant of storage adapter specified in config/cable.yml
+      # Returns constant of subscription adapter specified in config/cable.yml
       # If the adapter cannot be found, this will default to the Redis adapter
-      def storage_adapter
+      def subscription_adapter
         # Defaults to redis if no adapter is set
         adapter = cable.fetch('adapter') { 'redis' }
-        "ActionCable::StorageAdapter::#{adapter.camelize}".constantize
+        adapter.camelize
+        adapter = 'PostgreSQL' if adapter == 'Postgresql'
+        "ActionCable::SubscriptionAdapter::#{adapter}".constantize
       end
     end
   end

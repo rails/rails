@@ -6,7 +6,7 @@ rescue Gem::LoadError => e
 end
 
 module ActionCable
-  module StorageAdapter
+  module SubscriptionAdapter
     class Redis < Base
       def broadcast(channel, payload)
         redis_conn.publish(channel, payload)

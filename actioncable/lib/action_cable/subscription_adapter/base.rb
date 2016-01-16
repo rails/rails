@@ -1,5 +1,5 @@
 module ActionCable
-  module StorageAdapter
+  module SubscriptionAdapter
     class Base
       attr_reader :logger, :server
 
