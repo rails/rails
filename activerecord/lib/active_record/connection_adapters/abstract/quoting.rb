@@ -102,9 +102,13 @@ module ActiveRecord
         quote_table_name("#{table}.#{attr}")
       end
 
-      def quote_default_expression(value, column) #:nodoc:
-        value = lookup_cast_type(column.sql_type).serialize(value)
-        quote(value)
+      def quote_default_expression(value, column) # :nodoc:
+        if value.is_a?(Proc)
+          value.call
+        else
+          value = lookup_cast_type(column.sql_type).serialize(value)
+          quote(value)
+        end
       end
 
       def quoted_true

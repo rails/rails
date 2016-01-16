@@ -11,7 +11,23 @@ ActiveRecord::Schema.define do
     t.uuid :uuid_parent_id
   end
 
-  %w(postgresql_times postgresql_oids defaults postgresql_timestamp_with_zones
+  create_table :defaults, force: true do |t|
+    t.date :modified_date, default: -> { 'CURRENT_DATE' }
+    t.date :modified_date_function, default: -> { 'now()' }
+    t.date :fixed_date, default: '2004-01-01'
+    t.datetime :modified_time, default: -> { 'CURRENT_TIMESTAMP' }
+    t.datetime :modified_time_function, default: -> { 'now()' }
+    t.datetime :fixed_time, default: '2004-01-01 00:00:00.000000-00'
+    t.column :char1, 'char(1)', default: 'Y'
+    t.string :char2, limit: 50, default: 'a varchar field'
+    t.text :char3, default: 'a text field'
+    t.bigint :bigint_default, default: -> { '0::bigint' }
+    t.text :multiline_default, default: '--- []
+
+'
+  end
+
+  %w(postgresql_times postgresql_oids postgresql_timestamp_with_zones
       postgresql_partitioned_table postgresql_partitioned_table_parent).each do |table_name|
     drop_table table_name, if_exists: true
   end
@@ -26,25 +42,6 @@ ActiveRecord::Schema.define do
   %w(accounts_id_seq developers_id_seq projects_id_seq topics_id_seq customers_id_seq orders_id_seq).each do |seq_name|
     execute "SELECT setval('#{seq_name}', 100)"
   end
-
-  execute <<_SQL
-    CREATE TABLE defaults (
-    id serial primary key,
-    modified_date date default CURRENT_DATE,
-    modified_date_function date default now(),
-    fixed_date date default '2004-01-01',
-    modified_time timestamp default CURRENT_TIMESTAMP,
-    modified_time_function timestamp default now(),
-    fixed_time timestamp default '2004-01-01 00:00:00.000000-00',
-    char1 char(1) default 'Y',
-    char2 character varying(50) default 'a varchar field',
-    char3 text default 'a text field',
-    bigint_default bigint default 0::bigint,
-    multiline_default text DEFAULT '--- []
-
-'::text
-);
-_SQL
 
   execute <<_SQL
   CREATE TABLE postgresql_times (

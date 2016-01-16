@@ -76,9 +76,15 @@ module ActiveRecord
       def schema_default(column)
         type = lookup_cast_type_from_column(column)
         default = type.deserialize(column.default)
-        unless default.nil?
+        if default.nil?
+          schema_expression(column)
+        else
           type.type_cast_for_schema(default)
         end
+      end
+
+      def schema_expression(column)
+        "-> { #{column.default_function.inspect} }" if column.default_function
       end
 
       def schema_collation(column)

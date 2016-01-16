@@ -9,7 +9,7 @@ module ActiveRecord
             spec[:id] = ':bigserial'
           elsif column.type == :uuid
             spec[:id] = ':uuid'
-            spec[:default] = column.default_function.inspect
+            spec[:default] = schema_default(column) || 'nil'
           else
             spec[:id] = column.type.inspect
             spec.merge!(prepare_column_options(column).delete_if { |key, _| [:name, :type, :null].include?(key) })
@@ -41,12 +41,8 @@ module ActiveRecord
           end
         end
 
-        def schema_default(column)
-          if column.default_function
-            column.default_function.inspect unless column.serial?
-          else
-            super
-          end
+        def schema_expression(column)
+          super unless column.serial?
         end
       end
     end
