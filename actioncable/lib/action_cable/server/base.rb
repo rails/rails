@@ -36,7 +36,7 @@ module ActionCable
 
       # The thread worker pool for handling all the connection work on this server. Default size is set by config.worker_pool_size.
       def worker_pool
-        @worker_pool ||= ActionCable::Server::Worker.pool(size: config.worker_pool_size)
+        @worker_pool ||= ActionCable::Server::Worker.new(max_size: config.worker_pool_size)
       end
 
       # Requires and returns a hash of all the channel class constants keyed by name.
