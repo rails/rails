@@ -94,6 +94,18 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
     assert_equal({"artist"=>"journey", "song"=>"faithfully"}, hash)
   end
 
+  def test_symbols_with_dashes_reversed
+    rs.draw do
+      get ':artist(/omg-:song)', :to => lambda { |env|
+        resp = ActiveSupport::JSON.encode ActionDispatch::Request.new(env).path_parameters
+        [200, {}, [resp]]
+      }
+    end
+
+    hash = ActiveSupport::JSON.decode get(URI('http://example.org/journey/omg-faithfully'))
+    assert_equal({"artist"=>"journey", "song"=>"faithfully"}, hash)
+  end
+
   def test_id_with_dash
     rs.draw do
       get '/journey/:id', :to => lambda { |env|

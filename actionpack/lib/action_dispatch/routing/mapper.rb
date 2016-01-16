@@ -187,7 +187,7 @@ module ActionDispatch
           # Get all the symbol nodes followed by literals that are not the
           # dummy node.
           symbols = ast.find_all { |n|
-            n.cat? && n.left.symbol? && n.right.cat? && n.right.left.literal?
+            n.cat? && n.left.symbol? && n.right.cat?
           }.map(&:left)
 
           # Get all the symbol nodes preceded by literals.
