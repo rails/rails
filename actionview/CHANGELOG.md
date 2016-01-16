@@ -1,3 +1,9 @@
+*   Create a new `ActiveSupport::SafeBuffer` instance when `content_for` is flushed.
+
+    Fixes #19890
+
+    *Yoong Kang Lim*
+
 *   Respect value of `:object` if `:object` is false when rendering.
 
     Fixes #22260.
