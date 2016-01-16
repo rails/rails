@@ -48,7 +48,7 @@ module ActionView
         type_klass[type]
       end
 
-      def symbols
+      def self.symbols
         type_klass::SET.symbols
       end
     end
