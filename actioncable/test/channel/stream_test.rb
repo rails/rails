@@ -20,10 +20,10 @@ class ActionCable::Channel::StreamTest < ActionCable::TestCase
   test "streaming start and stop" do
     run_in_eventmachine do
       connection = TestConnection.new
-      connection.expects(:adapter).returns mock().tap { |m| m.expects(:subscribe).with("test_room_1", kind_of(Proc), kind_of(Proc)).returns stub_everything(:adapter) }
+      connection.expects(:pubsub).returns mock().tap { |m| m.expects(:subscribe).with("test_room_1", kind_of(Proc), kind_of(Proc)).returns stub_everything(:pubsub) }
       channel = ChatChannel.new connection, "{id: 1}", { id: 1 }
 
-      connection.expects(:adapter).returns mock().tap { |m| m.expects(:unsubscribe) }
+      connection.expects(:pubsub).returns mock().tap { |m| m.expects(:unsubscribe) }
       channel.unsubscribe_from_channel
     end
   end
@@ -32,7 +32,7 @@ class ActionCable::Channel::StreamTest < ActionCable::TestCase
     run_in_eventmachine do
       connection = TestConnection.new
       EM.next_tick do
-        connection.expects(:adapter).returns mock().tap { |m| m.expects(:subscribe).with("action_cable:channel:stream_test:chat:Room#1-Campfire", kind_of(Proc), kind_of(Proc)).returns stub_everything(:adapter) }
+        connection.expects(:pubsub).returns mock().tap { |m| m.expects(:subscribe).with("action_cable:channel:stream_test:chat:Room#1-Campfire", kind_of(Proc), kind_of(Proc)).returns stub_everything(:pubsub) }
       end
 
       channel = ChatChannel.new connection, ""

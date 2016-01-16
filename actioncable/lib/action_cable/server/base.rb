@@ -46,8 +46,8 @@ module ActionCable
       end
 
       # Adapter used for all streams/broadcasting.
-      def adapter
-        @adapter ||= config.subscription_adapter.new(self)
+      def pubsub
+        @pubsub ||= config.pubsub_adapter.new(self)
       end
 
       # All the identifiers applied to the connection class associated with this server.

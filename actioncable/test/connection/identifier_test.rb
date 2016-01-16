@@ -23,12 +23,12 @@ class ActionCable::Connection::IdentifierTest < ActionCable::TestCase
 
   test "should subscribe to internal channel on open and unsubscribe on close" do
     run_in_eventmachine do
-      adapter = mock('adapter')
-      adapter.expects(:subscribe).with('action_cable/User#lifo', kind_of(Proc))
-      adapter.expects(:unsubscribe).with('action_cable/User#lifo', kind_of(Proc))
+      pubsub = mock('pubsub_adapter')
+      pubsub.expects(:subscribe).with('action_cable/User#lifo', kind_of(Proc))
+      pubsub.expects(:unsubscribe).with('action_cable/User#lifo', kind_of(Proc))
 
       server = TestServer.new
-      server.stubs(:adapter).returns(adapter)
+      server.stubs(:pubsub).returns(pubsub)
 
       open_connection server: server
       close_connection

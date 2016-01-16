@@ -10,7 +10,7 @@ class TestServer
     @config = OpenStruct.new(log_tags: [], subscription_adapter: SuccessAdapter)
   end
 
-  def adapter
+  def pubsub
     @config.subscription_adapter.new(self)
   end
 

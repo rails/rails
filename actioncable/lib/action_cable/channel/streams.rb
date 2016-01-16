@@ -76,7 +76,7 @@ module ActionCable
         streams << [ broadcasting, callback ]
 
         EM.next_tick do
-          adapter.subscribe(broadcasting, callback, lambda do |reply|
+          pubsub.subscribe(broadcasting, callback, lambda do |reply|
             transmit_subscription_confirmation
             logger.info "#{self.class.name} is streaming from #{broadcasting}"
           end)
@@ -92,13 +92,13 @@ module ActionCable
 
       def stop_all_streams
         streams.each do |broadcasting, callback|
-          adapter.unsubscribe broadcasting, callback
+          pubsub.unsubscribe broadcasting, callback
           logger.info "#{self.class.name} stopped streaming from #{broadcasting}"
         end.clear
       end
 
       private
-        delegate :adapter, to: :connection
+        delegate :pubsub, to: :connection
 
         def streams
           @_streams ||= []

@@ -32,6 +32,7 @@ PATH
     actioncable (5.0.0.beta1)
       actionpack (= 5.0.0.beta1)
       coffee-rails (~> 4.1.0)
+      eventmachine (~> 1.0)
       faye-websocket (~> 0.10.0)
       websocket-driver (~> 0.6.1)
     actionmailer (5.0.0.beta1)

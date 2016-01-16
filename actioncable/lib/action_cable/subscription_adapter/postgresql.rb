@@ -1,10 +1,6 @@
+gem 'pg', '~> 0.18'
+require 'pg'
 require 'thread'
-
-begin
-  require 'pg'
-rescue Gem::LoadError => e
-  raise Gem::LoadError, "You are trying to use the PostgreSQL ActionCable adapter, but do not have the proper gems installed. Add `gem 'pg'` to your Gemfile (and ensure its version is at the minimum required by ActionCable)."
-end
 
 module ActionCable
   module SubscriptionAdapter
