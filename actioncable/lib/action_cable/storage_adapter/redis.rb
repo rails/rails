@@ -1,5 +1,9 @@
-require 'em-hiredis'
-require 'redis'
+begin
+  require 'em-hiredis'
+  require 'redis'
+rescue Gem::LoadError => e
+  raise Gem::LoadError, "You are trying to use the Redis ActionCable adapter, but do not have the proper gems installed. Add `gem 'em-hiredis'` and `gem 'redis'` to your Gemfile (and ensure its version is at the minimum required by ActionCable)."
+end
 
 module ActionCable
   module StorageAdapter

@@ -1,7 +1,7 @@
 module ActionCable
   module StorageAdapter
     autoload :Base, 'action_cable/storage_adapter/base'
-    autoload :Postgres, 'action_cable/storage_adapter/postgres'
+    autoload :PostgreSQL, 'action_cable/storage_adapter/postgresql'
     autoload :Redis, 'action_cable/storage_adapter/redis'
   end
 end

@@ -1,8 +1,14 @@
 require 'thread'
 
+begin
+  require 'pg'
+rescue Gem::LoadError => e
+  raise Gem::LoadError, "You are trying to use the PostgreSQL ActionCable adapter, but do not have the proper gems installed. Add `gem 'pg'` to your Gemfile (and ensure its version is at the minimum required by ActionCable)."
+end
+
 module ActionCable
   module StorageAdapter
-    class Postgres < Base
+    class PostgreSQL < Base
       # The storage instance used for broadcasting. Not intended for direct user use.
       def broadcast(channel, payload)
         with_connection do |pg_conn|
