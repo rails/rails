@@ -395,6 +395,16 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_file "config/cable.yml"
     assert_no_file "app/assets/javascripts/cable.coffee"
     assert_no_file "app/channels"
+    assert_file "Gemfile" do |content|
+      assert_no_match(/em-hiredis/, content)
+      assert_no_match(/redis/, content)
+    end
+  end
+
+  def test_action_cable_redis_gems
+    run_generator
+    assert_gem 'em-hiredis'
+    assert_gem 'redis'
   end
 
   def test_inclusion_of_javascript_runtime
