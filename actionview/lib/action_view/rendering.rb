@@ -84,7 +84,7 @@ module ActionView
     end
 
     def rendered_format
-      Mime[lookup_context.rendered_format]
+      Template::Types[lookup_context.rendered_format]
     end
 
     private
