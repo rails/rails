@@ -5,7 +5,7 @@ module ActionView
   class Template
     class Types
       class Type
-        SET = Set.new([ :html, :text, :js, :css, :xml, :json ])
+        SET = Struct.new(:symbols).new(Set.new([ :html, :text, :js, :css, :xml, :json ]))
 
         def self.[](type)
           if type.is_a?(self)
@@ -46,6 +46,10 @@ module ActionView
 
       def self.[](type)
         type_klass[type]
+      end
+
+      def symbols
+        type_klass::SET.symbols
       end
     end
   end
