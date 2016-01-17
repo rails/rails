@@ -5,13 +5,12 @@ module ActionView
   class Template
     class Types
       class Type
-        cattr_accessor :types
-        self.types = Set.new([ :html, :text, :js, :css, :xml, :json ])
+        SET = Set.new([ :html, :text, :js, :css, :xml, :json ])
 
         def self.[](type)
           return type if type.is_a?(self)
 
-          if type.is_a?(Symbol) || types.member?(type.to_s)
+          if type.is_a?(Symbol) || SET.member?(type.to_s)
             new(type)
           end
         end
