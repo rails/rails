@@ -12,7 +12,7 @@ module ActionView
     #
     # The <tt>collection_select</tt>, <tt>select</tt> and <tt>time_zone_select</tt> methods take an <tt>options</tt> parameter, a hash:
     #
-    # * <tt>:include_blank</tt> - set to true or a prompt string if the first option element of the select element is a blank. Useful if there is not a default value required for the select element.
+    # * <tt>:include_blank</tt> - set to true or a prompt string if the first option element of the select element is a blank. 
     #
     #     select("post", "category", Post::CATEGORIES, {include_blank: true})
     #

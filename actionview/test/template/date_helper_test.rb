@@ -2941,21 +2941,28 @@ class DateHelperTest < ActionView::TestCase
     assert_dom_equal expected, datetime_select("post", "updated_at", :default => Time.local(2006, 9, 19, 15, 16, 35))
   end
 
-  def test_include_blank_overrides_default_option
+  def test_include_blank_does_not_override_default_option
     @post = Post.new
     @post.updated_at = nil
 
     expected = %{<select id="post_updated_at_1i" name="post[updated_at(1i)]">\n}
     expected << %(<option value=""></option>\n)
-    (Time.now.year - 5).upto(Time.now.year + 5) { |i| expected << %(<option value="#{i}">#{i}</option>\n) }
+    midYear = 2006
+    (midYear - 5).upto(midYear - 1) { |i| expected << %(<option value="#{i}">#{i}</option>\n) }
+    midYear.tap { |i| expected << %(<option value="#{i}" selected="selected">#{i}</option>\n) }
+    (midYear + 1).upto(midYear + 5) { |i| expected << %(<option value="#{i}">#{i}</option>\n) }
     expected << "</select>\n"
     expected << %{<select id="post_updated_at_2i" name="post[updated_at(2i)]">\n}
     expected << %(<option value=""></option>\n)
-    1.upto(12) { |i| expected << %(<option value="#{i}">#{Date::MONTHNAMES[i]}</option>\n) }
+    1.upto(8) { |i| expected << %(<option value="#{i}">#{Date::MONTHNAMES[i]}</option>\n) }
+    9.tap { |i| expected << %(<option value="#{i}" selected="selected">#{Date::MONTHNAMES[i]}</option>\n) }
+    10.upto(12) { |i| expected << %(<option value="#{i}">#{Date::MONTHNAMES[i]}</option>\n) }
     expected << "</select>\n"
     expected << %{<select id="post_updated_at_3i" name="post[updated_at(3i)]">\n}
     expected << %(<option value=""></option>\n)
-    1.upto(31) { |i| expected << %(<option value="#{i}">#{i}</option>\n) }
+    1.upto(18) { |i| expected << %(<option value="#{i}">#{i}</option>\n) }
+    19.tap { |i| expected << %(<option value="#{i}" selected="selected">#{i}</option>\n) }
+    20.upto(31) { |i| expected << %(<option value="#{i}">#{i}</option>\n) }
     expected << "</select>\n"
 
     assert_dom_equal expected, date_select("post", "updated_at", :default => Time.local(2006, 9, 19, 15, 16, 35), :include_blank => true)

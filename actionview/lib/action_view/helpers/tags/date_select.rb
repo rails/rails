@@ -40,7 +40,9 @@ module ActionView
         end
 
         def default_datetime(options)
-          return if options[:prompt]
+          if options[:include_blank] || options[:prompt]
+            return unless options[:default]
+          end
 
           case options[:default]
           when nil
