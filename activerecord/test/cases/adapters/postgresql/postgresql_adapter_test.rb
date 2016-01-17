@@ -60,50 +60,6 @@ module ActiveRecord
         end
       end
 
-      def test_insert_sql_with_proprietary_returning_clause
-        with_example_table do
-          id = @connection.insert_sql("insert into ex (number) values(5150)", nil, "number")
-          assert_equal 5150, id
-        end
-      end
-
-      def test_insert_sql_with_quoted_schema_and_table_name
-        with_example_table do
-          id = @connection.insert_sql('insert into "public"."ex" (number) values(5150)')
-          expect = @connection.query('select max(id) from ex').first.first
-          assert_equal expect, id
-        end
-      end
-
-      def test_insert_sql_with_no_space_after_table_name
-        with_example_table do
-          id = @connection.insert_sql("insert into ex(number) values(5150)")
-          expect = @connection.query('select max(id) from ex').first.first
-          assert_equal expect, id
-        end
-      end
-
-      def test_multiline_insert_sql
-        with_example_table do
-          id = @connection.insert_sql(<<-SQL)
-          insert into ex(
-                         number)
-          values(
-                 5152
-                 )
-          SQL
-          expect = @connection.query('select max(id) from ex').first.first
-          assert_equal expect, id
-        end
-      end
-
-      def test_insert_sql_with_returning_disabled
-        connection = connection_without_insert_returning
-        id = connection.insert_sql("insert into postgresql_partitioned_table_parent (number) VALUES (1)")
-        expect = connection.query('select max(id) from postgresql_partitioned_table_parent').first.first
-        assert_equal expect.to_i, id
-      end
-
       def test_exec_insert_with_returning_disabled
         connection = connection_without_insert_returning
         result = connection.exec_insert("insert into postgresql_partitioned_table_parent (number) VALUES (1)", nil, [], 'id', 'postgresql_partitioned_table_parent_id_seq')
