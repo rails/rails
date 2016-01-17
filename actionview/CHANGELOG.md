@@ -1,3 +1,9 @@
+*   Decouple ActionView from ActionPack's Mime implementation.
+
+    Fixes #17030
+
+    *Jon Moss*
+
 *   Create a new `ActiveSupport::SafeBuffer` instance when `content_for` is flushed.
 
     Fixes #19890
