@@ -8,9 +8,9 @@ module ActionView
         SET = Set.new([ :html, :text, :js, :css, :xml, :json ])
 
         def self.[](type)
-          return type if type.is_a?(self)
-
-          if type.is_a?(Symbol) || SET.member?(type.to_s)
+          if type.is_a?(self)
+            type
+          else
             new(type)
           end
         end
