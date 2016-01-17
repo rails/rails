@@ -6,13 +6,7 @@ module ActionView
     class Types
       class Type
         cattr_accessor :types
-        self.types = Set.new
-
-        def self.register(*t)
-          types.merge(t.map(&:to_s))
-        end
-
-        register :html, :text, :js, :css,  :xml, :json
+        self.types = Set.new([ :html, :text, :js, :css, :xml, :json ])
 
         def self.[](type)
           return type if type.is_a?(self)
