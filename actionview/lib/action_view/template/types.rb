@@ -36,8 +36,7 @@ module ActionView
         end
 
         def ==(type)
-          return false if type.blank?
-          symbol.to_sym == type.to_sym
+          @symbol == type.to_sym unless type.blank?
         end
       end
 
