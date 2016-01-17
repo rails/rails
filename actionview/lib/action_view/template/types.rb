@@ -28,12 +28,15 @@ module ActionView
           @symbol = symbol.to_sym
         end
 
-        delegate :to_s, :to_sym, :to => :symbol
+        def to_s
+          @symbol.to_s
+        end
         alias to_str to_s
 
         def ref
           @symbol
         end
+        alias to_sym ref
 
         def ==(type)
           @symbol == type.to_sym unless type.blank?
