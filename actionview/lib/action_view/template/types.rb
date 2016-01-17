@@ -32,7 +32,7 @@ module ActionView
         alias to_str to_s
 
         def ref
-          to_sym || to_s
+          @symbol
         end
 
         def ==(type)
