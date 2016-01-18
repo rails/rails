@@ -298,11 +298,12 @@ See the [rails/actioncable-examples](http://github.com/rails/actioncable-example
 
 ## Configuration
 
-Action Cable has two required configurations: the Redis connection and specifying allowed request origins.
+Action Cable has three required configurations: the Redis connection, allowed request origins, and the cable server url (which can optionally be set on the client side).
 
 ### Redis
 
-By default, `ActionCable::Server::Base` will look for a configuration file in `Rails.root.join('config/redis/cable.yml')`. The file must follow the following format:
+By default, `ActionCable::Server::Base` will look for a configuration file in `Rails.root.join('config/redis/cable.yml')`.
+This file must specify a Redis url for each Rails environment. It may use the following format:
 
 ```yaml
 production: &production
@@ -312,8 +313,7 @@ development: &development
 test: *development
 ```
 
-This format allows you to specify one configuration per Rails environment. You can also change the location of the Redis config file in
-a Rails initializer with something like:
+You can also change the location of the Redis config file in a Rails initializer with something like:
 
 ```ruby
 Rails.application.paths.add "config/redis/cable", with: "somewhere/else/cable.yml"
@@ -327,29 +327,31 @@ Action Cable will only accept requests from specified origins, which are passed 
 ActionCable.server.config.allowed_request_origins = ['http://rubyonrails.com', /http:\/\/ruby.*/]
 ```
 
+When running in the development environment, this defaults to "http://localhost:3000".
+
 To disable and allow requests from any origin:
 
 ```ruby
 ActionCable.server.config.disable_request_forgery_protection = true
 ```
 
-By default, Action Cable allows all requests from localhost:3000 when running in the development environment.
+### Consumer Configuration
 
-### Other Configurations
+Once you have decided how to run your cable server (see below), you must provide the server url (or path) to your client-side setup.
+There are two ways you can do this.
 
-The other common option to configure is the log tags applied to the per-connection logger. Here's close to what we're using in Basecamp:
+The first is to simply pass it in when creating your consumer. For a standalone server,
+this would be something like: `App.cable = ActionCable.createConsumer("ws://example.com:28080")`, and for an in-app server,
+something like: `App.cable = ActionCable.createConsumer("/cable")`.
 
-```ruby
-ActionCable.server.config.log_tags = [
-  -> request { request.env['bc.account_id'] || "no-account" },
-  :action_cable,
-  -> request { request.uuid }
-]
-```
+The second option is to pass the server url through the `action_cable_meta_tag` in your layout.
+This uses a url or path typically set via `config.action_cable.url` in the environment configuration files, or defaults to "/cable".
 
-Your websocket url might change between environments. If you host your production server via https, you will need to use the wss scheme
+This method is especially useful if your websocket url might change between environments. If you host your production server via https, you will need to use the wss scheme
 for your ActionCable server, but development might remain http and use the ws scheme. You might use localhost in development and your
-domain in production. In any case, to vary the websocket url between environments, add the following configuration to each environment:
+domain in production.
+
+In any case, to vary the websocket url between environments, add the following configuration to each environment:
 
 ```ruby
 config.action_cable.url = "ws://example.com:28080"
@@ -365,6 +367,18 @@ And finally, create your consumer like so:
 
 ```coffeescript
 App.cable = ActionCable.createConsumer()
+```
+
+### Other Configurations
+
+The other common option to configure is the log tags applied to the per-connection logger. Here's close to what we're using in Basecamp:
+
+```ruby
+ActionCable.server.config.log_tags = [
+  -> request { request.env['bc.account_id'] || "no-account" },
+  :action_cable,
+  -> request { request.uuid }
+]
 ```
 
 For a full list of all configuration options, see the `ActionCable::Server::Configuration` class.
@@ -394,8 +408,7 @@ Then you start the server using a binstub in bin/cable ala:
 bundle exec puma -p 28080 cable/config.ru
 ```
 
-The above will start a cable server on port 28080. Remember to point your client-side setup against that using something like:
-`App.cable = ActionCable.createConsumer("ws://basecamp.dev:28080")`.
+The above will start a cable server on port 28080.
 
 ### In app
 
@@ -407,8 +420,6 @@ Example::Application.routes.draw do
   mount ActionCable.server => '/cable'
 end
 ```
-
-You can use `App.cable = ActionCable.createConsumer()` to connect to the cable server if `action_cable_meta_tag` is included in the layout. A custom path is specified as first argument to `createConsumer` (e.g. `App.cable = ActionCable.createConsumer("/websocket")`).
 
 For every instance of your server you create and for every worker your server spawns, you will also have a new instance of ActionCable, but the use of Redis keeps messages synced across connections.
 
