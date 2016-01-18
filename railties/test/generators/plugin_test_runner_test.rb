@@ -59,14 +59,6 @@ class PluginTestRunnerTest < ActiveSupport::TestCase
     end
   end
 
-  def test_line_filter_without_line_runs_all_tests
-    create_test_file 'account'
-
-    run_test_command('test/account_test.rb:').tap do |output|
-      assert_match 'AccountTest', output
-    end
-  end
-
   def test_output_inline_by_default
     create_test_file 'post', pass: false
 
