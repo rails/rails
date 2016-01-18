@@ -642,7 +642,7 @@ class OutputSafetyTest < ActiveSupport::TestCase
   def setup
     @string = "hello"
     @object = Class.new(Object) do
-      def to_s
+      def to_str
         "other"
       end
     end.new

@@ -97,6 +97,20 @@ class SafeBufferTest < ActiveSupport::TestCase
     assert_equal "<>hello", @buffer + clean
   end
 
+  test "Should raise type error when trying to plus non-string" do
+    assert_raise TypeError do
+      @buffer + ["hello"]
+    end
+
+    assert_raise TypeError do
+      @buffer + {"hello" => "world"}
+    end
+
+    assert_raise TypeError do
+      @buffer + Object.new
+    end
+  end
+
   test "Should preserve html_safe? status on copy" do
     @buffer.gsub!('', '<>')
     assert !@buffer.dup.html_safe?
@@ -149,13 +163,24 @@ class SafeBufferTest < ActiveSupport::TestCase
   end
 
   test 'Should work with interpolation (array argument)' do
-    x = 'foo %s bar'.html_safe % ['qux']
-    assert_equal 'foo qux bar', x
+    x = 'foo %s %i %.2f bar'.html_safe % ['qux', 10, 25.5]
+    assert_equal 'foo qux 10 25.50 bar', x
   end
 
   test 'Should work with interpolation (hash argument)' do
     x = 'foo %{x} bar'.html_safe % { x: 'qux' }
     assert_equal 'foo qux bar', x
+  end
+
+  class Foo
+    def to_s
+      "#<Foo>"
+    end
+  end
+
+  test 'Should escape interpolation objects' do
+    x = '%s'.html_safe % [Foo.new]
+    assert_equal '#&lt;Foo&gt;', x
   end
 
   test 'Should escape unsafe interpolated args' do

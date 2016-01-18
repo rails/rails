@@ -200,9 +200,9 @@ module ActiveSupport #:nodoc:
     def %(args)
       case args
       when Hash
-        escaped_args = Hash[args.map { |k,arg| [k, html_escape_interpolated_argument(arg)] }]
+        escaped_args = Hash[args.map { |k,arg| [k, html_escape_interpolated_argument(arg.to_s)] }]
       else
-        escaped_args = Array(args).map { |arg| html_escape_interpolated_argument(arg) }
+        escaped_args = Array(args).map { |arg| html_escape_interpolated_argument(arg.to_s) }
       end
 
       self.class.new(super(escaped_args))
@@ -242,7 +242,11 @@ module ActiveSupport #:nodoc:
     private
 
     def html_escape_interpolated_argument(arg)
-      (!html_safe? || arg.html_safe?) ? arg : CGI.escapeHTML(arg.to_s)
+      if html_safe? && !arg.html_safe? && arg.respond_to?(:to_str)
+        CGI.escapeHTML(arg.to_str)
+      else
+        arg
+      end
     end
   end
 end
