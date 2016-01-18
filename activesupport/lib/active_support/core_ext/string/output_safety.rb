@@ -206,7 +206,8 @@ module ActiveSupport #:nodoc:
         escaped_args = Array(args).map { |arg| html_escape_interpolated_argument(arg.to_s) }
       end
 
-      self.class.new(super(escaped_args))
+      new_str = super(escaped_args)
+      dup.replace(new_str)
     end
 
     def html_safe?
