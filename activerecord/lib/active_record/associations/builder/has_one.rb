@@ -5,7 +5,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
     end
 
     def self.valid_options(options)
-      valid = super + [:as, :foreign_type]
+      valid = super + [:as]
       valid += [:through, :source, :source_type] if options[:through]
       valid
     end
