@@ -36,6 +36,11 @@ class SafeBufferTest < ActiveSupport::TestCase
     assert_equal "&lt;script&gt;", @buffer
   end
 
+  test "Should still concat integer codepoint" do
+    @buffer << 97 << 60 << 98
+    assert_equal "a<b", @buffer
+  end
+
   test "Should be considered safe" do
     assert @buffer.html_safe?
   end
@@ -104,6 +109,10 @@ class SafeBufferTest < ActiveSupport::TestCase
 
     assert_raise TypeError do
       @buffer + {"hello" => "world"}
+    end
+
+    assert_raise TypeError do
+      @buffer + 123
     end
 
     assert_raise TypeError do

@@ -194,7 +194,8 @@ module ActiveSupport #:nodoc:
     end
 
     def +(other)
-      dup.concat(other)
+      new_str = super(html_escape_interpolated_argument(other))
+      dup.replace(new_str)
     end
 
     def %(args)
