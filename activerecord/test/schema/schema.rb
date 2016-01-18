@@ -929,12 +929,12 @@ ActiveRecord::Schema.define do
     t.integer :zine_id
   end
 
-  create_table :wheels, force: true do |t|
-    t.references :wheelable, polymorphic: true
-  end
-
   create_table :zines, force: true do |t|
     t.string :title
+  end
+
+  create_table :wheels, force: true do |t|
+    t.references :wheelable, polymorphic: true
   end
 
   create_table :countries, force: true, id: false, primary_key: "country_id" do |t|
