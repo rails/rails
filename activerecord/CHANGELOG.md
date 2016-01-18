@@ -634,7 +634,7 @@
 *   Add `ActiveRecord::Relation#in_batches` to work with records and relations
     in batches.
 
-    Available options are `of` (batch size), `load`, `begin_at`, and `end_at`.
+    Available options are `of` (batch size), `load`, `start`, and `finish`.
 
     Examples:
 
@@ -1282,7 +1282,7 @@
 
     *Yves Senn*
 
-*   `find_in_batches` now accepts an `:end_at` parameter that complements the `:start`
+*   `find_in_batches` now accepts an `:finish` parameter that complements the `:start`
      parameter to specify where to stop batch processing.
 
     *Vipul A M*

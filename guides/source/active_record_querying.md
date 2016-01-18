@@ -348,7 +348,7 @@ end
 
 The `find_each` method accepts most of the options allowed by the regular `find` method, except for `:order` and `:limit`, which are reserved for internal use by `find_each`.
 
-Three additional options, `:batch_size`, `:begin_at` and `:end_at`, are available as well.
+Three additional options, `:batch_size`, `:start` and `:finish`, are available as well.
 
 **`:batch_size`**
 
@@ -360,34 +360,34 @@ User.find_each(batch_size: 5000) do |user|
 end
 ```
 
-**`:begin_at`**
+**`:start`**
 
-By default, records are fetched in ascending order of the primary key, which must be an integer. The `:begin_at` option allows you to configure the first ID of the sequence whenever the lowest ID is not the one you need. This would be useful, for example, if you wanted to resume an interrupted batch process, provided you saved the last processed ID as a checkpoint.
+By default, records are fetched in ascending order of the primary key, which must be an integer. The `:start` option allows you to configure the first ID of the sequence whenever the lowest ID is not the one you need. This would be useful, for example, if you wanted to resume an interrupted batch process, provided you saved the last processed ID as a checkpoint.
 
 For example, to send newsletters only to users with the primary key starting from 2000, and to retrieve them in batches of 5000:
 
 ```ruby
-User.find_each(begin_at: 2000, batch_size: 5000) do |user|
+User.find_each(start: 2000, batch_size: 5000) do |user|
   NewsMailer.weekly(user).deliver_now
 end
 ```
 
-**`:end_at`**
+**`:finish`**
 
-Similar to the `:begin_at` option, `:end_at` allows you to configure the last ID of the sequence whenever the highest ID is not the one you need.
-This would be useful, for example, if you wanted to run a batch process, using a subset of records based on `:begin_at` and `:end_at`
+Similar to the `:start` option, `:finish` allows you to configure the last ID of the sequence whenever the highest ID is not the one you need.
+This would be useful, for example, if you wanted to run a batch process, using a subset of records based on `:start` and `:finish`
 
 For example, to send newsletters only to users with the primary key starting from 2000 up to 10000 and to retrieve them in batches of 5000:
 
 ```ruby
-User.find_each(begin_at: 2000, end_at: 10000, batch_size: 5000) do |user|
+User.find_each(start: 2000, finish: 10000, batch_size: 5000) do |user|
   NewsMailer.weekly(user).deliver_now
 end
 ```
 
 Another example would be if you wanted multiple workers handling the same
 processing queue. You could have each worker handle 10000 records by setting the
-appropriate `:begin_at` and `:end_at` options on each worker.
+appropriate `:start` and `:finish` options on each worker.
 
 #### `find_in_batches`
 
@@ -402,7 +402,7 @@ end
 
 ##### Options for `find_in_batches`
 
-The `find_in_batches` method accepts the same `:batch_size`, `:begin_at` and `:end_at` options as `find_each`.
+The `find_in_batches` method accepts the same `:batch_size`, `:start` and `:finish` options as `find_each`.
 
 Conditions
 ----------
