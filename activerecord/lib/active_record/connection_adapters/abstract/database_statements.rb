@@ -66,8 +66,8 @@ module ActiveRecord
       # Returns an array of arrays containing the field values.
       # Order is the same as that returned by +columns+.
       def select_rows(sql, name = nil, binds = [])
+        raise NotImplementedError
       end
-      undef_method :select_rows
 
       # Executes the SQL statement in the context of this connection and returns
       # the raw result from the connection adapter.
@@ -75,13 +75,14 @@ module ActiveRecord
       # method may be manually memory managed. Consider using the exec_query
       # wrapper instead.
       def execute(sql, name = nil)
+        raise NotImplementedError
       end
-      undef_method :execute
 
       # Executes +sql+ statement in the context of this connection using
       # +binds+ as the bind substitutes. +name+ is logged along with
       # the executed +sql+ statement.
       def exec_query(sql, name = 'SQL', binds = [], prepare: false)
+        raise NotImplementedError
       end
 
       # Executes insert +sql+ statement in the context of this connection using
