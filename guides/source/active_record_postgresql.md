@@ -84,6 +84,7 @@ Book.where("array_length(ratings, 1) >= 3")
 ### Hstore
 
 * [type definition](http://www.postgresql.org/docs/current/static/hstore.html)
+* [functions and operators](http://www.postgresql.org/docs/current/static/hstore.html#AEN167712)
 
 NOTE: You need to enable the `hstore` extension to use hstore.
 
@@ -108,6 +109,9 @@ profile.settings # => {"color"=>"blue", "resolution"=>"800x600"}
 
 profile.settings = {"color" => "yellow", "resolution" => "1280x1024"}
 profile.save!
+
+Profile.where("settings->'color' = ?", "yellow")
+#=> #<ActiveRecord::Relation [#<Profile id: 1, settings: {"color"=>"yellow", "resolution"=>"1280x1024"}>]>
 ```
 
 ### JSON
