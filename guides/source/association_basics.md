@@ -1872,11 +1872,21 @@ If you want to make sure that, upon insertion, all of the records in the
 persisted association are distinct (so that you can be sure that when you
 inspect the association that you will never find duplicate records), you should
 add a unique index on the table itself. For example, if you have a table named
-`person_articles` and you want to make sure all the articles are unique, you could
-add the following in a migration:
+`readings` and you want to make sure the articles can only be added to a person once,
+you could add the following in a migration:
 
 ```ruby
-add_index :person_articles, :article, unique: true
+add_index :readings, [:person_id, :article_id], unique: true
+```
+
+Once you have this unique index, attempting to add the article to a person twice
+will raise an `ActiveRecord::RecordNotUnique` error:
+
+```ruby
+person = Person.create(name: 'Honda')
+article = Article.create(name: 'a1')
+person.articles << article
+person.articles << article # => ActiveRecord::RecordNotUnique
 ```
 
 Note that checking for uniqueness using something like `include?` is subject
