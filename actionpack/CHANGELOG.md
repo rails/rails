@@ -1,3 +1,10 @@
+*   Refactor handling of `:action` default in routing so that the request's
+    `path_parameters` is not mutated when generating a route.
+
+    Fixes #23019.
+
+    *Andrew White*
+
 *   Add request encoding and response parsing to integration tests.
 
     What previously was:
