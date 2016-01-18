@@ -768,7 +768,7 @@ module ActiveSupport
         end
 
         names.each do |name|
-          class_attribute "_#{name}_callbacks"
+          class_attribute "_#{name}_callbacks", instance_writer: false
           set_callbacks name, CallbackChain.new(name, options)
         end
       end
