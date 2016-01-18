@@ -67,12 +67,10 @@ module ActiveRecord
       # Order is the same as that returned by +columns+.
       def select_rows(sql, name = nil, binds = [])
       end
-      undef_method :select_rows
 
       # Executes the SQL statement in the context of this connection.
       def execute(sql, name = nil)
       end
-      undef_method :execute
 
       # Executes +sql+ statement in the context of this connection using
       # +binds+ as the bind substitutes. +name+ is logged along with
