@@ -115,13 +115,23 @@ class TestController < ActionController::Base
 
   def conditional_hello_with_expires_now
     expires_now
-    render :action => 'hello_world'
+    render action: 'hello_world'
+  end
+
+  def conditional_hello_with_always_revalidate
+    always_revalidate
+    render action: 'hello_world'
   end
 
   def conditional_hello_with_cache_control_headers
-    response.headers['Cache-Control'] = 'no-transform'
-    expires_now
+    response.headers['Cache-Control'] = 'no-transform public'
+    always_revalidate
     render :action => 'hello_world'
+  end
+
+  def conditional_hello_with_http_cache_never
+    http_cache_never
+    render action: 'hello_world'
   end
 
   def respond_with_empty_body
@@ -273,15 +283,27 @@ class ExpiresInRenderTest < ActionController::TestCase
     assert_equal "max-age=60, public, s-maxage=18000", @response.headers["Cache-Control"]
   end
 
-  def test_expires_now
-    get :conditional_hello_with_expires_now
+  def test_expires_now_deprecated
+    assert_deprecated do
+      get :conditional_hello_with_expires_now
+    end
+  end
+
+  def test_always_revalidate
+    get :conditional_hello_with_always_revalidate
     assert_equal "no-cache", @response.headers["Cache-Control"]
   end
 
-  def test_expires_now_with_cache_control_headers
+  def test_always_revalidate_with_cache_control_headers
     get :conditional_hello_with_cache_control_headers
     assert_match(/no-cache/, @response.headers["Cache-Control"])
+    assert_match(/public/, @response.headers["Cache-Control"])
     assert_match(/no-transform/, @response.headers["Cache-Control"])
+  end
+
+  def test_http_cache_never
+    get :conditional_hello_with_http_cache_never
+    assert_equal "no-store", @response.headers["Cache-Control"]
   end
 
   def test_render_nothing_deprecated
