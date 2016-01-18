@@ -80,7 +80,7 @@
     https://github.com/rails/rails/pull/18334#issuecomment-69234050 we want
     `protect_from_forgery` to default to `prepend: false`.
 
-    `protect_from_forgery` will now be insterted into the callback chain at the
+    `protect_from_forgery` will now be inserted into the callback chain at the
     point it is called in your application. This is useful for cases where you
     want to `protect_from_forgery` after you perform required authentication
     callbacks or other callbacks that are required to run after forgery protection.
@@ -354,7 +354,7 @@
 
 *   Allow `Bearer` as token-keyword in `Authorization-Header`.
 
-    Aditionally to `Token`, the keyword `Bearer` is acceptable as a keyword
+    Additionally to `Token`, the keyword `Bearer` is acceptable as a keyword
     for the auth-token. The `Bearer` keyword is described in the original
     OAuth RFC and used in libraries like Angular-JWT.
 
