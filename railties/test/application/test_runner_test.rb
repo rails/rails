@@ -382,14 +382,6 @@ module ApplicationTests
       end
     end
 
-    def test_line_filter_without_line_runs_all_tests
-      create_test_file :models, 'account'
-
-      run_test_command('test/models/account_test.rb:').tap do |output|
-        assert_match 'AccountTest', output
-      end
-    end
-
     def test_shows_filtered_backtrace_by_default
       create_backtrace_test
 
