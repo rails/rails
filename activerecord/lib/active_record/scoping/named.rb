@@ -140,6 +140,15 @@ module ActiveRecord
         #
         #   Article.published.featured.latest_article
         #   Article.featured.titles
+        #
+        # Note that, scopes should only call class methods available on the Model, like <tt>pluck</tt>, <tt>where</tt>.
+        # Calling other methods, will result in an error-
+        #
+        #    scope :titles, -> { all.map(&:title) } #=> Works
+        #    scope :titles, -> { pluck(:title) }    #=> Works
+        #    scope :titles, -> { map(&:title) }     #=> Raises error- NoMethodError: undefined method `map' for #<Class:0x007fb14bd4b260>
+        #
+        #
         def scope(name, body, &block)
           unless body.respond_to?(:call)
             raise ArgumentError, 'The scope body needs to be callable.'
