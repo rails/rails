@@ -233,7 +233,7 @@ module StaticTests
     def assert_html(body, response)
       assert_equal body, response.body
       assert_equal "text/html", response.headers["Content-Type"]
-      assert_nil response.headers["Vary"]
+      assert_not_nil response.headers["Vary"]
     end
 
     def get(path, headers = {})
