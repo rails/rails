@@ -167,6 +167,7 @@ module ActiveRecord
       end
 
       def find_sti_class(type_name)
+        type_name = base_class.type_for_attribute(inheritance_column).cast(type_name)
         subclass = begin
           if store_full_sti_class
             ActiveSupport::Dependencies.constantize(type_name)

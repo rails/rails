@@ -1,3 +1,11 @@
+*   Run `type` attributes through attributes API type-casting before
+    instantiating the corresponding subclass. This makes it possible to define
+    custom STI mappings.
+
+    Fixes #21986.
+
+    *Yves Senn*
+
 *   Add expression support on the schema default.
 
     Example:

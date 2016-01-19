@@ -7,6 +7,7 @@ require 'models/project'
 require 'models/subscriber'
 require 'models/vegetables'
 require 'models/shop'
+require 'models/sponsor'
 
 module InheritanceTestHelper
   def with_store_full_sti_class(&block)
@@ -522,5 +523,79 @@ class InheritanceAttributeTest < ActiveRecord::TestCase
     empire = Company.new(type: 'InheritanceAttributeTest::Empire') # without arguments
     assert_equal 'InheritanceAttributeTest::Empire', empire.type
     assert_instance_of Empire, empire
+  end
+end
+
+class InheritanceAttributeMappingTest < ActiveRecord::TestCase
+  setup do
+    @old_registry = ActiveRecord::Type.registry
+    ActiveRecord::Type.registry = ActiveRecord::Type::AdapterSpecificRegistry.new
+    ActiveRecord::Type.register :omg_sti, InheritanceAttributeMappingTest::OmgStiType
+    Company.delete_all
+    Sponsor.delete_all
+  end
+
+  teardown do
+    ActiveRecord::Type.registry = @old_registry
+  end
+
+  class OmgStiType < ActiveRecord::Type::String
+    def cast_value(value)
+      if value =~ /\Aomg_(.+)\z/
+        $1.classify
+      else
+        value
+      end
+    end
+
+    def serialize(value)
+      if value
+        "omg_%s" % value.underscore
+      end
+    end
+  end
+
+  class Company < ActiveRecord::Base
+    self.table_name = 'companies'
+    attribute :type, :omg_sti
+  end
+
+  class Startup < Company; end
+  class Empire < Company; end
+
+  class Sponsor < ActiveRecord::Base
+    self.table_name = 'sponsors'
+    attribute :sponsorable_type, :omg_sti
+
+    belongs_to :sponsorable, polymorphic: true
+  end
+
+  def test_sti_with_custom_type
+    Startup.create! name: 'a Startup'
+    Empire.create! name: 'an Empire'
+
+    assert_equal [["a Startup", "omg_inheritance_attribute_mapping_test/startup"],
+                  ["an Empire", "omg_inheritance_attribute_mapping_test/empire"]], ActiveRecord::Base.connection.select_rows('SELECT name, type FROM companies')
+    assert_equal [["a Startup", "InheritanceAttributeMappingTest::Startup"],
+                  ["an Empire", "InheritanceAttributeMappingTest::Empire"]], Company.all.map { |a| [a.name, a.type] }
+
+    startup = Startup.first
+    startup.becomes! Empire
+    startup.save!
+
+    assert_equal [["a Startup", "omg_inheritance_attribute_mapping_test/empire"],
+                  ["an Empire", "omg_inheritance_attribute_mapping_test/empire"]], ActiveRecord::Base.connection.select_rows('SELECT name, type FROM companies')
+    assert_equal [["a Startup", "InheritanceAttributeMappingTest::Empire"],
+                  ["an Empire", "InheritanceAttributeMappingTest::Empire"]], Company.all.map { |a| [a.name, a.type] }
+  end
+
+  def test_polymorphic_associations_custom_type
+    startup = Startup.create! name: 'a Startup'
+    sponsor = Sponsor.create! sponsorable: startup
+
+    assert_equal ["omg_inheritance_attribute_mapping_test/company"], ActiveRecord::Base.connection.select_values('SELECT sponsorable_type FROM sponsors')
+
+    sponsor = Sponsor.first
+    assert_equal startup, sponsor.sponsorable
   end
 end
