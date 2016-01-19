@@ -1116,7 +1116,7 @@ Rails offers facilities for inspecting and testing your routes.
 
 ### Listing Existing Routes
 
-To get a complete list of the available routes in your application, visit `http://localhost:3000/rails/info/routes` in your browser while your server is running in the **development** environment. You can also execute the `rake routes` command in your terminal to produce the same output.
+To get a complete list of the available routes in your application, visit `http://localhost:3000/rails/info/routes` in your browser while your server is running in the **development** environment. You can also execute the `rails routes` command in your terminal to produce the same output.
 
 Both methods will list all of your routes, in the same order that they appear in `config/routes.rb`. For each route, you'll see:
 
@@ -1125,7 +1125,7 @@ Both methods will list all of your routes, in the same order that they appear in
 * The URL pattern to match
 * The routing parameters for the route
 
-For example, here's a small section of the `rake routes` output for a RESTful route:
+For example, here's a small section of the `rails routes` output for a RESTful route:
 
 ```
     users GET    /users(.:format)          users#index
@@ -1137,10 +1137,10 @@ edit_user GET    /users/:id/edit(.:format) users#edit
 You may restrict the listing to the routes that map to a particular controller setting the `CONTROLLER` environment variable:
 
 ```bash
-$ CONTROLLER=users bin/rake routes
+$ CONTROLLER=users bin/rails routes
 ```
 
-TIP: You'll find that the output from `rake routes` is much more readable if you widen your terminal window until the output lines don't wrap.
+TIP: You'll find that the output from `rails routes` is much more readable if you widen your terminal window until the output lines don't wrap.
 
 ### Testing Routes
 

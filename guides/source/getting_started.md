@@ -300,7 +300,7 @@ Rails.application.routes.draw do
 
   # The priority is based upon order of creation:
   # first created -> highest priority.
-  # See how all your routes lay out with "rake routes".
+  # See how all your routes lay out with "bin/rails routes".
   #
   # You can have the root of your site routed with "root"
   # root 'welcome#index'
@@ -359,13 +359,13 @@ Rails.application.routes.draw do
 end
 ```
 
-If you run `bin/rake routes`, you'll see that it has defined routes for all the
+If you run `bin/rails routes`, you'll see that it has defined routes for all the
 standard RESTful actions.  The meaning of the prefix column (and other columns)
 will be seen later, but for now notice that Rails has inferred the
 singular form `article` and makes meaningful use of the distinction.
 
 ```bash
-$ bin/rake routes
+$ bin/rails routes
       Prefix Verb   URI Pattern                  Controller#Action
     articles GET    /articles(.:format)          articles#index
              POST   /articles(.:format)          articles#create
@@ -559,10 +559,10 @@ this:
 
 In this example, the `articles_path` helper is passed to the `:url` option.
 To see what Rails will do with this, we look back at the output of
-`bin/rake routes`:
+`bin/rails routes`:
 
 ```bash
-$ bin/rake routes
+$ bin/rails routes
       Prefix Verb   URI Pattern                  Controller#Action
     articles GET    /articles(.:format)          articles#index
              POST   /articles(.:format)          articles#create
@@ -702,10 +702,10 @@ two timestamp fields to allow Rails to track article creation and update times.
 TIP: For more information about migrations, refer to [Rails Database Migrations]
 (migrations.html).
 
-At this point, you can use a rake command to run the migration:
+At this point, you can use a bin/rails command to run the migration:
 
 ```bash
-$ bin/rake db:migrate
+$ bin/rails db:migrate
 ```
 
 Rails will execute this migration command and tell you it created the Articles
@@ -722,7 +722,7 @@ NOTE. Because you're working in the development environment by default, this
 command will apply to the database defined in the `development` section of your
 `config/database.yml` file. If you would like to execute migrations in another
 environment, for instance in production, you must explicitly pass it when
-invoking the command: `bin/rake db:migrate RAILS_ENV=production`.
+invoking the command: `bin/rails db:migrate RAILS_ENV=production`.
 
 ### Saving data in the controller
 
@@ -809,7 +809,7 @@ If you submit the form again now, Rails will complain about not finding the
 `show` action. That's not very useful though, so let's add the `show` action
 before proceeding.
 
-As we have seen in the output of `bin/rake routes`, the route for `show` action is
+As we have seen in the output of `bin/rails routes`, the route for `show` action is
 as follows:
 
 ```
@@ -871,7 +871,7 @@ Visit <http://localhost:3000/articles/new> and give it a try!
 ### Listing all articles
 
 We still need a way to list all our articles, so let's do that.
-The route for this as per output of `bin/rake routes` is:
+The route for this as per output of `bin/rails routes` is:
 
 ```
 articles GET    /articles(.:format)          articles#index
@@ -1366,7 +1366,7 @@ Then do the same for the `app/views/articles/edit.html.erb` view:
 
 We're now ready to cover the "D" part of CRUD, deleting articles from the
 database. Following the REST convention, the route for
-deleting articles as per output of `bin/rake routes` is:
+deleting articles as per output of `bin/rails routes` is:
 
 ```ruby
 DELETE /articles/:id(.:format)      articles#destroy
@@ -1562,7 +1562,7 @@ for it, and a foreign key constraint that points to the `id` column of the `arti
 table. Go ahead and run the migration:
 
 ```bash
-$ bin/rake db:migrate
+$ bin/rails db:migrate
 ```
 
 Rails is smart enough to only execute the migrations that have not already been
