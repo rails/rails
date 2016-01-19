@@ -145,7 +145,7 @@ module ActiveRecord
 
   class NoEnvironmentInSchemaError < MigrationError #:nodoc:
     def initialize
-      msg = "Environment data not found in the schema. To resolve this issue, run: \n\n\tbin/rake db:environment:set"
+      msg = "Environment data not found in the schema. To resolve this issue, run: \n\n\tbin/rails db:environment:set"
       if defined?(Rails.env)
         super("#{msg} RAILS_ENV=#{::Rails.env}")
       else
@@ -168,7 +168,7 @@ module ActiveRecord
       msg =  "You are attempting to modify a database that was last run in `#{ stored }` environment.\n"
       msg << "You are running in `#{ current }` environment."
       msg << "If you are sure you want to continue, first set the environment using:\n\n"
-      msg << "\tbin/rake db:environment:set"
+      msg << "\tbin/rails db:environment:set"
       if defined?(Rails.env)
         super("#{msg} RAILS_ENV=#{::Rails.env}")
       else
