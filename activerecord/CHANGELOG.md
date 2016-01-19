@@ -6,7 +6,11 @@
 
     *Yves Senn*
 
-*   Add expression support on the schema default.
+*   Don't try to quote functions or expressions passed to `:default` option if
+    they are passed as procs.
+
+    This will generate proper query with the passed function or expression for
+    the default option, instead of trying to quote it in incorrect fashion.
 
     Example:
 
