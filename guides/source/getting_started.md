@@ -208,7 +208,7 @@ commented line for new apps and you can uncomment if you need it.
 default to the `Gemfile` in apps generated under JRuby. You can investigate
 all the supported runtimes at [ExecJS](https://github.com/rails/execjs#readme).
 
-This will fire up WEBrick, a web server distributed with Ruby by default. To see
+This will fire up Puma, a web server distributed with Rails by default. To see
 your application in action, open a browser window and navigate to
 <http://localhost:3000>. You should see the Rails default information page:
 
