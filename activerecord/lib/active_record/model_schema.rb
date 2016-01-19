@@ -255,7 +255,18 @@ module ActiveRecord
         @attribute_types ||= Hash.new(Type::Value.new)
       end
 
-      def type_for_attribute(attr_name) # :nodoc:
+      # Returns the type of the attribute with the given name, after applying
+      # all modifiers. This method is the only valid source of information for
+      # anything related to the types of a model's attributes. This method will
+      # access the database and load the model's schema if it is required.
+      #
+      # The return value of this method will implement the interface described
+      # by ActiveModel::Type::Value (though the object itself may not subclass
+      # it).
+      #
+      # +attr_name+ The name of the attribute to retrieve the type for. Must be
+      # a string
+      def type_for_attribute(attr_name)
         attribute_types[attr_name]
       end
 
