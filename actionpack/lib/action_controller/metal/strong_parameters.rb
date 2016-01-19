@@ -109,7 +109,7 @@ module ActionController
     cattr_accessor :permit_all_parameters, instance_accessor: false
     cattr_accessor :action_on_unpermitted_parameters, instance_accessor: false
 
-    delegate :keys, :key?, :has_key?, :empty?, :include?, :inspect,
+    delegate :keys, :key?, :has_key?, :values, :has_value?, :value?, :empty?, :include?, :inspect,
       :as_json, to: :@parameters
 
     # By default, never raise an UnpermittedParameters exception if these
@@ -578,6 +578,24 @@ module ActionController
     # matter as we are using +HashWithIndifferentAccess+ internally.
     def stringify_keys # :nodoc:
       dup
+    end
+
+    def method_missing(method_sym, *args, &block)
+      if @parameters.respond_to?(method_sym)
+        message = <<-DEPRECATE.squish
+          Method #{ method_sym } is deprecated and will be removed in Rails 5.1,
+          as `ActionController::Parameters` no longer inherits from
+          hash. Using this deprecated behavior exposes potential security
+          problems. If you continue to use this method you may be creating
+          a security vulunerability in your app that can be exploited. Instead,
+          consider using one of these documented methods which are not
+          deprecated: http://api.rubyonrails.org/v#{ActionPack.version}/classes/ActionController/Parameters.html
+        DEPRECATE
+        ActiveSupport::Deprecation.warn(message)
+        @parameters.public_send(method_sym, *args, &block)
+      else
+        super
+      end
     end
 
     protected

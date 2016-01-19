@@ -65,4 +65,17 @@ class ParametersRequireTest < ActiveSupport::TestCase
         .require([:first_name, :title])
     end
   end
+
+  test "value params" do
+    params = ActionController::Parameters.new(foo: "bar", dog: "cinco")
+    assert_equal ["bar", "cinco"], params.values
+    assert params.has_value?("cinco")
+    assert params.value?("cinco")
+  end
+
+  test "Deprecated methods are deprecated" do
+    assert_deprecated do
+      ActionController::Parameters.new(foo: "bar").merge!({bar: "foo"})
+    end
+  end
 end
