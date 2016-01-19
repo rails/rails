@@ -16,7 +16,7 @@ After reading this guide, you will know:
 Why Associations?
 -----------------
 
-In Rails, an _association_ is a connection between two Active Record models. Why do we need associations between models? Because they make common operations simpler and easier in your code. For example, consider a simple Rails application that includes a model for customers and a model for orders. Each customer can have many orders. Without associations, the model declarations would look like this:
+In Rails, an _association_ is a connection between two Active Record models. Why do we need associations between models? Because they make common operations simpler and easier in your code. For example, consider a simple Rails application that includes a model for authors and a model for books. Each author can have many books. Without associations, the model declarations would look like this:
 
 ```ruby
 class Author < ApplicationRecord
@@ -32,7 +32,7 @@ Now, suppose we wanted to add a new book for an existing author. We'd need to do
 @book = Book.create(published_at: Time.now, author_id: @author.id)
 ```
 
-Or consider deleting a author, and ensuring that all of its books get deleted as well:
+Or consider deleting an author, and ensuring that all of its books get deleted as well:
 
 ```ruby
 @books = Book.where(author_id: @author.id)
@@ -60,7 +60,7 @@ With this change, creating a new book for a particular author is easier:
 @book = @author.books.create(published_at: Time.now)
 ```
 
-Deleting a author and all of its books is *much* easier:
+Deleting an author and all of its books is *much* easier:
 
 ```ruby
 @author.destroy
@@ -809,7 +809,7 @@ The `association` method returns the associated object, if any. If no associated
 If the associated object has already been retrieved from the database for this object, the cached version will be returned. To override this behavior (and force a database read), call `#reload` on the parent object.
 
 ```ruby
-@customer = @order.reload.customer
+@author = @book.reload.author
 ```
 
 ##### `association=(associate)`
@@ -874,7 +874,7 @@ If you set the `:autosave` option to `true`, Rails will save any loaded members 
 
 ##### `:class_name`
 
-If the name of the other model cannot be derived from the association name, you can use the `:class_name` option to supply the model name. For example, if a book belongs to a author, but the actual name of the model containing authors is `Patron`, you'd set things up this way:
+If the name of the other model cannot be derived from the association name, you can use the `:class_name` option to supply the model name. For example, if a book belongs to an author, but the actual name of the model containing authors is `Patron`, you'd set things up this way:
 
 ```ruby
 class Book < ApplicationRecord
@@ -1612,7 +1612,7 @@ If you set the `:autosave` option to `true`, Rails will save any loaded members 
 
 ##### `:class_name`
 
-If the name of the other model cannot be derived from the association name, you can use the `:class_name` option to supply the model name. For example, if a author has many books, but the actual name of the model containing books is `Transaction`, you'd set things up this way:
+If the name of the other model cannot be derived from the association name, you can use the `:class_name` option to supply the model name. For example, if an author has many books, but the actual name of the model containing books is `Transaction`, you'd set things up this way:
 
 ```ruby
 class Author < ApplicationRecord
