@@ -12,7 +12,7 @@ After reading this guide, you will know:
 
 * The generators you can use to create them.
 * The methods Active Record provides to manipulate your database.
-* The Rake tasks that manipulate migrations and your schema.
+* The bin/rails tasks that manipulate migrations and your schema.
 * How migrations relate to `schema.rb`.
 
 --------------------------------------------------------------------------------
@@ -717,9 +717,9 @@ you will have to use `structure.sql` as dump method. See
 Running Migrations
 ------------------
 
-Rails provides a set of Rake tasks to run certain sets of migrations.
+Rails provides a set of bin/rails tasks to run certain sets of migrations.
 
-The very first migration related Rake task you will use will probably be
+The very first migration related bin/rails task you will use will probably be
 `rails db:migrate`. In its most basic form it just runs the `change` or `up`
 method for all the migrations that have not yet been run. If there are
 no such migrations, it exits. It will run these migrations in order based
@@ -772,7 +772,7 @@ if you need to go more than one version back, for example:
 $ bin/rails db:migrate:redo STEP=3
 ```
 
-Neither of these Rake tasks do anything you could not do with `db:migrate`. They
+Neither of these bin/rails tasks do anything you could not do with `db:migrate`. They
 are simply more convenient, since you do not need to explicitly specify the
 version to migrate to.
 
@@ -784,7 +784,7 @@ it with the seed data.
 ### Resetting the Database
 
 The `rails db:reset` task will drop the database and set it up again. This is
-functionally equivalent to `rake db:drop db:setup`.
+functionally equivalent to `rails db:drop db:setup`.
 
 NOTE: This is not the same as running all the migrations. It will only use the
 contents of the current `db/schema.rb` or `db/structure.sql` file. If a migration can't be rolled back,
@@ -809,7 +809,7 @@ Active Record believes that it has already been run.
 
 ### Running Migrations in Different Environments
 
-By default running `rake db:migrate` will run in the `development` environment.
+By default running `bin/rails db:migrate` will run in the `development` environment.
 To run migrations against another environment you can specify it using the
 `RAILS_ENV` environment variable while running the command. For example to run
 migrations against the `test` environment you could run:
@@ -886,7 +886,7 @@ Occasionally you will make a mistake when writing a migration. If you have
 already run the migration then you cannot just edit the migration and run the
 migration again: Rails thinks it has already run the migration and so will do
 nothing when you run `rails db:migrate`. You must rollback the migration (for
-example with `rake db:rollback`), edit your migration and then run
+example with `bin/rails db:rollback`), edit your migration and then run
 `rails db:migrate` to run the corrected version.
 
 In general, editing existing migrations is not a good idea. You will be
