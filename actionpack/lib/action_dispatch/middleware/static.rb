@@ -65,7 +65,7 @@ module ActionDispatch
         status, headers, body = @file_server.call(request.env)
       end
 
-      headers['Vary'] = 'Accept-Encoding'
+      headers['Vary'] = 'Accept-Encoding' if gzip_path
 
       return [status, headers, body]
     ensure
