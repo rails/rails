@@ -575,18 +575,19 @@ class InheritanceAttributeMappingTest < ActiveRecord::TestCase
     Empire.create! name: 'an Empire'
 
     assert_equal [["a Startup", "omg_inheritance_attribute_mapping_test/startup"],
-                  ["an Empire", "omg_inheritance_attribute_mapping_test/empire"]], ActiveRecord::Base.connection.select_rows('SELECT name, type FROM companies')
+                  ["an Empire", "omg_inheritance_attribute_mapping_test/empire"]], ActiveRecord::Base.connection.select_rows('SELECT name, type FROM companies').sort
     assert_equal [["a Startup", "InheritanceAttributeMappingTest::Startup"],
-                  ["an Empire", "InheritanceAttributeMappingTest::Empire"]], Company.all.map { |a| [a.name, a.type] }
+                  ["an Empire", "InheritanceAttributeMappingTest::Empire"]], Company.all.map { |a| [a.name, a.type] }.sort
 
     startup = Startup.first
     startup.becomes! Empire
     startup.save!
 
     assert_equal [["a Startup", "omg_inheritance_attribute_mapping_test/empire"],
-                  ["an Empire", "omg_inheritance_attribute_mapping_test/empire"]], ActiveRecord::Base.connection.select_rows('SELECT name, type FROM companies')
+                  ["an Empire", "omg_inheritance_attribute_mapping_test/empire"]], ActiveRecord::Base.connection.select_rows('SELECT name, type FROM companies').sort
+
     assert_equal [["a Startup", "InheritanceAttributeMappingTest::Empire"],
-                  ["an Empire", "InheritanceAttributeMappingTest::Empire"]], Company.all.map { |a| [a.name, a.type] }
+                  ["an Empire", "InheritanceAttributeMappingTest::Empire"]], Company.all.map { |a| [a.name, a.type] }.sort
   end
 
   def test_polymorphic_associations_custom_type
