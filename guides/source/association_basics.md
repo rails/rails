@@ -19,10 +19,10 @@ Why Associations?
 In Rails, an _association_ is a connection between two Active Record models. Why do we need associations between models? Because they make common operations simpler and easier in your code. For example, consider a simple Rails application that includes a model for customers and a model for orders. Each customer can have many orders. Without associations, the model declarations would look like this:
 
 ```ruby
-class Author < ActiveRecord::Base
+class Author < ApplicationRecord
 end
 
-class Book < ActiveRecord::Base
+class Book < ApplicationRecord
 end
 ```
 
