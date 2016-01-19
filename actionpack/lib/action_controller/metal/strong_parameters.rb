@@ -109,7 +109,7 @@ module ActionController
     cattr_accessor :permit_all_parameters, instance_accessor: false
     cattr_accessor :action_on_unpermitted_parameters, instance_accessor: false
 
-    delegate :keys, :key?, :has_key?, :empty?, :include?, :inspect,
+    delegate :keys, :key?, :has_key?, :values, :has_value?, :value?, :empty?, :include?, :inspect,
       :as_json, to: :@parameters
 
     # By default, never raise an UnpermittedParameters exception if these
