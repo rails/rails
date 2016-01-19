@@ -583,11 +583,13 @@ module ActionController
     def method_missing(method_sym, *args, &block)
       if @parameters.respond_to?(method_sym)
         message = <<-DEPRECATE.squish
-          Method #{ method_sym } is deprecated and will be removed in Rails 5.1, as `ActionController::Parameters` no longer inherit from
-          hash. Using this deprecated behavior exposes potential security problems. if you continue to use this method
-          you may be creating a security vulunerability in your app that can be exploited. Instead, consider using one
-          of these public methods that will not be deprecated:
-          #{ public_methods.inspect }
+          Method #{ method_sym } is deprecated and will be removed in Rails 5.1,
+          as `ActionController::Parameters` no longer inherits from
+          hash. Using this deprecated behavior exposes potential security
+          problems. If you continue to use this method you may be creating
+          a security vulunerability in your app that can be exploited. Instead,
+          consider using one of these documented methods which are not
+          deprecated: http://api.rubyonrails.org/v#{ActionPack.version}/classes/ActionController/Parameters.html
         DEPRECATE
         ActiveSupport::Deprecation.warn(message)
         @parameters.public_send(method_sym, *args, &block)
