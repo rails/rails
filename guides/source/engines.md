@@ -694,7 +694,7 @@ engine's models can query them correctly. To copy these migrations into the
 application run the following command from the `test/dummy` directory of your Rails engine:
 
 ```bash
-$ rake blorgh:install:migrations
+$ rake blorgh_engine:install:migrations
 ```
 
 If you have multiple engines that need migrations copied over, use
@@ -836,7 +836,7 @@ This migration will need to be run on the application. To do that, it must first
 be copied using this command:
 
 ```bash
-$ rake blorgh:install:migrations
+$ rake blorgh_engine:install:migrations
 ```
 
 Notice that only _one_ migration was copied over here. This is because the first
