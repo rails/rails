@@ -96,7 +96,7 @@ NOTE: `ActionDispatch::MiddlewareStack` is Rails equivalent of `Rack::Builder`, 
 Rails has a handy rake task for inspecting the middleware stack in use:
 
 ```bash
-$ bin/rake middleware
+$ bin/rails middleware
 ```
 
 For a freshly generated Rails application, this might produce something like:
@@ -178,7 +178,7 @@ And now if you inspect the middleware stack, you'll find that `Rack::Lock` is
 not a part of it.
 
 ```bash
-$ bin/rake middleware
+$ bin/rails middleware
 (in /Users/lifo/Rails/blog)
 use ActionDispatch::Static
 use #<ActiveSupport::Cache::Strategy::LocalCache::Middleware:0x00000001c304c8>
