@@ -263,7 +263,10 @@ module ApplicationTests
       assert_equal "WIN", last_response.body
     end
 
-    { "development" => "baz", "production" => "bar" }.each do |mode, expected|
+    {
+      "development" => ["baz", "http://www.apple.com"],
+      "production"  => ["bar", "http://www.microsoft.com"]
+    }.each do |mode, (expected_action, expected_url)|
       test "reloads routes when configuration is changed in #{mode}" do
         controller :foo, <<-RUBY
           class FooController < ApplicationController
@@ -274,12 +277,19 @@ module ApplicationTests
             def baz
               render plain: "baz"
             end
+
+            def custom
+              render plain: custom_url
+            end
           end
         RUBY
 
         app_file "config/routes.rb", <<-RUBY
           Rails.application.routes.draw do
             get 'foo', to: 'foo#bar'
+            get 'custom', to: 'foo#custom'
+
+            url_helper(:custom) { "http://www.microsoft.com" }
           end
         RUBY
 
@@ -288,16 +298,25 @@ module ApplicationTests
         get "/foo"
         assert_equal "bar", last_response.body
 
+        get "/custom"
+        assert_equal "http://www.microsoft.com", last_response.body
+
         app_file "config/routes.rb", <<-RUBY
           Rails.application.routes.draw do
             get 'foo', to: 'foo#baz'
+            get 'custom', to: 'foo#custom'
+
+            url_helper(:custom) { "http://www.apple.com" }
           end
         RUBY
 
         sleep 0.1
 
         get "/foo"
-        assert_equal expected, last_response.body
+        assert_equal expected_action, last_response.body
+
+        get "/custom"
+        assert_equal expected_url, last_response.body
       end
     end
 
@@ -357,6 +376,10 @@ module ApplicationTests
         class FooController < ApplicationController
           def index
             render plain: "foo"
+          end
+
+          def custom
+            render text: custom_url
           end
         end
       RUBY
@@ -443,16 +466,19 @@ module ApplicationTests
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
           get ':locale/foo', to: 'foo#index', as: 'foo'
+          url_helper(:microsoft) { 'http://www.microsoft.com' }
         end
       RUBY
 
       get "/en/foo"
       assert_equal "foo", last_response.body
       assert_equal "/en/foo", Rails.application.routes.url_helpers.foo_path(locale: "en")
+      assert_equal "http://www.microsoft.com", Rails.application.routes.url_helpers.microsoft_url
 
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
           get ':locale/bar', to: 'bar#index', as: 'foo'
+          url_helper(:apple) { 'http://www.apple.com' }
         end
       RUBY
 
@@ -464,6 +490,11 @@ module ApplicationTests
       get "/en/bar"
       assert_equal "bar", last_response.body
       assert_equal "/en/bar", Rails.application.routes.url_helpers.foo_path(locale: "en")
+      assert_equal "http://www.apple.com", Rails.application.routes.url_helpers.apple_url
+
+      assert_raises NoMethodError do
+        assert_equal "http://www.microsoft.com", Rails.application.routes.url_helpers.microsoft_url
+      end
     end
 
     test "resource routing with irregular inflection" do
