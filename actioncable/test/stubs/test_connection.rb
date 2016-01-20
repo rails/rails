@@ -11,6 +11,10 @@ class TestConnection
     @transmissions = []
   end
 
+  def pubsub
+    SuccessAdapter.new(TestServer.new)
+  end
+
   def transmit(data)
     @transmissions << data
   end

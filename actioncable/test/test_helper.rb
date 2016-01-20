@@ -5,7 +5,6 @@ require 'active_support/testing/autorun'
 
 
 require 'puma'
-require 'em-hiredis'
 
 require 'mocha/setup'
 

@@ -60,7 +60,7 @@ module ActionCable
         @subscriptions  = ActionCable::Connection::Subscriptions.new(self)
         @message_buffer = ActionCable::Connection::MessageBuffer.new(self)
 
-        @_internal_redis_subscriptions = nil
+        @_internal_subscriptions = nil
         @started_at = Time.now
       end
 

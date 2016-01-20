@@ -133,8 +133,8 @@ module ActionCable
         @identifier = identifier
         @params     = params
 
-        # When a channel is streaming via redis pubsub, we want to delay the confirmation
-        # transmission until redis pubsub subscription is confirmed.
+        # When a channel is streaming via pubsub, we want to delay the confirmation
+        # transmission until pubsub subscription is confirmed.
         @defer_subscription_confirmation = false
 
         @reject_subscription = nil
