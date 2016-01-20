@@ -24,8 +24,6 @@ module CommonSubscriptionAdapterTest
 
 
     # and now the "real" setup for our test:
-    spawn_eventmachine
-
     server.config.cable = cable_config.with_indifferent_access
 
     adapter_klass = server.config.pubsub_adapter

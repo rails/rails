@@ -31,9 +31,7 @@ class ActionCable::Channel::StreamTest < ActionCable::TestCase
   test "stream_for" do
     run_in_eventmachine do
       connection = TestConnection.new
-      EM.next_tick do
-        connection.expects(:pubsub).returns mock().tap { |m| m.expects(:subscribe).with("action_cable:channel:stream_test:chat:Room#1-Campfire", kind_of(Proc), kind_of(Proc)).returns stub_everything(:pubsub) }
-      end
+      connection.expects(:pubsub).returns mock().tap { |m| m.expects(:subscribe).with("action_cable:channel:stream_test:chat:Room#1-Campfire", kind_of(Proc), kind_of(Proc)).returns stub_everything(:pubsub) }
 
       channel = ChatChannel.new connection, ""
       channel.stream_for Room.new(1)
@@ -41,39 +39,35 @@ class ActionCable::Channel::StreamTest < ActionCable::TestCase
   end
 
   test "stream_from subscription confirmation" do
-    EM.run do
+    run_in_eventmachine do
       connection = TestConnection.new
 
       ChatChannel.new connection, "{id: 1}", { id: 1 }
       assert_nil connection.last_transmission
 
-      EM::Timer.new(0.1) do
-        expected = ActiveSupport::JSON.encode "identifier" => "{id: 1}", "type" => "confirm_subscription"
-        connection.transmit(expected)
+      wait_for_async
 
-        assert_equal expected, connection.last_transmission, "Did not receive subscription confirmation within 0.1s"
+      expected = ActiveSupport::JSON.encode "identifier" => "{id: 1}", "type" => "confirm_subscription"
+      connection.transmit(expected)
 
-        EM.run_deferred_callbacks
-        EM.stop
-      end
+      assert_equal expected, connection.last_transmission, "Did not receive subscription confirmation within 0.1s"
     end
   end
 
   test "subscription confirmation should only be sent out once" do
-    EM.run do
+    run_in_eventmachine do
       connection = TestConnection.new
 
       channel = ChatChannel.new connection, "test_channel"
       channel.send_confirmation
       channel.send_confirmation
 
-      EM.run_deferred_callbacks
+      wait_for_async
 
       expected = ActiveSupport::JSON.encode "identifier" => "test_channel", "type" => "confirm_subscription"
       assert_equal expected, connection.last_transmission, "Did not receive subscription confirmation"
 
       assert_equal 1, connection.transmissions.size
-      EM.stop
     end
   end
 

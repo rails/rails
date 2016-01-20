@@ -10,11 +10,11 @@ module ActionCable
 
         class AsyncSubscriberMap < SubscriberMap
           def add_subscriber(*)
-            ::EM.next_tick { super }
+            Concurrent.global_io_executor.post { super }
           end
 
           def invoke_callback(*)
-            ::EM.next_tick { super }
+            Concurrent.global_io_executor.post { super }
           end
         end
     end
