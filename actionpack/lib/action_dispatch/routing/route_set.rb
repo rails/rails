@@ -452,17 +452,34 @@ module ActionDispatch
 
           # Define url_for in the singleton level so one can do:
           # Rails.application.routes.url_helpers.url_for(args)
-          @_routes = routes
-          class << self
-            def url_for(options)
-              @_routes.url_for(options)
+          proxy_class = Class.new do
+            include UrlFor
+            include routes.named_routes.path_helpers_module
+            include routes.named_routes.url_helpers_module
+
+            attr_reader :_routes
+
+            def initialize(routes)
+              @_routes = routes
             end
 
             def optimize_routes_generation?
               @_routes.optimize_routes_generation?
             end
+          end
 
-            attr_reader :_routes
+          @_proxy = proxy_class.new(routes)
+
+          class << self
+            def url_for(options)
+              @_proxy.url_for(options)
+            end
+
+            def optimize_routes_generation?
+              @_proxy.optimize_routes_generation?
+            end
+
+            def _routes; @_proxy._routes; end
             def url_options; {}; end
           end
 
