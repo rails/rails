@@ -184,25 +184,31 @@ module ActionDispatch
         def build_path(ast, requirements, anchor)
           pattern = Journey::Path::Pattern.new(ast, requirements, JOINED_SEPARATORS, anchor)
 
-          # Get all the symbol nodes followed by literals that are not the
-          # dummy node.
-          symbols = ast.find_all { |n|
-            n.cat? && n.left.symbol? && n.right.cat? && n.right.left.literal?
-          }.map(&:left)
+          # Find all the symbol nodes that are adjacent to literal nodes and alter
+          # the regexp so that Journey will partition them into custom routes.
+          ast.find_all { |node|
+            next unless node.cat?
 
-          # Get all the symbol nodes preceded by literals.
-          symbols.concat ast.find_all { |n|
-            n.cat? && n.left.literal? && n.right.cat? && n.right.left.symbol?
-          }.map { |n| n.right.left }
+            if node.left.literal? && node.right.symbol?
+              symbol = node.right
+            elsif node.left.literal? && node.right.cat? && node.right.left.symbol?
+              symbol = node.right.left
+            elsif node.left.symbol? && node.right.literal?
+              symbol = node.left
+            elsif node.left.symbol? && node.right.cat? && node.right.left.literal?
+              symbol = node.left
+            else
+              next
+            end
 
-          symbols.each { |x|
-            x.regexp = /(?:#{Regexp.union(x.regexp, '-')})+/
+            if symbol
+              symbol.regexp = /(?:#{Regexp.union(symbol.regexp, '-')})+/
+            end
           }
 
           pattern
         end
         private :build_path
-
 
         private
           def add_wildcard_options(options, formatted, path_ast)
