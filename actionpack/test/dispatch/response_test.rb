@@ -197,11 +197,11 @@ class ResponseTest < ActiveSupport::TestCase
     }
     resp.to_a
 
-    assert_equal('"202cb962ac59075b964b07152d234b70"', resp.etag)
+    assert_equal('W/"202cb962ac59075b964b07152d234b70"', resp.etag)
     assert_equal({:public => true}, resp.cache_control)
 
     assert_equal('public', resp.headers['Cache-Control'])
-    assert_equal('"202cb962ac59075b964b07152d234b70"', resp.headers['ETag'])
+    assert_equal('W/"202cb962ac59075b964b07152d234b70"', resp.headers['ETag'])
   end
 
   test "read charset and content type" do
@@ -388,16 +388,16 @@ class ResponseIntegrationTest < ActionDispatch::IntegrationTest
     assert_response :success
 
     assert_equal('public', @response.headers['Cache-Control'])
-    assert_equal('"202cb962ac59075b964b07152d234b70"', @response.headers['ETag'])
+    assert_equal('W/"202cb962ac59075b964b07152d234b70"', @response.headers['ETag'])
 
-    assert_equal('"202cb962ac59075b964b07152d234b70"', @response.etag)
+    assert_equal('W/"202cb962ac59075b964b07152d234b70"', @response.etag)
     assert_equal({:public => true}, @response.cache_control)
   end
 
   test "response cache control from rackish app" do
     @app = lambda { |env|
       [200,
-        {'ETag' => '"202cb962ac59075b964b07152d234b70"',
+        {'ETag' => 'W/"202cb962ac59075b964b07152d234b70"',
           'Cache-Control' => 'public'}, ['Hello']]
     }
 
@@ -405,9 +405,9 @@ class ResponseIntegrationTest < ActionDispatch::IntegrationTest
     assert_response :success
 
     assert_equal('public', @response.headers['Cache-Control'])
-    assert_equal('"202cb962ac59075b964b07152d234b70"', @response.headers['ETag'])
+    assert_equal('W/"202cb962ac59075b964b07152d234b70"', @response.headers['ETag'])
 
-    assert_equal('"202cb962ac59075b964b07152d234b70"', @response.etag)
+    assert_equal('W/"202cb962ac59075b964b07152d234b70"', @response.etag)
     assert_equal({:public => true}, @response.cache_control)
   end
 

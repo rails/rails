@@ -461,7 +461,7 @@ class EtagRenderTest < ActionController::TestCase
   end
 
   def etag(record)
-    Digest::MD5.hexdigest(ActiveSupport::Cache.expand_cache_key(record)).inspect
+    %(W/"#{Digest::MD5.hexdigest(ActiveSupport::Cache.expand_cache_key(record))}")
   end
 end
 
