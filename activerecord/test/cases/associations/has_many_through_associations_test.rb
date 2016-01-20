@@ -1215,4 +1215,20 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   ensure
     TenantMembership.current_member = nil
   end
+
+  def test_has_many_through_update_ids_with_conditions
+    author = Author.create :name => "Bill"
+    category = categories(:general)
+    author.update(special_categories_with_condition_ids: [category.id],
+                  nonspecial_categories_with_condition_ids: [category.id])
+
+    assert_equal [category.id], author.special_categories_with_condition_ids
+    assert_equal [category.id], author.nonspecial_categories_with_condition_ids
+
+    author.update(nonspecial_categories_with_condition_ids: [])
+    author.reload
+
+    assert_equal [category.id], author.special_categories_with_condition_ids
+    assert_equal [], author.nonspecial_categories_with_condition_ids
+  end
 end

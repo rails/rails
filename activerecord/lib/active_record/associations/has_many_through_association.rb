@@ -132,26 +132,27 @@ module ActiveRecord
 
           scope = through_association.scope
           scope.where! construct_join_attributes(*records)
+          scope_with_association_conditions = scope.where through_scope_attributes
 
           case method
           when :destroy
-            if scope.klass.primary_key
-              count = scope.destroy_all.length
+            if scope_with_association_conditions.klass.primary_key
+              count = scope_with_association_conditions.destroy_all.length
             else
-              scope.each(&:_run_destroy_callbacks)
+              scope_with_association_conditions.each(&:_run_destroy_callbacks)
 
-              arel = scope.arel
+              arel = scope_with_association_conditions.arel
 
               stmt = Arel::DeleteManager.new
-              stmt.from scope.klass.arel_table
+              stmt.from scope_with_association_conditions.klass.arel_table
               stmt.wheres = arel.constraints
 
-              count = scope.klass.connection.delete(stmt, 'SQL', scope.bound_attributes)
+              count = scope_with_association_conditions.klass.connection.delete(stmt, 'SQL', scope_with_association_conditions.bound_attributes)
             end
           when :nullify
-            count = scope.update_all(source_reflection.foreign_key => nil)
+            count = scope_with_association_conditions.update_all(source_reflection.foreign_key => nil)
           else
-            count = scope.delete_all
+            count = scope_with_association_conditions.delete_all
           end
 
           delete_through_records(records)
