@@ -1,3 +1,9 @@
+*   Fix automatic url helper generation when :id present.
+
+    Fixes #20312.
+
+    *Yoong Kang Lim*
+
 *   Provide the name of HTTP Status code in assertions.
 
     *Sean Collins*

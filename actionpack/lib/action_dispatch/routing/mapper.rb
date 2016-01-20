@@ -1652,7 +1652,11 @@ to this:
 
           default_action = options.delete(:action) || @scope[:action]
 
-          if action =~ /^[\w\-\/]+$/
+          if @scope[:controller] && action.include?(":")
+            parts = action.split("/:")
+            action = parts[0].singularize
+            action = "#{default_action.to_s}_#{action}" if parts[1] && parts[1].include?("/")
+          elsif action =~ /^[\w\-\/]+$/
             default_action ||= action.tr('-', '_') unless action.include?("/")
           else
             action = nil

@@ -138,6 +138,19 @@ module ActionDispatch
         assert_equal '/a/users/1', url_helpers.user_path(1, foo: 'a')
       end
 
+      test "controller routing creates url helpers" do
+        draw do
+          controller :blogs do
+            get 'blogs'          => :list
+            get 'blogs/:id'      => :show
+            get 'blogs/:id/edit' => :edit
+          end
+        end
+        assert_equal '/blogs', url_helpers.blogs_path
+        assert_equal '/blogs/1', url_helpers.blog_path(1)
+        assert_equal '/blogs/1/edit', url_helpers.edit_blog_path(1)
+      end
+
       private
         def draw(&block)
           @set.draw(&block)
