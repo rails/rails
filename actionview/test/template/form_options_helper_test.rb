@@ -588,7 +588,7 @@ class FormOptionsHelperTest < ActionView::TestCase
 
   def test_select_under_fields_for_with_string_and_given_prompt
     @post = Post.new
-    options = "<option value=\"abe\">abe</option><option value=\"mus\">mus</option><option value=\"hest\">hest</option>".html_safe
+    options = raw("<option value=\"abe\">abe</option><option value=\"mus\">mus</option><option value=\"hest\">hest</option>")
 
     output_buffer = fields_for :post, @post do |f|
       concat f.select(:category, options, :prompt => 'The prompt')

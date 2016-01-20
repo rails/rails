@@ -34,7 +34,7 @@ class CaptureHelperTest < ActionView::TestCase
   end
 
   def test_capture_doesnt_escape_twice
-    string = @av.capture { '&lt;em&gt;bar&lt;/em&gt;'.html_safe }
+    string = @av.capture { raw('&lt;em&gt;bar&lt;/em&gt;') }
     assert_equal '&lt;em&gt;bar&lt;/em&gt;', string
   end
 
@@ -171,7 +171,7 @@ class CaptureHelperTest < ActionView::TestCase
 
     @view_flow = ActionView::OutputFlow.new
     provide :title, "hi"
-    provide :title, "<p>title</p>".html_safe
+    provide :title, raw("<p>title</p>")
     assert_equal "hi<p>title</p>", content_for(:title)
   end
 

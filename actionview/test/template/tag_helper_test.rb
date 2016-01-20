@@ -143,10 +143,10 @@ class TagHelperTest < ActionView::TestCase
   end
 
   def test_tag_honors_html_safe_with_escaped_array_class
-    str = tag('p', :class => ['song>', 'play>'.html_safe])
+    str = tag('p', :class => ['song>', raw('play>')])
     assert_equal '<p class="song&gt; play>" />', str
 
-    str = tag('p', :class => ['song>'.html_safe, 'play>'])
+    str = tag('p', :class => [raw('song>'), 'play>'])
     assert_equal '<p class="song> play&gt;" />', str
   end
 
