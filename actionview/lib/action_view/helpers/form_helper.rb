@@ -765,7 +765,7 @@ module ActionView
       #   # => <label for="post_privacy_public">Public Post</label>
       #
       #   label(:post, :terms) do
-      #     'Accept <a href="/terms">Terms</a>.'.html_safe
+      #     raw('Accept <a href="/terms">Terms</a>.')
       #   end
       #   # => <label for="post_terms">Accept <a href="/terms">Terms</a>.</label>
       def label(object_name, method, content_or_options = nil, options = nil, &block)
@@ -1675,7 +1675,7 @@ module ActionView
       #   # => <label for="post_privacy_public">Public Post</label>
       #
       #   label(:terms) do
-      #     'Accept <a href="/terms">Terms</a>.'.html_safe
+      #     raw('Accept <a href="/terms">Terms</a>.')
       #   end
       #   # => <label for="post_terms">Accept <a href="/terms">Terms</a>.</label>
       def label(method, text = nil, options = {}, &block)

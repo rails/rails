@@ -3207,7 +3207,7 @@ class DateHelperTest < ActionView::TestCase
   end
 
   def test_time_tag_with_given_block
-    assert_match(/<time.*><span>Right now<\/span><\/time>/, time_tag(Time.now){ '<span>Right now</span>'.html_safe })
+    assert_match(/<time.*><span>Right now<\/span><\/time>/, time_tag(Time.now){ raw('<span>Right now</span>') })
   end
 
   def test_time_tag_with_different_format

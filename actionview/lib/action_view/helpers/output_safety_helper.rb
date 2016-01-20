@@ -22,10 +22,10 @@ module ActionView #:nodoc:
       # the supplied separator, are HTML escaped unless they are HTML
       # safe, and the returned string is marked as HTML safe.
       #
-      #   safe_join(["<p>foo</p>".html_safe, "<p>bar</p>"], "<br />")
+      #   safe_join([raw("<p>foo</p>"), "<p>bar</p>"], "<br />")
       #   # => "<p>foo</p>&lt;br /&gt;&lt;p&gt;bar&lt;/p&gt;"
       #
-      #   safe_join(["<p>foo</p>".html_safe, "<p>bar</p>".html_safe], "<br />".html_safe)
+      #   safe_join([raw("<p>foo</p>"), raw("<p>bar</p>")], raw("<br />")
       #   # => "<p>foo</p><br /><p>bar</p>"
       #
       def safe_join(array, sep=$,)

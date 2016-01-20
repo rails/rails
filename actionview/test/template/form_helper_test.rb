@@ -336,7 +336,7 @@ class FormHelperTest < ActionView::TestCase
   def test_label_with_block_and_html
     assert_dom_equal(
       '<label for="post_terms">Accept <a href="/terms">Terms</a>.</label>',
-      label(:post, :terms) { 'Accept <a href="/terms">Terms</a>.'.html_safe }
+      label(:post, :terms) { raw('Accept <a href="/terms">Terms</a>.') }
     )
   end
 
@@ -351,7 +351,7 @@ class FormHelperTest < ActionView::TestCase
     with_locale :label do
       assert_dom_equal(
         '<label for="post_body"><b>Write entire text here</b></label>',
-        label(:post, :body) { |b| "<b>#{b.translation}</b>".html_safe }
+        label(:post, :body) { |b| raw("<b>#{b.translation}</b>") }
       )
     end
   end

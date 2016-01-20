@@ -216,19 +216,19 @@ class FormTagHelperTest < ActionView::TestCase
   end
 
   def test_select_tag
-    actual = select_tag "people", "<option>david</option>".html_safe
+    actual = select_tag "people", raw("<option>david</option>")
     expected = %(<select id="people" name="people"><option>david</option></select>)
     assert_dom_equal expected, actual
   end
 
   def test_select_tag_with_multiple
-    actual = select_tag "colors", "<option>Red</option><option>Blue</option><option>Green</option>".html_safe, multiple: true
+    actual = select_tag "colors", raw("<option>Red</option><option>Blue</option><option>Green</option>"), multiple: true
     expected = %(<select id="colors" multiple="multiple" name="colors[]"><option>Red</option><option>Blue</option><option>Green</option></select>)
     assert_dom_equal expected, actual
   end
 
   def test_select_tag_disabled
-    actual = select_tag "places", "<option>Home</option><option>Work</option><option>Pub</option>".html_safe, disabled: true
+    actual = select_tag "places", raw("<option>Home</option><option>Work</option><option>Pub</option>"), disabled: true
     expected = %(<select id="places" disabled="disabled" name="places"><option>Home</option><option>Work</option><option>Pub</option></select>)
     assert_dom_equal expected, actual
   end
@@ -239,37 +239,37 @@ class FormTagHelperTest < ActionView::TestCase
   end
 
   def test_select_tag_with_include_blank
-    actual = select_tag "places", "<option>Home</option><option>Work</option><option>Pub</option>".html_safe, :include_blank => true
+    actual = select_tag "places", raw("<option>Home</option><option>Work</option><option>Pub</option>"), :include_blank => true
     expected = %(<select id="places" name="places"><option value=""></option><option>Home</option><option>Work</option><option>Pub</option></select>)
     assert_dom_equal expected, actual
   end
 
   def test_select_tag_with_include_blank_false
-    actual = select_tag "places", "<option>Home</option><option>Work</option><option>Pub</option>".html_safe, include_blank: false
+    actual = select_tag "places", raw("<option>Home</option><option>Work</option><option>Pub</option>"), include_blank: false
     expected = %(<select id="places" name="places"><option>Home</option><option>Work</option><option>Pub</option></select>)
     assert_dom_equal expected, actual
   end
 
   def test_select_tag_with_include_blank_string
-    actual = select_tag "places", "<option>Home</option><option>Work</option><option>Pub</option>".html_safe, include_blank: 'Choose'
+    actual = select_tag "places", raw("<option>Home</option><option>Work</option><option>Pub</option>"), include_blank: 'Choose'
     expected = %(<select id="places" name="places"><option value="">Choose</option><option>Home</option><option>Work</option><option>Pub</option></select>)
     assert_dom_equal expected, actual
   end
 
   def test_select_tag_with_prompt
-    actual = select_tag "places", "<option>Home</option><option>Work</option><option>Pub</option>".html_safe, :prompt => "string"
+    actual = select_tag "places", raw("<option>Home</option><option>Work</option><option>Pub</option>"), :prompt => "string"
     expected = %(<select id="places" name="places"><option value="">string</option><option>Home</option><option>Work</option><option>Pub</option></select>)
     assert_dom_equal expected, actual
   end
 
   def test_select_tag_escapes_prompt
-    actual = select_tag "places", "<option>Home</option><option>Work</option><option>Pub</option>".html_safe, :prompt => "<script>alert(1337)</script>"
+    actual = select_tag "places", raw("<option>Home</option><option>Work</option><option>Pub</option>"), :prompt => "<script>alert(1337)</script>"
     expected = %(<select id="places" name="places"><option value="">&lt;script&gt;alert(1337)&lt;/script&gt;</option><option>Home</option><option>Work</option><option>Pub</option></select>)
     assert_dom_equal expected, actual
   end
 
   def test_select_tag_with_prompt_and_include_blank
-    actual = select_tag "places", "<option>Home</option><option>Work</option><option>Pub</option>".html_safe, :prompt => "string", :include_blank => true
+    actual = select_tag "places", raw("<option>Home</option><option>Work</option><option>Pub</option>"), :prompt => "string", :include_blank => true
     expected = %(<select name="places" id="places"><option value="">string</option><option value=""></option><option>Home</option><option>Work</option><option>Pub</option></select>)
     assert_dom_equal expected, actual
   end
@@ -433,9 +433,9 @@ class FormTagHelperTest < ActionView::TestCase
     assert_dom_equal %(<input checked="checked" disabled="disabled" id="admin" name="admin" readonly="readonly" type="checkbox" value="1" />), check_box_tag("admin", 1, true, 'disabled' => true, :readonly => "yes")
     assert_dom_equal %(<input checked="checked" id="admin" name="admin" type="checkbox" value="1" />), check_box_tag("admin", 1, true, :disabled => false, :readonly => nil)
     assert_dom_equal %(<input type="checkbox" />), tag(:input, :type => "checkbox", :checked => false)
-    assert_dom_equal %(<select id="people" multiple="multiple" name="people[]"><option>david</option></select>), select_tag("people", "<option>david</option>".html_safe, :multiple => true)
-    assert_dom_equal %(<select id="people_" multiple="multiple" name="people[]"><option>david</option></select>), select_tag("people[]", "<option>david</option>".html_safe, :multiple => true)
-    assert_dom_equal %(<select id="people" name="people"><option>david</option></select>), select_tag("people", "<option>david</option>".html_safe, :multiple => nil)
+    assert_dom_equal %(<select id="people" multiple="multiple" name="people[]"><option>david</option></select>), select_tag("people", raw("<option>david</option>"), :multiple => true)
+    assert_dom_equal %(<select id="people_" multiple="multiple" name="people[]"><option>david</option></select>), select_tag("people[]", raw("<option>david</option>"), :multiple => true)
+    assert_dom_equal %(<select id="people" name="people"><option>david</option></select>), select_tag("people", raw("<option>david</option>"), :multiple => nil)
   end
 
   def test_stringify_symbol_keys
