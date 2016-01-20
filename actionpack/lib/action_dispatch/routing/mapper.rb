@@ -2020,6 +2020,46 @@ module ActionDispatch
         end
       end
 
+      module UrlHelpers
+        # Define a custom url helper that will be added to the url helpers
+        # module. This allows you override and/or replace the default behavior
+        # of routing helpers, e.g:
+        #
+        #   url_helper :homepage do
+        #     "http://www.rubyonrails.org"
+        #   end
+        #
+        #   url_helper :commentable do |model|
+        #     [ model, anchor: model.dom_id ]
+        #   end
+        #
+        #   url_helper :main do
+        #     { controller: 'pages', action: 'index', subdomain: 'www' }
+        #   end
+        #
+        # The return value must be a valid set of arguments for `url_for` which
+        # will actually build the url string. This can be one of the following:
+        #
+        #   * A string, which is treated as a generated url
+        #   * A hash, e.g. { controller: 'pages', action: 'index' }
+        #   * An array, which is passed to `polymorphic_url`
+        #   * An Active Model instance
+        #   * An Active Model class
+        #
+        # You can also specify default options that will be passed through to
+        # your url helper definition, e.g:
+        #
+        #   url_helper :browse, page: 1, size: 10 do |options|
+        #     [ :products, options.merge(params.permit(:page, :size)) ]
+        #   end
+        #
+        # NOTE: It is the url helper's responsibility to return the correct
+        # set of options to be passed to the `url_for` call.
+        def url_helper(name, options = {}, &block)
+          @set.add_url_helper(name, options, &block)
+        end
+      end
+
       class Scope # :nodoc:
         OPTIONS = [:path, :shallow_path, :as, :shallow_prefix, :module,
                    :controller, :action, :path_names, :constraints,
@@ -2113,6 +2153,7 @@ module ActionDispatch
       include Scoping
       include Concerns
       include Resources
+      include UrlHelpers
     end
   end
 end
