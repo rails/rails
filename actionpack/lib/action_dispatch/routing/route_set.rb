@@ -73,6 +73,7 @@ module ActionDispatch
           @routes = {}
           @path_helpers = Set.new
           @url_helpers = Set.new
+          @custom_helpers = Set.new
           @url_helpers_module  = Module.new
           @path_helpers_module = Module.new
         end
@@ -95,9 +96,23 @@ module ActionDispatch
             @url_helpers_module.send  :undef_method, helper
           end
 
+          @custom_helpers.each do |helper|
+            path_name = :"#{helper}_path"
+            url_name = :"#{helper}_url"
+
+            if @path_helpers_module.method_defined?(path_name)
+              @path_helpers_module.send :undef_method, path_name
+            end
+
+            if @url_helpers_module.method_defined?(url_name)
+              @url_helpers_module.send :undef_method, url_name
+            end
+          end
+
           @routes.clear
           @path_helpers.clear
           @url_helpers.clear
+          @custom_helpers.clear
         end
 
         def add(name, route)
@@ -141,6 +156,62 @@ module ActionDispatch
 
         def length
           routes.length
+        end
+
+        def add_url_helper(name, defaults, &block)
+          @custom_helpers << name
+          helper = CustomUrlHelper.new(name, defaults, &block)
+
+          @path_helpers_module.module_eval do
+            define_method(:"#{name}_path") do |*args|
+              options = args.extract_options!
+              helper.call(self, args, options, only_path: true)
+            end
+          end
+
+          @url_helpers_module.module_eval do
+            define_method(:"#{name}_url") do |*args|
+              options = args.extract_options!
+              helper.call(self, args, options)
+            end
+          end
+        end
+
+        class CustomUrlHelper
+          attr_reader :name, :defaults, :block
+
+          def initialize(name, defaults, &block)
+            @name = name
+            @defaults = defaults
+            @block = block
+          end
+
+          def call(t, args, options, outer_options = {})
+            url_options = eval_block(t, args, options)
+
+            case url_options
+            when String
+              t.url_for(url_options)
+            when Hash
+              t.url_for(url_options.merge(outer_options))
+            when ActionController::Parameters
+              if url_options.permitted?
+                t.url_for(url_options.to_h.merge(outer_options))
+              else
+                raise ArgumentError, "Generating an URL from non sanitized request parameters is insecure!"
+              end
+            when Array
+              opts = url_options.extract_options!
+              t.url_for(url_options.push(opts.merge(outer_options)))
+            else
+              t.url_for([url_options, outer_options])
+            end
+          end
+
+          private
+            def eval_block(t, args, options)
+              t.instance_exec(*args, defaults.merge(options), &block)
+            end
         end
 
         class UrlHelper
@@ -552,6 +623,10 @@ module ActionDispatch
         end
 
         route
+      end
+
+      def add_url_helper(name, options, &block)
+        named_routes.add_url_helper(name, options, &block)
       end
 
       class Generator
