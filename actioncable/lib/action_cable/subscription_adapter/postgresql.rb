@@ -58,7 +58,7 @@ module ActionCable
 
                   if action == :listen
                     pg_conn.exec("LISTEN #{escaped_channel}")
-                    ::EM.next_tick(&callback) if callback
+                    Concurrent.global_io_executor << callback if callback
                   elsif action == :unlisten
                     pg_conn.exec("UNLISTEN #{escaped_channel}")
                   end
@@ -66,7 +66,7 @@ module ActionCable
 
                 pg_conn.wait_for_notify(1) do |chan, pid, message|
                   @subscribers[chan].each do |callback|
-                    ::EM.next_tick { callback.call(message) }
+                    Concurrent.global_io_executor.post { callback.call(message) }
                   end
                 end
               end

@@ -22,11 +22,9 @@ module ActionCable
       # then can't rely on being able to receive and send to it. So there's a 3 second heartbeat running on all connections. If the beat fails, we automatically
       # disconnect.
       def setup_heartbeat_timer
-        EM.next_tick do
-          @heartbeat_timer ||= EventMachine.add_periodic_timer(BEAT_INTERVAL) do
-            EM.next_tick { connections.map(&:beat) }
-          end
-        end
+        @heartbeat_timer ||= Concurrent::TimerTask.new(execution_interval: BEAT_INTERVAL) do
+          Concurrent.global_io_executor.post { connections.map(&:beat) }
+        end.tap(&:execute)
       end
 
       def open_connections_statistics

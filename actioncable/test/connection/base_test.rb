@@ -37,6 +37,8 @@ class ActionCable::Connection::BaseTest < ActionCable::TestCase
       connection.process
 
       assert connection.websocket.possible?
+
+      wait_for_async
       assert connection.websocket.alive?
     end
   end
@@ -58,11 +60,10 @@ class ActionCable::Connection::BaseTest < ActionCable::TestCase
       connection.websocket.expects(:transmit).with(regexp_matches(/\_ping/))
       connection.message_buffer.expects(:process!)
 
-      # Allow EM to run on_open callback
-      EM.next_tick do
-        assert_equal [ connection ], @server.connections
-        assert connection.connected
-      end
+      wait_for_async
+
+      assert_equal [ connection ], @server.connections
+      assert connection.connected
     end
   end
 
@@ -72,7 +73,7 @@ class ActionCable::Connection::BaseTest < ActionCable::TestCase
       connection.process
 
       # Setup the connection
-      EventMachine.stubs(:add_periodic_timer).returns(true)
+      Concurrent::TimerTask.stubs(:new).returns(true)
       connection.send :on_open
       assert connection.connected
 

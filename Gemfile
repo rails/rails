@@ -63,6 +63,7 @@ end
 # Action Cable
 group :cable do
   gem 'puma', require: false
+  gem 'faye-websocket', github: "matthewd/faye-websocket-ruby", branch: "no-em-concept", require: false
 end
 
 # Add your own local bundler stuff.
