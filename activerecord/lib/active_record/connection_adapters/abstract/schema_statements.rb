@@ -1027,6 +1027,9 @@ module ActiveRecord
 
           column_type_sql
         else
+          if limit || precision || scale
+            raise(ActiveRecordError, "Type \"#{type}\" does not support :limit, :precision, or :scale")
+          end
           type.to_s
         end
       end

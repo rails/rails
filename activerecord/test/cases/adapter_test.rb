@@ -241,6 +241,10 @@ module ActiveRecord
     test "type_to_sql returns a String for unmapped types" do
       assert_equal "special_db_type", @connection.type_to_sql(:special_db_type)
     end
+    
+    def test_type_to_sql_throws_error_when_umapped_types_include_options
+      assert_raises(ActiveRecord::ActiveRecordError) { @connection.type_to_sql(:special_db_type,1,1,1) }
+    end  
 
     unless current_adapter?(:PostgreSQLAdapter)
       def test_log_invalid_encoding
