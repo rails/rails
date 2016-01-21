@@ -112,7 +112,7 @@ module ActionController
 
       UrlFor,
       Redirecting,
-      Rendering,
+      ApiRendering,
       Renderers::All,
       ConditionalGet,
       BasicImplicitRender,

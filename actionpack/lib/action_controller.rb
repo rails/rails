@@ -41,6 +41,10 @@ module ActionController
     autoload :UrlFor
   end
 
+  autoload_under "api" do
+    autoload :ApiRendering
+  end
+
   autoload :TestCase,           'action_controller/test_case'
   autoload :TemplateAssertions, 'action_controller/test_case'
 
