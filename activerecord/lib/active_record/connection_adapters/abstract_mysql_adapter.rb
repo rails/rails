@@ -844,11 +844,22 @@ module ActiveRecord
 
         defaults = [':default', :default].to_set
 
-        # Make MySQL reject illegal values rather than truncating or blanking them, see
-        # http://dev.mysql.com/doc/refman/5.7/en/sql-mode.html#sqlmode_strict_all_tables
+        # The default SQL mode in MySQL 5.7 includes these modes:
+        #   ONLY_FULL_GROUP_BY, STRICT_TRANS_TABLES, NO_ZERO_IN_DATE, NO_ZERO_DATE,
+        #   ERROR_FOR_DIVISION_BY_ZERO, NO_AUTO_CREATE_USER, and NO_ENGINE_SUBSTITUTION.
+        # See https://dev.mysql.com/doc/refman/5.7/en/sql-mode.html#sql-mode-setting
         # If the user has provided another value for sql_mode, don't replace it.
         unless variables.has_key?('sql_mode') || defaults.include?(@config[:strict])
-          variables['sql_mode'] = strict_mode? ? 'STRICT_ALL_TABLES' : ''
+          sql_mode = %w(
+            ONLY_FULL_GROUP_BY STRICT_TRANS_TABLES NO_ZERO_IN_DATE NO_ZERO_DATE
+            ERROR_FOR_DIVISION_BY_ZERO NO_AUTO_CREATE_USER NO_ENGINE_SUBSTITUTION
+          )
+          if strict_mode?
+            sql_mode += ['STRICT_ALL_TABLES']
+          else
+            sql_mode -= ['STRICT_TRANS_TABLES']
+          end
+          variables['sql_mode'] = sql_mode.join(',')
         end
 
         # NAMES does not have an equals sign, see
