@@ -55,11 +55,11 @@ class ActionCable::Connection::BaseTest < ActionCable::TestCase
   test "on connection open" do
     run_in_eventmachine do
       connection = open_connection
-      connection.process
 
       connection.websocket.expects(:transmit).with(regexp_matches(/\_ping/))
       connection.message_buffer.expects(:process!)
 
+      connection.process
       wait_for_async
 
       assert_equal [ connection ], @server.connections
@@ -74,11 +74,11 @@ class ActionCable::Connection::BaseTest < ActionCable::TestCase
 
       # Setup the connection
       Concurrent::TimerTask.stubs(:new).returns(true)
-      connection.send :on_open
+      connection.send :handle_open
       assert connection.connected
 
       connection.subscriptions.expects(:unsubscribe_from_all)
-      connection.send :on_close
+      connection.send :handle_close
 
       assert ! connection.connected
       assert_equal [], @server.connections

@@ -20,16 +20,6 @@ GIT
       redis-namespace
 
 GIT
-  remote: git://github.com/matthewd/faye-websocket-ruby.git
-  revision: f608bb57844b91b397817b06ab6bf744324010ab
-  branch: no-em-concept
-  specs:
-    faye-websocket (0.10.2)
-      concurrent-ruby (~> 1.0)
-      nio4r (~> 1.2)
-      websocket-driver (>= 0.5.1)
-
-GIT
   remote: git://github.com/sass/sass.git
   revision: bce9509f396225d721501ea1070a6871b708abb1
   branch: stable
@@ -42,7 +32,7 @@ PATH
     actioncable (5.0.0.beta1)
       actionpack (= 5.0.0.beta1)
       coffee-rails (~> 4.1.0)
-      faye-websocket (~> 0.10.0)
+      nio4r (~> 1.2)
       websocket-driver (~> 0.6.1)
     actionmailer (5.0.0.beta1)
       actionpack (= 5.0.0.beta1)
@@ -314,7 +304,6 @@ DEPENDENCIES
   delayed_job
   delayed_job_active_record
   em-hiredis
-  faye-websocket!
   jquery-rails
   json
   kindlerb (= 0.1.1)
