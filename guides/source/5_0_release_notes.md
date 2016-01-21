@@ -253,6 +253,9 @@ Please refer to the [Changelog][action-pack] for detailed changes.
     `ActionDispatch::IntegrationTest` instead.
     ([commit](https://github.com/rails/rails/commit/4414c5d1795e815b102571425974a8b1d46d932d))
 
+*   Rails will only generate "weak", instead of strong ETags.
+    ([Pull Request](https://github.com/rails/rails/pull/17573))
+
 Action View
 -------------
 
