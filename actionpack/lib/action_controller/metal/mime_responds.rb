@@ -9,6 +9,13 @@ module ActionController #:nodoc:
     #     @people = Person.all
     #   end
     #
+    # That action implicitly responds to all formats, but formats can also be whitelisted:
+    #
+    #   def index
+    #     @people = Person.all
+    #     respond_to :html, :js
+    #   end
+    #
     # Here's the same action, with web-service support baked in:
     #
     #   def index
@@ -16,11 +23,12 @@ module ActionController #:nodoc:
     #
     #     respond_to do |format|
     #       format.html
+    #       format.js
     #       format.xml { render xml: @people }
     #     end
     #   end
     #
-    # What that says is, "if the client wants HTML in response to this action, just respond as we
+    # What that says is, "if the client wants HTML or JS in response to this action, just respond as we
     # would have before, but if the client wants XML, return them the list of people in XML format."
     # (Rails determines the desired response format from the HTTP Accept header submitted by the client.)
     #
@@ -180,9 +188,6 @@ module ActionController #:nodoc:
     #     format.html.none
     #     format.html.phone # this gets rendered
     #   end
-    #
-    # Be sure to check the documentation of <tt>ActionController::MimeResponds.respond_to</tt>
-    # for more examples.
     def respond_to(*mimes)
       raise ArgumentError, "respond_to takes either types or a block, never both" if mimes.any? && block_given?
 
