@@ -51,7 +51,9 @@ class RenderersApiTest < ActionController::TestCase
   end
 
   def test_render_text
-    get :text
+    assert_deprecated do
+      get :text
+    end
     assert_response :internal_server_error
     assert_equal('Hi from text', @response.body)
   end
