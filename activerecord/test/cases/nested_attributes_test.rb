@@ -1096,3 +1096,25 @@ class TestHasManyAutosaveAssociationWhichItselfHasAutosaveAssociations < ActiveR
     assert_equal ["Ship name can't be blank"], part.errors.full_messages
   end
 end
+
+class TestModelsInstantiatedViaNestedAttributesHaveReflectionOnParent < ActiveRecord::TestCase
+  setup do
+    @pirate = Pirate.new(catchphrase: 'Yarrr!')
+    @ship = Ship.new(name: "The Black Rock")
+  end
+
+  def test_accepts_nested_attributes_and_has_one_work_with_validate_presence_of
+    assert @pirate.update(ship_attributes: { name: "Pearl", validate_pirate: true }),
+           "expected pirate to be saved successfully, but it wasn't"
+  end
+
+  def test_accepts_nested_attributes_and_has_many_work_with_validate_presence_of
+    assert @pirate.update(unscoped_birds_attributes: [{ name: "Polly", validate_pirate: true }]),
+           "expected pirate to be saved successfully, but it wasn't"
+  end
+
+  def test_accepts_nested_attributes_and_belongs_to_work_with_validate_presence_of
+    assert @ship.update(pirate_attributes: { catchphrase: 'Yarrr!', validate_ship: true }),
+           "expected ship to be saved successfully, but it wasn't"
+  end
+end
