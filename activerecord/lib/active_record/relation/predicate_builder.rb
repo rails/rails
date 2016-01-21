@@ -18,6 +18,7 @@ module ActiveRecord
       register_handler(Class, ClassHandler.new(self))
       register_handler(Base, BaseHandler.new(self))
       register_handler(Range, RangeHandler.new(self))
+      register_handler(RangeHandler::RangeWithBinds, RangeHandler.new(self))
       register_handler(Relation, RelationHandler.new)
       register_handler(Array, ArrayHandler.new(self))
       register_handler(AssociationQueryValue, AssociationQueryHandler.new(self))
@@ -105,10 +106,23 @@ module ActiveRecord
           binds += bvs
         when Relation
           binds += value.bound_attributes
+        when Range
+          first = value.begin
+          last = value.end
+          unless first.respond_to?(:infinite?) && first.infinite?
+            binds << build_bind_param(column_name, first)
+            first = Arel::Nodes::BindParam.new
+          end
+          unless last.respond_to?(:infinite?) && last.infinite?
+            binds << build_bind_param(column_name, last)
+            last = Arel::Nodes::BindParam.new
+          end
+
+          result[column_name] = RangeHandler::RangeWithBinds.new(first, last, value.exclude_end?)
         else
           if can_be_bound?(column_name, value)
             result[column_name] = Arel::Nodes::BindParam.new
-            binds << Relation::QueryAttribute.new(column_name.to_s, value, table.type(column_name))
+            binds << build_bind_param(column_name, value)
           end
         end
       end
@@ -144,6 +158,10 @@ module ActiveRecord
       !value.nil? &&
         handler_for(value).is_a?(BasicObjectHandler) &&
         !table.associated_with?(column_name)
+    end
+
+    def build_bind_param(column_name, value)
+      Relation::QueryAttribute.new(column_name.to_s, value, table.type(column_name))
     end
   end
 end
