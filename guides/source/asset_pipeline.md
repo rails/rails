@@ -1280,8 +1280,9 @@ config.assets.debug = true
 And in `production.rb`:
 
 ```ruby
-# Choose the compressors to use (if any) config.assets.js_compressor  =
-# :uglifier config.assets.css_compressor = :yui
+# Choose the compressors to use (if any)
+config.assets.js_compressor = :uglifier
+# config.assets.css_compressor = :yui
 
 # Don't fallback to assets pipeline if a precompiled asset is missed
 config.assets.compile = false
@@ -1290,7 +1291,8 @@ config.assets.compile = false
 config.assets.digest = true
 
 # Precompile additional assets (application.js, application.css, and all
-# non-JS/CSS are already added) config.assets.precompile += %w( search.js )
+# non-JS/CSS are already added)
+# config.assets.precompile += %w( search.js )
 ```
 
 Rails 4 no longer sets default config values for Sprockets in `test.rb`, so
