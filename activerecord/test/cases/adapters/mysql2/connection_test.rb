@@ -69,38 +69,46 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
   end
 
   def test_mysql_default_in_strict_mode
-    result = @connection.exec_query "SELECT @@SESSION.sql_mode"
-    assert_equal [["STRICT_ALL_TABLES"]], result.rows
+    result = @connection.select_value("SELECT @@SESSION.sql_mode")
+    assert_match %r(STRICT_ALL_TABLES), result
   end
 
   def test_mysql_strict_mode_disabled
     run_without_connection do |orig_connection|
-      ActiveRecord::Base.establish_connection(orig_connection.merge({:strict => false}))
-      result = ActiveRecord::Base.connection.exec_query "SELECT @@SESSION.sql_mode"
-      assert_equal [['']], result.rows
+      ActiveRecord::Base.establish_connection(orig_connection.merge(strict: false))
+      result = ActiveRecord::Base.connection.select_value("SELECT @@SESSION.sql_mode")
+      assert_no_match %r(STRICT_ALL_TABLES), result
+    end
+  end
+
+  def test_mysql_strict_mode_specified_default
+    run_without_connection do |orig_connection|
+      ActiveRecord::Base.establish_connection(orig_connection.merge(strict: :default))
+      global_sql_mode = ActiveRecord::Base.connection.select_value("SELECT @@GLOBAL.sql_mode")
+      session_sql_mode = ActiveRecord::Base.connection.select_value("SELECT @@SESSION.sql_mode")
+      assert_equal global_sql_mode, session_sql_mode
+    end
+  end
+
+  def test_mysql_sql_mode_variable_overrides_strict_mode
+    run_without_connection do |orig_connection|
+      ActiveRecord::Base.establish_connection(orig_connection.deep_merge(variables: { 'sql_mode' => 'ansi' }))
+      result = ActiveRecord::Base.connection.select_value('SELECT @@SESSION.sql_mode')
+      assert_no_match %r(STRICT_ALL_TABLES), result
     end
   end
 
   def test_passing_arbitary_flags_to_adapter
-    run_without_connection do |orig_connection|             
+    run_without_connection do |orig_connection|
       ActiveRecord::Base.establish_connection(orig_connection.merge({flags: Mysql2::Client::COMPRESS}))
       assert_equal (Mysql2::Client::COMPRESS |  Mysql2::Client::FOUND_ROWS), ActiveRecord::Base.connection.raw_connection.query_options[:flags]
     end
   end
-  
+
   def test_passing_flags_by_array_to_adapter
-    run_without_connection do |orig_connection|             
+    run_without_connection do |orig_connection|
       ActiveRecord::Base.establish_connection(orig_connection.merge({flags: ['COMPRESS'] }))
       assert_equal ["COMPRESS", "FOUND_ROWS"], ActiveRecord::Base.connection.raw_connection.query_options[:flags]
-    end
-  end
-  
-  def test_mysql_strict_mode_specified_default
-    run_without_connection do |orig_connection|
-      ActiveRecord::Base.establish_connection(orig_connection.merge({strict: :default}))
-      global_sql_mode = ActiveRecord::Base.connection.exec_query "SELECT @@GLOBAL.sql_mode"
-      session_sql_mode = ActiveRecord::Base.connection.exec_query "SELECT @@SESSION.sql_mode"
-      assert_equal global_sql_mode.rows, session_sql_mode.rows
     end
   end
 
@@ -109,14 +117,6 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
       ActiveRecord::Base.establish_connection(orig_connection.deep_merge({:variables => {:default_week_format => 3}}))
       session_mode = ActiveRecord::Base.connection.exec_query "SELECT @@SESSION.DEFAULT_WEEK_FORMAT"
       assert_equal 3, session_mode.rows.first.first.to_i
-    end
-  end
-
-  def test_mysql_sql_mode_variable_overrides_strict_mode
-    run_without_connection do |orig_connection|
-      ActiveRecord::Base.establish_connection(orig_connection.deep_merge(variables: { 'sql_mode' => 'ansi' }))
-      result = ActiveRecord::Base.connection.exec_query 'SELECT @@SESSION.sql_mode'
-      assert_not_equal [['STRICT_ALL_TABLES']], result.rows
     end
   end
 

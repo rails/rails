@@ -846,9 +846,18 @@ module ActiveRecord
         # Make MySQL reject illegal values rather than truncating or blanking them, see
         # http://dev.mysql.com/doc/refman/5.7/en/sql-mode.html#sqlmode_strict_all_tables
         # If the user has provided another value for sql_mode, don't replace it.
-        unless variables.has_key?('sql_mode') || defaults.include?(@config[:strict])
-          variables['sql_mode'] = strict_mode? ? 'STRICT_ALL_TABLES' : ''
+        if sql_mode = variables.delete('sql_mode')
+          sql_mode = quote(sql_mode)
+        elsif !defaults.include?(strict_mode?)
+          if strict_mode?
+            sql_mode = "CONCAT(@@sql_mode, ',STRICT_ALL_TABLES')"
+          else
+            sql_mode = "REPLACE(@@sql_mode, 'STRICT_TRANS_TABLES', '')"
+            sql_mode = "REPLACE(#{sql_mode}, 'STRICT_ALL_TABLES', '')"
+            sql_mode = "REPLACE(#{sql_mode}, 'TRADITIONAL', '')"
+          end
         end
+        sql_mode_assignment = "@@SESSION.sql_mode = #{sql_mode}, " if sql_mode
 
         # NAMES does not have an equals sign, see
         # http://dev.mysql.com/doc/refman/5.7/en/set-statement.html#id944430
@@ -870,7 +879,7 @@ module ActiveRecord
         end.compact.join(', ')
 
         # ...and send them all in one query
-        @connection.query  "SET #{encoding} #{variable_assignments}"
+        @connection.query  "SET #{encoding} #{sql_mode_assignment} #{variable_assignments}"
       end
 
       def column_definitions(table_name) # :nodoc:
