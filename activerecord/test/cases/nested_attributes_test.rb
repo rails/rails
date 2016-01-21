@@ -1069,3 +1069,13 @@ class TestHasManyAutosaveAssociationWhichItselfHasAutosaveAssociations < ActiveR
     assert_equal ["Ship name can't be blank"], part.errors.full_messages
   end
 end
+
+class TestModelsInstantiatedViaNestedAttributesValidateParent < ActiveRecord::TestCase
+  setup do
+    @pirate = Pirate.new(catchphrase: 'Yarrr!')
+  end
+
+  def test_accepts_nested_attributes_and_has_one_work_with_validate_presence_of
+    assert @pirate.update( ship_attributes: { name: "Pearl", validate_pirate: true } )
+  end
+end

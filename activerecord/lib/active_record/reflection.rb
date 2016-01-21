@@ -270,6 +270,7 @@ module ActiveRecord
       end
 
       def autosave=(autosave)
+        ## BUG: disabling automatic_inverse_of here means that validating presence of parent objects on nested attribute associations fails unless we specify inverse_of manually
         @automatic_inverse_of = false
         @options[:autosave] = autosave
         parent_reflection = self.parent_reflection

@@ -227,6 +227,7 @@ module ActiveRecord
         # The record parameter is necessary to support polymorphic inverses as we must check for
         # the association in the specific class of the record.
         def inverse_reflection_for(record)
+          # BUG: this always returns nil if accepts_nested_attributes_for is enabled and inverse_of is not manually specified!
           reflection.inverse_of
         end
 
