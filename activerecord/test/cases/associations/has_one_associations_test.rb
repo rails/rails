@@ -601,7 +601,8 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
 
     new_ship = Ship.create(name: 'new name')
     assert_queries(2) do
-      # One query for updating name and second query for updating pirate_id
+      # One query for nullifying pirate_id on the previous ship and second query
+      # for updating pirate_id on new_ship
       pirate.ship = new_ship
     end
 

@@ -21,6 +21,7 @@ class Pirate < ActiveRecord::Base
   has_one :ship
   has_one :update_only_ship, :class_name => 'Ship'
   has_one :non_validated_ship, :class_name => 'Ship'
+  has_many :unscoped_birds, class_name: 'Bird'
   has_many :birds, -> { order('birds.id ASC') }
   has_many :birds_with_method_callbacks, :class_name => "Bird",
     :before_add    => :log_before_add,
@@ -37,6 +38,7 @@ class Pirate < ActiveRecord::Base
   has_one :foo_bulb, -> { where :name => 'foo' }, :foreign_key => :car_id, :class_name => "Bulb"
 
   accepts_nested_attributes_for :parrots, :birds, :allow_destroy => true, :reject_if => proc(&:empty?)
+  accepts_nested_attributes_for :unscoped_birds
   accepts_nested_attributes_for :ship, :allow_destroy => true, :reject_if => proc(&:empty?)
   accepts_nested_attributes_for :update_only_ship, :update_only => true
   accepts_nested_attributes_for :parrots_with_method_callbacks, :parrots_with_proc_callbacks,
@@ -44,6 +46,9 @@ class Pirate < ActiveRecord::Base
   accepts_nested_attributes_for :birds_with_reject_all_blank, :reject_if => :all_blank
 
   validates_presence_of :catchphrase
+
+  attr_accessor :validate_ship
+  validates :ship, presence: true, if: :validate_ship
 
   def ship_log
     @ship_log ||= []

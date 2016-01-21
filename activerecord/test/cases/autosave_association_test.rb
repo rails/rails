@@ -1698,3 +1698,45 @@ class TestAutosaveAssociationWithTouch < ActiveRecord::TestCase
     assert_nothing_raised { invoice.line_items.create(:amount => 10) }
   end
 end
+
+class TestBidirectionalAutosave < ActiveRecord::TestCase
+  def test_should_not_create_and_update_parent_for_has_many
+    ship = Ship.new(name: "The Black Rock")
+    ship.parts.build(name: "Stern")
+
+    assert_queries 2 do
+      ship.save!
+    end
+  end
+
+  def test_should_not_update_parent_twice_for_has_many
+    ship = Ship.create!(name: "The Black Rock")
+    ship.parts.create!(name: "Stern")
+
+    assert_queries(1) { ship.name = 'The Clone Rock'; ship.save! }
+  end
+
+  def test_should_not_update_parent_twice_for_has_one
+    pirate = Pirate.create!(catchphrase: 'Yarrr!')
+    pirate.create_ship(name: 'The Black Rock')
+
+    assert_queries(1) { pirate.catchphrase = 'Arggggh?'; pirate.save! }
+  end
+
+  def test_should_not_update_parent_twice_for_belongs_to
+    ship = Ship.create!(name: "The Black Rock")
+    ship.create_pirate(catchphrase: 'Yarrr!')
+
+    assert_queries(1) { ship.name = 'Pearl'; ship.save! }
+  end
+
+  def test_should_not_update_parent_twice_when_using_nested_attributes
+    ship = Ship.new(name: 'The Black Rock')
+
+    assert_queries 2 do
+      # One for saving the ship
+      # One for saving the part
+      ship.update!(parts_attributes: [{ name: 'Stern' }])
+    end
+  end
+end
