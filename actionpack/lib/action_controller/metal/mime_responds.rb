@@ -188,9 +188,6 @@ module ActionController #:nodoc:
     #     format.html.none
     #     format.html.phone # this gets rendered
     #   end
-    #
-    # Be sure to check the documentation of <tt>ActionController::MimeResponds.respond_to</tt>
-    # for more examples.
     def respond_to(*mimes)
       raise ArgumentError, "respond_to takes either types or a block, never both" if mimes.any? && block_given?
 
