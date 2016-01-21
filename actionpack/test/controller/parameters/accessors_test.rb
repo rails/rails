@@ -128,4 +128,10 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
     assert_not @params.values_at(:person).first.permitted?
     assert_not @params[:person].values_at(:name).first.permitted?
   end
+
+  test "equality with another hash works" do
+    hash1 = { foo: :bar }
+    params1 = ActionController::Parameters.new(hash1)
+    assert(params1 == hash1)
+  end
 end

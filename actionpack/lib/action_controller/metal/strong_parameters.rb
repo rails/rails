@@ -160,7 +160,11 @@ module ActionController
       if other_hash.respond_to?(:permitted?)
         super
       else
-        @parameters == other_hash
+        if other_hash.is_a?(Hash)
+          @parameters == other_hash.with_indifferent_access
+        else
+          @parameters == other_hash
+        end
       end
     end
 
