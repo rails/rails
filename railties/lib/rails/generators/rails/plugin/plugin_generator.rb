@@ -337,7 +337,7 @@ task default: :test
       end
 
       def wrap_in_modules(unwrapped_code)
-        unwrapped_code = "#{unwrapped_code}".strip.gsub(/\W$\n/, '')
+        unwrapped_code = "#{unwrapped_code}".strip.gsub(/\s$\n/, '')
         modules.reverse.inject(unwrapped_code) do |content, mod|
           str = "module #{mod}\n"
           str += content.lines.map { |line| "  #{line}" }.join
