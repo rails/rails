@@ -1540,6 +1540,11 @@ This is very similar to the `Article` model that you saw earlier. The difference
 is the line `belongs_to :article`, which sets up an Active Record _association_.
 You'll learn a little about associations in the next section of this guide.
 
+The (`:references`) keyword used in the bash command is a special data type for models. 
+It creates a new column on your database table with the provided model name appended with an `_id`
+that can hold integer values. You can get a better understanding after analyzing the
+`db/schema.rb` file below.
+
 In addition to the model, Rails has also made a migration to create the
 corresponding database table:
 
