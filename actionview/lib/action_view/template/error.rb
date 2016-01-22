@@ -135,13 +135,13 @@ module ActionView
         end
 
         def formatted_code_for(source_code, line_counter, indent, output)
-          start_value = (output == :html) ? {} : ""
+          start_value = (output == :html) ? {} : []
           source_code.inject(start_value) do |result, line|
             line_counter += 1
             if output == :html
               result.update(line_counter.to_s => "%#{indent}s %s\n" % ["", line])
             else
-              result << "%#{indent}s: %s\n" % [line_counter, line]
+              result << "%#{indent}s: %s" % [line_counter, line]
             end
           end
         end

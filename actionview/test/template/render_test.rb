@@ -226,13 +226,13 @@ module RenderTestCases
     assert_match %r!method.*doesnt_exist!, e.message
     assert_equal "", e.sub_template_message
     assert_equal "1", e.line_number
-    assert_equal "1: <%= doesnt_exist %>", e.annoted_source_code.strip
+    assert_equal "1: <%= doesnt_exist %>", e.annoted_source_code[0].strip
     assert_equal File.expand_path("#{FIXTURE_LOAD_PATH}/test/_raise.html.erb"), e.file_name
   end
 
   def test_render_error_indentation
     e = assert_raises(ActionView::Template::Error) { @view.render(:partial => "test/raise_indentation") }
-    error_lines = e.annoted_source_code.split("\n")
+    error_lines = e.annoted_source_code
     assert_match %r!error\shere!, e.message
     assert_equal "11", e.line_number
     assert_equal "     9: <p>Ninth paragraph</p>", error_lines.second
@@ -252,7 +252,7 @@ module RenderTestCases
     assert_match %r!method.*doesnt_exist!, e.message
     assert_equal "", e.sub_template_message
     assert_equal "1", e.line_number
-    assert_equal "1: <%= doesnt_exist %>", e.annoted_source_code.strip
+    assert_equal "1: <%= doesnt_exist %>", e.annoted_source_code[0].strip
     assert_equal File.expand_path("#{FIXTURE_LOAD_PATH}/test/_raise.html.erb"), e.file_name
   end
 
