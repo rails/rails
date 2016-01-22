@@ -128,6 +128,8 @@ module ActiveRecord
 
         # Executes an SQL statement, returning a PGresult object on success
         # or raising a PGError exception otherwise.
+        # Note: the PGresult object is manually memory managed; if you don't
+        # need it specifically, you many want consider the exec_query wrapper.
         def execute(sql, name = nil)
           log(sql, name) do
             @connection.async_exec(sql)
