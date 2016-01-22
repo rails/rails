@@ -26,6 +26,7 @@ DEFAULT_APP_FILES = %w(
   config/environments
   config/initializers
   config/locales
+  config/cable.yml
   db
   lib
   lib/tasks
