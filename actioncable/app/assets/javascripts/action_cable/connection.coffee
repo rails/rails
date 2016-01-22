@@ -73,7 +73,6 @@ class ActionCable.Connection
   events:
     message: (event) ->
       {identifier, message, type} = JSON.parse(event.data)
-      ping = identifier == ActionCable.INTERNAL.identifiers.ping
 
       switch type
         when message_types.confirmation
@@ -83,7 +82,9 @@ class ActionCable.Connection
           @consumer.subscriptions.reject(identifier)
         else
           @consumer.subscriptions.notify(identifier, "received", message)
-          @dispatchEvent("received", message, JSON.parse(identifier).channel) unless ping
+
+          if identifier isnt ActionCable.INTERNAL.identifiers.ping
+            @dispatchEvent("received", message, JSON.parse(identifier).channel)
 
     open: ->
       ActionCable.log("WebSocket onopen event")
