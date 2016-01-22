@@ -15,13 +15,15 @@ module ActionCable
         @connection_class  = ApplicationCable::Connection
         @worker_pool_size  = 100
 
-        @channels_path = Rails.root.join('app/channels')
+        @channels_path = [Rails.root.join('app/channels')]
 
         @disable_request_forgery_protection = false
       end
 
       def channel_paths
-        @channels ||= Dir["#{channels_path}/**/*_channel.rb"]
+        @channels ||= channels_path.collect do |channel_path|
+          Dir["#{channel_path}/**/*_channel.rb"]
+        end.flatten
       end
 
       def channel_class_names
