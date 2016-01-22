@@ -17,7 +17,7 @@ module ActionCable
       end
 
       def unsubscribe(channel, message_callback)
-        hi_redis_conn.pubsub.unsubscribe_proc(channel, message_callback)
+        redis_connection_for_subscriptions.pubsub.unsubscribe_proc(channel, message_callback)
       end
 
       private
