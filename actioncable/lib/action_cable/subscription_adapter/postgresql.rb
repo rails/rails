@@ -12,11 +12,11 @@ module ActionCable
       end
 
       def subscribe(channel, callback, success_callback = nil)
-        listener.subscribe_to(channel, callback, success_callback)
+        listener.add_subscriber(channel, callback, success_callback)
       end
 
       def unsubscribe(channel, callback)
-        listener.unsubscribe_from(channel, callback)
+        listener.remove_subscriber(channel, callback)
       end
 
       def with_connection(&block) # :nodoc:
@@ -36,11 +36,11 @@ module ActionCable
           @listener ||= Listener.new(self)
         end
 
-        class Listener
+        class Listener < SubscriberMap
           def initialize(adapter)
+            super()
+
             @adapter = adapter
-            @subscribers = Hash.new { |h,k| h[k] = [] }
-            @sync = Mutex.new
             @queue = Queue.new
 
             Thread.new do
@@ -65,32 +65,22 @@ module ActionCable
                 end
 
                 pg_conn.wait_for_notify(1) do |chan, pid, message|
-                  @subscribers[chan].each do |callback|
-                    ::EM.next_tick { callback.call(message) }
-                  end
+                  broadcast(chan, message)
                 end
               end
             end
           end
 
-          def subscribe_to(channel, callback, success_callback)
-            @sync.synchronize do
-              if @subscribers[channel].empty?
-                @queue.push([:listen, channel, success_callback])
-              end
-
-              @subscribers[channel] << callback
-            end
+          def add_channel(channel, on_success)
+            @queue.push([:listen, channel, on_success])
           end
 
-          def unsubscribe_from(channel, callback)
-            @sync.synchronize do
-              @subscribers[channel].delete(callback)
+          def remove_channel(channel)
+            @queue.push([:unlisten, channel])
+          end
 
-              if @subscribers[channel].empty?
-                @queue.push([:unlisten, channel])
-              end
-            end
+          def invoke_callback(*)
+            ::EM.next_tick { super }
           end
         end
     end
