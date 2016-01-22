@@ -54,9 +54,9 @@ NOTE: Your tests are run under `RAILS_ENV=test`.
 
 ### Rails meets Minitest
 
-If you remember when you used the `rails generate model` command from the
+If you remember, we used the `rails generate model` command in the
 [Getting Started with Rails](getting_started.html) guide. We created our first
-model among other things it created test stubs in the `test` directory:
+model, and among other things it created test stubs in the `test` directory:
 
 ```bash
 $ bin/rails generate model article title:string body:text
@@ -85,13 +85,13 @@ A line by line examination of this file will help get you oriented to Rails test
 require 'test_helper'
 ```
 
-By requiring this file, `test_helper.rb` the default configuration to run our tests is loaded. We will include this with all the tests we write, so any methods added to this file are available to all your tests.
+By requiring this file, `test_helper.rb` the default configuration to run our tests is loaded. We will include this with all the tests we write, so any methods added to this file are available to all our tests.
 
 ```ruby
 class ArticleTest < ActiveSupport::TestCase
 ```
 
-The `ArticleTest` class defines a _test case_ because it inherits from `ActiveSupport::TestCase`. `ArticleTest` thus has all the methods available from `ActiveSupport::TestCase`. Later in this guide, you'll see some of the methods it gives you.
+The `ArticleTest` class defines a _test case_ because it inherits from `ActiveSupport::TestCase`. `ArticleTest` thus has all the methods available from `ActiveSupport::TestCase`. Later in this guide, we'll see some of the methods it gives us.
 
 Any method defined within a class inherited from `Minitest::Test`
 (which is the superclass of `ActiveSupport::TestCase`) that begins with `test_` (case sensitive) is simply called a test. So, methods defined as `test_password` and `test_valid_password` are legal test names and are run automatically when the test case is run.
@@ -129,7 +129,7 @@ An assertion is a line of code that evaluates an object (or expression) for expe
 * does this line of code throw an exception?
 * is the user's password greater than 5 characters?
 
-Every test must contain at least one assertion, with no restriction as to how many assertions are allowed. Only when all the assertions are successful will the test pass.
+Every test may contain one or more assertions, with no restriction as to how many assertions are allowed. Only when all the assertions are successful will the test pass.
 
 #### Your first failing test
 
@@ -265,7 +265,7 @@ By now you've caught a glimpse of some of the assertions that are available. Ass
 Here's an extract of the assertions you can use with
 [`Minitest`](https://github.com/seattlerb/minitest), the default testing library
 used by Rails. The `[msg]` parameter is an optional string message you can
-specify to make your test failure messages clearer. It's not required.
+specify to make your test failure messages clearer. 
 
 | Assertion                                                        | Purpose |
 | ---------------------------------------------------------------- | ------- |
@@ -298,7 +298,7 @@ specify to make your test failure messages clearer. It's not required.
 | `assert_not_operator( obj1, operator, [obj2], [msg] )`           | Ensures that `obj1.operator(obj2)` is false.|
 | `assert_predicate ( obj, predicate, [msg] )`                     | Ensures that `obj.predicate` is true, e.g. `assert_predicate str, :empty?`|
 | `assert_not_predicate ( obj, predicate, [msg] )`                 | Ensures that `obj.predicate` is false, e.g. `assert_not_predicate str, :empty?`|
-| `assert_send( array, [msg] )`                                    | Ensures that executing the method listed in `array[1]` on the object in `array[0]` with the parameters of `array[2 and up]` is true. This one is weird eh?|
+| `assert_send( array, [msg] )`                                    | Ensures that executing the method listed in `array[1]` on the object in `array[0]` with the parameters of `array[2 and up]` is true, e.g. assert_send [@user, :full_name, 'Sam Smith']. This one is weird eh?|
 | `flunk( [msg] )`                                                 | Ensures failure. This is useful to explicitly mark a test that isn't finished yet.|
 
 The above are a subset of assertions that minitest supports. For an exhaustive &
