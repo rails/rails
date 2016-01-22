@@ -1,3 +1,8 @@
+*   Fix `enum` bug where default column value from migrations was not
+    being respected.
+
+   *Jon Moss*
+
 *   Run `type` attributes through attributes API type-casting before
     instantiating the corresponding subclass. This makes it possible to define
     custom STI mappings.
