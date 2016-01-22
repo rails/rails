@@ -327,6 +327,7 @@ module Rails
           remove_file 'config/initializers/session_store.rb'
           remove_file 'config/initializers/cookies_serializer.rb'
           remove_file 'config/initializers/request_forgery_protection.rb'
+          remove_file 'config/initializers/per_form_csrf_tokens.rb'
         end
       end
 
