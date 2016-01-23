@@ -302,7 +302,7 @@ db_namespace = namespace :db do
     end
 
     desc "Recreates the databases from the structure.sql file"
-    task :load => [:load_config] do
+    task :load => [:environment, :load_config] do
       ActiveRecord::Tasks::DatabaseTasks.load_schema_current(:sql, ENV['SCHEMA'])
     end
 
