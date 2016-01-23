@@ -251,7 +251,7 @@ module ActiveRecord
             _default_attributes[name],
           )
         else
-          default_attribute = Attribute.from_database(name, value, type)
+          default_attribute = Attribute.from_database(name, type.cast(value), type)
         end
         _default_attributes[name] = default_attribute
       end
