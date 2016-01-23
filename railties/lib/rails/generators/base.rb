@@ -260,6 +260,12 @@ module Rails
                            "or reserved by Ruby on Rails. Please choose an alternative and run "  <<
                            "this generator again."
             end
+
+            if nesting.any? && nesting.first.underscore == application_name
+              raise Error, "The module '#{nesting.first.camelize}' is already defined as the " <<
+                           "base module of the application. Please choose an alternative and " <<
+                           "run this generator again."
+            end
           end
         end
 
