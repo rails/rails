@@ -302,7 +302,7 @@ Action Cable has three required configurations: the Redis connection, allowed re
 
 ### Redis
 
-By default, `ActionCable::Server::Base` will look for a configuration file in `Rails.root.join('config/redis/cable.yml')`.
+By default, `ActionCable::Server::Base` will look for a configuration file in `Rails.root.join('config/cable.yml')`.
 This file must specify a Redis url for each Rails environment. It may use the following format:
 
 ```yaml
@@ -316,7 +316,7 @@ test: *development
 You can also change the location of the Redis config file in a Rails initializer with something like:
 
 ```ruby
-Rails.application.paths.add "config/redis/cable", with: "somewhere/else/cable.yml"
+Rails.application.paths.add "config/cable", with: "somewhere/else/cable.yml"
 ```
 
 ### Allowed Request Origins
