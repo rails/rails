@@ -104,6 +104,7 @@ ActiveRecord::Schema.define do
     t.column :author_visibility, :integer, default: 0
     t.column :illustrator_visibility, :integer, default: 0
     t.column :font_size, :integer, default: 0
+    t.column :cover, :string, default: 'hard'
   end
 
   create_table :booleans, force: true do |t|
