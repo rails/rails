@@ -318,7 +318,7 @@ module Rails
           remove_file 'config/cable.yml'
           remove_file 'app/assets/javascripts/cable.coffee'
           remove_dir 'app/channels'
-          gsub_file 'app/views/layouts/application.html.erb', /action_cable_meta_tag/, ''
+          gsub_file 'app/views/layouts/application.html.erb', /action_cable_meta_tag/, '' unless options[:api]
         end
       end
 
