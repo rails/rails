@@ -20,7 +20,7 @@ module Rails
 
         # Set the message to be shown in logs. Uses the git repo if one is given,
         # otherwise use name (version).
-        parts, message = [ quote(name) ], name
+        parts, message = [ quote(name) ], name.dup
         if version ||= options.delete(:version)
           parts   << quote(version)
           message << " (#{version})"

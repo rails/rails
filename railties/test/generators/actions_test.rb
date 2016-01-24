@@ -113,6 +113,14 @@ class ActionsTest < Rails::Generators::TestCase
     assert_file 'Gemfile', /^gem 'rspec', ">=2\.0'0"$/
   end
 
+  def test_gem_works_even_if_frozen_string_is_passed_as_argument
+    run_generator
+
+    action :gem, "frozen_gem".freeze, "1.0.0".freeze
+
+    assert_file 'Gemfile', /^gem 'frozen_gem', '1.0.0'$/
+  end
+
   def test_gem_group_should_wrap_gems_in_a_group
     run_generator
 
