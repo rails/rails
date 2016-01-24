@@ -141,8 +141,67 @@ module ApplicationTests
         end
       RUBY
 
-      ENV['CONTROLLER'] = 'cart'
-      output = Dir.chdir(app_path){ `bin/rails routes` }
+      output = Dir.chdir(app_path){ `bin/rake routes CONTROLLER=cart` }
+      assert_equal ["Passing `CONTROLLER` to `bin/rake routes` is deprecated and will be removed in Rails 5.1.",
+                    "Please use `bin/rake routes -c controller_name` instead.",
+                    "Prefix Verb URI Pattern     Controller#Action",
+                    "  cart GET  /cart(.:format) cart#show\n"].join("\n"), output
+
+      output = Dir.chdir(app_path){ `bin/rails routes -c cart` }
+      assert_equal "Prefix Verb URI Pattern     Controller#Action\n  cart GET  /cart(.:format) cart#show\n", output
+    end
+
+    def test_rake_routes_with_namespaced_controller_environment
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          namespace :admin do
+            resource :post
+          end
+        end
+      RUBY
+      expected_output = ["         Prefix Verb   URI Pattern                Controller#Action",
+                         "     admin_post POST   /admin/post(.:format)      admin/posts#create",
+                         " new_admin_post GET    /admin/post/new(.:format)  admin/posts#new",
+                         "edit_admin_post GET    /admin/post/edit(.:format) admin/posts#edit",
+                         "                GET    /admin/post(.:format)      admin/posts#show",
+                         "                PATCH  /admin/post(.:format)      admin/posts#update",
+                         "                PUT    /admin/post(.:format)      admin/posts#update",
+                         "                DELETE /admin/post(.:format)      admin/posts#destroy\n"].join("\n")
+
+      output = Dir.chdir(app_path){ `bin/rails routes -c Admin::PostController` }
+      assert_equal expected_output, output
+
+      output = Dir.chdir(app_path){ `bin/rails routes -c PostController` }
+      assert_equal expected_output, output
+    end
+
+    def test_rake_routes_with_global_search_key
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          get '/cart', to: 'cart#show'
+          get '/basketball', to: 'basketball#index'
+        end
+      RUBY
+
+      output = Dir.chdir(app_path){ `bin/rake routes -g show` }
+      assert_equal "Prefix Verb URI Pattern     Controller#Action\n  cart GET  /cart(.:format) cart#show\n", output
+    end
+
+    def test_rake_routes_with_controller_search_key
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          get '/cart', to: 'cart#show'
+          get '/basketball', to: 'basketball#index'
+        end
+      RUBY
+
+      output = Dir.chdir(app_path){ `bin/rake routes -c cart` }
+      assert_equal "Prefix Verb URI Pattern     Controller#Action\n  cart GET  /cart(.:format) cart#show\n", output
+
+      output = Dir.chdir(app_path){ `bin/rake routes -c Cart` }
+      assert_equal "Prefix Verb URI Pattern     Controller#Action\n  cart GET  /cart(.:format) cart#show\n", output
+
+      output = Dir.chdir(app_path){ `bin/rake routes -c CartController` }
       assert_equal "Prefix Verb URI Pattern     Controller#Action\n  cart GET  /cart(.:format) cart#show\n", output
     end
 

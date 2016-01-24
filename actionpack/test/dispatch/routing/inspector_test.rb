@@ -17,10 +17,10 @@ module ActionDispatch
         @set = ActionDispatch::Routing::RouteSet.new
       end
 
-      def draw(options = {}, &block)
+      def draw(options = nil, &block)
         @set.draw(&block)
         inspector = ActionDispatch::Routing::RoutesInspector.new(@set.routes)
-        inspector.format(ActionDispatch::Routing::ConsoleFormatter.new, options[:filter]).split("\n")
+        inspector.format(ActionDispatch::Routing::ConsoleFormatter.new, options).split("\n")
       end
 
       def test_displaying_routes_for_engines
@@ -297,7 +297,7 @@ module ActionDispatch
       end
 
       def test_routes_can_be_filtered
-        output = draw(filter: 'posts') do
+        output = draw('posts') do
           resources :articles
           resources :posts
         end
@@ -312,6 +312,26 @@ module ActionDispatch
                       "          PUT    /posts/:id(.:format)      posts#update",
                       "          DELETE /posts/:id(.:format)      posts#destroy"], output
       end
+
+      def test_routes_can_be_filtered_with_namespaced_controllers
+        output = draw('admin/posts') do
+          resources :articles
+          namespace :admin do
+            resources :posts
+          end
+        end
+
+        assert_equal ["         Prefix Verb   URI Pattern                     Controller#Action",
+                      "    admin_posts GET    /admin/posts(.:format)          admin/posts#index",
+                      "                POST   /admin/posts(.:format)          admin/posts#create",
+                      " new_admin_post GET    /admin/posts/new(.:format)      admin/posts#new",
+                      "edit_admin_post GET    /admin/posts/:id/edit(.:format) admin/posts#edit",
+                      "     admin_post GET    /admin/posts/:id(.:format)      admin/posts#show",
+                      "                PATCH  /admin/posts/:id(.:format)      admin/posts#update",
+                      "                PUT    /admin/posts/:id(.:format)      admin/posts#update",
+                      "                DELETE /admin/posts/:id(.:format)      admin/posts#destroy"], output
+      end
+
 
       def test_regression_route_with_controller_regexp
         output = draw do
@@ -336,18 +356,18 @@ module ActionDispatch
       end
 
       def test_routes_with_undefined_filter
-        output = draw(:filter => 'Rails::MissingController') do
+        output = draw(controller: 'Rails::MissingController') do
           get 'photos/:id' => 'photos#show', :id => /[A-Z]\d{5}/
         end
 
         assert_equal [
-          "The controller Rails::MissingController does not exist!",
+          "No routes were found for this controller",
           "For more information about routes, see the Rails guide: http://guides.rubyonrails.org/routing.html."
         ], output
       end
 
       def test_no_routes_matched_filter
-        output = draw(:filter => 'rails/dummy') do
+        output = draw('rails/dummy') do
           get 'photos/:id' => 'photos#show', :id => /[A-Z]\d{5}/
         end
 
@@ -358,7 +378,7 @@ module ActionDispatch
       end
 
       def test_no_routes_were_defined
-        output = draw(:filter => 'Rails::DummyController') { }
+        output = draw('Rails::DummyController') {}
 
         assert_equal [
           "You don't have any routes defined!",
