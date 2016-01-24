@@ -5,25 +5,25 @@ require 'fileutils'
 require 'open-uri'
 require 'tmpdir'
 
-class Downloader
-  def self.download(from, to)
-    unless File.exist?(to)
-      unless File.exist?(File.dirname(to))
-        system "mkdir -p #{File.dirname(to)}"
-      end
-      open(from) do |source|
-        File.open(to, 'w') do |target|
-          source.each_line do |l|
-            target.write l
+class MultibyteConformanceTest < ActiveSupport::TestCase
+  class Downloader
+    def self.download(from, to)
+      unless File.exist?(to)
+        unless File.exist?(File.dirname(to))
+          system "mkdir -p #{File.dirname(to)}"
+        end
+        open(from) do |source|
+          File.open(to, 'w') do |target|
+            source.each_line do |l|
+              target.write l
+            end
           end
         end
       end
+      true
     end
-    true
   end
-end
 
-class MultibyteConformanceTest < ActiveSupport::TestCase
   include MultibyteTestHelpers
 
   UNIDATA_URL = "http://www.unicode.org/Public/#{ActiveSupport::Multibyte::Unicode::UNICODE_VERSION}/ucd"
