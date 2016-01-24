@@ -127,6 +127,9 @@ GEM
     erubis (2.7.0)
     eventmachine (1.0.9.1)
     execjs (2.6.0)
+    faye-websocket (0.10.2)
+      eventmachine (>= 0.12.0)
+      websocket-driver (>= 0.5.1)
     ffi (1.9.10)
     ffi (1.9.10-x64-mingw32)
     ffi (1.9.10-x86-mingw32)
@@ -282,6 +285,7 @@ DEPENDENCIES
   delayed_job
   delayed_job_active_record
   em-hiredis
+  faye-websocket
   jquery-rails
   json
   kindlerb (= 0.1.1)
