@@ -23,6 +23,6 @@ Gem::Specification.new do |s|
   s.add_dependency 'actionview', version
   s.add_dependency 'activejob', version
 
-  s.add_dependency 'mail', ['~> 2.5', '>= 2.5.4']
+  s.add_dependency 'mail', '~> 2.6'
   s.add_dependency 'rails-dom-testing', '~> 1.0', '>= 1.0.5'
 end
