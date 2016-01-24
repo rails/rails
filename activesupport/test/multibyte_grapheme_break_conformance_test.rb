@@ -19,8 +19,8 @@ class Downloader
             target.write l
           end
         end
-       end
-     end
+      end
+    end
   end
 end
 
