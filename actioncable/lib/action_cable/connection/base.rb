@@ -129,7 +129,7 @@ module ActionCable
         # ignore
       end
 
-      def on_close # :nodoc:
+      def on_close(reason, code) # :nodoc:
         send_async :handle_close
       end
 

@@ -37,6 +37,7 @@ module ActionCable
         @url = ClientSocket.determine_url(@env)
 
         @driver = @driver_started = nil
+        @close_params = ['', 1006]
 
         @ready_state = CONNECTING
 
@@ -142,10 +143,7 @@ module ActionCable
           return if @ready_state == CLOSED
           @ready_state = CLOSED
 
-          reason = @close_params ? @close_params[0] : ''
-          code   = @close_params ? @close_params[1] : 1006
-
-          @event_target.on_close(code, reason)
+          @event_target.on_close(*@close_params)
         end
     end
   end
