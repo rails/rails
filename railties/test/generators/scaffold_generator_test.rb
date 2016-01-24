@@ -14,8 +14,8 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     assert_file "app/models/product_line.rb", /class ProductLine < ActiveRecord::Base/
     assert_file "test/models/product_line_test.rb", /class ProductLineTest < ActiveSupport::TestCase/
     assert_file "test/fixtures/product_lines.yml"
-    assert_migration "db/migrate/create_product_lines.rb", /belongs_to :product, index: true/
-    assert_migration "db/migrate/create_product_lines.rb", /references :user, index: true/
+    assert_migration "db/migrate/create_product_lines.rb", /belongs_to :product/
+    assert_migration "db/migrate/create_product_lines.rb", /references :user/
 
     # Route
     assert_file "config/routes.rb" do |route|
@@ -94,8 +94,8 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     assert_file "app/models/product_line.rb", /class ProductLine < ActiveRecord::Base/
     assert_file "test/models/product_line_test.rb", /class ProductLineTest < ActiveSupport::TestCase/
     assert_file "test/fixtures/product_lines.yml"
-    assert_migration "db/migrate/create_product_lines.rb", /belongs_to :product, index: true/
-    assert_migration "db/migrate/create_product_lines.rb", /references :user, index: true/
+    assert_migration "db/migrate/create_product_lines.rb", /belongs_to :product/
+    assert_migration "db/migrate/create_product_lines.rb", /references :user/
 
     # Route
     assert_file "config/routes.rb" do |route|

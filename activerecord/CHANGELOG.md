@@ -1,3 +1,12 @@
+*   Using `references` or `belongs_to` in migrations will always add index
+    for the referenced column by default, without adding `index: true` option
+    to generated migration file. Users can opt out of this by passing
+    `index: false`.
+
+    Fixes #18146.
+
+    *Matthew Draper*, *Prathamesh Sonpatki*
+
 *   Run `type` attributes through attributes API type-casting before
     instantiating the corresponding subclass. This makes it possible to define
     custom STI mappings.

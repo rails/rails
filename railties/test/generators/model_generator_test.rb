@@ -345,26 +345,6 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     assert_match(/The name 'Object' is either already used in your application or reserved/, content)
   end
 
-  def test_index_is_added_for_belongs_to_association
-    run_generator ["account", "supplier:belongs_to"]
-
-    assert_migration "db/migrate/create_accounts.rb" do |m|
-      assert_method :change, m do |up|
-        assert_match(/index: true/, up)
-      end
-    end
-  end
-
-  def test_index_is_added_for_references_association
-    run_generator ["account", "supplier:references"]
-
-    assert_migration "db/migrate/create_accounts.rb" do |m|
-      assert_method :change, m do |up|
-        assert_match(/index: true/, up)
-      end
-    end
-  end
-
   def test_index_is_skipped_for_belongs_to_association
     run_generator ["account", "supplier:belongs_to", "--no-indexes"]
 
