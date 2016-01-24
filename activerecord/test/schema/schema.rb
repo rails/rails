@@ -976,6 +976,8 @@ ActiveRecord::Schema.define do
     t.integer :employable_id
     t.string :employable_type
     t.integer :department_id
+    t.string :employable_list_type
+    t.integer :employable_list_id
   end
   create_table :recipes, force: true do |t|
     t.integer :chef_id
