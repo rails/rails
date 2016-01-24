@@ -66,6 +66,11 @@ module ActiveRecord
 
             through_record = through_association.build(*options_for_through_record)
             through_record.send("#{source_reflection.name}=", record)
+
+            if options[:source_type]
+              through_record.send("#{source_reflection.foreign_type}=", options[:source_type])
+            end
+
             through_record
           end
         end
