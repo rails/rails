@@ -19,8 +19,14 @@ module ActiveRecord
           .unscope(:order)
         result = connection.select_one(query)
 
-        size = result["size"]
-        timestamp = column_type.deserialize(result["timestamp"])
+        if result.blank?
+          size = 0
+          timestamp = nil
+        else
+          size = result["size"]
+          timestamp = column_type.deserialize(result["timestamp"])
+        end
+
       end
 
       if timestamp
