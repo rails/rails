@@ -38,7 +38,7 @@ PATH
       actionpack (= 5.0.0.beta1)
       actionview (= 5.0.0.beta1)
       activejob (= 5.0.0.beta1)
-      mail (~> 2.5, >= 2.5.4)
+      mail (~> 2.6)
       rails-dom-testing (~> 1.0, >= 1.0.5)
     actionpack (5.0.0.beta1)
       actionview (= 5.0.0.beta1)
