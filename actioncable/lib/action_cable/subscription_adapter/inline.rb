@@ -13,6 +13,10 @@ module ActionCable
         subscriber_map.remove_subscriber(channel, callback)
       end
 
+      def shutdown
+        # nothing to do
+      end
+
       private
         def subscriber_map
           @subscriber_map ||= SubscriberMap.new

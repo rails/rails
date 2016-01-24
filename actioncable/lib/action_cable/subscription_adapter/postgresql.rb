@@ -19,6 +19,10 @@ module ActionCable
         listener.remove_subscriber(channel, callback)
       end
 
+      def shutdown
+        listener.shutdown
+      end
+
       def with_connection(&block) # :nodoc:
         ActiveRecord::Base.connection_pool.with_connection do |ar_conn|
           pg_conn = ar_conn.raw_connection
@@ -43,7 +47,7 @@ module ActionCable
             @adapter = adapter
             @queue = Queue.new
 
-            Thread.new do
+            @thread = Thread.new do
               Thread.current.abort_on_exception = true
               listen
             end
@@ -51,24 +55,33 @@ module ActionCable
 
           def listen
             @adapter.with_connection do |pg_conn|
-              loop do
-                until @queue.empty?
-                  action, channel, callback = @queue.pop(true)
-                  escaped_channel = pg_conn.escape_identifier(channel)
+              catch :shutdown do
+                loop do
+                  until @queue.empty?
+                    action, channel, callback = @queue.pop(true)
 
-                  if action == :listen
-                    pg_conn.exec("LISTEN #{escaped_channel}")
-                    ::EM.next_tick(&callback) if callback
-                  elsif action == :unlisten
-                    pg_conn.exec("UNLISTEN #{escaped_channel}")
+                    case action
+                    when :listen
+                      pg_conn.exec("LISTEN #{pg_conn.escape_identifier channel}")
+                      ::EM.next_tick(&callback) if callback
+                    when :unlisten
+                      pg_conn.exec("UNLISTEN #{pg_conn.escape_identifier channel}")
+                    when :shutdown
+                      throw :shutdown
+                    end
                   end
-                end
 
-                pg_conn.wait_for_notify(1) do |chan, pid, message|
-                  broadcast(chan, message)
+                  pg_conn.wait_for_notify(1) do |chan, pid, message|
+                    broadcast(chan, message)
+                  end
                 end
               end
             end
+          end
+
+          def shutdown
+            @queue.push([:shutdown])
+            Thread.pass while @thread.alive?
           end
 
           def add_channel(channel, on_success)

@@ -19,6 +19,10 @@ module ActionCable
       def unsubscribe(channel, message_callback)
         raise NotImplementedError
       end
+
+      def shutdown
+        raise NotImplementedError
+      end
     end
   end
 end

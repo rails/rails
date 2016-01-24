@@ -20,6 +20,11 @@ module ActionCable
         redis_connection_for_subscriptions.pubsub.unsubscribe_proc(channel, message_callback)
       end
 
+      def shutdown
+        redis_connection_for_subscriptions.pubsub.close_connection
+        @redis_connection_for_subscriptions = nil
+      end
+
       private
         def redis_connection_for_subscriptions
           @redis_connection_for_subscriptions ||= EM::Hiredis.connect(@server.config.cable[:url]).tap do |redis|
