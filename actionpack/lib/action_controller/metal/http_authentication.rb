@@ -66,9 +66,17 @@ module ActionController
 
         module ClassMethods
           def http_basic_authenticate_with(options = {})
+            # We compare the digests of the name and password to mitigate
+            # the risk of timing attacks.
+            hashed_name = OpenSSL::Digest::SHA1.digest(options[:name])
+            hashed_password = OpenSSL::Digest::SHA1.digest(options[:password])
             before_action(options.except(:name, :password, :realm)) do
               authenticate_or_request_with_http_basic(options[:realm] || "Application") do |name, password|
-                name == options[:name] && password == options[:password]
+                name_correct = hashed_name == OpenSSL::Digest::SHA1.digest(name)
+                password_correct = hashed_password == OpenSSL::Digest::SHA1.digest(password)
+                # Ensure we don't short circuit the comparisons to avoid leaking
+                # when the username is correct.
+                name_correct && password_correct
               end
             end
           end
