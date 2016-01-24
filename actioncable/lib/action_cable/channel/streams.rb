@@ -76,7 +76,7 @@ module ActionCable
         streams << [ broadcasting, callback ]
 
         EM.next_tick do
-          pubsub.subscribe(broadcasting, callback, lambda do |reply|
+          pubsub.subscribe(broadcasting, callback, lambda do
             transmit_subscription_confirmation
             logger.info "#{self.class.name} is streaming from #{broadcasting}"
           end)
