@@ -4,8 +4,8 @@ module ActionCable
   module SubscriptionAdapter
     class Async < Inline # :nodoc:
       private
-        def subscriber_map
-          @subscriber_map ||= AsyncSubscriberMap.new
+        def new_subscriber_map
+          AsyncSubscriberMap.new
         end
 
         class AsyncSubscriberMap < SubscriberMap
