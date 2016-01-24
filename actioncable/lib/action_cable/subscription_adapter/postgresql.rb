@@ -12,11 +12,15 @@ module ActionCable
       end
 
       def subscribe(channel, callback, success_callback = nil)
-        listener.subscribe_to(channel, callback, success_callback)
+        listener.add_subscriber(channel, callback, success_callback)
       end
 
       def unsubscribe(channel, callback)
-        listener.unsubscribe_from(channel, callback)
+        listener.remove_subscriber(channel, callback)
+      end
+
+      def shutdown
+        listener.shutdown
       end
 
       def with_connection(&block) # :nodoc:
@@ -36,14 +40,14 @@ module ActionCable
           @listener ||= Listener.new(self)
         end
 
-        class Listener
+        class Listener < SubscriberMap
           def initialize(adapter)
+            super()
+
             @adapter = adapter
-            @subscribers = Hash.new { |h,k| h[k] = [] }
-            @sync = Mutex.new
             @queue = Queue.new
 
-            Thread.new do
+            @thread = Thread.new do
               Thread.current.abort_on_exception = true
               listen
             end
@@ -51,46 +55,45 @@ module ActionCable
 
           def listen
             @adapter.with_connection do |pg_conn|
-              loop do
-                until @queue.empty?
-                  action, channel, callback = @queue.pop(true)
-                  escaped_channel = pg_conn.escape_identifier(channel)
+              catch :shutdown do
+                loop do
+                  until @queue.empty?
+                    action, channel, callback = @queue.pop(true)
 
-                  if action == :listen
-                    pg_conn.exec("LISTEN #{escaped_channel}")
-                    ::EM.next_tick(&callback) if callback
-                  elsif action == :unlisten
-                    pg_conn.exec("UNLISTEN #{escaped_channel}")
+                    case action
+                    when :listen
+                      pg_conn.exec("LISTEN #{pg_conn.escape_identifier channel}")
+                      ::EM.next_tick(&callback) if callback
+                    when :unlisten
+                      pg_conn.exec("UNLISTEN #{pg_conn.escape_identifier channel}")
+                    when :shutdown
+                      throw :shutdown
+                    end
                   end
-                end
 
-                pg_conn.wait_for_notify(1) do |chan, pid, message|
-                  @subscribers[chan].each do |callback|
-                    ::EM.next_tick { callback.call(message) }
+                  pg_conn.wait_for_notify(1) do |chan, pid, message|
+                    broadcast(chan, message)
                   end
                 end
               end
             end
           end
 
-          def subscribe_to(channel, callback, success_callback)
-            @sync.synchronize do
-              if @subscribers[channel].empty?
-                @queue.push([:listen, channel, success_callback])
-              end
-
-              @subscribers[channel] << callback
-            end
+          def shutdown
+            @queue.push([:shutdown])
+            Thread.pass while @thread.alive?
           end
 
-          def unsubscribe_from(channel, callback)
-            @sync.synchronize do
-              @subscribers[channel].delete(callback)
+          def add_channel(channel, on_success)
+            @queue.push([:listen, channel, on_success])
+          end
 
-              if @subscribers[channel].empty?
-                @queue.push([:unlisten, channel])
-              end
-            end
+          def remove_channel(channel)
+            @queue.push([:unlisten, channel])
+          end
+
+          def invoke_callback(*)
+            ::EM.next_tick { super }
           end
         end
     end

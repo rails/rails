@@ -12,12 +12,17 @@ module ActionCable
 
       def subscribe(channel, message_callback, success_callback = nil)
         redis_connection_for_subscriptions.pubsub.subscribe(channel, &message_callback).tap do |result|
-          result.callback(&success_callback) if success_callback
+          result.callback { |reply| success_callback.call } if success_callback
         end
       end
 
       def unsubscribe(channel, message_callback)
         redis_connection_for_subscriptions.pubsub.unsubscribe_proc(channel, message_callback)
+      end
+
+      def shutdown
+        redis_connection_for_subscriptions.pubsub.close_connection
+        @redis_connection_for_subscriptions = nil
       end
 
       private

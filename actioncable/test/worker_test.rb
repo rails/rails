@@ -13,6 +13,11 @@ class WorkerTest < ActiveSupport::TestCase
     end
 
     def connection
+      self
+    end
+
+    def logger
+      ActionCable.server.logger
     end
   end
 

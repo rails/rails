@@ -33,4 +33,8 @@ class ActionCable::TestCase < ActiveSupport::TestCase
       EM.stop
     end
   end
+
+  def spawn_eventmachine
+    Thread.new { EventMachine.run } unless EventMachine.reactor_running?
+  end
 end

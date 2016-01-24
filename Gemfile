@@ -63,6 +63,9 @@ end
 # Action Cable
 group :cable do
   gem 'puma', require: false
+
+  gem 'em-hiredis', require: false
+  gem 'redis', require: false
 end
 
 # Add your own local bundler stuff.

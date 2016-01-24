@@ -139,6 +139,9 @@ GEM
     delayed_job_active_record (4.1.0)
       activerecord (>= 3.0, < 5)
       delayed_job (>= 3.0, < 5)
+    em-hiredis (0.3.0)
+      eventmachine (~> 1.0)
+      hiredis (~> 0.5.0)
     erubis (2.7.0)
     eventmachine (1.0.9.1)
     execjs (2.6.0)
@@ -150,6 +153,7 @@ GEM
     ffi (1.9.10-x86-mingw32)
     globalid (0.3.6)
       activesupport (>= 4.1.0)
+    hiredis (0.5.2)
     hitimes (1.2.3)
     hitimes (1.2.3-x86-mingw32)
     i18n (0.7.0)
@@ -302,6 +306,7 @@ DEPENDENCIES
   dalli (>= 2.2.1)
   delayed_job
   delayed_job_active_record
+  em-hiredis
   jquery-rails
   json
   kindlerb (= 0.1.1)
@@ -322,6 +327,7 @@ DEPENDENCIES
   rails!
   rake (>= 10.3)
   redcarpet (~> 3.2.3)
+  redis
   resque
   resque-scheduler
   sass!
