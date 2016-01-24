@@ -53,6 +53,24 @@ module ActiveRecord
         ActiveRecord::Migrator.new(:up, [migration]).migrate
         assert_not connection.index_exists?(:testings, :bar)
       end
+
+      def test_references_does_not_add_index_by_default
+        migration = Class.new(ActiveRecord::Migration) {
+          def migrate(x)
+            create_table :more_testings do |t|
+              t.references :foo
+              t.belongs_to :bar, index: false
+            end
+          end
+        }.new
+
+        ActiveRecord::Migrator.new(:up, [migration]).migrate
+
+        assert_not connection.index_exists?(:more_testings, :foo_id)
+        assert_not connection.index_exists?(:more_testings, :bar_id)
+      ensure
+        connection.drop_table :more_testings rescue nil
+      end
     end
   end
 end

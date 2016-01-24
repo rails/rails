@@ -32,10 +32,10 @@ module ActiveRecord
         assert_equal [], @connection.foreign_keys("testings")
       end
 
-      test "foreign keys can be created in one query" do
+      test "foreign keys can be created in one query when index is not added" do
         assert_queries(1) do
           @connection.create_table :testings do |t|
-            t.references :testing_parent, foreign_key: true
+            t.references :testing_parent, foreign_key: true, index: false
           end
         end
       end

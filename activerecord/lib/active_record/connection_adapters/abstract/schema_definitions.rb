@@ -69,7 +69,7 @@ module ActiveRecord
       def initialize(
         name,
         polymorphic: false,
-        index: false,
+        index: true,
         foreign_key: false,
         type: :integer,
         **options
