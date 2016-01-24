@@ -5,7 +5,7 @@ module ActionCable
     class Configuration
       attr_accessor :logger, :log_tags
       attr_accessor :connection_class, :worker_pool_size
-      attr_accessor :channels_path
+      attr_accessor :channel_load_paths
       attr_accessor :disable_request_forgery_protection, :allowed_request_origins
       attr_accessor :cable, :url
 
@@ -15,13 +15,15 @@ module ActionCable
         @connection_class  = ApplicationCable::Connection
         @worker_pool_size  = 100
 
-        @channels_path = Rails.root.join('app/channels')
+        @channel_load_paths = [Rails.root.join('app/channels')]
 
         @disable_request_forgery_protection = false
       end
 
       def channel_paths
-        @channels ||= Dir["#{channels_path}/**/*_channel.rb"]
+        @channel_paths ||= channel_load_paths.flat_map do |path|
+          Dir["#{path}/**/*_channel.rb"]
+        end
       end
 
       def channel_class_names
