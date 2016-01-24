@@ -5,6 +5,11 @@ require 'thread'
 module ActionCable
   module SubscriptionAdapter
     class PostgreSQL < Base # :nodoc:
+      def initialize(*)
+        super
+        @listener = nil
+      end
+
       def broadcast(channel, payload)
         with_connection do |pg_conn|
           pg_conn.exec("NOTIFY #{pg_conn.escape_identifier(channel)}, '#{pg_conn.escape_string(payload)}'")
@@ -37,7 +42,7 @@ module ActionCable
 
       private
         def listener
-          @listener ||= Listener.new(self)
+          @listener || @server.mutex.synchronize { @listener ||= Listener.new(self) }
         end
 
         class Listener < SubscriberMap
