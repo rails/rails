@@ -1,3 +1,5 @@
+require 'bigdecimal'
+
 module ActiveModel
 
   module Validations
@@ -77,7 +79,7 @@ module ActiveModel
       end
 
       def is_integer?(raw_value)
-        /\A[+-]?\d+\z/ === raw_value.to_s
+        BigDecimal.new(raw_value.to_s).frac == 0
       end
 
       def filtered_options(value)
