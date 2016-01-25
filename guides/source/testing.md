@@ -396,13 +396,13 @@ A dedicated test database allows you to set up and interact with test data in is
 
 In order to run your tests, your test database will need to have the current
 structure. The test helper checks whether your test database has any pending
-migrations. If so, it will try to load your `db/schema.rb` or `db/structure.sql`
+migrations. It will try to load your `db/schema.rb` or `db/structure.sql`
 into the test database. If migrations are still pending, an error will be
 raised. Usually this indicates that your schema is not fully migrated. Running
 the migrations against the development database (`bin/rails db:migrate`) will
 bring the schema up to date.
 
-NOTE: If existing migrations required modifications, the test database needs to
+NOTE: If there were modifications to existing migrations, the test database needs to
 be rebuilt. This can be done by executing `bin/rails db:test:prepare`.
 
 ### The Low-Down on Fixtures
@@ -448,15 +448,15 @@ about:
   name: About
 
 # In fixtures/articles.yml
-one:
+first:
   title: Welcome to Rails!
   body: Hello world!
   category: about
 ```
 
-Notice the `category` key of the `one` article found in `fixtures/articles.yml` has a value of `about`. This tells Rails to load the category `about` found in `fixtures/categories.yml`.
+Notice the `category` key of the `first` article found in `fixtures/articles.yml` has a value of `about`. This tells Rails to load the category `about` found in `fixtures/categories.yml`.
 
-NOTE: For associations to reference one another by name, you cannot specify the `id:` attribute on the associated fixtures. Rails will auto assign a primary key to be consistent between runs. For more information on this association behavior please read the [Fixtures API documentation](http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html).
+NOTE: For associations to reference one another by name, you can use the fixture name instead of specifying the `id:` attribute on the associated fixtures. Rails will auto assign a primary key to be consistent between runs. For more information on this association behavior please read the [Fixtures API documentation](http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html).
 
 #### ERB'in It Up
 
@@ -524,9 +524,9 @@ Model tests don't have their own superclass like `ActionMailer::TestCase` instea
 Integration Testing
 -------------------
 
-Integration tests are used to test how various parts of your application interact. They are generally used to test important workflows within your application.
+Integration tests are used to test how various parts of your application interact. They are generally used to test important workflows within our application.
 
-For creating Rails integration tests, we use the 'test/integration' directory for your application. Rails provides a generator to create an integration test skeleton for you.
+For creating Rails integration tests, we use the 'test/integration' directory for our application. Rails provides a generator to create an integration test skeleton for us.
 
 ```bash
 $ bin/rails generate integration_test user_flows
@@ -546,17 +546,17 @@ class UserFlowsTest < ActionDispatch::IntegrationTest
 end
 ```
 
-Inheriting from `ActionDispatch::IntegrationTest` comes with some advantages. This makes available some additional helpers to use in your integration tests.
+Here the test is inheriting from `ActionDispatch::IntegrationTest`. This makes some additional helpers available for us to use in our integration tests.
 
 ### Helpers Available for Integration Tests
 
-In addition to the standard testing helpers, inheriting `ActionDispatch::IntegrationTest` comes with some additional helpers available when writing integration tests. Let's briefly introduce you to the three categories of helpers you get to choose from.
+In addition to the standard testing helpers, inheriting from `ActionDispatch::IntegrationTest` comes with some additional helpers available when writing integration tests. Let's get briefly introduced to the three categories of helpers we get to choose from.
 
 For dealing with the integration test runner, see [`ActionDispatch::Integration::Runner`](http://api.rubyonrails.org/classes/ActionDispatch/Integration/Runner.html).
 
-When performing requests, you will have [`ActionDispatch::Integration::RequestHelpers`](http://api.rubyonrails.org/classes/ActionDispatch/Integration/RequestHelpers.html) available for your use.
+When performing requests, we will have [`ActionDispatch::Integration::RequestHelpers`](http://api.rubyonrails.org/classes/ActionDispatch/Integration/RequestHelpers.html) available for our use.
 
-If you'd like to modify the session, or state of your integration test you should look for [`ActionDispatch::Integration::Session`](http://api.rubyonrails.org/classes/ActionDispatch/Integration/Session.html) to help.
+If we need to modify the session, or state of our integration test, take a look at [`ActionDispatch::Integration::Session`](http://api.rubyonrails.org/classes/ActionDispatch/Integration/Session.html) to help.
 
 ### Implementing an integration test
 
@@ -569,7 +569,7 @@ $ bin/rails generate integration_test blog_flow
 ```
 
 It should have created a test file placeholder for us. With the output of the
-previous command you should see:
+previous command we should see:
 
 ```bash
       invoke  test_unit
@@ -589,9 +589,9 @@ class BlogFlowTest < ActionDispatch::IntegrationTest
 end
 ```
 
-If you remember from earlier in the "Testing Views" section we covered `assert_select` to query the resulting HTML of a request.
+We will take a look at `assert_select` to query the resulting HTML of a request in the "Testing Views" section below. It is used for testing the response of our request by asserting the presence of key HTML elements and their content. 
 
-When visit our root path, we should see `welcome/index.html.erb` rendered for the view. So this assertion should pass.
+When we visit our root path, we should see `welcome/index.html.erb` rendered for the view. So this assertion should pass.
 
 #### Creating articles integration
 
