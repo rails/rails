@@ -138,6 +138,8 @@ end
 
 module ActiveSupport
   class XMLConverter # :nodoc:
+    # Raised if the XML contains attributes with type="yaml" or
+    # type="symbol". Read Hash#from_xml for more details.
     class DisallowedType < StandardError
       def initialize(type)
         super "Disallowed type attribute: #{type.inspect}"
