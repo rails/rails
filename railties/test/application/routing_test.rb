@@ -42,8 +42,7 @@ module ApplicationTests
     test "root takes precedence over internal welcome controller" do
       app("development")
 
-      get '/'
-      assert_match %r{<h1>Getting started</h1>} , last_response.body
+      assert_welcome get('/')
 
       controller :foo, <<-RUBY
         class FooController < ApplicationController
