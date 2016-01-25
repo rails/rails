@@ -770,7 +770,7 @@ module ActiveSupport
         options = names.extract_options!
 
         names.each do |name|
-          class_attribute "_#{name}_callbacks"
+          class_attribute "_#{name}_callbacks", instance_writer: false
           set_callbacks name, CallbackChain.new(name, options)
 
           module_eval <<-RUBY, __FILE__, __LINE__ + 1
