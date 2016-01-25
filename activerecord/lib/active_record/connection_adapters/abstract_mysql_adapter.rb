@@ -980,7 +980,6 @@ module ActiveRecord
         when 3; 'mediumint'
         when nil, 4; 'int'
         when 5..8; 'bigint'
-        when 11; 'int(11)' # backward compatibility with Rails 2.0
         else raise(ActiveRecordError, "No integer type has byte size #{limit}")
         end
       end
