@@ -284,6 +284,7 @@ class ReflectionTest < ActiveRecord::TestCase
     @hotel.mocktail_designers << MocktailDesigner.create!
 
     assert_equal 1, @hotel.mocktail_designers.size
+    assert_equal 1, @hotel.mocktail_designers.count
     assert_equal 1, @hotel.chef_lists.size
   end
 
