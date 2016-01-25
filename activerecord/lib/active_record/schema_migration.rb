@@ -24,10 +24,9 @@ module ActiveRecord
         ActiveSupport::Deprecation.silence { connection.table_exists?(table_name) }
       end
 
-      def create_table(limit=nil)
+      def create_table
         unless table_exists?
-          version_options = {null: false}
-          version_options[:limit] = limit if limit
+          version_options = connection.internal_string_options_for_primary_key
 
           connection.create_table(table_name, id: false) do |t|
             t.column :version, :string, version_options

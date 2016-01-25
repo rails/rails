@@ -116,7 +116,8 @@ module ActiveRecord
                                       (!options.key?(:precision) || c.precision == options[:precision]) &&
                                       (!options.key?(:scale)     || c.scale == options[:scale]) &&
                                       (!options.key?(:default)   || c.default == options[:default]) &&
-                                      (!options.key?(:null)      || c.null == options[:null]) }
+                                      (!options.key?(:null)      || c.null == options[:null]) &&
+                                      (!options.key?(:collation) || c.collation == options[:collation]) }
       end
 
       # Returns just a table's primary key
@@ -970,6 +971,10 @@ module ActiveRecord
 
       def initialize_internal_metadata_table
         ActiveRecord::InternalMetadata.create_table
+      end
+
+      def internal_string_options_for_primary_key # :nodoc:
+        { null: false }
       end
 
       def assume_migrated_upto_version(version, migrations_paths)
