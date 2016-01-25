@@ -17,6 +17,7 @@ class NumericalityValidationTest < ActiveModel::TestCase
   BIGDECIMAL_STRINGS = %w(12345678901234567890.1234567890) # 30 significant digits
   FLOAT_STRINGS = %w(0.0 +0.0 -0.0 10.0 10.5 -10.5 -0.0001 -090.1 90.1e1 -90.1e5 -90.1e-5 90e-5)
   INTEGER_STRINGS = %w(0 +0 -0 10 +10 -10 0090 -090)
+  INTEGER_AS_DECIMALS = %w(0.0, +0.0, -0.0, 1.0, -2.0, 3.00, -4.000000000000)
   FLOATS = [0.0, 10.0, 10.5, -10.5, -0.0001] + FLOAT_STRINGS
   INTEGERS = [0, 10, -10] + INTEGER_STRINGS
   BIGDECIMAL = BIGDECIMAL_STRINGS.collect! { |bd| BigDecimal.new(bd) }
@@ -41,6 +42,14 @@ class NumericalityValidationTest < ActiveModel::TestCase
 
     invalid!(NIL + BLANK + JUNK + FLOATS + BIGDECIMAL + INFINITY)
     valid!(INTEGERS)
+  end
+  
+  def test_validates_numericality_of_with_integer_only_for_integer_in_decimal_format
+    Topic.validates_numericality_of :approved, only_integer: true
+
+    invalid!(NIL + BLANK + JUNK + FLOATS + BIGDECIMAL + INFINITY)
+    valid!(INTEGERS)
+    valid!(INTEGER_AS_DECIMALS)
   end
 
   def test_validates_numericality_of_with_integer_only_and_nil_allowed
