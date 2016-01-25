@@ -1611,11 +1611,14 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
   def test_namespaced_roots
     draw do
+      root :to => "home#index"
+
       namespace :account do
         root :to => "account#index"
       end
     end
 
+    assert_equal '/', root_path
     assert_equal '/account', account_root_path
     get '/account'
     assert_equal 'account/account#index', @response.body
@@ -1774,11 +1777,14 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
   def test_root_works_in_the_resources_scope
     draw do
+      root :to => "home#index"
+
       resources :products do
         root :to => "products#root"
       end
     end
 
+    assert_equal '/', root_path
     get '/products'
     assert_equal 'products#root', @response.body
     assert_equal '/products', products_root_path

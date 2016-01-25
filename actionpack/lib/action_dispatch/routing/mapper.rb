@@ -1905,8 +1905,7 @@ to this:
         end
 
         def match_root_route(options)
-          name = has_named_route?(:root) ? nil : :root
-          match '/', { :as => name, :via => :get }.merge!(options)
+          match '/', { :as => :root, :via => :get }.merge!(options)
         end
       end
 
