@@ -67,7 +67,7 @@ class TestController < ActionController::Base
   def dynamic_render_with_file
     # This is extremely bad, but should be possible to do.
     file = params[:id] # => String, Hash
-    render file: file
+    render :file => file
   end
 
   def conditional_hello_with_public_header
@@ -248,7 +248,7 @@ class TestController < ActionController::Base
   def test_dynamic_render_with_file
     # This is extremely bad, but should be possible to do.
     assert File.exist?(File.join(File.dirname(__FILE__), '../../test/abstract_unit.rb'))
-    response = get :dynamic_render_with_file, { id: '../\\../test/abstract_unit.rb' }
+    response = get :dynamic_render_with_file, { :id => '../\\../test/abstract_unit.rb' }
     assert_equal File.read(File.join(File.dirname(__FILE__), '../../test/abstract_unit.rb')),
       response.body
   end
@@ -256,13 +256,13 @@ class TestController < ActionController::Base
   def test_dynamic_render
     assert File.exist?(File.join(File.dirname(__FILE__), '../../test/abstract_unit.rb'))
     assert_raises ActionView::MissingTemplate do
-      get :dynamic_render, { id: '../\\../test/abstract_unit.rb' }
+      get :dynamic_render, { :id => '../\\../test/abstract_unit.rb' }
     end
   end
 
   def test_dynamic_render_file_hash
     assert_raises ArgumentError do
-      get :dynamic_render, { id: { file: '../\\../test/abstract_unit.rb' } }
+      get :dynamic_render, { :id => { :file => '../\\../test/abstract_unit.rb' } }
     end
   end
 
