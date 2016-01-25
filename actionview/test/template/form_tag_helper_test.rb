@@ -56,7 +56,7 @@ class FormTagHelperTest < ActionView::TestCase
     end
   end
 
-  VALID_HTML_ID = /^[A-Za-z][-_:.A-Za-z0-9]*$/ # see http://www.w3.org/TR/html4/types.html#type-name
+  VALID_HTML_ID = /^[^\s]+$/ # see https://html.spec.whatwg.org/multipage/dom.html#the-id-attribute
 
   def test_check_box_tag
     actual = check_box_tag "admin"
@@ -76,8 +76,14 @@ class FormTagHelperTest < ActionView::TestCase
     assert_dom_equal expected, actual
   end
 
+  def test_check_box_tag_unicode_name
+    actual = check_box_tag "ルビー"
+    expected = %(<input id="ルビー" name="ルビー" type="checkbox" value="1" />)
+    assert_dom_equal expected, actual
+  end
+
   def test_check_box_tag_id_sanitized
-    label_elem = root_elem(check_box_tag("project[2][admin]"))
+    label_elem = root_elem(check_box_tag("ルビー project[2][admin]"))
     assert_match VALID_HTML_ID, label_elem['id']
   end
 
@@ -164,7 +170,7 @@ class FormTagHelperTest < ActionView::TestCase
   end
 
   def test_hidden_field_tag_id_sanitized
-    input_elem = root_elem(hidden_field_tag("item[][title]"))
+    input_elem = root_elem(hidden_field_tag("ルビー item[][title]"))
     assert_match VALID_HTML_ID, input_elem['id']
   end
 
@@ -194,6 +200,10 @@ class FormTagHelperTest < ActionView::TestCase
     expected = %(<input id="people_david" name="people" type="radio" value="david" />)
     assert_dom_equal expected, actual
 
+    actual = radio_button_tag "people", "アーロン"
+    expected = %(<input id="people_アーロン" name="people" type="radio" value="アーロン" />)
+    assert_dom_equal expected, actual
+
     actual = radio_button_tag("num_people", 5)
     expected = %(<input id="num_people_5" name="num_people" type="radio" value="5" />)
     assert_dom_equal expected, actual
@@ -207,7 +217,7 @@ class FormTagHelperTest < ActionView::TestCase
     assert_dom_equal expected, actual
 
     actual = radio_button_tag("person[gender]", "m")
-    expected = %(<input id="person_gender_m" name="person[gender]" type="radio" value="m" />)
+    expected = %(<input id="person[gender]_m" name="person[gender]" type="radio" value="m" />)
     assert_dom_equal expected, actual
 
     actual = radio_button_tag('ctrlname', 'apache2.2')
@@ -234,7 +244,7 @@ class FormTagHelperTest < ActionView::TestCase
   end
 
   def test_select_tag_id_sanitized
-    input_elem = root_elem(select_tag("project[1]people", "<option>david</option>"))
+    input_elem = root_elem(select_tag("ルビー project[1]people", "<option>david</option>"))
     assert_match VALID_HTML_ID, input_elem['id']
   end
 
@@ -305,7 +315,7 @@ class FormTagHelperTest < ActionView::TestCase
   end
 
   def test_text_area_tag_id_sanitized
-    input_elem = root_elem(text_area_tag("item[][description]"))
+    input_elem = root_elem(text_area_tag("ルビー item[][description]"))
     assert_match VALID_HTML_ID, input_elem['id']
   end
 
@@ -381,8 +391,14 @@ class FormTagHelperTest < ActionView::TestCase
     assert_dom_equal expected, actual
   end
 
+  def test_text_field_tag_unicode
+    actual = text_field_tag "标题", "Hello!"
+    expected = %(<input id="标题" name="标题" type="text" value="Hello!" />)
+    assert_dom_equal expected, actual
+  end
+
   def test_text_field_tag_id_sanitized
-    input_elem = root_elem(text_field_tag("item[][title]"))
+    input_elem = root_elem(text_field_tag("ルビー item[][title]"))
     assert_match VALID_HTML_ID, input_elem['id']
   end
 
@@ -395,6 +411,12 @@ class FormTagHelperTest < ActionView::TestCase
   def test_label_tag_with_symbol
     actual = label_tag :title
     expected = %(<label for="title">Title</label>)
+    assert_dom_equal expected, actual
+  end
+
+  def test_label_tag_with_unicode
+    actual = label_tag "アーロン"
+    expected = %(<label for="アーロン">アーロン</label>)
     assert_dom_equal expected, actual
   end
 
@@ -411,7 +433,7 @@ class FormTagHelperTest < ActionView::TestCase
   end
 
   def test_label_tag_id_sanitized
-    label_elem = root_elem(label_tag("item[title]"))
+    label_elem = root_elem(label_tag("ルビー item[title]"))
     assert_match VALID_HTML_ID, label_elem['for']
   end
 
@@ -432,9 +454,10 @@ class FormTagHelperTest < ActionView::TestCase
   def test_boolean_options
     assert_dom_equal %(<input checked="checked" disabled="disabled" id="admin" name="admin" readonly="readonly" type="checkbox" value="1" />), check_box_tag("admin", 1, true, 'disabled' => true, :readonly => "yes")
     assert_dom_equal %(<input checked="checked" id="admin" name="admin" type="checkbox" value="1" />), check_box_tag("admin", 1, true, :disabled => false, :readonly => nil)
+    assert_dom_equal %(<input checked="checked" id="アーロン" name="アーロン" type="checkbox" value="1" />), check_box_tag("アーロン", 1, true, :disabled => false, :readonly => nil)
     assert_dom_equal %(<input type="checkbox" />), tag(:input, :type => "checkbox", :checked => false)
     assert_dom_equal %(<select id="people" multiple="multiple" name="people[]"><option>david</option></select>), select_tag("people", raw("<option>david</option>"), :multiple => true)
-    assert_dom_equal %(<select id="people_" multiple="multiple" name="people[]"><option>david</option></select>), select_tag("people[]", raw("<option>david</option>"), :multiple => true)
+    assert_dom_equal %(<select id="people[]" multiple="multiple" name="people[]"><option>david</option></select>), select_tag("people[]", raw("<option>david</option>"), :multiple => true)
     assert_dom_equal %(<select id="people" name="people"><option>david</option></select>), select_tag("people", raw("<option>david</option>"), :multiple => nil)
   end
 

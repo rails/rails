@@ -1,3 +1,8 @@
+*   Fix the restrictions on the `id` attribute to allow any Unicode character except
+    space characters as per the HTML spec https://html.spec.whatwg.org/multipage/dom.html#the-id-attribute.
+
+    *Gordon Chan*
+
 *   Create a new `ActiveSupport::SafeBuffer` instance when `content_for` is flushed.
 
     Fixes #19890
