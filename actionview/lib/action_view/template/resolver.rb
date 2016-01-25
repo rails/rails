@@ -112,7 +112,13 @@ module ActionView
     # Normalizes the arguments and passes it on to find_templates.
     def find_all(name, prefix=nil, partial=false, details={}, key=nil, locals=[])
       cached(key, [name, prefix, partial], details, locals) do
-        find_templates(name, prefix, partial, details)
+        find_templates(name, prefix, partial, details, false)
+      end
+    end
+
+    def find_all_anywhere(name, prefix, partial=false, details={}, key=nil, locals=[])
+      cached(key, [name, prefix, partial], details, locals) do
+        find_templates(name, prefix, partial, details, true)
       end
     end
 
@@ -173,15 +179,16 @@ module ActionView
 
     private
 
-    def find_templates(name, prefix, partial, details)
+    def find_templates(name, prefix, partial, details, outside_app_allowed = false)
       path = Path.build(name, prefix, partial)
-      query(path, details, details[:formats])
+      query(path, details, details[:formats], outside_app_allowed)
     end
 
-    def query(path, details, formats)
+    def query(path, details, formats, outside_app_allowed)
       query = build_query(path, details)
 
       template_paths = find_template_paths query
+      template_paths = reject_files_external_to_app(template_paths) unless outside_app_allowed
 
       template_paths.map { |template|
         handler, format, variant = extract_handler_and_format_and_variant(template, formats)
@@ -194,6 +201,10 @@ module ActionView
           :updated_at   => mtime(template)
         )
       }
+    end
+
+    def reject_files_external_to_app(files)
+      files.reject { |filename| !inside_path?(@path, filename) }
     end
 
     if RUBY_VERSION >= '2.2.0'
@@ -214,6 +225,12 @@ module ActionView
             !sanitizer[File.dirname(filename)].include?(filename)
         }
       end
+    end
+
+    def inside_path?(path, filename)
+      filename = File.expand_path(filename)
+      path = File.join(path, '')
+      filename.start_with?(path)
     end
 
     # Helper for building query glob string based on resolver's pattern.

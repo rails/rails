@@ -52,6 +52,16 @@ class TestController < ActionController::Base
     end
   end
 
+  def dynamic_render
+    render params[:id] # => String, AC:Params
+  end
+
+  def dynamic_render_with_file
+    # This is extremely bad, but should be possible to do.
+    file = params[:id] # => String, AC:Params
+    render file: file
+  end
+
   def conditional_hello_with_public_header
     if stale?(:last_modified => Time.now.utc.beginning_of_day, :etag => [:foo, 123], :public => true)
       render :action => 'hello_world'
@@ -250,6 +260,27 @@ end
 
 class ExpiresInRenderTest < ActionController::TestCase
   tests TestController
+
+  def test_dynamic_render_with_file
+    # This is extremely bad, but should be possible to do.
+    assert File.exist?(File.join(File.dirname(__FILE__), '../../test/abstract_unit.rb'))
+    response = get :dynamic_render_with_file, { id: '../\\../test/abstract_unit.rb' }
+    assert_equal File.read(File.join(File.dirname(__FILE__), '../../test/abstract_unit.rb')),
+      response.body
+  end
+
+  def test_dynamic_render
+    assert File.exist?(File.join(File.dirname(__FILE__), '../../test/abstract_unit.rb'))
+    assert_raises ActionView::MissingTemplate do
+      get :dynamic_render, { id: '../\\../test/abstract_unit.rb' }
+    end
+  end
+
+  def test_dynamic_render_file_hash
+    assert_raises ArgumentError do
+      get :dynamic_render, { id: { file: '../\\../test/abstract_unit.rb' } }
+    end
+  end
 
   def test_expires_in_header
     get :conditional_hello_with_expires_in
