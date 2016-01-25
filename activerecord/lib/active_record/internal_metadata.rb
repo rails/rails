@@ -5,6 +5,10 @@ module ActiveRecord
   # This class is used to create a table that keeps track of values and keys such
   # as which environment migrations were run in.
   class InternalMetadata < ActiveRecord::Base # :nodoc:
+    # Keys in mysql are limited to 191 characters, due to this no adapter can
+    # use a longer key
+    KEY_LIMIT = 191
+
     class << self
       def primary_key
         "key"
@@ -34,10 +38,11 @@ module ActiveRecord
       def create_table
         unless table_exists?
           connection.create_table(table_name, id: false) do |t|
-            t.column :key,   :string
+            t.column :key,   :string, null: false, limit: KEY_LIMIT
             t.column :value, :string
-            t.timestamps
             t.index  :key, unique: true, name: index_name
+
+            t.timestamps
           end
         end
       end
