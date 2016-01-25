@@ -27,7 +27,7 @@ directory "pkg"
       file = Dir[glob].first
       ruby = File.read(file)
 
-      major, minor, tiny, pre = version.split('.')
+      major, minor, tiny, pre = version.split('.', 4)
       pre = pre ? pre.inspect : "nil"
 
       ruby.gsub!(/^(\s*)MAJOR(\s*)= .*?$/, "\\1MAJOR = #{major}")
