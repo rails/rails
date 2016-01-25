@@ -148,15 +148,15 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
   end
 
   def test_reject_if_is_not_short_circuited_if_allow_destroy_is_false
-    Pirate.accepts_nested_attributes_for :ship, reject_if: ->(a) { a[:name] == "The Golden Hind" }, allow_destroy: false
+    Pirate.accepts_nested_attributes_for :ship, :reject_if => lambda {|a| a[:name] == "The Golden Hind" }, :allow_destroy => false
 
-    pirate = Pirate.create!(catchphrase: "Stop wastin' me time", ship_attributes: { name: "White Pearl", _destroy: "1" })
+    pirate = Pirate.create!(:catchphrase => "Stop wastin' me time", :ship_attributes => { :name => "White Pearl", :_destroy => "1" })
     assert_equal "White Pearl", pirate.reload.ship.name
 
-    pirate.update!(ship_attributes: { id: pirate.ship.id, name: "The Golden Hind", _destroy: "1" })
+    pirate.update_attributes(:ship_attributes => { :id => pirate.ship.id, :name => "The Golden Hind", :_destroy => "1" })
     assert_equal "White Pearl", pirate.reload.ship.name
 
-    pirate.update!(ship_attributes: { id: pirate.ship.id, name: "Black Pearl", _destroy: "1" })
+    pirate.update_attributes(:ship_attributes => { :id => pirate.ship.id, :name => "Black Pearl", :_destroy => "1" })
     assert_equal "Black Pearl", pirate.reload.ship.name
   end
 
