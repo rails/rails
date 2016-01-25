@@ -110,7 +110,7 @@ module ActionView
       super()
     end
 
-    cattr_accessor :allow_external_files, instance_reader: false, instance_writer: false
+    cattr_accessor :allow_external_files, :instance_reader => false, :instance_writer => false
     self.allow_external_files = false
 
     private
