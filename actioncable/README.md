@@ -443,11 +443,10 @@ The Ruby side of things is built on top of [faye-websocket](https://github.com/f
 
 ## Deployment
 
-Action Cable is powered by a combination of EventMachine and threads. The
-framework plumbing needed for connection handling is handled in the
-EventMachine loop, but the actual channel, user-specified, work is handled
-in a normal Ruby thread. This means you can use all your regular Rails models
-with no problem, as long as you haven't committed any thread-safety sins.
+Action Cable is powered by a combination of websockets and threads. All of the
+connection management is handled internally by utilizing Ruby’s native thread
+support, which means you can use all your regular Rails models with no problems
+as long as you haven’t committed any thread-safety sins.
 
 But this also means that Action Cable needs to run in its own server process.
 So you'll have one set of server processes for your normal web work, and another
