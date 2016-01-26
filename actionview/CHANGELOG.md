@@ -1,3 +1,11 @@
+## Rails 4.2.5.1 (January 25, 2015) ##
+
+*   Adds boolean argument outside_app_allowed to `ActionView::Resolver#find_templates`
+    method.
+
+    *Aaron Patterson*
+
+
 ## Rails 4.2.5 (November 12, 2015) ##
 
 *   Fix `mail_to` when called with `nil` as argument.
