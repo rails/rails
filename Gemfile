@@ -18,7 +18,7 @@ else
 end
 
 gem 'i18n', '~> 0.6.11'
-gem 'test-unit', '~> 3.0'
+gem 'test-unit', '~> 3.0.0'
 
 if RUBY_VERSION < '1.9.3'
   gem 'rack-cache', '~> 1.2.0'
