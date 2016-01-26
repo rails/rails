@@ -185,12 +185,14 @@ module ActionCable
         end
 
         def respond_to_successful_request
+          logger.debug debugged_request
           websocket.rack_response
         end
 
         def respond_to_invalid_request
           close if websocket.alive?
 
+          logger.debug debugged_request
           logger.info finished_request_message
           [ 404, { 'Content-Type' => 'text/plain' }, [ 'Page not found' ] ]
         end
@@ -205,7 +207,7 @@ module ActionCable
           'Started %s "%s"%s for %s at %s' % [
             request.request_method,
             request.filtered_path,
-            websocket.possible? ? ' [WebSocket]' : '',
+            websocket.possible? ? ' [WebSocket]' : '[non-WebSocket]',
             request.ip,
             Time.now.to_s ]
         end
@@ -213,9 +215,17 @@ module ActionCable
         def finished_request_message
           'Finished "%s"%s for %s at %s' % [
             request.filtered_path,
-            websocket.possible? ? ' [WebSocket]' : '',
+            websocket.possible? ? ' [WebSocket]' : '[non-WebSocket]',
             request.ip,
             Time.now.to_s ]
+        end
+
+        def debugged_request
+          websocket_values = []
+          [ "REQUEST_METHOD",
+            "HTTP_CONNECTION",
+            "HTTP_UPGRADE" ].each { |key| websocket_values << "#{key} => '#{env[key]}'" }
+          "This is #{ websocket.possible? ? '' : 'NOT ' }a valid WebSocket request: { #{ websocket_values.join( '; ' ) } }"
         end
     end
   end
