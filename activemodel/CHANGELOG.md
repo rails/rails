@@ -1,5 +1,9 @@
 ## Rails 5.0.0.beta1 (December 18, 2015) ##
 
+*   Set custom attr reader for validator.
+
+    *Max Melentiev*
+
 *   Validate multiple contexts on `valid?` and `invalid?` at once.
 
     Example:

@@ -27,6 +27,13 @@ class ValidatesTest < ActiveModel::TestCase
     assert_equal ['is not a number'], person.errors[:title]
   end
 
+  def test_validates_with_attr_reader
+    Person.validates :title, numericality: {attr_reader: ->(attr) { send(attr).size }}
+    person = Person.new
+    person.title = 'Mr. Pacman'
+    assert person.valid?
+  end
+
   def test_validates_with_attribute_specified_as_string
     Person.validates "title", numericality: true
     person = Person.new

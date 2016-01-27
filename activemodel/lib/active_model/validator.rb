@@ -137,6 +137,7 @@ module ActiveModel
     def initialize(options)
       @attributes = Array(options.delete(:attributes))
       raise ArgumentError, ":attributes cannot be blank" if @attributes.empty?
+      @attr_reader_block = options.delete(:attr_reader)
       super
       check_validity!
     end
@@ -146,9 +147,18 @@ module ActiveModel
     # override +validates_each+ with validation logic.
     def validate(record)
       attributes.each do |attribute|
-        value = record.read_attribute_for_validation(attribute)
+        value = read_attribute(record, attribute)
         next if (value.nil? && options[:allow_nil]) || (value.blank? && options[:allow_blank])
         validate_each(record, attribute, value)
+      end
+    end
+
+    # Fetches attribute value from record.
+    def read_attribute(record, attribute)
+      if @attr_reader_block
+        record.instance_exec(attribute, &@attr_reader_block)
+      else
+        record.read_attribute_for_validation(attribute)
       end
     end
 
