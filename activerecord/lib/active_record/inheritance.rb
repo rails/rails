@@ -52,7 +52,11 @@ module ActiveRecord
 
         attrs = args.first
         if has_attribute?(inheritance_column)
-          subclass = subclass_from_attributes(attrs) || subclass_from_attributes(column_defaults)
+          subclass = subclass_from_attributes(attrs)
+
+          if subclass.nil? && base_class == self
+            subclass = subclass_from_attributes(column_defaults)
+          end
         end
 
         if subclass && subclass != self
