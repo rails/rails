@@ -57,10 +57,6 @@ Upgrading from Rails 4.2 to Rails 5.0
 
 ToDo...
 
-### Ruby 2.2.2+
-
-ToDo...
-
 ### Active Record models now inherit from ApplicationRecord by default
 
 In Rails 4.2 an Active Record model inherits from `ActiveRecord::Base`. In Rails 5.0,
