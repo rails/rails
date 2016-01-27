@@ -295,10 +295,19 @@ module ActiveRecord
 
     def test_structure_dump_with_port_number
       filename = "awesome-file.sql"
-      Kernel.expects(:system).with("mysqldump", "--port", "10000", "--result-file", filename, "--no-data", "test-db").returns(true)
+      Kernel.expects(:system).with("mysqldump", "--port=10000", "--result-file", filename, "--no-data", "test-db").returns(true)
 
       ActiveRecord::Tasks::DatabaseTasks.structure_dump(
         @configuration.merge('port' => 10000),
+        filename)
+    end
+
+    def test_structure_dump_with_ssl
+      filename = "awesome-file.sql"
+      Kernel.expects(:system).with("mysqldump", "--ssl-ca=ca.crt", "--result-file", filename, "--no-data", "test-db").returns(true)
+
+      ActiveRecord::Tasks::DatabaseTasks.structure_dump(
+        @configuration.merge("sslca" => "ca.crt"),
         filename)
     end
   end

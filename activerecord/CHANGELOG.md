@@ -1,3 +1,9 @@
+*   Correctly pass MySQL options when using structure_dump or structure_load
+
+    Specifically, it fixes an issue when using SSL authentication.
+
+    *Alex Coomans*
+
 *   Fix regression when loading fixture files with symbol keys.
 
     Closes #22584.
