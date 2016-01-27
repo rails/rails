@@ -1,7 +1,7 @@
 module ActiveModel
   module Validations
     # == \Active \Model Immutability Validator
-    class ImmutabilityValidator < ActiveModel::EachValidator # :nodoc:
+    class ImmutabilityValidator < EachValidator # :nodoc:
       def validate_each(record, attribute, value)
         record.errors.add(attribute, :immutability) if record.public_send("#{attribute}_changed?")
       end
