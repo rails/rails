@@ -261,12 +261,29 @@ end
 class ExpiresInRenderTest < ActionController::TestCase
   tests TestController
 
+  def setup
+    super
+    ActionController::Base.view_paths.paths.each(&:clear_cache)
+  end
+
   def test_dynamic_render_with_file
     # This is extremely bad, but should be possible to do.
     assert File.exist?(File.join(File.dirname(__FILE__), '../../test/abstract_unit.rb'))
     response = get :dynamic_render_with_file, { id: '../\\../test/abstract_unit.rb' }
     assert_equal File.read(File.join(File.dirname(__FILE__), '../../test/abstract_unit.rb')),
       response.body
+  end
+
+  def test_dynamic_render_with_absolute_path
+    file = Tempfile.new('name')
+    file.write "secrets!"
+    file.flush
+    assert_raises ActionView::MissingTemplate do
+      get :dynamic_render, { id: file.path }
+    end
+  ensure
+    file.close
+    file.unlink
   end
 
   def test_dynamic_render
