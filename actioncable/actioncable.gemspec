@@ -21,7 +21,8 @@ Gem::Specification.new do |s|
   s.add_dependency 'actionpack', version
 
   s.add_dependency 'coffee-rails',     '~> 4.1.0'
-  s.add_dependency 'nio4r',            '~> 1.2'
+  s.add_dependency 'eventmachine',     '~> 1.0'
+  s.add_dependency 'faye-websocket',   '~> 0.10.0'
   s.add_dependency 'websocket-driver', '~> 0.6.1'
 
   s.add_development_dependency 'em-hiredis', '~> 0.3.0'

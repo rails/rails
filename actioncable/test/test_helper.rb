@@ -13,16 +13,28 @@ require 'rack/mock'
 # Require all the stubs and models
 Dir[File.dirname(__FILE__) + '/stubs/*.rb'].each {|file| require file }
 
+require 'faye/websocket'
+class << Faye::WebSocket
+  remove_method :ensure_reactor_running
+
+  # We don't want Faye to start the EM reactor in tests because it makes testing much harder.
+  # We want to be able to start and stop EM loop in tests to make things simpler.
+  def ensure_reactor_running
+    # no-op
+  end
+end
+
 class ActionCable::TestCase < ActiveSupport::TestCase
-  def wait_for_async
-    e = Concurrent.global_io_executor
-    until e.completed_task_count == e.scheduled_task_count
-      sleep 0.1
+  def run_in_eventmachine
+    EM.run do
+      yield
+
+      EM.run_deferred_callbacks
+      EM.stop
     end
   end
 
-  def run_in_eventmachine
-    yield
-    wait_for_async
+  def spawn_eventmachine
+    Thread.new { EventMachine.run } unless EventMachine.reactor_running?
   end
 end
