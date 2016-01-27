@@ -1,3 +1,8 @@
+*   Fix stripping the digest from the automatically generated img tag alt
+    attribute when assets are handled by Sprockets >=3.0.
+
+    *Bart de Water*
+
 *   Generate `week_field` input values using a 1-based index and not a 0-based index
     as per the W3 spec: http://www.w3.org/TR/html-markup/datatypes.html#form.data.week
 
