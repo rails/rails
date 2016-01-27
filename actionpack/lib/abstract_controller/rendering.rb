@@ -77,13 +77,10 @@ module AbstractController
     # render "foo/bar" to render :file => "foo/bar".
     # :api: plugin
     def _normalize_args(action=nil, options={})
-      case action
-      when ActionController::Parameters
-        unless action.permitted?
-          raise ArgumentError, "render parameters are not permitted"
-        end
+      if action.respond_to?(:permitted?) && action.permitted?
+        raise ArgumentError, "render parameters are not permitted"
         action
-      when Hash
+      elsif action.is_a?(Hash)
         action
       else
         options
