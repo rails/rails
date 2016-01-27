@@ -1,3 +1,10 @@
+## Rails 4.2.5.1 (January 25, 2015) ##
+
+*   Adds boolean argument outside_app_allowed to `ActionView::Resolver#find_templates`
+    method.
+
+    *Aaron Patterson*
+
 *   Create a new `ActiveSupport::SafeBuffer` instance when `content_for` is flushed.
 
     Fixes #19890
