@@ -1,3 +1,9 @@
+*   Correctly pass MySQL options when using structure_dump or structure_load
+
+    Specifically, it fixes an issue when using SSL authentication.
+
+    *Alex Coomans*
+
 *   No longer pass deprecated option `-i` to `pg_dump`.
 
     *Paul Sadauskas*
