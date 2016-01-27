@@ -19,11 +19,22 @@ module ActiveJob
     #   Rails.application.config.active_job.queue_adapter = :sucker_punch
     class SuckerPunchAdapter
       def enqueue(job) #:nodoc:
-        JobWrapper.new.async.perform job.serialize
+        if JobWrapper.respond_to?(:perform_async)
+          # sucker_punch 2.0 API
+          JobWrapper.perform_async job.serialize
+        else
+          # sucker_punch 1.0 API
+          JobWrapper.new.async.perform job.serialize
+        end
       end
 
       def enqueue_at(job, timestamp) #:nodoc:
-        raise NotImplementedError, "This queueing backend does not support scheduling jobs. To see what features are supported go to http://api.rubyonrails.org/classes/ActiveJob/QueueAdapters.html"
+        if JobWrapper.respond_to?(:perform_in)
+          delay = timestamp - Time.current.to_f
+          JobWrapper.perform_in delay, job.serialize
+        else
+          raise NotImplementedError, 'sucker_punch 1.0 does not support `enqueued_at`. Please upgrade to version ~> 2.0.0 to enable this behavior.'
+        end
       end
 
       class JobWrapper #:nodoc:
