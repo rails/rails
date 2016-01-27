@@ -63,7 +63,7 @@ class TestController < ActionController::Base
   end
 
   def dynamic_render
-    render params[:id] # => String, AC:Params
+    render params[:id] # => String, AC::Params
   end
 
   def dynamic_render_permit
@@ -72,7 +72,7 @@ class TestController < ActionController::Base
 
   def dynamic_render_with_file
     # This is extremely bad, but should be possible to do.
-    file = params[:id] # => String, AC:Params
+    file = params[:id] # => String, AC::Params
     render file: file
   end
 
