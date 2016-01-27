@@ -14,7 +14,6 @@ class TestServer
     @config.subscription_adapter.new(self)
   end
 
-  def stream_event_loop
-    @stream_event_loop ||= ActionCable::Connection::StreamEventLoop.new
+  def send_async
   end
 end

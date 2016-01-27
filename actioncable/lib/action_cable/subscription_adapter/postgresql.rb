@@ -63,7 +63,7 @@ module ActionCable
                     case action
                     when :listen
                       pg_conn.exec("LISTEN #{pg_conn.escape_identifier channel}")
-                      Concurrent.global_io_executor << callback if callback
+                      ::EM.next_tick(&callback) if callback
                     when :unlisten
                       pg_conn.exec("UNLISTEN #{pg_conn.escape_identifier channel}")
                     when :shutdown
@@ -93,7 +93,7 @@ module ActionCable
           end
 
           def invoke_callback(*)
-            Concurrent.global_io_executor.post { super }
+            ::EM.next_tick { super }
           end
         end
     end

@@ -1,3 +1,7 @@
+require 'eventmachine'
+EventMachine.epoll  if EventMachine.epoll?
+EventMachine.kqueue if EventMachine.kqueue?
+
 module ActionCable
   module Server
     extend ActiveSupport::Autoload

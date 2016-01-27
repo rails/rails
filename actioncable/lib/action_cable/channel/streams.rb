@@ -75,7 +75,7 @@ module ActionCable
         callback ||= default_stream_callback(broadcasting)
         streams << [ broadcasting, callback ]
 
-        Concurrent.global_io_executor.post do
+        EM.next_tick do
           pubsub.subscribe(broadcasting, callback, lambda do
             transmit_subscription_confirmation
             logger.info "#{self.class.name} is streaming from #{broadcasting}"
