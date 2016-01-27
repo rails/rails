@@ -957,9 +957,9 @@ module ActiveRecord
       def dump_schema_information #:nodoc:
         sm_table = ActiveRecord::Migrator.schema_migrations_table_name
 
-        ActiveRecord::SchemaMigration.order('version').map { |sm|
-          "INSERT INTO #{sm_table} (version) VALUES ('#{sm.version}');"
-        }.join "\n\n"
+        sql = "INSERT INTO #{sm_table} (version) VALUES "
+        sql << ActiveRecord::SchemaMigration.order('version').pluck(:version).map {|v| "('#{v}')" }.join(', ')
+        sql << ";\n\n"
       end
 
       # Should not be called normally, but this operation is non-destructive.
@@ -987,14 +987,12 @@ module ActiveRecord
           execute "INSERT INTO #{sm_table} (version) VALUES ('#{version}')"
         end
 
-        inserted = Set.new
-        (versions - migrated).each do |v|
-          if inserted.include?(v)
-            raise "Duplicate migration #{v}. Please renumber your migrations to resolve the conflict."
-          elsif v < version
-            execute "INSERT INTO #{sm_table} (version) VALUES ('#{v}')"
-            inserted << v
+        inserting = (versions - migrated).select {|v| v < version}
+        if inserting.any?
+          if (duplicate = inserting.detect {|v| inserting.count(v) > 1})
+            raise "Duplicate migration #{duplicate}. Please renumber your migrations to resolve the conflict."
           end
+          execute "INSERT INTO #{sm_table} (version) VALUES #{inserting.map {|v| '(#{v})'}.join(', ') }"
         end
       end
 

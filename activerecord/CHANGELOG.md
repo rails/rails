@@ -1,3 +1,8 @@
+*   Improve schema_migrations insertion performance by inserting all versions
+    in one INSERT SQL.
+
+    *Akira Matsuda*, *Naoto Koshikawa*
+
 *   Using `references` or `belongs_to` in migrations will always add index
     for the referenced column by default, without adding `index: true` option
     to generated migration file. Users can opt out of this by passing
