@@ -253,6 +253,11 @@ end
 class ExpiresInRenderTest < ActionController::TestCase
   tests TestController
 
+  def setup
+    super
+    ActionController::Base.view_paths.paths.each(&:clear_cache)
+  end
+
   def test_dynamic_render_with_file
     # This is extremely bad, but should be possible to do.
     assert File.exist?(File.join(File.dirname(__FILE__), '../../test/abstract_unit.rb'))
