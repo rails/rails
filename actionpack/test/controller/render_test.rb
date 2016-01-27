@@ -66,6 +66,10 @@ class TestController < ActionController::Base
     render params[:id] # => String, AC:Params
   end
 
+  def dynamic_render_permit
+    render params[:id].permit(:file)
+  end
+
   def dynamic_render_with_file
     # This is extremely bad, but should be possible to do.
     file = params[:id] # => String, AC:Params
@@ -271,6 +275,13 @@ class ExpiresInRenderTest < ActionController::TestCase
     assert_raises ActionView::MissingTemplate do
       get :dynamic_render, params: { id: '../\\../test/abstract_unit.rb' }
     end
+  end
+
+  def test_permitted_dynamic_render_file_hash
+    assert File.exist?(File.join(File.dirname(__FILE__), '../../test/abstract_unit.rb'))
+    response = get :dynamic_render_permit, { id: { file: '../\\../test/abstract_unit.rb' } }
+    assert_equal File.read(File.join(File.dirname(__FILE__), '../../test/abstract_unit.rb')),
+      response.body
   end
 
   def test_dynamic_render_file_hash
