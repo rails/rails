@@ -6,6 +6,9 @@ class Parrot < ActiveRecord::Base
   has_and_belongs_to_many :pirates
   has_and_belongs_to_many :treasures
   has_many :loots, as: :looter
+
+  has_one :image, as: :imageable, foreign_key: :imageable_identifier, foreign_type: :imageable_class, class_name: "Image"
+
   alias_attribute :title, :name
 
   validates_presence_of :name

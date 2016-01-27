@@ -437,10 +437,14 @@ module ActiveRecord
             record.destroy
           elsif autosave != false
             key = reflection.options[:primary_key] ? send(reflection.options[:primary_key]) : id
+            type = self.class.polymorphic_name
 
-            if (autosave && record.changed_for_autosave?) || new_record? || record_changed?(reflection, record, key)
+            if (autosave && record.changed_for_autosave?) || new_record? || record_changed?(reflection, record, key, type)
+
               unless reflection.through_reflection
                 record[reflection.foreign_key] = key
+                record[reflection.type] = type if reflection.type
+
                 if inverse_reflection = reflection.inverse_of
                   record.association(inverse_reflection.name).loaded!
                 end
@@ -455,10 +459,11 @@ module ActiveRecord
       end
 
       # If the record is new or it has changed, returns true.
-      def record_changed?(reflection, record, key)
+      def record_changed?(reflection, record, key, type)
         record.new_record? ||
           (record.has_attribute?(reflection.foreign_key) && record[reflection.foreign_key] != key) ||
-          record.will_save_change_to_attribute?(reflection.foreign_key)
+          record.will_save_change_to_attribute?(reflection.foreign_key) ||
+          (reflection.type && (record[reflection.type] != type || record.will_save_change_to_attribute?(reflection.type)))
       end
 
       # Saves the associated record if it's new or <tt>:autosave</tt> is enabled.

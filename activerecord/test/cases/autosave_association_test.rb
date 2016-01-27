@@ -29,6 +29,7 @@ require "models/organization"
 require "models/guitar"
 require "models/tuning_peg"
 require "models/reply"
+require "models/image"
 
 class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
   def test_autosave_validation
@@ -215,6 +216,34 @@ class TestDefaultAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCas
 
     eye.update(iris_attributes: { color: "blue" })
     assert_equal [false, false, false, false], eye.after_save_callbacks_stack
+  end
+
+  def test_association_type_gets_properly_saved
+    parrot = Parrot.create!(id: 23, name: "Polly")
+    post = Post.create!(id: 35, title: "On how Active Record associations get autosaved", body: "Is the behavior correct?")
+    image = Image.create!
+
+    parrot.image = image
+    post.main_image = image
+    parrot.save!
+
+    assert_not_nil image.reload.imageable
+    assert_equal image.imageable_identifier, parrot.id
+    assert_equal image.imageable_class, "Parrot"
+  end
+
+  def test_association_type_gets_properly_saved_with_same_foreign_keys
+    parrot = Parrot.create!(id: 23, name: "Polly")
+    post = Post.create!(id: 23, title: "On how Active Record associations get autosaved", body: "Is the behavior correct?")
+    image = Image.create!
+
+    parrot.image = image
+    post.main_image = image
+    parrot.save!
+
+    assert_not_nil image.reload.imageable
+    assert_equal image.imageable_identifier, parrot.id
+    assert_equal image.imageable_class, "Parrot"
   end
 end
 
