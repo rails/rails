@@ -1,3 +1,9 @@
+*   Fix stripping the digest from the automatically generated img tag alt
+    attribute when assets are handled by Sprockets >=3.0.
+
+    *Bart de Water*
+
+
 ## Rails 4.2.5.1 (January 25, 2015) ##
 
 *   Adds boolean argument outside_app_allowed to `ActionView::Resolver#find_templates`
