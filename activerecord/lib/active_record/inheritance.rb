@@ -201,7 +201,9 @@ module ActiveRecord
         if attrs.is_a?(Hash)
           subclass_name = attrs.with_indifferent_access[inheritance_column]
 
-          if subclass_name.present?
+          if subclass_name == base_class.to_s
+            subclass_name.constantize
+          elsif subclass_name.present?
             find_sti_class(subclass_name)
           end
         end

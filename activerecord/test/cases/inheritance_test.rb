@@ -500,6 +500,23 @@ class InheritanceComputeTypeTest < ActiveRecord::TestCase
     ActiveRecord::Base.connection.change_column_default :companies, :type, original_type
     Company.reset_column_information
   end
+
+  def test_inheritance_new_with_base_class_subclass_as_default
+    original_type = Company.columns_hash['type'].default
+    ActiveRecord::Base.connection.change_column_default :companies, :type, 'Company'
+    Company.reset_column_information
+
+    company = Company.new # without arguments
+    assert_equal 'Company', company.type
+    assert_instance_of Company, company
+
+    firm = Company.new(type: 'Client') # overwrite the default type
+    assert_equal 'Client', firm.type
+    assert_instance_of Client, firm
+  ensure
+    ActiveRecord::Base.connection.change_column_default :companies, :type, original_type
+    Company.reset_column_information
+  end
 end
 
 class InheritanceAttributeTest < ActiveRecord::TestCase
