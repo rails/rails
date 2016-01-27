@@ -1104,14 +1104,21 @@ module ActiveRecord
     end
 
     def reverse_sql_order(order_query)
-      order_query = ["#{quoted_table_name}.#{quoted_primary_key} ASC"] if order_query.empty?
+      if order_query.empty?
+        return [table[primary_key].desc] if primary_key
+        raise IrreversibleOrderError,
+          "Relation has no current order and table has no primary key to be used as default order"
+      end
 
       order_query.flat_map do |o|
         case o
         when Arel::Nodes::Ordering
           o.reverse
         when String
-          o.to_s.split(',').map! do |s|
+          if does_not_support_reverse?(o)
+            raise IrreversibleOrderError, "Order #{o.inspect} can not be reversed automatically"
+          end
+          o.split(',').map! do |s|
             s.strip!
             s.gsub!(/\sasc\Z/i, ' DESC') || s.gsub!(/\sdesc\Z/i, ' ASC') || s.concat(' DESC')
           end
@@ -1119,6 +1126,13 @@ module ActiveRecord
           o
         end
       end
+    end
+
+    def does_not_support_reverse?(order)
+      #uses sql function with multiple arguments
+      order =~ /\([^()]*,[^()]*\)/ ||
+        # uses "nulls first" like construction
+        order =~ /nulls (first|last)\Z/i
     end
 
     def build_order(arel)

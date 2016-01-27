@@ -275,4 +275,9 @@ module ActiveRecord
   # The mysql2 and postgresql adapters support setting the transaction isolation level.
   class TransactionIsolationError < ActiveRecordError
   end
+
+  # IrreversibleOrderError is raised when a relation's order is too complex for
+  # +reverse_order+ to automatically reverse.
+  class IrreversibleOrderError < ActiveRecordError
+  end
 end
