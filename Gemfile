@@ -58,7 +58,6 @@ group :job do
   gem 'qu-redis', require: false
   gem 'delayed_job_active_record', require: false
   gem 'sequel', require: false
-  gem 'celluloid', require: false
 end
 
 # Action Cable

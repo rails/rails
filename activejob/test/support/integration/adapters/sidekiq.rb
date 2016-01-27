@@ -26,7 +26,7 @@ module SidekiqJobsManager
       continue_read.close
       death_write.close
 
-      # Celluloid & Sidekiq are not warning-clean :(
+      # Sidekiq is not warning-clean :(
       $VERBOSE = false
 
       $stdin.reopen('/dev/null')
@@ -49,8 +49,6 @@ module SidekiqJobsManager
         self_write.puts("TERM")
       end
 
-      require 'celluloid'
-      Celluloid.logger = nil
       require 'sidekiq/launcher'
       sidekiq = Sidekiq::Launcher.new({queues: ["integration_tests"],
                                        environment: "test",

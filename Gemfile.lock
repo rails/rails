@@ -106,23 +106,6 @@ GEM
     bunny (2.2.1)
       amq-protocol (>= 2.0.0)
     byebug (8.2.1)
-    celluloid (0.17.3)
-      celluloid-essentials
-      celluloid-extras
-      celluloid-fsm
-      celluloid-pool
-      celluloid-supervision
-      timers (>= 4.1.1)
-    celluloid-essentials (0.20.5)
-      timers (>= 4.1.1)
-    celluloid-extras (0.20.5)
-      timers (>= 4.1.1)
-    celluloid-fsm (0.20.5)
-      timers (>= 4.1.1)
-    celluloid-pool (0.20.5)
-      timers (>= 4.1.1)
-    celluloid-supervision (0.20.5)
-      timers (>= 4.1.1)
     coffee-rails (4.1.0)
       coffee-script (>= 2.2.0)
       railties (>= 4.0.0, < 5.0)
@@ -154,7 +137,6 @@ GEM
     globalid (0.3.6)
       activesupport (>= 4.1.0)
     hiredis (0.5.2)
-    hitimes (1.2.3)
     i18n (0.7.0)
     jquery-rails (4.0.5)
       rails-dom-testing (~> 1.0)
@@ -267,8 +249,6 @@ GEM
     thor (0.19.1)
     thread (0.1.7)
     thread_safe (0.3.5)
-    timers (4.1.1)
-      hitimes
     turbolinks (2.5.3)
       coffee-rails
     tzinfo (1.2.2)
@@ -301,7 +281,6 @@ DEPENDENCIES
   bcrypt-ruby (~> 3.0.0)
   benchmark-ips
   byebug
-  celluloid
   coffee-rails (~> 4.1.0)
   dalli (>= 2.2.1)
   delayed_job
