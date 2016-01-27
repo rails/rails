@@ -43,7 +43,7 @@ group :job do
   gem 'resque', require: false
   gem 'resque-scheduler', require: false
   gem 'sidekiq', require: false
-  gem 'sucker_punch', require: false
+  gem 'sucker_punch', '< 2.0', require: false
   gem 'delayed_job', require: false
   gem 'queue_classic', require: false, platforms: :ruby
   gem 'sneakers', '0.1.1.pre', require: false
