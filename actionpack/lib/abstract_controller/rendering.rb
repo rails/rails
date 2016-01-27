@@ -3,6 +3,7 @@ require 'active_support/core_ext/class/attribute'
 require 'action_view'
 require 'action_view/view_paths'
 require 'set'
+require 'action_controller'
 
 module AbstractController
   class DoubleRenderError < Error
