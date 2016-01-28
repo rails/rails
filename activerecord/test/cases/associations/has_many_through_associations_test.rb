@@ -801,6 +801,22 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal post_with_no_comments, posts(:authorless)
   end
 
+  def test_mutate_association_is_dropped_by_spawn
+    post = posts(:thinking)
+    assert_deprecated {
+      assert_equal(
+        {'first_name' => 'Jeb'},
+        post.people.where!(first_name: "Jeb").where_values_hash
+      )
+    }
+    assert_deprecated {
+      assert_equal(
+        {'last_name' => 'Bob'},
+        post.people.where!(first_name: "Jeb").where(last_name: "Bob").where_values_hash
+      )
+    }
+  end
+
   def test_has_many_through_has_one_reflection
     assert_equal [comments(:eager_sti_on_associations_vs_comment)], authors(:david).very_special_comments
   end

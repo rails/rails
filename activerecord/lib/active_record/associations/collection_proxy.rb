@@ -35,6 +35,7 @@ module ActiveRecord
         @association = association
         super klass, klass.arel_table, klass.predicate_builder
         merge! association.scope(nullify: false)
+        @initialized = true
       end
 
       def target
@@ -1054,6 +1055,20 @@ module ActiveRecord
         proxy_association.reset_scope
         self
       end
+
+      private
+
+        def assert_mutability!
+          if defined?(@initialized) && @initialized
+            ActiveSupport::Deprecation.warn(<<-MSG.squish)
+              You are attempting to modify a collection proxy in-place.
+              Please use a non-mutating version of this method, for example,
+              use `order` instead of `order!`.
+            MSG
+          end
+          super
+        end
+
     end
   end
 end

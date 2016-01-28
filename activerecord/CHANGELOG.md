@@ -1,3 +1,9 @@
+*   Deprecate mutation of CollectionProxy (e.g. `order!`), as the proxy is cached, and the
+    result of the mutation is dropped at the next spawn / non-mutation
+    query method call (e.g. `order`)
+
+    *Ben Woosley*, *Victor Kmita*
+
 *   When calling `first` with a `limit` argument, return directly from the
     `loaded?` records if available.
 

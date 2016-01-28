@@ -666,8 +666,24 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_find_first_sanitized
     firm = Firm.all.merge!(:order => "id").first
     client2 = Client.find(2)
-    assert_equal client2, firm.clients.merge!(:where => ["#{QUOTED_TYPE} = ?", 'Client'], :order => "id").first
-    assert_equal client2, firm.clients.merge!(:where => ["#{QUOTED_TYPE} = :type", { :type => 'Client' }], :order => "id").first
+    assert_equal client2, firm.clients.merge(:where => ["#{QUOTED_TYPE} = ?", 'Client'], :order => "id").first
+    assert_equal client2, firm.clients.merge(:where => ["#{QUOTED_TYPE} = :type", { :type => 'Client' }], :order => "id").first
+  end
+
+  def test_mutate_association_is_dropped_by_spawn
+    post = posts(:thinking)
+    assert_deprecated {
+      assert_equal(
+        ['body ASC'],
+        post.comments.order!('body ASC').order_values
+      )
+    }
+    assert_deprecated {
+      assert_equal(
+        ['post_id ASC'],
+        post.comments.order!('body ASC').order('post_id ASC').order_values
+      )
+    }
   end
 
   def test_find_all_with_include_and_conditions
