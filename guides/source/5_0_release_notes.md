@@ -121,7 +121,7 @@ Please refer to the [Changelog][railties] for detailed changes.
      [Pull Request](https://github.com/rails/rails/pull/22288))
 
 *   Introduced an `after_bundle` callback for use in Rails plugin templates.
-    ([Pull Request](https://github.com/rails/rails/pull/))
+    ([Pull Request](https://github.com/rails/rails/pull/23317))
 
 
 Action Pack

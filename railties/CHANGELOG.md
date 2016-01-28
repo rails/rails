@@ -451,7 +451,7 @@
 *   Add `after_bundle` callbacks in Rails plugin templates.  Useful for allowing
     templates to perform actions that are dependent upon `bundle install`.
 
-    Fixes #<>
+    Fixes #<23315>
 
     *Ryan Manuel*
 
