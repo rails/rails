@@ -258,7 +258,7 @@ class TestController < ActionController::Base
     file.write "secrets!"
     file.flush
     assert_raises ActionView::MissingTemplate do
-      response = get :dynamic_render, { id: file.path }
+      response = get :dynamic_render, { :id => file.path }
     end
   ensure
     file.unlink
