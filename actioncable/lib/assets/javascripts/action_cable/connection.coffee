@@ -57,6 +57,10 @@ class ActionCable.Connection
     message: (event) ->
       {identifier, message, type} = JSON.parse(event.data)
 
+      if identifier is ActionCable.INTERNAL.identifiers.disconnect
+        @consumer.connectionMonitor.stop()
+        return
+
       switch type
         when message_types.confirmation
           @consumer.subscriptions.notify(identifier, "connected")

@@ -30,7 +30,8 @@ module ActionCable
 
   INTERNAL = {
     identifiers: {
-      ping: '_ping'.freeze
+      ping: '_ping'.freeze,
+      disconnect: '_disconnect'.freeze
     },
     message_types: {
       confirmation: 'confirm_subscription'.freeze,

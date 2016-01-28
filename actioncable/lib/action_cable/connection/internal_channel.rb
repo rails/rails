@@ -30,7 +30,8 @@ module ActionCable
           message = ActiveSupport::JSON.decode(message)
 
           case message['type']
-          when 'disconnect'
+            when 'disconnect'
+            transmit ActiveSupport::JSON.encode(identifier: ActionCable::INTERNAL[:identifiers][:disconnect], message: Time.now.to_i)
             logger.info "Removing connection (#{connection_identifier})"
             websocket.close
           end
