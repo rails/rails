@@ -106,18 +106,14 @@ module Mime
         result = @index <=> item.index if result == 0
         result
       end
-
-      def ==(item)
-        @name == item.to_s
-      end
     end
 
     class AcceptList < Array #:nodoc:
       def assort!
         sort!
 
-        text_xml_idx = index('text/xml')
-        app_xml_idx = index(Mime[:xml].to_s)
+        text_xml_idx = find_item_by_name self, 'text/xml'
+        app_xml_idx = find_item_by_name self, Mime[:xml].to_s
 
         # Take care of the broken text/xml entry by renaming or deleting it
         if text_xml_idx && app_xml_idx
@@ -153,6 +149,11 @@ module Mime
 
         map! { |i| Mime::Type.lookup(i.name) }.uniq!
         to_a
+      end
+
+      private
+      def find_item_by_name(array, name)
+        array.index { |item| item.name == name }
       end
     end
 
