@@ -666,8 +666,8 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_find_first_sanitized
     firm = Firm.all.merge!(:order => "id").first
     client2 = Client.find(2)
-    assert_equal client2, firm.clients.merge!(:where => ["#{QUOTED_TYPE} = ?", 'Client'], :order => "id").first
-    assert_equal client2, firm.clients.merge!(:where => ["#{QUOTED_TYPE} = :type", { :type => 'Client' }], :order => "id").first
+    assert_equal client2, firm.clients.merge(:where => ["#{QUOTED_TYPE} = ?", 'Client'], :order => "id").first
+    assert_equal client2, firm.clients.merge(:where => ["#{QUOTED_TYPE} = :type", { :type => 'Client' }], :order => "id").first
   end
 
   def test_find_all_with_include_and_conditions

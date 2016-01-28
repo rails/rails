@@ -1,3 +1,8 @@
+*   Make `CollectionProxy` an Immutable Relation - it will raise
+    `ImmutableRelation` errors if mutation is attempted.
+
+    *Ben Woosley*, *Victor Kmita*
+
 *   When calling `first` with a `limit` argument, return directly from the
     `loaded?` records if available.
 

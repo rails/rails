@@ -35,6 +35,7 @@ module ActiveRecord
         @association = association
         super klass, klass.arel_table, klass.predicate_builder
         merge! association.scope(nullify: false)
+        @initialized = true
       end
 
       def target
@@ -1054,6 +1055,14 @@ module ActiveRecord
         proxy_association.reset_scope
         self
       end
+
+      private
+
+        def assert_mutability!
+          raise ImmutableRelation if defined?(@initialized) && @initialized
+          super
+        end
+
     end
   end
 end
