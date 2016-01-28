@@ -181,6 +181,15 @@ class ClientTest < ActionCable::TestCase
       @ws.close
       @closed.wait(WAIT_WHEN_EXPECTING_EVENT)
     end
+
+    def close!
+      sock = BasicSocket.for_fd(@ws.instance_variable_get(:@stream).detach)
+
+      # Force a TCP reset
+      sock.setsockopt(Socket::SOL_SOCKET, Socket::SO_LINGER, [1, 0].pack('ii'))
+
+      sock.close
+    end
   end
 
   def faye_client(port)
@@ -233,6 +242,23 @@ class ClientTest < ActionCable::TestCase
       } }.each(&:wait!)
 
       clients.map {|c| Concurrent::Future.execute { c.close } }.each(&:wait!)
+    end
+  end
+
+  def test_disappearing_client
+    with_puma_server do |port|
+      c = faye_client(port)
+      c.send_message command: 'subscribe', identifier: JSON.dump(channel: 'EchoChannel')
+      assert_equal({"identifier"=>"{\"channel\":\"EchoChannel\"}", "type"=>"confirm_subscription"}, c.read_message)
+      c.send_message command: 'message', identifier: JSON.dump(channel: 'EchoChannel'), data: JSON.dump(action: 'delay', message: 'hello')
+      c.close! # disappear before write
+
+      c = faye_client(port)
+      c.send_message command: 'subscribe', identifier: JSON.dump(channel: 'EchoChannel')
+      assert_equal({"identifier"=>"{\"channel\":\"EchoChannel\"}", "type"=>"confirm_subscription"}, c.read_message)
+      c.send_message command: 'message', identifier: JSON.dump(channel: 'EchoChannel'), data: JSON.dump(action: 'ding', message: 'hello')
+      assert_equal({"identifier"=>'{"channel":"EchoChannel"}', "message"=>{"dong"=>"hello"}}, c.read_message)
+      c.close! # disappear before read
     end
   end
 end

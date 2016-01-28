@@ -1,18 +1,17 @@
 require 'nio'
+require 'thread'
 
 module ActionCable
   module Connection
     class StreamEventLoop
       def initialize
-        @nio = NIO::Selector.new
+        @nio = @thread = nil
         @map = {}
         @stopping = false
         @todo = Queue.new
 
-        Thread.new do
-          Thread.current.abort_on_exception = true
-          run
-        end
+        @spawn_mutex = Mutex.new
+        spawn
       end
 
       def attach(io, stream)
@@ -20,34 +19,53 @@ module ActionCable
           @map[io] = stream
           @nio.register(io, :r)
         end
-        @nio.wakeup
+        wakeup
       end
 
       def detach(io, stream)
         @todo << lambda do
-          @nio.deregister(io)
+          @nio.deregister io
           @map.delete io
         end
-        @nio.wakeup
+        wakeup
       end
 
       def stop
         @stopping = true
-        @nio.wakeup
+        wakeup if @nio
       end
 
-      def run
-        loop do
-          if @stopping
-            @nio.close
-            break
-          end
+      private
+        def spawn
+          return if @thread && @thread.status
 
-          until @todo.empty?
-            @todo.pop(true).call
-          end
+          @spawn_mutex.synchronize do
+            return if @thread && @thread.status
 
-          if monitors = @nio.select
+            @nio ||= NIO::Selector.new
+            @thread = Thread.new { run }
+
+            return true
+          end
+        end
+
+        def wakeup
+          spawn || @nio.wakeup
+        end
+
+        def run
+          loop do
+            if @stopping
+              @nio.close
+              break
+            end
+
+            until @todo.empty?
+              @todo.pop(true).call
+            end
+
+            next unless monitors = @nio.select
+
             monitors.each do |monitor|
               io = monitor.io
               stream = @map[io]
@@ -56,13 +74,21 @@ module ActionCable
                 stream.receive io.read_nonblock(4096)
               rescue IO::WaitReadable
                 next
-              rescue EOFError
-                stream.close
+              rescue
+                # We expect one of EOFError or Errno::ECONNRESET in
+                # normal operation (when the client goes away). But if
+                # anything else goes wrong, this is still the best way
+                # to handle it.
+                begin
+                  stream.close
+                rescue
+                  @nio.deregister io
+                  @map.delete io
+                end
               end
             end
           end
         end
-      end
     end
   end
 end

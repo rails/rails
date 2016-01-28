@@ -7,6 +7,11 @@ class EchoChannel < ActionCable::Channel::Base
     transmit(dong: data['message'])
   end
 
+  def delay(data)
+    sleep 1
+    transmit(dong: data['message'])
+  end
+
   def bulk(data)
     ActionCable.server.broadcast "global", wide: data['message']
   end
