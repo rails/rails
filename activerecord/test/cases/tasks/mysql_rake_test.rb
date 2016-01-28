@@ -255,7 +255,7 @@ module ActiveRecord
 
     def test_structure_dump
       filename = "awesome-file.sql"
-      Kernel.expects(:system).with("mysqldump", "--result-file", filename, "--no-data", "--routines", "test-db").returns(true)
+      Kernel.expects(:system).with("mysqldump", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "test-db").returns(true)
 
       ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename)
     end
@@ -263,7 +263,7 @@ module ActiveRecord
     def test_warn_when_external_structure_dump_command_execution_fails
       filename = "awesome-file.sql"
       Kernel.expects(:system)
-        .with("mysqldump", "--result-file", filename, "--no-data", "--routines", "test-db")
+        .with("mysqldump", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "test-db")
         .returns(false)
 
       e = assert_raise(RuntimeError) {
@@ -274,7 +274,7 @@ module ActiveRecord
 
     def test_structure_dump_with_port_number
       filename = "awesome-file.sql"
-      Kernel.expects(:system).with("mysqldump", "--port=10000", "--result-file", filename, "--no-data", "--routines", "test-db").returns(true)
+      Kernel.expects(:system).with("mysqldump", "--port=10000", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "test-db").returns(true)
 
       ActiveRecord::Tasks::DatabaseTasks.structure_dump(
         @configuration.merge('port' => 10000),
@@ -283,7 +283,7 @@ module ActiveRecord
 
     def test_structure_dump_with_ssl
       filename = "awesome-file.sql"
-      Kernel.expects(:system).with("mysqldump", "--ssl-ca=ca.crt", "--result-file", filename, "--no-data", "--routines", "test-db").returns(true)
+      Kernel.expects(:system).with("mysqldump", "--ssl-ca=ca.crt", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "test-db").returns(true)
 
       ActiveRecord::Tasks::DatabaseTasks.structure_dump(
         @configuration.merge("sslca" => "ca.crt"),
