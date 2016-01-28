@@ -455,7 +455,7 @@ class NamedScopingTest < ActiveRecord::TestCase
     [:public_method, :protected_method, :private_method].each do |reserved_method|
       assert Topic.respond_to?(reserved_method, true)
       ActiveRecord::Base.logger.expects(:warn)
-      Topic.scope(reserved_method)
+      Topic.scope(reserved_method, -> { })
     end
   end
 
