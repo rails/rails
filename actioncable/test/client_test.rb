@@ -154,10 +154,10 @@ class ClientTest < ActionCable::TestCase
       msg
     end
 
-    def read_messages
+    def read_messages(expected_size = 0)
       list = []
       loop do
-        @has_messages.wait(WAIT_WHEN_NOT_EXPECTING_EVENT)
+        @has_messages.wait(list.size < expected_size ? WAIT_WHEN_EXPECTING_EVENT : WAIT_WHEN_NOT_EXPECTING_EVENT)
         if @has_messages.set?
           list << read_message
         else
@@ -222,8 +222,7 @@ class ClientTest < ActionCable::TestCase
         barrier_1.wait WAIT_WHEN_EXPECTING_EVENT
         c.send_message command: 'message', identifier: JSON.dump(channel: 'EchoChannel'), data: JSON.dump(action: 'bulk', message: 'hello')
         barrier_2.wait WAIT_WHEN_EXPECTING_EVENT
-        sleep 1
-        assert_equal clients.size, c.read_messages.size
+        assert_equal clients.size, c.read_messages(clients.size).size
       } }.each(&:wait!)
 
       clients.map {|c| Concurrent::Future.execute { c.close } }.each(&:wait!)
