@@ -992,7 +992,7 @@ module ActiveRecord
           if (duplicate = inserting.detect {|v| inserting.count(v) > 1})
             raise "Duplicate migration #{duplicate}. Please renumber your migrations to resolve the conflict."
           end
-          execute "INSERT INTO #{sm_table} (version) VALUES #{inserting.map {|v| '(#{v})'}.join(', ') }"
+          execute "INSERT INTO #{sm_table} (version) VALUES #{inserting.map {|v| "('#{v}')"}.join(', ') }"
         end
       end
 
