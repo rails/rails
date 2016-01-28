@@ -116,13 +116,18 @@ module Mime
       def assort!
         sort!
 
+        text_xml_idx = index('text/xml')
+
         # Take care of the broken text/xml entry by renaming or deleting it
         if text_xml_idx && app_xml_idx
-          app_xml.q = [text_xml.q, app_xml.q].max # set the q value to the max of the two
-          exchange_xml_items if app_xml_idx > text_xml_idx  # make sure app_xml is ahead of text_xml in the list
+          app_xml.q = [text_xml(text_xml_idx).q, app_xml.q].max # set the q value to the max of the two
+          if app_xml_idx > text_xml_idx  # make sure app_xml is ahead of text_xml in the list
+            exchange_xml_items(text_xml_idx)
+            @app_xml_idx, text_xml_idx = text_xml_idx, app_xml_idx
+          end
           delete_at(text_xml_idx)                 # delete text_xml from the list
         elsif text_xml_idx
-          text_xml.name = Mime[:xml].to_s
+          text_xml(text_xml_idx).name = Mime[:xml].to_s
         end
 
         # Look for more specific XML-based types and sort them ahead of app/xml
@@ -146,25 +151,18 @@ module Mime
       end
 
       private
-        def text_xml_idx
-          @text_xml_idx ||= index('text/xml')
-        end
-
         def app_xml_idx
           @app_xml_idx ||= index(Mime[:xml].to_s)
         end
 
-        def text_xml
-          self[text_xml_idx]
-        end
+        alias :text_xml :[]
 
         def app_xml
           self[app_xml_idx]
         end
 
-        def exchange_xml_items
-          self[app_xml_idx], self[text_xml_idx] = text_xml, app_xml
-          @app_xml_idx, @text_xml_idx = text_xml_idx, app_xml_idx
+        def exchange_xml_items(text_xml_idx)
+          self[app_xml_idx], self[text_xml_idx] = text_xml(text_xml_idx), app_xml
         end
     end
 
