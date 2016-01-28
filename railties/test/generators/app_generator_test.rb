@@ -703,9 +703,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
 
     sequence = ['install', 'exec spring binstub --all', 'echo ran after_bundle']
-    ensure_bundler_first = -> command do
       @sequence_step ||= 0
-
+    ensure_bundler_first = -> command do
       assert_equal sequence[@sequence_step], command, "commands should be called in sequence #{sequence}"
       @sequence_step += 1
     end
@@ -717,6 +716,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
         end
       end
     end
+
+    assert_equal 3, @sequence_step
   end
 
   protected

@@ -448,4 +448,11 @@
 
     *Alex Robbin*
 
+*   Add `after_bundle` callbacks in Rails plugin templates.  Useful for allowing
+    templates to perform actions that are dependent upon `bundle install`.
+
+    Fixes #<>
+
+    *Ryan Manuel*
+
 Please check [4-2-stable](https://github.com/rails/rails/blob/4-2-stable/railties/CHANGELOG.md) for previous changes.

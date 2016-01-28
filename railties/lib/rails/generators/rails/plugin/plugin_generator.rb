@@ -259,6 +259,12 @@ task default: :test
 
       public_task :apply_rails_template, :run_bundle
 
+      def run_after_bundle_callbacks
+        @after_bundle_callbacks.each do |callback|
+          callback.call
+        end
+      end
+
       def name
         @name ||= begin
           # same as ActiveSupport::Inflector#underscore except not replacing '-'
