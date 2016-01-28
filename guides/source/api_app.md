@@ -8,7 +8,7 @@ In this guide you will learn:
 
 * What Rails provides for API-only applications
 * How to configure Rails to start without any browser features
-* How to decide which middlewares you will want to include
+* How to decide which middleware you will want to include
 * How to decide which modules to use in your controller
 
 --------------------------------------------------------------------------------
@@ -86,7 +86,7 @@ Handled at the middleware layer:
   and return just the headers on the way out. This makes `HEAD` work reliably in
   all Rails APIs.
 
-While you could obviously build these up in terms of existing Rack middlewares,
+While you could obviously build these up in terms of existing Rack middleware,
 this list demonstrates that the default Rails middleware stack provides a lot
 of value, even if you're "just generating JSON".
 
@@ -143,11 +143,11 @@ $ rails new my_api --api
 
 This will do three main things for you:
 
-- Configure your application to start with a more limited set of middlewares
+- Configure your application to start with a more limited set of middleware
   than normal. Specifically, it will not include any middleware primarily useful
   for browser applications (like cookies support) by default.
 - Make `ApplicationController` inherit from `ActionController::API` instead of
-  `ActionController::Base`. As with middlewares, this will leave out any Action
+  `ActionController::Base`. As with middleware, this will leave out any Action
   Controller modules that provide functionalities primarily used by browser
   applications.
 - Configure the generators to skip generating views, helpers and assets when
@@ -185,10 +185,10 @@ class ApplicationController < ActionController::API
 end
 ```
 
-Choosing Middlewares
+Choosing Middleware
 --------------------
 
-An API application comes with the following middlewares by default:
+An API application comes with the following middleware by default:
 
 - `Rack::Sendfile`
 - `ActionDispatch::Static`
@@ -206,14 +206,14 @@ An API application comes with the following middlewares by default:
 - `Rack::ConditionalGet`
 - `Rack::ETag`
 
-See the [internal middlewares](rails_on_rack.html#internal-middleware-stack)
+See the [internal middleware](rails_on_rack.html#internal-middleware-stack)
 section of the Rack guide for further information on them.
 
-Other plugins, including Active Record, may add additional middlewares. In
-general, these middlewares are agnostic to the type of application you are
+Other plugins, including Active Record, may add additional middleware. In
+general, these middleware are agnostic to the type of application you are
 building, and make sense in an API-only Rails application.
 
-You can get a list of all middlewares in your application via:
+You can get a list of all middleware in your application via:
 
 ```bash
 $ rails middleware
@@ -329,7 +329,7 @@ will be:
 
 ### Other Middlewares
 
-Rails ships with a number of other middlewares that you might want to use in an
+Rails ships with a number of other middleware that you might want to use in an
 API application, especially if one of your API clients is the browser:
 
 - `Rack::MethodOverride`
@@ -340,13 +340,13 @@ API application, especially if one of your API clients is the browser:
     * `ActionDispatch::Session::CookieStore`
     * `ActionDispatch::Session::MemCacheStore`
 
-Any of these middlewares can be added via:
+Any of these middleware can be added via:
 
 ```ruby
 config.middleware.use Rack::MethodOverride
 ```
 
-### Removing Middlewares
+### Removing Middleware
 
 If you don't want to use a middleware that is included by default in the API-only
 middleware set, you can remove it with:
@@ -355,7 +355,7 @@ middleware set, you can remove it with:
 config.middleware.delete ::Rack::Sendfile
 ```
 
-Keep in mind that removing these middlewares will remove support for certain
+Keep in mind that removing these middleware will remove support for certain
 features in Action Controller.
 
 Choosing Controller Modules
