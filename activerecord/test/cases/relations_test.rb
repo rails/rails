@@ -19,6 +19,7 @@ require 'models/aircraft'
 require "models/possession"
 require "models/reader"
 require "models/categorization"
+require "models/edge"
 
 class RelationTest < ActiveRecord::TestCase
   fixtures :authors, :topics, :entrants, :developers, :companies, :developers_projects, :accounts, :categories, :categorizations, :posts, :comments,
@@ -221,6 +222,39 @@ class RelationTest < ActiveRecord::TestCase
     topics = Topic.order(:id => :asc).reverse_order
     assert_equal 5, topics.to_a.size
     assert_equal topics(:fifth).title, topics.first.title
+  end
+
+  def test_reverse_order_with_function
+    topics = Topic.order("length(title)").reverse_order
+    assert_equal topics(:second).title, topics.first.title
+  end
+
+  def test_reverse_order_with_function_other_predicates
+    topics = Topic.order("author_name, length(title), id").reverse_order
+    assert_equal topics(:second).title, topics.first.title
+    topics = Topic.order("length(author_name), id, length(title)").reverse_order
+    assert_equal topics(:fifth).title, topics.first.title
+  end
+
+  def test_reverse_order_with_multiargument_function
+    assert_raises(ActiveRecord::IrreversibleOrderError) do
+      Topic.order("concat(author_name, title)").reverse_order
+    end
+  end
+
+  def test_reverse_order_with_nulls_first_or_last
+    assert_raises(ActiveRecord::IrreversibleOrderError) do
+      Topic.order("title NULLS FIRST").reverse_order
+    end
+    assert_raises(ActiveRecord::IrreversibleOrderError) do
+      Topic.order("title nulls last").reverse_order
+    end
+  end
+
+  def test_default_reverse_order_on_table_without_primary_key
+    assert_raises(ActiveRecord::IrreversibleOrderError) do
+      Edge.all.reverse_order
+    end
   end
 
   def test_order_with_hash_and_symbol_generates_the_same_sql

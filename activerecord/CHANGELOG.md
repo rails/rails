@@ -1,3 +1,17 @@
+*   `ActiveRecord::Relation#reverse_order` throws `ActiveRecord::IrreversibleOrderError`
+    when the order can not be reversed using current trivial algorithm.
+    Also raises the same error when `#reverse_order` is called on
+    relation without any order and table has no primary key:
+
+        Topic.order("concat(author_name, title)").reverse_order
+          # Before: SELECT `topics`.* FROM `topics` ORDER BY concat(author_name DESC, title) DESC
+          # After: raises ActiveRecord::IrreversibleOrderError
+        Edge.all.reverse_order
+          # Before: SELECT `edges`.* FROM `edges` ORDER BY `edges`.`` DESC
+          # After: raises ActiveRecord::IrreversibleOrderError
+
+    *Bogdan Gusiev*
+
 *   Improve schema_migrations insertion performance by inserting all versions
     in one INSERT SQL.
 
