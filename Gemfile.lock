@@ -1,9 +1,9 @@
 GIT
   remote: git://github.com/QueueClassic/queue_classic.git
-  revision: d144db29f1436e9e8b3c7a1a1ecd4442316a9ecd
+  revision: 2e3b624f3043849751b24a758d8c156337ead862
   branch: master
   specs:
-    queue_classic (3.2.0.alpha)
+    queue_classic (3.2.0.RC1)
       pg (>= 0.17, < 0.19)
 
 GIT
@@ -21,10 +21,10 @@ GIT
 
 GIT
   remote: git://github.com/sass/sass.git
-  revision: bce9509f396225d721501ea1070a6871b708abb1
+  revision: ac8e7aa8e99c425237c708f347f76495a2e18519
   branch: stable
   specs:
-    sass (3.4.20)
+    sass (3.4.21)
 
 PATH
   remote: .
@@ -92,7 +92,7 @@ PATH
 GEM
   remote: https://rubygems.org/
   specs:
-    amq-protocol (2.0.0)
+    amq-protocol (2.0.1)
     arel (7.0.0)
     backburner (1.2.0)
       beaneater (~> 1.0)
@@ -103,12 +103,12 @@ GEM
     beaneater (1.0.0)
     benchmark-ips (2.3.0)
     builder (3.2.2)
-    bunny (2.2.1)
-      amq-protocol (>= 2.0.0)
+    bunny (2.2.2)
+      amq-protocol (>= 2.0.1)
     byebug (8.2.1)
-    coffee-rails (4.1.0)
+    coffee-rails (4.1.1)
       coffee-script (>= 2.2.0)
-      railties (>= 4.0.0, < 5.0)
+      railties (>= 4.0.0, < 5.1.x)
     coffee-script (2.4.1)
       coffee-script-source
       execjs
@@ -122,9 +122,9 @@ GEM
     delayed_job_active_record (4.1.0)
       activerecord (>= 3.0, < 5)
       delayed_job (>= 3.0, < 5)
-    em-hiredis (0.3.0)
+    em-hiredis (0.3.1)
       eventmachine (~> 1.0)
-      hiredis (~> 0.5.0)
+      hiredis (~> 0.6.0)
     erubis (2.7.0)
     eventmachine (1.0.9.1)
     execjs (2.6.0)
@@ -136,9 +136,9 @@ GEM
     ffi (1.9.10-x86-mingw32)
     globalid (0.3.6)
       activesupport (>= 4.1.0)
-    hiredis (0.5.2)
+    hiredis (0.6.1)
     i18n (0.7.0)
-    jquery-rails (4.0.5)
+    jquery-rails (4.1.0)
       rails-dom-testing (~> 1.0)
       railties (>= 4.2.0)
       thor (>= 0.14, < 2.0)
@@ -166,17 +166,17 @@ GEM
     mysql2 (0.4.2)
     mysql2 (0.4.2-x64-mingw32)
     mysql2 (0.4.2-x86-mingw32)
-    nokogiri (1.6.7.1)
+    nokogiri (1.6.7.2)
       mini_portile2 (~> 2.0.0.rc2)
-    nokogiri (1.6.7.1-x64-mingw32)
+    nokogiri (1.6.7.2-x64-mingw32)
       mini_portile2 (~> 2.0.0.rc2)
-    nokogiri (1.6.7.1-x86-mingw32)
+    nokogiri (1.6.7.2-x86-mingw32)
       mini_portile2 (~> 2.0.0.rc2)
     pg (0.18.4)
     pg (0.18.4-x64-mingw32)
     pg (0.18.4-x86-mingw32)
-    psych (2.0.16)
-    puma (2.15.3)
+    psych (2.0.17)
+    puma (2.16.0)
     que (0.11.2)
     racc (1.4.14)
     rack (2.0.0.alpha)
@@ -191,13 +191,13 @@ GEM
       activesupport (>= 4.2.0.beta, < 5.0)
       nokogiri (~> 1.6.0)
       rails-deprecated_sanitizer (>= 1.0.1)
-    rails-html-sanitizer (1.0.2)
+    rails-html-sanitizer (1.0.3)
       loofah (~> 2.0)
-    rake (10.4.2)
-    rb-fsevent (0.9.6)
+    rake (10.5.0)
+    rb-fsevent (0.9.7)
     rb-inotify (0.9.5)
       ffi (>= 0.5.0)
-    rdoc (4.2.0)
+    rdoc (4.2.1)
     redcarpet (3.2.3)
     redis (3.2.2)
     redis-namespace (1.5.2)
@@ -213,17 +213,16 @@ GEM
       redis (~> 3.0)
       resque (~> 1.25)
       rufus-scheduler (~> 3.0)
-    rufus-scheduler (3.1.10)
+    rufus-scheduler (3.2.0)
     sdoc (0.4.1)
       json (~> 1.7, >= 1.7.7)
       rdoc (~> 4.0)
-    sequel (4.29.0)
+    sequel (4.30.0)
     serverengine (1.5.11)
       sigdump (~> 0.2.2)
-    sidekiq (4.0.1)
+    sidekiq (4.0.2)
       concurrent-ruby (~> 1.0)
       connection_pool (~> 2.2, >= 2.2.0)
-      json (~> 1.0)
       redis (~> 3.2, >= 3.2.1)
     sigdump (0.2.3)
     sinatra (1.0)
@@ -243,7 +242,7 @@ GEM
     sqlite3 (1.3.11)
     sqlite3 (1.3.11-x64-mingw32)
     sqlite3 (1.3.11-x86-mingw32)
-    stackprof (0.2.7)
+    stackprof (0.2.8)
     sucker_punch (2.0.0)
       concurrent-ruby (~> 1.0.0)
     thor (0.19.1)
