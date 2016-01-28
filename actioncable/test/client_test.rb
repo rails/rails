@@ -40,11 +40,11 @@ class ClientTest < ActionCable::TestCase
   end
 
   def teardown
-    $VERBOSE = @previous_verbose
-
     if @reactor_running.set?
       EM.stop
     end
+
+    $VERBOSE = @previous_verbose
 
     begin
       ::Object.send(:remove_const, :ApplicationCable)
@@ -209,7 +209,7 @@ class ClientTest < ActionCable::TestCase
 
   def test_interacting_clients
     with_puma_server do |port|
-      clients = 20.times.map { faye_client(port) }
+      clients = 10.times.map { faye_client(port) }
 
       barrier_1 = Concurrent::CyclicBarrier.new(clients.size)
       barrier_2 = Concurrent::CyclicBarrier.new(clients.size)
