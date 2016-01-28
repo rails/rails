@@ -121,26 +121,30 @@ module Mime
 
         # Take care of the broken text/xml entry by renaming or deleting it
         if text_xml_idx && app_xml_idx
-          app_xml(app_xml_idx).q = [text_xml(text_xml_idx).q, app_xml(app_xml_idx).q].max # set the q value to the max of the two
+          app_xml = self[app_xml_idx]
+          text_xml = self[text_xml_idx]
+
+          app_xml.q = [text_xml.q, app_xml.q].max # set the q value to the max of the two
           if app_xml_idx > text_xml_idx  # make sure app_xml is ahead of text_xml in the list
-            exchange_xml_items(text_xml_idx, app_xml_idx)
+            self[app_xml_idx], self[text_xml_idx] = text_xml, app_xml
             app_xml_idx, text_xml_idx = text_xml_idx, app_xml_idx
           end
           delete_at(text_xml_idx)                 # delete text_xml from the list
         elsif text_xml_idx
-          text_xml(text_xml_idx).name = Mime[:xml].to_s
+          self[text_xml_idx].name = Mime[:xml].to_s
         end
 
         # Look for more specific XML-based types and sort them ahead of app/xml
         if app_xml_idx
+          app_xml = self[app_xml_idx]
           idx = app_xml_idx
 
           while idx < length
             type = self[idx]
-            break if type.q < app_xml(app_xml_idx).q
+            break if type.q < app_xml.q
 
             if type.name.ends_with? '+xml'
-              self[app_xml_idx], self[idx] = self[idx], app_xml(app_xml_idx)
+              self[app_xml_idx], self[idx] = self[idx], app_xml
               app_xml_idx = idx
             end
             idx += 1
@@ -150,14 +154,6 @@ module Mime
         map! { |i| Mime::Type.lookup(i.name) }.uniq!
         to_a
       end
-
-      private
-        alias :text_xml :[]
-        alias :app_xml :[]
-
-        def exchange_xml_items(text_xml_idx, app_xml_idx)
-          self[app_xml_idx], self[text_xml_idx] = text_xml(text_xml_idx), app_xml(app_xml_idx)
-        end
     end
 
     class << self
