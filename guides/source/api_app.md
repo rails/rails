@@ -192,7 +192,6 @@ An API application comes with the following middleware by default:
 
 - `Rack::Sendfile`
 - `ActionDispatch::Static`
-- `Rack::Lock`
 - `ActiveSupport::Cache::Strategy::LocalCache::Middleware`
 - `ActionDispatch::RequestId`
 - `Rails::Rack::Logger`
@@ -295,9 +294,6 @@ config.action_dispatch.x_sendfile_header = "X-Accel-Redirect"
 
 Make sure to configure your server to support these options following the
 instructions in the `Rack::Sendfile` documentation.
-
-NOTE: The `Rack::Sendfile` middleware is always outside of the `Rack::Lock`
-mutex, even in single-threaded applications.
 
 ### Using ActionDispatch::Request
 
