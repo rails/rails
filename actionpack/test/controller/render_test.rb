@@ -301,13 +301,14 @@ class ExpiresInRenderTest < ActionController::TestCase
   end
 
   def test_dynamic_render_with_absolute_path
-    file = Tempfile.new
+    file = Tempfile.new('name')
     file.write "secrets!"
     file.flush
     assert_raises ActionView::MissingTemplate do
       response = get :dynamic_render, { id: file.path }
     end
   ensure
+    file.close
     file.unlink
   end
 
