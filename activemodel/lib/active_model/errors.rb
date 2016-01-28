@@ -494,6 +494,11 @@ module ActiveModel
     end
 
     def normalize_detail(attribute, message, options)
+      ActiveSupport::Deprecation.warn(
+        'The attribute argument for ActiveModel::Errors#normalize_detail'\
+        'will be deprecated in Rails 5.1, due to that it is not used within the method.'
+      )
+
       { error: message }.merge(options.except(*CALLBACKS_OPTIONS + MESSAGE_OPTIONS))
     end
   end

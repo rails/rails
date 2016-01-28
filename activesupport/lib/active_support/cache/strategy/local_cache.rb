@@ -45,23 +45,48 @@ module ActiveSupport
           end
 
           def clear(options = nil)
+            ActiveSupport::Deprecation.warn(
+              'The options argument for ActiveSupport::Cache::Strategy::LocalCache::LocalStore#clear'\
+              ' will be deprecated in Rails 5.1, due to that it is not used within the method.'
+            )
+
             @data.clear
           end
 
           def read_entry(key, options)
+            ActiveSupport::Deprecation.warn(
+              'The options argument for ActiveSupport::Cache::Strategy::LocalCache::LocalStore#read_entry'\
+              ' will be deprecated in Rails 5.1, due to that it is not used within the method.'
+            )
+
             @data[key]
           end
 
           def write_entry(key, value, options)
+            ActiveSupport::Deprecation.warn(
+              'The options argument for ActiveSupport::Cache::Strategy::LocalCache::LocalStore#write_entry'\
+              'will be deprecated in Rails 5.1, due to that it is not used within the method.'
+            )
+
             @data[key] = value
             true
           end
 
           def delete_entry(key, options)
+            ActiveSupport::Deprecation.warn(
+              'The options argument for ActiveSupport::Cache::Strategy::LocalCache::LocalStore#delete_entry'\
+              ' will be deprecated in Rails 5.1, due to that it is not used within the method.'
+            )
+
             !!@data.delete(key)
           end
 
           def fetch_entry(key, options = nil) # :nodoc:
+            ActiveSupport::Deprecation.warn(
+              'The options argument for ActiveSupport::Cache::Strategy::LocalCache::LocalStore#fetch_entry'\
+              ' will be deprecated in Rails 5.1, due to that it is not used within the method.'
+            )
+
             @data.fetch(key) { @data[key] = yield }
           end
         end

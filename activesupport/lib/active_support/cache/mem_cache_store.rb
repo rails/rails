@@ -167,6 +167,11 @@ module ActiveSupport
 
         # Delete an entry from the cache.
         def delete_entry(key, options) # :nodoc:
+          ActiveSupport::Deprecation.warn(
+            'The options argument for ActiveSupport::Cache::MemCacheStore#delete_entry'\
+            ' will be deprecated in Rails 5.1, due to that it is not used within the method.'
+          )
+
           rescue_error_with(false) { @data.delete(key) }
         end
 
@@ -176,6 +181,11 @@ module ActiveSupport
         # before applying the regular expression to ensure we are escaping all
         # characters properly.
         def normalize_key(key, options)
+          ActiveSupport::Deprecation.warn(
+            'The options argument for ActiveSupport::Cache::MemCacheStore#normalize_entry'\
+            ' will be deprecated in Rails 5.1, due to that it is not used within the method.'
+          )
+
           key = super.dup
           key = key.force_encoding(Encoding::ASCII_8BIT)
           key = key.gsub(ESCAPE_KEY_CHARS){ |match| "%#{match.getbyte(0).to_s(16).upcase}" }

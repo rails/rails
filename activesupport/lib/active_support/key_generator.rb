@@ -48,6 +48,11 @@ module ActiveSupport
     end
 
     def generate_key(salt)
+      ActiveSupport::Deprecation.warn(
+        'The salt argument for ActiveSupport::LegacyKeyGenerator#generate_key'\
+        ' will be deprecated in Rails 5.1, due to that it is not used within the method.'
+      )
+
       @secret
     end
 

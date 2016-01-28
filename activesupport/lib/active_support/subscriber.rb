@@ -86,6 +86,11 @@ module ActiveSupport
     end
 
     def finish(name, id, payload)
+      ActiveSupport::Deprecation.warn(
+        'The id argument for ActiveSupport::Subscriber#finish'\
+        ' will be deprecated in Rails 5.1, due to that it is not used within the method.'
+      )
+
       finished  = Time.now
       event     = event_stack.pop
       event.end = finished
