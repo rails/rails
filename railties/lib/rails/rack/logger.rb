@@ -30,12 +30,6 @@ module Rails
     protected
 
       def call_app(request, env)
-        # Put some space between requests in development logs.
-        if development?
-          logger.debug ''
-          logger.debug ''
-        end
-
         instrumenter = ActiveSupport::Notifications.instrumenter
         instrumenter.start 'request.action_dispatch', request: request
         logger.info { started_request_message(request) }
