@@ -117,13 +117,14 @@ module Mime
         sort!
 
         text_xml_idx = index('text/xml')
+        app_xml_idx = index(Mime[:xml].to_s)
 
         # Take care of the broken text/xml entry by renaming or deleting it
         if text_xml_idx && app_xml_idx
-          app_xml.q = [text_xml(text_xml_idx).q, app_xml.q].max # set the q value to the max of the two
+          app_xml(app_xml_idx).q = [text_xml(text_xml_idx).q, app_xml(app_xml_idx).q].max # set the q value to the max of the two
           if app_xml_idx > text_xml_idx  # make sure app_xml is ahead of text_xml in the list
-            exchange_xml_items(text_xml_idx)
-            @app_xml_idx, text_xml_idx = text_xml_idx, app_xml_idx
+            exchange_xml_items(text_xml_idx, app_xml_idx)
+            app_xml_idx, text_xml_idx = text_xml_idx, app_xml_idx
           end
           delete_at(text_xml_idx)                 # delete text_xml from the list
         elsif text_xml_idx
@@ -136,11 +137,11 @@ module Mime
 
           while idx < length
             type = self[idx]
-            break if type.q < app_xml.q
+            break if type.q < app_xml(app_xml_idx).q
 
             if type.name.ends_with? '+xml'
-              self[app_xml_idx], self[idx] = self[idx], app_xml
-              @app_xml_idx = idx
+              self[app_xml_idx], self[idx] = self[idx], app_xml(app_xml_idx)
+              app_xml_idx = idx
             end
             idx += 1
           end
@@ -151,18 +152,11 @@ module Mime
       end
 
       private
-        def app_xml_idx
-          @app_xml_idx ||= index(Mime[:xml].to_s)
-        end
-
         alias :text_xml :[]
+        alias :app_xml :[]
 
-        def app_xml
-          self[app_xml_idx]
-        end
-
-        def exchange_xml_items(text_xml_idx)
-          self[app_xml_idx], self[text_xml_idx] = text_xml(text_xml_idx), app_xml
+        def exchange_xml_items(text_xml_idx, app_xml_idx)
+          self[app_xml_idx], self[text_xml_idx] = text_xml(text_xml_idx), app_xml(app_xml_idx)
         end
     end
 
