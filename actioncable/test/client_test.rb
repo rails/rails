@@ -66,8 +66,8 @@ class ClientTest < ActionCable::TestCase
     yield port
 
   ensure
-    server.stop(true)
-    t.join
+    server.stop(true) if server
+    t.join if t
   end
 
   def start_event_machine
@@ -135,7 +135,6 @@ class ClientTest < ActionCable::TestCase
       end
 
       @ws.on(:close) do |event|
-        @ws = nil
         em_controller.stop_event_machine
         @closed.set
       end
