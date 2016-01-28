@@ -30,6 +30,10 @@ module ActiveSupport
 
       def clear(options = nil)
         synchronize do
+          ActiveSupport::Deprecation.warn(
+            'The options argument for ActiveSupport::Cache::MemoryStore#clear'\
+            ' will be deprecated in Rails 5.1, due to that it is not used within the method.'
+          )
           @data.clear
           @key_access.clear
           @cache_size = 0
@@ -113,6 +117,11 @@ module ActiveSupport
         end
 
         def read_entry(key, options) # :nodoc:
+          ActiveSupport::Deprecation.warn(
+            'The options argument for ActiveSupport::Cache::MemoryStore#read_entry'\
+            ' will be deprecated in Rails 5.1, due to that it is not used within the method.'
+          )
+
           entry = @data[key]
           synchronize do
             if entry
@@ -142,6 +151,11 @@ module ActiveSupport
         end
 
         def delete_entry(key, options) # :nodoc:
+          ActiveSupport::Deprecation.warn(
+            'The options argument for ActiveSupport::Cache::MemoryStore#delete_entry'\
+            ' will be deprecated in Rails 5.1, due to that it is not used within the method.'
+          )
+
           synchronize do
             @key_access.delete(key)
             entry = @data.delete(key)

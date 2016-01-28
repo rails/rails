@@ -3,6 +3,8 @@ require 'abstract_unit'
 require 'active_support/cache'
 require 'dependencies_test_helpers'
 
+ActiveSupport::Deprecation.silence do
+
 module ActiveSupport
   module Cache
     module Strategy
@@ -1186,4 +1188,5 @@ class CacheEntryTest < ActiveSupport::TestCase
     assert_equal value, entry.value
     assert_equal value.bytesize, entry.size
   end
+end
 end

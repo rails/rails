@@ -292,6 +292,11 @@ module ActiveSupport #:nodoc:
       private
 
       def load(file, wrap = false)
+        ActiveSupport::Deprecation.warn(
+          'The wrap argument for ActiveSupport::Dependencies::Loadable#load'\
+          ' will be deprecated in Rails 5.1, due to that it is not used within the method.'
+        )
+
         result = false
         load_dependency(file) { result = super }
         result

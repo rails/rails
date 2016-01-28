@@ -28,6 +28,11 @@ module ActiveSupport
       # file store directory except for .keep or .gitkeep. Be careful which directory is specified in your
       # config file when using +FileStore+ because everything in that directory will be deleted.
       def clear(options = nil)
+        ActiveSupport::Deprecation.warn(
+          'The options argument for ActiveSupport::Cache::FileStore#clear'\
+          'will be deprecated in Rails 5.1, due to that it is not used within the method.'
+        )
+
         root_dirs = exclude_from(cache_path, EXCLUDED_DIRS + GITKEEP_FILES)
         FileUtils.rm_r(root_dirs.collect{|f| File.join(cache_path, f)})
       rescue Errno::ENOENT
@@ -69,6 +74,11 @@ module ActiveSupport
       protected
 
         def read_entry(key, options)
+          ActiveSupport::Deprecation.warn(
+            'The options argument for ActiveSupport::Cache::FileStore#read_entry'\
+            ' will be deprecated in Rails 5.1, due to that it is not used within the method.'
+          )
+
           if File.exist?(key)
             File.open(key) { |f| Marshal.load(f) }
           end
@@ -85,6 +95,11 @@ module ActiveSupport
         end
 
         def delete_entry(key, options)
+          ActiveSupport::Deprecation.warn(
+            'The options argument for ActiveSupport::Cache::FileStore#delete_entry'\
+            ' will be deprecated in Rails 5.1, due to that it is not used within the method.'
+          )
+
           if File.exist?(key)
             begin
               File.delete(key)
@@ -117,6 +132,11 @@ module ActiveSupport
 
         # Translate a key into a file path.
         def normalize_key(key, options)
+          ActiveSupport::Deprecation.warn(
+            'The options argument for ActiveSupport::Cache::FileStore#normalize_key'\
+            ' will be deprecated in Rails 5.1, due to that it is not used within the method.'
+          )
+
           key = super
           fname = URI.encode_www_form_component(key)
 

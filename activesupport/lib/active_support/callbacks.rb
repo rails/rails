@@ -113,7 +113,8 @@ module ActiveSupport
         def initialize(&block)
           @block = block
         end
-        def call(target, value); @block.call(value); end
+        ##FIXME: rm target arg?
+        def call(_target, value); @block.call(value); end
       end
     end
 

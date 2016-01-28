@@ -24,6 +24,7 @@ class MyLogSubscriber < ActiveSupport::LogSubscriber
   end
 end
 
+ActiveSupport::Deprecation.silence do
 class SyncLogSubscriberTest < ActiveSupport::TestCase
   include ActiveSupport::LogSubscriber::TestHelper
 
@@ -121,4 +122,5 @@ class SyncLogSubscriberTest < ActiveSupport::TestCase
     assert_equal 1, @logger.logged(:error).size
     assert_match 'Could not log "puke.my_log_subscriber" event. RuntimeError: puke', @logger.logged(:error).last
   end
+end
 end
