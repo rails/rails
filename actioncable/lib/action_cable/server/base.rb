@@ -32,6 +32,10 @@ module ActionCable
         @remote_connections ||= RemoteConnections.new(self)
       end
 
+      def stream_event_loop
+        @stream_event_loop ||= ActionCable::Connection::StreamEventLoop.new
+      end
+
       # The thread worker pool for handling all the connection work on this server. Default size is set by config.worker_pool_size.
       def worker_pool
         @worker_pool ||= ActionCable::Server::Worker.new(max_size: config.worker_pool_size)
