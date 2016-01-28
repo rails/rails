@@ -74,10 +74,12 @@ module TestHelpers
     end
 
     def assert_welcome(resp)
+      resp = Array(resp)
+
       assert_equal 200, resp[0]
       assert_match 'text/html', resp[1]["Content-Type"]
       assert_match 'charset=utf-8', resp[1]["Content-Type"]
-      assert extract_body(resp).match(/Welcome aboard/)
+      assert extract_body(resp).match(/Yay! You.*re on Rails!/)
     end
 
     def assert_success(resp)
