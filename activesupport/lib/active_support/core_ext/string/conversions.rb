@@ -18,7 +18,8 @@ class String
   #   "12/13/2012".to_time               # => ArgumentError: argument out of range
   def to_time(form = :local)
     parts = Date._parse(self, false)
-    return if parts.empty?
+    used_keys = %i(year mon mday hour min sec sec_fraction offset)
+    return if (parts.keys & used_keys).empty?
 
     now = Time.now
     time = Time.new(
