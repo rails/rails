@@ -166,7 +166,8 @@ module ActionView
       # You can only declare one collection in a partial template file.
       def cache(name = {}, options = {}, &block)
         if controller.respond_to?(:perform_caching) && controller.perform_caching
-          safe_concat(fragment_for(cache_fragment_name(name, options), options, &block))
+          name_options = options.slice(:skip_digest, :virtual_path)
+          safe_concat(fragment_for(cache_fragment_name(name, name_options), options, &block))
         else
           yield
         end
@@ -208,7 +209,7 @@ module ActionView
       #
       # The digest will be generated using +virtual_path:+ if it is provided.
       #
-      def cache_fragment_name(name = {}, skip_digest: nil, virtual_path: nil, **_options)
+      def cache_fragment_name(name = {}, skip_digest: nil, virtual_path: nil)
         if skip_digest
           name
         else
