@@ -44,11 +44,11 @@ using Rails is: "isn't using Rails to spit out some JSON overkill? Shouldn't I
 just use something like Sinatra?".
 
 For very simple APIs, this may be true. However, even in very HTML-heavy
-applications, most of an application's logic is actually outside of the view
+applications, most of an application's logic lives outside of the view
 layer.
 
 The reason most people use Rails is that it provides a set of defaults that
-allows us to get up and running quickly without having to make a lot of trivial
+allows developers to get up and running quickly, without having to make a lot of trivial
 decisions.
 
 Let's take a look at some of the things that Rails provides out of the box that are
@@ -97,7 +97,7 @@ Handled at the Action Pack layer:
   means not having to spend time thinking about how to model your API in terms
   of HTTP.
 - URL Generation: The flip side of routing is URL generation. A good API based
-  on HTTP includes URLs (see [the GitHub gist API](http://developer.github.com/v3/gists/)
+  on HTTP includes URLs (see [the GitHub Gist API](http://developer.github.com/v3/gists/)
   for an example).
 - Header and Redirection Responses: `head :no_content` and
   `redirect_to user_url(current_user)` come in handy. Sure, you could manually
@@ -126,7 +126,7 @@ when configuring Active Record.
 
 **The short version is**: you may not have thought about which parts of Rails
 are still applicable even if you remove the view layer, but the answer turns out
-to be "most of it".
+to be most of it.
 
 The Basic Configuration
 -----------------------
@@ -192,10 +192,11 @@ An API application comes with the following middleware by default:
 
 - `Rack::Sendfile`
 - `ActionDispatch::Static`
+- `ActionDispatch::LoadInterlock`
 - `ActiveSupport::Cache::Strategy::LocalCache::Middleware`
+- `Rack::Runtime`
 - `ActionDispatch::RequestId`
 - `Rails::Rack::Logger`
-- `Rack::Runtime`
 - `ActionDispatch::ShowExceptions`
 - `ActionDispatch::DebugExceptions`
 - `ActionDispatch::RemoteIp`
@@ -323,7 +324,7 @@ will be:
 { :person => { :firstName => "Yehuda", :lastName => "Katz" } }
 ```
 
-### Other Middlewares
+### Other Middleware
 
 Rails ships with a number of other middleware that you might want to use in an
 API application, especially if one of your API clients is the browser:
@@ -360,22 +361,24 @@ Choosing Controller Modules
 An API application (using `ActionController::API`) comes with the following
 controller modules by default:
 
-- `ActionController::UrlFor`: Makes `url_for` and friends available.
+- `ActionController::UrlFor`: Makes `url_for` and similar helpers available.
 - `ActionController::Redirecting`: Support for `redirect_to`.
-- `ActionController::Rendering`: Basic support for rendering.
+- `AbstractController::Rendering` and `ActionController::ApiRendering`: Basic support for rendering.
 - `ActionController::Renderers::All`: Support for `render :json` and friends.
 - `ActionController::ConditionalGet`: Support for `stale?`.
-- `ActionController::ForceSSL`: Support for `force_ssl`.
-- `ActionController::DataStreaming`: Support for `send_file` and `send_data`.
-- `AbstractController::Callbacks`: Support for `before_action` and friends.
-- `ActionController::Instrumentation`: Support for the instrumentation
-  hooks defined by Action Controller (see [the instrumentation
-  guide](active_support_instrumentation.html#action-controller)).
-- `ActionController::Rescue`: Support for `rescue_from`.
 - `ActionController::BasicImplicitRender`: Makes sure to return an empty response
   if there's not an explicit one.
 - `ActionController::StrongParameters`: Support for parameters white-listing in
   combination with Active Model mass assignment.
+- `ActionController::ForceSSL`: Support for `force_ssl`.
+- `ActionController::DataStreaming`: Support for `send_file` and `send_data`.
+- `AbstractController::Callbacks`: Support for `before_action` and
+  similar helpers.
+- `ActionController::Rescue`: Support for `rescue_from`.
+- `ActionController::Instrumentation`: Support for the instrumentation
+  hooks defined by Action Controller (see [the instrumentation
+  guide](active_support_instrumentation.html#action-controller) for
+more information regarding this).
 - `ActionController::ParamsWrapper`: Wraps the parameters hash into a nested hash
   so you don't have to specify root elements sending POST requests for instance.
 
@@ -404,5 +407,5 @@ Some common modules you might want to add:
 - `ActionController::Cookies`: Support for `cookies`, which includes
   support for signed and encrypted cookies. This requires the cookies middleware.
 
-The best place to add a module is in your `ApplicationController` but you can
+The best place to add a module is in your `ApplicationController`, but you can
 also add modules to individual controllers.
