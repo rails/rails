@@ -1,3 +1,18 @@
+*   Change number_to_currency behavior for checking negativity.
+
+    Used `to_f.negative` instead of using `to_f.phase` for checking negativity
+    of a number in number_to_currency helper.
+    This change works same for all cases except when number is "-0.0".
+
+        -0.0.to_f.negative? => false
+        -0.0.to_f.phase? => 3.14
+
+    This change reverts changes from https://github.com/rails/rails/pull/6512.
+    But it should be acceptable as we could not find any currency which
+    supports negative zeros.
+
+    *Prathamesh Sonpatki*, *Rafael Mendonça França*
+
 *   Match `HashWithIndifferentAccess#default`'s behaviour with `Hash#default`.
 
     *David Cornu*
