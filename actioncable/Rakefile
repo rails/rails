@@ -1,7 +1,16 @@
 require 'rake/testtask'
 require 'pathname'
+require 'coffee-script'
 
-ASSETS_ROOT = "#{Pathname.pwd}/lib/assets/javascripts"
+ASSETS_ROOT = "#{Pathname.pwd}/lib/rails_assets/javascripts"
+ASSETS = [
+  'connection',
+  'connection_monitor',
+  'consumer',
+  'subscription',
+  'subscriptions'
+]
+
 dir = File.dirname(__FILE__)
 
 task :default => :test
@@ -15,33 +24,17 @@ Rake::TestTask.new do |t|
 end
 
 namespace :assets do
-  task :precompile do
-    ## Check for coffee executable
-    require 'mkmf'
-    unless find_executable('coffee')
-      raise "In order to compile Action Cable's assets, you must have the "\
-        " coffee-script npm package installed."
-    end
-
+  task :compile do
     Dir.chdir(ASSETS_ROOT) do
       puts 'Compiling Action Cable front-end Coffee Script to JS...'
-      `coffee --output action_cable_js --compile action_cable`
 
-      ## Add requires for consumer.js
-      f = File.open("#{ASSETS_ROOT}/action_cable_js/consumer.js", "r+")
-      lines = f.readlines
-      f.close
-
-      lines = [
-        "//= require action_cable/connection\n",
-        "//= require action_cable/connection_monitor\n",
-        "//= require action_cable/subscriptions\n",
-        "//= require action_cable/subscription\n"
-      ] + lines
-
-      output = File.new("#{ASSETS_ROOT}/action_cable_js/consumer.js", "w")
-      lines.each { |line| output.write line }
-      output.close
+      ASSETS.each do |file|
+        compiled_data = CoffeeScript.compile File.read("#{ASSETS_ROOT}/action_cable/#{file}.coffee")
+        compiled_path = "#{ASSETS_ROOT}/action_cable_js/#{file}.js"
+        f = File.new(compiled_path, "w+")
+        f.write(compiled_data)
+        f.close
+      end
 
       ## Output results
       puts 'All done!'

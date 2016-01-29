@@ -36,10 +36,10 @@ module ActionCable
     end
 
     initializer "action_cable.assets" do
-      if Gem.loaded_specs.has_key?('coffee-rails')
-        #app.config.assets.precompile += %w(action_cable.coffee)
+      if defined?(::Coffee::Rails)
+        app.config.assets.paths << Rails.root.join("lib", "rails_assets", "javascripts", "action_cable")
       else
-        #app.config.assets.precompile += %w(action_cable.js)
+        app.config.assets.paths << Rails.root.join("lib", "rails_assets", "javascripts", "action_cable_js")
       end
     end
   end
