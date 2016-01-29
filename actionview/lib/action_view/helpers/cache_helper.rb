@@ -208,7 +208,7 @@ module ActionView
       #
       # The digest will be generated using +virtual_path:+ if it is provided.
       #
-      def cache_fragment_name(name = {}, skip_digest: nil, virtual_path: nil)
+      def cache_fragment_name(name = {}, skip_digest: nil, virtual_path: nil, **_options)
         if skip_digest
           name
         else
