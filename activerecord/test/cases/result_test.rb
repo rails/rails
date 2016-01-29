@@ -14,12 +14,12 @@ module ActiveRecord
       assert_equal 3, result.length
     end
 
-    test "to_hash returns row_hashes" do
+    test "to_a returns row_hashes" do
       assert_equal [
         {'col_1' => 'row 1 col 1', 'col_2' => 'row 1 col 2'},
         {'col_1' => 'row 2 col 1', 'col_2' => 'row 2 col 2'},
         {'col_1' => 'row 3 col 1', 'col_2' => 'row 3 col 2'},
-      ], result.to_hash
+      ], result.to_a
     end
 
     test "each with block returns row hashes" do

@@ -19,7 +19,7 @@ module ActiveRecord
   #        ]
   #
   #   # Get an array of hashes representing the result (column => value):
-  #   result.to_hash
+  #   result.to_a
   #   # => [{"id" => 1, "title" => "title_1", "body" => "body_1"},
   #         {"id" => 2, "title" => "title_2", "body" => "body_2"},
   #         ...
@@ -55,7 +55,7 @@ module ActiveRecord
       end
     end
 
-    def to_hash
+    def to_a
       hash_rows
     end
 
