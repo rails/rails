@@ -132,9 +132,6 @@ module ActiveRecord #:nodoc:
   #     end
   #   end
   #
-  # You can alternatively use <tt>self[:attribute]=(value)</tt> and <tt>self[:attribute]</tt>
-  # or <tt>write_attribute(:attribute, value)</tt> and <tt>read_attribute(:attribute)</tt>.
-  #
   # == Attribute query methods
   #
   # In addition to the basic accessors, query methods are also automatically available on the Active Record object.
