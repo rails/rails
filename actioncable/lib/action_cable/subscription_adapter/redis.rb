@@ -1,11 +1,23 @@
+require 'thread'
+
 gem 'em-hiredis', '~> 0.3.0'
 gem 'redis', '~> 3.0'
 require 'em-hiredis'
 require 'redis'
 
+EventMachine.epoll  if EventMachine.epoll?
+EventMachine.kqueue if EventMachine.kqueue?
+
 module ActionCable
   module SubscriptionAdapter
     class Redis < Base # :nodoc:
+      @@mutex = Mutex.new
+
+      def initialize(*)
+        super
+        @redis_connection_for_broadcasts = @redis_connection_for_subscriptions = nil
+      end
+
       def broadcast(channel, payload)
         redis_connection_for_broadcasts.publish(channel, payload)
       end
@@ -27,15 +39,28 @@ module ActionCable
 
       private
         def redis_connection_for_subscriptions
-          @redis_connection_for_subscriptions ||= EM::Hiredis.connect(@server.config.cable[:url]).tap do |redis|
-            redis.on(:reconnect_failed) do
-              @logger.info "[ActionCable] Redis reconnect failed."
+          ensure_reactor_running
+          @redis_connection_for_subscriptions || @server.mutex.synchronize do
+            @redis_connection_for_subscriptions ||= EM::Hiredis.connect(@server.config.cable[:url]).tap do |redis|
+              redis.on(:reconnect_failed) do
+                @logger.info "[ActionCable] Redis reconnect failed."
+              end
             end
           end
         end
 
         def redis_connection_for_broadcasts
-          @redis_connection_for_broadcasts ||= ::Redis.new(@server.config.cable)
+          @redis_connection_for_broadcasts || @server.mutex.synchronize do
+            @redis_connection_for_broadcasts ||= ::Redis.new(@server.config.cable)
+          end
+        end
+
+        def ensure_reactor_running
+          return if EventMachine.reactor_running?
+          @@mutex.synchronize do
+            Thread.new { EventMachine.run } unless EventMachine.reactor_running?
+            Thread.pass until EventMachine.reactor_running?
+          end
         end
     end
   end

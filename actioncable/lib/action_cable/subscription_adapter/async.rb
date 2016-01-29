@@ -4,17 +4,17 @@ module ActionCable
   module SubscriptionAdapter
     class Async < Inline # :nodoc:
       private
-        def subscriber_map
-          @subscriber_map ||= AsyncSubscriberMap.new
+        def new_subscriber_map
+          AsyncSubscriberMap.new
         end
 
         class AsyncSubscriberMap < SubscriberMap
           def add_subscriber(*)
-            ::EM.next_tick { super }
+            Concurrent.global_io_executor.post { super }
           end
 
           def invoke_callback(*)
-            ::EM.next_tick { super }
+            Concurrent.global_io_executor.post { super }
           end
         end
     end

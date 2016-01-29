@@ -66,6 +66,8 @@ group :cable do
 
   gem 'em-hiredis', require: false
   gem 'redis', require: false
+
+  gem 'faye-websocket', require: false
 end
 
 # Add your own local bundler stuff.

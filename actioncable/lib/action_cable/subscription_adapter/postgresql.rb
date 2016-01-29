@@ -5,6 +5,11 @@ require 'thread'
 module ActionCable
   module SubscriptionAdapter
     class PostgreSQL < Base # :nodoc:
+      def initialize(*)
+        super
+        @listener = nil
+      end
+
       def broadcast(channel, payload)
         with_connection do |pg_conn|
           pg_conn.exec("NOTIFY #{pg_conn.escape_identifier(channel)}, '#{pg_conn.escape_string(payload)}'")
@@ -37,7 +42,7 @@ module ActionCable
 
       private
         def listener
-          @listener ||= Listener.new(self)
+          @listener || @server.mutex.synchronize { @listener ||= Listener.new(self) }
         end
 
         class Listener < SubscriberMap
@@ -63,7 +68,7 @@ module ActionCable
                     case action
                     when :listen
                       pg_conn.exec("LISTEN #{pg_conn.escape_identifier channel}")
-                      ::EM.next_tick(&callback) if callback
+                      Concurrent.global_io_executor << callback if callback
                     when :unlisten
                       pg_conn.exec("UNLISTEN #{pg_conn.escape_identifier channel}")
                     when :shutdown
@@ -93,7 +98,7 @@ module ActionCable
           end
 
           def invoke_callback(*)
-            ::EM.next_tick { super }
+            Concurrent.global_io_executor.post { super }
           end
         end
     end

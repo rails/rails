@@ -32,10 +32,10 @@ class ActionCable::Connection::MultipleIdentifiersTest < ActionCable::TestCase
       @connection = Connection.new(server, env)
 
       @connection.process
-      @connection.send :on_open
+      @connection.send :handle_open
     end
 
     def close_connection
-      @connection.send :on_close
+      @connection.send :handle_close
     end
 end

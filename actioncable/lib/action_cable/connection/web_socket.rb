@@ -1,13 +1,11 @@
-require 'faye/websocket'
+require 'websocket/driver'
 
 module ActionCable
   module Connection
-    # Decorate the Faye::WebSocket with helpers we need.
+    # Wrap the real socket to minimize the externally-presented API
     class WebSocket
-      delegate :rack_response, :close, :on, to: :websocket
-
-      def initialize(env)
-        @websocket = Faye::WebSocket.websocket?(env) ? Faye::WebSocket.new(env) : nil
+      def initialize(env, event_target, stream_event_loop)
+        @websocket = ::WebSocket::Driver.websocket?(env) ? ClientSocket.new(env, event_target, stream_event_loop) : nil
       end
 
       def possible?
@@ -15,11 +13,19 @@ module ActionCable
       end
 
       def alive?
-        websocket && websocket.ready_state == Faye::WebSocket::API::OPEN
+        websocket && websocket.alive?
       end
 
       def transmit(data)
-        websocket.send data
+        websocket.transmit data
+      end
+
+      def close
+        websocket.close
+      end
+
+      def rack_response
+        websocket.rack_response
       end
 
       protected
