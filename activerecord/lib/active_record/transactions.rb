@@ -459,11 +459,11 @@ module ActiveRecord
       actions.any? do |action|
         case action
         when :create
-          transaction_record_state(:new_record)
+          new_record?
         when :destroy
           destroyed?
         when :update
-          !(transaction_record_state(:new_record) || destroyed?)
+          !(new_record? || destroyed?)
         end
       end
     end
