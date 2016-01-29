@@ -959,6 +959,10 @@ class RelationTest < ActiveRecord::TestCase
   def test_exists
     davids = Author.where(:name => 'David')
     assert davids.exists?
+
+    davids.load
+    assert davids.exists?
+
     assert davids.exists?(authors(:david).id)
     assert ! davids.exists?(authors(:mary).id)
     assert ! davids.exists?("42")
@@ -968,6 +972,9 @@ class RelationTest < ActiveRecord::TestCase
     fake  = Author.where(:name => 'fake author')
     assert ! fake.exists?
     assert ! fake.exists?(authors(:david).id)
+
+    fake.load
+    assert ! fake.exists?
   end
 
   def test_exists_uses_existing_scope

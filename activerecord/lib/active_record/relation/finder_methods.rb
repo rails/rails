@@ -270,6 +270,8 @@ module ActiveRecord
     #   Person.exists?(false)
     #   Person.exists?
     def exists?(conditions = :none)
+      return any? if (conditions == :none) && loaded?
+
       if Base === conditions
         conditions = conditions.id
         ActiveSupport::Deprecation.warn(<<-MSG.squish)
