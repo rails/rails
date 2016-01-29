@@ -34,5 +34,13 @@ module ActionCable
         options.each { |k,v| send("#{k}=", v) }
       end
     end
+
+    initializer "action_cable.assets" do
+      if Gem.loaded_specs.has_key?('coffee-rails')
+        #app.config.assets.precompile += %w(action_cable.coffee)
+      else
+        #app.config.assets.precompile += %w(action_cable.js)
+      end
+    end
   end
 end
