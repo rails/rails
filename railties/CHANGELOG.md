@@ -1,3 +1,8 @@
+*   Add `after_bundle` callbacks in Rails plugin templates.  Useful for allowing
+    templates to perform actions that are dependent upon `bundle install`.
+
+    *Ryan Manuel*
+
 *   Bring back `TEST=` env for `rake test` task.
 
     *Yves Senn*
@@ -447,12 +452,5 @@
 *   Autoload any second level directories called `app/*/concerns`.
 
     *Alex Robbin*
-
-*   Add `after_bundle` callbacks in Rails plugin templates.  Useful for allowing
-    templates to perform actions that are dependent upon `bundle install`.
-
-    Fixes #<23315>
-
-    *Ryan Manuel*
 
 Please check [4-2-stable](https://github.com/rails/rails/blob/4-2-stable/railties/CHANGELOG.md) for previous changes.
