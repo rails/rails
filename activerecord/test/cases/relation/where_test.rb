@@ -2,6 +2,7 @@ require "cases/helper"
 require "models/author"
 require "models/binary"
 require "models/cake_designer"
+require "models/category"
 require "models/chef"
 require "models/comment"
 require "models/edge"
@@ -14,7 +15,7 @@ require "models/vertex"
 
 module ActiveRecord
   class WhereTest < ActiveRecord::TestCase
-    fixtures :posts, :edges, :authors, :binaries, :essays
+    fixtures :posts, :edges, :authors, :categories, :binaries, :essays
 
     def test_where_copies_bind_params
       author = authors(:david)
@@ -207,20 +208,55 @@ module ActiveRecord
     end
 
     def test_where_on_association_with_custom_primary_key
+      category = categories(:general)
+      essay = Essay.where(category: category).first
+
+      assert_equal essays(:david_modest_proposal), essay
+    end
+
+    def test_where_on_association_with_custom_primary_key_with_relation
+      category = categories(:general)
+      essay = Essay.where(category: Category.where(id: category.id)).first
+
+      assert_equal essays(:david_modest_proposal), essay
+    end
+
+    def test_where_on_association_with_relation_performs_subselect_not_two_queries
+      category = categories(:general)
+
+      assert_queries(1) do
+        Essay.where(category: Category.where(id: category.id)).to_a
+      end
+    end
+
+    def test_where_on_association_with_custom_primary_key_with_array_of_base
+      category = categories(:general)
+      essay = Essay.where(category: [category]).first
+
+      assert_equal essays(:david_modest_proposal), essay
+    end
+
+    def test_where_on_association_with_custom_primary_key_with_array_of_ids
+      essay = Essay.where(category: ["General"]).first
+
+      assert_equal essays(:david_modest_proposal), essay
+    end
+
+    def test_where_on_polymorphic_association_with_custom_primary_key
       author = authors(:david)
       essay = Essay.where(writer: author).first
 
       assert_equal essays(:david_modest_proposal), essay
     end
 
-    def test_where_on_association_with_custom_primary_key_with_relation
+    def test_where_on_polymorphic_association_with_custom_primary_key_with_relation
       author = authors(:david)
       essay = Essay.where(writer: Author.where(id: author.id)).first
 
       assert_equal essays(:david_modest_proposal), essay
     end
 
-    def test_where_on_association_with_relation_performs_subselect_not_two_queries
+    def test_where_on_polymorphic_association_with_relation_performs_subselect_not_two_queries
       author = authors(:david)
 
       assert_queries(1) do
@@ -228,14 +264,14 @@ module ActiveRecord
       end
     end
 
-    def test_where_on_association_with_custom_primary_key_with_array_of_base
+    def test_where_on_polymorphic_association_with_custom_primary_key_with_array_of_base
       author = authors(:david)
       essay = Essay.where(writer: [author]).first
 
       assert_equal essays(:david_modest_proposal), essay
     end
 
-    def test_where_on_association_with_custom_primary_key_with_array_of_ids
+    def test_where_on_polymorphic_association_with_custom_primary_key_with_array_of_ids
       essay = Essay.where(writer: ["David"]).first
 
       assert_equal essays(:david_modest_proposal), essay

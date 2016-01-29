@@ -1,3 +1,9 @@
+*   Fixes custom primary keys for associations when calling `Relation#where`
+
+    Fixes #23327.
+
+    *Rick Song*
+
 *   No longer pass deprecated option `-i` to `pg_dump`.
 
     *Paul Sadauskas*
