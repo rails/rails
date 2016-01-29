@@ -31,19 +31,13 @@ class ClientTest < ActionCable::TestCase
     server.config.disable_request_forgery_protection = true
     server.config.channel_load_paths = [File.expand_path('client', __dir__)]
 
-    @reactor_mutex = Mutex.new
-    @reactor_users = 0
-    @reactor_running = Concurrent::Event.new
+    Thread.new { EventMachine.run } unless EventMachine.reactor_running?
 
     # faye-websocket is warning-rich
     @previous_verbose, $VERBOSE = $VERBOSE, nil
   end
 
   def teardown
-    if @reactor_running.set?
-      EM.stop
-    end
-
     $VERBOSE = @previous_verbose
 
     begin
@@ -70,38 +64,10 @@ class ClientTest < ActionCable::TestCase
     t.join if t
   end
 
-  def start_event_machine
-    @reactor_mutex.synchronize do
-      unless @reactor_running.set?
-        @reactor ||= Thread.new do
-          EM.next_tick do
-            @reactor_running.set
-          end
-          EM.run
-        end
-        @reactor_running.wait(WAIT_WHEN_EXPECTING_EVENT)
-      end
-      @reactor_users += 1
-    end
-  end
-
-  def stop_event_machine
-    @reactor_mutex.synchronize do
-      @reactor_users -= 1
-      if @reactor_users < 1
-        @reactor_running.reset
-        EM.stop
-        @reactor = nil
-      end
-    end
-  end
-
   class SyncClient
     attr_reader :pings
 
-    def initialize(em_controller, port)
-      em_controller.start_event_machine
-
+    def initialize(port)
       @ws = Faye::WebSocket::Client.new("ws://127.0.0.1:#{port}/")
       @messages = Queue.new
       @closed = Concurrent::Event.new
@@ -135,7 +101,6 @@ class ClientTest < ActionCable::TestCase
       end
 
       @ws.on(:close) do |event|
-        em_controller.stop_event_machine
         @closed.set
       end
 
@@ -192,7 +157,7 @@ class ClientTest < ActionCable::TestCase
   end
 
   def faye_client(port)
-    SyncClient.new(self, port)
+    SyncClient.new(port)
   end
 
   def test_single_client
