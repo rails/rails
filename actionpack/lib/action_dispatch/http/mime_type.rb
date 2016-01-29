@@ -1,3 +1,5 @@
+# -*- frozen-string-literal: true -*-
+
 require 'singleton'
 require 'active_support/core_ext/module/attribute_accessors'
 require 'active_support/core_ext/string/starts_ends_with'
@@ -157,7 +159,7 @@ module Mime
     end
 
     class << self
-      TRAILING_STAR_REGEXP = /(text|application)\/\*/
+      TRAILING_STAR_REGEXP = /^(text|application)\/\*/
       PARAMETER_SEPARATOR_REGEXP = /;\s*\w+="?\w+"?/
 
       def register_callback(&block)
@@ -200,15 +202,16 @@ module Mime
           list, index = [], 0
           accept_header.split(',').each do |header|
             params, q = header.split(PARAMETER_SEPARATOR_REGEXP)
-            if params.present?
-              params.strip!
 
-              params = parse_trailing_star(params) || [params]
+            next unless params
+            params.strip!
+            next if params.empty?
 
-              params.each do |m|
-                list << AcceptItem.new(index, m.to_s, q)
-                index += 1
-              end
+            params = parse_trailing_star(params) || [params]
+
+            params.each do |m|
+              list << AcceptItem.new(index, m.to_s, q)
+              index += 1
             end
           end
           AcceptList.sort! list
