@@ -214,14 +214,14 @@ class ClientTest < ActionCable::TestCase
       c.send_message command: 'subscribe', identifier: JSON.dump(channel: 'EchoChannel')
       assert_equal({"identifier"=>"{\"channel\":\"EchoChannel\"}", "type"=>"confirm_subscription"}, c.read_message)
       c.send_message command: 'message', identifier: JSON.dump(channel: 'EchoChannel'), data: JSON.dump(action: 'delay', message: 'hello')
-      c.close! # disappear before write
+      c.close # disappear before write
 
       c = faye_client(port)
       c.send_message command: 'subscribe', identifier: JSON.dump(channel: 'EchoChannel')
       assert_equal({"identifier"=>"{\"channel\":\"EchoChannel\"}", "type"=>"confirm_subscription"}, c.read_message)
       c.send_message command: 'message', identifier: JSON.dump(channel: 'EchoChannel'), data: JSON.dump(action: 'ding', message: 'hello')
       assert_equal({"identifier"=>'{"channel":"EchoChannel"}', "message"=>{"dong"=>"hello"}}, c.read_message)
-      c.close! # disappear before read
+      c.close # disappear before read
     end
   end
 end
