@@ -576,7 +576,7 @@ module ActiveRecord
               column
             end
           else
-            basic_structure.to_hash
+            basic_structure.to_a
           end
         end
 

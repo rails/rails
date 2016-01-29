@@ -1,3 +1,7 @@
+*   Deprecate `ActiveRecord::Result#to_hash` in favor of `ActiveRecord::Result#to_a`.
+
+    *Gannon McGibbon*, *Kevin Cheng*
+
 *   SQLite3 adapter supports expression indexes.
 
     ```
