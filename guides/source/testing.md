@@ -1264,7 +1264,7 @@ end
 Testing Time-Dependent Code
 ---------------------------
 
-Rails provides inbuilt helper methods that enable you to assert that your time-sensitive code works as expected.
+Rails provides built-in helper methods that enable you to assert that your time-sensitive code works as expected.
 
 Here is an example using the [`travel_to`](http://api.rubyonrails.org/classes/ActiveSupport/Testing/TimeHelpers.html#method-i-travel_to) helper:
 
