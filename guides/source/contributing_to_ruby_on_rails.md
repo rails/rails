@@ -159,7 +159,7 @@ If you want to translate the Rails guides in your own language, follows these st
 * Copy the contents of *guides/source* into your own language directory and translate them.
 * Do NOT translate the HTML files, as they are automatically generated.
 
-To generate the guides in HTML format cd into the *guides* direcotry then run (eg. for it-IT):
+To generate the guides in HTML format cd into the *guides* directory then run (eg. for it-IT):
 
 ```bash
 $ bundle install
