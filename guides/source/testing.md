@@ -638,9 +638,9 @@ We were able to successfully test a very small workflow for visiting our blog an
 Functional Tests for Your Controllers
 -------------------------------------
 
-In Rails, testing the various actions of a controller is a form of writing functional tests. Remember your controllers handle the incoming web requests to your application and eventually respond with a rendered view. When writing functional tests, you're testing how your actions handle the requests and the expected result, or response in some cases an HTML view.
+In Rails, testing the various actions of a controller is a form of writing functional tests. Remember your controllers handle the incoming web requests to your application and eventually respond with a rendered view. When writing functional tests, you are testing how your actions handle the requests and the expected result or response, in some cases an HTML view.
 
-### What to Include in your Functional Tests
+### What to include in your Functional Tests
 
 You should test for things such as:
 
@@ -650,8 +650,7 @@ You should test for things such as:
 * was the correct object stored in the response template?
 * was the appropriate message displayed to the user in the view?
 
-The easiest way to see functional tests in action is to generate a controller
-scaffold:
+The easiest way to see functional tests in action is to generate a controller using the scaffold generator:
 
 ```bash
 $ bin/rails generate scaffold_controller article title:string body:text
@@ -664,7 +663,7 @@ create    test/controllers/articles_controller_test.rb
 ```
 
 This will generate the controller code and tests for an `Article` resource.
-You can take look at the file `articles_controller_test.rb` in the `test/controllers` directory.
+You can take a look at the file `articles_controller_test.rb` in the `test/controllers` directory.
 
 If you already have a controller and just want to generate the test scaffold code for
 each of the seven default actions, you can use the following command:
@@ -677,7 +676,7 @@ create test/controllers/articles_controller_test.rb
 ...
 ```
 
-Let me take you through one such test, `test_should_get_index` from the file `articles_controller_test.rb`.
+Let's take a look at one such test, `test_should_get_index` from the file `articles_controller_test.rb`.
 
 ```ruby
 # articles_controller_test.rb
@@ -693,7 +692,7 @@ end
 In the `test_should_get_index` test, Rails simulates a request on the action called `index`, making sure the request was successful
 and also ensuring that the right response body has been generated.
 
-The `get` method kicks off the web request and populates the results into the response. It accepts 4 arguments:
+The `get` method kicks off the web request and populates the results into the `@response`. It accepts 4 arguments:
 
 * The action of the controller you are requesting.
   This can be in the form of a string or a route (i.e. `articles_url`).
@@ -705,7 +704,7 @@ The `get` method kicks off the web request and populates the results into the re
 
 * `flash`: option with a hash of flash values.
 
-All the keyword arguments are optional.
+All of these keyword arguments are optional.
 
 Example: Calling the `:show` action, passing an `id` of 12 as the `params` and setting a `user_id` of 5 in the session:
 
@@ -753,7 +752,7 @@ NOTE: Functional tests do not verify whether the specified request type is accep
 ### Testing XHR (AJAX) requests
 
 To test AJAX requests, you can specify the `xhr: true` option to `get`, `post`,
-`patch`, `put`, and `delete` methods:
+`patch`, `put`, and `delete` methods. For example:
 
 ```ruby
 test "ajax request" do
@@ -808,7 +807,7 @@ post article_url # simulate the request with custom env variable
 
 ### Testing `flash` notices
 
-If you remember from earlier one of the Three Hashes of the Apocalypse was `flash`.
+If you remember from earlier, one of the Three Hashes of the Apocalypse was `flash`.
 
 We want to add a `flash` message to our blog application whenever someone
 successfully creates a new Article.
@@ -893,7 +892,7 @@ test "should show article" do
 end
 ```
 
-Remember from our discussion earlier on fixtures the `articles()` method will give us access to our Articles fixtures.
+Remember from our discussion earlier on fixtures, the `articles()` method will give us access to our Articles fixtures.
 
 How about deleting an existing Article?
 
@@ -913,14 +912,19 @@ We can also add a test for updating an existing Article.
 ```ruby
 test "should update article" do
   article = articles(:one)
+  
   patch '/article', params: { id: article.id, article: { title: "updated" } }
+  
   assert_redirected_to article_path(article)
+  # Reload association to fetch updated data and assert that title is updated. 
+  article.reload
+  assert_equal "updated", article.title 
 end
 ```
 
 Notice we're starting to see some duplication in these three tests, they both access the same Article fixture data. We can D.R.Y. this up by using the `setup` and `teardown` methods provided by `ActiveSupport::Callbacks`.
 
-Our test should now look something like this, disregard the other tests we're leaving them out for brevity.
+Our test should now look something as what follows. Disregard the other tests for now, we're leaving them out for brevity.
 
 ```ruby
 require 'test_helper'
@@ -952,8 +956,12 @@ class ArticlesControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "should update article" do
-    patch article_url(@article), params: { article: { title: "updated" } }
+    patch '/article', params: { id: @article.id, article: { title: "updated" } }
+    
     assert_redirected_to article_path(@article)
+    # Reload association to fetch updated data and assert that title is updated. 
+    @article.reload
+    assert_equal "updated", @article.title       
   end
 end
 ```
@@ -966,7 +974,7 @@ To avoid code duplication, you can add your own test helpers.
 Sign in helper can be a good example:
 
 ```ruby
-test/test_helper.rb
+#test/test_helper.rb
 
 module SignInHelper
   def sign_in(user)
@@ -1087,8 +1095,9 @@ have to use a mixin like this:
 
 ```ruby
 class UserHelperTest < ActionView::TestCase
-  test "should return the user name" do
-    # ...
+  test "should return the user's full name" do
+    user = users(:david)
+    assert_equal "David Heinemeier Hansson", user_full_name(user)
   end
 end
 ```
@@ -1123,7 +1132,7 @@ In order to test that your mailer is working as expected, you can use unit tests
 
 For the purposes of unit testing a mailer, fixtures are used to provide an example of how the output _should_ look. Because these are example emails, and not Active Record data like the other fixtures, they are kept in their own subdirectory apart from the other fixtures. The name of the directory within `test/fixtures` directly corresponds to the name of the mailer. So, for a mailer named `UserMailer`, the fixtures should reside in `test/fixtures/user_mailer` directory.
 
-When you generated your mailer, the generator creates stub fixtures for each of the mailers actions. If you didn't use the generator you'll have to make those files yourself.
+When you generated your mailer, the generator creates stub fixtures for each of the mailers actions. If you didn't use the generator, you'll have to create those files yourself.
 
 #### The Basic Test Case
 
@@ -1204,7 +1213,7 @@ Testing Jobs
 ------------
 
 Since your custom jobs can be queued at different levels inside your application,
-you'll need to test both jobs themselves (their behavior when they get enqueued)
+you'll need to test both, the jobs themselves (their behavior when they get enqueued)
 and that other entities correctly enqueue them.
 
 ### A Basic Test Case
@@ -1255,7 +1264,7 @@ end
 Testing Time-Dependent Code
 ---------------------------
 
-Rails provides inbuilt helper methods that enable you to assert that your time-sensitve code works as expected.
+Rails provides inbuilt helper methods that enable you to assert that your time-sensitive code works as expected.
 
 Here is an example using the [`travel_to`](http://api.rubyonrails.org/classes/ActiveSupport/Testing/TimeHelpers.html#method-i-travel_to) helper:
 
