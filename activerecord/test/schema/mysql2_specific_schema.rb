@@ -62,7 +62,7 @@ SQL
 
   ActiveRecord::Base.connection.execute <<-SQL
 CREATE TABLE enum_tests (
-  enum_column ENUM('text','blob','tiny','medium','long','unsigned')
+  enum_column ENUM('text','blob','tiny','medium','long','unsigned','bigint')
 )
 SQL
 end
