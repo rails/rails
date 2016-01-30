@@ -3,12 +3,10 @@ module ActiveRecord
     module PostgreSQL
       module OID # :nodoc:
         class Money < Type::Decimal # :nodoc:
+          class_attribute :precision
+
           def type
             :money
-          end
-
-          def precision
-            19
           end
 
           def scale
