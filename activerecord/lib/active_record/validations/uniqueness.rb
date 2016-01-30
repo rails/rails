@@ -70,7 +70,7 @@ module ActiveRecord
         value = cast_type.serialize(value)
         value = klass.connection.type_cast(value)
         if value.is_a?(String) && column.limit
-          value = value.to_s[0, column.limit]
+          value = value.to_s.slice(0, column.limit)
         end
 
         comparison = if !options[:case_sensitive] && !value.nil?
@@ -105,7 +105,7 @@ module ActiveRecord
 
       def map_enum_attribute(klass, attribute, value)
         mapping = klass.defined_enums[attribute.to_s]
-        value = mapping[value] if value && mapping
+        value = mapping[value] if mapping && value
         value
       end
     end
