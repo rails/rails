@@ -30,6 +30,7 @@ rvm:
 matrix:
   allow_failures:
     - rvm: ruby-head
+    - env: "GEM=ac"
   fast_finish: true
 notifications:
   email: false
