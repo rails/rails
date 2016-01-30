@@ -1,3 +1,16 @@
+*   Fix netmask serialization for inet columns in Postgres
+
+    For hosts (/32 in IPv4 and /128 in IPv6), Postgres keeps the netmask
+    for cidr, but drops it for inet. Previously ActiveRecord was
+    treating them both as cidr and always including a netmask. This
+    changes the serialization of inet columns to match Postgres.
+
+    The mismatched serializations could also cause Dirty to incorrectly
+    think an inet column with a /32 or /128 IP had changed when it
+    hadn't. This fixes that too.
+
+    *Thomas Morgan*
+
 *   Rework `ActiveRecord::Relation#last` 
     
     1. Always find last with ruby if relation is loaded
