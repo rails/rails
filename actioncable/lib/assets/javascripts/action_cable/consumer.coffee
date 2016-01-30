@@ -2,6 +2,7 @@
 #= require action_cable/connection_monitor
 #= require action_cable/subscriptions
 #= require action_cable/subscription
+#= require action_cable/evented_subscription
 
 # The ActionCable.Consumer establishes the connection to a server-side Ruby Connection object. Once established,
 # the ActionCable.ConnectionMonitor will ensure that its properly maintained through heartbeats and checking for stale updates.

@@ -15,6 +15,11 @@ class ActionCable.Subscriptions
     params = if typeof channel is "object" then channel else {channel}
     new ActionCable.Subscription this, params, mixin
 
+  createEvented: (channelName, mixin)->
+    channel = channelName
+    params = if typeof channel is "object" then channel else {channel}
+    new ActionCable.EventedSubscription this, params, mixin
+
   # Private
 
   add: (subscription) ->
