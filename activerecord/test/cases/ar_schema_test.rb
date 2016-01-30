@@ -50,7 +50,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert_equal 7, ActiveRecord::Migrator::current_version
     end
 
-    def test_schema_define_w_table_name_prefix
+    def test_schema_define_with_table_name_prefix
       table_name = ActiveRecord::SchemaMigration.table_name
       old_table_name_prefix = ActiveRecord::Base.table_name_prefix
       ActiveRecord::Base.table_name_prefix  = "nep_"
