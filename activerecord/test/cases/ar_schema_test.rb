@@ -21,7 +21,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       ActiveRecord::Migration.verbose = @original_verbose
     end
 
-    def test_has_has_primary_key
+    def test_has_primary_key
       old_primary_key_prefix_type = ActiveRecord::Base.primary_key_prefix_type
       ActiveRecord::Base.primary_key_prefix_type = :table_name_with_underscore
       assert_equal "version", ActiveRecord::SchemaMigration.primary_key
