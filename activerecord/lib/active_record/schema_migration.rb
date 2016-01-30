@@ -37,10 +37,7 @@ module ActiveRecord
       end
 
       def drop_table
-        if table_exists?
-          connection.remove_index table_name, name: index_name
-          connection.drop_table(table_name)
-        end
+        connection.drop_table table_name, if_exists: true
       end
 
       def normalize_migration_number(number)
