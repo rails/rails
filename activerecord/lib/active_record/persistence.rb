@@ -106,7 +106,7 @@ module ActiveRecord
     # the existing record gets updated.
     #
     # By default, save always runs validations. If any of them fail the action
-    # is cancelled and #save returns +false+. However, if you supply
+    # is cancelled and #save returns +false+, and the record won't be saved. However, if you supply
     # validate: false, validations are bypassed altogether. See
     # ActiveRecord::Validations for more information.
     #
@@ -133,7 +133,7 @@ module ActiveRecord
     # the existing record gets updated.
     #
     # By default, #save! always runs validations. If any of them fail
-    # ActiveRecord::RecordInvalid gets raised. However, if you supply
+    # ActiveRecord::RecordInvalid gets raised, and the record won't be saved. However, if you supply
     # validate: false, validations are bypassed altogether. See
     # ActiveRecord::Validations for more information.
     #
@@ -270,7 +270,7 @@ module ActiveRecord
     alias update_attributes update
 
     # Updates its receiver just like #update but calls #save! instead
-    # of +save+, so an exception is raised if the record is invalid.
+    # of +save+, so an exception is raised if the record is invalid and saving will fail.
     def update!(attributes)
       # The following transaction covers any possible database side-effects of the
       # attributes assignment. For example, setting the IDs of a child collection.
