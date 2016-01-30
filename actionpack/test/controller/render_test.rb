@@ -275,7 +275,7 @@ class ExpiresInRenderTest < ActionController::TestCase
     file.write "secrets!"
     file.flush
     assert_raises ActionView::MissingTemplate do
-      response = get :dynamic_render, params: { id: file.path }
+      get :dynamic_render, params: { id: file.path }
     end
   ensure
     file.close
