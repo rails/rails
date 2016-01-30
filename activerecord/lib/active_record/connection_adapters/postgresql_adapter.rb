@@ -213,7 +213,7 @@ module ActiveRecord
         @statements = StatementPool.new @connection,
                                         self.class.type_cast_config_to_integer(config.fetch(:statement_limit) { 1000 })
 
-        if postgresql_version < 80200
+        if postgresql_version < 80300
           raise "Your version of PostgreSQL (#{postgresql_version}) is too old, please upgrade!"
         end
 
@@ -645,12 +645,6 @@ module ActiveRecord
         # connected server's characteristics.
         def connect
           @connection = PGconn.connect(@connection_parameters)
-
-          # Money type has a fixed precision of 10 in PostgreSQL 8.2 and below, and as of
-          # PostgreSQL 8.3 it has a fixed precision of 19. PostgreSQLColumn.extract_precision
-          # should know about this but can't detect it there, so deal with it here.
-          OID::Money.precision = (postgresql_version >= 80300) ? 19 : 10
-
           configure_connection
         rescue ::PG::Error => error
           if error.message.include?("does not exist")
