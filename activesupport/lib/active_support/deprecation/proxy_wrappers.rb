@@ -80,7 +80,7 @@ module ActiveSupport
     #   example.old_request.to_s
     #   # => DEPRECATION WARNING: @request is deprecated! Call request.to_s instead of
     #      @request.to_s
-    #      (Bactrace information…)
+    #      (Backtrace information…)
     #      "special_request"
     #
     #   example.request.to_s
