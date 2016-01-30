@@ -92,7 +92,9 @@ module ActiveRecord
 
       # Returns an array of Column objects for the table specified by +table_name+.
       # See the concrete implementation for details on the expected parameter values.
-      def columns(table_name) end
+      def columns(table_name)
+        raise NotImplementedError, "#columns is not implemented"
+      end
 
       # Checks to see if a column exists in a given table.
       #
