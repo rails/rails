@@ -726,7 +726,7 @@ class Author < ApplicationRecord
   has_many :books, inverse_of: :author
 end
 
-class book < ApplicationRecord
+class Book < ApplicationRecord
   belongs_to :author, inverse_of: :books
 end
 ```
