@@ -1,3 +1,8 @@
+*   Add `after_bundle` callbacks in Rails plugin templates.  Useful for allowing
+    templates to perform actions that are dependent upon `bundle install`.
+
+    *Ryan Manuel*
+
 *   Bring back `TEST=` env for `rake test` task.
 
     *Yves Senn*
