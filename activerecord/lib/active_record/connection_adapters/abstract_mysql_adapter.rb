@@ -31,12 +31,6 @@ module ActiveRecord
       class_attribute :emulate_booleans
       self.emulate_booleans = true
 
-      LOST_CONNECTION_ERROR_MESSAGES = [
-        "Server shutdown in progress",
-        "Broken pipe",
-        "Lost connection to MySQL server during query",
-        "MySQL server has gone away" ]
-
       QUOTED_TRUE, QUOTED_FALSE = '1', '0'
 
       NATIVE_DATABASE_TYPES = {
