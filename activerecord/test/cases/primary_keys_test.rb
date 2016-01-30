@@ -260,6 +260,13 @@ class CompositePrimaryKeyTest < ActiveRecord::TestCase
     assert_equal ["region", "code"], @connection.primary_keys("barcodes")
   end
 
+  def test_primary_key_issues_warning
+    warning = capture(:stderr) do
+      @connection.primary_key("barcodes")
+    end
+    assert_match(/WARNING: Rails does not support composite primary key\./, warning)
+  end
+
   def test_collectly_dump_composite_primary_key
     schema = dump_table_schema "barcodes"
     assert_match %r{create_table "barcodes", primary_key: \["region", "code"\]}, schema
