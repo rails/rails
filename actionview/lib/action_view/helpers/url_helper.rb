@@ -63,22 +63,23 @@ module ActionView
       # of an options hash will generate a link to the referrer (a JavaScript back link
       # will be used in place of a referrer if none exists). If +nil+ is passed as the name
       # the value of the link itself will become the name.
+      # Use link_to with a block to wrap the whole block with your link.
       #
       # ==== Signatures
       #
-      #   link_to(body, url, html_options = {})
+      #   link_to(name, url, html_options = {})
       #     # url is a String; you can use URL helpers like
       #     # posts_path
       #
-      #   link_to(body, url_options = {}, html_options = {})
+      #   link_to(name, url_options = {}, html_options = {})
       #     # url_options, except :method, is passed to url_for
       #
       #   link_to(options = {}, html_options = {}) do
-      #     # name
+      #     # name and maybe some HTML
       #   end
       #
       #   link_to(url, html_options = {}) do
-      #     # name
+      #     # name and maybe some HTML
       #   end
       #
       # ==== Options
@@ -138,13 +139,15 @@ module ActionView
       #   link_to "Profiles", controller: "profiles"
       #   # => <a href="/profiles">Profiles</a>
       #
-      # You can use a block as well if your link target is hard to fit into the name parameter. ERB example:
+      # You can use a block as well to wrap your link around a block of HTML. ERB example:
       #
       #   <%= link_to(@profile) do %>
-      #     <strong><%= @profile.name %></strong> -- <span>Check it out!</span>
+      #     <h4><%= @profile.name %></h4>
+      #     <p>Check it out!</p>
       #   <% end %>
       #   # => <a href="/profiles/1">
-      #          <strong>David</strong> -- <span>Check it out!</span>
+      #          <h4>David</h4>
+      #          <p>Check it out!</p>
       #        </a>
       #
       # Classes and ids for CSS are easy to produce:
@@ -205,6 +208,7 @@ module ActionView
       # If the HTML button does not work with your layout, you can also consider
       # using the +link_to+ method with the <tt>:method</tt> modifier as described in
       # the +link_to+ documentation.
+      # Use button_to with a block to wrap the contents of the whole block inside your button tag.
       #
       # By default, the generated form element has a class name of <tt>button_to</tt>
       # to allow styling of the form itself and its children. This can be changed
@@ -253,11 +257,11 @@ module ActionView
       #   #    </form>"
       #
       #   <%= button_to [:make_happy, @user] do %>
-      #     Make happy <strong><%= @user.name %></strong>
+      #     Make <strong><%= @user.name %></strong> happy
       #   <% end %>
       #   # => "<form method="post" action="/users/1/make_happy" class="button_to">
       #   #      <button type="submit">
-      #   #        Make happy <strong><%= @user.name %></strong>
+      #   #        Make <strong><%= @user.name %></strong> happy
       #   #      </button>
       #   #    </form>"
       #
@@ -266,13 +270,11 @@ module ActionView
       #   #      <input value="New" type="submit" />
       #   #    </form>"
       #
-      #
       #   <%= button_to "Create", { action: "create" }, remote: true, form: { "data-type" => "json" } %>
       #   # => "<form method="post" action="/images/create" class="button_to" data-remote="true" data-type="json">
       #   #      <input value="Create" type="submit" />
       #   #      <input name="authenticity_token" type="hidden" value="10f2163b45388899ad4d5ae948988266befcb6c3d1b2451cf657a0c293d605a6"/>
       #   #    </form>"
-      #
       #
       #   <%= button_to "Delete Image", { action: "delete", id: @image.id },
       #                                   method: :delete, data: { confirm: "Are you sure?" } %>
@@ -281,7 +283,6 @@ module ActionView
       #   #      <input data-confirm='Are you sure?' value="Delete Image" type="submit" />
       #   #      <input name="authenticity_token" type="hidden" value="10f2163b45388899ad4d5ae948988266befcb6c3d1b2451cf657a0c293d605a6"/>
       #   #    </form>"
-      #
       #
       #   <%= button_to('Destroy', 'http://www.example.com',
       #             method: "delete", remote: true, data: { confirm: 'Are you sure?', disable_with: 'loading...' }) %>
@@ -337,11 +338,11 @@ module ActionView
       end
 
       # Creates a link tag of the given +name+ using a URL created by the set of
-      # +options+ unless the current request URI is the same as the links, in
-      # which case only the name is returned (or the given block is yielded, if
-      # one exists). You can give +link_to_unless_current+ a block which will
-      # specialize the default behavior (e.g., show a "Start Here" link rather
-      # than the link's text).
+      # +options+ unless the current request URI is the same as the link's.
+      # If the urls are the same, only the name is returned or the given block is yielded.
+      # Therefore you can use the block to specialize the default behaviour, e.g.
+      # show a "Go back" link rather than the link's text (example below).
+      # This behaviour is different from how the block works for +link_to+.
       #
       # ==== Examples
       # Let's say you have a navigation menu...
@@ -379,15 +380,17 @@ module ActionView
       end
 
       # Creates a link tag of the given +name+ using a URL created by the set of
-      # +options+ unless +condition+ is true, in which case only the name is
-      # returned. To specialize the default behavior (i.e., show a login link rather
-      # than just the plaintext link text), you can pass a block that
-      # accepts the name or the full argument list for +link_to_unless+.
+      # +options+, unless +condition+ is true. Otherwise only the name is returned or
+      # the given block is yielded. Therefore you can use the block to specialize
+      # the default behaviour, e.g. change the link target (example below).
+      # This behaviour is different from how the block works for +link_to+.
       #
       # ==== Examples
       #   <%= link_to_unless(@current_user.nil?, "Reply", { action: "reply" }) %>
       #   # If the user is logged in...
       #   # => <a href="/controller/reply/">Reply</a>
+      #   # If not...
+      #   # => Reply
       #
       #   <%=
       #      link_to_unless(@current_user.nil?, "Reply", { action: "reply" }) do |name|
@@ -395,7 +398,7 @@ module ActionView
       #      end
       #   %>
       #   # If the user is logged in...
-      #   # => <a href="/controller/reply/">Reply</a>
+      #   # => <a href="/controller/reply">Reply</a>
       #   # If not...
       #   # => <a href="/accounts/signup">Reply</a>
       def link_to_unless(condition, name, options = {}, html_options = {}, &block)
@@ -403,24 +406,26 @@ module ActionView
       end
 
       # Creates a link tag of the given +name+ using a URL created by the set of
-      # +options+ if +condition+ is true, otherwise only the name is
-      # returned. To specialize the default behavior, you can pass a block that
-      # accepts the name or the full argument list for +link_to_unless+ (see the examples
-      # in +link_to_unless+).
+      # +options+, if +condition+ is true. Otherwise only the name is returned or
+      # the given block is yielded. Therefore you can use the block to specialize
+      # the default behaviour, e.g. change the link target (example below).
+      # This behaviour is different from how the block works for +link_to+.
       #
       # ==== Examples
       #   <%= link_to_if(@current_user.nil?, "Login", { controller: "sessions", action: "new" }) %>
       #   # If the user isn't logged in...
       #   # => <a href="/sessions/new/">Login</a>
+      #   # If not...
+      #   # => Login
       #
       #   <%=
       #      link_to_if(@current_user.nil?, "Login", { controller: "sessions", action: "new" }) do
-      #        link_to(@current_user.login, { controller: "accounts", action: "show", id: @current_user })
+      #        link_to(@current_user.user_name, { controller: "accounts", action: "show", id: @current_user })
       #      end
       #   %>
       #   # If the user isn't logged in...
-      #   # => <a href="/sessions/new/">Login</a>
-      #   # If they are logged in...
+      #   # => <a href="/sessions/new">Login</a>
+      #   # If the user is logged in...
       #   # => <a href="/accounts/show/3">my_username</a>
       def link_to_if(condition, name, options = {}, html_options = {}, &block)
         if condition
@@ -437,6 +442,9 @@ module ActionView
       # Creates a mailto link tag to the specified +email_address+, which is
       # also used as the name of the link unless +name+ is specified. Additional
       # HTML attributes for the link can be passed in +html_options+.
+      # Note the order of params, which is reversed compared to +link_to+. Provide
+      # the part that is used for the href first, and the part that is visible
+      # to users second.
       #
       # +mail_to+ has several methods for customizing the email itself by
       # passing special keys to +html_options+.
@@ -467,10 +475,10 @@ module ActionView
       # You can use a block as well if your link target is hard to fit into the name parameter. ERB example:
       #
       #   <%= mail_to "me@domain.com" do %>
-      #     <strong>Email me:</strong> <span>me@domain.com</span>
+      #     <strong>Email me:</strong> me@domain.com
       #   <% end %>
       #   # => <a href="mailto:me@domain.com">
-      #          <strong>Email me:</strong> <span>me@domain.com</span>
+      #          <strong>Email me:</strong> me@domain.com
       #        </a>
       def mail_to(email_address, name = nil, html_options = {}, &block)
         html_options, name = name, nil if block_given?
