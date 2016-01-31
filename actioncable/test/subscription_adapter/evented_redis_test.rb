@@ -1,0 +1,10 @@
+require 'test_helper'
+require_relative './common'
+
+class EventedRedisAdapterTest < ActionCable::TestCase
+  include CommonSubscriptionAdapterTest
+
+  def cable_config
+    { adapter: 'evented_redis', url: 'redis://127.0.0.1:6379/12' }
+  end
+end

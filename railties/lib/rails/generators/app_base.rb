@@ -344,7 +344,6 @@ module Rails
         return [] if options[:skip_action_cable]
         comment = 'Action Cable dependencies for the Redis adapter'
         gems = []
-        gems << GemfileEntry.new("em-hiredis", '~> 0.3.0', comment)
         gems << GemfileEntry.new("redis", '~> 3.0', comment)
         gems
       end
