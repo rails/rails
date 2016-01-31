@@ -21,15 +21,14 @@ ActiveRecord::Schema.define do
     t.index :var_binary
   end
 
-  create_table :key_tests, force: true, :options => 'ENGINE=MyISAM' do |t|
+  create_table :key_tests, force: true, options: 'ENGINE=MyISAM' do |t|
     t.string :awesome
     t.string :pizza
     t.string :snacks
+    t.index :awesome, type: :fulltext, name: 'index_key_tests_on_awesome'
+    t.index :pizza, using: :btree, name: 'index_key_tests_on_pizza'
+    t.index :snacks, name: 'index_key_tests_on_snack'
   end
-
-  add_index :key_tests, :awesome, :type => :fulltext, :name => 'index_key_tests_on_awesome'
-  add_index :key_tests, :pizza, :using => :btree, :name => 'index_key_tests_on_pizza'
-  add_index :key_tests, :snacks, :name => 'index_key_tests_on_snack'
 
   create_table :collation_tests, id: false, force: true do |t|
     t.string :string_cs_column, limit: 1, collation: 'utf8_bin'
