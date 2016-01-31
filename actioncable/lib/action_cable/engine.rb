@@ -34,5 +34,13 @@ module ActionCable
         options.each { |k,v| send("#{k}=", v) }
       end
     end
+
+    initializer "action_cable.assets" do
+      if defined?(::Coffee::Rails)
+        app.config.assets.paths << Rails.root.join("lib", "rails_assets", "javascripts", "action_cable")
+      else
+        app.config.assets.paths << Rails.root.join("lib", "rails_assets", "javascripts", "action_cable_js")
+      end
+    end
   end
 end

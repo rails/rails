@@ -1,4 +1,15 @@
 require 'rake/testtask'
+require 'pathname'
+require 'coffee-script'
+
+ASSETS_ROOT = "#{Pathname.pwd}/lib/rails_assets/javascripts"
+ASSETS = [
+  'connection',
+  'connection_monitor',
+  'consumer',
+  'subscription',
+  'subscriptions'
+]
 
 dir = File.dirname(__FILE__)
 
@@ -10,4 +21,25 @@ Rake::TestTask.new do |t|
   t.warning = true
   t.verbose = true
   t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
+end
+
+namespace :assets do
+  task :compile do
+    Dir.chdir(ASSETS_ROOT) do
+      puts 'Compiling Action Cable front-end Coffee Script to JS...'
+
+      ASSETS.each do |file|
+        compiled_data = CoffeeScript.compile File.read("#{ASSETS_ROOT}/action_cable/#{file}.coffee")
+        compiled_path = "#{ASSETS_ROOT}/action_cable_js/#{file}.js"
+        f = File.new(compiled_path, "w+")
+        f.write(compiled_data)
+        f.close
+      end
+
+      ## Output results
+      puts 'All done!'
+      puts '**Please note:** Due to action_cable.coffee.erb having a .erb'\
+        ' extension, you will need to manually compile this.'
+    end
+  end
 end
