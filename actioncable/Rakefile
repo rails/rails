@@ -1,4 +1,8 @@
 require 'rake/testtask'
+require 'pathname'
+require 'sprockets'
+require 'coffee-script'
+require 'action_cable'
 
 dir = File.dirname(__FILE__)
 
@@ -10,4 +14,35 @@ Rake::TestTask.new do |t|
   t.warning = true
   t.verbose = true
   t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
+end
+
+namespace :assets do
+  desc "Compile dist/action_cable.js"
+  task :compile do
+    puts 'Compiling Action Cable assets...'
+
+    asset_mapping = { "source.js" => "action_cable.js" }
+
+    root_path = Pathname.new(dir)
+    load_path = root_path.join("app/assets/javascripts/action_cable")
+    destination_path = root_path.join("lib/assets/javascripts")
+
+    compile_path = root_path.join("tmp/sprockets")
+    compile_path.rmtree if compile_path.exist?
+    compile_path.mkpath
+
+    environment = Sprockets::Environment.new
+    environment.append_path(load_path)
+
+    manifest = Sprockets::Manifest.new(environment.index, compile_path)
+    manifest.compile(asset_mapping.keys)
+
+    asset_mapping.each do |logical_path, dist_path|
+      fingerprint_path = manifest.assets[logical_path]
+      FileUtils.cp(compile_path.join(fingerprint_path), destination_path.join(dist_path))
+    end
+
+    puts '======'
+    puts 'Action Cable assets compiled successfully!'
+  end
 end
