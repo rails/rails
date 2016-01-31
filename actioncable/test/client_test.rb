@@ -32,6 +32,7 @@ class ClientTest < ActionCable::TestCase
     server.config.channel_load_paths = [File.expand_path('client', __dir__)]
 
     Thread.new { EventMachine.run } unless EventMachine.reactor_running?
+    Thread.pass until EventMachine.reactor_running?
 
     # faye-websocket is warning-rich
     @previous_verbose, $VERBOSE = $VERBOSE, nil
