@@ -165,7 +165,7 @@ module ActionController
     def initialize(session = {})
       super(nil, nil)
       @id = SecureRandom.hex(16)
-      @data = stringify_keys(session)
+      @data = session.with_indifferent_access
       @loaded = true
     end
 
