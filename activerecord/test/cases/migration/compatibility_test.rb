@@ -71,6 +71,36 @@ module ActiveRecord
       ensure
         connection.drop_table :more_testings rescue nil
       end
+
+      def test_timestamps_have_null_constraints_if_not_present_in_migration_of_create_table
+        migration = Class.new(ActiveRecord::Migration) {
+          def migrate(x)
+            create_table :more_testings do |t|
+              t.timestamps
+            end
+          end
+        }.new
+
+        ActiveRecord::Migrator.new(:up, [migration]).migrate
+
+        assert connection.columns(:more_testings).find { |c| c.name == 'created_at' }.null
+        assert connection.columns(:more_testings).find { |c| c.name == 'updated_at' }.null
+      ensure
+        connection.drop_table :more_testings rescue nil
+      end
+
+      def test_timestamps_have_null_constraints_if_not_present_in_migration_for_adding_timestamps_to_existing_table
+        migration = Class.new(ActiveRecord::Migration) {
+          def migrate(x)
+            add_timestamps :testings
+          end
+        }.new
+
+        ActiveRecord::Migrator.new(:up, [migration]).migrate
+
+        assert connection.columns(:testings).find { |c| c.name == 'created_at' }.null
+        assert connection.columns(:testings).find { |c| c.name == 'updated_at' }.null
+      end
     end
   end
 end
