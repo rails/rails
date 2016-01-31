@@ -90,11 +90,9 @@ NOTE: You need to enable the `hstore` extension to use hstore.
 
 ```ruby
 # db/migrate/20131009135255_create_profiles.rb
-ActiveRecord::Schema.define do
-  enable_extension 'hstore' unless extension_enabled?('hstore')
-  create_table :profiles do |t|
-    t.hstore 'settings'
-  end
+enable_extension 'hstore' unless extension_enabled?('hstore')
+create_table :profiles do |t|
+  t.hstore 'settings'
 end
 
 # app/models/profile.rb
@@ -102,16 +100,20 @@ class Profile < ApplicationRecord
 end
 
 # Usage
-Profile.create(settings: { "color" => "blue", "resolution" => "800x600" })
+Profile.create(settings: { "color" => "blue",
+                           "resolution" => "800x600" })
 
 profile = Profile.first
 profile.settings # => {"color"=>"blue", "resolution"=>"800x600"}
 
-profile.settings = {"color" => "yellow", "resolution" => "1280x1024"}
+profile.settings = {"color" => "yellow",
+                    "resolution" => "1280x1024"}
 profile.save!
 
 Profile.where("settings->'color' = ?", "yellow")
-#=> #<ActiveRecord::Relation [#<Profile id: 1, settings: {"color"=>"yellow", "resolution"=>"1280x1024"}>]>
+#=> #<ActiveRecord::Relation
+#=>   [#<Profile id: 1, settings: {"color"=>"yellow",
+#=>                                "resolution"=>"1280x1024"}>]>
 ```
 
 ### JSON
@@ -130,13 +132,16 @@ class Event < ApplicationRecord
 end
 
 # Usage
-Event.create(payload: { kind: "user_renamed", change: ["jack", "john"]})
+Event.create(payload: { kind: "user_renamed",
+                        change: ["jack", "john"]})
 
 event = Event.first
-event.payload # => {"kind"=>"user_renamed", "change"=>["jack", "john"]}
+event.payload # => {"kind"=>"user_renamed",
+              # =>  "change"=>["jack", "john"]}
 
 ## Query based on JSON document
-# The -> operator returns the original JSON type (which might be an object), whereas ->> returns text
+# The -> operator returns the original JSON type
+# (which might be an object), whereas ->> returns text
 Event.where("payload->>'kind' = ?", "user_renamed")
 ```
 
@@ -158,7 +163,8 @@ class Event < ApplicationRecord
 end
 
 # Usage
-Event.create(duration: Date.new(2014, 2, 11)..Date.new(2014, 2, 12))
+duration = Date.new(2014, 2, 11)..Date.new(2014, 2, 12)
+Event.create(duration: duration)
 
 event = Event.first
 event.duration # => Tue, 11 Feb 2014...Thu, 13 Feb 2014
@@ -315,8 +321,8 @@ You can use `uuid` type to define references in migrations:
 enable_extension 'pgcrypto' unless extension_enabled?('pgcrypto')
 create_table :posts, id: :uuid, default: 'gen_random_uuid()'
 
-create_table :comments, id: :uuid, default: 'gen_random_uuid()' do |t|
-  # t.belongs_to :post, type: :uuid
+create_table :comments, id: :uuid,
+                        default: 'gen_random_uuid()' do |t|
   t.references :post, type: :uuid
 end
 
@@ -409,7 +415,8 @@ extension to generate random UUIDs.
 ```ruby
 # db/migrate/20131220144913_create_devices.rb
 enable_extension 'pgcrypto' unless extension_enabled?('pgcrypto')
-create_table :devices, id: :uuid, default: 'gen_random_uuid()' do |t|
+create_table :devices, id: :uuid,
+                       default: 'gen_random_uuid()' do |t|
   t.string :kind
 end
 
@@ -445,8 +452,7 @@ end
 Document.create(title: "Cats and Dogs", body: "are nice!")
 
 ## all documents matching 'cat & dog'
-Document.where("to_tsvector('english', title || ' ' || body) @@ to_tsquery(?)",
-                 "cat & dog")
+Document.where("to_tsvector('english', title || ' ' || body) @@ to_tsquery(?)", "cat & dog")
 ```
 
 Database Views
@@ -458,14 +464,18 @@ Imagine you need to work with a legacy database containing the following table:
 
 ```
 rails_pg_guide=# \d "TBL_ART"
-                                        Table "public.TBL_ART"
-   Column   |            Type             |                         Modifiers
-------------+-----------------------------+------------------------------------------------------------
- INT_ID     | integer                     | not null default nextval('"TBL_ART_INT_ID_seq"'::regclass)
- STR_TITLE  | character varying           |
- STR_STAT   | character varying           | default 'draft'::character varying
- DT_PUBL_AT | timestamp without time zone |
- BL_ARCH    | boolean                     | default false
+```
+
+
+|   Column   |            Type             |                         Modifiers                          |
+|------------+-----------------------------+------------------------------------------------------------|
+| INT_ID     | integer                     | not null default nextval('"TBL_ART_INT_ID_seq"'::regclass) |
+| STR_TITLE  | character varying           |                                                            |
+| STR_STAT   | character varying           | default 'draft'::character varying                         |
+| DT_PUBL_AT | timestamp without time zone |                                                            |
+| BL_ARCH    | boolean                     | default false                                              |
+
+```
 Indexes:
     "TBL_ART_pkey" PRIMARY KEY, btree ("INT_ID")
 ```
