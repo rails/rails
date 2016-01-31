@@ -1110,15 +1110,19 @@ module ActiveRecord
         Table.new(table_name, base)
       end
 
-      def add_index_options(table_name, column_name, comment: nil, **options) #:nodoc:
-        column_names = Array(column_name)
+      def add_index_options(table_name, column_name, comment: nil, **options) # :nodoc:
+        if column_name.is_a?(String) && /\W/ === column_name
+          column_names = column_name
+        else
+          column_names = Array(column_name)
+        end
 
         options.assert_valid_keys(:unique, :order, :name, :where, :length, :internal, :using, :algorithm, :type)
 
         index_type = options[:type].to_s if options.key?(:type)
         index_type ||= options[:unique] ? "UNIQUE" : ""
         index_name = options[:name].to_s if options.key?(:name)
-        index_name ||= index_name(table_name, column: column_names)
+        index_name ||= index_name(table_name, index_name_options(column_names))
         max_index_length = options.fetch(:internal, false) ? index_name_length : allowed_index_name_length
 
         if options.key?(:algorithm)
@@ -1174,6 +1178,8 @@ module ActiveRecord
 
         # Overridden by the MySQL adapter for supporting index lengths
         def quoted_columns_for_index(column_names, options = {})
+          return [column_names] if column_names.is_a?(String)
+
           option_strings = Hash[column_names.map {|name| [name, '']}]
 
           # add index sort order if supported
@@ -1247,6 +1253,14 @@ module ActiveRecord
 
       def create_alter_table(name)
         AlterTable.new create_table_definition(name)
+      end
+
+      def index_name_options(column_names) # :nodoc:
+        if column_names.is_a?(String)
+          column_names = column_names.scan(/\w+/).join('_')
+        end
+
+        { column: column_names }
       end
 
       def foreign_key_name(table_name, options) # :nodoc:

@@ -248,6 +248,11 @@ module ActiveRecord
         false
       end
 
+      # Does this adapter support expression indices?
+      def supports_expression_index?
+        false
+      end
+
       # Does this adapter support explain?
       def supports_explain?
         false

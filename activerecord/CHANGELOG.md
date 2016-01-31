@@ -1,3 +1,16 @@
+*   PostgreSQL: Support Expression Indexes and Operator Classes.
+
+    Example:
+
+        create_table :users do |t|
+          t.string :name
+          t.index 'lower(name) varchar_pattern_ops'
+        end
+
+    Fixes #19090, #21765, #21819, #24359.
+
+    *Ryuta Kamizono*
+
 *   MySQL: Prepared statements support.
 
     To enable, set `prepared_statements: true` in config/database.yml.

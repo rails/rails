@@ -92,7 +92,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
       next if column_set.empty?
 
       lengths = column_set.map do |column|
-        if match = column.match(/\bt\.\w+\s+"/)
+        if match = column.match(/\bt\.\w+\s+(?="\w+?")/)
           match[0].length
         end
       end.compact
@@ -277,6 +277,11 @@ class SchemaDumperTest < ActiveRecord::TestCase
     def test_schema_dump_allows_array_of_decimal_defaults
       output = standard_dump
       assert_match %r{t\.decimal\s+"decimal_array_default",\s+default: \["1.23", "3.45"\],\s+array: true}, output
+    end
+
+    def test_schema_dump_expression_indices
+      index_definition = standard_dump.split(/\n/).grep(/t\.index.*company_expression_index/).first.strip
+      assert_equal 't.index "lower((name)::text)", name: "company_expression_index", using: :btree', index_definition
     end
 
     if ActiveRecord::Base.connection.supports_extensions?
