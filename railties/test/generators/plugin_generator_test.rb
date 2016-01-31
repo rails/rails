@@ -240,7 +240,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     run_generator [destination_root, "--mountable"]
     FileUtils.cd destination_root
     quietly { system 'bundle install' }
-    output = `bundle exec rake db:migrate 2>&1`
+    output = `bin/rails db:migrate 2>&1`
     assert $?.success?, "Command failed: #{output}"
   end
 
