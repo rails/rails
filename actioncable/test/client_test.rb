@@ -146,15 +146,6 @@ class ClientTest < ActionCable::TestCase
       @ws.close
       @closed.wait(WAIT_WHEN_EXPECTING_EVENT)
     end
-
-    def close!
-      sock = BasicSocket.for_fd(@ws.instance_variable_get(:@stream).detach)
-
-      # Force a TCP reset
-      sock.setsockopt(Socket::SOL_SOCKET, Socket::SO_LINGER, [1, 0].pack('ii'))
-
-      sock.close
-    end
   end
 
   def faye_client(port)
