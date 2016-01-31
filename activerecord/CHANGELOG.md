@@ -1,3 +1,16 @@
+*   Add Expression Indexes and Operator Classes support for PostgreSQL.
+
+    Example:
+
+        create_table :users do |t|
+          t.string :name
+          t.index 'lower(name) varchar_pattern_ops'
+        end
+
+    Fixes #19090, #21765, #21819, #24359.
+
+    *Ryuta Kamizono*
+
 *   Schema dumper: Indexes are now included in the `create_table` block
     instead of listed afterward as separate `add_index` lines.
 
