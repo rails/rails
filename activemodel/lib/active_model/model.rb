@@ -60,6 +60,7 @@ module ActiveModel
     include ActiveModel::AttributeAssignment
     include ActiveModel::Validations
     include ActiveModel::Conversion
+    include ActiveModel::Presence
 
     included do
       extend ActiveModel::Naming

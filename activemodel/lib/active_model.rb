@@ -40,6 +40,7 @@ module ActiveModel
   autoload :Model
   autoload :Name, 'active_model/naming'
   autoload :Naming
+  autoload :Presence
   autoload :SecurePassword
   autoload :Serialization
   autoload :TestCase
