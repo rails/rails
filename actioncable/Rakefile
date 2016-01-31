@@ -8,6 +8,9 @@ dir = File.dirname(__FILE__)
 
 task :default => :test
 
+task :package => "assets:compile"
+task "package:clean" => "assets:clean"
+
 Rake::TestTask.new do |t|
   t.libs << "test"
   t.test_files = Dir.glob("#{dir}/test/**/*_test.rb")
@@ -17,32 +20,38 @@ Rake::TestTask.new do |t|
 end
 
 namespace :assets do
+  root_path = Pathname.new(dir)
+  destination_path = root_path.join("lib/assets/compiled")
+
   desc "Compile dist/action_cable.js"
   task :compile do
     puts 'Compiling Action Cable assets...'
 
-    asset_mapping = { "source.js" => "action_cable.js" }
+    precompile_list = %w(action_cable.js)
 
-    root_path = Pathname.new(dir)
-    load_path = root_path.join("app/assets/javascripts/action_cable")
-    destination_path = root_path.join("lib/assets/javascripts")
+    environment = Sprockets::Environment.new
+    environment.gzip = false
+    Pathname.glob(root_path.join("app/assets/*/")) do |subdir|
+      environment.append_path subdir
+    end
 
     compile_path = root_path.join("tmp/sprockets")
     compile_path.rmtree if compile_path.exist?
     compile_path.mkpath
 
-    environment = Sprockets::Environment.new
-    environment.append_path(load_path)
-
     manifest = Sprockets::Manifest.new(environment.index, compile_path)
-    manifest.compile(asset_mapping.keys)
+    manifest.compile(precompile_list)
 
-    asset_mapping.each do |logical_path, dist_path|
-      fingerprint_path = manifest.assets[logical_path]
-      FileUtils.cp(compile_path.join(fingerprint_path), destination_path.join(dist_path))
+    destination_path.rmtree if destination_path.exist?
+    manifest.assets.each do |path, fingerprint_path|
+      destination_path.join(path).dirname.mkpath
+      FileUtils.cp(compile_path.join(fingerprint_path), destination_path.join(path))
     end
 
-    puts '======'
-    puts 'Action Cable assets compiled successfully!'
+    puts 'Done'
+  end
+
+  task :clean do
+    destination_path.rmtree if destination_path.exist?
   end
 end

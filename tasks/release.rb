@@ -13,6 +13,7 @@ directory "pkg"
 
     task :clean do
       rm_f gem
+      sh "cd #{framework} && bundle exec rake package:clean" unless framework == "rails"
     end
 
     task :update_versions do
@@ -48,7 +49,7 @@ directory "pkg"
     task gem => %w(update_versions pkg) do
       cmd = ""
       cmd << "cd #{framework} && " unless framework == "rails"
-      cmd << "bundle exec rake assets:compile && " if framework == "actioncable"
+      cmd << "bundle exec rake package && " unless framework == "rails"
       cmd << "gem build #{gemspec} && mv #{framework}-#{version}.gem #{root}/pkg/"
       sh cmd
     end
