@@ -262,9 +262,6 @@ subsequent inbound requests for the same URL.
 
 Think of it as page caching using HTTP semantics.
 
-NOTE: This middleware is always outside of the `Rack::Lock` mutex, even in
-single-threaded applications.
-
 ### Using Rack::Sendfile
 
 When you use the `send_file` method inside a Rails controller, it sets the
