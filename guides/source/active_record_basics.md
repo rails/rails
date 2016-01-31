@@ -474,6 +474,6 @@ end
 ```
 
 That's all there is to it! When configuring your database via the
-`config/database.yml` file, or connecting manually in your model`,
+`config/database.yml` file, or connecting manually in your model,
 connecting to your database and making changes is easy when using Active
 Record.
