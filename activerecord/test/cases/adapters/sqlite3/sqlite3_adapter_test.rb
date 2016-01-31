@@ -400,14 +400,6 @@ module ActiveRecord
         end
       end
 
-      def test_composite_primary_key
-        with_example_table 'id integer, number integer, foo integer, PRIMARY KEY (id, number)' do
-          silence_warnings do
-            assert_nil @conn.primary_key('ex')
-          end
-        end
-      end
-
       def test_supports_extensions
         assert_not @conn.supports_extensions?, 'does not support extensions'
       end
