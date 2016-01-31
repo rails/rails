@@ -139,7 +139,7 @@ The best _solution against it is not to store this kind of data in a session, bu
 
 NOTE: _Apart from stealing a user's session id, the attacker may fix a session id known to them. This is called session fixation._
 
-![Session fixation](images/session_fixation.png)
+![Session fixation](../assets/images/session_fixation.png)
 
 This attack focuses on fixing a user's session id known to the attacker, and forcing the user's browser into using this id. It is therefore not necessary for the attacker to steal the session id afterwards. Here is how this attack works:
 
@@ -194,7 +194,7 @@ Cross-Site Request Forgery (CSRF)
 
 This attack method works by including malicious code or a link in a page that accesses a web application that the user is believed to have authenticated. If the session for that web application has not timed out, an attacker may execute unauthorized commands.
 
-![](images/csrf.png)
+![](../assets/images/csrf.png)
 
 In the [session chapter](#sessions) you have learned that most Rails applications use cookie-based sessions. Either they store the session id in the cookie and have a server-side session hash, or the entire session hash is on the client-side. In either case the browser will automatically send along the cookie on every request to a domain, if it can find a cookie for that domain. The controversial point is that if the request comes from a site of a different domain, it will also send the cookie. Let's start with an example:
 
