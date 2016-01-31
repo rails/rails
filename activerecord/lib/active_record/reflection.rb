@@ -501,14 +501,7 @@ module ActiveRecord
       private
 
         def calculate_constructable(macro, options)
-          case macro
-          when :belongs_to
-            !polymorphic?
-          when :has_one
-            !options[:through]
-          else
-            true
-          end
+          true
         end
 
         # Attempts to find the inverse association name automatically.
@@ -634,6 +627,12 @@ module ActiveRecord
           Associations::HasOneAssociation
         end
       end
+
+      private
+
+        def calculate_constructable(macro, options)
+          !options[:through]
+        end
     end
 
     class BelongsToReflection < AssociationReflection # :nodoc:
@@ -661,6 +660,12 @@ module ActiveRecord
       def join_id_for(owner) # :nodoc:
         owner[foreign_key]
       end
+
+      private
+
+        def calculate_constructable(macro, options)
+          !polymorphic?
+        end
     end
 
     class HasAndBelongsToManyReflection < AssociationReflection # :nodoc:
