@@ -375,3 +375,105 @@ and to roll it back, `rails db:rollback`.
 Note that the above code is database-agnostic: it will run in MySQL,
 PostgreSQL, Oracle and others. You can learn more about migrations in the
 [Active Record Migrations guide](migrations.html).
+
+Connecting to the Database
+----------------------
+
+### `config/database.yml`
+
+When managing connections to the database, the `config/database.yml` file is
+your best friend. This file helps to keep track of the adapter and
+authentication parameters you are using for every database
+environment in your application. This file is automatically
+generated in all new Rails applications that have Active Record
+enabled.
+
+Here's an example of what this file looks like:
+
+```yaml
+default: &default
+  adapter: sqlite3
+  pool: 5
+  timeout: 5000
+
+development:
+  <<: *default
+  database: db/development.sqlite3
+
+test:
+  <<: *default
+  database: db/test.sqlite3
+
+production:
+  <<: *default
+  database: db/production.sqlite3
+```
+
+As you can see, there are 3 different database configurations listed
+above. One for each of the Rails environments for this application
+-- development, test, and production. As well, all three
+environments are sharing the same adapter, pool, and timeout
+settings, so this was extracted out to the "default" group. This
+extraction helps to keep your `config/database.yml` file DRY and easy
+to read.
+
+A small side note before the next topic -- the test database
+configured above will be deleted and restored both before and after
+every test run, so make sure you keep your environments' databases
+separated and siloed.
+
+### Connecting Manually
+
+In some special cases, you may want to establish connections for you
+Active Record models directly inside the model file itself. For this
+purpose, the `establish_connection` function was created. Say for
+example you have a `Message` model, like below:
+
+```ruby
+class Message < ActiveRecord::Base
+end
+```
+
+Also, say you want to have this `Message` model connect to a
+special "msg" database, instead of the one that the rest of the
+application is using. In this case, you would do as follows:
+
+Step 1: Add the `establish_connection` helper method to your model
+file:
+
+```ruby
+class Message < ActiveRecord::Base
+  establish_connection()
+end
+```
+
+Step 2: Add the configuration for this new database to your
+`config/database.yml` file, under the `msg` (or whichever name you
+choose) database name.
+
+Step 3: Turn this database name into a symbol. Remember, using string
+keys here is not supported! In this case, `msg`
+converts simply to `:msg`. If you are unsure of what the symbolized
+database name would be, simply boot up either an `irb` or `rails c`
+session, and type in the name of your database as a String, with a
+`.to_sym` at the end, as follows:
+
+```bash
+irb(main):001:0> "msg".to_sym
+=> :msg
+```
+
+Step 4: The last and final step! Simply use this symbolized
+database name as the sole parameter for the `establish_connection`
+method.
+
+```ruby
+class Message < ActiveRecord::Base
+  establish_connection(:msg)
+end
+```
+
+That's all there is to it! When configuring your database via the
+`config/database.yml` file, or connecting manually in your model`,
+connecting to your database and making changes is easy when using Active
+Record.
