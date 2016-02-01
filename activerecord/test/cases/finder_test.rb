@@ -506,7 +506,7 @@ class FinderTest < ActiveRecord::TestCase
     end
   end
 
-  def test_take_and_first_and_last_with_integer_should_use_sql
+  def test_take_and_first_and_last_with_integer_should_use_sql_limit
     assert_sql(/LIMIT|ROWNUM <=/) { Topic.take(3).entries }
     assert_sql(/LIMIT|ROWNUM <=/) { Topic.first(2).entries }
     assert_sql(/LIMIT|ROWNUM <=/) { Topic.last(5).entries }
@@ -516,30 +516,16 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal Topic.order("title").to_a.last(2), Topic.order("title").last(2)
   end
 
-  def test_last_with_integer_and_order_should_use_sql
-    relation = Topic.order("title")
-    assert_queries(1) { relation.last(5) }
-    assert !relation.loaded?
+  def test_last_with_integer_and_order_should_not_use_sql_limit
+    query = assert_sql { Topic.order("title").last(5).entries }
+    assert_equal 1, query.length
+    assert_no_match(/LIMIT/, query.first)
   end
 
-  def test_last_with_integer_and_reorder_should_use_sql
-    relation = Topic.reorder("title")
-    assert_queries(1) { relation.last(5) }
-    assert !relation.loaded?
-  end
-
-  def test_last_on_loaded_relation_should_not_use_sql
-    relation  = Topic.limit(10).load
-    assert_no_queries do
-      relation.last
-      relation.last(2)
-    end
-  end
-
-  def test_last_with_irreversible_order
-    assert_deprecated do
-      Topic.order("coalesce(author_name, title)").last
-    end
+  def test_last_with_integer_and_reorder_should_not_use_sql_limit
+    query = assert_sql { Topic.reorder("title").last(5).entries }
+    assert_equal 1, query.length
+    assert_no_match(/LIMIT/, query.first)
   end
 
   def test_take_and_first_and_last_with_integer_should_return_an_array

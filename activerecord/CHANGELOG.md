@@ -1,23 +1,3 @@
-*   Rework `ActiveRecord::Relation#last` 
-    
-    1. Always find last with ruby if relation is loaded
-    2. Always use SQL instead if relation is not loaded.
-    3. Deprecated relation loading when SQL order can not be automatically reversed
-
-        Topic.order("title").load.last(3)
-          # before: SELECT ...
-          # after: No SQL
-
-        Topic.order("title").last
-          # before: SELECT * FROM `topics`
-          # after:  SELECT * FROM `topics` ORDER BY `topics`.`title` DESC LIMIT 1
-
-        Topic.order("coalesce(author, title)").last
-          # before: SELECT * FROM `topics`
-          # after:  Deprecation Warning for irreversible order
-
-    *Bogdan Gusiev*
-
 *   `ActiveRecord::Relation#reverse_order` throws `ActiveRecord::IrreversibleOrderError`
     when the order can not be reversed using current trivial algorithm.
     Also raises the same error when `#reverse_order` is called on
