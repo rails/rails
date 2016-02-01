@@ -27,6 +27,7 @@ DEFAULT_APP_FILES = %w(
   config/initializers
   config/locales
   config/cable.yml
+  config/puma.rb
   db
   lib
   lib/tasks
@@ -334,6 +335,14 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
     assert_file "config/environments/production.rb" do |content|
       assert_match(/# config\.action_mailer\.raise_delivery_errors = false/, content)
+    end
+  end
+
+  def test_generator_if_skip_puma_is_given
+    run_generator [destination_root, "--skip-puma"]
+    assert_no_file "config/puma.rb"
+    assert_file "Gemfile" do |content|
+      assert_no_match(/puma/, content)
     end
   end
 
