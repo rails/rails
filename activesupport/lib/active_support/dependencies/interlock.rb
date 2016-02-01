@@ -8,13 +8,13 @@ module ActiveSupport #:nodoc:
       end
 
       def loading
-        @lock.exclusive(purpose: :load, compatible: [:load]) do
+        @lock.exclusive(purpose: :load, compatible: [:load], after_compatible: [:load]) do
           yield
         end
       end
 
       def unloading
-        @lock.exclusive(purpose: :unload, compatible: [:load, :unload]) do
+        @lock.exclusive(purpose: :unload, compatible: [:load, :unload], after_compatible: [:load, :unload]) do
           yield
         end
       end
@@ -24,7 +24,7 @@ module ActiveSupport #:nodoc:
       # concurrent activity, return immediately (without executing the
       # block) instead of waiting.
       def attempt_unloading
-        @lock.exclusive(purpose: :unload, compatible: [:load, :unload], no_wait: true) do
+        @lock.exclusive(purpose: :unload, compatible: [:load, :unload], after_compatible: [:load, :unload], no_wait: true) do
           yield
         end
       end

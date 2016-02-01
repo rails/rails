@@ -114,14 +114,17 @@ class ShareLockTest < ActiveSupport::TestCase
     [true, false].each do |use_upgrading|
       with_thread_waiting_in_lock_section(:sharing) do |sharing_thread_release_latch|
         begin
+          together = Concurrent::CyclicBarrier.new(2)
           conflicting_exclusive_threads = [
             Thread.new do
               @lock.send(use_upgrading ? :sharing : :tap) do
+                together.wait
                 @lock.exclusive(purpose: :red, compatible: [:green, :purple]) {}
               end
             end,
             Thread.new do
               @lock.send(use_upgrading ? :sharing : :tap) do
+                together.wait
                 @lock.exclusive(purpose: :blue, compatible: [:green]) {}
               end
             end
@@ -183,11 +186,14 @@ class ShareLockTest < ActiveSupport::TestCase
     load_params   = [:load,   [:load]]
     unload_params = [:unload, [:unload, :load]]
 
+    all_sharing = Concurrent::CyclicBarrier.new(4)
+
     [load_params, load_params, unload_params, unload_params].permutation do |thread_params|
       with_thread_waiting_in_lock_section(:sharing) do |sharing_thread_release_latch|
         threads = thread_params.map do |purpose, compatible|
           Thread.new do
             @lock.sharing do
+              all_sharing.wait
               @lock.exclusive(purpose: purpose, compatible: compatible) do
                 scratch_pad_mutex.synchronize { scratch_pad << purpose }
               end
@@ -207,6 +213,78 @@ class ShareLockTest < ActiveSupport::TestCase
         end
       end
     end
+  end
+
+  def test_new_share_attempts_block_on_waiting_exclusive
+    with_thread_waiting_in_lock_section(:sharing) do |sharing_thread_release_latch|
+      release_exclusive = Concurrent::CountDownLatch.new
+
+      waiting_exclusive = Thread.new do
+        @lock.sharing do
+          @lock.exclusive do
+            release_exclusive.wait
+          end
+        end
+      end
+      assert_threads_stuck waiting_exclusive
+
+      late_share_attempt = Thread.new do
+        @lock.sharing {}
+      end
+      assert_threads_stuck late_share_attempt
+
+      sharing_thread_release_latch.count_down
+      assert_threads_stuck late_share_attempt
+
+      release_exclusive.count_down
+      assert_threads_not_stuck late_share_attempt
+    end
+  end
+
+  def test_share_remains_reentrant_ignoring_a_waiting_exclusive
+    with_thread_waiting_in_lock_section(:sharing) do |sharing_thread_release_latch|
+      ready = Concurrent::CyclicBarrier.new(2)
+      attempt_reentrancy = Concurrent::CountDownLatch.new
+
+      sharer = Thread.new do
+        @lock.sharing do
+          ready.wait
+          attempt_reentrancy.wait
+          @lock.sharing {}
+        end
+      end
+
+      exclusive = Thread.new do
+        @lock.sharing do
+          ready.wait
+          @lock.exclusive {}
+        end
+      end
+
+      assert_threads_stuck exclusive
+
+      attempt_reentrancy.count_down
+
+      assert_threads_not_stuck sharer
+      assert_threads_stuck exclusive
+    end
+  end
+
+  def test_compatible_exclusives_cooperate_to_both_proceed
+    ready = Concurrent::CyclicBarrier.new(2)
+    done = Concurrent::CyclicBarrier.new(2)
+
+    threads = 2.times.map do
+      Thread.new do
+        @lock.sharing do
+          ready.wait
+          @lock.exclusive(purpose: :x, compatible: [:x], after_compatible: [:x]) {}
+          done.wait
+        end
+      end
+    end
+
+    assert_threads_not_stuck threads
   end
 
   def test_in_shared_section_incompatible_non_upgrading_threads_cannot_preempt_upgrading_threads
