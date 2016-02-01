@@ -1,5 +1,6 @@
 require 'active_record/connection_adapters/abstract_adapter'
 require 'active_record/connection_adapters/statement_pool'
+require 'active_record/connection_adapters/sqlite3/explain_pretty_printer'
 require 'active_record/connection_adapters/sqlite3/schema_creation'
 
 gem 'sqlite3', '~> 1.3.6'
@@ -218,21 +219,7 @@ module ActiveRecord
 
       def explain(arel, binds = [])
         sql = "EXPLAIN QUERY PLAN #{to_sql(arel, binds)}"
-        ExplainPrettyPrinter.new.pp(exec_query(sql, 'EXPLAIN', []))
-      end
-
-      class ExplainPrettyPrinter
-        # Pretty prints the result of an EXPLAIN QUERY PLAN in a way that resembles
-        # the output of the SQLite shell:
-        #
-        #   0|0|0|SEARCH TABLE users USING INTEGER PRIMARY KEY (rowid=?) (~1 rows)
-        #   0|1|1|SCAN TABLE posts (~100000 rows)
-        #
-        def pp(result) # :nodoc:
-          result.rows.map do |row|
-            row.join('|')
-          end.join("\n") + "\n"
-        end
+        SQLite3::ExplainPrettyPrinter.new.pp(exec_query(sql, 'EXPLAIN', []))
       end
 
       def exec_query(sql, name = nil, binds = [], prepare: false)
