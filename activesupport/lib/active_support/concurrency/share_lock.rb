@@ -85,7 +85,7 @@ module ActiveSupport
 
       def start_sharing(purpose: :share)
         synchronize do
-          if busy_for_sharing?(purpose)
+          if @sharing[Thread.current] == 0 && @exclusive_thread != Thread.current && busy_for_sharing?(purpose)
             @cv.wait_while { busy_for_sharing?(purpose) }
           end
           @sharing[Thread.current] += 1

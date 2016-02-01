@@ -241,6 +241,35 @@ class ShareLockTest < ActiveSupport::TestCase
     end
   end
 
+  def test_share_remains_reentrant_ignoring_a_waiting_exclusive
+    with_thread_waiting_in_lock_section(:sharing) do |sharing_thread_release_latch|
+      ready = Concurrent::CyclicBarrier.new(2)
+      attempt_reentrancy = Concurrent::CountDownLatch.new
+
+      sharer = Thread.new do
+        @lock.sharing do
+          ready.wait
+          attempt_reentrancy.wait
+          @lock.sharing {}
+        end
+      end
+
+      exclusive = Thread.new do
+        @lock.sharing do
+          ready.wait
+          @lock.exclusive {}
+        end
+      end
+
+      assert_threads_stuck exclusive
+
+      attempt_reentrancy.count_down
+
+      assert_threads_not_stuck sharer
+      assert_threads_stuck exclusive
+    end
+  end
+
   def test_in_shared_section_incompatible_non_upgrading_threads_cannot_preempt_upgrading_threads
     scratch_pad       = []
     scratch_pad_mutex = Mutex.new
