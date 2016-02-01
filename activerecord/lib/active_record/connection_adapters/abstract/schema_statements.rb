@@ -115,7 +115,7 @@ module ActiveRecord
         checks = []
         checks << lambda { |c| c.name == column_name }
         checks << lambda { |c| c.type == type } if type
-        [:limit, :precision, :scale, :default, :null].each do |attr|
+        (migration_keys - [:name]).each do |attr|
           checks << lambda { |c| c.send(attr) == options[attr] } if options.key?(attr)
         end
 
@@ -979,6 +979,10 @@ module ActiveRecord
 
       def initialize_internal_metadata_table
         ActiveRecord::InternalMetadata.create_table
+      end
+
+      def internal_string_options_for_primary_key # :nodoc:
+        { primary_key: true }
       end
 
       def assume_migrated_upto_version(version, migrations_paths)
