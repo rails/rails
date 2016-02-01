@@ -357,14 +357,14 @@ class MigrationTest < ActiveRecord::TestCase
   def test_internal_metadata_table_name
     original_internal_metadata_table_name = ActiveRecord::Base.internal_metadata_table_name
 
-    assert_equal "active_record_internal_metadatas", ActiveRecord::InternalMetadata.table_name
-    ActiveRecord::Base.table_name_prefix = "prefix_"
-    ActiveRecord::Base.table_name_suffix = "_suffix"
+    assert_equal "ar_internal_metadata", ActiveRecord::InternalMetadata.table_name
+    ActiveRecord::Base.table_name_prefix = "p_"
+    ActiveRecord::Base.table_name_suffix = "_s"
     Reminder.reset_table_name
-    assert_equal "prefix_active_record_internal_metadatas_suffix", ActiveRecord::InternalMetadata.table_name
+    assert_equal "p_ar_internal_metadata_s", ActiveRecord::InternalMetadata.table_name
     ActiveRecord::Base.internal_metadata_table_name = "changed"
     Reminder.reset_table_name
-    assert_equal "prefix_changed_suffix", ActiveRecord::InternalMetadata.table_name
+    assert_equal "p_changed_s", ActiveRecord::InternalMetadata.table_name
     ActiveRecord::Base.table_name_prefix = ""
     ActiveRecord::Base.table_name_suffix = ""
     Reminder.reset_table_name
@@ -424,6 +424,21 @@ class MigrationTest < ActiveRecord::TestCase
     ActiveRecord::Migrator.migrations_paths = old_path
     ENV["RAILS_ENV"] = original_rails_env
     ENV["RACK_ENV"]  = original_rack_env
+  end
+
+  def test_rename_internal_metadata_table
+    original_internal_metadata_table_name = ActiveRecord::Base.internal_metadata_table_name
+
+    ActiveRecord::Base.internal_metadata_table_name = "active_record_internal_metadatas"
+    Reminder.reset_table_name
+
+    ActiveRecord::Base.internal_metadata_table_name = original_internal_metadata_table_name
+    Reminder.reset_table_name
+
+    assert_equal "ar_internal_metadata", ActiveRecord::InternalMetadata.table_name
+  ensure
+    ActiveRecord::Base.internal_metadata_table_name = original_internal_metadata_table_name
+    Reminder.reset_table_name
   end
 
   def test_proper_table_name_on_migration

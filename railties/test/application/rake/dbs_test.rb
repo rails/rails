@@ -222,14 +222,14 @@ module ApplicationTests
 
           assert_equal '["posts"]', list_tables[]
           `bin/rails db:schema:load`
-          assert_equal '["posts", "comments", "schema_migrations", "active_record_internal_metadatas"]', list_tables[]
+          assert_equal '["posts", "comments", "schema_migrations", "ar_internal_metadata"]', list_tables[]
 
           app_file 'db/structure.sql', <<-SQL
             CREATE TABLE "users" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "name" varchar(255));
           SQL
 
           `bin/rails db:structure:load`
-          assert_equal '["posts", "comments", "schema_migrations", "active_record_internal_metadatas", "users"]', list_tables[]
+          assert_equal '["posts", "comments", "schema_migrations", "ar_internal_metadata", "users"]', list_tables[]
         end
       end
 
