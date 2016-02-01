@@ -1,19 +1,6 @@
 module ActiveRecord
   module AttributeMethods
     module Write
-      WriterMethodCache = Class.new(AttributeMethodCache) {
-        private
-
-        def method_body(method_name, const_name)
-          <<-EOMETHOD
-          def #{method_name}(value)
-            name = ::ActiveRecord::AttributeMethods::AttrNames::ATTR_#{const_name}
-            write_attribute(name, value)
-          end
-          EOMETHOD
-        end
-      }.new
-
       extend ActiveSupport::Concern
 
       included do
