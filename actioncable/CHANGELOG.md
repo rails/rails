@@ -1,3 +1,8 @@
+## Rails 5.0.0.beta2 (February 01, 2016) ##
+
+*   No changes.
+
+
 *   Create notion of an `ActionCable::SubscriptionAdapter`.
     Separate out Redis functionality into
     `ActionCable::SubscriptionAdapter::Redis`, and add a

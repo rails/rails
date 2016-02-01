@@ -1,3 +1,8 @@
+## Rails 5.0.0.beta2 (February 01, 2016) ##
+
+*   No changes.
+
+
 *   Fix stripping the digest from the automatically generated img tag alt
     attribute when assets are handled by Sprockets >=3.0.
 
