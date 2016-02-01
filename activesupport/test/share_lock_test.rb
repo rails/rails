@@ -270,6 +270,23 @@ class ShareLockTest < ActiveSupport::TestCase
     end
   end
 
+  def test_compatible_exclusives_cooperate_to_both_proceed
+    ready = Concurrent::CyclicBarrier.new(2)
+    done = Concurrent::CyclicBarrier.new(2)
+
+    threads = 2.times.map do
+      Thread.new do
+        @lock.sharing do
+          ready.wait
+          @lock.exclusive(purpose: :x, compatible: [:x], after_compatible: [:x]) {}
+          done.wait
+        end
+      end
+    end
+
+    assert_threads_not_stuck threads
+  end
+
   def test_in_shared_section_incompatible_non_upgrading_threads_cannot_preempt_upgrading_threads
     scratch_pad       = []
     scratch_pad_mutex = Mutex.new

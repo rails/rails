@@ -51,14 +51,8 @@ module ActiveSupport
             if busy_for_exclusive?(purpose)
               return false if no_wait
 
-              loose_shares = @sharing.delete(Thread.current)
-              @waiting[Thread.current] = compatible if loose_shares
-
-              begin
+              yield_shares(purpose, compatible) do
                 @cv.wait_while { busy_for_exclusive?(purpose) }
-              ensure
-                @waiting.delete Thread.current
-                @sharing[Thread.current] = loose_shares if loose_shares
               end
             end
             @exclusive_thread = Thread.current
@@ -71,14 +65,18 @@ module ActiveSupport
 
       # Relinquish the exclusive lock. Must only be called by the thread
       # that called start_exclusive (and currently holds the lock).
-      def stop_exclusive
+      def stop_exclusive(compatible: [])
         synchronize do
           raise "invalid unlock" if @exclusive_thread != Thread.current
 
           @exclusive_depth -= 1
           if @exclusive_depth == 0
             @exclusive_thread = nil
-            @cv.broadcast
+
+            yield_shares(nil, compatible) do
+              @cv.broadcast
+              @cv.wait_while { @exclusive_thread || eligible_waiters?(compatible) }
+            end
           end
         end
       end
@@ -109,12 +107,12 @@ module ActiveSupport
       # the block.
       #
       # See +start_exclusive+ for other options.
-      def exclusive(purpose: nil, compatible: [], no_wait: false)
+      def exclusive(purpose: nil, compatible: [], after_compatible: [], no_wait: false)
         if start_exclusive(purpose: purpose, compatible: compatible, no_wait: no_wait)
           begin
             yield
           ensure
-            stop_exclusive
+            stop_exclusive(compatible: after_compatible)
           end
         end
       end
@@ -139,7 +137,23 @@ module ActiveSupport
 
       def busy_for_sharing?(purpose)
         (@exclusive_thread && @exclusive_thread != Thread.current) ||
-          @waiting.any? { |k, v| k != Thread.current && !v.include?(purpose) }
+          @waiting.any? { |t, (_, c)| t != Thread.current && !c.include?(purpose) }
+      end
+
+      def eligible_waiters?(compatible)
+        @waiting.any? { |t, (p, _)| compatible.include?(p) && @waiting.all? { |t2, (_, c2)| t == t2 || c2.include?(p) } }
+      end
+
+      def yield_shares(purpose, compatible)
+        loose_shares = @sharing.delete(Thread.current)
+        @waiting[Thread.current] = [purpose, compatible] if loose_shares
+
+        begin
+          yield
+        ensure
+          @waiting.delete Thread.current
+          @sharing[Thread.current] = loose_shares if loose_shares
+        end
       end
     end
   end
