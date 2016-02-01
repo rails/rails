@@ -55,7 +55,9 @@ module ActiveRecord
 
       def test_composite_primary_key
         with_example_table 'id serial, number serial, PRIMARY KEY (id, number)' do
-          assert_nil @connection.primary_key('ex')
+          silence_warnings do
+            assert_nil @connection.primary_key('ex')
+          end
         end
       end
 
