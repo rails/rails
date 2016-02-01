@@ -262,7 +262,7 @@ class CompositePrimaryKeyTest < ActiveRecord::TestCase
 
   def test_primary_key_issues_warning
     warning = capture(:stderr) do
-      @connection.primary_key("barcodes")
+      assert_nil @connection.primary_key("barcodes")
     end
     assert_match(/WARNING: Rails does not support composite primary key\./, warning)
   end
