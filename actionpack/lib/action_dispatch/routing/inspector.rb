@@ -60,8 +60,7 @@ module ActionDispatch
       end
 
       def format(formatter, filter = nil)
-        filter_options = normalize_filter(filter)
-        routes_to_display = filter_routes(filter_options)
+        routes_to_display = filter_routes(normalize_filter(filter))
         routes = collect_routes(routes_to_display)
         if routes.none?
           formatter.no_routes(collect_routes(@routes))
@@ -89,10 +88,10 @@ module ActionDispatch
         end
       end
 
-      def filter_routes(filter_options)
-        if filter_options
+      def filter_routes(filter)
+        if filter
           @routes.select do |route|
-            filter_options.any? { |default, filter| route.defaults[default] =~ filter }
+            filter.any? { |default, value| route.defaults[default] =~ value }
           end
         else
           @routes
