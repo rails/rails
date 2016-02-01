@@ -105,7 +105,7 @@ $ git checkout -b testing_branch
 Then you can use their remote branch to update your codebase. For example, let's say the GitHub user JohnSmith has forked and pushed to a topic branch "orange" located at https://github.com/JohnSmith/rails.
 
 ```bash
-$ git remote add JohnSmith git://github.com/JohnSmith/rails.git
+$ git remote add JohnSmith https://github.com/JohnSmith/rails
 $ git pull JohnSmith orange
 ```
 
@@ -204,7 +204,7 @@ In case you can't use the Rails development box, see [this other guide](developm
 To be able to contribute code, you need to clone the Rails repository:
 
 ```bash
-$ git clone git://github.com/rails/rails.git
+$ git clone https://github.com/rails/rails
 ```
 
 and create a dedicated branch:
@@ -506,7 +506,7 @@ Navigate to the Rails [GitHub repository](https://github.com/rails/rails) and pr
 Add the new remote to your local repository on your local machine:
 
 ```bash
-$ git remote add mine git@github.com:<your user name>/rails.git
+$ git remote add mine https://github.com:<your user name>/rails
 ```
 
 Push to your remote:
@@ -520,7 +520,7 @@ You might have cloned your forked repository into your machine and might want to
 In the directory you cloned your fork:
 
 ```bash
-$ git remote add rails git://github.com/rails/rails.git
+$ git remote add rails https://github.com/rails/rails
 ```
 
 Download new commits and branches from the official repository:
@@ -605,7 +605,7 @@ Rails repository. This is useful anyway, but just in case you don't have it set
 up, make sure that you do this first:
 
 ```bash
-$ git remote add upstream https://github.com/rails/rails.git
+$ git remote add upstream https://github.com/rails/rails
 ```
 
 You can call this remote whatever you'd like, but if you don't use `upstream`,
