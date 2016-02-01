@@ -48,14 +48,14 @@ module ActiveSupport
       def start_exclusive(purpose: nil, compatible: [], no_wait: false)
         synchronize do
           unless @exclusive_thread == Thread.current
-            if busy?(purpose)
+            if busy_for_exclusive?(purpose)
               return false if no_wait
 
               loose_shares = @sharing.delete(Thread.current)
               @waiting[Thread.current] = compatible if loose_shares
 
               begin
-                @cv.wait_while { busy?(purpose) }
+                @cv.wait_while { busy_for_exclusive?(purpose) }
               ensure
                 @waiting.delete Thread.current
                 @sharing[Thread.current] = loose_shares if loose_shares
@@ -83,10 +83,10 @@ module ActiveSupport
         end
       end
 
-      def start_sharing
+      def start_sharing(purpose: :share)
         synchronize do
-          if @exclusive_thread && @exclusive_thread != Thread.current
-            @cv.wait_while { @exclusive_thread }
+          if busy_for_sharing?(purpose)
+            @cv.wait_while { busy_for_sharing?(purpose) }
           end
           @sharing[Thread.current] += 1
         end
@@ -132,10 +132,14 @@ module ActiveSupport
       private
 
       # Must be called within synchronize
-      def busy?(purpose)
-        (@exclusive_thread && @exclusive_thread != Thread.current) ||
-          @waiting.any? { |k, v| k != Thread.current && !v.include?(purpose) } ||
+      def busy_for_exclusive?(purpose)
+        busy_for_sharing?(purpose) ||
           @sharing.size > (@sharing[Thread.current] > 0 ? 1 : 0)
+      end
+
+      def busy_for_sharing?(purpose)
+        (@exclusive_thread && @exclusive_thread != Thread.current) ||
+          @waiting.any? { |k, v| k != Thread.current && !v.include?(purpose) }
       end
     end
   end
