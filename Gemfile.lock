@@ -285,6 +285,7 @@ DEPENDENCIES
   delayed_job_active_record
   em-hiredis
   faye-websocket
+  hiredis
   jquery-rails
   json
   kindlerb (= 0.1.1)
