@@ -86,6 +86,7 @@ module ActionDispatch
         end
         # Load routes.rb if it hasn't been loaded.
 
+        options = options.clone
         generated_path, query_string_keys = @routes.generate_extras(options, defaults)
         found_extras = options.reject { |k, _| ! query_string_keys.include? k }
 
