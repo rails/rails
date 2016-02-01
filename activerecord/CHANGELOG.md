@@ -1,8 +1,5 @@
 ## Rails 5.0.0.beta2 (February 01, 2016) ##
 
-*   No changes.
-
-
 *   `ActiveRecord::Relation#reverse_order` throws `ActiveRecord::IrreversibleOrderError`
     when the order can not be reversed using current trivial algorithm.
     Also raises the same error when `#reverse_order` is called on

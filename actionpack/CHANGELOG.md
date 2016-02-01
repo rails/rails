@@ -1,8 +1,5 @@
 ## Rails 5.0.0.beta2 (February 01, 2016) ##
 
-*   No changes.
-
-
 *   Add `-g` and `-c` (short for _grep_ and _controller_ respectively) options
     to `bin/rake routes`. These options return the url `name`, `verb` and
     `path` field that match the pattern or match a specific controller.

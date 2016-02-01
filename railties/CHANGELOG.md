@@ -1,8 +1,5 @@
 ## Rails 5.0.0.beta2 (February 01, 2016) ##
 
-*   No changes.
-
-
 *   Add `after_bundle` callbacks in Rails plugin templates.  Useful for allowing
     templates to perform actions that are dependent upon `bundle install`.
 
@@ -25,6 +22,7 @@
 *   Fix using `add_source` with a block after using `gem` in a custom generator.
 
     *Will Fisher*
+
 
 ## Rails 5.0.0.beta1 (December 18, 2015) ##
 

@@ -1,8 +1,5 @@
 ## Rails 5.0.0.beta2 (February 01, 2016) ##
 
-*   No changes.
-
-
 *   Change number_to_currency behavior for checking negativity.
 
     Used `to_f.negative` instead of using `to_f.phase` for checking negativity
