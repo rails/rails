@@ -183,11 +183,11 @@
 *   Accessing mime types via constants like `Mime::HTML` is deprecated. Please
     change code like this:
 
-      Mime::HTML
+        Mime::HTML
 
     To this:
 
-      Mime[:html]
+        Mime[:html]
 
     This change is so that Rails will not manage a list of constants, and fixes
     an issue where if a type isn't registered you could possibly get the wrong
