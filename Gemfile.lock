@@ -31,7 +31,6 @@ PATH
   specs:
     actioncable (5.0.0.beta1.1)
       actionpack (= 5.0.0.beta1.1)
-      coffee-rails (~> 4.1.0)
       nio4r (~> 1.2)
       websocket-driver (~> 0.6.1)
     actionmailer (5.0.0.beta1.1)
