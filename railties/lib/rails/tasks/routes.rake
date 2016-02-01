@@ -15,7 +15,7 @@ task routes: :environment do
   end
 
   routes_filter = nil
-  routes_filter = {controller: ENV['CONTROLLER']} if ENV['CONTROLLER']
+  routes_filter = { controller: ENV['CONTROLLER'] } if ENV['CONTROLLER']
 
   OptionParser.new do |opts|
     opts.banner = "Usage: rake routes [options]"
