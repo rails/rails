@@ -16,22 +16,17 @@ module ActiveRecord
         "#{table_name_prefix}#{ActiveRecord::Base.schema_migrations_table_name}#{table_name_suffix}"
       end
 
-      def index_name
-        "#{table_name_prefix}unique_#{ActiveRecord::Base.schema_migrations_table_name}#{table_name_suffix}"
-      end
-
       def table_exists?
         ActiveSupport::Deprecation.silence { connection.table_exists?(table_name) }
       end
 
       def create_table(limit=nil)
         unless table_exists?
-          version_options = {null: false}
+          version_options = { primary_key: true }
           version_options[:limit] = limit if limit
 
           connection.create_table(table_name, id: false) do |t|
-            t.column :version, :string, version_options
-            t.index  :version, unique: true, name: index_name
+            t.string :version, version_options
           end
         end
       end

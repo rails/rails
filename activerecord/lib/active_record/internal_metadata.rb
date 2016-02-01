@@ -18,10 +18,6 @@ module ActiveRecord
         "#{table_name_prefix}#{ActiveRecord::Base.internal_metadata_table_name}#{table_name_suffix}"
       end
 
-      def index_name
-        "#{table_name_prefix}unique_#{ActiveRecord::Base.internal_metadata_table_name}#{table_name_suffix}"
-      end
-
       def []=(key, value)
         first_or_initialize(key: key).update_attributes!(value: value)
       end
@@ -38,10 +34,8 @@ module ActiveRecord
       def create_table
         unless table_exists?
           connection.create_table(table_name, id: false) do |t|
-            t.column :key,   :string, null: false, limit: KEY_LIMIT
-            t.column :value, :string
-            t.index  :key, unique: true, name: index_name
-
+            t.string :key, primary_key: true, limit: KEY_LIMIT
+            t.string :value
             t.timestamps
           end
         end
