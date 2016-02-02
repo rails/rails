@@ -594,10 +594,6 @@ module ActiveRecord
     end
 
     class HasManyReflection < AssociationReflection # :nodoc:
-      def initialize(name, scope, options, active_record)
-        super(name, scope, options, active_record)
-      end
-
       def macro; :has_many; end
 
       def collection?; true; end
@@ -612,10 +608,6 @@ module ActiveRecord
     end
 
     class HasOneReflection < AssociationReflection # :nodoc:
-      def initialize(name, scope, options, active_record)
-        super(name, scope, options, active_record)
-      end
-
       def macro; :has_one; end
 
       def has_one?; true; end
@@ -636,10 +628,6 @@ module ActiveRecord
     end
 
     class BelongsToReflection < AssociationReflection # :nodoc:
-      def initialize(name, scope, options, active_record)
-        super(name, scope, options, active_record)
-      end
-
       def macro; :belongs_to; end
 
       def belongs_to?; true; end
