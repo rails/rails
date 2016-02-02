@@ -147,12 +147,11 @@ module AbstractController
         options = action
       when String, Symbol
         action = action.to_s
-        key = action.include?(?/) ? :file : :action
+        key = action.include?(?/) ? :app_template_file : :action
         options[key] = action
       else
         options[:partial] = action
       end
-
       options
     end
 

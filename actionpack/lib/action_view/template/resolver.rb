@@ -43,7 +43,13 @@ module ActionView
     # Normalizes the arguments and passes it on to find_template.
     def find_all(name, prefix=nil, partial=false, details={}, key=nil, locals=[])
       cached(key, [name, prefix, partial], details, locals) do
-        find_templates(name, prefix, partial, details)
+        find_templates(name, prefix, partial, details, false)
+      end
+    end
+
+    def find_all_anywhere(name, prefix, partial=false, details={}, key=nil, locals=[])
+      cached(key, [name, prefix, partial], details, locals) do
+        find_templates(name, prefix, partial, details, true)
       end
     end
 
@@ -54,8 +60,8 @@ module ActionView
     # This is what child classes implement. No defaults are needed
     # because Resolver guarantees that the arguments are present and
     # normalized.
-    def find_templates(name, prefix, partial, details)
-      raise NotImplementedError, "Subclasses must implement a find_templates(name, prefix, partial, details) method"
+    def find_templates(name, prefix, partial, details, outside_app_allowed = false)
+      raise NotImplementedError, "Subclasses must implement a find_templates(name, prefix, partial, details, outside_app_allowed) method"
     end
 
     # Helpers that builds a path. Useful for building virtual paths.
@@ -110,24 +116,21 @@ module ActionView
       super()
     end
 
-    cattr_accessor :allow_external_files, :instance_reader => false, :instance_writer => false
-    self.allow_external_files = false
+    cattr_accessor :instance_reader => false, :instance_writer => false
 
     private
 
-    def find_templates(name, prefix, partial, details)
+    def find_templates(name, prefix, partial, details, outside_app_allowed = false)
       path = Path.build(name, prefix, partial)
-      query(path, details, details[:formats])
+      query(path, details, details[:formats], outside_app_allowed)
     end
 
-    def query(path, details, formats)
+    def query(path, details, formats, outside_app_allowed)
       query = build_query(path, details)
 
       template_paths = find_template_paths query
 
-      unless self.class.allow_external_files
-        template_paths = reject_files_external_to_app(template_paths)
-      end
+      template_paths = reject_files_external_to_app(template_paths) unless outside_app_allowed
 
       template_paths.map { |template|
         handler, format = extract_handler_and_format(template, formats)
@@ -267,7 +270,12 @@ module ActionView
   class OptimizedFileSystemResolver < FileSystemResolver #:nodoc:
     def build_query(path, details)
       exts = EXTENSIONS.map { |ext| details[ext] }
-      query = escape_entry(File.join(@path, path))
+
+      if path.to_s.starts_with? @path.to_s
+        query = escape_entry(path)
+      else
+        query = escape_entry(File.join(@path, path))
+      end
 
       query + exts.map { |ext|
         "{#{ext.compact.uniq.map { |e| ".#{e}," }.join}}"

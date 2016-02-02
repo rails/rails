@@ -127,6 +127,10 @@ module ActionView
         @view_paths.find_all(*args_for_lookup(name, prefixes, partial, keys, options))
       end
 
+      def find_file(name, prefixes = [], partial = false, keys = [], options = {})
+        @view_paths.find_file(*args_for_lookup(name, prefixes, partial, keys, options))
+      end
+
       def exists?(name, prefixes = [], partial = false, keys = [], options = {})
         @view_paths.exists?(*args_for_lookup(name, prefixes, partial, keys, options))
       end

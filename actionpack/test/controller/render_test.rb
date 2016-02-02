@@ -245,33 +245,6 @@ class TestController < ActionController::Base
     render :inline =>  "<%= action_name %>"
   end
 
-  def test_dynamic_render_with_file
-    # This is extremely bad, but should be possible to do.
-    assert File.exist?(File.join(File.dirname(__FILE__), '../../test/abstract_unit.rb'))
-    response = get :dynamic_render_with_file, { :id => '../\\../test/abstract_unit.rb' }
-    assert_equal File.read(File.join(File.dirname(__FILE__), '../../test/abstract_unit.rb')),
-      response.body
-  end
-
-  def test_dynamic_render_with_absolute_path
-    file = Tempfile.new('name')
-    file.write "secrets!"
-    file.flush
-    assert_raises ActionView::MissingTemplate do
-      response = get :dynamic_render, { :id => file.path }
-    end
-  ensure
-    file.close
-    file.unlink
-  end
-
-  def test_dynamic_render
-    assert File.exist?(File.join(File.dirname(__FILE__), '../../test/abstract_unit.rb'))
-    assert_raises ActionView::MissingTemplate do
-      get :dynamic_render, { :id => '../\\../test/abstract_unit.rb' }
-    end
-  end
-
   def test_dynamic_render_file_hash
     assert_raises ArgumentError do
       get :dynamic_render, { :id => { :file => '../\\../test/abstract_unit.rb' } }
@@ -779,6 +752,35 @@ class RenderTest < ActionController::TestCase
     @controller.logger = Logger.new(nil)
 
     @request.host = "www.nextangle.com"
+    ActionController::Base.view_paths.paths.each(&:clear_cache)
+  end
+
+  def test_dynamic_render_with_file
+    # This is extremely bad, but should be possible to do.
+    assert File.exist?(File.join(File.dirname(__FILE__), '../../test/abstract_unit.rb'))
+    response = get :dynamic_render_with_file, { :id => '../\\../test/abstract_unit.rb' }
+    assert_equal File.read(File.join(File.dirname(__FILE__), '../../test/abstract_unit.rb')),
+      response.body
+  end
+
+  # :ported:
+  def test_dynamic_render_with_absolute_path
+    file = Tempfile.new('name')
+    file.write "secrets!"
+    file.flush
+    assert_raises ActionView::MissingTemplate do
+      get :dynamic_render, { :id => file.path }
+    end
+  ensure
+    file.close
+    file.unlink
+  end
+
+  def test_dynamic_render
+    assert File.exist?(File.join(File.dirname(__FILE__), '../../test/abstract_unit.rb'))
+    assert_raises ActionView::MissingTemplate do
+      get :dynamic_render, { :id => '../\\../test/abstract_unit.rb' }
+    end
   end
 
   # :ported:
