@@ -101,6 +101,18 @@ module ActiveRecord
         assert connection.columns(:testings).find { |c| c.name == 'created_at' }.null
         assert connection.columns(:testings).find { |c| c.name == 'updated_at' }.null
       end
+
+      def test_legacy_migrations_get_deprecation_warning_when_run
+        migration = Class.new(ActiveRecord::Migration) {
+          def up
+            add_column :testings, :baz, :string
+          end
+        }
+
+        assert_deprecated do
+          migration.migrate :up
+        end
+      end
     end
   end
 end
