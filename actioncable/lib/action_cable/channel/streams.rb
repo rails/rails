@@ -41,22 +41,23 @@ module ActionCable
     # Example below shows how you can use this to provide performance introspection in the process:
     #
     #   class ChatChannel < ApplicationCable::Channel
-    #    def subscribed
-    #      @room = Chat::Room[params[:room_number]]
+    #     def subscribed
+    #       @room = Chat::Room[params[:room_number]]
     #
-    #      stream_for @room, -> (encoded_message) do
-    #        message = ActiveSupport::JSON.decode(encoded_message)
+    #       stream_for @room, -> (encoded_message) do
+    #         message = ActiveSupport::JSON.decode(encoded_message)
     #
-    #        if message['originated_at'].present?
-    #          elapsed_time = (Time.now.to_f - message['originated_at']).round(2)
+    #         if message['originated_at'].present?
+    #           elapsed_time = (Time.now.to_f - message['originated_at']).round(2)
     #
-    #          ActiveSupport::Notifications.instrument :performance, measurement: 'Chat.message_delay', value: elapsed_time, action: :timing
-    #          logger.info "Message took #{elapsed_time}s to arrive"
-    #        end
+    #           ActiveSupport::Notifications.instrument :performance, measurement: 'Chat.message_delay', value: elapsed_time, action: :timing
+    #           logger.info "Message took #{elapsed_time}s to arrive"
+    #         end
     #
-    #        transmit message
-    #      end
-    #    end
+    #         transmit message
+    #       end
+    #     end
+    #   end
     #
     # You can stop streaming from all broadcasts by calling #stop_all_streams.
     module Streams
@@ -90,6 +91,7 @@ module ActionCable
         stream_from(broadcasting_for([ channel_name, model ]), callback)
       end
 
+      # Unsubscribes all streams associated with this channel from the pubsub queue.
       def stop_all_streams
         streams.each do |broadcasting, callback|
           pubsub.unsubscribe broadcasting, callback
