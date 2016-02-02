@@ -767,7 +767,7 @@ Why do you have to bother? The ability to grab and automatically assign all
 controller parameters to your model in one shot makes the programmer's job
 easier, but this convenience also allows malicious use. What if a request to
 the server was crafted to look like a new article form submit but also included
-extra fields with values that violated your applications integrity? They would
+extra fields with values that violated your application's integrity? They would
 be 'mass assigned' into your model and then into the database along with the
 good stuff - potentially breaking your application or worse.
 
@@ -1540,7 +1540,7 @@ This is very similar to the `Article` model that you saw earlier. The difference
 is the line `belongs_to :article`, which sets up an Active Record _association_.
 You'll learn a little about associations in the next section of this guide.
 
-The (`:references`) keyword used in the bash command is a special data type for models. 
+The (`:references`) keyword used in the bash command is a special data type for models.
 It creates a new column on your database table with the provided model name appended with an `_id`
 that can hold integer values. You can get a better understanding after analyzing the
 `db/schema.rb` file below.
