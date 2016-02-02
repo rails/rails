@@ -1,3 +1,9 @@
+*   Added a configuration option to have active record raise an ArgumentError
+    if the order or limit is ignored in a batch query, rather than logging a
+    warning message.
+
+    *Scott Ringwelski*
+
 *   Bumped the minimum supported version of PostgreSQL to >= 9.1.
     Both PG 9.0 and 8.4 are past their end of life date:
     http://www.postgresql.org/support/versioning/

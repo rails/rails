@@ -72,6 +72,14 @@ module ActiveRecord
 
       ##
       # :singleton-method:
+      # Specifies if an error should be raised on query limit or order being
+      # ignored when doing batch queries. Useful in applications where the
+      # limit or scope being ignored is error-worthy, rather than a warning.
+      mattr_accessor :error_on_ignored_order_or_limit, instance_writer: false
+      self.error_on_ignored_order_or_limit = false
+
+      ##
+      # :singleton-method:
       # Specify whether or not to use timestamps for migration versions
       mattr_accessor :timestamped_migrations, instance_writer: false
       self.timestamped_migrations = true
