@@ -413,17 +413,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_generator_if_skip_action_cable_is_given_for_an_api_app
-    run_generator [destination_root, "--skip-action-cable", "--api"]
-    assert_file "config/application.rb", /#\s+require\s+["']action_cable\/engine["']/
-    assert_no_file "config/cable.yml"
-    assert_no_file "app/assets/javascripts/cable.coffee"
-    assert_no_file "app/channels"
-    assert_file "Gemfile" do |content|
-      assert_no_match(/redis/, content)
-    end
-  end
-
   def test_action_cable_redis_gems
     run_generator
     assert_gem 'redis'
