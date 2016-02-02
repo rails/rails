@@ -59,8 +59,8 @@ elsif File.exist?(code_or_file)
   Kernel.load code_or_file
 else
   begin
-    eval(code_or_file, binding, __FILE__, __LINE__) 
-  rescue SyntaxError,NameError => err
+    eval(code_or_file, binding, __FILE__, __LINE__)
+  rescue SyntaxError, NameError
     $stderr.puts "Please specify a valid ruby command or the path of a script to run."
     $stderr.puts "Run '#{$0} -h' for help."
     exit 1
