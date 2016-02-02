@@ -173,6 +173,19 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
     end
   end
 
+  def test_writes_session_cookie_if_nonempty_session_is_accessed
+    with_test_route_set do
+      get '/get_session_value'
+      assert_response :success
+      assert_equal nil, headers['Set-Cookie']
+
+      cookies[SessionKey] = SignedBar
+      get '/get_session_value'
+      assert_response :success
+      assert headers['Set-Cookie']
+    end
+  end
+
   def test_doesnt_write_session_cookie_if_session_is_unchanged
     with_test_route_set do
       cookies[SessionKey] = "BAh7BjoIZm9vIghiYXI%3D--" +
