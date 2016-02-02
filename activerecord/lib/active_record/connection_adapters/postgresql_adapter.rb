@@ -159,6 +159,10 @@ module ActiveRecord
         postgresql_version >= 90200
       end
 
+      def supports_collation?
+        postgresql_version >= 90100
+      end
+
       def index_algorithms
         { concurrently: 'CONCURRENTLY' }
       end
@@ -714,9 +718,10 @@ module ActiveRecord
         def column_definitions(table_name) # :nodoc:
           query(<<-end_sql, 'SCHEMA')
               SELECT a.attname, format_type(a.atttypid, a.atttypmod),
-                     pg_get_expr(d.adbin, d.adrelid), a.attnotnull, a.atttypid, a.atttypmod,
-             (SELECT c.collname FROM pg_collation c, pg_type t
-               WHERE c.oid = a.attcollation AND t.oid = a.atttypid AND a.attcollation <> t.typcollation)
+                     pg_get_expr(d.adbin, d.adrelid), a.attnotnull, a.atttypid, a.atttypmod
+                     #{', (SELECT c.collname FROM pg_collation c, pg_type t
+                         WHERE c.oid = a.attcollation AND t.oid = a.atttypid
+                         AND a.attcollation <> t.typcollation)' if supports_collation?}
                 FROM pg_attribute a LEFT JOIN pg_attrdef d
                   ON a.attrelid = d.adrelid AND a.attnum = d.adnum
                WHERE a.attrelid = '#{quote_table_name(table_name)}'::regclass

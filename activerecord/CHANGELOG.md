@@ -1015,7 +1015,8 @@
 
     *Ryuta Kamizono*
 
-*   PostgreSQL: `:collation` support for string and text columns.
+*   PostgreSQL: `:collation` support added for string and text columns, when
+    using PostgreSQL 9.1+.
 
     Example:
 
@@ -1024,7 +1025,7 @@
           t.text   :text_ja,   collation: 'ja_JP.UTF-8'
         end
 
-    *Ryuta Kamizono*
+    *Ryuta Kamizono*, *Remo Mueller*
 
 *   Remove `ActiveRecord::Serialization::XmlSerializer` from core.
 
