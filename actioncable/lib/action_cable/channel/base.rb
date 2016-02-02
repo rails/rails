@@ -32,8 +32,11 @@ module ActionCable
     #
     # == Action processing
     #
-    # Unlike Action Controllers, channels do not follow a REST constraint form for its actions. It's a remote-procedure call model. You can
-    # declare any public method on the channel (optionally taking a data argument), and this method is automatically exposed as callable to the client.
+    # Unlike subclasses of ActionController::Base, channels do not follow a REST
+    # constraint form for their actions. Instead, ActionCable operates through a
+    # remote-procedure call model. You can declare any public method on the
+    # channel (optionally taking a <tt>data</tt> argument), and this method is
+    # automatically exposed as callable to the client.
     #
     # Example:
     #
@@ -60,18 +63,22 @@ module ActionCable
     #       end
     #   end
     #
-    # In this example, subscribed/unsubscribed are not callable methods, as they were already declared in ActionCable::Channel::Base, but #appear/away
-    # are. #generate_connection_token is also not callable as its a private method. You'll see that appear accepts a data parameter, which it then
-    # uses as part of its model call. #away does not, it's simply a trigger action.
+    # In this example, subscribed/unsubscribed are not callable methods, as they
+    # were already declared in ActionCable::Channel::Base, but <tt>#appear</tt>
+    # and <tt>#away</tt> are. <tt>#generate_connection_token</tt> is also not
+    # callable as it's a private method. You'll see that appear accepts a data
+    # parameter, which it then uses as part of its model call. <tt>#away</tt>
+    # does not, since it's simply a trigger action.
     #
-    # Also note that in this example, current_user is available because it was marked as an identifying attribute on the connection.
-    # All such identifiers will automatically create a delegation method of the same name on the channel instance.
+    # Also note that in this example, <tt>current_user</tt> is available because
+    # it was marked as an identifying attribute on the connection. All such
+    # identifiers will automatically create a delegation method of the same name
+    # on the channel instance.
     #
     # == Rejecting subscription requests
     #
-    # A channel can reject a subscription request in the #subscribed callback by invoking #reject!
-    #
-    # Example:
+    # A channel can reject a subscription request in the #subscribed callback by
+    # invoking the #reject method:
     #
     #   class ChatChannel < ApplicationCable::Channel
     #     def subscribed
@@ -80,8 +87,10 @@ module ActionCable
     #     end
     #   end
     #
-    # In this example, the subscription will be rejected if the current_user does not have access to the chat room.
-    # On the client-side, Channel#rejected callback will get invoked when the server rejects the subscription request.
+    # In this example, the subscription will be rejected if the
+    # <tt>current_user</tt> does not have access to the chat room. On the
+    # client-side, the <tt>Channel#rejected</tt> callback will get invoked when
+    # the server rejects the subscription request.
     class Base
       include Callbacks
       include PeriodicTimers
