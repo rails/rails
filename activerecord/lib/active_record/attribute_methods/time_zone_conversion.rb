@@ -47,7 +47,7 @@ module ActiveRecord
             if value.equal?(v)
               nil
             else
-              yield(value)
+              yield(v)
             end
           end
         end
