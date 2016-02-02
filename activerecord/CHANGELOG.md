@@ -1,3 +1,9 @@
+*   Bumped the minimum supported version of PostgreSQL to >= 9.1.
+    Both PG 9.0 and 8.4 are past their end of life date:
+    http://www.postgresql.org/support/versioning/
+
+    *Remo Mueller*
+
 ## Rails 5.0.0.beta2 (February 01, 2016) ##
 
 *   `ActiveRecord::Relation#reverse_order` throws `ActiveRecord::IrreversibleOrderError`
