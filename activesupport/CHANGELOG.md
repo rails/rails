@@ -1,3 +1,6 @@
+*  Fix regression in `Hash#dig` for HashWithIndifferentAccess.
+   *Jon Moss*
+
 ## Rails 5.0.0.beta2 (February 01, 2016) ##
 
 *   Change number_to_currency behavior for checking negativity.
