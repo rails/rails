@@ -9,8 +9,8 @@ task routes: :environment do
   inspector = ActionDispatch::Routing::RoutesInspector.new(all_routes)
   if ARGV.any?{ |argv| argv.start_with? 'CONTROLLER' }
     puts <<-eow.strip_heredoc
-      Passing `CONTROLLER` to `bin/rake routes` is deprecated and will be removed in Rails 5.1.
-      Please use `bin/rake routes -c controller_name` instead.
+      Passing `CONTROLLER` to `bin/rails routes` is deprecated and will be removed in Rails 5.1.
+      Please use `bin/rails routes -c controller_name` instead.
     eow
   end
 
@@ -18,7 +18,7 @@ task routes: :environment do
   routes_filter = { controller: ENV['CONTROLLER'] } if ENV['CONTROLLER']
 
   OptionParser.new do |opts|
-    opts.banner = "Usage: rake routes [options]"
+    opts.banner = "Usage: rails routes [options]"
     opts.on("-c", "--controller [CONTROLLER]") do |controller|
       routes_filter = { controller: controller }
     end
