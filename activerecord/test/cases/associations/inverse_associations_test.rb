@@ -18,6 +18,8 @@ require "models/admin/user"
 require "models/developer"
 require "models/company"
 require "models/project"
+require "models/author"
+require "models/post"
 
 class AutomaticInverseFindingTests < ActiveRecord::TestCase
   fixtures :ratings, :comments, :cars
@@ -58,6 +60,20 @@ class AutomaticInverseFindingTests < ActiveRecord::TestCase
 
     assert comment_reflection.has_inverse?, "The Comment reflection should have an inverse"
     assert_equal rating_reflection, comment_reflection.inverse_of, "The Comment reflection's inverse should be the Rating reflection"
+  end
+
+  def test_has_many_and_belongs_to_should_find_inverse_automatically_for_sti
+    author_reflection = Author.reflect_on_association(:posts)
+    author_child_reflection = Author.reflect_on_association(:special_posts)
+    post_reflection = Post.reflect_on_association(:author)
+
+    assert_respond_to author_reflection, :has_inverse?
+    assert author_reflection.has_inverse?, "The Author reflection should have an inverse"
+    assert_equal post_reflection, author_reflection.inverse_of, "The Author reflection's inverse should be the Post reflection"
+
+    assert_respond_to author_child_reflection, :has_inverse?
+    assert author_child_reflection.has_inverse?, "The Author reflection should have an inverse"
+    assert_equal post_reflection, author_child_reflection.inverse_of, "The Author reflection's inverse should be the Post reflection"
   end
 
   def test_has_one_and_belongs_to_automatic_inverse_shares_objects
@@ -267,7 +283,7 @@ class InverseHasOneTests < ActiveRecord::TestCase
 end
 
 class InverseHasManyTests < ActiveRecord::TestCase
-  fixtures :men, :interests
+  fixtures :men, :interests, :posts, :authors
 
   def test_parent_instance_should_be_shared_with_every_child_on_find
     m = men(:gordon)
@@ -278,6 +294,27 @@ class InverseHasManyTests < ActiveRecord::TestCase
       assert_equal m.name, i.man.name, "Name of man should be the same after changes to parent instance"
       i.man.name = "Mungo"
       assert_equal m.name, i.man.name, "Name of man should be the same after changes to child-owned instance"
+    end
+  end
+
+  def test_parent_instance_should_be_shared_with_every_child_on_find_for_sti
+    a = authors(:david)
+    ps = a.posts
+    ps.each do |p|
+      assert_equal a.name, p.author.name, "Name of man should be the same before changes to parent instance"
+      a.name = "Bongo"
+      assert_equal a.name, p.author.name, "Name of man should be the same after changes to parent instance"
+      p.author.name = "Mungo"
+      assert_equal a.name, p.author.name, "Name of man should be the same after changes to child-owned instance"
+    end
+
+    sps = a.special_posts
+    sps.each do |sp|
+      assert_equal a.name, sp.author.name, "Name of man should be the same before changes to parent instance"
+      a.name = "Bongo"
+      assert_equal a.name, sp.author.name, "Name of man should be the same after changes to parent instance"
+      sp.author.name = "Mungo"
+      assert_equal a.name, sp.author.name, "Name of man should be the same after changes to child-owned instance"
     end
   end
 
