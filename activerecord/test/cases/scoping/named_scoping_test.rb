@@ -440,6 +440,25 @@ class NamedScopingTest < ActiveRecord::TestCase
     end
   end
 
+  def test_scopes_with_reserved_names
+    class << Topic
+      def public_method; end
+      public :public_method
+
+      def protected_method; end
+      protected :protected_method
+
+      def private_method; end
+      private :private_method
+    end
+
+    [:public_method, :protected_method, :private_method].each do |reserved_method|
+      assert Topic.respond_to?(reserved_method, true)
+      ActiveRecord::Base.logger.expects(:warn)
+      silence_warnings { Topic.scope(reserved_method, -> { }) }
+    end
+  end
+
   def test_scopes_on_relations
     # Topic.replied
     approved_topics = Topic.all.approved.order('id DESC')
