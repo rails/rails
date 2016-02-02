@@ -214,7 +214,7 @@ module ActiveRecord
         @statements = StatementPool.new @connection,
                                         self.class.type_cast_config_to_integer(config.fetch(:statement_limit) { 1000 })
 
-        if postgresql_version < 80200
+        if postgresql_version < 90100
           raise "Your version of PostgreSQL (#{postgresql_version}) is too old, please upgrade!"
         end
 
@@ -297,9 +297,8 @@ module ActiveRecord
         true
       end
 
-      # Returns true if pg > 9.1
       def supports_extensions?
-        postgresql_version >= 90100
+        true
       end
 
       # Range datatypes weren't introduced until PostgreSQL 9.2
