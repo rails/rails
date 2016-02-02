@@ -20,7 +20,7 @@ module ActiveRecord
               nil
             end
           else
-            map(super) { |t| cast(t) }
+            map_avoiding_infinite_recursion(super) { |v| cast(v) }
           end
         end
 
@@ -34,12 +34,22 @@ module ActiveRecord
           elsif value.is_a?(::Float)
             value
           else
-            map(value) { |v| convert_time_to_time_zone(v) }
+            map_avoiding_infinite_recursion(value) { |v| convert_time_to_time_zone(v) }
           end
         end
 
         def set_time_zone_without_conversion(value)
           ::Time.zone.local_to_utc(value).in_time_zone
+        end
+
+        def map_avoiding_infinite_recursion(value)
+          map(value) do |v|
+            if value.equal?(v)
+              nil
+            else
+              yield(value)
+            end
+          end
         end
       end
 

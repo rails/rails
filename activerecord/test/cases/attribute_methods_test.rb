@@ -714,6 +714,13 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_time_zone_aware_attributes_dont_recurse_infinitely_on_invalid_values
+    in_time_zone "Pacific Time (US & Canada)" do
+      record = @target.new(bonus_time: [])
+      assert_equal nil, record.bonus_time
+    end
+  end
+
   def test_setting_time_zone_conversion_for_attributes_should_write_value_on_class_variable
     Topic.skip_time_zone_conversion_for_attributes = [:field_a]
     Minimalistic.skip_time_zone_conversion_for_attributes = [:field_b]
