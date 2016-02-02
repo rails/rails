@@ -281,6 +281,8 @@ All these configuration options are delegated to the `I18n` library.
 
 * `config.active_record.schema_format` controls the format for dumping the database schema to a file. The options are `:ruby` (the default) for a database-independent version that depends on migrations, or `:sql` for a set of (potentially database-dependent) SQL statements.
 
+* `config.active_record.error_on_ignored_order_or_limit` specifies if an error should be raised if the order or limit of a query is ignored during a batch query. The options are true (raise error) or false (warn). Default is false.
+
 * `config.active_record.timestamped_migrations` controls whether migrations are numbered with serial integers or with timestamps. The default is true, to use timestamps, which are preferred if there are multiple developers working on the same application.
 
 * `config.active_record.lock_optimistically` controls whether Active Record will use optimistic locking and is true by default.

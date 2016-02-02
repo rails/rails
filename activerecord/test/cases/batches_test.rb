@@ -164,6 +164,42 @@ class EachTest < ActiveRecord::TestCase
     assert_equal posts(:welcome).id, posts.first.id
   end
 
+  def test_find_in_batches_should_error_on_ignore_the_order
+    assert_raise(ArgumentError) do
+      PostWithDefaultScope.find_in_batches(error_on_ignore: true){}
+    end
+  end
+
+  def test_find_in_batches_should_not_error_if_config_overriden
+    # Set the config option which will be overriden
+    prev = ActiveRecord::Base.error_on_ignored_order_or_limit
+    ActiveRecord::Base.error_on_ignored_order_or_limit = true
+    assert_nothing_raised do
+      PostWithDefaultScope.find_in_batches(error_on_ignore: false){}
+    end
+  ensure
+    # Set back to default
+    ActiveRecord::Base.error_on_ignored_order_or_limit = prev
+  end
+
+  def test_find_in_batches_should_error_on_config_specified_to_error
+    # Set the config option
+    prev = ActiveRecord::Base.error_on_ignored_order_or_limit
+    ActiveRecord::Base.error_on_ignored_order_or_limit = true
+    assert_raise(ArgumentError) do
+      PostWithDefaultScope.find_in_batches(){}
+    end
+  ensure
+    # Set back to default
+    ActiveRecord::Base.error_on_ignored_order_or_limit = prev
+  end
+
+  def test_find_in_batches_should_not_error_by_default
+    assert_nothing_raised do
+      PostWithDefaultScope.find_in_batches(){}
+    end
+  end
+
   def test_find_in_batches_should_not_ignore_the_default_scope_if_it_is_other_then_order
     special_posts_ids = SpecialPostWithDefaultScope.all.map(&:id).sort
     posts = []

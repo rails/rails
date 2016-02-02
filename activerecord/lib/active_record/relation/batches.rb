@@ -2,6 +2,8 @@ require "active_record/relation/batches/batch_enumerator"
 
 module ActiveRecord
   module Batches
+    ORDER_OR_LIMIT_IGNORED_MESSAGE = "Scoped order and limit are ignored, it's forced to be batch order and batch size"
+
     # Looping through a collection of records from the database
     # (using the Scoping::Named::ClassMethods.all method, for example)
     # is very inefficient since it will try to instantiate all the objects at once.
@@ -31,6 +33,9 @@ module ActiveRecord
     # * <tt>:batch_size</tt> - Specifies the size of the batch. Default to 1000.
     # * <tt>:start</tt> - Specifies the primary key value to start from, inclusive of the value.
     # * <tt>:finish</tt> - Specifies the primary key value to end at, inclusive of the value.
+    # * <tt>:error_on_ignore</tt> - Overrides the application config to specify if an error should be raised when
+    #                               the order and limit have to be ignored due to batching.
+    #
     # This is especially useful if you want multiple workers dealing with
     # the same processing queue. You can make worker 1 handle all the records
     # between id 0 and 10,000 and worker 2 handle from 10,000 and beyond
@@ -48,13 +53,13 @@ module ActiveRecord
     #
     # NOTE: You can't set the limit either, that's used to control
     # the batch sizes.
-    def find_each(start: nil, finish: nil, batch_size: 1000)
+    def find_each(start: nil, finish: nil, batch_size: 1000, error_on_ignore: nil)
       if block_given?
-        find_in_batches(start: start, finish: finish, batch_size: batch_size) do |records|
+        find_in_batches(start: start, finish: finish, batch_size: batch_size, error_on_ignore: error_on_ignore) do |records|
           records.each { |record| yield record }
         end
       else
-        enum_for(:find_each, start: start, finish: finish, batch_size: batch_size) do
+        enum_for(:find_each, start: start, finish: finish, batch_size: batch_size, error_on_ignore: error_on_ignore) do
           relation = self
           apply_limits(relation, start, finish).size
         end
@@ -83,6 +88,9 @@ module ActiveRecord
     # * <tt>:batch_size</tt> - Specifies the size of the batch. Default to 1000.
     # * <tt>:start</tt> - Specifies the primary key value to start from, inclusive of the value.
     # * <tt>:finish</tt> - Specifies the primary key value to end at, inclusive of the value.
+    # * <tt>:error_on_ignore</tt> - Overrides the application config to specify if an error should be raised when
+    #                               the order and limit have to be ignored due to batching.
+    #
     # This is especially useful if you want multiple workers dealing with
     # the same processing queue. You can make worker 1 handle all the records
     # between id 0 and 10,000 and worker 2 handle from 10,000 and beyond
@@ -100,16 +108,16 @@ module ActiveRecord
     #
     # NOTE: You can't set the limit either, that's used to control
     # the batch sizes.
-    def find_in_batches(start: nil, finish: nil, batch_size: 1000)
+    def find_in_batches(start: nil, finish: nil, batch_size: 1000, error_on_ignore: nil)
       relation = self
       unless block_given?
-        return to_enum(:find_in_batches, start: start, finish: finish, batch_size: batch_size) do
+        return to_enum(:find_in_batches, start: start, finish: finish, batch_size: batch_size, error_on_ignore: error_on_ignore) do
           total = apply_limits(relation, start, finish).size
           (total - 1).div(batch_size) + 1
         end
       end
 
-      in_batches(of: batch_size, start: start, finish: finish, load: true) do |batch|
+      in_batches(of: batch_size, start: start, finish: finish, load: true, error_on_ignore: error_on_ignore) do |batch|
         yield batch.to_a
       end
     end
@@ -140,6 +148,8 @@ module ActiveRecord
     # * <tt>:load</tt> - Specifies if the relation should be loaded. Default to false.
     # * <tt>:start</tt> - Specifies the primary key value to start from, inclusive of the value.
     # * <tt>:finish</tt> - Specifies the primary key value to end at, inclusive of the value.
+    # * <tt>:error_on_ignore</tt> - Overrides the application config to specify if an error should be raised when
+    #                               the order and limit have to be ignored due to batching.
     #
     # This is especially useful if you want to work with the
     # ActiveRecord::Relation object instead of the array of records, or if
@@ -171,14 +181,14 @@ module ActiveRecord
     #
     # NOTE: You can't set the limit either, that's used to control the batch
     # sizes.
-    def in_batches(of: 1000, start: nil, finish: nil, load: false)
+    def in_batches(of: 1000, start: nil, finish: nil, load: false, error_on_ignore: nil)
       relation = self
       unless block_given?
         return BatchEnumerator.new(of: of, start: start, finish: finish, relation: self)
       end
 
-      if logger && (arel.orders.present? || arel.taken.present?)
-        logger.warn("Scoped order and limit are ignored, it's forced to be batch order and batch size")
+      if arel.orders.present? || arel.taken.present?
+        act_on_order_or_limit_ignored(error_on_ignore)
       end
 
       relation = relation.reorder(batch_order).limit(of)
@@ -218,6 +228,16 @@ module ActiveRecord
 
     def batch_order
       "#{quoted_table_name}.#{quoted_primary_key} ASC"
+    end
+
+    def act_on_order_or_limit_ignored(error_on_ignore)
+      raise_error = (error_on_ignore.nil? ? self.klass.error_on_ignored_order_or_limit : error_on_ignore)
+
+      if raise_error
+        raise ArgumentError.new(ORDER_OR_LIMIT_IGNORED_MESSAGE)
+      elsif logger
+        logger.warn(ORDER_OR_LIMIT_IGNORED_MESSAGE)
+      end
     end
   end
 end
