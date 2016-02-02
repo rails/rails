@@ -6,6 +6,15 @@ module ActiveRecord
     ACTIONS = [:create, :destroy, :update]
 
     included do
+      ##
+      # :singleton-method:
+      #
+      # Determines whether transactional callbacks should be executed in order of definition
+      # (as all other callbacks) or in reverse order as in Rails 4.
+      #
+      mattr_accessor :retain_reversed_transactional_callbacks_order, instance_writer: false
+      self.retain_reversed_transactional_callbacks_order = false
+
       define_callbacks :commit, :rollback,
                        :before_commit,
                        :before_commit_without_transaction_enrollment,
@@ -289,6 +298,7 @@ module ActiveRecord
       def set_options_for_callbacks!(args, enforced_options = {})
         options = args.extract_options!.merge!(enforced_options)
         args << options
+        options[:prepend] = true unless self.retain_reversed_transactional_callbacks_order
 
         if options[:on]
           fire_on = Array(options[:on])

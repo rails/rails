@@ -6,6 +6,13 @@ require 'models/topic'
 class TransactionCallbacksTest < ActiveRecord::TestCase
   fixtures :topics, :owners, :pets
 
+  def self.with_reverse_transactional_callbacks_order
+    old_option = ActiveRecord::Base.retain_reversed_transactional_callbacks_order
+    ActiveRecord::Base.retain_reversed_transactional_callbacks_order = true
+    yield
+    ActiveRecord::Base.retain_reversed_transactional_callbacks_order = old_option
+  end
+
   class ReplyWithCallbacks < ActiveRecord::Base
     self.table_name = :topics
 
@@ -81,6 +88,47 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
       blocks.each{|b| b.call(self)} if blocks
     end
   end
+
+  class TopicWithOrderedTransactionalCallbacks < ActiveRecord::Base
+    self.table_name = :topics
+
+    after_commit :first_callback
+    after_commit :second_callback
+
+    def history
+      @history ||= []
+    end
+
+    def first_callback
+      history << :first_callback
+    end
+
+    def second_callback
+      history << :second_callback
+    end
+  end
+
+  with_reverse_transactional_callbacks_order do
+    class TopicWithReversedTransactionalCallbacks < ActiveRecord::Base
+      self.table_name = :topics
+
+      after_commit :first_callback
+      after_commit :second_callback
+
+      def history
+        @history ||= []
+      end
+
+      def first_callback
+        history << :first_callback
+      end
+
+      def second_callback
+        history << :second_callback
+      end
+    end
+  end
+
 
   def setup
     @first = TopicWithCallbacks.find(1)
@@ -380,6 +428,22 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
     assert flag
   end
 
+  def test_order_of_transactional_callbacks
+    topic = TopicWithOrderedTransactionalCallbacks.new
+
+    topic.save
+
+    assert_equal [:first_callback, :second_callback], topic.history
+  end
+
+  def test_order_of_transactional_callbacks_with_retained_reverse_order
+    topic = TopicWithReversedTransactionalCallbacks.new
+
+    topic.save
+
+    assert_equal [:second_callback, :first_callback], topic.history
+  end
+
   private
 
     def add_transaction_execution_blocks(record)
@@ -390,6 +454,7 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
       record.after_rollback_block(:update) { |r| r.history << :rollback_on_update }
       record.after_rollback_block(:destroy) { |r| r.history << :rollback_on_destroy }
     end
+
 end
 
 class CallbacksOnMultipleActionsTest < ActiveRecord::TestCase
@@ -419,16 +484,16 @@ class CallbacksOnMultipleActionsTest < ActiveRecord::TestCase
   def test_after_commit_on_multiple_actions
     topic = TopicWithCallbacksOnMultipleActions.new
     topic.save
-    assert_equal [:create_and_update, :create_and_destroy], topic.history
+    assert_equal [:create_and_destroy, :create_and_update], topic.history
 
     topic.clear_history
     topic.approved = true
     topic.save
-    assert_equal [:update_and_destroy, :create_and_update], topic.history
+    assert_equal [:create_and_update, :update_and_destroy], topic.history
 
     topic.clear_history
     topic.destroy
-    assert_equal [:update_and_destroy, :create_and_destroy], topic.history
+    assert_equal [:create_and_destroy, :update_and_destroy], topic.history
   end
 
   def test_before_commit_actions
@@ -436,7 +501,7 @@ class CallbacksOnMultipleActionsTest < ActiveRecord::TestCase
     topic.save_before_commit_history = true
     topic.save
 
-    assert_equal [:before_commit, :create_and_update, :create_and_destroy], topic.history
+    assert_equal [:before_commit, :create_and_destroy, :create_and_update], topic.history
   end
 
   def test_before_commit_update_in_same_transaction

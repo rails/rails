@@ -289,11 +289,11 @@ class CallbacksTest < ActiveRecord::TestCase
       [ :after_save,                  :proc   ],
       [ :after_save,                  :object ],
       [ :after_save,                  :block  ],
-      [ :after_commit,                :block  ],
-      [ :after_commit,                :object ],
-      [ :after_commit,                :proc   ],
+      [ :after_commit,                :method ],
       [ :after_commit,                :string ],
-      [ :after_commit,                :method ]
+      [ :after_commit,                :proc   ],
+      [ :after_commit,                :object ],
+      [ :after_commit,                :block  ]
     ], david.history
   end
 
@@ -363,11 +363,11 @@ class CallbacksTest < ActiveRecord::TestCase
       [ :after_save,                  :proc   ],
       [ :after_save,                  :object ],
       [ :after_save,                  :block  ],
-      [ :after_commit,                :block  ],
-      [ :after_commit,                :object ],
-      [ :after_commit,                :proc   ],
+      [ :after_commit,                :method ],
       [ :after_commit,                :string ],
-      [ :after_commit,                :method ]
+      [ :after_commit,                :proc   ],
+      [ :after_commit,                :object ],
+      [ :after_commit,                :block  ]
     ], david.history
   end
 
@@ -419,11 +419,11 @@ class CallbacksTest < ActiveRecord::TestCase
       [ :after_destroy,               :proc   ],
       [ :after_destroy,               :object ],
       [ :after_destroy,               :block  ],
-      [ :after_commit,                :block  ],
-      [ :after_commit,                :object ],
-      [ :after_commit,                :proc   ],
+      [ :after_commit,                :method ],
       [ :after_commit,                :string ],
-      [ :after_commit,                :method ]
+      [ :after_commit,                :proc   ],
+      [ :after_commit,                :object ],
+      [ :after_commit,                :block  ]
     ], david.history
   end
 
@@ -585,11 +585,11 @@ class CallbacksTest < ActiveRecord::TestCase
       [ :before_validation,           :object ],
       [ :before_validation,           :block  ],
       [ :before_validation, :returning_false  ],
-      [ :after_rollback, :block  ],
-      [ :after_rollback, :object ],
-      [ :after_rollback, :proc   ],
-      [ :after_rollback, :string ],
       [ :after_rollback, :method ],
+      [ :after_rollback, :string ],
+      [ :after_rollback, :proc   ],
+      [ :after_rollback, :object ],
+      [ :after_rollback, :block  ]
     ], david.history
   end
 
@@ -613,11 +613,11 @@ class CallbacksTest < ActiveRecord::TestCase
       [ :before_validation, :object ],
       [ :before_validation, :block  ],
       [ :before_validation, :throwing_abort ],
-      [ :after_rollback,    :block  ],
-      [ :after_rollback,    :object ],
-      [ :after_rollback,    :proc   ],
-      [ :after_rollback,    :string ],
       [ :after_rollback,    :method ],
+      [ :after_rollback,    :string ],
+      [ :after_rollback,    :proc   ],
+      [ :after_rollback,    :object ],
+      [ :after_rollback,    :block  ],
     ], david.history
   end
 
