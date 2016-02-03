@@ -52,7 +52,6 @@ module ActiveRecord
       INDEX_TYPES  = [:fulltext, :spatial]
       INDEX_USINGS = [:btree, :hash]
 
-      # FIXME: Make the first parameter more similar for the two adapters
       def initialize(connection, logger, connection_options, config)
         super(connection, logger, config)
         @quoted_column_names, @quoted_table_names = {}, {}
@@ -64,6 +63,10 @@ module ActiveRecord
           @visitor.extend(DetermineIfPreparableVisitor)
         else
           @prepared_statements = false
+        end
+
+        if version < '5.0.0'
+          raise "Your version of MySQL (#{full_version.match(/^\d+\.\d+\.\d+/)[0]}) is too old. Active Record supports MySQL >= 5.0."
         end
       end
 
@@ -98,12 +101,8 @@ module ActiveRecord
         true
       end
 
-      # MySQL 4 technically support transaction isolation, but it is affected by a bug
-      # where the transaction level gets persisted for the whole session:
-      #
-      # http://bugs.mysql.com/bug.php?id=39170
       def supports_transaction_isolation?
-        version >= '5.0.0'
+        true
       end
 
       def supports_explain?
@@ -119,17 +118,15 @@ module ActiveRecord
       end
 
       def supports_views?
-        version >= '5.0.0'
+        true
       end
 
       def supports_datetime_with_precision?
         version >= '5.6.4'
       end
 
-      # 5.0.0 definitely supports it, possibly supported by earlier versions but
-      # not sure
       def supports_advisory_locks?
-        version >= '5.0.0'
+        true
       end
 
       def get_advisory_lock(lock_name, timeout = 0) # :nodoc:
