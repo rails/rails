@@ -363,7 +363,7 @@ module ApplicationTests
         end
       RUBY
 
-      run_test_command('test/models/account_test.rb:4:9  test/models/post_test:4:9').tap do |output|
+      run_test_command('test/models/account_test.rb:4:9 test/models/post_test.rb:4:9').tap do |output|
         assert_match 'AccountTest:FirstFilter', output
         assert_match 'AccountTest:SecondFilter', output
         assert_match 'PostTest:FirstFilter', output
