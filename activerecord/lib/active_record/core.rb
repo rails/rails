@@ -256,6 +256,11 @@ module ActiveRecord
           end
       end
 
+      def arel_attribute(name, table = arel_table) # :nodoc:
+        name = attribute_alias(name) if attribute_alias?(name)
+        table[name]
+      end
+
       def predicate_builder # :nodoc:
         @predicate_builder ||= PredicateBuilder.new(table_metadata)
       end

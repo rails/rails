@@ -204,15 +204,15 @@ module ActiveRecord
         yield yielded_relation
 
         break if ids.length < of
-        batch_relation = relation.where(table[primary_key].gt(primary_key_offset))
+        batch_relation = relation.where(arel_attribute(primary_key).gt(primary_key_offset))
       end
     end
 
     private
 
     def apply_limits(relation, start, finish)
-      relation = relation.where(table[primary_key].gteq(start)) if start
-      relation = relation.where(table[primary_key].lteq(finish)) if finish
+      relation = relation.where(arel_attribute(primary_key).gteq(start)) if start
+      relation = relation.where(arel_attribute(primary_key).lteq(finish)) if finish
       relation
     end
 

@@ -1093,8 +1093,8 @@ module ActiveRecord
 
     def arel_columns(columns)
       columns.map do |field|
-        if (Symbol === field || String === field) && columns_hash.key?(field.to_s) && !from_clause.value
-          arel_table[field]
+        if (Symbol === field || String === field) && (klass.has_attribute?(field) || klass.attribute_alias?(field)) && !from_clause.value
+          arel_attribute(field)
         elsif Symbol === field
           connection.quote_table_name(field.to_s)
         else
@@ -1105,7 +1105,7 @@ module ActiveRecord
 
     def reverse_sql_order(order_query)
       if order_query.empty?
-        return [table[primary_key].desc] if primary_key
+        return [arel_attribute(primary_key).desc] if primary_key
         raise IrreversibleOrderError,
           "Relation has no current order and table has no primary key to be used as default order"
       end
@@ -1170,12 +1170,10 @@ module ActiveRecord
       order_args.map! do |arg|
         case arg
         when Symbol
-          arg = klass.attribute_alias(arg) if klass.attribute_alias?(arg)
-          table[arg].asc
+          arel_attribute(arg).asc
         when Hash
           arg.map { |field, dir|
-            field = klass.attribute_alias(field) if klass.attribute_alias?(field)
-            table[field].send(dir.downcase)
+            arel_attribute(field).send(dir.downcase)
           }
         else
           arg
