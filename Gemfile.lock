@@ -64,7 +64,6 @@ PATH
     activesupport (5.0.0.beta2)
       concurrent-ruby (~> 1.0)
       i18n (~> 0.7)
-      json (~> 1.7, >= 1.7.7)
       method_source
       minitest (~> 5.1)
       tzinfo (~> 1.1)
@@ -287,7 +286,6 @@ DEPENDENCIES
   faye-websocket
   hiredis
   jquery-rails
-  json
   kindlerb (= 0.1.1)
   listen (~> 3.0.5)
   minitest (< 5.3.4)
