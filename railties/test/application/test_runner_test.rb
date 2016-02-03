@@ -363,7 +363,7 @@ module ApplicationTests
         end
       RUBY
 
-      run_test_command('test/models/account_test.rb:4:9  test/models/post_test:4:9').tap do |output|
+      run_test_command('test/models/account_test.rb:4:9 test/models/post_test.rb:4:9').tap do |output|
         assert_match 'AccountTest:FirstFilter', output
         assert_match 'AccountTest:SecondFilter', output
         assert_match 'PostTest:FirstFilter', output
@@ -379,6 +379,30 @@ module ApplicationTests
       run_test_command('test/models/account_test.rb:4 test/models/post_test.rb:4').tap do |output|
         assert_match 'AccountTest', output
         assert_match 'PostTest', output
+      end
+    end
+
+    def test_line_filters_trigger_only_one_runnable
+      app_file 'test/models/post_test.rb', <<-RUBY
+        require 'test_helper'
+
+        class PostTest < ActiveSupport::TestCase
+          test 'truth' do
+            assert true
+          end
+        end
+
+        class SecondPostTest < ActiveSupport::TestCase
+          test 'truth' do
+            assert false, 'ran second runnable'
+          end
+        end
+      RUBY
+
+      # Pass seed guaranteeing failure.
+      run_test_command('test/models/post_test.rb:4 --seed 30410').tap do |output|
+        assert_no_match 'ran second runnable', output
+        assert_match '1 runs, 1 assertions', output
       end
     end
 

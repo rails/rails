@@ -26,7 +26,7 @@ module Rails
     private
       def derive_regexp(filter)
         # Regexp filtering copied from Minitest.
-        filter =~ %r%/(.*)/% ? Regexp.new($1) : filter
+        Regexp.new $1 if filter =~ %r%/(.*)/%
       end
 
       def derive_line_filters(patterns)
