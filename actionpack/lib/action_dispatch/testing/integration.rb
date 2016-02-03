@@ -71,7 +71,7 @@ module ActionDispatch
       end
 
       # Performs an XMLHttpRequest request with the given parameters, mirroring
-      # a request from the Prototype library.
+      # an AJAX request made from JavaScript.
       #
       # The request_method is +:get+, +:post+, +:patch+, +:put+, +:delete+ or
       # +:head+; the parameters are +nil+, a hash, or a url-encoded or multipart
