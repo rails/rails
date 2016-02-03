@@ -884,7 +884,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   def test_collection_singular_ids_setter_raises_exception_when_invalid_ids_set
     company = companies(:rails_core)
     ids =  [Developer.first.id, -9999]
-    assert_raises(ActiveRecord::RecordNotFound) {company.developer_ids= ids}
+    assert_raises(ActiveRecord::AssociationTypeMismatch) {company.developer_ids= ids}
   end
 
   def test_build_a_model_from_hm_through_association_with_where_clause
