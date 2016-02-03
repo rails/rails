@@ -45,7 +45,6 @@ PATH
       arel (~> 6.0)
     activesupport (4.2.7.1)
       i18n (~> 0.7)
-      json (~> 1.7, >= 1.7.7)
       minitest (~> 5.1)
       thread_safe (~> 0.3, >= 0.3.4)
       tzinfo (~> 1.1)
@@ -259,7 +258,6 @@ DEPENDENCIES
   delayed_job_active_record
   execjs (< 2.5)
   jquery-rails (~> 4.0)
-  json
   kindlerb (= 0.1.1)
   mime-types (< 3)
   minitest (< 5.3.4)
