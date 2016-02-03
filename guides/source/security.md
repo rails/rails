@@ -102,7 +102,7 @@ Thus the session becomes a more secure place to store data. The encryption is
 done using a server-side secret key `secrets.secret_key_base` stored in
 `config/secrets.yml`.
 
-That means the security of this storage depends on this secret (and on the digest algorithm, which defaults to SHA1, for compatibility). So _don't use a trivial secret, i.e. a word from a dictionary, or one which is shorter than 30 characters, use `rake secret` instead_.
+That means the security of this storage depends on this secret (and on the digest algorithm, which defaults to SHA1, for compatibility). So _don't use a trivial secret, i.e. a word from a dictionary, or one which is shorter than 30 characters, use `rails secret` instead_.
 
 `secrets.secret_key_base` is used for specifying a key which allows sessions for the application to be verified against a known secure key to prevent tampering. Applications get `secrets.secret_key_base` initialized to a random key present in `config/secrets.yml`, e.g.:
 
