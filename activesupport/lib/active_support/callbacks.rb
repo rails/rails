@@ -73,11 +73,20 @@ module ActiveSupport
     # Defaults to +true+.
     mattr_accessor(:halt_and_display_warning_on_return_false, instance_writer: false) { true }
 
+
+    # If true it runs the callbacks in simple order - they are executed in order of definition
+    # for respectie callback types (before, around, after).
+    #
+    # When false it runs callbacks in order as Rails 4 did - before callbacks
+    # run in order of definition, after callbacks run in reverse order and around callbacks
+    # creates new stack.
+    #
+    mattr_accessor(:use_simple_callbacks_order, instance_writer: false) { true }
+
     # Runs the callbacks for the given event.
     #
-    # Calls the before and around callbacks in the order they were set, yields
-    # the block (if given one), and then runs the after callbacks in reverse
-    # order.
+    # Calls the before, around callbacks, yields  the block (if given one), and then runs the
+    # after callbacks. All calbacks are run in order in which they were set for their group.
     #
     # If the callback chain was halted, returns +false+. Otherwise returns the
     # result of the block, +nil+ if no callbacks have been set, or +true+
@@ -425,36 +434,71 @@ module ActiveSupport
     # Execute before and after filters in a sequence instead of
     # chaining them with nested lambda calls, see:
     # https://github.com/rails/rails/issues/18011
-    class CallbackSequence
-      def initialize(&call)
-        @call = call
-        @before = []
-        @after = []
-      end
+    module CallbackSequence
+      class Simple
+        def initialize(before: [], after: [], &call)
+          @call = call
+          @before = before
+          @after = after
+        end
 
-      def before(&before)
-        @before.unshift(before)
-        self
-      end
+        def before(&before)
+          @before.unshift(before)
+          self
+        end
 
-      def after(&after)
-        @after.push(after)
-        self
-      end
+        def after(&after)
+          @after.unshift(after)
+          self
+        end
 
-      def around(&around)
-        CallbackSequence.new do |arg|
-          around.call(arg) {
-            self.call(arg)
-          }
+        def around(&around)
+          self.class.new(before: @before, after: @after) do |arg|
+            around.call(arg) {
+              @call.call(arg)
+            }
+          end
+        end
+
+        def call(arg)
+          @before.each { |b| b.call(arg) }
+          value = @call.call(arg)
+          @after.each { |a| a.call(arg) }
+          value
         end
       end
 
-      def call(arg)
-        @before.each { |b| b.call(arg) }
-        value = @call.call(arg)
-        @after.each { |a| a.call(arg) }
-        value
+      class Legacy
+        def initialize(&call)
+          @call = call
+          @before = []
+          @after = []
+        end
+
+        def before(&before)
+          @before.unshift(before)
+          self
+        end
+
+        def after(&after)
+          @after.push(after)
+          self
+        end
+
+        def around(&around)
+          self.class.new do |arg|
+            around.call(arg) {
+              self.call(arg)
+            }
+          end
+        end
+
+        def call(arg)
+          @before.each { |b| b.call(arg) }
+          value = @call.call(arg)
+          @after.each { |a| a.call(arg) }
+          value
+        end
       end
     end
 
@@ -503,7 +547,12 @@ module ActiveSupport
 
       def compile
         @callbacks || @mutex.synchronize do
-          final_sequence = CallbackSequence.new { |env| Filters::ENDING.call(env) }
+          final_sequence = if ActiveSupport::Callbacks.use_simple_callbacks_order
+                             CallbackSequence::Simple.new { |env| Filters::ENDING.call(env) }
+                           else
+                             CallbackSequence::Legacy.new { |env| Filters::ENDING.call(env) }
+                           end
+
           @callbacks ||= @chain.reverse.inject(final_sequence) do |callback_sequence, callback|
             callback.apply callback_sequence
           end
@@ -590,11 +639,7 @@ module ActiveSupport
       # of the current object. It can also optionally accept the current object as
       # an argument.
       #
-      # Before and around callbacks are called in the order that they are set;
-      # after callbacks are called in the reverse order.
-      #
-      # Around callbacks can access the return value from the event, if it
-      # wasn't halted, from the +yield+ call.
+      # Callbacks are run in order they were set.
       #
       # ===== Options
       #

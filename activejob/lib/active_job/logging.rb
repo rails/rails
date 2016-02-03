@@ -10,9 +10,17 @@ module ActiveJob
     included do
       cattr_accessor(:logger) { ActiveSupport::TaggedLogging.new(ActiveSupport::Logger.new(STDOUT)) }
 
-      around_enqueue do |_, block, _|
+      around_enqueue do |job, block, _|
         tag_logger do
           block.call
+
+          if job.scheduled_at
+            ActiveSupport::Notifications.instrument "enqueue_at.active_job",
+              adapter: job.class.queue_adapter, job: job
+          else
+            ActiveSupport::Notifications.instrument "enqueue.active_job",
+              adapter: job.class.queue_adapter, job: job
+          end
         end
       end
 
@@ -23,16 +31,6 @@ module ActiveJob
           ActiveSupport::Notifications.instrument("perform.active_job", payload) do
             block.call
           end
-        end
-      end
-
-      after_enqueue do |job|
-        if job.scheduled_at
-          ActiveSupport::Notifications.instrument "enqueue_at.active_job",
-            adapter: job.class.queue_adapter, job: job
-        else
-          ActiveSupport::Notifications.instrument "enqueue.active_job",
-            adapter: job.class.queue_adapter, job: job
         end
       end
     end

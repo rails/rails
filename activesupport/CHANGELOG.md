@@ -1,3 +1,13 @@
+*   Run callbacks in simple order
+
+    All callbacks are run in order of definition respectively for given callback type.
+    Callback types are run in simple order before, around, after.
+
+    This behavior can be switched back to old order of callbacks by setting
+    ActiveSupport::Callbacks.use_simple_callbacks_order = false
+
+    *Piotr Jakubowski*
+
 ## Rails 5.0.0.beta3 (February 24, 2016) ##
 
 *   Deprecate arguments on `assert_nothing_raised`.

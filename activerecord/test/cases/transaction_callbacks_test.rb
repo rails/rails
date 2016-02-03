@@ -419,16 +419,16 @@ class CallbacksOnMultipleActionsTest < ActiveRecord::TestCase
   def test_after_commit_on_multiple_actions
     topic = TopicWithCallbacksOnMultipleActions.new
     topic.save
-    assert_equal [:create_and_update, :create_and_destroy], topic.history
+    assert_equal [:create_and_destroy, :create_and_update], topic.history
 
     topic.clear_history
     topic.approved = true
     topic.save
-    assert_equal [:update_and_destroy, :create_and_update], topic.history
+    assert_equal [:create_and_update, :update_and_destroy], topic.history
 
     topic.clear_history
     topic.destroy
-    assert_equal [:update_and_destroy, :create_and_destroy], topic.history
+    assert_equal [:create_and_destroy, :update_and_destroy ], topic.history
   end
 
   def test_before_commit_actions
@@ -436,7 +436,7 @@ class CallbacksOnMultipleActionsTest < ActiveRecord::TestCase
     topic.save_before_commit_history = true
     topic.save
 
-    assert_equal [:before_commit, :create_and_update, :create_and_destroy], topic.history
+    assert_equal [:before_commit, :create_and_destroy, :create_and_update], topic.history
   end
 
   def test_before_commit_update_in_same_transaction

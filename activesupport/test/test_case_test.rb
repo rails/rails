@@ -144,18 +144,18 @@ class SetupAndTeardownTest < ActiveSupport::TestCase
     end
 
     def sentinel
-      assert_equal [:foo], @called_back
+      assert_equal [:foo, :foo], @called_back
     end
 end
 
 class SubclassSetupAndTeardownTest < SetupAndTeardownTest
   setup :bar
-  teardown :bar
+  teardown :bar, :subsentinel
 
   def test_inherited_setup_callbacks
     assert_equal [:reset_callback_record, :foo, :bar], self.class._setup_callbacks.map(&:raw_filter)
     assert_equal [:foo, :bar], @called_back
-    assert_equal [:foo, :sentinel, :bar], self.class._teardown_callbacks.map(&:raw_filter)
+    assert_equal [:foo, :sentinel, :bar, :subsentinel], self.class._teardown_callbacks.map(&:raw_filter)
   end
 
   protected
@@ -164,7 +164,11 @@ class SubclassSetupAndTeardownTest < SetupAndTeardownTest
     end
 
     def sentinel
-      assert_equal [:foo, :bar, :bar], @called_back
+      assert_equal [:foo, :bar, :foo], @called_back
+    end
+
+    def subsentinel
+      assert_equal [:foo, :bar, :foo, :bar], @called_back
     end
 end
 

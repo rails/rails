@@ -94,7 +94,11 @@ module ActiveModel
         #   person.status # => true
         def after_validation(*args, &block)
           options = args.extract_options!
-          options[:prepend] = true
+
+          unless ActiveSupport::Callbacks.use_simple_callbacks_order
+            options[:prepend] = true
+          end
+
           options[:if] = Array(options[:if])
           if options[:on]
             options[:on] = Array(options[:on])

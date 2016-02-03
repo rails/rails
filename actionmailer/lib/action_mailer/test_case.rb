@@ -113,7 +113,7 @@ module ActionMailer
         end
     end
 
-    include Behavior
     include ClearTestDeliveries
+    include Behavior
   end
 end

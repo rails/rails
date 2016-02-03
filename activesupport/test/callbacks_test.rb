@@ -171,13 +171,39 @@ module CallbacksTest
   end
 
   class AfterSaveConditionalPersonCallbackTest < ActiveSupport::TestCase
-    def test_after_save_runs_in_the_reverse_order
+    def test_after_save_runs_in_simple_order
       person = AfterSaveConditionalPerson.new
       person.save
       assert_equal [
-        [:after_save, :string2],
-        [:after_save, :string1]
+        [:after_save, :string1],
+        [:after_save, :string2]
       ], person.history
+    end
+
+    def test_after_save_runs_in_reverse_order_if_option_chosen
+      begin
+        ActiveSupport::Callbacks.use_simple_callbacks_order = false
+
+        AfterSaveConditionalPerson.send(:get_callbacks, :save).instance_variable_set(:@callbacks, nil)
+        person = AfterSaveConditionalPerson.new
+        person.save
+        assert_equal [
+          [:after_save, :string2],
+          [:after_save, :string1]
+        ], person.history
+
+        ActiveSupport::Callbacks.use_simple_callbacks_order = true
+        AfterSaveConditionalPerson.send(:get_callbacks, :save).instance_variable_set(:@callbacks, nil)
+        person = AfterSaveConditionalPerson.new
+        person.save
+        assert_equal [
+          [:after_save, :string1],
+          [:after_save, :string2]
+        ], person.history
+      ensure
+        ActiveSupport::Callbacks.use_simple_callbacks_order = true
+        AfterSaveConditionalPerson.send(:get_callbacks, :save).instance_variable_set(:@callbacks, nil)
+      end
     end
   end
 
@@ -423,12 +449,12 @@ module CallbacksTest
         [:before_save, :proc],
         [:before_save, :object],
         [:before_save, :block],
-        [:after_save, :block],
-        [:after_save, :class],
-        [:after_save, :object],
-        [:after_save, :proc],
+        [:after_save, :symbol],
         [:after_save, :string],
-        [:after_save, :symbol]
+        [:after_save, :proc],
+        [:after_save, :object],
+        [:after_save, :class],
+        [:after_save, :block]
       ], person.history
     end
 
@@ -442,12 +468,12 @@ module CallbacksTest
       assert_equal [], person.history
       person.save
       assert_equal [
-        [:after_save, :block],
-        [:after_save, :class],
-        [:after_save, :object],
-        [:after_save, :proc],
+        [:after_save, :symbol],
         [:after_save, :string],
-        [:after_save, :symbol]
+        [:after_save, :proc],
+        [:after_save, :object],
+        [:after_save, :class],
+        [:after_save, :block]
       ], person.history
     end
   end
@@ -465,12 +491,12 @@ module CallbacksTest
         [:before_save, :object],
         [:before_save, :class],
         [:before_save, :block],
-        [:after_save, :block],
-        [:after_save, :class],
-        [:after_save, :object],
-        [:after_save, :proc],
+        [:after_save, :symbol],
         [:after_save, :string],
-        [:after_save, :symbol]
+        [:after_save, :proc],
+        [:after_save, :object],
+        [:after_save, :class],
+        [:after_save, :block]
       ], person.history
     end
   end
@@ -721,7 +747,7 @@ module CallbacksTest
     def test_termination_skips_following_before_and_around_callbacks
       terminator = CallbackTerminator.new
       terminator.save
-      assert_equal ["first", "second", "third", "first"], terminator.history
+      assert_equal ["first", "second", "first", "third"], terminator.history
     end
 
     def test_termination_invokes_hook
@@ -749,7 +775,7 @@ module CallbacksTest
     def test_default_termination
       terminator = CallbackDefaultTerminator.new
       terminator.save
-      assert_equal ["first", "second", "third", "first"], terminator.history
+      assert_equal ["first", "second", "first", "third"], terminator.history
     end
 
     def test_default_termination_invokes_hook
@@ -826,12 +852,12 @@ module CallbacksTest
         [:before_save, :object],
         [:before_save, :class],
         [:before_save, :block],
-        [:after_save, :block],
-        [:after_save, :class],
-        [:after_save, :object],
-        [:after_save, :proc],
+        [:after_save, :symbol],
         [:after_save, :string],
-        [:after_save, :symbol]
+        [:after_save, :proc],
+        [:after_save, :object],
+        [:after_save, :class],
+        [:after_save, :block]
       ], writer.history
     end
   end

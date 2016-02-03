@@ -116,11 +116,11 @@ class BasicCallbacksTest < ActiveSupport::TestCase
   end
 
   def test_basic_conditional_callback2
-    assert_equal %w(before1 before2 update after2 after1), @update.log
+    assert_equal %w(before1 before2 update after1 after2), @update.log
   end
 
   def test_basic_conditional_callback3
-    assert_equal %w(delete after2 after1), @delete.log
+    assert_equal %w(delete after1 after2), @delete.log
   end
 end
 
@@ -140,7 +140,7 @@ class InheritedCallbacksTest < ActiveSupport::TestCase
   end
 
   def test_partially_excluded
-    assert_equal %w(delete after2 after1), @delete.log
+    assert_equal %w(delete after1 after2), @delete.log
   end
 end
 
@@ -151,11 +151,11 @@ class InheritedCallbacksTest2 < ActiveSupport::TestCase
   end
 
   def test_crazy_mix_on
-    assert_equal %w(before1 update after2 after1), @update1.log
+    assert_equal %w(before1 update after1 after2), @update1.log
   end
 
   def test_crazy_mix_off
-    assert_equal %w(before1 before2 update after2 after1), @update2.log
+    assert_equal %w(before1 before2 update after1 after2), @update2.log
   end
 end
 

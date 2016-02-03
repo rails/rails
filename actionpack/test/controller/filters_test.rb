@@ -547,12 +547,6 @@ class FilterTest < ActionController::TestCase
     end
   end
 
-  def test_after_actions_are_not_run_if_around_action_does_not_yield
-    controller = NonYieldingAroundFilterController.new
-    test_process(controller, "index")
-    assert_equal ["filter_one", "it didn't yield"], controller.instance_variable_get(:@filters)
-  end
-
   def test_added_action_to_inheritance_graph
     assert_equal [ :ensure_login ], TestController.before_actions
   end
@@ -706,8 +700,8 @@ class FilterTest < ActionController::TestCase
 
   def test_prepending_and_appending_around_action
     test_process(MixedFilterController)
-    assert_equal " before aroundfilter  before procfilter  before appended aroundfilter " +
-                 " after appended aroundfilter  after procfilter  after aroundfilter ",
+    assert_equal " before procfilter  before aroundfilter  before appended aroundfilter " +
+                 " after appended aroundfilter  after aroundfilter  after procfilter ",
                  MixedFilterController.execution_log
   end
 
@@ -1020,7 +1014,7 @@ class YieldingAroundFiltersTest < ActionController::TestCase
 
   def test_action_order_with_all_action_types
     test_process(ControllerWithAllTypesOfFilters,'no_raise')
-    assert_equal 'before around (before yield) around_again (before yield) around_again (after yield) after around (after yield)', @controller.instance_variable_get(:@ran_filter).join(' ')
+    assert_equal 'before around (before yield) around_again (before yield) around_again (after yield) around (after yield) after', @controller.instance_variable_get(:@ran_filter).join(' ')
   end
 
   def test_action_order_with_skip_action_method

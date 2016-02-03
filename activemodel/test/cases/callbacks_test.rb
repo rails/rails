@@ -128,8 +128,33 @@ class CallbacksTest < ActiveModel::TestCase
   test "after_create callbacks with both callbacks declared in one line" do
     assert_equal ["callback1", "callback2"], Violin1.new.create.history
   end
+
   test "after_create callbacks with both callbacks declared in different lines" do
     assert_equal ["callback1", "callback2"], Violin2.new.create.history
+  end
+
+  test "after_create callbacks work in simple order even if legacy order of ActiveSupport callbacks is chosen" do
+    begin
+      ActiveSupport::Callbacks.use_simple_callbacks_order = false
+
+      class Violin3 < Violin
+        after_create :callback1
+        after_create :callback2
+      end
+
+      assert_equal ["callback1", "callback2"], Violin3.new.create.history
+
+      ActiveSupport::Callbacks.use_simple_callbacks_order = true
+
+      class Violin4 < Violin
+        after_create :callback1
+        after_create :callback2
+      end
+
+      assert_equal ["callback1", "callback2"], Violin4.new.create.history
+    ensure
+      ActiveSupport::Callbacks.use_simple_callbacks_order = true
+    end
   end
 
 end

@@ -137,7 +137,11 @@ module ActiveModel
     def _define_after_model_callback(klass, callback) #:nodoc:
       klass.define_singleton_method("after_#{callback}") do |*args, &block|
         options = args.extract_options!
-        options[:prepend] = true
+
+        unless ActiveSupport::Callbacks.use_simple_callbacks_order
+          options[:prepend] = true
+        end
+
         conditional = ActiveSupport::Callbacks::Conditionals::Value.new { |v|
           v != false
         }
