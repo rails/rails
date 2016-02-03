@@ -47,7 +47,7 @@ module ActiveRecord
         # This is overridden by HABTM as the condition should be on the foreign_key column in
         # the join table
         def association_key
-          table[association_key_name]
+          klass.arel_attribute(association_key_name, table)
         end
 
         # The name of the key on the model which declares the association
