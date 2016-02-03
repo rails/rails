@@ -381,6 +381,9 @@ Please refer to the [Changelog][active-record] for detailed changes.
 *   Removed support for the `protected_attributes` gem.
     ([commit](https://github.com/rails/rails/commit/f4fbc0301021f13ae05c8e941c8efc4ae351fdf9))
 
+*   Removed support for PostgreSQL versions below 9.1.
+    ([Pull Request](https://github.com/rails/rails/pull/23434))
+
 ### Deprecations
 
 *   Deprecated passing a class as a value in a query. Users should pass strings
