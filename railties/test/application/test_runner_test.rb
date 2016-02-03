@@ -382,6 +382,30 @@ module ApplicationTests
       end
     end
 
+    def test_line_filters_trigger_only_one_runnable
+      app_file 'test/models/post_test.rb', <<-RUBY
+        require 'test_helper'
+
+        class PostTest < ActiveSupport::TestCase
+          test 'truth' do
+            assert true
+          end
+        end
+
+        class SecondPostTest < ActiveSupport::TestCase
+          test 'truth' do
+            assert false, 'ran second runnable'
+          end
+        end
+      RUBY
+
+      # Pass seed guaranteeing failure.
+      run_test_command('test/models/post_test.rb:4 --seed 30410').tap do |output|
+        assert_no_match 'ran second runnable', output
+        assert_match '1 runs, 1 assertions', output
+      end
+    end
+
     def test_shows_filtered_backtrace_by_default
       create_backtrace_test
 
