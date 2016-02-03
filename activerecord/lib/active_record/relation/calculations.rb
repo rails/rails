@@ -164,7 +164,7 @@ module ActiveRecord
       else
         relation = spawn
         relation.select_values = column_names.map { |cn|
-          @klass.has_attribute?(cn) || @klass.attribute_alias?(cn) ? klass.arel_attribute(cn, table) : cn
+          @klass.has_attribute?(cn) || @klass.attribute_alias?(cn) ? arel_attribute(cn) : cn
         }
         result = klass.connection.select_all(relation.arel, nil, bound_attributes)
         result.cast_values(klass.attribute_types)
