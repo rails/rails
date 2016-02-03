@@ -859,6 +859,11 @@ module ActiveRecord
           else
             sql_mode -= ['STRICT_TRANS_TABLES']
           end
+          # Before 5.7.5, MySQL does not detect functional dependency and ONLY_FULL_GROUP_BY is not enabled by default.
+          # See https://dev.mysql.com/doc/refman/5.7/en/group-by-handling.html
+          if version < '5.7.5'
+            sql_mode -= ['ONLY_FULL_GROUP_BY']
+          end
           variables['sql_mode'] = sql_mode.join(',')
         end
 
