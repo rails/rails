@@ -215,7 +215,7 @@ module ActiveRecord
                                         self.class.type_cast_config_to_integer(config.fetch(:statement_limit) { 1000 })
 
         if postgresql_version < 90100
-          raise "Your version of PostgreSQL (#{postgresql_version}) is too old, please upgrade!"
+          raise "Your version of PostgreSQL (#{postgresql_version}) is too old. Active Record supports PostgreSQL >= 9.1."
         end
 
         add_pg_decoders
