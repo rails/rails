@@ -64,7 +64,6 @@ PATH
     activesupport (5.0.0.beta2)
       concurrent-ruby (~> 1.0)
       i18n (~> 0.7)
-      method_source
       minitest (~> 5.1)
       tzinfo (~> 1.1)
     rails (5.0.0.beta2)
