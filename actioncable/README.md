@@ -448,8 +448,17 @@ as long as you haven’t committed any thread-safety sins.
 
 But this also means that Action Cable needs to run in its own server process.
 So you'll have one set of server processes for your normal web work, and another
-set of server processes for the Action Cable. The former can be single-threaded,
-like Unicorn, but the latter must be multi-threaded, like Puma.
+set of server processes for the Action Cable.
+
+The Action Cable server does _not_ need to be a multi-threaded application server.
+This is because Action Cable uses the [Rack socket hijacking API](http://old.blog.phusion.nl/2013/01/23/the-new-rack-socket-hijacking-api/)
+to take over control of connections from the application server. Action Cable
+then manages connections internally, in a multithreaded manner, regardless of
+whether the application server is multi-threaded or not. So Action Cable works
+with all the popular application servers -- Unicorn, Puma and Passenger.
+
+Action Cable does not work with WEBrick, because WEBrick does not support the
+Rack socket hijacking API.
 
 ## License
 
