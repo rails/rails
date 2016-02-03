@@ -618,7 +618,7 @@ We had to create the **gitapp** directory and initialize an empty git repository
 
 ```bash
 $ cat config/database.yml
-# PostgreSQL. Versions 8.2 and up are supported.
+# PostgreSQL. Versions 9.1 and up are supported.
 #
 # Install the pg driver:
 #   gem install pg
