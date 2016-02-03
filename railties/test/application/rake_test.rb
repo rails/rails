@@ -141,9 +141,9 @@ module ApplicationTests
         end
       RUBY
 
-      output = Dir.chdir(app_path){ `bin/rake routes CONTROLLER=cart` }
-      assert_equal ["Passing `CONTROLLER` to `bin/rake routes` is deprecated and will be removed in Rails 5.1.",
-                    "Please use `bin/rake routes -c controller_name` instead.",
+      output = Dir.chdir(app_path){ `bin/rails routes CONTROLLER=cart` }
+      assert_equal ["Passing `CONTROLLER` to `bin/rails routes` is deprecated and will be removed in Rails 5.1.",
+                    "Please use `bin/rails routes -c controller_name` instead.",
                     "Prefix Verb URI Pattern     Controller#Action",
                     "  cart GET  /cart(.:format) cart#show\n"].join("\n"), output
 
@@ -183,7 +183,7 @@ module ApplicationTests
         end
       RUBY
 
-      output = Dir.chdir(app_path){ `bin/rake routes -g show` }
+      output = Dir.chdir(app_path){ `bin/rails routes -g show` }
       assert_equal "Prefix Verb URI Pattern     Controller#Action\n  cart GET  /cart(.:format) cart#show\n", output
     end
 
@@ -195,13 +195,13 @@ module ApplicationTests
         end
       RUBY
 
-      output = Dir.chdir(app_path){ `bin/rake routes -c cart` }
+      output = Dir.chdir(app_path){ `bin/rails routes -c cart` }
       assert_equal "Prefix Verb URI Pattern     Controller#Action\n  cart GET  /cart(.:format) cart#show\n", output
 
-      output = Dir.chdir(app_path){ `bin/rake routes -c Cart` }
+      output = Dir.chdir(app_path){ `bin/rails routes -c Cart` }
       assert_equal "Prefix Verb URI Pattern     Controller#Action\n  cart GET  /cart(.:format) cart#show\n", output
 
-      output = Dir.chdir(app_path){ `bin/rake routes -c CartController` }
+      output = Dir.chdir(app_path){ `bin/rails routes -c CartController` }
       assert_equal "Prefix Verb URI Pattern     Controller#Action\n  cart GET  /cart(.:format) cart#show\n", output
     end
 
