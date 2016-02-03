@@ -103,7 +103,6 @@ platforms :ruby, :mswin, :mswin64, :mingw, :x64_mingw do
 end
 
 platforms :jruby do
-  gem 'json'
   if ENV['AR_JDBC']
     gem 'activerecord-jdbcsqlite3-adapter', github: 'jruby/activerecord-jdbc-adapter', branch: 'master'
     group :db do
