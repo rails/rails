@@ -496,8 +496,6 @@ module ActiveRecord
       #   Default is (10,0).
       # * PostgreSQL: <tt>:precision</tt> [1..infinity],
       #   <tt>:scale</tt> [0..infinity]. No default.
-      # * SQLite2: Any <tt>:precision</tt> and <tt>:scale</tt> may be used.
-      #   Internal storage as strings. No default.
       # * SQLite3: No restrictions on <tt>:precision</tt> and <tt>:scale</tt>,
       #   but the maximum supported <tt>:precision</tt> is 16. No default.
       # * Oracle: <tt>:precision</tt> [1..38], <tt>:scale</tt> [-84..127].
