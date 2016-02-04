@@ -245,8 +245,9 @@ GEM
     thor (0.19.1)
     thread (0.1.7)
     thread_safe (0.3.5)
-    turbolinks (2.5.3)
-      coffee-rails
+    turbolinks (5.0.0.beta1)
+      turbolinks-source
+    turbolinks-source (5.0.0.beta1.1)
     tzinfo (1.2.2)
       thread_safe (~> 0.1)
     tzinfo-data (1.2015.7)
@@ -314,7 +315,7 @@ DEPENDENCIES
   sqlite3 (~> 1.3.6)
   stackprof
   sucker_punch
-  turbolinks
+  turbolinks (~> 5.0.0.beta1)
   tzinfo-data
   uglifier (>= 1.3.0)
   w3c_validators
