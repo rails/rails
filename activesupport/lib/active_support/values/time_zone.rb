@@ -48,6 +48,7 @@ module ActiveSupport
       "Central America"              => "America/Guatemala",
       "Eastern Time (US & Canada)"   => "America/New_York",
       "Indiana (East)"               => "America/Indiana/Indianapolis",
+      "Puerto Rico"                  => "America/Puerto_Rico",
       "Bogota"                       => "America/Bogota",
       "Lima"                         => "America/Lima",
       "Quito"                        => "America/Lima",
