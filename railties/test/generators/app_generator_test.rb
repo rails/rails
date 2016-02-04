@@ -415,7 +415,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_action_cable_redis_gems
     run_generator
-    assert_gem 'redis'
+    assert_file "Gemfile", /^# gem 'redis'/
   end
 
   def test_inclusion_of_javascript_runtime
