@@ -19,13 +19,13 @@ http://travis-ci.org/rails/rails
 
 ### Is Sam Ruby happy?  If not, make him happy.
 
-Sam Ruby keeps a test suite that makes sure the code samples in his book (Agile
-Web Development with Rails) all work.  These are valuable integration tests
-for Rails.  You can check the status of his tests here:
+Sam Ruby keeps a [test suite](https://github.com/rubys/awdwr) that makes
+sure the code samples in his book 
+([Agile Web Development with Rails](https://pragprog.com/titles/rails4/agile-web-development-with-rails-4th-edition))
+all work.  These are valuable system tests
+for Rails.  You can check the status of these tests here:
 
-```
-http://intertwingly.net/projects/dashboard.html
-```
+[http://intertwingly.net/projects/dashboard.html](http://intertwingly.net/projects/dashboard.html)
 
 Do not release with Red AWDwR tests.
 
