@@ -1,3 +1,10 @@
+*  Added ActionCable::SubscriptionAdapter::EventedRedis.em_redis_connector/redis_connector and
+   ActionCable::SubscriptionAdapter::Redis.redis_connector factory methods for redis connections, 
+   so you can overwrite with your own initializers. This is used when you want to use different-than-standard Redis adapters,
+   like for Makara distributed Redis.
+
+   *DHH*
+
 ## Rails 5.0.0.beta2 (February 01, 2016) ##
 
 *   Support PostgreSQL pubsub adapter.

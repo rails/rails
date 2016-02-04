@@ -6,6 +6,10 @@ require 'redis'
 module ActionCable
   module SubscriptionAdapter
     class Redis < Base # :nodoc:
+      # Overwrite this factory method for redis connections if you want to use a different Redis library than Redis.
+      # This is needed, for example, when using Makara proxies for distributed Redis.
+      cattr_accessor(:redis_connector) { ->(config) { ::Redis.new(url: config[:url]) } }
+
       def initialize(*)
         super
         @listener = nil
@@ -39,7 +43,7 @@ module ActionCable
 
         def redis_connection_for_broadcasts
           @redis_connection_for_broadcasts || @server.mutex.synchronize do
-            @redis_connection_for_broadcasts ||= ::Redis.new(@server.config.cable)
+            @redis_connection_for_broadcasts ||= self.class.redis_connector.call(@server.config.cable)
           end
         end
 
