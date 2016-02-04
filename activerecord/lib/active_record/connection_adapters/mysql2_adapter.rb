@@ -41,10 +41,6 @@ module ActiveRecord
         configure_connection
       end
 
-      def supports_json?
-        version >= '5.7.8'
-      end
-
       # HELPER METHODS ===========================================
 
       def each_hash(result) # :nodoc:
