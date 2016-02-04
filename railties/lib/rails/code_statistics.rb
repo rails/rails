@@ -69,12 +69,12 @@ class CodeStatistics #:nodoc:
 
     def print_header
       print_splitter
-      puts "| Name                 |  Lines |   LOC  | Classes | Methods | M/C | LOC/M |"
+      puts "| Name                 | Lines |   LOC | Classes | Methods | M/C | LOC/M |"
       print_splitter
     end
 
     def print_splitter
-      puts "+----------------------+--------+--------+---------+---------+-----+-------+"
+      puts "+----------------------+-------+-------+---------+---------+-----+-------+"
     end
 
     def print_line(name, statistics)
@@ -82,8 +82,8 @@ class CodeStatistics #:nodoc:
       loc_over_m = (statistics.code_lines / statistics.methods) - 2 rescue loc_over_m = 0
 
       puts "| #{name.ljust(20)} " \
-           "| #{statistics.lines.to_s.rjust(6)} " \
-           "| #{statistics.code_lines.to_s.rjust(6)} " \
+           "| #{statistics.lines.to_s.rjust(5)} " \
+           "| #{statistics.code_lines.to_s.rjust(5)} " \
            "| #{statistics.classes.to_s.rjust(7)} " \
            "| #{statistics.methods.to_s.rjust(7)} " \
            "| #{m_over_c.to_s.rjust(3)} " \
