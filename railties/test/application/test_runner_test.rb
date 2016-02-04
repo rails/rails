@@ -406,6 +406,30 @@ module ApplicationTests
       end
     end
 
+    def test_line_filter_with_minitest_string_filter
+      app_file 'test/models/post_test.rb', <<-RUBY
+        require 'test_helper'
+
+        class PostTest < ActiveSupport::TestCase
+          test 'by line' do
+            puts 'by line'
+            assert true
+          end
+
+          test 'by name' do
+            puts 'by name'
+            assert true
+          end
+        end
+      RUBY
+
+      run_test_command('test/models/post_test.rb:4 -n test_by_name').tap do |output|
+        assert_match 'by line', output
+        assert_match 'by name', output
+        assert_match '2 runs, 2 assertions', output
+      end
+    end
+
     def test_shows_filtered_backtrace_by_default
       create_backtrace_test
 

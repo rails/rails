@@ -13,9 +13,12 @@ module Rails
   end
 
   class CompositeFilter # :nodoc:
+    attr_reader :named_filter
+
     def initialize(runnable, filter, patterns)
       @runnable = runnable
-      @filters = [ derive_regexp(filter), *derive_line_filters(patterns) ].compact
+      @named_filter = derive_named_filter(filter)
+      @filters = [ @named_filter, *derive_line_filters(patterns) ].compact
     end
 
     # Minitest uses === to find matching filters.
@@ -24,9 +27,14 @@ module Rails
     end
 
     private
-      def derive_regexp(filter)
-        # Regexp filtering copied from Minitest.
-        Regexp.new $1 if filter =~ %r%/(.*)/%
+      def derive_named_filter(filter)
+        if filter.respond_to?(:named_filter)
+          filter.named_filter
+        elsif filter =~ %r%/(.*)/% # Regexp filtering copied from Minitest.
+          Regexp.new $1
+        elsif filter.is_a?(String)
+          filter
+        end
       end
 
       def derive_line_filters(patterns)
