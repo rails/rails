@@ -272,8 +272,7 @@ module ActiveModel
 
       # Copy validators on inheritance.
       def inherited(base) #:nodoc:
-        dup = _validators.dup
-        base._validators = dup.each { |k, v| dup[k] = v.dup }
+        base._validators = _validators.dup
         super
       end
     end
