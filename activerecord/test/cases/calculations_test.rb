@@ -789,4 +789,33 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 50, result[1].credit_limit
     assert_equal 50, result[2].credit_limit
   end
+
+  def test_more_than
+    assert Topic.all.more_than?(0)
+    assert Topic.all.more_than?(1)
+    assert !Topic.all.more_than?(5)
+    assert !Topic.all.more_than?(6)
+  end
+
+  def test_less_than
+    assert !Topic.all.less_than?(0)
+    assert !Topic.all.less_than?(1)
+    assert !Topic.all.less_than?(5)
+    assert Topic.all.less_than?(6)
+  end
+
+  def test_more_equal_than
+    assert Topic.all.more_equal_than?(0)
+    assert Topic.all.more_equal_than?(1)
+    assert Topic.all.more_equal_than?(5)
+    assert !Topic.all.more_equal_than?(6)
+  end
+
+  def test_less_equal_than
+    assert !Topic.all.less_equal_than?(0)
+    assert !Topic.all.less_equal_than?(1)
+    assert Topic.all.less_equal_than?(5)
+    assert Topic.all.less_equal_than?(6)
+  end
+
 end

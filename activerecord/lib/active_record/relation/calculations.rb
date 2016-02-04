@@ -179,6 +179,31 @@ module ActiveRecord
       pluck primary_key
     end
 
+    def more_than?(limit)
+      count_with_limit(limit + 1) > limit
+    end
+
+    def less_than?(limit)
+      count_with_limit(limit) < limit
+    end
+
+    def less_equal_than?(limit)
+      !more_than?(limit)
+    end
+
+    def more_equal_than?(limit)
+      !less_than?(limit)
+    end
+
+    private
+
+    def count_with_limit(limit)
+      if group_values.any?
+        raise ArgumentError, "can not perform limited count operation on the Relation with GROUP BY statement"
+      end
+      limit(limit).count
+    end
+
     private
 
     def has_include?(column_name)
