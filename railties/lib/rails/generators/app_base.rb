@@ -317,7 +317,7 @@ module Rails
       end
 
       def javascript_gemfile_entry
-        if options[:skip_javascript]
+        if options[:skip_javascript] || options[:skip_sprockets]
           []
         else
           gems = [coffee_gemfile_entry, javascript_runtime_gemfile_entry]
