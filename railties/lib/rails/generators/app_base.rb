@@ -352,9 +352,9 @@ module Rails
 
       def cable_gemfile_entry
         return [] if options[:skip_action_cable]
-        comment = 'Action Cable dependencies for the Redis adapter'
+        comment = 'Use Redis adapter to run Action Cable in production'
         gems = []
-        gems << GemfileEntry.new("redis", '~> 3.0', comment)
+        gems << GemfileEntry.new("redis", '~> 3.0', comment, {}, true)
         gems
       end
 
