@@ -2271,7 +2271,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal [], authors(:david).posts_with_signature.map(&:title)
   end
 
-  test 'associations autosaves when object is already persited' do
+  test 'associations autosaves when object is already persisted' do
     bulb = Bulb.create!
     tyre = Tyre.create!
 

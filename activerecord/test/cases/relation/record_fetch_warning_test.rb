@@ -7,7 +7,7 @@ module ActiveRecord
 
     def test_warn_on_records_fetched_greater_than
       original_logger = ActiveRecord::Base.logger
-      orginal_warn_on_records_fetched_greater_than = ActiveRecord::Base.warn_on_records_fetched_greater_than
+      original_warn_on_records_fetched_greater_than = ActiveRecord::Base.warn_on_records_fetched_greater_than
 
       log = StringIO.new
       ActiveRecord::Base.logger = ActiveSupport::Logger.new(log)
@@ -22,7 +22,7 @@ module ActiveRecord
       assert_match(/Query fetched/, log.string)
     ensure
       ActiveRecord::Base.logger = original_logger
-      ActiveRecord::Base.warn_on_records_fetched_greater_than = orginal_warn_on_records_fetched_greater_than
+      ActiveRecord::Base.warn_on_records_fetched_greater_than = original_warn_on_records_fetched_greater_than
     end
   end
 end

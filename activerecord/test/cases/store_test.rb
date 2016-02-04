@@ -104,7 +104,7 @@ class StoreTest < ActiveRecord::TestCase
     assert_equal true,      user.settings.instance_of?(ActiveSupport::HashWithIndifferentAccess)
   end
 
-  test "convert store attributes from any format other than Hash or HashWithIndifferent access losing the data" do
+  test "convert store attributes from any format other than Hash or HashWithIndifferentAccess losing the data" do
     @john.json_data = "somedata"
     @john.height = 'low'
     assert_equal true, @john.json_data.instance_of?(ActiveSupport::HashWithIndifferentAccess)

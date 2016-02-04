@@ -798,7 +798,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_nil computer.system
   end
 
-  def test_global_methods_are_overwritte_when_subclassing
+  def test_global_methods_are_overwritten_when_subclassing
     klass = Class.new(ActiveRecord::Base) { self.abstract_class = true }
 
     subklass = Class.new(klass) do
