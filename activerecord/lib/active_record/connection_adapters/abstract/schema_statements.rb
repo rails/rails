@@ -698,7 +698,7 @@ module ActiveRecord
       #
       #   CREATE FULLTEXT INDEX index_developers_on_name ON developers (name) -- MySQL
       #
-      # Note: only supported by MySQL. Supported: <tt>:fulltext</tt> and <tt>:spatial</tt> on MyISAM tables.
+      # Note: only supported by MySQL.
       def add_index(table_name, column_name, options = {})
         index_name, index_type, index_columns, index_options = add_index_options(table_name, column_name, options)
         execute "CREATE #{index_type} INDEX #{quote_column_name(index_name)} ON #{quote_table_name(table_name)} (#{index_columns})#{index_options}"
