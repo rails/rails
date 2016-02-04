@@ -45,7 +45,7 @@ namespace :rails do
         @app_generator ||= begin
           require 'rails/generators'
           require 'rails/generators/rails/app/app_generator'
-          gen = Rails::Generators::AppGenerator.new ["rails"], { with_dispatchers: true },
+          gen = Rails::Generators::AppGenerator.new ["rails"], { with_dispatchers: true, api: !!Rails.application.config.api_only },
             destination_root: Rails.root
           File.exist?(Rails.root.join("config", "application.rb")) ?
             gen.send(:app_const) : gen.send(:valid_const?)
