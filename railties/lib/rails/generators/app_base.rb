@@ -326,7 +326,7 @@ module Rails
 
           unless options[:skip_turbolinks]
             gems << GemfileEntry.version("turbolinks", nil,
-             "Turbolinks makes following links in your web application faster. Read more: https://github.com/rails/turbolinks")
+             "Turbolinks makes following links in your web application faster. Read more: https://github.com/turbolinks/turbolinks")
           end
 
           gems
