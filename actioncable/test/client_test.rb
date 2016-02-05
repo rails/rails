@@ -187,7 +187,7 @@ class ClientTest < ActionCable::TestCase
 
   def test_many_clients
     with_puma_server do |port|
-      clients = 200.times.map { faye_client(port) }
+      clients = 100.times.map { faye_client(port) }
 
       clients.map {|c| Concurrent::Future.execute {
         c.send_message command: 'subscribe', identifier: JSON.dump(channel: 'EchoChannel')
