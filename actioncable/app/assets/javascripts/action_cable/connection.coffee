@@ -77,14 +77,14 @@ class ActionCable.Connection
       switch type
         when message_types.confirmation
           @consumer.subscriptions.notify(identifier, "connected")
-          @dispatchEvent("connected", message, JSON.parse(identifier).channel)
+          @dispatchEvent(identifier, "connected", message)
         when message_types.rejection
           @consumer.subscriptions.reject(identifier)
         else
           @consumer.subscriptions.notify(identifier, "received", message)
 
           if identifier isnt ActionCable.INTERNAL.identifiers.ping
-            @dispatchEvent("received", message, JSON.parse(identifier).channel)
+            @dispatchEvent(identifier, "received", message)
 
     open: ->
       ActionCable.log("WebSocket onopen event")
@@ -99,14 +99,16 @@ class ActionCable.Connection
       ActionCable.log("WebSocket onerror event")
       @disconnect()
 
-  dispatchEvent: (eventType, message = null, channel = null) ->
-      event = document.createEvent('Event')
-      event.initEvent("actioncable:#{eventType}", true, false)
-      event.data = {message, channel}
-      document.dispatchEvent(event)
+  dispatchEvent: (identifier, eventName, message = null) ->
+    channel = if identifier then JSON.parse(identifier).channel else null
+
+    event = document.createEvent('Event')
+    event.initEvent("actioncable:#{eventName}", true, false)
+    event.data = {channel, message}
+    document.dispatchEvent(event)
 
   disconnect: ->
     return if @disconnected
     @disconnected = true
     @consumer.subscriptions.notifyAll("disconnected")
-    @dispatchEvent("disconnected")
+    @dispatchEvent(null, "disconnected")
