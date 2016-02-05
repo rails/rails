@@ -1,8 +1,8 @@
-## Rails 5.0.0.beta2 (February 01, 2016) ##
-
 *   Add dummy files for apple-touch-icon.png and apple-touch-icon.png. GH#23427
 
     *Alexey Zabelin*
+
+## Rails 5.0.0.beta2 (February 01, 2016) ##
 
 *   Add `after_bundle` callbacks in Rails plugin templates.  Useful for allowing
     templates to perform actions that are dependent upon `bundle install`.
