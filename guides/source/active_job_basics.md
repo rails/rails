@@ -109,10 +109,12 @@ That's it!
 Job Execution
 -------------
 
-For enqueuing and executing jobs you need to set up a queuing backend, that is to
-say you need to decide for a 3rd-party queuing library that Rails should use.
-Rails itself does not provide a sophisticated queuing system and just executes the
-job immediately if no adapter is set.
+For enqueuing and executing jobs in production you need to set up a queuing backend, 
+that is to say you need to decide for a 3rd-party queuing library that Rails should use.
+Rails itself only provides an in-process queuing system, which only keeps the jobs in RAM.
+If the process crashes or the machine is reset, then all outstanding jobs are lost with the
+default async back-end. This may be fine for smaller apps or non-critical jobs, but most
+production apps will need to pick a persistent backend.
 
 ### Backends
 

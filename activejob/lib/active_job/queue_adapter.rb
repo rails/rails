@@ -10,19 +10,19 @@ module ActiveJob
 
     included do
       class_attribute :_queue_adapter, instance_accessor: false, instance_predicate: false
-      self.queue_adapter = :inline
+      self.queue_adapter = :async
     end
 
     # Includes the setter method for changing the active queue adapter.
     module ClassMethods
       # Returns the backend queue provider. The default queue adapter
-      # is the +:inline+ queue. See QueueAdapters for more information.
+      # is the +:async+ queue. See QueueAdapters for more information.
       def queue_adapter
         _queue_adapter
       end
 
       # Specify the backend queue provider. The default queue adapter
-      # is the +:inline+ queue. See QueueAdapters for more
+      # is the +:async+ queue. See QueueAdapters for more
       # information.
       def queue_adapter=(name_or_adapter_or_class)
         self._queue_adapter = interpret_adapter(name_or_adapter_or_class)
