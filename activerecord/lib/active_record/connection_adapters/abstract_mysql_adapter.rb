@@ -370,8 +370,7 @@ module ActiveRecord
       def data_source_exists?(table_name)
         return false unless table_name.present?
 
-        schema, name = table_name.to_s.split('.', 2)
-        schema, name = @config[:database], schema unless name # A table was provided without a schema
+        schema, name = extract_schema_qualified_name(table_name)
 
         sql = "SELECT table_name FROM information_schema.tables "
         sql << "WHERE table_schema = #{quote(schema)} AND table_name = #{quote(name)}"
@@ -386,8 +385,7 @@ module ActiveRecord
       def view_exists?(view_name) # :nodoc:
         return false unless view_name.present?
 
-        schema, name = view_name.to_s.split('.', 2)
-        schema, name = @config[:database], schema unless name # A view was provided without a schema
+        schema, name = extract_schema_qualified_name(view_name)
 
         sql = "SELECT table_name FROM information_schema.tables WHERE table_type = 'VIEW'"
         sql << " AND table_schema = #{quote(schema)} AND table_name = #{quote(name)}"
@@ -523,6 +521,10 @@ module ActiveRecord
       end
 
       def foreign_keys(table_name)
+        raise ArgumentError unless table_name.present?
+
+        schema, name = extract_schema_qualified_name(table_name)
+
         fk_info = select_all <<-SQL.strip_heredoc
           SELECT fk.referenced_table_name as 'to_table'
                 ,fk.referenced_column_name as 'primary_key'
@@ -530,8 +532,8 @@ module ActiveRecord
                 ,fk.constraint_name as 'name'
           FROM information_schema.key_column_usage fk
           WHERE fk.referenced_column_name is not null
-            AND fk.table_schema = '#{@config[:database]}'
-            AND fk.table_name = '#{table_name}'
+            AND fk.table_schema = #{quote(schema)}
+            AND fk.table_name = #{quote(name)}
         SQL
 
         create_table_info = create_table_info(table_name)
@@ -594,8 +596,7 @@ module ActiveRecord
       def primary_keys(table_name) # :nodoc:
         raise ArgumentError unless table_name.present?
 
-        schema, name = table_name.to_s.split('.', 2)
-        schema, name = @config[:database], schema unless name # A table was provided without a schema
+        schema, name = extract_schema_qualified_name(table_name)
 
         select_values(<<-SQL.strip_heredoc, 'SCHEMA')
           SELECT column_name
@@ -896,6 +897,12 @@ module ActiveRecord
 
       def create_table_definition(name, temporary = false, options = nil, as = nil) # :nodoc:
         MySQL::TableDefinition.new(name, temporary, options, as)
+      end
+
+      def extract_schema_qualified_name(string) # :nodoc:
+        schema, name = string.to_s.scan(/[^`.\s]+|`[^`]*`/)
+        schema, name = @config[:database], schema unless name
+        [schema, name]
       end
 
       def integer_to_sql(limit) # :nodoc:
