@@ -1,3 +1,11 @@
+*   Allow variants to be set through the URL.
+
+    request.variant can be set from URL. For example, accessing
+    http://example.com/posts.html+partial sets `request.variant = [:partial]`
+    automatically. `:variant` is tied to `:format` like `(.:format(+:variant))`.
+
+    *Hong ChulJu*, *Mohit Natoo*
+    
 *   Update session to have indifferent access across multiple requests
 
         session[:deep][:hash] = "Magic"

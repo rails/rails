@@ -130,7 +130,7 @@ module ApplicationTests
       RUBY
 
       output = Dir.chdir(app_path){ `bin/rails routes` }
-      assert_equal "Prefix Verb URI Pattern     Controller#Action\n  cart GET  /cart(.:format) cart#show\n", output
+      assert_equal "Prefix Verb URI Pattern                Controller#Action\n  cart GET  /cart(.:format(+:variant)) cart#show\n", output
     end
 
     def test_rake_routes_with_controller_environment
@@ -144,11 +144,11 @@ module ApplicationTests
       output = Dir.chdir(app_path){ `bin/rails routes CONTROLLER=cart` }
       assert_equal ["Passing `CONTROLLER` to `bin/rails routes` is deprecated and will be removed in Rails 5.1.",
                     "Please use `bin/rails routes -c controller_name` instead.",
-                    "Prefix Verb URI Pattern     Controller#Action",
-                    "  cart GET  /cart(.:format) cart#show\n"].join("\n"), output
+                    "Prefix Verb URI Pattern                Controller#Action",
+                    "  cart GET  /cart(.:format(+:variant)) cart#show\n"].join("\n"), output
 
       output = Dir.chdir(app_path){ `bin/rails routes -c cart` }
-      assert_equal "Prefix Verb URI Pattern     Controller#Action\n  cart GET  /cart(.:format) cart#show\n", output
+      assert_equal "Prefix Verb URI Pattern                Controller#Action\n  cart GET  /cart(.:format(+:variant)) cart#show\n", output
     end
 
     def test_rake_routes_with_namespaced_controller_environment
@@ -159,14 +159,14 @@ module ApplicationTests
           end
         end
       RUBY
-      expected_output = ["         Prefix Verb   URI Pattern                Controller#Action",
-                         "     admin_post POST   /admin/post(.:format)      admin/posts#create",
-                         " new_admin_post GET    /admin/post/new(.:format)  admin/posts#new",
-                         "edit_admin_post GET    /admin/post/edit(.:format) admin/posts#edit",
-                         "                GET    /admin/post(.:format)      admin/posts#show",
-                         "                PATCH  /admin/post(.:format)      admin/posts#update",
-                         "                PUT    /admin/post(.:format)      admin/posts#update",
-                         "                DELETE /admin/post(.:format)      admin/posts#destroy\n"].join("\n")
+      expected_output = ["         Prefix Verb   URI Pattern                           Controller#Action",
+                         "     admin_post POST   /admin/post(.:format(+:variant))      admin/posts#create",
+                         " new_admin_post GET    /admin/post/new(.:format(+:variant))  admin/posts#new",
+                         "edit_admin_post GET    /admin/post/edit(.:format(+:variant)) admin/posts#edit",
+                         "                GET    /admin/post(.:format(+:variant))      admin/posts#show",
+                         "                PATCH  /admin/post(.:format(+:variant))      admin/posts#update",
+                         "                PUT    /admin/post(.:format(+:variant))      admin/posts#update",
+                         "                DELETE /admin/post(.:format(+:variant))      admin/posts#destroy\n"].join("\n")
 
       output = Dir.chdir(app_path){ `bin/rails routes -c Admin::PostController` }
       assert_equal expected_output, output
@@ -185,14 +185,14 @@ module ApplicationTests
       RUBY
 
       output = Dir.chdir(app_path){ `bin/rails routes -g show` }
-      assert_equal "Prefix Verb URI Pattern     Controller#Action\n  cart GET  /cart(.:format) cart#show\n", output
+      assert_equal "Prefix Verb URI Pattern                Controller#Action\n  cart GET  /cart(.:format(+:variant)) cart#show\n", output
 
       output = Dir.chdir(app_path){ `bin/rails routes -g POST` }
-      assert_equal "Prefix Verb URI Pattern     Controller#Action\n       POST /cart(.:format) cart#create\n", output
+      assert_equal "Prefix Verb URI Pattern                Controller#Action\n       POST /cart(.:format(+:variant)) cart#create\n", output
 
       output = Dir.chdir(app_path){ `bin/rails routes -g basketballs` }
-      assert_equal "     Prefix Verb URI Pattern            Controller#Action\n" \
-                   "basketballs GET  /basketballs(.:format) basketball#index\n", output
+      assert_equal "     Prefix Verb URI Pattern                       Controller#Action\n" \
+                   "basketballs GET  /basketballs(.:format(+:variant)) basketball#index\n", output
     end
 
     def test_rake_routes_with_controller_search_key
@@ -204,13 +204,13 @@ module ApplicationTests
       RUBY
 
       output = Dir.chdir(app_path){ `bin/rails routes -c cart` }
-      assert_equal "Prefix Verb URI Pattern     Controller#Action\n  cart GET  /cart(.:format) cart#show\n", output
+      assert_equal "Prefix Verb URI Pattern                Controller#Action\n  cart GET  /cart(.:format(+:variant)) cart#show\n", output
 
       output = Dir.chdir(app_path){ `bin/rails routes -c Cart` }
-      assert_equal "Prefix Verb URI Pattern     Controller#Action\n  cart GET  /cart(.:format) cart#show\n", output
+      assert_equal "Prefix Verb URI Pattern                Controller#Action\n  cart GET  /cart(.:format(+:variant)) cart#show\n", output
 
       output = Dir.chdir(app_path){ `bin/rails routes -c CartController` }
-      assert_equal "Prefix Verb URI Pattern     Controller#Action\n  cart GET  /cart(.:format) cart#show\n", output
+      assert_equal "Prefix Verb URI Pattern                Controller#Action\n  cart GET  /cart(.:format(+:variant)) cart#show\n", output
     end
 
     def test_rake_routes_displays_message_when_no_routes_are_defined

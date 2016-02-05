@@ -85,9 +85,9 @@ module ActionDispatch
           path = Mapper.normalize_path(path)
 
           if format == true
-            "#{path}.:format"
+            "#{path}.:format(+:variant)"
           elsif optional_format?(path, format)
-            "#{path}(.:format)"
+            "#{path}(.:format(+:variant))"
           else
             path
           end
@@ -258,7 +258,7 @@ module ActionDispatch
           def normalize_format(formatted)
             case formatted
             when true
-              { requirements: { format: /.+/ },
+              { requirements: { format: /[^\+]+/ },
                 defaults:     {} }
             when Regexp
               { requirements: { format: formatted },

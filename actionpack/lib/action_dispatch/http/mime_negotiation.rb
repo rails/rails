@@ -95,7 +95,11 @@ module ActionDispatch
       end
 
       def variant
-        @variant ||= ActiveSupport::ArrayInquirer.new
+        @variant ||= if parameters[:variant]
+                       self.variant = parameters[:variant].to_sym
+                     else
+                       ActiveSupport::ArrayInquirer.new
+                     end
       end
 
       # Sets the \format by string extension, which can be used to force custom formats

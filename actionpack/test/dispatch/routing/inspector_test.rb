@@ -39,12 +39,12 @@ module ActionDispatch
         end
 
         assert_equal [
-          "       Prefix Verb URI Pattern              Controller#Action",
-          "custom_assets GET  /custom/assets(.:format) custom_assets#show",
-          "         blog      /blog                    Blog::Engine",
+          "       Prefix Verb URI Pattern                         Controller#Action",
+          "custom_assets GET  /custom/assets(.:format(+:variant)) custom_assets#show",
+          "         blog      /blog                               Blog::Engine",
           "",
           "Routes for Blog::Engine:",
-          "  cart GET  /cart(.:format) cart#show"
+          "  cart GET  /cart(.:format(+:variant)) cart#show"
         ], output
       end
 
@@ -75,8 +75,8 @@ module ActionDispatch
         end
 
         assert_equal [
-          "Prefix Verb URI Pattern     Controller#Action",
-          "  cart GET  /cart(.:format) cart#show"
+          "Prefix Verb URI Pattern                Controller#Action",
+          "  cart GET  /cart(.:format(+:variant)) cart#show"
         ], output
       end
 
@@ -86,8 +86,8 @@ module ActionDispatch
         end
 
         assert_equal [
-          "Prefix Verb      URI Pattern             Controller#Action",
-          "       PUT|PATCH /articles/:id(.:format) articles#update"
+          "Prefix Verb      URI Pattern                        Controller#Action",
+          "       PUT|PATCH /articles/:id(.:format(+:variant)) articles#update"
         ], output
       end
 
@@ -97,8 +97,8 @@ module ActionDispatch
         end
 
         assert_equal [
-          "       Prefix Verb URI Pattern              Controller#Action",
-          "custom_assets GET  /custom/assets(.:format) custom_assets#show"
+          "       Prefix Verb URI Pattern                         Controller#Action",
+          "custom_assets GET  /custom/assets(.:format(+:variant)) custom_assets#show"
         ], output
       end
 
@@ -108,15 +108,15 @@ module ActionDispatch
         end
 
         assert_equal [
-          "      Prefix Verb   URI Pattern                  Controller#Action",
-          "    articles GET    /articles(.:format)          articles#index",
-          "             POST   /articles(.:format)          articles#create",
-          " new_article GET    /articles/new(.:format)      articles#new",
-          "edit_article GET    /articles/:id/edit(.:format) articles#edit",
-          "     article GET    /articles/:id(.:format)      articles#show",
-          "             PATCH  /articles/:id(.:format)      articles#update",
-          "             PUT    /articles/:id(.:format)      articles#update",
-          "             DELETE /articles/:id(.:format)      articles#destroy"
+          "      Prefix Verb   URI Pattern                             Controller#Action",
+          "    articles GET    /articles(.:format(+:variant))          articles#index",
+          "             POST   /articles(.:format(+:variant))          articles#create",
+          " new_article GET    /articles/new(.:format(+:variant))      articles#new",
+          "edit_article GET    /articles/:id/edit(.:format(+:variant)) articles#edit",
+          "     article GET    /articles/:id(.:format(+:variant))      articles#show",
+          "             PATCH  /articles/:id(.:format(+:variant))      articles#update",
+          "             PUT    /articles/:id(.:format(+:variant))      articles#update",
+          "             DELETE /articles/:id(.:format(+:variant))      articles#destroy"
         ], output
       end
 
@@ -137,8 +137,8 @@ module ActionDispatch
         end
 
         assert_equal [
-          "Prefix Verb URI Pattern            Controller#Action",
-          "       GET  /api/:action(.:format) api#:action"
+          "Prefix Verb URI Pattern                       Controller#Action",
+          "       GET  /api/:action(.:format(+:variant)) api#:action"
         ], output
       end
 
@@ -148,8 +148,8 @@ module ActionDispatch
         end
 
         assert_equal [
-          "Prefix Verb URI Pattern                    Controller#Action",
-          "       GET  /:controller/:action(.:format) :controller#:action"
+          "Prefix Verb URI Pattern                               Controller#Action",
+          "       GET  /:controller/:action(.:format(+:variant)) :controller#:action"
         ], output
       end
 
@@ -159,8 +159,8 @@ module ActionDispatch
         end
 
         assert_equal [
-          "Prefix Verb URI Pattern                            Controller#Action",
-          "       GET  /:controller(/:action(/:id))(.:format) :controller#:action {:id=>/\\d+/}"
+          "Prefix Verb URI Pattern                                       Controller#Action",
+          "       GET  /:controller(/:action(/:id))(.:format(+:variant)) :controller#:action {:id=>/\\d+/}"
         ], output
       end
 
@@ -170,8 +170,8 @@ module ActionDispatch
         end
 
         assert_equal [
-          "Prefix Verb URI Pattern           Controller#Action",
-          %Q[       GET  /photos/:id(.:format) photos#show {:format=>"jpg"}]
+          "Prefix Verb URI Pattern                      Controller#Action",
+          %Q[       GET  /photos/:id(.:format(+:variant)) photos#show {:format=>\"jpg\"}]
         ], output
       end
 
@@ -181,8 +181,8 @@ module ActionDispatch
         end
 
         assert_equal [
-          "Prefix Verb URI Pattern           Controller#Action",
-          "       GET  /photos/:id(.:format) photos#show {:id=>/[A-Z]\\d{5}/}"
+          "Prefix Verb URI Pattern                      Controller#Action",
+          "       GET  /photos/:id(.:format(+:variant)) photos#show {:id=>/[A-Z]\\d{5}/}"
         ], output
       end
 
@@ -199,13 +199,13 @@ module ActionDispatch
         end
 
         assert_equal [
-          "               Prefix Verb URI Pattern                              Controller#Action",
-          "             about_us GET  /about-us(.:format)                      pages#about_us",
-          "      our_work_latest GET  /our-work/latest(.:format)               our_work#latest",
-          "user_favorites_photos GET  /photos/user-favorites(.:format)         photos#user_favorites",
-          "  preview_photo_photo GET  /photos/:id/preview-photo(.:format)      photos#preview_photo",
-          "   photo_summary_text GET  /photos/:photo_id/summary-text(.:format) photos#summary_text",
-          "                photo GET  /photos/:id(.:format)                    photos#show"
+          "               Prefix Verb URI Pattern                                         Controller#Action",
+          "             about_us GET  /about-us(.:format(+:variant))                      pages#about_us",
+          "      our_work_latest GET  /our-work/latest(.:format(+:variant))               our_work#latest",
+          "user_favorites_photos GET  /photos/user-favorites(.:format(+:variant))         photos#user_favorites",
+          "  preview_photo_photo GET  /photos/:id/preview-photo(.:format(+:variant))      photos#preview_photo",
+          "   photo_summary_text GET  /photos/:photo_id/summary-text(.:format(+:variant)) photos#summary_text",
+          "                photo GET  /photos/:id(.:format(+:variant))                    photos#show"
         ], output
       end
 
@@ -215,8 +215,8 @@ module ActionDispatch
         end
 
         assert_equal [
-          "Prefix Verb URI Pattern        Controller#Action",
-          "       GET  /foo/:id(.:format) MountedRackApp {:id=>/[A-Z]\\d{5}/}"
+          "Prefix Verb URI Pattern                   Controller#Action",
+          "       GET  /foo/:id(.:format(+:variant)) MountedRackApp {:id=>/[A-Z]\\d{5}/}"
         ], output
       end
 
@@ -276,8 +276,8 @@ module ActionDispatch
           end
         end
         assert_equal [
-          "Prefix Verb URI Pattern              Controller#Action",
-          "   foo GET  /sprockets/foo(.:format) foo#bar"
+          "Prefix Verb URI Pattern                         Controller#Action",
+          "   foo GET  /sprockets/foo(.:format(+:variant)) foo#bar"
         ], output
       end
 
@@ -289,10 +289,10 @@ module ActionDispatch
         end
 
         assert_equal [
-          "Prefix Verb URI Pattern       Controller#Action",
-          "   foo GET  /foo(.:format)    redirect(301, /foo/bar) {:subdomain=>\"admin\"}",
-          "   bar GET  /bar(.:format)    redirect(307, path: /foo/bar)",
-          "foobar GET  /foobar(.:format) redirect(301)"
+          "Prefix Verb URI Pattern                  Controller#Action",
+          "   foo GET  /foo(.:format(+:variant))    redirect(301, /foo/bar) {:subdomain=>\"admin\"}",
+          "   bar GET  /bar(.:format(+:variant))    redirect(307, path: /foo/bar)",
+          "foobar GET  /foobar(.:format(+:variant)) redirect(301)"
         ], output
       end
 
@@ -302,15 +302,15 @@ module ActionDispatch
           resources :posts
         end
 
-        assert_equal ["   Prefix Verb   URI Pattern               Controller#Action",
-                      "    posts GET    /posts(.:format)          posts#index",
-                      "          POST   /posts(.:format)          posts#create",
-                      " new_post GET    /posts/new(.:format)      posts#new",
-                      "edit_post GET    /posts/:id/edit(.:format) posts#edit",
-                      "     post GET    /posts/:id(.:format)      posts#show",
-                      "          PATCH  /posts/:id(.:format)      posts#update",
-                      "          PUT    /posts/:id(.:format)      posts#update",
-                      "          DELETE /posts/:id(.:format)      posts#destroy"], output
+        assert_equal ["   Prefix Verb   URI Pattern                          Controller#Action",
+                      "    posts GET    /posts(.:format(+:variant))          posts#index",
+                      "          POST   /posts(.:format(+:variant))          posts#create",
+                      " new_post GET    /posts/new(.:format(+:variant))      posts#new",
+                      "edit_post GET    /posts/:id/edit(.:format(+:variant)) posts#edit",
+                      "     post GET    /posts/:id(.:format(+:variant))      posts#show",
+                      "          PATCH  /posts/:id(.:format(+:variant))      posts#update",
+                      "          PUT    /posts/:id(.:format(+:variant))      posts#update",
+                      "          DELETE /posts/:id(.:format(+:variant))      posts#destroy"], output
       end
 
       def test_routes_can_be_filtered_with_namespaced_controllers
@@ -321,15 +321,15 @@ module ActionDispatch
           end
         end
 
-        assert_equal ["         Prefix Verb   URI Pattern                     Controller#Action",
-                      "    admin_posts GET    /admin/posts(.:format)          admin/posts#index",
-                      "                POST   /admin/posts(.:format)          admin/posts#create",
-                      " new_admin_post GET    /admin/posts/new(.:format)      admin/posts#new",
-                      "edit_admin_post GET    /admin/posts/:id/edit(.:format) admin/posts#edit",
-                      "     admin_post GET    /admin/posts/:id(.:format)      admin/posts#show",
-                      "                PATCH  /admin/posts/:id(.:format)      admin/posts#update",
-                      "                PUT    /admin/posts/:id(.:format)      admin/posts#update",
-                      "                DELETE /admin/posts/:id(.:format)      admin/posts#destroy"], output
+        assert_equal ["         Prefix Verb   URI Pattern                                Controller#Action",
+                      "    admin_posts GET    /admin/posts(.:format(+:variant))          admin/posts#index",
+                      "                POST   /admin/posts(.:format(+:variant))          admin/posts#create",
+                      " new_admin_post GET    /admin/posts/new(.:format(+:variant))      admin/posts#new",
+                      "edit_admin_post GET    /admin/posts/:id/edit(.:format(+:variant)) admin/posts#edit",
+                      "     admin_post GET    /admin/posts/:id(.:format(+:variant))      admin/posts#show",
+                      "                PATCH  /admin/posts/:id(.:format(+:variant))      admin/posts#update",
+                      "                PUT    /admin/posts/:id(.:format(+:variant))      admin/posts#update",
+                      "                DELETE /admin/posts/:id(.:format(+:variant))      admin/posts#destroy"], output
       end
 
 
@@ -350,8 +350,8 @@ module ActionDispatch
         end
 
         assert_equal [
-          "Prefix Verb URI Pattern     Controller#Action",
-          "  cart GET  /cart(.:format) cart#show"
+          "Prefix Verb URI Pattern                Controller#Action",
+          "  cart GET  /cart(.:format(+:variant)) cart#show"
         ], output
       end
 
@@ -407,8 +407,8 @@ module ActionDispatch
         end
 
         assert_equal [
-          "       Prefix Verb URI Pattern              Controller#Action",
-          "custom_assets GET  /custom/assets(.:format) custom_assets#show",
+          "       Prefix Verb URI Pattern                         Controller#Action",
+          "custom_assets GET  /custom/assets(.:format(+:variant)) custom_assets#show",
         ], output
       end
 
