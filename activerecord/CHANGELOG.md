@@ -1004,13 +1004,6 @@
 
     *Alex Coomans*
 
-*   Dump indexes in `create_table` instead of `add_index`.
-
-    If the adapter supports indexes in `create_table`, generated SQL is
-    slightly more efficient.
-
-    *Ryuta Kamizono*
-
 *   Correctly dump `:options` on `create_table` for MySQL.
 
     *Ryuta Kamizono*
