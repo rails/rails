@@ -16,12 +16,8 @@ class ClientTest < ActionCable::TestCase
     ::Object.const_set(:ApplicationCable, Module.new)
     ::ApplicationCable.const_set(:Connection, Class.new(ActionCable::Connection::Base))
 
-    ::Object.const_set(:Rails, Module.new)
-    ::Rails.singleton_class.send(:define_method, :root) { Pathname.new(__dir__) }
-
     ActionCable.instance_variable_set(:@server, nil)
     server = ActionCable.server
-    server.config = ActionCable::Server::Configuration.new
     inner_logger = Logger.new(StringIO.new).tap { |l| l.level = Logger::UNKNOWN }
     server.config.logger = ActionCable::Connection::TaggedLoggerProxy.new(inner_logger, tags: [])
 
@@ -29,7 +25,7 @@ class ClientTest < ActionCable::TestCase
 
     # and now the "real" setup for our test:
     server.config.disable_request_forgery_protection = true
-    server.config.channel_load_paths = [File.expand_path('client', __dir__)]
+    server.config.channel_paths = [ File.expand_path('client/echo_channel.rb', __dir__) ]
 
     Thread.new { EventMachine.run } unless EventMachine.reactor_running?
     Thread.pass until EventMachine.reactor_running?
@@ -43,10 +39,6 @@ class ClientTest < ActionCable::TestCase
 
     begin
       ::Object.send(:remove_const, :ApplicationCable)
-    rescue NameError
-    end
-    begin
-      ::Object.send(:remove_const, :Rails)
     rescue NameError
     end
   end

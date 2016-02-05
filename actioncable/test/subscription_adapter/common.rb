@@ -13,11 +13,7 @@ module CommonSubscriptionAdapterTest
     ::Object.const_set(:ApplicationCable, Module.new)
     ::ApplicationCable.const_set(:Connection, Class.new(ActionCable::Connection::Base))
 
-    ::Object.const_set(:Rails, Module.new)
-    ::Rails.singleton_class.send(:define_method, :root) { Pathname.new(__dir__) }
-
     server = ActionCable::Server::Base.new
-    server.config = ActionCable::Server::Configuration.new
     inner_logger = Logger.new(StringIO.new).tap { |l| l.level = Logger::UNKNOWN }
     server.config.logger = ActionCable::Connection::TaggedLoggerProxy.new(inner_logger, tags: [])
 
@@ -37,10 +33,6 @@ module CommonSubscriptionAdapterTest
 
     begin
       ::Object.send(:remove_const, :ApplicationCable)
-    rescue NameError
-    end
-    begin
-      ::Object.send(:remove_const, :Rails)
     rescue NameError
     end
   end

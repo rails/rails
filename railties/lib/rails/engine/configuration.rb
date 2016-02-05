@@ -39,6 +39,7 @@ module Rails
           paths.add "app",                 eager_load: true, glob: "{*,*/concerns}"
           paths.add "app/assets",          glob: "*"
           paths.add "app/controllers",     eager_load: true
+          paths.add "app/channels",        eager_load: true, glob: "**/*_channel.rb"
           paths.add "app/helpers",         eager_load: true
           paths.add "app/models",          eager_load: true
           paths.add "app/mailers",         eager_load: true

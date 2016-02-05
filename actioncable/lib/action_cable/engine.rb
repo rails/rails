@@ -31,6 +31,8 @@ module ActionCable
           self.cable = Rails.application.config_for(config_path).with_indifferent_access
         end
 
+        self.channel_paths = Rails.application.paths['app/channels'].existent
+
         options.each { |k,v| send("#{k}=", v) }
       end
     end
