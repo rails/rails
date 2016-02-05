@@ -1,3 +1,13 @@
+*   Added `numeric` helper into migrations.
+
+    Example:
+
+        create_table(:numeric_types) do |t|
+          t.numeric :numeric_type, precision: 10, scale: 2
+        end
+
+    *Mehmet Emin İNAÇ*
+
 *   Bumped the minimum supported version of PostgreSQL to >= 9.1.
     Both PG 9.0 and 8.4 are past their end of life date:
     http://www.postgresql.org/support/versioning/
