@@ -20,9 +20,20 @@ module ActionCable
       # Make sure to specify the correct server location in each of your environments
       # config file:
       #
-      #   config.action_cable.url = "ws://example.com:28080"
+      #   config.action_cable.mount_path = "/cable123"
+      #   <%= action_cable_meta_tag %> would render:
+      #   => <meta name="action-cable-url" content="/cable123" />
+      #
+      #   config.action_cable.url = "ws://actioncable.com"
+      #   <%= action_cable_meta_tag %> would render:
+      #   => <meta name="action-cable-url" content="ws://actioncable.com" />
+      #
       def action_cable_meta_tag
-        tag "meta", name: "action-cable-url", content: Rails.application.config.action_cable.url
+        tag "meta", name: "action-cable-url", content: (
+          ActionCable.server.config.url ||
+          ActionCable.server.config.mount_path ||
+          raise("No Action Cable URL configured -- please configure this at config.action_cable.url")
+        )
       end
     end
   end

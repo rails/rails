@@ -9,7 +9,7 @@
 
   getConfig: (name) ->
     element = document.head.querySelector("meta[name='action-cable-#{name}']")
-    element?.getAttribute("content")
+    element?.getAttribute("content") ? '/cable'
 
   createWebSocketURL: (url) ->
     if url and not /^wss?:/i.test(url)

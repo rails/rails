@@ -406,9 +406,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_file "config/cable.yml"
     assert_no_file "app/assets/javascripts/cable.coffee"
     assert_no_file "app/channels"
-    assert_file "app/views/layouts/application.html.erb" do |content|
-      assert_no_match(/action_cable_meta_tag/, content)
-    end
     assert_file "Gemfile" do |content|
       assert_no_match(/redis/, content)
     end
