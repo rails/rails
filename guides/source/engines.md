@@ -1034,6 +1034,8 @@ typical `GET` to a controller in a controller's functional test like this:
 ```ruby
 module Blorgh
   class FooControllerTest < ActionDispatch::IntegrationTest
+    include Engine.routes.url_helpers
+
     def test_index
       get foos_url
       ...
@@ -1050,6 +1052,8 @@ in your setup code:
 ```ruby
 module Blorgh
   class FooControllerTest < ActionDispatch::IntegrationTest
+    include Engine.routes.url_helpers
+
     setup do
       @routes = Engine.routes
     end
