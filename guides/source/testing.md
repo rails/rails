@@ -265,7 +265,7 @@ By now you've caught a glimpse of some of the assertions that are available. Ass
 Here's an extract of the assertions you can use with
 [`Minitest`](https://github.com/seattlerb/minitest), the default testing library
 used by Rails. The `[msg]` parameter is an optional string message you can
-specify to make your test failure messages clearer. 
+specify to make your test failure messages clearer.
 
 | Assertion                                                        | Purpose |
 | ---------------------------------------------------------------- | ------- |
@@ -589,7 +589,7 @@ class BlogFlowTest < ActionDispatch::IntegrationTest
 end
 ```
 
-We will take a look at `assert_select` to query the resulting HTML of a request in the "Testing Views" section below. It is used for testing the response of our request by asserting the presence of key HTML elements and their content. 
+We will take a look at `assert_select` to query the resulting HTML of a request in the "Testing Views" section below. It is used for testing the response of our request by asserting the presence of key HTML elements and their content.
 
 When we visit our root path, we should see `welcome/index.html.erb` rendered for the view. So this assertion should pass.
 
@@ -912,13 +912,13 @@ We can also add a test for updating an existing Article.
 ```ruby
 test "should update article" do
   article = articles(:one)
-  
+
   patch '/article', params: { id: article.id, article: { title: "updated" } }
-  
+
   assert_redirected_to article_path(article)
-  # Reload association to fetch updated data and assert that title is updated. 
+  # Reload association to fetch updated data and assert that title is updated.
   article.reload
-  assert_equal "updated", article.title 
+  assert_equal "updated", article.title
 end
 ```
 
@@ -957,11 +957,11 @@ class ArticlesControllerTest < ActionDispatch::IntegrationTest
 
   test "should update article" do
     patch '/article', params: { id: @article.id, article: { title: "updated" } }
-    
+
     assert_redirected_to article_path(@article)
-    # Reload association to fetch updated data and assert that title is updated. 
+    # Reload association to fetch updated data and assert that title is updated.
     @article.reload
-    assert_equal "updated", @article.title       
+    assert_equal "updated", @article.title
   end
 end
 ```
