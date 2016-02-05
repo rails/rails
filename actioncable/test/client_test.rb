@@ -13,9 +13,6 @@ class ClientTest < ActionCable::TestCase
 
   def setup
     # TODO: ActionCable requires a *lot* of setup at the moment...
-    ::Object.const_set(:ApplicationCable, Module.new)
-    ::ApplicationCable.const_set(:Connection, Class.new(ActionCable::Connection::Base))
-
     ActionCable.instance_variable_set(:@server, nil)
     server = ActionCable.server
     inner_logger = Logger.new(StringIO.new).tap { |l| l.level = Logger::UNKNOWN }
@@ -36,11 +33,6 @@ class ClientTest < ActionCable::TestCase
 
   def teardown
     $VERBOSE = @previous_verbose
-
-    begin
-      ::Object.send(:remove_const, :ApplicationCable)
-    rescue NameError
-    end
   end
 
   def with_puma_server(rack_app = ActionCable.server, port = 3099)

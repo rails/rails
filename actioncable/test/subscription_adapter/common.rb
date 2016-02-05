@@ -10,9 +10,6 @@ module CommonSubscriptionAdapterTest
 
   def setup
     # TODO: ActionCable requires a *lot* of setup at the moment...
-    ::Object.const_set(:ApplicationCable, Module.new)
-    ::ApplicationCable.const_set(:Connection, Class.new(ActionCable::Connection::Base))
-
     server = ActionCable::Server::Base.new
     inner_logger = Logger.new(StringIO.new).tap { |l| l.level = Logger::UNKNOWN }
     server.config.logger = ActionCable::Connection::TaggedLoggerProxy.new(inner_logger, tags: [])
@@ -30,11 +27,6 @@ module CommonSubscriptionAdapterTest
   def teardown
     @tx_adapter.shutdown if @tx_adapter && @tx_adapter != @rx_adapter
     @rx_adapter.shutdown if @rx_adapter
-
-    begin
-      ::Object.send(:remove_const, :ApplicationCable)
-    rescue NameError
-    end
   end
 
 

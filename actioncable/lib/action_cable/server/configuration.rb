@@ -13,8 +13,8 @@ module ActionCable
       def initialize
         @log_tags = []
 
-        @connection_class  = ApplicationCable::Connection
-        @worker_pool_size  = 100
+        @connection_class = ActionCable::Connection::Base
+        @worker_pool_size = 100
 
         @disable_request_forgery_protection = false
       end
