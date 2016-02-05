@@ -329,11 +329,11 @@ You'll see the usage of some of these assertions in the next chapter.
 
 All the basic assertions such as `assert_equal` defined in `Minitest::Assertions` are also available in the classes we use in our own test cases. In fact, Rails provides the following classes for you to inherit from:
 
-* `ActiveSupport::TestCase`
-* `ActionMailer::TestCase`
-* `ActionView::TestCase`
-* `ActionDispatch::IntegrationTest`
-* `ActiveJob::TestCase`
+* [`ActiveSupport::TestCase`](http://api.rubyonrails.org/classes/ActiveSupport/TestCase.html)
+* [`ActionMailer::TestCase`](http://api.rubyonrails.org/classes/ActionMailer/TestCase.html)
+* [`ActionView::TestCase`](http://api.rubyonrails.org/classes/ActionView/TestCase.html)
+* [`ActionDispatch::IntegrationTest`](http://api.rubyonrails.org/classes/ActionDispatch/IntegrationTest.html)
+* [`ActiveJob::TestCase`](http://api.rubyonrails.org/classes/ActiveJob/TestCase.html)
 
 Each of these classes include `Minitest::Assertions`, allowing us to use all of the basic assertions in our tests.
 
@@ -414,6 +414,8 @@ You can find comprehensive documentation in the [Fixtures API documentation](htt
 #### What Are Fixtures?
 
 _Fixtures_ is a fancy word for sample data. Fixtures allow you to populate your testing database with predefined data before your tests run. Fixtures are database independent and written in YAML. There is one file per model.
+
+NOTE: Fixtures are not designed to create every object that your tests need, and are best managed when only used for default data that can be applied to the common case.
 
 You'll find fixtures under your `test/fixtures` directory. When you run `rails generate model` to create a new model, Rails automatically creates fixture stubs in this directory.
 
@@ -518,7 +520,7 @@ create  test/models/article_test.rb
 create  test/fixtures/articles.yml
 ```
 
-Model tests don't have their own superclass like `ActionMailer::TestCase` instead they inherit from `ActiveSupport::TestCase`.
+Model tests don't have their own superclass like `ActionMailer::TestCase` instead they inherit from [`ActiveSupport::TestCase`](http://api.rubyonrails.org/classes/ActiveSupport/TestCase.html).
 
 
 Integration Testing
@@ -1007,6 +1009,8 @@ Testing Routes
 
 Like everything else in your Rails application, you can test your routes.
 
+NOTE: If your application has complex routes, Rails provides a number of useful helpers to test them.
+
 For more information on routing assertions available in Rails, see the API documentation for [`ActionDispatch::Assertions::RoutingAssertions`](http://api.rubyonrails.org/classes/ActionDispatch/Assertions/RoutingAssertions.html).
 
 Testing Views
@@ -1053,7 +1057,7 @@ assert_select "ol" do
 end
 ```
 
-This assertion is quite powerful. For more advanced usage, refer to its [documentation](http://www.rubydoc.info/github/rails/rails-dom-testing).
+This assertion is quite powerful. For more advanced usage, refer to its [documentation](https://github.com/rails/rails-dom-testing/blob/master/lib/rails/dom/testing/assertions/selector_assertions.rb).
 
 #### Additional View-Based Assertions
 
@@ -1076,28 +1080,31 @@ end
 Testing Helpers
 ---------------
 
+A helper is just a simple module where you can define methods which are
+available into your views.
+
 In order to test helpers, all you need to do is check that the output of the
 helper method matches what you'd expect. Tests related to the helpers are
 located under the `test/helpers` directory.
 
-A helper test looks like so:
+Given we have the following helper:
 
 ```ruby
-require 'test_helper'
-
-class UserHelperTest < ActionView::TestCase
+module UserHelper
+  def link_to_user(user)
+    link_to "#{user.first_name} #{user.last_name}", user
+  end
 end
 ```
 
-A helper is just a simple module where you can define methods which are
-available into your views. To test the output of the helper's methods, you just
-have to use a mixin like this:
+We can test the output of this method like this:
 
 ```ruby
 class UserHelperTest < ActionView::TestCase
   test "should return the user's full name" do
     user = users(:david)
-    assert_equal "David Heinemeier Hansson", user_full_name(user)
+
+    assert_dom_equal %{<a href="/user/#{user.id}">David Heinemeier Hansson</a>}, link_to_user(user)
   end
 end
 ```
@@ -1261,8 +1268,10 @@ class ProductTest < ActiveJob::TestCase
 end
 ```
 
-Testing Time-Dependent Code
----------------------------
+Additional Testing Resources
+----------------------------
+
+### Testing Time-Dependent Code
 
 Rails provides built-in helper methods that enable you to assert that your time-sensitive code works as expected.
 
