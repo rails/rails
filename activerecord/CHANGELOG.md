@@ -1,3 +1,8 @@
+*   Remove unnecessarily association load when a `belongs_to` association has already been
+    loaded then the foreign key is changed directly and the record saved.
+
+    *James Coleman*
+
 *   Remove standardized column types/arguments spaces in schema dump.
 
     *Tim Petricola*
