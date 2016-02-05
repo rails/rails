@@ -237,9 +237,8 @@ module ActionController
       # This processes the action in a child thread. It lets us return the
       # response code and headers back up the rack stack, and still process
       # the body in parallel with sending data to the client
-      Thread.new {
+      new_controller_thread {
         t2 = Thread.current
-        t2.abort_on_exception = true
 
         # Since we're processing the view in a different thread, copy the
         # thread locals from the main thread to the child thread. :'(
@@ -268,6 +267,18 @@ module ActionController
 
       @_response.await_commit
       raise error if error
+    end
+
+    # Spawn a new thread to serve up the controller in.  This is to get
+    # around the fact that Rack isn't based around IOs and we need to use
+    # a thread to stream data from the response bodies.  Nobody should call
+    # this method except in Rails internals. Seriously!
+    def new_controller_thread # :nodoc:
+      Thread.new {
+        t2 = Thread.current
+        t2.abort_on_exception = true
+        yield
+      }
     end
 
     def log_error(exception)
