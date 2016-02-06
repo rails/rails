@@ -42,6 +42,12 @@ module ActiveSupport #:nodoc:
           yield
         end
       end
+
+      def permit_concurrent_loads
+        @lock.yield_shares(compatible: [:load]) do
+          yield
+        end
+      end
     end
   end
 end

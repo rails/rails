@@ -51,7 +51,7 @@ module ActiveSupport
             if busy_for_exclusive?(purpose)
               return false if no_wait
 
-              yield_shares(purpose, compatible) do
+              yield_shares(purpose: purpose, compatible: compatible) do
                 @cv.wait_while { busy_for_exclusive?(purpose) }
               end
             end
@@ -73,10 +73,10 @@ module ActiveSupport
           if @exclusive_depth == 0
             @exclusive_thread = nil
 
-            yield_shares(nil, compatible) do
-              @cv.broadcast
+            yield_shares(compatible: compatible) do
               @cv.wait_while { @exclusive_thread || eligible_waiters?(compatible) }
             end
+            @cv.broadcast
           end
         end
       end
@@ -127,6 +127,36 @@ module ActiveSupport
         end
       end
 
+      def yield_shares(purpose: nil, compatible: [])
+        loose_shares = previous_wait = nil
+        synchronize do
+          if loose_shares = @sharing.delete(Thread.current)
+            if previous_wait = @waiting[Thread.current]
+              purpose = nil unless purpose == previous_wait[0]
+              compatible &= previous_wait[1]
+            end
+            @waiting[Thread.current] = [purpose, compatible]
+          end
+
+          @cv.broadcast
+        end
+
+        begin
+          yield
+        ensure
+          synchronize do
+            @cv.wait_while { @exclusive_thread && @exclusive_thread != Thread.current }
+
+            if previous_wait
+              @waiting[Thread.current] = previous_wait
+            else
+              @waiting.delete Thread.current
+            end
+            @sharing[Thread.current] = loose_shares if loose_shares
+          end
+        end
+      end
+
       private
 
       # Must be called within synchronize
@@ -142,18 +172,6 @@ module ActiveSupport
 
       def eligible_waiters?(compatible)
         @waiting.any? { |t, (p, _)| compatible.include?(p) && @waiting.all? { |t2, (_, c2)| t == t2 || c2.include?(p) } }
-      end
-
-      def yield_shares(purpose, compatible)
-        loose_shares = @sharing.delete(Thread.current)
-        @waiting[Thread.current] = [purpose, compatible] if loose_shares
-
-        begin
-          yield
-        ensure
-          @waiting.delete Thread.current
-          @sharing[Thread.current] = loose_shares if loose_shares
-        end
       end
     end
   end
