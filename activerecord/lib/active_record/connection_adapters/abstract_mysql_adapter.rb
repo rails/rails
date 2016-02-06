@@ -1,6 +1,7 @@
 require 'active_record/connection_adapters/abstract_adapter'
 require 'active_record/connection_adapters/mysql/column'
 require 'active_record/connection_adapters/mysql/explain_pretty_printer'
+require 'active_record/connection_adapters/mysql/quoting'
 require 'active_record/connection_adapters/mysql/schema_creation'
 require 'active_record/connection_adapters/mysql/schema_definitions'
 require 'active_record/connection_adapters/mysql/schema_dumper'
@@ -12,6 +13,7 @@ module ActiveRecord
   module ConnectionAdapters
     class AbstractMysqlAdapter < AbstractAdapter
       include MySQL::ColumnDumper
+      include MySQL::Quoting
       include Savepoints
 
       def update_table_definition(table_name, base) # :nodoc:
@@ -31,8 +33,6 @@ module ActiveRecord
       #   ActiveRecord::ConnectionAdapters::Mysql2Adapter.emulate_booleans = false
       class_attribute :emulate_booleans
       self.emulate_booleans = true
-
-      QUOTED_TRUE, QUOTED_FALSE = '1', '0'
 
       NATIVE_DATABASE_TYPES = {
         primary_key: "int auto_increment PRIMARY KEY",
@@ -161,48 +161,6 @@ module ActiveRecord
       # error number.
       def error_number(exception) # :nodoc:
         raise NotImplementedError
-      end
-
-      # QUOTING ==================================================
-
-      def _quote(value) # :nodoc:
-        if value.is_a?(Type::Binary::Data)
-          "x'#{value.hex}'"
-        else
-          super
-        end
-      end
-
-      def quote_column_name(name) #:nodoc:
-        @quoted_column_names[name] ||= "`#{name.to_s.gsub('`', '``')}`"
-      end
-
-      def quote_table_name(name) #:nodoc:
-        @quoted_table_names[name] ||= quote_column_name(name).gsub('.', '`.`')
-      end
-
-      def quoted_true
-        QUOTED_TRUE
-      end
-
-      def unquoted_true
-        1
-      end
-
-      def quoted_false
-        QUOTED_FALSE
-      end
-
-      def unquoted_false
-        0
-      end
-
-      def quoted_date(value)
-        if supports_datetime_with_precision?
-          super
-        else
-          super.sub(/\.\d{6}\z/, '')
-        end
       end
 
       # REFERENTIAL INTEGRITY ====================================
