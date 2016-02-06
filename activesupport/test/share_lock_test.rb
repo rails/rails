@@ -313,6 +313,113 @@ class ShareLockTest < ActiveSupport::TestCase
     assert_threads_not_stuck threads
   end
 
+  def test_manual_incompatible_yield
+    ready = Concurrent::CyclicBarrier.new(2)
+    done = Concurrent::CyclicBarrier.new(2)
+
+    threads = [
+      Thread.new do
+        @lock.sharing do
+          ready.wait
+          @lock.exclusive(purpose: :x) {}
+          done.wait
+        end
+      end,
+
+      Thread.new do
+        @lock.sharing do
+          ready.wait
+          @lock.yield_shares(compatible: [:y]) do
+            done.wait
+          end
+        end
+      end,
+    ]
+
+    assert_threads_stuck threads
+  ensure
+    threads.each(&:kill) if threads
+  end
+
+  def test_manual_recursive_yield
+    ready = Concurrent::CyclicBarrier.new(2)
+    done = Concurrent::CyclicBarrier.new(2)
+    do_compatible_nesting = Concurrent::CountDownLatch.new
+
+    threads = [
+      Thread.new do
+        @lock.sharing do
+          ready.wait
+          @lock.exclusive(purpose: :x) {}
+          done.wait
+        end
+      end,
+
+      Thread.new do
+        @lock.sharing do
+          ready.wait
+          @lock.yield_shares(compatible: [:y]) do
+            do_compatible_nesting.wait
+            @lock.sharing do
+              @lock.yield_shares(compatible: [:x, :y]) do
+                done.wait
+              end
+            end
+          end
+        end
+      end
+    ]
+
+    assert_threads_stuck threads
+    do_compatible_nesting.count_down
+    assert_threads_not_stuck threads
+  end
+
+  def test_manual_recursive_yield_restores_previous_compatible
+    ready = Concurrent::CyclicBarrier.new(2)
+    do_nesting = Concurrent::CountDownLatch.new
+    after_nesting = Concurrent::CountDownLatch.new
+
+    incompatible_thread = Thread.new do
+      ready.wait
+      @lock.exclusive(purpose: :z) {}
+    end
+
+    recursive_yield_shares_thread = Thread.new do
+      @lock.sharing do
+        ready.wait
+        @lock.yield_shares(compatible: [:y]) do
+          do_nesting.wait
+          @lock.sharing do
+            @lock.yield_shares(compatible: [:x, :y]) {}
+          end
+          after_nesting.wait
+        end
+      end
+    end
+
+    assert_threads_stuck incompatible_thread
+    do_nesting.count_down
+    assert_threads_stuck incompatible_thread
+
+    compatible_thread = Thread.new do
+      @lock.exclusive(purpose: :y) {}
+    end
+    assert_threads_not_stuck compatible_thread
+
+    post_nesting_incompatible_thread = Thread.new do
+      @lock.exclusive(purpose: :x) {}
+    end
+    assert_threads_stuck post_nesting_incompatible_thread
+
+    after_nesting.count_down
+    assert_threads_not_stuck recursive_yield_shares_thread
+    # post_nesting_incompatible_thread can now proceed
+    assert_threads_not_stuck post_nesting_incompatible_thread
+    # assert_threads_not_stuck can now proceed
+    assert_threads_not_stuck incompatible_thread
+  end
+
   def test_in_shared_section_incompatible_non_upgrading_threads_cannot_preempt_upgrading_threads
     scratch_pad       = []
     scratch_pad_mutex = Mutex.new
