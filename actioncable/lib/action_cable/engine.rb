@@ -22,7 +22,9 @@ module ActionCable
 
     initializer "action_cable.set_configs" do |app|
       options = app.config.action_cable
-      options.allowed_request_origins ||= "http://localhost:3000" if ::Rails.env.development?
+      if ::Rails.env.development? && !ActionCable.server.config.allowed_request_origins
+        options.allowed_request_origins ||= "http://localhost:3000"
+      end
 
       app.paths.add "config/cable", with: "config/cable.yml"
 
