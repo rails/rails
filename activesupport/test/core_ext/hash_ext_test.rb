@@ -70,6 +70,8 @@ class HashExtTest < ActiveSupport::TestCase
     assert_respond_to h, :to_options!
     assert_respond_to h, :compact
     assert_respond_to h, :compact!
+    assert_respond_to h, :force_compact
+    assert_respond_to h, :force_compact!
     assert_respond_to h, :except
     assert_respond_to h, :except!
   end
@@ -1011,6 +1013,32 @@ class HashExtTest < ActiveSupport::TestCase
 
     h = hash_with_only_nil_values.dup
     assert_equal({}, h.compact!)
+    assert_equal({}, h)
+  end
+
+  def test_force_compact
+    hash_contain_blank_value = @symbols.merge(v: false, w: nil, x: [], y: {}, z: '')
+    hash_with_only_blank_values = { a: false, b: nil, c: [], d: {}, e: '' }
+
+    h = hash_contain_blank_value.dup
+    assert_equal(@symbols, h.force_compact)
+    assert_equal(hash_contain_blank_value, h)
+
+    h = hash_with_only_blank_values.dup
+    assert_equal({}, h.force_compact)
+    assert_equal(hash_with_only_blank_values, h)
+  end
+
+  def test_force_compact!
+    hash_contain_blank_value = @symbols.merge(v: false, w: nil, x: [], y: {}, z: '')
+    hash_with_only_blank_values = { a: false, b: nil, c: [], d: {}, e: '' }
+
+    h = hash_contain_blank_value.dup
+    assert_equal(@symbols, h.force_compact!)
+    assert_equal(@symbols, h)
+
+    h = hash_with_only_blank_values.dup
+    assert_equal({}, h.force_compact!)
     assert_equal({}, h)
   end
 

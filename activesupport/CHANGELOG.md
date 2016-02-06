@@ -1,3 +1,7 @@
+*   Added `Hash#force_compact` to return a hash with non blank values.
+
+    *Yoshiyuki Hirano*
+
 *  Fix regression in `Hash#dig` for HashWithIndifferentAccess.
    *Jon Moss*
 
