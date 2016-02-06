@@ -1,5 +1,4 @@
 require 'active_record/type'
-require 'active_support/core_ext/benchmark'
 require 'active_record/connection_adapters/determine_if_preparable_visitor'
 require 'active_record/connection_adapters/schema_cache'
 require 'active_record/connection_adapters/sql_type_metadata'
