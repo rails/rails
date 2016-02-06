@@ -12,11 +12,9 @@ class ClientTest < ActionCable::TestCase
   WAIT_WHEN_NOT_EXPECTING_EVENT = 0.2
 
   def setup
-    # TODO: ActionCable requires a *lot* of setup at the moment...
     ActionCable.instance_variable_set(:@server, nil)
     server = ActionCable.server
-    inner_logger = Logger.new(StringIO.new).tap { |l| l.level = Logger::UNKNOWN }
-    server.config.logger = ActionCable::Connection::TaggedLoggerProxy.new(inner_logger, tags: [])
+    server.config.logger = Logger.new(StringIO.new).tap { |l| l.level = Logger::UNKNOWN }
 
     server.config.cable = { adapter: 'async' }.with_indifferent_access
 

@@ -17,7 +17,9 @@ class WorkerTest < ActiveSupport::TestCase
     end
 
     def logger
-      ActionCable.server.logger
+      # Impersonating a connection requires a TaggedLoggerProxy'ied logger.
+      inner_logger = Logger.new(StringIO.new).tap { |l| l.level = Logger::UNKNOWN }
+      ActionCable::Connection::TaggedLoggerProxy.new(inner_logger, tags: [])
     end
   end
 

@@ -9,13 +9,7 @@ module CommonSubscriptionAdapterTest
   WAIT_WHEN_NOT_EXPECTING_EVENT = 0.2
 
   def setup
-    # TODO: ActionCable requires a *lot* of setup at the moment...
     server = ActionCable::Server::Base.new
-    inner_logger = Logger.new(StringIO.new).tap { |l| l.level = Logger::UNKNOWN }
-    server.config.logger = ActionCable::Connection::TaggedLoggerProxy.new(inner_logger, tags: [])
-
-
-    # and now the "real" setup for our test:
     server.config.cable = cable_config.with_indifferent_access
 
     adapter_klass = server.config.pubsub_adapter
