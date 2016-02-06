@@ -85,15 +85,6 @@ module ActiveRecord
 
         @active     = nil
         @statements = StatementPool.new(self.class.type_cast_config_to_integer(config.fetch(:statement_limit) { 1000 }))
-
-        @visitor = Arel::Visitors::SQLite.new self
-
-        if self.class.type_cast_config_to_boolean(config.fetch(:prepared_statements) { true })
-          @prepared_statements = true
-          @visitor.extend(DetermineIfPreparableVisitor)
-        else
-          @prepared_statements = false
-        end
       end
 
       def supports_ddl_transactions?

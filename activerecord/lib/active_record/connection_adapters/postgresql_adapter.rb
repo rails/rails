@@ -195,14 +195,6 @@ module ActiveRecord
       def initialize(connection, logger, connection_parameters, config)
         super(connection, logger, config)
 
-        @visitor = Arel::Visitors::PostgreSQL.new self
-        if self.class.type_cast_config_to_boolean(config.fetch(:prepared_statements) { true })
-          @prepared_statements = true
-          @visitor.extend(DetermineIfPreparableVisitor)
-        else
-          @prepared_statements = false
-        end
-
         @connection_parameters = connection_parameters
 
         # @local_tz is initialized as nil to avoid warnings when connect tries to use it
