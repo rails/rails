@@ -22,15 +22,15 @@ module ActionCable
 
     initializer "action_cable.set_configs" do |app|
       options = app.config.action_cable
-      if ::Rails.env.development? && !ActionCable.server.config.allowed_request_origins
-        options.allowed_request_origins ||= "http://localhost:3000"
-      end
 
       app.paths.add "config/cable", with: "config/cable.yml"
 
       ActiveSupport.on_load(:action_cable) do
         if (config_path = Pathname.new(app.config.paths["config/cable"].first)).exist?
           self.cable = Rails.application.config_for(config_path).with_indifferent_access
+        end
+        if ::Rails.env.development? && !ActionCable.server.config.allowed_request_origins
+          options.allowed_request_origins ||= "http://localhost:3000"
         end
 
         options.each { |k,v| send("#{k}=", v) }
