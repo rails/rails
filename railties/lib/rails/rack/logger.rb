@@ -72,10 +72,6 @@ module Rails
         instrumenter.finish 'request.action_dispatch', request: request
       end
 
-      def development?
-        Rails.env.development?
-      end
-
       def logger
         Rails.logger
       end
