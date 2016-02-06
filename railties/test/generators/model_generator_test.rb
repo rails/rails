@@ -298,18 +298,18 @@ class ModelGeneratorTest < Rails::Generators::TestCase
   def test_fixtures_use_the_references_ids
     run_generator ["LineItem", "product:references", "cart:belongs_to"]
 
-    assert_file "test/fixtures/line_items.yml", /product: \n  cart: /
+    assert_file "test/fixtures/line_items.yml", /product: one\n  cart: one/
     assert_generated_fixture("test/fixtures/line_items.yml",
-                             {"one"=>{"product"=>nil, "cart"=>nil}, "two"=>{"product"=>nil, "cart"=>nil}})
+                             {"one"=>{"product"=>"one", "cart"=>"one"}, "two"=>{"product"=>"two", "cart"=>"two"}})
   end
 
   def test_fixtures_use_the_references_ids_and_type
     run_generator ["LineItem", "product:references{polymorphic}", "cart:belongs_to"]
 
-    assert_file "test/fixtures/line_items.yml", /product: \n  product_type: Product\n  cart: /
+    assert_file "test/fixtures/line_items.yml", /product: one\n  product_type: Product\n  cart: one/
     assert_generated_fixture("test/fixtures/line_items.yml",
-                             {"one"=>{"product"=>nil, "product_type"=>"Product", "cart"=>nil},
-                              "two"=>{"product"=>nil, "product_type"=>"Product", "cart"=>nil}})
+                             {"one"=>{"product"=>"one", "product_type"=>"Product", "cart"=>"one"},
+                              "two"=>{"product"=>"two", "product_type"=>"Product", "cart"=>"two"}})
   end
 
   def test_fixtures_respect_reserved_yml_keywords
