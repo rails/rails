@@ -64,7 +64,7 @@ and may also be used independently outside Rails.
    Run with `--help` or `-h` for options.
 
 4. Using a browser, go to `http://localhost:3000` and you'll see:
-"Welcome aboard: You're riding Ruby on Rails!"
+"Yay! You’re on Rails!"
 
 5. Follow the guidelines to start developing your application. You may find
    the following resources handy:
