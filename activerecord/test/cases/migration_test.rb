@@ -192,8 +192,6 @@ class MigrationTest < ActiveRecord::TestCase
       # of 0, they take on the compile-time limit for precision and scale,
       # so the following should succeed unless you have used really wacky
       # compilation options
-      # - SQLite2 has the default behavior of preserving all data sent in,
-      # so this happens there too
       assert_kind_of BigDecimal, b.value_of_e
       assert_equal BigDecimal("2.7182818284590452353602875"), b.value_of_e
     elsif current_adapter?(:SQLite3Adapter)
