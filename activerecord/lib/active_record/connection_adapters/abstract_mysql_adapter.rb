@@ -56,7 +56,6 @@ module ActiveRecord
 
       def initialize(connection, logger, connection_options, config)
         super(connection, logger, config)
-        @quoted_column_names, @quoted_table_names = {}, {}
 
         @visitor = Arel::Visitors::MySQL.new self
 
@@ -165,15 +164,9 @@ module ActiveRecord
         raise NotImplementedError
       end
 
+      #--
       # QUOTING ==================================================
-
-      def quote_column_name(name) #:nodoc:
-        @quoted_column_names[name] ||= "`#{name.to_s.gsub('`', '``')}`"
-      end
-
-      def quote_table_name(name) #:nodoc:
-        @quoted_table_names[name] ||= quote_column_name(name).gsub('.', '`.`')
-      end
+      #++
 
       def quoted_true
         QUOTED_TRUE

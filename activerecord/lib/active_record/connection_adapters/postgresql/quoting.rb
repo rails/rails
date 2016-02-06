@@ -27,8 +27,8 @@ module ActiveRecord
         # - schema_name."table.name"
         # - "schema.name".table_name
         # - "schema.name"."table.name"
-        def quote_table_name(name)
-          Utils.extract_schema_qualified_name(name.to_s).quoted
+        def quote_table_name(name) # :nodoc:
+          @quoted_table_names[name] ||= Utils.extract_schema_qualified_name(name.to_s).quoted
         end
 
         # Quotes schema names for use in SQL queries.
@@ -41,8 +41,8 @@ module ActiveRecord
         end
 
         # Quotes column names for use in SQL queries.
-        def quote_column_name(name) #:nodoc:
-          PGconn.quote_ident(name.to_s)
+        def quote_column_name(name) # :nodoc:
+          @quoted_column_names[name] ||= PGconn.quote_ident(super)
         end
 
         # Quote date/time values for use in SQL input.

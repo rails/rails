@@ -2,6 +2,10 @@ module ActiveRecord
   module ConnectionAdapters
     module SQLite3
       module Quoting # :nodoc:
+        def quote_column_name(name)
+          @quoted_column_names[name] ||= %Q("#{super.gsub('"', '""')}")
+        end
+
         private
 
         def _quote(value)

@@ -106,6 +106,7 @@ module ActiveRecord
         @schema_cache        = SchemaCache.new self
         @visitor             = nil
         @prepared_statements = false
+        @quoted_column_names, @quoted_table_names = {}, {}
       end
 
       class Version
