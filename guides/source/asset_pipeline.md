@@ -21,6 +21,9 @@ What is the Asset Pipeline?
 The asset pipeline provides a framework to concatenate and minify or compress
 JavaScript and CSS assets. It also adds the ability to write these assets in
 other languages and pre-processors such as CoffeeScript, Sass and ERB.
+It allows assets in your application to be automatically combined with assets 
+from other gems. For example, jquery-rails includes a copy of jquery.js
+and enables AJAX features in Rails.
 
 The asset pipeline is technically no longer a core feature of Rails 4, it has
 been extracted out of the framework into the
@@ -45,7 +48,7 @@ gem 'coffee-rails'
 ```
 
 Using the `--skip-sprockets` option will prevent Rails 4 from adding
-`sass-rails` and `uglifier` to your Gemfile, so if you later want to enable
+them to your Gemfile, so if you later want to enable
 the asset pipeline you will have to add those gems to your Gemfile. Also,
 creating an application with the `--skip-sprockets` option will generate
 a slightly different `config/application.rb` file, with a require statement
