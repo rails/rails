@@ -1,3 +1,7 @@
+*   Drop support for passing an instance of `ActiveRecord::Base` to `exists?`
+
+    *Yuichiro Kaneko*
+
 *   Added `numeric` helper into migrations.
 
     Example:

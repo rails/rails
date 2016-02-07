@@ -167,8 +167,8 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal false, relation.exists?(false)
   end
 
-  def test_exists_passing_active_record_object_is_deprecated
-    assert_deprecated do
+  def test_exists_passing_active_record_object_raise_exception
+    assert_raise(ArgumentError) do
       Topic.exists?(Topic.new)
     end
   end
