@@ -1,3 +1,7 @@
+*   Add image/svg+xml as a default mime type.
+
+    *DHH*
+
 ## Rails 5.0.0.beta2 (February 01, 2016) ##
 
 *   Add `-g` and `-c` (short for _grep_ and _controller_ respectively) options
