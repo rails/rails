@@ -8,7 +8,7 @@ In this guide you will learn:
 
 * What Rails provides for API-only applications
 * How to configure Rails to start without any browser features
-* How to decide which middleware you will want to include
+* How to decide which middleware you would like to include
 * How to decide which modules to use in your controller
 
 --------------------------------------------------------------------------------
@@ -30,7 +30,7 @@ application, which is built as a static site that consumes JSON resources.
 
 Instead of using Rails to generate dynamic HTML that will communicate with the
 server through forms and links, many developers are treating their web application
-as just another client, delivered as static HTML, CSS and JavaScript  consuming
+as just another client, delivered as static HTML, CSS and JavaScript, consuming
 a simple JSON API.
 
 This guide covers building a Rails application that serves JSON resources to an
@@ -61,7 +61,7 @@ Handled at the middleware layer:
   non-viable.
 - Development Mode: Rails applications come with smart defaults for development,
   making development pleasant without compromising production-time performance.
-- Test Mode: Ditto development mode.
+- Test Mode: Same as development mode.
 - Logging: Rails applications log every request, with a level of verbosity
   appropriate for the current mode. Rails logs in development include information
   about the request environment, database queries, and basic performance
@@ -69,8 +69,7 @@ Handled at the middleware layer:
 - Security: Rails detects and thwarts [IP spoofing
   attacks](http://en.wikipedia.org/wiki/IP_address_spoofing) and handles
   cryptographic signatures in a [timing
-  attack](http://en.wikipedia.org/wiki/Timing_attack) aware way. Don't know what
-  an IP spoofing attack or a timing attack is? Exactly.
+  attack](http://en.wikipedia.org/wiki/Timing_attack) aware way.
 - Parameter Parsing: Want to specify your parameters as JSON instead of as a
   URL-encoded String? No problem. Rails will decode the JSON for you and make
   it available in `params`. Want to use nested URL-encoded parameters? That
@@ -97,11 +96,10 @@ Handled at the Action Pack layer:
   means not having to spend time thinking about how to model your API in terms
   of HTTP.
 - URL Generation: The flip side of routing is URL generation. A good API based
-  on HTTP includes URLs (see [the GitHub Gist API](http://developer.github.com/v3/gists/)
+  on HTTP, includes URLs (see [the GitHub Gist API](http://developer.github.com/v3/gists/)
   for an example).
 - Header and Redirection Responses: `head :no_content` and
-  `redirect_to user_url(current_user)` come in handy. Sure, you could manually
-  add the response headers, but why?
+  `redirect_to user_url(current_user)` come in handy. 
 - Caching: Rails provides page, action and fragment caching. Fragment caching
   is especially helpful when building up a nested JSON object.
 - Basic, Digest and Token Authentication: Rails comes with out-of-the-box support
@@ -131,7 +129,7 @@ to be most of it.
 The Basic Configuration
 -----------------------
 
-If you're building a Rails application that will be an API server first and
+If you are building a Rails application that will be an API server first and
 foremost, you can start with a more limited subset of Rails and add in features
 as needed.
 
@@ -374,8 +372,7 @@ controller modules by default:
 - `ActionController::Rescue`: Support for `rescue_from`.
 - `ActionController::Instrumentation`: Support for the instrumentation
   hooks defined by Action Controller (see [the instrumentation
-  guide](active_support_instrumentation.html#action-controller) for
-more information regarding this).
+  guide](active_support_instrumentation.html#action-controller) for more information regarding this).
 - `ActionController::ParamsWrapper`: Wraps the parameters hash into a nested hash
   so you don't have to specify root elements sending POST requests for instance.
 
