@@ -79,8 +79,10 @@ module ActiveRecord
           if options[:source_type]
             scope.where! reflection.foreign_type => options[:source_type]
           else
-            unless reflection_scope.where_clause.empty?
-              scope.includes_values = Array(reflection_scope.values[:includes] || options[:source])
+            references_value = filter_reflection_scope(:references, scope)
+
+            if !reflection_scope.where_clause.empty? && references_value && references_value.any?
+              scope.includes_values = Array(filter_reflection_scope(:includes, scope) || options[:source])
               scope.where_clause = reflection_scope.where_clause
             end
 
@@ -91,6 +93,14 @@ module ActiveRecord
           end
 
           scope
+        end
+
+        def filter_reflection_scope(type, scope)
+          return unless reflection_scope.values[type]
+          ignored_tables = [reflection_scope.table.name.to_s, scope.table.name]
+          reflection_scope.values[type].select do |reference_name|
+            ignored_tables.include?(reference_name.to_s)
+          end
         end
 
         def target_records_from_association(association)
