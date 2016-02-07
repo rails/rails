@@ -58,7 +58,7 @@ module ActiveJob
       # The number of times a specific job is enqueued can be asserted.
       #
       #   def test_logging_job
-      #     assert_enqueued_jobs 2, only: LoggingJob do
+      #     assert_enqueued_jobs 1, only: LoggingJob do
       #       LoggingJob.perform_later
       #       HelloJob.perform_later('jeremy')
       #     end
