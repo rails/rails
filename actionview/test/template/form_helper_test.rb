@@ -148,6 +148,8 @@ class FormHelperTest < ActionView::TestCase
 
     get "/foo", to: "controller#action"
     root to: "main#index"
+
+    resource :comment
   end
 
   def _routes
@@ -3524,6 +3526,38 @@ class FormHelperTest < ActionView::TestCase
 
     form_for(@post, builder: builder_class) { }
     assert_equal 1, initialization_count, 'form builder instantiated more than once'
+  end
+
+  def test_form_for_with_new_singular_resource
+    form_for(Comment.new) {}
+    assert_dom_equal(
+      %{<form class="new_comment" id="new_comment" action="/comment/new" accept-charset="UTF-8" method="post"><input name="utf8" type="hidden" value="&#x2713;" /></form>},
+      output_buffer
+    )
+  end
+
+  def test_form_for_with_new_singular_resource_and_format
+    form_for(Comment.new, format: :json) {}
+    assert_dom_equal(
+      %{<form class="new_comment" id="new_comment" action="/comment/new.json" accept-charset="UTF-8" method="post"><input name="utf8" type="hidden" value="&#x2713;" /></form>},
+      output_buffer
+    )
+  end
+
+  def test_form_for_with_persisted_singular_resource
+    form_for(Comment.new(1)) {}
+    assert_dom_equal(
+      %{<form class="edit_comment" id="edit_comment_1" action="/comment" accept-charset="UTF-8" method="post"><input name="utf8" type="hidden" value="&#x2713;" /><input type="hidden" name="_method" value="patch" /></form>},
+      output_buffer
+    )
+  end
+
+  def test_form_for_with_persisted_singular_resource_and_format
+    form_for(Comment.new(2), format: :json) {}
+    assert_dom_equal(
+      %{<form class="edit_comment" id="edit_comment_2" action="/comment.json" accept-charset="UTF-8" method="post"><input name="utf8" type="hidden" value="&#x2713;" /><input type="hidden" name="_method" value="patch" /></form>},
+      output_buffer
+    )
   end
 
   protected
