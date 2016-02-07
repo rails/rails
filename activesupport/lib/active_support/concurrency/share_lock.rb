@@ -6,12 +6,6 @@ module ActiveSupport
     # A share/exclusive lock, otherwise known as a read/write lock.
     #
     # https://en.wikipedia.org/wiki/Readers%E2%80%93writer_lock
-    #--
-    # Note that a pending Exclusive lock attempt does not block incoming
-    # Share requests (i.e., we are "read-preferring"). That seems
-    # consistent with the behavior of "loose" upgrades, but may be the
-    # wrong choice otherwise: it nominally reduces the possibility of
-    # deadlock by risking starvation instead.
     class ShareLock
       include MonitorMixin
 
@@ -73,8 +67,10 @@ module ActiveSupport
           if @exclusive_depth == 0
             @exclusive_thread = nil
 
-            yield_shares(compatible: compatible) do
-              @cv.wait_while { @exclusive_thread || eligible_waiters?(compatible) }
+            if eligible_waiters?(compatible)
+              yield_shares(compatible: compatible) do
+                @cv.wait_while { @exclusive_thread || eligible_waiters?(compatible) }
+              end
             end
             @cv.broadcast
           end
@@ -83,7 +79,15 @@ module ActiveSupport
 
       def start_sharing(purpose: :share)
         synchronize do
-          if @sharing[Thread.current] == 0 && @exclusive_thread != Thread.current && busy_for_sharing?(purpose)
+          if @sharing[Thread.current] > 0 || @exclusive_thread == Thread.current
+            # We already hold a lock; nothing to wait for
+          elsif @waiting[Thread.current]
+            # We're nested inside a +yield_shares+ call: we'll resume as
+            # soon as there isn't an exclusive lock in our way
+            @cv.wait_while { @exclusive_thread }
+          else
+            # This is an initial / outermost share call: any outstanding
+            # requests for an exclusive lock get to go first
             @cv.wait_while { busy_for_sharing?(purpose) }
           end
           @sharing[Thread.current] += 1
@@ -127,6 +131,9 @@ module ActiveSupport
         end
       end
 
+      # Temporarily give up all held Share locks while executing the
+      # supplied block, allowing any +compatible+ exclusive lock request
+      # to proceed.
       def yield_shares(purpose: nil, compatible: [])
         loose_shares = previous_wait = nil
         synchronize do
@@ -136,9 +143,9 @@ module ActiveSupport
               compatible &= previous_wait[1]
             end
             @waiting[Thread.current] = [purpose, compatible]
-          end
 
-          @cv.broadcast
+            @cv.broadcast
+          end
         end
 
         begin
