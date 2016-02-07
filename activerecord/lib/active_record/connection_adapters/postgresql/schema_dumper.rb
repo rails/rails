@@ -11,7 +11,7 @@ module ActiveRecord
             spec[:id] = ':uuid'
             spec[:default] = schema_default(column) || 'nil'
           else
-            spec[:id] = column.type.inspect
+            spec[:id] = schema_type(column).inspect
             spec.merge!(prepare_column_options(column).delete_if { |key, _| [:name, :type, :null].include?(key) })
           end
           spec
@@ -35,9 +35,9 @@ module ActiveRecord
           return super unless column.serial?
 
           if column.bigint?
-            'bigserial'
+            :bigserial
           else
-            'serial'
+            :serial
           end
         end
 
