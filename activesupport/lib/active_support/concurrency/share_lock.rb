@@ -6,12 +6,6 @@ module ActiveSupport
     # A share/exclusive lock, otherwise known as a read/write lock.
     #
     # https://en.wikipedia.org/wiki/Readers%E2%80%93writer_lock
-    #--
-    # Note that a pending Exclusive lock attempt does not block incoming
-    # Share requests (i.e., we are "read-preferring"). That seems
-    # consistent with the behavior of "loose" upgrades, but may be the
-    # wrong choice otherwise: it nominally reduces the possibility of
-    # deadlock by risking starvation instead.
     class ShareLock
       include MonitorMixin
 
@@ -51,7 +45,7 @@ module ActiveSupport
             if busy_for_exclusive?(purpose)
               return false if no_wait
 
-              yield_shares(purpose, compatible) do
+              yield_shares(purpose: purpose, compatible: compatible, block_share: true) do
                 @cv.wait_while { busy_for_exclusive?(purpose) }
               end
             end
@@ -73,18 +67,28 @@ module ActiveSupport
           if @exclusive_depth == 0
             @exclusive_thread = nil
 
-            yield_shares(nil, compatible) do
-              @cv.broadcast
-              @cv.wait_while { @exclusive_thread || eligible_waiters?(compatible) }
+            if eligible_waiters?(compatible)
+              yield_shares(compatible: compatible, block_share: true) do
+                @cv.wait_while { @exclusive_thread || eligible_waiters?(compatible) }
+              end
             end
+            @cv.broadcast
           end
         end
       end
 
-      def start_sharing(purpose: :share)
+      def start_sharing
         synchronize do
-          if @sharing[Thread.current] == 0 && @exclusive_thread != Thread.current && busy_for_sharing?(purpose)
-            @cv.wait_while { busy_for_sharing?(purpose) }
+          if @sharing[Thread.current] > 0 || @exclusive_thread == Thread.current
+            # We already hold a lock; nothing to wait for
+          elsif @waiting[Thread.current]
+            # We're nested inside a +yield_shares+ call: we'll resume as
+            # soon as there isn't an exclusive lock in our way
+            @cv.wait_while { @exclusive_thread }
+          else
+            # This is an initial / outermost share call: any outstanding
+            # requests for an exclusive lock get to go first
+            @cv.wait_while { busy_for_sharing?(false) }
           end
           @sharing[Thread.current] += 1
         end
@@ -127,6 +131,40 @@ module ActiveSupport
         end
       end
 
+      # Temporarily give up all held Share locks while executing the
+      # supplied block, allowing any +compatible+ exclusive lock request
+      # to proceed.
+      def yield_shares(purpose: nil, compatible: [], block_share: false)
+        loose_shares = previous_wait = nil
+        synchronize do
+          if loose_shares = @sharing.delete(Thread.current)
+            if previous_wait = @waiting[Thread.current]
+              purpose = nil unless purpose == previous_wait[0]
+              compatible &= previous_wait[1]
+            end
+            compatible |= [false] unless block_share
+            @waiting[Thread.current] = [purpose, compatible]
+
+            @cv.broadcast
+          end
+        end
+
+        begin
+          yield
+        ensure
+          synchronize do
+            @cv.wait_while { @exclusive_thread && @exclusive_thread != Thread.current }
+
+            if previous_wait
+              @waiting[Thread.current] = previous_wait
+            else
+              @waiting.delete Thread.current
+            end
+            @sharing[Thread.current] = loose_shares if loose_shares
+          end
+        end
+      end
+
       private
 
       # Must be called within synchronize
@@ -142,18 +180,6 @@ module ActiveSupport
 
       def eligible_waiters?(compatible)
         @waiting.any? { |t, (p, _)| compatible.include?(p) && @waiting.all? { |t2, (_, c2)| t == t2 || c2.include?(p) } }
-      end
-
-      def yield_shares(purpose, compatible)
-        loose_shares = @sharing.delete(Thread.current)
-        @waiting[Thread.current] = [purpose, compatible] if loose_shares
-
-        begin
-          yield
-        ensure
-          @waiting.delete Thread.current
-          @sharing[Thread.current] = loose_shares if loose_shares
-        end
       end
     end
   end

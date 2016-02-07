@@ -238,34 +238,39 @@ module ActionController
       # response code and headers back up the rack stack, and still process
       # the body in parallel with sending data to the client
       new_controller_thread {
-        t2 = Thread.current
+        ActiveSupport::Dependencies.interlock.running do
+          t2 = Thread.current
 
-        # Since we're processing the view in a different thread, copy the
-        # thread locals from the main thread to the child thread. :'(
-        locals.each { |k,v| t2[k] = v }
+          # Since we're processing the view in a different thread, copy the
+          # thread locals from the main thread to the child thread. :'(
+          locals.each { |k,v| t2[k] = v }
 
-        begin
-          super(name)
-        rescue => e
-          if @_response.committed?
-            begin
-              @_response.stream.write(ActionView::Base.streaming_completion_on_exception) if request.format == :html
-              @_response.stream.call_on_error
-            rescue => exception
-              log_error(exception)
-            ensure
-              log_error(e)
-              @_response.stream.close
+          begin
+            super(name)
+          rescue => e
+            if @_response.committed?
+              begin
+                @_response.stream.write(ActionView::Base.streaming_completion_on_exception) if request.format == :html
+                @_response.stream.call_on_error
+              rescue => exception
+                log_error(exception)
+              ensure
+                log_error(e)
+                @_response.stream.close
+              end
+            else
+              error = e
             end
-          else
-            error = e
+          ensure
+            @_response.commit!
           end
-        ensure
-          @_response.commit!
         end
       }
 
-      @_response.await_commit
+      ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
+        @_response.await_commit
+      end
+
       raise error if error
     end
 
