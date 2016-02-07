@@ -137,7 +137,7 @@ module ActiveRecord
     #     ThroughReflection
     #       PolymorphicReflection
     #         RuntimeReflection
-     class AbstractReflection # :nodoc:
+    class AbstractReflection # :nodoc:
       def table_name
         klass.table_name
       end
