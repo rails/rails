@@ -45,7 +45,7 @@ module ActiveSupport
             if busy_for_exclusive?(purpose)
               return false if no_wait
 
-              yield_shares(purpose: purpose, compatible: compatible) do
+              yield_shares(purpose: purpose, compatible: compatible, block_share: true) do
                 @cv.wait_while { busy_for_exclusive?(purpose) }
               end
             end
@@ -68,7 +68,7 @@ module ActiveSupport
             @exclusive_thread = nil
 
             if eligible_waiters?(compatible)
-              yield_shares(compatible: compatible) do
+              yield_shares(compatible: compatible, block_share: true) do
                 @cv.wait_while { @exclusive_thread || eligible_waiters?(compatible) }
               end
             end
@@ -77,7 +77,7 @@ module ActiveSupport
         end
       end
 
-      def start_sharing(purpose: :share)
+      def start_sharing
         synchronize do
           if @sharing[Thread.current] > 0 || @exclusive_thread == Thread.current
             # We already hold a lock; nothing to wait for
@@ -88,7 +88,7 @@ module ActiveSupport
           else
             # This is an initial / outermost share call: any outstanding
             # requests for an exclusive lock get to go first
-            @cv.wait_while { busy_for_sharing?(purpose) }
+            @cv.wait_while { busy_for_sharing?(false) }
           end
           @sharing[Thread.current] += 1
         end
@@ -134,7 +134,7 @@ module ActiveSupport
       # Temporarily give up all held Share locks while executing the
       # supplied block, allowing any +compatible+ exclusive lock request
       # to proceed.
-      def yield_shares(purpose: nil, compatible: [])
+      def yield_shares(purpose: nil, compatible: [], block_share: false)
         loose_shares = previous_wait = nil
         synchronize do
           if loose_shares = @sharing.delete(Thread.current)
@@ -142,6 +142,7 @@ module ActiveSupport
               purpose = nil unless purpose == previous_wait[0]
               compatible &= previous_wait[1]
             end
+            compatible |= [false] unless block_share
             @waiting[Thread.current] = [purpose, compatible]
 
             @cv.broadcast
