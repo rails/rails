@@ -1,3 +1,5 @@
+require 'action_dispatch/http/parameter_filter'
+
 module ActionDispatch
   module Http
     module FilterRedirect
@@ -8,7 +10,7 @@ module ActionDispatch
         if location_filter_match?
           FILTERED
         else
-          location
+          parameter_filtered_location
         end
       end
 
@@ -32,6 +34,24 @@ module ActionDispatch
         end
       end
 
+      DEFAULT_PARAMETER_FILTER = []
+      def parameter_filter
+        ParameterFilter.new request.fetch_header('action_dispatch.parameter_filter') {
+          DEFAULT_PARAMETER_FILTER
+        }
+      end
+
+      KEY_OR_VALUE_REGEX = '[^&;=]+'
+      PAIR_REGEX         = %r{(#{KEY_OR_VALUE_REGEX})=(#{KEY_OR_VALUE_REGEX})}
+      def parameter_filtered_location
+        uri = URI.parse(location)
+        unless uri.query.nil? || uri.query.empty?
+          uri.query.gsub!(PAIR_REGEX) do |_|
+            parameter_filter.filter([[$1, $2]]).first.join('=')
+          end
+        end
+        uri.to_s
+      end
     end
   end
 end

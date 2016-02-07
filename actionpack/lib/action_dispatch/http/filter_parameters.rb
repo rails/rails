@@ -64,10 +64,10 @@ module ActionDispatch
         ParameterFilter.new(filters)
       end
 
-      KV_RE   = '[^&;=]+'
-      PAIR_RE = %r{(#{KV_RE})=(#{KV_RE})}
+      KEY_OR_VALUE_REGEX = '[^&;=]+'
+      PAIR_REGEX         = %r{(#{KEY_OR_VALUE_REGEX})=(#{KEY_OR_VALUE_REGEX})}
       def filtered_query_string
-        query_string.gsub(PAIR_RE) do |_|
+        query_string.gsub(PAIR_REGEX) do |_|
           parameter_filter.filter([[$1, $2]]).first.join("=")
         end
       end
