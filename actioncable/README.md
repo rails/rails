@@ -436,7 +436,7 @@ messages back and forth over the WebSocket cable connection. This dependency may
 be alleviated in the future, but for the moment that's what it is. So be sure to have
 Redis installed and running.
 
-The Ruby side of things is built on top of [faye-websocket](https://github.com/faye/faye-websocket-ruby) and [concurrent-ruby](https://github.com/ruby-concurrency/concurrent-ruby).
+The Ruby side of things is built on top of [websocket-driver](https://github.com/faye/websocket-driver-ruby), [nio4r](https://github.com/celluloid/nio4r), and [concurrent-ruby](https://github.com/ruby-concurrency/concurrent-ruby).
 
 
 ## Deployment
