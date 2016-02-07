@@ -124,8 +124,19 @@ module ActiveRecord
       end
     end
 
-    # Holds all the methods that are shared between MacroReflection, AssociationReflection
-    # and ThroughReflection
+    # Holds all the methods that are shared between MacroReflection and ThroughReflection.
+    #
+    #   AbstractReflection
+    #     MacroReflection
+    #       AggregateReflection
+    #       AssociationReflection
+    #         HasManyReflection
+    #         HasOneReflection
+    #         BelongsToReflection
+    #         HasAndBelongsToManyReflection
+    #     ThroughReflection
+    #       PolymorphicReflection
+    #         RuntimeReflection
     class AbstractReflection # :nodoc:
       def table_name
         klass.table_name
@@ -232,14 +243,6 @@ module ActiveRecord
 
     # Base class for AggregateReflection and AssociationReflection. Objects of
     # AggregateReflection and AssociationReflection are returned by the Reflection::ClassMethods.
-    #
-    #   MacroReflection
-    #     AggregateReflection
-    #     AssociationReflection
-    #       HasManyReflection
-    #       HasOneReflection
-    #       BelongsToReflection
-    #         ThroughReflection
     class MacroReflection < AbstractReflection
       # Returns the name of the macro.
       #
