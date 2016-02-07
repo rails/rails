@@ -60,6 +60,17 @@ module ApplicationTests
       assert_equal "https", ActionMailer::Base.default_url_options[:protocol]
     end
 
+    test "Default to HTTPS for routes URLs when force_ssl is on" do
+      app_file "config/environments/development.rb", <<-RUBY
+        Rails.application.configure do
+          config.force_ssl = true
+        end
+      RUBY
+
+      require "#{app_path}/config/environment"
+      assert_equal "https", Rails.application.routes.default_url_options[:protocol]
+    end
+
     test "includes url helpers as action methods" do
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do

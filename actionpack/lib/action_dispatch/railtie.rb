@@ -39,6 +39,11 @@ module ActionDispatch
       config.action_dispatch.always_write_cookie = Rails.env.development? if config.action_dispatch.always_write_cookie.nil?
       ActionDispatch::Cookies::CookieJar.always_write_cookie = config.action_dispatch.always_write_cookie
 
+      if app.config.force_ssl
+        app.routes.default_url_options ||= {}
+        app.routes.default_url_options[:protocol] ||= 'https'
+      end
+
       ActionDispatch::Reloader.default_reloader = app.reloader
 
       ActionDispatch.test_app = app
