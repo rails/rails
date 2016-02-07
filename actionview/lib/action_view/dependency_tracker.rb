@@ -39,11 +39,11 @@ module ActionView
       /x
 
       # Any kind of variable name. e.g. @instance, @@class, $global or local.
-      # Possibly following a method call chain
+      # Possibly following a method call chain or scope operators
       VARIABLE_OR_METHOD_CHAIN = /
-        (?:\$|@{1,2})?            # optional global, instance or class variable indicator
-        (?:#{IDENTIFIER}\.)*      # followed by an optional chain of zero-argument method calls
-        (?<dynamic>#{IDENTIFIER}) # and a final valid identifier, captured as DYNAMIC
+        (?:\$|@{1,2})?                # optional global, instance or class variable indicator
+        (?:#{IDENTIFIER}(?:\.|\:\:))* # followed by an optional chain of zero-argument method calls or scopes
+        (?<dynamic>#{IDENTIFIER})     # and a final valid identifier, captured as DYNAMIC
       /x
 
       # A simple string literal. e.g. "School's out!"
@@ -65,6 +65,18 @@ module ActionView
         \s*                          # followed by optional spaces
       /x
 
+      # A instantiating a new object
+      CLASS_INSTANTIATION = /
+        #{IDENTIFIER}\.new # class identifier followed by the word new
+      /x
+
+      # ERB tags that contain Ruby code which might have "render" in it
+      RUBY_CODE = /
+        (<%(?:=|\#)? # opening ERB tag with optional = and #
+        .*?          # all Ruby Code inside of the tag
+        %>)          # with a closing ERB tag
+      /xm
+
       # Matches:
       #   partial: "comments/comment", collection: @all_comments => "comments/comment"
       #   (object: @single_comment, partial: "comments/comment") => "comments/comment"
@@ -73,19 +85,20 @@ module ActionView
       #   'comments/comments'
       #   ('comments/comments')
       #
-      #   (@topic)         => "topics/topic"
-      #    topics          => "topics/topic"
-      #   (message.topics) => "topics/topic"
+      #   (@topic)           => "topics/topic"
+      #    topics            => "topics/topic"
+      #   (message.topics)   => "topics/topic"
+      #   SomeModule::topics => "topics/topic"
       RENDER_ARGUMENTS = /\A
-        (?:\s*\(?\s*)                                  # optional opening paren surrounded by spaces
-        (?:.*?#{PARTIAL_HASH_KEY}|#{LAYOUT_HASH_KEY})? # optional hash, up to the partial or layout key declaration
-        (?:#{STRING}|#{VARIABLE_OR_METHOD_CHAIN})      # finally, the dependency name of interest
+        (?:\s*\(?\s*)                                        # optional opening paren surrounded by spaces
+        (?:.*?#{PARTIAL_HASH_KEY}|#{LAYOUT_HASH_KEY})?       # optional hash, up to the partial or layout key declaration
+        (?<dependency>#{STRING}|#{VARIABLE_OR_METHOD_CHAIN}) # finally, the dependency name of interest
       /xm
 
       LAYOUT_DEPENDENCY = /\A
-        (?:\s*\(?\s*)                                  # optional opening paren surrounded by spaces
-        (?:.*?#{LAYOUT_HASH_KEY})                      # check if the line has layout key declaration
-        (?:#{STRING}|#{VARIABLE_OR_METHOD_CHAIN})      # finally, the dependency name of interest
+        (?:\s*\(?\s*)                                        # optional opening paren surrounded by spaces
+        (?:.*?#{LAYOUT_HASH_KEY})                            # check if the line has layout key declaration
+        (?<dependency>#{STRING}|#{VARIABLE_OR_METHOD_CHAIN}) # finally, the dependency name of interest
       /xm
 
       def self.supports_view_paths? # :nodoc:
@@ -118,7 +131,8 @@ module ActionView
 
         def render_dependencies
           render_dependencies = []
-          render_calls = source.split(/\brender\b/).drop(1)
+          ruby_code_blocks = source.split(RUBY_CODE).drop(1)
+          render_calls = ruby_code_blocks.flat_map { |code| code.split(/\brender\b/).drop(1) }
 
           render_calls.each do |arguments|
             add_dependencies(render_dependencies, arguments, LAYOUT_DEPENDENCY)
@@ -130,8 +144,11 @@ module ActionView
 
         def add_dependencies(render_dependencies, arguments, pattern)
           arguments.scan(pattern) do
-            add_dynamic_dependency(render_dependencies, Regexp.last_match[:dynamic])
-            add_static_dependency(render_dependencies, Regexp.last_match[:static])
+            scan_match = Regexp.last_match
+            next if CLASS_INSTANTIATION =~ scan_match[:dependency]
+
+            add_dynamic_dependency(render_dependencies, scan_match[:dynamic])
+            add_static_dependency(render_dependencies, scan_match[:static])
           end
         end
 

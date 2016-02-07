@@ -192,4 +192,69 @@ class ERBTrackerTest < Minitest::Test
       "comments/comment"
     ], tracker.dependencies
   end
+
+  def test_finds_no_dependency_for_render_in_scripts
+    template = FakeTemplate.new(%{
+      <script async>
+        render(data.auto_kinds)
+      </script>
+    }, :erb)
+
+    tracker = make_tracker("render/_with_scripts", template)
+
+    assert_equal [], tracker.dependencies
+  end
+
+  def test_finds_no_dependency_when_render_in_attributes
+    template = FakeTemplate.new(%{
+      <div id="render" data-autokinds="value">
+      </div>
+    }, :erb)
+
+    tracker = make_tracker("attribute/_contains_render", template)
+
+    assert_equal [], tracker.dependencies
+  end
+
+  def test_finds_no_dependency_when_instantiating_a_class
+    template = FakeTemplate.new(%{
+      <%# render ClassWithPartialPath.new %>
+      <%# render partial: ClassWithPartialPath.new %>
+    }, :erb)
+
+    tracker = make_tracker("instantiating/_a_class", template)
+
+    assert_equal [], tracker.dependencies
+  end
+
+  def test_finds_dependency_named_new
+    template = FakeTemplate.new(%{
+      <%# render @new %>
+    }, :erb)
+
+    tracker = make_tracker("template/_named_new", template)
+
+    assert_equal ["news/new"], tracker.dependencies
+  end
+
+  def test_finds_dependency_for_scoped_variable
+    template = FakeTemplate.new(%{
+      <%# render ApplicationHelper::employee %>
+    }, :erb)
+
+    tracker = make_tracker("scoping/_variable", template)
+
+    assert_equal ["employees/employee"], tracker.dependencies
+  end
+
+  def test_finds_no_dependency_when_scoping_in_module
+    template = FakeTemplate.new(%{
+      <%# render ApplicationHelper::ClassWithPartialPath.new %>
+      <%# render partial: ApplicationHelper::ClassWithPartialPath.new %>
+    }, :erb)
+
+    tracker = make_tracker("scoping/_in_a_module", template)
+
+    assert_equal [], tracker.dependencies
+  end
 end
