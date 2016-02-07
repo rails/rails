@@ -341,6 +341,41 @@ class ShareLockTest < ActiveSupport::TestCase
     threads.each(&:kill) if threads
   end
 
+  def test_manual_recursive_yield
+    ready = Concurrent::CyclicBarrier.new(2)
+    done = Concurrent::CyclicBarrier.new(2)
+    do_nesting = Concurrent::CountDownLatch.new
+
+    threads = [
+      Thread.new do
+        @lock.sharing do
+          ready.wait
+          @lock.exclusive(purpose: :x) {}
+          done.wait
+        end
+      end,
+
+      Thread.new do
+        @lock.sharing do
+          @lock.yield_shares(compatible: [:x]) do
+            @lock.sharing do
+              ready.wait
+              do_nesting.wait
+              @lock.yield_shares(compatible: [:x, :y]) do
+                done.wait
+              end
+            end
+          end
+        end
+      end
+    ]
+
+    assert_threads_stuck threads
+    do_nesting.count_down
+
+    assert_threads_not_stuck threads
+  end
+
   def test_manual_recursive_yield_cannot_expand_outer_compatible
     ready = Concurrent::CyclicBarrier.new(2)
     do_compatible_nesting = Concurrent::CountDownLatch.new
