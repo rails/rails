@@ -171,7 +171,7 @@ module ActiveSupport #:nodoc:
       original_concat(value)
     end
 
-    def initialize(*)
+    def initialize(str = '')
       @html_safe = true
       super
     end
