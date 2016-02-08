@@ -537,8 +537,19 @@ end
 class ImplicitRenderTest < ActionController::TestCase
   tests ImplicitRenderTestController
 
-  def test_implicit_no_content_response
-    get :empty_action
+  def test_implicit_missing_template_error_for_regular_browser_request
+    assert_raises(ActionView::MissingTemplate) do
+      get :empty_action
+    end
+  end
+
+  def test_implicit_no_content_response_for_xhr_request
+    get :empty_action, xhr: true
+    assert_response :no_content
+  end
+
+  def test_implicit_no_content_response_for_api_request
+    get :empty_action, format: 'json'
     assert_response :no_content
   end
 end
