@@ -653,7 +653,7 @@ run this command in your terminal:
 $ bin/rails generate model Article title:string text:text
 ```
 
-With that command we told Rails that we want a `Article` model, together
+With that command we told Rails that we want an `Article` model, together
 with a _title_ attribute of type string, and a _text_ attribute
 of type text. Those attributes are automatically added to the `articles`
 table in the database and mapped to the `Article` model.
