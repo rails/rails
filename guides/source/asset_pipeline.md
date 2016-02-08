@@ -21,11 +21,11 @@ What is the Asset Pipeline?
 The asset pipeline provides a framework to concatenate and minify or compress
 JavaScript and CSS assets. It also adds the ability to write these assets in
 other languages and pre-processors such as CoffeeScript, Sass and ERB.
-It allows assets in your application to be automatically combined with assets 
+It allows assets in your application to be automatically combined with assets
 from other gems. For example, jquery-rails includes a copy of jquery.js
 and enables AJAX features in Rails.
 
-The asset pipeline is technically no longer a core feature of Rails 4, it has
+The asset pipeline is technically no longer a core feature from Rails 4 onwards -- it has
 been extracted out of the framework into the
 [sprockets-rails](https://github.com/rails/sprockets-rails) gem.
 
@@ -38,7 +38,7 @@ passing the `--skip-sprockets` option.
 rails new appname --skip-sprockets
 ```
 
-Rails 4 automatically adds the `sass-rails`, `coffee-rails` and `uglifier`
+Rails automatically adds the `sass-rails`, `coffee-rails` and `uglifier`
 gems to your Gemfile, which are used by Sprockets for asset compression:
 
 ```ruby
@@ -47,7 +47,7 @@ gem 'uglifier'
 gem 'coffee-rails'
 ```
 
-Using the `--skip-sprockets` option will prevent Rails 4 from adding
+Using the `--skip-sprockets` option will prevent Rails from adding
 them to your Gemfile, so if you later want to enable
 the asset pipeline you will have to add those gems to your Gemfile. Also,
 creating an application with the `--skip-sprockets` option will generate
@@ -330,7 +330,7 @@ familiar `javascript_include_tag` and `stylesheet_link_tag`:
 <%= javascript_include_tag "application" %>
 ```
 
-If using the turbolinks gem, which is included by default in Rails 4, then
+If using the turbolinks gem, which is included by default in Rails, then
 include the 'data-turbolinks-track' option which causes turbolinks to check if
 an asset has been updated and if so loads it into the page:
 
@@ -446,7 +446,7 @@ makes fewer requests. Compression also reduces file size, enabling the
 browser to download them faster.
 
 
-For example, a new Rails 4 application includes a default
+For example, a new Rails application includes a default
 `app/assets/javascripts/application.js` file containing the following lines:
 
 ```js
@@ -487,7 +487,7 @@ which contains these lines:
 */
 ```
 
-Rails 4 creates both `app/assets/javascripts/application.js` and
+Rails creates both `app/assets/javascripts/application.js` and
 `app/assets/stylesheets/application.css` regardless of whether the
 --skip-sprockets option is used when creating a new rails application. This is
 so you can easily add asset pipelining later if you like.
@@ -1111,7 +1111,7 @@ supported runtime in order to use `uglifier`. If you are using Mac OS X or
 Windows you have a JavaScript runtime installed in your operating system.
 
 NOTE: The `config.assets.compress` initialization option is no longer used in
-Rails 4 to enable either CSS or JavaScript compression. Setting it will have no
+Rails to enable either CSS or JavaScript compression. Setting it will have no
 effect on the application. Instead, setting `config.assets.css_compressor` and
 `config.assets.js_compressor` will control compression of CSS and JavaScript
 assets.
@@ -1293,7 +1293,7 @@ config.assets.digest = true
 # config.assets.precompile += %w( search.js )
 ```
 
-Rails 4 no longer sets default config values for Sprockets in `test.rb`, so
+Rails 4 and above no longer set default config values for Sprockets in `test.rb`, so
 `test.rb` now requires Sprockets configuration. The old defaults in the test
 environment are: `config.assets.compile = true`, `config.assets.compress = false`,
 `config.assets.debug = false` and `config.assets.digest = false`.
