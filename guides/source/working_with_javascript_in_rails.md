@@ -350,7 +350,7 @@ $("<%= escape_javascript(render @user) %>").appendTo("#users");
 Turbolinks
 ----------
 
-Rails 4 ships with the [Turbolinks gem](https://github.com/rails/turbolinks).
+Rails 4 ships with the [Turbolinks gem](https://github.com/turbolinks/turbolinks).
 This gem uses Ajax to speed up page rendering in most applications.
 
 ### How Turbolinks Works
@@ -395,7 +395,7 @@ $(document).on "page:change", ->
 
 For more details, including other events you can bind to, check out [the
 Turbolinks
-README](https://github.com/rails/turbolinks/blob/master/README.md).
+README](https://github.com/turbolinks/turbolinks/blob/master/README.md).
 
 Other Resources
 ---------------
