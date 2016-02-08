@@ -324,7 +324,7 @@ Rails.application.paths.add "config/cable", with: "somewhere/else/cable.yml"
 Action Cable will only accept requests from specified origins, which are passed to the server config as an array. The origins can be instances of strings or regular expressions, against which a check for match will be performed.
 
 ```ruby
-ActionCable.server.config.allowed_request_origins = ['http://rubyonrails.com', /http:\/\/ruby.*/]
+Rails.application.config.action_cable.allowed_request_origins = ['http://rubyonrails.com', /http:\/\/ruby.*/]
 ```
 
 When running in the development environment, this defaults to "http://localhost:3000".
@@ -332,7 +332,7 @@ When running in the development environment, this defaults to "http://localhost:
 To disable and allow requests from any origin:
 
 ```ruby
-ActionCable.server.config.disable_request_forgery_protection = true
+Rails.application.config.action_cable.disable_request_forgery_protection = true
 ```
 
 ### Consumer Configuration
@@ -374,7 +374,7 @@ App.cable = ActionCable.createConsumer()
 The other common option to configure is the log tags applied to the per-connection logger. Here's close to what we're using in Basecamp:
 
 ```ruby
-ActionCable.server.config.log_tags = [
+Rails.application.config.action_cable.log_tags = [
   -> request { request.env['bc.account_id'] || "no-account" },
   :action_cable,
   -> request { request.uuid }
