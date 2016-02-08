@@ -11,6 +11,21 @@ module ActionMailer
   end
 
   class TestCase < ActiveSupport::TestCase
+    module ClearTestDeliviers
+      extend ActiveSupport::Concern
+
+      included do
+        teardown :clear_test_deliviers
+      end
+
+      private
+      def clear_test_deliviers
+        if ActionMailer::Base.delivery_method == :test
+          ActionMailer::Base.deliveries.clear
+        end
+      end
+    end
+
     module Behavior
       extend ActiveSupport::Concern
 
@@ -66,7 +81,6 @@ module ActionMailer
         def restore_test_deliveries # :nodoc:
           restore_delivery_method
           ActionMailer::Base.perform_deliveries = @old_perform_deliveries
-          ActionMailer::Base.deliveries.clear
         end
 
         def set_delivery_method(method) # :nodoc:
@@ -100,5 +114,6 @@ module ActionMailer
     end
 
     include Behavior
+    include ClearTestDeliviers
   end
 end

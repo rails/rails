@@ -1191,9 +1191,9 @@ testing) but instead it will be appended to an array
 (`ActionMailer::Base.deliveries`).
 
 NOTE: The `ActionMailer::Base.deliveries` array is only reset automatically in
-`ActionMailer::TestCase` tests. If you want to have a clean slate outside Action
-Mailer tests, you can reset it manually with:
-`ActionMailer::Base.deliveries.clear`
+`ActionMailer::TestCase` and `ActionDispatch::IntegrationTest` tests.
+If you want to have a clean slate outside these test cases, you can reset it
+manually with: `ActionMailer::Base.deliveries.clear`
 
 ### Functional Testing
 

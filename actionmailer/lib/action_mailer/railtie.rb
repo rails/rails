@@ -51,6 +51,8 @@ module ActionMailer
             get '/rails/mailers/*path'   => "rails/mailers#preview"
           end
         end
+
+        ActionDispatch::IntegrationTest.send :include, ActionMailer::TestCase::ClearTestDeliviers
       end
     end
 
