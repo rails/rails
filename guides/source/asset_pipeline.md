@@ -901,7 +901,7 @@ your CDN server, you need to tell browsers to use your CDN to grab assets
 instead of your Rails server directly. You can do this by configuring Rails to
 set your CDN as the asset host instead of using a relative path. To set your
 asset host in Rails, you need to set `config.action_controller.asset_host` in
-`config/production.rb`:
+`config/environments/production.rb`:
 
 ```ruby
 config.action_controller.asset_host = 'mycdnsubdomain.fictional-cdn.com'

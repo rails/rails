@@ -405,7 +405,7 @@ Please refer to the [Changelog][railties] for detailed changes.
       url: http://localhost:3001
       namespace: my_app_development
 
-    # config/production.rb
+    # config/environments/production.rb
     Rails.application.configure do
       config.middleware.use ExceptionNotifier, config_for(:exception_notification)
     end
