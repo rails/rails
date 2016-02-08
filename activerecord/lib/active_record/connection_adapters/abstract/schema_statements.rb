@@ -459,7 +459,7 @@ module ActiveRecord
       # The +type+ parameter is normally one of the migrations native types,
       # which is one of the following:
       # <tt>:primary_key</tt>, <tt>:string</tt>, <tt>:text</tt>,
-      # <tt>:integer</tt>, <tt>:bigint</tt>, <tt>:float</tt>, <tt>:decimal</tt>,
+      # <tt>:integer</tt>, <tt>:bigint</tt>, <tt>:float</tt>, <tt>:decimal</tt>, <tt>:numeric</tt>,
       # <tt>:datetime</tt>, <tt>:time</tt>, <tt>:date</tt>,
       # <tt>:binary</tt>, <tt>:boolean</tt>.
       #
@@ -477,9 +477,9 @@ module ActiveRecord
       #   Allows or disallows +NULL+ values in the column. This option could
       #   have been named <tt>:null_allowed</tt>.
       # * <tt>:precision</tt> -
-      #   Specifies the precision for a <tt>:decimal</tt> column.
+      #   Specifies the precision for the <tt>:decimal</tt> and <tt>:numeric</tt> columns.
       # * <tt>:scale</tt> -
-      #   Specifies the scale for a <tt>:decimal</tt> column.
+      #   Specifies the scale for the <tt>:decimal</tt> and <tt>:numeric</tt> columns.
       #
       # Note: The precision is the total number of significant digits
       # and the scale is the number of digits that can be stored following
