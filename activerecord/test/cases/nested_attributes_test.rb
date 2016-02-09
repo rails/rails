@@ -61,6 +61,13 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
     assert_equal "No association found for name `honesty'. Has it been defined yet?", exception.message
   end
 
+  def test_should_raise_an_UnknownAttributeError_for_non_existing_nested_attributes
+    exception = assert_raise ActiveModel::UnknownAttributeError do
+      Pirate.new(:ship_attributes => { :sail => true })
+    end
+    assert_equal "unknown attribute 'sail' for Ship.", exception.message
+  end
+
   def test_should_disable_allow_destroy_by_default
     Pirate.accepts_nested_attributes_for :ship
 
@@ -580,6 +587,13 @@ end
 module NestedAttributesOnACollectionAssociationTests
   def test_should_define_an_attribute_writer_method_for_the_association
     assert_respond_to @pirate, association_setter
+  end
+
+  def test_should_raise_an_UnknownAttributeError_for_non_existing_nested_attributes_for_has_many
+    exception = assert_raise ActiveModel::UnknownAttributeError do
+      @pirate.parrots_attributes = [{ peg_leg: true }]
+    end
+    assert_equal "unknown attribute 'peg_leg' for Parrot.", exception.message
   end
 
   def test_should_save_only_one_association_on_create
