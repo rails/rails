@@ -998,7 +998,7 @@ Below is a comprehensive list of all the initializers found in Rails in the orde
 
 * `initialize_cache` If `Rails.cache` isn't set yet, initializes the cache by referencing the value in `config.cache_store` and stores the outcome as `Rails.cache`. If this object responds to the `middleware` method, its middleware is inserted before `Rack::Runtime` in the middleware stack.
 
-* `set_clear_dependencies_hook` Provides a hook for `active_record.set_dispatch_hooks` to use, which will run before this initializer. This initializer - which runs only if `cache_classes` is set to `false` - uses `ActionDispatch::Callbacks.after` to remove the constants which have been referenced during the request from the object space so that they will be reloaded during the following request.
+* `set_clear_dependencies_hook` This initializer - which runs only if `cache_classes` is set to `false` - uses `ActionDispatch::Callbacks.after` to remove the constants which have been referenced during the request from the object space so that they will be reloaded during the following request.
 
 * `initialize_dependency_mechanism` If `config.cache_classes` is true, configures `ActiveSupport::Dependencies.mechanism` to `require` dependencies rather than `load` them.
 
@@ -1012,13 +1012,17 @@ Below is a comprehensive list of all the initializers found in Rails in the orde
 
 * `active_support.initialize_beginning_of_week` Sets the default beginning of week for the application based on `config.beginning_of_week` setting, which defaults to `:monday`.
 
+* `active_support.set_configs` Sets up Active Support by using the settings in `config.active_support` by `send`'ing the method names as setters to `ActiveSupport` and passing the values through.
+
 * `action_dispatch.configure` Configures the `ActionDispatch::Http::URL.tld_length` to be set to the value of `config.action_dispatch.tld_length`.
 
 * `action_view.set_configs` Sets up Action View by using the settings in `config.action_view` by `send`'ing the method names as setters to `ActionView::Base` and passing the values through.
 
-* `action_controller.logger` Sets `ActionController::Base.logger` - if it's not already set - to `Rails.logger`.
+* `action_controller.assets_config` Initializes the `config.actions_controller.assets_dir` to the app's public directory if not explicitly configured
 
-* `action_controller.initialize_framework_caches` Sets `ActionController::Base.cache_store` - if it's not already set - to `Rails.cache`.
+* `action_controller.set_helpers_path` Sets Action Controller's helpers_path to the application's helpers_path
+
+* `action_controller.parameters_config` Configures strong parameters options for `ActionController::Parameters`
 
 * `action_controller.set_configs` Sets up Action Controller by using the settings in `config.action_controller` by `send`'ing the method names as setters to `ActionController::Base` and passing the values through.
 
@@ -1028,13 +1032,21 @@ Below is a comprehensive list of all the initializers found in Rails in the orde
 
 * `active_record.logger` Sets `ActiveRecord::Base.logger` - if it's not already set - to `Rails.logger`.
 
+* `active_record.migration_error` Configures middleware to check for pending migrations
+
+* `active_record.check_schema_cache_dump` Loads the schema cache dump if configured and available
+
+* `active_record.warn_on_records_fetched_greater_than` Enables warnings when queries return large numbers of records
+
 * `active_record.set_configs` Sets up Active Record by using the settings in `config.active_record` by `send`'ing the method names as setters to `ActiveRecord::Base` and passing the values through.
 
 * `active_record.initialize_database` Loads the database configuration (by default) from `config/database.yml` and establishes a connection for the current environment.
 
 * `active_record.log_runtime` Includes `ActiveRecord::Railties::ControllerRuntime` which is responsible for reporting the time taken by Active Record calls for the request back to the logger.
 
-* `active_record.set_dispatch_hooks` Resets all reloadable connections to the database if `config.cache_classes` is set to `false`.
+* `active_record.set_reloader_hooks` Resets all reloadable connections to the database if `config.cache_classes` is set to `false`.
+
+* `active_record.add_watchable_files` Adds `schema.rb` and `structure.sql` files to watchable files
 
 * `active_job.logger` Sets `ActiveJob::Base.logger` - if it's not already set -
   to `Rails.logger`.
