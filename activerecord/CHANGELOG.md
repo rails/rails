@@ -1,3 +1,7 @@
+*   Drop support for passing an instance of `ActiveRecord::Base` to `find`
+
+    *Yuichiro Kaneko*
+
 *   Added `numeric` helper into migrations.
 
     Example:

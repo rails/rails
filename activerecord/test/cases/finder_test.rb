@@ -117,8 +117,8 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal 'The Fourth Topic of the day', records[2].title
   end
 
-  def test_find_passing_active_record_object_is_deprecated
-    assert_deprecated do
+  def test_find_passing_active_record_object_raise_exception
+    assert_raises(ArgumentError) do
       Topic.find(Topic.last)
     end
   end
