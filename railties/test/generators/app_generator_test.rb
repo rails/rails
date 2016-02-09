@@ -483,6 +483,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator
     if RbConfig::CONFIG['host_os'] =~ /darwin|linux/
       assert_gem 'listen'
+      assert_gem 'spring-watcher-listen'
     else
       assert_file 'Gemfile' do |content|
         assert_no_match(/listen/, content)

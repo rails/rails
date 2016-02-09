@@ -1,3 +1,8 @@
+*   The Gemfiles of new applications include spring-watcher-listen on Linux and
+    Mac OS X (unless --skip-spring).
+
+    *Xavier Noria*
+
 *   New applications are generated with the evented file system monitor enabled
     on Linux and Mac OS X.
 
