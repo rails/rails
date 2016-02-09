@@ -17,7 +17,7 @@ The client of a WebSocket connection is called the consumer.
 
 Each consumer can in turn subscribe to multiple cable channels. Each channel encapsulates
 a logical unit of work, similar to what a controller does in a regular MVC setup. For example,
-you could have a `ChatChannel` and a `AppearancesChannel`, and a consumer could be subscribed to either
+you could have a `ChatChannel` and an `AppearancesChannel`, and a consumer could be subscribed to either
 or to both of these channels. At the very least, a consumer should be subscribed to one channel.
 
 When the consumer is subscribed to a channel, they act as a subscriber. The connection between
