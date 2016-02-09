@@ -488,6 +488,16 @@ module ActiveRecord
       end
     end
 
+    def destroy!(id)
+      if id.is_a?(Array)
+        self.transaction do
+          id.each { |one_id| find(one_id).destroy! }
+        end
+      else
+        find(id).destroy!
+      end
+    end
+
     # Deletes the records without instantiating the records
     # first, and hence not calling the {#destroy}[rdoc-ref:Persistence#destroy]
     # method nor invoking callbacks.
