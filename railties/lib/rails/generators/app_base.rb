@@ -390,6 +390,10 @@ module Rails
         !options[:skip_spring] && !options.dev? && Process.respond_to?(:fork) && !RUBY_PLATFORM.include?("cygwin")
       end
 
+      def os_supports_listen_out_of_the_box?
+        RbConfig::CONFIG['host_os'] =~ /darwin|linux/
+      end
+
       def run_bundle
         bundle_command('install') if bundle_install?
       end

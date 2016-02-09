@@ -479,6 +479,28 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_inclusion_of_listen_related_gems
+    run_generator
+    if RbConfig::CONFIG['host_os'] =~ /darwin|linux/
+      assert_gem 'listen'
+    else
+      assert_file 'Gemfile' do |content|
+        assert_no_match(/listen/, content)
+      end
+    end
+  end
+
+  def test_evented_file_update_checker_config
+    run_generator
+    assert_file 'config/environments/development.rb' do |content|
+      if RbConfig::CONFIG['host_os'] =~ /darwin|linux/
+        assert_match(/^\s*config.file_watcher = ActiveSupport::EventedFileUpdateChecker/, content)
+      else
+        assert_match(/^\s*# config.file_watcher = ActiveSupport::EventedFileUpdateChecker/, content)
+      end
+    end
+  end
+
   def test_template_from_dir_pwd
     FileUtils.cd(Rails.root)
     assert_match(/It works from file!/, run_generator([destination_root, "-m", "lib/template.rb"]))
