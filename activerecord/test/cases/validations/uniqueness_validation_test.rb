@@ -469,4 +469,15 @@ class UniquenessValidationTest < ActiveRecord::TestCase
     assert_match(/\AUnknown primary key for table dashboards in model/, e.message)
     assert_match(/Can not validate uniqueness for persisted record without primary key.\z/, e.message)
   end
+
+  def test_validate_uniqueness_ignores_itself_when_primary_key_changed
+    Topic.validates_uniqueness_of(:title)
+
+    t = Topic.new("title" => "This is a unique title")
+    assert t.save, "Should save t as unique"
+
+    t.id += 1
+    assert t.valid?, "Should be valid"
+    assert t.save, "Should still save t as unique"
+  end
 end
