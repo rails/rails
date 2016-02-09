@@ -21,7 +21,7 @@ module ActionController
         :params     => request.filtered_parameters,
         :format     => request.format.ref,
         :method     => request.request_method,
-        :path       => (request.fullpath rescue "unknown")
+        :path       => request.fullpath
       }
 
       ActiveSupport::Notifications.instrument("start_processing.action_controller", raw_payload.dup)
