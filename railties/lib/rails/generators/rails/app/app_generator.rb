@@ -79,6 +79,7 @@ module Rails
         template "environment.rb"
         template "secrets.yml"
         template "cable.yml" unless options[:skip_action_cable]
+        template "puma.rb"   unless options[:skip_puma]
 
         directory "environments"
         directory "initializers"
@@ -318,7 +319,6 @@ module Rails
           remove_file 'config/cable.yml'
           remove_file 'app/assets/javascripts/cable.coffee'
           remove_dir 'app/channels'
-          gsub_file 'app/views/layouts/application.html.erb', /action_cable_meta_tag/, '' unless options[:api]
         end
       end
 

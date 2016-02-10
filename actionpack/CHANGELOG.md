@@ -1,3 +1,19 @@
+*   Add image/svg+xml as a default mime type.
+
+    *DHH*
+
+## Rails 5.0.0.beta2 (February 01, 2016) ##
+
+*   Add `-g` and `-c` (short for _grep_ and _controller_ respectively) options
+    to `bin/rake routes`. These options return the url `name`, `verb` and
+    `path` field that match the pattern or match a specific controller.
+
+    Deprecate `CONTROLLER` env variable in `bin/rake routes`.
+
+    See #18902.
+
+    *Anton Davydov* & *Vipul A M*
+
 *   Response etags to always be weak: Prefixes 'W/' to value returned by
    `ActionDispatch::Http::Cache::Response#etag=`, such that etags set in
    `fresh_when` and `stale?` are weak.
@@ -171,11 +187,11 @@
 *   Accessing mime types via constants like `Mime::HTML` is deprecated. Please
     change code like this:
 
-      Mime::HTML
+        Mime::HTML
 
     To this:
 
-      Mime[:html]
+        Mime[:html]
 
     This change is so that Rails will not manage a list of constants, and fixes
     an issue where if a type isn't registered you could possibly get the wrong

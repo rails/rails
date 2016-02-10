@@ -24,9 +24,9 @@ class PostgresqlExtensionMigrationTest < ActiveRecord::PostgreSQLTestCase
       return skip("no extension support")
     end
 
-    @old_schema_migration_tabel_name = ActiveRecord::SchemaMigration.table_name
-    @old_tabel_name_prefix = ActiveRecord::Base.table_name_prefix
-    @old_tabel_name_suffix = ActiveRecord::Base.table_name_suffix
+    @old_schema_migration_table_name = ActiveRecord::SchemaMigration.table_name
+    @old_table_name_prefix = ActiveRecord::Base.table_name_prefix
+    @old_table_name_suffix = ActiveRecord::Base.table_name_suffix
 
     ActiveRecord::Base.table_name_prefix = "p_"
     ActiveRecord::Base.table_name_suffix = "_s"
@@ -36,11 +36,11 @@ class PostgresqlExtensionMigrationTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def teardown
-    ActiveRecord::Base.table_name_prefix = @old_tabel_name_prefix
-    ActiveRecord::Base.table_name_suffix = @old_tabel_name_suffix
+    ActiveRecord::Base.table_name_prefix = @old_table_name_prefix
+    ActiveRecord::Base.table_name_suffix = @old_table_name_suffix
     ActiveRecord::SchemaMigration.delete_all rescue nil
     ActiveRecord::Migration.verbose = true
-    ActiveRecord::SchemaMigration.table_name = @old_schema_migration_tabel_name
+    ActiveRecord::SchemaMigration.table_name = @old_schema_migration_table_name
 
     super
   end

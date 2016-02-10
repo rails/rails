@@ -141,8 +141,67 @@ module ApplicationTests
         end
       RUBY
 
-      ENV['CONTROLLER'] = 'cart'
-      output = Dir.chdir(app_path){ `bin/rails routes` }
+      output = Dir.chdir(app_path){ `bin/rails routes CONTROLLER=cart` }
+      assert_equal ["Passing `CONTROLLER` to `bin/rails routes` is deprecated and will be removed in Rails 5.1.",
+                    "Please use `bin/rails routes -c controller_name` instead.",
+                    "Prefix Verb URI Pattern     Controller#Action",
+                    "  cart GET  /cart(.:format) cart#show\n"].join("\n"), output
+
+      output = Dir.chdir(app_path){ `bin/rails routes -c cart` }
+      assert_equal "Prefix Verb URI Pattern     Controller#Action\n  cart GET  /cart(.:format) cart#show\n", output
+    end
+
+    def test_rake_routes_with_namespaced_controller_environment
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          namespace :admin do
+            resource :post
+          end
+        end
+      RUBY
+      expected_output = ["         Prefix Verb   URI Pattern                Controller#Action",
+                         "     admin_post POST   /admin/post(.:format)      admin/posts#create",
+                         " new_admin_post GET    /admin/post/new(.:format)  admin/posts#new",
+                         "edit_admin_post GET    /admin/post/edit(.:format) admin/posts#edit",
+                         "                GET    /admin/post(.:format)      admin/posts#show",
+                         "                PATCH  /admin/post(.:format)      admin/posts#update",
+                         "                PUT    /admin/post(.:format)      admin/posts#update",
+                         "                DELETE /admin/post(.:format)      admin/posts#destroy\n"].join("\n")
+
+      output = Dir.chdir(app_path){ `bin/rails routes -c Admin::PostController` }
+      assert_equal expected_output, output
+
+      output = Dir.chdir(app_path){ `bin/rails routes -c PostController` }
+      assert_equal expected_output, output
+    end
+
+    def test_rake_routes_with_global_search_key
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          get '/cart', to: 'cart#show'
+          get '/basketball', to: 'basketball#index'
+        end
+      RUBY
+
+      output = Dir.chdir(app_path){ `bin/rails routes -g show` }
+      assert_equal "Prefix Verb URI Pattern     Controller#Action\n  cart GET  /cart(.:format) cart#show\n", output
+    end
+
+    def test_rake_routes_with_controller_search_key
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          get '/cart', to: 'cart#show'
+          get '/basketball', to: 'basketball#index'
+        end
+      RUBY
+
+      output = Dir.chdir(app_path){ `bin/rails routes -c cart` }
+      assert_equal "Prefix Verb URI Pattern     Controller#Action\n  cart GET  /cart(.:format) cart#show\n", output
+
+      output = Dir.chdir(app_path){ `bin/rails routes -c Cart` }
+      assert_equal "Prefix Verb URI Pattern     Controller#Action\n  cart GET  /cart(.:format) cart#show\n", output
+
+      output = Dir.chdir(app_path){ `bin/rails routes -c CartController` }
       assert_equal "Prefix Verb URI Pattern     Controller#Action\n  cart GET  /cart(.:format) cart#show\n", output
     end
 
@@ -232,12 +291,11 @@ module ApplicationTests
       assert_no_match(/Errors running/, output)
     end
 
-    def test_scaffold_with_references_columns_tests_pass_when_belongs_to_is_optional
-      app_file "config/initializers/active_record_belongs_to_required_by_default.rb",
-        "Rails.application.config.active_record.belongs_to_required_by_default = false"
-
+    def test_scaffold_with_references_columns_tests_pass_by_default
       output = Dir.chdir(app_path) do
-        `bin/rails generate scaffold LineItems product:references cart:belongs_to;
+        `bin/rails generate model Product;
+         bin/rails generate model Cart;
+         bin/rails generate scaffold LineItems product:references cart:belongs_to;
          RAILS_ENV=test bin/rails db:migrate test`
       end
 

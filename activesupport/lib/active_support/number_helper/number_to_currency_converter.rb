@@ -1,3 +1,5 @@
+require 'active_support/core_ext/numeric/inquiry'
+
 module ActiveSupport
   module NumberHelper
     class NumberToCurrencyConverter < NumberConverter # :nodoc:
@@ -7,7 +9,7 @@ module ActiveSupport
         number = self.number.to_s.strip
         format = options[:format]
 
-        if is_negative?(number)
+        if number.to_f.negative?
           format = options[:negative_format]
           number = absolute_value(number)
         end
@@ -17,10 +19,6 @@ module ActiveSupport
       end
 
       private
-
-        def is_negative?(number)
-          number.to_f.phase != 0
-        end
 
         def absolute_value(number)
           number.respond_to?(:abs) ? number.abs : number.sub(/\A-/, '')

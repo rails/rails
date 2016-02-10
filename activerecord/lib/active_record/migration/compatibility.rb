@@ -30,6 +30,19 @@ module ActiveRecord
           end
         end
 
+        def change_table(table_name, options = {})
+          if block_given?
+            super(table_name, options) do |t|
+              class << t
+                prepend TableDefinition
+              end
+              yield t
+            end
+          else
+            super
+          end
+        end
+
         def add_reference(*, **options)
           options[:index] ||= false
           super

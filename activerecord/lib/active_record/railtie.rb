@@ -40,7 +40,7 @@ module ActiveRecord
         task :load_config do
           ActiveRecord::Tasks::DatabaseTasks.database_configuration = Rails.application.config.database_configuration
 
-          if defined?(ENGINE_PATH) && engine = Rails::Engine.find(ENGINE_PATH)
+          if defined?(ENGINE_ROOT) && engine = Rails::Engine.find(ENGINE_ROOT)
             if engine.paths['db/migrate'].existent
               ActiveRecord::Tasks::DatabaseTasks.migrations_paths += engine.paths['db/migrate'].to_a
             end

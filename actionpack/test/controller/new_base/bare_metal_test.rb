@@ -40,6 +40,22 @@ module BareMetalTest
     end
   end
 
+  class BareEmptyController < ActionController::Metal
+    def index
+      self.response_body = nil
+    end
+  end
+
+  class BareEmptyTest < ActiveSupport::TestCase
+    test "response body is nil" do
+      controller = BareEmptyController.new
+      controller.set_request!(ActionDispatch::Request.empty)
+      controller.set_response!(BareController.make_response!(controller.request))
+      controller.index
+      assert_equal nil, controller.response_body
+    end
+  end
+
   class HeadController < ActionController::Metal
     include ActionController::Head
 

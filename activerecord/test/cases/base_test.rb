@@ -804,7 +804,7 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal dev.salary.amount, dup.salary.amount
     assert !dup.persisted?
 
-    # test if the attributes have been dupd
+    # test if the attributes have been duped
     original_amount = dup.salary.amount
     dev.salary.amount = 1
     assert_equal original_amount, dup.salary.amount

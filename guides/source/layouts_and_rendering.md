@@ -700,7 +700,7 @@ This would detect that there are no books with the specified ID, populate the `@
 
 ### Using `head` To Build Header-Only Responses
 
-The `head` method can be used to send responses with only headers to the browser. It provides a more obvious alternative to calling `render :nothing`. The `head` method accepts a number or symbol (see [reference table](#the-status-option)) representing a HTTP status code. The options argument is interpreted as a hash of header names and values. For example, you can return only an error header:
+The `head` method can be used to send responses with only headers to the browser. The `head` method accepts a number or symbol (see [reference table](#the-status-option)) representing a HTTP status code. The options argument is interpreted as a hash of header names and values. For example, you can return only an error header:
 
 ```ruby
 head :bad_request

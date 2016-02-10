@@ -1,3 +1,10 @@
+## Rails 5.0.0.beta2 (February 01, 2016) ##
+
+*   Fix stripping the digest from the automatically generated img tag alt
+    attribute when assets are handled by Sprockets >=3.0.
+
+    *Bart de Water*
+
 *   Create a new `ActiveSupport::SafeBuffer` instance when `content_for` is flushed.
 
     Fixes #19890

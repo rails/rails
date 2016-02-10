@@ -148,10 +148,10 @@ and Rails has got your back in those cases.
 Because of Unobtrusive JavaScript, the Rails "Ajax helpers" are actually in two
 parts: the JavaScript half and the Ruby half.
 
+Unless you have disabled the Asset Pipeline,
 [rails.js](https://github.com/rails/jquery-ujs/blob/master/src/rails.js)
 provides the JavaScript half, and the regular Ruby view helpers add appropriate
-tags to your DOM. The CoffeeScript in rails.js then listens for these
-attributes, and attaches appropriate handlers.
+tags to your DOM.
 
 ### form_for
 
@@ -350,7 +350,7 @@ $("<%= escape_javascript(render @user) %>").appendTo("#users");
 Turbolinks
 ----------
 
-Rails 4 ships with the [Turbolinks gem](https://github.com/rails/turbolinks).
+Rails 4 ships with the [Turbolinks gem](https://github.com/turbolinks/turbolinks).
 This gem uses Ajax to speed up page rendering in most applications.
 
 ### How Turbolinks Works
@@ -395,7 +395,7 @@ $(document).on "page:change", ->
 
 For more details, including other events you can bind to, check out [the
 Turbolinks
-README](https://github.com/rails/turbolinks/blob/master/README.md).
+README](https://github.com/turbolinks/turbolinks/blob/master/README.md).
 
 Other Resources
 ---------------

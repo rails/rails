@@ -69,7 +69,11 @@ module ActiveRecord
       end
       undef_method :select_rows
 
-      # Executes the SQL statement in the context of this connection.
+      # Executes the SQL statement in the context of this connection and returns
+      # the raw result from the connection adapter.
+      # Note: depending on your database connector, the result returned by this
+      # method may be manually memory managed. Consider using the exec_query
+      # wrapper instead.
       def execute(sql, name = nil)
       end
       undef_method :execute

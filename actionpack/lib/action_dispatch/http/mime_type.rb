@@ -1,3 +1,5 @@
+# -*- frozen-string-literal: true -*-
+
 require 'singleton'
 require 'active_support/core_ext/module/attribute_accessors'
 require 'active_support/core_ext/string/starts_ends_with'
@@ -106,70 +108,58 @@ module Mime
         result = @index <=> item.index if result == 0
         result
       end
-
-      def ==(item)
-        @name == item.to_s
-      end
     end
 
-    class AcceptList < Array #:nodoc:
-      def assort!
-        sort!
+    class AcceptList #:nodoc:
+      def self.sort!(list)
+        list.sort!
+
+        text_xml_idx = find_item_by_name list, 'text/xml'
+        app_xml_idx = find_item_by_name list, Mime[:xml].to_s
 
         # Take care of the broken text/xml entry by renaming or deleting it
         if text_xml_idx && app_xml_idx
+          app_xml = list[app_xml_idx]
+          text_xml = list[text_xml_idx]
+
           app_xml.q = [text_xml.q, app_xml.q].max # set the q value to the max of the two
-          exchange_xml_items if app_xml_idx > text_xml_idx  # make sure app_xml is ahead of text_xml in the list
-          delete_at(text_xml_idx)                 # delete text_xml from the list
+          if app_xml_idx > text_xml_idx  # make sure app_xml is ahead of text_xml in the list
+            list[app_xml_idx], list[text_xml_idx] = text_xml, app_xml
+            app_xml_idx, text_xml_idx = text_xml_idx, app_xml_idx
+          end
+          list.delete_at(text_xml_idx)                 # delete text_xml from the list
         elsif text_xml_idx
-          text_xml.name = Mime[:xml].to_s
+          list[text_xml_idx].name = Mime[:xml].to_s
         end
 
         # Look for more specific XML-based types and sort them ahead of app/xml
         if app_xml_idx
+          app_xml = list[app_xml_idx]
           idx = app_xml_idx
 
-          while idx < length
-            type = self[idx]
+          while idx < list.length
+            type = list[idx]
             break if type.q < app_xml.q
 
             if type.name.ends_with? '+xml'
-              self[app_xml_idx], self[idx] = self[idx], app_xml
-              @app_xml_idx = idx
+              list[app_xml_idx], list[idx] = list[idx], app_xml
+              app_xml_idx = idx
             end
             idx += 1
           end
         end
 
-        map! { |i| Mime::Type.lookup(i.name) }.uniq!
-        to_a
+        list.map! { |i| Mime::Type.lookup(i.name) }.uniq!
+        list
       end
 
-      private
-        def text_xml_idx
-          @text_xml_idx ||= index('text/xml')
-        end
-
-        def app_xml_idx
-          @app_xml_idx ||= index(Mime[:xml].to_s)
-        end
-
-        def text_xml
-          self[text_xml_idx]
-        end
-
-        def app_xml
-          self[app_xml_idx]
-        end
-
-        def exchange_xml_items
-          self[app_xml_idx], self[text_xml_idx] = text_xml, app_xml
-          @app_xml_idx, @text_xml_idx = text_xml_idx, app_xml_idx
-        end
+      def self.find_item_by_name(array, name)
+        array.index { |item| item.name == name }
+      end
     end
 
     class << self
-      TRAILING_STAR_REGEXP = /(text|application)\/\*/
+      TRAILING_STAR_REGEXP = /^(text|application)\/\*/
       PARAMETER_SEPARATOR_REGEXP = /;\s*\w+="?\w+"?/
 
       def register_callback(&block)
@@ -209,21 +199,22 @@ module Mime
           accept_header = accept_header.split(PARAMETER_SEPARATOR_REGEXP).first
           parse_trailing_star(accept_header) || [Mime::Type.lookup(accept_header)].compact
         else
-          list, index = AcceptList.new, 0
+          list, index = [], 0
           accept_header.split(',').each do |header|
             params, q = header.split(PARAMETER_SEPARATOR_REGEXP)
-            if params.present?
-              params.strip!
 
-              params = parse_trailing_star(params) || [params]
+            next unless params
+            params.strip!
+            next if params.empty?
 
-              params.each do |m|
-                list << AcceptItem.new(index, m.to_s, q)
-                index += 1
-              end
+            params = parse_trailing_star(params) || [params]
+
+            params.each do |m|
+              list << AcceptItem.new(index, m.to_s, q)
+              index += 1
             end
           end
-          list.assort!
+          AcceptList.sort! list
         end
       end
 

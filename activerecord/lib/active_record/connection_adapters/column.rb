@@ -30,7 +30,7 @@ module ActiveRecord
       end
 
       def bigint?
-        /bigint/ === sql_type
+        /\Abigint\b/ === sql_type
       end
 
       # Returns the human name of the column name.

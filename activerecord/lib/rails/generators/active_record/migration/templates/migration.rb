@@ -19,7 +19,11 @@ class <%= migration_class_name %> < ActiveRecord::Migration[<%= ActiveRecord::Mi
   def change
     create_join_table :<%= join_tables.first %>, :<%= join_tables.second %> do |t|
     <%- attributes.each do |attribute| -%>
+      <%- if attribute.reference? -%>
+      t.references :<%= attribute.name %><%= attribute.inject_options %>
+      <%- else -%>
       <%= '# ' unless attribute.has_index? -%>t.index <%= attribute.index_name %><%= attribute.inject_index_options %>
+      <%- end -%>
     <%- end -%>
     end
   end

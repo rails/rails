@@ -47,7 +47,7 @@ module ActiveRecord
 
         if !primary_key_value && connection.prefetch_primary_key?(klass.table_name)
           primary_key_value = connection.next_sequence_value(klass.sequence_name)
-          values[klass.arel_table[klass.primary_key]] = primary_key_value
+          values[arel_attribute(klass.primary_key)] = primary_key_value
         end
       end
 
@@ -103,6 +103,10 @@ module ActiveRecord
       end
 
       [substitutes, binds]
+    end
+
+    def arel_attribute(name) # :nodoc:
+      klass.arel_attribute(name, table)
     end
 
     # Initializes new record from relation while maintaining the current
@@ -373,9 +377,9 @@ module ActiveRecord
       stmt.table(table)
 
       if joins_values.any?
-        @klass.connection.join_to_update(stmt, arel, table[primary_key])
+        @klass.connection.join_to_update(stmt, arel, arel_attribute(primary_key))
       else
-        stmt.key = table[primary_key]
+        stmt.key = arel_attribute(primary_key)
         stmt.take(arel.limit)
         stmt.order(*arel.orders)
         stmt.wheres = arel.constraints
@@ -527,7 +531,7 @@ module ActiveRecord
         stmt.from(table)
 
         if joins_values.any?
-          @klass.connection.join_to_delete(stmt, arel, table[primary_key])
+          @klass.connection.join_to_delete(stmt, arel, arel_attribute(primary_key))
         else
           stmt.wheres = arel.constraints
         end

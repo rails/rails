@@ -60,12 +60,10 @@ module ActionDispatch
       end
 
       def format(formatter, filter = nil)
-        routes_to_display = filter_routes(filter)
-
+        routes_to_display = filter_routes(normalize_filter(filter))
         routes = collect_routes(routes_to_display)
-
         if routes.none?
-          formatter.no_routes(collect_routes(@routes), filter)
+          formatter.no_routes(collect_routes(@routes))
           return formatter.result
         end
 
@@ -82,10 +80,19 @@ module ActionDispatch
 
       private
 
+      def normalize_filter(filter)
+        if filter.is_a?(Hash) && filter[:controller]
+          { controller: /#{filter[:controller].downcase.sub(/_?controller\z/, '').sub('::', '/')}/ }
+        elsif filter
+          { controller: /#{filter}/, action: /#{filter}/ }
+        end
+      end
+
       def filter_routes(filter)
         if filter
-          filter_name = filter.underscore.sub(/_controller$/, '')
-          @routes.select { |route| route.defaults[:controller] == filter_name }
+          @routes.select do |route|
+            filter.any? { |default, value| route.defaults[default] =~ value }
+          end
         else
           @routes
         end
@@ -137,7 +144,7 @@ module ActionDispatch
         @buffer << draw_header(routes)
       end
 
-      def no_routes(routes, filter)
+      def no_routes(routes)
         @buffer <<
         if routes.none?
           <<-MESSAGE.strip_heredoc
@@ -145,8 +152,6 @@ module ActionDispatch
 
           Please add some routes in config/routes.rb.
           MESSAGE
-        elsif missing_controller?(filter)
-          "The controller #{filter} does not exist!"
         else
           "No routes were found for this controller"
         end
@@ -154,10 +159,6 @@ module ActionDispatch
       end
 
       private
-        def missing_controller?(controller_name)
-          [ controller_name.camelize, "#{controller_name.camelize}Controller" ].none?(&:safe_constantize)
-        end
-
         def draw_section(routes)
           header_lengths = ['Prefix', 'Verb', 'URI Pattern'].map(&:length)
           name_width, verb_width, path_width = widths(routes).zip(header_lengths).map(&:max)

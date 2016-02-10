@@ -17,7 +17,7 @@ The client of a WebSocket connection is called the consumer.
 
 Each consumer can in turn subscribe to multiple cable channels. Each channel encapsulates
 a logical unit of work, similar to what a controller does in a regular MVC setup. For example,
-you could have a `ChatChannel` and a `AppearancesChannel`, and a consumer could be subscribed to either
+you could have a `ChatChannel` and an `AppearancesChannel`, and a consumer could be subscribed to either
 or to both of these channels. At the very least, a consumer should be subscribed to one channel.
 
 When the consumer is subscribed to a channel, they act as a subscriber. The connection between
@@ -188,7 +188,7 @@ can be reached as remote procedure calls via a subscription's `perform` method.
 
 The appearance example was all about exposing server functionality to client-side invocation over the WebSocket connection.
 But the great thing about WebSockets is that it's a two-way street. So now let's show an example where the server invokes
-action on the client.
+an action on the client.
 
 This is a web notification channel that allows you to trigger client-side web notifications when you broadcast to the right
 streams:
@@ -324,7 +324,7 @@ Rails.application.paths.add "config/cable", with: "somewhere/else/cable.yml"
 Action Cable will only accept requests from specified origins, which are passed to the server config as an array. The origins can be instances of strings or regular expressions, against which a check for match will be performed.
 
 ```ruby
-ActionCable.server.config.allowed_request_origins = ['http://rubyonrails.com', /http:\/\/ruby.*/]
+Rails.application.config.action_cable.allowed_request_origins = ['http://rubyonrails.com', /http:\/\/ruby.*/]
 ```
 
 When running in the development environment, this defaults to "http://localhost:3000".
@@ -332,7 +332,7 @@ When running in the development environment, this defaults to "http://localhost:
 To disable and allow requests from any origin:
 
 ```ruby
-ActionCable.server.config.disable_request_forgery_protection = true
+Rails.application.config.action_cable.disable_request_forgery_protection = true
 ```
 
 ### Consumer Configuration
@@ -374,7 +374,7 @@ App.cable = ActionCable.createConsumer()
 The other common option to configure is the log tags applied to the per-connection logger. Here's close to what we're using in Basecamp:
 
 ```ruby
-ActionCable.server.config.log_tags = [
+Rails.application.config.action_cable.log_tags = [
   -> request { request.env['bc.account_id'] || "no-account" },
   :action_cable,
   -> request { request.uuid }
@@ -396,8 +396,6 @@ application. The recommended basic setup is as follows:
 # cable/config.ru
 require ::File.expand_path('../../config/environment', __FILE__)
 Rails.application.eager_load!
-
-require 'action_cable/process/logging'
 
 run ActionCable.server
 ```
@@ -438,7 +436,7 @@ messages back and forth over the WebSocket cable connection. This dependency may
 be alleviated in the future, but for the moment that's what it is. So be sure to have
 Redis installed and running.
 
-The Ruby side of things is built on top of [faye-websocket](https://github.com/faye/faye-websocket-ruby) and [concurrent-ruby](https://github.com/ruby-concurrency/concurrent-ruby).
+The Ruby side of things is built on top of [websocket-driver](https://github.com/faye/websocket-driver-ruby), [nio4r](https://github.com/celluloid/nio4r), and [concurrent-ruby](https://github.com/ruby-concurrency/concurrent-ruby).
 
 
 ## Deployment
@@ -450,8 +448,17 @@ as long as you haven’t committed any thread-safety sins.
 
 But this also means that Action Cable needs to run in its own server process.
 So you'll have one set of server processes for your normal web work, and another
-set of server processes for the Action Cable. The former can be single-threaded,
-like Unicorn, but the latter must be multi-threaded, like Puma.
+set of server processes for the Action Cable.
+
+The Action Cable server does _not_ need to be a multi-threaded application server.
+This is because Action Cable uses the [Rack socket hijacking API](http://old.blog.phusion.nl/2013/01/23/the-new-rack-socket-hijacking-api/)
+to take over control of connections from the application server. Action Cable
+then manages connections internally, in a multithreaded manner, regardless of
+whether the application server is multi-threaded or not. So Action Cable works
+with all the popular application servers -- Unicorn, Puma and Passenger.
+
+Action Cable does not work with WEBrick, because WEBrick does not support the
+Rack socket hijacking API.
 
 ## License
 

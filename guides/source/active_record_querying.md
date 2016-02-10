@@ -1085,6 +1085,8 @@ SELECT categories.* FROM categories
   INNER JOIN tags ON tags.article_id = articles.id
 ```
 
+Or, in English: "return all categories that have articles, where those articles have a comment made by a guest, and where those articles also have a tag."
+
 #### Specifying Conditions on the Joined Tables
 
 You can specify conditions on the joined tables using the regular [Array](#array-conditions) and [String](#pure-string-conditions) conditions. [Hash conditions](#hash-conditions) provide a special syntax for specifying conditions for the joined tables:

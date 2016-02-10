@@ -5,6 +5,7 @@ require 'pg'
 require "active_record/connection_adapters/abstract_adapter"
 require "active_record/connection_adapters/postgresql/column"
 require "active_record/connection_adapters/postgresql/database_statements"
+require "active_record/connection_adapters/postgresql/explain_pretty_printer"
 require "active_record/connection_adapters/postgresql/oid"
 require "active_record/connection_adapters/postgresql/quoting"
 require "active_record/connection_adapters/postgresql/referential_integrity"
@@ -213,8 +214,8 @@ module ActiveRecord
         @statements = StatementPool.new @connection,
                                         self.class.type_cast_config_to_integer(config.fetch(:statement_limit) { 1000 })
 
-        if postgresql_version < 80200
-          raise "Your version of PostgreSQL (#{postgresql_version}) is too old, please upgrade!"
+        if postgresql_version < 90100
+          raise "Your version of PostgreSQL (#{postgresql_version}) is too old. Active Record supports PostgreSQL >= 9.1."
         end
 
         add_pg_decoders
@@ -296,9 +297,8 @@ module ActiveRecord
         true
       end
 
-      # Returns true if pg > 9.1
       def supports_extensions?
-        postgresql_version >= 90100
+        true
       end
 
       # Range datatypes weren't introduced until PostgreSQL 9.2
@@ -645,12 +645,6 @@ module ActiveRecord
         # connected server's characteristics.
         def connect
           @connection = PGconn.connect(@connection_parameters)
-
-          # Money type has a fixed precision of 10 in PostgreSQL 8.2 and below, and as of
-          # PostgreSQL 8.3 it has a fixed precision of 19. PostgreSQLColumn.extract_precision
-          # should know about this but can't detect it there, so deal with it here.
-          OID::Money.precision = (postgresql_version >= 80300) ? 19 : 10
-
           configure_connection
         rescue ::PG::Error => error
           if error.message.include?("does not exist")

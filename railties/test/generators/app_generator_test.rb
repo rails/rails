@@ -27,6 +27,7 @@ DEFAULT_APP_FILES = %w(
   config/initializers
   config/locales
   config/cable.yml
+  config/puma.rb
   db
   lib
   lib/tasks
@@ -337,6 +338,14 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_generator_if_skip_puma_is_given
+    run_generator [destination_root, "--skip-puma"]
+    assert_no_file "config/puma.rb"
+    assert_file "Gemfile" do |content|
+      assert_no_match(/puma/, content)
+    end
+  end
+
   def test_generator_if_skip_active_record_is_given
     run_generator [destination_root, "--skip-active-record"]
     assert_no_file "config/database.yml"
@@ -376,9 +385,10 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_match(/#\s+require\s+["']sprockets\/railtie["']/, content)
     end
     assert_file "Gemfile" do |content|
+      assert_no_match(/jquery-rails/, content)
       assert_no_match(/sass-rails/, content)
       assert_no_match(/uglifier/, content)
-      assert_match(/coffee-rails/, content)
+      assert_no_match(/coffee-rails/, content)
     end
     assert_file "config/environments/development.rb" do |content|
       assert_no_match(/config\.assets\.debug = true/, content)
@@ -400,27 +410,13 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_no_match(/action_cable_meta_tag/, content)
     end
     assert_file "Gemfile" do |content|
-      assert_no_match(/em-hiredis/, content)
-      assert_no_match(/redis/, content)
-    end
-  end
-
-  def test_generator_if_skip_action_cable_is_given_for_an_api_app
-    run_generator [destination_root, "--skip-action-cable", "--api"]
-    assert_file "config/application.rb", /#\s+require\s+["']action_cable\/engine["']/
-    assert_no_file "config/cable.yml"
-    assert_no_file "app/assets/javascripts/cable.coffee"
-    assert_no_file "app/channels"
-    assert_file "Gemfile" do |content|
-      assert_no_match(/em-hiredis/, content)
       assert_no_match(/redis/, content)
     end
   end
 
   def test_action_cable_redis_gems
     run_generator
-    assert_gem 'em-hiredis'
-    assert_gem 'redis'
+    assert_file "Gemfile", /^# gem 'redis'/
   end
 
   def test_inclusion_of_javascript_runtime
@@ -480,6 +476,29 @@ class AppGeneratorTest < Rails::Generators::TestCase
       end
     else
       assert_gem 'byebug'
+    end
+  end
+
+  def test_inclusion_of_listen_related_gems
+    run_generator
+    if RbConfig::CONFIG['host_os'] =~ /darwin|linux/
+      assert_gem 'listen'
+      assert_gem 'spring-watcher-listen'
+    else
+      assert_file 'Gemfile' do |content|
+        assert_no_match(/listen/, content)
+      end
+    end
+  end
+
+  def test_evented_file_update_checker_config
+    run_generator
+    assert_file 'config/environments/development.rb' do |content|
+      if RbConfig::CONFIG['host_os'] =~ /darwin|linux/
+        assert_match(/^\s*config.file_watcher = ActiveSupport::EventedFileUpdateChecker/, content)
+      else
+        assert_match(/^\s*# config.file_watcher = ActiveSupport::EventedFileUpdateChecker/, content)
+      end
     end
   end
 
@@ -703,9 +722,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
 
     sequence = ['install', 'exec spring binstub --all', 'echo ran after_bundle']
-    ensure_bundler_first = -> command do
       @sequence_step ||= 0
-
+    ensure_bundler_first = -> command do
       assert_equal sequence[@sequence_step], command, "commands should be called in sequence #{sequence}"
       @sequence_step += 1
     end
@@ -717,6 +735,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
         end
       end
     end
+
+    assert_equal 3, @sequence_step
   end
 
   protected

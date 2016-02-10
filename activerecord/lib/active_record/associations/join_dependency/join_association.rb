@@ -75,7 +75,7 @@ module ActiveRecord
               column = klass.columns_hash[reflection.type.to_s]
 
               binds << Relation::QueryAttribute.new(column.name, value, klass.type_for_attribute(column.name))
-              constraint = constraint.and table[reflection.type].eq(Arel::Nodes::BindParam.new)
+              constraint = constraint.and klass.arel_attribute(reflection.type, table).eq(Arel::Nodes::BindParam.new)
             end
 
             joins << table.create_join(table, table.create_on(constraint), join_type)

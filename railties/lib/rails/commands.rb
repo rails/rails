@@ -14,6 +14,5 @@ command = ARGV.shift
 command = aliases[command] || command
 
 require 'rails/command'
-require 'rails/commands/dev_cache'
 
 Rails::Command.run(command, ARGV)

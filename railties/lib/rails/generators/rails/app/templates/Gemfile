@@ -12,9 +12,6 @@ source 'https://rubygems.org'
 <% end -%>
 <% end -%>
 
-# Use Puma as the app server
-gem 'puma'
-
 # Use ActiveModel has_secure_password
 # gem 'bcrypt', '~> 3.1.7'
 
@@ -41,9 +38,15 @@ group :development do
   gem 'web-console', '~> 3.0'
   <%- end -%>
 <%- end -%>
+<% if os_supports_listen_out_of_the_box? -%>
+  gem 'listen', '~> 3.0.5'
+<% end -%>
 <% if spring_install? -%>
   # Spring speeds up development by keeping your application running in the background. Read more: https://github.com/rails/spring
   gem 'spring'
+<% if os_supports_listen_out_of_the_box? -%>
+  gem 'spring-watcher-listen', '~> 2.0.0'
+<% end -%>
 <% end -%>
 end
 <% end -%>

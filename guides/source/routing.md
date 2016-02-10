@@ -1136,10 +1136,21 @@ For example, here's a small section of the `rails routes` output for a RESTful r
 edit_user GET    /users/:id/edit(.:format) users#edit
 ```
 
-You may restrict the listing to the routes that map to a particular controller setting the `CONTROLLER` environment variable:
+You can search through your routes with the --grep option (-g for short). This outputs any routes that partially match the URL helper method name, the HTTP verb, or the URL path.
 
-```bash
-$ CONTROLLER=users bin/rails routes
+```
+$ bin/rails routes --grep new_comment
+$ bin/rails routes -g POST
+$ bin/rails routes -g admin
+```
+
+If you only want to see the routes that map to a specific controller, there's the --controller option (-c for short).
+
+```
+$ bin/rails routes --controller users
+$ bin/rails routes --controller admin/users
+$ bin/rails routes -c Comments
+$ bin/rails routes -c Articles::CommentsController
 ```
 
 TIP: You'll find that the output from `rails routes` is much more readable if you widen your terminal window until the output lines don't wrap.

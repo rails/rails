@@ -147,7 +147,7 @@ module ActiveRecord
     def last(limit = nil)
       if limit
         if order_values.empty? && primary_key
-          order(arel_table[primary_key].desc).limit(limit).reverse
+          order(arel_attribute(primary_key).desc).limit(limit).reverse
         else
           to_a.last(limit)
         end
@@ -489,20 +489,19 @@ module ActiveRecord
     end
 
     def find_nth(index, offset = nil)
+      # TODO: once the offset argument is removed we rely on offset_index
+      # within find_nth_with_limit, rather than pass it in via
+      # find_nth_with_limit_and_offset
+      if offset
+        ActiveSupport::Deprecation.warn(<<-MSG.squish)
+          Passing an offset argument to find_nth is deprecated,
+          please use Relation#offset instead.
+        MSG
+      end
       if loaded?
         @records[index]
       else
-        # TODO: once the offset argument is removed we rely on offset_index
-        # within find_nth_with_limit, rather than pass it in via
-        # find_nth_with_limit_and_offset
-        if offset
-          ActiveSupport::Deprecation.warn(<<-MSG.squish)
-            Passing an offset argument to find_nth is deprecated,
-            please use Relation#offset instead.
-          MSG
-        else
-          offset = offset_index
-        end
+        offset ||= offset_index
         @offsets[offset + index] ||= find_nth_with_limit_and_offset(index, 1, offset: offset).first
       end
     end
@@ -515,7 +514,7 @@ module ActiveRecord
       # TODO: once the offset argument is removed from find_nth,
       # find_nth_with_limit_and_offset can be merged into this method
       relation = if order_values.empty? && primary_key
-                   order(arel_table[primary_key].asc)
+                   order(arel_attribute(primary_key).asc)
                  else
                    self
                  end

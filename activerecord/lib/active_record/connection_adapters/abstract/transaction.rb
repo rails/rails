@@ -167,8 +167,13 @@ module ActiveRecord
 
       def commit_transaction
         transaction = @stack.last
-        transaction.before_commit_records
-        @stack.pop
+
+        begin
+          transaction.before_commit_records
+        ensure
+          @stack.pop
+        end
+
         transaction.commit
         transaction.commit_records
       end

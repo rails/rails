@@ -12,7 +12,7 @@ module ActiveRecord
             spec[:unsigned] = 'true' if column.unsigned?
             return if spec.empty?
           else
-            spec[:id] = column.type.inspect
+            spec[:id] = schema_type(column).inspect
             spec.merge!(prepare_column_options(column).delete_if { |key, _| [:name, :type, :null].include?(key) })
           end
           spec
@@ -32,7 +32,7 @@ module ActiveRecord
 
         def schema_type(column)
           if column.sql_type == 'tinyblob'
-            'blob'
+            :blob
           else
             super
           end

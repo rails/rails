@@ -14,7 +14,7 @@ module ActiveRecord
 
       def column_spec_for_primary_key(column)
         return if column.type == :integer
-        spec = { id: column.type.inspect }
+        spec = { id: schema_type(column).inspect }
         spec.merge!(prepare_column_options(column).delete_if { |key, _| [:name, :type].include?(key) })
       end
 
@@ -24,7 +24,7 @@ module ActiveRecord
       def prepare_column_options(column)
         spec = {}
         spec[:name]      = column.name.inspect
-        spec[:type]      = schema_type(column)
+        spec[:type]      = schema_type(column).to_s
         spec[:null]      = 'false' unless column.null
 
         if limit = schema_limit(column)
@@ -57,7 +57,7 @@ module ActiveRecord
       private
 
       def schema_type(column)
-        column.type.to_s
+        column.type
       end
 
       def schema_limit(column)

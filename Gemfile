@@ -12,7 +12,7 @@ gem 'mocha', '~> 0.14', require: false
 gem 'rack-cache', '~> 1.2'
 gem 'jquery-rails'
 gem 'coffee-rails', '~> 4.1.0'
-gem 'turbolinks'
+gem 'turbolinks', github: 'turbolinks/turbolinks-rails'
 
 # require: false so bcrypt is loaded only when has_secure_password is used.
 # This is to avoid Active Model (and by extension the entire framework)
@@ -48,7 +48,7 @@ group :job do
   gem 'resque', require: false
   gem 'resque-scheduler', require: false
   gem 'sidekiq', require: false
-  gem 'sucker_punch', '< 2.0', require: false
+  gem 'sucker_punch', require: false
   gem 'delayed_job', require: false
   gem 'queue_classic', github: "QueueClassic/queue_classic", branch: 'master', require: false, platforms: :ruby
   gem 'sneakers', require: false
@@ -65,7 +65,10 @@ group :cable do
   gem 'puma', require: false
 
   gem 'em-hiredis', require: false
+  gem 'hiredis', require: false
   gem 'redis', require: false
+
+  gem 'faye-websocket', require: false
 end
 
 # Add your own local bundler stuff.
@@ -100,7 +103,6 @@ platforms :ruby, :mswin, :mswin64, :mingw, :x64_mingw do
 end
 
 platforms :jruby do
-  gem 'json'
   if ENV['AR_JDBC']
     gem 'activerecord-jdbcsqlite3-adapter', github: 'jruby/activerecord-jdbc-adapter', branch: 'master'
     group :db do

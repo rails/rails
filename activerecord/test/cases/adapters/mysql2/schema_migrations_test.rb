@@ -33,11 +33,6 @@ class SchemaMigrationsTest < ActiveRecord::Mysql2TestCase
     end
   end
 
-  def test_key_limit_max_matches_max
-    assert_equal ActiveRecord::InternalMetadata::KEY_LIMIT ,ActiveRecord::ConnectionAdapters::Mysql2Adapter::MAX_INDEX_LENGTH_FOR_CHARSETS_OF_4BYTES_MAXLEN
-  end
-
-
   private
 
   def with_encoding_utf8mb4

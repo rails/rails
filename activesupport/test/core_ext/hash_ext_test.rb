@@ -702,6 +702,12 @@ class HashExtTest < ActiveSupport::TestCase
     assert_equal h.class, h.dup.class
   end
 
+  def test_nested_dig_indifferent_access
+    skip if RUBY_VERSION < "2.3.0"
+    data = {"this" => {"views" => 1234}}.with_indifferent_access
+    assert_equal 1234, data.dig(:this, :views)
+  end
+
   def test_assert_valid_keys
     assert_nothing_raised do
       { :failure => "stuff", :funny => "business" }.assert_valid_keys([ :failure, :funny ])

@@ -74,10 +74,12 @@ module TestHelpers
     end
 
     def assert_welcome(resp)
+      resp = Array(resp)
+
       assert_equal 200, resp[0]
       assert_match 'text/html', resp[1]["Content-Type"]
       assert_match 'charset=utf-8', resp[1]["Content-Type"]
-      assert extract_body(resp).match(/Welcome aboard/)
+      assert extract_body(resp).match(/Yay! You.*re on Rails!/)
     end
 
     def assert_success(resp)
@@ -152,6 +154,8 @@ module TestHelpers
         config.action_controller.allow_forgery_protection = false
         config.log_level = :info
       RUBY
+
+      remove_from_env_config('development', 'config.file_watcher.*')
     end
 
     def teardown_app
@@ -270,10 +274,17 @@ module TestHelpers
     end
 
     def remove_from_config(str)
-      file = "#{app_path}/config/application.rb"
+      remove_from_file("#{app_path}/config/application.rb", str)
+    end
+
+    def remove_from_env_config(env, str)
+      remove_from_file("#{app_path}/config/environments/#{env}.rb", str)
+    end
+
+    def remove_from_file(file, str)
       contents = File.read(file)
-      contents.sub!(/#{str}/, "")
-      File.open(file, "w+") { |f| f.puts contents }
+      contents.sub!(/#{str}/, '')
+      File.write(file, contents)
     end
 
     def app_file(path, contents, mode = 'w')

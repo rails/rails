@@ -5,10 +5,6 @@ module ActiveRecord
   # This class is used to create a table that keeps track of values and keys such
   # as which environment migrations were run in.
   class InternalMetadata < ActiveRecord::Base # :nodoc:
-    # Keys in mysql are limited to 191 characters, due to this no adapter can
-    # use a longer key
-    KEY_LIMIT = 191
-
     class << self
       def primary_key
         "key"
@@ -18,8 +14,8 @@ module ActiveRecord
         "#{table_name_prefix}#{ActiveRecord::Base.internal_metadata_table_name}#{table_name_suffix}"
       end
 
-      def index_name
-        "#{table_name_prefix}unique_#{ActiveRecord::Base.internal_metadata_table_name}#{table_name_suffix}"
+      def original_table_name
+        "#{table_name_prefix}active_record_internal_metadatas#{table_name_suffix}"
       end
 
       def []=(key, value)
@@ -34,14 +30,23 @@ module ActiveRecord
         ActiveSupport::Deprecation.silence { connection.table_exists?(table_name) }
       end
 
+      def original_table_exists?
+        # This method will be removed in Rails 5.1
+        # Since it is only necessary when `active_record_internal_metadatas` could exist
+        ActiveSupport::Deprecation.silence { connection.table_exists?(original_table_name) }
+      end
+
       # Creates an internal metadata table with columns +key+ and +value+
       def create_table
+        if original_table_exists?
+          connection.rename_table(original_table_name, table_name)
+        end
         unless table_exists?
-          connection.create_table(table_name, id: false) do |t|
-            t.column :key,   :string, null: false, limit: KEY_LIMIT
-            t.column :value, :string
-            t.index  :key, unique: true, name: index_name
+          key_options = connection.internal_string_options_for_primary_key
 
+          connection.create_table(table_name, id: false) do |t|
+            t.string :key, key_options
+            t.string :value
             t.timestamps
           end
         end

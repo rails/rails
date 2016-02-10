@@ -157,7 +157,7 @@ snippet.
 If we had used `s` rather than `server`, Rails would have used the `aliases`
 defined here to find the matching command.
 
-### `rails/commands/command_tasks.rb`
+### `rails/commands/commands_tasks.rb`
 
 When one types a valid Rails command, `run_command!` a method of the same name
 is called. If Rails doesn't recognize the command, it tries to run a Rake task

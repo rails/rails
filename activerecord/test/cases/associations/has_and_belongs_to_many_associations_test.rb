@@ -827,12 +827,12 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert_no_queries { david.projects.columns }
   end
 
-  def test_attributes_are_being_set_when_initialized_from_habm_association_with_where_clause
+  def test_attributes_are_being_set_when_initialized_from_habtm_association_with_where_clause
     new_developer = projects(:action_controller).developers.where(:name => "Marcelo").build
     assert_equal new_developer.name, "Marcelo"
   end
 
-  def test_attributes_are_being_set_when_initialized_from_habm_association_with_multiple_where_clauses
+  def test_attributes_are_being_set_when_initialized_from_habtm_association_with_multiple_where_clauses
     new_developer = projects(:action_controller).developers.where(:name => "Marcelo").where(:salary => 90_000).build
     assert_equal new_developer.name, "Marcelo"
     assert_equal new_developer.salary, 90_000

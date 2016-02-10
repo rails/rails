@@ -42,7 +42,7 @@ module ActiveRecord
       end
 
       def supports_json?
-        version >= '5.7.8'
+        !mariadb? && version >= '5.7.8'
       end
 
       # HELPER METHODS ===========================================

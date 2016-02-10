@@ -135,6 +135,10 @@
       work_in_progress: true
       url: profiling.html
       description: This guide explains how to profile your Rails applications to improve performance.
+    -
+      name: Using Rails for API-only Applications
+      url: api_app.html
+      description: This guide explains how to effectively use Rails to develop a JSON API application.
 
 -
   name: Extending Rails

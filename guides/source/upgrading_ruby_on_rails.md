@@ -57,10 +57,6 @@ Upgrading from Rails 4.2 to Rails 5.0
 
 ToDo...
 
-### Ruby 2.2.2+
-
-ToDo...
-
 ### Active Record models now inherit from ApplicationRecord by default
 
 In Rails 4.2 an Active Record model inherits from `ActiveRecord::Base`. In Rails 5.0,
@@ -406,7 +402,7 @@ secrets, you need to:
 
 3. Remove the `secret_token.rb` initializer.
 
-4. Use `rake secret` to generate new keys for the `development` and `test` sections.
+4. Use `rails secret` to generate new keys for the `development` and `test` sections.
 
 5. Restart your server.
 

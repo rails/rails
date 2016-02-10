@@ -253,6 +253,9 @@ Please refer to the [Changelog][action-pack] for detailed changes.
     `ActionDispatch::IntegrationTest` instead.
     ([commit](https://github.com/rails/rails/commit/4414c5d1795e815b102571425974a8b1d46d932d))
 
+*   Rails will only generate "weak", instead of strong ETags.
+    ([Pull Request](https://github.com/rails/rails/pull/17573))
+
 Action View
 -------------
 
@@ -377,6 +380,9 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 *   Removed support for the `protected_attributes` gem.
     ([commit](https://github.com/rails/rails/commit/f4fbc0301021f13ae05c8e941c8efc4ae351fdf9))
+
+*   Removed support for PostgreSQL versions below 9.1.
+    ([Pull Request](https://github.com/rails/rails/pull/23434))
 
 ### Deprecations
 

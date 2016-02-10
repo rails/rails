@@ -69,9 +69,13 @@ module ActiveSupport
     end
 
     def default(*args)
-      key = args.first
-      args[0] = key.to_s if key.is_a?(Symbol)
-      super(*args)
+      arg_key = args.first
+
+      if include?(key = convert_key(arg_key))
+        self[key]
+      else
+        super
+      end
     end
 
     def self.new_from_hash_copying_default(hash)

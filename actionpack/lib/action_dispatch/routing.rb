@@ -239,7 +239,8 @@ module ActionDispatch
   #
   #   rails routes
   #
-  # Target specific controllers by prefixing the command with <tt>CONTROLLER=x</tt>.
+  # Target specific controllers by prefixing the command with <tt>--controller</tt> option
+  # - or its <tt>-c</tt> shorthand.
   #
   module Routing
     extend ActiveSupport::Autoload

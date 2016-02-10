@@ -1,3 +1,15 @@
+*   Change the default adapter from inline to async. It's a better default as tests will then not mistakenly
+    come to rely on behavior happening synchronously. This is especially important with things like jobs kicked off
+    in Active Record lifecycle callbacks.
+
+    *DHH*
+
+
+## Rails 5.0.0.beta2 (February 01, 2016) ##
+
+*   No changes.
+
+
 ## Rails 5.0.0.beta1 (December 18, 2015) ##
 
 *   Fixed serializing `:at` option for `assert_enqueued_with`

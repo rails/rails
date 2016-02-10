@@ -124,8 +124,19 @@ module ActiveRecord
       end
     end
 
-    # Holds all the methods that are shared between MacroReflection, AssociationReflection
-    # and ThroughReflection
+    # Holds all the methods that are shared between MacroReflection and ThroughReflection.
+    #
+    #   AbstractReflection
+    #     MacroReflection
+    #       AggregateReflection
+    #       AssociationReflection
+    #         HasManyReflection
+    #         HasOneReflection
+    #         BelongsToReflection
+    #         HasAndBelongsToManyReflection
+    #     ThroughReflection
+    #       PolymorphicReflection
+    #         RuntimeReflection
     class AbstractReflection # :nodoc:
       def table_name
         klass.table_name
@@ -232,14 +243,6 @@ module ActiveRecord
 
     # Base class for AggregateReflection and AssociationReflection. Objects of
     # AggregateReflection and AssociationReflection are returned by the Reflection::ClassMethods.
-    #
-    #   MacroReflection
-    #     AggregateReflection
-    #     AssociationReflection
-    #       HasManyReflection
-    #       HasOneReflection
-    #       BelongsToReflection
-    #         ThroughReflection
     class MacroReflection < AbstractReflection
       # Returns the name of the macro.
       #
@@ -483,28 +486,7 @@ module ActiveRecord
       # Returns +true+ if +self+ is a +has_one+ reflection.
       def has_one?; false; end
 
-      def association_class
-        case macro
-        when :belongs_to
-          if polymorphic?
-            Associations::BelongsToPolymorphicAssociation
-          else
-            Associations::BelongsToAssociation
-          end
-        when :has_many
-          if options[:through]
-            Associations::HasManyThroughAssociation
-          else
-            Associations::HasManyAssociation
-          end
-        when :has_one
-          if options[:through]
-            Associations::HasOneThroughAssociation
-          else
-            Associations::HasOneAssociation
-          end
-        end
-      end
+      def association_class; raise NotImplementedError; end
 
       def polymorphic?
         options[:polymorphic]
@@ -522,14 +504,7 @@ module ActiveRecord
       private
 
         def calculate_constructable(macro, options)
-          case macro
-          when :belongs_to
-            !polymorphic?
-          when :has_one
-            !options[:through]
-          else
-            true
-          end
+          true
         end
 
         # Attempts to find the inverse association name automatically.
@@ -622,33 +597,51 @@ module ActiveRecord
     end
 
     class HasManyReflection < AssociationReflection # :nodoc:
-      def initialize(name, scope, options, active_record)
-        super(name, scope, options, active_record)
-      end
-
       def macro; :has_many; end
 
       def collection?; true; end
+
+      def association_class
+        if options[:through]
+          Associations::HasManyThroughAssociation
+        else
+          Associations::HasManyAssociation
+        end
+      end
     end
 
     class HasOneReflection < AssociationReflection # :nodoc:
-      def initialize(name, scope, options, active_record)
-        super(name, scope, options, active_record)
-      end
-
       def macro; :has_one; end
 
       def has_one?; true; end
+
+      def association_class
+        if options[:through]
+          Associations::HasOneThroughAssociation
+        else
+          Associations::HasOneAssociation
+        end
+      end
+
+      private
+
+        def calculate_constructable(macro, options)
+          !options[:through]
+        end
     end
 
     class BelongsToReflection < AssociationReflection # :nodoc:
-      def initialize(name, scope, options, active_record)
-        super(name, scope, options, active_record)
-      end
-
       def macro; :belongs_to; end
 
       def belongs_to?; true; end
+
+      def association_class
+        if polymorphic?
+          Associations::BelongsToPolymorphicAssociation
+        else
+          Associations::BelongsToAssociation
+        end
+      end
 
       def join_keys(association_klass)
         key = polymorphic? ? association_primary_key(association_klass) : association_primary_key
@@ -658,6 +651,12 @@ module ActiveRecord
       def join_id_for(owner) # :nodoc:
         owner[foreign_key]
       end
+
+      private
+
+        def calculate_constructable(macro, options)
+          !polymorphic?
+        end
     end
 
     class HasAndBelongsToManyReflection < AssociationReflection # :nodoc:

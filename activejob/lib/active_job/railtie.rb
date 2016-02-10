@@ -12,7 +12,7 @@ module ActiveJob
 
     initializer "active_job.set_configs" do |app|
       options = app.config.active_job
-      options.queue_adapter ||= :inline
+      options.queue_adapter ||= :async
 
       ActiveSupport.on_load(:active_job) do
         options.each { |k,v| send("#{k}=", v) }

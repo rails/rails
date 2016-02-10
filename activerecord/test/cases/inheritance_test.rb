@@ -493,6 +493,10 @@ class InheritanceComputeTypeTest < ActiveRecord::TestCase
     assert_equal 'Firm', firm.type
     assert_instance_of Firm, firm
 
+    client = Client.new
+    assert_equal 'Client', client.type
+    assert_instance_of Client, client
+
     firm = Company.new(type: 'Client') # overwrite the default type
     assert_equal 'Client', firm.type
     assert_instance_of Client, firm
