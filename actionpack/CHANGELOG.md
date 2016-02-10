@@ -1,3 +1,41 @@
+*   Add request encoding and response parsing to integration tests.
+
+    What previously was:
+
+    ```ruby
+    require 'test_helper'
+
+    class ApiTest < ActionDispatch::IntegrationTest
+      test 'creates articles' do
+        assert_difference -> { Article.count } do
+          post articles_path(format: :json),
+            params: { article: { title: 'Ahoy!' } }.to_json,
+            headers: { 'Content-Type' => 'application/json' }
+        end
+
+        assert_equal({ id: Article.last.id, title: 'Ahoy!' }, JSON.parse(response.body))
+      end
+    end
+    ```
+
+    Can now be written as:
+
+    ```ruby
+    require 'test_helper'
+
+    class ApiTest < ActionDispatch::IntegrationTest
+      test 'creates articles' do
+        assert_difference -> { Article.count } do
+          post articles_path, { article: { title: 'Ahoy!' } }, as: :json
+        end
+
+        assert_equal({ id: Article.last.id, title: 'Ahoy!' }, response.parsed_body)
+      end
+    end
+    ```
+
+    *Kasper Timm Hansen*
+
 *   Add image/svg+xml as a default mime type.
 
     *DHH*
