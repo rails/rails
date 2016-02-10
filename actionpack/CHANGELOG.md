@@ -1,3 +1,8 @@
+*   Add `parsed_body` to `ActionDispatch::TestResponse` to avoid
+    calling `JSON.parse` multiple times in tests.
+
+    *Jon Moss*
+
 *   Add image/svg+xml as a default mime type.
 
     *DHH*

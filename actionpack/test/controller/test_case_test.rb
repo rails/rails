@@ -150,6 +150,10 @@ XML
       render html: '<body class="foo"></body>'.html_safe
     end
 
+    def test_with_json
+      render json: { 'hi' => 'hi' }
+    end
+
     private
 
       def generate_url(opts)
@@ -965,6 +969,11 @@ XML
     assert_raise(ActiveSupport::TestCase::Assertion) do
       assert_redirected_to 'created resource'
     end
+  end
+
+  def test_parsed_body
+    post :test_with_json, params: { action: 'foobar' }
+    assert_equal({ 'hi' => 'hi' }, @response.parsed_body)
   end
 end
 

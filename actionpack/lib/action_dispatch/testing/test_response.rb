@@ -18,5 +18,14 @@ module ActionDispatch
 
     # Was there a server-side error?
     alias_method :error?, :server_error?
+
+    # Return a JSON parsed response body
+    def parsed_body
+      begin
+        JSON.parse(body)
+      rescue
+        nil
+      end
+    end
   end
 end
