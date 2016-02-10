@@ -188,7 +188,7 @@ can be reached as remote procedure calls via a subscription's `perform` method.
 
 The appearance example was all about exposing server functionality to client-side invocation over the WebSocket connection.
 But the great thing about WebSockets is that it's a two-way street. So now let's show an example where the server invokes
-action on the client.
+an action on the client.
 
 This is a web notification channel that allows you to trigger client-side web notifications when you broadcast to the right
 streams:
