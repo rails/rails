@@ -18,5 +18,11 @@ module ActionDispatch
 
     # Was there a server-side error?
     alias_method :error?, :server_error?
+
+    attr_writer :response_parser # :nodoc:
+
+    def parsed_body
+      @response_parser.parse_body(body)
+    end
   end
 end

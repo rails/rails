@@ -381,6 +381,7 @@ module ActionDispatch
           response = _mock_session.last_response
           @response = ActionDispatch::TestResponse.from_response(response)
           @response.request = @request
+          @response.response_parser = request_encoder
           @html_document = nil
           @url_options = nil
 
@@ -396,7 +397,7 @@ module ActionDispatch
         class RequestEncoder # :nodoc:
           @encoders = {}
 
-          def initialize(mime_name, param_encoder, url_encoded_form = false)
+          def initialize(mime_name, param_encoder, response_parser, url_encoded_form = false)
             @mime = Mime[mime_name]
 
             unless @mime
@@ -406,7 +407,8 @@ module ActionDispatch
 
             @url_encoded_form = url_encoded_form
             @path_format      = ".#{@mime.symbol}" unless @url_encoded_form
-            @param_encoder    = param_encoder || :"to_#{@mime.symbol}".to_proc
+            @response_parser  = response_parser || -> body { body }
+            @param_encoder    = param_encoder   || :"to_#{@mime.symbol}".to_proc
           end
 
           def append_format_to(path)
@@ -422,17 +424,21 @@ module ActionDispatch
             @param_encoder.call(params)
           end
 
+          def parse_body(body)
+            @response_parser.call(body)
+          end
+
           def self.encoder(name)
             @encoders[name] || WWWFormEncoder
           end
 
-          def self.register_encoder(mime_name, &param_encoder)
-            @encoders[mime_name] = new(mime_name, param_encoder)
+          def self.register_encoder(mime_name, param_encoder: nil, response_parser: nil)
+            @encoders[mime_name] = new(mime_name, param_encoder, response_parser)
           end
 
-          register_encoder :json
+          register_encoder :json, response_parser: -> body { JSON.parse(body) }
 
-          WWWFormEncoder = new(:url_encoded_form, -> params { params }, true)
+          WWWFormEncoder = new(:url_encoded_form, -> params { params }, nil, true)
         end
     end
 
@@ -696,23 +702,31 @@ module ActionDispatch
   #   require 'test_helper'
   #
   #   class ApiTest < ActionDispatch::IntegrationTest
-  #     test "creates articles" do
+  #     test 'creates articles' do
   #       assert_difference -> { Article.count } do
   #         post articles_path, params: { article: { title: 'Ahoy!' } }, as: :json
   #       end
   #
   #       assert_response :success
+  #       assert_equal({ id: Arcticle.last.id, title: 'Ahoy!' }, response.parsed_body)
   #     end
   #   end
   #
   # The `as` option sets the format to JSON, sets the content type to
   # 'application/json' and encodes the parameters as JSON.
   #
+  # Calling `parsed_body` on the response parses the response body as what
+  # the last request was encoded as. If the request wasn't encoded `as` something,
+  # it's the same as calling `body`.
+  #
   # For any custom MIME Types you've registered, you can even add your own encoders with:
   #
-  #   ActionDispatch::IntegrationTest.register_encoder :wibble do |params|
-  #     params.to_wibble
-  #   end
+  #   ActionDispatch::IntegrationTest.register_encoder :wibble,
+  #     param_encoder: -> params { params.to_wibble },
+  #     response_parser: -> body { body }
+  #
+  # Where `param_encoder` defines how the params should be encoded and
+  # `response_parser` defines how the response body should be parsed.
   #
   # Consult the Rails Testing Guide for more.
 
@@ -743,8 +757,8 @@ module ActionDispatch
       html_document.root
     end
 
-    def self.register_encoder(*args, &param_encoder)
-      Integration::Session::RequestEncoder.register_encoder(*args, &param_encoder)
+    def self.register_encoder(*args)
+      Integration::Session::RequestEncoder.register_encoder(*args)
     end
   end
 end
