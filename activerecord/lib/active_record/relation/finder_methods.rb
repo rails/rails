@@ -426,8 +426,7 @@ module ActiveRecord
 
     def find_one(id)
       if ActiveRecord::Base === id
-        id = id.id
-        ActiveSupport::Deprecation.warn(<<-MSG.squish)
+        raise ArgumentError, <<-MSG.squish
           You are passing an instance of ActiveRecord::Base to `find`.
           Please pass the id of the object by calling `.id`
         MSG
