@@ -615,24 +615,42 @@ class RespondToControllerTest < ActionController::TestCase
     end
   end
 
-  def test_invalid_variant
+  def test_invalid_variant_for_regular_browser_request
+    assert_raises(ActionView::MissingTemplate) do
+      get :variant_with_implicit_rendering, params: { v: :invalid }
+    end
+  end
+
+  def test_invalid_variant_for_api_request
     logger = ActiveSupport::LogSubscriber::TestHelper::MockLogger.new
     old_logger, ActionController::Base.logger = ActionController::Base.logger, logger
 
-    get :variant_with_implicit_rendering, params: { v: :invalid }
+    get :variant_with_implicit_rendering, format: 'json', params: { v: :invalid }
     assert_response :no_content
     assert_equal 1, logger.logged(:info).select{ |s| s =~ /No template found/ }.size, "Implicit head :no_content not logged"
   ensure
     ActionController::Base.logger = old_logger
   end
 
-  def test_variant_not_set_regular_template_missing
-    get :variant_with_implicit_rendering
+  def test_variant_not_set_template_missing_for_regular_browser_request
+    assert_raises(ActionView::MissingTemplate) do
+      get :variant_with_implicit_rendering
+    end
+  end
+
+  def test_variant_not_set_template_missing_for_api_request
+    get :variant_with_implicit_rendering, format: 'json'
     assert_response :no_content
   end
 
-  def test_variant_with_implicit_rendering
-    get :variant_with_implicit_rendering, params: { v: :implicit }
+  def test_variant_with_implicit_rendering_for_regular_browser_request
+    assert_raises(ActionView::MissingTemplate) do
+      get :variant_with_implicit_rendering, params: { v: :implicit }
+    end
+  end
+
+  def test_variant_with_implicit_rendering_for_api_request
+    get :variant_with_implicit_rendering, format: 'json', params: { v: :implicit }
     assert_response :no_content
   end
 
@@ -793,8 +811,14 @@ class RespondToWithBlockOnDefaultRenderControllerTest < ActionController::TestCa
     @request.host = "www.example.com"
   end
 
-  def test_default_render_uses_block_when_no_template_exists
-    get :show
+  def test_default_render_for_xhr_request_uses_block_when_no_template_exists
+    get :show, xhr: true
+    assert_equal "default_render yielded", @response.body
+    assert_equal "text/plain", @response.content_type
+  end
+
+  def test_default_render_for_api_request_uses_block_when_no_template_exists
+    get :show, format: 'json'
     assert_equal "default_render yielded", @response.body
     assert_equal "text/plain", @response.content_type
   end

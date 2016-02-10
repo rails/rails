@@ -1,3 +1,12 @@
+*   When responding to regular browser requests for actions with no 
+    corresponding templates, raise `ActionView::MissingTemplate` errors 
+    rather than rendering `head :no_content`. That way the browser
+    refreshes with a traditional, helpful error message.
+
+    Fixes #23077.
+
+    *Mike Clark*
+
 *   Add image/svg+xml as a default mime type.
 
     *DHH*

@@ -8,13 +8,22 @@ module ActionController
     # For example, the "new" action with an HTML format and variant "phone" 
     # would try to render the <tt>new.html+phone.erb</tt> template.
     #
-    # If no template is found <tt>ActionController::BasicImplicitRender</tt>'s implementation is called, unless
+    # If no template is found for a regular browser request, 
+    # <tt>ActionView::MissingTemplate</tt> is raised.
+    #
+    # If no template is found for any other request type, 
+    # <tt>ActionController::BasicImplicitRender</tt>'s implementation is called, unless
     # a block is passed. In that case, it will override the super implementation.
     #
     #   default_render do
     #     head 404 # No template was found
     #   end
-    def default_render(*args)
+    def default_render(*args) 
+      if regular_browser_request?
+        render(*args)
+        return
+      end
+
       if template_exists?(action_name.to_s, _prefixes, variants: request.variant)
         render(*args)
       else
@@ -31,6 +40,10 @@ module ActionController
       super || if template_exists?(action_name.to_s, _prefixes)
         "default_render"
       end
+    end
+
+    def regular_browser_request?
+      request.format == Mime[:html] && !request.xhr?
     end
   end
 end
