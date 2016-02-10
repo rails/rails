@@ -91,6 +91,7 @@ module Rails
       cookie_serializer_config_exist = File.exist?('config/initializers/cookies_serializer.rb')
       callback_terminator_config_exist = File.exist?('config/initializers/callback_terminator.rb')
       active_record_belongs_to_required_by_default_config_exist = File.exist?('config/initializers/active_record_belongs_to_required_by_default.rb')
+      action_cable_config_exist = File.exist?('config/cable.yml')
 
       config
 
@@ -104,6 +105,10 @@ module Rails
 
       unless active_record_belongs_to_required_by_default_config_exist
         remove_file 'config/initializers/active_record_belongs_to_required_by_default.rb'
+      end
+
+      unless action_cable_config_exist
+        template 'config/cable.yml'
       end
     end
 
