@@ -271,8 +271,7 @@ module ActiveRecord
     #   Person.exists?
     def exists?(conditions = :none)
       if Base === conditions
-        conditions = conditions.id
-        ActiveSupport::Deprecation.warn(<<-MSG.squish)
+        raise ArgumentError, <<-MSG.squish
           You are passing an instance of ActiveRecord::Base to `exists?`.
           Please pass the id of the object by calling `.id`
         MSG
