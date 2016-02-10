@@ -883,7 +883,7 @@ Changing Existing Migrations
 ----------------------------
 
 Occasionally you will make a mistake when writing a migration. If you have
-already run the migration then you cannot just edit the migration and run the
+already run the migration, then you cannot just edit the migration and run the
 migration again: Rails thinks it has already run the migration and so will do
 nothing when you run `rails db:migrate`. You must rollback the migration (for
 example with `bin/rails db:rollback`), edit your migration and then run
@@ -933,7 +933,7 @@ There are two ways to dump the schema. This is set in `config/application.rb`
 by the `config.active_record.schema_format` setting, which may be either `:sql`
 or `:ruby`.
 
-If `:ruby` is selected then the schema is stored in `db/schema.rb`. If you look
+If `:ruby` is selected, then the schema is stored in `db/schema.rb`. If you look
 at this file you'll find that it looks an awful lot like one very big
 migration:
 
