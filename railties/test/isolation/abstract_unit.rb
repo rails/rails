@@ -154,6 +154,8 @@ module TestHelpers
         config.action_controller.allow_forgery_protection = false
         config.log_level = :info
       RUBY
+
+      remove_from_env_config('development', 'config.file_watcher.*')
     end
 
     def teardown_app
@@ -272,10 +274,17 @@ module TestHelpers
     end
 
     def remove_from_config(str)
-      file = "#{app_path}/config/application.rb"
+      remove_from_file("#{app_path}/config/application.rb", str)
+    end
+
+    def remove_from_env_config(env, str)
+      remove_from_file("#{app_path}/config/environments/#{env}.rb", str)
+    end
+
+    def remove_from_file(file, str)
       contents = File.read(file)
-      contents.sub!(/#{str}/, "")
-      File.open(file, "w+") { |f| f.puts contents }
+      contents.sub!(/#{str}/, '')
+      File.write(file, contents)
     end
 
     def app_file(path, contents, mode = 'w')
