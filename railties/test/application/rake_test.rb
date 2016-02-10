@@ -291,12 +291,11 @@ module ApplicationTests
       assert_no_match(/Errors running/, output)
     end
 
-    def test_scaffold_with_references_columns_tests_pass_when_belongs_to_is_optional
-      app_file "config/initializers/active_record_belongs_to_required_by_default.rb",
-        "Rails.application.config.active_record.belongs_to_required_by_default = false"
-
+    def test_scaffold_with_references_columns_tests_pass_by_default
       output = Dir.chdir(app_path) do
-        `bin/rails generate scaffold LineItems product:references cart:belongs_to;
+        `bin/rails generate model Product;
+         bin/rails generate model Cart;
+         bin/rails generate scaffold LineItems product:references cart:belongs_to;
          RAILS_ENV=test bin/rails db:migrate test`
       end
 
