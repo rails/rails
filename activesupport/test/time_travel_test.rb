@@ -87,4 +87,36 @@ class TimeTravelTest < ActiveSupport::TestCase
       end
     end
   end
+
+  def test_nested_travel
+    travel 1.day do
+      time_1 = Time.current
+      date_1 = Date.today
+      d_time_1 = DateTime.now
+
+      travel 1.day do
+        time_2 = Time.current
+        date_2 = Date.today
+        d_time_2 = DateTime.now
+
+        travel 1.day do
+          time_3 = Time.current
+          date_3 = Date.today
+          d_time_3 = DateTime.now
+
+          assert_equal time_3, Time.current
+          assert_equal date_3, Date.today
+          assert_equal d_time_3, DateTime.now
+        end
+
+        assert_equal time_2, Time.current
+        assert_equal date_2, Date.today
+        assert_equal d_time_2, DateTime.now
+      end
+
+      assert_equal time_1, Time.current
+      assert_equal date_1, Date.today
+      assert_equal d_time_1, DateTime.now
+    end
+  end
 end

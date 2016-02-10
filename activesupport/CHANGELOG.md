@@ -1,3 +1,34 @@
+*   Added support for using nested travel methods to use different mock values
+    in nested scopes. Before this change, if you use nested travel methods,
+    Rails will automatically reset all mock values after deepest scope so
+    you can't keep using same mock value in same scope level.
+
+    Old behaviour in example:
+      Time.now.day # => 7
+      travel 1.day do
+        Time.now.day # => 8
+
+        travel 1.day do
+          Time.now.day # => 9
+        end
+
+        Time.now.day # => This will return 7 because all mock values reset
+      end
+
+    New behaviour in example:
+      Time.now.day # => 7
+      travel 1.day do
+        Time.now.day # => 8
+
+        travel 1.day do
+          Time.now.day # => 9
+        end
+
+        Time.now.day # => This will return 8 like first call in this scope
+      end
+
+    *Mehmet Emin İNAÇ*
+
 *  Fix regression in `Hash#dig` for HashWithIndifferentAccess.
    *Jon Moss*
 

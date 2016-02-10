@@ -5,14 +5,13 @@ module ActiveSupport
 
       def initialize
         @stubs = {}
+        @pre_stubs = {}
       end
 
       def stub_object(object, method_name, return_value)
         key = [object.object_id, method_name]
 
-        if stub = @stubs[key]
-          unstub_object(stub)
-        end
+        store_current_stub(object, method_name)
 
         new_name = "__simple_stub__#{method_name}"
 
@@ -20,6 +19,15 @@ module ActiveSupport
 
         object.singleton_class.send :alias_method, new_name, method_name
         object.define_singleton_method(method_name) { return_value }
+      end
+
+      def unstub(object, method_name)
+        key = [object.object_id, method_name]
+        unstub_object(@stubs.delete(key))
+
+        if old_stub = get_current_stub_of(key)
+          stub_object(old_stub[:object], old_stub[:method_name], old_stub[:return_value])
+        end
       end
 
       def unstub_all!
@@ -36,6 +44,25 @@ module ActiveSupport
           singleton_class.send :undef_method, stub.method_name
           singleton_class.send :alias_method, stub.method_name, stub.original_method
           singleton_class.send :undef_method, stub.original_method
+        end
+
+        def store_current_stub(object, method_name)
+          key = [object.object_id, method_name]
+
+          if stub = @stubs[key]
+            @pre_stubs[key] ||= []
+            @pre_stubs[key] << {
+              object: object,
+              method_name: method_name,
+              return_value: object.public_send(method_name),
+            }
+            unstub_object(stub)
+          end
+        end
+
+        def get_current_stub_of(key)
+          stubs = @pre_stubs.fetch(key, [])
+          stubs.pop
         end
     end
 
@@ -107,7 +134,9 @@ module ActiveSupport
           begin
             yield
           ensure
-            travel_back
+            simple_stubs.unstub(Time, :now)
+            simple_stubs.unstub(Date, :today)
+            simple_stubs.unstub(DateTime, :now)
           end
         end
       end
