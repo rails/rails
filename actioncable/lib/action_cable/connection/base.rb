@@ -185,12 +185,14 @@ module ActionCable
         end
 
         def respond_to_successful_request
+          logger.info successful_request_message
           websocket.rack_response
         end
 
         def respond_to_invalid_request
           close if websocket.alive?
 
+          logger.error invalid_request_message
           logger.info finished_request_message
           [ 404, { 'Content-Type' => 'text/plain' }, [ 'Page not found' ] ]
         end
@@ -205,7 +207,7 @@ module ActionCable
           'Started %s "%s"%s for %s at %s' % [
             request.request_method,
             request.filtered_path,
-            websocket.possible? ? ' [WebSocket]' : '',
+            websocket.possible? ? ' [WebSocket]' : '[non-WebSocket]',
             request.ip,
             Time.now.to_s ]
         end
@@ -213,9 +215,21 @@ module ActionCable
         def finished_request_message
           'Finished "%s"%s for %s at %s' % [
             request.filtered_path,
-            websocket.possible? ? ' [WebSocket]' : '',
+            websocket.possible? ? ' [WebSocket]' : '[non-WebSocket]',
             request.ip,
             Time.now.to_s ]
+        end
+
+        def invalid_request_message
+          'Failed to upgrade to WebSocket (REQUEST_METHOD: %s, HTTP_CONNECTION: %s, HTTP_UPGRADE: %s)' % [
+            env["REQUEST_METHOD"], env["HTTP_CONNECTION"], env["HTTP_UPGRADE"]
+          ]
+        end
+
+        def successful_request_message
+          'Successfully upgraded to WebSocket (REQUEST_METHOD: %s, HTTP_CONNECTION: %s, HTTP_UPGRADE: %s)' % [
+            env["REQUEST_METHOD"], env["HTTP_CONNECTION"], env["HTTP_UPGRADE"]
+          ]
         end
     end
   end
