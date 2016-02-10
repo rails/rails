@@ -39,6 +39,7 @@ module ActiveRecord
           attributes.select { |a| !a.reference? && a.has_index? }
         end
 
+        # FIXME: Change this file to a symlink once RubyGems 2.5.0 is required.
         def generate_application_record
           if self.behavior == :invoke && !File.exist?('app/models/application_record.rb')
             template 'application_record.rb', 'app/models/application_record.rb'

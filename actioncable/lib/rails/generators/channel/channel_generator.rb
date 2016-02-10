@@ -24,6 +24,7 @@ module Rails
           @_file_name ||= super.gsub(/\_channel/i, '')
         end
 
+        # FIXME: Change these files to symlinks once RubyGems 2.5.0 is required.
         def generate_application_cable_files
           return if self.behavior != :invoke
 
