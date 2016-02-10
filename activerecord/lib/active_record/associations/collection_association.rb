@@ -136,6 +136,14 @@ module ActiveRecord
         first_nth_or_last(:forty_two, *args)
       end
 
+      def antepenultimate(*args)
+        first_nth_or_last(:antepenultimate, *args)
+      end
+
+      def penultimate(*args)
+        first_nth_or_last(:penultimate, *args)
+      end
+
       def last(*args)
         first_nth_or_last(:last, *args)
       end
