@@ -1,3 +1,7 @@
+*   Add `Array#second_to_last` and `Array#third_to_last` methods.
+
+    *Brian Christian*
+
 *  Fix regression in `Hash#dig` for HashWithIndifferentAccess.
    *Jon Moss*
 
