@@ -242,6 +242,38 @@ module ActiveRecord
       find_nth! 41
     end
 
+    # Find the third-to-last record.
+    # If no order is defined it will order by primary key.
+    #
+    #   Person.third_to_last # returns the third-to-last object fetched by SELECT * FROM people
+    #   Person.offset(3).third_to_last # returns the third-to-last object from OFFSET 3
+    #   Person.where(["user_name = :u", { u: user_name }]).third_to_last
+    def third_to_last
+      find_nth -3
+    end
+
+    # Same as #third_to_last but raises ActiveRecord::RecordNotFound if no record
+    # is found.
+    def third_to_last!
+      find_nth! -3
+    end
+
+    # Find the second-to-last record.
+    # If no order is defined it will order by primary key.
+    #
+    #   Person.second_to_last # returns the second-to-last object fetched by SELECT * FROM people
+    #   Person.offset(3).second_to_last # returns the second-to-last object from OFFSET 3
+    #   Person.where(["user_name = :u", { u: user_name }]).second_to_last
+    def second_to_last
+      find_nth -2
+    end
+
+    # Same as #second_to_last but raises ActiveRecord::RecordNotFound if no record
+    # is found.
+    def second_to_last!
+      find_nth! -2
+    end
+
     # Returns true if a record exists in the table that matches the +id+ or
     # conditions given, or false otherwise. The argument can take six forms:
     #

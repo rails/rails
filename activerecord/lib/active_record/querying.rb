@@ -1,7 +1,7 @@
 module ActiveRecord
   module Querying
     delegate :find, :take, :take!, :first, :first!, :last, :last!, :exists?, :any?, :many?, to: :all
-    delegate :second, :second!, :third, :third!, :fourth, :fourth!, :fifth, :fifth!, :forty_two, :forty_two!, to: :all
+    delegate :second, :second!, :third, :third!, :fourth, :fourth!, :fifth, :fifth!, :forty_two, :forty_two!, :third_to_last, :third_to_last!, :second_to_last, :second_to_last!, to: :all
     delegate :first_or_create, :first_or_create!, :first_or_initialize, to: :all
     delegate :find_or_create_by, :find_or_create_by!, :find_or_initialize_by, to: :all
     delegate :find_by, :find_by!, to: :all

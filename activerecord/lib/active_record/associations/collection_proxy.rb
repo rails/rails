@@ -197,6 +197,16 @@ module ActiveRecord
         @association.forty_two(*args)
       end
 
+      # Same as #first except returns only the third-to-last record.
+      def third_to_last(*args)
+        @association.third_to_last(*args)
+      end
+
+      # Same as #first except returns only the second-to-last record.
+      def second_to_last(*args)
+        @association.second_to_last(*args)
+      end
+
       # Returns the last record, or the last +n+ records, from the collection.
       # If the collection is empty, the first form returns +nil+, and the second
       # form returns an empty array.

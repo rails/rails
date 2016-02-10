@@ -2240,7 +2240,7 @@ Similarly, `from` returns the tail from the element at the passed index to the e
 [].from(0)           # => []
 ```
 
-The methods `second`, `third`, `fourth`, and `fifth` return the corresponding element (`first` is built-in). Thanks to social wisdom and positive constructiveness all around, `forty_two` is also available.
+The methods `second`, `third`, `fourth`, and `fifth` return the corresponding element, as do `second_to_last` and `third_to_last` (`first` and `last` are built-in). Thanks to social wisdom and positive constructiveness all around, `forty_two` is also available.
 
 ```ruby
 %w(a b c d).third # => "c"
