@@ -245,32 +245,32 @@ module ActiveRecord
     # Find the third-to-last record.
     # If no order is defined it will order by primary key.
     #
-    #   Person.antepenultimate # returns the third-to-last object fetched by SELECT * FROM people
-    #   Person.offset(3).antepenultimate # returns the third-to-last object from OFFSET 3
-    #   Person.where(["user_name = :u", { u: user_name }]).antepenultimate
-    def antepenultimate
+    #   Person.third_to_last # returns the third-to-last object fetched by SELECT * FROM people
+    #   Person.offset(3).third_to_last # returns the third-to-last object from OFFSET 3
+    #   Person.where(["user_name = :u", { u: user_name }]).third_to_last
+    def third_to_last
       find_nth -3
     end
 
-    # Same as #antepenultimate but raises ActiveRecord::RecordNotFound if no record
+    # Same as #third_to_last but raises ActiveRecord::RecordNotFound if no record
     # is found.
-    def antepenultimate!
+    def third_to_last!
       find_nth! -3
     end
 
     # Find the second-to-last record.
     # If no order is defined it will order by primary key.
     #
-    #   Person.penultimate # returns the second-to-last object fetched by SELECT * FROM people
-    #   Person.offset(3).penultimate # returns the second-to-last object from OFFSET 3
-    #   Person.where(["user_name = :u", { u: user_name }]).penultimate
-    def penultimate
+    #   Person.second_to_last # returns the second-to-last object fetched by SELECT * FROM people
+    #   Person.offset(3).second_to_last # returns the second-to-last object from OFFSET 3
+    #   Person.where(["user_name = :u", { u: user_name }]).second_to_last
+    def second_to_last
       find_nth -2
     end
 
-    # Same as #penultimate but raises ActiveRecord::RecordNotFound if no record
+    # Same as #second_to_last but raises ActiveRecord::RecordNotFound if no record
     # is found.
-    def penultimate!
+    def second_to_last!
       find_nth! -2
     end
 

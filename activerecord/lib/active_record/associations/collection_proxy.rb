@@ -198,13 +198,13 @@ module ActiveRecord
       end
 
       # Same as #first except returns only the third-to-last record.
-      def antepenultimate(*args)
-        @association.antepenultimate(*args)
+      def third_to_last(*args)
+        @association.third_to_last(*args)
       end
 
       # Same as #first except returns only the second-to-last record.
-      def penultimate(*args)
-        @association.penultimate(*args)
+      def second_to_last(*args)
+        @association.second_to_last(*args)
       end
 
       # Returns the last record, or the last +n+ records, from the collection.

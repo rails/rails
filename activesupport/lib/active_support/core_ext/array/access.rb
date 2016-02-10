@@ -76,15 +76,15 @@ class Array
 
   # Equal to <tt>self[-3]</tt>.
   #
-  #   %w( a b c d e ).antepenultimate # => "c"
-  def antepenultimate
+  #   %w( a b c d e ).third_to_last # => "c"
+  def third_to_last
     self[-3]
   end
 
   # Equal to <tt>self[-2]</tt>.
   #
-  #   %w( a b c d e ).penultimate # => "d"
-  def penultimate
+  #   %w( a b c d e ).second_to_last # => "d"
+  def second_to_last
     self[-2]
   end
 end

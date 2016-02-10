@@ -408,13 +408,13 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     end
 
     assert_no_queries do
-      bulbs.antepenultimate()
-      bulbs.antepenultimate({})
+      bulbs.third_to_last()
+      bulbs.third_to_last({})
     end
 
     assert_no_queries do
-      bulbs.penultimate()
-      bulbs.penultimate({})
+      bulbs.second_to_last()
+      bulbs.second_to_last({})
     end
 
     assert_no_queries do
