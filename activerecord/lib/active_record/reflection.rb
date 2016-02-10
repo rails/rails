@@ -239,6 +239,10 @@ module ActiveRecord
       def alias_candidate(name)
         "#{plural_name}_#{name}"
       end
+
+      def chain
+        collect_join_chain
+      end
     end
 
     # Base class for AggregateReflection and AssociationReflection. Objects of
@@ -421,7 +425,7 @@ module ActiveRecord
 
       # A chain of reflections from this one back to the owner. For more see the explanation in
       # ThroughReflection.
-      def chain
+      def collect_join_chain
         [self]
       end
 
@@ -494,6 +498,18 @@ module ActiveRecord
 
       VALID_AUTOMATIC_INVERSE_MACROS = [:has_many, :has_one, :belongs_to]
       INVALID_AUTOMATIC_INVERSE_OPTIONS = [:conditions, :through, :polymorphic, :foreign_key]
+
+      def add_as_source(seed)
+        seed
+      end
+
+      def add_as_polymorphic_through(reflection, seed)
+        seed + [PolymorphicReflection.new(self, reflection)]
+      end
+
+      def add_as_through(seed)
+        seed + [self]
+      end
 
       protected
 
@@ -742,19 +758,8 @@ module ActiveRecord
       #   # => [<ActiveRecord::Reflection::ThroughReflection: @delegate_reflection=#<ActiveRecord::Reflection::HasManyReflection: @name=:tags...>,
       #         <ActiveRecord::Reflection::HasManyReflection: @name=:taggings, @options={}, @active_record=Post>]
       #
-      def chain
-        @chain ||= begin
-          a = source_reflection.chain
-          b = through_reflection.chain.map(&:dup)
-
-          if options[:source_type]
-            b[0] = PolymorphicReflection.new(b[0], self)
-          end
-
-          chain = a + b
-          chain[0] = self # Use self so we don't lose the information from :source_type
-          chain
-        end
+      def collect_join_chain
+        collect_join_reflections [self]
       end
 
       # This is for clearing cache on the reflection. Useful for tests that need to compare
@@ -911,6 +916,27 @@ module ActiveRecord
         scope_chain = source_reflection.constraints
         scope_chain << scope if scope
         scope_chain
+      end
+
+      def add_as_source(seed)
+        collect_join_reflections seed
+      end
+
+      def add_as_polymorphic_through(reflection, seed)
+        collect_join_reflections(seed + [PolymorphicReflection.new(self, reflection)])
+      end
+
+      def add_as_through(seed)
+        collect_join_reflections(seed + [self])
+      end
+
+      def collect_join_reflections(seed)
+        a = source_reflection.add_as_source seed
+        if options[:source_type]
+          through_reflection.add_as_polymorphic_through self, a
+        else
+          through_reflection.add_as_through a
+        end
       end
 
       protected
