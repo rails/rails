@@ -22,7 +22,7 @@ module ActionView
 
     def self.register_detail(name, &block)
       self.registered_details << name
-      initialize = registered_details.map { |n| "@details[:#{n}] = details[:#{n}] || default_#{n}" }
+      Accessors::DEFAULT_PROCS[name] = block
 
       Accessors.send :define_method, :"default_#{name}", &block
       Accessors.module_eval <<-METHOD, __FILE__, __LINE__ + 1
@@ -34,16 +34,12 @@ module ActionView
           value = value.present? ? Array(value) : default_#{name}
           _set_detail(:#{name}, value) if value != @details[:#{name}]
         end
-
-        remove_possible_method :initialize_details
-        def initialize_details(details)
-          #{initialize.join("\n")}
-        end
       METHOD
     end
 
     # Holds accessors for the registered details.
     module Accessors #:nodoc:
+      DEFAULT_PROCS = {}
     end
 
     register_detail(:locale) do
@@ -195,14 +191,22 @@ module ActionView
     include ViewPaths
 
     def initialize(view_paths, details = {}, prefixes = [])
-      @details, @details_key = {}, nil
+      @details_key = nil
       @cache = true
       @prefixes = prefixes
       @rendered_format = nil
 
+      @details = initialize_details({}, details)
       self.view_paths = view_paths
-      initialize_details(details)
     end
+
+    def initialize_details(target, details)
+      registered_details.each do |k|
+        target[k] = details[k] || Accessors::DEFAULT_PROCS[k].call
+      end
+      target
+    end
+    private :initialize_details
 
     # Override formats= to expand ["*/*"] values and automatically
     # add :html as fallback to :js.
