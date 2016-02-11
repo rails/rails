@@ -42,8 +42,7 @@
 
 ## Rails 5.0.0.beta2 (February 01, 2016) ##
 
-*   Add `-g` and `-c` (short for _grep_ and _controller_ respectively) options
-    to `bin/rake routes`. These options return the url `name`, `verb` and
+*   Add `-g` and `-c` options to `bin/rake routes`. These options return the url `name`, `verb` and
     `path` field that match the pattern or match a specific controller.
 
     Deprecate `CONTROLLER` env variable in `bin/rake routes`.

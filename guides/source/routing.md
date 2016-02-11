@@ -1136,19 +1136,19 @@ For example, here's a small section of the `rails routes` output for a RESTful r
 edit_user GET    /users/:id/edit(.:format) users#edit
 ```
 
-You can search through your routes with the --grep option (-g for short). This outputs any routes that partially match the URL helper method name, the HTTP verb, or the URL path.
+You can search through your routes with the grep option: -g. This outputs any routes that partially match the URL helper method name, the HTTP verb, or the URL path.
 
 ```
-$ bin/rails routes --grep new_comment
+$ bin/rails routes -g new_comment
 $ bin/rails routes -g POST
 $ bin/rails routes -g admin
 ```
 
-If you only want to see the routes that map to a specific controller, there's the --controller option (-c for short).
+If you only want to see the routes that map to a specific controller, there's the -c option.
 
 ```
-$ bin/rails routes --controller users
-$ bin/rails routes --controller admin/users
+$ bin/rails routes -c users
+$ bin/rails routes -c admin/users
 $ bin/rails routes -c Comments
 $ bin/rails routes -c Articles::CommentsController
 ```
