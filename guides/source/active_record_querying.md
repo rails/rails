@@ -1296,6 +1296,28 @@ Using a class method is the preferred way to accept arguments for scopes. These 
 category.articles.created_before(time)
 ```
 
+### Using conditionals
+
+Your scope can utilize conditionals:
+
+```ruby
+class Article < ApplicationRecord
+  scope :created_before, ->(time) { where("created_at < ?", time) if time.present? }
+end
+```
+
+Like the other examples, this will behave similarly to a class method.
+
+```ruby
+class Article < ApplicationRecord
+  def self.created_before(time)
+    where("created_at < ?", time) if time.present?
+  end
+end
+```
+
+However, there is one important caveat: A scope will always return an `ActiveRecord::Relation` object, even if the conditional evaluates to `false`, whereas a class method, will return `nil`. This can cause `NoMethodError` when chaining class methods with conditionals, if any of the conditionals return `false`.
+
 ### Applying a default scope
 
 If we wish for a scope to be applied across all queries to the model we can use the
