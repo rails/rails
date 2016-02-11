@@ -144,6 +144,26 @@ module ActiveRecord
           @connection.drop_table "testing", if_exists: true
         end
       end
+
+      test "multiple foreign keys can be added to the same table" do
+        @connection.create_table :testings do |t|
+          t.integer :col_1
+          t.integer :col_2
+
+          t.foreign_key :testing_parents, column: :col_1
+          t.foreign_key :testing_parents, column: :col_2
+        end
+
+        fks = @connection.foreign_keys("testings")
+
+        assert_equal fks.length, 2
+        assert_equal "testings",        fks[0].from_table
+        assert_equal "testing_parents", fks[0].to_table
+        assert_equal "col_1",           fks[0].column
+        assert_equal "testings",        fks[1].from_table
+        assert_equal "testing_parents", fks[1].to_table
+        assert_equal "col_2",           fks[1].column
+      end
     end
   end
 end

@@ -1,3 +1,8 @@
+*   Fix a bug where using `t.foreign_key` twice with the same `to_table` within
+    the same table definition would only create one foreign key.
+
+    *George Millo*
+
 *   Rework `ActiveRecord::Relation#last` 
     
     1. Never perform additional SQL on loaded relation
