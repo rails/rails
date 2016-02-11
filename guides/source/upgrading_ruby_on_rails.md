@@ -36,11 +36,14 @@ You can find a list of all released Rails versions [here](https://rubygems.org/g
 Rails generally stays close to the latest released Ruby version when it's released:
 
 * Rails 5 requires Ruby 2.2.2 or newer.
-* Rails 4 prefers Ruby 2.0 and requires 1.9.3 or newer.
+* Rails 4.0.6 onwards prefers Ruby 2.0
+* Rails 4.0.0 - 4.0.5 prefers Ruby 2.0 and requires Ruby 1.9.3 - 2.1
 * Rails 3.2.x is the last branch to support Ruby 1.8.7.
 * Rails 3 and above require Ruby 1.8.7 or higher. Support for all of the previous Ruby versions has been dropped officially. You should upgrade as early as possible.
 
 TIP: Ruby 1.8.7 p248 and p249 have marshaling bugs that crash Rails. Ruby Enterprise Edition has these fixed since the release of 1.8.7-2010.02. On the 1.9 front, Ruby 1.9.1 is not usable because it outright segfaults, so if you want to use 1.9.x, jump straight to 1.9.3 for smooth sailing.
+
+TIP: Ruby 2.2 changed method parameter behaviour which breaks ActiveRecord 4.0.5 and older. This was fixed [here](https://github.com/rails/rails/commit/2ce5e08e620c3cfcf1ede3ae26e6faf4e954d2be).
 
 ### The Rake Task
 
