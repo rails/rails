@@ -86,7 +86,7 @@ module ActiveRecord
       #
       #   user = User.find_by(name: 'David Heinemeier Hansson')
       #   user.id         # => 125
-      #   user_path(user) # => "/users/125-david"
+      #   user_path(user) # => "/users/125-david-heinemeier"
       #
       # Because the generated param begins with the record's +id+, it is
       # suitable for passing to +find+. In a controller, for example:
@@ -100,7 +100,7 @@ module ActiveRecord
           define_method :to_param do
             if (default = super()) &&
                  (result = send(method_name).to_s).present? &&
-                   (param = result.squish.truncate(20, separator: /\s/, omission: nil).parameterize).present?
+                   (param = result.squish.parameterize.truncate(20, separator: /-/, omission: '')).present?
               "#{default}-#{param}"
             else
               default
