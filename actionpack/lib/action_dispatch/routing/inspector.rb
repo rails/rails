@@ -84,14 +84,15 @@ module ActionDispatch
         if filter.is_a?(Hash) && filter[:controller]
           { controller: /#{filter[:controller].downcase.sub(/_?controller\z/, '').sub('::', '/')}/ }
         elsif filter
-          { controller: /#{filter}/, action: /#{filter}/ }
+          { controller: /#{filter}/, action: /#{filter}/, verb: /#{filter}/, name: /#{filter}/, path: /#{filter}/ }
         end
       end
 
       def filter_routes(filter)
         if filter
           @routes.select do |route|
-            filter.any? { |default, value| route.defaults[default] =~ value }
+            route_wrapper = RouteWrapper.new(route)
+            filter.any? { |default, value| route_wrapper.send(default) =~ value }
           end
         else
           @routes

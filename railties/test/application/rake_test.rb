@@ -179,12 +179,20 @@ module ApplicationTests
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
           get '/cart', to: 'cart#show'
-          get '/basketball', to: 'basketball#index'
+          post '/cart', to: 'cart#create'
+          get '/basketballs', to: 'basketball#index'
         end
       RUBY
 
       output = Dir.chdir(app_path){ `bin/rails routes -g show` }
       assert_equal "Prefix Verb URI Pattern     Controller#Action\n  cart GET  /cart(.:format) cart#show\n", output
+
+      output = Dir.chdir(app_path){ `bin/rails routes -g POST` }
+      assert_equal "Prefix Verb URI Pattern     Controller#Action\n       POST /cart(.:format) cart#create\n", output
+
+      output = Dir.chdir(app_path){ `bin/rails routes -g basketballs` }
+      assert_equal "     Prefix Verb URI Pattern            Controller#Action\n" \
+                   "basketballs GET  /basketballs(.:format) basketball#index\n", output
     end
 
     def test_rake_routes_with_controller_search_key
