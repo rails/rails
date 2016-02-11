@@ -65,9 +65,14 @@ module ActionView
     def digest
       Digest::MD5.hexdigest("#{source}-#{dependency_digest}").tap do |digest|
         logger.debug "  Cache digest for #{template.inspect}: #{digest}"
+        puts "  Cache digest for #{template.inspect}: #{digest}"
       end
-    rescue ActionView::MissingTemplate
+    rescue ActionView::MissingTemplate => c
       logger.error "  Couldn't find template for digesting: #{name}"
+      puts "#" * 90
+      puts c.backtrace
+      puts "#" * 90
+      puts "  Couldn't find template for digesting: #{name}"
       ''
     end
 
@@ -75,6 +80,7 @@ module ActionView
       DependencyTracker.find_dependencies(name, template, finder.view_paths)
     rescue ActionView::MissingTemplate
       logger.error "  '#{name}' file doesn't exist, so no dependencies"
+      puts "  '#{name}' file doesn't exist, so no dependencies"
       []
     end
 
@@ -86,10 +92,10 @@ module ActionView
     end
 
     private
-    class NullLogger
-      def self.debug(_); end
-      def self.error(_); end
-    end
+      class NullLogger
+        def self.debug(_); end
+        def self.error(_); end
+      end
 
       def logger
         ActionView::Base.logger || NullLogger
