@@ -729,8 +729,7 @@ module ActionDispatch
   #     response_parser: -> body { body }
   #
   # Where `param_encoder` defines how the params should be encoded and
-  # `response_parser` defines how the response body should be parsed through
-  # `parsed_body`.
+  # `response_parser` defines how the response body should be parsed.
   #
   # Consult the Rails Testing Guide for more.
 
