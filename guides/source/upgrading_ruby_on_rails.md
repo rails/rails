@@ -16,6 +16,21 @@ Before attempting to upgrade an existing application, you should be sure you hav
 
 The best way to be sure that your application still works after upgrading is to have good test coverage before you start the process. If you don't have automated tests that exercise the bulk of your application, you'll need to spend time manually exercising all the parts that have changed. In the case of a Rails upgrade, that will mean every single piece of functionality in the application. Do yourself a favor and make sure your test coverage is good _before_ you start an upgrade.
 
+### The Upgrade Process
+
+When changing Rails versions, it's best to move slowly, one minor version at a time, in order to make good use of the deprecation warnings. Rails version numbers are in the form Major.Minor.Patch. Major and Minor versions are allowed to make changes to the public API, so this may cause errors in your application. Patch versions only include bug fixes, and don't change any public API.
+
+The process should go as follows:
+
+1. Write tests and make sure they pass
+1. Move to the latest patch version after your current version
+1. Fix tests and deprecated features
+1. Move to the latest patch version of the next minor version
+
+Repeat this process until you reach your target Rails version. Each time you move versions, you will need to change the Rails version number in the Gemfile (and possibly other gem versions) and run `bundle update`. Then run the Update rake task mentioned below to update configuration files, then run your tests.
+
+You can find a list of all released Rails versions [here](https://rubygems.org/gems/rails/versions).
+
 ### Ruby Versions
 
 Rails generally stays close to the latest released Ruby version when it's released:
