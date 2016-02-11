@@ -249,13 +249,13 @@ module ActiveRecord
     #   Person.offset(3).third_to_last # returns the third-to-last object from OFFSET 3
     #   Person.where(["user_name = :u", { u: user_name }]).third_to_last
     def third_to_last
-      find_nth -3
+      find_nth(-3)
     end
 
     # Same as #third_to_last but raises ActiveRecord::RecordNotFound if no record
     # is found.
     def third_to_last!
-      find_nth! -3
+      find_nth!(-3)
     end
 
     # Find the second-to-last record.
@@ -265,13 +265,13 @@ module ActiveRecord
     #   Person.offset(3).second_to_last # returns the second-to-last object from OFFSET 3
     #   Person.where(["user_name = :u", { u: user_name }]).second_to_last
     def second_to_last
-      find_nth -2
+      find_nth(-2)
     end
 
     # Same as #second_to_last but raises ActiveRecord::RecordNotFound if no record
     # is found.
     def second_to_last!
-      find_nth! -2
+      find_nth!(-2)
     end
 
     # Returns true if a record exists in the table that matches the +id+ or
