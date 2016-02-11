@@ -11,7 +11,7 @@ module ActiveSupport
     DEFAULT_BEHAVIORS = {
       raise: ->(message, callstack) {
         e = DeprecationException.new(message)
-        e.set_backtrace(callstack)
+        e.set_backtrace(callstack.map(&:to_s))
         raise e
       },
 
