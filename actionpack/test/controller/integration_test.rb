@@ -1171,6 +1171,16 @@ class IntegrationRequestEncodersTest < ActionDispatch::IntegrationTest
     Mime::Type.unregister :wibble
   end
 
+  def test_parsed_body_without_as_option
+    with_routing do |routes|
+      routes.draw { get ':action' => FooController }
+
+      get '/foos_json.json', params: { foo: 'heyo' }
+
+      assert_equal({ 'foo' => 'heyo' }, response.parsed_body)
+    end
+  end
+
   private
     def post_to_foos(as:)
       with_routing do |routes|

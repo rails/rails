@@ -26,7 +26,7 @@
     class ApiTest < ActionDispatch::IntegrationTest
       test 'creates articles' do
         assert_difference -> { Article.count } do
-          post articles_path, { article: { title: 'Ahoy!' } }, as: :json
+          post articles_path, params: { article: { title: 'Ahoy!' } }, as: :json
         end
 
         assert_equal({ id: Article.last.id, title: 'Ahoy!' }, response.parsed_body)

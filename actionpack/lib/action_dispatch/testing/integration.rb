@@ -381,7 +381,7 @@ module ActionDispatch
           response = _mock_session.last_response
           @response = ActionDispatch::TestResponse.from_response(response)
           @response.request = @request
-          @response.response_parser = request_encoder
+          @response.response_parser = RequestEncoder.parser(@response.content_type)
           @html_document = nil
           @url_options = nil
 
@@ -396,6 +396,8 @@ module ActionDispatch
 
         class RequestEncoder # :nodoc:
           @encoders = {}
+
+          attr_reader :response_parser
 
           def initialize(mime_name, param_encoder, response_parser, url_encoded_form = false)
             @mime = Mime[mime_name]
@@ -424,8 +426,9 @@ module ActionDispatch
             @param_encoder.call(params)
           end
 
-          def parse_body(body)
-            @response_parser.call(body)
+          def self.parser(content_type)
+            mime = Mime::Type.lookup(content_type)
+            encoder(mime ? mime.ref : nil).response_parser
           end
 
           def self.encoder(name)
@@ -726,7 +729,8 @@ module ActionDispatch
   #     response_parser: -> body { body }
   #
   # Where `param_encoder` defines how the params should be encoded and
-  # `response_parser` defines how the response body should be parsed.
+  # `response_parser` defines how the response body should be parsed through
+  # `parsed_body`.
   #
   # Consult the Rails Testing Guide for more.
 

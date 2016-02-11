@@ -22,7 +22,7 @@ module ActionDispatch
     attr_writer :response_parser # :nodoc:
 
     def parsed_body
-      @response_parser.parse_body(body)
+      @parsed_body ||= @response_parser.call(body)
     end
   end
 end
