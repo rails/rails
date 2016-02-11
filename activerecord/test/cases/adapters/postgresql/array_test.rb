@@ -300,6 +300,28 @@ class PostgresqlArrayTest < ActiveRecord::PostgreSQLTestCase
     assert_equal ["has already been taken"], e2.errors[:tags], "Should have uniqueness message for tags"
   end
 
+  def test_change_of_unicode_string_within_array
+    x = PgArray.create!(tags: ['nový'])
+    x.reload
+
+    assert_equal(false, x.changed?)
+    assert_equal(x.tags, ['nový'])
+
+    x.attributes = { tags: ['nový'] }
+
+    assert_equal(false, x.changed?)
+
+    x.reload
+    x.tags << 'modrý'
+
+    assert_equal(x.tags, ['nový', 'modrý'])
+    assert_equal(true, x.changed?)
+
+    x.save!
+
+    assert_equal(false, x.changed?)
+  end
+
   private
   def assert_cycle field, array
     # test creation
