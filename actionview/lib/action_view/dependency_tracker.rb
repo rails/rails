@@ -153,11 +153,11 @@ module ActionView
         def resolve_directories(wildcard_dependencies)
           return [] unless @view_paths
 
-          wildcard_dependencies.each_with_object([]) do |query, templates|
-            @view_paths.find_all_with_query(query).each do |template|
-              templates << "#{File.dirname(query)}/#{File.basename(template).split('.').first}"
+          wildcard_dependencies.flat_map { |query, templates|
+            @view_paths.find_all_with_query(query).map do |template|
+              "#{File.dirname(query)}/#{File.basename(template).split('.').first}"
             end
-          end
+          }.sort
         end
 
         def explicit_dependencies
