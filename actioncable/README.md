@@ -298,22 +298,24 @@ See the [rails/actioncable-examples](http://github.com/rails/actioncable-example
 
 ## Configuration
 
-Action Cable has three required configurations: the Redis connection, allowed request origins, and the cable server url (which can optionally be set on the client side).
+Action Cable has three required configurations: a subscription adapter, allowed request origins, and the cable server URL (which can optionally be set on the client side).
 
 ### Redis
 
 By default, `ActionCable::Server::Base` will look for a configuration file in `Rails.root.join('config/cable.yml')`.
-This file must specify a Redis url for each Rails environment. It may use the following format:
+This file must specify an adapter and a URL for each Rails environment. It may use the following format:
 
 ```yaml
 production: &production
+  adapter: redis
   url: redis://10.10.3.153:6381
 development: &development
+  adapter: redis
   url: redis://localhost:6379
 test: *development
 ```
 
-You can also change the location of the Redis config file in a Rails initializer with something like:
+You can also change the location of the Action Cable config file in a Rails initializer with something like:
 
 ```ruby
 Rails.application.paths.add "config/cable", with: "somewhere/else/cable.yml"
@@ -389,7 +391,7 @@ Also note that your server must provide at least the same number of database con
 ## Running the cable server
 
 ### Standalone
-The cable server(s) is separated from your normal application server. It's still a rack application, but it is its own rack
+The cable server(s) is separated from your normal application server. It's still a Rack application, but it is its own Rack
 application. The recommended basic setup is as follows:
 
 ```ruby
@@ -431,10 +433,7 @@ The WebSocket server doesn't have access to the session, but it has access to th
 
 ## Dependencies
 
-Action Cable is currently tied to Redis through its use of the pubsub feature to route
-messages back and forth over the WebSocket cable connection. This dependency may well
-be alleviated in the future, but for the moment that's what it is. So be sure to have
-Redis installed and running.
+Action Cable provides a subscription adapter interface to process its pubsub internals. By default, asynchronous, inline, PostgreSQL, evented Redis, and non-evented Redis adapters are included. The default adapter in new Rails applications is the asynchronous (`async`) adapter. To create your own adapter, you can look at `ActionCable::SubscriptionAdapter::Base` for all methods that must be implemented, and any of the adapters included within ActionCable as example implementations.
 
 The Ruby side of things is built on top of [websocket-driver](https://github.com/faye/websocket-driver-ruby), [nio4r](https://github.com/celluloid/nio4r), and [concurrent-ruby](https://github.com/ruby-concurrency/concurrent-ruby).
 
