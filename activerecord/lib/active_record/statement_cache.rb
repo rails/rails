@@ -106,7 +106,7 @@ module ActiveRecord
 
       sql = query_builder.sql_for bind_values, connection
 
-      klass.find_by_sql sql, bind_values
+      klass.find_by_sql(sql, bind_values, preparable: true)
     end
     alias :call :execute
   end

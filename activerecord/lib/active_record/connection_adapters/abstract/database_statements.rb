@@ -27,10 +27,10 @@ module ActiveRecord
       end
 
       # Returns an ActiveRecord::Result instance.
-      def select_all(arel, name = nil, binds = [])
+      def select_all(arel, name = nil, binds = [], preparable: nil)
         arel, binds = binds_from_relation arel, binds
         sql = to_sql(arel, binds)
-        if arel.is_a?(String)
+        if arel.is_a?(String) && preparable.nil?
           preparable = false
         else
           preparable = visitor.preparable
