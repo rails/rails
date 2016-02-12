@@ -18,7 +18,7 @@ module ActionView
         cached_partials = collection_cache.read_multi(*keyed_collection.keys)
 
         @collection = keyed_collection.reject { |key, _| cached_partials.key?(key) }.values
-        rendered_partials = @collection.any? ? yield : []
+        rendered_partials = @collection.empty? ? [] : yield
 
         index = 0
         keyed_collection.map do |cache_key, _|
