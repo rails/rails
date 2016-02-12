@@ -154,6 +154,7 @@ module ActionView
           options.each_pair do |key, value|
             if TAG_PREFIXES.include?(key) && value.is_a?(Hash)
               value.each_pair do |k, v|
+                next if v.nil?
                 output << sep
                 output << prefix_tag_option(key, k, v, escape)
               end

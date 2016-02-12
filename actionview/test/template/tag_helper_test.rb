@@ -173,4 +173,10 @@ class TagHelperTest < ActionView::TestCase
         tag('a', { aria => { a_float: 3.14, a_big_decimal: BigDecimal.new("-123.456"), a_number: 1, string: 'hello', symbol: :foo, array: [1, 2, 3], hash: { key: 'value'}, string_with_quotes: 'double"quote"party"' } })
     }
   end
+
+  def test_link_to_data_nil_equal
+    div_type1 = content_tag(:div, 'test', { 'data-tooltip' => nil })
+    div_type2 = content_tag(:div, 'test', { data: {tooltip: nil} })
+    assert_dom_equal div_type1, div_type2 
+  end
 end
