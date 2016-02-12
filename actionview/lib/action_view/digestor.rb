@@ -57,9 +57,9 @@ module ActionView
 
     attr_reader :name, :finder, :options
 
-    def initialize(options)
-      @name, @finder = options.values_at(:name, :finder)
-      @options = options.except(:name, :finder)
+    def initialize(name:, finder:, **options)
+      @name, @finder = name, finder
+      @options = options
     end
 
     def digest
