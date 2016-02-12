@@ -757,6 +757,16 @@ class DirtyTest < ActiveRecord::TestCase
     assert_equal "arr", pirate.catchphrase
   end
 
+  test "cloning and modifying an object in-place only registers changes on the new object" do
+    pirate = Pirate.create!(catchphrase: "arrrr")
+    assert_equal({}, pirate.changed_attributes)
+    pirate_clone = pirate.dup
+    assert_equal({"catchphrase" => nil}, pirate_clone.changed_attributes)
+    pirate_clone.catchphrase = "arrrr matey!"
+    assert_equal({}, pirate.changed_attributes)
+    assert_equal({"catchphrase" => nil}, pirate_clone.changed_attributes)
+  end
+
   private
     def with_partial_writes(klass, on = true)
       old = klass.partial_writes?

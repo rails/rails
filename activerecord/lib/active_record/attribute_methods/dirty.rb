@@ -40,6 +40,7 @@ module ActiveRecord
 
       def initialize_dup(other) # :nodoc:
         super
+        @original_raw_attributes = nil
         calculate_changes_from_defaults
       end
 
