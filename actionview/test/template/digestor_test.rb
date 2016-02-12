@@ -308,11 +308,11 @@ class TemplateDigestorTest < ActionView::TestCase
     end
 
     def dependencies(template_name)
-      ActionView::Digestor.new({ name: template_name, finder: finder }).dependencies
+      ActionView::Digestor.new(template_name, finder).dependencies
     end
 
     def nested_dependencies(template_name)
-      ActionView::Digestor.new({ name: template_name, finder: finder }).nested_dependencies
+      ActionView::Digestor.new(template_name, finder).nested_dependencies
     end
 
     def finder
