@@ -18,11 +18,12 @@ module ActionView
         cached_partials = collection_cache.read_multi(*keyed_collection.keys)
 
         @collection = keyed_collection.reject { |key, _| cached_partials.key?(key) }.values
-        rendered_partials = @collection.any? ? yield.dup : []
+        rendered_partials = @collection.any? ? yield : []
 
+        index = 0
         keyed_collection.map do |cache_key, _|
           cached_partials.fetch(cache_key) do
-            rendered_partials.shift
+            rendered_partials[index].tap { index += 1 }
           end
         end
       end
