@@ -15,13 +15,15 @@ module ActionView
         return yield unless cache_collection?
 
         keyed_collection = collection_by_cache_keys
-        partial_cache = collection_cache.read_multi(*keyed_collection.keys)
+        cached_partials = collection_cache.read_multi(*keyed_collection.keys)
 
-        @collection = keyed_collection.reject { |key, _| partial_cache.key?(key) }.values
+        @collection = keyed_collection.reject { |key, _| cached_partials.key?(key) }.values
         rendered_partials = @collection.any? ? yield.dup : []
 
-        fetch_or_cache_partial(partial_cache, order_by: keyed_collection.each_key) do
-          rendered_partials.shift
+        keyed_collection.map do |cache_key, _|
+          cached_partials.fetch(cache_key) do
+            rendered_partials.shift
+          end
         end
       end
 
@@ -48,12 +50,6 @@ module ActionView
       def expanded_cache_key(key)
         key = @view.fragment_cache_key(@view.cache_fragment_name(key, virtual_path: @template.virtual_path))
         key.frozen? ? key.dup : key # #read_multi & #write may require mutability, Dalli 2.6.0.
-      end
-
-      def fetch_or_cache_partial(cached_partials, order_by:)
-        order_by.map do |key|
-          cached_partials.fetch(key) { yield }
-        end
       end
 
       def collection_cache_rendered_partial(rendered_partial, key_by)
