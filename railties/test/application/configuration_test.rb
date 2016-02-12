@@ -1444,7 +1444,7 @@ module ApplicationTests
       assert Rails.configuration.api_only
     end
 
-    test "debug_exception_response_format is :api by default if only_api is enabled" do
+    test "debug_exception_response_format is :api by default if api_only is enabled" do
       add_to_config <<-RUBY
         config.api_only = true
       RUBY
