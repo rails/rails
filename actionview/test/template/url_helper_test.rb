@@ -1,3 +1,4 @@
+# coding: utf-8
 require 'abstract_unit'
 
 class UrlHelperTest < ActiveSupport::TestCase
@@ -402,6 +403,12 @@ class UrlHelperTest < ActiveSupport::TestCase
   def test_link_to_if_with_block
     assert_equal "Fallback", link_to_if(false, "Showing", url_hash) { "Fallback" }
     assert_dom_equal %{<a href="/">Listing</a>}, link_to_if(true, "Listing", url_hash) { "Fallback" }
+  end
+
+  def test_link_to_data_nil_equal
+    link_type1 = link_to('test', '#', 'class' => nil, 'data-tooltip' => nil)
+    link_type2 = link_to('test', '#', class: nil, data: {tooltip: nil})
+    assert_dom_equal link_type1, link_type2 
   end
 
   def request_for_url(url, opts = {})
