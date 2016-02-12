@@ -564,7 +564,7 @@ module ActionView
 
             add_method_to_attributes!(html_options, method) if method
 
-            html_options
+            html_options.delete_if { |key, value| value.nil? }
           else
             link_to_remote_options?(options) ? {'data-remote' => 'true'} : {}
           end
