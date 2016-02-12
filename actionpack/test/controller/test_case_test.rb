@@ -232,6 +232,13 @@ XML
     assert_equal({"id"=>"1", "controller"=>"test_case_test/test", "action"=>"test_params"}, ::JSON.parse(@response.body))
   end
 
+  def test_collection_in_document_body_with_post
+    params = { data: { books: [{ data: { page: 1}}, {data: {page: 2}}] } }
+
+    post :test_params, params: params
+    assert_equal params[:data][:books].length, ::JSON.parse(@response.body)["data"]["books"].length
+  end
+
   def test_document_body_with_post
     post :render_body, body: "document body"
     assert_equal "document body", @response.body
