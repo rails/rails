@@ -30,8 +30,7 @@ module ActionView
       end
 
       def automatic_cache_eligible?
-        @template && !callable_cache_key? &&
-          @template.eligible_for_collection_caching?(as: @options[:as])
+        @template && @template.eligible_for_collection_caching?(as: @options[:as])
       end
 
       def callable_cache_key?
