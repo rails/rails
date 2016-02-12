@@ -5,6 +5,7 @@ require 'models/warehouse_thing'
 require 'models/guid'
 require 'models/event'
 require 'models/dashboard'
+require 'models/uuid_item'
 
 class Wizard < ActiveRecord::Base
   self.abstract_class = true
@@ -46,6 +47,10 @@ class BigIntReverseTest < ActiveRecord::Base
   self.table_name = 'cars'
   validates :engines_count, inclusion: { in: 0..INT_MAX_VALUE }
   validates :engines_count, uniqueness: true
+end
+
+class CoolTopic < Topic
+  validates_uniqueness_of :id
 end
 
 class UniquenessValidationTest < ActiveRecord::TestCase
@@ -479,5 +484,26 @@ class UniquenessValidationTest < ActiveRecord::TestCase
     t.id += 1
     assert t.valid?, "Should be valid"
     assert t.save, "Should still save t as unique"
+  end
+
+  def test_validate_uniqueness_uuid
+    skip unless current_adapter?(:PostgreSQLAdapter)
+    item = UuidItem.create!(uuid: SecureRandom.uuid, title: 'item1')
+    item.update(title: 'item1-title2')
+    assert_empty item.errors
+
+    item2 = UuidValidatingItem.create!(uuid: SecureRandom.uuid, title: 'item2')
+    item2.update(title: 'item2-title2')
+    assert_empty item2.errors
+  end
+
+  def test_validate_uniqueness_regular_id
+    item = CoolTopic.create!(title: 'MyItem')
+    assert_empty item.errors
+
+    item2 = CoolTopic.new(id: item.id, title: 'MyItem2')
+    refute item2.valid?
+
+    assert_equal(["has already been taken"], item2.errors[:id])
   end
 end
