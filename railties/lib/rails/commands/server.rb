@@ -13,7 +13,7 @@ module Rails
 
         option_parser(options).parse! args
 
-        options[:log_stdout] = options[:daemonize].blank? && (options[:environment] || Rails.env) == "development"
+        options[:log_stdout] = options[:daemonize].blank?
         options[:server]     = args.shift
         options
       end
