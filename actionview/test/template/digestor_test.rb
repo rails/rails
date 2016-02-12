@@ -13,34 +13,12 @@ class FixtureTemplate
   end
 end
 
-class FixtureFinder
+class FixtureFinder < ActionView::LookupContext
   FIXTURES_DIR = "#{File.dirname(__FILE__)}/../fixtures/digestor"
 
-  attr_reader   :details, :view_paths
-  attr_accessor :formats
-  attr_accessor :variants
-
-  def initialize
-    @details  = {}
-    @view_paths = ActionView::PathSet.new(['digestor'])
-    @formats  = []
-    @variants = []
-  end
-
-  def details_key
-    details.hash
-  end
-
-  def find(name, prefixes = [], partial = false, keys = [], options = {})
-    partial_name = partial ? name.gsub(%r|/([^/]+)$|, '/_\1') : name
-    format = @formats.first.to_s
-    format += "+#{@variants.first}" if @variants.any?
-
-    FixtureTemplate.new("digestor/#{partial_name}.#{format}.erb")
-  end
-
-  def disable_cache(&block)
-    yield
+  def initialize(details = {})
+    prefixes = [FixtureFinder::FIXTURES_DIR]
+    super(ActionView::PathSet.new(['digestor']), details, prefixes)
   end
 end
 
@@ -206,13 +184,14 @@ class TemplateDigestorTest < ActionView::TestCase
 
   def test_details_are_included_in_cache_key
     # Cache the template digest.
+    @finder = FixtureFinder.new({:formats => [:html]})
     old_digest = digest("events/_event")
 
     # Change the template; the cached digest remains unchanged.
     change_template("events/_event")
 
     # The details are changed, so a new cache key is generated.
-    finder.details[:foo] = "bar"
+    @finder = FixtureFinder.new
 
     # The cache is busted.
     assert_not_equal old_digest, digest("events/_event")
@@ -324,7 +303,6 @@ class TemplateDigestorTest < ActionView::TestCase
     def digest(template_name, options = {})
       options = options.dup
 
-      finder.formats  = [:html]
       finder.variants = options.delete(:variants) || []
 
       ActionView::Digestor.digest({ name: template_name, finder: finder }.merge(options))
