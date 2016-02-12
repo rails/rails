@@ -36,7 +36,7 @@ Obviously Rails cannot be released when it depends on unreleased code.
 Contact the authors of those particular gems and work out a release date that
 suits them.
 
-### Contact the security team (either Koz or tenderlove)
+### Contact the security team (either tenderlove or rafaelfranca)
 
 Let them know of your plans to release.  There may be security issues to be
 addressed, and that can impact your release date.
