@@ -36,7 +36,7 @@ Obviously Rails cannot be released when it depends on unreleased code.
 Contact the authors of those particular gems and work out a release date that
 suits them.
 
-### Contact the security team (either Koz or tenderlove)
+### Contact the security team (tenderlove)
 
 Let them know of your plans to release.  There may be security issues to be
 addressed, and that can impact your release date.
@@ -183,9 +183,9 @@ Today, do this stuff in this order:
 * Email security lists
 * Email general announcement lists
 
-### Emailing the Rails security announce list
+### Emailing the Rails security announcement list
 
-Email the security announce list once for each vulnerability fixed.
+Every fixed vulnerability should have a separate email to the security announcement list.
 
 You can do this, or ask the security team to do it.
 
