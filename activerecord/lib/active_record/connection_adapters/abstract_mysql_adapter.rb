@@ -153,8 +153,8 @@ module ActiveRecord
         raise NotImplementedError
       end
 
-      def new_column(field, default, sql_type_metadata = nil, null = true, default_function = nil, collation = nil) # :nodoc:
-        MySQL::Column.new(field, default, sql_type_metadata, null, default_function, collation)
+      def new_column(field, default, sql_type_metadata, null, table_name, default_function = nil, collation = nil) # :nodoc:
+        MySQL::Column.new(field, default, sql_type_metadata, null, table_name, default_function, collation)
       end
 
       # Must return the MySQL error number from the exception, if the exception has an
@@ -429,9 +429,7 @@ module ActiveRecord
           else
             default, default_function = field[:Default], nil
           end
-          new_column(field[:Field], default, type_metadata, field[:Null] == "YES", default_function, field[:Collation]).tap do |column|
-            column.instance_variable_set(:@table_name, table_name)
-          end
+          new_column(field[:Field], default, type_metadata, field[:Null] == "YES", table_name, default_function, field[:Collation])
         end
       end
 

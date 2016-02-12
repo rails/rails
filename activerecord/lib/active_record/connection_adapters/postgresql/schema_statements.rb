@@ -221,14 +221,12 @@ module ActiveRecord
             type_metadata = fetch_type_metadata(column_name, type, oid, fmod)
             default_value = extract_value_from_default(default)
             default_function = extract_default_function(default_value, default)
-            new_column(column_name, default_value, type_metadata, !notnull, default_function, collation).tap do |column|
-              column.instance_variable_set(:@table_name, table_name)
-            end
+            new_column(column_name, default_value, type_metadata, !notnull, table_name, default_function, collation)
           end
         end
 
-        def new_column(name, default, sql_type_metadata = nil, null = true, default_function = nil, collation = nil) # :nodoc:
-          PostgreSQLColumn.new(name, default, sql_type_metadata, null, default_function, collation)
+        def new_column(name, default, sql_type_metadata, null, table_name, default_function = nil, collation = nil) # :nodoc:
+          PostgreSQLColumn.new(name, default, sql_type_metadata, null, table_name, default_function, collation)
         end
 
         # Returns the current database name.
