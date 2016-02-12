@@ -23,9 +23,9 @@ When changing Rails versions, it's best to move slowly, one minor version at a t
 The process should go as follows:
 
 1. Write tests and make sure they pass
-1. Move to the latest patch version after your current version
-1. Fix tests and deprecated features
-1. Move to the latest patch version of the next minor version
+2. Move to the latest patch version after your current version
+3. Fix tests and deprecated features
+4. Move to the latest patch version of the next minor version
 
 Repeat this process until you reach your target Rails version. Each time you move versions, you will need to change the Rails version number in the Gemfile (and possibly other gem versions) and run `bundle update`. Then run the Update rake task mentioned below to update configuration files, then run your tests.
 
