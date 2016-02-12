@@ -21,7 +21,7 @@ module ActiveRecord
       teardown do
         connection.drop_table :testings rescue nil
         ActiveRecord::Migration.verbose = @verbose_was
-        ActiveRecord::SchemaMigration.delete_all
+        ActiveRecord::SchemaMigration.delete_all rescue nil
       end
 
       def test_migration_doesnt_remove_named_index
