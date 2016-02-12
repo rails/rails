@@ -51,16 +51,15 @@ module ActionView
       end
 
       def fetch_or_cache_partial(cached_partials, order_by:)
-        rely_on_individual_cache_call = !callable_cache_key?
-
         order_by.map do |key|
-          cached_partials.fetch(key) do
-            yield.tap do |rendered_partial|
-              unless rely_on_individual_cache_call
-                collection_cache.write(key, rendered_partial, @options[:cache_options])
-              end
-            end
-          end
+          cached_partials.fetch(key) { yield }
+        end
+      end
+
+      def collection_cache_rendered_partial(rendered_partial, key_by)
+        if callable_cache_key?
+          key = expanded_cache_key(@options[:cache].call(key_by))
+          collection_cache.write(key, rendered_partial, @options[:cache_options])
         end
       end
   end
