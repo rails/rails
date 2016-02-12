@@ -56,12 +56,10 @@ module ActionView
       end
 
       def fetch_or_cache_partial(cached_partials, order_by:)
-        cache_options = @options[:cache_options] || @locals[:cache_options] || {}
-
         order_by.map do |key|
           cached_partials.fetch(key) do
             yield.tap do |rendered_partial|
-              collection_cache.write(key, rendered_partial, cache_options)
+              collection_cache.write(key, rendered_partial, @options[:cache_options])
             end
           end
         end
