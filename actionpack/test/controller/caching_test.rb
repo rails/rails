@@ -417,8 +417,11 @@ class AutomaticCollectionCacheTest < ActionController::TestCase
 
   def test_preserves_order_when_reading_from_cache_plus_rendering
     get :index, params: { id: 2 }
-    get :index_ordered
+    assert_equal 1, @controller.partial_rendered_times
+    assert_select ':root', 'david, 2'
 
+    get :index_ordered
+    assert_equal 3, @controller.partial_rendered_times
     assert_select ':root', "david, 1\n  david, 2\n  david, 3"
   end
 
