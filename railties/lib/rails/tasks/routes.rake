@@ -2,7 +2,7 @@ require 'active_support/deprecation'
 require 'active_support/core_ext/string/strip' # for strip_heredoc
 require 'optparse'
 
-desc 'Print out all defined routes in match order, with names. Target specific controller with --controller option - or its -c shorthand.'
+desc 'Print out all defined routes in match order, with names. Target specific controller with -c option, or grep routes using -g option'
 task routes: :environment do
   all_routes = Rails.application.routes.routes
   require 'action_dispatch/routing/inspector'
@@ -19,11 +19,11 @@ task routes: :environment do
 
   OptionParser.new do |opts|
     opts.banner = "Usage: rails routes [options]"
-    opts.on("-c", "--controller [CONTROLLER]") do |controller|
+    opts.on("-c CONTROLLER") do |controller|
       routes_filter = { controller: controller }
     end
 
-    opts.on("-g", "--grep [PATTERN]") do |pattern|
+    opts.on("-g PATTERN") do |pattern|
       routes_filter = pattern
     end
 
