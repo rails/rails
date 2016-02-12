@@ -145,15 +145,21 @@ module ActiveRecord
     #
     #   [#<Person id:4>, #<Person id:3>, #<Person id:2>]
     def last(limit = nil)
-      if limit
-        if order_values.empty? && primary_key
-          order(arel_attribute(primary_key).desc).limit(limit).reverse
-        else
-          to_a.last(limit)
-        end
-      else
-        find_last
-      end
+      return find_last(limit) if loaded? || limit_value
+
+      result = limit(limit || 1)
+      result.order!(arel_attribute(primary_key)) if order_values.empty? && primary_key
+      result = result.reverse_order!
+
+      limit ? result.reverse : result.first
+    rescue ActiveRecord::IrreversibleOrderError
+      ActiveSupport::Deprecation.warn(<<-WARNING.squish)
+          Finding a last element by loading the relation when SQL ORDER
+          can not be reversed is deprecated.
+          Rails 5.1 will raise ActiveRecord::IrreversibleOrderError in this case.
+          Please call `to_a.last` if you still want to load the relation.
+      WARNING
+      find_last(limit)
     end
 
     # Same as #last but raises ActiveRecord::RecordNotFound if no record
@@ -577,6 +583,10 @@ module ActiveRecord
         index += offset
         find_nth_with_limit(index, limit)
       end
+    end
+
+    def find_last(limit)
+      limit ? to_a.last(limit) : to_a.last
     end
   end
 end
