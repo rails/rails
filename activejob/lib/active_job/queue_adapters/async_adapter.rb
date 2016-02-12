@@ -4,7 +4,7 @@ module ActiveJob
   module QueueAdapters
     # == Active Job Async adapter
     #
-    # When enqueueing jobs with the Async adapter the job will be executed
+    # When enqueuing jobs with the Async adapter the job will be executed
     # asynchronously using {AsyncJob}[http://api.rubyonrails.org/classes/ActiveJob/AsyncJob.html].
     #
     # To use +AsyncJob+ set the queue_adapter config to +:async+.

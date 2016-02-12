@@ -6,7 +6,7 @@ require 'concurrent/utility/processor_counter'
 module ActiveJob
   # == Active Job Async Job
   #
-  # When enqueueing jobs with Async Job each job will be executed asynchronously
+  # When enqueuing jobs with Async Job each job will be executed asynchronously
   # on a +concurrent-ruby+ thread pool. All job data is retained in memory.
   # Because job data is not saved to a persistent datastore there is no
   # additional infrastructure needed and jobs process quickly. The lack of
