@@ -17,8 +17,7 @@ class FixtureFinder < ActionView::LookupContext
   FIXTURES_DIR = "#{File.dirname(__FILE__)}/../fixtures/digestor"
 
   def initialize(details = {})
-    prefixes = [FixtureFinder::FIXTURES_DIR]
-    super(ActionView::PathSet.new(['digestor']), details, prefixes)
+    super(ActionView::PathSet.new(['digestor']), details, [])
   end
 end
 
