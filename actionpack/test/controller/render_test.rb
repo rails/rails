@@ -537,7 +537,7 @@ end
 class ImplicitRenderTest < ActionController::TestCase
   tests ImplicitRenderTestController
 
-  def test_implicit_missing_template_error_for_regular_browser_request
+  def test_implicit_missing_template_error_for_interactive_browser_request
     assert_raises(ActionView::MissingTemplate) do
       get :empty_action
     end

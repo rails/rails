@@ -11,19 +11,16 @@ module ActionController
     # If no template is found for a regular browser request, 
     # <tt>ActionView::MissingTemplate</tt> is raised.
     #
-    # If no template is found for any other request type, 
-    # <tt>ActionController::BasicImplicitRender</tt>'s implementation is called, unless
-    # a block is passed. In that case, it will override the super implementation.
+    # If no template is found and a block is passed, then the block is called 
+    # to allow the caller to handle the missing template. If no block is passed 
+    # and it's an HTML, non-XHR (interactive browser) request, then 
+    # <tt>ActionView::MissingTemplate</tt> is raised. Otherwise, 
+    # <tt>ActionController::BasicImplicitRender</tt>'s implementation is called.
     #
     #   default_render do
     #     head 404 # No template was found
     #   end
     def default_render(*args) 
-      if regular_browser_request?
-        render(*args)
-        return
-      end
-
       if template_exists?(action_name.to_s, _prefixes, variants: request.variant)
         render(*args)
       else
@@ -31,7 +28,13 @@ module ActionController
           yield(*args)
         else
           logger.info "No template found for #{self.class.name}\##{action_name}, rendering head :no_content" if logger
-          super
+          if interactive_browser_request?
+            # calling render will raise ActionView::MissingTemplate because 
+            # the template's not there, and that's the exception we want
+            render(*args) 
+          else
+            super
+          end
         end
       end
     end
@@ -42,7 +45,7 @@ module ActionController
       end
     end
 
-    def regular_browser_request?
+    def interactive_browser_request?
       request.format == Mime[:html] && !request.xhr?
     end
   end

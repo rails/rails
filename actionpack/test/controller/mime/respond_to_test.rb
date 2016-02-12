@@ -615,7 +615,7 @@ class RespondToControllerTest < ActionController::TestCase
     end
   end
 
-  def test_invalid_variant_for_regular_browser_request
+  def test_invalid_variant_for_interactive_browser_request
     assert_raises(ActionView::MissingTemplate) do
       get :variant_with_implicit_rendering, params: { v: :invalid }
     end
@@ -632,7 +632,7 @@ class RespondToControllerTest < ActionController::TestCase
     ActionController::Base.logger = old_logger
   end
 
-  def test_variant_not_set_template_missing_for_regular_browser_request
+  def test_variant_not_set_template_missing_for_interactive_browser_request
     assert_raises(ActionView::MissingTemplate) do
       get :variant_with_implicit_rendering
     end
@@ -643,7 +643,7 @@ class RespondToControllerTest < ActionController::TestCase
     assert_response :no_content
   end
 
-  def test_variant_with_implicit_rendering_for_regular_browser_request
+  def test_variant_with_implicit_rendering_for_interactive_browser_request
     assert_raises(ActionView::MissingTemplate) do
       get :variant_with_implicit_rendering, params: { v: :implicit }
     end

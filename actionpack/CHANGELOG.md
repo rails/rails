@@ -1,4 +1,4 @@
-*   When responding to regular browser requests for actions with no 
+*   When responding to HTML, non-XHR browser requests for actions with no 
     corresponding templates, raise `ActionView::MissingTemplate` errors 
     rather than rendering `head :no_content`. That way the browser
     refreshes with a traditional, helpful error message.
