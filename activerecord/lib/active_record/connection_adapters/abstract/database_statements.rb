@@ -30,7 +30,7 @@ module ActiveRecord
       def select_all(arel, name = nil, binds = [], preparable: nil)
         arel, binds = binds_from_relation arel, binds
         sql = to_sql(arel, binds)
-        if arel.is_a?(String) && preparable.nil?
+        if !prepared_statements || (arel.is_a?(String) && preparable.nil?)
           preparable = false
         else
           preparable = visitor.preparable
