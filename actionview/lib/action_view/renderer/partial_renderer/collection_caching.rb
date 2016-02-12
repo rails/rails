@@ -30,12 +30,8 @@ module ActionView
       end
 
       def automatic_cache_eligible?
-        single_template_render? && !callable_cache_key? &&
+        @template && !callable_cache_key? &&
           @template.eligible_for_collection_caching?(as: @options[:as])
-      end
-
-      def single_template_render?
-        @template # Template is only set when a collection renders one template.
       end
 
       def callable_cache_key?
