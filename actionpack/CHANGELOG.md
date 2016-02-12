@@ -13,7 +13,7 @@
             headers: { 'Content-Type' => 'application/json' }
         end
 
-        assert_equal({ id: Article.last.id, title: 'Ahoy!' }, JSON.parse(response.body))
+        assert_equal({ 'id' => Article.last.id, 'title' => 'Ahoy!' }, JSON.parse(response.body))
       end
     end
     ```
@@ -29,10 +29,19 @@
           post articles_path, { article: { title: 'Ahoy!' } }, as: :json
         end
 
-        assert_equal({ id: Article.last.id, title: 'Ahoy!' }, response.parsed_body)
+        assert_equal({ 'id' => Article.last.id, 'title' => 'Ahoy!' }, response.parsed_body)
       end
     end
     ```
+    
+    Passing `as: :json` to integration test request helpers will set the format,
+    content type and encode the parameters as JSON.
+    
+    Then on the response side, `parsed_body` will parse the body according to the
+    content type the response has.
+    
+    Currently JSON is the only supported MIME type. Add your own with
+    `ActionDispatch::IntegrationTest.register_encoder`.
 
     *Kasper Timm Hansen*
 
