@@ -390,6 +390,11 @@ class CollectionCacheController < ActionController::Base
     @customers = [Customer.new('david', 1)]
     render partial: 'customers/commented_customer', collection: @customers, as: :customer
   end
+
+  def index_with_callable_cache_key
+    @customers = [Customer.new('david', 1)]
+    render @customers, cache: -> customer { 'cached_david' }
+  end
 end
 
 class AutomaticCollectionCacheTest < ActionController::TestCase
@@ -429,6 +434,26 @@ class AutomaticCollectionCacheTest < ActionController::TestCase
 
     get :index_with_comment
     assert_equal 1, @controller.partial_rendered_times
+  end
+
+  def test_caching_with_callable_cache_key
+    get :index_with_callable_cache_key
+    assert_equal 1, @controller.partial_rendered_times
+    assert_select ':root', 'david, 1'
+
+    get :index_with_callable_cache_key
+    assert_equal 1, @controller.partial_rendered_times
+    assert_select ':root', 'david, 1'
+  end
+
+  def test_caching_mixing_callable_cache_key_and_automatic_caching
+    get :index
+    assert_equal 1, @controller.partial_rendered_times
+    assert_select ':root', 'david, 1'
+
+    get :index_with_callable_cache_key
+    assert_equal 1, @controller.partial_rendered_times, 'individual cache not reused with collection'
+    assert_select ':root', 'david, 1'
   end
 end
 
