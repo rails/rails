@@ -410,6 +410,7 @@ class AutomaticCollectionCacheTest < ActionController::TestCase
   def test_collection_fetches_cached_views
     get :index
     assert_equal 1, @controller.partial_rendered_times
+    assert_customer_cached 'david/1', 'david, 1'
 
     get :index
     assert_equal 1, @controller.partial_rendered_times
@@ -441,23 +442,15 @@ class AutomaticCollectionCacheTest < ActionController::TestCase
 
   def test_caching_with_callable_cache_key
     get :index_with_callable_cache_key
-    assert_equal 1, @controller.partial_rendered_times
-    assert_select ':root', 'david, 1'
-
-    get :index_with_callable_cache_key
-    assert_equal 1, @controller.partial_rendered_times
-    assert_select ':root', 'david, 1'
+    assert_customer_cached 'cached_david', 'david, 1'
+    assert_customer_cached 'david/1', 'david, 1'
   end
 
-  def test_caching_mixing_callable_cache_key_and_automatic_caching
-    get :index
-    assert_equal 1, @controller.partial_rendered_times
-    assert_select ':root', 'david, 1'
-
-    get :index_with_callable_cache_key
-    assert_equal 1, @controller.partial_rendered_times, 'individual cache not reused with collection'
-    assert_select ':root', 'david, 1'
-  end
+  private
+    def assert_customer_cached(key, content)
+      assert_match content,
+        ActionView::PartialRenderer.collection_cache.read("views/#{key}/7c228ab609f0baf0b1f2367469210937")
+    end
 end
 
 class FragmentCacheKeyTestController < CachingController
