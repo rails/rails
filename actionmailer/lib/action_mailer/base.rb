@@ -664,7 +664,7 @@ module ActionMailer
     #
     # You can also specify overrides if you want by passing a hash instead of a string:
     #
-    #  mail.attachments['filename.jpg'] = {mime_type: 'application/x-gzip',
+    #  mail.attachments['filename.jpg'] = {mime_type: 'application/gzip',
     #                                      content: File.read('/path/to/filename.jpg')}
     #
     # If you want to use encoding other than Base64 then you will need to pass encoding
@@ -672,7 +672,7 @@ module ActionMailer
     # data:
     #
     #  file_content = SpecialEncode(File.read('/path/to/filename.jpg'))
-    #  mail.attachments['filename.jpg'] = {mime_type: 'application/x-gzip',
+    #  mail.attachments['filename.jpg'] = {mime_type: 'application/gzip',
     #                                      encoding: 'SpecialEncoding',
     #                                      content: file_content }
     #

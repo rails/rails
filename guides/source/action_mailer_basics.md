@@ -278,7 +278,7 @@ different, encode your content and pass in the encoded content and encoding in a
     ```ruby
     encoded_content = SpecialEncode(File.read('/path/to/filename.jpg'))
     attachments['filename.jpg'] = {
-      mime_type: 'application/x-gzip',
+      mime_type: 'application/gzip',
       encoding: 'SpecialEncoding',
       content: encoded_content
     }
