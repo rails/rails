@@ -54,6 +54,15 @@ class BigIntReverseTest < ActiveRecord::Base
   validates :engines_count, uniqueness: true
 end
 
+class TopicWithAfterCreate < Topic
+  after_create :set_author
+
+  def set_author
+    update_attributes!(:author_name => "#{title} #{id}")
+  end
+end
+
+
 class UniquenessValidationTest < ActiveRecord::TestCase
   INT_MAX_VALUE = 2147483647
 
@@ -450,5 +459,26 @@ class UniquenessValidationTest < ActiveRecord::TestCase
     end
     assert_match(/\AUnknown primary key for table dashboards in model/, e.message)
     assert_match(/Can not validate uniqueness for persisted record without primary key.\z/, e.message)
+  end
+
+  def test_validate_uniqueness_ignores_itself_when_primary_key_changed
+    Topic.validates_uniqueness_of(:title)
+
+    t = Topic.new("title" => "This is a unique title")
+    assert t.save, "Should save t as unique"
+
+    t.id += 1
+    assert t.valid?, "Should be valid"
+    assert t.save, "Should still save t as unique"
+  end
+
+  def test_validate_uniqueness_with_after_create_performing_save
+    TopicWithAfterCreate.validates_uniqueness_of(:title)
+    topic = TopicWithAfterCreate.create!(:title => "Title1")
+    assert topic.author_name.start_with?("Title1")
+
+    topic2 = TopicWithAfterCreate.new(:title => "Title1")
+    refute topic2.valid?
+    assert_equal(["has already been taken"], topic2.errors[:title])
   end
 end
