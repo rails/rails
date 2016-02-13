@@ -1,3 +1,9 @@
+* Allow channel identifiers with no backslahes/escapin to be accepted
+  by the subscription storer. Also, subscriptions are now identified
+by their _escaped_ JSON keys. For example, `"{\"channel\":\"RoomChannel\"}"` is now identified by `{"channel"=>"RoomChannel"}` in the global subscriptions hash.
+
+   *Jon Moss*
+
 *  Added ActionCable::SubscriptionAdapter::EventedRedis.em_redis_connector/redis_connector and
    ActionCable::SubscriptionAdapter::Redis.redis_connector factory methods for redis connections, 
    so you can overwrite with your own initializers. This is used when you want to use different-than-standard Redis adapters,
