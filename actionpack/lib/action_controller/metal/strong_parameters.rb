@@ -653,10 +653,32 @@ module ActionController
         end
       end
 
+      def permit_nested_array(elements, object)
+        permitted = []
+        
+        object.each do |nested_object|
+          case nested_object
+          when Array
+            permitted << permit_nested_array(elements, nested_object)
+          else
+            permitted << nested_object.select {|nested| elements.keys.include?(nested)}
+          end
+        end
+        
+        permitted
+      end
+      
       def each_element(object)
         case object
         when Array
-          object.grep(Parameters).map { |el| yield el }.compact
+          allowed_elements = object.flatten.grep(Parameters).map { |el| yield el }.compact
+          
+          if object.first.is_a?(Array)
+            permit_nested_array(allowed_elements.first, object)
+          else
+            allowed_elements
+          end
+          
         when Parameters
           if object.fields_for_style?
             hash = object.class.new
