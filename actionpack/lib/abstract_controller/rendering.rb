@@ -24,7 +24,7 @@ module AbstractController
       options = _normalize_render(*args, &block)
       rendered_body = render_to_body(options)
       if options[:html]
-        _set_html_content_type
+        set_html_content_type
       else
         _set_rendered_content_type rendered_format
       end
@@ -68,10 +68,9 @@ module AbstractController
     # You can overwrite this configuration per controller.
     # :api: public
     def view_assigns
-      protected_vars = _protected_ivars
-      variables      = instance_variables
+      variables = instance_variables
 
-      variables.reject! { |s| protected_vars.include? s }
+      variables.reject! { |s| DEFAULT_PROTECTED_INSTANCE_VARIABLES.include? s }
       variables.each_with_object({}) { |name, hash|
         hash[name.slice(1, name.length)] = instance_variable_get(name)
       }
@@ -107,31 +106,24 @@ module AbstractController
       options
     end
 
-    # Process the rendered format.
-    # :api: private
-    def _process_format(format)
-    end
-
-    def _set_html_content_type # :nodoc:
-    end
-
-    def _set_rendered_content_type(format) # :nodoc:
-    end
-
-    # Normalize args and options.
-    # :api: private
-    def _normalize_render(*args, &block)
-      options = _normalize_args(*args, &block)
-      #TODO: remove defined? when we restore AP <=> AV dependency
-      if defined?(request) && request.variant.present?
-        options[:variant] = request.variant
+    private
+      def set_html_content_type # :nodoc:
+        self.content_type = Mime[:html].to_s
       end
-      _normalize_options(options)
-      options
-    end
 
-    def _protected_ivars # :nodoc:
-      DEFAULT_PROTECTED_INSTANCE_VARIABLES
-    end
+      def _set_rendered_content_type(format) # :nodoc:
+      end
+
+      # Normalize args and options.
+      # :api: private
+      def _normalize_render(*args, &block)
+        options = _normalize_args(*args, &block)
+        #TODO: remove defined? when we restore AP <=> AV dependency
+        if defined?(request) && request.variant.present?
+          options[:variant] = request.variant
+        end
+        _normalize_options(options)
+        options
+      end
   end
 end

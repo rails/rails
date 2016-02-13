@@ -155,6 +155,7 @@ module ActionController
       nil
     end
 
+    # Load in the default renderers -- <tt>:json</tt>, <tt>:js</tt>, and <tt>:xml</tt>.
     add :json do |json, options|
       json = json.to_json(options) unless json.kind_of?(String)
 
