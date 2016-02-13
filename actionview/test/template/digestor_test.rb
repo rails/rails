@@ -130,6 +130,16 @@ class TemplateDigestorTest < ActionView::TestCase
     end
   end
 
+  def test_getting_of_singly_nested_dependencies
+    singly_nested_dependencies = ["messages/header", "messages/form", "messages/message", "events/event", "comments/comment"]
+    assert_equal singly_nested_dependencies, nested_dependencies('messages/edit')
+  end
+
+  def test_getting_of_doubly_nested_dependencies
+    doubly_nested = [{"comments/comments"=>["comments/comment"]}, "messages/message"]
+    assert_equal doubly_nested, nested_dependencies('messages/peek')
+  end
+
   def test_nested_template_directory
     assert_digest_difference("messages/show") do
       change_template("messages/actions/_move")
