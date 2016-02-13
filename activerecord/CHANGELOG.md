@@ -2,6 +2,8 @@
 
     Closes #13775.
 
+    *Takashi Kokubun*
+
 *   Add ActiveRecord `#second_to_last` and `#third_to_last` methods.
 
     *Brian Christian*
