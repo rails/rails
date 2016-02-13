@@ -55,26 +55,23 @@ module ActionView
         end
     end
 
-    EMPTY = Class.new {
-      def name; 'missing'; end
-      def digest; ''; end
-    }.new
-
     def self.tree(name, finder, partial = false, seen = {})
       if obj = seen[name]
         obj
       else
         logical_name = name.gsub(%r|/_|, "/")
-        template = finder.disable_cache { finder.find(logical_name, [], partial) }
-        node = seen[name] = Node.new(name, logical_name, template, partial, [])
+
+        if finder.disable_cache { finder.exists?(logical_name, [], partial) }
+          template = finder.disable_cache { finder.find(logical_name, [], partial) }
+          node = seen[name] = Node.new(name, logical_name, template, partial, [])
+        else
+          node = seen[name] = Missing.new(name, logical_name, nil, partial, [])
+          return node
+        end
+
         deps = DependencyTracker.find_dependencies(name, template, finder.view_paths)
         deps.each do |dep_file|
-          l_name = dep_file.gsub(%r|/_|, "/")
-          if finder.disable_cache { finder.exists?(l_name, [], true) }
-            node.children << tree(dep_file, finder, true, seen)
-          else
-            node.children << Missing.new(dep_file, l_name, nil, true, [])
-          end
+          node.children << tree(dep_file, finder, true, seen)
         end
         node
       end
