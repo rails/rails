@@ -44,13 +44,13 @@ TIP: Ruby 1.8.7 p248 and p249 have marshaling bugs that crash Rails. Ruby Enterp
 
 ### The Rake Task
 
-Rails provides the `rails:update` rake task. After updating the Rails version
+Rails provides the `app:update` rake task. After updating the Rails version
 in the Gemfile, run this rake task.
 This will help you with the creation of new files and changes of old files in an
 interactive session.
 
 ```bash
-$ rake rails:update
+$ rails app:update
    identical  config/boot.rb
        exist  config
     conflict  config/routes.rb

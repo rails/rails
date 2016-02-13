@@ -22,11 +22,11 @@ $ rails new blog -m ~/template.rb
 $ rails new blog -m http://example.com/template.rb
 ```
 
-You can use the task `rails:template` to apply templates to an existing Rails application. The location of the template needs to be passed in to an environment variable named LOCATION. Again, this can either be path to a file or a URL.
+You can use the task `app:template` to apply templates to an existing Rails application. The location of the template needs to be passed in to an environment variable named LOCATION. Again, this can either be path to a file or a URL.
 
 ```bash
-$ bin/rails rails:template LOCATION=~/template.rb
-$ bin/rails rails:template LOCATION=http://example.com/template.rb
+$ bin/rails app:template LOCATION=~/template.rb
+$ bin/rails app:template LOCATION=http://example.com/template.rb
 ```
 
 Template API
