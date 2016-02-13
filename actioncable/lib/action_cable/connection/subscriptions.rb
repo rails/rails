@@ -23,13 +23,13 @@ module ActionCable
       end
 
       def add(data)
-        id_key = data['identifier']
-        id_options = ActiveSupport::JSON.decode(id_key).with_indifferent_access
+        id_options = decode_hash(data['identifier'])
+        identifier = normalize_identifier(id_options)
 
         subscription_klass = connection.server.channel_classes[id_options[:channel]]
 
         if subscription_klass
-          subscriptions[id_key] ||= subscription_klass.new(connection, id_key, id_options)
+          subscriptions[identifier] ||= subscription_klass.new(connection, identifier, id_options)
         else
           logger.error "Subscription class not found (#{data.inspect})"
         end
@@ -37,7 +37,7 @@ module ActionCable
 
       def remove(data)
         logger.info "Unsubscribing from channel: #{data['identifier']}"
-        remove_subscription subscriptions[data['identifier']]
+        remove_subscription subscriptions[normalize_identifier(data['identifier'])]
       end
 
       def remove_subscription(subscription)
@@ -46,7 +46,7 @@ module ActionCable
       end
 
       def perform_action(data)
-        find(data).perform_action ActiveSupport::JSON.decode(data['data'])
+        find(data).perform_action(decode_hash(data['data']))
       end
 
       def identifiers
@@ -63,8 +63,21 @@ module ActionCable
       private
         delegate :logger, to: :connection
 
+        def normalize_identifier(identifier)
+          identifier = ActiveSupport::JSON.encode(identifier) if identifier.is_a?(Hash)
+          identifier
+        end
+
+        # If `data` is a Hash, this means that the original JSON
+        # sent by the client had no backslashes in it, and does
+        # not need to be decoded again.
+        def decode_hash(data)
+          data = ActiveSupport::JSON.decode(data) unless data.is_a?(Hash)
+          data.with_indifferent_access
+        end
+
         def find(data)
-          if subscription = subscriptions[data['identifier']]
+          if subscription = subscriptions[normalize_identifier(data['identifier'])]
             subscription
           else
             raise "Unable to find subscription with identifier: #{data['identifier']}"

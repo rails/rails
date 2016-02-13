@@ -6,6 +6,7 @@ require 'puma'
 require 'mocha/setup'
 
 require 'rack/mock'
+require 'active_support/core_ext/hash/indifferent_access'
 
 # Require all the stubs and models
 Dir[File.dirname(__FILE__) + '/stubs/*.rb'].each {|file| require file }
