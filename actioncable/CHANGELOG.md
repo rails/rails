@@ -1,3 +1,8 @@
+* Allow channel identifiers with no backslahes/escaping to be accepted
+  by the subscription storer.
+
+   *Jon Moss*
+
 *   Safely support autoloading and class unloading, by preventing concurrent
     loads, and disconnecting all cables during reload.
 
