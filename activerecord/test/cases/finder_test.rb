@@ -101,7 +101,7 @@ class FinderTest < ActiveRecord::TestCase
 
   def test_find_with_ids_where_and_limit
     # Please note that Topic 1 is the only not approved so
-    # if it were among the first 3 it would raise a ActiveRecord::RecordNotFound
+    # if it were among the first 3 it would raise an ActiveRecord::RecordNotFound
     records = Topic.where(approved: true).limit(3).find([3,2,5,1,4])
     assert_equal 3, records.size
     assert_equal 'The Third Topic of the day',  records[0].title

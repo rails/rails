@@ -179,7 +179,7 @@ module ActiveRecord
   #
   # If the +before_validation+ callback throws +:abort+, the process will be
   # aborted and {ActiveRecord::Base#save}[rdoc-ref:Persistence#save] will return +false+.
-  # If {ActiveRecord::Base#save!}[rdoc-ref:Persistence#save!] is called it will raise a ActiveRecord::RecordInvalid exception.
+  # If {ActiveRecord::Base#save!}[rdoc-ref:Persistence#save!] is called it will raise an ActiveRecord::RecordInvalid exception.
   # Nothing will be appended to the errors object.
   #
   # == Canceling callbacks

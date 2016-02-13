@@ -461,7 +461,7 @@ model, a comment controller and then modify the articles scaffold to display
 comments and allow people to create new ones.
 
 From the application root, run the model generator. Tell it to generate a
-`Comment` model, with the related table having two columns: a `article_id` integer
+`Comment` model, with the related table having two columns: an `article_id` integer
 and `text` text column.
 
 ```bash

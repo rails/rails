@@ -319,7 +319,7 @@ person.serializable_hash   # => {"name"=>"Bob"}
 
 #### ActiveModel::Serializers
 
-Rails provides a `ActiveModel::Serializers::JSON` serializer.
+Rails provides an `ActiveModel::Serializers::JSON` serializer.
 This module automatically include the `ActiveModel::Serialization`.
 
 ##### ActiveModel::Serializers::JSON

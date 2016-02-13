@@ -35,7 +35,7 @@ module ActionCable
     #
     # First, we declare that this connection can be identified by its current_user. This allows us later to be able to find all connections
     # established for that current_user (and potentially disconnect them if the user was removed from an account). You can declare as many
-    # identification indexes as you like. Declaring an identification means that a attr_accessor is automatically set for that key.
+    # identification indexes as you like. Declaring an identification means that an attr_accessor is automatically set for that key.
     #
     # Second, we rely on the fact that the WebSocket connection is established with the cookies from the domain being sent along. This makes
     # it easy to use signed cookies that were set when logging in via a web interface to authorize the WebSocket connection.

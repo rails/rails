@@ -45,7 +45,7 @@ module ActiveRecord
     end
 
     # Attempts to save the record just like {ActiveRecord::Base#save}[rdoc-ref:Base#save] but
-    # will raise a ActiveRecord::RecordInvalid exception instead of returning +false+ if the record is not valid.
+    # will raise an ActiveRecord::RecordInvalid exception instead of returning +false+ if the record is not valid.
     def save!(options={})
       perform_validations(options) ? super : raise_validation_error
     end

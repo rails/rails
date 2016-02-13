@@ -183,7 +183,7 @@ the logs. In the next version, these errors will no longer be suppressed.
 Instead, the errors will propagate normally just like in other Active
 Record callbacks.
 
-When you define a `after_rollback` or `after_commit` callback, you
+When you define an `after_rollback` or `after_commit` callback, you
 will receive a deprecation warning about this upcoming change. When
 you are ready, you can opt into the new behavior and remove the
 deprecation warning by adding following configuration to your

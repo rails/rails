@@ -555,7 +555,7 @@ class Admin::ProductsController < AdminController
 end
 ```
 
-The lookup order for a `admin/products#index` action will be:
+The lookup order for an `admin/products#index` action will be:
 
 * `app/views/admin/products/`
 * `app/views/admin/`

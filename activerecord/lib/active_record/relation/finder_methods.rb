@@ -330,7 +330,7 @@ module ActiveRecord
     end
 
     # This method is called whenever no records are found with either a single
-    # id or multiple ids and raises a ActiveRecord::RecordNotFound exception.
+    # id or multiple ids and raises an ActiveRecord::RecordNotFound exception.
     #
     # The error message is different depending on whether a single id or
     # multiple ids are provided. If multiple ids are provided, then the number
