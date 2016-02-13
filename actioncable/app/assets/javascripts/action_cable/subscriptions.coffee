@@ -58,7 +58,7 @@ class ActionCable.Subscriptions
 
   sendCommand: (subscription, command) ->
     {identifier} = subscription
-    if identifier is ActionCable.INTERNAL.identifiers.ping
+    if identifier is ActionCable.INTERNAL.message_types.ping
       @consumer.connection.isOpen()
     else
       @consumer.send({command, identifier})

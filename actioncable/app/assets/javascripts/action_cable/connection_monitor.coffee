@@ -7,7 +7,7 @@ class ActionCable.ConnectionMonitor
 
   @staleThreshold: 6 # Server::Connections::BEAT_INTERVAL * 2 (missed two pings)
 
-  identifier: ActionCable.INTERNAL.identifiers.ping
+  identifier: ActionCable.INTERNAL.message_types.ping
 
   constructor: (@consumer) ->
     @consumer.subscriptions.add(this)
