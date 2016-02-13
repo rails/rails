@@ -1112,6 +1112,8 @@ module ActiveRecord
 
       order_query.flat_map do |o|
         case o
+        when Arel::Attribute
+          o.desc
         when Arel::Nodes::Ordering
           o.reverse
         when String
