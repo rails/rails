@@ -81,7 +81,7 @@ module ActionView
     def nested_dependencies
       dependencies.collect do |dependency|
         dependencies = PartialDigestor.new(dependency, finder).nested_dependencies
-        dependencies.any? ? { dependency => dependencies } : dependency
+        dependencies.empty? ? dependency : { dependency => dependencies }
       end
     end
 
