@@ -4,6 +4,7 @@ require 'models/comment'
 require 'models/developer'
 require 'models/computer'
 require 'models/vehicle'
+require 'models/cat'
 
 class DefaultScopingTest < ActiveRecord::TestCase
   fixtures :developers, :posts, :comments
@@ -484,5 +485,16 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_equal 1, SubConditionalStiPost.count
     assert_equal 1, SubConditionalStiPost.all.to_a.size
     assert_equal 2, SubConditionalStiPost.unscope(where: :title).to_a.size
+  end
+
+  def test_with_abstract_class_scope_should_be_executed_in_correct_context
+    vegetarian_pattern, gender_pattern = if current_adapter?(:Mysql2Adapter)
+      [/`lions`.`is_vegetarian`/, /`lions`.`gender`/]
+    else
+      [/"lions"."is_vegetarian"/, /"lions"."gender"/]
+    end
+
+    assert_match vegetarian_pattern, Lion.all.to_sql
+    assert_match gender_pattern, Lion.female.to_sql
   end
 end
