@@ -635,6 +635,13 @@ class CachedCollectionViewRenderTest < CachedViewRenderTest
     ActionView::PartialRenderer.collection_cache.clear
   end
 
+  test "with falsy value for custom key" do
+    key = cache_key([false, 'falsy_value_key'], "test/_customer")
+
+    assert_equal "Hello",
+      @view.render(partial: "test/customer", collection: [false], cache: ->(item) { [item, 'falsy_value_key'] })
+  end
+
   test "with custom key" do
     customer = Customer.new("david")
     key = cache_key([customer, 'key'], "test/_customer")
