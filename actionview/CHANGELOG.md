@@ -68,7 +68,7 @@
 
     *Vasiliy Ermolovich*
 
-*   Add a `hidden_field` on the `collection_radio_buttons` to avoid raising a error
+*   Add a `hidden_field` on the `collection_radio_buttons` to avoid raising an error
     when the only input on the form is the `collection_radio_buttons`.
 
     *Mauro George*
