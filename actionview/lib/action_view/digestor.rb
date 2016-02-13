@@ -55,6 +55,55 @@ module ActionView
         end
     end
 
+    EMPTY = Class.new {
+      def name; 'missing'; end
+      def digest; ''; end
+    }.new
+
+    def self.tree(name, finder, partial = false, seen = {})
+      if obj = seen[name]
+        obj
+      else
+        logical_name = name.gsub(%r|/_|, "/")
+        template = finder.disable_cache { finder.find(logical_name, [], partial) }
+        node = seen[name] = Node.new(name, logical_name, template, partial, [])
+        deps = DependencyTracker.find_dependencies(name, template, finder.view_paths)
+        deps.each do |dep_file|
+          l_name = dep_file.gsub(%r|/_|, "/")
+          if finder.disable_cache { finder.exists?(l_name, [], true) }
+            node.children << tree(dep_file, finder, true, seen)
+          else
+            node.children << Missing.new(dep_file, l_name, nil, true, [])
+          end
+        end
+        node
+      end
+    end
+
+    class Node < Struct.new(:name, :logical_name, :template, :partial, :children)
+      def to_dep(finder)
+        if partial
+          PartialDigestor.new(name, finder, partial: partial)
+        else
+          Digestor.new(name, finder, partial: partial)
+        end
+      end
+
+      def digest
+        Digest::MD5.hexdigest("#{template.source}-#{dependency_digest}")
+      end
+
+      def dependency_digest
+        children.map(&:digest).join("-")
+      end
+    end
+
+    class Missing < Node
+      def digest
+        ''
+      end
+    end
+
     attr_reader :name, :finder, :options
 
     def initialize(name, finder, options = {})
@@ -76,6 +125,12 @@ module ActionView
     rescue ActionView::MissingTemplate
       logger.error "  '#{name}' file doesn't exist, so no dependencies"
       []
+    end
+
+    def children
+      dependencies.collect do |dependency|
+        PartialDigestor.new(dependency, finder)
+      end
     end
 
     def nested_dependencies

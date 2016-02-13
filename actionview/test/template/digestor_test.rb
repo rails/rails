@@ -36,6 +36,13 @@ class TemplateDigestorTest < ActionView::TestCase
     ActionView::Digestor.cache.clear
   end
 
+  def test_amaze
+    node = ActionView::Digestor.tree "messages/show", finder
+    x = ActionView::Digestor.new("messages/show", finder)
+    #assert_equal digest("messages/show"), node.to_dep(finder).digest
+    assert_equal digest("messages/show"), node.digest
+  end
+
   def test_top_level_change_reflected
     assert_digest_difference("messages/show") do
       change_template("messages/show")
