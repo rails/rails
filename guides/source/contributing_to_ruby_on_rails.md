@@ -367,7 +367,7 @@ Finally,
 $ bundle exec rake test
 ```
 
-will now run the four of them in turn.
+will now run the three of them in turn.
 
 You can also run any single test separately:
 
