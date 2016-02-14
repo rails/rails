@@ -110,6 +110,7 @@ module ActiveModel
     #   person.errors.include?(:name) # => true
     #   person.errors.include?(:age)  # => false
     def include?(attribute)
+      attribute = attribute.to_sym
       messages.key?(attribute) && messages[attribute].present?
     end
     alias :has_key? :include?
@@ -121,8 +122,9 @@ module ActiveModel
     #   person.errors.delete(:name) # => ["cannot be nil"]
     #   person.errors[:name]        # => []
     def delete(key)
-      details.delete(key)
-      messages.delete(key)
+      attribute = key.to_sym
+      details.delete(attribute)
+      messages.delete(attribute)
     end
 
     # When passed a symbol or a name of a method, returns an array of errors
@@ -342,6 +344,7 @@ module ActiveModel
     #   person.errors.full_messages_for(:name)
     #   # => ["Name is too short (minimum is 5 characters)", "Name can't be blank"]
     def full_messages_for(attribute)
+      attribute = attribute.to_sym
       messages[attribute].map { |message| full_message(attribute, message) }
     end
 
