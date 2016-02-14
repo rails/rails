@@ -5,3 +5,4 @@ They aren't used by Rails apps directly.
 
   * `console` drops you in irb and loads local Rails repos
   * `profile` profiles `Kernel#require` to help reduce startup time
+  * `line_statistics` provides CodeTools module and LineStatistics class to count lines
