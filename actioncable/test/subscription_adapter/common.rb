@@ -9,20 +9,7 @@ module CommonSubscriptionAdapterTest
   WAIT_WHEN_NOT_EXPECTING_EVENT = 0.2
 
   def setup
-    # TODO: ActionCable requires a *lot* of setup at the moment...
-    ::Object.const_set(:ApplicationCable, Module.new)
-    ::ApplicationCable.const_set(:Connection, Class.new(ActionCable::Connection::Base))
-
-    ::Object.const_set(:Rails, Module.new)
-    ::Rails.singleton_class.send(:define_method, :root) { Pathname.new(__dir__) }
-
     server = ActionCable::Server::Base.new
-    server.config = ActionCable::Server::Configuration.new
-    inner_logger = Logger.new(StringIO.new).tap { |l| l.level = Logger::UNKNOWN }
-    server.config.logger = ActionCable::Connection::TaggedLoggerProxy.new(inner_logger, tags: [])
-
-
-    # and now the "real" setup for our test:
     server.config.cable = cable_config.with_indifferent_access
 
     adapter_klass = server.config.pubsub_adapter
@@ -34,15 +21,6 @@ module CommonSubscriptionAdapterTest
   def teardown
     @tx_adapter.shutdown if @tx_adapter && @tx_adapter != @rx_adapter
     @rx_adapter.shutdown if @rx_adapter
-
-    begin
-      ::Object.send(:remove_const, :ApplicationCable)
-    rescue NameError
-    end
-    begin
-      ::Object.send(:remove_const, :Rails)
-    rescue NameError
-    end
   end
 
 
