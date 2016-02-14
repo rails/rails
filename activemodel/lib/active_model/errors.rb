@@ -223,7 +223,7 @@ module ActiveModel
     #   person.errors.messages # => {:name=>["cannot be nil", "must be specified"]}
     #   person.errors.values   # => [["cannot be nil", "must be specified"]]
     def values
-      messages.values
+      messages.values.reject { |value| value == [] }
     end
 
     # Returns all message keys.
@@ -231,7 +231,7 @@ module ActiveModel
     #   person.errors.messages # => {:name=>["cannot be nil", "must be specified"]}
     #   person.errors.keys     # => [:name]
     def keys
-      messages.keys
+      messages.reject { |_, value| value == [] }.keys
     end
 
     # Returns +true+ if no errors are found, +false+ otherwise.

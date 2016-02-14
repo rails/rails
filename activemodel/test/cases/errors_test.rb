@@ -107,17 +107,19 @@ class ErrorsTest < ActiveModel::TestCase
   test "values returns an array of messages" do
     errors = ActiveModel::Errors.new(self)
     errors.messages[:foo] = "omg"
-    errors.messages[:baz] = "zomg"
+    errors.messages[:bar] = ""
+    errors.key?(:baz)
 
-    assert_equal ["omg", "zomg"], errors.values
+    assert_equal ["omg", ""], errors.values
   end
 
   test "keys returns the error keys" do
     errors = ActiveModel::Errors.new(self)
     errors.messages[:foo] << "omg"
-    errors.messages[:baz] << "zomg"
+    errors.messages[:bar] << ""
+    errors.key?(:baz)
 
-    assert_equal [:foo, :baz], errors.keys
+    assert_equal [:foo, :bar], errors.keys
   end
 
   test "detecting whether there are errors with empty?, blank?, include?" do
@@ -215,7 +217,9 @@ class ErrorsTest < ActiveModel::TestCase
   test "size calculates the number of error messages" do
     person = Person.new
     person.errors.add(:name, "cannot be blank")
-    assert_equal 1, person.errors.size
+    person.errors.add(:email, "")
+    person.errors.key?(:age)
+    assert_equal 2, person.errors.size
   end
 
   test "count calculates the number of error messages" do
