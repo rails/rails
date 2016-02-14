@@ -713,7 +713,7 @@ By default, Active Record doesn't know about the connection between these associ
 
 ```ruby
 a = Author.first
-b = c.books.first
+b = a.books.first
 a.first_name == b.author.first_name # => true
 a.first_name = 'Manny'
 a.first_name == b.author.first_name # => false
@@ -734,8 +734,8 @@ end
 With these changes, Active Record will only load one copy of the author object, preventing inconsistencies and making your application more efficient:
 
 ```ruby
-a = author.first
-b = c.books.first
+a = Author.first
+b = a.books.first
 a.first_name == b.author.first_name # => true
 a.first_name = 'Manny'
 a.first_name == b.author.first_name # => true
