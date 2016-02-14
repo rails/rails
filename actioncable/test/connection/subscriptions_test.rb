@@ -77,7 +77,8 @@ class ActionCable::Connection::SubscriptionsTest < ActionCable::TestCase
       channel = subscribe_to_chat_channel
 
       data = { 'content' => 'Hello World!', 'action' => 'speak' }
-      @subscriptions.execute_command 'command' => 'message', 'identifier' => @chat_identifier_json, 'data' => ActiveSupport::JSON.encode(data)
+      # @subscriptions.execute_command 'command' => 'message', 'identifier' => @chat_identifier_json, 'data' => ActiveSupport::JSON.encode(data)
+      @subscriptions.execute_command 'command' => 'message', 'identifier' => @chat_identifier_json, 'data' => data
       assert_equal [ data ], channel.lines
     end
   end

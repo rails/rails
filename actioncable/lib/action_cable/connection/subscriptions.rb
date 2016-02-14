@@ -54,7 +54,16 @@ module ActionCable
       end
 
       def perform_action(data)
-        find(data).perform_action ActiveSupport::JSON.decode(data['data'])
+        action = data['data']
+        # If `action` is a Hash, this means that the original JSON 
+        # sent by the client had no backslashes in it, and does 
+        # not need to be decoded again.
+        if action.is_a?(Hash)
+          find(data).perform_action action
+        else
+          find(data).perform_action ActiveSupport::JSON.decode(action)
+        end 
+        
       end
 
       def identifiers
