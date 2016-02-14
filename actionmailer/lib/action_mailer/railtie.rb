@@ -47,8 +47,8 @@ module ActionMailer
 
         if options.show_previews
           app.routes.prepend do
-            get '/rails/mailers'         => "rails/mailers#index"
-            get '/rails/mailers/*path'   => "rails/mailers#preview"
+            get '/rails/mailers'         => "rails/mailers#index", internal: true
+            get '/rails/mailers/*path'   => "rails/mailers#preview", internal: true
           end
         end
 

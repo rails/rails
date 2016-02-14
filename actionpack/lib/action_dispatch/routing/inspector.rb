@@ -41,7 +41,7 @@ module ActionDispatch
       end
 
       def internal?
-        controller.to_s =~ %r{\Arails/(info|mailers|welcome)}
+        internal
       end
 
       def engine?

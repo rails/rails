@@ -389,6 +389,29 @@ module ActionDispatch
         ], output
       end
 
+      def test_displaying_routes_for_internal_engines
+        engine = Class.new(Rails::Engine) do
+          def self.inspect
+            "Blog::Engine"
+          end
+        end
+        engine.routes.draw do
+          get '/cart', to: 'cart#show'
+          post '/cart', to: 'cart#create'
+          patch '/cart', to: 'cart#update'
+        end
+
+        output = draw do
+          get '/custom/assets', to: 'custom_assets#show'
+          mount engine => "/blog", as: "blog", internal: true
+        end
+
+        assert_equal [
+          "       Prefix Verb URI Pattern              Controller#Action",
+          "custom_assets GET  /custom/assets(.:format) custom_assets#show",
+        ], output
+      end
+
     end
   end
 end

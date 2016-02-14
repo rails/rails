@@ -3,7 +3,7 @@ module ActionDispatch
     class Route # :nodoc:
       attr_reader :app, :path, :defaults, :name, :precedence
 
-      attr_reader :constraints
+      attr_reader :constraints, :internal
       alias :conditions :constraints
 
       module VerbMatchers
@@ -55,7 +55,7 @@ module ActionDispatch
       ##
       # +path+ is a path constraint.
       # +constraints+ is a hash of constraints to be applied to this route.
-      def initialize(name, app, path, constraints, required_defaults, defaults, request_method_match, precedence)
+      def initialize(name, app, path, constraints, required_defaults, defaults, request_method_match, precedence, internal = false)
         @name        = name
         @app         = app
         @path        = path
@@ -70,6 +70,7 @@ module ActionDispatch
         @decorated_ast     = nil
         @precedence        = precedence
         @path_formatter    = @path.build_formatter
+        @internal          = internal
       end
 
       def ast
