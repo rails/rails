@@ -561,19 +561,6 @@ module ActiveRecord
       relation.limit(limit).to_a
     end
 
-    def find_last
-      if loaded?
-        @records.last
-      else
-        @last ||=
-          if limit_value
-            to_a.last
-          else
-            reverse_order.limit(1).to_a.first
-          end
-      end
-    end
-
     private
 
     def find_nth_with_limit_and_offset(index, limit, offset:) # :nodoc:
