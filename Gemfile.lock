@@ -118,7 +118,7 @@ GEM
     coffee-script-source (1.10.0)
     concurrent-ruby (1.0.0)
     connection_pool (2.2.0)
-    dalli (2.7.5)
+    dalli (2.7.6)
     dante (0.2.0)
     delayed_job (4.1.1)
       activesupport (>= 3.0, < 5.0)
