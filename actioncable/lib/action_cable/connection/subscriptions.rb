@@ -24,12 +24,20 @@ module ActionCable
 
       def add(data)
         id_key = data['identifier']
-        id_options = ActiveSupport::JSON.decode(id_key).with_indifferent_access
+
+        # If `id_key` is a Hash, this means that the original JSON
+        # sent by the client had no backslashes in it, and does
+        # not need to be decoded again.
+        if id_key.is_a?(Hash)
+          id_options = id_key.with_indifferent_access
+        else
+          id_options = ActiveSupport::JSON.decode(id_key).with_indifferent_access
+        end
 
         subscription_klass = connection.server.channel_classes[id_options[:channel]]
 
         if subscription_klass
-          subscriptions[id_key] ||= subscription_klass.new(connection, id_key, id_options)
+          subscriptions[id_options] ||= subscription_klass.new(connection, id_key, id_options)
         else
           logger.error "Subscription class not found (#{data.inspect})"
         end
@@ -37,7 +45,7 @@ module ActionCable
 
       def remove(data)
         logger.info "Unsubscribing from channel: #{data['identifier']}"
-        remove_subscription subscriptions[data['identifier']]
+        remove_subscription subscriptions[decoded_identifier(data)]
       end
 
       def remove_subscription(subscription)
@@ -46,7 +54,16 @@ module ActionCable
       end
 
       def perform_action(data)
-        find(data).perform_action ActiveSupport::JSON.decode(data['data'])
+        action = data['data']
+        # If `action` is a Hash, this means that the original JSON 
+        # sent by the client had no backslashes in it, and does 
+        # not need to be decoded again.
+        if action.is_a?(Hash)
+          find(data).perform_action action
+        else
+          find(data).perform_action ActiveSupport::JSON.decode(action)
+        end 
+        
       end
 
       def identifiers
@@ -63,8 +80,12 @@ module ActionCable
       private
         delegate :logger, to: :connection
 
+        def decoded_identifier(data)
+          ActiveSupport::JSON.decode(data['identifier'])
+        end
+
         def find(data)
-          if subscription = subscriptions[data['identifier']]
+          if subscription = subscriptions[decoded_identifier(data)]
             subscription
           else
             raise "Unable to find subscription with identifier: #{data['identifier']}"

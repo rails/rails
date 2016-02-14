@@ -26,7 +26,8 @@ class ActionCable::Connection::SubscriptionsTest < ActionCable::TestCase
     @server = TestServer.new
     @server.stubs(:channel_classes).returns(ChatChannel.name => ChatChannel)
 
-    @chat_identifier = ActiveSupport::JSON.encode(id: 1, channel: 'ActionCable::Connection::SubscriptionsTest::ChatChannel')
+    @chat_identifier = { id: 1, channel: 'ActionCable::Connection::SubscriptionsTest::ChatChannel'}.with_indifferent_access
+    @chat_identifier_json = ActiveSupport::JSON.encode(@chat_identifier)
   end
 
   test "subscribe command" do
@@ -56,7 +57,7 @@ class ActionCable::Connection::SubscriptionsTest < ActionCable::TestCase
       channel = subscribe_to_chat_channel
       channel.expects(:unsubscribe_from_channel)
 
-      @subscriptions.execute_command 'command' => 'unsubscribe', 'identifier' => @chat_identifier
+      @subscriptions.execute_command 'command' => 'unsubscribe', 'identifier' => @chat_identifier_json
       assert @subscriptions.identifiers.empty?
     end
   end
@@ -76,19 +77,19 @@ class ActionCable::Connection::SubscriptionsTest < ActionCable::TestCase
       channel = subscribe_to_chat_channel
 
       data = { 'content' => 'Hello World!', 'action' => 'speak' }
-      @subscriptions.execute_command 'command' => 'message', 'identifier' => @chat_identifier, 'data' => ActiveSupport::JSON.encode(data)
-
+      # @subscriptions.execute_command 'command' => 'message', 'identifier' => @chat_identifier_json, 'data' => ActiveSupport::JSON.encode(data)
+      @subscriptions.execute_command 'command' => 'message', 'identifier' => @chat_identifier_json, 'data' => data
       assert_equal [ data ], channel.lines
     end
   end
 
-  test "unsubscrib from all" do
+  test "unsubscribe from all" do
     run_in_eventmachine do
       setup_connection
 
       channel1 = subscribe_to_chat_channel
 
-      channel2_id = ActiveSupport::JSON.encode(id: 2, channel: 'ActionCable::Connection::SubscriptionsTest::ChatChannel')
+      channel2_id = ActiveSupport::JSON.encode({id: 2, channel: 'ActionCable::Connection::SubscriptionsTest::ChatChannel'})
       channel2 = subscribe_to_chat_channel(channel2_id)
 
       channel1.expects(:unsubscribe_from_channel)
@@ -101,9 +102,13 @@ class ActionCable::Connection::SubscriptionsTest < ActionCable::TestCase
   private
     def subscribe_to_chat_channel(identifier = @chat_identifier)
       @subscriptions.execute_command 'command' => 'subscribe', 'identifier' => identifier
-      assert_equal identifier, @subscriptions.identifiers.last
 
-      @subscriptions.send :find, 'identifier' => identifier
+      if identifier.is_a?(String)
+        identifier = ActiveSupport::JSON.decode(identifier)
+      end
+
+      assert_equal identifier, @subscriptions.identifiers.last
+      @subscriptions.send :find, 'identifier' => ActiveSupport::JSON.encode(identifier)
     end
 
     def setup_connection
