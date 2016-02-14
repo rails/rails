@@ -122,16 +122,6 @@ module ActionController
     cattr_accessor :always_permitted_parameters
     self.always_permitted_parameters = %w( controller action )
 
-    def self.const_missing(const_name)
-      return super unless const_name == :NEVER_UNPERMITTED_PARAMS
-      ActiveSupport::Deprecation.warn(<<-MSG.squish)
-        `ActionController::Parameters::NEVER_UNPERMITTED_PARAMS` has been deprecated.
-        Use `ActionController::Parameters.always_permitted_parameters` instead.
-      MSG
-
-      always_permitted_parameters
-    end
-
     # Returns a new instance of <tt>ActionController::Parameters</tt>.
     # Also, sets the +permitted+ attribute to the default value of
     # <tt>ActionController::Parameters.permit_all_parameters</tt>.
