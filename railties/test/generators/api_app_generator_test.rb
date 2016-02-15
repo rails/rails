@@ -73,6 +73,8 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
       app/controllers
       app/mailers
       app/models
+      app/views/layouts/mailer.html.erb
+      app/views/layouts/mailer.text.erb
       config/environments
       config/initializers
       config/locales
@@ -94,7 +96,7 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
   def skipped_files
     %w(app/assets
        app/helpers
-       app/views
+       app/views/layouts/application.html.erb
        config/initializers/assets.rb
        config/initializers/cookies_serializer.rb
        config/initializers/session_store.rb
