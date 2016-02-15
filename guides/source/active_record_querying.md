@@ -11,7 +11,7 @@ After reading this guide, you will know:
 * How to specify the order, retrieved attributes, grouping, and other properties of the found records.
 * How to use eager loading to reduce the number of database queries needed for data retrieval.
 * How to use dynamic finder methods.
-* How to use method chaining to use multiple ActiveRecord methods together.
+* How to use method chaining to use multiple Active Record methods together.
 * How to check for the existence of particular records.
 * How to perform various calculations on Active Record models.
 * How to run EXPLAIN on relations.

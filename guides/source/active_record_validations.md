@@ -149,7 +149,7 @@ false` as an argument. This technique should be used with caution.
 
 ### `valid?` and `invalid?`
 
-Before saving an ActiveRecord object, Rails runs your validations.
+Before saving an Active Record object, Rails runs your validations.
 If these validations produce any errors, Rails does not save the object.
 
 You can also run these validations on your own. `valid?` triggers your validations
