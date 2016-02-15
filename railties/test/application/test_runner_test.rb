@@ -467,7 +467,7 @@ module ApplicationTests
       create_test_file :models, 'post', pass: false
 
       output = run_test_command('test/models/post_test.rb')
-      expect = %r{Running:\n\nPostTest\nF\n\nFailure:\nPostTest#test_truth:\nwups!\n\nbin/rails test test/models/post_test.rb:6\n\n\n\n}
+      expect = %r{Running:\n\nPostTest\nF\n\nFailure:\nPostTest#test_truth:\nwups!\n\nbin/rails test test/models/post_test.rb:4\n\n\n\n}
       assert_match expect, output
     end
 
