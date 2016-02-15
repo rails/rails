@@ -1,5 +1,3 @@
-require 'active_support/core_ext/object/try'
-
 module ActionView
   module CollectionCaching # :nodoc:
     extend ActiveSupport::Concern
@@ -12,7 +10,7 @@ module ActionView
 
     private
       def cache_collection_render
-        return yield unless cache_collection?
+        return yield unless @options[:cached]
 
         keyed_collection = collection_by_cache_keys
         cached_partials = collection_cache.read_multi(*keyed_collection.keys)
@@ -21,30 +19,14 @@ module ActionView
         rendered_partials = @collection.empty? ? [] : yield
 
         index = 0
-        keyed_collection.map do |cache_key, _|
-          cached_partials.fetch(cache_key) do
-            rendered_partials[index].tap { index += 1 }
-          end
+        fetch_or_cache_partial(cached_partials, order_by: keyed_collection.each_key) do
+          rendered_partials[index].tap { index += 1 }
         end
       end
 
-      def cache_collection?
-        @options.fetch(:cache, automatic_cache_eligible?)
-      end
-
-      def automatic_cache_eligible?
-        @template && @template.eligible_for_collection_caching?(as: @options[:as])
-      end
-
-      def callable_cache_key?
-        @options[:cache].respond_to?(:call)
-      end
-
       def collection_by_cache_keys
-        seed = callable_cache_key? ? @options[:cache] : ->(i) { i }
-
         @collection.each_with_object({}) do |item, hash|
-          hash[expanded_cache_key(seed.call(item))] = item
+          hash[expanded_cache_key(item)] = item
         end
       end
 
@@ -53,10 +35,13 @@ module ActionView
         key.frozen? ? key.dup : key # #read_multi & #write may require mutability, Dalli 2.6.0.
       end
 
-      def collection_cache_rendered_partial(rendered_partial, key_by)
-        if callable_cache_key?
-          key = expanded_cache_key(@options[:cache].call(key_by))
-          collection_cache.write(key, rendered_partial, @options[:cache_options])
+      def fetch_or_cache_partial(cached_partials, order_by:)
+        order_by.map do |cache_key|
+          cached_partials.fetch(cache_key) do
+            yield.tap do |rendered_partial|
+              collection_cache.write(cache_key, rendered_partial)
+            end
+          end
         end
       end
   end

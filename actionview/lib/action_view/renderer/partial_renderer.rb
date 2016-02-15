@@ -428,8 +428,6 @@ module ActionView
         layout = find_template(layout, @template_keys)
       end
 
-      collection_cache_eligible = automatic_cache_eligible?
-
       partial_iteration = PartialIteration.new(@collection.size)
       locals[iteration] = partial_iteration
 
@@ -438,11 +436,6 @@ module ActionView
         locals[counter]   = partial_iteration.index
 
         content = template.render(view, locals)
-
-        if collection_cache_eligible
-          collection_cache_rendered_partial(content, object)
-        end
-
         content = layout.render(view, locals) { content } if layout
         partial_iteration.iterate!
         content

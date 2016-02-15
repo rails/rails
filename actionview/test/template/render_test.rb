@@ -628,56 +628,59 @@ class LazyViewRenderTest < ActiveSupport::TestCase
   end
 end
 
-class CachedCollectionViewRenderTest < CachedViewRenderTest
+class CachedCollectionViewRenderTest < ActiveSupport::TestCase
   class CachedCustomer < Customer; end
 
+  include RenderTestCases
+
+  # Ensure view path cache is primed
+  setup do
+    view_paths = ActionController::Base.view_paths
+    assert_equal ActionView::OptimizedFileSystemResolver, view_paths.first.class
+
+    ActionView::PartialRenderer.collection_cache = ActiveSupport::Cache::MemoryStore.new
+
+    setup_view(view_paths)
+  end
+
   teardown do
-    ActionView::PartialRenderer.collection_cache.clear
+    GC.start
+    I18n.reload!
   end
 
-  test "with custom key" do
-    customer = Customer.new("david")
-    key = cache_key([customer, 'key'], "test/_customer")
+  test "collection caching does not cache by default" do
+    customer = Customer.new("david", 1)
+    key = cache_key(customer, "test/_customer")
 
-    ActionView::PartialRenderer.collection_cache.write(key, 'Hello')
+    ActionView::PartialRenderer.collection_cache.write(key, 'Cached')
 
-    assert_equal "Hello",
-      @view.render(partial: "test/customer", collection: [customer], cache: ->(item) { [item, 'key'] })
+    assert_not_equal "Cached",
+      @view.render(partial: "test/customer", collection: [customer])
   end
 
-  test "with caching with custom key and rendering with different key" do
-    customer = Customer.new("david")
-    key = cache_key([customer, 'key'], "test/_customer")
+  test "collection caching with partial that doesn't use fragment caching" do
+    customer = Customer.new("david", 1)
+    key = cache_key(customer, "test/_customer")
 
-    ActionView::PartialRenderer.collection_cache.write(key, 'Hello')
+    ActionView::PartialRenderer.collection_cache.write(key, 'Cached')
 
-    assert_equal "Hello: david",
-      @view.render(partial: "test/customer", collection: [customer], cache: ->(item) { [item, 'another_key'] })
+    assert_equal "Cached",
+      @view.render(partial: "test/customer", collection: [customer], cached: true)
   end
 
-  test "automatic caching with inferred cache name" do
-    customer = CachedCustomer.new("david")
+  test "collection caching with cached true" do
+    customer = CachedCustomer.new("david", 1)
     key = cache_key(customer, "test/_cached_customer")
 
     ActionView::PartialRenderer.collection_cache.write(key, 'Cached')
 
     assert_equal "Cached",
-      @view.render(partial: "test/cached_customer", collection: [customer])
-  end
-
-  test "automatic caching with as name" do
-    customer = CachedCustomer.new("david")
-    key = cache_key(customer, "test/_cached_customer_as")
-
-    ActionView::PartialRenderer.collection_cache.write(key, 'Cached')
-
-    assert_equal "Cached",
-      @view.render(partial: "test/cached_customer_as", collection: [customer], as: :buyer)
+      @view.render(partial: "test/cached_customer", collection: [customer], cached: true)
   end
 
   private
-    def cache_key(names, virtual_path)
+    def cache_key(*names, virtual_path)
       digest = ActionView::Digestor.digest name: virtual_path, finder: @view.lookup_context, dependencies: []
-      @view.fragment_cache_key([ *Array(names), digest ])
+      @view.fragment_cache_key([ *names, digest ])
     end
 end
