@@ -65,33 +65,40 @@ module ActionView
         if obj = seen[template.identifier]
           obj
         else
-          klass = partial ? Partial : Node
-          node = seen[template.identifier] = klass.new(name, logical_name, template, partial, [])
+          node = seen[template.identifier] = Node.create(name, logical_name, template, partial)
 
           deps = DependencyTracker.find_dependencies(name, template, finder.view_paths)
           deps.each do |dep_file|
             node.children << tree(dep_file, finder, [], true, seen)
           end
           injected.each do |template|
-            node.children << Injected.new(template, nil, nil, partial, [])
+            node.children << Injected.new(template, nil, nil)
           end
           node
         end
       else
-        seen[name] = Missing.new(name, logical_name, nil, partial, [])
+        seen[name] = Missing.new(name, logical_name, nil)
       end
     end
 
-    class Node < Struct.new(:name, :logical_name, :template, :partial, :children)
-      def to_dep(finder)
-        if partial
-          PartialDigestor.new(name, finder, partial: partial)
-        else
-          Digestor.new(name, finder, partial: partial)
-        end
+    class Node < Struct.new(:name, :logical_name, :template, :children)
+      def self.class_for(partial)
+        partial ? Partial : Node
       end
 
-      def digest stack = []
+      def self.create(name, logical_name, template, partial)
+        class_for(partial).new(name, logical_name, template, [])
+      end
+
+      def initialize(name, logical_name, template, children = [])
+        super
+      end
+
+      def to_dep(finder)
+        Digestor.new(name, finder, partial: true)
+      end
+
+      def digest(stack = [])
         Digest::MD5.hexdigest("#{template.source}-#{dependency_digest(stack)}")
       end
 
@@ -107,7 +114,11 @@ module ActionView
       end
     end
 
-    class Partial < Node; end
+    class Partial < Node
+      def to_dep(finder)
+        PartialDigestor.new(name, finder, partial: false)
+      end
+    end
 
     class Missing < Node
       def digest(_ = [])
