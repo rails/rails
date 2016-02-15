@@ -68,7 +68,7 @@ module Rails
 
       def format_failures(result)
         result.failures.map do |failure|
-          "#{failure.result_label}:\n#{result.class}##{result.name}:\n#{failure.message}\n"
+          "#{failure.result_label}:\n#{result.location}:\n#{failure.message}\n"
         end
       end
 
