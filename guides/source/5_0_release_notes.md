@@ -705,7 +705,7 @@ Please refer to the [Changelog][active-support] for detailed changes.
 *   Changed the default test order from `:sorted` to `:random`.
     ([commit](https://github.com/rails/rails/commit/5f777e4b5ee2e3e8e6fd0e2a208ec2a4d25a960d))
 
-*   Added `#on_weekend?`, `#next_weekday`, `#prev_weekday` methods to `Date`,
+*   Added `#on_weekend?`, `#on_weekday?`, `#next_weekday`, `#prev_weekday` methods to `Date`,
     `Time`, and `DateTime`.
     ([Pull Request](https://github.com/rails/rails/pull/18335))
 
