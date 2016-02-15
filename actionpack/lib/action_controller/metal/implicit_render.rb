@@ -17,7 +17,7 @@ module ActionController
     #   default_render do
     #     head 404 # No template was found
     #   end
-    def default_render(*args) 
+    def default_render(*args)
       if template_exists?(action_name.to_s, _prefixes, variants: request.variant)
         render(*args)
       else
