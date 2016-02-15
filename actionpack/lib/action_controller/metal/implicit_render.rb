@@ -8,9 +8,6 @@ module ActionController
     # For example, the "new" action with an HTML format and variant "phone" 
     # would try to render the <tt>new.html+phone.erb</tt> template.
     #
-    # If no template is found for a regular browser request, 
-    # <tt>ActionView::MissingTemplate</tt> is raised.
-    #
     # If no template is found and a block is passed, then the block is called 
     # to allow the caller to handle the missing template. If no block is passed 
     # and it's an HTML, non-XHR (interactive browser) request, then 
