@@ -183,7 +183,7 @@ module Rails
       end
 
       protected
-        def generate_railtie_name(string)
+        def generate_railtie_name(string) #:nodoc:
           ActiveSupport::Inflector.underscore(string).tr("/", "_")
         end
 
@@ -200,21 +200,24 @@ module Rails
 
     delegate :railtie_name, to: :class
 
-    def initialize
+    def initialize #:nodoc:
       if self.class.abstract_railtie?
         raise "#{self.class.name} is abstract, you cannot instantiate it directly."
       end
     end
 
-    def configure(&block)
+    def configure(&block) #:nodoc:
       instance_eval(&block)
     end
 
+    # This is used to create the <tt>config</tt> object on Railties, an instance of
+    # Railtie::Configuration, that is used by Railties and Application to store
+    # related configuration.
     def config
       @config ||= Railtie::Configuration.new
     end
 
-    def railtie_namespace
+    def railtie_namespace #:nodoc:
       @railtie_namespace ||= self.class.parents.detect { |n| n.respond_to?(:railtie_namespace) }
     end
 
