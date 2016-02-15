@@ -62,7 +62,7 @@ class TestUnitReporterTest < ActiveSupport::TestCase
     @reporter.record(failed_test)
     @reporter.report
 
-    expect = %r{\AF\n\nFailure:\nTestUnitReporterTest::ExampleTest#woot:\nboo\n\nbin/rails test test/test_unit/reporter_test.rb:\d+\n\n\z}
+    expect = %r{\AF\n\nFailure:\nTestUnitReporterTest::ExampleTest#woot \[[^\]]+\]:\nboo\n\nbin/rails test test/test_unit/reporter_test.rb:\d+\n\n\z}
     assert_match expect, @output.string
   end
 
@@ -79,7 +79,7 @@ class TestUnitReporterTest < ActiveSupport::TestCase
     verbose.record(skipped_test)
     verbose.report
 
-    expect = %r{\ATestUnitReporterTest::ExampleTest#woot = 10\.00 s = S\n\n\nSkipped:\nTestUnitReporterTest::ExampleTest#woot:\nskipchurches, misstemples\n\nbin/rails test test/test_unit/reporter_test.rb:\d+\n\n\z}
+    expect = %r{\ATestUnitReporterTest::ExampleTest#woot = 10\.00 s = S\n\n\nSkipped:\nTestUnitReporterTest::ExampleTest#woot \[[^\]]+\]:\nskipchurches, misstemples\n\nbin/rails test test/test_unit/reporter_test.rb:\d+\n\n\z}
     assert_match expect, @output.string
   end
 
