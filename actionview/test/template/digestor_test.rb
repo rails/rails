@@ -311,9 +311,10 @@ class TemplateDigestorTest < ActionView::TestCase
 
       finder.variants = options.delete(:variants) || []
 
-      node = ActionView::Digestor.tree template_name, finder
+      node = ActionView::Digestor.tree(template_name, finder, options[:dependencies] || [])
+      y = node.digest
       x = ActionView::Digestor.digest({ name: template_name, finder: finder }.merge(options))
-      assert_equal x, node.digest
+      assert_equal x, y
       x
     end
 

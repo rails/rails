@@ -55,25 +55,30 @@ module ActionView
         end
     end
 
-    def self.tree(name, finder, partial = false, seen = {})
-      if obj = seen[name]
-        obj
-      else
-        logical_name = name.gsub(%r|/_|, "/")
+    def self.tree(name, finder, injected = [], partial = false, seen = {})
+      logical_name = name.gsub(%r|/_|, "/")
+      partial = partial || name.include?("/_")
 
-        if finder.disable_cache { finder.exists?(logical_name, [], partial) }
-          template = finder.disable_cache { finder.find(logical_name, [], partial) }
-          node = seen[name] = Node.new(name, logical_name, template, partial, [])
+      if finder.disable_cache { finder.exists?(logical_name, [], partial) }
+        template = finder.disable_cache { finder.find(logical_name, [], partial) }
+
+        if obj = seen[template.identifier]
+          obj
         else
-          node = seen[name] = Missing.new(name, logical_name, nil, partial, [])
-          return node
-        end
+          klass = partial ? Partial : Node
+          node = seen[template.identifier] = klass.new(name, logical_name, template, partial, [])
 
-        deps = DependencyTracker.find_dependencies(name, template, finder.view_paths)
-        deps.each do |dep_file|
-          node.children << tree(dep_file, finder, true, seen)
+          deps = DependencyTracker.find_dependencies(name, template, finder.view_paths)
+          deps.each do |dep_file|
+            node.children << tree(dep_file, finder, [], true, seen)
+          end
+          injected.each do |template|
+            node.children << Injected.new(template, nil, nil, partial, [])
+          end
+          node
         end
-        node
+      else
+        seen[name] = Missing.new(name, logical_name, nil, partial, [])
       end
     end
 
@@ -86,18 +91,33 @@ module ActionView
         end
       end
 
-      def digest
-        Digest::MD5.hexdigest("#{template.source}-#{dependency_digest}")
+      def digest stack = []
+        Digest::MD5.hexdigest("#{template.source}-#{dependency_digest(stack)}")
       end
 
-      def dependency_digest
-        children.map(&:digest).join("-")
+      def dependency_digest(stack)
+        children.map do |node|
+          if stack.include?(node)
+            false
+          else
+            stack.push node
+            node.digest(stack).tap { stack.pop }
+          end
+        end.join("-")
       end
     end
 
+    class Partial < Node; end
+
     class Missing < Node
-      def digest
+      def digest(_ = [])
         ''
+      end
+    end
+
+    class Injected < Node
+      def digest(_ = [])
+        name
       end
     end
 
