@@ -36,13 +36,6 @@ class TemplateDigestorTest < ActionView::TestCase
     ActionView::Digestor.cache.clear
   end
 
-  def test_amaze
-    node = ActionView::Digestor.tree "messages/show", finder
-    x = ActionView::Digestor.new("messages/show", finder)
-    #assert_equal digest("messages/show"), node.to_dep(finder).digest
-    assert_equal digest("messages/show"), node.digest
-  end
-
   def test_top_level_change_reflected
     assert_digest_difference("messages/show") do
       change_template("messages/show")
@@ -141,6 +134,11 @@ class TemplateDigestorTest < ActionView::TestCase
     assert_digest_difference("messages/show") do
       change_template("messages/actions/_move")
     end
+  end
+
+  def test_nested_template_deps
+    nested_deps = ["messages/header", {"comments/comments"=>["comments/comment"]}, "messages/actions/move", "events/event", "messages/something_missing", "messages/something_missing_1", "messages/message", "messages/form"]
+    assert_equal nested_deps, nested_dependencies("messages/show")
   end
 
   def test_recursion_in_renders
@@ -312,18 +310,17 @@ class TemplateDigestorTest < ActionView::TestCase
       finder.variants = options.delete(:variants) || []
 
       node = ActionView::Digestor.tree(template_name, finder, options[:dependencies] || [])
-      y = node.digest
-      x = ActionView::Digestor.digest({ name: template_name, finder: finder }.merge(options))
-      assert_equal x, y
-      x
+      node.digest
     end
 
     def dependencies(template_name)
-      ActionView::Digestor.new(template_name, finder).dependencies
+      tree = ActionView::Digestor.tree(template_name, finder, [])
+      tree.children.map(&:name)
     end
 
     def nested_dependencies(template_name)
-      ActionView::Digestor.new(template_name, finder).nested_dependencies
+      tree = ActionView::Digestor.tree(template_name, finder, [])
+      tree.children.map(&:to_dep_map)
     end
 
     def finder

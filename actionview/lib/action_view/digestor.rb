@@ -25,15 +25,20 @@ module ActionView
       def digest(name:, finder:, **options)
         options.assert_valid_keys(:dependencies, :partial)
 
-        cache_key = ([ name, finder.details_key.hash ].compact + Array.wrap(options[:dependencies])).join('.')
+        dependencies = Array.wrap(options[:dependencies])
+        cache_key = ([ name, finder.details_key.hash ].compact + dependencies).join('.')
 
         # this is a correctly done double-checked locking idiom
         # (Concurrent::Map's lookups have volatile semantics)
         @@cache[cache_key] || @@digest_monitor.synchronize do
           @@cache.fetch(cache_key) do # re-check under lock
-            compute_and_store_digest(cache_key, name, finder, options)
+            @@cache[cache_key] = tree(name, finder, dependencies).digest
           end
         end
+      end
+
+      def logger
+        ActionView::Base.logger || NullLogger
       end
 
       private
@@ -77,6 +82,7 @@ module ActionView
           node
         end
       else
+        logger.error "  '#{name}' file doesn't exist, so no dependencies"
         seen[name] ||= Missing.new(name, logical_name, nil)
       end
     end
@@ -116,6 +122,10 @@ module ActionView
           end
         end.join("-")
       end
+
+      def to_dep_map
+        children.any? ? { name => children.map(&:to_dep_map) } : name
+      end
     end
 
     class Partial < Node
@@ -126,7 +136,17 @@ module ActionView
 
     class Missing < Node
       def digest(_ = [])
+        logger.error "  Couldn't find template for digesting: #{name}"
         ''
+      end
+
+      class NullLogger
+        def self.debug(_); end
+        def self.error(_); end
+      end
+
+      def logger
+        ActionView::Base.logger || NullLogger
       end
     end
 
