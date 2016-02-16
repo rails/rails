@@ -1,3 +1,8 @@
+*   Fix a bug where using `t.foreign_key` twice with the same `to_table` within
+    the same table definition would only create one foreign key.
+
+    *George Millo*
+
 *   Fix a regression on has many association, where calling a child from parent in child's callback
     results in same child records getting added repeatedly to target.
 
