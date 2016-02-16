@@ -35,7 +35,8 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
       @view.render(:file => "test/hello_world")
       wait
 
-      assert_equal 1, @logger.logged(:info).size
+      assert_equal 2, @logger.logged(:info).size
+      assert_match(/Rendering test\/hello_world\.erb/, @logger.logged(:info).first)
       assert_match(/Rendered test\/hello_world\.erb/, @logger.logged(:info).last)
     end
   end
@@ -45,7 +46,8 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
       @view.render(:text => "TEXT")
       wait
 
-      assert_equal 1, @logger.logged(:info).size
+      assert_equal 2, @logger.logged(:info).size
+      assert_match(/Rendering text template/, @logger.logged(:info).first)
       assert_match(/Rendered text template/, @logger.logged(:info).last)
     end
   end
@@ -55,7 +57,8 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
       @view.render(:inline => "<%= 'TEXT' %>")
       wait
 
-      assert_equal 1, @logger.logged(:info).size
+      assert_equal 2, @logger.logged(:info).size
+      assert_match(/Rendering inline template/, @logger.logged(:info).first)
       assert_match(/Rendered inline template/, @logger.logged(:info).last)
     end
   end
