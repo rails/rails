@@ -250,7 +250,7 @@ class TestJSONEncoding < ActiveSupport::TestCase
   class CustomWithOptions
     attr_accessor :foo, :bar
 
-    def as_json(options={})
+    def as_json(options = {})
       options[:only] = %w(foo bar)
       super(options)
     end
@@ -336,7 +336,7 @@ class TestJSONEncoding < ActiveSupport::TestCase
       super
     end
 
-    def as_json(options={})
+    def as_json(options = {})
       @as_json_called = true
       super
     end

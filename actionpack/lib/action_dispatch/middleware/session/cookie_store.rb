@@ -63,7 +63,7 @@ module ActionDispatch
     # Other useful options include <tt>:key</tt>, <tt>:secure</tt> and
     # <tt>:httponly</tt>.
     class CookieStore < AbstractStore
-      def initialize(app, options={})
+      def initialize(app, options = {})
         super(app, options.merge!(:cookie_only => true))
       end
 

@@ -45,7 +45,7 @@ module ActionController
       render_output
     end
 
-    def send_file(path, options={})
+    def send_file(path, options = {})
       ActiveSupport::Notifications.instrument("send_file.action_controller",
         options.merge(:path => path)) do
         super

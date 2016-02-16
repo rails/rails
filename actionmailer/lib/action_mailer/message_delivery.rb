@@ -51,7 +51,7 @@ module ActionMailer
     # * <tt>:wait</tt> - Enqueue the email to be delivered with a delay
     # * <tt>:wait_until</tt> - Enqueue the email to be delivered at (after) a specific date / time
     # * <tt>:queue</tt> - Enqueue the email on the specified queue
-    def deliver_later!(options={})
+    def deliver_later!(options = {})
       enqueue_delivery :deliver_now!, options
     end
 
@@ -67,7 +67,7 @@ module ActionMailer
     # * <tt>:wait</tt> - Enqueue the email to be delivered with a delay.
     # * <tt>:wait_until</tt> - Enqueue the email to be delivered at (after) a specific date / time.
     # * <tt>:queue</tt> - Enqueue the email on the specified queue.
-    def deliver_later(options={})
+    def deliver_later(options = {})
       enqueue_delivery :deliver_now, options
     end
 
@@ -90,7 +90,7 @@ module ActionMailer
 
     private
 
-      def enqueue_delivery(delivery_method, options={})
+      def enqueue_delivery(delivery_method, options = {})
         args = @mailer.name, @mail_method.to_s, delivery_method.to_s, *@args
         ActionMailer::DeliveryJob.set(options).perform_later(*args)
       end

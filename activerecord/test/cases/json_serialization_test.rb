@@ -137,7 +137,7 @@ class JsonSerializationTest < ActiveRecord::TestCase
     @contact = ContactSti.new(@contact.attributes)
     assert_equal 'ContactSti', @contact.type
 
-    def @contact.serializable_hash(options={})
+    def @contact.serializable_hash(options = {})
       super({ except: %w(age) }.merge!(options))
     end
 
