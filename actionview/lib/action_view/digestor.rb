@@ -68,20 +68,21 @@ module ActionView
           node = seen[template.identifier] = Node.create(name, logical_name, template, partial)
 
           deps = DependencyTracker.find_dependencies(name, template, finder.view_paths)
-          deps.each do |dep_file|
+          deps.uniq { |n| n.gsub(%r|/_|, "/") }.each do |dep_file|
             node.children << tree(dep_file, finder, [], true, seen)
           end
-          injected.each do |template|
-            node.children << Injected.new(template, nil, nil)
+          injected.each do |injected_dep|
+            node.children << Injected.new(injected_dep, nil, nil)
           end
           node
         end
       else
-        seen[name] = Missing.new(name, logical_name, nil)
+        seen[name] ||= Missing.new(name, logical_name, nil)
       end
     end
 
-    class Node < Struct.new(:name, :logical_name, :template, :children)
+    class Node
+      attr_reader :name, :logical_name, :template, :children
       def self.class_for(partial)
         partial ? Partial : Node
       end
@@ -91,11 +92,14 @@ module ActionView
       end
 
       def initialize(name, logical_name, template, children = [])
-        super
+        @name = name
+        @logical_name = logical_name
+        @template = template
+        @children = children
       end
 
       def to_dep(finder)
-        Digestor.new(name, finder, partial: true)
+        Digestor.new(name, finder, partial: false)
       end
 
       def digest(stack = [])
@@ -116,7 +120,7 @@ module ActionView
 
     class Partial < Node
       def to_dep(finder)
-        PartialDigestor.new(name, finder, partial: false)
+        PartialDigestor.new(name, finder, partial: true)
       end
     end
 
