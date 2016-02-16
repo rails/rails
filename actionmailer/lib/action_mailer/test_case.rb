@@ -11,7 +11,7 @@ module ActionMailer
   end
 
   class TestCase < ActiveSupport::TestCase
-    module ClearTestDeliviers
+    module ClearTestDeliveries
       extend ActiveSupport::Concern
 
       included do
@@ -114,6 +114,6 @@ module ActionMailer
     end
 
     include Behavior
-    include ClearTestDeliviers
+    include ClearTestDeliveries
   end
 end

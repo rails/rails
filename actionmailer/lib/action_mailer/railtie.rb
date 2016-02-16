@@ -52,7 +52,7 @@ module ActionMailer
           end
         end
 
-        ActionDispatch::IntegrationTest.send :include, ActionMailer::TestCase::ClearTestDeliviers
+        ActionDispatch::IntegrationTest.send :include, ActionMailer::TestCase::ClearTestDeliveries
       end
     end
 
