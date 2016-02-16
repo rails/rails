@@ -133,5 +133,6 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
     hash1 = { foo: :bar }
     params1 = ActionController::Parameters.new(hash1)
     assert(params1 == hash1)
+    assert(hash1 == params1)
   end
 end
