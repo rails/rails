@@ -132,11 +132,8 @@ module ActionCable
           @ready_state = CLOSING
           @close_params = [reason, code]
 
-          if @stream
-            @stream.shutdown
-          else
-            finalize_close
-          end
+          @stream.shutdown if @stream
+          finalize_close
         end
 
         def finalize_close

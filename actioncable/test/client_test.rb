@@ -198,4 +198,25 @@ class ClientTest < ActionCable::TestCase
       c.close # disappear before read
     end
   end
+
+  def test_unsubscribe_client
+    with_puma_server do |port|
+      app = ActionCable.server
+      identifier = JSON.dump(channel: 'EchoChannel')
+
+      c = faye_client(port)
+      c.send_message command: 'subscribe', identifier: identifier
+      assert_equal({"identifier"=>"{\"channel\":\"EchoChannel\"}", "type"=>"confirm_subscription"}, c.read_message)
+      assert_equal(1, app.connections.count)
+      assert(app.remote_connections.where(identifier: identifier))
+
+      channel = app.connections.first.subscriptions.send(:subscriptions).first[1]
+      channel.expects(:unsubscribed)
+      c.close
+      sleep 0.1 # Data takes a moment to process
+
+      # All data is removed: No more connection or subscription information!
+      assert_equal(0, app.connections.count)
+    end
+  end
 end
