@@ -1,5 +1,12 @@
-*   Rework `ActiveRecord::Relation#last` 
-    
+*   Fix a regression on has many association, where calling a child from parent in child's callback
+    results in same child records getting added repeatedly to target.
+
+    Fixes #13387.
+
+    *Bogdan Gusiev*, *Jon Hinson*
+
+*   Rework `ActiveRecord::Relation#last`
+
     1. Never perform additional SQL on loaded relation
     2. Use SQL reverse order instead of loading relation if relation doesn't have limit
     3. Deprecated relation loading when SQL order can not be automatically reversed
