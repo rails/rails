@@ -379,7 +379,7 @@ module ActionController #:nodoc:
 
       def xor_byte_strings(s1, s2)
         s2_bytes = s2.bytes
-        s1.bytes.map.with_index { |c1, i| c1 ^ s2_bytes[i] }.pack('c*')
+        s1.bytes.each_with_index { |c1, i| c1 ^ s2_bytes[i] }.pack('c*')
       end
 
       # The form's authenticity parameter. Override to provide your own.
