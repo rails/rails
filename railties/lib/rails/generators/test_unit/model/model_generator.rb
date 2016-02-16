@@ -18,7 +18,7 @@ module TestUnit # :nodoc:
       hook_for :fixture_replacement
 
       def create_fixture_file
-        if options[:fixture] && options[:fixture_replacement].nil?
+        if options[:fixture] && options[:fixture_replacement].nil? && !parent_options[:abstract]
           template 'fixtures.yml', File.join('test/fixtures', class_path, "#{fixture_file_name}.yml")
         end
       end

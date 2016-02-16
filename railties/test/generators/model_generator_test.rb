@@ -35,6 +35,13 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     assert_no_migration "db/migrate/create_accounts.rb"
   end
 
+  def test_model_with_abstract_option
+    run_generator ["account", "--abstract"]
+    assert_file "app/models/account.rb", /self.abstract_class = true/
+    assert_no_migration "db/migrate/create_accounts.rb"
+    assert_no_file "test/fixtures/accounts.yml"
+  end
+
   def test_model_with_existent_application_record
     mkdir_p "#{destination_root}/app/models"
     touch "#{destination_root}/app/models/application_record.rb"

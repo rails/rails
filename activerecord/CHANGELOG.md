@@ -1,3 +1,17 @@
+*   Added `--abstract` option to generate abstract models via CLI.
+
+    Example:
+
+        rails g model account --abstract
+
+    The above command will generate following class without migration and fixtures files.
+
+        class Account < ActiveRecord::Base
+          self.abstract_class = true
+        end
+
+    *Mehmet Emin İNAÇ*
+
 *   Fix a bug where using `t.foreign_key` twice with the same `to_table` within
     the same table definition would only create one foreign key.
 
