@@ -49,8 +49,8 @@ module ActionView
         if finder.disable_cache { finder.exists?(logical_name, [], partial) }
           template = finder.disable_cache { finder.find(logical_name, [], partial) }
 
-          if obj = seen[template.identifier]
-            obj
+          if node = seen[template.identifier] # handle cycles in the tree
+            node
           else
             node = seen[template.identifier] = Node.create(name, logical_name, template, partial)
 
@@ -109,11 +109,11 @@ module ActionView
     class Partial < Node; end
 
     class Missing < Node
-      def digest(_ = []); '' end
+      def digest(_ = []) '' end
     end
 
     class Injected < Node
-      def digest(_ = []); name end
+      def digest(_ = []) name end
     end
 
     class NullLogger
