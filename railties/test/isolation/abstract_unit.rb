@@ -154,8 +154,6 @@ module TestHelpers
         config.action_controller.allow_forgery_protection = false
         config.log_level = :info
       RUBY
-
-      remove_from_env_config('development', 'config.file_watcher.*')
     end
 
     def teardown_app
@@ -328,7 +326,6 @@ class ActiveSupport::TestCase
   include ActiveSupport::Testing::Stream
 
   self.test_order = :sorted
-
 end
 
 # Create a scope and build a fixture rails app
@@ -342,7 +339,7 @@ Module.new do
   environment = File.expand_path('../../../../load_paths', __FILE__)
   require_environment = "-r #{environment}"
 
-  `#{Gem.ruby} #{require_environment} #{RAILS_FRAMEWORK_ROOT}/railties/exe/rails new #{app_template_path} --skip-gemfile --no-rc`
+  `#{Gem.ruby} #{require_environment} #{RAILS_FRAMEWORK_ROOT}/railties/exe/rails new #{app_template_path} --skip-gemfile --skip-listen --no-rc`
   File.open("#{app_template_path}/config/boot.rb", 'w') do |f|
     f.puts "require '#{environment}'"
     f.puts "require 'rails/all'"

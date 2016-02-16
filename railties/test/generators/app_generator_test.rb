@@ -479,16 +479,18 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_inclusion_of_listen_related_gems
+  def test_inclusion_of_listen_related_configuration_by_default
     run_generator
     if RbConfig::CONFIG['host_os'] =~ /darwin|linux/
-      assert_gem 'listen'
-      assert_gem 'spring-watcher-listen'
+      assert_listen_related_configuration
     else
-      assert_file 'Gemfile' do |content|
-        assert_no_match(/listen/, content)
-      end
+      assert_no_listen_related_configuration
     end
+  end
+
+  def test_non_inclusion_of_listen_related_configuration_if_skip_listen
+    run_generator [destination_root, '--skip-listen']
+    assert_no_listen_related_configuration
   end
 
   def test_evented_file_update_checker_config
@@ -757,6 +759,25 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_file "Gemfile", /^\s*gem\s+["']#{gem}["'], #{constraint}$*/
     else
       assert_file "Gemfile", /^\s*gem\s+["']#{gem}["']$*/
+    end
+  end
+
+  def assert_listen_related_configuration
+    assert_gem 'listen'
+    assert_gem 'spring-watcher-listen'
+
+    assert_file 'config/environments/development.rb' do |content|
+      assert_match(/^\s*config.file_watcher = ActiveSupport::EventedFileUpdateChecker/, content)
+    end
+  end
+
+  def assert_no_listen_related_configuration
+    assert_file 'Gemfile' do |content|
+      assert_no_match(/listen/, content)
+    end
+
+    assert_file 'config/environments/development.rb' do |content|
+      assert_match(/^\s*# config.file_watcher = ActiveSupport::EventedFileUpdateChecker/, content)
     end
   end
 end

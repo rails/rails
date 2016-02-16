@@ -1,3 +1,7 @@
+*   The application generator supports `--skip-listen` to opt-out of features
+    that depend on the listen gem. As of this writing they are the evented file
+    system monitor and the async plugin for spring.
+
 *   The Gemfiles of new applications include spring-watcher-listen on Linux and
     Mac OS X (unless --skip-spring).
 
