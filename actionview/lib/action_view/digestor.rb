@@ -86,10 +86,6 @@ module ActionView
         @children     = children
       end
 
-      def to_dep(finder)
-        Digestor.new(name, finder, partial: false)
-      end
-
       def digest(stack = [])
         Digest::MD5.hexdigest("#{template.source}-#{dependency_digest(stack)}")
       end
@@ -113,15 +109,11 @@ module ActionView
     class Partial < Node; end
 
     class Missing < Node
-      def digest(_ = [])
-        ''
-      end
+      def digest(_ = []); '' end
     end
 
     class Injected < Node
-      def digest(_ = [])
-        name
-      end
+      def digest(_ = []); name end
     end
 
     class NullLogger
