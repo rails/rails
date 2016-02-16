@@ -137,11 +137,6 @@ XML
       head :created, location: 'created resource'
     end
 
-    def read_cookie
-      cookies["foo"]
-      render plain: 'ok'
-    end
-
     def render_cookie
       render plain: cookies["foo"]
     end
