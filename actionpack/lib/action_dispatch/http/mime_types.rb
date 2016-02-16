@@ -32,3 +32,4 @@ Mime::Type.register "application/json", :json, %w( text/x-json application/jsonr
 
 Mime::Type.register "application/pdf", :pdf, [], %w(pdf)
 Mime::Type.register "application/zip", :zip, [], %w(zip)
+Mime::Type.register "application/gzip", :gzip, %w(application/x-gzip), %w(gz)

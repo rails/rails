@@ -1,3 +1,7 @@
+*   Add application/gzip as a default mime type.
+
+    *Mehmet Emin İNAÇ*
+
 *   Add request encoding and response parsing to integration tests.
 
     What previously was:
