@@ -90,6 +90,8 @@ module ActionDispatch
                 end
 
         flash.tap(&:sweep)
+      rescue ArgumentError
+        new
       end
       
       # Builds a hash containing the discarded values and the hashes
@@ -101,6 +103,8 @@ module ActionDispatch
       end
 
       def initialize(flashes = {}, discard = []) #:nodoc:
+        fail ArgumentError unless discard.respond_to?(:map)
+
         @discard = Set.new(stringify_array(discard))
         @flashes = flashes.stringify_keys
         @now     = nil
