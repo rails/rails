@@ -1,3 +1,7 @@
+*   Fix behavior of JSON encoding for `Exception`.
+
+    *namusyaka*
+
 *   Make `number_to_phone` format number with regexp pattern.
 
         number_to_phone(18812345678, pattern: /(\d{3})(\d{4})(\d{4})/)
