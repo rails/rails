@@ -337,7 +337,7 @@ module ActionDispatch
       end
 
       def to_header
-        @cookies.map { |k,v| "#{k}=#{v}" }.join ';'
+        @cookies.map { |k,v| "#{::Rack::Utils.escape(k)}=#{::Rack::Utils.escape(v)}" }.join ';'
       end
 
       def handle_options(options) #:nodoc:

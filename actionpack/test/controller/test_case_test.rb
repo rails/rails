@@ -137,6 +137,11 @@ XML
       head :created, location: 'created resource'
     end
 
+    def read_cookie
+      cookies["foo"]
+      render plain: 'ok'
+    end
+
     def delete_cookie
       cookies.delete("foo")
       render plain: 'ok'
@@ -825,8 +830,10 @@ XML
 
   def test_should_have_knowledge_of_client_side_cookie_state_even_if_they_are_not_set
     cookies['foo'] = 'bar'
+    cookies['escape'] = '+'
     get :no_op
     assert_equal 'bar', cookies['foo']
+    assert_equal '+', cookies['escape']
   end
 
   def test_should_detect_if_cookie_is_deleted
