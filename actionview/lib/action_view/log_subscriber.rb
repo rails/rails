@@ -30,6 +30,15 @@ module ActionView
       end
     end
 
+
+    def start_rendering(event)
+      info do
+        message = "Rendering #{from_rails_root(event.payload[:identifier])}"
+        message << " within #{from_rails_root(event.payload[:layout])}" if event.payload[:layout]
+        message
+      end
+    end
+
     def logger
       ActionView::Base.logger
     end
