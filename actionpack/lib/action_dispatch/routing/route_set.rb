@@ -289,7 +289,7 @@ module ActionDispatch
                           if last.permitted?
                             args.pop.to_h
                           else
-                            raise ArgumentError, "Generating an URL from non sanitized request parameters is insecure!"
+                            raise ArgumentError, "Generating a URL from non sanitized request parameters is insecure!"
                           end
                         end
               helper.call self, args, options

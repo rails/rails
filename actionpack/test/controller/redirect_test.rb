@@ -310,7 +310,7 @@ class RedirectTest < ActionController::TestCase
     error = assert_raise(ArgumentError) do
       get :redirect_to_params
     end
-    assert_equal "Generating an URL from non sanitized request parameters is insecure!", error.message
+    assert_equal "Generating a URL from non sanitized request parameters is insecure!", error.message
   end
 
   def test_redirect_to_with_block
