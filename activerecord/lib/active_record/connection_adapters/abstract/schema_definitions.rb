@@ -99,7 +99,7 @@ module ActiveRecord
       def initialize(types, name, temporary, options, as = nil)
         @columns_hash = {}
         @indexes = {}
-        @foreign_keys = {}
+        @foreign_keys = []
         @native = types
         @temporary = temporary
         @options = options
@@ -289,7 +289,7 @@ module ActiveRecord
       end
 
       def foreign_key(table_name, options = {}) # :nodoc:
-        foreign_keys[table_name] = options
+        foreign_keys.push([table_name, options])
       end
 
       # Appends <tt>:datetime</tt> columns <tt>:created_at</tt> and

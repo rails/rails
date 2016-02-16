@@ -227,7 +227,7 @@ module ActiveRecord
           end
         end
 
-        td.foreign_keys.each_pair do |other_table_name, foreign_key_options|
+        td.foreign_keys.each do |other_table_name, foreign_key_options|
           add_foreign_key(table_name, other_table_name, foreign_key_options)
         end
 

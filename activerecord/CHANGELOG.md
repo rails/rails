@@ -1,3 +1,8 @@
+*   Fix a bug where using `t.foreign_key` twice with the same `to_table` within
+    the same table definition would only create one foreign key.
+
+    *George Millo*
+
 *   Fix regression in dirty attribute tracking after #dup.  Changes to the
     clone no longer show as changed attributes in the original object.
 
