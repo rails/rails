@@ -86,6 +86,14 @@ module ActionDispatch
       assert_equal "hey you", hash["message"]
     end
 
+    def test_invalid_flash
+      decrypted_data = "{ \"session_id\":\"d98bdf6d129618fc2548c354c161cfb5\", \"flash\":{} }"
+      session = ActionDispatch::Cookies::JsonSerializer.load(decrypted_data)
+      hash = Flash::FlashHash.from_session_value(session['flash'])
+
+      assert_equal(nil, hash.to_session_value)
+    end
+
     def test_empty?
       assert @hash.empty?
       @hash['zomg'] = 'bears'
