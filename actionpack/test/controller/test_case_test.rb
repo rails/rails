@@ -142,6 +142,10 @@ XML
       render plain: 'ok'
     end
 
+    def render_cookie
+      render plain: cookies["foo"]
+    end
+
     def delete_cookie
       cookies.delete("foo")
       render plain: 'ok'
@@ -830,10 +834,14 @@ XML
 
   def test_should_have_knowledge_of_client_side_cookie_state_even_if_they_are_not_set
     cookies['foo'] = 'bar'
-    cookies['escape'] = '+'
     get :no_op
     assert_equal 'bar', cookies['foo']
-    assert_equal '+', cookies['escape']
+  end
+
+  def test_cookies_should_be_escaped_properly
+    cookies['foo'] = '+'
+    get :render_cookie
+    assert_equal '+', @response.body
   end
 
   def test_should_detect_if_cookie_is_deleted
