@@ -37,7 +37,7 @@ class JsonParamsParsingTest < ActionDispatch::IntegrationTest
     )
   end
 
-  test "does not parses unregistered media types such as application/vnd.api+json" do
+  test "does not parse unregistered media types such as application/vnd.api+json" do
     assert_parses(
       {},
       "{\"person\": {\"name\": \"David\"}}", { 'CONTENT_TYPE' => 'application/vnd.api+json' }
