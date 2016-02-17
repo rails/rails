@@ -158,6 +158,17 @@ module ActionController
       end
     end
 
+    module HashEquality
+      def ==(other_hash)
+        if other_hash.is_a?(ActionController::Parameters)
+          other_hash == self
+        else
+          super
+        end
+      end
+    end
+    ::Hash.prepend(HashEquality)
+
     # Returns a safe <tt>ActiveSupport::HashWithIndifferentAccess</tt>
     # representation of this parameter with all unpermitted keys removed.
     #
