@@ -11,30 +11,36 @@ module Rails
 
     attr_reader :argv
 
-    HELP_MESSAGE = <<-EOT
+    MAIN_COMMANDS = {
+      'generate'  => 'Generate new code (short-cut alias: "g")',
+      'console'   => 'Start the Rails console (short-cut alias: "c")',
+      'server'    => 'Start the Rails server (short-cut alias: "s")',
+      'test'      => 'Run tests (short-cut alias: "t")',
+      'dbconsole' => 'Start a console for the database specified in config/database.yml'\
+                    ' (short-cut alias: "db")',
+      'new'       => 'Create a new Rails application. "rails new my_app" creates a'\
+                    ' new application called MyApp in "./my_app"'
+    }
+
+    HELP_MESSAGE_TOP= <<-EOT
 Usage: rails COMMAND [ARGS]
 
 The most common rails commands are:
- generate    Generate new code (short-cut alias: "g")
- console     Start the Rails console (short-cut alias: "c")
- server      Start the Rails server (short-cut alias: "s")
- test        Run tests (short-cut alias: "t")
- dbconsole   Start a console for the database specified in config/database.yml
-             (short-cut alias: "db")
- new         Create a new Rails application. "rails new my_app" creates a
-             new application called MyApp in "./my_app"
+EOT
+
+    HELP_MESSAGE_MIDDLE = <<-EOT
 
 All commands can be run with -h (or --help) for more information.
 
 In addition to those commands, there are:
 EOT
 
-    ADDITIONAL_COMMANDS = [
-      [ 'destroy', 'Undo code generated with "generate" (short-cut alias: "d")' ],
-      [ 'plugin new', 'Generates skeleton for developing a Rails plugin' ],
-      [ 'runner',
-        'Run a piece of code in the application environment (short-cut alias: "r")' ]
-    ]
+    ADDITIONAL_COMMANDS = {
+      'destroy'    => 'Undo code generated with "generate" (short-cut alias: "d")',
+      'plugin new' => 'Generates skeleton for developing a Rails plugin',
+      'runner'     => 'Run a piece of code in the application environment'\
+                      '(short-cut alias: "r")'
+    }
 
     COMMAND_WHITELIST = %w(plugin generate destroy console server dbconsole runner new version help test)
 
@@ -118,8 +124,10 @@ EOT
     end
 
     def help
-      write_help_message
-      write_commands ADDITIONAL_COMMANDS + formatted_rake_tasks
+      puts HELP_MESSAGE_TOP
+      write_commands(main_commands)
+      puts HELP_MESSAGE_MIDDLE
+      write_commands(additional_commands)
     end
 
     private
@@ -175,6 +183,14 @@ EOT
         else
           command
         end
+      end
+
+      def main_commands
+        MAIN_COMMANDS
+      end
+
+      def additional_commands
+        ADDITIONAL_COMMANDS.merge(formatted_rake_tasks)
       end
   end
 end

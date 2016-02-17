@@ -3,9 +3,13 @@ require 'rails/engine/commands_tasks'
 ARGV << '--help' if ARGV.empty?
 
 aliases = {
-  "g" => "generate",
-  "d" => "destroy",
-  "t" => "test"
+  "g"  => "generate",
+  "d"  => "destroy",
+  "c"  => "console",
+  "s"  => "server",
+  "db" => "dbconsole",
+  "r"  => "runner",
+  "t"  => "test"
 }
 
 command = ARGV.shift
