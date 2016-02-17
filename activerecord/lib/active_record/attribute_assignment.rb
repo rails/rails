@@ -29,14 +29,6 @@ module ActiveRecord
       assign_multiparameter_attributes(multi_parameter_attributes) unless multi_parameter_attributes.empty?
     end
 
-    # Tries to assign given value to given attribute.
-    # In case of an error, re-raises with the ActiveRecord constant.
-    def _assign_attribute(k, v) # :nodoc:
-      super
-    rescue ActiveModel::UnknownAttributeError
-      raise UnknownAttributeError.new(self, k)
-    end
-
     # Assign any deferred nested attributes after the base attributes have been set.
     def assign_nested_parameter_attributes(pairs)
       pairs.each { |k, v| _assign_attribute(k, v) }
