@@ -16,15 +16,6 @@ module ActiveRecord
 
         private
 
-        def _quote(value)
-          case value
-          when Type::Binary::Data
-            "x'#{value.hex}'"
-          else
-            super
-          end
-        end
-
         def _type_cast(value)
           case value
           when BigDecimal

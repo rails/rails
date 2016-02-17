@@ -35,16 +35,6 @@ module ActiveRecord
             super.sub(/\.\d{6}\z/, '')
           end
         end
-
-        private
-
-        def _quote(value)
-          if value.is_a?(Type::Binary::Data)
-            "x'#{value.hex}'"
-          else
-            super
-          end
-        end
       end
     end
   end
