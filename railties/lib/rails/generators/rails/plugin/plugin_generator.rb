@@ -287,10 +287,6 @@ task default: :test
 
     protected
 
-      def app_templates_dir
-        "../../app/templates"
-      end
-
       def create_dummy_app(path = nil)
         dummy_path(path) if path
 
