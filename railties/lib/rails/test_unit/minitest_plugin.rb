@@ -42,7 +42,7 @@ module Minitest
     end
 
     opts.on("-f", "--fail-fast",
-            "Abort test run on first failure") do
+            "Abort test run on first failure or error") do
       options[:fail_fast] = true
     end
 
