@@ -22,10 +22,8 @@ module ActionView
       # * <tt>finder</tt>  - An instance of <tt>ActionView::LookupContext</tt>
       # * <tt>dependencies</tt>  - An array of dependent views
       # * <tt>partial</tt>  - Specifies whether the template is a partial
-      def digest(name:, finder:, **options)
-        options.assert_valid_keys(:dependencies, :partial)
-
-        dependencies = Array.wrap(options[:dependencies])
+      def digest(name:, finder:, dependencies: [])
+        dependencies ||= []
         cache_key = ([ name, finder.details_key.hash ].compact + dependencies).join('.')
 
         # this is a correctly done double-checked locking idiom
