@@ -692,7 +692,7 @@ module ActiveRecord
       def register_integer_type(mapping, key, options) # :nodoc:
         mapping.register_type(key) do |sql_type|
           if /\bunsigned\z/ === sql_type
-            Type::UnsignedInteger.new(options)
+            MySQL::Type::UnsignedInteger.new(options)
           else
             Type::Integer.new(options)
           end
@@ -932,7 +932,7 @@ module ActiveRecord
 
       ActiveRecord::Type.register(:json, MySQL::Type::Json, adapter: :mysql2)
       ActiveRecord::Type.register(:string, MySQL::Type::String, adapter: :mysql2)
-      ActiveRecord::Type.register(:unsigned_integer, Type::UnsignedInteger, adapter: :mysql2)
+      ActiveRecord::Type.register(:unsigned_integer, MySQL::Type::UnsignedInteger, adapter: :mysql2)
     end
   end
 end
