@@ -1,3 +1,7 @@
+*   Add prepared statements support for `Mysql2Adapter`.
+
+    *Ryuta Kamizono*
+
 *   Schema dumper: Indexes are now included in the `create_table` block
     instead of listed afterward as separate `add_index` lines.
 
