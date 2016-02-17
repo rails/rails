@@ -135,6 +135,12 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
     assert(params1 == hash1)
   end
 
+  test "equality with simple types works" do
+    assert(@params != 'Hello')
+    assert(@params != 42)
+    assert(@params != false)
+  end
+
   test "inspect shows both class name and parameters" do
     assert_equal(
       '<ActionController::Parameters {"person"=>{"age"=>"32", '\
