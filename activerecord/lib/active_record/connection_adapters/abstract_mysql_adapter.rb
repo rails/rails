@@ -4,6 +4,7 @@ require 'active_record/connection_adapters/mysql/explain_pretty_printer'
 require 'active_record/connection_adapters/mysql/schema_creation'
 require 'active_record/connection_adapters/mysql/schema_definitions'
 require 'active_record/connection_adapters/mysql/schema_dumper'
+require 'active_record/connection_adapters/mysql/type'
 require 'active_record/connection_adapters/mysql/type_metadata'
 
 require 'active_support/core_ext/string/strip'
@@ -651,7 +652,7 @@ module ActiveRecord
       def initialize_type_map(m) # :nodoc:
         super
 
-        register_class_with_limit m, %r(char)i, MysqlString
+        register_class_with_limit m, %r(char)i, MySQL::Type::String
 
         m.register_type %r(tinytext)i,   Type::Text.new(limit: 2**8 - 1)
         m.register_type %r(tinyblob)i,   Type::Binary.new(limit: 2**8 - 1)
@@ -663,7 +664,7 @@ module ActiveRecord
         m.register_type %r(longblob)i,   Type::Binary.new(limit: 2**32 - 1)
         m.register_type %r(^float)i,     Type::Float.new(limit: 24)
         m.register_type %r(^double)i,    Type::Float.new(limit: 53)
-        m.register_type %r(^json)i,      MysqlJson.new
+        m.register_type %r(^json)i,      MySQL::Type::Json.new
 
         register_integer_type m, %r(^bigint)i,    limit: 8
         register_integer_type m, %r(^int)i,       limit: 4
@@ -678,13 +679,13 @@ module ActiveRecord
         m.register_type(%r(enum)i) do |sql_type|
           limit = sql_type[/^enum\((.+)\)/i, 1]
             .split(',').map{|enum| enum.strip.length - 2}.max
-          MysqlString.new(limit: limit)
+          MySQL::Type::String.new(limit: limit)
         end
 
         m.register_type(%r(^set)i) do |sql_type|
           limit = sql_type[/^set\((.+)\)/i, 1]
             .split(',').map{|set| set.strip.length - 1}.sum - 1
-          MysqlString.new(limit: limit)
+          MySQL::Type::String.new(limit: limit)
         end
       end
 
@@ -929,36 +930,8 @@ module ActiveRecord
         end
       end
 
-      class MysqlJson < Type::Internal::AbstractJson # :nodoc:
-        def changed_in_place?(raw_old_value, new_value)
-          # Normalization is required because MySQL JSON data format includes
-          # the space between the elements.
-          super(serialize(deserialize(raw_old_value)), new_value)
-        end
-      end
-
-      class MysqlString < Type::String # :nodoc:
-        def serialize(value)
-          case value
-          when true then "1"
-          when false then "0"
-          else super
-          end
-        end
-
-        private
-
-        def cast_value(value)
-          case value
-          when true then "1"
-          when false then "0"
-          else super
-          end
-        end
-      end
-
-      ActiveRecord::Type.register(:json, MysqlJson, adapter: :mysql2)
-      ActiveRecord::Type.register(:string, MysqlString, adapter: :mysql2)
+      ActiveRecord::Type.register(:json, MySQL::Type::Json, adapter: :mysql2)
+      ActiveRecord::Type.register(:string, MySQL::Type::String, adapter: :mysql2)
       ActiveRecord::Type.register(:unsigned_integer, Type::UnsignedInteger, adapter: :mysql2)
     end
   end
