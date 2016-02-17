@@ -10,6 +10,10 @@ module Arel
 
       def nil?; @val.nil?; end
 
+      def hash
+         [@class, @val, @attribute].hash
+      end
+
       def eql? other
         self.class == other.class &&
             self.val == other.val &&
