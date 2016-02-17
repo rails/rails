@@ -10,9 +10,6 @@
          OR ("price_estimates"."estimate_of_type" = 'Car' AND "price_estimates"."estimate_of_id" = 2))
 
     *Philippe Huibonhoa*
-
-
-*   Rework `ActiveRecord::Relation#last` 
     
 *   Fix a bug where using `t.foreign_key` twice with the same `to_table` within
     the same table definition would only create one foreign key.
