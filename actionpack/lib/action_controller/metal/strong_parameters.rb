@@ -144,11 +144,10 @@ module ActionController
     end
 
     # Returns true if another +Parameters+ object contains the same content and
-    # permitted flag, or other Hash-like object contains the same content. This
-    # override is in place so you can perform a comparison with `Hash`.
+    # permitted flag, or other Hash-like object contains the same content.
     def ==(other_hash)
       if other_hash.respond_to?(:permitted?)
-        super
+        self.permitted? == other_hash.permitted? && self.parameters == other_hash.parameters
       else
         if other_hash.is_a?(Hash)
           @parameters == other_hash.with_indifferent_access
@@ -597,6 +596,8 @@ module ActionController
     end
 
     protected
+      attr_reader :parameters
+
       def permitted=(new_permitted)
         @permitted = new_permitted
       end

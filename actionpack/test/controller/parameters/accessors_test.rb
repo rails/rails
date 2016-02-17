@@ -135,6 +135,39 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
     assert(params1 == hash1)
   end
 
+  test "is equal to Parameters instance with same params" do
+    params1 = ActionController::Parameters.new(a: 1, b: 2)
+    params2 = ActionController::Parameters.new(a: 1, b: 2)
+    assert(params1 == params2)
+  end
+
+  test "is equal to Parameters instance with same permitted params" do
+    params1 = ActionController::Parameters.new(a: 1, b: 2).permit(:a)
+    params2 = ActionController::Parameters.new(a: 1, b: 2).permit(:a)
+    assert(params1 == params2)
+  end
+
+  test "is equal to Parameters instance with same different source params, but same permitted params" do
+    params1 = ActionController::Parameters.new(a: 1, b: 2).permit(:a)
+    params2 = ActionController::Parameters.new(a: 1, c: 3).permit(:a)
+    assert(params1 == params2)
+    assert(params2 == params1)
+  end
+
+  test 'is not equal to an unpermitted Parameters instance with same params' do
+    params1 = ActionController::Parameters.new(a: 1).permit(:a)
+    params2 = ActionController::Parameters.new(a: 1)
+    assert(params1 != params2)
+    assert(params2 != params1)
+  end
+
+  test "is not equal to Parameters instance with different permitted params" do
+    params1 = ActionController::Parameters.new(a: 1, b: 2).permit(:a, :b)
+    params2 = ActionController::Parameters.new(a: 1, b: 2).permit(:a)
+    assert(params1 != params2)
+    assert(params2 != params1)
+  end
+
   test "equality with simple types works" do
     assert(@params != 'Hello')
     assert(@params != 42)
