@@ -1,3 +1,7 @@
+*   Add prefix and length options to has_secure_token.
+
+    *Abdulaziz Alshetwi*
+
 *   Fix a bug where using `t.foreign_key` twice with the same `to_table` within
     the same table definition would only create one foreign key.
 
