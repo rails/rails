@@ -1,6 +1,16 @@
 module ActiveRecord
   class PredicateBuilder
     class AssociationQueryHandler # :nodoc:
+      def self.value_for(table, column, value)
+        klass = if table.associated_table(column).polymorphic_association? && ::Array === value && value.first.is_a?(Base)
+          PolymorphicArrayValue
+        else
+          AssociationQueryValue
+        end
+
+        klass.new(table.associated_table(column), value)
+      end
+
       def initialize(predicate_builder)
         @predicate_builder = predicate_builder
       end

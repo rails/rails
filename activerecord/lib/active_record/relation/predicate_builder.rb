@@ -5,6 +5,7 @@ module ActiveRecord
     require 'active_record/relation/predicate_builder/base_handler'
     require 'active_record/relation/predicate_builder/basic_object_handler'
     require 'active_record/relation/predicate_builder/class_handler'
+    require 'active_record/relation/predicate_builder/polymorphic_array_handler'
     require 'active_record/relation/predicate_builder/range_handler'
     require 'active_record/relation/predicate_builder/relation_handler'
 
@@ -22,6 +23,7 @@ module ActiveRecord
       register_handler(Relation, RelationHandler.new)
       register_handler(Array, ArrayHandler.new(self))
       register_handler(AssociationQueryValue, AssociationQueryHandler.new(self))
+      register_handler(PolymorphicArrayValue, PolymorphicArrayHandler.new(self))
     end
 
     def build_from_hash(attributes)
@@ -40,10 +42,7 @@ module ActiveRecord
       #
       # For polymorphic relationships, find the foreign key and type:
       # PriceEstimate.where(estimate_of: treasure)
-      if table.associated_with?(column)
-        value = AssociationQueryValue.new(table.associated_table(column), value)
-      end
-
+      value = AssociationQueryHandler.value_for(table, column, value) if table.associated_with?(column)
       build(table.arel_attribute(column), value)
     end
 
