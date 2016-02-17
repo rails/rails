@@ -71,6 +71,39 @@ module ActiveRecord
         binds)
     end
 
+    def upsert(values) # :nodoc:
+      primary_key_value = nil
+
+      if primary_key && Hash === values
+        primary_key_value = values[values.keys.find { |k|
+          k.name == primary_key
+        }]
+      end
+
+      im = arel.create_insert
+      im.into @table
+
+      substitutes, binds = substitute_values values
+
+      cm = arel.create_on_conflict_do_update
+      cm.target = @table[primary_key]
+
+      cm.set(values)
+
+      im.on_conflict = cm.to_node
+      # FOOTLONG: Add ON CONFLICT ??????
+
+      im.insert substitutes
+
+      @klass.connection.insert(
+        im,
+        'SQL',
+        primary_key,
+        primary_key_value,
+        nil,
+        binds)
+    end
+
     def _update_record(values, id, id_was) # :nodoc:
       substitutes, binds = substitute_values values
 

@@ -81,6 +81,22 @@ module ActiveRecord
       super(*args)
     end
 
+
+    def _upsert_record
+      if self.record_timestamps
+        current_time = current_time_from_proper_timezone
+
+        all_timestamp_attributes.each do |column|
+          column = column.to_s
+          if has_attribute?(column) && !attribute_present?(column)
+            write_attribute(column, current_time)
+          end
+        end
+      end
+
+      super
+    end
+
     def should_record_timestamps?
       self.record_timestamps && (!partial_writes? || changed?)
     end
