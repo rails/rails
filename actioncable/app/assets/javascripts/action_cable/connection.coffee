@@ -17,8 +17,10 @@ class ActionCable.Connection
 
   open: =>
     if @webSocket and not @isState("closed")
+      console.log("[cable] Attemped to open WebSocket, but existing socket is #{@getState()}", Date.now())
       throw new Error("Existing connection must be closed before opening")
     else
+      console.log("[cable] Opening WebSocket", Date.now())
       @webSocket = new WebSocket(@consumer.url)
       @installEventHandlers()
       true
@@ -27,12 +29,14 @@ class ActionCable.Connection
     @webSocket?.close()
 
   reopen: ->
+    console.log("[cable] Reopening WebSocket, current state is #{@getState()}", Date.now())
     if @isState("closed")
       @open()
     else
       try
         @close()
       finally
+        console.log("[cable] Failed to reopen WebSocket, retrying in #{@constructor.reopenDelay}ms", Date.now())
         setTimeout(@open, @constructor.reopenDelay)
 
   isOpen: ->
@@ -66,13 +70,16 @@ class ActionCable.Connection
           @consumer.subscriptions.notify(identifier, "received", message)
 
     open: ->
+      console.log("[cable] WebSocket onopen event", Date.now())
       @disconnected = false
       @consumer.subscriptions.reload()
 
     close: ->
+      console.log("[cable] WebSocket onclose event", Date.now())
       @disconnect()
 
     error: ->
+      console.log("[cable] WebSocket onerror event", Date.now())
       @disconnect()
 
   disconnect: ->
