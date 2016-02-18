@@ -81,14 +81,14 @@ module ActiveRecord
       end
 
       im = arel.create_insert
-      im.into @table
+      im.into arel_table
 
       substitutes, binds = substitute_values values
 
       cm = arel.create_on_conflict_do_update
-      cm.target = @table[primary_key]
+      cm.target = arel_table[primary_key]
 
-      cm.set(values)
+      cm.set(substitutes)
 
       im.on_conflict = cm.to_node
       # FOOTLONG: Add ON CONFLICT ??????
@@ -101,7 +101,7 @@ module ActiveRecord
         primary_key,
         primary_key_value,
         nil,
-        binds)
+        binds + binds)
     end
 
     def _update_record(values, id, id_was) # :nodoc:
