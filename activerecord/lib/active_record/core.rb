@@ -451,7 +451,7 @@ module ActiveRecord
     # models are still comparable.
     def ==(comparison_object)
       super ||
-        comparison_object.instance_of?(self.class) &&
+        comparison_object.is_a?(self.class.base_class) &&
         !id.nil? &&
         comparison_object.id == id
     end

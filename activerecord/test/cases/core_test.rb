@@ -110,4 +110,11 @@ class CoreTest < ActiveRecord::TestCase
     PP.pp(subtopic.new, StringIO.new(actual))
     assert_equal "inspecting topic\n", actual
   end
+
+  def test_equals_operator_handles_sti
+    topic = ImportantTopic.create!
+    topic_changed_type = topic.becomes! BlankTopic
+    assert_equal topic.id, topic_changed_type.id
+    assert topic == topic_changed_type, "`becomes` object should `==` original"
+  end
 end

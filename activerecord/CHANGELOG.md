@@ -1,3 +1,31 @@
+*   Update eql? to handle STI subclasses.
+
+    The equals comparison between active record objects is intended to check if
+    the record represents the same row in the database.  This is now properly
+    handled in cases involving STI subclasses and the `becomes` method.
+
+    ```
+    class Filter < ActiveRecord::Base
+    end
+
+    class AppointmentFilter < Filter
+    end
+
+    class ClientFilter < Filter
+    end
+
+    f1 = AppointmentFilter.create!
+    f1 # => #<AppointmentFilter:0x007f9ac80d2c70 id: 1, type: "AppointmentFilter">
+
+    f2 = f1.becomes!(ClientFilter)
+    f2 # => #<ClientFilter:0x007f9ac804e560 id: 1, type: "ClientFilter">
+                                              # ^-- note the same id as F1
+
+    f1 == f2 # => true (this used to return false)
+    ```
+
+    *Jeremy Mickelson*
+
 *   Don't update counter cache unless the record is actually saved.
 
     Fixes #31493, #33113, #33117.
