@@ -33,7 +33,6 @@ class TemplateDigestorTest < ActionView::TestCase
   def teardown
     Dir.chdir @cwd
     FileUtils.rm_r @tmp_dir
-    ActionView::Digestor.cache.clear
   end
 
   def test_top_level_change_reflected
@@ -301,12 +300,12 @@ class TemplateDigestorTest < ActionView::TestCase
 
     def assert_digest_difference(template_name, options = {})
       previous_digest = digest(template_name, options)
-      ActionView::Digestor.cache.clear
+      finder.digest_cache.clear
 
       yield
 
       assert_not_equal previous_digest, digest(template_name, options), "digest didn't change"
-      ActionView::Digestor.cache.clear
+      finder.digest_cache.clear
     end
 
     def digest(template_name, options = {})
