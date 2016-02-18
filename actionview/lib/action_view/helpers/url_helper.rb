@@ -40,11 +40,14 @@ module ActionView
         end
       end
 
+      # Returns previous URL in the browser history from request referrer or JavaScript history back method
       def _back_url # :nodoc:
         _filtered_referrer || 'javascript:history.back()'
       end
       protected :_back_url
 
+      # Returns referrer URL of the current request and also ensures it doesn't contain a JavaScript protocol
+      # Raises an exception if referrer has invalid URI format
       def _filtered_referrer # :nodoc:
         if controller.respond_to?(:request)
           referrer = controller.request.env["HTTP_REFERER"]
