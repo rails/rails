@@ -108,7 +108,7 @@ class EachTest < ActiveRecord::TestCase
     end
   end
 
-  def test_find_in_batches_should_finish_the_end_option
+  def test_find_in_batches_should_end_at_the_finish_option
     assert_queries(6) do
       Post.find_in_batches(batch_size: 1, finish: 5) do |batch|
         assert_kind_of Array, batch
@@ -316,7 +316,7 @@ class EachTest < ActiveRecord::TestCase
     end
   end
 
-  def test_in_batches_should_finish_the_end_option
+  def test_in_batches_should_end_at_the_finish_option
     post = Post.order('id DESC').where('id <= ?', 5).first
     assert_queries(7) do
       relation = Post.in_batches(of: 1, finish: 5, load: true).reverse_each.first

@@ -24,7 +24,7 @@ module Rails
         io.puts
       end
 
-      if fail_fast? && result.failure && !result.error? && !result.skipped?
+      if fail_fast? && result.failure && !result.skipped?
         raise Interrupt
       end
     end

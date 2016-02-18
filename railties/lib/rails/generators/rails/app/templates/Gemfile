@@ -38,13 +38,13 @@ group :development do
   gem 'web-console', '~> 3.0'
   <%- end -%>
 <%- end -%>
-<% if os_supports_listen_out_of_the_box? -%>
+<% if depend_on_listen? -%>
   gem 'listen', '~> 3.0.5'
 <% end -%>
 <% if spring_install? -%>
   # Spring speeds up development by keeping your application running in the background. Read more: https://github.com/rails/spring
   gem 'spring'
-<% if os_supports_listen_out_of_the_box? -%>
+<% if depend_on_listen? -%>
   gem 'spring-watcher-listen', '~> 2.0.0'
 <% end -%>
 <% end -%>

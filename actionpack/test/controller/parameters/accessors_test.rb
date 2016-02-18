@@ -134,4 +134,13 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
     params1 = ActionController::Parameters.new(hash1)
     assert(params1 == hash1)
   end
+
+  test "inspect shows both class name and parameters" do
+    assert_equal(
+      '<ActionController::Parameters {"person"=>{"age"=>"32", '\
+      '"name"=>{"first"=>"David", "last"=>"Heinemeier Hansson"}, ' \
+      '"addresses"=>[{"city"=>"Chicago", "state"=>"Illinois"}]}}>',
+      @params.inspect
+    )
+  end
 end

@@ -4,13 +4,11 @@ require 'monitor'
 
 module ActionView
   class Digestor
-    cattr_reader(:cache)
-    @@cache          = Concurrent::Map.new
     @@digest_mutex   = Mutex.new
 
     class PerRequestDigestCacheExpiry < Struct.new(:app) # :nodoc:
       def call(env)
-        ActionView::Digestor.cache.clear
+        ActionView::LookupContext::DetailsKey.clear
         app.call(env)
       end
     end
@@ -24,13 +22,13 @@ module ActionView
       # * <tt>partial</tt>  - Specifies whether the template is a partial
       def digest(name:, finder:, dependencies: [])
         dependencies ||= []
-        cache_key = ([ name, finder.details_key.hash ].compact + dependencies).join('.')
+        cache_key = ([ name ].compact + dependencies).join('.')
 
         # this is a correctly done double-checked locking idiom
         # (Concurrent::Map's lookups have volatile semantics)
-        @@cache[cache_key] || @@digest_mutex.synchronize do
-          @@cache.fetch(cache_key) do # re-check under lock
-            @@cache[cache_key] = tree(name, finder, dependencies).digest
+        finder.digest_cache[cache_key] || @@digest_mutex.synchronize do
+          finder.digest_cache.fetch(cache_key) do # re-check under lock
+            finder.digest_cache[cache_key] = tree(name, finder, dependencies).digest
           end
         end
       end
@@ -50,6 +48,7 @@ module ActionView
           if node = seen[template.identifier] # handle cycles in the tree
             node
           else
+
             node = seen[template.identifier] = Node.create(name, logical_name, template, partial)
 
             deps = DependencyTracker.find_dependencies(name, template, finder.view_paths)

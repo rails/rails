@@ -177,6 +177,7 @@ class StoreTest < ActiveRecord::TestCase
     assert_equal [:color], first_model.stored_attributes[:data]
     assert_equal [:color, :width, :height], second_model.stored_attributes[:data]
     assert_equal [:color, :area, :volume], third_model.stored_attributes[:data]
+    assert_equal [:color], first_model.stored_attributes[:data]
   end
 
   test "YAML coder initializes the store when a Nil value is given" do

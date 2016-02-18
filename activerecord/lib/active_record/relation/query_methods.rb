@@ -655,6 +655,10 @@ module ActiveRecord
     #    # SELECT `posts`.* FROM `posts`  WHERE (('id = 1' OR 'author_id = 3'))
     #
     def or(other)
+      unless other.is_a? Relation
+        raise ArgumentError, "You have passed #{other.class.name} object to #or. Pass an ActiveRecord::Relation object instead."
+      end
+
       spawn.or!(other)
     end
 

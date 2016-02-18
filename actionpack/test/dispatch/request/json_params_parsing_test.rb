@@ -37,9 +37,9 @@ class JsonParamsParsingTest < ActionDispatch::IntegrationTest
     )
   end
 
-  test "parses json params for application/vnd.api+json" do
+  test "does not parse unregistered media types such as application/vnd.api+json" do
     assert_parses(
-      {"person" => {"name" => "David"}},
+      {},
       "{\"person\": {\"name\": \"David\"}}", { 'CONTENT_TYPE' => 'application/vnd.api+json' }
     )
   end
@@ -140,13 +140,6 @@ class RootLessJSONParamsParsingTest < ActionDispatch::IntegrationTest
     assert_parses(
       {"user" => {"username" => "sikachu"}, "username" => "sikachu"},
       "{\"username\": \"sikachu\"}", { 'CONTENT_TYPE' => 'application/jsonrequest' }
-    )
-  end
-
-  test "parses json params for application/vnd.api+json" do
-    assert_parses(
-      {"user" => {"username" => "sikachu"}, "username" => "sikachu"},
-      "{\"username\": \"sikachu\"}", { 'CONTENT_TYPE' => 'application/vnd.api+json' }
     )
   end
 

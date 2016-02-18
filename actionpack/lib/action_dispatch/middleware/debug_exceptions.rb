@@ -149,6 +149,7 @@ module ActionDispatch
     def log_error(request, wrapper)
       logger = logger(request)
       return unless logger
+
       exception = wrapper.exception
 
       trace = wrapper.application_trace
@@ -163,11 +164,11 @@ module ActionDispatch
       end
     end
 
-    def log_array logger, array
-      array.map { |line| logger.fatal line}
+    def log_array(logger, array)
+      array.map { |line| logger.fatal line }
     end
 
-    def logger request
+    def logger(request)
       request.logger || ActionView::Base.logger || stderr_logger
     end
 

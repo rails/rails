@@ -33,7 +33,6 @@ class TemplateDigestorTest < ActionView::TestCase
   def teardown
     Dir.chdir @cwd
     FileUtils.rm_r @tmp_dir
-    ActionView::Digestor.cache.clear
   end
 
   def test_top_level_change_reflected
@@ -128,6 +127,16 @@ class TemplateDigestorTest < ActionView::TestCase
     assert_logged "'messages/something_missing' file doesn't exist, so no dependencies" do
       nested_dependencies("messages/something_missing")
     end
+  end
+
+  def test_getting_of_singly_nested_dependencies
+    singly_nested_dependencies = ["messages/header", "messages/form", "messages/message", "events/event", "comments/comment"]
+    assert_equal singly_nested_dependencies, nested_dependencies('messages/edit')
+  end
+
+  def test_getting_of_doubly_nested_dependencies
+    doubly_nested = [{"comments/comments"=>["comments/comment"]}, "messages/message"]
+    assert_equal doubly_nested, nested_dependencies('messages/peek')
   end
 
   def test_nested_template_directory
@@ -296,12 +305,12 @@ class TemplateDigestorTest < ActionView::TestCase
 
     def assert_digest_difference(template_name, options = {})
       previous_digest = digest(template_name, options)
-      ActionView::Digestor.cache.clear
+      finder.digest_cache.clear
 
       yield
 
       assert_not_equal previous_digest, digest(template_name, options), "digest didn't change"
-      ActionView::Digestor.cache.clear
+      finder.digest_cache.clear
     end
 
     def digest(template_name, options = {})

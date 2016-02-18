@@ -1,3 +1,16 @@
+*   Fixed `where` for polymorphic associations when passed an array containing different types.
+
+    Fixes #17011.
+
+    Example:
+
+        PriceEstimate.where(estimate_of: [Treasure.find(1), Car.find(2)])
+        # => SELECT "price_estimates".* FROM "price_estimates"
+             WHERE (("price_estimates"."estimate_of_type" = 'Treasure' AND "price_estimates"."estimate_of_id" = 1)
+             OR ("price_estimates"."estimate_of_type" = 'Car' AND "price_estimates"."estimate_of_id" = 2))
+
+    *Philippe Huibonhoa*
+
 *   Fix a bug where using `t.foreign_key` twice with the same `to_table` within
     the same table definition would only create one foreign key.
 
@@ -10,7 +23,7 @@
 
     *Bogdan Gusiev*, *Jon Hinson*
 
-*   Rework `ActiveRecord::Relation#last`
+*   Rework `ActiveRecord::Relation#last`.
 
     1. Never perform additional SQL on loaded relation
     2. Use SQL reverse order instead of loading relation if relation doesn't have limit
@@ -33,7 +46,7 @@
 
 *   Allow `joins` to be unscoped.
 
-    Closes #13775.
+    Fixes #13775.
 
     *Takashi Kokubun*
 

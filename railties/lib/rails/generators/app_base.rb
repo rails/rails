@@ -63,6 +63,9 @@ module Rails
         class_option :skip_spring,        type: :boolean, default: false,
                                           desc: "Don't install Spring application preloader"
 
+        class_option :skip_listen,        type: :boolean, default: false,
+                                          desc: "Don't generate configuration that depends on the listen gem"
+
         class_option :skip_javascript,    type: :boolean, aliases: '-J', default: false,
                                           desc: 'Skip JavaScript files'
 
@@ -388,6 +391,10 @@ module Rails
 
       def spring_install?
         !options[:skip_spring] && !options.dev? && Process.respond_to?(:fork) && !RUBY_PLATFORM.include?("cygwin")
+      end
+
+      def depend_on_listen?
+        !options[:skip_listen] && os_supports_listen_out_of_the_box?
       end
 
       def os_supports_listen_out_of_the_box?

@@ -109,7 +109,7 @@ module ActionController
     cattr_accessor :permit_all_parameters, instance_accessor: false
     cattr_accessor :action_on_unpermitted_parameters, instance_accessor: false
 
-    delegate :keys, :key?, :has_key?, :values, :has_value?, :value?, :empty?, :include?, :inspect,
+    delegate :keys, :key?, :has_key?, :values, :has_value?, :value?, :empty?, :include?,
       :as_json, to: :@parameters
 
     # By default, never raise an UnpermittedParameters exception if these
@@ -574,6 +574,10 @@ module ActionController
       dup
     end
 
+    def inspect
+      "<#{self.class} #{@parameters}>"
+    end
+
     def method_missing(method_sym, *args, &block)
       if @parameters.respond_to?(method_sym)
         message = <<-DEPRECATE.squish
@@ -598,7 +602,7 @@ module ActionController
       end
 
       def fields_for_style?
-        @parameters.all? { |k, v| k =~ /\A-?\d+\z/ && v.is_a?(Hash) }
+        @parameters.all? { |k, v| k =~ /\A-?\d+\z/ && (v.is_a?(Hash) || v.is_a?(Parameters)) }
       end
 
     private

@@ -90,6 +90,7 @@ task default: :test
       opts[:force] = force
       opts[:skip_bundle] = true
       opts[:api] = options.api?
+      opts[:skip_listen] = true
 
       invoke Rails::Generators::AppGenerator,
         [ File.expand_path(dummy_path, destination_root) ], opts
@@ -286,10 +287,6 @@ task default: :test
       end
 
     protected
-
-      def app_templates_dir
-        "../../app/templates"
-      end
 
       def create_dummy_app(path = nil)
         dummy_path(path) if path
