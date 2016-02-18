@@ -9,11 +9,12 @@ module ActionView
     end
 
     private
-      def cache_collection_render
+      def cache_collection_render(instrumentation_payload)
         return yield unless @options[:cached]
 
         keyed_collection = collection_by_cache_keys
-        cached_partials = collection_cache.read_multi(*keyed_collection.keys)
+        cached_partials  = collection_cache.read_multi(*keyed_collection.keys)
+        instrumentation_payload[:cache_hits] = cached_partials.size
 
         @collection = keyed_collection.reject { |key, _| cached_partials.key?(key) }.values
         rendered_partials = @collection.empty? ? [] : yield
