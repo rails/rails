@@ -398,7 +398,7 @@ module ActiveRecord
         if can_perform_case_insensitive_comparison_for?(column)
           table[attribute].lower.eq(table.lower(Arel::Nodes::BindParam.new))
         else
-          case_sensitive_comparison(table, attribute, column, value)
+          table[attribute].eq(Arel::Nodes::BindParam.new)
         end
       end
 
