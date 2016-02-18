@@ -158,8 +158,10 @@ module ActiveRecord
 
       def _quote(value)
         case value
-        when String, ActiveSupport::Multibyte::Chars, Type::Binary::Data
+        when String, ActiveSupport::Multibyte::Chars
           "'#{quote_string(value.to_s)}'"
+        when Type::Binary::Data
+          "x'#{value.hex}'"
         when true       then quoted_true
         when false      then quoted_false
         when nil        then "NULL"
