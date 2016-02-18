@@ -317,9 +317,7 @@ class TemplateDigestorTest < ActionView::TestCase
       options = options.dup
 
       finder.variants = options.delete(:variants) || []
-
-      node = ActionView::Digestor.tree(template_name, finder, options[:dependencies] || [])
-      node.digest(finder)
+      ActionView::Digestor.digest(name: template_name, finder: finder, dependencies: (options[:dependencies] || []))
     end
 
     def dependencies(template_name)
