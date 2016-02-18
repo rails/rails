@@ -1,3 +1,8 @@
+*   Fix regression in dirty attribute tracking after #dup.  Changes to the
+    clone no longer show as changed attributes in the original object.
+
+    *Dominic Cleal*
+
 *   Fix regression when loading fixture files with symbol keys.
 
     Closes #22584.
