@@ -28,7 +28,11 @@ module ActionView
         # (Concurrent::Map's lookups have volatile semantics)
         finder.digest_cache[cache_key] || @@digest_mutex.synchronize do
           finder.digest_cache.fetch(cache_key) do # re-check under lock
-            finder.digest_cache[cache_key] = tree(name, finder, dependencies).digest(finder)
+            root = tree(name, finder)
+            dependencies.each do |injected_dep|
+              root.children << Injected.new(injected_dep, nil, nil)
+            end
+            finder.digest_cache[cache_key] = root.digest(finder)
           end
         end
       end
@@ -38,7 +42,7 @@ module ActionView
       end
 
       # Create a dependency tree for template named +name+.
-      def tree(name, finder, injected = [], partial = false, seen = {})
+      def tree(name, finder, partial = false, seen = {})
         logical_name = name.gsub(%r|/_|, "/")
         partial = partial || name.include?("/_")
 
@@ -48,15 +52,11 @@ module ActionView
           if node = seen[template.identifier] # handle cycles in the tree
             node
           else
-
             node = seen[template.identifier] = Node.create(name, logical_name, template, partial)
 
             deps = DependencyTracker.find_dependencies(name, template, finder.view_paths)
             deps.uniq { |n| n.gsub(%r|/_|, "/") }.each do |dep_file|
-              node.children << tree(dep_file, finder, [], true, seen)
-            end
-            injected.each do |injected_dep|
-              node.children << Injected.new(injected_dep, nil, nil)
+              node.children << tree(dep_file, finder, true, seen)
             end
             node
           end

@@ -321,12 +321,12 @@ class TemplateDigestorTest < ActionView::TestCase
     end
 
     def dependencies(template_name)
-      tree = ActionView::Digestor.tree(template_name, finder, [])
+      tree = ActionView::Digestor.tree(template_name, finder)
       tree.children.map(&:name)
     end
 
     def nested_dependencies(template_name)
-      tree = ActionView::Digestor.tree(template_name, finder, [])
+      tree = ActionView::Digestor.tree(template_name, finder)
       tree.children.map(&:to_dep_map)
     end
 
