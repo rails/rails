@@ -28,7 +28,7 @@ module ActionView
         # (Concurrent::Map's lookups have volatile semantics)
         finder.digest_cache[cache_key] || @@digest_mutex.synchronize do
           finder.digest_cache.fetch(cache_key) do # re-check under lock
-            finder.digest_cache[cache_key] = tree(name, finder, dependencies).digest
+            finder.digest_cache[cache_key] = tree(name, finder, dependencies).digest(finder)
           end
         end
       end
@@ -83,17 +83,19 @@ module ActionView
         @children     = children
       end
 
-      def digest(stack = [])
-        Digest::MD5.hexdigest("#{template.source}-#{dependency_digest(stack)}")
+      def digest(finder, stack = [])
+        Digest::MD5.hexdigest("#{template.source}-#{dependency_digest(finder, stack)}")
       end
 
-      def dependency_digest(stack)
+      def dependency_digest(finder, stack)
         children.map do |node|
           if stack.include?(node)
             false
           else
-            stack.push node
-            node.digest(stack).tap { stack.pop }
+            finder.digest_cache[node.name] ||= begin
+                                                 stack.push node
+                                                 node.digest(finder, stack).tap { stack.pop }
+                                               end
           end
         end.join("-")
       end
@@ -106,11 +108,11 @@ module ActionView
     class Partial < Node; end
 
     class Missing < Node
-      def digest(_ = []) '' end
+      def digest(finder, _ = []) '' end
     end
 
     class Injected < Node
-      def digest(_ = []) name end
+      def digest(finder, _ = []) name end
     end
 
     class NullLogger
