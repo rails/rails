@@ -136,6 +136,10 @@ class PerFormTokensController < ActionController::Base
     render inline: "<%= form_tag (params[:form_path] || '/per_form_tokens/post_one'), method: (params[:form_method] || :post) %>"
   end
 
+  def button_to
+    render inline: "<%= button_to 'Button', (params[:form_path] || '/per_form_tokens/post_one'), method: (params[:form_method] || :post) %>"
+  end
+
   def post_one
     render plain: ''
   end
@@ -707,6 +711,46 @@ class PerFormTokensControllerTest < ActionController::TestCase
     @request.env['PATH_INFO'] = '/per_form_tokens/post_one'
     assert_raises(ActionController::InvalidAuthenticityToken) do
       patch :post_one, params: {custom_authenticity_token: form_token}
+    end
+  end
+
+  def test_rejects_token_for_incorrect_method_button_to
+    get :button_to, params: { form_method: 'delete' }
+
+    form_token = nil
+    assert_select 'input[name=custom_authenticity_token]' do |elts|
+      form_token = elts.first['value']
+      assert_not_nil form_token
+    end
+
+    actual = @controller.send(:unmask_token, Base64.strict_decode64(form_token))
+    expected = @controller.send(:per_form_csrf_token, session, '/per_form_tokens/post_one', 'delete')
+    assert_equal expected, actual
+
+    # This is required because PATH_INFO isn't reset between requests.
+    @request.env['PATH_INFO'] = '/per_form_tokens/post_one'
+    assert_raises(ActionController::InvalidAuthenticityToken) do
+      patch :post_one, params: { custom_authenticity_token: form_token }
+    end
+  end
+
+  def test_accepts_proper_token_for_delete_method_button_to
+    get :button_to, params: { form_method: 'delete' }
+
+    form_token = nil
+    assert_select 'input[name=custom_authenticity_token]' do |elts|
+      form_token = elts.first['value']
+      assert_not_nil form_token
+    end
+
+    actual = @controller.send(:unmask_token, Base64.strict_decode64(form_token))
+    expected = @controller.send(:per_form_csrf_token, session, '/per_form_tokens/post_one', 'delete')
+    assert_equal expected, actual
+
+    # This is required because PATH_INFO isn't reset between requests.
+    @request.env['PATH_INFO'] = '/per_form_tokens/post_one'
+    assert_nothing_raised do
+      delete :post_one, params: { custom_authenticity_token: form_token }
     end
   end
 
