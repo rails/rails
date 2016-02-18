@@ -51,6 +51,8 @@ class Object
     else
       instance_values.as_json(options)
     end
+  rescue SystemStackError => e
+    raise JSON::GeneratorError.new('source contains circular reference')
   end
 end
 

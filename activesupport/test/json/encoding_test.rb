@@ -141,6 +141,15 @@ class TestJSONEncoding < ActiveSupport::TestCase
     assert_equal({"foo"=>"hello"}, JSON.parse(json))
   end
 
+  def test_object_to_json_with_circular_reference
+    obj1 = Object.new
+    obj2 = Object.new
+    obj1.instance_variable_set :@foo, obj2
+    obj2.instance_variable_set :@foo, obj1
+
+    assert_raises(JSON::GeneratorError) { obj1.as_json }
+  end
+
   def test_struct_to_json_with_options
     struct = Struct.new(:foo, :bar).new
     struct.foo = "hello"
