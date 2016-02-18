@@ -28,7 +28,8 @@ module ActionView
         # (Concurrent::Map's lookups have volatile semantics)
         finder.digest_cache[cache_key] || @@digest_mutex.synchronize do
           finder.digest_cache.fetch(cache_key) do # re-check under lock
-            root = tree(name, finder)
+            partial = name.include?("/_")
+            root = tree(name, finder, partial)
             dependencies.each do |injected_dep|
               root.children << Injected.new(injected_dep, nil, nil)
             end
@@ -44,7 +45,6 @@ module ActionView
       # Create a dependency tree for template named +name+.
       def tree(name, finder, partial = false, seen = {})
         logical_name = name.gsub(%r|/_|, "/")
-        partial = partial || name.include?("/_")
 
         if finder.disable_cache { finder.exists?(logical_name, [], partial) }
           template = finder.disable_cache { finder.find(logical_name, [], partial) }
