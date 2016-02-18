@@ -90,6 +90,7 @@ task default: :test
       opts[:force] = force
       opts[:skip_bundle] = true
       opts[:api] = options.api?
+      opts[:skip_listen] = true
 
       invoke Rails::Generators::AppGenerator,
         [ File.expand_path(dummy_path, destination_root) ], opts
