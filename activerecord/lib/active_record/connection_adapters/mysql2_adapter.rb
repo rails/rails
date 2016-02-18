@@ -134,8 +134,6 @@ module ActiveRecord
         ActiveRecord::Result.new(result.fields, result.to_a)
       end
 
-      alias exec_without_stmt exec_query
-
       def exec_insert(sql, name, binds, pk = nil, sequence_name = nil)
         execute to_sql(sql, binds), name
       end
