@@ -316,13 +316,15 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_file "app/controllers/bukkits/application_controller.rb", /module Bukkits\n  class ApplicationController < ActionController::Base/
     assert_file "app/models/bukkits/application_record.rb", /module Bukkits\n  class ApplicationRecord < ActiveRecord::Base/
     assert_file "app/jobs/bukkits/application_job.rb", /module Bukkits\n  class ApplicationJob < ActiveJob::Base/
-    assert_file "app/mailers/bukkits/application_mailer.rb", /module Bukkits\n  class ApplicationMailer < ActionMailer::Base\n    default from: 'from@example\.com'\n    layout 'mailer'\n/
+    assert_file "app/mailers/bukkits/application_mailer.rb", %r{module Bukkits\n  class ApplicationMailer < ActionMailer::Base\n    default from: 'from@example\.com'\n    layout 'bukkits/mailer'\n}
     assert_file "app/helpers/bukkits/application_helper.rb", /module Bukkits\n  module ApplicationHelper/
     assert_file "app/views/layouts/bukkits/application.html.erb" do |contents|
       assert_match "<title>Bukkits</title>", contents
       assert_match(/stylesheet_link_tag\s+['"]bukkits\/application['"]/, contents)
       assert_match(/javascript_include_tag\s+['"]bukkits\/application['"]/, contents)
     end
+    assert_file "app/views/layouts/bukkits/mailer.html.erb"
+    assert_file "app/views/layouts/bukkits/mailer.text.erb"
     assert_file "test/test_helper.rb" do |content|
       assert_match(/ActiveRecord::Migrator\.migrations_paths.+\.\.\/test\/dummy\/db\/migrate/, content)
       assert_match(/ActiveRecord::Migrator\.migrations_paths.+<<.+\.\.\/db\/migrate/, content)
@@ -345,13 +347,15 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_file "hyphenated-name/app/controllers/hyphenated/name/application_controller.rb", /module Hyphenated\n  module Name\n    class ApplicationController < ActionController::Base\n      protect_from_forgery with: :exception\n    end\n  end\nend\n/
     assert_file "hyphenated-name/app/models/hyphenated/name/application_record.rb",          /module Hyphenated\n  module Name\n    class ApplicationRecord < ActiveRecord::Base\n      self\.abstract_class = true\n    end\n  end\nend/
     assert_file "hyphenated-name/app/jobs/hyphenated/name/application_job.rb",               /module Hyphenated\n  module Name\n    class ApplicationJob < ActiveJob::Base/
-    assert_file "hyphenated-name/app/mailers/hyphenated/name/application_mailer.rb",         /module Hyphenated\n  module Name\n    class ApplicationMailer < ActionMailer::Base\n      default from: 'from@example\.com'\n      layout 'mailer'\n    end\n  end\nend/
+    assert_file "hyphenated-name/app/mailers/hyphenated/name/application_mailer.rb",         %r{module Hyphenated\n  module Name\n    class ApplicationMailer < ActionMailer::Base\n      default from: 'from@example\.com'\n      layout 'hyphenated/name/mailer'\n    end\n  end\nend}
     assert_file "hyphenated-name/app/helpers/hyphenated/name/application_helper.rb",         /module Hyphenated\n  module Name\n    module ApplicationHelper\n    end\n  end\nend/
     assert_file "hyphenated-name/app/views/layouts/hyphenated/name/application.html.erb" do |contents|
       assert_match "<title>Hyphenated name</title>", contents
       assert_match(/stylesheet_link_tag\s+['"]hyphenated\/name\/application['"]/, contents)
       assert_match(/javascript_include_tag\s+['"]hyphenated\/name\/application['"]/, contents)
     end
+    assert_file "hyphenated-name/app/views/layouts/hyphenated/name/mailer.html.erb"
+    assert_file "hyphenated-name/app/views/layouts/hyphenated/name/mailer.text.erb"
   end
 
   def test_create_mountable_application_with_mountable_option_and_hypenated_and_underscored_name
@@ -367,13 +371,15 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_file "my_hyphenated-name/app/controllers/my_hyphenated/name/application_controller.rb", /module MyHyphenated\n  module Name\n    class ApplicationController < ActionController::Base\n      protect_from_forgery with: :exception\n    end\n  end\nend\n/
     assert_file "my_hyphenated-name/app/models/my_hyphenated/name/application_record.rb",          /module MyHyphenated\n  module Name\n    class ApplicationRecord < ActiveRecord::Base\n      self\.abstract_class = true\n    end\n  end\nend/
     assert_file "my_hyphenated-name/app/jobs/my_hyphenated/name/application_job.rb",               /module MyHyphenated\n  module Name\n    class ApplicationJob < ActiveJob::Base/
-    assert_file "my_hyphenated-name/app/mailers/my_hyphenated/name/application_mailer.rb",         /module MyHyphenated\n  module Name\n    class ApplicationMailer < ActionMailer::Base\n      default from: 'from@example\.com'\n      layout 'mailer'\n    end\n  end\nend/
+    assert_file "my_hyphenated-name/app/mailers/my_hyphenated/name/application_mailer.rb",         %r{module MyHyphenated\n  module Name\n    class ApplicationMailer < ActionMailer::Base\n      default from: 'from@example\.com'\n      layout 'my_hyphenated/name/mailer'\n    end\n  end\nend}
     assert_file "my_hyphenated-name/app/helpers/my_hyphenated/name/application_helper.rb",         /module MyHyphenated\n  module Name\n    module ApplicationHelper\n    end\n  end\nend/
     assert_file "my_hyphenated-name/app/views/layouts/my_hyphenated/name/application.html.erb" do |contents|
       assert_match "<title>My hyphenated name</title>", contents
       assert_match(/stylesheet_link_tag\s+['"]my_hyphenated\/name\/application['"]/, contents)
       assert_match(/javascript_include_tag\s+['"]my_hyphenated\/name\/application['"]/, contents)
     end
+    assert_file "my_hyphenated-name/app/views/layouts/my_hyphenated/name/mailer.html.erb"
+    assert_file "my_hyphenated-name/app/views/layouts/my_hyphenated/name/mailer.text.erb"
   end
 
   def test_create_mountable_application_with_mountable_option_and_multiple_hypenates_in_name
@@ -389,13 +395,15 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_file "deep-hyphenated-name/app/controllers/deep/hyphenated/name/application_controller.rb", /module Deep\n  module Hyphenated\n    module Name\n      class ApplicationController < ActionController::Base\n        protect_from_forgery with: :exception\n      end\n    end\n  end\nend\n/
     assert_file "deep-hyphenated-name/app/models/deep/hyphenated/name/application_record.rb",          /module Deep\n  module Hyphenated\n    module Name\n      class ApplicationRecord < ActiveRecord::Base\n        self\.abstract_class = true\n      end\n    end\n  end\nend/
     assert_file "deep-hyphenated-name/app/jobs/deep/hyphenated/name/application_job.rb",               /module Deep\n  module Hyphenated\n    module Name\n      class ApplicationJob < ActiveJob::Base/
-    assert_file "deep-hyphenated-name/app/mailers/deep/hyphenated/name/application_mailer.rb",         /module Deep\n  module Hyphenated\n    module Name\n      class ApplicationMailer < ActionMailer::Base\n        default from: 'from@example\.com'\n        layout 'mailer'\n      end\n    end\n  end\nend/
+    assert_file "deep-hyphenated-name/app/mailers/deep/hyphenated/name/application_mailer.rb",         %r{module Deep\n  module Hyphenated\n    module Name\n      class ApplicationMailer < ActionMailer::Base\n        default from: 'from@example\.com'\n        layout 'deep/hyphenated/name/mailer'\n      end\n    end\n  end\nend}
     assert_file "deep-hyphenated-name/app/helpers/deep/hyphenated/name/application_helper.rb",         /module Deep\n  module Hyphenated\n    module Name\n      module ApplicationHelper\n      end\n    end\n  end\nend/
     assert_file "deep-hyphenated-name/app/views/layouts/deep/hyphenated/name/application.html.erb" do |contents|
       assert_match "<title>Deep hyphenated name</title>", contents
       assert_match(/stylesheet_link_tag\s+['"]deep\/hyphenated\/name\/application['"]/, contents)
       assert_match(/javascript_include_tag\s+['"]deep\/hyphenated\/name\/application['"]/, contents)
     end
+    assert_file "deep-hyphenated-name/app/views/layouts/deep/hyphenated/name/mailer.html.erb"
+    assert_file "deep-hyphenated-name/app/views/layouts/deep/hyphenated/name/mailer.text.erb"
   end
 
   def test_creating_gemspec
