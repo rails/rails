@@ -1,6 +1,22 @@
 require "cases/helper"
 require "support/schema_dumping_helper"
 
+module ActiveRecord
+  module ConnectionAdapters
+    class UnsignedIntegerTest < ActiveRecord::Mysql2TestCase
+      test "unsigned int max value is in range" do
+        assert_equal(4294967295, MySQL::Type::UnsignedInteger.new.serialize(4294967295))
+      end
+
+      test "minus value is out of range" do
+        assert_raise(RangeError) do
+          MySQL::Type::UnsignedInteger.new.serialize(-1)
+        end
+      end
+    end
+  end
+end
+
 class Mysql2UnsignedTypeTest < ActiveRecord::Mysql2TestCase
   include SchemaDumpingHelper
   self.use_transactional_tests = false

@@ -14,7 +14,6 @@ require 'active_model/type/integer'
 require 'active_model/type/string'
 require 'active_model/type/text'
 require 'active_model/type/time'
-require 'active_model/type/unsigned_integer'
 
 require 'active_model/type/registry'
 

@@ -54,7 +54,6 @@ module ActiveRecord
     Integer = ActiveModel::Type::Integer
     String = ActiveModel::Type::String
     Text = ActiveModel::Type::Text
-    UnsignedInteger = ActiveModel::Type::UnsignedInteger
     Value = ActiveModel::Type::Value
 
     register(:big_integer, Type::BigInteger, override: false)
