@@ -8,11 +8,6 @@ end
 gemfile(true) do
   source 'https://rubygems.org'
   gem 'rails', github: 'rails/rails'
-  gem 'arel', github: 'rails/arel'
-  gem 'rack', github: 'rack/rack'
-  gem 'sprockets', github: 'rails/sprockets'
-  gem 'sprockets-rails', github: 'rails/sprockets-rails'
-  gem 'sass-rails', github: 'rails/sass-rails'
   gem 'sqlite3'
 end
 
