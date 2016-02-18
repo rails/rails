@@ -55,9 +55,7 @@ module ActionView
 
     class DetailsKey #:nodoc:
       alias :eql? :equal?
-      alias :object_hash :hash
 
-      attr_reader :hash
       @details_keys = Concurrent::Map.new
 
       def self.get(details)
@@ -70,10 +68,6 @@ module ActionView
 
       def self.clear
         @details_keys.clear
-      end
-
-      def initialize
-        @hash = object_hash
       end
     end
 
