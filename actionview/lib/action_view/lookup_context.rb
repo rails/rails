@@ -69,6 +69,18 @@ module ActionView
       def self.clear
         @details_keys.clear
       end
+
+      def self.empty?; @details_keys.empty?; end
+
+      def self.digest_caches
+        @details_keys.values.map(&:digest_cache)
+      end
+
+      attr_reader :digest_cache
+
+      def initialize
+        @digest_cache = Concurrent::Map.new
+      end
     end
 
     # Add caching behavior on top of Details.
@@ -192,6 +204,10 @@ module ActionView
 
       @details = initialize_details({}, details)
       self.view_paths = view_paths
+    end
+
+    def digest_cache
+      details_key.digest_cache
     end
 
     def initialize_details(target, details)
