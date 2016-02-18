@@ -403,7 +403,7 @@ end
 ```
 
 NOTE: The `ArticlesController` class inherits from
-`Blorgh::ApplicationController`, not an application's `ApplicationController`.
+`Blorgh::ApplicationController`, not the application's `ApplicationController`.
 
 The helper inside `app/helpers/blorgh/articles_helper.rb` is also namespaced:
 
