@@ -402,7 +402,7 @@ module Blorgh
 end
 ```
 
-NOTE: The `ApplicationController` class being inherited from here is the
+NOTE: The `ArticlesController` class inherits from
 `Blorgh::ApplicationController`, not an application's `ApplicationController`.
 
 The helper inside `app/helpers/blorgh/articles_helper.rb` is also namespaced:
