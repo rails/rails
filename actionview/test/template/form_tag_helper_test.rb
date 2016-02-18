@@ -26,11 +26,12 @@ class FormTagHelperTest < ActionView::TestCase
   end
 
   def form_text(action = "http://www.example.com", options = {})
-    remote, enctype, html_class, id, method = options.values_at(:remote, :enctype, :html_class, :id, :method)
+    remote, enctype, html_class, id, method, accept_charset = options.values_at(:remote, :enctype, :html_class, :id, :method, :charset)
 
     method = method.to_s == "get" ? "get" : "post"
+    accept_charset ||= "UTF-8"
 
-    txt =  %{<form accept-charset="UTF-8" action="#{action}"}.dup
+    txt =  %{<form accept-charset="#{accept_charset}" action="#{action}"}.dup
     txt << %{ enctype="multipart/form-data"} if enctype
     txt << %{ data-remote="true"} if remote
     txt << %{ class="#{html_class}"} if html_class
@@ -136,6 +137,13 @@ class FormTagHelperTest < ActionView::TestCase
   def test_form_tag_enforce_utf8_false
     actual = form_tag({}, enforce_utf8: false)
     expected = whole_form("http://www.example.com", enforce_utf8: false)
+    assert_dom_equal expected, actual
+    assert actual.html_safe?
+  end
+
+  def test_form_tag_enforce_utf8_false_with_accept_charset
+    actual = form_tag({}, enforce_utf8: false, charset: "Shift_JIS")
+    expected = whole_form("http://www.example.com", enforce_utf8: false, charset: "Shift_JIS")
     assert_dom_equal expected, actual
     assert actual.html_safe?
   end

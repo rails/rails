@@ -1927,6 +1927,18 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, output_buffer
   end
 
+  def test_form_for_enforce_utf8_false_with_accept_charset
+    form_for(:post, enforce_utf8: false, charset: "Shift_JIS") do |f|
+      concat f.text_field(:title)
+    end
+
+    expected = whole_form("/", nil, nil, enforce_utf8: false, charset: "Shift_JIS") do
+      "<input name='post[title]' type='text' id='post_title' value='Hello World' />"
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
   def test_form_for_with_remote_in_html
     form_for(@post, url: "/", html: { remote: true, id: "create-post", method: :patch }) do |f|
       concat f.text_field(:title)
@@ -3458,8 +3470,10 @@ class FormHelperTest < ActionView::TestCase
       txt
     end
 
-    def form_text(action = "/", id = nil, html_class = nil, remote = nil, multipart = nil, method = nil)
-      txt =  %{<form accept-charset="UTF-8" action="#{action}"}.dup
+    def form_text(action = "/", id = nil, html_class = nil, remote = nil, multipart = nil, method = nil, accept_charset = nil)
+      accept_charset ||= "UTF-8"
+
+      txt =  %{<form accept-charset="#{accept_charset}" action="#{action}"}.dup
       txt << %{ enctype="multipart/form-data"} if multipart
       txt << %{ data-remote="true"} if remote
       txt << %{ class="#{html_class}"} if html_class
@@ -3471,9 +3485,9 @@ class FormHelperTest < ActionView::TestCase
     def whole_form(action = "/", id = nil, html_class = nil, options = {})
       contents = block_given? ? yield : ""
 
-      method, remote, multipart = options.values_at(:method, :remote, :multipart)
+      method, remote, multipart, accept_charset = options.values_at(:method, :remote, :multipart, :charset)
 
-      form_text(action, id, html_class, remote, multipart, method) + hidden_fields(options.slice :method, :enforce_utf8) + contents + "</form>"
+      form_text(action, id, html_class, remote, multipart, method, accept_charset) + hidden_fields(options.slice :method, :enforce_utf8) + contents + "</form>"
     end
 
     def protect_against_forgery?

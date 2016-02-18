@@ -824,7 +824,12 @@ module ActionView
             # The following URL is unescaped, this is just a hash of options, and it is the
             # responsibility of the caller to escape all the values.
             html_options["action"]  = url_for(url_for_options)
-            html_options["accept-charset"] = "UTF-8"
+
+            if (html_options["enforce_utf8"] == false && html_options["charset"])
+              html_options["accept-charset"] = html_options.delete("charset")
+            else
+              html_options["accept-charset"] = "UTF-8"
+            end
 
             html_options["data-remote"] = true if html_options.delete("remote")
 

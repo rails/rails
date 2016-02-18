@@ -1,3 +1,7 @@
+*   Enable to set 'accept-charset' for a form.
+
+    *Yuichiro Kaneko*
+
 *   Add `srcset` option to `image_tag` helper.
 
     *Roberto Miranda*
