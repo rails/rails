@@ -73,9 +73,7 @@ module ActiveRecord
         if attributes.is_a?(Array)
           attributes.collect { |attr| upsert(attr, &block) }
         else
-          object = new(attributes, &block)
-          object.upsert
-          object
+          new(attributes, &block).upsert
         end
       end
 
@@ -140,8 +138,13 @@ module ActiveRecord
 
     def upsert(*args)
       raise ReadOnlyRecord, "#{self.class} is marked as readonly" if readonly?
-      result = run_callbacks(:create) { _upsert_record(*args) }
-      result != false
+      values = run_callbacks(:save) {
+        run_callbacks(:create) {
+          _upsert_record(*args)
+        }
+      }
+      assign_attributes(values.first.to_h)
+      self
     rescue ActiveRecord::RecordInvalid
       false
     end
@@ -580,10 +583,11 @@ module ActiveRecord
     def _upsert_record(attribute_names = self.attribute_names)
       attributes_values = arel_attributes_with_values_for_create(attribute_names)
 
-      new_id = self.class.unscoped.upsert attributes_values
+      values = self.class.unscoped.upsert attributes_values
 
       @new_record = false
-      id
+
+      values
     end
 
     def verify_readonly_attribute(name)

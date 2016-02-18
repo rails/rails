@@ -88,20 +88,21 @@ module ActiveRecord
       cm = arel.create_on_conflict_do_update
       cm.target = arel_table[primary_key]
 
-      cm.set(substitutes)
+      filter = ->(o) { [primary_key, 'created_at'].include?(o.name) }
+      cm.set(substitutes.reject { |s| filter.call(s.first) })
+      on_conflict_binds = binds.reject(&filter)
 
       im.on_conflict = cm.to_node
-      # FOOTLONG: Add ON CONFLICT ??????
 
       im.insert substitutes
 
-      @klass.connection.insert(
+      @klass.connection.upsert(
         im,
         'SQL',
         primary_key,
         primary_key_value,
         nil,
-        binds + binds)
+        binds + on_conflict_binds)
     end
 
     def _update_record(values, id, id_was) # :nodoc:
