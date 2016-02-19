@@ -1,3 +1,7 @@
+*   Fix `button_to`'s `:params` option support to correctly generated input names for nested hashes/arrays.
+
+    *James Coleman*
+
 ## Rails 5.0.0.beta2 (February 01, 2016) ##
 
 *   Fix stripping the digest from the automatically generated img tag alt

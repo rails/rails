@@ -71,6 +71,34 @@ class UrlHelperTest < ActiveSupport::TestCase
     assert_equal 'javascript:history.back()', url_for(:back)
   end
 
+  def test_to_form_params_with_hash
+    assert_equal(
+      [{ name: :name, value: 'David' }, { name: :nationality, value: 'Danish' }],
+      to_form_params(name: 'David', nationality: 'Danish')
+    )
+  end
+
+  def test_to_form_params_with_nested_hash
+    assert_equal(
+      [{ name: 'country[name]', value: 'Denmark' }],
+      to_form_params(country: { name: 'Denmark' })
+    )
+  end
+
+  def test_to_form_params_with_array_nested_in_hash
+    assert_equal(
+      [{ name: 'countries[]', value: 'Denmark' }, { name: 'countries[]', value: 'Sweden' }],
+      to_form_params(countries: ['Denmark', 'Sweden'])
+    )
+  end
+
+  def test_to_form_params_with_namespace
+    assert_equal(
+      [{ name: 'country[name]', value: 'Denmark' }],
+      to_form_params({name: 'Denmark'}, 'country')
+    )
+  end
+
   def test_button_to_with_straight_url
     assert_dom_equal %{<form method="post" action="http://www.example.com" class="button_to"><input type="submit" value="Hello" /></form>}, button_to("Hello", "http://www.example.com")
   end
@@ -189,8 +217,22 @@ class UrlHelperTest < ActiveSupport::TestCase
 
   def test_button_to_with_params
     assert_dom_equal(
-      %{<form action="http://www.example.com" class="button_to" method="post"><input type="submit" value="Hello" /><input type="hidden" name="foo" value="bar" /><input type="hidden" name="baz" value="quux" /></form>},
-      button_to("Hello", "http://www.example.com", params: {foo: :bar, baz: "quux"})
+      %{<form action="http://www.example.com" class="button_to" method="post"><input type="submit" value="Hello" /><input type="hidden" name="baz" value="quux" /><input type="hidden" name="foo" value="bar" /></form>},
+      button_to("Hello", "http://www.example.com", params: { foo: :bar, baz: "quux" })
+    )
+  end
+
+  def test_button_to_with_nested_hash_params
+    assert_dom_equal(
+      %{<form action="http://www.example.com" class="button_to" method="post"><input type="submit" value="Hello" /><input type="hidden" name="foo[bar]" value="baz" /></form>},
+      button_to("Hello", "http://www.example.com", params: { foo: { bar: 'baz' } })
+    )
+  end
+
+  def test_button_to_with_nested_array_params
+    assert_dom_equal(
+      %{<form action="http://www.example.com" class="button_to" method="post"><input type="submit" value="Hello" /><input type="hidden" name="foo[]" value="bar" /></form>},
+      button_to("Hello", "http://www.example.com", params: { foo: ['bar'] })
     )
   end
 

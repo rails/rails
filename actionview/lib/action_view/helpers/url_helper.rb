@@ -329,8 +329,8 @@ module ActionView
 
         inner_tags = method_tag.safe_concat(button).safe_concat(request_token_tag)
         if params
-          params.each do |param_name, value|
-            inner_tags.safe_concat tag(:input, type: "hidden", name: param_name, value: value.to_param)
+          to_form_params(params).each do |param|
+            inner_tags.safe_concat tag(:input, type: "hidden", name: param[:name], value: param[:value])
           end
         end
         content_tag('form', inner_tags, form_options)
@@ -594,6 +594,42 @@ module ActionView
 
         def method_tag(method)
           tag('input', type: 'hidden', name: '_method', value: method.to_s)
+        end
+
+        # Returns an array of hashes each containing :name and :value keys
+        # suitable for use as the names and values of form input fields:
+        #
+        #   to_form_params(name: 'David', nationality: 'Danish')
+        #   # => [{name: :name, value: 'David'}, {name: 'nationality', value: 'Danish'}]
+        #
+        #   to_form_params(country: {name: 'Denmark'})
+        #   # => [{name: 'country[name]', value: 'Denmark'}]
+        #
+        #   to_form_params(countries: ['Denmark', 'Sweden']})
+        #   # => [{name: 'countries[]', value: 'Denmark'}, {name: 'countries[]', value: 'Sweden'}]
+        #
+        # An optional namespace can be passed to enclose key names:
+        #
+        #   to_form_params({ name: 'Denmark' }, 'country')
+        #   # => [{name: 'country[name]', value: 'Denmark'}]
+        def to_form_params(attribute, namespace = nil) # :nodoc:
+          params = []
+          case attribute
+          when Hash
+            attribute.each do |key, value|
+              prefix = namespace ? "#{namespace}[#{key}]" : key
+              params.push(*to_form_params(value, prefix))
+            end
+          when Array
+            array_prefix = "#{namespace}[]"
+            attribute.each do |value|
+              params.push(*to_form_params(value, array_prefix))
+            end
+          else
+            params << { name: namespace, value: attribute.to_param }
+          end
+
+          params.sort_by { |pair| pair[:name] }
         end
     end
   end
