@@ -513,6 +513,10 @@ module ActionController
 
         @request.assign_parameters(@routes, controller_class_name, action.to_s, parameters, generated_path, query_string_keys)
 
+        if @request.has_header?('RAW_POST_DATA') && format.eql?(:json)
+          @request.env["action_dispatch.request.request_parameters"] = ActiveSupport::JSON.decode(@request.raw_post)
+        end
+
         @request.session.update(session) if session
         @request.flash.update(flash || {})
 
