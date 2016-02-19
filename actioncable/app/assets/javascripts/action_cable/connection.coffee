@@ -17,10 +17,10 @@ class ActionCable.Connection
 
   open: =>
     if @isAlive()
-      console.log("[cable] Attemped to open WebSocket, but existing socket is #{@getState()}", Date.now())
+      ActionCable.log("Attemped to open WebSocket, but existing socket is #{@getState()}")
       throw new Error("Existing connection must be closed before opening")
     else
-      console.log("[cable] Opening WebSocket, current state is #{@getState()}", Date.now())
+      ActionCable.log("Opening WebSocket, current state is #{@getState()}")
       @uninstallEventHandlers() if @webSocket?
       @webSocket = new WebSocket(@consumer.url)
       @installEventHandlers()
@@ -30,14 +30,14 @@ class ActionCable.Connection
     @webSocket?.close()
 
   reopen: ->
-    console.log("[cable] Reopening WebSocket, current state is #{@getState()}", Date.now())
+    ActionCable.log("Reopening WebSocket, current state is #{@getState()}")
     if @isClosed()
       @open()
     else
       try
         @close()
       finally
-        console.log("[cable] Failed to reopen WebSocket, retrying in #{@constructor.reopenDelay}ms", Date.now())
+        ActionCable.log("Failed to reopen WebSocket, retrying in #{@constructor.reopenDelay}ms")
         setTimeout(@open, @constructor.reopenDelay)
 
   isOpen: ->
@@ -79,16 +79,16 @@ class ActionCable.Connection
           @consumer.subscriptions.notify(identifier, "received", message)
 
     open: ->
-      console.log("[cable] WebSocket onopen event", Date.now())
+      ActionCable.log("WebSocket onopen event")
       @disconnected = false
       @consumer.subscriptions.reload()
 
     close: ->
-      console.log("[cable] WebSocket onclose event", Date.now())
+      ActionCable.log("WebSocket onclose event")
       @disconnect()
 
     error: ->
-      console.log("[cable] WebSocket onerror event", Date.now())
+      ActionCable.log("WebSocket onerror event")
       @disconnect()
 
   disconnect: ->

@@ -17,7 +17,7 @@ class ActionCable.ConnectionMonitor
     @reset()
     @pingedAt = now()
     delete @disconnectedAt
-    console.log("[cable] ConnectionMonitor connected", Date.now())
+    ActionCable.log("ConnectionMonitor connected")
 
   disconnected: ->
     @disconnectedAt = now()
@@ -34,12 +34,12 @@ class ActionCable.ConnectionMonitor
     @startedAt = now()
     @poll()
     document.addEventListener("visibilitychange", @visibilityDidChange)
-    console.log("[cable] ConnectionMonitor started, pollInterval is #{@getInterval()}ms", Date.now())
+    ActionCable.log("ConnectionMonitor started, pollInterval is #{@getInterval()}ms")
 
   stop: ->
     @stoppedAt = now()
     document.removeEventListener("visibilitychange", @visibilityDidChange)
-    console.log("[cable] ConnectionMonitor stopped", Date.now())
+    ActionCable.log("ConnectionMonitor stopped")
 
   poll: ->
     setTimeout =>
@@ -55,12 +55,12 @@ class ActionCable.ConnectionMonitor
 
   reconnectIfStale: ->
     if @connectionIsStale()
-      console.log("[cable] ConnectionMonitor detected stale connection, reconnectAttempts = #{@reconnectAttempts}", Date.now())
+      ActionCable.log("ConnectionMonitor detected stale connection, reconnectAttempts = #{@reconnectAttempts}")
       @reconnectAttempts++
       if @disconnectedRecently()
-        console.log("[cable] ConnectionMonitor skipping repopen because recently disconnected at #{@disconnectedAt}", Date.now())
+        ActionCable.log("ConnectionMonitor skipping reopen because recently disconnected at #{@disconnectedAt}")
       else
-        console.log("[cable] ConnectionMonitor reopening", Date.now())
+        ActionCable.log("ConnectionMonitor reopening")
         @consumer.connection.reopen()
 
   connectionIsStale: ->
@@ -73,7 +73,7 @@ class ActionCable.ConnectionMonitor
     if document.visibilityState is "visible"
       setTimeout =>
         if @connectionIsStale() or not @consumer.connection.isOpen()
-          console.log("[cable] ConnectionMonitor reopening stale connection after visibilitychange", Date.now())
+          ActionCable.log("ConnectionMonitor reopening stale connection after visibilitychange to #{document.visibilityState}")
           @consumer.connection.reopen()
       , 200
 

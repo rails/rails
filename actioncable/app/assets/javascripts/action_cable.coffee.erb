@@ -21,3 +21,14 @@
       a.href
     else
       url
+
+  startDebugging: ->
+    @debugging = true
+
+  stopDebugging: ->
+    @debugging = null
+
+  log: (messages...) ->
+    if @debugging
+      messages.push(Date.now())
+      console.log("[ActionCable]", messages...)
