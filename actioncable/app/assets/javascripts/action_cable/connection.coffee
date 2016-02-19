@@ -31,14 +31,16 @@ class ActionCable.Connection
 
   reopen: ->
     ActionCable.log("Reopening WebSocket, current state is #{@getState()}")
-    if @isClosed()
-      @open()
-    else
+    if @isAlive()
       try
         @close()
+      catch error
+        ActionCable.log("Failed to reopen WebSocket", error)
       finally
-        ActionCable.log("Failed to reopen WebSocket, retrying in #{@constructor.reopenDelay}ms")
+        ActionCable.log("Reopening WebSocket in #{@constructor.reopenDelay}ms")
         setTimeout(@open, @constructor.reopenDelay)
+    else
+      @open()
 
   isOpen: ->
     @isState("open")
@@ -46,7 +48,7 @@ class ActionCable.Connection
   # Private
 
   isAlive: ->
-    not @isState("closing", "closed")
+    @webSocket? and not @isState("closing", "closed")
 
   isState: (states...) ->
     @getState() in states
