@@ -509,7 +509,7 @@ class EtagRenderTest < ActionController::TestCase
 
     begin
       File.write path, 'foo'
-      ActionView::Digestor.cache.clear
+      ActionView::LookupContext::DetailsKey.clear
 
       request.if_none_match = etag
       get :with_template

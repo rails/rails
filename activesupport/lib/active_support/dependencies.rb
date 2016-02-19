@@ -145,9 +145,9 @@ module ActiveSupport #:nodoc:
           # Get a list of the constants that were added
           new_constants = mod.local_constants - original_constants
 
-          # self[namespace] returns an Array of the constants that are being evaluated
+          # @stack[namespace] returns an Array of the constants that are being evaluated
           # for that namespace. For instance, if parent.rb requires child.rb, the first
-          # element of self[Object] will be an Array of the constants that were present
+          # element of @stack[Object] will be an Array of the constants that were present
           # before parent.rb was required. The second element will be an Array of the
           # constants that were present before child.rb was required.
           @stack[namespace].each do |namespace_constants|
@@ -262,7 +262,7 @@ module ActiveSupport #:nodoc:
       end
 
       def load_dependency(file)
-        if Dependencies.load? && ActiveSupport::Dependencies.constant_watch_stack.watching?
+        if Dependencies.load? && Dependencies.constant_watch_stack.watching?
           Dependencies.new_constants_in(Object) { yield }
         else
           yield

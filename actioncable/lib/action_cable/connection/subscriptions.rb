@@ -54,7 +54,7 @@ module ActionCable
       end
 
       def unsubscribe_from_all
-        subscriptions.each { |id, channel| channel.unsubscribe_from_channel }
+        subscriptions.each { |id, channel| remove_subscription(channel) }
       end
 
       protected

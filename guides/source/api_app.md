@@ -13,8 +13,8 @@ In this guide you will learn:
 
 --------------------------------------------------------------------------------
 
-What is an API app?
--------------------
+What is an API Application?
+---------------------------
 
 Traditionally, when people said that they used Rails as an "API", they meant
 providing a programmatically accessible API alongside their web application.
@@ -28,15 +28,14 @@ applications.
 For example, Twitter uses its [public API](https://dev.twitter.com) in its web
 application, which is built as a static site that consumes JSON resources.
 
-Instead of using Rails to generate dynamic HTML that will communicate with the
-server through forms and links, many developers are treating their web application
-as just another client, delivered as static HTML, CSS and JavaScript  consuming
-a simple JSON API.
+Instead of using Rails to generate HTML that communicates with the server
+through forms and links, many developers are treating their web application as
+just an API client delivered as HTML with JavaScript that consumes a JSON API.
 
 This guide covers building a Rails application that serves JSON resources to an
-API client **or** a client-side framework.
+API client, including client-side frameworks.
 
-Why use Rails for JSON APIs?
+Why Use Rails for JSON APIs?
 ----------------------------
 
 The first question a lot of people have when thinking about building a JSON API
@@ -75,7 +74,7 @@ Handled at the middleware layer:
   URL-encoded String? No problem. Rails will decode the JSON for you and make
   it available in `params`. Want to use nested URL-encoded parameters? That
   works too.
-- Conditional GETs: Rails handles conditional `GET`, (`ETag` and `Last-Modified`),
+- Conditional GETs: Rails handles conditional `GET` (`ETag` and `Last-Modified`)
   processing request headers and returning the correct response headers and status
   code. All you need to do is use the
   [`stale?`](http://api.rubyonrails.org/classes/ActionController/ConditionalGet.html#method-i-stale-3F)
@@ -104,21 +103,21 @@ Handled at the Action Pack layer:
   add the response headers, but why?
 - Caching: Rails provides page, action and fragment caching. Fragment caching
   is especially helpful when building up a nested JSON object.
-- Basic, Digest and Token Authentication: Rails comes with out-of-the-box support
+- Basic, Digest, and Token Authentication: Rails comes with out-of-the-box support
   for three kinds of HTTP authentication.
-- Instrumentation: Rails has an instrumentation API that will trigger registered
+- Instrumentation: Rails has an instrumentation API that triggers registered
   handlers for a variety of events, such as action processing, sending a file or
   data, redirection, and database queries. The payload of each event comes with
   relevant information (for the action processing event, the payload includes
   the controller, action, parameters, request format, request method and the
   request's full path).
-- Generators: This may be passé for advanced Rails users, but it can be nice to
-  generate a resource and get your model, controller, test stubs, and routes
-  created for you in a single command.
+- Generators: It is often handy to generate a resource and get your model,
+  controller, test stubs, and routes created for you in a single command for
+  further tweaking. Same for migrations and others.
 - Plugins: Many third-party libraries come with support for Rails that reduce
   or eliminate the cost of setting up and gluing together the library and the
   web framework. This includes things like overriding default generators, adding
-  rake tasks, and honoring Rails choices (like the logger and cache back-end).
+  Rake tasks, and honoring Rails choices (like the logger and cache back-end).
 
 Of course, the Rails boot process also glues together all registered components.
 For example, the Rails boot process is what uses your `config/database.yml` file
@@ -165,14 +164,6 @@ class definition:
 
 ```ruby
 config.api_only = true
-```
-
-Optionally, in `config/environments/development.rb` add the following line
-to render error responses using the API format (JSON by default) when it
-is a local request:
-
-```ruby
-config.debug_exception_response_format = :api
 ```
 
 Finally, inside `app/controllers/application_controller.rb`, instead of:
