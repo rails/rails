@@ -28,7 +28,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
           class_name = options.fetch(:class_name) {
             name.to_s.camelize.singularize
           }
-          KnownClass.new lhs_class, class_name
+          KnownClass.new lhs_class, class_name.to_s
         end
       end
     end
