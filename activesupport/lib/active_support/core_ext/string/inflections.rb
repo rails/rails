@@ -224,7 +224,7 @@ class String
 
   # Converts just the first character to uppercase.
   #
-  #  'what a Lovely Day'.capitalize # => "What a Lovely Day"
+  #  'what a Lovely Day'.capitalize_first # => "What a Lovely Day"
   def capitalize_first
     ActiveSupport::Inflector.capitalize_first(self)
   end
