@@ -1,3 +1,7 @@
+*   Add `String#capitalize_first` method.
+
+    *Glauco Custódio*
+
 *   Add `#on_weekday?` method to `Date`, `Time`, and `DateTime`.
 
     `#on_weekday?` returns `true` if the receiving date/time does not fall on a Saturday
