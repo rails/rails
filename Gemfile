@@ -18,7 +18,7 @@ gem 'turbolinks', github: 'turbolinks/turbolinks-rails'
 # This is to avoid Active Model (and by extension the entire framework)
 # being dependent on a binary library.
 platforms :mingw, :x64_mingw, :mswin, :mswin64 do
-  gem 'bcrypt-ruby', '~> 3.0.0', require: false
+  gem 'bcrypt-ruby', '~> 3.1.5', require: false
 end
 
 platforms :ruby, :jruby, :rbx do
