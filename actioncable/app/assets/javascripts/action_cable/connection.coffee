@@ -16,7 +16,7 @@ class ActionCable.Connection
       false
 
   open: =>
-    if @webSocket and not @isClosed()
+    if @isAlive()
       console.log("[cable] Attemped to open WebSocket, but existing socket is #{@getState()}", Date.now())
       throw new Error("Existing connection must be closed before opening")
     else
@@ -44,8 +44,8 @@ class ActionCable.Connection
 
   # Private
 
-  isClosed: ->
-    @isState("closing", "closed")
+  isAlive: ->
+    not @isState("closing", "closed")
 
   isState: (states...) ->
     @getState() in states
