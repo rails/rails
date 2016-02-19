@@ -21,6 +21,7 @@ class ActionCable.Connection
       throw new Error("Existing connection must be closed before opening")
     else
       console.log("[cable] Opening WebSocket, current state is #{@getState()}", Date.now())
+      @uninstallEventHandlers() if @webSocket?
       @webSocket = new WebSocket(@consumer.url)
       @installEventHandlers()
       true
@@ -58,6 +59,11 @@ class ActionCable.Connection
     for eventName of @events
       handler = @events[eventName].bind(this)
       @webSocket["on#{eventName}"] = handler
+    return
+
+  uninstallEventHandlers: ->
+    for eventName of @events
+      @webSocket["on#{eventName}"] = ->
     return
 
   events:
