@@ -166,14 +166,6 @@ class definition:
 config.api_only = true
 ```
 
-Optionally, in `config/environments/development.rb` add the following line
-to render error responses using the API format (JSON by default) when it
-is a local request:
-
-```ruby
-config.debug_exception_response_format = :api
-```
-
 Finally, inside `app/controllers/application_controller.rb`, instead of:
 
 ```ruby
