@@ -17,6 +17,7 @@ class ActionCable.ConnectionMonitor
     @reset()
     @pingedAt = now()
     delete @disconnectedAt
+    console.log("[cable] ConnectionMonitor connected", Date.now())
 
   disconnected: ->
     @disconnectedAt = now()
