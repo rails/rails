@@ -37,7 +37,8 @@ module ActiveRecord
     # for each different klass, and the delegations are compiled into that subclass only.
 
     delegate :to_xml, :to_yaml, :length, :collect, :map, :each, :all?, :include?, :to_ary, :join,
-      :[], :&, :|, :+, :-, :sample, :shuffle, :reverse, :compact, to: :to_a
+             :[], :&, :|, :+, :-, :sample, :reverse, :compact, :in_groups, :in_groups_of,
+             :shuffle, :split, to: :to_a
 
     delegate :table_name, :quoted_table_name, :primary_key, :quoted_primary_key,
              :connection, :columns_hash, :to => :klass
