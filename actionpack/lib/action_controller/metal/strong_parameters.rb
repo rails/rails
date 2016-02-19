@@ -144,17 +144,21 @@ module ActionController
     end
 
     # Returns true if another +Parameters+ object contains the same content and
-    # permitted flag, or other Hash-like object contains the same content. This
-    # override is in place so you can perform a comparison with `Hash`.
-    def ==(other_hash)
-      if other_hash.respond_to?(:permitted?)
-        super
+    # permitted flag.
+    def ==(other)
+      if other.respond_to?(:permitted?)
+        self.permitted? == other.permitted? && self.parameters == other.parameters
+      elsif other.is_a?(Hash)
+        ActiveSupport::Deprecation.warn <<-WARNING.squish
+          Comparing equality between `ActionController::Parameters` and a
+          `Hash` is deprecated and will be removed in Rails 5.1. Please only do
+          comparisons between instances of `ActionController::Parameters`. If
+          you need to compare to a hash, first convert it using
+          `ActionController::Parameters#new`.
+        WARNING
+        @parameters == other.with_indifferent_access
       else
-        if other_hash.is_a?(Hash)
-          @parameters == other_hash.with_indifferent_access
-        else
-          @parameters == other_hash
-        end
+        @parameters == other
       end
     end
 
@@ -597,6 +601,8 @@ module ActionController
     end
 
     protected
+      attr_reader :parameters
+
       def permitted=(new_permitted)
         @permitted = new_permitted
       end
