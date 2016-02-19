@@ -3,6 +3,10 @@ class EchoChannel < ActionCable::Channel::Base
     stream_from "global"
   end
 
+  def unsubscribed
+    'Goodbye from EchoChannel!'
+  end
+
   def ding(data)
     transmit(dong: data['message'])
   end
