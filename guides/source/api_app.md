@@ -166,6 +166,23 @@ class definition:
 config.api_only = true
 ```
 
+In `config/environments/development.rb`, set `config.debug_exception_response_format`
+to configure the format used in responses when errors occur in development mode.
+
+To render an HTML page with debugging information, use the value `:default`.
+
+```ruby
+config.debug_exception_response_format = :default
+```
+
+To render debugging information preserving the response format, use the value `:api`.
+
+```ruby
+config.debug_exception_response_format = :api
+```
+
+By default, `config.debug_exception_response_format` is set to `:api`.
+
 Finally, inside `app/controllers/application_controller.rb`, instead of:
 
 ```ruby
