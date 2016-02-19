@@ -929,7 +929,7 @@ ActiveRecord::Schema.define do
     t.string :treaty_id
     t.string :name
   end
-  create_table :countries_treaties, force: true, id: false do |t|
+  create_table :countries_treaties, force: true, primary_key: [:country_id, :treaty_id] do |t|
     t.string :country_id, null: false
     t.string :treaty_id, null: false
   end

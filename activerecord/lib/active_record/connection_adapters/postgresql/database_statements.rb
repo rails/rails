@@ -118,7 +118,7 @@ module ActiveRecord
         alias :exec_update :exec_delete
 
         def sql_for_insert(sql, pk, id_value, sequence_name, binds) # :nodoc:
-          unless pk
+          if pk.nil?
             # Extract the table from the insert sql. Yuck.
             table_ref = extract_table_ref_from_insert_sql(sql)
             pk = primary_key(table_ref) if table_ref
