@@ -74,7 +74,11 @@ module ActiveSupport
     #   assert_nothing_raised do
     #     perform_service(param: 'no_exception')
     #   end
-    def assert_nothing_raised
+    def assert_nothing_raised(*args)
+      if args.present?
+      ActiveSupport::Deprecation.warn("Passing arguments to assert_nothing_raised
+        is deprecated and will be removed in Rails 5.1.")
+      end
       yield
     end
   end
