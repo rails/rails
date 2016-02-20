@@ -140,7 +140,7 @@ module ActiveSupport
       result
     end
 
-    def capitalize_first string
+    def capitalize_first(string)
       string.sub(/\S/, &:upcase)
     end
 
