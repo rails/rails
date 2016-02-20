@@ -573,7 +573,14 @@ module ActiveRecord
     end
 
     def find_last(limit)
-      limit ? to_a.last(limit) : to_a.last
+      relation = if order_values.empty? && primary_key
+                   order(arel_attribute(primary_key).asc)
+                 else
+                   self
+                 end
+                
+      relation = relation.reverse_order
+      limit ? relation.limit(limit).to_a.reverse : relation.to_a.first
     end
   end
 end
