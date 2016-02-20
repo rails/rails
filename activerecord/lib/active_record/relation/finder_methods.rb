@@ -506,7 +506,7 @@ module ActiveRecord
     def find_some_ordered(ids)
       ids = ids.slice(offset_value || 0, limit_value || ids.size) || []
 
-      result = except(:limit, :offset).where(primary_key => ids).to_a
+      result = except(:limit, :offset).where(primary_key => ids).records
 
       if result.size == ids.size
         pk_type = @klass.type_for_attribute(primary_key)
@@ -522,7 +522,7 @@ module ActiveRecord
       if loaded?
         @records.first
       else
-        @take ||= limit(1).to_a.first
+        @take ||= limit(1).records.first
       end
     end
 
@@ -573,7 +573,7 @@ module ActiveRecord
     end
 
     def find_last(limit)
-      limit ? to_a.last(limit) : to_a.last
+      limit ? records.last(limit) : records.last
     end
   end
 end
