@@ -80,4 +80,19 @@ class PresenceValidationTest < ActiveRecord::TestCase
       assert man.valid?
     end
   end
+
+  def test_validates_presence_of_virtual_attribute_on_model
+    repair_validations(Interest) do
+      Interest.send(:attr_accessor, :abbreviation)
+      Interest.validates_presence_of(:topic)
+      Interest.validates_presence_of(:abbreviation)
+
+      interest = Interest.create!(topic: 'Thought Leadering', abbreviation: 'tl')
+      assert interest.valid?
+
+      interest.abbreviation = ''
+
+      assert interest.invalid?
+    end
+  end
 end

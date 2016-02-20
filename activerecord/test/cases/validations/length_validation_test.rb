@@ -74,4 +74,20 @@ class LengthValidationTest < ActiveRecord::TestCase
     assert owner.valid?
     assert pet.valid?
   end
+
+  def test_validates_presence_of_virtual_attribute_on_model
+    repair_validations(Pet) do
+      Pet.send(:attr_accessor, :nickname)
+      Pet.validates_length_of(:name, minimum: 1)
+      Pet.validates_length_of(:nickname, minimum: 1)
+
+      pet = Pet.create!(name: 'Fancy Pants', nickname: 'Fancy')
+
+      assert pet.valid?
+
+      pet.nickname = ''
+
+      assert pet.invalid?
+    end
+  end
 end

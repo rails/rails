@@ -2,7 +2,7 @@ module ActiveRecord
   module Validations
     class LengthValidator < ActiveModel::Validations::LengthValidator # :nodoc:
       def validate_each(record, attribute, association_or_value)
-        return unless should_validate?(record) || associations_are_dirty?(record)
+        return unless should_validate?(record) || unknown_attribute?(record, attribute) || associations_are_dirty?(record)
         if association_or_value.respond_to?(:loaded?) && association_or_value.loaded?
           association_or_value = association_or_value.target.reject(&:marked_for_destruction?)
         end

@@ -72,4 +72,18 @@ class AbsenceValidationTest < ActiveRecord::TestCase
       assert man.valid?
     end
   end
+
+  def test_validates_absence_of_virtual_attribute_on_model
+    repair_validations(Interest) do
+      Interest.send(:attr_accessor, :token)
+      Interest.validates_absence_of(:token)
+
+      interest = Interest.create!(topic: 'Thought Leadering')
+      assert interest.valid?
+
+      interest.token = 'tl'
+
+      assert interest.invalid?
+    end
+  end
 end

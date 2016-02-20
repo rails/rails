@@ -167,6 +167,13 @@ module ActiveModel
     def should_validate?(record) # :nodoc:
       !record.persisted? || record.changed? || record.marked_for_destruction?
     end
+
+    # Always validate the record if the attribute is a virtual attribute.
+    # We have no way of knowing that the record was changed if the attribute
+    # does not exist in the database.
+    def unknown_attribute?(record, attribute) # :nodoc:
+      !record.attributes.include?(attribute.to_s)
+    end
   end
 
   # +BlockValidator+ is a special +EachValidator+ which receives a block on initialization
