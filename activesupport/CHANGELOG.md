@@ -1,3 +1,7 @@
+*   Make `benchmark('something', silence: true)` actually work
+
+    *DHH*
+
 *   Add `#on_weekday?` method to `Date`, `Time`, and `DateTime`.
 
     `#on_weekday?` returns `true` if the receiving date/time does not fall on a Saturday
