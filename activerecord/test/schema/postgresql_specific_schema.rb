@@ -1,6 +1,10 @@
 ActiveRecord::Schema.define do
 
-  enable_extension!('uuid-ossp', ActiveRecord::Base.connection)
+  if connection.supports_pgcrypto?
+    enable_extension!('pgcrypto', connection)
+  else
+    enable_extension!('uuid-ossp', connection)
+  end
 
   create_table :uuid_parents, id: :uuid, force: true do |t|
     t.string :name

@@ -18,6 +18,10 @@ module ActiveRecord
         end
 
         def create_table(table_name, options = {})
+          if ActiveRecord::Base.connection.adapter_name == 'PostgreSQL'
+            set_uuid_default(options)
+          end
+
           if block_given?
             super(table_name, options) do |t|
               class << t
@@ -89,6 +93,12 @@ module ActiveRecord
           end
 
           index_name
+        end
+
+        def set_uuid_default(options)
+          if options[:id] == :uuid && !options[:default]
+            options[:default] = 'uuid_generate_v4()'
+          end
         end
       end
 

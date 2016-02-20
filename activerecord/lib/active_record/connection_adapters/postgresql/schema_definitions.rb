@@ -11,10 +11,11 @@ module ActiveRecord
         #     t.timestamps
         #   end
         #
-        # By default, this will use the +uuid_generate_v4()+ function from the
-        # +uuid-ossp+ extension, which MUST be enabled on your database. To enable
-        # the +uuid-ossp+ extension, you can use the +enable_extension+ method in your
-        # migrations. To use a UUID primary key without +uuid-ossp+ enabled, you can
+        # By default, this will use the +gen_random_uuid()+ function from the
+        # +pgcrypto+ extension (only PostgreSQL >= 9.4) or, +uuid_generate_v4()+
+        # function from the +uuid-ossp+, which MUST be enabled on your database.
+        # To enable the +pgcrypto+ extension, you can use the +enable_extension+ method in your
+        # migrations. To use a UUID primary key without +pgcrypto+ enabled, you can
         # set the +:default+ option to +nil+:
         #
         #   create_table :stuffs, id: false do |t|
@@ -23,7 +24,7 @@ module ActiveRecord
         #     t.timestamps
         #   end
         #
-        # You may also pass a different UUID generation function from +uuid-ossp+
+        # You may also pass a different UUID generation function from +pgcrypto+
         # or another library.
         #
         # Note that setting the UUID primary key default value to +nil+ will
@@ -31,7 +32,7 @@ module ActiveRecord
         # a record (as primary keys cannot be +nil+). This might be done via the
         # +SecureRandom.uuid+ method and a +before_save+ callback, for instance.
         def primary_key(name, type = :primary_key, **options)
-          options[:default] = options.fetch(:default, 'uuid_generate_v4()') if type == :uuid
+          options[:default] = options.fetch(:default, uuid_primary_key_default) if type == :uuid
           super
         end
 
@@ -149,6 +150,10 @@ module ActiveRecord
 
         def xml(*args, **options)
           args.each { |name| column(name, :xml, options) }
+        end
+
+        def uuid_primary_key_default
+          ActiveRecord::Base.connection.supports_pgcrypto? ? 'gen_random_uuid()' : 'uuid_generate_v4()'
         end
       end
 

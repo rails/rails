@@ -1,3 +1,8 @@
+*   Use gen_random_uuid() function from pgcrypto extension in default of uuid
+    primary key (only PostgreSQL >= 9.4).
+
+    *Yuji Yaginuma*
+
 *   Fixed `where` for polymorphic associations when passed an array containing different types.
 
     Fixes #17011.
