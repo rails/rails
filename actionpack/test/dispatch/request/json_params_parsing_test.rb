@@ -150,6 +150,22 @@ class RootLessJSONParamsParsingTest < ActionDispatch::IntegrationTest
     )
   end
 
+  test "parses json params after custom json mime type registered" do
+    Mime::Type.register "application/json", :json, %w(application/vnd.api+json)
+    assert_parses(
+      {"user" => {"username" => "meinac"}, "username" => "meinac"},
+      "{\"username\": \"meinac\"}", { 'CONTENT_TYPE' => 'application/json' }
+    )
+  end
+
+  test "parses json params after custom json mime type registered with synonym" do
+    Mime::Type.register "application/json", :json, %w(application/vnd.api+json)
+    assert_parses(
+      {"user" => {"username" => "meinac"}, "username" => "meinac"},
+      "{\"username\": \"meinac\"}", { 'CONTENT_TYPE' => 'application/vnd.api+json' }
+    )
+  end
+
   private
     def assert_parses(expected, actual, headers = {})
       with_test_routing(UsersController) do
