@@ -35,8 +35,12 @@ module ActionView
       end
     end
 
-    def instrument(name, options={})
-      ActiveSupport::Notifications.instrument("render_#{name}.action_view", options){ yield }
+    def instrument(name, **options)
+      options[:identifier] ||= (@template && @template.identifier) || @path
+
+      ActiveSupport::Notifications.instrument("render_#{name}.action_view", options) do |payload|
+        yield payload
+      end
     end
 
     def prepend_formats(formats)

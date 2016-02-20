@@ -1151,15 +1151,6 @@ class CacheStoreLoggerTest < ActiveSupport::TestCase
     @cache.mute { @cache.fetch('foo') { 'bar' } }
     assert @buffer.string.blank?
   end
-
-  def test_multi_read_loggin
-    @cache.write 'hello', 'goodbye'
-    @cache.write 'world', 'earth'
-
-    @cache.read_multi('hello', 'world')
-
-    assert_match "Caches multi read:\n- hello\n- world", @buffer.string
-  end
 end
 
 class CacheEntryTest < ActiveSupport::TestCase

@@ -294,7 +294,7 @@ module ActionView
 
     def render(context, options, block)
       setup(context, options, block)
-      identifier = (@template = find_partial) ? @template.identifier : @path
+      @template = find_partial
 
       @lookup_context.rendered_format ||= begin
         if @template && @template.formats.present?
@@ -305,11 +305,9 @@ module ActionView
       end
 
       if @collection
-        instrument(:collection, :identifier => identifier || "collection", :count => @collection.size) do
-          render_collection
-        end
+        render_collection
       else
-        instrument(:partial, :identifier => identifier) do
+        instrument(:partial) do
           render_partial
         end
       end
@@ -318,15 +316,17 @@ module ActionView
     private
 
     def render_collection
-      return nil if @collection.blank?
+      instrument(:collection, count: @collection.size) do |payload|
+        return nil if @collection.blank?
 
-      if @options.key?(:spacer_template)
-        spacer = find_template(@options[:spacer_template], @locals.keys).render(@view, @locals)
+        if @options.key?(:spacer_template)
+          spacer = find_template(@options[:spacer_template], @locals.keys).render(@view, @locals)
+        end
+
+        cache_collection_render(payload) do
+          @template ? collection_with_template : collection_without_template
+        end.join(spacer).html_safe
       end
-
-      cache_collection_render do
-        @template ? collection_with_template : collection_without_template
-      end.join(spacer).html_safe
     end
 
     def render_partial
@@ -428,8 +428,6 @@ module ActionView
         layout = find_template(layout, @template_keys)
       end
 
-      collection_cache_eligible = automatic_cache_eligible?
-
       partial_iteration = PartialIteration.new(@collection.size)
       locals[iteration] = partial_iteration
 
@@ -438,11 +436,6 @@ module ActionView
         locals[counter]   = partial_iteration.index
 
         content = template.render(view, locals)
-
-        if collection_cache_eligible
-          collection_cache_rendered_partial(content, object)
-        end
-
         content = layout.render(view, locals) { content } if layout
         partial_iteration.iterate!
         content

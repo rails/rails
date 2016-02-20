@@ -333,21 +333,19 @@ module ActiveSupport
         options = names.extract_options!
         options = merged_options(options)
 
-        instrument_multi(:read, names, options) do |payload|
-          results = {}
-          names.each do |name|
-            key = normalize_key(name, options)
-            entry = read_entry(key, options)
-            if entry
-              if entry.expired?
-                delete_entry(key, options)
-              else
-                results[name] = entry.value
-              end
+        results = {}
+        names.each do |name|
+          key = normalize_key(name, options)
+          entry = read_entry(key, options)
+          if entry
+            if entry.expired?
+              delete_entry(key, options)
+            else
+              results[name] = entry.value
             end
           end
-          results
         end
+        results
       end
 
       # Fetches data from the cache, using the given keys. If there is data in
@@ -553,17 +551,6 @@ module ActiveSupport
           payload = { :key => key }
           payload.merge!(options) if options.is_a?(Hash)
           ActiveSupport::Notifications.instrument("cache_#{operation}.active_support", payload){ yield(payload) }
-        end
-
-        def instrument_multi(operation, keys, options = nil)
-          log do
-            formatted_keys = keys.map { |k| "- #{k}" }.join("\n")
-            "Caches multi #{operation}:\n#{formatted_keys}#{options.blank? ? "" : " (#{options.inspect})"}"
-          end
-
-          payload = { key: keys }
-          payload.merge!(options) if options.is_a?(Hash)
-          ActiveSupport::Notifications.instrument("cache_#{operation}_multi.active_support", payload) { yield(payload) }
         end
 
         def log
