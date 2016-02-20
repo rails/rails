@@ -124,7 +124,7 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_should_generate_valid_sql_with_joins_and_group
-    assert_nothing_raised ActiveRecord::StatementInvalid do
+    assert_nothing_raised do
       AuditLog.joins(:developer).group(:id).count
     end
   end
@@ -742,7 +742,7 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_should_reference_correct_aliases_while_joining_tables_of_has_many_through_association
-    assert_nothing_raised ActiveRecord::StatementInvalid do
+    assert_nothing_raised do
       developer = Developer.create!(name: 'developer')
       developer.ratings.includes(comment: :post).where(posts: { id: 1 }).count
     end

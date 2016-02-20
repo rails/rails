@@ -43,7 +43,7 @@ class FinderTest < ActiveRecord::TestCase
     end
     assert_equal "should happen", exception.message
 
-    assert_nothing_raised(RuntimeError) do
+    assert_nothing_raised do
       Topic.all.find(-> { raise "should not happen" }) { |e| e.title == topics(:first).title }
     end
   end
@@ -540,7 +540,7 @@ class FinderTest < ActiveRecord::TestCase
     assert_deprecated do
       Topic.order("coalesce(author_name, title)").last
     end
-  end  
+  end
 
   def test_last_on_relation_with_limit_and_offset
     post = posts('sti_comments')
@@ -1086,7 +1086,7 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_finder_with_offset_string
-    assert_nothing_raised(ActiveRecord::StatementInvalid) { Topic.offset("3").to_a }
+    assert_nothing_raised { Topic.offset("3").to_a }
   end
 
   test "find_by with hash conditions returns the first matching record" do

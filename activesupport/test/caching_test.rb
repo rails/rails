@@ -836,7 +836,7 @@ class FileStoreTest < ActiveSupport::TestCase
   # If nothing has been stored in the cache, there is a chance the cache directory does not yet exist
   # Ensure delete_matched gracefully handles this case
   def test_delete_matched_when_cache_directory_does_not_exist
-    assert_nothing_raised(Exception) do
+    assert_nothing_raised do
       ActiveSupport::Cache::FileStore.new('/test/cache/directory').delete_matched(/does_not_exist/)
     end
   end
@@ -844,7 +844,7 @@ class FileStoreTest < ActiveSupport::TestCase
   def test_delete_does_not_delete_empty_parent_dir
     sub_cache_dir = File.join(cache_dir, 'subdir/')
     sub_cache_store = ActiveSupport::Cache::FileStore.new(sub_cache_dir)
-    assert_nothing_raised(Exception) do
+    assert_nothing_raised do
       assert sub_cache_store.write('foo', 'bar')
       assert sub_cache_store.delete('foo')
     end

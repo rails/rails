@@ -1216,7 +1216,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_join_eager_with_empty_order_should_generate_valid_sql
-    assert_nothing_raised(ActiveRecord::StatementInvalid) do
+    assert_nothing_raised do
       Post.includes(:comments).order("").where(:comments => {:body => "Thank you for the welcome"}).first
     end
   end

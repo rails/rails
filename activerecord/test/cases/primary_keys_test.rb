@@ -130,7 +130,7 @@ class PrimaryKeysTest < ActiveRecord::TestCase
   end
 
   def test_supports_primary_key
-    assert_nothing_raised NoMethodError do
+    assert_nothing_raised do
       ActiveRecord::Base.connection.supports_primary_key?
     end
   end

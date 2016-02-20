@@ -938,7 +938,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_with_symbol_class_name
-    assert_nothing_raised NoMethodError do
+    assert_nothing_raised do
       DeveloperWithSymbolClassName.new
     end
   end

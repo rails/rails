@@ -74,7 +74,7 @@ module ActiveSupport
     #   assert_nothing_raised do
     #     perform_service(param: 'no_exception')
     #   end
-    def assert_nothing_raised(*args)
+    def assert_nothing_raised
       yield
     end
   end
