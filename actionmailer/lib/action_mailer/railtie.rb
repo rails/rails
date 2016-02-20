@@ -45,13 +45,6 @@ module ActionMailer
 
         options.each { |k,v| send("#{k}=", v) }
 
-        if options.show_previews
-          app.routes.prepend do
-            get '/rails/mailers'         => "rails/mailers#index", internal: true
-            get '/rails/mailers/*path'   => "rails/mailers#preview", internal: true
-          end
-        end
-
         ActionDispatch::IntegrationTest.send :include, ActionMailer::TestCase::ClearTestDeliveries
       end
     end
@@ -62,9 +55,18 @@ module ActionMailer
       end
     end
 
-    config.after_initialize do
-      if ActionMailer::Base.preview_path
-        ActiveSupport::Dependencies.autoload_paths << ActionMailer::Base.preview_path
+    config.after_initialize do |app|
+      options = app.config.action_mailer
+
+      if options.show_previews
+        app.routes.prepend do
+          get '/rails/mailers'         => "rails/mailers#index", internal: true
+          get '/rails/mailers/*path'   => "rails/mailers#preview", internal: true
+        end
+
+        if options.preview_path
+          ActiveSupport::Dependencies.autoload_paths << options.preview_path
+        end
       end
     end
   end
