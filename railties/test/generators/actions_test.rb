@@ -239,6 +239,44 @@ class ActionsTest < Rails::Generators::TestCase
     end
   end
 
+  def test_rails_command_should_run_rails_command_with_default_env
+    assert_called_with(generator, :run, ["rake log:clear RAILS_ENV=development", verbose: false]) do
+      with_rails_env nil do
+        action :rails_command, 'log:clear'
+      end
+    end
+  end
+
+  def test_rails_command_with_env_option_should_run_rails_command_in_env
+    assert_called_with(generator, :run, ['rake log:clear RAILS_ENV=production', verbose: false]) do
+      action :rails_command, 'log:clear', env: 'production'
+    end
+  end
+
+  def test_rails_command_with_rails_env_variable_should_run_rails_command_in_env
+    assert_called_with(generator, :run, ['rake log:clear RAILS_ENV=production', verbose: false]) do
+      with_rails_env "production" do
+        action :rails_command, 'log:clear'
+      end
+    end
+  end
+
+  def test_env_option_should_win_over_rails_env_variable_when_running_rails
+    assert_called_with(generator, :run, ['rake log:clear RAILS_ENV=production', verbose: false]) do
+      with_rails_env "staging" do
+        action :rails_command, 'log:clear', env: 'production'
+      end
+    end
+  end
+
+  def test_rails_command_with_sudo_option_should_run_rails_command_with_sudo
+    assert_called_with(generator, :run, ["sudo rake log:clear RAILS_ENV=development", verbose: false]) do
+      with_rails_env nil do
+        action :rails_command, 'log:clear', sudo: true
+      end
+    end
+  end
+
   def test_capify_should_run_the_capify_command
     assert_called_with(generator, :run, ['capify .', verbose: false]) do
       action :capify!
