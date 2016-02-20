@@ -146,7 +146,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 1, country.treaties.count
   end
 
-  def test_join_table_composit_primary_key_should_not_warn
+  def test_join_table_composite_primary_key_should_not_warn
     country = Country.new(:name => 'India')
     country.country_id = 'c1'
     country.save!
