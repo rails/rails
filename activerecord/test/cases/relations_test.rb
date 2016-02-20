@@ -1273,6 +1273,16 @@ class RelationTest < ActiveRecord::TestCase
     assert posts.loaded?
   end
 
+  def test_to_a_should_dup_target
+    posts = Post.all
+
+    original_size = posts.size
+    removed = posts.to_a.pop
+
+    assert_equal original_size, posts.size
+    assert_includes posts.to_a, removed
+  end
+
   def test_build
     posts = Post.all
 

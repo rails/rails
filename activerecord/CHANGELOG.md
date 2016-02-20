@@ -1,3 +1,11 @@
+*   Ensure that mutations of the array returned from `ActiveRecord::Relation#to_a`
+    do not affect the original relation, by returning a duplicate array each time.
+
+    This brings the behavior in line with `CollectionProxy#to_a`, which was
+    already more careful.
+
+    *Matthew Draper*
+
 *   Fixed `where` for polymorphic associations when passed an array containing different types.
 
     Fixes #17011.

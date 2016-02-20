@@ -187,7 +187,7 @@ module ActiveRecord
 
       loop do
         if load
-          records = batch_relation.to_a
+          records = batch_relation.records
           ids = records.map(&:id)
           yielded_relation = self.where(primary_key => ids)
           yielded_relation.load_records(records)
