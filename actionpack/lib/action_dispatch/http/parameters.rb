@@ -4,7 +4,7 @@ module ActionDispatch
       PARAMETERS_KEY = 'action_dispatch.request.path_parameters'
 
       DEFAULT_PARSERS = {
-        Mime[:json] => lambda { |raw_post|
+        Mime[:json].symbol => -> (raw_post) {
           data = ActiveSupport::JSON.decode(raw_post)
           data.is_a?(Hash) ? data : {:_json => data}
         }
@@ -51,7 +51,7 @@ module ActionDispatch
       def parse_formatted_parameters(parsers)
         return yield if content_length.zero?
 
-        strategy = parsers.fetch(content_mime_type) { return yield }
+        strategy = parsers.fetch(content_mime_type.symbol) { return yield }
 
         begin
           strategy.call(raw_post)
