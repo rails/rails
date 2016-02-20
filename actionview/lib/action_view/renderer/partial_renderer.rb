@@ -29,6 +29,36 @@ module ActionView
     end
   end
 
+  class CapturedPartialIteration # :nodoc:
+    # The number of iterations that will be done by the partial.
+    attr_reader :size
+
+    def initialize(captured_indexes)
+      @captured_indexes = captured_indexes
+      @size  = captured_indexes.last
+      @index = 0
+    end
+
+    # The current iteration of the partial.
+    def index
+      @captured_indexes[@index]
+    end
+
+    # Check if this is the first iteration of the partial.
+    def first?
+      index == 0
+    end
+
+    # Check if this is the last iteration of the partial.
+    def last?
+      index == size - 1
+    end
+
+    def iterate! # :nodoc:
+      @index += 1
+    end
+  end
+
   # = Action View Partials
   #
   # There's also a convenience method for rendering sub templates within the current controller that depends on a
@@ -294,7 +324,7 @@ module ActionView
 
     def render(context, options, block)
       setup(context, options, block)
-      identifier = (@template = find_partial) ? @template.identifier : @path
+      identifier = @template ? @template.identifier : @path
 
       @lookup_context.rendered_format ||= begin
         if @template && @template.formats.present?
@@ -324,8 +354,12 @@ module ActionView
         spacer = find_template(@options[:spacer_template], @locals.keys).render(@view, @locals)
       end
 
-      cache_collection_render do
-        @template ? collection_with_template : collection_without_template
+      cache_collection_render do |captured_render_indexes|
+        if @template
+          collection_with_template
+        else
+          collection_without_template(captured_render_indexes)
+        end
       end.join(spacer).html_safe
     end
 
@@ -394,8 +428,10 @@ module ActionView
         @variable, @variable_counter, @variable_iteration = retrieve_variable(@path, as)
         @template_keys = retrieve_template_keys
       else
-        paths.map! { |path| retrieve_variable(path, as).unshift(path) }
+        @collection_data.map! { |path| retrieve_variable(path, as).unshift(path) }
       end
+
+      @template = find_partial
 
       self
     end
@@ -428,8 +464,6 @@ module ActionView
         layout = find_template(layout, @template_keys)
       end
 
-      collection_cache_eligible = automatic_cache_eligible?
-
       partial_iteration = PartialIteration.new(@collection.size)
       locals[iteration] = partial_iteration
 
@@ -439,8 +473,8 @@ module ActionView
 
         content = template.render(view, locals)
 
-        if collection_cache_eligible
-          collection_cache_rendered_partial(content, object)
+        if eligible_template?(@template, @path, @options[:as])
+          collection_cache_rendered_partial(@template, object, content)
         end
 
         content = layout.render(view, locals) { content } if layout
@@ -449,12 +483,15 @@ module ActionView
       end
     end
 
-    def collection_without_template
-      view, locals, collection_data = @view, @locals, @collection_data
-      cache = {}
-      keys  = @locals.keys
+    def collection_without_template(captured_render_indexes = nil)
+      templates, view, locals, collection_data = @templates, @view, @locals, @collection_data
 
-      partial_iteration = PartialIteration.new(@collection.size)
+      partial_iteration =
+        if captured_render_indexes && !captured_render_indexes.empty?
+          CapturedPartialIteration.new(captured_render_indexes)
+        else
+          PartialIteration.new(@collection.size)
+        end
 
       @collection.map do |object|
         index = partial_iteration.index
@@ -464,8 +501,13 @@ module ActionView
         locals[counter]   = index
         locals[iteration] = partial_iteration
 
-        template = (cache[path] ||= find_template(path, keys + [as, counter]))
+        template = templates[path]
         content = template.render(view, locals)
+
+        if eligible_template?(template, path, as)
+          collection_cache_rendered_partial(template, object, content)
+        end
+
         partial_iteration.iterate!
         content
       end

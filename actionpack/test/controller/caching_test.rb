@@ -369,6 +369,9 @@ class ViewCacheDependencyTest < ActionController::TestCase
   end
 end
 
+class SupremeCustomer < Customer; end
+class UncachedCustomer < Customer; end
+
 class CollectionCacheController < ActionController::Base
   attr_accessor :partial_rendered_times
 
@@ -394,6 +397,16 @@ class CollectionCacheController < ActionController::Base
   def index_with_callable_cache_key
     @customers = [Customer.new('david', 1)]
     render @customers, cache: -> customer { 'cached_david' }
+  end
+
+  def index_with_multiple_templates
+    @customers = [Customer.new('david', 1), SupremeCustomer.new('supreme david', 2)]
+    render 'index'
+  end
+
+  def index_mixing_eligibility
+    @customers = [Customer.new(params[:name] || 'david', 1), UncachedCustomer.new('bad david', 2)]
+    render 'index'
   end
 end
 
@@ -446,10 +459,37 @@ class AutomaticCollectionCacheTest < ActionController::TestCase
     assert_customer_cached 'david/1', 'david, 1'
   end
 
+  def test_caching_works_with_collection_rendering_multiple_templates
+    get :index_with_multiple_templates
+    assert_customer_cached 'david/1', 'david, 1'
+    assert_supreme_customer_cached 'supreme david/2', 'supreme david, 2'
+  end
+
+  def test_caching_multiple_templates_where_one_is_not_eligible
+    get :index_mixing_eligibility
+    assert_equal 2, @controller.partial_rendered_times
+    assert_select ':root', /bad david/
+
+    get :index_mixing_eligibility
+    assert_equal 3, @controller.partial_rendered_times
+
+    get :index_mixing_eligibility, params: { name: 'bust david' }
+    assert_equal 5, @controller.partial_rendered_times
+    assert_select ':root', /bust david/
+
+    get :index_mixing_eligibility
+    assert_equal 6, @controller.partial_rendered_times
+  end
+
   private
     def assert_customer_cached(key, content)
       assert_match content,
         ActionView::PartialRenderer.collection_cache.read("views/#{key}/7c228ab609f0baf0b1f2367469210937")
+    end
+
+    def assert_supreme_customer_cached(key, content)
+      assert_match content,
+        ActionView::PartialRenderer.collection_cache.read("views/#{key}/538398a32c8aa532d4f6a45a6d90d000")
     end
 end
 
