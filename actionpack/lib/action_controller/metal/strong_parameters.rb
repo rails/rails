@@ -110,7 +110,7 @@ module ActionController
     cattr_accessor :action_on_unpermitted_parameters, instance_accessor: false
 
     delegate :keys, :key?, :has_key?, :values, :has_value?, :value?, :empty?, :include?,
-      :as_json, to: :@parameters
+      :as_json, to: :parameters
 
     # By default, never raise an UnpermittedParameters exception if these
     # params are present. The default includes both 'controller' and 'action'
@@ -156,9 +156,9 @@ module ActionController
           you need to compare to a hash, first convert it using
           `ActionController::Parameters#new`.
         WARNING
-        @parameters == other.with_indifferent_access
+        parameters == other.with_indifferent_access
       else
-        @parameters == other
+        parameters == other
       end
     end
 
@@ -175,7 +175,7 @@ module ActionController
     #   safe_params.to_h # => {"name"=>"Senjougahara Hitagi"}
     def to_h
       if permitted?
-        convert_parameters_to_hashes(@parameters, :to_h)
+        convert_parameters_to_hashes(parameters, :to_h)
       else
         slice(*self.class.always_permitted_parameters).permit!.to_h
       end
@@ -185,14 +185,14 @@ module ActionController
     # <tt>ActiveSupport::HashWithIndifferentAccess</tt> representation of this
     # parameter.
     def to_unsafe_h
-      convert_parameters_to_hashes(@parameters, :to_unsafe_h)
+      convert_parameters_to_hashes(parameters, :to_unsafe_h)
     end
     alias_method :to_unsafe_hash, :to_unsafe_h
 
     # Convert all hashes in values into parameters, then yield each pair like
     # the same way as <tt>Hash#each_pair</tt>
     def each_pair(&block)
-      @parameters.each_pair do |key, value|
+      parameters.each_pair do |key, value|
         yield key, convert_hashes_to_parameters(key, value)
       end
     end
@@ -398,13 +398,13 @@ module ActionController
     #   params[:person] # => {"name"=>"Francesco"}
     #   params[:none]   # => nil
     def [](key)
-      convert_hashes_to_parameters(key, @parameters[key])
+      convert_hashes_to_parameters(key, parameters[key])
     end
 
     # Assigns a value to a given +key+. The given key may still get filtered out
     # when +permit+ is called.
     def []=(key, value)
-      @parameters[key] = value
+      parameters[key] = value
     end
 
     # Returns a parameter for the given +key+. If the +key+
@@ -420,7 +420,7 @@ module ActionController
     #   params.fetch(:none) { 'Francesco' } # => "Francesco"
     def fetch(key, *args)
       convert_value_to_parameters(
-        @parameters.fetch(key) {
+        parameters.fetch(key) {
           if block_given?
             yield
           else
@@ -438,13 +438,13 @@ module ActionController
     #   params.slice(:a, :b) # => {"a"=>1, "b"=>2}
     #   params.slice(:d)     # => {}
     def slice(*keys)
-      new_instance_with_inherited_permitted_status(@parameters.slice(*keys))
+      new_instance_with_inherited_permitted_status(parameters.slice(*keys))
     end
 
     # Returns current <tt>ActionController::Parameters</tt> instance which
     # contains only the given +keys+.
     def slice!(*keys)
-      @parameters.slice!(*keys)
+      parameters.slice!(*keys)
       self
     end
 
@@ -455,7 +455,7 @@ module ActionController
     #   params.except(:a, :b) # => {"c"=>3}
     #   params.except(:d)     # => {"a"=>1,"b"=>2,"c"=>3}
     def except(*keys)
-      new_instance_with_inherited_permitted_status(@parameters.except(*keys))
+      new_instance_with_inherited_permitted_status(parameters.except(*keys))
     end
 
     # Removes and returns the key/value pairs matching the given keys.
@@ -464,7 +464,7 @@ module ActionController
     #   params.extract!(:a, :b) # => {"a"=>1, "b"=>2}
     #   params                  # => {"c"=>3}
     def extract!(*keys)
-      new_instance_with_inherited_permitted_status(@parameters.extract!(*keys))
+      new_instance_with_inherited_permitted_status(parameters.extract!(*keys))
     end
 
     # Returns a new <tt>ActionController::Parameters</tt> with the results of
@@ -476,17 +476,17 @@ module ActionController
     def transform_values(&block)
       if block
         new_instance_with_inherited_permitted_status(
-          @parameters.transform_values(&block)
+          parameters.transform_values(&block)
         )
       else
-        @parameters.transform_values
+        parameters.transform_values
       end
     end
 
     # Performs values transformation and returns the altered
     # <tt>ActionController::Parameters</tt> instance.
     def transform_values!(&block)
-      @parameters.transform_values!(&block)
+      parameters.transform_values!(&block)
       self
     end
 
@@ -495,17 +495,17 @@ module ActionController
     def transform_keys(&block)
       if block
         new_instance_with_inherited_permitted_status(
-          @parameters.transform_keys(&block)
+          parameters.transform_keys(&block)
         )
       else
-        @parameters.transform_keys
+        parameters.transform_keys
       end
     end
 
     # Performs keys transformation and returns the altered
     # <tt>ActionController::Parameters</tt> instance.
     def transform_keys!(&block)
-      @parameters.transform_keys!(&block)
+      parameters.transform_keys!(&block)
       self
     end
 
@@ -514,18 +514,18 @@ module ActionController
     # optional code block is given and the key is not found, pass in the key
     # and return the result of block.
     def delete(key)
-      convert_value_to_parameters(@parameters.delete(key))
+      convert_value_to_parameters(parameters.delete(key))
     end
 
     # Returns a new instance of <tt>ActionController::Parameters</tt> with only
     # items that the block evaluates to true.
     def select(&block)
-      new_instance_with_inherited_permitted_status(@parameters.select(&block))
+      new_instance_with_inherited_permitted_status(parameters.select(&block))
     end
 
     # Equivalent to Hash#keep_if, but returns nil if no changes were made.
     def select!(&block)
-      @parameters.select!(&block)
+      parameters.select!(&block)
       self
     end
     alias_method :keep_if, :select!
@@ -533,12 +533,12 @@ module ActionController
     # Returns a new instance of <tt>ActionController::Parameters</tt> with items
     # that the block evaluates to true removed.
     def reject(&block)
-      new_instance_with_inherited_permitted_status(@parameters.reject(&block))
+      new_instance_with_inherited_permitted_status(parameters.reject(&block))
     end
 
     # Removes items that the block evaluates to true and returns self.
     def reject!(&block)
-      @parameters.reject!(&block)
+      parameters.reject!(&block)
       self
     end
     alias_method :delete_if, :reject!
@@ -546,7 +546,7 @@ module ActionController
     # Returns values that were assigned to the given +keys+. Note that all the
     # +Hash+ objects will be converted to <tt>ActionController::Parameters</tt>.
     def values_at(*keys)
-      convert_value_to_parameters(@parameters.values_at(*keys))
+      convert_value_to_parameters(parameters.values_at(*keys))
     end
 
     # Returns an exact copy of the <tt>ActionController::Parameters</tt>
@@ -567,7 +567,7 @@ module ActionController
     # +other_hash+ merges into current hash.
     def merge(other_hash)
       new_instance_with_inherited_permitted_status(
-        @parameters.merge(other_hash)
+        parameters.merge(other_hash)
       )
     end
 
@@ -579,11 +579,11 @@ module ActionController
     end
 
     def inspect
-      "<#{self.class} #{@parameters}>"
+      "<#{self.class} #{parameters}>"
     end
 
     def method_missing(method_sym, *args, &block)
-      if @parameters.respond_to?(method_sym)
+      if parameters.respond_to?(method_sym)
         message = <<-DEPRECATE.squish
           Method #{method_sym} is deprecated and will be removed in Rails 5.1,
           as `ActionController::Parameters` no longer inherits from
@@ -594,7 +594,7 @@ module ActionController
           deprecated: http://api.rubyonrails.org/v#{ActionPack.version}/classes/ActionController/Parameters.html
         DEPRECATE
         ActiveSupport::Deprecation.warn(message)
-        @parameters.public_send(method_sym, *args, &block)
+        parameters.public_send(method_sym, *args, &block)
       else
         super
       end
@@ -608,7 +608,7 @@ module ActionController
       end
 
       def fields_for_style?
-        @parameters.all? { |k, v| k =~ /\A-?\d+\z/ && (v.is_a?(Hash) || v.is_a?(Parameters)) }
+        parameters.all? { |k, v| k =~ /\A-?\d+\z/ && (v.is_a?(Hash) || v.is_a?(Parameters)) }
       end
 
     private
@@ -635,7 +635,7 @@ module ActionController
 
       def convert_hashes_to_parameters(key, value)
         converted = convert_value_to_parameters(value)
-        @parameters[key] = converted unless converted.equal?(value)
+        parameters[key] = converted unless converted.equal?(value)
         converted
       end
 
