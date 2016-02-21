@@ -3,11 +3,9 @@
 
     *Yves Senn*
 
-
 ## Rails 5.0.0.beta2 (February 01, 2016) ##
 
 *   No changes.
-
 
 ## Rails 5.0.0.beta1 (December 18, 2015) ##
 

@@ -6,7 +6,7 @@
 
     `#on_weekday?` returns `true` if the receiving date/time does not fall on a Saturday
     or Sunday.
-    
+
     *Vipul A M*
 
 *   Add `Array#second_to_last` and `Array#third_to_last` methods.
@@ -137,7 +137,7 @@
           gem 'listen', '~> 3.0.5'
         end
 
-    *Puneet Agarwal* and *Xavier Noria*
+    *Puneet Agarwal*, *Xavier Noria*
 
 *   Added `Time.days_in_year` to return the number of days in the given year, or the
     current year if no argument is provided.

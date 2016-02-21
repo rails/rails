@@ -51,7 +51,6 @@
 
     *Bogdan Gusiev*
 
-
 *   Allow `joins` to be unscoped.
 
     Fixes #13775.

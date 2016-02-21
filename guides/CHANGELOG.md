@@ -2,7 +2,6 @@
 
 *   No changes.
 
-
 ## Rails 5.0.0.beta1 (December 18, 2015) ##
 
 *   Add code of conduct to contributing guide

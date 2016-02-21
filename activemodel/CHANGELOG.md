@@ -2,7 +2,6 @@
 
 *   No changes.
 
-
 ## Rails 5.0.0.beta1 (December 18, 2015) ##
 
 *   Validate multiple contexts on `valid?` and `invalid?` at once.
