@@ -197,16 +197,18 @@
 
     *Ulisses Almeida*
 
-*   Collection rendering automatically caches and fetches multiple partials.
+*   Collection rendering can cache and fetch multiple partials at once.
 
     Collections rendered as:
 
     ```ruby
-    <%= render @notifications %>
-    <%= render partial: 'notifications/notification', collection: @notifications, as: :notification %>
+    <%= render partial: 'notifications/notification', collection: @notifications, as: :notification, cached: true %>
     ```
 
-    will now read several partials from cache at once, if the template starts with a cache call:
+    will read several partials from cache at once. The templates in the collection
+    that haven't been cached already will automatically be written to cache. Works
+    great alongside individual template fragment caching. For instance if the
+    template the collection renders is cached like:
 
     ```ruby
     # notifications/_notification.html.erb
@@ -214,6 +216,9 @@
       <%# ... %>
     <% end %>
     ```
+
+    Then any collection renders shares that cache when attempting to read multiple
+    ones at once.
 
     *Kasper Timm Hansen*
 
