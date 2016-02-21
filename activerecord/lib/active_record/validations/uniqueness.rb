@@ -57,13 +57,12 @@ module ActiveRecord
           value = value.attributes[reflection.klass.primary_key] unless value.nil?
         end
 
-        attribute_name = attribute.to_s
-
         # the attribute may be an aliased attribute
-        if klass.attribute_aliases[attribute_name]
-          attribute = klass.attribute_aliases[attribute_name]
-          attribute_name = attribute.to_s
+        if klass.attribute_alias?(attribute)
+          attribute = klass.attribute_alias(attribute)
         end
+
+        attribute_name = attribute.to_s
 
         column = klass.columns_hash[attribute_name]
         cast_type = klass.type_for_attribute(attribute_name)
@@ -82,7 +81,7 @@ module ActiveRecord
         if value.nil?
           klass.unscoped.where(comparison)
         else
-          bind = Relation::QueryAttribute.new(attribute.to_s, value, Type::Value.new)
+          bind = Relation::QueryAttribute.new(attribute_name, value, Type::Value.new)
           klass.unscoped.where(comparison, bind)
         end
       rescue RangeError
