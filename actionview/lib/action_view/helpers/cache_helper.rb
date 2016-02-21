@@ -134,8 +134,21 @@ module ActionView
       #
       #   <%= render partial: 'notifications/notification', collection: @notifications, cached: true %>
       #
-      # The `cached: true` will make Action Views rendering issue a `read_multi` to
-      # the cache store instead of reading from it for every partial.
+      # The `cached: true` will make Action View's rendering read several templates
+      # from cache at once instead of one call per template.
+      #
+      # Templates in the collection not already cached are written to cache.
+      #
+      # Works great alongside individual template fragment caching.
+      # For instance if the template the collection renders is cached like:
+      #
+      #   # notifications/_notification.html.erb
+      #   <% cache notification do %>
+      #     <%# ... %>
+      #   <% end %>
+      #
+      # Any collection renders will find those cached templates when attempting
+      # to read multiple templates at once.
       def cache(name = {}, options = {}, &block)
         if controller.respond_to?(:perform_caching) && controller.perform_caching
           name_options = options.slice(:skip_digest, :virtual_path)
