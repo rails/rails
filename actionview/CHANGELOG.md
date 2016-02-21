@@ -1,4 +1,4 @@
-*   Fix `button_to`'s `:params` option support to correctly generated input names for nested hashes/arrays.
+*   Add support for nested hashes/arrays to `:params` option of `button_to` helper.
 
     *James Coleman*
 
