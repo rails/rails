@@ -65,6 +65,8 @@ module Minitest
     passed
   end
 
+  # Owes great inspiration to test runner trailblazers like RSpec,
+  # minitest-reporters, maxitest and others.
   def self.plugin_rails_init(options)
     self.run_with_rails_extension = true
 
