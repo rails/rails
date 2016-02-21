@@ -37,13 +37,13 @@
       end
     end
     ```
-    
+
     Passing `as: :json` to integration test request helpers will set the format,
     content type and encode the parameters as JSON.
-    
+
     Then on the response side, `parsed_body` will parse the body according to the
     content type the response has.
-    
+
     Currently JSON is the only supported MIME type. Add your own with
     `ActionDispatch::IntegrationTest.register_encoder`.
 
@@ -62,7 +62,7 @@
 
     See #18902.
 
-    *Anton Davydov* & *Vipul A M*
+    *Anton Davydov*, *Vipul A M*
 
 *   Response etags to always be weak: Prefixes 'W/' to value returned by
    `ActionDispatch::Http::Cache::Response#etag=`, such that etags set in
@@ -94,7 +94,7 @@
 
 *   Add option for per-form CSRF tokens.
 
-    *Greg Ose & Ben Toews*
+    *Greg Ose*, *Ben Toews*
 
 *   Add tests and documentation for `ActionController::Renderers::use_renderers`.
 
