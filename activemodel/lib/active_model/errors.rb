@@ -327,7 +327,7 @@ module ActiveModel
     #   # => {:base=>[{error: :name_or_email_blank}]}
     def add(attribute, message = :invalid, options = {})
       message = message.call if message.respond_to?(:call)
-      detail  = normalize_detail(attribute, message, options)
+      detail  = normalize_detail(message, options)
       message = normalize_message(attribute, message, options)
       if exception = options[:strict]
         exception = ActiveModel::StrictValidationFailed if exception == true
@@ -502,7 +502,7 @@ module ActiveModel
       end
     end
 
-    def normalize_detail(attribute, message, options)
+    def normalize_detail(message, options)
       { error: message }.merge(options.except(*CALLBACKS_OPTIONS + MESSAGE_OPTIONS))
     end
   end
