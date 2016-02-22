@@ -154,6 +154,53 @@ module ActiveRecord
         @pool.connections.each(&:close)
       end
 
+      def test_reap_excess
+        @pool.instance_variable_set(:@size, 5)
+        @pool.instance_variable_set(:@minimum_size, 3)
+        @pool.instance_variable_set(:@spare_count, 1)
+
+        5.times do
+          @pool.checkout
+        end
+
+        assert_equal 5, @pool.connections.size
+        assert_equal 5, active_connections(@pool).size
+
+        @pool.checkin active_connections(@pool).first
+        @pool.checkin active_connections(@pool).first
+
+        assert_equal 5, @pool.connections.size
+        assert_equal 3, active_connections(@pool).size
+
+        @pool.reap
+
+        # high water mark was 5, so nothing happened
+        assert_equal 5, @pool.connections.size
+
+        @pool.reap
+
+        # high water mark is 3, @spare_count == 1
+        assert_equal 4, @pool.connections.size
+        assert_equal 3, active_connections(@pool).size
+
+        @pool.checkin active_connections(@pool).first
+        @pool.checkin active_connections(@pool).first
+
+        assert_equal 4, @pool.connections.size
+        assert_equal 1, active_connections(@pool).size
+
+        @pool.reap
+
+        # high water mark was 3, @spare_count == 1
+        assert_equal 4, @pool.connections.size
+
+        @pool.reap
+
+        # high water mark is 1, @min_size == 3
+        assert_equal 3, @pool.connections.size
+        assert_equal 1, active_connections(@pool).size
+      end
+
       def test_remove_connection
         conn = @pool.checkout
         assert conn.in_use?
