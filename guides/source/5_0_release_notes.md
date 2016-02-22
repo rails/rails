@@ -294,6 +294,9 @@ Please refer to the [Changelog][action-view] for detailed changes.
     button on submit to prevent double submits.
     ([Pull Request](https://github.com/rails/rails/pull/21135))
 
+*   Downcase model name in form submit tags rather than humanize.
+    ([Pull Request](https://github.com/rails/rails/pull/22764))
+
 
 Action Mailer
 -------------
