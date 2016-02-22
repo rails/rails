@@ -159,7 +159,7 @@ module ActionDispatch
   #
   #   controller 'geocode' do
   #     get 'geocode/:postalcode' => :show, constraints: {
-  #       postalcode: /# Postcode format
+  #       postalcode: /# Postalcode format
   #          \d{5} #Prefix
   #          (-\d{4})? #Suffix
   #          /x
