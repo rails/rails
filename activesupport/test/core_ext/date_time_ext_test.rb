@@ -186,6 +186,10 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal DateTime.civil(2006,11,15), DateTime.civil(2006,11,23,0,0,0).last_week(:wednesday)
   end
 
+  def test_date_time_should_have_correct_last_week_for_leap_year
+    assert_equal DateTime.civil(2016, 2, 29), DateTime.civil(2016, 3, 7).last_week
+  end
+
   def test_last_month_on_31st
     assert_equal DateTime.civil(2004, 2, 29), DateTime.civil(2004, 3, 31).last_month
   end
