@@ -312,7 +312,7 @@ module ActionView
         form_options[:'data-remote'] = true if remote
 
         request_token_tag = if form_method == 'post'
-          token_tag(nil, form_options: form_options.merge(method: method))
+          token_tag(nil, form_options: { action: url, method: method })
         else
           ''
         end
