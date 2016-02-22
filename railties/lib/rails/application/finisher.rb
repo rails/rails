@@ -38,16 +38,16 @@ module Rails
         app.routes.define_mounted_helper(:main_app)
       end
 
-      initializer :add_to_prepare_blocks do
+      initializer :add_to_prepare_blocks do |app|
         config.to_prepare_blocks.each do |block|
-          ActionDispatch::Reloader.to_prepare(&block)
+          app.reloader.to_prepare(&block)
         end
       end
 
       # This needs to happen before eager load so it happens
       # in exactly the same point regardless of config.cache_classes
-      initializer :run_prepare_callbacks do
-        ActionDispatch::Reloader.prepare!
+      initializer :run_prepare_callbacks do |app|
+        app.reloader.prepare!
       end
 
       initializer :eager_load! do
@@ -62,13 +62,47 @@ module Rails
         ActiveSupport.run_load_hooks(:after_initialize, self)
       end
 
+      initializer :configure_executor_for_concurrency do |app|
+        if config.allow_concurrency == false
+          # User has explicitly opted out of concurrent request
+          # handling: presumably their code is not threadsafe
+
+          mutex = Mutex.new
+          app.executor.to_run(prepend: true) do
+            mutex.lock
+          end
+          app.executor.to_complete(:after) do
+            mutex.unlock
+          end
+
+        elsif config.allow_concurrency == :unsafe
+          # Do nothing, even if we know this is dangerous. This is the
+          # historical behaviour for true.
+
+        else
+          # Default concurrency setting: enabled, but safe
+
+          unless config.cache_classes && config.eager_load
+            # Without cache_classes + eager_load, the load interlock
+            # is required for proper operation
+
+            app.executor.to_run(prepend: true) do
+              ActiveSupport::Dependencies.interlock.start_running
+            end
+            app.executor.to_complete(:after) do
+              ActiveSupport::Dependencies.interlock.done_running
+            end
+          end
+        end
+      end
+
       # Set routes reload after the finisher hook to ensure routes added in
       # the hook are taken into account.
-      initializer :set_routes_reloader_hook do
+      initializer :set_routes_reloader_hook do |app|
         reloader = routes_reloader
         reloader.execute_if_updated
         self.reloaders << reloader
-        ActionDispatch::Reloader.to_prepare do
+        app.reloader.to_run do
           # We configure #execute rather than #execute_if_updated because if
           # autoloaded constants are cleared we need to reload routes also in
           # case any was used there, as in
@@ -78,18 +112,27 @@ module Rails
           # This means routes are also reloaded if i18n is updated, which
           # might not be necessary, but in order to be more precise we need
           # some sort of reloaders dependency support, to be added.
+          require_unload_lock!
           reloader.execute
         end
       end
 
       # Set clearing dependencies after the finisher hook to ensure paths
       # added in the hook are taken into account.
-      initializer :set_clear_dependencies_hook, group: :all do
+      initializer :set_clear_dependencies_hook, group: :all do |app|
         callback = lambda do
-          ActiveSupport::Dependencies.interlock.unloading do
-            ActiveSupport::DescendantsTracker.clear
-            ActiveSupport::Dependencies.clear
+          ActiveSupport::DescendantsTracker.clear
+          ActiveSupport::Dependencies.clear
+        end
+
+        if config.cache_classes
+          app.reloader.check = lambda { false }
+        elsif config.reload_classes_only_on_change
+          app.reloader.check = lambda do
+            app.reloaders.map(&:updated?).any?
           end
+        else
+          app.reloader.check = lambda { true }
         end
 
         if config.reload_classes_only_on_change
@@ -99,15 +142,19 @@ module Rails
           # Prepend this callback to have autoloaded constants cleared before
           # any other possible reloading, in case they need to autoload fresh
           # constants.
-          ActionDispatch::Reloader.to_prepare(prepend: true) do
+          app.reloader.to_run(prepend: true) do
             # In addition to changes detected by the file watcher, if routes
             # or i18n have been updated we also need to clear constants,
             # that's why we run #execute rather than #execute_if_updated, this
             # callback has to clear autoloaded constants after any update.
-            reloader.execute
+            class_unload! do
+              reloader.execute
+            end
           end
         else
-          ActionDispatch::Reloader.to_cleanup(&callback)
+          app.reloader.to_complete do
+            class_unload!(&callback)
+          end
         end
       end
 

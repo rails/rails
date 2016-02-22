@@ -81,6 +81,7 @@ module ActiveSupport
     # Execute the block given if updated.
     def execute_if_updated
       if updated?
+        yield if block_given?
         execute
         true
       else
