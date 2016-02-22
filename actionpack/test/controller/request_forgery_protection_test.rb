@@ -133,11 +133,11 @@ class PerFormTokensController < ActionController::Base
   self.per_form_csrf_tokens = true
 
   def index
-    render inline: "<%= form_tag (params[:form_path] || '/per_form_tokens/post_one'), method: (params[:form_method] || :post) %>"
+    render inline: "<%= form_tag (params[:form_path] || '/per_form_tokens/post_one'), method: params[:form_method] %>"
   end
 
   def button_to
-    render inline: "<%= button_to 'Button', (params[:form_path] || '/per_form_tokens/post_one'), method: (params[:form_method] || :post) %>"
+    render inline: "<%= button_to 'Button', (params[:form_path] || '/per_form_tokens/post_one'), method: params[:form_method] %>"
   end
 
   def post_one
@@ -707,6 +707,20 @@ class PerFormTokensControllerTest < ActionController::TestCase
     @request.env['PATH_INFO'] = '/per_form_tokens/post_one'
     assert_raises(ActionController::InvalidAuthenticityToken) do
       patch :post_one, params: { custom_authenticity_token: form_token }
+    end
+  end
+
+  test "Accepts proper token for implicit post method on button_to tag" do
+    get :button_to
+
+    form_token = assert_presence_and_fetch_form_csrf_token
+
+    assert_matches_session_token_on_server form_token, 'post'
+
+    # This is required because PATH_INFO isn't reset between requests.
+    @request.env['PATH_INFO'] = '/per_form_tokens/post_one'
+    assert_nothing_raised do
+      post :post_one, params: { custom_authenticity_token: form_token }
     end
   end
 
