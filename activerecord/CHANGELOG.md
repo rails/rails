@@ -1,3 +1,8 @@
+*   Handle JSON deserialization correctly if the column default from database
+    adapter returns `''` instead of `nil`.
+
+    *Johannes Opper*
+
 *   Ensure that mutations of the array returned from `ActiveRecord::Relation#to_a`
     do not affect the original relation, by returning a duplicate array each time.
 
