@@ -65,7 +65,7 @@ class WebServiceTest < ActionDispatch::IntegrationTest
 
   def test_register_and_use_json_simple
     with_test_route_set do
-      with_params_parsers json: Proc.new { |data| ActiveSupport::JSON.decode(data)['request'].with_indifferent_access } do
+      with_params_parsers Mime[:json] => Proc.new { |data| ActiveSupport::JSON.decode(data)['request'].with_indifferent_access } do
         post "/",
           params: '{"request":{"summary":"content...","title":"JSON"}}',
           headers: { 'CONTENT_TYPE' => 'application/json' }

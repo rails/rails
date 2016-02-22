@@ -1,6 +1,8 @@
 module ActionDispatch
   module Http
     module Parameters
+      extend ActiveSupport::Concern
+
       PARAMETERS_KEY = 'action_dispatch.request.path_parameters'
 
       DEFAULT_PARSERS = {
@@ -10,13 +12,20 @@ module ActionDispatch
         }
       }
 
-      def self.included(klass)
-        class << klass
-          attr_accessor :parameter_parsers
+      included do
+        class << self
+          attr_reader :parameter_parsers
         end
 
-        klass.parameter_parsers = DEFAULT_PARSERS
+        self.parameter_parsers = DEFAULT_PARSERS
       end
+
+      module ClassMethods
+        def parameter_parsers=(parsers) # :nodoc:
+          @parameter_parsers = parsers.transform_keys { |key| key.respond_to?(:symbol) ? key.symbol : key }
+        end
+      end
+
       # Returns both GET and POST \parameters in a single hash.
       def parameters
         params = get_header("action_dispatch.request.parameters")
