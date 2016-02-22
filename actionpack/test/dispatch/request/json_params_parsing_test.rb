@@ -151,19 +151,31 @@ class RootLessJSONParamsParsingTest < ActionDispatch::IntegrationTest
   end
 
   test "parses json params after custom json mime type registered" do
-    Mime::Type.register "application/json", :json, %w(application/vnd.api+json)
-    assert_parses(
-      {"user" => {"username" => "meinac"}, "username" => "meinac"},
-      "{\"username\": \"meinac\"}", { 'CONTENT_TYPE' => 'application/json' }
-    )
+    begin
+      Mime::Type.unregister :json
+      Mime::Type.register "application/json", :json, %w(application/vnd.api+json)
+      assert_parses(
+        {"user" => {"username" => "meinac"}, "username" => "meinac"},
+        "{\"username\": \"meinac\"}", { 'CONTENT_TYPE' => 'application/json' }
+      )
+    ensure
+      Mime::Type.unregister :json
+      Mime::Type.register "application/json", :json, %w( text/x-json application/jsonrequest )
+    end
   end
 
   test "parses json params after custom json mime type registered with synonym" do
-    Mime::Type.register "application/json", :json, %w(application/vnd.api+json)
-    assert_parses(
-      {"user" => {"username" => "meinac"}, "username" => "meinac"},
-      "{\"username\": \"meinac\"}", { 'CONTENT_TYPE' => 'application/vnd.api+json' }
-    )
+    begin
+      Mime::Type.unregister :json
+      Mime::Type.register "application/json", :json, %w(application/vnd.api+json)
+      assert_parses(
+        {"user" => {"username" => "meinac"}, "username" => "meinac"},
+        "{\"username\": \"meinac\"}", { 'CONTENT_TYPE' => 'application/vnd.api+json' }
+      )
+    ensure
+      Mime::Type.unregister :json
+      Mime::Type.register "application/json", :json, %w( text/x-json application/jsonrequest )
+    end
   end
 
   private
