@@ -33,10 +33,13 @@ module ActiveSupport
   autoload :Concern
   autoload :Dependencies
   autoload :DescendantsTracker
+  autoload :ExecutionWrapper
+  autoload :Executor
   autoload :FileUpdateChecker
   autoload :EventedFileUpdateChecker
   autoload :LogSubscriber
   autoload :Notifications
+  autoload :Reloader
 
   eager_autoload do
     autoload :BacktraceCleaner

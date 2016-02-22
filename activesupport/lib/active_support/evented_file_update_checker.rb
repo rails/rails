@@ -37,6 +37,7 @@ module ActiveSupport
 
     def execute_if_updated
       if updated?
+        yield if block_given?
         execute
         true
       end
