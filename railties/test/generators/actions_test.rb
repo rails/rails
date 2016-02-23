@@ -245,6 +245,22 @@ class ActionsTest < Rails::Generators::TestCase
     end
   end
 
+  def test_inject_into_controller_should_add_method
+    run_generator
+    code = "def authenticate; true; end"
+    action :inject_into_controller, "application", code
+    assert_file "app/controllers/application_controller.rb", /#{Regexp.escape(code)}/
+  end
+
+  def test_inject_into_model_should_add_method
+    run_generator
+    action :generate, 'model', 'user'
+
+    code = "def name; 'John Doe'; end"
+    action :inject_into_model, "user", code
+    assert_file "app/models/user.rb", /#{Regexp.escape(code)}/
+  end
+
   def test_route_should_add_data_to_the_routes_block_in_config_routes
     run_generator
     route_command = "route '/login', controller: 'sessions', action: 'new'"

@@ -195,6 +195,36 @@ module Rails
         create_file("config/initializers/#{filename}", data, verbose: false, &block)
       end
 
+      # Add code to an existing Controller
+      #
+      #   inject_into_controller "application", <<-EOF
+      #     def authenticate
+      #       true
+      #     end
+      #   <<-EOF
+      #
+      #   inject_into_controller("application", "TOKEN = '123ABC'")
+      def inject_into_controller(filename, data=nil)
+        name = "#{filename}_controller"
+        log :inject_into_controller, "#{name}.rb"
+        inject_into_class "app/controllers/#{name}.rb", name.classify, "#{data}\n"
+      end
+
+
+      # Add code to an existing Model
+      #
+      #   inject_into_model "user", <<-EOF
+      #     def authenticate
+      #       true
+      #     end
+      #   <<-EOF
+      #
+      #   inject_into_model("user", "TOKEN = '123ABC'")
+      def inject_into_model(filename, data=nil)
+        log :inject_into_model, "#{filename}.rb"
+        inject_into_class "app/models/#{filename}.rb", filename.classify, "#{data}\n"
+      end
+
       # Generate something using a generator from Rails or a plugin.
       # The second parameter is the argument string that is passed to
       # the generator or an Array that is joined.
