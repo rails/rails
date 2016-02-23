@@ -261,6 +261,16 @@ class ActionsTest < Rails::Generators::TestCase
     assert_file "app/models/user.rb", /#{Regexp.escape(code)}/
   end
 
+  def test_inject_into_mailer_should_add_method
+    run_generator
+    action :generate, 'mailer', 'user_mailer'
+
+    code = "def welcome; mail(to: 'me@example.com', subject: 'hi'); end"
+    action :inject_into_mailer, "user", code
+    assert_file "app/mailers/user_mailer.rb", /#{Regexp.escape(code)}/
+  end
+
+
   def test_route_should_add_data_to_the_routes_block_in_config_routes
     run_generator
     route_command = "route '/login', controller: 'sessions', action: 'new'"

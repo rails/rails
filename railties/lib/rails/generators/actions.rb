@@ -225,6 +225,19 @@ module Rails
         inject_into_class "app/models/#{filename}.rb", filename.classify, "#{data}\n"
       end
 
+      # Add code to an existing Mailer
+      #
+      #   inject_into_mailer "user", <<-EOF
+      #     def welcome(user)
+      #       mail(to: user.email, subject: 'Welcome')
+      #     end
+      #   <<-EOF
+      def inject_into_mailer(filename, data=nil)
+        name = "#{filename}_mailer"
+        log :inject_into_mailer, "#{name}.rb"
+        inject_into_class "app/mailers/#{name}.rb", name.classify, "#{data}\n"
+      end
+
       # Generate something using a generator from Rails or a plugin.
       # The second parameter is the argument string that is passed to
       # the generator or an Array that is joined.
