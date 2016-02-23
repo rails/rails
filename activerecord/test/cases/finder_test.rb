@@ -572,6 +572,20 @@ class FinderTest < ActiveRecord::TestCase
     assert_sql(/LIMIT|ROWNUM <=/) { Topic.last(5).entries }
   end
 
+  def test_last_with_offset
+    topic = Topic.order(:id)
+    assert_equal topic.to_a.last, topic.last
+    assert_equal topic.offset(1).to_a.last, topic.offset(1).last
+    assert_equal topic.last, topic.offset(4).last
+  end
+
+  def test_last_with_integer_and_offset
+    topic = Topic.order(:id)
+    assert_equal topic.to_a.last(2), topic.last(2)
+    assert_equal topic.offset(1).to_a.last(2), topic.offset(1).last(2)
+    assert_equal topic.last(1), topic.offset(4).last(2)
+  end
+
   def test_last_with_integer_and_order_should_keep_the_order
     assert_equal Topic.order("title").to_a.last(2), Topic.order("title").last(2)
   end
