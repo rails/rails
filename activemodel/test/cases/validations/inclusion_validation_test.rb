@@ -58,9 +58,9 @@ class InclusionValidationTest < ActiveModel::TestCase
     assert_raise(ArgumentError) { Topic.validates_inclusion_of(:title, in: nil) }
     assert_raise(ArgumentError) { Topic.validates_inclusion_of(:title, in: 0) }
 
-    assert_nothing_raised(ArgumentError) { Topic.validates_inclusion_of(:title, in: "hi!") }
-    assert_nothing_raised(ArgumentError) { Topic.validates_inclusion_of(:title, in: {}) }
-    assert_nothing_raised(ArgumentError) { Topic.validates_inclusion_of(:title, in: []) }
+    assert_nothing_raised { Topic.validates_inclusion_of(:title, in: "hi!") }
+    assert_nothing_raised { Topic.validates_inclusion_of(:title, in: {}) }
+    assert_nothing_raised { Topic.validates_inclusion_of(:title, in: []) }
   end
 
   def test_validates_inclusion_of_with_allow_nil

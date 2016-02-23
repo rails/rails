@@ -104,7 +104,7 @@ class MultipleDbTest < ActiveRecord::TestCase
     def test_associations_should_work_when_model_has_no_connection
       begin
         ActiveRecord::Base.remove_connection
-        assert_nothing_raised ActiveRecord::ConnectionNotEstablished do
+        assert_nothing_raised do
           College.first.courses.first
         end
       ensure

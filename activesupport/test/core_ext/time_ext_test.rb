@@ -392,7 +392,7 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal Time.local(2005,1,2,11,22,33, 8), Time.local(2005,1,2,11,22,33,44).change(:usec => 8)
     assert_equal Time.local(2005,1,2,11,22,33, 8), Time.local(2005,1,2,11,22,33,2).change(:nsec => 8000)
     assert_raise(ArgumentError) { Time.local(2005,1,2,11,22,33, 8).change(:usec => 1, :nsec => 1) }
-    assert_nothing_raised(ArgumentError) { Time.new(2015, 5, 9, 10, 00, 00, '+03:00').change(nsec: 999999999) }
+    assert_nothing_raised { Time.new(2015, 5, 9, 10, 00, 00, '+03:00').change(nsec: 999999999) }
   end
 
   def test_utc_change

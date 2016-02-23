@@ -16,7 +16,7 @@ module ApplicationTests
 
     # AC & AM
     test "set load paths set only if action controller or action mailer are in use" do
-      assert_nothing_raised NameError do
+      assert_nothing_raised do
         add_to_config <<-RUBY
           config.root = "#{app_path}"
         RUBY

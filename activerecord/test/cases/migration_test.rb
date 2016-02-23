@@ -739,7 +739,7 @@ class ExplicitlyNamedIndexMigrationTest < ActiveRecord::TestCase
       t.integer :value
     end
 
-    assert_nothing_raised ArgumentError do
+    assert_nothing_raised do
       connection.add_index :values, :value, name: 'a_different_name'
       connection.remove_index :values, column: :value, name: 'a_different_name'
     end

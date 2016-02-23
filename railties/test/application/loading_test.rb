@@ -56,10 +56,10 @@ class LoadingTest < ActiveSupport::TestCase
 
     require "#{rails_root}/config/environment"
 
-    assert_nothing_raised(NameError) { Trackable }
-    assert_nothing_raised(NameError) { EmailLoggable }
-    assert_nothing_raised(NameError) { Orderable }
-    assert_nothing_raised(NameError) { Matchable }
+    assert_nothing_raised { Trackable }
+    assert_nothing_raised { EmailLoggable }
+    assert_nothing_raised { Orderable }
+    assert_nothing_raised { Matchable }
   end
 
   test "models without table do not panic on scope definitions when loaded" do
