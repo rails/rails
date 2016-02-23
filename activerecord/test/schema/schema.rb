@@ -635,17 +635,7 @@ ActiveRecord::Schema.define do
     t.integer :firm_id
   end
 
-  create_table :randomly_named_table1, force: true do |t|
-    t.string  :some_attribute
-    t.integer :another_attribute
-  end
-
-  create_table :randomly_named_table2, force: true do |t|
-    t.string  :some_attribute
-    t.integer :another_attribute
-  end
-
-  create_table :randomly_named_table3, force: true do |t|
+  create_table :randomly_named_table, force: true do |t|
     t.string  :some_attribute
     t.integer :another_attribute
   end
