@@ -2020,20 +2020,20 @@ module ActionDispatch
         end
       end
 
-      module UrlHelpers
+      module DirectUrls
         # Define a custom url helper that will be added to the url helpers
         # module. This allows you override and/or replace the default behavior
         # of routing helpers, e.g:
         #
-        #   url_helper :homepage do
+        #   direct :homepage do
         #     "http://www.rubyonrails.org"
         #   end
         #
-        #   url_helper :commentable do |model|
+        #   direct :commentable do |model|
         #     [ model, anchor: model.dom_id ]
         #   end
         #
-        #   url_helper :main do
+        #   direct :main do
         #     { controller: 'pages', action: 'index', subdomain: 'www' }
         #   end
         #
@@ -2049,13 +2049,13 @@ module ActionDispatch
         # You can also specify default options that will be passed through to
         # your url helper definition, e.g:
         #
-        #   url_helper :browse, page: 1, size: 10 do |options|
+        #   direct :browse, page: 1, size: 10 do |options|
         #     [ :products, options.merge(params.permit(:page, :size)) ]
         #   end
         #
         # NOTE: It is the url helper's responsibility to return the correct
         # set of options to be passed to the `url_for` call.
-        def url_helper(name, options = {}, &block)
+        def direct(name, options = {}, &block)
           @set.add_url_helper(name, options, &block)
         end
       end
@@ -2153,7 +2153,7 @@ module ActionDispatch
       include Scoping
       include Concerns
       include Resources
-      include UrlHelpers
+      include DirectUrls
     end
   end
 end
