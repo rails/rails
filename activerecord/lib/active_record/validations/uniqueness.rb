@@ -17,7 +17,7 @@ module ActiveRecord
         value = map_enum_attribute(finder_class, attribute, value)
 
         relation = build_relation(finder_class, table, attribute, value)
-        if record.persisted? && finder_class.primary_key.to_s != attribute.to_s
+        if record.persisted?
           if finder_class.primary_key
             relation = relation.where.not(finder_class.primary_key => record.id_was)
           else
