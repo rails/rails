@@ -11,7 +11,6 @@ module ActiveRecord
       end
 
       def validate_each(record, attribute, value)
-        return unless should_validate?(record)
         finder_class = find_finder_class_for(record)
         table = finder_class.arel_table
         value = map_enum_attribute(finder_class, attribute, value)
