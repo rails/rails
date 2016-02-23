@@ -502,6 +502,19 @@ module ApplicationTests
       assert_match '1 runs, 1 assertions', output
     end
 
+    def test_rake_passes_TESTOPTS_to_minitest
+      create_test_file :models, 'account'
+      output =  Dir.chdir(app_path) { `bin/rake test TESTOPTS=-v` }
+      assert_match "AccountTest#test_truth", output, "passing TEST= should run selected test"
+    end
+
+    def test_rake_passes_multiple_TESTOPTS_to_minitest
+      create_test_file :models, 'account'
+      output =  Dir.chdir(app_path) { `bin/rake test TESTOPTS='-v --seed=1234'` }
+      assert_match "AccountTest#test_truth", output, "passing TEST= should run selected test"
+      assert_match "seed=1234", output, "passing TEST= should run selected test"
+    end
+
     private
       def run_test_command(arguments = 'test/unit/test_test.rb')
         Dir.chdir(app_path) { `bin/rails t #{arguments}` }

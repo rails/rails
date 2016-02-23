@@ -1,6 +1,7 @@
 require "active_support/core_ext/module/attribute_accessors"
 require "rails/test_unit/reporter"
 require "rails/test_unit/test_requirer"
+require 'shellwords'
 
 module Minitest
   class SuppressedSummaryReporter < SummaryReporter
@@ -60,7 +61,7 @@ module Minitest
   # as the patterns would also contain the other Rake tasks.
   def self.rake_run(patterns) # :nodoc:
     @rake_patterns = patterns
-    passed = run
+    passed = run(Shellwords.split(ENV['TESTOPTS'] || ''))
     exit passed unless passed
     passed
   end
