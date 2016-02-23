@@ -30,14 +30,14 @@ class TestCustomUrlHelpers < ActionDispatch::IntegrationTest
       get '/dashboard', to: 'dashboard#index'
     end
 
-    url_helper(:website)  { "http://www.rubyonrails.org" }
-    url_helper(:linkable) { |linkable| [:"#{linkable.linkable_type}", { id: linkable.id }] }
-    url_helper(:params)   { |params| params }
-    url_helper(:symbol)   { :basket }
-    url_helper(:hash)     { { controller: "basket", action: "show" } }
-    url_helper(:array)    { [:admin, :dashboard] }
-    url_helper(:options)  { |options| [:products, options] }
-    url_helper(:defaults, size: 10) { |options| [:products, options] }
+    direct(:website)  { "http://www.rubyonrails.org" }
+    direct(:linkable) { |linkable| [:"#{linkable.linkable_type}", { id: linkable.id }] }
+    direct(:params)   { |params| params }
+    direct(:symbol)   { :basket }
+    direct(:hash)     { { controller: "basket", action: "show" } }
+    direct(:array)    { [:admin, :dashboard] }
+    direct(:options)  { |options| [:products, options] }
+    direct(:defaults, size: 10) { |options| [:products, options] }
   end
 
   APP = build_app Routes
@@ -57,7 +57,7 @@ class TestCustomUrlHelpers < ActionDispatch::IntegrationTest
     @safe_params = ActionController::Parameters.new(@path_params).permit(:controller, :action)
   end
 
-  def test_custom_path_helper
+  def test_direct_paths
     assert_equal "http://www.rubyonrails.org", website_path
     assert_equal "http://www.rubyonrails.org", Routes.url_helpers.website_path
 
@@ -88,7 +88,7 @@ class TestCustomUrlHelpers < ActionDispatch::IntegrationTest
     assert_equal "/products?size=20", Routes.url_helpers.defaults_path(size: 20)
   end
 
-  def test_custom_url_helper
+  def test_direct_urls
     assert_equal "http://www.rubyonrails.org", website_url
     assert_equal "http://www.rubyonrails.org", Routes.url_helpers.website_url
 
@@ -108,8 +108,8 @@ class TestCustomUrlHelpers < ActionDispatch::IntegrationTest
     assert_equal "http://www.example.com/basket", Routes.url_helpers.symbol_url
     assert_equal "http://www.example.com/basket", hash_url
     assert_equal "http://www.example.com/basket", Routes.url_helpers.hash_url
-    assert_equal "/admin/dashboard", array_path
-    assert_equal "/admin/dashboard", Routes.url_helpers.array_path
+    assert_equal "http://www.example.com/admin/dashboard", array_url
+    assert_equal "http://www.example.com/admin/dashboard", Routes.url_helpers.array_url
 
     assert_equal "http://www.example.com/products?page=2", options_url(page: 2)
     assert_equal "http://www.example.com/products?page=2", Routes.url_helpers.options_url(page: 2)

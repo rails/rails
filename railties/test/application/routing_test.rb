@@ -289,7 +289,7 @@ module ApplicationTests
             get 'foo', to: 'foo#bar'
             get 'custom', to: 'foo#custom'
 
-            url_helper(:custom) { "http://www.microsoft.com" }
+            direct(:custom) { "http://www.microsoft.com" }
           end
         RUBY
 
@@ -306,7 +306,7 @@ module ApplicationTests
             get 'foo', to: 'foo#baz'
             get 'custom', to: 'foo#custom'
 
-            url_helper(:custom) { "http://www.apple.com" }
+            direct(:custom) { "http://www.apple.com" }
           end
         RUBY
 
@@ -466,7 +466,7 @@ module ApplicationTests
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
           get ':locale/foo', to: 'foo#index', as: 'foo'
-          url_helper(:microsoft) { 'http://www.microsoft.com' }
+          direct(:microsoft) { 'http://www.microsoft.com' }
         end
       RUBY
 
@@ -478,7 +478,7 @@ module ApplicationTests
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
           get ':locale/bar', to: 'bar#index', as: 'foo'
-          url_helper(:apple) { 'http://www.apple.com' }
+          direct(:apple) { 'http://www.apple.com' }
         end
       RUBY
 
