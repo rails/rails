@@ -52,7 +52,7 @@ module ActionController
       self.session = session
       self.session_options = TestSession::DEFAULT_OPTIONS
       @custom_param_parsers = {
-        Mime[:xml] => lambda { |raw_post| Hash.from_xml(raw_post)['hash'] }
+        xml: lambda { |raw_post| Hash.from_xml(raw_post)['hash'] }
       }
     end
 
@@ -105,7 +105,7 @@ module ActionController
           when :url_encoded_form
             data = non_path_parameters.to_query
           else
-            @custom_param_parsers[content_mime_type] = ->(_) { non_path_parameters }
+            @custom_param_parsers[content_mime_type.symbol] = ->(_) { non_path_parameters }
             data = non_path_parameters.to_query
           end
         end
