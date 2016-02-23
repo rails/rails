@@ -17,6 +17,7 @@ class ActionCable.ConnectionMonitor
     @reset()
     @pingedAt = now()
     delete @disconnectedAt
+    ActionCable.log("ConnectionMonitor connected")
 
   disconnected: ->
     @disconnectedAt = now()
@@ -33,10 +34,12 @@ class ActionCable.ConnectionMonitor
     @startedAt = now()
     @poll()
     document.addEventListener("visibilitychange", @visibilityDidChange)
+    ActionCable.log("ConnectionMonitor started, pollInterval is #{@getInterval()}ms")
 
   stop: ->
     @stoppedAt = now()
     document.removeEventListener("visibilitychange", @visibilityDidChange)
+    ActionCable.log("ConnectionMonitor stopped")
 
   poll: ->
     setTimeout =>
@@ -52,8 +55,12 @@ class ActionCable.ConnectionMonitor
 
   reconnectIfStale: ->
     if @connectionIsStale()
+      ActionCable.log("ConnectionMonitor detected stale connection, reconnectAttempts = #{@reconnectAttempts}")
       @reconnectAttempts++
-      unless @disconnectedRecently()
+      if @disconnectedRecently()
+        ActionCable.log("ConnectionMonitor skipping reopen because recently disconnected at #{@disconnectedAt}")
+      else
+        ActionCable.log("ConnectionMonitor reopening")
         @consumer.connection.reopen()
 
   connectionIsStale: ->
@@ -66,6 +73,7 @@ class ActionCable.ConnectionMonitor
     if document.visibilityState is "visible"
       setTimeout =>
         if @connectionIsStale() or not @consumer.connection.isOpen()
+          ActionCable.log("ConnectionMonitor reopening stale connection after visibilitychange to #{document.visibilityState}")
           @consumer.connection.reopen()
       , 200
 

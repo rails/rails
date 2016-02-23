@@ -154,7 +154,7 @@ module ActionCable
         def handle_open
           connect if respond_to?(:connect)
           subscribe_to_internal_channel
-          beat
+          confirm_connection_monitor_subscription
 
           message_buffer.process!
           server.add_connection(self)
@@ -171,6 +171,13 @@ module ActionCable
           unsubscribe_from_internal_channel
 
           disconnect if respond_to?(:disconnect)
+        end
+
+        def confirm_connection_monitor_subscription
+          # Send confirmation message to the internal connection monitor channel.
+          # This ensures the connection monitor state is reset after a successful
+          # websocket connection.
+          transmit ActiveSupport::JSON.encode(identifier: ActionCable::INTERNAL[:identifiers][:ping], type: ActionCable::INTERNAL[:message_types][:confirmation])
         end
 
         def allow_request_origin?

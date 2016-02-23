@@ -16,9 +16,12 @@ class ActionCable.Connection
       false
 
   open: =>
-    if @webSocket and not @isState("closed")
+    if @isAlive()
+      ActionCable.log("Attemped to open WebSocket, but existing socket is #{@getState()}")
       throw new Error("Existing connection must be closed before opening")
     else
+      ActionCable.log("Opening WebSocket, current state is #{@getState()}")
+      @uninstallEventHandlers() if @webSocket?
       @webSocket = new WebSocket(@consumer.url)
       @installEventHandlers()
       true
@@ -27,18 +30,25 @@ class ActionCable.Connection
     @webSocket?.close()
 
   reopen: ->
-    if @isState("closed")
-      @open()
-    else
+    ActionCable.log("Reopening WebSocket, current state is #{@getState()}")
+    if @isAlive()
       try
         @close()
+      catch error
+        ActionCable.log("Failed to reopen WebSocket", error)
       finally
+        ActionCable.log("Reopening WebSocket in #{@constructor.reopenDelay}ms")
         setTimeout(@open, @constructor.reopenDelay)
+    else
+      @open()
 
   isOpen: ->
     @isState("open")
 
   # Private
+
+  isAlive: ->
+    @webSocket? and not @isState("closing", "closed")
 
   isState: (states...) ->
     @getState() in states
@@ -51,6 +61,11 @@ class ActionCable.Connection
     for eventName of @events
       handler = @events[eventName].bind(this)
       @webSocket["on#{eventName}"] = handler
+    return
+
+  uninstallEventHandlers: ->
+    for eventName of @events
+      @webSocket["on#{eventName}"] = ->
     return
 
   events:
@@ -66,13 +81,16 @@ class ActionCable.Connection
           @consumer.subscriptions.notify(identifier, "received", message)
 
     open: ->
+      ActionCable.log("WebSocket onopen event")
       @disconnected = false
       @consumer.subscriptions.reload()
 
     close: ->
+      ActionCable.log("WebSocket onclose event")
       @disconnect()
 
     error: ->
+      ActionCable.log("WebSocket onerror event")
       @disconnect()
 
   disconnect: ->
