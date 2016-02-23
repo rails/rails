@@ -44,7 +44,6 @@ module ActionMailer
   autoload :MailHelper
   autoload :Preview
   autoload :Previews, 'action_mailer/preview'
-  autoload :Caching
   autoload :TestCase
   autoload :TestHelper
   autoload :MessageDelivery

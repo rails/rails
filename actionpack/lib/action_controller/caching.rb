@@ -1,5 +1,3 @@
-require 'action_dispatch/caching'
-
 module ActionController
   # \Caching is a cheap way of speeding up slow applications by keeping the result of
   # calculations, renderings, and database calls around for subsequent requests.
@@ -26,7 +24,7 @@ module ActionController
     extend ActiveSupport::Concern
 
     included do
-      include ActionDispatch::Caching
+      include AbstractController::Caching
     end
 
     def instrument_payload(key)

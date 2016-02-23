@@ -1,9 +1,11 @@
-require 'action_dispatch/caching/fragments'
-
-module ActionDispatch
+module AbstractController
   module Caching
     extend ActiveSupport::Concern
     extend ActiveSupport::Autoload
+
+    eager_autoload do
+      autoload :Fragments
+    end
 
     module ConfigMethods
       def cache_store
@@ -21,7 +23,7 @@ module ActionDispatch
     end
 
     include ConfigMethods
-    include ActionDispatch::Caching::Fragments
+    include AbstractController::Caching::Fragments
 
     included do
       extend ConfigMethods
