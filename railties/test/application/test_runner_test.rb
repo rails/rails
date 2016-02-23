@@ -502,6 +502,19 @@ module ApplicationTests
       assert_match '1 runs, 1 assertions', output
     end
 
+    def test_rails_db_create_all_restores_db_connection
+      create_test_file :models, 'account'
+      output =  Dir.chdir(app_path) { `bin/rails db:create:all db:migrate && echo ".tables" | rails dbconsole` }
+      assert_match "ar_internal_metadata", output, "tables should be dumped"
+    end
+
+    def test_rails_db_create_all_restores_db_connection_after_drop
+      create_test_file :models, 'account'
+      Dir.chdir(app_path) { `bin/rails db:create:all` } # create all to avoid warnings
+      output =  Dir.chdir(app_path) { `bin/rails db:drop:all db:create:all db:migrate && echo ".tables" | rails dbconsole` }
+      assert_match "ar_internal_metadata", output, "tables should be dumped"
+    end
+
     def test_rake_passes_TESTOPTS_to_minitest
       create_test_file :models, 'account'
       output =  Dir.chdir(app_path) { `bin/rake test TESTOPTS=-v` }

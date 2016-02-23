@@ -116,7 +116,11 @@ module ActiveRecord
       end
 
       def create_all
+        old_pool = ActiveRecord::Base.connection_handler.retrieve_connection_pool(ActiveRecord::Base)
         each_local_configuration { |configuration| create configuration }
+        if old_pool
+          ActiveRecord::Base.connection_handler.establish_connection(ActiveRecord::Base, old_pool.spec)
+        end
       end
 
       def create_current(environment = env)
