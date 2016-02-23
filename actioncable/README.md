@@ -350,7 +350,7 @@ The second option is to pass the server url through the `action_cable_meta_tag` 
 This uses a url or path typically set via `config.action_cable.url` in the environment configuration files, or defaults to "/cable".
 
 This method is especially useful if your WebSocket url might change between environments. If you host your production server via https, you will need to use the wss scheme
-for your ActionCable server, but development might remain http and use the ws scheme. You might use localhost in development and your
+for your Action Cable server, but development might remain http and use the ws scheme. You might use localhost in development and your
 domain in production.
 
 In any case, to vary the WebSocket url between environments, add the following configuration to each environment:
@@ -412,7 +412,7 @@ The above will start a cable server on port 28080.
 
 ### In app
 
-If you are using a threaded server like Puma or Thin, the current implementation of ActionCable can run side-along with your Rails application. For example, to listen for WebSocket requests on `/cable`, mount the server at that path:
+If you are using a threaded server like Puma or Thin, the current implementation of Action Cable can run side-along with your Rails application. For example, to listen for WebSocket requests on `/cable`, mount the server at that path:
 
 ```ruby
 # config/routes.rb
@@ -421,7 +421,7 @@ Example::Application.routes.draw do
 end
 ```
 
-For every instance of your server you create and for every worker your server spawns, you will also have a new instance of ActionCable, but the use of Redis keeps messages synced across connections.
+For every instance of your server you create and for every worker your server spawns, you will also have a new instance of Action Cable, but the use of Redis keeps messages synced across connections.
 
 ### Notes
 
@@ -433,7 +433,7 @@ The WebSocket server doesn't have access to the session, but it has access to th
 
 ## Dependencies
 
-Action Cable provides a subscription adapter interface to process its pubsub internals. By default, asynchronous, inline, PostgreSQL, evented Redis, and non-evented Redis adapters are included. The default adapter in new Rails applications is the asynchronous (`async`) adapter. To create your own adapter, you can look at `ActionCable::SubscriptionAdapter::Base` for all methods that must be implemented, and any of the adapters included within ActionCable as example implementations.
+Action Cable provides a subscription adapter interface to process its pubsub internals. By default, asynchronous, inline, PostgreSQL, evented Redis, and non-evented Redis adapters are included. The default adapter in new Rails applications is the asynchronous (`async`) adapter. To create your own adapter, you can look at `ActionCable::SubscriptionAdapter::Base` for all methods that must be implemented, and any of the adapters included within Action Cable as example implementations.
 
 The Ruby side of things is built on top of [websocket-driver](https://github.com/faye/websocket-driver-ruby), [nio4r](https://github.com/celluloid/nio4r), and [concurrent-ruby](https://github.com/ruby-concurrency/concurrent-ruby).
 
