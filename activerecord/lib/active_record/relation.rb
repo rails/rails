@@ -175,16 +175,16 @@ module ActiveRecord
     # Finds the first record with the given attributes, or creates a record
     # with the attributes if one is not found:
     #
-    #   # Find the first user named "Penélope" or create a new one.
+    #   # Find the first user having first_name "Penélope" or create a new one.
     #   User.find_or_create_by(first_name: 'Penélope')
     #   # => #<User id: 1, first_name: "Penélope", last_name: nil>
     #
-    #   # Find the first user named "Penélope" or create a new one.
+    #   # Find the first user having first_name "Penélope" or create a new one.
     #   # We already have one so the existing record will be returned.
     #   User.find_or_create_by(first_name: 'Penélope')
     #   # => #<User id: 1, first_name: "Penélope", last_name: nil>
     #
-    #   # Find the first user named "Scarlett" or create a new one with
+    #   # Find the first user having first_name "Scarlett" or create a new one with
     #   # a particular last name.
     #   User.create_with(last_name: 'Johansson').find_or_create_by(first_name: 'Scarlett')
     #   # => #<User id: 2, first_name: "Scarlett", last_name: "Johansson">
@@ -192,7 +192,7 @@ module ActiveRecord
     # This method accepts a block, which is passed down to #create. The last example
     # above can be alternatively written this way:
     #
-    #   # Find the first user named "Scarlett" or create a new one with a
+    #   # Find the first user having first_name "Scarlett" or create a new one with a
     #   # different last name.
     #   User.find_or_create_by(first_name: 'Scarlett') do |user|
     #     user.last_name = 'Johansson'
