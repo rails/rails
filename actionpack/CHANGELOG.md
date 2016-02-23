@@ -1,3 +1,32 @@
+*   Update default rendering policies when the controller action did
+    not explicitly indicate a response.
+
+    For API controllers, the implicit render always renders "204 No Content"
+    and does not account for any templates.
+
+    For other controllers, the following conditions are checked:
+
+    First, if a template exists for the controller action, it is rendered.
+    This template lookup takes into account the action name, locales, format,
+    variant, template handlers, etc. (see +render+ for details).
+
+    Second, if other templates exist for the controller action but is not in
+    the right format (or variant, etc.), an <tt>ActionController::UnknownFormat</tt>
+    is raised. The list of available templates is assumed to be a complete
+    enumeration of all the possible formats (or variants, etc.); that is,
+    having only HTML and JSON templates indicate that the controller action is
+    not meant to handle XML requests.
+
+    Third, if the current request is an "interactive" browser request (the user
+    navigated here by entering the URL in the address bar, submiting a form,
+    clicking on a link, etc. as opposed to an XHR or non-browser API request),
+    <tt>ActionView::UnknownFormat</tt> is raised to display a helpful error
+    message.
+
+    Finally, it falls back to the same "204 No Content" behavior as API controllers.
+
+    *Godfrey Chan*, *Jon Moss*, *Kasper Timm Hansen*, *Mike Clark*, *Matthew Draper*
+
 ## Rails 5.0.0.beta3 (February 24, 2016) ##
 
 *   Update session to have indifferent access across multiple requests.
