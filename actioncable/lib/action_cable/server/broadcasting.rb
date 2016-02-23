@@ -1,6 +1,6 @@
 module ActionCable
   module Server
-    # Broadcasting is how other parts of your application can send messages to the channel subscribers. As explained in Channel, most of the time, these
+    # Broadcasting is how other parts of your application can send messages to a channel's subscribers. As explained in Channel, most of the time, these
     # broadcastings are streamed directly to the clients subscribed to the named broadcasting. Let's explain with a full-stack example:
     #
     #   class WebNotificationsChannel < ApplicationCable::Channel
@@ -9,16 +9,16 @@ module ActionCable
     #     end
     #   end
     #
-    #   # Somewhere in your app this is called, perhaps from a NewCommentJob
+    #   # Somewhere in your app this is called, perhaps from a NewCommentJob:
     #   ActionCable.server.broadcast \
     #     "web_notifications_1", { title: "New things!", body: "All that's fit for print" }
     #
-    #   # Client-side CoffeeScript, which assumes you've already requested the right to send web notifications
+    #   # Client-side CoffeeScript, which assumes you've already requested the right to send web notifications:
     #   App.cable.subscriptions.create "WebNotificationsChannel",
     #     received: (data) ->
     #       new Notification data['title'], body: data['body']
     module Broadcasting
-      # Broadcast a hash directly to a named <tt>broadcasting</tt>. It'll automatically be JSON encoded.
+      # Broadcast a hash directly to a named <tt>broadcasting</tt>. This will later be JSON encoded.
       def broadcast(broadcasting, message)
         broadcaster_for(broadcasting).broadcast(message)
       end

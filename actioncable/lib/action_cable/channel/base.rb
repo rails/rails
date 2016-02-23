@@ -32,8 +32,8 @@ module ActionCable
     #
     # == Action processing
     #
-    # Unlike subclasses of ActionController::Base, channels do not follow a REST
-    # constraint form for their actions. Instead, ActionCable operates through a
+    # Unlike subclasses of ActionController::Base, channels do not follow a RESTful
+    # constraint form for their actions. Instead, Action Cable operates through a
     # remote-procedure call model. You can declare any public method on the
     # channel (optionally taking a <tt>data</tt> argument), and this method is
     # automatically exposed as callable to the client.
@@ -63,10 +63,10 @@ module ActionCable
     #       end
     #   end
     #
-    # In this example, subscribed/unsubscribed are not callable methods, as they
+    # In this example, the subscribed and unsubscribed methods are not callable methods, as they
     # were already declared in ActionCable::Channel::Base, but <tt>#appear</tt>
     # and <tt>#away</tt> are. <tt>#generate_connection_token</tt> is also not
-    # callable as it's a private method. You'll see that appear accepts a data
+    # callable, since it's a private method. You'll see that appear accepts a data
     # parameter, which it then uses as part of its model call. <tt>#away</tt>
     # does not, since it's simply a trigger action.
     #
@@ -125,7 +125,7 @@ module ActionCable
         protected
           # action_methods are cached and there is sometimes need to refresh
           # them. ::clear_action_methods! allows you to do that, so next time
-          # you run action_methods, they will be recalculated
+          # you run action_methods, they will be recalculated.
           def clear_action_methods!
             @action_methods = nil
           end
@@ -166,9 +166,9 @@ module ActionCable
         end
       end
 
-      # Called by the cable connection when its cut so the channel has a chance to cleanup with callbacks.
+      # Called by the cable connection when its cut, so the channel has a chance to cleanup with callbacks.
       # This method is not intended to be called directly by the user. Instead, overwrite the #unsubscribed callback.
-      def unsubscribe_from_channel
+      def unsubscribe_from_channel # :nodoc:
         run_callbacks :unsubscribe do
           unsubscribed
         end
@@ -183,7 +183,7 @@ module ActionCable
         end
 
         # Called once a consumer has cut its cable connection. Can be used for cleaning up connections or marking
-        # people as offline or the like.
+        # users as offline or the like.
         def unsubscribed
           # Override in subclasses
         end
@@ -224,7 +224,6 @@ module ActionCable
           end
         end
 
-
         def subscribe_to_channel
           run_callbacks :subscribe do
             subscribed
@@ -236,7 +235,6 @@ module ActionCable
             transmit_subscription_confirmation unless defer_subscription_confirmation?
           end
         end
-
 
         def extract_action(data)
           (data['action'].presence || :receive).to_sym
