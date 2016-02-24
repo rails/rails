@@ -6,9 +6,11 @@ class ActionCable.Connection
   @reopenDelay: 500
 
   constructor: (@consumer) ->
-    @open()
 
   send: (data) ->
+    unless @isOpen()
+      @open()
+
     if @isOpen()
       @webSocket.send(JSON.stringify(data))
       true
