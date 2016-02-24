@@ -1,19 +1,3 @@
-*   Show `permitted` flag in the output of ActionController::Parameters#inspect.
-
-    Before:
-      >> a = ActionController::Parameters.new(foo: 'bar')
-      => <ActionController::Parameters {"foo"=>"bar"}>
-
-    After:
-      >> a = ActionController::Parameters.new(foo: 'bar')
-      => <ActionController::Parameters {"foo"=>"bar"} permitted: false>
-      >> a.permit(:foo)
-      => <ActionController::Parameters {"foo"=>"bar"} permitted: true>
-
-    Fixes #23822.
-
-    *Prathamesh Sonpatki*
-
 *   Update session to have indifferent access across multiple requests.
 
         session[:deep][:hash] = "Magic"
