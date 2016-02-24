@@ -311,12 +311,7 @@ module Rails
       end
 
       def coffee_gemfile_entry
-        comment = 'Use CoffeeScript for .coffee assets and views'
-        if options.dev? || options.edge?
-          GemfileEntry.github 'coffee-rails', 'rails/coffee-rails', nil, comment
-        else
-          GemfileEntry.version 'coffee-rails', '~> 4.1.0', comment
-        end
+        GemfileEntry.version 'coffee-rails', '~> 4.1.0', 'Use CoffeeScript for .coffee assets and views'
       end
 
       def javascript_gemfile_entry
