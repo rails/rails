@@ -216,8 +216,9 @@ module Rails
         log :rake, command
         env  = options[:env] || ENV["RAILS_ENV"] || 'development'
         sudo = options[:sudo] && RbConfig::CONFIG['host_os'] !~ /mswin|mingw/ ? 'sudo ' : ''
-        in_root { run("#{sudo}#{extify(:rake)} #{command} RAILS_ENV=#{env}", verbose: false) }
+        in_root { run("#{sudo}#{extify(:rails)} #{command} RAILS_ENV=#{env}", verbose: false) }
       end
+      alias :rails_command :rake
 
       # Just run the capify command in root
       #

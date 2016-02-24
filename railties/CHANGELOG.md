@@ -1,3 +1,8 @@
+*   Alias `rake` with `rails_command` in the Rails Application Templates API
+    following Rails 5 convention of preferring "rails" to "rake" to run tasks.
+
+    *claudiob*
+
 *   Change fail fast of `bin/rails test` interrupts run on error.
 
     *Yuji Yaginuma*
