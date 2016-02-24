@@ -828,18 +828,6 @@ module ActionMailer
       message
     end
 
-    # This and #instrument_name is for caching instrument
-    def instrument_payload(key)
-      {
-        mailer: mailer_name,
-        key: key
-      }
-    end
-
-    def instrument_name
-      "action_mailer"
-    end
-
     protected
 
     # Used by #mail to set the content type of the message.
@@ -958,6 +946,18 @@ module ActionMailer
       response[:charset] ||= charset
       part = Mail::Part.new(response)
       container.add_part(part)
+    end
+
+    # This and #instrument_name is for caching instrument
+    def instrument_payload(key)
+      {
+        mailer: mailer_name,
+        key: key
+      }
+    end
+
+    def instrument_name
+      "action_mailer"
     end
 
     ActiveSupport.run_load_hooks(:action_mailer, self)

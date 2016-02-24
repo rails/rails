@@ -27,16 +27,18 @@ module ActionController
       include AbstractController::Caching
     end
 
-    def instrument_payload(key)
-      {
-        controller: controller_name,
-        action: action_name,
-        key: key
-      }
-    end
+    private
 
-    def instrument_name
-      "action_controller"
-    end
+      def instrument_payload(key)
+        {
+          controller: controller_name,
+          action: action_name,
+          key: key
+        }
+      end
+
+      def instrument_name
+        "action_controller"
+      end
   end
 end
