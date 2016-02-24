@@ -1,3 +1,9 @@
+*   Add support to fragment cache in Action Mailer.
+
+    Now you can use fragment caching in your mailers views.
+
+    *Stan Lo*
+
 *   Reset `ActionMailer::Base.deliveries` after every test in
     `ActionDispatch::IntegrationTest`.
 
