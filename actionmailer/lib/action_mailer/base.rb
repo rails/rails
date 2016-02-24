@@ -430,6 +430,7 @@ module ActionMailer
     include AbstractController::Translation
     include AbstractController::AssetPaths
     include AbstractController::Callbacks
+    include AbstractController::Caching
 
     include ActionView::Layouts
 
@@ -945,6 +946,18 @@ module ActionMailer
       response[:charset] ||= charset
       part = Mail::Part.new(response)
       container.add_part(part)
+    end
+
+    # This and #instrument_name is for caching instrument
+    def instrument_payload(key)
+      {
+        mailer: mailer_name,
+        key: key
+      }
+    end
+
+    def instrument_name
+      "action_mailer"
     end
 
     ActiveSupport.run_load_hooks(:action_mailer, self)
