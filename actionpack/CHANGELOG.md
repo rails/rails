@@ -1,4 +1,20 @@
-*   Update session to have indifferent access across multiple requests
+*   Show `permitted` flag in the output of ActionController::Parameters#inspect.
+
+    Before:
+      >> a = ActionController::Parameters.new(foo: 'bar')
+      => <ActionController::Parameters {"foo"=>"bar"}>
+
+    After:
+      >> a = ActionController::Parameters.new(foo: 'bar')
+      => <ActionController::Parameters {"foo"=>"bar"} permitted: false>
+      >> a.permit(:foo)
+      => <ActionController::Parameters {"foo"=>"bar"} permitted: true>
+
+    Fixes #23822.
+
+    *Prathamesh Sonpatki*
+
+*   Update session to have indifferent access across multiple requests.
 
         session[:deep][:hash] = "Magic"
 
@@ -46,13 +62,13 @@
       end
     end
     ```
-    
+
     Passing `as: :json` to integration test request helpers will set the format,
     content type and encode the parameters as JSON.
-    
+
     Then on the response side, `parsed_body` will parse the body according to the
     content type the response has.
-    
+
     Currently JSON is the only supported MIME type. Add your own with
     `ActionDispatch::IntegrationTest.register_encoder`.
 

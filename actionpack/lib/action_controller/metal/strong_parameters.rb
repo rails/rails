@@ -579,7 +579,7 @@ module ActionController
     end
 
     def inspect
-      "<#{self.class} #{@parameters}>"
+      "<#{self.class} #{@parameters} permitted: #{@permitted}>"
     end
 
     def method_missing(method_sym, *args, &block)
