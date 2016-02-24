@@ -1,3 +1,10 @@
+*   Ensure that the Suppressor runs before validations.
+
+    This moves the suppressor up to be run before validations rather than after
+    validations. There's no reason to validate a record you aren't planning on saving.
+
+    *Eileen M. Uchitelle*
+
 ## Rails 5.0.0.beta3 (February 24, 2016) ##
 
 *   Ensure that mutations of the array returned from `ActiveRecord::Relation#to_a`
