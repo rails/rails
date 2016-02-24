@@ -316,6 +316,9 @@ Please refer to the [Changelog][action-mailer] for detailed changes.
 *   Template lookup now respects default locale and I18n fallbacks.
     ([commit](https://github.com/rails/rails/commit/ecb1981b))
 
+*   Template can use fragment cache like ActionView template.
+    ([Pull Request](https://github.com/rails/rails/pull/22825))
+
 *   Added `_mailer` suffix to mailers created via generator, following the same
     naming convention used in controllers and jobs.
     ([Pull Request](https://github.com/rails/rails/pull/18074))
@@ -326,6 +329,9 @@ Please refer to the [Changelog][action-mailer] for detailed changes.
 *   Added `config.action_mailer.deliver_later_queue_name` configuration to set
     the mailer queue name.
     ([Pull Request](https://github.com/rails/rails/pull/18587))
+
+*   Added `config.action_mailer.perform_caching` configuration to determine whether your templates should perform caching or not.
+    ([Pull Request](https://github.com/rails/rails/pull/22825))
 
 
 Active Record
