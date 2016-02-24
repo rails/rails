@@ -516,13 +516,12 @@ class MigrationTest < ActiveRecord::TestCase
     data_column = columns.detect { |c| c.name == "data" }
 
     assert_nil data_column.default
-
+  ensure
     Person.connection.drop_table :binary_testings, if_exists: true
   end
 
   unless mysql_enforcing_gtid_consistency?
     def test_create_table_with_query
-      Person.connection.drop_table :table_from_query_testings rescue nil
       Person.connection.create_table(:person, force: true)
 
       Person.connection.create_table :table_from_query_testings, as: "SELECT id FROM person"
@@ -530,12 +529,11 @@ class MigrationTest < ActiveRecord::TestCase
       columns = Person.connection.columns(:table_from_query_testings)
       assert_equal 1, columns.length
       assert_equal "id", columns.first.name
-
+    ensure
       Person.connection.drop_table :table_from_query_testings rescue nil
     end
 
     def test_create_table_with_query_from_relation
-      Person.connection.drop_table :table_from_query_testings rescue nil
       Person.connection.create_table(:person, force: true)
 
       Person.connection.create_table :table_from_query_testings, as: Person.select(:id)
@@ -543,7 +541,7 @@ class MigrationTest < ActiveRecord::TestCase
       columns = Person.connection.columns(:table_from_query_testings)
       assert_equal 1, columns.length
       assert_equal "id", columns.first.name
-
+    ensure
       Person.connection.drop_table :table_from_query_testings rescue nil
     end
   end
@@ -731,7 +729,7 @@ class ReservedWordsMigrationTest < ActiveRecord::TestCase
       connection.add_index :values, :value
       connection.remove_index :values, :column => :value
     end
-
+  ensure
     connection.drop_table :values rescue nil
   end
 end
@@ -747,7 +745,7 @@ class ExplicitlyNamedIndexMigrationTest < ActiveRecord::TestCase
       connection.add_index :values, :value, name: 'a_different_name'
       connection.remove_index :values, column: :value, name: 'a_different_name'
     end
-
+  ensure
     connection.drop_table :values rescue nil
   end
 end
