@@ -445,4 +445,12 @@ class ResponseIntegrationTest < ActionDispatch::IntegrationTest
 
     assert_equal('application/xml; charset=utf-16', @response.headers['Content-Type'])
   end
+
+  test "we can set strong ETag by directly adding it as header" do
+    @response = ActionDispatch::Response.create
+    @response.add_header "ETag", '"202cb962ac59075b964b07152d234b70"'
+
+    assert_equal('"202cb962ac59075b964b07152d234b70"', @response.etag)
+    assert_equal('"202cb962ac59075b964b07152d234b70"', @response.headers['ETag'])
+  end
 end
