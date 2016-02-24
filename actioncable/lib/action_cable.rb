@@ -29,11 +29,9 @@ module ActionCable
   extend ActiveSupport::Autoload
 
   INTERNAL = {
-    identifiers: {
-      ping: '_ping'.freeze
-    },
     message_types: {
       confirmation: 'confirm_subscription'.freeze,
+      ping: '_ping'.freeze,
       rejection: 'reject_subscription'.freeze
     }
   }

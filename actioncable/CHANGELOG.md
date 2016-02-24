@@ -1,3 +1,8 @@
+* Convert ping from an `identifier` to a `message_type`, and remove
+  notion of internal identifiers.
+
+   *Jon Moss*
+
 *  Added ActionCable::SubscriptionAdapter::EventedRedis.em_redis_connector/redis_connector and
    ActionCable::SubscriptionAdapter::Redis.redis_connector factory methods for redis connections, 
    so you can overwrite with your own initializers. This is used when you want to use different-than-standard Redis adapters,
