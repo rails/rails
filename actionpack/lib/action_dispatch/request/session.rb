@@ -9,7 +9,7 @@ module ActionDispatch
 
       # Singleton object used to determine if an optional param wasn't specified
       Unspecified = Object.new
-      
+
       # Creates a session hash, merging the properties of the previous session if any
       def self.create(store, req, default_options)
         session_was = find req
@@ -61,7 +61,7 @@ module ActionDispatch
       def initialize(by, req)
         @by       = by
         @req      = req
-        @delegate = {}
+        @delegate = {}.with_indifferent_access
         @loaded   = false
         @exists   = nil # we haven't checked yet
       end
@@ -88,13 +88,13 @@ module ActionDispatch
       # nil if the given key is not found in the session.
       def [](key)
         load_for_read!
-        @delegate[key.to_s]
+        @delegate[key]
       end
 
       # Returns true if the session has the given key or false.
       def has_key?(key)
         load_for_read!
-        @delegate.key?(key.to_s)
+        @delegate.key?(key)
       end
       alias :key? :has_key?
       alias :include? :has_key?
@@ -112,7 +112,7 @@ module ActionDispatch
       # Writes given value to given key of the session.
       def []=(key, value)
         load_for_write!
-        @delegate[key.to_s] = value
+        @delegate[key] = value
       end
 
       # Clears the session.
@@ -139,13 +139,13 @@ module ActionDispatch
       #   # => {"session_id"=>"e29b9ea315edf98aad94cc78c34cc9b2", "foo" => "bar"}
       def update(hash)
         load_for_write!
-        @delegate.update stringify_keys(hash)
+        @delegate.update hash
       end
 
       # Deletes given key from the session.
       def delete(key)
         load_for_write!
-        @delegate.delete key.to_s
+        @delegate.delete key
       end
 
       # Returns value of the given key from the session, or raises +KeyError+
@@ -165,9 +165,9 @@ module ActionDispatch
       def fetch(key, default=Unspecified, &block)
         load_for_read!
         if default == Unspecified
-          @delegate.fetch(key.to_s, &block)
+          @delegate.fetch(key, &block)
         else
-          @delegate.fetch(key.to_s, default, &block)
+          @delegate.fetch(key, default, &block)
         end
       end
 
@@ -211,14 +211,8 @@ module ActionDispatch
       def load!
         id, session = @by.load_session @req
         options[:id] = id
-        @delegate.replace(stringify_keys(session))
+        @delegate.replace(session)
         @loaded = true
-      end
-
-      def stringify_keys(other)
-        other.each_with_object({}) { |(key, value), hash|
-          hash[key.to_s] = value
-        }
       end
     end
   end

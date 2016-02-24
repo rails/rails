@@ -1,8 +1,23 @@
+## Rails 5.0.0.beta3 (February 24, 2016) ##
+
+*   Deprecate arguments on `assert_nothing_raised`.
+
+    `assert_nothing_raised` does not assert the arguments that have been passed
+    in (usually a specific exception class) since the method only yields the
+    block. So as not to confuse the users that the arguments have meaning, they
+    are being deprecated.
+
+    *Tara Scherner de la Fuente*
+
+*   Make `benchmark('something', silence: true)` actually work
+
+    *DHH*
+
 *   Add `#on_weekday?` method to `Date`, `Time`, and `DateTime`.
 
     `#on_weekday?` returns `true` if the receiving date/time does not fall on a Saturday
     or Sunday.
-    
+
     *Vipul A M*
 
 *   Add `Array#second_to_last` and `Array#third_to_last` methods.

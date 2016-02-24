@@ -29,6 +29,8 @@ class PerRequestDigestCacheTest < ActiveSupport::TestCase
 
     app_file 'app/controllers/customers_controller.rb', <<-RUBY
       class CustomersController < ApplicationController
+        self.perform_caching = true
+
         def index
           render [ Customer.new('david', 1), Customer.new('dingus', 2) ]
         end

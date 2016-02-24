@@ -24,8 +24,21 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
       render plain: Rack::Utils.escape(Verifier.generate(session.to_hash))
     end
 
+    def set_deep_session_value
+      session[:foo] = { bar: "baz" }
+      render plain: Rack::Utils.escape(Verifier.generate(session.to_hash))
+    end
+
     def get_session_value
       render plain: "foo: #{session[:foo].inspect}"
+    end
+
+    def get_deep_session_value_with_symbol
+      render plain: "foo: { bar: #{session[:foo][:bar].inspect} }"
+    end
+
+    def get_deep_session_value_with_string
+      render plain: "foo: { \"bar\" => #{session[:foo]["bar"].inspect} }"
     end
 
     def get_session_id
@@ -73,6 +86,15 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
   end
 
   def test_getting_session_value
+    with_test_route_set do
+      cookies[SessionKey] = SignedBar
+      get '/get_session_value'
+      assert_response :success
+      assert_equal 'foo: "bar"', response.body
+    end
+  end
+
+  def test_session_indifferent_access
     with_test_route_set do
       cookies[SessionKey] = SignedBar
       get '/get_session_value'
@@ -329,6 +351,18 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
     with_test_route_set(:domain => :all) do
       get '/set_session_value'
       assert_match(/domain=\.example\.com/, headers['Set-Cookie'])
+    end
+  end
+
+  def test_previous_session_has_indifferent_access
+    with_test_route_set do
+      get '/set_deep_session_value'
+
+      get '/get_deep_session_value_with_symbol'
+      assert_equal 'foo: { bar: "baz" }', response.body
+
+      get '/get_deep_session_value_with_string'
+      assert_equal 'foo: { "bar" => "baz" }', response.body
     end
   end
 

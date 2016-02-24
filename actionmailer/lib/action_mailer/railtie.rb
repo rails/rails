@@ -25,6 +25,7 @@ module ActionMailer
       options.javascripts_dir ||= paths["public/javascripts"].first
       options.stylesheets_dir ||= paths["public/stylesheets"].first
       options.show_previews = Rails.env.development? if options.show_previews.nil?
+      options.cache_store ||= Rails.cache
 
       if options.show_previews
         options.preview_path  ||= defined?(Rails.root) ? "#{Rails.root}/test/mailers/previews" : nil
@@ -45,13 +46,6 @@ module ActionMailer
 
         options.each { |k,v| send("#{k}=", v) }
 
-        if options.show_previews
-          app.routes.prepend do
-            get '/rails/mailers'         => "rails/mailers#index"
-            get '/rails/mailers/*path'   => "rails/mailers#preview"
-          end
-        end
-
         ActionDispatch::IntegrationTest.send :include, ActionMailer::TestCase::ClearTestDeliveries
       end
     end
@@ -62,9 +56,18 @@ module ActionMailer
       end
     end
 
-    config.after_initialize do
-      if ActionMailer::Base.preview_path
-        ActiveSupport::Dependencies.autoload_paths << ActionMailer::Base.preview_path
+    config.after_initialize do |app|
+      options = app.config.action_mailer
+
+      if options.show_previews
+        app.routes.prepend do
+          get '/rails/mailers'         => "rails/mailers#index", internal: true
+          get '/rails/mailers/*path'   => "rails/mailers#preview", internal: true
+        end
+
+        if options.preview_path
+          ActiveSupport::Dependencies.autoload_paths << options.preview_path
+        end
       end
     end
   end

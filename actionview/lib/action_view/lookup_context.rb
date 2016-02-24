@@ -70,8 +70,6 @@ module ActionView
         @details_keys.clear
       end
 
-      def self.empty?; @details_keys.empty?; end
-
       def self.digest_caches
         @details_keys.values.map(&:digest_cache)
       end

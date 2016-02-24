@@ -2,9 +2,9 @@ require 'action_dispatch'
 
 module ActionCable
   module Connection
-    # For every WebSocket the cable server is accepting, a Connection object will be instantiated. This instance becomes the parent
-    # of all the channel subscriptions that are created from there on. Incoming messages are then routed to these channel subscriptions
-    # based on an identifier sent by the cable consumer. The Connection itself does not deal with any specific application logic beyond
+    # For every WebSocket the Action Cable server accepts, a Connection object will be instantiated. This instance becomes the parent
+    # of all of the channel subscriptions that are created from there on. Incoming messages are then routed to these channel subscriptions
+    # based on an identifier sent by the Action Cable consumer. The Connection itself does not deal with any specific application logic beyond
     # authentication and authorization.
     #
     # Here's a basic example:
@@ -33,8 +33,8 @@ module ActionCable
     #     end
     #   end
     #
-    # First, we declare that this connection can be identified by its current_user. This allows us later to be able to find all connections
-    # established for that current_user (and potentially disconnect them if the user was removed from an account). You can declare as many
+    # First, we declare that this connection can be identified by its current_user. This allows us to later be able to find all connections
+    # established for that current_user (and potentially disconnect them). You can declare as many
     # identification indexes as you like. Declaring an identification means that an attr_accessor is automatically set for that key.
     #
     # Second, we rely on the fact that the WebSocket connection is established with the cookies from the domain being sent along. This makes
@@ -65,8 +65,8 @@ module ActionCable
       end
 
       # Called by the server when a new WebSocket connection is established. This configures the callbacks intended for overwriting by the user.
-      # This method should not be called directly. Rely on the #connect (and #disconnect) callback instead.
-      def process
+      # This method should not be called directly -- instead rely upon on the #connect (and #disconnect) callbacks.
+      def process # :nodoc:
         logger.info started_request_message
 
         if websocket.possible? && allow_request_origin?
@@ -76,7 +76,7 @@ module ActionCable
         end
       end
 
-      # Data received over the cable is handled by this method. It's expected that everything inbound is JSON encoded.
+      # Data received over the WebSocket connection is handled by this method. It's expected that everything inbound is JSON encoded.
       # The data is routed to the proper channel that the connection has subscribed to.
       def receive(data_in_json)
         if websocket.alive?
@@ -88,7 +88,7 @@ module ActionCable
 
       # Send raw data straight back down the WebSocket. This is not intended to be called directly. Use the #transmit available on the
       # Channel instead, as that'll automatically address the correct subscriber and wrap the message in JSON.
-      def transmit(data)
+      def transmit(data) # :nodoc:
         websocket.transmit data
       end
 
@@ -154,7 +154,7 @@ module ActionCable
         def handle_open
           connect if respond_to?(:connect)
           subscribe_to_internal_channel
-          beat
+          confirm_connection_monitor_subscription
 
           message_buffer.process!
           server.add_connection(self)
@@ -171,6 +171,13 @@ module ActionCable
           unsubscribe_from_internal_channel
 
           disconnect if respond_to?(:disconnect)
+        end
+
+        def confirm_connection_monitor_subscription
+          # Send confirmation message to the internal connection monitor channel.
+          # This ensures the connection monitor state is reset after a successful
+          # websocket connection.
+          transmit ActiveSupport::JSON.encode(identifier: ActionCable::INTERNAL[:identifiers][:ping], type: ActionCable::INTERNAL[:message_types][:confirmation])
         end
 
         def allow_request_origin?

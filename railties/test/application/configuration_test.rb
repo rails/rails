@@ -348,6 +348,17 @@ module ApplicationTests
       end
     end
 
+    test "In production mode, STDOUT logging is enabled when RAILS_LOG_TO_STDOUT is set" do
+      restore_default_config
+
+      with_rails_env "production" do
+        switch_env "RAILS_LOG_TO_STDOUT", "1" do
+          app 'production'
+          assert ActiveSupport::Logger.logger_outputs_to?(app.config.logger, STDOUT)
+        end
+      end
+    end
+
     test "In production mode, config.public_file_server.enabled is disabled when RAILS_SERVE_STATIC_FILES is blank" do
       restore_default_config
 
@@ -988,7 +999,7 @@ module ApplicationTests
       app 'development'
 
       post "/posts.json", '{ "title": "foo", "name": "bar" }', "CONTENT_TYPE" => "application/json"
-      assert_equal '<ActionController::Parameters {"title"=>"foo"}>', last_response.body
+      assert_equal '<ActionController::Parameters {"title"=>"foo"} permitted: false>', last_response.body
     end
 
     test "config.action_controller.permit_all_parameters = true" do

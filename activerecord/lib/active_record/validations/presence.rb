@@ -2,7 +2,6 @@ module ActiveRecord
   module Validations
     class PresenceValidator < ActiveModel::Validations::PresenceValidator # :nodoc:
       def validate_each(record, attribute, association_or_value)
-        return unless should_validate?(record)
         if record.class._reflect_on_association(attribute)
           association_or_value = Array.wrap(association_or_value).reject(&:marked_for_destruction?)
         end

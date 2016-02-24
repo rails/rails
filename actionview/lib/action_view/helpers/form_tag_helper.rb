@@ -862,13 +862,13 @@ module ActionView
 
         def extra_tags_for_form(html_options)
           authenticity_token = html_options.delete("authenticity_token")
-          method = html_options.delete("method").to_s
+          method = html_options.delete("method").to_s.downcase
 
           method_tag = case method
-            when /^get$/i # must be case-insensitive, but can't use downcase as might be nil
+            when 'get'
               html_options["method"] = "get"
               ''
-            when /^post$/i, "", nil
+            when 'post', ''
               html_options["method"] = "post"
               token_tag(authenticity_token, form_options: {
                 action: html_options["action"],

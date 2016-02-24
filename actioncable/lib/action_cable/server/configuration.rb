@@ -1,6 +1,6 @@
 module ActionCable
   module Server
-    # An instance of this configuration object is available via ActionCable.server.config, which allows you to tweak the configuration points
+    # An instance of this configuration object is available via ActionCable.server.config, which allows you to tweak Action Cable configuration
     # in a Rails config initializer.
     class Configuration
       attr_accessor :logger, :log_tags

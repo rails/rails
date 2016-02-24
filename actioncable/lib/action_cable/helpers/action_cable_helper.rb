@@ -9,7 +9,7 @@ module ActionCable
       #     <%= javascript_include_tag 'application', 'data-turbolinks-track' => true %>
       #   </head>
       #
-      # This is then used by ActionCable to determine the url of your websocket server.
+      # This is then used by Action Cable to determine the url of your WebSocket server.
       # Your CoffeeScript can then connect to the server without needing to specify the
       # url directly:
       #

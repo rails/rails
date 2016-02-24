@@ -1,3 +1,13 @@
+## Rails 5.0.0.beta3 (February 24, 2016) ##
+
+*   Ensure that mutations of the array returned from `ActiveRecord::Relation#to_a`
+    do not affect the original relation, by returning a duplicate array each time.
+
+    This brings the behavior in line with `CollectionProxy#to_a`, which was
+    already more careful.
+
+    *Matthew Draper*
+
 *   Fixed `where` for polymorphic associations when passed an array containing different types.
 
     Fixes #17011.
@@ -1443,18 +1453,6 @@
     column name, which is consistent every time you run the migration.
 
     *Chris Sinjakli*
-
-*   Validation errors would be raised for parent records when an association
-    was saved when the parent had `validate: false`. It should not be the
-    responsibility of the model to validate an associated object unless the
-    object was created or modified by the parent.
-
-    This fixes the issue by skipping validations if the parent record is
-    persisted, not changed, and not marked for destruction.
-
-    Fixes #17621.
-
-    *Eileen M. Uchitelle*, *Aaron Patterson*
 
 *   Fix n+1 query problem when eager loading nil associations (fixes #18312)
 

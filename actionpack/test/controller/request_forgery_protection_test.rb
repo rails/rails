@@ -133,7 +133,11 @@ class PerFormTokensController < ActionController::Base
   self.per_form_csrf_tokens = true
 
   def index
-    render inline: "<%= form_tag (params[:form_path] || '/per_form_tokens/post_one'), method: (params[:form_method] || :post) %>"
+    render inline: "<%= form_tag (params[:form_path] || '/per_form_tokens/post_one'), method: params[:form_method] %>"
+  end
+
+  def button_to
+    render inline: "<%= button_to 'Button', (params[:form_path] || '/per_form_tokens/post_one'), method: params[:form_method] %>"
   end
 
   def post_one
@@ -652,15 +656,9 @@ class PerFormTokensControllerTest < ActionController::TestCase
   def test_accepts_token_for_correct_path_and_method
     get :index
 
-    form_token = nil
-    assert_select 'input[name=custom_authenticity_token]' do |elts|
-      form_token = elts.first['value']
-      assert_not_nil form_token
-    end
+    form_token = assert_presence_and_fetch_form_csrf_token
 
-    actual = @controller.send(:unmask_token, Base64.strict_decode64(form_token))
-    expected = @controller.send(:per_form_csrf_token, session, '/per_form_tokens/post_one', 'post')
-    assert_equal expected, actual
+    assert_matches_session_token_on_server form_token
 
     # This is required because PATH_INFO isn't reset between requests.
     @request.env['PATH_INFO'] = '/per_form_tokens/post_one'
@@ -673,15 +671,9 @@ class PerFormTokensControllerTest < ActionController::TestCase
   def test_rejects_token_for_incorrect_path
     get :index
 
-    form_token = nil
-    assert_select 'input[name=custom_authenticity_token]' do |elts|
-      form_token = elts.first['value']
-      assert_not_nil form_token
-    end
+    form_token = assert_presence_and_fetch_form_csrf_token
 
-    actual = @controller.send(:unmask_token, Base64.strict_decode64(form_token))
-    expected = @controller.send(:per_form_csrf_token, session, '/per_form_tokens/post_one', 'post')
-    assert_equal expected, actual
+    assert_matches_session_token_on_server form_token
 
     # This is required because PATH_INFO isn't reset between requests.
     @request.env['PATH_INFO'] = '/per_form_tokens/post_two'
@@ -693,20 +685,58 @@ class PerFormTokensControllerTest < ActionController::TestCase
   def test_rejects_token_for_incorrect_method
     get :index
 
-    form_token = nil
-    assert_select 'input[name=custom_authenticity_token]' do |elts|
-      form_token = elts.first['value']
-      assert_not_nil form_token
-    end
+    form_token = assert_presence_and_fetch_form_csrf_token
 
-    actual = @controller.send(:unmask_token, Base64.strict_decode64(form_token))
-    expected = @controller.send(:per_form_csrf_token, session, '/per_form_tokens/post_one', 'post')
-    assert_equal expected, actual
+    assert_matches_session_token_on_server form_token
 
     # This is required because PATH_INFO isn't reset between requests.
     @request.env['PATH_INFO'] = '/per_form_tokens/post_one'
     assert_raises(ActionController::InvalidAuthenticityToken) do
       patch :post_one, params: {custom_authenticity_token: form_token}
+    end
+  end
+
+  def test_rejects_token_for_incorrect_method_button_to
+    get :button_to, params: { form_method: 'delete' }
+
+    form_token = assert_presence_and_fetch_form_csrf_token
+
+    assert_matches_session_token_on_server form_token, 'delete'
+
+    # This is required because PATH_INFO isn't reset between requests.
+    @request.env['PATH_INFO'] = '/per_form_tokens/post_one'
+    assert_raises(ActionController::InvalidAuthenticityToken) do
+      patch :post_one, params: { custom_authenticity_token: form_token }
+    end
+  end
+
+  test "Accepts proper token for implicit post method on button_to tag" do
+    get :button_to
+
+    form_token = assert_presence_and_fetch_form_csrf_token
+
+    assert_matches_session_token_on_server form_token, 'post'
+
+    # This is required because PATH_INFO isn't reset between requests.
+    @request.env['PATH_INFO'] = '/per_form_tokens/post_one'
+    assert_nothing_raised do
+      post :post_one, params: { custom_authenticity_token: form_token }
+    end
+  end
+
+  %w{delete post patch}.each do |verb|
+    test "Accepts proper token for #{verb} method on button_to tag" do
+      get :button_to, params: { form_method: verb }
+
+      form_token = assert_presence_and_fetch_form_csrf_token
+
+      assert_matches_session_token_on_server form_token, verb
+
+      # This is required because PATH_INFO isn't reset between requests.
+      @request.env['PATH_INFO'] = '/per_form_tokens/post_one'
+      assert_nothing_raised do
+        send verb, :post_one, params: { custom_authenticity_token: form_token }
+      end
     end
   end
 
@@ -726,15 +756,9 @@ class PerFormTokensControllerTest < ActionController::TestCase
   def test_ignores_params
     get :index, params: {form_path: '/per_form_tokens/post_one?foo=bar'}
 
-    form_token = nil
-    assert_select 'input[name=custom_authenticity_token]' do |elts|
-      form_token = elts.first['value']
-      assert_not_nil form_token
-    end
+    form_token = assert_presence_and_fetch_form_csrf_token
 
-    actual = @controller.send(:unmask_token, Base64.strict_decode64(form_token))
-    expected = @controller.send(:per_form_csrf_token, session, '/per_form_tokens/post_one', 'post')
-    assert_equal expected, actual
+    assert_matches_session_token_on_server form_token
 
     # This is required because PATH_INFO isn't reset between requests.
     @request.env['PATH_INFO'] = '/per_form_tokens/post_one?foo=baz'
@@ -747,11 +771,7 @@ class PerFormTokensControllerTest < ActionController::TestCase
   def test_ignores_trailing_slash_during_generation
     get :index, params: {form_path: '/per_form_tokens/post_one/'}
 
-    form_token = nil
-    assert_select 'input[name=custom_authenticity_token]' do |elts|
-      form_token = elts.first['value']
-      assert_not_nil form_token
-    end
+    form_token = assert_presence_and_fetch_form_csrf_token
 
     # This is required because PATH_INFO isn't reset between requests.
     @request.env['PATH_INFO'] = '/per_form_tokens/post_one'
@@ -764,11 +784,7 @@ class PerFormTokensControllerTest < ActionController::TestCase
   def test_ignores_trailing_slash_during_validation
     get :index
 
-    form_token = nil
-    assert_select 'input[name=custom_authenticity_token]' do |elts|
-      form_token = elts.first['value']
-      assert_not_nil form_token
-    end
+    form_token = assert_presence_and_fetch_form_csrf_token
 
     # This is required because PATH_INFO isn't reset between requests.
     @request.env['PATH_INFO'] = '/per_form_tokens/post_one/'
@@ -781,12 +797,7 @@ class PerFormTokensControllerTest < ActionController::TestCase
   def test_method_is_case_insensitive
     get :index, params: {form_method: "POST"}
 
-    form_token = nil
-    assert_select 'input[name=custom_authenticity_token]' do |elts|
-      form_token = elts.first['value']
-      assert_not_nil form_token
-    end
-
+    form_token = assert_presence_and_fetch_form_csrf_token
     # This is required because PATH_INFO isn't reset between requests.
     @request.env['PATH_INFO'] = '/per_form_tokens/post_one/'
     assert_nothing_raised do
@@ -794,4 +805,19 @@ class PerFormTokensControllerTest < ActionController::TestCase
     end
     assert_response :success
   end
+
+  private
+    def assert_presence_and_fetch_form_csrf_token
+      assert_select 'input[name="custom_authenticity_token"]' do |input|
+        form_csrf_token = input.first['value']
+        assert_not_nil form_csrf_token
+        return form_csrf_token
+      end
+    end
+
+    def assert_matches_session_token_on_server(form_token, method = 'post')
+      actual = @controller.send(:unmask_token, Base64.strict_decode64(form_token))
+      expected = @controller.send(:per_form_csrf_token, session, '/per_form_tokens/post_one', method)
+      assert_equal expected, actual
+    end
 end

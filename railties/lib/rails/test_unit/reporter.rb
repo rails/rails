@@ -18,7 +18,7 @@ module Rails
       if output_inline? && result.failure && (!result.skipped? || options[:verbose])
         io.puts
         io.puts
-        io.puts format_failures(result).map { |line| color_output(line, by: result) }
+        io.puts color_output(result, by: result)
         io.puts
         io.puts format_rerun_snippet(result)
         io.puts
@@ -64,12 +64,6 @@ module Rails
 
       def format_line(result)
         "%s#%s = %.2f s = %s" % [result.class, result.name, result.time, result.result_code]
-      end
-
-      def format_failures(result)
-        result.failures.map do |failure|
-          "#{failure.result_label}:\n#{result.location}:\n#{failure.message}\n"
-        end
       end
 
       def format_rerun_snippet(result)

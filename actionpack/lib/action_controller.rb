@@ -9,11 +9,14 @@ module ActionController
 
   autoload :API
   autoload :Base
-  autoload :Caching
   autoload :Metal
   autoload :Middleware
   autoload :Renderer
   autoload :FormBuilder
+
+  eager_autoload do
+    autoload :Caching
+  end
 
   autoload_under "metal" do
     autoload :ConditionalGet
@@ -47,11 +50,6 @@ module ActionController
 
   autoload :TestCase,           'action_controller/test_case'
   autoload :TemplateAssertions, 'action_controller/test_case'
-
-  def self.eager_load!
-    super
-    ActionController::Caching.eager_load!
-  end
 end
 
 # Common Active Support usage in Action Controller

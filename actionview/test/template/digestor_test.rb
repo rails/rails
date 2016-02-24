@@ -26,6 +26,7 @@ class TemplateDigestorTest < ActionView::TestCase
     @cwd     = Dir.pwd
     @tmp_dir = Dir.mktmpdir
 
+    ActionView::LookupContext::DetailsKey.clear
     FileUtils.cp_r FixtureFinder::FIXTURES_DIR, @tmp_dir
     Dir.chdir @tmp_dir
   end

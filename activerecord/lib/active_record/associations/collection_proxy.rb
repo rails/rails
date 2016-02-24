@@ -979,6 +979,10 @@ module ActiveRecord
       end
       alias_method :to_a, :to_ary
 
+      def records # :nodoc:
+        load_target
+      end
+
       # Adds one or more +records+ to the collection by setting their foreign keys
       # to the association's primary key. Returns +self+, so several appends may be
       # chained together.

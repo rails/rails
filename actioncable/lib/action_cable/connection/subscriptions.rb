@@ -3,8 +3,8 @@ require 'active_support/core_ext/hash/indifferent_access'
 module ActionCable
   module Connection
     # Collection class for all the channel subscriptions established on a given connection. Responsible for routing incoming commands that arrive on
-    # the connection to the proper channel. Should not be used directly by the user.
-    class Subscriptions
+    # the connection to the proper channel.
+    class Subscriptions # :nodoc:
       def initialize(connection)
         @connection = connection
         @subscriptions = {}

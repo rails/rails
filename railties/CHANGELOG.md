@@ -1,3 +1,15 @@
+## Rails 5.0.0.beta3 (February 24, 2016) ##
+
+*   Alias `rake` with `rails_command` in the Rails Application Templates API
+    following Rails 5 convention of preferring "rails" to "rake" to run tasks.
+
+    *claudiob*
+
+*   Generate applications with an option to log to STDOUT in production
+    using the environment variable `RAILS_LOG_TO_STDOUT`.
+
+    *Richard Schneeman*
+
 *   Change fail fast of `bin/rails test` interrupts run on error.
 
     *Yuji Yaginuma*

@@ -253,17 +253,21 @@ module ActiveRecord
 
     # Converts relation objects to Array.
     def to_a
+      records.dup
+    end
+
+    def records # :nodoc:
       load
       @records
     end
 
     # Serializes the relation objects Array.
     def encode_with(coder)
-      coder.represent_seq(nil, to_a)
+      coder.represent_seq(nil, records)
     end
 
     def as_json(options = nil) #:nodoc:
-      to_a.as_json(options)
+      records.as_json(options)
     end
 
     # Returns size of the records.
@@ -298,13 +302,13 @@ module ActiveRecord
     # Returns true if there is exactly one record.
     def one?
       return super if block_given?
-      limit_value ? to_a.one? : size == 1
+      limit_value ? records.one? : size == 1
     end
 
     # Returns true if there is more than one record.
     def many?
       return super if block_given?
-      limit_value ? to_a.many? : size > 1
+      limit_value ? records.many? : size > 1
     end
 
     # Returns a cache key that can be used to identify the records fetched by
@@ -418,7 +422,7 @@ module ActiveRecord
       if id.is_a?(Array)
         id.map.with_index { |one_id, idx| update(one_id, attributes[idx]) }
       elsif id == :all
-        to_a.each { |record| record.update(attributes) }
+        records.each { |record| record.update(attributes) }
       else
         if ActiveRecord::Base === id
           id = id.id
@@ -457,7 +461,7 @@ module ActiveRecord
         MESSAGE
         where(conditions).destroy_all
       else
-        to_a.each(&:destroy).tap { reset }
+        records.each(&:destroy).tap { reset }
       end
     end
 
@@ -587,7 +591,7 @@ module ActiveRecord
     def reset
       @last = @to_sql = @order_clause = @scope_for_create = @arel = @loaded = nil
       @should_eager_load = @join_dependency = nil
-      @records = []
+      @records = [].freeze
       @offsets = {}
       self
     end
@@ -654,21 +658,21 @@ module ActiveRecord
     def ==(other)
       case other
       when Associations::CollectionProxy, AssociationRelation
-        self == other.to_a
+        self == other.records
       when Relation
         other.to_sql == to_sql
       when Array
-        to_a == other
+        records == other
       end
     end
 
     def pretty_print(q)
-      q.pp(self.to_a)
+      q.pp(self.records)
     end
 
     # Returns true if relation is blank.
     def blank?
-      to_a.blank?
+      records.blank?
     end
 
     def values
@@ -676,7 +680,7 @@ module ActiveRecord
     end
 
     def inspect
-      entries = to_a.take([limit_value, 11].compact.min).map!(&:inspect)
+      entries = records.take([limit_value, 11].compact.min).map!(&:inspect)
       entries[10] = '...' if entries.size == 11
 
       "#<#{self.class.name} [#{entries.join(', ')}]>"
@@ -685,14 +689,14 @@ module ActiveRecord
     protected
 
       def load_records(records)
-        @records = records
+        @records = records.freeze
         @loaded = true
       end
 
     private
 
     def exec_queries
-      @records = eager_loading? ? find_with_associations : @klass.find_by_sql(arel, bound_attributes)
+      @records = eager_loading? ? find_with_associations.freeze : @klass.find_by_sql(arel, bound_attributes).freeze
 
       preload = preload_values
       preload +=  includes_values unless eager_loading?

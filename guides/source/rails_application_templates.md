@@ -22,7 +22,7 @@ $ rails new blog -m ~/template.rb
 $ rails new blog -m http://example.com/template.rb
 ```
 
-You can use the rake task `rails:template` to apply templates to an existing Rails application. The location of the template needs to be passed in to an environment variable named LOCATION. Again, this can either be path to a file or a URL.
+You can use the task `rails:template` to apply templates to an existing Rails application. The location of the template needs to be passed in to an environment variable named LOCATION. Again, this can either be path to a file or a URL.
 
 ```bash
 $ bin/rails rails:template LOCATION=~/template.rb
@@ -38,7 +38,7 @@ The Rails templates API is easy to understand. Here's an example of a typical Ra
 # template.rb
 generate(:scaffold, "person name:string")
 route "root to: 'people#index'"
-rake("db:migrate")
+rails_command("db:migrate")
 
 after_bundle do
   git :init
@@ -175,18 +175,24 @@ Executes an arbitrary command. Just like the backticks. Let's say you want to re
 run "rm README.rdoc"
 ```
 
-### rake(command, options = {})
+### rails_command(command, options = {})
 
-Runs the supplied rake tasks in the Rails application. Let's say you want to migrate the database:
+Runs the supplied task in the Rails application. Let's say you want to migrate the database:
 
 ```ruby
-rake "db:migrate"
+rails_command "db:migrate"
 ```
 
-You can also run rake tasks with a different Rails environment:
+You can also run tasks with a different Rails environment:
 
 ```ruby
-rake "db:migrate", env: 'production'
+rails_command "db:migrate", env: 'production'
+```
+
+You can also run tasks as a super-user:
+
+```ruby
+rails_command "log:clear", sudo: true
 ```
 
 ### route(routing_code)
@@ -226,7 +232,7 @@ CODE
 These methods let you ask questions from templates and decide the flow based on the user's answer. Let's say you want to Freeze Rails only if the user wants to:
 
 ```ruby
-rake("rails:freeze:gems") if yes?("Freeze rails gems?")
+rails_command("rails:freeze:gems") if yes?("Freeze rails gems?")
 # no?(question) acts just the opposite.
 ```
 

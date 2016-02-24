@@ -311,12 +311,7 @@ module Rails
       end
 
       def coffee_gemfile_entry
-        comment = 'Use CoffeeScript for .coffee assets and views'
-        if options.dev? || options.edge?
-          GemfileEntry.github 'coffee-rails', 'rails/coffee-rails', nil, comment
-        else
-          GemfileEntry.version 'coffee-rails', '~> 4.1.0', comment
-        end
+        GemfileEntry.version 'coffee-rails', '~> 4.1.0', 'Use CoffeeScript for .coffee assets and views'
       end
 
       def javascript_gemfile_entry
@@ -328,8 +323,8 @@ module Rails
                                        "Use #{options[:javascript]} as the JavaScript library")
 
           unless options[:skip_turbolinks]
-            gems << GemfileEntry.version("turbolinks", nil,
-             "Turbolinks makes following links in your web application faster. Read more: https://github.com/turbolinks/turbolinks")
+            gems << GemfileEntry.version("turbolinks", "~> 5.x",
+             "Turbolinks makes navigating your web application faster. Read more: https://github.com/turbolinks/turbolinks")
           end
 
           gems

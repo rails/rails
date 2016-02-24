@@ -1,3 +1,14 @@
+## Rails 5.0.0.beta3 (February 24, 2016) ##
+
+*   Update session to have indifferent access across multiple requests.
+
+        session[:deep][:hash] = "Magic"
+
+        session[:deep][:hash] == "Magic"
+        session[:deep]["hash"] == "Magic"
+
+    *Tom Prats*
+
 *   Add application/gzip as a default mime type.
 
     *Mehmet Emin İNAÇ*
@@ -37,13 +48,13 @@
       end
     end
     ```
-    
+
     Passing `as: :json` to integration test request helpers will set the format,
     content type and encode the parameters as JSON.
-    
+
     Then on the response side, `parsed_body` will parse the body according to the
     content type the response has.
-    
+
     Currently JSON is the only supported MIME type. Add your own with
     `ActionDispatch::IntegrationTest.register_encoder`.
 

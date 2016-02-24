@@ -322,3 +322,12 @@ class RedirectToSSLTest < ActionController::TestCase
     assert_equal 'ihaz', response.body
   end
 end
+
+class ForceSSLControllerLevelTest < ActionController::TestCase
+  def test_no_redirect_websocket_ssl_request
+    request.env['rack.url_scheme'] = 'wss'
+    request.env['Upgrade'] = 'websocket'
+    get :cheeseburger
+    assert_response 200
+  end
+end

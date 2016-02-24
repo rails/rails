@@ -390,7 +390,7 @@ class IntegrationTestUsesCorrectClass < ActionDispatch::IntegrationTest
     reset!
 
     %w( get post head patch put delete ).each do |verb|
-      assert_nothing_raised("'#{verb}' should use integration test methods") { __send__(verb, '/') }
+      assert_nothing_raised { __send__(verb, '/') }
     end
   end
 end

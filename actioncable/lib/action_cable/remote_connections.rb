@@ -13,8 +13,8 @@ module ActionCable
   #   ActionCable.server.remote_connections.where(current_user: User.find(1)).disconnect
   #
   # This will disconnect all the connections established for
-  # <tt>User.find(1)</tt> across all servers running on all machines, because
-  # it uses the internal channel that all these servers are subscribed to.
+  # <tt>User.find(1)</tt>, across all servers running on all machines, because
+  # it uses the internal channel that all of these servers are subscribed to.
   class RemoteConnections
     attr_reader :server
 

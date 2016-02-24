@@ -516,13 +516,12 @@ class MigrationTest < ActiveRecord::TestCase
     data_column = columns.detect { |c| c.name == "data" }
 
     assert_nil data_column.default
-
+  ensure
     Person.connection.drop_table :binary_testings, if_exists: true
   end
 
   unless mysql_enforcing_gtid_consistency?
     def test_create_table_with_query
-      Person.connection.drop_table :table_from_query_testings rescue nil
       Person.connection.create_table(:person, force: true)
 
       Person.connection.create_table :table_from_query_testings, as: "SELECT id FROM person"
@@ -530,12 +529,11 @@ class MigrationTest < ActiveRecord::TestCase
       columns = Person.connection.columns(:table_from_query_testings)
       assert_equal 1, columns.length
       assert_equal "id", columns.first.name
-
+    ensure
       Person.connection.drop_table :table_from_query_testings rescue nil
     end
 
     def test_create_table_with_query_from_relation
-      Person.connection.drop_table :table_from_query_testings rescue nil
       Person.connection.create_table(:person, force: true)
 
       Person.connection.create_table :table_from_query_testings, as: Person.select(:id)
@@ -543,7 +541,7 @@ class MigrationTest < ActiveRecord::TestCase
       columns = Person.connection.columns(:table_from_query_testings)
       assert_equal 1, columns.length
       assert_equal "id", columns.first.name
-
+    ensure
       Person.connection.drop_table :table_from_query_testings rescue nil
     end
   end
@@ -586,8 +584,7 @@ class MigrationTest < ActiveRecord::TestCase
   end
 
   if current_adapter?(:Mysql2Adapter, :PostgreSQLAdapter)
-    def test_out_of_range_limit_should_raise
-      Person.connection.drop_table :test_limits rescue nil
+    def test_out_of_range_integer_limit_should_raise
       e = assert_raise(ActiveRecord::ActiveRecordError, "integer limit didn't raise") do
         Person.connection.create_table :test_integer_limits, :force => true do |t|
           t.column :bigone, :integer, :limit => 10
@@ -595,16 +592,22 @@ class MigrationTest < ActiveRecord::TestCase
       end
 
       assert_match(/No integer type has byte size 10/, e.message)
+    ensure
+      Person.connection.drop_table :test_integer_limits, if_exists: true
+    end
+  end
 
-      unless current_adapter?(:PostgreSQLAdapter)
-        assert_raise(ActiveRecord::ActiveRecordError, "text limit didn't raise") do
-          Person.connection.create_table :test_text_limits, :force => true do |t|
-            t.column :bigtext, :text, :limit => 0xfffffffff
-          end
+  if current_adapter?(:Mysql2Adapter)
+    def test_out_of_range_text_limit_should_raise
+      e = assert_raise(ActiveRecord::ActiveRecordError, "text limit didn't raise") do
+        Person.connection.create_table :test_text_limits, force: true do |t|
+          t.text :bigtext, limit: 0xfffffffff
         end
       end
 
-      Person.connection.drop_table :test_limits rescue nil
+      assert_match(/No text type has byte length #{0xfffffffff}/, e.message)
+    ensure
+      Person.connection.drop_table :test_text_limits, if_exists: true
     end
   end
 
@@ -726,7 +729,7 @@ class ReservedWordsMigrationTest < ActiveRecord::TestCase
       connection.add_index :values, :value
       connection.remove_index :values, :column => :value
     end
-
+  ensure
     connection.drop_table :values rescue nil
   end
 end
@@ -738,11 +741,11 @@ class ExplicitlyNamedIndexMigrationTest < ActiveRecord::TestCase
       t.integer :value
     end
 
-    assert_nothing_raised ArgumentError do
+    assert_nothing_raised do
       connection.add_index :values, :value, name: 'a_different_name'
       connection.remove_index :values, column: :value, name: 'a_different_name'
     end
-
+  ensure
     connection.drop_table :values rescue nil
   end
 end

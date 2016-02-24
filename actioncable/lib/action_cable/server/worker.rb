@@ -4,8 +4,8 @@ require 'concurrent'
 
 module ActionCable
   module Server
-    # Worker used by Server.send_async to do connection work in threads. Only for internal use.
-    class Worker
+    # Worker used by Server.send_async to do connection work in threads.
+    class Worker # :nodoc:
       include ActiveSupport::Callbacks
 
       thread_mattr_accessor :connection

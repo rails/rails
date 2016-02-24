@@ -107,6 +107,7 @@ module ActionDispatch
           @ast                = ast
           @anchor             = anchor
           @via                = via
+          @internal           = options[:internal]
 
           path_params = ast.find_all(&:symbol?).map(&:to_sym)
 
@@ -148,7 +149,8 @@ module ActionDispatch
                             required_defaults,
                             defaults,
                             request_method,
-                            precedence)
+                            precedence,
+                            @internal)
 
           route
         end

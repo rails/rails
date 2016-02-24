@@ -531,6 +531,9 @@ There are a number of settings available on `config.action_mailer`:
 * `config.action_mailer.deliver_later_queue_name` specifies the queue name for
   mailers. By default this is `mailers`.
 
+* `config.action_mailer.perform_caching` specifies whether the mailer templates should perform fragment caching or not. By default this is false in all environments.
+
+
 ### Configuring Active Support
 
 There are a few configuration options available in Active Support:

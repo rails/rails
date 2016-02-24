@@ -35,7 +35,7 @@ module ActiveRecord
         return to_enum(:each_record) unless block_given?
 
         @relation.to_enum(:in_batches, of: @of, start: @start, finish: @finish, load: true).each do |relation|
-          relation.to_a.each { |record| yield record }
+          relation.records.each { |record| yield record }
         end
       end
 

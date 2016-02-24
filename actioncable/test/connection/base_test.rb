@@ -56,7 +56,7 @@ class ActionCable::Connection::BaseTest < ActionCable::TestCase
     run_in_eventmachine do
       connection = open_connection
 
-      connection.websocket.expects(:transmit).with(regexp_matches(/\_ping/))
+      connection.websocket.expects(:transmit).with({ identifier: "_ping", type: "confirm_subscription" }.to_json)
       connection.message_buffer.expects(:process!)
 
       connection.process

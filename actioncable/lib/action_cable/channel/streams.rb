@@ -1,8 +1,8 @@
 module ActionCable
   module Channel
     # Streams allow channels to route broadcastings to the subscriber. A broadcasting is, as discussed elsewhere, a pub/sub queue where any data
-    # put into it is automatically sent to the clients that are connected at that time. It's purely an online queue, though. If you're not
-    # streaming a broadcasting at the very moment it sends out an update, you'll not get that update when connecting later.
+    # placed into it is automatically sent to the clients that are connected at that time. It's purely an online queue, though. If you're not
+    # streaming a broadcasting at the very moment it sends out an update, you will not get that update, if you connect after it has been sent.
     #
     # Most commonly, the streamed broadcast is sent straight to the subscriber on the client-side. The channel just acts as a connector between
     # the two parties (the broadcaster and the channel subscriber). Here's an example of a channel that allows subscribers to get all new
@@ -18,8 +18,10 @@ module ActionCable
     #     end
     #   end
     #
-    # So the subscribers of this channel will get whatever data is put into the, let's say, `comments_for_45` broadcasting as soon as it's put there.
-    # That looks like so from that side of things:
+    # Based on the above example, the subscribers of this channel will get whatever data is put into the,
+    # let's say, `comments_for_45` broadcasting as soon as it's put there.
+    #
+    # An example broadcasting for this channel looks like so:
     #
     #   ActionCable.server.broadcast "comments_for_45", author: 'DHH', content: 'Rails is just swell'
     #
@@ -37,8 +39,8 @@ module ActionCable
     #
     #   CommentsChannel.broadcast_to(@post, @comment)
     #
-    # If you don't just want to parlay the broadcast unfiltered to the subscriber, you can supply a callback that lets you alter what goes out.
-    # Example below shows how you can use this to provide performance introspection in the process:
+    # If you don't just want to parlay the broadcast unfiltered to the subscriber, you can also supply a callback that lets you alter what is sent out.
+    # The below example shows how you can use this to provide performance introspection in the process:
     #
     #   class ChatChannel < ApplicationCable::Channel
     #     def subscribed
@@ -70,7 +72,7 @@ module ActionCable
       # Start streaming from the named <tt>broadcasting</tt> pubsub queue. Optionally, you can pass a <tt>callback</tt> that'll be used
       # instead of the default of just transmitting the updates straight to the subscriber.
       def stream_from(broadcasting, callback = nil)
-        # Hold off the confirmation until pubsub#subscribe is successful
+        # Don't send the confirmation until pubsub#subscribe is successful
         defer_subscription_confirmation!
 
         callback ||= default_stream_callback(broadcasting)

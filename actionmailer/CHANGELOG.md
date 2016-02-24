@@ -1,3 +1,11 @@
+## Rails 5.0.0.beta3 (February 24, 2016) ##
+
+*   Add support to fragment cache in Action Mailer.
+
+    Now you can use fragment caching in your mailers views.
+
+    *Stan Lo*
+
 *   Reset `ActionMailer::Base.deliveries` after every test in
     `ActionDispatch::IntegrationTest`.
 

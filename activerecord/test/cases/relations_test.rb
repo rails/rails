@@ -358,6 +358,12 @@ class RelationTest < ActiveRecord::TestCase
   def test_finding_with_sanitized_order
     query = Tag.order(["field(id, ?)", [1,3,2]]).to_sql
     assert_match(/field\(id, 1,3,2\)/, query)
+
+    query = Tag.order(["field(id, ?)", []]).to_sql
+    assert_match(/field\(id, NULL\)/, query)
+
+    query = Tag.order(["field(id, ?)", nil]).to_sql
+    assert_match(/field\(id, NULL\)/, query)
   end
 
   def test_finding_with_order_limit_and_offset
@@ -1271,6 +1277,16 @@ class RelationTest < ActiveRecord::TestCase
     end
 
     assert posts.loaded?
+  end
+
+  def test_to_a_should_dup_target
+    posts = Post.all
+
+    original_size = posts.size
+    removed = posts.to_a.pop
+
+    assert_equal original_size, posts.size
+    assert_includes posts.to_a, removed
   end
 
   def test_build
