@@ -1,3 +1,5 @@
+## Rails 5.0.0.beta3 (February 24, 2016) ##
+
 *   Collection rendering can cache and fetch multiple partials at once.
 
     Collections rendered as:

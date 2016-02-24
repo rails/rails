@@ -1,3 +1,5 @@
+## Rails 5.0.0.beta3 (February 24, 2016) ##
+
 *   Deprecate arguments on `assert_nothing_raised`.
 
     `assert_nothing_raised` does not assert the arguments that have been passed

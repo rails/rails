@@ -1,3 +1,5 @@
+## Rails 5.0.0.beta3 (February 24, 2016) ##
+
 *  Added ActionCable::SubscriptionAdapter::EventedRedis.em_redis_connector/redis_connector and
    ActionCable::SubscriptionAdapter::Redis.redis_connector factory methods for redis connections, 
    so you can overwrite with your own initializers. This is used when you want to use different-than-standard Redis adapters,

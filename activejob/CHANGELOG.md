@@ -1,3 +1,5 @@
+## Rails 5.0.0.beta3 (February 24, 2016) ##
+
 *   Change the default adapter from inline to async. It's a better default as tests will then not mistakenly
     come to rely on behavior happening synchronously. This is especially important with things like jobs kicked off
     in Active Record lifecycle callbacks.

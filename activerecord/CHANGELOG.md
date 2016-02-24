@@ -1,3 +1,5 @@
+## Rails 5.0.0.beta3 (February 24, 2016) ##
+
 *   Ensure that mutations of the array returned from `ActiveRecord::Relation#to_a`
     do not affect the original relation, by returning a duplicate array each time.
 

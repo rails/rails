@@ -1,3 +1,5 @@
+## Rails 5.0.0.beta3 (February 24, 2016) ##
+
 *   Update session to have indifferent access across multiple requests.
 
         session[:deep][:hash] = "Magic"
