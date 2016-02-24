@@ -26,7 +26,7 @@ module ActionCable
       # Returns a broadcaster for a named <tt>broadcasting</tt> that can be reused. Useful when you have an object that
       # may need multiple spots to transmit to a specific broadcasting over and over.
       def broadcaster_for(broadcasting)
-        Broadcaster.new(self, broadcasting)
+        Broadcaster.new(self, String(broadcasting))
       end
 
       private
