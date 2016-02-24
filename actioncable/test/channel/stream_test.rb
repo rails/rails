@@ -14,7 +14,6 @@ class ActionCable::Channel::StreamTest < ActionCable::TestCase
     def send_confirmation
       transmit_subscription_confirmation
     end
-
   end
 
   test "streaming start and stop" do
