@@ -72,6 +72,7 @@ module ActionCable
       # Start streaming from the named <tt>broadcasting</tt> pubsub queue. Optionally, you can pass a <tt>callback</tt> that'll be used
       # instead of the default of just transmitting the updates straight to the subscriber.
       def stream_from(broadcasting, callback = nil)
+        broadcasting = String(broadcasting)
         # Don't send the confirmation until pubsub#subscribe is successful
         defer_subscription_confirmation!
 
