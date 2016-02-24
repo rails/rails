@@ -407,6 +407,22 @@ use the rendered text for the text part. The render command is the same one used
 inside of Action Controller, so you can use all the same options, such as
 `:text`, `:inline` etc.
 
+#### Caching mailer view
+
+You can do cache in mailer views like in application views using `cache` method.
+
+```
+<% cache do %>
+  <%= @company.name %>
+<% end %>
+```
+
+And in order to use this feature, you need to configure your application with this:
+
+```
+  config.action_mailer.perform_caching = true
+```
+
 ### Action Mailer Layouts
 
 Just like controller views, you can also have mailer layouts. The layout name
