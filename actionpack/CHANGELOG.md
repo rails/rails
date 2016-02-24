@@ -1,3 +1,12 @@
+*   Update session to have indifferent access across multiple requests
+
+        session[:deep][:hash] = "Magic"
+
+        session[:deep][:hash] == "Magic"
+        session[:deep]["hash"] == "Magic"
+
+    *Tom Prats*
+
 *   Add application/gzip as a default mime type.
 
     *Mehmet Emin İNAÇ*
