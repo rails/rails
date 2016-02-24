@@ -8,7 +8,7 @@ After reading this guide, you will know:
 
 * How to setup Action Cable
 * How to setup channels
-b
+
 Introduction
 ------------
 
