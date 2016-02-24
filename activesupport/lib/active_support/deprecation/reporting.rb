@@ -92,7 +92,7 @@ module ActiveSupport
 
         def _extract_callstack(callstack)
           warn "Please pass `caller_locations` to the deprecation API" if $VERBOSE
-          offending_line = callstack.find { |line| !ignored_callstack(path) } || callstack.first
+          offending_line = callstack.find { |line| !ignored_callstack(line) } || callstack.first
 
           if offending_line
             if md = offending_line.match(/^(.+?):(\d+)(?::in `(.*?)')?/)
