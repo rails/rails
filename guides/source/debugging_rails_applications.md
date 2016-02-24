@@ -109,18 +109,18 @@ It can also be useful to save information to log files at runtime. Rails maintai
 
 Rails makes use of the `ActiveSupport::Logger` class to write log information. Other loggers, such as `Log4r`, may also be substituted.
 
-You can specify an alternative logger in `environment.rb` or any other environment file, for example:
+You can specify an alternative logger in `config/application.rb`, for example:
 
 ```ruby
-Rails.logger = Logger.new(STDOUT)
-Rails.logger = Log4r::Logger.new("Application Log")
+config.logger = Logger.new(STDOUT)
+config.logger = Log4r::Logger.new("Application Log")
 ```
 
 Or in the `Initializer` section, add _any_ of the following
 
 ```ruby
-config.logger = Logger.new(STDOUT)
-config.logger = Log4r::Logger.new("Application Log")
+Rails.logger = Logger.new(STDOUT)
+Rails.logger = Log4r::Logger.new("Application Log")
 ```
 
 TIP: By default, each log is created under `Rails.root/log/` and the log file is named after the environment in which the application is running.
