@@ -316,7 +316,7 @@ Please refer to the [Changelog][action-mailer] for detailed changes.
 *   Template lookup now respects default locale and I18n fallbacks.
     ([commit](https://github.com/rails/rails/commit/ecb1981b))
 
-*   Template can use fragment cache like ActionView template.
+*   Template can use fragment cache like Action View template.
     ([Pull Request](https://github.com/rails/rails/pull/22825))
 
 *   Added `_mailer` suffix to mailers created via generator, following the same
