@@ -1,3 +1,28 @@
+*   Collection rendering can cache and fetch multiple partials at once.
+
+    Collections rendered as:
+
+    ```ruby
+    <%= render partial: 'notifications/notification', collection: @notifications, as: :notification, cached: true %>
+    ```
+
+    will read several partials from cache at once. The templates in the collection
+    that haven't been cached already will automatically be written to cache. Works
+    great alongside individual template fragment caching. For instance if the
+    template the collection renders is cached like:
+
+    ```ruby
+    # notifications/_notification.html.erb
+    <% cache notification do %>
+      <%# ... %>
+    <% end %>
+    ```
+
+    Then any collection renders shares that cache when attempting to read multiple
+    ones at once.
+
+    *Kasper Timm Hansen*
+
 *   Add support for nested hashes/arrays to `:params` option of `button_to` helper.
 
     *James Coleman*
@@ -196,31 +221,6 @@
     besides String.
 
     *Ulisses Almeida*
-
-*   Collection rendering can cache and fetch multiple partials at once.
-
-    Collections rendered as:
-
-    ```ruby
-    <%= render partial: 'notifications/notification', collection: @notifications, as: :notification, cached: true %>
-    ```
-
-    will read several partials from cache at once. The templates in the collection
-    that haven't been cached already will automatically be written to cache. Works
-    great alongside individual template fragment caching. For instance if the
-    template the collection renders is cached like:
-
-    ```ruby
-    # notifications/_notification.html.erb
-    <% cache notification do %>
-      <%# ... %>
-    <% end %>
-    ```
-
-    Then any collection renders shares that cache when attempting to read multiple
-    ones at once.
-
-    *Kasper Timm Hansen*
 
 *   Fixed a dependency tracker bug that caused template dependencies not
     count layouts as dependencies for partials.
