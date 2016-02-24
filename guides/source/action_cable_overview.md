@@ -85,8 +85,8 @@ or deauthorized).
 ### Channels
 A channel encapsulates a logical unit of work, similar to what a controller does in a
 regular MVC setup. 
-You should first define a parent `ApplicationCable::Channel` class in Ruby, which
-encapsulates shared logic between your channels. 
+By default, Rails creates a parent `ApplicationCable::Channel` class for encapsulating
+shared logic between your channels. 
 
 #### Parent Channel Setup
 ```ruby
