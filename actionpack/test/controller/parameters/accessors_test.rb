@@ -4,6 +4,8 @@ require 'active_support/core_ext/hash/transform_values'
 
 class ParametersAccessorsTest < ActiveSupport::TestCase
   setup do
+    ActionController::Parameters.permit_all_parameters = false
+
     @params = ActionController::Parameters.new(
       person: {
         age: '32',
@@ -176,12 +178,20 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
     assert(@params != false)
   end
 
-  test "inspect shows both class name and parameters" do
+  test "inspect shows both class name, parameters and permitted flag" do
     assert_equal(
       '<ActionController::Parameters {"person"=>{"age"=>"32", '\
-      '"name"=>{"first"=>"David", "last"=>"Heinemeier Hansson"}, ' \
-      '"addresses"=>[{"city"=>"Chicago", "state"=>"Illinois"}]}}>',
+        '"name"=>{"first"=>"David", "last"=>"Heinemeier Hansson"}, ' \
+        '"addresses"=>[{"city"=>"Chicago", "state"=>"Illinois"}]}} permitted: false>',
       @params.inspect
     )
+  end
+
+  test "inspect prints updated permitted flag in the output" do
+    assert_match(/permitted: false/, @params.inspect)
+
+    @params.permit!
+
+    assert_match(/permitted: true/, @params.inspect)
   end
 end
