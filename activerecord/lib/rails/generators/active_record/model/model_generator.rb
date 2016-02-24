@@ -41,8 +41,8 @@ module ActiveRecord
 
         # FIXME: Change this file to a symlink once RubyGems 2.5.0 is required.
         def generate_application_record
-          if self.behavior == :invoke && !File.exist?('app/models/application_record.rb')
-            template 'application_record.rb', 'app/models/application_record.rb'
+          if self.behavior == :invoke && !application_record_exist?
+            template 'application_record.rb', application_record_file_name
           end
         end
 
@@ -51,18 +51,22 @@ module ActiveRecord
           options[:parent] || determine_default_parent_class
         end
 
-        def determine_default_parent_class
-          application_record = nil
+        def application_record_exist?
+          file_exist = nil
+          in_root { file_exist = File.exist?(application_record_file_name) }
+          file_exist
+        end
 
-          in_root do
-            application_record = if mountable_engine?
-              File.exist?("app/models/#{namespaced_path}/application_record.rb")
-            else
-              File.exist?('app/models/application_record.rb')
-            end
+        def application_record_file_name
+          @application_record_file_name ||= if mountable_engine?
+            "app/models/#{namespaced_path}/application_record.rb"
+          else
+            'app/models/application_record.rb'
           end
+        end
 
-          if application_record
+        def determine_default_parent_class
+          if application_record_exist?
             "ApplicationRecord"
           else
             "ActiveRecord::Base"
