@@ -3,6 +3,11 @@
 
     *claudiob*
 
+*   Generate applications with an option to log to STDOUT in production
+    using the environment variable `RAILS_LOG_TO_STDOUT`.
+
+    *Richard Schneeman*
+
 *   Change fail fast of `bin/rails test` interrupts run on error.
 
     *Yuji Yaginuma*
