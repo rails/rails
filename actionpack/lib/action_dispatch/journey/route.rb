@@ -82,7 +82,7 @@ module ActionDispatch
       end
 
       def requirements # :nodoc:
-        # needed for rails `rake routes`
+        # needed for rails `rails routes`
         @defaults.merge(path.requirements).delete_if { |_,v|
           /.+?/ == v
         }
