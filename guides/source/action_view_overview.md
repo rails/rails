@@ -260,7 +260,7 @@ With the `as` option we can specify a different name for the local variable. For
 <%= render partial: "product", as: "item" %>
 ```
 
-The `object` option can be used to directly specify which object is rendered into the partial; useful when the template's object is elsewhere (eg. in a different instance variable or in a local variable).
+The `object` option can be used to directly specify which object is rendered into the partial; useful when the template's object is elsewhere (e.g. in a different instance variable or in a local variable).
 
 For example, instead of:
 
@@ -442,7 +442,7 @@ image_path("edit.png") # => /assets/edit-2d1a2db63fc738690021fedb5a65b68e.png
 
 #### image_url
 
-Computes the url to an image asset in the `app/assets/images` directory. This will call `image_path` internally and merge with your current host or your asset host.
+Computes the URL to an image asset in the `app/assets/images` directory. This will call `image_path` internally and merge with your current host or your asset host.
 
 ```ruby
 image_url("edit.png") # => http://www.example.com/assets/edit.png
@@ -493,7 +493,7 @@ javascript_path "common" # => /assets/common.js
 
 #### javascript_url
 
-Computes the url to a JavaScript asset in the `app/assets/javascripts` directory. This will call `javascript_path` internally and merge with your current host or your asset host.
+Computes the URL to a JavaScript asset in the `app/assets/javascripts` directory. This will call `javascript_path` internally and merge with your current host or your asset host.
 
 ```ruby
 javascript_url "common" # => http://www.example.com/assets/common.js
@@ -530,7 +530,7 @@ stylesheet_path "application" # => /assets/application.css
 
 #### stylesheet_url
 
-Computes the url to a stylesheet asset in the `app/assets/stylesheets` directory. This will call `stylesheet_path` internally and merge with your current host or your asset host.
+Computes the URL to a stylesheet asset in the `app/assets/stylesheets` directory. This will call `stylesheet_path` internally and merge with your current host or your asset host.
 
 ```ruby
 stylesheet_url "application" # => http://www.example.com/assets/application.css
@@ -1247,7 +1247,7 @@ file_field_tag 'attachment'
 
 #### form_tag
 
-Starts a form tag that points the action to a url configured with `url_for_options` just like `ActionController::Base#url_for`.
+Starts a form tag that points the action to a URL configured with `url_for_options` just like `ActionController::Base#url_for`.
 
 ```html+erb
 <%= form_tag '/articles' do %>
