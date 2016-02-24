@@ -8,7 +8,7 @@ After reading this guide, you will know:
 
 * How to setup Action Cable
 * How to setup channels
-
+b
 Introduction
 ------------
 
@@ -189,11 +189,10 @@ get the broadcast should they connect later.
 
 Broadcasts are called elsewhere in your Rails application:
 ```ruby
-ActionCable.server.broadcast \
-  "web_notifications_#{current_user.id}", { title: 'New things!', body: 'All the news that is fit to print' }
+  WebNotificationsChannel.broadcast_to current_user, title: 'New things!', body: 'All the news fit to print'
 ```
 
-The `ActionCable.server.broadcast` call places a message in the current
+The `WebNotificationsChannel.broadcast_to` call places a message in the current
 subscription adapter (Redis by default)'s pubsub queue under a separate
 broadcasting name for each user. For a user with an ID of 1, the broadcasting
 name would be `web_notifications_1`.
@@ -267,8 +266,7 @@ App.cable.subscriptions.create { channel: "ChatChannel", room: "Best Room" },
 
 ```ruby
 # Somewhere in your app this is called, perhaps from a NewCommentJob
-ActionCable.server.broadcast \
-  "chat_#{room}", { sent_by: 'Paul', body: 'This is a cool chat app.' }
+ChatChannel.broadcast_to chat_#{room}, sent_by: 'Paul', body: 'This is a cool chat app.'
 ```
 
 
@@ -285,7 +283,7 @@ class ChatChannel < ApplicationCable::Channel
   end
 
   def receive(data)
-    ActionCable.server.broadcast "chat_#{params[:room]}", data
+    ChatChannel.broadcast_to "chat_#{params[:room]}", data
   end
 end
 ```
@@ -430,11 +428,10 @@ App.cable.subscriptions.create "WebNotificationsChannel",
 
 ```ruby
 # Somewhere in your app this is called, perhaps from a NewCommentJob
-ActionCable.server.broadcast \
-  "web_notifications_#{current_user.id}", { title: 'New things!', body: 'All the news that is fit to print' }
+  WebNotificationsChannel.broadcast_to current_user, title: 'New things!', body: 'All the news fit to print'
 ```
 
-The `ActionCable.server.broadcast` call places a message in the current
+The `WebNotificationsChannel.broadcast_to` call places a message in the current
 subscription adapter (Redis by default)'s pubsub queue under a separate
 broadcasting name for each user. For a user with an ID of 1, the broadcasting
 name would be `web_notifications_1`.
