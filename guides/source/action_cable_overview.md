@@ -178,6 +178,21 @@ class ChatChannel < ApplicationCable::Channel
 end
 ```
 
+If you have a stream that is related to a model, then the broadcasting used
+can be generated from the model and channel. The following example would
+subscribe to a broadcasting like `comments:Z2lkOi8vVGVzdEFwcC9Qb3N0LzE`
+
+```ruby
+class CommentsChannel < ApplicationCable::Channel
+  def subscribed
+    post = Post.find(params[:id])
+    stream_for post
+  end
+end
+```
+ You can then broadcast to this channel using:
+ `CommentsChannel.broadcast_to(@post, @comment)`
+
 ### Broadcastings
 
 A broadcasting is a pub/sub link where anything transmitted by a publisher
