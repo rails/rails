@@ -350,8 +350,8 @@ $("<%= escape_javascript(render @user) %>").appendTo("#users");
 Turbolinks
 ----------
 
-Rails 4 ships with the [Turbolinks gem](https://github.com/turbolinks/turbolinks).
-This gem uses Ajax to speed up page rendering in most applications.
+Rails ships with the [Turbolinks library](https://github.com/turbolinks/turbolinks),
+which uses Ajax to speed up page rendering in most applications.
 
 ### How Turbolinks Works
 
@@ -364,14 +364,14 @@ will then use PushState to change the URL to the correct one, preserving
 refresh semantics and giving you pretty URLs.
 
 The only thing you have to do to enable Turbolinks is have it in your Gemfile,
-and put `//= require turbolinks` in your CoffeeScript manifest, which is usually
+and put `//= require turbolinks` in your JavaScript manifest, which is usually
 `app/assets/javascripts/application.js`.
 
-If you want to disable Turbolinks for certain links, add a `data-no-turbolink`
+If you want to disable Turbolinks for certain links, add a `data-turbolinks="false"`
 attribute to the tag:
 
 ```html
-<a href="..." data-no-turbolink>No turbolinks here</a>.
+<a href="..." data-turbolinks="false">No turbolinks here</a>.
 ```
 
 ### Page Change Events
@@ -389,7 +389,7 @@ event that this relies on will not be fired. If you have code that looks like
 this, you must change your code to do this instead:
 
 ```coffeescript
-$(document).on "page:change", ->
+$(document).on "turbolinks:load", ->
   alert "page has loaded!"
 ```
 

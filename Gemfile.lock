@@ -28,9 +28,9 @@ GIT
 
 GIT
   remote: git://github.com/turbolinks/turbolinks-rails.git
-  revision: 1604dcd7bad911f1471d65e4f47cd19d844354f1
+  revision: 65884729016dbb4d032f12bb01b7e7c1ddeb68ac
   specs:
-    turbolinks (5.0.0.beta1)
+    turbolinks (5.0.0.beta2)
       turbolinks-source
 
 PATH
@@ -252,7 +252,7 @@ GEM
     thor (0.19.1)
     thread (0.1.7)
     thread_safe (0.3.5)
-    turbolinks-source (5.0.0.beta1.1)
+    turbolinks-source (5.0.0.beta2)
     tzinfo (1.2.2)
       thread_safe (~> 0.1)
     tzinfo-data (1.2015.7)
