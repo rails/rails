@@ -17,4 +17,8 @@ class TestServer
   def stream_event_loop
     @stream_event_loop ||= ActionCable::Connection::StreamEventLoop.new
   end
+
+  def worker_pool
+    @worker_pool ||= ActionCable::Server::Worker.new(max_size: 5)
+  end
 end

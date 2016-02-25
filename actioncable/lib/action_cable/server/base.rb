@@ -33,6 +33,16 @@ module ActionCable
         remote_connections.where(identifiers).disconnect
       end
 
+      def restart
+        connections.each(&:close)
+
+        @mutex.synchronize do
+          worker_pool.halt if @worker_pool
+
+          @worker_pool = nil
+        end
+      end
+
       # Gateway to RemoteConnections. See that class for details.
       def remote_connections
         @remote_connections || @mutex.synchronize { @remote_connections ||= RemoteConnections.new(self) }
