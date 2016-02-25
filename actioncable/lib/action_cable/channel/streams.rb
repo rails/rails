@@ -110,7 +110,7 @@ module ActionCable
 
         def default_stream_callback(broadcasting)
           -> (message) do
-            transmit ActiveSupport::JSON.decode(message), via: "streamed from #{broadcasting}"
+            transmit ActiveSupport::JSON.decode(message)
           end
         end
     end
