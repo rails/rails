@@ -298,26 +298,30 @@ Open the file `config/routes.rb` in your editor.
 Rails.application.routes.draw do
   get 'welcome/index'
 
-  # The priority is based upon order of creation:
-  # first created -> highest priority.
-  # See how all your routes lay out with "bin/rails routes".
-  #
-  # You can have the root of your site routed with "root"
-  # root 'welcome#index'
-  #
-  # ...
+  # For details on the DSL available within this file, see http://guides.rubyonrails.org/routing.html
+
+  # Serve websocket cable requests in-process
+  # mount ActionCable.server => '/cable'
+end
 ```
 
 This is your application's _routing file_ which holds entries in a special
 [DSL (domain-specific language)](http://en.wikipedia.org/wiki/Domain-specific_language)
 that tells Rails how to connect incoming requests to
-controllers and actions. This file contains many sample routes on commented
-lines, and one of them actually shows you how to connect the root of your site
-to a specific controller and action. Find the line beginning with `root` and
-uncomment it. It should look something like the following:
+controllers and actions.
+Edit this file by adding the line of code `root 'welcome#index'`.
+It should look something like the following:
 
 ```ruby
-root 'welcome#index'
+Rails.application.routes.draw do
+  get 'welcome/index'
+
+  # For details on the DSL available within this file, see http://guides.rubyonrails.org/routing.html
+
+  # Serve websocket cable requests in-process
+  # mount ActionCable.server => '/cable'
+  root 'welcome#index'
+end
 ```
 
 `root 'welcome#index'` tells Rails to map requests to the root of the
@@ -348,7 +352,7 @@ operations are referred to as _CRUD_ operations.
 
 Rails provides a `resources` method which can be used to declare a standard REST
 resource. You need to add the _article resource_ to the
-`config/routes.rb` as follows:
+`config/routes.rb` so the file will look as follows:
 
 ```ruby
 Rails.application.routes.draw do
