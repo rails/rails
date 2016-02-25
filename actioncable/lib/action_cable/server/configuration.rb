@@ -6,7 +6,7 @@ module ActionCable
       attr_accessor :logger, :log_tags
       attr_accessor :connection_class, :worker_pool_size
       attr_accessor :disable_request_forgery_protection, :allowed_request_origins
-      attr_accessor :cable, :url
+      attr_accessor :cable, :url, :mount_path
 
       attr_accessor :channel_paths # :nodoc:
 

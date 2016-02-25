@@ -613,6 +613,17 @@ There are a few configuration options available in Active Support:
 
 * `config.active_job.logger` accepts a logger conforming to the interface of Log4r or the default Ruby Logger class, which is then used to log information from Active Job. You can retrieve this logger by calling `logger` on either an Active Job class or an Active Job instance. Set to `nil` to disable logging.
 
+### Configuring Action Cable
+
+* `config.action_cable.url` accepts a string for the URL for where
+ you are hosting your Action Cable server. You would use this option
+if you are running Action Cable servers that are separated from your
+main application.
+* `config.action_cable.mount_path` accepts a string for where to mount Action
+  Cable, as apart of the main server process. Defaults to `/cable`.
+You can set this as nil to not mount Action Cable as apart of your
+normal Rails server.
+
 ### Configuring a Database
 
 Just about every Rails application will interact with a database. You can connect to the database by setting an environment variable `ENV['DATABASE_URL']` or by using a configuration file called `config/database.yml`.

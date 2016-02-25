@@ -6,7 +6,7 @@ require "active_support/core_ext/hash/indifferent_access"
 module ActionCable
   class Railtie < Rails::Engine # :nodoc:
     config.action_cable = ActiveSupport::OrderedOptions.new
-    config.action_cable.url = '/cable'
+    config.action_cable.mount_path = '/cable'
 
     config.eager_load_namespaces << ActionCable
 
@@ -38,6 +38,17 @@ module ActionCable
         self.channel_paths = Rails.application.paths['app/channels'].existent
 
         options.each { |k,v| send("#{k}=", v) }
+      end
+    end
+
+    initializer "action_cable.routes" do
+      config.after_initialize do |app|
+        config = app.config
+        unless config.action_cable.mount_path.nil?
+          app.routes.prepend do
+            mount ActionCable.server => config.action_cable.mount_path, internal: true
+          end
+        end
       end
     end
   end

@@ -91,5 +91,9 @@ Rails.application.configure do
 
   # Do not dump schema after migrations.
   config.active_record.dump_schema_after_migration = false
+
+  # Don't mount Action Cable in the main server process.
+  # config.action_cable.mount_path = nil
+  # config.action_cable.url = "ws://example.com"
   <%- end -%>
 end
