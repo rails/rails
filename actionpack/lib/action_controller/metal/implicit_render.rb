@@ -21,8 +21,19 @@ module ActionController
         if block_given?
           yield(*args)
         else
-          logger.info "No template found for #{self.class.name}\##{action_name}, rendering head :no_content" if logger
-          super
+          if no_templates? && no_response_handler?
+            # `head :no_content` is returned if...
+            #   - An action has no templates defined at all, and it has no `respond_to {}` block
+            logger.info "No template found for #{self.class.name}\##{action_name}, rendering head :no_content" if logger
+            super
+          else
+            # `ActionController::UnknownFormat` is returned if...
+            #   - An action has certain templates defined, and it has no `respond_to {}` block
+            #   - An action has a `respond_to {}` block, and there is no handler for the request format and/or variant
+            format = request.format.to_s
+            logger.info "No template found for #{self.class.name}\##{action_name} in #{format} format" if logger
+            raise ActionController::UnknownFormat
+          end
         end
       end
     end
@@ -32,5 +43,15 @@ module ActionController
         "default_render"
       end
     end
+
+    private
+      def no_response_handler?
+        !formats.include?(request.format.symbol) || !request.negotiate_mime(request.variant)
+      end
+
+      def no_templates?
+        # Check and see if any templates exist for the given action name, and prefixes.
+        !@_lookup_context.any?(action_name.to_s, _prefixes)
+      end
   end
 end
