@@ -58,6 +58,7 @@ module ActionCable
 
       def start_driver
         return if @driver.nil? || @driver_started
+        @stream.hijack_rack_socket
         @driver_started = true
         @driver.start
       end
