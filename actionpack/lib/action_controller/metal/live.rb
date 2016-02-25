@@ -252,10 +252,10 @@ module ActionController
               begin
                 @_response.stream.write(ActionView::Base.streaming_completion_on_exception) if request.format == :html
                 @_response.stream.call_on_error
-              rescue => exception
-                log_error(exception)
+              #rescue => exception
+                #log_error(exception)
               ensure
-                log_error(e)
+                #log_error(e)
                 @_response.stream.close
               end
             else
@@ -286,17 +286,17 @@ module ActionController
       }
     end
 
-    def log_error(exception)
-      logger = ActionController::Base.logger
-      return unless logger
+    #def log_error(exception)
+      #logger = ActionController::Base.logger
+      #return unless logger
 
-      logger.fatal do
-        message = "\n#{exception.class} (#{exception.message}):\n"
-        message << exception.annoted_source_code.to_s if exception.respond_to?(:annoted_source_code)
-        message << "  " << exception.backtrace.join("\n  ")
-        "#{message}\n\n"
-      end
-    end
+      #logger.fatal do
+        #message = "\n#{exception.class} (#{exception.message}):\n"
+        #message << exception.annoted_source_code.to_s if exception.respond_to?(:annoted_source_code)
+        #message << "  " << exception.backtrace.join("\n  ")
+        #"#{message}\n\n"
+      #end
+    #end
 
     def response_body=(body)
       super

@@ -374,7 +374,10 @@ module ActionController
       capture_log_output do |output|
         get :exception_in_view_after_commit
         assert_match %r((window\.location = "/500\.html"</script></html>)$), response.body
-        assert_match 'Missing template test/doesntexist', output.rewind && output.read
+        assert_match(
+          "Processing by ActionController::LiveStreamTest::TestController#exception_in_view_after_commit as HTML\n" \
+          "Completed 500 Internal Server Error in 1ms\n",
+          output.rewind && output.read)
         assert_stream_closed
       end
       assert response.body
@@ -389,7 +392,10 @@ module ActionController
       capture_log_output do |output|
         get :exception_in_view_after_commit, format: :json
         assert_equal '', response.body
-        assert_match 'Missing template test/doesntexist', output.rewind && output.read
+        assert_match(
+          "Processing by ActionController::LiveStreamTest::TestController#exception_in_view_after_commit as JSON\n" \
+          "Completed 500 Internal Server Error in 1ms\n",
+          output.rewind && output.read)
         assert_stream_closed
       end
     end
@@ -404,7 +410,10 @@ module ActionController
         (Thread.list - current_threads).each(&:join)
 
         assert_equal %(data: "500 Internal Server Error"\n\n), response.body
-        assert_match 'An exception occurred...', output.rewind && output.read
+        assert_match(
+          "Processing by ActionController::LiveStreamTest::TestController#exception_with_callback as \n" \
+          "Completed 500 Internal Server Error in 1ms\n",
+          output.rewind && output.read)
         assert_stream_closed
       end
     end
