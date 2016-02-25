@@ -7,7 +7,7 @@ class SSLTest < ActionDispatch::IntegrationTest
 
   def build_app(headers: {}, ssl_options: {})
     headers = HEADERS.merge(headers)
-    ActionDispatch::SSL.new lambda { |env| [200, headers, []] }, ssl_options
+    ActionDispatch::SSL.new lambda { |env| [200, headers, []] }, ssl_options.reverse_merge(hsts: { subdomains: true })
   end
 end
 
@@ -98,15 +98,16 @@ end
 
 class StrictTransportSecurityTest < SSLTest
   EXPECTED = 'max-age=15552000'
+  EXPECTED_WITH_SUBDOMAINS = 'max-age=15552000; includeSubDomains'
 
-  def assert_hsts(expected, url: 'https://example.org', hsts: {}, headers: {})
+  def assert_hsts(expected, url: 'https://example.org', hsts: { subdomains: true }, headers: {})
     self.app = build_app ssl_options: { hsts: hsts }, headers: headers
     get url
     assert_equal expected, response.headers['Strict-Transport-Security']
   end
 
   test 'enabled by default' do
-    assert_hsts EXPECTED
+    assert_hsts EXPECTED_WITH_SUBDOMAINS
   end
 
   test 'not sent with http:// responses' do
@@ -126,11 +127,15 @@ class StrictTransportSecurityTest < SSLTest
   end
 
   test ':expires sets max-age' do
-    assert_hsts 'max-age=500', hsts: { expires: 500 }
+    assert_deprecated do
+      assert_hsts 'max-age=500', hsts: { expires: 500 }
+    end
   end
 
   test ':expires supports AS::Duration arguments' do
-    assert_hsts 'max-age=31557600', hsts: { expires: 1.year }
+    assert_deprecated do
+      assert_hsts 'max-age=31557600', hsts: { expires: 1.year }
+    end
   end
 
   test 'include subdomains' do
@@ -142,11 +147,15 @@ class StrictTransportSecurityTest < SSLTest
   end
 
   test 'opt in to browser preload lists' do
-    assert_hsts "#{EXPECTED}; preload", hsts: { preload: true }
+    assert_deprecated do
+      assert_hsts "#{EXPECTED}; preload", hsts: { preload: true }
+    end
   end
 
   test 'opt out of browser preload lists' do
-    assert_hsts EXPECTED, hsts: { preload: false }
+    assert_deprecated do
+      assert_hsts EXPECTED, hsts: { preload: false }
+    end
   end
 end
 

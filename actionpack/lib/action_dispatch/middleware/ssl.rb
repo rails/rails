@@ -40,7 +40,7 @@ module ActionDispatch
     HSTS_EXPIRES_IN = 15552000
 
     def self.default_hsts_options
-      { expires: HSTS_EXPIRES_IN, subdomains: true, preload: false }
+      { expires: HSTS_EXPIRES_IN, subdomains: false, preload: false }
     end
 
     def initialize(app, redirect: {}, hsts: {}, secure_cookies: true, **options)
@@ -57,6 +57,17 @@ module ActionDispatch
       end
 
       @secure_cookies = secure_cookies
+
+      if hsts != true && hsts != false && hsts[:subdomains].nil?
+        hsts[:subdomains] = false
+
+        ActiveSupport::Deprecation.warn <<-end_warning.strip_heredoc
+          In Rails 5.1, HSTS support for subdomains will be turned on by default.
+          Set `config.ssl_options = { hsts: { subdomains: false }}` to opt out
+          of this behavior.
+        end_warning
+      end
+
       @hsts_header = build_hsts_header(normalize_hsts_options(hsts))
     end
 
