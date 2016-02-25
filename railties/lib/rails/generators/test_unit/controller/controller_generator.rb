@@ -7,7 +7,7 @@ module TestUnit # :nodoc:
       check_class_collision suffix: "ControllerTest"
 
       def create_test_files
-        template 'functional_test.rb',
+        template 'functional_test.rb.tt',
                  File.join('test/controllers', class_path, "#{file_name}_controller_test.rb")
       end
     end
