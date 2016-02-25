@@ -1,3 +1,8 @@
+*   Safely support autoloading and class unloading, by preventing concurrent
+    loads, and disconnecting all cables during reload.
+
+    *Matthew Draper*
+
 * Ensure ActionCable behaves correctly for non-string queue names.
 
   *Jay Hayes*

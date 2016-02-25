@@ -20,6 +20,26 @@ module ActionCable
         )
       end
 
+      # Stop processing work: any work that has not already started
+      # running will be discarded from the queue
+      def halt
+        @pool.kill
+      end
+
+      def stopping?
+        @pool.shuttingdown?
+      end
+
+      def work(connection)
+        self.connection = connection
+
+        run_callbacks :work do
+          yield
+        end
+      ensure
+        self.connection = nil
+      end
+
       def async_invoke(receiver, method, *args)
         @pool.post do
           invoke(receiver, method, *args)
@@ -27,19 +47,15 @@ module ActionCable
       end
 
       def invoke(receiver, method, *args)
-        begin
-          self.connection = receiver
-
-          run_callbacks :work do
+        work(receiver) do
+          begin
             receiver.send method, *args
-          end
-        rescue Exception => e
-          logger.error "There was an exception - #{e.class}(#{e.message})"
-          logger.error e.backtrace.join("\n")
+          rescue Exception => e
+            logger.error "There was an exception - #{e.class}(#{e.message})"
+            logger.error e.backtrace.join("\n")
 
-          receiver.handle_exception if receiver.respond_to?(:handle_exception)
-        ensure
-          self.connection = nil
+            receiver.handle_exception if receiver.respond_to?(:handle_exception)
+          end
         end
       end
 
@@ -50,14 +66,8 @@ module ActionCable
       end
 
       def run_periodic_timer(channel, callback)
-        begin
-          self.connection = channel.connection
-
-          run_callbacks :work do
-            callback.respond_to?(:call) ? channel.instance_exec(&callback) : channel.send(callback)
-          end
-        ensure
-          self.connection = nil
+        work(channel.connection) do
+          callback.respond_to?(:call) ? channel.instance_exec(&callback) : channel.send(callback)
         end
       end
 
