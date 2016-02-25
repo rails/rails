@@ -46,27 +46,32 @@ and may also be used independently outside Rails.
 
 ## Getting Started
 
-1. Install Rails at the command prompt if you haven't yet:
+1. Install Bundler and Nokogiri (dependencies)
+        
+        $ gem install bundler
+        $ gem install nokogiri
+
+2. Install Rails at the command prompt if you haven't yet:
 
         $ gem install rails
 
-2. At the command prompt, create a new Rails application:
+3. At the command prompt, create a new Rails application:
 
         $ rails new myapp
 
    where "myapp" is the application name.
 
-3. Change directory to `myapp` and start the web server:
+4. Change directory to `myapp` and start the web server:
 
         $ cd myapp
         $ rails server
 
    Run with `--help` or `-h` for options.
 
-4. Using a browser, go to `http://localhost:3000` and you'll see:
+5. Using a browser, go to `http://localhost:3000` and you'll see:
 "Yay! You’re on Rails!"
 
-5. Follow the guidelines to start developing your application. You may find
+6. Follow the guidelines to start developing your application. You may find
    the following resources handy:
     * [Getting Started with Rails](http://guides.rubyonrails.org/getting_started.html)
     * [Ruby on Rails Guides](http://guides.rubyonrails.org)
