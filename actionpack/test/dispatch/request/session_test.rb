@@ -105,7 +105,7 @@ module ActionDispatch
         end
       end
 
-      def test_indifferent_access
+      def test_with_indifferent_access
         s = Session.create(store, req, {})
 
         s[:one] = { test: "deep" }

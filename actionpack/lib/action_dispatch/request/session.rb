@@ -88,13 +88,13 @@ module ActionDispatch
       # nil if the given key is not found in the session.
       def [](key)
         load_for_read!
-        @delegate[key]
+        @delegate[key.to_s]
       end
 
       # Returns true if the session has the given key or false.
       def has_key?(key)
         load_for_read!
-        @delegate.key?(key)
+        @delegate.key?(key.to_s)
       end
       alias :key? :has_key?
       alias :include? :has_key?
@@ -112,7 +112,7 @@ module ActionDispatch
       # Writes given value to given key of the session.
       def []=(key, value)
         load_for_write!
-        @delegate[key] = value
+        @delegate[key.to_s] = value
       end
 
       # Clears the session.
@@ -139,13 +139,13 @@ module ActionDispatch
       #   # => {"session_id"=>"e29b9ea315edf98aad94cc78c34cc9b2", "foo" => "bar"}
       def update(hash)
         load_for_write!
-        @delegate.update hash
+        @delegate.update stringify_keys(hash)
       end
 
       # Deletes given key from the session.
       def delete(key)
         load_for_write!
-        @delegate.delete key
+        @delegate.delete key.to_s
       end
 
       # Returns value of the given key from the session, or raises +KeyError+
@@ -165,9 +165,9 @@ module ActionDispatch
       def fetch(key, default=Unspecified, &block)
         load_for_read!
         if default == Unspecified
-          @delegate.fetch(key, &block)
+          @delegate.fetch(key.to_s, &block)
         else
-          @delegate.fetch(key, default, &block)
+          @delegate.fetch(key.to_s, default, &block)
         end
       end
 
@@ -211,8 +211,14 @@ module ActionDispatch
       def load!
         id, session = @by.load_session @req
         options[:id] = id
-        @delegate.replace(session)
+        @delegate.replace(stringify_keys(session))
         @loaded = true
+      end
+
+      def stringify_keys(other)
+        other.each_with_object({}) { |(key, value), hash|
+          hash[key.to_s] = value
+        }
       end
     end
   end

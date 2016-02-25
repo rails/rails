@@ -60,11 +60,4 @@ class ActionController::TestSessionTest < ActiveSupport::TestCase
     session = ActionController::TestSession.new(one: '1')
     assert_equal(2, session.fetch('2') { |key| key.to_i })
   end
-
-  def test_fetch_returns_indifferent_access
-    session = ActionController::TestSession.new(three: { two: '1' })
-    three = session.fetch(:three)
-    assert_equal('1', three[:two])
-    assert_equal('1', three["two"])
-  end
 end

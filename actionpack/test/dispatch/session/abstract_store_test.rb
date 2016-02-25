@@ -46,22 +46,6 @@ module ActionDispatch
         assert_equal session.to_hash, session1.to_hash
       end
 
-      def test_previous_session_has_indifferent_access
-        env = {}
-        as = MemoryStore.new app
-        as.call(env)
-
-        assert @env
-        session = Request::Session.find ActionDispatch::Request.new @env
-        session[:foo] = { bar: "baz" }
-
-        as.call(@env)
-        session = Request::Session.find ActionDispatch::Request.new @env
-
-        assert_equal session[:foo][:bar], "baz"
-        assert_equal session[:foo]["bar"], "baz"
-      end
-
       private
       def app(&block)
         @env = nil

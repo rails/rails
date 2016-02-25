@@ -12,11 +12,6 @@ class CacheStoreTest < ActionDispatch::IntegrationTest
       head :ok
     end
 
-    def set_deep_session_value
-      session[:foo] = { bar: "baz" }
-      head :ok
-    end
-
     def set_serialized_session_value
       session[:foo] = SessionAutoloadTest::Foo.new
       head :ok
@@ -24,14 +19,6 @@ class CacheStoreTest < ActionDispatch::IntegrationTest
 
     def get_session_value
       render plain: "foo: #{session[:foo].inspect}"
-    end
-
-    def get_deep_session_value_with_symbol
-      render plain: "foo: { bar: #{session[:foo][:bar].inspect} }"
-    end
-
-    def get_deep_session_value_with_string
-      render plain: "foo: { \"bar\" => #{session[:foo]["bar"].inspect} }"
     end
 
     def get_session_id
@@ -170,22 +157,6 @@ class CacheStoreTest < ActionDispatch::IntegrationTest
       assert_not_equal '0xhax', cookies['_session_id']
       assert_equal nil, @cache.read('_session_id:0xhax')
       assert_equal({'foo' => 'bar'}, @cache.read("_session_id:#{cookies['_session_id']}"))
-    end
-  end
-
-  def test_previous_session_has_indifferent_access
-    with_test_route_set do
-      get '/set_deep_session_value'
-      assert_response :success
-      assert cookies['_session_id']
-
-      get '/get_deep_session_value_with_symbol'
-      assert_response :success
-      assert_equal 'foo: { bar: "baz" }', response.body
-
-      get '/get_deep_session_value_with_string'
-      assert_response :success
-      assert_equal 'foo: { "bar" => "baz" }', response.body
     end
   end
 
