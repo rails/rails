@@ -7,12 +7,12 @@ module RailsGuides
 
       def block_code(code, language)
         <<-HTML
-<div class="code_container">
-<pre class="brush: #{brush_for(language)}; gutter: false; toolbar: false">
-#{ERB::Util.h(code)}
-</pre>
-</div>
-HTML
+         <div class="code_container">
+           <pre class="brush: #{brush_for(language)}; gutter: false; toolbar: false">
+              #{ERB::Util.h(code)}
+            </pre>
+        </div>
+      HTML
       end
 
       def header(text, header_level)
