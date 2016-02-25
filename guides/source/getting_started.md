@@ -629,7 +629,7 @@ end
 The `render` method here is taking a very simple hash with a key of `:plain` and
 value of `params[:article].inspect`. The `params` method is the object which
 represents the parameters (or fields) coming in from the form. The `params`
-method returns an `ActiveSupport::HashWithIndifferentAccess` object, which
+method returns an `ActionController::Parameters` object, which
 allows you to access the keys of the hash using either strings or symbols. In
 this situation, the only parameters that matter are the ones from the form.
 
@@ -639,7 +639,7 @@ If you re-submit the form one more time you'll now no longer get the missing
 template error. Instead, you'll see something that looks like the following:
 
 ```ruby
-{"title"=>"First article!", "text"=>"This is my first article."}
+<ActionController::Parameters {"title"=>"First Article!", "text"=>"This is my first article."} permitted: false>
 ```
 
 This action is now displaying the parameters for the article that are coming in
