@@ -280,6 +280,16 @@ class MetalTestController < ActionController::Metal
   end
 end
 
+class MetalWithoutAVTestController < ActionController::Metal
+  include AbstractController::Rendering
+  include ActionController::Rendering
+  include ActionController::StrongParameters
+
+  def dynamic_params_render
+    render params
+  end
+end
+
 class ExpiresInRenderTest < ActionController::TestCase
   tests TestController
 
@@ -299,9 +309,10 @@ class ExpiresInRenderTest < ActionController::TestCase
   end
 
   def test_dynamic_render_file_hash
-    assert_raises ArgumentError do
+    e = assert_raises ArgumentError do
       get :dynamic_render, { id: { file: '../\\../test/abstract_unit.rb' } }
     end
+    assert_equal "render parameters are not permitted", e.message
   end
 
   def test_expires_in_header
@@ -497,6 +508,17 @@ class MetalRenderTest < ActionController::TestCase
   def test_access_to_logger_in_view
     get :accessing_logger_in_template
     assert_equal "NilClass", @response.body
+  end
+end
+
+class MetalRenderWithoutAVTest < ActionController::TestCase
+  tests MetalWithoutAVTestController
+
+  def test_dynamic_params_render
+    e = assert_raises ArgumentError do
+      get :dynamic_params_render, { inline: '<%= RUBY_VERSION %>' }
+    end
+    assert_equal "render parameters are not permitted", e.message
   end
 end
 
