@@ -37,7 +37,7 @@ module ActionController
       if template_exists?(action_name.to_s, _prefixes, variants: request.variant)
         render(*args)
       elsif any_templates?(action_name.to_s, _prefixes)
-        message = "#{self.class.name}\##{action_name} does not know how to repond " \
+        message = "#{self.class.name}\##{action_name} does not know how to respond " \
           "to this request. There are other templates available for this controller " \
           "action but none of them were suitable for this request.\n\n" \
           "This usually happens when the client requested an unsupported format " \

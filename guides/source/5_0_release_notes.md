@@ -257,7 +257,7 @@ Please refer to the [Changelog][action-pack] for detailed changes.
     ([Pull Request](https://github.com/rails/rails/pull/17573))
 
 *   Controller actions without an explicit `render` call and with no
-    corresponding templates will render `head :no_conten` implicitly
+    corresponding templates will render `head :no_content` implicitly
     instead of raising an error.
     (Pull Request [1](https://github.com/rails/rails/pull/19377),
     [2](https://github.com/rails/rails/pull/23827))
