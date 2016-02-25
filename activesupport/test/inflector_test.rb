@@ -157,8 +157,8 @@ class InflectorTest < ActiveSupport::TestCase
     end
   end
 
-  def test_capitalize_first
-    assert_equal "What a Lovely Day", ActiveSupport::Inflector.capitalize_first("what a Lovely Day")
+  def test_upcase_first
+    assert_equal "What a Lovely Day", "what a Lovely Day".upcase_first
   end
 
   def test_acronym_override
