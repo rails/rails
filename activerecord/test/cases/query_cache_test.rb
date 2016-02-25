@@ -244,6 +244,21 @@ class QueryCacheTest < ActiveRecord::TestCase
       assert_equal 0, Post.where(title: 'rollback').to_a.count
     end
   end
+
+  def test_query_cache_freezes_they_key
+    callback = Proc.new do |*args, payload|
+      e = assert_raises(RuntimeError) do
+        payload[:sql].gsub!("*", "* ")
+      end
+      assert_equal "can't modify frozen String", e.message
+    end
+
+    ActiveSupport::Notifications.subscribed(callback, "sql.active_record") do
+      Task.cache do
+        assert_queries(1) { Task.find(1); Task.find(1) }
+      end
+    end
+  end
 end
 
 class QueryCacheExpiryTest < ActiveRecord::TestCase

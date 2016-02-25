@@ -520,7 +520,7 @@ module ActiveRecord
       def log(sql, name = "SQL", binds = [], statement_name = nil)
         @instrumenter.instrument(
           "sql.active_record",
-          :sql            => sql,
+          :sql            => sql.freeze,
           :name           => name,
           :connection_id  => object_id,
           :statement_name => statement_name,
