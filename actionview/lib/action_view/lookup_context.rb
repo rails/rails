@@ -136,6 +136,11 @@ module ActionView
       end
       alias :template_exists? :exists?
 
+      def any?(name, prefixes = [], partial = false)
+        @view_paths.exists?(*args_for_any(name, prefixes, partial))
+      end
+      alias :any_templates? :any?
+
       # Adds fallbacks to the view paths. Useful in cases when you are rendering
       # a :file.
       def with_fallbacks
@@ -170,6 +175,32 @@ module ActionView
         end
 
         [user_details, details_key]
+      end
+
+      def args_for_any(name, prefixes, partial) # :nodoc:
+        name, prefixes = normalize_name(name, prefixes)
+        details, details_key = detail_args_for_any
+        [name, prefixes, partial || false, details, details_key]
+      end
+
+      def detail_args_for_any # :nodoc:
+        @detail_args_for_any ||= begin
+          details = {}
+
+          registered_details.each do |k|
+            if k == :variants
+              details[k] = :any
+            else
+              details[k] = Accessors::DEFAULT_PROCS[k].call
+            end
+          end
+
+          if @cache
+            [details, DetailsKey.get(details)]
+          else
+            [details, nil]
+          end
+        end
       end
 
       # Support legacy foo.erb names even though we now ignore .erb

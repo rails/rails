@@ -26,6 +26,9 @@ end
 class ImplicitRenderTestController < ActionController::Base
   def empty_action
   end
+
+  def empty_action_with_template
+  end
 end
 
 class TestController < ActionController::Base
@@ -537,9 +540,27 @@ end
 class ImplicitRenderTest < ActionController::TestCase
   tests ImplicitRenderTestController
 
-  def test_implicit_no_content_response
-    get :empty_action
+  def test_implicit_no_content_response_as_browser
+    assert_raises(ActionController::UnknownFormat) do
+      get :empty_action
+    end
+  end
+
+  def test_implicit_no_content_response_as_xhr
+    get :empty_action, xhr: true
     assert_response :no_content
+  end
+
+  def test_implicit_success_response_with_right_format
+    get :empty_action_with_template
+    assert_equal "<h1>Empty action rendered this implicitly.</h1>\n", @response.body
+    assert_response :success
+  end
+
+  def test_implicit_unknown_format_response
+    assert_raises(ActionController::UnknownFormat) do
+      get :empty_action_with_template, format: 'json'
+    end
   end
 end
 

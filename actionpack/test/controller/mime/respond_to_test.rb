@@ -160,7 +160,14 @@ class RespondToController < ActionController::Base
     end
   end
 
-  def variant_with_implicit_rendering
+  def variant_with_implicit_template_rendering
+    # This has exactly one variant template defined in the file system (+mobile.html.erb),
+    # which raises the regular MissingTemplate error for other variants.
+  end
+
+  def variant_without_implicit_template_rendering
+    # This differs from the above in that it does not have any templates defined in the file
+    # system, which triggers the ImplicitRender (204 No Content) behavior.
   end
 
   def variant_with_format_and_custom_render
@@ -272,6 +279,8 @@ class RespondToController < ActionController::Base
 end
 
 class RespondToControllerTest < ActionController::TestCase
+  NO_CONTENT_WARNING = "No template found for RespondToController#variant_without_implicit_template_rendering, rendering head :no_content"
+
   def setup
     super
     @request.host = "www.example.com"
@@ -616,30 +625,69 @@ class RespondToControllerTest < ActionController::TestCase
   end
 
   def test_invalid_variant
+    assert_raises(ActionController::UnknownFormat) do
+      get :variant_with_implicit_template_rendering, params: { v: :invalid }
+    end
+  end
+
+  def test_variant_not_set_regular_unknown_format
+    assert_raises(ActionController::UnknownFormat) do
+      get :variant_with_implicit_template_rendering
+    end
+  end
+
+  def test_variant_with_implicit_template_rendering
+    get :variant_with_implicit_template_rendering, params: { v: :mobile }
+    assert_equal "text/html", @response.content_type
+    assert_equal "mobile", @response.body
+  end
+
+  def test_variant_without_implicit_rendering_from_browser
+    assert_raises(ActionController::UnknownFormat) do
+      get :variant_without_implicit_template_rendering, params: { v: :does_not_matter }
+    end
+  end
+
+  def test_variant_variant_not_set_and_without_implicit_rendering_from_browser
+    assert_raises(ActionController::UnknownFormat) do
+      get :variant_without_implicit_template_rendering
+    end
+  end
+
+  def test_variant_without_implicit_rendering_from_xhr
     logger = ActiveSupport::LogSubscriber::TestHelper::MockLogger.new
     old_logger, ActionController::Base.logger = ActionController::Base.logger, logger
 
-    get :variant_with_implicit_rendering, params: { v: :invalid }
+    get :variant_without_implicit_template_rendering, xhr: true, params: { v: :does_not_matter }
     assert_response :no_content
-    assert_equal 1, logger.logged(:info).select{ |s| s =~ /No template found/ }.size, "Implicit head :no_content not logged"
+
+    assert_equal 1, logger.logged(:info).select{ |s| s == NO_CONTENT_WARNING }.size, "Implicit head :no_content not logged"
   ensure
     ActionController::Base.logger = old_logger
   end
 
-  def test_variant_not_set_regular_template_missing
-    get :variant_with_implicit_rendering
+  def test_variant_without_implicit_rendering_from_api
+    logger = ActiveSupport::LogSubscriber::TestHelper::MockLogger.new
+    old_logger, ActionController::Base.logger = ActionController::Base.logger, logger
+
+    get :variant_without_implicit_template_rendering, format: 'json', params: { v: :does_not_matter }
     assert_response :no_content
+
+    assert_equal 1, logger.logged(:info).select{ |s| s == NO_CONTENT_WARNING }.size, "Implicit head :no_content not logged"
+  ensure
+    ActionController::Base.logger = old_logger
   end
 
-  def test_variant_with_implicit_rendering
-    get :variant_with_implicit_rendering, params: { v: :implicit }
-    assert_response :no_content
-  end
+  def test_variant_variant_not_set_and_without_implicit_rendering_from_xhr
+    logger = ActiveSupport::LogSubscriber::TestHelper::MockLogger.new
+    old_logger, ActionController::Base.logger = ActionController::Base.logger, logger
 
-  def test_variant_with_implicit_template_rendering
-    get :variant_with_implicit_rendering, params: { v: :mobile }
-    assert_equal "text/html", @response.content_type
-    assert_equal "mobile", @response.body
+    get :variant_without_implicit_template_rendering, xhr: true
+    assert_response :no_content
+
+    assert_equal 1, logger.logged(:info).select { |s| s == NO_CONTENT_WARNING }.size, "Implicit head :no_content not logged"
+  ensure
+    ActionController::Base.logger = old_logger
   end
 
   def test_variant_with_format_and_custom_render
@@ -776,26 +824,5 @@ class RespondToControllerTest < ActionController::TestCase
     get :variant_inline_syntax_without_block, params: { v: [:tablet, :phone] }
     assert_equal "text/html", @response.content_type
     assert_equal "phone", @response.body
-  end
-end
-
-class RespondToWithBlockOnDefaultRenderController < ActionController::Base
-  def show
-    default_render do
-      render body: 'default_render yielded'
-    end
-  end
-end
-
-class RespondToWithBlockOnDefaultRenderControllerTest < ActionController::TestCase
-  def setup
-    super
-    @request.host = "www.example.com"
-  end
-
-  def test_default_render_uses_block_when_no_template_exists
-    get :show
-    assert_equal "default_render yielded", @response.body
-    assert_equal "text/plain", @response.content_type
   end
 end

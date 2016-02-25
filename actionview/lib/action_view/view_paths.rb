@@ -10,7 +10,7 @@ module ActionView
       self._view_paths.freeze
     end
 
-    delegate :template_exists?, :view_paths, :formats, :formats=,
+    delegate :template_exists?, :any_templates?, :view_paths, :formats, :formats=,
              :locale, :locale=, :to => :lookup_context
 
     module ClassMethods
