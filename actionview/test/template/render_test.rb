@@ -149,6 +149,25 @@ module RenderTestCases
     end
   end
 
+  def test_render_with_strong_parameters
+    params = { :inline => '<%= RUBY_VERSION %>' }
+    def params.permitted?
+      false
+    end
+    e = assert_raises ArgumentError do
+      @view.render(params)
+    end
+    assert_equal "render parameters are not permitted", e.message
+  end
+
+  def test_render_with_permitted_strong_parameters
+    params = { inline: "<%= 'hello' %>" }
+    def params.permitted?
+      true
+    end
+    assert_equal 'hello', @view.render(params)
+  end
+
   def test_render_partial
     assert_equal "only partial", @view.render(:partial => "test/partial_only")
   end
