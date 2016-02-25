@@ -104,7 +104,7 @@ application. Accepts a valid week day symbol (e.g. `:monday`).
 you don't want shown in the logs, such as passwords or credit card
 numbers. New applications filter out passwords by adding the following `config.filter_parameters+=[:password]` in `config/initializers/filter_parameter_logging.rb`.
 
-* `config.force_ssl` forces all requests to be served over HTTPS by using the `ActionDispatch::SSL` middleware. This can be configured by setting `config.ssl_options` - see the [ActionDispatch::SSL documentation](http://edgeapi.rubyonrails.org/classes/ActionDispatch/SSL.html) for details.
+* `config.force_ssl` forces all requests to be served over HTTPS by using the `ActionDispatch::SSL` middleware, and sets `config.action_mailer.default_url_options` to be `{ protocol: 'https' }`. This can be configured by setting `config.ssl_options` - see the [ActionDispatch::SSL documentation](http://edgeapi.rubyonrails.org/classes/ActionDispatch/SSL.html) for details.
 
 * `config.log_formatter` defines the formatter of the Rails logger. This option defaults to an instance of `ActiveSupport::Logger::SimpleFormatter` for all modes except production, where it defaults to `Logger::Formatter`.
 
