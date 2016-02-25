@@ -62,7 +62,7 @@ HTML
           # paragraph, perhaps at the end of the document.
           #
           # It is important that we do not eat more than one newline
-          # because formatting may be wrong otherwise. For example,
+          # otherwise formatting may be wrong. For example,
           # if a bulleted list follows the first item is not rendered
           # as a list item, but as a paragraph starting with a plain
           # asterisk.
