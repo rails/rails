@@ -140,8 +140,8 @@ module ActiveSupport
       result
     end
 
-    def capitalize_first(string)
-      string.sub(/\S/, &:upcase)
+    def upcase_first(string)
+      string[0].upcase.concat(string[1..-1])
     end
 
     # Capitalizes all the words and replaces some characters in the string to

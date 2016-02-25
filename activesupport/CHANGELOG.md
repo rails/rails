@@ -1,4 +1,4 @@
-*   Add `String#capitalize_first` method.
+*   Add `String#upcase_first` method.
 
     *Glauco Custódio*
 

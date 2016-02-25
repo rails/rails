@@ -224,9 +224,9 @@ class String
 
   # Converts just the first character to uppercase.
   #
-  #  'what a Lovely Day'.capitalize_first # => "What a Lovely Day"
-  def capitalize_first
-    ActiveSupport::Inflector.capitalize_first(self)
+  #  'what a Lovely Day'.upcase_first # => "What a Lovely Day"
+  def upcase_first
+    ActiveSupport::Inflector.upcase_first(self)
   end
 
   # Creates a foreign key name from a class name.
