@@ -105,16 +105,6 @@ module ActionDispatch
         end
       end
 
-      def test_with_indifferent_access
-        s = Session.create(store, req, {})
-
-        s[:one] = { test: "deep" }
-        s[:two] = { "test" => "deep" }
-
-        assert_equal 'deep', s[:one]["test"]
-        assert_equal 'deep', s[:two][:test]
-      end
-
       private
       def store
         Class.new {
