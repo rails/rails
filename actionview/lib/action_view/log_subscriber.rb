@@ -30,6 +30,14 @@ module ActionView
       end
     end
 
+    def start(name, id, payload)
+      if name == "render_template.action_view"
+        log_rendering_start(payload)
+      end
+
+      super
+    end
+
     def logger
       ActionView::Base.logger
     end
@@ -52,6 +60,16 @@ module ActionView
         "[#{payload[:cache_hits]} / #{payload[:count]} cache hits]"
       else
         "[#{payload[:count]} times]"
+      end
+    end
+
+  private
+
+    def log_rendering_start(payload)
+      info do
+        message = "  Rendering #{from_rails_root(payload[:identifier])}"
+        message << " within #{from_rails_root(payload[:layout])}" if payload[:layout]
+        message
       end
     end
   end
