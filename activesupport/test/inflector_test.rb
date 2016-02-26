@@ -157,6 +157,10 @@ class InflectorTest < ActiveSupport::TestCase
     end
   end
 
+  def test_upcase_first
+    assert_equal "What a Lovely Day", "what a Lovely Day".upcase_first
+  end
+
   def test_acronym_override
     ActiveSupport::Inflector.inflections do |inflect|
       inflect.acronym("API")

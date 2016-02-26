@@ -140,6 +140,10 @@ module ActiveSupport
       result
     end
 
+    def upcase_first(string)
+      string[0].upcase.concat(string[1..-1])
+    end
+
     # Capitalizes all the words and replaces some characters in the string to
     # create a nicer looking title. +titleize+ is meant for creating pretty
     # output. It is not used in the Rails internals.
