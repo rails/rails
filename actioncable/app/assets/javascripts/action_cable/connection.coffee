@@ -100,7 +100,10 @@ class ActionCable.Connection
       @disconnect()
 
   dispatchEvent: (identifier, eventName, message = null) ->
-    channel = if identifier then JSON.parse(identifier).channel else null
+    if identifier && identifier != ActionCable.INTERNAL.identifiers.ping
+      channel = JSON.parse(identifier).channel
+    else
+      channel = null
 
     event = document.createEvent('Event')
     event.initEvent("actioncable:#{eventName}", true, false)
