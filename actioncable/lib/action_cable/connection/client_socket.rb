@@ -50,15 +50,16 @@ module ActionCable
         @driver.on(:error)   { |e| emit_error(e.message) }
 
         @stream = ActionCable::Connection::Stream.new(@stream_event_loop, self)
-
-        if callback = @env['async.callback']
-          callback.call([101, {}, @stream])
-        end
       end
 
       def start_driver
         return if @driver.nil? || @driver_started
         @stream.hijack_rack_socket
+
+        if callback = @env['async.callback']
+          callback.call([101, {}, @stream])
+        end
+
         @driver_started = true
         @driver.start
       end
