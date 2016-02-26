@@ -92,6 +92,7 @@ module Rails
       callback_terminator_config_exist = File.exist?('config/initializers/callback_terminator.rb')
       active_record_belongs_to_required_by_default_config_exist = File.exist?('config/initializers/active_record_belongs_to_required_by_default.rb')
       action_cable_config_exist = File.exist?('config/cable.yml')
+      ssl_options_exist = File.exist?('config/initializers/ssl_options.rb')
 
       config
 
@@ -109,6 +110,10 @@ module Rails
 
       unless action_cable_config_exist
         template 'config/cable.yml'
+      end
+
+      unless ssl_options_exist
+        remove_file 'config/initializers/ssl_options.rb'
       end
     end
 
