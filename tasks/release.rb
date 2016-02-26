@@ -103,6 +103,10 @@ namespace :all do
     end
   end
 
+  task :bundle do
+    sh 'bundle check'
+  end
+
   task :commit do
     File.open('pkg/commit_message.txt', 'w') do |f|
       f.puts "# Preparing for #{version} release\n"
@@ -119,5 +123,5 @@ namespace :all do
     sh "git push --tags"
   end
 
-  task :release => %w(ensure_clean_state build commit tag push)
+  task :release => %w(ensure_clean_state build bundle commit tag push)
 end
