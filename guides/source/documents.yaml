@@ -116,7 +116,7 @@
       name: The Rails Initialization Process
       work_in_progress: true
       url: initialization.html
-      description: This guide explains the internals of the Rails initialization process as of Rails 4.
+      description: This guide explains the internals of the Rails initialization process.
     -
       name: Autoloading and Reloading Constants
       url: autoloading_and_reloading_constants.html
