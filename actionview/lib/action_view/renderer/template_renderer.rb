@@ -50,7 +50,6 @@ module ActionView
       view, locals = @view, locals || {}
 
       render_with_layout(layout_name, locals) do |layout|
-        ActiveSupport::Notifications.instrument("start_rendering.action_view", identifier: template.identifier, layout: layout.try(:virtual_path))
         instrument(:template, :identifier => template.identifier, :layout => layout.try(:virtual_path)) do
           template.render(view, locals) { |*name| view._layout_for(*name) }
         end
