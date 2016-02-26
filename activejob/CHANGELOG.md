@@ -1,3 +1,8 @@
+*   Enable class reloading prior to job dispatch, and ensure Active Record
+    connections are returned to the pool when jobs are run in separate threads.
+
+    *Matthew Draper*
+
 *   Tune the async adapter for low-footprint dev/test usage. Use a single
     thread pool for all queues and limit to 0 to #CPU total threads, down from
     2 to 10*#CPU per queue.
