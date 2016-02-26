@@ -76,6 +76,10 @@ class StringInflectionsTest < ActiveSupport::TestCase
     end
   end
 
+  def test_upcase_first
+    assert_equal "What a Lovely Day", "what a Lovely Day".upcase_first
+  end
+
   def test_camelize
     CamelToUnderscore.each do |camel, underscore|
       assert_equal(camel, underscore.camelize)

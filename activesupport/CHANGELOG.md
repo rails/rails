@@ -1,3 +1,7 @@
+*   Add `String#upcase_first` method.
+
+     *Glauco Custódio*
+
 ## Rails 5.0.0.beta3 (February 24, 2016) ##
 
 *   Deprecate arguments on `assert_nothing_raised`.
