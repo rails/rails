@@ -227,9 +227,11 @@ module ActionController
     def http_cache_forever(public: false, version: 'v1')
       expires_in 100.years, public: public
 
-      yield if stale?(etag: "#{version}-#{request.fullpath}",
-                      last_modified: Time.new(2011, 1, 1).utc,
-                      public: public)
+      if stale?(etag: "#{version}-#{request.fullpath}",
+                last_modified: Time.new(2011, 1, 1).utc,
+                public: public)
+        yield if block_given?
+      end
     end
 
     private

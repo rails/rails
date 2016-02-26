@@ -704,6 +704,10 @@ class HttpCacheForeverTest < ActionController::TestCase
         render plain: 'hello'
       end
     end
+
+    def cache_me_forever_without_block
+      http_cache_forever(public: params[:public], version: params[:version] || 'v1')
+    end
   end
 
   tests HttpCacheForeverController
@@ -746,6 +750,14 @@ class HttpCacheForeverTest < ActionController::TestCase
     @request.if_none_match = @response.etag
 
     get :cache_me_forever, params: {version: 'v2'}
+    assert_response :not_modified
+  end
+
+  def test_cache_forever_without_block
+    get :cache_me_forever_without_block
+    assert_response :success
+    @request.if_modified_since = @response.headers['Last-Modified']
+    get :cache_me_forever_without_block
     assert_response :not_modified
   end
 end
