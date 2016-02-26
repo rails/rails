@@ -1,3 +1,9 @@
+*  Added log "Rendering ...", when starting to render a template to log that
+   we have started rendering something. This helps to easily identify the origin
+   of queries in the log whether they came from controller or views.
+
+   *Vipul A M and Prem Sichanugrist*
+
 ## Rails 5.0.0.beta3 (February 24, 2016) ##
 
 *   Collection rendering can cache and fetch multiple partials at once.
