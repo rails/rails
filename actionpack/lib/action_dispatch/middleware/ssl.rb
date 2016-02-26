@@ -49,7 +49,7 @@ module ActionDispatch
       if options[:host] || options[:port]
         ActiveSupport::Deprecation.warn <<-end_warning.strip_heredoc
           The `:host` and `:port` options are moving within `:redirect`:
-          `config.ssl_options = { redirect: { host: …, port: … }}`.
+          `config.ssl_options = { redirect: { host: …, port: … } }`.
         end_warning
         @redirect = options.slice(:host, :port)
       else
@@ -63,7 +63,7 @@ module ActionDispatch
 
         ActiveSupport::Deprecation.warn <<-end_warning.strip_heredoc
           In Rails 5.1, The `:subdomains` option of HSTS config will be treated as true if
-          unspecified. Set `config.ssl_options = { hsts: { subdomains: false }}` to opt out
+          unspecified. Set `config.ssl_options = { hsts: { subdomains: false } }` to opt out
           of this behavior.
         end_warning
       end
