@@ -33,7 +33,7 @@ module ActionCable
       end
 
       def redis_connection_for_subscriptions
-        ::Redis.new(@server.config.cable)
+        redis_connection
       end
 
       private
@@ -43,8 +43,12 @@ module ActionCable
 
         def redis_connection_for_broadcasts
           @redis_connection_for_broadcasts || @server.mutex.synchronize do
-            @redis_connection_for_broadcasts ||= self.class.redis_connector.call(@server.config.cable)
+            @redis_connection_for_broadcasts ||= redis_connection
           end
+        end
+
+        def redis_connection
+          self.class.redis_connector.call(@server.config.cable)
         end
 
         class Listener < SubscriberMap
