@@ -565,7 +565,13 @@ module ActiveRecord
       if loaded?
         @records[-index]
       else
-        to_a[-index]
+        relation = if order_values.empty? && primary_key
+                     order(arel_attribute(primary_key).asc)
+                   else
+                     self
+                   end
+
+        relation.to_a[-index]
         # TODO: can be made more performant on large result sets by
         # for instance, last(index)[-index] (which would require
         # refactoring the last(n) finder method to make test suite pass),
