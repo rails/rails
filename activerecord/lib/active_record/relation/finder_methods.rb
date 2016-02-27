@@ -565,7 +565,12 @@ module ActiveRecord
       if loaded?
         @records[-index]
       else
-        reverse_order.offset(index-1).first
+        to_a[-index]
+        # TODO: can be made more performant on large result sets by
+        # for instance, last(index)[-index] (which would require
+        # refactoring the last(n) finder method to make test suite pass),
+        # or by using a combination of reverse_order, limit, and offset,
+        # e.g., reverse_order.offset(index-1).first
       end
     end
     
