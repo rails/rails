@@ -93,6 +93,7 @@ module Rails
       active_record_belongs_to_required_by_default_config_exist = File.exist?('config/initializers/active_record_belongs_to_required_by_default.rb')
       action_cable_config_exist = File.exist?('config/cable.yml')
       ssl_options_exist = File.exist?('config/initializers/ssl_options.rb')
+      rack_cors_config_exist = File.exist?('config/initializers/cors.rb')
 
       config
 
@@ -114,6 +115,10 @@ module Rails
 
       unless ssl_options_exist
         remove_file 'config/initializers/ssl_options.rb'
+      end
+
+      unless rack_cors_config_exist
+        remove_file 'config/initializers/cors.rb'
       end
     end
 

@@ -269,6 +269,32 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_rails_update_does_not_create_rack_cors
+    app_root = File.join(destination_root, 'myapp')
+    run_generator [app_root]
+
+    stub_rails_application(app_root) do
+      generator = Rails::Generators::AppGenerator.new ["rails"], { with_dispatchers: true }, destination_root: app_root, shell: @shell
+      generator.send(:app_const)
+      quietly { generator.send(:update_config_files) }
+      assert_no_file "#{app_root}/config/initializers/cors.rb"
+    end
+  end
+
+  def test_rails_update_does_not_remove_rack_cors_if_already_present
+    app_root = File.join(destination_root, 'myapp')
+    run_generator [app_root]
+
+    FileUtils.touch("#{app_root}/config/initializers/cors.rb")
+
+    stub_rails_application(app_root) do
+      generator = Rails::Generators::AppGenerator.new ["rails"], { with_dispatchers: true }, destination_root: app_root, shell: @shell
+      generator.send(:app_const)
+      quietly { generator.send(:update_config_files) }
+      assert_file "#{app_root}/config/initializers/cors.rb"
+    end
+  end
+
   def test_application_names_are_not_singularized
     run_generator [File.join(destination_root, "hats")]
     assert_file "hats/config/environment.rb", /Rails\.application\.initialize!/
