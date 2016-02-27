@@ -109,7 +109,7 @@ It can also be useful to save information to log files at runtime. Rails maintai
 
 Rails makes use of the `ActiveSupport::Logger` class to write log information. Other loggers, such as `Log4r`, may also be substituted.
 
-You can specify an alternative logger in `config/application.rb`, for example:
+You can specify an alternative logger in `config/application.rb` or any other environment file, for example:
 
 ```ruby
 config.logger = Logger.new(STDOUT)
