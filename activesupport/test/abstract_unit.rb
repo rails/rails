@@ -1,12 +1,5 @@
 ORIG_ARGV = ARGV.dup
 
-begin
-  old, $VERBOSE = $VERBOSE, nil
-  require File.expand_path('../../../load_paths', __FILE__)
-ensure
-  $VERBOSE = old
-end
-
 require 'active_support/core_ext/kernel/reporting'
 
 silence_warnings do
