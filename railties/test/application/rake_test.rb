@@ -369,7 +369,7 @@ module ApplicationTests
 
     def test_copy_templates
       Dir.chdir(app_path) do
-        `bin/rails rails:templates:copy`
+        `bin/rails app:templates:copy`
         %w(controller mailer scaffold).each do |dir|
           assert File.exist?(File.join(app_path, 'lib', 'templates', 'erb', dir))
         end
@@ -384,7 +384,7 @@ module ApplicationTests
       app_file "template.rb", ""
 
       output = Dir.chdir(app_path) do
-        `bin/rails rails:template LOCATION=template.rb`
+        `bin/rails app:template LOCATION=template.rb`
       end
 
       assert_match(/Hello, World!/, output)
