@@ -92,7 +92,7 @@ class PresenceValidationTest < ActiveRecord::TestCase
     end
   end
 
-  def test_validates_prescence_with_on_context
+  def test_validates_presence_with_on_context
     repair_validations(Interest) do
       Interest.validates_presence_of(:topic, on: :required_name)
       interest = Interest.new
