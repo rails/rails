@@ -1,24 +1,24 @@
 module ActionCable
   module Helpers
     module ActionCableHelper
-      # Returns an "action-cable-url" meta tag with the value of the url specified in your
-      # configuration. Ensure this is above your javascript tag:
+      # Returns an "action-cable-url" meta tag with the value of the URL specified in your
+      # configuration. Ensure this is above your JavaScript tag:
       #
       #   <head>
       #     <%= action_cable_meta_tag %>
       #     <%= javascript_include_tag 'application', 'data-turbolinks-track' => true %>
       #   </head>
       #
-      # This is then used by Action Cable to determine the url of your WebSocket server.
+      # This is then used by Action Cable to determine the URL of your WebSocket server.
       # Your CoffeeScript can then connect to the server without needing to specify the
-      # url directly:
+      # URL directly:
       #
       #   #= require cable
       #   @App = {}
       #   App.cable = Cable.createConsumer()
       #
-      # Make sure to specify the correct server location in each of your environments
-      # config file:
+      # Make sure to specify the correct server location in each of your environment
+      # config files:
       #
       #   config.action_cable.mount_path = "/cable123"
       #   <%= action_cable_meta_tag %> would render:

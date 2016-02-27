@@ -339,21 +339,21 @@ Rails.application.config.action_cable.disable_request_forgery_protection = true
 
 ### Consumer Configuration
 
-Once you have decided how to run your cable server (see below), you must provide the server url (or path) to your client-side setup.
+Once you have decided how to run your cable server (see below), you must provide the server URL (or path) to your client-side setup.
 There are two ways you can do this.
 
 The first is to simply pass it in when creating your consumer. For a standalone server,
 this would be something like: `App.cable = ActionCable.createConsumer("ws://example.com:28080")`, and for an in-app server,
 something like: `App.cable = ActionCable.createConsumer("/cable")`.
 
-The second option is to pass the server url through the `action_cable_meta_tag` in your layout.
-This uses a url or path typically set via `config.action_cable.url` in the environment configuration files, or defaults to "/cable".
+The second option is to pass the server URL through the `action_cable_meta_tag` in your layout.
+This uses a URL or path typically set via `config.action_cable.url` in the environment configuration files, or defaults to "/cable".
 
-This method is especially useful if your WebSocket url might change between environments. If you host your production server via https, you will need to use the wss scheme
+This method is especially useful if your WebSocket URL might change between environments. If you host your production server via https, you will need to use the wss scheme
 for your Action Cable server, but development might remain http and use the ws scheme. You might use localhost in development and your
 domain in production.
 
-In any case, to vary the WebSocket url between environments, add the following configuration to each environment:
+In any case, to vary the WebSocket URL between environments, add the following configuration to each environment:
 
 ```ruby
 config.action_cable.url = "ws://example.com:28080"
