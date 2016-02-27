@@ -520,11 +520,11 @@ module ActiveRecord
       def log(sql, name = "SQL", binds = [], statement_name = nil)
         @instrumenter.instrument(
           "sql.active_record",
-          :sql            => sql.freeze,
+          :sql            => sql.dup,
           :name           => name,
           :connection_id  => object_id,
           :statement_name => statement_name,
-          :binds          => binds.freeze) { yield }
+          :binds          => binds.dup) { yield }
       rescue => e
         raise translate_exception_class(e, sql)
       end

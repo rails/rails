@@ -245,12 +245,10 @@ class QueryCacheTest < ActiveRecord::TestCase
     end
   end
 
-  def test_query_cache_freezes_they_key
+  def test_query_cache_works_when_mutating_payload
     callback = Proc.new do |*args, payload|
-      e = assert_raises(RuntimeError) do
-        payload[:sql].gsub!("*", "* ")
-      end
-      assert_equal "can't modify frozen String", e.message
+      payload[:sql].gsub!("*", "* ")
+      payload[:binds].clear
     end
 
     ActiveSupport::Notifications.subscribed(callback, "sql.active_record") do
