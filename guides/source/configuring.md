@@ -622,8 +622,8 @@ There are a few configuration options available in Active Support:
 if you are running Action Cable servers that are separated from your
 main application.
 * `config.action_cable.mount_path` accepts a string for where to mount Action
-  Cable, as apart of the main server process. Defaults to `/cable`.
-You can set this as nil to not mount Action Cable as apart of your
+  Cable, as part of the main server process. Defaults to `/cable`.
+You can set this as nil to not mount Action Cable as part of your
 normal Rails server.
 
 ### Configuring a Database

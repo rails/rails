@@ -1,6 +1,6 @@
 module ActionCable
   module Channel
-    # Streams allow channels to route broadcastings to the subscriber. A broadcasting is, as discussed elsewhere, a pub/sub queue where any data
+    # Streams allow channels to route broadcastings to the subscriber. A broadcasting is, as discussed elsewhere, a pubsub queue where any data
     # placed into it is automatically sent to the clients that are connected at that time. It's purely an online queue, though. If you're not
     # streaming a broadcasting at the very moment it sends out an update, you will not get that update, if you connect after it has been sent.
     #

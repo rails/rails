@@ -166,7 +166,7 @@ module ActionCable
         end
       end
 
-      # Called by the cable connection when its cut, so the channel has a chance to cleanup with callbacks.
+      # Called by the cable connection when it's cut, so the channel has a chance to cleanup with callbacks.
       # This method is not intended to be called directly by the user. Instead, overwrite the #unsubscribed callback.
       def unsubscribe_from_channel # :nodoc:
         run_callbacks :unsubscribe do
