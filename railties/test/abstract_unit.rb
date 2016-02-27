@@ -1,7 +1,5 @@
 ENV["RAILS_ENV"] ||= "test"
 
-require File.expand_path("../../../load_paths", __FILE__)
-
 require 'stringio'
 require 'active_support/testing/autorun'
 require 'active_support/testing/stream'

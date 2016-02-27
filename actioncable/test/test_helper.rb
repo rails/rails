@@ -1,8 +1,5 @@
-require File.expand_path('../../../load_paths', __FILE__)
-
 require 'action_cable'
 require 'active_support/testing/autorun'
-
 
 require 'puma'
 
