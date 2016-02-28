@@ -34,6 +34,10 @@ module ActionDispatch
   # original HSTS directive until it expires. Instead, use the header to tell browsers to
   # expire HSTS immediately. Setting `hsts: false` is a shortcut for
   # `hsts: { expires: 0 }`.
+  #
+  # Redirection can be constrained to only whitelisted requests with `constrain_to`:
+  #
+  #    config.ssl_options = { redirect: { constrain_to: -> request { request.path !~ /healthcheck/ } } }
   class SSL
     # Default to 180 days, the low end for https://www.ssllabs.com/ssltest/
     # and greater than the 18-week requirement for browser preload lists.
@@ -55,7 +59,7 @@ module ActionDispatch
       else
         @redirect = redirect
       end
-
+      @constrain_to = @redirect && @redirect[:constrain_to] || proc { @redirect }
       @secure_cookies = secure_cookies
 
       if hsts != true && hsts != false && hsts[:subdomains].nil?
@@ -80,7 +84,7 @@ module ActionDispatch
           flag_cookies_as_secure! headers if @secure_cookies
         end
       else
-        return redirect_to_https request if @redirect
+        return redirect_to_https request if @constrain_to.call(request)
         @app.call(env)
       end
     end
