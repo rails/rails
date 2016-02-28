@@ -125,7 +125,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
         # make sure we are in correct dir
         FileUtils.cd(app_moved_root)
 
-        generator = Rails::Generators::AppGenerator.new ["rails"], { with_dispatchers: true },
+        generator = Rails::Generators::AppGenerator.new ["rails"], [],
                                                                    destination_root: app_moved_root, shell: @shell
         generator.send(:app_const)
         quietly { generator.send(:update_config_files) }
@@ -140,7 +140,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator [app_root]
 
     stub_rails_application(app_root) do
-      generator = Rails::Generators::AppGenerator.new ["rails"], { with_dispatchers: true }, destination_root: app_root, shell: @shell
+      generator = Rails::Generators::AppGenerator.new ["rails"], [], destination_root: app_root, shell: @shell
       generator.send(:app_const)
       quietly { generator.send(:update_config_files) }
       assert_file "myapp/config/initializers/session_store.rb", /_myapp_session/
@@ -164,7 +164,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator [app_root]
 
     stub_rails_application(app_root) do
-      generator = Rails::Generators::AppGenerator.new ["rails"], { with_dispatchers: true }, destination_root: app_root, shell: @shell
+      generator = Rails::Generators::AppGenerator.new ["rails"], [], destination_root: app_root, shell: @shell
       generator.send(:app_const)
       quietly { generator.send(:update_config_files) }
       assert_file("#{app_root}/config/initializers/cookies_serializer.rb", /Rails\.application\.config\.action_dispatch\.cookies_serializer = :json/)
@@ -178,7 +178,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     FileUtils.rm("#{app_root}/config/initializers/callback_terminator.rb")
 
     stub_rails_application(app_root) do
-      generator = Rails::Generators::AppGenerator.new ["rails"], { with_dispatchers: true }, destination_root: app_root, shell: @shell
+      generator = Rails::Generators::AppGenerator.new ["rails"], [], destination_root: app_root, shell: @shell
       generator.send(:app_const)
       quietly { generator.send(:update_config_files) }
       assert_no_file "#{app_root}/config/initializers/callback_terminator.rb"
@@ -192,7 +192,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     FileUtils.touch("#{app_root}/config/initializers/callback_terminator.rb")
 
     stub_rails_application(app_root) do
-      generator = Rails::Generators::AppGenerator.new ["rails"], { with_dispatchers: true }, destination_root: app_root, shell: @shell
+      generator = Rails::Generators::AppGenerator.new ["rails"], [], destination_root: app_root, shell: @shell
       generator.send(:app_const)
       quietly { generator.send(:update_config_files) }
       assert_file "#{app_root}/config/initializers/callback_terminator.rb"
@@ -206,7 +206,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     FileUtils.rm("#{app_root}/config/initializers/cookies_serializer.rb")
 
     stub_rails_application(app_root) do
-      generator = Rails::Generators::AppGenerator.new ["rails"], { with_dispatchers: true }, destination_root: app_root, shell: @shell
+      generator = Rails::Generators::AppGenerator.new ["rails"], [], destination_root: app_root, shell: @shell
       generator.send(:app_const)
       quietly { generator.send(:update_config_files) }
       assert_file("#{app_root}/config/initializers/cookies_serializer.rb", /Rails\.application\.config\.action_dispatch\.cookies_serializer = :marshal/)
@@ -220,7 +220,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     FileUtils.rm("#{app_root}/config/initializers/active_record_belongs_to_required_by_default.rb")
 
     stub_rails_application(app_root) do
-      generator = Rails::Generators::AppGenerator.new ["rails"], { with_dispatchers: true }, destination_root: app_root, shell: @shell
+      generator = Rails::Generators::AppGenerator.new ["rails"], [], destination_root: app_root, shell: @shell
       generator.send(:app_const)
       quietly { generator.send(:update_config_files) }
       assert_no_file "#{app_root}/config/initializers/active_record_belongs_to_required_by_default.rb"
@@ -234,7 +234,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     FileUtils.touch("#{app_root}/config/initializers/active_record_belongs_to_required_by_default.rb")
 
     stub_rails_application(app_root) do
-      generator = Rails::Generators::AppGenerator.new ["rails"], { with_dispatchers: true }, destination_root: app_root, shell: @shell
+      generator = Rails::Generators::AppGenerator.new ["rails"], [], destination_root: app_root, shell: @shell
       generator.send(:app_const)
       quietly { generator.send(:update_config_files) }
       assert_file "#{app_root}/config/initializers/active_record_belongs_to_required_by_default.rb"
@@ -248,7 +248,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     FileUtils.rm("#{app_root}/config/initializers/ssl_options.rb")
 
     stub_rails_application(app_root) do
-      generator = Rails::Generators::AppGenerator.new ["rails"], { with_dispatchers: true }, destination_root: app_root, shell: @shell
+      generator = Rails::Generators::AppGenerator.new ["rails"], [], destination_root: app_root, shell: @shell
       generator.send(:app_const)
       quietly { generator.send(:update_config_files) }
       assert_no_file "#{app_root}/config/initializers/ssl_options.rb"
@@ -262,7 +262,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     FileUtils.touch("#{app_root}/config/initializers/ssl_options.rb")
 
     stub_rails_application(app_root) do
-      generator = Rails::Generators::AppGenerator.new ["rails"], { with_dispatchers: true }, destination_root: app_root, shell: @shell
+      generator = Rails::Generators::AppGenerator.new ["rails"], [], destination_root: app_root, shell: @shell
       generator.send(:app_const)
       quietly { generator.send(:update_config_files) }
       assert_file "#{app_root}/config/initializers/ssl_options.rb"
@@ -274,7 +274,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator [app_root]
 
     stub_rails_application(app_root) do
-      generator = Rails::Generators::AppGenerator.new ["rails"], { with_dispatchers: true }, destination_root: app_root, shell: @shell
+      generator = Rails::Generators::AppGenerator.new ["rails"], [], destination_root: app_root, shell: @shell
       generator.send(:app_const)
       quietly { generator.send(:update_config_files) }
       assert_no_file "#{app_root}/config/initializers/cors.rb"
@@ -288,7 +288,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     FileUtils.touch("#{app_root}/config/initializers/cors.rb")
 
     stub_rails_application(app_root) do
-      generator = Rails::Generators::AppGenerator.new ["rails"], { with_dispatchers: true }, destination_root: app_root, shell: @shell
+      generator = Rails::Generators::AppGenerator.new ["rails"], [], destination_root: app_root, shell: @shell
       generator.send(:app_const)
       quietly { generator.send(:update_config_files) }
       assert_file "#{app_root}/config/initializers/cors.rb"
