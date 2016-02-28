@@ -27,7 +27,7 @@ The process should go as follows:
 3. Fix tests and deprecated features
 4. Move to the latest patch version of the next minor version
 
-Repeat this process until you reach your target Rails version. Each time you move versions, you will need to change the Rails version number in the Gemfile (and possibly other gem versions) and run `bundle update`. Then run the Update rake task mentioned below to update configuration files, then run your tests.
+Repeat this process until you reach your target Rails version. Each time you move versions, you will need to change the Rails version number in the Gemfile (and possibly other gem versions) and run `bundle update`. Then run the Update task mentioned below to update configuration files, then run your tests.
 
 You can find a list of all released Rails versions [here](https://rubygems.org/gems/rails/versions).
 
@@ -44,8 +44,8 @@ TIP: Ruby 1.8.7 p248 and p249 have marshaling bugs that crash Rails. Ruby Enterp
 
 ### The Task
 
-Rails provides the `app:update` rake task. After updating the Rails version
-in the Gemfile, run this rake task.
+Rails provides the `app:update` task. After updating the Rails version
+in the Gemfile, run this task.
 This will help you with the creation of new files and changes of old files in an
 interactive session.
 

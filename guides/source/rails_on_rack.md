@@ -93,7 +93,7 @@ NOTE: `ActionDispatch::MiddlewareStack` is Rails equivalent of `Rack::Builder`, 
 
 ### Inspecting Middleware Stack
 
-Rails has a handy rake task for inspecting the middleware stack in use:
+Rails has a handy task for inspecting the middleware stack in use:
 
 ```bash
 $ bin/rails middleware
