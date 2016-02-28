@@ -43,7 +43,7 @@ class QueryCacheTest < ActiveRecord::TestCase
     connection_id = ActiveRecord::Base.connection_id
 
     mw = ActiveRecord::QueryCache.new lambda { |env|
-      ActiveRecord::Base.connection_id = self.object_id
+      ActiveRecord::RuntimeRegistry.connection_id = self.object_id
       raise "lol borked"
     }
     assert_raises(RuntimeError) { mw.call({}) }
