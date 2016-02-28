@@ -56,24 +56,48 @@ users.project(users[:id])
 Comparison operators `=`, `!=`, `<`, `>`, `<=`, `>=`, `IN`:
 
 ```ruby
-users.where(users[:age].eq(10)).project(Arel.sql('*')) # => SELECT * FROM "users"  WHERE "users"."age" = 10
-users.where(users[:age].not_eq(10)).project(Arel.sql('*')) # => SELECT * FROM "users"  WHERE "users"."age" != 10
-users.where(users[:age].lt(10)).project(Arel.sql('*')) # => SELECT * FROM "users"  WHERE "users"."age" < 10
-users.where(users[:age].gt(10)).project(Arel.sql('*')) # => SELECT * FROM "users"  WHERE "users"."age" > 10
-users.where(users[:age].lteq(10)).project(Arel.sql('*')) # => SELECT * FROM "users"  WHERE "users"."age" <= 10
-users.where(users[:age].gteq(10)).project(Arel.sql('*')) # => SELECT * FROM "users"  WHERE "users"."age" >= 10
-users.where(users[:age].in([20, 16, 17])).project(Arel.sql('*')) # => SELECT * FROM "users"  WHERE "users"."age" IN (20, 16, 17)
+users.where(users[:age].eq(10)).project(Arel.sql('*'))
+# => SELECT * FROM "users"  WHERE "users"."age" = 10
+
+users.where(users[:age].not_eq(10)).project(Arel.sql('*'))
+# => SELECT * FROM "users"  WHERE "users"."age" != 10
+
+users.where(users[:age].lt(10)).project(Arel.sql('*'))
+# => SELECT * FROM "users"  WHERE "users"."age" < 10
+
+users.where(users[:age].gt(10)).project(Arel.sql('*'))
+# => SELECT * FROM "users"  WHERE "users"."age" > 10
+
+users.where(users[:age].lteq(10)).project(Arel.sql('*'))
+# => SELECT * FROM "users"  WHERE "users"."age" <= 10
+
+users.where(users[:age].gteq(10)).project(Arel.sql('*'))
+# => SELECT * FROM "users"  WHERE "users"."age" >= 10
+
+users.where(users[:age].in([20, 16, 17])).project(Arel.sql('*'))
+# => SELECT * FROM "users"  WHERE "users"."age" IN (20, 16, 17)
 ```
 
 Bitwise operators `&`, `|`, `^`, `<<`, `>>`:
 
 ```ruby
-users.where((users[:bitmap] & 16).gt(0)).project(Arel.sql('*')) # => SELECT * FROM "users"  WHERE ("users"."bitmap" & 16) > 0
-users.where((users[:bitmap] | 16).gt(0)).project(Arel.sql('*')) # => SELECT * FROM "users"  WHERE ("users"."bitmap" | 16) > 0
-users.where((users[:bitmap] ^ 16).gt(0)).project(Arel.sql('*')) # => SELECT * FROM "users"  WHERE ("users"."bitmap" ^ 16) > 0
-users.where((users[:bitmap] << 1).gt(0)).project(Arel.sql('*')) # => SELECT * FROM "users"  WHERE ("users"."bitmap" << 1) > 0
-users.where((users[:bitmap] >> 1).gt(0)).project(Arel.sql('*')) # => SELECT * FROM "users"  WHERE ("users"."bitmap" >> 1) > 0
-users.where((~ users[:bitmap]).gt(0)).project(Arel.sql('*')) # => SELECT FROM "users" WHERE  ~ "users"."bitmap" > 0
+users.where((users[:bitmap] & 16).gt(0)).project(Arel.sql('*'))
+# => SELECT * FROM "users"  WHERE ("users"."bitmap" & 16) > 0
+
+users.where((users[:bitmap] | 16).gt(0)).project(Arel.sql('*'))
+# => SELECT * FROM "users"  WHERE ("users"."bitmap" | 16) > 0
+
+users.where((users[:bitmap] ^ 16).gt(0)).project(Arel.sql('*'))
+# => SELECT * FROM "users"  WHERE ("users"."bitmap" ^ 16) > 0
+
+users.where((users[:bitmap] << 1).gt(0)).project(Arel.sql('*'))
+# => SELECT * FROM "users"  WHERE ("users"."bitmap" << 1) > 0
+
+users.where((users[:bitmap] >> 1).gt(0)).project(Arel.sql('*'))
+# => SELECT * FROM "users"  WHERE ("users"."bitmap" >> 1) > 0
+
+users.where((~ users[:bitmap]).gt(0)).project(Arel.sql('*'))
+# => SELECT FROM "users" WHERE  ~ "users"."bitmap" > 0
 ```
 
 Joins resemble SQL strongly:
@@ -130,18 +154,30 @@ The `AND` operator behaves similarly.
 Aggregate functions `AVG`, `SUM`, `COUNT`, `MIN`, `MAX`, `HAVING`:
 
 ```ruby
-photos.group(photos[:user_id]).having(photos[:id].count.gt(5)) # => SELECT FROM photos GROUP BY photos.user_id HAVING COUNT(photos.id) > 5
-users.project(users[:age].sum) # => SELECT SUM(users.age) FROM users
-users.project(users[:age].average) # => SELECT AVG(users.age) FROM users
-users.project(users[:age].maximum) # => SELECT MAX(users.age) FROM users
-users.project(users[:age].minimum) # => SELECT MIN(users.age) FROM users
-users.project(users[:age].count) # => SELECT COUNT(users.age) FROM users
+photos.group(photos[:user_id]).having(photos[:id].count.gt(5))
+# => SELECT FROM photos GROUP BY photos.user_id HAVING COUNT(photos.id) > 5
+
+users.project(users[:age].sum)
+# => SELECT SUM(users.age) FROM users
+
+users.project(users[:age].average)
+# => SELECT AVG(users.age) FROM users
+
+users.project(users[:age].maximum)
+# => SELECT MAX(users.age) FROM users
+
+users.project(users[:age].minimum)
+# => SELECT MIN(users.age) FROM users
+
+users.project(users[:age].count)
+# => SELECT COUNT(users.age) FROM users
 ```
 
 Aliasing Aggregate Functions:
 
 ```ruby
-users.project(users[:age].average.as("mean_age")) # => SELECT AVG(users.age) AS mean_age FROM users
+users.project(users[:age].average.as("mean_age"))
+# => SELECT AVG(users.age) AS mean_age FROM users
 ```
 
 ### The Crazy Features
@@ -190,7 +226,8 @@ Joining a table to itself requires aliasing in SQL. This aliasing can be handled
 replies = comments.alias
 comments_with_replies = \
   comments.join(replies).on(replies[:parent_id].eq(comments[:id])).where(comments[:id].eq(1))
-# => SELECT * FROM comments INNER JOIN comments AS comments_2 WHERE comments_2.parent_id = comments.id AND comments.id = 1
+# => SELECT * FROM comments INNER JOIN comments AS comments_2
+#    WHERE comments_2.parent_id = comments.id AND comments.id = 1
 ```
 
 This will return the reply for the first comment.
@@ -212,7 +249,9 @@ users.
   project(users[:id], cte_table[:click].sum).
   with(composed_cte)
 
-# => WITH cte_table AS (SELECT FROM photos  WHERE photos.created_at > '2014-05-02') SELECT users.id, SUM(cte_table.click) FROM users INNER JOIN cte_table ON users.id = cte_table.user_id
+# => WITH cte_table AS (SELECT FROM photos  WHERE photos.created_at > '2014-05-02')
+#    SELECT users.id, SUM(cte_table.click)
+#    FROM users INNER JOIN cte_table ON users.id = cte_table.user_id
 ```
 
 When your query is too complex for `Arel`, you can use `Arel::SqlLiteral`:
@@ -225,12 +264,13 @@ photo_clicks = Arel::Nodes::SqlLiteral.new(<<-SQL
     ELSE default_calculation END
 SQL
 )
+
 photos.project(photo_clicks.as("photo_clicks"))
 # => SELECT CASE WHEN condition1 THEN calculation1
-    WHEN condition2 THEN calculation2
-    WHEN condition3 THEN calculation3
-    ELSE default_calculation END
- FROM "photos"
+#    WHEN condition2 THEN calculation2
+#    WHEN condition3 THEN calculation3
+#    ELSE default_calculation END
+#    FROM "photos"
 ```
 
 ## Contributing to Arel
