@@ -1,3 +1,7 @@
+*   Deprecate `Module.local_constants`. Please use `Module.constants(false)` instead.
+
+    *Yuichiro Kaneko*
+
 ## Rails 5.0.0.beta3 (February 24, 2016) ##
 
 *   Deprecate arguments on `assert_nothing_raised`.

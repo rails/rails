@@ -57,6 +57,10 @@ class Module
   end
 
   def local_constants #:nodoc:
+    ActiveSupport::Deprecation.warn(<<-MSG.squish)
+      Module#local_constants is deprecated and will be removed in Rails 5.1.
+      Use Module#constants(false) instead.
+    MSG
     constants(false)
   end
 end
