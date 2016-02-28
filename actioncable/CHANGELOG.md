@@ -1,3 +1,7 @@
+* Ensure ActionCable behaves correctly for non-string queue names.
+
+  *Jay Hayes*
+
 ## Rails 5.0.0.beta3 (February 24, 2016) ##
 
 *  Added `em_redis_connector` and `redis_connector` to

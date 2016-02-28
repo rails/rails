@@ -14,7 +14,12 @@ class ActionCable::Channel::StreamTest < ActionCable::TestCase
     def send_confirmation
       transmit_subscription_confirmation
     end
+  end
 
+  class SymbolChannel < ActionCable::Channel::Base
+    def subscribed
+      stream_from :channel
+    end
   end
 
   test "streaming start and stop" do
@@ -22,6 +27,17 @@ class ActionCable::Channel::StreamTest < ActionCable::TestCase
       connection = TestConnection.new
       connection.expects(:pubsub).returns mock().tap { |m| m.expects(:subscribe).with("test_room_1", kind_of(Proc), kind_of(Proc)).returns stub_everything(:pubsub) }
       channel = ChatChannel.new connection, "{id: 1}", { id: 1 }
+
+      connection.expects(:pubsub).returns mock().tap { |m| m.expects(:unsubscribe) }
+      channel.unsubscribe_from_channel
+    end
+  end
+
+  test "stream from non-string channel" do
+    run_in_eventmachine do
+      connection = TestConnection.new
+      connection.expects(:pubsub).returns mock().tap { |m| m.expects(:subscribe).with("channel", kind_of(Proc), kind_of(Proc)).returns stub_everything(:pubsub) }
+      channel = SymbolChannel.new connection, ""
 
       connection.expects(:pubsub).returns mock().tap { |m| m.expects(:unsubscribe) }
       channel.unsubscribe_from_channel
