@@ -39,6 +39,13 @@ class RedirectSSLTest < SSLTest
     assert_equal redirect[:body].join, @response.body
   end
 
+  test 'constrain to can avoid redirect' do
+    constraining = { constrain_to: -> request { request.path !~ /healthcheck/ } }
+
+    assert_not_redirected 'http://example.org/healthcheck', redirect: constraining
+    assert_redirected from: 'http://example.org/', redirect: constraining
+  end
+
   test 'https is not redirected' do
     assert_not_redirected 'https://example.org'
   end
