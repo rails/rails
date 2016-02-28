@@ -8,8 +8,8 @@ Arel Really Exasperates Logicians
 
 Arel is a SQL AST manager for Ruby. It
 
-1. Simplifies the generation of complex SQL queries
-2. Adapts to various RDBMSes
+1. simplifies the generation of complex SQL queries, and
+2. adapts to various RDBMSes.
 
 It is intended to be a framework framework; that is, you can build your own ORM
 with it, focusing on innovative object and collection modeling as opposed to
@@ -17,7 +17,7 @@ database compatibility and query generation.
 
 ## Status
 
-For the moment, Arel uses Active Record's connection adapters to connect to the various engines, connection pooling, perform quoting, and do type conversion.
+For the moment, Arel uses Active Record's connection adapters to connect to the various engines and perform connection pooling, quoting, and type conversion.
 
 ## A Gentle Introduction
 
@@ -27,7 +27,7 @@ Generating a query with Arel is simple. For example, in order to produce
 SELECT * FROM users
 ```
 
-you construct a table relation and convert it to sql:
+you construct a table relation and convert it to SQL:
 
 ```ruby
 users = Arel::Table.new(:users)
@@ -107,7 +107,7 @@ users.join(photos).on(users[:id].eq(photos[:user_id]))
 # => SELECT * FROM users INNER JOIN photos ON users.id = photos.user_id
 ```
 
-Left Joins
+Left joins:
 
 ```ruby
 users.join(photos, Arel::Nodes::OuterJoin).on(users[:id].eq(photos[:user_id]))
@@ -128,7 +128,7 @@ users.project(users[:name]).group(users[:name])
 # => SELECT users.name FROM users GROUP BY users.name
 ```
 
-The best property of arel is its "composability", or closure under all operations. For example, to restrict AND project, just "chain" the method invocations:
+The best property of Arel is its "composability," or closure under all operations. For example, to restrict AND project, just "chain" the method invocations:
 
 ```ruby
 users                                 \
@@ -182,7 +182,7 @@ users.project(users[:age].average.as("mean_age"))
 
 ### The Crazy Features
 
-The examples above are fairly simple and other libraries match or come close to matching the expressiveness of Arel (e.g., `Sequel` in Ruby).
+The examples above are fairly simple and other libraries match or come close to matching the expressiveness of Arel (e.g. `Sequel` in Ruby).
 
 #### Inline math operations
 
@@ -232,7 +232,7 @@ comments_with_replies = \
 
 This will return the reply for the first comment.
 
-[Common Table Expressions(CTE)](https://en.wikipedia.org/wiki/Common_table_expressions#Common_table_expression) support via:
+[Common Table Expressions (CTE)](https://en.wikipedia.org/wiki/Common_table_expressions#Common_table_expression) support via:
 
 Create a `CTE`
 
@@ -275,7 +275,7 @@ photos.project(photo_clicks.as("photo_clicks"))
 
 ## Contributing to Arel
 
-Arel is work of many contributors. You're encouraged to submit pull requests, propose
+Arel is the work of many contributors. You're encouraged to submit pull requests, propose
 features and discuss issues.
 
 See [CONTRIBUTING](CONTRIBUTING.md).
