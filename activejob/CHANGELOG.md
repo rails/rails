@@ -1,3 +1,10 @@
+*   Tune the async adapter for low-footprint dev/test usage. Use a single
+    thread pool for all queues and limit to 0 to #CPU total threads, down from
+    2 to 10*#CPU per queue.
+
+    *Jeremy Daer*
+
+
 ## Rails 5.0.0.beta3 (February 24, 2016) ##
 
 *   Change the default adapter from inline to async. It's a better default as tests will then not mistakenly
