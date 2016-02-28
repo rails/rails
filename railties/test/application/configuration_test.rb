@@ -1337,7 +1337,7 @@ module ApplicationTests
       assert_equal 'custom key', Rails.application.config.my_custom_config['key']
     end
 
-    test "config_for use the Pathname object if it is provided" do
+    test "config_for uses the Pathname object if it is provided" do
       app_file 'config/custom.yml', <<-RUBY
       development:
         key: 'custom key'
@@ -1464,7 +1464,7 @@ module ApplicationTests
       assert_equal :api, Rails.configuration.debug_exception_response_format
     end
 
-    test "debug_exception_response_format can be override" do
+    test "debug_exception_response_format can be overriden" do
       add_to_config <<-RUBY
         config.api_only = true
       RUBY
