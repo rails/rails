@@ -546,7 +546,6 @@ You can change that in `config/database.yml` through the `pool` attribute.
 
 ## Running standalone cable servers
 
-<<<<<<< HEAD
 ### In App
 
 Action Cable can run alongside your Rails application. For example, to
@@ -569,10 +568,8 @@ your server spawns, you will also have a new instance of ActionCable,
 but the use of Redis keeps messages synced across connections.
 
 ### Standalone
-The cable server(s) can be separated from your normal application server.
-=======
-The cable servers can be separated from your normal application server. 
->>>>>>> Further cleanup of the cable guide
+
+The cable servers can be separated from your normal application server.
 It's still a Rack application, but it is its own Rack application.
 The recommended basic setup is as follows:
 
