@@ -133,10 +133,18 @@ module ActionDispatch
       end
 
       def redirect_to_https(request)
-        [ @redirect.fetch(:status, 301),
+        [ @redirect.fetch(:status, redirection_status(request)),
           { "Content-Type" => "text/html",
             "Location" => https_location_for(request) },
           @redirect.fetch(:body, []) ]
+      end
+
+      def redirection_status(request)
+        if request.get? || request.head?
+          301 # Issue a permanent redirect via a GET request.
+        else
+          307 # Issue a fresh request redirect to preserve the HTTP method.
+        end
       end
 
       def https_location_for(request)

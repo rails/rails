@@ -1,3 +1,23 @@
+*   SSL: Changes redirect behavior for all non-GET and non-HEAD requests
+    (like POST/PUT/PATCH etc) to `http://` resources to redirect to `https://`
+    with a [307 status code](http://tools.ietf.org/html/rfc7231#section-6.4.7) instead of [301 status code](http://tools.ietf.org/html/rfc7231#section-6.4.2).
+
+    307 status code instructs the HTTP clients to preserve the original
+    request method while redirecting. It has been part of HTTP RFC since
+    1999 and is implemented/recognized by most (if not all) user agents.
+
+        # Before
+        POST http://example.com/articles (i.e. ArticlesContoller#create)
+        redirects to
+        GET https://example.com/articles (i.e. ArticlesContoller#index)
+
+        # After
+        POST http://example.com/articles (i.e. ArticlesContoller#create)
+        redirects to
+        POST https://example.com/articles (i.e. ArticlesContoller#create)
+
+   *Chirag Singhal*
+
 *   Add `:as` option to `ActionController:TestCase#process` and related methods.
 
     Specifying `as: mime_type` allows the `CONTENT_TYPE` header to be specified
