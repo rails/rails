@@ -35,13 +35,13 @@ client-server connection instance established per WebSocket connection.
 ## Server-Side Components
 
 ### Connections
-Connections form the foundaton of the client-server relationship. For every WebSocket
+Connections form the foundation of the client-server relationship. For every WebSocket
 the cable server is accepting, a Connection object will be instantiated. This instance
-becomes the parent of all the channel subscriptions that are created from there on. 
+becomes the parent of all the channel subscriptions that are created from there on.
 The Connection itself does not deal with any specific application logic beyond authentication
-and authorization. The client of a WebSocket connection is called the consumer. 
+and authorization. The client of a WebSocket connection is called the consumer.
 A single consumer may have multiple WebSockets open to your application if they
-use multiple browser tabs or devices. 
+use multiple browser tabs or devices.
 
 Connections are instantiated via the `ApplicationCable::Connection` class in Ruby.
 In this class, you authorize the incoming connection, and proceed to establish it
@@ -75,7 +75,7 @@ Note that anything marked as an identifier will automatically create a delegate
 by the same name on any channel instances created off the connection.
 
 This relies on the fact that you will already have handled authentication of the user,
-and that a successful authentication sets a signed cookie with the `user_id`. 
+and that a successful authentication sets a signed cookie with the `user_id`.
 This cookie is then automatically sent to the connection instance when a new connection
 is attempted, and you use that to set the `current_user`. By identifying the connection
 by this same current_user, you're also ensuring that you can later retrieve all open
@@ -84,9 +84,9 @@ or deauthorized).
 
 ### Channels
 A channel encapsulates a logical unit of work, similar to what a controller does in a
-regular MVC setup. 
+regular MVC setup.
 By default, Rails creates a parent `ApplicationCable::Channel` class for encapsulating
-shared logic between your channels. 
+shared logic between your channels.
 
 #### Parent Channel Setup
 ```ruby
@@ -145,11 +145,11 @@ This ensures that the signed cookie will be correctly sent.
 
 #### Subscriber
 When a consumer is subscribed to a channel, they act as a subscriber. A
-consumer can act as a subscriber to a given channel any number of times. 
-For example, a consumer could subscribe to multiple chat rooms at the same time. 
+consumer can act as a subscriber to a given channel any number of times.
+For example, a consumer could subscribe to multiple chat rooms at the same time.
 (remember that a physical user may have multiple consumers, one per tab/device open to your connection).
 
-A consumer becomes a subscriber, by creating a subscribtion to a given channel:
+A consumer becomes a subscriber, by creating a subscription to a given channel:
 ```coffeescript
 # app/assets/javascripts/cable/subscriptions/chat.coffee
 # Assumes you've already requested the right to send web notifications
@@ -197,8 +197,8 @@ end
 
 A broadcasting is a pub/sub link where anything transmitted by a publisher
 is routed directly to the channel subscribers who are streaming that named
-broadcasting. Each channel can be streaming zero or more broadcastings. 
-Broadcastings are purely an online queue and time dependent; 
+broadcasting. Each channel can be streaming zero or more broadcastings.
+Broadcastings are purely an online queue and time dependent;
 If a consumer is not streaming (subscribed to a given channel), they'll not
 get the broadcast should they connect later.
 
@@ -218,9 +218,9 @@ callback.
 
 ### Subscriptions
 
-When a consumer is subscribed to a channel, they act as a subscriber; 
+When a consumer is subscribed to a channel, they act as a subscriber;
 This connection is called a subscription. Incoming messages are then routed
-to these channel subscriptions based on an identifier sent by the cable consumer. 
+to these channel subscriptions based on an identifier sent by the cable consumer.
 
 ```coffeescript
 # app/assets/javascripts/cable/subscriptions/chat.coffee
@@ -414,13 +414,13 @@ App.cable.subscriptions.create "AppearanceChannel",
 The appearance example was all about exposing server functionality to
 client-side invocation over the WebSocket connection. But the great thing
 about WebSockets is that it's a two-way street. So now let's show an example
-where the server invokesan action on the client.
+where the server invokes an action on the client.
 
 This is a web notification channel that allows you to trigger client-side
 web notifications when you broadcast to the right streams:
 
 #### Create the server-side Web Notifications Channel:
- 
+
 ```ruby
 # app/channels/web_notifications_channel.rb
 class WebNotificationsChannel < ApplicationCable::Channel
@@ -520,12 +520,12 @@ this would be something like: `App.cable = ActionCable.createConsumer("ws://exam
 and for an in-app server, something like: `App.cable = ActionCable.createConsumer("/cable")`.
 
 The second option is to pass the server url through the `action_cable_meta_tag` in your layout.
-This uses a url or path typically set via `config.action_cable.url` 
+This uses a url or path typically set via `config.action_cable.url`
 in the environment configuration files, or defaults to "/cable".
 
 This method is especially useful if your WebSocket url might change
 between environments. If you host your production server via https,
-you will need to use the wss scheme for your ActionCable server, but 
+you will need to use the wss scheme for your ActionCable server, but
 development might remain http and use the ws scheme. You might use localhost
 in development and your domain in production.
 
@@ -606,15 +606,15 @@ end
 
 You can use `App.cable = ActionCable.createConsumer()` to connect to the
 cable server if `action_cable_meta_tag` is included in the layout. A custom
-path is specified as first argument to `createConsumer` 
+path is specified as first argument to `createConsumer`
 (e.g. `App.cable = ActionCable.createConsumer("/websocket")`).
 
 For every instance of your server you create and for every worker
 your server spawns, you will also have a new instance of ActionCable,
-but the use of Redis keeps messages synced across connections. 
+but the use of Redis keeps messages synced across connections.
 
 ### Standalone
-The cable server(s) can be separated from your normal application server. 
+The cable server(s) can be separated from your normal application server.
 It's still a Rack application, but it is its own Rack application.
 The recommended basic setup is as follows:
 
@@ -639,7 +639,7 @@ The above will start a cable server on port 28080.
 Beware that currently the cable server will _not_ auto-reload any
 changes in the framework. As we've discussed, long-running cable
 connections mean long-running objects. We don't yet have a way of
-reloading the classes of those objects in a safe manner. So when 
+reloading the classes of those objects in a safe manner. So when
 you change your channels, or the model your channels use, you must
 restart the cable server.
 
@@ -660,11 +660,11 @@ The Ruby side of things is built on top of [websocket-driver](https://github.com
 ## Deployment
 
 Action Cable is powered by a combination of WebSockets and threads. Both the
-framework plumbing and user-specified channel work are handled internally by 
-utilizing Ruby's native thread support. This means you can use all your regular 
+framework plumbing and user-specified channel work are handled internally by
+utilizing Ruby's native thread support. This means you can use all your regular
 Rails models with no problem, as long as you haven't committed any thread-safety sins.
 
-The Action Cable server implements the Rack socket hijacking API, 
+The Action Cable server implements the Rack socket hijacking API,
 thereby allowing the use of a multithreaded pattern for managing connections
 internally, irrespective of whether the application server is multi-threaded or not.
 
