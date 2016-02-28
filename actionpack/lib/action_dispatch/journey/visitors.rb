@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module ActionDispatch
   module Journey # :nodoc:
     class Format
@@ -184,7 +185,7 @@ module ActionDispatch
         end
 
         def visit_GROUP(node, seed)
-          visit(node.left, seed << "(".freeze) << ")".freeze
+          visit(node.left, seed.dup << "(".freeze) << ")".freeze
         end
 
         INSTANCE = new

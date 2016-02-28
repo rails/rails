@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require 'yaml'
 require 'erubis'
 require 'fileutils'
@@ -19,7 +20,6 @@ module ARTest
       unless config_file.exist?
         FileUtils.cp TEST_ROOT + '/config.example.yml', config_file
       end
-
       erb = Erubis::Eruby.new(config_file.read)
       expand_config(YAML.parse(erb.result(binding)).transform)
     end

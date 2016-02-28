@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require "active_record/relation/batches/batch_enumerator"
 
 module ActiveRecord

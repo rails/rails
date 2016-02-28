@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require 'active_support/core_ext/string/filters'
 
 module ActionController
@@ -40,7 +41,7 @@ module ActionController
     def render_to_string(*)
       result = super
       if result.respond_to?(:each)
-        string = ""
+        string = String.new
         result.each { |r| string << r }
         string
       else

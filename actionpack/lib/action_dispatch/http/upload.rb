@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module ActionDispatch
   module Http
     # Models uploaded files.
@@ -27,7 +28,8 @@ module ActionDispatch
         @tempfile          = hash[:tempfile]
         raise(ArgumentError, ':tempfile is required') unless @tempfile
 
-        @original_filename = hash[:filename]
+        @original_filename = hash[:filename].try(:dup)
+
         if @original_filename
           begin
             @original_filename.encode!(Encoding::UTF_8)

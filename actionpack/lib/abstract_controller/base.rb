@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require 'erubis'
 require 'active_support/configurable'
 require 'active_support/descendants_tracker'

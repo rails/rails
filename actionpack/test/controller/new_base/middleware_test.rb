@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require 'abstract_unit'
 
 module MiddlewareTest
@@ -8,8 +9,8 @@ module MiddlewareTest
 
     def call(env)
       result = @app.call(env)
-      result[1]["Middleware-Test"] = "Success"
-      result[1]["Middleware-Order"] = "First"
+      result[1]["Middleware-Test"] = "Success".dup
+      result[1]["Middleware-Order"] = "First".dup
       result
     end
   end

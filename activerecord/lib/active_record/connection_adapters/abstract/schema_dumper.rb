@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
     # The goal of this module is to move Adapter specific column
@@ -38,7 +39,7 @@ module ActiveRecord
         end
 
         default = schema_default(column) if column.has_default?
-        spec[:default]   = default unless default.nil?
+        spec[:default]   = default.dup unless default.nil? #dup since it needs to be unfrozen
 
         spec[:null] = 'false' unless column.null
 

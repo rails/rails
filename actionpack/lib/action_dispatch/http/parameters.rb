@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module ActionDispatch
   module Http
     module Parameters
@@ -67,7 +68,6 @@ module ActionDispatch
         rescue # JSON or Ruby code block errors
           my_logger = logger || ActiveSupport::Logger.new($stderr)
           my_logger.debug "Error occurred while parsing request parameters.\nContents:\n\n#{raw_post}"
-
           raise ParamsParser::ParseError
         end
       end

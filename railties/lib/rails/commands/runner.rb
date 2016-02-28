@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require 'optparse'
 
 options = { environment: (ENV['RAILS_ENV'] || ENV['RACK_ENV'] || "development").dup }

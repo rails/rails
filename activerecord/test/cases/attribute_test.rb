@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require 'cases/helper'
 
 module ActiveRecord
@@ -81,10 +82,8 @@ module ActiveRecord
 
       value_from_orig = attribute.value
       value_from_clone = attribute.dup.value
-      value_from_orig << ' foo'
 
-      assert_equal 'type cast foo', value_from_orig
-      assert_equal 'type cast', value_from_clone
+      refute_same value_from_orig, value_from_clone
     end
 
     test "duping does not dup the value if it is not dupable" do

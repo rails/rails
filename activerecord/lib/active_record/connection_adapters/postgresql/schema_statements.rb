@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module ActiveRecord
   module ConnectionAdapters
     module PostgreSQL
@@ -452,7 +453,7 @@ module ActiveRecord
           quoted_table_name = quote_table_name(table_name)
           quoted_column_name = quote_column_name(column_name)
           sql_type = type_to_sql(type, options[:limit], options[:precision], options[:scale], options[:array])
-          sql = "ALTER TABLE #{quoted_table_name} ALTER COLUMN #{quoted_column_name} TYPE #{sql_type}"
+          sql = String.new("ALTER TABLE #{quoted_table_name} ALTER COLUMN #{quoted_column_name} TYPE #{sql_type}")
           if options[:collation]
             sql << " COLLATE \"#{options[:collation]}\""
           end
@@ -606,7 +607,7 @@ module ActiveRecord
           else
             super(type, limit, precision, scale)
           end
-
+          sql = sql.dup # unfreeze literals
           sql << '[]' if array && type != :primary_key
           sql
         end

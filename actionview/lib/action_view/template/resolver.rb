@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require "pathname"
 require "active_support/core_ext/class"
 require "active_support/core_ext/module/attribute_accessors"
@@ -14,7 +15,7 @@ module ActionView
       alias_method :partial?, :partial
 
       def self.build(name, prefix, partial)
-        virtual = ""
+        virtual = String.new
         virtual << "#{prefix}/" unless prefix.empty?
         virtual << (partial ? "_#{name}" : name)
         new name, prefix, partial, virtual

@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require 'active_record/connection_adapters/abstract_mysql_adapter'
 
 gem 'mysql2', '>= 0.3.18', '< 0.5'

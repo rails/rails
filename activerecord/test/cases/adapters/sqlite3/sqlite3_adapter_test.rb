@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require "cases/helper"
 require 'models/owner'
 require 'tempfile'
@@ -181,7 +182,7 @@ module ActiveRecord
             data binary
           )
         eosql
-        str = "\x80".force_encoding("ASCII-8BIT")
+        str = String.new("\x80").force_encoding("ASCII-8BIT")
         binary = DualEncoding.new name: 'いただきます！', data: str
         binary.save!
         assert_equal str, binary.data
@@ -190,7 +191,7 @@ module ActiveRecord
       end
 
       def test_type_cast_should_not_mutate_encoding
-        name  = 'hello'.force_encoding(Encoding::ASCII_8BIT)
+        name  = String.new('hello').force_encoding(Encoding::ASCII_8BIT)
         Owner.create(name: name)
         assert_equal Encoding::ASCII_8BIT, name.encoding
       ensure

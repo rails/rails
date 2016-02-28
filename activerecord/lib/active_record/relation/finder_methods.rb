@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require 'active_support/core_ext/string/filters'
 
 module ActiveRecord
@@ -350,8 +351,8 @@ module ActiveRecord
       if Array(ids).size == 1
         error = "Couldn't find #{@klass.name} with '#{primary_key}'=#{ids}#{conditions}"
       else
-        error = "Couldn't find all #{@klass.name.pluralize} with '#{primary_key}': "
-        error << "(#{ids.join(", ")})#{conditions} (found #{result_size} results, but was looking for #{expected_size})"
+        error = "Couldn't find all #{@klass.name.pluralize} with '#{primary_key}': "\
+                "(#{ids.join(", ")})#{conditions} (found #{result_size} results, but was looking for #{expected_size})"
       end
 
       raise RecordNotFound, error

@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require "rails"
 require "action_controller"
 require "action_dispatch/railtie"

@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require "cases/helper"
 require 'support/schema_dumping_helper'
 
@@ -411,7 +412,6 @@ class SchemaDumperDefaultsTest < ActiveRecord::TestCase
 
   def test_schema_dump_defaults_with_universally_supported_types
     output = dump_table_schema('defaults')
-
     assert_match %r{t\.string\s+"string_with_default",.*?default: "Hello!"}, output
     assert_match %r{t\.date\s+"date_with_default",\s+default: '2014-06-05'}, output
     assert_match %r{t\.datetime\s+"datetime_with_default",\s+default: '2014-06-05 07:17:04'}, output

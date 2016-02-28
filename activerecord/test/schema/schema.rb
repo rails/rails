@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 ActiveRecord::Schema.define do
   def except(adapter_names_to_exclude)
     unless [adapter_names_to_exclude].flatten.include?(adapter_name)

@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require 'active_support/lazy_load_hooks'
 require 'active_record/explain_registry'
 
@@ -18,7 +19,7 @@ module ActiveRecord
     def exec_explain(queries) # :nodoc:
       str = queries.map do |sql, bind|
         [].tap do |msg|
-          msg << "EXPLAIN for: #{sql}"
+          msg << String.new("EXPLAIN for: #{sql}")
           unless bind.empty?
             bind_msg = bind.map {|col, val| [col.name, val]}.inspect
             msg.last << " #{bind_msg}"

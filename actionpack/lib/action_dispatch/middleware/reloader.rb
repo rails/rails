@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module ActionDispatch
   # ActionDispatch::Reloader provides prepare and cleanup callbacks,
   # intended to assist with code reloading during development.

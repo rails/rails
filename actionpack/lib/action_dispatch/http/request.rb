@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require 'stringio'
 
 require 'active_support/inflector'
@@ -306,6 +307,7 @@ module ActionDispatch
     # variable is already set, wrap it in a StringIO.
     def body
       if raw_post = get_header('RAW_POST_DATA')
+        raw_post = raw_post.dup if raw_post.frozen?
         raw_post.force_encoding(Encoding::BINARY)
         StringIO.new(raw_post)
       else

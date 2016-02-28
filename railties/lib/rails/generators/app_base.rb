@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require 'digest/md5'
 require 'active_support/core_ext/string/strip'
 require 'rails/version' unless defined?(Rails::VERSION)

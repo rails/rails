@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require "cases/migration/helper"
 
 module ActiveRecord

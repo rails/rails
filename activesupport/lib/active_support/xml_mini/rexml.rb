@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require 'active_support/core_ext/kernel/reporting'
 require 'active_support/core_ext/object/blank'
 require 'stringio'
@@ -20,11 +21,12 @@ module ActiveSupport
         data = StringIO.new(data || '')
       end
 
+      pos = data.pos
       char = data.getc
       if char.nil?
         {}
       else
-        data.ungetc(char)
+        data.pos = pos
         silence_warnings { require 'rexml/document' } unless defined?(REXML::Document)
         doc = REXML::Document.new(data)
 
@@ -76,7 +78,7 @@ module ActiveSupport
           hash
         else
           # must use value to prevent double-escaping
-          texts = ''
+          texts = String.new
           element.texts.each { |t| texts << t.value }
           merge!(hash, CONTENT_KEY, texts)
         end

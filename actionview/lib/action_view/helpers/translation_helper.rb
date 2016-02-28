@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require 'action_view/helpers/tag_helper'
 require 'active_support/core_ext/string/access'
 require 'i18n/exceptions'
@@ -96,7 +97,7 @@ module ActionView
           raise e if raise_error
 
           keys = I18n.normalize_keys(e.locale, e.key, e.options[:scope])
-          title = "translation missing: #{keys.join('.')}"
+          title = String.new("translation missing: #{keys.join('.')}")
 
           interpolations = options.except(:default, :scope)
           if interpolations.any?

@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require 'set'
 
 module ActionCable
@@ -191,7 +192,7 @@ module ActionCable
         # Transmit a hash of data to the subscriber. The hash will automatically be wrapped in a JSON envelope with
         # the proper channel identifier marked as the recipient.
         def transmit(data, via: nil)
-          logger.info "#{self.class.name} transmitting #{data.inspect.truncate(300)}".tap { |m| m << " (via #{via})" if via }
+          logger.info "#{self.class.name} transmitting #{data.inspect.truncate(300)}#{ " (via #{via})" if via }"
           connection.transmit ActiveSupport::JSON.encode(identifier: @identifier, message: data)
         end
 
@@ -255,7 +256,7 @@ module ActionCable
         end
 
         def action_signature(action, data)
-          "#{self.class.name}##{action}".tap do |signature|
+          String.new("#{self.class.name}##{action}").tap do |signature|
             if (arguments = data.except('action')).any?
               signature << "(#{arguments.inspect})"
             end

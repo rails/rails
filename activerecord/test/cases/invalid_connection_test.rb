@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require "cases/helper"
 
 if current_adapter?(:Mysql2Adapter)

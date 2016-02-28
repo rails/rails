@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 namespace :dev do
   desc 'Toggle development mode caching on/off'
   task :cache do

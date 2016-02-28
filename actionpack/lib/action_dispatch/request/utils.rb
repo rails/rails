@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module ActionDispatch
   class Request
     class Utils # :nodoc:

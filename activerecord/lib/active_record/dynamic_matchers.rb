@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module ActiveRecord
   module DynamicMatchers #:nodoc:
     def respond_to?(name, include_private = false)

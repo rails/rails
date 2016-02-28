@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module Enumerable
   # Calculates a sum from the elements.
   #

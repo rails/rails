@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 FRAMEWORKS = %w( activesupport activemodel activerecord actionview actionpack activejob actionmailer actioncable railties )
 
 root    = File.expand_path('../../', __FILE__)

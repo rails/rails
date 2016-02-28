@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require 'action_controller/metal/exceptions'
 
 module ActionDispatch
@@ -40,7 +41,7 @@ module ActionDispatch
         end
 
         message = "No route matches #{Hash[constraints.sort_by{|k,v| k.to_s}].inspect}"
-        message << " missing required keys: #{missing_keys.sort.inspect}" if missing_keys && !missing_keys.empty?
+        message += " missing required keys: #{missing_keys.sort.inspect}" if missing_keys && !missing_keys.empty?
 
         raise ActionController::UrlGenerationError, message
       end

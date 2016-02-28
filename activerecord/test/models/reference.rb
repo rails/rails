@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 class Reference < ActiveRecord::Base
   belongs_to :person
   belongs_to :job

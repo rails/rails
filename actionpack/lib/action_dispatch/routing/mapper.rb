@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require 'active_support/core_ext/hash/reverse_merge'
 require 'active_support/core_ext/hash/slice'
 require 'active_support/core_ext/enumerable'
@@ -304,8 +305,8 @@ module ActionDispatch
           def check_controller_and_action(path_params, controller, action)
             hash = check_part(:controller, controller, path_params, {}) do |part|
               translate_controller(part) {
-                message = "'#{part}' is not a supported controller name. This can lead to potential routing problems."
-                message << " See http://guides.rubyonrails.org/routing.html#specifying-a-controller-to-use"
+                message = "'#{part}' is not a supported controller name. This can lead to potential routing problems."\
+                          " See http://guides.rubyonrails.org/routing.html#specifying-a-controller-to-use"
 
                 raise ArgumentError, message
               }

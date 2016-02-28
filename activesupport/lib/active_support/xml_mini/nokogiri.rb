@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 begin
   require 'nokogiri'
 rescue LoadError => e
@@ -19,11 +20,12 @@ module ActiveSupport
         data = StringIO.new(data || '')
       end
 
+      pos = data.pos
       char = data.getc
       if char.nil?
         {}
       else
-        data.ungetc(char)
+        data.pos = pos
         doc = Nokogiri::XML(data)
         raise doc.errors.first if doc.errors.length > 0
         doc.to_hash
@@ -59,7 +61,7 @@ module ActiveSupport
             if c.element?
               c.to_hash(node_hash)
             elsif c.text? || c.cdata?
-              node_hash[CONTENT_ROOT] ||= ''
+              node_hash[CONTENT_ROOT] ||= String.new('')
               node_hash[CONTENT_ROOT] << c.content
             end
           end

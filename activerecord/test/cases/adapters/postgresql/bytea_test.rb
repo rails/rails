@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require "cases/helper"
 
 class PostgresqlByteaTest < ActiveRecord::PostgreSQLTestCase
@@ -44,7 +45,7 @@ class PostgresqlByteaTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_type_cast_binary_value
-    data = "\u001F\x8B".force_encoding("BINARY")
+    data = String.new("\u001F\x8B").force_encoding("BINARY")
     assert_equal(data, @type.deserialize(data))
   end
 

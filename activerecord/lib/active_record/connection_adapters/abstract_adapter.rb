@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require 'active_record/type'
 require 'active_record/connection_adapters/determine_if_preparable_visitor'
 require 'active_record/connection_adapters/schema_cache'
@@ -152,7 +153,7 @@ module ActiveRecord
       # this method must only be called while holding connection pool's mutex
       def lease
         if in_use?
-          msg = 'Cannot lease connection, '
+          msg = String.new('Cannot lease connection, ')
           if @owner == Thread.current
             msg << 'it is already leased by the current thread.'
           else

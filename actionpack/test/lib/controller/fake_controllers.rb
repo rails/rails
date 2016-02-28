@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 class ContentController < ActionController::Base; end
 
 module Admin

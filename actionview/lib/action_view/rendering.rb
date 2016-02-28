@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require "action_view/view_paths"
 
 module ActionView

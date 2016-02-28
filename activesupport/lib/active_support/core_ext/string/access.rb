@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 class String
   # If you pass a single Fixnum, returns a substring of one character at that
   # position. The first character of the string is at position 0, the next at

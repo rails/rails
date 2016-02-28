@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 if RUBY_PLATFORM =~ /java/
   require 'abstract_unit'
   require 'active_support/xml_mini'

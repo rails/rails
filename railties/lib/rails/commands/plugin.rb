@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 if ARGV.first != "new"
   ARGV[0] = "--help"
 else

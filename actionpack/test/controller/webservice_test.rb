@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require 'abstract_unit'
 require 'active_support/json/decoding'
 
@@ -12,7 +13,7 @@ class WebServiceTest < ActionDispatch::IntegrationTest
     end
 
     def dump_params_keys(hash = params)
-      hash.keys.sort.inject("") do |s, k|
+      hash.keys.sort.inject(String.new("")) do |s, k|
         value = hash[k]
 
         if value.is_a?(Hash) || value.is_a?(ActionController::Parameters)
