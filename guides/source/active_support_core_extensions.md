@@ -709,29 +709,6 @@ M.parents       # => [X::Y, X, Object]
 
 NOTE: Defined in `active_support/core_ext/module/introspection.rb`.
 
-### Constants
-
-The method `local_constants` returns the names of the constants that have been
-defined in the receiver module:
-
-```ruby
-module X
-  X1 = 1
-  X2 = 2
-  module Y
-    Y1 = :y1
-    X1 = :overrides_X1_above
-  end
-end
-
-X.local_constants    # => [:X1, :X2, :Y]
-X::Y.local_constants # => [:Y1, :X1]
-```
-
-The names are returned as symbols.
-
-NOTE: Defined in `active_support/core_ext/module/introspection.rb`.
-
 #### Qualified Constant Names
 
 The standard methods `const_defined?`, `const_get`, and `const_set` accept
