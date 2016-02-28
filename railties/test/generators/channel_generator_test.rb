@@ -6,16 +6,16 @@ class ChannelGeneratorTest < Rails::Generators::TestCase
   tests Rails::Generators::ChannelGenerator
 
   def test_application_cable_skeleton_is_created
-     run_generator ['books']
+    run_generator ['books']
 
-     assert_file "app/channels/application_cable/channel.rb" do |cable|
-       assert_match(/module ApplicationCable\n  class Channel < ActionCable::Channel::Base\n/, cable)
-     end
+    assert_file "app/channels/application_cable/channel.rb" do |cable|
+      assert_match(/module ApplicationCable\n  class Channel < ActionCable::Channel::Base\n/, cable)
+    end
 
-     assert_file "app/channels/application_cable/connection.rb" do |cable|
-       assert_match(/module ApplicationCable\n  class Connection < ActionCable::Connection::Base\n/, cable)
-     end
-   end
+    assert_file "app/channels/application_cable/connection.rb" do |cable|
+      assert_match(/module ApplicationCable\n  class Connection < ActionCable::Connection::Base\n/, cable)
+    end
+  end
 
   def test_channel_is_created
     run_generator ['chat']
