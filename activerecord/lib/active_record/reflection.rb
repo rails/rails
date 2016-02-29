@@ -995,7 +995,7 @@ module ActiveRecord
       end
 
       def constraints
-        [source_type_info]
+        @reflection.constraints + [source_type_info]
       end
 
       def source_type_info
