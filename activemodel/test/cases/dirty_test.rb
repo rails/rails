@@ -137,7 +137,12 @@ class DirtyTest < ActiveModel::TestCase
     assert_equal [nil, "Jericho Cane"], @model.previous_changes['name']
   end
 
-  test "setting new attributes should not affect previous changes" do
+  test "setting new attribute should not affect previous changes" do
+    @model.name = "Jericho Cane"
+    assert_equal nil, @model.name_previous_change
+  end
+
+  test "setting new attributes should be reflected in previous change" do
     @model.name = "Jericho Cane"
     @model.save
     @model.name = "DudeFella ManGuy"
