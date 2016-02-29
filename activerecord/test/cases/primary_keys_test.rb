@@ -228,9 +228,10 @@ class PrimaryKeyAnyTypeTest < ActiveRecord::TestCase
   def test_any_type_primary_key
     assert_equal "code", Barcode.primary_key
 
-    column_type = Barcode.type_for_attribute(Barcode.primary_key)
-    assert_equal :string, column_type.type
-    assert_equal 42, column_type.limit
+    column = Barcode.column_for_attribute(Barcode.primary_key)
+    assert_not column.null unless current_adapter?(:SQLite3Adapter)
+    assert_equal :string, column.type
+    assert_equal 42, column.limit
   end
 
   test "schema dump primary key includes type and options" do
