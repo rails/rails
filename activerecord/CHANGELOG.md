@@ -27,6 +27,16 @@
     *Yves Senn*, *Matthew Draper*
 
 
+## Rails 4.2.5.2 (February 26, 2016) ##
+
+*   No changes.
+
+
+## Rails 4.2.5.1 (January 25, 2015) ##
+
+*   No changes.
+
+
 ## Rails 4.2.5 (November 12, 2015) ##
 
 *   No longer pass deprecated option `-i` to `pg_dump`.

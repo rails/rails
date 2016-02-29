@@ -3,14 +3,6 @@
 
     *Bart de Water*
 
-
-## Rails 4.2.5.1 (January 25, 2015) ##
-
-*   Adds boolean argument outside_app_allowed to `ActionView::Resolver#find_templates`
-    method.
-
-    *Aaron Patterson*
-
 *   Create a new `ActiveSupport::SafeBuffer` instance when `content_for` is flushed.
 
     Fixes #19890
@@ -27,6 +19,23 @@
     as per the W3 spec: http://www.w3.org/TR/html-markup/datatypes.html#form.data.week
 
     *Christoph Geschwind*
+
+
+## Rails 4.2.5.2 (February 26, 2016) ##
+
+*   Do not allow render with unpermitted parameter.
+
+    Fixes CVE-2016-2098.
+
+    *Arthur Neves*
+
+
+## Rails 4.2.5.1 (January 25, 2015) ##
+
+*   Adds boolean argument outside_app_allowed to `ActionView::Resolver#find_templates`
+    method.
+
+    *Aaron Patterson*
 
 
 ## Rails 4.2.5 (November 12, 2015) ##
