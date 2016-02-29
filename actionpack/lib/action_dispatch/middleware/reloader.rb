@@ -65,13 +65,17 @@ module ActionDispatch
     end
 
     def call(env)
-      @validated = @condition.call
-      prepare!
+      if env['PATH_INFO'].include?(Rails.application.config.assets.prefix)
+        @app.call(env)
+      else
+        @validated = @condition.call
+        prepare!
 
-      response = @app.call(env)
-      response[2] = ::Rack::BodyProxy.new(response[2]) { cleanup! }
+        response = @app.call(env)
+        response[2] = ::Rack::BodyProxy.new(response[2]) { cleanup! }
 
-      response
+        response
+      end
     rescue Exception
       cleanup!
       raise
