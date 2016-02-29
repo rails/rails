@@ -28,6 +28,7 @@ DEFAULT_APP_FILES = %w(
   config/locales
   config/cable.yml
   config/puma.rb
+  config/spring.rb
   db
   lib
   lib/tasks
@@ -681,6 +682,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_skip_spring
     run_generator [destination_root, "--skip-spring"]
 
+    assert_no_file 'config/spring.rb'
     assert_file "Gemfile" do |content|
       assert_no_match(/spring/, content)
     end

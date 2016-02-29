@@ -80,6 +80,7 @@ module Rails
         template "secrets.yml"
         template "cable.yml" unless options[:skip_action_cable]
         template "puma.rb"   unless options[:skip_puma]
+        template "spring.rb" if spring_install?
 
         directory "environments"
         directory "initializers"
