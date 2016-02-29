@@ -67,7 +67,7 @@ module ActiveRecord
       case sql
         when /\A\s*rollback/mi
           RED
-        when /\s*.*?select .*for update/mi, /\A\s*lock/mi
+        when /select .*for update/mi, /\A\s*lock/mi
           WHITE
         when /\A\s*select/i
           BLUE
