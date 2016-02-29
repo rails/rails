@@ -69,7 +69,7 @@ module ApplicationTests
       FileUtils.mv("#{app_path}/config/__environments__", "#{app_path}/config/environments")
     end
 
-    test "Rails.env does not set the RAILS_ENV environment variable which would leak out into rake tasks" do
+    test "Rails.env does not set the RAILS_ENV environment variable which would leak out into tasks" do
       require "rails"
 
       switch_env "RAILS_ENV", nil do
@@ -79,7 +79,7 @@ module ApplicationTests
       end
     end
 
-    test "By default logs tags are not set in development" do
+    test "By default logs_tags are not set in development" do
       restore_default_config
 
       with_rails_env "development" do
@@ -169,7 +169,7 @@ module ApplicationTests
       assert_equal Rails.application.routes_reloader, AppTemplate::Application.routes_reloader
     end
 
-    test "Rails::Application responds to paths" do
+    test "AppTemplate::Application responds to paths" do
       app 'development'
       assert_respond_to AppTemplate::Application, :paths
       assert_equal ["#{app_path}/app/views"], AppTemplate::Application.paths["app/views"].expanded
@@ -1464,7 +1464,7 @@ module ApplicationTests
       assert_equal :api, Rails.configuration.debug_exception_response_format
     end
 
-    test "debug_exception_response_format can be override" do
+    test "debug_exception_response_format can be overridden" do
       add_to_config <<-RUBY
         config.api_only = true
       RUBY
