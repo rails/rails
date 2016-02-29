@@ -11,7 +11,8 @@ module ActiveRecord
 
     ##
     # PostgreSQL does not support null bytes in strings
-    unless current_adapter?(:PostgreSQLAdapter)
+    unless current_adapter?(:PostgreSQLAdapter) ||
+        (current_adapter?(:SQLite3Adapter) && !ActiveRecord::Base.connection.prepared_statements)
       def test_update_prepared_statement
         b = Book.create(name: "my \x00 book")
         b.reload
