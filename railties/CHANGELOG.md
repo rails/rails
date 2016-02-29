@@ -1,3 +1,8 @@
+*   The application generator writes a new file `config/spring.rb`, which tells
+    Spring to watch additional common files.
+
+    *Xavier Noria*
+
 *   The tasks in the rails task namespace is deprecated in favor of app namespace.
     (e.g. `rails:update` and `rails:template` tasks is renamed to `app:update` and `app:template`.)
 
