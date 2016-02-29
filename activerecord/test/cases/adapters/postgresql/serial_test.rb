@@ -26,7 +26,7 @@ class PostgresqlSerialTest < ActiveRecord::PostgreSQLTestCase
 
   def test_schema_dump_with_shorthand
     output = dump_table_schema "postgresql_serials"
-    assert_match %r{t\.serial\s+"seq"}, output
+    assert_match %r{t\.serial\s+"seq",\s+null: false$}, output
   end
 end
 
@@ -55,6 +55,6 @@ class PostgresqlBigSerialTest < ActiveRecord::PostgreSQLTestCase
 
   def test_schema_dump_with_shorthand
     output = dump_table_schema "postgresql_big_serials"
-    assert_match %r{t\.bigserial\s+"seq"}, output
+    assert_match %r{t\.bigserial\s+"seq",\s+null: false$}, output
   end
 end
