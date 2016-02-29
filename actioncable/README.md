@@ -412,7 +412,7 @@ The above will start a cable server on port 28080.
 
 ### In app
 
-If you are using a threaded server like Puma or Thin, the current implementation of Action Cable can run side-along with your Rails application. For example, to listen for WebSocket requests on `/cable`, mount the server at that path:
+If you are using a server that supports the [Rack socket hijacking API](http://www.rubydoc.info/github/rack/rack/file/SPEC#Hijacking), Action Cable can run alongside your Rails application. For example, to listen for WebSocket requests on `/cable`, mount the server at that path:
 
 ```ruby
 # config/routes.rb
@@ -445,12 +445,8 @@ connection management is handled internally by utilizing Ruby’s native thread
 support, which means you can use all your regular Rails models with no problems
 as long as you haven’t committed any thread-safety sins.
 
-But this also means that Action Cable needs to run in its own server process.
-So you'll have one set of server processes for your normal web work, and another
-set of server processes for the Action Cable.
-
 The Action Cable server does _not_ need to be a multi-threaded application server.
-This is because Action Cable uses the [Rack socket hijacking API](http://old.blog.phusion.nl/2013/01/23/the-new-rack-socket-hijacking-api/)
+This is because Action Cable uses the [Rack socket hijacking API](http://www.rubydoc.info/github/rack/rack/file/SPEC#Hijacking)
 to take over control of connections from the application server. Action Cable
 then manages connections internally, in a multithreaded manner, regardless of
 whether the application server is multi-threaded or not. So Action Cable works
