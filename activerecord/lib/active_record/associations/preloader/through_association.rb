@@ -38,12 +38,7 @@ module ActiveRecord
             }
           end
 
-          record_offset = {}
-          @preloaded_records.each_with_index do |record,i|
-            record_offset[record] = i
-          end
-
-          through_records.each_with_object({}) { |(lhs,center),records_by_owner|
+          through_records.each_with_object({}) do |(lhs,center), records_by_owner|
             pl_to_middle = center.group_by { |record| middle_to_pl[record] }
 
             records_by_owner[lhs] = pl_to_middle.flat_map do |pl, middles|
@@ -53,12 +48,24 @@ module ActiveRecord
                 target_records_from_association(association)
               }.compact
 
-              rhs_records.sort_by { |rhs| record_offset[rhs] }
+              # Respect the order on `reflection_scope` if it exists, else use the natural order.
+              if reflection_scope.values[:order].present?
+                @id_map ||= id_to_index_map @preloaded_records
+                rhs_records.sort_by { |rhs| @id_map[rhs] }
+              else
+                rhs_records
+              end
             end
-          }
+          end
         end
 
         private
+
+        def id_to_index_map(ids)
+          id_map = {}
+          ids.each_with_index { |id, index| id_map[id] = index }
+          id_map
+        end
 
         def reset_association(owners, association_name)
           should_reset = (through_scope != through_reflection.klass.unscoped) ||

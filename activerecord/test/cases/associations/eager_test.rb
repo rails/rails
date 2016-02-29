@@ -749,6 +749,38 @@ class EagerAssociationTest < ActiveRecord::TestCase
     }
   end
 
+  def test_eager_has_many_through_with_order
+    tag = OrderedTag.create(name: 'Foo')
+    post1 = Post.create!(title: 'Beaches', body: "I like beaches!")
+    post2 = Post.create!(title: 'Pools', body: "I like pools!")
+
+    Tagging.create!(taggable_type: 'Post', taggable_id: post1.id, tag: tag)
+    Tagging.create!(taggable_type: 'Post', taggable_id: post2.id, tag: tag)
+
+    tag_with_includes = OrderedTag.includes(:tagged_posts).find(tag.id)
+    assert_equal(tag_with_includes.taggings.map(&:taggable).map(&:title), tag_with_includes.tagged_posts.map(&:title))
+  end
+
+  def test_eager_has_many_through_multiple_with_order
+    tag1 = OrderedTag.create!(name: 'Bar')
+    tag2 = OrderedTag.create!(name: 'Foo')
+
+    post1 = Post.create!(title: 'Beaches', body: "I like beaches!")
+    post2 = Post.create!(title: 'Pools', body: "I like pools!")
+
+    Tagging.create!(taggable: post1, tag: tag1)
+    Tagging.create!(taggable: post2, tag: tag1)
+    Tagging.create!(taggable: post2, tag: tag2)
+    Tagging.create!(taggable: post1, tag: tag2)
+
+    tags_with_includes = OrderedTag.where(id: [tag1, tag2].map(&:id)).includes(:tagged_posts).order(:id).to_a
+    tag1_with_includes = tags_with_includes.first
+    tag2_with_includes = tags_with_includes.last
+
+    assert_equal([post2, post1].map(&:title), tag1_with_includes.tagged_posts.map(&:title))
+    assert_equal([post1, post2].map(&:title), tag2_with_includes.tagged_posts.map(&:title))
+  end
+
   def test_eager_with_default_scope
     developer = EagerDeveloperWithDefaultScope.where(:name => 'David').first
     projects = Project.order(:id).to_a
