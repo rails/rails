@@ -12,7 +12,7 @@ module ActiveRecord
             spec[:default] = schema_default(column) || 'nil'
           else
             spec[:id] = schema_type(column).inspect
-            spec.merge!(prepare_column_options(column).delete_if { |key, _| [:name, :type, :null].include?(key) })
+            spec.merge!(prepare_column_options(column).delete_if { |key, _| key == :null })
           end
           spec
         end
