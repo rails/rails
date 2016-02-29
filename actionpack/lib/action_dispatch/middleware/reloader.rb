@@ -33,26 +33,22 @@ module ActionDispatch
     end
 
     def self.prepare!
-      if defined? Rails.application.reloader
-        Rails.application.reloader.prepare!
-      else
-        ActiveSupport::Reloader.prepare!
-      end
+      default_reloader.prepare!
     end
 
     def self.cleanup!
-      if defined? Rails.application.reloader
-        Rails.application.reloader.reload!
-      else
-        ActiveSupport::Reloader.reload!
-      end
+      default_reloader.reload!
     end
 
     class << self
+      attr_accessor :default_reloader # :nodoc:
+
       deprecate to_prepare: 'use ActiveSupport::Reloader.to_prepare instead',
         to_cleanup: 'use ActiveSupport::Reloader.to_complete instead',
         prepare!: 'use Rails.application.reloader.prepare! instead',
         cleanup!: 'use Rails.application.reloader.reload! instead of cleanup + prepare'
     end
+
+    self.default_reloader = ActiveSupport::Reloader
   end
 end
