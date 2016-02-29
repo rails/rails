@@ -40,7 +40,7 @@
     *Eileen Uchitelle*
 
 
-## Rails 4.2.5.1 (January 25, 2015) ##
+## Rails 4.1.14.1 (January 25, 2015) ##
 
 *   No changes.
 
