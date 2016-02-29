@@ -120,6 +120,8 @@ Please refer to the [Changelog][railties] for detailed changes.
     ([Pull Request](https://github.com/rails/rails/pull/22457),
      [Pull Request](https://github.com/rails/rails/pull/22288))
 
+*   Using `rails_command` method instead of `rake` in AppGenerator Templates
+    ([Pull Request](https://github.com/rails/rails/pull/23795))
 
 Action Pack
 -----------
