@@ -405,7 +405,7 @@ module ActiveRecord
         # FIXME: as far as I can tell, `from` will always be an Arel::Table.
         # There are no tests that test this branch, but presumably it's
         # possible for `from` to be a list?
-        apply_join_dependency(self, construct_join_dependency(from))
+        apply_join_dependency(self, construct_join_dependency(Array.wrap(from)))
       end
     end
 

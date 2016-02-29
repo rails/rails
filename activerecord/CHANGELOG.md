@@ -1,3 +1,8 @@
+*   Fixed a bug where using `count` on a combination of `from` with a `String`,
+    `joins`, `includes` and `where` results in an unexpected `NoMethodError`.
+
+    *Finn Glöe*
+
 *   Ensure that the Suppressor runs before validations.
 
     This moves the suppressor up to be run before validations rather than after

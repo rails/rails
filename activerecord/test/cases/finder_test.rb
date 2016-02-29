@@ -1156,6 +1156,14 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal tyre2, zyke.tyres.custom_find_by(id: tyre2.id)
   end
 
+  test "count on a plain SqlLiteral with association does not fail" do
+    car = cars(:honda)
+    car.tyres.create!
+    sql = "(SELECT * FROM #{Tyre.table_name}) #{Tyre.table_name}"
+
+    assert_equal 1, Tyre.from(sql).joins(:car).includes(:car).where(car_id: car.id).count
+  end
+
   protected
     def table_with_custom_primary_key
       yield(Class.new(Toy) do
