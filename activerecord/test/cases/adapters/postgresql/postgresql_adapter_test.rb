@@ -5,6 +5,7 @@ require 'support/connection_helper'
 module ActiveRecord
   module ConnectionAdapters
     class PostgreSQLAdapterTest < ActiveRecord::PostgreSQLTestCase
+      self.use_transactional_tests = false
       include DdlHelper
       include ConnectionHelper
 
@@ -239,30 +240,6 @@ module ActiveRecord
         @connection.drop_table 'ex2', if_exists: true
       end
 
-      def test_exec_insert_number
-        with_example_table do
-          insert(@connection, 'number' => 10)
-
-          result = @connection.exec_query('SELECT number FROM ex WHERE number = 10')
-
-          assert_equal 1, result.rows.length
-          assert_equal 10, result.rows.last.last
-        end
-      end
-
-      def test_exec_insert_string
-        with_example_table do
-          str = 'いただきます！'
-          insert(@connection, 'number' => 10, 'data' => str)
-
-          result = @connection.exec_query('SELECT number, data FROM ex WHERE number = 10')
-
-          value = result.rows.last.last
-
-          assert_equal str, value
-        end
-      end
-
       def test_table_alias_length
         assert_nothing_raised do
           @connection.table_alias_length
@@ -286,33 +263,35 @@ module ActiveRecord
         end
       end
 
-      def test_exec_with_binds
-        with_example_table do
-          string = @connection.quote('foo')
-          @connection.exec_query("INSERT INTO ex (id, data) VALUES (1, #{string})")
-          result = @connection.exec_query(
-                                          'SELECT id, data FROM ex WHERE id = $1', nil, [bind_param(1)])
+      if ActiveRecord::Base.connection.prepared_statements
+        def test_exec_with_binds
+          with_example_table do
+            string = @connection.quote('foo')
+            @connection.exec_query("INSERT INTO ex (id, data) VALUES (1, #{string})")
 
-          assert_equal 1, result.rows.length
-          assert_equal 2, result.columns.length
+            bind = Relation::QueryAttribute.new("id", 1, Type::Value.new)
+            result = @connection.exec_query('SELECT id, data FROM ex WHERE id = $1', nil, [bind])
 
-          assert_equal [[1, 'foo']], result.rows
+            assert_equal 1, result.rows.length
+            assert_equal 2, result.columns.length
+
+            assert_equal [[1, 'foo']], result.rows
+          end
         end
-      end
 
-      def test_exec_typecasts_bind_vals
-        with_example_table do
-          string = @connection.quote('foo')
-          @connection.exec_query("INSERT INTO ex (id, data) VALUES (1, #{string})")
+        def test_exec_typecasts_bind_vals
+          with_example_table do
+            string = @connection.quote('foo')
+            @connection.exec_query("INSERT INTO ex (id, data) VALUES (1, #{string})")
 
-          bind = ActiveRecord::Relation::QueryAttribute.new("id", "1-fuu", ActiveRecord::Type::Integer.new)
-          result = @connection.exec_query(
-                                          'SELECT id, data FROM ex WHERE id = $1', nil, [bind])
+            bind = Relation::QueryAttribute.new("id", "1-fuu", Type::Integer.new)
+            result = @connection.exec_query('SELECT id, data FROM ex WHERE id = $1', nil, [bind])
 
-          assert_equal 1, result.rows.length
-          assert_equal 2, result.columns.length
+            assert_equal 1, result.rows.length
+            assert_equal 2, result.columns.length
 
-          assert_equal [[1, 'foo']], result.rows
+            assert_equal [[1, 'foo']], result.rows
+          end
         end
       end
 
@@ -438,19 +417,6 @@ module ActiveRecord
       end
 
       private
-      def insert(ctx, data)
-        binds = data.map { |name, value|
-          bind_param(value, name)
-        }
-        columns = binds.map(&:name)
-
-        bind_subs = columns.length.times.map { |x| "$#{x + 1}" }
-
-        sql = "INSERT INTO ex (#{columns.join(", ")})
-               VALUES (#{bind_subs.join(', ')})"
-
-        ctx.exec_insert(sql, 'SQL', binds)
-      end
 
       def with_example_table(definition = 'id serial primary key, number integer, data character varying(255)', &block)
         super(@connection, 'ex', definition, &block)
@@ -458,10 +424,6 @@ module ActiveRecord
 
       def connection_without_insert_returning
         ActiveRecord::Base.postgresql_connection(ActiveRecord::Base.configurations['arunit'].merge(:insert_returning => false))
-      end
-
-      def bind_param(value, name = nil)
-        ActiveRecord::Relation::QueryAttribute.new(name, value, ActiveRecord::Type::Value.new)
       end
     end
   end

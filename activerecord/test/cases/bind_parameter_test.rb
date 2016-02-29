@@ -31,7 +31,8 @@ module ActiveRecord
       ActiveSupport::Notifications.unsubscribe(@subscription)
     end
 
-    if ActiveRecord::Base.connection.supports_statement_cache?
+    if ActiveRecord::Base.connection.supports_statement_cache? &&
+       ActiveRecord::Base.connection.prepared_statements
       def test_bind_from_join_in_subquery
         subquery = Author.joins(:thinking_posts).where(name: 'David')
         scope = Author.from(subquery, 'authors').where(id: 1)
