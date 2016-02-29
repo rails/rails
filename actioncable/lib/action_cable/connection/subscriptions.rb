@@ -46,7 +46,15 @@ module ActionCable
       end
 
       def perform_action(data)
-        find(data).perform_action ActiveSupport::JSON.decode(data['data'])
+        if (data['data'].present? && data['data'].is_a?(String))
+          params = ActiveSupport::JSON.decode(data['data'])
+        elsif data['data'].present?
+          params = data['data']
+        end
+
+        params = params.with_indifferent_access if params.is_a?(Hash)
+
+        find(data).perform_action params
       end
 
       def identifiers

@@ -82,6 +82,18 @@ class ActionCable::Connection::SubscriptionsTest < ActionCable::TestCase
     end
   end
 
+  test "message command with raw" do
+    run_in_eventmachine do
+      setup_connection
+      channel = subscribe_to_chat_channel
+
+      data = { 'content' => 'Hello World!', 'action' => 'speak' }
+      @subscriptions.execute_command 'command' => 'message', 'identifier' => @chat_identifier, 'data' => data
+
+      assert_equal [ data ], channel.lines
+    end
+  end
+
   test "unsubscrib from all" do
     run_in_eventmachine do
       setup_connection
