@@ -1,3 +1,17 @@
+## Rails 4.1.14.2 (February 26, 2016) ##
+
+*   Do not allow render with unpermitted parameter.
+
+    Fixes CVE-2016-2098.
+
+    *Arthur Neves*
+
+
+## Rails 4.1.14.1 (January 25, 2015) ##
+
+*   No changes.
+
+
 ## Rails 4.1.14 (November 12, 2015) ##
 
 *   No changes.

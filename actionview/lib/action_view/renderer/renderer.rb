@@ -17,6 +17,10 @@ module ActionView
 
     # Main render entry point shared by AV and AC.
     def render(context, options)
+      if options.respond_to?(:permitted?) && !options.permitted?
+        raise ArgumentError, "render parameters are not permitted"
+      end
+
       if options.key?(:partial)
         render_partial(context, options)
       else

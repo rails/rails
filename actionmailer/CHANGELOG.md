@@ -1,3 +1,13 @@
+## Rails 4.1.14.2 (February 26, 2016) ##
+
+*   No changes.
+
+
+## Rails 4.1.14.1 (January 25, 2015) ##
+
+*   No changes.
+
+
 ## Rails 4.1.14 (November 12, 2015) ##
 
 *   No changes.
