@@ -42,13 +42,18 @@ module ActiveSupport
     #   <tt>OpenSSL::Cipher.ciphers</tt>. Default is 'aes-256-cbc'.
     # * <tt>:digest</tt> - String of digest to use for signing. Default is +SHA1+.
     # * <tt>:serializer</tt> - Object serializer to use. Default is +Marshal+.
+    # * <tt>:verifier_serializer</tt> - Object serializer to be used by the
+    #   verifier. Default is +NullSerializer+. Use +Marshal+ for compatibility
+    #   with messages encrypted by Rails versions prior to 3.2.
+
     def initialize(secret, *signature_key_or_options)
       options = signature_key_or_options.extract_options!
       sign_secret = signature_key_or_options.first
       @secret = secret
       @sign_secret = sign_secret
       @cipher = options[:cipher] || 'aes-256-cbc'
-      @verifier = MessageVerifier.new(@sign_secret || @secret, digest: options[:digest] || 'SHA1', serializer: NullSerializer)
+      @verifier = MessageVerifier.new(@sign_secret || @secret, digest: options[:digest] || 'SHA1',
+                                      serializer: options[:verifier_serializer] || NullSerializer)
       @serializer = options[:serializer] || Marshal
     end
 

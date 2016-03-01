@@ -70,6 +70,13 @@ class MessageEncryptorTest < ActiveSupport::TestCase
     assert_not_verified([iv,  message] * bad_encoding_characters)
   end
 
+  def test_legacy_deserialization
+    marshal_encryptor = ActiveSupport::MessageEncryptor.new(@secret, verifier_serializer: Marshal)
+    message = marshal_encryptor.encrypt_and_sign(@data)
+    assert_not_decrypted(message)
+    assert_equal(marshal_encryptor.decrypt_and_verify(message), @data)
+  end
+
   private
 
   def assert_not_decrypted(value)
