@@ -333,7 +333,7 @@ class ModuleTest < ActiveSupport::TestCase
     end
   end
 
-  def test_test_local_constants_is_deprecated
+  def test_local_constants_is_deprecated
     assert_deprecated { Ab.local_constants.sort.map(&:to_s) }
   end
 end
