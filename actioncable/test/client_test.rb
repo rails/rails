@@ -75,7 +75,7 @@ class ClientTest < ActionCable::TestCase
 
       @ws.on(:message) do |event|
         hash = JSON.parse(event.data)
-        if hash['identifier'] == '_ping'
+        if hash['type'] == 'ping'
           @pings += 1
         else
           @messages << hash

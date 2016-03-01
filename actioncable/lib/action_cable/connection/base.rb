@@ -114,7 +114,7 @@ module ActionCable
       end
 
       def beat
-        transmit ActiveSupport::JSON.encode(identifier: ActionCable::INTERNAL[:identifiers][:ping], message: Time.now.to_i)
+        transmit ActiveSupport::JSON.encode(type: ActionCable::INTERNAL[:message_types][:ping], message: Time.now.to_i)
       end
 
       def on_open # :nodoc:
