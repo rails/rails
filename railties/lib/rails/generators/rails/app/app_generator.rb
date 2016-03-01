@@ -333,7 +333,7 @@ module Rails
       def delete_action_cable_files_skipping_action_cable
         if options[:skip_action_cable]
           remove_file 'config/cable.yml'
-          remove_file 'app/assets/javascripts/cable.coffee'
+          remove_file 'app/assets/javascripts/cable.js'
           remove_dir 'app/channels'
         end
       end

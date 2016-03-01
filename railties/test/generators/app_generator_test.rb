@@ -464,7 +464,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator [destination_root, "--skip-action-cable"]
     assert_file "config/application.rb", /#\s+require\s+["']action_cable\/engine["']/
     assert_no_file "config/cable.yml"
-    assert_no_file "app/assets/javascripts/cable.coffee"
+    assert_no_file "app/assets/javascripts/cable.js"
     assert_no_file "app/channels"
     assert_file "Gemfile" do |content|
       assert_no_match(/redis/, content)
