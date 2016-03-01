@@ -277,11 +277,9 @@ module ActiveRecord
       # +delete_records+. They are in any case removed from the collection.
       def delete(*records)
         return if records.empty?
-        _options = records.extract_options!
-        dependent = _options[:dependent] || options[:dependent]
 
         records = find(records) if records.any? { |record| record.kind_of?(Fixnum) || record.kind_of?(String) }
-        delete_or_destroy(records, dependent)
+        delete_or_destroy(records, dependent(records))
       end
 
       # Deletes the +records+ and removes them from this association calling
@@ -377,6 +375,10 @@ module ActiveRecord
       end
       alias uniq distinct
 
+      def dependent(records)
+        records.extract_options![:dependent] || options[:dependent]
+      end
+
       # Replace this collection with +other_array+. This will perform a diff
       # and delete/add only records that have changed.
       def replace(other_array)
@@ -388,9 +390,22 @@ module ActiveRecord
         else
           replace_common_records_in_memory(other_array, original_target)
           if other_array != original_target
-            transaction { replace_records(other_array, original_target) }
+            transaction do
+              new_records = replace_records(other_array, original_target)
+              verify_replacement(original_target - other_array, dependent(original_target))
+              new_records
+            end
           else
             other_array
+          end
+        end
+      end
+
+      def verify_replacement(replaced_records, method)
+        if method == :destroy
+          unless replaced_records.map(&:destroyed?).all?
+            raise RecordNotSaved, "Failed to replace #{reflection.name} because one or more of the " \
+                                        "existing records could not be destroyed."
           end
         end
       end

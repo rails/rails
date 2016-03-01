@@ -117,7 +117,7 @@ module ActiveRecord
         # Deletes the records according to the <tt>:dependent</tt> option.
         def delete_records(records, method)
           if method == :destroy
-            records.each(&:destroy!)
+            records.each(&:destroy)
             update_counter(-records.length) unless reflection.inverse_updates_counter_cache?
           else
             scope = self.scope.where(reflection.klass.primary_key => records)
