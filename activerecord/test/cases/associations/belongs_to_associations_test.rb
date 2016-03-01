@@ -726,7 +726,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert companies(:first_client).readonly_firm.readonly?
   end
 
-  def test_test_polymorphic_assignment_foreign_key_type_string
+  def test_polymorphic_assignment_foreign_key_type_string
     comment = Comment.first
     comment.author   = Author.first
     comment.resource = Member.first
