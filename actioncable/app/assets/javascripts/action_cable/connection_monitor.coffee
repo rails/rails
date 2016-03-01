@@ -7,10 +7,7 @@ class ActionCable.ConnectionMonitor
 
   @staleThreshold: 6 # Server::Connections::BEAT_INTERVAL * 2 (missed two pings)
 
-  identifier: ActionCable.INTERNAL.identifiers.ping
-
   constructor: (@consumer) ->
-    @consumer.subscriptions.add(this)
     @start()
 
   connected: ->
@@ -23,11 +20,12 @@ class ActionCable.ConnectionMonitor
     @disconnectedAt = now()
     ActionCable.log("ConnectionMonitor disconnected")
 
-  received: ->
+  ping: ->
     @pingedAt = now()
 
   reset: ->
     @reconnectAttempts = 0
+    @consumer.connection.isOpen()
 
   start: ->
     @reset()
