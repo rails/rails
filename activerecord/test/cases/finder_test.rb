@@ -486,6 +486,66 @@ class FinderTest < ActiveRecord::TestCase
     end
   end
 
+  def test_second_to_last
+    assert_equal topics(:fourth).title, Topic.second_to_last.title
+
+    # test with offset
+    assert_equal topics(:fourth), Topic.offset(1).second_to_last
+    assert_equal topics(:fourth), Topic.offset(2).second_to_last
+    assert_equal topics(:fourth), Topic.offset(3).second_to_last
+    assert_equal nil, Topic.offset(4).second_to_last
+    assert_equal nil, Topic.offset(5).second_to_last
+
+    #test with limit
+    # assert_equal nil, Topic.limit(1).second # TODO: currently failing
+    assert_equal nil, Topic.limit(1).second_to_last
+  end
+
+  def test_second_to_last_have_primary_key_order_by_default
+    expected = topics(:fourth)
+    expected.touch # PostgreSQL changes the default order if no order clause is used
+    assert_equal expected, Topic.second_to_last
+  end
+
+  def test_model_class_responds_to_second_to_last_bang
+    assert Topic.second_to_last!
+    Topic.delete_all
+    assert_raises_with_message ActiveRecord::RecordNotFound, "Couldn't find Topic" do
+      Topic.second_to_last!
+    end
+  end
+
+  def test_third_to_last
+    assert_equal topics(:third).title, Topic.third_to_last.title
+
+    # test with offset
+    assert_equal topics(:third), Topic.offset(1).third_to_last
+    assert_equal topics(:third), Topic.offset(2).third_to_last
+    assert_equal nil, Topic.offset(3).third_to_last
+    assert_equal nil, Topic.offset(4).third_to_last
+    assert_equal nil, Topic.offset(5).third_to_last
+
+    # test with limit
+    # assert_equal nil, Topic.limit(1).third # TODO: currently failing
+    assert_equal nil, Topic.limit(1).third_to_last
+    # assert_equal nil, Topic.limit(2).third # TODO: currently failing
+    assert_equal nil, Topic.limit(2).third_to_last
+  end
+
+  def test_third_to_last_have_primary_key_order_by_default
+    expected = topics(:third)
+    expected.touch # PostgreSQL changes the default order if no order clause is used
+    assert_equal expected, Topic.third_to_last
+  end
+
+  def test_model_class_responds_to_third_to_last_bang
+    assert Topic.third_to_last!
+    Topic.delete_all
+    assert_raises_with_message ActiveRecord::RecordNotFound, "Couldn't find Topic" do
+      Topic.third_to_last!
+    end
+  end
+
   def test_last_bang_present
     assert_nothing_raised do
       assert_equal topics(:second), Topic.where("title = 'The Second Topic of the day'").last!

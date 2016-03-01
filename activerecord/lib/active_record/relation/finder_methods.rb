@@ -255,13 +255,13 @@ module ActiveRecord
     #   Person.offset(3).third_to_last # returns the third-to-last object from OFFSET 3
     #   Person.where(["user_name = :u", { u: user_name }]).third_to_last
     def third_to_last
-      find_nth(-3)
+      find_nth_from_last 3
     end
 
     # Same as #third_to_last but raises ActiveRecord::RecordNotFound if no record
     # is found.
     def third_to_last!
-      find_nth!(-3)
+      find_nth_from_last 3 or raise RecordNotFound.new("Couldn't find #{@klass.name} with [#{arel.where_sql(@klass.arel_engine)}]")
     end
 
     # Find the second-to-last record.
@@ -271,13 +271,13 @@ module ActiveRecord
     #   Person.offset(3).second_to_last # returns the second-to-last object from OFFSET 3
     #   Person.where(["user_name = :u", { u: user_name }]).second_to_last
     def second_to_last
-      find_nth(-2)
+      find_nth_from_last 2
     end
 
     # Same as #second_to_last but raises ActiveRecord::RecordNotFound if no record
     # is found.
     def second_to_last!
-      find_nth!(-2)
+      find_nth_from_last 2 or raise RecordNotFound.new("Couldn't find #{@klass.name} with [#{arel.where_sql(@klass.arel_engine)}]")
     end
 
     # Returns true if a record exists in the table that matches the +id+ or
@@ -561,6 +561,25 @@ module ActiveRecord
       relation.limit(limit).to_a
     end
 
+    def find_nth_from_last(index)
+      if loaded?
+        @records[-index]
+      else
+        relation = if order_values.empty? && primary_key
+                     order(arel_attribute(primary_key).asc)
+                   else
+                     self
+                   end
+
+        relation.to_a[-index]
+        # TODO: can be made more performant on large result sets by
+        # for instance, last(index)[-index] (which would require
+        # refactoring the last(n) finder method to make test suite pass),
+        # or by using a combination of reverse_order, limit, and offset,
+        # e.g., reverse_order.offset(index-1).first
+      end
+    end
+    
     private
 
     def find_nth_with_limit_and_offset(index, limit, offset:) # :nodoc:
