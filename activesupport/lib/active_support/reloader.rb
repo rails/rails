@@ -65,10 +65,9 @@ module ActiveSupport
       end
     end
 
-    class << self
-      attr_accessor :executor
-      attr_accessor :check
-    end
+    class_attribute :executor
+    class_attribute :check
+
     self.executor = Executor
     self.check = lambda { false }
 
