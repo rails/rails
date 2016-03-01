@@ -144,7 +144,9 @@ class QueryStringParsingTest < ActionDispatch::IntegrationTest
   test "ambiguous query string returns a bad request" do
     with_routing do |set|
       set.draw do
-        get ':action', :to => ::QueryStringParsingTest::TestController
+        ActiveSupport::Deprecation.silence do
+          get ':action', :to => ::QueryStringParsingTest::TestController
+        end
       end
 
       get "/parse", headers: { "QUERY_STRING" => "foo[]=bar&foo[4]=bar" }
@@ -156,7 +158,9 @@ class QueryStringParsingTest < ActionDispatch::IntegrationTest
     def assert_parses(expected, actual)
       with_routing do |set|
         set.draw do
-          get ':action', :to => ::QueryStringParsingTest::TestController
+          ActiveSupport::Deprecation.silence do
+            get ':action', :to => ::QueryStringParsingTest::TestController
+          end
         end
         @app = self.class.build_app(set) do |middleware|
           middleware.use(EarlyParse)

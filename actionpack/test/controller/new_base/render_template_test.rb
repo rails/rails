@@ -177,7 +177,7 @@ module RenderTemplate
   class TestWithLayout < Rack::TestCase
     test "rendering with implicit layout" do
       with_routing do |set|
-        set.draw { get ':controller', :action => :index }
+        set.draw { ActiveSupport::Deprecation.silence { get ':controller', :action => :index } }
 
         get "/render_template/with_layout"
 
