@@ -1,3 +1,5 @@
+## Rails 4.1.15.rc1 (March 01, 2016) ##
+
 *   Changed the meaning of `render "foo/bar"`.
 
     Previously, calling `render "foo/bar"` in a controller action is equivalent

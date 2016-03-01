@@ -1,3 +1,5 @@
+## Rails 4.1.15.rc1 (March 01, 2016) ##
+
 *   Fixes custom primary keys for associations when calling `Relation#where`
 
     Fixes #23327.
