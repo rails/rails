@@ -131,7 +131,7 @@ module ActiveRecord
       def exec_query(sql, name = 'SQL', binds = [], prepare: false)
         result = execute(sql, name)
         @connection.next_result while @connection.more_results?
-        ActiveRecord::Result.new(result.fields, result.to_a)
+        ActiveRecord::Result.new(result.fields, result.to_a) if result
       end
 
       def exec_insert(sql, name, binds, pk = nil, sequence_name = nil)
