@@ -670,7 +670,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_spring_no_fork
     jruby_skip "spring doesn't run on JRuby"
-    assert_called_with(Process, :respond_to?, [:fork], returns: false) do
+    assert_called_with(Process, :respond_to?, [[:fork], [:fork]], returns: false) do
       run_generator
 
       assert_file "Gemfile" do |content|
