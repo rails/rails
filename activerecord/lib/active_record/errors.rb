@@ -139,6 +139,11 @@ module ActiveRecord
   class NoDatabaseError < StatementInvalid
   end
 
+  # Raised when Postgres returns 'cached plan must not change result type' and
+  # we cannot retry gracefully (e.g. inside a transaction)
+  class PreparedStatementCacheExpired < StatementInvalid
+  end
+
   # Raised on attempt to save stale record. Record is stale when it's being saved in another query after
   # instantiation, for example, when two users edit the same wiki page and one starts editing and saves
   # the page before the other.

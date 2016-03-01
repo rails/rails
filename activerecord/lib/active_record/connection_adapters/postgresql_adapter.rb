@@ -598,23 +598,39 @@ module ActiveRecord
             @connection.exec_prepared(stmt_key, type_casted_binds)
           end
         rescue ActiveRecord::StatementInvalid => e
-          pgerror = e.cause
+          raise unless is_cached_plan_failure?(e)
 
-          # Get the PG code for the failure.  Annoyingly, the code for
-          # prepared statements whose return value may have changed is
-          # FEATURE_NOT_SUPPORTED.  Check here for more details:
-          # http://git.postgresql.org/gitweb/?p=postgresql.git;a=blob;f=src/backend/utils/cache/plancache.c#l573
-          begin
-            code = pgerror.result.result_error_field(PGresult::PG_DIAG_SQLSTATE)
-          rescue
-            raise e
-          end
-          if FEATURE_NOT_SUPPORTED == code
+          # Nothing we can do if we are in a transaction because all commands
+          # will raise InFailedSQLTransaction
+          if in_transaction?
+            raise ActiveRecord::PreparedStatementCacheExpired.new(e.cause.message)
+          else
+            # outside of transactions we can simply flush this query and retry
             @statements.delete sql_key(sql)
             retry
-          else
-            raise e
           end
+        end
+
+        # Annoyingly, the code for prepared statements whose return value may
+        # have changed is FEATURE_NOT_SUPPORTED.
+        #
+        # This covers various different error types so we need to do additional
+        # work to classify the exception definitively as a
+        # ActiveRecord::PreparedStatementCacheExpired
+        #
+        # Check here for more details:
+        # http://git.postgresql.org/gitweb/?p=postgresql.git;a=blob;f=src/backend/utils/cache/plancache.c#l573
+        CACHED_PLAN_HEURISTIC = 'cached plan must not change result type'.freeze
+        def is_cached_plan_failure?(e)
+          pgerror = e.cause
+          code = pgerror.result.result_error_field(PGresult::PG_DIAG_SQLSTATE)
+          code == FEATURE_NOT_SUPPORTED && pgerror.message.include?(CACHED_PLAN_HEURISTIC)
+        rescue
+          false
+        end
+
+        def in_transaction?
+          open_transactions > 0
         end
 
         # Returns the statement identifier for the client side cache
