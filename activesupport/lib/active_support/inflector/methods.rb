@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'active_support/inflections'
 
 module ActiveSupport
@@ -204,12 +206,7 @@ module ActiveSupport
     #
     # See also #deconstantize.
     def demodulize(path)
-      path = path.to_s
-      if i = path.rindex('::')
-        path[(i+2)..-1]
-      else
-        path
-      end
+      (i = path.rindex('::')) ? path[(i + 2)..-1] : path
     end
 
     # Removes the rightmost segment from the constant expression in the string.
