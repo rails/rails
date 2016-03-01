@@ -1,3 +1,7 @@
+*   Deprecate `Module.local_constants`. Please use `Module.constants(false)` instead.
+
+    *Yuichiro Kaneko*
+
 *   Publish ActiveSupport::Executor and ActiveSupport::Reloader APIs to allow
     components and libraries to manage, and participate in, the execution of
     application code, and the application reloading process.
