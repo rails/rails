@@ -16,12 +16,6 @@ module ActiveRecord
     config.app_generators.orm :active_record, :migration => true,
                                               :timestamps => true
 
-    config.app_middleware.insert_after ::ActionDispatch::Callbacks,
-      ActiveRecord::QueryCache
-
-    config.app_middleware.insert_after ::ActionDispatch::Callbacks,
-      ActiveRecord::ConnectionAdapters::ConnectionManagement
-
     config.action_dispatch.rescue_responses.merge!(
       'ActiveRecord::RecordNotFound'   => :not_found,
       'ActiveRecord::StaleObjectError' => :conflict,
@@ -153,16 +147,20 @@ end_warning
       end
     end
 
-    initializer "active_record.set_reloader_hooks" do |app|
-      hook = app.config.reload_classes_only_on_change ? :to_prepare : :to_cleanup
-
+    initializer "active_record.set_reloader_hooks" do
       ActiveSupport.on_load(:active_record) do
-        ActionDispatch::Reloader.send(hook) do
+        ActiveSupport::Reloader.before_class_unload do
           if ActiveRecord::Base.connected?
             ActiveRecord::Base.clear_cache!
             ActiveRecord::Base.clear_reloadable_connections!
           end
         end
+      end
+    end
+
+    initializer "active_record.set_executor_hooks" do
+      ActiveSupport.on_load(:active_record) do
+        ActiveRecord::QueryCache.install_executor_hooks
       end
     end
 

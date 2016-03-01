@@ -127,7 +127,15 @@ class ClientTest < ActionCable::TestCase
       end
 
       @ws.close
+      wait_for_close
+    end
+
+    def wait_for_close
       @closed.wait(WAIT_WHEN_EXPECTING_EVENT)
+    end
+
+    def closed?
+      @closed.set?
     end
   end
 
@@ -218,6 +226,18 @@ class ClientTest < ActionCable::TestCase
 
       # All data is removed: No more connection or subscription information!
       assert_equal(0, app.connections.count)
+    end
+  end
+
+  def test_server_restart
+    with_puma_server do |port|
+      c = faye_client(port)
+      c.send_message command: 'subscribe', identifier: JSON.dump(channel: 'EchoChannel')
+      assert_equal({"identifier"=>"{\"channel\":\"EchoChannel\"}", "type"=>"confirm_subscription"}, c.read_message)
+
+      ActionCable.server.restart
+      c.wait_for_close
+      assert c.closed?
     end
   end
 end

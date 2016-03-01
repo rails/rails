@@ -1,3 +1,10 @@
+*   Publish ActiveSupport::Executor and ActiveSupport::Reloader APIs to allow
+    components and libraries to manage, and participate in, the execution of
+    application code, and the application reloading process.
+
+    *Matthew Draper*
+
+
 ## Rails 5.0.0.beta3 (February 24, 2016) ##
 
 *   Deprecate arguments on `assert_nothing_raised`.
