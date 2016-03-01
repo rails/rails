@@ -114,8 +114,6 @@ module Rails
         puts "=> Booting #{ActiveSupport::Inflector.demodulize(server)}"
         puts "=> Rails #{Rails.version} application starting in #{Rails.env} on #{url}"
         puts "=> Run `rails server -h` for more startup options"
-
-        puts "=> Ctrl-C to shutdown server" unless options[:daemonize]
       end
 
       def create_cache_file
