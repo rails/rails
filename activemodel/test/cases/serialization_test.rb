@@ -138,6 +138,14 @@ class SerializationTest < ActiveModel::TestCase
     assert_equal expected, @user.serializable_hash(include: [:address, :friends])
   end
 
+  def test_multiple_includes_with_empty_hash
+    expected = {"email"=>"david@example.com", "gender"=>"male", "name"=>"David",
+                "address"=>{"street"=>"123 Lane", "city"=>"Springfield", "state"=>"CA", "zip"=>11111},
+                "friends"=>[{"name"=>'Joe', "email"=>'joe@example.com', "gender"=>'male'},
+                            {"name"=>'Sue', "email"=>'sue@example.com', "gender"=>'female'}]}
+    assert_equal expected, @user.serializable_hash(include: [address: {}, friends: {}])
+  end
+
   def test_include_with_options
     expected = {"email"=>"david@example.com", "gender"=>"male", "name"=>"David",
                 "address"=>{"street"=>"123 Lane"}}
