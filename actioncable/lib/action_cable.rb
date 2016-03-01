@@ -33,6 +33,7 @@ module ActionCable
       ping: '_ping'.freeze
     },
     message_types: {
+      welcome: 'welcome'.freeze,
       confirmation: 'confirm_subscription'.freeze,
       rejection: 'reject_subscription'.freeze
     }

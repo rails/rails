@@ -75,6 +75,8 @@ class ActionCable.Connection
       {identifier, message, type} = JSON.parse(event.data)
 
       switch type
+        when message_types.welcome
+          @consumer.subscriptions.notify(@consumer.connectionMonitor, "connected")
         when message_types.confirmation
           @consumer.subscriptions.notify(identifier, "connected")
         when message_types.rejection
