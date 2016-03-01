@@ -1,3 +1,9 @@
+*   Added a configuration option to have active record raise an ArgumentError
+    if the order or limit is ignored in a batch query, rather than logging a
+    warning message.
+
+    *Scott Ringwelski*
+
 *   Honour the order of the joining model in a `has_many :through` association when eager loading.
 
     Example:
