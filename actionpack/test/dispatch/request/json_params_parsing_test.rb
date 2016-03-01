@@ -103,7 +103,9 @@ class JsonParamsParsingTest < ActionDispatch::IntegrationTest
     def with_test_routing
       with_routing do |set|
         set.draw do
-          post ':action', :to => ::JsonParamsParsingTest::TestController
+          ActiveSupport::Deprecation.silence do
+            post ':action', :to => ::JsonParamsParsingTest::TestController
+          end
         end
         yield
       end
@@ -191,7 +193,9 @@ class RootLessJSONParamsParsingTest < ActionDispatch::IntegrationTest
     def with_test_routing(controller)
       with_routing do |set|
         set.draw do
-          post ':action', :to => controller
+          ActiveSupport::Deprecation.silence do
+            post ':action', :to => controller
+          end
         end
         yield
       end

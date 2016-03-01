@@ -116,7 +116,9 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_raise(ArgumentError) do
       draw do
         namespace :admin do
-          get '/:controller(/:action(/:id(.:format)))'
+          ActiveSupport::Deprecation.silence do
+            get '/:controller(/:action(/:id(.:format)))'
+          end
         end
       end
     end
@@ -125,7 +127,9 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
   def test_namespace_without_controller_segment
     draw do
       namespace :admin do
-        get 'hello/:controllers/:action'
+        ActiveSupport::Deprecation.silence do
+          get 'hello/:controllers/:action'
+        end
       end
     end
     get '/admin/hello/foo/new'
@@ -427,7 +431,10 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         get 'global/hide_notice'
         get 'global/export',      :action => :export, :as => :export_request
         get '/export/:id/:file',  :action => :export, :as => :export_download, :constraints => { :file => /.*/ }
-        get 'global/:action'
+
+        ActiveSupport::Deprecation.silence do
+          get 'global/:action'
+        end
       end
     end
 
@@ -450,7 +457,9 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
   def test_local
     draw do
-      get "/local/:action", :controller => "local"
+      ActiveSupport::Deprecation.silence do
+        get "/local/:action", :controller => "local"
+      end
     end
 
     get '/local/dashboard'
@@ -1506,7 +1515,9 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
   def test_not_matching_shorthand_with_dynamic_parameters
     draw do
-      get ':controller/:action/admin'
+      ActiveSupport::Deprecation.silence do
+        get ':controller/:action/admin'
+      end
     end
 
     get '/finances/overview/admin'
@@ -1542,7 +1553,9 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
   def test_scoped_controller_with_namespace_and_action
     draw do
       namespace :account do
-        get ':action/callback', :action => /twitter|github/, :controller => "callbacks", :as => :callback
+        ActiveSupport::Deprecation.silence do
+          get ':action/callback', :action => /twitter|github/, :controller => "callbacks", :as => :callback
+        end
       end
     end
 
@@ -1837,7 +1850,9 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
   def test_url_generator_for_generic_route
     draw do
-      get "whatever/:controller(/:action(/:id))"
+      ActiveSupport::Deprecation.silence do
+        get "whatever/:controller(/:action(/:id))"
+      end
     end
 
     get '/whatever/foo/bar'
@@ -1849,7 +1864,9 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
   def test_url_generator_for_namespaced_generic_route
     draw do
-      get "whatever/:controller(/:action(/:id))", :id => /\d+/
+      ActiveSupport::Deprecation.silence do
+        get "whatever/:controller(/:action(/:id))", :id => /\d+/
+      end
     end
 
     get '/whatever/foo/bar/show'
@@ -3125,12 +3142,6 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
 
     assert_raise(ArgumentError) do
-      assert_deprecated do
-        draw { controller("/feeds") { get '/feeds/:service', :to => :show } }
-      end
-    end
-
-    assert_raise(ArgumentError) do
       draw { resources :feeds, :controller => '/feeds' }
     end
   end
@@ -3597,6 +3608,22 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     params.permit!
 
     assert_equal '/?id=1', root_path(params)
+  end
+
+  def test_dynamic_controller_segments_are_deprecated
+    assert_deprecated do
+      draw do
+        get '/:controller', action: 'index'
+      end
+    end
+  end
+
+  def test_dynamic_action_segments_are_deprecated
+    assert_deprecated do
+      draw do
+        get '/pages/:action', controller: 'pages'
+      end
+    end
   end
 
 private
@@ -4122,7 +4149,11 @@ class TestOptimizedNamedRoutes < ActionDispatch::IntegrationTest
     app.draw do
       ok = lambda { |env| [200, { 'Content-Type' => 'text/plain' }, []] }
       get '/foo' => ok, as: :foo
-      get '/post(/:action(/:id))' => ok, as: :posts
+
+      ActiveSupport::Deprecation.silence do
+        get '/post(/:action(/:id))' => ok, as: :posts
+      end
+
       get '/:foo/:foo_type/bars/:id' => ok, as: :bar
       get '/projects/:id.:format' => ok, as: :project
       get '/pages/:id' => ok, as: :page
@@ -4292,11 +4323,16 @@ class TestInvalidUrls < ActionDispatch::IntegrationTest
 
   test "invalid UTF-8 encoding returns a 400 Bad Request" do
     with_routing do |set|
-      set.draw do
-        get "/bar/:id", :to => redirect("/foo/show/%{id}")
-        get "/foo/show(/:id)", :to => "test_invalid_urls/foo#show"
-        get "/foo(/:action(/:id))", :controller => "test_invalid_urls/foo"
-        get "/:controller(/:action(/:id))"
+      ActiveSupport::Deprecation.silence do
+        set.draw do
+          get "/bar/:id", :to => redirect("/foo/show/%{id}")
+          get "/foo/show(/:id)", :to => "test_invalid_urls/foo#show"
+
+          ActiveSupport::Deprecation.silence do
+            get "/foo(/:action(/:id))", :controller => "test_invalid_urls/foo"
+            get "/:controller(/:action(/:id))"
+          end
+        end
       end
 
       get "/%E2%EF%BF%BD%A6"
@@ -4627,7 +4663,9 @@ class TestErrorsInController < ActionDispatch::IntegrationTest
 
   Routes = ActionDispatch::Routing::RouteSet.new
   Routes.draw do
-    get '/:controller(/:action)'
+    ActiveSupport::Deprecation.silence do
+      get '/:controller(/:action)'
+    end
   end
 
   APP = build_app Routes

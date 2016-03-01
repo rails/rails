@@ -730,8 +730,10 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
         set.draw do
           get 'moved' => redirect('/method')
 
-          match ':action', :to => controller, :via => [:get, :post], :as => :action
-          get 'get/:action', :to => controller, :as => :get_action
+          ActiveSupport::Deprecation.silence do
+            match ':action', :to => controller, :via => [:get, :post], :as => :action
+            get 'get/:action', :to => controller, :as => :get_action
+          end
         end
 
         self.singleton_class.include(set.url_helpers)
@@ -1105,7 +1107,12 @@ class IntegrationRequestsWithoutSetup < ActionDispatch::IntegrationTest
 
   def test_request
     with_routing do |routes|
-      routes.draw { get ':action' => FooController }
+      routes.draw do
+        ActiveSupport::Deprecation.silence do
+          get ':action' => FooController
+        end
+      end
+
       get '/ok'
 
       assert_response 200
@@ -1173,7 +1180,11 @@ class IntegrationRequestEncodersTest < ActionDispatch::IntegrationTest
 
   def test_parsed_body_without_as_option
     with_routing do |routes|
-      routes.draw { get ':action' => FooController }
+      routes.draw do
+        ActiveSupport::Deprecation.silence do
+          get ':action' => FooController
+        end
+      end
 
       get '/foos_json.json', params: { foo: 'heyo' }
 
@@ -1184,7 +1195,11 @@ class IntegrationRequestEncodersTest < ActionDispatch::IntegrationTest
   private
     def post_to_foos(as:)
       with_routing do |routes|
-        routes.draw { post ':action' => FooController }
+        routes.draw do
+          ActiveSupport::Deprecation.silence do
+            post ':action' => FooController
+          end
+        end
 
         post "/foos_#{as}", params: { foo: 'fighters' }, as: as
 
