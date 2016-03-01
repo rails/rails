@@ -245,8 +245,12 @@ module ActionView
       partial = escape_entry(path.partial? ? "_#{path.name}" : path.name)
       query.gsub!(/:action/, partial)
 
-      details.each do |ext, variants|
-        query.gsub!(/:#{ext}/, "{#{variants.compact.uniq.join(',')}}")
+      details.each do |ext, candidates|
+        if ext == :variants && candidates == :any
+          query.gsub!(/:#{ext}/, "*")
+        else
+          query.gsub!(/:#{ext}/, "{#{candidates.compact.uniq.join(',')}}")
+        end
       end
 
       File.expand_path(query, @path)
