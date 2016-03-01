@@ -69,7 +69,9 @@ FIXTURE_LOAD_PATH = File.join(File.dirname(__FILE__), 'fixtures')
 SharedTestRoutes = ActionDispatch::Routing::RouteSet.new
 
 SharedTestRoutes.draw do
-  get ':controller(/:action)'
+  ActiveSupport::Deprecation.silence do
+    get ':controller(/:action)'
+  end
 end
 
 module ActionDispatch
@@ -118,7 +120,9 @@ class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
   self.app = build_app
 
   app.routes.draw do
-    get ':controller(/:action)'
+    ActiveSupport::Deprecation.silence do
+      get ':controller(/:action)'
+    end
   end
 
   class DeadEndRoutes < ActionDispatch::Routing::RouteSet

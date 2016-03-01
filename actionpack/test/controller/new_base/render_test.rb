@@ -57,7 +57,9 @@ module Render
     test "render with blank" do
       with_routing do |set|
         set.draw do
-          get ":controller", :action => 'index'
+          ActiveSupport::Deprecation.silence do
+            get ":controller", :action => 'index'
+          end
         end
 
         get "/render/blank_render"
@@ -70,7 +72,9 @@ module Render
     test "rendering more than once raises an exception" do
       with_routing do |set|
         set.draw do
-          get ":controller", :action => 'index'
+          ActiveSupport::Deprecation.silence do
+            get ":controller", :action => 'index'
+          end
         end
 
         assert_raises(AbstractController::DoubleRenderError) do

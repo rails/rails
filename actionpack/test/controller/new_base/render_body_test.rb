@@ -85,7 +85,7 @@ module RenderBody
 
     test "rendering body from an action with default options renders the body with the layout" do
       with_routing do |set|
-        set.draw { get ':controller', action: 'index' }
+        set.draw { ActiveSupport::Deprecation.silence { get ':controller', action: 'index' } }
 
         get "/render_body/simple"
         assert_body "hello david"
@@ -95,7 +95,7 @@ module RenderBody
 
     test "rendering body from an action with default options renders the body without the layout" do
       with_routing do |set|
-        set.draw { get ':controller', action: 'index' }
+        set.draw { ActiveSupport::Deprecation.silence { get ':controller', action: 'index' } }
 
         get "/render_body/with_layout"
 

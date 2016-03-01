@@ -286,7 +286,10 @@ class RedirectTest < ActionController::TestCase
     with_routing do |set|
       set.draw do
         resources :workshops
-        get ':controller/:action'
+
+        ActiveSupport::Deprecation.silence do
+          get ':controller/:action'
+        end
       end
 
       get :redirect_to_existing_record
@@ -328,7 +331,9 @@ class RedirectTest < ActionController::TestCase
   def test_redirect_to_with_block_and_accepted_options
     with_routing do |set|
       set.draw do
-        get ':controller/:action'
+        ActiveSupport::Deprecation.silence do
+          get ':controller/:action'
+        end
       end
 
       get :redirect_to_with_block_and_options
