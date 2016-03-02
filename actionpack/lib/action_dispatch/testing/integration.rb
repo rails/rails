@@ -455,24 +455,17 @@ module ActionDispatch
       def before_setup # :nodoc:
         @app = nil
         @integration_session = nil
-        @execution_context = nil
-        super
-      end
-
-      def after_teardown # :nodoc:
-        remove!
         super
       end
 
       def integration_session
-        @integration_session ||= create_session(app).tap { @execution_context = app.respond_to?(:executor) && app.executor.run! }
+        @integration_session ||= create_session(app)
       end
 
       # Reset the current session. This is useful for testing multiple sessions
       # in a single test case.
       def reset!
-        remove!
-        integration_session
+        @integration_session = create_session(app)
       end
 
       def create_session(app)
@@ -488,8 +481,6 @@ module ActionDispatch
       end
 
       def remove! # :nodoc:
-        @execution_context.complete! if @execution_context
-        @execution_context = nil
         @integration_session = nil
       end
 
