@@ -1,3 +1,12 @@
+*   Calling `destroy` on an object with `has_many dependent: :destroy` relations
+    will now call `destroy` and not `destroy!` on the related objects. If a
+    `.replace` call fails due to a `before_destroy`, it will now raise
+    `ActiveRecord::RecordNotSaved`.
+
+    Fixes #19761
+
+    *Nate Collings*
+
 *   Added a configuration option to have active record raise an ArgumentError
     if the order or limit is ignored in a batch query, rather than logging a
     warning message.
