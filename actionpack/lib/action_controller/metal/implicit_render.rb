@@ -42,7 +42,7 @@ module ActionController
           "action but none of them were suitable for this request.\n\n" \
           "This usually happens when the client requested an unsupported format " \
           "(e.g. requesting HTML content from a JSON endpoint or vice versa), but " \
-          "it might also be failing due to other constraints, such as locales or" \
+          "it might also be failing due to other constraints, such as locales or " \
           "variants.\n"
 
         if request.formats.any?
