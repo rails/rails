@@ -668,7 +668,7 @@ module ActiveRecord
         register_integer_type m, %r(^smallint)i,  limit: 2
         register_integer_type m, %r(^tinyint)i,   limit: 1
 
-        m.alias_type %r(tinyint\(1\))i,  'boolean' if emulate_booleans
+        m.register_type %r(^tinyint\(1\))i, Type::Boolean.new if emulate_booleans
         m.alias_type %r(year)i,          'integer'
         m.alias_type %r(bit)i,           'binary'
 
