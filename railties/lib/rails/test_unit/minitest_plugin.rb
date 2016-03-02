@@ -87,6 +87,8 @@ module Minitest
     self.reporter.reporters.delete_if { |reporter| reporter.kind_of?(SummaryReporter) || reporter.kind_of?(ProgressReporter) }
     self.reporter << SuppressedSummaryReporter.new(options[:io], options)
     self.reporter << ::Rails::TestUnitReporter.new(options[:io], options)
+
+    Minitest.plugin_pride_init(options) if Minitest::PrideIO.pride?
   end
 
   mattr_accessor(:run_with_autorun)         { false }
