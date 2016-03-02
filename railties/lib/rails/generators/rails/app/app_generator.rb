@@ -103,7 +103,7 @@ module Rails
       end
 
       unless cookie_serializer_config_exist
-        gsub_file 'config/initializers/cookies_serializer.rb', /json/, 'marshal'
+        gsub_file 'config/initializers/cookies_serializer.rb', /json(?!,)/, 'marshal'
       end
 
       unless active_record_belongs_to_required_by_default_config_exist
