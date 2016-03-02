@@ -200,7 +200,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_rails_update_set_the_cookie_serializer_to_marchal_if_it_is_not_already_configured
+  def test_rails_update_set_the_cookie_serializer_to_marshal_if_it_is_not_already_configured
     app_root = File.join(destination_root, 'myapp')
     run_generator [app_root]
 
