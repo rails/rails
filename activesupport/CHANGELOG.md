@@ -35,9 +35,9 @@
 
     *Brian Christian*
 
-*  Fix regression in `Hash#dig` for HashWithIndifferentAccess.
+*   Fix regression in `Hash#dig` for HashWithIndifferentAccess.
 
-   *Jon Moss*
+    *Jon Moss*
 
 ## Rails 5.0.0.beta2 (February 01, 2016) ##
 

@@ -1,26 +1,26 @@
-* Allow channel identifiers with no backslahes/escaping to be accepted
-  by the subscription storer.
+*   Allow channel identifiers with no backslahes/escaping to be accepted
+    by the subscription storer.
 
-   *Jon Moss*
+    *Jon Moss*
 
 *   Safely support autoloading and class unloading, by preventing concurrent
     loads, and disconnecting all cables during reload.
 
     *Matthew Draper*
 
-* Ensure ActionCable behaves correctly for non-string queue names.
+*   Ensure ActionCable behaves correctly for non-string queue names.
 
-  *Jay Hayes*
+    *Jay Hayes*
 
 ## Rails 5.0.0.beta3 (February 24, 2016) ##
 
-*  Added `em_redis_connector` and `redis_connector` to
-  `ActionCable::SubscriptionAdapter::EventedRedis` and added `redis_connector`
-   to `ActionCable::SubscriptionAdapter::Redis`, so you can overwrite with your
-   own initializers. This is used when you want to use different-than-standard
-   Redis adapters, like for Makara distributed Redis.
+*   Added `em_redis_connector` and `redis_connector` to
+   `ActionCable::SubscriptionAdapter::EventedRedis` and added `redis_connector`
+    to `ActionCable::SubscriptionAdapter::Redis`, so you can overwrite with your
+    own initializers. This is used when you want to use different-than-standard
+    Redis adapters, like for Makara distributed Redis.
 
-   *DHH*
+    *DHH*
 
 ## Rails 5.0.0.beta2 (February 01, 2016) ##
 
@@ -43,7 +43,7 @@
     ActionCable was changed from`config/redis/cable.yml` to
     `config/cable.yml`.
 
-   *Jon Moss*
+    *Jon Moss*
 
 ## Rails 5.0.0.beta1 (December 18, 2015) ##
 

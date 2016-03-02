@@ -8,9 +8,9 @@
 
     *Ryo Hashimoto*
 
-*  Enable HSTS with IncludeSudomains header for new applications.
+*   Enable HSTS with IncludeSudomains header for new applications.
 
-   *Egor Homakov*, *Prathamesh Sonpatki*
+    *Egor Homakov*, *Prathamesh Sonpatki*
 
 ## Rails 5.0.0.beta3 (February 24, 2016) ##
 
