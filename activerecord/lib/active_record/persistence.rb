@@ -61,7 +61,7 @@ module ActiveRecord
       # +instantiate+ instead of +new+, finder methods ensure they get new
       # instances of the appropriate class for each record.
       #
-      # See +ActiveRecord::Inheritance#discriminate_class_for_record+ to see
+      # See <tt>ActiveRecord::Inheritance#discriminate_class_for_record</tt> to see
       # how this "single-table" inheritance mapping is implemented.
       def instantiate(attributes, column_types = {})
         klass = discriminate_class_for_record(attributes)
