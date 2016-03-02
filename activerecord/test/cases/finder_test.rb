@@ -606,14 +606,22 @@ class FinderTest < ActiveRecord::TestCase
     post = posts('sti_comments')
 
     comments = post.comments.order(id: :asc)
-    assert_equal comments.limit(2).to_a.last, comments.limit(2).last
-    assert_equal comments.limit(2).to_a.last(2), comments.limit(2).last(2)
-    assert_equal comments.limit(2).to_a.last(3), comments.limit(2).last(3)
+    comment_ids = comments.pluck(:id)
+
+    assert_equal comment_ids.last, comments.limit(2).last.id
+    assert_equal comment_ids.last(2), comments.limit(2).last(2).pluck(:id)
+    assert_equal comment_ids.last(3), comments.limit(2).last(3).pluck(:id)
 
     comments = comments.offset(1)
-    assert_equal comments.limit(2).to_a.last, comments.limit(2).last
-    assert_equal comments.limit(2).to_a.last(2), comments.limit(2).last(2)
-    assert_equal comments.limit(2).to_a.last(3), comments.limit(2).last(3)
+
+    assert_equal comment_ids[-2], comments.limit(2).last.id
+    assert_equal comment_ids[2,2], comments.limit(2).last(2).pluck(:id)
+    assert_equal comment_ids[1,3], comments.limit(2).last(3).pluck(:id)
+  end
+
+  def test_last_with_limit
+    assert_equal Post.last, Post.limit(1).last
+    assert_equal Post.last(2), Post.limit(2).last(2)
   end
 
   def test_take_and_first_and_last_with_integer_should_return_an_array
