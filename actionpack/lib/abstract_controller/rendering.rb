@@ -1,6 +1,7 @@
 require "abstract_controller/base"
 require "action_view"
 require "active_support/core_ext/object/instance_variables"
+require "active_support/hash_with_indifferent_access"
 
 module AbstractController
   class DoubleRenderError < Error
