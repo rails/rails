@@ -732,9 +732,6 @@ Please refer to the [Changelog][active-support] for detailed changes.
     `#tomorrow` for `Date`, `Time`, and `DateTime`.
     ([Pull Request](httpshttps://github.com/rails/rails/pull/18335))
 
-*   Added `SecureRandom.base58` for generation of random base58 strings.
-    ([commit](https://github.com/rails/rails/commit/b1093977110f18ae0cafe56c3d99fc22a7d54d1b))
-
 *   Added `file_fixture` to `ActiveSupport::TestCase`.
     It provides a simple mechanism to access sample files in your test cases.
     ([Pull Request](https://github.com/rails/rails/pull/18658))
