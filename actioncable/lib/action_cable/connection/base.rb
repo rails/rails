@@ -115,7 +115,7 @@ module ActionCable
       end
 
       def beat
-        transmit ActiveSupport::JSON.encode(identifier: ActionCable::INTERNAL[:identifiers][:ping], message: Time.now.to_i)
+        transmit ActiveSupport::JSON.encode(type: ActionCable::INTERNAL[:message_types][:ping], message: Time.now.to_i)
       end
 
       def on_open # :nodoc:
@@ -155,7 +155,7 @@ module ActionCable
         def handle_open
           connect if respond_to?(:connect)
           subscribe_to_internal_channel
-          confirm_connection_monitor_subscription
+          send_welcome_message
 
           message_buffer.process!
           server.add_connection(self)
@@ -174,11 +174,11 @@ module ActionCable
           disconnect if respond_to?(:disconnect)
         end
 
-        def confirm_connection_monitor_subscription
-          # Send confirmation message to the internal connection monitor channel.
+        def send_welcome_message
+          # Send welcome message to the internal connection monitor channel.
           # This ensures the connection monitor state is reset after a successful
           # websocket connection.
-          transmit ActiveSupport::JSON.encode(identifier: ActionCable::INTERNAL[:identifiers][:ping], type: ActionCable::INTERNAL[:message_types][:confirmation])
+          transmit ActiveSupport::JSON.encode(type: ActionCable::INTERNAL[:message_types][:welcome])
         end
 
         def allow_request_origin?
