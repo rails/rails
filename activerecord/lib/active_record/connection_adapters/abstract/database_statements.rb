@@ -125,18 +125,21 @@ module ActiveRecord
       end
       alias create insert
       alias insert_sql insert
+      deprecate insert_sql: :insert
 
       # Executes the update statement and returns the number of rows affected.
       def update(arel, name = nil, binds = [])
         exec_update(to_sql(arel, binds), name, binds)
       end
       alias update_sql update
+      deprecate update_sql: :update
 
       # Executes the delete statement and returns the number of rows affected.
       def delete(arel, name = nil, binds = [])
         exec_delete(to_sql(arel, binds), name, binds)
       end
       alias delete_sql delete
+      deprecate delete_sql: :delete
 
       # Returns +true+ when the connection adapter supports prepared statement
       # caching, otherwise returns +false+

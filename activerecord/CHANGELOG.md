@@ -1,3 +1,8 @@
+*   Deprecate `{insert|update|delete}_sql` in `DatabaseStatements`.
+    Use the `{insert|update|delete}` public methods instead.
+
+    *Ryuta Kamizono*
+
 *   Added a configuration option to have active record raise an ArgumentError
     if the order or limit is ignored in a batch query, rather than logging a
     warning message.
@@ -80,7 +85,6 @@
           # after:  Deprecation Warning for irreversible order
 
     *Bogdan Gusiev*
-
 
 *   Allow `joins` to be unscoped.
 
