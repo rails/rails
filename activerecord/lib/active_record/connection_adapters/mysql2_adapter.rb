@@ -134,10 +134,6 @@ module ActiveRecord
         ActiveRecord::Result.new(result.fields, result.to_a) if result
       end
 
-      def exec_insert(sql, name, binds, pk = nil, sequence_name = nil)
-        execute to_sql(sql, binds), name
-      end
-
       def exec_delete(sql, name, binds)
         execute to_sql(sql, binds), name
         @connection.affected_rows
