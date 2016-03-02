@@ -1693,7 +1693,7 @@ class MetalRenderWithoutAVTest < ActionController::TestCase
 
   def test_dynamic_params_render
     e = assert_raises ArgumentError do
-      get :dynamic_params_render, { inline: '<%= RUBY_VERSION %>' }
+      get :dynamic_params_render, { :inline => '<%= RUBY_VERSION %>' }
     end
     assert_equal "render parameters are not permitted", e.message
   end
