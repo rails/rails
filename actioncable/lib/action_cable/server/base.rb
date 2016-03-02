@@ -1,4 +1,4 @@
-require 'thread'
+require 'monitor'
 
 module ActionCable
   module Server
@@ -18,8 +18,8 @@ module ActionCable
       attr_reader :mutex
 
       def initialize
-        @mutex = Mutex.new
-        @remote_connections = @stream_event_loop = @worker_pool = @channel_classes = @pubsub = nil
+        @mutex = Monitor.new
+        @remote_connections = @event_loop = @worker_pool = @channel_classes = @pubsub = nil
       end
 
       # Called by Rack to setup the server.
@@ -48,8 +48,8 @@ module ActionCable
         @remote_connections || @mutex.synchronize { @remote_connections ||= RemoteConnections.new(self) }
       end
 
-      def stream_event_loop
-        @stream_event_loop || @mutex.synchronize { @stream_event_loop ||= ActionCable::Connection::StreamEventLoop.new }
+      def event_loop
+        @event_loop || @mutex.synchronize { @event_loop ||= config.event_loop_class.new }
       end
 
       # The thread worker pool for handling all the connection work on this server. Default size is set by config.worker_pool_size.

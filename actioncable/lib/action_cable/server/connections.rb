@@ -21,9 +21,9 @@ module ActionCable
       # then can't rely on being able to communicate with the connection. To solve this, a 3 second heartbeat runs on all connections. If the beat fails, we automatically
       # disconnect.
       def setup_heartbeat_timer
-        @heartbeat_timer ||= Concurrent::TimerTask.new(execution_interval: BEAT_INTERVAL) do
-          Concurrent.global_io_executor.post { connections.map(&:beat) }
-        end.tap(&:execute)
+        @heartbeat_timer ||= event_loop.timer(BEAT_INTERVAL) do
+          event_loop.post { connections.map(&:beat) }
+        end
       end
 
       def open_connections_statistics

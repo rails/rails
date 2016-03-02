@@ -8,8 +8,8 @@ require 'faye/websocket'
 require 'json'
 
 class ClientTest < ActionCable::TestCase
-  WAIT_WHEN_EXPECTING_EVENT = 3
-  WAIT_WHEN_NOT_EXPECTING_EVENT = 0.2
+  WAIT_WHEN_EXPECTING_EVENT = 8
+  WAIT_WHEN_NOT_EXPECTING_EVENT = 0.5
 
   def setup
     ActionCable.instance_variable_set(:@server, nil)
@@ -17,6 +17,7 @@ class ClientTest < ActionCable::TestCase
     server.config.logger = Logger.new(StringIO.new).tap { |l| l.level = Logger::UNKNOWN }
 
     server.config.cable = { adapter: 'async' }.with_indifferent_access
+    server.config.use_faye = ENV['FAYE'].present?
 
     # and now the "real" setup for our test:
     server.config.disable_request_forgery_protection = true

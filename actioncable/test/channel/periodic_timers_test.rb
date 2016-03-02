@@ -31,7 +31,7 @@ class ActionCable::Channel::PeriodicTimersTest < ActiveSupport::TestCase
   end
 
   test "timer start and stop" do
-    Concurrent::TimerTask.expects(:new).times(2).returns(true)
+    @connection.server.event_loop.expects(:timer).times(2).returns(true)
     channel = ChatChannel.new @connection, "{id: 1}", { id: 1 }
 
     channel.expects(:stop_periodic_timers).once

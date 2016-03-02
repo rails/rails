@@ -4,8 +4,8 @@ module ActionCable
   module Connection
     # Wrap the real socket to minimize the externally-presented API
     class WebSocket
-      def initialize(env, event_target, stream_event_loop)
-        @websocket = ::WebSocket::Driver.websocket?(env) ? ClientSocket.new(env, event_target, stream_event_loop) : nil
+      def initialize(env, event_target, event_loop, client_socket_class)
+        @websocket = ::WebSocket::Driver.websocket?(env) ? client_socket_class.new(env, event_target, event_loop) : nil
       end
 
       def possible?
