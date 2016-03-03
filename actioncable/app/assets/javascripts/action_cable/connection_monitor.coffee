@@ -18,6 +18,7 @@ class ActionCable.ConnectionMonitor
 
   disconnected: ->
     @disconnectedAt = now()
+    ActionCable.log("ConnectionMonitor disconnected")
 
   ping: ->
     @pingedAt = now()
