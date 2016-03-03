@@ -87,15 +87,7 @@ module Enumerable
     entries.flatten!
   end
 
-  # Queries an object (in particular, an ActiveRecord model, Hash, or Struct)
-  # for a particular value using #[], #fetch, or #send, as appropriate,
-  # returning nil if the value is not found.
-  #
-  #   pluck_single({ name: "David" }, :name)
-  #     => "David"
-  #
-  #   pluck_single({ name: "David" }, :email)
-  #     => nil
+  # :nodoc:
   def pluck_single(element, key)
     if element.respond_to?(:has_attribute?) # AR
       element[key]
