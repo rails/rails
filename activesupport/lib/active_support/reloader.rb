@@ -22,8 +22,6 @@ module ActiveSupport
   #   unloaded.
   #
   class Reloader < ExecutionWrapper
-    Null = Class.new(ExecutionWrapper) # :nodoc:
-
     define_callbacks :prepare
 
     define_callbacks :class_unload
@@ -54,7 +52,7 @@ module ActiveSupport
       if check!
         super
       else
-        Null.run!
+        Null
       end
     end
 

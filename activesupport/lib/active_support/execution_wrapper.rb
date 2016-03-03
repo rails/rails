@@ -4,6 +4,10 @@ module ActiveSupport
   class ExecutionWrapper
     include ActiveSupport::Callbacks
 
+    Null = Object.new # :nodoc:
+    def Null.complete! # :nodoc:
+    end
+
     define_callbacks :run
     define_callbacks :complete
 
@@ -22,7 +26,11 @@ module ActiveSupport
     #
     # Where possible, prefer +wrap+.
     def self.run!
-      new.tap(&:run!)
+      if active?
+        Null
+      else
+        new.tap(&:run!)
+      end
     end
 
     # Perform the work in the supplied block as an execution.
@@ -43,17 +51,17 @@ module ActiveSupport
 
     def self.inherited(other) # :nodoc:
       super
-      other.active = Concurrent::Hash.new(0)
+      other.active = Concurrent::Hash.new
     end
 
-    self.active = Concurrent::Hash.new(0)
+    self.active = Concurrent::Hash.new
 
     def self.active? # :nodoc:
-      @active[Thread.current] > 0
+      @active[Thread.current]
     end
 
     def run! # :nodoc:
-      self.class.active[Thread.current] += 1
+      self.class.active[Thread.current] = true
       run_callbacks(:run)
     end
 
@@ -63,7 +71,8 @@ module ActiveSupport
     # Where possible, prefer +wrap+.
     def complete!
       run_callbacks(:complete)
-      self.class.active.delete Thread.current if (self.class.active[Thread.current] -= 1) == 0
+    ensure
+      self.class.active.delete Thread.current
     end
   end
 end
