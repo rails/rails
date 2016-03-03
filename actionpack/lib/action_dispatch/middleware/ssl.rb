@@ -37,7 +37,7 @@ module ActionDispatch
   #
   # Redirection can be constrained to only whitelisted requests with `constrain_to`:
   #
-  #    config.ssl_options = { redirect: { constrain_to: -> request { request.path !~ /healthcheck/ } } }
+  #    config.ssl_options = { redirect: { exclude: -> request { request.path =~ /healthcheck/ } } }
   class SSL
     # Default to 180 days, the low end for https://www.ssllabs.com/ssltest/
     # and greater than the 18-week requirement for browser preload lists.
@@ -59,7 +59,8 @@ module ActionDispatch
       else
         @redirect = redirect
       end
-      @constrain_to = @redirect && @redirect[:constrain_to] || proc { @redirect }
+
+      @exclude = @redirect && @redirect[:exclude] || proc { !@redirect }
       @secure_cookies = secure_cookies
 
       if hsts != true && hsts != false && hsts[:subdomains].nil?
@@ -84,7 +85,7 @@ module ActionDispatch
           flag_cookies_as_secure! headers if @secure_cookies
         end
       else
-        return redirect_to_https request if @constrain_to.call(request)
+        return redirect_to_https request unless @exclude.call(request)
         @app.call(env)
       end
     end
