@@ -119,25 +119,16 @@ If you want to cache a fragment under certain conditions, you can use
 
 The `render` helper can also cache individual templates rendered for a collection.
 It can even one up the previous example with `each` by reading all cache
-templates at once instead of one by one. This is done automatically if the template
-rendered by the collection includes a `cache` call. Take a collection that renders
-a `products/_product.html.erb` partial for each element:
-
-```ruby
-render products
-```
-
-If `products/_product.html.erb` starts with a `cache` call like so:
+templates at once instead of one by one. This is done by passing `cached: true` when rendering the collection:
 
 ```html+erb
-<% cache product do %>
-  <%= product.name %>
-<% end %>
+<%= render partial: 'products/product', collection: @products, cached: true %>
 ```
 
-All the cached templates from previous renders will be fetched at once with much
-greater speed. There's more info on how to make your templates [eligible for
-collection caching](http://api.rubyonrails.org/classes/ActionView/Template/Handlers/ERB.html#method-i-resource_cache_call_pattern).
+All cached templates from previous renders will be fetched at once with much
+greater speed. Additionally, the templates that haven't yet been cached will be
+written to cache and multi fetched on the next render.
+
 
 ### Russian Doll Caching
 
