@@ -35,7 +35,7 @@ module ActionDispatch
   # expire HSTS immediately. Setting `hsts: false` is a shortcut for
   # `hsts: { expires: 0 }`.
   #
-  # Redirection can be constrained to only whitelisted requests with `constrain_to`:
+  # Requests can opt-out of redirection with `exclude`:
   #
   #    config.ssl_options = { redirect: { exclude: -> request { request.path =~ /healthcheck/ } } }
   class SSL
