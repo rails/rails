@@ -163,12 +163,16 @@ module ActionController
         end
       end
 
-      def each
-        @response.sending!
+      def body(*args)
+        super(sending: true)
+      end
+
+      def each(sending: true)
+        @response.sending! if sending
         while str = @buf.pop
           yield str
         end
-        @response.sent!
+        @response.sent! if sending
       end
 
       # Write a 'close' event to the buffer; the producer/writing thread

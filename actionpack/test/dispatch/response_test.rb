@@ -46,11 +46,14 @@ class ResponseTest < ActiveSupport::TestCase
     # after the action reads back @response.body,
     assert_equal "Hello, World!", @response.body
 
+    @response['x-header'] = "Best of all possible worlds."
+
     # the response can be built.
     status, headers, body = @response.to_a
     assert_equal 200, status
     assert_equal({
-      "Content-Type" => "text/html; charset=utf-8"
+      "Content-Type" => "text/html; charset=utf-8",
+      "x-header"     => "Best of all possible worlds."
     }, headers)
 
     parts = []
