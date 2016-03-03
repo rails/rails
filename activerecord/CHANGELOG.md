@@ -1,3 +1,11 @@
+*   Fix an issue when preloading associations with extensions.
+    Previously every association with extension methods was transformed into an
+    instance dependent scope. This is no longer the case.
+
+    Fixes #23934.
+
+    *Yves Senn*
+
 *   Deprecate `{insert|update|delete}_sql` in `DatabaseStatements`.
     Use the `{insert|update|delete}` public methods instead.
 

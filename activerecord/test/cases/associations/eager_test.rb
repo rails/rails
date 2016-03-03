@@ -1392,6 +1392,18 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_equal('10 was not recognized for preload', exception.message)
   end
 
+  test "associations with extensions are not instance dependent" do
+    assert_nothing_raised do
+      Author.includes(:posts_with_extension).to_a
+    end
+  end
+
+  test "including associations with extensions and an instance dependent scope is not supported" do
+    e = assert_raises(ArgumentError) do
+      Author.includes(:posts_with_extension_and_instance).to_a
+    end
+    assert_match(/Preloading instance dependent scopes is not supported/, e.message)
+  end
 
   test "preloading readonly association" do
     # has-one
