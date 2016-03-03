@@ -101,4 +101,5 @@ class ActionCable.Connection
   disconnect: ->
     return if @disconnected
     @disconnected = true
+    @consumer.connectionMonitor.disconnected()
     @consumer.subscriptions.notifyAll("disconnected")
