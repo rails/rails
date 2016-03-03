@@ -214,7 +214,6 @@ module ActiveRecord
 
         # Returns the list of all column definitions for a table.
         def columns(table_name)
-          # Limit, precision, and scale are all handled by the superclass.
           column_definitions(table_name).map do |column_name, type, default, notnull, oid, fmod, collation|
             oid = oid.to_i
             fmod = fmod.to_i
