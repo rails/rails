@@ -8,14 +8,24 @@ class TestServer
   def initialize
     @logger = ActiveSupport::TaggedLogging.new ActiveSupport::Logger.new(StringIO.new)
     @config = OpenStruct.new(log_tags: [], subscription_adapter: SuccessAdapter)
+    @config.use_faye = ENV['FAYE'].present?
+    @config.client_socket_class = if @config.use_faye
+                                    ActionCable::Connection::FayeClientSocket
+                                  else
+                                    ActionCable::Connection::ClientSocket
+                                  end
   end
 
   def pubsub
     @config.subscription_adapter.new(self)
   end
 
-  def stream_event_loop
-    @stream_event_loop ||= ActionCable::Connection::StreamEventLoop.new
+  def event_loop
+    @event_loop ||= if @config.use_faye
+                      ActionCable::Connection::FayeEventLoop.new
+                    else
+                      ActionCable::Connection::StreamEventLoop.new
+                    end
   end
 
   def worker_pool

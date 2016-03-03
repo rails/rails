@@ -29,10 +29,10 @@ module ActionCable
 
       attr_reader :env, :url
 
-      def initialize(env, event_target, stream_event_loop)
-        @env               = env
-        @event_target      = event_target
-        @stream_event_loop = stream_event_loop
+      def initialize(env, event_target, event_loop)
+        @env          = env
+        @event_target = event_target
+        @event_loop   = event_loop
 
         @url = ClientSocket.determine_url(@env)
 
@@ -49,7 +49,7 @@ module ActionCable
         @driver.on(:close)   { |e| begin_close(e.reason, e.code) }
         @driver.on(:error)   { |e| emit_error(e.message) }
 
-        @stream = ActionCable::Connection::Stream.new(@stream_event_loop, self)
+        @stream = ActionCable::Connection::Stream.new(@event_loop, self)
       end
 
       def start_driver

@@ -17,6 +17,7 @@ env:
     - "GEM=railties"
     - "GEM=ap"
     - "GEM=ac"
+    - "GEM=ac FAYE=1"
     - "GEM=am,amo,as,av,aj"
     - "GEM=ar:mysql2"
     - "GEM=ar:sqlite3"

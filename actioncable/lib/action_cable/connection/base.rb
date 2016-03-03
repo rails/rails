@@ -49,7 +49,7 @@ module ActionCable
       include Authorization
 
       attr_reader :server, :env, :subscriptions, :logger, :worker_pool
-      delegate :stream_event_loop, :pubsub, to: :server
+      delegate :event_loop, :pubsub, to: :server
 
       def initialize(server, env)
         @server, @env = server, env
@@ -57,7 +57,7 @@ module ActionCable
         @worker_pool = server.worker_pool
         @logger = new_tagged_logger
 
-        @websocket      = ActionCable::Connection::WebSocket.new(env, self, stream_event_loop)
+        @websocket      = ActionCable::Connection::WebSocket.new(env, self, event_loop, server.config.client_socket_class)
         @subscriptions  = ActionCable::Connection::Subscriptions.new(self)
         @message_buffer = ActionCable::Connection::MessageBuffer.new(self)
 

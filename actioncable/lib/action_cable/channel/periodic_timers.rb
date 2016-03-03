@@ -27,7 +27,7 @@ module ActionCable
 
         def start_periodic_timers
           self.class.periodic_timers.each do |callback, options|
-            active_periodic_timers << Concurrent::TimerTask.new(execution_interval: options[:every]) do
+            active_periodic_timers << connection.server.event_loop.timer(options[:every]) do
               connection.worker_pool.async_run_periodic_timer(self, callback)
             end
           end

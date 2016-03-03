@@ -15,14 +15,14 @@ module ActionCable
             @_internal_subscriptions ||= []
             @_internal_subscriptions << [ internal_channel, callback ]
 
-            Concurrent.global_io_executor.post { pubsub.subscribe(internal_channel, callback) }
+            server.event_loop.post { pubsub.subscribe(internal_channel, callback) }
             logger.info "Registered connection (#{connection_identifier})"
           end
         end
 
         def unsubscribe_from_internal_channel
           if @_internal_subscriptions.present?
-            @_internal_subscriptions.each { |channel, callback| Concurrent.global_io_executor.post { pubsub.unsubscribe(channel, callback) } }
+            @_internal_subscriptions.each { |channel, callback| server.event_loop.post { pubsub.unsubscribe(channel, callback) } }
           end
         end
 
