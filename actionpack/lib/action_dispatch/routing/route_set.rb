@@ -515,11 +515,17 @@ module ActionDispatch
         named_routes[name] = route if name
 
         if route.segment_keys.include?(:controller)
-          ActiveSupport::Deprecation.warn("Using a dynamic :controller segment in a route is deprecated and will be remove in Rails 5.1")
+          ActiveSupport::Deprecation.warn(<<-MSG.squish)
+            Using a dynamic :controller segment in a route is deprecated and
+            will be removed in Rails 5.1
+          MSG
         end
 
         if route.segment_keys.include?(:action)
-          ActiveSupport::Deprecation.warn("Using a dynamic :action segment in a route is deprecated and will be remove in Rails 5.1")
+          ActiveSupport::Deprecation.warn(<<-MSG.squish)
+            Using a dynamic :action segment in a route is deprecated and
+            will be removed in Rails 5.1
+          MSG
         end
 
         route
