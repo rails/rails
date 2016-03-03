@@ -23,3 +23,7 @@ class ActionCable.Consumer
 
   send: (data) ->
     @connection.send(data)
+
+  ensureActiveConnection: ->
+    unless @connection.isActive()
+      @connection.open()
