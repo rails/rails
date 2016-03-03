@@ -208,10 +208,29 @@ module ActionController
       response.date = Time.now unless response.date?
     end
 
-    # Sets a HTTP 1.1 Cache-Control header of <tt>no-cache</tt> so no caching should
-    # occur by the browser or intermediate caches (like caching proxy servers).
-    def expires_now
-      response.cache_control.replace(:no_cache => true)
+    def expires_now(*args)
+      ActiveSupport::Deprecation.warn <<-eowarn
+expires_now is deprecated and will be removed in Rails 5.1.
+Please use always_revalidate or http_cache_never instead.
+      eowarn
+      always_revalidate(*args)
+    end
+
+    # Sets a HTTP 1.1 Cache-Control header of <tt>no-cache</tt>. Browsers and
+    # intermediate caches will still store the response, but will always
+    # revalidate to see if the response has changed. Use for frequently-updated
+    # resources that need to be revalidated on each request, but may sometimes
+    # be unchanged.
+    def always_revalidate
+      response.cache_control[:no_cache] = true
+    end
+
+    # Sets a HTTP 1.1 Cache-Control header of <tt>no-store</tt>. Browsers and
+    # intermediate caches will never store this response and will never cache it.
+    # Use for sensitive or private information, but be aware that intermediates
+    # or eavesdroppers may ignore this directive and privacy cannot be guaranteed.
+    def http_cache_never
+      response.cache_control.replace(no_store: true)
     end
 
     # Cache or yield the block. The cache is supposed to never expire.
