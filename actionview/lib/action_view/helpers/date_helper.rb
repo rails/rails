@@ -33,8 +33,8 @@ module ActionView
       #   44 mins, 30 secs <-> 89 mins, 29 secs                                     # => about 1 hour
       #   89 mins, 30 secs <-> 23 hrs, 59 mins, 29 secs                             # => about [2..24] hours
       #   23 hrs, 59 mins, 30 secs <-> 41 hrs, 59 mins, 29 secs                     # => 1 day
-      #   41 hrs, 59 mins, 30 secs  <-> 29 days, 23 hrs, 59 mins, 29 secs           # => [2..29] days
-      #   29 days, 23 hrs, 59 mins, 30 secs <-> 44 days, 23 hrs, 59 mins, 29 secs   # => about 1 month
+      #   41 hrs, 59 mins, 30 secs  <-> 27 days, 23 hrs, 59 mins, 29 secs           # => [2..27] days
+      #   28 days, 23 hrs, 59 mins, 30 secs <-> 44 days, 23 hrs, 59 mins, 29 secs   # => about 1 month
       #   44 days, 23 hrs, 59 mins, 30 secs <-> 59 days, 23 hrs, 59 mins, 29 secs   # => about 2 months
       #   59 days, 23 hrs, 59 mins, 30 secs <-> 1 yr minus 1 sec                    # => [2..12] months
       #   1 yr <-> 1 yr, 3 months                                                   # => about 1 year
@@ -122,10 +122,10 @@ module ActionView
             when 90...1440        then locale.t :about_x_hours,  :count => (distance_in_minutes.to_f / 60.0).round
             # 24 hours up to 42 hours
             when 1440...2520      then locale.t :x_days,         :count => 1
-            # 42 hours up to 30 days
-            when 2520...43200     then locale.t :x_days,         :count => (distance_in_minutes.to_f / 1440.0).round
-            # 30 days up to 60 days
-            when 43200...86400    then locale.t :about_x_months, :count => (distance_in_minutes.to_f / 43200.0).round
+            # 42 hours up to 28 days
+            when 2520...40320     then locale.t :x_days,         :count => (distance_in_minutes.to_f / 1440.0).round
+            # 28 days up to 60 days
+            when 40320...86400    then locale.t :about_x_months, :count => (distance_in_minutes.to_f / 43200.0).round
             # 60 days up to 365 days
             when 86400...525600   then locale.t :x_months,       :count => (distance_in_minutes.to_f / 43200.0).round
             else
