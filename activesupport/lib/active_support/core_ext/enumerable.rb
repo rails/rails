@@ -80,12 +80,25 @@ module Enumerable
   #   [{ id: 1, name: "David" }, { id: 2, name: "Rafael" }].pluck(:id, :name)
   #     => [[1, "David"], [2, "Rafael"]]
   def pluck(*keys)
-    if keys.many?
-      map { |element| keys.map { |key| element[key] } }
-    else
-      map { |element| element[keys.first] }
+    entries = map { |element| keys.map { |key| pluck_single(element, key) } }
+
+    return entries if keys.many?
+
+    entries.flatten!
+  end
+
+  def pluck_single(element, key)
+    if element.respond_to?(:has_attribute?) # AR
+      element[key]
+    elsif element.respond_to?(:has_key?) # Hash
+      element.fetch(key, nil)
+    elsif element.respond_to?(:members) # Struct
+      element[key] if element.members.include?(key)
+    elsif element.respond_to?(key) # fallback
+      element.send(key)
     end
   end
+  private :pluck_single
 end
 
 class Range #:nodoc:

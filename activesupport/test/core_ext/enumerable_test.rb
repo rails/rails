@@ -116,12 +116,40 @@ class EnumerableTests < ActiveSupport::TestCase
   def test_pluck
     payments = GenericEnumerable.new([ Payment.new(5), Payment.new(15), Payment.new(10) ])
     assert_equal [5, 15, 10], payments.pluck(:price)
+  end
 
+  def test_pluck_with_key_not_present
+    payments = GenericEnumerable.new([ Payment.new(5), Payment.new(15), Payment.new(10) ])
+    assert_equal [nil, nil, nil], payments.pluck(:cents)
+  end
+
+  def test_pluck_with_many_keys
     payments = GenericEnumerable.new([
       ExpandedPayment.new(5, 99),
       ExpandedPayment.new(15, 0),
       ExpandedPayment.new(10, 50)
     ])
     assert_equal [[5, 99], [15, 0], [10, 50]], payments.pluck(:dollars, :cents)
+  end
+
+  def test_pluck_with_many_keys_some_not_present
+    payments = GenericEnumerable.new([
+      ExpandedPayment.new(5, 99),
+      ExpandedPayment.new(15, 0),
+      ExpandedPayment.new(10, 50)
+    ])
+    assert_equal [[5, nil], [15, nil], [10, nil]], payments.pluck(:dollars, :pennies)
+  end
+
+
+  def test_pluck_works_with_non_nil_default
+    entries = [5, 15, 10].map do |n|
+      hsh = Hash.new('!!!')
+      hsh.merge(price: n)
+    end
+
+    payments = GenericEnumerable.new(entries)
+
+    assert_equal [nil, nil, nil], payments.pluck(:dollars)
   end
 end
