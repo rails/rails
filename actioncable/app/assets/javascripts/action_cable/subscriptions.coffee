@@ -19,6 +19,7 @@ class ActionCable.Subscriptions
 
   add: (subscription) ->
     @subscriptions.push(subscription)
+    @consumer.ensureActiveConnection()
     @notify(subscription, "initialized")
     @sendCommand(subscription, "subscribe")
 
@@ -59,4 +60,3 @@ class ActionCable.Subscriptions
   sendCommand: (subscription, command) ->
     {identifier} = subscription
     @consumer.send({command, identifier})
-      

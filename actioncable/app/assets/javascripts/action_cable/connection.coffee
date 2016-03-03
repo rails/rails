@@ -8,9 +8,6 @@ class ActionCable.Connection
   constructor: (@consumer) ->
 
   send: (data) ->
-    unless @isOpen()
-      @open()
-
     if @isOpen()
       @webSocket.send(JSON.stringify(data))
       true
@@ -18,7 +15,7 @@ class ActionCable.Connection
       false
 
   open: =>
-    if @isAlive()
+    if @isActive()
       ActionCable.log("Attemped to open WebSocket, but existing socket is #{@getState()}")
       throw new Error("Existing connection must be closed before opening")
     else
@@ -33,7 +30,7 @@ class ActionCable.Connection
 
   reopen: ->
     ActionCable.log("Reopening WebSocket, current state is #{@getState()}")
-    if @isAlive()
+    if @isActive()
       try
         @close()
       catch error
@@ -47,10 +44,10 @@ class ActionCable.Connection
   isOpen: ->
     @isState("open")
 
-  # Private
+  isActive: ->
+    @isState("open", "connecting")
 
-  isAlive: ->
-    @webSocket? and not @isState("closing", "closed")
+  # Private
 
   isState: (states...) ->
     @getState() in states
