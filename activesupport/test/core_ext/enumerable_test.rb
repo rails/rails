@@ -141,7 +141,6 @@ class EnumerableTests < ActiveSupport::TestCase
     assert_equal [[5, nil], [15, nil], [10, nil]], payments.pluck(:dollars, :pennies)
   end
 
-
   def test_pluck_works_with_non_nil_default
     entries = [5, 15, 10].map do |n|
       hsh = Hash.new('!!!')

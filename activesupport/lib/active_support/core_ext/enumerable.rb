@@ -80,26 +80,20 @@ module Enumerable
   #   [{ id: 1, name: "David" }, { id: 2, name: "Rafael" }].pluck(:id, :name)
   #     => [[1, "David"], [2, "Rafael"]]
   def pluck(*keys)
-    entries = map { |element| keys.map { |key| pluck_single(element, key) } }
+    entries = map do |element|
+      keys.map do |key|
+        case element
+        when ActiveRecord::Base, Hash, Struct
+          element.pluck(key)
+        else
+          element.send(key)
+        end
+      end
+    end
 
     return entries if keys.many?
-
     entries.flatten!
   end
-
-  # :nodoc:
-  def pluck_single(element, key)
-    if element.respond_to?(:has_attribute?) # AR
-      element[key]
-    elsif element.respond_to?(:has_key?) # Hash
-      element.fetch(key, nil)
-    elsif element.respond_to?(:members) # Struct
-      element[key] if element.members.include?(key)
-    elsif element.respond_to?(key) # fallback
-      element.send(key)
-    end
-  end
-  private :pluck_single
 end
 
 class Range #:nodoc:
@@ -116,5 +110,35 @@ class Range #:nodoc:
         identity
       end
     end
+  end
+end
+
+module ActiveRecord
+  class Base
+    private
+
+    # :nodoc:
+    def pluck(key)
+      self[key]
+    end
+  end
+end
+
+class Hash
+  private
+
+  # :nodoc:
+  def pluck(key)
+    fetch(key, nil)
+  end
+end
+
+class Struct
+  private
+
+  # :nodoc:
+  def pluck(key)
+    return unless members.include?(key)
+    self[key]
   end
 end
