@@ -185,7 +185,7 @@ module ActionController
       !request.fresh?(response)
     end
 
-    # Sets a HTTP 1.1 Cache-Control header. Defaults to issuing a +private+
+    # Sets an HTTP 1.1 Cache-Control header. Defaults to issuing a +private+
     # instruction, so that intermediate caches must not cache the response.
     #
     #   expires_in 20.minutes
@@ -195,7 +195,7 @@ module ActionController
     # This method will overwrite an existing Cache-Control header.
     # See http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html for more possibilities.
     #
-    # The method will also ensure a HTTP Date header for client compatibility.
+    # The method will also ensure an HTTP Date header for client compatibility.
     def expires_in(seconds, options = {})
       response.cache_control.merge!(
         :max_age         => seconds,
@@ -208,7 +208,7 @@ module ActionController
       response.date = Time.now unless response.date?
     end
 
-    # Sets a HTTP 1.1 Cache-Control header of <tt>no-cache</tt> so no caching should
+    # Sets an HTTP 1.1 Cache-Control header of <tt>no-cache</tt> so no caching should
     # occur by the browser or intermediate caches (like caching proxy servers).
     def expires_now
       response.cache_control.replace(:no_cache => true)
@@ -216,7 +216,7 @@ module ActionController
 
     # Cache or yield the block. The cache is supposed to never expire.
     #
-    # You can use this method when you have a HTTP response that never changes,
+    # You can use this method when you have an HTTP response that never changes,
     # and the browser and proxies should cache it indefinitely.
     #
     # * +public+: By default, HTTP responses are private, cached only on the
