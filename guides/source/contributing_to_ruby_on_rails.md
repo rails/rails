@@ -201,10 +201,12 @@ In case you can't use the Rails development box, see [this other guide](developm
 
 ### Clone the Rails Repository
 
-To be able to contribute code, you need to clone the Rails repository:
+To be able to contribute code, you need to clone the Rails repository.
+In GitHub, you need to fork the [Rails repository](https://github.com/rails/rails).
+Now you are able to clone your fork:
 
 ```bash
-$ git clone https://github.com/rails/rails.git
+$ git clone https://github.com/<your user name>/rails.git
 ```
 
 and create a dedicated branch:
@@ -483,11 +485,20 @@ simplifies future cherry picks and keeps the git log clean.
 
 ### Update Your Branch
 
-It's pretty likely that other changes to master have happened while you were working. Go get them:
+It's pretty likely that other changes to master have happened while you were working.
+First you need to set up the Rails repository as a remote repository:
 
 ```bash
+$ git remote add upstream git@github.com:rails/rails.git
+```
+
+Update your fork:
+
+```bash
+$ git fetch upstream
 $ git checkout master
-$ git pull --rebase
+$ git rebase upstream/master
+$ git push origin master
 ```
 
 Now reapply your patch on top of the latest changes:
@@ -499,57 +510,21 @@ $ git rebase master
 
 No conflicts? Tests still pass? Change still seems reasonable to you? Then move on.
 
-### Fork
-
-Navigate to the Rails [GitHub repository](https://github.com/rails/rails) and press "Fork" in the upper right hand corner.
-
-Add the new remote to your local repository on your local machine:
-
-```bash
-$ git remote add mine https://github.com:<your user name>/rails.git
-```
-
-Push to your remote:
-
-```bash
-$ git push mine my_new_branch
-```
-
-You might have cloned your forked repository into your machine and might want to add the original Rails repository as a remote instead, if that's the case here's what you have to do.
-
-In the directory you cloned your fork:
-
-```bash
-$ git remote add rails https://github.com/rails/rails.git
-```
-
-Download new commits and branches from the official repository:
-
-```bash
-$ git fetch rails
-```
-
-Merge the new content:
-
-```bash
-$ git checkout master
-$ git rebase rails/master
-```
-
-Update your fork:
-
-```bash
-$ git push origin master
-```
-
 If you want to update another branch:
 
 ```bash
 $ git checkout branch_name
-$ git rebase rails/branch_name
+$ git rebase upstream/branch_name
 $ git push origin branch_name
 ```
 
+### Push Your Changes
+
+Push to your fork:
+
+```bash
+$ git push origin my_new_branch
+```
 
 ### Issue a Pull Request
 
