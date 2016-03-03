@@ -798,7 +798,7 @@ and
 can be set directly on the `@request` instance variable:
 
 ```ruby
-# setting a HTTP Header
+# setting an HTTP Header
 @request.headers["Accept"] = "text/plain, text/html"
 get articles_url # simulate the request with custom header
 

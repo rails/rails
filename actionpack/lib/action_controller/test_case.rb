@@ -428,7 +428,7 @@ module ActionController
       end
       alias xhr :xml_http_request
 
-      # Simulate a HTTP request to +action+ by specifying request method,
+      # Simulate an HTTP request to +action+ by specifying request method,
       # parameters and set/volley the response.
       #
       # - +action+: The controller action to call.
