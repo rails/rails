@@ -41,7 +41,7 @@ class CreateProducts < ActiveRecord::Migration[5.0]
       t.string :name
       t.text :description
 
-      t.timestamps null: false
+      t.timestamps
     end
   end
 end
@@ -287,7 +287,7 @@ class CreateProducts < ActiveRecord::Migration[5.0]
       t.string :name
       t.text :description
 
-      t.timestamps null: false
+      t.timestamps
     end
   end
 end
@@ -847,7 +847,7 @@ class CreateProducts < ActiveRecord::Migration[5.0]
       create_table :products do |t|
         t.string :name
         t.text :description
-        t.timestamps null: false
+        t.timestamps
       end
     end
 
