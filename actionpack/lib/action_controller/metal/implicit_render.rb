@@ -1,33 +1,31 @@
 require 'active_support/core_ext/string/strip'
 
 module ActionController
-  # Handles implicit rendering for a controller action when it did not
-  # explicitly indicate an appropiate response via methods such as +render+,
-  # +respond_to+, +redirect+ or +head+.
+  # Handles implicit rendering for a controller action that does not
+  # explicitly respond with +render+, +respond_to+, +redirect+, or +head+.
   #
-  # For API controllers, the implicit render always renders "204 No Content"
-  # and does not account for any templates.
+  # For API controllers, the implicit response is always 204 No Content.
   #
-  # For other controllers, the following conditions are checked:
+  # For all other controllers, we use these heuristics to decide whether to
+  # render a template, raise an error for a missing template, or respond with
+  # 204 No Content:
   #
-  # First, if a template exists for the controller action, it is rendered.
-  # This template lookup takes into account the action name, locales, format,
-  # variant, template handlers, etc. (see +render+ for details).
+  # First, if we DO find a template, it's rendered. Template lookup accounts
+  # for the action name, locales, format, variant, template handlers, and more
+  # (see +render+ for details).
   #
-  # Second, if other templates exist for the controller action but is not in
-  # the right format (or variant, etc.), an <tt>ActionController::UnknownFormat</tt>
-  # is raised. The list of available templates is assumed to be a complete
-  # enumeration of all the possible formats (or variants, etc.); that is,
-  # having only HTML and JSON templates indicate that the controller action is
-  # not meant to handle XML requests.
+  # Second, if we DON'T find a template but the controller action does have
+  # templates for other formats, variants, etc., then we trust that you meant
+  # to provide a template for this response, too, and we raise
+  # <tt>ActionController::UnknownFormat</tt> with an explanation.
   #
-  # Third, if the current request is an "interactive" browser request (the user
-  # navigated here by entering the URL in the address bar, submiting a form,
-  # clicking on a link, etc. as opposed to an XHR or non-browser API request),
-  # <tt>ActionView::UnknownFormat</tt> is raised to display a helpful error
-  # message.
+  # Third, if we DON'T find a template AND the request is a page load in a web
+  # browser (technically, a non-XHR GET request for an HTML response) where
+  # you reasonably expect to have rendered a template, then we raise
+  # <tt>ActionView::UnknownFormat</tt> with an explanation.
   #
-  # Finally, it falls back to the same "204 No Content" behavior as API controllers.
+  # Finally, if we DON'T find a template AND the request isn't a browser page
+  # load, then we implicitly respond with 204 No Content.
   module ImplicitRender
 
     # :stopdoc:
@@ -37,39 +35,23 @@ module ActionController
       if template_exists?(action_name.to_s, _prefixes, variants: request.variant)
         render(*args)
       elsif any_templates?(action_name.to_s, _prefixes)
-        message = "#{self.class.name}\##{action_name} does not know how to respond " \
-          "to this request. There are other templates available for this controller " \
-          "action but none of them were suitable for this request.\n\n" \
-          "This usually happens when the client requested an unsupported format " \
-          "(e.g. requesting HTML content from a JSON endpoint or vice versa), but " \
-          "it might also be failing due to other constraints, such as locales or " \
-          "variants.\n"
-
-        if request.formats.any?
-          message << "\nRequested format(s): #{request.formats.join(", ")}"
-        end
-
-        if request.variant.any?
-          message << "\nRequested variant(s): #{request.variant.join(", ")}"
-        end
+        message = "#{self.class.name}\##{action_name} is missing a template " \
+          "for this request format and variant.\n" \
+          "\nrequest.formats: #{request.formats.map(&:to_s).inspect}" \
+          "\nrequest.variant: #{request.variant.inspect}"
 
         raise ActionController::UnknownFormat, message
       elsif interactive_browser_request?
-        message = "You did not define any templates for #{self.class.name}\##{action_name}. " \
-          "This is not necessarily a problem (e.g. you might be building an API endpoint " \
-          "that does not require any templates), and the controller would usually respond " \
-          "with `head :no_content` for your convenience.\n\n" \
-          "However, you appear to have navigated here from an interactive browser request – " \
-          "such as by navigating to this URL directly, clicking on a link or submitting a form. " \
-          "Rendering a `head :no_content` in this case could have resulted in unexpected UI " \
-          "behavior in the browser.\n\n" \
-          "If you expected the `head :no_content` response, you do not need to take any " \
-          "actions – requests coming from an XHR (AJAX) request or other non-browser clients " \
-          "will receive the \"204 No Content\" response as expected.\n\n" \
-          "If you did not expect this behavior, you can resolve this error by adding a " \
-          "template for this controller action (usually `#{action_name}.html.erb`) or " \
-          "otherwise indicate the appropriate response in the action using `render`, " \
-          "`redirect_to`, `head`, etc.\n"
+        message = "#{self.class.name}\##{action_name} is missing a template " \
+          "for this request format and variant.\n\n" \
+          "request.formats: #{request.formats.map(&:to_s).inspect}\n" \
+          "request.variant: #{request.variant.inspect}\n\n" \
+          "NOTE! For XHR/Ajax or API requests, this action would normally " \
+          "respond with 204 No Content: an empty white screen. Since you're " \
+          "loading it in a web browser, we assume that you expected to " \
+          "actually render a template, not… nothing, so we're showing an " \
+          "error to be extra-clear. If you expect 204 No Content, carry on. " \
+          "That's what you'll get from an XHR or API request. Give it a shot."
 
         raise ActionController::UnknownFormat, message
       else
@@ -85,9 +67,8 @@ module ActionController
     end
 
     private
-
       def interactive_browser_request?
-        request.format == Mime[:html] && !request.xhr?
+        request.get? && request.format == Mime[:html] && !request.xhr?
       end
   end
 end
