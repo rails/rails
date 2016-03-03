@@ -287,7 +287,7 @@ class CreateProducts < ActiveRecord::Migration[5.0]
       t.string :name
       t.text :description
 
-      t.timestamps null: false
+      t.timestamps
     end
   end
 end
