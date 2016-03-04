@@ -61,7 +61,7 @@ module ActionView
             node
           end
         else
-          logger.error "  '#{name}' file doesn't exist, so no dependencies"
+          logger.error "  '#{name}' file doesn't exist, so there are no dependencies"
           logger.error "  Couldn't find template for digesting: #{name}"
           seen[name] ||= Missing.new(name, logical_name, nil)
         end

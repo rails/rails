@@ -119,13 +119,13 @@ class TemplateDigestorTest < ActionView::TestCase
   end
 
   def test_logging_of_missing_template_for_dependencies
-    assert_logged "'messages/something_missing' file doesn't exist, so no dependencies" do
+    assert_logged "'messages/something_missing' file doesn't exist, so there are no dependencies" do
       dependencies("messages/something_missing")
     end
   end
 
   def test_logging_of_missing_template_for_nested_dependencies
-    assert_logged "'messages/something_missing' file doesn't exist, so no dependencies" do
+    assert_logged "'messages/something_missing' file doesn't exist, so there are no dependencies" do
       nested_dependencies("messages/something_missing")
     end
   end
