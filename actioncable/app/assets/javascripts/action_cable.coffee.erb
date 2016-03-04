@@ -5,7 +5,7 @@
   INTERNAL: <%= ActionCable::INTERNAL.to_json %>
 
   createConsumer: (url) ->
-    url ?= @getConfig("url") ? "/cable"
+    url ?= @getConfig("url") ? @INTERNAL.default_mount_path
     new ActionCable.Consumer @createWebSocketURL(url)
 
   getConfig: (name) ->
