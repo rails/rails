@@ -15,7 +15,14 @@ class PostgresqlAdapterTest < ActionCable::TestCase
       local_config = ARTest.config['arunit']
       database_config.update local_config if local_config
     end
+
     ActiveRecord::Base.establish_connection database_config
+
+    begin
+      ActiveRecord::Base.connection
+    rescue
+      skip "Couldn't connect to PostgreSQL: #{database_config.inspect}"
+    end
 
     super
   end
