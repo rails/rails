@@ -65,11 +65,12 @@ $ bin/rails server
 => Booting Puma
 => Rails 5.0.0 application starting in development on http://0.0.0.0:3000
 => Run `rails server -h` for more startup options
-=> Ctrl-C to shutdown server
-Puma 2.15.3 starting...
-* Min threads: 0, max threads: 16
+Puma starting in single mode...
+* Version 3.0.2 (ruby 2.3.0-p0), codename: Plethora of Penguin Pinatas
+* Min threads: 5, max threads: 5
 * Environment: development
 * Listening on tcp://localhost:3000
+Use Ctrl-C to stop
 ```
 
 With just three commands we whipped up a Rails server listening on port 3000. Go to your browser and open [http://localhost:3000](http://localhost:3000), you will see a basic Rails app running.

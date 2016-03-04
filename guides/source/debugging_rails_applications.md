@@ -314,11 +314,12 @@ For example:
 => Booting Puma
 => Rails 5.0.0 application starting in development on http://0.0.0.0:3000
 => Run `rails server -h` for more startup options
-=> Ctrl-C to shutdown server
-Puma 2.15.3 starting...
-* Min threads: 0, max threads: 16
+Puma starting in single mode...
+* Version 3.0.2 (ruby 2.3.0-p0), codename: Plethora of Penguin Pinatas
+* Min threads: 5, max threads: 5
 * Environment: development
 * Listening on tcp://localhost:3000
+Use Ctrl-C to stop
 
 
 Started GET "/" for 127.0.0.1 at 2014-04-11 13:11:48 +0200
