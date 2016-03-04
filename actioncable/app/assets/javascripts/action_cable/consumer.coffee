@@ -1,5 +1,4 @@
 #= require ./connection
-#= require ./connection_monitor
 #= require ./subscriptions
 #= require ./subscription
 
@@ -19,7 +18,6 @@ class ActionCable.Consumer
   constructor: (@url) ->
     @subscriptions = new ActionCable.Subscriptions this
     @connection = new ActionCable.Connection this
-    @connectionMonitor = new ActionCable.ConnectionMonitor this
 
   send: (data) ->
     @connection.send(data)
