@@ -138,6 +138,10 @@ module ActiveRecord
     #       PolymorphicReflection
     #         RuntimeReflection
     class AbstractReflection # :nodoc:
+      def through_reflection?
+        false
+      end
+
       def table_name
         klass.table_name
       end
@@ -700,6 +704,10 @@ module ActiveRecord
         @source_reflection_name = delegate_reflection.options[:source]
       end
 
+      def through_reflection?
+        true
+      end
+
       def klass
         @klass ||= delegate_reflection.compute_class(class_name)
       end
@@ -817,7 +825,7 @@ module ActiveRecord
 
       # A through association is nested if there would be more than one join table
       def nested?
-        chain.length > 2
+        source_reflection.through_reflection? || through_reflection.through_reflection?
       end
 
       # We want to use the klass from this reflection, rather than just delegate straight to
