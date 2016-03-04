@@ -21,7 +21,13 @@ module ActiveSupport
         # Loading listen triggers warnings. These are originated by a legit
         # usage of attr_* macros for private attributes, but adds a lot of noise
         # to our test suite. Thus, we lazy load it and disable warnings locally.
-        silence_warnings { require 'listen' }
+        silence_warnings do
+          begin
+            require 'listen'
+          rescue LoadError => e
+            raise LoadError, "Could not load the 'listen' gem. Add `gem 'listen'` to the development group of your Gemfile", e.backtrace
+          end
+        end
         Listen.to(*dtw, &method(:changed)).start
       end
     end
