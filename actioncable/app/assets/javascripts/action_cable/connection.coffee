@@ -1,3 +1,5 @@
+#= require ./connection_monitor
+
 # Encapsulate the cable connection held by the consumer. This is an internal class not intended for direct user manipulation.
 
 {message_types} = ActionCable.INTERNAL
@@ -6,6 +8,7 @@ class ActionCable.Connection
   @reopenDelay: 500
 
   constructor: (@consumer) ->
+    @monitor = new ActionCable.ConnectionMonitor this
 
   send: (data) ->
     if @isOpen()
@@ -23,6 +26,7 @@ class ActionCable.Connection
       @uninstallEventHandlers() if @webSocket?
       @webSocket = new WebSocket(@consumer.url)
       @installEventHandlers()
+      @monitor.start()
       true
 
   close: ->
@@ -72,9 +76,9 @@ class ActionCable.Connection
       {identifier, message, type} = JSON.parse(event.data)
       switch type
         when message_types.welcome
-          @consumer.connectionMonitor.connected()
+          @monitor.recordConnect()
         when message_types.ping
-          @consumer.connectionMonitor.ping()
+          @monitor.recordPing()
         when message_types.confirmation
           @consumer.subscriptions.notify(identifier, "connected")
         when message_types.rejection
@@ -98,5 +102,5 @@ class ActionCable.Connection
   disconnect: ->
     return if @disconnected
     @disconnected = true
-    @consumer.connectionMonitor.disconnected()
     @consumer.subscriptions.notifyAll("disconnected")
+    @monitor.recordDisconnect()
