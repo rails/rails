@@ -16,6 +16,8 @@ class ActionCable.Subscriptions
     subscription = new ActionCable.Subscription @consumer, params, mixin
     @add(subscription)
 
+    subscription
+
   # Private
 
   add: (subscription) ->
