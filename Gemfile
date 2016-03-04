@@ -5,7 +5,7 @@ gemspec
 # We need a newish Rake since Active Job sets its test tasks' descriptions.
 gem 'rake', '>= 10.3'
 
-# This needs to be with require false to ensure correct loading order, as has to
+# This needs to be with require false to ensure correct loading order, as it has to
 # be loaded after loading the test library.
 gem 'mocha', '~> 0.14', require: false
 
