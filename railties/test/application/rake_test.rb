@@ -24,7 +24,7 @@ module ApplicationTests
       assert $task_loaded
     end
 
-    def test_the_test_rake_task_is_protected_when_previous_migration_was_production
+     test "task is protected when previous migration was production" do
       Dir.chdir(app_path) do
         output = `bin/rails generate model product name:string;
          env RAILS_ENV=production bin/rails db:create db:migrate;
@@ -122,7 +122,7 @@ module ApplicationTests
         Dir.chdir(app_path){ `bin/rails stats` }
     end
 
-    def test_rake_routes_calls_the_route_inspector
+    def test_rails_routes_calls_the_route_inspector
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
           get '/cart', to: 'cart#show'
@@ -133,7 +133,7 @@ module ApplicationTests
       assert_equal "Prefix Verb URI Pattern     Controller#Action\n  cart GET  /cart(.:format) cart#show\n", output
     end
 
-    def test_rake_routes_with_controller_environment
+    def test_rails_routes_with_controller_environment
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
           get '/cart', to: 'cart#show'
@@ -151,7 +151,7 @@ module ApplicationTests
       assert_equal "Prefix Verb URI Pattern     Controller#Action\n  cart GET  /cart(.:format) cart#show\n", output
     end
 
-    def test_rake_routes_with_namespaced_controller_environment
+    def test_rails_routes_with_namespaced_controller_environment
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
           namespace :admin do
@@ -175,7 +175,7 @@ module ApplicationTests
       assert_equal expected_output, output
     end
 
-    def test_rake_routes_with_global_search_key
+    def test_rails_routes_with_global_search_key
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
           get '/cart', to: 'cart#show'
@@ -195,7 +195,7 @@ module ApplicationTests
                    "basketballs GET  /basketballs(.:format) basketball#index\n", output
     end
 
-    def test_rake_routes_with_controller_search_key
+    def test_rails_routes_with_controller_search_key
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
           get '/cart', to: 'cart#show'
@@ -213,7 +213,7 @@ module ApplicationTests
       assert_equal "Prefix Verb URI Pattern     Controller#Action\n  cart GET  /cart(.:format) cart#show\n", output
     end
 
-    def test_rake_routes_displays_message_when_no_routes_are_defined
+    def test_rails_routes_displays_message_when_no_routes_are_defined
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
         end
