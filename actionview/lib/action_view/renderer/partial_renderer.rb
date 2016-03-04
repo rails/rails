@@ -521,7 +521,7 @@ module ActionView
     def retrieve_variable(path, as)
       variable = as || begin
         base = path[-1] == "/".freeze ? "".freeze : File.basename(path)
-        raise_invalid_identifier(path) unless base =~ /\A_?(.*?)(\.\w+)*\z/
+        raise_invalid_identifier(path) unless base =~ /\A_?(.*?)(?:\.\w+)*\z/
         $1.to_sym
       end
       if @collection
