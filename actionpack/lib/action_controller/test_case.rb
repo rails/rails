@@ -611,10 +611,7 @@ module ActionController
       private
 
       def scrub_env!(env)
-        env.delete_if { |k, v| k =~ /^(action_dispatch|rack)\.request/ }
-        env.delete_if { |k, v| k =~ /^action_dispatch\.rescue/ }
-        env.delete 'action_dispatch.request.query_parameters'
-        env.delete 'action_dispatch.request.request_parameters'
+        env.delete_if { |k, v| k.start_with?("action_dispatch.request", "rack.request", "action_dispatch.rescue") }
         env
       end
 
