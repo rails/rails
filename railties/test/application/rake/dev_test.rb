@@ -15,7 +15,7 @@ module ApplicationTests
 
       test 'dev:cache creates file and outputs message' do
         Dir.chdir(app_path) do
-          output = `rake dev:cache`
+          output = `rails dev:cache`
           assert File.exist?('tmp/caching-dev.txt')
           assert_match(/Development mode is now being cached/, output)
         end
