@@ -799,7 +799,7 @@ before the article is saved. It will also need to have an `attr_accessor` set up
 for this field, so that the setter and getter methods are defined for it.
 
 To do all this, you'll need to add the `attr_accessor` for `author_name`, the
-association for the author and the `before_save` call into
+association for the author and the `before_validation` call into
 `app/models/blorgh/article.rb`. The `author` association will be hard-coded to the
 `User` class for the time being.
 
@@ -807,7 +807,7 @@ association for the author and the `before_save` call into
 attr_accessor :author_name
 belongs_to :author, class_name: "User"
 
-before_save :set_author
+before_validation :set_author
 
 private
   def set_author
@@ -1209,7 +1209,7 @@ module Blorgh::Concerns::Models::Article
     attr_accessor :author_name
     belongs_to :author, class_name: "User"
 
-    before_save :set_author
+    before_validation :set_author
 
     private
       def set_author
