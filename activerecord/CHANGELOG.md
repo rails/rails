@@ -1,3 +1,10 @@
+*   Fix `first` method while using it with `limit`.
+    When `first` method gets used with `limit`, it was overriding limit value.
+    Now added a private method 'find_first' which helps to fetch the correct
+    record(s). GH#23979
+
+    *Santosh Wadghule*
+
 *   PostgreSQL array columns will now respect the encoding of strings contained
     in the array.
 
