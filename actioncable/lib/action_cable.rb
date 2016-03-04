@@ -34,7 +34,8 @@ module ActionCable
       ping: 'ping'.freeze,
       confirmation: 'confirm_subscription'.freeze,
       rejection: 'reject_subscription'.freeze
-    }
+    },
+    default_mount_path: '/cable'.freeze
   }
 
   # Singleton instance of the server

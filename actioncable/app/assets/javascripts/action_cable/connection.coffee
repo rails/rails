@@ -8,6 +8,7 @@ class ActionCable.Connection
   @reopenDelay: 500
 
   constructor: (@consumer) ->
+    {@subscriptions} = @consumer
     @monitor = new ActionCable.ConnectionMonitor this
 
   send: (data) ->
@@ -80,16 +81,16 @@ class ActionCable.Connection
         when message_types.ping
           @monitor.recordPing()
         when message_types.confirmation
-          @consumer.subscriptions.notify(identifier, "connected")
+          @subscriptions.notify(identifier, "connected")
         when message_types.rejection
-          @consumer.subscriptions.reject(identifier)
+          @subscriptions.reject(identifier)
         else
-          @consumer.subscriptions.notify(identifier, "received", message)
+          @subscriptions.notify(identifier, "received", message)
 
     open: ->
       ActionCable.log("WebSocket onopen event")
       @disconnected = false
-      @consumer.subscriptions.reload()
+      @subscriptions.reload()
 
     close: ->
       ActionCable.log("WebSocket onclose event")
@@ -102,5 +103,5 @@ class ActionCable.Connection
   disconnect: ->
     return if @disconnected
     @disconnected = true
-    @consumer.subscriptions.notifyAll("disconnected")
+    @subscriptions.notifyAll("disconnected")
     @monitor.recordDisconnect()

@@ -4,12 +4,13 @@
 @ActionCable =
   INTERNAL: <%= ActionCable::INTERNAL.to_json %>
 
-  createConsumer: (url = @getConfig("url")) ->
+  createConsumer: (url) ->
+    url ?= @getConfig("url") ? @INTERNAL.default_mount_path
     new ActionCable.Consumer @createWebSocketURL(url)
 
   getConfig: (name) ->
     element = document.head.querySelector("meta[name='action-cable-#{name}']")
-    element?.getAttribute("content") ? '/cable'
+    element?.getAttribute("content")
 
   createWebSocketURL: (url) ->
     if url and not /^wss?:/i.test(url)

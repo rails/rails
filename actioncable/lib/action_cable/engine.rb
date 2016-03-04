@@ -6,7 +6,7 @@ require "active_support/core_ext/hash/indifferent_access"
 module ActionCable
   class Railtie < Rails::Engine # :nodoc:
     config.action_cable = ActiveSupport::OrderedOptions.new
-    config.action_cable.mount_path = '/cable'
+    config.action_cable.mount_path = ActionCable::INTERNAL[:default_mount_path]
 
     config.eager_load_namespaces << ActionCable
 
