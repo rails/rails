@@ -74,8 +74,7 @@ module Rails
   # the configuration.
   #
   # If you decide to define rake tasks, runners, or initializers in an
-  # application other than +Rails.application+, then you must run those
-  # these manually.
+  # application other than +Rails.application+, then you must run them manually.
   class Application < Engine
     autoload :Bootstrap,              'rails/application/bootstrap'
     autoload :Configuration,          'rails/application/configuration'
