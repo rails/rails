@@ -765,7 +765,6 @@ module ActiveRecord
       # This is for clearing cache on the reflection. Useful for tests that need to compare
       # SQL queries on associations.
       def clear_association_scope_cache # :nodoc:
-        @chain = nil
         delegate_reflection.clear_association_scope_cache
         source_reflection.clear_association_scope_cache
         through_reflection.clear_association_scope_cache
