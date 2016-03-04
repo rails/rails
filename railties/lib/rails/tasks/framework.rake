@@ -60,6 +60,7 @@ namespace :app do
     task :configs do
       RailsUpdate.invoke_from_app_generator :create_boot_file
       RailsUpdate.invoke_from_app_generator :update_config_files
+      RailsUpdate.invoke_from_app_generator :update_gemfile
     end
 
     # desc "Adds new executables to the application bin/ directory"

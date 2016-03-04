@@ -239,6 +239,10 @@ module Rails
       end
       remove_task :update_config_files
 
+      def update_gemfile
+        build(:gemfile)
+      end
+
       def create_boot_file
         template "config/boot.rb"
       end
