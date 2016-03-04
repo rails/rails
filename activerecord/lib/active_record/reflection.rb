@@ -449,6 +449,10 @@ module ActiveRecord
         scope ? [[scope]] : [[]]
       end
 
+      def has_scope?
+        scope
+      end
+
       def has_inverse?
         inverse_name
       end
@@ -817,6 +821,12 @@ module ActiveRecord
           # Recursively fill out the rest of the array from the through reflection
           scope_chain + through_scope_chain
         end
+      end
+
+      def has_scope?
+        scope || options[:source_type] ||
+          source_reflection.has_scope? ||
+          through_reflection.has_scope?
       end
 
       def join_keys(association_klass)
