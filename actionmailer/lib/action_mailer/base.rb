@@ -289,7 +289,7 @@ module ActionMailer
   #
   # Note that the proc is evaluated right at the start of the mail message generation, so if you
   # set something in the default using a proc, and then set the same thing inside of your
-  # mailer method, it will get over written by the mailer method.
+  # mailer method, it will get overwritten by the mailer method.
   #
   # It is also possible to set these default options that will be used in all mailers through
   # the <tt>default_options=</tt> configuration in <tt>config/application.rb</tt>:
