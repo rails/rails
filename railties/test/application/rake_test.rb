@@ -24,7 +24,7 @@ module ApplicationTests
       assert $task_loaded
     end
 
-     test "task is protected when previous migration was production" do
+    test "task is protected when previous migration was production" do
       Dir.chdir(app_path) do
         output = `bin/rails generate model product name:string;
          env RAILS_ENV=production bin/rails db:create db:migrate;
