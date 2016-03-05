@@ -128,8 +128,6 @@ class FormHelperTest < ActionView::TestCase
     @post_delegator.title = 'Hello World'
 
     @car = Car.new("#000FFF")
-
-    @ticket_type = TicketType.new
   end
 
   Routes = ActionDispatch::Routing::RouteSet.new
@@ -137,8 +135,6 @@ class FormHelperTest < ActionView::TestCase
     resources :posts do
       resources :comments
     end
-
-    resources :ticket_types
 
     namespace :admin do
       resources :posts do
@@ -1876,20 +1872,6 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, output_buffer
   end
 
-  def test_lowercase_model_name_default_submit_button_value
-    form_for(@ticket_type) do |f|
-      concat f.submit
-    end
-
-    expected =
-      '<form class="new_ticket_type" id="new_ticket_type" action="/ticket_types" accept-charset="UTF-8" method="post">' +
-        hidden_fields +
-        '<input type="submit" name="commit" value="Create ticket type" data-disable-with="Create ticket type" />' +
-      '</form>'
-
-    assert_dom_equal expected, output_buffer
-  end
-
   def test_form_for_with_symbol_object_name
     form_for(@post, as: "other_name", html: { id: "create-post" }) do |f|
       concat f.label(:title, class: 'post_title')
@@ -2257,7 +2239,7 @@ class FormHelperTest < ActionView::TestCase
         end
 
         expected = whole_form('/posts', 'new_post', 'new_post') do
-          "<input name='commit' data-disable-with='Create post' type='submit' value='Create post' />"
+          "<input name='commit' data-disable-with='Create Post' type='submit' value='Create Post' />"
         end
 
         assert_dom_equal expected, output_buffer
@@ -2272,7 +2254,7 @@ class FormHelperTest < ActionView::TestCase
       end
 
       expected = whole_form('/posts/123', 'edit_post_123', 'edit_post', method: 'patch') do
-      "<input name='commit' data-disable-with='Confirm post changes' type='submit' value='Confirm post changes' />"
+      "<input name='commit' data-disable-with='Confirm Post changes' type='submit' value='Confirm Post changes' />"
       end
 
       assert_dom_equal expected, output_buffer
@@ -2300,7 +2282,7 @@ class FormHelperTest < ActionView::TestCase
       end
 
       expected = whole_form('/posts/123', 'edit_another_post', 'edit_another_post', method: 'patch') do
-      "<input name='commit' data-disable-with='Update your post' type='submit' value='Update your post' />"
+      "<input name='commit' data-disable-with='Update your Post' type='submit' value='Update your Post' />"
       end
 
       assert_dom_equal expected, output_buffer

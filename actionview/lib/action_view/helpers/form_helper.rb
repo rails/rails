@@ -1922,8 +1922,6 @@ module ActionView
             @object_name.to_s.humanize
           end
 
-          model = model.downcase
-
           defaults = []
           defaults << :"helpers.submit.#{object_name}.#{key}"
           defaults << :"helpers.submit.#{key}"
