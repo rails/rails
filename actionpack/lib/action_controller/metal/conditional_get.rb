@@ -222,12 +222,10 @@ module ActionController
     # * +public+: By default, HTTP responses are private, cached only on the
     #   user's web browser. To allow proxies to cache the response, set +true+ to
     #   indicate that they can serve the cached response to all users.
-    #
-    # * +version+: the version passed as a key for the cache.
-    def http_cache_forever(public: false, version: 'v1')
+    def http_cache_forever(public: false)
       expires_in 100.years, public: public
 
-      yield if stale?(etag: "#{version}-#{request.fullpath}",
+      yield if stale?(etag: request.fullpath,
                       last_modified: Time.new(2011, 1, 1).utc,
                       public: public)
     end
