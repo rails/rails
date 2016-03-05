@@ -670,7 +670,7 @@ anymore, delete these options from the `javascript_include_tag` and
 `stylesheet_link_tag`.
 
 The fingerprinting behavior is controlled by the `config.assets.digest`
-initialization option (which defaults to `true` for production and development).
+initialization option (which defaults to `true`).
 
 NOTE: Under normal circumstances the default `config.assets.digest` option
 should not be changed. If there are no digests in the filenames, and far-future
