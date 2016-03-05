@@ -47,8 +47,6 @@ class I18nValidationTest < ActiveRecord::TestCase
     # [ "given on condition",     {on: :save},                {}]
   ]
 
-  # validates_uniqueness_of w/ mocha
-
   COMMON_CASES.each do |name, validation_options, generate_message_options|
     test "validates_uniqueness_of on generated message #{name}" do
       Topic.validates_uniqueness_of :title, validation_options
@@ -59,8 +57,6 @@ class I18nValidationTest < ActiveRecord::TestCase
     end
   end
 
-  # validates_associated w/ mocha
-
   COMMON_CASES.each do |name, validation_options, generate_message_options|
     test "validates_associated on generated message #{name}" do
       Topic.validates_associated :replies, validation_options
@@ -69,8 +65,6 @@ class I18nValidationTest < ActiveRecord::TestCase
       end
     end
   end
-
-  # validates_associated w/o mocha
 
   def test_validates_associated_finds_custom_model_key_translation
     I18n.backend.store_translations 'en', :activerecord => {:errors => {:models => {:topic => {:attributes => {:replies => {:invalid => 'custom message'}}}}}}
