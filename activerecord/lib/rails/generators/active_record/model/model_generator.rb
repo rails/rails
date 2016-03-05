@@ -21,13 +21,13 @@ module ActiveRecord
       end
 
       def create_model_file
-        template 'model.rb', File.join('app/models', class_path, "#{file_name}.rb")
+        template 'model.rb.tt', File.join('app/models', class_path, "#{file_name}.rb")
         generate_application_record
       end
 
       def create_module_file
         return if regular_class_path.empty?
-        template 'module.rb', File.join('app/models', "#{class_path.join('/')}.rb") if behavior == :invoke
+        template 'module.rb.tt', File.join('app/models', "#{class_path.join('/')}.rb") if behavior == :invoke
         generate_application_record
       end
 

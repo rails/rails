@@ -10,11 +10,11 @@ module TestUnit # :nodoc:
       end
 
       def create_test_files
-        template "functional_test.rb", File.join('test/mailers', class_path, "#{file_name}_mailer_test.rb")
+        template "functional_test.rb.tt", File.join('test/mailers', class_path, "#{file_name}_mailer_test.rb")
       end
 
       def create_preview_files
-        template "preview.rb", File.join('test/mailers/previews', class_path, "#{file_name}_mailer_preview.rb")
+        template "preview.rb.tt", File.join('test/mailers/previews', class_path, "#{file_name}_mailer_preview.rb")
       end
 
       protected

@@ -8,7 +8,7 @@ module Rails
       check_class_collision suffix: "Mailer"
 
       def create_mailer_file
-        template "mailer.rb", File.join('app/mailers', class_path, "#{file_name}_mailer.rb")
+        template "mailer.rb.tt", File.join('app/mailers', class_path, "#{file_name}_mailer.rb")
       end
 
       hook_for :template_engine, :test_framework

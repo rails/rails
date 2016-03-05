@@ -14,7 +14,7 @@ module TestUnit # :nodoc:
       argument :attributes, type: :array, default: [], banner: "field:type field:type"
 
       def create_test_files
-        template_file = options.api? ? "api_functional_test.rb" : "functional_test.rb"
+        template_file = options.api? ? "api_functional_test.rb.tt" : "functional_test.rb.tt"
         template template_file,
                  File.join("test/controllers", controller_class_path, "#{controller_file_name}_controller_test.rb")
       end

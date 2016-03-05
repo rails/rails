@@ -210,7 +210,7 @@ class GeneratorsTest < Rails::Generators::TestCase
   end
 
   def test_rails_root_templates
-    template = File.join(Rails.root, "lib", "templates", "active_record", "model", "model.rb")
+    template = File.join(Rails.root, "lib", "templates", "active_record", "model", "model.rb.tt")
 
     # Create template
     mkdir_p(File.dirname(template))
