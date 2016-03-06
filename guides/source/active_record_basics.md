@@ -361,7 +361,7 @@ class CreatePublications < ActiveRecord::Migration[5.0]
       t.string :publisher_type
       t.boolean :single_issue
 
-      t.timestamps null: false
+      t.timestamps
     end
     add_index :publications, :publication_type_id
   end

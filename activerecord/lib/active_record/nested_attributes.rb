@@ -215,7 +215,7 @@ module ActiveRecord
     #
     # The keys of the hash which is the value for +:posts_attributes+ are
     # ignored in this case.
-    # However, it is not allowed to use +'id'+ or +:id+ for one of
+    # However, it is not allowed to use <tt>'id'</tt> or <tt>:id</tt> for one of
     # such keys, otherwise the hash will be wrapped in an array and
     # interpreted as an attribute hash for a single post.
     #

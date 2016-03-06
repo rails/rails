@@ -173,7 +173,7 @@ would produce:
 ```json
 {
   "name": "Alex",
-  "email: "alex@example.com"
+  "email": "alex@example.com"
 }
 ```
 

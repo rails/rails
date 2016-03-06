@@ -105,13 +105,13 @@ class CreateBooks < ActiveRecord::Migration[5.0]
   def change
     create_table :authors do |t|
       t.string :name
-      t.timestamps null: false
+      t.timestamps
     end
 
     create_table :books do |t|
       t.belongs_to :author, index: true
       t.datetime :published_at
-      t.timestamps null: false
+      t.timestamps
     end
   end
 end
@@ -136,13 +136,13 @@ class CreateSuppliers < ActiveRecord::Migration[5.0]
   def change
     create_table :suppliers do |t|
       t.string :name
-      t.timestamps null: false
+      t.timestamps
     end
 
     create_table :accounts do |t|
       t.belongs_to :supplier, index: true
       t.string :account_number
-      t.timestamps null: false
+      t.timestamps
     end
   end
 end
@@ -180,13 +180,13 @@ class CreateAuthors < ActiveRecord::Migration[5.0]
   def change
     create_table :authors do |t|
       t.string :name
-      t.timestamps null: false
+      t.timestamps
     end
 
     create_table :books do |t|
       t.belongs_to :author, index: true
       t.datetime :published_at
-      t.timestamps null: false
+      t.timestamps
     end
   end
 end
@@ -222,19 +222,19 @@ class CreateAppointments < ActiveRecord::Migration[5.0]
   def change
     create_table :physicians do |t|
       t.string :name
-      t.timestamps null: false
+      t.timestamps
     end
 
     create_table :patients do |t|
       t.string :name
-      t.timestamps null: false
+      t.timestamps
     end
 
     create_table :appointments do |t|
       t.belongs_to :physician, index: true
       t.belongs_to :patient, index: true
       t.datetime :appointment_date
-      t.timestamps null: false
+      t.timestamps
     end
   end
 end
@@ -308,19 +308,19 @@ class CreateAccountHistories < ActiveRecord::Migration[5.0]
   def change
     create_table :suppliers do |t|
       t.string :name
-      t.timestamps null: false
+      t.timestamps
     end
 
     create_table :accounts do |t|
       t.belongs_to :supplier, index: true
       t.string :account_number
-      t.timestamps null: false
+      t.timestamps
     end
 
     create_table :account_histories do |t|
       t.belongs_to :account, index: true
       t.integer :credit_rating
-      t.timestamps null: false
+      t.timestamps
     end
   end
 end
@@ -349,12 +349,12 @@ class CreateAssembliesAndParts < ActiveRecord::Migration[5.0]
   def change
     create_table :assemblies do |t|
       t.string :name
-      t.timestamps null: false
+      t.timestamps
     end
 
     create_table :parts do |t|
       t.string :part_number
-      t.timestamps null: false
+      t.timestamps
     end
 
     create_table :assemblies_parts, id: false do |t|
@@ -388,13 +388,13 @@ class CreateSuppliers < ActiveRecord::Migration[5.0]
   def change
     create_table :suppliers do |t|
       t.string  :name
-      t.timestamps null: false
+      t.timestamps
     end
 
     create_table :accounts do |t|
       t.integer :supplier_id
       t.string  :account_number
-      t.timestamps null: false
+      t.timestamps
     end
 
     add_index :accounts, :supplier_id
@@ -472,7 +472,7 @@ class CreatePictures < ActiveRecord::Migration[5.0]
       t.string  :name
       t.integer :imageable_id
       t.string  :imageable_type
-      t.timestamps null: false
+      t.timestamps
     end
 
     add_index :pictures, [:imageable_type, :imageable_id]
@@ -488,7 +488,7 @@ class CreatePictures < ActiveRecord::Migration[5.0]
     create_table :pictures do |t|
       t.string :name
       t.references :imageable, polymorphic: true, index: true
-      t.timestamps null: false
+      t.timestamps
     end
   end
 end
@@ -518,7 +518,7 @@ class CreateEmployees < ActiveRecord::Migration[5.0]
   def change
     create_table :employees do |t|
       t.references :manager, index: true
-      t.timestamps null: false
+      t.timestamps
     end
   end
 end
@@ -734,7 +734,7 @@ end
 With these changes, Active Record will only load one copy of the author object, preventing inconsistencies and making your application more efficient:
 
 ```ruby
-a = author.first
+a = Author.first
 b = a.books.first
 a.first_name == b.author.first_name # => true
 a.first_name = 'Manny'
