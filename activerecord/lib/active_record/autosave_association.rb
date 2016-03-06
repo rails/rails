@@ -388,8 +388,10 @@ module ActiveRecord
               records -= records_to_destroy
             end
 
+            is_habtm = (reflection.parent_reflection && reflection.parent_reflection.macro == :has_and_belongs_to_many)
+
             records.each do |record|
-              next if record.destroyed?
+              next if record.destroyed? || (is_habtm && record.persisted? && !record.changed?)
 
               saved = true
 

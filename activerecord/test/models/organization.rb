@@ -10,5 +10,7 @@ class Organization < ActiveRecord::Base
 
   has_many :posts, :through => :author, :source => :posts
 
+  has_one :organizer
+
   scope :clubs, -> { from('clubs') }
 end

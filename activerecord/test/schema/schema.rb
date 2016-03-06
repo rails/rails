@@ -343,6 +343,15 @@ ActiveRecord::Schema.define do
     t.integer :follower_id
   end
 
+  create_table :genres_organizers, id: false, force: true do |t|
+    t.integer :genre_id
+    t.integer :organizer_id
+  end
+
+  create_table :genres, force: true do |t|
+    t.string :name
+  end
+
   create_table :goofy_string_id, force: true, id: false do |t|
     t.string :id, null: false
     t.string :info
@@ -529,6 +538,11 @@ ActiveRecord::Schema.define do
 
   create_table :organizations, force: true do |t|
     t.string :name
+  end
+
+  create_table :organizers, force: true do |t|
+    t.string :name
+    t.integer :organization_id
   end
 
   create_table :owners, primary_key: :owner_id, force: true do |t|
