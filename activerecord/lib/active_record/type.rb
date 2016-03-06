@@ -61,7 +61,7 @@ module ActiveRecord
     register(:binary, Type::Binary, override: false)
     register(:boolean, Type::Boolean, override: false)
     register(:date, Type::Date, override: false)
-    register(:date_time, Type::DateTime, override: false)
+    register(:datetime, Type::DateTime, override: false)
     register(:decimal, Type::Decimal, override: false)
     register(:float, Type::Float, override: false)
     register(:integer, Type::Integer, override: false)
