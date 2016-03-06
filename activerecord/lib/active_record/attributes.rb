@@ -154,7 +154,7 @@ module ActiveRecord
       #   end
       #
       #   class MoneyType < Type::Value
-      #     def initialize(currency_converter)
+      #     def initialize(currency_converter:)
       #       @currency_converter = currency_converter
       #     end
       #
@@ -171,7 +171,7 @@ module ActiveRecord
       #
       #   class Product < ActiveRecord::Base
       #     currency_converter = ConversionRatesFromTheInternet.new
-      #     attribute :price_in_bitcoins, :money, currency_converter
+      #     attribute :price_in_bitcoins, :money, currency_converter: currency_converter
       #   end
       #
       #   Product.where(price_in_bitcoins: Money.new(5, "USD"))
