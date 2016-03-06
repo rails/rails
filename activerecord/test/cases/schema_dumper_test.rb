@@ -147,10 +147,10 @@ class SchemaDumperTest < ActiveRecord::TestCase
       assert_match %r{c_int_7.*limit: 7}, output
       assert_match %r{c_int_8.*limit: 8}, output
     else
-      assert_match %r{c_int_5.*limit: 8}, output
-      assert_match %r{c_int_6.*limit: 8}, output
-      assert_match %r{c_int_7.*limit: 8}, output
-      assert_match %r{c_int_8.*limit: 8}, output
+      assert_match %r{t\.bigint\s+"c_int_5"$}, output
+      assert_match %r{t\.bigint\s+"c_int_6"$}, output
+      assert_match %r{t\.bigint\s+"c_int_7"$}, output
+      assert_match %r{t\.bigint\s+"c_int_8"$}, output
     end
   end
 
@@ -248,12 +248,12 @@ class SchemaDumperTest < ActiveRecord::TestCase
   if current_adapter?(:PostgreSQLAdapter)
     def test_schema_dump_includes_bigint_default
       output = standard_dump
-      assert_match %r{t\.integer\s+"bigint_default",\s+limit: 8,\s+default: 0}, output
+      assert_match %r{t\.bigint\s+"bigint_default",\s+default: 0}, output
     end
 
     def test_schema_dump_includes_limit_on_array_type
       output = standard_dump
-      assert_match %r{t\.integer\s+"big_int_data_points\",\s+limit: 8,\s+array: true}, output
+      assert_match %r{t\.bigint\s+"big_int_data_points\",\s+array: true}, output
     end
 
     def test_schema_dump_allows_array_of_decimal_defaults

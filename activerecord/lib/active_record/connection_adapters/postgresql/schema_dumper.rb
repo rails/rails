@@ -41,10 +41,6 @@ module ActiveRecord
           end
         end
 
-        def schema_limit(column)
-          super unless schema_type(column) == :bigserial
-        end
-
         def schema_expression(column)
           super unless column.serial?
         end
