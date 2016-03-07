@@ -45,9 +45,9 @@ module ActionMailer
         register_observers(options.delete(:observers))
 
         options.each { |k,v| send("#{k}=", v) }
-
-        ActionDispatch::IntegrationTest.send :include, ActionMailer::TestCase::ClearTestDeliveries
       end
+
+      ActiveSupport.on_load(:action_dispatch_integration_test) { include ActionMailer::TestCase::ClearTestDeliveries }
     end
 
     initializer "action_mailer.compile_config_methods" do

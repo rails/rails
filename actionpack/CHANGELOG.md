@@ -1,3 +1,8 @@
+*   Add `action_dispatch_integration_test` load hook. The hook can be used to
+    extend `ActionDispatch::IntegrationTest` once it has been loaded.
+
+    *Yuichiro Kaneko*
+
 *   Update default rendering policies when the controller action did
     not explicitly indicate a response.
 

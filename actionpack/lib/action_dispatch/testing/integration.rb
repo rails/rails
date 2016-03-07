@@ -764,5 +764,7 @@ module ActionDispatch
     def self.register_encoder(*args)
       Integration::Session::RequestEncoder.register_encoder(*args)
     end
+
+    ActiveSupport.run_load_hooks(:action_dispatch_integration_test, self)
   end
 end
