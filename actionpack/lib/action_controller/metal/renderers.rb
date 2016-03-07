@@ -45,7 +45,10 @@ module ActionController
     # A Hash mapping serializer names to callables.
     # TODO: update text
     # Default serializers are <tt>:json</tt>, <tt>:js</tt>, <tt>:xml</tt>.
-    SERIALIZERS = Hash.new.with_indifferent_access
+    SERIALIZERS = Hash.new do |h, format|
+      fail ActionController::MissingSerializer, "There is no '#{format}' serializer.\n" <<
+      "Known serializers are #{h.keys}"
+    end
 
     included do
       class_attribute :_renderers
@@ -82,10 +85,9 @@ module ActionController
     #     obj.respond_to?(:to_csv) ? obj.to_csv : obj.to_s
     #   end
     #
-    #   ActionController::Renderers.add :csv do |obj, options|
+    #   ActionController::Renderers.add :csv do |csv, options|
     #     filename = options[:filename] || 'data'
-    #     str = _serialize_with_serializer_csv(obj, options)
-    #     send_data str, type: Mime[:csv],
+    #     send_data csv, type: Mime[:csv],
     #       disposition: "attachment; filename=#{filename}.csv"
     #   end
     #
@@ -156,6 +158,17 @@ module ActionController
     #     json = JSON.pretty_generate(json, options)
     #   end
     #
+    #   Or in the controller:
+    #
+    #   class TheController < ApplicationController
+    #     serializing json: ->(json, options) do
+    #       return json if json.is_a?(String)
+    #
+    #       json = json.as_json(options) if json.respond_to?(:as_json)
+    #       JSON.pretty_generate(json, options)
+    #     end
+    #   end
+    #
     # See https://groups.google.com/forum/#!topic/rubyonrails-core/K8t4-DZ_DkQ/discussion for
     # more background information.
     def self.add_serializer(key, &block)
@@ -216,12 +229,13 @@ module ActionController
       end
       alias use_renderer use_renderers
 
-      # See <tt>Renderers.use_renderers</tt>
-      def use_serializers(*args)
-        serializers = _serializers + args
+      # Accepts a Hash of formats to serializers.
+      # The serializer applies to the current controller its subclasses.
+      # The serializer must respond to call and accept an object and options.
+      def serializing(options)
+        serializers = _serializers.merge(options)
         self._serializers = serializers.freeze
       end
-      alias use_serializer use_serializers
     end
 
     # Called by +render+ in <tt>AbstractController::Rendering</tt>
@@ -238,15 +252,10 @@ module ActionController
         next unless options.key?(renderer_name)
         _process_options(options)
 
-        serializer_name = options.key?(:serializer_name) ? options.delete(:serializer_name) : renderer_name
-        serializer = _serializers.fetch(serializer_name) do
-          fail ActionController::MissingSerializer, "There is no '#{serializer_name}' serializer.\n" <<
-                "Known serializers are #{_serializers.keys}"
-        end
-
         renderer_target_method_name = Renderers._render_with_renderer_method_name(renderer_name)
         renderer_target_value = options.delete(renderer_name)
-        serialized_value = serializer.call(renderer_target_value, options)
+        serializer_name = options.key?(:serializer_name) ? options.delete(:serializer_name).to_sym : renderer_name
+        serialized_value = _serializers[serializer_name].call(renderer_target_value, options)
         return send(renderer_target_method_name, serialized_value, options)
       end
       nil
