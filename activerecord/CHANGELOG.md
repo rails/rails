@@ -228,6 +228,21 @@
 
 ## Rails 5.0.0.beta1 (December 18, 2015) ##
 
+*   Limit record touching to once per transaction.
+
+    If you have a parent/grand-parent relation like:
+
+        Comment belongs_to :message, touch: true
+        Message belongs_to :project, touch: true
+        Project belongs_to :account, touch: true
+
+    When the lowest entry(`Comment`) is saved, now, it won't repeat the touch
+    call multiple times for the parent records.
+
+    Related #18606.
+
+    *arthurnn*
+
 *   Order the result of `find(ids)` to match the passed array, if the relation
     has no explicit order defined.
 
