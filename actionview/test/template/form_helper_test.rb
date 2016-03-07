@@ -48,6 +48,20 @@ class FormHelperTest < ActionView::TestCase
       }
     }
 
+    # Create :de locale for testing localization of submit button in German
+    I18n.backend.store_translations 'de', {
+      activemodel: {
+        models: {
+          user: 'Benutzer'
+        }
+      },
+      helpers: {
+        submit: {
+          create: '%{model} erstellen'
+        }
+      }
+    }
+
     # Create "submit" locale for testing I18n submit helpers
     I18n.backend.store_translations 'submit', {
       helpers: {
@@ -141,6 +155,8 @@ class FormHelperTest < ActionView::TestCase
         resources :comments
       end
     end
+
+    resources :users
 
     get "/foo", to: "controller#action"
     root to: "main#index"
@@ -2239,7 +2255,7 @@ class FormHelperTest < ActionView::TestCase
         end
 
         expected = whole_form('/posts', 'new_post', 'new_post') do
-          "<input name='commit' data-disable-with='Create Post' type='submit' value='Create Post' />"
+          "<input name='commit' data-disable-with='Create post' type='submit' value='Create post' />"
         end
 
         assert_dom_equal expected, output_buffer
@@ -2254,7 +2270,21 @@ class FormHelperTest < ActionView::TestCase
       end
 
       expected = whole_form('/posts/123', 'edit_post_123', 'edit_post', method: 'patch') do
-      "<input name='commit' data-disable-with='Confirm Post changes' type='submit' value='Confirm Post changes' />"
+      "<input name='commit' data-disable-with='Confirm post changes' type='submit' value='Confirm post changes' />"
+      end
+
+      assert_dom_equal expected, output_buffer
+    end
+  end
+
+  def test_submit_button_capitalization_with_object_and_locale_strings
+    with_locale :de do
+      form_for(User.new) do |f|
+        concat f.submit
+      end
+
+      expected = whole_form('/users', 'new_user', 'new_user', method: 'post') do
+      "<input name='commit' data-disable-with='Benutzer erstellen' type='submit' value='Benutzer erstellen' />"
       end
 
       assert_dom_equal expected, output_buffer
@@ -2282,7 +2312,7 @@ class FormHelperTest < ActionView::TestCase
       end
 
       expected = whole_form('/posts/123', 'edit_another_post', 'edit_another_post', method: 'patch') do
-      "<input name='commit' data-disable-with='Update your Post' type='submit' value='Update your Post' />"
+      "<input name='commit' data-disable-with='Update your post' type='submit' value='Update your post' />"
       end
 
       assert_dom_equal expected, output_buffer

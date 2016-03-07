@@ -70,6 +70,14 @@ class PostDelegate < Post
   end
 end
 
+class User < Struct.new(:persisted)
+  extend ActiveModel::Naming
+  include ActiveModel::Conversion
+  extend ActiveModel::Translation
+
+  alias_method :persisted?, :persisted
+end
+
 class Comment
   extend ActiveModel::Naming
   include ActiveModel::Conversion
