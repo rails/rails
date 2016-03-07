@@ -4,6 +4,9 @@
 
     *Alex Coomans*
 
+
+## Rails 4.2.6 (March 07, 2016) ##
+
 *   Fix a bug where using `t.foreign_key` twice with the same `to_table` within
     the same table definition would only create one foreign key.
 

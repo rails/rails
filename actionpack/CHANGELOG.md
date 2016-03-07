@@ -1,3 +1,8 @@
+## Rails 4.2.6 (March 07, 2016) ##
+
+*   No changes.
+
+
 ## Rails 4.2.5.2 (February 26, 2016) ##
 
 *   Do not allow render with unpermitted parameter.

@@ -1,3 +1,5 @@
+## Rails 4.2.6 (March 07, 2016) ##
+
 *   Fix stripping the digest from the automatically generated img tag alt
     attribute when assets are handled by Sprockets >=3.0.
 
