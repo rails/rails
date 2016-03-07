@@ -735,36 +735,49 @@ module ActionDispatch
   # Consult the Rails Testing Guide for more.
 
   class IntegrationTest < ActiveSupport::TestCase
-    include Integration::Runner
-    include ActionController::TemplateAssertions
-    include ActionDispatch::Routing::UrlFor
-
-    @@app = nil
-
-    def self.app
-      @@app || ActionDispatch.test_app
+    module UrlOptions
+      extend ActiveSupport::Concern
+      def url_options
+        integration_session.url_options
+      end
     end
 
-    def self.app=(app)
-      @@app = app
+    module Behavior
+      extend ActiveSupport::Concern
+
+      include Integration::Runner
+      include ActionController::TemplateAssertions
+
+      included do
+        include ActionDispatch::Routing::UrlFor
+        include UrlOptions # don't let UrlFor override the url_options method
+        ActiveSupport.run_load_hooks(:action_dispatch_integration_test, self)
+        @@app = nil
+      end
+
+      module ClassMethods
+        def app
+          defined?(@@app) ? @@app : ActionDispatch.test_app
+        end
+
+        def app=(app)
+          @@app = app
+        end
+
+        def register_encoder(*args)
+          Integration::Session::RequestEncoder.register_encoder(*args)
+        end
+      end
+
+      def app
+        super || self.class.app
+      end
+
+      def document_root_element
+        html_document.root
+      end
     end
 
-    def app
-      super || self.class.app
-    end
-
-    def url_options
-      integration_session.url_options
-    end
-
-    def document_root_element
-      html_document.root
-    end
-
-    def self.register_encoder(*args)
-      Integration::Session::RequestEncoder.register_encoder(*args)
-    end
-
-    ActiveSupport.run_load_hooks(:action_dispatch_integration_test, self)
+    include Behavior
   end
 end
