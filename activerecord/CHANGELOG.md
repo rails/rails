@@ -1,3 +1,9 @@
+*   Correctly pass MySQL options when using structure_dump or structure_load
+
+    Specifically, it fixes an issue when using SSL authentication.
+
+    *Alex Coomans*
+
 *   Fix a bug where using `t.foreign_key` twice with the same `to_table` within
     the same table definition would only create one foreign key.
 
