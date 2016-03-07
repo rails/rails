@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module ActiveRecord
   module LegacyYamlAdapter
     def self.convert(klass, coder)

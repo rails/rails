@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require 'active_support/concern'
 require 'support/integration/jobs_manager'
 

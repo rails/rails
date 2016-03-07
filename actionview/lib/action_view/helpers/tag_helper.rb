@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require 'active_support/core_ext/string/output_safety'
 require 'set'
 
@@ -149,7 +150,7 @@ module ActionView
 
         def tag_options(options, escape = true)
           return if options.blank?
-          output = ""
+          output = String.new
           sep    = " ".freeze
           options.each_pair do |key, value|
             if TAG_PREFIXES.include?(key) && value.is_a?(Hash)

@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module ActiveRecord
   module Tasks # :nodoc:
     class MySQLDatabaseTasks # :nodoc:
@@ -142,9 +143,8 @@ IDENTIFIED BY '#{configuration['password']}' WITH GRANT OPTION;
       end
 
       def run_cmd_error(cmd, args, action)
-        msg = "failed to execute: `#{cmd}`\n"
-        msg << "Please check the output above for any errors and make sure that `#{cmd}` is installed in your PATH and has proper permissions.\n\n"
-        msg
+        "failed to execute: `#{cmd}`\n"\
+        "Please check the output above for any errors and make sure that `#{cmd}` is installed in your PATH and has proper permissions.\n\n"
       end
     end
   end

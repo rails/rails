@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require 'active_record/connection_adapters/abstract_adapter'
 require 'active_record/connection_adapters/statement_pool'
 require 'active_record/connection_adapters/sqlite3/explain_pretty_printer'
@@ -317,8 +318,8 @@ module ActiveRecord
       def data_source_exists?(table_name)
         return false unless table_name.present?
 
-        sql = "SELECT name FROM sqlite_master WHERE type IN ('table','view') AND name <> 'sqlite_sequence'"
-        sql << " AND name = #{quote(table_name)}"
+        sql = "SELECT name FROM sqlite_master WHERE type IN ('table','view') AND name <> 'sqlite_sequence'"\
+              " AND name = #{quote(table_name)}"
 
         select_values(sql, 'SCHEMA').any?
       end
@@ -330,8 +331,8 @@ module ActiveRecord
       def view_exists?(view_name) # :nodoc:
         return false unless view_name.present?
 
-        sql = "SELECT name FROM sqlite_master WHERE type = 'view' AND name <> 'sqlite_sequence'"
-        sql << " AND name = #{quote(view_name)}"
+        sql = "SELECT name FROM sqlite_master WHERE type = 'view' AND name <> 'sqlite_sequence'"\
+              " AND name = #{quote(view_name)}"
 
         select_values(sql, 'SCHEMA').any?
       end

@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require 'active_record/connection_adapters/abstract_adapter'
 require 'active_record/connection_adapters/mysql/column'
 require 'active_record/connection_adapters/mysql/explain_pretty_printer'
@@ -346,8 +347,8 @@ module ActiveRecord
       end
 
       def data_sources
-        sql = "SELECT table_name FROM information_schema.tables "
-        sql << "WHERE table_schema = #{quote(@config[:database])}"
+        sql = "SELECT table_name FROM information_schema.tables "\
+              "WHERE table_schema = #{quote(@config[:database])}"
 
         select_values(sql, 'SCHEMA')
       end
@@ -373,8 +374,8 @@ module ActiveRecord
         schema, name = table_name.to_s.split('.', 2)
         schema, name = @config[:database], schema unless name # A table was provided without a schema
 
-        sql = "SELECT table_name FROM information_schema.tables "
-        sql << "WHERE table_schema = #{quote(schema)} AND table_name = #{quote(name)}"
+        sql = "SELECT table_name FROM information_schema.tables "\
+              "WHERE table_schema = #{quote(schema)} AND table_name = #{quote(name)}"
 
         select_values(sql, 'SCHEMA').any?
       end
@@ -389,8 +390,8 @@ module ActiveRecord
         schema, name = view_name.to_s.split('.', 2)
         schema, name = @config[:database], schema unless name # A view was provided without a schema
 
-        sql = "SELECT table_name FROM information_schema.tables WHERE table_type = 'VIEW'"
-        sql << " AND table_schema = #{quote(schema)} AND table_name = #{quote(name)}"
+        sql = "SELECT table_name FROM information_schema.tables WHERE table_type = 'VIEW'"\
+              " AND table_schema = #{quote(schema)} AND table_name = #{quote(name)}"
 
         select_values(sql, 'SCHEMA').any?
       end
@@ -578,8 +579,7 @@ module ActiveRecord
         else
           super(type, limit, precision, scale)
         end
-
-        sql << ' unsigned' if unsigned && type != :primary_key
+        sql += ' unsigned' if unsigned && type != :primary_key
         sql
       end
 
@@ -789,7 +789,7 @@ module ActiveRecord
 
       def add_index_sql(table_name, column_name, options = {})
         index_name, index_type, index_columns, _, index_algorithm, index_using = add_index_options(table_name, column_name, options)
-        index_algorithm[0, 0] = ", " if index_algorithm.present?
+        index_algorithm = ", #{index_algorithm}" if index_algorithm.present?
         "ADD #{index_type} INDEX #{quote_column_name(index_name)} #{index_using} (#{index_columns})#{index_algorithm}"
       end
 
@@ -855,7 +855,7 @@ module ActiveRecord
         # http://dev.mysql.com/doc/refman/5.7/en/set-statement.html#id944430
         # (trailing comma because variable_assignments will always have content)
         if @config[:encoding]
-          encoding = "NAMES #{@config[:encoding]}"
+          encoding = "NAMES #{@config[:encoding]}".dup
           encoding << " COLLATE #{@config[:collation]}" if @config[:collation]
           encoding << ", "
         end

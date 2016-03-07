@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require 'abstract_unit'
 
 module AbstractController
@@ -41,7 +42,7 @@ module AbstractController
       end
 
       def aroundz
-        @aroundz = "FIRST"
+        @aroundz = String.new("FIRST")
         yield
         @aroundz << "SECOND"
       end
@@ -282,7 +283,7 @@ module AbstractController
       end
 
       def aroundz
-        @aroundz = "FIRST"
+        @aroundz = String.new("FIRST")
         yield
         @aroundz << "SECOND"
       end

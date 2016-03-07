@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require 'isolation/abstract_unit'
 
 class ConsoleTest < ActiveSupport::TestCase
@@ -120,7 +121,7 @@ class FullStackConsoleTest < ActiveSupport::TestCase
   def assert_output(expected, timeout = 1)
     timeout = Time.now + timeout
 
-    output = ""
+    output = String.new("")
     until output.include?(expected) || Time.now > timeout
       if IO.select([@master], [], [], 0.1)
         output << @master.read(1)

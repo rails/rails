@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require 'stringio'
 require 'uri'
 require 'active_support/core_ext/kernel/singleton_class'
@@ -414,6 +415,7 @@ module ActionDispatch
           end
 
           def append_format_to(path)
+            path = path.dup
             path << @path_format unless @url_encoded_form
             path
           end

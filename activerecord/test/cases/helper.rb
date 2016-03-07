@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require 'config'
 
 require 'active_support/testing/autorun'

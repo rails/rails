@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require 'abstract_unit'
 require 'active_support/core_ext/module'
 
@@ -371,7 +372,7 @@ end
 
 class MethodAliasingTest < ActiveSupport::TestCase
   def setup
-    Object.const_set :FooClassWithBarMethod, Class.new { def bar() 'bar' end }
+    Object.const_set :FooClassWithBarMethod, Class.new { def bar() String.new('bar') end }
     @instance = FooClassWithBarMethod.new
   end
 
@@ -418,7 +419,7 @@ class MethodAliasingTest < ActiveSupport::TestCase
   def test_alias_method_chain_with_punctuation_method
     assert_deprecated(/alias_method_chain/) do
       FooClassWithBarMethod.class_eval do
-        def quux!; 'quux' end
+        def quux!; String.new('quux') end
       end
 
       assert !@instance.respond_to?(:quux_with_baz!)
@@ -436,9 +437,9 @@ class MethodAliasingTest < ActiveSupport::TestCase
   def test_alias_method_chain_with_same_names_between_predicates_and_bang_methods
     assert_deprecated(/alias_method_chain/) do
       FooClassWithBarMethod.class_eval do
-        def quux!; 'quux!' end
+        def quux!; String.new('quux!') end
         def quux?; true end
-        def quux=(v); 'quux=' end
+        def quux=(v); String.new('quux=') end
       end
 
       assert !@instance.respond_to?(:quux_with_baz!)
@@ -468,7 +469,7 @@ class MethodAliasingTest < ActiveSupport::TestCase
   def test_alias_method_chain_with_feature_punctuation
     assert_deprecated(/alias_method_chain/) do
       FooClassWithBarMethod.class_eval do
-        def quux; 'quux' end
+        def quux; String.new('quux') end
         def quux?; 'quux?' end
         include BarMethodAliaser
         alias_method_chain :quux, :baz!
@@ -506,7 +507,7 @@ class MethodAliasingTest < ActiveSupport::TestCase
   def test_alias_method_chain_preserves_private_method_status
     assert_deprecated(/alias_method_chain/) do
       FooClassWithBarMethod.class_eval do
-        def duck; 'duck' end
+        def duck; String.new('duck') end
         include BarMethodAliaser
         private :duck
         alias_method_chain :duck, :orange
@@ -524,7 +525,7 @@ class MethodAliasingTest < ActiveSupport::TestCase
   def test_alias_method_chain_preserves_protected_method_status
     assert_deprecated(/alias_method_chain/) do
       FooClassWithBarMethod.class_eval do
-        def duck; 'duck' end
+        def duck; String.new('duck') end
         include BarMethodAliaser
         protected :duck
         alias_method_chain :duck, :orange
@@ -542,7 +543,7 @@ class MethodAliasingTest < ActiveSupport::TestCase
   def test_alias_method_chain_preserves_public_method_status
     assert_deprecated(/alias_method_chain/) do
       FooClassWithBarMethod.class_eval do
-        def duck; 'duck' end
+        def duck; String.new('duck') end
         include BarMethodAliaser
         public :duck
         alias_method_chain :duck, :orange

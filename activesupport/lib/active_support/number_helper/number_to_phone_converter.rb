@@ -1,8 +1,9 @@
+# frozen_string_literal: true
 module ActiveSupport
   module NumberHelper
     class NumberToPhoneConverter < NumberConverter #:nodoc:
       def convert
-        str  = country_code(opts[:country_code])
+        str  = String.new(country_code(opts[:country_code]))
         str << convert_to_phone_number(number.to_s.strip)
         str << phone_ext(opts[:extension])
       end

@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module ActiveRecord
   module Associations
     class JoinDependency # :nodoc:
@@ -212,7 +213,8 @@ module ActiveRecord
       end
 
       def table_alias_for(reflection, parent, join)
-        name = "#{reflection.plural_name}_#{parent.table_name}"
+        name = String.new
+        name << "#{reflection.plural_name}_#{parent.table_name}"
         name << "_join" if join
         name
       end

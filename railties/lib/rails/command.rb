@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require 'rails/commands/commands_tasks'
 
 module Rails

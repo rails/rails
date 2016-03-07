@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require 'abstract_unit'
 
 class ActionController::Base
@@ -345,7 +346,7 @@ class FilterTest < ActionController::TestCase
 
   class AroundFilter
     def before(controller)
-      @execution_log = "before"
+      @execution_log = String.new("before")
       controller.class.execution_log << " before aroundfilter " if controller.respond_to? :execution_log
       controller.instance_variable_set(:"@before_ran", true)
     end
@@ -403,7 +404,7 @@ class FilterTest < ActionController::TestCase
     cattr_accessor :execution_log
 
     def initialize
-      @@execution_log = ""
+      @@execution_log = String.new
       super()
     end
 

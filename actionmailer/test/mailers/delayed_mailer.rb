@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 class DelayedMailer < ActionMailer::Base
 
   def test_message(*)

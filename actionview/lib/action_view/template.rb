@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require 'active_support/core_ext/object/try'
 require 'active_support/core_ext/kernel/singleton_class'
 require 'thread'
@@ -127,7 +128,7 @@ module ActionView
     def initialize(source, identifier, handler, details)
       format = details[:format] || (handler.default_format if handler.respond_to?(:default_format))
 
-      @source            = source
+      @source            = source.frozen? ? source.dup : source
       @identifier        = identifier
       @handler           = handler
       @compiled          = false
@@ -292,6 +293,8 @@ module ActionView
           end
         end_src
 
+        source = source.dup if source.frozen?
+
         # Make sure the source is in the encoding of the returned code
         source.force_encoding(code.encoding)
 
@@ -326,12 +329,12 @@ module ActionView
 
       def locals_code #:nodoc:
         # Double assign to suppress the dreaded 'assigned but unused variable' warning
-        @locals.each_with_object('') { |key, code| code << "#{key} = #{key} = local_assigns[:#{key}];" }
+        @locals.each_with_object(String.new) { |key, code| code << "#{key} = #{key} = local_assigns[:#{key}];" }
       end
 
       def method_name #:nodoc:
         @method_name ||= begin
-          m = "_#{identifier_method_name}__#{@identifier.hash}_#{__id__}"
+          m = String.new("_#{identifier_method_name}__#{@identifier.hash}_#{__id__}")
           m.tr!('-'.freeze, '_'.freeze)
           m
         end

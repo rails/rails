@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require "abstract_unit"
 require "active_support/log_subscriber/test_helper"
 require "action_controller/log_subscriber"
@@ -256,7 +257,6 @@ class ACLogSubscriberTest < ActionController::TestCase
     @controller.config.perform_caching = true
     get :with_fragment_cache_if_with_true_condition
     wait
-
     assert_equal 4, logs.size
     assert_match(/Read fragment views\/foo/, logs[1])
     assert_match(/Write fragment views\/foo/, logs[2])

@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require 'logger'
 require 'abstract_unit'
 require 'active_support/cache'
@@ -83,7 +84,7 @@ class CacheKeyTest < ActiveSupport::TestCase
   end
 
   def test_expand_cache_key_respond_to_cache_key
-    key = 'foo'
+    key = String.new('foo')
     def key.cache_key
       :foo_key
     end
@@ -91,7 +92,7 @@ class CacheKeyTest < ActiveSupport::TestCase
   end
 
   def test_expand_cache_key_array_with_something_that_responds_to_cache_key
-    key = 'foo'
+    key = String.new('foo')
     def key.cache_key
       :foo_key
     end
@@ -392,7 +393,7 @@ module CacheStoreBehavior
   end
 
   def test_original_store_objects_should_not_be_immutable
-    bar = 'bar'
+    bar = 'bar'.dup
     @cache.write('foo', bar)
     assert_nothing_raised { bar.gsub!(/.*/, 'baz') }
   end
@@ -481,7 +482,7 @@ module CacheStoreBehavior
   end
 
   def test_really_long_keys
-    key = ""
+    key = String.new
     900.times{key << "x"}
     assert @cache.write(key, "bar")
     assert_equal "bar", @cache.read(key)
@@ -536,7 +537,7 @@ end
 module EncodedKeyCacheBehavior
   Encoding.list.each do |encoding|
     define_method "test_#{encoding.name.underscore}_encoded_values" do
-      key = "foo".force_encoding(encoding)
+      key = String.new("foo").force_encoding(encoding)
       assert @cache.write(key, "1", :raw => true)
       assert_equal "1", @cache.read(key)
       assert_equal "1", @cache.fetch(key)
@@ -548,7 +549,7 @@ module EncodedKeyCacheBehavior
   end
 
   def test_common_utf8_values
-    key = "\xC3\xBCmlaut".force_encoding(Encoding::UTF_8)
+    key = String.new("\xC3\xBCmlaut").force_encoding(Encoding::UTF_8)
     assert @cache.write(key, "1", :raw => true)
     assert_equal "1", @cache.read(key)
     assert_equal "1", @cache.fetch(key)
@@ -559,7 +560,7 @@ module EncodedKeyCacheBehavior
   end
 
   def test_retains_encoding
-    key = "\xC3\xBCmlaut".force_encoding(Encoding::UTF_8)
+    key = String.new("\xC3\xBCmlaut").force_encoding(Encoding::UTF_8)
     assert @cache.write(key, "1", :raw => true)
     assert_equal Encoding::UTF_8, key.encoding
   end

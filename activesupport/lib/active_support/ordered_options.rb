@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module ActiveSupport
   # Usually key value pairs are handled something like this:
   #

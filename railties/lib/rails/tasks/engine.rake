@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 task "load_app" do
   namespace :app do
     load APP_RAKEFILE

@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require 'abstract_unit'
 require 'multibyte_test_helpers'
 require 'active_support/core_ext/string/multibyte'
@@ -51,7 +52,7 @@ class MultibyteCharsTest < ActiveSupport::TestCase
   end
 
   def test_forwarded_method_with_non_string_result_should_be_returned_vertabim
-    str = ''
+    str = String.new('')
     str.singleton_class.class_eval { def __method_for_multibyte_testing_with_integer_result; 1; end }
     @chars.wrapped_string.singleton_class.class_eval { def __method_for_multibyte_testing_with_integer_result; 1; end }
 
@@ -59,14 +60,14 @@ class MultibyteCharsTest < ActiveSupport::TestCase
   end
 
   def test_should_concatenate
-    mb_a = 'a'.mb_chars
-    mb_b = 'b'.mb_chars
+    mb_a = String.new('a').mb_chars
+    mb_b = String.new('b').mb_chars
     assert_equal 'ab', mb_a + 'b'
     assert_equal 'ab', 'a' + mb_b
     assert_equal 'ab', mb_a + mb_b
 
     assert_equal 'ab', mb_a << 'b'
-    assert_equal 'ab', 'a' << mb_b
+    assert_equal 'ab', String.new('a') << mb_b
     assert_equal 'abb', mb_a << mb_b
   end
 
@@ -78,7 +79,7 @@ class MultibyteCharsTest < ActiveSupport::TestCase
 
   def test_concatenation_should_return_a_proxy_class_instance
     assert_equal ActiveSupport::Multibyte.proxy_class, ('a'.mb_chars + 'b').class
-    assert_equal ActiveSupport::Multibyte.proxy_class, ('a'.mb_chars << 'b').class
+    assert_equal ActiveSupport::Multibyte.proxy_class, (String.new('a').mb_chars << 'b').class
   end
 
   def test_ascii_strings_are_treated_at_utf8_strings
@@ -88,8 +89,8 @@ class MultibyteCharsTest < ActiveSupport::TestCase
   def test_concatenate_should_return_proxy_instance
     assert(('a'.mb_chars + 'b').kind_of?(@proxy_class))
     assert(('a'.mb_chars + 'b'.mb_chars).kind_of?(@proxy_class))
-    assert(('a'.mb_chars << 'b').kind_of?(@proxy_class))
-    assert(('a'.mb_chars << 'b'.mb_chars).kind_of?(@proxy_class))
+    assert((String.new('a').mb_chars << 'b').kind_of?(@proxy_class))
+    assert((String.new('a').mb_chars << 'b'.mb_chars).kind_of?(@proxy_class))
   end
 
   def test_should_return_string_as_json
@@ -115,7 +116,7 @@ class MultibyteCharsUTF8BehaviourTest < ActiveSupport::TestCase
   %w{capitalize downcase lstrip reverse rstrip swapcase upcase}.each do |method|
     class_eval(<<-EOTESTS, __FILE__, __LINE__ + 1)
       def test_#{method}_bang_should_return_self_when_modifying_wrapped_string
-        chars = ' él piDió Un bUen café '
+        chars = String.new(' él piDió Un bUen café ')
         assert_equal chars.object_id, chars.send("#{method}!").object_id
       end
 
@@ -150,24 +151,24 @@ class MultibyteCharsUTF8BehaviourTest < ActiveSupport::TestCase
   end
 
   def test_string_methods_are_chainable
-    assert chars('').insert(0, '').kind_of?(ActiveSupport::Multibyte.proxy_class)
-    assert chars('').rjust(1).kind_of?(ActiveSupport::Multibyte.proxy_class)
-    assert chars('').ljust(1).kind_of?(ActiveSupport::Multibyte.proxy_class)
-    assert chars('').center(1).kind_of?(ActiveSupport::Multibyte.proxy_class)
-    assert chars('').rstrip.kind_of?(ActiveSupport::Multibyte.proxy_class)
-    assert chars('').lstrip.kind_of?(ActiveSupport::Multibyte.proxy_class)
-    assert chars('').strip.kind_of?(ActiveSupport::Multibyte.proxy_class)
-    assert chars('').reverse.kind_of?(ActiveSupport::Multibyte.proxy_class)
-    assert chars(' ').slice(0).kind_of?(ActiveSupport::Multibyte.proxy_class)
-    assert chars('').limit(0).kind_of?(ActiveSupport::Multibyte.proxy_class)
-    assert chars('').upcase.kind_of?(ActiveSupport::Multibyte.proxy_class)
-    assert chars('').downcase.kind_of?(ActiveSupport::Multibyte.proxy_class)
-    assert chars('').capitalize.kind_of?(ActiveSupport::Multibyte.proxy_class)
-    assert chars('').normalize.kind_of?(ActiveSupport::Multibyte.proxy_class)
-    assert chars('').decompose.kind_of?(ActiveSupport::Multibyte.proxy_class)
-    assert chars('').compose.kind_of?(ActiveSupport::Multibyte.proxy_class)
-    assert chars('').tidy_bytes.kind_of?(ActiveSupport::Multibyte.proxy_class)
-    assert chars('').swapcase.kind_of?(ActiveSupport::Multibyte.proxy_class)
+    assert chars(String.new('')).insert(0, '').kind_of?(ActiveSupport::Multibyte.proxy_class)
+    assert chars(String.new('')).rjust(1).kind_of?(ActiveSupport::Multibyte.proxy_class)
+    assert chars(String.new('')).ljust(1).kind_of?(ActiveSupport::Multibyte.proxy_class)
+    assert chars(String.new('')).center(1).kind_of?(ActiveSupport::Multibyte.proxy_class)
+    assert chars(String.new('')).rstrip.kind_of?(ActiveSupport::Multibyte.proxy_class)
+    assert chars(String.new('')).lstrip.kind_of?(ActiveSupport::Multibyte.proxy_class)
+    assert chars(String.new('')).strip.kind_of?(ActiveSupport::Multibyte.proxy_class)
+    assert chars(String.new('')).reverse.kind_of?(ActiveSupport::Multibyte.proxy_class)
+    assert chars(String.new(' ')).slice(0).kind_of?(ActiveSupport::Multibyte.proxy_class)
+    assert chars(String.new('')).limit(0).kind_of?(ActiveSupport::Multibyte.proxy_class)
+    assert chars(String.new('')).upcase.kind_of?(ActiveSupport::Multibyte.proxy_class)
+    assert chars(String.new('')).downcase.kind_of?(ActiveSupport::Multibyte.proxy_class)
+    assert chars(String.new('')).capitalize.kind_of?(ActiveSupport::Multibyte.proxy_class)
+    assert chars(String.new('')).normalize.kind_of?(ActiveSupport::Multibyte.proxy_class)
+    assert chars(String.new('')).decompose.kind_of?(ActiveSupport::Multibyte.proxy_class)
+    assert chars(String.new('')).compose.kind_of?(ActiveSupport::Multibyte.proxy_class)
+    assert chars(String.new('')).tidy_bytes.kind_of?(ActiveSupport::Multibyte.proxy_class)
+    assert chars(String.new('')).swapcase.kind_of?(ActiveSupport::Multibyte.proxy_class)
   end
 
   def test_should_be_equal_to_the_wrapped_string
@@ -195,7 +196,7 @@ class MultibyteCharsUTF8BehaviourTest < ActiveSupport::TestCase
   end
 
   def test_should_use_character_offsets_for_insert_offsets
-    assert_equal '', ''.mb_chars.insert(0, '')
+    assert_equal '', String.new('').mb_chars.insert(0, '')
     assert_equal 'こわにちわ', @chars.insert(1, 'わ')
     assert_equal 'こわわわにちわ', @chars.insert(2, 'わわ')
     assert_equal 'わこわわわにちわ', @chars.insert(0, 'わ')
@@ -418,13 +419,13 @@ class MultibyteCharsUTF8BehaviourTest < ActiveSupport::TestCase
   end
 
   def test_slice_bang_removes_the_slice_from_the_receiver
-    chars = 'úüù'.mb_chars
+    chars = String.new('úüù').mb_chars
     chars.slice!(0,2)
     assert_equal 'ù', chars
   end
 
   def test_slice_bang_returns_nil_and_does_not_modify_receiver_if_out_of_bounds
-    string = 'úüù'
+    string = String.new('úüù')
     chars = string.mb_chars
     assert_nil chars.slice!(4, 5)
     assert_equal 'úüù', chars

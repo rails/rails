@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require 'abstract_unit'
 
 ActionController::Base.helpers_path = File.expand_path('../../fixtures/helpers', __FILE__)
@@ -106,7 +107,7 @@ class HelperTest < ActiveSupport::TestCase
 
   def setup
     # Increment symbol counter.
-    @symbol = (@@counter ||= 'A0').succ!.dup
+    @symbol = (@@counter ||= String.new('A0')).succ!.dup
 
     # Generate new controller class.
     controller_class_name = "Helper#{@symbol}Controller"

@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module ERBTest
   class ViewContext
     include ActionView::Helpers::UrlHelper

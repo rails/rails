@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module DateAndTime
   module Calculations
     DAYS_INTO_WEEK = {

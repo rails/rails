@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module ActionDispatch
   # Integration test methods such as ActionDispatch::Integration::Session#get
   # and ActionDispatch::Integration::Session#post return objects of class

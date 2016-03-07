@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require 'abstract_unit'
 
 class TextHelperTest < ActionView::TestCase
@@ -11,7 +12,7 @@ class TextHelperTest < ActionView::TestCase
   end
 
   def test_concat
-    self.output_buffer = 'foo'
+    self.output_buffer = String.new('foo')
     assert_equal 'foobar', concat('bar')
     assert_equal 'foobar', output_buffer
   end
@@ -104,8 +105,8 @@ class TextHelperTest < ActionView::TestCase
   end
 
   def test_truncate_multibyte
-    assert_equal "\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254 ...".force_encoding(Encoding::UTF_8),
-      truncate("\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254 \354\225\204\353\235\274\353\246\254\354\230\244".force_encoding(Encoding::UTF_8), :length => 10)
+    assert_equal String.new("\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254 ...").force_encoding(Encoding::UTF_8),
+      truncate(String.new("\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254 \354\225\204\353\235\274\353\246\254\354\230\244").force_encoding(Encoding::UTF_8), :length => 10)
   end
 
   def test_truncate_does_not_modify_the_options_hash
@@ -325,7 +326,7 @@ class TextHelperTest < ActionView::TestCase
   end
 
   def test_excerpt_with_utf8
-    assert_equal("...\357\254\203ciency could not be...".force_encoding(Encoding::UTF_8), excerpt("That's why e\357\254\203ciency could not be helped".force_encoding(Encoding::UTF_8), 'could', :radius => 8))
+    assert_equal(String.new("...\357\254\203ciency could not be...").force_encoding(Encoding::UTF_8), excerpt(String.new("That's why e\357\254\203ciency could not be helped").force_encoding(Encoding::UTF_8), 'could', :radius => 8))
   end
 
   def test_excerpt_does_not_modify_the_options_hash

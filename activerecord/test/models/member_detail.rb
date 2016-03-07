@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 class MemberDetail < ActiveRecord::Base
   belongs_to :member, inverse_of: false
   belongs_to :organization

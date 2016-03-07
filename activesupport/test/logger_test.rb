@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require 'abstract_unit'
 require 'multibyte_test_helpers'
 require 'stringio'
@@ -37,7 +38,7 @@ class LoggerTest < ActiveSupport::TestCase
     logger = Logger.new f
     logger.level = Logger::DEBUG
 
-    str = "\x80"
+    str = String.new("\x80")
     str.force_encoding("ASCII-8BIT")
 
     logger.add Logger::DEBUG, str
@@ -55,7 +56,7 @@ class LoggerTest < ActiveSupport::TestCase
     logger = Logger.new f
     logger.level = Logger::DEBUG
 
-    str = "\x80"
+    str = String.new("\x80")
     str.force_encoding("ASCII-8BIT")
 
     logger.add Logger::DEBUG, str

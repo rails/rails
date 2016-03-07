@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 class Hash
   # Returns a new hash with +self+ and +other_hash+ merged recursively.
   #

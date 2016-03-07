@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module ActionDispatch
   module Assertions
     # A small suite of assertions that test responses from \Rails applications.
@@ -77,9 +78,10 @@ module ActionDispatch
         end
 
         def generate_response_message(expected, actual = @response.response_code)
-          "Expected response to be a <#{code_with_name(expected)}>,"\
-          " but was a <#{code_with_name(actual)}>"
-          .concat location_if_redirected
+          msg = String.new()
+          msg << "Expected response to be a <#{code_with_name(expected)}>,"
+          msg << " but was a <#{code_with_name(actual)}>"
+          msg << location_if_redirected
         end
 
         def location_if_redirected

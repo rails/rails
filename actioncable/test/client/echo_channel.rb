@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 class EchoChannel < ActionCable::Channel::Base
   def subscribed
     stream_from "global"

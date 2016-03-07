@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require "active_record"
 require "rails"
 require "active_model/railtie"

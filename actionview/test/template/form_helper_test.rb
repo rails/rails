@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require 'abstract_unit'
 require 'controller/fake_models'
 
@@ -3514,9 +3515,9 @@ class FormHelperTest < ActionView::TestCase
     method = options[:method]
 
     if options.fetch(:enforce_utf8, true)
-      txt = %{<input name="utf8" type="hidden" value="&#x2713;" />}
+      txt = String.new(%{<input name="utf8" type="hidden" value="&#x2713;" />})
     else
-      txt = ''
+      txt = String.new
     end
 
     if method && !%w(get post).include?(method.to_s)
@@ -3527,7 +3528,7 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def form_text(action = "/", id = nil, html_class = nil, remote = nil, multipart = nil, method = nil)
-    txt =  %{<form accept-charset="UTF-8" action="#{action}"}
+    txt =  String.new(%{<form accept-charset="UTF-8" action="#{action}"})
     txt << %{ enctype="multipart/form-data"} if multipart
     txt << %{ data-remote="true"} if remote
     txt << %{ class="#{html_class}"} if html_class

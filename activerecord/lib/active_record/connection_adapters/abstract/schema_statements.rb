@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require 'active_record/migration/join_table'
 require 'active_support/core_ext/string/access'
 require 'digest'
@@ -964,7 +965,7 @@ module ActiveRecord
       def dump_schema_information #:nodoc:
         sm_table = ActiveRecord::Migrator.schema_migrations_table_name
 
-        sql = "INSERT INTO #{sm_table} (version) VALUES "
+        sql = String.new("INSERT INTO #{sm_table} (version) VALUES ")
         sql << ActiveRecord::SchemaMigration.order('version').pluck(:version).map {|v| "('#{v}')" }.join(', ')
         sql << ";\n\n"
       end

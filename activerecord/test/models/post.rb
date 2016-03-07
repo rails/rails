@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 class Post < ActiveRecord::Base
   class CategoryPost < ActiveRecord::Base
     self.table_name = "categories_posts"

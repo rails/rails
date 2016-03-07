@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require 'active_support/core_ext/module/remove_method'
 require 'action_controller'
 require 'action_controller/test_case'
@@ -105,7 +106,7 @@ module ActionView
         # empty string ensures buffer has UTF-8 encoding as
         # new without arguments returns ASCII-8BIT encoded buffer like String#new
         @output_buffer = ActiveSupport::SafeBuffer.new ''
-        @rendered = ''
+        @rendered = String.new
 
         make_test_case_available_to_view!
         say_no_to_protect_against_forgery!

@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require 'abstract_unit'
 require 'controller/fake_models'
 
@@ -405,7 +406,7 @@ module RenderTestCases
   end
 
   CustomHandler = lambda do |template|
-    "@output_buffer = ''\n" +
+    "@output_buffer = String.new\n" +
       "@output_buffer << 'source: #{template.source.inspect}'\n"
   end
 

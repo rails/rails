@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require 'rake'
 require 'active_support'
 

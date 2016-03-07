@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require 'action_dispatch/http/response'
 require 'delegate'
 require 'active_support/json'
@@ -291,7 +292,8 @@ module ActionController
       return unless logger
 
       logger.fatal do
-        message = "\n#{exception.class} (#{exception.message}):\n"
+        message = String.new
+        message << "\n#{exception.class} (#{exception.message}):\n"
         message << exception.annoted_source_code.to_s if exception.respond_to?(:annoted_source_code)
         message << "  " << exception.backtrace.join("\n  ")
         "#{message}\n\n"
