@@ -1,9 +1,3 @@
-*   Save many-to-many objects based on association primary key.
-
-    Fixes #20995.
-
-    *himesh-r*
-
 *   Fix an issue when preloading associations with extensions.
     Previously every association with extension methods was transformed into an
     instance dependent scope. This is no longer the case.
@@ -46,6 +40,12 @@
     *Eileen M. Uchitelle*
 
 ## Rails 5.0.0.beta3 (February 24, 2016) ##
+
+*   Save many-to-many objects based on association primary key.
+
+    Fixes #20995.
+
+    *himesh-r*
 
 *   Ensure that mutations of the array returned from `ActiveRecord::Relation#to_a`
     do not affect the original relation, by returning a duplicate array each time.
