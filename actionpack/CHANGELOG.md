@@ -1,3 +1,8 @@
+*   Add `ActiveSupport.run_load_hooks` to `ActionDispatch::IntegrationTest`
+    with `action_dispatch_integration_test` name.
+
+    *Yuichiro Kaneko*
+
 *   Update default rendering policies when the controller action did
     not explicitly indicate a response.
 
