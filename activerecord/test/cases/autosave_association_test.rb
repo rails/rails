@@ -749,7 +749,7 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
   end
 
   # has_one
-  def test_should_destroy_a_child_association_as_part_of_the_save_transaction_if_it_was_marked_for_destroyal
+  def test_should_destroy_a_child_association_as_part_of_the_save_transaction_if_it_was_marked_for_destruction
     assert !@pirate.ship.marked_for_destruction?
 
     @pirate.ship.mark_for_destruction
@@ -809,7 +809,7 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
   end
 
   # belongs_to
-  def test_should_destroy_a_parent_association_as_part_of_the_save_transaction_if_it_was_marked_for_destroyal
+  def test_should_destroy_a_parent_association_as_part_of_the_save_transaction_if_it_was_marked_for_destruction
     assert !@ship.pirate.marked_for_destruction?
 
     @ship.pirate.mark_for_destruction
