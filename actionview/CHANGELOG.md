@@ -1,4 +1,4 @@
-## Rails 4.1.15.rc1 (March 01, 2016) ##
+## Rails 4.1.15 (March 07, 2016) ##
 
 *   Changed the meaning of `render "foo/bar"`.
 
