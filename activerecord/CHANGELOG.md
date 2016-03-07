@@ -1,3 +1,9 @@
+*   Save many-to-many objects based on association primary key.
+
+    Fixes #20995.
+
+    *himesh-r*
+
 *   Fix an issue when preloading associations with extensions.
     Previously every association with extension methods was transformed into an
     instance dependent scope. This is no longer the case.
