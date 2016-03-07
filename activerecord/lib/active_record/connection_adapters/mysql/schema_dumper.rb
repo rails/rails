@@ -38,10 +38,6 @@ module ActiveRecord
           end
         end
 
-        def schema_limit(column)
-          super unless column.type == :boolean
-        end
-
         def schema_precision(column)
           super unless /time/ === column.sql_type && column.precision == 0
         end
