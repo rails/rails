@@ -93,12 +93,14 @@ module ActionDispatch
       super
       return if DrawOnce.drew
 
-      SharedTestRoutes.draw do
-        get ':controller(/:action)'
-      end
+      ActiveSupport::Deprecation.silence do
+        SharedTestRoutes.draw do
+          get ':controller(/:action)'
+        end
 
-      ActionDispatch::IntegrationTest.app.routes.draw do
-        get ':controller(/:action)'
+        ActionDispatch::IntegrationTest.app.routes.draw do
+          get ':controller(/:action)'
+        end
       end
 
       DrawOnce.drew = true
