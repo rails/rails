@@ -1,3 +1,9 @@
+*   Correctly pass MySQL options when using structure_dump or structure_load
+
+    Specifically, it fixes an issue when using SSL authentication.
+
+    *Alex Coomans*
+
 *   Fixes custom primary keys for associations when calling `Relation#where`
 
     Fixes #23327.
