@@ -24,6 +24,7 @@ class Post < ActiveRecord::Base
   scope :limit_by, lambda {|l| limit(l) }
 
   belongs_to :author
+  belongs_to :readonly_author, -> { readonly }, class_name: 'Author', foreign_key: :author_id
 
   belongs_to :author_with_posts, -> { includes(:posts) }, :class_name => "Author", :foreign_key => :author_id
   belongs_to :author_with_address, -> { includes(:author_address) }, :class_name => "Author", :foreign_key => :author_id

@@ -311,6 +311,10 @@ module ActiveRecord
           active_record == other_aggregation.active_record
       end
 
+      def scope_for(klass)
+        scope ? klass.unscoped.instance_exec(nil, &scope) : klass.unscoped
+      end
+
       private
         def derive_class_name
           name.to_s.camelize

@@ -274,7 +274,9 @@ module ActiveRecord
             construct(model, node, row, rs, seen, model_cache, aliases)
           else
             model = construct_model(ar_parent, node, row, model_cache, id, aliases)
-            model.readonly!
+            if node.reflection.scope_for(node.base_klass).readonly_value
+              model.readonly!
+            end
             seen[ar_parent.object_id][node.base_klass][id] = model
             construct(model, node, row, rs, seen, model_cache, aliases)
           end
