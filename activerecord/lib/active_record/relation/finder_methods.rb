@@ -135,6 +135,9 @@ module ActiveRecord
     #   Person.last # returns the last object fetched by SELECT * FROM people
     #   Person.where(["user_name = ?", user_name]).last
     #   Person.order("created_on DESC").offset(5).last # returns the last object (or nil if Person.all.size <= 5)
+    #
+    #  Note that the use of offset with last is deprecated, because relations with an offset cannot be automatically reversed.
+    #
     #   Person.last(3) # returns the last three objects fetched by SELECT * FROM people.
     #
     # Take note that in that last case, the results are sorted in ascending order:
