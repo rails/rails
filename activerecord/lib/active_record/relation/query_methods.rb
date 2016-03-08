@@ -1108,6 +1108,10 @@ module ActiveRecord
     end
 
     def reverse_sql_order(order_query)
+      if offset_index != 0
+        raise IrreversibleOrderError, "Relations with offset cannot be reversed automatically."
+      end
+      
       if order_query.empty?
         return [arel_attribute(primary_key).desc] if primary_key
         raise IrreversibleOrderError,
