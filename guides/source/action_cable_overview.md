@@ -417,7 +417,7 @@ App.cable.subscriptions.create "AppearanceChannel",
 2. **Client** initiates a subscription to the `Appearance Channel` for their connection via `App.cable.subscriptions.create "AppearanceChannel"`. [*`appearance.coffee`*]
 3. **Server** recognizes a new subscription has been initiated for `AppearanceChannel` channel performs the `subscribed` callback, which calls the `appear` method on the `current_user`. [*`appearance_channel.rb`*]
 4. **Client** recognizes that a subscription has been established and calls `connected` [*`appearance.coffee`*] which in turn calls `@install` and `@appear`. `@appear` calls`AppearanceChannel#appear(data)` on the server, and supplies a data hash of `appearing_on: $("main").data("appearing-on")`. This is possible because the server-side channel instance will automatically expose the public methods declared on the class (minus the callbacks), so that these can be reached as remote procedure calls via a subscription's `perform` method.
-5. **Server** receives the request for the `appear` action on the `AppearanceChannel` channel for the connection identified by `current_user`. [*`appearance_channel.rb`*] The server retrieves the data with the `appearing_on` key from the data hash, and sets it as the the value for the `on:` key being passed to `current_user.appear`.
+5. **Server** receives the request for the `appear` action on the `AppearanceChannel` channel for the connection identified by `current_user`. [*`appearance_channel.rb`*] The server retrieves the data with the `appearing_on` key from the data hash and sets it as the value for the `on:` key being passed to `current_user.appear`.
 
 ### Example 2: Receiving new web notifications
 
