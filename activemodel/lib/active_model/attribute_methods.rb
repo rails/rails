@@ -4,7 +4,7 @@ require 'mutex_m'
 module ActiveModel
   # Raised when an attribute is not defined.
   #
-  #   class User < ActiveRecord::Base
+  #   class User < ApplicationRecord
   #     has_many :pets
   #   end
   #

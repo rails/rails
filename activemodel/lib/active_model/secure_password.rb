@@ -36,7 +36,7 @@ module ActiveModel
       # Example using Active Record (which automatically includes ActiveModel::SecurePassword):
       #
       #   # Schema: User(name:string, password_digest:string)
-      #   class User < ActiveRecord::Base
+      #   class User < ApplicationRecord
       #     has_secure_password
       #   end
       #
@@ -83,7 +83,7 @@ module ActiveModel
     module InstanceMethodsOnActivation
       # Returns +self+ if the password is correct, otherwise +false+.
       #
-      #   class User < ActiveRecord::Base
+      #   class User < ApplicationRecord
       #     has_secure_password validations: false
       #   end
       #
@@ -100,7 +100,7 @@ module ActiveModel
       # Encrypts the password into the +password_digest+ attribute, only if the
       # new password is not empty.
       #
-      #   class User < ActiveRecord::Base
+      #   class User < ApplicationRecord
       #     has_secure_password validations: false
       #   end
       #

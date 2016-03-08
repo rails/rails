@@ -111,7 +111,7 @@ module ActiveModel
       # is +false+) or applying it to the regular expression <tt>/\A[\+\-]?\d+\Z/</tt>
       # (if <tt>only_integer</tt> is set to +true+).
       #
-      #   class Person < ActiveRecord::Base
+      #   class Person < ApplicationRecord
       #     validates_numericality_of :value, on: :create
       #   end
       #
@@ -153,7 +153,7 @@ module ActiveModel
       #
       # For example:
       #
-      #   class Person < ActiveRecord::Base
+      #   class Person < ApplicationRecord
       #     validates_numericality_of :width, less_than: ->(person) { person.height }
       #     validates_numericality_of :width, greater_than: :minimum_weight
       #   end
