@@ -1,3 +1,9 @@
+*   Execute default_scope defined by abstract class in the context of subclass.
+
+    Fixes #23413 & #10658
+
+    *Mehmet Emin İNAÇ*
+
 *   Fix an issue when preloading associations with extensions.
     Previously every association with extension methods was transformed into an
     instance dependent scope. This is no longer the case.

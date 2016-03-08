@@ -421,6 +421,11 @@ ActiveRecord::Schema.define do
     t.integer :amount
   end
 
+  create_table :lions, force: true do |t|
+    t.integer :gender
+    t.boolean :is_vegetarian, default: false
+  end
+
   create_table :lock_without_defaults, force: true do |t|
     t.column :lock_version, :integer
   end
