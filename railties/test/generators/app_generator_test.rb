@@ -632,7 +632,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     assert_file "Gemfile" do |content|
       assert_match(/gem 'web-console',\s+github: 'rails\/web-console'/, content)
-      assert_no_match(/gem 'web-console'/, content)
+      assert_no_match(/\Agem 'web-console'\z/, content)
     end
   end
 
@@ -641,7 +641,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     assert_file "Gemfile" do |content|
       assert_match(/gem 'web-console',\s+github: 'rails\/web-console'/, content)
-      assert_no_match(/gem 'web-console'/, content)
+      assert_no_match(/\Agem 'web-console'\z/, content)
     end
   end
 
