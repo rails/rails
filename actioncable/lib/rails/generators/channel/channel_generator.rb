@@ -21,7 +21,7 @@ module Rails
 
       protected
         def file_name
-          @_file_name ||= super.gsub(/\_channel/i, '')
+          @_file_name ||= super.gsub(/_channel/i, '')
         end
 
         # FIXME: Change these files to symlinks once RubyGems 2.5.0 is required.
