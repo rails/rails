@@ -302,7 +302,7 @@ module ActionView
         params = html_options.delete('params')
 
         method     = html_options.delete('method').to_s
-        method_tag = BUTTON_TAG_METHOD_VERBS.include?(method) ? method_tag(method) : ''.html_safe
+        method_tag = BUTTON_TAG_METHOD_VERBS.include?(method) ? method_tag(method) : ''.freeze.html_safe
 
         form_method  = method == 'get' ? 'get' : 'post'
         form_options = html_options.delete('form') || {}
@@ -315,7 +315,7 @@ module ActionView
           request_method = method.empty? ? 'post' : method
           token_tag(nil, form_options: { action: url, method: request_method })
         else
-          ''
+          ''.freeze
         end
 
         html_options = convert_options_to_data_attributes(options, html_options)
@@ -481,7 +481,7 @@ module ActionView
           option = html_options.delete(item).presence || next
           "#{item.dasherize}=#{ERB::Util.url_encode(option)}"
         }.compact
-        extras = extras.empty? ? '' : '?' + extras.join('&')
+        extras = extras.empty? ? ''.freeze : '?' + extras.join('&')
 
         encoded_email_address = ERB::Util.url_encode(email_address).gsub("%40", "@")
         html_options["href"] = "mailto:#{encoded_email_address}#{extras}"
@@ -559,29 +559,29 @@ module ActionView
         def convert_options_to_data_attributes(options, html_options)
           if html_options
             html_options = html_options.stringify_keys
-            html_options['data-remote'] = 'true' if link_to_remote_options?(options) || link_to_remote_options?(html_options)
+            html_options['data-remote'] = 'true'.freeze if link_to_remote_options?(options) || link_to_remote_options?(html_options)
 
-            method  = html_options.delete('method')
+            method  = html_options.delete('method'.freeze)
 
             add_method_to_attributes!(html_options, method) if method
 
             html_options
           else
-            link_to_remote_options?(options) ? {'data-remote' => 'true'} : {}
+            link_to_remote_options?(options) ? {'data-remote' => 'true'.freeze} : {}
           end
         end
 
         def link_to_remote_options?(options)
           if options.is_a?(Hash)
-            options.delete('remote') || options.delete(:remote)
+            options.delete('remote'.freeze) || options.delete(:remote)
           end
         end
 
         def add_method_to_attributes!(html_options, method)
-          if method && method.to_s.downcase != "get" && html_options["rel"] !~ /nofollow/
-            html_options["rel"] = "#{html_options["rel"]} nofollow".lstrip
+          if method && method.to_s.downcase != "get".freeze && html_options["rel".freeze] !~ /nofollow/
+            html_options["rel".freeze] = "#{html_options["rel".freeze]} nofollow".lstrip
           end
-          html_options["data-method"] = method
+          html_options["data-method".freeze] = method
         end
 
         def token_tag(token=nil, form_options: {})
@@ -589,7 +589,7 @@ module ActionView
             token ||= form_authenticity_token(form_options: form_options)
             tag(:input, type: "hidden", name: request_forgery_protection_token.to_s, value: token)
           else
-            ''
+            ''.freeze
           end
         end
 
