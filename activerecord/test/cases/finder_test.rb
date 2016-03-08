@@ -987,7 +987,8 @@ class FinderTest < ActiveRecord::TestCase
     devs = Developer.order('id')
 
     assert_equal devs[2], Developer.offset(2).first
-    assert_equal devs[-1], Developer.offset(2).last
+    assert_equal devs[-1], Developer.offset(2).last # note that this behavior is deprecated and will raise an exception in Rails 5.1
+    assert_raise(ActiveRecord::IrreversibleOrderError) { Developer.offset(1).reverse_order }
     assert_equal devs[-3], Developer.offset(2).order('id DESC').first
   end
 
