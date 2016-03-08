@@ -102,7 +102,8 @@ module ActiveRecord
           elsif default_scopes.any?
             evaluate_default_scope do
               default_scopes.inject(base_rel) do |default_scope, scope|
-                default_scope.merge(base_rel.scoping { scope.call })
+                scope = scope.respond_to?(:to_proc) ? scope : scope.method(:call)
+                default_scope.merge(base_rel.instance_exec(&scope))
               end
             end
           end

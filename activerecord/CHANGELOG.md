@@ -1,3 +1,9 @@
+*   Execute default_scope defined by abstract class in the context of subclass.
+
+    Fixes #23413 & #10658
+
+    *Mehmet Emin İNAÇ*
+
 *   Queries such as `Computer.joins(:monitor).group(:status).count` will now be
     interpreted as  `Computer.joins(:monitor).group('computers.status').count`
     so that when `Computer` and `Monitor` have both `status` columns we don't
