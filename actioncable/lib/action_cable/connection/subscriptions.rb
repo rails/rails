@@ -11,6 +11,8 @@ module ActionCable
       end
 
       def execute_command(data)
+        data = normalize_data(data)
+
         case data['command']
         when 'subscribe'   then add data
         when 'unsubscribe' then remove data
@@ -23,13 +25,13 @@ module ActionCable
       end
 
       def add(data)
-        id_options = decode_hash(data['identifier'])
-        identifier = normalize_identifier(id_options)
+        id_key = data['identifier']
+        id_options = json_to_hash(id_key)
 
         subscription_klass = connection.server.channel_classes[id_options[:channel]]
 
         if subscription_klass
-          subscriptions[identifier] ||= subscription_klass.new(connection, identifier, id_options)
+          subscriptions[id_key] ||= subscription_klass.new(connection, id_key, id_options)
         else
           logger.error "Subscription class not found (#{data.inspect})"
         end
@@ -37,7 +39,7 @@ module ActionCable
 
       def remove(data)
         logger.info "Unsubscribing from channel: #{data['identifier']}"
-        remove_subscription subscriptions[normalize_identifier(data['identifier'])]
+        remove_subscription subscriptions[data['identifier']]
       end
 
       def remove_subscription(subscription)
@@ -46,7 +48,7 @@ module ActionCable
       end
 
       def perform_action(data)
-        find(data).perform_action(decode_hash(data['data']))
+        find(data).perform_action data['data']
       end
 
       def identifiers
@@ -63,25 +65,39 @@ module ActionCable
       private
         delegate :logger, to: :connection
 
-        def normalize_identifier(identifier)
-          identifier = ActiveSupport::JSON.encode(identifier) if identifier.is_a?(Hash)
-          identifier
+        def find(data)
+          if subscription = subscriptions[data['identifier']]
+            subscription
+          else
+            raise "Unable to find subscription with identifier: #{data['identifier']}"
+          end
         end
 
         # If `data` is a Hash, this means that the original JSON
         # sent by the client had no backslashes in it, and does
         # not need to be decoded again.
-        def decode_hash(data)
-          data = ActiveSupport::JSON.decode(data) unless data.is_a?(Hash)
-          data.with_indifferent_access
+        def normalize_data(data)
+          data = json_to_hash(data)
+
+          # Normalize the subscription's identifier
+          data['identifier'] = hash_to_json(data['identifier']) if data['identifier']
+
+          # Normalize the connection's message data
+          data['data'] = json_to_hash(data['data']) if data['data']
+
+          data
         end
 
-        def find(data)
-          if subscription = subscriptions[normalize_identifier(data['identifier'])]
-            subscription
-          else
-            raise "Unable to find subscription with identifier: #{data['identifier']}"
-          end
+        # Present the argument as a Hash
+        def json_to_hash(data)
+          data = ActiveSupport::JSON.decode(data).with_indifferent_access if !data.is_a?(Hash)
+          data
+        end
+
+        # Present the argument as JSON
+        def hash_to_json(data)
+          data = ActiveSupport::JSON.encode(data) if data.is_a?(Hash)
+          data
         end
     end
   end

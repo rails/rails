@@ -27,6 +27,7 @@ class ActionCable::Connection::SubscriptionsTest < ActionCable::TestCase
     @server.stubs(:channel_classes).returns(ChatChannel.name => ChatChannel)
 
     @chat_identifier = ActiveSupport::JSON.encode(id: 1, channel: 'ActionCable::Connection::SubscriptionsTest::ChatChannel')
+    @chat_no_slash_identifier = '{"id": "1", "channel":"ActionCable::Connection::SubscriptionsTest::ChatChannel"}'
   end
 
   test "subscribe command" do
@@ -61,6 +62,19 @@ class ActionCable::Connection::SubscriptionsTest < ActionCable::TestCase
     end
   end
 
+  test "unsubscribe command with JSON with no backslahes" do
+    run_in_eventmachine do
+      setup_connection
+      subscribe_to_chat_channel(@chat_no_slash_identifier)
+
+      channel = subscribe_to_chat_channel(@chat_no_slash_identifier)
+      channel.expects(:unsubscribe_from_channel)
+
+      @subscriptions.execute_command 'command' => 'unsubscribe', 'identifier' => @chat_no_slash_identifier
+      assert @subscriptions.identifiers.empty?
+    end
+  end
+
   test "unsubscribe command without an identifier" do
     run_in_eventmachine do
       setup_connection
@@ -79,6 +93,18 @@ class ActionCable::Connection::SubscriptionsTest < ActionCable::TestCase
       @subscriptions.execute_command 'command' => 'message', 'identifier' => @chat_identifier, 'data' => ActiveSupport::JSON.encode(data)
 
       assert_equal [ data ], channel.lines
+    end
+  end
+
+  test "message command with JSON with no backslahes" do
+    run_in_eventmachine do
+      setup_connection
+      channel = subscribe_to_chat_channel(@chat_no_slash_identifier)
+
+      data = '{"content": "Hello World!", "action":"speak"}'
+      @subscriptions.execute_command 'command' => 'message', 'identifier' => @chat_no_slash_identifier, 'data' => data
+
+      assert_equal [{"content"=>"Hello World!", "action"=>"speak"}], channel.lines
     end
   end
 
