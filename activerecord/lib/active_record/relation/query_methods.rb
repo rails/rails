@@ -1109,7 +1109,14 @@ module ActiveRecord
 
     def reverse_sql_order(order_query)
       if offset_index != 0
-        raise IrreversibleOrderError, "Relations with offset cannot be reversed automatically."
+        ActiveSupport::Deprecation.warn(<<-WARNING.squish)
+            Finding a last element by loading the relation when SQL ORDER
+            cannot be reversed (such as when an offset is applied) is deprecated.
+            Rails 5.1 will raise ActiveRecord::IrreversibleOrderError in this case.
+            Please call `reverse` if you still want to reverse the relation.
+        WARNING
+        # TODO: In Rails 5.1, replace Deprecation above with the below or similar:
+        # raise IrreversibleOrderError, "Relations with offset cannot be reversed automatically."
       end
       
       if order_query.empty?

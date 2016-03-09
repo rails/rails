@@ -152,6 +152,13 @@ module ActiveRecord
 
       result = limit(limit || 1)
       result.order!(arel_attribute(primary_key)) if order_values.empty? && primary_key
+
+      # raise an IrreversibleOrderError if there is an offset already applied, which
+      # will be caught by the rescue block below.
+      # Reverse_order will itself raise an IrreverisbleOrderError with an offset
+      # in Rails 5.1, at which time this can be removed.
+      raise ActiveRecord::IrreversibleOrderError if offset_index != 0
+
       result = result.reverse_order!
 
       limit ? result.reverse : result.first
