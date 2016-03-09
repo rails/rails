@@ -1,3 +1,13 @@
+*   Fixed an issue when using `last()` with `offset()` where
+    offsets could end up applied to the end of a record set
+    rather than the beginning, resulting in inconsistent behavior.
+    Because SQL queries with offsets cannot be easily reversed,
+    using `last()` and `reverse_order` with `offset()` is deprecated.
+
+    Fixes #23829.
+
+    *Brian Christian*
+
 *   Fix an issue when preloading associations with extensions.
     Previously every association with extension methods was transformed into an
     instance dependent scope. This is no longer the case.
