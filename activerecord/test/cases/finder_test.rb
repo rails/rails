@@ -412,6 +412,18 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal expected, Topic.second
   end
 
+  def test_second_with_limit
+    assert_equal nil, Topic.limit(1).second
+    assert_equal topics(:second), Topic.limit(2).second
+    assert_equal topics(:second), Topic.limit(3).second
+  end
+
+  def test_second_with_offset_and_limit
+    assert_equal nil, Topic.offset(1).limit(1).second
+    assert_equal topics(:third), Topic.offset(1).limit(2).second
+    assert_equal topics(:fourth), Topic.offset(2).limit(3).second
+  end
+
   def test_model_class_responds_to_second_bang
     assert Topic.second!
     Topic.delete_all
@@ -432,6 +444,20 @@ class FinderTest < ActiveRecord::TestCase
     expected = topics(:third)
     expected.touch # PostgreSQL changes the default order if no order clause is used
     assert_equal expected, Topic.third
+  end
+
+  def test_third_with_limit
+    assert_equal nil, Topic.limit(1).third
+    assert_equal nil, Topic.limit(2).third
+    assert_equal topics(:third), Topic.limit(3).third
+    assert_equal topics(:third), Topic.limit(4).third
+  end
+
+  def test_third_with_offset_and_limit
+    assert_equal nil, Topic.offset(1).limit(1).third
+    assert_equal nil, Topic.offset(1).limit(2).third
+    assert_equal topics(:fourth), Topic.offset(1).limit(3).third
+    assert_equal topics(:fifth), Topic.offset(2).limit(4).third
   end
 
   def test_model_class_responds_to_third_bang
@@ -456,6 +482,22 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal expected, Topic.fourth
   end
 
+  def test_fourth_with_limit
+    assert_equal nil, Topic.limit(1).fourth
+    assert_equal nil, Topic.limit(2).fourth
+    assert_equal nil, Topic.limit(3).fourth
+    assert_equal topics(:fourth), Topic.limit(4).fourth
+    assert_equal topics(:fourth), Topic.limit(5).fourth
+  end
+
+  def test_fourth_with_offset_and_limit
+    assert_equal nil, Topic.offset(1).limit(1).fourth
+    assert_equal nil, Topic.offset(1).limit(2).fourth
+    assert_equal nil, Topic.offset(1).limit(3).fourth
+    assert_equal topics(:fifth), Topic.offset(1).limit(4).fourth
+    assert_equal nil, Topic.offset(2).limit(5).fourth
+  end
+
   def test_model_class_responds_to_fourth_bang
     assert Topic.fourth!
     Topic.delete_all
@@ -478,6 +520,23 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal expected, Topic.fifth
   end
 
+  def test_fifth_with_limit
+    assert_equal nil, Topic.limit(1).fifth
+    assert_equal nil, Topic.limit(2).fifth
+    assert_equal nil, Topic.limit(3).fifth
+    assert_equal nil, Topic.limit(4).fifth
+    assert_equal topics(:fifth), Topic.limit(5).fifth
+  end
+  
+  def test_fifth_with_offset_and_limit
+    assert_equal nil, Topic.offset(1).limit(1).fifth
+    assert_equal nil, Topic.offset(1).limit(2).fifth
+    assert_equal nil, Topic.offset(1).limit(3).fifth
+    assert_equal nil, Topic.offset(1).limit(4).fifth
+    assert_equal nil, Topic.offset(1).limit(5).fifth
+    assert_equal nil, Topic.offset(2).limit(6).fifth
+  end
+  
   def test_model_class_responds_to_fifth_bang
     assert Topic.fifth!
     Topic.delete_all
