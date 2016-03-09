@@ -1,3 +1,9 @@
+*   AssociatedValidator accepts `inherit_validation_context` 
+ 
+    When enabled context passed to validation <tt>parent.valid?(:custom_context)</tt> gets inherited by AssociatedValidator
+
+    *Rafał Brize*
+
 *   Deprecate `rails db:structure:{load, dump}` tasks and extend
     `rails db:schema:{load, dump}` tasks to work with either `:ruby` or `:sql` format,
     depending on `config.active_record.schema_format` configuration value.

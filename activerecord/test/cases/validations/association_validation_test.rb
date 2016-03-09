@@ -49,7 +49,7 @@ class AssociationValidationTest < ActiveRecord::TestCase
 
   def test_validates_associated_without_marked_for_destruction
     reply = Class.new do
-      def valid?
+      def valid?(context = nil)
         true
       end
     end
@@ -95,5 +95,15 @@ class AssociationValidationTest < ActiveRecord::TestCase
       interest = human.interests.build(topic: "Airplanes")
       assert interest.valid?, "Expected interest to be valid, but was not. Interest should have a human object associated"
     end
+  end
+
+  def test_passes_down_validation_context
+    Reply.validates :topic, associated: { inherit_validation_context: true }
+    Topic.validates_presence_of(:content, on: :my_context)
+    r = Reply.create("title" => "A reply", "content" => "with content!")
+    r.topic = Topic.create("title" => "uhohuhoh")
+
+    assert r.valid?
+    assert_not r.valid?(:my_context)
   end
 end

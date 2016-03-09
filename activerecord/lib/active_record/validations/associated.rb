@@ -3,15 +3,25 @@
 module ActiveRecord
   module Validations
     class AssociatedValidator < ActiveModel::EachValidator #:nodoc:
+      def initialize(options)
+        @inherit_validation_context = options[:inherit_validation_context]
+        super(options)
+      end
+
       def validate_each(record, attribute, value)
-        if Array(value).reject { |r| valid_object?(r) }.any?
+        if Array(value).reject { |r| valid_object?(r, record.validation_context) }.any?
           record.errors.add(attribute, :invalid, **options.merge(value: value))
         end
       end
 
       private
-        def valid_object?(record)
-          (record.respond_to?(:marked_for_destruction?) && record.marked_for_destruction?) || record.valid?
+        def valid_object?(record, parent_validation_context)
+          (record.respond_to?(:marked_for_destruction?) && record.marked_for_destruction?) || valid_with_context?(record, parent_validation_context)
+        end
+
+        def valid_with_context?(record, parent_validation_context)
+          validation_context = parent_validation_context if @inherit_validation_context && ![:create, :update].include?(parent_validation_context)
+          record.valid?(validation_context)
         end
     end
 
@@ -51,6 +61,8 @@ module ActiveRecord
       #   or <tt>unless: Proc.new { |user| user.signup_step <= 2 }</tt>). The
       #   method, proc or string should return or evaluate to a +true+ or +false+
       #   value.
+      # * <tt>:inherit_validation_context</tt> - Specifies whether validation should
+      #   inherit context from parent, when calling <tt>parent.valid?(:custom_context)</tt>
       def validates_associated(*attr_names)
         validates_with AssociatedValidator, _merge_attributes(attr_names)
       end
