@@ -79,7 +79,7 @@ module ActiveJob
         'queue_name' => queue_name,
         'priority'   => priority,
         'arguments'  => serialize_arguments(arguments),
-        'locale'     => I18n.locale
+        'locale'     => I18n.locale.to_s
       }
     end
 
@@ -108,7 +108,7 @@ module ActiveJob
       self.queue_name           = job_data['queue_name']
       self.priority             = job_data['priority']
       self.serialized_arguments = job_data['arguments']
-      self.locale               = job_data['locale'] || I18n.locale
+      self.locale               = job_data['locale'] || I18n.locale.to_s
     end
 
     private
