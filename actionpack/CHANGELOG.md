@@ -1,3 +1,8 @@
+*   Add `ActionController::Parameters#dig` on Ruby 2.3 and greater, which
+    behaves the same as `Hash#dig`.
+
+    *Sean Griffin*
+
 *   Add request headers in the payload of the `start_processing.action_controller`
     and `process_action.action_controller` notifications.
 
