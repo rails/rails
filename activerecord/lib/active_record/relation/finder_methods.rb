@@ -155,7 +155,7 @@ module ActiveRecord
 
       # raise an IrreversibleOrderError if there is an offset already applied, which
       # will be caught by the rescue block below.
-      # Reverse_order will itself raise an IrreverisbleOrderError with an offset
+      # reverse_order will itself raise an IrreverisbleOrderError with an offset
       # in Rails 5.1, at which time this can be removed.
       raise ActiveRecord::IrreversibleOrderError if offset_index != 0
 
