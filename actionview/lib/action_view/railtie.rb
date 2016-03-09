@@ -59,7 +59,7 @@ module ActionView
 
     rake_tasks do |app|
       unless app.config.api_only
-        load "action_view/tasks/dependencies.rake"
+        load "action_view/tasks/cache_digests.rake"
       end
     end
   end
