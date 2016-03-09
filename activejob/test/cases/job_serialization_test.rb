@@ -15,13 +15,13 @@ class JobSerializationTest < ActiveSupport::TestCase
   end
 
   test 'serialize includes current locale' do
-    assert_equal :en, HelloJob.new.serialize['locale']
+    assert_equal 'en', HelloJob.new.serialize['locale']
   end
 
   test 'deserialize sets locale' do
     job = HelloJob.new
-    job.deserialize 'locale' => :es
-    assert_equal :es, job.locale
+    job.deserialize 'locale' => 'es'
+    assert_equal 'es', job.locale
   end
 
   test 'deserialize sets default locale' do
