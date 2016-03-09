@@ -207,18 +207,23 @@ module Rails
         in_root { run_ruby_script("bin/rails generate #{what} #{argument}", verbose: false) }
       end
 
-      # Runs the supplied rake task
+      # Runs the supplied rake task (invoked with 'rake ...')
       #
       #   rake("db:migrate")
       #   rake("db:migrate", env: "production")
       #   rake("gems:install", sudo: true)
       def rake(command, options={})
-        log :rake, command
-        env  = options[:env] || ENV["RAILS_ENV"] || 'development'
-        sudo = options[:sudo] && RbConfig::CONFIG['host_os'] !~ /mswin|mingw/ ? 'sudo ' : ''
-        in_root { run("#{sudo}#{extify(:rails)} #{command} RAILS_ENV=#{env}", verbose: false) }
+        execute_command :rake, command, options
       end
-      alias :rails_command :rake
+
+      # Runs the supplied rake task (invoked with 'rails ...')
+      #
+      #   rails("db:migrate")
+      #   rails("db:migrate", env: "production")
+      #   rails("gems:install", sudo: true)
+      def rails_command(command, options={})
+        execute_command :rails, command, options
+      end
 
       # Just run the capify command in root
       #
@@ -269,6 +274,16 @@ module Rails
             args << (self.behavior == :invoke ? :green : :red)
             say_status(*args)
           end
+        end
+
+
+        # Runs the supplied command using either "rake ..." or "rails ..."
+        # based on the executor parameter provided.
+        def execute_command(executor, command, options={})
+          log executor, command
+          env  = options[:env] || ENV["RAILS_ENV"] || 'development'
+          sudo = options[:sudo] && RbConfig::CONFIG['host_os'] !~ /mswin|mingw/ ? 'sudo ' : ''
+          in_root { run("#{sudo}#{extify(executor)} #{command} RAILS_ENV=#{env}", verbose: false) }
         end
 
         # Add an extension to the given name based on the platform.
