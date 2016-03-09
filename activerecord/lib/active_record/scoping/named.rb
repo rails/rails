@@ -152,22 +152,14 @@ module ActiveRecord
           end
 
           valid_scope_name?(name)
-          extension = Module.new(&block) if block
+          extension  = Module.new(&block) if block
+          scope_body = body.respond_to?(:to_proc) ? body : body.method(:call)
 
-          if body.respond_to?(:to_proc)
-            singleton_class.send(:define_method, name) do |*args|
-              scope = all.scoping { instance_exec(*args, &body) }
-              scope = scope.extending(extension) if extension
+          singleton_class.send(:define_method, name) do |*args|
+            scope = all.instance_exec(*args, &scope_body)
+            scope = scope.extending(extension) if extension
 
-              scope || all
-            end
-          else
-            singleton_class.send(:define_method, name) do |*args|
-              scope = all.scoping { body.call(*args) }
-              scope = scope.extending(extension) if extension
-
-              scope || all
-            end
+            scope || all
           end
         end
 
