@@ -390,6 +390,20 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal expected, Topic.first
   end
 
+  def test_first_nth_with_limit
+    assert_equal 1, Topic.limit(1).first(1).size
+    assert_equal 2, Topic.limit(2).first(2).size
+    assert_equal 2, Topic.limit(2).first(3).size
+    assert_equal Topic.limit(1).first(2).size, Topic.limit(1).last(2).size
+    assert_equal Topic.limit(2).first(3).size, Topic.limit(2).last(3).size
+  end
+
+  def test_first_nth_with_offset_and_limit
+    assert_equal topics(:second), Topic.offset(1).limit(2).first(3).first
+    assert_equal topics(:third), Topic.offset(1).limit(2).first(3).second
+    assert_equal nil, Topic.offset(1).limit(2).first(3).third
+  end
+
   def test_model_class_responds_to_first_bang
     assert Topic.first!
     Topic.delete_all
