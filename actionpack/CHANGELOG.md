@@ -1,3 +1,8 @@
+*   Add request headers in the payload of the `start_processing.action_controller`
+    and `process_action.action_controller` notifications.
+
+    *Gareth du Plooy*
+
 *   Add `action_dispatch_integration_test` load hook. The hook can be used to
     extend `ActionDispatch::IntegrationTest` once it has been loaded.
 
