@@ -2,6 +2,7 @@ require 'helper'
 require 'jobs/gid_job'
 require 'jobs/hello_job'
 require 'models/person'
+require 'json'
 
 class JobSerializationTest < ActiveSupport::TestCase
   setup do
@@ -18,6 +19,20 @@ class JobSerializationTest < ActiveSupport::TestCase
     assert_equal 'en', HelloJob.new.serialize['locale']
   end
 
+  test 'serialize and deserialize are symmetric' do
+    # Round trip a job in memory only
+    h1 = HelloJob.new
+    h1.deserialize(h1.serialize)
+
+    # Now verify it's identical to a JSON round trip.
+    # We don't want any non-native JSON elements in the job hash,
+    # like symbols.
+    payload = JSON.dump(h1.serialize)
+    h2 = HelloJob.new
+    h2.deserialize(JSON.load(payload))
+    assert_equal h1.serialize, h2.serialize
+  end
+
   test 'deserialize sets locale' do
     job = HelloJob.new
     job.deserialize 'locale' => 'es'
@@ -27,6 +42,6 @@ class JobSerializationTest < ActiveSupport::TestCase
   test 'deserialize sets default locale' do
     job = HelloJob.new
     job.deserialize({})
-    assert_equal :en, job.locale
+    assert_equal 'en', job.locale
   end
 end
