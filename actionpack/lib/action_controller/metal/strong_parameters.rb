@@ -439,7 +439,7 @@ module ActionController
       # params.dig(:foo, :zot, :xyz) # => nil
       #
       # params2 = ActionController::Parameters.new(foo: [10, 11, 12])
-      # params2.dig(:foo, 1)
+      # params2.dig(:foo, 1) # => 11
       def dig(*keys)
         convert_value_to_parameters(@parameters.dig(*keys))
       end
