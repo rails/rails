@@ -73,13 +73,13 @@ module ActionDispatch
   #   get 'post/:id' => 'posts#show'
   #   post 'post/:id' => 'posts#create_comment'
   #
+  # Now, if you POST to <tt>/posts/:id</tt>, it will route to the <tt>create_comment</tt> action. A GET on the same
+  # URL will route to the <tt>show</tt> action.
+  #
   # If your route needs to respond to more than one HTTP method (or all methods) then using the
   # <tt>:via</tt> option on <tt>match</tt> is preferable.
   #
   #   match 'post/:id' => 'posts#show', via: [:get, :post]
-  #
-  # Now, if you POST to <tt>/posts/:id</tt>, it will route to the <tt>create_comment</tt> action. A GET on the same
-  # URL will route to the <tt>show</tt> action.
   #
   # == Named routes
   #
