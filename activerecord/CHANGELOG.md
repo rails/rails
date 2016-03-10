@@ -1,3 +1,9 @@
+*   Don't impose primary key order if limit() has already been supplied.
+
+    Fixes #23607
+
+    *Brian Christian*
+
 *   Add environment & load_config dependency to `bin/rake db:seed` to enable
     seed load in environments without Rails and custom DB configuration
 
