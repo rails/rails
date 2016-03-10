@@ -100,9 +100,9 @@ GEM
     backburner (1.2.0)
       beaneater (~> 1.0)
       dante (> 0.1.5)
-    bcrypt (3.1.10)
-    bcrypt-ruby (3.0.1)
-    bcrypt-ruby (3.0.1-x86-mingw32)
+    bcrypt (3.1.11)
+    bcrypt (3.1.11-x64-mingw32)
+    bcrypt (3.1.11-x86-mingw32)
     beaneater (1.0.0)
     benchmark-ips (2.3.0)
     builder (3.2.2)
@@ -279,8 +279,7 @@ DEPENDENCIES
   activerecord-jdbcpostgresql-adapter (>= 1.3.0)
   activerecord-jdbcsqlite3-adapter (>= 1.3.0)
   backburner
-  bcrypt (~> 3.1.10)
-  bcrypt-ruby (~> 3.0.0)
+  bcrypt (~> 3.1.11)
   benchmark-ips
   byebug
   coffee-rails (~> 4.1.0)
