@@ -22,3 +22,9 @@ namespace :test do
     end or raise "Failures"
   end
 end
+
+task :coverage do
+  ENV['COVERAGE'] = 'true'
+  Rake::Task['test'].execute
+  ENV.delete('COVERAGE')
+end

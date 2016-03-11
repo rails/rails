@@ -79,6 +79,7 @@ group :test do
   end
 
   gem 'benchmark-ips'
+  gem 'simplecov', require: false
 end
 
 platforms :ruby, :mswin, :mswin64, :mingw, :x64_mingw do
