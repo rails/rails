@@ -1,5 +1,3 @@
-require 'action_view/base'
-
 module ActionView
   module ViewPaths
     extend ActiveSupport::Concern

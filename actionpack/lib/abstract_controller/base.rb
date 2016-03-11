@@ -1,13 +1,11 @@
 require 'erubis'
+require 'abstract_controller/error'
 require 'active_support/configurable'
 require 'active_support/descendants_tracker'
 require 'active_support/core_ext/module/anonymous'
 require 'active_support/core_ext/module/attr_internal'
 
 module AbstractController
-  class Error < StandardError #:nodoc:
-  end
-
   # Raised when a non-existing controller action is triggered.
   class ActionNotFound < StandardError
   end
