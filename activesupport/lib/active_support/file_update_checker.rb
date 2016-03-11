@@ -23,7 +23,7 @@ module ActiveSupport
   #     I18n.reload!
   #   end
   #
-  #   ActionDispatch::Reloader.to_prepare do
+  #   ActiveSupport::Reloader.to_prepare do
   #     i18n_reloader.execute_if_updated
   #   end
   class FileUpdateChecker
