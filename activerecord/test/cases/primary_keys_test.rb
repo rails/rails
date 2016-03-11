@@ -351,9 +351,9 @@ if current_adapter?(:PostgreSQLAdapter, :Mysql2Adapter)
     test "schema dump primary key with bigserial" do
       schema = dump_table_schema "widgets"
       if current_adapter?(:PostgreSQLAdapter)
-        assert_match %r{create_table "widgets", id: :bigserial}, schema
+        assert_match %r{create_table "widgets", id: :bigserial, force: :cascade}, schema
       else
-        assert_match %r{create_table "widgets", id: :bigint}, schema
+        assert_match %r{create_table "widgets", id: :bigint, force: :cascade}, schema
       end
     end
 
