@@ -81,6 +81,6 @@ class PostgresqlBigSerialTest < ActiveRecord::PostgreSQLTestCase
 
   def test_schema_dump_with_not_bigserial
     output = dump_table_schema "postgresql_big_serials"
-    assert_match %r{t\.integer\s+"serials_id",\s+limit: 8,\s+default: -> \{ "nextval\('postgresql_big_serials_id_seq'::regclass\)" \}$}, output
+    assert_match %r{t\.bigint\s+"serials_id",\s+default: -> \{ "nextval\('postgresql_big_serials_id_seq'::regclass\)" \}$}, output
   end
 end
