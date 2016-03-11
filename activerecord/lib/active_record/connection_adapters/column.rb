@@ -5,7 +5,7 @@ module ActiveRecord
   module ConnectionAdapters
     # An abstract definition of a column in a table.
     class Column
-      attr_reader :name, :null, :sql_type_metadata, :default, :default_function, :collation
+      attr_reader :name, :default, :sql_type_metadata, :null, :table_name, :default_function, :collation
 
       delegate :precision, :scale, :limit, :type, :sql_type, to: :sql_type_metadata, allow_nil: true
 
@@ -54,7 +54,7 @@ module ActiveRecord
       protected
 
       def attributes_for_hash
-        [self.class, name, default, sql_type_metadata, null, default_function, collation]
+        [self.class, name, default, sql_type_metadata, null, table_name, default_function, collation]
       end
     end
 
