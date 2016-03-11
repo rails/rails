@@ -57,11 +57,15 @@ module ActiveRecord
       private
 
       def schema_type(column)
-        column.type
+        if column.bigint?
+          :bigint
+        else
+          column.type
+        end
       end
 
       def schema_limit(column)
-        limit = column.limit
+        limit = column.limit unless column.bigint?
         limit.inspect if limit && limit != native_database_types[column.type][:limit]
       end
 
