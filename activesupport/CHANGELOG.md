@@ -1,3 +1,8 @@
+*   Prevent `Marshal.load` from looping infinitely when trying to autoload a constant
+    which resolves to a different name.
+
+    *Olek Janiszewski*
+
 *   Deprecate `Module.local_constants`. Please use `Module.constants(false)` instead.
 
     *Yuichiro Kaneko*
