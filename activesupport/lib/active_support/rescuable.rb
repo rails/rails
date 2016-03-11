@@ -115,5 +115,15 @@ module ActiveSupport
         end
       end
     end
+
+    def index_of_handler_for_rescue(exception)
+      handlers = self.class.rescue_handlers.reverse_each.with_index
+      _, index = handlers.detect do |(klass_name, _), _|
+        klass = self.class.const_get(klass_name) rescue nil
+        klass ||= (klass_name.constantize rescue nil)
+        klass === exception if klass
+      end
+      index
+    end
   end
 end

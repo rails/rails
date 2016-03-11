@@ -7,8 +7,12 @@ module ActionController #:nodoc:
     include ActiveSupport::Rescuable
 
     def rescue_with_handler(exception)
-      if exception.cause && handler_for_rescue(exception.cause)
-        exception = exception.cause
+      if exception.cause
+        handler_index = index_of_handler_for_rescue(exception) || Float::INFINITY
+        cause_handler_index = index_of_handler_for_rescue(exception.cause)
+        if cause_handler_index && cause_handler_index <= handler_index
+          exception = exception.cause
+        end
       end
       super(exception)
     end
