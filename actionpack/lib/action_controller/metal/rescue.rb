@@ -8,9 +8,9 @@ module ActionController #:nodoc:
 
     def rescue_with_handler(exception)
       if exception.cause
-        handler_index = index_of_handler_for_rescue(exception)
+        handler_index = index_of_handler_for_rescue(exception) || Float::INFINITY
         cause_handler_index = index_of_handler_for_rescue(exception.cause)
-        if handler_index && cause_handler_index && cause_handler_index <= handler_index
+        if cause_handler_index && cause_handler_index <= handler_index
           exception = exception.cause
         end
       end

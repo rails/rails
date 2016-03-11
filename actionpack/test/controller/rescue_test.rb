@@ -159,6 +159,12 @@ class RescueController < ActionController::Base
     raise RecordInvalid
   end
 
+  def exception_with_no_handler_for_wrapper
+    raise RecordInvalid
+  rescue
+    raise RangeError
+  end
+
   protected
     def deny_access
       head :forbidden
@@ -321,6 +327,11 @@ class RescueControllerTest < ActionController::TestCase
 
   test 'rescue when cause has more specific handler than wrapper' do
     get :exception_with_more_specific_handler_for_cause
+    assert_response :unprocessable_entity
+  end
+
+  test 'rescue when cause has handler, but wrapper doesnt' do
+    get :exception_with_no_handler_for_wrapper
     assert_response :unprocessable_entity
   end
 end
