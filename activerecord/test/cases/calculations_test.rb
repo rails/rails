@@ -389,6 +389,14 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_raise(ArgumentError) { Account.count(1, 2, 3) }
   end
 
+  def test_count_with_a_single_hash_parameter_raises
+    assert_raise(ActiveRecord::StatementInvalid) { Account.count({}) }
+  end
+
+  def test_count_with_finder_options_raises
+    assert_raise(ArgumentError) { Account.count(:firm_name, { conditions: {} }) }
+  end
+
   def test_count_with_order
     assert_equal 6, Account.order(:credit_limit).count
   end

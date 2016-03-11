@@ -1,3 +1,11 @@
+*   ActiveRecord::Relation#count: raise an ArgumentError when finder options
+    are specified or an ActiveRecord::StatementInvalid when an invalid type
+    is provided for a column name (e.g. a Hash).
+
+    Fixes #20434
+
+    *Konstantinos Rousis*
+
 *   Correctly pass MySQL options when using structure_dump or structure_load
 
     Specifically, it fixes an issue when using SSL authentication.
