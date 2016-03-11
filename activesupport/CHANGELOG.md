@@ -1,3 +1,9 @@
+*   Prevent `Marshal.load` from looping infinitely when trying to autoload a constant
+    which resolves to a different name.
+
+    *Olek Janiszewski*
+
+
 ## Rails 4.2.6 (March 07, 2016) ##
 
 *   No changes.
