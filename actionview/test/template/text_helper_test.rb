@@ -55,6 +55,11 @@ class TextHelperTest < ActionView::TestCase
     assert_equal "<p><b> test with unsafe string </b><script>code!</script></p>", simple_format("<b> test with unsafe string </b><script>code!</script>", {}, :sanitize => false)
   end
 
+  def test_simple_format_should_not_be_html_safe_when_sanitize_option_is_false
+    unsane_input = "<script>alert('all your base are belong to us');</script>"
+    refute simple_format(unsane_input, {}, { sanitize: false }).html_safe?
+  end
+
   def test_simple_format_with_custom_wrapper
     assert_equal "<div></div>", simple_format(nil, {}, :wrapper_tag => "div")
   end
