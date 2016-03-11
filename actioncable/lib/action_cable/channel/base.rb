@@ -198,7 +198,7 @@ module ActionCable
 
           payload = { channel_class: self.class.name, data: data, via: via }
           ActiveSupport::Notifications.instrument("transmit.action_cable", payload) do
-            connection.transmit ActiveSupport::JSON.encode(identifier: @identifier, message: data)
+            connection.transmit identifier: @identifier, message: data
           end
         end
 
@@ -274,7 +274,7 @@ module ActionCable
             logger.info "#{self.class.name} is transmitting the subscription confirmation"
 
             ActiveSupport::Notifications.instrument("transmit_subscription_confirmation.action_cable", channel_class: self.class.name) do
-              connection.transmit ActiveSupport::JSON.encode(identifier: @identifier, type: ActionCable::INTERNAL[:message_types][:confirmation])
+              connection.transmit identifier: @identifier, type: ActionCable::INTERNAL[:message_types][:confirmation]
               @subscription_confirmation_sent = true
             end
           end
@@ -289,7 +289,7 @@ module ActionCable
           logger.info "#{self.class.name} is transmitting the subscription rejection"
 
           ActiveSupport::Notifications.instrument("transmit_subscription_rejection.action_cable", channel_class: self.class.name) do
-            connection.transmit ActiveSupport::JSON.encode(identifier: @identifier, type: ActionCable::INTERNAL[:message_types][:rejection])
+            connection.transmit identifier: @identifier, type: ActionCable::INTERNAL[:message_types][:rejection]
           end
         end
     end

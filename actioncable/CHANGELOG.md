@@ -1,11 +1,16 @@
-*  Add ActiveSupport::Notifications to ActionCable::Channel.
+*   Pubsub: automatic stream decoding.
 
-   *Matthew Wear*
+        stream_for @room, coder: ActiveSupport::JSON do |message|
+          # `message` is a Ruby hash here instead of a JSON string
 
-*   Allow channel identifiers with no backslahes/escaping to be accepted
-    by the subscription storer.
+    The `coder` must respond to `#decode`. Defaults to `coder: nil`
+    which skips decoding entirely.
 
-    *Jon Moss*
+    *Jeremy Daer*
+
+*   Add ActiveSupport::Notifications to ActionCable::Channel.
+
+    *Matthew Wear*
 
 *   Safely support autoloading and class unloading, by preventing concurrent
     loads, and disconnecting all cables during reload.
