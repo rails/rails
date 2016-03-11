@@ -337,7 +337,8 @@ module ActiveRecord
       end
 
       # Returns an array of +Column+ objects for the table specified by +table_name+.
-      def columns(table_name) #:nodoc:
+      def columns(table_name) # :nodoc:
+        table_name = table_name.to_s
         table_structure(table_name).map do |field|
           case field["dflt_value"]
           when /^null$/i
@@ -351,7 +352,7 @@ module ActiveRecord
           collation = field['collation']
           sql_type = field['type']
           type_metadata = fetch_type_metadata(sql_type)
-          new_column(field['name'], field['dflt_value'], type_metadata, field['notnull'].to_i == 0, nil, collation)
+          new_column(field['name'], field['dflt_value'], type_metadata, field['notnull'].to_i == 0, table_name, nil, collation)
         end
       end
 

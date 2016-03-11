@@ -153,8 +153,8 @@ module ActiveRecord
         raise NotImplementedError
       end
 
-      def new_column(field, default, sql_type_metadata = nil, null = true, default_function = nil, collation = nil) # :nodoc:
-        MySQL::Column.new(field, default, sql_type_metadata, null, default_function, collation)
+      def new_column(field, default, sql_type_metadata, null, table_name, default_function = nil, collation = nil) # :nodoc:
+        MySQL::Column.new(field, default, sql_type_metadata, null, table_name, default_function, collation)
       end
 
       # Must return the MySQL error number from the exception, if the exception has an
@@ -421,16 +421,15 @@ module ActiveRecord
 
       # Returns an array of +Column+ objects for the table specified by +table_name+.
       def columns(table_name) # :nodoc:
-        sql = "SHOW FULL FIELDS FROM #{quote_table_name(table_name)}"
-        execute_and_free(sql, 'SCHEMA') do |result|
-          each_hash(result).map do |field|
-            type_metadata = fetch_type_metadata(field[:Type], field[:Extra])
-            if type_metadata.type == :datetime && field[:Default] == "CURRENT_TIMESTAMP"
-              new_column(field[:Field], nil, type_metadata, field[:Null] == "YES", field[:Default], field[:Collation])
-            else
-              new_column(field[:Field], field[:Default], type_metadata, field[:Null] == "YES", nil, field[:Collation])
-            end
+        table_name = table_name.to_s
+        column_definitions(table_name).map do |field|
+          type_metadata = fetch_type_metadata(field[:Type], field[:Extra])
+          if type_metadata.type == :datetime && field[:Default] == "CURRENT_TIMESTAMP"
+            default, default_function = nil, field[:Default]
+          else
+            default, default_function = field[:Default], nil
           end
+          new_column(field[:Field], default, type_metadata, field[:Null] == "YES", table_name, default_function, field[:Collation])
         end
       end
 
@@ -872,6 +871,12 @@ module ActiveRecord
 
         # ...and send them all in one query
         @connection.query  "SET #{encoding} #{variable_assignments}"
+      end
+
+      def column_definitions(table_name) # :nodoc:
+        execute_and_free("SHOW FULL FIELDS FROM #{quote_table_name(table_name)}", 'SCHEMA') do |result|
+          each_hash(result)
+        end
       end
 
       def extract_foreign_key_action(structure, name, action) # :nodoc:

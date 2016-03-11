@@ -5,7 +5,7 @@ module ActiveRecord
   module ConnectionAdapters
     # An abstract definition of a column in a table.
     class Column
-      attr_reader :name, :null, :sql_type_metadata, :default, :default_function, :collation
+      attr_reader :name, :default, :sql_type_metadata, :null, :table_name, :default_function, :collation
 
       delegate :precision, :scale, :limit, :type, :sql_type, to: :sql_type_metadata, allow_nil: true
 
@@ -15,14 +15,14 @@ module ActiveRecord
       # +default+ is the type-casted default value, such as +new+ in <tt>sales_stage varchar(20) default 'new'</tt>.
       # +sql_type_metadata+ is various information about the type of the column
       # +null+ determines if this column allows +NULL+ values.
-      def initialize(name, default, sql_type_metadata = nil, null = true, default_function = nil, collation = nil)
+      def initialize(name, default, sql_type_metadata = nil, null = true, table_name = nil, default_function = nil, collation = nil)
         @name = name.freeze
+        @table_name = table_name
         @sql_type_metadata = sql_type_metadata
         @null = null
         @default = default
         @default_function = default_function
         @collation = collation
-        @table_name = nil
       end
 
       def has_default?
@@ -54,7 +54,7 @@ module ActiveRecord
       protected
 
       def attributes_for_hash
-        [self.class, name, default, sql_type_metadata, null, default_function, collation]
+        [self.class, name, default, sql_type_metadata, null, table_name, default_function, collation]
       end
     end
 

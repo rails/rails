@@ -43,7 +43,7 @@ module ActiveRecord
         end
 
         def schema_collation(column)
-          if column.collation && table_name = column.instance_variable_get(:@table_name)
+          if column.collation && table_name = column.table_name
             @table_collation_cache ||= {}
             @table_collation_cache[table_name] ||= select_one("SHOW TABLE STATUS LIKE '#{table_name}'")["Collation"]
             column.collation.inspect if column.collation != @table_collation_cache[table_name]

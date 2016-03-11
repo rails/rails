@@ -213,19 +213,20 @@ module ActiveRecord
         end
 
         # Returns the list of all column definitions for a table.
-        def columns(table_name)
+        def columns(table_name) # :nodoc:
+          table_name = table_name.to_s
           column_definitions(table_name).map do |column_name, type, default, notnull, oid, fmod, collation|
             oid = oid.to_i
             fmod = fmod.to_i
             type_metadata = fetch_type_metadata(column_name, type, oid, fmod)
             default_value = extract_value_from_default(default)
             default_function = extract_default_function(default_value, default)
-            new_column(column_name, default_value, type_metadata, !notnull, default_function, collation)
+            new_column(column_name, default_value, type_metadata, !notnull, table_name, default_function, collation)
           end
         end
 
-        def new_column(name, default, sql_type_metadata = nil, null = true, default_function = nil, collation = nil) # :nodoc:
-          PostgreSQLColumn.new(name, default, sql_type_metadata, null, default_function, collation)
+        def new_column(name, default, sql_type_metadata, null, table_name, default_function = nil, collation = nil) # :nodoc:
+          PostgreSQLColumn.new(name, default, sql_type_metadata, null, table_name, default_function, collation)
         end
 
         # Returns the current database name.
