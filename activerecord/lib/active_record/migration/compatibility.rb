@@ -105,7 +105,7 @@ module ActiveRecord
         def migrate(*)
           ActiveSupport::Deprecation.warn \
             "Directly inheriting from ActiveRecord::Migration is deprecated. " \
-            "Please specify the Rails release the migration was written for:\n" \
+            "Please specify the Rails release or the ActiveRecord gem version for which the migration was written:\n" \
             "\n" \
             "  class #{self.class.name} < ActiveRecord::Migration[4.2]"
           super
