@@ -324,9 +324,10 @@ Rails.application.paths.add "config/cable", with: "somewhere/else/cable.yml"
 ### Allowed Request Origins
 
 Action Cable will only accept requests from specified origins, which are passed to the server config as an array. The origins can be instances of strings or regular expressions, against which a check for match will be performed.
+Edit or insert the following lines into your `config/environments/development.rb` and `config/environments/production.rb`.
 
 ```ruby
-Rails.application.config.action_cable.allowed_request_origins = ['http://rubyonrails.com', /http:\/\/ruby.*/]
+config.action_cable.allowed_request_origins = ['http://rubyonrails.com', /http:\/\/ruby.*/]
 ```
 
 When running in the development environment, this defaults to "http://localhost:3000".
@@ -334,7 +335,7 @@ When running in the development environment, this defaults to "http://localhost:
 To disable and allow requests from any origin:
 
 ```ruby
-Rails.application.config.action_cable.disable_request_forgery_protection = true
+config.action_cable.disable_request_forgery_protection = true
 ```
 
 ### Consumer Configuration
