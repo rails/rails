@@ -814,7 +814,8 @@ module ActionController
   #   end
   #
   # In order to use <tt>accepts_nested_attributes_for</tt> with Strong \Parameters, you
-  # will need to specify which nested attributes should be whitelisted.
+  # will need to specify which nested attributes should be whitelisted. You might want
+  # to allow +:id+ and +:_destroy+, see ActiveRecord::NestedAttributes for more information.
   #
   #   class Person
   #     has_many :pets
@@ -834,7 +835,7 @@ module ActionController
   #         # It's mandatory to specify the nested attributes that should be whitelisted.
   #         # If you use `permit` with just the key that points to the nested attributes hash,
   #         # it will return an empty hash.
-  #         params.require(:person).permit(:name, :age, pets_attributes: [ :name, :category ])
+  #         params.require(:person).permit(:name, :age, pets_attributes: [ :id, :name, :category ])
   #       end
   #   end
   #
