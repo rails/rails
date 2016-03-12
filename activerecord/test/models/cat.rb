@@ -3,9 +3,6 @@ class Cat < ActiveRecord::Base
 
   enum gender: [:female, :male]
 
-  scope :female, -> { where(gender: genders[:female]) }
-  scope :male, -> { where(gender: genders[:male]) }
-
   default_scope -> { where(is_vegetarian: false) }
 end
 
