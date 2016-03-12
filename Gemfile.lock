@@ -309,7 +309,7 @@ DEPENDENCIES
   rake (>= 10.3)
   redcarpet (~> 3.2.3)
   redis
-  resque
+  resque (< 1.26)
   resque-scheduler
   sass!
   sdoc (~> 0.4.0)
