@@ -10,8 +10,10 @@ module Rails
       def create_mailer_file
         template "mailer.rb", File.join('app/mailers', class_path, "#{file_name}_mailer.rb")
 
-        unless File.exist?('app/mailers/application_mailer.rb')
-          template 'application_mailer.rb', 'app/mailers/application_mailer.rb'
+        in_root do
+          if self.behavior == :invoke && !File.exist?('app/mailers/application_mailer.rb')
+            template 'application_mailer.rb', 'app/mailers/application_mailer.rb'
+          end
         end
       end
 
