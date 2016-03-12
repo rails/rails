@@ -655,7 +655,9 @@ class UrlHelperControllerTest < ActionController::TestCase
         to: 'url_helper_controller_test/url_helper#show_named_route',
         as: :show_named_route
 
-      get "/:controller(/:action(/:id))"
+      ActiveSupport::Deprecation.silence do
+        get "/:controller(/:action(/:id))"
+      end
 
       get 'url_helper_controller_test/url_helper/normalize_recall_params',
         to: UrlHelperController.action(:normalize_recall),
