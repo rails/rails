@@ -1,7 +1,7 @@
 require 'abstract_unit'
 require 'action_controller/metal/strong_parameters'
 
-class NestedParametersTest < ActiveSupport::TestCase
+class NestedParametersPermitTest < ActiveSupport::TestCase
   def assert_filtered_out(params, key)
     assert !params.has_key?(key), "key #{key.inspect} has not been filtered out"
   end
