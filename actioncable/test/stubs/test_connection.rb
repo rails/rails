@@ -1,6 +1,8 @@
 require 'stubs/user'
 
 class TestConnection
+  include ActionCable::Connection::Utils
+
   attr_reader :identifiers, :logger, :current_user, :server, :transmissions
 
   def initialize(user = User.new("lifo"))
@@ -17,7 +19,7 @@ class TestConnection
   end
 
   def transmit(data)
-    @transmissions << data
+    @transmissions << hash_to_json(data)
   end
 
   def last_transmission

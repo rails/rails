@@ -47,6 +47,7 @@ module ActionCable
       include Identification
       include InternalChannel
       include Authorization
+      include Utils
 
       attr_reader :server, :env, :subscriptions, :logger, :worker_pool
       delegate :event_loop, :pubsub, to: :server
@@ -79,11 +80,11 @@ module ActionCable
 
       # Data received over the WebSocket connection is handled by this method. It's expected that everything inbound is JSON encoded.
       # The data is routed to the proper channel that the connection has subscribed to.
-      def receive(data_in_json)
+      def receive(json_data)
         if websocket.alive?
-          subscriptions.execute_command ActiveSupport::JSON.decode(data_in_json)
+          subscriptions.execute_command parsed_json_data(json_data)
         else
-          logger.error "Received data without a live WebSocket (#{data_in_json.inspect})"
+          logger.error "Received data without a live WebSocket (#{json_data.inspect})"
         end
       end
 
@@ -115,7 +116,7 @@ module ActionCable
       end
 
       def beat
-        transmit ActiveSupport::JSON.encode(type: ActionCable::INTERNAL[:message_types][:ping], message: Time.now.to_i)
+        transmit({ type: ActionCable::INTERNAL[:message_types][:ping], message: Time.now.to_i })
       end
 
       def on_open # :nodoc:

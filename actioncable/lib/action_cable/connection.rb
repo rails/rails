@@ -15,6 +15,7 @@ module ActionCable
       autoload :StreamEventLoop
       autoload :Subscriptions
       autoload :TaggedLoggerProxy
+      autoload :Utils
       autoload :WebSocket
     end
   end

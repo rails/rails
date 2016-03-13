@@ -192,7 +192,7 @@ module ActionCable
         # the proper channel identifier marked as the recipient.
         def transmit(data, via: nil)
           logger.info "#{self.class.name} transmitting #{data.inspect.truncate(300)}".tap { |m| m << " (via #{via})" if via }
-          connection.transmit ActiveSupport::JSON.encode(identifier: @identifier, message: data)
+          connection.transmit({ identifier: @identifier, message: data })
         end
 
         def defer_subscription_confirmation!

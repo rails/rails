@@ -4,6 +4,8 @@ module ActionCable
   module Connection
     # Wrap the real socket to minimize the externally-presented API
     class WebSocket
+      include Utils
+
       def initialize(env, event_target, event_loop, client_socket_class)
         @websocket = ::WebSocket::Driver.websocket?(env) ? client_socket_class.new(env, event_target, event_loop) : nil
       end
@@ -17,7 +19,7 @@ module ActionCable
       end
 
       def transmit(data)
-        websocket.transmit data
+        websocket.transmit hash_to_json(data)
       end
 
       def close
