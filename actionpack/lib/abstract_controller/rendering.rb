@@ -139,7 +139,7 @@ module AbstractController
     end
 
     # Normalize args by converting render "foo" to render :action => "foo" and
-    # render "foo/bar" to render :file => "foo/bar".
+    # render "foo/bar" to render :app_template_file => "foo/bar".
     # :api: plugin
     def _normalize_args(action=nil, options={})
       case action
