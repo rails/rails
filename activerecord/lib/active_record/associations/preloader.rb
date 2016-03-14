@@ -184,6 +184,7 @@ module ActiveRecord
         def self.new(klass, owners, reflection, preload_scope); self; end
         def self.run(preloader); end
         def self.preloaded_records; []; end
+        def self.owners; []; end
       end
 
       # Returns a class containing the logic needed to load preload the data
