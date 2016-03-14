@@ -300,6 +300,13 @@ class PostgresqlArrayTest < ActiveRecord::PostgreSQLTestCase
     assert_equal ["has already been taken"], e2.errors[:tags], "Should have uniqueness message for tags"
   end
 
+  def test_encoding_is_set_to_scripts_encoding_after_save
+    record = PgArray.new(tags: ["München"])
+
+    record.save!
+    assert_equal record.tags.first, "München"
+  end
+
   private
   def assert_cycle field, array
     # test creation
