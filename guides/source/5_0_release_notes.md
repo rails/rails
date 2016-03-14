@@ -621,10 +621,11 @@ Please refer to the [Changelog][active-job] for detailed changes.
 *   A generated job now inherits from `app/jobs/application_job.rb` by default.
     ([Pull Request](https://github.com/rails/rails/pull/19034))
 
-*   Allow `DelayedJob`, `Sidekiq`, `qu`, and `que` to report the job id back to
-    `ActiveJob::Base` as `provider_job_id`.
+*   Allow `DelayedJob`, `Sidekiq`, `qu`, `que`, and `queue_classic` to report
+    the job id back to `ActiveJob::Base` as `provider_job_id`.
     ([Pull Request](https://github.com/rails/rails/pull/20064),
-     [Pull Request](https://github.com/rails/rails/pull/20056))
+     [Pull Request](https://github.com/rails/rails/pull/20056),
+     [commit](https://github.com/rails/rails/commit/68e3279163d06e6b04e043f91c9470e9259bbbe0))
 
 *   Implement a simple `AsyncJob` processor and associated `AsyncAdapter` that
     queue jobs to a `concurrent-ruby` thread pool.
