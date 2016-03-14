@@ -417,7 +417,7 @@ secrets, you need to:
 
 3. Remove the `secret_token.rb` initializer.
 
-4. Use `rails secret` to generate new keys for the `development` and `test` sections.
+4. Use `rake secret` to generate new keys for the `development` and `test` sections.
 
 5. Restart your server.
 
