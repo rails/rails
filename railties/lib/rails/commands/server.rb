@@ -2,6 +2,7 @@ require 'fileutils'
 require 'optparse'
 require 'action_dispatch'
 require 'rails'
+require 'rails/dev_caching'
 
 module Rails
   class Server < ::Rack::Server
@@ -100,12 +101,8 @@ module Rails
     private
 
       def setup_dev_caching
-        return unless options[:environment] == "development"
-
-        if options[:caching] == false
-          delete_cache_file
-        elsif options[:caching]
-          create_cache_file
+        if options[:environment] == "development"
+          Rails::DevCaching.enable_by_argument(options[:caching])
         end
       end
 
@@ -114,14 +111,6 @@ module Rails
         puts "=> Booting #{ActiveSupport::Inflector.demodulize(server)}"
         puts "=> Rails #{Rails.version} application starting in #{Rails.env} on #{url}"
         puts "=> Run `rails server -h` for more startup options"
-      end
-
-      def create_cache_file
-        FileUtils.touch("tmp/caching-dev.txt")
-      end
-
-      def delete_cache_file
-        FileUtils.rm("tmp/caching-dev.txt") if File.exist?("tmp/caching-dev.txt")
       end
 
       def create_tmp_directories
