@@ -39,7 +39,7 @@ module ActiveRecord
           end
 
           def set_time_zone_without_conversion(value)
-            ::Time.zone.local_to_utc(value).in_time_zone if value
+            ::Time.zone.local_to_utc(value).try(:in_time_zone) if value
           end
 
           def map_avoiding_infinite_recursion(value)

@@ -260,6 +260,13 @@ class MultiParameterAttributeTest < ActiveRecord::TestCase
         topic.attributes = attributes
         assert_equal Time.zone.local(2000, 1, 1, 16, 24, 0), topic.bonus_time
         assert_not topic.bonus_time.utc?
+
+        attributes = {
+          "written_on(1i)" => "2000", "written_on(2i)" => "", "written_on(3i)" => "",
+          "written_on(4i)" => "", "written_on(5i)" => ""
+        }
+        topic.attributes = attributes
+        assert_nil topic.written_on
       end
     ensure
       Topic.reset_column_information
