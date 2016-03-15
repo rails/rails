@@ -269,6 +269,17 @@ class DependenciesTest < ActiveSupport::TestCase
     remove_constants(:ModuleFolder)
   end
 
+  def test_throwing_removes_autoloaded_constants
+    with_autoloading_fixtures do
+      catch :t do
+        Throws
+      end
+      assert !Object.const_defined?(:Throws)
+    end
+  ensure
+    remove_constants(:Throws)
+  end
+
   def test_doesnt_break_normal_require
     path = File.expand_path("../autoloading_fixtures/load_path", __FILE__)
     original_path = $:.dup
