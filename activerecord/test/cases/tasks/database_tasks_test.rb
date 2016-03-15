@@ -161,21 +161,25 @@ module ActiveRecord
         with('database' => 'dev-db')
       ActiveRecord::Tasks::DatabaseTasks.expects(:create).
         with('database' => 'test-db')
-      ENV.expects(:[]).with('RAILS_ENV').returns(nil)
 
       ActiveRecord::Tasks::DatabaseTasks.create_current(
         ActiveSupport::StringInquirer.new('development')
       )
     end
 
-    def test_creates_only_development_database_when_rails_env_is_development
+    def test_creates_test_and_development_databases_when_rails_env_is_development
+      old_env = ENV['RAILS_ENV']
+      ENV['RAILS_ENV'] = 'development'
       ActiveRecord::Tasks::DatabaseTasks.expects(:create).
         with('database' => 'dev-db')
-      ENV.expects(:[]).with('RAILS_ENV').returns('development')
+      ActiveRecord::Tasks::DatabaseTasks.expects(:create).
+        with('database' => 'test-db')
 
       ActiveRecord::Tasks::DatabaseTasks.create_current(
         ActiveSupport::StringInquirer.new('development')
       )
+    ensure
+      ENV['RAILS_ENV'] = old_env
     end
 
     def test_establishes_connection_for_the_given_environment
@@ -282,21 +286,25 @@ module ActiveRecord
         with('database' => 'dev-db')
       ActiveRecord::Tasks::DatabaseTasks.expects(:drop).
         with('database' => 'test-db')
-      ENV.expects(:[]).with('RAILS_ENV').returns(nil)
 
       ActiveRecord::Tasks::DatabaseTasks.drop_current(
         ActiveSupport::StringInquirer.new('development')
       )
     end
 
-    def test_drops_only_development_database_when_rails_env_is_development
+    def test_drops_testand_development_databases_when_rails_env_is_development
+      old_env = ENV['RAILS_ENV']
+      ENV['RAILS_ENV'] = 'development'
       ActiveRecord::Tasks::DatabaseTasks.expects(:drop).
         with('database' => 'dev-db')
-      ENV.expects(:[]).with('RAILS_ENV').returns('development')
+      ActiveRecord::Tasks::DatabaseTasks.expects(:drop).
+        with('database' => 'test-db')
 
       ActiveRecord::Tasks::DatabaseTasks.drop_current(
         ActiveSupport::StringInquirer.new('development')
       )
+    ensure
+      ENV['RAILS_ENV'] = old_env
     end
   end
 
