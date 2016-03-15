@@ -338,7 +338,7 @@ module ActiveRecord
 
         select_values.concat group_columns.map { |aliaz, field|
           if field.respond_to?(:as)
-            field.as(aliaz)
+            field.dup.as(aliaz)
           else
             "#{field} AS #{aliaz}"
           end
@@ -379,7 +379,7 @@ module ActiveRecord
       #   column_alias_for("count(distinct users.id)") # => "count_distinct_users_id"
       #   column_alias_for("count(*)")                 # => "count_all"
       def column_alias_for(keys)
-        if keys.respond_to? :name
+        if keys.respond_to?(:relation) && keys.respond_to?(:name)
           keys = "#{keys.relation.name}.#{keys.name}"
         end
 

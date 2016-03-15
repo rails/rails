@@ -680,6 +680,12 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal 1, count["aaron"]
   end
 
+  def test_group_weirds_by_named_function
+    Weird.create("a$b" => "value", :from => "aaron")
+    count = Weird.group(Arel::Nodes::NamedFunction.new("COALESCE", [Weird.arel_table[:from], Weird.arel_table["a$b"]])).count
+    assert_equal 1, count["aaron"]
+  end
+
   def test_attributes_on_dummy_time
     # Oracle does not have a TIME datatype.
     return true if current_adapter?(:OracleAdapter)
