@@ -49,7 +49,7 @@ module Rails
           request.request_method,
           request.filtered_path,
           request.ip,
-          Time.now.to_default_s ]
+          Time.now.strftime('%Y-%m-%d %H:%M:%S.%4N %z') ]
       end
 
       def compute_tags(request)

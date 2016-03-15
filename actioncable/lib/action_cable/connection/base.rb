@@ -217,7 +217,7 @@ module ActionCable
             request.filtered_path,
             websocket.possible? ? ' [WebSocket]' : '[non-WebSocket]',
             request.ip,
-            Time.now.to_s ]
+            Time.now.strftime('%Y-%m-%d %H:%M:%S.%4N %z') ]
         end
 
         def finished_request_message
@@ -225,7 +225,7 @@ module ActionCable
             request.filtered_path,
             websocket.possible? ? ' [WebSocket]' : '[non-WebSocket]',
             request.ip,
-            Time.now.to_s ]
+            Time.now.strftime('%Y-%m-%d %H:%M:%S.%4N %z') ]
         end
 
         def invalid_request_message
