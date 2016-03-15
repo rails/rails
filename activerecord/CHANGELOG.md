@@ -1,3 +1,8 @@
+*   Fix an Active Record DateTime field NoMethodError caused by incomplete 
+    datetime. [Bug #24195](https://github.com/rails/rails/issues/24195)
+
+    *Sen Zhang*
+
 *   Allow `ActionController::Parameters`-like objects to be passed as
     values for Postgres HStore columns.
 
