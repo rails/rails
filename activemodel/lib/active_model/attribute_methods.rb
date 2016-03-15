@@ -205,7 +205,11 @@ module ActiveModel
       #   person.nickname        # => "Bob"
       #   person.name_short?     # => true
       #   person.nickname_short? # => true
+      #
+      #   Raises NameError if the new_name does not conform to ruby variable naming
+      #   convention.
       def alias_attribute(new_name, old_name)
+        invalid_attribute(new_name) unless valid_attribute?(new_name)
         self.attribute_aliases = attribute_aliases.merge(new_name.to_s => old_name.to_s)
         attribute_method_matchers.each do |matcher|
           matcher_new = matcher.method_name(new_name).to_s
@@ -458,6 +462,10 @@ module ActiveModel
       end
     end
 
+    def valid_attribute?(attr_name)
+      attr_name =~ /[^[a-z_][a-zA-Z_0-9]*]$/
+    end
+
     protected
       def attribute_method?(attr_name) #:nodoc:
         respond_to_without_attributes?(:attributes) && attributes.include?(attr_name)
@@ -473,6 +481,10 @@ module ActiveModel
 
       def missing_attribute(attr_name, stack)
         raise ActiveModel::MissingAttributeError, "missing attribute: #{attr_name}", stack
+      end
+
+      def invalid_attribute(attr_name, stack)
+        raise NameError, "invalid attribute name #{attr_name}", stack
       end
   end
 end
