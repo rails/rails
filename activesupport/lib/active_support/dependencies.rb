@@ -734,6 +734,7 @@ module ActiveSupport #:nodoc:
         begin
           constantized = parent.const_get(to_remove, false)
         rescue NameError
+          # Skip when const is unreachable.
           return
         else
           constantized.before_remove_const if constantized.respond_to?(:before_remove_const)
@@ -743,6 +744,7 @@ module ActiveSupport #:nodoc:
       begin
         parent.instance_eval { remove_const to_remove }
       rescue NameError
+        # Skip when const is unreachable.
       end
     end
   end
