@@ -656,16 +656,17 @@ module ActiveSupport #:nodoc:
     # and will be removed immediately.
     def new_constants_in(*descs)
       constant_watch_stack.watch_namespaces(descs)
-      aborting = true
+      success = false
 
       begin
         yield # Now yield to the code that is to define new constants.
-        aborting = false
+        success = true
       ensure
         new_constants = constant_watch_stack.new_constants
 
-        return new_constants unless aborting
+        return new_constants if success
 
+        # Remove partially loaded constants.
         new_constants.each { |c| remove_constant(c) }
       end
     end
@@ -734,7 +735,7 @@ module ActiveSupport #:nodoc:
         begin
           constantized = parent.const_get(to_remove, false)
         rescue NameError
-          # Skip when const is unreachable.
+          # The constant is no longer reachable, just skip it.
           return
         else
           constantized.before_remove_const if constantized.respond_to?(:before_remove_const)
@@ -744,7 +745,7 @@ module ActiveSupport #:nodoc:
       begin
         parent.instance_eval { remove_const to_remove }
       rescue NameError
-        # Skip when const is unreachable.
+        # The constant is no longer reachable, just skip it.
       end
     end
   end
