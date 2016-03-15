@@ -246,9 +246,12 @@ module ActiveRecord
         end
       end
 
-      # Count all records using SQL.  Construct options and pass them with
-      # scope to the target class's +count+.
+      # Returns the number of records. If no arguments are given, it counts all
+      # columns using SQL. If one argument is given, it counts only the passed
+      # column using SQL. If a block is given, it counts the number of records
+      # yielding a true value.
       def count(column_name = nil)
+        return super if block_given?
         relation = scope
         if association_scope.distinct_value
           # This is needed because 'SELECT count(DISTINCT *)..' is not valid SQL.

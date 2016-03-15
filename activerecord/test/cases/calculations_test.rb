@@ -482,6 +482,10 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 1, Account.where(firm_name: '37signals').order(:firm_name).reverse_order.count
   end
 
+  def test_count_with_block
+    assert_equal 4, Account.count { |account| account.credit_limit.modulo(10).zero? }
+  end
+
   def test_should_sum_expression
     # Oracle adapter returns floating point value 636.0 after SUM
     if current_adapter?(:OracleAdapter)

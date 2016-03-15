@@ -37,7 +37,11 @@ module ActiveRecord
     # Note: not all valid {Relation#select}[rdoc-ref:QueryMethods#select] expressions are valid #count expressions. The specifics differ
     # between databases. In invalid cases, an error from the database is thrown.
     def count(column_name = nil)
-      calculate(:count, column_name)
+      if block_given?
+        to_a.count { |*block_args| yield(*block_args) }
+      else
+        calculate(:count, column_name)
+      end
     end
 
     # Calculates the average value on a given column. Returns +nil+ if there's
