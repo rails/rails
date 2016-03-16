@@ -269,6 +269,15 @@ class DependenciesTest < ActiveSupport::TestCase
     remove_constants(:ModuleFolder)
   end
 
+  def test_raising_removes_autoloaded_constants
+    with_autoloading_fixtures do
+      assert_raises(Exception, 'arbitray exception message') { RaisesArbitraryException }
+      assert !Object.const_defined?(:RaisesArbitraryException)
+    end
+  ensure
+    remove_constants(:RaisesArbitraryException)
+  end
+
   def test_throwing_removes_autoloaded_constants
     with_autoloading_fixtures do
       catch :t do
