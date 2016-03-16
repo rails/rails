@@ -668,8 +668,6 @@ module ActiveSupport #:nodoc:
 
         new_constants.each { |c| remove_constant(c) }.clear
       end
-
-      []
     end
 
     # Convert the provided const desc to a qualified constant name (as a string).
