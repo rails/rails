@@ -666,7 +666,7 @@ module ActiveSupport #:nodoc:
 
         return new_constants unless aborting
 
-        new_constants.each { |c| remove_constant(c) }.clear
+        new_constants.each { |c| remove_constant(c) }
       end
     end
 
