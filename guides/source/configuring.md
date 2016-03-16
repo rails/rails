@@ -108,7 +108,7 @@ numbers. New applications filter out passwords by adding the following `config.f
 
 * `config.force_ssl` forces all requests to be served over HTTPS by using the `ActionDispatch::SSL` middleware, and sets `config.action_mailer.default_url_options` to be `{ protocol: 'https' }`. This can be configured by setting `config.ssl_options` - see the [ActionDispatch::SSL documentation](http://edgeapi.rubyonrails.org/classes/ActionDispatch/SSL.html) for details.
 
-* `config.log_formatter` defines the formatter of the Rails logger. This option defaults to an instance of `ActiveSupport::Logger::SimpleFormatter` for all modes except production, where it defaults to `Logger::Formatter`.
+* `config.log_formatter` defines the formatter of the Rails logger. This option defaults to an instance of `ActiveSupport::Logger::SimpleFormatter` for all modes except production, where it defaults to `Logger::Formatter`. If you are setting a value for `config.logger` you must manually pass the value of your formatter to your logger before it is wrapped in an `ActiveSupport::TaggedLogging` instance, Rails will not do it for you.
 
 * `config.log_level` defines the verbosity of the Rails logger. This option
 defaults to `:debug` for all environments. The available log levels are: `:debug`,
@@ -116,7 +116,21 @@ defaults to `:debug` for all environments. The available log levels are: `:debug
 
 * `config.log_tags` accepts a list of: methods that the `request` object responds to, a `Proc` that accepts the `request` object, or something that responds to `to_s`. This makes it easy to tag log lines with debug information like subdomain and request id - both very helpful in debugging multi-user production applications.
 
-* `config.logger` accepts a logger conforming to the interface of Log4r or the default Ruby `Logger` class. Defaults to an instance of `ActiveSupport::Logger`.
+* `config.logger` is the logger that will be used for `Rails.logger` and any related Rails logging such as `ActiveRecord::Base.logger`. It defaults to an instance of `ActiveSupport::TaggedLogging` that wraps an instance of `ActiveSupport::Logger` which outputs a log to the `log/` directory. You can supply a custom logger, to get full compatability you must follow these guidelines:
+  * To support a formatter you must manually assign a formatter from the `config.log_formatter` value to the logger.
+  * To support tagged loggs the log instance must be wrapped with `ActiveSupport::TaggedLogging`.
+  * To support silencing the logger must include `LoggerSilence` and `ActiveSupport::LoggerThreadSafeLevel` modules. The `ActiveSupport::Logger` class already includes these modules.
+
+    ```ruby
+    class MyLogger < ::Logger
+      include ActiveSupport::LoggerThreadSafeLevel
+      include LoggerSilence
+    end
+
+    mylogger           = MyLogger.new(STDOUT)
+    mylogger.formatter = config.log_formatter
+    config.logger = ActiveSupport::TaggedLogging.new(mylogger)
+    ```
 
 * `config.middleware` allows you to configure the application's middleware. This is covered in depth in the [Configuring Middleware](#configuring-middleware) section below.
 
