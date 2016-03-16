@@ -272,10 +272,11 @@ class DependenciesTest < ActiveSupport::TestCase
   def test_raising_discards_autoloaded_constants
     with_autoloading_fixtures do
       assert_raises(Exception, 'arbitray exception message') { RaisesArbitraryException }
-      assert !Object.const_defined?(:RaisesArbitraryException)
+      assert_not defined?(A)
+      assert_not defined?(RaisesArbitraryException)
     end
   ensure
-    remove_constants(:RaisesArbitraryException)
+    remove_constants(:A, :RaisesArbitraryException)
   end
 
   def test_throwing_discards_autoloaded_constants
@@ -283,10 +284,11 @@ class DependenciesTest < ActiveSupport::TestCase
       catch :t do
         Throws
       end
-      assert !Object.const_defined?(:Throws)
+      assert_not defined?(A)
+      assert_not defined?(Throws)
     end
   ensure
-    remove_constants(:Throws)
+    remove_constants(:A, :Throws)
   end
 
   def test_doesnt_break_normal_require
