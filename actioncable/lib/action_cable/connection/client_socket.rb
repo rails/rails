@@ -29,7 +29,7 @@ module ActionCable
 
       attr_reader :env, :url
 
-      def initialize(env, event_target, event_loop)
+      def initialize(env, event_target, event_loop, protocols)
         @env          = env
         @event_target = event_target
         @event_loop   = event_loop
@@ -42,7 +42,7 @@ module ActionCable
         @ready_state = CONNECTING
 
         # The driver calls +env+, +url+, and +write+
-        @driver = ::WebSocket::Driver.rack(self)
+        @driver = ::WebSocket::Driver.rack(self, protocols: protocols)
 
         @driver.on(:open)    { |e| open }
         @driver.on(:message) { |e| receive_message(e.data) }
@@ -107,6 +107,10 @@ module ActionCable
 
       def alive?
         @ready_state == OPEN
+      end
+
+      def protocol
+        @driver.protocol
       end
 
       private
