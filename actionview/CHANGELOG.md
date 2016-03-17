@@ -1,3 +1,19 @@
+*   `date_select` helper `:with_css_classes` option now accepts a hash of strings 
+    for `:year`, `:month`, `:day`, `:hour`, `:minute`, `:second` that will extend
+    the select type with the given css class value.
+
+    ```erb
+    <%= f.date_select :birthday, with_css_classes: { month: "my-month", year: "my-year" } %>
+    ```
+
+    ```html
+    <select id="user_birthday_3i" name="user[birthday(3i)]">…</select>
+    <select id="user_birthday_2i" name="user[birthday(2i)]" class="my-month">…</select>
+    <select id="user_birthday_1i" name="user[birthday(1i)]" class="my-year">…</select>
+    ```
+
+    *Matthias Neumayr*
+
 *   Deprecate `datetime_field` and `datetime_field_tag` helpers.
     Datetime input type was removed from HTML specification.
     One can use `datetime_local_field` and `datetime_local_field_tag` instead.
