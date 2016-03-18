@@ -110,6 +110,7 @@ module ActionController
     MODULES = [
       AbstractController::Rendering,
 
+      Helpers,
       UrlFor,
       Redirecting,
       ApiRendering,
