@@ -25,13 +25,9 @@ It allows assets in your application to be automatically combined with assets
 from other gems. For example, jquery-rails includes a copy of jquery.js
 and enables AJAX features in Rails.
 
-The asset pipeline is technically no longer a core feature from Rails 4 onwards -- it has
-been extracted out of the framework into the
-[sprockets-rails](https://github.com/rails/sprockets-rails) gem.
-
-The asset pipeline is enabled by default.
-
-You can disable the asset pipeline while creating a new application by
+The asset pipeline is implemented by the
+[sprockets-rails](https://github.com/rails/sprockets-rails) gem,
+and is enabled by default. You can disable it while creating a new application by
 passing the `--skip-sprockets` option.
 
 ```bash
