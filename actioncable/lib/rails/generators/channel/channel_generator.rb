@@ -6,6 +6,7 @@ module Rails
       argument :actions, type: :array, default: [], banner: "method method"
 
       class_option :assets, type: :boolean
+      class_option :javascript, type: :boolean
 
       check_class_collision suffix: "Channel"
 
@@ -13,13 +14,29 @@ module Rails
         template "channel.rb", File.join('app/channels', class_path, "#{file_name}_channel.rb")
 
         if options[:assets]
-          template "assets/channel.coffee", File.join('app/assets/javascripts/channels', class_path, "#{file_name}.coffee")
+          if options[:javascript]
+            template("assets/channel.coffee", file_path("js")) do |content|
+              require "coffee-script"
+              CoffeeScript.compile(content)
+            end
+          else
+            template("assets/channel.coffee", file_path("coffee"))
+          end
         end
 
         generate_application_cable_files
       end
 
       protected
+
+        def file_path(extension)
+          File.join(
+            'app/assets/javascripts/channels',
+            class_path,
+            "#{file_name}.#{extension}"
+          )
+        end
+
         def file_name
           @_file_name ||= super.gsub(/_channel/i, '')
         end

@@ -38,4 +38,18 @@ class ChannelGeneratorTest < Rails::Generators::TestCase
 
     assert_no_file "app/assets/javascripts/channels/chat.coffee"
   end
+
+  def test_channel_is_created_with_javascript_instead_of_coffee
+    run_generator ['chat', '--javascript']
+
+    assert_file "app/channels/chat_channel.rb" do |channel|
+      assert_match(/class ChatChannel < ApplicationCable::Channel/, channel)
+    end
+
+    assert_no_file "app/assets/javascripts/channels/chat.coffee"
+
+    assert_file "app/assets/javascripts/channels/chat.js" do |channel|
+      assert_match(/App.chat = App.cable.subscriptions.create\("ChatChannel", /, channel)
+    end
+  end
 end
