@@ -3,7 +3,7 @@ require 'cases/helper'
 module ActiveRecord
   class Migration
     class ColumnPositioningTest < ActiveRecord::TestCase
-      attr_reader :connection, :table_name
+      attr_reader :connection
       alias :conn :connection
 
       def setup
@@ -23,7 +23,7 @@ module ActiveRecord
         ActiveRecord::Base.primary_key_prefix_type = nil
       end
 
-      if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
+      if current_adapter?(:Mysql2Adapter)
         def test_column_positioning
           assert_equal %w(first second third), conn.columns(:testings).map(&:name)
         end

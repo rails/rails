@@ -30,7 +30,7 @@ class LocalizedTemplatesTest < ActionController::TestCase
 
   def test_use_fallback_locales
     I18n.locale = :"de-AT"
-    I18n.backend.class.send(:include, I18n::Backend::Fallbacks)
+    I18n.backend.class.include(I18n::Backend::Fallbacks)
     I18n.fallbacks[:"de-AT"] = [:de]
 
     get :hello_world

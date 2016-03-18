@@ -18,14 +18,18 @@ module Rails
       app = Rails.application
       session = ActionDispatch::Integration::Session.new(app)
       yield session if block_given?
+
+      # This makes app.url_for and app.foo_path available in the console
+      session.extend(app.routes.url_helpers)
+      session.extend(app.routes.mounted_helpers)
+
       session
     end
 
     # reloads the environment
     def reload!(print=true)
       puts "Reloading..." if print
-      ActionDispatch::Reloader.cleanup!
-      ActionDispatch::Reloader.prepare!
+      Rails.application.reloader.reload!
       true
     end
   end

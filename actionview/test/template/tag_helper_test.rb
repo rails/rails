@@ -50,6 +50,11 @@ class TagHelperTest < ActionView::TestCase
     assert_dom_equal "<div>Hello world!</div>", buffer
   end
 
+  def test_content_tag_with_block_in_erb_containing_non_displayed_erb
+    buffer = render_erb("<%= content_tag(:p) do %><% 1 %><% end %>")
+    assert_dom_equal "<p></p>", buffer
+  end
+
   def test_content_tag_with_block_and_options_in_erb
     buffer = render_erb("<%= content_tag(:div, :class => 'green') do %>Hello world!<% end %>")
     assert_dom_equal %(<div class="green">Hello world!</div>), buffer
@@ -62,6 +67,11 @@ class TagHelperTest < ActionView::TestCase
   def test_content_tag_with_block_and_options_outside_out_of_erb
     assert_equal content_tag("a", "Create", :href => "create"),
                  content_tag("a", "href" => "create") { "Create" }
+  end
+
+  def test_content_tag_with_block_and_non_string_outside_out_of_erb
+    assert_equal content_tag("p"),
+                 content_tag("p") { 3.times { "do_something" } }
   end
 
   def test_content_tag_nested_in_content_tag_out_of_erb
@@ -133,10 +143,10 @@ class TagHelperTest < ActionView::TestCase
   end
 
   def test_tag_honors_html_safe_with_escaped_array_class
-    str = tag('p', :class => ['song>', 'play>'.html_safe])
+    str = tag('p', :class => ['song>', raw('play>')])
     assert_equal '<p class="song&gt; play>" />', str
 
-    str = tag('p', :class => ['song>'.html_safe, 'play>'])
+    str = tag('p', :class => [raw('song>'), 'play>'])
     assert_equal '<p class="song> play&gt;" />', str
   end
 
@@ -162,5 +172,11 @@ class TagHelperTest < ActionView::TestCase
       assert_dom_equal '<a aria-a-float="3.14" aria-a-big-decimal="-123.456" aria-a-number="1" aria-array="[1,2,3]" aria-hash="{&quot;key&quot;:&quot;value&quot;}" aria-string-with-quotes="double&quot;quote&quot;party&quot;" aria-string="hello" aria-symbol="foo" />',
         tag('a', { aria => { a_float: 3.14, a_big_decimal: BigDecimal.new("-123.456"), a_number: 1, string: 'hello', symbol: :foo, array: [1, 2, 3], hash: { key: 'value'}, string_with_quotes: 'double"quote"party"' } })
     }
+  end
+
+  def test_link_to_data_nil_equal
+    div_type1 = content_tag(:div, 'test', { 'data-tooltip' => nil })
+    div_type2 = content_tag(:div, 'test', { data: {tooltip: nil} })
+    assert_dom_equal div_type1, div_type2 
   end
 end

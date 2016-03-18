@@ -1,6 +1,6 @@
 require "cases/helper"
 
-class PostgresqlNumberTest < ActiveRecord::TestCase
+class PostgresqlNumberTest < ActiveRecord::PostgreSQLTestCase
   class PostgresqlNumber < ActiveRecord::Base; end
 
   setup do
@@ -12,7 +12,7 @@ class PostgresqlNumberTest < ActiveRecord::TestCase
   end
 
   teardown do
-    @connection.execute 'DROP TABLE IF EXISTS postgresql_numbers'
+    @connection.drop_table 'postgresql_numbers', if_exists: true
   end
 
   def test_data_type
@@ -31,7 +31,7 @@ class PostgresqlNumberTest < ActiveRecord::TestCase
     assert_equal 123456.789, first.double
     assert_equal(-::Float::INFINITY, second.single)
     assert_equal ::Float::INFINITY, second.double
-    assert_same ::Float::NAN, third.double
+    assert_send [third.double, :nan?]
   end
 
   def test_update

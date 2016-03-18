@@ -57,6 +57,16 @@ class AtomicWriteTest < ActiveSupport::TestCase
     File.unlink(file_name) rescue nil
   end
 
+  def test_atomic_write_returns_result_from_yielded_block
+    block_return_value = File.atomic_write(file_name, Dir.pwd) do |file|
+      "Hello world!"
+    end
+
+    assert_equal "Hello world!", block_return_value
+  ensure
+    File.unlink(file_name) rescue nil
+  end
+
   private
     def file_name
       "atomic.file"

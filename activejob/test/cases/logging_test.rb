@@ -6,7 +6,7 @@ require 'jobs/logging_job'
 require 'jobs/nested_job'
 require 'models/person'
 
-class AdapterTest < ActiveSupport::TestCase
+class LoggingTest < ActiveSupport::TestCase
   include ActiveSupport::LogSubscriber::TestHelper
   include ActiveSupport::Logger::Severity
 
@@ -71,6 +71,14 @@ class AdapterTest < ActiveSupport::TestCase
     LoggingJob.perform_later person
     assert_match(%r{Enqueued.*gid://aj/Person/123}, @logger.messages)
     assert_match(%r{Dummy, here is it: #<Person:.*>}, @logger.messages)
+    assert_match(%r{Performing.*gid://aj/Person/123}, @logger.messages)
+  end
+
+  def test_globalid_nested_parameter_logging
+    person = Person.new(123)
+    LoggingJob.perform_later(person: person)
+    assert_match(%r{Enqueued.*gid://aj/Person/123}, @logger.messages)
+    assert_match(%r{Dummy, here is it: .*#<Person:.*>}, @logger.messages)
     assert_match(%r{Performing.*gid://aj/Person/123}, @logger.messages)
   end
 

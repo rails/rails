@@ -1,14 +1,14 @@
 require "cases/helper"
 
-class PostgresqlRenameTableTest < ActiveRecord::TestCase
+class PostgresqlRenameTableTest < ActiveRecord::PostgreSQLTestCase
   def setup
     @connection = ActiveRecord::Base.connection
     @connection.create_table :before_rename, force: true
   end
 
   def teardown
-    @connection.execute 'DROP TABLE IF EXISTS "before_rename"'
-    @connection.execute 'DROP TABLE IF EXISTS "after_rename"'
+    @connection.drop_table "before_rename", if_exists: true
+    @connection.drop_table "after_rename", if_exists: true
   end
 
   test "renaming a table also renames the primary key index" do

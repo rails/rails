@@ -1,5 +1,4 @@
 require 'uri'
-require 'active_support/core_ext/string/filters'
 
 module ActiveRecord
   module ConnectionAdapters
@@ -34,7 +33,7 @@ module ActiveRecord
         def initialize(url)
           raise "Database URL cannot be empty" if url.blank?
           @uri     = uri_parser.parse(url)
-          @adapter = @uri.scheme.tr('-', '_')
+          @adapter = @uri.scheme && @uri.scheme.tr('-', '_')
           @adapter = "postgresql" if @adapter == "postgres"
 
           if @uri.opaque
@@ -176,7 +175,7 @@ module ActiveRecord
           rescue Gem::LoadError => e
             raise Gem::LoadError, "Specified '#{spec[:adapter]}' for database adapter, but the gem is not loaded. Add `gem '#{e.name}'` to your Gemfile (and ensure its version is at the minimum required by ActiveRecord)."
           rescue LoadError => e
-            raise LoadError, "Could not load '#{path_to_adapter}'. Make sure that the adapter in config/database.yml is valid. If you use an adapter other than 'mysql', 'mysql2', 'postgresql' or 'sqlite3' add the necessary adapter gem to the Gemfile.", e.backtrace
+            raise LoadError, "Could not load '#{path_to_adapter}'. Make sure that the adapter in config/database.yml is valid. If you use an adapter other than 'mysql2', 'postgresql' or 'sqlite3' add the necessary adapter gem to the Gemfile.", e.backtrace
           end
 
           adapter_method = "#{spec[:adapter]}_connection"
@@ -210,27 +209,9 @@ module ActiveRecord
           when Symbol
             resolve_symbol_connection spec
           when String
-            resolve_string_connection spec
+            resolve_url_connection spec
           when Hash
             resolve_hash_connection spec
-          end
-        end
-
-        def resolve_string_connection(spec)
-          # Rails has historically accepted a string to mean either
-          # an environment key or a URL spec, so we have deprecated
-          # this ambiguous behaviour and in the future this function
-          # can be removed in favor of resolve_url_connection.
-          if configurations.key?(spec) || spec !~ /:/
-            ActiveSupport::Deprecation.warn(<<-MSG.squish)
-              Passing a string to ActiveRecord::Base.establish_connection for a
-              configuration lookup is deprecated, please pass a symbol
-              (#{spec.to_sym.inspect}) instead.
-            MSG
-
-            resolve_symbol_connection(spec)
-          else
-            resolve_url_connection(spec)
           end
         end
 

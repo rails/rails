@@ -26,7 +26,7 @@ class Time
     # <tt>current_user.time_zone</tt> just needs to return a string identifying the user's preferred time zone:
     #
     #   class ApplicationController < ActionController::Base
-    #     around_filter :set_time_zone
+    #     around_action :set_time_zone
     #
     #     def set_time_zone
     #       if logged_in?
@@ -40,7 +40,23 @@ class Time
       Thread.current[:time_zone] = find_zone!(time_zone)
     end
 
-    # Allows override of <tt>Time.zone</tt> locally inside supplied block; resets <tt>Time.zone</tt> to existing value when done.
+    # Allows override of <tt>Time.zone</tt> locally inside supplied block;
+    # resets <tt>Time.zone</tt> to existing value when done.
+    #
+    #   class ApplicationController < ActionController::Base
+    #     around_action :set_time_zone
+    #
+    #     private
+    #
+    #     def set_time_zone
+    #       Time.use_zone(current_user.timezone) { yield }
+    #     end
+    #   end
+    #
+    #  NOTE: This won't affect any <tt>ActiveSupport::TimeWithZone</tt>
+    #  objects that have already been created, e.g. any model timestamp
+    #  attributes that have been read before the block will remain in
+    #  the application's default timezone.
     def use_zone(time_zone)
       new_zone = find_zone!(time_zone)
       begin
@@ -51,12 +67,22 @@ class Time
       end
     end
 
-    # Returns a TimeZone instance or nil, or raises an ArgumentError for invalid timezones.
+    # Returns a TimeZone instance matching the time zone provided.
+    # Accepts the time zone in any format supported by <tt>Time.zone=</tt>.
+    # Raises an +ArgumentError+ for invalid time zones.
+    #
+    #   Time.find_zone! "America/New_York" # => #<ActiveSupport::TimeZone @name="America/New_York" ...>
+    #   Time.find_zone! "EST"              # => #<ActiveSupport::TimeZone @name="EST" ...>
+    #   Time.find_zone! -5.hours           # => #<ActiveSupport::TimeZone @name="Bogota" ...>
+    #   Time.find_zone! nil                # => nil
+    #   Time.find_zone! false              # => false
+    #   Time.find_zone! "NOT-A-TIMEZONE"   # => ArgumentError: Invalid Timezone: NOT-A-TIMEZONE
     def find_zone!(time_zone)
       if !time_zone || time_zone.is_a?(ActiveSupport::TimeZone)
         time_zone
       else
-        # lookup timezone based on identifier (unless we've been passed a TZInfo::Timezone)
+        # Look up the timezone based on the identifier (unless we've been
+        # passed a TZInfo::Timezone)
         unless time_zone.respond_to?(:period_for_local)
           time_zone = ActiveSupport::TimeZone[time_zone] || TZInfo::Timezone.get(time_zone)
         end
@@ -72,6 +98,12 @@ class Time
       raise ArgumentError, "Invalid Timezone: #{time_zone}"
     end
 
+    # Returns a TimeZone instance matching the time zone provided.
+    # Accepts the time zone in any format supported by <tt>Time.zone=</tt>.
+    # Returns +nil+ for invalid time zones.
+    #
+    #   Time.find_zone "America/New_York" # => #<ActiveSupport::TimeZone @name="America/New_York" ...>
+    #   Time.find_zone "NOT-A-TIMEZONE"   # => nil
     def find_zone(time_zone)
       find_zone!(time_zone) rescue nil
     end

@@ -87,6 +87,19 @@ module ActionView
     #       expected_encoding
     #     )
 
+    ##
+    # :method: local_assigns
+    #
+    # Returns a hash with the defined local variables.
+    #
+    # Given this sub template rendering:
+    #
+    #   <%= render "shared/header", { headline: "Welcome", person: person } %>
+    #
+    # You can use +local_assigns+ in the sub templates to access the local variables:
+    #
+    #   local_assigns[:headline] # => "Welcome"
+
     eager_autoload do
       autoload :Error
       autoload :Handlers
@@ -103,7 +116,7 @@ module ActionView
 
     # This finalizer is needed (and exactly with a proc inside another proc)
     # otherwise templates leak in development.
-    Finalizer = proc do |method_name, mod|
+    Finalizer = proc do |method_name, mod| # :nodoc:
       proc do
         mod.module_eval do
           remove_possible_method method_name
@@ -127,7 +140,7 @@ module ActionView
       @compile_mutex     = Mutex.new
     end
 
-    # Returns if the underlying handler supports streaming. If so,
+    # Returns whether the underlying handler supports streaming. If so,
     # a streaming buffer *may* be passed when it start rendering.
     def supports_streaming?
       handler.respond_to?(:supports_streaming?) && handler.supports_streaming?
@@ -140,7 +153,7 @@ module ActionView
     # we use a bang in this instrumentation because you don't want to
     # consume this in production. This is only slow if it's being listened to.
     def render(view, locals, buffer=nil, &block)
-      instrument("!render_template") do
+      instrument("!render_template".freeze) do
         compile!(view)
         view.send(method_name, locals, buffer, &block)
       end
@@ -172,7 +185,7 @@ module ActionView
     end
 
     def inspect
-      @inspect ||= defined?(Rails.root) ? identifier.sub("#{Rails.root}/", '') : identifier
+      @inspect ||= defined?(Rails.root) ? identifier.sub("#{Rails.root}/", ''.freeze) : identifier
     end
 
     # This method is responsible for properly setting the encoding of the
@@ -307,7 +320,7 @@ module ActionView
             template = refresh(view)
             template.encode!
           end
-          raise Template::Error.new(template, e)
+          raise Template::Error.new(template)
         end
       end
 
@@ -319,18 +332,23 @@ module ActionView
       def method_name #:nodoc:
         @method_name ||= begin
           m = "_#{identifier_method_name}__#{@identifier.hash}_#{__id__}"
-          m.tr!('-', '_')
+          m.tr!('-'.freeze, '_'.freeze)
           m
         end
       end
 
       def identifier_method_name #:nodoc:
-        inspect.tr('^a-z_', '_')
+        inspect.tr('^a-z_'.freeze, '_'.freeze)
       end
 
       def instrument(action, &block)
         payload = { virtual_path: @virtual_path, identifier: @identifier }
-        ActiveSupport::Notifications.instrument("#{action}.action_view", payload, &block)
+        case action
+        when "!render_template".freeze
+          ActiveSupport::Notifications.instrument("!render_template.action_view".freeze, payload, &block)
+        else
+          ActiveSupport::Notifications.instrument("#{action}.action_view".freeze, payload, &block)
+        end
       end
   end
 end

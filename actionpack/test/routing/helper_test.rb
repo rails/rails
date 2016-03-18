@@ -26,20 +26,6 @@ module ActionDispatch
           x.new.pond_duck_path Duck.new
         end
       end
-
-      def test_path_deprecation
-        rs = ::ActionDispatch::Routing::RouteSet.new
-        rs.draw do
-          resources :ducks
-        end
-
-        x = Class.new {
-          include rs.url_helpers(false)
-        }
-        assert_deprecated do
-          assert_equal '/ducks', x.new.ducks_path
-        end
-      end
     end
   end
 end

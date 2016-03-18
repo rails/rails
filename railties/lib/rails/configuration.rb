@@ -33,8 +33,9 @@ module Rails
     #     config.middleware.delete ActionDispatch::Flash
     #
     class MiddlewareStackProxy
-      def initialize
-        @operations = []
+      def initialize(operations = [], delete_operations = [])
+        @operations = operations
+        @delete_operations = delete_operations
       end
 
       def insert_before(*args, &block)
@@ -56,7 +57,7 @@ module Rails
       end
 
       def delete(*args, &block)
-        @operations << [__method__, args, block]
+        @delete_operations << [__method__, args, block]
       end
 
       def unshift(*args, &block)
@@ -64,15 +65,29 @@ module Rails
       end
 
       def merge_into(other) #:nodoc:
-        @operations.each do |operation, args, block|
+        (@operations + @delete_operations).each do |operation, args, block|
           other.send(operation, *args, &block)
         end
+
         other
       end
+
+      def +(other) # :nodoc:
+        MiddlewareStackProxy.new(@operations + other.operations, @delete_operations + other.delete_operations)
+      end
+
+      protected
+        def operations
+          @operations
+        end
+
+        def delete_operations
+          @delete_operations
+        end
     end
 
     class Generators #:nodoc:
-      attr_accessor :aliases, :options, :templates, :fallbacks, :colorize_logging
+      attr_accessor :aliases, :options, :templates, :fallbacks, :colorize_logging, :api_only
       attr_reader :hidden_namespaces
 
       def initialize
@@ -81,6 +96,7 @@ module Rails
         @fallbacks = {}
         @templates = []
         @colorize_logging = true
+        @api_only = false
         @hidden_namespaces = []
       end
 

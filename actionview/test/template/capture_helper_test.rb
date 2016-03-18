@@ -34,7 +34,7 @@ class CaptureHelperTest < ActionView::TestCase
   end
 
   def test_capture_doesnt_escape_twice
-    string = @av.capture { '&lt;em&gt;bar&lt;/em&gt;'.html_safe }
+    string = @av.capture { raw('&lt;em&gt;bar&lt;/em&gt;') }
     assert_equal '&lt;em&gt;bar&lt;/em&gt;', string
   end
 
@@ -148,6 +148,19 @@ class CaptureHelperTest < ActionView::TestCase
     assert ! content_for?(:something_else)
   end
 
+  def test_content_for_should_be_html_safe_after_flush_empty
+    assert ! content_for?(:title)
+    content_for :title do
+      content_tag(:p, 'title')
+    end
+    assert content_for(:title).html_safe?
+    content_for :title, "", flush: true
+    content_for(:title) do
+      content_tag(:p, 'title')
+    end
+    assert content_for(:title).html_safe?
+  end
+
   def test_provide
     assert !content_for?(:title)
     provide :title, "hi"
@@ -158,7 +171,7 @@ class CaptureHelperTest < ActionView::TestCase
 
     @view_flow = ActionView::OutputFlow.new
     provide :title, "hi"
-    provide :title, "<p>title</p>".html_safe
+    provide :title, raw("<p>title</p>")
     assert_equal "hi<p>title</p>", content_for(:title)
   end
 
@@ -209,11 +222,5 @@ class CaptureHelperTest < ActionView::TestCase
 
   def alt_encoding(output_buffer)
     output_buffer.encoding == Encoding::US_ASCII ? Encoding::UTF_8 : Encoding::US_ASCII
-  end
-
-  def view_with_controller
-    TestController.new.view_context.tap do |view|
-      view.output_buffer = ActionView::OutputBuffer.new
-    end
   end
 end

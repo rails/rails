@@ -23,8 +23,9 @@ module Rails
           type = type.to_sym if type
 
           if type && reference?(type)
-            references_index = UNIQ_INDEX_OPTIONS.include?(has_index) ? { unique: true } : true
-            attr_options[:index] = references_index
+            if UNIQ_INDEX_OPTIONS.include?(has_index)
+              attr_options[:index] = { unique: true }
+            end
           end
 
           new(name, type, has_index, attr_options)
@@ -142,7 +143,11 @@ module Rails
       end
 
       def password_digest?
-        name == 'password' && type == :digest 
+        name == 'password' && type == :digest
+      end
+
+      def token?
+        type == :token
       end
 
       def inject_options
@@ -158,6 +163,10 @@ module Rails
           if required?
             options.delete(:required)
             options[:null] = false
+          end
+
+          if reference? && !polymorphic?
+            options[:foreign_key] = true
           end
         end
       end

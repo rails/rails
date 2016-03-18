@@ -1,11 +1,9 @@
-# encoding: utf-8
 require "cases/helper"
 require 'support/schema_dumping_helper'
 
-class PostgresqlArrayTest < ActiveRecord::TestCase
+class PostgresqlArrayTest < ActiveRecord::PostgreSQLTestCase
   include SchemaDumpingHelper
   include InTimeZone
-  OID = ActiveRecord::ConnectionAdapters::PostgreSQL::OID
 
   class PgArray < ActiveRecord::Base
     self.table_name = 'pg_arrays'
@@ -24,25 +22,25 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
         t.hstore :hstores, array: true
       end
     end
+    PgArray.reset_column_information
     @column = PgArray.columns_hash['tags']
+    @type = PgArray.type_for_attribute("tags")
   end
 
   teardown do
-    @connection.execute 'drop table if exists pg_arrays'
+    @connection.drop_table 'pg_arrays', if_exists: true
     disable_extension!('hstore', @connection)
   end
 
   def test_column
     assert_equal :string, @column.type
     assert_equal "character varying", @column.sql_type
-    assert @column.array
-    assert_not @column.number?
-    assert_not @column.binary?
+    assert @column.array?
+    assert_not @type.binary?
 
     ratings_column = PgArray.columns_hash['ratings']
     assert_equal :integer, ratings_column.type
-    assert ratings_column.array
-    assert_not ratings_column.number?
+    assert ratings_column.array?
   end
 
   def test_default
@@ -74,7 +72,7 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
 
     assert_equal :text, column.type
     assert_equal [], PgArray.column_defaults['snippets']
-    assert column.array
+    assert column.array?
   end
 
   def test_change_column_cant_make_non_array_column_to_array
@@ -94,9 +92,9 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
   end
 
   def test_type_cast_array
-    assert_equal(['1', '2', '3'], @column.type_cast_from_database('{1,2,3}'))
-    assert_equal([], @column.type_cast_from_database('{}'))
-    assert_equal([nil], @column.type_cast_from_database('{NULL}'))
+    assert_equal(['1', '2', '3'], @type.deserialize('{1,2,3}'))
+    assert_equal([], @type.deserialize('{}'))
+    assert_equal([nil], @type.deserialize('{NULL}'))
   end
 
   def test_type_cast_integers
@@ -112,8 +110,8 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
 
   def test_schema_dump_with_shorthand
     output = dump_table_schema "pg_arrays"
-    assert_match %r[t.string\s+"tags",\s+array: true], output
-    assert_match %r[t.integer\s+"ratings",\s+array: true], output
+    assert_match %r[t\.string\s+"tags",\s+array: true], output
+    assert_match %r[t\.integer\s+"ratings",\s+array: true], output
   end
 
   def test_select_with_strings
@@ -208,16 +206,17 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
     x = PgArray.create!(tags: tags)
     x.reload
 
-    assert_equal x.tags_before_type_cast, PgArray.columns_hash['tags'].type_cast_for_database(tags)
+    assert_equal x.tags_before_type_cast, PgArray.type_for_attribute('tags').serialize(tags)
   end
 
   def test_quoting_non_standard_delimiters
     strings = ["hello,", "world;"]
-    comma_delim = OID::Array.new(ActiveRecord::Type::String.new, ',')
-    semicolon_delim = OID::Array.new(ActiveRecord::Type::String.new, ';')
+    oid = ActiveRecord::ConnectionAdapters::PostgreSQL::OID
+    comma_delim = oid::Array.new(ActiveRecord::Type::String.new, ',')
+    semicolon_delim = oid::Array.new(ActiveRecord::Type::String.new, ';')
 
-    assert_equal %({"hello,",world;}), comma_delim.type_cast_for_database(strings)
-    assert_equal %({hello,;"world;"}), semicolon_delim.type_cast_for_database(strings)
+    assert_equal %({"hello,",world;}), comma_delim.serialize(strings)
+    assert_equal %({hello,;"world;"}), semicolon_delim.serialize(strings)
   end
 
   def test_mutate_array

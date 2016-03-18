@@ -27,11 +27,8 @@ class Module
 
     def attr_internal_define(attr_name, type)
       internal_name = attr_internal_ivar_name(attr_name).sub(/\A@/, '')
-      # class_eval is necessary on 1.9 or else the methods are made private
-      class_eval do
-        # use native attr_* methods as they are faster on some Ruby implementations
-        send("attr_#{type}", internal_name)
-      end
+      # use native attr_* methods as they are faster on some Ruby implementations
+      send("attr_#{type}", internal_name)
       attr_name, internal_name = "#{attr_name}=", "#{internal_name}=" if type == :writer
       alias_method attr_name, internal_name
       remove_method internal_name

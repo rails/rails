@@ -19,10 +19,10 @@ module ActiveRecord
             if Numeric === value || value !~ /[^0-9]/
               !value.to_i.zero?
             else
-              return false if ActiveRecord::ConnectionAdapters::Column::FALSE_VALUES.include?(value)
+              return false if ActiveModel::Type::Boolean::FALSE_VALUES.include?(value)
               !value.blank?
             end
-          elsif column.number?
+          elsif value.respond_to?(:zero?)
             !value.zero?
           else
             !value.blank?

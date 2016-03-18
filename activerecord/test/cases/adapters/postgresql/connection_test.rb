@@ -2,7 +2,7 @@ require "cases/helper"
 require 'support/connection_helper'
 
 module ActiveRecord
-  class PostgresqlConnectionTest < ActiveRecord::TestCase
+  class PostgresqlConnectionTest < ActiveRecord::PostgreSQLTestCase
     include ConnectionHelper
 
     class NonExistentTable < ActiveRecord::Base
@@ -90,7 +90,7 @@ module ActiveRecord
     end
 
     def test_tables_logs_name
-      @connection.tables('hello')
+      ActiveSupport::Deprecation.silence { @connection.tables('hello') }
       assert_equal 'SCHEMA', @subscriber.logged[0][1]
     end
 
@@ -100,7 +100,7 @@ module ActiveRecord
     end
 
     def test_table_exists_logs_name
-      @connection.table_exists?('items')
+      ActiveSupport::Deprecation.silence { @connection.table_exists?('items') }
       assert_equal 'SCHEMA', @subscriber.logged[0][1]
     end
 
@@ -125,14 +125,16 @@ module ActiveRecord
       assert_equal 'SCHEMA', @subscriber.logged[0][1]
     end
 
-    def test_statement_key_is_logged
-      bindval = 1
-      @connection.exec_query('SELECT $1::integer', 'SQL', [[nil, bindval]])
-      name = @subscriber.payloads.last[:statement_name]
-      assert name
-      res = @connection.exec_query("EXPLAIN (FORMAT JSON) EXECUTE #{name}(#{bindval})")
-      plan = res.column_types['QUERY PLAN'].type_cast_from_database res.rows.first.first
-      assert_operator plan.length, :>, 0
+    if ActiveRecord::Base.connection.prepared_statements
+      def test_statement_key_is_logged
+        bind = Relation::QueryAttribute.new(nil, 1, Type::Value.new)
+        @connection.exec_query('SELECT $1::integer', 'SQL', [bind], prepare: true)
+        name = @subscriber.payloads.last[:statement_name]
+        assert name
+        res = @connection.exec_query("EXPLAIN (FORMAT JSON) EXECUTE #{name}(1)")
+        plan = res.column_types['QUERY PLAN'].deserialize res.rows.first.first
+        assert_operator plan.length, :>, 0
+      end
     end
 
     # Must have PostgreSQL >= 9.2, or with_manual_interventions set to
@@ -208,6 +210,48 @@ module ActiveRecord
         # This should execute a query that does not raise an error
         ActiveRecord::Base.establish_connection(orig_connection.deep_merge({:variables => {:debug_print_plan => :default}}))
       end
+    end
+
+    def test_get_and_release_advisory_lock
+      lock_id = 5295901941911233559
+      list_advisory_locks = <<-SQL
+        SELECT locktype,
+              (classid::bigint << 32) | objid::bigint AS lock_id
+        FROM pg_locks
+        WHERE locktype = 'advisory'
+      SQL
+
+      got_lock = @connection.get_advisory_lock(lock_id)
+      assert got_lock, "get_advisory_lock should have returned true but it didn't"
+
+      advisory_lock = @connection.query(list_advisory_locks).find {|l| l[1] == lock_id}
+      assert advisory_lock,
+        "expected to find an advisory lock with lock_id #{lock_id} but there wasn't one"
+
+      released_lock = @connection.release_advisory_lock(lock_id)
+      assert released_lock, "expected release_advisory_lock to return true but it didn't"
+
+      advisory_locks = @connection.query(list_advisory_locks).select {|l| l[1] == lock_id}
+      assert_empty advisory_locks,
+        "expected to have released advisory lock with lock_id #{lock_id} but it was still held"
+    end
+
+    def test_release_non_existent_advisory_lock
+      fake_lock_id = 2940075057017742022
+      with_warning_suppression do
+        released_non_existent_lock = @connection.release_advisory_lock(fake_lock_id)
+        assert_equal released_non_existent_lock, false,
+          'expected release_advisory_lock to return false when there was no lock to release'
+      end
+    end
+
+    protected
+
+    def with_warning_suppression
+      log_level = @connection.client_min_messages
+      @connection.client_min_messages = 'error'
+      yield
+      @connection.client_min_messages = log_level
     end
   end
 end

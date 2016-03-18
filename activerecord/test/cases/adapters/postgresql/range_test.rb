@@ -1,14 +1,16 @@
 require "cases/helper"
 require 'support/connection_helper'
 
-if ActiveRecord::Base.connection.supports_ranges?
+if ActiveRecord::Base.connection.respond_to?(:supports_ranges?) && ActiveRecord::Base.connection.supports_ranges?
   class PostgresqlRange < ActiveRecord::Base
     self.table_name = "postgresql_ranges"
+    self.time_zone_aware_types += [:tsrange, :tstzrange]
   end
 
-  class PostgresqlRangeTest < ActiveRecord::TestCase
-    self.use_transactional_fixtures = false
+  class PostgresqlRangeTest < ActiveRecord::PostgreSQLTestCase
+    self.use_transactional_tests = false
     include ConnectionHelper
+    include InTimeZone
 
     def setup
       @connection = PostgresqlRange.connection
@@ -91,7 +93,7 @@ _SQL
     end
 
     teardown do
-      @connection.execute 'DROP TABLE IF EXISTS postgresql_ranges'
+      @connection.drop_table 'postgresql_ranges', if_exists: true
       @connection.execute 'DROP TYPE IF EXISTS floatrange'
       reset_connection
     end
@@ -160,6 +162,26 @@ _SQL
       assert_nil @empty_range.float_range
     end
 
+    def test_timezone_awareness_tzrange
+      tz = "Pacific Time (US & Canada)"
+
+      in_time_zone tz do
+        PostgresqlRange.reset_column_information
+        time_string = Time.current.to_s
+        time = Time.zone.parse(time_string)
+
+        record = PostgresqlRange.new(tstz_range: time_string..time_string)
+        assert_equal time..time, record.tstz_range
+        assert_equal ActiveSupport::TimeZone[tz], record.tstz_range.begin.time_zone
+
+        record.save!
+        record.reload
+
+        assert_equal time..time, record.tstz_range
+        assert_equal ActiveSupport::TimeZone[tz], record.tstz_range.begin.time_zone
+      end
+    end
+
     def test_create_tstzrange
       tstzrange = Time.parse('2010-01-01 14:30:00 +0100')...Time.parse('2011-02-02 14:30:00 CDT')
       round_trip(@new_range, :tstz_range, tstzrange)
@@ -186,6 +208,26 @@ _SQL
                               Time.send(tz, 2010, 1, 1, 14, 30, 0)...Time.send(tz, 2011, 2, 2, 14, 30, 0))
       assert_nil_round_trip(@first_range, :ts_range,
                             Time.send(tz, 2010, 1, 1, 14, 30, 0)...Time.send(tz, 2010, 1, 1, 14, 30, 0))
+    end
+
+    def test_timezone_awareness_tsrange
+      tz = "Pacific Time (US & Canada)"
+
+      in_time_zone tz do
+        PostgresqlRange.reset_column_information
+        time_string = Time.current.to_s
+        time = Time.zone.parse(time_string)
+
+        record = PostgresqlRange.new(ts_range: time_string..time_string)
+        assert_equal time..time, record.ts_range
+        assert_equal ActiveSupport::TimeZone[tz], record.ts_range.begin.time_zone
+
+        record.save!
+        record.reload
+
+        assert_equal time..time, record.ts_range
+        assert_equal ActiveSupport::TimeZone[tz], record.ts_range.begin.time_zone
+      end
     end
 
     def test_create_numrange
@@ -230,36 +272,14 @@ _SQL
       assert_nil_round_trip(@first_range, :int8_range, 39999...39999)
     end
 
-    def test_exclude_beginning_for_subtypes_with_succ_method_is_deprecated
-      tz = ::ActiveRecord::Base.default_timezone
-
-      silence_warnings {
-        assert_deprecated {
-          range = PostgresqlRange.create!(date_range: "(''2012-01-02'', ''2012-01-04'']")
-          assert_equal Date.new(2012, 1, 3)..Date.new(2012, 1, 4), range.date_range
-        }
-        assert_deprecated {
-          range = PostgresqlRange.create!(ts_range: "(''2010-01-01 14:30'', ''2011-01-01 14:30'']")
-          assert_equal Time.send(tz, 2010, 1, 1, 14, 30, 1)..Time.send(tz, 2011, 1, 1, 14, 30, 0), range.ts_range
-        }
-        assert_deprecated {
-          range = PostgresqlRange.create!(tstz_range: "(''2010-01-01 14:30:00+05'', ''2011-01-01 14:30:00-03'']")
-          assert_equal Time.parse('2010-01-01 09:30:01 UTC')..Time.parse('2011-01-01 17:30:00 UTC'), range.tstz_range
-        }
-        assert_deprecated {
-          range = PostgresqlRange.create!(int4_range: "(1, 10]")
-          assert_equal 2..10, range.int4_range
-        }
-        assert_deprecated {
-          range = PostgresqlRange.create!(int8_range: "(10, 100]")
-          assert_equal 11..100, range.int8_range
-        }
-      }
-    end
-
     def test_exclude_beginning_for_subtypes_without_succ_method_is_not_supported
       assert_raises(ArgumentError) { PostgresqlRange.create!(num_range: "(0.1, 0.2]") }
       assert_raises(ArgumentError) { PostgresqlRange.create!(float_range: "(0.5, 0.7]") }
+      assert_raises(ArgumentError) { PostgresqlRange.create!(int4_range: "(1, 10]") }
+      assert_raises(ArgumentError) { PostgresqlRange.create!(int8_range: "(10, 100]") }
+      assert_raises(ArgumentError) { PostgresqlRange.create!(date_range: "(''2012-01-02'', ''2012-01-04'']") }
+      assert_raises(ArgumentError) { PostgresqlRange.create!(ts_range: "(''2010-01-01 14:30'', ''2011-01-01 14:30'']") }
+      assert_raises(ArgumentError) { PostgresqlRange.create!(tstz_range: "(''2010-01-01 14:30:00+05'', ''2011-01-01 14:30:00-03'']") }
     end
 
     def test_update_all_with_ranges

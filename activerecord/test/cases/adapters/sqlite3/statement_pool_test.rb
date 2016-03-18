@@ -2,11 +2,11 @@ require 'cases/helper'
 
 module ActiveRecord::ConnectionAdapters
   class SQLite3Adapter
-    class StatementPoolTest < ActiveRecord::TestCase
+    class StatementPoolTest < ActiveRecord::SQLite3TestCase
       if Process.respond_to?(:fork)
         def test_cache_is_per_pid
 
-          cache = StatementPool.new nil, 10
+          cache = StatementPool.new(10)
           cache['foo'] = 'bar'
           assert_equal 'bar', cache['foo']
 
@@ -22,4 +22,3 @@ module ActiveRecord::ConnectionAdapters
     end
   end
 end
-

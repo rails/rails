@@ -118,15 +118,17 @@ class TestERBTemplate < ActiveSupport::TestCase
   def test_refresh_with_templates
     @template = new_template("Hello", :virtual_path => "test/foo/bar")
     @template.locals = [:key]
-    @context.lookup_context.expects(:find_template).with("bar", %w(test/foo), false, [:key]).returns("template")
-    assert_equal "template", @template.refresh(@context)
+    assert_called_with(@context.lookup_context, :find_template,["bar", %w(test/foo), false, [:key]], returns: "template") do
+      assert_equal "template", @template.refresh(@context)
+    end
   end
 
   def test_refresh_with_partials
     @template = new_template("Hello", :virtual_path => "test/_foo")
     @template.locals = [:key]
-    @context.lookup_context.expects(:find_template).with("foo", %w(test), true, [:key]).returns("partial")
-    assert_equal "partial", @template.refresh(@context)
+    assert_called_with(@context.lookup_context, :find_template,[ "foo", %w(test), true, [:key]], returns: "partial") do
+      assert_equal "partial", @template.refresh(@context)
+    end
   end
 
   def test_refresh_raises_an_error_without_virtual_path
@@ -183,10 +185,11 @@ class TestERBTemplate < ActiveSupport::TestCase
   end
 
   def test_error_when_template_isnt_valid_utf8
-    assert_raises(ActionView::Template::Error, /\xFC/) do
+    e = assert_raises ActionView::Template::Error do
       @template = new_template("hello \xFCmlat", :virtual_path => nil)
       render
     end
+    assert_match(/\xFC/, e.message)
   end
 
   def with_external_encoding(encoding)

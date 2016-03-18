@@ -57,6 +57,7 @@ module ActiveModel
   # (see below).
   module Model
     extend ActiveSupport::Concern
+    include ActiveModel::AttributeAssignment
     include ActiveModel::Validations
     include ActiveModel::Conversion
 
@@ -75,10 +76,8 @@ module ActiveModel
     #   person = Person.new(name: 'bob', age: '18')
     #   person.name # => "bob"
     #   person.age  # => "18"
-    def initialize(params={})
-      params.each do |attr, value|
-        self.public_send("#{attr}=", value)
-      end if params
+    def initialize(attributes={})
+      assign_attributes(attributes) if attributes
 
       super()
     end

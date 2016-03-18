@@ -4,7 +4,6 @@ require 'models/pet'
 require 'models/topic'
 
 class TransactionCallbacksTest < ActiveRecord::TestCase
-  self.use_transactional_fixtures = false
   fixtures :topics, :owners, :pets
 
   class ReplyWithCallbacks < ActiveRecord::Base
@@ -35,10 +34,11 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
 
     has_many :replies, class_name: "ReplyWithCallbacks", foreign_key: "parent_id"
 
+    before_commit { |record| record.do_before_commit(nil) }
     after_commit { |record| record.do_after_commit(nil) }
-    after_commit(on: :create) { |record| record.do_after_commit(:create) }
-    after_commit(on: :update) { |record| record.do_after_commit(:update) }
-    after_commit(on: :destroy) { |record| record.do_after_commit(:destroy) }
+    after_create_commit { |record| record.do_after_commit(:create) }
+    after_update_commit { |record| record.do_after_commit(:update) }
+    after_destroy_commit { |record| record.do_after_commit(:destroy) }
     after_rollback { |record| record.do_after_rollback(nil) }
     after_rollback(on: :create) { |record| record.do_after_rollback(:create) }
     after_rollback(on: :update) { |record| record.do_after_rollback(:update) }
@@ -46,6 +46,12 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
 
     def history
       @history ||= []
+    end
+
+    def before_commit_block(on = nil, &block)
+      @before_commit ||= {}
+      @before_commit[on] ||= []
+      @before_commit[on] << block
     end
 
     def after_commit_block(on = nil, &block)
@@ -58,6 +64,11 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
       @after_rollback ||= {}
       @after_rollback[on] ||= []
       @after_rollback[on] << block
+    end
+
+    def do_before_commit(on)
+      blocks = @before_commit[on] if defined?(@before_commit)
+      blocks.each{|b| b.call(self)} if blocks
     end
 
     def do_after_commit(on)
@@ -73,6 +84,20 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
 
   def setup
     @first = TopicWithCallbacks.find(1)
+  end
+
+  # FIXME: Test behavior, not implementation.
+  def test_before_commit_exception_should_pop_transaction_stack
+    @first.before_commit_block { raise 'better pop this txn from the stack!' }
+
+    original_txn = @first.class.connection.current_transaction
+
+    begin
+      @first.save!
+      fail
+    rescue
+      assert_equal original_txn, @first.class.connection.current_transaction
+    end
   end
 
   def test_call_after_commit_after_transaction_commits
@@ -200,21 +225,21 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
   end
 
   def test_call_after_rollback_when_commit_fails
-    @first.class.connection.singleton_class.send(:alias_method, :real_method_commit_db_transaction, :commit_db_transaction)
-    begin
-      @first.class.connection.singleton_class.class_eval do
-        def commit_db_transaction; raise "boom!"; end
+    @first.after_commit_block { |r| r.history << :after_commit }
+    @first.after_rollback_block { |r| r.history << :after_rollback }
+
+    assert_raises RuntimeError do
+      @first.transaction do
+        tx = @first.class.connection.transaction_manager.current_transaction
+        def tx.commit
+          raise
+        end
+
+        @first.save
       end
-
-      @first.after_commit_block{|r| r.history << :after_commit}
-      @first.after_rollback_block{|r| r.history << :after_rollback}
-
-      assert !@first.save rescue nil
-      assert_equal [:after_rollback], @first.history
-    ensure
-      @first.class.connection.singleton_class.send(:remove_method, :commit_db_transaction)
-      @first.class.connection.singleton_class.send(:alias_method, :commit_db_transaction, :real_method_commit_db_transaction)
     end
+
+    assert_equal [:after_rollback], @first.history
   end
 
   def test_only_call_after_rollback_on_records_rolled_back_to_a_savepoint
@@ -264,47 +289,6 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
 
     assert_equal 1, @first.commits
     assert_equal 2, @first.rollbacks
-  end
-
-  def test_after_transaction_callbacks_should_prevent_callbacks_from_being_called
-    old_transaction_config = ActiveRecord::Base.raise_in_transactional_callbacks
-    ActiveRecord::Base.raise_in_transactional_callbacks = false
-
-    def @first.last_after_transaction_error=(e); @last_transaction_error = e; end
-    def @first.last_after_transaction_error; @last_transaction_error; end
-    @first.after_commit_block{|r| r.last_after_transaction_error = :commit; raise "fail!";}
-    @first.after_rollback_block{|r| r.last_after_transaction_error = :rollback; raise "fail!";}
-
-    second = TopicWithCallbacks.find(3)
-    second.after_commit_block{|r| r.history << :after_commit}
-    second.after_rollback_block{|r| r.history << :after_rollback}
-
-    Topic.transaction do
-      @first.save!
-      second.save!
-    end
-    assert_equal :commit, @first.last_after_transaction_error
-    assert_equal [:after_commit], second.history
-
-    second.history.clear
-    Topic.transaction do
-      @first.save!
-      second.save!
-      raise ActiveRecord::Rollback
-    end
-    assert_equal :rollback, @first.last_after_transaction_error
-    assert_equal [:after_rollback], second.history
-  ensure
-    ActiveRecord::Base.raise_in_transactional_callbacks = old_transaction_config
-  end
-
-  def test_after_commit_should_not_raise_when_raise_in_transactional_callbacks_false
-    old_transaction_config = ActiveRecord::Base.raise_in_transactional_callbacks
-    ActiveRecord::Base.raise_in_transactional_callbacks = false
-    @first.after_commit_block{ fail "boom" }
-    Topic.transaction { @first.save! }
-  ensure
-    ActiveRecord::Base.raise_in_transactional_callbacks = old_transaction_config
   end
 
   def test_after_commit_callback_should_not_swallow_errors
@@ -409,7 +393,7 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
 end
 
 class CallbacksOnMultipleActionsTest < ActiveRecord::TestCase
-  self.use_transactional_fixtures = false
+  self.use_transactional_tests = false
 
   class TopicWithCallbacksOnMultipleActions < ActiveRecord::Base
     self.table_name = :topics
@@ -418,6 +402,9 @@ class CallbacksOnMultipleActionsTest < ActiveRecord::TestCase
     after_commit(on: [:create, :update]) { |record| record.history << :create_and_update }
     after_commit(on: [:update, :destroy]) { |record| record.history << :update_and_destroy }
 
+    before_commit(if: :save_before_commit_history) { |record| record.history << :before_commit }
+    before_commit(if: :update_title) { |record| record.update(title: "before commit title") }
+
     def clear_history
       @history = []
     end
@@ -425,6 +412,8 @@ class CallbacksOnMultipleActionsTest < ActiveRecord::TestCase
     def history
       @history ||= []
     end
+
+    attr_accessor :save_before_commit_history, :update_title
   end
 
   def test_after_commit_on_multiple_actions
@@ -440,5 +429,82 @@ class CallbacksOnMultipleActionsTest < ActiveRecord::TestCase
     topic.clear_history
     topic.destroy
     assert_equal [:update_and_destroy, :create_and_destroy], topic.history
+  end
+
+  def test_before_commit_actions
+    topic = TopicWithCallbacksOnMultipleActions.new
+    topic.save_before_commit_history = true
+    topic.save
+
+    assert_equal [:before_commit, :create_and_update, :create_and_destroy], topic.history
+  end
+
+  def test_before_commit_update_in_same_transaction
+    topic = TopicWithCallbacksOnMultipleActions.new
+    topic.update_title = true
+    topic.save
+
+    assert_equal "before commit title", topic.title
+    assert_equal "before commit title", topic.reload.title
+  end
+end
+
+
+class TransactionEnrollmentCallbacksTest < ActiveRecord::TestCase
+
+  class TopicWithoutTransactionalEnrollmentCallbacks < ActiveRecord::Base
+    self.table_name = :topics
+
+    before_commit_without_transaction_enrollment { |r| r.history << :before_commit }
+    after_commit_without_transaction_enrollment { |r| r.history << :after_commit }
+    after_rollback_without_transaction_enrollment { |r| r.history << :rollback }
+
+    def history
+      @history ||= []
+    end
+  end
+
+  def setup
+    @topic = TopicWithoutTransactionalEnrollmentCallbacks.create!
+  end
+
+  def test_commit_does_not_run_transactions_callbacks_without_enrollment
+    @topic.transaction do
+      @topic.content = 'foo'
+      @topic.save!
+    end
+    assert @topic.history.empty?
+  end
+
+  def test_commit_run_transactions_callbacks_with_explicit_enrollment
+    @topic.transaction do
+      2.times do
+        @topic.content = 'foo'
+        @topic.save!
+      end
+      @topic.class.connection.add_transaction_record(@topic)
+    end
+    assert_equal [:before_commit, :after_commit], @topic.history
+  end
+
+  def test_rollback_does_not_run_transactions_callbacks_without_enrollment
+    @topic.transaction do
+      @topic.content = 'foo'
+      @topic.save!
+      raise ActiveRecord::Rollback
+    end
+    assert @topic.history.empty?
+  end
+
+  def test_rollback_run_transactions_callbacks_with_explicit_enrollment
+    @topic.transaction do
+      2.times do
+        @topic.content = 'foo'
+        @topic.save!
+      end
+      @topic.class.connection.add_transaction_record(@topic)
+      raise ActiveRecord::Rollback
+    end
+    assert_equal [:rollback], @topic.history
   end
 end

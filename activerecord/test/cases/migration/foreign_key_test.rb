@@ -8,6 +8,7 @@ module ActiveRecord
     class ForeignKeyTest < ActiveRecord::TestCase
       include DdlHelper
       include SchemaDumpingHelper
+      include ActiveSupport::Testing::Stream
 
       class Rocket < ActiveRecord::Base
       end
@@ -29,8 +30,8 @@ module ActiveRecord
 
       teardown do
         if defined?(@connection)
-          @connection.drop_table "astronauts" if @connection.table_exists? 'astronauts' 
-          @connection.drop_table "rockets" if @connection.table_exists? 'rockets'
+          @connection.drop_table "astronauts", if_exists: true
+          @connection.drop_table "rockets", if_exists: true
         end
       end
 
@@ -57,7 +58,7 @@ module ActiveRecord
         assert_equal "rockets", fk.to_table
         assert_equal "rocket_id", fk.column
         assert_equal "id", fk.primary_key
-        assert_match(/^fk_rails_.{10}$/, fk.name)
+        assert_equal("fk_rails_78146ddd2e", fk.name)
       end
 
       def test_add_foreign_key_with_column
@@ -71,7 +72,7 @@ module ActiveRecord
         assert_equal "rockets", fk.to_table
         assert_equal "rocket_id", fk.column
         assert_equal "id", fk.primary_key
-        assert_match(/^fk_rails_.{10}$/, fk.name)
+        assert_equal("fk_rails_78146ddd2e", fk.name)
       end
 
       def test_add_foreign_key_with_non_standard_primary_key
@@ -98,7 +99,7 @@ module ActiveRecord
         assert_equal 1, foreign_keys.size
 
         fk = foreign_keys.first
-        if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
+        if current_adapter?(:Mysql2Adapter)
           # ON DELETE RESTRICT is the default on MySQL
           assert_equal nil, fk.on_delete
         else
@@ -144,6 +145,27 @@ module ActiveRecord
 
         fk = foreign_keys.first
         assert_equal :nullify, fk.on_update
+      end
+
+      def test_foreign_key_exists
+        @connection.add_foreign_key :astronauts, :rockets
+
+        assert @connection.foreign_key_exists?(:astronauts, :rockets)
+        assert_not @connection.foreign_key_exists?(:astronauts, :stars)
+      end
+
+      def test_foreign_key_exists_by_column
+        @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id"
+
+        assert @connection.foreign_key_exists?(:astronauts, column: "rocket_id")
+        assert_not @connection.foreign_key_exists?(:astronauts, column: "star_id")
+      end
+
+      def test_foreign_key_exists_by_name
+        @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id", name: "fancy_named_fk"
+
+        assert @connection.foreign_key_exists?(:astronauts, name: "fancy_named_fk")
+        assert_not @connection.foreign_key_exists?(:astronauts, name: "other_fancy_named_fk")
       end
 
       def test_remove_foreign_key_inferes_column
@@ -202,7 +224,7 @@ module ActiveRecord
         assert_match %r{\s+add_foreign_key "astronauts",.+on_update: :cascade,.+on_delete: :nullify$}, output
       end
 
-      class CreateCitiesAndHousesMigration < ActiveRecord::Migration
+      class CreateCitiesAndHousesMigration < ActiveRecord::Migration::Current
         def change
           create_table("cities") { |t| }
 
@@ -220,6 +242,38 @@ module ActiveRecord
       ensure
         silence_stream($stdout) { migration.migrate(:down) }
       end
+
+      class CreateSchoolsAndClassesMigration < ActiveRecord::Migration::Current
+        def change
+          create_table(:schools)
+
+          create_table(:classes) do |t|
+            t.column :school_id, :integer
+          end
+          add_foreign_key :classes, :schools
+        end
+      end
+
+      def test_add_foreign_key_with_prefix
+        ActiveRecord::Base.table_name_prefix = 'p_'
+        migration = CreateSchoolsAndClassesMigration.new
+        silence_stream($stdout) { migration.migrate(:up) }
+        assert_equal 1, @connection.foreign_keys("p_classes").size
+      ensure
+        silence_stream($stdout) { migration.migrate(:down) }
+        ActiveRecord::Base.table_name_prefix = nil
+      end
+
+      def test_add_foreign_key_with_suffix
+        ActiveRecord::Base.table_name_suffix = '_s'
+        migration = CreateSchoolsAndClassesMigration.new
+        silence_stream($stdout) { migration.migrate(:up) }
+        assert_equal 1, @connection.foreign_keys("classes_s").size
+      ensure
+        silence_stream($stdout) { migration.migrate(:down) }
+        ActiveRecord::Base.table_name_suffix = nil
+      end
+
     end
   end
 end

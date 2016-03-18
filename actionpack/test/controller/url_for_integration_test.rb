@@ -1,4 +1,3 @@
-# encoding: utf-8
 require 'abstract_unit'
 require 'controller/fake_controllers'
 require 'active_support/core_ext/object/with_options'
@@ -53,12 +52,15 @@ module ActionPack
 
       get 'news(.:format)' => "news#index"
 
-      get 'comment/:id(/:action)' => "comments#show"
-      get 'ws/:controller(/:action(/:id))', :ws => true
-      get 'account(/:action)' => "account#subscription"
-      get 'pages/:page_id/:controller(/:action(/:id))'
-      get ':controller/ping', :action => 'ping'
-      get ':controller(/:action(/:id))(.:format)'
+      ActiveSupport::Deprecation.silence {
+        get 'comment/:id(/:action)' => "comments#show"
+        get 'ws/:controller(/:action(/:id))', :ws => true
+        get 'account(/:action)' => "account#subscription"
+        get 'pages/:page_id/:controller(/:action(/:id))'
+        get ':controller/ping', :action => 'ping'
+        get ':controller(/:action(/:id))(.:format)'
+      }
+
       root :to => "news#index"
     }
 
@@ -159,6 +161,7 @@ module ActionPack
 
       ['/posts/ping',[    { :controller => 'posts', :action => 'ping' }]],
       ['/posts/show/1',[  { :controller => 'posts', :action => 'show', :id => '1' }]],
+      ['/posts/show/1',[  { :controller => 'posts', :action => 'show', :id => '1', :format => '' }]],
       ['/posts',[         { :controller => 'posts' }]],
       ['/posts',[         { :controller => 'posts', :action => 'index' }]],
       ['/posts/create',[  { :action => 'create' }, {:day=>nil, :month=>nil, :controller=>"posts", :action=>"show_date"}, '/blog']],

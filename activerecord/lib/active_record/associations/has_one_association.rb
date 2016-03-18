@@ -1,7 +1,8 @@
 module ActiveRecord
-  # = Active Record Belongs To Has One Association
+  # = Active Record Has One Association
   module Associations
     class HasOneAssociation < SingularAssociation #:nodoc:
+      include ForeignAssociation
 
       def handle_dependency
         case options[:dependent]
@@ -10,9 +11,16 @@ module ActiveRecord
 
         when :restrict_with_error
           if load_target
-            record = klass.human_attribute_name(reflection.name).downcase
-            owner.errors.add(:base, :"restrict_dependent_destroy.one", record: record)
-            false
+            record = owner.class.human_attribute_name(reflection.name).downcase
+            message = owner.errors.generate_message(:base, :'restrict_dependent_destroy.one', record: record, raise: true) rescue nil
+            if message
+              ActiveSupport::Deprecation.warn(<<-MESSAGE.squish)
+                The error key `:'restrict_dependent_destroy.one'` has been deprecated and will be removed in Rails 5.1.
+                Please use `:'restrict_dependent_destroy.has_one'` instead.
+              MESSAGE
+            end
+            owner.errors.add(:base, message || :'restrict_dependent_destroy.has_one', record: record)
+            throw(:abort)
           end
 
         else
@@ -57,7 +65,7 @@ module ActiveRecord
             when :destroy
               target.destroy
             when :nullify
-              target.update_columns(reflection.foreign_key => nil)
+              target.update_columns(reflection.foreign_key => nil) if target.persisted?
           end
         end
       end

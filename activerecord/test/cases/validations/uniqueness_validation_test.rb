@@ -1,10 +1,11 @@
-# encoding: utf-8
 require "cases/helper"
 require 'models/topic'
 require 'models/reply'
 require 'models/warehouse_thing'
 require 'models/guid'
 require 'models/event'
+require 'models/dashboard'
+require 'models/uuid_item'
 
 class Wizard < ActiveRecord::Base
   self.abstract_class = true
@@ -35,7 +36,34 @@ class TopicWithUniqEvent < Topic
   validates :event, uniqueness: true
 end
 
+class BigIntTest < ActiveRecord::Base
+  INT_MAX_VALUE = 2147483647
+  self.table_name = 'cars'
+  validates :engines_count, uniqueness: true, inclusion: { in: 0..INT_MAX_VALUE }
+end
+
+class BigIntReverseTest < ActiveRecord::Base
+  INT_MAX_VALUE = 2147483647
+  self.table_name = 'cars'
+  validates :engines_count, inclusion: { in: 0..INT_MAX_VALUE }
+  validates :engines_count, uniqueness: true
+end
+
+class CoolTopic < Topic
+  validates_uniqueness_of :id
+end
+
+class TopicWithAfterCreate < Topic
+  after_create :set_author
+
+  def set_author
+    update_attributes!(:author_name => "#{title} #{id}")
+  end
+end
+
 class UniquenessValidationTest < ActiveRecord::TestCase
+  INT_MAX_VALUE = 2147483647
+
   fixtures :topics, 'warehouse-things'
 
   repair_validations(Topic, Reply)
@@ -85,6 +113,16 @@ class UniquenessValidationTest < ActiveRecord::TestCase
     t2 = Topic.new('title' => 'abc')
     assert !t2.valid?
     assert t2.errors[:title]
+  end
+
+  def test_validate_uniqueness_when_integer_out_of_range
+    entry = BigIntTest.create(engines_count: INT_MAX_VALUE + 1)
+    assert_equal entry.errors[:engines_count], ['is not included in the list']
+  end
+
+  def test_validate_uniqueness_when_integer_out_of_range_show_order_does_not_matter
+    entry = BigIntReverseTest.create(engines_count: INT_MAX_VALUE + 1)
+    assert_equal entry.errors[:engines_count], ['is not included in the list']
   end
 
   def test_validates_uniqueness_with_newline_chars
@@ -385,5 +423,88 @@ class UniquenessValidationTest < ActiveRecord::TestCase
   def test_validate_uniqueness_on_empty_relation
     topic = TopicWithUniqEvent.new
     assert topic.valid?
+  end
+
+  def test_validate_uniqueness_of_custom_primary_key
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "keyboards"
+      self.primary_key = :key_number
+
+      validates_uniqueness_of :key_number
+
+      def self.name
+        "Keyboard"
+      end
+    end
+
+    klass.create!(key_number: 10)
+    key2 = klass.create!(key_number: 11)
+
+    key2.key_number = 10
+    assert_not key2.valid?
+  end
+
+  def test_validate_uniqueness_without_primary_key
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "dashboards"
+
+      validates_uniqueness_of :dashboard_id
+
+      def self.name; "Dashboard" end
+    end
+
+    abc = klass.create!(dashboard_id: "abc")
+    assert klass.new(dashboard_id: "xyz").valid?
+    assert_not klass.new(dashboard_id: "abc").valid?
+
+    abc.dashboard_id = "def"
+
+    e = assert_raises ActiveRecord::UnknownPrimaryKey do
+      abc.save!
+    end
+    assert_match(/\AUnknown primary key for table dashboards in model/, e.message)
+    assert_match(/Can not validate uniqueness for persisted record without primary key.\z/, e.message)
+  end
+
+  def test_validate_uniqueness_ignores_itself_when_primary_key_changed
+    Topic.validates_uniqueness_of(:title)
+
+    t = Topic.new("title" => "This is a unique title")
+    assert t.save, "Should save t as unique"
+
+    t.id += 1
+    assert t.valid?, "Should be valid"
+    assert t.save, "Should still save t as unique"
+  end
+
+  def test_validate_uniqueness_with_after_create_performing_save
+    TopicWithAfterCreate.validates_uniqueness_of(:title)
+    topic = TopicWithAfterCreate.create!(:title => "Title1")
+    assert topic.author_name.start_with?("Title1")
+
+    topic2 = TopicWithAfterCreate.new(:title => "Title1")
+    refute topic2.valid?
+    assert_equal(["has already been taken"], topic2.errors[:title])
+  end
+
+  def test_validate_uniqueness_uuid
+    skip unless current_adapter?(:PostgreSQLAdapter)
+    item = UuidItem.create!(uuid: SecureRandom.uuid, title: 'item1')
+    item.update(title: 'item1-title2')
+    assert_empty item.errors
+
+    item2 = UuidValidatingItem.create!(uuid: SecureRandom.uuid, title: 'item2')
+    item2.update(title: 'item2-title2')
+    assert_empty item2.errors
+  end
+
+  def test_validate_uniqueness_regular_id
+    item = CoolTopic.create!(title: 'MyItem')
+    assert_empty item.errors
+
+    item2 = CoolTopic.new(id: item.id, title: 'MyItem2')
+    refute item2.valid?
+
+    assert_equal(["has already been taken"], item2.errors[:id])
   end
 end

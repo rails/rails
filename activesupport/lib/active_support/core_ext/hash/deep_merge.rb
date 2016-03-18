@@ -4,7 +4,7 @@ class Hash
   #   h1 = { a: true, b: { c: [1, 2, 3] } }
   #   h2 = { a: false, b: { x: [3, 4, 5] } }
   #
-  #   h1.deep_merge(h2) #=> { a: false, b: { c: [1, 2, 3], x: [3, 4, 5] } }
+  #   h1.deep_merge(h2) # => { a: false, b: { c: [1, 2, 3], x: [3, 4, 5] } }
   #
   # Like with Hash#merge in the standard library, a block can be provided
   # to merge values:

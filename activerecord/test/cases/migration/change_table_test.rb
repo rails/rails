@@ -1,5 +1,4 @@
 require "cases/migration/helper"
-require "minitest/mock"
 
 module ActiveRecord
   class Migration
@@ -13,7 +12,7 @@ module ActiveRecord
       end
 
       def with_change_table
-        yield ConnectionAdapters::Table.new(:delete_me, @connection)
+        yield ActiveRecord::Base.connection.update_table_definition(:delete_me, @connection)
       end
 
       def test_references_column_type_adds_id
@@ -100,6 +99,13 @@ module ActiveRecord
         end
       end
 
+      def test_primary_key_creates_primary_key_column
+        with_change_table do |t|
+          @connection.expect :add_column, nil, [:delete_me, :id, :primary_key, primary_key: true, first: true]
+          t.primary_key :id, first: true
+        end
+      end
+
       def test_integer_creates_integer_column
         with_change_table do |t|
           @connection.expect :add_column, nil, [:delete_me, :foo, :integer, {}]
@@ -108,11 +114,37 @@ module ActiveRecord
         end
       end
 
+      def test_bigint_creates_bigint_column
+        with_change_table do |t|
+          @connection.expect :add_column, nil, [:delete_me, :foo, :bigint, {}]
+          @connection.expect :add_column, nil, [:delete_me, :bar, :bigint, {}]
+          t.bigint :foo, :bar
+        end
+      end
+
       def test_string_creates_string_column
         with_change_table do |t|
           @connection.expect :add_column, nil, [:delete_me, :foo, :string, {}]
           @connection.expect :add_column, nil, [:delete_me, :bar, :string, {}]
           t.string :foo, :bar
+        end
+      end
+
+      if current_adapter?(:PostgreSQLAdapter)
+        def test_json_creates_json_column
+          with_change_table do |t|
+            @connection.expect :add_column, nil, [:delete_me, :foo, :json, {}]
+            @connection.expect :add_column, nil, [:delete_me, :bar, :json, {}]
+            t.json :foo, :bar
+          end
+        end
+
+        def test_xml_creates_xml_column
+          with_change_table do |t|
+            @connection.expect :add_column, nil, [:delete_me, :foo, :xml, {}]
+            @connection.expect :add_column, nil, [:delete_me, :bar, :xml, {}]
+            t.xml :foo, :bar
+          end
         end
       end
 

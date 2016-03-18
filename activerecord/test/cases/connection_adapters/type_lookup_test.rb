@@ -79,13 +79,22 @@ module ActiveRecord
         assert_lookup_type :integer, 'bigint'
       end
 
+      def test_bigint_limit
+        cast_type = @connection.type_map.lookup("bigint")
+        if current_adapter?(:OracleAdapter)
+          assert_equal 19, cast_type.limit
+        else
+          assert_equal 8, cast_type.limit
+        end
+      end
+
       def test_decimal_without_scale
         types = %w{decimal(2) decimal(2,0) numeric(2) numeric(2,0) number(2) number(2,0)}
         types.each do |type|
           cast_type = @connection.type_map.lookup(type)
 
           assert_equal :decimal, cast_type.type
-          assert_equal 2, cast_type.type_cast_from_user(2.1)
+          assert_equal 2, cast_type.cast(2.1)
         end
       end
 

@@ -5,6 +5,7 @@ module ActionView
 
       eager_autoload do
         autoload :Base
+        autoload :Translator
         autoload :CheckBox
         autoload :CollectionCheckBoxes
         autoload :CollectionRadioButtons

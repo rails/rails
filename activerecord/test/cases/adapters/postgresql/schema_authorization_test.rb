@@ -3,8 +3,8 @@ require "cases/helper"
 class SchemaThing < ActiveRecord::Base
 end
 
-class SchemaAuthorizationTest < ActiveRecord::TestCase
-  self.use_transactional_fixtures = false
+class SchemaAuthorizationTest < ActiveRecord::PostgreSQLTestCase
+  self.use_transactional_tests = false
 
   TABLE_NAME = 'schema_things'
   COLUMNS = [
@@ -31,7 +31,7 @@ class SchemaAuthorizationTest < ActiveRecord::TestCase
     set_session_auth
     @connection.execute "RESET search_path"
     USERS.each do |u|
-      @connection.execute "DROP SCHEMA #{u} CASCADE"
+      @connection.drop_schema u
       @connection.execute "DROP USER #{u}"
     end
   end
@@ -55,20 +55,22 @@ class SchemaAuthorizationTest < ActiveRecord::TestCase
       set_session_auth
       USERS.each do |u|
         set_session_auth u
-        assert_equal u, @connection.exec_query("SELECT name FROM #{TABLE_NAME} WHERE id = $1", 'SQL', [[nil, 1]]).first['name']
+        assert_equal u, @connection.select_value("SELECT name FROM #{TABLE_NAME} WHERE id = 1")
         set_session_auth
       end
     end
   end
 
-  def test_auth_with_bind
-    assert_nothing_raised do
-      set_session_auth
-      USERS.each do |u|
-        @connection.clear_cache!
-        set_session_auth u
-        assert_equal u, @connection.exec_query("SELECT name FROM #{TABLE_NAME} WHERE id = $1", 'SQL', [[nil, 1]]).first['name']
+  if ActiveRecord::Base.connection.prepared_statements
+    def test_auth_with_bind
+      assert_nothing_raised do
         set_session_auth
+        USERS.each do |u|
+          @connection.clear_cache!
+          set_session_auth u
+          assert_equal u, @connection.select_value("SELECT name FROM #{TABLE_NAME} WHERE id = $1", 'SQL', [bind_param(1)])
+          set_session_auth
+        end
       end
     end
   end
@@ -111,4 +113,7 @@ class SchemaAuthorizationTest < ActiveRecord::TestCase
        @connection.session_auth =  auth || 'default'
     end
 
+    def bind_param(value)
+      ActiveRecord::Relation::QueryAttribute.new(nil, value, ActiveRecord::Type::Value.new)
+    end
 end

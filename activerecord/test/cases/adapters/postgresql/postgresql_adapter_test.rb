@@ -1,11 +1,11 @@
-# encoding: utf-8
 require "cases/helper"
 require 'support/ddl_helper'
 require 'support/connection_helper'
 
 module ActiveRecord
   module ConnectionAdapters
-    class PostgreSQLAdapterTest < ActiveRecord::TestCase
+    class PostgreSQLAdapterTest < ActiveRecord::PostgreSQLTestCase
+      self.use_transactional_tests = false
       include DdlHelper
       include ConnectionHelper
 
@@ -60,68 +60,38 @@ module ActiveRecord
         end
       end
 
-      def test_insert_sql_with_proprietary_returning_clause
-        with_example_table do
-          id = @connection.insert_sql("insert into ex (number) values(5150)", nil, "number")
-          assert_equal "5150", id
-        end
-      end
-
-      def test_insert_sql_with_quoted_schema_and_table_name
-        with_example_table do
-          id = @connection.insert_sql('insert into "public"."ex" (number) values(5150)')
-          expect = @connection.query('select max(id) from ex').first.first
-          assert_equal expect, id
-        end
-      end
-
-      def test_insert_sql_with_no_space_after_table_name
-        with_example_table do
-          id = @connection.insert_sql("insert into ex(number) values(5150)")
-          expect = @connection.query('select max(id) from ex').first.first
-          assert_equal expect, id
-        end
-      end
-
-      def test_multiline_insert_sql
-        with_example_table do
-          id = @connection.insert_sql(<<-SQL)
-          insert into ex(
-                         number)
-          values(
-                 5152
-                 )
-          SQL
-          expect = @connection.query('select max(id) from ex').first.first
-          assert_equal expect, id
-        end
-      end
-
-      def test_insert_sql_with_returning_disabled
-        connection = connection_without_insert_returning
-        id = connection.insert_sql("insert into postgresql_partitioned_table_parent (number) VALUES (1)")
-        expect = connection.query('select max(id) from postgresql_partitioned_table_parent').first.first
-        assert_equal expect, id
-      end
-
       def test_exec_insert_with_returning_disabled
         connection = connection_without_insert_returning
         result = connection.exec_insert("insert into postgresql_partitioned_table_parent (number) VALUES (1)", nil, [], 'id', 'postgresql_partitioned_table_parent_id_seq')
         expect = connection.query('select max(id) from postgresql_partitioned_table_parent').first.first
-        assert_equal expect, result.rows.first.first
+        assert_equal expect.to_i, result.rows.first.first
       end
 
       def test_exec_insert_with_returning_disabled_and_no_sequence_name_given
         connection = connection_without_insert_returning
         result = connection.exec_insert("insert into postgresql_partitioned_table_parent (number) VALUES (1)", nil, [], 'id')
         expect = connection.query('select max(id) from postgresql_partitioned_table_parent').first.first
-        assert_equal expect, result.rows.first.first
+        assert_equal expect.to_i, result.rows.first.first
+      end
+
+      def test_exec_insert_default_values_with_returning_disabled_and_no_sequence_name_given
+        connection = connection_without_insert_returning
+        result = connection.exec_insert("insert into postgresql_partitioned_table_parent DEFAULT VALUES", nil, [], 'id')
+        expect = connection.query('select max(id) from postgresql_partitioned_table_parent').first.first
+        assert_equal expect.to_i, result.rows.first.first
+      end
+
+      def test_exec_insert_default_values_quoted_schema_with_returning_disabled_and_no_sequence_name_given
+        connection = connection_without_insert_returning
+        result = connection.exec_insert('insert into "public"."postgresql_partitioned_table_parent" DEFAULT VALUES', nil, [], 'id')
+        expect = connection.query('select max(id) from postgresql_partitioned_table_parent').first.first
+        assert_equal expect.to_i, result.rows.first.first
       end
 
       def test_sql_for_insert_with_returning_disabled
         connection = connection_without_insert_returning
-        result = connection.sql_for_insert('sql', nil, nil, nil, 'binds')
-        assert_equal ['sql', 'binds'], result
+        sql, binds = connection.sql_for_insert('sql', nil, nil, nil, 'binds')
+        assert_equal ['sql', 'binds'], [sql, binds]
       end
 
       def test_serial_sequence
@@ -222,32 +192,8 @@ module ActiveRecord
           "DELETE FROM pg_depend WHERE objid = 'ex2_id_seq'::regclass AND refobjid = 'ex'::regclass AND deptype = 'a'"
         )
       ensure
-        @connection.exec_query('DROP TABLE IF EXISTS ex')
-        @connection.exec_query('DROP TABLE IF EXISTS ex2')
-      end
-
-      def test_exec_insert_number
-        with_example_table do
-          insert(@connection, 'number' => 10)
-
-          result = @connection.exec_query('SELECT number FROM ex WHERE number = 10')
-
-          assert_equal 1, result.rows.length
-          assert_equal "10", result.rows.last.last
-        end
-      end
-
-      def test_exec_insert_string
-        with_example_table do
-          str = 'いただきます！'
-          insert(@connection, 'number' => 10, 'data' => str)
-
-          result = @connection.exec_query('SELECT number, data FROM ex WHERE number = 10')
-
-          value = result.rows.last.last
-
-          assert_equal str, value
-        end
+        @connection.drop_table 'ex', if_exists: true
+        @connection.drop_table 'ex2', if_exists: true
       end
 
       def test_table_alias_length
@@ -269,43 +215,40 @@ module ActiveRecord
           assert_equal 1, result.rows.length
           assert_equal 2, result.columns.length
 
-          assert_equal [['1', 'foo']], result.rows
+          assert_equal [[1, 'foo']], result.rows
         end
       end
 
-      def test_exec_with_binds
-        with_example_table do
-          string = @connection.quote('foo')
-          @connection.exec_query("INSERT INTO ex (id, data) VALUES (1, #{string})")
-          result = @connection.exec_query(
-                                          'SELECT id, data FROM ex WHERE id = $1', nil, [[nil, 1]])
+      if ActiveRecord::Base.connection.prepared_statements
+        def test_exec_with_binds
+          with_example_table do
+            string = @connection.quote('foo')
+            @connection.exec_query("INSERT INTO ex (id, data) VALUES (1, #{string})")
 
-          assert_equal 1, result.rows.length
-          assert_equal 2, result.columns.length
+            bind = Relation::QueryAttribute.new("id", 1, Type::Value.new)
+            result = @connection.exec_query('SELECT id, data FROM ex WHERE id = $1', nil, [bind])
 
-          assert_equal [['1', 'foo']], result.rows
+            assert_equal 1, result.rows.length
+            assert_equal 2, result.columns.length
+
+            assert_equal [[1, 'foo']], result.rows
+          end
         end
-      end
 
-      def test_exec_typecasts_bind_vals
-        with_example_table do
-          string = @connection.quote('foo')
-          @connection.exec_query("INSERT INTO ex (id, data) VALUES (1, #{string})")
+        def test_exec_typecasts_bind_vals
+          with_example_table do
+            string = @connection.quote('foo')
+            @connection.exec_query("INSERT INTO ex (id, data) VALUES (1, #{string})")
 
-          column = @connection.columns('ex').find { |col| col.name == 'id' }
-          result = @connection.exec_query(
-                                          'SELECT id, data FROM ex WHERE id = $1', nil, [[column, '1-fuu']])
+            bind = Relation::QueryAttribute.new("id", "1-fuu", Type::Integer.new)
+            result = @connection.exec_query('SELECT id, data FROM ex WHERE id = $1', nil, [bind])
 
-          assert_equal 1, result.rows.length
-          assert_equal 2, result.columns.length
+            assert_equal 1, result.rows.length
+            assert_equal 2, result.columns.length
 
-          assert_equal [['1', 'foo']], result.rows
+            assert_equal [[1, 'foo']], result.rows
+          end
         end
-      end
-
-      def test_substitute_at
-        bind = @connection.substitute_at(nil)
-        assert_equal Arel.sql('$1'), bind.to_sql
       end
 
       def test_partial_index
@@ -430,19 +373,6 @@ module ActiveRecord
       end
 
       private
-      def insert(ctx, data)
-        binds   = data.map { |name, value|
-          [ctx.columns('ex').find { |x| x.name == name }, value]
-        }
-        columns = binds.map(&:first).map(&:name)
-
-        bind_subs = columns.length.times.map { |x| "$#{x + 1}" }
-
-        sql = "INSERT INTO ex (#{columns.join(", ")})
-               VALUES (#{bind_subs.join(', ')})"
-
-        ctx.exec_insert(sql, 'SQL', binds)
-      end
 
       def with_example_table(definition = 'id serial primary key, number integer, data character varying(255)', &block)
         super(@connection, 'ex', definition, &block)

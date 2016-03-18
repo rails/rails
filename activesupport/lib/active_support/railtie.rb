@@ -16,12 +16,17 @@ module ActiveSupport
     # Sets the default value for Time.zone
     # If assigned value cannot be matched to a TimeZone, an exception will be raised.
     initializer "active_support.initialize_time_zone" do |app|
+      begin
+        TZInfo::DataSource.get
+      rescue TZInfo::DataSourceNotFound => e
+        raise e.exception "tzinfo-data is not present. Please add gem 'tzinfo-data' to your Gemfile and run bundle install"
+      end
       require 'active_support/core_ext/time/zones'
       zone_default = Time.find_zone!(app.config.time_zone)
 
       unless zone_default
         raise 'Value assigned to config.time_zone not recognized. ' \
-          'Run "rake -D time" for a list of tasks for finding appropriate time zone names.'
+          'Run "rake time:zones:all" for a time zone names list.'
       end
 
       Time.zone_default = zone_default

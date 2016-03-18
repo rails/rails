@@ -29,7 +29,7 @@ module ImpressiveLibrary
   def useful_function() end
 end
 
-ActionController::Base.send :include, ImpressiveLibrary
+ActionController::Base.include(ImpressiveLibrary)
 
 class JustMeController < ActionController::Base
   clear_helpers
@@ -73,14 +73,8 @@ module LocalAbcHelper
 end
 
 class HelperPathsTest < ActiveSupport::TestCase
-  def setup
-    @request    = ActionController::TestRequest.new
-    @response   = ActionController::TestResponse.new
-  end
-
   def test_helpers_paths_priority
-    request  = ActionController::TestRequest.new
-    responses = HelpersPathsController.action(:index).call(request.env)
+    responses = HelpersPathsController.action(:index).call(ActionController::TestRequest::DEFAULT_ENV.dup)
 
     # helpers1_pack was given as a second path, so pack1_helper should be
     # included as the second one
@@ -141,27 +135,16 @@ class HelperTest < ActiveSupport::TestCase
   end
 
   def call_controller(klass, action)
-    request  = ActionController::TestRequest.new
-    klass.action(action).call(request.env)
+    klass.action(action).call(ActionController::TestRequest::DEFAULT_ENV.dup)
   end
 
   def test_helper_for_nested_controller
     assert_equal 'hello: Iz guuut!',
       call_controller(Fun::GamesController, "render_hello_world").last.body
-    # request  = ActionController::TestRequest.new
-    #
-    # resp = Fun::GamesController.action(:render_hello_world).call(request.env)
-    # assert_equal 'hello: Iz guuut!', resp.last.body
   end
 
   def test_helper_for_acronym_controller
     assert_equal "test: baz", call_controller(Fun::PdfController, "test").last.body
-    #
-    # request  = ActionController::TestRequest.new
-    # response = ActionController::TestResponse.new
-    # request.action = 'test'
-    #
-    # assert_equal 'test: baz', Fun::PdfController.process(request, response).body
   end
 
   def test_default_helpers_only
@@ -223,10 +206,10 @@ class HelperTest < ActiveSupport::TestCase
     # fun/pdf_helper.rb
     assert methods.include?(:foobar)
   end
-  
+
   def test_helper_proxy_config
     AllHelpersController.config.my_var = 'smth'
-    
+
     assert_equal 'smth', AllHelpersController.helpers.config.my_var
   end
 
@@ -249,7 +232,7 @@ class HelperTest < ActiveSupport::TestCase
 end
 
 
-class IsolatedHelpersTest < ActiveSupport::TestCase
+class IsolatedHelpersTest < ActionController::TestCase
   class A < ActionController::Base
     def index
       render :inline => '<%= shout %>'
@@ -273,13 +256,11 @@ class IsolatedHelpersTest < ActiveSupport::TestCase
   end
 
   def call_controller(klass, action)
-    request  = ActionController::TestRequest.new
-    klass.action(action).call(request.env)
+    klass.action(action).call(@request.env)
   end
 
   def setup
-    @request    = ActionController::TestRequest.new
-    @response   = ActionController::TestResponse.new
+    super
     @request.action = 'index'
   end
 

@@ -18,6 +18,7 @@ class Post < ActiveRecord::Base
   end
 
   scope :containing_the_letter_a, -> { where("body LIKE '%a%'") }
+  scope :titled_with_an_apostrophe, -> { where("title LIKE '%''%'") }
   scope :ranked_by_comments,      -> { order("comments_count DESC") }
 
   scope :limit_by, lambda {|l| limit(l) }
@@ -42,6 +43,8 @@ class Post < ActiveRecord::Base
 
   scope :tagged_with, ->(id) { joins(:taggings).where(taggings: { tag_id: id }) }
   scope :tagged_with_comment, ->(comment) { joins(:taggings).where(taggings: { comment: comment }) }
+
+  scope :typographically_interesting, -> { containing_the_letter_a.or(titled_with_an_apostrophe) }
 
   has_many   :comments do
     def find_most_recent
@@ -72,10 +75,6 @@ class Post < ActiveRecord::Base
     through: :author_with_address,
     source: :author_address_extra
 
-  has_many :comments_with_interpolated_conditions,
-    ->(p) { where "#{"#{p.aliased_table_name}." rescue ""}body = ?", 'Thank you for the welcome' },
-    :class_name => 'Comment'
-
   has_one  :very_special_comment
   has_one  :very_special_comment_with_post, -> { includes(:post) }, :class_name => "VerySpecialComment"
   has_one :very_special_comment_with_post_with_joins, -> { joins(:post).order('posts.id') }, class_name: "VerySpecialComment"
@@ -99,11 +98,11 @@ class Post < ActiveRecord::Base
     end
   end
 
-  has_many :taggings_with_delete_all, :class_name => 'Tagging', :as => :taggable, :dependent => :delete_all
-  has_many :taggings_with_destroy, :class_name => 'Tagging', :as => :taggable, :dependent => :destroy
+  has_many :taggings_with_delete_all, :class_name => 'Tagging', :as => :taggable, :dependent => :delete_all, counter_cache: :taggings_with_delete_all_count
+  has_many :taggings_with_destroy, :class_name => 'Tagging', :as => :taggable, :dependent => :destroy, counter_cache: :taggings_with_destroy_count
 
-  has_many :tags_with_destroy, :through => :taggings, :source => :tag, :dependent => :destroy
-  has_many :tags_with_nullify, :through => :taggings, :source => :tag, :dependent => :nullify
+  has_many :tags_with_destroy, :through => :taggings, :source => :tag, :dependent => :destroy, counter_cache: :tags_with_destroy_count
+  has_many :tags_with_nullify, :through => :taggings, :source => :tag, :dependent => :nullify, counter_cache: :tags_with_nullify_count
 
   has_many :misc_tags, -> { where :tags => { :name => 'Misc' } }, :through => :taggings, :source => :tag
   has_many :funky_tags, :through => :taggings, :source => :tag
@@ -127,6 +126,9 @@ class Post < ActiveRecord::Base
 
   has_many :taggings_using_author_id, :primary_key => :author_id, :as => :taggable, :class_name => 'Tagging'
   has_many :tags_using_author_id, :through => :taggings_using_author_id, :source => :tag
+
+  has_many :images, :as => :imageable, :foreign_key => :imageable_identifier, :foreign_type => :imageable_class
+  has_one :main_image, :as => :imageable, :foreign_key => :imageable_identifier, :foreign_type => :imageable_class, :class_name => 'Image'
 
   has_many :standard_categorizations, :class_name => 'Categorization', :foreign_key => :post_id
   has_many :author_using_custom_pk,  :through => :standard_categorizations
@@ -183,6 +185,7 @@ class SubStiPost < StiPost
 end
 
 class FirstPost < ActiveRecord::Base
+  self.inheritance_column = :disabled
   self.table_name = 'posts'
   default_scope { where(:id => 1) }
 
@@ -191,6 +194,7 @@ class FirstPost < ActiveRecord::Base
 end
 
 class PostWithDefaultInclude < ActiveRecord::Base
+  self.inheritance_column = :disabled
   self.table_name = 'posts'
   default_scope { includes(:comments) }
   has_many :comments, :foreign_key => :post_id
@@ -202,16 +206,35 @@ class PostWithSpecialCategorization < Post
 end
 
 class PostWithDefaultScope < ActiveRecord::Base
+  self.inheritance_column = :disabled
   self.table_name = 'posts'
   default_scope { order(:title) }
 end
 
+class PostWithPreloadDefaultScope < ActiveRecord::Base
+  self.table_name = 'posts'
+
+  has_many :readers, foreign_key: 'post_id'
+
+  default_scope { preload(:readers) }
+end
+
+class PostWithIncludesDefaultScope < ActiveRecord::Base
+  self.table_name = 'posts'
+
+  has_many :readers, foreign_key: 'post_id'
+
+  default_scope { includes(:readers) }
+end
+
 class SpecialPostWithDefaultScope < ActiveRecord::Base
+  self.inheritance_column = :disabled
   self.table_name = 'posts'
   default_scope { where(:id => [1, 5,6]) }
 end
 
 class PostThatLoadsCommentsInAnAfterSaveHook < ActiveRecord::Base
+  self.inheritance_column = :disabled
   self.table_name = 'posts'
   has_many :comments, class_name: "CommentThatAutomaticallyAltersPostBody", foreign_key: :post_id
 
@@ -221,6 +244,7 @@ class PostThatLoadsCommentsInAnAfterSaveHook < ActiveRecord::Base
 end
 
 class PostWithAfterCreateCallback < ActiveRecord::Base
+  self.inheritance_column = :disabled
   self.table_name = 'posts'
   has_many :comments, foreign_key: :post_id
 
@@ -230,6 +254,7 @@ class PostWithAfterCreateCallback < ActiveRecord::Base
 end
 
 class PostWithCommentWithDefaultScopeReferencesAssociation < ActiveRecord::Base
+  self.inheritance_column = :disabled
   self.table_name = 'posts'
   has_many :comment_with_default_scope_references_associations, foreign_key: :post_id
   has_one :first_comment, class_name: "CommentWithDefaultScopeReferencesAssociation", foreign_key: :post_id
@@ -237,4 +262,11 @@ end
 
 class SerializedPost < ActiveRecord::Base
   serialize :title
+end
+
+class ConditionalStiPost < Post
+  default_scope { where(title: 'Untitled') }
+end
+
+class SubConditionalStiPost < ConditionalStiPost
 end

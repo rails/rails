@@ -1,5 +1,5 @@
 require 'abstract_unit'
-require 'active_support/concurrency/latch'
+require 'concurrent/atomic/count_down_latch'
 Thread.abort_on_exception = true
 
 module ActionController
@@ -112,7 +112,7 @@ module ActionController
     class TestController < ActionController::Base
       include ActionController::Live
 
-      attr_accessor :latch, :tc
+      attr_accessor :latch, :tc, :error_latch
 
       def self.controller_path
         'test'
@@ -125,7 +125,7 @@ module ActionController
       end
 
       def render_text
-        render :text => 'zomg'
+        render plain: 'zomg'
       end
 
       def default_header
@@ -145,14 +145,13 @@ module ActionController
         response.headers['Content-Type'] = 'text/event-stream'
         %w{ hello world }.each do |word|
           response.stream.write word
-          latch.await
+          latch.wait
         end
         response.stream.close
       end
 
       def thread_locals
         tc.assert_equal 'aaron', Thread.current[:setting]
-        tc.assert_not_equal Thread.current.object_id, Thread.current[:originating_thread]
 
         response.headers['Content-Type'] = 'text/event-stream'
         %w{ hello world }.each do |word|
@@ -162,7 +161,7 @@ module ActionController
       end
 
       def with_stale
-        render text: 'stale' if stale?(etag: "123", template: false)
+        render plain: 'stale' if stale?(etag: "123", template: false)
       end
 
       def exception_in_view
@@ -204,6 +203,12 @@ module ActionController
       end
 
       def overfill_buffer_and_die
+        logger = ActionController::Base.logger || Logger.new($stdout)
+        response.stream.on_error do
+          logger.warn 'Error while streaming'
+          error_latch.count_down
+        end
+
         # Write until the buffer is full. It doesn't expose that
         # information directly, so we must hard-code its size:
         10.times do
@@ -212,7 +217,7 @@ module ActionController
         # .. plus one more, because the #each frees up a slot:
         response.stream.write '.'
 
-        latch.release
+        latch.count_down
 
         # This write will block, and eventually raise
         response.stream.write 'x'
@@ -233,7 +238,7 @@ module ActionController
         end
 
         logger.info 'Work complete'
-        latch.release
+        latch.count_down
       end
     end
 
@@ -255,99 +260,88 @@ module ActionController
       end
     end
 
+    def setup
+      super
+
+      def @controller.new_controller_thread
+        Thread.new { yield }
+      end
+    end
+
     def test_set_cookie
-      @controller = TestController.new
       get :set_cookie
       assert_equal({'hello' => 'world'}, @response.cookies)
       assert_equal "hello world", @response.body
     end
 
-    def test_set_response!
-      @controller.set_response!(@request)
-      assert_kind_of(Live::Response, @controller.response)
-      assert_equal @request, @controller.response.request
-    end
-
     def test_write_to_stream
-      @controller = TestController.new
       get :basic_stream
       assert_equal "helloworld", @response.body
       assert_equal 'text/event-stream', @response.headers['Content-Type']
     end
 
     def test_async_stream
-      @controller.latch = ActiveSupport::Concurrency::Latch.new
+      rubinius_skip "https://github.com/rubinius/rubinius/issues/2934"
+
+      @controller.latch = Concurrent::CountDownLatch.new
       parts             = ['hello', 'world']
 
-      @controller.request  = @request
-      @controller.response = @response
+      get :blocking_stream
 
-      t = Thread.new(@response) { |resp|
+      t = Thread.new(response) { |resp|
         resp.await_commit
         resp.stream.each do |part|
           assert_equal parts.shift, part
           ol = @controller.latch
-          @controller.latch = ActiveSupport::Concurrency::Latch.new
-          ol.release
+          @controller.latch = Concurrent::CountDownLatch.new
+          ol.count_down
         end
       }
-
-      @controller.process :blocking_stream
 
       assert t.join(3), 'timeout expired before the thread terminated'
     end
 
     def test_abort_with_full_buffer
-      @controller.latch = ActiveSupport::Concurrency::Latch.new
-
-      @request.parameters[:format] = 'plain'
-      @controller.request  = @request
-      @controller.response = @response
-
-      got_error = ActiveSupport::Concurrency::Latch.new
-      @response.stream.on_error do
-        ActionController::Base.logger.warn 'Error while streaming'
-        got_error.release
-      end
-
-      t = Thread.new(@response) { |resp|
-        resp.await_commit
-        _, _, body = resp.to_a
-        body.each do |part|
-          @controller.latch.await
-          body.close
-          break
-        end
-      }
+      @controller.latch = Concurrent::CountDownLatch.new
+      @controller.error_latch = Concurrent::CountDownLatch.new
 
       capture_log_output do |output|
-        @controller.process :overfill_buffer_and_die
+        get :overfill_buffer_and_die, :format => 'plain'
+
+        t = Thread.new(response) { |resp|
+          resp.await_commit
+          _, _, body = resp.to_a
+          body.each do
+            @controller.latch.wait
+            body.close
+            break
+          end
+        }
+
         t.join
-        got_error.await
+        @controller.error_latch.wait
         assert_match 'Error while streaming', output.rewind && output.read
       end
     end
 
     def test_ignore_client_disconnect
-      @controller.latch = ActiveSupport::Concurrency::Latch.new
-
-      @controller.request  = @request
-      @controller.response = @response
-
-      t = Thread.new(@response) { |resp|
-        resp.await_commit
-        _, _, body = resp.to_a
-        body.each do |part|
-          body.close
-          break
-        end
-      }
+      @controller.latch = Concurrent::CountDownLatch.new
 
       capture_log_output do |output|
-        @controller.process :ignore_client_disconnect
+        get :ignore_client_disconnect
+
+        t = Thread.new(response) { |resp|
+          resp.await_commit
+          _, _, body = resp.to_a
+          body.each do
+            body.close
+            break
+          end
+        }
+
         t.join
         Timeout.timeout(3) do
-          @controller.latch.await
+          @controller.latch.wait
         end
         assert_match 'Work complete', output.rewind && output.read
       end
@@ -362,11 +356,8 @@ module ActionController
     end
 
     def test_live_stream_default_header
-      @controller.request  = @request
-      @controller.response = @response
-      @controller.process :default_header
-      _, headers, _ = @response.prepare!
-      assert headers['Content-Type']
+      get :default_header
+      assert response.headers['Content-Type']
     end
 
     def test_render_text
@@ -404,8 +395,14 @@ module ActionController
     end
 
     def test_exception_callback_when_committed
+      current_threads = Thread.list
+
       capture_log_output do |output|
         get :exception_with_callback, format: 'text/event-stream'
+
+        # Wait on the execution of all threads
+        (Thread.list - current_threads).each(&:join)
+
         assert_equal %(data: "500 Internal Server Error"\n\n), response.body
         assert_match 'An exception occurred...', output.rewind && output.read
         assert_stream_closed
@@ -435,13 +432,13 @@ module ActionController
 
     def test_stale_without_etag
       get :with_stale
-      assert_equal 200, @response.status.to_i
+      assert_equal 200, response.status.to_i
     end
 
     def test_stale_with_etag
-      @request.if_none_match = Digest::MD5.hexdigest("123")
+      @request.if_none_match = %(W/"#{Digest::MD5.hexdigest('123')}")
       get :with_stale
-      assert_equal 304, @response.status.to_i
+      assert_equal 304, response.status.to_i
     end
   end
 
@@ -450,5 +447,44 @@ module ActionController
       buf = ActionController::Live::Buffer.new nil
       assert buf.call_on_error
     end
+  end
+end
+
+class LiveStreamRouterTest < ActionDispatch::IntegrationTest
+  class TestController < ActionController::Base
+    include ActionController::Live
+
+    def index
+      response.headers['Content-Type'] = 'text/event-stream'
+      sse = SSE.new(response.stream)
+      sse.write("{\"name\":\"John\"}")
+      sse.write({ name: "Ryan" })
+    ensure
+      sse.close
+    end
+  end
+
+  def self.call(env)
+    routes.call(env)
+  end
+
+  def self.routes
+    @routes ||= ActionDispatch::Routing::RouteSet.new
+  end
+
+  routes.draw do
+    get '/test' => 'live_stream_router_test/test#index'
+  end
+
+  def app
+    self.class
+  end
+
+  test "streaming served through the router" do
+    get "/test"
+
+    assert_response :ok
+    assert_match(/data: {\"name\":\"John\"}/, response.body)
+    assert_match(/data: {\"name\":\"Ryan\"}/, response.body)
   end
 end

@@ -1,9 +1,9 @@
 # This class is inherited by the has_one and belongs_to association classes
 
-module ActiveRecord::Associations::Builder
+module ActiveRecord::Associations::Builder # :nodoc:
   class SingularAssociation < Association #:nodoc:
-    def valid_options
-      super + [:dependent, :primary_key, :inverse_of, :required]
+    def self.valid_options(options)
+      super + [:foreign_type, :dependent, :primary_key, :inverse_of, :required]
     end
 
     def self.define_accessors(model, reflection)
@@ -26,13 +26,6 @@ module ActiveRecord::Associations::Builder
           association(:#{name}).create!(*args, &block)
         end
       CODE
-    end
-
-    def self.define_validations(model, reflection)
-      super
-      if reflection.options[:required]
-        model.validates_presence_of reflection.name
-      end
     end
   end
 end

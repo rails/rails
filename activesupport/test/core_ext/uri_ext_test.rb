@@ -1,4 +1,3 @@
-# encoding: utf-8
 require 'abstract_unit'
 require 'uri'
 require 'active_support/core_ext/uri'

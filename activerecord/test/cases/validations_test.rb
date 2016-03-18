@@ -1,4 +1,3 @@
-# encoding: utf-8
 require "cases/helper"
 require 'models/topic'
 require 'models/reply'
@@ -51,6 +50,13 @@ class ValidationsTest < ActiveRecord::TestCase
 
     r.author_name = "secret"
     assert r.valid?(:special_case)
+  end
+
+  def test_invalid_using_multiple_contexts
+    r = WrongReply.new(:title => 'Wrong Create')
+    assert r.invalid?([:special_case, :create])
+    assert_equal "Invalid", r.errors[:author_name].join
+    assert_equal "is Wrong Create", r.errors[:title].join
   end
 
   def test_validate
@@ -124,7 +130,7 @@ class ValidationsTest < ActiveRecord::TestCase
   def test_validates_acceptance_of_with_non_existent_table
     Object.const_set :IncorporealModel, Class.new(ActiveRecord::Base)
 
-    assert_nothing_raised ActiveRecord::StatementInvalid do
+    assert_nothing_raised do
       IncorporealModel.validates_acceptance_of(:incorporeal_column)
     end
   end
@@ -151,7 +157,7 @@ class ValidationsTest < ActiveRecord::TestCase
 
   def test_numericality_validation_with_mutation
     Topic.class_eval do
-      attribute :wibble, ActiveRecord::Type::String.new
+      attribute :wibble, :string
       validates_numericality_of :wibble, only_integer: true
     end
 
@@ -161,5 +167,16 @@ class ValidationsTest < ActiveRecord::TestCase
     assert topic.valid?
   ensure
     Topic.reset_column_information
+  end
+
+  def test_acceptance_validator_doesnt_require_db_connection
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = 'posts'
+    end
+    klass.reset_column_information
+
+    assert_no_queries do
+      klass.validates_acceptance_of(:foo)
+    end
   end
 end

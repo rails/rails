@@ -44,7 +44,7 @@ module ApplicationTests
           def test_index
             get '/posts'
             assert_response :success
-            assert_template "index"
+            assert_includes @response.body, 'Posts#index'
           end
         end
       RUBY
@@ -64,7 +64,8 @@ module ApplicationTests
       RUBY
 
       output = run_test_file('unit/failing_test.rb', env: { "BACKTRACE" => "1" })
-      assert_match %r{/app/test/unit/failing_test\.rb}, output
+      assert_match %r{test/unit/failing_test\.rb}, output
+      assert_match %r{test/unit/failing_test\.rb:4}, output
     end
 
     test "ruby schema migrations" do
@@ -231,7 +232,7 @@ module ApplicationTests
 
       assert_successful_test_run "models/user_test.rb"
 
-      Dir.chdir(app_path) { `bin/rake db:test:prepare` }
+      Dir.chdir(app_path) { `bin/rails db:test:prepare` }
 
       assert_unsuccessful_run "models/user_test.rb", <<-ASSERTION
 Expected: ["id", "name"]
@@ -300,23 +301,7 @@ Expected: ["id", "name"]
       end
 
       def run_test_file(name, options = {})
-        ruby '-Itest', "#{app_path}/test/#{name}", options.deep_merge(env: {"RAILS_ENV" => "test"})
-      end
-
-      def ruby(*args)
-        options = args.extract_options!
-        env = options.fetch(:env, {})
-        env["RUBYLIB"] = $:.join(':')
-
-        Dir.chdir(app_path) do
-          `#{env_string(env)} #{Gem.ruby} #{args.join(' ')} 2>&1`
-        end
-      end
-
-      def env_string(variables)
-        variables.map do |key, value|
-          "#{key}='#{value}'"
-        end.join " "
+        Dir.chdir(app_path) { `bin/rails test "#{app_path}/test/#{name}" 2>&1` }
       end
   end
 end

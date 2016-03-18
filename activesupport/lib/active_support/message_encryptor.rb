@@ -34,8 +34,8 @@ module ActiveSupport
     # Initialize a new MessageEncryptor. +secret+ must be at least as long as
     # the cipher key size. For the default 'aes-256-cbc' cipher, this is 256
     # bits. If you are using a user-entered secret, you can generate a suitable
-    # key with <tt>OpenSSL::Digest::SHA256.new(user_secret).digest</tt> or
-    # similar.
+    # key by using <tt>ActiveSupport::KeyGenerator</tt> or a similar key
+    # derivation function.
     #
     # Options:
     # * <tt>:cipher</tt>     - Cipher to use. Can be any cipher returned by
@@ -82,7 +82,7 @@ module ActiveSupport
 
     def _decrypt(encrypted_message)
       cipher = new_cipher
-      encrypted_data, iv = encrypted_message.split("--").map {|v| ::Base64.strict_decode64(v)}
+      encrypted_data, iv = encrypted_message.split("--".freeze).map {|v| ::Base64.strict_decode64(v)}
 
       cipher.decrypt
       cipher.key = @secret

@@ -33,6 +33,7 @@ module Rails
         scaffold_controller: '-c',
         stylesheets: '-y',
         stylesheet_engine: '-se',
+        scaffold_stylesheet: '-ss',
         template_engine: '-e',
         test_framework: '-t'
       },
@@ -44,6 +45,7 @@ module Rails
 
     DEFAULT_OPTIONS = {
       rails: {
+        api: false,
         assets: true,
         force_plural: false,
         helper: true,
@@ -56,12 +58,14 @@ module Rails
         scaffold_controller: :scaffold_controller,
         stylesheets: true,
         stylesheet_engine: :css,
+        scaffold_stylesheet: true,
         test_framework: false,
         template_engine: :erb
       }
     }
 
     def self.configure!(config) #:nodoc:
+      api_only! if config.api_only
       no_color! unless config.colorize_logging
       aliases.deep_merge! config.aliases
       options.deep_merge! config.options
@@ -97,6 +101,25 @@ module Rails
     #   Rails::Generators.fallbacks[:shoulda] = :test_unit
     def self.fallbacks
       @fallbacks ||= {}
+    end
+
+    # Configure generators for API only applications. It basically hides
+    # everything that is usually browser related, such as assets and session
+    # migration generators, and completely disable helpers and assets
+    # so generators such as scaffold won't create them.
+    def self.api_only!
+      hide_namespaces "assets", "helper", "css", "js"
+
+      options[:rails].merge!(
+        api: true,
+        assets: false,
+        helper: false,
+        template_engine: nil
+      )
+
+      if ARGV.first == 'mailer'
+        options[:rails].merge!(template_engine: :erb)
+      end
     end
 
     # Remove the color from output.
@@ -156,10 +179,10 @@ module Rails
         args << "--help" if args.empty? && klass.arguments.any?(&:required?)
         klass.start(args, config)
       else
-        options     = sorted_groups.map(&:last).flatten
+        options     = sorted_groups.flat_map(&:last)
         suggestions = options.sort_by {|suggested| levenshtein_distance(namespace.to_s, suggested) }.first(3)
         msg =  "Could not find generator '#{namespace}'. "
-        msg << "Maybe you meant #{ suggestions.map {|s| "'#{s}'"}.join(" or ") }\n"
+        msg << "Maybe you meant #{ suggestions.map {|s| "'#{s}'"}.to_sentence(last_word_connector: " or ", locale: :en) }\n"
         msg << "Run `rails generate --help` for more options."
         puts msg
       end
@@ -189,6 +212,7 @@ module Rails
           "#{test}:model",
           "#{test}:scaffold",
           "#{test}:view",
+          "#{test}:job",
           "#{template}:controller",
           "#{template}:scaffold",
           "#{template}:mailer",
@@ -260,19 +284,20 @@ module Rails
         t = str2
         n = s.length
         m = t.length
-        max = n/2
 
         return m if (0 == n)
         return n if (0 == m)
-        return n if (n - m).abs > max
 
         d = (0..m).to_a
         x = nil
 
-        str1.each_char.each_with_index do |char1,i|
+        # avoid duplicating an enumerable object in the loop
+        str2_codepoint_enumerable = str2.each_codepoint
+
+        str1.each_codepoint.with_index do |char1, i|
           e = i+1
 
-          str2.each_char.each_with_index do |char2,j|
+          str2_codepoint_enumerable.with_index do |char2, j|
             cost = (char1 == char2) ? 0 : 1
             x = [
                  d[j+1] + 1, # insertion
@@ -286,7 +311,7 @@ module Rails
           d[m] = x
         end
 
-        return x
+        x
       end
 
       # Prints a list of generators.

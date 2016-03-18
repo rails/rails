@@ -55,12 +55,12 @@ module ActionView
       #   # => <script src="http://www.example.com/xmlhr.js"></script>
       def javascript_include_tag(*sources)
         options = sources.extract_options!.stringify_keys
-        path_options = options.extract!('protocol', 'extname').symbolize_keys
+        path_options = options.extract!('protocol', 'extname', 'host').symbolize_keys
         sources.uniq.map { |source|
           tag_options = {
             "src" => path_to_javascript(source, path_options)
           }.merge!(options)
-          content_tag(:script, "", tag_options)
+          content_tag("script".freeze, "", tag_options)
         }.join("\n").html_safe
       end
 
@@ -91,7 +91,7 @@ module ActionView
       #   #    <link href="/css/stylish.css" media="screen" rel="stylesheet" />
       def stylesheet_link_tag(*sources)
         options = sources.extract_options!.stringify_keys
-        path_options = options.extract!('protocol').symbolize_keys
+        path_options = options.extract!('protocol', 'host').symbolize_keys
 
         sources.uniq.map { |source|
           tag_options = {
@@ -127,7 +127,7 @@ module ActionView
       #   auto_discovery_link_tag(:rss, {controller: "news", action: "feed"})
       #   # => <link rel="alternate" type="application/rss+xml" title="RSS" href="http://www.currenthost.com/news/feed" />
       #   auto_discovery_link_tag(:rss, "http://www.example.com/feed.rss", {title: "Example RSS"})
-      #   # => <link rel="alternate" type="application/rss+xml" title="Example RSS" href="http://www.example.com/feed" />
+      #   # => <link rel="alternate" type="application/rss+xml" title="Example RSS" href="http://www.example.com/feed.rss" />
       def auto_discovery_link_tag(type = :rss, url_options = {}, tag_options = {})
         if !(type == :rss || type == :atom) && tag_options[:type].blank?
           raise ArgumentError.new("You should pass :type tag_option key explicitly, because you have passed #{type} type other than :rss or :atom.")
@@ -136,7 +136,7 @@ module ActionView
         tag(
           "link",
           "rel"   => tag_options[:rel] || "alternate",
-          "type"  => tag_options[:type] || Mime::Type.lookup_by_extension(type.to_s).to_s,
+          "type"  => tag_options[:type] || Template::Types[type].to_s,
           "title" => tag_options[:title] || type.to_s.upcase,
           "href"  => url_options.is_a?(Hash) ? url_for(url_options.merge(:only_path => false)) : url_options
         )
@@ -205,8 +205,11 @@ module ActionView
       #   # => <img alt="Icon" height="32" src="/icons/icon.gif" width="32" />
       #   image_tag("/icons/icon.gif", class: "menu_icon")
       #   # => <img alt="Icon" class="menu_icon" src="/icons/icon.gif" />
+      #   image_tag("/icons/icon.gif", data: { title: 'Rails Application' })
+      #   # => <img data-title="Rails Application" src="/icons/icon.gif" />
       def image_tag(source, options={})
         options = options.symbolize_keys
+        check_for_image_tag_errors(options)
 
         src = options[:src] = path_to_image(source)
 
@@ -236,7 +239,7 @@ module ActionView
       #   image_alt('underscored_file_name.png')
       #   # => Underscored file name
       def image_alt(src)
-        File.basename(src, '.*').sub(/-[[:xdigit:]]{32}\z/, '').tr('-_', ' ').capitalize
+        File.basename(src, '.*'.freeze).sub(/-[[:xdigit:]]{32,64}\z/, ''.freeze).tr('-_'.freeze, ' '.freeze).capitalize
       end
 
       # Returns an HTML video tag for the +sources+. If +sources+ is a string,
@@ -318,10 +321,17 @@ module ActionView
         end
 
         def extract_dimensions(size)
+          size = size.to_s
           if size =~ %r{\A\d+x\d+\z}
             size.split('x')
           elsif size =~ %r{\A\d+\z}
             [size, size]
+          end
+        end
+
+        def check_for_image_tag_errors(options)
+          if options[:size] && (options[:height] || options[:width])
+            raise ArgumentError, "Cannot pass a :size option with a :height or :width option"
           end
         end
     end

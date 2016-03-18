@@ -7,6 +7,10 @@ require 'rack/body_proxy'
 module Rails
   module Rack
     # Sets log tags, logs the request, calls the app, and flushes the logs.
+    #
+    # Log tags (+taggers+) can be an Array containing: methods that the +request+
+    # object responds to, objects that respond to +to_s+ or Proc objects that accept
+    # an instance of the +request+ object.
     class Logger < ActiveSupport::LogSubscriber
       def initialize(app, taggers = nil)
         @app          = app
@@ -26,12 +30,6 @@ module Rails
     protected
 
       def call_app(request, env)
-        # Put some space between requests in development logs.
-        if development?
-          logger.debug ''
-          logger.debug ''
-        end
-
         instrumenter = ActiveSupport::Notifications.instrumenter
         instrumenter.start 'request.action_dispatch', request: request
         logger.info { started_request_message(request) }
@@ -72,10 +70,6 @@ module Rails
       def finish(request)
         instrumenter = ActiveSupport::Notifications.instrumenter
         instrumenter.finish 'request.action_dispatch', request: request
-      end
-
-      def development?
-        Rails.env.development?
       end
 
       def logger

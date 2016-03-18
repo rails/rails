@@ -33,8 +33,6 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     p1 = Person.find(1)
     assert_equal 0, p1.lock_version
 
-    Person.expects(:quote_value).with(0, Person.columns_hash[Person.locking_column]).returns('0').once
-
     p1.first_name = 'anika2'
     p1.save!
 
@@ -179,6 +177,16 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     assert_equal 1, p1.lock_version
   end
 
+  def test_touch_stale_object
+    person = Person.create!(first_name: 'Mehmet Emin')
+    stale_person = Person.find(person.id)
+    person.update_attribute(:gender, 'M')
+
+    assert_raises(ActiveRecord::StaleObjectError) do
+      stale_person.touch
+    end
+  end
+
   def test_lock_column_name_existing
     t1 = LegacyThing.find(1)
     t2 = LegacyThing.find(1)
@@ -217,10 +225,12 @@ class OptimisticLockingTest < ActiveRecord::TestCase
   def test_lock_with_custom_column_without_default_sets_version_to_zero
     t1 = LockWithCustomColumnWithoutDefault.new
     assert_equal 0, t1.custom_lock_version
+    assert_nil t1.custom_lock_version_before_type_cast
 
-    t1.save
-    t1 = LockWithCustomColumnWithoutDefault.find(t1.id)
+    t1.save!
+    t1.reload
     assert_equal 0, t1.custom_lock_version
+    assert [0, "0"].include?(t1.custom_lock_version_before_type_cast)
   end
 
   def test_readonly_attributes
@@ -260,7 +270,7 @@ class OptimisticLockingTest < ActiveRecord::TestCase
       car.wheels << Wheel.create!
     end
     assert_difference 'car.wheels.count', -1  do
-      car.destroy
+      car.reload.destroy
     end
     assert car.destroyed?
   end
@@ -285,10 +295,10 @@ end
 class OptimisticLockingWithSchemaChangeTest < ActiveRecord::TestCase
   fixtures :people, :legacy_things, :references
 
-  # need to disable transactional fixtures, because otherwise the sqlite3
+  # need to disable transactional tests, because otherwise the sqlite3
   # adapter (at least) chokes when we try and change the schema in the middle
   # of a test (see test_increment_counter_*).
-  self.use_transactional_fixtures = false
+  self.use_transactional_tests = false
 
   { :lock_version => Person, :custom_lock_version => LegacyThing }.each do |name, model|
     define_method("test_increment_counter_updates_#{name}") do
@@ -365,7 +375,7 @@ end
 # (See exec vs. async_exec in the PostgreSQL adapter.)
 unless in_memory_db?
   class PessimisticLockingTest < ActiveRecord::TestCase
-    self.use_transactional_fixtures = false
+    self.use_transactional_tests = false
     fixtures :people, :readers
 
     def setup
@@ -431,7 +441,7 @@ unless in_memory_db?
       def test_lock_sending_custom_lock_statement
         Person.transaction do
           person = Person.find(1)
-          assert_sql(/LIMIT 1 FOR SHARE NOWAIT/) do
+          assert_sql(/LIMIT \$?\d FOR SHARE NOWAIT/) do
             person.lock!('FOR SHARE NOWAIT')
           end
         end

@@ -1,7 +1,7 @@
 source 'https://rubygems.org'
 
 <% if options[:skip_gemspec] -%>
-<%= '# ' if options.dev? || options.edge? -%>gem 'rails', '~> <%= Rails::VERSION::STRING %>'
+<%= '# ' if options.dev? || options.edge? -%>gem 'rails', '<%= Array(rails_version_specifier).join("', '") %>'
 <% else -%>
 # Declare your gem's dependencies in <%= name %>.gemspec.
 # Bundler will treat runtime dependencies like base dependencies, and
@@ -11,7 +11,7 @@ gemspec
 
 <% if options[:skip_gemspec] -%>
 group :development do
-  gem '<%= gem_for_database %>'
+  gem '<%= gem_for_database[0] %>'
 end
 <% else -%>
 # Declare any dependencies that are still in development here instead of in
@@ -37,11 +37,11 @@ end
 <% end -%>
 
 <% end -%>
-<% unless defined?(JRUBY_VERSION) -%>
+<% if RUBY_ENGINE == 'ruby' -%>
 # To use a debugger
-  <%- if RUBY_VERSION < '2.0.0' -%>
-# gem 'debugger', group: [:development, :test]
-  <%- else -%>
 # gem 'byebug', group: [:development, :test]
-  <%- end -%>
+<% end -%>
+<% if RUBY_PLATFORM.match(/bccwin|cygwin|emx|mingw|mswin|wince|java/) -%>
+
+gem 'tzinfo-data', platforms: [:mingw, :mswin, :x64_mingw, :jruby]
 <% end -%>

@@ -21,6 +21,7 @@ class NumberHelperTest < ActionView::TestCase
     assert_equal "&lt;b&gt;1,234,567,890.50&lt;/b&gt; $", number_to_currency("1234567890.50", format: "<b>%n</b> %u")
     assert_equal "&lt;b&gt;1,234,567,890.50&lt;/b&gt; $", number_to_currency("-1234567890.50", negative_format: "<b>%n</b> %u")
     assert_equal "&lt;b&gt;1,234,567,890.50&lt;/b&gt; $", number_to_currency("-1234567890.50", 'negative_format' => "<b>%n</b> %u")
+    assert_equal '₹ 12,30,000.00', number_to_currency(1230000, delimiter_pattern: /(\d+?)(?=(\d\d)+(\d)(?!\d))/, unit: '₹', format: "%u %n")
   end
 
   def test_number_to_percentage
@@ -35,6 +36,10 @@ class NumberHelperTest < ActionView::TestCase
     assert_equal "98a%", number_to_percentage("98a")
     assert_equal "NaN%", number_to_percentage(Float::NAN)
     assert_equal "Inf%", number_to_percentage(Float::INFINITY)
+    assert_equal "NaN%", number_to_percentage(Float::NAN, precision: 0)
+    assert_equal "Inf%", number_to_percentage(Float::INFINITY, precision: 0)
+    assert_equal "NaN%", number_to_percentage(Float::NAN, precision: 1)
+    assert_equal "Inf%", number_to_percentage(Float::INFINITY, precision: 1)
   end
 
   def test_number_with_delimiter

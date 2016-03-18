@@ -7,7 +7,7 @@ module ActiveRecord
   #
   # returns the connection handler local to the current thread.
   #
-  # See the documentation of <tt>ActiveSupport::PerThreadRegistry</tt>
+  # See the documentation of ActiveSupport::PerThreadRegistry
   # for further details.
   class RuntimeRegistry # :nodoc:
     extend ActiveSupport::PerThreadRegistry

@@ -39,7 +39,7 @@ module ActionView
       # This will include both records as part of the cache key and updating either of them will
       # expire the cache.
       #
-      # ==== Template digest
+      # ==== \Template digest
       #
       # The template digest that's added to the cache key is computed by taking an md5 of the
       # contents of the entire template file. This ensures that your caches will automatically
@@ -75,7 +75,8 @@ module ActionView
       #   render(topics)         => render("topics/topic")
       #   render(message.topics) => render("topics/topic")
       #
-      # It's not possible to derive all render calls like that, though. Here are a few examples of things that can't be derived:
+      # It's not possible to derive all render calls like that, though.
+      # Here are a few examples of things that can't be derived:
       #
       #   render group_of_attachments
       #   render @project.documents.where(published: true).order('created_at')
@@ -97,22 +98,61 @@ module ActionView
       #   <%# Template Dependency: todolists/todolist %>
       #   <%= render_sortable_todolists @project.todolists %>
       #
-      # The pattern used to match these is /# Template Dependency: ([^ ]+)/, so it's important that you type it out just so.
+      # In some cases, like a single table inheritance setup, you might have
+      # a bunch of explicit dependencies. Instead of writing every template out,
+      # you can use a wildcard to match any template in a directory:
+      #
+      #   <%# Template Dependency: events/* %>
+      #   <%= render_categorizable_events @person.events %>
+      #
+      # This marks every template in the directory as a dependency. To find those
+      # templates, the wildcard path must be absolutely defined from app/views or paths
+      # otherwise added with +prepend_view_path+ or +append_view_path+.
+      # This way the wildcard for `app/views/recordings/events` would be `recordings/events/*` etc.
+      #
+      # The pattern used to match explicit dependencies is <tt>/# Template Dependency: (\S+)/</tt>,
+      # so it's important that you type it out just so.
       # You can only declare one template dependency per line.
       #
       # === External dependencies
       #
-      # If you use a helper method, for example, inside of a cached block and you then update that helper,
-      # you'll have to bump the cache as well. It doesn't really matter how you do it, but the md5 of the template file
+      # If you use a helper method, for example, inside a cached block and
+      # you then update that helper, you'll have to bump the cache as well.
+      # It doesn't really matter how you do it, but the md5 of the template file
       # must change. One recommendation is to simply be explicit in a comment, like:
       #
       #   <%# Helper Dependency Updated: May 6, 2012 at 6pm %>
       #   <%= some_helper_method(person) %>
       #
-      # Now all you'll have to do is change that timestamp when the helper method changes.
-      def cache(name = {}, options = nil, &block)
-        if controller.perform_caching
-          safe_concat(fragment_for(cache_fragment_name(name, options), options, &block))
+      # Now all you have to do is change that timestamp when the helper method changes.
+      #
+      # === Collection Caching
+      #
+      # When rendering a collection of objects that each use the same partial, a `cached`
+      # option can be passed.
+      # For collections rendered such:
+      #
+      #   <%= render partial: 'notifications/notification', collection: @notifications, cached: true %>
+      #
+      # The `cached: true` will make Action View's rendering read several templates
+      # from cache at once instead of one call per template.
+      #
+      # Templates in the collection not already cached are written to cache.
+      #
+      # Works great alongside individual template fragment caching.
+      # For instance if the template the collection renders is cached like:
+      #
+      #   # notifications/_notification.html.erb
+      #   <% cache notification do %>
+      #     <%# ... %>
+      #   <% end %>
+      #
+      # Any collection renders will find those cached templates when attempting
+      # to read multiple templates at once.
+      def cache(name = {}, options = {}, &block)
+        if controller.respond_to?(:perform_caching) && controller.perform_caching
+          name_options = options.slice(:skip_digest, :virtual_path)
+          safe_concat(fragment_for(cache_fragment_name(name, name_options), options, &block))
         else
           yield
         end
@@ -122,11 +162,11 @@ module ActionView
 
       # Cache fragments of a view if +condition+ is true
       #
-      #   <%= cache_if admin?, project do %>
+      #   <% cache_if admin?, project do %>
       #     <b>All the topics on this project</b>
       #     <%= render project.topics %>
       #   <% end %>
-      def cache_if(condition, name = {}, options = nil, &block)
+      def cache_if(condition, name = {}, options = {}, &block)
         if condition
           cache(name, options, &block)
         else
@@ -138,37 +178,38 @@ module ActionView
 
       # Cache fragments of a view unless +condition+ is true
       #
-      #   <%= cache_unless admin?, project do %>
+      #   <% cache_unless admin?, project do %>
       #     <b>All the topics on this project</b>
       #     <%= render project.topics %>
       #   <% end %>
-      def cache_unless(condition, name = {}, options = nil, &block)
+      def cache_unless(condition, name = {}, options = {}, &block)
         cache_if !condition, name, options, &block
       end
 
       # This helper returns the name of a cache key for a given fragment cache
-      # call. By supplying skip_digest: true to cache, the digestion of cache
+      # call. By supplying +skip_digest:+ true to cache, the digestion of cache
       # fragments can be manually bypassed. This is useful when cache fragments
       # cannot be manually expired unless you know the exact key which is the
       # case when using memcached.
-      def cache_fragment_name(name = {}, options = nil)
-        skip_digest = options && options[:skip_digest]
-
+      #
+      # The digest will be generated using +virtual_path:+ if it is provided.
+      #
+      def cache_fragment_name(name = {}, skip_digest: nil, virtual_path: nil)
         if skip_digest
           name
         else
-          fragment_name_with_digest(name)
+          fragment_name_with_digest(name, virtual_path)
         end
       end
 
     private
 
-      def fragment_name_with_digest(name) #:nodoc:
-        if @virtual_path
-          names  = Array(name.is_a?(Hash) ? controller.url_for(name).split("://").last : name)
-          digest = Digestor.digest name: @virtual_path, finder: lookup_context, dependencies: view_cache_dependencies
-
-          [ *names, digest ]
+      def fragment_name_with_digest(name, virtual_path) #:nodoc:
+        virtual_path ||= @virtual_path
+        if virtual_path
+          name  = controller.url_for(name).split("://").last if name.is_a?(Hash)
+          digest = Digestor.digest name: virtual_path, finder: lookup_context, dependencies: view_cache_dependencies
+          [ name, digest ]
         else
           name
         end

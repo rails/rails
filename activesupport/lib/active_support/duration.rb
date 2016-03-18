@@ -52,8 +52,36 @@ module ActiveSupport
       end
     end
 
+    # Returns the amount of seconds a duration covers as a string.
+    # For more information check to_i method.
+    #
+    #   1.day.to_s # => "86400"
     def to_s
       @value.to_s
+    end
+
+    # Returns the number of seconds that this Duration represents.
+    #
+    #   1.minute.to_i   # => 60
+    #   1.hour.to_i     # => 3600
+    #   1.day.to_i      # => 86400
+    #
+    # Note that this conversion makes some assumptions about the
+    # duration of some periods, e.g. months are always 30 days
+    # and years are 365.25 days:
+    #
+    #   # equivalent to 30.days.to_i
+    #   1.month.to_i    # => 2592000
+    #
+    #   # equivalent to 365.25.days.to_i
+    #   1.year.to_i     # => 31557600
+    #
+    # In such cases, Ruby's core
+    # Date[http://ruby-doc.org/stdlib/libdoc/date/rdoc/Date.html] and
+    # Time[http://ruby-doc.org/stdlib/libdoc/time/rdoc/Time.html] should be used for precision
+    # date and time arithmetic.
+    def to_i
+      @value.to_i
     end
 
     # Returns +true+ if +other+ is also a Duration instance, which has the
@@ -91,14 +119,14 @@ module ActiveSupport
         reduce(::Hash.new(0)) { |h,(l,r)| h[l] += r; h }.
         sort_by {|unit,  _ | [:years, :months, :days, :minutes, :seconds].index(unit)}.
         map     {|unit, val| "#{val} #{val == 1 ? unit.to_s.chop : unit.to_s}"}.
-        to_sentence(:locale => :en)
+        to_sentence(locale: ::I18n.default_locale)
     end
 
     def as_json(options = nil) #:nodoc:
       to_i
     end
 
-    def respond_to_missing?(method, include_private=false) #:nodoc
+    def respond_to_missing?(method, include_private=false) #:nodoc:
       @value.respond_to?(method, include_private)
     end
 
@@ -121,13 +149,6 @@ module ActiveSupport
       end
 
     private
-
-      # We define it as a workaround to Ruby 2.0.0-p353 bug.
-      # For more information, check rails/rails#13055.
-      # Remove it when we drop support for 2.0.0-p353.
-      def ===(other) #:nodoc:
-        value === other
-      end
 
       def method_missing(method, *args, &block) #:nodoc:
         value.send(method, *args, &block)

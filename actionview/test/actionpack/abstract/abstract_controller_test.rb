@@ -168,7 +168,7 @@ module AbstractController
       end
     end
 
-    class OverridingLocalPrefixesTest < ActiveSupport::TestCase # TODO: remove me in 5.0/4.3.
+    class OverridingLocalPrefixesTest < ActiveSupport::TestCase
       test "overriding .local_prefixes adds prefix" do
         @controller = OverridingLocalPrefixes.new
         @controller.process(:index)
@@ -178,22 +178,6 @@ module AbstractController
       test ".local_prefixes is inherited" do
         @controller = OverridingLocalPrefixes::Inheriting.new
         @controller.process(:index)
-        assert_equal "Hello from me3/index.erb", @controller.response_body
-      end
-    end
-
-    class DeprecatedParentPrefixes < OverridingLocalPrefixes
-      def self.parent_prefixes
-        ["abstract_controller/testing/me3"]
-      end
-    end
-
-    class DeprecatedParentPrefixesTest < ActiveSupport::TestCase # TODO: remove me in 5.0/4.3.
-      test "overriding .parent_prefixes is deprecated" do
-        @controller = DeprecatedParentPrefixes.new
-        assert_deprecated do
-          @controller.process(:index)
-        end
         assert_equal "Hello from me3/index.erb", @controller.response_body
       end
     end

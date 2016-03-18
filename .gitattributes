@@ -1,0 +1,2 @@
+*.rb diff=ruby
+*.gemspec diff=ruby

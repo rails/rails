@@ -1,5 +1,5 @@
-# encoding: utf-8
 require 'cases/helper'
+require 'active_support/core_ext/numeric/time'
 
 require 'models/topic'
 require 'models/person'
@@ -63,6 +63,22 @@ class ExclusionValidationTest < ActiveModel::TestCase
 
     t.title = "wasabi"
     assert t.valid?
+  end
+
+  def test_validates_exclusion_of_with_range
+    Topic.validates_exclusion_of :content, in: ("a".."g")
+
+    assert Topic.new(content: 'g').invalid?
+    assert Topic.new(content: 'h').valid?
+  end
+
+  def test_validates_exclusion_of_with_time_range
+    Topic.validates_exclusion_of :created_at, in: 6.days.ago..2.days.ago
+
+    assert Topic.new(created_at: 5.days.ago).invalid?
+    assert Topic.new(created_at: 3.days.ago).invalid?
+    assert Topic.new(created_at: 7.days.ago).valid?
+    assert Topic.new(created_at: 1.day.ago).valid?
   end
 
   def test_validates_inclusion_of_with_symbol

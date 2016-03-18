@@ -11,7 +11,7 @@ module ActiveRecord
     #
     # == Usage
     #
-    # Active Records support optimistic locking if the field +lock_version+ is present. Each update to the
+    # Active Record supports optimistic locking if the +lock_version+ field is present. Each update to the
     # record increments the +lock_version+ column and the locking facilities ensure that records instantiated twice
     # will let the last one saved raise a +StaleObjectError+ if the first was also updated. Example:
     #
@@ -22,7 +22,7 @@ module ActiveRecord
     #   p1.save
     #
     #   p2.first_name = "should fail"
-    #   p2.save # Raises a ActiveRecord::StaleObjectError
+    #   p2.save # Raises an ActiveRecord::StaleObjectError
     #
     # Optimistic locking will also check for stale data when objects are destroyed. Example:
     #
@@ -32,7 +32,7 @@ module ActiveRecord
     #   p1.first_name = "Michael"
     #   p1.save
     #
-    #   p2.destroy # Raises a ActiveRecord::StaleObjectError
+    #   p2.destroy # Raises an ActiveRecord::StaleObjectError
     #
     # You're then responsible for dealing with the conflict by rescuing the exception and either rolling back, merging,
     # or otherwise apply the business logic needed to resolve the conflict.
@@ -66,6 +66,15 @@ module ActiveRecord
           send(lock_col + '=', previous_lock_value + 1)
         end
 
+        def _create_record(attribute_names = self.attribute_names, *) # :nodoc:
+          if locking_enabled?
+            # We always want to persist the locking version, even if we don't detect
+            # a change from the default, since the database might have no default
+            attribute_names |= [self.class.locking_column]
+          end
+          super
+        end
+
         def _update_record(attribute_names = self.attribute_names) #:nodoc:
           return super unless locking_enabled?
           return 0 if attribute_names.empty?
@@ -80,16 +89,14 @@ module ActiveRecord
           begin
             relation = self.class.unscoped
 
-            stmt = relation.where(
-              relation.table[self.class.primary_key].eq(id).and(
-                relation.table[lock_col].eq(self.class.quote_value(previous_lock_value, column_for_attribute(lock_col)))
-              )
-            ).arel.compile_update(
-              arel_attributes_with_values_for_update(attribute_names),
-              self.class.primary_key
+            affected_rows = relation.where(
+              self.class.primary_key => id,
+              lock_col => previous_lock_value,
+            ).update_all(
+              attributes_for_update(attribute_names).map do |name|
+                [name, _read_attribute(name)]
+              end.to_h
             )
-
-            affected_rows = self.class.connection.update stmt
 
             unless affected_rows == 1
               raise ActiveRecord::StaleObjectError.new(self, "update")
@@ -118,12 +125,8 @@ module ActiveRecord
           relation = super
 
           if locking_enabled?
-            column_name = self.class.locking_column
-            column      = self.class.columns_hash[column_name]
-            substitute  = self.class.connection.substitute_at(column)
-
-            relation = relation.where(self.class.arel_table[column_name].eq(substitute))
-            relation.bind_values << [column, self[column_name].to_i]
+            locking_column = self.class.locking_column
+            relation = relation.where(locking_column => _read_attribute(locking_column))
           end
 
           relation
@@ -141,7 +144,7 @@ module ActiveRecord
 
         # Set the column to use for optimistic locking. Defaults to +lock_version+.
         def locking_column=(value)
-          clear_caches_calculated_from_columns
+          reload_schema_from_cache
           @locking_column = value.to_s
         end
 
@@ -181,15 +184,10 @@ module ActiveRecord
       end
     end
 
-    class LockingType < SimpleDelegator # :nodoc:
-      def type_cast_from_database(value)
+    class LockingType < DelegateClass(Type::Value) # :nodoc:
+      def deserialize(value)
         # `nil` *should* be changed to 0
         super.to_i
-      end
-
-      def changed?(old_value, *)
-        # Ensure we save if the default was `nil`
-        super || old_value == 0
       end
 
       def init_with(coder)

@@ -17,7 +17,7 @@ module ActiveRecord
 
           include ActiveRecord::AttributeMethods
 
-          def self.column_names
+          def self.attribute_names
             %w{ one two three }
           end
 
@@ -25,11 +25,11 @@ module ActiveRecord
           end
 
           def self.columns
-            column_names.map { FakeColumn.new(name) }
+            attribute_names.map { FakeColumn.new(name) }
           end
 
           def self.columns_hash
-            Hash[column_names.map { |name|
+            Hash[attribute_names.map { |name|
               [name, FakeColumn.new(name)]
             }]
           end
@@ -39,13 +39,13 @@ module ActiveRecord
       def test_define_attribute_methods
         instance = @klass.new
 
-        @klass.column_names.each do |name|
+        @klass.attribute_names.each do |name|
           assert !instance.methods.map(&:to_s).include?(name)
         end
 
         @klass.define_attribute_methods
 
-        @klass.column_names.each do |name|
+        @klass.attribute_names.each do |name|
           assert instance.methods.map(&:to_s).include?(name), "#{name} is not defined"
         end
       end

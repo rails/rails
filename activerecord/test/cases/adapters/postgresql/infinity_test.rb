@@ -1,6 +1,6 @@
 require "cases/helper"
 
-class PostgresqlInfinityTest < ActiveRecord::TestCase
+class PostgresqlInfinityTest < ActiveRecord::PostgreSQLTestCase
   include InTimeZone
 
   class PostgresqlInfinity < ActiveRecord::Base
@@ -15,13 +15,22 @@ class PostgresqlInfinityTest < ActiveRecord::TestCase
   end
 
   teardown do
-    @connection.execute("DROP TABLE IF EXISTS postgresql_infinities")
+    @connection.drop_table 'postgresql_infinities', if_exists: true
   end
 
   test "type casting infinity on a float column" do
     record = PostgresqlInfinity.create!(float: Float::INFINITY)
     record.reload
     assert_equal Float::INFINITY, record.float
+  end
+
+  test "type casting string on a float column" do
+    record = PostgresqlInfinity.new(float: 'Infinity')
+    assert_equal Float::INFINITY, record.float
+    record = PostgresqlInfinity.new(float: '-Infinity')
+    assert_equal(-Float::INFINITY, record.float)
+    record = PostgresqlInfinity.new(float: 'NaN')
+    assert_send [record.float, :nan?]
   end
 
   test "update_all with infinity on a float column" do

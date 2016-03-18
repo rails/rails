@@ -1,5 +1,4 @@
 require 'optparse'
-require 'rbconfig'
 
 options = { environment: (ENV['RAILS_ENV'] || ENV['RACK_ENV'] || "development").dup }
 code_or_file = nil
@@ -59,5 +58,11 @@ elsif File.exist?(code_or_file)
   $0 = code_or_file
   Kernel.load code_or_file
 else
-  eval(code_or_file, binding, __FILE__, __LINE__)
+  begin
+    eval(code_or_file, binding, __FILE__, __LINE__)
+  rescue SyntaxError, NameError
+    $stderr.puts "Please specify a valid ruby command or the path of a script to run."
+    $stderr.puts "Run '#{$0} -h' for help."
+    exit 1
+  end
 end

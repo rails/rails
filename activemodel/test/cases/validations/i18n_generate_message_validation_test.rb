@@ -62,7 +62,7 @@ class I18nGenerateMessageValidationTest < ActiveModel::TestCase
     assert_equal 'custom message', @person.errors.generate_message(:title, :empty, message: 'custom message')
   end
 
-  # add_on_blank: generate_message(attr, :blank, message: custom_message)
+  # validates_presence_of: generate_message(attr, :blank, message: custom_message)
   def test_generate_message_blank_with_default_message
     assert_equal "can't be blank", @person.errors.generate_message(:title, :blank)
   end

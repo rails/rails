@@ -104,7 +104,7 @@ class StoreTest < ActiveRecord::TestCase
     assert_equal true,      user.settings.instance_of?(ActiveSupport::HashWithIndifferentAccess)
   end
 
-  test "convert store attributes from any format other than Hash or HashWithIndifferent access losing the data" do
+  test "convert store attributes from any format other than Hash or HashWithIndifferentAccess losing the data" do
     @john.json_data = "somedata"
     @john.height = 'low'
     assert_equal true, @john.json_data.instance_of?(ActiveSupport::HashWithIndifferentAccess)
@@ -177,6 +177,7 @@ class StoreTest < ActiveRecord::TestCase
     assert_equal [:color], first_model.stored_attributes[:data]
     assert_equal [:color, :width, :height], second_model.stored_attributes[:data]
     assert_equal [:color, :area, :volume], third_model.stored_attributes[:data]
+    assert_equal [:color], first_model.stored_attributes[:data]
   end
 
   test "YAML coder initializes the store when a Nil value is given" do

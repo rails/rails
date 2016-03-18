@@ -4,7 +4,13 @@ module AbstractController
   module Testing
     class UrlForTest < ActionController::TestCase
       class W
-        include ActionDispatch::Routing::RouteSet.new.tap { |r| r.draw { get ':controller(/:action(/:id(.:format)))' } }.url_helpers
+        include ActionDispatch::Routing::RouteSet.new.tap { |r|
+          r.draw {
+            ActiveSupport::Deprecation.silence {
+              get ':controller(/:action(/:id(.:format)))'
+            }
+          }
+        }.url_helpers
       end
 
       def teardown
@@ -30,8 +36,8 @@ module AbstractController
         assert_equal '/foo/zot', path
       end
 
-      def add_host!
-        W.default_url_options[:host] = 'www.basecamphq.com'
+      def add_host!(app = W)
+        app.default_url_options[:host] = 'www.basecamphq.com'
       end
 
       def add_port!
@@ -255,6 +261,20 @@ module AbstractController
         )
       end
 
+      def test_relative_url_root_is_respected_with_environment_variable
+        # `config.relative_url_root` is set by ENV['RAILS_RELATIVE_URL_ROOT']
+        w = Class.new {
+          config = ActionDispatch::Routing::RouteSet::Config.new '/subdir'
+          r = ActionDispatch::Routing::RouteSet.new(config)
+          r.draw { ActiveSupport::Deprecation.silence { get ':controller(/:action(/:id(.:format)))' } }
+          include r.url_helpers
+        }
+        add_host!(w)
+        assert_equal('https://www.basecamphq.com/subdir/c/a/i',
+          w.new.url_for(:controller => 'c', :action => 'a', :id => 'i', :protocol => 'https')
+        )
+      end
+
       def test_named_routes
         with_routing do |set|
           set.draw do
@@ -301,7 +321,10 @@ module AbstractController
         with_routing do |set|
           set.draw do
             get 'home/sweet/home/:user', :to => 'home#index', :as => :home
-            get ':controller/:action/:id'
+
+            ActiveSupport::Deprecation.silence do
+              get ':controller/:action/:id'
+            end
           end
 
           # We need to create a new class in order to install the new named route.
@@ -359,6 +382,13 @@ module AbstractController
         assert_equal({'query[person][name]'       => 'Bob'         }.to_query, params[1])
         assert_equal({'query[person][position][]' => 'art director'}.to_query, params[2])
         assert_equal({'query[person][position][]' => 'prof'        }.to_query, params[3])
+      end
+
+      def test_url_action_controller_parameters
+        add_host!
+        assert_raise(ArgumentError) do
+          W.new.url_for(ActionController::Parameters.new(:controller => 'c', :action => 'a', protocol: 'javascript', f: '%0Aeval(name)'))
+        end
       end
 
       def test_path_generation_for_symbol_parameter_keys
@@ -434,6 +464,26 @@ module AbstractController
           assert_equal("http://www.basecamphq.com/admin/posts/new?param=value",
             controller.send(:url_for, [:new, :admin, :post, { param: 'value' }])
           )
+        end
+      end
+
+      def test_url_for_with_array_is_unmodified
+        with_routing do |set|
+          set.draw do
+            namespace :admin do
+              resources :posts
+            end
+          end
+
+          kls = Class.new { include set.url_helpers }
+          kls.default_url_options[:host] = 'www.basecamphq.com'
+
+          original_components = [:new, :admin, :post, { param: 'value' }]
+          components = original_components.dup
+
+          kls.new.url_for(components)
+
+          assert_equal(original_components, components)
         end
       end
 

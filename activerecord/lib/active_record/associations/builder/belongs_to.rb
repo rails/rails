@@ -1,11 +1,11 @@
-module ActiveRecord::Associations::Builder
+module ActiveRecord::Associations::Builder # :nodoc:
   class BelongsTo < SingularAssociation #:nodoc:
-    def macro
+    def self.macro
       :belongs_to
     end
 
-    def valid_options
-      super + [:foreign_type, :polymorphic, :touch, :counter_cache]
+    def self.valid_options(options)
+      super + [:polymorphic, :touch, :counter_cache, :optional]
     end
 
     def self.valid_dependent_options
@@ -23,8 +23,6 @@ module ActiveRecord::Associations::Builder
       add_counter_cache_methods mixin
     end
 
-    private
-
     def self.add_counter_cache_methods(mixin)
       return if mixin.method_defined? :belongs_to_counter_cache_after_update
 
@@ -35,16 +33,24 @@ module ActiveRecord::Associations::Builder
 
           if (@_after_create_counter_called ||= false)
             @_after_create_counter_called = false
-          elsif attribute_changed?(foreign_key) && !new_record? && reflection.constructable?
-            model           = reflection.klass
+          elsif attribute_changed?(foreign_key) && !new_record?
+            if reflection.polymorphic?
+              model     = attribute(reflection.foreign_type).try(:constantize)
+              model_was = attribute_was(reflection.foreign_type).try(:constantize)
+            else
+              model     = reflection.klass
+              model_was = reflection.klass
+            end
+
             foreign_key_was = attribute_was foreign_key
             foreign_key     = attribute foreign_key
 
             if foreign_key && model.respond_to?(:increment_counter)
               model.increment_counter(cache_column, foreign_key)
             end
-            if foreign_key_was && model.respond_to?(:decrement_counter)
-              model.decrement_counter(cache_column, foreign_key_was)
+
+            if foreign_key_was && model_was.respond_to?(:decrement_counter)
+              model_was.decrement_counter(cache_column, foreign_key_was)
             end
           end
         end
@@ -62,7 +68,7 @@ module ActiveRecord::Associations::Builder
       klass.attr_readonly cache_column if klass && klass.respond_to?(:attr_readonly)
     end
 
-    def self.touch_record(o, foreign_key, name, touch) # :nodoc:
+    def self.touch_record(o, foreign_key, name, touch, touch_method) # :nodoc:
       old_foreign_id = o.changed_attributes[foreign_key]
 
       if old_foreign_id
@@ -77,9 +83,9 @@ module ActiveRecord::Associations::Builder
 
         if old_record
           if touch != true
-            old_record.touch touch
+            old_record.send(touch_method, touch)
           else
-            old_record.touch
+            old_record.send(touch_method)
           end
         end
       end
@@ -87,9 +93,9 @@ module ActiveRecord::Associations::Builder
       record = o.send name
       if record && record.persisted?
         if touch != true
-          record.touch touch
+          record.send(touch_method, touch)
         else
-          record.touch
+          record.send(touch_method)
         end
       end
     end
@@ -100,7 +106,7 @@ module ActiveRecord::Associations::Builder
       touch       = reflection.options[:touch]
 
       callback = lambda { |record|
-        BelongsTo.touch_record(record, foreign_key, n, touch)
+        BelongsTo.touch_record(record, foreign_key, n, touch, belongs_to_touch_method)
       }
 
       model.after_save    callback, if: :changed?
@@ -109,8 +115,25 @@ module ActiveRecord::Associations::Builder
     end
 
     def self.add_destroy_callbacks(model, reflection)
-      name = reflection.name
-      model.after_destroy lambda { |o| o.association(name).handle_dependency }
+      model.after_destroy lambda { |o| o.association(reflection.name).handle_dependency }
+    end
+
+    def self.define_validations(model, reflection)
+      if reflection.options.key?(:required)
+        reflection.options[:optional] = !reflection.options.delete(:required)
+      end
+
+      if reflection.options[:optional].nil?
+        required = model.belongs_to_required_by_default
+      else
+        required = !reflection.options[:optional]
+      end
+
+      super
+
+      if required
+        model.validates_presence_of reflection.name, message: :required
+      end
     end
   end
 end

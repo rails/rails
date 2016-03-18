@@ -13,12 +13,14 @@ module Rails
       def add_routes
         unless options[:skip_routes]
           actions.reverse_each do |action|
-            route generate_routing_code(action)
+            # route prepends two spaces onto the front of the string that is passed, this corrects that.
+            route generate_routing_code(action)[2..-1]
           end
         end
       end
 
-      hook_for :template_engine, :test_framework, :helper, :assets
+      hook_for :template_engine, :test_framework
+      hook_for :helper, :assets, hide: true
 
       private
 
@@ -36,12 +38,12 @@ module Rails
           # namespace :foo do
           #   namespace :bar do
           namespace_ladder = regular_class_path.each_with_index.map do |ns, i|
-            indent("namespace :#{ns} do\n", i * 2)
+            indent("  namespace :#{ns} do\n", i * 2)
           end.join
 
           # Create route
           #     get 'baz/index'
-          route = indent(%{get '#{file_name}/#{action}'\n}, depth * 2)
+          route = indent(%{  get '#{file_name}/#{action}'\n}, depth * 2)
 
           # Create `end` ladder
           #   end

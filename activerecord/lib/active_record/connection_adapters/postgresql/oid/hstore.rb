@@ -3,13 +3,13 @@ module ActiveRecord
     module PostgreSQL
       module OID # :nodoc:
         class Hstore < Type::Value # :nodoc:
-          include Type::Mutable
+          include Type::Helpers::Mutable
 
           def type
             :hstore
           end
 
-          def type_cast_from_database(value)
+          def deserialize(value)
             if value.is_a?(::String)
               ::Hash[value.scan(HstorePair).map { |k, v|
                 v = v.upcase == 'NULL' ? nil : v.gsub(/\A"(.*)"\Z/m,'\1').gsub(/\\(.)/, '\1')
@@ -21,7 +21,7 @@ module ActiveRecord
             end
           end
 
-          def type_cast_for_database(value)
+          def serialize(value)
             if value.is_a?(::Hash)
               value.map { |k, v| "#{escape_hstore(k)}=>#{escape_hstore(v)}" }.join(', ')
             else

@@ -1,4 +1,5 @@
 require "cases/helper"
+require 'support/schema_dumping_helper'
 require 'models/topic'
 require 'models/reply'
 require 'models/subscriber'
@@ -129,27 +130,25 @@ class PrimaryKeysTest < ActiveRecord::TestCase
   end
 
   def test_supports_primary_key
-    assert_nothing_raised NoMethodError do
+    assert_nothing_raised do
       ActiveRecord::Base.connection.supports_primary_key?
     end
   end
 
-  def test_primary_key_returns_value_if_it_exists
-    klass = Class.new(ActiveRecord::Base) do
-      self.table_name = 'developers'
-    end
+  if ActiveRecord::Base.connection.supports_primary_key?
+    def test_primary_key_returns_value_if_it_exists
+      klass = Class.new(ActiveRecord::Base) do
+        self.table_name = 'developers'
+      end
 
-    if ActiveRecord::Base.connection.supports_primary_key?
       assert_equal 'id', klass.primary_key
     end
-  end
 
-  def test_primary_key_returns_nil_if_it_does_not_exist
-    klass = Class.new(ActiveRecord::Base) do
-      self.table_name = 'developers_projects'
-    end
+    def test_primary_key_returns_nil_if_it_does_not_exist
+      klass = Class.new(ActiveRecord::Base) do
+        self.table_name = 'developers_projects'
+      end
 
-    if ActiveRecord::Base.connection.supports_primary_key?
       assert_nil klass.primary_key
     end
   end
@@ -174,10 +173,24 @@ class PrimaryKeysTest < ActiveRecord::TestCase
     dashboard = Dashboard.first
     assert_equal '2', dashboard.id
   end
+
+  if current_adapter?(:PostgreSQLAdapter)
+    def test_serial_with_quoted_sequence_name
+      column = MixedCaseMonkey.columns_hash[MixedCaseMonkey.primary_key]
+      assert_equal "nextval('\"mixed_case_monkeys_monkeyID_seq\"'::regclass)", column.default_function
+      assert column.serial?
+    end
+
+    def test_serial_with_unquoted_sequence_name
+      column = Topic.columns_hash[Topic.primary_key]
+      assert_equal "nextval('topics_id_seq'::regclass)", column.default_function
+      assert column.serial?
+    end
+  end
 end
 
 class PrimaryKeyWithNoConnectionTest < ActiveRecord::TestCase
-  self.use_transactional_fixtures = false
+  self.use_transactional_tests = false
 
   unless in_memory_db?
     def test_set_primary_key_with_no_connection
@@ -195,9 +208,75 @@ class PrimaryKeyWithNoConnectionTest < ActiveRecord::TestCase
   end
 end
 
-if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
+class PrimaryKeyAnyTypeTest < ActiveRecord::TestCase
+  include SchemaDumpingHelper
+
+  self.use_transactional_tests = false
+
+  class Barcode < ActiveRecord::Base
+  end
+
+  setup do
+    @connection = ActiveRecord::Base.connection
+    @connection.create_table(:barcodes, primary_key: "code", id: :string, limit: 42, force: true)
+  end
+
+  teardown do
+    @connection.drop_table(:barcodes, if_exists: true)
+  end
+
+  def test_any_type_primary_key
+    assert_equal "code", Barcode.primary_key
+
+    column = Barcode.column_for_attribute(Barcode.primary_key)
+    assert_not column.null unless current_adapter?(:SQLite3Adapter)
+    assert_equal :string, column.type
+    assert_equal 42, column.limit
+  end
+
+  test "schema dump primary key includes type and options" do
+    schema = dump_table_schema "barcodes"
+    assert_match %r{create_table "barcodes", primary_key: "code", id: :string, limit: 42}, schema
+  end
+end
+
+class CompositePrimaryKeyTest < ActiveRecord::TestCase
+  include SchemaDumpingHelper
+
+  self.use_transactional_tests = false
+
+  def setup
+    @connection = ActiveRecord::Base.connection
+    @connection.create_table(:barcodes, primary_key: ["region", "code"], force: true) do |t|
+      t.string :region
+      t.integer :code
+    end
+  end
+
+  def teardown
+    @connection.drop_table(:barcodes, if_exists: true)
+  end
+
+  def test_composite_primary_key
+    assert_equal ["region", "code"], @connection.primary_keys("barcodes")
+  end
+
+  def test_primary_key_issues_warning
+    warning = capture(:stderr) do
+      assert_nil @connection.primary_key("barcodes")
+    end
+    assert_match(/WARNING: Rails does not support composite primary key\./, warning)
+  end
+
+  def test_collectly_dump_composite_primary_key
+    schema = dump_table_schema "barcodes"
+    assert_match %r{create_table "barcodes", primary_key: \["region", "code"\]}, schema
+  end
+end
+
+if current_adapter?(:Mysql2Adapter)
   class PrimaryKeyWithAnsiQuotesTest < ActiveRecord::TestCase
-    self.use_transactional_fixtures = false
+    self.use_transactional_tests = false
 
     def test_primary_key_method_with_ansi_quotes
       con = ActiveRecord::Base.connection
@@ -207,30 +286,86 @@ if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
       con.reconnect!
     end
   end
+
+  class PrimaryKeyBigintNilDefaultTest < ActiveRecord::TestCase
+    include SchemaDumpingHelper
+
+    self.use_transactional_tests = false
+
+    def setup
+      @connection = ActiveRecord::Base.connection
+      @connection.create_table(:bigint_defaults, id: :bigint, default: nil, force: true)
+    end
+
+    def teardown
+      @connection.drop_table :bigint_defaults, if_exists: true
+    end
+
+    test "primary key with bigint allows default override via nil" do
+      column = @connection.columns(:bigint_defaults).find { |c| c.name == 'id' }
+      assert column.bigint?
+      assert_not column.auto_increment?
+    end
+
+    test "schema dump primary key with bigint default nil" do
+      schema = dump_table_schema "bigint_defaults"
+      assert_match %r{create_table "bigint_defaults", id: :bigint, default: nil}, schema
+    end
+  end
 end
 
-if current_adapter?(:PostgreSQLAdapter)
+if current_adapter?(:PostgreSQLAdapter, :Mysql2Adapter)
   class PrimaryKeyBigSerialTest < ActiveRecord::TestCase
-    self.use_transactional_fixtures = false
+    include SchemaDumpingHelper
+
+    self.use_transactional_tests = false
 
     class Widget < ActiveRecord::Base
     end
 
     setup do
       @connection = ActiveRecord::Base.connection
-      @connection.create_table(:widgets, id: :bigserial) { |t| }
+      if current_adapter?(:PostgreSQLAdapter)
+        @connection.create_table(:widgets, id: :bigserial, force: true)
+      else
+        @connection.create_table(:widgets, id: :bigint, force: true)
+      end
     end
 
     teardown do
-      @connection.drop_table :widgets
+      @connection.drop_table :widgets, if_exists: true
+      Widget.reset_column_information
     end
 
-    def test_bigserial_primary_key
-      assert_equal "id", Widget.primary_key
-      assert_equal :integer, Widget.columns_hash[Widget.primary_key].type
+    test "primary key column type with bigserial" do
+      column_type = Widget.type_for_attribute(Widget.primary_key)
+      assert_equal :integer, column_type.type
+      assert_equal 8, column_type.limit
+    end
 
+    test "primary key with bigserial are automatically numbered" do
       widget = Widget.create!
       assert_not_nil widget.id
+    end
+
+    test "schema dump primary key with bigserial" do
+      schema = dump_table_schema "widgets"
+      if current_adapter?(:PostgreSQLAdapter)
+        assert_match %r{create_table "widgets", id: :bigserial, force: :cascade}, schema
+      else
+        assert_match %r{create_table "widgets", id: :bigint, force: :cascade}, schema
+      end
+    end
+
+    if current_adapter?(:Mysql2Adapter)
+      test "primary key column type with options" do
+        @connection.create_table(:widgets, id: :primary_key, limit: 8, unsigned: true, force: true)
+        column = @connection.columns(:widgets).find { |c| c.name == 'id' }
+        assert column.auto_increment?
+        assert_equal :integer, column.type
+        assert_equal 8, column.limit
+        assert column.unsigned?
+      end
     end
   end
 end

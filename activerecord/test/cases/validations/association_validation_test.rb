@@ -45,12 +45,24 @@ class AssociationValidationTest < ActiveRecord::TestCase
     assert t.valid?
   end
 
+  def test_validates_associated_without_marked_for_destruction
+    reply = Class.new do
+      def valid?
+        true
+      end
+    end
+    Topic.validates_associated(:replies)
+    t = Topic.new
+    t.define_singleton_method(:replies) { [reply.new] }
+    assert t.valid?
+  end
+
   def test_validates_associated_with_custom_message_using_quotes
     Reply.validates_associated :topic, :message=> "This string contains 'single' and \"double\" quotes"
     Topic.validates_presence_of :content
     r = Reply.create("title" => "A reply", "content" => "with content!")
     r.topic = Topic.create("title" => "uhohuhoh")
-    assert !r.valid?
+    assert_not_operator r, :valid?
     assert_equal ["This string contains 'single' and \"double\" quotes"], r.errors[:topic]
   end
 
@@ -82,5 +94,4 @@ class AssociationValidationTest < ActiveRecord::TestCase
       assert interest.valid?, "Expected interest to be valid, but was not. Interest should have a man object associated"
     end
   end
-
 end

@@ -7,12 +7,14 @@ module ActiveRecord
   #     Book.where(name: "my book").where("author_id > 3")
   #   end
   #
-  # The cached statement is executed by using the +execute+ method:
+  # The cached statement is executed by using the
+  # [connection.execute]{rdoc-ref:ConnectionAdapters::DatabaseStatements#execute} method:
   #
   #   cache.execute([], Book, Book.connection)
   #
-  # The relation returned by the block is cached, and for each +execute+ call the cached relation gets duped.
-  # Database is queried when +to_a+ is called on the relation.
+  # The relation returned by the block is cached, and for each
+  # [execute]{rdoc-ref:ConnectionAdapters::DatabaseStatements#execute}
+  # call the cached relation gets duped. Database is queried when +to_a+ is called on the relation.
   #
   # If you want to cache the statement without the values you can use the +bind+ method of the
   # block parameter.
@@ -47,8 +49,8 @@ module ActiveRecord
 
       def sql_for(binds, connection)
         val = @values.dup
-        binds = binds.dup
-        @indexes.each { |i| val[i] = connection.quote(*binds.shift.reverse) }
+        binds = connection.prepare_binds_for_database(binds)
+        @indexes.each { |i| val[i] = connection.quote(binds.shift) }
         val.join
       end
     end
@@ -67,21 +69,21 @@ module ActiveRecord
     end
 
     class BindMap # :nodoc:
-      def initialize(bind_values)
+      def initialize(bound_attributes)
         @indexes   = []
-        @bind_values = bind_values
+        @bound_attributes = bound_attributes
 
-        bind_values.each_with_index do |(_, value), i|
-          if Substitute === value
+        bound_attributes.each_with_index do |attr, i|
+          if Substitute === attr.value
             @indexes << i
           end
         end
       end
 
       def bind(values)
-        bvs = @bind_values.map(&:dup)
-        @indexes.each_with_index { |offset,i| bvs[offset][1] = values[i] }
-        bvs
+        bas = @bound_attributes.dup
+        @indexes.each_with_index { |offset,i| bas[offset] = bas[offset].with_cast_value(values[i]) }
+        bas
       end
     end
 
@@ -89,7 +91,7 @@ module ActiveRecord
 
     def self.create(connection, block = Proc.new)
       relation      = block.call Params.new
-      bind_map      = BindMap.new relation.bind_values
+      bind_map      = BindMap.new relation.bound_attributes
       query_builder = connection.cacheable_query relation.arel
       new query_builder, bind_map
     end
@@ -104,7 +106,7 @@ module ActiveRecord
 
       sql = query_builder.sql_for bind_values, connection
 
-      klass.find_by_sql sql, bind_values
+      klass.find_by_sql(sql, bind_values, preparable: true)
     end
     alias :call :execute
   end

@@ -37,9 +37,16 @@ class JsonParamsParsingTest < ActionDispatch::IntegrationTest
     )
   end
 
+  test "does not parse unregistered media types such as application/vnd.api+json" do
+    assert_parses(
+      {},
+      "{\"person\": {\"name\": \"David\"}}", { 'CONTENT_TYPE' => 'application/vnd.api+json' }
+    )
+  end
+
   test "nils are stripped from collections" do
     assert_parses(
-      {"person" => nil},
+      {"person" => []},
       "{\"person\":[null]}", { 'CONTENT_TYPE' => 'application/json' }
     )
     assert_parses(
@@ -47,7 +54,7 @@ class JsonParamsParsingTest < ActionDispatch::IntegrationTest
       "{\"person\":[\"foo\",null]}", { 'CONTENT_TYPE' => 'application/json' }
     )
     assert_parses(
-      {"person" => nil},
+      {"person" => []},
       "{\"person\":[null, null]}", { 'CONTENT_TYPE' => 'application/json' }
     )
   end
@@ -56,7 +63,7 @@ class JsonParamsParsingTest < ActionDispatch::IntegrationTest
     with_test_routing do
       output = StringIO.new
       json = "[\"person]\": {\"name\": \"David\"}}"
-      post "/parse", json, {'CONTENT_TYPE' => 'application/json', 'action_dispatch.show_exceptions' => true, 'action_dispatch.logger' => ActiveSupport::Logger.new(output)}
+      post "/parse", params: json, headers: { 'CONTENT_TYPE' => 'application/json', 'action_dispatch.show_exceptions' => true, 'action_dispatch.logger' => ActiveSupport::Logger.new(output) }
       assert_response :bad_request
       output.rewind && err = output.read
       assert err =~ /Error occurred while parsing request parameters/
@@ -69,8 +76,8 @@ class JsonParamsParsingTest < ActionDispatch::IntegrationTest
         $stderr = StringIO.new # suppress the log
         json = "[\"person]\": {\"name\": \"David\"}}"
         exception = assert_raise(ActionDispatch::ParamsParser::ParseError) { post "/parse", json, {'CONTENT_TYPE' => 'application/json', 'action_dispatch.show_exceptions' => false} }
-        assert_equal JSON::ParserError, exception.original_exception.class
-        assert_equal exception.original_exception.message, exception.message
+        assert_equal JSON::ParserError, exception.cause.class
+        assert_equal exception.cause.message, exception.message
       ensure
         $stderr = STDERR
       end
@@ -79,7 +86,7 @@ class JsonParamsParsingTest < ActionDispatch::IntegrationTest
 
   test 'raw_post is not empty for JSON request' do
     with_test_routing do
-      post '/parse', '{"posts": [{"title": "Post Title"}]}', 'CONTENT_TYPE' => 'application/json'
+      post '/parse', params: '{"posts": [{"title": "Post Title"}]}', headers: { 'CONTENT_TYPE' => 'application/json' }
       assert_equal '{"posts": [{"title": "Post Title"}]}', request.raw_post
     end
   end
@@ -87,7 +94,7 @@ class JsonParamsParsingTest < ActionDispatch::IntegrationTest
   private
     def assert_parses(expected, actual, headers = {})
       with_test_routing do
-        post "/parse", actual, headers
+        post "/parse", params: actual, headers: headers
         assert_response :ok
         assert_equal(expected, TestController.last_request_parameters)
       end
@@ -96,7 +103,9 @@ class JsonParamsParsingTest < ActionDispatch::IntegrationTest
     def with_test_routing
       with_routing do |set|
         set.draw do
-          post ':action', :to => ::JsonParamsParsingTest::TestController
+          ActiveSupport::Deprecation.silence do
+            post ':action', :to => ::JsonParamsParsingTest::TestController
+          end
         end
         yield
       end
@@ -113,7 +122,7 @@ class RootLessJSONParamsParsingTest < ActionDispatch::IntegrationTest
 
     def parse
       self.class.last_request_parameters = request.request_parameters
-      self.class.last_parameters = params
+      self.class.last_parameters = params.to_unsafe_h
       head :ok
     end
   end
@@ -143,10 +152,38 @@ class RootLessJSONParamsParsingTest < ActionDispatch::IntegrationTest
     )
   end
 
+  test "parses json params after custom json mime type registered" do
+    begin
+      Mime::Type.unregister :json
+      Mime::Type.register "application/json", :json, %w(application/vnd.api+json)
+      assert_parses(
+        {"user" => {"username" => "meinac"}, "username" => "meinac"},
+        "{\"username\": \"meinac\"}", { 'CONTENT_TYPE' => 'application/json' }
+      )
+    ensure
+      Mime::Type.unregister :json
+      Mime::Type.register "application/json", :json, %w( text/x-json application/jsonrequest )
+    end
+  end
+
+  test "parses json params after custom json mime type registered with synonym" do
+    begin
+      Mime::Type.unregister :json
+      Mime::Type.register "application/json", :json, %w(application/vnd.api+json)
+      assert_parses(
+        {"user" => {"username" => "meinac"}, "username" => "meinac"},
+        "{\"username\": \"meinac\"}", { 'CONTENT_TYPE' => 'application/vnd.api+json' }
+      )
+    ensure
+      Mime::Type.unregister :json
+      Mime::Type.register "application/json", :json, %w( text/x-json application/jsonrequest )
+    end
+  end
+
   private
     def assert_parses(expected, actual, headers = {})
       with_test_routing(UsersController) do
-        post "/parse", actual, headers
+        post "/parse", params: actual, headers: headers
         assert_response :ok
         assert_equal(expected, UsersController.last_request_parameters)
         assert_equal(expected.merge({"action" => "parse"}), UsersController.last_parameters)
@@ -156,7 +193,9 @@ class RootLessJSONParamsParsingTest < ActionDispatch::IntegrationTest
     def with_test_routing(controller)
       with_routing do |set|
         set.draw do
-          post ':action', :to => controller
+          ActiveSupport::Deprecation.silence do
+            post ':action', :to => controller
+          end
         end
         yield
       end

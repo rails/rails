@@ -1,5 +1,3 @@
-# encoding: utf-8
-
 require 'active_support/core_ext/hash/keys'
 require 'active_support/core_ext/string/output_safety'
 require 'active_support/number_helper'
@@ -65,6 +63,14 @@ module ActionView
       # Formats a +number+ into a currency string (e.g., $13.65). You
       # can customize the format in the +options+ hash.
       #
+      # The currency unit and number formatting of the current locale will be used
+      # unless otherwise specified in the provided options. No currency conversion
+      # is performed. If the user is given a way to change their locale, they will
+      # also be able to change the relative value of the currency displayed with
+      # this helper. If your application will ever support multiple locales, you
+      # may want to specify a constant <tt>:locale</tt> option or consider
+      # using a library capable of currency conversion.
+      #
       # ==== Options
       #
       # * <tt>:locale</tt> - Sets the locale to be used for formatting
@@ -117,8 +123,8 @@ module ActionView
       #   (defaults to current locale).
       # * <tt>:precision</tt> - Sets the precision of the number
       #   (defaults to 3).
-      # * <tt>:significant</tt> - If +true+, precision will be the #
-      #   of significant_digits. If +false+, the # of fractional
+      # * <tt>:significant</tt> - If +true+, precision will be the number
+      #   of significant_digits. If +false+, the number of fractional
       #   digits (defaults to +false+).
       # * <tt>:separator</tt> - Sets the separator between the
       #   fractional and integer digits (defaults to ".").
@@ -141,7 +147,7 @@ module ActionView
       #   number_to_percentage(302.24398923423, precision: 5)              # => 302.24399%
       #   number_to_percentage(1000, locale: :fr)                          # => 1 000,000%
       #   number_to_percentage("98a")                                      # => 98a%
-      #   number_to_percentage(100, format: "%n  %")                       # => 100  %
+      #   number_to_percentage(100, format: "%n  %")                       # => 100.000  %
       #
       #   number_to_percentage("98a", raise: true)                         # => InvalidNumberError
       def number_to_percentage(number, options = {})
@@ -192,8 +198,8 @@ module ActionView
       #   (defaults to current locale).
       # * <tt>:precision</tt> - Sets the precision of the number
       #   (defaults to 3).
-      # * <tt>:significant</tt> - If +true+, precision will be the #
-      #   of significant_digits. If +false+, the # of fractional
+      # * <tt>:significant</tt> - If +true+, precision will be the number
+      #   of significant_digits. If +false+, the number of fractional
       #   digits (defaults to +false+).
       # * <tt>:separator</tt> - Sets the separator between the
       #   fractional and integer digits (defaults to ".").
@@ -240,8 +246,8 @@ module ActionView
       #   (defaults to current locale).
       # * <tt>:precision</tt> - Sets the precision of the number
       #   (defaults to 3).
-      # * <tt>:significant</tt> - If +true+, precision will be the #
-      #   of significant_digits. If +false+, the # of fractional
+      # * <tt>:significant</tt> - If +true+, precision will be the number
+      #   of significant_digits. If +false+, the number of fractional
       #   digits (defaults to +true+)
       # * <tt>:separator</tt> - Sets the separator between the
       #   fractional and integer digits (defaults to ".").
@@ -263,6 +269,8 @@ module ActionView
       #   number_to_human_size(1234567)                                      # => 1.18 MB
       #   number_to_human_size(1234567890)                                   # => 1.15 GB
       #   number_to_human_size(1234567890123)                                # => 1.12 TB
+      #   number_to_human_size(1234567890123456)                             # => 1.1 PB
+      #   number_to_human_size(1234567890123456789)                          # => 1.07 EB
       #   number_to_human_size(1234567, precision: 2)                        # => 1.2 MB
       #   number_to_human_size(483989, precision: 2)                         # => 470 KB
       #   number_to_human_size(1234567, precision: 2, separator: ',')        # => 1,2 MB
@@ -280,7 +288,7 @@ module ActionView
       # See <tt>number_to_human_size</tt> if you want to print a file
       # size.
       #
-      # You can also define you own unit-quantifier names if you want
+      # You can also define your own unit-quantifier names if you want
       # to use other decimal units (eg.: 1500 becomes "1.5
       # kilometers", 0.150 becomes "150 milliliters", etc). You may
       # define a wide range of unit quantifiers, even fractional ones
@@ -292,8 +300,8 @@ module ActionView
       #   (defaults to current locale).
       # * <tt>:precision</tt> - Sets the precision of the number
       #   (defaults to 3).
-      # * <tt>:significant</tt> - If +true+, precision will be the #
-      #   of significant_digits. If +false+, the # of fractional
+      # * <tt>:significant</tt> - If +true+, precision will be the number
+      #   of significant_digits. If +false+, the number of fractional
       #   digits (defaults to +true+)
       # * <tt>:separator</tt> - Sets the separator between the
       #   fractional and integer digits (defaults to ".").

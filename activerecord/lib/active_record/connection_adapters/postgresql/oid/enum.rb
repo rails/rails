@@ -7,7 +7,9 @@ module ActiveRecord
             :enum
           end
 
-          def type_cast(value)
+          private
+
+          def cast_value(value)
             value.to_s
           end
         end

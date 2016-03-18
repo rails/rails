@@ -73,9 +73,20 @@ class TimestampTest < ActiveRecord::TestCase
     assert_equal @previously_updated_at, @developer.updated_at
   end
 
+  def test_touching_updates_timestamp_with_given_time
+    previously_updated_at = @developer.updated_at 
+    new_time = Time.utc(2015, 2, 16, 0, 0, 0) 
+    @developer.touch(time: new_time) 
+
+    assert_not_equal previously_updated_at, @developer.updated_at 
+    assert_equal new_time, @developer.updated_at 
+  end
+
   def test_touching_an_attribute_updates_timestamp
     previously_created_at = @developer.created_at
-    @developer.touch(:created_at)
+    travel(1.second) do
+      @developer.touch(:created_at)
+    end
 
     assert !@developer.created_at_changed? , 'created_at should not be changed'
     assert !@developer.changed?, 'record should not be changed'
@@ -87,8 +98,23 @@ class TimestampTest < ActiveRecord::TestCase
     task = Task.first
     previous_value = task.ending
     task.touch(:ending)
+
+    now = Time.now.change(usec: 0)
+
     assert_not_equal previous_value, task.ending
-    assert_in_delta Time.now, task.ending, 1
+    assert_in_delta now, task.ending, 1
+  end
+
+  def test_touching_an_attribute_updates_timestamp_with_given_time
+    previously_updated_at = @developer.updated_at 
+    previously_created_at = @developer.created_at
+    new_time = Time.utc(2015, 2, 16, 4, 54, 0) 
+    @developer.touch(:created_at, time: new_time)
+
+    assert_not_equal previously_created_at, @developer.created_at
+    assert_not_equal previously_updated_at, @developer.updated_at
+    assert_equal new_time, @developer.created_at
+    assert_equal new_time, @developer.updated_at
   end
 
   def test_touching_many_attributes_updates_them
@@ -97,10 +123,12 @@ class TimestampTest < ActiveRecord::TestCase
     previous_ending = task.ending
     task.touch(:starting, :ending)
 
+    now = Time.now.change(usec: 0)
+
     assert_not_equal previous_starting, task.starting
     assert_not_equal previous_ending, task.ending
-    assert_in_delta Time.now, task.starting, 1
-    assert_in_delta Time.now, task.ending, 1
+    assert_in_delta now, task.starting, 1
+    assert_in_delta now, task.ending, 1
   end
 
   def test_touching_a_record_without_timestamps_is_unexceptional
@@ -178,8 +206,10 @@ class TimestampTest < ActiveRecord::TestCase
     owner = pet.owner
     previously_owner_updated_at = owner.updated_at
 
-    pet.name = "Fluffy the Third"
-    pet.save
+    travel(1.second) do
+      pet.name = "Fluffy the Third"
+      pet.save
+    end
 
     assert_not_equal previously_owner_updated_at, pet.owner.updated_at
   end
@@ -189,7 +219,9 @@ class TimestampTest < ActiveRecord::TestCase
     owner = pet.owner
     previously_owner_updated_at = owner.updated_at
 
-    pet.destroy
+    travel(1.second) do
+      pet.destroy
+    end
 
     assert_not_equal previously_owner_updated_at, pet.owner.updated_at
   end
@@ -233,8 +265,10 @@ class TimestampTest < ActiveRecord::TestCase
     owner.update_columns(happy_at: 3.days.ago)
     previously_owner_updated_at = owner.updated_at
 
-    pet.name = "I'm a parrot"
-    pet.save
+    travel(1.second) do
+      pet.name = "I'm a parrot"
+      pet.save
+    end
 
     assert_not_equal previously_owner_updated_at, pet.owner.updated_at
   end
@@ -425,11 +459,22 @@ class TimestampTest < ActiveRecord::TestCase
     toy = Toy.first
     assert_equal [:created_at, :updated_at], toy.send(:all_timestamp_attributes_in_model)
   end
+
+  def test_index_is_created_for_both_timestamps
+    ActiveRecord::Base.connection.create_table(:foos, force: true) do |t|
+      t.timestamps(:foos, null: true, index: true)
+    end
+
+    indexes = ActiveRecord::Base.connection.indexes('foos')
+    assert_equal ['created_at', 'updated_at'], indexes.flat_map(&:columns).sort
+  ensure
+    ActiveRecord::Base.connection.drop_table(:foos)
+  end
 end
 
 class TimestampsWithoutTransactionTest < ActiveRecord::TestCase
   include DdlHelper
-  self.use_transactional_fixtures = false
+  self.use_transactional_tests = false
 
   class TimestampAttributePost < ActiveRecord::Base
     attr_accessor :created_at, :updated_at

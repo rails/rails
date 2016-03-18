@@ -37,4 +37,8 @@ class Topic
     errors.add attr, "is missing" unless send(attr)
   end
 
+  def my_word_tokenizer(str)
+   str.scan(/\w+/)
+  end
+
 end

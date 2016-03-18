@@ -1,5 +1,7 @@
 require 'isolation/abstract_unit'
 require 'rack/test'
+require 'base64'
+
 module ApplicationTests
   class MailerPreviewsTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
@@ -29,7 +31,7 @@ module ApplicationTests
     test "/rails/mailers is accessible with correct configuraiton" do
       add_to_config "config.action_mailer.show_previews = true"
       app("production")
-      get "/rails/mailers"
+      get "/rails/mailers", {}, {"REMOTE_ADDR" => "4.2.42.42"}
       assert_equal 200, last_response.status
     end
 
@@ -327,6 +329,32 @@ module ApplicationTests
       assert_match "Email &#39;bar&#39; not found in NotifierPreview", last_response.body
     end
 
+    test "mailer preview NullMail" do
+      mailer 'notifier', <<-RUBY
+        class Notifier < ActionMailer::Base
+          default from: "from@example.com"
+
+          def foo
+            # does not call +mail+
+          end
+        end
+      RUBY
+
+      mailer_preview 'notifier', <<-RUBY
+        class NotifierPreview < ActionMailer::Preview
+          def foo
+            Notifier.foo
+          end
+        end
+      RUBY
+
+      app('development')
+
+      get "/rails/mailers/notifier/foo"
+      assert_match "You are trying to preview an email that does not have any content.", last_response.body
+      assert_match "notifier#foo", last_response.body
+    end
+
     test "mailer preview email part not found" do
       mailer 'notifier', <<-RUBY
         class Notifier < ActionMailer::Base
@@ -428,56 +456,220 @@ module ApplicationTests
       assert_match '<option selected value="?part=text%2Fplain">View as plain-text email</option>', last_response.body
     end
 
-    test "*_path helpers emit a deprecation" do
-
-      app_file "config/routes.rb", <<-RUBY
-        Rails.application.routes.draw do
-          get 'foo', to: 'foo#index'
-        end
-      RUBY
-
+    test "mailer previews create correct links when loaded on a subdirectory" do
       mailer 'notifier', <<-RUBY
         class Notifier < ActionMailer::Base
           default from: "from@example.com"
 
-          def path_in_view
-            mail to: "to@example.org"
-          end
-
-          def path_in_mailer
-            @url = foo_path
+          def foo
             mail to: "to@example.org"
           end
         end
       RUBY
 
-      html_template 'notifier/path_in_view', "<%= link_to 'foo', foo_path %>"
+      text_template 'notifier/foo', <<-RUBY
+        Hello, World!
+      RUBY
 
       mailer_preview 'notifier', <<-RUBY
         class NotifierPreview < ActionMailer::Preview
-          def path_in_view
-            Notifier.path_in_view
-          end
-
-          def path_in_mailer
-            Notifier.path_in_mailer
+          def foo
+            Notifier.foo
           end
         end
       RUBY
 
       app('development')
 
-      assert_deprecated do
-        get "/rails/mailers/notifier/path_in_view.html"
-        assert_equal 200, last_response.status
-      end
+      get "/rails/mailers", {}, 'SCRIPT_NAME' => '/my_app'
+      assert_match '<h3><a href="/my_app/rails/mailers/notifier">Notifier</a></h3>', last_response.body
+      assert_match '<li><a href="/my_app/rails/mailers/notifier/foo">foo</a></li>', last_response.body
+    end
 
-      html_template 'notifier/path_in_mailer', "No ERB in here"
+    test "plain text mailer preview with attachment" do
+      image_file "pixel.png", "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQMAAAAl21bKAAAAA1BMVEWzIioca/JlAAAACklEQVQI12NgAAAAAgAB4iG8MwAAAABJRU5ErkJgggo="
 
-      assert_deprecated do
-        get "/rails/mailers/notifier/path_in_mailer.html"
-        assert_equal 200, last_response.status
-      end
+      mailer 'notifier', <<-RUBY
+        class Notifier < ActionMailer::Base
+          default from: "from@example.com"
+
+          def foo
+            attachments['pixel.png'] = File.read("#{app_path}/public/images/pixel.png", mode: 'rb')
+            mail to: "to@example.org"
+          end
+        end
+      RUBY
+
+      text_template 'notifier/foo', <<-RUBY
+        Hello, World!
+      RUBY
+
+      mailer_preview 'notifier', <<-RUBY
+        class NotifierPreview < ActionMailer::Preview
+          def foo
+            Notifier.foo
+          end
+        end
+      RUBY
+
+      app('development')
+
+      get "/rails/mailers/notifier/foo"
+      assert_equal 200, last_response.status
+      assert_match %r[<iframe seamless name="messageBody"], last_response.body
+
+      get "/rails/mailers/notifier/foo?part=text/plain"
+      assert_equal 200, last_response.status
+      assert_match %r[Hello, World!], last_response.body
+    end
+
+    test "multipart mailer preview with attachment" do
+      image_file "pixel.png", "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQMAAAAl21bKAAAAA1BMVEWzIioca/JlAAAACklEQVQI12NgAAAAAgAB4iG8MwAAAABJRU5ErkJgggo="
+
+      mailer 'notifier', <<-RUBY
+        class Notifier < ActionMailer::Base
+          default from: "from@example.com"
+
+          def foo
+            attachments['pixel.png'] = File.read("#{app_path}/public/images/pixel.png", mode: 'rb')
+            mail to: "to@example.org"
+          end
+        end
+      RUBY
+
+      text_template 'notifier/foo', <<-RUBY
+        Hello, World!
+      RUBY
+
+      html_template 'notifier/foo', <<-RUBY
+        <p>Hello, World!</p>
+      RUBY
+
+      mailer_preview 'notifier', <<-RUBY
+        class NotifierPreview < ActionMailer::Preview
+          def foo
+            Notifier.foo
+          end
+        end
+      RUBY
+
+      app('development')
+
+      get "/rails/mailers/notifier/foo"
+      assert_equal 200, last_response.status
+      assert_match %r[<iframe seamless name="messageBody"], last_response.body
+
+      get "/rails/mailers/notifier/foo?part=text/plain"
+      assert_equal 200, last_response.status
+      assert_match %r[Hello, World!], last_response.body
+
+      get "/rails/mailers/notifier/foo?part=text/html"
+      assert_equal 200, last_response.status
+      assert_match %r[<p>Hello, World!</p>], last_response.body
+    end
+
+    test "multipart mailer preview with inline attachment" do
+      image_file "pixel.png", "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQMAAAAl21bKAAAAA1BMVEWzIioca/JlAAAACklEQVQI12NgAAAAAgAB4iG8MwAAAABJRU5ErkJgggo="
+
+      mailer 'notifier', <<-RUBY
+        class Notifier < ActionMailer::Base
+          default from: "from@example.com"
+
+          def foo
+            attachments['pixel.png'] = File.read("#{app_path}/public/images/pixel.png", mode: 'rb')
+            mail to: "to@example.org"
+          end
+        end
+      RUBY
+
+      text_template 'notifier/foo', <<-RUBY
+        Hello, World!
+      RUBY
+
+      html_template 'notifier/foo', <<-RUBY
+        <p>Hello, World!</p>
+        <%= image_tag attachments['pixel.png'].url %>
+      RUBY
+
+      mailer_preview 'notifier', <<-RUBY
+        class NotifierPreview < ActionMailer::Preview
+          def foo
+            Notifier.foo
+          end
+        end
+      RUBY
+
+      app('development')
+
+      get "/rails/mailers/notifier/foo"
+      assert_equal 200, last_response.status
+      assert_match %r[<iframe seamless name="messageBody"], last_response.body
+
+      get "/rails/mailers/notifier/foo?part=text/plain"
+      assert_equal 200, last_response.status
+      assert_match %r[Hello, World!], last_response.body
+
+      get "/rails/mailers/notifier/foo?part=text/html"
+      assert_equal 200, last_response.status
+      assert_match %r[<p>Hello, World!</p>], last_response.body
+      assert_match %r[src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQMAAAAl21bKAAAAA1BMVEWzIioca/JlAAAACklEQVQI12NgAAAAAgAB4iG8MwAAAABJRU5ErkJgggo="], last_response.body
+    end
+
+    test "multipart mailer preview with attached email" do
+      mailer 'notifier', <<-RUBY
+        class Notifier < ActionMailer::Base
+          default from: "from@example.com"
+
+          def foo
+            message = ::Mail.new do
+              from    'foo@example.com'
+              to      'bar@example.com'
+              subject 'Important Message'
+
+              text_part do
+                body 'Goodbye, World!'
+              end
+
+              html_part do
+                body '<p>Goodbye, World!</p>'
+              end
+            end
+
+            attachments['message.eml'] = message.to_s
+            mail to: "to@example.org"
+          end
+        end
+      RUBY
+
+      text_template 'notifier/foo', <<-RUBY
+        Hello, World!
+      RUBY
+
+      html_template 'notifier/foo', <<-RUBY
+        <p>Hello, World!</p>
+      RUBY
+
+      mailer_preview 'notifier', <<-RUBY
+        class NotifierPreview < ActionMailer::Preview
+          def foo
+            Notifier.foo
+          end
+        end
+      RUBY
+
+      app('development')
+
+      get "/rails/mailers/notifier/foo"
+      assert_equal 200, last_response.status
+      assert_match %r[<iframe seamless name="messageBody"], last_response.body
+
+      get "/rails/mailers/notifier/foo?part=text/plain"
+      assert_equal 200, last_response.status
+      assert_match %r[Hello, World!], last_response.body
+
+      get "/rails/mailers/notifier/foo?part=text/html"
+      assert_equal 200, last_response.status
+      assert_match %r[<p>Hello, World!</p>], last_response.body
     end
 
     private
@@ -500,6 +692,10 @@ module ApplicationTests
 
       def text_template(name, contents)
         app_file("app/views/#{name}.text.erb", contents)
+      end
+
+      def image_file(name, contents)
+        app_file("public/images/#{name}", Base64.strict_decode64(contents), 'wb')
       end
   end
 end

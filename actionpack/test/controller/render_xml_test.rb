@@ -72,7 +72,10 @@ class RenderXmlTest < ActionController::TestCase
     with_routing do |set|
       set.draw do
         resources :customers
-        get ':controller/:action'
+
+        ActiveSupport::Deprecation.silence do
+          get ':controller/:action'
+        end
       end
 
       get :render_with_object_location
@@ -81,7 +84,7 @@ class RenderXmlTest < ActionController::TestCase
   end
 
   def test_should_render_formatted_xml_erb_template
-    get :formatted_xml_erb, :format => :xml
+    get :formatted_xml_erb, format: :xml
     assert_equal '<test>passed formatted xml erb</test>', @response.body
   end
 
@@ -91,7 +94,7 @@ class RenderXmlTest < ActionController::TestCase
   end
 
   def test_should_use_implicit_content_type
-    get :implicit_content_type, :format => 'atom'
-    assert_equal Mime::ATOM, @response.content_type
+    get :implicit_content_type, format: 'atom'
+    assert_equal Mime[:atom], @response.content_type
   end
 end

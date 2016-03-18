@@ -5,23 +5,28 @@ class HttpBasicAuthenticationTest < ActionController::TestCase
     before_action :authenticate, only: :index
     before_action :authenticate_with_request, only: :display
     before_action :authenticate_long_credentials, only: :show
+    before_action :auth_with_special_chars, only: :special_creds
 
     http_basic_authenticate_with :name => "David", :password => "Goliath", :only => :search
 
     def index
-      render :text => "Hello Secret"
+      render plain: "Hello Secret"
     end
 
     def display
-      render :text => 'Definitely Maybe'
+      render plain: 'Definitely Maybe' if @logged_in
     end
 
     def show
-      render :text => 'Only for loooooong credentials'
+      render plain: 'Only for loooooong credentials'
+    end
+
+    def special_creds
+      render plain: 'Only for special credentials'
     end
 
     def search
-      render :text => 'All inline'
+      render plain: 'All inline'
     end
 
     private
@@ -36,7 +41,13 @@ class HttpBasicAuthenticationTest < ActionController::TestCase
       if authenticate_with_http_basic { |username, password| username == 'pretty' && password == 'please' }
         @logged_in = true
       else
-        request_http_basic_authentication("SuperSecret")
+        request_http_basic_authentication("SuperSecret", "Authentication Failed\n")
+      end
+    end
+
+    def auth_with_special_chars
+      authenticate_or_request_with_http_basic do |username, password|
+        username == 'login!@#$%^&*()_+{}[];"\',./<>?`~ \n\r\t' && password == 'pwd:!@#$%^&*()_+{}[];"\',./<>?`~ \n\r\t'
       end
     end
 
@@ -83,6 +94,13 @@ class HttpBasicAuthenticationTest < ActionController::TestCase
       assert_response :unauthorized
       assert_equal "HTTP Basic: Access denied.\n", @response.body, "Authentication didn't fail for request header #{header} and long credentials"
     end
+
+    test "unsuccessful authentication with #{header.downcase} and no credentials" do
+      get :show
+
+      assert_response :unauthorized
+      assert_equal "HTTP Basic: Access denied.\n", @response.body, "Authentication didn't fail for request header #{header} and no credentials"
+    end
   end
 
   def test_encode_credentials_has_no_newline
@@ -93,11 +111,19 @@ class HttpBasicAuthenticationTest < ActionController::TestCase
     assert_no_match(/\n/, result)
   end
 
+  test "successful authentication with uppercase authorization scheme" do
+    @request.env['HTTP_AUTHORIZATION'] = "BASIC #{::Base64.encode64("lifo:world")}"
+    get :index
+
+    assert_response :success
+    assert_equal 'Hello Secret', @response.body, 'Authentication failed when authorization scheme BASIC'
+  end
+
   test "authentication request without credential" do
     get :display
 
     assert_response :unauthorized
-    assert_equal "HTTP Basic: Access denied.\n", @response.body
+    assert_equal "Authentication Failed\n", @response.body
     assert_equal 'Basic realm="SuperSecret"', @response.headers['WWW-Authenticate']
   end
 
@@ -106,7 +132,7 @@ class HttpBasicAuthenticationTest < ActionController::TestCase
     get :display
 
     assert_response :unauthorized
-    assert_equal "HTTP Basic: Access denied.\n", @response.body
+    assert_equal "Authentication Failed\n", @response.body
     assert_equal 'Basic realm="SuperSecret"', @response.headers['WWW-Authenticate']
   end
 
@@ -115,8 +141,15 @@ class HttpBasicAuthenticationTest < ActionController::TestCase
     get :display
 
     assert_response :success
-    assert assigns(:logged_in)
     assert_equal 'Definitely Maybe', @response.body
+  end
+
+  test "authentication request with valid credential special chars" do
+    @request.env['HTTP_AUTHORIZATION'] = encode_credentials('login!@#$%^&*()_+{}[];"\',./<>?`~ \n\r\t', 'pwd:!@#$%^&*()_+{}[];"\',./<>?`~ \n\r\t')
+    get :special_creds
+
+    assert_response :success
+    assert_equal 'Only for special credentials', @response.body
   end
 
   test "authenticate with class method" do

@@ -1,2 +1,0 @@
-xml.instruct!
-xml.test

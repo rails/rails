@@ -1,5 +1,3 @@
-require File.expand_path('../../../load_paths', __FILE__)
-
 $:.unshift(File.dirname(__FILE__) + '/lib')
 $:.unshift(File.dirname(__FILE__) + '/fixtures/helpers')
 $:.unshift(File.dirname(__FILE__) + '/fixtures/alternate_helpers')
@@ -16,6 +14,7 @@ silence_warnings do
 end
 
 require 'active_support/testing/autorun'
+require 'active_support/testing/method_call_assertions'
 require 'action_controller'
 require 'action_view'
 require 'action_view/testing/resolvers'
@@ -49,20 +48,6 @@ I18n.backend.store_translations 'pt-BR', {}
 ORIGINAL_LOCALES = I18n.available_locales.map(&:to_s).sort
 
 FIXTURE_LOAD_PATH = File.join(File.dirname(__FILE__), 'fixtures')
-FIXTURES = Pathname.new(FIXTURE_LOAD_PATH)
-
-module RackTestUtils
-  def body_to_string(body)
-    if body.respond_to?(:each)
-      str = ""
-      body.each {|s| str << s }
-      str
-    else
-      body
-    end
-  end
-  extend self
-end
 
 module RenderERBUtils
   def view
@@ -108,12 +93,14 @@ module ActionDispatch
       super
       return if DrawOnce.drew
 
-      SharedTestRoutes.draw do
-        get ':controller(/:action)'
-      end
+      ActiveSupport::Deprecation.silence do
+        SharedTestRoutes.draw do
+          get ':controller(/:action)'
+        end
 
-      ActionDispatch::IntegrationTest.app.routes.draw do
-        get ':controller(/:action)'
+        ActionDispatch::IntegrationTest.app.routes.draw do
+          get ':controller(/:action)'
+        end
       end
 
       DrawOnce.drew = true
@@ -161,13 +148,12 @@ class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
 
   def self.build_app(routes = nil)
     RoutedRackApp.new(routes || ActionDispatch::Routing::RouteSet.new) do |middleware|
-      middleware.use "ActionDispatch::ShowExceptions", ActionDispatch::PublicExceptions.new("#{FIXTURE_LOAD_PATH}/public")
-      middleware.use "ActionDispatch::DebugExceptions"
-      middleware.use "ActionDispatch::Callbacks"
-      middleware.use "ActionDispatch::ParamsParser"
-      middleware.use "ActionDispatch::Cookies"
-      middleware.use "ActionDispatch::Flash"
-      middleware.use "Rack::Head"
+      middleware.use ActionDispatch::ShowExceptions, ActionDispatch::PublicExceptions.new("#{FIXTURE_LOAD_PATH}/public")
+      middleware.use ActionDispatch::DebugExceptions
+      middleware.use ActionDispatch::Callbacks
+      middleware.use ActionDispatch::Cookies
+      middleware.use ActionDispatch::Flash
+      middleware.use Rack::Head
       yield(middleware) if block_given?
     end
   end
@@ -225,50 +211,7 @@ class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
   end
 end
 
-# Temporary base class
-class Rack::TestCase < ActionDispatch::IntegrationTest
-  def self.testing(klass = nil)
-    if klass
-      @testing = "/#{klass.name.underscore}".sub!(/_controller$/, '')
-    else
-      @testing
-    end
-  end
-
-  def get(thing, *args)
-    if thing.is_a?(Symbol)
-      super("#{self.class.testing}/#{thing}", *args)
-    else
-      super
-    end
-  end
-
-  def assert_body(body)
-    assert_equal body, Array(response.body).join
-  end
-
-  def assert_status(code)
-    assert_equal code, response.status
-  end
-
-  def assert_response(body, status = 200, headers = {})
-    assert_body body
-    assert_status status
-    headers.each do |header, value|
-      assert_header header, value
-    end
-  end
-
-  def assert_content_type(type)
-    assert_equal type, response.headers["Content-Type"]
-  end
-
-  def assert_header(name, value)
-    assert_equal value, response.headers[name]
-  end
-end
-
-ActionView::RoutingUrlFor.send(:include, ActionDispatch::Routing::UrlFor)
+ActionView::RoutingUrlFor.include(ActionDispatch::Routing::UrlFor)
 
 module ActionController
   class Base
@@ -337,9 +280,6 @@ def jruby_skip(message = '')
   skip message if defined?(JRUBY_VERSION)
 end
 
-require 'mocha/setup' # FIXME: stop using mocha
-
-# FIXME: we have tests that depend on run order, we should fix that and
-# remove this method call.
-require 'active_support/test_case'
-ActiveSupport::TestCase.test_order = :sorted
+class ActiveSupport::TestCase
+  include ActiveSupport::Testing::MethodCallAssertions
+end

@@ -1,6 +1,7 @@
-require "cases/helper"
-require "cases/migration/helper"
+require 'cases/helper'
+require 'cases/migration/helper'
 require 'bigdecimal/util'
+require 'concurrent/atomic/count_down_latch'
 
 require 'models/person'
 require 'models/topic'
@@ -14,9 +15,9 @@ require MIGRATIONS_ROOT + "/decimal/1_give_me_big_numbers"
 
 class BigNumber < ActiveRecord::Base
   unless current_adapter?(:PostgreSQLAdapter, :SQLite3Adapter)
-    attribute :value_of_e, Type::Integer.new
+    attribute :value_of_e, :integer
   end
-  attribute :my_house_population, Type::Integer.new
+  attribute :my_house_population, :integer
 end
 
 class Reminder < ActiveRecord::Base; end
@@ -24,7 +25,7 @@ class Reminder < ActiveRecord::Base; end
 class Thing < ActiveRecord::Base; end
 
 class MigrationTest < ActiveRecord::TestCase
-  self.use_transactional_fixtures = false
+  self.use_transactional_tests = false
 
   fixtures :people
 
@@ -75,22 +76,20 @@ class MigrationTest < ActiveRecord::TestCase
 
     ActiveRecord::Migrator.up(migrations_path)
     assert_equal 3, ActiveRecord::Migrator.current_version
-    assert_equal 3, ActiveRecord::Migrator.last_version
     assert_equal false, ActiveRecord::Migrator.needs_migration?
 
     ActiveRecord::Migrator.down(MIGRATIONS_ROOT + "/valid")
     assert_equal 0, ActiveRecord::Migrator.current_version
-    assert_equal 3, ActiveRecord::Migrator.last_version
     assert_equal true, ActiveRecord::Migrator.needs_migration?
 
-    ActiveRecord::SchemaMigration.create!(:version => ActiveRecord::Migrator.last_version)
+    ActiveRecord::SchemaMigration.create!(version: 3)
     assert_equal true, ActiveRecord::Migrator.needs_migration?
   ensure
     ActiveRecord::Migrator.migrations_paths = old_path
   end
 
   def test_migration_detection_without_schema_migration_table
-    ActiveRecord::Base.connection.drop_table('schema_migrations') if ActiveRecord::Base.connection.table_exists?('schema_migrations')
+    ActiveRecord::Base.connection.drop_table 'schema_migrations', if_exists: true
 
     migrations_path = MIGRATIONS_ROOT + "/valid"
     old_path = ActiveRecord::Migrator.migrations_paths
@@ -115,14 +114,10 @@ class MigrationTest < ActiveRecord::TestCase
   end
 
   def test_migration_version
-    ActiveRecord::Migrator.run(:up, MIGRATIONS_ROOT + "/version_check", 20131219224947)
+    assert_nothing_raised { ActiveRecord::Migrator.run(:up, MIGRATIONS_ROOT + "/version_check", 20131219224947) }
   end
 
   def test_create_table_with_force_true_does_not_drop_nonexisting_table
-    if Person.connection.table_exists?(:testings2)
-      Person.connection.drop_table :testings2
-    end
-
     # using a copy as we need the drop_table method to
     # continue to work for the ensure block of the test
     temp_conn = Person.connection.dup
@@ -133,20 +128,16 @@ class MigrationTest < ActiveRecord::TestCase
       t.column :foo, :string
     end
   ensure
-    Person.connection.drop_table :testings2 rescue nil
-  end
-
-  def connection
-    ActiveRecord::Base.connection
+    Person.connection.drop_table :testings2, if_exists: true
   end
 
   def test_migration_instance_has_connection
-    migration = Class.new(ActiveRecord::Migration).new
-    assert_equal connection, migration.connection
+    migration = Class.new(ActiveRecord::Migration::Current).new
+    assert_equal ActiveRecord::Base.connection, migration.connection
   end
 
   def test_method_missing_delegates_to_connection
-    migration = Class.new(ActiveRecord::Migration) {
+    migration = Class.new(ActiveRecord::Migration::Current) {
       def connection
         Class.new {
           def create_table; "hi mom!"; end
@@ -162,6 +153,7 @@ class MigrationTest < ActiveRecord::TestCase
 
     assert !BigNumber.table_exists?
     GiveMeBigNumbers.up
+    BigNumber.reset_column_information
 
     assert BigNumber.create(
       :bank_balance => 1586.43,
@@ -200,8 +192,6 @@ class MigrationTest < ActiveRecord::TestCase
       # of 0, they take on the compile-time limit for precision and scale,
       # so the following should succeed unless you have used really wacky
       # compilation options
-      # - SQLite2 has the default behavior of preserving all data sent in,
-      # so this happens there too
       assert_kind_of BigDecimal, b.value_of_e
       assert_equal BigDecimal("2.7182818284590452353602875"), b.value_of_e
     elsif current_adapter?(:SQLite3Adapter)
@@ -234,7 +224,7 @@ class MigrationTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::StatementInvalid) { Reminder.first }
   end
 
-  class MockMigration < ActiveRecord::Migration
+  class MockMigration < ActiveRecord::Migration::Current
     attr_reader :went_up, :went_down
     def initialize
       @went_up   = false
@@ -276,7 +266,7 @@ class MigrationTest < ActiveRecord::TestCase
     def test_migrator_one_up_with_exception_and_rollback
       assert_no_column Person, :last_name
 
-      migration = Class.new(ActiveRecord::Migration) {
+      migration = Class.new(ActiveRecord::Migration::Current) {
         def version; 100 end
         def migrate(x)
           add_column "people", "last_name", :string
@@ -297,7 +287,7 @@ class MigrationTest < ActiveRecord::TestCase
     def test_migrator_one_up_with_exception_and_rollback_using_run
       assert_no_column Person, :last_name
 
-      migration = Class.new(ActiveRecord::Migration) {
+      migration = Class.new(ActiveRecord::Migration::Current) {
         def version; 100 end
         def migrate(x)
           add_column "people", "last_name", :string
@@ -309,7 +299,7 @@ class MigrationTest < ActiveRecord::TestCase
 
       e = assert_raise(StandardError) { migrator.run }
 
-      assert_equal "An error has occurred, this migration was canceled:\n\nSomething broke", e.message
+      assert_equal "An error has occurred, this and all later migrations canceled:\n\nSomething broke", e.message
 
       assert_no_column Person, :last_name,
         "On error, the Migrator should revert schema changes but it did not."
@@ -318,7 +308,7 @@ class MigrationTest < ActiveRecord::TestCase
     def test_migration_without_transaction
       assert_no_column Person, :last_name
 
-      migration = Class.new(ActiveRecord::Migration) {
+      migration = Class.new(ActiveRecord::Migration::Current) {
         self.disable_ddl_transaction!
 
         def version; 101 end
@@ -362,6 +352,93 @@ class MigrationTest < ActiveRecord::TestCase
     Reminder.reset_table_name
   end
 
+  def test_internal_metadata_table_name
+    original_internal_metadata_table_name = ActiveRecord::Base.internal_metadata_table_name
+
+    assert_equal "ar_internal_metadata", ActiveRecord::InternalMetadata.table_name
+    ActiveRecord::Base.table_name_prefix = "p_"
+    ActiveRecord::Base.table_name_suffix = "_s"
+    Reminder.reset_table_name
+    assert_equal "p_ar_internal_metadata_s", ActiveRecord::InternalMetadata.table_name
+    ActiveRecord::Base.internal_metadata_table_name = "changed"
+    Reminder.reset_table_name
+    assert_equal "p_changed_s", ActiveRecord::InternalMetadata.table_name
+    ActiveRecord::Base.table_name_prefix = ""
+    ActiveRecord::Base.table_name_suffix = ""
+    Reminder.reset_table_name
+    assert_equal "changed", ActiveRecord::InternalMetadata.table_name
+  ensure
+    ActiveRecord::Base.internal_metadata_table_name = original_internal_metadata_table_name
+    Reminder.reset_table_name
+  end
+
+  def test_internal_metadata_stores_environment
+    current_env     = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
+    migrations_path = MIGRATIONS_ROOT + "/valid"
+    old_path        = ActiveRecord::Migrator.migrations_paths
+    ActiveRecord::Migrator.migrations_paths = migrations_path
+
+    ActiveRecord::Migrator.up(migrations_path)
+    assert_equal current_env, ActiveRecord::InternalMetadata[:environment]
+
+    original_rails_env  = ENV["RAILS_ENV"]
+    original_rack_env   = ENV["RACK_ENV"]
+    ENV["RAILS_ENV"]    = ENV["RACK_ENV"] = "foofoo"
+    new_env     = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
+
+    refute_equal current_env, new_env
+
+    sleep 1 # mysql by default does not store fractional seconds in the database
+    ActiveRecord::Migrator.up(migrations_path)
+    assert_equal new_env, ActiveRecord::InternalMetadata[:environment]
+  ensure
+    ActiveRecord::Migrator.migrations_paths = old_path
+    ENV["RAILS_ENV"] = original_rails_env
+    ENV["RACK_ENV"]  = original_rack_env
+  end
+
+
+  def test_migration_sets_internal_metadata_even_when_fully_migrated
+    current_env     = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
+    migrations_path = MIGRATIONS_ROOT + "/valid"
+    old_path        = ActiveRecord::Migrator.migrations_paths
+    ActiveRecord::Migrator.migrations_paths = migrations_path
+
+    ActiveRecord::Migrator.up(migrations_path)
+    assert_equal current_env, ActiveRecord::InternalMetadata[:environment]
+
+    original_rails_env  = ENV["RAILS_ENV"]
+    original_rack_env   = ENV["RACK_ENV"]
+    ENV["RAILS_ENV"]    = ENV["RACK_ENV"] = "foofoo"
+    new_env     = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
+
+    refute_equal current_env, new_env
+
+    sleep 1 # mysql by default does not store fractional seconds in the database
+
+    ActiveRecord::Migrator.up(migrations_path)
+    assert_equal new_env, ActiveRecord::InternalMetadata[:environment]
+  ensure
+    ActiveRecord::Migrator.migrations_paths = old_path
+    ENV["RAILS_ENV"] = original_rails_env
+    ENV["RACK_ENV"]  = original_rack_env
+  end
+
+  def test_rename_internal_metadata_table
+    original_internal_metadata_table_name = ActiveRecord::Base.internal_metadata_table_name
+
+    ActiveRecord::Base.internal_metadata_table_name = "active_record_internal_metadatas"
+    Reminder.reset_table_name
+
+    ActiveRecord::Base.internal_metadata_table_name = original_internal_metadata_table_name
+    Reminder.reset_table_name
+
+    assert_equal "ar_internal_metadata", ActiveRecord::InternalMetadata.table_name
+  ensure
+    ActiveRecord::Base.internal_metadata_table_name = original_internal_metadata_table_name
+    Reminder.reset_table_name
+  end
+
   def test_proper_table_name_on_migration
     reminder_class = new_isolated_reminder_class
     migration = ActiveRecord::Migration.new
@@ -397,6 +474,7 @@ class MigrationTest < ActiveRecord::TestCase
     Thing.reset_table_name
     Thing.reset_sequence_name
     WeNeedThings.up
+    Thing.reset_column_information
 
     assert Thing.create("content" => "hello world")
     assert_equal "hello world", Thing.first.content
@@ -416,6 +494,7 @@ class MigrationTest < ActiveRecord::TestCase
     ActiveRecord::Base.table_name_suffix = '_suffix'
     Reminder.reset_table_name
     Reminder.reset_sequence_name
+    Reminder.reset_column_information
     WeNeedReminders.up
     assert Reminder.create("content" => "hello world", "remind_at" => Time.now)
     assert_equal "hello world", Reminder.first.content
@@ -427,8 +506,6 @@ class MigrationTest < ActiveRecord::TestCase
   end
 
   def test_create_table_with_binary_column
-    Person.connection.drop_table :binary_testings rescue nil
-
     assert_nothing_raised {
       Person.connection.create_table :binary_testings do |t|
         t.column "data", :binary, :null => false
@@ -439,13 +516,12 @@ class MigrationTest < ActiveRecord::TestCase
     data_column = columns.detect { |c| c.name == "data" }
 
     assert_nil data_column.default
-
-    Person.connection.drop_table :binary_testings rescue nil
+  ensure
+    Person.connection.drop_table :binary_testings, if_exists: true
   end
 
   unless mysql_enforcing_gtid_consistency?
     def test_create_table_with_query
-      Person.connection.drop_table :table_from_query_testings rescue nil
       Person.connection.create_table(:person, force: true)
 
       Person.connection.create_table :table_from_query_testings, as: "SELECT id FROM person"
@@ -453,12 +529,11 @@ class MigrationTest < ActiveRecord::TestCase
       columns = Person.connection.columns(:table_from_query_testings)
       assert_equal 1, columns.length
       assert_equal "id", columns.first.name
-
+    ensure
       Person.connection.drop_table :table_from_query_testings rescue nil
     end
 
     def test_create_table_with_query_from_relation
-      Person.connection.drop_table :table_from_query_testings rescue nil
       Person.connection.create_table(:person, force: true)
 
       Person.connection.create_table :table_from_query_testings, as: Person.select(:id)
@@ -466,7 +541,7 @@ class MigrationTest < ActiveRecord::TestCase
       columns = Person.connection.columns(:table_from_query_testings)
       assert_equal 1, columns.length
       assert_equal "id", columns.first.name
-
+    ensure
       Person.connection.drop_table :table_from_query_testings rescue nil
     end
   end
@@ -508,24 +583,103 @@ class MigrationTest < ActiveRecord::TestCase
     end
   end
 
-  if current_adapter?(:MysqlAdapter, :Mysql2Adapter, :PostgreSQLAdapter)
-    def test_out_of_range_limit_should_raise
-      Person.connection.drop_table :test_limits rescue nil
-      assert_raise(ActiveRecord::ActiveRecordError, "integer limit didn't raise") do
+  if current_adapter?(:Mysql2Adapter, :PostgreSQLAdapter)
+    def test_out_of_range_integer_limit_should_raise
+      e = assert_raise(ActiveRecord::ActiveRecordError, "integer limit didn't raise") do
         Person.connection.create_table :test_integer_limits, :force => true do |t|
           t.column :bigone, :integer, :limit => 10
         end
       end
 
-      unless current_adapter?(:PostgreSQLAdapter)
-        assert_raise(ActiveRecord::ActiveRecordError, "text limit didn't raise") do
-          Person.connection.create_table :test_text_limits, :force => true do |t|
-            t.column :bigtext, :text, :limit => 0xfffffffff
-          end
+      assert_match(/No integer type has byte size 10/, e.message)
+    ensure
+      Person.connection.drop_table :test_integer_limits, if_exists: true
+    end
+  end
+
+  if current_adapter?(:Mysql2Adapter)
+    def test_out_of_range_text_limit_should_raise
+      e = assert_raise(ActiveRecord::ActiveRecordError, "text limit didn't raise") do
+        Person.connection.create_table :test_text_limits, force: true do |t|
+          t.text :bigtext, limit: 0xfffffffff
         end
       end
 
-      Person.connection.drop_table :test_limits rescue nil
+      assert_match(/No text type has byte length #{0xfffffffff}/, e.message)
+    ensure
+      Person.connection.drop_table :test_text_limits, if_exists: true
+    end
+  end
+
+  if ActiveRecord::Base.connection.supports_advisory_locks?
+    def test_migrator_generates_valid_lock_id
+      migration = Class.new(ActiveRecord::Migration::Current).new
+      migrator = ActiveRecord::Migrator.new(:up, [migration], 100)
+
+      lock_id = migrator.send(:generate_migrator_advisory_lock_id)
+
+      assert ActiveRecord::Base.connection.get_advisory_lock(lock_id),
+        "the Migrator should have generated a valid lock id, but it didn't"
+      assert ActiveRecord::Base.connection.release_advisory_lock(lock_id),
+        "the Migrator should have generated a valid lock id, but it didn't"
+    end
+
+    def test_generate_migrator_advisory_lock_id
+      # It is important we are consistent with how we generate this so that
+      # exclusive locking works across migrator versions
+      migration = Class.new(ActiveRecord::Migration::Current).new
+      migrator = ActiveRecord::Migrator.new(:up, [migration], 100)
+
+      lock_id = migrator.send(:generate_migrator_advisory_lock_id)
+
+      current_database = ActiveRecord::Base.connection.current_database
+      salt = ActiveRecord::Migrator::MIGRATOR_SALT
+      expected_id = Zlib.crc32(current_database) * salt
+
+      assert lock_id == expected_id, "expected lock id generated by the migrator to be #{expected_id}, but it was #{lock_id} instead"
+      assert lock_id.bit_length <= 63, "lock id must be a signed integer of max 63 bits magnitude"
+    end
+
+    def test_migrator_one_up_with_unavailable_lock
+      assert_no_column Person, :last_name
+
+      migration = Class.new(ActiveRecord::Migration::Current) {
+        def version; 100 end
+        def migrate(x)
+          add_column "people", "last_name", :string
+        end
+      }.new
+
+      migrator = ActiveRecord::Migrator.new(:up, [migration], 100)
+      lock_id = migrator.send(:generate_migrator_advisory_lock_id)
+
+      with_another_process_holding_lock(lock_id) do
+        assert_raise(ActiveRecord::ConcurrentMigrationError) { migrator.migrate }
+      end
+
+      assert_no_column Person, :last_name,
+        "without an advisory lock, the Migrator should not make any changes, but it did."
+    end
+
+    def test_migrator_one_up_with_unavailable_lock_using_run
+      assert_no_column Person, :last_name
+
+      migration = Class.new(ActiveRecord::Migration::Current) {
+        def version; 100 end
+        def migrate(x)
+          add_column "people", "last_name", :string
+        end
+      }.new
+
+      migrator = ActiveRecord::Migrator.new(:up, [migration], 100)
+      lock_id = migrator.send(:generate_migrator_advisory_lock_id)
+
+      with_another_process_holding_lock(lock_id) do
+        assert_raise(ActiveRecord::ConcurrentMigrationError) { migrator.run }
+      end
+
+      assert_no_column Person, :last_name,
+        "without an advisory lock, the Migrator should not make any changes, but it did."
     end
   end
 
@@ -537,6 +691,30 @@ class MigrationTest < ActiveRecord::TestCase
         def self.name; "Reminder"; end
         def self.base_class; self; end
       }
+    end
+
+    def with_another_process_holding_lock(lock_id)
+      thread_lock = Concurrent::CountDownLatch.new
+      test_terminated = Concurrent::CountDownLatch.new
+
+      other_process = Thread.new do
+        begin
+          conn = ActiveRecord::Base.connection_pool.checkout
+          conn.get_advisory_lock(lock_id)
+          thread_lock.count_down
+          test_terminated.wait # hold the lock open until we tested everything
+        ensure
+          conn.release_advisory_lock(lock_id)
+          ActiveRecord::Base.connection_pool.checkin(conn)
+        end
+      end
+
+      thread_lock.wait # wait until the 'other process' has the lock
+
+      yield
+
+      test_terminated.count_down
+      other_process.join
     end
 end
 
@@ -551,7 +729,7 @@ class ReservedWordsMigrationTest < ActiveRecord::TestCase
       connection.add_index :values, :value
       connection.remove_index :values, :column => :value
     end
-
+  ensure
     connection.drop_table :values rescue nil
   end
 end
@@ -563,11 +741,11 @@ class ExplicitlyNamedIndexMigrationTest < ActiveRecord::TestCase
       t.integer :value
     end
 
-    assert_nothing_raised ArgumentError do
+    assert_nothing_raised do
       connection.add_index :values, :value, name: 'a_different_name'
       connection.remove_index :values, column: :value, name: 'a_different_name'
     end
-
+  ensure
     connection.drop_table :values rescue nil
   end
 end
@@ -718,6 +896,8 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
 end
 
 class CopyMigrationsTest < ActiveRecord::TestCase
+  include ActiveSupport::Testing::Stream
+
   def setup
   end
 
@@ -927,13 +1107,4 @@ class CopyMigrationsTest < ActiveRecord::TestCase
     ActiveRecord::Base.logger = old
   end
 
-  private
-
-  def quietly
-    silence_stream(STDOUT) do
-      silence_stream(STDERR) do
-        yield
-      end
-    end
-  end
 end

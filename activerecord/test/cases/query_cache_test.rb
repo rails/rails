@@ -16,7 +16,7 @@ class QueryCacheTest < ActiveRecord::TestCase
   def test_exceptional_middleware_clears_and_disables_cache_on_error
     assert !ActiveRecord::Base.connection.query_cache_enabled, 'cache off'
 
-    mw = ActiveRecord::QueryCache.new lambda { |env|
+    mw = middleware { |env|
       Task.find 1
       Task.find 1
       assert_equal 1, ActiveRecord::Base.connection.query_cache.length
@@ -31,7 +31,7 @@ class QueryCacheTest < ActiveRecord::TestCase
   def test_exceptional_middleware_leaves_enabled_cache_alone
     ActiveRecord::Base.connection.enable_query_cache!
 
-    mw = ActiveRecord::QueryCache.new lambda { |env|
+    mw = middleware { |env|
       raise "lol borked"
     }
     assert_raises(RuntimeError) { mw.call({}) }
@@ -42,7 +42,7 @@ class QueryCacheTest < ActiveRecord::TestCase
   def test_exceptional_middleware_assigns_original_connection_id_on_error
     connection_id = ActiveRecord::Base.connection_id
 
-    mw = ActiveRecord::QueryCache.new lambda { |env|
+    mw = middleware { |env|
       ActiveRecord::Base.connection_id = self.object_id
       raise "lol borked"
     }
@@ -53,7 +53,7 @@ class QueryCacheTest < ActiveRecord::TestCase
 
   def test_middleware_delegates
     called = false
-    mw = ActiveRecord::QueryCache.new lambda { |env|
+    mw = middleware { |env|
       called = true
       [200, {}, nil]
     }
@@ -62,7 +62,7 @@ class QueryCacheTest < ActiveRecord::TestCase
   end
 
   def test_middleware_caches
-    mw = ActiveRecord::QueryCache.new lambda { |env|
+    mw = middleware { |env|
       Task.find 1
       Task.find 1
       assert_equal 1, ActiveRecord::Base.connection.query_cache.length
@@ -74,48 +74,11 @@ class QueryCacheTest < ActiveRecord::TestCase
   def test_cache_enabled_during_call
     assert !ActiveRecord::Base.connection.query_cache_enabled, 'cache off'
 
-    mw = ActiveRecord::QueryCache.new lambda { |env|
+    mw = middleware { |env|
       assert ActiveRecord::Base.connection.query_cache_enabled, 'cache on'
       [200, {}, nil]
     }
     mw.call({})
-  end
-
-  def test_cache_on_during_body_write
-    streaming = Class.new do
-      def each
-        yield ActiveRecord::Base.connection.query_cache_enabled
-      end
-    end
-
-    mw = ActiveRecord::QueryCache.new lambda { |env|
-      [200, {}, streaming.new]
-    }
-    body = mw.call({}).last
-    body.each { |x| assert x, 'cache should be on' }
-    body.close
-    assert !ActiveRecord::Base.connection.query_cache_enabled, 'cache disabled'
-  end
-
-  def test_cache_off_after_close
-    mw = ActiveRecord::QueryCache.new lambda { |env| [200, {}, nil] }
-    body = mw.call({}).last
-
-    assert ActiveRecord::Base.connection.query_cache_enabled, 'cache enabled'
-    body.close
-    assert !ActiveRecord::Base.connection.query_cache_enabled, 'cache disabled'
-  end
-
-  def test_cache_clear_after_close
-    mw = ActiveRecord::QueryCache.new lambda { |env|
-      Post.first
-      [200, {}, nil]
-    }
-    body = mw.call({}).last
-
-    assert !ActiveRecord::Base.connection.query_cache.empty?, 'cache not empty'
-    body.close
-    assert ActiveRecord::Base.connection.query_cache.empty?, 'cache should be empty'
   end
 
   def test_cache_passing_a_relation
@@ -184,7 +147,7 @@ class QueryCacheTest < ActiveRecord::TestCase
       # Oracle adapter returns count() as Fixnum or Float
       if current_adapter?(:OracleAdapter)
         assert_kind_of Numeric, Task.connection.select_value("SELECT count(*) AS count_all FROM tasks")
-      elsif current_adapter?(:SQLite3Adapter, :Mysql2Adapter)
+      elsif current_adapter?(:SQLite3Adapter, :Mysql2Adapter, :PostgreSQLAdapter)
         # Future versions of the sqlite3 adapter will return numeric
         assert_instance_of Fixnum,
          Task.connection.select_value("SELECT count(*) AS count_all FROM tasks")
@@ -212,6 +175,45 @@ class QueryCacheTest < ActiveRecord::TestCase
   ensure
     ActiveRecord::Base.configurations = conf
   end
+
+  def test_query_cache_doesnt_leak_cached_results_of_rolled_back_queries
+    ActiveRecord::Base.connection.enable_query_cache!
+    post = Post.first
+
+    Post.transaction do
+      post.update_attributes(title: 'rollback')
+      assert_equal 1, Post.where(title: 'rollback').to_a.count
+      raise ActiveRecord::Rollback
+    end
+
+    assert_equal 0, Post.where(title: 'rollback').to_a.count
+
+    ActiveRecord::Base.connection.uncached do
+      assert_equal 0, Post.where(title: 'rollback').to_a.count
+    end
+
+    begin
+      Post.transaction do
+        post.update_attributes(title: 'rollback')
+        assert_equal 1, Post.where(title: 'rollback').to_a.count
+        raise 'broken'
+      end
+    rescue Exception
+    end
+
+    assert_equal 0, Post.where(title: 'rollback').to_a.count
+
+    ActiveRecord::Base.connection.uncached do
+      assert_equal 0, Post.where(title: 'rollback').to_a.count
+    end
+  end
+
+  private
+    def middleware(&app)
+      executor = Class.new(ActiveSupport::Executor)
+      ActiveRecord::QueryCache.install_executor_hooks executor
+      lambda { |env| executor.wrap { app.call(env) } }
+    end
 end
 
 class QueryCacheExpiryTest < ActiveRecord::TestCase
@@ -230,61 +232,66 @@ class QueryCacheExpiryTest < ActiveRecord::TestCase
   end
 
   def test_find
-    Task.connection.expects(:clear_query_cache).times(1)
-
-    assert !Task.connection.query_cache_enabled
-    Task.cache do
-      assert Task.connection.query_cache_enabled
-      Task.find(1)
-
-      Task.uncached do
-        assert !Task.connection.query_cache_enabled
+    assert_called(Task.connection, :clear_query_cache) do
+      assert !Task.connection.query_cache_enabled
+      Task.cache do
+        assert Task.connection.query_cache_enabled
         Task.find(1)
-      end
 
-      assert Task.connection.query_cache_enabled
+        Task.uncached do
+          assert !Task.connection.query_cache_enabled
+          Task.find(1)
+        end
+
+        assert Task.connection.query_cache_enabled
+      end
+      assert !Task.connection.query_cache_enabled
     end
-    assert !Task.connection.query_cache_enabled
   end
 
   def test_update
-    Task.connection.expects(:clear_query_cache).times(2)
-    Task.cache do
-      task = Task.find(1)
-      task.starting = Time.now.utc
-      task.save!
+    assert_called(Task.connection, :clear_query_cache, times: 2) do
+      Task.cache do
+        task = Task.find(1)
+        task.starting = Time.now.utc
+        task.save!
+      end
     end
   end
 
   def test_destroy
-    Task.connection.expects(:clear_query_cache).times(2)
-    Task.cache do
-      Task.find(1).destroy
+    assert_called(Task.connection, :clear_query_cache, times: 2) do
+      Task.cache do
+        Task.find(1).destroy
+      end
     end
   end
 
   def test_insert
-    ActiveRecord::Base.connection.expects(:clear_query_cache).times(2)
-    Task.cache do
-      Task.create!
+    assert_called(ActiveRecord::Base.connection, :clear_query_cache, times: 2) do
+      Task.cache do
+        Task.create!
+      end
     end
   end
 
   def test_cache_is_expired_by_habtm_update
-    ActiveRecord::Base.connection.expects(:clear_query_cache).times(2)
-    ActiveRecord::Base.cache do
-      c = Category.first
-      p = Post.first
-      p.categories << c
+    assert_called(ActiveRecord::Base.connection, :clear_query_cache, times: 2) do
+      ActiveRecord::Base.cache do
+        c = Category.first
+        p = Post.first
+        p.categories << c
+      end
     end
   end
 
   def test_cache_is_expired_by_habtm_delete
-    ActiveRecord::Base.connection.expects(:clear_query_cache).times(2)
-    ActiveRecord::Base.cache do
-      p = Post.find(1)
-      assert p.categories.any?
-      p.categories.delete_all
+    assert_called(ActiveRecord::Base.connection, :clear_query_cache, times: 2) do
+      ActiveRecord::Base.cache do
+        p = Post.find(1)
+        assert p.categories.any?
+        p.categories.delete_all
+      end
     end
   end
 end

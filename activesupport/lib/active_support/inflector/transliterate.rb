@@ -1,4 +1,3 @@
-# encoding: utf-8
 require 'active_support/core_ext/string/multibyte'
 require 'active_support/i18n'
 
@@ -58,7 +57,7 @@ module ActiveSupport
     #   I18n.locale = :de
     #   transliterate('Jürgen')
     #   # => "Juergen"
-    def transliterate(string, replacement = "?")
+    def transliterate(string, replacement = "?".freeze)
       I18n.transliterate(ActiveSupport::Multibyte::Unicode.normalize(
         ActiveSupport::Multibyte::Unicode.tidy_bytes(string), :c),
           :replacement => replacement)
@@ -67,31 +66,47 @@ module ActiveSupport
     # Replaces special characters in a string so that it may be used as part of
     # a 'pretty' URL.
     #
-    #   class Person
-    #     def to_param
-    #       "#{id}-#{name.parameterize}"
-    #     end
-    #   end
+    #   parameterize("Donald E. Knuth") # => "donald-e-knuth"
+    #   parameterize("^trés|Jolie-- ")  # => "tres-jolie"
     #
-    #   @person = Person.find(1)
-    #   # => #<Person id: 1, name: "Donald E. Knuth">
+    # To use a custom separator, override the `separator` argument.
     #
-    #   <%= link_to(@person.name, person_path(@person)) %>
-    #   # => <a href="/person/1-donald-e-knuth">Donald E. Knuth</a>
-    def parameterize(string, sep = '-')
-      # replace accented chars with their ascii equivalents
-      parameterized_string = transliterate(string)
-      # Turn unwanted chars into the separator
-      parameterized_string.gsub!(/[^a-z0-9\-_]+/i, sep)
-      unless sep.nil? || sep.empty?
-        re_sep = Regexp.escape(sep)
-        # No more than one of the separator in a row.
-        parameterized_string.gsub!(/#{re_sep}{2,}/, sep)
-        # Remove leading/trailing separator.
-        parameterized_string.gsub!(/^#{re_sep}|#{re_sep}$/i, '')
+    #  parameterize("Donald E. Knuth", separator: '_') # => "donald_e_knuth"
+    #  parameterize("^trés|Jolie-- ", separator: '_')  # => "tres_jolie"
+    #
+    # To preserve the case of the characters in a string, use the `preserve_case` argument.
+    #
+    #   parameterize("Donald E. Knuth", preserve_case: true) # => "Donald-E-Knuth"
+    #   parameterize("^trés|Jolie-- ", preserve_case: true) # => "tres-Jolie"
+    #
+    def parameterize(string, sep = :unused, separator: '-', preserve_case: false)
+      unless sep == :unused
+        ActiveSupport::Deprecation.warn("Passing the separator argument as a positional parameter is deprecated and will soon be removed. Use `separator: '#{sep}'` instead.")
+        separator = sep
       end
-      parameterized_string.downcase
-    end
+      # Replace accented chars with their ASCII equivalents.
+      parameterized_string = transliterate(string)
 
+      # Turn unwanted chars into the separator.
+      parameterized_string.gsub!(/[^a-z0-9\-_]+/i, separator)
+
+      unless separator.nil? || separator.empty?
+        if separator == "-".freeze
+          re_duplicate_separator        = /-{2,}/
+          re_leading_trailing_separator = /^-|-$/i
+        else
+          re_sep = Regexp.escape(separator)
+          re_duplicate_separator        = /#{re_sep}{2,}/
+          re_leading_trailing_separator = /^#{re_sep}|#{re_sep}$/i
+        end
+        # No more than one of the separator in a row.
+        parameterized_string.gsub!(re_duplicate_separator, separator)
+        # Remove leading/trailing separator.
+        parameterized_string.gsub!(re_leading_trailing_separator, ''.freeze)
+      end
+      
+      parameterized_string.downcase! unless preserve_case
+      parameterized_string
+    end
   end
 end

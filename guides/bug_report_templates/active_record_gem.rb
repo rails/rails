@@ -1,5 +1,17 @@
-# Activate the gem you are reporting the issue against.
-gem 'activerecord', '4.0.0'
+begin
+  require 'bundler/inline'
+rescue LoadError => e
+  $stderr.puts 'Bundler version 1.10 or later is required. Please update your Bundler'
+  raise e
+end
+
+gemfile(true) do
+  source 'https://rubygems.org'
+  # Activate the gem you are reporting the issue against.
+  gem 'activerecord', '4.2.0'
+  gem 'sqlite3'
+end
+
 require 'active_record'
 require 'minitest/autorun'
 require 'logger'
@@ -12,10 +24,10 @@ ActiveRecord::Base.establish_connection(adapter: 'sqlite3', database: ':memory:'
 ActiveRecord::Base.logger = Logger.new(STDOUT)
 
 ActiveRecord::Schema.define do
-  create_table :posts do |t|
+  create_table :posts, force: true do |t|
   end
 
-  create_table :comments do |t|
+  create_table :comments, force: true do |t|
     t.integer :post_id
   end
 end

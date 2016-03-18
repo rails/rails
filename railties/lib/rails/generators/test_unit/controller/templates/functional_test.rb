@@ -1,7 +1,11 @@
 require 'test_helper'
 
 <% module_namespacing do -%>
-class <%= class_name %>ControllerTest < ActionController::TestCase
+class <%= class_name %>ControllerTest < ActionDispatch::IntegrationTest
+<% if mountable_engine? -%>
+  include Engine.routes.url_helpers
+
+<% end -%>
 <% if actions.empty? -%>
   # test "the truth" do
   #   assert true
@@ -9,7 +13,7 @@ class <%= class_name %>ControllerTest < ActionController::TestCase
 <% else -%>
 <% actions.each do |action| -%>
   test "should get <%= action %>" do
-    get :<%= action %>
+    get <%= url_helper_prefix %>_<%= action %>_url
     assert_response :success
   end
 

@@ -1,5 +1,3 @@
-require File.expand_path('../../../load_paths', __FILE__)
-
 $:.unshift(File.dirname(__FILE__) + '/lib')
 $:.unshift(File.dirname(__FILE__) + '/fixtures/helpers')
 $:.unshift(File.dirname(__FILE__) + '/fixtures/alternate_helpers')
@@ -14,10 +12,17 @@ silence_warnings do
 end
 
 require 'drb'
-require 'drb/unix'
-require 'tempfile'
+begin
+  require 'drb/unix'
+rescue LoadError
+  puts "'drb/unix' is not available"
+end
 
-PROCESS_COUNT = (ENV['N'] || 4).to_i
+if ENV['TRAVIS']
+  PROCESS_COUNT = 0
+else
+  PROCESS_COUNT = (ENV['N'] || 4).to_i
+end
 
 require 'active_support/testing/autorun'
 require 'abstract_controller'
@@ -38,6 +43,8 @@ module Rails
     def env
       @_env ||= ActiveSupport::StringInquirer.new(ENV["RAILS_ENV"] || ENV["RACK_ENV"] || "test")
     end
+
+    def root; end;
   end
 end
 
@@ -54,25 +61,16 @@ I18n.enforce_available_locales = false
 # Register danish language for testing
 I18n.backend.store_translations 'da', {}
 I18n.backend.store_translations 'pt-BR', {}
-ORIGINAL_LOCALES = I18n.available_locales.map(&:to_s).sort
 
 FIXTURE_LOAD_PATH = File.join(File.dirname(__FILE__), 'fixtures')
-FIXTURES = Pathname.new(FIXTURE_LOAD_PATH)
-
-module RackTestUtils
-  def body_to_string(body)
-    if body.respond_to?(:each)
-      str = ""
-      body.each {|s| str << s }
-      str
-    else
-      body
-    end
-  end
-  extend self
-end
 
 SharedTestRoutes = ActionDispatch::Routing::RouteSet.new
+
+SharedTestRoutes.draw do
+  ActiveSupport::Deprecation.silence do
+    get ':controller(/:action)'
+  end
+end
 
 module ActionDispatch
   module SharedRoutes
@@ -81,36 +79,11 @@ module ActionDispatch
       super
     end
   end
-
-  # Hold off drawing routes until all the possible controller classes
-  # have been loaded.
-  module DrawOnce
-    class << self
-      attr_accessor :drew
-    end
-    self.drew = false
-
-    def before_setup
-      super
-      return if DrawOnce.drew
-
-      SharedTestRoutes.draw do
-        get ':controller(/:action)'
-      end
-
-      ActionDispatch::IntegrationTest.app.routes.draw do
-        get ':controller(/:action)'
-      end
-
-      DrawOnce.drew = true
-    end
-  end
 end
 
 module ActiveSupport
   class TestCase
-    include ActionDispatch::DrawOnce
-    if ActiveSupport::Testing::Isolation.forking_env? && PROCESS_COUNT > 0
+    if RUBY_ENGINE == "ruby" && PROCESS_COUNT > 0
       parallelize_me!
     end
   end
@@ -129,61 +102,57 @@ class RoutedRackApp
   end
 end
 
-class BasicController
-  attr_accessor :request
-
-  def config
-    @config ||= ActiveSupport::InheritableOptions.new(ActionController::Base.config).tap do |config|
-      # VIEW TODO: View tests should not require a controller
-      public_dir = File.expand_path("../fixtures/public", __FILE__)
-      config.assets_dir = public_dir
-      config.javascripts_dir = "#{public_dir}/javascripts"
-      config.stylesheets_dir = "#{public_dir}/stylesheets"
-      config.assets          = ActiveSupport::InheritableOptions.new({ :prefix => "assets" })
-      config
-    end
-  end
-end
-
 class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
-  include ActionDispatch::SharedRoutes
-
   def self.build_app(routes = nil)
     RoutedRackApp.new(routes || ActionDispatch::Routing::RouteSet.new) do |middleware|
-      middleware.use "ActionDispatch::ShowExceptions", ActionDispatch::PublicExceptions.new("#{FIXTURE_LOAD_PATH}/public")
-      middleware.use "ActionDispatch::DebugExceptions"
-      middleware.use "ActionDispatch::Callbacks"
-      middleware.use "ActionDispatch::ParamsParser"
-      middleware.use "ActionDispatch::Cookies"
-      middleware.use "ActionDispatch::Flash"
-      middleware.use "Rack::Head"
+      middleware.use ActionDispatch::ShowExceptions, ActionDispatch::PublicExceptions.new("#{FIXTURE_LOAD_PATH}/public")
+      middleware.use ActionDispatch::DebugExceptions
+      middleware.use ActionDispatch::Callbacks
+      middleware.use ActionDispatch::Cookies
+      middleware.use ActionDispatch::Flash
+      middleware.use Rack::Head
       yield(middleware) if block_given?
     end
   end
 
   self.app = build_app
 
-  # Stub Rails dispatcher so it does not get controller references and
-  # simply return the controller#action as Rack::Body.
-  class StubDispatcher < ::ActionDispatch::Routing::RouteSet::Dispatcher
-    protected
-    def controller_reference(controller_param)
-      controller_param
-    end
-
-    def dispatch(controller, action, env)
-      [200, {'Content-Type' => 'text/html'}, ["#{controller}##{action}"]]
+  app.routes.draw do
+    ActiveSupport::Deprecation.silence do
+      get ':controller(/:action)'
     end
   end
 
-  def self.stub_controllers
-    old_dispatcher = ActionDispatch::Routing::RouteSet::Dispatcher
-    ActionDispatch::Routing::RouteSet.module_eval { remove_const :Dispatcher }
-    ActionDispatch::Routing::RouteSet.module_eval { const_set :Dispatcher, StubDispatcher }
-    yield ActionDispatch::Routing::RouteSet.new
-  ensure
-    ActionDispatch::Routing::RouteSet.module_eval { remove_const :Dispatcher }
-    ActionDispatch::Routing::RouteSet.module_eval { const_set :Dispatcher, old_dispatcher }
+  class DeadEndRoutes < ActionDispatch::Routing::RouteSet
+    # Stub Rails dispatcher so it does not get controller references and
+    # simply return the controller#action as Rack::Body.
+    class NullController < ::ActionController::Metal
+      def initialize(controller_name)
+        @controller = controller_name
+      end
+
+      def make_response!(request)
+        self.class.make_response! request
+      end
+
+      def dispatch(action, req, res)
+        [200, {'Content-Type' => 'text/html'}, ["#{@controller}##{action}"]]
+      end
+    end
+
+    class NullControllerRequest < DelegateClass(ActionDispatch::Request)
+      def controller_class
+        NullController.new params[:controller]
+      end
+    end
+
+    def make_request env
+      NullControllerRequest.new super
+    end
+  end
+
+  def self.stub_controllers(config = ActionDispatch::Routing::RouteSet::DEFAULT_CONFIG)
+    yield DeadEndRoutes.new(config)
   end
 
   def with_routing(&block)
@@ -259,6 +228,10 @@ class Rack::TestCase < ActionDispatch::IntegrationTest
 end
 
 module ActionController
+  class API
+    extend AbstractController::Railties::RoutesHelpers.with(SharedTestRoutes)
+  end
+
   class Base
     # This stub emulates the Railtie including the URL helpers from a Rails application
     extend AbstractController::Railties::RoutesHelpers.with(SharedTestRoutes)
@@ -369,6 +342,25 @@ module RoutingTestHelpers
   end
 
   class TestSet < ActionDispatch::Routing::RouteSet
+    class Request < DelegateClass(ActionDispatch::Request)
+      def initialize(target, helpers, block, strict)
+        super(target)
+        @helpers = helpers
+        @block = block
+        @strict = strict
+      end
+
+      def controller_class
+        helpers = @helpers
+        block = @block
+        Class.new(@strict ? super : ActionController::Base) {
+          include helpers
+          define_method(:process) { |name| block.call(self) }
+          def to_a; [200, {}, []]; end
+        }
+      end
+    end
+
     attr_reader :strict
 
     def initialize(block, strict = false)
@@ -377,37 +369,22 @@ module RoutingTestHelpers
       super()
     end
 
-    class Dispatcher < ActionDispatch::Routing::RouteSet::Dispatcher
-      def initialize(defaults, set, block)
-        super(defaults)
-        @block = block
-        @set = set
-      end
+    private
 
-      def controller(params, default_controller=true)
-        super(params, @set.strict)
-      end
-
-      def controller_reference(controller_param)
-        block = @block
-        set = @set
-        super if @set.strict
-        Class.new(ActionController::Base) {
-          include set.url_helpers
-          define_method(:process) { |name| block.call(self) }
-          def to_a; [200, {}, []]; end
-        }
-      end
-    end
-
-    def dispatcher defaults
-      TestSet::Dispatcher.new defaults, self, @block
+    def make_request(env)
+      Request.new super, url_helpers, @block, strict
     end
   end
 end
 
+class MetalRenderingController < ActionController::Metal
+  include AbstractController::Rendering
+  include ActionController::Rendering
+  include ActionController::Renderers
+end
+
 class ResourcesController < ActionController::Base
-  def index() render :nothing => true end
+  def index() head :ok end
   alias_method :show, :index
 end
 
@@ -415,13 +392,11 @@ class ThreadsController  < ResourcesController; end
 class MessagesController < ResourcesController; end
 class CommentsController < ResourcesController; end
 class ReviewsController < ResourcesController; end
-class LogosController < ResourcesController; end
 
 class AccountsController <  ResourcesController; end
 class AdminController   <  ResourcesController; end
 class ProductsController < ResourcesController; end
 class ImagesController < ResourcesController; end
-class PreferencesController < ResourcesController; end
 
 module Backoffice
   class ProductsController < ResourcesController; end
@@ -442,7 +417,7 @@ def jruby_skip(message = '')
   skip message if defined?(JRUBY_VERSION)
 end
 
-require 'mocha/setup' # FIXME: stop using mocha
+require 'active_support/testing/method_call_assertions'
 
 class ForkingExecutor
   class Server
@@ -510,12 +485,11 @@ class ForkingExecutor
   end
 end
 
-if ActiveSupport::Testing::Isolation.forking_env? && PROCESS_COUNT > 0
+if RUBY_ENGINE == "ruby" && PROCESS_COUNT > 0
   # Use N processes (N defaults to 4)
   Minitest.parallel_executor = ForkingExecutor.new(PROCESS_COUNT)
 end
 
-# FIXME: we have tests that depend on run order, we should fix that and
-# remove this method call.
-require 'active_support/test_case'
-ActiveSupport::TestCase.test_order = :sorted
+class ActiveSupport::TestCase
+  include ActiveSupport::Testing::MethodCallAssertions
+end

@@ -1,3 +1,4 @@
+require 'abstract_controller/error'
 require 'active_support/concern'
 require 'active_support/core_ext/class/attribute'
 require 'action_view'
@@ -17,24 +18,28 @@ module AbstractController
     extend ActiveSupport::Concern
     include ActionView::ViewPaths
 
-    # Normalize arguments, options and then delegates render_to_body and
-    # sticks the result in self.response_body.
+    # Normalizes arguments, options and then delegates render_to_body and
+    # sticks the result in <tt>self.response_body</tt>.
     # :api: public
     def render(*args, &block)
       options = _normalize_render(*args, &block)
-      self.response_body = render_to_body(options)
-      _process_format(rendered_format, options) if rendered_format
-      self.response_body
+      rendered_body = render_to_body(options)
+      if options[:html]
+        _set_html_content_type
+      else
+        _set_rendered_content_type rendered_format
+      end
+      self.response_body = rendered_body
     end
 
     # Raw rendering of a template to a string.
     #
     # It is similar to render, except that it does not
-    # set the response_body and it should be guaranteed
+    # set the +response_body+ and it should be guaranteed
     # to always return a string.
     #
-    # If a component extends the semantics of response_body
-    # (as Action Controller extends it to be anything that
+    # If a component extends the semantics of +response_body+
+    # (as ActionController extends it to be anything that
     # responds to the method each), this method needs to be
     # overridden in order to still return a string.
     # :api: plugin
@@ -51,14 +56,14 @@ module AbstractController
     # Returns Content-Type of rendered content
     # :api: public
     def rendered_format
-      Mime::TEXT
+      Mime[:text]
     end
 
-    DEFAULT_PROTECTED_INSTANCE_VARIABLES = Set.new %w(
+    DEFAULT_PROTECTED_INSTANCE_VARIABLES = Set.new %i(
       @_action_name @_response_body @_formats @_prefixes @_config
       @_view_context_class @_view_renderer @_lookup_context
       @_routes @_db_runtime
-    ).map(&:to_sym)
+    )
 
     # This method should return a hash with assigns.
     # You can overwrite this configuration per controller.
@@ -73,11 +78,18 @@ module AbstractController
       }
     end
 
-    # Normalize args by converting render "foo" to render :action => "foo" and
-    # render "foo/bar" to render :file => "foo/bar".
+    # Normalize args by converting <tt>render "foo"</tt> to
+    # <tt>render :action => "foo"</tt> and <tt>render "foo/bar"</tt> to
+    # <tt>render :file => "foo/bar"</tt>.
     # :api: plugin
     def _normalize_args(action=nil, options={})
-      if action.is_a? Hash
+      if action.respond_to?(:permitted?)
+        if action.permitted?
+          action
+        else
+          raise ArgumentError, "render parameters are not permitted"
+        end
+      elsif action.is_a?(Hash)
         action
       else
         options
@@ -98,7 +110,13 @@ module AbstractController
 
     # Process the rendered format.
     # :api: private
-    def _process_format(format, options = {})
+    def _process_format(format)
+    end
+
+    def _set_html_content_type # :nodoc:
+    end
+
+    def _set_rendered_content_type(format) # :nodoc:
     end
 
     # Normalize args and options.
@@ -106,7 +124,7 @@ module AbstractController
     def _normalize_render(*args, &block)
       options = _normalize_args(*args, &block)
       #TODO: remove defined? when we restore AP <=> AV dependency
-      if defined?(request) && request && request.variant.present?
+      if defined?(request) && request.variant.present?
         options[:variant] = request.variant
       end
       _normalize_options(options)

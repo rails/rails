@@ -1,13 +1,13 @@
 module ActiveRecord
   module Querying
     delegate :find, :take, :take!, :first, :first!, :last, :last!, :exists?, :any?, :many?, to: :all
-    delegate :second, :second!, :third, :third!, :fourth, :fourth!, :fifth, :fifth!, :forty_two, :forty_two!, to: :all
+    delegate :second, :second!, :third, :third!, :fourth, :fourth!, :fifth, :fifth!, :forty_two, :forty_two!, :third_to_last, :third_to_last!, :second_to_last, :second_to_last!, to: :all
     delegate :first_or_create, :first_or_create!, :first_or_initialize, to: :all
     delegate :find_or_create_by, :find_or_create_by!, :find_or_initialize_by, to: :all
     delegate :find_by, :find_by!, to: :all
     delegate :destroy, :destroy_all, :delete, :delete_all, :update, :update_all, to: :all
-    delegate :find_each, :find_in_batches, to: :all
-    delegate :select, :group, :order, :except, :reorder, :limit, :offset, :joins,
+    delegate :find_each, :find_in_batches, :in_batches, to: :all
+    delegate :select, :group, :order, :except, :reorder, :limit, :offset, :joins, :left_joins, :left_outer_joins, :or,
              :where, :rewhere, :preload, :eager_load, :includes, :from, :lock, :readonly,
              :having, :create_with, :uniq, :distinct, :references, :none, :unscope, to: :all
     delegate :count, :average, :minimum, :maximum, :sum, :calculate, to: :all
@@ -35,8 +35,8 @@ module ActiveRecord
     #
     #   Post.find_by_sql ["SELECT title FROM posts WHERE author = ? AND created > ?", author_id, start_date]
     #   Post.find_by_sql ["SELECT body FROM comments WHERE author = :user_id OR approved_by = :user_id", { :user_id => user_id }]
-    def find_by_sql(sql, binds = [])
-      result_set = connection.select_all(sanitize_sql(sql), "#{name} Load", binds)
+    def find_by_sql(sql, binds = [], preparable: nil)
+      result_set = connection.select_all(sanitize_sql(sql), "#{name} Load", binds, preparable: preparable)
       column_types = result_set.column_types.dup
       columns_hash.each_key { |k| column_types.delete k }
       message_bus = ActiveSupport::Notifications.instrumenter
@@ -55,11 +55,12 @@ module ActiveRecord
     # The use of this method should be restricted to complicated SQL queries that can't be executed
     # using the ActiveRecord::Calculations class methods. Look into those before using this.
     #
+    #   Product.count_by_sql "SELECT COUNT(*) FROM sales s, customers c WHERE s.customer_id = c.id"
+    #   # => 12
+    #
     # ==== Parameters
     #
-    # * +sql+ - An SQL statement which should return a count query from the database, see the example below.
-    #
-    #   Product.count_by_sql "SELECT COUNT(*) FROM sales s, customers c WHERE s.customer_id = c.id"
+    # * +sql+ - An SQL statement which should return a count query from the database, see the example above.
     def count_by_sql(sql)
       sql = sanitize_conditions(sql)
       connection.select_value(sql, "#{name} Count").to_i

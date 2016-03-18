@@ -7,15 +7,15 @@ class HttpTokenAuthenticationTest < ActionController::TestCase
     before_action :authenticate_long_credentials, only: :show
 
     def index
-      render :text => "Hello Secret"
+      render plain: "Hello Secret"
     end
 
     def display
-      render :text => 'Definitely Maybe'
+      render plain: 'Definitely Maybe'
     end
 
     def show
-      render :text => 'Only for loooooong credentials'
+      render plain: 'Only for loooooong credentials'
     end
 
     private
@@ -30,7 +30,7 @@ class HttpTokenAuthenticationTest < ActionController::TestCase
       if authenticate_with_http_token { |token, options| token == '"quote" pretty' && options[:algorithm] == 'test' }
         @logged_in = true
       else
-        request_http_token_authentication("SuperSecret")
+        request_http_token_authentication("SuperSecret", "Authentication Failed\n")
       end
     end
 
@@ -80,18 +80,33 @@ class HttpTokenAuthenticationTest < ActionController::TestCase
   end
 
   test "authentication request with badly formatted header" do
-    @request.env['HTTP_AUTHORIZATION'] = "Token foobar"
+    @request.env['HTTP_AUTHORIZATION'] = 'Token token$"lifo"'
     get :index
 
     assert_response :unauthorized
     assert_equal "HTTP Token: Access denied.\n", @response.body, "Authentication header was not properly parsed"
   end
 
+  test "successful authentication request with Bearer instead of Token" do
+    @request.env['HTTP_AUTHORIZATION'] = 'Bearer lifo'
+    get :index
+
+    assert_response :success
+  end
+
+  test "authentication request with tab in header" do
+    @request.env['HTTP_AUTHORIZATION'] = "Token\ttoken=\"lifo\""
+    get :index
+
+    assert_response :success
+    assert_equal 'Hello Secret', @response.body
+  end
+
   test "authentication request without credential" do
     get :display
 
     assert_response :unauthorized
-    assert_equal "HTTP Token: Access denied.\n", @response.body
+    assert_equal "Authentication Failed\n", @response.body
     assert_equal 'Token realm="SuperSecret"', @response.headers['WWW-Authenticate']
   end
 
@@ -100,7 +115,7 @@ class HttpTokenAuthenticationTest < ActionController::TestCase
     get :display
 
     assert_response :unauthorized
-    assert_equal "HTTP Token: Access denied.\n", @response.body
+    assert_equal "Authentication Failed\n", @response.body
     assert_equal 'Token realm="SuperSecret"', @response.headers['WWW-Authenticate']
   end
 

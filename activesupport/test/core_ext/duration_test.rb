@@ -70,6 +70,15 @@ class DurationTest < ActiveSupport::TestCase
     assert_equal '14 days',                         1.fortnight.inspect
   end
 
+  def test_inspect_locale
+    current_locale = I18n.default_locale
+    I18n.default_locale = :de
+    I18n.backend.store_translations(:de, { support: { array: { last_word_connector: ' und ' } } })
+    assert_equal '10 years, 1 month und 1 day', (10.years + 1.month  + 1.day).inspect
+  ensure
+    I18n.default_locale = current_locale
+  end
+
   def test_minus_with_duration_does_not_break_subtraction_of_date_from_date
     assert_nothing_raised { Date.today - Date.today }
   end
@@ -131,28 +140,30 @@ class DurationTest < ActiveSupport::TestCase
   def test_since_and_ago_anchored_to_time_now_when_time_zone_is_not_set
     Time.zone = nil
     with_env_tz 'US/Eastern' do
-      Time.stubs(:now).returns Time.local(2000)
-      # since
-      assert_not_instance_of ActiveSupport::TimeWithZone, 5.seconds.since
-      assert_equal Time.local(2000,1,1,0,0,5), 5.seconds.since
-      # ago
-      assert_not_instance_of ActiveSupport::TimeWithZone, 5.seconds.ago
-      assert_equal Time.local(1999,12,31,23,59,55), 5.seconds.ago
+      Time.stub(:now, Time.local(2000)) do
+        # since
+        assert_not_instance_of ActiveSupport::TimeWithZone, 5.seconds.since
+        assert_equal Time.local(2000,1,1,0,0,5), 5.seconds.since
+        # ago
+        assert_not_instance_of ActiveSupport::TimeWithZone, 5.seconds.ago
+        assert_equal Time.local(1999,12,31,23,59,55), 5.seconds.ago
+      end
     end
   end
 
   def test_since_and_ago_anchored_to_time_zone_now_when_time_zone_is_set
     Time.zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
     with_env_tz 'US/Eastern' do
-      Time.stubs(:now).returns Time.local(2000)
-      # since
-      assert_instance_of ActiveSupport::TimeWithZone, 5.seconds.since
-      assert_equal Time.utc(2000,1,1,0,0,5), 5.seconds.since.time
-      assert_equal 'Eastern Time (US & Canada)', 5.seconds.since.time_zone.name
-      # ago
-      assert_instance_of ActiveSupport::TimeWithZone, 5.seconds.ago
-      assert_equal Time.utc(1999,12,31,23,59,55), 5.seconds.ago.time
-      assert_equal 'Eastern Time (US & Canada)', 5.seconds.ago.time_zone.name
+      Time.stub(:now, Time.local(2000)) do
+        # since
+        assert_instance_of ActiveSupport::TimeWithZone, 5.seconds.since
+        assert_equal Time.utc(2000,1,1,0,0,5), 5.seconds.since.time
+        assert_equal 'Eastern Time (US & Canada)', 5.seconds.since.time_zone.name
+        # ago
+        assert_instance_of ActiveSupport::TimeWithZone, 5.seconds.ago
+        assert_equal Time.utc(1999,12,31,23,59,55), 5.seconds.ago.time
+        assert_equal 'Eastern Time (US & Canada)', 5.seconds.ago.time_zone.name
+      end
     end
   ensure
     Time.zone = nil

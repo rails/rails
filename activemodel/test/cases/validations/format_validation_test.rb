@@ -1,4 +1,3 @@
-# encoding: utf-8
 require 'cases/helper'
 
 require 'models/topic'
@@ -74,7 +73,7 @@ class PresenceValidationTest < ActiveModel::TestCase
   end
 
   def test_validate_format_of_with_multiline_regexp_and_option
-    assert_nothing_raised(ArgumentError) do
+    assert_nothing_raised do
       Topic.validates_format_of(:title, with: /^Valid Title$/, multiline: true)
     end
   end

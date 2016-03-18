@@ -3,7 +3,7 @@ require 'active_support/core_ext/string/access'
 
 module ActionDispatch
   # Makes a unique request id available to the action_dispatch.request_id env variable (which is then accessible through
-  # ActionDispatch::Request#uuid) and sends the same id to the client via the X-Request-Id header.
+  # ActionDispatch::Request#uuid or the alias ActionDispatch::Request#request_id) and sends the same id to the client via the X-Request-Id header.
   #
   # The unique request id is either based on the X-Request-Id header in the request, which would typically be generated
   # by a firewall, load balancer, or the web server, or, if this header is not available, a random uuid. If the
@@ -12,19 +12,24 @@ module ActionDispatch
   # The unique request id can be used to trace a request end-to-end and would typically end up being part of log files
   # from multiple pieces of the stack.
   class RequestId
+    X_REQUEST_ID = "X-Request-Id".freeze # :nodoc:
+
     def initialize(app)
       @app = app
     end
 
     def call(env)
-      env["action_dispatch.request_id"] = external_request_id(env) || internal_request_id
-      @app.call(env).tap { |_status, headers, _body| headers["X-Request-Id"] = env["action_dispatch.request_id"] }
+      req = ActionDispatch::Request.new env
+      req.request_id = make_request_id(req.x_request_id)
+      @app.call(env).tap { |_status, headers, _body| headers[X_REQUEST_ID] = req.request_id }
     end
 
     private
-      def external_request_id(env)
-        if request_id = env["HTTP_X_REQUEST_ID"].presence
-          request_id.gsub(/[^\w\-]/, "").first(255)
+      def make_request_id(request_id)
+        if request_id.presence
+          request_id.gsub(/[^\w\-]/, "".freeze).first(255)
+        else
+          internal_request_id
         end
       end
 

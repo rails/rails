@@ -10,6 +10,12 @@ require 'models/comment'
 require 'models/car'
 require 'models/bulb'
 require 'models/mixed_case_monkey'
+require 'models/admin'
+require 'models/admin/account'
+require 'models/admin/user'
+require 'models/developer'
+require 'models/company'
+require 'models/project'
 
 class AutomaticInverseFindingTests < ActiveRecord::TestCase
   fixtures :ratings, :comments, :cars
@@ -25,6 +31,15 @@ class AutomaticInverseFindingTests < ActiveRecord::TestCase
     assert_respond_to man_reflection, :has_inverse?
     assert man_reflection.has_inverse?, "The man reflection should have an inverse"
     assert_equal monkey_reflection, man_reflection.inverse_of, "The man reflection's inverse should be the monkey reflection"
+  end
+
+  def test_has_many_and_belongs_to_should_find_inverse_automatically_for_model_in_module
+    account_reflection = Admin::Account.reflect_on_association(:users)
+    user_reflection = Admin::User.reflect_on_association(:account)
+
+    assert_respond_to account_reflection, :has_inverse?
+    assert account_reflection.has_inverse?, "The Admin::Account reflection should have an inverse"
+    assert_equal user_reflection, account_reflection.inverse_of, "The Admin::Account reflection's inverse should be the Admin::User reflection"
   end
 
   def test_has_one_and_belongs_to_should_find_inverse_automatically
@@ -68,10 +83,10 @@ class AutomaticInverseFindingTests < ActiveRecord::TestCase
 
     assert_equal rating.comment, comment, "The Rating's comment should be the original Comment"
 
-    rating.comment.body = "Brogramming is the act of programming, like a bro."
+    rating.comment.body = "Fennec foxes are the smallest of the foxes."
     assert_equal rating.comment.body, comment.body, "Changing the Comment's body on the association should change the original Comment's body"
 
-    comment.body = "Broseiden is the king of the sea of bros."
+    comment.body = "Kittens are adorable."
     assert_equal comment.body, rating.comment.body, "Changing the original Comment's body should change the Comment's body on the association"
   end
 
@@ -82,10 +97,10 @@ class AutomaticInverseFindingTests < ActiveRecord::TestCase
 
     assert_equal rating.comment, comment, "The Rating's comment should be the original Comment"
 
-    rating.comment.body = "Brogramming is the act of programming, like a bro."
+    rating.comment.body = "Fennec foxes are the smallest of the foxes."
     assert_equal rating.comment.body, comment.body, "Changing the Comment's body on the association should change the original Comment's body"
 
-    comment.body = "Broseiden is the king of the sea of bros."
+    comment.body = "Kittens are adorable."
     assert_equal comment.body, rating.comment.body, "Changing the original Comment's body should change the Comment's body on the association"
   end
 
@@ -115,15 +130,15 @@ end
 
 class InverseAssociationTests < ActiveRecord::TestCase
   def test_should_allow_for_inverse_of_options_in_associations
-    assert_nothing_raised(ArgumentError, 'ActiveRecord should allow the inverse_of options on has_many') do
+    assert_nothing_raised do
       Class.new(ActiveRecord::Base).has_many(:wheels, :inverse_of => :car)
     end
 
-    assert_nothing_raised(ArgumentError, 'ActiveRecord should allow the inverse_of options on has_one') do
+    assert_nothing_raised do
       Class.new(ActiveRecord::Base).has_one(:engine, :inverse_of => :car)
     end
 
-    assert_nothing_raised(ArgumentError, 'ActiveRecord should allow the inverse_of options on belongs_to') do
+    assert_nothing_raised do
       Class.new(ActiveRecord::Base).belongs_to(:car, :inverse_of => :driver)
     end
   end
@@ -185,6 +200,16 @@ class InverseAssociationTests < ActiveRecord::TestCase
 
     belongs_to_ref = Sponsor.reflect_on_association(:sponsor_club)
     assert_nil belongs_to_ref.inverse_of
+  end
+
+  def test_this_inverse_stuff
+    firm = Firm.create!(name: 'Adequate Holdings')
+    Project.create!(name: 'Project 1', firm: firm)
+    Developer.create!(name: 'Gorbypuff', firm: firm)
+
+    new_project = Project.last
+    assert Project.reflect_on_association(:lead_developer).inverse_of.present?, "Expected inverse of to be present"
+    assert new_project.lead_developer.present?, "Expected lead developer to be present on the project"
   end
 end
 
@@ -641,7 +666,7 @@ class InversePolymorphicBelongsToTests < ActiveRecord::TestCase
 
   def test_trying_to_access_inverses_that_dont_exist_shouldnt_raise_an_error
     # Ideally this would, if only for symmetry's sake with other association types
-    assert_nothing_raised(ActiveRecord::InverseOfAssociationNotFoundError) { Face.first.horrible_polymorphic_man }
+    assert_nothing_raised { Face.first.horrible_polymorphic_man }
   end
 
   def test_trying_to_set_polymorphic_inverses_that_dont_exist_at_all_should_raise_an_error
@@ -651,7 +676,7 @@ class InversePolymorphicBelongsToTests < ActiveRecord::TestCase
 
   def test_trying_to_set_polymorphic_inverses_that_dont_exist_on_the_instance_being_set_should_raise_an_error
     # passes because Man does have the correct inverse_of
-    assert_nothing_raised(ActiveRecord::InverseOfAssociationNotFoundError) { Face.first.polymorphic_man = Man.first }
+    assert_nothing_raised { Face.first.polymorphic_man = Man.first }
     # fails because Interest does have the correct inverse_of
     assert_raise(ActiveRecord::InverseOfAssociationNotFoundError) { Face.first.polymorphic_man = Interest.first }
   end
@@ -663,7 +688,7 @@ class InverseMultipleHasManyInversesForSameModel < ActiveRecord::TestCase
   fixtures :men, :interests, :zines
 
   def test_that_we_can_load_associations_that_have_the_same_reciprocal_name_from_different_models
-    assert_nothing_raised(ActiveRecord::AssociationTypeMismatch) do
+    assert_nothing_raised do
       i = Interest.first
       i.zine
       i.man
@@ -671,7 +696,7 @@ class InverseMultipleHasManyInversesForSameModel < ActiveRecord::TestCase
   end
 
   def test_that_we_can_create_associations_that_have_the_same_reciprocal_name_from_different_models
-    assert_nothing_raised(ActiveRecord::AssociationTypeMismatch) do
+    assert_nothing_raised do
       i = Interest.first
       i.build_zine(:title => 'Get Some in Winter! 2008')
       i.build_man(:name => 'Gordon')

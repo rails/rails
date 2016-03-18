@@ -1,15 +1,19 @@
 require "abstract_unit"
 
 class HeaderTest < ActiveSupport::TestCase
+  def make_headers(hash)
+    ActionDispatch::Http::Headers.new ActionDispatch::Request.new hash
+  end
+
   setup do
-    @headers = ActionDispatch::Http::Headers.new(
+    @headers = make_headers(
       "CONTENT_TYPE" => "text/plain",
       "HTTP_REFERER" => "/some/page"
     )
   end
 
   test "#new does not normalize the data" do
-    headers = ActionDispatch::Http::Headers.new(
+    headers = make_headers(
       "Content-Type" => "application/json",
       "HTTP_REFERER" => "/some/page",
       "Host" => "http://test.com")
@@ -36,6 +40,24 @@ class HeaderTest < ActiveSupport::TestCase
 
     assert_equal "127.0.0.1", @headers["Host"]
     assert_equal "127.0.0.1", @headers["HTTP_HOST"]
+  end
+
+  test "add to multivalued headers" do
+    # Sets header when not present
+    @headers.add 'Foo', '1'
+    assert_equal '1', @headers['Foo']
+
+    # Ignores nil values
+    @headers.add 'Foo', nil
+    assert_equal '1', @headers['Foo']
+
+    # Converts value to string
+    @headers.add 'Foo', 1
+    assert_equal '1,1', @headers['Foo']
+
+    # Case-insensitive
+    @headers.add 'fOo', 2
+    assert_equal '1,1,2', @headers['foO']
   end
 
   test "headers can contain numbers" do
@@ -108,7 +130,7 @@ class HeaderTest < ActiveSupport::TestCase
   end
 
   test "env variables with . are not modified" do
-    headers = ActionDispatch::Http::Headers.new
+    headers = make_headers({})
     headers.merge! "rack.input" => "",
      "rack.request.cookie_hash" => "",
      "action_dispatch.logger" => ""
@@ -119,7 +141,7 @@ class HeaderTest < ActiveSupport::TestCase
   end
 
   test "symbols are treated as strings" do
-    headers = ActionDispatch::Http::Headers.new
+    headers = make_headers({})
     headers.merge!(:SERVER_NAME => "example.com",
                    "HTTP_REFERER" => "/",
                    :Host => "test.com")
@@ -130,7 +152,7 @@ class HeaderTest < ActiveSupport::TestCase
 
   test "headers directly modifies the passed environment" do
     env = {"HTTP_REFERER" => "/"}
-    headers = ActionDispatch::Http::Headers.new(env)
+    headers = make_headers(env)
     headers['Referer'] = "http://example.com/"
     headers.merge! "CONTENT_TYPE" => "text/plain"
     assert_equal({"HTTP_REFERER"=>"http://example.com/",

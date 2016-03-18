@@ -1,5 +1,4 @@
 require "isolation/abstract_unit"
-require 'set'
 
 module ApplicationTests
   class FrameworksTest < ActiveSupport::TestCase
@@ -17,7 +16,7 @@ module ApplicationTests
 
     # AC & AM
     test "set load paths set only if action controller or action mailer are in use" do
-      assert_nothing_raised NameError do
+      assert_nothing_raised do
         add_to_config <<-RUBY
           config.root = "#{app_path}"
         RUBY
@@ -50,6 +49,17 @@ module ApplicationTests
       assert_equal "test.rails", ActionMailer::Base.default_url_options[:host]
     end
 
+    test "Default to HTTPS for ActionMailer URLs when force_ssl is on" do
+      app_file "config/environments/development.rb", <<-RUBY
+        Rails.application.configure do
+          config.force_ssl = true
+        end
+      RUBY
+
+      require "#{app_path}/config/environment"
+      assert_equal "https", ActionMailer::Base.default_url_options[:protocol]
+    end
+
     test "includes url helpers as action methods" do
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
@@ -65,7 +75,6 @@ module ApplicationTests
       RUBY
 
       require "#{app_path}/config/environment"
-      assert Foo.method_defined?(:foo_path)
       assert Foo.method_defined?(:foo_url)
       assert Foo.method_defined?(:main_app)
     end
@@ -130,6 +139,35 @@ module ApplicationTests
       assert_equal "false", last_response.body
     end
 
+    test "action_controller api executes using all the middleware stack" do
+      add_to_config "config.api_only = true"
+
+      app_file "app/controllers/application_controller.rb", <<-RUBY
+        class ApplicationController < ActionController::API
+        end
+      RUBY
+
+      app_file "app/controllers/omg_controller.rb", <<-RUBY
+        class OmgController < ApplicationController
+          def show
+            render json: { omg: 'omg' }
+          end
+        end
+      RUBY
+
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          get "/:controller(/:action)"
+        end
+      RUBY
+
+      require 'rack/test'
+      extend Rack::Test::Methods
+
+      get 'omg/show'
+      assert_equal '{"omg":"omg"}', last_response.body
+    end
+
     # AD
     test "action_dispatch extensions are applied to ActionDispatch" do
       add_to_config "config.action_dispatch.tld_length = 2"
@@ -178,7 +216,7 @@ module ApplicationTests
     test "use schema cache dump" do
       Dir.chdir(app_path) do
         `rails generate model post title:string;
-         bundle exec rake db:migrate db:schema:cache:dump`
+         bin/rails db:migrate db:schema:cache:dump`
       end
       require "#{app_path}/config/environment"
       ActiveRecord::Base.connection.drop_table("posts") # force drop posts table for test.
@@ -188,7 +226,7 @@ module ApplicationTests
     test "expire schema cache dump" do
       Dir.chdir(app_path) do
         `rails generate model post title:string;
-         bundle exec rake db:migrate db:schema:cache:dump db:rollback`
+         bin/rails db:migrate db:schema:cache:dump db:rollback`
       end
       silence_warnings {
         require "#{app_path}/config/environment"

@@ -1,3 +1,5 @@
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+
 Debugging Rails Applications
 ============================
 
@@ -15,7 +17,7 @@ After reading this guide, you will know:
 View Helpers for Debugging
 --------------------------
 
-One common task is to inspect the contents of a variable. In Rails, you can do this with three methods:
+One common task is to inspect the contents of a variable. Rails provides three different ways to do this:
 
 * `debug`
 * `to_yaml`
@@ -52,7 +54,7 @@ Title: Rails debugging guide
 
 ### `to_yaml`
 
-Displaying an instance variable, or any other object or method, in YAML format can be achieved this way:
+Alternatively, calling `to_yaml` on any object converts it to YAML. You can pass this converted object into the `simple_format` helper method to format the output. This is how `debug` does its magic.
 
 ```html+erb
 <%= simple_format @article.to_yaml %>
@@ -62,9 +64,7 @@ Displaying an instance variable, or any other object or method, in YAML format c
 </p>
 ```
 
-The `to_yaml` method converts the method to YAML format leaving it more readable, and then the `simple_format` helper is used to render each line as in the console. This is how `debug` method does its magic.
-
-As a result of this, you will have something like this in your view:
+The above code will render something like this:
 
 ```yaml
 --- !ruby/object Article
@@ -92,7 +92,7 @@ Another useful method for displaying object values is `inspect`, especially when
 </p>
 ```
 
-Will be rendered as follows:
+Will render:
 
 ```
 [1, 2, 3, 4, 5]
@@ -107,36 +107,41 @@ It can also be useful to save information to log files at runtime. Rails maintai
 
 ### What is the Logger?
 
-Rails makes use of the `ActiveSupport::Logger` class to write log information. You can also substitute another logger such as `Log4r` if you wish.
+Rails makes use of the `ActiveSupport::Logger` class to write log information. Other loggers, such as `Log4r`, may also be substituted.
 
-You can specify an alternative logger in your `environment.rb` or any environment file:
-
-```ruby
-Rails.logger = Logger.new(STDOUT)
-Rails.logger = Log4r::Logger.new("Application Log")
-```
-
-Or in the `Initializer` section, add _any_ of the following
+You can specify an alternative logger in `config/application.rb` or any other environment file, for example:
 
 ```ruby
 config.logger = Logger.new(STDOUT)
 config.logger = Log4r::Logger.new("Application Log")
 ```
 
+Or in the `Initializer` section, add _any_ of the following
+
+```ruby
+Rails.logger = Logger.new(STDOUT)
+Rails.logger = Log4r::Logger.new("Application Log")
+```
+
 TIP: By default, each log is created under `Rails.root/log/` and the log file is named after the environment in which the application is running.
 
 ### Log Levels
 
-When something is logged it's printed into the corresponding log if the log level of the message is equal or higher than the configured log level. If you want to know the current log level you can call the `Rails.logger.level` method.
+When something is logged, it's printed into the corresponding log if the log
+level of the message is equal to or higher than the configured log level. If you
+want to know the current log level, you can call the `Rails.logger.level`
+method.
 
-The available log levels are: `:debug`, `:info`, `:warn`, `:error`, `:fatal`, and `:unknown`, corresponding to the log level numbers from 0 up to 5 respectively. To change the default log level, use
+The available log levels are: `:debug`, `:info`, `:warn`, `:error`, `:fatal`,
+and `:unknown`, corresponding to the log level numbers from 0 up to 5,
+respectively. To change the default log level, use
 
 ```ruby
 config.log_level = :warn # In any environment initializer, or
 Rails.logger.level = 0 # at any time
 ```
 
-This is useful when you want to log under development or staging, but you don't want to flood your production log with unnecessary information.
+This is useful when you want to log under development or staging without flooding your production log with unnecessary information.
 
 TIP: The default Rails log level is `debug` in all environments.
 
@@ -200,7 +205,7 @@ Adding extra logging like this makes it easy to search for unexpected or unusual
 
 When running multi-user, multi-account applications, it's often useful
 to be able to filter the logs using some custom rules. `TaggedLogging`
-in Active Support helps in doing exactly that by stamping log lines with subdomains, request ids, and anything else to aid debugging such applications.
+in Active Support helps you do exactly that by stamping log lines with subdomains, request ids, and anything else to aid debugging such applications.
 
 ```ruby
 logger = ActiveSupport::TaggedLogging.new(Logger.new(STDOUT))
@@ -210,34 +215,33 @@ logger.tagged("BCX") { logger.tagged("Jason") { logger.info "Stuff" } } # Logs "
 ```
 
 ### Impact of Logs on Performance
-Logging will always have a small impact on performance of your rails app,
-        particularly when logging to disk. However, there are a few subtleties:
+Logging will always have a small impact on the performance of your Rails app,
+        particularly when logging to disk. Additionally, there are a few subtleties:
 
 Using the `:debug` level will have a greater performance penalty than `:fatal`,
       as a far greater number of strings are being evaluated and written to the
       log output (e.g. disk).
 
-Another potential pitfall is that if you have many calls to `Logger` like this
-      in your code:
+Another potential pitfall is too many calls to `Logger` in your code:
 
 ```ruby
 logger.debug "Person attributes hash: #{@person.attributes.inspect}"
 ```
 
-In the above example, There will be a performance impact even if the allowed
+In the above example, there will be a performance impact even if the allowed
 output level doesn't include debug. The reason is that Ruby has to evaluate
 these strings, which includes instantiating the somewhat heavy `String` object
-and interpolating the variables, and which takes time.
+and interpolating the variables.
 Therefore, it's recommended to pass blocks to the logger methods, as these are
-only evaluated if the output level is the same or included in the allowed level
+only evaluated if the output level is the same as — or included in — the allowed level
 (i.e. lazy loading). The same code rewritten would be:
 
 ```ruby
 logger.debug {"Person attributes hash: #{@person.attributes.inspect}"}
 ```
 
-The contents of the block, and therefore the string interpolation, is only
-evaluated if debug is enabled. This performance savings is only really
+The contents of the block, and therefore the string interpolation, are only
+evaluated if debug is enabled. This performance savings are only really
 noticeable with large amounts of logging, but it's a good practice to employ.
 
 Debugging with the `byebug` gem
@@ -251,8 +255,7 @@ is your best companion.
 
 The debugger can also help you if you want to learn about the Rails source code
 but don't know where to start. Just debug any request to your application and
-use this guide to learn how to move from the code you have written deeper into
-Rails code.
+use this guide to learn how to move from the code you have written into the underlying Rails code.
 
 ### Setup
 
@@ -283,7 +286,7 @@ As soon as your application calls the `byebug` method, the debugger will be
 started in a debugger shell inside the terminal window where you launched your
 application server, and you will be placed at the debugger's prompt `(byebug)`.
 Before the prompt, the code around the line that is about to be run will be
-displayed and the current line will be marked by '=>'. Like this:
+displayed and the current line will be marked by '=>', like this:
 
 ```
 [1, 10] in /PathTo/project/app/controllers/articles_controller.rb
@@ -308,14 +311,15 @@ processing the entire request.
 For example:
 
 ```bash
-=> Booting WEBrick
-=> Rails 4.2.0 application starting in development on http://0.0.0.0:3000
+=> Booting Puma
+=> Rails 5.0.0 application starting in development on http://0.0.0.0:3000
 => Run `rails server -h` for more startup options
-=> Notice: server is listening on all interfaces (0.0.0.0). Consider using 127.0.0.1 (--binding option)
-=> Ctrl-C to shutdown server
-[2014-04-11 13:11:47] INFO  WEBrick 1.3.1
-[2014-04-11 13:11:47] INFO  ruby 2.1.1 (2014-02-24) [i686-linux]
-[2014-04-11 13:11:47] INFO  WEBrick::HTTPServer#start: pid=6370 port=3000
+Puma starting in single mode...
+* Version 3.0.2 (ruby 2.3.0-p0), codename: Plethora of Penguin Pinatas
+* Min threads: 5, max threads: 5
+* Environment: development
+* Listening on tcp://localhost:3000
+Use Ctrl-C to stop
 
 
 Started GET "/" for 127.0.0.1 at 2014-04-11 13:11:48 +0200
@@ -337,30 +341,20 @@ Processing by ArticlesController#index as HTML
 (byebug)
 ```
 
-Now it's time to explore and dig into your application. A good place to start is
+Now it's time to explore your application. A good place to start is
 by asking the debugger for help. Type: `help`
 
 ```
 (byebug) help
 
-byebug 2.7.0
+  h[elp][ <cmd>[ <subcmd>]]
 
-Type 'help <command-name>' for help on a specific command
-
-Available commands:
-backtrace  delete   enable  help       list    pry next  restart  source     up
-break      disable  eval    info       method  ps        save     step       var
-catch      display  exit    interrupt  next    putl      set      thread
-condition  down     finish  irb        p       quit      show     trace
-continue   edit     frame   kill       pp      reload    skip     undisplay
+  help                -- prints this help.
+  help <cmd>          -- prints help on command <cmd>.
+  help <cmd> <subcmd> -- prints help on <cmd>'s subcommand <subcmd>.
 ```
 
-TIP: To view the help menu for any command use `help <command-name>` at the
-debugger prompt. For example: _`help list`_. You can abbreviate any debugging
-command by supplying just enough letters to distinguish them from other
-commands, so you can also use `l` for the `list` command, for example.
-
-To see the previous ten lines you should type `list-` (or `l-`)
+To see the previous ten lines you should type `list-` (or `l-`).
 
 ```
 (byebug) l-
@@ -379,7 +373,7 @@ To see the previous ten lines you should type `list-` (or `l-`)
 
 ```
 
-This way you can move inside the file, being able to see the code above and over
+This way you can move inside the file and see the code above
 the line where you added the `byebug` call. Finally, to see where you are in
 the code again you can type `list=`
 
@@ -409,8 +403,7 @@ contexts as you go through the different parts of the stack.
 The debugger creates a context when a stopping point or an event is reached. The
 context has information about the suspended program which enables the debugger
 to inspect the frame stack, evaluate variables from the perspective of the
-debugged program, and contains information about the place where the debugged
-program is stopped.
+debugged program, and know the place where the debugged program is stopped.
 
 At any time you can call the `backtrace` command (or its alias `where`) to print
 the backtrace of the application. This can be very helpful to know how you got
@@ -422,11 +415,11 @@ then `backtrace` will supply the answer.
 --> #0  ArticlesController.index
       at /PathTo/project/test_app/app/controllers/articles_controller.rb:8
     #1  ActionController::ImplicitRender.send_action(method#String, *args#Array)
-      at /PathToGems/actionpack-4.2.0/lib/action_controller/metal/implicit_render.rb:4
+      at /PathToGems/actionpack-5.0.0/lib/action_controller/metal/implicit_render.rb:4
     #2  AbstractController::Base.process_action(action#NilClass, *args#Array)
-      at /PathToGems/actionpack-4.2.0/lib/abstract_controller/base.rb:189
+      at /PathToGems/actionpack-5.0.0/lib/abstract_controller/base.rb:189
     #3  ActionController::Rendering.process_action(action#NilClass, *args#NilClass)
-      at /PathToGems/actionpack-4.2.0/lib/action_controller/metal/rendering.rb:10
+      at /PathToGems/actionpack-5.0.0/lib/action_controller/metal/rendering.rb:10
 ...
 ```
 
@@ -438,7 +431,7 @@ context.
 ```
 (byebug) frame 2
 
-[184, 193] in /PathToGems/actionpack-4.2.0/lib/abstract_controller/base.rb
+[184, 193] in /PathToGems/actionpack-5.0.0/lib/abstract_controller/base.rb
    184:       # is the intended way to override action dispatching.
    185:       #
    186:       # Notice that the first argument is the method to be dispatched
@@ -467,16 +460,15 @@ The debugger can list, stop, resume and switch between running threads by using
 the `thread` command (or the abbreviated `th`). This command has a handful of
 options:
 
-* `thread` shows the current thread.
-* `thread list` is used to list all threads and their statuses. The plus +
+* `thread`: shows the current thread.
+* `thread list`: is used to list all threads and their statuses. The plus +
 character and the number indicates the current thread of execution.
-* `thread stop _n_` stop thread _n_.
-* `thread resume _n_` resumes thread _n_.
-* `thread switch _n_` switches the current thread context to _n_.
+* `thread stop _n_`: stop thread _n_.
+* `thread resume _n_`: resumes thread _n_.
+* `thread switch _n_`: switches the current thread context to _n_.
 
-This command is very helpful, among other occasions, when you are debugging
-concurrent threads and need to verify that there are no race conditions in your
-code.
+This command is very helpful when you are debugging concurrent threads and need
+to verify that there are no race conditions in your code.
 
 ### Inspecting Variables
 
@@ -501,7 +493,7 @@ current context:
 
 (byebug) instance_variables
 [:@_action_has_layout, :@_routes, :@_headers, :@_status, :@_request,
- :@_response, :@_env, :@_prefixes, :@_lookup_context, :@_action_name,
+ :@_response, :@_prefixes, :@_lookup_context, :@_action_name,
  :@_response_body, :@marked_for_same_origin_verification, :@_config]
 ```
 
@@ -530,19 +522,22 @@ command later in this guide).
 And then ask again for the instance_variables:
 
 ```
-(byebug) instance_variables.include? "@articles"
-true
+(byebug) instance_variables
+[:@_action_has_layout, :@_routes, :@_headers, :@_status, :@_request,
+ :@_response, :@_prefixes, :@_lookup_context, :@_action_name,
+ :@_response_body, :@marked_for_same_origin_verification, :@_config,
+ :@articles]
 ```
 
 Now `@articles` is included in the instance variables, because the line defining it
 was executed.
 
 TIP: You can also step into **irb** mode with the command `irb` (of course!).
-This way an irb session will be started within the context you invoked it. But
+This will start an irb session within the context you invoked it. But
 be warned: this is an experimental feature.
 
 The `var` method is the most convenient way to show variables and their values.
-Let's let `byebug` to help us with it.
+Let's have `byebug` help us with it.
 
 ```
 (byebug) help var
@@ -554,7 +549,7 @@ v[ar] l[ocal]                   show local variables
 ```
 
 This is a great way to inspect the values of the current context variables. For
-example, to check that we have no local variables currently defined.
+example, to check that we have no local variables currently defined:
 
 ```
 (byebug) var local
@@ -585,14 +580,14 @@ tracking the values of a variable while the execution goes on.
 1: @articles = nil
 ```
 
-The variables inside the displaying list will be printed with their values after
+The variables inside the displayed list will be printed with their values after
 you move in the stack. To stop displaying a variable use `undisplay _n_` where
 _n_ is the variable number (1 in the last example).
 
 ### Step by Step
 
 Now you should know where you are in the running trace and be able to print the
-available variables. But lets continue and move on with the application
+available variables. But let's continue and move on with the application
 execution.
 
 Use `step` (abbreviated `s`) to continue running your program until the next
@@ -614,7 +609,7 @@ Started GET "/" for 127.0.0.1 at 2014-04-11 13:39:23 +0200
 Processing by ArticlesController#index as HTML
 
 [1, 8] in /home/davidr/Proyectos/test_app/app/models/article.rb
-   1: class Article < ActiveRecord::Base
+   1: class Article < ApplicationRecord
    2:
    3:   def self.find_recent(limit = 10)
    4:     byebug
@@ -626,13 +621,16 @@ Processing by ArticlesController#index as HTML
 (byebug)
 ```
 
-If we use `next`, we want go deep inside method calls. Instead, byebug will go
-to the next line within the same context. In this case, this is the last line of
-the method, so `byebug` will jump to next next line of the previous frame.
+If we use `next`, we won't go deep inside method calls. Instead, `byebug` will
+go to the next line within the same context. In this case, it is the last line
+of the current method, so `byebug` will return to the next line of the caller
+method.
 
 ```
 (byebug) next
-Next went up a frame because previous frame finished
+
+Next advances to the next line (line 6: `end`), which returns to the next line
+of the caller method:
 
 [4, 13] in /PathTo/project/test_app/app/controllers/articles_controller.rb
     4:   # GET /articles
@@ -649,13 +647,13 @@ Next went up a frame because previous frame finished
 (byebug)
 ```
 
-If we use `step` in the same situation, we will literally go the next ruby
-instruction to be executed. In this case, the activesupport's `week` method.
+If we use `step` in the same situation, `byebug` will literally go to the next
+Ruby instruction to be executed -- in this case, Active Support's `week` method.
 
 ```
 (byebug) step
 
-[50, 59] in /PathToGems/activesupport-4.2.0/lib/active_support/core_ext/numeric/time.rb
+[50, 59] in /PathToGems/activesupport-5.0.0/lib/active_support/core_ext/numeric/time.rb
    50:     ActiveSupport::Duration.new(self * 24.hours, [[:days, self]])
    51:   end
    52:   alias :day :days
@@ -670,8 +668,7 @@ instruction to be executed. In this case, the activesupport's `week` method.
 (byebug)
 ```
 
-This is one of the best ways to find bugs in your code, or perhaps in Ruby on
-Rails.
+This is one of the best ways to find bugs in your code.
 
 ### Breakpoints
 
@@ -749,12 +746,12 @@ To list all active catchpoints use `catch`.
 There are two ways to resume execution of an application that is stopped in the
 debugger:
 
-* `continue` [line-specification] \(or `c`): resume program execution, at the
+* `continue [line-specification]` \(or `c`): resume program execution, at the
 address where your script last stopped; any breakpoints set at that address are
 bypassed. The optional argument line-specification allows you to specify a line
 number to set a one-time breakpoint which is deleted when that breakpoint is
 reached.
-* `finish` [frame-number] \(or `fin`): execute until the selected stack frame
+* `finish [frame-number]` \(or `fin`): execute until the selected stack frame
 returns. If no frame number is given, the application will run until the
 currently selected frame returns. The currently selected frame starts out the
 most-recent frame or 0 if no frame positioning (e.g up, down or frame) has been
@@ -770,20 +767,20 @@ environment variable. A specific _line_ can also be given.
 
 ### Quitting
 
-To exit the debugger, use the `quit` command (abbreviated `q`), or its alias
-`exit`.
+To exit the debugger, use the `quit` command (abbreviated to `q`). Or, type `q!`
+to bypass the `Really quit? (y/n)` prompt and exit unconditionally.
 
 A simple quit tries to terminate all threads in effect. Therefore your server
 will be stopped and you will have to start it again.
 
 ### Settings
 
-`byebug` has a few available options to tweak its behaviour:
+`byebug` has a few available options to tweak its behavior:
 
-* `set autoreload`: Reload source code when changed (default: true).
-* `set autolist`: Execute `list` command on every breakpoint (default: true).
+* `set autoreload`: Reload source code when changed (defaults: true).
+* `set autolist`: Execute `list` command on every breakpoint (defaults: true).
 * `set listsize _n_`: Set number of source lines to list by default to _n_
-(default: 10)
+(defaults: 10)
 * `set forcestep`: Make sure the `next` and `step` commands always move to a new
 line.
 
@@ -798,10 +795,67 @@ set forcestep
 set listsize 25
 ```
 
+Debugging with the `web-console` gem
+------------------------------------
+
+Web Console is a bit like `byebug`, but it runs in the browser. In any page you
+are developing, you can request a console in the context of a view or a
+controller. The console would be rendered next to your HTML content.
+
+### Console
+
+Inside any controller action or view, you can invoke the console by
+calling the `console` method.
+
+For example, in a controller:
+
+```ruby
+class PostsController < ApplicationController
+  def new
+    console
+    @post = Post.new
+  end
+end
+```
+
+Or in a view:
+
+```html+erb
+<% console %>
+
+<h2>New Post</h2>
+```
+
+This will render a console inside your view. You don't need to care about the
+location of the `console` call; it won't be rendered on the spot of its
+invocation but next to your HTML content.
+
+The console executes pure Ruby code: You can define and instantiate
+custom classes, create new models and inspect variables.
+
+NOTE: Only one console can be rendered per request. Otherwise `web-console`
+will raise an error on the second `console` invocation.
+
+### Inspecting Variables
+
+You can invoke `instance_variables` to list all the instance variables
+available in your context. If you want to list all the local variables, you can
+do that with `local_variables`.
+
+### Settings
+
+* `config.web_console.whitelisted_ips`: Authorized list of IPv4 or IPv6
+addresses and networks (defaults: `127.0.0.1/8, ::1`).
+* `config.web_console.whiny_requests`: Log a message when a console rendering
+is prevented (defaults: `true`).
+
+Since `web-console` evaluates plain Ruby code remotely on the server, don't try
+to use it in production.
+
 Debugging Memory Leaks
 ----------------------
 
-A Ruby application (on Rails or not), can leak memory - either in the Ruby code
+A Ruby application (on Rails or not), can leak memory — either in the Ruby code
 or at the C code level.
 
 In this section, you will learn how to find and fix such leaks by using tool
@@ -809,8 +863,8 @@ such as Valgrind.
 
 ### Valgrind
 
-[Valgrind](http://valgrind.org/) is a Linux-only application for detecting
-C-based memory leaks and race conditions.
+[Valgrind](http://valgrind.org/) is an application for detecting C-based memory
+leaks and race conditions.
 
 There are Valgrind tools that can automatically detect many memory management
 and threading bugs, and profile your programs in detail. For example, if a C
@@ -830,9 +884,9 @@ application. Here is a list of useful plugins for debugging:
 * [Footnotes](https://github.com/josevalim/rails-footnotes) Every Rails page has
 footnotes that give request information and link back to your source via
 TextMate.
-* [Query Trace](https://github.com/ntalbott/query_trace/tree/master) Adds query
+* [Query Trace](https://github.com/ruckus/active-record-query-trace/tree/master) Adds query
 origin tracing to your logs.
-* [Query Reviewer](https://github.com/nesquena/query_reviewer) This rails plugin
+* [Query Reviewer](https://github.com/nesquena/query_reviewer) This Rails plugin
 not only runs "EXPLAIN" before each of your select queries in development, but
 provides a small DIV in the rendered output of each page with the summary of
 warnings for each query that it analyzed.
@@ -844,7 +898,7 @@ standard Rails error page with a new one containing more contextual information,
 like source code and variable inspection.
 * [RailsPanel](https://github.com/dejan/rails_panel) Chrome extension for Rails
 development that will end your tailing of development.log. Have all information
-about your Rails app requests in the browser - in the Developer Tools panel.
+about your Rails app requests in the browser — in the Developer Tools panel.
 Provides insight to db/rendering/total times, parameter list, rendered views and
 more.
 
@@ -854,6 +908,7 @@ References
 * [ruby-debug Homepage](http://bashdb.sourceforge.net/ruby-debug/home-page.html)
 * [debugger Homepage](https://github.com/cldwalker/debugger)
 * [byebug Homepage](https://github.com/deivid-rodriguez/byebug)
+* [web-console Homepage](https://github.com/rails/web-console)
 * [Article: Debugging a Rails application with ruby-debug](http://www.sitepoint.com/debug-rails-app-ruby-debug/)
 * [Ryan Bates' debugging ruby (revised) screencast](http://railscasts.com/episodes/54-debugging-ruby-revised)
 * [Ryan Bates' stack trace screencast](http://railscasts.com/episodes/24-the-stack-trace)

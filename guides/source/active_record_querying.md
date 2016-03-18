@@ -1,3 +1,5 @@
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+
 Active Record Query Interface
 =============================
 
@@ -8,7 +10,8 @@ After reading this guide, you will know:
 * How to find records using a variety of methods and conditions.
 * How to specify the order, retrieved attributes, grouping, and other properties of the found records.
 * How to use eager loading to reduce the number of database queries needed for data retrieval.
-* How to use dynamic finders methods.
+* How to use dynamic finder methods.
+* How to use method chaining to use multiple Active Record methods together.
 * How to check for the existence of particular records.
 * How to perform various calculations on Active Record models.
 * How to run EXPLAIN on relations.
@@ -22,7 +25,7 @@ Code examples throughout this guide will refer to one or more of the following m
 TIP: All of the following models use `id` as the primary key, unless specified otherwise.
 
 ```ruby
-class Client < ActiveRecord::Base
+class Client < ApplicationRecord
   has_one :address
   has_many :orders
   has_and_belongs_to_many :roles
@@ -30,19 +33,19 @@ end
 ```
 
 ```ruby
-class Address < ActiveRecord::Base
+class Address < ApplicationRecord
   belongs_to :client
 end
 ```
 
 ```ruby
-class Order < ActiveRecord::Base
+class Order < ApplicationRecord
   belongs_to :client, counter_cache: true
 end
 ```
 
 ```ruby
-class Role < ActiveRecord::Base
+class Role < ApplicationRecord
   has_and_belongs_to_many :clients
 end
 ```
@@ -56,7 +59,7 @@ To retrieve objects from the database, Active Record provides several finder met
 
 The methods are:
 
-* `bind`
+* `find`
 * `create_with`
 * `distinct`
 * `eager_load`
@@ -66,6 +69,7 @@ The methods are:
 * `having`
 * `includes`
 * `joins`
+* `left_outer_joins`
 * `limit`
 * `lock`
 * `none`
@@ -77,7 +81,7 @@ The methods are:
 * `reorder`
 * `reverse_order`
 * `select`
-* `uniq`
+* `distinct`
 * `where`
 
 All of the above methods return an instance of `ActiveRecord::Relation`.
@@ -87,7 +91,7 @@ The primary operation of `Model.find(options)` can be summarized as:
 * Convert the supplied options to an equivalent SQL query.
 * Fire the SQL query and retrieve the corresponding results from the database.
 * Instantiate the equivalent Ruby object of the appropriate model for every resulting row.
-* Run `after_find` callbacks, if any.
+* Run `after_find` and then `after_initialize` callbacks, if any.
 
 ### Retrieving a Single Object
 
@@ -166,7 +170,7 @@ TIP: The retrieved record may vary depending on the database engine.
 
 #### `first`
 
-The `first` method finds the first record ordered by the primary key. For example:
+The `first` method finds the first record ordered by primary key (default). For example:
 
 ```ruby
 client = Client.first
@@ -180,6 +184,8 @@ SELECT * FROM clients ORDER BY clients.id ASC LIMIT 1
 ```
 
 The `first` method returns `nil` if no matching record is found and no exception will be raised.
+
+If your [default scope](active_record_querying.html#applying-a-default-scope) contains an order method, `first` will return the first record according to this ordering.
 
 You can pass in a numerical argument to the `first` method to return up to that number of results. For example
 
@@ -198,11 +204,24 @@ The SQL equivalent of the above is:
 SELECT * FROM clients ORDER BY clients.id ASC LIMIT 3
 ```
 
+On a collection that is ordered using `order`, `first` will return the first record ordered by the specified attribute for `order`. 
+
+```ruby
+client = Client.order(:first_name).first
+# => #<Client id: 2, first_name: "Fifo">
+```
+
+The SQL equivalent of the above is:
+
+```sql
+SELECT * FROM clients ORDER BY clients.first_name ASC LIMIT 1
+```
+
 The `first!` method behaves exactly like `first`, except that it will raise `ActiveRecord::RecordNotFound` if no matching record is found.
 
 #### `last`
 
-The `last` method finds the last record ordered by the primary key. For example:
+The `last` method finds the last record ordered by primary key (default). For example:
 
 ```ruby
 client = Client.last
@@ -216,6 +235,8 @@ SELECT * FROM clients ORDER BY clients.id DESC LIMIT 1
 ```
 
 The `last` method returns `nil` if no matching record is found and no exception will be raised.
+
+If your [default scope](active_record_querying.html#applying-a-default-scope) contains an order method, `last` will return the last record according to this ordering.
 
 You can pass in a numerical argument to the `last` method to return up to that number of results. For example
 
@@ -232,6 +253,19 @@ The SQL equivalent of the above is:
 
 ```sql
 SELECT * FROM clients ORDER BY clients.id DESC LIMIT 3
+```
+
+On a collection that is ordered using `order`, `last` will return the last record ordered by the specified attribute for `order`. 
+
+```ruby
+client = Client.order(:first_name).last
+# => #<Client id: 220, first_name: "Sara">
+```
+
+The SQL equivalent of the above is:
+
+```sql
+SELECT * FROM clients ORDER BY clients.first_name DESC LIMIT 1
 ```
 
 The `last!` method behaves exactly like `last`, except that it will raise `ActiveRecord::RecordNotFound` if no matching record is found.
@@ -252,6 +286,12 @@ It is equivalent to writing:
 
 ```ruby
 Client.where(first_name: 'Lifo').take
+```
+
+The SQL equivalent of the above is:
+
+```sql
+SELECT * FROM clients WHERE (clients.first_name = 'Lifo') LIMIT 1
 ```
 
 The `find_by!` method behaves exactly like `find_by`, except that it will raise `ActiveRecord::RecordNotFound` if no matching record is found. For example:
@@ -308,7 +348,7 @@ end
 
 The `find_each` method accepts most of the options allowed by the regular `find` method, except for `:order` and `:limit`, which are reserved for internal use by `find_each`.
 
-Two additional options, `:batch_size` and `:start`, are available as well.
+Three additional options, `:batch_size`, `:start` and `:finish`, are available as well.
 
 **`:batch_size`**
 
@@ -332,7 +372,22 @@ User.find_each(start: 2000, batch_size: 5000) do |user|
 end
 ```
 
-Another example would be if you wanted multiple workers handling the same processing queue. You could have each worker handle 10000 records by setting the appropriate `:start` option on each worker.
+**`:finish`**
+
+Similar to the `:start` option, `:finish` allows you to configure the last ID of the sequence whenever the highest ID is not the one you need.
+This would be useful, for example, if you wanted to run a batch process, using a subset of records based on `:start` and `:finish`
+
+For example, to send newsletters only to users with the primary key starting from 2000 up to 10000 and to retrieve them in batches of 5000:
+
+```ruby
+User.find_each(start: 2000, finish: 10000, batch_size: 5000) do |user|
+  NewsMailer.weekly(user).deliver_now
+end
+```
+
+Another example would be if you wanted multiple workers handling the same
+processing queue. You could have each worker handle 10000 records by setting the
+appropriate `:start` and `:finish` options on each worker.
 
 #### `find_in_batches`
 
@@ -347,7 +402,7 @@ end
 
 ##### Options for `find_in_batches`
 
-The `find_in_batches` method accepts the same `:batch_size` and `:start` options as `find_each`.
+The `find_in_batches` method accepts the same `:batch_size`, `:start` and `:finish` options as `find_each`.
 
 Conditions
 ----------
@@ -368,7 +423,7 @@ Now what if that number could vary, say as an argument from somewhere? The find 
 Client.where("orders_count = ?", params[:orders])
 ```
 
-Active Record will go through the first element in the conditions value and any additional elements will replace the question marks `(?)` in the first element.
+Active Record will take the first argument as the conditions string and any additional arguments will replace the question marks `(?)` in it.
 
 If you want to specify multiple conditions:
 
@@ -396,7 +451,7 @@ TIP: For more information on the dangers of SQL injection, see the [Ruby on Rail
 
 #### Placeholder Conditions
 
-Similar to the `(?)` replacement style of params, you can also specify keys/values hash in your array conditions:
+Similar to the `(?)` replacement style of params, you can also specify keys in your conditions string along with a corresponding keys/values hash:
 
 ```ruby
 Client.where("created_at >= :start_date AND created_at <= :end_date",
@@ -407,7 +462,7 @@ This makes for clearer readability if you have a large number of variable condit
 
 ### Hash Conditions
 
-Active Record also allows you to pass in hash conditions which can increase the readability of your conditions syntax. With hash conditions, you pass in a hash with keys of the fields you want conditionalised and the values of how you want to conditionalise them:
+Active Record also allows you to pass in hash conditions which can increase the readability of your conditions syntax. With hash conditions, you pass in a hash with keys of the fields you want qualified and the values of how you want to qualify them:
 
 NOTE: Only equality, range and subset checking are possible with Hash conditions.
 
@@ -507,7 +562,7 @@ Client.order("orders_count ASC, created_at DESC")
 Client.order("orders_count ASC", "created_at DESC")
 ```
 
-If you want to call `order` multiple times e.g. in different context, new order will append previous one
+If you want to call `order` multiple times, subsequent orders will be appended to the first:
 
 ```ruby
 Client.order("orders_count ASC").order("created_at DESC")
@@ -595,9 +650,9 @@ SELECT * FROM clients LIMIT 5 OFFSET 30
 Group
 -----
 
-To apply a `GROUP BY` clause to the SQL fired by the finder, you can specify the `group` method on the find.
+To apply a `GROUP BY` clause to the SQL fired by the finder, you can use the `group` method.
 
-For example, if you want to find a collection of the dates orders were created on:
+For example, if you want to find a collection of the dates on which orders were created:
 
 ```ruby
 Order.select("date(created_at) as ordered_date, sum(price) as total_price").group("date(created_at)")
@@ -615,7 +670,7 @@ GROUP BY date(created_at)
 
 ### Total of grouped items
 
-To get the total of grouped items on a single query call `count` after the `group`.
+To get the total of grouped items on a single query, call `count` after the `group`.
 
 ```ruby
 Order.group(:status).count
@@ -633,7 +688,7 @@ GROUP BY status
 Having
 ------
 
-SQL uses the `HAVING` clause to specify conditions on the `GROUP BY` fields. You can add the `HAVING` clause to the SQL fired by the `Model.find` by adding the `:having` option to the find.
+SQL uses the `HAVING` clause to specify conditions on the `GROUP BY` fields. You can add the `HAVING` clause to the SQL fired by the `Model.find` by adding the `having` method to the find.
 
 For example:
 
@@ -651,7 +706,7 @@ GROUP BY date(created_at)
 HAVING sum(price) > 100
 ```
 
-This will return single order objects for each day, but only those that are ordered more than $100 in a day.
+This returns the date and total price for each order object, grouped by the day they were ordered and where the price is more than $100.
 
 Overriding Conditions
 ---------------------
@@ -681,8 +736,7 @@ Article.where(id: 10, trashed: false).unscope(where: :id)
 # SELECT "articles".* FROM "articles" WHERE trashed = 0
 ```
 
-A relation which has used `unscope` will affect any relation it is
-merged in to:
+A relation which has used `unscope` will affect any relation into which it is merged:
 
 ```ruby
 Article.order('id asc').merge(Article.unscope(:order))
@@ -712,7 +766,7 @@ SELECT "articles".* FROM "articles" WHERE (id > 10) ORDER BY id desc LIMIT 20
 The `reorder` method overrides the default scope order. For example:
 
 ```ruby
-class Article < ActiveRecord::Base
+class Article < ApplicationRecord
   has_many :comments, -> { order('posted_at DESC') }
 end
 
@@ -726,7 +780,7 @@ SELECT * FROM articles WHERE id = 10
 SELECT * FROM comments WHERE article_id = 10 ORDER BY name
 ```
 
-In case the `reorder` clause is not used, the SQL executed would be:
+In the case where the `reorder` clause is not used, the SQL executed would be:
 
 ```sql
 SELECT * FROM articles WHERE id = 10
@@ -815,7 +869,7 @@ end
 Readonly Objects
 ----------------
 
-Active Record provides `readonly` method on a relation to explicitly disallow modification of any of the returned objects. Any attempt to alter a readonly record will not succeed, raising an `ActiveRecord::ReadOnlyRecord` exception.
+Active Record provides the `readonly` method on a relation to explicitly disallow modification of any of the returned objects. Any attempt to alter a readonly record will not succeed, raising an `ActiveRecord::ReadOnlyRecord` exception.
 
 ```ruby
 client = Client.readonly.first
@@ -861,7 +915,7 @@ This behavior can be turned off by setting `ActiveRecord::Base.lock_optimistical
 To override the name of the `lock_version` column, `ActiveRecord::Base` provides a class attribute called `locking_column`:
 
 ```ruby
-class Client < ActiveRecord::Base
+class Client < ApplicationRecord
   self.locking_column = :lock_client_column
 end
 ```
@@ -876,7 +930,7 @@ For example:
 Item.transaction do
   i = Item.lock.first
   i.name = 'Jones'
-  i.save
+  i.save!
 end
 ```
 
@@ -912,58 +966,63 @@ end
 Joining Tables
 --------------
 
-Active Record provides a finder method called `joins` for specifying `JOIN` clauses on the resulting SQL. There are multiple ways to use the `joins` method.
+Active Record provides two finder methods for specifying `JOIN` clauses on the
+resulting SQL: `joins` and `left_outer_joins`.
+While `joins` should be used for `INNER JOIN` or custom queries,
+`left_outer_joins` is used for queries using `LEFT OUTER JOIN`.
 
-### Using a String SQL Fragment
+### `joins`
+
+There are multiple ways to use the `joins` method.
+
+#### Using a String SQL Fragment
 
 You can just supply the raw SQL specifying the `JOIN` clause to `joins`:
 
 ```ruby
-Client.joins('LEFT OUTER JOIN addresses ON addresses.client_id = clients.id')
+Author.joins("INNER JOIN posts ON posts.author_id = author.id AND posts.published = 't'")
 ```
 
 This will result in the following SQL:
 
 ```sql
-SELECT clients.* FROM clients LEFT OUTER JOIN addresses ON addresses.client_id = clients.id
+SELECT clients.* FROM clients INNER JOIN posts ON posts.author_id = author.id AND posts.published = 't'
 ```
 
-### Using Array/Hash of Named Associations
-
-WARNING: This method only works with `INNER JOIN`.
+#### Using Array/Hash of Named Associations
 
 Active Record lets you use the names of the [associations](association_basics.html) defined on the model as a shortcut for specifying `JOIN` clauses for those associations when using the `joins` method.
 
 For example, consider the following `Category`, `Article`, `Comment`, `Guest` and `Tag` models:
 
 ```ruby
-class Category < ActiveRecord::Base
+class Category < ApplicationRecord
   has_many :articles
 end
 
-class Article < ActiveRecord::Base
+class Article < ApplicationRecord
   belongs_to :category
   has_many :comments
   has_many :tags
 end
 
-class Comment < ActiveRecord::Base
+class Comment < ApplicationRecord
   belongs_to :article
   has_one :guest
 end
 
-class Guest < ActiveRecord::Base
+class Guest < ApplicationRecord
   belongs_to :comment
 end
 
-class Tag < ActiveRecord::Base
+class Tag < ApplicationRecord
   belongs_to :article
 end
 ```
 
 Now all of the following will produce the expected join queries using `INNER JOIN`:
 
-#### Joining a Single Association
+##### Joining a Single Association
 
 ```ruby
 Category.joins(:articles)
@@ -976,7 +1035,7 @@ SELECT categories.* FROM categories
   INNER JOIN articles ON articles.category_id = categories.id
 ```
 
-Or, in English: "return a Category object for all categories with articles". Note that you will see duplicate categories if more than one article has the same category. If you want unique categories, you can use `Category.joins(:articles).uniq`.
+Or, in English: "return a Category object for all categories with articles". Note that you will see duplicate categories if more than one article has the same category. If you want unique categories, you can use `Category.joins(:articles).distinct`.
 
 #### Joining Multiple Associations
 
@@ -994,7 +1053,7 @@ SELECT articles.* FROM articles
 
 Or, in English: "return all articles that have a category and at least one comment". Note again that articles with multiple comments will show up multiple times.
 
-#### Joining Nested Associations (Single Level)
+##### Joining Nested Associations (Single Level)
 
 ```ruby
 Article.joins(comments: :guest)
@@ -1010,7 +1069,7 @@ SELECT articles.* FROM articles
 
 Or, in English: "return all articles that have a comment made by a guest."
 
-#### Joining Nested Associations (Multiple Level)
+##### Joining Nested Associations (Multiple Level)
 
 ```ruby
 Category.joins(articles: [{ comments: :guest }, :tags])
@@ -1026,9 +1085,11 @@ SELECT categories.* FROM categories
   INNER JOIN tags ON tags.article_id = articles.id
 ```
 
-### Specifying Conditions on the Joined Tables
+Or, in English: "return all categories that have articles, where those articles have a comment made by a guest, and where those articles also have a tag."
 
-You can specify conditions on the joined tables using the regular [Array](#array-conditions) and [String](#pure-string-conditions) conditions. [Hash conditions](#hash-conditions) provides a special syntax for specifying conditions for the joined tables:
+#### Specifying Conditions on the Joined Tables
+
+You can specify conditions on the joined tables using the regular [Array](#array-conditions) and [String](#pure-string-conditions) conditions. [Hash conditions](#hash-conditions) provide a special syntax for specifying conditions for the joined tables:
 
 ```ruby
 time_range = (Time.now.midnight - 1.day)..Time.now.midnight
@@ -1043,6 +1104,26 @@ Client.joins(:orders).where(orders: { created_at: time_range })
 ```
 
 This will find all clients who have orders that were created yesterday, again using a `BETWEEN` SQL expression.
+
+### `left_outer_joins`
+
+If you want to select a set of records whether or not they have associated
+records you can use the `left_outer_joins` method.
+
+```ruby
+Author.left_outer_joins(:posts).uniq.select('authors.*, COUNT(posts.*) AS posts_count').group('authors.id')
+```
+
+Which produces:
+
+```sql
+SELECT DISTINCT authors.*, COUNT(posts.*) AS posts_count FROM "authors"
+LEFT OUTER JOIN posts ON posts.author_id = authors.id GROUP BY authors.id
+```
+
+Which means: "return all authors with their count of posts, whether or not they
+have any posts at all"
+
 
 Eager Loading Associations
 --------------------------
@@ -1067,7 +1148,7 @@ This code looks fine at the first sight. But the problem lies within the total n
 
 Active Record lets you specify in advance all the associations that are going to be loaded. This is possible by specifying the `includes` method of the `Model.find` call. With `includes`, Active Record ensures that all of the specified associations are loaded using the minimum possible number of queries.
 
-Revisiting the above case, we could rewrite `Client.limit(10)` to use eager load addresses:
+Revisiting the above case, we could rewrite `Client.limit(10)` to eager load addresses:
 
 ```ruby
 clients = Client.includes(:address).limit(10)
@@ -1125,7 +1206,7 @@ This would generate a query which contains a `LEFT OUTER JOIN` whereas the
 If there was no `where` condition, this would generate the normal set of two queries.
 
 NOTE: Using `where` like this will only work when you pass it a Hash. For
-SQL-fragments you need use `references` to force joined tables:
+SQL-fragments you need to use `references` to force joined tables:
 
 ```ruby
 Article.includes(:comments).where("comments.visible = true").references(:comments)
@@ -1146,7 +1227,7 @@ Scoping allows you to specify commonly-used queries which can be referenced as m
 To define a simple scope, we use the `scope` method inside the class, passing the query that we'd like to run when this scope is called:
 
 ```ruby
-class Article < ActiveRecord::Base
+class Article < ApplicationRecord
   scope :published, -> { where(published: true) }
 end
 ```
@@ -1154,7 +1235,7 @@ end
 This is exactly the same as defining a class method, and which you use is a matter of personal preference:
 
 ```ruby
-class Article < ActiveRecord::Base
+class Article < ApplicationRecord
   def self.published
     where(published: true)
   end
@@ -1164,7 +1245,7 @@ end
 Scopes are also chainable within scopes:
 
 ```ruby
-class Article < ActiveRecord::Base
+class Article < ApplicationRecord
   scope :published,               -> { where(published: true) }
   scope :published_and_commented, -> { published.where("comments_count > 0") }
 end
@@ -1188,7 +1269,7 @@ category.articles.published # => [published articles belonging to this category]
 Your scope can take arguments:
 
 ```ruby
-class Article < ActiveRecord::Base
+class Article < ApplicationRecord
   scope :created_before, ->(time) { where("created_at < ?", time) }
 end
 ```
@@ -1202,7 +1283,7 @@ Article.created_before(Time.zone.now)
 However, this is just duplicating the functionality that would be provided to you by a class method.
 
 ```ruby
-class Article < ActiveRecord::Base
+class Article < ApplicationRecord
   def self.created_before(time)
     where("created_at < ?", time)
   end
@@ -1215,13 +1296,35 @@ Using a class method is the preferred way to accept arguments for scopes. These 
 category.articles.created_before(time)
 ```
 
+### Using conditionals
+
+Your scope can utilize conditionals:
+
+```ruby
+class Article < ApplicationRecord
+  scope :created_before, ->(time) { where("created_at < ?", time) if time.present? }
+end
+```
+
+Like the other examples, this will behave similarly to a class method.
+
+```ruby
+class Article < ApplicationRecord
+  def self.created_before(time)
+    where("created_at < ?", time) if time.present?
+  end
+end
+```
+
+However, there is one important caveat: A scope will always return an `ActiveRecord::Relation` object, even if the conditional evaluates to `false`, whereas a class method, will return `nil`. This can cause `NoMethodError` when chaining class methods with conditionals, if any of the conditionals return `false`.
+
 ### Applying a default scope
 
 If we wish for a scope to be applied across all queries to the model we can use the
 `default_scope` method within the model itself.
 
 ```ruby
-class Client < ActiveRecord::Base
+class Client < ApplicationRecord
   default_scope { where("removed_at IS NULL") }
 end
 ```
@@ -1237,11 +1340,23 @@ If you need to do more complex things with a default scope, you can alternativel
 define it as a class method:
 
 ```ruby
-class Client < ActiveRecord::Base
+class Client < ApplicationRecord
   def self.default_scope
     # Should return an ActiveRecord::Relation.
   end
 end
+```
+
+NOTE: The `default_scope` is also applied while creating/building a record.
+It is not applied while updating a record. E.g.:
+
+```ruby
+class Client < ApplicationRecord
+  default_scope { where(active: true) }
+end
+
+Client.new          # => #<Client id: nil, active: true>
+Client.unscoped.new # => #<Client id: nil, active: nil>
 ```
 
 ### Merging of scopes
@@ -1249,7 +1364,7 @@ end
 Just like `where` clauses scopes are merged using `AND` conditions.
 
 ```ruby
-class User < ActiveRecord::Base
+class User < ApplicationRecord
   scope :active, -> { where state: 'active' }
   scope :inactive, -> { where state: 'inactive' }
 end
@@ -1266,7 +1381,7 @@ User.active.where(state: 'finished')
 # SELECT "users".* FROM "users" WHERE "users"."state" = 'active' AND "users"."state" = 'finished'
 ```
 
-If we do want the `last where clause` to win then `Relation#merge` can
+If we do want the last `where` clause to win then `Relation#merge` can
 be used.
 
 ```ruby
@@ -1278,7 +1393,7 @@ One important caveat is that `default_scope` will be prepended in
 `scope` and `where` conditions.
 
 ```ruby
-class User < ActiveRecord::Base
+class User < ApplicationRecord
   default_scope { where state: 'pending' }
   scope :active, -> { where state: 'active' }
   scope :inactive, -> { where state: 'inactive' }
@@ -1309,8 +1424,15 @@ Client.unscoped.load
 
 This method removes all scoping and will do a normal query on the table.
 
-Note that chaining `unscoped` with a `scope` does not work. In these cases, it is
-recommended that you use the block form of `unscoped`:
+```ruby
+Client.unscoped.all
+# SELECT "clients".* FROM "clients"
+
+Client.where(published: false).unscoped.all
+# SELECT "clients".* FROM "clients"
+```
+
+`unscoped` can also accept a block.
 
 ```ruby
 Client.unscoped {
@@ -1321,25 +1443,108 @@ Client.unscoped {
 Dynamic Finders
 ---------------
 
-For every field (also known as an attribute) you define in your table, Active Record provides a finder method. If you have a field called `first_name` on your `Client` model for example, you get `find_by_first_name` for free from Active Record. If you have a `locked` field on the `Client` model, you also get `find_by_locked` and methods.
+For every field (also known as an attribute) you define in your table, Active Record provides a finder method. If you have a field called `first_name` on your `Client` model for example, you get `find_by_first_name` for free from Active Record. If you have a `locked` field on the `Client` model, you also get `find_by_locked` method.
 
 You can specify an exclamation point (`!`) on the end of the dynamic finders to get them to raise an `ActiveRecord::RecordNotFound` error if they do not return any records, like `Client.find_by_name!("Ryan")`
 
 If you want to find both by name and locked, you can chain these finders together by simply typing "`and`" between the fields. For example, `Client.find_by_first_name_and_locked("Ryan", true)`.
 
+Enums
+-----
+
+The `enum` macro maps an integer column to a set of possible values.
+
+```ruby
+class Book < ApplicationRecord
+  enum availability: [:available, :unavailable]
+end
+```
+
+This will automatically create the corresponding [scopes](#scopes) to query the
+model. Methods to transition between states and query the current state are also
+added.
+
+```ruby
+# Both examples below query just available books.
+Book.available
+# or
+Book.where(availability: :available)
+
+book = Book.new(availability: :available)
+book.available?   # => true
+book.unavailable! # => true
+book.available?   # => false
+```
+
+Read the full documentation about enums
+[in the Rails API docs](http://api.rubyonrails.org/classes/ActiveRecord/Enum.html).
+
+Understanding The Method Chaining
+---------------------------------
+
+The Active Record pattern implements [Method Chaining](http://en.wikipedia.org/wiki/Method_chaining),
+which allow us to use multiple Active Record methods together in a simple and straightforward way.
+
+You can chain methods in a statement when the previous method called returns an
+`ActiveRecord::Relation`, like `all`, `where`, and `joins`. Methods that return
+a single object (see [Retrieving a Single Object Section](#retrieving-a-single-object))
+have to be at the end of the statement.
+
+There are some examples below. This guide won't cover all the possibilities, just a few as examples.
+When an Active Record method is called, the query is not immediately generated and sent to the database,
+this just happens when the data is actually needed. So each example below generates a single query.
+
+### Retrieving filtered data from multiple tables
+
+```ruby
+Person
+  .select('people.id, people.name, comments.text')
+  .joins(:comments)
+  .where('comments.created_at > ?', 1.week.ago)
+```
+
+The result should be something like this:
+
+```sql
+SELECT people.id, people.name, comments.text
+FROM people
+INNER JOIN comments
+  ON comments.person_id = people.id
+WHERE comments.created_at = '2015-01-01'
+```
+
+### Retrieving specific data from multiple tables
+
+```ruby
+Person
+  .select('people.id, people.name, companies.name')
+  .joins(:company)
+  .find_by('people.name' => 'John') # this should be the last
+```
+
+The above should generate:
+
+```sql
+SELECT people.id, people.name, companies.name
+FROM people
+INNER JOIN companies
+  ON companies.person_id = people.id
+WHERE people.name = 'John'
+LIMIT 1
+```
+
+NOTE: Note that if a query matches multiple records, `find_by` will
+fetch only the first one and ignore the others (see the `LIMIT 1`
+statement above).
+
 Find or Build a New Object
 --------------------------
-
-NOTE: Some dynamic finders have been deprecated in Rails 4.0 and will be
-removed in Rails 4.1. The best practice is to use Active Record scopes
-instead. You can find the deprecation gem at
-https://github.com/rails/activerecord-deprecated_finders
 
 It's common that you need to find a record or create it if it doesn't exist. You can do that with the `find_or_create_by` and `find_or_create_by!` methods.
 
 ### `find_or_create_by`
 
-The `find_or_create_by` method checks whether a record with the attributes exists. If it doesn't, then `create` is called. Let's see an example.
+The `find_or_create_by` method checks whether a record with the specified attributes exists. If it doesn't, then `create` is called. Let's see an example.
 
 Suppose you want to find a client named 'Andy', and if there's none, create one. You can do so by running:
 
@@ -1502,7 +1707,7 @@ a large or often-running query. However, any model method overrides will
 not be available. For example:
 
 ```ruby
-class Client < ActiveRecord::Base
+class Client < ApplicationRecord
   def name
     "I am #{super}"
   end
@@ -1537,7 +1742,7 @@ Person.ids
 ```
 
 ```ruby
-class Person < ActiveRecord::Base
+class Person < ApplicationRecord
   self.primary_key = "person_id"
 end
 
@@ -1712,8 +1917,9 @@ EXPLAIN for: SELECT `users`.* FROM `users` INNER JOIN `articles` ON `articles`.`
 
 under MySQL.
 
-Active Record performs a pretty printing that emulates the one of the database
-shells. So, the same query running with the PostgreSQL adapter would yield instead
+Active Record performs a pretty printing that emulates that of the
+corresponding database shell. So, the same query running with the
+PostgreSQL adapter would yield instead
 
 ```
 EXPLAIN for: SELECT "users".* FROM "users" INNER JOIN "articles" ON "articles"."user_id" = "users"."id" WHERE "users"."id" = 1
@@ -1778,6 +1984,6 @@ following pointers may be helpful:
 
 * SQLite3: [EXPLAIN QUERY PLAN](http://www.sqlite.org/eqp.html)
 
-* MySQL: [EXPLAIN Output Format](http://dev.mysql.com/doc/refman/5.6/en/explain-output.html)
+* MySQL: [EXPLAIN Output Format](http://dev.mysql.com/doc/refman/5.7/en/explain-output.html)
 
 * PostgreSQL: [Using EXPLAIN](http://www.postgresql.org/docs/current/static/using-explain.html)

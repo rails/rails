@@ -1,6 +1,5 @@
 require "active_support/notifications"
 require "active_support/dependencies"
-require "active_support/deprecation"
 require "active_support/descendants_tracker"
 
 module Rails
@@ -55,18 +54,6 @@ INFO
           logger
         end
 
-        if Rails.env.production? && !config.has_explicit_log_level?
-          ActiveSupport::Deprecation.warn \
-           "You did not specify a `log_level` in `production.rb`. Currently, " \
-           "the default value for `log_level` is `:info` for the production " \
-           "environment and `:debug` in all other environments. In Rails 5 " \
-           "the default value will be unified to `:debug` across all " \
-           "environments. To preserve the current setting, add the following " \
-           "line to your `production.rb`:\n" \
-           "\n" \
-           "   config.log_level = :info\n\n"
-        end
-
         Rails.logger.level = ActiveSupport::Logger.const_get(config.log_level.to_s.upcase)
       end
 
@@ -76,7 +63,7 @@ INFO
           Rails.cache = ActiveSupport::Cache.lookup_store(config.cache_store)
 
           if Rails.cache.respond_to?(:middleware)
-            config.middleware.insert_before("Rack::Runtime", Rails.cache.middleware)
+            config.middleware.insert_before(::Rack::Runtime, Rails.cache.middleware)
           end
         end
       end

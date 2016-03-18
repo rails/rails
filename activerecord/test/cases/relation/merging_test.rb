@@ -82,24 +82,13 @@ class RelationMergingTest < ActiveRecord::TestCase
     left  = Post.where(title: "omg").where(comments_count: 1)
     right = Post.where(title: "wtf").where(title: "bbq")
 
-    expected = [left.bind_values[1]] + right.bind_values
+    expected = [left.bound_attributes[1]] + right.bound_attributes
     merged   = left.merge(right)
 
-    assert_equal expected, merged.bind_values
+    assert_equal expected, merged.bound_attributes
     assert !merged.to_sql.include?("omg")
     assert merged.to_sql.include?("wtf")
     assert merged.to_sql.include?("bbq")
-  end
-
-  def test_merging_keeps_lhs_bind_parameters
-    column = Post.columns_hash['id']
-    binds = [[column, 20]]
-
-    right  = Post.where(id: 20)
-    left   = Post.where(id: 10)
-
-    merged = left.merge(right)
-    assert_equal binds, merged.bind_values
   end
 
   def test_merging_reorders_bind_params
@@ -114,6 +103,13 @@ class RelationMergingTest < ActiveRecord::TestCase
   def test_merging_compares_symbols_and_strings_as_equal
     post = PostThatLoadsCommentsInAnAfterSaveHook.create!(title: "First Post", body: "Blah blah blah.")
     assert_equal "First comment!", post.comments.where(body: "First comment!").first_or_create.body
+  end
+
+  def test_merging_with_from_clause
+    relation = Post.all
+    assert relation.from_clause.empty?
+    relation = relation.merge(Post.from("posts"))
+    refute relation.from_clause.empty?
   end
 end
 

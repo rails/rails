@@ -1,7 +1,8 @@
 module ActiveRecord
   ###
-  # This class encapsulates a Result returned from calling +exec_query+ on any
-  # database connection adapter. For example:
+  # This class encapsulates a result returned from calling
+  # {#exec_query}[rdoc-ref:ConnectionAdapters::DatabaseStatements#exec_query]
+  # on any database connection adapter. For example:
   #
   #   result = ActiveRecord::Base.connection.exec_query('SELECT id, title, body FROM posts')
   #   result # => #<ActiveRecord::Result:0xdeadbeef>
@@ -81,7 +82,7 @@ module ActiveRecord
     def cast_values(type_overrides = {}) # :nodoc:
       types = columns.map { |name| column_type(name, type_overrides) }
       result = rows.map do |values|
-        types.zip(values).map { |type, value| type.type_cast_from_database(value) }
+        types.zip(values).map { |type, value| type.deserialize(value) }
       end
 
       columns.one? ? result.map!(&:first) : result

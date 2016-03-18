@@ -1,4 +1,3 @@
-# encoding: utf-8
 require "cases/helper"
 require 'models/man'
 require 'models/face'
@@ -64,5 +63,41 @@ class PresenceValidationTest < ActiveRecord::TestCase
     s.dashboard = dash
 
     assert_nothing_raised { s.valid? }
+  end
+
+  def test_validates_presence_of_virtual_attribute_on_model
+    repair_validations(Interest) do
+      Interest.send(:attr_accessor, :abbreviation)
+      Interest.validates_presence_of(:topic)
+      Interest.validates_presence_of(:abbreviation)
+
+      interest = Interest.create!(topic: 'Thought Leadering', abbreviation: 'tl')
+      assert interest.valid?
+
+      interest.abbreviation = ''
+
+      assert interest.invalid?
+    end
+  end
+
+  def test_validations_run_on_persisted_record
+    repair_validations(Interest) do
+      interest = Interest.new
+      interest.save!
+      assert_predicate interest, :valid?
+
+      Interest.validates_presence_of(:topic)
+
+      assert_not_predicate interest, :valid?
+    end
+  end
+
+  def test_validates_presence_with_on_context
+    repair_validations(Interest) do
+      Interest.validates_presence_of(:topic, on: :required_name)
+      interest = Interest.new
+      interest.save!
+      assert_not interest.valid?(:required_name)
+    end
   end
 end

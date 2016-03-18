@@ -8,44 +8,36 @@ require 'active_support/testing/declarative'
 require 'active_support/testing/isolation'
 require 'active_support/testing/constant_lookup'
 require 'active_support/testing/time_helpers'
+require 'active_support/testing/file_fixtures'
 require 'active_support/core_ext/kernel/reporting'
-require 'active_support/deprecation'
 
 module ActiveSupport
   class TestCase < ::Minitest::Test
     Assertion = Minitest::Assertion
 
     class << self
+      # Sets the order in which test cases are run.
+      #
+      #   ActiveSupport::TestCase.test_order = :random # => :random
+      #
+      # Valid values are:
+      # * +:random+   (to run tests in random order)
+      # * +:parallel+ (to run tests in parallel)
+      # * +:sorted+   (to run tests alphabetically by method name)
+      # * +:alpha+    (equivalent to +:sorted+)
       def test_order=(new_order)
         ActiveSupport.test_order = new_order
       end
 
+      # Returns the order in which test cases are run.
+      #
+      #   ActiveSupport::TestCase.test_order # => :random
+      #
+      # Possible values are +:random+, +:parallel+, +:alpha+, +:sorted+.
+      # Defaults to +:random+.
       def test_order
-        test_order = ActiveSupport.test_order
-
-        if test_order.nil?
-          ActiveSupport::Deprecation.warn "You did not specify a value for the " \
-            "configuration option `active_support.test_order`. In Rails 5, " \
-            "the default value of this option will change from `:sorted` to " \
-            "`:random`.\n" \
-            "To disable this warning and keep the current behavior, you can add " \
-            "the following line to your `config/environments/test.rb`:\n" \
-            "\n" \
-            "  Rails.application.configure do\n" \
-            "    config.active_support.test_order = :sorted\n" \
-            "  end\n" \
-            "\n" \
-            "Alternatively, you can opt into the future behavior by setting this " \
-            "option to `:random`."
-
-          test_order = :sorted
-          self.test_order = test_order
-        end
-
-        test_order
+        ActiveSupport.test_order ||= :random
       end
-
-      alias :my_tests_are_order_dependent! :i_suck_and_my_tests_are_order_dependent!
     end
 
     alias_method :method_name, :name
@@ -55,6 +47,7 @@ module ActiveSupport
     include ActiveSupport::Testing::Assertions
     include ActiveSupport::Testing::Deprecation
     include ActiveSupport::Testing::TimeHelpers
+    include ActiveSupport::Testing::FileFixtures
     extend ActiveSupport::Testing::Declarative
 
     # test/unit backwards compatibility methods
@@ -73,12 +66,20 @@ module ActiveSupport
     alias :assert_not_respond_to :refute_respond_to
     alias :assert_not_same :refute_same
 
-    # Fails if the block raises an exception.
+
+    # Assertion that the block should not raise an exception.
+    #
+    # Passes if evaluated code in the yielded block raises no exception.
     #
     #   assert_nothing_raised do
-    #     ...
+    #     perform_service(param: 'no_exception')
     #   end
     def assert_nothing_raised(*args)
+      if args.present?
+        ActiveSupport::Deprecation.warn(
+          "Passing arguments to assert_nothing_raised " \
+          "is deprecated and will be removed in Rails 5.1.")
+      end
       yield
     end
   end

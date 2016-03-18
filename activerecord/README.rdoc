@@ -26,13 +26,13 @@ The Product class is automatically mapped to the table named "products",
 which might look like this:
 
    CREATE TABLE products (
-     id int(11) NOT NULL auto_increment,
+     id int NOT NULL auto_increment,
      name varchar(255),
      PRIMARY KEY  (id)
    );
 
-This would also define the following accessors: `Product#name` and
-`Product#name=(new_name)`.
+This would also define the following accessors: <tt>Product#name</tt> and
+<tt>Product#name=(new_name)</tt>.
 
 
 * Associations between objects defined by simple class methods.
@@ -125,7 +125,7 @@ This would also define the following accessors: `Product#name` and
     )
 
   {Learn more}[link:classes/ActiveRecord/Base.html] and read about the built-in support for
-  MySQL[link:classes/ActiveRecord/ConnectionAdapters/MysqlAdapter.html],
+  MySQL[link:classes/ActiveRecord/ConnectionAdapters/Mysql2Adapter.html],
   PostgreSQL[link:classes/ActiveRecord/ConnectionAdapters/PostgreSQLAdapter.html], and
   SQLite3[link:classes/ActiveRecord/ConnectionAdapters/SQLite3Adapter.html].
 
@@ -138,7 +138,7 @@ This would also define the following accessors: `Product#name` and
 
 * Database agnostic schema management with Migrations.
 
-    class AddSystemSettings < ActiveRecord::Migration
+    class AddSystemSettings < ActiveRecord::Migration[5.0]
       def up
         create_table :system_settings do |t|
           t.string  :name
@@ -188,7 +188,7 @@ Admit the Database:
 
 The latest version of Active Record can be installed with RubyGems:
 
-  % [sudo] gem install activerecord
+  $ gem install activerecord
 
 Source code can be downloaded as part of the Rails project on GitHub:
 
@@ -215,4 +215,3 @@ Bug reports can be filed for the Ruby on Rails project here:
 Feature requests should be discussed on the rails-core mailing list here:
 
 * https://groups.google.com/forum/?fromgroups#!forum/rubyonrails-core
-

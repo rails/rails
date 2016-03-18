@@ -33,6 +33,35 @@ class LoadingTest < ActiveSupport::TestCase
     assert_equal 'omg', p.title
   end
 
+  test "concerns in app are autoloaded" do
+    app_file "app/controllers/concerns/trackable.rb", <<-CONCERN
+      module Trackable
+      end
+    CONCERN
+
+    app_file "app/mailers/concerns/email_loggable.rb", <<-CONCERN
+      module EmailLoggable
+      end
+    CONCERN
+
+    app_file "app/models/concerns/orderable.rb", <<-CONCERN
+      module Orderable
+      end
+    CONCERN
+
+    app_file "app/validators/concerns/matchable.rb", <<-CONCERN
+      module Matchable
+      end
+    CONCERN
+
+    require "#{rails_root}/config/environment"
+
+    assert_nothing_raised { Trackable }
+    assert_nothing_raised { EmailLoggable }
+    assert_nothing_raised { Orderable }
+    assert_nothing_raised { Matchable }
+  end
+
   test "models without table do not panic on scope definitions when loaded" do
     app_file "app/models/user.rb", <<-MODEL
       class User < ActiveRecord::Base
@@ -87,11 +116,11 @@ class LoadingTest < ActiveSupport::TestCase
     require "#{rails_root}/config/environment"
     setup_ar!
 
-    assert_equal [ActiveRecord::SchemaMigration], ActiveRecord::Base.descendants
+    assert_equal [ActiveRecord::SchemaMigration, ActiveRecord::InternalMetadata], ActiveRecord::Base.descendants
     get "/load"
-    assert_equal [ActiveRecord::SchemaMigration, Post], ActiveRecord::Base.descendants
+    assert_equal [ActiveRecord::SchemaMigration, ActiveRecord::InternalMetadata, Post], ActiveRecord::Base.descendants
     get "/unload"
-    assert_equal [ActiveRecord::SchemaMigration], ActiveRecord::Base.descendants
+    assert_equal [ActiveRecord::SchemaMigration, ActiveRecord::InternalMetadata], ActiveRecord::Base.descendants
   end
 
   test "initialize cant be called twice" do
@@ -140,6 +169,8 @@ class LoadingTest < ActiveSupport::TestCase
       config.file_watcher = Class.new do
         def initialize(*); end
         def updated?; false; end
+        def execute; end
+        def execute_if_updated; false; end
       end
     RUBY
 
@@ -181,7 +212,7 @@ class LoadingTest < ActiveSupport::TestCase
     app_file 'config/routes.rb', <<-RUBY
       $counter ||= 0
       Rails.application.routes.draw do
-        get '/c', to: lambda { |env| User; [200, {"Content-Type" => "text/plain"}, [$counter.to_s]] }
+        get '/c', to: lambda { |env| User.name; [200, {"Content-Type" => "text/plain"}, [$counter.to_s]] }
       end
     RUBY
 
@@ -214,7 +245,7 @@ class LoadingTest < ActiveSupport::TestCase
       $counter ||= 1
       $counter  *= 2
       Rails.application.routes.draw do
-        get '/c', to: lambda { |env| User; [200, {"Content-Type" => "text/plain"}, [$counter.to_s]] }
+        get '/c', to: lambda { |env| User.name; [200, {"Content-Type" => "text/plain"}, [$counter.to_s]] }
       end
     RUBY
 
@@ -259,7 +290,7 @@ class LoadingTest < ActiveSupport::TestCase
     extend Rack::Test::Methods
 
     app_file "db/migrate/1_create_posts.rb", <<-MIGRATION
-      class CreatePosts < ActiveRecord::Migration
+      class CreatePosts < ActiveRecord::Migration::Current
         def change
           create_table :posts do |t|
             t.string :title, default: "TITLE"
@@ -275,7 +306,7 @@ class LoadingTest < ActiveSupport::TestCase
     assert_equal "TITLE", last_response.body
 
     app_file "db/migrate/2_add_body_to_posts.rb", <<-MIGRATION
-      class AddBodyToPosts < ActiveRecord::Migration
+      class AddBodyToPosts < ActiveRecord::Migration::Current
         def change
           add_column :posts, :body, :text, default: "BODY"
         end

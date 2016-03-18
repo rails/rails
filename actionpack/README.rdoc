@@ -28,7 +28,7 @@ can be used outside of Rails.
 
 The latest version of Action Pack can be installed with RubyGems:
 
-  % [sudo] gem install actionpack
+  $ gem install actionpack
 
 Source code can be downloaded as part of the Rails project on GitHub
 
@@ -55,4 +55,3 @@ Bug reports can be filed for the Ruby on Rails project here:
 Feature requests should be discussed on the rails-core mailing list here:
 
 * https://groups.google.com/forum/?fromgroups#!forum/rubyonrails-core
-

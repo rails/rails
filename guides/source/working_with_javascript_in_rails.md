@@ -1,3 +1,5 @@
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+
 Working with JavaScript in Rails
 ================================
 
@@ -79,7 +81,7 @@ Awkward, right? We could pull the function definition out of the click handler,
 and turn it into CoffeeScript:
 
 ```coffeescript
-paintIt = (element, backgroundColor, textColor) ->
+@paintIt = (element, backgroundColor, textColor) ->
   element.style.backgroundColor = backgroundColor
   if textColor?
     element.style.color = textColor
@@ -105,7 +107,7 @@ attribute to our link, and then bind a handler to the click event of every link
 that has that attribute:
 
 ```coffeescript
-paintIt = (element, backgroundColor, textColor) ->
+@paintIt = (element, backgroundColor, textColor) ->
   element.style.backgroundColor = backgroundColor
   if textColor?
     element.style.color = textColor
@@ -146,10 +148,10 @@ and Rails has got your back in those cases.
 Because of Unobtrusive JavaScript, the Rails "Ajax helpers" are actually in two
 parts: the JavaScript half and the Ruby half.
 
+Unless you have disabled the Asset Pipeline,
 [rails.js](https://github.com/rails/jquery-ujs/blob/master/src/rails.js)
 provides the JavaScript half, and the regular Ruby view helpers add appropriate
-tags to your DOM. The CoffeeScript in rails.js then listens for these
-attributes, and attaches appropriate handlers.
+tags to your DOM.
 
 ### form_for
 
@@ -256,7 +258,7 @@ this generates
 
 ```html
 <form action="/articles/1" class="button_to" data-remote="true" method="post">
-  <div><input type="submit" value="An article"></div>
+  <input type="submit" value="An article" />
 </form>
 ```
 
@@ -348,28 +350,28 @@ $("<%= escape_javascript(render @user) %>").appendTo("#users");
 Turbolinks
 ----------
 
-Rails 4 ships with the [Turbolinks gem](https://github.com/rails/turbolinks).
-This gem uses Ajax to speed up page rendering in most applications.
+Rails ships with the [Turbolinks library](https://github.com/turbolinks/turbolinks),
+which uses Ajax to speed up page rendering in most applications.
 
 ### How Turbolinks Works
 
 Turbolinks attaches a click handler to all `<a>` on the page. If your browser
 supports
-[PushState](https://developer.mozilla.org/en-US/docs/DOM/Manipulating_the_browser_history#The_pushState(\).C2.A0method),
+[PushState](https://developer.mozilla.org/en-US/docs/Web/Guide/API/DOM/Manipulating_the_browser_history#The_pushState%28%29_method),
 Turbolinks will make an Ajax request for the page, parse the response, and
 replace the entire `<body>` of the page with the `<body>` of the response. It
 will then use PushState to change the URL to the correct one, preserving
 refresh semantics and giving you pretty URLs.
 
 The only thing you have to do to enable Turbolinks is have it in your Gemfile,
-and put `//= require turbolinks` in your CoffeeScript manifest, which is usually
+and put `//= require turbolinks` in your JavaScript manifest, which is usually
 `app/assets/javascripts/application.js`.
 
-If you want to disable Turbolinks for certain links, add a `data-no-turbolink`
+If you want to disable Turbolinks for certain links, add a `data-turbolinks="false"`
 attribute to the tag:
 
 ```html
-<a href="..." data-no-turbolink>No turbolinks here</a>.
+<a href="..." data-turbolinks="false">No turbolinks here</a>.
 ```
 
 ### Page Change Events
@@ -387,13 +389,13 @@ event that this relies on will not be fired. If you have code that looks like
 this, you must change your code to do this instead:
 
 ```coffeescript
-$(document).on "page:change", ->
+$(document).on "turbolinks:load", ->
   alert "page has loaded!"
 ```
 
 For more details, including other events you can bind to, check out [the
 Turbolinks
-README](https://github.com/rails/turbolinks/blob/master/README.md).
+README](https://github.com/turbolinks/turbolinks/blob/master/README.md).
 
 Other Resources
 ---------------

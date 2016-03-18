@@ -1,10 +1,10 @@
-module ActiveRecord::Associations::Builder
+module ActiveRecord::Associations::Builder # :nodoc:
   class HasOne < SingularAssociation #:nodoc:
-    def macro
+    def self.macro
       :has_one
     end
 
-    def valid_options
+    def self.valid_options(options)
       valid = super + [:as]
       valid += [:through, :source, :source_type] if options[:through]
       valid
@@ -14,10 +14,15 @@ module ActiveRecord::Associations::Builder
       [:destroy, :delete, :nullify, :restrict_with_error, :restrict_with_exception]
     end
 
-    private
-
     def self.add_destroy_callbacks(model, reflection)
       super unless reflection.options[:through]
+    end
+
+    def self.define_validations(model, reflection)
+      super
+      if reflection.options[:required]
+        model.validates_presence_of reflection.name, message: :required
+      end
     end
   end
 end

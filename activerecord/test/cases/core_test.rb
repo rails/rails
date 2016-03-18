@@ -98,4 +98,15 @@ class CoreTest < ActiveRecord::TestCase
     assert actual.start_with?(expected.split('XXXXXX').first)
     assert actual.end_with?(expected.split('XXXXXX').last)
   end
+
+  def test_pretty_print_overridden_by_inspect
+    subtopic = Class.new(Topic) do
+      def inspect
+        "inspecting topic"
+      end
+    end
+    actual = ''
+    PP.pp(subtopic.new, StringIO.new(actual))
+    assert_equal "inspecting topic\n", actual
+  end
 end

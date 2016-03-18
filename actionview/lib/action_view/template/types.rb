@@ -5,19 +5,12 @@ module ActionView
   class Template
     class Types
       class Type
-        cattr_accessor :types
-        self.types = Set.new
-
-        def self.register(*t)
-          types.merge(t.map(&:to_s))
-        end
-
-        register :html, :text, :js, :css,  :xml, :json
+        SET = Struct.new(:symbols).new([ :html, :text, :js, :css, :xml, :json ])
 
         def self.[](type)
-          return type if type.is_a?(self)
-
-          if type.is_a?(Symbol) || types.member?(type.to_s)
+          if type.is_a?(self)
+            type
+          else
             new(type)
           end
         end
@@ -28,16 +21,18 @@ module ActionView
           @symbol = symbol.to_sym
         end
 
-        delegate :to_s, :to_sym, :to => :symbol
+        def to_s
+          @symbol.to_s
+        end
         alias to_str to_s
 
         def ref
-          to_sym || to_s
+          @symbol
         end
+        alias to_sym ref
 
         def ==(type)
-          return false if type.blank?
-          symbol.to_sym == type.to_sym
+          @symbol == type.to_sym unless type.blank?
         end
       end
 
@@ -51,6 +46,10 @@ module ActionView
 
       def self.[](type)
         type_klass[type]
+      end
+
+      def self.symbols
+        type_klass::SET.symbols
       end
     end
   end

@@ -26,180 +26,341 @@ class SessionTest < ActiveSupport::TestCase
   end
 
   def test_follow_redirect_raises_when_no_redirect
-    @session.stubs(:redirect?).returns(false)
-    assert_raise(RuntimeError) { @session.follow_redirect! }
+    @session.stub :redirect?, false do
+      assert_raise(RuntimeError) { @session.follow_redirect! }
+    end
   end
 
   def test_request_via_redirect_uses_given_method
     path = "/somepath"; args = {:id => '1'}; headers = {"X-Test-Header" => "testvalue"}
-    @session.expects(:process).with(:put, path, args, headers)
-    @session.stubs(:redirect?).returns(false)
-    @session.request_via_redirect(:put, path, args, headers)
+    assert_called_with @session, :process, [:put, path, params: args, headers: headers] do
+      @session.stub :redirect?, false do
+        @session.request_via_redirect(:put, path, params: args, headers: headers)
+      end
+    end
+  end
+
+  def test_deprecated_request_via_redirect_uses_given_method
+    path = "/somepath"; args = { id: '1' }; headers = { "X-Test-Header" => "testvalue" }
+    assert_called_with @session, :process, [:put, path, params: args, headers: headers] do
+      @session.stub :redirect?, false do
+        assert_deprecated { @session.request_via_redirect(:put, path, args, headers) }
+      end
+    end
   end
 
   def test_request_via_redirect_follows_redirects
     path = "/somepath"; args = {:id => '1'}; headers = {"X-Test-Header" => "testvalue"}
-    @session.stubs(:redirect?).returns(true, true, false)
-    @session.expects(:follow_redirect!).times(2)
-    @session.request_via_redirect(:get, path, args, headers)
+    value_series = [true, true, false]
+    assert_called @session, :follow_redirect!, times: 2 do
+      @session.stub :redirect?, ->{ value_series.shift } do
+        @session.request_via_redirect(:get, path, params: args, headers: headers)
+      end
+    end
   end
 
   def test_request_via_redirect_returns_status
     path = "/somepath"; args = {:id => '1'}; headers = {"X-Test-Header" => "testvalue"}
-    @session.stubs(:redirect?).returns(false)
-    @session.stubs(:status).returns(200)
-    assert_equal 200, @session.request_via_redirect(:get, path, args, headers)
+    @session.stub :redirect?, false do
+      @session.stub :status, 200 do
+        assert_equal 200, @session.request_via_redirect(:get, path, params: args, headers: headers)
+      end
+    end
   end
 
-  def test_get_via_redirect
-    path = "/somepath"; args = {:id => '1'}; headers = {"X-Test-Header" => "testvalue" }
-    @session.expects(:request_via_redirect).with(:get, path, args, headers)
-    @session.get_via_redirect(path, args, headers)
+  def test_deprecated_get_via_redirect
+    path = "/somepath"; args = { id: '1' }; headers = { "X-Test-Header" => "testvalue" }
+
+    assert_called_with @session, :request_via_redirect, [:get, path, args, headers] do
+      assert_deprecated do
+        @session.get_via_redirect(path, args, headers)
+      end
+    end
   end
 
-  def test_post_via_redirect
-    path = "/somepath"; args = {:id => '1'}; headers = {"X-Test-Header" => "testvalue" }
-    @session.expects(:request_via_redirect).with(:post, path, args, headers)
-    @session.post_via_redirect(path, args, headers)
+  def test_deprecated_post_via_redirect
+    path = "/somepath"; args = { id: '1' }; headers = { "X-Test-Header" => "testvalue" }
+
+    assert_called_with @session, :request_via_redirect, [:post, path, args, headers] do
+      assert_deprecated do
+        @session.post_via_redirect(path, args, headers)
+      end
+    end
   end
 
-  def test_patch_via_redirect
-    path = "/somepath"; args = {:id => '1'}; headers = {"X-Test-Header" => "testvalue" }
-    @session.expects(:request_via_redirect).with(:patch, path, args, headers)
-    @session.patch_via_redirect(path, args, headers)
+  def test_deprecated_patch_via_redirect
+    path = "/somepath"; args = { id: '1' }; headers = { "X-Test-Header" => "testvalue" }
+
+    assert_called_with @session, :request_via_redirect, [:patch, path, args, headers] do
+      assert_deprecated do
+        @session.patch_via_redirect(path, args, headers)
+      end
+    end
   end
 
-  def test_put_via_redirect
-    path = "/somepath"; args = {:id => '1'}; headers = {"X-Test-Header" => "testvalue" }
-    @session.expects(:request_via_redirect).with(:put, path, args, headers)
-    @session.put_via_redirect(path, args, headers)
+  def test_deprecated_put_via_redirect
+    path = "/somepath"; args = { id: '1' }; headers = { "X-Test-Header" => "testvalue" }
+
+    assert_called_with @session, :request_via_redirect, [:put, path, args, headers] do
+      assert_deprecated do
+        @session.put_via_redirect(path, args, headers)
+      end
+    end
   end
 
-  def test_delete_via_redirect
-    path = "/somepath"; args = {:id => '1'}; headers = {"X-Test-Header" => "testvalue" }
-    @session.expects(:request_via_redirect).with(:delete, path, args, headers)
-    @session.delete_via_redirect(path, args, headers)
+  def test_deprecated_delete_via_redirect
+    path = "/somepath"; args = { id: '1' }; headers = { "X-Test-Header" => "testvalue" }
+
+    assert_called_with @session, :request_via_redirect, [:delete, path, args, headers] do
+      assert_deprecated do
+        @session.delete_via_redirect(path, args, headers)
+      end
+    end
   end
 
   def test_get
-    path = "/index"; params = "blah"; headers = {:location => 'blah'}
-    @session.expects(:process).with(:get,path,params,headers)
-    @session.get(path,params,headers)
+    path = "/index"; params = "blah"; headers = { location: 'blah' }
+
+    assert_called_with @session, :process, [:get, path, params: params, headers: headers] do
+      @session.get(path, params: params, headers: headers)
+    end
+  end
+
+  def test_get_with_env_and_headers
+    path = "/index"; params = "blah"; headers = { location: 'blah' }; env = { 'HTTP_X_REQUESTED_WITH' => 'XMLHttpRequest' }
+    assert_called_with @session, :process, [:get, path, params: params, headers: headers, env: env] do
+      @session.get(path, params: params, headers: headers, env: env)
+    end
+  end
+
+  def test_deprecated_get
+    path = "/index"; params = "blah"; headers = { location: 'blah' }
+
+    assert_called_with @session, :process, [:get, path, params: params, headers: headers] do
+      assert_deprecated {
+        @session.get(path, params, headers)
+      }
+    end
   end
 
   def test_post
-    path = "/index"; params = "blah"; headers = {:location => 'blah'}
-    @session.expects(:process).with(:post,path,params,headers)
-    @session.post(path,params,headers)
+    path = "/index"; params = "blah"; headers = { location: 'blah' }
+    assert_called_with @session, :process, [:post, path, params: params, headers: headers] do
+      assert_deprecated {
+        @session.post(path, params, headers)
+      }
+    end
+  end
+
+  def test_deprecated_post
+    path = "/index"; params = "blah"; headers = { location: 'blah' }
+    assert_called_with @session, :process, [:post, path, params: params, headers: headers] do
+      @session.post(path, params: params, headers: headers)
+    end
   end
 
   def test_patch
-    path = "/index"; params = "blah"; headers = {:location => 'blah'}
-    @session.expects(:process).with(:patch,path,params,headers)
-    @session.patch(path,params,headers)
+    path = "/index"; params = "blah"; headers = { location: 'blah' }
+    assert_called_with @session, :process, [:patch, path, params: params, headers: headers] do
+      @session.patch(path, params: params, headers: headers)
+    end
+  end
+
+  def test_deprecated_patch
+    path = "/index"; params = "blah"; headers = { location: 'blah' }
+    assert_called_with @session, :process, [:patch, path, params: params, headers: headers] do
+      assert_deprecated {
+        @session.patch(path, params, headers)
+      }
+    end
   end
 
   def test_put
-    path = "/index"; params = "blah"; headers = {:location => 'blah'}
-    @session.expects(:process).with(:put,path,params,headers)
-    @session.put(path,params,headers)
+    path = "/index"; params = "blah"; headers = { location: 'blah' }
+    assert_called_with @session, :process, [:put, path, params: params, headers: headers] do
+      @session.put(path, params: params, headers: headers)
+    end
+  end
+
+  def test_deprecated_put
+    path = "/index"; params = "blah"; headers = { location: 'blah' }
+    assert_called_with @session, :process, [:put, path, params: params, headers: headers] do
+      assert_deprecated {
+        @session.put(path, params, headers)
+      }
+    end
   end
 
   def test_delete
-    path = "/index"; params = "blah"; headers = {:location => 'blah'}
-    @session.expects(:process).with(:delete,path,params,headers)
-    @session.delete(path,params,headers)
+    path = "/index"; params = "blah"; headers = { location: 'blah' }
+    assert_called_with @session, :process, [:delete, path, params: params, headers: headers] do
+      assert_deprecated {
+        @session.delete(path,params,headers)
+      }
+    end
+  end
+
+  def test_deprecated_delete
+    path = "/index"; params = "blah"; headers = { location: 'blah' }
+    assert_called_with @session, :process, [:delete, path, params: params, headers: headers] do
+      @session.delete(path, params: params, headers: headers)
+    end
   end
 
   def test_head
-    path = "/index"; params = "blah"; headers = {:location => 'blah'}
-    @session.expects(:process).with(:head,path,params,headers)
-    @session.head(path,params,headers)
+    path = "/index"; params = "blah"; headers = { location: 'blah' }
+    assert_called_with @session, :process, [:head, path, params: params, headers: headers] do
+      @session.head(path, params: params, headers: headers)
+    end
+  end
+
+  def deprecated_test_head
+    path = "/index"; params = "blah"; headers = { location: 'blah' }
+    assert_called_with @session, :process, [:head, path, params: params, headers: headers] do
+      assert_deprecated {
+        @session.head(path, params, headers)
+      }
+    end
   end
 
   def test_xml_http_request_get
-    path = "/index"; params = "blah"; headers = {:location => 'blah'}
-    headers_after_xhr = headers.merge(
-      "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest",
-      "HTTP_ACCEPT"           => "text/javascript, text/html, application/xml, text/xml, */*"
-    )
-    @session.expects(:process).with(:get,path,params,headers_after_xhr)
-    @session.xml_http_request(:get,path,params,headers)
+    path = "/index"; params = "blah"; headers = { location: 'blah' }
+    assert_called_with @session, :process, [:get, path, params: params, headers: headers, xhr: true] do
+      @session.get(path, params: params, headers: headers, xhr: true)
+    end
+  end
+
+  def test_deprecated_xml_http_request_get
+    path = "/index"; params = "blah"; headers = { location: 'blah' }
+    assert_called_with @session, :process, [:get, path, params: params, headers: headers, xhr: true] do
+      @session.get(path, params: params, headers: headers, xhr: true)
+    end
+  end
+
+  def test_deprecated_args_xml_http_request_get
+    path = "/index"; params = "blah"; headers = { location: 'blah' }
+    assert_called_with @session, :process, [:get, path, params: params, headers: headers, xhr: true] do
+      assert_deprecated(/xml_http_request/) {
+        @session.xml_http_request(:get, path, params, headers)
+      }
+    end
   end
 
   def test_xml_http_request_post
-    path = "/index"; params = "blah"; headers = {:location => 'blah'}
-    headers_after_xhr = headers.merge(
-      "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest",
-      "HTTP_ACCEPT"           => "text/javascript, text/html, application/xml, text/xml, */*"
-    )
-    @session.expects(:process).with(:post,path,params,headers_after_xhr)
-    @session.xml_http_request(:post,path,params,headers)
+    path = "/index"; params = "blah"; headers = { location: 'blah' }
+    assert_called_with @session, :process, [:post, path, params: params, headers: headers, xhr: true] do
+      @session.post(path, params: params, headers: headers, xhr: true)
+    end
+  end
+
+  def test_deprecated_xml_http_request_post
+    path = "/index"; params = "blah"; headers = { location: 'blah' }
+    assert_called_with @session, :process, [:post, path, params: params, headers: headers, xhr: true] do
+      @session.post(path, params: params, headers: headers, xhr: true)
+    end
+  end
+
+  def test_deprecated_args_xml_http_request_post
+    path = "/index"; params = "blah"; headers = { location: 'blah' }
+    assert_called_with @session, :process, [:post, path, params: params, headers: headers, xhr: true] do
+      assert_deprecated(/xml_http_request/) { @session.xml_http_request(:post,path,params,headers) }
+    end
   end
 
   def test_xml_http_request_patch
-    path = "/index"; params = "blah"; headers = {:location => 'blah'}
-    headers_after_xhr = headers.merge(
-      "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest",
-      "HTTP_ACCEPT"           => "text/javascript, text/html, application/xml, text/xml, */*"
-    )
-    @session.expects(:process).with(:patch,path,params,headers_after_xhr)
-    @session.xml_http_request(:patch,path,params,headers)
+    path = "/index"; params = "blah"; headers = { location: 'blah' }
+    assert_called_with @session, :process, [:patch, path, params: params, headers: headers, xhr: true] do
+      @session.patch(path, params: params, headers: headers, xhr: true)
+    end
+  end
+
+  def test_deprecated_xml_http_request_patch
+    path = "/index"; params = "blah"; headers = { location: 'blah' }
+    assert_called_with @session, :process, [:patch, path, params: params, headers: headers, xhr: true] do
+      @session.patch(path, params: params, headers: headers, xhr: true)
+    end
+  end
+
+  def test_deprecated_args_xml_http_request_patch
+    path = "/index"; params = "blah"; headers = { location: 'blah' }
+    assert_called_with @session, :process, [:patch, path, params: params, headers: headers, xhr: true] do
+      assert_deprecated(/xml_http_request/) { @session.xml_http_request(:patch,path,params,headers) }
+    end
   end
 
   def test_xml_http_request_put
-    path = "/index"; params = "blah"; headers = {:location => 'blah'}
-    headers_after_xhr = headers.merge(
-      "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest",
-      "HTTP_ACCEPT"           => "text/javascript, text/html, application/xml, text/xml, */*"
-    )
-    @session.expects(:process).with(:put,path,params,headers_after_xhr)
-    @session.xml_http_request(:put,path,params,headers)
+    path = "/index"; params = "blah"; headers = { location: 'blah' }
+    assert_called_with @session, :process, [:put, path, params: params, headers: headers, xhr: true] do
+      @session.put(path, params: params, headers: headers, xhr: true)
+    end
+  end
+
+  def test_deprecated_xml_http_request_put
+    path = "/index"; params = "blah"; headers = { location: 'blah' }
+    assert_called_with @session, :process, [:put, path, params: params, headers: headers, xhr: true] do
+      @session.put(path, params: params, headers: headers, xhr: true)
+    end
+  end
+
+  def test_deprecated_args_xml_http_request_put
+    path = "/index"; params = "blah"; headers = { location: 'blah' }
+    assert_called_with @session, :process, [:put, path, params: params, headers: headers, xhr: true] do
+      assert_deprecated(/xml_http_request/) { @session.xml_http_request(:put, path, params, headers) }
+    end
   end
 
   def test_xml_http_request_delete
-    path = "/index"; params = "blah"; headers = {:location => 'blah'}
-    headers_after_xhr = headers.merge(
-      "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest",
-      "HTTP_ACCEPT"           => "text/javascript, text/html, application/xml, text/xml, */*"
-    )
-    @session.expects(:process).with(:delete,path,params,headers_after_xhr)
-    @session.xml_http_request(:delete,path,params,headers)
+    path = "/index"; params = "blah"; headers = { location: 'blah' }
+    assert_called_with @session, :process, [:delete, path, params: params, headers: headers, xhr: true] do
+      @session.delete(path, params: params, headers: headers, xhr: true)
+    end
+  end
+
+  def test_deprecated_xml_http_request_delete
+    path = "/index"; params = "blah"; headers = { location: 'blah' }
+    assert_called_with @session, :process, [:delete, path, params: params, headers: headers, xhr: true] do
+      assert_deprecated { @session.xml_http_request(:delete, path, params: params, headers: headers) }
+    end
+  end
+
+  def test_deprecated_args_xml_http_request_delete
+    path = "/index"; params = "blah"; headers = { location: 'blah' }
+    assert_called_with @session, :process, [:delete, path, params: params, headers: headers, xhr: true] do
+      assert_deprecated(/xml_http_request/) { @session.xml_http_request(:delete, path, params, headers) }
+    end
   end
 
   def test_xml_http_request_head
-    path = "/index"; params = "blah"; headers = {:location => 'blah'}
-    headers_after_xhr = headers.merge(
-      "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest",
-      "HTTP_ACCEPT"           => "text/javascript, text/html, application/xml, text/xml, */*"
-    )
-    @session.expects(:process).with(:head,path,params,headers_after_xhr)
-    @session.xml_http_request(:head,path,params,headers)
+    path = "/index"; params = "blah"; headers = { location: 'blah' }
+    assert_called_with @session, :process, [:head, path, params: params, headers: headers, xhr: true] do
+      @session.head(path, params: params, headers: headers, xhr: true)
+    end
   end
 
-  def test_xml_http_request_override_accept
-    path = "/index"; params = "blah"; headers = {:location => 'blah', "HTTP_ACCEPT" => "application/xml"}
-    headers_after_xhr = headers.merge(
-      "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest"
-    )
-    @session.expects(:process).with(:post,path,params,headers_after_xhr)
-    @session.xml_http_request(:post,path,params,headers)
+  def test_deprecated_xml_http_request_head
+    path = "/index"; params = "blah"; headers = { location: 'blah' }
+    assert_called_with @session, :process, [:head, path, params: params, headers: headers, xhr: true] do
+      assert_deprecated(/xml_http_request/) { @session.xml_http_request(:head, path, params: params, headers: headers) }
+    end
+  end
+
+  def test_deprecated_args_xml_http_request_head
+    path = "/index"; params = "blah"; headers = { location: 'blah' }
+    assert_called_with @session, :process, [:head, path, params: params, headers: headers, xhr: true] do
+      assert_deprecated { @session.xml_http_request(:head, path, params, headers) }
+    end
   end
 end
 
 class IntegrationTestTest < ActiveSupport::TestCase
   def setup
     @test = ::ActionDispatch::IntegrationTest.new(:app)
-    @test.class.stubs(:fixture_table_names).returns([])
-    @session = @test.open_session
   end
 
   def test_opens_new_session
     session1 = @test.open_session { |sess| }
     session2 = @test.open_session # implicit session
 
-    assert_respond_to session1, :assert_template, "open_session makes assert_template available"
-    assert_respond_to session2, :assert_template, "open_session makes assert_template available"
     assert !session1.equal?(session2)
   end
 
@@ -225,17 +386,11 @@ end
 # Tests that integration tests don't call Controller test methods for processing.
 # Integration tests have their own setup and teardown.
 class IntegrationTestUsesCorrectClass < ActionDispatch::IntegrationTest
-  def self.fixture_table_names
-    []
-  end
-
   def test_integration_methods_called
     reset!
-    @integration_session.stubs(:generic_url_rewriter)
-    @integration_session.stubs(:process)
 
     %w( get post head patch put delete ).each do |verb|
-      assert_nothing_raised("'#{verb}' should use integration test methods") { __send__(verb, '/') }
+      assert_nothing_raised { __send__(verb, '/') }
     end
   end
 end
@@ -244,27 +399,30 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
   class IntegrationController < ActionController::Base
     def get
       respond_to do |format|
-        format.html { render :text => "OK", :status => 200 }
-        format.js { render :text => "JS OK", :status => 200 }
+        format.html { render plain: "OK", status: 200 }
+        format.js { render plain: "JS OK", status: 200 }
+        format.xml { render :xml => "<root></root>", :status => 200 }
+        format.rss { render :xml => "<root></root>", :status => 200 }
+        format.atom { render :xml => "<root></root>", :status => 200 }
       end
     end
 
     def get_with_params
-      render :text => "foo: #{params[:foo]}", :status => 200
+      render plain: "foo: #{params[:foo]}", status: 200
     end
 
     def post
-      render :text => "Created", :status => 201
+      render plain: "Created", status: 201
     end
 
     def method
-      render :text => "method: #{request.method.downcase}"
+      render plain: "method: #{request.method.downcase}"
     end
 
     def cookie_monster
       cookies["cookie_1"] = nil
       cookies["cookie_3"] = "chocolate"
-      render :text => "Gone", :status => 410
+      render plain: "Gone", status: 410
     end
 
     def set_cookie
@@ -273,11 +431,16 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
     end
 
     def get_cookie
-      render :text => cookies["foo"]
+      render plain: cookies["foo"]
     end
 
     def redirect
       redirect_to action_url('get')
+    end
+
+    def remove_header
+      response.headers.delete params[:header]
+      head :ok, 'c' => '3'
     end
   end
 
@@ -294,6 +457,24 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
       assert_equal "OK", response.body
       assert_kind_of Nokogiri::HTML::Document, html_document
       assert_equal 1, request_count
+    end
+  end
+
+  def test_get_xml_rss_atom
+    %w[ application/xml application/rss+xml application/atom+xml ].each do |mime_string|
+      with_test_route_set do
+        get "/get", headers: {"HTTP_ACCEPT" => mime_string}
+        assert_equal 200, status
+        assert_equal "OK", status_message
+        assert_response 200
+        assert_response :success
+        assert_response :ok
+        assert_equal({}, cookies.to_hash)
+        assert_equal "<root></root>", body
+        assert_equal "<root></root>", response.body
+        assert_instance_of Nokogiri::XML::Document, html_document
+        assert_equal 1, request_count
+      end
     end
   end
 
@@ -383,7 +564,19 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
 
   def test_xml_http_request_get
     with_test_route_set do
-      xhr :get, '/get'
+      get '/get', xhr: true
+      assert_equal 200, status
+      assert_equal "OK", status_message
+      assert_response 200
+      assert_response :success
+      assert_response :ok
+      assert_equal "JS OK", response.body
+    end
+  end
+
+  def test_deprecated_xml_http_request_get
+    with_test_route_set do
+      assert_deprecated { xhr :get, '/get' }
       assert_equal 200, status
       assert_equal "OK", status_message
       assert_response 200
@@ -395,7 +588,7 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
 
   def test_request_with_bad_format
     with_test_route_set do
-      xhr :get, '/get.php'
+      get '/get.php', xhr: true
       assert_equal 406, status
       assert_response 406
       assert_response :not_acceptable
@@ -418,7 +611,7 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
 
   def test_get_with_parameters
     with_test_route_set do
-      get '/get_with_params', :foo => "bar"
+      get '/get_with_params', params: { foo: "bar" }
       assert_equal '/get_with_params', request.env["PATH_INFO"]
       assert_equal '/get_with_params', request.path_info
       assert_equal 'foo=bar', request.env["QUERY_STRING"]
@@ -506,7 +699,27 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
     end
   end
 
+  def test_respect_removal_of_default_headers_by_a_controller_action
+    with_test_route_set do
+      with_default_headers 'a' => '1', 'b' => '2' do
+        get '/remove_header', params: { header: 'a' }
+      end
+    end
+
+    assert_not_includes @response.headers, 'a', 'Response should not include default header removed by the controller action'
+    assert_includes @response.headers, 'b'
+    assert_includes @response.headers, 'c'
+  end
+
   private
+    def with_default_headers(headers)
+      original = ActionDispatch::Response.default_headers
+      ActionDispatch::Response.default_headers = headers
+      yield
+    ensure
+      ActionDispatch::Response.default_headers = original
+    end
+
     def with_test_route_set
       with_routing do |set|
         controller = ::IntegrationProcessTest::IntegrationController.clone
@@ -517,11 +730,13 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
         set.draw do
           get 'moved' => redirect('/method')
 
-          match ':action', :to => controller, :via => [:get, :post], :as => :action
-          get 'get/:action', :to => controller, :as => :get_action
+          ActiveSupport::Deprecation.silence do
+            match ':action', :to => controller, :via => [:get, :post], :as => :action
+            get 'get/:action', :to => controller, :as => :get_action
+          end
         end
 
-        self.singleton_class.send(:include, set.url_helpers)
+        self.singleton_class.include(set.url_helpers)
 
         yield
       end
@@ -565,17 +780,44 @@ class MetalIntegrationTest < ActionDispatch::IntegrationTest
   end
 
   def test_pass_headers
-    get "/success", {}, "Referer" => "http://www.example.com/foo", "Host" => "http://nohost.com"
+    get "/success", headers: {"Referer" => "http://www.example.com/foo", "Host" => "http://nohost.com"}
 
     assert_equal "http://nohost.com", @request.env["HTTP_HOST"]
     assert_equal "http://www.example.com/foo", @request.env["HTTP_REFERER"]
   end
 
-  def test_pass_env
-    get "/success", {}, "HTTP_REFERER" => "http://test.com/", "HTTP_HOST" => "http://test.com"
+  def test_pass_headers_and_env
+    get "/success", headers: { "X-Test-Header" => "value" }, env: { "HTTP_REFERER" => "http://test.com/", "HTTP_HOST" => "http://test.com" }
 
     assert_equal "http://test.com", @request.env["HTTP_HOST"]
     assert_equal "http://test.com/", @request.env["HTTP_REFERER"]
+    assert_equal "value", @request.env["HTTP_X_TEST_HEADER"]
+  end
+
+  def test_pass_env
+    get "/success", env: { "HTTP_REFERER" => "http://test.com/", "HTTP_HOST" => "http://test.com" }
+
+    assert_equal "http://test.com", @request.env["HTTP_HOST"]
+    assert_equal "http://test.com/", @request.env["HTTP_REFERER"]
+  end
+
+  def test_ignores_common_ports_in_host
+    get "http://test.com"
+    assert_equal "test.com", @request.env["HTTP_HOST"]
+
+    get "https://test.com"
+    assert_equal "test.com", @request.env["HTTP_HOST"]
+  end
+
+  def test_keeps_uncommon_ports_in_host
+    get "http://test.com:123"
+    assert_equal "test.com:123", @request.env["HTTP_HOST"]
+
+    get "http://test.com:443"
+    assert_equal "test.com:443", @request.env["HTTP_HOST"]
+
+    get "https://test.com:80"
+    assert_equal "test.com:80", @request.env["HTTP_HOST"]
   end
 
 end
@@ -583,7 +825,7 @@ end
 class ApplicationIntegrationTest < ActionDispatch::IntegrationTest
   class TestController < ActionController::Base
     def index
-      render :text => "index"
+      render plain: "index"
     end
   end
 
@@ -662,7 +904,7 @@ class ApplicationIntegrationTest < ActionDispatch::IntegrationTest
   test "process do not modify the env passed as argument" do
     env = { :SERVER_NAME => 'server', 'action_dispatch.custom' => 'custom' }
     old_env = env.dup
-    get '/foo', nil, env
+    get '/foo', env: env
     assert_equal old_env, env
   end
 end
@@ -670,7 +912,7 @@ end
 class EnvironmentFilterIntegrationTest < ActionDispatch::IntegrationTest
   class TestController < ActionController::Base
     def post
-      render :text => "Created", :status => 201
+      render plain: "Created", status: 201
     end
   end
 
@@ -692,7 +934,7 @@ class EnvironmentFilterIntegrationTest < ActionDispatch::IntegrationTest
   end
 
   test "filters rack request form vars" do
-    post "/post", :username => 'cjolly', :password => 'secret'
+    post "/post", params: { username: 'cjolly', password: 'secret' }
 
     assert_equal 'cjolly', request.filtered_parameters['username']
     assert_equal '[FILTERED]', request.filtered_parameters['password']
@@ -703,15 +945,15 @@ end
 class UrlOptionsIntegrationTest < ActionDispatch::IntegrationTest
   class FooController < ActionController::Base
     def index
-      render :text => "foo#index"
+      render plain: "foo#index"
     end
 
     def show
-      render :text => "foo#show"
+      render plain: "foo#show"
     end
 
     def edit
-      render :text => "foo#show"
+      render plain: "foo#show"
     end
   end
 
@@ -721,7 +963,7 @@ class UrlOptionsIntegrationTest < ActionDispatch::IntegrationTest
     end
 
     def index
-      render :text => "foo#index"
+      render plain: "foo#index"
     end
   end
 
@@ -849,4 +1091,119 @@ class IntegrationWithRoutingTest < ActionDispatch::IntegrationTest
       assert_equal 'ok', response.body
     end
   end
+end
+
+# to work in contexts like rspec before(:all)
+class IntegrationRequestsWithoutSetup < ActionDispatch::IntegrationTest
+  self._setup_callbacks = []
+  self._teardown_callbacks = []
+
+  class FooController < ActionController::Base
+    def ok
+      cookies[:key] = 'ok'
+      render plain: 'ok'
+    end
+  end
+
+  def test_request
+    with_routing do |routes|
+      routes.draw do
+        ActiveSupport::Deprecation.silence do
+          get ':action' => FooController
+        end
+      end
+
+      get '/ok'
+
+      assert_response 200
+      assert_equal 'ok', response.body
+      assert_equal 'ok', cookies['key']
+    end
+  end
+end
+
+# to ensure that session requirements in setup are persisted in the tests
+class IntegrationRequestsWithSessionSetup < ActionDispatch::IntegrationTest
+  setup do
+    cookies['user_name'] = 'david'
+  end
+
+  def test_cookies_set_in_setup_are_persisted_through_the_session
+    get "/foo"
+    assert_equal({"user_name"=>"david"}, cookies.to_hash)
+  end
+end
+
+class IntegrationRequestEncodersTest < ActionDispatch::IntegrationTest
+  class FooController < ActionController::Base
+    def foos_json
+      render json: params.permit(:foo)
+    end
+
+    def foos_wibble
+      render plain: 'ok'
+    end
+  end
+
+  def test_encoding_as_json
+    post_to_foos as: :json do
+      assert_response :success
+      assert_match 'foos_json.json', request.path
+      assert_equal 'application/json', request.content_type
+      assert_equal({ 'foo' => 'fighters' }, request.request_parameters)
+      assert_equal({ 'foo' => 'fighters' }, response.parsed_body)
+    end
+  end
+
+  def test_encoding_as_without_mime_registration
+    assert_raise ArgumentError do
+      ActionDispatch::IntegrationTest.register_encoder :wibble
+    end
+  end
+
+  def test_registering_custom_encoder
+    Mime::Type.register 'text/wibble', :wibble
+
+    ActionDispatch::IntegrationTest.register_encoder(:wibble,
+      param_encoder: -> params { params })
+
+    post_to_foos as: :wibble do
+      assert_response :success
+      assert_match 'foos_wibble.wibble', request.path
+      assert_equal 'text/wibble', request.content_type
+      assert_equal Hash.new, request.request_parameters # Unregistered MIME Type can't be parsed.
+      assert_equal 'ok', response.parsed_body
+    end
+  ensure
+    Mime::Type.unregister :wibble
+  end
+
+  def test_parsed_body_without_as_option
+    with_routing do |routes|
+      routes.draw do
+        ActiveSupport::Deprecation.silence do
+          get ':action' => FooController
+        end
+      end
+
+      get '/foos_json.json', params: { foo: 'heyo' }
+
+      assert_equal({ 'foo' => 'heyo' }, response.parsed_body)
+    end
+  end
+
+  private
+    def post_to_foos(as:)
+      with_routing do |routes|
+        routes.draw do
+          ActiveSupport::Deprecation.silence do
+            post ':action' => FooController
+          end
+        end
+
+        post "/foos_#{as}", params: { foo: 'fighters' }, as: as
+
+        yield
+      end
+    end
 end

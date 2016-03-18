@@ -2,29 +2,55 @@ require 'active_support/core_ext/module'
 require 'action_view/model_naming'
 
 module ActionView
-  # The record identifier encapsulates a number of naming conventions for dealing with records, like Active Records or
-  # pretty much any other model type that has an id. These patterns are then used to try elevate the view actions to
-  # a higher logical level.
+  # RecordIdentifier encapsulates methods used by various ActionView helpers
+  # to associate records with DOM elements.
   #
-  #   # routes
-  #   resources :posts
+  # Consider for example the following code that form of post:
   #
-  #   # view
-  #   <%= div_for(post) do %>    <div id="post_45" class="post">
-  #     <%= post.body %>           What a wonderful world!
-  #   <% end %>                  </div>
+  #   <%= form_for(post) do |f| %>
+  #     <%= f.text_field :body %>
+  #   <% end %>
   #
-  #   # controller
-  #   def update
-  #     post = Post.find(params[:id])
-  #     post.update(params[:post])
+  # When +post+ is a new, unsaved ActiveRecord::Base instance, the resulting HTML
+  # is:
   #
-  #     redirect_to(post) # Calls polymorphic_url(post) which in turn calls post_url(post)
+  #    <form class="new_post" id="new_post" action="/posts" accept-charset="UTF-8" method="post">
+  #      <input type="text" name="post[body]" id="post_body" />
+  #    </form>
+  #
+  # When +post+ is a persisted ActiveRecord::Base instance, the resulting HTML
+  # is:
+  #
+  #   <form class="edit_post" id="edit_post_42" action="/posts/42" accept-charset="UTF-8" method="post">
+  #     <input type="text" value="What a wonderful world!" name="post[body]" id="post_body" />
+  #   </form>
+  #
+  # In both cases, the +id+ and +class+ of the wrapping DOM element are
+  # automatically generated, following naming conventions encapsulated by the
+  # RecordIdentifier methods #dom_id and #dom_class:
+  #
+  #   dom_id(Post.new)         # => "new_post"
+  #   dom_class(Post.new)      # => "post"
+  #   dom_id(Post.find 42)     # => "post_42"
+  #   dom_class(Post.find 42)  # => "post"
+  #
+  # Note that these methods do not strictly require +Post+ to be a subclass of
+  # ActiveRecord::Base.
+  # Any +Post+ class will work as long as its instances respond to +to_key+
+  # and +model_name+, given that +model_name+ responds to +param_key+.
+  # For instance:
+  #
+  #   class Post
+  #     attr_accessor :to_key
+  #
+  #     def model_name
+  #       OpenStruct.new param_key: 'post'
+  #     end
+  #
+  #     def self.find(id)
+  #       new.tap { |post| post.to_key = [id] }
+  #     end
   #   end
-  #
-  # As the example above shows, you can stop caring to a large extent what the actual id of the post is.
-  # You just know that one is being assigned and that the subsequent calls in redirect_to expect that
-  # same naming convention and allows you to write less code if you follow it.
   module RecordIdentifier
     extend self
     extend ModelNaming
@@ -78,7 +104,7 @@ module ActionView
     # make sure yourself that your dom ids are valid, in case you overwrite this method.
     def record_key_for_dom_id(record)
       key = convert_to_model(record).to_key
-      key ? key.join('_') : key
+      key ? key.join(JOIN) : key
     end
   end
 end

@@ -1,21 +1,32 @@
 require 'active_support/core_ext/module/attribute_accessors'
-require 'active_support/core_ext/hash/slice'
 
 module ActionDispatch
   module Http
     module URL
       IP_HOST_REGEXP  = /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/
-      HOST_REGEXP     = /(^[^:]+:\/\/)?([^:]+)(?::(\d+$))?/
+      HOST_REGEXP     = /(^[^:]+:\/\/)?(\[[^\]]+\]|[^:]+)(?::(\d+$))?/
       PROTOCOL_REGEXP = /^([^:]+)(:)?(\/\/)?$/
 
       mattr_accessor :tld_length
       self.tld_length = 1
 
       class << self
+        # Returns the domain part of a host given the domain level.
+        #
+        #    # Top-level domain example
+        #    extract_domain('www.example.com', 1) # => "example.com"
+        #    # Second-level domain example
+        #    extract_domain('dev.www.example.co.uk', 2) # => "example.co.uk"
         def extract_domain(host, tld_length)
           extract_domain_from(host, tld_length) if named_host?(host)
         end
 
+        # Returns the subdomains of a host as an Array given the domain level.
+        #
+        #    # Top-level domain example
+        #    extract_subdomains('www.example.com', 1) # => ["www"]
+        #    # Second-level domain example
+        #    extract_subdomains('dev.www.example.co.uk', 2) # => ["dev", "www"]
         def extract_subdomains(host, tld_length)
           if named_host?(host)
             extract_subdomains_from(host, tld_length)
@@ -24,6 +35,12 @@ module ActionDispatch
           end
         end
 
+        # Returns the subdomains of a host as a String given the domain level.
+        #
+        #    # Top-level domain example
+        #    extract_subdomain('www.example.com', 1) # => "www"
+        #    # Second-level domain example
+        #    extract_subdomain('dev.www.example.co.uk', 2) # => "dev.www"
         def extract_subdomain(host, tld_length)
           extract_subdomains(host, tld_length).join('.')
         end
@@ -49,7 +66,7 @@ module ActionDispatch
         end
 
         def path_for(options)
-          path  = options[:script_name].to_s.chomp("/")
+          path  = options[:script_name].to_s.chomp("/".freeze)
           path << options[:path] if options.key?(:path)
 
           add_trailing_slash(path) if options[:trailing_slash]
@@ -64,7 +81,8 @@ module ActionDispatch
         def add_params(path, params)
           params = { params: params } unless params.is_a?(Hash)
           params.reject! { |_,v| v.to_param.nil? }
-          path << "?#{params.to_query}" unless params.empty?
+          query = params.to_query
+          path << "?#{query}" unless query.empty?
         end
 
         def add_anchor(path, anchor)
@@ -166,43 +184,97 @@ module ActionDispatch
         end
       end
 
-      def initialize(env)
+      def initialize
         super
         @protocol = nil
         @port     = nil
       end
 
       # Returns the complete URL used for this request.
+      #
+      #   class Request < Rack::Request
+      #     include ActionDispatch::Http::URL
+      #   end
+      #
+      #   req = Request.new 'HTTP_HOST' => 'example.com'
+      #   req.url # => "http://example.com"
       def url
         protocol + host_with_port + fullpath
       end
 
       # Returns 'https://' if this is an SSL request and 'http://' otherwise.
+      #
+      #   class Request < Rack::Request
+      #     include ActionDispatch::Http::URL
+      #   end
+      #
+      #   req = Request.new 'HTTP_HOST' => 'example.com'
+      #   req.protocol # => "http://"
+      #
+      #   req = Request.new 'HTTP_HOST' => 'example.com', 'HTTPS' => 'on'
+      #   req.protocol # => "https://"
       def protocol
         @protocol ||= ssl? ? 'https://' : 'http://'
       end
 
       # Returns the \host for this request, such as "example.com".
+      #
+      #   class Request < Rack::Request
+      #     include ActionDispatch::Http::URL
+      #   end
+      #
+      #   req = Request.new 'HTTP_HOST' => 'example.com'
+      #   req.raw_host_with_port # => "example.com"
+      #
+      #   req = Request.new 'HTTP_HOST' => 'example.com:8080'
+      #   req.raw_host_with_port # => "example.com:8080"
       def raw_host_with_port
-        if forwarded = env["HTTP_X_FORWARDED_HOST"]
+        if forwarded = x_forwarded_host.presence
           forwarded.split(/,\s?/).last
         else
-          env['HTTP_HOST'] || "#{env['SERVER_NAME'] || env['SERVER_ADDR']}:#{env['SERVER_PORT']}"
+          get_header('HTTP_HOST') || "#{server_name || server_addr}:#{get_header('SERVER_PORT')}"
         end
       end
 
       # Returns the host for this request, such as example.com.
+      #
+      #   class Request < Rack::Request
+      #     include ActionDispatch::Http::URL
+      #   end
+      #
+      #   req = Request.new 'HTTP_HOST' => 'example.com:8080'
+      #   req.host # => "example.com"
       def host
-        raw_host_with_port.sub(/:\d+$/, '')
+        raw_host_with_port.sub(/:\d+$/, ''.freeze)
       end
 
       # Returns a \host:\port string for this request, such as "example.com" or
       # "example.com:8080".
+      #
+      #   class Request < Rack::Request
+      #     include ActionDispatch::Http::URL
+      #   end
+      #
+      #   req = Request.new 'HTTP_HOST' => 'example.com:80'
+      #   req.host_with_port # => "example.com"
+      #
+      #   req = Request.new 'HTTP_HOST' => 'example.com:8080'
+      #   req.host_with_port # => "example.com:8080"
       def host_with_port
         "#{host}#{port_string}"
       end
 
       # Returns the port number of this request as an integer.
+      #
+      #   class Request < Rack::Request
+      #     include ActionDispatch::Http::URL
+      #   end
+      #
+      #   req = Request.new 'HTTP_HOST' => 'example.com'
+      #   req.port # => 80
+      #
+      #   req = Request.new 'HTTP_HOST' => 'example.com:8080'
+      #   req.port # => 8080
       def port
         @port ||= begin
           if raw_host_with_port =~ /:(\d+)$/
@@ -214,6 +286,13 @@ module ActionDispatch
       end
 
       # Returns the standard \port number for this request's protocol.
+      #
+      #   class Request < Rack::Request
+      #     include ActionDispatch::Http::URL
+      #   end
+      #
+      #   req = Request.new 'HTTP_HOST' => 'example.com:8080'
+      #   req.standard_port # => 80
       def standard_port
         case protocol
           when 'https://' then 443
@@ -222,24 +301,54 @@ module ActionDispatch
       end
 
       # Returns whether this request is using the standard port
+      #
+      #   class Request < Rack::Request
+      #     include ActionDispatch::Http::URL
+      #   end
+      #
+      #   req = Request.new 'HTTP_HOST' => 'example.com:80'
+      #   req.standard_port? # => true
+      #
+      #   req = Request.new 'HTTP_HOST' => 'example.com:8080'
+      #   req.standard_port? # => false
       def standard_port?
         port == standard_port
       end
 
       # Returns a number \port suffix like 8080 if the \port number of this request
       # is not the default HTTP \port 80 or HTTPS \port 443.
+      #
+      #   class Request < Rack::Request
+      #     include ActionDispatch::Http::URL
+      #   end
+      #
+      #   req = Request.new 'HTTP_HOST' => 'example.com:80'
+      #   req.optional_port # => nil
+      #
+      #   req = Request.new 'HTTP_HOST' => 'example.com:8080'
+      #   req.optional_port # => 8080
       def optional_port
         standard_port? ? nil : port
       end
 
       # Returns a string \port suffix, including colon, like ":8080" if the \port
       # number of this request is not the default HTTP \port 80 or HTTPS \port 443.
+      #
+      #   class Request < Rack::Request
+      #     include ActionDispatch::Http::URL
+      #   end
+      #
+      #   req = Request.new 'HTTP_HOST' => 'example.com:80'
+      #   req.port_string # => ""
+      #
+      #   req = Request.new 'HTTP_HOST' => 'example.com:8080'
+      #   req.port_string # => ":8080"
       def port_string
         standard_port? ? '' : ":#{port}"
       end
 
       def server_port
-        @env['SERVER_PORT'].to_i
+        get_header('SERVER_PORT').to_i
       end
 
       # Returns the \domain part of a \host, such as "rubyonrails.org" in "www.rubyonrails.org". You can specify

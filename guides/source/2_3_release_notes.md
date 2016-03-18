@@ -1,3 +1,5 @@
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+
 Ruby on Rails 2.3 Release Notes
 ===============================
 
@@ -185,7 +187,7 @@ MySQL supports a reconnect flag in its connections - if set to true, then the cl
 
 * Lead Contributor: [Dov Murik](http://twitter.com/dubek)
 * More information:
-    * [Controlling Automatic Reconnection Behavior](http://dev.mysql.com/doc/refman/5.0/en/auto-reconnect.html)
+    * [Controlling Automatic Reconnection Behavior](http://dev.mysql.com/doc/refman/5.6/en/auto-reconnect.html)
     * [MySQL auto-reconnect revisited](http://groups.google.com/group/rubyonrails-core/browse_thread/thread/49d2a7e9c96cb9f4)
 
 ### Other Active Record Changes

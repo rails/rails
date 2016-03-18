@@ -1,4 +1,7 @@
 class Module
+  # NOTE: This method is deprecated. Please use <tt>Module#prepend</tt> that
+  # comes with Ruby 2.0 or newer instead.
+  #
   # Encapsulates the common pattern of:
   #
   #   alias_method :foo_without_feature, :foo
@@ -21,6 +24,8 @@ class Module
   #
   # so you can safely chain foo, foo?, foo! and/or foo= with the same feature.
   def alias_method_chain(target, feature)
+    ActiveSupport::Deprecation.warn("alias_method_chain is deprecated. Please, use Module#prepend instead. From module, you can access the original method using super.")
+
     # Strip out punctuation on predicates, bang or writer methods since
     # e.g. target?_without_feature is not a valid method name.
     aliased_target, punctuation = target.to_s.sub(/([?!=])$/, ''), $1
@@ -43,7 +48,7 @@ class Module
   end
 
   # Allows you to make aliases for attributes, which includes
-  # getter, setter, and query methods.
+  # getter, setter, and a predicate.
   #
   #   class Content < ActiveRecord::Base
   #     # has a title attribute

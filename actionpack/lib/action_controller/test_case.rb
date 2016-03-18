@@ -1,219 +1,75 @@
 require 'rack/session/abstract/id'
+require 'active_support/core_ext/hash/conversions'
 require 'active_support/core_ext/object/to_query'
 require 'active_support/core_ext/module/anonymous'
 require 'active_support/core_ext/hash/keys'
-require 'active_support/deprecation'
-
+require 'action_controller/template_assertions'
 require 'rails-dom-testing'
 
 module ActionController
-  module TemplateAssertions
-    extend ActiveSupport::Concern
+  # :stopdoc:
+  class Metal
+    include Testing::Functional
+  end
 
-    included do
-      setup :setup_subscriptions
-      teardown :teardown_subscriptions
-    end
-
-    RENDER_TEMPLATE_INSTANCE_VARIABLES = %w{partials templates layouts files}.freeze
-
-    def setup_subscriptions
-      RENDER_TEMPLATE_INSTANCE_VARIABLES.each do |instance_variable|
-        instance_variable_set("@_#{instance_variable}", Hash.new(0))
-      end
-
-      @_subscribers = []
-
-      @_subscribers << ActiveSupport::Notifications.subscribe("render_template.action_view") do |_name, _start, _finish, _id, payload|
-        path = payload[:layout]
-        if path
-          @_layouts[path] += 1
-          if path =~ /^layouts\/(.*)/
-            @_layouts[$1] += 1
-          end
-        end
-      end
-
-      @_subscribers << ActiveSupport::Notifications.subscribe("!render_template.action_view") do |_name, _start, _finish, _id, payload|
-        if virtual_path = payload[:virtual_path]
-          partial = virtual_path =~ /^.*\/_[^\/]*$/
-
-          if partial
-            @_partials[virtual_path] += 1
-            @_partials[virtual_path.split("/").last] += 1
-          end
-
-          @_templates[virtual_path] += 1
-        else
-          path = payload[:identifier]
-          if path
-            @_files[path] += 1
-            @_files[path.split("/").last] += 1
-          end
-        end
-      end
-    end
-
-    def teardown_subscriptions
-      @_subscribers.each do |subscriber|
-        ActiveSupport::Notifications.unsubscribe(subscriber)
-      end
-    end
-
-    def process(*args)
-      reset_template_assertion
-      super
-    end
-
-    def reset_template_assertion
-      RENDER_TEMPLATE_INSTANCE_VARIABLES.each do |instance_variable|
-        instance_variable_get("@_#{instance_variable}").clear
-      end
-    end
-
-    # Asserts that the request was rendered with the appropriate template file or partials.
-    #
-    #   # assert that the "new" view template was rendered
-    #   assert_template "new"
-    #
-    #   # assert that the exact template "admin/posts/new" was rendered
-    #   assert_template %r{\Aadmin/posts/new\Z}
-    #
-    #   # assert that the layout 'admin' was rendered
-    #   assert_template layout: 'admin'
-    #   assert_template layout: 'layouts/admin'
-    #   assert_template layout: :admin
-    #
-    #   # assert that no layout was rendered
-    #   assert_template layout: nil
-    #   assert_template layout: false
-    #
-    #   # assert that the "_customer" partial was rendered twice
-    #   assert_template partial: '_customer', count: 2
-    #
-    #   # assert that no partials were rendered
-    #   assert_template partial: false
-    #
-    #   # assert that a file was rendered
-    #   assert_template file: "README.rdoc"
-    #
-    #   # assert that no file was rendered
-    #   assert_template file: nil
-    #   assert_template file: false
-    #
-    # In a view test case, you can also assert that specific locals are passed
-    # to partials:
-    #
-    #   # assert that the "_customer" partial was rendered with a specific object
-    #   assert_template partial: '_customer', locals: { customer: @customer }
-    def assert_template(options = {}, message = nil)
-      # Force body to be read in case the template is being streamed.
-      response.body
-
-      case options
-      when NilClass, Regexp, String, Symbol
-        options = options.to_s if Symbol === options
-        rendered = @_templates
-        msg = message || sprintf("expecting <%s> but rendering with <%s>",
-                options.inspect, rendered.keys)
-        matches_template =
-          case options
-          when String
-            !options.empty? && rendered.any? do |t, num|
-              options_splited = options.split(File::SEPARATOR)
-              t_splited = t.split(File::SEPARATOR)
-              t_splited.last(options_splited.size) == options_splited
-            end
-          when Regexp
-            rendered.any? { |t,num| t.match(options) }
-          when NilClass
-            rendered.blank?
-          end
-        assert matches_template, msg
-      when Hash
-        options.assert_valid_keys(:layout, :partial, :locals, :count, :file)
-
-        if options.key?(:layout)
-          expected_layout = options[:layout]
-          msg = message || sprintf("expecting layout <%s> but action rendered <%s>",
-                  expected_layout, @_layouts.keys)
-
-          case expected_layout
-          when String, Symbol
-            assert_includes @_layouts.keys, expected_layout.to_s, msg
-          when Regexp
-            assert(@_layouts.keys.any? {|l| l =~ expected_layout }, msg)
-          when nil, false
-            assert(@_layouts.empty?, msg)
-          end
-        end
-
-        if options[:file]
-          assert_includes @_files.keys, options[:file]
-        elsif options.key?(:file)
-          assert @_files.blank?, "expected no files but #{@_files.keys} was rendered"
-        end
-
-        if expected_partial = options[:partial]
-          if expected_locals = options[:locals]
-            if defined?(@_rendered_views)
-              view = expected_partial.to_s.sub(/^_/, '').sub(/\/_(?=[^\/]+\z)/, '/')
-
-              partial_was_not_rendered_msg = "expected %s to be rendered but it was not." % view
-              assert_includes @_rendered_views.rendered_views, view, partial_was_not_rendered_msg
-
-              msg = 'expecting %s to be rendered with %s but was with %s' % [expected_partial,
-                                                                             expected_locals,
-                                                                             @_rendered_views.locals_for(view)]
-              assert(@_rendered_views.view_rendered?(view, options[:locals]), msg)
-            else
-              warn "the :locals option to #assert_template is only supported in a ActionView::TestCase"
-            end
-          elsif expected_count = options[:count]
-            actual_count = @_partials[expected_partial]
-            msg = message || sprintf("expecting %s to be rendered %s time(s) but rendered %s time(s)",
-                     expected_partial, expected_count, actual_count)
-            assert(actual_count == expected_count.to_i, msg)
-          else
-            msg = message || sprintf("expecting partial <%s> but action rendered <%s>",
-                    options[:partial], @_partials.keys)
-            assert_includes @_partials, expected_partial, msg
-          end
-        elsif options.key?(:partial)
-          assert @_partials.empty?,
-            "Expected no partials to be rendered"
-        end
-      else
-        raise ArgumentError, "assert_template only accepts a String, Symbol, Hash, Regexp, or nil"
-      end
+  module Live
+    # Disable controller / rendering threads in tests.  User tests can access
+    # the database on the main thread, so they could open a txn, then the
+    # controller thread will open a new connection and try to access data
+    # that's only visible to the main thread's txn.  This is the problem in #23483
+    remove_method :new_controller_thread
+    def new_controller_thread # :nodoc:
+      yield
     end
   end
 
+  # ActionController::TestCase will be deprecated and moved to a gem in Rails 5.1.
+  # Please use ActionDispatch::IntegrationTest going forward.
   class TestRequest < ActionDispatch::TestRequest #:nodoc:
     DEFAULT_ENV = ActionDispatch::TestRequest::DEFAULT_ENV.dup
     DEFAULT_ENV.delete 'PATH_INFO'
 
-    def initialize(env = {})
-      super
-
-      self.session = TestSession.new
-      self.session_options = TestSession::DEFAULT_OPTIONS.merge(:id => SecureRandom.hex(16))
+    def self.new_session
+      TestSession.new
     end
 
-    def assign_parameters(routes, controller_path, action, parameters = {})
-      parameters = parameters.symbolize_keys.merge(:controller => controller_path, :action => action)
-      extra_keys = routes.extra_keys(parameters)
-      non_path_parameters = get? ? query_parameters : request_parameters
-      parameters.each do |key, value|
-        if value.is_a?(Array) && (value.frozen? || value.any?(&:frozen?))
-          value = value.map{ |v| v.duplicable? ? v.dup : v }
-        elsif value.is_a?(Hash) && (value.frozen? || value.any?{ |k,v| v.frozen? })
-          value = Hash[value.map{ |k,v| [k, v.duplicable? ? v.dup : v] }]
-        elsif value.frozen? && value.duplicable?
-          value = value.dup
-        end
+    # Create a new test request with default `env` values
+    def self.create
+      env = {}
+      env = Rails.application.env_config.merge(env) if defined?(Rails.application) && Rails.application
+      env["rack.request.cookie_hash"] = {}.with_indifferent_access
+      new(default_env.merge(env), new_session)
+    end
 
-        if extra_keys.include?(key)
+    def self.default_env
+      DEFAULT_ENV
+    end
+    private_class_method :default_env
+
+    def initialize(env, session)
+      super(env)
+
+      self.session = session
+      self.session_options = TestSession::DEFAULT_OPTIONS
+      @custom_param_parsers = {
+        xml: lambda { |raw_post| Hash.from_xml(raw_post)['hash'] }
+      }
+    end
+
+    def query_string=(string)
+      set_header Rack::QUERY_STRING, string
+    end
+
+    def content_type=(type)
+      set_header 'CONTENT_TYPE', type
+    end
+
+    def assign_parameters(routes, controller_path, action, parameters, generated_path, query_string_keys)
+      non_path_parameters = {}
+      path_parameters = {}
+
+      parameters.each do |key, value|
+        if query_string_keys.include?(key)
           non_path_parameters[key] = value
         else
           if value.is_a?(Array)
@@ -226,71 +82,87 @@ module ActionController
         end
       end
 
-      # Clear the combined params hash in case it was already referenced.
-      @env.delete("action_dispatch.request.parameters")
+      if get?
+        if self.query_string.blank?
+          self.query_string = non_path_parameters.to_query
+        end
+      else
+        if ENCODER.should_multipart?(non_path_parameters)
+          self.content_type = ENCODER.content_type
+          data = ENCODER.build_multipart non_path_parameters
+        else
+          fetch_header('CONTENT_TYPE') do |k|
+            set_header k, 'application/x-www-form-urlencoded'
+          end
 
-      # Clear the filter cache variables so they're not stale
-      @filtered_parameters = @filtered_env = @filtered_path = nil
+          case content_mime_type.to_sym
+          when nil
+            raise "Unknown Content-Type: #{content_type}"
+          when :json
+            data = ActiveSupport::JSON.encode(non_path_parameters)
+          when :xml
+            data = non_path_parameters.to_xml
+          when :url_encoded_form
+            data = non_path_parameters.to_query
+          else
+            @custom_param_parsers[content_mime_type.symbol] = ->(_) { non_path_parameters }
+            data = non_path_parameters.to_query
+          end
+        end
 
-      params = self.request_parameters.dup
-      %w(controller action only_path).each do |k|
-        params.delete(k)
-        params.delete(k.to_sym)
+        set_header 'CONTENT_LENGTH', data.length.to_s
+        set_header 'rack.input', StringIO.new(data)
       end
-      data = params.to_query
 
-      @env['CONTENT_LENGTH'] = data.length.to_s
-      @env['rack.input'] = StringIO.new(data)
+      fetch_header("PATH_INFO") do |k|
+        set_header k, generated_path
+      end
+      path_parameters[:controller] = controller_path
+      path_parameters[:action] = action
+
+      self.path_parameters = path_parameters
     end
 
-    def recycle!
-      @formats = nil
-      @env.delete_if { |k, v| k =~ /^(action_dispatch|rack)\.request/ }
-      @env.delete_if { |k, v| k =~ /^action_dispatch\.rescue/ }
-      @method = @request_method = nil
-      @fullpath = @ip = @remote_ip = @protocol = nil
-      @env['action_dispatch.request.query_parameters'] = {}
-      @set_cookies ||= {}
-      @set_cookies.update(Hash[cookie_jar.instance_variable_get("@set_cookies").map{ |k,o| [k,o[:value]] }])
-      deleted_cookies = cookie_jar.instance_variable_get("@delete_cookies")
-      @set_cookies.reject!{ |k,v| deleted_cookies.include?(k) }
-      cookie_jar.update(rack_cookies)
-      cookie_jar.update(cookies)
-      cookie_jar.update(@set_cookies)
-      cookie_jar.recycle!
-    end
+    ENCODER = Class.new do
+      include Rack::Test::Utils
+
+      def should_multipart?(params)
+        # FIXME: lifted from Rack-Test. We should push this separation upstream
+        multipart = false
+        query = lambda { |value|
+          case value
+          when Array
+            value.each(&query)
+          when Hash
+            value.values.each(&query)
+          when Rack::Test::UploadedFile
+            multipart = true
+          end
+        }
+        params.values.each(&query)
+        multipart
+      end
+
+      public :build_multipart
+
+      def content_type
+        "multipart/form-data; boundary=#{Rack::Test::MULTIPART_BOUNDARY}"
+      end
+    end.new
 
     private
 
-    def default_env
-      DEFAULT_ENV
-    end
-  end
-
-  class TestResponse < ActionDispatch::TestResponse
-    def recycle!
-      initialize
+    def params_parsers
+      super.merge @custom_param_parsers
     end
   end
 
   class LiveTestResponse < Live::Response
-    def recycle!
-      @body = nil
-      initialize
-    end
-
-    def body
-      @body ||= super
-    end
-
     # Was the response successful?
     alias_method :success?, :successful?
 
     # Was the URL not found?
     alias_method :missing?, :not_found?
-
-    # Were we redirected?
-    alias_method :redirect?, :redirection?
 
     # Was there a server-side error?
     alias_method :error?, :server_error?
@@ -299,7 +171,7 @@ module ActionController
   # Methods #destroy and #load! are overridden to avoid calling methods on the
   # @store object, which does not exist for the TestSession class.
   class TestSession < Rack::Session::Abstract::SessionHash #:nodoc:
-    DEFAULT_OPTIONS = Rack::Session::Abstract::ID::DEFAULT_OPTIONS
+    DEFAULT_OPTIONS = Rack::Session::Abstract::Persisted::DEFAULT_OPTIONS
 
     def initialize(session = {})
       super(nil, nil)
@@ -322,6 +194,10 @@ module ActionController
 
     def destroy
       clear
+    end
+
+    def fetch(key, *args, &block)
+      @data.fetch(key.to_s, *args, &block)
     end
 
     private
@@ -350,13 +226,13 @@ module ActionController
   #   class BooksControllerTest < ActionController::TestCase
   #     def test_create
   #       # Simulate a POST response with the given HTTP parameters.
-  #       post(:create, book: { title: "Love Hina" })
+  #       post(:create, params: { book: { title: "Love Hina" }})
   #
-  #       # Assert that the controller tried to redirect us to
+  #       # Asserts that the controller tried to redirect us to
   #       # the created book's URI.
   #       assert_response :found
   #
-  #       # Assert that the controller really put the book in the database.
+  #       # Asserts that the controller really put the book in the database.
   #       assert_not_nil Book.find_by(title: "Love Hina")
   #     end
   #   end
@@ -380,7 +256,7 @@ module ActionController
   #      request. You can modify this object before sending the HTTP request. For example,
   #      you might want to set some session properties before sending a GET request.
   # <b>@response</b>::
-  #      An ActionController::TestResponse object, representing the response
+  #      An ActionDispatch::TestResponse object, representing the response
   #      of the last HTTP response. In the above example, <tt>@response</tt> becomes valid
   #      after calling +post+. If the various assert methods are not sufficient, then you
   #      may use this object to inspect the HTTP response in detail.
@@ -403,20 +279,14 @@ module ActionController
   # In addition to these specific assertions, you also have easy access to various collections that the regular test/unit assertions
   # can be used against. These collections are:
   #
-  # * assigns: Instance variables assigned in the action that are available for the view.
   # * session: Objects being saved in the session.
   # * flash: The flash objects currently in the session.
   # * cookies: \Cookies being sent to the user on this request.
   #
   # These collections can be used just like any other hash:
   #
-  #   assert_not_nil assigns(:person) # makes sure that a @person instance variable was set
   #   assert_equal "Dave", cookies[:name] # makes sure that a cookie called :name was set as "Dave"
   #   assert flash.empty? # makes sure that there's nothing in the flash
-  #
-  # For historic reasons, the assigns hash uses string-based keys. So <tt>assigns[:person]</tt> won't work, but <tt>assigns["person"]</tt> will. To
-  # appease our yearning for symbols, though, an alternative accessor has been devised using a method call instead of index referencing.
-  # So <tt>assigns(:person)</tt> will work just like <tt>assigns["person"]</tt>, but again, <tt>assigns[:person]</tt> will not work.
   #
   # On top of the collections, you have the complete url that a given action redirected to available in <tt>redirect_to_url</tt>.
   #
@@ -490,168 +360,223 @@ module ActionController
       # Simulate a GET request with the given parameters.
       #
       # - +action+: The controller action to call.
-      # - +parameters+: The HTTP parameters that you want to pass. This may
-      #   be +nil+, a hash, or a string that is appropriately encoded
+      # - +params+: The hash with HTTP parameters that you want to pass. This may be +nil+.
+      # - +body+: The request body with a string that is appropriately encoded
       #   (<tt>application/x-www-form-urlencoded</tt> or <tt>multipart/form-data</tt>).
       # - +session+: A hash of parameters to store in the session. This may be +nil+.
       # - +flash+: A hash of parameters to store in the flash. This may be +nil+.
       #
       # You can also simulate POST, PATCH, PUT, DELETE, and HEAD requests with
       # +post+, +patch+, +put+, +delete+, and +head+.
+      # Example sending parameters, session and setting a flash message:
+      #
+      #   get :show,
+      #     params: { id: 7 },
+      #     session: { user_id: 1 },
+      #     flash: { notice: 'This is flash message' }
       #
       # Note that the request method is not verified. The different methods are
       # available to make the tests more expressive.
       def get(action, *args)
-        process(action, "GET", *args)
+        res = process_with_kwargs("GET", action, *args)
+        cookies.update res.cookies
+        res
       end
 
       # Simulate a POST request with the given parameters and set/volley the response.
       # See +get+ for more details.
       def post(action, *args)
-        process(action, "POST", *args)
+        process_with_kwargs("POST", action, *args)
       end
 
       # Simulate a PATCH request with the given parameters and set/volley the response.
       # See +get+ for more details.
       def patch(action, *args)
-        process(action, "PATCH", *args)
+        process_with_kwargs("PATCH", action, *args)
       end
 
       # Simulate a PUT request with the given parameters and set/volley the response.
       # See +get+ for more details.
       def put(action, *args)
-        process(action, "PUT", *args)
+        process_with_kwargs("PUT", action, *args)
       end
 
       # Simulate a DELETE request with the given parameters and set/volley the response.
       # See +get+ for more details.
       def delete(action, *args)
-        process(action, "DELETE", *args)
+        process_with_kwargs("DELETE", action, *args)
       end
 
       # Simulate a HEAD request with the given parameters and set/volley the response.
       # See +get+ for more details.
       def head(action, *args)
-        process(action, "HEAD", *args)
+        process_with_kwargs("HEAD", action, *args)
       end
 
-      def xml_http_request(request_method, action, parameters = nil, session = nil, flash = nil)
+      def xml_http_request(*args)
+        ActiveSupport::Deprecation.warn(<<-MSG.strip_heredoc)
+          xhr and xml_http_request methods are deprecated in favor of
+          `get :index, xhr: true` and `post :create, xhr: true`
+        MSG
+
         @request.env['HTTP_X_REQUESTED_WITH'] = 'XMLHttpRequest'
-        @request.env['HTTP_ACCEPT'] ||=  [Mime::JS, Mime::HTML, Mime::XML, 'text/xml', Mime::ALL].join(', ')
-        __send__(request_method, action, parameters, session, flash).tap do
+        @request.env['HTTP_ACCEPT'] ||= [Mime[:js], Mime[:html], Mime[:xml], 'text/xml', '*/*'].join(', ')
+        __send__(*args).tap do
           @request.env.delete 'HTTP_X_REQUESTED_WITH'
           @request.env.delete 'HTTP_ACCEPT'
         end
       end
       alias xhr :xml_http_request
 
-      def paramify_values(hash_or_array_or_value)
-        case hash_or_array_or_value
-        when Hash
-          Hash[hash_or_array_or_value.map{|key, value| [key, paramify_values(value)] }]
-        when Array
-          hash_or_array_or_value.map {|i| paramify_values(i)}
-        when Rack::Test::UploadedFile, ActionDispatch::Http::UploadedFile
-          hash_or_array_or_value
-        else
-          hash_or_array_or_value.to_param
-        end
-      end
-
-      # Simulate a HTTP request to +action+ by specifying request method,
+      # Simulate an HTTP request to +action+ by specifying request method,
       # parameters and set/volley the response.
       #
       # - +action+: The controller action to call.
-      # - +http_method+: Request method used to send the http request. Possible values
-      #   are +GET+, +POST+, +PATCH+, +PUT+, +DELETE+, +HEAD+. Defaults to +GET+.
-      # - +parameters+: The HTTP parameters. This may be +nil+, a hash, or a
-      #   string that is appropriately encoded (+application/x-www-form-urlencoded+
-      #   or +multipart/form-data+).
+      # - +method+: Request method used to send the HTTP request. Possible values
+      #   are +GET+, +POST+, +PATCH+, +PUT+, +DELETE+, +HEAD+. Defaults to +GET+. Can be a symbol.
+      # - +params+: The hash with HTTP parameters that you want to pass. This may be +nil+.
+      # - +body+: The request body with a string that is appropriately encoded
+      #   (<tt>application/x-www-form-urlencoded</tt> or <tt>multipart/form-data</tt>).
       # - +session+: A hash of parameters to store in the session. This may be +nil+.
       # - +flash+: A hash of parameters to store in the flash. This may be +nil+.
+      # - +format+: Request format. Defaults to +nil+. Can be string or symbol.
       #
       # Example calling +create+ action and sending two params:
       #
-      #   process :create, 'POST', user: { name: 'Gaurish Sharma', email: 'user@example.com' }
-      #
-      # Example sending parameters, +nil+ session and setting a flash message:
-      #
-      #   process :view, 'GET', { id: 7 }, nil, { notice: 'This is flash message' }
+      #   process :create,
+      #     method: 'POST',
+      #     params: {
+      #       user: { name: 'Gaurish Sharma', email: 'user@example.com' }
+      #     },
+      #     session: { user_id: 1 },
+      #     flash: { notice: 'This is flash message' }
       #
       # To simulate +GET+, +POST+, +PATCH+, +PUT+, +DELETE+ and +HEAD+ requests
       # prefer using #get, #post, #patch, #put, #delete and #head methods
       # respectively which will make tests more expressive.
       #
       # Note that the request method is not verified.
-      def process(action, http_method = 'GET', *args)
+      def process(action, *args)
         check_required_ivars
 
-        if args.first.is_a?(String) && http_method != 'HEAD'
-          @request.env['RAW_POST_DATA'] = args.shift
+        if kwarg_request?(args)
+          parameters, session, body, flash, http_method, format, xhr = args[0].values_at(:params, :session, :body, :flash, :method, :format, :xhr)
+        else
+          http_method, parameters, session, flash = args
+          format = nil
+
+          if parameters.is_a?(String) && http_method != 'HEAD'
+            body = parameters
+            parameters = nil
+          end
+
+          if parameters || session || flash
+            non_kwarg_request_warning
+          end
         end
 
-        parameters, session, flash = args
+        if body
+          @request.set_header 'RAW_POST_DATA', body
+        end
+
+        if http_method
+          http_method = http_method.to_s.upcase
+        else
+          http_method = "GET"
+        end
+
         parameters ||= {}
 
-        # Ensure that numbers and symbols passed as params are converted to
-        # proper params, as is the case when engaging rack.
-        parameters = paramify_values(parameters) if html_format?(parameters)
+        if format
+          parameters[:format] = format
+        end
 
         @html_document = nil
 
-        unless @controller.respond_to?(:recycle!)
-          @controller.extend(Testing::Functional)
-        end
+        self.cookies.update @request.cookies
+        self.cookies.update_cookies_from_jar
+        @request.set_header 'HTTP_COOKIE', cookies.to_header
+        @request.delete_header 'action_dispatch.cookies'
 
-        @request.recycle!
-        @response.recycle!
+        @request          = TestRequest.new scrub_env!(@request.env), @request.session
+        @response         = build_response @response_klass
+        @response.request = @request
         @controller.recycle!
 
-        @request.env['REQUEST_METHOD'] = http_method
+        @request.set_header 'REQUEST_METHOD', http_method
 
-        controller_class_name = @controller.class.anonymous? ?
-          "anonymous" :
-          @controller.class.controller_path
+        parameters = parameters.symbolize_keys
 
-        @request.assign_parameters(@routes, controller_class_name, action.to_s, parameters)
+        generated_extras = @routes.generate_extras(parameters.merge(controller: controller_class_name, action: action.to_s))
+        generated_path = generated_path(generated_extras)
+        query_string_keys = query_parameter_names(generated_extras)
+
+        @request.assign_parameters(@routes, controller_class_name, action.to_s, parameters, generated_path, query_string_keys)
 
         @request.session.update(session) if session
         @request.flash.update(flash || {})
 
-        @controller.request  = @request
-        @controller.response = @response
+        if xhr
+          @request.set_header 'HTTP_X_REQUESTED_WITH', 'XMLHttpRequest'
+          @request.fetch_header('HTTP_ACCEPT') do |k|
+            @request.set_header k, [Mime[:js], Mime[:html], Mime[:xml], 'text/xml', '*/*'].join(', ')
+          end
+        end
 
-        build_request_uri(action, parameters)
-
-        name = @request.parameters[:action]
+        @request.fetch_header("SCRIPT_NAME") do |k|
+          @request.set_header k, @controller.config.relative_url_root
+        end
 
         @controller.recycle!
-        @controller.process(name)
+        @controller.dispatch(action, @request, @response)
+        @request = @controller.request
+        @response = @controller.response
 
-        if cookies = @request.env['action_dispatch.cookies']
-          unless @response.committed?
-            cookies.write(@response)
+        @request.delete_header 'HTTP_COOKIE'
+
+        if @request.have_cookie_jar?
+          unless @request.cookie_jar.committed?
+            @request.cookie_jar.write(@response)
+            self.cookies.update(@request.cookie_jar.instance_variable_get(:@cookies))
           end
         end
         @response.prepare!
 
-        @assigns = @controller.respond_to?(:view_assigns) ? @controller.view_assigns : {}
-
         if flash_value = @request.flash.to_session_value
           @request.session['flash'] = flash_value
+        else
+          @request.session.delete('flash')
         end
 
+        if xhr
+          @request.delete_header 'HTTP_X_REQUESTED_WITH'
+          @request.delete_header 'HTTP_ACCEPT'
+        end
+        @request.query_string = ''
+
         @response
+      end
+
+      def controller_class_name
+        @controller.class.anonymous? ? "anonymous" : @controller.class.controller_path
+      end
+
+      def generated_path(generated_extras)
+        generated_extras[0]
+      end
+
+      def query_parameter_names(generated_extras)
+        generated_extras[1] + [:controller, :action]
       end
 
       def setup_controller_request_and_response
         @controller = nil unless defined? @controller
 
-        response_klass = TestResponse
+        @response_klass = ActionDispatch::TestResponse
 
         if klass = self.class.controller_class
           if klass < ActionController::Live
-            response_klass = LiveTestResponse
+            @response_klass = LiveTestResponse
           end
           unless @controller
             begin
@@ -662,8 +587,8 @@ module ActionController
           end
         end
 
-        @request          = build_request
-        @response         = build_response response_klass
+        @request          = TestRequest.create
+        @response         = build_response @response_klass
         @response.request = @request
 
         if @controller
@@ -672,12 +597,8 @@ module ActionController
         end
       end
 
-      def build_request
-        TestRequest.new
-      end
-
       def build_response(klass)
-        klass.new
+        klass.create
       end
 
       included do
@@ -688,6 +609,46 @@ module ActionController
       end
 
       private
+
+      def scrub_env!(env)
+        env.delete_if { |k, v| k =~ /^(action_dispatch|rack)\.request/ }
+        env.delete_if { |k, v| k =~ /^action_dispatch\.rescue/ }
+        env.delete 'action_dispatch.request.query_parameters'
+        env.delete 'action_dispatch.request.request_parameters'
+        env
+      end
+
+      def process_with_kwargs(http_method, action, *args)
+        if kwarg_request?(args)
+          args.first.merge!(method: http_method)
+          process(action, *args)
+        else
+          non_kwarg_request_warning if args.any?
+
+          args = args.unshift(http_method)
+          process(action, *args)
+        end
+      end
+
+      REQUEST_KWARGS = %i(params session flash method body xhr)
+      def kwarg_request?(args)
+        args[0].respond_to?(:keys) && (
+          (args[0].key?(:format) && args[0].keys.size == 1) ||
+          args[0].keys.any? { |k| REQUEST_KWARGS.include?(k) }
+        )
+      end
+
+      def non_kwarg_request_warning
+        ActiveSupport::Deprecation.warn(<<-MSG.strip_heredoc)
+          ActionController::TestCase HTTP request methods will accept only
+          keyword arguments in future Rails versions.
+
+          Examples:
+
+          get :show, params: { id: 1 }, session: { user_id: 1 }
+          process :update, method: :post, params: { id: 1 }
+        MSG
+      end
 
       def document_root_element
         html_document.root
@@ -703,43 +664,6 @@ module ActionController
         end
       end
 
-      def build_request_uri(action, parameters)
-        unless @request.env["PATH_INFO"]
-          options = @controller.respond_to?(:url_options) ? @controller.__send__(:url_options).merge(parameters) : parameters
-          options.update(
-            :action => action,
-            :relative_url_root => nil,
-            :_recall => @request.path_parameters)
-
-          if route_name = options.delete(:use_route)
-            ActiveSupport::Deprecation.warn <<-MSG.squish
-              Passing the `use_route` option in functional tests are deprecated.
-              Support for this option in the `process` method (and the related
-              `get`, `head`, `post`, `patch`, `put` and `delete` helpers) will
-              be removed in the next version without replacement.
-
-              Functional tests are essentially unit tests for controllers and
-              they should not require knowledge to how the application's routes
-              are configured. Instead, you should explicitly pass the appropiate
-              params to the `process` method.
-
-              Previously the engines guide also contained an incorrect example
-              that recommended using this option to test an engine's controllers
-              within the dummy application. That recommendation was incorrect
-              and has since been corrected. Instead, you should override the
-              `@routes` variable in the test case with `Foo::Engine.routes`. See
-              the updated engines guide for details.
-            MSG
-          end
-
-          url, query_string = @routes.path_for(options, route_name).split("?", 2)
-
-          @request.env["SCRIPT_NAME"] = @controller.config.relative_url_root
-          @request.env["PATH_INFO"] = url
-          @request.env["QUERY_STRING"] = query_string || ""
-        end
-      end
-
       def html_format?(parameters)
         return true unless parameters.key?(:format)
         Mime.fetch(parameters[:format]) { Mime['html'] }.html?
@@ -748,4 +672,5 @@ module ActionController
 
     include Behavior
   end
+  # :startdoc:
 end

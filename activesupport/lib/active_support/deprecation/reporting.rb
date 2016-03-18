@@ -1,3 +1,5 @@
+require 'rbconfig'
+
 module ActiveSupport
   class Deprecation
     module Reporting
@@ -14,7 +16,7 @@ module ActiveSupport
       def warn(message = nil, callstack = nil)
         return if silenced
 
-        callstack ||= caller(2)
+        callstack ||= caller_locations(2)
         deprecation_message(callstack, message).tap do |m|
           behavior.each { |b| b.call(m, callstack) }
         end
@@ -37,7 +39,7 @@ module ActiveSupport
       end
 
       def deprecation_warning(deprecated_method_name, message = nil, caller_backtrace = nil)
-        caller_backtrace ||= caller(2)
+        caller_backtrace ||= caller_locations(2)
         deprecated_method_warning(deprecated_method_name, message).tap do |msg|
           warn(msg, caller_backtrace)
         end
@@ -79,8 +81,19 @@ module ActiveSupport
         end
 
         def extract_callstack(callstack)
-          rails_gem_root = File.expand_path("../../../../..", __FILE__) + "/"
-          offending_line = callstack.find { |line| !line.start_with?(rails_gem_root) } || callstack.first
+          return _extract_callstack(callstack) if callstack.first.is_a? String
+
+          offending_line = callstack.find { |frame|
+            frame.absolute_path && !ignored_callstack(frame.absolute_path)
+          } || callstack.first
+
+          [offending_line.path, offending_line.lineno, offending_line.label]
+        end
+
+        def _extract_callstack(callstack)
+          warn "Please pass `caller_locations` to the deprecation API" if $VERBOSE
+          offending_line = callstack.find { |line| !ignored_callstack(line) } || callstack.first
+
           if offending_line
             if md = offending_line.match(/^(.+?):(\d+)(?::in `(.*?)')?/)
               md.captures
@@ -88,6 +101,12 @@ module ActiveSupport
               offending_line
             end
           end
+        end
+
+        RAILS_GEM_ROOT = File.expand_path("../../../../..", __FILE__) + "/"
+
+        def ignored_callstack(path)
+          path.start_with?(RAILS_GEM_ROOT) || path.start_with?(RbConfig::CONFIG['rubylibdir'])
         end
     end
   end

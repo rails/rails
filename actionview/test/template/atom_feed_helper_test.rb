@@ -14,7 +14,7 @@ class ScrollsController < ActionController::Base
   FEEDS["defaults"] = <<-EOT
         atom_feed(:schema_date => '2008') do |feed|
           feed.title("My great blog!")
-          feed.updated((@scrolls.first.created_at))
+          feed.updated(@scrolls.first.created_at)
 
           @scrolls.each do |scroll|
             feed.entry(scroll) do |entry|
@@ -31,7 +31,7 @@ class ScrollsController < ActionController::Base
     FEEDS["entry_options"] = <<-EOT
         atom_feed do |feed|
           feed.title("My great blog!")
-          feed.updated((@scrolls.first.created_at))
+          feed.updated(@scrolls.first.created_at)
 
           @scrolls.each do |scroll|
             feed.entry(scroll, :url => "/otherstuff/" + scroll.to_param.to_s, :updated => Time.utc(2007, 1, scroll.id)) do |entry|
@@ -48,7 +48,7 @@ class ScrollsController < ActionController::Base
     FEEDS["entry_type_options"] = <<-EOT
         atom_feed(:schema_date => '2008') do |feed|
           feed.title("My great blog!")
-          feed.updated((@scrolls.first.created_at))
+          feed.updated(@scrolls.first.created_at)
 
           @scrolls.each do |scroll|
             feed.entry(scroll, :type => 'text/xml') do |entry|
@@ -62,10 +62,27 @@ class ScrollsController < ActionController::Base
           end
         end
     EOT
+    FEEDS["entry_url_false_option"] = <<-EOT
+        atom_feed do |feed|
+          feed.title("My great blog!")
+          feed.updated(@scrolls.first.created_at)
+
+          @scrolls.each do |scroll|
+            feed.entry(scroll, :url => false) do |entry|
+              entry.title(scroll.title)
+              entry.content(scroll.body, :type => 'html')
+
+              entry.author do |author|
+                author.name("DHH")
+              end
+            end
+          end
+        end
+    EOT
     FEEDS["xml_block"] = <<-EOT
         atom_feed do |feed|
           feed.title("My great blog!")
-          feed.updated((@scrolls.first.created_at))
+          feed.updated(@scrolls.first.created_at)
 
           feed.author do |author|
             author.name("DHH")
@@ -83,7 +100,7 @@ class ScrollsController < ActionController::Base
         atom_feed({'xmlns:app' => 'http://www.w3.org/2007/app',
                  'xmlns:openSearch' => 'http://a9.com/-/spec/opensearch/1.1/'}) do |feed|
           feed.title("My great blog!")
-          feed.updated((@scrolls.first.created_at))
+          feed.updated(@scrolls.first.created_at)
 
           @scrolls.each do |scroll|
             feed.entry(scroll) do |entry|
@@ -101,7 +118,7 @@ class ScrollsController < ActionController::Base
     FEEDS["feed_with_overridden_ids"] = <<-EOT
         atom_feed({:id => 'tag:test.rubyonrails.org,2008:test/'}) do |feed|
           feed.title("My great blog!")
-          feed.updated((@scrolls.first.created_at))
+          feed.updated(@scrolls.first.created_at)
 
           @scrolls.each do |scroll|
             feed.entry(scroll, :id => "tag:test.rubyonrails.org,2008:"+scroll.id.to_s) do |entry|
@@ -120,7 +137,7 @@ class ScrollsController < ActionController::Base
         atom_feed(:schema_date => '2008',
           :instruct => {'xml-stylesheet' => { :href=> 't.css', :type => 'text/css' }}) do |feed|
           feed.title("My great blog!")
-          feed.updated((@scrolls.first.created_at))
+          feed.updated(@scrolls.first.created_at)
 
           @scrolls.each do |scroll|
             feed.entry(scroll) do |entry|
@@ -138,7 +155,7 @@ class ScrollsController < ActionController::Base
         atom_feed(:schema_date => '2008',
           :instruct => {'target1' => [{ :a => '1', :b => '2' }, { :c => '3', :d => '4' }]}) do |feed|
           feed.title("My great blog!")
-          feed.updated((@scrolls.first.created_at))
+          feed.updated(@scrolls.first.created_at)
 
           @scrolls.each do |scroll|
             feed.entry(scroll) do |entry|
@@ -155,7 +172,7 @@ class ScrollsController < ActionController::Base
     FEEDS["feed_with_xhtml_content"] = <<-'EOT'
         atom_feed do |feed|
           feed.title("My great blog!")
-          feed.updated((@scrolls.first.created_at))
+          feed.updated(@scrolls.first.created_at)
 
           @scrolls.each do |scroll|
             feed.entry(scroll) do |entry|
@@ -180,7 +197,7 @@ class ScrollsController < ActionController::Base
           new_xml = Builder::XmlMarkup.new(:target=>'')
           atom_feed(:xml => new_xml) do |feed|
             feed.title("My great blog!")
-            feed.updated((@scrolls.first.created_at))
+            feed.updated(@scrolls.first.created_at)
 
             @scrolls.each do |scroll|
               feed.entry(scroll) do |entry|
@@ -214,28 +231,28 @@ class AtomFeedTest < ActionController::TestCase
 
   def test_feed_should_use_default_language_if_none_is_given
     with_restful_routing(:scrolls) do
-      get :index, :id => "defaults"
+      get :index, params: { id: "defaults" }
       assert_match(%r{xml:lang="en-US"}, @response.body)
     end
   end
 
   def test_feed_should_include_two_entries
     with_restful_routing(:scrolls) do
-      get :index, :id => "defaults"
+      get :index, params: { id: "defaults" }
       assert_select "entry", 2
     end
   end
 
   def test_entry_should_only_use_published_if_created_at_is_present
     with_restful_routing(:scrolls) do
-      get :index, :id => "defaults"
+      get :index, params: { id: "defaults" }
       assert_select "published", 1
     end
   end
 
   def test_providing_builder_to_atom_feed
     with_restful_routing(:scrolls) do
-      get :index, :id=>"provide_builder"
+      get :index, params: { id: "provide_builder" }
       # because we pass in the non-default builder, the content generated by the
       # helper should go 'nowhere'.  Leaving the response body blank.
       assert @response.body.blank?
@@ -244,7 +261,7 @@ class AtomFeedTest < ActionController::TestCase
 
   def test_entry_with_prefilled_options_should_use_those_instead_of_querying_the_record
     with_restful_routing(:scrolls) do
-      get :index, :id => "entry_options"
+      get :index, params: { id: "entry_options" }
 
       assert_select "updated", Time.utc(2007, 1, 1).xmlschema
       assert_select "updated", Time.utc(2007, 1, 2).xmlschema
@@ -253,21 +270,21 @@ class AtomFeedTest < ActionController::TestCase
 
   def test_self_url_should_default_to_current_request_url
     with_restful_routing(:scrolls) do
-      get :index, :id => "defaults"
+      get :index, params: { id: "defaults" }
       assert_select "link[rel=self][href=\"http://www.nextangle.com/scrolls?id=defaults\"]"
     end
   end
 
   def test_feed_id_should_be_a_valid_tag
     with_restful_routing(:scrolls) do
-      get :index, :id => "defaults"
+      get :index, params: { id: "defaults" }
       assert_select "id", :text => "tag:www.nextangle.com,2008:/scrolls?id=defaults"
     end
   end
 
   def test_entry_id_should_be_a_valid_tag
     with_restful_routing(:scrolls) do
-      get :index, :id => "defaults"
+      get :index, params: { id: "defaults" }
       assert_select "entry id", :text => "tag:www.nextangle.com,2008:Scroll/1"
       assert_select "entry id", :text => "tag:www.nextangle.com,2008:Scroll/2"
     end
@@ -275,14 +292,14 @@ class AtomFeedTest < ActionController::TestCase
 
   def test_feed_should_allow_nested_xml_blocks
     with_restful_routing(:scrolls) do
-      get :index, :id => "xml_block"
+      get :index, params: { id: "xml_block" }
       assert_select "author name", :text => "DHH"
     end
   end
 
   def test_feed_should_include_atomPub_namespace
     with_restful_routing(:scrolls) do
-      get :index, :id => "feed_with_atomPub_namespace"
+      get :index, params: { id: "feed_with_atomPub_namespace" }
       assert_match %r{xml:lang="en-US"}, @response.body
       assert_match %r{xmlns="http://www.w3.org/2005/Atom"}, @response.body
       assert_match %r{xmlns:app="http://www.w3.org/2007/app"}, @response.body
@@ -291,7 +308,7 @@ class AtomFeedTest < ActionController::TestCase
 
   def test_feed_should_allow_overriding_ids
     with_restful_routing(:scrolls) do
-      get :index, :id => "feed_with_overridden_ids"
+      get :index, params: { id: "feed_with_overridden_ids" }
       assert_select "id", :text => "tag:test.rubyonrails.org,2008:test/"
       assert_select "entry id", :text => "tag:test.rubyonrails.org,2008:1"
       assert_select "entry id", :text => "tag:test.rubyonrails.org,2008:2"
@@ -300,7 +317,7 @@ class AtomFeedTest < ActionController::TestCase
 
   def test_feed_xml_processing_instructions
     with_restful_routing(:scrolls) do
-      get :index, :id => 'feed_with_xml_processing_instructions'
+      get :index, params: { id: 'feed_with_xml_processing_instructions' }
       assert_match %r{<\?xml-stylesheet [^\?]*type="text/css"}, @response.body
       assert_match %r{<\?xml-stylesheet [^\?]*href="t.css"}, @response.body
     end
@@ -308,7 +325,7 @@ class AtomFeedTest < ActionController::TestCase
 
   def test_feed_xml_processing_instructions_duplicate_targets
     with_restful_routing(:scrolls) do
-      get :index, :id => 'feed_with_xml_processing_instructions_duplicate_targets'
+      get :index, params: { id: 'feed_with_xml_processing_instructions_duplicate_targets' }
       assert_match %r{<\?target1 (a="1" b="2"|b="2" a="1")\?>}, @response.body
       assert_match %r{<\?target1 (c="3" d="4"|d="4" c="3")\?>}, @response.body
     end
@@ -316,7 +333,7 @@ class AtomFeedTest < ActionController::TestCase
 
   def test_feed_xhtml
     with_restful_routing(:scrolls) do
-      get :index, :id => "feed_with_xhtml_content"
+      get :index, params: { id:  "feed_with_xhtml_content" }
       assert_match %r{xmlns="http://www.w3.org/1999/xhtml"}, @response.body
       assert_select "summary", :text => /Something Boring/
       assert_select "summary", :text => /after 2/
@@ -325,15 +342,22 @@ class AtomFeedTest < ActionController::TestCase
 
   def test_feed_entry_type_option_default_to_text_html
     with_restful_routing(:scrolls) do
-      get :index, :id => 'defaults'
+      get :index, params: { id: 'defaults' }
       assert_select "entry link[rel=alternate][type=\"text/html\"]"
     end
   end
 
   def test_feed_entry_type_option_specified
     with_restful_routing(:scrolls) do
-      get :index, :id => 'entry_type_options'
+      get :index, params: { id: 'entry_type_options' }
       assert_select "entry link[rel=alternate][type=\"text/xml\"]"
+    end
+  end
+
+  def test_feed_entry_url_false_option_adds_no_link
+    with_restful_routing(:scrolls) do
+      get :index, params: { id: 'entry_url_false_option' }
+      assert_select "entry link", false
     end
   end
 

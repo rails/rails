@@ -1,8 +1,7 @@
 require 'helper'
 
 class AdapterTest < ActiveSupport::TestCase
-  test "should load #{ENV['AJADAPTER']} adapter" do
-    ActiveJob::Base.queue_adapter = ENV['AJADAPTER'].to_sym
-    assert_equal ActiveJob::Base.queue_adapter, "active_job/queue_adapters/#{ENV['AJADAPTER']}_adapter".classify.constantize
+  test "should load #{ENV['AJ_ADAPTER']} adapter" do
+    assert_equal "active_job/queue_adapters/#{ENV['AJ_ADAPTER']}_adapter".classify, ActiveJob::Base.queue_adapter.class.name
   end
 end

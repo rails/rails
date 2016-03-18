@@ -1,3 +1,5 @@
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+
 Rails Nested Model Forms
 ========================
 
@@ -30,7 +32,7 @@ For an ActiveRecord::Base model and association this writer method is commonly d
 #### has_one
 
 ```ruby
-class Person < ActiveRecord::Base
+class Person < ApplicationRecord
   has_one :address
   accepts_nested_attributes_for :address
 end
@@ -39,7 +41,7 @@ end
 #### belongs_to
 
 ```ruby
-class Person < ActiveRecord::Base
+class Person < ApplicationRecord
   belongs_to :firm
   accepts_nested_attributes_for :firm
 end
@@ -48,7 +50,7 @@ end
 #### has_many / has_and_belongs_to_many
 
 ```ruby
-class Person < ActiveRecord::Base
+class Person < ApplicationRecord
   has_many :projects
   accepts_nested_attributes_for :projects
 end
@@ -104,7 +106,7 @@ Consider the following typical RESTful controller which will prepare a new Perso
 class PeopleController < ApplicationController
   def new
     @person = Person.new
-    @person.built_address
+    @person.build_address
     2.times { @person.projects.build }
   end
 

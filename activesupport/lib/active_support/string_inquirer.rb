@@ -1,7 +1,7 @@
 module ActiveSupport
   # Wrapping a string in this class gives you a prettier way to test
   # for equality. The value returned by <tt>Rails.env</tt> is wrapped
-  # in a StringInquirer object so instead of calling this:
+  # in a StringInquirer object, so instead of calling this:
   #
   #   Rails.env == 'production'
   #

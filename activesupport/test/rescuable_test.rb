@@ -12,6 +12,12 @@ end
 class CoolError < StandardError
 end
 
+module WeirdError
+  def self.===(other)
+    Exception === other && other.respond_to?(:weird?)
+  end
+end
+
 class Stargate
   attr_accessor :result
 
@@ -27,6 +33,10 @@ class Stargate
 
   rescue_from MadRonon do |e|
     @result = e.message
+  end
+
+  rescue_from WeirdError do
+    @result = 'weird'
   end
 
   def dispatch(method)
@@ -45,6 +55,16 @@ class Stargate
 
   def ronanize
     raise MadRonon.new("dex")
+  end
+
+  def weird
+    StandardError.new.tap do |exc|
+      def exc.weird?
+        true
+      end
+
+      raise exc
+    end
   end
 
   def sos
@@ -91,14 +111,19 @@ class RescuableTest < ActiveSupport::TestCase
     assert_equal 'dex', @stargate.result
   end
 
+  def test_rescue_from_error_dispatchers_with_case_operator
+    @stargate.dispatch :weird
+    assert_equal 'weird', @stargate.result
+  end
+
   def test_rescues_defined_later_are_added_at_end_of_the_rescue_handlers_array
-    expected = ["WraithAttack", "WraithAttack", "NuclearExplosion", "MadRonon"]
+    expected = ["WraithAttack", "WraithAttack", "NuclearExplosion", "MadRonon", "WeirdError"]
     result = @stargate.send(:rescue_handlers).collect(&:first)
     assert_equal expected, result
   end
 
   def test_children_should_inherit_rescue_definitions_from_parents_and_child_rescue_should_be_appended
-    expected = ["WraithAttack", "WraithAttack", "NuclearExplosion", "MadRonon", "CoolError"]
+    expected = ["WraithAttack", "WraithAttack", "NuclearExplosion", "MadRonon", "WeirdError", "CoolError"]
     result = @cool_stargate.send(:rescue_handlers).collect(&:first)
     assert_equal expected, result
   end

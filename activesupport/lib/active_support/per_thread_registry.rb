@@ -1,4 +1,9 @@
+require 'active_support/core_ext/module/delegation'
+
 module ActiveSupport
+  # NOTE: This approach has been deprecated for end-user code in favor of thread_mattr_accessor and friends.
+  # Please use that approach instead.
+  #
   # This module is used to encapsulate access to thread local variables.
   #
   # Instead of polluting the thread locals namespace:
@@ -43,9 +48,9 @@ module ActiveSupport
     protected
       def method_missing(name, *args, &block) # :nodoc:
         # Caches the method definition as a singleton method of the receiver.
-        define_singleton_method(name) do |*a, &b|
-          instance.public_send(name, *a, &b)
-        end
+        #
+        # By letting #delegate handle it, we avoid an enclosure that'll capture args.
+        singleton_class.delegate name, to: :instance
 
         send(name, *args, &block)
       end

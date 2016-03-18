@@ -34,6 +34,14 @@ module ActiveSupport
         gigabytes(number) * 1024
       end
 
+      def petabytes(number)
+        terabytes(number) * 1024
+      end
+
+      def exabytes(number)
+        petabytes(number) * 1024
+      end
+
       def test_number_to_phone
         [@instance_with_helpers, TestClassWithClassNumberHelpers, ActiveSupport::NumberHelper].each do |number_helper|
           assert_equal("555-1234", number_helper.number_to_phone(5551234))
@@ -66,7 +74,6 @@ module ActiveSupport
           assert_equal("1,234,567,890.50 K&#269;", number_helper.number_to_currency("1234567890.50", {:unit => "K&#269;", :format => "%n %u"}))
           assert_equal("1,234,567,890.50 - K&#269;", number_helper.number_to_currency("-1234567890.50", {:unit => "K&#269;", :format => "%n %u", :negative_format => "%n - %u"}))
           assert_equal("0.00", number_helper.number_to_currency(+0.0, {:unit => "", :negative_format => "(%n)"}))
-          assert_equal("(0.00)", number_helper.number_to_currency(-0.0, {:unit => "", :negative_format => "(%n)"}))
         end
       end
 
@@ -83,6 +90,14 @@ module ActiveSupport
           assert_equal("98a%", number_helper.number_to_percentage("98a"))
           assert_equal("NaN%", number_helper.number_to_percentage(Float::NAN))
           assert_equal("Inf%", number_helper.number_to_percentage(Float::INFINITY))
+          assert_equal("NaN%", number_helper.number_to_percentage(Float::NAN, precision: 0))
+          assert_equal("Inf%", number_helper.number_to_percentage(Float::INFINITY, precision: 0))
+          assert_equal("NaN%", number_helper.number_to_percentage(Float::NAN, precision: 1))
+          assert_equal("Inf%", number_helper.number_to_percentage(Float::INFINITY, precision: 1))
+          assert_equal("1000%", number_helper.number_to_percentage(1000, precision: nil))
+          assert_equal("1000%", number_helper.number_to_percentage(1000, precision: nil))
+          assert_equal("1000.1%", number_helper.number_to_percentage(1000.1, precision: nil))
+          assert_equal("-0.13 %", number_helper.number_to_percentage("-0.13", precision: nil, format: "%n %"))
         end
       end
 
@@ -98,6 +113,7 @@ module ActiveSupport
           assert_equal("123,456,789.78901", number_helper.number_to_delimited(123456789.78901))
           assert_equal("0.78901", number_helper.number_to_delimited(0.78901))
           assert_equal("123,456.78", number_helper.number_to_delimited("123456.78"))
+          assert_equal("1,23,456.78", number_helper.number_to_delimited("123456.78", delimiter_pattern: /(\d+?)(?=(\d\d)+(\d)(?!\d))/))
           assert_equal("123,456.78", number_helper.number_to_delimited("123456.78".html_safe))
         end
       end
@@ -210,7 +226,9 @@ module ActiveSupport
           assert_equal '1.18 MB',    number_helper.number_to_human_size(1234567)
           assert_equal '1.15 GB',    number_helper.number_to_human_size(1234567890)
           assert_equal '1.12 TB',    number_helper.number_to_human_size(1234567890123)
-          assert_equal '1030 TB',   number_helper.number_to_human_size(terabytes(1026))
+          assert_equal '1.1 PB',   number_helper.number_to_human_size(1234567890123456)
+          assert_equal '1.07 EB',   number_helper.number_to_human_size(1234567890123456789)
+          assert_equal '1030 EB',   number_helper.number_to_human_size(exabytes(1026))
           assert_equal '444 KB',    number_helper.number_to_human_size(kilobytes(444))
           assert_equal '1020 MB',   number_helper.number_to_human_size(megabytes(1023))
           assert_equal '3 TB',      number_helper.number_to_human_size(terabytes(3))
@@ -226,15 +244,19 @@ module ActiveSupport
       end
 
       def test_number_to_human_size_with_si_prefix
-        [@instance_with_helpers, TestClassWithClassNumberHelpers, ActiveSupport::NumberHelper].each do |number_helper|
-          assert_equal '3 Bytes',    number_helper.number_to_human_size(3.14159265, :prefix => :si)
-          assert_equal '123 Bytes',  number_helper.number_to_human_size(123.0, :prefix => :si)
-          assert_equal '123 Bytes',  number_helper.number_to_human_size(123, :prefix => :si)
-          assert_equal '1.23 KB',    number_helper.number_to_human_size(1234, :prefix => :si)
-          assert_equal '12.3 KB',    number_helper.number_to_human_size(12345, :prefix => :si)
-          assert_equal '1.23 MB',    number_helper.number_to_human_size(1234567, :prefix => :si)
-          assert_equal '1.23 GB',    number_helper.number_to_human_size(1234567890, :prefix => :si)
-          assert_equal '1.23 TB',    number_helper.number_to_human_size(1234567890123, :prefix => :si)
+        assert_deprecated do
+          [@instance_with_helpers, TestClassWithClassNumberHelpers, ActiveSupport::NumberHelper].each do |number_helper|
+            assert_equal '3 Bytes',    number_helper.number_to_human_size(3.14159265, :prefix => :si)
+            assert_equal '123 Bytes',  number_helper.number_to_human_size(123.0, :prefix => :si)
+            assert_equal '123 Bytes',  number_helper.number_to_human_size(123, :prefix => :si)
+            assert_equal '1.23 KB',    number_helper.number_to_human_size(1234, :prefix => :si)
+            assert_equal '12.3 KB',    number_helper.number_to_human_size(12345, :prefix => :si)
+            assert_equal '1.23 MB',    number_helper.number_to_human_size(1234567, :prefix => :si)
+            assert_equal '1.23 GB',    number_helper.number_to_human_size(1234567890, :prefix => :si)
+            assert_equal '1.23 TB',    number_helper.number_to_human_size(1234567890123, :prefix => :si)
+            assert_equal '1.23 PB',    number_helper.number_to_human_size(1234567890123456, :prefix => :si)
+            assert_equal '1.23 EB',    number_helper.number_to_human_size(1234567890123456789, :prefix => :si)
+          end
         end
       end
 
@@ -285,6 +307,8 @@ module ActiveSupport
           assert_equal '1.2346 Million', number_helper.number_to_human(1234567, :precision => 4, :significant => false)
           assert_equal '1,2 Million', number_helper.number_to_human(1234567, :precision => 1, :significant => false, :separator => ',')
           assert_equal '1 Million', number_helper.number_to_human(1234567, :precision => 0, :significant => true, :separator => ',') #significant forced to false
+          assert_equal '1 Million', number_helper.number_to_human(999999)
+          assert_equal '1 Billion', number_helper.number_to_human(999999999)
         end
       end
 

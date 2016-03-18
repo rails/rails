@@ -2,10 +2,13 @@ require 'fileutils'
 require 'optparse'
 require 'action_dispatch'
 require 'rails'
+require 'rails/dev_caching'
 
 module Rails
   class Server < ::Rack::Server
     class Options
+      DEFAULT_PID_PATH = File.expand_path("tmp/pids/server.pid").freeze
+
       def parse!(args)
         args, options = args.dup, {}
 
@@ -28,20 +31,15 @@ module Rails
           opts.on("-c", "--config=file", String,
                   "Uses a custom rackup configuration.") { |v| options[:config] = v }
           opts.on("-d", "--daemon", "Runs server as a Daemon.") { options[:daemonize] = true }
-          opts.on("-u", "--debugger", "Enables the debugger.") do
-            if RUBY_VERSION < '2.0.0'
-              options[:debugger] = true
-            else
-              puts "=> Notice: debugger option is ignored since Ruby 2.0 and " \
-                   "it will be removed in future versions."
-            end
-          end
           opts.on("-e", "--environment=name", String,
                   "Specifies the environment to run this server under (test/development/production).",
                   "Default: development") { |v| options[:environment] = v }
           opts.on("-P", "--pid=pid", String,
                   "Specifies the PID file.",
                   "Default: tmp/pids/server.pid") { |v| options[:pid] = v }
+          opts.on("-C", "--[no-]dev-caching",
+                  "Specifies whether to perform caching in development.",
+                  "true or false") { |v| options[:caching] = v }
 
           opts.separator ""
 
@@ -75,6 +73,7 @@ module Rails
       print_boot_information
       trap(:INT) { exit }
       create_tmp_directories
+      setup_dev_caching
       log_to_stdout if options[:log_stdout]
 
       super
@@ -85,52 +84,37 @@ module Rails
     end
 
     def middleware
-      middlewares = []
-      if RUBY_VERSION < '2.0.0'
-        middlewares << [Rails::Rack::Debugger] if options[:debugger]
-      end
-      middlewares << [::Rack::ContentLength]
-
-      # FIXME: add Rack::Lock in the case people are using webrick.
-      # This is to remain backwards compatible for those who are
-      # running webrick in production. We should consider removing this
-      # in development.
-      if server.name == 'Rack::Handler::WEBrick'
-        middlewares << [::Rack::Lock]
-      end
-
-      Hash.new(middlewares)
-    end
-
-    def log_path
-      "log/#{options[:environment]}.log"
+      Hash.new([])
     end
 
     def default_options
       super.merge({
-        Port:               3000,
+        Port:               ENV.fetch('PORT', 3000).to_i,
         DoNotReverseLookup: true,
         environment:        (ENV['RAILS_ENV'] || ENV['RACK_ENV'] || "development").dup,
         daemonize:          false,
-        debugger:           false,
-        pid:                File.expand_path("tmp/pids/server.pid"),
-        config:             File.expand_path("config.ru")
+        caching:            false,
+        pid:                Options::DEFAULT_PID_PATH
       })
     end
 
     private
+
+      def setup_dev_caching
+        if options[:environment] == "development"
+          Rails::DevCaching.enable_by_argument(options[:caching])
+        end
+      end
 
       def print_boot_information
         url = "#{options[:SSLEnable] ? 'https' : 'http'}://#{options[:Host]}:#{options[:Port]}"
         puts "=> Booting #{ActiveSupport::Inflector.demodulize(server)}"
         puts "=> Rails #{Rails.version} application starting in #{Rails.env} on #{url}"
         puts "=> Run `rails server -h` for more startup options"
-
-        puts "=> Ctrl-C to shutdown server" unless options[:daemonize]
       end
 
       def create_tmp_directories
-        %w(cache pids sessions sockets).each do |dir_to_make|
+        %w(cache pids sockets).each do |dir_to_make|
           FileUtils.mkdir_p(File.join(Rails.root, 'tmp', dir_to_make))
         end
       end
@@ -138,11 +122,13 @@ module Rails
       def log_to_stdout
         wrapped_app # touch the app so the logger is set up
 
-        console = ActiveSupport::Logger.new($stdout)
+        console = ActiveSupport::Logger.new(STDOUT)
         console.formatter = Rails.logger.formatter
         console.level = Rails.logger.level
 
-        Rails.logger.extend(ActiveSupport::Logger.broadcast(console))
+        unless ActiveSupport::Logger.logger_outputs_to?(Rails.logger, STDOUT)
+          Rails.logger.extend(ActiveSupport::Logger.broadcast(console))
+        end
       end
   end
 end

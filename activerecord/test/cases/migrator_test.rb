@@ -2,11 +2,11 @@ require "cases/helper"
 require "cases/migration/helper"
 
 class MigratorTest < ActiveRecord::TestCase
-  self.use_transactional_fixtures = false
+  self.use_transactional_tests = false
 
   # Use this class to sense if migrations have gone
   # up or down.
-  class Sensor < ActiveRecord::Migration
+  class Sensor < ActiveRecord::Migration::Current
     attr_reader :went_up, :went_down
 
     def initialize name = self.class.name, version = nil
@@ -312,10 +312,10 @@ class MigratorTest < ActiveRecord::TestCase
   def test_migrator_db_has_no_schema_migrations_table
     _, migrator = migrator_class(3)
 
-    ActiveRecord::Base.connection.execute("DROP TABLE schema_migrations")
-    assert_not ActiveRecord::Base.connection.table_exists?('schema_migrations')
+    ActiveRecord::Base.connection.drop_table "schema_migrations", if_exists: true
+    ActiveSupport::Deprecation.silence { assert_not ActiveRecord::Base.connection.table_exists?('schema_migrations') }
     migrator.migrate("valid", 1)
-    assert ActiveRecord::Base.connection.table_exists?('schema_migrations')
+    ActiveSupport::Deprecation.silence { assert ActiveRecord::Base.connection.table_exists?('schema_migrations') }
   end
 
   def test_migrator_forward

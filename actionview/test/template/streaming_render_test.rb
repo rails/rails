@@ -1,4 +1,3 @@
-# encoding: utf-8
 require 'abstract_unit'
 
 class TestController < ActionController::Base
@@ -105,4 +104,8 @@ class FiberedTest < ActiveSupport::TestCase
       buffered_render(:template => "test/nested_streaming", :layout => "layouts/streaming")
   end
 
+  def test_render_with_streaming_and_capture
+    assert_equal "Yes, \n this works\n like a charm.",
+      buffered_render(template: "test/streaming", layout: "layouts/streaming_with_capture")
+  end
 end

@@ -1,5 +1,3 @@
-# encoding: utf-8
-
 require 'abstract_unit'
 
 class MultibyteProxyText < ActiveSupport::TestCase

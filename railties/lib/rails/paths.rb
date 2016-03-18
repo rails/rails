@@ -7,7 +7,7 @@ module Rails
     #   root = Root.new "/rails"
     #   root.add "app/controllers", eager_load: true
     #
-    # The command above creates a new root object and add "app/controllers" as a path.
+    # The command above creates a new root object and adds "app/controllers" as a path.
     # This means we can get a <tt>Rails::Paths::Path</tt> object back like below:
     #
     #   path = root["app/controllers"]
@@ -123,6 +123,10 @@ module Rails
         options[:load_path]     ? load_path!     : skip_load_path!
       end
 
+      def absolute_current # :nodoc:
+        File.expand_path(@current, @root.path)
+      end
+
       def children
         keys = @root.keys.find_all { |k|
           k.start_with?(@current) && k != @current
@@ -173,6 +177,10 @@ module Rails
 
       def to_ary
         @paths
+      end
+
+      def extensions # :nodoc:
+        $1.split(',') if @glob =~ /\{([\S]+)\}/
       end
 
       # Expands all paths against the root and return all unique values.

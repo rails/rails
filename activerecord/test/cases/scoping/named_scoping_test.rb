@@ -188,8 +188,9 @@ class NamedScopingTest < ActiveRecord::TestCase
   def test_any_should_call_proxy_found_if_using_a_block
     topics = Topic.base
     assert_queries(1) do
-      topics.expects(:empty?).never
-      topics.any? { true }
+      assert_not_called(topics, :empty?) do
+        topics.any? { true }
+      end
     end
   end
 
@@ -217,8 +218,9 @@ class NamedScopingTest < ActiveRecord::TestCase
   def test_many_should_call_proxy_found_if_using_a_block
     topics = Topic.base
     assert_queries(1) do
-      topics.expects(:size).never
-      topics.many? { true }
+      assert_not_called(topics, :size) do
+        topics.many? { true }
+      end
     end
   end
 
@@ -317,13 +319,15 @@ class NamedScopingTest < ActiveRecord::TestCase
     ]
 
     conflicts.each do |name|
-      assert_raises(ArgumentError, "scope `#{name}` should not be allowed") do
+      e = assert_raises(ArgumentError, "scope `#{name}` should not be allowed") do
         klass.class_eval { scope name, ->{ where(approved: true) } }
       end
+      assert_match(/You tried to define a scope named \"#{name}\" on the model/, e.message)
 
-      assert_raises(ArgumentError, "scope `#{name}` should not be allowed") do
+      e = assert_raises(ArgumentError, "scope `#{name}` should not be allowed") do
         subklass.class_eval { scope name, ->{ where(approved: true) } }
       end
+      assert_match(/You tried to define a scope named \"#{name}\" on the model/, e.message)
     end
 
     non_conflicts.each do |name|
@@ -380,8 +384,8 @@ class NamedScopingTest < ActiveRecord::TestCase
   end
 
   def test_should_not_duplicates_where_values
-    where_values = Topic.where("1=1").scope_with_lambda.where_values
-    assert_equal ["1=1"], where_values
+    relation = Topic.where("1=1")
+    assert_equal relation.where_clause, relation.scope_with_lambda.where_clause
   end
 
   def test_chaining_with_duplicate_joins
@@ -433,6 +437,25 @@ class NamedScopingTest < ActiveRecord::TestCase
   def test_table_names_for_chaining_scopes_with_and_without_table_name_included
     assert_nothing_raised do
       Comment.for_first_post.for_first_author.to_a
+    end
+  end
+
+  def test_scopes_with_reserved_names
+    class << Topic
+      def public_method; end
+      public :public_method
+
+      def protected_method; end
+      protected :protected_method
+
+      def private_method; end
+      private :private_method
+    end
+
+    [:public_method, :protected_method, :private_method].each do |reserved_method|
+      assert Topic.respond_to?(reserved_method, true)
+      ActiveRecord::Base.logger.expects(:warn)
+      silence_warnings { Topic.scope(reserved_method, -> { }) }
     end
   end
 

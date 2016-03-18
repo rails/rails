@@ -1,5 +1,4 @@
 require 'abstract_unit'
-require 'rbconfig'
 require 'active_support/core_ext/array/extract_options'
 
 # The view_paths array must be set on Base and not LayoutTest so that LayoutTest's inherited
@@ -150,75 +149,75 @@ class LayoutSetInResponseTest < ActionController::TestCase
   def test_layout_set_when_using_default_layout
     @controller = DefaultLayoutController.new
     get :hello
-    assert_template :layout => "layouts/layout_test"
+    assert_includes @response.body, 'layout_test.erb'
   end
 
   def test_layout_set_when_using_streaming_layout
     @controller = StreamingLayoutController.new
     get :hello
-    assert_template :hello
+    assert_includes @response.body, 'layout_test.erb'
   end
 
   def test_layout_set_when_set_in_controller
     @controller = HasOwnLayoutController.new
     get :hello
-    assert_template :layout => "layouts/item"
+    assert_includes @response.body, 'item.erb'
   end
 
   def test_layout_symbol_set_in_controller_returning_nil_falls_back_to_default
     @controller = HasNilLayoutSymbol.new
     get :hello
-    assert_template layout: "layouts/layout_test"
+    assert_includes @response.body, 'layout_test.erb'
   end
 
   def test_layout_proc_set_in_controller_returning_nil_falls_back_to_default
     @controller = HasNilLayoutProc.new
     get :hello
-    assert_template layout: "layouts/layout_test"
+    assert_includes @response.body, 'layout_test.erb'
   end
 
   def test_layout_only_exception_when_included
     @controller = OnlyLayoutController.new
     get :hello
-    assert_template :layout => "layouts/item"
+    assert_includes @response.body, 'item.erb'
   end
 
   def test_layout_only_exception_when_excepted
     @controller = OnlyLayoutController.new
     get :goodbye
-    assert !@response.body.include?("item.erb"), "#{@response.body.inspect} included 'item.erb'"
+    assert_not_includes @response.body, 'item.erb'
   end
 
   def test_layout_except_exception_when_included
     @controller = ExceptLayoutController.new
     get :hello
-    assert_template :layout => "layouts/item"
+    assert_includes @response.body, 'item.erb'
   end
 
   def test_layout_except_exception_when_excepted
     @controller = ExceptLayoutController.new
     get :goodbye
-    assert !@response.body.include?("item.erb"), "#{@response.body.inspect} included 'item.erb'"
+    assert_not_includes @response.body, 'item.erb'
   end
 
   def test_layout_set_when_using_render
     with_template_handler :mab, lambda { |template| template.source.inspect } do
       @controller = SetsLayoutInRenderController.new
       get :hello
-      assert_template :layout => "layouts/third_party_template_library"
+      assert_includes @response.body, 'layouts/third_party_template_library.mab'
     end
   end
 
   def test_layout_is_not_set_when_none_rendered
     @controller = RendersNoLayoutController.new
     get :hello
-    assert_template :layout => nil
+    assert_equal 'hello.erb', @response.body
   end
 
   def test_layout_is_picked_from_the_controller_instances_view_path
     @controller = PrependsViewPathController.new
     get :hello
-    assert_template :layout => /layouts\/alt/
+    assert_includes @response.body, 'alt.erb'
   end
 
   def test_absolute_pathed_layout
@@ -263,7 +262,7 @@ unless RbConfig::CONFIG['host_os'] =~ /mswin|mingw/
       @controller = LayoutSymlinkedTest.new
       get :hello
       assert_response 200
-      assert_template :layout => "layouts/symlinked/symlinked_layout"
+      assert_includes @response.body, 'This is my layout'
     end
   end
 end

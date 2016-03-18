@@ -28,7 +28,7 @@ class DispatcherTest < ActiveSupport::TestCase
     assert_equal 4, Foo.a
     assert_equal 4, Foo.b
 
-    dispatch do |env|
+    dispatch do
       raise "error"
     end rescue nil
     assert_equal 6, Foo.a
@@ -37,13 +37,19 @@ class DispatcherTest < ActiveSupport::TestCase
 
   def test_to_prepare_and_cleanup_delegation
     prepared = cleaned = false
-    ActionDispatch::Callbacks.to_prepare { prepared = true }
-    ActionDispatch::Callbacks.to_prepare { cleaned = true }
+    assert_deprecated do
+      ActionDispatch::Callbacks.to_prepare { prepared = true }
+      ActionDispatch::Callbacks.to_prepare { cleaned = true }
+    end
 
-    ActionDispatch::Reloader.prepare!
+    assert_deprecated do
+      ActionDispatch::Reloader.prepare!
+    end
     assert prepared
 
-    ActionDispatch::Reloader.cleanup!
+    assert_deprecated do
+      ActionDispatch::Reloader.cleanup!
+    end
     assert cleaned
   end
 

@@ -37,7 +37,6 @@ class Person < ActiveRecord::Base
   has_many :essays, primary_key: "first_name", foreign_key: "writer_id"
 
   scope :males,   -> { where(:gender => 'M') }
-  scope :females, -> { where(:gender => 'F') }
 end
 
 class PersonWithDependentDestroyJobs < ActiveRecord::Base

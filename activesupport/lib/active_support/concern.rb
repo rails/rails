@@ -114,7 +114,7 @@ module ActiveSupport
         return false
       else
         return false if base < self
-        @_dependencies.each { |dep| base.send(:include, dep) }
+        @_dependencies.each { |dep| base.include(dep) }
         super
         base.extend const_get(:ClassMethods) if const_defined?(:ClassMethods)
         base.class_eval(&@_included_block) if instance_variable_defined?(:@_included_block)
@@ -132,7 +132,7 @@ module ActiveSupport
     end
 
     def class_methods(&class_methods_module_definition)
-      mod = const_defined?(:ClassMethods) ?
+      mod = const_defined?(:ClassMethods, false) ?
         const_get(:ClassMethods) :
         const_set(:ClassMethods, Module.new)
 

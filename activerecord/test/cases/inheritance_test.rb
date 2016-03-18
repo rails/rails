@@ -1,4 +1,5 @@
 require 'cases/helper'
+require 'models/author'
 require 'models/company'
 require 'models/person'
 require 'models/post'
@@ -6,16 +7,34 @@ require 'models/project'
 require 'models/subscriber'
 require 'models/vegetables'
 require 'models/shop'
+require 'models/sponsor'
+
+module InheritanceTestHelper
+  def with_store_full_sti_class(&block)
+    assign_store_full_sti_class true, &block
+  end
+
+  def without_store_full_sti_class(&block)
+    assign_store_full_sti_class false, &block
+  end
+
+  def assign_store_full_sti_class(flag)
+    old_store_full_sti_class = ActiveRecord::Base.store_full_sti_class
+    ActiveRecord::Base.store_full_sti_class = flag
+    yield
+  ensure
+    ActiveRecord::Base.store_full_sti_class = old_store_full_sti_class
+  end
+end
 
 class InheritanceTest < ActiveRecord::TestCase
+  include InheritanceTestHelper
   fixtures :companies, :projects, :subscribers, :accounts, :vegetables
 
   def test_class_with_store_full_sti_class_returns_full_name
-    old = ActiveRecord::Base.store_full_sti_class
-    ActiveRecord::Base.store_full_sti_class = true
-    assert_equal 'Namespaced::Company', Namespaced::Company.sti_name
-  ensure
-    ActiveRecord::Base.store_full_sti_class = old
+    with_store_full_sti_class do
+      assert_equal 'Namespaced::Company', Namespaced::Company.sti_name
+    end
   end
 
   def test_class_with_blank_sti_name
@@ -33,39 +52,104 @@ class InheritanceTest < ActiveRecord::TestCase
   end
 
   def test_class_without_store_full_sti_class_returns_demodulized_name
-    old = ActiveRecord::Base.store_full_sti_class
-    ActiveRecord::Base.store_full_sti_class = false
-    assert_equal 'Company', Namespaced::Company.sti_name
-  ensure
-    ActiveRecord::Base.store_full_sti_class = old
+    without_store_full_sti_class do
+      assert_equal 'Company', Namespaced::Company.sti_name
+    end
+  end
+
+  def test_compute_type_success
+    assert_equal Author, ActiveRecord::Base.send(:compute_type, 'Author')
+  end
+
+  def test_compute_type_nonexistent_constant
+    e = assert_raises NameError do
+      ActiveRecord::Base.send :compute_type, 'NonexistentModel'
+    end
+    assert_equal 'uninitialized constant ActiveRecord::Base::NonexistentModel', e.message
+    assert_equal 'ActiveRecord::Base::NonexistentModel', e.name
+  end
+
+  def test_compute_type_no_method_error
+    ActiveSupport::Dependencies.stub(:safe_constantize, proc{ raise NoMethodError }) do
+      assert_raises NoMethodError do
+        ActiveRecord::Base.send :compute_type, 'InvalidModel'
+      end
+    end
+  end
+
+  def test_compute_type_on_undefined_method
+    error = nil
+    begin
+      Class.new(Author) do
+        alias_method :foo, :bar
+      end
+    rescue => e
+      error = e
+    end
+
+    ActiveSupport::Dependencies.stub(:safe_constantize, proc{ raise e }) do
+
+      exception = assert_raises NameError do
+        ActiveRecord::Base.send :compute_type, 'InvalidModel'
+      end
+      assert_equal error.message, exception.message
+    end
+  end
+
+  def test_compute_type_argument_error
+    ActiveSupport::Dependencies.stub(:safe_constantize, proc{ raise ArgumentError }) do
+      assert_raises ArgumentError do
+        ActiveRecord::Base.send :compute_type, 'InvalidModel'
+      end
+    end
   end
 
   def test_should_store_demodulized_class_name_with_store_full_sti_class_option_disabled
-    old = ActiveRecord::Base.store_full_sti_class
-    ActiveRecord::Base.store_full_sti_class = false
-    item = Namespaced::Company.new
-    assert_equal 'Company', item[:type]
-  ensure
-    ActiveRecord::Base.store_full_sti_class = old
+    without_store_full_sti_class do
+      item = Namespaced::Company.new
+      assert_equal 'Company', item[:type]
+    end
   end
 
   def test_should_store_full_class_name_with_store_full_sti_class_option_enabled
-    old = ActiveRecord::Base.store_full_sti_class
-    ActiveRecord::Base.store_full_sti_class = true
-    item = Namespaced::Company.new
-    assert_equal 'Namespaced::Company', item[:type]
-  ensure
-    ActiveRecord::Base.store_full_sti_class = old
+    with_store_full_sti_class do
+      item = Namespaced::Company.new
+      assert_equal 'Namespaced::Company', item[:type]
+    end
   end
 
   def test_different_namespace_subclass_should_load_correctly_with_store_full_sti_class_option
-    old = ActiveRecord::Base.store_full_sti_class
-    ActiveRecord::Base.store_full_sti_class = true
-    item = Namespaced::Company.create :name => "Wolverine 2"
-    assert_not_nil Company.find(item.id)
-    assert_not_nil Namespaced::Company.find(item.id)
-  ensure
-    ActiveRecord::Base.store_full_sti_class = old
+    with_store_full_sti_class do
+      item = Namespaced::Company.create name: "Wolverine 2"
+      assert_not_nil Company.find(item.id)
+      assert_not_nil Namespaced::Company.find(item.id)
+    end
+  end
+
+  def test_descends_from_active_record
+    assert !ActiveRecord::Base.descends_from_active_record?
+
+    # Abstract subclass of AR::Base.
+    assert LoosePerson.descends_from_active_record?
+
+    # Concrete subclass of an abstract class.
+    assert LooseDescendant.descends_from_active_record?
+
+    # Concrete subclass of AR::Base.
+    assert TightPerson.descends_from_active_record?
+
+    # Concrete subclass of a concrete class but has no type column.
+    assert TightDescendant.descends_from_active_record?
+
+    # Concrete subclass of AR::Base.
+    assert Post.descends_from_active_record?
+
+    # Abstract subclass of a concrete class which has a type column.
+    # This is pathological, as you'll never have Sub < Abstract < Concrete.
+    assert !StiPost.descends_from_active_record?
+
+    # Concrete subclasses an abstract class which has a type column.
+    assert !SubStiPost.descends_from_active_record?
   end
 
   def test_company_descends_from_active_record
@@ -73,6 +157,12 @@ class InheritanceTest < ActiveRecord::TestCase
     assert AbstractCompany.descends_from_active_record?, 'AbstractCompany should descend from ActiveRecord::Base'
     assert Company.descends_from_active_record?, 'Company should descend from ActiveRecord::Base'
     assert !Class.new(Company).descends_from_active_record?, 'Company subclass should not descend from ActiveRecord::Base'
+  end
+
+  def test_abstract_class
+    assert !ActiveRecord::Base.abstract_class?
+    assert LoosePerson.abstract_class?
+    assert !LooseDescendant.abstract_class?
   end
 
   def test_inheritance_base_class
@@ -119,6 +209,12 @@ class InheritanceTest < ActiveRecord::TestCase
     assert_kind_of Vegetable, vegetable
     cabbage = vegetable.becomes(Cabbage)
     assert_kind_of Cabbage, cabbage
+  end
+
+  def test_becomes_and_change_tracking_for_inheritance_columns
+    cucumber = Vegetable.find(1)
+    cabbage = cucumber.becomes!(Cabbage)
+    assert_equal ['Cucumber', 'Cabbage'], cabbage.custom_type_change
   end
 
   def test_alt_becomes_bang_resets_inheritance_type_column
@@ -198,8 +294,25 @@ class InheritanceTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::SubclassNotFound) { Company.new(:type => 'Account') }
   end
 
+  def test_new_with_unrelated_namespaced_type
+    without_store_full_sti_class do
+      e = assert_raises ActiveRecord::SubclassNotFound do
+        Namespaced::Company.new(type: 'Firm')
+      end
+
+      assert_equal "Invalid single-table inheritance type: Namespaced::Firm is not a subclass of Namespaced::Company", e.message
+    end
+  end
+
   def test_new_with_complex_inheritance
     assert_nothing_raised { Client.new(type: 'VerySpecialClient') }
+  end
+
+  def test_new_without_storing_full_sti_class
+    without_store_full_sti_class do
+      item = Company.new(type: 'SpecialCo')
+      assert_instance_of Company::SpecialCo, item
+    end
   end
 
   def test_new_with_autoload_paths
@@ -294,17 +407,17 @@ class InheritanceTest < ActiveRecord::TestCase
 
   def test_eager_load_belongs_to_something_inherited
     account = Account.all.merge!(:includes => :firm).find(1)
-    assert account.association_cache.key?(:firm), "nil proves eager load failed"
+    assert account.association(:firm).loaded?, "association was not eager loaded"
   end
 
   def test_alt_eager_loading
     cabbage = RedCabbage.all.merge!(:includes => :seller).find(4)
-    assert cabbage.association_cache.key?(:seller), "nil proves eager load failed"
+    assert cabbage.association(:seller).loaded?, "association was not eager loaded"
   end
 
   def test_eager_load_belongs_to_primary_key_quoting
     con = Account.connection
-    assert_sql(/#{con.quote_table_name('companies')}.#{con.quote_column_name('id')} IN \(1\)/) do
+    assert_sql(/#{con.quote_table_name('companies')}.#{con.quote_column_name('id')} = 1/) do
       Account.all.merge!(:includes => :firm).find(1)
     end
   end
@@ -325,45 +438,164 @@ class InheritanceTest < ActiveRecord::TestCase
 end
 
 class InheritanceComputeTypeTest < ActiveRecord::TestCase
+  include InheritanceTestHelper
   fixtures :companies
 
-  def setup
-    ActiveSupport::Dependencies.log_activity = true
-  end
-
   teardown do
-    ActiveSupport::Dependencies.log_activity = false
     self.class.const_remove :FirmOnTheFly rescue nil
     Firm.const_remove :FirmOnTheFly rescue nil
   end
 
   def test_instantiation_doesnt_try_to_require_corresponding_file
-    ActiveRecord::Base.store_full_sti_class = false
-    foo = Firm.first.clone
-    foo.type = 'FirmOnTheFly'
-    foo.save!
+    without_store_full_sti_class do
+      foo = Firm.first.clone
+      foo.type = 'FirmOnTheFly'
+      foo.save!
 
-    # Should fail without FirmOnTheFly in the type condition.
-    assert_raise(ActiveRecord::RecordNotFound) { Firm.find(foo.id) }
+      # Should fail without FirmOnTheFly in the type condition.
+      assert_raise(ActiveRecord::RecordNotFound) { Firm.find(foo.id) }
 
-    # Nest FirmOnTheFly in the test case where Dependencies won't see it.
-    self.class.const_set :FirmOnTheFly, Class.new(Firm)
-    assert_raise(ActiveRecord::SubclassNotFound) { Firm.find(foo.id) }
+      # Nest FirmOnTheFly in the test case where Dependencies won't see it.
+      self.class.const_set :FirmOnTheFly, Class.new(Firm)
+      assert_raise(ActiveRecord::SubclassNotFound) { Firm.find(foo.id) }
 
-    # Nest FirmOnTheFly in Firm where Dependencies will see it.
-    # This is analogous to nesting models in a migration.
-    Firm.const_set :FirmOnTheFly, Class.new(Firm)
+      # Nest FirmOnTheFly in Firm where Dependencies will see it.
+      # This is analogous to nesting models in a migration.
+      Firm.const_set :FirmOnTheFly, Class.new(Firm)
 
-    # And instantiate will find the existing constant rather than trying
-    # to require firm_on_the_fly.
-    assert_nothing_raised { assert_kind_of Firm::FirmOnTheFly, Firm.find(foo.id) }
-  ensure
-    ActiveRecord::Base.store_full_sti_class = true
+      # And instantiate will find the existing constant rather than trying
+      # to require firm_on_the_fly.
+      assert_nothing_raised { assert_kind_of Firm::FirmOnTheFly, Firm.find(foo.id) }
+    end
   end
 
   def test_sti_type_from_attributes_disabled_in_non_sti_class
     phone = Shop::Product::Type.new(name: 'Phone')
     product = Shop::Product.new(:type => phone)
     assert product.save
+  end
+
+  def test_inheritance_new_with_subclass_as_default
+    original_type = Company.columns_hash["type"].default
+    ActiveRecord::Base.connection.change_column_default :companies, :type, 'Firm'
+    Company.reset_column_information
+
+    firm = Company.new # without arguments
+    assert_equal 'Firm', firm.type
+    assert_instance_of Firm, firm
+
+    firm = Company.new(firm_name: 'Shri Hans Plastic') # with arguments
+    assert_equal 'Firm', firm.type
+    assert_instance_of Firm, firm
+
+    client = Client.new
+    assert_equal 'Client', client.type
+    assert_instance_of Client, client
+
+    firm = Company.new(type: 'Client') # overwrite the default type
+    assert_equal 'Client', firm.type
+    assert_instance_of Client, firm
+  ensure
+    ActiveRecord::Base.connection.change_column_default :companies, :type, original_type
+    Company.reset_column_information
+  end
+end
+
+class InheritanceAttributeTest < ActiveRecord::TestCase
+
+  class Company < ActiveRecord::Base
+    self.table_name = 'companies'
+    attribute :type, :string, default: "InheritanceAttributeTest::Startup"
+  end
+
+  class Startup < Company
+  end
+
+  class Empire < Company
+  end
+
+  def test_inheritance_new_with_subclass_as_default
+    startup = Company.new # without arguments
+    assert_equal 'InheritanceAttributeTest::Startup', startup.type
+    assert_instance_of Startup, startup
+
+    empire = Company.new(type: 'InheritanceAttributeTest::Empire') # without arguments
+    assert_equal 'InheritanceAttributeTest::Empire', empire.type
+    assert_instance_of Empire, empire
+  end
+end
+
+class InheritanceAttributeMappingTest < ActiveRecord::TestCase
+  setup do
+    @old_registry = ActiveRecord::Type.registry
+    ActiveRecord::Type.registry = ActiveRecord::Type::AdapterSpecificRegistry.new
+    ActiveRecord::Type.register :omg_sti, InheritanceAttributeMappingTest::OmgStiType
+    Company.delete_all
+    Sponsor.delete_all
+  end
+
+  teardown do
+    ActiveRecord::Type.registry = @old_registry
+  end
+
+  class OmgStiType < ActiveRecord::Type::String
+    def cast_value(value)
+      if value =~ /\Aomg_(.+)\z/
+        $1.classify
+      else
+        value
+      end
+    end
+
+    def serialize(value)
+      if value
+        "omg_%s" % value.underscore
+      end
+    end
+  end
+
+  class Company < ActiveRecord::Base
+    self.table_name = 'companies'
+    attribute :type, :omg_sti
+  end
+
+  class Startup < Company; end
+  class Empire < Company; end
+
+  class Sponsor < ActiveRecord::Base
+    self.table_name = 'sponsors'
+    attribute :sponsorable_type, :omg_sti
+
+    belongs_to :sponsorable, polymorphic: true
+  end
+
+  def test_sti_with_custom_type
+    Startup.create! name: 'a Startup'
+    Empire.create! name: 'an Empire'
+
+    assert_equal [["a Startup", "omg_inheritance_attribute_mapping_test/startup"],
+                  ["an Empire", "omg_inheritance_attribute_mapping_test/empire"]], ActiveRecord::Base.connection.select_rows('SELECT name, type FROM companies').sort
+    assert_equal [["a Startup", "InheritanceAttributeMappingTest::Startup"],
+                  ["an Empire", "InheritanceAttributeMappingTest::Empire"]], Company.all.map { |a| [a.name, a.type] }.sort
+
+    startup = Startup.first
+    startup.becomes! Empire
+    startup.save!
+
+    assert_equal [["a Startup", "omg_inheritance_attribute_mapping_test/empire"],
+                  ["an Empire", "omg_inheritance_attribute_mapping_test/empire"]], ActiveRecord::Base.connection.select_rows('SELECT name, type FROM companies').sort
+
+    assert_equal [["a Startup", "InheritanceAttributeMappingTest::Empire"],
+                  ["an Empire", "InheritanceAttributeMappingTest::Empire"]], Company.all.map { |a| [a.name, a.type] }.sort
+  end
+
+  def test_polymorphic_associations_custom_type
+    startup = Startup.create! name: 'a Startup'
+    sponsor = Sponsor.create! sponsorable: startup
+
+    assert_equal ["omg_inheritance_attribute_mapping_test/company"], ActiveRecord::Base.connection.select_values('SELECT sponsorable_type FROM sponsors')
+
+    sponsor = Sponsor.first
+    assert_equal startup, sponsor.sponsorable
   end
 end

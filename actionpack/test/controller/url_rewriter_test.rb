@@ -1,7 +1,7 @@
 require 'abstract_unit'
 require 'controller/fake_controllers'
 
-class UrlRewriterTests < ActiveSupport::TestCase
+class UrlRewriterTests < ActionController::TestCase
   class Rewriter
     def initialize(request)
       @options = {
@@ -16,12 +16,13 @@ class UrlRewriterTests < ActiveSupport::TestCase
   end
 
   def setup
-    @request = ActionController::TestRequest.new
     @params = {}
     @rewriter = Rewriter.new(@request) #.new(@request, @params)
     @routes = ActionDispatch::Routing::RouteSet.new.tap do |r|
       r.draw do
-        get ':controller(/:action(/:id))'
+        ActiveSupport::Deprecation.silence do
+          get ':controller(/:action(/:id))'
+        end
       end
     end
   end

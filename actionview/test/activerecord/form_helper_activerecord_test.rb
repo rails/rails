@@ -35,10 +35,6 @@ class FormHelperActiveRecordTest < ActionView::TestCase
     end
   end
 
-  def _routes
-    Routes
-  end
-
   include Routes.url_helpers
 
   def test_nested_fields_for_with_child_index_option_override_on_a_nested_attributes_collection_association

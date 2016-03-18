@@ -2,23 +2,25 @@ require 'active_support/core_ext/string/conversions'
 
 module ActiveRecord
   module Associations
-    # Keeps track of table aliases for ActiveRecord::Associations::ClassMethods::JoinDependency and
-    # ActiveRecord::Associations::ThroughAssociationScope
+    # Keeps track of table aliases for ActiveRecord::Associations::JoinDependency
     class AliasTracker # :nodoc:
-      attr_reader :aliases, :connection
+      attr_reader :aliases
 
-      def self.empty(connection)
-        new connection, Hash.new(0)
+      def self.create(connection, initial_table, type_caster)
+        aliases = Hash.new(0)
+        aliases[initial_table] = 1
+        new connection, aliases, type_caster
       end
 
-      def self.create(connection, table_joins)
-        if table_joins.empty?
-          empty connection
+      def self.create_with_joins(connection, initial_table, joins, type_caster)
+        if joins.empty?
+          create(connection, initial_table, type_caster)
         else
-          aliases = Hash.new { |h,k|
-            h[k] = initial_count_for(connection, k, table_joins)
+          aliases = Hash.new { |h, k|
+            h[k] = initial_count_for(connection, k, joins)
           }
-          new connection, aliases
+          aliases[initial_table] = 1
+          new connection, aliases, type_caster
         end
       end
 
@@ -51,19 +53,20 @@ module ActiveRecord
       end
 
       # table_joins is an array of arel joins which might conflict with the aliases we assign here
-      def initialize(connection, aliases)
+      def initialize(connection, aliases, type_caster)
         @aliases    = aliases
         @connection = connection
+        @type_caster = type_caster
       end
 
       def aliased_table_for(table_name, aliased_name)
         if aliases[table_name].zero?
           # If it's zero, we can have our table_name
           aliases[table_name] = 1
-          Arel::Table.new(table_name)
+          Arel::Table.new(table_name, type_caster: @type_caster)
         else
           # Otherwise, we need to use an alias
-          aliased_name = connection.table_alias_for(aliased_name)
+          aliased_name = @connection.table_alias_for(aliased_name)
 
           # Update the count
           aliases[aliased_name] += 1
@@ -73,14 +76,14 @@ module ActiveRecord
           else
             aliased_name
           end
-          Arel::Table.new(table_name).alias(table_alias)
+          Arel::Table.new(table_name, type_caster: @type_caster).alias(table_alias)
         end
       end
 
       private
 
         def truncate(name)
-          name.slice(0, connection.table_alias_length - 2)
+          name.slice(0, @connection.table_alias_length - 2)
         end
     end
   end

@@ -26,7 +26,7 @@ module ActionView
         Marshal::dump(object)
         object = ERB::Util.html_escape(object.to_yaml)
         content_tag(:pre, object, :class => "debug_dump")
-      rescue Exception  # errors from Marshal or YAML
+      rescue # errors from Marshal or YAML
         # Object couldn't be dumped, perhaps because of singleton methods -- this is the fallback
         content_tag(:code, object.inspect, :class => "debug_dump")
       end

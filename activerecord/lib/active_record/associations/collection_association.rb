@@ -28,15 +28,21 @@ module ActiveRecord
       # Implements the reader method, e.g. foo.items for Foo.has_many :items
       def reader(force_reload = false)
         if force_reload
+          ActiveSupport::Deprecation.warn(<<-MSG.squish)
+            Passing an argument to force an association to reload is now
+            deprecated and will be removed in Rails 5.1. Please call `reload`
+            on the result collection proxy instead.
+          MSG
+
           klass.uncached { reload }
         elsif stale_target?
           reload
         end
 
-        if owner.new_record?
+        if null_scope?
           # Cache the proxy separately before the owner has an id
           # or else a post-save proxy will still lack the id
-          @new_record_proxy ||= CollectionProxy.create(klass, self)
+          @null_proxy ||= CollectionProxy.create(klass, self)
         else
           @proxy ||= CollectionProxy.create(klass, self)
         end
@@ -54,8 +60,10 @@ module ActiveRecord
             record.send(reflection.association_primary_key)
           end
         else
-          column  = "#{reflection.quoted_table_name}.#{reflection.association_primary_key}"
-          scope.pluck(column)
+          @association_ids ||= (
+            column = "#{reflection.quoted_table_name}.#{reflection.association_primary_key}"
+            scope.pluck(column)
+          )
         end
       end
 
@@ -63,8 +71,11 @@ module ActiveRecord
       def ids_writer(ids)
         pk_type = reflection.primary_key_type
         ids = Array(ids).reject(&:blank?)
-        ids.map! { |i| pk_type.type_cast_from_user(i) }
-        replace(klass.find(ids).index_by(&:id).values_at(*ids))
+        ids.map! { |i| pk_type.cast(i) }
+        records = klass.where(reflection.association_primary_key => ids).index_by do |r|
+          r.send(reflection.association_primary_key)
+        end.values_at(*ids)
+        replace(records)
       end
 
       def reset
@@ -125,8 +136,26 @@ module ActiveRecord
         first_nth_or_last(:forty_two, *args)
       end
 
+      def third_to_last(*args)
+        first_nth_or_last(:third_to_last, *args)
+      end
+
+      def second_to_last(*args)
+        first_nth_or_last(:second_to_last, *args)
+      end
+
       def last(*args)
         first_nth_or_last(:last, *args)
+      end
+
+      def take(n = nil)
+        if loaded?
+          n ? target.take(n) : target.first
+        else
+          scope.take(n).tap do |record|
+            set_inverse_instance record if record.is_a? ActiveRecord::Base
+          end
+        end
       end
 
       def build(attributes = {}, &block)
@@ -151,6 +180,7 @@ module ActiveRecord
       # be chained. Since << flattens its argument list and inserts each record,
       # +push+ and +concat+ behave identically.
       def concat(*records)
+        records = records.flatten
         if owner.new_record?
           load_target
           concat_records(records)
@@ -218,11 +248,7 @@ module ActiveRecord
 
       # Count all records using SQL.  Construct options and pass them with
       # scope to the target class's +count+.
-      def count(column_name = nil, count_options = {})
-        # TODO: Remove count_options argument as soon we remove support to
-        # activerecord-deprecated_finders.
-        column_name, count_options = nil, column_name if column_name.is_a?(Hash)
-
+      def count(column_name = nil)
         relation = scope
         if association_scope.distinct_value
           # This is needed because 'SELECT count(DISTINCT *)..' is not valid SQL.
@@ -322,7 +348,8 @@ module ActiveRecord
       end
 
       # Returns true if the collections is not empty.
-      # Equivalent to +!collection.empty?+.
+      # If block given, loads all records and checks for one or more matches.
+      # Otherwise, equivalent to +!collection.empty?+.
       def any?
         if block_given?
           load_target.any? { |*block_args| yield(*block_args) }
@@ -332,7 +359,8 @@ module ActiveRecord
       end
 
       # Returns true if the collection has more than 1 record.
-      # Equivalent to +collection.size > 1+.
+      # If block given, loads all records and checks for two or more matches.
+      # Otherwise, equivalent to +collection.size > 1+.
       def many?
         if block_given?
           load_target.many? { |*block_args| yield(*block_args) }
@@ -361,6 +389,8 @@ module ActiveRecord
           replace_common_records_in_memory(other_array, original_target)
           if other_array != original_target
             transaction { replace_records(other_array, original_target) }
+          else
+            other_array
           end
         end
       end
@@ -395,12 +425,16 @@ module ActiveRecord
 
       def replace_on_target(record, index, skip_callbacks)
         callback(:before_add, record) unless skip_callbacks
+
+        was_loaded = loaded?
         yield(record) if block_given?
 
-        if index
-          @target[index] = record
-        else
-          @target << record
+        unless !was_loaded && loaded?
+          if index
+            @target[index] = record
+          else
+            @target << record
+          end
         end
 
         callback(:after_add, record) unless skip_callbacks
@@ -421,13 +455,7 @@ module ActiveRecord
 
       private
       def get_records
-        if reflection.scope_chain.any?(&:any?) ||
-          scope.eager_loading? ||
-          klass.current_scope ||
-          klass.default_scopes.any?
-
-          return scope.to_a
-        end
+        return scope.to_a if skip_statement_cache?
 
         conn = klass.connection
         sc = reflection.association_scope_cache(conn, owner) do
@@ -553,7 +581,7 @@ module ActiveRecord
         def concat_records(records, should_raise = false)
           result = true
 
-          records.flatten.each do |record|
+          records.each do |record|
             raise_on_type_mismatch!(record)
             add_to_target(record) do |rec|
               result &&= insert_record(rec, true, should_raise) unless owner.new_record?
@@ -597,8 +625,8 @@ module ActiveRecord
           if reflection.is_a?(ActiveRecord::Reflection::ThroughReflection)
             assoc = owner.association(reflection.through_reflection.name)
             assoc.reader.any? { |source|
-              target = source.send(reflection.source_reflection.name)
-              target.respond_to?(:include?) ? target.include?(record) : target == record
+              target_reflection = source.send(reflection.source_reflection.name)
+              target_reflection.respond_to?(:include?) ? target_reflection.include?(record) : target_reflection == record
             } || target.include?(record)
           else
             target.include?(record)

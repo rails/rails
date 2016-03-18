@@ -39,7 +39,7 @@ module ActiveSupport
             @data = {}
           end
 
-          # Don't allow synchronizing since it isn't thread safe,
+          # Don't allow synchronizing since it isn't thread safe.
           def synchronize # :nodoc:
             yield
           end
@@ -60,6 +60,10 @@ module ActiveSupport
           def delete_entry(key, options)
             !!@data.delete(key)
           end
+
+          def fetch_entry(key, options = nil) # :nodoc:
+            @data.fetch(key) { @data[key] = yield }
+          end
         end
 
         # Use a local cache for the duration of block.
@@ -75,36 +79,35 @@ module ActiveSupport
         end
 
         def clear(options = nil) # :nodoc:
-          local_cache.clear(options) if local_cache
+          return super unless cache = local_cache
+          cache.clear(options)
           super
         end
 
         def cleanup(options = nil) # :nodoc:
-          local_cache.clear(options) if local_cache
+          return super unless cache = local_cache
+          cache.clear(options)
           super
         end
 
         def increment(name, amount = 1, options = nil) # :nodoc:
+          return super unless local_cache
           value = bypass_local_cache{super}
-          set_cache_value(value, name, amount, options)
+          write_cache_value(name, value, options)
           value
         end
 
         def decrement(name, amount = 1, options = nil) # :nodoc:
+          return super unless local_cache
           value = bypass_local_cache{super}
-          set_cache_value(value, name, amount, options)
+          write_cache_value(name, value, options)
           value
         end
 
         protected
           def read_entry(key, options) # :nodoc:
-            if local_cache
-              entry = local_cache.read_entry(key, options)
-              unless entry
-                entry = super
-                local_cache.write_entry(key, entry, options)
-              end
-              entry
+            if cache = local_cache
+              cache.fetch_entry(key) { super }
             else
               super
             end
@@ -120,14 +123,22 @@ module ActiveSupport
             super
           end
 
-          def set_cache_value(value, name, amount, options)
-            if local_cache
-              local_cache.mute do
-                if value
-                  local_cache.write(name, value, options)
-                else
-                  local_cache.delete(name, options)
-                end
+          def set_cache_value(value, name, amount, options) # :nodoc:
+            ActiveSupport::Deprecation.warn(<<-MESSAGE.strip_heredoc)
+              `set_cache_value` is deprecated and will be removed from Rails 5.1.
+              Please use `write_cache_value`
+            MESSAGE
+            write_cache_value name, value, options
+          end
+
+          def write_cache_value(name, value, options) # :nodoc:
+            name = normalize_key(name, options)
+            cache = local_cache
+            cache.mute do
+              if value
+                cache.write(name, value, options)
+              else
+                cache.delete(name, options)
               end
             end
           end
