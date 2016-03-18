@@ -93,7 +93,7 @@ module ActiveRecord
     end
 
     def has_been_read?
-      defined?(@value)
+      instance_variable_defined?(:@value)
     end
 
     def ==(other)
@@ -111,7 +111,10 @@ module ActiveRecord
     protected
 
     attr_reader :original_attribute
-    alias_method :assigned?, :original_attribute
+
+    def assigned?
+      !original_attribute.nil?
+    end
 
     def initialize_dup(other)
       if defined?(@value) && @value.duplicable?
