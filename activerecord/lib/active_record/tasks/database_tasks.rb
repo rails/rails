@@ -72,7 +72,15 @@ module ActiveRecord
       end
 
       def migrations_paths
-        @migrations_paths ||= Rails.application.paths['db/migrate'].to_a
+        paths = Rails.application.paths['db/migrate'].to_a
+        root_path = paths.first
+
+        namespaces = [ENV['MIGRATIONS_NAMESPACE'] || ENV['MIGRATIONS_NAMESPACES'].split(",")].flatten
+        namespaces.each do |namespace|
+          paths << "#{root_path}/#{namespace}"
+        end if namespaces.any?
+
+        @migrations_paths ||= paths
       end
 
       def fixtures_path
@@ -106,13 +114,16 @@ module ActiveRecord
 
       def create(*arguments)
         configuration = arguments.first
-        class_for_adapter(configuration['adapter']).new(*arguments).create
-      rescue DatabaseAlreadyExists
-        $stderr.puts "#{configuration['database']} already exists"
-      rescue Exception => error
-        $stderr.puts error
-        $stderr.puts "Couldn't create database for #{configuration.inspect}"
-        raise
+        begin
+          class_for_adapter(configuration['adapter']).new(*arguments).create
+        rescue DatabaseAlreadyExists
+          $stderr.puts "#{configuration['database']} already exists"
+        rescue Exception => error
+          $stderr.puts error, *(error.backtrace)
+          $stderr.puts "Couldn't create database for #{configuration.inspect}"
+        else
+          $stderr.puts "Database #{configuration['database']} has been created"
+        end
       end
 
       def create_all
@@ -155,12 +166,20 @@ module ActiveRecord
         verbose = ENV["VERBOSE"] ? ENV["VERBOSE"] == "true" : true
         version = ENV["VERSION"] ? ENV["VERSION"].to_i : nil
         scope   = ENV['SCOPE']
-        verbose_was, Migration.verbose = Migration.verbose, verbose
-        Migrator.migrate(migrations_paths, version) do |migration|
-          scope.blank? || scope == migration.scope
+
+        migrations_paths.each do |migration_path|
+          verbose_was, Migration.verbose = Migration.verbose, verbose
+          namespace = File.basename migration_path
+          db_configs = Base.configurations
+          Base.establish_connection db_configs[namespace][Rails.env] unless namespace === "migrate"
+          begin
+            Migrator.migrate(migration_path, version) do |migration|
+              scope.blank? || scope == migration.scope
+            end
+          ensure
+            Migration.verbose = verbose_was
+          end
         end
-      ensure
-        Migration.verbose = verbose_was
       end
 
       def charset_current(environment = env)
@@ -282,10 +301,23 @@ module ActiveRecord
 
       def each_current_configuration(environment)
         environments = [environment]
-        environments << 'test' if environment == 'development'
 
-        configurations = ActiveRecord::Base.configurations.values_at(*environments)
-        configurations.compact.each do |configuration|
+        # add test environment only if no RAILS_ENV was specified.
+        environments << 'test' if environment == 'development' &&
+          ENV['RAILS_ENV'].nil?
+        db_configs = Base.configurations
+        configurations = []
+
+        namespaces = [ENV['MIGRATIONS_NAMESPACE'] || ENV['MIGRATIONS_NAMESPACES'].split(",")].flatten
+        namespaces_configs = db_configs.values_at(*namespaces)
+        if namespaces_configs.any?
+          namespaces_configs.each do |namespace|
+            configurations << namespace.values_at(*environments)
+          end
+        end
+
+        configurations << db_configs.values_at(*environments)
+        configurations.flatten.compact.each do |configuration|
           yield configuration unless configuration['database'].blank?
         end
       end
