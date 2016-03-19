@@ -94,12 +94,12 @@ module ActiveRecord
     end
 
     def substitute_values(values) # :nodoc:
-      binds = values.map do |arel_attr, value|
-        QueryAttribute.new(arel_attr.name, value, klass.type_for_attribute(arel_attr.name))
-      end
+      binds = []
+      substitutes = []
 
-      substitutes = values.map do |(arel_attr, _)|
-        [arel_attr, Arel::Nodes::BindParam.new]
+      values.each do |arel_attr, value|
+        binds.push QueryAttribute.new(arel_attr.name, value, klass.type_for_attribute(arel_attr.name))
+        substitutes.push [arel_attr, Arel::Nodes::BindParam.new]
       end
 
       [substitutes, binds]
