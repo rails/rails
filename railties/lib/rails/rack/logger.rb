@@ -30,13 +30,13 @@ module Rails
     protected
 
       def call_app(request, env)
-        start(request)
+        announce_start(request)
         logger.info { started_request_message(request) }
         resp = @app.call(env)
-        resp[2] = ::Rack::BodyProxy.new(resp[2]) { finish(request) }
+        resp[2] = ::Rack::BodyProxy.new(resp[2]) { announce_finish(request) }
         resp
       rescue Exception
-        finish(request)
+        announce_finish(request)
         raise
       ensure
         ActiveSupport::LogSubscriber.flush_all!
@@ -66,12 +66,12 @@ module Rails
 
       private
 
-      def start(request)
+      def announce_start(request)
         instrumenter = ActiveSupport::Notifications.instrumenter
         instrumenter.start 'request.action_dispatch', request: request
       end
 
-      def finish(request)
+      def announce_finish(request)
         instrumenter = ActiveSupport::Notifications.instrumenter
         instrumenter.finish 'request.action_dispatch', request: request
       end
