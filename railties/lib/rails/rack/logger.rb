@@ -30,8 +30,7 @@ module Rails
     protected
 
       def call_app(request, env)
-        instrumenter = ActiveSupport::Notifications.instrumenter
-        instrumenter.start 'request.action_dispatch', request: request
+        start(request)
         logger.info { started_request_message(request) }
         resp = @app.call(env)
         resp[2] = ::Rack::BodyProxy.new(resp[2]) { finish(request) }
@@ -66,6 +65,11 @@ module Rails
       end
 
       private
+
+      def start(request)
+        instrumenter = ActiveSupport::Notifications.instrumenter
+        instrumenter.start 'request.action_dispatch', request: request
+      end
 
       def finish(request)
         instrumenter = ActiveSupport::Notifications.instrumenter
