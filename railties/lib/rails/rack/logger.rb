@@ -13,8 +13,8 @@ module Rails
     # an instance of the +request+ object.
     class Logger < ActiveSupport::LogSubscriber
       def initialize(app, taggers = nil)
-        @app          = app
-        @taggers      = taggers || []
+        @app     = app
+        @taggers = taggers || []
       end
 
       def call(env)
