@@ -96,6 +96,7 @@ module Rails
       ssl_options_exist = File.exist?('config/initializers/ssl_options.rb')
       rack_cors_config_exist = File.exist?('config/initializers/cors.rb')
       development_config_exist = File.exist?('config/environments/development.rb')
+      time_zone_aware_types_config_exist = File.exist?('config/initializers/time_zone_aware_types.rb')
 
       config
 
@@ -125,6 +126,10 @@ module Rails
 
       unless rack_cors_config_exist
         remove_file 'config/initializers/cors.rb'
+      end
+
+      unless time_zone_aware_types_config_exist
+        remove_file 'config/initializers/time_zone_aware_types.rb'
       end
     end
 
@@ -332,6 +337,7 @@ module Rails
       def delete_active_record_initializers_skipping_active_record
         if options[:skip_active_record]
           remove_file 'config/initializers/active_record_belongs_to_required_by_default.rb'
+          remove_file 'config/initializers/time_zone_aware_types.rb'
         end
       end
 
