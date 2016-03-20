@@ -29,7 +29,7 @@ module ActionCable
       def write(data)
         return @rack_hijack_io.write(data) if @rack_hijack_io
         return @stream_send.call(data) if @stream_send
-      rescue EOFError
+      rescue EOFError, Errno::ECONNRESET
         @socket_object.client_gone
       end
 
