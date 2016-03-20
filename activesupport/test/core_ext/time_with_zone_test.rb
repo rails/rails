@@ -45,6 +45,30 @@ class TimeWithZoneTest < ActiveSupport::TestCase
     assert_raise(ArgumentError) { @twz.in_time_zone(Object.new) }
   end
 
+  def test_use_offset
+    Time.use_offset(-32400) do
+      assert_equal ActiveSupport::TimeWithZone.new(@utc, ActiveSupport::TimeZone['Alaska']), @twz.in_time_zone
+    end
+
+    Time.use_offset(0) do
+      assert_equal ActiveSupport::TimeWithZone.new(@utc, ActiveSupport::TimeZone['Casablanca']), @twz.in_time_zone
+    end
+
+    Time.use_zone(19800) do
+      assert_equal ActiveSupport::TimeWithZone.new(@utc, ActiveSupport::TimeZone['Kolkata']), @twz.in_time_zone
+    end
+  end
+
+  def test_use_offset_with_bad_argument
+    msg = assert_raise(ArgumentError) { Time.use_offset(nil) }
+    assert_equal 'Invalid Offset.', msg.to_s
+  end
+
+  def test_use_offset_with_no_mapping
+    msg = assert_raise(ArgumentError) { Time.use_offset(1234) }
+    assert_equal 'Invalid Offset: 1234', msg.to_s
+  end
+
   def test_localtime
     assert_equal @twz.localtime, @twz.utc.getlocal
   end

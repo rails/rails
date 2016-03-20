@@ -1,6 +1,7 @@
 require 'active_support/time_with_zone'
 require 'active_support/core_ext/time/acts_like'
 require 'active_support/core_ext/date_and_time/zones'
+require 'active_support/values/time_zone'
 
 class Time
   include DateAndTime::Zones
@@ -67,6 +68,28 @@ class Time
       end
     end
 
+    # Allows override of <tt>Time.zone</tt> locally inside supplied block;
+    # resets <tt>Time.zone</tt> to existing value when done.
+    #
+    #   class ApplicationController < ActionController::Base
+    #     around_action :set_time_zone
+    #
+    #     private
+    #
+    #     def set_time_zone
+    #       Time.use_offset(current_location.timezone_offset) { yield }
+    #     end
+    #   end
+    def use_offset(offset)
+      new_zone = find_zone_from_offset!(offset)
+      begin
+        old_zone, ::Time.zone = ::Time.zone, new_zone
+        yield
+      ensure
+        ::Time.zone = old_zone
+      end
+    end
+
     # Returns a TimeZone instance matching the time zone provided.
     # Accepts the time zone in any format supported by <tt>Time.zone=</tt>.
     # Raises an +ArgumentError+ for invalid time zones.
@@ -106,6 +129,12 @@ class Time
     #   Time.find_zone "NOT-A-TIMEZONE"   # => nil
     def find_zone(time_zone)
       find_zone!(time_zone) rescue nil
+    end
+
+    def find_zone_from_offset!(utc_offset)
+      raise(ArgumentError, 'Invalid Offset.') if utc_offset.nil?
+      zone = ActiveSupport::TimeZone[utc_offset]
+      raise(ArgumentError, "Invalid Offset: #{utc_offset}") unless zone
     end
   end
 end
