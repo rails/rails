@@ -35,16 +35,21 @@ module ActiveRecord
       # typecasting and deserialization.
       #
       #   class Task < ActiveRecord::Base
+      #     attribute :start_on, :date, default: -> { Date.new(2011, 10, 21) }
       #   end
       #
       #   task = Task.new(id: '1', completed_on: '2012-10-21')
       #   task.read_attribute('id')                            # => 1
       #   task.read_attribute_before_type_cast('id')           # => '1'
       #   task.read_attribute('completed_on')                  # => Sun, 21 Oct 2012
+      #   task.read_attribute('start_on')                      # => Fri, 21 Oct 2011
       #   task.read_attribute_before_type_cast('completed_on') # => "2012-10-21"
       #   task.read_attribute_before_type_cast(:completed_on)  # => "2012-10-21"
+      #   task.read_attribute_before_type_cast('start_on')      # => "2011-10-21"
+      #   task.read_attribute_before_type_cast(:start_on)      # => "2011-10-21"
       def read_attribute_before_type_cast(attr_name)
-        @attributes[attr_name.to_s].value_before_type_cast
+        value_before_type_cast = @attributes[attr_name.to_s].value_before_type_cast
+        value_before_type_cast.kind_of?(Proc) ? value_before_type_cast.call : value_before_type_cast
       end
 
       # Returns a hash of attributes before typecasting and deserialization.

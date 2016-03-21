@@ -142,6 +142,12 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_equal '10', keyboard.read_attribute_before_type_cast(:key_number)
   end
 
+  def test_name_before_type_cast
+    keyboard = Keyboard.new
+    assert_equal 'A nice keyboard', keyboard.read_attribute_before_type_cast('name')
+    assert_equal 'A nice keyboard', keyboard.read_attribute_before_type_cast(:name)
+  end
+
   # Syck calls respond_to? before actually calling initialize
   def test_respond_to_with_allocated_object
     klass = Class.new(ActiveRecord::Base) do
