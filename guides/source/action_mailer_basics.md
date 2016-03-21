@@ -204,10 +204,14 @@ class UsersController < ApplicationController
 end
 ```
 
-NOTE: Active Job's default behavior is to execute jobs ':inline'. So, you can use
-`deliver_later` now to send emails, and when you later decide to start sending
-them from a background job, you'll only need to set up Active Job to use a queueing
-backend (Sidekiq, Resque, etc).
+NOTE: Active Job's default behavior is to execute jobs via the `:async` adapter. So, you can use
+`deliver_later` now to send emails asynchronously.
+Active Job's default adapter runs jobs with an in-process thread pool.
+It's well-suited for the development/test environments, since it doesn't require
+any external infrastructure, but it's a poor fit for production since it drops
+pending jobs on restart.
+If you need a persistent backend, you will need to use an Active Job adapter
+that has a persistent backend (Sidekiq, Resque, etc).
 
 If you want to send emails right away (from a cronjob for example) just call
 `deliver_now`:
