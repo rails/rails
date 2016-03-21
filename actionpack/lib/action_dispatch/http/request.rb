@@ -337,7 +337,6 @@ module ActionDispatch
       else
         self.session = {}
       end
-      self.flash = nil
     end
 
     def session=(session) #:nodoc:

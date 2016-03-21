@@ -70,6 +70,11 @@ module ActionDispatch
           session.delete('flash')
         end
       end
+
+      def reset_session # :nodoc
+        super
+        self.flash = nil
+      end
     end
 
     class FlashNow #:nodoc:
