@@ -54,7 +54,8 @@ class Rails::ServerTest < ActiveSupport::TestCase
   def test_caching_without_option
     args = []
     options = Rails::Server::Options.new.parse!(args)
-    assert_equal nil, options[:caching]
+    merged_options = Rails::Server.new.default_options.merge(options)
+    assert_equal nil, merged_options[:caching]
   end
 
   def test_caching_with_option

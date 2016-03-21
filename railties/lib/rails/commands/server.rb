@@ -93,7 +93,7 @@ module Rails
         DoNotReverseLookup: true,
         environment:        (ENV['RAILS_ENV'] || ENV['RACK_ENV'] || "development").dup,
         daemonize:          false,
-        caching:            false,
+        caching:            nil,
         pid:                Options::DEFAULT_PID_PATH
       })
     end
