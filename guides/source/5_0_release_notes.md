@@ -370,7 +370,7 @@ Please refer to the [Changelog][action-mailer] for detailed changes.
     ([Pull Request](https://github.com/rails/rails/pull/18587))
 
 *   Added support for fragment caching in Action Mailer views.
-    Along with `config.action_mailer.perform_caching` to determine
+    Added new config option `config.action_mailer.perform_caching` to determine
     whether your templates should perform caching or not.
     ([Pull Request](https://github.com/rails/rails/pull/22825))
 
