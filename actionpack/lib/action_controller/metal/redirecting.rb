@@ -84,7 +84,7 @@ module ActionController
     #   redirect_back fallback_location:  proc { edit_post_url(@post) }
     #
     # All options that can be passed to <tt>redirect_to</tt> are accepted as
-    # options and the behavior is indetical.
+    # options and the behavior is identical.
     def redirect_back(fallback_location:, **args)
       if referer = request.headers["Referer"]
         redirect_to referer, **args
