@@ -515,6 +515,12 @@ module ApplicationTests
       assert_match "ar_internal_metadata", output, "tables should be dumped"
     end
 
+    def test_pride_option
+      create_test_file :models, 'account'
+      output =  Dir.chdir(app_path) { `bin/rails test -p` }
+      assert_no_match 'Finished', output
+    end
+
     def test_rake_passes_TESTOPTS_to_minitest
       create_test_file :models, 'account'
       output =  Dir.chdir(app_path) { `bin/rake test TESTOPTS=-v` }
