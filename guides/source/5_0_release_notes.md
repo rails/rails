@@ -94,6 +94,10 @@ Please refer to the [Changelog][railties] for detailed changes.
 *   Deprecated `config.serve_static_files` in favor of `config.public_file_server.enabled`.
     ([Pull Request](https://github.com/rails/rails/pull/22173))
 
+*   Deprecated the tasks in the `rails` task namespace in favor of the `app` namespace.
+    (e.g. `rails:update` and `rails:template` tasks is renamed to `app:update` and `app:template`.)
+    ([Pull Request](https://github.com/rails/rails/pull/23439))
+
 ### Notable changes
 
 *   Added Rails test runner `bin/rails test`.
@@ -119,6 +123,23 @@ Please refer to the [Changelog][railties] for detailed changes.
 *   Proxy Rake tasks through `bin/rails`.
     ([Pull Request](https://github.com/rails/rails/pull/22457),
      [Pull Request](https://github.com/rails/rails/pull/22288))
+
+*   New applications are generated with the evented file system monitor enabled
+    on Linux and Mac OS X. The feature can be opted out by passing
+    `--skip-listen` to the generator.
+    ([commit](https://github.com/rails/rails/commit/de6ad5665d2679944a9ee9407826ba88395a1003),
+    [commit](https://github.com/rails/rails/commit/94dbc48887bf39c241ee2ce1741ee680d773f202))
+
+*   Generate applications with an option to log to STDOUT in production
+    using the environment variable `RAILS_LOG_TO_STDOUT`.
+    ([Pull Request](https://github.com/rails/rails/pull/23734))
+
+*   Enable HSTS with IncludeSudomains header for new applications.
+    ([Pull Request](https://github.com/rails/rails/pull/23852))
+
+*   The application generator writes a new file `config/spring.rb`, which tells
+    Spring to watch additional common files.
+    ([commit](https://github.com/rails/rails/commit/b04d07337fd7bc17e88500e9d6bcd361885a45f8))
 
 
 Action Pack
@@ -261,6 +282,17 @@ Please refer to the [Changelog][action-pack] for detailed changes.
     instead of raising an error.
     (Pull Request [1](https://github.com/rails/rails/pull/19377),
     [2](https://github.com/rails/rails/pull/23827))
+
+*   Added an option for per-form CSRF tokens.
+    ([Pull Request](https://github.com/rails/rails/pull/22275))
+
+*   Added request encoding and response parsing to integration tests.
+    ([Pull Request](https://github.com/rails/rails/pull/21671))
+
+*   Update default rendering policies when the controller action did
+    not explicitly indicate a response.
+    ([Pull Request](https://github.com/rails/rails/pull/23827))
+
 
 Action View
 -------------

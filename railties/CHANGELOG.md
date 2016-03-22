@@ -42,7 +42,9 @@
 
     *Xavier Noria*
 
-*   Add dummy files for apple-touch-icon.png and apple-touch-icon.png. GH#23427
+*   Add dummy files for apple-touch-icon.png and apple-touch-icon.png.
+
+    See #23427.
 
     *Alexey Zabelin*
 
