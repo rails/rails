@@ -93,5 +93,7 @@ module Minitest
   mattr_accessor(:run_with_rails_extension) { false }
 end
 
+# Let libraries override our reporter setup by loading other plugins then
+# setting ourselves as the first plugin to be initialized.
 Minitest.load_plugins
-Minitest.extensions << 'rails'
+Minitest.extensions.unshift 'rails'
