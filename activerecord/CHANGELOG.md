@@ -1,6 +1,7 @@
 *   Execute default_scope defined by abstract class in the context of subclass.
 
-    Fixes #23413 & #10658
+    Fixes #23413.
+    Fixes #10658.
 
     *Mehmet Emin İNAÇ*
 

@@ -318,8 +318,9 @@ Please refer to the [Changelog][action-view] for detailed changes.
 *   Changed the default template handler from `ERB` to `Raw`.
     ([commit](https://github.com/rails/rails/commit/4be859f0fdf7b3059a28d03c279f03f5938efc80))
 
-*   Collection rendering automatically caches and fetches multiple partials.
-    ([Pull Request](https://github.com/rails/rails/pull/18948))
+*   Collection rendering can cache and fetches multiple partials.
+    ([Pull Request](https://github.com/rails/rails/pull/18948),
+    [commit](https://github.com/rails/rails/commit/e93f0f0f133717f9b06b1eaefd3442bd0ff43985))
 
 *   Allow defining explicit collection caching using a `# Template Collection: ...`
     directive inside templates.
@@ -330,6 +331,9 @@ Please refer to the [Changelog][action-view] for detailed changes.
 
 *   Make `disable_with` the default behavior for submit tags. Disables the
     button on submit to prevent double submits.
+    ([Pull Request](https://github.com/rails/rails/pull/21135))
+
+*   Collection rendering can cache and fetch multiple partials at once.
     ([Pull Request](https://github.com/rails/rails/pull/21135))
 
 
@@ -365,7 +369,9 @@ Please refer to the [Changelog][action-mailer] for detailed changes.
     the mailer queue name.
     ([Pull Request](https://github.com/rails/rails/pull/18587))
 
-*   Added `config.action_mailer.perform_caching` configuration to determine whether your templates should perform caching or not.
+*   Added support for fragment caching in Action Mailer views.
+    Along with `config.action_mailer.perform_caching` to determine
+    whether your templates should perform caching or not.
     ([Pull Request](https://github.com/rails/rails/pull/22825))
 
 
@@ -485,6 +491,10 @@ Please refer to the [Changelog][active-record] for detailed changes.
     `offset` method on relation instead.
     ([Pull Request](https://github.com/rails/rails/pull/22053))
 
+*   Deprecated `{insert|update|delete}_sql` in `DatabaseStatements`.
+    Use the `{insert|update|delete}` public methods instead.
+    ([Pull Request](https://github.com/rails/rails/pull/23086))
+
 ### Notable changes
 
 *   Added a `foreign_key` option to `references` while creating the table.
@@ -586,6 +596,9 @@ Please refer to the [Changelog][active-record] for detailed changes.
     model behavior.
     ([Pull Request](https://github.com/rails/rails/pull/22567))
 
+*   Added ActiveRecord `#second_to_last` and `#third_to_last` methods.
+    ([Pull Request](https://github.com/rails/rails/pull/23583))
+
 
 Active Model
 ------------
@@ -663,6 +676,10 @@ Please refer to the [Changelog][active-job] for detailed changes.
     queue jobs to a `concurrent-ruby` thread pool.
     ([Pull Request](https://github.com/rails/rails/pull/21257))
 
+*   Change the default adapter from inline to async. It's a better default as
+    tests will then not mistakenly come to rely on behavior happening
+    synchronously.
+    ([commit](https://github.com/rails/rails/commit/625baa69d14881ac49ba2e5c7d9cac4b222d7022))
 
 Active Support
 --------------
@@ -730,6 +747,13 @@ Please refer to the [Changelog][active-support] for detailed changes.
 
     Deprecated `ActiveSupport::Cache::LocaleCache#set_cache_value` in favor of `write_cache_value`.
     ([Pull Request](https://github.com/rails/rails/pull/22215))
+
+*   Deprecated passing arguments to `assert_nothing_raised`.
+    ([Pull Request](https://github.com/rails/rails/pull/23789))
+
+*   Deprecated `Module.local_constants` in favor of `Module.constants(false)`.
+    ([Pull Request](https://github.com/rails/rails/pull/23936))
+
 
 ### Notable changes
 
@@ -799,6 +823,17 @@ Please refer to the [Changelog][active-support] for detailed changes.
 *   Added thread_m/cattr_accessor/reader/writer suite of methods for declaring
     class and module variables that live per-thread.
     ([Pull Request](https://github.com/rails/rails/pull/22630))
+
+*   Added `Array#second_to_last` and `Array#third_to_last` methods.
+    ([Pull Request](https://github.com/rails/rails/pull/23583))
+
+*   Added `#on_weekday?` method to `Date`, `Time`, and `DateTime`.
+    ([Pull Request](https://github.com/rails/rails/pull/23687))
+
+*   Publish `ActiveSupport::Executor` and `ActiveSupport::Reloader` APIs to allow
+    components and libraries to manage, and participate in, the execution of
+    application code, and the application reloading process.
+    ([Pull Request](https://github.com/rails/rails/pull/23807))
 
 
 Credits

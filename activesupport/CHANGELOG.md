@@ -7,7 +7,7 @@
 
     *Yuichiro Kaneko*
 
-*   Publish ActiveSupport::Executor and ActiveSupport::Reloader APIs to allow
+*   Publish `ActiveSupport::Executor` and `ActiveSupport::Reloader` APIs to allow
     components and libraries to manage, and participate in, the execution of
     application code, and the application reloading process.
 
@@ -46,7 +46,7 @@
 
 ## Rails 5.0.0.beta2 (February 01, 2016) ##
 
-*   Change number_to_currency behavior for checking negativity.
+*   Change `number_to_currency` behavior for checking negativity.
 
     Used `to_f.negative` instead of using `to_f.phase` for checking negativity
     of a number in number_to_currency helper.
