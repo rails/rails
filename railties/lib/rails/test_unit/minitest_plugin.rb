@@ -93,7 +93,9 @@ module Minitest
   mattr_accessor(:run_with_rails_extension) { false }
 end
 
-# Let libraries override our reporter setup by loading other plugins then
-# setting ourselves as the first plugin to be initialized.
+# Put Rails as the first plugin minitest initializes so other plugins
+# can override or replace our default reporter setup.
+# Since minitest only loads plugins if its extensions are empty we have
+# to call `load_plugins` first.
 Minitest.load_plugins
 Minitest.extensions.unshift 'rails'
