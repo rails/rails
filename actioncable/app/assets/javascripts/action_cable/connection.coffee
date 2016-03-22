@@ -20,7 +20,7 @@ class ActionCable.Connection
 
   open: =>
     if @isActive()
-      ActionCable.log("Attemped to open WebSocket, but existing socket is #{@getState()}")
+      ActionCable.log("Attempted to open WebSocket, but existing socket is #{@getState()}")
       throw new Error("Existing connection must be closed before opening")
     else
       ActionCable.log("Opening WebSocket, current state is #{@getState()}")
