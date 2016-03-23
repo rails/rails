@@ -40,7 +40,7 @@ class Module
   # Also, you can pass a block to set up the attribute with a default value.
   #
   #   module HairColors
-  #     cattr_reader :hair_colors do
+  #     mattr_reader :hair_colors do
   #       [:brown, :black, :blonde, :red]
   #     end
   #   end
