@@ -1,3 +1,9 @@
+*   Ability to set ActiveSupport::JSON::Decoding.with_indifferent_access = true
+    to convert all hashes of decoding result to ActiveSupport::HashWithIndifferentAccess
+    and therefore, access them by string or symbol keys indifferently.
+
+    *Andrey Voronkov*
+
 *   Prevent `Marshal.load` from looping infinitely when trying to autoload a constant
     which resolves to a different name.
 

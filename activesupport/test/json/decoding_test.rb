@@ -88,6 +88,18 @@ class TestJSONDecoding < ActiveSupport::TestCase
     end
   end
 
+  test "json decodes all hashes with indifferent access" do
+    begin
+      prev = ActiveSupport::JSON::Decoding.with_indifferent_access
+      ActiveSupport::JSON::Decoding.with_indifferent_access = true
+      decoded = ActiveSupport::JSON.decode(%({ "array": [1, null, false, true, { "hash": { "a": 5 } } ] }))
+      assert_equal 5, decoded[:array].last[:hash][:a]
+      assert_equal 5, decoded['array'].last['hash']['a']
+    ensure
+      ActiveSupport::JSON::Decoding.with_indifferent_access = prev
+    end
+  end
+
   def test_failed_json_decoding
     assert_raise(ActiveSupport::JSON.parse_error) { ActiveSupport::JSON.decode(%(undefined)) }
     assert_raise(ActiveSupport::JSON.parse_error) { ActiveSupport::JSON.decode(%({a: 1})) }
