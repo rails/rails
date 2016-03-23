@@ -309,18 +309,29 @@ module ActiveRecord
   end
 
   class DatabaseTasksMigrateTest < ActiveRecord::TestCase
+    def setup
+      ActiveRecord::Tasks::DatabaseTasks.migrations_paths = 'custom/path'
+    end
+
+    def teardown
+      ActiveRecord::Tasks::DatabaseTasks.migrations_paths = nil
+    end
+
     def test_migrate_receives_correct_env_vars
       verbose, version = ENV['VERBOSE'], ENV['VERSION']
 
-      ActiveRecord::Tasks::DatabaseTasks.migrations_paths = 'custom/path'
       ENV['VERBOSE'] = 'false'
       ENV['VERSION'] = '4'
 
       ActiveRecord::Migrator.expects(:migrate).with('custom/path', 4)
       ActiveRecord::Tasks::DatabaseTasks.migrate
     ensure
-      ActiveRecord::Tasks::DatabaseTasks.migrations_paths = nil
       ENV['VERBOSE'], ENV['VERSION'] = verbose, version
+    end
+
+    def test_migrate_clears_schema_cache_afterward
+      ActiveRecord::Base.expects(:clear_cache!)
+      ActiveRecord::Tasks::DatabaseTasks.migrate
     end
   end
 
