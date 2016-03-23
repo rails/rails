@@ -27,7 +27,7 @@ class Module
   # <tt>instance_reader: false</tt> or <tt>instance_accessor: false</tt>.
   #
   #   module HairColors
-  #     mattr_writer :hair_colors, instance_reader: false
+  #     mattr_reader :hair_colors, instance_reader: false
   #   end
   #
   #   class Person
