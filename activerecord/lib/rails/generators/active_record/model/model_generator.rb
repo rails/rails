@@ -46,11 +46,6 @@ module ActiveRecord
           end
         end
 
-        # Used by the migration template to determine the parent name of the model
-        def parent_class_name
-          options[:parent] || determine_default_parent_class
-        end
-
         def application_record_exist?
           file_exist = nil
           in_root { file_exist = File.exist?(application_record_file_name) }
@@ -62,14 +57,6 @@ module ActiveRecord
             "app/models/#{namespaced_path}/application_record.rb"
           else
             'app/models/application_record.rb'
-          end
-        end
-
-        def determine_default_parent_class
-          if application_record_exist?
-            "ApplicationRecord"
-          else
-            "ActiveRecord::Base"
           end
         end
     end
