@@ -36,6 +36,7 @@ module ActionCable
           @faye.on(:open)    { |event| @event_target.on_open }
           @faye.on(:message) { |event| @event_target.on_message(event.data) }
           @faye.on(:close)   { |event| @event_target.on_close(event.reason, event.code) }
+          @faye.on(:error)   { |event| @event_target.on_error(event.message) }
         end
     end
   end

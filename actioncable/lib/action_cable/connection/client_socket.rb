@@ -71,6 +71,8 @@ module ActionCable
 
       def write(data)
         @stream.write(data)
+      rescue => e
+        emit_error e.message
       end
 
       def transmit(message)
