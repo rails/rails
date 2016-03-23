@@ -377,8 +377,7 @@ class BasicsTest < ActiveRecord::TestCase
     Category.reset_table_name
     assert_equal "categories", Category.table_name
   ensure
-    ActiveRecord::Base.table_name_prefix = ""
-    ActiveRecord::Base.table_name_suffix = ""
+    remove_prefix_and_suffix_from_table_name_for(ActiveRecord::Base)
     GUESSED_CLASSES.each(&:reset_table_name)
   end
 
@@ -399,8 +398,7 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal "category", Category.table_name
   ensure
     ActiveRecord::Base.pluralize_table_names = true
-    ActiveRecord::Base.table_name_prefix = ""
-    ActiveRecord::Base.table_name_suffix = ""
+    remove_prefix_and_suffix_from_table_name_for(ActiveRecord::Base)
     GUESSED_CLASSES.each(&:reset_table_name)
   end
 
@@ -428,8 +426,7 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal "credit_cards", CreditCard.table_name
     assert_equal "categories", Category.table_name
   ensure
-    CreditCard.table_name_prefix = ""
-    CreditCard.table_name_suffix = ""
+    remove_prefix_and_suffix_from_table_name_for(CreditCard)
     GUESSED_CLASSES.each(&:reset_table_name)
   end
 
@@ -1531,4 +1528,12 @@ class BasicsTest < ActiveRecord::TestCase
     assert Developer.new.respond_to?(:last_name=)
     assert Developer.new.respond_to?(:last_name?)
   end
+
+  private
+
+  def remove_prefix_and_suffix_from_table_name_for(klass)
+    klass.table_name_prefix = ""
+    klass.table_name_suffix = ""
+  end
+
 end
