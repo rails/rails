@@ -19,6 +19,10 @@ module ActiveSupport
       def decode(json)
         data = ::JSON.parse(json, quirks_mode: true)
 
+        if Decoding.with_indifferent_access
+          data = to_indifferent_accessible(data)
+        end
+
         if ActiveSupport.parse_json_times
           convert_dates_from(data)
         else
@@ -62,6 +66,32 @@ module ActiveSupport
           data
         end
       end
+
+      def to_indifferent_accessible(data)
+        case data
+          when nil
+            nil
+          when Array
+            data.map! { |d| to_indifferent_accessible(d) }
+          when Hash
+            data.each do |key, value|
+              data[key] = to_indifferent_accessible(value)
+            end
+            ActiveSupport::HashWithIndifferentAccess.new(data)
+          else
+            data
+        end
+      end
+    end
+
+    module Decoding #:nodoc:
+
+      class << self
+        # Ability to make all hashes in decode result become +ActiveSupport::HashWithIndifferentAccess+ objects
+        attr_accessor :with_indifferent_access
+      end
+
+      self.with_indifferent_access = false
     end
   end
 end
