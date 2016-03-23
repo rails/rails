@@ -1,3 +1,10 @@
+*   MySQL: strict mode respects other SQL modes rather than overwriting them.
+    Setting `strict: true` adds `STRICT_ALL_TABLES` to `sql_mode`. Setting
+    `strict: false` removes `STRICT_TRANS_TABLES`, `STRICT_ALL_TABLES`, and
+    `TRADITIONAL` from `sql_mode`.
+
+    *Ryuta Kamizono*
+
 *   Execute default_scope defined by abstract class in the context of subclass.
 
     Fixes #23413.
