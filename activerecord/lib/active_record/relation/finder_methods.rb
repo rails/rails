@@ -586,7 +586,15 @@ module ActiveRecord
       if loaded?
         @records[index, limit]
       else
+        # determine the appropriate size of the record set to return,
+        # based on the pre-existing limit_value
+        if limit_value.present?
+          limit = [limit_value, index + limit].min - index
+          limit = [0, limit].max
+        end
+
         index += offset
+        return [] if limit <= 0
         find_nth_with_limit(index, limit)
       end
     end

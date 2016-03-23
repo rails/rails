@@ -390,6 +390,20 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal expected, Topic.first
   end
 
+  def test_first_nth_with_limit
+    assert_equal 1, Topic.limit(1).first(1).size
+    assert_equal 2, Topic.limit(2).first(2).size
+    assert_equal 2, Topic.limit(2).first(3).size
+    assert_equal Topic.limit(1).first(2).size, Topic.limit(1).last(2).size
+    assert_equal Topic.limit(2).first(3).size, Topic.limit(2).last(3).size
+  end
+
+  def test_first_nth_with_offset_and_limit
+    assert_equal topics(:second), Topic.offset(1).limit(2).first(3).first
+    assert_equal topics(:third), Topic.offset(1).limit(2).first(3).second
+    assert_equal nil, Topic.offset(1).limit(2).first(3).third
+  end
+
   def test_model_class_responds_to_first_bang
     assert Topic.first!
     Topic.delete_all
@@ -410,6 +424,18 @@ class FinderTest < ActiveRecord::TestCase
     expected = topics(:second)
     expected.touch # PostgreSQL changes the default order if no order clause is used
     assert_equal expected, Topic.second
+  end
+
+  def test_second_with_limit
+    assert_equal nil, Topic.limit(1).second
+    assert_equal topics(:second), Topic.limit(2).second
+    assert_equal topics(:second), Topic.limit(3).second
+  end
+
+  def test_second_with_offset_and_limit
+    assert_equal nil, Topic.offset(1).limit(1).second
+    assert_equal topics(:third), Topic.offset(1).limit(2).second
+    assert_equal topics(:fourth), Topic.offset(2).limit(3).second
   end
 
   def test_model_class_responds_to_second_bang
@@ -434,6 +460,20 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal expected, Topic.third
   end
 
+  def test_third_with_limit
+    assert_equal nil, Topic.limit(1).third
+    assert_equal nil, Topic.limit(2).third
+    assert_equal topics(:third), Topic.limit(3).third
+    assert_equal topics(:third), Topic.limit(4).third
+  end
+
+  def test_third_with_offset_and_limit
+    assert_equal nil, Topic.offset(1).limit(1).third
+    assert_equal nil, Topic.offset(1).limit(2).third
+    assert_equal topics(:fourth), Topic.offset(1).limit(3).third
+    assert_equal topics(:fifth), Topic.offset(2).limit(4).third
+  end
+
   def test_model_class_responds_to_third_bang
     assert Topic.third!
     Topic.delete_all
@@ -454,6 +494,22 @@ class FinderTest < ActiveRecord::TestCase
     expected = topics(:fourth)
     expected.touch # PostgreSQL changes the default order if no order clause is used
     assert_equal expected, Topic.fourth
+  end
+
+  def test_fourth_with_limit
+    assert_equal nil, Topic.limit(1).fourth
+    assert_equal nil, Topic.limit(2).fourth
+    assert_equal nil, Topic.limit(3).fourth
+    assert_equal topics(:fourth), Topic.limit(4).fourth
+    assert_equal topics(:fourth), Topic.limit(5).fourth
+  end
+
+  def test_fourth_with_offset_and_limit
+    assert_equal nil, Topic.offset(1).limit(1).fourth
+    assert_equal nil, Topic.offset(1).limit(2).fourth
+    assert_equal nil, Topic.offset(1).limit(3).fourth
+    assert_equal topics(:fifth), Topic.offset(1).limit(4).fourth
+    assert_equal nil, Topic.offset(2).limit(5).fourth
   end
 
   def test_model_class_responds_to_fourth_bang
@@ -478,6 +534,23 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal expected, Topic.fifth
   end
 
+  def test_fifth_with_limit
+    assert_equal nil, Topic.limit(1).fifth
+    assert_equal nil, Topic.limit(2).fifth
+    assert_equal nil, Topic.limit(3).fifth
+    assert_equal nil, Topic.limit(4).fifth
+    assert_equal topics(:fifth), Topic.limit(5).fifth
+  end
+  
+  def test_fifth_with_offset_and_limit
+    assert_equal nil, Topic.offset(1).limit(1).fifth
+    assert_equal nil, Topic.offset(1).limit(2).fifth
+    assert_equal nil, Topic.offset(1).limit(3).fifth
+    assert_equal nil, Topic.offset(1).limit(4).fifth
+    assert_equal nil, Topic.offset(1).limit(5).fifth
+    assert_equal nil, Topic.offset(2).limit(6).fifth
+  end
+  
   def test_model_class_responds_to_fifth_bang
     assert Topic.fifth!
     Topic.delete_all

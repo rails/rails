@@ -1,3 +1,14 @@
+*   Fixed an issue where using `first(n)` or `second` (etc.) after a `limit()`
+    would ignore the limit. (E.g., `limit(1).first(3).size == 3`.)
+    This had resulted in inconsistencies between `first(n)` and `last(n)`,
+    because `last(n)` did respect the `limit()` (e.g.,
+    `limit(1).first(3).size == 1`). The `first` finder is now fixed
+    to correctly respect the `limit()`, making it consistent with `last(n)`.
+
+    Fixes #23979.
+
+    *Brian Christian*
+
 *   Execute default_scope defined by abstract class in the context of subclass.
 
     Fixes #23413.
