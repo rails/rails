@@ -19,6 +19,8 @@ require 'models/comment'
 require 'models/minimalistic'
 require 'models/warehouse_thing'
 require 'models/parrot'
+require 'models/pirate'
+require 'models/treasure'
 require 'models/person'
 require 'models/edge'
 require 'models/joke'
@@ -1261,13 +1263,20 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_clear_cache!
     # preheat cache
-    c1 = Post.connection.schema_cache.columns('posts')
+    schema_columns_before = Post.connection.schema_cache.columns('posts')
+    model_columns_before  = Post.columns
     ActiveRecord::Base.clear_cache!
-    c2 = Post.connection.schema_cache.columns('posts')
-    c1.each_with_index do |v, i|
-      assert_not_same v, c2[i]
+    schema_columns_after = Post.connection.schema_cache.columns('posts')
+    model_columns_after  = Post.columns
+
+    schema_columns_before.each_with_index do |c, i|
+      assert_not_same c, schema_columns_after[i]
     end
-    assert_equal c1, c2
+    model_columns_before.each_with_index do |c, i|
+      assert_not_same c, model_columns_after[i]
+    end
+    assert_equal schema_columns_before, schema_columns_after
+    assert_equal model_columns_before,  model_columns_after
   end
 
   def test_current_scope_is_reset
