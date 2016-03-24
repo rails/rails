@@ -190,7 +190,7 @@ module ActionController
     #     oddity: 'Heavy stone crab'
     #   })
     #   params.to_unsafe_h
-    #   # => {"name"=>"Senjougahara Hitagi", oddity" => "Heavy stone crab"}
+    #   # => {"name"=>"Senjougahara Hitagi", "oddity" => "Heavy stone crab"}
     def to_unsafe_h
       convert_parameters_to_hashes(@parameters, :to_unsafe_h)
     end
