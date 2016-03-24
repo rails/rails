@@ -159,6 +159,7 @@ module ActiveRecord
         Migrator.migrate(migrations_paths, version) do |migration|
           scope.blank? || scope == migration.scope
         end
+        ActiveRecord::Base.clear_cache!
       ensure
         Migration.verbose = verbose_was
       end
