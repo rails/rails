@@ -1107,4 +1107,7 @@ class CopyMigrationsTest < ActiveRecord::TestCase
     ActiveRecord::Base.logger = old
   end
 
+  def test_unknown_migration_version_should_raise_an_argument_error
+    assert_raise(ArgumentError) { ActiveRecord::Migration[1.0] }
+  end
 end
