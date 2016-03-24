@@ -1,3 +1,10 @@
+*   The form builder now properly displays values when passing a proc form
+    default to the attributes API.
+
+    Fixes #24249.
+
+    *Sean Griffin*
+
 *   MySQL: strict mode respects other SQL modes rather than overwriting them.
     Setting `strict: true` adds `STRICT_ALL_TABLES` to `sql_mode`. Setting
     `strict: false` removes `STRICT_TRANS_TABLES`, `STRICT_ALL_TABLES`, and
