@@ -68,7 +68,7 @@ module ActiveRecord
     class ScopeRegistry # :nodoc:
       extend ActiveSupport::PerThreadRegistry
 
-      VALID_SCOPE_TYPES = [:current_scope, :ignore_default_scope]
+      VALID_SCOPE_TYPES = [:current_scope, :ignore_default_scope].freeze
 
       def initialize
         @registry = Hash.new { |hash, key| hash[key] = {} }

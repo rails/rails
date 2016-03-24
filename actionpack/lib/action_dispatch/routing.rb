@@ -250,7 +250,7 @@ module ActionDispatch
     autoload :UrlFor
     autoload :PolymorphicRoutes
 
-    SEPARATORS = %w( / . ? ) #:nodoc:
+    SEPARATORS = %w( / . ? ).freeze #:nodoc:
     HTTP_METHODS = [:get, :head, :post, :patch, :put, :delete, :options] #:nodoc:
   end
 end
