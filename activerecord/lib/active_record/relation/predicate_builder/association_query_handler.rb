@@ -4,6 +4,8 @@ module ActiveRecord
       def self.value_for(table, column, value)
         klass = if table.associated_table(column).polymorphic_association? && ::Array === value && value.first.is_a?(Base)
           PolymorphicArrayValue
+        elsif table.associated_table(column).polymorphic_association? && ::Set === value && value.first.is_a?(Base)
+          PolymorphicSetValue
         else
           AssociationQueryValue
         end
@@ -69,6 +71,9 @@ module ActiveRecord
           value.klass.base_class
         when Array
           val = value.compact.first
+          val.class.base_class if val.is_a?(Base)
+        when Set
+          val = value.first
           val.class.base_class if val.is_a?(Base)
         when Base
           value.class.base_class
