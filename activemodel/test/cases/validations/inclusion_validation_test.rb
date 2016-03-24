@@ -21,24 +21,38 @@ class InclusionValidationTest < ActiveModel::TestCase
   end
 
   def test_validates_inclusion_of_time_range
-    Topic.validates_inclusion_of(:created_at, in: 1.year.ago..Time.now)
+    range_begin = 1.year.ago
+    range_end = Time.now
+    Topic.validates_inclusion_of(:created_at, in: range_begin..range_end)
     assert Topic.new(title: 'aaa', created_at: 2.years.ago).invalid?
     assert Topic.new(title: 'aaa', created_at: 3.months.ago).valid?
     assert Topic.new(title: 'aaa', created_at: 37.weeks.from_now).invalid?
+    assert Topic.new(title: 'aaa', created_at: range_begin).valid?
+    assert Topic.new(title: 'aaa', created_at: range_end).valid?
   end
 
   def test_validates_inclusion_of_date_range
-    Topic.validates_inclusion_of(:created_at, in: 1.year.until(Date.today)..Date.today)
+    range_begin = 1.year.until(Date.today)
+    range_end = Date.today
+    Topic.validates_inclusion_of(:created_at, in: range_begin..range_end)
     assert Topic.new(title: 'aaa', created_at: 2.years.until(Date.today)).invalid?
     assert Topic.new(title: 'aaa', created_at: 3.months.until(Date.today)).valid?
     assert Topic.new(title: 'aaa', created_at: 37.weeks.since(Date.today)).invalid?
+    assert Topic.new(title: 'aaa', created_at: 1.year.until(Date.today)).valid?
+    assert Topic.new(title: 'aaa', created_at: Date.today).valid?
+    assert Topic.new(title: 'aaa', created_at: range_begin).valid?
+    assert Topic.new(title: 'aaa', created_at: range_end).valid?
   end
 
   def test_validates_inclusion_of_date_time_range
-    Topic.validates_inclusion_of(:created_at, in: 1.year.until(DateTime.current)..DateTime.current)
+    range_begin = 1.year.until(DateTime.current)
+    range_end = DateTime.current
+    Topic.validates_inclusion_of(:created_at, in: range_begin..range_end)
     assert Topic.new(title: 'aaa', created_at: 2.years.until(DateTime.current)).invalid?
     assert Topic.new(title: 'aaa', created_at: 3.months.until(DateTime.current)).valid?
     assert Topic.new(title: 'aaa', created_at: 37.weeks.since(DateTime.current)).invalid?
+    assert Topic.new(title: 'aaa', created_at: range_begin).valid?
+    assert Topic.new(title: 'aaa', created_at: range_end).valid?
   end
 
   def test_validates_inclusion_of
