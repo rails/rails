@@ -656,6 +656,19 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_generate_application_mailer_when_does_not_exist_in_mountable_engine
+    run_generator [destination_root, '--mountable']
+    FileUtils.rm "#{destination_root}/app/mailers/bukkits/application_mailer.rb"
+    capture(:stdout) do
+      `#{destination_root}/bin/rails g mailer User`
+    end
+
+    assert_file "#{destination_root}/app/mailers/bukkits/application_mailer.rb" do |mailer|
+      assert_match(/module Bukkits/, mailer)
+      assert_match(/class ApplicationMailer < ActionMailer::Base/, mailer)
+    end
+  end
+
   def test_after_bundle_callback
     path = 'http://example.org/rails_template'
     template = %{ after_bundle { run 'echo ran after_bundle' } }
