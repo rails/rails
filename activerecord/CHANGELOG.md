@@ -1,3 +1,12 @@
+*   `where` now accepts sets as values. 
+
+    Example:
+
+        User.where({ name: Set.new(["Alice", "Bob"]) })
+        # SELECT * FROM users WHERE name IN ('Alice', 'Bob')
+
+    *Fernando Tapia Rico*
+
 *   MySQL: strict mode respects other SQL modes rather than overwriting them.
     Setting `strict: true` adds `STRICT_ALL_TABLES` to `sql_mode`. Setting
     `strict: false` removes `STRICT_TRANS_TABLES`, `STRICT_ALL_TABLES`, and

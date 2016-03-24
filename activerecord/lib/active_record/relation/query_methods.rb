@@ -555,12 +555,15 @@ module ActiveRecord
     # #where will also accept a hash condition, in which the keys are fields and the values
     # are values to be searched for.
     #
-    # Fields can be symbols or strings. Values can be single values, arrays, or ranges.
+    # Fields can be symbols or strings. Values can be single values, arrays, sets, or ranges.
     #
     #    User.where({ name: "Joe", email: "joe@example.com" })
     #    # SELECT * FROM users WHERE name = 'Joe' AND email = 'joe@example.com'
     #
-    #    User.where({ name: ["Alice", "Bob"]})
+    #    User.where({ name: ["Alice", "Bob"] })
+    #    # SELECT * FROM users WHERE name IN ('Alice', 'Bob')
+    #
+    #    User.where({ name: Set.new(["Alice", "Bob"]) })
     #    # SELECT * FROM users WHERE name IN ('Alice', 'Bob')
     #
     #    User.where({ created_at: (Time.now.midnight - 1.day)..Time.now.midnight })

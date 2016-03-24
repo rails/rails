@@ -67,6 +67,13 @@ module ActiveRecord
       assert_equal Post.where(author_id: [1,2]).to_sql, Post.where(author: [1,2]).to_sql
     end
 
+    def test_belongs_to_set_value_where
+      expected = Post.where(author_id: Set.new([1,2])).to_sql
+      actual = Post.where(author: Set.new([1,2])).to_sql
+
+      assert_equal expected, actual
+    end
+
     def test_belongs_to_nested_relation_where
       expected = Post.where(author_id: Author.where(id: [1,2])).to_sql
       actual   = Post.where(author:    Author.where(id: [1,2])).to_sql
@@ -115,6 +122,19 @@ module ActiveRecord
       assert_equal expected.to_sql, actual.to_sql
     end
 
+    def test_polymorphic_nested_set_where
+      treasure = Treasure.new
+      treasure.id = 1
+      hidden = HiddenTreasure.new
+      hidden.id = 2
+      treasures = Set.new([treasure, hidden])
+
+      expected = PriceEstimate.where(estimate_of_type: 'Treasure', estimate_of_id: treasures)
+      actual   = PriceEstimate.where(estimate_of: treasures)
+
+      assert_equal expected.to_sql, actual.to_sql
+    end
+
     def test_polymorphic_array_where_multiple_types
       treasure_1 = treasures(:diamond)
       treasure_2 = treasures(:sapphire)
@@ -122,6 +142,17 @@ module ActiveRecord
 
       expected = [price_estimates(:diamond), price_estimates(:sapphire_1), price_estimates(:sapphire_2), price_estimates(:honda)].sort
       actual   = PriceEstimate.where(estimate_of: [treasure_1, treasure_2, car]).to_a.sort
+
+      assert_equal expected, actual
+    end
+
+    def test_polymorphic_set_where_multiple_types
+      treasure_1 = treasures(:diamond)
+      treasure_2 = treasures(:sapphire)
+      car = cars(:honda)
+
+      expected = [price_estimates(:diamond), price_estimates(:sapphire_1), price_estimates(:sapphire_2), price_estimates(:honda)].sort
+      actual   = PriceEstimate.where(estimate_of: Set.new([treasure_1, treasure_2, car])).to_a.sort
 
       assert_equal expected, actual
     end
@@ -214,6 +245,10 @@ module ActiveRecord
       assert_equal 0, Post.where(:id => []).count
     end
 
+    def test_where_with_table_name_and_empty_set
+      assert_equal 0, Post.where(:id => Set.new).count
+    end
+
     def test_where_with_empty_hash_and_no_foreign_key
       assert_equal 0, Edge.where(:sink => {}).count
     end
@@ -285,6 +320,19 @@ module ActiveRecord
 
     def test_where_on_association_with_custom_primary_key_with_array_of_ids
       essay = Essay.where(writer: ["David"]).first
+
+      assert_equal essays(:david_modest_proposal), essay
+    end
+
+    def test_where_on_association_with_custom_primary_key_with_set_of_base
+      author = authors(:david)
+      essay = Essay.where(writer: Set.new([author])).first
+
+      assert_equal essays(:david_modest_proposal), essay
+    end
+
+    def test_where_on_association_with_custom_primary_key_with_set_of_ids
+      essay = Essay.where(writer: Set.new(["David"])).first
 
       assert_equal essays(:david_modest_proposal), essay
     end
