@@ -29,8 +29,8 @@ module ActiveRecord
   # = Active Record \Validations
   #
   # Active Record includes the majority of its validations from ActiveModel::Validations
-  # all of which accept the <tt>:on</tt> argument to define the context where the
-  # validations are active. Active Record will always supply either the context of
+  # all of which accept <tt>:on</tt> and <tt>:except</tt> arguments to define the contexts where the
+  # validations are active or excluded. Active Record will always supply either the context of
   # <tt>:create</tt> or <tt>:update</tt> dependent on whether the model is a
   # {new_record?}[rdoc-ref:Persistence#new_record?].
   module Validations
@@ -58,8 +58,9 @@ module ActiveRecord
     # If the argument is +false+ (default is +nil+), the context is set to <tt>:create</tt> if
     # {new_record?}[rdoc-ref:Persistence#new_record?] is +true+, and to <tt>:update</tt> if it is not.
     #
-    # \Validations with no <tt>:on</tt> option will run no matter the context. \Validations with
-    # some <tt>:on</tt> option will only run in the specified context.
+    # \Validations with no <tt>:on</tt> and no <tt>except</tt> option will run no matter the context.
+    # \Validations with some <tt>:on</tt> option will # only run in the specified context.
+    # \Validations with some <tt>:except</tt> option will not run in the specified context.
     def valid?(context = nil)
       context ||= default_validation_context
       output = super(context)

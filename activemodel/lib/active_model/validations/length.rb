@@ -145,7 +145,7 @@ module ActiveModel
       #   <tt>too_long</tt>/<tt>too_short</tt>/<tt>wrong_length</tt> message.
       #
       # There is also a list of default options supported by every validator:
-      # +:if+, +:unless+, +:on+ and +:strict+.
+      # +:if+, +:unless+, +:on+, +:except+ and +:strict+.
       # See <tt>ActiveModel::Validation#validates</tt> for more information
       def validates_length_of(*attr_names)
         validates_with LengthValidator, _merge_attributes(attr_names)

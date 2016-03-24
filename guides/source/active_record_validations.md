@@ -830,6 +830,15 @@ class Person < ApplicationRecord
 end
 ```
 
+### `:except`
+
+The `:except` option lets you specify when the validation should not happen. The
+default behavior for all the built-in validation helpers is to be run on save
+(both when you're creating a new record and when you're updating it). If you
+want to change it, you can use `except: :create` to don't run the validation when a
+new record is created or `except: :update` to don't run the validation only when a record
+is updated.
+
 Strict Validations
 ------------------
 

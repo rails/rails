@@ -57,7 +57,7 @@ module ActiveModel
   class Errors
     include Enumerable
 
-    CALLBACKS_OPTIONS = [:if, :unless, :on, :allow_nil, :allow_blank, :strict]
+    CALLBACKS_OPTIONS = [:if, :unless, :on, :except, :allow_nil, :allow_blank, :strict]
     MESSAGE_OPTIONS = [:message]
 
     attr_reader :messages, :details

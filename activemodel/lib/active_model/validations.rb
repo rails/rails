@@ -73,6 +73,8 @@ module ActiveModel
       #   or an array of symbols. (e.g. <tt>on: :create</tt> or
       #   <tt>on: :custom_validation_context</tt> or
       #   <tt>on: [:create, :custom_validation_context]</tt>)
+      # * <tt>:except</tt> - Specifies the contexts where this validation is skipped.
+      #   Runs in all validation contexts by default (nil). Use the same syntax as for +:on+
       # * <tt>:allow_nil</tt> - Skip validation if attribute is +nil+.
       # * <tt>:allow_blank</tt> - Skip validation if attribute is blank.
       # * <tt>:if</tt> - Specifies a method, proc or string to call to determine
@@ -88,7 +90,7 @@ module ActiveModel
         validates_with BlockValidator, _merge_attributes(attr_names), &block
       end
 
-      VALID_OPTIONS_FOR_VALIDATE = [:on, :if, :unless, :prepend].freeze # :nodoc:
+      VALID_OPTIONS_FOR_VALIDATE = [:on, :except, :if, :unless, :prepend].freeze # :nodoc:
 
       # Adds a validation method or block to the class. This is useful when
       # overriding the +validate+ instance method becomes too unwieldy and
@@ -139,6 +141,8 @@ module ActiveModel
       #   or an array of symbols. (e.g. <tt>on: :create</tt> or
       #   <tt>on: :custom_validation_context</tt> or
       #   <tt>on: [:create, :custom_validation_context]</tt>)
+      # * <tt>:except</tt> - Specifies the contexts where this validation is skipped.
+      #   Runs in all validation contexts by default (nil). Use the same syntax as for +:on+
       # * <tt>:if</tt> - Specifies a method, proc or string to call to determine
       #   if the validation should occur (e.g. <tt>if: :allow_validation</tt>,
       #   or <tt>if: Proc.new { |user| user.signup_step > 2 }</tt>). The method,
@@ -159,12 +163,20 @@ module ActiveModel
           end
         end
 
-        if options.key?(:on)
+        if options.key?(:on) || options.key?(:except)
           options = options.dup
-          options[:if] = Array(options[:if])
-          options[:if].unshift ->(o) {
-            !(Array(options[:on]) & Array(o.validation_context)).empty?
-          }
+          if options.key?(:on)
+            options[:if] = Array(options[:if])
+            options[:if].unshift ->(o) {
+              !(Array(options[:on]) & Array(o.validation_context)).empty?
+            }
+          end
+          if options.key?(:except)
+            options[:unless] = Array(options[:unless])
+            options[:unless].unshift ->(o) {
+              !(Array(options[:except]) & Array(o.validation_context)).empty?
+            }
+          end
         end
 
         args << options
@@ -320,7 +332,8 @@ module ActiveModel
     #   person.valid? # => true
     #
     # Context can optionally be supplied to define which callbacks to test
-    # against (the context is defined on the validations using <tt>:on</tt>).
+    # against (the context is defined on the validations using <tt>:on</tt>
+    # and <tt>:except</tt>).
     #
     #   class Person
     #     include ActiveModel::Validations
@@ -359,7 +372,8 @@ module ActiveModel
     #   person.invalid? # => false
     #
     # Context can optionally be supplied to define which callbacks to test
-    # against (the context is defined on the validations using <tt>:on</tt>).
+    # against (the context is defined on the validations using <tt>:on</tt>
+    # and <tt>:except</tt>).
     #
     #   class Person
     #     include ActiveModel::Validations
@@ -378,8 +392,10 @@ module ActiveModel
     # Runs all the validations within the specified context. Returns +true+ if
     # no errors are found, raises +ValidationError+ otherwise.
     #
-    # Validations with no <tt>:on</tt> option will run no matter the context. Validations with
-    # some <tt>:on</tt> option will only run in the specified context.
+    # Validations with no <tt>:on</tt> and no <tt>except</tt> option will run
+    # no matter the context. Validations with some <tt>:on</tt> option will
+    # only run in the specified context. Validations with some <tt>:except</tt>
+    # option will not run in the specified context.
     def validate!(context = nil)
       valid?(context) || raise_validation_error
     end
