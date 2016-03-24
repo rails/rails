@@ -231,6 +231,18 @@ module ActiveRecord
         @explicit_sequence_name = true
       end
 
+      # Determines if the primary key values should be selected from their
+      # corresponding sequence before the insert statement.
+      def prefetch_primary_key?
+        connection.prefetch_primary_key?(table_name)
+      end
+
+      # Returns the next value that will be used as the primary key on
+      # an insert statment.
+      def next_sequence_value
+        connection.next_sequence_value(sequence_name)
+      end
+
       # Indicates whether the table associated with this class exists
       def table_exists?
         connection.schema_cache.data_source_exists?(table_name)

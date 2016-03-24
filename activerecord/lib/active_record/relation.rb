@@ -45,8 +45,8 @@ module ActiveRecord
           k.name == primary_key
         }]
 
-        if !primary_key_value && connection.prefetch_primary_key?(klass.table_name)
-          primary_key_value = connection.next_sequence_value(klass.sequence_name)
+        if !primary_key_value && klass.prefetch_primary_key?
+          primary_key_value = klass.next_sequence_value
           values[arel_attribute(klass.primary_key)] = primary_key_value
         end
       end
