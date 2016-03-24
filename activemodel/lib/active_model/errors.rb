@@ -110,7 +110,7 @@ module ActiveModel
     #   person.errors.include?(:name) # => true
     #   person.errors.include?(:age)  # => false
     def include?(attribute)
-      messages[attribute].present?
+      messages.key?(attribute) && messages[attribute].present?
     end
     alias :has_key? :include?
     alias :key? :include?
