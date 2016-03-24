@@ -830,6 +830,25 @@ class Person < ApplicationRecord
 end
 ```
 
+You can also use `on:` to define custom context.
+Custom contexts need to be triggered explicitly
+by passing name of the context to `valid?`, `invalid?` or `save`.
+
+```ruby
+class Person < ApplicationRecord
+  validates :email, uniqueness: true, on: :account_setup
+  validates :age, numericality: true, on: :account_setup
+end
+
+person = Person.new
+```
+
+`person.valid?(:account_setup)` executes both the validations
+without saving the model. And `person.save(context: :account_setup)`
+validates `person` in `account_setup` context before saving.
+On explicit triggers, model is validated by
+validations of only that context and validations without context.
+
 Strict Validations
 ------------------
 
