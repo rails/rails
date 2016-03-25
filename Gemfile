@@ -23,6 +23,9 @@ gem 'bcrypt', '~> 3.1.7', require: false
 # it being automatically loaded by sprockets
 gem 'uglifier', '>= 1.3.0', require: false
 
+# mime-types 3 only support ruby >= 2
+gem 'mime-types', '< 3', require: false
+
 group :doc do
   gem 'sdoc', '~> 0.4.0'
   gem 'redcarpet', '~> 2.2.2', platforms: :ruby
